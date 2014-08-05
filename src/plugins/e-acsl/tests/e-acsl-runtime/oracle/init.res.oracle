@@ -1,0 +1,34 @@
+[kernel] preprocessing with "gcc -C -E -I. -IFRAMAC_SHARE/e-acsl  -DE_ACSL_MACHDEP=x86_32 -IFRAMAC_SHARE/libc FRAMAC_SHARE/e-acsl/e_acsl.h"
+[kernel] preprocessing with "gcc -C -E -I. -IFRAMAC_SHARE/e-acsl  -DE_ACSL_MACHDEP=x86_32 -IFRAMAC_SHARE/libc FRAMAC_SHARE/e-acsl/e_acsl_gmp_types.h"
+[kernel] preprocessing with "gcc -C -E -I. -IFRAMAC_SHARE/e-acsl  -DE_ACSL_MACHDEP=x86_32 -IFRAMAC_SHARE/libc FRAMAC_SHARE/e-acsl/e_acsl_gmp.h"
+[kernel] preprocessing with "gcc -C -E -I. -IFRAMAC_SHARE/e-acsl  -DE_ACSL_MACHDEP=x86_32 -IFRAMAC_SHARE/libc FRAMAC_SHARE/e-acsl/memory_model/e_acsl_mmodel_api.h"
+[kernel] preprocessing with "gcc -C -E -I. -IFRAMAC_SHARE/e-acsl  -DE_ACSL_MACHDEP=x86_32 -IFRAMAC_SHARE/libc FRAMAC_SHARE/e-acsl/memory_model/e_acsl_bittree.h"
+[kernel] preprocessing with "gcc -C -E -I. -IFRAMAC_SHARE/e-acsl  -DE_ACSL_MACHDEP=x86_32 -IFRAMAC_SHARE/libc FRAMAC_SHARE/e-acsl/memory_model/e_acsl_mmodel.h"
+[kernel] preprocessing with "gcc -C -E -I.  -DE_ACSL_MACHDEP=x86_32 -IFRAMAC_SHARE/libc tests/e-acsl-runtime/init.c"
+[e-acsl] beginning translation.
+[e-acsl] translation done in project "e-acsl".
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  random_counter ∈ {0}
+  rand_max ∈ {32767}
+  __fc_heap_status ∈ [--..--]
+  __e_acsl_init ∈ [--..--]
+  __e_acsl_internal_heap ∈ [--..--]
+  __memory_size ∈ [--..--]
+  a ∈ {0}
+  b ∈ {0}
+[value] using specification for function __store_block
+[value] using specification for function __full_init
+tests/e-acsl-runtime/init.c:11:[value] Assertion got status valid.
+[value] using specification for function e_acsl_assert
+FRAMAC_SHARE/e-acsl/e_acsl.h:34:[value] Function e_acsl_assert: precondition got status valid.
+tests/e-acsl-runtime/init.c:12:[value] Assertion got status valid.
+[value] using specification for function __initialized
+FRAMAC_SHARE/e-acsl/e_acsl.h:34:[value] Function e_acsl_assert: precondition got status unknown.
+tests/e-acsl-runtime/init.c:13:[value] Assertion got status valid.
+[value] using specification for function __delete_block
+[value] using specification for function __e_acsl_memory_clean
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
