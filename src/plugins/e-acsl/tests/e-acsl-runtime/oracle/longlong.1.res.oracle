@@ -24,7 +24,8 @@ tests/e-acsl-runtime/longlong.i:11:[value] warning: recursive call during value 
 [value] user error: Recursive call on an unspecified function. Using potentially invalid
                     inferred assigns 'assigns \result \from x, n;'
 [value] using specification for function my_pow
-tests/e-acsl-runtime/longlong.i:12:[kernel] warning: signed overflow. assert -2147483648 ≤ tmp*tmp ≤ 2147483647;
+tests/e-acsl-runtime/longlong.i:12:[kernel] warning: signed overflow. assert -2147483648 ≤ tmp*tmp;
+tests/e-acsl-runtime/longlong.i:12:[kernel] warning: signed overflow. assert tmp*tmp ≤ 2147483647;
 tests/e-acsl-runtime/longlong.i:19:[value] Assertion got status valid.
 [value] using specification for function __gmpz_init_set_si
 FRAMAC_SHARE/e-acsl/e_acsl_gmp.h:64:[value] Function __gmpz_init_set_si: precondition got status valid.
