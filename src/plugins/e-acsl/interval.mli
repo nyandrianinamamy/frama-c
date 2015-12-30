@@ -36,6 +36,7 @@ end
 
 val interv_of_typ: Cil_types.typ -> t
 
+val add: t -> Integer.t -> t
 val join: t -> t -> t
 val meet: t -> t -> t
 
