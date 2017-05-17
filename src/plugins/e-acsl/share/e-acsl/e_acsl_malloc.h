@@ -29,10 +29,10 @@
 /* Should be included after
  * printf, debug and assert but before the actual code */
 
-#include <stddef.h>
-
 #ifndef E_ACSL_MALLOC
 #define E_ACSL_MALLOC
+
+#include <stddef.h>
 
 /** Define `aliasname` as a strong alias for `name`. */
 # define strong_alias(name, aliasname) _strong_alias(name, aliasname)
