@@ -32,6 +32,8 @@ module Project_name: Parameter_sig.String
 module Builtins: Parameter_sig.String_set
 module Temporal_validity: Parameter_sig.Bool
 
+val parameter_states: State.t list
+
 val must_visit: unit -> bool
 
 val dkey_analysis: Log.category
