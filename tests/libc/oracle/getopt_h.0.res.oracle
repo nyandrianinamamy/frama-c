@@ -1,0 +1,6 @@
+[kernel] Parsing getopt_h.c (with preprocessing)
+[eva:alarm] getopt_h.c:71: Warning: 
+  function printf_va_3: precondition valid_read_string(param0) got status unknown.
+[eva:alarm] getopt_h.c:89: Warning: 
+  accessing out of bounds index. assert 0 ≤ tmp_0;
+                                 (tmp_0 from optind++)

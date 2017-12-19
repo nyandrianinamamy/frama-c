@@ -29,6 +29,8 @@ struct option
 
 
 /*@
+  requires longind_valid_or_null:
+    longind == \null ? \true : \valid(longind);
   assigns \result, optopt \from
     argv[0 .. argc-1][0..],
     indirect:argc,
@@ -45,10 +47,17 @@ struct option
     argv[0 .. argc-1],
     indirect:argc,
     indirect:shortopts[0..], indirect:longopts[0..];
+  ensures initialization:result_parsing_done_or_found_option:
+          \result == -1 ||
+          (\result == 0 &&
+           longind == \null ? \true :
+           (\initialized(longind) && *longind >= 0 &&
+            \valid(longopts + *longind))) ||
+          \result > 0;
  */
 extern int getopt_long (int argc, char *const argv[],
-			const char *shortopts,
-			const struct option *longopts, int *longind);
+                        const char *shortopts,
+                        const struct option *longopts, int *longind);
 
 /*@
   assigns \result, optopt \from
