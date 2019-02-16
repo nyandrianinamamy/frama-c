@@ -54,15 +54,15 @@ let is_hidden_base vi =
 let main () =
   if not (Self.Targets.is_empty ()) then begin
     (* Create the initial graph  *)
-    let graph = Build.create ~is_folded_base ~is_hidden_base () in
+    let context = Build.create ~is_folded_base ~is_hidden_base () in
     (* Add targets to it *)
     let add_target' (lval,sids) =
-      List.iter (add_target graph lval) sids
+      List.iter (add_target context lval) sids
     in
     Self.Targets.iter add_target';
     (* Output it *)
     let out_channel = open_out "imprecisions.dot" in
-    Imprecision_graph.ouptput_to_dot out_channel graph.Build.graph;
+    Imprecision_graph.ouptput_to_dot out_channel (Build.get_graph context);
     close_out out_channel
   end
 
