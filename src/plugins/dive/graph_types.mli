@@ -32,11 +32,13 @@ type node_locality = {
   loc_function : Cil_types.kernel_function option;
 }
 
+type node_precision = Singleton | Normal | Wide | Critical
+
 type node = {
   node_key : int;
   node_kind : node_kind;
   node_locality : node_locality;
-  mutable node_imprecise : bool;
+  mutable node_precision : node_precision;
   mutable node_deps_computed : bool;
 }
 
