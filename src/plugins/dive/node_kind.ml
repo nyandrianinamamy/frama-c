@@ -24,7 +24,7 @@ open Graph_types
 
 let get_base = function
   | Scalar (vi,_,_) | Composite (vi) -> Some vi
-  | Scattered _ | Alarm _ | File -> None
+  | Scattered _ | Alarm _ | Cluster -> None
 
 let to_location = function
   | Scalar (vi,typ,offset) ->
@@ -32,17 +32,17 @@ let to_location = function
     Some (Locations.loc_of_typoffset base typ offset)
   | Composite (vi) ->
     Some (Locations.loc_of_varinfo vi)
-  | Scattered _ | Alarm _ | File -> None
+  | Scattered _ | Alarm _ | Cluster -> None
 
 let to_lval = function
   | Scalar (vi,_typ,offset) -> Some (Cil_types.Var vi, offset)
   | Composite (vi) -> Some (Cil_types.Var vi, Cil_types.NoOffset)
   | Scattered (lval) -> Some lval
-  | Alarm (_,_) | File -> None
+  | Alarm (_,_) | Cluster -> None
 
 let pretty fmt = function
   | (Scalar _ | Composite _ | Scattered _) as kind ->
     Cil_printer.pp_lval fmt (Extlib.the (to_lval kind))
   | Alarm (_stmt,alarm) ->
     Cil_printer.pp_predicate fmt (Alarms.create_predicate alarm)
-  | File -> ()
+  | Cluster -> ()
