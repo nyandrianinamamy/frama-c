@@ -44,6 +44,10 @@ val update_node_values : node -> node_values -> unit
 val create_dependency : allow_folding:bool -> t -> node -> dependency_kind ->
   node -> unit
 
+val remove_dependency : t -> node * dependency * node -> unit
+
+val find_independant_nodes : t -> node list -> node list
+
 val ouptput_to_dot : out_channel -> t -> unit
 val ouptput_to_json : out_channel -> t -> unit
 
