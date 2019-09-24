@@ -26,7 +26,7 @@ module type Override = sig
   val function_name: string
   val replace_call: instr -> instr
   val get_globals: location -> global list
-  val reset: unit -> unit
+  val mark_as_computed: ?project:Project.t -> unit -> unit
 end
 val register: (module Override) -> unit
 
