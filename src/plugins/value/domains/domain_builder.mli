@@ -56,17 +56,9 @@ module Complete_Simple_Cvalue
                           and type location = Precise_locs.precise_location
                           and type state = Domain.t
 
-
-type permission = { read: bool; write: bool; }
-type mode = { current: permission; calls: permission; }
-
-module Mode : sig
-  val all: mode
-end
-
 module Restrict
     (Value: Abstract_value.S)
     (Domain: Abstract.Domain.Internal with type value = Value.t)
-    (Scope: sig val functions: (Kernel_function.t * mode) list end)
+    (Scope: sig val functions: Domain_mode.function_mode list end)
   : Abstract.Domain.Internal with type value = Value.t
                               and type location = Domain.location
