@@ -56,9 +56,9 @@ val publish :
   ?name:string ->
   ?index:string list ->
   title:string ->
-  Markdown.elements ->
-  Markdown.elements ->
-  Markdown.href
+  ?contents:Markdown.elements ->
+  ?generated:(unit -> Markdown.elements) ->
+  unit -> Markdown.href
 
 (** Dumps all published pages of documentations. Unless [~meta:false],
     also generates METADATA for each page in
