@@ -38,6 +38,7 @@ module Functions: Parameter_sig.Kernel_function_set
 module Instrument: Parameter_sig.Kernel_function_set
 
 val parameter_states: State.t list
+val emitter: Emitter.t
 
 val must_visit: unit -> bool
 
