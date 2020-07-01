@@ -35,25 +35,21 @@ type node_locality = {
   loc_callstack : Callstack.t;
 }
 
-type 'a interval = {min: 'a; max: 'a}
-
-type precision_grade = Singleton | Normal | Wide
+type node_range =
+  | Empty (* No values assigned to the node *)
+  | Singleton (* A unique value ever assigned *)
+  | Normal of int (* From 0 = almost singleton to 100 = almost all possible values *)
+  | Wide (* Too many values for the type to be reasonable *)
 
 type 'a computation = NotDone | Partial of 'a | Done
-
-type 'a node_values = {
-  values_interval : 'a interval;
-  values_limits : 'a interval;
-  values_grade : precision_grade;
-}
 
 type node = {
   node_key : int;
   node_kind : node_kind;
   node_locality : node_locality;
   mutable node_hidden : bool;
-  mutable node_int_values : (Integer.t node_values) option;
-  mutable node_float_values : (float node_values) option;
+  mutable node_values : Cvalue.V.t option;
+  mutable node_range : node_range;
   mutable node_writes_computation : (Cil_types.stmt list) computation;
   mutable node_writes_stmts : Cil_types.stmt list;
 }
