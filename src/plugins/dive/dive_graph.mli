@@ -26,7 +26,7 @@ include Graph.Sig.G
   with type V.t = node
    and type E.t = node * dependency * node
 
-module Node : Graph.Sig.COMPARABLE with type t = node
+module Node : Datatype.S_with_collections with type t = node
 
 module Dependency : Graph.Sig.COMPARABLE with type t = dependency
 
