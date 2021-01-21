@@ -26,7 +26,6 @@
 
 class type computer =
   object
-    method lemma : bool
     method model : WpContext.model
     method add_strategy : WpStrategy.strategy -> unit
     method add_lemma : LogicUsage.logic_lemma -> unit
@@ -49,3 +48,4 @@ val compute_selection : computer ->
   ?bhv:string list ->
   ?prop:string list ->
   unit -> Wpo.t Bag.t
+
