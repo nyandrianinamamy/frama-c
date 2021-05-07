@@ -44,10 +44,11 @@ args = sys.argv[2:]
 
 def check_cmdline_crashes(framac, args):
     cmdline = [framac] + args
-    #print(f"running: {' '.join(cmdline)}")
-    proc = subprocess.run(cmdline, timeout=10, capture_output=True)
-    #print(f"finished subprocess, returncode = {proc.returncode}")
-    return proc.returncode == 4 or proc.returncode == 125, proc
+    try:
+        proc = subprocess.run(cmdline, timeout=30, capture_output=True)
+        return proc.returncode == 4 or proc.returncode == 125, proc
+    except TimeoutExpired:
+        sys.exit(f"TODO: timeout reached during execution")
 
 # sanity check: initial run _must_ crash
 crash, proc = check_cmdline_crashes(framac, args)
