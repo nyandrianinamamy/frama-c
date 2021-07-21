@@ -29,9 +29,9 @@
 #define E_ACSL_ASSERT_H
 
 #include "../internals/e_acsl_alias.h"
+#include "e_acsl_assert_data.h"
 
 #define eacsl_runtime_sound_verdict export_alias(sound_verdict)
-#define eacsl_assert_data_t         export_alias(assert_data_t)
 #define eacsl_runtime_assert        export_alias(assert)
 
 /*! E-ACSL instrumentation automatically sets this global to 0 if its verdict
@@ -39,24 +39,6 @@
     TODO: may only happen for annotations containing memory-related properties.
     For arithmetic properties, the verdict is always sound (?). */
 extern int __attribute__((FC_BUILTIN)) eacsl_runtime_sound_verdict;
-
-/*! Data holding context information for E-ACSL assertions. */
-typedef struct eacsl_assert_data_t {
-  /*! integer representing if the assertion is blocking or not */
-  int blocking;
-  /*! C string representing a kind of annotation (e.g., "Assertion") */
-  const char *kind;
-  /*! stringified predicate */
-  const char *pred_txt;
-  /*! un-instrumented file of predicate placement */
-  const char *file;
-  /*! function of predicate placement in the un-instrumented file */
-  const char *fct;
-  /*! line of predicate placement in the un-instrumented file */
-  int line;
-  /*! values contributing to the predicate */
-  void *values;
-} __attribute__((__FC_BUILTIN__)) eacsl_assert_data_t;
 
 /*! \brief Runtime assertion verifying a given predicate
  *  \param predicate integer code of a predicate
