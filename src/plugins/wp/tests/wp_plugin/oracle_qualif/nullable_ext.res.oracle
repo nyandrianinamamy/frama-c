@@ -1,23 +1,25 @@
 # frama-c -wp -wp-model 'Typed (Caveat)' [...]
-[kernel] Parsing tests/wp_plugin/nullable_ext.i (no preprocessing)
+[kernel] Parsing tests/wp_plugin/nullable_ext.c (with preprocessing)
 [wp] Running WP plugin...
 [wp] Warning: In caveat model with nullable arguments, -wp-(no)-rte shall be explicitly positioned.
 [wp] Warning: Missing RTE guards
-[wp] 5 goals scheduled
+[wp] 6 goals scheduled
 [wp] [Alt-Ergo] Goal typed_caveat_nullable_coherence_check_must_fail : Unsuccess
 [wp] [Qed] Goal typed_caveat_nullable_coherence_check : Valid
 [wp] [Qed] Goal typed_caveat_nullable_coherence_assigns : Valid
 [wp] [Qed] Goal typed_caveat_nullable_in_context_assigns_part1 : Valid
 [wp] [Qed] Goal typed_caveat_nullable_in_context_assigns_part2 : Valid
-[wp] Proved goals:    4 / 5
-  Qed:             4 
+[wp] [Qed] Goal typed_caveat_with_declaration_assigns : Valid
+[wp] Proved goals:    5 / 6
+  Qed:             5 
   Alt-Ergo:        0  (unsuccess: 1)
 ------------------------------------------------------------
  Functions                 WP     Alt-Ergo  Total   Success
   nullable_coherence        2        -        3      66.7%
   nullable_in_context       2        -        2       100%
+  with_declaration          1        -        1       100%
 ------------------------------------------------------------
-[wp] tests/wp_plugin/nullable_ext.i:14: Warning: 
+[wp] tests/wp_plugin/nullable_ext.c:22: Warning: 
   Memory model hypotheses for function 'nullable_coherence':
   /*@
      behavior wp_typed_caveat:
@@ -28,7 +30,7 @@
        requires p ≢ \null ⇒ \separated(g, p, &x);
      */
   void nullable_coherence(int *p /*@ wp_nullable */);
-[wp] tests/wp_plugin/nullable_ext.i:28: Warning: 
+[wp] tests/wp_plugin/nullable_ext.c:36: Warning: 
   Memory model hypotheses for function 'nullable_in_context':
   /*@
      behavior wp_typed_caveat:
@@ -47,3 +49,8 @@
   void nullable_in_context(int *p /*@ wp_nullable */,
                            int *q /*@ wp_nullable */,
                            int *r /*@ wp_nullable */, int *s, int *t);
+[wp] tests/wp_plugin/nullable_ext.c:47: Warning: 
+  Memory model hypotheses for function 'with_declaration':
+  /*@ behavior wp_typed_caveat:
+        requires \valid(ptr); */
+  void with_declaration(int *ptr);
