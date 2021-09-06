@@ -38,6 +38,16 @@ if len(sys.argv) < 2:
     print(f"usage: {sys.argv[0]} <frama-c command line causing a crash>")
     sys.exit(0)
 
+# auxiliary function for iterating a list as a pair (cur, next);
+# from SO: https://stackoverflow.com/questions/5434891
+# This will likely be available in Python 3.10
+import itertools
+def pairwise(iterable):
+    "s -> (s0,s1), (s1,s2), (s2, s3), ..."
+    a, b = itertools.tee(iterable)
+    next(b, None)
+    return zip(a, b)
+
 # we assume the first argument is always the frama-c binary
 framac = sys.argv[1]
 args = sys.argv[2:]
@@ -47,8 +57,46 @@ def check_cmdline_crashes(framac, args):
     try:
         proc = subprocess.run(cmdline, timeout=30, capture_output=True)
         return proc.returncode == 4 or proc.returncode == 125, proc
-    except TimeoutExpired:
+    except subprocess.TimeoutExpired:
         sys.exit(f"TODO: timeout reached during execution")
+
+# Returns 'true' if string s contains a comma that is between two quotes;
+# used by normalize_commas.
+def has_comma_between_quotes(s):
+    try:
+        i = s.index(',')
+        return ('"' in s[:i-1] and '"' in s[i+1:]) or ("'" in s[:i-1] and "'" in s[i+1:])
+    except ValueError:
+        return False
+
+# Tries to split arguments of the form '-opt a1,a2,a3' into '-opt a1 -opt a2 -opt a3'
+# NOTE: this naively splits any arguments containing commas; if there are commas
+#       inside quotes, thing will go BAD. So, we try to detect and avoid handling
+#       cases where quotes could end up being split.
+def normalize_commas(args):
+    new_args = []
+    skip_next = False
+    for (prev, cur) in pairwise(args):
+        if skip_next:
+            skip_next = False
+            continue
+        if prev.startswith('-') and ',' in cur and not has_comma_between_quotes(cur):
+            print(f"splitting argument {cur} and combining with {prev}")
+            print(f"cur split: {cur.split(',')}")
+            for opt in cur.split(","):
+                new_args += [prev, opt]
+            skip_next = True
+            continue
+        else:
+            new_args.append(prev)
+    if not skip_next:
+        new_args.append(args[-1])
+    return new_args
+
+# Detects if an -eva-precision option has been given, and if so, replaces it
+# with its elements
+def normalize_eva_precision(args):
+    pass # TODO
 
 # sanity check: initial run _must_ crash
 crash, proc = check_cmdline_crashes(framac, args)
@@ -57,6 +105,7 @@ if not crash:
     print(f"error: supplied command line did not crash (expected return code 4, got {proc.returncode})!")
     sys.exit(1)
 
+args = normalize_commas(args)
 # must try removing 1 and 2 consecutive arguments, to avoid issues with invalid command lines
 progress = True
 while progress:
