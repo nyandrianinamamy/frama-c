@@ -57,7 +57,7 @@ SOURCES_GLOB: a glob expression (may contain '*', '**', '[]', etc) matching
     Note: curly braces ({}) are _not_ accepted.
     Incompatible with MULTI_SOURCES_GLOB and LOAD_SAVE.
     E.g. : SOURCES_GLOB="src/plugins/wp/tests/**/*.[ci]"
-    Default: "tests/**/*.[ci]", unles MULTI_SOURCES_GLOB is set.
+    Default: "tests/**/*.[ci]", unless MULTI_SOURCES_GLOB is set.
 
 MULTI_SOURCES_GLOB: a glob expression (may contain '*', '**', '[]', etc)
     matching all source files to be used as inputs for fuzzying.
@@ -114,6 +114,11 @@ QUIET: set to 1 to avoid outputting messages in stdout.
     Messages are still logged to a temporary file.
     Default: 0 (off)
 
+SOURCES_EXCLUDE: a comma-separated list of glob expressions (may contain
+    '*', '**', '[]', etc) matching all source files to be _excluded_ from
+    being fuzzying inputs.
+    Default: "" (empty string; off).
+
 TEMPLATES: the JSON file containing the templates for option generation,
     options to be excluded, etc.
     Default: <directory containing this script>/frama-smith-templates.json
@@ -140,6 +145,7 @@ must_succeed = bool(os.getenv("MUST_SUCCEED"))
 n_tries = int(os.getenv("N_TRIES", "100"))
 ptests_mode = bool(os.getenv("PTESTS_MODE"))
 quiet = os.getenv("QUIET")
+sources_exclude = os.getenv("SOURCES_EXCLUDE", "")
 timeout = int(os.getenv("TIMEOUT", "10"))
 templates_json = Path(os.getenv("TEMPLATES", script_dir / "frama-smith-templates.json"))
 
@@ -322,9 +328,17 @@ if nb_source_opts == 0:
 elif nb_source_opts > 1:
     sys.exit(f"error: only one of SOURCES_GLOB, MULTI_SOURCES_GLOB and LOAD_SAVE must be set")
 
-sources = glob.glob(glob_expression)
-if sources == []:
+sources_set = set(glob.glob(glob_expression))
+if not sources_set:
     sys.exit(f"error: no files matching expression: {glob_expression}")
+
+for exc in sources_exclude.split(","):
+    sources_set -= set(glob.glob(exc))
+
+if not sources_set:
+    sys.exit(f"error: no remaining files after applying source exclusions: {sources_exclude}")
+
+sources = sorted(sources_set)
 
 if list_options:
     print(f"Listing all options that could be generated:")
