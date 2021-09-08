@@ -80,12 +80,21 @@ def normalize_commas(args):
         if skip_next:
             skip_next = False
             continue
-        if prev.startswith('-') and ',' in cur and not has_comma_between_quotes(cur):
-            print(f"splitting argument {cur} and combining with {prev}")
-            print(f"cur split: {cur.split(',')}")
-            for opt in cur.split(","):
-                new_args += [prev, opt]
-            skip_next = True
+        if ',' in cur and not has_comma_between_quotes(cur):
+            # split arguments such as '-a=b,c' or '-a b,c'
+            if '=' in cur:
+                # split arguments such as '-a=b,c'
+                cur_prefix, cur_rest = cur.split('=', 1)
+                for opt in cur_rest.split(","):
+                    new_args += [cur_prefix, opt]
+            elif prev.startswith('-'):
+                # split arguments such as '-a b,c'
+                for opt in cur.split(","):
+                    new_args += [prev, opt]
+                skip_next = True
+            else:
+                # nothing to split, carry on
+                continue
             continue
         else:
             new_args.append(prev)
