@@ -26,6 +26,7 @@
 
 open Cil_types
 
+val is_called: kernel_function -> bool
 val mark_kf_as_called: kernel_function -> unit
 val add_kf_caller: caller:kernel_function * stmt -> kernel_function -> unit
 
@@ -45,58 +46,6 @@ val change_callstacks:
 (** Change the callstacks for the results for which this is meaningful.
     For technical reasons, the top of the callstack must currently
     be preserved. *)
-
-
-(** {2 Summary } *)
-
-type alarm_category =
-  | Division_by_zero
-  | Memory_access
-  | Index_out_of_bound
-  | Invalid_shift
-  | Overflow
-  | Uninitialized
-  | Dangling
-  | Nan_or_infinite
-  | Float_to_int
-  | Other
-
-module AlarmsStats : Map.S with type key = alarm_category
-
-type coverage_entry =
-  { mutable reachable: int;
-    mutable dead: int; }
-
-type coverage =
-  { functions: coverage_entry;
-    statements: coverage_entry; }
-
-type event_count =
-  { mutable errors: int;
-    mutable warnings: int; }
-
-type statuses_entry =
-  { mutable valid: int;
-    mutable unknown: int;
-    mutable invalid: int; }
-
-type statuses =
-  { alarms: statuses_entry;
-    assertions: statuses_entry;
-    preconds: statuses_entry; }
-
-type stats =
-  { coverage: coverage;
-    eva_events: event_count;
-    kernel_events: event_count;
-    statuses: statuses;
-    alarms: int AlarmsStats.t; }
-
-(** Compute analysis statistics. *)
-val compute_stats: unit -> stats
-
-(** Prints a summary of the analysis. *)
-val print_summary: unit -> unit
 
 (*
 Local Variables:
