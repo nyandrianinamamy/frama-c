@@ -546,7 +546,7 @@ for i in range(1, n_tries+1):
         # generate random arguments for options with 'function' template
         pre_options = generate_random_args(0, 10)
         post_options = generate_random_args(0, 10)
-        cmdline = f"bin/ptests.opt -j 12 {add_load}{chosen_sources} -add-options-pre='{pre_options}' -add-options-post='{post_options} -autoload-plugins' {extra_args}"
+        cmdline = f"bin/ptests.opt -j 12 {add_load}{chosen_sources} -add-options-pre='{pre_options}' -add-options-post='{post_options} -autoload-plugins' -del-options=' -load-module[^ ]*cmxs' {extra_args}"
     else:
         chosen_sources = " ".join(sources) if source_mode == "multi" else random.choice(sources)
         cpp_extra = f"-cpp-extra-args=\"{cpp_extra_args}\" " if source_mode != "load" else ""
