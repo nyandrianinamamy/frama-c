@@ -22,12 +22,18 @@
         "-loop-*",
         "-obfuscator-*",
         "-print_api*",
+        "-reduc-*",
         "-report-output-*",
         "-slicing-*",
         "-wp-*",
+        "-e-acsl-*",
+        "-aorai-*",
         "<LIST_TERMINATOR>"
     ],
     "options_to_ignore":{
+        "-aorai": "TEMP",
+        "-e-acsl": "TEMP",
+        "-reduc": "TEMP",
         "--list-plugins": "useless (exits)",
         "--plugins": "useless (exits)",
         "-add-path": "cannot generate random arguments for this option",
@@ -98,6 +104,7 @@
         "-server-polling": "",
         "-server-socket": "",
         "-server-zmq": "",
+        "-set-project-as-default": "currently crashing with sparecode",
         "-slice-assert": "slicing ignored for now (too many crashes)",
         "-slice-calls": "slicing ignored for now (too many crashes)",
         "-slice-loop-inv": "slicing ignored for now (too many crashes)",
@@ -108,6 +115,8 @@
         "-slice-threat": "slicing ignored for now (too many crashes)",
         "-slice-value": "",
         "-slice-wr": "",
+        "-sparecode": "currently ignored (too many crashes)",
+        "-sparecode-rm-unused-globals": "currently ignored (too many crashes)",
         "-time": "just prints information to a file",
         "-v": "useless (exits)",
         "-wp-alias-vars": "",
@@ -163,6 +172,8 @@
         "-nonterm-ignore": "functions",
         "-pc-com": ["internet", "unix", "stdio"],
         "-pdg-dot": ["fuzzed_pdg.dot"],
+        "-reduc-gen-annot": ["all", "inout"],
+        "-reduc-gen-vars": ["all"],
         "-remove-inlined": "functions",
         "-report-csv": ["fuzzed_report.csv"],
         "-report-output": ["fuzzed_report.json"],
@@ -179,6 +190,14 @@
         "-wp-auto-backtrack": ["0", "1", "2", "5"],
         "-wp-auto-depth": ["0", "1", "5", "10", "20"],
         "-wp-auto-width": ["0", "1", "5", "10", "20"],
+        "<LIST_TERMINATOR>": []
+    },
+    "sources_blacklist":
+    {
+        "tests/journal/control.i": "uses a -load-script, which leads to crashes with -add-options",
+        "tests/journal/control2.c": "uses a -load-script, which leads to crashes with -add-options",
+        "tests/journal/intra.i": "uses a -load-script, which leads to crashes with -add-options",
+        "tests/misc/debug_category.i": "test oracle contains a 'crash' message, triggering a false positive in the script; also requires a -load-module, which leads to crashes with -add-options",
         "<LIST_TERMINATOR>": []
     }
 }

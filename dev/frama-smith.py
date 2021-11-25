@@ -169,6 +169,8 @@ with open(templates_json, encoding='utf-8') as template_file:
     options_to_ignore = list(json_obj["options_to_ignore"].keys())
     templates = json_obj["templates"]
     mandatory_args = json_obj["mandatory_args"]
+    sources_blacklist = json_obj["sources_blacklist"]
+    del sources_blacklist["<LIST_TERMINATOR>"]
 
 re_argtype = re.compile(' (-[^ ]+): ([^ ]+)( \((.*)\))?')
 lines = subprocess.check_output([framac, f"-autocomplete={autocomplete_filter}"],
@@ -332,6 +334,12 @@ elif nb_source_opts > 1:
 sources_set = set(glob.glob(glob_expression))
 if not sources_set:
     sys.exit(f"error: no files matching expression: {glob_expression}")
+
+for exc in sources_blacklist.keys():
+    sources_set -= set(glob.glob(exc))
+
+if not sources_set:
+    sys.exit(f"error: no remaining files after applying sources blacklist: {list(sources_blacklist.keys())}")
 
 for exc in sources_exclude.split(","):
     sources_set -= set(glob.glob(exc))
