@@ -30,6 +30,7 @@ import json
 import logging
 import math
 import os
+import psutil
 import random
 import re
 import subprocess
@@ -456,15 +457,34 @@ class Timer:
     def cancel(self):
         self._task.cancel()
 
+# This function ensures that, especially in the case of timeouts, the children
+# processes of the shell running Frama-C (or ptests) will also be terminated.
+# If we use a simple 'process.kill()' applied to the created subprocess, this
+# will not be enough, and the child process will keep running.
+def kill_shell_and_children(pid):
+    try:
+        process = psutil.Process(pid)
+        for child in process.children(recursive=True):
+            try:
+                print(f"killing child: {child.pid}")
+                child.kill()
+            except psutil.NoSuchProcess as e:
+                print(f"process {child.pid} already killed, ignoring")
+        print(f"killing process: {pid}")
+        process.kill()
+    except psutil.NoSuchProcess as e:
+        print(f"process {pid} already killed, ignoring")
+
 async def timeout_callback(timeout, process):
-    print(f"### TIMEOUT ({timeout} seconds) running process, ignoring...")
-    process.kill() # timeout
+    print(f"### TIMEOUT ({timeout} seconds) running process {process.pid}, ignoring...")
+    kill_shell_and_children(process.pid)
     global timeouts
     timeouts += 1
 
 async def run_and_log_command(args, timeout):
     process = await asyncio.create_subprocess_shell(args,
-            stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT)
+                                                    stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT,
+                                                    limit = 1024 * 256)
     # read line asynchronously
     logfd, logname = tempfile.mkstemp(prefix="frama_smith_")
     with open (logname, "bw") as logfile:
@@ -476,10 +496,14 @@ async def run_and_log_command(args, timeout):
                 try:
                     line = await asyncio.wait_for(process.stdout.readline(), timeout)
                 except (asyncio.TimeoutError, asyncio.exceptions.TimeoutError) as e:
-                    print(f"### TIMEOUT ({timeout} seconds) reading process, ignoring...")
-                    process.kill() # timeout
+                    print(f"### TIMEOUT ({timeout} seconds) reading process {process.pid}, ignoring...")
+                    kill_shell_and_children(process.pid) # timeout
                     retcode = 124
                     return (retcode, "")
+                except ValueError as e:
+                    print(f"### VALUE ERROR: {repr(e)}")
+                    kill_shell_and_children(process.pid) # timeout
+                    return (1, "")
                 else:
                     if not line: # EOF
                         break
@@ -489,13 +513,11 @@ async def run_and_log_command(args, timeout):
                             sys.stdout.buffer.write(line)
                             sys.stdout.flush()
                         continue
-                    process.kill() # timeout
-                    break
             retcode = await process.wait() # wait for the child process to exit
             timer.cancel()
         except Exception as e:
-            print("killing subprocess before re-raising exception...")
-            process.kill()
+            print(f"killing subprocess {process.pid} before re-raising exception <{repr(e)}>...")
+            kill_shell_and_children(process.pid)
             raise e
     with open(logname, "r") as logfile:
         output = logfile.read()
