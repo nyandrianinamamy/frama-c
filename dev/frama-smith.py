@@ -356,7 +356,9 @@ if list_options:
 
 ### END OF COMMAND-LINE CHECKS; EXECUTION WILL TAKE PLACE
 
-print(f"Autocomplete filter: '{autocomplete_filter}'. Fuzzing {len(all_options)}/{n_opts} Frama-C command-line options ({unsupported_n_opts} option(s) not supported in current mode).")
+all_options_keys_list = list(all_options.keys())
+
+print(f"Autocomplete filter: '{autocomplete_filter}'. Fuzzing {len(all_options_keys_list)}/{n_opts} Frama-C command-line options ({unsupported_n_opts} option(s) not supported in current mode).")
 
 re_list_functions = re.compile('^([A-Za-z0-9_]+): (defined|declared) at.*')
 
@@ -383,7 +385,7 @@ def list_functions(chosen_sources, cpp_extra, add_load):
 
 def generate_random_args(min_args, max_args, functions=[]):
     n_args = random.randint(min_args, max_args)
-    chosen_opts = random.sample(all_options.keys(), n_args)
+    chosen_opts = random.sample(all_options_keys_list, n_args)
     args = ""
     #print(f"chosen_opts = {chosen_opts}")
     for opt in chosen_opts:
