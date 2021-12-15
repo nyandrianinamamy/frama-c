@@ -21,7 +21,7 @@
 (**************************************************************************)
 
 open Cil_types
-open Error
+open Error_types
 
 val get_preprocessed_quantifier:
   predicate -> ((term * logic_var * term) list * predicate) or_error
