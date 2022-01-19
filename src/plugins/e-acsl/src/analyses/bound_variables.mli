@@ -21,10 +21,9 @@
 (**************************************************************************)
 
 open Cil_types
-open Error_types
 
 val get_preprocessed_quantifier:
-  predicate -> ((term * logic_var * term) list * predicate) or_error
+  predicate -> ((term * logic_var * term) list * predicate) Result.t
 (** @return the preprocessed of a quantified predicate the
     [(term * logic_var * term) list] is the list of all the quantified variables
     along with their syntactic guards, and the [predicate] is the goal: the
