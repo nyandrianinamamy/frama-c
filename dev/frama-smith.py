@@ -578,16 +578,23 @@ for i in range(1, n_tries+1):
                     print("Automatically retrying command-line with -show...")
                     subproc = subprocess.run(cmdline + " -show", capture_output=True, shell=True)
                     res_stdout = subproc.stdout.decode("utf-8")
-                    cmd_index = res_stdout.index("Command:")
+                    cmd_index = res_stdout.index("for command:")
                     if cmd_index != -1:
-                        cmd_index += len("Command:") + 1
+                        cmd_index += len("for command:") + 1
                         full_command = res_stdout[cmd_index:res_stdout.find('\n', cmd_index)]
                         # Remove redirection of stdout/stderr at end of command
                         if " >tests" in full_command:
                             redirection_index = full_command.index(">tests")
                             full_command = full_command[:redirection_index]
                         print(f"Found command used to crash: {full_command}")
-                        minimize_cmd = str(script_dir / "minimize_crash_cmdline.py ") + full_command
+                        # Remove outermost parentheses
+                        full_command = full_command.strip(' ()')
+                        # Split 'cd <dir> && (<command>' part (note: the
+                        # rightmost parenthesis has already been stripped)
+                        [test_dir, full_command] = full_command.split("&&", 1)
+                        test_dir = test_dir[3:].strip().rstrip('/') # remove 'cd ', trailing spaces and slashes
+                        full_command = full_command.strip(' (')
+                        minimize_cmd = str(script_dir / "minimize_crash_cmdline.py ") + test_dir + " " + full_command
                         print(f"Running crash minimization script with: {minimize_cmd}")
                         os.system(minimize_cmd)
                         sys.exit(1)

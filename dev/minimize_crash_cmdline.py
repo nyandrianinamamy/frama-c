@@ -34,8 +34,8 @@ MIN_PYTHON = (3, 5) # for subprocess.run
 if sys.version_info < MIN_PYTHON:
     sys.exit("Python %s.%s or later is required.\n" % MIN_PYTHON)
 
-if len(sys.argv) < 2:
-    print(f"usage: {sys.argv[0]} <frama-c command line causing a crash>")
+if len(sys.argv) < 3:
+    print(f"usage: {sys.argv[0]} <test directory> <frama-c command line causing a crash>")
     sys.exit(0)
 
 # auxiliary function for iterating a list as a pair (cur, next);
@@ -48,14 +48,26 @@ def pairwise(iterable):
     next(b, None)
     return zip(a, b)
 
-# we assume the first argument is always the frama-c binary
-framac = sys.argv[1]
-args = sys.argv[2:]
+# we expect the first argument to be the test directory
+test_dir = sys.argv[1]
+if not os.path.exists(test_dir) or not os.path.isdir(test_dir):
+    sys.exit("error: first argument should point to a test directory: {test_dir}")
+
+# we expect the second argument to always be the frama-c binary
+framac = sys.argv[2]
+if not os.path.exists(framac) or not os.path.isfile(framac):
+    sys.exit("error: first argument should point to an existing Frama-C binary: {framac}")
+
+# if path was given with 'toplevel.opt', replace it with 'frama-c'
+if framac.endswith("toplevel.opt"):
+    framac = "frama-c".join(framac.rsplit("toplevel.opt", 1))
+
+args = sys.argv[3:]
 
 def check_cmdline_crashes(framac, args):
     cmdline = [framac] + args
     try:
-        proc = subprocess.run(cmdline, timeout=30, capture_output=True)
+        proc = subprocess.run(cmdline, cwd=test_dir, timeout=30, capture_output=True)
         return proc.returncode == 4 or proc.returncode == 125, proc
     except subprocess.TimeoutExpired:
         sys.exit(f"TODO: timeout reached during execution")
@@ -150,4 +162,7 @@ while progress:
 
 cmdline = [f'"{arg}"' for arg in args]
 cmdline = framac + " " + " ".join([f'"{arg}"' for arg in args])
-print(f"Minimized command line: {cmdline}")
+
+# Now that ptests run tests inside the result directory, we need to add
+# a 'cd' command to make the crash more easily reproducible
+print(f"Minimized command line: (cd {test_dir} && {cmdline})")
