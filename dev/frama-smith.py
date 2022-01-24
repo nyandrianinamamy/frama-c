@@ -24,6 +24,37 @@
 
 # Mini-fuzzer for the Frama-C command line. Also works with ptests.
 
+# Usage examples:
+#
+########## 'NORMAL' MODE #######
+# Opens one of the files in SOURCES_GLOB and adds a number of random
+# options:
+#
+# SOURCES_GLOB="tests/**/*.[ci]" devel_tools/frama-smith.py
+#
+# Works better with stand-alone programs; when using Frama-C
+# non-regression test suites, due to lack of the specific flags used in
+# many tests (e.g. -cpp-extra-args), many tests fail early. Prefer
+# PTESTS_MODE in this case.
+#
+########## PTESTS_MODE #######
+# Uses existing tests and existing options, and fuzzes by adding other
+# options:
+#
+# PTESTS_MODE=1 SOURCES_GLOB="tests/**/*.[ci]" SOURCES_EXCLUDE="tests/syntax/asm_with_contracts.i,tests/slicing/*" N_TRIES=10000 devel_tools/frama-smith.py
+#
+# SOURCES_GLOB: typically use "tests/**/*.[ci]" for the "main" Frama-C tests,
+# "src/plugins/*/tests/**/*.[ci]" for plugin-specific tests, or both, separated
+# by a comma.
+#
+# SOURCES_EXCLUDE: to temporarily exclude problematic tests (e.g. those which
+# tend to crash too often for uninteresting reasons).
+#
+# You can also add ptests options, such as `-add-options="-bla"` to force
+# their inclusion. Note that, if your option requires a plugin to be loaded,
+# you will often need `-add-options=-autoload-plugins` at the end.
+
+
 import asyncio
 import glob
 import json
