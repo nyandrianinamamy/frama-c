@@ -181,7 +181,10 @@ sources_exclude = os.getenv("SOURCES_EXCLUDE", "")
 timeout = int(os.getenv("TIMEOUT", "10"))
 templates_json = Path(os.getenv("TEMPLATES", script_dir / "frama-smith-templates.json"))
 
-extra_args = " ".join(sys.argv[1:])
+# add double quotes around extra arguments to be forwarded to the
+# 'new' command line; this compensates their 'loss' by the shell when passed
+# to this Python process.
+extra_args = " ".join('"%s"' % arg for arg in sys.argv[1:])
 
 framac = "build/bin/frama-c"
 fc_script = f"{framac}-script"
