@@ -24,6 +24,8 @@
     functions below should be inlined, as there is no good reason to treat
     those types as semi-private *)
 
+open Pdg_types
+
 open SlicingInternals
 
 val str_level_option : level_option -> string
