@@ -20,28 +20,24 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* Ugly ref *)
-val new_globals : (Cil_types.global list) ref
-
-type call_builder  = Cil_types.exp -> Cil_types.exp list -> Cil_types.instr
-
 exception Translate_call_exn of Cil_types.varinfo
 
-val fallback_fun_call : callee:Cil_types.varinfo -> Cil_types.location ->
-  call_builder -> Va_types.variadic_function -> Cil_types.exp list ->
-  Cil_types.instr list
+val fallback_fun_call :
+  builder:Builder.t -> callee:Cil_types.varinfo ->
+  Va_types.variadic_function -> Cil_types.exp list -> unit
 
-val aggregator_call : fundec:Cil_types.fundec -> ghost:bool ->
-  Va_types.aggregator -> Cil_types.block -> Cil_types.location ->
-  call_builder -> Va_types.variadic_function -> Cil_types.exp list ->
-  Cil_types.instr list
+val aggregator_call :
+  builder:Builder.t ->
+  Va_types.aggregator ->
+  Va_types.variadic_function -> Cil_types.exp list -> unit
 
-val overloaded_call : fundec:Cil_types.fundec -> Va_types.overload ->
-  Cil_types.block -> Cil_types.location -> call_builder ->
-  Va_types.variadic_function -> Cil_types.exp list ->
-  Cil_types.instr list
+val overloaded_call :
+  builder:Builder.t ->
+  Va_types.overload ->
+  Va_types.variadic_function -> Cil_types.exp list -> unit
 
-val format_fun_call : fundec:Cil_types.fundec -> Environment.t ->
-  Va_types.format_fun -> Cil_types.block -> Cil_types.location ->
-  call_builder -> Va_types.variadic_function -> Cil_types.exp list ->
-  Cil_types.instr list
+val format_fun_call :
+  builder:Builder.t ->
+  Environment.t ->
+  Va_types.format_fun ->
+  Va_types.variadic_function -> Cil_types.exp list -> unit
