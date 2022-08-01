@@ -20,12 +20,6 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** All the interesting functions of this module are exported through
-    {!Db.Interp}. *)
-
-(* TODO: remove the module Properties from Db and export directly the
-   functions from here. *)
-
 open Cil_types
 
 module To_zone : sig
@@ -35,9 +29,3 @@ module To_zone : sig
 end
 
 exception Error of location * string
-
-(*
-Local Variables:
-compile-command: "make -C ../../.."
-End:
-*)
