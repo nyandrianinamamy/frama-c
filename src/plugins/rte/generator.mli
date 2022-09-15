@@ -20,10 +20,18 @@
 (*                                                                        *)
 (**************************************************************************)
 
+type status_accessor =
+  string (* name *)
+  * (Cil_types.kernel_function -> bool -> unit) (* for each kf and each kind of
+                                                   annotation, set/unset the
+                                                   fact that there has been
+                                                   generated *)
+  * (Cil_types.kernel_function -> bool) (* is this kind of annotation generated
+                                           in kf? *)
 module type S = sig
   val is_computed: Kernel_function.t -> bool
   val set: Kernel_function.t -> bool -> unit
-  val accessor: Db.RteGen.status_accessor
+  val accessor: status_accessor
 end
 
 (* No module for Trivial: dependency added for generators below *)
@@ -45,7 +53,7 @@ module Float_to_int: S
 module Finite_float: S
 module Bool_value: S
 
-val all_statuses: Db.RteGen.status_accessor list
+val all_statuses: status_accessor list
 
 (** The Emitter for Annotations registered by RTE *)
 val emitter: Emitter.t
@@ -54,6 +62,8 @@ open Cil_types
 
 (** Returns all annotations actually {i registered} by RTE so far *)
 val get_registered_annotations: stmt -> code_annotation list
+
+val self: State.t
 
 (*
   Local Variables:
