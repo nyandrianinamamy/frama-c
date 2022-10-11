@@ -38,6 +38,9 @@ uninstall:
 	@echo "Removing Ivette…"
 	@rm -f $(PREFIX)/bin/ivette
 	@rm -f $(PREFIX)/lib/frama-c/ivette.tgz
-	@rm -fr $(PREFIX)/lib/ivette     # linux
-	@rm -fr /Applications/Ivette.app # macOS
+	@if test -d /Applications/Ivette.app ;\
+	 then \
+	 mkdir -p $(PREFIX)/bin; \
+	 install ivette/ivette-macos-cleanup.sh $(PREFIX)/bin/ivette; \
+	 fi
 	@echo "Done"
