@@ -986,12 +986,8 @@ module Default_offsetmap = struct
       aux validity V_Or_Uninitialized.bottom
     | Base.Var (_, validity) | Base.CLogic_Var (_, _, validity) ->
       aux validity V_Or_Uninitialized.uninitialized
-    | Base.Null ->
-      let validity = Base.validity base in
-      (* The map we create is not faithful for Null: this is not a problem in
-         practice, because the Null base is always bound to something correct
-         in module Value/Initial_state, or is invalid. *)
-      aux validity V_Or_Uninitialized.bottom
+    | Base.Null | Base.Absolute _ ->
+      aux (Base.validity base) V_Or_Uninitialized.bottom
 
   let default_contents = Lmap.Bottom
   (* this works because, currently:

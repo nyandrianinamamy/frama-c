@@ -101,7 +101,8 @@ let is_automatically_deallocated base =
   | Base.Allocated (_, Base.Malloc, _)
   | Base.Var _
   | Base.CLogic_Var _
-  | Base.Null -> false
+  | Base.Null
+  | Base.Absolute _ -> false
 
 (* Extracts the minimum/maximum sizes (in bytes) for malloc/realloc/calloc,
    respecting the bounds of size_t.

@@ -90,16 +90,27 @@ module Validity = Datatype.Make
 
 type deallocation = Malloc | VLA | Alloca
 
+(* Valid range of absolute addresses (like [(int* )0x123]) specified by
+   -absolute-valid-range. *)
+type absolute_range = {
+  id: int;    (* Unique id between all bases. *)
+  start: Z.t; (* Start in bits of the range. *)
+  size: Z.t;  (* Size in bits of the range. *)
+}
+
+[@@@warning "-37"] (* Unused Absolute constructor for now. *)
 type base =
   | Var of varinfo * validity
   | CLogic_Var of logic_var * typ * validity
-  | Null (** base for addresses like [(int* )0x123] *)
+  | Null
+  | Absolute of absolute_range
   | Allocated of varinfo * deallocation * validity
 
 let id = function
   | Var (vi,_) | Allocated (vi,_,_) -> vi.vid
   | CLogic_Var (lvi, _, _) -> lvi.lv_id
   | Null -> 0
+  | Absolute { id } -> id
 
 let hash = id
 
@@ -111,6 +122,9 @@ let is_string_literal = function
   | Var(v, _) -> Ast_info.is_string_literal v
   | _ -> false
 
+let pretty_absolute fmt abs =
+  Format.fprintf fmt "&%a" Z.pretty (Z.div abs.start 8z)
+
 let pretty fmt t =
   match t with
   | Var(v,_) when Ast_info.is_string_literal v ->
@@ -118,13 +132,14 @@ let pretty fmt t =
   | Var (t,_) | Allocated (t,_,_) -> Printer.pp_varinfo fmt t
   | CLogic_Var (lvi, _, _) -> Printer.pp_logic_var fmt lvi
   | Null -> Format.pp_print_string fmt "NULL"
+  | Absolute abs -> pretty_absolute fmt abs
 
 let pretty_addr fmt t =
   (match t with
    | Var (v,_) when Ast_info.is_string_literal v -> ()
    | Var _ | CLogic_Var _ | Allocated _ ->
      Format.pp_print_string fmt "&"
-   | Null -> ()
+   | Null | Absolute _ -> ()
   );
   pretty fmt t
 
@@ -133,12 +148,13 @@ let compare v1 v2 = Datatype.Int.compare (id v1) (id v2)
 let typeof v =
   match v with
   | CLogic_Var (_, ty, _) -> Some ty
-  | Null -> None
+  | Null | Absolute _ -> None
   | Var (v,_) | Allocated(v,_,_) -> Some (Ast_types.C.unroll v.vtype)
 
 let bits_sizeof v =
   match v with
   | Null -> Z_or_top.top
+  | Absolute { size } -> Z_or_top.inject size
   | Var (v,_) | Allocated (v,_,_) ->
     Bit_utils.sizeof_vid v
   | CLogic_Var (_, ty, _) -> Bit_utils.sizeof ty
@@ -147,6 +163,7 @@ let alignof base =
   try
     match base with
     | Null -> 0 (* Address of null is 0. *)
+    | Absolute { start } -> Z.to_int_opt start |> Option.value ~default:1
     | CLogic_Var (_, typ, _) -> Cil.bytesAlignOf typ
     | Var (vi, _) | Allocated (vi, _, _) -> Cil.bytesAlignOfVarinfo vi
   with Cil.SizeOfError (msg, _) ->
@@ -211,13 +228,8 @@ let validity_from_known_size size =
 let validity b =
   match b with
   | Var (_,v) | CLogic_Var (_, _, v) | Allocated (_,_,v) -> v
-  | Null ->
-    let mn = min_valid_absolute_address ()in
-    let mx = max_valid_absolute_address () in
-    if Z.gt mx mn then
-      Known (mn, mx)
-    else
-      Invalid
+  | Null -> Invalid
+  | Absolute { size } -> validity_from_size size
 
 let is_read_only base =
   match base with
@@ -327,7 +339,7 @@ let is_valid_offset access base offset =
 
 let is_function base =
   match base with
-  | Null | CLogic_Var _ | Allocated _ -> false
+  | Null | Absolute _ | CLogic_Var _ | Allocated _ -> false
   | Var(v,_) ->
     Ast_types.C.is_fun v.vtype
 
@@ -337,44 +349,44 @@ let is_any_formal_or_local v =
   match v with
   | Var (v,_) -> v.vsource && not v.vglob
   | Allocated _ | CLogic_Var _ -> false
-  | Null -> false
+  | Null | Absolute _ -> false
 
 let is_any_local v =
   match v with
   | Var (v,_) -> v.vsource && not v.vglob && not v.vformal
   | Allocated _ | CLogic_Var _ -> false
-  | Null -> false
+  | Null | Absolute _ -> false
 
 let is_global v =
   match v with
   | Var (v,_) -> v.vglob
-  | Allocated _ | Null -> true
+  | Allocated _ | Null | Absolute _ -> true
   | CLogic_Var _ -> false
 
 let is_formal_or_local v fundec =
   match v with
   | Var (v,_) -> Ast_info.Function.is_formal_or_local v fundec
-  | Allocated _ | CLogic_Var _ | Null -> false
+  | Allocated _ | CLogic_Var _ | Null | Absolute _ -> false
 
 let is_formal_of_prototype v vi =
   match v with
   | Var (v,_) -> Ast_info.Function.is_formal_of_prototype v vi
-  | Allocated _ | CLogic_Var _ | Null -> false
+  | Allocated _ | CLogic_Var _ | Null | Absolute _ -> false
 
 let is_local v fundec =
   match v with
   | Var (v,_) -> Ast_info.Function.is_local v fundec
-  | Allocated _ | CLogic_Var _ | Null -> false
+  | Allocated _ | CLogic_Var _ | Null | Absolute _ -> false
 
 let is_formal v fundec =
   match v with
   | Var (v,_)  -> Ast_info.Function.is_formal v fundec
-  | Allocated _ | CLogic_Var _ | Null -> false
+  | Allocated _ | CLogic_Var _ | Null | Absolute _ -> false
 
 let is_block_local v block =
   match v with
   | Var (v,_) -> Ast_info.is_block_local v block
-  | Allocated _ | CLogic_Var _ | Null -> false
+  | Allocated _ | CLogic_Var _ | Null | Absolute _ -> false
 
 let validity_from_type v =
   if Ast_types.C.is_fun v.vtype then Invalid
@@ -502,7 +514,7 @@ exception Not_a_C_variable
 
 let to_varinfo t = match t with
   | Var (t,_) | Allocated (t,_,_) -> t
-  | CLogic_Var _ | Null -> raise Not_a_C_variable
+  | CLogic_Var _ | Null | Absolute _ -> raise Not_a_C_variable
 
 module SetLattice = Make_Hashconsed_Lattice_Set(Base)(Hptset)
 
