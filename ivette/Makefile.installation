@@ -1,0 +1,55 @@
+##########################################################################
+#                                                                        #
+#  This file is part of Frama-C.                                         #
+#                                                                        #
+#  Copyright (C) 2007-2022                                               #
+#    CEA (Commissariat à l'énergie atomique et aux énergies              #
+#         alternatives)                                                  #
+#                                                                        #
+#  you can redistribute it and/or modify it under the terms of the GNU   #
+#  Lesser General Public License as published by the Free Software       #
+#  Foundation, version 2.1.                                              #
+#                                                                        #
+#  It is distributed in the hope that it will be useful,                 #
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of        #
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         #
+#  GNU Lesser General Public License for more details.                   #
+#                                                                        #
+#  See the GNU Lesser General Public License version 2.1                 #
+#  for more details (enclosed in the file licenses/LGPLv2.1).            #
+#                                                                        #
+##########################################################################
+
+# --------------------------------------------------------------------------
+# --- OPAM Installation
+# --------------------------------------------------------------------------
+
+FILTER= \
+	--exclude-vcs \
+	--exclude "doc" \
+	--exclude "dist" \
+	--exclude "tests" \
+	--exclude "_build" \
+	--exclude "node_modules" \
+
+ifndef PREFIX
+then
+install::
+	@echo "Warning: not target for Ivette"
+	@echo "  (no PREFIX, nor OPAM_SWITCH_PREFIX)"
+else
+install::
+	@echo "Installing Ivette to ${PREFIX}"
+	@mkdir -p ${PREFIX}/bin
+	@install ivette/ivette-bootstrap.sh ${PREFIX}/bin/ivette
+	@mkdir -p ${PREFIX}/lib/frama-c
+	@tar zcf ${PREFIX}/lib/frama-c/ivette.tgz ${FILTER} ivette
+
+uninstall::
+	@echo "Removing Ivette"
+	@rm -f  ${PREFIX}/bin/ivette
+	@rm -f  ${PREFIX}/lib/frama-c/ivette.tgz
+	@rm -fr ${PREFIX}/lib/frama-c/Ivette.app
+	@rm -fr ${PREFIX}/lib/frama-c/ivette
+	
+endif
