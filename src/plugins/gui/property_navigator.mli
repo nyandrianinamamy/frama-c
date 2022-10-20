@@ -20,10 +20,15 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Extension of the GUI in order to navigate in ACSL properties.
-    No function is exported. *)
+(** Extension of the GUI in order to navigate in ACSL properties. *)
 
-(* Empty on purpose. *)
+module Rte: sig
+  type status_accessor =
+    string
+    * (Cil_types.kernel_function -> bool -> unit)
+    * (Cil_types.kernel_function -> bool)
+  val register_get_all_status : (unit -> status_accessor list) -> unit
+end
 
 (*
   Local Variables:
