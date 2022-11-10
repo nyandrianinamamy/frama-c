@@ -21,26 +21,20 @@
 #                                                                        #
 ##########################################################################
 
-# Examples of installation of this pre-commit hook (client side):
-# - cp ./dev/git-hooks/pre-commit.sh .git/hooks/pre-commit
+# Example of installation of this pre-commit hook (client side):
 # - (cd .git/hooks/ && ln -s ../../dev/git-hooks/pre-commit.sh pre-commit)
-
-# Note:
-# - that checks the unstaged version of the files and these files are
-#   only commited with a `git commit -a` command.
-# - so, a `git commit` command may  checks the wrong version of a file.
+# Note: if you decide to copy the file, the `SCRIPT_DIR` variable must be
+# fixed accordingly.
 
 echo "Pre-commit Hook..."
 
-# Extract the files that have both an unstaged version and a staged one.
-UNSTAGED="git diff --name-status"
-STAGED="git diff --name-status --cached"
-(($UNSTAGED ; $STAGED) | sed "s:^.::" | sort -u) | diff - <(($UNSTAGED ; $STAGED) | sed "s:^.::" | sort)
-if [ "$?" != "0" ]; then
-    echo "WARNING: These previous files are both unstaged and in the index."
-    echo "         They will be verified only for a 'git commit -a' command."
+STAGED=$(git diff --diff-filter ACMR --name-only --cached | sort)
+
+if [ "$STAGED" = "" ];
+then
+  echo "Empty commit, nothing to do"
+  exit 0
 fi
 
-# Verifies the current version of the files
-make lint.before-commit-a || exit 1
-make check-headers.before-commit-a || exit 1
+SCRIPT_DIR=$(dirname -- "$( readlink -f -- "$0"; )")
+"$SCRIPT_DIR/../check-files.sh" -c || exit 1
