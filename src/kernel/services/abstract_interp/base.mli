@@ -155,9 +155,9 @@ val is_null : t -> bool
 val null_set: Hptset.t
 (** Set containing only the base {!null}. *)
 
-val min_valid_absolute_address: unit -> Z.t
-val max_valid_absolute_address: unit -> Z.t
-(** Bounds for option absolute-valid-range *)
+(** List of all ranges of absolute addresses specified by -absolute-valid-range,
+    with their related base. *)
+val absolute_addresses: unit -> (absolute_range * t) list
 
 
 (** {2 Type, size and alignment of a base} *)

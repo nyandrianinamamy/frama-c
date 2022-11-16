@@ -98,7 +98,6 @@ type absolute_range = {
   size: Z.t;  (* Size in bits of the range. *)
 }
 
-[@@@warning "-37"] (* Unused Absolute constructor for now. *)
 type base =
   | Var of varinfo * validity
   | CLogic_Var of logic_var * typ * validity
@@ -172,45 +171,58 @@ let alignof base =
       "Unknown alignment of base %a: %s" pretty base msg;
     1
 
-let dep_absolute = [Kernel.AbsoluteValidRange.self]
 
-module MinValidAbsoluteAddress =
-  State_builder.Ref
-    (Z)
+module Absolute =
+  Datatype.Make_with_collections
     (struct
-      let name = "MinValidAbsoluteAddress"
-      let dependencies = dep_absolute
-      let default () = Z.zero
+      include Datatype.Serializable_undefined
+      type t = absolute_range
+      let name = "Base.Absolute"
+      let reprs = [{ id = 0; start = Z.zero; size = Z.zero }]
+      let equal a1 a2 = Stdlib.Int.equal a1.id a2.id
+      let compare a1 a2 = Stdlib.Int.compare a1.id a2.id
+      let pretty = pretty_absolute
+      let hash a = a.id
     end)
 
-module MaxValidAbsoluteAddress =
-  State_builder.Ref
-    (Z)
+module AbsoluteList =
+  State_builder.List_ref
+    (Absolute)
     (struct
-      let name = "MaxValidAbsoluteAddress"
-      let dependencies = dep_absolute
-      let default () = Z.minus_one
+      let name = "Base.AbsoluteList"
+      let dependencies = [ Kernel.AbsoluteValidRange.self ]
     end)
+
+
+let create_absolute_base min max =
+  if Z.gt min max then None else
+    let mul_char_bit = Z.mul 8z in
+    let start = mul_char_bit min in
+    let size = mul_char_bit (Z.add (Z.sub max min) 1z) in
+    let id = Cil_const.new_raw_vid () in
+    Some { id; start; size; }
+
+let register_absolute_bases list =
+  let create x =
+    Scanf.sscanf x "%s@-%s"
+    (fun min max ->
+      create_absolute_base (Z.of_string min) (Z.of_string max))
+  in
+  try AbsoluteList.set (List.filter_map create list);
+  with
+  | End_of_file | Scanf.Scan_failure _ | Failure _
+  | Invalid_argument _ as e ->
+    Kernel.abort
+      "Invalid -absolute-valid-range integer-integer: each integer may be in \
+       decimal, hexadecimal (0x, 0X), octal (0o) or binary (0b) notation. \
+       A correct example is -absolute-valid-range 1-0xFFFFFF0.@\nError was %S@."
+      (Printexc.to_string e)
 
 let () =
-  Kernel.AbsoluteValidRange.add_set_hook
-    (fun _ x ->
-       try Scanf.sscanf x "%s@-%s"
-             (fun min max ->
-                (* let mul_CHAR_BIT = Int64.mul (Int64.of_int (bitsSizeOf charType)) in *)
-                (* the above is what we would like to write but it is too early *)
-                let mul_CHAR_BIT = Z.mul 8z in
-                MinValidAbsoluteAddress.set
-                  (mul_CHAR_BIT (Z.of_string min));
-                MaxValidAbsoluteAddress.set
-                  ((Z.pred (mul_CHAR_BIT (Z.succ (Z.of_string max))))))
-       with End_of_file | Scanf.Scan_failure _ | Failure _
-          | Invalid_argument _ as e ->
-         Kernel.abort "Invalid -absolute-valid-range integer-integer: each integer may be in decimal, hexadecimal (0x, 0X), octal (0o) or binary (0b) notation and has to hold in 64 bits. A correct example is -absolute-valid-range 1-0xFFFFFF0.@\nError was %S@."
-           (Printexc.to_string e))
+  Kernel.AbsoluteValidRange.add_set_hook (fun _ x -> register_absolute_bases x)
 
-let min_valid_absolute_address = MinValidAbsoluteAddress.get
-let max_valid_absolute_address = MaxValidAbsoluteAddress.get
+let absolute_addresses () =
+  List.map (fun abs -> abs, Absolute abs) (AbsoluteList.get ())
 
 let validity_from_size size =
   assert (Z.geq size 0z);

@@ -14,13 +14,13 @@ Options taking a string as argument should preferably be written
 
 *** ANALYSIS OPTIONS
 
--absolute-valid-range <min-max>  min and max must be integers in decimal,
+-absolute-valid-range <min-max,...>  min and max must be integers in decimal,
                     hexadecimal (0x, 0X), octal (0o) or binary (0b) notation
-                    and fit in 64 bits. Assume that that all absolute
-                    addresses outside of the [min-max] range are invalid. In
-                    the absence of this option, all absolute addresses are
-                    assumed to be invalid (preferably use
-                    -absolute-valid-range="min-max")
+                    and fit in 64 bits. Assume that all absolute addresses
+                    within [min-max] range are valid. Several ranges of valid
+                    absolute addresses can be defined. By default, all
+                    absolute addresses are assumed to be invalid. (preferably
+                    use -absolute-valid-range="min-max,...")
 -lib-entry          run analysis for an incomplete application e.g. an API
                     call. See the -main option to set the entry point
                     (opposite option is -no-lib-entry)
