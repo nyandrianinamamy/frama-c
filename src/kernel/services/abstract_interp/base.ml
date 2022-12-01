@@ -194,21 +194,19 @@ module AbsoluteList =
     end)
 
 
-let create_absolute_base min max =
-  if Z.gt min max then None else
-    let mul_char_bit = Z.mul 8z in
-    let start = mul_char_bit min in
-    let size = mul_char_bit (Z.add (Z.sub max min) 1z) in
-    let id = Cil_const.new_raw_vid () in
-    Some { id; start; size; }
+let create_absolute_base (_str, min, max) =
+  let mul_char_bit = Z.mul 8z in
+  let start = mul_char_bit min in
+  let size = mul_char_bit (Z.add (Z.sub max min) 1z) in
+  let id = Cil_const.new_raw_vid () in
+  { id; start; size; }
 
-let register_absolute_bases list =
-  let create x =
-    Scanf.sscanf x "%s@-%s"
-    (fun min max ->
-      create_absolute_base (Z.of_string min) (Z.of_string max))
+let parse_absolute_ranges list =
+  let parse str =
+    Scanf.sscanf str "%s@-%s"
+    (fun min max -> str, Z.of_string min, Z.of_string max)
   in
-  try AbsoluteList.set (List.filter_map create list);
+  try List.map parse list;
   with
   | End_of_file | Scanf.Scan_failure _ | Failure _
   | Invalid_argument _ as e ->
@@ -217,6 +215,28 @@ let register_absolute_bases list =
        decimal, hexadecimal (0x, 0X), octal (0o) or binary (0b) notation. \
        A correct example is -absolute-valid-range 1-0xFFFFFF0.@\nError was %S@."
       (Printexc.to_string e)
+
+let rec check_absolute_ranges previous_range = function
+  | [] -> ()
+  | (str, min, max) as current :: tail ->
+    let abort = Kernel.abort "Invalid %s specified to -absolute-valid-range" in
+    if Z.gt min max then abort ("empty range " ^ str);
+    if Z.lt min 0z then abort ("negative range " ^ str);
+    if Z.equal min 0z then
+      Kernel.warning "Absolute valid range %s includes NULL pointer 0." str;
+    let check_overlapping (prev_str, _, prev_max) =
+      if Z.geq prev_max min
+      then abort ("overlapping ranges " ^ prev_str ^ " and " ^ str)
+    in
+    Option.iter check_overlapping previous_range;
+    check_absolute_ranges (Some current) tail
+
+let register_absolute_bases list =
+  let ranges = parse_absolute_ranges list in
+  let cmp (_, b1, _) (_, b2, _) = Z.compare b1 b2 in
+  let sorted_ranges = List.fast_sort cmp ranges in
+  check_absolute_ranges None sorted_ranges;
+  AbsoluteList.set (List.map create_absolute_base sorted_ranges)
 
 let () =
   Kernel.AbsoluteValidRange.add_set_hook (fun _ x -> register_absolute_bases x)
