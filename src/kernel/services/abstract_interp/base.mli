@@ -29,6 +29,8 @@ type absolute_range = {
   id: int;    (** Unique id between all bases. *)
   start: Z.t; (** Start in bits of the range. *)
   size: Z.t;  (** Size in bits of the range. *)
+  read_only: bool; (** Read-only memory. *)
+  volatile: bool; (** Volatile memory. *)
 }
 
 type base = private

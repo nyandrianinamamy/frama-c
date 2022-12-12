@@ -96,6 +96,8 @@ type absolute_range = {
   id: int;    (* Unique id between all bases. *)
   start: Z.t; (* Start in bits of the range. *)
   size: Z.t;  (* Size in bits of the range. *)
+  read_only: bool; (* Read-only memory. *)
+  volatile: bool; (* Volatile memory. *)
 }
 
 type base =
@@ -178,7 +180,8 @@ module Absolute =
       include Datatype.Serializable_undefined
       type t = absolute_range
       let name = "Base.Absolute"
-      let reprs = [{ id = 0; start = Z.zero; size = Z.zero }]
+      let reprs = [{ id = 0; start = Z.zero; size = Z.zero;
+                     read_only = false; volatile = false }]
       let equal a1 a2 = Stdlib.Int.equal a1.id a2.id
       let compare a1 a2 = Stdlib.Int.compare a1.id a2.id
       let pretty = pretty_absolute
@@ -193,18 +196,32 @@ module AbsoluteList =
       let dependencies = [ Kernel.AbsoluteValidRange.self ]
     end)
 
+type qualifiers = { read_only: bool; volatile:bool }
+let default_qualifiers = { read_only = false; volatile = false }
+let join_qualifiers q1 q2 =
+  { read_only = q1.read_only || q2.read_only;
+    volatile = q1.volatile || q2.volatile }
 
-let create_absolute_base (_str, min, max) =
+let create_absolute_base (_str, min, max, qualifiers) =
   let mul_char_bit = Z.mul 8z in
   let start = mul_char_bit min in
   let size = mul_char_bit (Z.add (Z.sub max min) 1z) in
   let id = Cil_const.new_raw_vid () in
-  { id; start; size; }
+  let { read_only; volatile } = qualifiers in
+  { id; start; size; read_only; volatile }
+
+let parse_qualifiers = function
+  | "" -> default_qualifiers
+  | "const" -> { default_qualifiers with read_only = true }
+  | "volatile" -> { default_qualifiers with volatile = true }
+  | str -> Kernel.abort "Invalid -absolute-valid-range qualifier %S." str
 
 let parse_absolute_ranges list =
   let parse str =
-    Scanf.sscanf str "%s@-%s"
-    (fun min max -> str, Z.of_string min, Z.of_string max)
+    Scanf.sscanf str "%s@-%s@:%s@ %s"
+      (fun min max q1 q2 ->
+         str, Z.of_string min, Z.of_string max,
+         join_qualifiers (parse_qualifiers q1) (parse_qualifiers q2))
   in
   try List.map parse list;
   with
@@ -218,13 +235,13 @@ let parse_absolute_ranges list =
 
 let rec check_absolute_ranges previous_range = function
   | [] -> ()
-  | (str, min, max) as current :: tail ->
+  | (str, min, max, _) as current :: tail ->
     let abort = Kernel.abort "Invalid %s specified to -absolute-valid-range" in
     if Z.gt min max then abort ("empty range " ^ str);
     if Z.lt min 0z then abort ("negative range " ^ str);
     if Z.equal min 0z then
       Kernel.warning "Absolute valid range %s includes NULL pointer 0." str;
-    let check_overlapping (prev_str, _, prev_max) =
+    let check_overlapping (prev_str, _, prev_max, _) =
       if Z.geq prev_max min
       then abort ("overlapping ranges " ^ prev_str ^ " and " ^ str)
     in
@@ -233,7 +250,7 @@ let rec check_absolute_ranges previous_range = function
 
 let register_absolute_bases list =
   let ranges = parse_absolute_ranges list in
-  let cmp (_, b1, _) (_, b2, _) = Z.compare b1 b2 in
+  let cmp (_, b1, _, _) (_, b2, _, _) = Z.compare b1 b2 in
   let sorted_ranges = List.fast_sort cmp ranges in
   check_absolute_ranges None sorted_ranges;
   AbsoluteList.set (List.map create_absolute_base sorted_ranges)
@@ -266,6 +283,7 @@ let validity b =
 let is_read_only base =
   match base with
   | Var (v,_) -> Ast_types.C.has_qualifier "const" v.vtype
+  | Absolute { read_only } -> read_only
   | _ -> false
 
 (* Minor optimization compared to [is_weak (validity b)] *)
