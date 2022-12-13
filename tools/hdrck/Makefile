@@ -20,15 +20,16 @@
 #                                                                        #
 ##########################################################################
 
-.PHONY: all
-all: hdrck.exe
+FRAMAC_SHARE?=../../share
 
-.PHONY: hdrck.exe
-ptests.exe:
-	dune build --root . hdrck.exe
+all:
+	dune build --root .
 
 .PHONY: clean
 clean:
 	dune clean --root .
+
+include ${FRAMAC_SHARE}/Makefile.common
+include ${FRAMAC_SHARE}/Makefile.installation
 
 ##########################################################################
