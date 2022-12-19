@@ -1527,7 +1527,7 @@ This may happen on:
   This is why Eva also authorizes conversion of integers:
   \begin{itemize}
   \item in the range of valid absolute addresses
-    (according to \texttt{absolute-valid-range})
+    (according to \texttt{-absolute-valid-range})
   \item computed from the address of an object \lstinline|o| such that the
     resulting pointer points inside or one past the object \lstinline|o|.
   \end{itemize}
@@ -3410,17 +3410,29 @@ that should be used, or omitted, carefully.
 
 By default, \Eva{} assumes that the absolute addresses in
 memory are all invalid. This assumption can be too restrictive,
-because in some cases there exist a limited number of absolute
+as in some cases there exist a limited number of absolute
 addresses which are intended to be accessed by the analyzed program,
 for instance in order to communicate with hardware.
 
-The option \lstinline|-absolute-valid-range m-M|
-specifies that the only valid absolute addresses (for reading or writing)
-are those comprised between \lstinline$m$ and \lstinline$M$ inclusive.
-This option currently allows to specify only a single interval,
-although it could be improved to allow several intervals
-in a future version.
-
+The option \lstinline|-absolute-valid-range m-M| specifies that
+absolute addresses between \lstinline$m$ and \lstinline$M$ inclusive
+are valid (for reading and writing). Other absolute addresses remain
+invalid by default.
+This option allows specifying several ranges of valid absolute addresses:
+\lstinline|-absolute-valid-range m1-M1,m2-M2,m3-M3|.
+All intervals must be positive and must not overlap.
+It is also possible to specify ranges of absolute addresses for read-only
+and/or volatile memory:
+\begin{itemize}
+\item \lstinline|-absolute-valid-range m1-M1:const|:
+  reads in this range of absolute addresses are allowed,
+  but writes lead to memory access alarms.
+\item \lstinline|-absolute-valid-range m1-M1:volatile|:
+  the analysis considers that any read to these absolute addresses
+  results in any possible values.
+\item \lstinline|-absolute-valid-range m1-M1:const volatile|:
+  the memory of this range is both volatile and read-only.
+\end{itemize}
 
 \subsubsection{Overflow in array accesses}
 \label{unsafe-arrays}
@@ -4793,7 +4805,7 @@ void fun(int t) {
   // CASE 1.: 'z' and 'w' become indirectly tainted as their value depend on the
   // value of the controlling expression 'x', which is tainted.
   // Moreover, 'z' becomes also directly tainted as it may take the value of
-  // 't' in the else-branch. 
+  // 't' in the else-branch.
   if (x) {
     z = 1;
     w = 0;
