@@ -24,7 +24,7 @@
 
 type cil =
   | Exp of Cil_types.exp
-  | Term of Cil_types.term
+  | Term of Cil_types.identified_term
 
 type exp =
   { node: exp_node;
