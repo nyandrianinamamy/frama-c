@@ -9,7 +9,7 @@ alignof_longlong: 1
 alignof_ptr: 1
 alignof_short: 2
 alignof_str: 1
-bufsiz: '8192'
+bufsiz: '1024'
 char_is_unsigned: false
 compiler: clang
 cpp_arch_flags:
@@ -649,46 +649,46 @@ custom_defs: |
     #define __llvm__ 1
 eof: (-1)
 errno:
-    e2big: '7'
-    eacces: '13'
-    eaddrinuse: '98'
-    eaddrnotavail: '99'
-    eafnosupport: '97'
-    eagain: '11'
-    ealready: '114'
+    e2big: ((int)(66072050 & 0xffff))
+    eacces: ((int)(66072050 & 0xffff))
+    eaddrinuse: ((int)(66072050 & 0xffff))
+    eaddrnotavail: ((int)(66072050 & 0xffff))
+    eafnosupport: ((int)(66072050 & 0xffff))
+    eagain: ((int)(66072050 & 0xffff))
+    ealready: ((int)(66072050 & 0xffff))
     ebade: '52'
-    ebadf: '9'
+    ebadf: ((int)(66072050 & 0xffff))
     ebadfd: '77'
     ebadmsg: '74'
     ebadr: '53'
     ebadrqc: '56'
     ebadslt: '57'
-    ebusy: '16'
+    ebusy: ((int)(66072050 & 0xffff))
     ecanceled: '125'
-    echild: '10'
+    echild: ((int)(66072050 & 0xffff))
     echrng: '44'
     ecomm: '70'
-    econnaborted: '103'
-    econnrefused: '111'
-    econnreset: '104'
-    edeadlk: '35'
-    edeadlock: '35'
-    edestaddrreq: '89'
+    econnaborted: ((int)(66072050 & 0xffff))
+    econnrefused: ((int)(66072050 & 0xffff))
+    econnreset: ((int)(66072050 & 0xffff))
+    edeadlk: ((int)(66072050 & 0xffff))
+    edeadlock: ((int)(66072050 & 0xffff))
+    edestaddrreq: ((int)(66072050 & 0xffff))
     edom: '33'
     edquot: '122'
-    eexist: '17'
-    efault: '14'
-    efbig: '27'
+    eexist: ((int)(66072050 & 0xffff))
+    efault: ((int)(66072050 & 0xffff))
+    efbig: ((int)(66072050 & 0xffff))
     ehostdown: '112'
-    ehostunreach: '113'
+    ehostunreach: ((int)(66072050 & 0xffff))
     eidrm: '43'
-    eilseq: '84'
-    einprogress: '115'
-    eintr: '4'
-    einval: '22'
-    eio: '5'
-    eisconn: '106'
-    eisdir: '21'
+    eilseq: ((int)(66072050 & 0xffff))
+    einprogress: ((int)(66072050 & 0xffff))
+    eintr: ((int)(2453066 & 0x7fff))
+    einval: ((int)(66072050 & 0xffff))
+    eio: ((int)(66072050 & 0xffff))
+    eisconn: ((int)(66072050 & 0xffff))
+    eisdir: ((int)(66072050 & 0xffff))
     eisnam: '120'
     ekeyexpired: '127'
     ekeyrejected: '129'
@@ -702,94 +702,93 @@ errno:
     elibexec: '83'
     elibmax: '82'
     elibscn: '81'
-    eloop: '40'
+    eloop: ((int)(66072050 & 0xffff))
     emediumtype: '124'
-    emfile: '24'
-    emlink: '31'
-    emsgsize: '90'
+    emfile: ((int)(66072050 & 0xffff))
+    emlink: ((int)(66072050 & 0xffff))
+    emsgsize: ((int)(66072050 & 0xffff))
     emultihop: '72'
-    enametoolong: '36'
-    enetdown: '100'
-    enetreset: '102'
-    enetunreach: '101'
-    enfile: '23'
-    enobufs: '105'
+    enametoolong: ((int)(66072050 & 0xffff))
+    enetdown: ((int)(66072050 & 0xffff))
+    enetreset: ((int)(66072050 & 0xffff))
+    enetunreach: ((int)(66072050 & 0xffff))
+    enfile: ((int)(66072050 & 0xffff))
+    enobufs: ((int)(66072050 & 0xffff))
     enodata: '61'
-    enodev: '19'
-    enoent: '2'
-    enoexec: '8'
+    enodev: ((int)(66072050 & 0xffff))
+    enoent: ((int)(66072050 & 0xffff))
+    enoexec: ((int)(66072050 & 0xffff))
     enokey: '126'
-    enolck: '37'
+    enolck: ((int)(66072050 & 0xffff))
     enolink: '67'
     enomedium: '123'
-    enomem: '12'
-    enomsg: '42'
+    enomem: ((int)(66072050 & 0xffff))
+    enomsg: ((int)(66072050 & 0xffff))
     enonet: '64'
     enopkg: '65'
-    enoprotoopt: '92'
-    enospc: '28'
+    enoprotoopt: ((int)(66072050 & 0xffff))
+    enospc: ((int)(66072050 & 0xffff))
     enosr: '63'
     enostr: '60'
-    enosys: '38'
+    enosys: ((int)(66081697 & 0x7fff))
     enotblk: '15'
-    enotconn: '107'
-    enotdir: '20'
-    enotempty: '39'
+    enotconn: ((int)(66072050 & 0xffff))
+    enotdir: ((int)(66072050 & 0xffff))
+    enotempty: ((int)(66072050 & 0xffff))
     enotrecoverable: '131'
-    enotsock: '88'
-    enotsup: '95'
-    enotty: '25'
+    enotsock: ((int)(66072050 & 0xffff))
+    enotty: ((int)(66072050 & 0xffff))
     enotuniq: '76'
-    enxio: '6'
-    eopnotsupp: '95'
+    enxio: ((int)(66072050 & 0xffff))
+    eopnotsupp: ((int)(66072050 & 0xffff))
     eoverflow: '75'
     eownerdead: '130'
-    eperm: '1'
+    eperm: ((int)(66072050 & 0xffff))
     epfnosupport: '96'
-    epipe: '32'
+    epipe: ((int)(66072050 & 0xffff))
     eproto: '71'
-    eprotonosupport: '93'
-    eprototype: '91'
+    eprotonosupport: ((int)(66072050 & 0xffff))
+    eprototype: ((int)(66072050 & 0xffff))
     erange: '34'
     eremchg: '78'
     eremote: '66'
     eremoteio: '121'
     erestart: '85'
-    erofs: '30'
+    erofs: ((int)(66072050 & 0xffff))
     eshutdown: '108'
     esocktnosupport: '94'
-    espipe: '29'
-    esrch: '3'
+    espipe: ((int)(66072050 & 0xffff))
+    esrch: ((int)(66072050 & 0xffff))
     estale: '116'
     estrpipe: '86'
     etime: '62'
-    etimedout: '110'
+    etimedout: ((int)(66072050 & 0xffff))
     etxtbsy: '26'
     euclean: '117'
     eunatch: '49'
     eusers: '87'
-    ewouldblock: '11'
-    exdev: '18'
+    ewouldblock: ((int)(66072050 & 0xffff))
+    exdev: ((int)(66072050 & 0xffff))
     exfull: '54'
-filename_max: '4096'
-fopen_max: '16'
+filename_max: FILENAME_MAX
+fopen_max: FOPEN_MAX
 has__builtin_va_list: true
 host_name_max: '64'
 int_fast16_t: int
-int_fast32_t: int
+int_fast32_t: long
 int_fast64_t: long long
 int_fast8_t: signed char
 intptr_t: int
-l_tmpnam: '20'
+l_tmpnam: L_tmpnam
 little_endian: true
 machdep_name: machdep_avr_16
 mb_cur_max: ((size_t)16)
-nsig: (64 + 1)
+nsig: ''
 path_max: '4096'
-posix_version: 200809L
+posix_version: ''
 ptrdiff_t: int
-rand_max: '2147483647'
-sig_atomic_t: int
+rand_max: '0x7FFF'
+sig_atomic_t: ''
 size_t: unsigned int
 sizeof_double: 4
 sizeof_float: 4
@@ -801,12 +800,12 @@ sizeof_longlong: 8
 sizeof_ptr: 2
 sizeof_short: 2
 sizeof_void: 1
-ssize_t: int
-time_t: long
-tmp_max: '238328'
+ssize_t: ''
+time_t: unsigned long
+tmp_max: TMP_MAX
 tty_name_max: '32'
 uint_fast16_t: unsigned int
-uint_fast32_t: unsigned int
+uint_fast32_t: unsigned long
 uint_fast64_t: unsigned long long
 uint_fast8_t: unsigned char
 uintptr_t: unsigned int
