@@ -61,6 +61,7 @@ module type Services = sig
   val entry_point: unit -> G.V.t option
   val is_root: Kernel_function.t -> bool
 
+  val add_hook: (G.t -> unit) -> unit
 end
 
 (*
