@@ -21,23 +21,12 @@
 (**************************************************************************)
 
 open MtUtils
-open Cil_types
 
-type name = Name.t
 type value = Value.t
-type thread
+type thread = Thread.t
 type status = { running : Trilean.t ; canceled : Trilean.t }
 
-include Datatype.S_with_collections with type t = thread
-
-val dummy : thread
-val main : unit -> thread
-val create : name -> stmt -> kernel_function -> (varinfo * value) list -> thread
-
-val id : thread -> value
-val of_cvalue : value -> thread Result.t
-val to_cvalue : thread -> value
-val return_lval : thread -> Eva_ast.lval option
+val return_lval : Thread.t -> Eva_ast.lval option
 
 module Register : sig
   include Datatype.S_with_collections
@@ -49,8 +38,8 @@ module Register : sig
   val narrow : t -> t -> t
   val find : thread -> t -> status option
 
-  val register : thread -> t -> (t * value) Result.t
-  val start    : thread -> t -> (t * value) Result.t
-  val suspend  : thread -> t -> (t * value) Result.t
-  val cancel   : thread -> t -> (t * value) Result.t
+  val register : thread list -> t -> (t * value) Result.t
+  val start    : value -> t -> (t * value) Result.t
+  val suspend  : value -> t -> (t * value) Result.t
+  val cancel   : value -> t -> (t * value) Result.t
 end
