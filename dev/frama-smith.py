@@ -4,7 +4,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2020                                               #
+#  Copyright (C) 2007-2023                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -186,7 +186,7 @@ templates_json = Path(os.getenv("TEMPLATES", script_dir / "frama-smith-templates
 # to this Python process.
 extra_args = " ".join('"%s"' % arg for arg in sys.argv[1:])
 
-framac = "build/bin/frama-c"
+framac = "frama-c"
 fc_script = f"{framac}-script"
 
 if log_and_keep:
