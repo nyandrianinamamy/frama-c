@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 ##########################################################################
 #                                                                        #
 #  This file is part of Frama-C.                                         #
@@ -28,58 +28,58 @@
 import sys
 import os
 import subprocess
-import random
 
-MIN_PYTHON = (3, 5) # for subprocess.run
+MIN_PYTHON = (3, 5)  # for subprocess.run
 if sys.version_info < MIN_PYTHON:
     sys.exit("Python %s.%s or later is required.\n" % MIN_PYTHON)
 
-if len(sys.argv) < 3:
-    print(f"usage: {sys.argv[0]} <test directory> <frama-c command line causing a crash>")
+if len(sys.argv) < 2:
+    print(
+        f"usage: {sys.argv[0]} <test directory> <frama-c command line arguments (including files) causing a crash>"
+    )
     sys.exit(0)
 
 # auxiliary function for iterating a list as a pair (cur, next);
 # from SO: https://stackoverflow.com/questions/5434891
 # This will likely be available in Python 3.10
 import itertools
+
+
 def pairwise(iterable):
     "s -> (s0,s1), (s1,s2), (s2, s3), ..."
     a, b = itertools.tee(iterable)
     next(b, None)
     return zip(a, b)
 
+
 # we expect the first argument to be the test directory
 test_dir = sys.argv[1]
 if not os.path.exists(test_dir) or not os.path.isdir(test_dir):
     sys.exit("error: first argument should point to a test directory: {test_dir}")
 
-# we expect the second argument to always be the frama-c binary
-framac = sys.argv[2]
-if not os.path.exists(framac) or not os.path.isfile(framac):
-    sys.exit("error: first argument should point to an existing Frama-C binary: {framac}")
+args = sys.argv[2:]
 
-# if path was given with 'toplevel.opt', replace it with 'frama-c'
-if framac.endswith("toplevel.opt"):
-    framac = "frama-c".join(framac.rsplit("toplevel.opt", 1))
 
-args = sys.argv[3:]
-
-def check_cmdline_crashes(framac, args):
-    cmdline = [framac] + args
+def check_cmdline_crashes(args):
+    cmdline = ["frama-c"] + args
     try:
         proc = subprocess.run(cmdline, cwd=test_dir, timeout=30, capture_output=True)
         return proc.returncode == 4 or proc.returncode == 125, proc
     except subprocess.TimeoutExpired:
-        sys.exit(f"TODO: timeout reached during execution")
+        sys.exit("TODO: timeout reached during execution")
+
 
 # Returns 'true' if string s contains a comma that is between two quotes;
 # used by normalize_commas.
 def has_comma_between_quotes(s):
     try:
-        i = s.index(',')
-        return ('"' in s[:i-1] and '"' in s[i+1:]) or ("'" in s[:i-1] and "'" in s[i+1:])
+        i = s.index(",")
+        return ('"' in s[: i - 1] and '"' in s[i + 1 :]) or (
+            "'" in s[: i - 1] and "'" in s[i + 1 :]
+        )
     except ValueError:
         return False
+
 
 # Tries to split arguments of the form '-opt a1,a2,a3' into '-opt a1 -opt a2 -opt a3'
 # NOTE: this naively splits any arguments containing commas; if there are commas
@@ -88,18 +88,18 @@ def has_comma_between_quotes(s):
 def normalize_commas(args):
     new_args = []
     skip_next = False
-    for (prev, cur) in pairwise(args):
+    for prev, cur in pairwise(args):
         if skip_next:
             skip_next = False
             continue
-        if ',' in cur and not has_comma_between_quotes(cur):
+        if "," in cur and not has_comma_between_quotes(cur):
             # split arguments such as '-a=b,c' or '-a b,c'
-            if '=' in cur:
+            if "=" in cur:
                 # split arguments such as '-a=b,c'
-                cur_prefix, cur_rest = cur.split('=', 1)
+                cur_prefix, cur_rest = cur.split("=", 1)
                 for opt in cur_rest.split(","):
                     new_args += [cur_prefix, opt]
-            elif prev.startswith('-'):
+            elif prev.startswith("-"):
                 # split arguments such as '-a b,c'
                 for opt in cur.split(","):
                     new_args += [prev, opt]
@@ -114,16 +114,20 @@ def normalize_commas(args):
         new_args.append(args[-1])
     return new_args
 
+
 # Detects if an -eva-precision option has been given, and if so, replaces it
 # with its elements
 def normalize_eva_precision(args):
-    pass # TODO
+    pass  # TODO
+
 
 # sanity check: initial run _must_ crash
-crash, proc = check_cmdline_crashes(framac, args)
+crash, proc = check_cmdline_crashes(args)
 if not crash:
     print(proc.stdout.decode("utf-8", errors="ignore"))
-    print(f"error: supplied command line did not crash (expected return code 4, got {proc.returncode})!")
+    print(
+        f"error: supplied command line did not crash (expected return code 4, got {proc.returncode})!"
+    )
     sys.exit(1)
 
 args = normalize_commas(args)
@@ -135,33 +139,33 @@ while progress:
         print(f"iterating... ({len(args)} options remaining)")
         new_args = args.copy()
         popped = new_args.pop(i)
-        #print(f"trying '{popped}' ({len(new_args)} remaining)")
-        crash, proc = check_cmdline_crashes(framac, new_args)
+        # print(f"trying '{popped}' ({len(new_args)} remaining)")
+        crash, proc = check_cmdline_crashes(new_args)
         if not crash:
             # try removing successor
             if i < len(new_args):
                 newer_args = new_args.copy()
                 popped_succ = newer_args.pop(i)
-                crash, proc = check_cmdline_crashes(framac, newer_args)
+                crash, proc = check_cmdline_crashes(newer_args)
                 if crash:
-                    #print(f"*** PROGRESS: removed unnecessary arguments: '{popped} {popped_succ}'")
+                    # print(f"*** PROGRESS: removed unnecessary arguments: '{popped} {popped_succ}'")
                     progress = True
                     args = newer_args.copy()
-                    break # inner for
+                    break  # inner for
                 else:
                     pass
-                    #print(f"removed essential arguments ('{popped} {popped_succ}'), restoring")
+                    # print(f"removed essential arguments ('{popped} {popped_succ}'), restoring")
             else:
                 pass
-                #print(f"removed essential argument '{popped}', restoring")
+                # print(f"removed essential argument '{popped}', restoring")
         else:
-            #print(f"*** PROGRESS: removed unnecessary argument: '{popped}'")
+            # print(f"*** PROGRESS: removed unnecessary argument: '{popped}'")
             progress = True
             args = new_args.copy()
-            break # inner for
+            break  # inner for
 
 cmdline = [f'"{arg}"' for arg in args]
-cmdline = framac + " " + " ".join([f'"{arg}"' for arg in args])
+cmdline = "frama-c " + " ".join([f'"{arg}"' for arg in args])
 
 # Now that ptests run tests inside the result directory, we need to add
 # a 'cd' command to make the crash more easily reproducible
