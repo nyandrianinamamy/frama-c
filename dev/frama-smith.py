@@ -22,38 +22,15 @@
 #                                                                        #
 ##########################################################################
 
-# Mini-fuzzer for the Frama-C command line. Also works with ptests.
+# Mini-fuzzer for the Frama-C command line.
 
 # Usage examples:
 #
-########## 'NORMAL' MODE #######
-# Opens one of the files in SOURCES_GLOB and adds a number of random
-# options:
-#
-# SOURCES_GLOB="tests/**/*.[ci]" devel_tools/frama-smith.py
+# N_TRIES=1000 SOURCES_GLOB="tests/**/*.[ci],src/plugins/*/tests/**/*.[ci]" dev/frama-smith.py [mandatory arguments]
 #
 # Works better with stand-alone programs; when using Frama-C
 # non-regression test suites, due to lack of the specific flags used in
-# many tests (e.g. -cpp-extra-args), many tests fail early. Prefer
-# PTESTS_MODE in this case.
-#
-########## PTESTS_MODE #######
-# Uses existing tests and existing options, and fuzzes by adding other
-# options:
-#
-# PTESTS_MODE=1 SOURCES_GLOB="tests/**/*.[ci]" SOURCES_EXCLUDE="tests/syntax/asm_with_contracts.i,tests/slicing/*" N_TRIES=10000 devel_tools/frama-smith.py
-#
-# SOURCES_GLOB: typically use "tests/**/*.[ci]" for the "main" Frama-C tests,
-# "src/plugins/*/tests/**/*.[ci]" for plugin-specific tests, or both, separated
-# by a comma.
-#
-# SOURCES_EXCLUDE: to temporarily exclude problematic tests (e.g. those which
-# tend to crash too often for uninteresting reasons).
-#
-# You can also add ptests options, such as `-add-options="-bla"` to force
-# their inclusion. Note that, if your option requires a plugin to be loaded,
-# you will often need `-add-options=-autoload-plugins` at the end.
-
+# many tests (e.g. -cpp-extra-args), many tests fail early.
 
 import asyncio
 import glob
@@ -86,6 +63,7 @@ Usage: currently, almost all arguments are passed via environment variables.
 
 SOURCES_GLOB: a glob expression (may contain '*', '**', '[]', etc) matching
     all source files to be used as inputs for fuzzying.
+    Splits commas found in the string and adds all files to a set.
     In this mode, a _single_ file among the globbed ones is used for each test.
     Note: curly braces ({}) are _not_ accepted.
     Incompatible with MULTI_SOURCES_GLOB and LOAD_SAVE.
@@ -136,13 +114,6 @@ MUST_SUCCEED: stops whenever a Frama-C run gives _any_ errors
 N_TRIES: number of test runs.
     Default: 100
 
-PTESTS_MODE: set to 1 to enable the 'ptests mode', which fuzzes using
-    the existing test options (to ensure better coverage) and
-    adds random options via -add-options and -add-options-pre.
-    Note that this mode _always_ enables -autoload-plugins, otherwise
-    many tests simply fail due to missing modules.
-    Default: 0 (off)
-
 QUIET: set to 1 to avoid outputting messages in stdout.
     Messages are still logged to a temporary file.
     Default: 0 (off)
@@ -177,7 +148,6 @@ log_and_keep_value = os.getenv("LOG_AND_KEEP", "")
 log_and_keep = Path(log_and_keep_value) if log_and_keep_value else None
 must_succeed = bool(os.getenv("MUST_SUCCEED"))
 n_tries = int(os.getenv("N_TRIES", "100"))
-ptests_mode = bool(os.getenv("PTESTS_MODE"))
 quiet = os.getenv("QUIET")
 sources_exclude = os.getenv("SOURCES_EXCLUDE", "")
 timeout = int(os.getenv("TIMEOUT", "10"))
@@ -305,10 +275,6 @@ for line in lines:
             # ignore option
             continue
         if option in templates:
-            # some template kinds are unsupported in a few modes
-            if ptests_mode and templates[option] == "functions":
-                unsupported_n_opts += 1
-                continue
             # some templates are 'dual': made of a list of keys and a list of values
             if "keys" in templates[option]:
                 all_options[option] = "template_dual"
@@ -378,7 +344,9 @@ if nb_source_opts == 0:
 elif nb_source_opts > 1:
     sys.exit("error: only one of SOURCES_GLOB, MULTI_SOURCES_GLOB and LOAD_SAVE must be set")
 
-sources_set = set(glob.glob(glob_expression))
+sources_set = set()
+for path in glob_expression.split(","):
+    sources_set = sources_set.union(glob.glob(path))
 if not sources_set:
     sys.exit(f"error: no files matching expression: {glob_expression}")
 
@@ -534,7 +502,7 @@ class Timer:
 
 
 # This function ensures that, especially in the case of timeouts, the children
-# processes of the shell running Frama-C (or ptests) will also be terminated.
+# processes of the shell running Frama-C will also be terminated.
 # If we use a simple 'process.kill()' applied to the created subprocess, this
 # will not be enough, and the child process will keep running.
 def kill_shell_and_children(pid):
@@ -610,21 +578,12 @@ loop = asyncio.get_event_loop()
 
 for i in range(1, n_tries + 1):
     print(f"*** Generating command {i}/{n_tries}...")
-    if ptests_mode:
-        chosen_sources = " ".join(sources) if source_mode == "multi" else random.choice(sources)
-        add_load = "-load " if source_mode == "load" else ""
-        # TODO: find out how to get cpp_extra in ptests mode, so that we can
-        # generate random arguments for options with 'function' template
-        pre_options = generate_random_args(0, 10)
-        post_options = generate_random_args(0, 10)
-        cmdline = f"bin/ptests.opt -j 12 {add_load}{chosen_sources} -add-options-pre='{pre_options}' -add-options-post='{post_options} -autoload-plugins' -del-options=' -load-module[^ ]*cmxs' {extra_args}"
-    else:
-        chosen_sources = " ".join(sources) if source_mode == "multi" else random.choice(sources)
-        cpp_extra = f'-cpp-extra-args="{cpp_extra_args}" ' if source_mode != "load" else ""
-        add_load = "-load " if source_mode == "load" else ""
-        functions = list_functions(chosen_sources, cpp_extra, add_load)
-        cmdline = f"{framac} {mandatory_args} {add_load}{chosen_sources} {cpp_extra}{extra_args}"
-        cmdline += generate_random_args(2, 15, functions=functions)
+    chosen_sources = " ".join(sources) if source_mode == "multi" else random.choice(sources)
+    cpp_extra = f'-cpp-extra-args="{cpp_extra_args}" ' if source_mode != "load" else ""
+    add_load = "-load " if source_mode == "load" else ""
+    functions = list_functions(chosen_sources, cpp_extra, add_load)
+    cmdline = f"{framac} {mandatory_args} {add_load}{chosen_sources} {cpp_extra}{extra_args}"
+    cmdline += generate_random_args(2, 15, functions=functions)
     print(f"running: {cmdline}")
     (retcode, res_stdout) = loop.run_until_complete(run_and_log_command(cmdline, timeout))
     if retcode == 4:
@@ -646,39 +605,6 @@ for i in range(1, n_tries + 1):
                 if quiet:
                     print("### Output from fatal crash:")
                     print(res_stdout)
-                if ptests_mode:
-                    print(f"Detected fatal crash, interrupting execution. Command line:\n{cmdline}")
-                    print("Automatically retrying command-line with -show...")
-                    subproc = subprocess.run(cmdline + " -show", capture_output=True, shell=True)
-                    res_stdout = subproc.stdout.decode("utf-8")
-                    cmd_index = res_stdout.index("for command:")
-                    if cmd_index != -1:
-                        cmd_index += len("for command:") + 1
-                        full_command = res_stdout[cmd_index : res_stdout.find("\n", cmd_index)]
-                        # Remove redirection of stdout/stderr at end of command
-                        if " >tests" in full_command:
-                            redirection_index = full_command.index(">tests")
-                            full_command = full_command[:redirection_index]
-                        print(f"Found command used to crash: {full_command}")
-                        # Remove outermost parentheses
-                        full_command = full_command.strip(" ()")
-                        # Split 'cd <dir> && (<command>' part (note: the
-                        # rightmost parenthesis has already been stripped)
-                        [test_dir, full_command] = full_command.split("&&", 1)
-                        test_dir = (
-                            test_dir[3:].strip().rstrip("/")
-                        )  # remove 'cd ', trailing spaces and slashes
-                        full_command = full_command.strip(" (")
-                        minimize_cmd = (
-                            str(script_dir / "minimize_crash_cmdline.py ")
-                            + test_dir
-                            + " "
-                            + full_command
-                        )
-                        print(f"Running crash minimization script with: {minimize_cmd}")
-                        os.system(minimize_cmd)
-                        sys.exit(1)
-                else:
                     sys.exit(
                         f"Detected fatal crash, interrupting execution. Command line:\n{cmdline}"
                     )

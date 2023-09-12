@@ -1,5 +1,5 @@
 {
-    "mandatory_args":"-eva -eva-msg-key=-final-states,-initial-state,-summary",
+    "mandatory_args":"-eva-msg-key=-final-states,-initial-state,-summary",
     "options_to_ignore_wildcards":[
         "*-config",
         "*-domain",
