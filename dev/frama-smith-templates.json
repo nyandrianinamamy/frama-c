@@ -164,6 +164,8 @@
         "-eva-use-spec": "functions",
         "-eva-warn-copy-indeterminate":"functions",
         "-fct-pdg": "functions",
+        "-generated-spec-custom": ["frama-c", "acsl", "safe", "skip"],
+        "-generated-spec-mode": ["frama-c", "acsl", "safe"],
         "-impact-pragma": "functions",
         "-inline-calls":"functions",
         "-instantiate-fct": "functions",
