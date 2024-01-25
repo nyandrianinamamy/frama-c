@@ -23,6 +23,7 @@
 val self: State.t
 
 val compute: Cil_types.kernel_function -> unit
+val get_internal: Cil_types.kernel_function -> Locations.Zone.t
 val get_external: Cil_types.kernel_function -> Locations.Zone.t
 val statement: Cil_types.stmt -> Locations.Zone.t
 
