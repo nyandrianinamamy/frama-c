@@ -26,6 +26,7 @@ module Static = struct
   module D = struct
     include Datatype.Unit
     type state = t
+    type context = unit
 
     let name = "unit"
     let log_category = log_key
@@ -48,7 +49,7 @@ module Static = struct
 end
 
 module Make
-    (Value: Abstract_value.S)
+    (Value: Abstract_value.S with type context = unit)
     (Loc: Abstract_location.S)
 = struct
 
