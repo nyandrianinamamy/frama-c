@@ -21,17 +21,15 @@
 (**************************************************************************)
 
 module DepsOrUnassigned = struct
-
-  type t =
-    | DepsBottom
-    | Unassigned
-    | AssignedFrom of Deps.t
-    | MaybeAssignedFrom of Deps.t
-
   module Datatype_Input = struct
     include Datatype.Serializable_undefined
 
-    type nonrec t = t
+    type t =
+      | DepsBottom
+      | Unassigned
+      | AssignedFrom of Deps.t
+      | MaybeAssignedFrom of Deps.t
+    [@@deriving eq,ord]
     let name = "Eva.Froms.DepsOrUnassigned"
 
     let pretty fmt = function
@@ -42,36 +40,16 @@ module DepsOrUnassigned = struct
         Format.fprintf fmt "%a (or UNASSIGNED)" Deps.pretty_precise fd
 
     let hash = function
-      | DepsBottom -> 3
-      | Unassigned -> 17
-      | AssignedFrom fd -> 37 + 13 * Deps.hash fd
-      | MaybeAssignedFrom fd -> 57 + 123 * Deps.hash fd
-
-    let compare d1 d2 = match d1, d2 with
-      | DepsBottom, DepsBottom
-      | Unassigned, Unassigned -> 0
-      | AssignedFrom fd1, AssignedFrom fd2
-      | MaybeAssignedFrom fd1, MaybeAssignedFrom fd2 ->
-        Deps.compare fd1 fd2
-      | DepsBottom, (Unassigned | AssignedFrom _ | MaybeAssignedFrom _)
-      | Unassigned, (AssignedFrom _ | MaybeAssignedFrom _)
-      | AssignedFrom _, MaybeAssignedFrom _ ->
-        -1
-      | (Unassigned | AssignedFrom _ | MaybeAssignedFrom _), DepsBottom
-      | (AssignedFrom _ | MaybeAssignedFrom _), Unassigned
-      | MaybeAssignedFrom _, AssignedFrom _ ->
-        1
-
-    let equal = Datatype.from_compare
+      | DepsBottom -> 1
+      | Unassigned -> 2
+      | AssignedFrom fd -> Hashtbl.hash (3, Deps.hash fd)
+      | MaybeAssignedFrom fd -> Hashtbl.hash (4, Deps.hash fd)
 
     let reprs = Unassigned :: List.map (fun r -> AssignedFrom r) Deps.reprs
-
-    let structural_descr =
-      let d = Deps.packed_descr in
-      Structural_descr.t_sum [| [| d |]; [| d |] |]
   end
 
-  include (Datatype.Make (Datatype_Input) : Datatype.S with type t := t)
+  include Datatype.Make (Datatype_Input)
+  include Datatype_Input
 
   let join d1 d2 = match d1, d2 with
     | DepsBottom, d | d, DepsBottom -> d
