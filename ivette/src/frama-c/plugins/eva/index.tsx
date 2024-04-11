@@ -30,6 +30,7 @@ import './Summary';
 import './Coverage';
 import './DomainStates';
 import './EvaSidebar';
+import './Flamegraph';
 import './style.css';
 
 // --------------------------------------------------------------------------
@@ -47,7 +48,8 @@ Ivette.registerView({
   layout: {
     'A': 'fc.eva.summary',
     'B': 'fc.eva.coverage',
-    'CD': 'fc.kernel.messages',
+    'C': 'fc.kernel.messages',
+    'D': 'fc.eva.flamegraph',
   },
 });
 
