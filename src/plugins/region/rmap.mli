@@ -1,4 +1,3 @@
-
 (**************************************************************************)
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
@@ -21,5 +20,30 @@
 (*                                                                        *)
 (**************************************************************************)
 
+open Cil_types
+
 type node
-type region
+
+type layout =
+  | Blob
+  | Atom
+  | AtomPtr of node
+  | Compound of node Ranges.t
+
+type region = private {
+  parents: node list ;
+  roots: varinfo list ;
+  size: int64 ;
+  layout: layout ;
+}
+
+type map
+
+val create : unit -> map
+val copy : map -> map
+
+val root : map -> Cil_types.varinfo -> node
+val node : map -> node -> node
+val nodes : map -> node list -> node list
+val region : map -> node -> region
+val merge : map -> node -> node -> node
