@@ -4,7 +4,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2023                                               #
+#  Copyright (C) 2007-2024                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -45,10 +45,6 @@ import sys
 import tempfile
 from pathlib import Path
 import psutil
-
-MIN_PYTHON = (3, 6)  # for glob(recursive) and automatic Path conversions
-if sys.version_info < MIN_PYTHON:
-    sys.exit("Python %s.%s or later is required.\n" % MIN_PYTHON)
 
 if len(sys.argv) >= 2 and sys.argv[1] == "--help":
     print(
@@ -180,7 +176,7 @@ with open(templates_json, encoding="utf-8") as template_file:
     sources_blacklist = json_obj["sources_blacklist"]
     del sources_blacklist["<LIST_TERMINATOR>"]
 
-re_argtype = re.compile(" (-[^ ]+): ([^ ]+)( \((.*)\))?")
+re_argtype = re.compile(r" (-[^ ]+): ([^ ]+)( \((.*)\))?")
 lines = subprocess.check_output(
     [framac, f"-autocomplete={autocomplete_filter}"], stderr=subprocess.STDOUT, encoding="UTF-8"
 ).splitlines()
@@ -253,10 +249,10 @@ if not must_succeed:
         "/tmp/non-existing-dir/non-existing-file",
     ]
 
-if not (os.path.exists(must_exist_dir)):
+if not os.path.exists(must_exist_dir):
     os.mkdir(must_exist_dir)
 
-with open(must_exist_input_file, "w") as out_file:
+with open(must_exist_input_file, "w", encoding="utf-8") as out_file:
     if must_succeed:
         out_file.write("[]\n")
     else:
@@ -479,7 +475,7 @@ def generate_random_args(min_args, max_args, functions=[]):
 
 
 re_possible_values = re.compile("Possible values are: (.*)")
-re_invalid_input = re.compile("invalid input .* for option (-.*)\.")
+re_invalid_input = re.compile(r"invalid input .* for option (-.*)\.")
 
 ok_tries = 0
 timeouts = 0
@@ -546,8 +542,7 @@ async def run_and_log_command(args, timeout):
                         f"### TIMEOUT ({timeout} seconds) reading process {process.pid}, ignoring..."
                     )
                     kill_shell_and_children(process.pid)  # timeout
-                    retcode = 124
-                    return (retcode, "")
+                    return (124, "")
                 except ValueError as e:
                     print(f"### VALUE ERROR: {repr(e)}")
                     kill_shell_and_children(process.pid)  # timeout
@@ -555,26 +550,26 @@ async def run_and_log_command(args, timeout):
                 else:
                     if not line:  # EOF
                         break
-                    else:
-                        logfile.write(line)
-                        if not quiet:
-                            sys.stdout.buffer.write(line)
-                            sys.stdout.flush()
-                        continue
+                    logfile.write(line)
+                    if not quiet:
+                        sys.stdout.buffer.write(line)
+                        sys.stdout.flush()
+                    continue
             retcode = await process.wait()  # wait for the child process to exit
             timer.cancel()
         except Exception as e:
             print(f"killing subprocess {process.pid} before re-raising exception <{repr(e)}>...")
             kill_shell_and_children(process.pid)
             raise e
-    with open(logname, "r") as logfile:
+    with open(logname, "r", encoding="utf-8") as logfile:
         output = logfile.read()
     os.remove(logname)
     os.close(logfd)
     return (retcode, output)
 
 
-loop = asyncio.get_event_loop()
+loop = asyncio.new_event_loop()
+asyncio.set_event_loop(loop)
 
 for i in range(1, n_tries + 1):
     print(f"*** Generating command {i}/{n_tries}...")
@@ -588,7 +583,7 @@ for i in range(1, n_tries + 1):
     (retcode, res_stdout) = loop.run_until_complete(run_and_log_command(cmdline, timeout))
     if retcode == 4:
         if log_and_keep:
-            logging.info(f"CRASH with: {cmdline}")
+            logging.info("CRASH with: %s", cmdline)
         else:
             sys.exit(f"Crash detected in Frama-C, stopping. Command line:\n{cmdline}")
     else:
@@ -600,7 +595,7 @@ for i in range(1, n_tries + 1):
             )
         if res_stdout.find("Please report") != -1:
             if log_and_keep:
-                logging.info(f"Fatal crash with: {cmdline}")
+                logging.info("Fatal crash with: %s", cmdline)
             else:
                 if quiet:
                     print("### Output from fatal crash:")
