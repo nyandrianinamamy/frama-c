@@ -36,6 +36,8 @@ type 'a tag = {
   origin: origin;
 }
 
+let mk_tag ~node ~typ ~origin = { node ; origin ; typ }
+
 let equal_tag equal_node t1 t2 = equal_node t1.node t2.node
 let compare_tag compare_node t1 t2 = compare_node t1.node t2.node
 
