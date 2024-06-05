@@ -39,6 +39,8 @@ type region = private {
 }
 
 val sizeof : layout -> int
+val points_to : layout -> node option
+val ranges : layout -> node Ranges.range list
 
 val pp_node : Format.formatter -> node -> unit
 val pp_layout : Format.formatter -> layout -> unit
@@ -52,11 +54,15 @@ val root : map -> Cil_types.varinfo -> node
 val cell : map -> ?size:int -> ?ptr:node -> ?root:varinfo -> unit -> node
 val range : map -> size:int -> offset:int -> length:int -> data:node -> node
 
+val id : node -> int
+val forge : int -> node
 val node : map -> node -> node
 val nodes : map -> node list -> node list
 val region : map -> node -> region
+val iter : map -> (node -> region -> unit) -> unit
+
 val merge : map -> node -> node -> node
 val read : map -> node -> Access.acs -> unit
 val write : map -> node -> Access.acs -> unit
 val shift : map -> node -> Access.acs -> unit
-val points_to : map -> node -> node -> unit
+val pointer : map -> node -> node -> unit
