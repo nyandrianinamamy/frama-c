@@ -25,14 +25,14 @@
 // --------------------------------------------------------------------------
 
 import React from 'react';
-import { Label } from 'dome/controls/labels';
 import * as Ivette from 'ivette';
+import { MemoryView } from './memory';
 
 Ivette.registerComponent({
   id: 'fc.region.main',
   label: 'Region Analysis',
   preferredPosition: 'B',
-  children: <Label label='Hello Regions'/>,
+  children: <MemoryView />,
 });
 
 // --------------------------------------------------------------------------
