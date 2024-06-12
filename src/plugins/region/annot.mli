@@ -22,30 +22,30 @@
 
 open Cil_types
 
-type lpath = {
+type path = {
   loc : location ;
-  ltype : typ ;
-  lnode : lnode ;
+  typ : typ ;
+  step: step ;
 }
 
-and lnode =
-  | L_var of varinfo
-  | L_region of string
-  | L_addr of lpath
-  | L_star of lpath
-  | L_index of lpath
-  | L_shift of lpath
-  | L_field of lpath * fieldinfo
-  | L_cast of typ * lpath
+and step =
+  | Var of varinfo
+  | Region of string
+  | AddrOf of path
+  | Star of path
+  | Index of path
+  | Shift of path
+  | Field of path * fieldinfo
+  | Cast of typ * path
 
 type region = {
   rname: string option ;
-  rpath: lpath list ;
+  rpath: path list ;
 }
 
-val pp_lnode : Format.formatter -> lnode -> unit
-val pp_latom : Format.formatter -> lpath -> unit
-val pp_lpath : Format.formatter -> lpath -> unit
+val pp_step : Format.formatter -> step -> unit
+val pp_atom : Format.formatter -> path -> unit
+val pp_path : Format.formatter -> path -> unit
 val pp_region : Format.formatter -> region -> unit
 val pp_regions : Format.formatter -> region list -> unit
 
