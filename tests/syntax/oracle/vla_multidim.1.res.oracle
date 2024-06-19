@@ -1,10 +1,4 @@
 [kernel] Parsing vla_multidim.c (with preprocessing)
-[kernel] vla_multidim.c:15: User Error: 
-  "Variable length array in structure" extension is not supported
-[kernel] vla_multidim.c:16: User Error: 
-  "Variable length array in structure" extension is not supported
-[kernel] vla_multidim.c:17: User Error: 
-  "Variable length array in structure" extension is not supported
-[kernel] User Error: stopping on file "vla_multidim.c" that has errors. Add '-kernel-msg-key pp'
-  for preprocessing command.
-[kernel] Frama-C aborted: invalid user input.
+[kernel] Frama-C aborted: unimplemented feature.
+  You may send a feature request at https://git.frama-c.com/pub/frama-c/issues with:
+  '[Frama-C] For multi-dimensional arrays, variable length is only supported on the first dimension'.
