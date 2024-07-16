@@ -25,6 +25,7 @@
 #include "assert.c"
 #include "ctype.c"
 #include "errno.c"
+#include "error.c"
 #include "fenv.c"
 #include "glob.c"
 #include "inttypes.c"
