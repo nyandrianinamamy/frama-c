@@ -50,11 +50,9 @@ typedef unsigned int u_int;
 typedef unsigned short u_short;
 typedef unsigned char u_char;
 
-// The macros below are non-POSIX; the definitions below should allow
-// parsing coreutils.
-# define major(dev)  (((dev) >> 8) & 0xff)
-# define minor(dev)  ((dev) & 0xff)
-# define makedev(maj, min)  (((maj) << 8) | (min))
+// Some glibc versions include major/minor/makedev here, but recently
+// they are in 'sysmacros.h'
+#include "sysmacros.h"
 
 #define __u_char_defined
 #endif
