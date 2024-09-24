@@ -26,6 +26,7 @@
 __PUSH_FC_STDLIB
 
 #include "__fc_define_pid_t.h"
+#include "__fc_utmp_constants.h"
 #include "stdint.h"
 #include "sys/time.h"
 
@@ -46,21 +47,42 @@ struct utmpx {
   char __glibc_reserved[20]; // not POSIX, but allowed by it
 };
 
-#define EMPTY 0
-#define BOOT_TIME 2
-#define OLD_TIME 4
-#define NEW_TIME 3
-#define USER_PROCESS 7
-#define INIT_PROCESS 5
-#define LOGIN_PROCESS 6
-#define DEAD_PROCESS 8
+// static storage used by some getter functions
+extern struct utmpx __fc_getx;
 
-extern void endutxent(void);
-extern struct utmpx *getutxent(void);
-extern struct utmpx *getutxid(const struct utmpx *);
-extern struct utmpx *getutxline(const struct utmpx *);
-extern struct utmpx *pututxline(const struct utmpx *);
-extern void setutxent(void);
+/*@
+  assigns \result \from &__fc_getx, indirect:__fc_utmp;
+  assigns __fc_getx \from __fc_getx, indirect:__fc_utmp;
+*/
+extern struct utmpx *getutxent (void);
+
+/*@
+  assigns __fc_utmp \from __fc_utmp;
+*/
+extern void setutxent (void);
+
+/*@
+  assigns __fc_utmp \from __fc_utmp;
+*/
+extern void endutxent (void);
+
+/*@
+  assigns \result \from &__fc_getx, indirect:__fc_utmp, indirect:*id;
+  assigns __fc_getx \from __fc_getx, indirect:__fc_utmp, indirect:*id;
+*/
+extern struct utmpx *getutxid (const struct utmpx *id);
+
+/*@
+  assigns \result \from &__fc_getx, indirect:__fc_utmp, indirect:*line;
+  assigns __fc_getx \from __fc_getx, indirect:__fc_utmp, indirect:*line;
+*/
+extern struct utmpx *getutxline (const struct utmpx *line);
+
+/*@
+  assigns __fc_utmp \from __fc_utmp, *utmp_ptr;
+  assigns \result \from utmp_ptr;
+*/
+extern struct utmpx *pututxline (const struct utmpx *utmp_ptr);
 
 __END_DECLS
 __POP_FC_STDLIB
