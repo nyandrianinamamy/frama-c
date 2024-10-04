@@ -29,7 +29,8 @@ open Sigs
 (* --- Region Memory Model                                                --- *)
 (* -------------------------------------------------------------------------- *)
 
-module type ModelLoader = sig
+module type ModelWithLoader =
+sig
   include Sigs.Model
 
   val sizeof : c_object -> term
@@ -45,18 +46,17 @@ module type ModelLoader = sig
   val load_float : sigma -> c_float -> loc -> term
   val load_pointer : sigma -> typ -> loc -> loc
 
-  val store_int : sigma -> c_int -> loc -> term -> Chunk.t * term
-  val store_float : sigma -> c_float -> loc -> term -> Chunk.t * term
-  val store_pointer : sigma -> typ -> loc -> term -> Chunk.t * term
+  val store_int : sigma -> c_int -> loc -> term -> chunk * term
+  val store_float : sigma -> c_float -> loc -> term -> chunk * term
+  val store_pointer : sigma -> typ -> loc -> term -> chunk * term
 
   val set_init_atom : sigma -> c_object -> loc -> term -> chunk * term
   val set_init : c_object -> loc -> length:term -> chunk -> current:term -> term
   val is_init_atom : sigma -> c_object -> loc -> term
   val is_init_range : sigma -> c_object -> loc -> term -> pred
 
-  val value_footprint : c_object -> loc -> Sigma.domain
-  val init_footprint : c_object -> loc -> Sigma.domain
+  val value_footprint : c_object -> loc -> domain
+  val init_footprint : c_object -> loc -> domain
 end
 
-
-module Make (_:RegionAnalysis.API) (_:ModelLoader) : Sigs.Model
+module Make : RegionAnalysis.API -> ModelWithLoader -> Sigs.Model
