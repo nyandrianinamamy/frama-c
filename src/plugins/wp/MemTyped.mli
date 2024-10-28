@@ -24,7 +24,7 @@
 (* --- Typed Memory Model                                                 --- *)
 (* -------------------------------------------------------------------------- *)
 
-include Sigs.Model
-
 type pointer = NoCast | Fits | Unsafe
 val pointer : pointer Context.value
+
+include Sigs.Model
