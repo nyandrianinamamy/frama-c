@@ -29,6 +29,9 @@ module Translate_terms = Translate_terms
 module Translate_predicates = Translate_predicates
 
 module Functions = Functions
+module Interlang = Interlang
+module Interlang_trans = Interlang_trans
+module Interlang_build = Interlang_build
 
 (*
 Local Variables:
