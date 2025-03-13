@@ -22,6 +22,5 @@
 
 open Memory
 
-val add_lval : map -> Annot.path -> node
-val add_exp : map -> Annot.path -> node option
+val add_path : map -> Annot.path -> node
 val add_region : map -> Annot.region -> unit
