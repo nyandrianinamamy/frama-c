@@ -60,5 +60,5 @@ end
 module Metrics_cilast : sig
   val get_metrics_map: libc:bool ->
     (Metrics_base.BasicMetrics.t Metrics_base.OptionKf.Map.t)
-      Datatype.Filepath.Map.t
+      Filepath.Map.t
 end
