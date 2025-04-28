@@ -25,14 +25,17 @@
 (** {2 Keys and partitions.} *)
 
 type branch =
-  | Branch of int
-  (** Junction branch id in the control flow *)
+  | Branch of int * int
+  (** Junction branch id in the control flow. The integers are the edge key and
+      the vertex key. *)
   | Builtin_result of Kernel_function.t * Cil_datatype.Kinstr.t * int
-  (** Case of a builtin *)
+  (** Case of a builtin. The integer is an index. *)
   | Spec_behavior of Kernel_function.t * Cil_datatype.Kinstr.t * int
-  (** Behavior of a spec *)
+  (** Behavior of a spec. The integer is an index. *)
   | Disjunction_case of Cil_datatype.Stmt.t * int
-  (** Case of a disjunction in an ACSL annotation *)
+  (** Case of a disjunction in an ACSL annotation. The integer is an index. *)
+  | Call_branch of Cil_datatype.Stmt.t * branch
+  (** Branch resulting of a call. *)
 
 (** Partitioning keys attached to states. *)
 type key
@@ -53,8 +56,9 @@ module Key : sig
   val add_branch : ?history_size:int -> branch -> t -> t
   (** Key for a branch appended to an existing key. *)
 
-  val exceed_rationing: t -> bool
-  val combine : policy:call_return_policy -> caller:t -> callee:t -> t
+  val exceed_rationing : t -> bool
+  val combine : policy:call_return_policy -> stmt:Cil_types.stmt -> caller:t ->
+    callee:t -> t
   (** Recombinaison of keys after a call. *)
 end
 
@@ -133,12 +137,18 @@ type action =
   | Incr_loop
   (** Increments the iteration counter of the current loop for all states in
       the flow. States with different iteration counter are kept separate. *)
-  | Add_branch of int * int
-  (** Identifies all the states in the flow as coming from the branch identified
-      by the first integer. They will be kept separated from states coming from
-      other branches. The second integer is the maximum number of successive
-      branches kept in the keys: this action also removes the oldest branches
-      from the keys to meet this constraint. *)
+  | Add_branch of branch * int
+  (** Identifies all the states in the flow as coming from [branch].
+      They will be kept separated from states coming from other branches.
+      The integer is the maximum number of successive branches kept in the keys:
+      this action also removes the oldest branches from the keys to meet this
+      constraint. *)
+  | Remove_branch of int
+  (** Removes the branch identified by the given vertex key, in order to
+      provoke a merging of keys. *)
+  | Remove_call_branch of Cil_types.stmt
+  (** Removes the call branch identified by the given statement, in order to
+      provoke a merging of keys. *)
   | Ration of rationing
   (** Ensures that the first states encountered are kept separate, by creating a
       unique ration stamp for each new state until the [limit] is reached. The
@@ -201,6 +211,7 @@ sig
   val size : t -> int
 
   val union : t -> t -> t
+  val flatten : t list -> t
 
   val transfer : ((key * state) -> (key * state) list) -> t -> t
   val transfer_keys : t -> action -> t

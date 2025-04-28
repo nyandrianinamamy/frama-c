@@ -275,6 +275,9 @@ Options taking a string as argument should preferably be written
 -eva-oracle-depth <n>  Maximum number of successive uses of the oracle by the
                     domain for the evaluation of an expression. Set 0 to
                     disable the oracle.
+-eva-partition-heuristics  Use heuristics to determine where partition
+                    history is useful. (opposite option is
+                    -eva-no-partition-heuristics)
 -eva-partition-history <n>  Keep states distinct as long as the <n> last
                     branching in their traces are also distinct. (A value of
                     0 deactivates this feature)

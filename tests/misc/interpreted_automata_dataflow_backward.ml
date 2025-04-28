@@ -11,7 +11,7 @@ struct
   let pretty fmt v =
     Pretty_utils.pp_iter ~sep:",@ " Set.iter Cil_datatype.Varinfo.pretty fmt v
 
-  let join v1 v2 =
+  let join _ v1 v2 =
     Set.union v1 v2
 
   let widen v1 v2 =

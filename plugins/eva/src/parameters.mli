@@ -70,6 +70,7 @@ module HistoryPartitioningFunction :
                      and type value = int
 
 module ValuePartitioning : Parameter_sig.String_set
+module PartitionHeuristics : Parameter_sig.Bool
 module SplitLimit : Parameter_sig.Int
 
 module InterproceduralSplits : Parameter_sig.Bool

@@ -59,13 +59,13 @@ module DotGraph = Graph.Graphviz.Dot (
 module Domain = struct
   type t = StmtSet.t
 
-  let join = StmtSet.inter
+  let join _ = StmtSet.inter
 
   let widen a b =
     if StmtSet.subset a b then
       Interpreted_automata.Fixpoint
     else
-      Interpreted_automata.Widening (join a b)
+      Interpreted_automata.Widening (StmtSet.inter a b)
 
   (* Trivial transfer function: add all visited statements to the current
      state. *)

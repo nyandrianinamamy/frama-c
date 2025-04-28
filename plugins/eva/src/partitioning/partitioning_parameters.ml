@@ -188,7 +188,29 @@ struct
     | (NoSplit | SplitEqList _), _ ->
       Partition.Ration (Partition.new_rationing ~limit:0 ~merge:false)
 
-  let flow_actions vertex =
+  let heuristics = PartitionHeuristics.get ()
+  let history_tables = Heuristics.get_info heuristics kf history_size
+  let should_partition_at =
+    if heuristics then
+      fun v -> Eva_automata.Vertex.Hashtbl.mem history_tables.split_v v
+    else
+      fun _ -> true
+  let should_merge_what =
+    if heuristics then
+      fun ek ->
+        let merge_actions =
+          Datatype.Int.Hashtbl.find_all history_tables.merge_e ek
+          |> List.map (fun v ->
+              Partition.Remove_branch v.Eva_automata.vertex_key)
+        and call_merge_actions =
+          Datatype.Int.Hashtbl.find_all history_tables.call_merge_e ek
+          |> List.map (fun stmt -> Partition.Remove_call_branch stmt)
+        in
+        merge_actions @ call_merge_actions
+    else
+      fun _ -> []
+
+  let flow_actions_v vertex =
     let flow_actions =
       VertexTable.find_default ~default:[] flow_annotations_table vertex
     in
@@ -209,6 +231,13 @@ struct
       rationing_action :: Update_dynamic_splits :: flow_actions
     in
     flow_actions, store_results
+
+  let flow_actions_e ~several_sources ek v =
+    if several_sources && should_partition_at v then
+      let b = Partition.Branch (ek, v.vertex_key) in
+      Partition.Add_branch (b, history_size) :: should_merge_what ek
+    else
+      should_merge_what ek
 
   let call_return_policy =
     Partition.{

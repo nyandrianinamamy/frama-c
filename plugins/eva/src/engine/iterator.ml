@@ -237,7 +237,8 @@ module Make_Dataflow
       (* Propagate info that the current call cannot be cached either *)
       cacheable := Eval.NoCacheCallers;
     (* Recombine callee partitioning keys with caller key *)
-    Partitioning.call_return ~caller:key result.kind result.states
+    let stmt = Position.Local.stmt pos in
+    Partitioning.call_return ~caller:key result.kind stmt result.states
 
   let check_postconditions : state -> state list =
     if Eva_utils.skip_specifications kf then
@@ -383,7 +384,7 @@ module Make_Dataflow
     Cvalue_callbacks.apply_statement_hooks callstack stmt cvalue_states
 
   let update_vertex ?(widening : bool = false) (v : vertex)
-      (sources : ('branch * flow) list) : bool =
+      (sources : ('edge * flow) list) : bool =
     let current_stmt =
       if v == automaton.return_point
       then Some (Kernel_function.find_return kf)
@@ -396,7 +397,7 @@ module Make_Dataflow
     (* Get vertex store *)
     let store = get_vertex_store v in
     (* Join incoming states *)
-    let flow = Partitioning.join sources store in
+    let flow = Partitioning.join sources v store in
     let flow =
       match current_stmt with
       | Some stmt ->
@@ -443,7 +444,7 @@ module Make_Dataflow
     (* Update the vertex *)
     update_vertex ~widening v sources
 
-  let rec simulate (v : vertex) (source : 'branch * flow) : unit =
+  let rec simulate (v : vertex) (source : 'edge * flow) : unit =
     (* Update the current vertex *)
     ignore (update_vertex v [source]);
     (* Try every possible successor *)
@@ -454,7 +455,7 @@ module Make_Dataflow
       else (e.edge_key,f,succ) :: acc
     in
     let successors = G.fold_succ_e add_if_fireable graph v [] in
-    (* How many possible successors ? *)
+    (* How many possible successors? *)
     match successors with
     | [] -> () (* No successor - end of simulation *)
     | [b,f,succ] -> (* One successor - continue simulation *)

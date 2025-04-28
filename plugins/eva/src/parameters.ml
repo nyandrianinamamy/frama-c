@@ -747,6 +747,16 @@ module ValuePartitioning =
     end)
 let () = add_precision_dep ValuePartitioning.parameter
 
+let () = Parameter_customize.set_group precision_tuning
+module PartitionHeuristics =
+  False
+    (struct
+      let option_name = "-eva-partition-heuristics"
+      let help = "Use heuristics to determine where partition history is \
+                  useful."
+    end)
+let () = add_precision_dep PartitionHeuristics.parameter
+
 let use_global_value_partitioning vi =
   ValuePartitioning.add vi.Cil_types.vname
 
