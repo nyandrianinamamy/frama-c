@@ -26,8 +26,12 @@
 
 #include "features.h"
 __PUSH_FC_STDLIB
-#include <wchar.h>
+#include "__fc_define_locale_t.h"
+#include "__fc_define_weof.h"
+#include "wchar.h"
 __BEGIN_DECLS
+
+typedef const int32_t *wctrans_t;
 
 extern int iswalnum(wint_t wc);
 
