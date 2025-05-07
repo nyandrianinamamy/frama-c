@@ -189,7 +189,14 @@ struct
       Partition.Ration (Partition.new_rationing ~limit:0 ~merge:false)
 
   let heuristics = PartitionHeuristics.get ()
-  let history_tables = Heuristics.get_info heuristics kf history_size
+  let history_tables =
+    let mode =
+      if not heuristics then Heuristics.Disabled
+      else if Parameters.InterproceduralHistory.get ()
+      then Heuristics.Interprocedural
+      else Heuristics.Intraprocedural
+    in
+    Heuristics.get_info mode kf history_size
   let should_partition_at =
     if heuristics then
       fun v -> Eva_automata.Vertex.Hashtbl.mem history_tables.split_v v
@@ -207,6 +214,9 @@ struct
           |> List.map (fun stmt -> Partition.Remove_call_branch stmt)
         in
         merge_actions @ call_merge_actions
+        (* We include call_merge_actions even if interprocedural history is not
+           enabled, because interprocedural history is always enabled for
+           builtins and specs. *)
     else
       fun _ -> []
 

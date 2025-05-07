@@ -8,13 +8,17 @@
 
 open Eva_automata
 
+type mode =
+  | Disabled
+  | Intraprocedural
+  | Interprocedural
+
 type info = private {
   split_v : unit Vertex.Hashtbl.t;
   merge_e : vertex Datatype.Int.Hashtbl.t;
   call_merge_e : Cil_types.stmt Datatype.Int.Hashtbl.t;
 }
 
-val get_info : bool -> Cil_types.kernel_function ->
-  int -> info
+val get_info : mode -> Cil_types.kernel_function -> int -> info
 (** [get_info mode kf dist_limit] returns, for function [kf], the
     partitioning information. *)

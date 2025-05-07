@@ -92,7 +92,7 @@ type trans_effect =
   | Writes_to_compound of Eva_ast.varinfo
   | Writes_to_pointed
 
-let get_trans_effects automaton =
+let get_trans_effects automaton return_pointers =
   let e_effects = Edge.Hashtbl.create 4
   and stacked = Vertex.Hashtbl.create 4 in
   Vertex.Hashtbl.add stacked automaton.entry_point ();
@@ -135,7 +135,10 @@ let get_trans_effects automaton =
             List.concat_map (fun (_, init) -> init_effects init) init_l
         in
         let effects = match e.edge_transition with
-          | Return (Some exp, _) -> Reads_pointed :: exp_effects exp
+          | Return (exp, _) when return_pointers ->
+            Reads_pointed ::
+            (match exp with None -> [] | Some exp -> exp_effects exp)
+          | Return (Some exp, _) -> exp_effects exp
           | Guard (exp, _, _) -> exp_effects exp
           | Assign (lval, exp, _) -> written_lval_effects lval @ exp_effects exp
           | Call (lval, lhost, args, _) when not (is_internal_function lhost) ->
@@ -324,17 +327,22 @@ let get_call_writes lval args =
   in
   List.fold_left add_arg_write wl args
 
+type mode =
+  | Disabled
+  | Intraprocedural
+  | Interprocedural
+
 type info = {
   split_v : unit Vertex.Hashtbl.t;
   merge_e : vertex Datatype.Int.Hashtbl.t;
   call_merge_e : Cil_types.stmt Datatype.Int.Hashtbl.t;
 }
 
-let get_info enabled kf dist_limit =
-  if enabled then begin
+let get_info mode kf dist_limit =
+  if mode <> Disabled then begin
     let automaton = get_automaton kf in
     let writes = WriteFwAnalysis.fixpoint automaton WrittenLocs.initial
-    and e_effects = get_trans_effects automaton in
+    and e_effects = get_trans_effects automaton (mode = Interprocedural) in
     let split_v = Vertex.Hashtbl.create 4
     and merge_e = Datatype.Int.Hashtbl.create 4
     and call_merge_e = Datatype.Int.Hashtbl.create 4 in
