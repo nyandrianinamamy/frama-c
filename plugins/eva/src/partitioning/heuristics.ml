@@ -20,141 +20,67 @@ struct
     | Var of Eva_ast.varinfo
     | PtrTarget
 
-  let compare = compare
+  let compare ml1 ml2 =
+    match ml1, ml2 with
+    | Var vi1, Var vi2 -> Cil_datatype.Varinfo.compare vi1 vi2
+    | Var _, PtrTarget -> -1
+    | PtrTarget, Var _ -> 1
+    | PtrTarget, PtrTarget -> 0
 end
 
 module MemLocMap = Map.Make (MemLoc)
-module ViSet = Cil_datatype.Varinfo.Hptset
+module MemLocSet = Set.Make (MemLoc)
 
 module WrittenLocs =
 struct
-  type t = {
-    last_writes : vertex MemLocMap.t;
-    ptr_targets : ViSet.t;
-  }
+  type t = vertex MemLocMap.t
 
-  let initial = { last_writes = MemLocMap.empty; ptr_targets = ViSet.empty }
+  let initial = MemLocMap.empty
 
   let join v wl1 wl2 =
-    let ptr_targets = ViSet.union wl1.ptr_targets wl2.ptr_targets in
-    let merge_writes loc v1 v2 =
-      let v1eqv2 = match v1, v2 with
-        | None, None -> true
-        | Some v1, Some v2 -> v1 == v2
-        | _ -> false
-      in
-      match loc with
-      | MemLoc.PtrTarget ->
-        if not v1eqv2 || wl1.ptr_targets != wl2.ptr_targets then Some v
-        else v1
-      | MemLoc.Var vi ->
-        if v1eqv2 then v1
-        else if ViSet.mem vi ptr_targets then None
-        else Some v
+    let merge_writes _ v1 v2 =
+      match v1, v2 with
+      | None, None -> None
+      | Some v1, Some v2 when v1 == v2 -> Some v1
+      | _ -> Some v
     in
-    let last_writes =
-      MemLocMap.merge merge_writes wl1.last_writes wl2.last_writes
-    in
-    { last_writes; ptr_targets }
+    MemLocMap.merge merge_writes wl1 wl2
 
   let widen _ _ = Fixpoint
 
   let transfer (_, e, v) wl =
     let open Eva_ast_types in
-    let lval_ptr_targets { node = lhost, _ } =
-      match lhost with
-      | Var vi when vi.vaddrof -> ViSet.singleton vi
-      | _ -> ViSet.empty
-    in
-    let rec exp_ptr_targets exp =
-      match exp.node with
-      | Lval lval -> lval_ptr_targets lval
-      | UnOp (_, exp, _) | CastE (_, exp) -> exp_ptr_targets exp
-      | BinOp (_, exp1, exp2, _) ->
-        ViSet.union (exp_ptr_targets exp1) (exp_ptr_targets exp2)
-      | AddrOf { node = Var vi, _ } | StartOf { node = Var vi, _ } ->
-        ViSet.singleton vi
-      | _ -> ViSet.empty
-    in
-    let loc_of_vi vi ptr_targets =
-      if ViSet.mem vi ptr_targets then MemLoc.PtrTarget
+    let loc_of_vi vi =
+      if vi.Cil_types.vaddrof then MemLoc.PtrTarget
       else MemLoc.Var vi
     in
-    let loc_of_lval lval ptr_targets =
+    let loc_of_lval lval =
       match fst lval.node with
-      | Var vi -> loc_of_vi vi ptr_targets
+      | Var vi -> loc_of_vi vi
       | _ -> MemLoc.PtrTarget
     in
-    let add_exp_targets last_w exp = ViSet.union last_w (exp_ptr_targets exp) in
-    let remove_memloc_vars = ViSet.fold (fun vi -> MemLocMap.remove (Var vi)) in
     let exp_is_ref exp =
       match exp.typ.tnode with
       | TPtr _ | TArray _ -> true
       | _ -> false
     in
 
-    match e.edge_transition with
-    | Assign (lval, exp, _) ->
-      let new_ptr_targets =
-        ViSet.union (lval_ptr_targets lval) (exp_ptr_targets exp)
-      in
-      let ptr_targets = ViSet.union new_ptr_targets wl.ptr_targets in
-      let loc = loc_of_lval lval ptr_targets in
-      let last_writes =
-        wl.last_writes
-        |> remove_memloc_vars new_ptr_targets
-        |> MemLocMap.add loc v
-      in
-      Some { last_writes; ptr_targets }
-    | Init (vi, init, _) ->
-      let new_ptr_targets =
-        let rec parse_init ptr_targets = function
-          | SingleInit (exp, _) ->
-            add_exp_targets ptr_targets exp
-          | CompoundInit (_, init_l) ->
-            List.fold_left
-              (fun acc (_, init) -> parse_init acc init)
-              ptr_targets
-              init_l
+    let wl =
+      match e.edge_transition with
+      | Assign (lval, _, _) -> MemLocMap.add (loc_of_lval lval) v wl
+      | Init (vi, _, _) -> MemLocMap.add (loc_of_vi vi) v wl
+      | Call (lval, exp, args, _) when not (is_internal_function exp) ->
+        let wl =
+          match lval with
+          | Some lval -> MemLocMap.add (loc_of_lval lval) v wl
+          | None -> wl
         in
-        parse_init ViSet.empty init
-      in
-      let ptr_targets = ViSet.union new_ptr_targets wl.ptr_targets in
-      let loc = loc_of_vi vi ptr_targets in
-      let last_writes =
-        wl.last_writes
-        |> remove_memloc_vars new_ptr_targets
-        |> MemLocMap.add loc v
-      in
-      Some { last_writes; ptr_targets }
-    | Call (None, exp, args, _) when not (is_internal_function exp) ->
-      let new_ptr_targets = List.fold_left add_exp_targets ViSet.empty args in
-      let ptr_targets = ViSet.union new_ptr_targets wl.ptr_targets in
-      let last_writes = remove_memloc_vars new_ptr_targets wl.last_writes in
-      let last_writes =
         if List.exists exp_is_ref args
-        then MemLocMap.add MemLoc.PtrTarget v last_writes
-        else last_writes
-      in
-      Some { last_writes; ptr_targets }
-    | Call (Some lval, _, args, _) ->
-      let new_ptr_targets =
-        List.fold_left add_exp_targets (lval_ptr_targets lval) args
-      in
-      let ptr_targets = ViSet.union new_ptr_targets wl.ptr_targets in
-      let loc = loc_of_lval lval ptr_targets in
-      let last_writes =
-        wl.last_writes
-        |> remove_memloc_vars new_ptr_targets
-        |> MemLocMap.add loc v
-      in
-      let last_writes =
-        if List.exists exp_is_ref args
-        then MemLocMap.add MemLoc.PtrTarget v last_writes
-        else last_writes
-      in
-      Some { last_writes; ptr_targets }
-    | _ -> Some wl
+        then MemLocMap.add MemLoc.PtrTarget v wl
+        else wl
+      | _ -> wl
+    in
+    Some wl
 end
 
 module WriteFwAnalysis = ForwardAnalysis (WrittenLocs)
@@ -163,9 +89,8 @@ type trans_effect =
   | Reads_var of Eva_ast.varinfo
   | Reads_pointed
   | Writes_to_var of Eva_ast.varinfo
-  | Writes_to_array of Eva_ast.varinfo
+  | Writes_to_compound of Eva_ast.varinfo
   | Writes_to_pointed
-  | Points_to of Eva_ast.varinfo
 
 let get_trans_effects automaton =
   let e_effects = Edge.Hashtbl.create 4
@@ -182,20 +107,18 @@ let get_trans_effects automaton =
           | Index (exp, offset) -> exp_effects exp @ offset_effects offset
         and lval_effects { node = lhost, offset } =
           (match lhost with
-           | Var vi -> [Reads_var vi]
+           | Var vi -> [if vi.vaddrof then Reads_pointed else Reads_var vi]
            | Mem exp -> Reads_pointed :: exp_effects exp) @
           offset_effects offset
         and written_lval_effects { node = lhost, offset } =
           (match lhost, offset with
+           | Var vi, _ when vi.vaddrof -> [Writes_to_pointed]
            | Var vi, NoOffset -> [Writes_to_var vi]
-           | Var vi, _ -> [Writes_to_array vi]
+           | Var vi, _ -> [Writes_to_compound vi]
            | Mem exp, _ -> Writes_to_pointed :: exp_effects exp) @
           offset_effects offset
         and exp_effects { node } =
           match node with
-          | AddrOf ({ node = Var vi, _ } as lval)
-          | StartOf ({ node = Var vi, _ } as lval) ->
-            Points_to vi :: lval_effects lval
           | Lval lval | AddrOf lval | StartOf lval -> lval_effects lval
           | UnOp (_, exp, _) | CastE (_, exp) -> exp_effects exp
           | BinOp (_, exp1, exp2, _) -> exp_effects exp1 @ exp_effects exp2
@@ -243,19 +166,13 @@ let get_trans_effects automaton =
   e_effects
 
 let get_writes_at_v junct_v (writes : WrittenLocs.t) =
-  let check_and_add_var loc v (wvars, pt_written) =
-    if v == junct_v then
-      match loc with
-      | MemLoc.Var vi -> ViSet.add vi wvars, pt_written
-      | MemLoc.PtrTarget ->
-        ViSet.union writes.ptr_targets wvars, true
-    else
-      wvars, pt_written
+  let check_and_add_var loc v wl =
+    if v == junct_v then MemLocSet.add loc wl
+    else wl
   in
-  MemLocMap.fold check_and_add_var writes.last_writes (ViSet.empty, false)
+  MemLocMap.fold check_and_add_var writes MemLocSet.empty
 
-let get_merge_edges (automaton : automaton) junct_v writes e_effects
-    dist_limit =
+let get_merge_edges (automaton : automaton) junct_v wl e_effects dist_limit =
   let add_to_stack_of_dist v v_stack v_stack_next_dist must_stack =
     if not must_stack then
       v_stack, v_stack_next_dist
@@ -269,8 +186,8 @@ let get_merge_edges (automaton : automaton) junct_v writes e_effects
      persist: because one of the followed variables is read. More or less
      variables may be tracked because of assignments, this is why we have a
      table of followed variables at each vertex. *)
-  let followed_vars = Vertex.Hashtbl.create 4 in
-  Vertex.Hashtbl.add followed_vars junct_v writes;
+  let followed_locs = Vertex.Hashtbl.create 4 in
+  Vertex.Hashtbl.add followed_locs junct_v wl;
   let rec vertices_with_read v_stack v_stack_next_dist dist =
     match v_stack with
     | [] ->
@@ -281,49 +198,43 @@ let get_merge_edges (automaton : automaton) junct_v writes e_effects
       (* Do not go through loop heads *)
       vertices_with_read v_stack v_stack_next_dist dist
     | v :: v_stack ->
-      let wvars, pt_written = Vertex.Hashtbl.find followed_vars v in
+      let fl = Vertex.Hashtbl.find followed_locs v in
       let process_edge (_, e, succ) (result, v_stack, v_stack_next_dist) =
         let effects = Edge.Hashtbl.find e_effects e in
         let rec has_read_effect = function
           | [] -> false
           | eff :: effects ->
             let has_read = match eff with
-              | Reads_var vi -> ViSet.mem vi wvars
-              | Reads_pointed -> pt_written
+              | Reads_var vi -> MemLocSet.mem (MemLoc.Var vi) fl
+              | Reads_pointed -> MemLocSet.mem MemLoc.PtrTarget fl
               | _ -> false
             in
             has_read || has_read_effect effects
         in
         let has_read = has_read_effect effects in
-        let apply_write_effect (wvars, pt_written) = function
+        let apply_write_effect fl = function
           | Writes_to_var vi ->
-            if has_read then ViSet.add vi wvars, pt_written
-            else ViSet.remove vi wvars, pt_written
-          | Writes_to_array vi when has_read ->
-            ViSet.add vi wvars, pt_written
-          | Writes_to_pointed when has_read -> wvars, true
-          | Points_to vi when ViSet.mem vi wvars -> wvars, true
-          | _ -> wvars, pt_written
+            if has_read then MemLocSet.add (MemLoc.Var vi) fl
+            else MemLocSet.remove (MemLoc.Var vi) fl
+          | Writes_to_compound vi when has_read ->
+            MemLocSet.add (MemLoc.Var vi) fl
+          | Writes_to_pointed when has_read -> MemLocSet.add MemLoc.PtrTarget fl
+          | _ -> fl
         in
-        let fvars =
-          List.fold_left apply_write_effect (wvars, pt_written) effects
-        in
-        let update_succ_fvars fvars =
-          let fvars_union (wvars1, pt_written1) (wvars2, pt_written2) =
-            ViSet.union wvars1 wvars2, pt_written1 || pt_written2
-          in
-          match Vertex.Hashtbl.find_opt followed_vars succ with
-          | Some prec_fvars ->
-            let fvars = fvars_union prec_fvars fvars in
-            Vertex.Hashtbl.replace followed_vars succ fvars;
-          | None -> Vertex.Hashtbl.add followed_vars succ fvars;
+        let fl = List.fold_left apply_write_effect fl effects in
+        let update_succ_fl fl =
+          match Vertex.Hashtbl.find_opt followed_locs succ with
+          | Some prec_fl ->
+            let fl = MemLocSet.union prec_fl fl in
+            Vertex.Hashtbl.replace followed_locs succ fl;
+          | None -> Vertex.Hashtbl.add followed_locs succ fl;
         in
         let result = if has_read then v :: result else result in
         let v_stack, v_stack_next_dist =
-          let must_stack = not (Vertex.Hashtbl.mem followed_vars succ) in
+          let must_stack = not (Vertex.Hashtbl.mem followed_locs succ) in
           add_to_stack_of_dist succ v_stack v_stack_next_dist must_stack
         in
-        update_succ_fvars fvars;
+        update_succ_fl fl;
         result, v_stack, v_stack_next_dist
       in
       let result, v_stack, v_stack_next_dist =
@@ -394,21 +305,24 @@ let get_merge_edges (automaton : automaton) junct_v writes e_effects
 
 let get_call_writes lval args =
   let open Eva_ast_types in
-  let wvars, pt_written =
+  let wl =
     match lval with
-    | Some { node = Var vi, _ } -> ViSet.singleton vi, false
-    | Some { node = Mem _, _ } -> ViSet.empty, true
-    | None -> ViSet.empty, false
+    | Some { node = Var vi, _ } -> MemLocSet.singleton (MemLoc.Var vi)
+    | Some { node = Mem _, _ } -> MemLocSet.singleton MemLoc.PtrTarget
+    | None -> MemLocSet.empty
   in
-  let add_arg_write (wvars, pt_written) arg =
+  let add_arg_write wl arg =
     match arg.node with
-    | Lval { typ = { tnode = TPtr _ } } -> wvars, true
+    | AddrOf { node = Var vi, _ } | StartOf { node = Var vi, _ }
+      when vi.vaddrof ->
+      MemLocSet.add MemLoc.PtrTarget wl
     | AddrOf { node = Var vi, _ } | StartOf { node = Var vi, _ } ->
-      ViSet.add vi wvars, pt_written
-    | AddrOf _ | StartOf _ -> wvars, true
-    | _ -> wvars, pt_written
+      MemLocSet.add (MemLoc.Var vi) wl
+    | Lval { typ = { tnode = TPtr _ } } | AddrOf _ | StartOf _ ->
+      MemLocSet.add MemLoc.PtrTarget wl
+    | _ -> wl
   in
-  List.fold_left add_arg_write (wvars, pt_written) args
+  List.fold_left add_arg_write wl args
 
 type info = {
   split_v : unit Vertex.Hashtbl.t;
@@ -429,11 +343,11 @@ let get_info enabled kf dist_limit =
       | Return _ -> ()
       | _ -> Datatype.Int.Hashtbl.add tbl e.edge_key k;
     in
-    let check_and_add_junct_v v writes =
+    let check_and_add_junct_v v wl =
       if G.in_degree automaton.graph v > 1 then begin
-        let writes = get_writes_at_v v writes in
+        let wl = get_writes_at_v v wl in
         let edges_of_merge =
-          get_merge_edges automaton v writes e_effects dist_limit
+          get_merge_edges automaton v wl e_effects dist_limit
         in
         if edges_of_merge <> [] then begin
           Vertex.Hashtbl.add split_v v ();
@@ -444,9 +358,9 @@ let get_info enabled kf dist_limit =
     let add_call_merges (_, e, v) =
       match e.edge_transition with
       | Call (lval, exp, args, stmt) when not (is_internal_function exp) ->
-        let writes = get_call_writes lval args in
+        let wl = get_call_writes lval args in
         let edges_of_merge =
-          get_merge_edges automaton v writes e_effects dist_limit
+          get_merge_edges automaton v wl e_effects dist_limit
         in
         if edges_of_merge = [] then
           Datatype.Int.Hashtbl.add call_merge_e e.edge_key stmt
