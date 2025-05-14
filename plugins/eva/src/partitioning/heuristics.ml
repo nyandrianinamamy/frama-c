@@ -18,7 +18,7 @@ module MemLoc =
 struct
   type t =
     | Var of Eva_ast.varinfo
-    | HeapBlk of int
+    | HeapBlk of int (* block on the heap: the integer is the statement id *)
     | OtherPtrTarget
 
   let compare ml1 ml2 =
@@ -30,21 +30,15 @@ end
 module MemLocMap = Map.Make (MemLoc)
 module MemLocSet = Set.Make (MemLoc)
 
-type ptr_target = MemLocSet.t
-
-module ViMap = Cil_datatype.Varinfo.Map
-
 module WrittenLocs =
 struct
   type t = {
     last_writes: vertex MemLocMap.t;
-    ptr_targets: ptr_target ViMap.t;
+    ptr_targets: MemLocSet.t MemLocMap.t;
   }
 
   let initial =
-    { last_writes = MemLocMap.empty; ptr_targets = ViMap.empty }
-
-  let heap_blk_num = ref 0
+    { last_writes = MemLocMap.empty; ptr_targets = MemLocMap.empty }
 
   let join v wl1 wl2 =
     let merge_writes _ v1 v2 =
@@ -57,11 +51,18 @@ struct
       MemLocMap.merge merge_writes wl1.last_writes wl2.last_writes
     in
     let ptr_targets =
-      ViMap.union merge_targets wl1.ptr_targets wl2.ptr_targets
+      MemLocMap.union merge_targets wl1.ptr_targets wl2.ptr_targets
     in
     { last_writes; ptr_targets }
 
-  let widen _ _ = Fixpoint
+  let widen wl1 wl2 =
+    let included ml targets =
+      match MemLocMap.find_opt ml wl1.ptr_targets with
+      | None -> false
+      | Some prev_targets -> MemLocSet.subset targets prev_targets
+    in
+    if MemLocMap.for_all included wl2.ptr_targets then Fixpoint
+    else Widening wl2
 
   let transfer (_, e, v) wl =
     let open Eva_ast_types in
@@ -84,13 +85,10 @@ struct
         MemLocSet.fold
           (fun ml acc -> MemLocSet.union (locs_of_deref ml) acc)
           (locs_of_exp exp) MemLocSet.empty
-    and locs_of_deref = function
-      | MemLoc.Var vi -> (
-          match ViMap.find_opt vi wl.ptr_targets with
-          | Some mls -> mls
-          | None -> MemLocSet.singleton MemLoc.OtherPtrTarget
-        )
-      | ml -> MemLocSet.singleton ml
+    and locs_of_deref ml =
+      match MemLocMap.find_opt ml wl.ptr_targets with
+      | Some mls -> mls
+      | None -> MemLocSet.singleton MemLoc.OtherPtrTarget
     and locs_of_init = function
       | SingleInit (exp, _) -> locs_of_exp exp
       | CompoundInit (_, init_l) ->
@@ -99,41 +97,71 @@ struct
           MemLocSet.empty init_l
     in
 
-    let add_locs_of_arg acc arg =
+    let rec recursive_locs locs =
+      let add_targets loc acc =
+        match MemLocMap.find_opt loc wl.ptr_targets with
+        | None -> acc
+        | Some mls -> MemLocSet.union mls acc
+      in
+      let new_locs = MemLocSet.fold add_targets locs MemLocSet.empty in
+      let new_locs = MemLocSet.diff new_locs locs in
+      if MemLocSet.is_empty new_locs then
+        locs
+      else
+        MemLocSet.union
+          (MemLocSet.union locs new_locs) (recursive_locs new_locs)
+    in
+    let add_arg_locs (target_locs, ptr_locs) arg =
       match arg.typ.tnode with
-      | TPtr _ -> MemLocSet.union acc (locs_of_exp arg)
-      | _ -> acc
-    in
-    let join_ptr_targets args_locs ml pt =
-      match ml with
-      | MemLoc.Var ({ vtype = { tnode = TPtr _ } } as vi) ->
-        let new_targets =
-          (match ViMap.find_opt vi pt with
-           | None -> args_locs
-           | Some mls -> MemLocSet.union mls args_locs)
-          |> MemLocSet.add (MemLoc.HeapBlk !heap_blk_num)
+      | TPtr typ ->
+        let locs = locs_of_exp arg |> recursive_locs in
+        let ptr_locs =
+          match typ.tnode with
+          | TPtr _ -> MemLocSet.union locs ptr_locs
+          | _ -> ptr_locs
         in
-        ViMap.add vi new_targets pt
-      | _ -> pt
+        MemLocSet.union target_locs locs, ptr_locs
+      | _ -> target_locs, ptr_locs
     in
+    let assign_ptr_target ?alloc_stmt force_join target_locs ml pt =
+      let target_locs =
+        match ml with
+        | MemLoc.Var _ when not force_join -> target_locs
+        | _ ->
+          (* Heap blocks may represent several values if they are allocated in a
+             loop, so we must always join targets in this case *)
+          match MemLocMap.find_opt ml wl.ptr_targets with
+          | None -> target_locs
+          | Some mls -> MemLocSet.union mls target_locs
+      in
+      let target_locs =
+        match alloc_stmt with
+        | None -> target_locs
+        | Some stmt ->
+          MemLocSet.add (MemLoc.HeapBlk stmt.Cil_types.sid) target_locs
+      in
+      MemLocMap.add ml target_locs pt
+    in
+    let call_arg_ptr_target stmt target_locs ml pt =
+      assign_ptr_target ~alloc_stmt:stmt true target_locs ml pt
+    in
+
+    let write_v ml = MemLocMap.add ml v in
 
     let wl = match e.edge_transition with
       | Assign (lval, exp, _) ->
         let locs = locs_of_lval lval in
-        let last_writes =
-          MemLocSet.fold (fun ml -> MemLocMap.add ml v) locs wl.last_writes
-        in
+        let last_writes = MemLocSet.fold write_v locs wl.last_writes in
         let ptr_targets =
           match lval.typ.tnode with
           | TPtr _ ->
-            let taken_locs = locs_of_exp exp in
-            let replace_ptr_target ml pt =
-              match ml with
-              | MemLoc.Var ({ vtype = { tnode = TPtr _ } } as vi) ->
-                ViMap.add vi taken_locs pt
-              | _ -> pt
+            let target_locs = locs_of_exp exp in
+            let lval_is_compound =
+              match snd lval.node with NoOffset -> false | _ -> true
             in
-            MemLocSet.fold replace_ptr_target locs wl.ptr_targets
+            MemLocSet.fold
+              (assign_ptr_target lval_is_compound target_locs)
+              locs wl.ptr_targets
           | _ -> wl.ptr_targets
         in
         { last_writes; ptr_targets }
@@ -141,34 +169,48 @@ struct
         let last_writes = MemLocMap.add (MemLoc.Var vi) v wl.last_writes in
         let ptr_targets =
           match vi.vtype.tnode with
-          | TPtr _ -> ViMap.add vi (locs_of_init init) wl.ptr_targets
+          | TPtr _ ->
+            MemLocMap.add (MemLoc.Var vi) (locs_of_init init) wl.ptr_targets
           | _ -> wl.ptr_targets
         in
         { last_writes; ptr_targets }
-      | Call (Some lval, _, args, _) ->
+      | Call (Some lval, _, args, stmt) ->
         let locs = locs_of_lval lval in
-        let args_locs = List.fold_left add_locs_of_arg MemLocSet.empty args in
+        let args_locs, ptr_args_locs =
+          List.fold_left add_arg_locs (MemLocSet.empty, MemLocSet.empty) args
+        in
         let last_writes =
-          MemLocSet.fold (fun ml -> MemLocMap.add ml v) locs wl.last_writes
-          |> MemLocSet.fold (fun ml -> MemLocMap.add ml v) args_locs
+          MemLocSet.fold write_v locs wl.last_writes
+          |> MemLocSet.fold write_v args_locs
         in
         let ptr_targets =
           match lval.typ.tnode with
           | TPtr _ ->
-            MemLocSet.fold (join_ptr_targets args_locs) locs wl.ptr_targets
+            let lval_is_compound =
+              match snd lval.node with NoOffset -> false | _ -> true
+            in
+            MemLocSet.fold
+              (assign_ptr_target ~alloc_stmt:stmt lval_is_compound args_locs)
+              locs wl.ptr_targets
           | _ -> wl.ptr_targets
         in
         let ptr_targets =
-          MemLocSet.fold (join_ptr_targets args_locs) args_locs ptr_targets
+          MemLocSet.fold
+            (call_arg_ptr_target stmt args_locs)
+            ptr_args_locs ptr_targets
         in
         { last_writes; ptr_targets }
-      | Call (None, exp, args, _) when not (is_internal_function exp) ->
-        let args_locs = List.fold_left add_locs_of_arg MemLocSet.empty args in
+      | Call (None, exp, args, stmt) when not (is_internal_function exp) ->
+        let args_locs, ptr_args_locs =
+          List.fold_left add_arg_locs (MemLocSet.empty, MemLocSet.empty) args
+        in
         let last_writes =
-          MemLocSet.fold (fun ml -> MemLocMap.add ml v) args_locs wl.last_writes
+          MemLocSet.fold write_v args_locs wl.last_writes
         in
         let ptr_targets =
-          MemLocSet.fold (join_ptr_targets args_locs) args_locs wl.ptr_targets
+          MemLocSet.fold
+            (call_arg_ptr_target stmt args_locs)
+            ptr_args_locs wl.ptr_targets
         in
         { last_writes; ptr_targets }
       | _ -> wl
