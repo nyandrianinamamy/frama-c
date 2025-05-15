@@ -16,19 +16,48 @@ let is_internal_function lhost =
 
 module MemLoc =
 struct
-  type t =
+  type elt =
     | Var of Eva_ast.varinfo
-    | HeapBlk of int (* block on the heap: the integer is the statement id *)
+    | HeapBlk of int
+    (* block on the heap: the integer is the statement id *)
     | OtherPtrTarget
 
-  let compare ml1 ml2 =
-    match ml1, ml2 with
-    | Var vi1, Var vi2 -> Cil_datatype.Varinfo.compare vi1 vi2
-    | _, _ -> compare ml1 ml2
+  let initial_values = []
+  let dependencies = []
+
+  include Datatype.Make_with_collections
+      (struct
+        type t = elt
+        let name = "Partition.Heuristics.MemLoc"
+        let reprs = [OtherPtrTarget]
+        let structural_descr = Structural_descr.t_unknown
+        let compare ml1 ml2 =
+          match ml1, ml2 with
+          | Var vi1, Var vi2 -> Cil_datatype.Varinfo.compare vi1 vi2
+          | _, _ -> compare ml1 ml2
+        let equal ml1 ml2 = compare ml1 ml2 = 0
+        let hash = function
+          | Var vi -> Hashtbl.hash (1, Cil_datatype.Varinfo.hash vi)
+          | HeapBlk sid -> Hashtbl.hash (2, sid)
+          | OtherPtrTarget -> Hashtbl.hash 3
+        let copy = Fun.id
+        let rehash = Fun.id
+        let mem_project = Datatype.never_any_project
+        let pretty fmt = function
+          | Var vi -> Cil_datatype.Varinfo.pretty fmt vi
+          | HeapBlk sid -> Format.fprintf fmt "#%d" sid
+          | OtherPtrTarget -> Format.fprintf fmt "#"
+      end)
+
+  let id = function
+    | Var vi -> vi.vid + 1
+    | HeapBlk sid -> -sid - 1
+    | OtherPtrTarget -> 0
 end
 
-module MemLocMap = Map.Make (MemLoc)
-module MemLocSet = Set.Make (MemLoc)
+module MemLocSet = Hptset.Make (MemLoc) (MemLoc)
+module VMemLocMap = Hptmap.Make (MemLoc) (Vertex) (MemLoc)
+module MlsMemLocMap = Hptmap.Make (MemLoc) (MemLocSet) (MemLoc)
 
 module MemLocUtil =
 struct
@@ -51,9 +80,8 @@ struct
         (fun ml acc -> MemLocSet.union (locs_of_deref pt ml) acc)
         (locs_of_exp pt exp) MemLocSet.empty
   and locs_of_deref pt ml =
-    match MemLocMap.find_opt ml pt with
-    | Some mls -> mls
-    | None -> MemLocSet.singleton MemLoc.OtherPtrTarget
+    try MlsMemLocMap.find ml pt
+    with Not_found -> MemLocSet.singleton MemLoc.OtherPtrTarget
   and locs_of_init pt = function
     | Eva_ast.SingleInit (exp, _) -> locs_of_exp pt exp
     | Eva_ast.CompoundInit (_, init_l) ->
@@ -63,9 +91,8 @@ struct
 
   let rec recursive_locs pt locs =
     let add_targets loc acc =
-      match MemLocMap.find_opt loc pt with
-      | None -> acc
-      | Some mls -> MemLocSet.union mls acc
+      try MlsMemLocMap.find loc pt |> MemLocSet.union acc
+      with Not_found -> acc
     in
     let new_locs = MemLocSet.fold add_targets locs MemLocSet.empty in
     let new_locs = MemLocSet.diff new_locs locs in
@@ -84,35 +111,40 @@ end
 module WrittenLocs =
 struct
   type t = {
-    last_writes: vertex MemLocMap.t;
-    ptr_targets: MemLocSet.t MemLocMap.t;
+    last_writes: VMemLocMap.t;
+    ptr_targets: MlsMemLocMap.t;
   }
 
   let initial =
-    { last_writes = MemLocMap.empty; ptr_targets = MemLocMap.empty }
+    { last_writes = VMemLocMap.empty; ptr_targets = MlsMemLocMap.empty }
 
   let join v wl1 wl2 =
     let merge_writes _ v1 v2 =
       match v1, v2 with
-      | Some v1, Some v2 when v1 == v2 -> Some v1
-      | _ -> Some v
+      | Some v1, Some v2 when v1 == v2 -> v1
+      | _ -> v
     in
-    let merge_targets _ ml1 ml2 = Some (MemLocSet.union ml1 ml2) in
+    let merge_targets _ ml1 ml2 = MemLocSet.union ml1 ml2 in
     let last_writes =
-      MemLocMap.merge merge_writes wl1.last_writes wl2.last_writes
+      VMemLocMap.generic_join ~cache:NoCache ~symmetric:true ~idempotent:true
+        ~decide:merge_writes wl1.last_writes wl2.last_writes
     in
     let ptr_targets =
-      MemLocMap.union merge_targets wl1.ptr_targets wl2.ptr_targets
+      MlsMemLocMap.join ~cache:NoCache ~symmetric:true ~idempotent:true
+        ~decide:merge_targets wl1.ptr_targets wl2.ptr_targets
     in
     { last_writes; ptr_targets }
 
   let widen wl1 wl2 =
-    let included ml targets =
-      match MemLocMap.find_opt ml wl1.ptr_targets with
-      | None -> false
-      | Some prev_targets -> MemLocSet.subset targets prev_targets
+    let included =
+      MlsMemLocMap.binary_predicate NoCache UniversalPredicate
+        ~decide_fast:(fun _ _ -> PUnknown)
+        ~decide_fst:(fun _ _ -> false)
+        ~decide_snd:(fun _ _ -> true)
+        ~decide_both:(fun _ -> MemLocSet.subset)
+        wl2.ptr_targets wl1.ptr_targets
     in
-    if MemLocMap.for_all included wl2.ptr_targets then Fixpoint
+    if included then Fixpoint
     else Widening wl2
 
   let transfer (_, e, v) wl =
@@ -140,9 +172,8 @@ struct
         | _ ->
           (* Heap blocks may represent several values if they are allocated in a
              loop, so we must always join targets in this case *)
-          match MemLocMap.find_opt ml wl.ptr_targets with
-          | None -> target_locs
-          | Some mls -> MemLocSet.union mls target_locs
+          try MlsMemLocMap.find ml wl.ptr_targets |> MemLocSet.union target_locs
+          with Not_found -> target_locs
       in
       let target_locs =
         match alloc_stmt with
@@ -150,7 +181,7 @@ struct
         | Some stmt ->
           MemLocSet.add (MemLoc.HeapBlk stmt.Cil_types.sid) target_locs
       in
-      MemLocMap.add ml target_locs pt
+      MlsMemLocMap.add ml target_locs pt
     in
     let call_arg_ptr_target stmt target_locs ml pt =
       assign_ptr_target ~alloc_stmt:stmt true target_locs ml pt
@@ -159,7 +190,7 @@ struct
     let lval_is_compound lval =
       match snd lval.Eva_ast.node with Eva_ast.NoOffset -> false | _ -> true
     in
-    let write_v ml = MemLocMap.add ml v in
+    let write_v ml = VMemLocMap.add ml v in
 
     let wl = match e.edge_transition with
       | Assign (lval, exp, _) ->
@@ -176,10 +207,10 @@ struct
         in
         { last_writes; ptr_targets }
       | Init (vi, init, _) ->
-        let last_writes = MemLocMap.add (MemLoc.Var vi) v wl.last_writes in
+        let last_writes = write_v (MemLoc.Var vi) wl.last_writes in
         let ptr_targets =
           if typ_is_ptr vi.vtype then
-            MemLocMap.add (MemLoc.Var vi) (locs_of_init init) wl.ptr_targets
+            MlsMemLocMap.add (MemLoc.Var vi) (locs_of_init init) wl.ptr_targets
           else
             wl.ptr_targets
         in
@@ -240,7 +271,7 @@ let get_trans_effects automaton return_pointers writes =
 
     let ptr_targets =
       match Vertex.Hashtbl.find_opt writes v with
-      | None -> MemLocMap.empty
+      | None -> MlsMemLocMap.empty
       | Some wl -> wl.WrittenLocs.ptr_targets
     in
     let locs_of_lval = MemLocUtil.locs_of_lval ptr_targets
@@ -300,7 +331,8 @@ let get_trans_effects automaton return_pointers writes =
     let effects = match e.edge_transition with
       | Return (exp, _) when return_pointers ->
         let ptr_effects =
-          MemLocMap.fold (fun _ -> MemLocSet.union) ptr_targets MemLocSet.empty
+          MlsMemLocMap.fold
+            (fun _ -> MemLocSet.union) ptr_targets MemLocSet.empty
           |> locs_to_eff to_reads
         in
         ptr_effects @
@@ -328,7 +360,7 @@ let get_writes_at_v junct_v (wl : WrittenLocs.t) =
     if v == junct_v then MemLocSet.add loc lw
     else lw
   in
-  MemLocMap.fold check_and_add_var wl.last_writes MemLocSet.empty
+  VMemLocMap.fold check_and_add_var wl.last_writes MemLocSet.empty
 
 let get_merge_edges (automaton : automaton) junct_v wl e_effects dist_limit =
   let add_to_stack_of_dist v v_stack v_stack_next_dist must_stack =
