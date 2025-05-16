@@ -50,9 +50,9 @@ struct
       end)
 
   let id = function
-    | Var vi -> vi.vid + 1
-    | HeapBlk sid -> -sid - 1
-    | OtherPtrTarget -> 0
+    | Var vi -> vi.vid
+    | HeapBlk sid -> Int.max_int / 2 + sid
+    | OtherPtrTarget -> Int.max_int
 end
 
 module MemLocSet = Hptset.Make (MemLoc) (MemLoc)
@@ -89,18 +89,21 @@ struct
         (fun acc (_, init) -> MemLocSet.union acc (locs_of_init init))
         MemLocSet.empty init_l
 
-  let rec recursive_locs locs =
+  let recursive_locs locs =
     let add_targets loc acc =
       try MlsMemLocMap.find loc Info.ptr_targets |> MemLocSet.union acc
       with Not_found -> acc
     in
-    let new_locs = MemLocSet.fold add_targets locs MemLocSet.empty in
-    let new_locs = MemLocSet.diff new_locs locs in
-    if MemLocSet.is_empty new_locs then
-      locs
-    else
-      MemLocSet.union
-        (MemLocSet.union locs new_locs) (recursive_locs new_locs)
+    let rec aux locs all_locs =
+      let new_locs = MemLocSet.fold add_targets locs MemLocSet.empty in
+      let new_locs = MemLocSet.diff new_locs all_locs in
+      if MemLocSet.is_empty new_locs then
+        locs
+      else
+        let all_locs = MemLocSet.union locs new_locs in
+        MemLocSet.union all_locs (aux new_locs all_locs)
+    in
+    aux locs locs
 
   let typ_is_ptr typ =
     match typ.Cil_types.tnode with
@@ -285,11 +288,11 @@ let get_trans_effects automaton return_pointers writes =
       | NoOffset -> []
       | Field (_, offset) -> offset_effects offset
       | Index (exp, offset) -> exp_effects exp @ offset_effects offset
+    and lhost_effects = function
+      | Var vi -> [Reads (MemLoc.Var vi)]
+      | Mem exp -> locs_to_eff to_reads (locs_of_exp exp) @ exp_effects exp
     and lval_effects { node = lhost, offset } =
-      (match lhost with
-       | Var vi -> [Reads (MemLoc.Var vi)]
-       | Mem exp -> locs_to_eff to_reads (locs_of_exp exp) @ exp_effects exp) @
-      offset_effects offset
+      lhost_effects lhost @ offset_effects offset
     and written_lval_effects ({ node = lhost, offset } as lval) =
       (match lhost with Mem exp -> exp_effects exp | _ -> []) @
       locs_to_eff (to_writes lval) (locs_of_lval lval) @
@@ -333,11 +336,10 @@ let get_trans_effects automaton return_pointers writes =
       | Guard (exp, _, _) -> exp_effects exp
       | Assign (lval, exp, _) -> written_lval_effects lval @ exp_effects exp
       | Call (lval, lhost, args, _) when not (is_internal_function lhost) ->
-        let exp = Eva_ast.(mk_lval (lhost, NoOffset) |> Build.lval) in
         (match lval with
          | None -> []
          | Some lval -> written_lval_effects lval) @
-        arg_effects exp @ List.concat_map exp_effects args
+        lhost_effects lhost @ List.concat_map arg_effects args
       | Init (vi, init, _) ->
         Writes_to (MemLoc.Var vi, false) :: init_effects init
       | _ -> []
