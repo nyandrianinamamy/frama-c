@@ -59,39 +59,39 @@ module MemLocSet = Hptset.Make (MemLoc) (MemLoc)
 module VMemLocMap = Hptmap.Make (MemLoc) (Vertex) (MemLoc)
 module MlsMemLocMap = Hptmap.Make (MemLoc) (MemLocSet) (MemLoc)
 
-module MemLocUtil =
+module MemLocUtil (Info : sig val ptr_targets : MlsMemLocMap.t end) =
 struct
-  let rec locs_of_lval pt lval =
+  let rec locs_of_lval lval =
     match fst lval.Eva_ast.node with
     | Eva_ast.Var vi -> MemLocSet.singleton (MemLoc.Var vi)
-    | Eva_ast.Mem exp -> locs_of_exp pt exp
-  and locs_of_exp pt exp =
+    | Eva_ast.Mem exp -> locs_of_exp exp
+  and locs_of_exp exp =
     match exp.node with
     | CastE (_, exp) | UnOp (_, exp, _) | BinOp (_, exp, _, _) ->
-      locs_of_exp pt exp
-    | Lval lval -> locs_of_nested_lval pt lval
-    | AddrOf lval | StartOf lval -> locs_of_lval pt lval
+      locs_of_exp exp
+    | Lval lval -> locs_of_nested_lval lval
+    | AddrOf lval | StartOf lval -> locs_of_lval lval
     | _ -> MemLocSet.empty
-  and locs_of_nested_lval pt lval =
+  and locs_of_nested_lval lval =
     match fst lval.node with
-    | Var vi -> locs_of_deref pt (MemLoc.Var vi)
+    | Var vi -> locs_of_deref (MemLoc.Var vi)
     | Mem exp ->
       MemLocSet.fold
-        (fun ml acc -> MemLocSet.union (locs_of_deref pt ml) acc)
-        (locs_of_exp pt exp) MemLocSet.empty
-  and locs_of_deref pt ml =
-    try MlsMemLocMap.find ml pt
+        (fun ml acc -> MemLocSet.union (locs_of_deref ml) acc)
+        (locs_of_exp exp) MemLocSet.empty
+  and locs_of_deref ml =
+    try MlsMemLocMap.find ml Info.ptr_targets
     with Not_found -> MemLocSet.singleton MemLoc.OtherPtrTarget
-  and locs_of_init pt = function
-    | Eva_ast.SingleInit (exp, _) -> locs_of_exp pt exp
+  and locs_of_init = function
+    | Eva_ast.SingleInit (exp, _) -> locs_of_exp exp
     | Eva_ast.CompoundInit (_, init_l) ->
       List.fold_left
-        (fun acc (_, init) -> MemLocSet.union acc (locs_of_init pt init))
+        (fun acc (_, init) -> MemLocSet.union acc (locs_of_init init))
         MemLocSet.empty init_l
 
-  let rec recursive_locs pt locs =
+  let rec recursive_locs locs =
     let add_targets loc acc =
-      try MlsMemLocMap.find loc pt |> MemLocSet.union acc
+      try MlsMemLocMap.find loc Info.ptr_targets |> MemLocSet.union acc
       with Not_found -> acc
     in
     let new_locs = MemLocSet.fold add_targets locs MemLocSet.empty in
@@ -100,7 +100,7 @@ struct
       locs
     else
       MemLocSet.union
-        (MemLocSet.union locs new_locs) (recursive_locs pt new_locs)
+        (MemLocSet.union locs new_locs) (recursive_locs new_locs)
 
   let typ_is_ptr typ =
     match typ.Cil_types.tnode with
@@ -148,11 +148,7 @@ struct
     else Widening wl2
 
   let transfer (_, e, v) wl =
-    let locs_of_lval = MemLocUtil.locs_of_lval wl.ptr_targets
-    and locs_of_exp = MemLocUtil.locs_of_exp wl.ptr_targets
-    and locs_of_init = MemLocUtil.locs_of_init wl.ptr_targets
-    and recursive_locs = MemLocUtil.recursive_locs wl.ptr_targets
-    and typ_is_ptr = MemLocUtil.typ_is_ptr in
+    let open MemLocUtil (struct let ptr_targets = wl.ptr_targets end) in
 
     let add_arg_locs (target_locs, ptr_locs) arg =
       match arg.Eva_ast.typ.tnode with
@@ -274,11 +270,7 @@ let get_trans_effects automaton return_pointers writes =
       | None -> MlsMemLocMap.empty
       | Some wl -> wl.WrittenLocs.ptr_targets
     in
-    let locs_of_lval = MemLocUtil.locs_of_lval ptr_targets
-    and locs_of_exp = MemLocUtil.locs_of_exp ptr_targets
-    and locs_of_nested_lval = MemLocUtil.locs_of_nested_lval ptr_targets
-    and recursive_locs = MemLocUtil.recursive_locs ptr_targets
-    and typ_is_ptr = MemLocUtil.typ_is_ptr in
+    let open MemLocUtil (struct let ptr_targets = ptr_targets end) in
 
     let to_reads ml = Reads ml
     and to_writes { node = _, offset } ml =
