@@ -263,7 +263,7 @@ type trans_effect =
   | Writes_to of MemLoc.t * bool
   (* the boolean indicates if it's a join write *)
 
-let get_trans_effects automaton return_pointers writes =
+let get_trans_effects automaton interproc_args writes =
   let e_effects = Edge.Hashtbl.create 4 in
   let register_effects (v, e, _) =
     let open Eva_ast_types in
@@ -323,15 +323,26 @@ let get_trans_effects automaton return_pointers writes =
         List.concat_map (fun (_, init) -> init_effects init) init_l
     in
 
+    let arg_ret_eff vi =
+      if typ_is_ptr vi.Cil_types.vtype then
+        locs_of_deref (MemLoc.Var vi)
+        |> recursive_locs
+        |> locs_to_eff to_reads
+      else []
+    and ret_ptr_eff exp =
+      if typ_is_ptr exp.typ then
+        locs_of_exp exp
+        |> recursive_locs
+        |> locs_to_eff to_reads
+      else []
+    in
+
     let effects = match e.edge_transition with
-      | Return (exp, _) when return_pointers ->
-        let ptr_effects =
-          MlsMemLocMap.fold
-            (fun _ -> MemLocSet.union) ptr_targets MemLocSet.empty
-          |> locs_to_eff to_reads
-        in
-        ptr_effects @
-        (match exp with None -> [] | Some exp -> exp_effects exp)
+      | Return (None, _) when interproc_args <> None ->
+        List.concat_map arg_ret_eff (Option.get interproc_args)
+      | Return (Some exp, _) when interproc_args <> None ->
+        List.concat_map arg_ret_eff (Option.get interproc_args) @
+        ret_ptr_eff exp @ exp_effects exp
       | Return (Some exp, _) -> exp_effects exp
       | Guard (exp, _, _) -> exp_effects exp
       | Assign (lval, exp, _) -> written_lval_effects lval @ exp_effects exp
@@ -495,7 +506,11 @@ let get_info mode kf dist_limit =
     let automaton = get_automaton kf in
     let writes = WriteFwAnalysis.fixpoint automaton WrittenLocs.initial in
     let e_effects =
-      get_trans_effects automaton (mode = Interprocedural) writes
+      let interproc_args =
+        if mode = Interprocedural then Some (Kernel_function.get_formals kf)
+        else None
+      in
+      get_trans_effects automaton interproc_args writes
     in
     let split_v = Vertex.Hashtbl.create 4
     and merge_e = Datatype.Int.Hashtbl.create 4
