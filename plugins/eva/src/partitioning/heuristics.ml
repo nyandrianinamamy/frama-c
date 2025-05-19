@@ -61,10 +61,12 @@ module MlsMemLocMap = Hptmap.Make (MemLoc) (MemLocSet) (MemLoc)
 
 module MemLocUtil (Info : sig val ptr_targets : MlsMemLocMap.t end) =
 struct
+  open Eva_ast_types
+
   let rec locs_of_lval lval =
-    match fst lval.Eva_ast.node with
-    | Eva_ast.Var vi -> MemLocSet.singleton (MemLoc.Var vi)
-    | Eva_ast.Mem exp -> locs_of_exp exp
+    match fst lval.node with
+    | Var vi -> MemLocSet.singleton (MemLoc.Var vi)
+    | Mem exp -> locs_of_exp exp
   and locs_of_exp exp =
     match exp.node with
     | CastE (_, exp) | UnOp (_, exp, _) | BinOp (_, exp, _, _) ->
@@ -81,10 +83,14 @@ struct
         (locs_of_exp exp) MemLocSet.empty
   and locs_of_deref ml =
     try MlsMemLocMap.find ml Info.ptr_targets
-    with Not_found -> MemLocSet.singleton MemLoc.OtherPtrTarget
+    with Not_found ->
+    match ml with
+    | MemLoc.Var { vglob = true } | MemLoc.OtherPtrTarget ->
+      MemLocSet.singleton MemLoc.OtherPtrTarget
+    | _ -> MemLocSet.empty
   and locs_of_init = function
-    | Eva_ast.SingleInit (exp, _) -> locs_of_exp exp
-    | Eva_ast.CompoundInit (_, init_l) ->
+    | SingleInit (exp, _) -> locs_of_exp exp
+    | CompoundInit (_, init_l) ->
       List.fold_left
         (fun acc (_, init) -> MemLocSet.union acc (locs_of_init init))
         MemLocSet.empty init_l
@@ -118,8 +124,17 @@ struct
     ptr_targets: MlsMemLocMap.t;
   }
 
-  let initial =
-    { last_writes = VMemLocMap.empty; ptr_targets = MlsMemLocMap.empty }
+  let initial formals =
+    let add_arg_ptr_target ptr_targets = function
+      | { Cil_types.vtype = { tnode = TPtr _ } } as vi ->
+        let target = MemLocSet.singleton MemLoc.OtherPtrTarget in
+        MlsMemLocMap.add (MemLoc.Var vi) target ptr_targets
+      | _ -> ptr_targets
+    in
+    let ptr_targets =
+      List.fold_left add_arg_ptr_target MlsMemLocMap.empty formals
+    in
+    { last_writes = VMemLocMap.empty; ptr_targets }
 
   let join v wl1 wl2 =
     let merge_writes _ v1 v2 =
@@ -504,10 +519,13 @@ type info = {
 let get_info mode kf dist_limit =
   if mode <> Disabled then begin
     let automaton = get_automaton kf in
-    let writes = WriteFwAnalysis.fixpoint automaton WrittenLocs.initial in
+    let formals = Kernel_function.get_formals kf in
+    let writes =
+      WriteFwAnalysis.fixpoint automaton (WrittenLocs.initial formals)
+    in
     let e_effects =
       let interproc_args =
-        if mode = Interprocedural then Some (Kernel_function.get_formals kf)
+        if mode = Interprocedural then Some formals
         else None
       in
       get_trans_effects automaton interproc_args writes
