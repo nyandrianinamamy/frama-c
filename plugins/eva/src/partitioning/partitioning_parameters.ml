@@ -188,22 +188,20 @@ struct
     | (NoSplit | SplitEqList _), _ ->
       Partition.Ration (Partition.new_rationing ~limit:0 ~merge:false)
 
-  let heuristics = PartitionHeuristics.get ()
+  let history_heuristic = PartitioningHeuristic.get () <> `None
   let history_tables =
-    let mode =
-      if not heuristics then Heuristics.Disabled
-      else if Parameters.InterproceduralHistory.get ()
-      then Heuristics.Interprocedural
-      else Heuristics.Intraprocedural
-    in
-    Heuristics.get_info mode kf history_size
+    let options = History_heuristic.{
+        mode = PartitioningHeuristic.get ();
+        interproc = Parameters.InterproceduralHistory.get ();
+      } in
+    History_heuristic.get_info options kf history_size
   let should_partition_at =
-    if heuristics then
+    if history_heuristic then
       fun v -> Eva_automata.Vertex.Hashtbl.mem history_tables.split_v v
     else
       fun _ -> true
   let should_merge_what =
-    if heuristics then
+    if history_heuristic then
       fun ek ->
         let merge_actions =
           Datatype.Int.Hashtbl.find_all history_tables.merge_e ek

@@ -275,17 +275,17 @@ Options taking a string as argument should preferably be written
 -eva-oracle-depth <n>  Maximum number of successive uses of the oracle by the
                     domain for the evaluation of an expression. Set 0 to
                     disable the oracle.
--eva-partition-heuristics  Use heuristics to determine where partition
-                    history is useful. (opposite option is
-                    -eva-no-partition-heuristics)
--eva-partition-history <n>  Keep states distinct as long as the <n> last
-                    branching in their traces are also distinct. (A value of
-                    0 deactivates this feature)
+-eva-partition-heuristic <none|normal|full>  Use a heuristic to determine
+                    where partition history is useful, thus not keeping
+                    distinct states at most junction points.
+-eva-partition-history <n>  Keep states distinct at junction points, until
+                    <n> further junction points are crossed. (A value of 0
+                    deactivates this feature)
 -eva-partition-history-function <f:n>  Override partition-history with <n>
                     when analyzing <f> (preferably use
                     -eva-partition-history-function="f:n")
 -eva-partition-value <V>  Partition the space of reachable states according
-                    to the possible values of the global(s) variable(s) V.
+                    to the possible values of the global variable(s) V.
                     (preferably use -eva-partition-value="V")
 -eva-plevel <n>     Use <n> as the precision level for arrays accesses. Array
                     accesses are precise as long as the interval for the

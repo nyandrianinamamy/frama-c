@@ -717,8 +717,8 @@ module HistoryPartitioning =
       let arg_name = "n"
       let default = 0
       let help =
-        "Keep states distinct as long as the <n> last branching in their \
-         traces are also distinct. (A value of 0 deactivates this feature)"
+        "Keep states distinct at junction points, until <n> further junction \
+         points are crossed. (A value of 0 deactivates this feature)"
     end)
 let () = add_precision_dep HistoryPartitioning.parameter
 let () = HistoryPartitioning.set_range ~min:0 ~max:max_int
@@ -742,20 +742,24 @@ module ValuePartitioning =
     (struct
       let option_name = "-eva-partition-value"
       let help = "Partition the space of reachable states according to the \
-                  possible values of the global(s) variable(s) V."
+                  possible values of the global variable(s) V."
       let arg_name = "V"
     end)
 let () = add_precision_dep ValuePartitioning.parameter
 
 let () = Parameter_customize.set_group precision_tuning
-module PartitionHeuristics =
-  False
+module PartitioningHeuristic =
+  Enum
     (struct
-      let option_name = "-eva-partition-heuristics"
-      let help = "Use heuristics to determine where partition history is \
-                  useful."
+      let option_name = "-eva-partition-heuristic"
+      let help = "Use a heuristic to determine where partition history is \
+                  useful, thus not keeping distinct states at most junction \
+                  points."
+      type t = [ `None | `Normal | `Full ]
+      let default = `None
+      let values = [ `None, "none"; `Normal, "normal"; `Full, "full" ]
     end)
-let () = add_precision_dep PartitionHeuristics.parameter
+let () = add_precision_dep PartitioningHeuristic.parameter
 
 let use_global_value_partitioning vi =
   ValuePartitioning.add vi.Cil_types.vname

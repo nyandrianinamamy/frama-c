@@ -117,12 +117,14 @@ struct
     | _ -> false
 end
 
-module WrittenLocs =
+type written_locs = {
+  last_writes: VMemLocMap.t;
+  ptr_targets: MlsMemLocMap.t;
+}
+
+module WrittenLocs (Info : sig val include_guards : bool end) =
 struct
-  type t = {
-    last_writes: VMemLocMap.t;
-    ptr_targets: MlsMemLocMap.t;
-  }
+  type t = written_locs
 
   let initial formals =
     let add_arg_ptr_target ptr_targets = function
@@ -166,10 +168,11 @@ struct
     else Widening wl2
 
   let transfer (_, e, v) wl =
+    let open Eva_ast_types in
     let open MemLocUtil (struct let ptr_targets = wl.ptr_targets end) in
 
     let add_arg_locs (target_locs, ptr_locs) arg =
-      match arg.Eva_ast.typ.tnode with
+      match arg.typ.tnode with
       | TPtr typ ->
         let locs = locs_of_exp arg |> recursive_locs in
         let ptr_locs =
@@ -202,9 +205,18 @@ struct
     in
 
     let lval_is_compound lval =
-      match snd lval.Eva_ast.node with Eva_ast.NoOffset -> false | _ -> true
+      match snd lval.node with NoOffset -> false | _ -> true
     in
     let write_v ml = VMemLocMap.add ml v in
+
+    let rec guarded_locs exp =
+      match exp.node with
+      | CastE (_, exp) | UnOp (_, exp, _) -> guarded_locs exp
+      | BinOp (_, exp1, exp2, _) ->
+        MemLocSet.union (guarded_locs exp1) (guarded_locs exp2)
+      | Lval lval -> locs_of_lval lval
+      | _ -> MemLocSet.empty
+    in
 
     let wl = match e.edge_transition with
       | Assign (lval, exp, _) ->
@@ -266,12 +278,14 @@ struct
             ptr_args_locs wl.ptr_targets
         in
         { last_writes; ptr_targets }
+      | Guard (exp, _, _) when Info.include_guards ->
+        let locs = guarded_locs exp in
+        let last_writes = MemLocSet.fold write_v locs wl.last_writes in
+        { last_writes; ptr_targets = wl.ptr_targets }
       | _ -> wl
     in
     Some wl
 end
-
-module WriteFwAnalysis = ForwardAnalysis (WrittenLocs)
 
 type trans_effect =
   | Reads of MemLoc.t
@@ -286,7 +300,7 @@ let get_trans_effects automaton interproc_args writes =
     let ptr_targets =
       match Vertex.Hashtbl.find_opt writes v with
       | None -> MlsMemLocMap.empty
-      | Some wl -> wl.WrittenLocs.ptr_targets
+      | Some wl -> wl.ptr_targets
     in
     let open MemLocUtil (struct let ptr_targets = ptr_targets end) in
 
@@ -375,7 +389,7 @@ let get_trans_effects automaton interproc_args writes =
   G.iter_edges_e register_effects (automaton: automaton).graph;
   e_effects
 
-let get_writes_at_v junct_v (wl : WrittenLocs.t) =
+let get_writes_at_v junct_v wl =
   let check_and_add_var loc v lw =
     if v == junct_v then MemLocSet.add loc lw
     else lw
@@ -505,10 +519,10 @@ let get_merge_edges (automaton : automaton) junct_v wl e_effects dist_limit =
     edges_of_merge [junct_v]
   end
 
-type mode =
-  | Disabled
-  | Intraprocedural
-  | Interprocedural
+type options = {
+  mode: [ `None | `Normal | `Full ];
+  interproc: bool;
+}
 
 type info = {
   split_v : unit Vertex.Hashtbl.t;
@@ -516,18 +530,19 @@ type info = {
   call_merge_e : Cil_types.stmt Datatype.Int.Hashtbl.t;
 }
 
-let get_info mode kf dist_limit =
-  if mode <> Disabled then begin
+let get_info options kf dist_limit =
+  if options.mode <> `None then begin
+    let module WrittenLocs =
+      WrittenLocs (struct let include_guards = options.mode = `Full end)
+    in
+    let module WriteFwAnalysis = ForwardAnalysis (WrittenLocs) in
     let automaton = get_automaton kf in
     let formals = Kernel_function.get_formals kf in
     let writes =
       WriteFwAnalysis.fixpoint automaton (WrittenLocs.initial formals)
     in
     let e_effects =
-      let interproc_args =
-        if mode = Interprocedural then Some formals
-        else None
-      in
+      let interproc_args = if options.interproc then Some formals else None in
       get_trans_effects automaton interproc_args writes
     in
     let split_v = Vertex.Hashtbl.create 4
