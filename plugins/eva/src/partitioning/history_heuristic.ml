@@ -18,8 +18,7 @@ module MemLoc =
 struct
   type elt =
     | Var of Eva_ast.varinfo
-    | HeapBlk of int
-    (* block on the heap: the integer is the statement id *)
+    | HeapBlk of Cil_types.stmt (* block on the heap *)
     | OtherPtrTarget
 
   let initial_values = []
@@ -38,20 +37,21 @@ struct
         let equal ml1 ml2 = compare ml1 ml2 = 0
         let hash = function
           | Var vi -> Hashtbl.hash (1, Cil_datatype.Varinfo.hash vi)
-          | HeapBlk sid -> Hashtbl.hash (2, sid)
+          | HeapBlk stmt -> Hashtbl.hash (2, Cil_datatype.Stmt.hash stmt)
           | OtherPtrTarget -> Hashtbl.hash 3
         let copy = Fun.id
         let rehash = Fun.id
         let mem_project = Datatype.never_any_project
         let pretty fmt = function
           | Var vi -> Cil_datatype.Varinfo.pretty fmt vi
-          | HeapBlk sid -> Format.fprintf fmt "#%d" sid
+          | HeapBlk stmt ->
+            Format.fprintf fmt "[%a]" Cil_datatype.Stmt.pretty stmt
           | OtherPtrTarget -> Format.fprintf fmt "#"
       end)
 
   let id = function
     | Var vi -> vi.vid
-    | HeapBlk sid -> Int.max_int / 2 + sid
+    | HeapBlk stmt -> Int.max_int / 2 + stmt.sid
     | OtherPtrTarget -> Int.max_int
 end
 
@@ -195,8 +195,7 @@ struct
       let target_locs =
         match alloc_stmt with
         | None -> target_locs
-        | Some stmt ->
-          MemLocSet.add (MemLoc.HeapBlk stmt.Cil_types.sid) target_locs
+        | Some stmt -> MemLocSet.add (MemLoc.HeapBlk stmt) target_locs
       in
       MlsMemLocMap.add ml target_locs pt
     in
