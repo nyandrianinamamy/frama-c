@@ -52,6 +52,14 @@
   Called from partitioning-cases.c:40.
 [eva] using specification for function f_spec
 [eva:progress] Done for function f_spec
+[eva:progress] 
+  computing for function f_spec <- test_spec <- main.
+  Called from partitioning-cases.c:40.
+[eva:progress] Done for function f_spec
+[eva:progress] 
+  computing for function f_spec <- test_spec <- main.
+  Called from partitioning-cases.c:40.
+[eva:progress] Done for function f_spec
 [eva:show] partitioning-cases.c:41: Frama_C_show_each: [-2147483648..-1]
 [eva:show] partitioning-cases.c:41: Frama_C_show_each: [1..2147483647]
 [eva:progress] Recording results for test_spec

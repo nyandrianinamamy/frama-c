@@ -155,7 +155,8 @@ struct
   let call_return ~caller kind stmt result =
     let policy = call_return_policy in
     let callee_history =
-      policy.callee_history || kind = `Spec || kind = `Builtin
+      List.compare_length_with result 1 >= 1 &&
+      (policy.callee_history || kind = `Spec || kind = `Builtin)
     in
     let policy = { policy with callee_history } in
     let combine = Partition.Key.combine ~policy ~stmt in
