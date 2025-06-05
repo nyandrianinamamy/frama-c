@@ -1,0 +1,728 @@
+[kernel] Parsing partitioning-heuristic.c (with preprocessing)
+[eva] Analyzing a complete application starting at main
+[eva:progress] Computing initial state
+[eva:progress] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  pglob ∈ {0}
+[eva:progress] 
+  computing for function simple <- main.
+  Called from partitioning-heuristic.c:140.
+[eva:progress] 
+  computing for function Frama_C_interval <- simple <- main.
+  Called from partitioning-heuristic.c:17.
+[eva] using specification for function Frama_C_interval
+[eva:progress] partitioning-heuristic.c:17: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva:progress] Done for function Frama_C_interval
+[eva:show] partitioning-heuristic.c:20: Frama_C_show_each: {1}, ⊥
+[eva:show] partitioning-heuristic.c:20: Frama_C_show_each: {0}, ⊥
+[eva:progress] 
+  computing for function Frama_C_interval <- simple <- main.
+  Called from partitioning-heuristic.c:23.
+[eva:progress] partitioning-heuristic.c:23: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva:progress] Done for function Frama_C_interval
+[eva:progress] 
+  computing for function Frama_C_interval <- simple <- main.
+  Called from partitioning-heuristic.c:23.
+[eva:progress] Done for function Frama_C_interval
+[eva:show] partitioning-heuristic.c:26: Frama_C_show_each: {3}, ⊥
+[eva:show] partitioning-heuristic.c:26: Frama_C_show_each: {3}, ⊥
+[eva:show] partitioning-heuristic.c:26: Frama_C_show_each: {2}, ⊥
+[eva:show] partitioning-heuristic.c:26: Frama_C_show_each: {2}, ⊥
+[eva:show] partitioning-heuristic.c:28: Frama_C_show_each: {3}, {-3}
+[eva:show] partitioning-heuristic.c:28: Frama_C_show_each: {3}, {-3}
+[eva:show] partitioning-heuristic.c:28: Frama_C_show_each: {2}, {-2}
+[eva:show] partitioning-heuristic.c:28: Frama_C_show_each: {2}, {-2}
+[eva:progress] 
+  computing for function something <- simple <- main.
+  Called from partitioning-heuristic.c:30.
+[eva:progress] Recording results for something
+[eva:progress] Done for function something
+[eva:progress] partitioning-heuristic.c:30: 
+  Reusing old results for call to something
+[eva:show] partitioning-heuristic.c:32: Frama_C_show_each: {2}, {-2}
+[eva:show] partitioning-heuristic.c:32: Frama_C_show_each: {2}, {-2}
+[eva:show] partitioning-heuristic.c:32: Frama_C_show_each: {3}, {-3}
+[eva:show] partitioning-heuristic.c:32: Frama_C_show_each: {3}, {-3}
+[eva:progress] 
+  computing for function Frama_C_interval <- simple <- main.
+  Called from partitioning-heuristic.c:35.
+[eva:progress] partitioning-heuristic.c:35: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva:progress] Done for function Frama_C_interval
+[eva:progress] 
+  computing for function Frama_C_interval <- simple <- main.
+  Called from partitioning-heuristic.c:35.
+[eva:progress] Done for function Frama_C_interval
+[eva:progress] 
+  computing for function Frama_C_interval <- simple <- main.
+  Called from partitioning-heuristic.c:35.
+[eva:progress] Done for function Frama_C_interval
+[eva:progress] 
+  computing for function Frama_C_interval <- simple <- main.
+  Called from partitioning-heuristic.c:35.
+[eva:progress] Done for function Frama_C_interval
+[eva:show] partitioning-heuristic.c:38: Frama_C_show_each: {5}, {-2}
+[eva:show] partitioning-heuristic.c:38: Frama_C_show_each: {5}, {-3}
+[eva:show] partitioning-heuristic.c:38: Frama_C_show_each: {4}, {-2}
+[eva:show] partitioning-heuristic.c:38: Frama_C_show_each: {4}, {-3}
+[eva:show] partitioning-heuristic.c:40: Frama_C_show_each: {6}, {-2}
+[eva:show] partitioning-heuristic.c:40: Frama_C_show_each: {6}, {-3}
+[eva:show] partitioning-heuristic.c:40: Frama_C_show_each: {5}, {-2}
+[eva:show] partitioning-heuristic.c:40: Frama_C_show_each: {5}, {-3}
+[eva:progress] 
+  computing for function something <- simple <- main.
+  Called from partitioning-heuristic.c:42.
+[eva:progress] Recording results for something
+[eva:progress] Done for function something
+[eva:progress] partitioning-heuristic.c:42: 
+  Reusing old results for call to something
+[eva:show] partitioning-heuristic.c:44: Frama_C_show_each: {6}, {-2}
+[eva:show] partitioning-heuristic.c:44: Frama_C_show_each: {6}, {-3}
+[eva:show] partitioning-heuristic.c:44: Frama_C_show_each: {5}, {-2}
+[eva:show] partitioning-heuristic.c:44: Frama_C_show_each: {5}, {-3}
+[eva:progress] Recording results for simple
+[eva:progress] Done for function simple
+[eva:progress] 
+  computing for function pointers <- main.
+  Called from partitioning-heuristic.c:141.
+[eva:progress] 
+  computing for function pointers_f1 <- pointers <- main.
+  Called from partitioning-heuristic.c:117.
+[eva:progress] 
+  computing for function Frama_C_interval <- pointers_f1 <- pointers <- main.
+  Called from partitioning-heuristic.c:53.
+[eva:progress] partitioning-heuristic.c:53: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva:progress] Done for function Frama_C_interval
+[eva:show] partitioning-heuristic.c:56: Frama_C_show_each: {1}
+[eva:show] partitioning-heuristic.c:56: Frama_C_show_each: {0}
+[eva:show] partitioning-heuristic.c:58: Frama_C_show_each: {1}
+[eva:show] partitioning-heuristic.c:58: Frama_C_show_each: {0}
+[eva:progress] 
+  computing for function Frama_C_interval <- pointers_f1 <- pointers <- main.
+  Called from partitioning-heuristic.c:61.
+[eva:progress] partitioning-heuristic.c:61: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva:progress] Done for function Frama_C_interval
+[eva:progress] 
+  computing for function Frama_C_interval <- pointers_f1 <- pointers <- main.
+  Called from partitioning-heuristic.c:61.
+[eva:progress] Done for function Frama_C_interval
+[eva:show] partitioning-heuristic.c:64: Frama_C_show_each: {3}
+[eva:show] partitioning-heuristic.c:64: Frama_C_show_each: {3}
+[eva:show] partitioning-heuristic.c:64: Frama_C_show_each: {2}
+[eva:show] partitioning-heuristic.c:64: Frama_C_show_each: {2}
+[eva:show] partitioning-heuristic.c:66: Frama_C_show_each: {3}
+[eva:show] partitioning-heuristic.c:66: Frama_C_show_each: {3}
+[eva:show] partitioning-heuristic.c:66: Frama_C_show_each: {2}
+[eva:show] partitioning-heuristic.c:66: Frama_C_show_each: {2}
+[eva:progress] Recording results for pointers_f1
+[eva:progress] Done for function pointers_f1
+[eva:progress] 
+  computing for function pointers_f2 <- pointers <- main.
+  Called from partitioning-heuristic.c:120.
+[eva:progress] 
+  computing for function Frama_C_interval <- pointers_f2 <- pointers <- main.
+  Called from partitioning-heuristic.c:73.
+[eva:progress] partitioning-heuristic.c:73: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva:progress] Done for function Frama_C_interval
+[eva:show] partitioning-heuristic.c:78: Frama_C_show_each: ⊥, {1}
+[eva:show] partitioning-heuristic.c:78: Frama_C_show_each: ⊥, {2}
+[eva:progress] 
+  computing for function Frama_C_interval <- pointers_f2 <- pointers <- main.
+  Called from partitioning-heuristic.c:79.
+[eva:progress] partitioning-heuristic.c:79: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva:progress] Done for function Frama_C_interval
+[eva:progress] 
+  computing for function Frama_C_interval <- pointers_f2 <- pointers <- main.
+  Called from partitioning-heuristic.c:79.
+[eva:progress] Done for function Frama_C_interval
+[eva:show] partitioning-heuristic.c:84: Frama_C_show_each: {3}, {1}
+[eva:show] partitioning-heuristic.c:84: Frama_C_show_each: {3}, {2}
+[eva:show] partitioning-heuristic.c:84: Frama_C_show_each: {4}, {1}
+[eva:show] partitioning-heuristic.c:84: Frama_C_show_each: {4}, {2}
+[eva:show] partitioning-heuristic.c:88: Frama_C_show_each: {0}, {1}
+[eva:show] partitioning-heuristic.c:88: Frama_C_show_each: {0}, {1}
+[eva:show] partitioning-heuristic.c:88: Frama_C_show_each: {3}, {2}
+[eva:show] partitioning-heuristic.c:88: Frama_C_show_each: {4}, {2}
+[eva:progress] Recording results for pointers_f2
+[eva:progress] Done for function pointers_f2
+[eva:progress] 
+  computing for function pointers_f3 <- pointers <- main.
+  Called from partitioning-heuristic.c:122.
+[eva:progress] 
+  computing for function allocp <- pointers_f3 <- pointers <- main.
+  Called from partitioning-heuristic.c:102.
+[eva:progress] Recording results for allocp
+[eva:progress] Done for function allocp
+[eva:progress] 
+  computing for function Frama_C_interval <- pointers_f3 <- pointers <- main.
+  Called from partitioning-heuristic.c:104.
+[eva:progress] partitioning-heuristic.c:104: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva:progress] Done for function Frama_C_interval
+[eva:show] partitioning-heuristic.c:107: Frama_C_show_each: {2}
+[eva:show] partitioning-heuristic.c:107: Frama_C_show_each: {1}
+[eva:progress] 
+  computing for function pointers_get <- pointers_f3 <- pointers <- main.
+  Called from partitioning-heuristic.c:108.
+[eva:progress] Recording results for pointers_get
+[eva:progress] Done for function pointers_get
+[eva:progress] 
+  computing for function pointers_get <- pointers_f3 <- pointers <- main.
+  Called from partitioning-heuristic.c:108.
+[eva:progress] Recording results for pointers_get
+[eva:progress] Done for function pointers_get
+[eva:show] partitioning-heuristic.c:109: Frama_C_show_each: {2}
+[eva:show] partitioning-heuristic.c:109: Frama_C_show_each: {1}
+[eva:show] partitioning-heuristic.c:111: Frama_C_show_each: {2}
+[eva:show] partitioning-heuristic.c:111: Frama_C_show_each: {1}
+[eva:progress] Recording results for pointers_f3
+[eva:progress] Done for function pointers_f3
+[eva:progress] Recording results for pointers
+[eva:progress] Done for function pointers
+[eva:progress] 
+  computing for function loop <- main.
+  Called from partitioning-heuristic.c:142.
+[eva:progress] 
+  computing for function something <- loop <- main.
+  Called from partitioning-heuristic.c:129.
+[eva:progress] Recording results for something
+[eva:progress] Done for function something
+[eva:progress] 
+  computing for function Frama_C_interval <- loop <- main.
+  Called from partitioning-heuristic.c:130.
+[eva:progress] partitioning-heuristic.c:130: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva:progress] Done for function Frama_C_interval
+[eva:show] partitioning-heuristic.c:133: Frama_C_show_each: {1}
+[eva:show] partitioning-heuristic.c:133: Frama_C_show_each: {0}
+[eva:progress] 
+  computing for function something <- loop <- main.
+  Called from partitioning-heuristic.c:129.
+[eva:progress] Recording results for something
+[eva:progress] Done for function something
+[eva:progress] 
+  computing for function Frama_C_interval <- loop <- main.
+  Called from partitioning-heuristic.c:130.
+[eva:progress] Done for function Frama_C_interval
+[eva:show] partitioning-heuristic.c:133: Frama_C_show_each: {2}
+[eva:show] partitioning-heuristic.c:133: Frama_C_show_each: {1}
+[eva:progress] 
+  computing for function something <- loop <- main.
+  Called from partitioning-heuristic.c:129.
+[eva:progress] Recording results for something
+[eva:progress] Done for function something
+[eva:progress] 
+  computing for function Frama_C_interval <- loop <- main.
+  Called from partitioning-heuristic.c:130.
+[eva:progress] Done for function Frama_C_interval
+[eva:show] partitioning-heuristic.c:133: Frama_C_show_each: {2; 3}
+[eva:show] partitioning-heuristic.c:133: Frama_C_show_each: {1; 2}
+[eva:partition] partitioning-heuristic.c:128: starting to merge loop iterations
+[eva:progress] 
+  computing for function something <- loop <- main.
+  Called from partitioning-heuristic.c:129.
+[eva:progress] Recording results for something
+[eva:progress] Done for function something
+[eva:progress] 
+  computing for function something <- loop <- main.
+  Called from partitioning-heuristic.c:129.
+[eva:progress] Recording results for something
+[eva:progress] Done for function something
+[eva:progress] 
+  computing for function Frama_C_interval <- loop <- main.
+  Called from partitioning-heuristic.c:130.
+[eva:progress] Done for function Frama_C_interval
+[eva:progress] 
+  computing for function Frama_C_interval <- loop <- main.
+  Called from partitioning-heuristic.c:130.
+[eva:progress] Done for function Frama_C_interval
+[eva:show] partitioning-heuristic.c:133: Frama_C_show_each: {2; 3; 4}
+[eva:show] partitioning-heuristic.c:133: Frama_C_show_each: {1; 2; 3}
+[eva:progress] 
+  computing for function something <- loop <- main.
+  Called from partitioning-heuristic.c:129.
+[eva:progress] Recording results for something
+[eva:progress] Done for function something
+[eva:progress] 
+  computing for function something <- loop <- main.
+  Called from partitioning-heuristic.c:129.
+[eva:progress] Recording results for something
+[eva:progress] Done for function something
+[eva:progress] 
+  computing for function Frama_C_interval <- loop <- main.
+  Called from partitioning-heuristic.c:130.
+[eva:progress] Done for function Frama_C_interval
+[eva:progress] 
+  computing for function Frama_C_interval <- loop <- main.
+  Called from partitioning-heuristic.c:130.
+[eva:progress] Done for function Frama_C_interval
+[eva:show] partitioning-heuristic.c:133: Frama_C_show_each: {2; 3; 4; 5}
+[eva:show] partitioning-heuristic.c:133: Frama_C_show_each: {1; 2; 3; 4}
+[eva:progress] 
+  computing for function something <- loop <- main.
+  Called from partitioning-heuristic.c:129.
+[eva:progress] Recording results for something
+[eva:progress] Done for function something
+[eva:progress] 
+  computing for function something <- loop <- main.
+  Called from partitioning-heuristic.c:129.
+[eva:progress] Recording results for something
+[eva:progress] Done for function something
+[eva:progress] 
+  computing for function Frama_C_interval <- loop <- main.
+  Called from partitioning-heuristic.c:130.
+[eva:progress] Done for function Frama_C_interval
+[eva:progress] 
+  computing for function Frama_C_interval <- loop <- main.
+  Called from partitioning-heuristic.c:130.
+[eva:progress] Done for function Frama_C_interval
+[eva:show] partitioning-heuristic.c:133: Frama_C_show_each: [2..10]
+[eva:show] partitioning-heuristic.c:133: Frama_C_show_each: [1..9]
+[eva:progress] 
+  computing for function something <- loop <- main.
+  Called from partitioning-heuristic.c:129.
+[eva:progress] Recording results for something
+[eva:progress] Done for function something
+[eva:progress] 
+  computing for function Frama_C_interval <- loop <- main.
+  Called from partitioning-heuristic.c:130.
+[eva:progress] Done for function Frama_C_interval
+[eva:show] partitioning-heuristic.c:135: Frama_C_show_each: {10}
+[eva:progress] Recording results for loop
+[eva:progress] Done for function loop
+[eva:progress] Recording results for main
+[eva:progress] Done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function allocp:
+  __retres ∈ {{ &pglob }}
+[eva:final-states] Values at end of function pointers_f1:
+  Frama_C_entropy_source ∈ [--..--]
+  i ∈ {2; 3}
+  j ∈ {2; 3}
+  p ∈ {{ &i }}
+[eva:final-states] Values at end of function pointers_f2:
+  Frama_C_entropy_source ∈ [--..--]
+  i ∈ {0; 3; 4}
+  pi ∈ {{ &i }}
+  x ∈ {1; 2}
+[eva:final-states] Values at end of function pointers_get:
+  __retres ∈ {1; 2}
+[eva:final-states] Values at end of function pointers_f3:
+  Frama_C_entropy_source ∈ [--..--]
+  pglob ∈ {0}
+  i ∈ {1; 2}
+  p1 ∈ {{ &i }}
+  p2 ∈ {{ &pglob }}
+  j ∈ {1; 2}
+  k ∈ {2; 3}
+[eva:final-states] Values at end of function pointers:
+  Frama_C_entropy_source ∈ [--..--]
+  pglob ∈ {0}
+  x ∈ {1; 2}
+[eva:final-states] Values at end of function something:
+  
+[eva:final-states] Values at end of function loop:
+  Frama_C_entropy_source ∈ [--..--]
+  i ∈ {10}
+[eva:final-states] Values at end of function simple:
+  Frama_C_entropy_source ∈ [--..--]
+  i ∈ {5; 6}
+  j ∈ {-3; -2}
+[eva:final-states] Values at end of function main:
+  Frama_C_entropy_source ∈ [--..--]
+  pglob ∈ {0}
+[from] Computing for function allocp
+[from] Done for function allocp
+[from] Computing for function pointers_f1
+[from] Computing for function Frama_C_interval <-pointers_f1
+[from] Done for function Frama_C_interval
+[from] Done for function pointers_f1
+[from] Computing for function pointers_f2
+[from] Done for function pointers_f2
+[from] Computing for function pointers_get
+[from] Done for function pointers_get
+[from] Computing for function pointers_f3
+[from] Done for function pointers_f3
+[from] Computing for function pointers
+[from] Done for function pointers
+[from] Computing for function something
+[from] Done for function something
+[from] Computing for function loop
+[from] Done for function loop
+[from] Computing for function simple
+[from] Done for function simple
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function Frama_C_interval:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  \result FROM Frama_C_entropy_source; min; max
+[from] Function allocp:
+  \result FROM \nothing
+[from] Function pointers_f1:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+[from] Function pointers_f2:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  x FROM Frama_C_entropy_source; px
+[from] Function pointers_get:
+  \result FROM pglob; p; i; p1
+[from] Function pointers_f3:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  pglob FROM \nothing
+[from] Function pointers:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  pglob FROM \nothing
+[from] Function something:
+  NO EFFECTS
+[from] Function loop:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+[from] Function simple:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+[from] Function main:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  pglob FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function allocp:
+    __retres
+[inout] Inputs for function allocp:
+    \nothing
+[inout] Out (internal) for function pointers_f1:
+    Frama_C_entropy_source; i; j; p; tmp; tmp_0
+[inout] Inputs for function pointers_f1:
+    Frama_C_entropy_source
+[inout] Out (internal) for function pointers_f2:
+    Frama_C_entropy_source; i; pi; tmp; tmp_0; x
+[inout] Inputs for function pointers_f2:
+    Frama_C_entropy_source; x
+[inout] Out (internal) for function pointers_get:
+    __retres
+[inout] Inputs for function pointers_get:
+    pglob; i; p1
+[inout] Out (internal) for function pointers_f3:
+    Frama_C_entropy_source; pglob; i; p1; p2; tmp_0; j; k
+[inout] Inputs for function pointers_f3:
+    Frama_C_entropy_source; pglob
+[inout] Out (internal) for function pointers:
+    Frama_C_entropy_source; pglob; x
+[inout] Inputs for function pointers:
+    Frama_C_entropy_source; pglob
+[inout] Out (internal) for function something:
+    \nothing
+[inout] Inputs for function something:
+    \nothing
+[inout] Out (internal) for function loop:
+    Frama_C_entropy_source; i; tmp
+[inout] Inputs for function loop:
+    Frama_C_entropy_source
+[inout] Out (internal) for function simple:
+    Frama_C_entropy_source; i; j; tmp; tmp_0; tmp_1
+[inout] Inputs for function simple:
+    Frama_C_entropy_source
+[inout] Out (internal) for function main:
+    Frama_C_entropy_source; pglob
+[inout] Inputs for function main:
+    Frama_C_entropy_source; pglob
+[eva] Analyzing a complete application starting at main
+[eva:progress] Computing initial state
+[eva:progress] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  pglob ∈ {0}
+[eva:progress] 
+  computing for function simple <- main.
+  Called from partitioning-heuristic.c:140.
+[eva:progress] 
+  computing for function Frama_C_interval <- simple <- main.
+  Called from partitioning-heuristic.c:17.
+[eva:progress] Done for function Frama_C_interval
+[eva:show] partitioning-heuristic.c:20: Frama_C_show_each: {0; 1}, ⊥
+[eva:progress] 
+  computing for function Frama_C_interval <- simple <- main.
+  Called from partitioning-heuristic.c:23.
+[eva:progress] Done for function Frama_C_interval
+[eva:show] partitioning-heuristic.c:26: Frama_C_show_each: {3}, ⊥
+[eva:show] partitioning-heuristic.c:26: Frama_C_show_each: {2}, ⊥
+[eva:show] partitioning-heuristic.c:28: Frama_C_show_each: {3}, {-3}
+[eva:show] partitioning-heuristic.c:28: Frama_C_show_each: {2}, {-2}
+[eva:progress] 
+  computing for function something <- simple <- main.
+  Called from partitioning-heuristic.c:30.
+[eva:progress] Recording results for something
+[eva:progress] Done for function something
+[eva:show] partitioning-heuristic.c:32: Frama_C_show_each: {2; 3}, {-3; -2}
+[eva:progress] 
+  computing for function Frama_C_interval <- simple <- main.
+  Called from partitioning-heuristic.c:35.
+[eva:progress] Done for function Frama_C_interval
+[eva:show] partitioning-heuristic.c:38: Frama_C_show_each: {5}, {-3; -2}
+[eva:show] partitioning-heuristic.c:38: Frama_C_show_each: {4}, {-3; -2}
+[eva:show] partitioning-heuristic.c:40: Frama_C_show_each: {6}, {-3; -2}
+[eva:show] partitioning-heuristic.c:40: Frama_C_show_each: {5}, {-3; -2}
+[eva:progress] 
+  computing for function something <- simple <- main.
+  Called from partitioning-heuristic.c:42.
+[eva:progress] Recording results for something
+[eva:progress] Done for function something
+[eva:show] partitioning-heuristic.c:44: Frama_C_show_each: {5; 6}, {-3; -2}
+[eva:progress] Recording results for simple
+[eva:progress] Done for function simple
+[eva:progress] 
+  computing for function pointers <- main.
+  Called from partitioning-heuristic.c:141.
+[eva:progress] 
+  computing for function pointers_f1 <- pointers <- main.
+  Called from partitioning-heuristic.c:117.
+[eva:progress] 
+  computing for function Frama_C_interval <- pointers_f1 <- pointers <- main.
+  Called from partitioning-heuristic.c:53.
+[eva:progress] Done for function Frama_C_interval
+[eva:show] partitioning-heuristic.c:56: Frama_C_show_each: {1}
+[eva:show] partitioning-heuristic.c:56: Frama_C_show_each: {0}
+[eva:show] partitioning-heuristic.c:58: Frama_C_show_each: {0; 1}
+[eva:progress] 
+  computing for function Frama_C_interval <- pointers_f1 <- pointers <- main.
+  Called from partitioning-heuristic.c:61.
+[eva:progress] Done for function Frama_C_interval
+[eva:show] partitioning-heuristic.c:64: Frama_C_show_each: {3}
+[eva:show] partitioning-heuristic.c:64: Frama_C_show_each: {2}
+[eva:show] partitioning-heuristic.c:66: Frama_C_show_each: {2; 3}
+[eva:progress] Recording results for pointers_f1
+[eva:progress] Done for function pointers_f1
+[eva:progress] 
+  computing for function pointers_f2 <- pointers <- main.
+  Called from partitioning-heuristic.c:120.
+[eva:progress] 
+  computing for function Frama_C_interval <- pointers_f2 <- pointers <- main.
+  Called from partitioning-heuristic.c:73.
+[eva:progress] Done for function Frama_C_interval
+[eva:show] partitioning-heuristic.c:78: Frama_C_show_each: ⊥, {1}
+[eva:show] partitioning-heuristic.c:78: Frama_C_show_each: ⊥, {2}
+[eva:progress] 
+  computing for function Frama_C_interval <- pointers_f2 <- pointers <- main.
+  Called from partitioning-heuristic.c:79.
+[eva:progress] Done for function Frama_C_interval
+[eva:progress] 
+  computing for function Frama_C_interval <- pointers_f2 <- pointers <- main.
+  Called from partitioning-heuristic.c:79.
+[eva:progress] Done for function Frama_C_interval
+[eva:show] partitioning-heuristic.c:84: Frama_C_show_each: {3; 4}, {1}
+[eva:show] partitioning-heuristic.c:84: Frama_C_show_each: {3; 4}, {2}
+[eva:show] partitioning-heuristic.c:88: Frama_C_show_each: {0; 3; 4}, {1; 2}
+[eva:progress] Recording results for pointers_f2
+[eva:progress] Done for function pointers_f2
+[eva:progress] 
+  computing for function pointers_f3 <- pointers <- main.
+  Called from partitioning-heuristic.c:122.
+[eva:progress] 
+  computing for function allocp <- pointers_f3 <- pointers <- main.
+  Called from partitioning-heuristic.c:102.
+[eva:progress] Recording results for allocp
+[eva:progress] Done for function allocp
+[eva:progress] 
+  computing for function Frama_C_interval <- pointers_f3 <- pointers <- main.
+  Called from partitioning-heuristic.c:104.
+[eva:progress] Done for function Frama_C_interval
+[eva:show] partitioning-heuristic.c:107: Frama_C_show_each: {2}
+[eva:show] partitioning-heuristic.c:107: Frama_C_show_each: {1}
+[eva:progress] 
+  computing for function pointers_get <- pointers_f3 <- pointers <- main.
+  Called from partitioning-heuristic.c:108.
+[eva:progress] Recording results for pointers_get
+[eva:progress] Done for function pointers_get
+[eva:progress] 
+  computing for function pointers_get <- pointers_f3 <- pointers <- main.
+  Called from partitioning-heuristic.c:108.
+[eva:progress] Recording results for pointers_get
+[eva:progress] Done for function pointers_get
+[eva:show] partitioning-heuristic.c:109: Frama_C_show_each: {2}
+[eva:show] partitioning-heuristic.c:109: Frama_C_show_each: {1}
+[eva:show] partitioning-heuristic.c:111: Frama_C_show_each: {1; 2}
+[eva:progress] Recording results for pointers_f3
+[eva:progress] Done for function pointers_f3
+[eva:progress] Recording results for pointers
+[eva:progress] Done for function pointers
+[eva:progress] 
+  computing for function loop <- main.
+  Called from partitioning-heuristic.c:142.
+[eva:progress] 
+  computing for function something <- loop <- main.
+  Called from partitioning-heuristic.c:129.
+[eva:progress] Recording results for something
+[eva:progress] Done for function something
+[eva:progress] 
+  computing for function Frama_C_interval <- loop <- main.
+  Called from partitioning-heuristic.c:130.
+[eva:progress] Done for function Frama_C_interval
+[eva:show] partitioning-heuristic.c:133: Frama_C_show_each: {0; 1}
+[eva:progress] 
+  computing for function something <- loop <- main.
+  Called from partitioning-heuristic.c:129.
+[eva:progress] Recording results for something
+[eva:progress] Done for function something
+[eva:progress] 
+  computing for function Frama_C_interval <- loop <- main.
+  Called from partitioning-heuristic.c:130.
+[eva:progress] Done for function Frama_C_interval
+[eva:show] partitioning-heuristic.c:133: Frama_C_show_each: {0; 1; 2}
+[eva:progress] 
+  computing for function something <- loop <- main.
+  Called from partitioning-heuristic.c:129.
+[eva:progress] Recording results for something
+[eva:progress] Done for function something
+[eva:progress] 
+  computing for function Frama_C_interval <- loop <- main.
+  Called from partitioning-heuristic.c:130.
+[eva:progress] Done for function Frama_C_interval
+[eva:show] partitioning-heuristic.c:133: Frama_C_show_each: {0; 1; 2; 3}
+[eva:progress] 
+  computing for function something <- loop <- main.
+  Called from partitioning-heuristic.c:129.
+[eva:progress] Recording results for something
+[eva:progress] Done for function something
+[eva:progress] 
+  computing for function Frama_C_interval <- loop <- main.
+  Called from partitioning-heuristic.c:130.
+[eva:progress] Done for function Frama_C_interval
+[eva:show] partitioning-heuristic.c:133: Frama_C_show_each: [0..10]
+[eva:show] partitioning-heuristic.c:135: Frama_C_show_each: {10}
+[eva:progress] Recording results for loop
+[eva:progress] Done for function loop
+[eva:progress] Recording results for main
+[eva:progress] Done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function allocp:
+  __retres ∈ {{ &pglob }}
+[eva:final-states] Values at end of function pointers_f1:
+  Frama_C_entropy_source ∈ [--..--]
+  i ∈ {2; 3}
+  j ∈ {2; 3}
+  p ∈ {{ &i }}
+[eva:final-states] Values at end of function pointers_f2:
+  Frama_C_entropy_source ∈ [--..--]
+  i ∈ {0; 3; 4}
+  pi ∈ {{ &i }}
+  x ∈ {1; 2}
+[eva:final-states] Values at end of function pointers_get:
+  __retres ∈ {1; 2}
+[eva:final-states] Values at end of function pointers_f3:
+  Frama_C_entropy_source ∈ [--..--]
+  pglob ∈ {0}
+  i ∈ {1; 2}
+  p1 ∈ {{ &i }}
+  p2 ∈ {{ &pglob }}
+  j ∈ {1; 2}
+  k ∈ {2; 3}
+[eva:final-states] Values at end of function pointers:
+  Frama_C_entropy_source ∈ [--..--]
+  pglob ∈ {0}
+  x ∈ {1; 2}
+[eva:final-states] Values at end of function something:
+  
+[eva:final-states] Values at end of function loop:
+  Frama_C_entropy_source ∈ [--..--]
+  i ∈ {10}
+[eva:final-states] Values at end of function simple:
+  Frama_C_entropy_source ∈ [--..--]
+  i ∈ {5; 6}
+  j ∈ {-3; -2}
+[eva:final-states] Values at end of function main:
+  Frama_C_entropy_source ∈ [--..--]
+  pglob ∈ {0}
+[from] Computing for function allocp
+[from] Done for function allocp
+[from] Computing for function pointers_f1
+[from] Computing for function Frama_C_interval <-pointers_f1
+[from] Done for function Frama_C_interval
+[from] Done for function pointers_f1
+[from] Computing for function pointers_f2
+[from] Done for function pointers_f2
+[from] Computing for function pointers_get
+[from] Done for function pointers_get
+[from] Computing for function pointers_f3
+[from] Done for function pointers_f3
+[from] Computing for function pointers
+[from] Done for function pointers
+[from] Computing for function something
+[from] Done for function something
+[from] Computing for function loop
+[from] Done for function loop
+[from] Computing for function simple
+[from] Done for function simple
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function Frama_C_interval:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  \result FROM Frama_C_entropy_source; min; max
+[from] Function allocp:
+  \result FROM \nothing
+[from] Function pointers_f1:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+[from] Function pointers_f2:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  x FROM Frama_C_entropy_source; px
+[from] Function pointers_get:
+  \result FROM pglob; p; i; p1
+[from] Function pointers_f3:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  pglob FROM \nothing
+[from] Function pointers:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  pglob FROM \nothing
+[from] Function something:
+  NO EFFECTS
+[from] Function loop:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+[from] Function simple:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+[from] Function main:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  pglob FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function allocp:
+    __retres
+[inout] Inputs for function allocp:
+    \nothing
+[inout] Out (internal) for function pointers_f1:
+    Frama_C_entropy_source; i; j; p; tmp; tmp_0
+[inout] Inputs for function pointers_f1:
+    Frama_C_entropy_source
+[inout] Out (internal) for function pointers_f2:
+    Frama_C_entropy_source; i; pi; tmp; tmp_0; x
+[inout] Inputs for function pointers_f2:
+    Frama_C_entropy_source; x
+[inout] Out (internal) for function pointers_get:
+    __retres
+[inout] Inputs for function pointers_get:
+    pglob; i; p1
+[inout] Out (internal) for function pointers_f3:
+    Frama_C_entropy_source; pglob; i; p1; p2; tmp_0; j; k
+[inout] Inputs for function pointers_f3:
+    Frama_C_entropy_source; pglob
+[inout] Out (internal) for function pointers:
+    Frama_C_entropy_source; pglob; x
+[inout] Inputs for function pointers:
+    Frama_C_entropy_source; pglob
+[inout] Out (internal) for function something:
+    \nothing
+[inout] Inputs for function something:
+    \nothing
+[inout] Out (internal) for function loop:
+    Frama_C_entropy_source; i; tmp
+[inout] Inputs for function loop:
+    Frama_C_entropy_source
+[inout] Out (internal) for function simple:
+    Frama_C_entropy_source; i; j; tmp; tmp_0; tmp_1
+[inout] Inputs for function simple:
+    Frama_C_entropy_source
+[inout] Out (internal) for function main:
+    Frama_C_entropy_source; pglob
+[inout] Inputs for function main:
+    Frama_C_entropy_source; pglob

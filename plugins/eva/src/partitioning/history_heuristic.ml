@@ -19,7 +19,7 @@ struct
   type elt =
     | Var of Eva_ast.varinfo
     | HeapBlk of Cil_types.stmt (* block on the heap *)
-    | OtherPtrTarget
+    | InputMem
 
   let initial_values = []
   let dependencies = []
@@ -28,7 +28,7 @@ struct
       (struct
         type t = elt
         let name = "Partition.Heuristics.MemLoc"
-        let reprs = [OtherPtrTarget]
+        let reprs = [InputMem]
         let structural_descr = Structural_descr.t_unknown
         let compare ml1 ml2 =
           match ml1, ml2 with
@@ -38,7 +38,7 @@ struct
         let hash = function
           | Var vi -> Hashtbl.hash (1, Cil_datatype.Varinfo.hash vi)
           | HeapBlk stmt -> Hashtbl.hash (2, Cil_datatype.Stmt.hash stmt)
-          | OtherPtrTarget -> Hashtbl.hash 3
+          | InputMem -> Hashtbl.hash 3
         let copy = Fun.id
         let rehash = Fun.id
         let mem_project = Datatype.never_any_project
@@ -46,13 +46,13 @@ struct
           | Var vi -> Cil_datatype.Varinfo.pretty fmt vi
           | HeapBlk stmt ->
             Format.fprintf fmt "[%a]" Cil_datatype.Stmt.pretty stmt
-          | OtherPtrTarget -> Format.fprintf fmt "#"
+          | InputMem -> Format.fprintf fmt "#"
       end)
 
   let id = function
     | Var vi -> vi.vid
     | HeapBlk stmt -> Int.max_int / 2 + stmt.sid
-    | OtherPtrTarget -> Int.max_int
+    | InputMem -> Int.max_int
 end
 
 module MemLocSet = Hptset.Make (MemLoc) (MemLoc)
@@ -85,8 +85,8 @@ struct
     try MlsMemLocMap.find ml Info.ptr_targets
     with Not_found ->
     match ml with
-    | MemLoc.Var { vglob = true } | MemLoc.OtherPtrTarget ->
-      MemLocSet.singleton MemLoc.OtherPtrTarget
+    | MemLoc.Var { vglob = true } | MemLoc.InputMem ->
+      MemLocSet.singleton MemLoc.InputMem
     | _ -> MemLocSet.empty
   and locs_of_init = function
     | SingleInit (exp, _) -> locs_of_exp exp
@@ -129,7 +129,7 @@ struct
   let initial formals =
     let add_arg_ptr_target ptr_targets = function
       | { Cil_types.vtype = { tnode = TPtr _ } } as vi ->
-        let target = MemLocSet.singleton MemLoc.OtherPtrTarget in
+        let target = MemLocSet.singleton MemLoc.InputMem in
         MlsMemLocMap.add (MemLoc.Var vi) target ptr_targets
       | _ -> ptr_targets
     in
@@ -144,7 +144,7 @@ struct
       | Some v1, Some v2 when v1 == v2 -> v1
       | _ -> v
     in
-    let merge_targets _ ml1 ml2 = MemLocSet.union ml1 ml2 in
+    let merge_targets _ = MemLocSet.union in
     let last_writes =
       VMemLocMap.generic_join ~cache:NoCache ~symmetric:true ~idempotent:true
         ~decide:merge_writes wl1.last_writes wl2.last_writes

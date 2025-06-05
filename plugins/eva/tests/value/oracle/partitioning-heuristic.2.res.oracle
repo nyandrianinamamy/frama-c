@@ -1,0 +1,339 @@
+[kernel] Parsing partitioning-heuristic.c (with preprocessing)
+[eva] Analyzing a complete application starting at main_enhanced
+[eva:progress] Computing initial state
+[eva:progress] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  pglob ∈ {0}
+[eva:progress] 
+  computing for function enhanced_f <- main_enhanced.
+  Called from partitioning-heuristic.c:197.
+[eva:progress] 
+  computing for function Frama_C_interval <- enhanced_f <- main_enhanced.
+  Called from partitioning-heuristic.c:180.
+[eva] using specification for function Frama_C_interval
+[eva:progress] partitioning-heuristic.c:180: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva:progress] Done for function Frama_C_interval
+[eva:progress] 
+  computing for function Frama_C_interval <- enhanced_f <- main_enhanced.
+  Called from partitioning-heuristic.c:181.
+[eva:progress] partitioning-heuristic.c:181: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva:progress] Done for function Frama_C_interval
+[eva:show] partitioning-heuristic.c:182: 
+  Frama_C_show_each: [-99..99], [0..99], {0}
+[eva:show] partitioning-heuristic.c:184: 
+  Frama_C_show_each: [0..99], [1..99], {0}
+[eva:show] partitioning-heuristic.c:184: 
+  Frama_C_show_each: [-99..-1], [0..99], {0}
+[eva:progress] 
+  computing for function something <- enhanced_f <- main_enhanced.
+  Called from partitioning-heuristic.c:185.
+[eva:progress] Recording results for something
+[eva:progress] Done for function something
+[eva:progress] 
+  computing for function something <- enhanced_f <- main_enhanced.
+  Called from partitioning-heuristic.c:185.
+[eva:progress] Recording results for something
+[eva:progress] Done for function something
+[eva:show] partitioning-heuristic.c:191: 
+  Frama_C_show_each: [0..99], [1..99], [0..98]
+[eva:show] partitioning-heuristic.c:191: 
+  Frama_C_show_each: [-99..-1], [0..99], [1..99]
+[eva:progress] Recording results for enhanced_f
+[eva:progress] Done for function enhanced_f
+[eva:progress] Recording results for main_enhanced
+[eva:progress] Done for function main_enhanced
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function something:
+  
+[eva:final-states] Values at end of function enhanced_f:
+  Frama_C_entropy_source ∈ [--..--]
+  i ∈ [-99..99]
+  j ∈ [0..99]
+  x ∈ [0..99]
+[eva:final-states] Values at end of function main_enhanced:
+  Frama_C_entropy_source ∈ [--..--]
+  x ∈ [0..99]
+[from] Computing for function something
+[from] Done for function something
+[from] Computing for function enhanced_f
+[from] Computing for function Frama_C_interval <-enhanced_f
+[from] Done for function Frama_C_interval
+[from] Done for function enhanced_f
+[from] Computing for function main_enhanced
+[from] Done for function main_enhanced
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function Frama_C_interval:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  \result FROM Frama_C_entropy_source; min; max
+[from] Function something:
+  NO EFFECTS
+[from] Function enhanced_f:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  x FROM Frama_C_entropy_source; x (and SELF)
+[from] Function main_enhanced:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  \result FROM Frama_C_entropy_source
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function something:
+    \nothing
+[inout] Inputs for function something:
+    \nothing
+[inout] Out (internal) for function enhanced_f:
+    Frama_C_entropy_source; i; j; x
+[inout] Inputs for function enhanced_f:
+    Frama_C_entropy_source; x
+[inout] Out (internal) for function main_enhanced:
+    Frama_C_entropy_source; x
+[inout] Inputs for function main_enhanced:
+    Frama_C_entropy_source
+[eva] Analyzing a complete application starting at main_enhanced
+[eva:progress] Computing initial state
+[eva:progress] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  pglob ∈ {0}
+[eva:progress] 
+  computing for function enhanced_f <- main_enhanced.
+  Called from partitioning-heuristic.c:197.
+[eva:progress] 
+  computing for function Frama_C_interval <- enhanced_f <- main_enhanced.
+  Called from partitioning-heuristic.c:180.
+[eva:progress] Done for function Frama_C_interval
+[eva:progress] 
+  computing for function Frama_C_interval <- enhanced_f <- main_enhanced.
+  Called from partitioning-heuristic.c:181.
+[eva:progress] Done for function Frama_C_interval
+[eva:show] partitioning-heuristic.c:182: 
+  Frama_C_show_each: [-99..99], [0..99], {0}
+[eva:show] partitioning-heuristic.c:184: 
+  Frama_C_show_each: [-99..99], [0..99], {0}
+[eva:progress] 
+  computing for function something <- enhanced_f <- main_enhanced.
+  Called from partitioning-heuristic.c:185.
+[eva:progress] Recording results for something
+[eva:progress] Done for function something
+[eva:alarm] partitioning-heuristic.c:187: Warning: 
+  division by zero. assert j ≢ 0;
+[eva:show] partitioning-heuristic.c:191: 
+  Frama_C_show_each: [-99..99], [0..99], [0..99]
+[eva:progress] Recording results for enhanced_f
+[eva:progress] Done for function enhanced_f
+[eva:progress] Recording results for main_enhanced
+[eva:progress] Done for function main_enhanced
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function something:
+  
+[eva:final-states] Values at end of function enhanced_f:
+  Frama_C_entropy_source ∈ [--..--]
+  i ∈ [-99..99]
+  j ∈ [0..99]
+  x ∈ [0..99]
+[eva:final-states] Values at end of function main_enhanced:
+  Frama_C_entropy_source ∈ [--..--]
+  x ∈ [0..99]
+[from] Computing for function something
+[from] Done for function something
+[from] Computing for function enhanced_f
+[from] Computing for function Frama_C_interval <-enhanced_f
+[from] Done for function Frama_C_interval
+[from] Done for function enhanced_f
+[from] Computing for function main_enhanced
+[from] Done for function main_enhanced
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function Frama_C_interval:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  \result FROM Frama_C_entropy_source; min; max
+[from] Function something:
+  NO EFFECTS
+[from] Function enhanced_f:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  x FROM Frama_C_entropy_source; x (and SELF)
+[from] Function main_enhanced:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  \result FROM Frama_C_entropy_source
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function something:
+    \nothing
+[inout] Inputs for function something:
+    \nothing
+[inout] Out (internal) for function enhanced_f:
+    Frama_C_entropy_source; i; j; x
+[inout] Inputs for function enhanced_f:
+    Frama_C_entropy_source; x
+[inout] Out (internal) for function main_enhanced:
+    Frama_C_entropy_source; x
+[inout] Inputs for function main_enhanced:
+    Frama_C_entropy_source
+[eva] Analyzing a complete application starting at main_enhanced
+[eva:progress] Computing initial state
+[eva:progress] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  pglob ∈ {0}
+[eva:progress] 
+  computing for function enhanced_f <- main_enhanced.
+  Called from partitioning-heuristic.c:197.
+[eva:progress] 
+  computing for function Frama_C_interval <- enhanced_f <- main_enhanced.
+  Called from partitioning-heuristic.c:180.
+[eva:progress] Done for function Frama_C_interval
+[eva:progress] 
+  computing for function Frama_C_interval <- enhanced_f <- main_enhanced.
+  Called from partitioning-heuristic.c:181.
+[eva:progress] Done for function Frama_C_interval
+[eva:show] partitioning-heuristic.c:182: 
+  Frama_C_show_each: [-99..99], [0..99], {0}
+[eva:show] partitioning-heuristic.c:184: 
+  Frama_C_show_each: [0..99], [1..99], {0}
+[eva:show] partitioning-heuristic.c:184: 
+  Frama_C_show_each: [-99..-1], [0..99], {0}
+[eva:progress] 
+  computing for function something <- enhanced_f <- main_enhanced.
+  Called from partitioning-heuristic.c:185.
+[eva:progress] Recording results for something
+[eva:progress] Done for function something
+[eva:progress] 
+  computing for function something <- enhanced_f <- main_enhanced.
+  Called from partitioning-heuristic.c:185.
+[eva:progress] Recording results for something
+[eva:progress] Done for function something
+[eva:progress] partitioning-heuristic.c:187: 
+  assertion 'Eva,division_by_zero' got status valid.
+[eva:show] partitioning-heuristic.c:191: 
+  Frama_C_show_each: [-99..99], [0..99], [0..99]
+[eva:progress] Recording results for enhanced_f
+[eva:progress] Done for function enhanced_f
+[eva:progress] Recording results for main_enhanced
+[eva:progress] Done for function main_enhanced
+[eva] partitioning-heuristic.c:187: 
+  assertion 'Eva,division_by_zero' got final status valid.
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function something:
+  
+[eva:final-states] Values at end of function enhanced_f:
+  Frama_C_entropy_source ∈ [--..--]
+  i ∈ [-99..99]
+  j ∈ [0..99]
+  x ∈ [0..99]
+[eva:final-states] Values at end of function main_enhanced:
+  Frama_C_entropy_source ∈ [--..--]
+  x ∈ [0..99]
+[from] Computing for function something
+[from] Done for function something
+[from] Computing for function enhanced_f
+[from] Computing for function Frama_C_interval <-enhanced_f
+[from] Done for function Frama_C_interval
+[from] Done for function enhanced_f
+[from] Computing for function main_enhanced
+[from] Done for function main_enhanced
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function Frama_C_interval:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  \result FROM Frama_C_entropy_source; min; max
+[from] Function something:
+  NO EFFECTS
+[from] Function enhanced_f:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  x FROM Frama_C_entropy_source; x (and SELF)
+[from] Function main_enhanced:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  \result FROM Frama_C_entropy_source
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function something:
+    \nothing
+[inout] Inputs for function something:
+    \nothing
+[inout] Out (internal) for function enhanced_f:
+    Frama_C_entropy_source; i; j; x
+[inout] Inputs for function enhanced_f:
+    Frama_C_entropy_source; x
+[inout] Out (internal) for function main_enhanced:
+    Frama_C_entropy_source; x
+[inout] Inputs for function main_enhanced:
+    Frama_C_entropy_source
+[eva] Analyzing a complete application starting at main_enhanced
+[eva:progress] Computing initial state
+[eva:progress] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  pglob ∈ {0}
+[eva:progress] 
+  computing for function enhanced_f <- main_enhanced.
+  Called from partitioning-heuristic.c:197.
+[eva:progress] 
+  computing for function Frama_C_interval <- enhanced_f <- main_enhanced.
+  Called from partitioning-heuristic.c:180.
+[eva:progress] Done for function Frama_C_interval
+[eva:progress] 
+  computing for function Frama_C_interval <- enhanced_f <- main_enhanced.
+  Called from partitioning-heuristic.c:181.
+[eva:progress] Done for function Frama_C_interval
+[eva:show] partitioning-heuristic.c:182: 
+  Frama_C_show_each: [-99..99], [0..99], {0}
+[eva:show] partitioning-heuristic.c:184: 
+  Frama_C_show_each: [0..99], [1..99], {0}
+[eva:show] partitioning-heuristic.c:184: 
+  Frama_C_show_each: [-99..-1], [0..99], {0}
+[eva:progress] 
+  computing for function something <- enhanced_f <- main_enhanced.
+  Called from partitioning-heuristic.c:185.
+[eva:progress] Recording results for something
+[eva:progress] Done for function something
+[eva:progress] 
+  computing for function something <- enhanced_f <- main_enhanced.
+  Called from partitioning-heuristic.c:185.
+[eva:progress] Recording results for something
+[eva:progress] Done for function something
+[eva:show] partitioning-heuristic.c:191: 
+  Frama_C_show_each: [-99..99], [0..99], [0..99]
+[eva:progress] Recording results for enhanced_f
+[eva:progress] Done for function enhanced_f
+[eva:progress] Recording results for main_enhanced
+[eva:progress] Done for function main_enhanced
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function something:
+  
+[eva:final-states] Values at end of function enhanced_f:
+  Frama_C_entropy_source ∈ [--..--]
+  i ∈ [-99..99]
+  j ∈ [0..99]
+  x ∈ [0..99]
+[eva:final-states] Values at end of function main_enhanced:
+  Frama_C_entropy_source ∈ [--..--]
+  x ∈ [0..99]
+[from] Computing for function something
+[from] Done for function something
+[from] Computing for function enhanced_f
+[from] Computing for function Frama_C_interval <-enhanced_f
+[from] Done for function Frama_C_interval
+[from] Done for function enhanced_f
+[from] Computing for function main_enhanced
+[from] Done for function main_enhanced
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function Frama_C_interval:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  \result FROM Frama_C_entropy_source; min; max
+[from] Function something:
+  NO EFFECTS
+[from] Function enhanced_f:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  x FROM Frama_C_entropy_source; x (and SELF)
+[from] Function main_enhanced:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  \result FROM Frama_C_entropy_source
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function something:
+    \nothing
+[inout] Inputs for function something:
+    \nothing
+[inout] Out (internal) for function enhanced_f:
+    Frama_C_entropy_source; i; j; x
+[inout] Inputs for function enhanced_f:
+    Frama_C_entropy_source; x
+[inout] Out (internal) for function main_enhanced:
+    Frama_C_entropy_source; x
+[inout] Inputs for function main_enhanced:
+    Frama_C_entropy_source

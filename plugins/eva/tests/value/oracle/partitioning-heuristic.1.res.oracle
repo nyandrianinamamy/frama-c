@@ -1,0 +1,181 @@
+[kernel] Parsing partitioning-heuristic.c (with preprocessing)
+[eva] Analyzing a complete application starting at main_interproc
+[eva:progress] Computing initial state
+[eva:progress] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  pglob ∈ {0}
+[eva:progress] 
+  computing for function interproc_f1 <- main_interproc.
+  Called from partitioning-heuristic.c:164.
+[eva:progress] 
+  computing for function Frama_C_interval <- interproc_f1 <- main_interproc.
+  Called from partitioning-heuristic.c:147.
+[eva] using specification for function Frama_C_interval
+[eva:progress] partitioning-heuristic.c:147: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva:progress] Done for function Frama_C_interval
+[eva:progress] Recording results for interproc_f1
+[eva:progress] Done for function interproc_f1
+[eva:show] partitioning-heuristic.c:165: Frama_C_show_each: [-100..-1]
+[eva:show] partitioning-heuristic.c:165: Frama_C_show_each: [1..100]
+[eva:progress] partitioning-heuristic.c:166: 
+  Reusing old results for call to interproc_f1
+[eva:progress] partitioning-heuristic.c:166: 
+  Reusing old results for call to interproc_f1
+[eva:show] partitioning-heuristic.c:167: Frama_C_show_each: [-100..-1]
+[eva:show] partitioning-heuristic.c:167: Frama_C_show_each: [-100..-1]
+[eva:show] partitioning-heuristic.c:167: Frama_C_show_each: [1..100]
+[eva:show] partitioning-heuristic.c:167: Frama_C_show_each: [1..100]
+[eva:show] partitioning-heuristic.c:169: 
+  Frama_C_show_each: [-100..-1], [-100..-1]
+[eva:show] partitioning-heuristic.c:169: Frama_C_show_each: [1..100], [1..100]
+[eva:progress] 
+  computing for function interproc_f2 <- main_interproc.
+  Called from partitioning-heuristic.c:172.
+[eva:progress] 
+  computing for function Frama_C_interval <- interproc_f2 <- main_interproc.
+  Called from partitioning-heuristic.c:156.
+[eva:progress] partitioning-heuristic.c:156: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva:progress] Done for function Frama_C_interval
+[eva:progress] Recording results for interproc_f2
+[eva:progress] Done for function interproc_f2
+[eva:progress] partitioning-heuristic.c:172: 
+  Reusing old results for call to interproc_f2
+[eva:show] partitioning-heuristic.c:173: Frama_C_show_each: [-100..-1]
+[eva:show] partitioning-heuristic.c:173: Frama_C_show_each: [-100..-1]
+[eva:show] partitioning-heuristic.c:173: Frama_C_show_each: [1..100]
+[eva:show] partitioning-heuristic.c:173: Frama_C_show_each: [1..100]
+[eva:show] partitioning-heuristic.c:175: Frama_C_show_each: [-100..-1]
+[eva:show] partitioning-heuristic.c:175: Frama_C_show_each: [-100..-1]
+[eva:show] partitioning-heuristic.c:175: Frama_C_show_each: [1..100]
+[eva:show] partitioning-heuristic.c:175: Frama_C_show_each: [1..100]
+[eva:progress] Recording results for main_interproc
+[eva:progress] Done for function main_interproc
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function interproc_f1:
+  Frama_C_entropy_source ∈ [--..--]
+  x ∈ [-100..100]
+[eva:final-states] Values at end of function interproc_f2:
+  Frama_C_entropy_source ∈ [--..--]
+  x3 ∈ [-100..100]
+[eva:final-states] Values at end of function main_interproc:
+  Frama_C_entropy_source ∈ [--..--]
+  x1 ∈ [-100..100]
+  x2 ∈ [-100..100]
+  x3 ∈ [-100..100]
+[from] Computing for function interproc_f1
+[from] Computing for function Frama_C_interval <-interproc_f1
+[from] Done for function Frama_C_interval
+[from] Done for function interproc_f1
+[from] Computing for function interproc_f2
+[from] Done for function interproc_f2
+[from] Computing for function main_interproc
+[from] Done for function main_interproc
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function Frama_C_interval:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  \result FROM Frama_C_entropy_source; min; max
+[from] Function interproc_f1:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  \result FROM Frama_C_entropy_source
+[from] Function interproc_f2:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  x3 FROM Frama_C_entropy_source; x
+[from] Function main_interproc:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function interproc_f1:
+    Frama_C_entropy_source; x
+[inout] Inputs for function interproc_f1:
+    Frama_C_entropy_source
+[inout] Out (internal) for function interproc_f2:
+    Frama_C_entropy_source; x3
+[inout] Inputs for function interproc_f2:
+    Frama_C_entropy_source; x3
+[inout] Out (internal) for function main_interproc:
+    Frama_C_entropy_source; x1; x2; x3
+[inout] Inputs for function main_interproc:
+    Frama_C_entropy_source
+[eva] Analyzing a complete application starting at main_interproc
+[eva:progress] Computing initial state
+[eva:progress] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  pglob ∈ {0}
+[eva:progress] 
+  computing for function interproc_f1 <- main_interproc.
+  Called from partitioning-heuristic.c:164.
+[eva:progress] 
+  computing for function Frama_C_interval <- interproc_f1 <- main_interproc.
+  Called from partitioning-heuristic.c:147.
+[eva:progress] Done for function Frama_C_interval
+[eva:progress] Recording results for interproc_f1
+[eva:progress] Done for function interproc_f1
+[eva:show] partitioning-heuristic.c:165: Frama_C_show_each: [-100..100]
+[eva:progress] partitioning-heuristic.c:166: 
+  Reusing old results for call to interproc_f1
+[eva:show] partitioning-heuristic.c:167: Frama_C_show_each: [-100..-1]
+[eva:show] partitioning-heuristic.c:167: Frama_C_show_each: [1..100]
+[eva:show] partitioning-heuristic.c:169: 
+  Frama_C_show_each: [-100..100], [-100..100]
+[eva:progress] 
+  computing for function interproc_f2 <- main_interproc.
+  Called from partitioning-heuristic.c:172.
+[eva:progress] 
+  computing for function Frama_C_interval <- interproc_f2 <- main_interproc.
+  Called from partitioning-heuristic.c:156.
+[eva:progress] Done for function Frama_C_interval
+[eva:progress] Recording results for interproc_f2
+[eva:progress] Done for function interproc_f2
+[eva:show] partitioning-heuristic.c:173: Frama_C_show_each: [-100..-1]
+[eva:show] partitioning-heuristic.c:173: Frama_C_show_each: [1..100]
+[eva:show] partitioning-heuristic.c:175: Frama_C_show_each: [-100..100]
+[eva:progress] Recording results for main_interproc
+[eva:progress] Done for function main_interproc
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function interproc_f1:
+  Frama_C_entropy_source ∈ [--..--]
+  x ∈ [-100..100]
+[eva:final-states] Values at end of function interproc_f2:
+  Frama_C_entropy_source ∈ [--..--]
+  x3 ∈ [-100..100]
+[eva:final-states] Values at end of function main_interproc:
+  Frama_C_entropy_source ∈ [--..--]
+  x1 ∈ [-100..100]
+  x2 ∈ [-100..100]
+  x3 ∈ [-100..100]
+[from] Computing for function interproc_f1
+[from] Computing for function Frama_C_interval <-interproc_f1
+[from] Done for function Frama_C_interval
+[from] Done for function interproc_f1
+[from] Computing for function interproc_f2
+[from] Done for function interproc_f2
+[from] Computing for function main_interproc
+[from] Done for function main_interproc
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function Frama_C_interval:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  \result FROM Frama_C_entropy_source; min; max
+[from] Function interproc_f1:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  \result FROM Frama_C_entropy_source
+[from] Function interproc_f2:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  x3 FROM Frama_C_entropy_source; x
+[from] Function main_interproc:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function interproc_f1:
+    Frama_C_entropy_source; x
+[inout] Inputs for function interproc_f1:
+    Frama_C_entropy_source
+[inout] Out (internal) for function interproc_f2:
+    Frama_C_entropy_source; x3
+[inout] Inputs for function interproc_f2:
+    Frama_C_entropy_source; x3
+[inout] Out (internal) for function main_interproc:
+    Frama_C_entropy_source; x1; x2; x3
+[inout] Inputs for function main_interproc:
+    Frama_C_entropy_source
