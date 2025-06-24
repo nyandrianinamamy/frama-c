@@ -4,7 +4,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2024                                               #
+#  Copyright (C) 2007-2025                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -77,10 +77,12 @@ def has_comma_between_quotes(s):
         return False
 
 
-# Tries to split arguments of the form '-opt a1,a2,a3' into '-opt a1 -opt a2 -opt a3'
+# Tries to split arguments of the form '-opt a1,a2,a3' into '-opt=a1 -opt=a2 -opt=a3'
 # NOTE: this naively splits any arguments containing commas; if there are commas
 #       inside quotes, thing will go BAD. So, we try to detect and avoid handling
 #       cases where quotes could end up being split.
+#       Also note that we MUST use the '-opt=arg' syntax instead of '-opt arg',
+#       otherwise arguments starting with '-' will cause syntax errors
 def normalize_commas(args):
     new_args = []
     skip_next = False
@@ -91,17 +93,20 @@ def normalize_commas(args):
         if "," in cur and not has_comma_between_quotes(cur):
             # split arguments such as '-a=b,c' or '-a b,c'
             if "=" in cur:
-                # split arguments such as '-a=b,c'
+                new_args.append(prev)
+                # split arguments such as '-a=b,c' into '-a=b -a=c'
                 cur_prefix, cur_rest = cur.split("=", 1)
                 for opt in cur_rest.split(","):
-                    new_args += [cur_prefix, opt]
+                    new_args += [f"{cur_prefix}={opt}"]
             elif prev.startswith("-"):
-                # split arguments such as '-a b,c'
+                # do NOT append prev here! it will be duplicated otherwise
+                # split arguments such as '-a b,c' into '-a=b -a=c'
                 for opt in cur.split(","):
-                    new_args += [prev, opt]
+                    new_args += [f"{prev}={opt}"]
                 skip_next = True
             else:
-                # nothing to split, carry on
+                # nothing to split, add prev and carry on
+                new_args.append(prev)
                 continue
             continue
         else:
