@@ -565,7 +565,8 @@ async def run_and_log_command(args, timeout):
         output = logfile.read()
     os.remove(logname)
     os.close(logfd)
-    return (retcode, output)
+    contains_please_report = "Please report as" in output
+    return (retcode, output, contains_please_report)
 
 
 loop = asyncio.new_event_loop()
@@ -580,8 +581,10 @@ for i in range(1, n_tries + 1):
     cmdline = f"{framac} {mandatory_args} {add_load}{chosen_sources} {cpp_extra}{extra_args}"
     cmdline += generate_random_args(2, 15, functions=functions)
     print(f"running: {cmdline}")
-    (retcode, res_stdout) = loop.run_until_complete(run_and_log_command(cmdline, timeout))
-    if retcode == 4:
+    (retcode, res_stdout, please_report) = loop.run_until_complete(
+        run_and_log_command(cmdline, timeout)
+    )
+    if retcode in (4, 125) and please_report:
         if log_and_keep:
             logging.info("CRASH with: %s", cmdline)
         else:
