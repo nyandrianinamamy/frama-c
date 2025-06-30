@@ -71,7 +71,7 @@ module HistoryPartitioningFunction :
 
 module ValuePartitioning : Parameter_sig.String_set
 module PartitioningHeuristic : Parameter_sig.S
-  with type t = [ `None | `Normal | `Enhanced | `Full ]
+  with type t = [ `None | `Reduced | `Normal | `Enhanced | `Full ]
 module SplitLimit : Parameter_sig.Int
 
 module InterproceduralSplits : Parameter_sig.Bool

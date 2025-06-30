@@ -9,7 +9,7 @@
 open Eva_automata
 
 type options = {
-  mode: [ `None | `Normal | `Enhanced | `Full ];
+  mode: [ `None | `Reduced | `Normal | `Enhanced | `Full ];
   interproc: bool;
 }
 

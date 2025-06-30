@@ -33,6 +33,8 @@ struct
         let compare ml1 ml2 =
           match ml1, ml2 with
           | Var vi1, Var vi2 -> Cil_datatype.Varinfo.compare vi1 vi2
+          | HeapBlk stmt1, HeapBlk stmt2 ->
+            Cil_datatype.Stmt.compare stmt1 stmt2
           | _, _ -> compare ml1 ml2
         let equal ml1 ml2 = compare ml1 ml2 = 0
         let hash = function
@@ -519,7 +521,7 @@ let get_merge_edges (automaton : automaton) junct_v wl e_effects dist_limit =
   end
 
 type options = {
-  mode: [ `None | `Normal | `Enhanced | `Full ];
+  mode: [ `None | `Reduced | `Normal | `Enhanced | `Full ];
   interproc: bool;
 }
 
@@ -531,8 +533,9 @@ type info = {
 
 let get_info options kf dist_limit =
   if options.mode <> `None then begin
+    let include_guards = options.mode = `Enhanced || options.mode = `Full in
     let module WrittenLocs =
-      WrittenLocs (struct let include_guards = options.mode <> `Normal end)
+      WrittenLocs (struct let include_guards = include_guards end)
     in
     let module WriteFwAnalysis = ForwardAnalysis (WrittenLocs) in
     let automaton = get_automaton kf in
@@ -544,7 +547,9 @@ let get_info options kf dist_limit =
       let interproc_args = if options.interproc then Some formals else None in
       get_trans_effects automaton interproc_args writes
     in
-    let required_writes = if options.mode = `Enhanced then 2 else 1 in
+    let required_writes =
+      if options.mode = `Reduced || options.mode = `Enhanced then 2 else 1
+    in
     let split_v = Vertex.Hashtbl.create 4
     and merge_e = Datatype.Int.Hashtbl.create 4
     and call_merge_e = Datatype.Int.Hashtbl.create 4 in

@@ -755,10 +755,11 @@ module PartitioningHeuristic =
       let help = "Use a heuristic to determine where partition history is \
                   useful, thus not keeping distinct states at most junction \
                   points."
-      type t = [ `None | `Normal | `Enhanced | `Full ]
+      type t = [ `None | `Reduced | `Normal | `Enhanced | `Full ]
       let default = `None
       let values =
         [ `None, "none";
+          `Reduced, "reduced";
           `Normal, "normal";
           `Enhanced, "enhanced";
           `Full, "full" ]
