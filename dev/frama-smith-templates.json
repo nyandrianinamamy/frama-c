@@ -216,6 +216,7 @@
         "tests/journal/control2.c": "uses a -load-script, which leads to crashes with -add-options",
         "tests/journal/intra.i": "uses a -load-script, which leads to crashes with -add-options",
         "tests/misc/debug_category.i": "test oracle contains a 'crash' message, triggering a false positive in the script; also requires a -load-module, which leads to crashes with -add-options",
+        "tests/spec/heterogeneous_set_bts1146.i": "test in DONTRUN, crashes with -check",
         "<LIST_TERMINATOR>": []
     }
 }
