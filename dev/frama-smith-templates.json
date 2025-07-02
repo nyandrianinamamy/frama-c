@@ -95,6 +95,7 @@
         "-print-lib-path": "useless (exits)",
         "-print-libpath": "useless (exits)",
         "-print-machdep": "useless (exits)",
+        "-print-machdep-builtin-macros": "useless (exits)",
         "-print-machdep-header": "useless (exits)",
         "-print-path": "useless (exits)",
         "-print-plugin-path": "useless (exits)",
