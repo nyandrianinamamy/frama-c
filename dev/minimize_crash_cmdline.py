@@ -33,6 +33,8 @@ if len(sys.argv) < 2:
     print(
         f"usage: {sys.argv[0]} <test directory> <frama-c command line arguments (including files) causing a crash>"
     )
+    print("alternative syntax (copied from frama-smith.py output):")
+    print("{sys.argv[0]} frama-c <test directory>/<source file> <frama-c command line options causing a crash>")
     sys.exit(0)
 
 # auxiliary function for iterating a list as a pair (cur, next);
@@ -48,13 +50,18 @@ def pairwise(iterable):
     return zip(a, b)
 
 
-# we expect the first argument to be the test directory
-test_dir = sys.argv[1]
-if not os.path.exists(test_dir) or not os.path.isdir(test_dir):
-    sys.exit("error: first argument should point to a test directory: {test_dir}")
-
-args = sys.argv[2:]
-
+# we check if the first argument is the test directory (syntax 1)
+# or 'frama-c' (syntax 2)
+if sys.argv[1] == "frama-c":
+    test_dir, test_file = sys.argv[2].rsplit("/", 1)
+    if not os.path.exists(test_dir) or not os.path.isdir(test_dir):
+        sys.exit("error: first argument after 'frama-c' should point to a test directory: {test_dir}")
+    args = [test_file] + sys.argv[3:]
+else:
+    test_dir = sys.argv[1]
+    if not os.path.exists(test_dir) or not os.path.isdir(test_dir):
+        sys.exit("error: first argument should point to a test directory: {test_dir}")
+    args = sys.argv[2:]
 
 def check_cmdline_crashes(args):
     cmdline = ["frama-c"] + args
