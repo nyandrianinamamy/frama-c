@@ -192,11 +192,12 @@ struct
   let history_tables =
     let options = History_heuristic.{
         enabled = history_heuristic;
+        dist_limit = history_size;
+        interproc = Parameters.InterproceduralHistory.get ();
         include_guards = PartitioningHeuristicIncludeGuards.get ();
         required_writes = PartitioningHeuristicRequiredWrites.get ();
-        interproc = Parameters.InterproceduralHistory.get ();
       } in
-    History_heuristic.get_info options kf history_size
+    History_heuristic.get_result options kf
   let should_partition_at =
     if history_heuristic then
       fun v -> Eva_automata.Vertex.Hashtbl.mem history_tables.split_v v

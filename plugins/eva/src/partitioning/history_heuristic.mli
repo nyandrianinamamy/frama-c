@@ -10,17 +10,18 @@ open Eva_automata
 
 type options = {
   enabled: bool;
+  dist_limit: int;
+  interproc: bool;
   include_guards: bool;
   required_writes: int;
-  interproc: bool;
 }
 
-type info = private {
-  split_v : unit Vertex.Hashtbl.t;
-  merge_e : vertex Datatype.Int.Hashtbl.t;
-  call_merge_e : Cil_types.stmt Datatype.Int.Hashtbl.t;
+type result = private {
+  split_v: unit Vertex.Hashtbl.t;
+  merge_e: vertex Datatype.Int.Hashtbl.t;
+  call_merge_e: Cil_types.stmt Datatype.Int.Hashtbl.t;
 }
 
-val get_info : options -> Cil_types.kernel_function -> int -> info
-(** [get_info mode kf dist_limit] returns, for function [kf], the
-    partitioning information. *)
+val get_result : options -> Cil_types.kernel_function -> result
+(** [get_result options kf] returns, for function [kf], the partitioning
+    information. *)

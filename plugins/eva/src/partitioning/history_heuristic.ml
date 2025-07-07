@@ -522,18 +522,69 @@ let get_merge_edges (automaton : automaton) junct_v wl e_effects dist_limit =
 
 type options = {
   enabled: bool;
+  dist_limit: int;
+  interproc: bool;
   include_guards: bool;
   required_writes: int;
-  interproc: bool;
 }
 
-type info = {
-  split_v : unit Vertex.Hashtbl.t;
-  merge_e : vertex Datatype.Int.Hashtbl.t;
-  call_merge_e : Cil_types.stmt Datatype.Int.Hashtbl.t;
+type preliminary_info = {
+  automaton: automaton;
+  options: options;
+  writes: written_locs Vertex.Hashtbl.t;
+  e_effects: trans_effect list Edge.Hashtbl.t;
 }
 
-let get_info options kf dist_limit =
+let add_merge_edge tbl k e =
+  match e.edge_transition with
+  | Return _ -> ()
+  | _ -> Datatype.Int.Hashtbl.add tbl e.edge_key k
+
+let get_junction_partitioning { automaton; options; writes; e_effects } =
+  let split_v = Vertex.Hashtbl.create 4
+  and merge_e = Datatype.Int.Hashtbl.create 4 in
+  let check_and_add_junct_v v wl =
+    if G.in_degree automaton.graph v > 1 then begin
+      let wl = get_writes_at_v v wl in
+      if MemLocSet.cardinal wl >= options.required_writes then begin
+        let edges_of_merge =
+          get_merge_edges automaton v wl e_effects options.dist_limit
+        in
+        if edges_of_merge <> [] then begin
+          Vertex.Hashtbl.add split_v v ();
+          List.iter (add_merge_edge merge_e v) edges_of_merge;
+        end;
+      end;
+    end;
+  in
+  Vertex.Hashtbl.iter check_and_add_junct_v writes;
+  split_v, merge_e
+
+let get_call_partitioning { automaton; options; writes; e_effects } =
+  let call_merge_e = Datatype.Int.Hashtbl.create 4 in
+  let add_call_merges (_, e, v) =
+    match e.edge_transition with
+    | Call (_, exp, _, stmt) when not (is_internal_function exp) ->
+      let wl = get_writes_at_v v (Vertex.Hashtbl.find writes v) in
+      let edges_of_merge =
+        get_merge_edges automaton v wl e_effects options.dist_limit
+      in
+      if edges_of_merge = [] then
+        Datatype.Int.Hashtbl.add call_merge_e e.edge_key stmt
+      else
+        List.iter (add_merge_edge call_merge_e stmt) edges_of_merge;
+    | _ -> ()
+  in
+  G.iter_edges_e add_call_merges automaton.graph;
+  call_merge_e
+
+type result = {
+  split_v: unit Vertex.Hashtbl.t;
+  merge_e: vertex Datatype.Int.Hashtbl.t;
+  call_merge_e: Cil_types.stmt Datatype.Int.Hashtbl.t;
+}
+
+let get_result options kf =
   if options.enabled then begin
     let module WrittenLocs =
       WrittenLocs (struct let include_guards = options.include_guards end)
@@ -548,43 +599,9 @@ let get_info options kf dist_limit =
       let interproc_args = if options.interproc then Some formals else None in
       get_trans_effects automaton interproc_args writes
     in
-    let split_v = Vertex.Hashtbl.create 4
-    and merge_e = Datatype.Int.Hashtbl.create 4
-    and call_merge_e = Datatype.Int.Hashtbl.create 4 in
-    let add_merge_edge tbl k e =
-      match e.edge_transition with
-      | Return _ -> ()
-      | _ -> Datatype.Int.Hashtbl.add tbl e.edge_key k;
-    in
-    let check_and_add_junct_v v wl =
-      if G.in_degree automaton.graph v > 1 then begin
-        let wl = get_writes_at_v v wl in
-        if MemLocSet.cardinal wl >= options.required_writes then begin
-          let edges_of_merge =
-            get_merge_edges automaton v wl e_effects dist_limit
-          in
-          if edges_of_merge <> [] then begin
-            Vertex.Hashtbl.add split_v v ();
-            List.iter (add_merge_edge merge_e v) edges_of_merge;
-          end;
-        end;
-      end;
-    in
-    let add_call_merges (_, e, v) =
-      match e.edge_transition with
-      | Call (_, exp, _, stmt) when not (is_internal_function exp) ->
-        let wl = get_writes_at_v v (Vertex.Hashtbl.find writes v) in
-        let edges_of_merge =
-          get_merge_edges automaton v wl e_effects dist_limit
-        in
-        if edges_of_merge = [] then
-          Datatype.Int.Hashtbl.add call_merge_e e.edge_key stmt
-        else
-          List.iter (add_merge_edge call_merge_e stmt) edges_of_merge;
-      | _ -> ()
-    in
-    Vertex.Hashtbl.iter check_and_add_junct_v writes;
-    G.iter_edges_e add_call_merges automaton.graph;
+    let info = { automaton; options; writes; e_effects } in
+    let split_v, merge_e = get_junction_partitioning info
+    and call_merge_e = get_call_partitioning info in
     { split_v; merge_e; call_merge_e }
   end else
     {
