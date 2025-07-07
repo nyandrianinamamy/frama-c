@@ -58,7 +58,6 @@ struct
       struct
         include Datatype.Serializable_undefined
         include M
-        let name = "Abstract_Memory.Structure.Values"
         let reprs = [ of_raw Bit.zero ]
       end)
   end

@@ -151,6 +151,8 @@ sig
   type t
   type value
 
+  val name : string
+
   val pretty : Format.formatter -> t -> unit
   val pretty_root : Format.formatter -> t -> unit
   val hash : t -> int

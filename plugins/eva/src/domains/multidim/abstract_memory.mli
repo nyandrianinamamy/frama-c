@@ -57,6 +57,8 @@ sig
   type t
   type value
 
+  val name : string (* name of type for State instanciation *)
+
   val pretty : Format.formatter -> t -> unit
   val pretty_root : Format.formatter -> t -> unit
   val hash : t -> int

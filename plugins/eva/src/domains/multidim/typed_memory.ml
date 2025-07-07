@@ -96,6 +96,7 @@ struct
       array_cell_type: Cil_types.typ;
     }
 
+    let name = "Typed_memory.Make(...)(" ^ V.datatype_name ^ ").t"
 
     let are_scalar_compatible s1 s2 =
       are_typ_compatible s1.scalar_type s2.scalar_type
