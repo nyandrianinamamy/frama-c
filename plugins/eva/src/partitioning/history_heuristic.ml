@@ -521,7 +521,9 @@ let get_merge_edges (automaton : automaton) junct_v wl e_effects dist_limit =
   end
 
 type options = {
-  mode: [ `None | `Reduced | `Normal | `Enhanced | `Full ];
+  enabled: bool;
+  include_guards: bool;
+  required_writes: int;
   interproc: bool;
 }
 
@@ -532,10 +534,9 @@ type info = {
 }
 
 let get_info options kf dist_limit =
-  if options.mode <> `None then begin
-    let include_guards = options.mode = `Enhanced || options.mode = `Full in
+  if options.enabled then begin
     let module WrittenLocs =
-      WrittenLocs (struct let include_guards = include_guards end)
+      WrittenLocs (struct let include_guards = options.include_guards end)
     in
     let module WriteFwAnalysis = ForwardAnalysis (WrittenLocs) in
     let automaton = get_automaton kf in
@@ -546,9 +547,6 @@ let get_info options kf dist_limit =
     let e_effects =
       let interproc_args = if options.interproc then Some formals else None in
       get_trans_effects automaton interproc_args writes
-    in
-    let required_writes =
-      if options.mode = `Reduced || options.mode = `Enhanced then 2 else 1
     in
     let split_v = Vertex.Hashtbl.create 4
     and merge_e = Datatype.Int.Hashtbl.create 4
@@ -561,7 +559,7 @@ let get_info options kf dist_limit =
     let check_and_add_junct_v v wl =
       if G.in_degree automaton.graph v > 1 then begin
         let wl = get_writes_at_v v wl in
-        if MemLocSet.cardinal wl >= required_writes then begin
+        if MemLocSet.cardinal wl >= options.required_writes then begin
           let edges_of_merge =
             get_merge_edges automaton v wl e_effects dist_limit
           in

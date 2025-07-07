@@ -275,9 +275,10 @@ Options taking a string as argument should preferably be written
 -eva-oracle-depth <n>  Maximum number of successive uses of the oracle by the
                     domain for the evaluation of an expression. Set 0 to
                     disable the oracle.
--eva-partition-heuristic <none|reduced|normal|enhanced|full>  Use a heuristic
-                    to determine where partition history is useful, thus not
-                    keeping distinct states at most junction points.
+-eva-partition-heuristic  Use a heuristic to determine where partition
+                    history is useful, thus not keeping distinct states at
+                    most junction points. (opposite option is
+                    -eva-no-partition-heuristic)
 -eva-partition-history <n>  Keep states distinct at junction points, until
                     <n> further junction points are crossed. (A value of 0
                     deactivates this feature)

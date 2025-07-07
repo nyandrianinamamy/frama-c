@@ -69,13 +69,14 @@ module HistoryPartitioningFunction :
   Parameter_sig.Map with type key = Cil_types.kernel_function
                      and type value = int
 
+module PartitioningHeuristic : Parameter_sig.Bool
+module PartitioningHeuristicIncludeGuards : Parameter_sig.Bool
+module PartitioningHeuristicRequiredWrites : Parameter_sig.Int
+module InterproceduralHistory : Parameter_sig.Bool
 module ValuePartitioning : Parameter_sig.String_set
-module PartitioningHeuristic : Parameter_sig.S
-  with type t = [ `None | `Reduced | `Normal | `Enhanced | `Full ]
 module SplitLimit : Parameter_sig.Int
 
 module InterproceduralSplits : Parameter_sig.Bool
-module InterproceduralHistory : Parameter_sig.Bool
 
 module SLevel: Parameter_sig.Int
 module SlevelFunction:

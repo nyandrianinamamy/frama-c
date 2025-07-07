@@ -737,6 +737,54 @@ module HistoryPartitioningFunction =
 let () = add_precision_dep HistoryPartitioningFunction.parameter
 
 let () = Parameter_customize.set_group precision_tuning
+module PartitioningHeuristic =
+  False
+    (struct
+      let option_name = "-eva-partition-heuristic"
+      let help = "Use a heuristic to determine where partition history is \
+                  useful, thus not keeping distinct states at most junction \
+                  points."
+    end)
+let () = add_precision_dep PartitioningHeuristic.parameter
+
+let () = Parameter_customize.set_group precision_tuning
+let () = Parameter_customize.is_invisible ()
+module PartitioningHeuristicIncludeGuards =
+  True
+    (struct
+      let option_name = "-eva-ph-include-guards"
+      let help = "With the partitioning heuristic: treat guards in branches as \
+                  writes which can lead the heuristic to keep states distinct. \
+                  If disabled, you should probably subtract 1 to the number \
+                  of required writes."
+    end)
+let () = add_precision_dep PartitioningHeuristicIncludeGuards.parameter
+
+let () = Parameter_customize.set_group precision_tuning
+let () = Parameter_customize.is_invisible ()
+module PartitioningHeuristicRequiredWrites =
+  Int
+    (struct
+      let option_name = "-eva-ph-required-writes"
+      let arg_name = "n"
+      let default = 2
+      let help = "With the partitioning heuristic: keep states distinct only \
+                  if at least the given amount of memory locations is written \
+                  in the branches."
+    end)
+let () = add_precision_dep PartitioningHeuristicRequiredWrites.parameter
+let () = PartitioningHeuristicRequiredWrites.set_range ~min:1 ~max:max_int
+
+let () = Parameter_customize.set_group precision_tuning
+module InterproceduralHistory =
+  False
+    (struct
+      let option_name = "-eva-interprocedural-history"
+      let help = "Keep partitioning history through function returns"
+    end)
+let () = add_precision_dep InterproceduralHistory.parameter
+
+let () = Parameter_customize.set_group precision_tuning
 module ValuePartitioning =
   String_set
     (struct
@@ -746,25 +794,6 @@ module ValuePartitioning =
       let arg_name = "V"
     end)
 let () = add_precision_dep ValuePartitioning.parameter
-
-let () = Parameter_customize.set_group precision_tuning
-module PartitioningHeuristic =
-  Enum
-    (struct
-      let option_name = "-eva-partition-heuristic"
-      let help = "Use a heuristic to determine where partition history is \
-                  useful, thus not keeping distinct states at most junction \
-                  points."
-      type t = [ `None | `Reduced | `Normal | `Enhanced | `Full ]
-      let default = `None
-      let values =
-        [ `None, "none";
-          `Reduced, "reduced";
-          `Normal, "normal";
-          `Enhanced, "enhanced";
-          `Full, "full" ]
-    end)
-let () = add_precision_dep PartitioningHeuristic.parameter
 
 let use_global_value_partitioning vi =
   ValuePartitioning.add vi.Cil_types.vname
@@ -790,15 +819,6 @@ module InterproceduralSplits =
       let help = "Keep partitioning splits through function returns"
     end)
 let () = add_precision_dep InterproceduralSplits.parameter
-
-let () = Parameter_customize.set_group precision_tuning
-module InterproceduralHistory =
-  False
-    (struct
-      let option_name = "-eva-interprocedural-history"
-      let help = "Keep partitioning history through function returns"
-    end)
-let () = add_precision_dep InterproceduralHistory.parameter
 
 let () = Parameter_customize.set_group precision_tuning
 let () = Parameter_customize.argument_may_be_fundecl ()

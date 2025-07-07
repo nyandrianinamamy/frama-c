@@ -188,10 +188,12 @@ struct
     | (NoSplit | SplitEqList _), _ ->
       Partition.Ration (Partition.new_rationing ~limit:0 ~merge:false)
 
-  let history_heuristic = PartitioningHeuristic.get () <> `None
+  let history_heuristic = PartitioningHeuristic.get ()
   let history_tables =
     let options = History_heuristic.{
-        mode = PartitioningHeuristic.get ();
+        enabled = history_heuristic;
+        include_guards = PartitioningHeuristicIncludeGuards.get ();
+        required_writes = PartitioningHeuristicRequiredWrites.get ();
         interproc = Parameters.InterproceduralHistory.get ();
       } in
     History_heuristic.get_info options kf history_size
