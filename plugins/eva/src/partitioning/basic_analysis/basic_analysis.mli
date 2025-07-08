@@ -6,22 +6,18 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open Eva_automata
+open Basic_locations
 
-type options = {
-  enabled: bool;
-  dist_limit: int;
-  interproc: bool;
-  include_guards: bool;
-  required_writes: int;
+val is_no_effect_frama_c_builtin : Eva_ast.lhost -> bool
+
+type written_locs = {
+  last_writes : VMemLocMap.t;
+  ptr_targets : MlsMemLocMap.t;
 }
 
-type result = private {
-  split_v: unit Vertex.Hashtbl.t;
-  merge_e: vertex Datatype.Int.Hashtbl.t;
-  call_merge_e: Cil_types.stmt Datatype.Int.Hashtbl.t;
-}
+module WrittenLocs (_ : sig val include_guards : bool end) :
+sig
+  include Eva_automata.Domain with type t = written_locs
 
-val get_result : options -> Cil_types.kernel_function -> result
-(** [get_result options kf] returns, for function [kf], the partitioning
-    information. *)
+  val initial : Cil_types.varinfo list -> t
+end
