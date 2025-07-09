@@ -12,12 +12,12 @@ open Basic_locations
 open Basic_analysis
 open Basic_access
 
-let get_writes_at_v junct_v states =
-  let check_and_add_var loc v lw =
-    if v == junct_v then MemLocSet.add loc lw
-    else lw
+let get_writes_at_v junct_v (last_writes, _) =
+  let check_and_add_var loc v acc =
+    if v == junct_v then MemLocSet.add loc acc
+    else acc
   in
-  VMemLocMap.fold check_and_add_var states.last_writes MemLocSet.empty
+  VMemLocMap.fold check_and_add_var last_writes MemLocSet.empty
 
 let get_merge_edges (automaton : automaton) junct_v states accesses dist_limit =
   let add_to_stack_of_dist v v_stack v_stack_next_dist must_stack =
@@ -152,7 +152,7 @@ type options = {
 type preliminary_info = {
   automaton: automaton;
   options: options;
-  states: written_locs Vertex.Hashtbl.t;
+  states: lw_and_pt Vertex.Hashtbl.t;
   accesses: mem_access list Edge.Hashtbl.t;
 }
 
@@ -211,15 +211,13 @@ type result = {
 
 let compute kf options =
   if options.enabled then begin
-    let module WrittenLocs =
-      WrittenLocs (struct let include_guards = options.include_guards end)
+    let module LwAndPt =
+      LwAndPt (struct let include_guards = options.include_guards end)
     in
-    let module WriteFwAnalysis = ForwardAnalysis (WrittenLocs) in
+    let module WriteFwAnalysis = ForwardAnalysis (LwAndPt) in
     let automaton = get_automaton kf in
     let formals = Kernel_function.get_formals kf in
-    let states =
-      WriteFwAnalysis.fixpoint automaton (WrittenLocs.initial formals)
-    in
+    let states = WriteFwAnalysis.fixpoint automaton (LwAndPt.initial formals) in
     let accesses =
       let interproc_args = if options.interproc then Some formals else None in
       get_edge_accesses automaton interproc_args states

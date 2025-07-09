@@ -17,4 +17,4 @@ type mem_access =
 
 val get_edge_accesses :
   automaton -> Cil_types.varinfo list option ->
-  written_locs Vertex.Hashtbl.t -> mem_access list Edge.Hashtbl.t
+  lw_and_pt Vertex.Hashtbl.t -> mem_access list Edge.Hashtbl.t

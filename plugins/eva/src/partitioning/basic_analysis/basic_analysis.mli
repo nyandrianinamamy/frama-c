@@ -10,14 +10,11 @@ open Basic_locations
 
 val is_no_effect_frama_c_builtin : Eva_ast.lhost -> bool
 
-type written_locs = {
-  last_writes : VMemLocMap.t;
-  ptr_targets : MlsMemLocMap.t;
-}
+type lw_and_pt = VMemLocMap.t * MlsMemLocMap.t
 
-module WrittenLocs (_ : sig val include_guards : bool end) :
+module LwAndPt (_ : sig val include_guards : bool end) :
 sig
-  include Eva_automata.Domain with type t = written_locs
+  include Eva_automata.Domain with type t = lw_and_pt
 
   val initial : Cil_types.varinfo list -> t
 end

@@ -22,7 +22,7 @@ let get_edge_accesses (automaton : automaton) interproc_args states =
     let ptr_targets =
       match Vertex.Hashtbl.find_opt states v with
       | None -> MlsMemLocMap.empty
-      | Some wl -> wl.ptr_targets
+      | Some (_, ptr_targets) -> ptr_targets
     in
     let open MemLocUtil (struct let ptr_targets = ptr_targets end) in
 
