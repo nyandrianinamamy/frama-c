@@ -7,7 +7,8 @@
 (**************************************************************************)
 
 open Eva_automata
-open Basic_locations
+
+module MemLoc = Basic_locations
 
 type mem_access =
   | Reads of MemLoc.t
@@ -20,10 +21,10 @@ let get_edge_accesses (automaton : automaton) interproc_args states =
 
     let ptr_targets =
       match Vertex.Hashtbl.find_opt states v with
-      | None -> MlsMemLocMap.empty
+      | None -> MemLoc.SetMap.empty
       | Some (_, ptr_targets) -> ptr_targets
     in
-    let open MemLocUtil (struct let ptr_targets = ptr_targets end) in
+    let open MemLoc.Util (struct let ptr_targets = ptr_targets end) in
 
     let to_reads ml = Reads ml
     and to_writes { node = _, offset } ml =
@@ -31,7 +32,7 @@ let get_edge_accesses (automaton : automaton) interproc_args states =
       Writes_to (ml, is_compound)
     and to_arg_writes ml = Writes_to (ml, true) in
     let locs_to_acc conv locs =
-      MemLocSet.fold (fun ml l -> conv ml :: l) locs []
+      MemLoc.Set.fold (fun ml l -> conv ml :: l) locs []
     in
 
     let rec offset_accesses = function

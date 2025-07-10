@@ -6,22 +6,17 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open Eva_automata
-
 module MemLoc =
 struct
   type elt =
     | Var of Eva_ast.varinfo
-    | HeapBlk of Cil_types.stmt (* block on the heap *)
+    | HeapBlk of Cil_types.stmt
     | InputMem
 
-  let initial_values = []
-  let dependencies = []
-
-  include Datatype.Make_with_collections
+  include Datatype.Make
       (struct
         type t = elt
-        let name = "Partition.Heuristics.MemLoc"
+        let name = "Partition.Basic_analysis.MemLoc"
         let reprs = [InputMem]
         let structural_descr = Structural_descr.t_unknown
         let compare ml1 ml2 =
@@ -45,23 +40,28 @@ struct
           | InputMem -> Format.fprintf fmt "#"
       end)
 
+  let initial_values = []
+  let dependencies = []
+
   let id = function
     | Var vi -> vi.vid
     | HeapBlk stmt -> Int.max_int / 2 + stmt.sid
     | InputMem -> Int.max_int
 end
 
-module MemLocSet = Hptset.Make (MemLoc) (MemLoc)
-module VMemLocMap = Hptmap.Make (MemLoc) (Vertex) (MemLoc)
-module MlsMemLocMap = Hptmap.Make (MemLoc) (MemLocSet) (MemLoc)
+include MemLoc
 
-module MemLocUtil (Info : sig val ptr_targets : MlsMemLocMap.t end) =
+module Set = Hptset.Make (MemLoc) (MemLoc)
+module Map (V : Datatype.S) = Hptmap.Make (MemLoc) (V) (MemLoc)
+module SetMap = Map (Set)
+
+module Util (Info : sig val ptr_targets : SetMap.t end) =
 struct
   open Eva_ast_types
 
   let rec locs_of_lval lval =
     match fst lval.node with
-    | Var vi -> MemLocSet.singleton (MemLoc.Var vi)
+    | Var vi -> Set.singleton (MemLoc.Var vi)
     | Mem exp -> locs_of_exp exp
   and locs_of_exp exp =
     match exp.node with
@@ -69,41 +69,41 @@ struct
       locs_of_exp exp
     | Lval lval -> locs_of_nested_lval lval
     | AddrOf lval | StartOf lval -> locs_of_lval lval
-    | _ -> MemLocSet.empty
+    | _ -> Set.empty
   and locs_of_nested_lval lval =
     match fst lval.node with
     | Var vi -> locs_of_deref (MemLoc.Var vi)
     | Mem exp ->
-      MemLocSet.fold
-        (fun ml acc -> MemLocSet.union (locs_of_deref ml) acc)
-        (locs_of_exp exp) MemLocSet.empty
+      Set.fold
+        (fun ml acc -> Set.union (locs_of_deref ml) acc)
+        (locs_of_exp exp) Set.empty
   and locs_of_deref ml =
-    try MlsMemLocMap.find ml Info.ptr_targets
+    try SetMap.find ml Info.ptr_targets
     with Not_found ->
     match ml with
-    | MemLoc.Var { vglob = true } | MemLoc.InputMem ->
-      MemLocSet.singleton MemLoc.InputMem
-    | _ -> MemLocSet.empty
+    | MemLoc.Var { vglob = true } | InputMem ->
+      Set.singleton InputMem
+    | _ -> Set.empty
   and locs_of_init = function
     | SingleInit (exp, _) -> locs_of_exp exp
     | CompoundInit (_, init_l) ->
       List.fold_left
-        (fun acc (_, init) -> MemLocSet.union acc (locs_of_init init))
-        MemLocSet.empty init_l
+        (fun acc (_, init) -> Set.union acc (locs_of_init init))
+        Set.empty init_l
 
   let recursive_locs locs =
     let add_targets loc acc =
-      try MlsMemLocMap.find loc Info.ptr_targets |> MemLocSet.union acc
+      try SetMap.find loc Info.ptr_targets |> Set.union acc
       with Not_found -> acc
     in
     let rec aux locs all_locs =
-      let new_locs = MemLocSet.fold add_targets locs MemLocSet.empty in
-      let new_locs = MemLocSet.diff new_locs all_locs in
-      if MemLocSet.is_empty new_locs then
+      let new_locs = Set.fold add_targets locs Set.empty in
+      let new_locs = Set.diff new_locs all_locs in
+      if Set.is_empty new_locs then
         locs
       else
-        let all_locs = MemLocSet.union locs new_locs in
-        MemLocSet.union all_locs (aux new_locs all_locs)
+        let all_locs = Set.union locs new_locs in
+        Set.union all_locs (aux new_locs all_locs)
     in
     aux locs locs
 

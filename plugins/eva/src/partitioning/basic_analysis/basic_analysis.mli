@@ -6,9 +6,10 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open Basic_locations
+module VtLocMap : Hptmap_sig.S
+  with type key = Basic_locations.t and type v = Eva_automata.vertex
 
-type lw_and_pt = VMemLocMap.t * MlsMemLocMap.t
+type lw_and_pt = VtLocMap.t * Basic_locations.SetMap.t
 
 module LwAndPt (_ : sig val include_guards : bool end) :
 sig

@@ -8,16 +8,15 @@
 
 
 open Eva_automata
-open Basic_locations
-open Basic_analysis
-open Basic_access
+
+module LocSet = Basic_locations.Set
 
 let get_writes_at_v junct_v (last_writes, _) =
   let check_and_add_var loc v acc =
-    if v == junct_v then MemLocSet.add loc acc
+    if v == junct_v then LocSet.add loc acc
     else acc
   in
-  VMemLocMap.fold check_and_add_var last_writes MemLocSet.empty
+  Basic_analysis.VtLocMap.fold check_and_add_var last_writes LocSet.empty
 
 let get_merge_edges (automaton : automaton) junct_v states accesses dist_limit =
   let add_to_stack_of_dist v v_stack v_stack_next_dist must_stack =
@@ -49,14 +48,14 @@ let get_merge_edges (automaton : automaton) junct_v states accesses dist_limit =
       let process_edge (_, e, succ) (result, v_stack, v_stack_next_dist) =
         let acc = Edge.Hashtbl.find accesses e in
         let has_read_access = function
-          | Reads ml -> MemLocSet.mem ml fl
+          | Basic_access.Reads ml -> LocSet.mem ml fl
           | _ -> false
         in
         let has_read = List.exists has_read_access acc in
         let apply_write_access fl = function
-          | Writes_to (ml, join) ->
-            if has_read then MemLocSet.add ml fl
-            else if not join then MemLocSet.remove ml fl
+          | Basic_access.Writes_to (ml, join) ->
+            if has_read then LocSet.add ml fl
+            else if not join then LocSet.remove ml fl
             else fl
           | _ -> fl
         in
@@ -64,7 +63,7 @@ let get_merge_edges (automaton : automaton) junct_v states accesses dist_limit =
         let update_succ_fl fl =
           match Vertex.Hashtbl.find_opt followed_locs succ with
           | Some prec_fl ->
-            let fl = MemLocSet.union prec_fl fl in
+            let fl = LocSet.union prec_fl fl in
             Vertex.Hashtbl.replace followed_locs succ fl;
           | None -> Vertex.Hashtbl.add followed_locs succ fl;
         in
@@ -152,8 +151,8 @@ type options = {
 type preliminary_info = {
   automaton: automaton;
   options: options;
-  states: lw_and_pt Vertex.Hashtbl.t;
-  accesses: mem_access list Edge.Hashtbl.t;
+  states: Basic_analysis.lw_and_pt Vertex.Hashtbl.t;
+  accesses: Basic_access.mem_access list Edge.Hashtbl.t;
 }
 
 module EdgeKeyTbl = Datatype.Int.Hashtbl
@@ -171,7 +170,7 @@ let get_junction_partitioning { automaton; options; states; accesses } =
   let check_and_add_junct_v v wl =
     if G.in_degree automaton.graph v > 1 then begin
       let wl = get_writes_at_v v wl in
-      if MemLocSet.cardinal wl >= options.required_writes then begin
+      if LocSet.cardinal wl >= options.required_writes then begin
         let edges_of_merge =
           get_merge_edges automaton v wl accesses options.dist_limit
         in
@@ -212,7 +211,8 @@ type result = {
 let compute kf options =
   if options.enabled then begin
     let module LwAndPt =
-      LwAndPt (struct let include_guards = options.include_guards end)
+      Basic_analysis.LwAndPt
+        (struct let include_guards = options.include_guards end)
     in
     let module WriteFwAnalysis = ForwardAnalysis (LwAndPt) in
     let automaton = get_automaton kf in
@@ -220,7 +220,7 @@ let compute kf options =
     let states = WriteFwAnalysis.fixpoint automaton (LwAndPt.initial formals) in
     let accesses =
       let interproc_args = if options.interproc then Some formals else None in
-      get_edge_accesses automaton interproc_args states
+      Basic_access.get_edge_accesses automaton interproc_args states
     in
     let info = { automaton; options; states; accesses } in
     let split_v, merge_e = get_junction_partitioning info

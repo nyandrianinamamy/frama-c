@@ -7,13 +7,15 @@
 (**************************************************************************)
 
 open Eva_automata
-open Basic_locations
+
+module MemLoc = Basic_locations
+module VtLocMap = MemLoc.Map (Vertex)
 
 module LastWrites =
 struct
-  type t = VMemLocMap.t
+  type t = VtLocMap.t
 
-  let initial = VMemLocMap.empty
+  let initial = VtLocMap.empty
 
   let join v lw1 lw2 =
     let merge _ v1 v2 =
@@ -21,39 +23,39 @@ struct
       | Some v1, Some v2 when v1 == v2 -> v1
       | _ -> v
     in
-    VMemLocMap.generic_join ~cache:NoCache ~symmetric:true ~idempotent:true
+    VtLocMap.generic_join ~cache:NoCache ~symmetric:true ~idempotent:true
       ~decide:merge lw1 lw2
 
   let widen _ _ = Fixpoint
 
   let transfer (_, _, v) lw locs =
-    MemLocSet.fold (fun ml -> VMemLocMap.add ml v) locs lw
+    MemLoc.Set.fold (fun ml -> VtLocMap.add ml v) locs lw
 end
 
 module PtrTargets =
 struct
-  type t = MlsMemLocMap.t
+  type t = MemLoc.SetMap.t
 
   let initial formals =
     let add_arg_pt pt = function
       | { Cil_types.vtype = { tnode = TPtr _ } } as vi ->
-        let target = MemLocSet.singleton MemLoc.InputMem in
-        MlsMemLocMap.add (MemLoc.Var vi) target pt
+        let target = MemLoc.Set.singleton MemLoc.InputMem in
+        MemLoc.SetMap.add (MemLoc.Var vi) target pt
       | _ -> pt
     in
-    List.fold_left add_arg_pt MlsMemLocMap.empty formals
+    List.fold_left add_arg_pt MemLoc.SetMap.empty formals
 
   let join _ pt1 pt2 =
-    MlsMemLocMap.join ~cache:NoCache ~symmetric:true ~idempotent:true
-      ~decide:(fun _ -> MemLocSet.union) pt1 pt2
+    MemLoc.SetMap.join ~cache:NoCache ~symmetric:true ~idempotent:true
+      ~decide:(fun _ -> MemLoc.Set.union) pt1 pt2
 
   let widen pt1 pt2 =
     let included =
-      MlsMemLocMap.binary_predicate NoCache UniversalPredicate
+      MemLoc.SetMap.binary_predicate NoCache UniversalPredicate
         ~decide_fast:(fun _ _ -> PUnknown)
         ~decide_fst:(fun _ _ -> false)
         ~decide_snd:(fun _ _ -> true)
-        ~decide_both:(fun _ -> MemLocSet.subset)
+        ~decide_both:(fun _ -> MemLoc.Set.subset)
         pt2 pt1
     in
     if included then Fixpoint
@@ -68,15 +70,15 @@ struct
         | _ ->
           (* Heap blocks may represent several values if they are allocated in a
              loop, so we must always join targets in this case *)
-          try MlsMemLocMap.find ml pt |> MemLocSet.union target_locs
+          try MemLoc.SetMap.find ml pt |> MemLoc.Set.union target_locs
           with Not_found -> target_locs
       in
       let target_locs =
         match alloc_stmt with
         | None -> target_locs
-        | Some stmt -> MemLocSet.add (MemLoc.HeapBlk stmt) target_locs
+        | Some stmt -> MemLoc.Set.add (MemLoc.HeapBlk stmt) target_locs
       in
-      MlsMemLocMap.add ml target_locs new_pt
+      MemLoc.SetMap.add ml target_locs new_pt
     in
     let call_arg_ptr_target stmt = assign_ptr_target ~alloc_stmt:stmt true in
 
@@ -86,21 +88,21 @@ struct
 
     match e.edge_transition with
     | Assign (lval, _, _) ->
-      MemLocSet.fold
+      MemLoc.Set.fold
         (assign_ptr_target (lval_is_compound lval) target_locs)
         assigned_locs pt
     | Init (vi, _, _) ->
-      if MemLocSet.is_empty target_locs then pt
+      if MemLoc.Set.is_empty target_locs then pt
       else
-        MlsMemLocMap.add (MemLoc.Var vi) target_locs pt
+        MemLoc.SetMap.add (MemLoc.Var vi) target_locs pt
     | Call (Some lval, _, _, stmt) ->
       let force_join = lval_is_compound lval in
-      MemLocSet.fold
+      MemLoc.Set.fold
         (assign_ptr_target ~alloc_stmt:stmt force_join args_locs)
         assigned_locs pt
-      |> MemLocSet.fold (call_arg_ptr_target stmt args_locs) ptr_args_locs
+      |> MemLoc.Set.fold (call_arg_ptr_target stmt args_locs) ptr_args_locs
     | Call (None, _, _, stmt) ->
-      MemLocSet.fold (call_arg_ptr_target stmt args_locs) ptr_args_locs pt
+      MemLoc.Set.fold (call_arg_ptr_target stmt args_locs) ptr_args_locs pt
     | _ -> pt
 end
 
@@ -123,29 +125,29 @@ struct
     | Widening st_d1, Widening st_d2 -> Widening (st_d1, st_d2)
 
   let compute_locs e pt =
-    let open MemLocUtil (struct let ptr_targets = pt end) in
+    let open MemLoc.Util (struct let ptr_targets = pt end) in
 
     let add_arg_locs (target_locs, ptr_locs) (arg : Eva_ast.exp) =
       match arg.typ.tnode with
       | TPtr typ ->
         let locs = locs_of_exp arg |> recursive_locs in
         let ptr_locs =
-          if typ_is_ptr typ then MemLocSet.union ptr_locs locs
+          if typ_is_ptr typ then MemLoc.Set.union ptr_locs locs
           else ptr_locs
         in
-        MemLocSet.union target_locs locs, ptr_locs
+        MemLoc.Set.union target_locs locs, ptr_locs
       | _ -> target_locs, ptr_locs
     in
     let rec guarded_locs (exp : Eva_ast.exp) =
       match exp.node with
       | CastE (_, exp) | UnOp (_, exp, _) -> guarded_locs exp
       | BinOp (_, exp1, exp2, _) ->
-        MemLocSet.union (guarded_locs exp1) (guarded_locs exp2)
+        MemLoc.Set.union (guarded_locs exp1) (guarded_locs exp2)
       | Lval lval -> locs_of_lval lval
-      | _ -> MemLocSet.empty
+      | _ -> MemLoc.Set.empty
     in
 
-    let nolocs = MemLocSet.empty in
+    let nolocs = MemLoc.Set.empty in
     match e.edge_transition with
     | Assign (lval, exp, _) ->
       let target_locs =
@@ -153,7 +155,7 @@ struct
       in
       locs_of_lval lval, target_locs, nolocs, nolocs
     | Init (vi, init, _) ->
-      let assigned_locs = MemLocSet.singleton (MemLoc.Var vi) in
+      let assigned_locs = MemLoc.Set.singleton (MemLoc.Var vi) in
       assigned_locs, locs_of_init init, nolocs, nolocs
     | Call (lval, lhost, args, _) when not (Eva_ast.is_no_effect_frama_c_builtin lhost) ->
       let assigned_locs =
@@ -169,7 +171,7 @@ struct
 
   let transfer ((_, e, _) as edge) (lw, pt) =
     let (assigned_locs, _, args_locs, _) as all_locs = compute_locs e pt in
-    let written_locs = MemLocSet.union assigned_locs args_locs in
+    let written_locs = MemLoc.Set.union assigned_locs args_locs in
     let lw = LastWrites.transfer edge lw written_locs
     and pt = PtrTargets.transfer edge pt all_locs in
     Some (lw, pt)

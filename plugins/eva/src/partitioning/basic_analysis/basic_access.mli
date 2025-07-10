@@ -7,14 +7,12 @@
 (**************************************************************************)
 
 open Eva_automata
-open Basic_locations
-open Basic_analysis
 
 type mem_access =
-  | Reads of MemLoc.t
-  | Writes_to of MemLoc.t * bool
+  | Reads of Basic_locations.t
+  | Writes_to of Basic_locations.t * bool
   (* the boolean indicates if it's a partial write *)
 
 val get_edge_accesses :
   automaton -> Cil_types.varinfo list option ->
-  lw_and_pt Vertex.Hashtbl.t -> mem_access list Edge.Hashtbl.t
+  Basic_analysis.lw_and_pt Vertex.Hashtbl.t -> mem_access list Edge.Hashtbl.t
