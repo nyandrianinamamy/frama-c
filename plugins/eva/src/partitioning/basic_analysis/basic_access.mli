@@ -13,6 +13,6 @@ type mem_access =
   | Writes_to of Basic_locations.t * bool
   (* the boolean indicates if it's a partial write *)
 
-val get_edge_accesses :
-  automaton -> Cil_types.varinfo list option ->
+val compute_edge_accesses :
+  graph -> Cil_types.varinfo list option ->
   Basic_analysis.lw_and_pt Vertex.Hashtbl.t -> mem_access list Edge.Hashtbl.t

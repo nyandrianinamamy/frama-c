@@ -14,7 +14,7 @@ type mem_access =
   | Reads of MemLoc.t
   | Writes_to of MemLoc.t * bool
 
-let get_edge_accesses (automaton : automaton) interproc_args states =
+let compute_edge_accesses graph interproc_args states =
   let e_accesses = Edge.Hashtbl.create 4 in
   let register_accesses (v, e, _) =
     let open Eva_ast_types in
@@ -108,5 +108,5 @@ let get_edge_accesses (automaton : automaton) interproc_args states =
     in
     Edge.Hashtbl.add e_accesses e accesses;
   in
-  G.iter_edges_e register_accesses automaton.graph;
+  G.iter_edges_e register_accesses graph;
   e_accesses

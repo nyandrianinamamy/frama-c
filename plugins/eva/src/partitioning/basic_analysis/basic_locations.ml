@@ -8,37 +8,39 @@
 
 module MemLoc =
 struct
-  type elt =
+  type t =
     | Var of Eva_ast.varinfo
     | HeapBlk of Cil_types.stmt
     | InputMem
 
-  include Datatype.Make
-      (struct
-        type t = elt
-        let name = "Partition.Basic_analysis.MemLoc"
-        let reprs = [InputMem]
-        let structural_descr = Structural_descr.t_unknown
-        let compare ml1 ml2 =
-          match ml1, ml2 with
-          | Var vi1, Var vi2 -> Cil_datatype.Varinfo.compare vi1 vi2
-          | HeapBlk stmt1, HeapBlk stmt2 ->
-            Cil_datatype.Stmt.compare stmt1 stmt2
-          | _, _ -> compare ml1 ml2
-        let equal ml1 ml2 = compare ml1 ml2 = 0
-        let hash = function
-          | Var vi -> Hashtbl.hash (1, Cil_datatype.Varinfo.hash vi)
-          | HeapBlk stmt -> Hashtbl.hash (2, Cil_datatype.Stmt.hash stmt)
-          | InputMem -> Hashtbl.hash 3
-        let copy = Fun.id
-        let rehash = Fun.id
-        let mem_project = Datatype.never_any_project
-        let pretty fmt = function
-          | Var vi -> Cil_datatype.Varinfo.pretty fmt vi
-          | HeapBlk stmt ->
-            Format.fprintf fmt "[%a]" Cil_datatype.Stmt.pretty stmt
-          | InputMem -> Format.fprintf fmt "#"
-      end)
+  module DatatypeInfo =
+  struct
+    type nonrec t = t
+    let name = "Partition.Basic_analysis.MemLoc"
+    let reprs = [InputMem]
+    let structural_descr = Structural_descr.t_unknown
+    let compare ml1 ml2 =
+      match ml1, ml2 with
+      | Var vi1, Var vi2 -> Cil_datatype.Varinfo.compare vi1 vi2
+      | HeapBlk stmt1, HeapBlk stmt2 ->
+        Cil_datatype.Stmt.compare stmt1 stmt2
+      | _, _ -> compare ml1 ml2
+    let equal ml1 ml2 = compare ml1 ml2 = 0
+    let hash = function
+      | Var vi -> Hashtbl.hash (1, Cil_datatype.Varinfo.hash vi)
+      | HeapBlk stmt -> Hashtbl.hash (2, Cil_datatype.Stmt.hash stmt)
+      | InputMem -> Hashtbl.hash 3
+    let copy = Fun.id
+    let rehash = Fun.id
+    let mem_project = Datatype.never_any_project
+    let pretty fmt = function
+      | Var vi -> Cil_datatype.Varinfo.pretty fmt vi
+      | HeapBlk stmt ->
+        Format.fprintf fmt "[%a]" Cil_datatype.Stmt.pretty stmt
+      | InputMem -> Format.fprintf fmt "#"
+  end
+
+  include (Datatype.Make (DatatypeInfo) : Datatype.S with type t := t)
 
   let initial_values = []
   let dependencies = []

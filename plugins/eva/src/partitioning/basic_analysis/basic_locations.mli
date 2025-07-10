@@ -6,12 +6,13 @@
 (*                                                                        *)
 (**************************************************************************)
 
-type elt =
+(* Memory locations *)
+type t =
   | Var of Eva_ast.varinfo
   | HeapBlk of Cil_types.stmt (* block on the heap *)
   | InputMem
 
-include Datatype.S with type t = elt
+include Datatype.S with type t := t
 
 module Set : Hptset.S with type elt = t
 module Map (V : Datatype.S) : Hptmap_sig.S with type key = t and type v = V.t
