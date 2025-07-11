@@ -5,3 +5,20 @@
 >   computing for function Frama_C_interval <- loop <- main.
 >   Called from partitioning-heuristic.c:130.
 > [eva:progress] Done for function Frama_C_interval
+568a575,580
+> [eva:progress] partitioning-heuristic.c:129: 
+>   Reusing old results for call to something
+> [eva:progress] 
+>   computing for function Frama_C_interval <- loop <- main.
+>   Called from partitioning-heuristic.c:130.
+> [eva:progress] Done for function Frama_C_interval
+635,643d646
+< [eva:progress] 
+<   computing for function something <- loop <- main.
+<   Called from partitioning-heuristic.c:129.
+< [eva:progress] Recording results for something
+< [eva:progress] Done for function something
+< [eva:progress] 
+<   computing for function Frama_C_interval <- loop <- main.
+<   Called from partitioning-heuristic.c:130.
+< [eva:progress] Done for function Frama_C_interval

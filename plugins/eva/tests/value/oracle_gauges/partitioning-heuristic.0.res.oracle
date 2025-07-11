@@ -5,19 +5,19 @@
 >   computing for function Frama_C_interval <- loop <- main.
 >   Called from partitioning-heuristic.c:130.
 > [eva:progress] Done for function Frama_C_interval
-214a221,222
+214a221,227
 > [eva:show] partitioning-heuristic.c:133: Frama_C_show_each: {1}
 > [eva:show] partitioning-heuristic.c:133: Frama_C_show_each: {0}
-220a229,237
+> [eva:progress] 
 >   computing for function something <- loop <- main.
 >   Called from partitioning-heuristic.c:129.
 > [eva:progress] Recording results for something
 > [eva:progress] Done for function something
+223a237,240
 > [eva:progress] 
 >   computing for function Frama_C_interval <- loop <- main.
 >   Called from partitioning-heuristic.c:130.
 > [eva:progress] Done for function Frama_C_interval
-> [eva:progress] 
 225a243,244
 > [eva:show] partitioning-heuristic.c:133: Frama_C_show_each: {1; 2}
 > [eva:show] partitioning-heuristic.c:133: Frama_C_show_each: {0; 1}
@@ -41,3 +41,20 @@
 < [eva:progress] Done for function Frama_C_interval
 ---
 > [eva:show] partitioning-heuristic.c:133: Frama_C_show_each: [0..9]
+568a585,590
+> [eva:progress] partitioning-heuristic.c:129: 
+>   Reusing old results for call to something
+> [eva:progress] 
+>   computing for function Frama_C_interval <- loop <- main.
+>   Called from partitioning-heuristic.c:130.
+> [eva:progress] Done for function Frama_C_interval
+635,643d656
+< [eva:progress] 
+<   computing for function something <- loop <- main.
+<   Called from partitioning-heuristic.c:129.
+< [eva:progress] Recording results for something
+< [eva:progress] Done for function something
+< [eva:progress] 
+<   computing for function Frama_C_interval <- loop <- main.
+<   Called from partitioning-heuristic.c:130.
+< [eva:progress] Done for function Frama_C_interval

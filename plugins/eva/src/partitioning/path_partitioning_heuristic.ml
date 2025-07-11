@@ -20,7 +20,7 @@ type options = {
 }
 
 type exploration_info = {
-  graph: graph;
+  automaton: automaton;
   options: options;
   accesses: Basic_access.mem_access list Edge.Hashtbl.t;
 }
@@ -32,15 +32,7 @@ let get_writes_at_v junct_v (last_writes, _) =
   in
   Basic_analysis.VtLocMap.fold check_and_add_var last_writes LocSet.empty
 
-let add_to_stack_of_dist graph v v_stack v_stack_next_dist must_stack =
-  if not must_stack then
-    v_stack, v_stack_next_dist
-  else if G.in_degree graph v > 1 then
-    v_stack, v :: v_stack_next_dist
-  else
-    v :: v_stack, v_stack_next_dist
-
-let has_read_access foll_locs = function
+let reads_foll_loc foll_locs = function
   | Basic_access.Reads ml -> LocSet.mem ml foll_locs
   | _ -> false
 
@@ -58,75 +50,104 @@ let update_succ_foll_locs followed_locs_map succ_v new_fl =
     Vertex.Hashtbl.replace followed_locs_map succ_v fl;
   | None -> Vertex.Hashtbl.add followed_locs_map succ_v new_fl
 
-let find_vertices_with_read junct_v written_locs info =
+let check_nested_loop automaton pred v edges_closing_loops =
+  match find_loop automaton v with
+  | None -> ()
+  | Some { wto } ->
+    let loop_v = Wto.flatten wto in
+    if not (List.mem pred loop_v) then
+      let add_if_included (other_pred, e, _) =
+        if other_pred != pred && List.mem other_pred loop_v then
+          Edge.Hashtbl.add edges_closing_loops e ();
+      in
+      G.iter_pred_e add_if_included automaton.graph v
+
+let find_vertices_with_read start_v written_locs info =
   (* Descend the graph to determine vertices after which partitioning should
      persist: because one of the followed variables is read. More or less
      variables may be tracked because of assignments, this is why we have a
-     table of followed variables at each vertex. *)
-  let followed_locs = Vertex.Hashtbl.create 4 in
-  Vertex.Hashtbl.add followed_locs junct_v written_locs;
+     table of followed variables at each vertex. The “looping bounds” will be
+     barriers at which exploration will stop to avoid marking the full loop of
+     the start vertex. *)
+  let followed_locs = Vertex.Hashtbl.create 4
+  and edges_closing_loops = Edge.Hashtbl.create 4
+  and looping_bounds = Edge.Hashtbl.create 4 in
+  Vertex.Hashtbl.add followed_locs start_v written_locs;
   let rec aux v_stack v_stack_next_dist dist =
     match v_stack with
     | [] ->
       if v_stack_next_dist <> [] && dist + 1 < info.options.dist_limit
       then aux v_stack_next_dist [] (dist + 1)
       else []
-    | { vertex_info = LoopHead _ } :: v_stack ->
-      (* Do not go through loop heads *)
-      aux v_stack v_stack_next_dist dist
-    | v :: v_stack ->
+    | (v, crossed) :: v_stack ->
       let fl = Vertex.Hashtbl.find followed_locs v in
       let process_edge (_, e, succ) (result, v_stack, v_stack_next_dist) =
         let acc = Edge.Hashtbl.find info.accesses e in
-        let has_read = List.exists (has_read_access fl) acc in
+        let has_read = List.exists (reads_foll_loc fl) acc in
         let fl = List.fold_left (apply_write_access has_read) fl acc in
         let result = if has_read then v :: result else result in
         let v_stack, v_stack_next_dist =
-          let must_stack = not (Vertex.Hashtbl.mem followed_locs succ) in
-          add_to_stack_of_dist info.graph succ v_stack
-            v_stack_next_dist must_stack
+          if Vertex.Hashtbl.mem followed_locs succ then begin
+            if
+              Vertex.Set.mem succ crossed &&
+              not (Edge.Hashtbl.mem edges_closing_loops e)
+            then
+              Edge.Hashtbl.add looping_bounds e ();
+            v_stack, v_stack_next_dist
+          end else if G.in_degree info.automaton.graph succ > 1 then begin
+            check_nested_loop info.automaton v succ edges_closing_loops;
+            let crossed = Vertex.Set.add succ crossed in
+            v_stack, (succ, crossed) :: v_stack_next_dist
+          end else
+            (succ, crossed) :: v_stack, v_stack_next_dist
         in
+        (* If the successor was already visite, this update is useless *)
         update_succ_foll_locs followed_locs succ fl;
         result, v_stack, v_stack_next_dist
       in
       let result, v_stack, v_stack_next_dist =
-        G.fold_succ_e process_edge info.graph v
+        G.fold_succ_e process_edge info.automaton.graph v
           ([], v_stack, v_stack_next_dist)
       in
       result @ aux v_stack v_stack_next_dist dist
   in
-  aux [junct_v] [] 0
+  aux [start_v, Vertex.Set.singleton start_v] [] 0, looping_bounds
 
-let mark_edges_bottom_up info start_vertices =
+let mark_preceding_edges graph start_vertices dist_limit looping_bounds =
   (* Go back up in the graph to mark all edges after which the partition should
      persist, stopping when the distance limit is reached *)
-  let edges_keeping_partition = Edge.Hashtbl.create 4 in
+  let marked_edges = Edge.Hashtbl.create 4 in
   let stacked = Vertex.Hashtbl.create 4 in
   List.iter (fun e -> Vertex.Hashtbl.add stacked e ()) start_vertices;
   let rec aux v_stack v_stack_next_dist dist =
     match v_stack with
     | [] ->
-      if v_stack_next_dist <> [] && dist + 1 < info.options.dist_limit then
+      if v_stack_next_dist <> [] && dist + 1 < dist_limit then
         aux v_stack_next_dist [] (dist + 1);
     | v :: v_stack ->
       let process_edge (pred, e, _) (v_stack, v_stack_next_dist) =
-        Edge.Hashtbl.add edges_keeping_partition e ();
-        let must_stack =
-          not (Vertex.Hashtbl.mem stacked pred) &&
-          (match pred.vertex_info with LoopHead _ -> false | _ -> true)
-        in
-        Vertex.Hashtbl.replace stacked pred ();
-        add_to_stack_of_dist info.graph pred v_stack
-          v_stack_next_dist must_stack
+        if Edge.Hashtbl.mem looping_bounds e then
+          v_stack, v_stack_next_dist
+        else begin
+          Edge.Hashtbl.add marked_edges e ();
+          let pred_was_stacked = Vertex.Hashtbl.mem stacked pred in
+          Vertex.Hashtbl.replace stacked pred ();
+          if pred_was_stacked then
+            v_stack, v_stack_next_dist
+          else if G.in_degree graph pred > 1 then
+            v_stack, pred :: v_stack_next_dist
+          else
+            pred :: v_stack, v_stack_next_dist
+        end
       in
       let v_stack, v_stack_next_dist =
-        G.fold_pred_e process_edge info.graph v
+        G.fold_pred_e process_edge graph v
           (v_stack, v_stack_next_dist)
       in
       aux v_stack v_stack_next_dist dist;
   in
   aux start_vertices [] 0;
-  edges_keeping_partition
+  marked_edges
 
 let find_boundary_edges graph start_v edges_territory =
   (* Descend the graph (again) to mark all edges after which the merging should
@@ -152,12 +173,17 @@ let find_boundary_edges graph start_v edges_territory =
   in
   aux [start_v]
 
-let compute_edges_of_merge junct_v written_locs info =
-  let vertices_with_read = find_vertices_with_read junct_v written_locs info in
+let compute_edges_of_merge start_v written_locs info =
+  let vertices_with_read, looping_bounds =
+    find_vertices_with_read start_v written_locs info
+  in
   if vertices_with_read = [] then []
   else begin
-    let edges_with_partition = mark_edges_bottom_up info vertices_with_read in
-    find_boundary_edges info.graph junct_v edges_with_partition
+    let edges_with_partition =
+      mark_preceding_edges info.automaton.graph vertices_with_read
+        info.options.dist_limit looping_bounds
+    in
+    find_boundary_edges info.automaton.graph start_v edges_with_partition
   end
 
 module EdgeKeyTbl = Datatype.Int.Hashtbl
@@ -172,7 +198,7 @@ let compute_junction_partitioning states info =
   let split_v = Vertex.Hashtbl.create 4
   and merge_e = EdgeKeyTbl.create 4 in
   let check_and_add_junct_v v states =
-    if G.in_degree info.graph v > 1 then begin
+    if G.in_degree info.automaton.graph v > 1 then begin
       let written_locs = get_writes_at_v v states in
       if LocSet.cardinal written_locs >= info.options.required_writes then begin
         let edges_of_merge = compute_edges_of_merge v written_locs info in
@@ -199,7 +225,7 @@ let compute_call_partitioning states info =
         List.iter (add_edge_if_not_return call_merge_e stmt) edges_of_merge;
     | _ -> ()
   in
-  G.iter_edges_e add_call_merges info.graph;
+  G.iter_edges_e add_call_merges info.automaton.graph;
   call_merge_e
 
 type result = {
@@ -222,7 +248,7 @@ let compute kf options =
       let interproc_args = if options.interproc then Some formals else None in
       Basic_access.compute_edge_accesses automaton.graph interproc_args states
     in
-    let info = { graph = automaton.graph; options; accesses } in
+    let info = { automaton; options; accesses } in
     let split_v, merge_e = compute_junction_partitioning states info
     and call_merge_e = compute_call_partitioning states info in
     { split_v; merge_e; call_merge_e }
