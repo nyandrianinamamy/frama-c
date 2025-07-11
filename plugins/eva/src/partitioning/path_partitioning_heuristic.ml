@@ -82,28 +82,30 @@ let find_vertices_with_read start_v written_locs info =
     | (v, crossed) :: v_stack ->
       let fl = Vertex.Hashtbl.find followed_locs v in
       let process_edge (_, e, succ) (result, v_stack, v_stack_next_dist) =
-        let acc = Edge.Hashtbl.find info.accesses e in
-        let has_read = List.exists (reads_foll_loc fl) acc in
-        let fl = List.fold_left (apply_write_access has_read) fl acc in
-        let result = if has_read then v :: result else result in
-        let v_stack, v_stack_next_dist =
-          if Vertex.Hashtbl.mem followed_locs succ then begin
-            if
-              Vertex.Set.mem succ crossed &&
-              not (Edge.Hashtbl.mem edges_closing_loops e)
-            then
-              Edge.Hashtbl.add looping_bounds e ();
-            v_stack, v_stack_next_dist
-          end else if G.in_degree info.automaton.graph succ > 1 then begin
-            check_nested_loop info.automaton v succ edges_closing_loops;
-            let crossed = Vertex.Set.add succ crossed in
-            v_stack, (succ, crossed) :: v_stack_next_dist
-          end else
-            (succ, crossed) :: v_stack, v_stack_next_dist
-        in
-        (* If the successor was already visite, this update is useless *)
-        update_succ_foll_locs followed_locs succ fl;
-        result, v_stack, v_stack_next_dist
+        let succ_stacked = Vertex.Hashtbl.mem followed_locs succ in
+        if succ_stacked && Vertex.Set.mem succ crossed then begin
+          if not (Edge.Hashtbl.mem edges_closing_loops e) then
+            Edge.Hashtbl.add looping_bounds e ();
+          result, v_stack, v_stack_next_dist
+        end else begin
+          let acc = Edge.Hashtbl.find info.accesses e in
+          let has_read = List.exists (reads_foll_loc fl) acc in
+          let fl = List.fold_left (apply_write_access has_read) fl acc in
+          let result = if has_read then v :: result else result in
+          (* If the successor was already visited, this update is useless *)
+          update_succ_foll_locs followed_locs succ fl;
+          let v_stack, v_stack_next_dist =
+            if succ_stacked then
+              v_stack, v_stack_next_dist
+            else if G.in_degree info.automaton.graph succ > 1 then begin
+              check_nested_loop info.automaton v succ edges_closing_loops;
+              let crossed = Vertex.Set.add succ crossed in
+              v_stack, (succ, crossed) :: v_stack_next_dist
+            end else
+              (succ, crossed) :: v_stack, v_stack_next_dist
+          in
+          result, v_stack, v_stack_next_dist
+        end
       in
       let result, v_stack, v_stack_next_dist =
         G.fold_succ_e process_edge info.automaton.graph v
