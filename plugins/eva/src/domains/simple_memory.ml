@@ -281,14 +281,10 @@ module Make_Domain (Info: sig val name: string end) (Value: Value) = struct
     | None, _ | _, None   -> `Value post
     | Some f, Some return ->
       let extract_value arg = Eval.value_assigned arg.avalue in
-      let args = List.map extract_value call.arguments in
-      if List.exists (function `Bottom -> true | `Value _ -> false) args
-      then `Bottom
-      else
-        let args = List.map Bottom.non_bottom args in
-        f args >>-: fun result ->
-        let return_loc = Main_locations.PLoc.eval_varinfo return in
-        bind_loc return_loc return.vtype (`Value result) post
+      let* args = Bottom.List.map extract_value call.arguments in
+      let+ result = f args in
+      let return_loc = Main_locations.PLoc.eval_varinfo return in
+      bind_loc return_loc return.vtype (`Value result) post
 
   let show_expr valuation state fmt expr =
     match (expr : Eva_ast.exp).node with

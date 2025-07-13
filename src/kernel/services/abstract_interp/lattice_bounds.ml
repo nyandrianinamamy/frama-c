@@ -135,12 +135,15 @@ module Bottom = struct
 
   (* Monadic operations *)
 
-  include Monad.Make_based_on_bind_with_product (struct
+  module Monad = Monad.Make_based_on_bind_with_product (struct
       type 'a t = 'a or_bottom
       let return x = `Value x
       let bind f = function `Bottom -> `Bottom | `Value x -> f x
       let product l r = zip l r
     end)
+
+  include Monad
+  module List = List.Make_monadic_iterators (Monad)
 
   (** Conversion *)
 
@@ -246,12 +249,15 @@ module Top = struct
 
   (** Monadic operators *)
 
-  include Monad.Make_based_on_bind_with_product (struct
+  module Monad = Monad.Make_based_on_bind_with_product (struct
       type 'a t = 'a or_top
       let return x = `Value x
       let bind f = function `Top -> `Top | `Value x -> f x
       let product l r = zip l r
     end)
+
+  include Monad
+  module List = List.Make_monadic_iterators (Monad)
 
   (** Datatype construction *)
 

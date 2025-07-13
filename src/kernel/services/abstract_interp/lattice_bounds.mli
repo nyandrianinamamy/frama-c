@@ -17,6 +17,9 @@ type 'a or_top_bottom = [ `Value of 'a | `Bottom | `Top ]
 module Bottom : sig
 
   include Monad.S_with_product with type 'a t = 'a or_bottom
+  module List : Monad.Iterators
+    with type 'a iterable := 'a list
+     and type 'a monad := 'a t
 
   (** Datatype constructor *)
   module Make_Datatype (X: Datatype.S) :
@@ -80,6 +83,9 @@ end
 module Top : sig
 
   include Monad.S_with_product with type 'a t = 'a or_top
+  module List : Monad.Iterators
+    with type 'a iterable := 'a list
+     and type 'a monad := 'a t
 
   (** Datatype constructor *)
   module Make_Datatype (X: Datatype.S) :
