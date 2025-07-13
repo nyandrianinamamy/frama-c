@@ -8,10 +8,7 @@
 
 (** {2 Cell Memory Model functor }*)
 
-type 'value assigned = (Precise_locs.precise_location,'value) Eval.assigned
-type 'value builtin =
-  ('value assigned) list ->
-  ('value assigned) Lattice_bounds.or_bottom
+type 'value builtin = 'value list -> 'value Lattice_bounds.or_bottom
 
 module type Value =
 sig

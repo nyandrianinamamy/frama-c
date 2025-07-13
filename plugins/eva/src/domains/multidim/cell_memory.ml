@@ -137,8 +137,7 @@ end
 
 (* --- Arguments of the functors --- *)
 
-type 'value assigned = (Precise_locs.precise_location,'value) Eval.assigned
-type 'value builtin = ('value assigned) list -> ('value assigned) or_bottom
+type 'value builtin = 'value list -> 'value or_bottom
 
 (* Values used for the simplest functor instantiation. *)
 module type Value =
@@ -738,11 +737,12 @@ struct
       match find_builtin call.kf, call.return with
       | None, _ | _, None   -> `Value post
       | Some f, Some return ->
-        let args = List.map (fun arg -> arg.avalue) call.arguments in
-        let+ assigned_result = f args in
+        let arg_value = fun arg -> value_assigned arg.avalue in
+        let* args = Bottom.List.map arg_value call.arguments in
+        let+ result = f args in
         let oracle = mk_oracle post in
         let dst = Eva_ast.Build.var return in
-        assign' ~oracle ~value:assigned_result dst None post
+        assign' ~oracle ~value:(Assign result) dst None post
 
     let show_expr valuation state fmt expr =
       match (expr : Eva_ast.exp).node with
@@ -1065,10 +1065,7 @@ struct
 
     let builtins =
       let lift (f : Value.t builtin) : t builtin = fun args ->
-        args
-        |> List.map (Eval.map_assigned snd)
-        |> f
-        |> Bottom.map (Eval.map_assigned (fun v -> (Cvalue.V.top, v)))
+        args |> List.map snd |> f |> Bottom.map (fun v -> (Cvalue.V.top, v))
       in
       List.map (fun (name, f) -> name, lift f) Value.builtins
 
