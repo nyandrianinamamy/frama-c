@@ -98,14 +98,14 @@ struct
       try SetMap.find loc Info.ptr_targets |> Set.union acc
       with Not_found -> acc
     in
-    let rec aux locs all_locs =
-      let new_locs = Set.fold add_targets locs Set.empty in
+    let rec aux cur_locs all_locs =
+      let new_locs = Set.fold add_targets cur_locs Set.empty in
       let new_locs = Set.diff new_locs all_locs in
       if Set.is_empty new_locs then
-        locs
+        all_locs
       else
-        let all_locs = Set.union locs new_locs in
-        Set.union all_locs (aux new_locs all_locs)
+        let all_locs = Set.union all_locs new_locs in
+        aux new_locs all_locs
     in
     aux locs locs
 

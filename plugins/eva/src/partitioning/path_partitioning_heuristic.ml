@@ -55,9 +55,9 @@ let check_nested_loop automaton pred v edges_closing_loops =
   | None -> ()
   | Some { wto } ->
     let loop_v = Wto.flatten wto in
-    if not (List.mem pred loop_v) then
+    if not (List.memq pred loop_v) then
       let add_if_included (other_pred, e, _) =
-        if other_pred != pred && List.mem other_pred loop_v then
+        if other_pred != pred && List.memq other_pred loop_v then
           Edge.Hashtbl.add edges_closing_loops e ();
       in
       G.iter_pred_e add_if_included automaton.graph v
@@ -201,14 +201,18 @@ let compute_junction_partitioning states info =
   and merge_e = EdgeKeyTbl.create 4 in
   let check_and_add_junct_v v states =
     if G.in_degree info.automaton.graph v > 1 then begin
-      let written_locs = get_writes_at_v v states in
-      if LocSet.cardinal written_locs >= info.options.required_writes then begin
-        let edges_of_merge = compute_edges_of_merge v written_locs info in
-        if edges_of_merge <> [] then begin
-          Vertex.Hashtbl.add split_v v ();
-          List.iter (add_edge_if_not_return merge_e v) edges_of_merge;
+      match v.vertex_info with
+      | LoopHead _ -> () (* We never enable partitioning on loop heads *)
+      | _ ->
+        let written_locs = get_writes_at_v v states
+        and req_writes = info.options.required_writes in
+        if LocSet.cardinal written_locs >= req_writes then begin
+          let edges_of_merge = compute_edges_of_merge v written_locs info in
+          if edges_of_merge <> [] then begin
+            Vertex.Hashtbl.add split_v v ();
+            List.iter (add_edge_if_not_return merge_e v) edges_of_merge;
+          end;
         end;
-      end;
     end;
   in
   Vertex.Hashtbl.iter check_and_add_junct_v states;
