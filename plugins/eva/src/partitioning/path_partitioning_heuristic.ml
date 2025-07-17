@@ -223,7 +223,12 @@ let compute_call_partitioning states info =
   let add_call_merges (_, e, v) =
     match e.edge_transition with
     | Call (_, lhost, _, stmt) when not (Eva_ast.is_no_effect_frama_c_builtin lhost) ->
-      let written_locs = get_writes_at_v v (Vertex.Hashtbl.find states v) in
+      let state =
+        try Vertex.Hashtbl.find states v
+        with Not_found ->
+          Basic_analysis.VtLocMap.empty, Basic_locations.SetMap.empty
+      in
+      let written_locs = get_writes_at_v v state in
       let edges_of_merge = compute_edges_of_merge v written_locs info in
       if edges_of_merge = [] then
         EdgeKeyTbl.add call_merge_e e.edge_key stmt
