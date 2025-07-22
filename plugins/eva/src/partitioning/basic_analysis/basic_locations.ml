@@ -83,8 +83,7 @@ struct
     try SetMap.find ml Info.ptr_targets
     with Not_found ->
     match ml with
-    | MemLoc.Var { vglob = true } | InputMem ->
-      Set.singleton InputMem
+    | MemLoc.Var { vglob = true } | InputMem -> Set.singleton InputMem
     | _ -> Set.empty
   and locs_of_init = function
     | SingleInit (exp, _) -> locs_of_exp exp
