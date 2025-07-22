@@ -8,8 +8,6 @@
 
 open Basic_locations
 
-val is_no_effect_frama_c_builtin : Eva_ast.lhost -> bool
-
 type lw_and_pt = VMemLocMap.t * MlsMemLocMap.t
 
 module LwAndPt (_ : sig val include_guards : bool end) :

@@ -135,6 +135,12 @@ let is_initialized lval =
   let (lhost, _) = lval.node in
   is_initialized_lhost true lhost
 
+let is_no_effect_frama_c_builtin (f : lhost) =
+  match f with
+  | Var vi ->
+    Ast_info.start_with_frama_c_builtin vi.vname
+  | _ -> false
+
 
 (* --- Heights --- *)
 

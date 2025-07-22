@@ -9,13 +9,6 @@
 open Eva_automata
 open Basic_locations
 
-(* The same function as in auto_loop_unroll.ml *)
-let is_no_effect_frama_c_builtin (f:Eva_ast.lhost) =
-  match f with
-  | Var vi ->
-    Ast_info.start_with_frama_c_builtin vi.vname
-  | _ -> false
-
 module LastWrites =
 struct
   type t = VMemLocMap.t
@@ -162,7 +155,7 @@ struct
     | Init (vi, init, _) ->
       let assigned_locs = MemLocSet.singleton (MemLoc.Var vi) in
       assigned_locs, locs_of_init init, nolocs, nolocs
-    | Call (lval, exp, args, _) when not (is_no_effect_frama_c_builtin exp) ->
+    | Call (lval, lhost, args, _) when not (Eva_ast.is_no_effect_frama_c_builtin lhost) ->
       let assigned_locs =
         match lval with Some lval -> locs_of_lval lval | None -> nolocs
       in

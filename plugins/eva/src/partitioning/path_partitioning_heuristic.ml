@@ -189,7 +189,7 @@ let get_call_partitioning { automaton; options; states; accesses } =
   let call_merge_e = EdgeKeyTbl.create 4 in
   let add_call_merges (_, e, v) =
     match e.edge_transition with
-    | Call (_, lhost, _, stmt) when not (is_no_effect_frama_c_builtin lhost) ->
+    | Call (_, lhost, _, stmt) when not (Eva_ast.is_no_effect_frama_c_builtin lhost) ->
       let wl = get_writes_at_v v (Vertex.Hashtbl.find states v) in
       let edges_of_merge =
         get_merge_edges automaton v wl accesses options.dist_limit

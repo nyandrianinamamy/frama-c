@@ -8,7 +8,6 @@
 
 open Eva_automata
 open Basic_locations
-open Basic_analysis
 
 type mem_access =
   | Reads of MemLoc.t
@@ -97,7 +96,7 @@ let get_edge_accesses (automaton : automaton) interproc_args states =
       | Return (Some exp, _) -> exp_accesses exp
       | Guard (exp, _, _) -> exp_accesses exp
       | Assign (lval, exp, _) -> written_lval_accesses lval @ exp_accesses exp
-      | Call (lval, lhost, args, _) when not (is_no_effect_frama_c_builtin lhost) ->
+      | Call (lval, lhost, args, _) when not (Eva_ast.is_no_effect_frama_c_builtin lhost) ->
         (match lval with
          | None -> []
          | Some lval -> written_lval_accesses lval) @
