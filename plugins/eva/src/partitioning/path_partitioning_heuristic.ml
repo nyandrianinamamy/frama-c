@@ -25,6 +25,8 @@ type exploration_info = {
   accesses: Basic_access.mem_access list Edge.Hashtbl.t;
 }
 
+(* Get the memory locations whose last write is set to be at the given
+   junct_v. *)
 let get_writes_at_v junct_v (last_writes, _) =
   let check_and_add_var loc v acc =
     if v == junct_v then LocSet.add loc acc
@@ -32,10 +34,12 @@ let get_writes_at_v junct_v (last_writes, _) =
   in
   Basic_analysis.VtLocMap.fold check_and_add_var last_writes LocSet.empty
 
+(* Tell if a memory access reads one of the followed locations. *)
 let reads_foll_loc foll_locs = function
   | Basic_access.Reads ml -> LocSet.mem ml foll_locs
   | _ -> false
 
+(* Update the followed locations if the given access is a write. *)
 and apply_write_access has_read foll_locs = function
   | Basic_access.Writes_to (ml, partial) ->
     if has_read then LocSet.add ml foll_locs
@@ -43,6 +47,8 @@ and apply_write_access has_read foll_locs = function
     else foll_locs
   | _ -> foll_locs
 
+(* Update the followed locations of succ_v in followed_locs_map by taking
+   new_fl into account. *)
 let update_succ_foll_locs followed_locs_map succ_v new_fl =
   match Vertex.Hashtbl.find_opt followed_locs_map succ_v with
   | Some prec_fl ->
@@ -50,6 +56,9 @@ let update_succ_foll_locs followed_locs_map succ_v new_fl =
     Vertex.Hashtbl.replace followed_locs_map succ_v fl;
   | None -> Vertex.Hashtbl.add followed_locs_map succ_v new_fl
 
+(* Check whether v is in a loop which does not include its predecessor pred. If
+   so, add incoming edges of v which are in the loop in the set
+   edges_closing_loops. *)
 let check_nested_loop automaton pred v edges_closing_loops =
   match find_loop automaton v with
   | None -> ()
@@ -62,17 +71,24 @@ let check_nested_loop automaton pred v edges_closing_loops =
       in
       G.iter_pred_e add_if_included automaton.graph v
 
+(* Descend the graph from start_v, up to info.options.dist_limit junction
+   points, and tell where followed variables are read among the visited edges.
+   At start_v, the followed variables are the given written_locs, but according
+   to the writes into info.accesses, they may be different at the following
+   vertices. It also computes looping bounds, i.e. edges that come back to an
+   already visited vertex after traversing the head of the loop containing
+   start_v. *)
 let find_vertices_with_read start_v written_locs info =
-  (* Descend the graph to determine vertices after which partitioning should
-     persist: because one of the followed variables is read. More or less
-     variables may be tracked because of assignments, this is why we have a
-     table of followed variables at each vertex. The “looping bounds” will be
-     barriers at which exploration will stop to avoid marking the full loop of
-     the start vertex. *)
   let followed_locs = Vertex.Hashtbl.create 4
+  (* Edges closing loops are not looping bounds, they are the end of nested
+     loops *)
   and edges_closing_loops = Edge.Hashtbl.create 4
   and looping_bounds = Edge.Hashtbl.create 4 in
   Vertex.Hashtbl.add followed_locs start_v written_locs;
+  (* The graph is visited by maintaining two stacks: the stack of the current
+     distance and the stack of the next distance. When the first stack is empty,
+     we switch to the next distance. The distance increases as we cross junction
+     points. *)
   let rec aux v_stack v_stack_next_dist dist =
     match v_stack with
     | [] ->
@@ -92,7 +108,8 @@ let find_vertices_with_read start_v written_locs info =
           let has_read = List.exists (reads_foll_loc fl) acc in
           let fl = List.fold_left (apply_write_access has_read) fl acc in
           let result = if has_read then v :: result else result in
-          (* If the successor was already visited, this update is useless *)
+          (* The successor may have already been visited, making this update
+             useless, unfortunately *)
           update_succ_foll_locs followed_locs succ fl;
           let v_stack, v_stack_next_dist =
             if succ_stacked then
@@ -115,9 +132,9 @@ let find_vertices_with_read start_v written_locs info =
   in
   aux [start_v, Vertex.Set.singleton start_v] [] 0, looping_bounds
 
+(* Go up in the graph from start_vertices up to dist_limit junction points or a
+   looping bound, to mark all visited edges. *)
 let mark_preceding_edges graph start_vertices dist_limit looping_bounds =
-  (* Go back up in the graph to mark all edges after which the partition should
-     persist, stopping when the distance limit is reached *)
   let marked_edges = Edge.Hashtbl.create 4 in
   let stacked = Vertex.Hashtbl.create 4 in
   List.iter (fun e -> Vertex.Hashtbl.add stacked e ()) start_vertices;
@@ -151,9 +168,9 @@ let mark_preceding_edges graph start_vertices dist_limit looping_bounds =
   aux start_vertices [] 0;
   marked_edges
 
+(* Descend the graph from start_v, stopping when we go out of edges_territory.
+   The edges that go out of edges_territory are returned. *)
 let find_boundary_edges graph start_v edges_territory =
-  (* Descend the graph (again) to mark all edges after which the merging should
-     occur *)
   let stacked = Vertex.Hashtbl.create 4 in
   Vertex.Hashtbl.add stacked start_v ();
   let rec aux = function
@@ -175,16 +192,23 @@ let find_boundary_edges graph start_v edges_territory =
   in
   aux [start_v]
 
+(* Get the edges where the partitioning initiated at start_v should be ended.
+   If no edge is returned, then no partitioning should be done at start_v. *)
 let compute_edges_of_merge start_v written_locs info =
+  (* Partitioning should persist until the vertices with read *)
   let vertices_with_read, looping_bounds =
     find_vertices_with_read start_v written_locs info
   in
+  (* No vertices with read: no partitioning *)
   if vertices_with_read = [] then []
   else begin
+    (* Go back up in the graph to mark the edges on which partitioning should
+       persist *)
     let edges_with_partition =
       mark_preceding_edges info.automaton.graph vertices_with_read
         info.options.dist_limit looping_bounds
     in
+    (* Use these marks to decide when merging must be done *)
     find_boundary_edges info.automaton.graph start_v edges_with_partition
   end
 
@@ -196,6 +220,7 @@ let add_edge_if_not_return tbl k e =
   (* Do not merge after a return, so that interprocedural partitioning works *)
   | _ -> EdgeKeyTbl.add tbl e.edge_key k
 
+(* Get the partitioning information concerning junction points. *)
 let compute_junction_partitioning states info =
   let split_v = Vertex.Hashtbl.create 4
   and merge_e = EdgeKeyTbl.create 4 in
@@ -218,6 +243,9 @@ let compute_junction_partitioning states info =
   Vertex.Hashtbl.iter check_and_add_junct_v states;
   split_v, merge_e
 
+(* Get the partitioning information concerning calls. Note that it is important
+   even in non-interprocedural mode, because of builtins and specifications,
+   which create branches even if interprocedural mode is disabled. *)
 let compute_call_partitioning states info =
   let call_merge_e = EdgeKeyTbl.create 4 in
   let add_call_merges (_, e, v) =
@@ -226,6 +254,7 @@ let compute_call_partitioning states info =
       let state =
         try Vertex.Hashtbl.find states v
         with Not_found ->
+          (* I don't know why v could not be found, but it happened once *)
           Basic_analysis.VtLocMap.empty, Basic_locations.SetMap.empty
       in
       let written_locs = get_writes_at_v v state in
