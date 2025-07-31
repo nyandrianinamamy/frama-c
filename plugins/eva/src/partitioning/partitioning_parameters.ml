@@ -245,7 +245,7 @@ struct
 
   let flow_actions_e ~several_sources ek v =
     if several_sources && should_partition_at v then
-      let b = Partition.Branch (ek, v.vertex_key) in
+      let b = Partition.Graph_branch (ek, v.vertex_key) in
       Partition.Add_branch (b, history_size) :: should_merge_what ek
     else
       should_merge_what ek

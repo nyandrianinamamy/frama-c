@@ -184,26 +184,26 @@ module Int = Datatype.Int
 module SplitMap = SplitTerm.Map
 
 type branch =
-  | Branch of int * int
+  | Graph_branch of int * int
   | Builtin_result of Kernel_function.t * Cil_datatype.Kinstr.t * int
   | Spec_behavior of Kernel_function.t * Cil_datatype.Kinstr.t * int
   | Disjunction_case of Cil_datatype.Stmt.t * int
   | Call_branch of Cil_datatype.Stmt.t * branch
 [@@deriving eq, ord]
 
-module BranchDatatype = Datatype.Make_with_collections (struct
+module Branch = Datatype.Make_with_collections (struct
     include Datatype.Serializable_undefined
     type t = branch [@@deriving eq, ord]
     let name = "Partition.Branch"
-    let reprs = [Branch (0, 0)]
+    let reprs = [Graph_branch (0, 0)]
     let rec pretty fmt = function
-      | Branch (ek, _) -> Format.fprintf fmt "%d" ek
+      | Graph_branch (ek, _) -> Format.fprintf fmt "%d" ek
       | Builtin_result (kf, _, id) | Spec_behavior (kf, _, id) ->
         Format.fprintf fmt "%s#%d" (Kernel_function.get_name kf) id
       | Disjunction_case (stmt, id) -> Format.fprintf fmt "@%d#%d" stmt.sid id
       | Call_branch (stmt, b) -> Format.fprintf fmt "%d:%a" stmt.sid pretty b
     let rec hash = function
-      | Branch (ek, _) -> Hashtbl.hash (1, ek)
+      | Graph_branch (ek, _) -> Hashtbl.hash (1, ek)
       | Builtin_result (kf, kinstr, id) ->
         Hashtbl.hash
           (2, Kernel_function.hash kf, Cil_datatype.Kinstr.hash kinstr, id)
@@ -258,7 +258,7 @@ module Key =
 struct
   module IntPair = Datatype.Pair (Int) (Int)
   module Stamp = Datatype.Option (IntPair)
-  module BranchList = Datatype.List (BranchDatatype)
+  module BranchList = Datatype.List (Branch)
   module LoopList = Datatype.List (LoopUnrolling)
   module Splits = SplitMap.Make (Z)
   module DSplits = SplitMap.Make (SplitMonitor)
@@ -323,7 +323,7 @@ struct
           | None -> ()
         end;
         Pretty_utils.pp_list ~pre:"[@[" ~sep:" ;@ " ~suf:"@]]"
-          BranchDatatype.pretty
+          Branch.pretty
           fmt
           key.branches;
         Pretty_utils.pp_list ~pre:"(@[" ~sep:" ;@ " ~suf:"@])"
@@ -703,7 +703,7 @@ struct
 
         | Remove_branch vk -> fun k _x ->
           let not_with_vk = function
-            | Branch (_, bvk) -> vk <> bvk
+            | Graph_branch (_, bvk) -> vk <> bvk
             | _ -> true
           in
           let branches = List.filter not_with_vk k.branches in

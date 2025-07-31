@@ -25,7 +25,7 @@
 (** {2 Keys and partitions.} *)
 
 type branch =
-  | Branch of int * int
+  | Graph_branch of int * int
   (** Junction branch id in the control flow. The integers are the edge key and
       the vertex key. *)
   | Builtin_result of Kernel_function.t * Cil_datatype.Kinstr.t * int
