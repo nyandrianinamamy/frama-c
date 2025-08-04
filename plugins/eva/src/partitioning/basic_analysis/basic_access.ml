@@ -27,9 +27,12 @@ let compute_edge_accesses graph interproc_args states =
     let open MemLoc.Util (struct let ptr_targets = ptr_targets end) in
 
     let to_reads ml = Reads ml
-    and to_writes { node = _, offset } ml =
-      let is_compound = match offset with NoOffset -> false | _ -> true in
-      Writes_to (ml, is_compound)
+    and to_writes { node } ml =
+      let partial = match node with
+        | Var _, NoOffset -> false
+        | _ -> true
+      in
+      Writes_to (ml, partial)
     and to_arg_writes ml = Writes_to (ml, true) in
     let locs_to_acc conv locs =
       MemLoc.Set.fold (fun ml l -> conv ml :: l) locs []
