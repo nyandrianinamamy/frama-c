@@ -6,4 +6,4 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* Eva API to Frama-C server. Nothing is exported. *)
+(** Requests registered to the Frama-C server; nothing is exported. *)
