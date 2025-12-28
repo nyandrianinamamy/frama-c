@@ -12,3 +12,13 @@
 
 include Monad.S_with_product with type 'a t = 'a list
 include module type of Stdlib.List
+
+(** Compute a hash for the set given a hash for the elements.
+    @since Frama-C+dev *)
+val hash : ('a -> int) -> 'a t -> int
+
+(** Pretty prints a set given a printer for the elements.
+    @since Frama-C+dev *)
+val pretty :
+  (Format.formatter -> 'a -> unit) ->
+  Format.formatter -> 'a t -> unit
