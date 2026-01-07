@@ -20,10 +20,10 @@ module Make (Ord : OrderedType) =
 struct
   include Make (Ord)
 
-  let hash = Collection.hash_iter iter
+  let hash = Hash.hash_iter iter
 
   let pretty pp_elt =
-    Collection.pretty_iter
+    Pretty.pretty_iter
       ~format:"{ %t }" ~item:"%a" ~sep:";@ " ~iter
       pp_elt
 end
