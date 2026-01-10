@@ -12,3 +12,9 @@
   (applies_to help-messages)
   (enabled_if %{lib-available:frama-c-eva.apron.core})
 )
+
+; Test of server requests
+(cram
+  (applies_to server-requests)
+  (deps (package frama-c-server))
+)

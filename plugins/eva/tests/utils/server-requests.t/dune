@@ -1,0 +1,8 @@
+(executable
+  (name "test_requests")
+  (modules "test_requests")
+  (modes plugin)
+  (libraries frama-c.kernel "frama-c-server.core")
+  (flags :standard -open Frama_c_kernel)
+  (promote (until-clean))
+)
