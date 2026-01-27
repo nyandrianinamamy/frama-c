@@ -9,7 +9,7 @@
 import React from 'react';
 import { Catch } from 'dome/errors';
 import { classes } from 'dome/misc/utils';
-import { useColor, IHookColors, TColor, EColor } from '../colors';
+import { useColor, IHookColors, TColor, EColor } from '../primitive/colors';
 import { Size } from 'react-virtualized';
 import { select, selectAll } from 'd3-selection';
 import { graphviz } from 'd3-graphviz';

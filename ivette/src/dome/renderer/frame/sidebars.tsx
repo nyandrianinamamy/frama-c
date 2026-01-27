@@ -17,14 +17,14 @@
 
 import React from 'react';
 import { useFlipSettings } from 'dome';
-import { Badge } from 'dome/controls/icons';
-import { Label, IconKind } from 'dome/controls/labels';
+import { Label, Badge } from 'dome/primitive/displays';
 import { classes } from 'dome/misc/utils';
 import { Hbox, TitleBar, TitleBarProps } from 'dome/layout/boxes';
-import { IconButton, IconButtonProps } from 'dome/controls/buttons';
+import { IconButton, IconButtonProps } from 'dome/primitive/controls';
 import { Dropdown } from 'dome/dialogs';
 
 import './style.css';
+import { ColorKind } from 'dome/primitive/colors';
 
 // --------------------------------------------------------------------------
 // --- SideBar Container
@@ -64,7 +64,7 @@ const makeBadgeElt = (elt: BadgeElt, index: number): React.ReactNode => {
   switch (typeof (elt)) {
     case 'number':
     case 'string':
-      return <Badge value={elt} key={`item#${index}`} />;
+      return <Badge label={elt.toString()} key={`item#${index}`} />;
     default:
       return elt;
   }
@@ -170,7 +170,7 @@ export interface ItemProps {
   /** Item label. */
   label?: string;
   /** Item kind. (C: negative, ACSL: positive) */
-  kind?: IconKind,
+  kind?: ColorKind,
   /** Item tooltip text. */
   title?: string;
   /** Badge. */

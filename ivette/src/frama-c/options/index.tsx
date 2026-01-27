@@ -12,6 +12,7 @@ import { Modal, showMessageBox, showModal } from 'dome/dialogs';
 import { alpha } from 'dome/data/compare';
 import { LSplit } from 'dome/layout/splitters';
 import { GlobalState } from 'dome/data/states';
+import { Button } from 'dome/primitive/controls';
 
 import * as Server from 'frama-c/server';
 import * as Params from 'frama-c/kernel/api/parameters';
@@ -170,4 +171,12 @@ export function showOptionsModal(): void {
     </Modal>,
     onClose
   );
+}
+
+export function ButtonOptions(): React.JSX.Element {
+  return <Button
+    icon='SETTINGS'
+    onClick={showOptionsModal}
+    title='Open Frama-C parameters'
+  />;
 }

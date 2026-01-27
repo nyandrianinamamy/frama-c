@@ -8,9 +8,9 @@
 
 import React, { useEffect } from 'react';
 
-import { Icon } from 'dome/controls/icons';
+import { Icon } from 'dome/primitive/displays';
 import { classes } from 'dome/misc/utils';
-import { IconButton } from 'dome/controls/buttons';
+import { IconButton } from 'dome/primitive/controls';
 import { Inset } from 'dome/frame/toolbars';
 import * as Ivette from 'ivette';
 

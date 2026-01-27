@@ -21,8 +21,7 @@
 import React from 'react';
 import { classes } from 'dome/misc/utils';
 import { Hbox } from 'dome/layout/boxes';
-import { Label } from 'dome/controls/labels';
-
+import { Label } from 'dome/primitive/displays';
 
 /* --------------------------------------------------------------------------*/
 /* --- Panel Container                                                       */

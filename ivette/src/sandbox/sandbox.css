@@ -47,3 +47,15 @@
 .sandbox-xTree-folding-position svg{
     rotate: -90deg;
 }
+
+/* -------------------------------------------------------------------------- */
+/* --- Sandbox Button                                                     --- */
+/* -------------------------------------------------------------------------- */
+.sandbox-xControls-item {
+    padding: 5px;
+    display: flex;
+    border-radius: 5px;
+    align-items: center;
+    gap: 15px;
+    /* background-color: var(--background-softer); */
+}

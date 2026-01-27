@@ -12,7 +12,7 @@
 
 import React from 'react';
 import { Hbox } from 'dome/layout/boxes';
-import { Label, Cell, Code } from 'dome/controls/labels';
+import { Label, Cell, Code } from 'dome/primitive/displays';
 import * as Ast from 'frama-c/kernel/api/ast';
 import * as States from 'frama-c/states';
 import * as Region from './api';

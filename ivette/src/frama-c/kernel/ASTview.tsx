@@ -14,7 +14,7 @@ import * as Editor from 'dome/text/editor';
 import * as Utils from 'dome/data/arrays';
 import * as States from 'frama-c/states';
 import * as Settings from 'dome/data/settings';
-import { IconButton } from 'dome/controls/buttons';
+import { IconButton } from 'dome/primitive/controls';
 import { Inset } from 'dome/frame/toolbars';
 import * as Ast from 'frama-c/kernel/api/ast';
 import { text } from 'frama-c/kernel/api/data';
@@ -702,7 +702,7 @@ export default function ASTview(): JSX.Element {
 
   // State unFoldButton
   const [isFoldText, setIsFoldText] = React.useState(false);
-  const icon = 'CHEVRON.' + (isFoldText ? 'EXPAND' : 'CONTRACT');
+  const icon = isFoldText ? 'CHEVRON.EXPAND' : 'CHEVRON.CONTRACT';
   const title = isFoldText ? 'Expand' : 'Collapse';
   const unFoldButtonClicked = (): void => { setIsFoldText(!isFoldText); };
 
@@ -745,7 +745,7 @@ export default function ASTview(): JSX.Element {
       <TitleBar help="framac-ast">
         <IconButton
           icon="SEARCH"
-          enabled={!!scope}
+          disabled={!scope}
           onClick={toggleSearchPanel}
           title='Search in AST'
         />

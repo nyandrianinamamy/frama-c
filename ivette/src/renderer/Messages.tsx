@@ -8,10 +8,9 @@
 
 import * as React from 'react';
 import * as Dome from 'dome';
-import { IconButton } from 'dome/controls/buttons';
-import { Label, Cell } from 'dome/controls/labels';
+import { IconButton } from 'dome/primitive/controls';
+import { Label, Cell, Icon } from 'dome/primitive/displays';
 import { Page } from 'dome/text/pages';
-import { Icon } from 'dome/controls/icons';
 import { Scroll, Vbox } from 'dome/layout/boxes';
 import { RSplit, BSplit } from 'dome/layout/splitters';
 import * as Forms from 'dome/layout/forms';

@@ -28,7 +28,7 @@
     --background-disabled-hover: #a6a6a6;
     --background-intense: #dcdcdc;
     --background-softer: #f0f0f0;
-    --background-sidebar: #e3e8ec;
+    --background-sidebar: #dcdcdc;
     --background-button-hover: #c0c0c0;
     --background-alterning-odd: #fdfdfd;
     --background-alterning-even: #efefef;
@@ -43,30 +43,32 @@
     --lcd-button-color: #61611a;
     --lcd-button-background: #b2b798;
 
-    --default-button-color: #e8e8e8;
+    /** Color kind */
+    --default-color: #afafaf;
+    --primary-color: #449bef;
+    --positive-color: #31873e;
+    --negative-color: #ec453e;
+    --warning-color: #fece72;
+
     --default-led-img: radial-gradient(circle at center, #9fd2f9, #81c9ff);
     --default-button-img: linear-gradient(to bottom, #e8e8e8 0%, #f1f1f1 100%);
     --default-button-hover: #ffffff;
     --default-button-active: #f9f9f9;
 
-    --primary-button-color: #449bef;
     --primary-button-img: linear-gradient(to bottom, #449bef 0%, #4990e2 100%);
     --primary-button-hover: #00b6ff;
     --primary-button-active: #ddd;
 
-    --positive-button-color: #31873e;
     --positive-led-img: radial-gradient(circle at center, #50c140, #279c16);
     --positive-button-img: linear-gradient(to bottom, #34ff52 0%, #48fd64 100%);
     --positive-button-hover: #ffffff;
     --positive-button-active: #ffffff;
 
-    --negative-button-color: #ec453e;
     --negative-led-img: radial-gradient(circle at center, #ff5b56, #f75a55c7);
     --negative-button-img: linear-gradient(to bottom, #ec453e 0%, #ff4c47 100%);
     --negative-button-hover: red;
     --negative-button-active: #ffffff;
 
-    --warning-button-color: #fece72;
     --warning-led-img: radial-gradient(circle at center, #ffc749, #ecd44f);
     --warning-button-img: linear-gradient(to bottom, #ffb000 0%, #ffb449 100%);
     --warning-button-hover: orange;

@@ -12,7 +12,7 @@ import { classes } from 'dome/misc/utils';
 import * as CS from '@codemirror/state';
 import * as CM from '@codemirror/view';
 import { Change, diffLines } from 'diff';
-import { Button } from 'dome/controls/buttons';
+import { Button } from 'dome/primitive/controls';
 
 /* -------------------------------------------------------------------------- */
 /* --- Basic Definitions                                                  --- */

@@ -16,7 +16,7 @@ import { classes } from 'dome/misc/utils';
 import * as States from 'frama-c/states';
 import * as Ast from 'frama-c/kernel/api/ast';
 import * as EvaDef from 'frama-c/plugins/eva/EvaDefinitions';
-import { Icon } from 'dome/controls/icons';
+import { Icon } from 'dome/primitive/displays';
 
 /* -------------------------------------------------------------------------- */
 /* --- Eva form section                                                   --- */

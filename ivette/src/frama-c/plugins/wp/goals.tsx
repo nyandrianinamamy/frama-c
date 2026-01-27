@@ -7,14 +7,14 @@
 /* ************************************************************************ */
 
 import React from 'react';
-import { Icon } from 'dome/controls/icons';
-import { IconKind, Cell, Descr } from 'dome/controls/labels';
+import { Cell, Descr, Icon } from 'dome/primitive/displays';
 import { Filter } from 'dome/table/models';
 import { Table, Column } from 'dome/table/views';
 import * as States from 'frama-c/states';
 import * as Ast from 'frama-c/kernel/api/ast';
 import * as WP from 'frama-c/plugins/wp/api';
 import * as Locations from 'frama-c/kernel/Locations';
+import { ColorKind } from 'dome/primitive/colors';
 
 /* -------------------------------------------------------------------------- */
 /* --- Table Cells                                                        --- */
@@ -26,14 +26,14 @@ interface IconProps {
 }
 
 function renderIcon(s : IconProps): JSX.Element {
-  const { icon=' ', title } = s;
-  return <Icon id={icon} title={title} />;
+  const { icon, title } = s;
+  return icon ? <Icon id={icon} title={title} /> : <></>;
 }
 
 interface CellProps {
   icon: string;
   label: string;
-  kind: IconKind;
+  kind: ColorKind;
   title: string;
 }
 
@@ -76,12 +76,12 @@ export function getScript(g : WP.goalsData): IconProps {
 /* -------------------------------------------------------------------------- */
 
 const noResult : CellProps =
-  { icon: 'MINUS', label: 'No Result', kind: 'disabled', title: 'No Result' };
+  { icon: 'MINUS', label: 'No Result', kind: 'default', title: 'No Result' };
 
 interface BaseProps {
   icon: string;
   label: string;
-  kind: IconKind;
+  kind: ColorKind;
   title: string;
 }
 

@@ -47,7 +47,7 @@
 
 import React from 'react';
 import * as Dome from 'dome';
-import { Title } from 'dome/controls/labels';
+import { Title } from 'dome/primitive/displays';
 import { classes, styles } from 'dome/misc/utils';
 import './style.css';
 
@@ -276,6 +276,25 @@ export function TitleBar(props: TitleBarProps): JSX.Element {
       <Hbox><Title label={label} title={label}/></Hbox>
       <Hbox>{ children }</Hbox>
     </Hbox>
+  );
+}
+
+// --------------------------------------------------------------------------
+// --- TitleBar
+// --------------------------------------------------------------------------
+
+export function Section(
+  { title, children }: { title?: string, children: React.ReactNode }
+): React.JSX.Element {
+  return (
+    <Vbox>
+      {title &&
+        <Vbox className='dome-xMenu-Item-title dome-xMenu-Item-separator'>
+          {title}
+        </Vbox>
+      }
+      {children}
+    </Vbox>
   );
 }
 

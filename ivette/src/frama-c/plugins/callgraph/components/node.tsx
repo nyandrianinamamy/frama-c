@@ -10,8 +10,7 @@ import React from 'react';
 import { NodeObject as NodeObject3D } from 'react-force-graph-3d';
 
 import { classes } from 'dome/misc/utils';
-import { LED } from 'dome/controls/displays';
-import { Icon } from 'dome/controls/icons';
+import { LED, Icon } from 'dome/primitive/displays';
 import { renderTaint } from 'frama-c/kernel/Properties';
 import * as States from 'frama-c/states';
 

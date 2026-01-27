@@ -16,9 +16,8 @@ import * as Json from 'dome/data/json';
 import * as Settings from 'dome/data/settings';
 import * as Preferences from 'ivette/prefs';
 import * as Toolbars from 'dome/frame/toolbars';
-import { IconButton } from 'dome/controls/buttons';
-import { Icon } from 'dome/controls/icons';
-import { Label } from 'dome/controls/labels';
+import { Button, ButtonGroup, IconButton } from 'dome/primitive/controls';
+import { Label } from 'dome/primitive/displays';
 import * as Text from 'dome/text/richtext';
 import { TextBuffer, TextView } from 'dome/text/richtext';
 import { resolve } from 'dome/system';
@@ -208,26 +207,26 @@ export const Control = (): JSX.Element => {
   }
 
   return (
-    <Toolbars.ButtonGroup>
-      <Toolbars.Button
+    <ButtonGroup>
+      <Button
         icon="MEDIA.PLAY"
-        enabled={play.enabled}
+        disabled={!play.enabled}
         onClick={play.onClick}
         title="Start the server"
       />
-      <Toolbars.Button
+      <Button
         icon="RELOAD"
-        enabled={reload.enabled}
+        disabled={!reload.enabled}
         onClick={reload.onClick}
         title="Restart the server"
       />
-      <Toolbars.Button
+      <Button
         icon="MEDIA.STOP"
-        enabled={stop.enabled}
+        disabled={!stop.enabled}
         onClick={stop.onClick}
         title="Stop the server"
       />
-    </Toolbars.ButtonGroup>
+    </ButtonGroup>
   );
 };
 

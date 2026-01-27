@@ -10,7 +10,7 @@ import React from 'react';
 
 import * as Forms from 'dome/layout/forms';
 import { Hbox } from 'dome/layout/boxes';
-import { Button } from 'dome/frame/toolbars';
+import { Button } from 'dome/primitive/controls';
 
 // --------------------------------------------------------------------------
 // --- Actions

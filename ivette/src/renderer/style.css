@@ -251,7 +251,7 @@
 }
 
 .labview-close:hover {
-    fill: var(--negative-button-color);
+    fill: var(--negative-color);
 }
 
 .labview-icon {
@@ -284,7 +284,7 @@
 }
 
 .labview-notification-message {
-    background: var(--primary-button-color);
+    background: var(--primary-color);
 }
 
 .labview-notification-message:hover {
@@ -292,7 +292,7 @@
 }
 
 .labview-notification-warning {
-    background: var(--warning-button-color);
+    background: var(--warning-color);
 }
 
 .labview-notification-warning:hover {
@@ -300,7 +300,7 @@
 }
 
 .labview-notification-error {
-    background: var(--negative-button-color);
+    background: var(--negative-color);
 }
 
 .labview-notification-error:hover {
@@ -359,71 +359,6 @@
 /* -------------------------------------------------------------------------- */
 /* --- Dock & Tabs                                                        --- */
 /* -------------------------------------------------------------------------- */
-
-.labview-tab {
-    position: relative;
-    flex: 0 0 auto;
-    display: inline-flex;
-    align-items: center;
-    fill: var(--info-text);
-    color: var(--info-text);
-    font-size: smaller;
-    font-weight: normal;
-    line-height: 1;
-    height: 28px;
-    min-width: 120px;
-    margin: 0px 1px 0px 0px;
-    padding: 5px 8px 5px 10px;
-    border: solid 1px var(--border-discrete);
-    border-bottom-color: var(--background);
-    border-radius: 0px;
-    box-shadow: none;
-    background: var(--background);
-}
-
-.labview-tab > svg,
-.labview-tab > label,
-.labview-tab-closing {
-    align-self: center;
-}
-
-.labview-tab > svg {
-    position: static;
-}
-
-.labview-tab > label {
-    line-height: 1;
-}
-
-.dome-xToolBar-control.labview-tab.dome-selected {
-    color: var(--text);
-    fill: var(--text);
-    background: var(--background-profound);
-    border-color: var(--border);
-    border-bottom-color: var(--background-profound);
-    border-top-color: var(--selected-button-img);
-    box-shadow: inset 0px 1px 0px var(--selected-button-img);
-    z-index: 1;
-}
-
-.dome-xToolBar-control.labview-tab.dome-selected:hover {
-    background: var(--background-profound);
-}
-
-.dome-xToolBar-control.labview-tab:hover {
-    fill: var(--text);
-    color: var(--text);
-    background: var(--background-softer);
-}
-
-.labview-tab-closing {
-    margin-left: auto;
-    fill: var(--info-text-discrete);
-}
-
-.labview-tab:not(:hover) .labview-tab-closing {
-    visibility: hidden;
-}
 
 .labview-docked {
     font-size: smaller;

@@ -17,15 +17,16 @@ import * as Dome from 'dome';
 import { classes } from 'dome/misc/utils';
 import { alpha } from 'dome/data/compare';
 import { Section, Item, SidebarTitle, makeBadge } from 'dome/frame/sidebars';
-import * as Buttons from 'dome/controls/buttons';
-import { Label } from 'dome/controls/labels';
-import * as Toolbar from 'dome/frame/toolbars';
-import { Hbox } from 'dome/layout/boxes';
+import {
+  BaseButtonProps,
+  Button, ButtonGroup, Checkbox, IconButton, SingleChoiceGroup
+} from 'dome/primitive/controls';
+import { Label, Icon } from 'dome/primitive/displays';
+import { Hbox, Section as BoxesSection } from 'dome/layout/boxes';
 import * as Forms from 'dome/layout/forms';
 import { Tree, Node } from 'dome/frame/tree';
 import { RState } from 'dome/data/states';
 import { Dropdown } from 'dome/dialogs';
-import { Icon } from 'dome/controls/icons';
 import * as Json from 'dome/data/json';
 import { useWindowSettings } from 'dome/data/settings';
 import { HelpButton } from 'dome/help';
@@ -77,21 +78,20 @@ function resetMode(enabled: boolean): void {
 // --------------------------------------------------------------------------
 
 export type setting = [boolean, () => void]
-interface MenuItemProps {
+export interface MenuItemProps {
   label: string,
   state: setting,
   title?: string,
   enabled?: boolean
 }
 
-export function menuItem(props: MenuItemProps): Buttons.ItemProps {
-  const { label, state, title, enabled = true } = props;
+export function menuItem(props: MenuItemProps): BaseButtonProps {
+  const { label, state, title } = props;
   const [b, flip] = state;
   return {
     label: label,
-    enabled: enabled,
     title: title || '',
-    checked: b,
+    selected: b,
     onClick: flip,
   };
 }
@@ -142,7 +142,9 @@ function List(props: ListProps): JSX.Element {
   const Name = name.charAt(0).toUpperCase() + name.slice(1);
   const count = children.length;
 
-  const filterButtonProps = {
+  const filterButtonProps: {
+    icon: string; title: string, onClick: () => void
+  } = {
     icon: 'FILTER',
     title: `${Name}s filtering options (${count} / ${total})`,
     onClick: () => filteringMenuItems && Dome.popupMenu(filteringMenuItems),
@@ -151,7 +153,7 @@ function List(props: ListProps): JSX.Element {
   let contents;
 
   if (count <= 0 && total > 0) {
-    const button = <Buttons.Button {...filterButtonProps}
+    const button = <Button {...filterButtonProps}
       label={`${Name}s filters`} />;
     contents =
       <div className='dome-xSideBarSection-content'>
@@ -231,7 +233,7 @@ function FctItem(props: FctItemProps): JSX.Element {
     >
       {attributes && <span className="globals-attr">{attributes}</span>}
       {scopes && scopes.includes(decl) &&
-        <Icon id='MULTICHECK' kind='selected'
+         <Icon id='MULTICHECK' kind='primary'
           title={'Selected in the Locations panel: ' + selectionLabel} />
       }
     </Item>
@@ -300,18 +302,24 @@ function useFiltersFlipSettings(label: string, type: string, b: boolean)
   return Dome.useFlipSettings(`ivette.${type}.${label}`, b);
 }
 
+interface SelectButtonElement {
+  value: string;
+  label: string;
+  title: string;
+}
+
 function getSelectElement(descr: string, kind: string)
-  : Buttons.SelectButtonElement {
+  : SelectButtonElement {
   const label = descr.replace(kind, "").replace(/\s*\([^)]*\)/g, '');
   const title = `Show only ${descr}`;
-  return { id: descr, label, title };
+  return { value: descr, label, title };
 }
 
 function getFilterButtonProps(f: LocalFilter, kind: string)
-  : Buttons.SelectButtonElement[] {
+  : SelectButtonElement[] {
   const allTitle = `Show both ${f.positive_label} and ${f.negative_label}`;
   return [
-    { id: 'all', label: 'All', title: allTitle },
+    { value: 'all', label: 'All', title: allTitle },
     getSelectElement(f.positive_label, kind),
     getSelectElement(f.negative_label, kind)
   ];
@@ -354,16 +362,19 @@ export function useFunctionFilter(): FunctionFilterRet {
   }, [localFilters, selected, isSelected, multipleSelectionActive
   ]);
 
-  const itemsComp = localFilters.map(e =>
-    <Buttons.SelectButton
+  const itemsComp = localFilters.map(e => {
+    const buttonList = getFilterButtonProps(e, 'functions');
+    return <SingleChoiceGroup
       key={e.id}
-      buttonList={getFilterButtonProps(e, 'functions')}
-      selected={e.value}
-      onSelection={(a: string) => setLocalFilters(e.id, a)}
-    />
-  );
+      value={e.value}
+      separate={true}
+      onChange={(a) => typeof(a) === 'string' && setLocalFilters(e.id, a)}
+    >
+      {buttonList.map(b => <Button key={b.value} {...b} /> )}
+    </SingleChoiceGroup>;
+  });
 
-  itemsComp.push(<Toolbar.Button
+  itemsComp.push(<Button
     key='selectedOnly'
     label='Selected only'
     selected={selectedState[0]}
@@ -372,8 +383,9 @@ export function useFunctionFilter(): FunctionFilterRet {
     disabled={!multipleSelectionActive} />
   );
 
-  const contextFctFilter = <Buttons.Multiselect title="Show functions">
-    {itemsComp}</Buttons.Multiselect>;
+  const contextFctFilter = <BoxesSection title="Show functions">
+    {itemsComp}
+  </BoxesSection>;
 
   return { contextFctFilter, multipleSelection, showFunction, isSelected };
 }
@@ -432,7 +444,7 @@ function VarItem(props: VarItemProps): JSX.Element {
       onSelection={() => States.setCurrentScope(decl)}
     >
       {markers && markers.includes(varMarker) &&
-        <Icon id='MULTICHECK' kind='selected'
+         <Icon id='MULTICHECK' kind='primary'
           title={'Selected in the Locations panel: ' + selectionLabel} />
       }
     </Item>
@@ -457,17 +469,21 @@ export function useVariableFilter(): VariablesFilterRet {
     };
   }, [localFilters]);
 
-  const itemsComp = localFilters.map(e =>
-    <Buttons.SelectButton
+  const itemsComp = localFilters.map(e => {
+    const buttonList = getFilterButtonProps(e, 'variables');
+    return <SingleChoiceGroup
       key={e.id}
-      buttonList={getFilterButtonProps(e, 'variables')}
-      selected={e.value}
-      onSelection={(a: string) => setLocalFilters(e.id, a)}
-    />
-  );
-  const contextVarFilter = <Buttons.Multiselect title='Show variables'>
+      value={e.value}
+      separate={true}
+      onChange={(a) => typeof(a) === 'string' && setLocalFilters(e.id, a)}
+    >
+      {buttonList.map(b => <Button key={b.value} {...b} /> )}
+    </SingleChoiceGroup>;
+  });
+
+  const contextVarFilter = <BoxesSection title='Show variables'>
     {itemsComp}
-  </Buttons.Multiselect>;
+  </BoxesSection>;
 
   return { contextVarFilter, showVariable };
 }
@@ -683,7 +699,7 @@ export function useAnnotFilter(): AnnotFilterRet {
     linvariants, lmodel, lvolatile, lextensions
   ]);
 
-  const contextMenuItems: Buttons.MultiselectItemProps[] = [
+  const contextMenuItems = [
     menuItem({
       label: 'Show Logic Types',
       state: ltypesState
@@ -723,9 +739,10 @@ export function useAnnotFilter(): AnnotFilterRet {
   ];
 
   const itemsComp = contextMenuItems.map(
-    (e, i) => <Buttons.MultiselectItem key={i} item={e} />);
+    (e, i) => <Checkbox key={i} {...e} />
+  );
   const contextAnnotFilter =
-    <Buttons.Multiselect>{itemsComp}</Buttons.Multiselect>;
+    <ButtonGroup vertical={true}>{itemsComp}</ButtonGroup>;
 
   return {
     contextAnnotFilter,
@@ -1113,7 +1130,7 @@ export function Files(props: FilesProps): JSX.Element {
           }
           {showFcts ? <Node key='fctsFiltered' id='fctsFiltered'
             label={'Functions'} title={'Functions'} actions={<>
-              <Dropdown control={<Buttons.IconButton icon='FILTER' />}
+              <Dropdown control={<IconButton icon='FILTER' />}
               >{contextFctFilter}</Dropdown>
               {makeBadge(fctsFiltered.length)}
             </>}
@@ -1123,7 +1140,7 @@ export function Files(props: FilesProps): JSX.Element {
           {showVars ? <Node key='varsFiltered' id='varsFiltered'
             label={'Variables'} title={'Variables'}
             actions={<>
-              <Dropdown control={<Buttons.IconButton icon='FILTER' />}
+              <Dropdown control={<IconButton icon='FILTER' />}
               >{contextVarFilter}</Dropdown>
               {makeBadge(varsFiltered.length)}
             </>}
@@ -1133,7 +1150,7 @@ export function Files(props: FilesProps): JSX.Element {
           {showAnnot ? <Node key='annotsFiltered' id='annotsFiltered'
             label={'Annotations'} title={'Annotations'}
             actions={<>
-              <Dropdown control={<Buttons.IconButton icon='FILTER' />}
+              <Dropdown control={<IconButton icon='FILTER' />}
               >{contextAnnotFilter}</Dropdown>
               {makeBadge(annotsFiltered.length)}
             </>}
@@ -1165,42 +1182,42 @@ function SidebarFilesTools(props: SidebarFilesToolProps): React.JSX.Element {
   const [showVars, flipShowVars] = props.showVarsState;
   const [showAnnot, flipShowAnnot] = props.showAnnotState;
 
-  const typesButton = <Toolbar.Button icon="T" title={'Show types'}
-    selected={showTypes} onClick={() => flipShowTypes()} />;
-  const fctsButton = <Toolbar.Button icon="F" title={'Show functions'}
-    selected={showFcts} onClick={() => flipShowFcts()} />;
-  const varsButton = <Toolbar.Button icon="V" title={'Show variables'}
-    selected={showVars} onClick={() => flipShowVars()} />;
-  const annotsButton = <Toolbar.Button icon="A" title={'Show annotations'}
-    selected={showAnnot} onClick={() => flipShowAnnot()} />;
+  const typesButton = <Button icon="T" title={'Show types'}
+    selected={showTypes}  onClick={() => flipShowTypes()} />;
+  const fctsButton = <Button icon="F" title={'Show functions'}
+    selected={showFcts}  onClick={() => flipShowFcts()} />;
+  const varsButton = <Button icon="V" title={'Show variables'}
+    selected={showVars}  onClick={() => flipShowVars()} />;
+  const annotsButton = <Button icon="A" title={'Show annotations'}
+    selected={showAnnot}  onClick={() => flipShowAnnot()} />;
 
   return (
     <div className='sidebar-files-tools'>
       <Hbox className='sidebar-files-tools-filter'>
         <Hbox>
-          {typesButton}
-          <Toolbar.ButtonGroup>
-            {fctsButton}
-            <Dropdown control={<Toolbar.Button icon='FILTER' />}
+          { typesButton }
+          <ButtonGroup>
+            { fctsButton }
+            <Dropdown control={ <Button icon='FILTER' /> }
             >{props.contextFctFilter}</Dropdown>
-          </Toolbar.ButtonGroup>
-          <Toolbar.ButtonGroup>
-            {varsButton}
-            <Dropdown control={<Toolbar.Button icon='FILTER' />}
+          </ButtonGroup>
+          <ButtonGroup>
+            { varsButton }
+            <Dropdown control={ <Button icon='FILTER' /> }
             >{props.contextVarFilter}</Dropdown>
-          </Toolbar.ButtonGroup>
-          <Toolbar.ButtonGroup>
-            {annotsButton}
-            <Dropdown control={<Toolbar.Button icon='FILTER' />}
+          </ButtonGroup>
+          <ButtonGroup>
+            { annotsButton }
+            <Dropdown control={ <Button icon='FILTER' /> }
             >{props.contextAnnotFilter}</Dropdown>
-          </Toolbar.ButtonGroup>
+          </ButtonGroup>
         </Hbox>
       </Hbox>
       <Forms.TextField
         label=''
         placeholder='Search'
         state={searchByNameState}
-        actions={<Buttons.IconButton
+        actions={<Button
           icon='TRASH'
           onClick={() =>
             searchByNameState.onChanged(undefined, undefined, false)}
@@ -1217,9 +1234,9 @@ function SidebarFilesTools(props: SidebarFilesToolProps): React.JSX.Element {
 export function GlobalByFiles(): JSX.Element {
   const scrollableArea = React.useRef<HTMLDivElement>(null);
 
-  // display in list
-  const [dispInList, flipDispInList] =
-    Dome.useFlipSettings('ivette.sidebar.file.disp.inlist', false);
+  // display mode: list | tree
+  const [displayMode, setDisplayMode] =
+    Dome.useStringSettings('ivette.sidebar.file.disp.inlist', 'list');
 
   // For input text
   const searchByNameState = Forms.useState<string | undefined>(undefined);
@@ -1249,42 +1266,44 @@ export function GlobalByFiles(): JSX.Element {
   const [unfoldAll, setUnfoldAll] = unfoldAllState;
 
   return (<>
-    <SidebarTitle label='Files'>
-      <Hbox style={{ alignItems: "center" }}>
-        <Toolbar.ButtonGroup>
-          <Toolbar.Button
-            icon="CHEVRON.CONTRACT"
-            title={'Fold all'}
-            disabled={unfoldAll === false}
-            onClick={() => setUnfoldAll(false)}
+      <SidebarTitle label='Files'>
+        <Hbox style={{ alignItems: "center" }}>
+          <ButtonGroup>
+            <Button
+              icon="CHEVRON.CONTRACT"
+              title={'Fold all'}
+              disabled={unfoldAll === false}
+              onClick={() => setUnfoldAll(false)}
+              />
+            <Button
+              icon='CHEVRON.EXPAND'
+              title={'Unfold all'}
+              disabled={unfoldAll}
+              onClick={() => setUnfoldAll(true)}
+              />
+          </ButtonGroup>
+          <SingleChoiceGroup
+            value='list'
+            onChange={(m) => {
+              if(m && typeof(m) === 'string') setDisplayMode(m); }
+            }>
+            <Button
+              icon="ITEMS.LIST"
+              title={'Display in list'}
+              value='list'
+              />
+            <Button
+              icon='TREE'
+              title={'Display in tree'}
+              value='tree'
+              />
+          </SingleChoiceGroup>
+          <HelpButton
+            id={'framac-files-sidebar'}
+            size={13}
           />
-          <Toolbar.Button
-            icon='CHEVRON.EXPAND'
-            title={'Unfold all'}
-            disabled={unfoldAll}
-            onClick={() => setUnfoldAll(true)}
-          />
-        </Toolbar.ButtonGroup>
-        <Toolbar.ButtonGroup>
-          <Toolbar.Button
-            icon="ITEMS.LIST"
-            title={'Display in list'}
-            selected={dispInList}
-            onClick={() => flipDispInList()}
-          />
-          <Toolbar.Button
-            icon='TREE'
-            title={'Display in tree'}
-            selected={!dispInList}
-            onClick={() => flipDispInList()}
-          />
-        </Toolbar.ButtonGroup>
-        <HelpButton
-          id={'framac-files-sidebar'}
-          size={13}
-        />
-      </Hbox>
-    </SidebarTitle>
+        </Hbox>
+      </SidebarTitle>
     <SidebarFilesTools
       searchByNameState={searchByNameState}
       unfoldAllState={unfoldAllState}
@@ -1307,7 +1326,7 @@ export function GlobalByFiles(): JSX.Element {
         showVariable={showVariable}
         showAnnotState={showAnnotState}
         showAnnotation={showAnnotation}
-        dispInList={dispInList}
+        dispInList={displayMode ==='list'}
         contextFctFilter={contextFctFilter}
         contextVarFilter={contextVarFilter}
         contextAnnotFilter={contextAnnotFilter}

@@ -11,8 +11,9 @@
 /* -------------------------------------------------------------------------- */
 
 import React from 'react';
-import { Code } from 'dome/controls/labels';
-import { ToolBar, ButtonGroup, Button, Filler } from 'dome/frame/toolbars';
+import { Code } from 'dome/primitive/displays';
+import { ToolBar, Filler } from 'dome/frame/toolbars';
+import { ButtonGroup, Button } from 'dome/primitive/controls';
 import { Graph, Node, Edge, Layout } from 'dome/graph/graph';
 import { registerSandbox } from 'ivette';
 

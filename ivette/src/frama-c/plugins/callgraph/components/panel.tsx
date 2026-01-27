@@ -9,11 +9,11 @@
 import React from 'react';
 
 import * as Dome from 'dome';
-import { Label } from 'dome/controls/labels';
 import { Panel as DPanel, ListElement } from 'dome/frame/panel';
-import { ButtonGroup, Button } from 'dome/frame/toolbars';
-import { LED } from 'dome/controls/displays';
-import { Icon } from 'dome/controls/icons';
+import {
+  ButtonGroup, Button, IconButton, Checkbox, BaseButtonProps
+} from 'dome/primitive/controls';
+import { LED, Label, Icon } from 'dome/primitive/displays';
 
 import { decl } from 'frama-c/kernel/api/ast';
 import { statusData } from 'frama-c/kernel/api/properties';
@@ -25,8 +25,8 @@ import {
 } from 'frama-c/kernel/Properties';
 
 import { CGData, SelectedNodes } from "../definitions";
-import { IconButton } from 'dome/controls/buttons';
 import { Hbox } from 'dome/layout/boxes';
+import { Dropdown } from 'dome/dialogs';
 
 
 /* -------------------------------------------------------------------------- */
@@ -34,9 +34,9 @@ import { Hbox } from 'dome/layout/boxes';
 /* -------------------------------------------------------------------------- */
 
 interface PanelFilterParams {
-  contextMenuStatus: Dome.PopupMenuItem[];
-  contextMenuKind: Dome.PopupMenuItem[];
-  contextMenuEva: Dome.PopupMenuItem[];
+  contextMenuStatus: BaseButtonProps[];
+  contextMenuKind: BaseButtonProps[];
+  contextMenuEva: BaseButtonProps[];
 }
 
 function getPanelFilters(params: PanelFilterParams): JSX.Element {
@@ -45,11 +45,17 @@ function getPanelFilters(params: PanelFilterParams): JSX.Element {
   return (
     <>
       <ButtonGroup>
-        <Button
+        {/* <Button
           label="Status"
           title={`Select visible status`}
           onClick={() => Dome.popupMenu(contextMenuStatus)}
-          />
+          /> */}
+        <Dropdown control={<Button
+          label='Status'
+          title='Select visible status'/>}
+        >{contextMenuStatus.map(
+          (e, i) => <Checkbox key={i} {...e} />
+        )}</Dropdown>
         <Button
           icon={'TUNINGS'}
           title={`Select visible status`}
@@ -58,11 +64,15 @@ function getPanelFilters(params: PanelFilterParams): JSX.Element {
       </ButtonGroup>
 
       <ButtonGroup>
-        <Button
+        {/* <Button
           label="Kind"
           title={`Select visible kind`}
           onClick={() => Dome.popupMenu(contextMenuKind)}
-          />
+          /> */}
+        <Dropdown control={<Button label='Kind' title='Select visible kind'/>}
+        >{contextMenuKind.map(
+          (e, i) => <Checkbox key={i} {...e} />
+        )}</Dropdown>
         <Button
           icon={'TUNINGS'}
           title={`Select visible status`}
@@ -70,11 +80,17 @@ function getPanelFilters(params: PanelFilterParams): JSX.Element {
           />
       </ButtonGroup>
 
-      <Button
+      {/* <Button
           label="Eva"
           title={`Select visible Eva properties`}
           onClick={() => Dome.popupMenu(contextMenuEva)}
-          />
+          /> */}
+      <Dropdown control={<Button
+        label='Eva'
+        title='Select visible Eva properties'/>}
+      >{contextMenuEva.map(
+          (e, i) => <Checkbox key={i} {...e} />
+        )}</Dropdown>
     </>
   );
 }

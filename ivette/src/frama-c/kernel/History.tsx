@@ -12,8 +12,8 @@
 
 import React from 'react';
 import * as Dome from 'dome';
-import * as Toolbar from 'dome/frame/toolbars';
 import * as States from 'frama-c/states';
+import { Button, ButtonGroup } from 'dome/primitive/controls';
 
 Dome.addMenuItem({
   menu: 'View',
@@ -40,20 +40,20 @@ export default function History(): JSX.Element {
   const prevTitle = prevLabel || 'Previous location';
   const nextTitle = nextLabel || 'Next location';
   return (
-    <Toolbar.ButtonGroup>
-      <Toolbar.Button
+    <ButtonGroup>
+      <Button
         icon="ANGLE.LEFT"
         onClick={States.gotoPrev}
-        enabled={history.prev.length > 0}
+        disabled={history.prev.length <= 0}
         title={prevTitle}
       />
-      <Toolbar.Button
+      <Button
         icon="ANGLE.RIGHT"
         onClick={States.gotoNext}
-        enabled={history.next.length > 0}
+        disabled={history.next.length <= 0}
         title={nextTitle}
       />
-    </Toolbar.ButtonGroup>
+    </ButtonGroup>
   );
 }
 

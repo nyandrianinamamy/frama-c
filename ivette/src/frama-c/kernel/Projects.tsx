@@ -11,12 +11,12 @@ import React from 'react';
 import * as Dome from 'dome';
 import { alpha } from 'dome/data/compare';
 import { Item, SidebarTitle } from 'dome/frame/sidebars';
-import { Button, IconButton } from 'dome/controls/buttons';
+import { Button, IconButton } from 'dome/primitive/controls';
 import { Hbox } from 'dome/layout/boxes';
 import { useModel } from 'dome/table/models';
 import * as Dialogs from 'dome/dialogs';
 import { FieldState, TextField, useState } from 'dome/layout/forms';
-import { Icon } from 'dome/controls/icons';
+import { Icon } from 'dome/primitive/displays';
 import { HelpButton } from 'dome/help';
 
 import * as Server from 'frama-c/server';

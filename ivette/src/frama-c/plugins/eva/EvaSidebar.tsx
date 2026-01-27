@@ -27,6 +27,7 @@ import { EvaFormOptions } from 'frama-c/plugins/eva/components/Form';
 import EvaTools from './components/Tools';
 import { TaintSidebar } from './Taint';
 import { CallstackSelection } from './Callstack';
+import { Button, ButtonGroup } from 'dome/primitive/controls';
 
 const startComputing = new GlobalState<number>(0);
 
@@ -288,24 +289,21 @@ function EvaSidebarSelection(): React.JSX.Element {
 
   return (<>
     <SidebarTitle label='Selection' >
-      <Hbox style={{ alignItems: "center" }}>
-        <Toolbar.ButtonGroup>
-          <Toolbar.Button
-            key='taints'
-            label='Taints'
-            title='Show taints selection'
-            selected={selected === 'taints'}
-            onClick={() => setSelected('taints')}
-            /><Toolbar.Button
-            key='callstacks'
-            label='Callstacks'
-            title='Show callstacks selection'
-            selected={selected === 'callstacks'}
-            onClick={() => setSelected('callstacks')}
-            />
-        </Toolbar.ButtonGroup>
-        <HelpButton id={'eva-sidebars'} size={13} />
-      </Hbox>
+      <ButtonGroup>
+        <Button
+          key='taints'
+          label='Taints'
+          title='Show taints selection'
+          selected={selected === 'taints'}
+          onClick={() => setSelected('taints')}
+        /><Button
+          key='callstacks'
+          label='Callstacks'
+          title='Show callstacks selection'
+          selected={selected === 'callstacks'}
+          onClick={() => setSelected('callstacks')}
+        />
+      </ButtonGroup>
     </SidebarTitle>
     <div ref={scrollableArea} className="globals-scrollable-area">
       <div style={selected === "taints" ? opened : closed}>

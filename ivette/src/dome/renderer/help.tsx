@@ -14,16 +14,15 @@
 import React from 'react';
 import { GlobalState, useGlobalState } from 'dome/data/states';
 
-import { IconButton } from './controls/buttons';
+import { IconButton } from './primitive/controls';
 import { Modal, showModal } from './dialogs';
 import { Markdown, Pattern } from './text/markdown';
 import { SideBar, SidebarTitle } from './frame/sidebars';
 import { Tree, Node } from './frame/tree';
 import { LSplit } from './layout/splitters';
 
-import { Icon } from './controls/icons';
-import { LED } from './controls/displays';
-import { Button, ButtonGroup } from './frame/toolbars';
+import { LED, Icon } from './primitive/displays';
+import { Button, ButtonGroup } from './primitive/controls';
 import { useStyle } from './themes';
 
 /* --------------------------------------------------------------------------*/

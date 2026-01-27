@@ -13,8 +13,8 @@
 /* -------------------------------------------------------------------------- */
 
 import React from 'react';
-import * as Ctrl from 'dome/controls/buttons';
-import * as Disp from 'dome/controls/displays';
+import * as Buttons from 'dome/primitive/controls';
+import * as Disp from 'dome/primitive/displays';
 import * as Box from 'dome/layout/boxes';
 import { QSplit, QPane } from 'dome/layout/qsplit';
 import { registerSandbox } from 'ivette';
@@ -25,14 +25,14 @@ function Quarter(props: {
 }): JSX.Element {
   const onChange = (s?: string): void => props.setValue(s ? s : undefined);
   return (
-    <Ctrl.SelectMenu value={props.value ?? ''} onChange={onChange}>
+    <Buttons.Select value={props.value ?? ''} onChange={onChange}>
       <option value=''>-</option>
       <option value='A'>A</option>
       <option value='B'>B</option>
       <option value='C'>C</option>
       <option value='D'>D</option>
       <option value='E'>E</option>
-    </Ctrl.SelectMenu>
+    </Buttons.Select>
   );
 }
 
@@ -82,8 +82,8 @@ function QSplitSandbox(): JSX.Element {
   return (
     <Box.Vfill>
       <Box.Hfill>
-        <Ctrl.Button icon='RELOAD' label='Reset' onClick={reset} />
-        <Ctrl.Button icon='TRASH' label='Clear' onClick={clear} />
+        <Buttons.Button icon='RELOAD' label='Reset' onClick={reset} />
+        <Buttons.Button icon='TRASH' label='Clear' onClick={clear} />
         <Box.Space />
         <Disp.LCD>
           HTOP={round(HTOP)} HBOTTOM={round(HBOTTOM)} V={round(V)}

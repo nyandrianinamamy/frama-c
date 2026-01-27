@@ -13,15 +13,14 @@
 
 import React from 'react';
 import * as Dome from 'dome';
-import { IconButton } from 'dome/controls/buttons';
+import { IconButton } from 'dome/primitive/controls';
 import { registerSandbox, TitleBar } from 'ivette';
 import {
   Panel, ListElement, Element, PanelPosition
 } from 'dome/frame/panel';
-import { Button, ButtonGroup } from 'dome/frame/toolbars';
-import { Icon } from 'dome/controls/icons';
+import { Button, ButtonGroup } from 'dome/primitive/controls';
 import './style.css';
-import { Label } from 'dome/controls/labels';
+import { Label, Icon } from 'dome/primitive/displays';
 import { Modal, showModal } from 'dome/dialogs';
 
 /* -------------------------------------------------------------------------- */
@@ -64,7 +63,7 @@ function UsePanel(): JSX.Element {
         <IconButton
           icon="SIDEBAR"
           title={"show or hide the panel"}
-          onClick={flipVisible}
+          onClick={() => flipVisible()}
         />
       </TitleBar>
       <div style={{ position: 'relative', height: '100%' }}>

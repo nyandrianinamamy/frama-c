@@ -17,9 +17,8 @@ import * as Dome from 'dome';
 import * as Json from 'dome/data/json';
 import * as Compare from 'dome/data/compare';
 import * as Settings from 'dome/data/settings';
-import { Label, Code } from 'dome/controls/labels';
-import { Icon } from 'dome/controls/icons';
-import { IconButton, Checkbox } from 'dome/controls/buttons';
+import { Label, Code, Icon } from 'dome/primitive/displays';
+import { IconButton, Checkbox, BaseButtonProps } from 'dome/primitive/controls';
 import * as Form from 'dome/layout/forms';
 import * as Models from 'dome/table/models';
 import * as Arrays from 'dome/table/arrays';
@@ -316,14 +315,14 @@ export function filterProperty(p: Property): boolean {
 }
 
 export interface IFilterState {
-  contextMenu: Dome.PopupMenuItem[],
+  contextMenu: BaseButtonProps[],
   show: (status: Properties.statusData) => boolean
 }
 
 function getContextMenu(
   type: TFilterType,
   filters: { [key: string]: setting }
-): Dome.PopupMenuItem[] {
+): BaseButtonProps[] {
   const typeStr = type + ".";
   return Object.entries(DEFAULTS)
     .filter(([k,]) => k.startsWith(typeStr))
@@ -614,8 +613,8 @@ function CheckField(props: CheckFieldProps): JSX.Element {
       }}
       label={props.label}
       title={props.title}
-      value={value}
-      onChange={onChange}
+      selected={value}
+      onClick={onChange}
     />
   );
 }

@@ -29,9 +29,10 @@ import Events from 'events';
 import React, { Children } from 'react';
 import * as Dome from 'dome';
 import * as Utils from 'dome/misc/utils';
-import { Label } from 'dome/controls/labels';
-import { Icon, IconKind, SVG } from 'dome/controls/icons';
-import { Checkbox, Radio, SelectMenu, Button } from 'dome/controls/buttons';
+import { Label, SVG } from 'dome/primitive/displays';
+import { ColorKind } from 'dome/primitive/colors';
+import { Button, IconButton, Checkbox, Radio, Select, OnEvent, TypeValue }
+from 'dome/primitive/controls';
 import { Hbox, TitleBar, TitleBarProps } from 'dome/layout/boxes';
 
 export type FieldError =
@@ -882,11 +883,11 @@ export function ResetButton<A>(
 
   const isEqual = compare(equal, reset as A, value);
   return (
-    <Icon
-      id = "RELOAD"
+    <IconButton
+      icon = "RELOAD"
       title = {(title ?? "Reset")+(isEqual ? " : Field modified": "")}
       size = {12}
-      kind ={isEqual ? "warning" as IconKind : "default" as IconKind}
+      kind ={isEqual ? "warning" as ColorKind : "default" as ColorKind}
       onClick = {() => {
         onChanged(reset as A, undefined, true);
       }}
@@ -907,8 +908,8 @@ export function CommitButton<A>(
   );
   if(!commitAble) return null;
   return (
-    <Icon
-      id = "PUSH"
+    <IconButton
+      icon = "PUSH"
       title = {title ?? "Update FC"}
       size = {14}
       onClick = {() => {
@@ -1613,7 +1614,6 @@ export function ButtonField(props: FieldProps<boolean>): JSX.Element | null {
   const { value, onChanged } = props.state;
   const { label, title } = props;
   const css = Utils.classes(
-    'dome-xForm-field dome-text-label',
     disabled && 'dome-disabled',
   );
   const onClick = (): void => {
@@ -1662,8 +1662,8 @@ export function CheckboxField(props: CheckboxFieldProps): JSX.Element | null {
       label={label}
       title={title}
       disabled={disabled}
-      value={inverted ? !value : value}
-      onChange={onChange}
+      selected={inverted ? !value : value}
+      onClick={onChange}
     />
   );
 }
@@ -1673,18 +1673,20 @@ export function CheckboxField(props: CheckboxFieldProps): JSX.Element | null {
 /* --------------------------------------------------------------------------*/
 
 /** @category Form Fields */
-export interface RadioFieldProps<A> extends FieldProps<A> {
-  value: A;
+export interface RadioFieldProps extends FieldProps<TypeValue> {
+  value: TypeValue;
 }
 
 /** @category Form Fields */
-export function RadioField<A>(props: RadioFieldProps<A>): JSX.Element | null {
+export function RadioField(props: RadioFieldProps): JSX.Element | null {
   const { hidden, disabled } = useContext(props);
 
   if (hidden) return null;
 
   const { value: selection, onChanged } = props.state;
-  const onSelection = (value: A): void => onChanged(value, undefined, false);
+  const onSelection: OnEvent = (_evt, value: TypeValue): void => {
+    if(value !== undefined) onChanged(value, undefined, false);
+  };
   const { label, title, value } = props;
   const css = Utils.classes(
     'dome-xForm-field dome-text-label',
@@ -1698,8 +1700,8 @@ export function RadioField<A>(props: RadioFieldProps<A>): JSX.Element | null {
       title={title}
       value={value}
       disabled={disabled}
-      selection={selection}
-      onSelection={onSelection}
+      selected={selection === value}
+      onClick={onSelection}
     />
   );
 }
@@ -1733,7 +1735,7 @@ export function SelectField(props: SelectFieldProps): JSX.Element {
       error={error}
       htmlFor={id}
     >
-      <SelectMenu
+      <Select
         id={id}
         value={value}
         disabled={disabled}
@@ -1741,7 +1743,7 @@ export function SelectField(props: SelectFieldProps): JSX.Element {
         onChange={onChange}
       >
         {children}
-      </SelectMenu>
+      </Select>
     </Field>
   );
 }

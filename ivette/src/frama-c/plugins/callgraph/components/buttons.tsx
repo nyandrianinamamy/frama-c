@@ -7,7 +7,7 @@
 /* ************************************************************************ */
 
 import React from 'react';
-import { Button, ButtonGroup } from 'dome/frame/toolbars';
+import { Button, ButtonGroup } from 'dome/primitive/controls';
 import { useWindowSettings, useWindowSettingsData } from 'dome/data/settings';
 import { Decoder, Encoder, json, JsonTypeError } from 'dome/data/json';
 import { ModeDisplay } from '../definitions';

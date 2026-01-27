@@ -16,6 +16,7 @@ import { LSplit } from 'dome/layout/splitters';
 import { classes } from 'dome/misc/utils';
 import { Vfill } from 'dome/layout/boxes';
 import { Debug } from 'dome/system';
+import { Icon } from 'dome/primitive/displays';
 
 import * as Server from 'frama-c/server';
 import * as Params from 'frama-c/kernel/api/parameters';
@@ -25,7 +26,6 @@ import {
   customSyncError, State, syncErrorEvent, useServerField, useSyncValue
 } from '../states';
 import { Remote } from './actions';
-import { Icon } from 'dome/controls/icons';
 
 const D = new Debug('OptionsForms');
 

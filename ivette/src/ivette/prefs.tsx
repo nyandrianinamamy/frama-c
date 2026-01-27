@@ -18,8 +18,8 @@
 import React from 'react';
 import * as Dome from 'dome';
 import * as Themes from 'dome/themes';
-import * as Toolbar from 'dome/frame/toolbars';
 import * as Settings from 'dome/data/settings';
+import { Button, ButtonGroup, Switch } from 'dome/primitive/controls';
 
 /* -------------------------------------------------------------------------- */
 /* --- Theme Switcher Button                                              --- */
@@ -28,17 +28,16 @@ import * as Settings from 'dome/data/settings';
 export function ThemeSwitchTool(): JSX.Element {
   const [theme, setTheme] = Themes.useColorTheme();
   const other = theme === 'dark' ? 'light' : 'dark';
-  const position = theme === 'dark' ? 'left' : 'right';
   const title = `Switch to ${other} theme`;
   const onChange = (): void => setTheme(other);
-  return (
-    <Toolbar.Switch
-      disabled={!Dome.DEVEL}
-      title={title}
-      position={position}
-      onChange={onChange}
-    />
-  );
+
+  return <Switch
+    size={21}
+    display={Dome.DEVEL}
+    title={title}
+    selected={theme === 'light'}
+    onClick={onChange}
+  />;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -50,20 +49,20 @@ export function FontTools(): JSX.Element {
   const zoomIn = (): void => setFontSize(fontSize + 2);
   const zoomOut = (): void => setFontSize(fontSize - 2);
   return (
-    <Toolbar.ButtonGroup>
-      <Toolbar.Button
+    <ButtonGroup>
+      <Button
         icon="ZOOM.OUT"
         onClick={zoomOut}
-        enabled={fontSize > 4}
+        disabled={fontSize <= 4}
         title="Decrease font size"
       />
-      <Toolbar.Button
+      <Button
         icon="ZOOM.IN"
         onClick={zoomIn}
-        enabled={fontSize < 48}
+        disabled={fontSize >= 48}
         title="Increase font size"
       />
-    </Toolbar.ButtonGroup>
+    </ButtonGroup>
   );
 }
 

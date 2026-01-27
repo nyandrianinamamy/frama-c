@@ -7,6 +7,7 @@
 /* ************************************************************************ */
 
 import * as Forms from 'dome/layout/forms';
+import { TypeValue } from 'dome/primitive/controls';
 import { computationStateType } from 'frama-c/plugins/eva/api/analysis';
 
 export type KeyVal<A> = {[key: string]: A}
@@ -28,7 +29,7 @@ export type RadioList = KeyVal<string>
 
 export interface RadioFieldListProps {
   classeName?: string;
-  state: Forms.FieldState<string>;
+  state: Forms.FieldState<TypeValue>;
   values: RadioList;
   fieldProps: Forms.GenericFieldProps;
 }

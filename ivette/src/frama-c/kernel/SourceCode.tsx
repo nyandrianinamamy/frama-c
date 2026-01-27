@@ -12,9 +12,9 @@ import Path from 'path';
 import * as Dome from 'dome';
 import * as System from 'dome/system';
 import * as Editor from 'dome/text/editor';
-import * as Labels from 'dome/controls/labels';
+import * as Labels from 'dome/primitive/displays';
 import * as Settings from 'dome/data/settings';
-import * as Buttons from 'dome/controls/buttons';
+import * as Buttons from 'dome/primitive/controls';
 import * as Dialogs from 'dome/dialogs';
 import * as Toolbars from 'dome/frame/toolbars';
 
@@ -246,7 +246,7 @@ export default function SourceCode(): JSX.Element {
         <Toolbars.Filler />
         <Buttons.IconButton
           icon="SEARCH"
-          enabled={!!file}
+          disabled={!file}
           onClick={toggleSearchPanel}
           title='Search in source code'
         />

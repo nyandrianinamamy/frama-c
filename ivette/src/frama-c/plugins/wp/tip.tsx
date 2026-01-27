@@ -11,15 +11,12 @@ import React from 'react';
 import * as Dome from 'dome';
 
 import { classes } from 'dome/misc/utils';
-import { Icon } from 'dome/controls/icons';
-import { Cell, Item, Label, IconKind } from 'dome/controls/labels';
-import { IconButton } from 'dome/controls/buttons';
+import { Cell, Item, Label, Icon } from 'dome/primitive/displays';
 import { TextProxy, TextView, Decoration } from 'dome/text/richtext';
-import {
-  ToolBar, Select, Filler,
-  Button, ButtonGroup
-} from 'dome/frame/toolbars';
 import { Hfill, Vfill, Vbox, Overlay, Hbox } from 'dome/layout/boxes';
+import { IconButton, Button, ButtonGroup, Select, Switch }
+from 'dome/primitive/controls';
+import { ToolBar, Filler } from 'dome/frame/toolbars';
 import { writeClipboardText } from 'dome/system';
 
 import * as Server from 'frama-c/server';
@@ -38,6 +35,7 @@ import {
 } from './tac';
 
 import * as WpStrategy from 'frama-c/plugins/wp/api/strategydebugger';
+import { ColorKind } from 'dome/primitive/colors';
 
 /* -------------------------------------------------------------------------- */
 /* --- Sequent Printing Modes                                             --- */
@@ -64,19 +62,10 @@ function AFormatSelector(props: BoolSelector): JSX.Element {
     'wp-printer-field wp-printer-button',
     value && 'selected'
   );
-  return (
-    <Item
-      className={className}
-      label={props.label}
-      title={props.title}
-      onClick={(): void => { if (!disabled) { setValue(!value); } }}
-    >
-      <Icon
-        id={value ? 'SWITCH.ON' : 'SWITCH.OFF'}
-        kind={disabled ? 'disabled' : 'default'}
-      />
-    </Item>
-  );
+  return <Switch {...props}
+    className={className}
+    onClick={(): void => { if (!disabled) { setValue(!value); } }}
+  />;
 }
 
 function IFormatSelector(props: Selector<TIP.iformat>): JSX.Element {
@@ -234,7 +223,7 @@ const severityIcon: { [key: string]: string } = {
 
 };
 
-const severityKind: { [key: string]: IconKind } = {
+const severityKind: { [key: string]: ColorKind } = {
   Ok: 'positive',
   Ignored: 'default',
   Warning: 'warning',
@@ -396,12 +385,12 @@ export function StrategyDebugger(props: PatternDebuggerProps): JSX.Element {
         <Hbox display={alternatives.length > 1} className="labview-titlebar" >
           <IconButton
             icon={'ANGLE.LEFT'}
-            enabled={selected > 0}
+            disabled={selected <= 0}
             onClick={() => { setSelected(selected - 1); }}
           />
           <IconButton
             icon={'ANGLE.RIGHT'}
-            enabled={selected < alternatives.length - 1}
+            disabled={selected >= alternatives.length - 1}
             onClick={() => { setSelected(selected + 1); }}
           />
           <Label>Alternative #{selected + 1} / {alternatives.length} </Label>
@@ -554,13 +543,13 @@ export function TIPView(props: TIPProps): JSX.Element {
         <ButtonGroup>
           <Button
             icon='RELOAD'
-            enabled={script !== undefined && !saved}
+            disabled={script === undefined || saved}
             title='Replay Proof Script from Disk'
             onClick={onReload}
           />
           <Button
             icon='SAVE'
-            enabled={proof && !saved}
+            disabled={!proof || saved}
             title='Save Proof Script on Disk'
             onClick={onSave}
           />
@@ -569,13 +558,13 @@ export function TIPView(props: TIPProps): JSX.Element {
           <Button
             icon='MEDIA.PREV'
             kind='negative'
-            enabled={deleteAble}
+            disabled={!deleteAble}
             title={deleteTitle}
             onClick={onDelete} />
           <Button
             icon='CROSS'
             kind='negative'
-            enabled={proof || script !== undefined}
+            disabled={!proof && script === undefined}
             title='Clear Proof and Remove Script (if any)'
             onClick={onTrash}
           />
@@ -583,7 +572,7 @@ export function TIPView(props: TIPProps): JSX.Element {
         <ButtonGroup>
           <Button
             icon='ANGLE.LEFT'
-            enabled={prevAble}
+            disabled={!prevAble}
             title={prevTitle}
             onClick={onPrev} />
           <Button
@@ -592,14 +581,14 @@ export function TIPView(props: TIPProps): JSX.Element {
             onClick={onClose} />
           <Button
             icon='ANGLE.RIGHT'
-            enabled={nextAble}
+            disabled={!nextAble}
             title={nextTitle}
             onClick={onNext} />
         </ButtonGroup>
         <Button
           icon='MEDIA.HALT'
           kind='negative'
-          enabled={server.running}
+          disabled={!server.running}
           title={`Interrupt (${server.todo}/${server.todo + server.done})`}
           onClick={cancelProofTasks}
         />

@@ -13,8 +13,8 @@
 import * as React from 'react';
 
 import * as Display from 'ivette/display';
-import { IconButton } from 'dome/controls/buttons';
-import { Cell } from 'dome/controls/labels';
+import { IconButton } from 'dome/primitive/controls';
+import { Cell } from 'dome/primitive/displays';
 import { Page } from 'dome/text/pages';
 import * as Editor from 'dome/text/editor';
 import * as Arrays from 'dome/table/arrays';

@@ -10,14 +10,12 @@ import React from 'react';
 import * as Ivette from 'ivette';
 
 import { useFlipSettings, useStringSettings } from 'dome';
-import { Button, ButtonGroup, ToolBar } from 'dome/frame/toolbars';
+import { ToolBar } from 'dome/frame/toolbars';
 import { useModel } from 'dome/table/models';
-import { Label } from 'dome/controls/labels';
-import { Icon } from 'dome/controls/icons';
-import { IconButton } from 'dome/controls/buttons';
+import { Label, LED, LEDstatus, Icon } from 'dome/primitive/displays';
+import { Button, ButtonGroup, IconButton } from 'dome/primitive/controls';
 import { State } from 'dome/data/states';
 import * as Forms from 'dome/layout/forms';
-import { LED, LEDstatus } from 'dome/controls/displays';
 import { useColorTheme, useStyle } from 'dome/themes';
 import { HelpButton } from 'dome/help';
 
@@ -639,7 +637,7 @@ function Variable(props: VariableProps): React.ReactNode {
 
   function getPinButton(base: string): React.JSX.Element {
     return <IconButton icon='TABLE' title={`Filter on base ${base}`}
-        kind={varPin === base ? 'selected' : 'default'}
+        kind={varPin === base ? 'primary' : 'default'}
         onClick={() => setvarPin(varPin === base ? undefined : base)
       }
     />;

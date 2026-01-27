@@ -13,12 +13,11 @@
 import React from 'react';
 import * as Dome from 'dome';
 import * as Tools from 'dome/frame/toolbars';
-import { Label } from 'dome/controls/labels';
-import { LCD } from 'dome/controls/displays';
-import { IconButton } from 'dome/controls/buttons';
+import { LCD, Label } from 'dome/primitive/displays';
 import { showSaveFile } from 'dome/dialogs';
 import { writeFile } from 'dome/system';
 import { Vfill, Vbox } from 'dome/layout/boxes';
+import { Button, IconButton } from 'dome/primitive/controls';
 import * as Ivette from 'ivette';
 import * as Server from 'frama-c/server';
 import * as States from 'frama-c/states';
@@ -76,8 +75,8 @@ function RegionAnalys(): JSX.Element {
     <>
       <Tools.ToolBar>
         <Label label='Function' />
-        <LCD className='wp-region-lcd' label={fct} />
-        <Tools.Button
+        <LCD className='region-lcd' label={kfName ?? '---'} />
+        <Button
           icon={running ? 'EXECUTE' : 'MEDIA.PLAY'}
           title='Run region analysis on the selected function'
           disabled={running}

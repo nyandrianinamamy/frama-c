@@ -212,7 +212,7 @@ table.pvtTable tbody tr td {
     color: var(--text);
     border-radius: 5px;
     padding: 3px 6px;
-    background: var(--default-button-color);
+    background: var(--default-color);
     border: 1px solid;
     border-color: var(--border);
     font-size: 14px;
@@ -321,4 +321,3 @@ table.pvtTable tbody tr td {
 .pvtRendererArea {
     padding: 5px;
 }
-

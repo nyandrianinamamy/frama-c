@@ -13,13 +13,15 @@ import remarkCustomHeaderId from 'remark-custom-header-id';
 import { getResourcePath } from 'dome';
 import * as Themes from 'dome/themes';
 import { classes } from 'dome/misc/utils';
-import { Icon, jIconKind, IconKind as _IconKind  } from 'dome/controls/icons';
 import {
   CodeBlock, atomOneDark, atomOneLight
 } from "react-code-blocks";
 import {
+  Icon,
   jLEDstatus, LED, LEDstatus as _LEDstatus
-} from 'dome/controls/displays';
+} from 'dome/primitive/displays';
+
+import { jColorKind, ColorKind as _ColorKind } from '../primitive/colors';
 
 export interface Pattern {
   pattern: RegExp,
@@ -32,7 +34,7 @@ export interface Pattern {
  * `[icon-<id>(-<kind | color>)?]` :
  *
  * * Id : case-insensitive, consult [Icon Gallery](../../doc/guides/icons.md)
- * * kind : {@link _IconKind}
+ * * kind : {@link _ColorKind}
  * * color : Hexa or html
  *
  * @example
@@ -43,7 +45,7 @@ export const iconTag: Pattern = {
   pattern: /(\[icon-([^-\]]+)(-([^\]]+))?\])/g,
   replace: (key: number, match?: RegExpExecArray) => {
     if(!match) return null;
-    const kind = jIconKind(match[4]);
+    const kind = jColorKind(match[4]);
     const color = !kind ? match[4] : undefined;
     return <Icon key={key}
      id={match[2].toUpperCase()}

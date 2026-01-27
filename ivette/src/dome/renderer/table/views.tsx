@@ -40,7 +40,7 @@ import {
 } from 'react-virtualized';
 import AutoSizer from 'react-virtualized-auto-sizer';
 
-import { SVG as SVGraw } from 'dome/controls/icons';
+import { SVG as SVGraw } from 'dome/primitive/displays';
 import { Trigger, Client, Sorting, SortingInfo, Model } from './models';
 
 import './style.css';

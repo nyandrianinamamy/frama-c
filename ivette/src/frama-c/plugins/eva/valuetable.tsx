@@ -15,10 +15,9 @@ import * as Display from 'ivette/display';
 import * as Dome from 'dome';
 import { GlobalState, useGlobalState } from 'dome/data/states';
 import { classes } from 'dome/misc/utils';
-import { Icon } from 'dome/controls/icons';
-import { Button, Inset } from 'dome/frame/toolbars';
-import { Cell, Code, Label } from 'dome/controls/labels';
-import { IconButton } from 'dome/controls/buttons';
+import { Inset } from 'dome/frame/toolbars';
+import { Cell, Code, Label, Icon } from 'dome/primitive/displays';
+import { Button, IconButton } from 'dome/primitive/controls';
 import { Filler, Hpack, Hfill, Vpack, Vfill, Hbox } from 'dome/layout/boxes';
 import { Modal, showModal, closeModal } from 'dome/dialogs';
 import { FieldState, TextField, useState } from 'dome/layout/forms';
@@ -719,7 +718,7 @@ async function ScopeSection(props: ScopeProps): Promise<JSX.Element> {
           icon="ITEMS.LIST"
           className="eva-button"
           selected={byCallstacks}
-          enabled={allCallstacks.length > 1}
+          disabled={allCallstacks.length <= 1}
           title="Show values by callstack"
           onClick={() => setByCallstacks(!byCallstacks)}
         />

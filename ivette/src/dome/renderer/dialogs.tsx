@@ -19,10 +19,9 @@ import { ipcRenderer } from 'electron';
 import { modal } from 'dome';
 import * as System from 'dome/system';
 import { classes, styles } from 'dome/misc/utils';
-import { Label } from './controls/labels';
-import { IconButton } from './controls/buttons';
+import { Label, Icon } from './primitive/displays';
+import { IconButton } from './primitive/controls';
 import { GlobalState, RState, useGlobalState } from './data/states';
-import { Icon } from './controls/icons';
 
 // --------------------------------------------------------------------------
 // --- Message Box
@@ -631,7 +630,7 @@ function AnchoredPopup(props: AnchoredPopupProps): React.ReactNode {
 
   if(!children) return null;
   return <>
-    <div ref={controlRef} style={{ display: 'flex', alignItems: 'center' }} >
+    <div ref={controlRef} style={{ display: 'flex' }} >
       { control }
     </div>
     { isOpen &&

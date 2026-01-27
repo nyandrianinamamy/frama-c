@@ -3,7 +3,7 @@
     --text: #b4cacd;
     --text-discrete: #879da0;
     --disabled-text: #506679;
-    --disabled-text-sidebar: #607689;
+    --disabled-text-control: #132b41;
     --info-text: #748a8d;
     --info-text-discrete: #778094;
     --text-highlighted: rgb(80, 220, 255);
@@ -43,30 +43,32 @@
     --lcd-button-color: #21211a;
     --lcd-button-background: #727798;
 
-    --default-button-color: #3c495b;
+    /** Color kind */
+    --default-color: #879da0; /**#3c495b;*/
+    --primary-color: #146bbf;
+    --positive-color: #327024;
+    --negative-color: #a10f0f;
+    --warning-color: #a4601a;
+
     --default-led-img: radial-gradient(circle at center, #5f92b9, #4189bf);
     --default-button-img: linear-gradient(to bottom, #3c495b 0%, #455164 100%);
     --default-button-hover: #154240;
     --default-button-active: #303d4f;
 
-    --primary-button-color: #146bbf;
     --primary-button-img: linear-gradient(to bottom, #146bbf 0%, #1960b2 100%);
     --primary-button-hover: #0e65b9;
     --primary-button-active: #085fb3;
 
-    --positive-button-color: #327024;
     --positive-led-img: radial-gradient(circle at center, #20a110, #177c16);
     --positive-button-img: linear-gradient(to bottom, #327024 0%, #2e6c20 100%);
     --positive-button-hover: #28661a;
     --positive-button-active: #226014;
 
-    --negative-button-color: #a10f0f;
     --negative-led-img: radial-gradient(circle at center, #df3b36, #c72a25c7);
     --negative-button-img: linear-gradient(to bottom, #bc150e 0%, #cf1c17 100%);
     --negative-button-hover: #b60f08;
     --negative-button-active: #b00903;
 
-    --warning-button-color: #a4601a;
     --warning-led-img: radial-gradient(circle at center, #efa739, #ccb41f);
     --warning-button-img: linear-gradient(to bottom, #a4601a 0%, #a6571c 100%);
     --warning-button-hover: #9e5114;
@@ -76,6 +78,7 @@
     --cancel-button-hover: #0e2638;
     --cancel-button-active: #041c2e;
 
+    --selected-button-color: #336cb3;
     --selected-button-img: #336cb3;
     --selected-button-hover: #116cdc;
 

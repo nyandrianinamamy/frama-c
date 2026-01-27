@@ -8,10 +8,9 @@
 
 import React from 'react';
 
-import { Icon } from 'dome/controls/icons';
-import { Label } from 'dome/controls/labels';
+import { Label, Icon } from 'dome/primitive/displays';
 import { classes } from 'dome/misc/utils';
-import { Button } from 'dome/controls/buttons';
+import { Button } from 'dome/primitive/controls';
 import { closeModal, Modal, showModal } from 'dome/dialogs';
 
 import * as Eva from 'frama-c/plugins/eva/api/analysis';

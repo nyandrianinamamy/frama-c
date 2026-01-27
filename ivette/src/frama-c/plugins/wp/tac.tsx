@@ -9,10 +9,9 @@
 import React, { Fragment } from 'react';
 
 import { classes } from 'dome/misc/utils';
-import { Icon } from 'dome/controls/icons';
-import { IconButton, IconButtonKind } from 'dome/controls/buttons';
-import { Spinner, SelectMenu } from 'dome/controls/buttons';
-import { Label, Item, Descr } from 'dome/controls/labels';
+import { IconButton, Spinner, Select, Switch } from 'dome/primitive/controls';
+import { ColorKind } from 'dome/primitive/colors';
+import { Label, Item, Descr } from 'dome/primitive/displays';
 import { Hbox, Vbox, Filler } from 'dome/layout/boxes';
 import { Separator } from 'dome/frame/toolbars';
 import * as Dnd from 'dome/dnd';
@@ -67,7 +66,7 @@ function applyTactic(tactic: Tactic): void {
 
 interface ProverActionProps {
   icon: string;
-  kind: IconButtonKind;
+  kind: ColorKind;
   play?: boolean;
   clear?: boolean;
   forward?: number;
@@ -141,7 +140,7 @@ function ProverItem(props : ProverItemProps): JSX.Element
         icon={icon}
         title={title}
         kind={running ? 'warning' : 'positive'}
-        enabled={enabled}
+        disabled={!enabled}
         onClick={() => sendProver(action, node, prover)}
       />
     </Hbox>
@@ -246,7 +245,7 @@ function TacticItem(props: TacticItemProps): JSX.Element | null {
         icon={locked ? 'LOCK' : 'MEDIA.PLAY'}
         title='Apply Tactic'
         kind='positive'
-        enabled={ready}
+        disabled={!ready}
         onClick={onPlay} />
     </Hbox>
   );
@@ -284,20 +283,7 @@ function CheckBoxParam(props: ParameterProps): JSX.Element
     if (!locked)
       Server.send(TAC.setParameter, { node, tactic, param, value: !active });
   };
-  return (
-    <Label
-      className="wp-config-checkbox"
-      label={label}
-      title={title}
-      onClick={onClick} >
-      <Icon
-        className="wp-config-switch"
-        size={14}
-        offset={-2}
-        kind={locked ? 'disabled' : 'default'}
-        id={active ? 'SWITCH.ON' : 'SWITCH.OFF'} />
-    </Label>
-  );
+  return <Switch label={label} title={title} size={14} onClick={onClick} />;
 }
 
 function SpinnerParam(props: ParameterProps): JSX.Element
@@ -342,12 +328,12 @@ function SelectorParam(props: ParameterProps): JSX.Element
   };
   return (
     <Label label={label} title={title}>
-      <SelectMenu
+      <Select
         className="wp-config-field wp-config-select"
         value={value}
         disabled={locked}
         onChange={onChange}
-      >{options}</SelectMenu>
+      >{options}</Select>
     </Label>
   );
 }
@@ -421,7 +407,7 @@ export function ConfigureAutoProver(props: ProverSelection): JSX.Element {
         key='clear'
         icon='TRASH'
         kind='negative'
-        enabled={clear}
+        disabled={!clear}
         title='Clear Prover Result'
         onClick={onClear}
         />
@@ -463,14 +449,14 @@ export function ConfigureAutoProver(props: ProverSelection): JSX.Element {
           icon={running ? 'MEDIA.STOP' : 'MEDIA.PLAY'}
           kind={running ? 'warning' : 'positive'}
           title={running ? 'Interrupt Prover' : 'Run Prover'}
-          enabled={enabled}
+          disabled={!enabled}
           onClick={onPlay}
         />
         <IconButton
           key='forward'
           icon='MEDIA.NEXT'
           kind='positive'
-          enabled={forward > 0}
+          disabled={forward <= 0}
           title={forwardTitle}
           onClick={onForward}
         />
@@ -523,7 +509,7 @@ export function ConfigureInteractiveProver(sel: ProverSelection): JSX.Element {
         key='clear'
         icon='TRASH'
         kind='negative'
-        enabled={clear}
+        disabled={!clear}
         title='Clear Prover Result'
         onClick={onClear}
         />
@@ -569,7 +555,7 @@ export function ConfigureInteractiveProver(sel: ProverSelection): JSX.Element {
           key='edit'
           icon={'PAINTBRUSH'}
           title={'Edit Prover Script'}
-          enabled={!running}
+          disabled={running}
           onClick={edit}
         />
       </Hbox>
@@ -672,7 +658,7 @@ export function ConfigureTactic(props: TacticSelection): JSX.Element {
         icon={locked ? 'LOCK' : 'MEDIA.PLAY'}
         kind='positive'
         title='Apply Tactic'
-        enabled={isReady}
+        disabled={!isReady}
         display={!locked}
         onClick={onPlay} />
       <IconButton

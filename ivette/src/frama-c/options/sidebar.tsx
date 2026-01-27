@@ -9,7 +9,7 @@
 import React from 'react';
 
 import { Item, SideBar, SidebarTitle } from 'dome/frame/sidebars';
-import { LED } from 'dome/controls/displays';
+import { LED } from 'dome/primitive/displays';
 import * as Forms from 'dome/layout/forms';
 
 import * as Params from 'frama-c/kernel/api/parameters';

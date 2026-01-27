@@ -49,9 +49,10 @@ export default defineConfig({
     resolve: {
       extensions: [".ts", ".tsx", ".js", "jsx", ".json"],
       alias: {
-        "dome/controls": path.resolve(DOME, "renderer", "controls"),
+        "dome/primitive": path.resolve(DOME, "renderer", "primitive"),
         "dome/data": path.resolve(DOME, "renderer", "data"),
         "dome/dialogs": path.resolve(DOME, "renderer", "dialogs"),
+        "dome/colors": path.resolve(DOME, "renderer", "colros"),
         "dome/help": path.resolve(DOME, "renderer", "help"),
         "dome/dnd": path.resolve(DOME, "renderer", "dnd"),
         "dome/errors": path.resolve(DOME, "renderer", "errors"),

@@ -17,8 +17,8 @@
 
 import React, { ReactNode } from 'react';
 import { DEVEL, Debug } from 'dome';
-import { Label } from 'dome/controls/labels';
-import { Button } from 'dome/controls/buttons';
+import { Label } from 'dome/primitive/displays';
+import { Button } from 'dome/primitive/controls';
 
 const D = new Debug('Dome');
 
