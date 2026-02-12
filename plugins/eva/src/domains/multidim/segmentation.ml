@@ -415,6 +415,13 @@ struct
 
   type segments = (M.t * B.t) list
 
+  let to_seq (m : t) =
+    let rec aux l segments () = match segments with
+      | [] -> Seq.Nil
+      | (v,u) :: tail -> Seq.Cons ((l,v,u), aux u tail)
+    in
+    aux m.start m.segments
+
   let _pretty_debug fmt (l,s) : unit =
     Format.fprintf fmt " {%a} " B.pretty l;
     let pp fmt (v,u) =
@@ -422,7 +429,7 @@ struct
     in
     List.iter (pp fmt) s
 
-  let pretty_segments fmt ((l : B.t), (s : (M.t * B.t) list)) : unit =
+  let pretty fmt (m : t) : unit =
     let pp fmt (l,v,u) =
       let u = B.pred u in (* Upper bound is not included *)
       (* Less strict than B.equal even with no oracles *)
@@ -431,18 +438,11 @@ struct
       else
         Format.fprintf fmt "[%a .. %a]%a" B.pretty l B.pretty u M.pretty v
     in
-    match s with
-    | [] -> Format.fprintf fmt "[]" (* should not happen *)
-    | [(v,u)] -> pp fmt (l,v,u)
-    | _ :: _ ->
-      let iter l f segments =
-        (* fold the previous upper bound = the current lower bound *)
-        ignore (List.fold_left (fun l (v,u) -> f (l,v,u) ; u) l segments)
-      in
-      Pretty_memory.pp_iter (iter l) pp fmt s
-
-  let pretty fmt (m : t) : unit =
-    pretty_segments fmt (m.start,m.segments)
+    match m.segments with
+    | [(v,u)] -> pp fmt (m.start,v,u)
+    | _ ->
+      Pretty.pretty_seq ~format:"{@;<1 2>%t@ }" ~sep:",@;<1 2>" ~item:"@[<hv>%a@]"
+        pp fmt  (to_seq m)
 
   let hash (m : t) : int =
     Hashtbl.hash (

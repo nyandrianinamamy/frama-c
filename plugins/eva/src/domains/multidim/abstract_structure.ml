@@ -77,8 +77,9 @@ struct
   type submemory = M.t
 
   let pretty fmt m =
-    Pretty_memory.pp_iter2 ~format:"@[<hv>.%a%a@]"
-      FieldMap.iter Field.pretty M.pretty fmt m.fields
+    Pretty.pretty_seq2
+      ~format:"{@;<1 2>%t@ }" ~sep:",@;<1 2>" ~item:"@[<hv>.%a%a@]"
+      Field.pretty M.pretty fmt (FieldMap.to_seq m.fields)
 
   let hash m =
     Hashtbl.hash (m.padding, FieldMap.hash m.fields)
@@ -244,8 +245,9 @@ struct
     | [(_,s)] -> S.pretty fmt s
     | bindings ->
       let l = List.map snd bindings in
-      Pretty_memory.pp_iter ~format:"@[<hv>%a@]" ~sep:" or @;<1 2>"
-        List.iter S.pretty fmt l
+      List.pretty
+        ~format:"@;<1 2>%t" ~sep:" or@;<1 2>" ~item:"@[<hv>%a@]"
+        S.pretty fmt l
 
   let hash (m : t) =
     Hashtbl.hash (Map.fold (fun _ s acc -> s :: acc) m [])

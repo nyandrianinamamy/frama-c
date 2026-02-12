@@ -35,9 +35,7 @@ struct
   type base = Base.t
   type t = offset Map.t
 
-  let _pretty =
-    Pretty_utils.pp_iter2 ~sep:",@," ~between:":"
-      Map.iter Base.pretty Offset.pretty
+  let _pretty = Map.pretty Base.pretty Offset.pretty
 
   let empty = Map.empty
 
@@ -303,6 +301,13 @@ struct
     struct
       include Hptmap.Make (Base.Base) (V) (Hptmap_Info)
 
+      let pretty_debug = pretty
+
+      let pretty fmt (state : t)  =
+        let pp_val fmt (m,_r) = Memory.pretty fmt m in
+        Pretty.pretty_seq2 ~format:"@[<v>%t@]" ~sep:"@ " ~item:"%a -> %a"
+          Base.pretty pp_val fmt (to_seq state)
+
       let find_or_top (state : t) (b : Base.t) =
         try find b state with Not_found -> V.top
 
@@ -333,6 +338,18 @@ struct
 
     let cache_name s =
       Hptmap_sig.PersistentCache (name ^ "." ^ s)
+
+    (* Pretty printing *)
+
+    let _pretty_debug =
+      Pretty_utils.pp_pair
+        BaseMap.pretty_debug
+        (Pretty_utils.pp_opt Tracking.pretty)
+
+    let pretty fmt (state : t) =
+      let base_map, _ = state in
+      BaseMap.pretty fmt base_map
+
 
     (* Bases handling *)
 
