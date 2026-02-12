@@ -33,7 +33,7 @@ module type Value =
 sig
   type t
 
-  val name : string
+  val datatype_name : string
 
   val hash : t -> int
   val equal : t -> t -> bool

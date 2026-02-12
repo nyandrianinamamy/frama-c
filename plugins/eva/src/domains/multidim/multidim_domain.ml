@@ -9,6 +9,9 @@
 open Eval
 open Lattice_bounds
 
+
+(* --- Locations used by the memory model --- *)
+
 let map_to_singleton map =
   let aux base offset = function
     | None -> Some (base, offset)
@@ -16,102 +19,11 @@ let map_to_singleton map =
   in
   try Base.Base.Map.fold aux map None with Exit -> None
 
-module Value =
-struct
-  include Cvalue.V
-  include Cvalue_forward (* for fallback oracles *)
-
-  let backward_is_finite positive fkind v =
-    let prec = Fval.kind fkind in
-    try
-      let v = reinterpret_as_float fkind v in
-      Fval.backward_is_finite ~positive prec (project_float v) >>-: inject_float
-    with Not_based_on_null ->
-      `Value v
-end
-
-module Value_or_Uninitialized =
-struct
-  open Cvalue
-  include V_Or_Uninitialized
-
-  let name = "multidim"
-
-  let to_integer cvalue =
-    try  Some (Ival.project_int (V.project_ival (get_v cvalue)))
-    with V.Not_based_on_null | Ival.Not_Singleton_Int -> None
-
-  let get_v_normalized x =
-    let v' = get_v x in
-    if V.is_bottom v'
-    then `Bottom
-    else `Value v'
-
-  let make i v =
-    let initialized = match i with
-      | Abstract_memory.SurelyInitialized -> true
-      | Abstract_memory.MaybeUninitialized -> false
-    in
-    V_Or_Uninitialized.make ~initialized ~escaping:false v
-
-  let of_value v =
-    V_Or_Uninitialized.make ~initialized:true ~escaping:false v
-
-  let of_bit ~typ:_ = function
-    | Abstract_memory.Uninitialized -> uninitialized
-    | Zero i -> make i (V.inject_int Z.zero)
-    | Any (Top, i) -> make i (V.top_with_origin Origin.unknown)
-    | Any (Set s, i) ->
-      let v =
-        if Base.Hptset.is_empty s
-        then V.inject_ival Ival.top
-        else V.inject_top_origin Origin.unknown s
-      in
-      make i v
-
-  let to_bit v' =
-    match get_v_normalized v' with
-    | `Bottom -> Abstract_memory.Uninitialized
-    | `Value v ->
-      let initialization =
-        if is_initialized v'
-        then Abstract_memory.SurelyInitialized
-        else Abstract_memory.MaybeUninitialized
-      in
-      if V.is_zero v
-      then Abstract_memory.Zero (initialization)
-      else Abstract_memory.Any (V.get_bases v, initialization)
-
-  let from_flagged fv =
-    V_Or_Uninitialized.make
-      ~initialized:fv.initialized
-      ~escaping:false
-      (Bottom.value ~bottom:V.bottom fv.v)
-
-  let map' f v =
-    let+ new_v = f (get_v v) in
-    map (fun _ -> new_v) v
-end
-
 let convert_oracle oracle =
   fun exp ->
-  match Ival.project_int_val (Value.project_ival (oracle exp)) with
+  match Ival.project_int_val (Cvalue.V.project_ival (oracle exp)) with
   | Some int_val -> int_val
-  | None | exception Value.Not_based_on_null -> Int_val.top
-
-type assigned = (Precise_locs.precise_location,Value.t) Eval.assigned
-type builtin = assigned list -> assigned or_bottom
-
-let builtins : (string * builtin) list = []
-
-let find_builtin =
-  let module Table = Stdlib.Hashtbl in
-  let table = Table.create 17 in
-  List.iter (fun (name, f) -> Table.replace table name f) builtins;
-  fun kf ->
-    try Some (Table.find table (Kernel_function.get_name kf))
-    with Not_found -> None
-
+  | None | exception Cvalue.V.Not_based_on_null -> Int_val.top
 
 module Location =
 struct
@@ -223,9 +135,54 @@ struct
 end
 
 
-(* Redefines the memory domain so it can handle top locations *)
+(* --- Arguments of the functors --- *)
 
-module Memory =
+type 'value assigned = (Precise_locs.precise_location,'value) Eval.assigned
+type 'value builtin = ('value assigned) list -> ('value assigned) or_bottom
+
+(* Values used for the simplest functor instantiation. *)
+module type Value =
+sig
+  include Abstract_value.Leaf
+  val zero : t
+  val widen : size:Z.t -> hint:Ival.widen_hint ->  t -> t -> t
+  val builtins: (string * t builtin) list
+end
+
+(* Values used for the collaborative evaluation. *)
+module type GenericValue =
+sig
+  type t
+  val top : t
+  val to_cvalue : t -> Cvalue.V.t
+  val builtins: (string * t builtin) list
+  val dependencies : t Abstract_value.dependencies
+  val backward_is_finite : bool -> Cil_types.fkind -> t -> t or_bottom
+end
+
+(* Values used in the memory model. *)
+module type ValueOrUninitialized =
+sig
+  include Typed_memory.Value
+  type value (* the value without unintialized state *)
+  val top : t
+  val bottom : t (* used for set of values containing only escaping adresses *)
+  val narrow : t -> t -> t or_bottom
+  val widen : size:Z.t -> hint:Ival.widen_hint ->  t -> t -> t
+  val is_topint : t -> bool
+  val is_bottom : t -> bool
+  val is_initialized : t -> bool
+  val to_cvalue : t -> Cvalue.V.t
+  val to_value : t -> value or_bottom
+  val of_value : value -> t
+  val of_flagged : value Eval.flagged_value -> t
+  val map' : (value -> value or_bottom) -> t -> t or_bottom
+end
+
+
+(* --- Redefines the memory model so it can handle top locations --- *)
+
+module Memory (ValueOrUninitialized : ValueOrUninitialized) =
 struct
   module Config = struct
     let deps = [Ast.self]
@@ -233,14 +190,15 @@ struct
     let disjunctive_invariants =
       Parameters.MultidimDisjunctiveInvariants.get
   end
-  module Memory = Typed_memory.Make (Config) (Value_or_Uninitialized)
+
+  module Memory = Typed_memory.Make (Config) (ValueOrUninitialized)
 
   module Prototype =
   (* Datatype *)
   struct
     include Datatype.Undefined
     include Memory
-    let name = "Multidim_domain.Memory"
+    let name = "Cell_memory.Memory (" ^ ValueOrUninitialized.datatype_name ^ ")"
     let reprs = [ Memory.top ]
   end
 
@@ -255,12 +213,12 @@ struct
   let smash ~oracle = Memory.join ~oracle:(fun _ -> oracle)
   let widen hint =
     Memory.widen
-      (fun ~size v1 v2 -> Value_or_Uninitialized.widen ~size ~hint v1 v2)
+      (fun ~size v1 v2 -> ValueOrUninitialized.widen ~size ~hint v1 v2)
   let incr_bound = Memory.incr_bound
 
   let get ~oracle m loc =
     match loc with
-    | `Top -> Value_or_Uninitialized.top
+    | `Top -> ValueOrUninitialized.top
     | `Value loc -> Memory.get ~oracle m loc
 
   let extract ~oracle m loc =
@@ -298,662 +256,792 @@ struct
       Memory.segmentation_hint ~oracle m loc bounds
 end
 
-module DomainLattice =
+
+(* --- Generic functor for building abstract domains --- *)
+
+module MakeGeneric
+    (Params : sig val name : string end)
+    (Value : GenericValue)
+    (ValueOrUninitialized : ValueOrUninitialized with type value = Value.t) =
 struct
-  open Bottom.Operators
-  (* References to variables inside array segmentation.
-     For instance if an array A is described with the segmentation
-      0..i-1 ; i ; i+1..10
-     then, everytime i is changed, the segmentation must be updated. This requires
-     referencing every base where at least one segmentation references i. *)
-  module Referers = Base.Hptset (* The set of bases referencing the variable *)
-  (* The domain can be set to track a subset of bases *)
-  module Tracking = Base.Hptset
+  module Memory = Memory (ValueOrUninitialized)
 
-  (* The domain is essentially a map from bases to individual memory abstractions *)
-  module V =
+  let find_builtin =
+    let module Table = Stdlib.Hashtbl in
+    let table = Table.create 17 in
+    List.iter (fun (name, f) -> Table.replace table name f) Value.builtins;
+    fun kf ->
+      try Some (Table.find table (Kernel_function.get_name kf))
+      with Not_found -> None
+
+  module Lattice =
   struct
-    include Datatype.Pair (Memory) (Referers)
-    let top = Memory.top, Referers.empty
-    let is_top (m,r) = Memory.is_top m && Referers.is_empty r
-  end
+    open Bottom.Operators
+    (* References to variables inside array segmentation.
+       For instance if an array A is described with the segmentation
+        0..i-1 ; i ; i+1..10
+       then, everytime i is changed, the segmentation must be updated. This requires
+       referencing every base where at least one segmentation references i. *)
+    module Referers = Base.Hptset (* The set of bases referencing the variable *)
+    (* The domain can be set to track a subset of bases *)
+    module Tracking = Base.Hptset
 
-  module Hptmap_Info =
-  struct
-    let initial_values = []
-    let dependencies = [ Ast.self ]
-  end
+    (* The domain is essentially a map from bases to individual memory abstractions *)
+    module V =
+    struct
+      include Datatype.Pair (Memory) (Referers)
+      let top = Memory.top, Referers.empty
+      let is_top (m,r) = Memory.is_top m && Referers.is_empty r
+    end
 
-  module BaseMap =
-  struct
-    include Hptmap.Make (Base.Base) (V) (Hptmap_Info)
+    module Hptmap_Info =
+    struct
+      let initial_values = []
+      let dependencies = [ Ast.self ]
+    end
 
-    let find_or_top (state : t) (b : Base.t) =
-      try find b state with Not_found -> V.top
+    module BaseMap =
+    struct
+      include Hptmap.Make (Base.Base) (V) (Hptmap_Info)
 
-    (* Update or remove if top *)
-    let add (b : Base.t) (v : V.t) (state : t) =
-      if V.is_top v
-      then remove b state
-      else add b v state
+      let find_or_top (state : t) (b : Base.t) =
+        try find b state with Not_found -> V.top
 
-  end
+      (* Update or remove if top *)
+      let add (b : Base.t) (v : V.t) (state : t) =
+        if V.is_top v
+        then remove b state
+        else add b v state
 
-  include Datatype.Pair_with_collections (BaseMap) (Datatype.Option (Tracking))
+    end
 
-  let name = "multidim"
+    include Datatype.Pair_with_collections (BaseMap) (Datatype.Option (Tracking))
 
-  let value_dependencies = Main_values.cval
-  let location_dependencies = Main_locations.ploc
+    let name = Params.name
 
-  type state = t
-  type value = Value.t
-  type value_or_uninitialized = Value_or_Uninitialized.t
-  type base = Base.t
-  type offset = Location.offset
-  type memory = Memory.t
-  type location = Precise_locs.precise_location
-  type mdlocation = Location.t (* should be = to location *)
-  type origin
+    let value_dependencies = Value.dependencies
+    let location_dependencies = Main_locations.ploc
 
-  let cache_name s =
-    Hptmap_sig.PersistentCache ("Multidim_domain." ^ s)
+    type state = t
+    type value = Value.t
+    type value_or_uninitialized = ValueOrUninitialized.t
+    type base = Base.t
+    type offset = Location.offset
+    type memory = Memory.t
+    type location = Precise_locs.precise_location
+    type mdlocation = Location.t (* should be = to location *)
+    type origin
 
-  (* Bases handling *)
+    let cache_name s =
+      Hptmap_sig.PersistentCache (name ^ "." ^ s)
 
-  let covers_base (tracked : Tracking.t option) (b : base) : bool =
-    match b with
-    | Base.Var (vi, _) ->
-      not (Ast_types.C.is_volatile vi.vtype) &&
-      Option.fold ~none:true ~some:(Tracking.mem b) tracked
-    | Null -> true
-    | CLogic_Var _ | Allocated (_, _, _) -> false
+    (* Bases handling *)
 
-  let join_tracked tracked1 tracked2 =
-    match tracked1, tracked2 with
-    | None, tracked | tracked, None -> tracked
-    | Some s1, Some s2 -> Some (Tracking.union s1 s2)
+    let covers_base (tracked : Tracking.t option) (b : base) : bool =
+      match b with
+      | Base.Var (vi, _) ->
+        not (Ast_types.C.is_volatile vi.vtype) &&
+        Option.fold ~none:true ~some:(Tracking.mem b) tracked
+      | Null -> true
+      | CLogic_Var _ | Allocated (_, _, _) -> false
+
+    let join_tracked tracked1 tracked2 =
+      match tracked1, tracked2 with
+      | None, tracked | tracked, None -> tracked
+      | Some s1, Some s2 -> Some (Tracking.union s1 s2)
 
 
-  (* References *)
+    (* References *)
 
-  let add_references (state : t) (referee : base) (referers' : base list) : t =
-    let base_map, tracked = state in
-    let memory, referers = BaseMap.find_or_top base_map referee in
-    let referers'' = Referers.union referers (Referers.of_list referers') in
-    BaseMap.add referee (memory, referers'') base_map, tracked
+    let add_references (state : t) (referee : base) (referers' : base list) : t =
+      let base_map, tracked = state in
+      let memory, referers = BaseMap.find_or_top base_map referee in
+      let referers'' = Referers.union referers (Referers.of_list referers') in
+      BaseMap.add referee (memory, referers'') base_map, tracked
 
-  let add_references_l state (referees : base list) (referers : base list) =
-    List.fold_left
-      (fun state b -> add_references state b referers)
-      state referees
+    let add_references_l state (referees : base list) (referers : base list) =
+      List.fold_left
+        (fun state b -> add_references state b referers)
+        state referees
 
-  let update_var_references ~oracle (dst : Cil_types.varinfo)
-      (src : Eva_ast.exp option) (base_map,tracked : t) =
-    let incr =
-      let open Option.Operators in
-      let* expr = src in
-      let is_dst (exp : Eva_ast.exp) = match exp.node with
-        | Lval { node = Var v, NoOffset } -> Cil_datatype.Varinfo.equal dst v
-        | _ -> false
+    let update_var_references ~oracle (dst : Cil_types.varinfo)
+        (src : Eva_ast.exp option) (base_map,tracked : t) =
+      let incr =
+        let open Option.Operators in
+        let* expr = src in
+        let is_dst (exp : Eva_ast.exp) = match exp.node with
+          | Lval { node = Var v, NoOffset } -> Cil_datatype.Varinfo.equal dst v
+          | _ -> false
+        in
+        match expr.node with
+        | BinOp ((PlusA|PlusPI), e1, e2, _typ) when is_dst e1 ->
+          Eva_ast.fold_to_integer e2
+        | BinOp ((PlusA|PlusPI), e1, e2, _typ) when is_dst e2 ->
+          Eva_ast.fold_to_integer e1
+        | BinOp ((MinusA|MinusPI), e1, e2, _typ) when is_dst e1 ->
+          Option.map Z.neg (Eva_ast.fold_to_integer e2)
+        | _ -> None
       in
-      match expr.node with
-      | BinOp ((PlusA|PlusPI), e1, e2, _typ) when is_dst e1 ->
-        Eva_ast.fold_to_integer e2
-      | BinOp ((PlusA|PlusPI), e1, e2, _typ) when is_dst e2 ->
-        Eva_ast.fold_to_integer e1
-      | BinOp ((MinusA|MinusPI), e1, e2, _typ) when is_dst e1 ->
-        Option.map Z.neg (Eva_ast.fold_to_integer e2)
-      | _ -> None
-    in
-    (* [oracle] must be the oracle before the (non-invertible)
-       assignment of the referee to allow removing of eventual empty slice
-       before the bound leaves the segmentation. *)
-    let referers = snd (BaseMap.find_or_top base_map (Base.of_varinfo dst)) in
-    let update_ref base base_map =
-      let update (memory, refs) =
-        let oracle = convert_oracle oracle in
-        Memory.incr_bound ~oracle dst incr memory, refs
+      (* [oracle] must be the oracle before the (non-invertible)
+         assignement of the referee to allow removing of eventual empty slice
+         before the bound leaves the segmentation. *)
+      let referers = snd (BaseMap.find_or_top base_map (Base.of_varinfo dst)) in
+      let update_ref base base_map =
+        let update (memory, refs) =
+          let oracle = convert_oracle oracle in
+          Memory.incr_bound ~oracle dst incr memory, refs
+        in
+        BaseMap.replace (Option.map update) base base_map
       in
-      BaseMap.replace (Option.map update) base base_map
-    in
-    let base_map = Referers.fold update_ref referers base_map in
-    (* If increment is None, every reference to dst should have been removed by
-        Memory.incr_bound *)
-    let base_map =
-      if Option.is_none incr then
-        BaseMap.replace
-          (Option.map (fun (memory, _refs) -> memory, Referers.empty))
-          (Base.of_varinfo dst)
+      let base_map = Referers.fold update_ref referers base_map in
+      (* If increment is None, every reference to dst should have been removed by
+          Memory.incr_bound *)
+      let base_map =
+        if Option.is_none incr then
+          BaseMap.replace
+            (Option.map (fun (memory, _refs) -> memory, Referers.empty))
+            (Base.of_varinfo dst)
+            base_map
+        else
           base_map
-      else
-        base_map
-    in
-    base_map, tracked
-
-  let remove_base_references ~oracle base state =
-    match Base.to_varinfo base with
-    | exception Base.Not_a_C_variable -> state (* only references to variables are kept *)
-    | vi -> update_var_references ~oracle vi None state
-
-  let update_references ~oracle (dst : mdlocation)
-      (src : Eva_ast.exp option) (state : t) =
-    match Location.to_singleton_var dst with
-    | Some vi ->
-      update_var_references ~oracle vi src state
-    | None -> (* Weak update of referee, remove references *)
-      Location.fold
-        (fun b _offset state -> remove_base_references ~oracle b state) dst state
-
-
-  (* Accesses *)
-
-  let read :
-    type a .
-    (memory -> offset -> a) -> (a -> a -> a) ->
-    state -> mdlocation -> a or_bottom =
-    fun map reduce (state,_tracked) loc ->
-    let f base off acc =
-      let v = map (fst (BaseMap.find_or_top state base)) off in
-      Bottom.join reduce (`Value v) acc
-    in
-    Location.fold f loc `Bottom
-
-  let get ~oracle
-      (state : state) (src : mdlocation) : value_or_uninitialized or_bottom =
-    let oracle = convert_oracle oracle in
-    read (Memory.get ~oracle) Value_or_Uninitialized.join state src
-
-  let mk_oracle (state : state) : Eva_ast.exp -> value =
-    (* Until Eva gives access to good oracles, we use this poor stupid oracle
-       instead *)
-    let rec oracle (exp : Eva_ast.exp) =
-      match exp.node with
-      | Lval lval ->
-        begin match Location.of_lval oracle lval with
-          | `Top -> Value.top
-          | `Value loc ->
-            match get ~oracle state loc with
-            | `Bottom -> Value.bottom (* should never happen as location should not be empty *)
-            | `Value v -> Value_or_Uninitialized.get_v v
-        end
-      | Const (CInt64 (i,_,_)) ->
-        Value.inject_int i
-      | Const (CReal (f,_,_)) ->
-        Value.inject_float (Fval.singleton (Fval.F.of_float f))
-      | UnOp (op, e, typ) ->
-        Value.forward_unop typ op (oracle e)
-      | BinOp (op, e1, e2, { tnode = TFloat fkind }) ->
-        Value.forward_binop_float (Fval.kind fkind) (oracle e1) op (oracle e2)
-      | BinOp (op, e1, e2, typ) ->
-        Value.forward_binop_int ~typ (oracle e1) op (oracle e2)
-      | CastE (typ, e) ->
-        let scalar_type t = Option.get (Eval_typ.classify_as_scalar t) in
-        let src_type =  scalar_type e.typ
-        and dst_type = scalar_type typ in
-        Value.forward_cast ~src_type ~dst_type (oracle e)
-      | _ ->
-        Self.fatal
-          "This type of array index expression is not supported: %a"
-          Eva_ast.pp_exp exp
-    in
-    fun exp -> oracle (Eva_ast.const_fold exp)
-
-  let mk_bioracle s1 s2 =
-    let oracle_left = mk_oracle s1
-    and oracle_right = mk_oracle s2 in
-    function
-    | Abstract_memory.Left -> convert_oracle oracle_left
-    | Right -> convert_oracle oracle_right
-
-  let extract ~oracle (state : state) (src : mdlocation) : Memory.t or_bottom =
-    let oracle = convert_oracle oracle in
-    read (Memory.extract ~oracle) (Memory.smash ~oracle) state src
-
-  let write' (update : memory -> offset -> memory or_bottom)
-      (state : state) (loc : mdlocation) : state or_bottom =
-    let deps = List.map Base.of_varinfo (Location.references loc) in
-    let deps_set = Tracking.of_list deps in
-    let f base off state' =
-      let* base_map,tracked = state' in
-      if covers_base tracked base then
-        let memory, refs = BaseMap.find_or_top base_map base in
-        let+ memory' = update memory off in
-        BaseMap.add base (memory', refs) base_map,
-        Option.map (Tracking.union deps_set) tracked
-      else
-        state'
-    in
-    let+ state = Location.fold f loc (`Value state) in
-    add_references_l state deps (Location.bases loc)
-
-  let write update state loc =
-    (* Result can never be bottom if update never returns bottom *)
-    Bottom.non_bottom (write' (fun m o -> `Value (update m o)) state loc)
-
-  let set ~oracle
-      (state : state) (dst : mdlocation) (v : value_or_uninitialized) : state =
-    let weak = not (Location.is_singleton dst)
-    and oracle = convert_oracle oracle in
-    write (Memory.set ~oracle ~weak v) state dst
-
-  let overwrite ~oracle
-      (state : state) (dst : mdlocation) (src : mdlocation) : state =
-    let weak = not (Location.is_singleton dst) in
-    match extract ~oracle state src with
-    | `Bottom -> state (* no source *)
-    | `Value value ->
-      let oracle = convert_oracle oracle in
-      write (fun m off -> Memory.overwrite ~oracle ~weak m off value) state dst
-
-  let erase ~oracle ?(weak: bool option)
-      (state : state) (dst : mdlocation) (b : Abstract_memory.bit) : state =
-    let oracle = convert_oracle oracle
-    and weak = match weak with
-      | None -> not (Location.is_singleton dst)
-      | Some weak -> weak
-    in
-    write (fun m off -> Memory.erase ~oracle ~weak m off b) state dst
-
-  let reinforce
-      ~oracle
-      (f : value_or_uninitialized -> value_or_uninitialized or_bottom)
-      (state : state) (dst : mdlocation) : state or_bottom =
-    let oracle = convert_oracle oracle in
-    write' (fun m off -> Memory.reinforce ~oracle f m off) state dst
-
-  let remove ~oracle (vi : Cil_types.varinfo) (state : t) =
-    let state = update_var_references ~oracle vi None state in
-    let map, tracked = state in
-    BaseMap.remove (Base.of_varinfo vi) map, tracked
-
-  (* Lattice *)
-
-  let top = BaseMap.empty, None
-
-  let is_included =
-    let open BaseMap in
-    let cache = cache_name "is_included" in
-    let decide_fst _b _v1 = true (* v2 is top *) in
-    let decide_snd _b _v2 = false (* v1 is top, v2 is not *) in
-    let decide_both _ (m1,_r1) (m2,_r2) = Memory.is_included m1 m2 in
-    let decide_fast s t = if s == t then PTrue else PUnknown in
-    let is_included = binary_predicate cache UniversalPredicate
-        ~decide_fast ~decide_fst ~decide_snd ~decide_both
-    in
-    fun (m1,_) (m2,_) -> is_included m1 m2
-
-  let narrow =
-    let open BaseMap in
-    let cache = cache_name "narrow" in
-    let decide _ v1 v2 = Memory.narrow v1 v2 in
-    let narrow = join ~cache ~symmetric:false ~idempotent:true ~decide in
-    fun (m1,t1) (m2,t2) -> `Value (narrow m1 m2, join_tracked t1 t2)
-
-  (* Precise join with oracle, but cannot be cached. *)
-  let precise_join ~oracle m1 m2 =
-    let open BaseMap in
-    let cache = Hptmap_sig.NoCache
-    and decide _ x1 x2 =
-      let m1,r1 = Option.value ~default:V.top x1
-      and m2,r2 = Option.value ~default:V.top x2 in
-      Memory.join ~oracle m1 m2, Referers.union r1 r2 (* TODO: Remove tops *)
-    in
-    generic_join ~cache ~symmetric:false ~idempotent:true ~decide m1 m2
-
-  (* Optimized join without oracle. *)
-  let fast_join =
-    let open BaseMap in
-    let oracle _ _ = Int_val.top in
-    let cache = cache_name "fast_join"
-    and decide _ x1 x2 =
-      let m1, r1 = Option.value ~default:V.top x1
-      and m2, r2 = Option.value ~default:V.top x2 in
-      Memory.join ~oracle m1 m2, Referers.union r1 r2 (* TODO: Remove tops *)
-    in
-    generic_join ~cache ~symmetric:true ~idempotent:true ~decide
-
-  let join' ~oracle (m1, t1) (m2, t2) =
-    let m =
-      if Parameters.MultidimFastImprecise.get ()
-      then fast_join m1 m2
-      else precise_join ~oracle m1 m2
-    in
-    m, join_tracked t1 t2
-
-  let join s1 s2 =
-    let oracle = mk_bioracle s1 s2 in
-    join' ~oracle s1 s2
-
-  let widen kf stmt (m1,t1 as s1) (m2,t2 as s2) =
-    let open BaseMap in
-    let oracle = mk_bioracle s1 s2
-    and _,get_hints = Widen.getWidenHints kf stmt in
-    let cache = Hptmap_sig.NoCache
-    and decide base x1 x2 =
-      let m1,r1 = Option.value ~default:V.top x1
-      and m2,r2 = Option.value ~default:V.top x2 in
-      Memory.widen ~oracle (get_hints base) m1 m2, Referers.union r1 r2
-    in
-    generic_join ~cache ~symmetric:false ~idempotent:true ~decide m1 m2,
-    join_tracked t1 t2
-end
-
-module Domain =
-struct
-  include DomainLattice
-  include Domain_builder.Complete (DomainLattice)
-
-  (* Eva Queries *)
-
-  (* Nothing interesting to be done on expressions *)
-  let extract_expr ~oracle:_ _context _state _expr =
-    `Value (Value.top, None), Alarmset.all
-
-  let extract_lval ~oracle _context state lv _loc =
-    if Ast_types.C.is_scalar lv.Eva_ast.typ then
-      let oracle = fun exp ->
-        match oracle exp with
-        | `Value v, alarms when Alarmset.is_empty alarms -> v (* only use values safely evaluated *)
-        | _ -> Value.top
       in
-      match Location.of_lval oracle lv with
-      | `Top -> (* can't evaluate location *)
-        `Value (Value.top, None), Alarmset.all
-      | `Value loc ->
-        match get ~oracle state loc with
-        | `Bottom -> `Bottom, Alarmset.all
-        | `Value v ->
-          Value_or_Uninitialized.get_v_normalized v >>-: (fun v -> v, None),
-          if Value_or_Uninitialized.is_initialized v
-          then
-            let origin = Eva_ast.to_cil_lval lv in
-            Alarmset.(set (Alarms.Uninitialized origin) True all)
-          else Alarmset.all
-    else
+      base_map, tracked
+
+    let remove_base_references ~oracle base state =
+      match Base.to_varinfo base with
+      | exception Base.Not_a_C_variable -> state (* only references to variables are kept *)
+      | vi -> update_var_references ~oracle vi None state
+
+    let update_references ~oracle (dst : mdlocation)
+        (src : Eva_ast.exp option) (state : t) =
+      match Location.to_singleton_var dst with
+      | Some vi ->
+        update_var_references ~oracle vi src state
+      | None -> (* Weak update of referee, remove references *)
+        Location.fold
+          (fun b _offset state -> remove_base_references ~oracle b state) dst state
+
+
+    (* Accesses *)
+
+    let read :
+      type a .
+      (memory -> offset -> a) -> (a -> a -> a) ->
+      state -> mdlocation -> a or_bottom =
+      fun map reduce (state,_tracked) loc ->
+      let f base off acc =
+        let v = map (fst (BaseMap.find_or_top state base)) off in
+        Bottom.join reduce (`Value v) acc
+      in
+      Location.fold f loc `Bottom
+
+    let get ~oracle
+        (state : state) (src : mdlocation) : value_or_uninitialized or_bottom =
+      let oracle = convert_oracle oracle in
+      read (Memory.get ~oracle) ValueOrUninitialized.join state src
+
+    let mk_oracle (state : state) : Eva_ast.exp -> Cvalue.V.t =
+      (* Until Eva gives access to good oracles, we use this poor stupid oracle
+         instead *)
+      let rec oracle (exp : Eva_ast.exp) : Cvalue.V.t =
+        match exp.node with
+        | Lval lval ->
+          begin match Location.of_lval oracle lval with
+            | `Top -> Cvalue.V.top
+            | `Value loc ->
+              match get ~oracle state loc with
+              | `Bottom -> Cvalue.V.bottom (* should never happen as location should not be empty *)
+              | `Value v -> ValueOrUninitialized.to_cvalue v
+          end
+        | Const (CInt64 (i,_,_)) ->
+          Cvalue.V.inject_int i
+        | Const (CReal (f,_,_)) ->
+          Cvalue.V.inject_float (Fval.singleton (Fval.F.of_float f))
+        | UnOp (op, e, typ) ->
+          Cvalue_forward.forward_unop typ op (oracle e)
+        | BinOp (op, e1, e2, { tnode = TFloat fkind }) ->
+          Cvalue_forward.forward_binop_float (Fval.kind fkind) (oracle e1) op (oracle e2)
+        | BinOp (op, e1, e2, typ) ->
+          Cvalue_forward.forward_binop_int ~typ (oracle e1) op (oracle e2)
+        | CastE (typ, e) ->
+          let scalar_type t = Option.get (Eval_typ.classify_as_scalar t) in
+          let src_type =  scalar_type e.typ
+          and dst_type = scalar_type typ in
+          Cvalue_forward.forward_cast ~src_type ~dst_type (oracle e)
+        | _ ->
+          Self.fatal
+            "This type of array index expression is not supported: %a"
+            Eva_ast.pp_exp exp
+      in
+      fun exp -> oracle (Eva_ast.const_fold exp)
+
+    let mk_bioracle s1 s2 =
+      let oracle_left = mk_oracle s1
+      and oracle_right = mk_oracle s2 in
+      function
+      | Abstract_memory.Left -> convert_oracle oracle_left
+      | Right -> convert_oracle oracle_right
+
+    let extract ~oracle (state : state) (src : mdlocation) : Memory.t or_bottom =
+      let oracle = convert_oracle oracle in
+      read (Memory.extract ~oracle) (Memory.smash ~oracle) state src
+
+    let write' (update : memory -> offset -> memory or_bottom)
+        (state : state) (loc : mdlocation) : state or_bottom =
+      let deps = List.map Base.of_varinfo (Location.references loc) in
+      let deps_set = Tracking.of_list deps in
+      let f base off state' =
+        let* base_map,tracked = state' in
+        if covers_base tracked base then
+          let memory, refs = BaseMap.find_or_top base_map base in
+          let+ memory' = update memory off in
+          BaseMap.add base (memory', refs) base_map,
+          Option.map (Tracking.union deps_set) tracked
+        else
+          state'
+      in
+      let+ state = Location.fold f loc (`Value state) in
+      add_references_l state deps (Location.bases loc)
+
+    let write update state loc =
+      (* Result can never be bottom if update never returns bottom *)
+      Bottom.non_bottom (write' (fun m o -> `Value (update m o)) state loc)
+
+    let set ~oracle
+        (state : state) (dst : mdlocation) (v : value_or_uninitialized) : state =
+      let weak = not (Location.is_singleton dst)
+      and oracle = convert_oracle oracle in
+      write (Memory.set ~oracle ~weak v) state dst
+
+    let overwrite ~oracle
+        (state : state) (dst : mdlocation) (src : mdlocation) : state =
+      let weak = not (Location.is_singleton dst) in
+      match extract ~oracle state src with
+      | `Bottom -> state (* no source *)
+      | `Value value ->
+        let oracle = convert_oracle oracle in
+        write (fun m off -> Memory.overwrite ~oracle ~weak m off value) state dst
+
+    let erase ~oracle ?(weak: bool option)
+        (state : state) (dst : mdlocation) (b : Abstract_memory.bit) : state =
+      let oracle = convert_oracle oracle
+      and weak = match weak with
+        | None -> not (Location.is_singleton dst)
+        | Some weak -> weak
+      in
+      write (fun m off -> Memory.erase ~oracle ~weak m off b) state dst
+
+    let reinforce
+        ~oracle
+        (f : value_or_uninitialized -> value_or_uninitialized or_bottom)
+        (state : state) (dst : mdlocation) : state or_bottom =
+      let oracle = convert_oracle oracle in
+      write' (fun m off -> Memory.reinforce ~oracle f m off) state dst
+
+    let remove ~oracle (vi : Cil_types.varinfo) (state : t) =
+      let state = update_var_references ~oracle vi None state in
+      let map, tracked = state in
+      BaseMap.remove (Base.of_varinfo vi) map, tracked
+
+    (* Lattice *)
+
+    let top = BaseMap.empty, None
+
+    let is_included =
+      let open BaseMap in
+      let cache = cache_name "is_included" in
+      let decide_fst _b _v1 = true (* v2 is top *) in
+      let decide_snd _b _v2 = false (* v1 is top, v2 is not *) in
+      let decide_both _ (m1,_r1) (m2,_r2) = Memory.is_included m1 m2 in
+      let decide_fast s t = if s == t then PTrue else PUnknown in
+      let is_included = binary_predicate cache UniversalPredicate
+          ~decide_fast ~decide_fst ~decide_snd ~decide_both
+      in
+      fun (m1,_) (m2,_) -> is_included m1 m2
+
+    let narrow =
+      let open BaseMap in
+      let cache = cache_name "narrow" in
+      let decide _ v1 v2 = Memory.narrow v1 v2 in
+      let narrow = join ~cache ~symmetric:false ~idempotent:true ~decide in
+      fun (m1,t1) (m2,t2) -> `Value (narrow m1 m2, join_tracked t1 t2)
+
+    (* Precise join with oracle, but cannot be cached. *)
+    let precise_join ~oracle m1 m2 =
+      let open BaseMap in
+      let cache = Hptmap_sig.NoCache
+      and decide _ x1 x2 =
+        let m1,r1 = Option.value ~default:V.top x1
+        and m2,r2 = Option.value ~default:V.top x2 in
+        Memory.join ~oracle m1 m2, Referers.union r1 r2 (* TODO: Remove tops *)
+      in
+      generic_join ~cache ~symmetric:false ~idempotent:true ~decide m1 m2
+
+    (* Optimized join without oracle. *)
+    let fast_join =
+      let open BaseMap in
+      let oracle _ _ = Int_val.top in
+      let cache = cache_name "fast_join"
+      and decide _ x1 x2 =
+        let m1, r1 = Option.value ~default:V.top x1
+        and m2, r2 = Option.value ~default:V.top x2 in
+        Memory.join ~oracle m1 m2, Referers.union r1 r2 (* TODO: Remove tops *)
+      in
+      generic_join ~cache ~symmetric:true ~idempotent:true ~decide
+
+    let join' ~oracle (m1, t1) (m2, t2) =
+      let m =
+        if Parameters.MultidimFastImprecise.get ()
+        then fast_join m1 m2
+        else precise_join ~oracle m1 m2
+      in
+      m, join_tracked t1 t2
+
+    let join s1 s2 =
+      let oracle = mk_bioracle s1 s2 in
+      join' ~oracle s1 s2
+
+    let widen kf stmt (m1,t1 as s1) (m2,t2 as s2) =
+      let open BaseMap in
+      let oracle = mk_bioracle s1 s2
+      and _,get_hints = Widen.getWidenHints kf stmt in
+      let cache = Hptmap_sig.NoCache
+      and decide base x1 x2 =
+        let m1,r1 = Option.value ~default:V.top x1
+        and m2,r2 = Option.value ~default:V.top x2 in
+        Memory.widen ~oracle (get_hints base) m1 m2, Referers.union r1 r2
+      in
+      generic_join ~cache ~symmetric:false ~idempotent:true ~decide m1 m2,
+      join_tracked t1 t2
+  end
+
+  module Domain =
+  struct
+    include Lattice
+    include Domain_builder.Complete (Lattice)
+
+    (* Eva Queries *)
+
+    (* Nothing interesting to be done on expressions *)
+    let extract_expr ~oracle:_ _context _state _expr =
       `Value (Value.top, None), Alarmset.all
 
-
-  (* Eva Transfer *)
-
-  let valuation_to_oracle state valuation : Eva_ast.exp -> value = fun exp ->
-    let multidim_oracle = mk_oracle state in
-    match valuation.Abstract_domain.find exp with
-    | `Top -> multidim_oracle exp
-    | `Value {value={v=`Bottom}} -> Value.bottom
-    | `Value {value={v=`Value value}} -> value
-
-  let assume_exp valuation expr record state' =
-    let* state = state' in
-    let oracle = valuation_to_oracle state valuation in
-    match (expr : Eva_ast.exp).node with
-    | Lval lv when Ast_types.C.is_scalar lv.typ ->
-      let value = Value_or_Uninitialized.from_flagged record.value in
-      if not (Value.is_topint (Value_or_Uninitialized.get_v value)) then
+    let extract_lval ~oracle _context state lv _loc =
+      if Ast_types.C.is_scalar lv.Eva_ast.typ then
+        let oracle = fun exp ->
+          match oracle exp with
+          (* only use values safely evaluated *)
+          | `Value v, alarms when Alarmset.is_empty alarms -> Value.to_cvalue v
+          | _ -> Cvalue.V.top
+        in
         match Location.of_lval oracle lv with
-        | `Top -> `Value state (* location evaluate to top, ignore *)
+        | `Top -> (* can't evaluate location *)
+          `Value (Value.top, None), Alarmset.all
         | `Value loc ->
-          let update value' =
-            let v = Value_or_Uninitialized.narrow value value' in
-            (* The value can legitimately be bottom on escaping variables,
-               which are not tracked by the multidim domain.
-               In this case, do not reduce the state to bottom. *)
-            if Value_or_Uninitialized.is_bottom v && not record.value.escaping
-            then `Bottom
-            else `Value v
-          in
-          if Location.is_singleton loc
-          then reinforce ~oracle update state loc
-          else `Value state
-      else `Value state
-    | _ -> `Value state
-
-  let assume_valuation valuation state =
-    valuation.Abstract_domain.fold (assume_exp valuation) (`Value state)
-
-  let update valuation state =
-    assume_valuation valuation state
-
-  let assign' ~oracle ~value dst src state =
-    match Location.of_lval oracle dst with
-    | `Top -> top
-    | `Value dst ->
-      let state = update_references ~oracle dst src state in
-      match value with
-      | Assign value ->
-        set ~oracle state dst (Value_or_Uninitialized.of_value value)
-      | Copy (right, value) ->
-        match Location.of_lval oracle right.lval with
-        | `Top ->
-          let b = Value_or_Uninitialized.(to_bit (from_flagged value)) in
-          erase ~oracle state dst b
-        | `Value src ->
-          DomainLattice.overwrite ~oracle state dst src
-
-  let assign ~pos:_ { lval=dst } src assigned_value valuation state =
-    if Z_or_top.is_zero (Bit_utils.sizeof dst.typ)
-    then `Value state
-    else
-      let+ state = assume_valuation valuation state in
-      let oracle = valuation_to_oracle state valuation in
-      assign' ~oracle ~value:assigned_value dst (Some src) state
-
-  let assume ~pos:_ _expr _pos valuation state =
-    assume_valuation valuation state
-
-  let start_call ~pos:_ call recursion valuation state =
-    if recursion <> None
-    then
-      Self.abort ~current:true
-        "The multidim domain does not support recursive calls yet";
-    let oracle = valuation_to_oracle state valuation in
-    let bind state arg =
-      state >>-:
-      assign' ~oracle ~value:arg.avalue (Eva_ast.Build.var arg.formal) (Some arg.concrete)
-    in
-    List.fold_left bind (`Value state) call.arguments
-
-  let finalize_call ~pos:_ call _recursion ~pre:_ ~post =
-    match find_builtin call.kf, call.return with
-    | None, _ | _, None   -> `Value post
-    | Some f, Some return ->
-      let args = List.map (fun arg -> arg.avalue) call.arguments in
-      let+ assigned_result = f args in
-      let oracle = mk_oracle post in
-      let dst = Eva_ast.Build.var return in
-      assign' ~oracle ~value:assigned_result dst None post
-
-  let show_expr valuation state fmt expr =
-    match (expr : Eva_ast.exp).node with
-    | Lval lval | StartOf lval ->
-      let oracle = valuation_to_oracle state valuation in
-      begin match Location.of_lval oracle lval with
-        | `Top -> Unicode.pp_top fmt
-        | `Value loc ->
-          let m = extract ~oracle state loc in
-          Bottom.pretty Memory.pretty fmt m
-      end
-    | _ -> ()
-
-  let enter_scope _kind vars state =
-    let oracle = mk_oracle state in
-    let enter_one state v =
-      let dst = Location.of_var v in
-      erase ~oracle state dst Abstract_memory.Bit.uninitialized
-    in
-    List.fold_left enter_one state vars
-
-  let leave_scope _kf vars state =
-    let oracle = mk_oracle state in
-    List.fold_left (fun state vi -> remove ~oracle vi state) state vars
-
-  let logic_assign assign location state =
-    let oracle = mk_oracle state
-    and dst = Location.of_precise_loc location
-    and b =
-      match assign with
-      | None
-      | Some (Frees _, _)
-      | Some (Allocates _, _)
-      | Some (Assigns (_, _ :: _), _) -> Abstract_memory.Bit.top
-      | Some (Assigns (_, []), _) -> Abstract_memory.Bit.numerical
-    in
-    let state = update_references ~oracle dst None state in
-    erase ~oracle ~weak:true state dst b
-
-  let reduce_by_papp env li _labels args positive state =
-    match li.Cil_types.l_var_info.lv_name, args with
-    | "\\are_finite", [arg] ->
-      begin match Location.of_term env arg with
-        | `Top -> `Value state (* can't resolve location, ignore *)
-        | `Value (loc,typ) ->
-          begin match Ast_types.(C.unroll_node (Acsl.get_ctype typ)) with
-            | TFloat fkind ->
-              let update = Value.backward_is_finite positive fkind
-              and oracle = mk_oracle state in
-              reinforce ~oracle (Value_or_Uninitialized.map' update) state loc
-            | _ | exception (Failure _) -> `Value state
-          end
-      end
-    | _ -> `Value state
-
-  let reduce_by_predicate env state predicate truth =
-    let rec reduce predicate truth state =
-      match truth, predicate.Cil_types.pred_content with
-      | true, Pand (p1,p2) | false, Por (p1,p2) ->
-        state |> reduce p1 truth >>- reduce p2 truth
-      | _,Papp (li, labels, args) ->
-        reduce_by_papp env li labels args truth state
-      | _ -> `Value state
-    in
-    reduce predicate truth state
-
-  let interpret_acsl_extension extension _env state =
-    match extension.Cil_types.ext_name with
-    | "array_partition" ->
-      let annotation = Eva_annotations.read_array_segmentation extension in
-      let vi,offset,bounds = annotation in
-      (* Update the segmentation *)
-      let bounds = List.map Eva_ast.translate_exp bounds in
-      let lval = Eva_ast.translate_lval (Var vi, offset) in
-      let oracle = mk_oracle state in
-      begin match Location.of_lval oracle lval with
-        | `Top -> state
-        | `Value loc ->
-          let update m offset =
-            let oracle = convert_oracle oracle in
-            Memory.segmentation_hint ~oracle m offset bounds
-          in
-          let state = write update state loc in
-          (* Update the references *)
-          let add acc e =
-            let r = Eva_ast.vars_in_exp e in
-            (Cil_datatype.Varinfo.Set.to_seq r |> List.of_seq) @ acc
-          in
-          let references = List.fold_left add [] bounds in
-          let references = List.map Base.of_varinfo references in
-          add_references_l state references (Location.bases loc)
-      end
-    | "eva_domain_scope" ->
-      let domain,vars = Eva_annotations.read_domain_scope extension in
-      if domain = "multidim" then
-        let (base_map,tracked) = state in
-        let set = Option.value ~default:Tracking.empty tracked
-        and bases = List.map Base.of_varinfo vars in
-        let tracked = List.fold_right Tracking.add bases set in
-        let base_map = BaseMap.inter_with_shape tracked base_map in (* Only keep tracked bases in the current base map *)
-        base_map, Some tracked
+          match get ~oracle state loc with
+          | `Bottom -> `Bottom, Alarmset.all
+          | `Value v ->
+            let r =
+              let+ v = ValueOrUninitialized.to_value v in v, None
+            and alarms =
+              if ValueOrUninitialized.is_initialized v
+              then
+                let origin = Eva_ast.to_cil_lval lv in
+                Alarmset.(set (Alarms.Uninitialized origin) True all)
+              else Alarmset.all
+            in r, alarms
       else
-        state
-    | _ ->
-      state
+        `Value (Value.top, None), Alarmset.all
 
-  let empty () = top
 
-  let initialize_variable lval _loc ~initialized:_ init_value state =
-    let oracle = mk_oracle state in
-    match Location.of_lval oracle lval with
-    | `Top -> top
-    | `Value dst ->
-      let d = match init_value with
-        | Abstract_domain.Top  -> Abstract_memory.Bit.numerical
-        | Abstract_domain.Zero -> Abstract_memory.Bit.zero
+    (* Eva Transfer *)
+
+    let valuation_to_oracle state valuation : Eva_ast.exp -> Cvalue.V.t =
+      fun exp ->
+      let memory_oracle = mk_oracle state in
+      match valuation.Abstract_domain.find exp with
+      | `Top -> memory_oracle exp
+      | `Value {value={v=`Bottom}} -> Cvalue.V.bottom
+      | `Value {value={v=`Value value}} -> Value.to_cvalue value
+
+    let assume_exp valuation expr record state' =
+      let* state = state' in
+      let oracle = valuation_to_oracle state valuation in
+      match (expr : Eva_ast.exp).node with
+      | Lval lv when Ast_types.C.is_scalar lv.typ ->
+        let value = ValueOrUninitialized.of_flagged record.value in
+        if not (ValueOrUninitialized.is_topint value) then
+          match Location.of_lval oracle lv with
+          | `Top -> `Value state (* location evaluate to top, ignore *)
+          | `Value loc ->
+            let update value' =
+              let v = ValueOrUninitialized.narrow value value' in
+              (* The value can legitimately be bottom on escaping variables,
+                 which are not tracked by the cell memories.
+                 In this case, do not reduce the state to bottom. *)
+              if Bottom.is_bottom v && record.value.escaping
+              then `Value ValueOrUninitialized.bottom
+              else v
+            in
+            if Location.is_singleton loc
+            then reinforce ~oracle update state loc
+            else `Value state
+        else `Value state
+      | _ -> `Value state
+
+    let assume_valuation valuation state =
+      valuation.Abstract_domain.fold (assume_exp valuation) (`Value state)
+
+    let update valuation state =
+      assume_valuation valuation state
+
+    let assign' ~oracle ~value dst src state =
+      match Location.of_lval oracle dst with
+      | `Top -> top
+      | `Value dst ->
+        let state = update_references ~oracle dst src state in
+        match value with
+        | Assign value ->
+          set ~oracle state dst (ValueOrUninitialized.of_value value)
+        | Copy (right, value) ->
+          match Location.of_lval oracle right.lval with
+          | `Top ->
+            let b = ValueOrUninitialized.(to_bit (of_flagged value)) in
+            erase ~oracle state dst b
+          | `Value src ->
+            Lattice.overwrite ~oracle state dst src
+
+    let assign ~pos:_ { lval=dst } src assigned_value valuation state =
+      if Z_or_top.is_zero (Bit_utils.sizeof dst.typ)
+      then `Value state
+      else
+        let+ state = assume_valuation valuation state in
+        let oracle = valuation_to_oracle state valuation in
+        assign' ~oracle ~value:assigned_value dst (Some src) state
+
+    let assume ~pos:_ _expr _pos valuation state =
+      assume_valuation valuation state
+
+    let start_call ~pos:_ call recursion valuation state =
+      if recursion <> None
+      then
+        Self.abort ~current:true
+          "The cell memory model does not support recursive calls yet";
+      let oracle = valuation_to_oracle state valuation in
+      let bind state arg =
+        state >>-:
+        assign' ~oracle ~value:arg.avalue (Eva_ast.Build.var arg.formal) (Some arg.concrete)
       in
-      let oracle = mk_oracle state in (* Since dst has no offset, oracle is actually useless *)
-      erase ~oracle state dst d
+      List.fold_left bind (`Value state) call.arguments
 
-  let initialize_variable_using_type _kind vi state =
-    let lval = Eva_ast.Build.var vi in
-    let oracle = mk_oracle state in
-    match Location.of_lval oracle lval with
-    | `Top -> top
-    | `Value dst ->
-      let oracle = mk_oracle state in (* Since dst has no offset, oracle is actually useless *)
-      erase ~oracle state dst Abstract_memory.Bit.top
+    let finalize_call ~pos:_ call _recursion ~pre:_ ~post =
+      match find_builtin call.kf, call.return with
+      | None, _ | _, None   -> `Value post
+      | Some f, Some return ->
+        let args = List.map (fun arg -> arg.avalue) call.arguments in
+        let+ assigned_result = f args in
+        let oracle = mk_oracle post in
+        let dst = Eva_ast.Build.var return in
+        assign' ~oracle ~value:assigned_result dst None post
 
-  let relate _bases _state = Base.SetLattice.empty
+    let show_expr valuation state fmt expr =
+      match (expr : Eva_ast.exp).node with
+      | Lval lval | StartOf lval ->
+        let oracle = valuation_to_oracle state valuation in
+        begin match Location.of_lval oracle lval with
+          | `Top -> Unicode.pp_top fmt
+          | `Value loc ->
+            let m = extract ~oracle state loc in
+            Bottom.pretty Memory.pretty fmt m
+        end
+      | _ -> ()
 
-  let filter bases (base_map, tracked : t) =
-    BaseMap.inter_with_shape bases base_map,
-    Option.map (Tracking.inter bases) tracked
+    let enter_scope _kind vars state =
+      let oracle = mk_oracle state in
+      let enter_one state v =
+        let dst = Location.of_var v in
+        erase ~oracle state dst Abstract_memory.Bit.uninitialized
+      in
+      List.fold_left enter_one state vars
 
-  let project = filter
+    let leave_scope _kf vars state =
+      let oracle = mk_oracle state in
+      List.fold_left (fun state vi -> remove ~oracle vi state) state vars
 
-  let overwrite =
-    let cache = cache_name "overwrite" in
-    let decide _key _v1 v2 = v2 in
-    let join = BaseMap.join ~cache ~symmetric:false ~idempotent:true ~decide in
-    fun bases ~on:(m1,t1) ~by:(m2,t2) ->
-      let m1 = BaseMap.diff_with_shape bases m1 in
-      join m1 m2, join_tracked t1 t2
+    let logic_assign assign location state =
+      let oracle = mk_oracle state
+      and dst = Location.of_precise_loc location
+      and b =
+        match assign with
+        | None
+        | Some (Frees _, _)
+        | Some (Allocates _, _)
+        | Some (Assigns (_, _ :: _), _) -> Abstract_memory.Bit.top
+        | Some (Assigns (_, []), _) -> Abstract_memory.Bit.numerical
+      in
+      let state = update_references ~oracle dst None state in
+      erase ~oracle ~weak:true state dst b
 
-  let reuse bases ~current_input ~previous_output =
-    overwrite bases ~on:current_input ~by:previous_output
+    let reduce_by_papp env li _labels args positive state =
+      match li.Cil_types.l_var_info.lv_name, args with
+      | "\\are_finite", [arg] ->
+        begin match Location.of_term env arg with
+          | `Top -> `Value state (* can't resolve location, ignore *)
+          | `Value (loc,typ) ->
+            begin match Ast_types.(C.unroll_node (Acsl.get_ctype typ)) with
+              | TFloat fkind ->
+                let update = Value.backward_is_finite positive fkind
+                and oracle = mk_oracle state in
+                reinforce ~oracle (ValueOrUninitialized.map' update) state loc
+              | _ | exception (Failure _) -> `Value state
+            end
+        end
+      | _ -> `Value state
 
+    let reduce_by_predicate env state predicate truth =
+      let rec reduce predicate truth state =
+        match truth, predicate.Cil_types.pred_content with
+        | true, Pand (p1,p2) | false, Por (p1,p2) ->
+          state |> reduce p1 truth >>- reduce p2 truth
+        | _,Papp (li, labels, args) ->
+          reduce_by_papp env li labels args truth state
+        | _ -> `Value state
+      in
+      reduce predicate truth state
+
+    let interpret_acsl_extension extension _env state =
+      match extension.Cil_types.ext_name with
+      | "array_partition" ->
+        let annotation = Eva_annotations.read_array_segmentation extension in
+        let vi,offset,bounds = annotation in
+        (* Update the segmentation *)
+        let bounds = List.map Eva_ast.translate_exp bounds in
+        let lval = Eva_ast.translate_lval (Var vi, offset) in
+        let oracle = mk_oracle state in
+        begin match Location.of_lval oracle lval with
+          | `Top -> state
+          | `Value loc ->
+            let update m offset =
+              let oracle = convert_oracle oracle in
+              Memory.segmentation_hint ~oracle m offset bounds
+            in
+            let state = write update state loc in
+            (* Update the references *)
+            let add acc e =
+              let r = Eva_ast.vars_in_exp e in
+              (Cil_datatype.Varinfo.Set.to_seq r |> List.of_seq) @ acc
+            in
+            let references = List.fold_left add [] bounds in
+            let references = List.map Base.of_varinfo references in
+            add_references_l state references (Location.bases loc)
+        end
+      | "eva_domain_scope" ->
+        let domain,vars = Eva_annotations.read_domain_scope extension in
+        if domain = name then
+          let (base_map,tracked) = state in
+          let set = Option.value ~default:Tracking.empty tracked
+          and bases = List.map Base.of_varinfo vars in
+          let tracked = List.fold_right Tracking.add bases set in
+          let base_map = BaseMap.inter_with_shape tracked base_map in (* Only keep tracked bases in the current base map *)
+          base_map, Some tracked
+        else
+          state
+      | _ ->
+        state
+
+    let empty () = top
+
+    let initialize_variable lval _loc ~initialized:_ init_value state =
+      let oracle = mk_oracle state in
+      match Location.of_lval oracle lval with
+      | `Top -> top
+      | `Value dst ->
+        let d = match init_value with
+          | Abstract_domain.Top  -> Abstract_memory.Bit.numerical
+          | Abstract_domain.Zero -> Abstract_memory.Bit.zero
+        in
+        let oracle = mk_oracle state in (* Since dst has no offset, oracle is actually useless *)
+        erase ~oracle state dst d
+
+    let initialize_variable_using_type _kind vi state =
+      let lval = Eva_ast.Build.var vi in
+      let oracle = mk_oracle state in
+      match Location.of_lval oracle lval with
+      | `Top -> top
+      | `Value dst ->
+        let oracle = mk_oracle state in (* Since dst has no offset, oracle is actually useless *)
+        erase ~oracle state dst Abstract_memory.Bit.top
+
+    let relate _bases _state = Base.SetLattice.empty
+
+    let filter bases (base_map, tracked : t) =
+      BaseMap.inter_with_shape bases base_map,
+      Option.map (Tracking.inter bases) tracked
+
+    let project = filter
+
+    let overwrite =
+      let cache = cache_name "overwrite" in
+      let decide _key _v1 v2 = v2 in
+      let join = BaseMap.join ~cache ~symmetric:false ~idempotent:true ~decide in
+      fun bases ~on:(m1,t1) ~by:(m2,t2) ->
+        let m1 = BaseMap.diff_with_shape bases m1 in
+        join m1 m2, join_tracked t1 t2
+
+    let reuse bases ~current_input ~previous_output =
+      overwrite bases ~on:current_input ~by:previous_output
+
+  end
+
+  include Domain
+
+  let join_hook (module Abstract: Abstractions.S) : (module Abstractions.S) =
+    match Abstract.Val.get Main_values.CVal.key, Abstract.Dom.get key with
+    | None, _
+    | _, None -> (module Abstract)
+    | Some get_cval, Some get_value ->
+      let module Eval =
+        Evaluation.Make
+          (Abstract.Ctx) (Abstract.Val) (Abstract.Loc) (Abstract.Dom)
+      in
+      let module Dom = struct
+        include Abstract.Dom
+
+        let join a b =
+          let r = join (set key Domain.top a) (set key Domain.top b) in
+          let oracle state =
+            let valuation_ref = ref Eval.Valuation.empty in
+            fun exp ->
+              let valuation = !valuation_ref in
+              let v, _alarms = Eval.evaluate ~valuation state exp in
+              match v with
+              | `Bottom -> Cvalue.V.top
+              | `Value (valuation, v) ->
+                valuation_ref := valuation;
+                get_cval v
+          in
+          let left_oracle = oracle a
+          and right_oracle = oracle b in
+          let oracle = function
+            | Abstract_memory.Left ->  convert_oracle left_oracle
+            | Abstract_memory.Right -> convert_oracle right_oracle
+          in
+          let state = Domain.join' ~oracle (get_value a) (get_value b) in
+          set key state r
+      end
+      in
+      (module struct
+        module Ctx = Abstract.Ctx
+        module Val = Abstract.Val
+        module Loc = Abstract.Loc
+        module Dom = Dom
+      end)
+
+  let () = Abstractions.Hooks.register join_hook
 end
 
-include Domain
 
-let multidim_hook (module Abstract: Abstractions.S) : (module Abstractions.S) =
-  match Abstract.Val.get Main_values.CVal.key, Abstract.Dom.get key with
-  | None, _
-  | _, None -> (module Abstract)
-  | Some get_cval,  Some get_multidim ->
-    let module Eval =
-      Evaluation.Make (Abstract.Ctx) (Abstract.Val) (Abstract.Loc) (Abstract.Dom)
-    in
-    let module Dom = struct
-      include Abstract.Dom
+(** --- Instanciation of the multidim domain --- *)
 
-      let join a b =
-        let r = join (set key Domain.top a) (set key Domain.top b) in
-        let oracle state =
-          let valuation_ref = ref Eval.Valuation.empty in
-          fun exp ->
-            let valuation = !valuation_ref in
-            let v, _alarms = Eval.evaluate ~valuation state exp in
-            match v with
-            | `Bottom -> Cvalue.V.top
-            | `Value (valuation, v) ->
-              valuation_ref := valuation;
-              get_cval v
-        in
-        let left_oracle = oracle a
-        and right_oracle = oracle b in
-        let oracle = function
-          | Abstract_memory.Left ->  convert_oracle left_oracle
-          | Abstract_memory.Right -> convert_oracle right_oracle
-        in
-        let multidim = Domain.join' ~oracle (get_multidim a) (get_multidim b) in
-        set key multidim r
-    end
+module CValue =
+struct
+  type t = Cvalue.V.t
+  let top = Cvalue.V.top
+  let to_cvalue v = v
+  let builtins = []
+  let dependencies = Abstract_value.Leaf (module Main_values.CVal)
+
+  let backward_is_finite positive fkind v =
+    let open Cvalue.V in
+    let prec = Fval.kind fkind in
+    try
+      let v = reinterpret_as_float fkind v in
+      Fval.backward_is_finite ~positive prec (project_float v) >>-: inject_float
+    with Not_based_on_null ->
+      `Value v
+end
+
+module CValueOrUninitialized =
+struct
+  include Cvalue.V_Or_Uninitialized
+  module V = Cvalue.V
+
+  type value = V.t
+
+  let widen ~size ~hint =
+    widen ~size ~hint
+
+  let narrow v1' v2' =
+    let r = narrow v1' v2' in
+    if is_bottom r then `Bottom else `Value r
+
+  let to_integer v' =
+    try  Some (Ival.project_int (V.project_ival (get_v v')))
+    with V.Not_based_on_null | Ival.Not_Singleton_Int -> None
+
+  let to_value v' =
+    let v = get_v v' in
+    if V.is_bottom v
+    then `Bottom
+    else `Value v
+
+  let to_cvalue v' =
+    get_v v'
+
+  let of_flagged fv =
+    make
+      ~initialized:fv.initialized
+      ~escaping:false
+      (Bottom.value ~bottom:V.bottom fv.v)
+
+  let of_value v =
+    make ~initialized:true ~escaping:false v
+
+  let make i v =
+    let initialized = match i with
+      | Abstract_memory.SurelyInitialized -> true
+      | Abstract_memory.MaybeUninitialized -> false
     in
-    (module struct
-      module Ctx = Abstract.Ctx
-      module Val = Abstract.Val
-      module Loc = Abstract.Loc
-      module Dom = Dom
-    end)
+    make ~initialized ~escaping:false v
+
+  let of_bit ~typ:_ = function
+    | Abstract_memory.Uninitialized -> uninitialized
+    | Zero i -> make i (V.inject_int Z.zero)
+    | Any (Top, i) -> make i (V.top_with_origin Origin.unknown)
+    | Any (Set s, i) ->
+      let v =
+        if Base.Hptset.is_empty s
+        then V.inject_ival Ival.top
+        else V.inject_top_origin Origin.unknown s
+      in
+      make i v
+
+  let to_bit v' =
+    match to_value v' with
+    | `Bottom -> Abstract_memory.Uninitialized
+    | `Value v ->
+      let initialization =
+        if is_initialized v'
+        then Abstract_memory.SurelyInitialized
+        else Abstract_memory.MaybeUninitialized
+      in
+      if V.is_zero v
+      then Abstract_memory.Zero (initialization)
+      else Abstract_memory.Any (V.get_bases v, initialization)
+
+  let is_topint v' =
+    get_v v' |> V.is_topint
+
+  let map' f v' =
+    let+ new_v = f (get_v v') in
+    map (fun _ -> new_v) v'
+end
+
+module MultidimDomain =
+  MakeGeneric
+    (struct let name = "multidim" end)
+    (CValue)
+    (CValueOrUninitialized)
 
 (* Registers the domain. *)
 let registered =
@@ -962,6 +1050,92 @@ let registered =
                or multidimensional arrays."
   in
   Abstractions.Domain.register ~name ~descr ~experimental:true ~priority:7
-    (module Domain)
+    (module MultidimDomain)
 
-let () = Abstractions.Hooks.register multidim_hook
+
+(** --- Simplified functor --- *)
+
+module Make (Params : sig val name : string end) (Value : Value) =
+struct
+  module GenericValue =
+  struct
+    type t = Cvalue.V.t * Value.t
+    let top = (Cvalue.V.top, Value.top)
+    let to_cvalue = fst
+
+    let builtins =
+      let lift (f : Value.t builtin) : t builtin = fun args ->
+        args
+        |> List.map (Eval.map_assigned snd)
+        |> f
+        |> Bottom.map (Eval.map_assigned (fun v -> (Cvalue.V.top, v)))
+      in
+      List.map (fun (name, f) -> name, lift f) Value.builtins
+
+    let dependencies = Abstract_value.Node (
+        Abstract_value.Leaf (module Main_values.CVal),
+        Abstract_value.Leaf (module Value))
+
+    let backward_is_finite pos fkind (cv,v) =
+      let open Bottom.Operators in
+      let+ cv' = CValue.backward_is_finite pos fkind cv in
+      cv',v
+  end
+
+  module GenericValueOrUninitialized =
+  struct
+    open Bottom.Operators
+
+    include Datatype.Pair (CValueOrUninitialized) (Value)
+
+    type value = Cvalue.V.t * Value.t
+
+    let pretty fmt v = snd v |> Value.pretty fmt
+    let to_bit v = fst v |> CValueOrUninitialized.to_bit
+    let to_integer v = fst v |> CValueOrUninitialized.to_integer
+
+    let of_bit ~typ b =
+      CValueOrUninitialized.of_bit ~typ b,
+      match b with
+      | Abstract_memory.Zero _ -> Value.zero
+      | Any _ | Uninitialized -> Value.top
+
+    let top = CValueOrUninitialized.top, Value.top
+    let bottom = CValueOrUninitialized.bottom, Value.top
+
+    let is_included (cv1, v1) (cv2, v2) =
+      CValueOrUninitialized.is_included cv1 cv2 &&
+      Value.is_included v1 v2
+
+    let join (cv1, v1) (cv2, v2) =
+      CValueOrUninitialized.join cv1 cv2,
+      Value.join v1 v2
+
+    let narrow (cv1, v1) (cv2, v2) =
+      let+ cv = CValueOrUninitialized.narrow cv1 cv2
+      and+ v = Value.narrow v1 v2 in
+      cv, v
+
+    let widen ~size ~hint (cv1, v1) (cv2, v2) =
+      CValueOrUninitialized.widen ~size ~hint cv1 cv2,
+      Value.widen ~size ~hint v1 v2
+
+    let is_topint v = fst v |> CValueOrUninitialized.is_topint
+    let is_bottom v = fst v |> CValueOrUninitialized.is_bottom
+    let is_initialized v = fst v |> CValueOrUninitialized.is_initialized
+    let to_cvalue v = fst v |> CValueOrUninitialized.to_cvalue
+    let to_value (cv,v) =
+      let+ cv' = CValueOrUninitialized.to_value cv in
+      cv', v
+    let of_value v = fst v |> CValueOrUninitialized.of_value, snd v
+    let of_flagged (fv : value Eval.flagged_value) : t =
+      map_value_with_flags fst fv |> CValueOrUninitialized.of_flagged,
+      Bottom.value ~bottom:Value.top (let+ (_cv, v) = fv.v in v)
+    let map' (f  : (value -> value or_bottom)) (cv,v : t) : t or_bottom =
+      let* (cv',v') = to_value (cv,v) in
+      let+ (cv'',v'') = f (cv',v') in
+      CValueOrUninitialized.map (fun _ -> cv'') cv, v''
+  end
+
+  include MakeGeneric (Params) (GenericValue) (GenericValueOrUninitialized)
+end
