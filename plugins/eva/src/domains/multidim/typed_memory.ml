@@ -370,6 +370,24 @@ struct
 
     let smash ~oracle = join ~oracle:(fun _ -> oracle)
 
+    let rec iter f m =
+      match m with
+      | Raw _ -> ()
+      | Scalar s -> f s.scalar_type s.scalar_value
+      | Struct s -> S.iter (iter f) s.struct_value
+      | Disjunct d -> D.iter (iter f) d.disj_value
+      | Union u -> iter f u.union_value
+      | Array a -> A.iter (iter f) a.array_value
+
+    let rec fold f m acc =
+      match m with
+      | Raw _ -> acc
+      | Scalar s -> f s.scalar_type s.scalar_value acc
+      | Struct s -> S.fold (fold f) s.struct_value acc
+      | Disjunct d -> D.fold (fold f) d.disj_value acc
+      | Union u -> fold f u.union_value acc
+      | Array a -> A.fold (fold f) a.array_value acc
+
     let read ~oracle (map : Cil_types.typ -> t -> 'a) (reduce : 'a -> 'a -> 'a) =
       let rec aux offset m =
         match offset, m with
@@ -387,7 +405,7 @@ struct
         | Index (exp, index, elem_type, offset'), Array a
           when are_typ_compatible a.array_cell_type elem_type ->
           let open Top.Operators in
-          let m =
+          let v =
             let+ lindex, uindex = match Option.map Bound.of_exp exp with
               | Some b -> `Value (b, b)
               | None | exception Bound.UnsupportedBoundExpression ->
@@ -398,13 +416,9 @@ struct
             in
             A.read ~oracle (aux offset') reduce a.array_value lindex uindex
           in
-          begin match m with
+          begin match v with
             | `Value v -> v
-            | `Top ->
-              A.fold
-                (fun m' acc -> reduce (aux offset' m') acc)
-                (fun p () -> aux offset' (Raw p))
-                a.array_value ()
+            | `Top -> A.read_any (aux offset') reduce a.array_value
           end
         | _, m -> (* structure mismatch *)
           let r = Raw (raw m) in

@@ -76,6 +76,12 @@ sig
     (size:size -> value -> value -> value) -> t -> t -> t
   val join : oracle:bioracle -> t -> t -> t
   val smash : oracle:oracle -> t -> t -> t
+  val iter :
+    (Cil_types.typ -> value -> unit) ->
+    t -> unit
+  val fold :
+    (Cil_types.typ -> value -> 'a -> 'a) ->
+    t -> 'a -> 'a
   val read : oracle:oracle -> (Cil_types.typ -> t -> 'a) -> ('a -> 'a -> 'a) ->
     Abstract_offset.t -> t -> 'a
   val update : oracle:oracle ->

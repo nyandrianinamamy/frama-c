@@ -39,6 +39,8 @@ sig
   val weak_erase : Bit.t -> t -> t
   val is_included : t -> t -> bool
   val unify : (submemory -> submemory -> submemory) -> t -> t -> t
+  val iter : (submemory -> unit) -> t -> unit
+  val fold : (submemory -> 'a -> 'a) -> t -> 'a -> 'a
   val read : t -> Cil_types.fieldinfo -> submemory
   val update : (submemory -> submemory or_bottom) -> t -> Cil_types.fieldinfo ->
     t or_bottom
@@ -127,6 +129,12 @@ struct
         m1.fields m2.fields
     in { padding = Bit.join m1.padding m2.padding ; fields }
 
+  let iter f m =
+    FieldMap.iter (fun _ m' -> f m') m.fields
+
+  let fold f m acc =
+    FieldMap.fold (fun _ m' acc -> f m' acc) m.fields acc
+
   let read m fi =
     try
       FieldMap.find fi m.fields
@@ -183,6 +191,8 @@ sig
   val is_included : t -> t -> bool
   val unify : oracle:bioracle -> (submemory -> submemory -> submemory) ->
     t -> t -> t
+  val iter : (submemory -> unit) -> t -> unit
+  val fold : (submemory -> 'a -> 'a) -> t -> 'a -> 'a
   val read : (submemory -> 'a) -> ('a -> 'a -> 'a)  ->
     t -> Cil_types.fieldinfo -> 'a
   val update : oracle:oracle -> (submemory -> submemory or_bottom) ->
@@ -305,6 +315,12 @@ struct
     let m1 = reevaluate ~oracle:(oracle Left) keys m1
     and m2 = reevaluate ~oracle:(oracle Right) keys m2 in
     Map.union (fun _k m1 m2 -> Some (S.unify f m1 m2)) m1 m2
+
+  let iter f (m : t) =
+    Map.iter (fun _ s -> S.iter f s) m
+
+  let fold f (m : t) acc =
+    Map.fold (fun _ s acc -> S.fold f s acc) m acc
 
   let read map reduce (m : t) (fi : Cil_types.fieldinfo) =
     let aux _k s acc =

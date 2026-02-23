@@ -90,6 +90,16 @@ sig
   (* Test inclusion of one memory map into another *)
   val is_included : t -> t -> bool
 
+  (* Iter on all the stored values. *)
+  val iter :
+    (Cil_types.typ -> value -> unit) ->
+    t -> unit
+
+  (* Fold on all the stored values. *)
+  val fold :
+    (Cil_types.typ -> value -> 'a -> 'a) ->
+    t -> 'a -> 'a
+
   (* Finest partition that is coarcer than both *)
   val join : oracle:bioracle -> t -> t -> t
 

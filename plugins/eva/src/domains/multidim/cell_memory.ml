@@ -246,6 +246,12 @@ struct
     | `Value loc ->
       Memory.overwrite ~oracle ~weak dst loc src
 
+  let iter f m =
+    Memory.iter f m
+
+  let fold f m acc =
+    Memory.fold f m acc
+
   let segmentation_hint ~oracle m loc bounds =
     match loc with
     | `Top -> Memory.top
@@ -629,6 +635,25 @@ struct
       in
       generic_join ~cache ~symmetric:false ~idempotent:true ~decide m1 m2,
       join_tracked t1 t2
+
+    (* Iterators *)
+
+    let iter
+        (f : Cil_types.typ -> value_or_uninitialized -> unit)
+        (m,_ : state) : unit =
+      let f' _base (m,_) =
+        Memory.iter f m
+      in
+      BaseMap.iter f' m
+
+    let fold
+        (f : Cil_types.typ -> value_or_uninitialized -> 'a -> 'a)
+        (m,_ : state)
+        (acc :'a) : 'a =
+      let f' _base (m,_) acc =
+        Memory.fold f m acc
+      in
+      BaseMap.fold f' m acc
   end
 
   module Domain =
@@ -1152,4 +1177,23 @@ struct
   end
 
   include MakeGeneric (Params) (GenericValue) (GenericValueOrUninitialized)
+
+  let read ~oracle state lval =
+    let open TopBottom.Operators in
+    let v =
+      let* mdloc = Location.of_lval oracle lval in
+      (get ~oracle state mdloc :> 'a or_top_bottom)
+    in
+    match v with
+    | `Top -> Value.top
+    | `Bottom -> assert false
+    | `Value (_,v) -> v
+
+  let iter f state =
+    let f' typ (_,v) = f typ v in
+    iter f' state
+
+  let fold f state acc =
+    let f' typ (_,v) acc = f typ v acc in
+    fold f' state acc
 end

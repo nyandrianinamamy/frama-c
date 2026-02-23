@@ -20,10 +20,17 @@ end
 
 (** This functor builds an abstract domain with the cell memory model. *)
 module Make (_ : sig val name : string end) (Value : Value) :
-  Abstract_domain.Leaf
-  with type value = Cvalue.V.t * Value.t
-   and type location = Precise_locs.precise_location
+sig
+  include Abstract_domain.Leaf
+    with type value = Cvalue.V.t * Value.t
+     and type location = Precise_locs.precise_location
 
+  val read :
+    oracle:(Eva_ast.exp -> Cvalue.V.t) -> t -> Eva_ast.lval -> Value.t
+
+  val iter : (Cil_types.typ -> Value.t -> unit) -> t -> unit
+  val fold : (Cil_types.typ -> Value.t -> 'a -> 'a) -> t -> 'a -> 'a
+end
 
 (** {2 The "multidim" domain}*)
 

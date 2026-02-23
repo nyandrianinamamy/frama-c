@@ -388,14 +388,17 @@ sig
   val unify : oracle:bioracle -> (submemory -> submemory -> submemory) ->
     t -> t -> t or_top
   val single : bit -> bound -> bound -> submemory -> t
+  val iter : (submemory -> unit) -> t -> unit
+  val fold : (submemory -> 'a -> 'a) -> t -> 'a -> 'a
   val read : oracle:oracle ->
     (submemory -> 'a) -> ('a -> 'a -> 'a) -> t -> bound -> bound -> 'a
+  val read_any :
+    (submemory -> 'a) -> ('a -> 'a -> 'a) -> t -> 'a
   val update : oracle:oracle -> (submemory -> submemory or_bottom) ->
     t -> bound -> bound -> t or_top_bottom
   val incr_bound :
     oracle:oracle -> Cil_types.varinfo -> Z.t option -> t -> t or_top
   val map : (submemory -> submemory) -> t -> t
-  val fold : (submemory -> 'a -> 'a) -> (bit -> 'b -> 'a) -> t -> 'b -> 'a
   val add_segmentation_bounds : oracle:oracle -> bound list -> t -> t
 end
 
@@ -845,8 +848,15 @@ struct
   let map f m =
     check { m with segments=List.map (fun (v,u) -> f v, u) m.segments }
 
-  let fold fs fp m acc =
-    List.fold_left (fun acc (v,_) -> fs v acc) (fp m.padding acc) m.segments
+  let iter f m =
+    List.iter (fun (v,_) -> f v) m.segments
+
+  let fold f m acc =
+    List.fold_left (fun acc (v,_) -> f v acc) acc m.segments
+
+  let read_any map reduce (m : t) =
+    map (M.of_raw m.padding) |>
+    fold (fun v acc-> reduce acc (map v)) m
 
   let add_segmentation_bounds ~oracle bounds m =
     let add_bound m b =
