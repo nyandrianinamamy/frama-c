@@ -6,13 +6,6 @@
 ;;                                                                        ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(subdir gen_api
- (include_subdirs no)
- (executable
-  (name gen_api)
-  (modules gen_api)
-  (libraries str)))
-
 (install
  (package frama-c-eva)
  (section (site (frama-c share)))
