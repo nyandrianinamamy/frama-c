@@ -32,3 +32,14 @@ val pretty_seq:
   ?last:unit format ->
   ?empty:unit format ->
   'a aformatter -> ('a Seq.t) aformatter
+
+(** Pretty prints a sequence of pairs. Same as {!pretty_seq} but the item
+    format must contain two ["%a"]. This version is intended for maps which
+    can be iterated through sequences of (key, value) pairs. *)
+val pretty_seq2:
+  format:(tformatter -> unit) format ->
+  item:('a aformatter -> 'a -> 'b aformatter -> 'b -> unit) format ->
+  sep:unit format ->
+  ?last:unit format ->
+  ?empty:unit format ->
+  'a aformatter -> 'b aformatter -> (('a * 'b) Seq.t) aformatter

@@ -36,11 +36,8 @@ struct
       ?(last=sep)
       ?(empty=format_of_string "{{}}")
       pp_key pp_val fmt m =
-    let pp_item fmt (k,v) =
-      Format.fprintf fmt item pp_key k pp_val v
-    in
-    Pretty.pretty_seq ~format ~item:"%a" ~sep ~last ~empty
-      pp_item fmt (to_seq m)
+    Pretty.pretty_seq2 ~format ~item ~sep ~last ~empty
+      pp_key pp_val fmt (to_seq m)
 
   let closed_union f m1 m2 =
     union (fun k v1 v2 -> Some (f k v1 v2)) m1 m2

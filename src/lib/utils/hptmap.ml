@@ -185,11 +185,9 @@ module Shape(Key: Id_Datatype) = struct
     else compare_v
 
   let pretty pretty_value fmt tree =
-    let pp_binding fmt (k,v) =
-      Format.fprintf fmt "%a -> @[%a@]" Key.pretty k pretty_value v
-    in
-    Pretty.pretty_seq ~format:"@[<v 3>{[ %t ]}@]" ~sep:"@ " ~item:"%a"
-      pp_binding fmt (to_seq tree)
+    Pretty.pretty_seq2
+      ~format:"@[<v 3>{[ %t ]}@]" ~sep:"@ " ~item:"%a -> @[%a@]"
+      Key.pretty pretty_value fmt (to_seq tree)
 
   let is_empty htr = match htr with
     | Empty ->

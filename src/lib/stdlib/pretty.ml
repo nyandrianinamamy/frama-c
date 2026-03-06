@@ -10,7 +10,7 @@ type 'a aformatter = Format.formatter -> 'a -> unit
 type tformatter = Format.formatter -> unit
 type nonrec 'a format = ('a,Format.formatter,unit) format
 
-(* This function is inspired by Pretty_utils functions and must be redefined
+(* These functions are inspired by Pretty_utils functions and must be redefined
    here to avoid cyclic dependencies as Pretty_utils depends on Array and
    List. *)
 
@@ -37,3 +37,9 @@ let pretty_seq ~format ~item ~sep ?(last=sep) ?empty pp_item fmt seq =
     match empty with
     | None -> Format.fprintf fmt format ignore
     | Some empty -> Format.fprintf fmt empty
+
+let pretty_seq2 ~format ~item ~sep ?(last=sep) ?empty pp_fst pp_snd fmt seq =
+  let pp_item fmt (a,b) =
+    Format.fprintf fmt item pp_fst a pp_snd b
+  in
+  pretty_seq ~format ~item:"%a" ~sep ~last ?empty pp_item fmt seq
