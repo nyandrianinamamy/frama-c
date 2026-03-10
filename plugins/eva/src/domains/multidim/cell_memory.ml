@@ -247,6 +247,12 @@ struct
   let fold f m acc =
     Memory.fold f m acc
 
+  let map f m =
+    Memory.map f m
+
+  let for_all f m =
+    Memory.for_all f m
+
   let segmentation_hint ~oracle m loc bounds =
     match loc with
     | `Top -> Memory.top
@@ -588,6 +594,10 @@ struct
 
   (* Iterators *)
 
+  let map (f : Cil_types.typ -> value -> value) (m, t : t) : t =
+    let f' (m, t) = (BaseModel.map f m, t) in
+    (MemoryMap.map f' m, t)
+
   let iter (f : Cil_types.typ -> value -> unit) (m,_ : t) : unit =
     let f' _base (m,_) = BaseModel.iter f m in
     MemoryMap.iter f' m
@@ -595,6 +605,10 @@ struct
   let fold (f : Cil_types.typ -> value -> 'a -> 'a) (m,_ : t) (acc :'a) : 'a =
     let f' _base (m,_) acc = BaseModel.fold f m acc in
     MemoryMap.fold f' m acc
+
+  let filter_on_value (f : Cil_types.typ -> value -> bool) (m, t : t) : t =
+    let f' _base (m, t) = if BaseModel.for_all f m then Some (m, t) else None in
+    (MemoryMap.filter_map f' m, t)
 end
 
 
@@ -1197,6 +1211,14 @@ struct
   let fold f state acc =
     let f' typ (_,v) acc = f typ v acc in
     fold f' state acc
+
+  let map f state =
+    let f' typ (c, v) = (c, f typ v) in
+    map f' state
+
+  let filter_on_value f state =
+    let f' typ (_, v) = f typ v in
+    filter_on_value f' state
 end
 
 

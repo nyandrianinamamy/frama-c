@@ -28,8 +28,11 @@ sig
   val read :
     oracle:(Eva_ast.exp -> Cvalue.V.t) -> t -> Eva_ast.lval -> Value.t
 
+  val map  : (Cil_types.typ -> Value.t -> Value.t) -> t -> t
   val iter : (Cil_types.typ -> Value.t -> unit) -> t -> unit
   val fold : (Cil_types.typ -> Value.t -> 'a -> 'a) -> t -> 'a -> 'a
+
+  val filter_on_value : (Cil_types.typ -> Value.t -> bool) -> t -> t
 end
 
 (** {2 The "multidim" domain}*)

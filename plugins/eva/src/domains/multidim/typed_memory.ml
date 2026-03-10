@@ -388,6 +388,24 @@ struct
       | Union u -> fold f u.union_value acc
       | Array a -> A.fold (fold f) a.array_value acc
 
+    let rec map f m =
+      match m with
+      | Raw _ -> m
+      | Scalar s -> Scalar { s with scalar_value = f s.scalar_type s.scalar_value }
+      | Struct s -> Struct { s with struct_value = S.map (map f) s.struct_value }
+      | Disjunct d -> Disjunct { d with disj_value = D.map (map f) d.disj_value }
+      | Union u -> Union { u with union_value = map f u.union_value }
+      | Array a -> Array { a with array_value = A.map (map f) a.array_value }
+
+    let rec for_all f m =
+      match m with
+      | Raw _ -> false
+      | Scalar s -> f s.scalar_type s.scalar_value
+      | Struct s -> S.fold (fun t acc -> acc && for_all f t) s.struct_value true
+      | Disjunct d -> D.fold (fun t acc -> acc && for_all f t) d.disj_value true
+      | Union u -> for_all f u.union_value
+      | Array a -> A.fold (fun t acc -> acc && for_all f t) a.array_value true
+
     let read ~oracle (map : Cil_types.typ -> t -> 'a) (reduce : 'a -> 'a -> 'a) =
       let rec aux offset m =
         match offset, m with
