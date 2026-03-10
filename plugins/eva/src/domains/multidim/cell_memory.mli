@@ -6,10 +6,14 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** {2 Cell Memory Model functor }*)
+open Eval
+
+
+(** {2 Cell Memory Model functors} *)
 
 type 'value builtin = 'value list -> 'value Lattice_bounds.or_bottom
 
+(** Minimal signature required on abstract values. *)
 module type Value =
 sig
   include Abstract_value.Leaf
@@ -18,24 +22,61 @@ sig
   val builtins: (string * t builtin) list
 end
 
-(** This functor builds an abstract domain with the cell memory model. *)
-module Make (_ : sig val name : string end) (Value : Value) :
+(** Cell memory model locations *)
+module Location :
 sig
-  include Abstract_domain.Leaf
-    with type value = Cvalue.V.t * Value.t
-     and type location = Precise_locs.precise_location
+  type t
+  val empty : t
+  val bases : t -> Base.t list
+  val is_singleton : t -> bool
+  val references : t -> Cil_types.varinfo list
+  val of_var : Cil_types.varinfo -> t
+  val of_lval : (exp -> Cvalue.V.t) -> Eva_ast.lval -> t or_top
+  val of_precise_loc : Precise_locs.precise_location -> t
+  val fold : (Base.t -> Abstract_offset.t or_top -> 'a -> 'a) -> t -> 'a -> 'a
+end
 
-  val read :
-    oracle:(Eva_ast.exp -> Cvalue.V.t) -> t -> Eva_ast.lval -> Value.t
+(** This functor builds the cell memory model. *)
+module Make_Memory (Value : Value) :
+sig
+  include Datatype.S_with_collections
+
+  val top : t
+  val is_included : t -> t -> bool
+  val join : t -> t -> t
+  val narrow : t -> t -> t or_bottom
+  val widen : Cil_types.kernel_function -> Cil_types.stmt -> t -> t -> t
+
+  val read : t -> Eva_ast.lval -> Value.t
+  val get : t -> Location.t -> Value.t or_bottom
+  val set : t -> Location.t -> Cvalue.V.t -> Value.t -> t
+  val remove : Cil_types.varinfo -> t -> t
+  val replace : t -> Location.t -> Location.t -> t
+  val erase : ?weak:bool -> t -> Location.t -> Abstract_memory.bit -> t
+  val reinforce : (Value.t -> Value.t or_bottom) -> t -> Location.t -> t or_bottom
 
   val map  : (Cil_types.typ -> Value.t -> Value.t) -> t -> t
   val iter : (Cil_types.typ -> Value.t -> unit) -> t -> unit
   val fold : (Cil_types.typ -> Value.t -> 'a -> 'a) -> t -> 'a -> 'a
+  val filter : (Cil_types.typ -> Value.t -> bool) -> t -> t
 
-  val filter_on_value : (Cil_types.typ -> Value.t -> bool) -> t -> t
+  val set_tracking : t -> Base.t list -> t
+  val add_references : t -> Base.t -> Base.t list -> t
+  val remove_references : Base.t -> t -> t
+  val update_references : Location.t -> Eva_ast.exp option -> t -> t
+
+  val project : Base.Hptset.t -> t -> t
+  val overwrite : Base.Hptset.t -> on:t -> by:t -> t
 end
 
-(** {2 The "multidim" domain}*)
+(** This functor builds an abstract domain with the cell memory model. *)
+module Make (_ : sig val name : string end) (Value : Value) :
+  Abstract_domain.Leaf
+  with type value = Cvalue.V.t * Value.t
+   and type location = Precise_locs.precise_location
+
+
+(** {2 The "multidim" domain} *)
 
 module MultidimDomain :
   Abstract_domain.Leaf

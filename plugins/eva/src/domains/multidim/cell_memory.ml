@@ -263,7 +263,7 @@ end
 
 (* --- Generic functor for building abstract domains --- *)
 
-module MakeModel (Value : CellValue) =
+module Make_Generic_Memory (Value : CellValue) =
 struct
   (* Configuration of the memory model *)
   module Config = struct
@@ -434,7 +434,6 @@ struct
       Location.fold
         (fun b _offset state -> remove_base_references ~oracle b state) dst state
 
-
   (* Accesses *)
 
   let read :
@@ -513,7 +512,7 @@ struct
     let map, tracked = state in
     MemoryMap.remove (Base.of_varinfo vi) map, tracked
 
-  let filter bases (base_map, tracked : t) =
+  let project bases (base_map, tracked : t) =
     MemoryMap.inter_with_shape bases base_map,
     Option.map (Tracking.inter bases) tracked
 
@@ -606,18 +605,63 @@ struct
     let f' _base (m,_) acc = BaseModel.fold f m acc in
     MemoryMap.fold f' m acc
 
-  let filter_on_value (f : Cil_types.typ -> value -> bool) (m, t : t) : t =
+  let filter (f : Cil_types.typ -> value -> bool) (m, t : t) : t =
     let f' _base (m, t) = if BaseModel.for_all f m then Some (m, t) else None in
     (MemoryMap.filter_map f' m, t)
 end
 
 
-module MakeGeneric
+(* --- Generic oracles --- *)
+
+(* Hack to build an oracle from the domain when the engine does not provide
+   one. *)
+
+type getter = oracle:(exp -> Cvalue.V.t) -> Location.t -> Cvalue.V.t or_bottom
+
+let default_oracle (get : getter) : Eva_ast.exp -> Cvalue.V.t =
+  (* Until Eva gives access to good oracles, we use this poor stupid oracle
+      instead *)
+  let rec oracle (exp : Eva_ast.exp) : Cvalue.V.t =
+    match exp.node with
+    | Lval lval ->
+      begin match Location.of_lval oracle lval with
+        | `Top -> Cvalue.V.top
+        | `Value loc ->
+          match get ~oracle loc with
+          | `Bottom -> Cvalue.V.bottom (* should never happen as location should not be empty *)
+          | `Value v -> v
+      end
+    | Const (CInt64 (i,_,_)) ->
+      Cvalue.V.inject_int i
+    | Const (CReal (f,_,_)) ->
+      Cvalue.V.inject_float (Fval.singleton (Fval.F.of_float f))
+    | UnOp (op, e, typ) ->
+      Cvalue_forward.forward_unop typ op (oracle e)
+    | BinOp (op, e1, e2, { tnode = TFloat fkind }) ->
+      Cvalue_forward.forward_binop_float (Fval.kind fkind) (oracle e1) op (oracle e2)
+    | BinOp (op, e1, e2, typ) ->
+      Cvalue_forward.forward_binop_int ~typ (oracle e1) op (oracle e2)
+    | CastE (typ, e) ->
+      let scalar_type t = Option.get (Eval_typ.classify_as_scalar t) in
+      let src_type =  scalar_type e.typ
+      and dst_type = scalar_type typ in
+      Cvalue_forward.forward_cast ~src_type ~dst_type (oracle e)
+    | _ ->
+      Self.fatal
+        "This type of array index expression is not supported: %a"
+        Eva_ast.pp_exp exp
+  in
+  fun exp -> oracle (Eva_ast.const_fold exp)
+
+
+(* --- Generic Domain Functor --- *)
+
+module Make_Generic_Domain
     (Params : sig val name : string end)
     (Value : GenericValue)
     (CellValue : CellValue with type value = Value.t) =
 struct
-  module Model = MakeModel (CellValue)
+  module Model = Make_Generic_Memory (CellValue)
 
   let value_dependencies = Value.dependencies
   let location_dependencies = Main_locations.ploc
@@ -632,43 +676,10 @@ struct
       try Some (Table.find table (Kernel_function.get_name kf))
       with Not_found -> None
 
-  (* Hack to build an oracle from the domain when the engine does not provide
-     one. *)
-
-  let mk_oracle (state : state) : Eva_ast.exp -> Cvalue.V.t =
-    (* Until Eva gives access to good oracles, we use this poor stupid oracle
-        instead *)
-    let rec oracle (exp : Eva_ast.exp) : Cvalue.V.t =
-      match exp.node with
-      | Lval lval ->
-        begin match Location.of_lval oracle lval with
-          | `Top -> Cvalue.V.top
-          | `Value loc ->
-            match Model.get ~oracle state loc with
-            | `Bottom -> Cvalue.V.bottom (* should never happen as location should not be empty *)
-            | `Value v -> CellValue.to_cvalue v
-        end
-      | Const (CInt64 (i,_,_)) ->
-        Cvalue.V.inject_int i
-      | Const (CReal (f,_,_)) ->
-        Cvalue.V.inject_float (Fval.singleton (Fval.F.of_float f))
-      | UnOp (op, e, typ) ->
-        Cvalue_forward.forward_unop typ op (oracle e)
-      | BinOp (op, e1, e2, { tnode = TFloat fkind }) ->
-        Cvalue_forward.forward_binop_float (Fval.kind fkind) (oracle e1) op (oracle e2)
-      | BinOp (op, e1, e2, typ) ->
-        Cvalue_forward.forward_binop_int ~typ (oracle e1) op (oracle e2)
-      | CastE (typ, e) ->
-        let scalar_type t = Option.get (Eval_typ.classify_as_scalar t) in
-        let src_type =  scalar_type e.typ
-        and dst_type = scalar_type typ in
-        Cvalue_forward.forward_cast ~src_type ~dst_type (oracle e)
-      | _ ->
-        Self.fatal
-          "This type of array index expression is not supported: %a"
-          Eva_ast.pp_exp exp
-    in
-    fun exp -> oracle (Eva_ast.const_fold exp)
+  let mk_oracle (state : state) =
+    let open Bottom.Operators in
+    let get ~oracle loc = Model.get ~oracle state loc >>-: CellValue.to_cvalue in
+    default_oracle get
 
   let mk_bioracle s1 s2 =
     let oracle_left = mk_oracle s1
@@ -680,6 +691,7 @@ struct
 
   module Prototype = struct
     include Model
+    let filter _bases state = state
     let name = Params.name
     let join s1 s2 =
       let oracle = mk_bioracle s1 s2 in
@@ -947,7 +959,7 @@ struct
 
   let relate _bases _state = Base.SetLattice.empty
 
-  let project = Model.filter
+  let project = Model.project
 
   let reuse bases ~current_input ~previous_output =
     Model.overwrite bases ~on:current_input ~by:previous_output
@@ -1095,7 +1107,7 @@ struct
 end
 
 module MultidimDomain =
-  MakeGeneric
+  Make_Generic_Domain
     (struct let name = "multidim" end)
     (CValue)
     (CvalueOrUninitialized)
@@ -1112,97 +1124,134 @@ let registered =
 
 (** --- Simplified functor --- *)
 
-module Make (Params : sig val name : string end) (Value : Value) =
+module Make_GenericValue (Value : Value) =
 struct
-  module GenericValue =
-  struct
-    type t = Cvalue.V.t * Value.t
-    let top = (Cvalue.V.top, Value.top)
-    let to_cvalue = fst
+  open Bottom.Operators
 
-    let builtins =
-      let lift (f : Value.t builtin) : t builtin = fun args ->
-        args |> List.map snd |> f |> Bottom.map (fun v -> (Cvalue.V.top, v))
-      in
-      List.map (fun (name, f) -> name, lift f) Value.builtins
+  type t = Cvalue.V.t * Value.t
+  let top = (Cvalue.V.top, Value.top)
+  let to_cvalue = fst
 
-    let dependencies = Abstract_value.Node (
-        Abstract_value.Leaf (module Main_values.CVal),
-        Abstract_value.Leaf (module Value))
+  let builtins =
+    let topify v = (Cvalue.V.top, v) in
+    let lift f args = List.map snd args |> f |> Bottom.map topify in
+    List.map (fun (name, f) -> name, lift f) Value.builtins
 
-    let backward_is_finite pos fkind (cv,v) =
-      let open Bottom.Operators in
-      let+ cv' = CValue.backward_is_finite pos fkind cv in
-      cv',v
-  end
+  let dependencies =
+    let cvalue = Abstract_value.Leaf (module Main_values.CVal) in
+    let value = Abstract_value.Leaf (module Value) in
+    Abstract_value.Node (cvalue, value)
 
-  module GenericCellValue =
-  struct
-    open Bottom.Operators
+  let backward_is_finite pos fkind (cv, v) =
+    let+ cv' = CValue.backward_is_finite pos fkind cv in cv', v
+end
 
-    include Datatype.Pair (CvalueOrUninitialized) (Value)
+module Make_GenericCellValue (Value : Value) =
+struct
+  open Bottom.Operators
 
-    type value = Cvalue.V.t * Value.t
+  include Datatype.Pair (CvalueOrUninitialized) (Value)
+  type value = Cvalue.V.t * Value.t
 
-    let pretty fmt v = snd v |> Value.pretty fmt
-    let to_bit v = fst v |> CvalueOrUninitialized.to_bit
-    let to_integer v = fst v |> CvalueOrUninitialized.to_integer
+  let pretty fmt v = snd v |> Value.pretty fmt
+  let to_bit v = fst v |> CvalueOrUninitialized.to_bit
+  let to_integer v = fst v |> CvalueOrUninitialized.to_integer
 
-    let of_bit ~typ b =
-      CvalueOrUninitialized.of_bit ~typ b,
-      match b with
-      | Abstract_memory.Zero _ -> Value.zero
-      | Any _ | Uninitialized -> Value.top
+  let of_bit ~typ b =
+    CvalueOrUninitialized.of_bit ~typ b,
+    match b with
+    | Abstract_memory.Zero _ -> Value.zero
+    | Any _ | Uninitialized -> Value.top
 
-    let top = CvalueOrUninitialized.top, Value.top
-    let bottom = CvalueOrUninitialized.bottom, Value.top
+  let top = CvalueOrUninitialized.top, Value.top
+  let bottom = CvalueOrUninitialized.bottom, Value.top
 
-    let is_included (cv1, v1) (cv2, v2) =
-      CvalueOrUninitialized.is_included cv1 cv2 &&
-      Value.is_included v1 v2
+  let is_included (cv1, v1) (cv2, v2) =
+    CvalueOrUninitialized.is_included cv1 cv2 &&
+    Value.is_included v1 v2
 
-    let join (cv1, v1) (cv2, v2) =
-      CvalueOrUninitialized.join cv1 cv2,
-      Value.join v1 v2
+  let join (cv1, v1) (cv2, v2) =
+    CvalueOrUninitialized.join cv1 cv2,
+    Value.join v1 v2
 
-    let narrow (cv1, v1) (cv2, v2) =
-      let+ cv = CvalueOrUninitialized.narrow cv1 cv2
-      and+ v = Value.narrow v1 v2 in
-      cv, v
+  let narrow (cv1, v1) (cv2, v2) =
+    let+ cv = CvalueOrUninitialized.narrow cv1 cv2
+    and+ v = Value.narrow v1 v2 in
+    cv, v
 
-    let widen ~size ~hint (cv1, v1) (cv2, v2) =
-      CvalueOrUninitialized.widen ~size ~hint cv1 cv2,
-      Value.widen ~size ~hint v1 v2
+  let widen ~size ~hint (cv1, v1) (cv2, v2) =
+    CvalueOrUninitialized.widen ~size ~hint cv1 cv2,
+    Value.widen ~size ~hint v1 v2
 
-    let is_topint v = fst v |> CvalueOrUninitialized.is_topint
-    let is_bottom v = fst v |> CvalueOrUninitialized.is_bottom
-    let is_initialized v = fst v |> CvalueOrUninitialized.is_initialized
-    let to_cvalue v = fst v |> CvalueOrUninitialized.to_cvalue
-    let to_value (cv,v) =
-      let+ cv' = CvalueOrUninitialized.to_value cv in
-      cv', v
-    let of_value v = fst v |> CvalueOrUninitialized.of_value, snd v
-    let of_flagged (fv : value Eval.flagged_value) : t =
-      map_value_with_flags fst fv |> CvalueOrUninitialized.of_flagged,
-      Bottom.value ~bottom:Value.top (let+ (_cv, v) = fv.v in v)
-    let map' (f  : (value -> value or_bottom)) (cv,v : t) : t or_bottom =
-      let* (cv',v') = to_value (cv,v) in
-      let+ (cv'',v'') = f (cv',v') in
-      CvalueOrUninitialized.map (fun _ -> cv'') cv, v''
-  end
+  let is_topint v = fst v |> CvalueOrUninitialized.is_topint
+  let is_bottom v = fst v |> CvalueOrUninitialized.is_bottom
+  let is_initialized v = fst v |> CvalueOrUninitialized.is_initialized
+  let to_cvalue v = fst v |> CvalueOrUninitialized.to_cvalue
+  let to_value (cv, v) = let+ cv' = CvalueOrUninitialized.to_value cv in cv', v
+  let of_value v = fst v |> CvalueOrUninitialized.of_value, snd v
 
-  include MakeGeneric (Params) (GenericValue) (GenericCellValue)
+  let of_flagged (fv : value Eval.flagged_value) : t =
+    map_value_with_flags fst fv |> CvalueOrUninitialized.of_flagged,
+    Bottom.value ~bottom:Value.top (let+ (_cv, v) = fv.v in v)
 
-  let read ~oracle state lval =
+  let map' (f  : (value -> value or_bottom)) (cv,v : t) : t or_bottom =
+    let* (cv',v') = to_value (cv,v) in
+    let+ (cv'',v'') = f (cv',v') in
+    CvalueOrUninitialized.map (fun _ -> cv'') cv, v''
+end
+
+
+module Make_Memory (Value : Value) =
+struct
+  open Bottom.Operators
+  module GenericValue = Make_GenericValue (Value)
+  module CellValue = Make_GenericCellValue (Value)
+  module Model = Make_Generic_Memory (CellValue)
+  include Model
+
+  let mk_oracle (memory : t) =
+    let get ~oracle loc = Model.get ~oracle memory loc >>-: CellValue.to_cvalue in
+    default_oracle get
+
+  let mk_bioracle s1 s2 =
+    let oracle_left = mk_oracle s1
+    and oracle_right = mk_oracle s2 in
+    function
+    | Abstract_memory.Left -> convert_oracle oracle_left
+    | Right -> convert_oracle oracle_right
+
+  let remove_references base memory =
+    Model.remove_base_references ~oracle:(mk_oracle memory) base memory
+
+  let update_references location exp memory =
+    Model.update_references ~oracle:(mk_oracle memory) location exp memory
+
+  let reinforce f memory loc =
+    let f' (c, v) = let+ v = f v in (c, v) in
+    Model.reinforce ~oracle:(mk_oracle memory) f' memory loc
+
+  let join l r = Model.join ~oracle:(mk_bioracle l r) l r
+  let widen kf stmt l r = Model.widen ~oracle:(mk_bioracle l r) kf stmt l r
+
+  let get m loc =
+    Model.get ~oracle:(mk_oracle m) m loc >>-: snd
+
+  let read memory lval =
     let open TopBottom.Operators in
-    let v =
-      let* mdloc = Location.of_lval oracle lval in
-      (get ~oracle state mdloc :> 'a or_top_bottom)
-    in
-    match v with
-    | `Top -> Value.top
+    let oracle = mk_oracle memory in
+    let get loc = (get memory loc :> 'a or_top_bottom) in
+    match Location.of_lval oracle lval >>- get with
     | `Bottom -> assert false
-    | `Value (_,v) -> v
+    | `Top -> Value.top
+    | `Value v -> v
+
+  let set m loc c v =
+    let c = CvalueOrUninitialized.of_value c in
+    Model.set ~oracle:(mk_oracle m) m loc (c, v)
+
+  let remove var memory = Model.remove ~oracle:(mk_oracle memory) var memory
+  let replace memory = Model.replace ~oracle:(mk_oracle memory) memory
+  let erase ?weak memory = Model.erase ~oracle:(mk_oracle memory) ?weak memory
 
   let iter f state =
     let f' typ (_,v) = f typ v in
@@ -1216,9 +1265,15 @@ struct
     let f' typ (c, v) = (c, f typ v) in
     map f' state
 
-  let filter_on_value f state =
+  let filter f state =
     let f' typ (_, v) = f typ v in
-    filter_on_value f' state
+    filter f' state
 end
 
 
+module Make (Params : sig val name : string end) (Value : Value) =
+struct
+  module GenericValue = Make_GenericValue (Value)
+  module GenericCellValue = Make_GenericCellValue (Value)
+  include Make_Generic_Domain (Params) (GenericValue) (GenericCellValue)
+end
