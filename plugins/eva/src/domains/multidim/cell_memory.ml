@@ -691,7 +691,7 @@ struct
 
   module Prototype = struct
     include Model
-    let filter _bases state = state
+    let filter = project
     let name = Params.name
     let join s1 s2 =
       let oracle = mk_bioracle s1 s2 in
