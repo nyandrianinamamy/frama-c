@@ -41,8 +41,12 @@ sig
   val unify : oracle:bioracle -> (submemory -> submemory -> submemory) ->
     t -> t -> t or_top
   val single : bit -> bound -> bound -> submemory -> t
-  val iter : (submemory -> unit) -> t -> unit
-  val fold : (submemory -> 'a -> 'a) -> t -> 'a -> 'a
+  val iter :
+    (Eva_ast.exp * Eva_ast.exp -> submemory -> unit) -> t -> unit
+  val fold :
+    (Eva_ast.exp * Eva_ast.exp -> submemory -> 'a -> 'a) -> t -> 'a -> 'a
+  val map :
+    (Eva_ast.exp * Eva_ast.exp -> submemory -> submemory) -> t -> t
   val read : oracle:oracle ->
     (submemory -> 'a) -> ('a -> 'a -> 'a) -> t -> bound -> bound -> 'a
   val read_any :
@@ -51,7 +55,6 @@ sig
     t -> bound -> bound -> t or_top_bottom
   val incr_bound :
     oracle:oracle -> Cil_types.varinfo -> Z.t option -> t -> t or_top
-  val map : (submemory -> submemory) -> t -> t
   val add_segmentation_bounds : oracle:oracle -> bound list -> t -> t
 end
 

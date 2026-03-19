@@ -373,38 +373,96 @@ struct
     let rec iter f m =
       match m with
       | Raw _ -> ()
-      | Scalar s -> f s.scalar_type s.scalar_value
-      | Struct s -> S.iter (iter f) s.struct_value
-      | Disjunct d -> D.iter (iter f) d.disj_value
-      | Union u -> iter f u.union_value
-      | Array a -> A.iter (iter f) a.array_value
+      | Scalar s ->
+        f (NoOffset s.scalar_type) s.scalar_value
+      | Struct s ->
+        let f' fi =
+          iter (fun off' v -> f (Field (fi, off')) v)
+        in
+        S.iter f' s.struct_value
+      | Disjunct d ->
+        let f' fi =
+          iter (fun off' v -> f (Field (fi, off')) v)
+        in
+        D.iter f' d.disj_value
+      | Union u ->
+        let f' =
+          iter (fun off' v -> f (Field (u.union_field, off')) v)
+        in
+        f' u.union_value
+      | Array a ->
+        let f' (l,u) =
+          iter (fun off' v -> f (Index (l, u, a.array_cell_type, off')) v)
+        in
+        A.iter f' a.array_value
 
     let rec fold f m acc =
       match m with
       | Raw _ -> acc
-      | Scalar s -> f s.scalar_type s.scalar_value acc
-      | Struct s -> S.fold (fold f) s.struct_value acc
-      | Disjunct d -> D.fold (fold f) d.disj_value acc
-      | Union u -> fold f u.union_value acc
-      | Array a -> A.fold (fold f) a.array_value acc
+      | Scalar s ->
+        f (NoOffset s.scalar_type) s.scalar_value acc
+      | Struct s ->
+        let f' fi =
+          fold (fun off' v acc -> f (Field (fi, off')) v acc)
+        in
+        S.fold f' s.struct_value acc
+      | Disjunct d ->
+        let f' fi =
+          fold (fun off' v acc -> f (Field (fi, off')) v acc)
+        in
+        D.fold f' d.disj_value acc
+      | Union u ->
+        let f' =
+          fold (fun off' v acc -> f (Field (u.union_field, off')) v acc)
+        in
+        f' u.union_value acc
+      | Array a ->
+        let f' (l,u) =
+          fold (fun off' v -> f (Index (l, u, a.array_cell_type, off')) v)
+        in
+        A.fold f' a.array_value acc
 
     let rec map f m =
       match m with
       | Raw _ -> m
-      | Scalar s -> Scalar { s with scalar_value = f s.scalar_type s.scalar_value }
-      | Struct s -> Struct { s with struct_value = S.map (map f) s.struct_value }
-      | Disjunct d -> Disjunct { d with disj_value = D.map (map f) d.disj_value }
-      | Union u -> Union { u with union_value = map f u.union_value }
-      | Array a -> Array { a with array_value = A.map (map f) a.array_value }
+      | Scalar s ->
+        Scalar
+          { s with
+            scalar_value = f (NoOffset s.scalar_type) s.scalar_value }
+      | Struct s ->
+        let f' fi =
+          map (fun off' v -> f (Field (fi, off')) v)
+        in
+        Struct
+          { s with
+            struct_value = S.map f' s.struct_value }
+      | Disjunct d ->
+        let f' fi =
+          map (fun off' v -> f (Field (fi, off')) v)
+        in
+        Disjunct
+          { d with
+            disj_value = D.map f' d.disj_value }
+      | Union u ->
+        let f' =
+          map (fun off' v -> f (Field (u.union_field, off')) v)
+        in
+        Union
+          { u with
+            union_value = f' u.union_value }
+      | Array a ->
+        let f' (l,u) =
+          map (fun off' v -> f (Index (l, u, a.array_cell_type, off')) v)
+        in
+        Array
+          { a with
+            array_value = A.map f' a.array_value }
 
-    let rec for_all f m =
-      match m with
-      | Raw _ -> false
-      | Scalar s -> f s.scalar_type s.scalar_value
-      | Struct s -> S.fold (fun t acc -> acc && for_all f t) s.struct_value true
-      | Disjunct d -> D.fold (fun t acc -> acc && for_all f t) d.disj_value true
-      | Union u -> for_all f u.union_value
-      | Array a -> A.fold (fun t acc -> acc && for_all f t) a.array_value true
+    let for_all f m =
+      let f' offset v =
+        if f offset v then () else raise Exit
+      in
+      try iter f' m; true with Not_found -> false
 
     let read ~oracle (map : Cil_types.typ -> t -> 'a) (reduce : 'a -> 'a -> 'a) =
       let rec aux offset m =
@@ -505,14 +563,21 @@ struct
     let incr_bound ~oracle vi x m = (* TODO: keep subtree when nothing changes *)
       let rec aux = function
         | (Raw _ | Scalar _) as m -> m
-        | Struct s -> Struct { s with struct_value = S.map aux s.struct_value }
-        | Disjunct d -> Disjunct { d with disj_value = D.map aux d.disj_value }
-        | Union u -> Union { u with union_value = aux u.union_value }
+        | Struct s ->
+          Struct
+            { s with
+              struct_value = S.map (fun _field -> aux) s.struct_value }
+        | Disjunct d ->
+          Disjunct
+            { d with
+              disj_value = D.map (fun _field -> aux) d.disj_value }
+        | Union u ->
+          Union { u with union_value = aux u.union_value }
         | Array a ->
           match  A.incr_bound ~oracle vi x a.array_value with
           | `Top -> Raw (A.raw a.array_value)
           | `Value array_value ->
-            Array { a with array_value=A.map aux array_value }
+            Array { a with array_value=A.map (fun _offset -> aux) array_value }
       in
       aux m
 

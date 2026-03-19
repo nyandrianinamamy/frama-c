@@ -91,21 +91,17 @@ sig
   val is_included : t -> t -> bool
 
   (* Iter on all the stored values. *)
-  val iter :
-    (Cil_types.typ -> value -> unit) ->
-    t -> unit
+  val iter : (offset -> value -> unit) -> t -> unit
 
   (* Fold on all the stored values. *)
-  val fold :
-    (Cil_types.typ -> value -> 'a -> 'a) ->
-    t -> 'a -> 'a
+  val fold : (offset -> value -> 'a -> 'a) -> t -> 'a -> 'a
 
   (* Map on all stored values. *)
-  val map : (Cil_types.typ -> value -> value) -> t -> t
+  val map : (offset -> value -> value) -> t -> t
 
   (* Check if a predicate is true for all stored values.
      Always return false on raw memory. *)
-  val for_all : (Cil_types.typ -> value -> bool) -> t -> bool
+  val for_all : (offset -> value -> bool) -> t -> bool
 
   (* Finest partition that is coarcer than both *)
   val join : oracle:bioracle -> t -> t -> t

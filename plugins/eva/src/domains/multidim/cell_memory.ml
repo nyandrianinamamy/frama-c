@@ -44,6 +44,9 @@ struct
   let bases map =
     Map.fold (fun b _ acc -> b :: acc) map []
 
+  let singleton base offset : t =
+    Map.singleton base (`Value offset)
+
   let is_singleton ~oracle map =
     match map_to_singleton map with
     | None -> false
@@ -595,20 +598,33 @@ struct
 
   (* Iterators *)
 
-  let map (f : Cil_types.typ -> value -> value) (m, t : t) : t =
-    let f' (m, t) = (BaseModel.map f m, t) in
-    (MemoryMap.map f' m, t)
+  let map (f : location -> value -> value) (m, t : t) : t =
+    let f' base (m, t) =
+      let v' =
+        BaseModel.map (fun o v -> (f (Location.singleton base o) v)) m
+      in
+      Some (v', t)
+    in
+    (MemoryMap.filter_map f' m, t)
 
-  let iter (f : Cil_types.typ -> value -> unit) (m,_ : t) : unit =
-    let f' _base (m,_) = BaseModel.iter f m in
+  let iter (f : location -> value -> unit) (m,_ : t) : unit =
+    let f' base (m,_) =
+      BaseModel.iter (fun o v -> f (Location.singleton base o) v)  m
+    in
     MemoryMap.iter f' m
 
-  let fold (f : Cil_types.typ -> value -> 'a -> 'a) (m,_ : t) (acc :'a) : 'a =
-    let f' _base (m,_) acc = BaseModel.fold f m acc in
+  let fold (f : location -> value -> 'a -> 'a) (m,_ : t) (acc :'a) : 'a =
+    let f' base (m,_) acc =
+      BaseModel.fold (fun o v acc -> f (Location.singleton base o) v acc) m acc
+    in
     MemoryMap.fold f' m acc
 
-  let filter (f : Cil_types.typ -> value -> bool) (m, t : t) : t =
-    let f' _base (m, t) = if BaseModel.for_all f m then Some (m, t) else None in
+  let filter (f : location -> value -> bool) (m, t : t) : t =
+    let f' base (m, t) =
+      if BaseModel.for_all (fun o v -> f (Location.singleton base o) v) m
+      then Some (m, t)
+      else None
+    in
     (MemoryMap.filter_map f' m, t)
 end
 

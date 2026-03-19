@@ -146,6 +146,8 @@ type side = Left | Right
 type oracle = Eva_ast.exp -> Int_val.t
 type bioracle = side -> oracle
 
+type offset = Abstract_offset.t
+
 module type ProtoMemory =
 sig
   type t
@@ -170,23 +172,15 @@ sig
     (size:size -> value -> value -> value) -> t -> t -> t
   val join : oracle:bioracle -> t -> t -> t
   val smash : oracle:oracle -> t -> t -> t
-  val map :
-    (Cil_types.typ -> value -> value) ->
-    t -> t
-  val iter :
-    (Cil_types.typ -> value -> unit) ->
-    t -> unit
-  val fold :
-    (Cil_types.typ -> value -> 'a -> 'a) ->
-    t -> 'a -> 'a
-  val for_all :
-    (Cil_types.typ -> value -> bool) ->
-    t -> bool
+  val map : (offset -> value -> value) -> t -> t
+  val iter : (offset -> value -> unit) -> t -> unit
+  val fold : (offset -> value -> 'a -> 'a) -> t -> 'a -> 'a
+  val for_all : (offset -> value -> bool) -> t -> bool
   val read : oracle:oracle -> (Cil_types.typ -> t -> 'a) -> ('a -> 'a -> 'a) ->
-    Abstract_offset.t -> t -> 'a
+    offset -> t -> 'a
   val update : oracle:oracle ->
     (weak:bool -> Cil_types.typ -> t -> t or_bottom) ->
-    weak:bool -> Abstract_offset.t -> t -> t or_bottom
+    weak:bool -> offset -> t -> t or_bottom
   val incr_bound : oracle:oracle -> Cil_types.varinfo -> Z.t option ->
     t -> t
   val add_segmentation_bounds : oracle:oracle -> typ:Cil_types.typ ->

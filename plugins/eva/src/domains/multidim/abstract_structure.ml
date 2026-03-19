@@ -39,12 +39,12 @@ sig
   val weak_erase : Bit.t -> t -> t
   val is_included : t -> t -> bool
   val unify : (submemory -> submemory -> submemory) -> t -> t -> t
-  val iter : (submemory -> unit) -> t -> unit
-  val fold : (submemory -> 'a -> 'a) -> t -> 'a -> 'a
+  val iter : (Cil_types.fieldinfo -> submemory -> unit) -> t -> unit
+  val fold : (Cil_types.fieldinfo -> submemory -> 'a -> 'a) -> t -> 'a -> 'a
+  val map : (Cil_types.fieldinfo -> submemory -> submemory) -> t -> t
   val read : t -> Cil_types.fieldinfo -> submemory
   val update : (submemory -> submemory or_bottom) -> t -> Cil_types.fieldinfo ->
     t or_bottom
-  val map : (submemory -> submemory) -> t -> t
 end
 
 module Make (Config : Config) (M : ProtoMemory) =
@@ -130,10 +130,15 @@ struct
     in { padding = Bit.join m1.padding m2.padding ; fields }
 
   let iter f m =
-    FieldMap.iter (fun _ m' -> f m') m.fields
+    FieldMap.iter f m.fields
 
   let fold f m acc =
-    FieldMap.fold (fun _ m' acc -> f m' acc) m.fields acc
+    FieldMap.fold f m.fields acc
+
+  let map f m =
+    { m with
+      fields = FieldMap.filter_map (fun fi m' -> Some (f fi m')) m.fields
+    }
 
   let read m fi =
     try
@@ -152,9 +157,6 @@ struct
       `Value { m with fields = FieldMap.replace update' fi m.fields }
     with Exit ->
       `Bottom
-
-  let map f m =
-    { m with fields = FieldMap.map f m.fields }
 end
 
 
@@ -191,13 +193,13 @@ sig
   val is_included : t -> t -> bool
   val unify : oracle:bioracle -> (submemory -> submemory -> submemory) ->
     t -> t -> t
-  val iter : (submemory -> unit) -> t -> unit
-  val fold : (submemory -> 'a -> 'a) -> t -> 'a -> 'a
+  val iter : (Cil_types.fieldinfo -> submemory -> unit) -> t -> unit
+  val fold : (Cil_types.fieldinfo -> submemory -> 'a -> 'a) -> t -> 'a -> 'a
+  val map : (Cil_types.fieldinfo -> submemory -> submemory) -> t -> t
   val read : (submemory -> 'a) -> ('a -> 'a -> 'a)  ->
     t -> Cil_types.fieldinfo -> 'a
   val update : oracle:oracle -> (submemory -> submemory or_bottom) ->
     t -> Cil_types.fieldinfo -> t or_bottom
-  val map : (submemory -> submemory) -> t -> t
 end
 
 module Disjunction (M : ProtoMemory)
@@ -322,6 +324,9 @@ struct
   let fold f (m : t) acc =
     Map.fold (fun _ s acc -> S.fold f s acc) m acc
 
+  let map f m =
+    Map.map (S.map f) m
+
   let read map reduce (m : t) (fi : Cil_types.fieldinfo) =
     let aux _k s acc =
       map (S.read s fi) |>
@@ -346,7 +351,4 @@ struct
         `Value (reevaluate ~oracle new_keys m)
       else
         `Value (m)
-
-  let map f m =
-    Map.map (S.map f) m
 end

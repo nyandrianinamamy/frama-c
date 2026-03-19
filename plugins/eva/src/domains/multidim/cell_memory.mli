@@ -55,10 +55,10 @@ sig
   val erase : ?weak:bool -> t -> Location.t -> Abstract_memory.bit -> t
   val reinforce : (Value.t -> Value.t or_bottom) -> t -> Location.t -> t or_bottom
 
-  val map  : (Cil_types.typ -> Value.t -> Value.t) -> t -> t
-  val iter : (Cil_types.typ -> Value.t -> unit) -> t -> unit
-  val fold : (Cil_types.typ -> Value.t -> 'a -> 'a) -> t -> 'a -> 'a
-  val filter : (Cil_types.typ -> Value.t -> bool) -> t -> t
+  val map  : (Location.t -> Value.t -> Value.t) -> t -> t
+  val iter : (Location.t -> Value.t -> unit) -> t -> unit
+  val fold : (Location.t -> Value.t -> 'a -> 'a) -> t -> 'a -> 'a
+  val filter : (Location.t -> Value.t -> bool) -> t -> t
 
   val set_tracking : t -> Base.t list -> t
   val add_references : t -> Base.t -> Base.t list -> t
