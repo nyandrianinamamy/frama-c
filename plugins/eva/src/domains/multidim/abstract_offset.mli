@@ -8,16 +8,16 @@
 
 open Lattice_bounds
 
-type t =
+type offset =
   | NoOffset of Cil_types.typ
   | Index of
       Eva_ast.exp (* lower bound *) *
       Eva_ast.exp (* upper bound *) *
       Cil_types.typ (* type of elements *) *
-      t  (* sub-offset *)
-  | Field of Cil_types.fieldinfo * t
+      offset  (* sub-offset *)
+  | Field of Cil_types.fieldinfo * offset
 
-val pretty : Format.formatter -> t -> unit
+include Datatype.S_with_collections with type t = offset
 
 val of_var_address : Cil_types.varinfo -> t
 val of_eva_offset : oracle:(Eva_ast.exp -> Int_val.t) ->

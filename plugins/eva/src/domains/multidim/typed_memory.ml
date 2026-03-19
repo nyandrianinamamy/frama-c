@@ -11,7 +11,6 @@
 [@@@warning "-60"]
 
 open Lattice_bounds
-open Abstract_offset
 open Abstract_memory
 
 module Bound = Segmentation.Bound
@@ -371,6 +370,7 @@ struct
     let smash ~oracle = join ~oracle:(fun _ -> oracle)
 
     let rec iter f m =
+      let open Abstract_offset in
       match m with
       | Raw _ -> ()
       | Scalar s ->
@@ -397,6 +397,7 @@ struct
         A.iter f' a.array_value
 
     let rec fold f m acc =
+      let open Abstract_offset in
       match m with
       | Raw _ -> acc
       | Scalar s ->
@@ -423,6 +424,7 @@ struct
         A.fold f' a.array_value acc
 
     let rec map f m =
+      let open Abstract_offset in
       match m with
       | Raw _ -> m
       | Scalar s ->
@@ -467,7 +469,7 @@ struct
     let read ~oracle (map : Cil_types.typ -> t -> 'a) (reduce : 'a -> 'a -> 'a) =
       let rec aux offset m =
         match offset, m with
-        | NoOffset t, m ->
+        | Abstract_offset.NoOffset t, m ->
           map t m
         | Field (fi, offset'), Struct s
           when s.struct_type.ckey = fi.fcomp.ckey ->
@@ -508,7 +510,7 @@ struct
       let open Bottom.Operators in
       let rec aux ~weak offset m =
         match offset with
-        | NoOffset t ->
+        | Abstract_offset.NoOffset t ->
           f ~weak t m
         | Field (fi, offset') ->
           if fi.fcomp.cstruct then (* Structures *)

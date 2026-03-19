@@ -9,10 +9,10 @@
 open Lattice_bounds
 open Top.Operators
 
-type t =
+type offset =
   | NoOffset of Cil_types.typ
-  | Index of Eva_ast.exp * Eva_ast.exp * Cil_types.typ * t
-  | Field of Cil_types.fieldinfo * t
+  | Index of Eva_ast.exp * Eva_ast.exp * Cil_types.typ * offset
+  | Field of Cil_types.fieldinfo * offset
 
 let rec pretty fmt = function
   | NoOffset _t -> ()
@@ -27,6 +27,85 @@ let rec pretty fmt = function
         Eva_ast.Exp.pretty l
         Eva_ast.Exp.pretty u
         pretty s
+
+let ( <?> ) a b = if a = 0 then Lazy.force b else a
+
+let reprs =
+  let open List.Operators in
+  let+ typ = Cil_datatype.Typ.reprs in
+  NoOffset typ
+
+let rec compare t t' =
+  match t, t' with
+  | NoOffset t, NoOffset t' -> Cil_datatype.Typ.compare t t'
+  | NoOffset _, (Index _ | Field _) -> -1
+  | (Index _ | Field _), NoOffset _ ->  1
+  | Field (fi, s), Field (fi', s') ->
+    Cil_datatype.Fieldinfo.compare fi fi' <?> lazy (compare s s')
+  | Field _, Index _ -> -1
+  | Index _, Field _ ->  1
+  | Index (l, u, t, s), Index (l', u', t', s') ->
+    Cil_datatype.Typ.compare t t' <?>
+    lazy (Eva_ast.Exp.compare l l') <?>
+    lazy (Eva_ast.Exp.compare u u') <?>
+    lazy (compare s s')
+
+let rec copy = function
+  | NoOffset t ->
+    NoOffset (Cil_datatype.Typ.copy t)
+  | Field (fi, offset) ->
+    let fi = Cil_datatype.Fieldinfo.copy fi in
+    let offset = copy offset in
+    Field (fi, offset)
+  | Index (l, u, t, offset) ->
+    let l = Eva_ast.Exp.copy l in
+    let u = Eva_ast.Exp.copy u in
+    let t = Cil_datatype.Typ.copy t in
+    let offset = copy offset in
+    Index (l, u, t, offset)
+
+let rec hash = function
+  | NoOffset t ->
+    Cil_datatype.Typ.hash t
+  | Field (fi, offset) ->
+    let fi = Cil_datatype.Fieldinfo.hash fi in
+    let offset = hash offset in
+    Hashtbl.hash (fi, offset)
+  | Index (l, u, t, offset) ->
+    let l = Eva_ast.Exp.hash l in
+    let u = Eva_ast.Exp.hash u in
+    let t = Cil_datatype.Typ.hash t in
+    let offset = hash offset in
+    Hashtbl.hash (l, u, t, offset)
+
+let structural_descr =
+  let open Structural_descr in
+  let r = Recursive.create () in
+  let ival = Int_val.packed_descr in
+  let t = Cil_datatype.Typ.packed_descr in
+  let fi = Cil_datatype.Fieldinfo.packed_descr in
+  let exp = Descr.str Eva_ast.Exp.datatype_descr |> t_option |> pack in
+  let no_offset = [| t |] in
+  let index = [| exp ; ival ; recursive_pack r |] in
+  let field = [| fi ; recursive_pack r |] in
+  let descr = t_sum [| no_offset ; index ; field |] in
+  Recursive.update r descr ;
+  descr
+
+include Datatype.Make_with_collections
+    (struct
+      type t = offset
+      let reprs = reprs
+      let rehash = Datatype.identity
+      let structural_descr = structural_descr
+      let mem_project = Datatype.never_any_project
+      let name = "Eva.Multidim.Abstract_offset"
+      let copy = copy
+      let hash = hash
+      let pretty = pretty
+      let compare = compare
+      let equal l r = compare l r = 0
+    end)
 
 let rec append o1 o2 =
   match o1 with
