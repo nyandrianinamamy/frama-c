@@ -161,9 +161,9 @@ end
 module type CellValue =
 sig
   include Typed_memory.Value
-  type value (* the value without unintialized state *)
+  type value (* the value without uninitialized state *)
   val top : t
-  val bottom : t (* used for set of values containing only escaping adresses *)
+  val bottom : t (* used for set of values containing only escaping addresses *)
   val narrow : t -> t -> t or_bottom
   val widen : size:Z.t -> hint:Ival.widen_hint ->  t -> t -> t
   val is_topint : t -> bool
@@ -396,7 +396,7 @@ struct
       | _ -> None
     in
     (* [oracle] must be the oracle before the (non-invertible)
-        assignement of the referee to allow removing of eventual empty slice
+        assignment of the referee to allow removing of eventual empty slice
         before the bound leaves the segmentation. *)
     let referers = snd (MemoryMap.find_or_top base_map (Base.of_varinfo dst)) in
     let update_ref base base_map =
@@ -1010,7 +1010,7 @@ struct
 end
 
 
-(** --- Instanciation of the multidim domain --- *)
+(** --- Instantiation of the multidim domain --- *)
 
 module CValue =
 struct
