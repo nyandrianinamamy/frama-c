@@ -76,6 +76,7 @@
         "-eva-all-rounding-modes-constants": "",
         "-explain": "useless (exits)",
         "-flow-project": "cannot generate random arguments for this option",
+        "-gasgn-fct": "temporarily disabled",
         "-impact-skip": "",
         "-json-compilation-database": "requires specific input file",
         "-load": "handled by the LOAD_SAVE mode",
