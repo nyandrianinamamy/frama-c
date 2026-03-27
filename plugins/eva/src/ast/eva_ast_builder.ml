@@ -190,6 +190,7 @@ struct
     | _ -> invalid_arg "unsupported construction"
 
   let add = binop PlusA
+  let sub = binop MinusA
   let div = binop Div
   let eq = binop Eq
   let ne = binop Ne
