@@ -142,11 +142,16 @@ let add_offset (lval : lval) (offset : offset) : lval =
 
 module Build =
 struct
-  let integer ~ikind i =
+  let integer ?ikind i =
+    let ikind = match ikind with
+      | Some ikind -> ikind
+      | None when Cil.fitsInInt IInt i -> Cil_types.IInt
+      | None -> Cil.intKindForValue i false
+    in
     let i', _truncated = Cil.truncateInteger64 ikind i in
     mk_exp (Const (CInt64 (i', ikind, None)))
 
-  let int ~ikind i = integer ~ikind (Z.of_int i)
+  let int ?ikind i = integer ?ikind (Z.of_int i)
 
   let zero = int ~ikind:IInt 0
   let one = int ~ikind:IInt 1
