@@ -44,13 +44,13 @@ struct
   let bases map =
     Map.fold (fun b _ acc -> b :: acc) map []
 
-  let is_singleton map =
+  let is_singleton ~oracle map =
     match map_to_singleton map with
     | None -> false
     | Some (b,o) ->
       match o with
       | `Top -> false
-      | `Value o -> not (Base.is_weak b) && Offset.is_singleton o
+      | `Value o -> not (Base.is_weak b) && Offset.is_singleton ~oracle o
 
   let to_singleton_var map =
     match map_to_singleton map with
@@ -70,11 +70,12 @@ struct
   let of_var (vi : Cil_types.varinfo) : t =
     Map.singleton (Base.of_varinfo vi) (`Value (Offset.of_var_address vi))
 
-  let of_lval oracle (lval : lval) : t or_top =
+  let of_lval ~oracle (lval : lval) : t or_top =
     let (host,offset) = lval.node in
-    let oracle' = convert_oracle oracle in
+    let cvalue_oracle = oracle in
+    let oracle = convert_oracle oracle in
     let base_typ = Eva_ast.type_of_lhost host in
-    let offset = Offset.of_eva_offset oracle' base_typ offset in
+    let offset = Offset.of_eva_offset ~oracle base_typ offset in
     match host with
     | Var vi ->
       `Value (Map.singleton (Base.of_varinfo vi) offset)
@@ -94,14 +95,14 @@ struct
             let* base_offset = match index with
               | None -> `Value (base_offset)
               | Some exp ->
-                Offset.add_index oracle' base_offset exp
+                Offset.add_index ~oracle base_offset exp
             in
             let+ offset = offset in
             Offset.append base_offset offset
         in
         Map.add base offset' map
       in
-      let addr = Addresses.Bits.of_bytes (oracle exp) in
+      let addr = Addresses.Bits.of_bytes (cvalue_oracle exp) in
       try
         `Value (Addresses.Bits.fold_topset_ok add addr Map.empty)
       with Abstract_interp.Error_Top ->
@@ -478,24 +479,25 @@ struct
     Bottom.non_bottom (write' (fun m o -> `Value (update m o)) state loc)
 
   let set ~oracle (state : t) (dst : location) (v : value) : t =
-    let weak = not (Location.is_singleton dst)
-    and oracle = convert_oracle oracle in
+    let oracle = convert_oracle oracle in
+    let weak = not (Location.is_singleton ~oracle dst) in
     write (BaseModel.set ~oracle ~weak v) state dst
 
   let replace ~oracle (state : t) (dst : location) (src : location) : t =
-    let weak = not (Location.is_singleton dst) in
     match extract ~oracle state src with
     | `Bottom -> state (* no source *)
     | `Value value ->
       let oracle = convert_oracle oracle in
+      let weak = not (Location.is_singleton ~oracle dst) in
       write (fun m off ->
           BaseModel.replace ~oracle ~weak m off value) state dst
 
   let erase ~oracle ?(weak: bool option)
       (state : t) (dst : location) (b : Abstract_memory.bit) : t =
-    let oracle = convert_oracle oracle
-    and weak = match weak with
-      | None -> not (Location.is_singleton dst)
+    let oracle = convert_oracle oracle in
+    let weak = match weak with
+      | None ->
+        not (Location.is_singleton ~oracle dst)
       | Some weak -> weak
     in
     write (fun m off -> BaseModel.erase ~oracle ~weak m off b) state dst
@@ -624,7 +626,7 @@ let default_oracle (get : getter) : Eva_ast.exp -> Cvalue.V.t =
   let rec oracle (exp : Eva_ast.exp) : Cvalue.V.t =
     match exp.node with
     | Lval lval ->
-      begin match Location.of_lval oracle lval with
+      begin match Location.of_lval ~oracle lval with
         | `Top -> Cvalue.V.top
         | `Value loc ->
           match get ~oracle loc with
@@ -722,7 +724,7 @@ struct
         | `Value v, alarms when Alarmset.is_empty alarms -> Value.to_cvalue v
         | _ -> Cvalue.V.top
       in
-      match Location.of_lval oracle lv with
+      match Location.of_lval ~oracle lv with
       | `Top -> (* can't evaluate location *)
         `Value (Value.top, None), Alarmset.all
       | `Value loc ->
@@ -759,7 +761,7 @@ struct
     | Lval lv when Ast_types.C.is_scalar lv.typ ->
       let value = CellValue.of_flagged record.value in
       if not (CellValue.is_topint value) then
-        match Location.of_lval oracle lv with
+        match Location.of_lval ~oracle lv with
         | `Top -> `Value state (* location evaluate to top, ignore *)
         | `Value loc ->
           let update value' =
@@ -771,7 +773,7 @@ struct
             then `Value CellValue.bottom
             else v
           in
-          if Location.is_singleton loc
+          if Location.is_singleton ~oracle:(convert_oracle oracle) loc
           then Model.reinforce ~oracle update state loc
           else `Value state
       else `Value state
@@ -784,7 +786,7 @@ struct
     assume_valuation valuation state
 
   let assign' ~oracle ~value dst src state =
-    match Location.of_lval oracle dst with
+    match Location.of_lval ~oracle dst with
     | `Top -> Model.top
     | `Value dst ->
       let state = Model.update_references ~oracle dst src state in
@@ -792,7 +794,7 @@ struct
       | Assign value ->
         Model.set ~oracle state dst (CellValue.of_value value)
       | Copy (right, value) ->
-        match Location.of_lval oracle right.lval with
+        match Location.of_lval ~oracle right.lval with
         | `Top ->
           let b = CellValue.(to_bit (of_flagged value)) in
           Model.erase ~oracle state dst b
@@ -837,7 +839,7 @@ struct
     match (expr : Eva_ast.exp).node with
     | Lval lval | StartOf lval ->
       let oracle = valuation_to_oracle state valuation in
-      begin match Location.of_lval oracle lval with
+      begin match Location.of_lval ~oracle lval with
         | `Top -> Unicode.pp_top fmt
         | `Value loc ->
           let m = Model.extract ~oracle state loc in
@@ -907,7 +909,7 @@ struct
       let bounds = List.map Eva_ast.translate_exp bounds in
       let lval = Eva_ast.translate_lval (Var vi, offset) in
       let oracle = mk_oracle state in
-      begin match Location.of_lval oracle lval with
+      begin match Location.of_lval ~oracle lval with
         | `Top -> state
         | `Value loc ->
           let update m offset =
@@ -938,7 +940,7 @@ struct
 
   let initialize_variable lval _loc ~initialized:_ init_value state =
     let oracle = mk_oracle state in
-    match Location.of_lval oracle lval with
+    match Location.of_lval ~oracle lval with
     | `Top -> Model.top
     | `Value dst ->
       let d = match init_value with
@@ -951,7 +953,7 @@ struct
   let initialize_variable_using_type _kind vi state =
     let lval = Eva_ast.Build.var vi in
     let oracle = mk_oracle state in
-    match Location.of_lval oracle lval with
+    match Location.of_lval ~oracle lval with
     | `Top -> Model.top
     | `Value dst ->
       let oracle = mk_oracle state in (* Since dst has no offset, oracle is actually useless *)
@@ -1240,7 +1242,7 @@ struct
     let open TopBottom.Operators in
     let oracle = mk_oracle memory in
     let get loc = (get memory loc :> 'a or_top_bottom) in
-    match Location.of_lval oracle lval >>- get with
+    match Location.of_lval ~oracle lval >>- get with
     | `Bottom -> assert false
     | `Top -> Value.top
     | `Value v -> v

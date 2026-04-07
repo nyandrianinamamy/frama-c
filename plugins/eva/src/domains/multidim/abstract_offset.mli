@@ -10,20 +10,24 @@ open Lattice_bounds
 
 type t =
   | NoOffset of Cil_types.typ
-  | Index of Eva_ast.exp option * Int_val.t * Cil_types.typ * t
+  | Index of
+      Eva_ast.exp (* lower bound *) *
+      Eva_ast.exp (* upper bound *) *
+      Cil_types.typ (* type of elements *) *
+      t  (* sub-offset *)
   | Field of Cil_types.fieldinfo * t
 
 val pretty : Format.formatter -> t -> unit
 
 val of_var_address : Cil_types.varinfo -> t
-val of_eva_offset : (Eva_ast.exp -> Int_val.t) ->
+val of_eva_offset : oracle:(Eva_ast.exp -> Int_val.t) ->
   Cil_types.typ -> Eva_ast.offset -> t or_top
 val of_ival : base_typ:Cil_types.typ -> typ:Cil_types.typ -> Ival.t -> t or_top
 val of_term_offset : Cil_types.typ -> Cil_types.term_offset -> t or_top
 
-val is_singleton : t -> bool
+val is_singleton : oracle:(Eva_ast.exp -> Int_val.t) -> t -> bool
 val references : t -> Cil_datatype.Varinfo.Set.t (* variables referenced in the offset *)
 
 val append : t -> t -> t (* Does not check that the appended offset fits *)
-val join : t -> t -> t or_top
-val add_index : (Eva_ast.exp -> Int_val.t) -> t -> Eva_ast.exp -> t or_top
+(* val join : t -> t -> t or_top *)
+val add_index : oracle:(Eva_ast.exp -> Int_val.t) -> t -> Eva_ast.exp -> t or_top

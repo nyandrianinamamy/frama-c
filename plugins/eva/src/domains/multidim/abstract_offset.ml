@@ -11,30 +11,30 @@ open Top.Operators
 
 type t =
   | NoOffset of Cil_types.typ
-  | Index of Eva_ast.exp option * Int_val.t * Cil_types.typ * t
+  | Index of Eva_ast.exp * Eva_ast.exp * Cil_types.typ * t
   | Field of Cil_types.fieldinfo * t
 
 let rec pretty fmt = function
   | NoOffset _t -> ()
   | Field (fi, s) -> Format.fprintf fmt ".%s%a" fi.fname pretty s
-  | Index (None, i, _t, s) ->
-    Format.fprintf fmt "[%a]%a"
-      Int_val.pretty i
-      pretty s
-  | Index (Some e, i, _t, s) ->
-    Format.fprintf fmt "[%a%t%a]%a"
-      Eva_ast.pp_exp e
-      Unicode.pp_in_set
-      Int_val.pretty i
-      pretty s
+  | Index (l, u, _t, s) ->
+    if Eva_ast.Exp.equal l u then
+      Format.fprintf fmt "[%a]%a"
+        Eva_ast.Exp.pretty l
+        pretty s
+    else
+      Format.fprintf fmt "[%a..%a]%a"
+        Eva_ast.Exp.pretty l
+        Eva_ast.Exp.pretty u
+        pretty s
 
 let rec append o1 o2 =
   match o1 with
   | NoOffset _t -> o2
   | Field (fi, s) -> Field (fi, append s o2)
-  | Index (e, i, t, s) -> Index (e, i, t, append s o2)
+  | Index (l, u, t, s) -> Index (l, u, t, append s o2)
 
-let add_index oracle base exp =
+let add_index ~oracle base exp =
   let rec aux = function
     | NoOffset _ as o ->
       let idx = oracle exp in
@@ -44,19 +44,14 @@ let add_index oracle base exp =
     | Field (fi, sub) ->
       let+ sub' = aux sub in
       Field (fi, sub')
-    | Index (e, i, t, (NoOffset _ as sub)) ->
-      let idx' = Int_val.add i (oracle exp) in
-      let e = match e with (* If i is singleton, we can use this as the index expression *)
-        | None when Int_val.is_singleton i ->
-          Some (Eva_ast.Build.integer ~ikind:IInt (Int_val.project_int i))
-        | e -> e
-      in
-      let e' = Option.map (fun e -> Eva_ast.Build.(add e exp)) e in
-      (* TODO: is idx inside bounds ? *)
-      `Value (Index (e', idx', t, sub))
-    | Index (e, i, t, sub) ->
+    | Index (l, u, t, (NoOffset _ as sub)) ->
+      let l' = Eva_ast.Build.add l exp
+      and u' = Eva_ast.Build.add u exp in
+      (* TODO: is the new range inside bounds ? *)
+      `Value (Index (l', u', t, sub))
+    | Index (l, u, t, sub) ->
       let+ sub' = aux sub in
-      Index (e, i, t, sub')
+      Index (l, u, t, sub')
   in
   aux base
 
@@ -69,16 +64,15 @@ let rec join o1 o2 =
     when Cil_datatype.Fieldinfo.equal fi fi' ->
     let+ sub' = join sub1 sub2 in
     Field (fi, sub')
-  | Index (e1, i1, t, sub1), Index (e2, i2, t', sub2)
-    when Bit_utils.type_compatible t t' ->
-    let e = match e1, e2 with
-      | Some e1, Some e2 when Eva_ast.Exp.equal e1 e2 ->
-        Some e1 (* keep expression only when equivalent from both offsets *)
-      | _ -> None
-    in
-    let+ sub' = join sub1 sub2 in
-    Index (e, Int_val.join i1 i2, t, sub')
+  | Index (l1, u1, t1, sub1), Index (l2, u2, t2, sub2)
+    when Bit_utils.type_compatible t1 t2 ->
+    let+ l = if Eva_ast.Exp.equal l1 l2 then `Value l1 else `Top
+    and+ u = if Eva_ast.Exp.equal u1 u2 then `Value u1 else `Top
+    and+ sub = join sub1 sub2 in
+    Index (l, u, t1, sub)
   | _ -> `Top
+
+let _join =  join
 
 let array_bounds array_size =
   (* TODO: handle undefined sizes and not const foldable sizes *)
@@ -103,21 +97,21 @@ let assert_valid_index idx size =
 let of_var_address vi =
   NoOffset vi.Cil_types.vtype
 
-let rec of_eva_offset (oracle : Eva_ast.exp -> Int_val.t) base_typ = function
+let rec of_eva_offset ~(oracle : Eva_ast.exp -> Int_val.t) base_typ = function
   | Eva_ast.NoOffset -> `Value (NoOffset base_typ)
   | Field (fi, sub) ->
     if Ast_types.C.has_qualifier "volatile" fi.ftype then
       `Top
     else
-      let+ sub' = of_eva_offset oracle fi.ftype sub in
+      let+ sub' = of_eva_offset ~oracle fi.ftype sub in
       Field (fi, sub')
   | Index (exp, sub) ->
     match Ast_types.C.unroll_node base_typ with
     | TArray (elem_typ, array_size) ->
       let idx = oracle exp in
       let+ () = assert_valid_index idx array_size
-      and+ sub' = of_eva_offset oracle elem_typ sub in
-      Index (Some exp, idx, elem_typ, sub')
+      and+ sub' = of_eva_offset ~oracle elem_typ sub in
+      Index (exp, exp, elem_typ, sub')
     | _ -> assert false
 
 let rec of_int_val ~base_typ ~typ ival =
@@ -147,9 +141,11 @@ let rec of_int_val ~base_typ ~typ ival =
           else
             `Top
       in
-      let+ () = assert_valid_index range array_size
-      and+ sub' = of_int_val ~base_typ:elem_typ ~typ rem in
-      Index (None, range, elem_typ, sub')
+      let* () = assert_valid_index range array_size
+      and* sub' = of_int_val ~base_typ:elem_typ ~typ rem in
+      let l, u = Int_val.min_and_max range in
+      let+ l = Top.of_option l and+ u = Top.of_option u in
+      Index (Eva_ast.Build.integer l, Eva_ast.Build.integer u, elem_typ, sub')
 
     | TComp ci ->
       if not ci.cstruct then
@@ -215,26 +211,31 @@ let rec of_term_offset base_typ = function
     begin match Ast_types.C.unroll_node base_typ with
       | TArray (elem_typ, array_size) ->
         let* idx = index_of_term array_size index in
-        let+ () = assert_valid_index idx array_size
-        and+ sub' = of_term_offset elem_typ sub in
-        Index (None, idx, elem_typ, sub')
+        let* () = assert_valid_index idx array_size
+        and* sub' = of_term_offset elem_typ sub in
+        let l, u = Int_val.min_and_max idx in
+        let+ l = Top.of_option l and+ u = Top.of_option u in
+        Index (Eva_ast.Build.integer l, Eva_ast.Build.integer u, elem_typ, sub')
       | _ -> assert false
     end
   | _ -> `Top
 
-let rec is_singleton = function
+let rec is_singleton ~(oracle : Eva_ast.exp -> Int_val.t) = function
   | NoOffset _ -> true
-  | Field (_fi, sub) -> is_singleton sub
-  | Index (e, ival, _elem_typ, sub) ->
-    (Option.is_some e || Int_val.is_singleton ival) && is_singleton sub
+  | Field (_fi, sub) -> is_singleton ~oracle sub
+  | Index (l, u, _elem_typ, sub) ->
+    (Eva_ast.Exp.equal l u
+     || (oracle Eva_ast.Build.(sub l u) |> Int_val.is_zero))
+    && is_singleton ~oracle sub
 
 let references =
   let rec aux acc = function
     | NoOffset _ -> acc
-    | Field (_, sub) | Index (None, _, _, sub) -> aux acc sub
-    | Index (Some e, _, _, sub) ->
-      let r = Eva_ast.vars_in_exp e in
-      let acc = Cil_datatype.Varinfo.Set.union r acc in
+    | Field (_, sub) -> aux acc sub
+    | Index (l, u, _, sub) ->
+      let lrefs = Eva_ast.vars_in_exp l
+      and urefs = Eva_ast.vars_in_exp u in
+      let acc = Cil_datatype.Varinfo.Set.(union (union lrefs urefs) acc) in
       aux acc sub
   in
   aux Cil_datatype.Varinfo.Set.empty

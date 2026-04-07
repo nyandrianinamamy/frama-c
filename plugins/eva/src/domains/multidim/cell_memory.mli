@@ -28,10 +28,10 @@ sig
   type t
   val empty : t
   val bases : t -> Base.t list
-  val is_singleton : t -> bool
+  val is_singleton : oracle:(exp -> Int_val.t) -> t -> bool
   val references : t -> Cil_types.varinfo list
   val of_var : Cil_types.varinfo -> t
-  val of_lval : (exp -> Cvalue.V.t) -> Eva_ast.lval -> t or_top
+  val of_lval : oracle:(exp -> Cvalue.V.t) -> Eva_ast.lval -> t or_top
   val of_precise_loc : Precise_locs.precise_location -> t
   val fold : (Base.t -> Abstract_offset.t or_top -> 'a -> 'a) -> t -> 'a -> 'a
 end

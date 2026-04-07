@@ -420,23 +420,23 @@ struct
         | Field (fi, offset'), Union u
           when Cil_datatype.Fieldinfo.equal u.union_field fi ->
           aux offset' u.union_value
-        | Index (exp, index, elem_type, offset'), Array a
+        | Index (l, u, elem_type, offset'), Array a
           when are_typ_compatible a.array_cell_type elem_type ->
-          let open Top.Operators in
           let v =
-            let+ lindex, uindex = match Option.map Bound.of_exp exp with
-              | Some b -> `Value (b, b)
-              | None | exception Bound.UnsupportedBoundExpression ->
-                let l, u = Int_val.min_and_max index in
-                let+ l = Top.of_option l
-                and+ u = Top.of_option u in
-                Bound.of_integer l, Bound.of_integer u
+            let open Option.Operators in
+            let+ lb, ub =
+              try
+                Some (Bound.of_exp l, Bound.of_exp u)
+              with Bound.UnsupportedBoundExpression ->
+                let+ lv = oracle l |> Int_val.min_int
+                and+ uv = oracle l |> Int_val.max_int in
+                Bound.of_integer lv, Bound.of_integer uv
             in
-            A.read ~oracle (aux offset') reduce a.array_value lindex uindex
+            A.read ~oracle (aux offset') reduce a.array_value lb ub
           in
           begin match v with
-            | `Value v -> v
-            | `Top -> A.read_any (aux offset') reduce a.array_value
+            | Some v -> v
+            | None -> A.read_any (aux offset') reduce a.array_value
           end
         | _, m -> (* structure mismatch *)
           let r = Raw (raw m) in
@@ -471,34 +471,29 @@ struct
             in
             let+ union_value = aux ~weak offset' old.union_value in
             Union { old with union_value }
-        | Index (exp, index, elem_type, offset') ->
+        | Index (l, u, elem_type, offset') ->
           let m' =
             let open TopBottom.Operators in
-            let* lindex, uindex, weak =
-              match Option.map Bound.of_exp exp with
-              | Some b -> `Value (b, Bound.succ b, weak)
-              | None | exception Bound.UnsupportedBoundExpression ->
-                begin match Int_val.min_and_max index with
-                  | None, _ | _, None -> `Top
-                  | Some l, Some u ->
-                    let l' = Bound.of_integer l
-                    and u' = Bound.(succ (of_integer u)) in
-                    let weak =
-                      weak ||
-                      Option.is_some exp && not (Z.equal l u)
-                    in
-                    `Value (l', u', weak)
-                end
+            let* lb, ub, weak =
+              Top.of_option @@
+              let open Option.Operators in
+              try
+                Some (Bound.of_exp l, Bound.(succ (of_exp u)), weak)
+              with Bound.UnsupportedBoundExpression ->
+                let+ lv = oracle l |> Int_val.min_int
+                and+ uv = oracle l |> Int_val.max_int in
+                let weak = weak || not (Z.equal lv uv) in
+                Bound.of_integer lv, Bound.(succ (of_integer uv)), weak
             in
             match m with
             | Array a when are_typ_compatible a.array_cell_type elem_type ->
               let+ array_value = A.update ~oracle (aux ~weak offset')
-                  a.array_value lindex uindex in
+                  a.array_value lb ub in
               Array { a with array_value }
             | _ ->
               let b = raw m in
               let+ new_value = aux ~weak offset' (Raw b) in
-              let array_value = A.single b lindex uindex new_value in
+              let array_value = A.single b lb ub new_value in
               Array { array_cell_type = elem_type ; array_value }
           in
           match m' with
