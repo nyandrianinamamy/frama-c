@@ -12,18 +12,9 @@ open Lattice_bounds
 module Location = Cell_location
 
 
-(* --- Arguments of the functors --- *)
+(* --- Arguments of the internal functors --- *)
 
 type 'value builtin = 'value list -> 'value or_bottom
-
-(* Values used for the simplest functor instantiation. *)
-module type Value =
-sig
-  include Abstract_value.Leaf
-  val zero : t
-  val widen : size:Z.t -> hint:Ival.widen_hint ->  t -> t -> t
-  val builtins: (string * t builtin) list
-end
 
 (* Values used for the collaborative evaluation. *)
 module type GenericValue =
@@ -75,6 +66,7 @@ struct
 
   include Datatype.Make (Prototype)
 
+  let incr_bound = Memory.incr_bound
   let pretty = Memory.pretty
   let top = Memory.top
   let is_top = Memory.is_top
@@ -82,10 +74,7 @@ struct
   let narrow = fun m1 _m2 -> m1
   let join = Memory.join
   let smash ~oracle = Memory.join ~oracle:(fun _ -> oracle)
-  let widen hint =
-    Memory.widen
-      (fun ~size v1 v2 -> CellValue.widen ~size ~hint v1 v2)
-  let incr_bound = Memory.incr_bound
+  let widen hint = Memory.widen (fun ~size -> CellValue.widen ~size ~hint)
 
   let get ~oracle m loc =
     match loc with
@@ -105,38 +94,27 @@ struct
   let set ~oracle ~weak new_v m loc =
     match loc with
     | `Top -> Memory.top
-    | `Value loc ->
-      Memory.set ~oracle ~weak m loc new_v
+    | `Value loc -> Memory.set ~oracle ~weak m loc new_v
 
   let reinforce ~oracle f m loc =
     match loc with
     | `Top -> `Value m
-    | `Value loc ->
-      Memory.reinforce ~oracle f m loc
+    | `Value loc -> Memory.reinforce ~oracle f m loc
 
   let replace ~oracle ~weak dst loc src =
     match loc with
     | `Top -> Memory.top
-    | `Value loc ->
-      Memory.overwrite ~oracle ~weak dst loc src
+    | `Value loc -> Memory.overwrite ~oracle ~weak dst loc src
 
-  let iter f m =
-    Memory.iter f m
-
-  let fold f m acc =
-    Memory.fold f m acc
-
-  let map f m =
-    Memory.map f m
-
-  let for_all f m =
-    Memory.for_all f m
+  let map      f m = Memory.map     f m
+  let iter     f m = Memory.iter    f m
+  let for_all  f m = Memory.for_all f m
+  let fold f m acc = Memory.fold f m acc
 
   let segmentation_hint ~oracle m loc bounds =
     match loc with
     | `Top -> Memory.top
-    | `Value loc ->
-      Memory.segmentation_hint ~oracle m loc bounds
+    | `Value loc -> Memory.segmentation_hint ~oracle m loc bounds
 end
 
 
@@ -240,7 +218,8 @@ struct
   let set_tracking (base_map, tracked : t) bases =
     let set = Option.value ~default:Tracking.empty tracked in
     let tracked = List.fold_right Tracking.add bases set in
-    let base_map = MemoryMap.inter_with_shape tracked base_map in (* Only keep tracked bases in the current base map *)
+    (* Only keep tracked bases in the current base map *)
+    let base_map = MemoryMap.inter_with_shape tracked base_map in
     base_map, Some tracked
 
   (* References *)
@@ -472,25 +451,19 @@ struct
   (* Iterators *)
 
   let map (f : location -> value -> value) (m, t : t) : t =
-    let f' base (m, t) =
-      let v' =
-        BaseModel.map (fun o v -> (f (Location.singleton base o) v)) m
-      in
-      Some (v', t)
-    in
-    (MemoryMap.filter_map f' m, t)
+    let f base o v = f (Location.singleton base o) v in
+    let f base (m, t) = Some (BaseModel.map (f base) m, t) in
+    (MemoryMap.filter_map f m, t)
 
   let iter (f : location -> value -> unit) (m,_ : t) : unit =
-    let f' base (m,_) =
-      BaseModel.iter (fun o v -> f (Location.singleton base o) v)  m
-    in
-    MemoryMap.iter f' m
+    let f base o v = f (Location.singleton base o) v in
+    let f base (m, _) = BaseModel.iter (f base) m in
+    MemoryMap.iter f m
 
   let fold (f : location -> value -> 'a -> 'a) (m,_ : t) (acc :'a) : 'a =
-    let f' base (m,_) acc =
-      BaseModel.fold (fun o v acc -> f (Location.singleton base o) v acc) m acc
-    in
-    MemoryMap.fold f' m acc
+    let f base o v acc = f (Location.singleton base o) v acc in
+    let f base (m, _) acc = BaseModel.fold (f base) m acc in
+    MemoryMap.fold f m acc
 
   let filter (f : location -> value -> bool) (m, t : t) : t =
     let f' base (m, t) =
@@ -973,31 +946,19 @@ let registered =
     (module MultidimDomain)
 
 
-(** --- Simplified functor --- *)
+(** --- Simplified memory model's functor --- *)
 
-module Make_GenericValue (Value : Value) =
-struct
-  open Bottom.Operators
-
-  type t = Cvalue.V.t * Value.t
-  let top = (Cvalue.V.top, Value.top)
-  let to_cvalue = fst
-
-  let builtins =
-    let topify v = (Cvalue.V.top, v) in
-    let lift f args = List.map snd args |> f |> Bottom.map topify in
-    List.map (fun (name, f) -> name, lift f) Value.builtins
-
-  let dependencies =
-    let cvalue = Abstract_value.Leaf (module Main_values.CVal) in
-    let value = Abstract_value.Leaf (module Value) in
-    Abstract_value.Node (cvalue, value)
-
-  let backward_is_finite pos fkind (cv, v) =
-    let+ cv' = CValue.backward_is_finite pos fkind cv in cv', v
+module type Lattice = sig
+  include Datatype.S
+  val top : t
+  val is_included : t -> t -> bool
+  val join : t -> t -> t
+  val narrow : t -> t -> t or_bottom
+  val zero : t
+  val widen : size:Z.t -> hint:Ival.widen_hint ->  t -> t -> t
 end
 
-module Make_GenericCellValue (Value : Value) =
+module Make_GenericCellValue (Value : Lattice) =
 struct
   open Bottom.Operators
 
@@ -1051,14 +1012,14 @@ struct
     CvalueOrUninitialized.map (fun _ -> cv'') cv, v''
 end
 
-
-module Make_Memory (Value : Value) =
+module Make_Memory (Value : Lattice) =
 struct
   open Bottom.Operators
-  module GenericValue = Make_GenericValue (Value)
   module CellValue = Make_GenericCellValue (Value)
   module Model = Make_Generic_Memory (CellValue)
   include Model
+
+  type oracle = Cell_oracle.oracle
 
   let mk_oracle (memory : t) =
     let get ~oracle lval =
@@ -1074,56 +1035,109 @@ struct
     | Abstract_memory.Left -> convert_oracle oracle_left
     | Right -> convert_oracle oracle_right
 
-  let remove_references base memory =
-    Model.remove_base_references ~oracle:(mk_oracle memory) base memory
+  let remove_references ?oracle base memory =
+    let oracle = Option.(oracle <? mk_oracle memory) in
+    Model.remove_base_references ~oracle base memory
 
-  let update_references location exp memory =
-    Model.update_references ~oracle:(mk_oracle memory) location exp memory
+  let update_references ?oracle location exp memory =
+    let oracle = Option.(oracle <? mk_oracle memory) in
+    Model.update_references ~oracle location exp memory
 
-  let reinforce f memory loc =
-    let f' (c, v) = let+ v = f v in (c, v) in
-    Model.reinforce ~oracle:(mk_oracle memory) f' memory loc
+  let reinforce ?oracle f memory loc =
+    let open Bottom.Operators in
+    let oracle = Option.(oracle <? mk_oracle memory) in
+    let f' (cv, v) =
+      let+ (cv', v') = f (CvalueOrUninitialized.to_cvalue cv, v) in
+      CvalueOrUninitialized.of_value cv', v'
+    in Model.reinforce ~oracle f' memory loc
 
-  let join l r = Model.join ~oracle:(mk_bioracle l r) l r
-  let widen kf stmt l r = Model.widen ~oracle:(mk_bioracle l r) kf stmt l r
+  let join l r =
+    let oracle = mk_bioracle l r in
+    Model.join ~oracle l r
 
-  let get m loc =
-    Model.get ~oracle:(mk_oracle m) m loc >>-: snd
+  let widen kf stmt l r =
+    let oracle = mk_bioracle l r in
+    Model.widen ~oracle kf stmt l r
 
-  let read memory lval =
-    let open TopBottom.Operators in
-    let oracle = mk_oracle memory in
-    let get loc = (get memory loc :> 'a or_top_bottom) in
-    match Location.of_lval ~oracle lval >>- get with
+  let get ?oracle m loc =
+    let open Bottom.Operators in
+    let oracle = Option.(oracle <? mk_oracle m) in
+    let* cv_u, v = Model.get ~oracle m loc in
+    let is_initialized = CvalueOrUninitialized.is_initialized cv_u in
+    if CvalueOrUninitialized.is_bottom cv_u then `Bottom
+    else `Value (CvalueOrUninitialized.get_v cv_u, v, is_initialized)
+
+  let read ?oracle memory loc =
+    match get ?oracle memory loc with
     | `Bottom -> assert false
-    | `Top -> Value.top
-    | `Value v -> v
+    | `Value (_, v, _) -> v
 
-  let set m loc c v =
+  let set ?oracle m loc c v =
+    let oracle = Option.(oracle <? mk_oracle m) in
     let c = CvalueOrUninitialized.of_value c in
-    Model.set ~oracle:(mk_oracle m) m loc (c, v)
+    Model.set ~oracle m loc (c, v)
 
-  let remove var memory = Model.remove ~oracle:(mk_oracle memory) var memory
-  let replace memory = Model.replace ~oracle:(mk_oracle memory) memory
-  let erase ?weak memory = Model.erase ~oracle:(mk_oracle memory) ?weak memory
+  let remove ?oracle var memory =
+    let oracle = Option.(oracle <? mk_oracle memory) in
+    Model.remove ~oracle var memory
+
+  let replace ?oracle memory =
+    let oracle = Option.(oracle <? mk_oracle memory) in
+    Model.replace ~oracle memory
+
+  let erase ?oracle ?weak memory loc b =
+    let oracle = Option.(oracle <? mk_oracle memory) in
+    Model.erase ~oracle ?weak memory loc b
 
   let iter f state =
-    let f' typ (_,v) = f typ v in
+    let f' loc (_,v) = f loc v in
     iter f' state
 
   let fold f state acc =
-    let f' typ (_,v) acc = f typ v acc in
+    let f' loc (_,v) acc = f loc v acc in
     fold f' state acc
 
   let map f state =
-    let f' typ (c, v) = (c, f typ v) in
+    let f' loc (c, v) = (c, f loc v) in
     map f' state
 
   let filter f state =
-    let f' typ (_, v) = f typ v in
+    let f' loc (_, v) = f loc v in
     filter f' state
 end
 
+
+(** --- Simplified domain instantiation --- **)
+
+module type Value =
+sig
+  include Abstract_value.Leaf
+  val zero : t
+  val widen : size:Z.t -> hint:Ival.widen_hint ->  t -> t -> t
+  val builtins: (string * t builtin) list
+end
+
+module Make_GenericValue (Value : Value) =
+struct
+  open Bottom.Operators
+
+  type t = Cvalue.V.t * Value.t
+  let top = (Cvalue.V.top, Value.top)
+  let to_cvalue = fst
+
+  let builtins =
+    let topify v = (Cvalue.V.top, v) in
+    let lift f args = List.map snd args |> f |> Bottom.map topify in
+    List.map (fun (name, f) -> name, lift f) Value.builtins
+
+  let dependencies =
+    let cvalue = Abstract_value.Leaf (module Main_values.CVal) in
+    let value = Abstract_value.Leaf (module Value) in
+    Abstract_value.Node (cvalue, value)
+
+  let backward_is_finite pos fkind (cv, v) =
+    let+ cv' = CValue.backward_is_finite pos fkind cv in cv', v
+end
 
 module Make (Params : sig val name : string end) (Value : Value) =
 struct
