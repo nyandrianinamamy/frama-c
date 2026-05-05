@@ -7,6 +7,7 @@
 (**************************************************************************)
 
 open Eval
+open Cell_oracle
 open Lattice_bounds
 
 
@@ -18,12 +19,6 @@ let map_to_singleton map =
     | Some _ -> raise Exit
   in
   try Base.Base.Map.fold aux map None with Exit -> None
-
-let convert_oracle oracle =
-  fun exp ->
-  match Ival.project_int_val (Cvalue.V.project_ival (oracle exp)) with
-  | Some int_val -> int_val
-  | None | exception Cvalue.V.Not_based_on_null -> Int_val.top
 
 module Location =
 struct
@@ -629,49 +624,6 @@ struct
 end
 
 
-(* --- Generic oracles --- *)
-
-(* Hack to build an oracle from the domain when the engine does not provide
-   one. *)
-
-type getter = oracle:(exp -> Cvalue.V.t) -> Location.t -> Cvalue.V.t or_bottom
-
-let default_oracle (get : getter) : Eva_ast.exp -> Cvalue.V.t =
-  (* Until Eva gives access to good oracles, we use this poor stupid oracle
-      instead *)
-  let rec oracle (exp : Eva_ast.exp) : Cvalue.V.t =
-    match exp.node with
-    | Lval lval ->
-      begin match Location.of_lval ~oracle lval with
-        | `Top -> Cvalue.V.top
-        | `Value loc ->
-          match get ~oracle loc with
-          | `Bottom -> Cvalue.V.bottom (* should never happen as location should not be empty *)
-          | `Value v -> v
-      end
-    | Const (CInt64 (i,_,_)) ->
-      Cvalue.V.inject_int i
-    | Const (CReal (f,_,_)) ->
-      Cvalue.V.inject_float (Fval.singleton (Fval.F.of_float f))
-    | UnOp (op, e, typ) ->
-      Cvalue_forward.forward_unop typ op (oracle e)
-    | BinOp (op, e1, e2, { tnode = TFloat fkind }) ->
-      Cvalue_forward.forward_binop_float (Fval.kind fkind) (oracle e1) op (oracle e2)
-    | BinOp (op, e1, e2, typ) ->
-      Cvalue_forward.forward_binop_int ~typ (oracle e1) op (oracle e2)
-    | CastE (typ, e) ->
-      let scalar_type t = Option.get (Eval_typ.classify_as_scalar t) in
-      let src_type =  scalar_type e.typ
-      and dst_type = scalar_type typ in
-      Cvalue_forward.forward_cast ~src_type ~dst_type (oracle e)
-    | _ ->
-      Self.fatal
-        "This type of array index expression is not supported: %a"
-        Eva_ast.pp_exp exp
-  in
-  fun exp -> oracle (Eva_ast.const_fold exp)
-
-
 (* --- Generic Domain Functor --- *)
 
 module Make_Generic_Domain
@@ -696,8 +648,11 @@ struct
 
   let mk_oracle (state : state) =
     let open Bottom.Operators in
-    let get ~oracle loc = Model.get ~oracle state loc >>-: CellValue.to_cvalue in
-    default_oracle get
+    let get ~oracle lval =
+      match Location.of_lval ~oracle lval with
+      | `Top -> `Value Cvalue.V.top
+      | `Value loc -> Model.get ~oracle state loc >>-: CellValue.to_cvalue
+    in default_oracle get
 
   let mk_bioracle s1 s2 =
     let oracle_left = mk_oracle s1
@@ -1228,8 +1183,11 @@ struct
   include Model
 
   let mk_oracle (memory : t) =
-    let get ~oracle loc = Model.get ~oracle memory loc >>-: CellValue.to_cvalue in
-    default_oracle get
+    let get ~oracle lval =
+      match Location.of_lval ~oracle lval with
+      | `Top -> `Value Cvalue.V.top
+      | `Value loc -> Model.get ~oracle memory loc >>-: CellValue.to_cvalue
+    in default_oracle get
 
   let mk_bioracle s1 s2 =
     let oracle_left = mk_oracle s1
