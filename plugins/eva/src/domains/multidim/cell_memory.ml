@@ -9,127 +9,7 @@
 open Eval
 open Cell_oracle
 open Lattice_bounds
-
-
-(* --- Locations used by the memory model --- *)
-
-let map_to_singleton map =
-  let aux base offset = function
-    | None -> Some (base, offset)
-    | Some _ -> raise Exit
-  in
-  try Base.Base.Map.fold aux map None with Exit -> None
-
-module Location =
-struct
-  module Offset = Abstract_offset
-  module Map = Base.Base.Map
-  open Top.Operators
-
-  type offset = Offset.t or_top
-  type base = Base.t
-  type t = offset Map.t
-
-  let _pretty = Map.pretty Base.pretty Offset.pretty
-
-  let empty = Map.empty
-
-  let fold : (base-> offset -> 'a -> 'a) -> t -> 'a -> 'a = Map.fold
-
-  let bases map =
-    Map.fold (fun b _ acc -> b :: acc) map []
-
-  let singleton base offset : t =
-    Map.singleton base (`Value offset)
-
-  let is_singleton ~oracle map =
-    match map_to_singleton map with
-    | None -> false
-    | Some (b,o) ->
-      match o with
-      | `Top -> false
-      | `Value o -> not (Base.is_weak b) && Offset.is_singleton ~oracle o
-
-  let to_singleton_var map =
-    match map_to_singleton map with
-    | Some (Base.Var (vi, _), `Value (Offset.NoOffset t)) (* maybe too restrictive *)
-      when Typed_memory.are_typ_compatible vi.vtype t -> Some (vi)
-    | _ -> None
-
-  let references (map : t) =
-    let module Set = Cil_datatype.Varinfo.Set in
-    let add_refs _b o acc =
-      match o with
-      | `Top -> acc
-      | `Value o -> Set.union (Offset.references o) acc
-    in
-    Map.fold add_refs map Set.empty |> Set.elements
-
-  let of_var (vi : Cil_types.varinfo) : t =
-    Map.singleton (Base.of_varinfo vi) (`Value (Offset.of_var_address vi))
-
-  let of_lval ~oracle (lval : lval) : t or_top =
-    let (host,offset) = lval.node in
-    let cvalue_oracle = oracle in
-    let oracle = convert_oracle oracle in
-    let base_typ = Eva_ast.type_of_lhost host in
-    let offset = Offset.of_eva_offset ~oracle base_typ offset in
-    match host with
-    | Var vi ->
-      `Value (Map.singleton (Base.of_varinfo vi) offset)
-    | Mem exp ->
-      let exp, index = match exp.node with
-        | BinOp (PlusPI, e1, e2, _typ) ->
-          e1, Some e2
-        | _ -> exp, None
-      in
-      let add base ival map =
-        let offset' : Offset.t or_top =
-          match Base.typeof base with
-          | None -> `Top
-          | Some base_typ ->
-            let typ = Ast_types.C.direct_pointed exp.typ in
-            let* base_offset = Offset.of_ival ~base_typ ~typ ival in
-            let* base_offset = match index with
-              | None -> `Value (base_offset)
-              | Some exp ->
-                Offset.add_index ~oracle base_offset exp
-            in
-            let+ offset = offset in
-            Offset.append base_offset offset
-        in
-        Map.add base offset' map
-      in
-      let addr = Addresses.Bits.of_bytes (cvalue_oracle exp) in
-      try
-        `Value (Addresses.Bits.fold_topset_ok add addr Map.empty)
-      with Abstract_interp.Error_Top ->
-        `Top
-
-  let of_term_lval env ((lhost, offset) as lval) =
-    let+ vi = match lhost with
-      | Cil_types.TVar ({lv_origin=Some vi}) -> `Value (vi)
-      | TResult _ -> Top.of_option env.Abstract_domain.result
-      | _ -> `Top
-    in
-    let base' = Base.of_varinfo vi in
-    let offset' = Offset.of_term_offset vi.vtype offset in
-    Map.singleton base' offset', Cil.typeOfTermLval lval
-
-  let of_term env (t : Cil_types.term) =
-    match t.term_node with
-    | TLval term_lval -> of_term_lval env term_lval
-    | _ -> `Top
-
-  let of_precise_loc loc =
-    let loc' = Precise_locs.imprecise_location loc in
-    let add_base base map =
-      (* Null base doesn't have a type ; use void instead *)
-      let typ = Option.value ~default:Cil_const.voidType (Base.typeof base) in
-      Map.add base (`Value (Offset.NoOffset typ)) map
-    in
-    Addresses.Bits.(fold_bases add_base loc'.addr empty)
-end
+module Location = Cell_location
 
 
 (* --- Arguments of the functors --- *)
@@ -477,27 +357,25 @@ struct
     Bottom.non_bottom (write' (fun m o -> `Value (update m o)) state loc)
 
   let set ~oracle (state : t) (dst : location) (v : value) : t =
-    let oracle = convert_oracle oracle in
     let weak = not (Location.is_singleton ~oracle dst) in
+    let oracle = convert_oracle oracle in
     write (BaseModel.set ~oracle ~weak v) state dst
 
   let replace ~oracle (state : t) (dst : location) (src : location) : t =
     match extract ~oracle state src with
     | `Bottom -> state (* no source *)
     | `Value value ->
-      let oracle = convert_oracle oracle in
       let weak = not (Location.is_singleton ~oracle dst) in
-      write (fun m off ->
-          BaseModel.replace ~oracle ~weak m off value) state dst
+      let oracle = convert_oracle oracle in
+      write (fun m off -> BaseModel.replace ~oracle ~weak m off value) state dst
 
   let erase ~oracle ?(weak: bool option)
       (state : t) (dst : location) (b : Abstract_memory.bit) : t =
-    let oracle = convert_oracle oracle in
     let weak = match weak with
-      | None ->
-        not (Location.is_singleton ~oracle dst)
+      | None -> not (Location.is_singleton ~oracle dst)
       | Some weak -> weak
     in
+    let oracle = convert_oracle oracle in
     write (fun m off -> BaseModel.erase ~oracle ~weak m off b) state dst
 
   let reinforce
@@ -744,7 +622,7 @@ struct
             then `Value CellValue.bottom
             else v
           in
-          if Location.is_singleton ~oracle:(convert_oracle oracle) loc
+          if Location.is_singleton ~oracle loc
           then Model.reinforce ~oracle update state loc
           else `Value state
       else `Value state

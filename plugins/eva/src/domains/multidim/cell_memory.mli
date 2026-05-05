@@ -22,20 +22,6 @@ sig
   val builtins: (string * t builtin) list
 end
 
-(** Cell memory model locations *)
-module Location :
-sig
-  type t
-  val empty : t
-  val bases : t -> Base.t list
-  val is_singleton : oracle:(exp -> Int_val.t) -> t -> bool
-  val references : t -> Cil_types.varinfo list
-  val of_var : Cil_types.varinfo -> t
-  val of_lval : oracle:(exp -> Cvalue.V.t) -> Eva_ast.lval -> t or_top
-  val of_precise_loc : Precise_locs.precise_location -> t
-  val fold : (Base.t -> Abstract_offset.t or_top -> 'a -> 'a) -> t -> 'a -> 'a
-end
-
 (** This functor builds the cell memory model. *)
 module Make_Memory (Value : Value) :
 sig
@@ -48,22 +34,22 @@ sig
   val widen : Cil_types.kernel_function -> Cil_types.stmt -> t -> t -> t
 
   val read : t -> Eva_ast.lval -> Value.t
-  val get : t -> Location.t -> Value.t or_bottom
-  val set : t -> Location.t -> Cvalue.V.t -> Value.t -> t
+  val get : t -> Cell_location.t -> Value.t or_bottom
+  val set : t -> Cell_location.t -> Cvalue.V.t -> Value.t -> t
   val remove : Cil_types.varinfo -> t -> t
-  val replace : t -> Location.t -> Location.t -> t
-  val erase : ?weak:bool -> t -> Location.t -> Abstract_memory.bit -> t
-  val reinforce : (Value.t -> Value.t or_bottom) -> t -> Location.t -> t or_bottom
+  val replace : t -> Cell_location.t -> Cell_location.t -> t
+  val erase : ?weak:bool -> t -> Cell_location.t -> Abstract_memory.bit -> t
+  val reinforce : (Value.t -> Value.t or_bottom) -> t -> Cell_location.t -> t or_bottom
 
-  val map  : (Location.t -> Value.t -> Value.t) -> t -> t
-  val iter : (Location.t -> Value.t -> unit) -> t -> unit
-  val fold : (Location.t -> Value.t -> 'a -> 'a) -> t -> 'a -> 'a
-  val filter : (Location.t -> Value.t -> bool) -> t -> t
+  val map  : (Cell_location.t -> Value.t -> Value.t) -> t -> t
+  val iter : (Cell_location.t -> Value.t -> unit) -> t -> unit
+  val fold : (Cell_location.t -> Value.t -> 'a -> 'a) -> t -> 'a -> 'a
+  val filter : (Cell_location.t -> Value.t -> bool) -> t -> t
 
   val set_tracking : t -> Base.t list -> t
   val add_references : t -> Base.t -> Base.t list -> t
   val remove_references : Base.t -> t -> t
-  val update_references : Location.t -> Eva_ast.exp option -> t -> t
+  val update_references : Cell_location.t -> Eva_ast.exp option -> t -> t
 
   val project : Base.Hptset.t -> t -> t
   val overwrite : Base.Hptset.t -> on:t -> by:t -> t
