@@ -129,3 +129,10 @@ module Eva_results = Eva_results
 
 (** Unit testing. *)
 module Unit_tests = Unit_tests
+
+(** Multidim. *)
+module Cell_memory = Cell_memory
+module Cell_oracle = Cell_oracle
+module Cell_location = Cell_location
+module Abstract_memory = Abstract_memory
+module Abstract_offset = Abstract_offset

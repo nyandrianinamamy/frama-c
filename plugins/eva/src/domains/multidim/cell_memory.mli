@@ -34,7 +34,7 @@ sig
 end
 
 (** This functor builds the cell memory model. *)
-module Make_Memory (Value : Value) :
+module Make_Memory (Value : Lattice) :
 sig
   include Datatype.S_with_collections
   type oracle = Cell_oracle.oracle
