@@ -16,4 +16,15 @@ val prel :
   term ->
   term ->
   predicate
-(** create a relation predicate and try to optimize it if [smart] is [true]. *)
+(** create a relation predicate. Optimisation depends on the [-e-acsl-O]
+    option and [?smart]. *)
+
+val pand :
+  ?smart:bool ->
+  ?loc:Fileloc.t ->
+  ?names:string list ->
+  predicate ->
+  predicate ->
+  predicate
+(** create a conjunction. Optimisation depends on the [-e-acsl-O] option and
+    [?smart]. *)
