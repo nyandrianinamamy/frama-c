@@ -72,7 +72,7 @@ ifeq ($(PREFIX),$(OPAM_SWITCH_PREFIX))
 else
 	@echo "Installing $(INSTALL_TARGET)to ${PREFIX}"
 	@printf " Copying and relocating files..."
-	dune install ${WORKSPACE_OPT} --root . --prefix ${PREFIX} ${MANDIR_OPT} ${RELOCATABLE_OPT} 2> /dev/null
+	dune install ${WORKSPACE_OPT} --root . --prefix "${PREFIX}" ${MANDIR_OPT} ${RELOCATABLE_OPT} 2> /dev/null
 	@echo " (done)"
 	@echo 'DO NOT FORGET TO EXPAND YOUR OCAMLPATH VARIABLE:'
 	@echo '  export OCAMLPATH="${PREFIX}/lib:$$OCAMLPATH"'
@@ -82,5 +82,5 @@ endif
 ifdef PREFIX
 uninstall::
 	@echo "Uninstalling $(INSTALL_TARGET)"
-	dune uninstall ${WORKSPACE_OPT} --root . --prefix ${PREFIX} ${MANDIR_OPT} 2> /dev/null
+	dune uninstall ${WORKSPACE_OPT} --root . --prefix "${PREFIX}" ${MANDIR_OPT} 2> /dev/null
 endif

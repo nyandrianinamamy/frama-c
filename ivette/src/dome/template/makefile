@@ -219,7 +219,7 @@ dome-app: dome-pkg dome-templ
 	@rm -f $(DOME_CLI)
 	@echo "#!/bin/sh" >> $(DOME_CLI)
 	@echo "export DOME_LOCAL=true" >> $(DOME_CLI)
-	@echo 'exec $(DOME_MK_BIN)/electron $(CURDIR)/out/main/index.js $(DOME_ARGS) "$$@"' >> $(DOME_CLI)
+	@echo 'exec "$(DOME_MK_BIN)/electron" "$(CURDIR)/out/main/index.js" $(DOME_ARGS) "$$@"' >> $(DOME_CLI)
 	@chmod 555 $(DOME_CLI)
 
 # --------------------------------------------------------------------------
