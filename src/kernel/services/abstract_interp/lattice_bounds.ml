@@ -152,6 +152,25 @@ module Bottom = struct
     | `Bottom  -> []
     | `Value v -> [v]
 
+  (** Operators redefinition *)
+
+  let bind f = function
+    | `Bottom -> `Bottom
+    | `Value x -> f x
+
+  let map f = function
+    | `Bottom -> `Bottom
+    | `Value x -> `Value (f x)
+
+  module Operators= struct
+    let ( >>-  ) m f = bind f m
+    let ( let* ) m f = bind f m
+    let ( and* ) = zip
+    let ( >>-: ) m f = map  f m
+    let ( let+ ) m f = map  f m
+    let ( and+ ) = zip
+  end
+
   (** List manipulation *)
 
   module List = struct

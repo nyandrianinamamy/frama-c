@@ -60,6 +60,35 @@ module Bottom : sig
   (** Returns an empty list on Bottom, and a list of one element otherwise. *)
   val to_list : 'a t -> 'a list
 
+  (** {3 Operators } *)
+
+  (** This is a redefinition of {!Monad}'s operators for documentation
+      purposes. *)
+  module Operators : sig
+    val ( >>-  ) : 'a t -> ('a -> 'b t) -> 'b t
+    val ( >>-: ) : 'a t -> ('a -> 'b) -> 'b t
+
+    (** [let* x = value_or_bottom in expr] sequences computations of type
+        ['a or_bottom].
+
+        If [value_or_bottom] evaluates to [`Value v], [v] is bound to [x] and
+        [expr] is evaluated. If it evaluates to [`Bottom], [expr] is not
+        evaluated and the whole expression returns [`Bottom]. *)
+    val ( let* ) : 'a t -> ('a -> 'b t) -> 'b t
+
+    (** Same as {!let*} but the expression after [in] must be of type ['b]
+        instead of ['b or_bottom]. *)
+    val ( let+ ) : 'a t -> ('a -> 'b) -> 'b t
+
+    (** [and*] can be used we [let*] when several variables must be defined.
+        If one of the variables is [`Bottom], then the whole [let* ... and*]
+        expression will be [`Bottom] as well. *)
+    val ( and* ) : 'a t -> 'b t -> ('a * 'b) t
+
+    (** Same as {!and*} but must be used with {!let+}. *)
+    val ( and+ ) : 'a t -> 'b t -> ('a * 'b) t
+  end
+
   (** {3 List manipulation } *)
   module List : sig
 
