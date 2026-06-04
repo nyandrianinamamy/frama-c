@@ -148,10 +148,6 @@ module Bottom = struct
     | None -> `Bottom
     | Some v -> `Value v
 
-  let of_list ~join = function
-    | [] -> `Bottom
-    | x :: list -> `Value (Stdlib.List.fold_left join x list)
-
   let to_list = function
     | `Bottom  -> []
     | `Value v -> [v]
@@ -172,6 +168,10 @@ module Bottom = struct
 
     let join_values f =
       List.fold_left (join f) `Bottom
+
+    let join f = function
+      | [] -> `Bottom
+      | x :: list -> `Value (List.fold_left f x list)
 
     let filter_map f l =
       let f' x = to_option (f x) in

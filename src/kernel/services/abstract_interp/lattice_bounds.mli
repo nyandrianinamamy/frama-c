@@ -57,9 +57,6 @@ module Bottom : sig
   val to_option : 'a t -> 'a option
   val of_option : 'a option -> 'a t
 
-  (** Joins all elements of a list. Returns Bottom if the list is empty. *)
-  val of_list : join:('a -> 'a -> 'a) -> 'a list -> 'a t
-
   (** Returns an empty list on Bottom, and a list of one element otherwise. *)
   val to_list : 'a t -> 'a list
 
@@ -76,8 +73,13 @@ module Bottom : sig
     (** Filters the given list to remove Bottom elements. *)
     val values : 'a t list -> 'a list
 
-    (** [join_values] filters the given list to remove `Bottom elements and join
-        the remaining values. Returns `Bottom if the list is empty. *)
+    (** Joins all elements of a list. Returns [`Bottom] if the list is empty. *)
+    val join : ('a -> 'a -> 'a) -> 'a list -> 'a t
+
+    (** [join_values] filters the given list to remove [`Bottom] elements and
+        join the remaining values. Returns [`Bottom] if the list is empty.
+        [join_values f l] has the same result as [values l |> join f] but only
+        iterate through the list once. *)
     val join_values : ('a -> 'a -> 'a) -> 'a t list -> 'a t
 
     (** [filter_map f l] maps the function [f] to the list [l] and does not
