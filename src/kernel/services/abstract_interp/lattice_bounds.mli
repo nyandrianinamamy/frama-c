@@ -17,9 +17,6 @@ type 'a or_top_bottom = [ `Value of 'a | `Bottom | `Top ]
 module Bottom : sig
 
   include Monad.S_with_product with type 'a t = 'a or_bottom
-  module List : Monad.Iterators
-    with type 'a iterable := 'a list
-     and type 'a monad := 'a t
 
   (** Datatype constructor *)
   module Make_Datatype (X: Datatype.S) :
@@ -49,7 +46,6 @@ module Bottom : sig
   val is_included : ('a -> 'b -> bool) -> 'a t -> 'b t -> bool
   val join : ('a -> 'a -> 'a) -> 'a t -> 'a t -> 'a t
   val narrow : ('a -> 'a -> 'a t) -> 'a t -> 'a t -> 'a t
-  val join_list : ('a -> 'a -> 'a) -> 'a t list -> 'a t
 
   (** Iterator. *)
   val iter : ('a -> unit) -> 'a t -> unit
@@ -67,15 +63,28 @@ module Bottom : sig
   (** Returns an empty list on Bottom, and a list of one element otherwise. *)
   val to_list : 'a t -> 'a list
 
-  (** Filters the given list to remove Bottom elements. *)
-  val list_values : 'a t list -> 'a list
+  (** {3 List manipulation } *)
+  module List : sig
 
-  (** [list_filter_map f l] maps the function [f] to the list [l] and does not
-      keep bottoms. *)
-  val list_filter_map : ('a -> 'b t) -> 'a list -> 'b list
+    include Monad.Iterators
+      with type 'a iterable := 'a list
+       and type 'a monad := 'a t
 
-  (** [add_to_list elt list] adds [elt] to the [list] if it is not bottom. *)
-  val add_to_list : 'a t -> 'a list -> 'a list
+    (** [add_to_list elt list] adds [elt] to the [list] if it is not bottom. *)
+    val add : 'a t -> 'a list -> 'a list
+
+    (** Filters the given list to remove Bottom elements. *)
+    val values : 'a t list -> 'a list
+
+    (** [join_values] filters the given list to remove `Bottom elements and join
+        the remaining values. Returns `Bottom if the list is empty. *)
+    val join_values : ('a -> 'a -> 'a) -> 'a t list -> 'a t
+
+    (** [filter_map f l] maps the function [f] to the list [l] and does not
+        keep bottoms. *)
+    val filter_map : ('a -> 'b t) -> 'a list -> 'b list
+
+  end
 
 end
 

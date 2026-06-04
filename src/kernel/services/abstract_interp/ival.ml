@@ -951,7 +951,7 @@ let reinterpret_as_float kind i =
       let pos = bounds_narrow f_pos >>-: (fun (b, e) -> range b e) in
       (* convert negative floats; decreasing on negative range *)
       let neg = bounds_narrow f_neg >>-: (fun (b, e) -> range e b) in
-      let f = Bottom.join_list Fval.join (pos :: neg :: nan) in
+      let f = Bottom.List.join_values Fval.join (pos :: neg :: nan) in
       inject_float (Bottom.non_bottom f)
     in
     match kind with

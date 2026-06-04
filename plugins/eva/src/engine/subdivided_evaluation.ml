@@ -703,7 +703,7 @@ module Make
      such values. *)
   let make_info_list environment valuation lvals =
     let get_info = get_info environment valuation in
-    let list = Bottom.list_filter_map get_info lvals in
+    let list = Bottom.List.filter_map get_info lvals in
     List.filter (fun info -> can_be_subdivided (get_cval info.lv_value)) list
 
   (* Before any subdivision, a first evaluation is needed. If it leads to

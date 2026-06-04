@@ -892,7 +892,7 @@ module Make (F: Float_sig.S) = struct
     let pos_nonint_y = nonint_y && Cmp.(gt ey pos_zero) in
     let neg_infinity_x = Cmp.is_neg_infinity bx in
     let zero_x = Cmp.(equal ex neg_zero) in
-    Bottom.join_list join
+    Bottom.List.join_values join
       [ if Cmp.le min max then `Value (FRange.inject min max) else `Bottom;
         value_if prec nan (fun _ -> FRange.nan);
         value_if prec (neg_infinity_x && neg_nonint_y) pos_zero;
@@ -917,7 +917,7 @@ module Make (F: Float_sig.S) = struct
       let neg_x_res = neg_x >>- fun x -> pow_negative_x pow_f prec x itv_y in
       let nan_res = if nan then `Value FRange.nan else `Bottom in
       Bottom.non_bottom
-        (Bottom.join_list join [ pos_x_res; neg_x_res; nan_res ])
+        (Bottom.List.join_values join [ pos_x_res; neg_x_res; nan_res ])
 
   (* Is [fmod] continuous on positive intervals [b1..e1] and [b2..e2]?
      This is the case if for all x, y in these intervals, the rounded quotient
@@ -1116,7 +1116,7 @@ module Make (F: Float_sig.S) = struct
       let neg, pos = split_by_sign prec (b, e) in
       let neg = neg >>-: fun (b, e) -> bits_of_float e, bits_of_float b in
       let pos = pos >>-: fun (b, e) -> bits_of_float b, bits_of_float e in
-      Bottom.add_to_list pos (Bottom.add_to_list neg nan)
+      Bottom.List.add pos (Bottom.List.add neg nan)
 
   let bits_of_float64_list =
     let bits_of_float f =

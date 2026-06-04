@@ -124,8 +124,6 @@ module Bottom = struct
     | `Value _, `Bottom
     | `Bottom, `Bottom -> `Bottom
 
-  let join_list f = Stdlib.List.fold_left (join f) `Bottom
-
   (* Combination *)
 
   let zip x y =
@@ -143,15 +141,12 @@ module Bottom = struct
     end)
 
   include Monad
-  module List = List.Make_monadic_iterators (Monad)
 
   (** Conversion *)
 
   let of_option = function
     | None -> `Bottom
     | Some v -> `Value v
-
-  (** List operations *)
 
   let of_list ~join = function
     | [] -> `Bottom
@@ -161,17 +156,28 @@ module Bottom = struct
     | `Bottom  -> []
     | `Value v -> [v]
 
-  let add_to_list elt list =
-    match elt with
-    | `Bottom    -> list
-    | `Value elt -> elt :: list
+  (** List manipulation *)
 
-  let list_values l =
-    Stdlib.List.fold_left (fun l elt -> add_to_list elt l) [] l
+  module List = struct
 
-  let list_filter_map f l =
-    let f' x = to_option (f x) in
-    Stdlib.List.filter_map f' l
+    include List.Make_monadic_iterators (Monad)
+
+    let add elt list =
+      match elt with
+      | `Bottom    -> list
+      | `Value elt -> elt :: list
+
+    let values l =
+      List.fold_left (fun l elt -> add elt l) [] l
+
+    let join_values f =
+      List.fold_left (join f) `Bottom
+
+    let filter_map f l =
+      let f' x = to_option (f x) in
+      List.filter_map f' l
+
+  end
 
   (** Datatype construction *)
 

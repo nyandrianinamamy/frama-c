@@ -219,7 +219,7 @@ module Make (Engine: Engine_Subset) = struct
     let rec disjunctive_narrow states = function
       | [] -> states
       | set :: tail ->
-        let narrow s s' acc = Bottom.add_to_list (Domain.narrow s s') acc in
+        let narrow s s' acc = Bottom.List.add (Domain.narrow s s') acc in
         let states = fold2 narrow states set [] in
         disjunctive_narrow states tail
     in
@@ -237,7 +237,7 @@ module Make (Engine: Engine_Subset) = struct
       | hd :: tl -> List.fold_left (Bottom.narrow Domain.narrow) hd tl
     in
     narrowed_state >>- fun narrowed_state ->
-    Bottom.list_filter_map (Domain.narrow narrowed_state) (List.hd states_list)
+    Bottom.List.filter_map (Domain.narrow narrowed_state) (List.hd states_list)
 
 
   (* Narrowing of a list of disjunctive sets of states. *)
