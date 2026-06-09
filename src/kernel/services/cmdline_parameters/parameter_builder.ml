@@ -184,6 +184,9 @@ struct
         else
           is_visible, mk_help s
       in
+      let neg_visible =
+        neg_visible && !Parameter_customize.negative_option_visible_ref
+      in
       generic_add_option neg_name neg_help neg_visible is_safe false;
       neg_name
 
