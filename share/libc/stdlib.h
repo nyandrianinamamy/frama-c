@@ -161,24 +161,24 @@ extern long double strtold(const char * restrict nptr,
                         indirect:base;
   assigns *endptr \from nptr, indirect:nptr[0 .. strlen(nptr)],
                         indirect:endptr, indirect:base;
-  assigns __fc_errno \from indirect:nptr[0 .. strlen(nptr)], indirect:base;
+  assigns errno \from indirect:nptr[0 .. strlen(nptr)], indirect:base;
   behavior cannot_convert:
     assumes
       no_conversion: str_to_integer(nptr, LONG_MIN, LONG_MAX, base) == 0;
     assigns \result \from indirect:nptr, indirect:nptr[0 .. strlen(nptr)],
                           indirect:base;
-    assigns __fc_errno \from indirect:nptr[0 .. strlen(nptr)], indirect:base;
+    assigns errno \from indirect:nptr[0 .. strlen(nptr)], indirect:base;
     ensures result_no_conversion: \result == 0;
-    ensures errno_set: __fc_errno == EINVAL;
+    ensures errno_set: errno == EINVAL;
   behavior out_of_range_null_endptr:
     assumes
       out_of_range: str_to_integer(nptr, LONG_MIN, LONG_MAX, base) == 2;
     assumes null_endptr: endptr == \null;
     assigns \result \from indirect:nptr, indirect:nptr[0 .. strlen(nptr)],
                           indirect:base;
-    assigns __fc_errno \from indirect:nptr[0 .. strlen(nptr)], indirect:base;
+    assigns errno \from indirect:nptr[0 .. strlen(nptr)], indirect:base;
     ensures result_out_of_range: \result == LONG_MIN || \result == LONG_MAX;
-    ensures errno_set: __fc_errno == ERANGE;
+    ensures errno_set: errno == ERANGE;
   behavior out_of_range_nonnull_endptr:
     // Note: the standard does not state that endptr is definitively assigned
     //       to in this case, so we assume it may be.
@@ -193,9 +193,9 @@ extern long double strtold(const char * restrict nptr,
     ensures initialization: \initialized(endptr);
     ensures valid_endptr_content: \valid_read(*endptr);
     ensures endptr_same_base: \base_addr(*endptr) == \base_addr(nptr);
-    assigns __fc_errno \from indirect:nptr[0 .. strlen(nptr)], indirect:base;
+    assigns errno \from indirect:nptr[0 .. strlen(nptr)], indirect:base;
     ensures result_out_of_range: \result == LONG_MIN || \result == LONG_MAX;
-    ensures errno_set: __fc_errno == ERANGE;
+    ensures errno_set: errno == ERANGE;
   behavior in_range_null_endptr:
     assumes in_range: str_to_integer(nptr, LONG_MIN, LONG_MAX, base) == 1;
     assumes null_endptr: endptr == \null;
@@ -228,24 +228,24 @@ extern long int strtol(
                         indirect:base;
   assigns *endptr \from nptr, indirect:nptr[0 .. strlen(nptr)],
                         indirect:endptr, indirect:base;
-  assigns __fc_errno \from indirect:nptr[0 .. strlen(nptr)], indirect:base;
+  assigns errno \from indirect:nptr[0 .. strlen(nptr)], indirect:base;
   behavior cannot_convert:
     assumes
       no_conversion: str_to_integer(nptr, LLONG_MIN, LLONG_MAX, base) == 0;
     assigns \result \from indirect:nptr, indirect:nptr[0 .. strlen(nptr)],
                           indirect:base;
-    assigns __fc_errno \from indirect:nptr[0 .. strlen(nptr)], indirect:base;
+    assigns errno \from indirect:nptr[0 .. strlen(nptr)], indirect:base;
     ensures result_no_conversion: \result == 0;
-    ensures errno_set: __fc_errno == EINVAL;
+    ensures errno_set: errno == EINVAL;
   behavior out_of_range_null_endptr:
     assumes
       out_of_range: str_to_integer(nptr, LLONG_MIN, LLONG_MAX, base) == 2;
     assumes null_endptr: endptr == \null;
     assigns \result \from indirect:nptr, indirect:nptr[0 .. strlen(nptr)],
                           indirect:base;
-    assigns __fc_errno \from indirect:nptr[0 .. strlen(nptr)], indirect:base;
+    assigns errno \from indirect:nptr[0 .. strlen(nptr)], indirect:base;
     ensures result_out_of_range: \result == LLONG_MIN || \result == LLONG_MAX;
-    ensures errno_set: __fc_errno == ERANGE;
+    ensures errno_set: errno == ERANGE;
   behavior out_of_range_nonnull_endptr:
     // Note: the standard does not state that endptr is definitively assigned
     //       to in this case, so we assume it may be.
@@ -260,9 +260,9 @@ extern long int strtol(
     ensures initialization: \initialized(endptr);
     ensures valid_endptr_content: \valid_read(*endptr);
     ensures endptr_same_base: \base_addr(*endptr) == \base_addr(nptr);
-    assigns __fc_errno \from indirect:nptr[0 .. strlen(nptr)], indirect:base;
+    assigns errno \from indirect:nptr[0 .. strlen(nptr)], indirect:base;
     ensures result_out_of_range: \result == LLONG_MIN || \result == LLONG_MAX;
-    ensures errno_set: __fc_errno == ERANGE;
+    ensures errno_set: errno == ERANGE;
   behavior in_range_null_endptr:
     assumes in_range: str_to_integer(nptr, LLONG_MIN, LLONG_MAX, base) == 1;
     assumes null_endptr: endptr == \null;
@@ -295,24 +295,24 @@ extern long long int strtoll(
                         indirect:base;
   assigns *endptr \from nptr, indirect:nptr[0 .. strlen(nptr)],
                         indirect:endptr, indirect:base;
-  assigns __fc_errno \from indirect:nptr[0 .. strlen(nptr)], indirect:base;
+  assigns errno \from indirect:nptr[0 .. strlen(nptr)], indirect:base;
   behavior cannot_convert:
     assumes
       no_conversion: str_to_integer(nptr, 0, ULONG_MAX, base) == 0;
     assigns \result \from indirect:nptr, indirect:nptr[0 .. strlen(nptr)],
                           indirect:base;
-    assigns __fc_errno \from indirect:nptr[0 .. strlen(nptr)], indirect:base;
+    assigns errno \from indirect:nptr[0 .. strlen(nptr)], indirect:base;
     ensures result_no_conversion: \result == 0;
-    ensures errno_set: __fc_errno == EINVAL;
+    ensures errno_set: errno == EINVAL;
   behavior out_of_range_null_endptr:
     assumes
       out_of_range: str_to_integer(nptr, 0, ULONG_MAX, base) == 2;
     assumes null_endptr: endptr == \null;
     assigns \result \from indirect:nptr, indirect:nptr[0 .. strlen(nptr)],
                           indirect:base;
-    assigns __fc_errno \from indirect:nptr[0 .. strlen(nptr)], indirect:base;
+    assigns errno \from indirect:nptr[0 .. strlen(nptr)], indirect:base;
     ensures result_out_of_range: \result == ULONG_MAX;
-    ensures errno_set: __fc_errno == ERANGE;
+    ensures errno_set: errno == ERANGE;
   behavior out_of_range_nonnull_endptr:
     // Note: the standard does not state that endptr is definitively assigned
     //       to in this case, so we assume it may be.
@@ -327,9 +327,9 @@ extern long long int strtoll(
     ensures initialization: \initialized(endptr);
     ensures valid_endptr_content: \valid_read(*endptr);
     ensures endptr_same_base: \base_addr(*endptr) == \base_addr(nptr);
-    assigns __fc_errno \from indirect:nptr[0 .. strlen(nptr)], indirect:base;
+    assigns errno \from indirect:nptr[0 .. strlen(nptr)], indirect:base;
     ensures result_out_of_range: \result == ULONG_MAX;
-    ensures errno_set: __fc_errno == ERANGE;
+    ensures errno_set: errno == ERANGE;
   behavior in_range_null_endptr:
     assumes in_range: str_to_integer(nptr, 0, ULONG_MAX, base) == 1;
     assumes null_endptr: endptr == \null;
@@ -362,24 +362,24 @@ extern unsigned long int strtoul(
                         indirect:base;
   assigns *endptr \from nptr, indirect:nptr[0 .. strlen(nptr)],
                         indirect:endptr, indirect:base;
-  assigns __fc_errno \from indirect:nptr[0 .. strlen(nptr)], indirect:base;
+  assigns errno \from indirect:nptr[0 .. strlen(nptr)], indirect:base;
   behavior cannot_convert:
     assumes
       no_conversion: str_to_integer(nptr, 0, ULLONG_MAX, base) == 0;
     assigns \result \from indirect:nptr, indirect:nptr[0 .. strlen(nptr)],
                           indirect:base;
-    assigns __fc_errno \from indirect:nptr[0 .. strlen(nptr)], indirect:base;
+    assigns errno \from indirect:nptr[0 .. strlen(nptr)], indirect:base;
     ensures result_no_conversion: \result == 0;
-    ensures errno_set: __fc_errno == EINVAL;
+    ensures errno_set: errno == EINVAL;
   behavior out_of_range_null_endptr:
     assumes
       out_of_range: str_to_integer(nptr, 0, ULLONG_MAX, base) == 2;
     assumes null_endptr: endptr == \null;
     assigns \result \from indirect:nptr, indirect:nptr[0 .. strlen(nptr)],
                           indirect:base;
-    assigns __fc_errno \from indirect:nptr[0 .. strlen(nptr)], indirect:base;
+    assigns errno \from indirect:nptr[0 .. strlen(nptr)], indirect:base;
     ensures result_out_of_range: \result == ULLONG_MAX;
-    ensures errno_set: __fc_errno == ERANGE;
+    ensures errno_set: errno == ERANGE;
   behavior out_of_range_nonnull_endptr:
     // Note: the standard does not state that endptr is definitively assigned
     //       to in this case, so we assume it may be.
@@ -394,9 +394,9 @@ extern unsigned long int strtoul(
     ensures initialization: \initialized(endptr);
     ensures valid_endptr_content: \valid_read(*endptr);
     ensures endptr_same_base: \base_addr(*endptr) == \base_addr(nptr);
-    assigns __fc_errno \from indirect:nptr[0 .. strlen(nptr)], indirect:base;
+    assigns errno \from indirect:nptr[0 .. strlen(nptr)], indirect:base;
     ensures result_out_of_range: \result == ULLONG_MAX;
-    ensures errno_set: __fc_errno == ERANGE;
+    ensures errno_set: errno == ERANGE;
   behavior in_range_null_endptr:
     assumes in_range: str_to_integer(nptr, 0, ULLONG_MAX, base) == 1;
     assumes null_endptr: endptr == \null;
@@ -541,7 +541,7 @@ extern long int jrand48 (unsigned short xsubi[3]);
   #endif
     allocates \result;
     assigns __fc_heap_status \from size, __fc_heap_status;
-    assigns \result, __fc_errno \from indirect:size, indirect:__fc_heap_status;
+    assigns \result, errno \from indirect:size, indirect:__fc_heap_status;
     behavior allocation:
       #if __STDC__VERSION == 201112L
       assumes valid_alignment: is_valid_alignment(alignment);
@@ -554,7 +554,7 @@ extern long int jrand48 (unsigned short xsubi[3]);
       assigns \result \from indirect:size, indirect:__fc_heap_status;
       ensures allocation: \fresh(\result,size);
       ensures alignment: \aligned(\result, alignment);
-      ensures errno_same: __fc_errno == \old(__fc_errno);
+      ensures errno_same: errno == \old(errno);
     behavior no_allocation:
       assumes cannot_allocate: !is_allocable(size);
       #if __STDC_VERSION != 201112L
@@ -563,14 +563,14 @@ extern long int jrand48 (unsigned short xsubi[3]);
       allocates \nothing;
       assigns \result \from \nothing;
       ensures null_result: \result==\null;
-      ensures errno_set: __fc_errno == ENOMEM;
+      ensures errno_set: errno == ENOMEM;
     #if __STDC_VERSION != 201112L
     behavior no_allocation_invalid_align:
       assumes cannot_allocate: !is_valid_alignment(alignment);
       allocates \nothing;
       assigns \result \from \nothing;
       ensures null_result: \result==\null;
-      ensures errno_set: __fc_errno == EINVAL;
+      ensures errno_set: errno == EINVAL;
     #endif
     complete behaviors;
     disjoint behaviors;
@@ -581,7 +581,7 @@ extern void* aligned_alloc (size_t alignment, size_t size);
 /*@
   allocates \result;
   assigns __fc_heap_status \from indirect:nmemb, indirect:size, __fc_heap_status;
-  assigns \result, __fc_errno \from indirect:nmemb, indirect:size,
+  assigns \result, errno \from indirect:nmemb, indirect:size,
                                     indirect:__fc_heap_status;
 
   behavior allocation:
@@ -590,14 +590,14 @@ extern void* aligned_alloc (size_t alignment, size_t size);
     ensures alignment: \aligned(\result, alignof(max_align_t));
     ensures initialization: \initialized(((char *)\result)+(0..nmemb*size-1));
     ensures zero_initialization: \subset(((char *)\result)[0..nmemb*size-1], {0});
-    ensures errno_same: __fc_errno == \old(__fc_errno);
+    ensures errno_same: errno == \old(errno);
 
   behavior no_allocation:
     assumes cannot_allocate: !is_allocable(nmemb * size);
     allocates \nothing;
     assigns \result \from \nothing;
     ensures null_result: \result == \null;
-    ensures errno_set: __fc_errno == ENOMEM;
+    ensures errno_set: errno == ENOMEM;
 
   complete behaviors;
   disjoint behaviors; */
@@ -605,20 +605,20 @@ extern void *calloc(size_t nmemb, size_t size);
 
 /*@ allocates \result;
   @ assigns __fc_heap_status \from size, __fc_heap_status;
-  @ assigns \result, __fc_errno \from indirect:size, indirect:__fc_heap_status;
+  @ assigns \result, errno \from indirect:size, indirect:__fc_heap_status;
   @ behavior allocation:
   @   assumes can_allocate: is_allocable(size);
   @   assigns __fc_heap_status \from size, __fc_heap_status;
   @   assigns \result \from indirect:size, indirect:__fc_heap_status;
   @   ensures allocation: \fresh(\result,size);
   @   ensures alignment: \aligned(\result, alignof(max_align_t));
-  @   ensures errno_same: __fc_errno == \old(__fc_errno);
+  @   ensures errno_same: errno == \old(errno);
   @ behavior no_allocation:
   @   assumes cannot_allocate: !is_allocable(size);
   @   allocates \nothing;
   @   assigns \result \from \nothing;
   @   ensures null_result: \result==\null;
-  @   ensures errno_set: __fc_errno == ENOMEM;
+  @   ensures errno_set: errno == ENOMEM;
   @ complete behaviors;
   @ disjoint behaviors;
   @*/
@@ -646,7 +646,7 @@ extern void free(void *p);
    frees     ptr;
    assigns   __fc_heap_status \from __fc_heap_status;
    assigns   \result \from size, ptr, __fc_heap_status;
-   assigns   __fc_errno \from indirect:size, indirect:__fc_heap_status;
+   assigns   errno \from indirect:size, indirect:__fc_heap_status;
 
    behavior allocation:
      assumes   can_allocate: is_allocable(size);
@@ -654,7 +654,7 @@ extern void free(void *p);
      assigns   \result \from size, __fc_heap_status;
      ensures   allocation: \fresh(\result,size);
      ensures   alignment: \aligned(\result, alignof(max_align_t));
-     ensures   errno_same: __fc_errno == \old(__fc_errno);
+     ensures   errno_same: errno == \old(errno);
 
    behavior deallocation:
      assumes   nonnull_ptr: ptr != \null;
@@ -662,7 +662,7 @@ extern void free(void *p);
      frees     ptr;
      ensures   freed: \allocable(ptr);
      ensures   freeable: \result == \null || \freeable(\result);
-     ensures   errno_same: __fc_errno == \old(__fc_errno);
+     ensures   errno_same: errno == \old(errno);
 
    behavior fail:
      assumes cannot_allocate: !is_allocable(size);
@@ -670,7 +670,7 @@ extern void free(void *p);
      frees     \nothing;
      assigns   \result \from size, __fc_heap_status;
      ensures   null_result: \result == \null;
-     ensures   errno_set: __fc_errno == ENOMEM;
+     ensures   errno_set: errno == ENOMEM;
 
    complete behaviors;
    disjoint behaviors allocation, fail;
@@ -687,14 +687,14 @@ extern void *realloc(void *ptr, size_t size);
                                     __fc_heap_status;
    assigns   \result \from ptr, indirect:nmemb, indirect:size,
                            indirect:__fc_heap_status;
-   assigns   __fc_errno \from indirect:size, indirect: nmemb,
+   assigns   errno \from indirect:size, indirect: nmemb,
                               indirect:__fc_heap_status;
 
    behavior allocation:
      assumes   can_allocate: is_allocable(nmemb * size);
      allocates \result;
      ensures   allocation: \fresh(\result, nmemb * size);
-     ensures   errno_same: __fc_errno == \old(__fc_errno);
+     ensures   errno_same: errno == \old(errno);
 
    behavior deallocation:
      assumes   nonnull_ptr: ptr != \null;
@@ -702,7 +702,7 @@ extern void *realloc(void *ptr, size_t size);
      frees     ptr;
      ensures   freed: \allocable(ptr);
      ensures   freeable: \result == \null || \freeable(\result);
-     ensures   errno_same: __fc_errno == \old(__fc_errno);
+     ensures   errno_same: errno == \old(errno);
 
    behavior fail:
      assumes cannot_allocate: !is_allocable(nmemb * size);
@@ -711,7 +711,7 @@ extern void *realloc(void *ptr, size_t size);
      assigns   \result \from indirect:nmemb, indirect:size,
                              indirect:__fc_heap_status;
      ensures   null_result: \result == \null;
-     ensures   errno_set: __fc_errno == ENOMEM;
+     ensures   errno_set: errno == ENOMEM;
 
    complete behaviors;
    disjoint behaviors allocation, fail;
@@ -782,7 +782,7 @@ extern int putenv(char *string);
   requires valid_name: valid_read_string(name);
   requires valid_value: valid_read_string(value);
   allocates __fc_env[0..];
-  assigns \result, __fc_env[0..], __fc_errno
+  assigns \result, __fc_env[0..], errno
     \from __fc_env[0..], indirect:name[0 .. strlen(name)],
     indirect:value[0 .. strlen(value)], indirect:overwrite;
   assigns __fc_env[0..][0..] \from name[0 .. strlen(name)],
@@ -795,17 +795,17 @@ extern int putenv(char *string);
       strlen(name) == 0 || strchr(name, '=');
     allocates \nothing;
     assigns \result \from indirect:name[0 .. strlen(name)];
-    assigns __fc_errno \from indirect:name[0 .. strlen(name)];
+    assigns errno \from indirect:name[0 .. strlen(name)];
     ensures result_error: \result == -1;
-    ensures errno_set: __fc_errno == EINVAL;
+    ensures errno_set: errno == EINVAL;
   behavior out_of_memory:
     assumes not_enough_memory: !is_allocable(strlen(name) + strlen(value) + 2);
     allocates \nothing;
-    assigns \result, __fc_errno \from indirect:name[0 .. strlen(name)],
+    assigns \result, errno \from indirect:name[0 .. strlen(name)],
                                       indirect:value[0 .. strlen(value)],
                                       indirect:overwrite;
     ensures result_error: \result == -1;
-    ensures errno_set: __fc_errno == ENOMEM;
+    ensures errno_set: errno == ENOMEM;
   behavior valid_name:
     assumes name_not_empty: strlen(name) > 0;
     assumes name_has_no_equals_sign: !strchr(name, '=');
@@ -1093,14 +1093,14 @@ extern int mkostemps(char *templat, int suffixlen, int flags);
   assigns __fc_heap_status \from indirect:resolved_name, __fc_heap_status;
   assigns \result[0 .. PATH_MAX-1], resolved_name[0 .. PATH_MAX-1] \from
     indirect:__fc_heap_status, indirect:resolved_name, indirect:file_name[0..];
-  assigns __fc_errno \from
+  assigns errno \from
     indirect:file_name, indirect:file_name[0..], indirect:resolved_name,
     indirect:__fc_heap_status;
   behavior null_file_name:
     assumes null_file_name: file_name == \null;
-    assigns \result, __fc_errno \from indirect:file_name;
+    assigns \result, errno \from indirect:file_name;
     ensures null_result: \result == \null;
-    ensures errno_set: __fc_errno == EINVAL;
+    ensures errno_set: errno == EINVAL;
   behavior allocate_resolved_name:
     assumes valid_file_name: valid_read_string(file_name);
     assumes resolved_name_null: resolved_name == \null;
@@ -1115,7 +1115,7 @@ extern int mkostemps(char *templat, int suffixlen, int flags);
     allocates \nothing;
     assigns \result \from \nothing;
     ensures null_result: \result == \null;
-    ensures errno_set: __fc_errno == ENOMEM;
+    ensures errno_set: errno == ENOMEM;
   behavior resolved_name_buffer:
     assumes valid_file_name: valid_read_string(file_name);
     assumes allocated_resolved_name_or_fail:
@@ -1131,11 +1131,11 @@ extern int mkostemps(char *templat, int suffixlen, int flags);
   behavior filesystem_error:
     assumes valid_file_name: valid_read_string(file_name);
     allocates \nothing;
-    assigns \result, __fc_errno
+    assigns \result, errno
       \from indirect:file_name[0..]; // missing: indirect:'filesystem';
     ensures null_result: \result == \null;
     ensures errno_set:
-      __fc_errno \in {EACCES, EIO, ELOOP, ENAMETOOLONG, ENOENT, ENOTDIR};
+      errno \in {EACCES, EIO, ELOOP, ENAMETOOLONG, ENOENT, ENOTDIR};
 */
 extern char *realpath(const char *restrict file_name,
                       char *restrict resolved_name);

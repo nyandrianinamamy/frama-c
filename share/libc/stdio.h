@@ -413,9 +413,9 @@ extern int fgetpos(FILE * restrict stream,
   requires valid_stream: \valid(stream);
   requires whence_enum: whence == SEEK_SET || whence == SEEK_CUR || whence == SEEK_END;
   assigns *stream \from *stream, indirect:offset, indirect:whence;
-  assigns \result, __fc_errno \from indirect:*stream, indirect:offset,
+  assigns \result, errno \from indirect:*stream, indirect:offset,
                                     indirect:whence;
-  ensures errno_set: __fc_errno \in {EAGAIN, EBADF, EFBIG, EINTR, EINVAL, EIO,
+  ensures errno_set: errno \in {EAGAIN, EBADF, EFBIG, EINTR, EINVAL, EIO,
                                      ENOSPC, EOVERFLOW, EPIPE, ESPIPE, ENXIO};
 */
 extern int fseek(FILE *stream, long int offset, int whence);
@@ -424,9 +424,9 @@ extern int fseek(FILE *stream, long int offset, int whence);
   requires valid_stream: \valid(stream);
   requires whence_enum: whence == SEEK_SET || whence == SEEK_CUR || whence == SEEK_END;
   assigns *stream \from *stream, indirect:offset, indirect:whence;
-  assigns \result, __fc_errno \from indirect:*stream, indirect:offset,
+  assigns \result, errno \from indirect:*stream, indirect:offset,
                                     indirect:whence;
-  ensures errno_set: __fc_errno \in {EAGAIN, EBADF, EFBIG, EINTR, EINVAL, EIO,
+  ensures errno_set: errno \in {EAGAIN, EBADF, EFBIG, EINTR, EINVAL, EIO,
                                      ENOSPC, EOVERFLOW, EPIPE, ESPIPE, ENXIO};
 */
 extern int fseeko(FILE *stream, off_t offset, int whence);
@@ -437,27 +437,27 @@ extern int fseeko(FILE *stream, off_t offset, int whence);
   requires initialization:pos: \initialized(pos);
   assigns *stream \from *pos;
   assigns \result \from indirect:*stream, indirect:*pos;
-  assigns __fc_errno \from __fc_errno, indirect:*stream, indirect:*pos;
-  ensures errno_set: __fc_errno \in {EAGAIN, EBADF, EFBIG, EINTR, EIO,
+  assigns errno \from errno, indirect:*stream, indirect:*pos;
+  ensures errno_set: errno \in {EAGAIN, EBADF, EFBIG, EINTR, EIO,
                                      ENOSPC, EPIPE, ESPIPE, ENXIO};
 */
 extern int fsetpos(FILE *stream, const fpos_t *pos);
 
 /*@ // missing: assigns errno: EBADF, EOVERFLOW, ESPIPE
   requires valid_stream: \valid(stream);
-  assigns \result, __fc_errno \from indirect:*stream ;
+  assigns \result, errno \from indirect:*stream ;
   ensures success_or_error:
-    \result == -1 || (\result >= 0 && __fc_errno == \old(__fc_errno));
-  ensures errno_set: __fc_errno \in {EBADF, EOVERFLOW, ESPIPE};
+    \result == -1 || (\result >= 0 && errno == \old(errno));
+  ensures errno_set: errno \in {EBADF, EOVERFLOW, ESPIPE};
 */
 extern long int ftell(FILE *stream);
 
 /*@ // missing: assigns errno: EBADF, EOVERFLOW, ESPIPE
   requires valid_stream: \valid(stream);
-  assigns \result, __fc_errno \from indirect:*stream ;
+  assigns \result, errno \from indirect:*stream ;
   ensures success_or_error:
-    \result == -1 || (\result >= 0 && __fc_errno == \old(__fc_errno));
-  ensures errno_set: __fc_errno \in {EBADF, EOVERFLOW, ESPIPE};
+    \result == -1 || (\result >= 0 && errno == \old(errno));
+  ensures errno_set: errno \in {EBADF, EOVERFLOW, ESPIPE};
 */
 extern off_t ftello(FILE *stream);
 
@@ -511,7 +511,7 @@ extern int ferror(FILE *stream);
 
 /*@
   requires valid_string_s: valid_read_string(s);
-  assigns *__fc_stdout \from __fc_errno, s[0..strlen(s)];
+  assigns *__fc_stdout \from errno, s[0..strlen(s)];
  */
 extern void perror(const char *s);
 
@@ -647,15 +647,15 @@ extern ssize_t getdelim(char **lineptr, size_t *n, int delim, FILE *stream);
   requires valid_or_null_buff: buf == \null || \valid((char*)buf + (0 .. size-1));
   requires valid_mode: valid_read_string(mode);
   allocates buf;
-  assigns __fc_errno \from indirect: buf, indirect: size,
+  assigns errno \from indirect: buf, indirect: size,
                            indirect: mode[0..strlen(mode)];
   assigns \result \from &__fc_fopen,
   indirect: buf, indirect: size, indirect: mode[0..strlen(mode)];
   ensures result_error_or_valid:
     \result == \null || \result \in &__fc_fopen[0 .. __FC_FOPEN_MAX-1];
   ensures errno_set:
-    __fc_errno == \old(errno) ||
-    __fc_errno \in {EINVAL, EMFILE, ENOMEM};
+    errno == \old(errno) ||
+    errno \in {EINVAL, EMFILE, ENOMEM};
 */
 extern FILE *fmemopen(void *restrict buf, size_t size,
                       const char *restrict mode);

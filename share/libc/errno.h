@@ -140,7 +140,7 @@ __PUSH_FC_STDLIB
 
 __BEGIN_DECLS
 
-__FC_EXTERN_FOR_MACRO(errno) int __fc_errno;
+__FC_EXTERN_FOR_MACRO(errno) _Thread_local int __fc_errno;
 #define errno __fc_errno
 
 /* _GNU_SOURCE */
