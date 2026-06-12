@@ -274,39 +274,6 @@
     border: var(--border);
 }
 
-.labview-notification-item {
-    flex: 1 1 auto;
-    max-width: 400px;
-    border: thin solid var(--border);
-    border-radius: 8px;
-    margin: 2px 1px 2px 0px;
-    padding: 3px 15px 1px 4px;
-}
-
-.labview-notification-message {
-    background: var(--primary-color);
-}
-
-.labview-notification-message:hover {
-    background: var(--primary-button-hover);
-}
-
-.labview-notification-warning {
-    background: var(--warning-color);
-}
-
-.labview-notification-warning:hover {
-    background: var(--warning-button-hover);
-}
-
-.labview-notification-error {
-    background: var(--negative-color);
-}
-
-.labview-notification-error:hover {
-    background: var(--negative-button-hover);
-}
-
 /* -------------------------------------------------------------------------- */
 /* --- Styling PanelLayoutSelector                                        --- */
 /* -------------------------------------------------------------------------- */
@@ -337,6 +304,13 @@
     width: 70px;
     padding: 2px 0px 2px 6px;
     background: var(--background-softer);
+
+    .dome-xIcon {
+        position: absolute;
+        top: -3px;
+        right: 1px;
+        fill: var(--info-text);
+    }
 }
 
 
@@ -345,12 +319,6 @@
     border-radius: 4px;
 }
 
-.labview-layout-action-icon {
-    position: absolute;
-    top: -3px;
-    right: 1px;
-    fill: var(--info-text);
-}
 
 .labview-layout-action:hover .labview-layout-action-icon {
     fill: var(--text);

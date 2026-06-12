@@ -22,8 +22,7 @@ import { GlobalState, useGlobalState } from 'dome/data/states';
 import { Dropdown } from 'dome/dialogs';
 import { Label, LED, LEDstatus, SVG } from 'dome/primitive/displays';
 import './style.css';
-import { Button } from 'dome/primitive/controls';
-
+import { Button, TextButton } from 'dome/primitive/controls';
 
 // --------------------------------------------------------------------------
 // --- ToolBar Container
@@ -229,7 +228,7 @@ interface SuggestionsProps {
   onHint?: (hint: Hint) => void;
 }
 
-function scrollToRef(r: null | HTMLLabelElement): void {
+function scrollToRef(r: null | HTMLButtonElement): void {
   if (r) r.scrollIntoView({ block: 'nearest' });
 }
 
@@ -245,16 +244,15 @@ function Suggestions(props: SuggestionsProps): JSX.Element {
       if (onHint) onHint(h);
     };
     return (
-      <Label
+      <TextButton
         ref={selected ? scrollToRef : undefined}
         key={h.id}
+        label={h.label}
         icon={h.icon}
         title={h.title}
         className={className}
         onClick={onClick}
-      >
-        {h.label}
-      </Label>
+      />
     );
   });
 

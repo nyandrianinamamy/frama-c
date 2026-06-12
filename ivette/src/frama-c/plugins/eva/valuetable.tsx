@@ -199,6 +199,18 @@ function Stmt(props: StmtProps): JSX.Element | null {
   return <span className={className} title={title}>{label}</span>;
 }
 
+function getStmtTitle(props: StmtProps): string {
+  const { stmt, marker, short } = props;
+  const { descr, scope } = States.getMarker(stmt);
+  const { sloc } = States.getMarker(marker);
+  const { name: fct } = States.getDeclaration(scope);
+  if (!marker || !fct) return "";
+  // Location sloc should always be defined for statements.
+  const label = short ? `L${sloc?.line}` : `${sloc?.base}:${sloc?.line}`;
+  const title = stmt ? descr : "Start of function " + fct;
+  return `${label}: ${title}`;
+}
+
 /* -------------------------------------------------------------------------- */
 
 
@@ -252,17 +264,18 @@ async function StackInfos(props: StackInfosProps): Promise<JSX.Element> {
       evt.preventDefault();
       select(true);
     };
+    const title = getStmtTitle({ stmt: stmt, marker: stmt });
+
     return (
-      <Cell
+      <Button
         key={key}
+        label={name}
+        title={title}
         icon='TRIANGLE.LEFT'
         className={className}
         onClick={onClick}
         onDoubleClick={onDoubleClick}
-      >
-        {name}
-        <Stmt stmt={stmt} marker={stmt} />
-      </Cell>
+      />
     );
   };
   const children = React.Children.toArray(callsites.map(makeCallsite));
@@ -329,7 +342,7 @@ function ProbeHeader(props: ProbeHeaderProps): JSX.Element {
   };
 
   const buttons =
-    <div>
+    <Hbox>
       <IconButton
         icon='PIN'
         className={buttonClass}
@@ -343,7 +356,7 @@ function ProbeHeader(props: ProbeHeaderProps): JSX.Element {
         title="Remove the column"
         onClick={() => removeProbe()}
       />
-    </div>;
+    </Hbox>;
 
   return (
     <th

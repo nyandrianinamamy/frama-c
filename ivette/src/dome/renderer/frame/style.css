@@ -167,6 +167,16 @@
   display: flex;
 }
 
+.dome-xSection-title {
+  padding: 5px 10px;
+  font-size: 1.2em;
+  margin-bottom: 5px;
+}
+
+.dome-separator {
+  border-bottom: solid 1px var(--disabled-text);
+}
+
 /* -------------------------------------------------------------------------- */
 /* --- SideBar Items                                                      --- */
 /* -------------------------------------------------------------------------- */
@@ -388,7 +398,6 @@
   opacity: 30%;
 }
 
-
 .dome-xToolBar-searchComponent div.dome-xToolBar-suggestions {
   position: absolute;
   overflow-x: hidden;
@@ -397,6 +406,7 @@
   z-index: +10;
   width: 0px;
   background: var(--background-alterning-odd);
+  width: 100% ;
 }
 
 .dome-xToolBar-searchComponent:focus-within div.dome-xToolBar-suggestions {
@@ -405,7 +415,7 @@
 }
 
 .dome-xToolBar-searchItem {
-  display: block ;
+  display: flex ;
   width: 100% ;
   margin-left: 0px ;
   margin-right: 0px ;

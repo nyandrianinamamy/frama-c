@@ -15,7 +15,7 @@
    @module dome/primitive/buttons
 */
 
-import React from 'react';
+import React, { LegacyRef } from 'react';
 import { classes } from 'dome/misc/utils';
 import { ColorKind } from 'dome/primitive/colors';
 import { Icon } from './displays';
@@ -38,6 +38,7 @@ function isButtonSelected(value: TypeValue, selected?: Selected): boolean {
 }
 
 export interface BaseButtonProps {
+  ref?: LegacyRef<HTMLButtonElement>
   /** Text of the label. Prepend to other children elements. */
   label?: string;
   /** Icon identifier. Displayed on the left side of the label. */
@@ -83,6 +84,8 @@ export interface BaseButtonProps {
   onContextMenu?: OnEvent;
   /** Callback for other mouse button click. Receives the button's value. */
   onAuxClick?: OnEvent;
+  /** Click event callback. */
+  onDoubleClick?: (evt: React.MouseEvent) => void;
 }
 
 /** Base button. */
@@ -121,10 +124,12 @@ function BaseButton(props: BaseButtonProps): JSX.Element {
 
   return (
     <button
+      ref={props.ref}
       type="button"
       className={theClass}
       disabled={disabled}
       onClick={onButtonClick}
+      onDoubleClick={props.onDoubleClick}
       onContextMenu={onContextMenu && ((evt) => onContextMenu(evt, value))}
       onAuxClick={onAuxClick && ((evt) => onAuxClick(evt, value))}
       title={props.title}
@@ -157,6 +162,14 @@ export function CircButton(props: Omit<BaseButtonProps, 'label'>)
 : JSX.Element {
   const theClass = classes('dome-xCircButton',  props.className);
   return <BaseButton {...props} className={theClass} />;
+}
+
+// --------------------------------------------------------------------------
+// --- Text Button => button without background
+// --------------------------------------------------------------------------
+
+export function TextButton(props: BaseButtonProps): JSX.Element {
+  return <BaseButton {...props} noBackground={true} />;
 }
 
 // --------------------------------------------------------------------------

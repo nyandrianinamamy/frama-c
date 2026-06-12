@@ -18,7 +18,8 @@ import {
   Select,
   Spinner,
   Field,
-  Switch
+  Switch,
+  TextButton
 } from 'dome/primitive/controls';
 import { SidebarTitle } from 'dome/frame/sidebars';
 import { DivProps, Hbox, Hfill, Space, Vbox } from 'dome/layout/boxes';
@@ -57,7 +58,7 @@ function SidebarBlock(props: SidebarBlockProps): JSX.Element {
     <Vbox className={Utils.classes('wp-sidebar-block')} {...others}>
       <Hbox className={Utils.classes('wp-sidebar-block-title')}>
         <Hbox>
-          {title && <Label
+          {title && <TextButton
             label={ftitle}
             icon={ititle}
             className={Utils.classes('wp-sidebar-block-title-label')}

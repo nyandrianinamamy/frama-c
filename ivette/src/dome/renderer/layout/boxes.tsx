@@ -289,7 +289,7 @@ export function Section(
   return (
     <Vbox>
       {title &&
-        <Vbox className='dome-xMenu-Item-title dome-xMenu-Item-separator'>
+        <Vbox className='dome-xSection-title dome-separator'>
           {title}
         </Vbox>
       }

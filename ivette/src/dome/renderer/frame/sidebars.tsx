@@ -20,7 +20,8 @@ import { useFlipSettings } from 'dome';
 import { Label, Badge } from 'dome/primitive/displays';
 import { classes } from 'dome/misc/utils';
 import { Hbox, TitleBar, TitleBarProps } from 'dome/layout/boxes';
-import { IconButton, IconButtonProps } from 'dome/primitive/controls';
+import { IconButton, IconButtonProps, TextButton
+} from 'dome/primitive/controls';
 import { Dropdown } from 'dome/dialogs';
 
 import './style.css';
@@ -144,7 +145,7 @@ export function Section(props: SectionProps): JSX.Element | null {
   return (
     <div className={`dome-xSideBarSection ${props.className}`}>
       <Hbox className='dome-xSideBarSection-title' >
-        <Label
+        <TextButton
           title={props.title}
           label={props.label}
           icon={icon}

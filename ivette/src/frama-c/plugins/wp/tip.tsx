@@ -14,7 +14,7 @@ import { classes } from 'dome/misc/utils';
 import { Cell, Item, Label, Icon } from 'dome/primitive/displays';
 import { TextProxy, TextView, Decoration } from 'dome/text/richtext';
 import { Hfill, Vfill, Vbox, Overlay, Hbox } from 'dome/layout/boxes';
-import { IconButton, Button, ButtonGroup, Select, Switch }
+import { IconButton, Button, ButtonGroup, Select, Switch, TextButton }
 from 'dome/primitive/controls';
 import { ToolBar, Filler } from 'dome/frame/toolbars';
 import { writeClipboardText } from 'dome/system';
@@ -112,7 +112,7 @@ interface NodeProps {
 }
 
 function Node(props: NodeProps): JSX.Element {
-  const cellRef = React.useRef<HTMLLabelElement>(null);
+  const cellRef = React.useRef<HTMLButtonElement>(null);
   const {
     node,
     parent = false,
@@ -130,6 +130,7 @@ function Node(props: NodeProps): JSX.Element {
   }, [elt, current]);
   const className = classes(
     'wp-navbar-node',
+    'dome-text-item',
     parent && 'parent',
     child && 'child',
     current && 'current',
@@ -149,7 +150,7 @@ function Node(props: NodeProps): JSX.Element {
   const fullTitle = `${title} (${proofState})`;
   const onSelection = (): void => { Server.send(TIP.goToNode, node); };
   return (
-    <Item
+    <TextButton
       ref={cellRef} className={className}
       icon={icon} kind={kind}
       label={nodeLabel}
@@ -255,14 +256,18 @@ function Field(props: FieldProps): JSX.Element {
   const { part, term } = target;
   const selectable = node && term;
   const icon = selectable ? 'TARGET' : 'TERMINAL';
-  const className = selectable && 'wp-select-pattern';
+  const className = classes(
+    selectable && 'wp-select-pattern',
+    'dome-text-item'
+  );
   const onClick = selectable && (() => {
     Server.send(TIP.setSelection, { node, part, term });
   });
   return (
     <tr>
       <td className={className}>
-        <Item icon={icon} label={label} title={title} onClick={onClick} />
+        <TextButton icon={icon} label={label}
+          title={title} onClick={onClick} />
       </td>
       <td style={{ width: '100%' }}>
         <Cell label={value} title={debug} />

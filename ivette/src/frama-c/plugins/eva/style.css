@@ -33,6 +33,7 @@
 .eva-cell-container {
   display: flex;
   justify-content: center;
+  align-items: center;
 }
 
 .eva-cell-left {

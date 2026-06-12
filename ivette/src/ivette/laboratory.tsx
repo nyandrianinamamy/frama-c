@@ -13,9 +13,9 @@ import * as Json from 'dome/data/json';
 import * as States from 'dome/data/states';
 import * as Settings from 'dome/data/settings';
 import * as Sidebars from 'dome/frame/sidebars';
-import { Button, IconButton } from 'dome/primitive/controls'
 import * as DnD from 'dome/dnd';;
-import { Label, Icon } from 'dome/primitive/displays';
+import { Button, IconButton, TextButton } from 'dome/primitive/controls';
+import { Label } from 'dome/primitive/displays';
 import { Hbox, Hfill, Vfill, Grid } from 'dome/layout/boxes';
 import { QPane, QSplit } from 'dome/layout/qsplit';
 import { RenderElement } from 'dome/layout/dispatch';
@@ -26,6 +26,7 @@ import * as Ivette from 'ivette';
 import { compId, LayoutPosition, VIEW, COMPONENT, GROUP } from 'ivette';
 import { NotificationTimer } from 'ivette/prefs';
 import * as State from 'ivette/state';
+import { ColorKind } from 'dome/primitive/colors';
 
 /* -------------------------------------------------------------------------- */
 /* --- LabView State                                                      --- */
@@ -844,14 +845,13 @@ interface ActionProps {
 function Action(props: ActionProps): JSX.Element {
   const { icon, label, display, onClick } = props;
   return (
-    <Label
+    <TextButton
       className='labview-layout-action'
+      icon={icon}
       display={display}
       label={label}
       onClick={onClick}
-    >
-      <Icon className='labview-layout-action-icon' id={icon} />
-    </Label>
+    />
   );
 }
 
@@ -939,10 +939,8 @@ function LayoutMenu(): JSX.Element | null {
 /* --- Notification Stack                                                 --- */
 /* -------------------------------------------------------------------------- */
 
-export type NotificationKind = 'message' | 'warning' | 'error';
-
 export interface Notification {
-  kind: NotificationKind;
+  kind: ColorKind;
   label: string;
   title?: string;
 }
@@ -967,18 +965,11 @@ function clearMessage(id: string): void {
 }
 
 function NotificationItem(props: NotificationItemProps): JSX.Element {
-  const { id, kind = 'message', label, title } = props;
-  const className = classes(
-    'labview-notification-item',
-    'labview-notification-' + kind,
-  );
-  const icon = props.kind === 'message' ? 'CIRC.INFO' : 'WARNING';
+  const { id, kind = 'primary' } = props;
+  const icon = props.kind === 'primary' ? 'CIRC.INFO' : 'WARNING';
   const onClick = (): void => clearMessage(id);
   return (
-    <Label
-      className={className}
-      icon={icon} title={title} label={label}
-      onClick={onClick} />
+    <Button {...props} icon={icon} kind={kind} onClick={onClick} />
   );
 }
 

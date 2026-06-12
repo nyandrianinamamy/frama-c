@@ -247,7 +247,7 @@ export default function LocationsTable(): JSX.Element {
       <Button key={'all'}
         label={allChecked ? 'Uncheck all' : 'Check all'}
         onClick={() => setVisibleScopes(new Set(allChecked ? [] : scopes))} />
-      <div className='dome-xMenu-Item-title dome-xMenu-Item-separator' />
+      <div className='dome-xSection-title dome-separator' />
       {itemsComp && itemsComp}
     </Vbox>;
 

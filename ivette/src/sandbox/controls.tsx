@@ -48,7 +48,7 @@ const flexCenter = {
 /* --- Icon.tsx                                                         --- */
 /* -------------------------------------------------------------------------- */
 
-function IconBadgeLed(): React.JSX.Element {
+function Display(): React.JSX.Element {
   return (
     <Section
       key={'Dispalyed'} defaultUnfold
@@ -470,7 +470,7 @@ function Inputs(): React.JSX.Element {
 function Controls(): JSX.Element {
   return <Scroll>
       <div style={{ margin: '20px' }}>
-      <IconBadgeLed />
+      <Display />
       <Buttons/>
       <ButtonGroups/>
       <Inputs />

@@ -257,16 +257,16 @@ export const Meter = (props: MeterProps): JSX.Element => {
 export interface LabelProps {
   /** Text of the label. Prepend to other children elements. */
   label?: string;
-  /** Icon identifier. Displayed on the left side of the label. */
-  icon?: string;
   /** Tool-tip description. */
   title?: string;
+  /** Icon identifier. Displayed on the left side of the label. */
+  icon?: string;
+  /** Additional class for icon. */
+  iconClassName?: string;
   /** Icon kind. */
   kind?: ColorKind,
   /** Additional class. */
   className?: string;
-  /** Additional class for icon. */
-  iconClassName?: string;
   /** Additional style. */
   style?: React.CSSProperties;
   /** If `false`, do not display the label. Default to `true`. */
@@ -275,8 +275,6 @@ export interface LabelProps {
   children?: React.ReactNode;
   /** Html tag `<input />` element. */
   htmlFor?: string;
-  /** Click event callback. */
-  onClick?: (evt: React.MouseEvent) => void;
   /** Click event callback. */
   onDoubleClick?: (evt: React.MouseEvent) => void;
   /** Right-click event callback. */
@@ -304,7 +302,6 @@ const makeLabel = (className: string) =>
         className={allClasses}
         title={props.title}
         style={props.style}
-        onClick={props.onClick}
         onDoubleClick={props.onDoubleClick}
         onContextMenu={props.onContextMenu}
         htmlFor={props.htmlFor}
