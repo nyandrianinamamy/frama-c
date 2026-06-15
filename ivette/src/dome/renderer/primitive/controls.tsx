@@ -6,8 +6,28 @@
 /*                                                                          */
 /* ************************************************************************ */
 
-// --------------------------------------------------------------------------
-// --- Buttons, Check Boxes and Radio Groups
+/**
+ * This file contains basic components designed to perform an action
+ *
+ * a BaseButton component (unexported) and its variants
+ * - Button
+ * - CircButton
+ * - TextButton
+ * - IconButton
+ * - Checkbox
+ * - Radio
+ * - Switch
+ *
+ * a ButtonGroup component and 2 variants
+ * - MultiChoiceGroup (to group the checkboxes, ....)
+ * - SingleChoiceGroup (to group the radioButtons, ....)
+ *
+ * and
+ * - Spinner
+ * - Field
+ * - Select
+ */
+
 // --------------------------------------------------------------------------
 
 /**

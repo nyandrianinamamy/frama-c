@@ -6,9 +6,17 @@
 /*                                                                          */
 /* ************************************************************************ */
 
-// --------------------------------------------------------------------------
-// --- LEDs, LCD, meters, etc.
-// --------------------------------------------------------------------------
+/**
+ * This file contains basic components designed to display info only
+ *
+ * - SVG
+ * - Icon
+ * - LED
+ * - Meter
+ * - Label, Title, Descr, Data, Code, Cell, Item
+ * - LCD
+ * - Badge
+ */
 
 /**
    @packageDocumentation
