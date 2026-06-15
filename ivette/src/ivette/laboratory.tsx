@@ -1409,23 +1409,33 @@ function TabView(props: TabViewProps): JSX.Element | null {
 
   const icon = 'DISPLAY';
 
+  const theClass = classes(
+    'dome-xButton',
+    'dome-xButton-default',
+    'labview-tab',
+    selected && 'dome-control-selected'
+  );
+
   return (
-    <Button
-      className='labview-tab'
-      icon={icon}
-      label={label}
-      title={title}
-      selected={selected}
-      onClick={onClick}
-      onContextMenu={onContextMenu}
-      onAuxClick={onAuxClick}
-    >
-      {/* <Icon
+    <Hbox className={theClass}>
+      <Button
+        icon={icon}
+        label={label}
+        title={title}
+        style={{ padding: '0', margin: '0' }}
+        noBackground={true}
+        onClick={onClick}
+        onContextMenu={onContextMenu}
+        onAuxClick={onAuxClick}
+        />
+      <IconButton
+        noBackground={true}
         className='labview-tab-closing'
-        id='CIRC.CLOSE'
+        style={{ padding: '0', margin: '0' }}
+        icon='CIRC.CLOSE'
         onClick={onClose}
-      /> */}
-    </Button>
+        />
+    </Hbox>
   );
 }
 

@@ -328,6 +328,30 @@
 /* --- Dock & Tabs                                                        --- */
 /* -------------------------------------------------------------------------- */
 
+.labview-tab {
+    position: relative;
+    fill: var(--info-text);
+    color: var(--info-text);
+    font-size: smaller;
+    border-radius: 8px;
+    padding-left: 10px;
+    max-height: 100%;
+    align-items: center;
+}
+
+.labview-tab-closing {
+    fill: var(--info-text-discrete);
+}
+
+.labview-tab:not(:hover) .labview-tab-closing {
+    visibility: hidden;
+}
+
+.labview-tab:hover {
+    fill: var(--text);
+    color: var(--text);
+}
+
 .labview-docked {
     font-size: smaller;
     background: var(--background-softer);
