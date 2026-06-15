@@ -12,7 +12,7 @@ import { useFlipSettings, popupMenu } from 'dome';
 import { Dropdown } from 'dome/dialogs';
 import * as Tree from 'dome/frame/tree';
 import * as Toolbars from 'dome/frame/toolbars';
-import * as Buttons from 'dome/controls/buttons';
+import * as Controls from 'dome/primitive/controls';
 import { useGlobalState } from 'dome/data/states';
 import { makeBadge } from 'dome/frame/sidebars';
 
@@ -51,7 +51,7 @@ const pinnedMessageId = 'EvaFilterCallstack';
 
 function addMessage(count: number, remove: () => void): void {
   const pinnedMessageButton =
-    <Buttons.IconButton
+    <Controls.IconButton
       icon='TRASH'
       title='Clear callstack selection: show all callstacks'
       onClick={remove}
@@ -80,10 +80,10 @@ function getActions(
 ): React.JSX.Element | null {
   const isSelected = current?.includes(id);
   return (
-    <Buttons.Checkbox
+    <Controls.Checkbox
       title={(isSelected ? 'Deselect' : 'Select') + ' the callstack'}
       value={isSelected}
-      onChange={() => onClick(id)}
+      onClick={() => onClick(id)}
     />
   );
 }
@@ -346,7 +346,7 @@ export function CallstackSelection(): React.JSX.Element {
   const [nodes, tree] = React.useMemo(() => getNodes(infos), [infos]);
 
   /** Filter */
-  const filterItems: Buttons.MultiselectItemProps[] = [
+  const filterItems = [
     menuItem({ label: 'Show selected callstacks',
                title: 'Show callstacks selected in this list',
                state: showSelectedState }),
@@ -363,7 +363,7 @@ export function CallstackSelection(): React.JSX.Element {
                state: showUnanalyzedState }),
   ];
   const itemsComp = filterItems.map(
-    (e, i) => <Buttons.MultiselectItem key={i} item={e} />);
+    (e, i) => <Controls.Checkbox key={i} {...e} />);
 
   /** List of keys for visible nodes */
   const visibleKeys = React.useMemo(() => {
@@ -386,7 +386,7 @@ export function CallstackSelection(): React.JSX.Element {
   }, [reset]);
 
   const filterButton =
-    <Buttons.IconButton icon='FILTER' size={15}
+    <Controls.IconButton icon='FILTER' size={15}
       title='Show/hide callstacks in the tree' />;
 
   return (
@@ -395,14 +395,14 @@ export function CallstackSelection(): React.JSX.Element {
         className='dome-xTree-actions dome-xSideBarSection-title'
         style={{ justifyContent: "flex-end" }}
       >
-        <Buttons.IconButton
+        <Controls.IconButton
           size={16}
           icon={ "CHEVRON.CONTRACT" }
           title="Fold all"
           disabled={unfold === false}
           onClick={() => setUnfold(false)}
         />
-        <Buttons.IconButton
+        <Controls.IconButton
           size={16}
           icon={ "CHEVRON.EXPAND" }
           title="Unfold all"
@@ -411,13 +411,14 @@ export function CallstackSelection(): React.JSX.Element {
         />
         {makeBadge(nodes.size)}
         <Dropdown control={filterButton}>
-          <Buttons.Multiselect>{itemsComp}</Buttons.Multiselect>
+          <Controls.ButtonGroup vertical={true}
+          >{itemsComp}</Controls.ButtonGroup>
         </Dropdown>
 
-        <Buttons.IconButton
+        <Controls.IconButton
           icon='TUNINGS'
           title='Configure selection'
-          enabled={selection.length > 0}
+          disabled={selection.length <= 0}
           onClick={onResetMenu}
         />
       </div>

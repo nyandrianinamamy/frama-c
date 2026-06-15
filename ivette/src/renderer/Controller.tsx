@@ -17,7 +17,7 @@ import * as Settings from 'dome/data/settings';
 import * as Preferences from 'ivette/prefs';
 import * as Toolbars from 'dome/frame/toolbars';
 import { Button, ButtonGroup, IconButton } from 'dome/primitive/controls';
-import { Label } from 'dome/primitive/displays';
+import { Icon, Label } from 'dome/primitive/displays';
 import * as Text from 'dome/text/richtext';
 import { TextBuffer, TextView } from 'dome/text/richtext';
 import { resolve } from 'dome/system';
@@ -436,7 +436,6 @@ export const Status = (): JSX.Element => {
   const pending = Server.getPending();
   let icon = 'CIRC.EMPTY';
   let title = undefined;
-  let spinning = false;
 
   switch (status) {
     case Server.Status.OFF:
@@ -444,12 +443,10 @@ export const Status = (): JSX.Element => {
       break;
     case Server.Status.STARTING:
       icon = 'SPINNER';
-      spinning = true;
       title = 'Server is starting';
       break;
     case Server.Status.ON:
       icon = pending > 0 ? 'SPINNER' : 'CIRC.CHECK';
-      spinning = pending > 0;
       title = pending > 0
         ? `Server is running (${pending} pending requests)`
         : 'Server is running (idle)';
@@ -464,7 +461,6 @@ export const Status = (): JSX.Element => {
       break;
     case Server.Status.RESTARTING:
       icon = 'RELOAD';
-      spinning = true;
       title = 'Server is restarting';
       break;
     case Server.Status.FAILURE:
@@ -477,8 +473,6 @@ export const Status = (): JSX.Element => {
     <Icon
       id={icon}
       size={14}
-      offset={0}
-      spinning={spinning}
       className="server-status"
       title={title}
     />

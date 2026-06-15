@@ -52,7 +52,7 @@ function Display(): React.JSX.Element {
   return (
     <Section
       key={'Dispalyed'} defaultUnfold
-      label={'Display.tsx: icon, badge, led, lcd, '}
+      label={'Display.tsx'}
     >
       <Grid style={gridStyle} columns="auto auto auto">
         <Title style={flexCenter} label='Component' />
@@ -96,9 +96,7 @@ function Display(): React.JSX.Element {
           <Badge label={'Badge'} />
           <Badge icon={'LOCK'} />
         </div>
-        <Hbox style={flexCenter}>
-          C&apos;est un bouton avec un style spécial comme LCD.
-        </Hbox>
+        <Hbox style={flexCenter}></Hbox>
 
       </Grid>
     </Section>
@@ -109,7 +107,6 @@ function Display(): React.JSX.Element {
 /* --- Button.tsx                                                         --- */
 /* -------------------------------------------------------------------------- */
 
-/** ********* Button **********************************************************/
 interface ButtonKindProps {
   state: RState<ColorKind>;
 }
@@ -166,9 +163,10 @@ function ButtonLine(props: ButtonLineProps): React.JSX.Element {
 }
 
 function Buttons(): React.JSX.Element {
-  return <Section key={'buttons'} defaultUnfold label={'buttons: Button.tsx'}>
-      <div>Tout ces boutons sont basés sur BaseButton,
-        peut de changement a part une classe spécifique a chaque variante</div>
+  return (
+    <Section key={'buttons'} defaultUnfold
+      label={'buttons: Button.tsx => based on BaseButton component'}
+    >
       <Grid style={gridStyle} columns="auto auto auto auto 72px auto">
         <Title style={flexCenter} label='Component' />
         <Title style={flexCenter} label='Result' />
@@ -218,7 +216,8 @@ function Buttons(): React.JSX.Element {
         <ButtonLine details=''><Radio label='Radio'/></ButtonLine>
 
       </Grid>
-  </Section>;
+    </Section>
+  );
 }
 
 /** ********* Button group ****************************************************/
@@ -306,7 +305,7 @@ function ButtonGroups(): React.JSX.Element {
             { value: 'warning', kind: 'warning' },
             { value: 'negative', kind: 'negative' },
           ]}
-          details='buttonGroup glued: option "separated" by default'
+          details='buttonGroup glued: option "separate" by default'
         />
         <ButtonGroupLine
           values={[
@@ -339,7 +338,7 @@ function ButtonGroups(): React.JSX.Element {
             { value: 'warning', kind: 'warning' },
             { value: 'negative', kind: 'negative', disabled: true },
           ]}
-          details='buttonGroup style radio'
+          details='buttonGroup style radio, option vertical=true'
           type='radio'
           vertical={true}
         />
@@ -352,7 +351,7 @@ function ButtonGroups(): React.JSX.Element {
             { value: 'negative', kind: 'negative', disabled: true },
           ]}
           multiple={true}
-          details='buttonGroup style checkbox'
+          details='buttonGroup style checkbox, option vertical=true'
           type='checkbox'
           vertical={true}
         />
@@ -369,7 +368,7 @@ function SelectMenuLine(): React.JSX.Element {
   const [disabled, setDisabled] = React.useState(false);
 
   return <>
-    <Code label='<SelectMenuLine />'/>
+    <Code label='<Select />'/>
     <div style={flexCenter}>
       <Select
       placeholder='ddd'
@@ -390,7 +389,7 @@ function SelectMenuLine(): React.JSX.Element {
     <Checkbox style={flexCenter}
       label='' selected={disabled}
       onClick={() => setDisabled(v => !v)} />
-    <Hbox style={flexCenter}>SelectMenuLine</Hbox>
+    <Hbox style={flexCenter}></Hbox>
   </>;
 }
 
@@ -407,7 +406,7 @@ function SpinnerLine(): React.JSX.Element {
     <Checkbox style={flexCenter}
       label='' selected={disabled}
       onClick={() => setDisabled(v => !v)} />
-    <Hbox style={flexCenter}>Spinner</Hbox>
+    <Hbox style={flexCenter}></Hbox>
   </>;
 }
 

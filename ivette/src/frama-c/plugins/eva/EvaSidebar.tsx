@@ -9,12 +9,12 @@
 import React from 'react';
 
 import { useStringSettings } from 'dome';
-import * as Toolbar from 'dome/frame/toolbars';
 import { SidebarTitle } from 'dome/frame/sidebars';
 import * as Forms from 'dome/layout/forms';
 import { HelpButton } from 'dome/help';
 import { Hbox } from 'dome/layout/boxes';
 import { GlobalState, useGlobalState } from 'dome/data/states';
+import { Button, ButtonGroup } from 'dome/primitive/controls';
 
 import * as Ivette from 'ivette';
 
@@ -27,7 +27,6 @@ import { EvaFormOptions } from 'frama-c/plugins/eva/components/Form';
 import EvaTools from './components/Tools';
 import { TaintSidebar } from './Taint';
 import { CallstackSelection } from './Callstack';
-import { Button, ButtonGroup } from 'dome/primitive/controls';
 
 const startComputing = new GlobalState<number>(0);
 
@@ -289,21 +288,24 @@ function EvaSidebarSelection(): React.JSX.Element {
 
   return (<>
     <SidebarTitle label='Selection' >
-      <ButtonGroup>
-        <Button
-          key='taints'
-          label='Taints'
-          title='Show taints selection'
-          selected={selected === 'taints'}
-          onClick={() => setSelected('taints')}
-        /><Button
-          key='callstacks'
-          label='Callstacks'
-          title='Show callstacks selection'
-          selected={selected === 'callstacks'}
-          onClick={() => setSelected('callstacks')}
-        />
-      </ButtonGroup>
+      <Hbox style={{ alignItems: "center" }}>
+        <ButtonGroup>
+          <Button
+            key='taints'
+            label='Taints'
+            title='Show taints selection'
+            selected={selected === 'taints'}
+            onClick={() => setSelected('taints')}
+          /><Button
+            key='callstacks'
+            label='Callstacks'
+            title='Show callstacks selection'
+            selected={selected === 'callstacks'}
+            onClick={() => setSelected('callstacks')}
+          />
+        </ButtonGroup>
+      <HelpButton id={'eva-sidebars'} size={13} />
+      </Hbox>
     </SidebarTitle>
     <div ref={scrollableArea} className="globals-scrollable-area">
       <div style={selected === "taints" ? opened : closed}>

@@ -183,6 +183,7 @@
 
     &.dome-xButtongroup-vertical {
         flex-direction: column;
+        gap: 5px;
     }
 
     &:not(.dome-xButtongroup-separate) {

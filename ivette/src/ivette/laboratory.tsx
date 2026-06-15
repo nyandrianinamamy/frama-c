@@ -13,7 +13,7 @@ import * as Json from 'dome/data/json';
 import * as States from 'dome/data/states';
 import * as Settings from 'dome/data/settings';
 import * as Sidebars from 'dome/frame/sidebars';
-import * as DnD from 'dome/dnd';;
+import * as DnD from 'dome/dnd';
 import { Button, IconButton, TextButton } from 'dome/primitive/controls';
 import { Label } from 'dome/primitive/displays';
 import { Hbox, Hfill, Vfill, Grid } from 'dome/layout/boxes';
