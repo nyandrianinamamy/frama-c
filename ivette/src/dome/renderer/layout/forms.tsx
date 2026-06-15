@@ -29,7 +29,7 @@ import Events from 'events';
 import React, { Children } from 'react';
 import * as Dome from 'dome';
 import * as Utils from 'dome/misc/utils';
-import { Label, SVG } from 'dome/primitive/displays';
+import { SVG } from 'dome/primitive/displays';
 import { ColorKind } from 'dome/primitive/colors';
 import { Button, IconButton, Checkbox, Radio, Select, OnEvent, TypeValue }
 from 'dome/primitive/controls';
@@ -994,13 +994,12 @@ export function Field(props: GenericFieldProps): JSX.Element | null {
   ) : null;
 
   const labelField: JSX.Element =  (
-    <Label
+    <label
       className={cssLabel}
       style={{ top: offset }}
       htmlFor={htmlFor}
       title={title}
-      label={label}
-    />
+      >{label}</label>
   );
 
   switch(layout) {

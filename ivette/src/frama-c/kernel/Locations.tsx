@@ -183,7 +183,7 @@ const renderLocation: Renderer<Data> =
   };
 
 const renderAttr: Renderer<Ast.markerAttributesData> =
-  (attr) => <Cell title={attr.descr}>{attr.descr}</Cell>;
+  (attr) => <Cell title={attr.descr} label={attr.descr} />;
 
 export default function LocationsTable(): JSX.Element {
 

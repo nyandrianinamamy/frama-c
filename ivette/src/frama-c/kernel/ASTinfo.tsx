@@ -167,12 +167,12 @@ function MarkInfos(props: InfoSectionProps): JSX.Element {
           icon={unfold ? 'TRIANGLE.DOWN' : 'TRIANGLE.RIGHT'}
           onClick={onFoldUnfold}
         />
-        <Code key="NAME" className="astinfo-markercode">
-          <span className="astinfo-markerkind" title={titleKind}>
-            {labelKind}
-          </span> {descr}
-        </Code>
-        <Code key="SCOPE" className="" display={foreign}>[in {label}]</Code>
+        <Boxes.Hbox>
+          <Code label={labelKind}
+            className="astinfo-markerkind" title={titleKind}/>
+          <Code key="NAME" label={descr} className="astinfo-markercode"/>
+        </Boxes.Hbox>
+        <Code key="SCOPE" label={`[in ${label}]`} display={foreign}/>
         <MarkButton
           key="MORE"
           icon="CIRC.PLUS"

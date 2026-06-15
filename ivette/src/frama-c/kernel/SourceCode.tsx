@@ -242,7 +242,7 @@ export default function SourceCode(): JSX.Element {
           onClick={openFile}
           title='Open file in external editor'
         />
-        <Labels.Code title={file}>{filename}</Labels.Code>
+        <Labels.Code label={filename} title={file} />
         <Toolbars.Filler />
         <Buttons.IconButton
           icon="SEARCH"

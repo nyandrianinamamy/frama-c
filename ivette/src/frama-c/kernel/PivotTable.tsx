@@ -207,10 +207,11 @@ function FilterRatio(
   Models.useModel(model);
   const [filtered, total] = [model.getRowCount(), model.getTotalRowCount()];
   return (
-    <Label className="component-info" title="filtered / Total">
-      { filtered} / {total }
-    </Label>
-  );
+    <Label
+      label={`${filtered} / ${total}`}
+      className="component-info"
+      title="filtered / Total"
+    />);
 }
 
 export default function PivotTableComponent(): JSX.Element {

@@ -15,7 +15,7 @@
    @module dome/primitive/displays
  */
 
-import React, { LegacyRef } from 'react';
+import React from 'react';
 import { classes } from 'dome/misc/utils';
 import { ColorKind } from 'dome/primitive/colors';
 import Gallery from './gallery.json';
@@ -271,49 +271,26 @@ export interface LabelProps {
   style?: React.CSSProperties;
   /** If `false`, do not display the label. Default to `true`. */
   display?: boolean;
-  /** Additional content of the `<label/>` element. */
-  children?: React.ReactNode;
-  /** Html tag `<input />` element. */
-  htmlFor?: string;
-  /** Click event callback. */
-  onDoubleClick?: (evt: React.MouseEvent) => void;
-  /** Right-click event callback. */
-  onContextMenu?: (evt: React.MouseEvent) => void;
 }
 
 const makeLabel = (className: string) =>
-  function Label(
-    props: LabelProps,
-    ref: LegacyRef<HTMLLabelElement> | undefined
-  ): JSX.Element {
-    const { display = true, kind = 'default' } = props;
+  function Label( props: LabelProps): JSX.Element {
+    const { display = true } = props;
     const allClasses = classes(
       className,
       !display && 'dome-control-erased',
       props.className,
     );
-    const iconClass = classes(
-      'dome-xIcon-' + kind,
-      props.iconClassName,
-    );
     return (
-      <label
-        ref={ref}
-        className={allClasses}
-        title={props.title}
-        style={props.style}
-        onDoubleClick={props.onDoubleClick}
-        onContextMenu={props.onContextMenu}
-        htmlFor={props.htmlFor}
-      >
+      <div className={allClasses} title={props.title} style={props.style}>
         {props.icon &&
           <Icon title={props.title}
+                kind={props.kind}
                 id={props.icon}
-                className={iconClass}
+                className={props.iconClassName}
           />}
         {props.label}
-        {props.children}
-      </label>
+      </div>
     );
   };
 
@@ -334,25 +311,25 @@ const TITEM = 'dome-xLabel dome-text-item';
 // --------------------------------------------------------------------------
 
 /** Simple labels. */
-export const Label = React.forwardRef(makeLabel(LABEL));
+export const Label = makeLabel(LABEL);
 
 /** Title and headings. */
-export const Title = React.forwardRef(makeLabel(TITLE));
+export const Title = makeLabel(TITLE);
 
 /** Description, textbook content. */
-export const Descr = React.forwardRef(makeLabel(DESCR));
+export const Descr = makeLabel(DESCR);
 
 /** Selectable textual information. */
-export const Data = React.forwardRef(makeLabel(TDATA));
+export const Data = makeLabel(TDATA);
 
 /** Selectable inlined source-code content. */
-export const Code = React.forwardRef(makeLabel(TCODE));
+export const Code = makeLabel(TCODE);
 
 /** Selectable inlined source-code content with default cursor. */
-export const Cell = React.forwardRef(makeLabel(TCELL));
+export const Cell = makeLabel(TCELL);
 
 /** Non-selectable inlined source-code content with default cursor. */
-export const Item = React.forwardRef(makeLabel(TITEM));
+export const Item = makeLabel(TITEM);
 
 
 // --------------------------------------------------------------------------

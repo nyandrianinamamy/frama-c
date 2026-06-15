@@ -85,9 +85,9 @@ function QSplitSandbox(): JSX.Element {
         <Buttons.Button icon='RELOAD' label='Reset' onClick={reset} />
         <Buttons.Button icon='TRASH' label='Clear' onClick={clear} />
         <Box.Space />
-        <Disp.LCD>
-          HTOP={round(HTOP)} HBOTTOM={round(HBOTTOM)} V={round(V)}
-        </Disp.LCD>
+        <Disp.LCD
+          label={`HTOP=${round(HTOP)} HBOTTOM=${round(HBOTTOM)} V=${round(V)}`}
+        />
         <Box.Space />
         <Quarter value={A} setValue={setA} />
         <Quarter value={B} setValue={setB} />

@@ -207,14 +207,15 @@ function InteractiveSelector(): JSX.Element {
         <option key={value} value={value}>{value}</option>
       );
   return (
-    <Label label='Mode'>
+    <Hbox>
+      <Label label='Mode'/>
       <Select
         value={inter}
         onChange={onChange}
         className="wp-config-field wp-config-select"
       >{options}</Select>
       <IconButton icon='HELP' title={help} />
-    </Label>
+    </Hbox>
   );
 }
 
@@ -239,14 +240,15 @@ function TipSelector(): JSX.Element {
         <option key={value} value={value}>{value}</option>
       );
   return (
-    <Label label='Mode'>
+    <Hbox>
+      <Label label='Mode'/>
       <Select
         value={tipMode}
         onChange={onChange}
         className="wp-config-field wp-config-select"
       >{options}</Select>
       <IconButton icon='HELP' title={help} />
-    </Label>
+    </Hbox>
   );
 }
 
@@ -275,7 +277,8 @@ function ProversConfiguration(): JSX.Element {
         title='General configuration'
         titleButtons={[makeSidebarHelp('wp-config-provers-general')]}
       >
-        <Label label='Timeout' icon='CLOCK' >
+        <Hbox>
+          <Label label='Timeout' icon='CLOCK' />
           <Spinner
             className="wp-config-field wp-config-spinner"
             value={timeout || 0}
@@ -283,8 +286,9 @@ function ProversConfiguration(): JSX.Element {
             vstep={1}
             onChange={setTimeout}
           />
-        </Label>
-        <Label label='Processes' icon='SETTINGS'>
+        </Hbox>
+        <Hbox>
+        <Label label='Processes' icon='SETTINGS'/>
           <Spinner
             className="wp-config-field wp-config-spinner"
             value={processes || 0}
@@ -292,10 +296,11 @@ function ProversConfiguration(): JSX.Element {
             vstep={1}
             onChange={setProcesses}
           />
-        </Label>
-        <Label label='Cache' icon='SERVER'>
+        </Hbox>
+        <Hbox>
+        <Label label='Cache' icon='SERVER'/>
           <CacheSelector />
-        </Label>
+        </Hbox>
       </SidebarBlock>
       <SidebarBlock
         title='Automatic Provers'
@@ -394,11 +399,12 @@ function SelectionButton(props: SelectionProps): JSX.Element {
   );
   return (
     <div className={className}>
-      <Label label={name} >
+      <Hbox>
+        <Label label={name} />
         <IconButton
           icon='CROSS'
           onClick={remove} />
-      </Label>
+      </Hbox>
     </div>
   );
 }

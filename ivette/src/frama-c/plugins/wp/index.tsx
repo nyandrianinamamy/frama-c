@@ -138,9 +138,7 @@ function WPGoals(): JSX.Element {
         title={tip ? 'Interactive Proof Transformer' : 'Generated Goals'}
         help={tip ? 'wp-tip' : 'wp-goals'}
       >
-        <Label display={goals < total}>
-          {goals} / {total}
-        </Label>
+        <Label label ={`${goals} / ${total}`} display={goals < total}/>
         <Inset />
         <IconButton
           icon='FILTER' title='Filters'
@@ -209,7 +207,7 @@ function ServerActivity(): JSX.Element {
   const title = `${done} / ${todo} (${active} running, ${procs} procs)`;
   return (
     <Group display={total > 0} title={title}>
-      <Label>WP</Label>
+      <Label label='WP'/>
       <Meter min={0} value={progress} max={objective} />
       <Inset />
       <IconButton

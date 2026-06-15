@@ -298,7 +298,8 @@ function SpinnerParam(props: ParameterProps): JSX.Element
   };
   const value = typeof(jval)==='number' ? jval : undefined;
   return (
-    <Label label={label} title={title}>
+    <Hbox>
+      <Label label={label} title={title}/>
       <Spinner
         className="wp-config-field wp-config-spinner"
         value={value}
@@ -307,8 +308,8 @@ function SpinnerParam(props: ParameterProps): JSX.Element
         vstep={vstep}
         disabled={locked}
         onChange={onChange}
-      />
-    </Label>
+        />
+    </Hbox>
   );
 }
 
@@ -327,14 +328,15 @@ function SelectorParam(props: ParameterProps): JSX.Element
       Server.send(TAC.setParameter, { node, tactic, param, value });
   };
   return (
-    <Label label={label} title={title}>
+    <Hbox>
+      <Label label={label} title={title}/>
       <Select
         className="wp-config-field wp-config-select"
         value={value}
         disabled={locked}
         onChange={onChange}
       >{options}</Select>
-    </Label>
+    </Hbox>
   );
 }
 
@@ -416,10 +418,11 @@ export function ConfigureAutoProver(props: ProverSelection): JSX.Element {
         kind={kind}
         label={result.descr} />
       <Filler />
-      <Label
-        icon='SETTINGS'
-        label='Process' title='Server Processes (shared by all provers)'
-      >
+      <Hbox>
+        <Label
+          icon='SETTINGS'
+          label='Process' title='Server Processes (shared by all provers)'
+        />
         <Spinner
           className="wp-config-field wp-config-spinner"
           onChange={setProcess}
@@ -428,10 +431,11 @@ export function ConfigureAutoProver(props: ProverSelection): JSX.Element {
           vmax={36}
           vstep={1}
         />
-      </Label>
-      <Label
-        label='Timeout' title='Prover Timeout (shared by all provers)'
-      >
+      </Hbox>
+      <Hbox>
+        <Label
+          label='Timeout' title='Prover Timeout (shared by all provers)'
+        />
         <Spinner
           className="wp-config-field wp-config-spinner"
           enabled={fwdTime===0}
@@ -441,7 +445,7 @@ export function ConfigureAutoProver(props: ProverSelection): JSX.Element {
           vmax={3600}
           vstep={1}
         />
-      </Label>
+      </Hbox>
       <Separator />
       <Hbox>
         <IconButton
@@ -518,10 +522,11 @@ export function ConfigureInteractiveProver(sel: ProverSelection): JSX.Element {
         kind={kind}
         label={result.descr} />
       <Filler />
-      <Label
-        icon='SETTINGS'
-        label='Process' title='Server Processes (shared by all provers)'
-      >
+      <Hbox>
+        <Label
+          icon='SETTINGS'
+          label='Process' title='Server Processes (shared by all provers)'
+        />
         <Spinner
           className="wp-config-field wp-config-spinner"
           onChange={setProcess}
@@ -530,10 +535,11 @@ export function ConfigureInteractiveProver(sel: ProverSelection): JSX.Element {
           vmax={36}
           vstep={1}
         />
-      </Label>
-      <Label
-        label='Timeout' title='Prover Timeout (shared by all provers)'
-      >
+      </Hbox>
+      <Hbox>
+        <Label
+          label='Timeout' title='Prover Timeout (shared by all provers)'
+        />
         <Spinner
           className="wp-config-field wp-config-spinner"
           onChange={setTimeout}
@@ -542,7 +548,7 @@ export function ConfigureInteractiveProver(sel: ProverSelection): JSX.Element {
           vmax={3600}
           vstep={1}
         />
-      </Label>
+      </Hbox>
       <Separator/>
       <Hbox>
         <IconButton

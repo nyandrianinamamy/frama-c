@@ -143,7 +143,7 @@ function getElement(
             })
           }
           { priority && <Icon id="ATTENTION" className='cg-panel-priority'/> }
-          <Label>{elt.predicate ?? (elt.status+" : "+elt.kind)}</Label>
+          <Label label={elt.predicate ?? (elt.status+" : "+elt.kind)} />
         </div>
       );
     }
@@ -176,7 +176,7 @@ function getElement(
       <div className='cg-panel-element-content'>
         { taint.length > 0 &&
           <div className='cg-panel-taint'>
-            <Label>Taint :</Label>
+            <Label label='Taint :'/>
             {taint}
           </div>
         }
@@ -306,24 +306,20 @@ export function Panel(
           }
         />
         { tainted > 0 ?
-          <Label
-          label='Taint legend:'
-          >
-            {
-              <>
-              {renderTaint({ name: "direct_taint", descr: "direct_taint" })}
-              {renderTaint({ name: "indirect_taint", descr: "indirect_taint" })}
-              </>
-            }
-          </Label> : <></>
+          <Hbox>
+            <Label label='Taint legend:' />
+            {renderTaint({ name: "direct_taint", descr: "direct_taint" })}
+            {renderTaint({ name: "indirect_taint", descr: "indirect_taint" })}
+            </Hbox>
+          : <></>
           }
-        <Label className='cg-filter-panel'>
+        <Hbox className='cg-filter-panel'>
           {getPanelFilters({
             contextMenuStatus,
             contextMenuKind,
             contextMenuEva
           })}
-        </Label>
+        </Hbox>
         <ListElement>
           { getElementList({
             graph: graphData,

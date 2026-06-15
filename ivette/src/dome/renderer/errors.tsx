@@ -96,7 +96,7 @@ export class Catch extends React.Component<CatchProps, CatchState, unknown> {
             onClick={this.logerr}
           />
           <Button icon="RELOAD" onClick={this.reload} />
-          <Label>{label}</Label>
+          <Label label={label} />
         </div>
       );
     }

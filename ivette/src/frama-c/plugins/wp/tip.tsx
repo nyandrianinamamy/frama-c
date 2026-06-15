@@ -398,7 +398,9 @@ export function StrategyDebugger(props: PatternDebuggerProps): JSX.Element {
             disabled={selected >= alternatives.length - 1}
             onClick={() => { setSelected(selected + 1); }}
           />
-          <Label>Alternative #{selected + 1} / {alternatives.length} </Label>
+          <Label
+            label={`Alternative #${selected + 1} / ${alternatives.length}`}
+          />
         </Hbox>
         <Errors errors={errors} />
         <Fields node={current} fields={fields} />

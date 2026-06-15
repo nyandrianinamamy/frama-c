@@ -221,8 +221,8 @@ function UseText(): JSX.Element {
         <Code label={`View ${v.fromLine}-${v.toLine}`} />
         <Code label={`Hover ${h ? h.offset : '-'}:${h ? h.line : '-'}`} />
         <Filler />
-        <Code>{evt}</Code>
-        <Code>{`Changes: ${changes}`}</Code>
+        <Code label={evt}/>
+        <Code label={`Changes: ${changes}`}/>
       </ToolBar>
     </>
   );

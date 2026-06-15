@@ -146,7 +146,7 @@ function Element(props: ElementProps): React.JSX.Element {
   const content = <>
     { title &&
         typeof(title) === "string" ?
-          <Label title={title}>{title}</Label>
+          <Label label={title} title={title}/>
           : <div className='mthread-element-title'>{ title }</div>
     }
     { hasChildren && <div className={classesContent}>{ children }</div> }
@@ -650,7 +650,7 @@ function Variable(props: VariableProps): React.ReactNode {
     const label = isArray ? `${base}[ ]` : base;
     const title = <>
       <LED status={varStatus} />
-      <Label title={label}>{label}</Label>
+      <Label label={label} title={label}/>
       <div className='action'>
         { getSelectionButton(base, data) }
         { isArray && getPinButton(base) }

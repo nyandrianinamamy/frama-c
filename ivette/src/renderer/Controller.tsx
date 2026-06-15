@@ -373,12 +373,11 @@ export function RenderConsole(): JSX.Element {
         />
         <Toolbars.Space />
         <Label
+          label={`${1 + cursor} / ${n}`}
           className="component-info"
           title="Command history (newest first)"
           display={edited}
-        >
-          {1 + cursor} / {n}
-        </Label>
+        />
         <Toolbars.Space />
         <IconButton
           icon="MEDIA.PLAY"

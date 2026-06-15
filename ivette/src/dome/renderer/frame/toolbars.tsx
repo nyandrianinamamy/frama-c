@@ -265,7 +265,7 @@ function Suggestions(props: SuggestionsProps): JSX.Element {
     >
       {suggestions}
       {hints.length > 100 ?
-        <Label>({hints.length - 100} omitted)</Label> :
+        <Label label={`${hints.length - 100} omitted`}/> :
         null}
     </div>
   );

@@ -138,9 +138,8 @@ function ModalStudiaSearch(props: ModalTextFieldProps) : React.JSX.Element {
   >
     <EvaReady>
       <div>
-        <Label>
-          Find all statements that may {readOrWrite} the given lvalue:
-        </Label>
+        <Label label=
+          {`Find all statements that may ${readOrWrite} the given lvalue:`}/>
         <Hbox>
           <ButtonGroup>
             <Button

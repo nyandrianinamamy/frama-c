@@ -97,7 +97,7 @@ function Timer({ start }: {start: number}): React.JSX.Element | null {
     return () => clearInterval(interval);
   }, [start]);
 
-  return <Label className={className}>{timeToString(time)}</Label>;
+  return <Label label={timeToString(time)} className={className}/>;
 }
 
 function EvaStatusPanel(): JSX.Element {

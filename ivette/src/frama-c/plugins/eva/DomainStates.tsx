@@ -59,7 +59,7 @@ export function EvaStates(): JSX.Element {
   return (
     <>
       <Boxes.Hbox className="domain-state-box">
-        <Label>Domain: </Label>
+        <Label label='Domain:'/>
         <Select
           title="Select the analysis domain to be shown"
           value={selected}

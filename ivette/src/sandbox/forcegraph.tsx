@@ -64,9 +64,9 @@ function GraphSample(): JSX.Element {
             selected={layout === '3D'}
             onClick={() => setLayout('3D')} />
         </ButtonGroup>
-        <Code>Selected: {selected ?? '-'}</Code>
+        <Code label={`Selected: ${selected ?? '-'}`}/>
         <Filler/>
-        <Code>Nodes: {nodes.length} Edges: {edges.length}</Code>
+        <Code label={`Nodes: ${nodes.length} Edges: ${edges.length}`}/>
         <Button
           icon='CIRC.PLUS'
           label='Node'

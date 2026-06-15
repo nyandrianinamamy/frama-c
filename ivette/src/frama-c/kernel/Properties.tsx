@@ -396,7 +396,7 @@ export function useEvaPropertiesFilter(): IFilterState {
 
 const renderCode: Renderer<string> =
   (text: string): JSX.Element =>
-    (<Code className="code-column" title={text}>{text}</Code>);
+    (<Code label={text} className="code-column" title={text} />);
 
 const renderTag: Renderer<States.Tag> =
   (d: States.Tag): JSX.Element =>
@@ -765,12 +765,11 @@ function FilterRatio({ model }: { model: PropertyModel }): JSX.Element {
   const [filtered, total] = [model.getRowCount(), model.getTotalRowCount()];
   return (
     <Label
+      label={`${filtered} / ${total}`}
       className="component-info"
       title="Displayed Properties / Total"
       display={filtered !== total || true}
-    >
-      {filtered} / {total}
-    </Label>
+    />
   );
 }
 

@@ -131,7 +131,7 @@ function NoTaintsMessage(
       <div className="eva-status-content">
         <div className="eva-status-message">{title}</div>
         <AnalysisStatus.StatusIcon size={50} status={status} />
-        <Label className="eva-status-timer">{message}</Label>
+        <Label label={message} className="eva-status-timer"/>
       </div>
     </div>
   );

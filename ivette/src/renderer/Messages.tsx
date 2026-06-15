@@ -301,9 +301,9 @@ function FilterRatio<K, R>(
   const [filtered, total] = [model.getRowCount(), model.getTotalRowCount()];
   const title = `${filtered} displayed messages / ${total} total messages`;
   return (
-    <Label className="component-info" title={title}>
-      {filtered} / {total}
-    </Label>
+    <Label label={`${filtered} / ${total}`}
+      className="component-info" title={title}
+    />
   );
 }
 
@@ -327,7 +327,7 @@ const renderKind: Renderer<logkind> =
   };
 
 const renderCell: Renderer<string> =
-  (text: string): JSX.Element => (<Cell title={text}>{text}</Cell>);
+  (text: string): JSX.Element => (<Cell label={text} title={text}/>);
 
 const renderMessage: Renderer<string> =
   (text: string): JSX.Element =>

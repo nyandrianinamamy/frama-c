@@ -126,7 +126,7 @@ function InfiniteScrollList(props: InfiniteScrollListProps): JSX.Element {
       pageStart={0}
       loadMore={() => setDisplayedCount(displayedCount + 100)}
       hasMore={displayedCount < count}
-      loader={<Label key={-1}>Loading more...</Label>}
+      loader={<Label key={-1} label='Loading more...'/>}
       useWindow={false}
       getScrollParent={() => scrollableParent.current}
     >

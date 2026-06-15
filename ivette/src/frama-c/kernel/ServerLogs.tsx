@@ -198,15 +198,12 @@ export const logModel: LogModel = new LogModel();
 // -------------------------------------------------------------------------
 
 const renderCell: Renderer<string> =
-  (text: string): JSX.Element => (<Cell title={text}> {text} </Cell>);
+  (text: string): JSX.Element => (<Cell label={text} title={text} />);
 const renderType: Renderer<typeLog> = (t: typeLog): JSX.Element => {
   switch (t) {
-    case typeLog.FEEDBACK:
-      return <Cell title={'Feedback'}>{'INFO'}</Cell>;
-    case typeLog.REQUEST:
-      return <Cell title={'Request'}>{'RQ'}</Cell>;
-    case typeLog.SIGNAL:
-      return <Cell title={'Signal'}>{'SIG'}</Cell>;
+    case typeLog.FEEDBACK: return <Cell label='INFO' title={'Feedback'} />;
+    case typeLog.REQUEST: return <Cell label='RQ' title={'Request'} />;
+    case typeLog.SIGNAL: return <Cell label='SIG' title={'Signal'} />;
   }
 };
 
@@ -217,7 +214,7 @@ const renderTime: Renderer<string> = (date: string): JSX.Element => {
   const s = d.getSeconds().toString().padStart(2, '0');
   const ms = d.getMilliseconds().toString().padStart(3, '0');
   const newTime = `${h}:${mn}:${s}.${ms}`;
-  return <Cell title={newTime}> {newTime} </Cell>;
+  return <Cell label={newTime} title={newTime} />;
 };
 
 const renderDelta = (delta: number): JSX.Element => {
@@ -225,7 +222,7 @@ const renderDelta = (delta: number): JSX.Element => {
     delta > 0 ? `+${duration(delta)}` :
       delta < 0 ? `-${duration(-delta)}` :
         '0';
-  return <Cell>{text}</Cell>;
+  return <Cell label={text} />;
 };
 
 const LogColumns = (): JSX.Element => (

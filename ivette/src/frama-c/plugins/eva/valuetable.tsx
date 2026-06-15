@@ -226,7 +226,7 @@ function AlarmsInfos(probe?: Probe): Request<callstack, JSX.Element> {
     if (alarms.length <= 0) return <></>;
     const renderAlarm = ([status, alarm]: Alarm): JSX.Element => {
       const className = classes('eva-alarm-info', `eva-alarm-${status}`);
-      return <Code className={className} icon="WARNING">{alarm}</Code>;
+      return <Code label={alarm} className={className} icon="WARNING"/>;
     };
     const children = React.Children.toArray(alarms.map(renderAlarm));
     return <Vpack className="eva-info">{children}</Vpack>;
@@ -722,7 +722,7 @@ async function ScopeSection(props: ScopeProps): Promise<JSX.Element> {
           icon={folded ? 'ANGLE.RIGHT' : 'ANGLE.DOWN'}
           onClick={() => setFolded(!folded)}
         />
-        <Cell className="eva-fct-name">{name}</Cell>
+        <Cell label={name} className="eva-fct-name"/>
         <Filler />
         <div className='eva-nb-callstacks'>
           {`${allCallstacks.length} callstack${onlyOneCallstack ? '' : 's'}`}
@@ -1175,7 +1175,7 @@ function ModalEvaluate(props: ModalTextFieldProps): React.JSX.Element {
   return (
     <Modal className='modal-evaluate' label={'Eva: evaluate expression'}>
       <div>
-        <Label>Compute the possible values of: </Label>
+        <Label label='Compute the possible values of:'/>
         <Hbox>
           <TextField
             label=''
