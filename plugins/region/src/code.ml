@@ -29,6 +29,7 @@ let rec add_lval (m:map) (s:stmt) (lv:lval) : node =
 
 and add_lhost (m:map) (s:stmt) = function
   | Var x -> Memory.add_cvar m x
+  | Mem e when Ast_info.is_null_expr e -> add_intptr m 0
   | Mem e -> pointer @@ add_exp m s e
 
 and add_loffset (m:map) (s:stmt) (r:node) (ty:typ)= function

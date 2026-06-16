@@ -292,6 +292,13 @@ let ltyp (m:map) ?(ctxt) (lt:logic_type) =
   let d : domain = Domain.of_ltype (new_chunk m.store) lt in
   Option.fold ~none:d ~some:(fun (c:context) -> Domain.subst c d) ctxt
 
+let add_intptr (m:map) = function
+  | 0 ->
+    let r = fresh m in
+    update r (fun r -> r.cflags <- Attr.add `Nullable r.cflags; r) ;
+    r
+  | _ -> assert false
+
 (* -------------------------------------------------------------------------- *)
 (* --- Iterator                                                           --- *)
 (* -------------------------------------------------------------------------- *)
@@ -424,7 +431,8 @@ let merge_chunk s (q:queue) (root:node)
     cshifts = Access.Set.union a.cshifts b.cshifts ;
     cinits = Access.Set.union a.cinits b.cinits ;
     clayout = merge_layout s q root a.clayout b.clayout ;
-    cid = UF.noid ; cdepth = 0 ; cpaths = 0 ; cflags = Attr.empty ;
+    cflags = Attr.union a.cflags b.cflags ;
+    cid = UF.noid ; cdepth = 0 ; cpaths = 0 ;
   }
 
 let do_merge (q: queue) (a: node) (b: node): unit =
