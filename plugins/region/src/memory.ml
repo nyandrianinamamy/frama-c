@@ -229,7 +229,8 @@ module Nhash = Hashtbl.Make(Node)
 (* --- Chunk Constructors                                                 --- *)
 (* -------------------------------------------------------------------------- *)
 
-let new_chunk store ?parent ?(size=0) ?(value=false) ?ptr ?pointed ?(result=false) () =
+let new_chunk store ?parent ?(size=0) ?(value=false) ?ptr ?pointed
+    ?(flags=Attr.empty) ?(result=false) () =
   let cresult = result in
   let clayout =
     match ptr with
@@ -241,9 +242,9 @@ let new_chunk store ?parent ?(size=0) ?(value=false) ?ptr ?pointed ?(result=fals
   let cparents = match parent with None -> [] | Some root -> [root] in
   let cpointed = match pointed with None -> [] | Some ptr -> [ptr] in
   UF.fresh store
-    { empty with cresult ; clayout ; cpointed ; cparents }
+    { empty with cresult ; clayout ; cpointed ; cparents ; cflags = flags }
 
-let fresh (m: map) = new_chunk m.store ()
+let fresh ?(flags=Attr.empty) (m: map) = new_chunk m.store ~flags ()
 
 let add_label (m: map) a =
   try Lmap.find a m.labels with Not_found ->
@@ -293,11 +294,10 @@ let ltyp (m:map) ?(ctxt) (lt:logic_type) =
   Option.fold ~none:d ~some:(fun (c:context) -> Domain.subst c d) ctxt
 
 let add_intptr (m:map) = function
-  | 0 ->
-    let r = fresh m in
-    update r (fun r -> r.cflags <- Attr.add `Nullable r.cflags; r) ;
-    r
+  | 0 -> fresh ~flags:(Attr.add `Nullable Attr.empty) m
   | _ -> assert false
+
+let fresh m = fresh m
 
 (* -------------------------------------------------------------------------- *)
 (* --- Iterator                                                           --- *)
