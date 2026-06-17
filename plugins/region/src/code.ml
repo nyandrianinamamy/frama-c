@@ -29,7 +29,6 @@ let rec add_lval (m:map) (s:stmt) (lv:lval) : node =
 
 and add_lhost (m:map) (s:stmt) = function
   | Var x -> Memory.add_cvar m x
-  | Mem e when Ast_info.is_null_expr e -> add_intptr m 0
   | Mem e -> pointer @@ add_exp m s e
 
 and add_loffset (m:map) (s:stmt) (r:node) (ty:typ)= function
@@ -64,6 +63,9 @@ and add_exp (m: map) (s:stmt) (e:exp) : value =
   | BinOp(_,a,b,_) ->
     add_value m s a ; add_value m s b ; None
 
+  | CastE(t,p) when Ast_types.C.is_ptr t && Ast_info.is_null_expr p ->
+    Some (add_intptr m 0)
+
   | CastE(_,p) ->
     add_exp m s p
 
@@ -71,6 +73,10 @@ and add_exp (m: map) (s:stmt) (e:exp) : value =
   | SizeOf _ | SizeOfE _
   | AlignOf _ | AlignOfE _
     -> None
+
+let add_condition (m: map) (s: stmt) (e: exp) =
+  Option.iter (Memory.add_flag `Nullable) @@ add_exp m s e
+
 
 (* -------------------------------------------------------------------------- *)
 (* --- Compound L-Values                                                  --- *)
@@ -201,11 +207,11 @@ let rec add_stmt ~map ~kf ~result stmt =
     add_write ~map ~stmt ~acs:(Ret(stmt,e)) (Option.get result) e
   | Goto _ | Break _ | Continue _ -> ()
   | If(e,sthen,selse,_) ->
-    add_value map stmt e ;
+    add_condition map stmt e ;
     add_block ~map ~kf ~result sthen ;
     add_block ~map ~kf ~result selse ;
   | Switch(e,b,_,_) ->
-    add_value map stmt e ;
+    add_condition map stmt e ;
     add_block ~map ~kf ~result b ;
   | Block b -> add_block ~map ~kf ~result b
   | Loop(_,b,_,_,_) -> add_block ~map ~kf ~result b

@@ -64,6 +64,9 @@ and exp env e =
     if not s then add env @@ g_valid Region (L lv) ;
     Option.map (fun r -> false,r) @@ Memory.points_to r
   | CastE(t,e) when
+      Ast_types.C.is_ptr t && Ast_info.is_null_expr e ->
+    Option.map (fun (_,r) -> Memory.add_flag `Nullable r ; (false,r)) @@ exp env e
+  | CastE(t,e) when
       Ast_types.C.is_fun_or_ptr t &&
       not (Ast_types.C.is_fun_or_ptr @@ Cil.typeOf e) ->
     Options.not_yet_implemented ~loc:e.eloc

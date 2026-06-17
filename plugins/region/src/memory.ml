@@ -293,6 +293,9 @@ let ltyp (m:map) ?(ctxt) (lt:logic_type) =
   let d : domain = Domain.of_ltype (new_chunk m.store) lt in
   Option.fold ~none:d ~some:(fun (c:context) -> Domain.subst c d) ctxt
 
+let add_flag f (n: node) =
+  update n (fun c -> c.cflags <- Attr.add f c.cflags ; c)
+
 let add_intptr (m:map) = function
   | 0 -> fresh ~flags:(Attr.add `Nullable Attr.empty) m
   | _ -> assert false
