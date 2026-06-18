@@ -53,6 +53,8 @@ and offset env s t r = function
 
 and addr env e = Option.get @@ exp env e
 and eval env e = ignore @@ exp env e
+and eval_cond env e =
+  Option.iter (fun (_,r) -> Memory.add_flag `Nullable r) @@ exp env e
 
 and exp env e =
   match e.enode with
@@ -224,7 +226,7 @@ let instr env stmt = function
 let stmtkind env stmt = function
   | Instr i -> instr env stmt i
   | Return(r,_) -> Option.iter (eval env) r
-  | If(e,_,_,_) | Switch(e,_,_,_)| Throw (Some(e,_),_) -> eval env e
+  | If(e,_,_,_) | Switch(e,_,_,_)| Throw (Some(e,_),_) -> eval_cond env e
   | Goto _ | Break _ | Continue _ | Loop _ | Block _
   | Throw(None,_) | TryCatch _ | TryFinally _ -> ()
   | TryExcept(_,(ks,e),_,_) -> List.iter (instr env stmt) ks ; eval env e
