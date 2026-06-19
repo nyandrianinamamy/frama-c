@@ -65,6 +65,7 @@ and exp env e =
     let s,_,r = lval env lv in
     if not s then add env @@ g_valid Region (L lv) ;
     Option.map (fun r -> false,r) @@ Memory.points_to r
+<<<<<<< HEAD:plugins/region/src/guards.ml
   | CastE(t,e) when
       Ast_types.C.is_ptr t && Ast_info.is_null_expr e ->
     Option.map (fun (_,r) -> Memory.add_flag [`Nullable] r ; (false,r)) @@ exp env e
@@ -75,6 +76,18 @@ and exp env e =
       "Integral to pointer casts"
   | CastE(_,e) ->
     Option.map (fun (_,r) -> false,r) @@ exp env e
+=======
+  | CastE(t,e) -> begin
+      let add_nullable (_,r) = Memory.add_flag [`Nullable] r ; (false,r) in
+      match Ast_types.C.is_fun_or_ptr t, Ast_types.C.is_fun_or_ptr @@ Cil.typeOf e with
+      | true, _ when Ast_info.is_null_expr e ->
+        Option.map add_nullable @@ exp env e
+      | true, true | false, _ ->
+        Option.map (fun (_,r) -> false,r) @@ exp env e
+      | true, false ->
+        Options.not_yet_implemented ~source:e.eloc "Integral to pointer casts"
+    end
+>>>>>>> c34c5f4853 ([region] refactor casts):src/plugins/region/guards.ml
   | BinOp((PlusPI|MinusPI),p,k,_) ->
     eval env k ;
     Option.map (fun (_,r) -> false,r) @@ exp env p

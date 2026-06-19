@@ -63,11 +63,14 @@ and add_exp (m: map) (s:stmt) (e:exp) : value =
   | BinOp(_,a,b,_) ->
     add_value m s a ; add_value m s b ; None
 
-  | CastE(t,p) when Ast_types.C.is_ptr t && Ast_info.is_null_expr p ->
-    Some (add_intptr m 0)
-
-  | CastE(_,p) ->
-    add_exp m s p
+  | CastE(t,p) -> begin
+      match Ast_types.C.is_fun_or_ptr t, Ast_types.C.is_fun_or_ptr @@ Cil.typeOf p with
+      | true, true
+      | false, _ ->  add_exp m s p
+      | true, false when Ast_info.is_null_expr p -> Some (add_intptr m 0)
+      | true, false ->
+        Options.not_yet_implemented ~source:(fst e.eloc) "Integral to pointer casts"
+    end
 
   | Const _
   | SizeOf _ | SizeOfE _
