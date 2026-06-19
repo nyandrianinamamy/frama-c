@@ -1,3 +1,8 @@
+/* run.config
+    OPT: -region -region-msg-key dump -print
+*/
+
+
 int seteq_if_notnull (int *p1, int* p2) {
     if (p2) {
         *p1 = *p2 ;

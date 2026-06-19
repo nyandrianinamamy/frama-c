@@ -54,7 +54,7 @@ and offset env s t r = function
 and addr env e = Option.get @@ exp env e
 and eval env e = ignore @@ exp env e
 and eval_cond env e =
-  Option.iter (fun (_,r) -> Memory.add_flag `Nullable r) @@ exp env e
+  Option.iter (fun (_,r) -> Memory.add_flag [`Nullable] r) @@ exp env e
 
 and exp env e =
   match e.enode with
@@ -67,7 +67,7 @@ and exp env e =
     Option.map (fun r -> false,r) @@ Memory.points_to r
   | CastE(t,e) when
       Ast_types.C.is_ptr t && Ast_info.is_null_expr e ->
-    Option.map (fun (_,r) -> Memory.add_flag `Nullable r ; (false,r)) @@ exp env e
+    Option.map (fun (_,r) -> Memory.add_flag [`Nullable] r ; (false,r)) @@ exp env e
   | CastE(t,e) when
       Ast_types.C.is_fun_or_ptr t &&
       not (Ast_types.C.is_fun_or_ptr @@ Cil.typeOf e) ->

@@ -127,7 +127,7 @@ let empty = {
   clayout = Blob 0 ;
   cdepth = 0 ;
   cpaths = 0 ;
-  cflags = Attr.empty ;
+  cflags = Attr.bottom ;
 }
 
 (* -------------------------------------------------------------------------- *)
@@ -230,7 +230,7 @@ module Nhash = Hashtbl.Make(Node)
 (* -------------------------------------------------------------------------- *)
 
 let new_chunk store ?parent ?(size=0) ?(value=false) ?ptr ?pointed
-    ?(flags=Attr.empty) ?(result=false) () =
+    ?(flags=Attr.bottom) ?(result=false) () =
   let cresult = result in
   let clayout =
     match ptr with
@@ -244,7 +244,7 @@ let new_chunk store ?parent ?(size=0) ?(value=false) ?ptr ?pointed
   UF.fresh store
     { empty with cresult ; clayout ; cpointed ; cparents ; cflags = flags }
 
-let fresh ?(flags=Attr.empty) (m: map) = new_chunk m.store ~flags ()
+let fresh ?flags (m: map) = new_chunk m.store ?flags ()
 
 let add_label (m: map) a =
   try Lmap.find a m.labels with Not_found ->
@@ -293,11 +293,11 @@ let ltyp (m:map) ?(ctxt) (lt:logic_type) =
   let d : domain = Domain.of_ltype (new_chunk m.store) lt in
   Option.fold ~none:d ~some:(fun (c:context) -> Domain.subst c d) ctxt
 
-let add_flag f (n: node) =
-  update n (fun c -> c.cflags <- Attr.add f c.cflags ; c)
+let add_flag (f : Attr.attr list) (n: node) =
+  update n (fun c -> c.cflags <- List.fold_left (fun f s -> Attr.add s f) c.cflags f ; c)
 
 let add_intptr (m:map) = function
-  | 0 -> fresh ~flags:(Attr.add `Nullable Attr.empty) m
+  | 0 -> fresh ~flags:(Attr.add `Nullable Attr.bottom) m
   | _ -> assert false
 
 let fresh m = fresh m
@@ -434,7 +434,7 @@ let merge_chunk s (q:queue) (root:node)
     cshifts = Access.Set.union a.cshifts b.cshifts ;
     cinits = Access.Set.union a.cinits b.cinits ;
     clayout = merge_layout s q root a.clayout b.clayout ;
-    cflags = Attr.union a.cflags b.cflags ;
+    cflags = Attr.merge a.cflags b.cflags ;
     cid = UF.noid ; cdepth = 0 ; cpaths = 0 ;
   }
 
@@ -634,7 +634,6 @@ let rec consolidate gvars marked n =
     let node = UF.get n in
     let ps = UF.find_all node.cparents in
     begin
-      node.cflags <- Attr.bottom ;
       let flags fs = node.cflags <- Attr.merge node.cflags fs in
       let size = sizeof node.clayout in
       let path s = node.cpaths <- node.cpaths + (if s = size then 1 else 2) in

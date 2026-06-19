@@ -75,7 +75,7 @@ and add_exp (m: map) (s:stmt) (e:exp) : value =
     -> None
 
 let add_condition (m: map) (s: stmt) (e: exp) =
-  Option.iter (Memory.add_flag `Nullable) @@ add_exp m s e
+  Option.iter (Memory.add_flag [`Nullable]) @@ add_exp m s e
 
 
 (* -------------------------------------------------------------------------- *)
