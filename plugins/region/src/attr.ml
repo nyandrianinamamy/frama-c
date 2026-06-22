@@ -72,3 +72,5 @@ let cvar ~garbage v =
   if is_const v then set `Validread ;
   if not @@ is_initialized ~garbage v then set `Garbage ;
   !flags
+
+let add_flag s f = merge s @@ add f bottom

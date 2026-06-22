@@ -294,10 +294,10 @@ let ltyp (m:map) ?(ctxt) (lt:logic_type) =
   Option.fold ~none:d ~some:(fun (c:context) -> Domain.subst c d) ctxt
 
 let add_flag (f : Attr.attr list) (n: node) =
-  update n (fun c -> c.cflags <- List.fold_left (fun f s -> Attr.add s f) c.cflags f ; c)
+  update n (fun c -> c.cflags <- List.fold_left Attr.add_flag c.cflags f ; c)
 
 let add_intptr (m:map) = function
-  | 0 -> fresh ~flags:(Attr.add `Nullable Attr.bottom) m
+  | 0 -> fresh ~flags:(Attr.add_flag Attr.bottom `Nullable) m
   | _ -> assert false
 
 let fresh m = fresh m
