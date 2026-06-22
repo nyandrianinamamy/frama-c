@@ -14,8 +14,6 @@ int main(void)
   x ++;
   {
     __e_acsl_assert_data_t __gen_e_acsl_assert_data = {.values = (void *)0};
-    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data,"sizeof(int)",0,
-                                 4);
     __e_acsl_assert_register_int(& __gen_e_acsl_assert_data,"sizeof(x)",0,4);
     __gen_e_acsl_assert_data.blocking = 1;
     __gen_e_acsl_assert_data.kind = "Assertion";

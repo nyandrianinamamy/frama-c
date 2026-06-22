@@ -166,8 +166,6 @@ void test_specifier_application(char const *allowed, char const *fmt,
   {
     int __gen_e_acsl_and;
     __e_acsl_assert_data_t __gen_e_acsl_assert_data = {.values = (void *)0};
-    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data,"sizeof(char)",0,
-                                 1);
     __e_acsl_assert_register_int(& __gen_e_acsl_assert_data,"len",0,len);
     if (0 < (int)(len + 1L)) {
       __e_acsl_mpz_t __gen_e_acsl_;
@@ -177,8 +175,6 @@ void test_specifier_application(char const *allowed, char const *fmt,
       __gmpz_init_set_ui(__gen_e_acsl__2,18446744073709551615UL);
       __gen_e_acsl_le = __gmpz_cmp((__e_acsl_mpz_struct const *)(__gen_e_acsl_),
                                    (__e_acsl_mpz_struct const *)(__gen_e_acsl__2));
-      __e_acsl_assert_register_int(& __gen_e_acsl_assert_data,"sizeof(char)",
-                                   0,1);
       __e_acsl_assert_register_int(& __gen_e_acsl_assert_data,"len",0,len);
       __gen_e_acsl_and = __gen_e_acsl_le <= 0;
       __gmpz_clear(__gen_e_acsl_);

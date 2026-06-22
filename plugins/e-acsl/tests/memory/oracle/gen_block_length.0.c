@@ -337,8 +337,6 @@ int main(void)
     __e_acsl_assert_register_ulong(& __gen_e_acsl_assert_data_13,
                                    "\\block_length(&l)",0,
                                    __gen_e_acsl_block_length_11);
-    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_13,
-                                 "sizeof(long)",0,8);
     __gen_e_acsl_assert_data_13.blocking = 1;
     __gen_e_acsl_assert_data_13.kind = "Assertion";
     __gen_e_acsl_assert_data_13.pred_txt = "\\block_length(&l) == sizeof(long)";
@@ -381,8 +379,6 @@ int main(void)
     __e_acsl_assert_register_ulong(& __gen_e_acsl_assert_data_14,
                                    "\\block_length(pl)",0,
                                    __gen_e_acsl_block_length_12);
-    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_14,
-                                 "sizeof(long)",0,8);
     __gen_e_acsl_assert_data_14.blocking = 1;
     __gen_e_acsl_assert_data_14.kind = "Assertion";
     __gen_e_acsl_assert_data_14.pred_txt = "\\block_length(pl) == sizeof(long)";
@@ -425,8 +421,6 @@ int main(void)
     __e_acsl_assert_register_ulong(& __gen_e_acsl_assert_data_16,
                                    "\\block_length(pl + 7)",0,
                                    __gen_e_acsl_block_length_13);
-    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_16,
-                                 "sizeof(long)",0,8);
     __gen_e_acsl_assert_data_16.blocking = 1;
     __gen_e_acsl_assert_data_16.kind = "Assertion";
     __gen_e_acsl_assert_data_16.pred_txt = "\\block_length(pl + 7) == sizeof(long)";

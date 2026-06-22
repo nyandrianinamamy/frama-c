@@ -360,8 +360,6 @@ void __gen_e_acsl_min_sort(int *t, int n)
                                         (size_t)__gen_e_acsl_if,(void *)t,
                                         (void *)(& t));
     __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_2,"t",(void *)t);
-    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_2,"sizeof(int)",
-                                 0,4);
     __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_2,"n",0,n);
     __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_2,
                                  "\\valid(t + (0 .. n - 1))",0,

@@ -144,8 +144,6 @@ int __gen_e_acsl_main(int argc, char **argv)
                                    "\\block_length(argv)",0,
                                    __gen_e_acsl_block_length);
     __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_4,"argc",0,argc);
-    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_4,
-                                 "sizeof(char *)",0,8);
     __gen_e_acsl_assert_data_4.blocking = 1;
     __gen_e_acsl_assert_data_4.kind = "Assertion";
     __gen_e_acsl_assert_data_4.pred_txt = "\\block_length(argv) == (argc + 1) * sizeof(char *)";

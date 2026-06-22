@@ -109,13 +109,9 @@ int main(void)
       {.values = (void *)0};
     __e_acsl_assert_data_t __gen_e_acsl_assert_data_7 =
       {.values = (void *)0};
-    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_7,"sizeof(int)",
-                                 0,4);
     __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_7,
                                  "sizeof((int)0x0)",0,4);
     if (1) {
-      __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_7,
-                                   "sizeof(int)",0,4);
       __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_7,
                                    "sizeof((int)0x0)",0,4);
       __gen_e_acsl_and = 1;
@@ -138,7 +134,7 @@ int main(void)
     }
     __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_6,
                                  "t[(2 * sizeof(int)) / sizeof((int)0x0)]",0,
-                                 t[(2 * 4) / 4]);
+                                 t[8 / 4]);
     __gen_e_acsl_assert_data_6.blocking = 1;
     __gen_e_acsl_assert_data_6.kind = "Assertion";
     __gen_e_acsl_assert_data_6.pred_txt = "t[(2 * sizeof(int)) / sizeof((int)0x0)] == 4";

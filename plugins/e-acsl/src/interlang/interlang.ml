@@ -310,7 +310,12 @@ module Exp = struct
 
   let lval ~origin lval = of_exp_node ~origin @@ Lval lval
   let integer ~origin ~ity n = of_exp_node ~origin @@ Integer {ity; n}
-  let sizeof ~origin ty = of_exp_node ~origin @@ SizeOf ty
+
+  let sizeof ~origin ty =
+    try
+      integer ~origin ~ity:(C_integer IInt) (Z.of_int @@ Cil.bytesSizeOf ty)
+    with Cil.SizeOfError _ -> of_exp_node ~origin @@ SizeOf ty
+
   let rte rte =
     of_exp_node ~origin:(Analyses_types.PoT_pred rte.rorigin) rte.rnode
 
