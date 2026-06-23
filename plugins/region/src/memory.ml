@@ -920,3 +920,17 @@ let lock m =
   end
 
 (* -------------------------------------------------------------------------- *)
+
+let add_nullable n =
+  begin
+    let store = UF.store n in
+    let flags = Attr.add_flag Attr.bottom `Nullable in
+    (* merge n @@ new_chunk store ~flags ()
+       ( * *)
+    let ptr = new_chunk store ~ptr:n ~flags () in
+    merge n @@ new_chunk store ~pointed:ptr () ;
+    Format.eprintf "+++++ Add `Nullable pointer:@.|-... %a@....-> %a@."
+      pp_region (region ptr)
+      pp_region @@ region n ;
+    (* *)
+  end

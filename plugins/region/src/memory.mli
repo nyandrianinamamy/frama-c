@@ -101,6 +101,8 @@ val add_value : node -> typ -> node option
 val add_intptr : map -> int -> node
 val add_flag : Attr.attr list -> node -> unit
 
+val add_nullable : node -> unit
+
 val add_read : node -> Access.acs -> unit
 val add_write : node -> Access.acs -> unit
 val add_shift : node -> Access.acs -> typ -> unit

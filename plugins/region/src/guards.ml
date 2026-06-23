@@ -54,7 +54,9 @@ and offset env s t r = function
 and addr env e = Option.get @@ exp env e
 and eval env e = ignore @@ exp env e
 and eval_cond env e =
-  Option.iter (fun (_,r) -> Memory.add_flag [`Nullable] r) @@ exp env e
+  Option.iter
+    (fun (_,r) -> List.iter (Memory.add_flag [`Nullable]) @@ Memory.pointed_by r)
+  @@ exp env e
 
 and exp env e =
   match e.enode with
@@ -78,12 +80,13 @@ and exp env e =
     Option.map (fun (_,r) -> false,r) @@ exp env e
 =======
   | CastE(t,e) -> begin
-      let add_nullable (_,r) = Memory.add_flag [`Nullable] r ; (false,r) in
+      let add_nullable (_,r) =
+        List.iter (Memory.add_flag [`Nullable]) @@ Memory.pointed_by r ;
+        (false,r) in
       match Ast_types.C.is_fun_or_ptr t, Ast_types.C.is_fun_or_ptr @@ Cil.typeOf e with
       | true, _ when Ast_info.is_null_expr e ->
         Option.map add_nullable @@ exp env e
-      | true, true | false, _ ->
-        Option.map (fun (_,r) -> false,r) @@ exp env e
+      | true, true | false, _ -> Option.map (fun (_,r) -> false,r) @@ exp env e
       | true, false ->
         Options.not_yet_implemented ~source:e.eloc "Integral to pointer casts"
     end

@@ -23,6 +23,10 @@ let pointer v =
   | Some p -> p
   | None -> Options.fatal "Not a pointer value"
 
+let add_nullable r =
+  let () = List.iter (Memory.add_flag [`Nullable]) @@ Memory.pointed_by r in
+  r
+
 let rec add_lval (m:map) (s:stmt) (lv:lval) : node =
   let h = fst lv in
   add_loffset m s (add_lhost m s h) (Cil.typeOfLhost h) (snd lv)
@@ -65,11 +69,11 @@ and add_exp (m: map) (s:stmt) (e:exp) : value =
 
   | CastE(t,p) -> begin
       match Ast_types.C.is_fun_or_ptr t, Ast_types.C.is_fun_or_ptr @@ Cil.typeOf p with
-      | true, true
-      | false, _ ->  add_exp m s p
-      | true, false when Ast_info.is_null_expr p -> Some (add_intptr m 0)
+      | true, _ when Ast_info.is_null_expr p ->
+        Option.map add_nullable @@ add_exp m s p
+      | true, true  | false, _ -> add_exp m s p
       | true, false ->
-        Options.not_yet_implemented ~source:(fst e.eloc) "Integral to pointer casts"
+        Options.not_yet_implemented ~source:e.eloc "Integral to pointer casts"
     end
 
   | Const _
@@ -78,7 +82,8 @@ and add_exp (m: map) (s:stmt) (e:exp) : value =
     -> None
 
 let add_condition (m: map) (s: stmt) (e: exp) =
-  Option.iter (Memory.add_flag [`Nullable]) @@ add_exp m s e
+  let add_nullable r = ignore @@ add_nullable r in
+  Option.iter add_nullable @@ add_exp m s e
 
 
 (* -------------------------------------------------------------------------- *)
@@ -106,6 +111,9 @@ let rec add_init (m:map) (s:stmt) (lv:lval) (iv:init) =
     let tr = if Ast_types.C.is_array tv then Ast_types.C.array_element tv else tv in
     let acs = Access.Init(s,lv,e) in
     Memory.add_init r acs tr ;
+    let () =
+      if (Ast_types.C.is_ptr @@ Cil.typeOfLval lv && Ast_info.is_null_expr e)
+      then Memory.add_flag [`Nullable] r in
     Option.iter (Memory.add_points_to r) (add_exp m s e)
 
   | CompoundInit(_,fvs) ->
@@ -127,7 +135,10 @@ let add_write ~map ~stmt ~acs (r:node) (e:exp) =
     Memory.merge r v
   | _ ->
     let v = add_exp map stmt e in
-    Option.iter (Memory.add_points_to r) v
+    let () =
+      if (Ast_types.C.is_ptr @@ Access.typeof acs && Ast_info.is_null_expr e)
+      then Memory.add_flag [`Nullable] r
+    in Option.iter (Memory.add_points_to r) v
 
 let add_function (m:map) (s:stmt) (f:lhost) =
   match f with
