@@ -119,10 +119,10 @@ let pp_predicate behavior kind fmt named_pred =
 
 let emit_contract_status kind kf behavior ~active ~empty property named_pred status =
   let pp_predicate = pp_predicate behavior kind in
-  let source = Property.location property in
+  let loc = Property.location property in
   match kind with
   | Precondition | Postcondition PostBody ->
-    msg_status status ~once:true ~source ~stacktrace:true
+    msg_status status ~once:true ~loc ~stacktrace:true
       "%a: %s%a got status %a.%t"
       (pp_header kf) behavior
       (if empty then "no state left, " else "")
@@ -159,7 +159,7 @@ let code_annotation_loc stmt code_annot =
   | _ -> Cil_datatype.Stmt.loc stmt
 
 let emit_code_annot_status ~reduce ~empty kf stmt code_annot status =
-  let source = code_annotation_loc stmt code_annot in
+  let loc = code_annotation_loc stmt code_annot in
   let ips = Property.ip_of_code_annot kf stmt code_annot in
   List.iter (fun p -> emit_status p status) ips;
   let message =
@@ -170,7 +170,7 @@ let emit_code_annot_status ~reduce ~empty kf stmt code_annot status =
       "invalid" ^ (if reduce then " (stopping propagation)" else "")
   in
   let prefix = if empty then "no state left, " else "" in
-  msg_status status ~once:true ~source
+  msg_status status ~once:true ~loc
     "%s%a got status %s." prefix pp_code_annot code_annot message
 
 (* --------------------- Process inactive behaviors ------------------------- *)
@@ -378,12 +378,12 @@ module Make (Domain: LogicDomain) = struct
      (unless this is on purpose, using [assert \false]) *)
   let warn_ensures_false kf behavior active pr =
     if pr.pred_content <> Pfalse then
-      let source = pr.Cil_types.pred_loc in
+      let loc = pr.Cil_types.pred_loc in
       let pp_header = pp_header kf in
       let pp_behavior_inactive fmt =
         Format.fprintf fmt ",@ the behavior@ was@ inactive"
       in
-      Self.warning ~once:true ~source ~wkey:Log_key.warn_ensures_false
+      Self.warning ~once:true ~loc ~wkey:Log_key.warn_ensures_false
         ~stacktrace:true
         "@[%a:@ this postcondition@ evaluates to@ false@ in this@ context.\
          @ If it is valid,@ either@ a precondition@ was not@ verified@ \

@@ -256,7 +256,7 @@ let threshold_of_threshold_term ht =
     match constFoldTermToReal ht.term_node with
     | Some f -> Real_th f
     | None ->
-      Self.abort ~source:ht.term_loc
+      Self.abort ~loc:ht.term_loc
         "could not parse widening hint: %a@ \
          If it contains variables, they must be global const integers."
         Printer.pp_term ht
@@ -268,14 +268,14 @@ let thresholds_of_threshold_terms hts =
       match threshold_of_threshold_term ht with
       | Int_th i ->
         if !has_float then
-          Self.abort ~source:ht.term_loc
+          Self.abort ~loc:ht.term_loc
             "widening hint mixing integers and floats: %a"
             Printer.pp_term ht;
         has_int := true;
         IntSet.add i int_acc, float_acc
       | Real_th f ->
         if !has_int then
-          Self.abort ~source:ht.term_loc
+          Self.abort ~loc:ht.term_loc
             "widening hint mixing integers and floats: %a"
             Printer.pp_term ht;
         has_float := true;
@@ -298,7 +298,7 @@ class hints_visitor init_widen_hints global = object(self)
          let int_thresholds, float_thresholds =
            thresholds_of_threshold_terms wh_terms
          in
-         Self.debug ~source:loc ~dkey:Log_key.debug_widen_hints
+         Self.debug ~loc ~dkey:Log_key.debug_widen_hints
            "adding%s hint from annotation: %a, %t (for all statements)"
            (if global then " global" else "")
            (Pretty_utils.pp_opt ~none:(format_of_string "for all variables")
@@ -431,8 +431,8 @@ let dynamic_bases_of_lval states e offset =
 
 (* Find syntactically the dynamic hints on [stmt]. *)
 let extract_dynamic_hints stmt =
-  let source = Stmt.loc stmt in
-  Self.debug ~source ~dkey:Log_key.debug_widen_hints
+  let loc = Stmt.loc stmt in
+  Self.debug ~loc ~dkey:Log_key.debug_widen_hints
     "computing dynamic hints for statement %d" stmt.sid;
   let wh = Widen_hints_ext.get_stmt_widen_hint_terms stmt in
   let aux l (hlv, threshold_terms) =
@@ -489,7 +489,7 @@ let dynamic_widen_hints_hook _callstack stmt states =
   if Annotations.has_code_annot stmt then
     let hs = parsed_dynamic_hints stmt in
     if hs <> [] then
-      let source = Stmt.loc stmt in
+      let loc = Stmt.loc stmt in
       let modified, new_hints =
         List.fold_right (fun dhint (_acc_modified, acc_hints as acc) ->
             let old_bases = dhint.bases in
@@ -503,7 +503,7 @@ let dynamic_widen_hints_hook _callstack stmt states =
             else
               let new_hints =
                 Base.Hptset.fold (fun base acc ->
-                    Self.debug ~source ~dkey:Log_key.debug_widen_hints
+                    Self.debug ~loc ~dkey:Log_key.debug_widen_hints
                       "adding new base due to dynamic widen hint: %a, %t"
                       Base.pretty base
                       (fun fmt ->

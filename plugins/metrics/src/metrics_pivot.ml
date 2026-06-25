@@ -456,7 +456,7 @@ let visit_messages () =
   Messages.iter (fun ev ->
       let plugin = ev.evt_plugin in
       let loc, func =
-        match ev.evt_source with
+        match ev.evt_position with
         | None -> Metrics_parameters.gen_loc, "<global>"
         | Some pos ->
           let funcname =

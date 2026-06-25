@@ -167,13 +167,13 @@ let configure file =
     with
     | Json.Error(path,line,msg) ->
       let pos = Filepos.make ~path ~line () in
-      let source = Fileloc.of_pos pos in
-      R.abort ~source "%s" msg
+      let loc = Fileloc.of_pos pos in
+      R.abort ~loc "%s" msg
     | WrongFormat msg ->
       let path = Filepath.of_string file in
       let pos = Filepos.make ~path ~line:1 () in
-      let source = Fileloc.of_pos pos in
-      R.abort ~source "%s" msg
+      let loc = Fileloc.of_pos pos in
+      R.abort ~loc "%s" msg
     | Sys_error msg ->
       R.abort "%s" msg
     | Invalid_argument msg | Failure msg ->
@@ -336,7 +336,7 @@ let monitor_log_event (evt : Log.event) =
       | Error | Failure -> errors
       | Result | Feedback | Debug -> raise Exit in
     let msg = Log.Event.message evt in
-    let source = evt.evt_source in
+    let source = evt.evt_position in
     let category = Log.evt_category evt in
     let lookup ~category ~msg =
       find (Hashtbl.find env.rs_rules evt.evt_plugin) ~category ~msg in

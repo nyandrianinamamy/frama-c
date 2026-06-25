@@ -130,9 +130,9 @@ class dyncall =
             | bhvs -> bhvs
           in
           let debug_calls bhv stmt kfs =
-            let source = Stmt.loc stmt in
+            let loc = Stmt.loc stmt in
             let dkey = Kernel.dkey_dyncalls in
-            Kernel.feedback ~source ~dkey
+            Kernel.feedback ~loc ~dkey
               "@[<hov 2>Calls %s%a@]"
               (if Cil.default_behavior_name <> bhv then "(for " ^ bhv ^ ")"
                else "")

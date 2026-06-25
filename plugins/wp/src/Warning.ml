@@ -110,7 +110,7 @@ let kprintf phi ?(log=true) ?(severe=false) ?source ~fallback message =
        let text = Buffer.contents buffer in
        let loc = Current_loc.get () in
        if log then
-         Wp_parameters.warning ~source:loc "%s" text ~once:true ;
+         Wp_parameters.warning ~loc "%s" text ~once:true ;
        phi {
          loc = Fileloc.start_pos loc ;
          severe = severe ;

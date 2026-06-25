@@ -492,7 +492,7 @@ module Computer(I: Init) = struct
          (state',loops)
        | None ->
          Aorai_option.not_yet_implemented
-           ~source:loc
+           ~loc
            "Indirect call to %a is not handled yet" Printer.pp_lhost f)
     | Local_init (v, ConsInit(f,args,kind),_) ->
       let args =
@@ -603,13 +603,13 @@ let compute_func_aux stack call_site kf init_state =
         try
           Compute.StmtStartData.find (Kernel_function.find_return kf)
         with Not_found ->
-          let source =
+          let loc =
             match call_site with
             | Kglobal -> None
             | Kstmt stmt ->
               Some (Cil_datatype.Stmt.loc stmt)
           in
-          Aorai_option.warning ?source
+          Aorai_option.warning ?loc
             "Call to %a does not follow automaton's specification. \
              This path is assumed to be dead" Kernel_function.pretty kf;
           (Data_for_aorai.Aorai_state.Map.empty, Cil_datatype.Stmt.Set.empty)
@@ -831,7 +831,7 @@ struct
            Dataflow2.Default l
        | None ->
          Aorai_option.not_yet_implemented
-           ~source:loc
+           ~loc
            "Indirect call to %a is not handled yet" Printer.pp_lhost f)
     | Local_init (_,ConsInit(f,_,_),_) -> do_call s f state
     | Local_init (_,AssignInit _,_)
@@ -1019,7 +1019,7 @@ let backward_analysis_aux stack kf ret_state =
          with Not_found -> ())
       with Not_found ->
         Aorai_option.warning
-          ~source:(Cil_datatype.Stmt.loc s)
+          ~loc:(Cil_datatype.Stmt.loc s)
           "Statement %a@ not conforming to automaton. \
            Assuming it is on a dead path"
           Printer.pp_stmt s

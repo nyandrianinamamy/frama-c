@@ -885,8 +885,8 @@ let export_json gstat ?jinput ~joutput () =
         else `Null
       with Json.Error(path,line,msg) ->
         let pos = Filepos.make ~path ~line () in
-        let source = Fileloc.of_pos pos in
-        Wp_parameters.error ~source "Incorrect json file: %s" msg ;
+        let loc = Fileloc.of_pos pos in
+        Wp_parameters.error ~loc "Incorrect json file: %s" msg ;
         `Null
     in
     rankify_fcstat gstat js ;

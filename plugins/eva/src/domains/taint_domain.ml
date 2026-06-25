@@ -93,9 +93,9 @@ let warn_assign_interference ~pos ~data_tainted ~ctrl_tainted zone =
   if secure_flow_analysis () && (data_tainted || ctrl_tainted) then
     let zone = filter_public_zone zone in
     if not (Memory_zone.is_bottom zone) then
-      let source = Position.loc pos in
+      let loc = Position.loc pos in
       let warn wkey kind zone =
-        Self.warning ~wkey ~source ~once:true
+        Self.warning ~wkey ~loc ~once:true
           "@[<hv 2>%s non-interference violation on@ @[<hov>{%a}@]"
           kind Memory_zone.pretty zone
       in
@@ -104,8 +104,8 @@ let warn_assign_interference ~pos ~data_tainted ~ctrl_tainted zone =
 
 let warn_assume_interference ~pos zone =
   if secure_flow_analysis () then
-    let source = Position.loc pos in
-    Self.warning ~wkey:wkey_secure_flow_assume ~source ~once:true
+    let loc = Position.loc pos in
+    Self.warning ~wkey:wkey_secure_flow_assume ~loc ~once:true
       "@[<hv 2>non-interference violation on condition involving@ @[<hov>{%a}@]"
       Memory_zone.pretty zone
 

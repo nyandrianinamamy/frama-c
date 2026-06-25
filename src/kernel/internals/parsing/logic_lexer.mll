@@ -315,14 +315,14 @@
     | ADMIT, LEMMA -> true, ADMIT_LEMMA
     | _ -> false, current
 
-  let check_ext_plugin source plugin tok =
+  let check_ext_plugin loc plugin tok =
     match tok with
     | IDENTIFIER s ->
       if Plugin.is_present plugin then
-        Kernel.warning ~once:true ~wkey:Kernel.wkey_extension_unknown ~source
+        Kernel.warning ~once:true ~wkey:Kernel.wkey_extension_unknown ~loc
           "Ignoring unregistered extension '%s' of plug-in %s" s plugin
       else
-        Kernel.warning ~once:true ~wkey:Kernel.wkey_plugin_not_loaded ~source
+        Kernel.warning ~once:true ~wkey:Kernel.wkey_plugin_not_loaded ~loc
           "Ignoring extension '%s' for unloaded plug-in %s" s plugin;
       IDENTIFIER_EXT s
     | EXT_CODE_ANNOT (s, _)
@@ -330,26 +330,26 @@
     | EXT_GLOBAL_BLOCK (s, _)
     | EXT_CONTRACT (s, _) ->
       if String.equal plugin "kernel" then
-        Kernel.abort ~source
+        Kernel.abort ~loc
           "Extension '%s' from frama-c's kernel should not be used with the \
            syntax \\kernel::%s" s s;
       tok
     | _ -> raise Parsing.Parse_error
 
-  let check_ext_importer source plugin tok =
+  let check_ext_importer loc plugin tok =
     match tok with
     | IDENTIFIER s ->
       if Plugin.is_present plugin then
-        Kernel.warning ~once:true ~wkey:Kernel.wkey_extension_unknown ~source
+        Kernel.warning ~once:true ~wkey:Kernel.wkey_extension_unknown ~loc
           "Ignoring unregistered module importer extension '%s' of plug-in %s"
           s plugin
       else
-        Kernel.warning ~once:true ~wkey:Kernel.wkey_plugin_not_loaded ~source
+        Kernel.warning ~once:true ~wkey:Kernel.wkey_plugin_not_loaded ~loc
           "Ignoring module importer extension '%s' for unloaded plug-in %s" s plugin;
       IDENTIFIER_LOADER s
     | EXT_LOADER_PLUGIN (s, _) ->
       if String.equal plugin "kernel" then
-        Kernel.abort ~source
+        Kernel.abort ~loc
           "Module importer extension '%s' from frama-c's kernel should not be \
            used with the syntax \\kernel::%s" s s;
       tok
@@ -569,8 +569,8 @@ and hash = parse
                      int_of_string s
                    with Failure _ ->
                      (* the int is too big. *)
-                     let source = Errorloc.convert_loc (lexbuf.lex_start_p, lexbuf.lex_start_p) in
-                     Kernel.warning ~source
+                     let loc = Errorloc.convert_loc (lexbuf.lex_start_p, lexbuf.lex_start_p) in
+                     Kernel.warning ~loc
                        "Bad line number in preprocessed file: %s"  s;
                      (-1)
                  in
@@ -626,20 +626,20 @@ and comment = parse
       Some (get_pos (), res)
     with
       | Failure s -> (* raised by the lexer itself, through [f] *)
-          warn ~source:(get_loc ()) "lexing error: %s" s; None
+          warn ~loc:(get_loc ()) "lexing error: %s" s; None
       | Parsing.Parse_error ->
-        warn ~source:(get_loc ()) "unexpected token '%s'" (Lexing.lexeme lb);
+        warn ~loc:(get_loc ()) "unexpected token '%s'" (Lexing.lexeme lb);
         None
-      | Error (_, m) -> warn ~source:(get_loc ()) "%s" m; None
+      | Error (_, m) -> warn ~loc:(get_loc ()) "%s" m; None
       | Logic_utils.Not_well_formed (loc, m) ->
-        warn ~source:loc "%s" m; None
+        warn ~loc "%s" m; None
       | Logic_utils.Unknown_ext -> None
       | Log.FeatureRequest(pos,_,msg) ->
-        let source = Option.fold ~none:(get_loc ()) ~some:Fileloc.of_pos pos in
-        warn ~source "unimplemented ACSL feature: %s" msg; None
+        let loc = Option.fold ~none:(get_loc ()) ~some:Fileloc.of_pos pos in
+        warn ~loc "unimplemented ACSL feature: %s" msg; None
       | Log.(AbortError _ | AbortFatal _) as exn -> raise exn
       | exn ->
-        Kernel.fatal ~source:(get_loc ()) "Unknown error (%s)"
+        Kernel.fatal ~loc:(get_loc ()) "Unknown error (%s)"
           (Printexc.to_string exn)
 
   let lexpr = parse_from_position Logic_parser.lexpr_eof

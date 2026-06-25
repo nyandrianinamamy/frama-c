@@ -645,7 +645,7 @@ module Precise = struct
   let extract_shared_value node op (loc : Locations.t) state =
     match loc.size with
     | `Top ->
-      Self.warning ?source:(CfgNode.node_first_loc node) ~once:true
+      Self.warning ?loc:(CfgNode.node_first_loc node) ~once:true
         "Ignoring imprecise %a at %a"
         Mt_types.RW.pretty op Locations.pretty loc;
       []

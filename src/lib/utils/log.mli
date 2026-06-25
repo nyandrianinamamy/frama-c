@@ -16,7 +16,7 @@ type event = {
   evt_kind : kind ;
   evt_plugin : string ;
   evt_category : string option ; (** message or warning category *)
-  evt_source : Filepos.t option ;
+  evt_position : Filepos.t option ;
   evt_message : Rich_text.t ;
 }
 (** @since Beryllium-20090601-beta1 *)
@@ -36,7 +36,7 @@ sig
 end
 
 type 'a pretty_printer =
-  ?current:bool -> ?source:Fileloc.t ->
+  ?current:bool -> ?loc:Fileloc.t ->
   ?emitwith:(event -> unit) -> ?echo:bool -> ?once:bool ->
   ?append:(Format.formatter -> unit) ->
   ('a,Format.formatter,unit) format -> 'a
@@ -48,22 +48,25 @@ type 'a pretty_printer =
    - When [current] is [false] (default for most of the channels),
      no location is output. When it is [true], the last registered location
      is used as current (see {!Current_loc}).
-   - [source] is the location to be output. If nil, [current] is used to
+   - [loc] is the location to be output. If nil, [current] is used to
      determine if a location should be output
    - [emitwith] function which is called each time an event is processed
    - [echo] is [true] if the event should be output somewhere in addition
      to [stdout]
    - [append] adds some actions performed on the formatter after the event
      has been processed.
-     @since Beryllium-20090601-beta1 *)
+     @since Beryllium-20090601-beta1
+     @before Frama-C+dev [loc] parameter was named [source].
+*)
 
 type ('a,'b) pretty_aborter =
-  ?current:bool -> ?source:Fileloc.t -> ?echo:bool ->
+  ?current:bool -> ?loc:Fileloc.t -> ?echo:bool ->
   ?append:(Format.formatter -> unit) ->
   ('a,Format.formatter,unit,'b) format4 -> 'a
 (** Same as {!Log.pretty_printer} except that channels having this type
     denote a fatal error aborting Frama-C.
     @since Beryllium-20090601-beta1
+    @before Frama-C+dev [loc] parameter was named [source].
 *)
 
 (* -------------------------------------------------------------------------- *)
@@ -150,14 +153,16 @@ sig
   (** @since Beryllium-20090601-beta1 *)
 
   val printf : ?level:int -> ?dkey:category ->
-    ?current:bool -> ?source:Fileloc.t ->
+    ?current:bool -> ?loc:Fileloc.t ->
     ?append:(Format.formatter -> unit) ->
     ?header:(Format.formatter -> unit) ->
     ('a,Format.formatter,unit) format -> 'a
   (** Outputs the formatted message on [stdout]. Levels and
       key-categories are taken into account like event messages.
       The header formatted message is emitted as a regular [result]
-      message. *)
+      message.
+      @before Frama-C+dev [loc] parameter was named [source].
+  *)
 
   val result : ?level:int -> ?dkey:category -> 'a pretty_printer
   (** Results of analysis. Default level is 1.
@@ -214,13 +219,14 @@ sig
       @since Beryllium-20090601-beta1
       @see <https://frama-c.com/download/frama-c-plugin-development-guide.pdf> *)
 
-  val not_yet_implemented : ?current:bool -> ?source:Fileloc.t ->
+  val not_yet_implemented : ?current:bool -> ?loc:Fileloc.t ->
     ('a,Format.formatter,unit,'b) format4 -> 'a
   (** raises [FeatureRequest] but {i does not} send any message.
       If the exception is not caught, Frama-C displays a feature-request
       message to the user.
       @since Beryllium-20090901
       @before 23.0-Vanadium there was no [current] and [source] arguments.
+      @before Frama-C+dev [loc] parameter was named [source].
   *)
 
   val deprecated: string -> now:string -> ('a -> 'b) -> ('a -> 'b)
@@ -504,7 +510,7 @@ val source : file:Filepath.t -> line:int -> Filepos.t
 [@@deprecated "Use Filepos.make instead"]
 [@@migrate { repl =  fun ~file ~line -> Filepos.make ~path:file ~line () }]
 
-val get_current_source : unit -> Fileloc.t
+val get_current_loc : unit -> Fileloc.t
 
 (* -------------------------------------------------------------------------- *)
 (** {2 Terminal interface}
@@ -549,7 +555,7 @@ val print_delayed : (Format.formatter -> unit) -> unit
 
 (**/**)
 
-val set_current_source : (unit -> Fileloc.t) -> unit
+val set_current_loc : (unit -> Fileloc.t) -> unit
 (** Forward reference to the function returning the current location,
     used when [~current:true] is set on printers. Currently set
     in {!Cil}. Not for the casual user. *)

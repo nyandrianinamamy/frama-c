@@ -312,13 +312,13 @@ let make_events_table print_kind caption events =
     | Error -> "User error"
     | Failure -> "Internal error"
   in
-  let treat_event ({ evt_kind; evt_plugin; evt_source } as evt) =
+  let treat_event ({ evt_kind; evt_plugin; evt_position } as evt) =
     let evt_message = Log.Event.message evt in
     let evt_message =
       Str.global_replace (Str.regexp_string "\n") " " evt_message
     in
     let line =
-      [ plain (string_of_pos_opt evt_source);
+      [ plain (string_of_pos_opt evt_position);
         format "`%s` (emitted by `%s`)" evt_message evt_plugin ]
     in
     if print_kind then plain (kind evt_kind) :: line else line
@@ -340,7 +340,7 @@ let section_event is_err env nb event =
     Format.asprintf "@[<h>%s %d (%s)@]"
       (if is_err then "Error" else "Warning")
       nb
-      (string_of_pos_opt event.evt_source)
+      (string_of_pos_opt event.evt_position)
   in
   let lab =
     Format.asprintf "@[<h>%s-%d@]" (if is_err then "err" else "warn") nb

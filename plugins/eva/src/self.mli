@@ -75,7 +75,7 @@ val register_warn_category:
     {!Position.t}.
 
     If [position] is given, then message will be located at this position.
-    Otherwise if [current] or [source] are given, then the current position
+    Otherwise if [current] or [loc] are given, then the current position
     tracked by the kernel or the given location will respectively be used.
     [stacktrace] optional parameter controls whether the call stack must
     be printed at the end of the message and always default to false.
@@ -84,12 +84,12 @@ val register_warn_category:
 
 type 'a pretty_printer =
   ?emitwith:(Log.event -> unit) -> ?once:bool ->
-  ?pos:Position.t -> ?current:bool -> ?source:Fileloc.t ->
+  ?pos:Position.t -> ?current:bool -> ?loc:Fileloc.t ->
   ?stacktrace:bool ->  ?append:(Format.formatter -> unit) -> ?echo:bool ->
   ('a,Format.formatter,unit) format -> 'a
 
 type ('a,'b) pretty_aborter =
-  ?pos:Position.t -> ?current:bool -> ?source:Fileloc.t ->
+  ?pos:Position.t -> ?current:bool -> ?loc:Fileloc.t ->
   ?stacktrace:bool ->  ?append:(Format.formatter -> unit) -> ?echo:bool ->
   ('a,Format.formatter,unit,'b) format4 -> 'a
 
@@ -120,7 +120,7 @@ val fatal   : ('a,'b) pretty_aborter
 
 (** Output on [stdout]. *)
 val printf :
-  ?level:int -> ?mkey:message_category -> ?current:bool -> ?source:Fileloc.t ->
+  ?level:int -> ?mkey:message_category -> ?current:bool -> ?loc:Fileloc.t ->
   ?append:(Format.formatter -> unit) -> ?header:(Format.formatter -> unit) ->
   ('a, Format.formatter,unit) format -> 'a
 

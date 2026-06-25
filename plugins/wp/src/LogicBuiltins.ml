@@ -140,19 +140,19 @@ let lookup name kinds =
     in HACK compute
   with Not_found -> lookup_driver name kinds
 
-let register ?source name kinds link =
+let register ?loc name kinds link =
   let driver = cdriver_rw () in
   let sigs = try Hashtbl.find driver.hlogic name with Not_found -> [] in
   if List.exists (fun (s,_) -> s = kinds) sigs then
-    Wp_parameters.warning ?source "Redefinition of logic %s%a"
+    Wp_parameters.warning ?loc "Redefinition of logic %s%a"
       name pp_kinds kinds ;
   let entry = (kinds,link) in
   Hashtbl.add driver.hlogic name (entry::sigs)
 
-let register_type ?source name builtin =
+let register_type ?loc name builtin =
   let driver = cdriver_rw () in
   if Hashtbl.mem driver.htypes name then
-    Wp_parameters.warning ?source "Redefinition of type %s" name ;
+    Wp_parameters.warning ?loc "Redefinition of type %s" name ;
   Hashtbl.add driver.htypes name builtin
 
 let iter_table f =
@@ -191,23 +191,23 @@ let constant name = lookup name []
 let hack_type name fn =
   register_type name (HACKT fn)
 
-let add_type ?source name ~link =
-  register_type ?source name (ADT (Lang.extern_t link))
+let add_type ?loc name ~link =
+  register_type ?loc name (ADT (Lang.extern_t link))
 
-let add_alias ~source name kinds ~alias =
-  register ~source name kinds (lookup alias kinds)
+let add_alias ~loc name kinds ~alias =
+  register ~loc name kinds (lookup alias kinds)
 
-let add_logic ~source ?category result name kinds ~link =
+let add_logic ~loc ?category result name kinds ~link =
   let lfun = Lang.extern_f ?category link in
-  ignore result ; register ~source name kinds (LFUN lfun)
+  ignore result ; register ~loc name kinds (LFUN lfun)
 
-let add_predicate ~source name kinds ~link =
+let add_predicate ~loc name kinds ~link =
   let lfun = Lang.extern_f link in
-  register ~source name kinds (LFUN lfun)
+  register ~loc name kinds (LFUN lfun)
 
-let add_ctor ~source name kinds ~link =
+let add_ctor ~loc name kinds ~link =
   let lfun = Lang.extern_f ~category:Constructor link in
-  register ~source name kinds (LFUN lfun)
+  register ~loc name kinds (LFUN lfun)
 
 (* -------------------------------------------------------------------------- *)
 (* --- Implemented Builtins                                               --- *)

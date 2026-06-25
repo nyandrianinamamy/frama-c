@@ -191,7 +191,7 @@ and cfgStmt env (s: stmt) next break cont =
       ()
   | Return _  | Throw _ -> ()
   | Goto (p,_) when not s.ghost && !p.ghost ->
-    Kernel.error ~once:true ~source:(Stmt.loc s)
+    Kernel.error ~once:true ~loc:(Stmt.loc s)
       "'%a' would jump from normal statement to ghost code"
       Cil_printer.pp_stmt s ;
     addSucc !p

@@ -98,8 +98,8 @@ let get_non_naturals kf =
       let pred = Option.get pred in
       if Stmt.Hashtbl.mem current s &&  not (is_back_edge kf pred s) then begin
         res := Stmt.Set.add s !res;
-        let source = Cil_datatype.Stmt.loc s in
-        Kernel.warning ~once:true ~source "Non-natural loop detected."
+        let loc = Cil_datatype.Stmt.loc s in
+        Kernel.warning ~once:true ~loc "Non-natural loop detected."
       end
     end
     else begin

@@ -457,7 +457,7 @@ let get_called_ptr = function
   | Mem e -> Some e
   | _ -> None
 
-let get_canonical_call ~source f tf =
+let get_canonical_call ~loc f tf =
   let name =
     match tf.tnode with
     | TNamed ti when Ast_types.C.is_fun tf -> ti.torig_name
@@ -473,7 +473,7 @@ let get_canonical_call ~source f tf =
       if va then Buffer.add_string buffer "_va";
       Buffer.contents buffer
     | _ ->
-      Options.abort ~source
+      Options.abort ~loc
         "@[<hov 0>Call to @[<hov 2>(%a)@]@ with non-function type @[<hov 2>(%a)@]@]"
         Exp.pretty f Typ.pretty tf
   in
@@ -481,27 +481,27 @@ let get_canonical_call ~source f tf =
     let kf = Globals.Functions.find_by_name name in
     Some (Kernel_function.get_vi kf)
   with Not_found ->
-    Options.warning ~source ~once:true
+    Options.warning ~loc ~once:true
       ~wkey:wkey_untransformed_call_function_not_found
       "@[<hov 0>Call to (%a) with type @[<hov 2>(%a):@]@ Function '%s' not found@]"
       Exp.pretty f Typ.pretty (Cil.typeOf f) name;
     None
 
-let get_pointer_call ~index ~source f =
+let get_pointer_call ~index ~loc f =
   let tf = Ast_types.C.direct_pointed (Cil.typeOf f) in
   let res = INDEX.find_opt (SIG.of_type tf) index in
   match res with
   | Some _ -> res
   | None ->
     if Options.BindingCall.get () then
-      get_canonical_call ~source f tf
+      get_canonical_call ~loc f tf
     else None
 
 let add_eventual_cast_to_expression lval_typ e =
   let newt = Ast_types.C.remove_attributes_for_c_cast lval_typ in
   let e' = Cil.mkCast ~force:false ~newt e in
   if e' != e then
-    Options.warning ~source:e.eloc ~once:true
+    Options.warning ~loc:e.eloc ~once:true
       ~wkey:wkey_cast_insertion
       "@[<hov 0>Cast to (%a) inserted@ for expression (%a)@ of type (%a)@]"
       Typ.pretty newt Exp.pretty e Typ.pretty (Cil.typeOf e);
@@ -511,15 +511,14 @@ let add_eventual_cast_to_param arg_typ param =
   let newt = Ast_types.C.remove_attributes_for_c_cast arg_typ in
   let param' = Cil.mkCast ~force:false ~newt param in
   if param' != param then
-    Options.warning ~source:param.eloc ~once:true
+    Options.warning ~loc:param.eloc ~once:true
       ~wkey:wkey_cast_insertion
       "@[<hov 0>Cast to (%a) inserted@ for parameter (%a)@ of type (%a)@]"
       Typ.pretty newt Exp.pretty param Typ.pretty (Cil.typeOf param);
   param'
 
 let do_pointer_call ~loc ~index ~transform f es =
-  let source = loc in
-  match get_pointer_call ~index ~source:loc f with
+  match get_pointer_call ~index ~loc f with
   | None -> None
   | Some vf ->
     let fn = vf.vorig_name in
@@ -530,12 +529,12 @@ let do_pointer_call ~loc ~index ~transform f es =
         (add_eventual_cast_to_param t e) :: wrap ts va es
       | [], es when va -> es
       | [], es ->
-        Options.warning ~source ~once:true
+        Options.warning ~loc ~once:true
           ~wkey:wkey_transformed_call_skipped_parameters
           "Using '%s': %d last parameters skipped" fn (List.length es);
         []
       | ts, [] ->
-        Options.warning ~source ~once:true
+        Options.warning ~loc ~once:true
           ~wkey:wkey_transformed_call_missing_parameters
           "Using '%s': missing %d parameters" fn (List.length ts);
         []
@@ -603,7 +602,7 @@ let build_volatile_table vmap =
       match L_MAP.find_opt path map with
       | Some old ->
         if not (Varinfo.equal old fct) then
-          Options.warning ~source:loc ~once:true
+          Options.warning ~loc ~once:true
             ~wkey:wkey_duplicated_access_function
             "%s access function already defined for %a"
             kind L_PATH.pretty path;
@@ -618,7 +617,7 @@ let build_volatile_table vmap =
             vmap.rd <- add_fct "read" loc vmap.rd p fct_rd;
             vmap.wr <- add_fct "write" loc vmap.wr p fct_wr;
           with L_PATH.Unsupported ->
-            Options.error ~source:loc
+            Options.error ~loc
               "Unsupported l-value in volatile clause: %a@."
               Identified_term.pretty l
         ) tset
@@ -651,7 +650,7 @@ let get_wkeys ~is_complete =
 
 let get_volatile_access ~is_wr_access fct_name binding_map kf_tbl vol_tbl lval =
   let typ = Cil.typeOfLval lval in
-  let source = Current_loc.get () in
+  let loc = Current_loc.get () in
   let warn_access = if is_wr_access then "write" else "read" in
   (* Can raise L_PATH.Unsupported via L_PATH.of_lval *)
   let get_volatile_access ~is_complete =
@@ -661,7 +660,7 @@ let get_volatile_access ~is_wr_access fct_name binding_map kf_tbl vol_tbl lval =
     let found fct =
       Options.debug ~level:2 ~dkey:dkey_binding
         "Function found: %s@." fct.vname;
-      Options.warning ~source ~once:true ~wkey:transformed_key
+      Options.warning ~loc ~once:true ~wkey:transformed_key
         "%s function: Introducing a call to '%s' for %s access to %svolatile left-value: %a"
         fct_name fct.vorig_name warn_access warn_complete Lval.pretty lval;
       Some (fct, (Ast_types.C.remove_attributes_for_c_cast typ))
@@ -687,7 +686,7 @@ let get_volatile_access ~is_wr_access fct_name binding_map kf_tbl vol_tbl lval =
             Ast_types.C.remove_attributes_for_c_cast
               (if Options.Base.get () then T_MAP.basetype typ else typ)
           in
-          Options.warning ~source ~once:true ~wkey:untransformed_key
+          Options.warning ~loc ~once:true ~wkey:untransformed_key
             "Undefined %s access function for %svolatile left-value: (volatile %a) %a"
             warn_access warn_complete Typ.pretty t Lval.pretty lval;
           None
@@ -700,7 +699,7 @@ let get_volatile_access ~is_wr_access fct_name binding_map kf_tbl vol_tbl lval =
     else
       None
   with L_PATH.Unsupported ->
-    Options.warning ~source "Unsupported volatile l-value: %a"
+    Options.warning ~loc "Unsupported volatile l-value: %a"
       Lval.pretty lval;
     None
 
@@ -901,13 +900,13 @@ class process_volatile_access project binding_map kf_tbl vol_tbl index =
               let transform = Visitor_behavior.Memo.varinfo self#behavior in
               match do_pointer_call ~loc ~index ~transform f xs with
               | Some (fn, g, ys) ->
-                Options.warning ~source:loc ~once:true
+                Options.warning ~loc ~once:true
                   ~wkey:wkey_transformed_call
                   "%a: use pointer function '%s'"
                   Fileloc.pretty loc fn;
                 Call (result, g, ys, loc)
               | None ->
-                Options.warning ~source:loc ~once:true
+                Options.warning ~loc ~once:true
                   ~wkey:wkey_untransformed_call
                   "Original pointer function kept"; i
           end
@@ -948,7 +947,7 @@ class process_volatile_access project binding_map kf_tbl vol_tbl index =
             match Ast_types.C.unroll_node typ_exp with
             | TPtr typ_pointed when Ast_types.C.is_volatile typ_pointed ->
               Options.warning
-                ~source:(Current_loc.get ())
+                ~loc:(Current_loc.get ())
                 ~once:true
                 ~wkey:wkey_volatile_cast
                 "Cast from type with volatile attribute (%a) to %a. Detection of \

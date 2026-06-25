@@ -44,8 +44,8 @@ let log_arg analysis =
   source, append
 
 let feedback analysis =
-  let source, append = log_arg analysis in
-  Self.feedback ~once:true ?source ~append
+  let loc, append = log_arg analysis in
+  Self.feedback ~once:true ?loc ~append
 
 let thread_feedback = feedback ~mkey:Log_key.thread
 let mutex_feedback = feedback ~mkey:Log_key.mutex
@@ -53,12 +53,12 @@ let queue_feedback = feedback ~mkey:Log_key.queue
 let show_feedback = feedback ~mkey:Log_key.show
 
 let warning analysis =
-  let source, append = log_arg analysis in
-  Self.warning ~once:true ?source ~append
+  let loc, append = log_arg analysis in
+  Self.warning ~once:true ?loc ~append
 
 let error analysis =
-  let source, append = log_arg analysis in
-  Self.error ~once:true ?source ~append
+  let loc, append = log_arg analysis in
+  Self.error ~once:true ?loc ~append
 
 exception Hook_failure of int
 let default_err_code = -255

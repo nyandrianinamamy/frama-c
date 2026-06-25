@@ -383,10 +383,10 @@ let emitter =
 let set_unreachable pid =
   if WpPropId.is_smoke_test pid then
     begin
-      let source = WpPropId.source_of_id pid in
+      let loc = WpPropId.source_of_id pid in
       set_doomed emitter pid ;
       incr unreachable_failed ;
-      Wp_parameters.warning ~source "Failed smoke-test"
+      Wp_parameters.warning ~loc "Failed smoke-test"
     end
   else
     let open Property in
