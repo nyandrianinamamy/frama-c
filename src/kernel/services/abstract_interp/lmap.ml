@@ -394,8 +394,27 @@ struct
 
     type widen_hint = Base.t -> V.widen_hint
 
+    let rec contains_array (typ: Cil_types.typ) =
+      match typ.tnode with
+      | TArray _ -> true
+      | TNamed ti -> contains_array ti.ttype
+      | TComp { cfields = Some fields } ->
+        List.exists (fun fi -> contains_array fi.Cil_types.ftype) fields
+      | TComp { cfields = None } -> false
+      | TVoid | TInt _ | TFloat _ | TPtr _
+      | TFun _ | TEnum _ | TBuiltin_va_list -> false
+
+    (* In a loop that iterates over an array, widening only the array (and not
+       the index) does not converge: a different index is modified at each
+       iteration, and the offsetmap widening only applies the value widening
+       point-by-point for each index. *)
+    let is_widening_convergent base =
+      let is_safe typ = not (contains_array typ) in
+      Option.fold ~none:true ~some:is_safe (Base.typeof base)
+
     (* Precondition : m1 <= m2 *)
     let widen ?(priority=Base.Set.empty) ?hint m1 m2 =
+      let priority = Base.Set.filter is_widening_convergent priority in
       let widened, something_done =
         Base.Set.fold
           (fun key (widened, something_done) ->
