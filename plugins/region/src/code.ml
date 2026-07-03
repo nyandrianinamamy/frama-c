@@ -129,16 +129,17 @@ let rec add_init (m:map) (s:stmt) (lv:lval) (iv:init) =
 
 let add_write ~map ~stmt ~acs (r:node) (e:exp) =
   Memory.add_write r acs ;
+  let () =
+    if (Ast_types.C.is_ptr @@ Access.typeof acs && Ast_info.is_null_expr e)
+    then Memory.add_flag [`Nullable] r
+  in
   match e.enode with
   | Lval le when is_comp le ->
     let v = add_lval map stmt le in
     Memory.merge r v
   | _ ->
     let v = add_exp map stmt e in
-    let () =
-      if (Ast_types.C.is_ptr @@ Access.typeof acs && Ast_info.is_null_expr e)
-      then Memory.add_flag [`Nullable] r
-    in Option.iter (Memory.add_points_to r) v
+    Option.iter (Memory.add_points_to r) v
 
 let add_function (m:map) (s:stmt) (f:lhost) =
   match f with
