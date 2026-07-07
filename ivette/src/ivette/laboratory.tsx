@@ -1410,15 +1410,13 @@ function TabView(props: TabViewProps): JSX.Element | null {
   const icon = 'DISPLAY';
 
   const theClass = classes(
-    'dome-xButton',
-    'dome-xButton-default',
     'labview-tab',
-    selected && 'dome-control-selected'
+    selected && 'dome-selected'
   );
 
   return (
     <Hbox className={theClass}>
-      <Button
+      <TextButton
         icon={icon}
         label={label}
         title={title}
