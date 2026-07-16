@@ -1,0 +1,45 @@
+[kernel] Parsing widening_priority.i (no preprocessing)
+[eva] Analyzing a complete application starting at main
+[eva:progress] Computing initial state
+[eva:progress] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  nondet ∈ [--..--]
+[eva:show] widening_priority.i:7: Frama_C_show_each: UNINITIALIZED, {0}
+[eva:partition] widening_priority.i:6: starting to merge loop iterations
+[eva:show] widening_priority.i:7: 
+  Frama_C_show_each:
+  [0] ∈ [-99..99] or UNINITIALIZED
+  [1..19] ∈ UNINITIALIZED, {0; 1}
+[eva:alarm] widening_priority.i:10: Warning: 
+  accessing uninitialized left-value.
+  assert \initialized(&array[tmp]);
+  (tmp from n++)
+[eva:show] widening_priority.i:7: 
+  Frama_C_show_each:
+  [0..1] ∈ [-99..99] or UNINITIALIZED
+  [2..19] ∈ UNINITIALIZED, {0; 1; 2}
+[eva:show] widening_priority.i:7: 
+  Frama_C_show_each:
+  [0..2] ∈ [-99..99] or UNINITIALIZED
+  [3..19] ∈ UNINITIALIZED, [0..19]
+[eva:show] widening_priority.i:7: 
+  Frama_C_show_each: [-99..99] or UNINITIALIZED, [0..20]
+[eva:alarm] widening_priority.i:8: Warning: 
+  accessing out of bounds index. assert n < 20;
+[eva:progress] Recording results for main
+[eva:progress] Done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function main:
+  array[0..19] ∈ [-99..99] or UNINITIALIZED
+  n ∈ [1..20]
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  NO EFFECTS
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+    array[0..19]; n; tmp
+[inout] Inputs for function main:
+    nondet
