@@ -3983,6 +3983,92 @@ let bitsSizeOfBitfield typlv =
      | _ -> bitsSizeOf t)
   | t -> bitsSizeOf t
 
+let bitfield_access_unit bf =
+  if Option.is_none bf.fbitfield then
+    Kernel.fatal "bitfield_access_unit called on non-bitfield %a"
+      Cil_datatype.Fieldinfo.pretty bf;
+  let foffset_bits, fwidth_bits = fieldBitsOffset bf in
+  let storage_kind typ =
+    Ast_types.C.remove_attributes [Ast_attributes.bitfield_attribute_name] typ
+  in
+  let my_kind = storage_kind bf.ftype in
+  let storage_align =
+    if fwidth_bits = 0 then 1 else bytesAlignOf ~standard_or_gcc:`Standard my_kind
+  in
+  let storage_offset = foffset_bits - foffset_bits mod (8) in
+  (*Format.printf "Field %s, offset %d, initial au offset %d, align %d@."
+    bf.fname foffset_bits storage_offset storage_align; *)
+  let fields = Option.get bf.fcomp.cfields in
+  let prev_fields, next_fields =
+    List.partition (fun f -> f.forder < bf.forder) fields
+  in
+  let next_fields = List.tl next_fields in
+  let prev_fields = List.rev prev_fields in
+  let rec span_left storage_align storage_offset = function
+    | [] -> storage_align, 0
+    | f :: tl ->
+      let (o,w) = fieldBitsOffset f in
+      if Option.is_none f.fbitfield || Option.get f.fbitfield = 0 then storage_align, o+w
+      else begin
+        if o+w <= storage_offset && storage_offset mod (8) = 0 then
+          storage_align, storage_offset
+        else
+          let storage_align =
+            max storage_align
+              (bytesAlignOf ~standard_or_gcc:`Standard (storage_kind f.ftype))
+          in
+          span_left storage_align (min o storage_offset) tl
+      end
+  in
+  let storage_align, start_offset =
+    if fwidth_bits = 0 then storage_align, storage_offset else
+      span_left storage_align storage_offset prev_fields
+  in
+  assert (start_offset mod 8 = 0);
+  let next_offset = foffset_bits + fwidth_bits in
+  let rec span_right start_new_unit storage_align next_offset = function
+    | [] ->
+      (* in case we have bitfields at the end of a struct, we might not
+         end exactly at a char boundary. just add some padding offset here. *)
+      storage_align,
+      if next_offset mod (8) = 0 then next_offset
+      else next_offset + (8) - (next_offset mod (8))
+    | f :: tl ->
+      let (o,w) = fieldBitsOffset f in
+      if Option.is_none f.fbitfield || Option.get f.fbitfield = 0 then begin
+        assert (o mod 8 = 0);
+        storage_align, o
+      end else begin
+        let storage_align =
+          max storage_align
+            (bytesAlignOf ~standard_or_gcc:`Standard (storage_kind f.ftype))
+        in
+        if not start_new_unit && o >= next_offset && o mod (8 ) = 0 then
+          storage_align, o
+        else begin
+          let next_offset = max next_offset (o+w) in
+          span_right false storage_align next_offset tl
+        end
+      end
+  in
+  (* if current bifield is of size 0, it's basically the start of the access
+     unit of the next one. *)
+  let start_new_unit = fwidth_bits = 0 in
+  let _, next_offset = span_right start_new_unit storage_align next_offset next_fields in
+  let width = next_offset - start_offset in
+  assert (width mod 8 == 0);
+  let typ =
+    match List.find_opt (fun i -> bitsSizeOfInt i = width)
+            [ IUChar; IUShort; IUInt; IULong; IULongLong; IUInt128 ]
+    with
+    | Some i -> Cil_const.mk_tint i
+    | None ->
+      let loc = Kernel.gen_loc in
+      Cil_const.(mk_tarray (mk_tint IChar)
+                   (Some (kinteger ~loc (Machine.sizeof_kind()) (width/8))))
+  in
+  start_offset / 8, typ
+
 let () = constfoldtoint := constFoldToInt ~machdep:true
 
 let bytesAlignOf t =

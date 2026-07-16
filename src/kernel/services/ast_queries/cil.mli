@@ -1948,7 +1948,7 @@ val bytesAlignOf: typ -> int
 *)
 val bytesAlignOfVarinfo: varinfo -> int
 
-(** The alignment of the variable according to:
+(** The alignment of the field according to:
     - its _Alignas specifier, or if unspecified,
     - its type.
       @raise {!SizeOfError} when it cannot compute the alignment.
@@ -1961,19 +1961,34 @@ val bytesAlignOfField: fieldinfo -> int
     @since Silicium-20161101 *)
 val intOfAttrparam: attrparam -> int option
 
-(** Give a type of a base and an offset, returns the number of bits from the
+(** Given a type of a base and an offset, returns the number of bits from the
     base address and the width (also expressed in bits) for the subobject
     denoted by the offset. Raises {!Cil.SizeOfError} when it cannot compute
     the size. This function is architecture dependent, so you should only call
     this after you call {!Machine.init}. *)
 val bitsOffset: typ -> offset -> int * int
 
-(** Give a field, returns the number of bits from the structure or union
+(** Given a field, returns the number of bits from the structure or union
     containing the field and the width (also expressed in bits) for the subobject
     denoted by the field. Raises {!Cil.SizeOfError} when it cannot compute
     the size. This function is architecture dependent, so you should only call
     this after you call {!Machine.init}. *)
 val fieldBitsOffset: fieldinfo -> int * int
+
+(** returns the offset (in bytes) and the kind of the enclosing storage unit in
+    which the given bitfield is stored. Note that the notion of
+    storage unit is pretty much unspecified in the C standard, but the following
+    properties should hold:
+    - the storage unit does not overlap with any non-bitfield
+    - bitfields sharing a byte will be put in the same storage unit
+
+    If possible while satisfying the constraints above, the returned type
+    will be an integer type, otherwise an array of char (i.e. bytes).
+
+    @raise AbortFatal if the given fieldinfo is not a bitfield
+    @since Frama-C+dev
+*)
+val bitfield_access_unit: fieldinfo -> int * typ
 
 val create_string_literal: ?loc:Fileloc.t -> string -> varinfo
 (** creates a new varinfo for holding a string literal
