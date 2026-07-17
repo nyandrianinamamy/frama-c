@@ -93,7 +93,11 @@ export interface BaseButtonProps {
   blink?: boolean;
   /** value assigned to the button */
   value?: TypeValue,
-  /** */
+  /**
+   * Indicates whether the button is selected.
+   * Can be a fixed boolean value or a function evaluated dynamically
+   * to determine the current selection state.
+   */
   selected?: Selected;
   /**
      Button callback.
@@ -255,7 +259,11 @@ interface ButtonGroupProps {
   style?: React.CSSProperties;
   /** Buttons array. */
   children: React.JSX.Element[];
-  /** Callback on clicked on a button */
+  /**
+   * Indicates whether the button is selected.
+   * Can be a fixed boolean value or a function evaluated dynamically
+   * to determine the current selection state.
+   */
   isSelected?: Selected,
   /** Callback on clicked on a button */
   onGroupChanged?: OnEvent,
@@ -291,7 +299,7 @@ export function ButtonGroup(props: ButtonGroupProps): JSX.Element {
   );
 }
 
-/** Button Group with a single choice like radioGroup */
+/** Button Group with multiple choices like CheckboxGroup */
 export interface SingleChoiceGroupProps
   extends Omit<ButtonGroupProps, 'isSelected' | 'onGroupChanged'> {
   /** Currently selected button. */
@@ -387,9 +395,9 @@ export interface SpinnerProps {
   vstep?: number;
   /** Callback to selected values. */
   onChange?: (newValue: number) => void;
-  /** Default selected value. */
+  /** Additional CSS class. */
   className?: string;
-  /** Additional style for the `< dov /> ` container of Raiods */
+  /** Additional style for the input */
   style?: React.CSSProperties;
 }
 
@@ -444,9 +452,9 @@ export interface FieldProps {
   onChange?: (newValue: string) => void;
   /** Callback on every modification. */
   onEdited?: (tmpValue: string) => void;
-  /** Default selected value. */
+  /** Additional CSS class. */
   className?: string;
-  /** Additional style for the `< dov /> ` container of Raiods */
+  /** Additional style for the input */
   style?: React.CSSProperties;
 }
 
@@ -510,9 +518,9 @@ export interface SelectProps {
   focus?: boolean;
   /** Callback to selected values. */
   onChange?: (newValue?: string) => void;
-  /** Default selected value. */
+  /** Additional CSS class. */
   className?: string;
-  /** Additional style for the `< dov /> ` container of Raiods */
+  /** Additional style for the `<select/> ` container*/
   style?: React.CSSProperties;
   /** Shall be standard `<option/>` and `<optgroup/>` elements. */
   children?: React.ReactNode;

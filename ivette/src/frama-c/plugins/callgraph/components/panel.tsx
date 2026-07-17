@@ -45,11 +45,6 @@ function getPanelFilters(params: PanelFilterParams): JSX.Element {
   return (
     <>
       <ButtonGroup>
-        {/* <Button
-          label="Status"
-          title={`Select visible status`}
-          onClick={() => Dome.popupMenu(contextMenuStatus)}
-          /> */}
         <Dropdown control={<Button
           label='Status'
           title='Select visible status'/>}
@@ -64,11 +59,6 @@ function getPanelFilters(params: PanelFilterParams): JSX.Element {
       </ButtonGroup>
 
       <ButtonGroup>
-        {/* <Button
-          label="Kind"
-          title={`Select visible kind`}
-          onClick={() => Dome.popupMenu(contextMenuKind)}
-          /> */}
         <Dropdown control={<Button label='Kind' title='Select visible kind'/>}
         >{contextMenuKind.map(
           (e, i) => <Checkbox key={i} {...e} />
@@ -79,12 +69,6 @@ function getPanelFilters(params: PanelFilterParams): JSX.Element {
           onClick={() => onContextMenu(EFilterType.KIND)}
           />
       </ButtonGroup>
-
-      {/* <Button
-          label="Eva"
-          title={`Select visible Eva properties`}
-          onClick={() => Dome.popupMenu(contextMenuEva)}
-          /> */}
       <Dropdown control={<Button
         label='Eva'
         title='Select visible Eva properties'/>}

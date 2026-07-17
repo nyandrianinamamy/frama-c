@@ -367,14 +367,6 @@
     .message-emitter-category { margin-bottom: 10px; }
     .dome-xForm-field { padding: 1px; }
 
-    /* .dome-xButton {
-      border: solid 1px;
-      border-color: var(--border);
-      color: var(--text-discrete);
-      background-color: transparent;
-      background-image: none;
-    } */
-
     .dome-xButton:disabled, .dome-xButton:active:disabled {
       fill: var(--disabled-text);
       color: var(--disabled-text);

@@ -75,7 +75,7 @@ function RegionAnalys(): JSX.Element {
     <>
       <Tools.ToolBar>
         <Label label='Function' />
-        <LCD className='region-lcd' label={kfName ?? '---'} />
+        <LCD className='wp-region-lcd' label={fct} />
         <Button
           icon={running ? 'EXECUTE' : 'MEDIA.PLAY'}
           title='Run region analysis on the selected function'

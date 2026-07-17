@@ -218,11 +218,6 @@
   background-color: var(--highlighted-marker);
 }
 
-.test-sub {
-  font-size: 0.75em;
-  position: relative;
-  bottom: -0.3em;
-}
 :not(.cm-dead-code)>.cm-dead-code {
   font-style: italic;
   filter: opacity(0.5);

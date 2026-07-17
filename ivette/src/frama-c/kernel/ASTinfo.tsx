@@ -64,7 +64,6 @@ interface FieldInfoProps {
 function FieldInfo(props: FieldInfoProps): JSX.Element {
   const { field, onSelected, onHovered } = props;
   const { label, descr, title, text } = field;
-  if(Array.isArray(text)) text[0] = ['test', ['#sub', 'sub']];
   return (
     <div className="astinfo-infos" >
       <div className="dome-text-label astinfo-kind" title={title}>

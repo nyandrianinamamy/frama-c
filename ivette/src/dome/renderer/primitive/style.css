@@ -174,7 +174,6 @@
 /* --- Styling Button Group                                       --- */
 /* -------------------------------------------------------------------------- */
 
-/* .dome-xToolbar .dome-xButtongroup, */
 .dome-xButtongroup {
     display: flex ;
     flex-direction: row ;
@@ -402,41 +401,6 @@ meter::-webkit-meter-even-less-good-value  {
     background: none;
   }
 }
-
-/* -------------------------------------------------------------------------- */
-/* --- Multiselect                                                        --- */
-/* -------------------------------------------------------------------------- */
-
-/* .dome-xMenu-Item {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  align-items: center;
-  align-content: center;
-  padding: 0 5px;
-  gap: 5px;
-
-  &:not(.dome-xMenu-Item-disabled) {
-    cursor: pointer ;
-  }
-
-  .dome-xMenu-Item-Button { gap: 10px; }
-}
-
-.dome-xMenu-Item-disabled {
-  color: var(--disabled-text);
-  svg { fill: var(--disabled-text); }
-}
-
-.dome-xMenu-Item-title {
-  padding: 5px 10px;
-  font-size: 1.2em;
-  margin-bottom: 5px;
-}
-
-.dome-xMenu-Item-separator {
-  border-bottom: solid 1px var(--disabled-text);
-} */
 
 /* -------------------------------------------------------------------------- */
 /* --- No background                                                        --- */

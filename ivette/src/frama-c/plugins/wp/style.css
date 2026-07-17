@@ -207,8 +207,6 @@
 
 .wp-printer-field:hover
 {
-    /* fill: var(--default-color); */
-    /* color: var(--default-color); */
     background: var(--background-button-hover) !important;
 }
 
@@ -338,15 +336,6 @@
   border: none;
   margin-left: 4px;
   border-radius: 4px;
-  background: var(--background-interaction);
-}
-
-.wp-config-checkbox .dome-xIcon-disabled {
-  fill: var(--disabled-text);
-}
-
-.wp-config-checkbox:hover {
-  border-radius: 6px;
   background: var(--background-interaction);
 }
 

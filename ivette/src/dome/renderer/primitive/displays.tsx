@@ -46,7 +46,7 @@ export interface SVGprops {
   size?: number;
   /** Additional class name(s). */
   className?: string;
-  /**  */
+  /** Fill color */
   fill?: string;
 }
 
