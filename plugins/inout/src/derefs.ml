@@ -31,7 +31,7 @@ class virtual do_it_ = object(self)
         self#join
           (Locations.enumerate_valid_bits Read (Locations.make addr size))
     end;
-    DoChildren
+    Cil.DoChildren
 
   method compute_funspec (_: kernel_function) =
     Memory_zone.bottom

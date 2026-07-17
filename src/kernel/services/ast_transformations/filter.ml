@@ -65,7 +65,7 @@ end = struct
     let res = ref [] in
     let vis = object
       inherit Visitor.frama_c_inplace
-      method! vblock b = res := b.bstatics @ !res; DoChildren
+      method! vblock b = res := b.bstatics @ !res; Cil.DoChildren
     end
     in
     ignore (Visitor.visitFramacKf (vis:>Visitor.frama_c_visitor) kf);
@@ -300,7 +300,7 @@ end = struct
       method! vvrbl v =
         if not v.vglob then
           ignore (Varinfo.Hashtbl.find vars_visible v);
-        SkipChildren
+        Cil.SkipChildren
     end
     in
     try
@@ -372,7 +372,7 @@ end = struct
         else
           Cil.new_exp ~loc:e.eloc e'.enode
       in
-      DoChildrenPost do_post
+      Cil.DoChildrenPost do_post
 
     (*method vvdec _ = Cil.SkipChildren (* everything is done elsewhere *)*)
 
@@ -439,7 +439,7 @@ end = struct
       end else begin
         debug "\t-> ignoring annotation: %a@."
           Printer.pp_code_annotation v;
-        ChangeTo
+        Cil.ChangeTo
           (Logic_const.new_code_annotation
              (AAssert
                 ([],
@@ -707,7 +707,7 @@ end = struct
       Varinfo.Hashtbl.add spec_table f.svar
         (Cil.visitCilFunspec (self:>Cil.cilVisitor)
            (Annotations.funspec (Option.get self#current_kf)));
-      SkipChildren
+      Cil.SkipChildren
 
     method private visit_pred p =
       Logic_const.new_predicate
@@ -726,7 +726,7 @@ end = struct
         match f with
           FromAny -> b,FromAny
         | From l -> b, From (filter_list from_visible self#visit_identified_term l)
-      in ChangeTo res
+      in Cil.ChangeTo res
 
     method! vbehavior b =
       let finfo = self#get_finfo () in
@@ -771,7 +771,7 @@ end = struct
       let extended_visit a = Cil.visitCilExtended (self:>Cil.cilVisitor) a in
       b.b_extended <- filter_list extended_visible extended_visit b.b_extended;
 
-      SkipChildren (* see the warning on [SkipChildren] in [vspec] ! *)
+      Cil.SkipChildren (* see the warning on [SkipChildren] in [vspec] ! *)
 
     method! vspec spec =
       debug "@[[vspec] for %a @\n@]@."
@@ -799,12 +799,12 @@ end = struct
       spec.spec_terminates <- new_term ;
       spec.spec_complete_behaviors <- [] (* TODO ! *) ;
       spec.spec_disjoint_behaviors <- [] (* TODO ! *) ;
-      SkipChildren (* Be very careful that we can use [SkipChildren] here
-                      only if everything that is in the new spec
-                      has been visited above.
-                      we need to put links to the appropriate copies of
-                      variables (both pure C and logical ones)
-                   *)
+      Cil.SkipChildren (* Be very careful that we can use [SkipChildren] here
+                          only if everything that is in the new spec
+                          has been visited above.
+                          we need to put links to the appropriate copies of
+                          variables (both pure C and logical ones)
+                       *)
 
     method private build_proto is_first finfo loc =
       let kf = Option.get self#current_kf in
@@ -943,7 +943,7 @@ end = struct
              otherwise does not work whenever frama-c is compiled with
              -no-assert *)
           let res = self#vfunc f in
-          assert (res = SkipChildren);
+          assert (res = Cil.SkipChildren);
           (* if this ever changes, we must do some work. *)
           GFun (f,loc), action
         end

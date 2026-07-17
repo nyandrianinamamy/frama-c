@@ -238,7 +238,7 @@ module LvalueTaints = struct
       | None -> Cil.DoChildren
       | Some stmt ->
         match Results.after stmt |> EvaTaints.evaluate expr with
-        | Some (Results.Untainted, _) -> DoChildren
+        | Some (Results.Untainted, _) -> Cil.DoChildren
         | Some (t, _) -> Table.add taints lval (Kstmt stmt, t) ; Cil.DoChildren
         | None -> Cil.DoChildren
   end

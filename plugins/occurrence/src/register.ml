@@ -105,7 +105,7 @@ class occurrence = object (self)
         error ~current:true "Found completely imprecise value (%a). Ignoring@."
           Printer.pp_lval lv
     end;
-    DoChildren
+    Cil.DoChildren
 
   method! vterm_lval tlv =
     (try
@@ -114,7 +114,7 @@ class occurrence = object (self)
      with
      (* Translation to lval failed.*)
      | Logic_to_c.No_conversion -> ());
-    DoChildren
+    Cil.DoChildren
 
   method! vstmt_aux s =
     Async.yield ();
@@ -132,7 +132,7 @@ class is_sub_lval lv = object
 
   method! vlval lv' =
     if Cil_datatype.Lval.equal lv lv' then raise Exit;
-    DoChildren
+    Cil.DoChildren
 end
 
 (** Occurrence has found the given [lv] somewhere inside [ki]. We try to find

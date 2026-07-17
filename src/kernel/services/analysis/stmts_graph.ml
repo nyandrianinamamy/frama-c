@@ -168,7 +168,7 @@ class stmt_graph_builder = object
     SG.add_vertex graph s; (* required for function with exactly one stmt *)
     List.iter (SG.add_edge graph s) s.succs;
     (* preds will be set latter while being visited *)
-    DoChildren
+    Cil.DoChildren
 end
 
 let compute_stmtgraph_func func =

@@ -124,12 +124,12 @@ let translate_old_label s p =
     inherit Cil.nopCilVisitor
     method! vpredicate_node = function
       | Pat(p,lab) when lab = Logic_const.old_label ->
-        ChangeDoChildrenPost(make_new_at_predicate p, fun x -> x)
-      | _ -> DoChildren
+        Cil.ChangeDoChildrenPost(make_new_at_predicate p, fun x -> x)
+      | _ -> Cil.DoChildren
     method! vterm_node = function
       | Tat(t,lab) when lab = Logic_const.old_label ->
-        ChangeDoChildrenPost(make_new_at_term t, fun x->x)
-      | _ -> DoChildren
+        Cil.ChangeDoChildrenPost(make_new_at_term t, fun x->x)
+      | _ -> Cil.DoChildren
   end
   in Cil.visitCilPredicate vis p
 
@@ -2238,15 +2238,15 @@ class complete_types =
         { p with pred_content = Papp(li,labs,args') }
       | _ -> p
 
-    method! vpredicate _ = DoChildrenPost self#insert_cast_pred
+    method! vpredicate _ = Cil.DoChildrenPost self#insert_cast_pred
 
     method! vterm t =
       match t.term_node with
       | TLval (TVar v, TNoOffset)
         when Ast_types.Acsl.plain_or_set_ctype Cil.isCompleteType v.lv_type &&
              not (Ast_types.Acsl.plain_or_set_ctype Cil.isCompleteType t.term_type) ->
-        ChangeDoChildrenPost({ t with term_type = v.lv_type }, fun x -> x)
-      | _ -> DoChildrenPost self#insert_cast_term
+        Cil.ChangeDoChildrenPost({ t with term_type = v.lv_type }, fun x -> x)
+      | _ -> Cil.DoChildrenPost self#insert_cast_term
 
     method! vinst = function
       | Code_annot _ -> Cil.DoChildren

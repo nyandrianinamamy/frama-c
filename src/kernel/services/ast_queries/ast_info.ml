@@ -89,7 +89,7 @@ let term_lvals_of_term t =
          inherit Cil.nopCilVisitor
          method! vterm_lval lv =
            l := lv :: !l;
-           DoChildren
+           Cil.DoChildren
        end)
        t);
   !l

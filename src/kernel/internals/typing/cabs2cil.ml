@@ -207,7 +207,7 @@ class check_no_locals = object
            "Forbidden access to local variable %a in static initializer"
            Cil_printer.pp_varinfo v
      | _ -> ());
-    DoChildren
+    Cil.DoChildren
 end
 
 let check_no_locals_in_initializer i =
@@ -769,8 +769,8 @@ class checkGlobal = object
 
 
   method! vglob = function
-    | GVar _ -> DoChildren
-    | _ -> SkipChildren
+    | GVar _ -> Cil.DoChildren
+    | _ -> Cil.SkipChildren
 
   method! vexpr exp =
     begin
@@ -795,7 +795,7 @@ class checkGlobal = object
             Kernel.error ~once:true ~current:true
               "Initializer element is not a compile-time constant";
     end;
-    SkipChildren
+    Cil.SkipChildren
 
 end
 
@@ -1146,11 +1146,11 @@ let constFoldTypeVisitor = object
     match tnode with
     | TArray(bt, Some len) ->
       let len' = Cil.constFold true len in
-      ChangeDoChildrenPost (
+      Cil.ChangeDoChildrenPost (
         mk_tarray ~tattr bt (Some len'),
         (fun x -> x)
       )
-    | _ -> DoChildren
+    | _ -> Cil.DoChildren
 end
 
 (* Const-fold any expressions that appear as array lengths in this type *)
@@ -1307,9 +1307,9 @@ class canDropStmtClass pRes = object
 
   method! vstmt s =
     if s.labels != [] then
-      (pRes := false; SkipChildren)
+      (pRes := false; Cil.SkipChildren)
     else
-    if !pRes then DoChildren else SkipChildren
+    if !pRes then Cil.DoChildren else Cil.SkipChildren
 
   method! vinst _ = Cil.SkipChildren
   method! vexpr _ = Cil.SkipChildren
@@ -1572,8 +1572,8 @@ struct
                 vi'
               | Some vi' -> vi'
             in
-            ChangeTo vi'
-          end else SkipChildren
+            Cil.ChangeTo vi'
+          end else Cil.SkipChildren
       end
     in
     let cleanup_var vi =
@@ -1682,7 +1682,7 @@ struct
     let vis =
       object
         inherit Cil.nopCilVisitor
-        method! vblock b = remove_locals b.blocals; DoChildren
+        method! vblock b = remove_locals b.blocals; Cil.DoChildren
       end
     in
     ignore (Cil.visitCilStmt vis s)
@@ -2133,7 +2133,7 @@ struct
         if s == s' then begin
           (*Format.eprintf "Label %s is in the AST@." l;*)
           raise Found
-        end else DoChildren
+        end else Cil.DoChildren
     end in
     try
       ignore (Cil.visitCilBlock find b);
@@ -2161,7 +2161,7 @@ struct
       method private push: 'a.bool->'a->'a Cil.visitAction =
         fun flag x ->
         Stack.push flag unspecified_stack;
-        ChangeDoChildrenPost
+        Cil.ChangeDoChildrenPost
           (x,fun x -> ignore(Stack.pop unspecified_stack); x)
 
 
@@ -2178,7 +2178,7 @@ struct
                     -> List.rev_append b.bstmts res
                   | _ -> s ::res)
                 [] b.bstmts);
-        DoChildren
+        Cil.DoChildren
 
       method! vstmt s =
         let ghost = s.ghost in
@@ -2193,15 +2193,15 @@ struct
         match s.skind with
         | UnspecifiedSequence [s',_,_,_,_] ->
           change_label_stmt s s';
-          ChangeDoChildrenPost(s', fun x -> x)
+          Cil.ChangeDoChildrenPost(s', fun x -> x)
         | UnspecifiedSequence [] ->
           let s' = Cil.mkEmptyStmt ~ghost ~valid_sid ~loc:(cabslu "_useq") () in
           change_label_stmt s s';
-          ChangeTo s';
+          Cil.ChangeTo s';
         | UnspecifiedSequence _ -> self#push true s
         | Block { battrs = []; blocals = []; bstmts = [s']} ->
           change_label_stmt s s';
-          ChangeDoChildrenPost (s', fun x -> x)
+          Cil.ChangeDoChildrenPost (s', fun x -> x)
         | Block _ | If _ | Loop _
         | TryFinally _ | TryExcept _ | Throw _ | TryCatch _ ->
           self#push false s
@@ -2221,9 +2221,9 @@ struct
               stmt
             | _ -> assert false
           in Stack.push false unspecified_stack;
-          ChangeDoChildrenPost(s,change_cases)
+          Cil.ChangeDoChildrenPost(s,change_cases)
         | Instr _ | Return _ | Goto _ | Break _
-        | Continue _ -> DoChildren
+        | Continue _ -> Cil.DoChildren
     end
 
   let mkFunctionBody ~ghost (c: chunk) : block =
@@ -2332,7 +2332,7 @@ class gatherLabelsClass : Cabsvisit.cabsVisitor = object (self)
   method! vblock blk =
     (* Add the local labels, process the block, then remove the local labels *)
     self#addLocalLabels blk;
-    ChangeDoChildrenPost (blk, fun _ -> (self#removeLocalLabels blk; blk))
+    Cil.ChangeDoChildrenPost (blk, fun _ -> (self#removeLocalLabels blk; blk))
 
   method! vstmt s =
     let open Current_loc.Operators in
@@ -2374,7 +2374,7 @@ class registerLabelsVisitor = object
        Alpha.registerAlphaName ~alphaTable
          ~lookupname:(kindPlusName "label" lbl) ~data:currentLoc
      | _ -> ());
-    DoChildren
+    Cil.DoChildren
 end
 
 
@@ -3875,11 +3875,11 @@ let fixFormalsType formals =
       method! vvrbl v =
         if v.vformal then begin
           try
-            ChangeTo (Hashtbl.find table v.vname)
+            Cil.ChangeTo (Hashtbl.find table v.vname)
           with Not_found ->
             Kernel.fatal ~current:true "Formal %a not tied to a varinfo"
               Cil_printer.pp_varinfo v;
-        end else SkipChildren
+        end else Cil.SkipChildren
     end
   in
   let treat_one_formal v =
@@ -6888,7 +6888,7 @@ and doExp local_env
                           H.remove backPatchGotos l
                         | _ -> ())
                       labels;
-                    DoChildren
+                    Cil.DoChildren
                 end
                 in
                 ignore (Cil.visitCilStmt vis s)
@@ -8645,8 +8645,8 @@ and handle_autoreference vi chunk ie =
       method! vinst = function
         | Call _ | Local_init(_,ConsInit _,_) ->
           calls := ref (Option.get self#current_stmt) :: !calls;
-          DoChildren
-        | _ -> DoChildren
+          Cil.DoChildren
+        | _ -> Cil.DoChildren
 
       method! vstmt s =
         (* No need to check/cleanup autoreferences if this call is collapsed
@@ -8665,7 +8665,7 @@ and handle_autoreference vi chunk ie =
           raise Ignore
         | _ ->
           is_last_stmt := false;
-          DoChildren
+          Cil.DoChildren
 
       method! vexpr e =
         match e.enode with
@@ -8674,7 +8674,7 @@ and handle_autoreference vi chunk ie =
             "Attempting to take %s address ('%a') inside its own initialization \
              with side effects (not supported by frama-c)."
             vi.vname Cil_printer.pp_exp e
-        | _ -> DoChildren
+        | _ -> Cil.DoChildren
 
       method! vvrbl v =
         if Cil_datatype.Varinfo.equal v vi then begin
@@ -8683,7 +8683,7 @@ and handle_autoreference vi chunk ie =
               "Attempting to write %s inside its own initialization \
                (not supported by frama-c)." vi.vname;
           match !temp with
-          | Some v' -> ChangeTo v'
+          | Some v' -> Cil.ChangeTo v'
           | None ->
             let ghost = v.vghost in
             let loc = v.vdecl in
@@ -8691,8 +8691,8 @@ and handle_autoreference vi chunk ie =
               newTempVar ~ghost loc (vi.vname ^ " initialization") true vi.vtype
             in
             temp := Some v';
-            ChangeTo v'
-        end else SkipChildren
+            Cil.ChangeTo v'
+        end else Cil.SkipChildren
     end
   in
   let transform_lvals ~update l =

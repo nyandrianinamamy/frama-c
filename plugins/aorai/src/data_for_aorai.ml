@@ -285,7 +285,7 @@ class change_var vi1 vi2 =
   object
     inherit Visitor.frama_c_copy (Project.current ())
     method! vlogic_var_use vi =
-      if Cil_datatype.Logic_var.equal vi1 vi then ChangeTo vi2 else SkipChildren
+      if Cil_datatype.Logic_var.equal vi1 vi then Cil.ChangeTo vi2 else Cil.SkipChildren
   end
 
 let change_var_term vi1 vi2 t =

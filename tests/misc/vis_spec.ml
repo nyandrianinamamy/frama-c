@@ -13,7 +13,7 @@ class pathcrawlerVisitor prj =
       Format.printf "@[It is@ @['%a'@]@ through get_spec@]@."
         Printer.pp_funspec
         (Annotations.funspec kf);
-      DoChildren
+      Cil.DoChildren
 
     method! vspec sp =
       Format.printf "Considering vspec of function %s@."
@@ -31,7 +31,7 @@ class pathcrawlerVisitor prj =
          Format.printf "@[Function prototype;@ Funspec is@ @['%a'@]@]@."
            Printer.pp_funspec sp;
       );
-      DoChildren
+      Cil.DoChildren
   end
 
 let startup () =

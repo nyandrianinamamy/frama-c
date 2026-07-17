@@ -665,8 +665,8 @@ let sinkFinder sink_stmts all_stmts = object
     all_stmts := s ::(!all_stmts);
     match s.succs with
       [] -> (sink_stmts := s :: (!sink_stmts);
-             DoChildren)
-    | _ -> DoChildren
+             Cil.DoChildren)
+    | _ -> Cil.DoChildren
 
 end
 

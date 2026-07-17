@@ -874,12 +874,12 @@ let synchronize_source_annot has_new_stmt kf =
                  to next statement effects" ;
               block_with_user_annots := None ;
               user_annots_for_next_stmt := [];
-              DoChildren
+              Cil.DoChildren
             end
           end else begin
             block_with_user_annots := None ;
             user_annots_for_next_stmt := [];
-            DoChildren;
+            Cil.DoChildren;
           end
         in
         let add_user_annot_for_next_stmt st annot =
@@ -911,7 +911,7 @@ let synchronize_source_annot has_new_stmt kf =
           else
             (* Annotation relative to the current control point *)
             (match !user_annots_for_next_stmt with
-             | [] -> synchronize_user_annot annot; DoChildren
+             | [] -> synchronize_user_annot annot; Cil.DoChildren
              | _ ->
                (* we have an annotation relative to the next
                   real C statement somewhere above, and we have
@@ -1013,8 +1013,8 @@ let cleanup file =
         (match b'.bstmts, b'.blocals, b'.bstatics with
          | [], [], [] -> changed <- true; st.skind <- (Instr (Skip loc))
          | _ -> if b != b' then st.skind <- Block b');
-        SkipChildren
-      | _ -> DoChildren
+        Cil.SkipChildren
+      | _ -> Cil.DoChildren
 
     method! vblock b =
       let optim b =
@@ -1038,24 +1038,24 @@ let cleanup file =
       in
       (* uncomment if you don't want to consider scope of locals (see below) *)
       (* b.blocals <- [];*)
-      ChangeDoChildrenPost(b,optim)
+      Cil.ChangeDoChildrenPost(b,optim)
 
     method! vglob_aux = function
       | GFun (f,_) ->
         f.sspec <- Cil.empty_funspec ();
         (* uncomment if you dont want to treat scope of locals (see above)*)
         (* f.sbody.blocals <- f.slocals; *)
-        DoChildren
+        Cil.DoChildren
       | GFunDecl(s,_,_) ->
         Logic_utils.clear_funspec s;
-        SkipChildren
+        Cil.SkipChildren
       | GType _ | GCompTag _ | GCompTagDecl _ | GEnumTag _
       | GEnumTagDecl _ | GVar _ | GVarDecl _ | GAsm _ | GPragma _ | GText _
       | GAnnot _  ->
-        SkipChildren
+        Cil.SkipChildren
 
     method! vfile f =
-      ChangeDoChildrenPost
+      Cil.ChangeDoChildrenPost
         (f,fun f -> if changed then begin
              Cfg.clearFileCFG ~clear_id:false f;
              Cfg.computeFileCFG f; f end
@@ -1077,7 +1077,7 @@ let print_renaming: Cil.cilVisitor = object
       Kernel.result ~current:true
         "Variable %s has been renamed to %s" v.vorig_name v.vname
     end;
-    DoChildren
+    Cil.DoChildren
 end
 
 (* Build a hook module that treat deferred errors after each hook. *)
@@ -1541,7 +1541,7 @@ class reorder_ast: Visitor.frama_c_visitor =
            self#add_needed_decl(GEnumTagDecl(ei,Kernel.gen_loc));
            self#add_known_enuminfo ei
          end);
-      DoChildren
+      Cil.DoChildren
 
     method! vvrbl vi =
       if vi.vglob && not (Cil_datatype.Varinfo.Set.mem vi known_var) then begin
@@ -1551,7 +1551,7 @@ class reorder_ast: Visitor.frama_c_visitor =
           self#add_needed_decl (GVarDecl (vi,vi.vdecl));
         self#add_known_var vi;
       end;
-      DoChildren
+      Cil.DoChildren
 
     method private logic_info_occurrence lv =
       if not (Logic_env.is_builtin_logic_function lv.l_var_info.lv_name) then
@@ -1585,23 +1585,23 @@ class reorder_ast: Visitor.frama_c_visitor =
               (fun x -> Cil_datatype.Logic_var.equal x.l_var_info lv)
               logic_infos)
        with Not_found -> ());
-      DoChildren
+      Cil.DoChildren
 
     method! vterm t =
       match t.term_node with
       | Tlet(li,_) -> self#add_local_logic_info li;
-        DoChildrenPost (fun t -> self#remove_local_logic_info li; t)
-      | _ -> DoChildren
+        Cil.DoChildrenPost (fun t -> self#remove_local_logic_info li; t)
+      | _ -> Cil.DoChildren
 
     method! vpredicate_node p =
       match p with
       | Plet(li,_) -> self#add_local_logic_info li;
-        DoChildrenPost (fun t -> self#remove_local_logic_info li; t)
-      | _ -> DoChildren
+        Cil.DoChildrenPost (fun t -> self#remove_local_logic_info li; t)
+      | _ -> Cil.DoChildren
 
     method! vlogic_info_use lv =
       if not (self#is_local_logic_info lv) then self#logic_info_occurrence lv;
-      DoChildren
+      Cil.DoChildren
 
     method! vglob_aux g =
       let is_subvisit = try Stack.top subvisit with Stack.Empty -> false in
@@ -1628,7 +1628,7 @@ class reorder_ast: Visitor.frama_c_visitor =
           res
         end
       in
-      DoChildrenPost post_action
+      Cil.DoChildrenPost post_action
   end
 
 module Remove_spurious = struct

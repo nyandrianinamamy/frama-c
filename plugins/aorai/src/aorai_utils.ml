@@ -481,13 +481,13 @@ let get_bhv_aux_fct kf bhv =
       inherit Visitor.frama_c_copy (Project.current())
       method! vlogic_var_use lv =
         match lv.lv_origin with
-        | None -> JustCopy
+        | None -> Cil.JustCopy
         | Some vi ->
           (match
              List.find_opt (fun (x,_) -> Cil_datatype.Varinfo.equal vi x) assoc
            with
-           | None -> JustCopy
-           | Some (_,nvi) -> ChangeTo (Cil.cvar_to_lvar nvi))
+           | None -> Cil.JustCopy
+           | Some (_,nvi) -> Cil.ChangeTo (Cil.cvar_to_lvar nvi))
     end
     in
     let assumes = Visitor.visitFramacPredicates vis bhv.b_assumes in
@@ -944,7 +944,7 @@ let change_vars subst subst_res kf label pred =
         match t.term_node with
           TLval (TVar { lv_origin = Some v},_) when v.vglob -> add_label t
         | TLval (TMem _,_) -> add_label t
-        | _ -> DoChildren
+        | _ -> Cil.DoChildren
 
       method! vterm_lhost = function
         | TResult ty ->
@@ -953,28 +953,28 @@ let change_vars subst subst_res kf label pred =
                        "found \\result without being at a Return event"
            | Some kf ->
              (try
-                ChangeTo (TVar (Kernel_function.Hashtbl.find subst_res kf))
+                Cil.ChangeTo (TVar (Kernel_function.Hashtbl.find subst_res kf))
               with Not_found ->
                 let new_lv =
                   Cil_const.make_logic_var_quant
                     ("__retres_" ^ (Kernel_function.get_name kf)) (Ctype ty)
                 in
                 Kernel_function.Hashtbl.add subst_res kf new_lv;
-                ChangeTo (TVar new_lv)))
-        | TMem _ | TVar _ -> DoChildren
+                Cil.ChangeTo (TVar new_lv)))
+        | TMem _ | TVar _ -> Cil.DoChildren
 
       method! vlogic_var_use lv =
         match lv.lv_origin with
         | Some v when not v.vglob ->
           (try
-             ChangeTo (Cil_datatype.Logic_var.Hashtbl.find subst lv)
+             Cil.ChangeTo (Cil_datatype.Logic_var.Hashtbl.find subst lv)
            with Not_found ->
              let new_lv =
                Cil_const.make_logic_var_quant lv.lv_name lv.lv_type
              in
              Cil_datatype.Logic_var.Hashtbl.add subst lv new_lv;
-             ChangeTo new_lv)
-        | Some _ | None -> DoChildren
+             Cil.ChangeTo new_lv)
+        | Some _ | None -> Cil.DoChildren
     end
   in Visitor.visitFramacPredicateNode visitor pred
 
@@ -1210,7 +1210,7 @@ let extract_lval acc term =
       inherit Visitor.frama_c_inplace
       method! vterm_lval lv =
         acc := Cil_datatype.Term_lval.Set.add lv !acc;
-        DoChildren
+        Cil.DoChildren
     end
   in
   ignore (Visitor.visitFramacTerm vis term);
@@ -1639,22 +1639,22 @@ let make_old loc init t =
           if Cil_datatype.Term_lval.Set.mem lv init then begin
             if self#is_old then begin
               Stack.push false is_old;
-              DoChildrenPost
+              Cil.DoChildrenPost
                 (fun t ->
                    ignore (Stack.pop is_old);
                    Logic_const.(tat ~loc (t,here_label)))
-            end else DoChildren
+            end else Cil.DoChildren
           end
           else begin
             if not self#is_old then begin
               Stack.push true is_old;
-              DoChildrenPost
+              Cil.DoChildrenPost
                 (fun t ->
                    ignore (Stack.pop is_old);
                    Logic_const.told ~loc t)
-            end else DoChildren
+            end else Cil.DoChildren
           end
-        | _ -> DoChildren
+        | _ -> Cil.DoChildren
     end
   in Visitor.visitFramacTerm vis t
 

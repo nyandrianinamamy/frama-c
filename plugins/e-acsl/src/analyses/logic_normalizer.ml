@@ -148,7 +148,7 @@ end = struct
       method! vlogic_var_use lv =
         match Logic_var.Map.find_opt lv formal_substitutions with
         | None -> Cil.DoChildren
-        | Some lv' -> ChangeTo lv'
+        | Some lv' -> Cil.ChangeTo lv'
 
       method !vpredicate p =
         match p.pred_content with

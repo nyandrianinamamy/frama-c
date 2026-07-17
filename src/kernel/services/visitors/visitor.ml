@@ -132,15 +132,15 @@ class internal_generic_frama_c_visitor fundec queue current_kf behavior: frama_c
       let plain_post = post_action (fun x -> x) in
       match res with
       | Cil.SkipChildren -> res
-      | JustCopy -> JustCopyPost copy
-      | JustCopyPost f -> JustCopyPost (f $ copy)
-      | DoChildren -> DoChildrenPost plain_post
-      | DoChildrenPost f -> DoChildrenPost (f $ plain_post)
-      | ChangeTo _ | ChangeToPost _ -> res
-      | ChangeDoChildrenPost (stmt,f) ->
-        ChangeDoChildrenPost (stmt, post_action f)
+      | Cil.JustCopy -> JustCopyPost copy
+      | Cil.JustCopyPost f -> JustCopyPost (f $ copy)
+      | Cil.DoChildren -> DoChildrenPost plain_post
+      | Cil.DoChildrenPost f -> DoChildrenPost (f $ plain_post)
+      | Cil.ChangeTo _ | ChangeToPost _ -> res
+      | Cil.ChangeDoChildrenPost (stmt,f) ->
+        Cil.ChangeDoChildrenPost (stmt, post_action f)
 
-    method vstmt_aux _ = DoChildren
+    method vstmt_aux _ = Cil.DoChildren
     method vglob_aux _ = Cil.DoChildren
 
     method private vbehavior_annot ?e b =
@@ -361,15 +361,15 @@ class internal_generic_frama_c_visitor fundec queue current_kf behavior: frama_c
         f b'
       in
       match res with
-      | SkipChildren -> b
-      | JustCopy -> visit_clauses self#plain_copy_visitor Fun.id
-      | JustCopyPost f -> visit_clauses self#plain_copy_visitor f
-      | ChangeTo b -> register_annots b Fun.id
-      | ChangeToPost (b,f) -> register_annots b f
-      | ChangeDoChildrenPost (b,f) ->
+      | Cil.SkipChildren -> b
+      | Cil.JustCopy -> visit_clauses self#plain_copy_visitor Fun.id
+      | Cil.JustCopyPost f -> visit_clauses self#plain_copy_visitor f
+      | Cil.ChangeTo b -> register_annots b Fun.id
+      | Cil.ChangeToPost (b,f) -> register_annots b f
+      | Cil.ChangeDoChildrenPost (b,f) ->
         register_annots (Cil.childrenBehavior (self:>Cil.cilVisitor) b) f
-      | DoChildren -> visit_clauses self Fun.id
-      | DoChildrenPost f -> visit_clauses self f
+      | Cil.DoChildren -> visit_clauses self Fun.id
+      | Cil.DoChildrenPost f -> visit_clauses self f
 
     method private vfunspec_annot () =
       let kf = Option.get self#current_kf in
@@ -595,20 +595,20 @@ class internal_generic_frama_c_visitor fundec queue current_kf behavior: frama_c
         Queue.add add_spec_components self#get_filling_actions;
       in
       match res with
-      | SkipChildren -> register_new_components spec
-      | ChangeTo spec -> register_new_components spec
-      | ChangeToPost (spec,f) ->
+      | Cil.SkipChildren -> register_new_components spec
+      | Cil.ChangeTo spec -> register_new_components spec
+      | Cil.ChangeToPost (spec,f) ->
         register_new_components spec; ignore (f spec)
-      | JustCopy ->
+      | Cil.JustCopy ->
         register_new_components
           (Cil.visitCilFunspec self#plain_copy_visitor spec)
-      | JustCopyPost f ->
+      | Cil.JustCopyPost f ->
         (register_new_components
            (Cil.visitCilFunspec self#plain_copy_visitor spec));
         ignore (f spec)
-      | DoChildren -> ignore (do_children ())
-      | DoChildrenPost f -> ignore (f (do_children ()))
-      | ChangeDoChildrenPost(spec, f) ->
+      | Cil.DoChildren -> ignore (do_children ())
+      | Cil.DoChildrenPost f -> ignore (f (do_children ()))
+      | Cil.ChangeDoChildrenPost(spec, f) ->
         let res = change_do_children spec in
         register_new_components res;
         ignore (f res)
@@ -648,9 +648,9 @@ class internal_generic_frama_c_visitor fundec queue current_kf behavior: frama_c
         | _ -> ()
       in
       (* NB: we'll loose track of the emitter of an annotation.
-         Anyway, this is only used for SkipChildren and JustCopy/JustCopyPost
+         Anyway, this is only used for Cil.SkipChildren and Cil.JustCopy/JustCopyPost
          (and for a copy visitor)
-         If user sticks to DoChildren, s/he'll still have the proper
+         If user sticks to Cil.DoChildren, s/he'll still have the proper
          correspondence between annotations and emitters.
       *)
       let get_spec () = match g with
@@ -805,17 +805,17 @@ class internal_generic_frama_c_visitor fundec queue current_kf behavior: frama_c
         res
       in
       match res with
-      | SkipChildren ->
+      | Cil.SkipChildren ->
         change_glob g None;
         if has_kf then self#reset_current_kf();
         res
-      | JustCopy -> JustCopyPost post_action
-      | JustCopyPost f -> JustCopyPost (post_action $ f)
-      | DoChildren -> DoChildrenPost (post_do_children Fun.id)
-      | DoChildrenPost f -> DoChildrenPost (post_do_children f)
-      | ChangeTo l -> ChangeToPost (l,post_change_to)
-      | ChangeToPost (l,f) -> ChangeToPost (l, post_change_to $ f)
-      | ChangeDoChildrenPost (l,f) -> ChangeDoChildrenPost (l, post_do_children f)
+      | Cil.JustCopy -> JustCopyPost post_action
+      | Cil.JustCopyPost f -> JustCopyPost (post_action $ f)
+      | Cil.DoChildren -> DoChildrenPost (post_do_children Fun.id)
+      | Cil.DoChildrenPost f -> DoChildrenPost (post_do_children f)
+      | Cil.ChangeTo l -> ChangeToPost (l,post_change_to)
+      | Cil.ChangeToPost (l,f) -> ChangeToPost (l, post_change_to $ f)
+      | Cil.ChangeDoChildrenPost (l,f) -> ChangeDoChildrenPost (l, post_do_children f)
   end
 
 class generic_frama_c_visitor bhv =

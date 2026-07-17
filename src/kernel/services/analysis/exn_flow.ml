@@ -48,8 +48,8 @@ class all_exn =
       match s.skind with
       | Throw (Some (_,t),_) ->
         all_exn <- Cil_datatype.Typ.Set.add (purify t) all_exn;
-        SkipChildren
-      | _ -> DoChildren
+        Cil.SkipChildren
+      | _ -> Cil.DoChildren
     method! vinst _ = Cil.SkipChildren
     method! vexpr _ = Cil.SkipChildren
     method! vlval _ = Cil.SkipChildren
@@ -107,13 +107,13 @@ class exn_visit =
       match s.skind with
       | Throw (None,_) ->
         let my_exn = Stack.top current_exn in
-        self#union_exn my_exn; ExnsStmt.replace s my_exn; SkipChildren
+        self#union_exn my_exn; ExnsStmt.replace s my_exn; Cil.SkipChildren
       | Throw(Some (_,t),_) ->
         let t = Ast_types.C.unroll_deep t in
         let t = Ast_types.C.remove_qualifiers t in
         self#add_exn t;
         ExnsStmt.replace s (Cil_datatype.Typ.Set.singleton t);
-        SkipChildren
+        Cil.SkipChildren
       | TryCatch (t,c,_) ->
         let catch, catch_all =
           List.fold_left
@@ -162,12 +162,12 @@ class exn_visit =
         let my_exn = !(Stack.pop possible_exn) in
         ExnsStmt.replace s my_exn;
         self#union_exn my_exn;
-        SkipChildren
+        Cil.SkipChildren
       | If _ | Switch _ | Loop _ | Block _ | UnspecifiedSequence _
       | TryFinally _ | TryExcept _
       | Instr _ -> (* must take into account exceptions thrown by a fun call*)
         Stack.push (ref Cil_datatype.Typ.Set.empty) possible_exn;
-        DoChildrenPost
+        Cil.DoChildrenPost
           (fun s ->
              let my_exn = !(Stack.pop possible_exn) in
              ExnsStmt.replace s my_exn;
@@ -176,7 +176,7 @@ class exn_visit =
       (* No exception can be thrown here. *)
       | Return _ | Goto _ | Break _ | Continue _ ->
         ExnsStmt.replace s Cil_datatype.Typ.Set.empty;
-        SkipChildren
+        Cil.SkipChildren
 
     method! vinst =
       function
@@ -231,12 +231,12 @@ class exn_visit =
             "Assuming declared function %a can't throw any exception"
             Kernel_function.pretty kf
         end;
-        SkipChildren
+        Cil.SkipChildren
       | Call _ ->
         (* Function pointer: we consider that it can throw any possible
            exception. *)
-        self#union_exn (all_exn()); SkipChildren
-      | _ -> SkipChildren
+        self#union_exn (all_exn()); Cil.SkipChildren
+      | _ -> Cil.SkipChildren
 
     method! vfunc f =
       let my_exns = ref Cil_datatype.Typ.Set.empty in
@@ -248,7 +248,7 @@ class exn_visit =
         Exns.add kf !callee_exn;
         ignore (Stack.pop stack); f
       in
-      DoChildrenPost after_visit
+      Cil.DoChildrenPost after_visit
 
     method! vexpr _ = Cil.SkipChildren
     method! vlval _ = Cil.SkipChildren
@@ -568,11 +568,11 @@ class erase_exn =
         let exn_initinfo = { init = Some (CInit exn_init) } in
         let gexn_var = GVar(exn, exn_initinfo, loc) in
         Globals.Vars.add exn exn_initinfo;
-        ChangeDoChildrenPost(
+        Cil.ChangeDoChildrenPost(
           f,add_types_and_globals (List.rev new_types) [gexn_var])
       end else (* nothing can be thrown in the first place, but we still have
                   to get rid of (useless) try/catch blocks if any. *)
-        DoChildren
+        Cil.DoChildren
 
     method private visit_catch_clause loc (v,b) =
       let loc =
@@ -637,7 +637,7 @@ class erase_exn =
         end;
         f
       in
-      DoChildrenPost update_body
+      Cil.DoChildrenPost update_body
 
     method private modify_current () =
       modified_funcs <-
@@ -672,7 +672,7 @@ class erase_exn =
 
     method! vbehavior b =
       match self#current_kf, self#current_stmt with
-      | None, None -> SkipChildren
+      | None, None -> Cil.SkipChildren
       (* Prototype is assumed to not throw any exception. *)
       | None, Some _ ->
         Kernel.fatal
@@ -680,20 +680,20 @@ class erase_exn =
            outside of any function."
       | Some f, None when not (Kernel_function.is_definition f) ->
         (* By hypothesis, prototypes do not throw anything. *)
-        SkipChildren
+        Cil.SkipChildren
       | Some f, None -> (* function contract *)
         let exns = Exns.find f in
-        if Cil_datatype.Typ.Set.is_empty exns then SkipChildren
+        if Cil_datatype.Typ.Set.is_empty exns then Cil.SkipChildren
         else begin
           b.b_post_cond <- List.map self#guard_post_cond b.b_post_cond;
-          ChangeTo b (* need to register the new clauses. *)
+          Cil.ChangeTo b (* need to register the new clauses. *)
         end
       | Some _, Some s -> (* statement contract *)
         let exns = ExnsStmt.find s in
-        if Cil_datatype.Typ.Set.is_empty exns then SkipChildren
+        if Cil_datatype.Typ.Set.is_empty exns then Cil.SkipChildren
         else begin
           b.b_post_cond <- List.map self#guard_post_cond b.b_post_cond;
-          ChangeTo b
+          Cil.ChangeTo b
         end
 
     method private clean_catch_clause (bind,b as handler) acc =
@@ -757,7 +757,7 @@ class erase_exn =
           in
           let call = Cil.mkStmtOneInstr (List.hd instr) in
           s.skind <- Block (Cil.mkBlockNonScoping [call;handler]);
-          SkipChildren
+          Cil.SkipChildren
         end
       in
       match s.skind with
@@ -775,7 +775,7 @@ class erase_exn =
         let rv = self#jumps_to_handler loc t in
         let b = Cil.mkBlock (s1 :: s2 :: s3 :: rv) in
         s.skind <- Block b;
-        SkipChildren
+        Cil.SkipChildren
       | Throw (None,loc) ->
         self#modify_current ();
         let s1 = self#set_uncaught_flag loc true in
@@ -783,13 +783,13 @@ class erase_exn =
         let rv = self#jumps_to_handler loc t in
         let b = Cil.mkBlock (s1 :: rv) in
         s.skind <- Block b;
-        SkipChildren
+        Cil.SkipChildren
       | TryCatch (t,_,_) when not can_throw ->
         self#modify_current();
         (* no exception can be thrown:
            we can simply remove the catch clauses. *)
         s.skind <- (Block t);
-        DoChildren (* visit the block for nested try catch. *)
+        Cil.DoChildren (* visit the block for nested try catch. *)
       | TryCatch (t,c,loc) ->
         self#modify_current();
         (* First, remove handlers of exceptions that cannot be thrown. *)
@@ -847,8 +847,8 @@ class erase_exn =
                 though order does not really matter here. *)
         t.bstmts <- t.bstmts @ stmts;
         s.skind <- Block t;
-        SkipChildren
-      | _ -> DoChildren
+        Cil.SkipChildren
+      | _ -> Cil.DoChildren
 
   end
 

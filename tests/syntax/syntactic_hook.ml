@@ -8,7 +8,7 @@ class visit = object
   method! vstmt s =
     let open Logic_ptree in
     let loc = get_statementloc s in
-    ChangeTo
+    Cil.ChangeTo
       [{ stmt_ghost = false;
          stmt_node =
            CODE_ANNOT(

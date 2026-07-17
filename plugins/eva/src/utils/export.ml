@@ -164,7 +164,7 @@ class collector =
       if Lvs.mem lv marked then Cil.SkipChildren else
         begin
           marked <- Lvs.add lv marked ;
-          DoChildrenPost(fun r -> collected <- lv :: collected ; r)
+          Cil.DoChildrenPost(fun r -> collected <- lv :: collected ; r)
         end
 
     method flush = collected

@@ -213,7 +213,7 @@ module Base_checker = struct
         | Some { vlogic_var_assoc = Some lv' } when lv == lv' ->
           ignore
             Visitor.(visitFramacLogicType (self:>frama_c_visitor) lv.lv_type);
-          (* DoChildren on initialized local variables would fail, as it performs
+          (* Cil.DoChildren on initialized local variables would fail, as it performs
              a vvrbl on the C variable, before having reached the initializer. *)
           Cil.SkipChildren
         | Some v ->

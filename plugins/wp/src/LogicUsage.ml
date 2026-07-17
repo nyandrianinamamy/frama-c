@@ -326,25 +326,25 @@ class visitor =
     (* --- LVALUES --- *)
 
     method! vlval = function
-      | (Var x,_) -> self#do_var x ; DoChildren
-      | _ -> DoChildren
+      | (Var x,_) -> self#do_var x ; Cil.DoChildren
+      | _ -> Cil.DoChildren
 
     method! vterm_lval = function
-      | (TVar { lv_origin=Some x } , _ ) -> self#do_var x ; DoChildren
-      | (TVar x , _ ) -> self#do_lvar x ; DoChildren
-      | _ -> DoChildren
+      | (TVar { lv_origin=Some x } , _ ) -> self#do_var x ; Cil.DoChildren
+      | (TVar x , _ ) -> self#do_lvar x ; Cil.DoChildren
+      | _ -> Cil.DoChildren
 
     (* --- TERMS --- *)
 
     method! vterm_node = function
-      | Tapp(l,labels,_) -> self#do_call l labels ; DoChildren
-      | _ -> DoChildren
+      | Tapp(l,labels,_) -> self#do_call l labels ; Cil.DoChildren
+      | _ -> Cil.DoChildren
 
     (* --- PREDICATE --- *)
 
     method! vpredicate_node = function
-      | Papp(l,labels,_) -> self#do_call l labels ; DoChildren
-      | _ -> DoChildren
+      | Papp(l,labels,_) -> self#do_call l labels ; Cil.DoChildren
+      | _ -> Cil.DoChildren
 
     method! vannotation global =
       match global with
@@ -357,7 +357,7 @@ class visitor =
           let ax = axiomatic_of_global ~context:pf global in
           register_axiomatic database ax ;
           axiomatic <- Some ax ;
-          DoChildrenPost
+          Cil.DoChildrenPost
             (fun g ->
                if not (is_global_axiomatic ax) then
                  database.proofcontext <- pf ;
@@ -374,15 +374,15 @@ class visitor =
         begin
           register_logic database self#section l ;
           match l.l_body with
-          | LBnone when axiomatic = None -> SkipChildren
+          | LBnone when axiomatic = None -> Cil.SkipChildren
 
           | LBnone | LBreads _ | LBterm _ | LBpred _ ->
             caller <- Some l ;
-            DoChildrenPost (fun g -> caller <- None ; g)
+            Cil.DoChildrenPost (fun g -> caller <- None ; g)
 
           | LBinductive cases ->
             register_cases l (List.map (self#do_case l) cases) ;
-            SkipChildren
+            Cil.SkipChildren
         end
 
       (* --- LEMMAS --- *)
@@ -392,18 +392,18 @@ class visitor =
         register_lemma database self#section lem ;
         if Logic_utils.use_predicate lem.lem_predicate.tp_kind then
           database.proofcontext <- lem :: database.proofcontext ;
-        SkipChildren
+        Cil.SkipChildren
 
       | Dtype(t,_) ->
         register_type database self#section t ;
-        SkipChildren
+        Cil.SkipChildren
 
       (* --- OTHERS --- *)
 
       | Dvolatile _
       | Dmodel_annot _
       | Dextended _
-        -> SkipChildren
+        -> Cil.SkipChildren
 
     method! vfunc _ = Cil.SkipChildren
 

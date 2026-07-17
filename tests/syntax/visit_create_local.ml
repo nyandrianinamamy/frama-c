@@ -9,8 +9,8 @@ class cF = object(self) inherit Visitor.frama_c_inplace
       let vi = Cil.makeLocalVar fd "varbidon" (Cil.typeOf e) in
       let sk = Instr (Set (Cil.var vi,Cil.new_exp ~loc (Lval lv),loc)) in
       let s0 = Cil.mkStmt ~valid_sid:true sk in
-      ChangeTo (Cil.mkStmtCfgBlock [s0; s])
-    | _ -> SkipChildren
+      Cil.ChangeTo (Cil.mkStmtCfgBlock [s0; s])
+    | _ -> Cil.SkipChildren
 end
 
 let run () =

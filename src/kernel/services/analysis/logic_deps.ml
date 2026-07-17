@@ -241,7 +241,7 @@ let populate_zone ctx visit cil_node current_zones =
       fun label x ->
       let old_label = current_label in
       current_label <- label;
-      ChangeDoChildrenPost
+      Cil.ChangeDoChildrenPost
         (x,fun x -> current_label <- old_label; x)
 
     method private change_label_to_here: 'a.'a -> 'a Cil.visitAction =
@@ -349,7 +349,7 @@ let populate_zone ctx visit cil_node current_zones =
       | Papp (_, [], _) (* No label, thus cannot access memory *)
       | Paligned (_, _) (* No label, thus cannot access memory *)
       | Pseparated _ (* need only to preserve the values of each pointer *)
-        -> DoChildren
+        -> Cil.DoChildren
 
       | Pinitialized (lbl, t) | Pdangling (lbl, t) ->
         (* Dependencies of [\initialized(p)] or [\dangling(p)] are the
@@ -359,7 +359,7 @@ let populate_zone ctx visit cil_node current_zones =
           let tlv = Cil.mkTermMem ~addr:t ~off:TNoOffset in
           let tlv' = Logic_const.term (TLval tlv) typ in
           self#do_term_lval tlv';
-          DoChildren
+          Cil.DoChildren
         )
         else fail ()
 
@@ -367,10 +367,10 @@ let populate_zone ctx visit cil_node current_zones =
         (* Does not take dynamic allocation into account, but then
             Value does not either. [lbl] can be ignored because they are
             taken into account by the functions [from_...] below *)
-        DoChildren
+        Cil.DoChildren
 
       | Pobject_pointer _ | Pvalid_function _ ->
-        DoChildren
+        Cil.DoChildren
 
       | Papp _ | Pallocable _ | Pfreeable _ | Pfresh _
         -> fail ()
@@ -390,7 +390,7 @@ let populate_zone ctx visit cil_node current_zones =
       | TAddrOf _ | TLval (TMem _,_)
       | TLval(TVar {lv_origin = Some _},_) | TStartOf _  ->
         self#do_term_lval t;
-        SkipChildren
+        Cil.SkipChildren
       | Tat (_, BuiltinLabel Old) -> self#change_label_to_old t
       | Tat (_, BuiltinLabel Here) -> self#change_label_to_here t
       | Tat (_, BuiltinLabel Pre) -> self#change_label_to_pre t
@@ -406,8 +406,8 @@ let populate_zone ctx visit cil_node current_zones =
         failwith ("unknown logic label" ^ s)
       | TSizeOf _ | TSizeOfE _ | TAlignOf _ | TAlignOfE _ ->
         (* These are static constructors, there are no dependencies here *)
-        SkipChildren
-      | _ -> DoChildren
+        Cil.SkipChildren
+      | _ -> Cil.DoChildren
   end
   in
   try
@@ -631,7 +631,7 @@ let to_result_from_pred p =
     method! vterm_lhost t =
       match t with
       | TResult _ -> raise Prune
-      | _ -> DoChildren
+      | _ -> Cil.DoChildren
 
   end
   in
