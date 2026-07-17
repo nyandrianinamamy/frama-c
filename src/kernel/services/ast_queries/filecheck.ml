@@ -920,6 +920,115 @@ module Base_checker = struct
       method! vinitoffs = self#voffs
 
       method! vcompinfo c =
+        let make_plain_field f =
+          (f.fname, f.ftype, None, f.falignas, f.fattr, Kernel.gen_loc_from f.floc)
+        in
+        let make_bitfield =
+          let nb = ref 0 in
+          fun t ->
+            incr nb;
+            ("__bf_" ^ (string_of_int !nb), t, None, None, [], Kernel.gen_loc)
+        in
+        let module Pretty = (val pretty) in
+        let check_bitfields ci =
+          let new_ci =
+            Cil_const.mkCompInfo true ("__new_ci_" ^ ci.cname)
+              (fun new_ci ->
+                 let one_field (new_fields, current, prev_fi,align) fi =
+                   match fi.fbitfield, current with
+                   | None, None ->
+                     let curr_field = make_plain_field fi in
+                     let align = max align (Cil.bytesAlignOfField fi) in
+                     (curr_field::new_fields, None, Some fi,align)
+                   | None, Some (o,t,a) ->
+                     let fo = fst (Cil.fieldBitsOffset fi) in
+                     abort_if (fo < o + Cil.bitsSizeOf t)
+                       "In type %a, field %a is not separated from previous bitfields"
+                       Pretty.pp_compinfo ci Pretty.pp_field fi;
+                     let align = max align (Cil.bytesAlignOfField fi) in
+                     let curr = make_plain_field fi in
+                     let bitfield = make_bitfield t in
+                     (curr :: bitfield :: new_fields, None, Some fi, max a align)
+                   | Some i, None ->
+                     let (o, w) = Cil.bitfield_access_unit fi in
+                     (* bitfield_access_unit return offset in bytes. *)
+                     let o = 8 * o in
+                     (match prev_fi with
+                      | None ->
+                        abort_if (o <> 0)
+                          "In type %a, access unit of initial bitfield %a starts at offset %d"
+                          Pretty.pp_compinfo ci Pretty.pp_field fi o
+                      | Some pfi ->
+                        let (prev_o, prev_w) = Cil.fieldBitsOffset pfi in
+                        abort_if (o < prev_o + prev_w)
+                          "In type %a, access unit of bitfield %a at offset %d overlaps \
+                           with previous plain field %a at offset %d and width %d"
+                          Pretty.pp_compinfo ci Pretty.pp_field fi o Pretty.pp_field pfi prev_o prev_w);
+                     let my_a = if i = 0 then 1 else Cil.bytesAlignOfField fi in
+                     (new_fields, Some (o,w, my_a), Some fi, align)
+                   | Some i, Some (o,t,a) ->
+                     let (my_o, my_t) = Cil.bitfield_access_unit fi in
+                     let my_o = my_o * 8 in
+                     let my_a = if i = 0 then 1 else Cil.bytesAlignOfField fi in
+                     abort_if (my_o < o)
+                       "In type %a, access unit of bitfield %a start at smaller offset %d than \
+                        access unit of previous bitfield (%d)"
+                       Pretty.pp_compinfo ci Pretty.pp_field fi my_o o;
+                     if my_o = o then begin
+                       abort_if (not (Cil_datatype.Typ.equal t my_t))
+                         "In type %a, access unit of bitfield %a has type %a, but a previous \
+                          bitfield in same access unit considers it with type %a"
+                         Pretty.pp_compinfo ci Pretty.pp_field fi Pretty.pp_typ my_t Pretty.pp_typ t;
+                       (new_fields, Some(o,t,max a my_a), Some fi, align)
+                     end else begin
+                       abort_if (my_o < o + Cil.bitsSizeOf t)
+                         "In type %a, access unit of bitfield %a (offset %d) overlaps \
+                          with access unit of previous bitfields (offset %d, type %a)"
+                         Pretty.pp_compinfo ci Pretty.pp_field fi my_o o Pretty.pp_typ t;
+                       (make_bitfield t :: new_fields, Some (my_o, my_t, my_a), Some fi, max a align)
+                     end
+                 in
+                 let new_fields, current, _, align =
+                   List.fold_left one_field ([], None, None, 1) (Option.get ci.cfields)
+                 in
+                 let fields, align =
+                   match current with
+                   | None -> Some (List.rev new_fields), align
+                   | Some (_,t, a) -> let f = make_bitfield t in
+                     Some (List.rev (f::new_fields)), max a align
+                 in
+                 if not (Ast_attributes.contains "aligned" new_ci.cattr ||
+                         Ast_attributes.contains "packed" new_ci.cattr)
+                 then
+                   new_ci.cattr <-
+                     Ast_attributes.add ("aligned", [AInt (Z.of_int align)]) new_ci.cattr;
+                 fields
+              )
+              ci.cattr
+          in
+          let ty = { tattr = []; tnode = TComp ci } in
+          let new_ty = { tattr = []; tnode = TComp new_ci } in
+          let size = Cil.bitsSizeOf ty in
+          let new_size = Cil.bitsSizeOf new_ty in
+          let align = Cil.bytesAlignOf ty in
+          let new_align = Cil.bytesAlignOf new_ty in
+          let pretty_field_align_size fmt fi =
+            let (o,w) = Cil.fieldBitsOffset fi in
+            Format.fprintf fmt "%s: %a, offset %d, width %d"
+              fi.fname Pretty.pp_typ fi.ftype o w
+          in
+          let pretty_fields_align_size fmt ci =
+            Format.fprintf fmt "@[<v 2>%a %a {@;%a@;@]}"
+              Pretty.pp_compinfo ci Pretty.pp_attributes ci.cattr
+              (Format.pp_print_list pretty_field_align_size) (Option.get ci.cfields)
+          in
+          abort_if (size <> new_size || align <> new_align)
+            "Type with access units not equivalent to original.@\n\
+             sizes: %d vs %d, alignment: %d vs %d@\n%a@\n%a@\n"
+            size new_size align new_align
+            pretty_fields_align_size ci
+            pretty_fields_align_size new_ci
+        in
         Kernel.debug
           ~dkey:Kernel.dkey_check "Checking composite type %s(%d)" c.cname c.ckey;
         Compinfo.Hashtbl.add known_compinfos c c;
@@ -928,7 +1037,7 @@ module Base_checker = struct
         List.iter
           (fun x -> Fieldinfo.Hashtbl.add known_fields x x)
           (Option.value ~default:[] c.cfields);
-        Cil.DoChildren
+        Cil.DoChildrenPost (fun ci -> if ci.cstruct then check_bitfields ci; ci)
 
       method! vfieldinfo f =
         Kernel.debug ~dkey:Kernel.dkey_check
