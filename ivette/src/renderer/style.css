@@ -346,17 +346,6 @@
     border-radius: 4px;
 }
 
-.labview-layout-action-icon {
-    position: absolute;
-    top: -3px;
-    right: 1px;
-    fill: var(--info-text);
-}
-
-.labview-layout-action:hover .labview-layout-action-icon {
-    fill: var(--text);
-}
-
 /* -------------------------------------------------------------------------- */
 /* --- Dock & Tabs                                                        --- */
 /* -------------------------------------------------------------------------- */
