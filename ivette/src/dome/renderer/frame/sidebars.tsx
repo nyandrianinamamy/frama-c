@@ -17,15 +17,16 @@
 
 import React from 'react';
 import { useFlipSettings } from 'dome';
-import { Label, Badge } from 'dome/primitive/displays';
 import { classes } from 'dome/misc/utils';
-import { Hbox, TitleBar, TitleBarProps } from 'dome/layout/boxes';
-import { IconButton, IconButtonProps, TextButton
-} from 'dome/primitive/controls';
+import type { TitleBarProps } from 'dome/layout/boxes';
+import type { IconButtonProps } from 'dome/primitive/controls';
+import { Label, Badge } from 'dome/primitive/displays';
+import { IconButton, TextButton } from 'dome/primitive/controls';
+import { ColorKind } from 'dome/primitive/colors';
+import { Hbox, TitleBar } from 'dome/layout/boxes';
 import { Dropdown } from 'dome/dialogs';
 
 import './style.css';
-import { ColorKind } from 'dome/primitive/colors';
 
 // --------------------------------------------------------------------------
 // --- SideBar Container

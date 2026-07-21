@@ -45,7 +45,6 @@ import './style.css';
 // --------------------------------------------------------------------------
 // --- Button
 // --------------------------------------------------------------------------
-const DISABLED = ({ disabled = false }): boolean => (!!disabled);
 
 export type TypeValue = number | string | boolean | undefined
 export type OnEvent<A = TypeValue> = (evt:React.MouseEvent, value?: A) => void
@@ -122,7 +121,7 @@ function BaseButton(props: BaseButtonProps): JSX.Element {
     noBackground = false, onContextMenu, onAuxClick
   } = props;
 
-  const disabled = props.onClick ? DISABLED(props) : true;
+  const disabled = props.onClick ? props.disabled : true;
   const isSelected = isButtonSelected(value, selected);
 
   const theClass = classes(
@@ -170,7 +169,7 @@ function BaseButton(props: BaseButtonProps): JSX.Element {
 }
 
 // --------------------------------------------------------------------------
-// --- Standart Button
+// --- Standard Button
 // --------------------------------------------------------------------------
 
 export function Button(props: BaseButtonProps): JSX.Element {
@@ -251,7 +250,7 @@ interface ButtonGroupProps {
   separate?: boolean;
   /** Disabled Group (default `false`). */
   disabled?: boolean;
-  /** Displayed verticaly */
+  /** Displayed vertically */
   vertical?: boolean
   /** Additional class. */
   className?: string;
@@ -280,7 +279,7 @@ export function ButtonGroup(props: ButtonGroupProps): JSX.Element {
   const baseButtonProps: BaseButtonProps = {};
   if(isSelected) baseButtonProps.selected = isSelected;
   if(onGroupChanged) baseButtonProps.onClick = onGroupChanged;
-  if(DISABLED(props)) baseButtonProps.disabled = true;
+  if(props.disabled) baseButtonProps.disabled = true;
 
   const className = classes(
     'dome-xButtongroup',
@@ -404,7 +403,7 @@ export interface SpinnerProps {
 export function Spinner(props: SpinnerProps): JSX.Element {
   const { onChange } = props;
   const className = classes( 'dome-xSpinner', props.className );
-  const disabled = onChange ? DISABLED(props) : true;
+  const disabled = onChange ? props.disabled : true;
   const callback = (evt: React.ChangeEvent<HTMLInputElement>): void => {
     if (onChange) {
       const newValue = Number.parseInt(evt.target.value);
@@ -444,7 +443,7 @@ export interface FieldProps {
   enabled?: boolean;
   /** Defaults to `false`. */
   disabled?: boolean;
-  /** Default fo `false`. */
+  /** Defaults to `false`. */
   autoFocus?: boolean;
   /** Currently selected value (updated on `ENTER` key) */
   value?: string;
@@ -464,7 +463,7 @@ export interface FieldProps {
 export const Field = (props: FieldProps): JSX.Element => {
   const { className = '', onChange, onEdited, value = '' } = props;
   const [current, setCurrent] = React.useState<string>(value);
-  const disabled = onChange ? DISABLED(props) : true;
+  const disabled = onChange ? props.disabled : true;
   const ONCHANGE = (evt: React.ChangeEvent<HTMLInputElement>): void => {
     const text = evt.target.value || '';
     setCurrent(text);
@@ -533,8 +532,8 @@ export interface SelectProps {
    `< option/>` and `<optgroup/>` elements.
    Options and group shall be specified as follows:
 
-   *   <optgroup label='…'>…</optgroup>
-   *   <option value='…' disabled=… >…</option>
+     - `<optgroup label='…'>…</optgroup>`
+     - `<option value='…' disabled=… >…</option>`
 
  */
 export function Select(props: SelectProps): JSX.Element {
@@ -543,7 +542,7 @@ export function Select(props: SelectProps): JSX.Element {
     'dome-xSelect dome-xBoxButton dome-xButton-default',
     props.className,
   );
-  const disabled = onChange ? DISABLED(props) : true;
+  const disabled = onChange ? props.disabled : true;
   const callback = (evt: React.ChangeEvent<HTMLSelectElement>): void => {
     if (onChange) onChange(evt.target.value);
     const target = evt.target;

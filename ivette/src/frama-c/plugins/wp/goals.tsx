@@ -7,6 +7,7 @@
 /* ************************************************************************ */
 
 import React from 'react';
+import { ColorKind } from 'dome/primitive/colors';
 import { Cell, Descr, Icon } from 'dome/primitive/displays';
 import { Filter } from 'dome/table/models';
 import { Table, Column } from 'dome/table/views';
@@ -14,7 +15,6 @@ import * as States from 'frama-c/states';
 import * as Ast from 'frama-c/kernel/api/ast';
 import * as WP from 'frama-c/plugins/wp/api';
 import * as Locations from 'frama-c/kernel/Locations';
-import { ColorKind } from 'dome/primitive/colors';
 
 /* -------------------------------------------------------------------------- */
 /* --- Table Cells                                                        --- */

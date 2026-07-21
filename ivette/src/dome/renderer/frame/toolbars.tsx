@@ -19,10 +19,10 @@ import React from 'react';
 import * as Dome from 'dome';
 import { classes } from 'dome/misc/utils';
 import { GlobalState, useGlobalState } from 'dome/data/states';
-import { Dropdown } from 'dome/dialogs';
 import { Label, LED, LEDstatus, SVG } from 'dome/primitive/displays';
-import './style.css';
 import { Button, TextButton } from 'dome/primitive/controls';
+import { Dropdown } from 'dome/dialogs';
+import './style.css';
 
 // --------------------------------------------------------------------------
 // --- ToolBar Container

@@ -299,11 +299,10 @@ function FilterRatio<K, R>(
   { model }: { model: Arrays.ArrayModel<K, R> }
 ): JSX.Element {
   const [filtered, total] = [model.getRowCount(), model.getTotalRowCount()];
+  const label = `${filtered} / ${total}`;
   const title = `${filtered} displayed messages / ${total} total messages`;
   return (
-    <Label label={`${filtered} / ${total}`}
-      className="component-info" title={title}
-    />
+    <Label label={label} title={title} className="component-info" />
   );
 }
 
