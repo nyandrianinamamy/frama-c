@@ -347,10 +347,52 @@ end
 module Bits = struct
   include Bytes
 
+  (* Converts integers bound to Null base to offsets of absolute ranges. *)
+  let convert_absolute_addresses loc =
+    let ival = find Base.null loc in
+    if Ival.is_bottom ival then
+      loc
+    else
+      let absolute_list = Base.absolute_addresses () in
+      let f acc (absolute, base) =
+        let shift = Z.neg absolute.Base.start in
+        let offset = Ival.add_singleton_int shift ival in
+        let range = Base.valid_offset Object_pointer base in
+        let valid_offset = Ival.narrow range offset in
+        if Ival.is_bottom valid_offset then
+          acc
+        else
+          let acc = add base valid_offset acc in
+          if Ival.equal offset valid_offset
+          then add Base.null Ival.bottom acc
+          else acc
+      in
+      List.fold_left f loc absolute_list
+
+  (* Converts offsets of absolute ranges into integers bound to Null base. *)
+  let remove_absolute_addresses loc =
+    let filter_absolute base ival acc =
+      match base with
+      | Base.Absolute { start } ->
+        let acc = add base Ival.bottom acc in
+        let ival = Ival.add_singleton_int start ival in
+        let ival_null = find Base.null acc in
+        add Base.null (Ival.join ival ival_null) acc
+      | _ -> acc
+    in
+    try fold_topset_ok filter_absolute loc loc
+    with Abstract_interp.Error_Top -> loc
+
+
   let of_bytes x =
     map (Ival.scale (Bit_utils.sizeofchar())) x
+    |> convert_absolute_addresses
+
   let to_bytes x =
-    map (Ival.scale_div ~pos:true (Bit_utils.sizeofchar())) x
+    remove_absolute_addresses x
+    |> map (Ival.scale_div ~pos:true (Bit_utils.sizeofchar()))
+
   let to_bytes_under x =
-    map (Ival.scale_div_under ~pos:true (Bit_utils.sizeofchar())) x
+    remove_absolute_addresses x
+    |> map (Ival.scale_div_under ~pos:true (Bit_utils.sizeofchar()))
 end

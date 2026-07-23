@@ -246,10 +246,9 @@ let nearly_valid_bits = function
 
 let nearly_valid_offset base =
   let min, max = nearly_valid_bits base in
-  let to_byte bound = Some (Z.ediv bound (Bit_utils.sizeofchar ())) in
-  Ival.inject_range (to_byte min) (to_byte max)
+  Ival.inject_range (Some min) (Some max)
 
-let assume_pointer loc =
+let assume_pointer value =
   let aux base ival (acc_v, acc_ok) =
     let validity = Base.validity base in
     let nearly_valid_ival = nearly_valid_offset validity in
@@ -259,13 +258,18 @@ let assume_pointer loc =
       then Ival.(join zero new_ival), acc_ok && Ival.is_zero ival
       else new_ival, acc_ok && Ival.equal ival new_ival
     in
-    Addresses.Bytes.add base ival acc_v, ok
+    Addresses.Bits.add base ival acc_v, ok
   in
   try
-    let loc, ok = Cvalue.V.(fold_topset_ok aux loc (bottom, true)) in
-    if Cvalue.V.is_bottom loc then `False
-    else if ok then `True else `Unknown loc
-  with Abstract_interp.Error_Top -> `Unknown loc
+    (* Converts pointer value into Addresses.Bits to convert integer values
+       into absolute addresses if possible. *)
+    let loc = Addresses.Bits.of_bytes value in
+    let loc, ok = Addresses.Bits.(fold_topset_ok aux loc (bottom, true)) in
+    (* Converts Addresses.Bits back into a byte value. *)
+    let value = Addresses.Bits.to_bytes loc in
+    if Cvalue.V.is_bottom value then `False else
+    if ok then `True else `Unknown value
+  with Abstract_interp.Error_Top -> `Unknown value
 
 let assume_aligned modulo loc =
   let rem = Z.zero in
