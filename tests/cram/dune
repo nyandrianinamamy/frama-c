@@ -1,0 +1,4 @@
+(cram
+  (enabled_if (<> %{env:CRAM=false} "false"))
+  (deps (package frama-c))
+)
