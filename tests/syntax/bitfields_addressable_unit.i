@@ -55,5 +55,23 @@ struct S5 {
   unsigned int f14: 15;
   unsigned int f15;
 }
-__attribute__((packed))
 s5;
+
+// multiple 0-sized bitfields are allowed
+struct S6 {
+unsigned char : 0;
+_Bool : 0;
+unsigned char : 0;
+unsigned char f5: 7;
+} s6;
+
+// 0-sized bitfields at start or end of sequence
+// useless but legal
+struct S7 {
+unsigned char f0;
+_Bool : 0;
+unsigned int f2: 1;
+unsigned int f3: 3;
+_Bool : 0;
+unsigned char f5;
+} s7;

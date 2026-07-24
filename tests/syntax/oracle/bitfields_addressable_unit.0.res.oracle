@@ -48,10 +48,26 @@ struct S5 {
    _Bool  : 0 ;
    unsigned int f14 : 15 ;
    unsigned int f15 ;
-} __attribute__((__packed__));
+};
+struct S6 {
+   unsigned char  : 0 ;
+   _Bool  : 0 ;
+   unsigned char  : 0 ;
+   unsigned char f5 : 7 ;
+};
+struct S7 {
+   unsigned char f0 ;
+   _Bool  : 0 ;
+   unsigned int f2 : 1 ;
+   unsigned int f3 : 3 ;
+   _Bool  : 0 ;
+   unsigned char f5 ;
+};
 struct S1 s1;
 struct S2 s2;
 struct S3 s3;
 struct S4 s4;
 struct S5 s5;
+struct S6 s6;
+struct S7 s7;
 

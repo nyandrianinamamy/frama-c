@@ -3987,6 +3987,22 @@ let bitfield_access_unit bf =
   if Option.is_none bf.fbitfield then
     Kernel.fatal "bitfield_access_unit called on non-bitfield %a"
       Cil_datatype.Fieldinfo.pretty bf;
+  let fields = Option.get bf.fcomp.cfields in
+  let rec partition prev f next =
+    if f.forder >= bf.forder &&
+       (Option.is_none f.fbitfield || Option.get f.fbitfield <> 0)
+    then prev, f, next
+    else begin
+      match next with
+      | [] -> prev, f, next
+      | nf :: _ when f.forder >= bf.forder && Option.is_none nf.fbitfield -> prev, f, next
+      | nf :: tl -> partition (f::prev) nf tl
+    end
+  in
+  (* there's at least one field, bf *)
+  let prev_fields, bf, next_fields =
+    partition [] (List.hd fields) (List.tl fields)
+  in
   let foffset_bits, fwidth_bits = fieldBitsOffset bf in
   let storage_kind typ =
     Ast_types.C.remove_attributes [Ast_attributes.bitfield_attribute_name] typ
@@ -3996,14 +4012,8 @@ let bitfield_access_unit bf =
     if fwidth_bits = 0 then 1 else bytesAlignOf ~standard_or_gcc:`Standard my_kind
   in
   let storage_offset = foffset_bits - foffset_bits mod (8) in
-  (*Format.printf "Field %s, offset %d, initial au offset %d, align %d@."
-    bf.fname foffset_bits storage_offset storage_align; *)
-  let fields = Option.get bf.fcomp.cfields in
-  let prev_fields, next_fields =
-    List.partition (fun f -> f.forder < bf.forder) fields
-  in
-  let next_fields = List.tl next_fields in
-  let prev_fields = List.rev prev_fields in
+  (* Format.printf "Field %s, offset %d, initial au offset %d, align %d@."
+     bf.fname foffset_bits storage_offset storage_align; *)
   let rec span_left storage_align storage_offset = function
     | [] -> storage_align, 0
     | f :: tl ->
@@ -4035,7 +4045,9 @@ let bitfield_access_unit bf =
       else next_offset + (8) - (next_offset mod (8))
     | f :: tl ->
       let (o,w) = fieldBitsOffset f in
-      if Option.is_none f.fbitfield || Option.get f.fbitfield = 0 then begin
+      if Option.is_none f.fbitfield ||
+         (Option.get f.fbitfield = 0 && not start_new_unit)
+      then begin
         assert (o mod 8 = 0);
         storage_align, o
       end else begin
@@ -4047,7 +4059,8 @@ let bitfield_access_unit bf =
           storage_align, o
         else begin
           let next_offset = max next_offset (o+w) in
-          span_right false storage_align next_offset tl
+          let start_new_unit = Option.get f.fbitfield = 0 in
+          span_right start_new_unit storage_align next_offset tl
         end
       end
   in
