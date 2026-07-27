@@ -327,7 +327,7 @@ LONGOPTIONS="help,compile,no-compile,compile-only,debug:,ocode:,oexec:,verbose:,
   quiet,logfile:,ld-flags:,cpp-flags:,frama-c-extra:,memory-model:,keep-going,
   frama-c:,gcc:,e-acsl-share:,instrumented-only,rte:,oexec-e-acsl:,concurrency,
   print-mmodels,rt-debug,rte-select:,then,then-last,e-acsl-extra:,check,no-constfold,
-  fail-with-code:,temporal,weak-validity,stack-size:,heap-size:,zone-sizes:,rt-verbose,
+  fail-with-code:,temporal,weak-validity,zone-sizes:,rt-verbose,
   free-valid-address,external-assert:,assert-print-data,no-assert-print-data,
   external-print-value:,validate-format-strings,no-trace,libc-replacements,
   with-dlmalloc:,dlmalloc-from-sources,dlmalloc-compile-only,
@@ -685,33 +685,6 @@ do
     --weak-validity)
       shift;
       OPTION_WEAK_VALIDITY=1
-    ;;
-    # Set heap shadow size
-    --heap-size)
-      warning "--heap-size is a deprecated option."
-      warning "Please use --zone-sizes instead."
-      shift;
-      zone_size="$(is_number "$1" $MIN_HEAP)"
-      case $zone_size in
-        '-') error "invalid number: '$1'" ;;
-        '<') error "heap limit less than minimal size [$MIN_HEAP"]
-          ;;
-        *) OPTION_HEAP_SIZE=$zone_size ;;
-      esac;
-      shift;
-    ;;
-    # Set stack shadow size
-    --stack-size)
-      warning "--stack-size is a deprecated option."
-      warning "Please use --zone-sizes instead."
-      shift;
-      zone_size="$(is_number "$1" $MIN_STACK)"
-      case $zone_size in
-        '-') error "invalid number: '$1'" ;;
-        '<') error "stack limit less than minimal size [$MIN_STACK"] ;;
-        *) OPTION_STACK_SIZE=$zone_size ;;
-      esac;
-      shift;
     ;;
     --zone-sizes)
       shift;
