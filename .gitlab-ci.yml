@@ -273,6 +273,26 @@ crowbar-tests-release:
     - ./nix/build-proxy.sh crowbar-tests
   <<: *when_release
 
+cram-tests:
+  stage: tests
+  script:
+    - ./nix/build-proxy.sh cram-tests
+  allow_failure: true
+  <<: *manual_when_not_special_pipeline
+
+cram-tests-weekly:
+  stage: tests
+  script:
+    - ./nix/build-proxy.sh cram-tests
+  allow_failure: true
+  <<: *when_weekly
+
+cram-tests-release:
+  stage: tests
+  script:
+    - ./nix/build-proxy.sh cram-tests
+  <<: *when_release
+
 plugins-tests:
   stage: tests
   script:
