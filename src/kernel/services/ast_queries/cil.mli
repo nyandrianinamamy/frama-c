@@ -1981,9 +1981,10 @@ val fieldBitsOffset: fieldinfo -> int * int
     properties should hold:
     - the storage unit does not overlap with any non-bitfield
     - bitfields sharing a byte will be put in the same storage unit
+    - any padding bits will be found at the end of an access unit
 
     If possible while satisfying the constraints above, the returned type
-    will be an integer type, otherwise an array of char (i.e. bytes).
+    will be an integer type, otherwise an array of unsigned char (i.e. bytes).
 
     @raise AbortFatal if the given fieldinfo is not a bitfield
     @since Frama-C+dev
