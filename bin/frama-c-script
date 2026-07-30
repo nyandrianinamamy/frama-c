@@ -12,12 +12,6 @@ usage() {
    echo ""
    echo "  where cmd is:"
    echo ""
-#   echo "  - build [--jbdb build_commands.json] [--sources file...]"
-#   echo "      Produces a GNUmakefile for Frama-C analyses."
-#   echo "      Uses a build_commands.json if available."
-#   echo "      NOTE: the tool used to produce such files (blug)"
-#   echo "            is not yet publicly available."
-#   echo ""
    echo "  - configure [--machdep=<mach>] [args]"
    echo "      Runs an existing configure script with Frama-C's libc having"
    echo "      higher priority than the system's libc. This helps disable"
@@ -228,10 +222,6 @@ EOF
 case "$command" in
     "help" | "-help" | "--help" | "-h")
         usage 0;
-        ;;
-    "build")
-        shift;
-        "$ANALYSIS_SCRIPTS_DIR/build.py" "$@";
         ;;
     "list-files")
         shift;
