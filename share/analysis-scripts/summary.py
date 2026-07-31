@@ -158,7 +158,7 @@ def run_analyses(display, database, framac, benchmark_tag):
     def update():
         nonlocal display, database, targets, benchmark_tag, results
         results = poll_results(targets, benchmark_tag)
-        if not database is None:
+        if database is not None:
             database.update(results)
         display.needs_update = True
 

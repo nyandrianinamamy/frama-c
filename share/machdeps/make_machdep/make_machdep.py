@@ -146,7 +146,7 @@ if args.from_file:
             sys.exit(0)
         else:
             sys.exit(1)
-    if not "compiler" in orig_machdep or not "cpp_arch_flags" in orig_machdep:
+    if "compiler" not in orig_machdep or "cpp_arch_flags" not in orig_machdep:
         raise Exception("Missing fields in yaml file")
     args.compiler = orig_machdep["compiler"]
     if isinstance(orig_machdep["cpp_arch_flags"], list):

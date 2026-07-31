@@ -42,7 +42,7 @@ class Callgraph:
             self.edges[(caller, callee)].append(loc)
         else:
             # new edge: check if caller exists
-            if not caller in self.succs:
+            if caller not in self.succs:
                 self.succs[caller] = []
             # add callee as successor of caller
             self.succs[caller].append(callee)

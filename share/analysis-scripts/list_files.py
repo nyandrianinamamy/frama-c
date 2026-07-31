@@ -41,7 +41,7 @@ with open(arg) as data:
 jcdb_dir = arg.parent
 files: set[tuple[str, str]] = set()  # set of pairs of (file, file_for_fcmake)
 for entry in jcdb:
-    if not "file" in entry:
+    if "file" not in entry:
         # ignore entries without a filename
         continue
     filename = Path(entry["file"])

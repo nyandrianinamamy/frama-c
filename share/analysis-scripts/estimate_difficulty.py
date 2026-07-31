@@ -101,8 +101,8 @@ def collect_files_and_local_dirs(paths) -> tuple[set[Path], set[Path]]:
     return files, local_dirs
 
 
-def extract_keys(l):
-    return [list(key.keys())[0] for key in l]
+def extract_keys(keys):
+    return [list(key.keys())[0] for key in keys]
 
 
 def get_framac_libc_function_statuses(
