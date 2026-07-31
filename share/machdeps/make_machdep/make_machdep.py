@@ -35,6 +35,8 @@ from pathlib import Path
 
 import yaml
 
+logger = logging.getLogger(__name__)
+
 my_path = Path(sys.argv[0]).parent
 
 parser = argparse.ArgumentParser(prog="make_machdep")
@@ -128,27 +130,26 @@ def check_machdep(machdep):
         return True
     except ImportError:
         if os.environ.get("CI") == "true":
-            logging.error("jsonschema is not available: stopping")
+            logger.error("jsonschema is not available: stopping")
             sys.exit(1)
         else:
-            logging.warning("jsonschema is not available: no validation will be performed")
+            logger.warning("jsonschema is not available: no validation will be performed")
             return True
     except ValidationError as exn:
-        logging.warning(f"machdep object is not conforming to machdep schema:\n{exn.message}")
+        logger.warning("machdep object is not conforming to machdep schema:\n%s", exn.message)
         return False
 
 
 if args.from_file:
-    orig_file = open(args.from_file, "r")
-    orig_machdep = yaml.safe_load(orig_file)
-    orig_file.close()
+    with open(args.from_file, "r", encoding="utf-8") as orig_file:
+        orig_machdep = yaml.safe_load(orig_file)
     if args.check_only:
         if check_machdep(orig_machdep):
             sys.exit(0)
         else:
             sys.exit(1)
     if "compiler" not in orig_machdep or "cpp_arch_flags" not in orig_machdep:
-        raise Exception("Missing fields in yaml file")
+        raise ValueError("Missing fields in yaml file")
     args.compiler = orig_machdep["compiler"]
     if isinstance(orig_machdep["cpp_arch_flags"], list):
         args.cpp_arch_flags = orig_machdep["cpp_arch_flags"]
@@ -173,7 +174,7 @@ def default_value(typ):
         return ""
     if typ == "list":
         return {}
-    logging.warning(f"Unexpected type {typ} in YAML schema")
+    logger.warning("Unexpected type %s in YAML schema", typ)
     return None
 
 
@@ -295,7 +296,7 @@ def find_value(name, typ, output):
         default = ""
 
     else:
-        logging.warning(f"unexpected type '{typ}' for field '{name}', skipping")
+        logger.warning("unexpected type '%s' for field '%s', skipping", typ, name)
         return
 
     if name in machdep:
@@ -307,18 +308,23 @@ def find_value(name, typ, output):
                 print(f"[INFO] setting {name} to {value}")
             machdep[name] = value
         else:
-            logging.warning(
-                f"cannot find value of field '{name}', using default value: '{default}'\ncompiler output is:\n{output}"
+            logger.warning(
+                "cannot find value of field '%s', using default value: '%s'\n\
+                compiler output is:\n\
+                %s",
+                name,
+                default,
+                output,
             )
             machdep[name] = default
     else:
-        logging.warning(f"unexpected symbol '{name}', ignoring")
+        logger.warning("unexpected symbol '%s', ignoring", name)
 
 
 def cleanup_cpp(output):
     lines = output.splitlines()
     macro = filter(lambda s: s != "" and s[0] != "#", lines)
-    macro = map(lambda s: s.strip(), macro)
+    macro = (s.strip() for s in macro)
     return " ".join(macro)
 
 
@@ -338,7 +344,7 @@ def find_macros_value(output, is_list=False, entry=None):
                     print(f"[INFO] setting {name} to {value}")
                 machdep[name] = value
             else:
-                logging.warning(f"unexpected symbol '{name}', ignoring")
+                logger.warning("unexpected symbol '%s', ignoring", name)
     if args.verbose:
         print(f"compiler output is:{output}")
 
@@ -356,17 +362,21 @@ with tempfile.TemporaryDirectory() as tmpdirname:
             cmd = cmd + ["-E"]
         if args.verbose:
             print(f"[INFO] running command: {' '.join(cmd)}")
-        proc = subprocess.run(cmd, capture_output=True, cwd=tmpdirname)
+        proc = subprocess.run(cmd, capture_output=True, cwd=tmpdirname, check=False)
         if typ == "none":
             if proc.returncode != 0:
-                logging.critical("cannot compile sample C file with provided compiler and flags.")
-                logging.info(f"compiler output is:{proc.stderr.decode()}")
+                logger.critical("cannot compile sample C file with provided compiler and flags.")
+                logger.info("compiler output is: %s", proc.stderr.decode())
                 sys.exit(1)
             continue
         if typ == "macro":
             if proc.returncode != 0:
-                logging.warning(
-                    f"error in preprocessing value '{p}', some values won't be filled\ncompiler output is:\n{proc.stderr.decode()}"
+                logger.warning(
+                    "error in preprocessing value '%s', \
+                    some values won't be filled\n\
+                    compiler output is:\n%s",
+                    p,
+                    proc.stderr.decode(),
                 )
                 name = p.stem
                 if name in machdep:
@@ -377,8 +387,12 @@ with tempfile.TemporaryDirectory() as tmpdirname:
         if typ == "macrolist":
             name = p.stem
             if proc.returncode != 0:
-                logging.warning(
-                    f"error in preprocessing value '{p}', some values might not be filled\ncompiler output is:{proc.stderr.decode()}"
+                logger.warning(
+                    "error in preprocessing value '%s', \
+                    some values might not be filled\n\
+                    compiler output is: %s",
+                    p,
+                    proc.stderr.decode(),
                 )
                 if name in machdep:
                     machdep[name] = {}
@@ -392,19 +406,22 @@ with tempfile.TemporaryDirectory() as tmpdirname:
         if proc.returncode == 0:
             # all tests should fail on an appropriate _Static_assert
             # if compilation succeeds, we have a problem
-            logging.warning(f"could not identify value of '{p.stem}', skipping")
+            logger.warning("could not identify value of '%s', skipping", p.stem)
             continue
         find_value(p.stem, typ, proc.stderr.decode())
 
     version_output = subprocess.run(
-        [args.compiler, args.compiler_version], capture_output=True, text=True, cwd=tmpdirname
+        [args.compiler, args.compiler_version],
+        capture_output=True,
+        text=True,
+        cwd=tmpdirname,
+        check=False,
     )
     version_lines = version_output.stdout.splitlines()
     if not version_lines:
-        logging.warning(
-            "could not obtain compiler version with "
-            + f"'{args.compiler_version}'"
-            + ", check option --compiler-version"
+        logger.warning(
+            "could not obtain compiler version with '%s', check option --compiler-version",
+            args.compiler_version,
         )
         version = "<unknown>"
     else:
@@ -418,7 +435,7 @@ with tempfile.TemporaryDirectory() as tmpdirname:
         cmd = compilation_command + [f"-DALIGN_TEST={align_test}", str(f)]
         if args.verbose:
             print(f"[INFO] running command: {' '.join(cmd)}")
-        proc = subprocess.run(cmd, capture_output=True, cwd=tmpdirname)
+        proc = subprocess.run(cmd, capture_output=True, cwd=tmpdirname, check=False)
         return proc.returncode == 0
 
     align_test = 1
@@ -435,7 +452,7 @@ with tempfile.TemporaryDirectory() as tmpdirname:
     machdep["cpp_arch_flags"] = args.cpp_arch_flags
     machdep["version"] = version
 
-    machdep["custom_defs"] = dict()
+    machdep["custom_defs"] = {}
 
     # Extract predefined macros; we're assuming a gcc-like compiler here.
     # Leave custom_defs empty if this fails.
@@ -444,10 +461,10 @@ with tempfile.TemporaryDirectory() as tmpdirname:
     if args.verbose:
         print(f"[INFO] running command: {' '.join(cmd)}")
     proc = subprocess.run(
-        cmd, stdin=subprocess.DEVNULL, capture_output=True, text=True, cwd=tmpdirname
+        cmd, stdin=subprocess.DEVNULL, capture_output=True, text=True, cwd=tmpdirname, check=False
     )
     if proc.returncode == 0:
-        custom = dict()
+        custom = {}
         for line in proc.stdout.splitlines():
             # Preprocessor emits a warning if we're trying to #undef
             # standard macros. Leave them alone.
@@ -464,8 +481,8 @@ with tempfile.TemporaryDirectory() as tmpdirname:
             custom[macro_var] = macro_val
         machdep["custom_defs"] = custom
     else:
-        logging.warning(
-            f"could not determine predefined macros. compiler output is:\n{proc.stderr}"
+        logger.warning(
+            "could not determine predefined macros. compiler output is:\n%s", proc.stderr
         )
 
     if args.from_file and args.in_place:
@@ -481,7 +498,7 @@ with tempfile.TemporaryDirectory() as tmpdirname:
 
     if missing_fields:
         msg = ", ".join(missing_fields)
-        logging.warning(f"the following fields are missing from the machdep definition: {msg}")
+        logger.warning("the following fields are missing from the machdep definition: %s", msg)
         for field in missing_fields:
             machdep[field] = default_value(schema[field]["type"])
 
