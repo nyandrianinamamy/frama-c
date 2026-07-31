@@ -25,14 +25,15 @@ by hand afterwards.
 """
 
 import argparse
-from pathlib import Path
+import logging
+import os
 import re
 import subprocess
 import sys
 import tempfile
-import logging
+from pathlib import Path
+
 import yaml
-import os
 
 my_path = Path(sys.argv[0]).parent
 
@@ -115,7 +116,7 @@ def is_optional(field):
 
 def check_machdep(machdep):
     try:
-        from jsonschema import validate, ValidationError
+        from jsonschema import ValidationError, validate
 
         strict_schema = {
             # extract the keys

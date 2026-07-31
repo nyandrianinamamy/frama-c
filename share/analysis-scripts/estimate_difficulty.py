@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 ##########################################################################
 #                                                                        #
 #  SPDX-License-Identifier LGPL-2.1                                      #
@@ -16,12 +15,12 @@ import glob
 import json
 import logging
 import os
-from pathlib import Path
 import re
 import subprocess
 import sys
 import tempfile
-from typing import Iterable
+from collections.abc import Iterable
+from pathlib import Path
 
 import build_callgraph
 import external_tool

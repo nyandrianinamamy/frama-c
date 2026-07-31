@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 ##########################################################################
 #                                                                        #
 #  SPDX-License-Identifier LGPL-2.1                                      #
@@ -10,10 +9,10 @@
 
 """Exports find_function_in_file, to be used by other scripts"""
 
-from pathlib import Path
 import bisect
 import os
 import re
+from pathlib import Path
 
 # To minimize the amount of false positives, we try to match the following:
 # - the line must begin with a C identifier (declarations and definitions in C

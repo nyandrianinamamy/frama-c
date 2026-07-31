@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 ##########################################################################
 #                                                                        #
 #  SPDX-License-Identifier LGPL-2.1                                      #
@@ -25,7 +24,7 @@ def init(debug, verbose):
 
     logging.addLevelName(VERBOSE, "")
     logging.addLevelName(logging.ERROR, "ERROR: ")
-    logging.addLevelName(logging.WARN, "WARNING: ")
+    logging.addLevelName(logging.WARNING, "WARNING: ")
     logging.addLevelName(logging.INFO, "")
     log_level = logging.DEBUG if debug else VERBOSE if verbose else logging.INFO
     log_format = "%(levelname)s%(message)s"

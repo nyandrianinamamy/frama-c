@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 ##########################################################################
 #                                                                        #
 #  SPDX-License-Identifier LGPL-2.1                                      #
@@ -13,10 +12,11 @@
 # See: http://clang.llvm.org/docs/JSONCompilationDatabase.html
 
 from __future__ import annotations
-import sys
-import os
+
 import json
+import os
 import re
+import sys
 from pathlib import Path
 
 if len(sys.argv) < 2:
@@ -62,7 +62,7 @@ for entry in jcdb:
 files_for_fcmake = map(lambda x: (x[1]), files)
 print("# Paths as seen by a makefile inside subdirectory '.frama-c':")
 print("SRCS=\\\n" + " \\\n".join(sorted(files_for_fcmake)) + " \\")
-print("")
+print()
 
 files_defining_main = set()
 re_main = re.compile(r"(int|void)\s+main\s*\([^)]*\)\s*\{")
@@ -79,7 +79,7 @@ for fname, file_for_fcmake in sorted(files):
         )
 
 if files_defining_main != []:
-    print("")
+    print()
     print(
         "# Possible definition of main function in the following file(s), as seen from '.frama-c':"
     )

@@ -28,7 +28,7 @@ runs = []
 title_re = re.compile(r"(\[metrics\] )?([a-zA-Z0-9'][a-zA-Z0-9' -]+)+ +\(([0-9]+)\)")
 
 cur_run = 0
-for run in range(0, len(args) // 5):
+for run in range(len(args) // 5):
     r = {}
     r["Defined functions"] = args[5 * cur_run]
     r["Specified-only functions"] = args[5 * cur_run + 1]

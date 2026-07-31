@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 ##########################################################################
 #                                                                        #
 #  SPDX-License-Identifier LGPL-2.1                                      #
@@ -11,9 +10,10 @@
 """This script uses heuristics to list all function definitions and
 declarations in a set of files."""
 
-from pathlib import Path
-import sys
 import os
+import sys
+from pathlib import Path
+
 import function_finder
 
 debug = os.getenv("DEBUG")

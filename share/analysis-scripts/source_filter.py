@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 ##########################################################################
 #                                                                        #
 #  SPDX-License-Identifier LGPL-2.1                                      #
@@ -23,9 +22,10 @@ the efficiency of regex-based heuristics."""
 # of errors when running the filters. Note that an absent tool
 # does _not_ lead to an error.
 
-import external_tool
-from pathlib import Path
 import sys
+from pathlib import Path
+
+import external_tool
 
 
 def filter_with_scc(input_data: str) -> str:

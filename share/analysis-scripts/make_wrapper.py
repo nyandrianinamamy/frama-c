@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 ##########################################################################
 #                                                                        #
 #  SPDX-License-Identifier LGPL-2.1                                      #
@@ -13,6 +12,7 @@ GNUmakefile template): it parses the output and suggests useful commands
 whenever it can, by calling frama-c-script itself."""
 
 from __future__ import annotations
+
 import argparse
 import collections
 import os
@@ -176,15 +176,15 @@ for line in lines:
         )
 
 if tips != []:
-    print("")
+    print()
     print("***** make-wrapper recommendations *****")
-    print("")
+    print()
     counter = 1
     print("*** recommendation #" + str(counter) + " ***")
-    print("")
+    print()
     for tip in tips:
         if counter > 1:
-            print("")
+            print()
             print("*** recommendation #" + str(counter) + " ***")
         print(str(counter) + ". " + str(tip.message))
         counter += 1

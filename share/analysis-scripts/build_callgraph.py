@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 ##########################################################################
 #                                                                        #
 #  SPDX-License-Identifier LGPL-2.1                                      #
@@ -11,8 +10,8 @@
 for a given function name, via heuristic syntactic matching."""
 
 import os
-from pathlib import Path
 import sys
+from pathlib import Path
 
 import function_finder
 import source_filter
