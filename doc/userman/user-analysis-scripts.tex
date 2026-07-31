@@ -32,8 +32,8 @@ Most scripts are accessible via the \texttt{frama-c-script} command, installed
 along with \FramaC. Running this command without any arguments prints the list
 of commands, with a brief description of each of them. Some extra scripts are
 available by directly running them; in both cases, the actual scripts
-themselves are installed in Frama-C's \texttt{lib} directory, underneath
-\texttt{analysis-scripts}.
+themselves are installed in Frama-C's \texttt{lib} directory
+(\texttt{frama-c -print-lib-path}, in subdirectory \texttt{analysis-scripts}.
 
 \subsection{General Framework}
 
@@ -115,7 +115,10 @@ The standard way of setting up a new analysis is via these steps:
 
 A project without this information is incomplete; an alternative
 workflow is then necessary. The next section presents some possibilities to
-retrieve such information.
+retrieve such information. Note that with tools such as
+\texttt{mopsa-build} (mentioned in Section~\ref{sec:mopsa}), all but the first
+item can be obtained automatically from the name of an executable file produced
+by a build tool such as Make.
 
 \subsection{Possible Workflows in the Absence of Build Information}
 \label{sec:alternative-workflows}
@@ -163,6 +166,11 @@ such as when multiple test files define a \texttt{main} function.
 
 \subsection{Using a JSON Compilation Database (JCDB)}
 \label{sec:using-json-comp}
+
+\textbf{Note}: If you can use \texttt{mopsa-build} to obtain a
+\texttt{mopsa-db.json} file, you can skip this section and use \FramaC's option
+\texttt{-mopsa-db}. See Section~\ref{sec:mopsa} for more details.
+
 Independently of the chosen workflow, some partial information can be retrieved
 when CMake or Makefile scripts are available for compiling the sources.
 They allow the production of a JSON Compilation Database
