@@ -228,7 +228,8 @@ struct
       Format.fprintf fmt ":%s" name
 
   let pp_kind fmt = function
-    | Result | Feedback | Debug -> ()
+    | Result | Feedback -> ()
+    | Debug -> Format.fprintf fmt "@{<blue>Debug:@} "
     | Error   -> Format.fprintf fmt "@{<red>User Error:@} "
     | Warning -> Format.fprintf fmt "@{<orange>Warning:@} "
     | Failure -> Format.fprintf fmt "@{<red>Failure:@} "
