@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 ##########################################################################
 #                                                                        #
 #  SPDX-License-Identifier LGPL-2.1                                      #
@@ -8,21 +7,20 @@
 #                                                                        #
 ##########################################################################
 
-import re
-import sys
-import subprocess
-import time
-import os
-import signal
 import argparse
-import uuid
 import csv
-import typing
+import os
+import re
+import signal
+import subprocess
+import sys
+import time
+import uuid
 from pathlib import Path
 
+import benchmark_database
 import frama_c_results
 import results_display
-import benchmark_database
 
 
 class OperationException(Exception):
@@ -52,11 +50,12 @@ def list_targets(dir):
         env=env,
         stdout=subprocess.PIPE,
         encoding="ascii",
+        check=False,
     )
     targets = res.stdout.split()
     res = []
     for target in targets:
-        if target.endswith(".eva") or target.endswith(".parse"):
+        if target.endswith(".eva", ".parse"):
             res += [f"{dir}/{target}"]
         else:
             res += list_targets(target)
@@ -90,7 +89,7 @@ def run_make(framac, benchmark_tag=None):
         env=env,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.PIPE,
-        preexec_fn=os.setsid,
+        start_new_session=True,
     )
 
 
@@ -100,10 +99,9 @@ def terminate_process(process):
     else:
         try:
             os.killpg(os.getpgid(process.pid), signal.SIGTERM)
-            pass
         except ProcessLookupError:
             pass
-        output, errors = process.communicate()
+        _output, errors = process.communicate()
         return errors
 
 
@@ -177,7 +175,7 @@ def run_analyses(display, database, framac, benchmark_tag):
     except Exception as e:
         # terminate_process below is somehow blocking the exception printing
         errors += bytearray(str(e), "ascii")
-        raise e
+        raise
     finally:
         errors += terminate_process(process)
     return results, errors
@@ -225,7 +223,7 @@ try:
         framac = os.path.abspath(args.repository_path)
         gitdir = framac
 
-    benchmark_tag: typing.Optional[str]
+    benchmark_tag: str | None
     if args.benchmark:
         benchmark_tag = str(uuid.uuid1())
         print("Running benchmarks with benchmark tag", benchmark_tag, "...")
