@@ -410,6 +410,24 @@ export function Spinner(props: SpinnerProps): JSX.Element {
       if (!Number.isNaN(newValue)) onChange(newValue);
     }
   };
+
+  React.useEffect(() => {
+    const handler = (e: WheelEvent): void => {
+      const target = e.target as HTMLElement;
+      if (target.closest("input[type='number']"))
+        e.stopPropagation();
+    };
+
+    window.addEventListener("wheel", handler, {
+      capture: true,
+      passive: false,
+    });
+
+    return () => {
+      window.removeEventListener("wheel", handler, { capture: true });
+    };
+  }, []);
+
   return (
     <input
       id={props.id}
