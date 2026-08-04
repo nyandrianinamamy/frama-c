@@ -37,6 +37,8 @@ Plugin E-ACSL <next-release>
                            option
 -  E-ACSL     [2026-08-06] New option -e-acsl-O-rte-initialized that generates
                            initialization guards for all annotations
+-* E-ACSL     [2025-08-04] Fix inductive extraction in the presence of labels
+                           which are shuffled around in recursive occurrences
 -  E-ACSL     [2026-07-25] Rename flag -e-acsl-gmp-only to -e-acsl-O-gmp-only
 -  E-ACSL     [2026-07-15] Rename flag -e-acsl-assert-print-data to
                            -e-acsl-O-print-values

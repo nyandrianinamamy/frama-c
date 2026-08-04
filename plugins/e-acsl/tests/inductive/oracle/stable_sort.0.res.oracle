@@ -1,7 +1,11 @@
 [kernel] stable_sort.c:45: Warning: 
   parsing obsolete ACSL construct '\valid_range(addr,min,max)'. '\valid(addr+(min..max))' should be used instead.
 [e-acsl] beginning translation.
-[e-acsl:analysis:inductive] no valid mode found for: Permut
+[e-acsl:analysis:inductive] stable_sort.c:16: 
+  conclusion not an occurrence of the enclosing predicate: Permut{L, L}
+                                                           (a, l, h)
+[e-acsl:analysis:inductive] stable_sort.c:16: 
+  unsupported form: Permut{L, L}(a, l, h)
 [e-acsl] Warning: Unable to extract executable code from inductive definition of Permut.
   See language reference manual for details on the supported forms.
 [e-acsl] stable_sort.c:63: Warning: 
