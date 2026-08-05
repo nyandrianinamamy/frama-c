@@ -12,7 +12,9 @@
 /* -------------------------------------------------------------------------- */
 
 import React from 'react';
-import { Code, Title, LCD, LED, Meter, Icon, Badge
+import {
+  Code, Title, LCD, LED, Meter, Icon, Badge,
+  Label, Item, Cell, Data, Descr
 } from 'dome/primitive/displays';
 import { Section } from 'dome/frame/sidebars';
 import { Scroll, Grid, Hbox, Vbox } from 'dome/layout/boxes';
@@ -58,6 +60,35 @@ function Display(): React.JSX.Element {
         <Title style={flexCenter} label='Component' />
         <Title style={flexCenter} label='Result' />
         <Title style={flexCenter} label='Details' />
+
+        <Code label='<Label label="Label" />'/>
+        <div style={flexCenter}><Label label='Label' /></div>
+        <Hbox style={{
+          gridRow: 'span 7',
+          alignItems: 'center',
+          borderLeft: 'dashed 1px',
+          paddingLeft: '5px'
+          }}>
+            Constructed with makeLabel()
+        </Hbox>
+
+        <Code label='<Title label="Title" />'/>
+        <div style={flexCenter}><Title label='Title' /></div>
+
+        <Code label='<Descr label="Description" />'/>
+        <div style={flexCenter}><Descr label='Description' /></div>
+
+        <Code label='<Data label="Data" />'/>
+        <div style={flexCenter}><Data label='Data' /></div>
+
+        <Code label='<Code label="Code" />'/>
+        <div style={flexCenter}><Code label='Code' /></div>
+
+        <Code label='<Cell label="Cell" />'/>
+        <div style={flexCenter}><Cell label='Cell' /></div>
+
+        <Code label='<Item label="Item" />'/>
+        <div style={flexCenter}><Item label='Item' /></div>
 
         <Code label='<Icon />'/>
         <div style={flexCenter}>
