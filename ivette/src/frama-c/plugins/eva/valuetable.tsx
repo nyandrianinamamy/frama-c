@@ -186,29 +186,25 @@ interface StmtProps {
   short?: boolean;
 }
 
-function Stmt(props: StmtProps): JSX.Element | null {
-  const { stmt, marker, short } = props;
-  const { descr, scope } = States.useMarker(stmt);
-  const { sloc } = States.useMarker(marker);
-  const { name: fct } = States.useDeclaration(scope);
-  if (!marker || !fct) return null;
-  // Location sloc should always be defined for statements.
-  const label = short ? `@L${sloc?.line}` : `@${sloc?.base}:${sloc?.line}`;
-  const title = stmt ? descr : "Start of function " + fct;
-  const className = 'dome-text-cell eva-stmt';
-  return <span className={className} title={title}>{label}</span>;
-}
-
-function getStmtTitle(props: StmtProps): string {
+function getStmtLocAsStr(props: StmtProps): [string, string] | null {
   const { stmt, marker, short } = props;
   const { descr, scope } = States.getMarker(stmt);
   const { sloc } = States.getMarker(marker);
   const { name: fct } = States.getDeclaration(scope);
-  if (!marker || !fct) return "";
+  if (!marker || !fct) return null;
   // Location sloc should always be defined for statements.
   const label = short ? `L${sloc?.line}` : `${sloc?.base}:${sloc?.line}`;
   const title = stmt ? descr : "Start of function " + fct;
-  return `${label}: ${title}`;
+  return [label, title];
+}
+
+function Stmt(props: StmtProps): JSX.Element | null {
+  const stmtLocAsStr = getStmtLocAsStr(props);
+  if(!stmtLocAsStr) return null;
+  const [title, loc] = stmtLocAsStr;
+  const label = "@" + loc;
+  const className = 'dome-text-cell eva-stmt';
+  return <span className={className} title={title}>{label}</span>;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -264,7 +260,9 @@ async function StackInfos(props: StackInfosProps): Promise<JSX.Element> {
       evt.preventDefault();
       select(true);
     };
-    const title = getStmtTitle({ stmt: stmt, marker: stmt });
+    const params = { stmt: stmt, marker: stmt };
+    const [scope, loc] = getStmtLocAsStr(params) ?? ['', ''];
+    const title = scope && loc ? `${scope}: ${loc}` : '';
 
     return (
       <Button
