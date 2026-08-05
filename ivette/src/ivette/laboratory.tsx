@@ -1327,8 +1327,7 @@ function DockItem(props: DockItemProps): JSX.Element | null {
     setCurrentNone();
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const onContextMenu = (evt: React.MouseEvent, _:any): void => {
+  const onContextMenu = (evt: React.MouseEvent): void => {
     openLayoutMenu(compId, {
       dock: visible,
       undock: true,
