@@ -1,9 +1,10 @@
+[kernel] Warning: Absolute valid range 0-0xFF includes NULL pointer 0.
 [kernel] Parsing alias.i (no preprocessing)
 [eva] Analyzing a complete application starting at main8
 [eva:progress] Computing initial state
 [eva:progress] Initial state computed
 [eva:initial-state] Values of globals at initialization
-  NULL[rbits 0 to 2047] ∈ [--..--]
+  &0[rbits 0 to 2047] ∈ [--..--]
   A ∈ {0}
   B ∈ {0}
   C ∈ {0}

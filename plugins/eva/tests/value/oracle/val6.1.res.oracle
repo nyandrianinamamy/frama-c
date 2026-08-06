@@ -3,7 +3,7 @@
 [eva:progress] Computing initial state
 [eva:progress] Initial state computed
 [eva:initial-state] Values of globals at initialization
-  NULL[rbits 8 to 8388607] ∈ [--..--]
+  &1[rbits 0 to 8388599] ∈ [--..--]
   c ∈ {0}
   a ∈ {0}
   b ∈ {0}
@@ -13,11 +13,11 @@
 [eva:progress] Done for function f1
 [eva] ====== VALUES COMPUTED ======
 [eva:final-states] Values at end of function f1:
-  NULL[rbits 8 to 135] ∈ [--..--]
-      [rbits 136 to 143] ∈ {27}
-      [rbits 144 to 151] ∈ [--..--]
-      [rbits 152 to 159] ∈ {0}
-      [rbits 160 to 8388607] ∈ [--..--]
+  &1[rbits 0 to 127] ∈ [--..--]
+    [rbits 128 to 135] ∈ {27}
+    [rbits 136 to 143] ∈ [--..--]
+    [rbits 144 to 151] ∈ {0}
+    [rbits 152 to 8388599] ∈ [--..--]
   b ∈ {19}
   x ∈ {19}
   __retres ∈ {0}
@@ -26,13 +26,13 @@
 [from] ====== DEPENDENCIES COMPUTED ======
   These dependencies hold at termination for the executions that terminate:
 [from] Function f1:
-  NULL[17] FROM \nothing
-      [19] FROM c
+  &1[16] FROM \nothing
+    [18] FROM c
   b FROM c
   x FROM c
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f1:
-    NULL{[17]; [19]}; b; x; __retres
+    &1{[16]; [18]}; b; x; __retres
 [inout] Inputs for function f1:
     c; b; x

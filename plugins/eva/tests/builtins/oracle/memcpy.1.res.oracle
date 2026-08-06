@@ -3,7 +3,7 @@
 [eva:progress] Computing initial state
 [eva:progress] Initial state computed
 [eva:initial-state] Values of globals at initialization
-  NULL[rbits 800000 to 800015] ∈ [--..--]
+  &100000[rbits 0 to 15] ∈ [--..--]
   i ∈ [--..--]
   src[0..19] ∈ {0}
   dst1[0..19] ∈ {0}

@@ -23,7 +23,7 @@
   computed (abstract type 'struct s')
 [eva:progress] Initial state computed
 [eva:initial-state] Values of globals at initialization
-  NULL[rbits 800 to 1607] ∈ [--..--]
+  &100[rbits 0 to 807] ∈ [--..--]
   v ∈ [--..--]
   addr ∈ [--..--]
   v1.[bits 0 to ..] ∈ {0} or UNINITIALIZED
@@ -61,7 +61,7 @@
 [eva:show] imprecise.c:21: 
   Frama_C_dump_each:
   # cvalue:
-  NULL[rbits 800 to 1607] ∈ [--..--]
+  &100[rbits 0 to 807] ∈ [--..--]
   __fc_heap_status ∈ [--..--]
   __fc_strtok_ptr ∈ {0}
   i ∈ {1}
@@ -88,7 +88,7 @@
 [from] Done for function write_garbled
 [eva:progress] Done for function write_garbled
 [eva:locals-escaping] imprecise.c:145: Warning: 
-  locals {j, k} escaping the scope of write_garbled through NULL
+  locals {j, k} escaping the scope of write_garbled through &100
 [eva:progress] 
   computing for function abstract_structs <- main.
   Called from imprecise.c:146.
@@ -148,8 +148,8 @@
 [eva:show] imprecise.c:76: 
   Frama_C_dump_each:
   # cvalue:
-  NULL[rbits 800 to 1599] ∈ [--..--] or ESCAPINGADDR
-      [rbits 1600 to 1607] ∈ [--..--]
+  &100[rbits 0 to 799] ∈ [--..--] or ESCAPINGADDR
+      [rbits 800 to 807] ∈ [--..--]
   __fc_heap_status ∈ [--..--]
   __fc_strtok_ptr ∈ {0}
   v ∈ [--..--]
@@ -188,8 +188,8 @@
 [eva:show] imprecise.c:78: 
   Frama_C_dump_each:
   # cvalue:
-  NULL[rbits 800 to 1599] ∈ [--..--] or ESCAPINGADDR
-      [rbits 1600 to 1607] ∈ [--..--]
+  &100[rbits 0 to 799] ∈ [--..--] or ESCAPINGADDR
+      [rbits 800 to 807] ∈ [--..--]
   __fc_heap_status ∈ [--..--]
   __fc_strtok_ptr ∈ {0}
   v ∈ [--..--]
@@ -287,8 +287,8 @@
   c2# ∈ {{ (? *)&x }}%32, bits 0 to 7 
   c3 ∈ {{ garbled mix of &{x} (origin: Misaligned read {imprecise.c:68}) }}
 [eva:final-states] Values at end of function garbled_mix_null:
-  NULL[rbits 800 to 1599] ∈ [--..--] or ESCAPINGADDR
-      [rbits 1600 to 1607] ∈ [--..--]
+  &100[rbits 0 to 799] ∈ [--..--] or ESCAPINGADDR
+      [rbits 800 to 807] ∈ [--..--]
   p_gm_null ∈ [100..196],0%4
 [eva:final-states] Values at end of function invalid_assigns_imprecise:
   p ∈ {0}
@@ -329,17 +329,17 @@
   vx ∈ {1}
   vy ∈ {1} or UNINITIALIZED
 [eva:final-states] Values at end of function write_garbled:
-  NULL[rbits 800 to 1599] ∈
+  &100[rbits 0 to 799] ∈
       {{ NULL + [--..--] ; (? *)&j ; (? *)&k{[0], [1], [2], [3], [4]} }} repeated %32 
-      [rbits 1600 to 1607] ∈ [--..--]
+      [rbits 800 to 807] ∈ [--..--]
   i ∈ {1}
   j ∈ {{ NULL + [1..196] ; (int)&j ; (int)&k{[0], [1], [2], [3], [4]} }}
   k[0..4] ∈
    {{ NULL + [--..--] ; (int)&j ; (int)&k{[0], [1], [2], [3], [4]} }}
   p ∈ {{ NULL + [100..196],0%4 ; &j ; &k{[0], [1], [2], [3], [4]} }}
 [eva:final-states] Values at end of function main:
-  NULL[rbits 800 to 1599] ∈ [--..--] or ESCAPINGADDR
-      [rbits 1600 to 1607] ∈ [--..--]
+  &100[rbits 0 to 799] ∈ [--..--] or ESCAPINGADDR
+      [rbits 800 to 807] ∈ [--..--]
   v1.[bits 0 to 7] ∈ {1}
     .[bits 8 to ..] ∈ {0} or UNINITIALIZED
   v2.[bits 0 to 31] ∈ {0} or UNINITIALIZED
@@ -388,10 +388,10 @@
 [from] Function gm_f1:
   \result FROM \nothing
 [from] Function gm_f2:
-  NULL[100..199] FROM NULL[100..199] (and SELF)
-  \result FROM NULL[100..199]
+  &100[0..99] FROM &100[0..99] (and SELF)
+  \result FROM &100[0..99]
 [from] Function garbled_mix_null:
-  NULL[100..199] FROM NULL[100..199] (and SELF)
+  &100[0..99] FROM &100[0..99] (and SELF)
   p_gm_null FROM \nothing
 [from] Function invalid_assigns_imprecise:
   NO EFFECTS
@@ -413,10 +413,10 @@
 [from] Function weak_update_imprecise_size:
   NO EFFECTS
 [from] Function write_garbled:
-  NULL[100..200] FROM \nothing (and SELF)
+  &100[0..100] FROM \nothing (and SELF)
 [from] Function main:
-  NULL[100..199] FROM NULL[100..199] (and SELF)
-      [200] FROM \nothing (and SELF)
+  &100[0..99] FROM &100[0..99] (and SELF)
+      [100] FROM \nothing (and SELF)
   v1.[bits 0 to 7] FROM \nothing
   v2.[bits 32 to 63] FROM \nothing
   v3.[bits 0 to 34359738359] FROM \nothing (and SELF)
@@ -429,8 +429,8 @@
 [from] call to Frama_C_dump_each at imprecise.c:76 (by garbled_mix_null):
   \result FROM \nothing
 [from] call to gm_f2 at imprecise.c:77 (by garbled_mix_null):
-  NULL[100..199] FROM NULL[100..199] (and SELF)
-  \result FROM NULL[100..199]
+  &100[0..99] FROM &100[0..99] (and SELF)
+  \result FROM &100[0..99]
 [from] call to Frama_C_dump_each at imprecise.c:78 (by garbled_mix_null):
   \result FROM \nothing
 [from] call to f at imprecise.c:11 (by invalid_assigns_imprecise):
@@ -446,7 +446,7 @@
 [from] call to invalid_assigns_imprecise at imprecise.c:144 (by main):
   NO EFFECTS
 [from] call to write_garbled at imprecise.c:145 (by main):
-  NULL[100..200] FROM \nothing (and SELF)
+  &100[0..100] FROM \nothing (and SELF)
 [from] call to abstract_structs at imprecise.c:146 (by main):
   v1.[bits 0 to 7] FROM \nothing
   v2.[bits 32 to 63] FROM \nothing
@@ -455,7 +455,7 @@
 [from] call to cast_address at imprecise.c:147 (by main):
   NO EFFECTS
 [from] call to garbled_mix_null at imprecise.c:148 (by main):
-  NULL[100..199] FROM NULL[100..199] (and SELF)
+  &100[0..99] FROM &100[0..99] (and SELF)
   p_gm_null FROM \nothing
 [from] call to weak_update_imprecise_size at imprecise.c:149 (by main):
   NO EFFECTS
@@ -466,8 +466,8 @@
 [from] call to paste_big at imprecise.c:152 (by main):
   NO EFFECTS
 [from] entry point:
-  NULL[100..199] FROM NULL[100..199] (and SELF)
-      [200] FROM \nothing (and SELF)
+  &100[0..99] FROM &100[0..99] (and SELF)
+      [100] FROM \nothing (and SELF)
   v1.[bits 0 to 7] FROM \nothing
   v2.[bits 32 to 63] FROM \nothing
   v3.[bits 0 to ..] FROM \nothing (and SELF)
@@ -486,14 +486,14 @@
   Sure outputs:
     p; c1; c2; c3
 [inout] Out (internal) for function garbled_mix_null:
-    NULL[100..199]; p_gm_null
+    &100[0..99]; p_gm_null
 [inout] Inputs for function garbled_mix_null:
-    NULL[100..199]; p_gm_null
+    &100[0..99]; p_gm_null
 [inout] InOut (internal) for function garbled_mix_null:
   Operational inputs:
-    NULL[100..199]
+    &100[0..99]
   Operational inputs on termination:
-    NULL[100..199]
+    &100[0..99]
   Sure outputs:
     p_gm_null
 [inout] Out (internal) for function invalid_assigns_imprecise:
@@ -564,7 +564,7 @@
   Sure outputs:
     vx
 [inout] Out (internal) for function write_garbled:
-    NULL[100..200]; i; j; k[0..4]; p
+    &100[0..100]; i; j; k[0..4]; p
 [inout] Inputs for function write_garbled:
     \nothing
 [inout] InOut (internal) for function write_garbled:
@@ -575,15 +575,15 @@
   Sure outputs:
     i; j; k[0..4]; p
 [inout] Out (internal) for function main:
-    NULL[100..200]; v1.[bits 0 to 7]; v2.[bits 32 to 63]; v3.[bits 0 to ..];
+    &100[0..100]; v1.[bits 0 to 7]; v2.[bits 32 to 63]; v3.[bits 0 to ..];
     v5.[bits 0 to ..]; p_gm_null
 [inout] Inputs for function main:
-    NULL[100..199]; v; v1.[bits 0 to 7]; p_gm_null
+    &100[0..99]; v; v1.[bits 0 to 7]; p_gm_null
 [inout] InOut (internal) for function main:
   Operational inputs:
-    NULL[100..199]; v; v1.[bits 0 to 7]
+    &100[0..99]; v; v1.[bits 0 to 7]
   Operational inputs on termination:
-    NULL[100..199]; v; v1.[bits 0 to 7]
+    &100[0..99]; v; v1.[bits 0 to 7]
   Sure outputs:
     v1.[bits 0 to 7]; v2.[bits 32 to 63]; p_gm_null
 [eva] Analyzing an incomplete application starting at main
@@ -597,7 +597,7 @@
   creating variable S_1_t with imprecise size (type struct s [2])
 [eva:progress] Initial state computed
 [eva:initial-state] Values of globals at initialization
-  NULL[rbits 800 to 1607] ∈ [--..--]
+  &100[rbits 0 to 807] ∈ [--..--]
   v ∈ [--..--]
   addr ∈ [--..--]
   v1.[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
@@ -638,7 +638,7 @@
 [eva:show] imprecise.c:21: 
   Frama_C_dump_each:
   # cvalue:
-  NULL[rbits 800 to 1607] ∈ [--..--]
+  &100[rbits 0 to 807] ∈ [--..--]
   __fc_heap_status ∈ [--..--]
   __fc_strtok_ptr ∈ {{ NULL ; &S___fc_strtok_ptr[0] }}
   i ∈ {1}
@@ -722,8 +722,8 @@
 [eva:show] imprecise.c:76: 
   Frama_C_dump_each:
   # cvalue:
-  NULL[rbits 800 to 1599] ∈ [--..--] or ESCAPINGADDR
-      [rbits 1600 to 1607] ∈ [--..--]
+  &100[rbits 0 to 799] ∈ [--..--] or ESCAPINGADDR
+      [rbits 800 to 807] ∈ [--..--]
   __fc_heap_status ∈ [--..--]
   __fc_strtok_ptr ∈ {{ NULL ; &S___fc_strtok_ptr[0] }}
   v ∈ [--..--]
@@ -765,8 +765,8 @@
 [eva:show] imprecise.c:78: 
   Frama_C_dump_each:
   # cvalue:
-  NULL[rbits 800 to 1599] ∈ [--..--] or ESCAPINGADDR
-      [rbits 1600 to 1607] ∈ [--..--]
+  &100[rbits 0 to 799] ∈ [--..--] or ESCAPINGADDR
+      [rbits 800 to 807] ∈ [--..--]
   __fc_heap_status ∈ [--..--]
   __fc_strtok_ptr ∈ {{ NULL ; &S___fc_strtok_ptr[0] }}
   v ∈ [--..--]
@@ -859,8 +859,8 @@
   c2# ∈ {{ (? *)&x }}%32, bits 0 to 7 
   c3 ∈ {{ garbled mix of &{x} (origin: Misaligned read {imprecise.c:68}) }}
 [eva:final-states] Values at end of function garbled_mix_null:
-  NULL[rbits 800 to 1599] ∈ [--..--] or ESCAPINGADDR
-      [rbits 1600 to 1607] ∈ [--..--]
+  &100[rbits 0 to 799] ∈ [--..--] or ESCAPINGADDR
+      [rbits 800 to 807] ∈ [--..--]
   p_gm_null ∈ [100..196],0%4
 [eva:final-states] Values at end of function invalid_assigns_imprecise:
   p ∈ {0}
@@ -898,17 +898,17 @@
   vx ∈ {1}
   vy ∈ {1} or UNINITIALIZED
 [eva:final-states] Values at end of function write_garbled:
-  NULL[rbits 800 to 1599] ∈
+  &100[rbits 0 to 799] ∈
       {{ NULL + [--..--] ; (? *)&j ; (? *)&k{[0], [1], [2], [3], [4]} }} repeated %32 
-      [rbits 1600 to 1607] ∈ [--..--]
+      [rbits 800 to 807] ∈ [--..--]
   i ∈ {1}
   j ∈ {{ NULL + [1..196] ; (int)&j ; (int)&k{[0], [1], [2], [3], [4]} }}
   k[0..4] ∈
    {{ NULL + [--..--] ; (int)&j ; (int)&k{[0], [1], [2], [3], [4]} }}
   p ∈ {{ NULL + [100..196],0%4 ; &j ; &k{[0], [1], [2], [3], [4]} }}
 [eva:final-states] Values at end of function main:
-  NULL[rbits 800 to 1599] ∈ [--..--] or ESCAPINGADDR
-      [rbits 1600 to 1607] ∈ [--..--]
+  &100[rbits 0 to 799] ∈ [--..--] or ESCAPINGADDR
+      [rbits 800 to 807] ∈ [--..--]
   v1.[bits 0 to 7] ∈ {1}
     .[bits 8 to ..] ∈ [--..--] or UNINITIALIZED
   v2.[bits 0 to 31] ∈ [--..--] or UNINITIALIZED
@@ -954,10 +954,10 @@
 [from] Function gm_f1:
   \result FROM \nothing
 [from] Function gm_f2:
-  NULL[100..199] FROM NULL[100..199] (and SELF)
-  \result FROM NULL[100..199]
+  &100[0..99] FROM &100[0..99] (and SELF)
+  \result FROM &100[0..99]
 [from] Function garbled_mix_null:
-  NULL[100..199] FROM NULL[100..199] (and SELF)
+  &100[0..99] FROM &100[0..99] (and SELF)
   p_gm_null FROM \nothing
 [from] Function invalid_assigns_imprecise:
   NO EFFECTS
@@ -979,10 +979,10 @@
 [from] Function weak_update_imprecise_size:
   NO EFFECTS
 [from] Function write_garbled:
-  NULL[100..200] FROM \nothing (and SELF)
+  &100[0..100] FROM \nothing (and SELF)
 [from] Function main:
-  NULL[100..199] FROM NULL[100..199] (and SELF)
-      [200] FROM \nothing (and SELF)
+  &100[0..99] FROM &100[0..99] (and SELF)
+      [100] FROM \nothing (and SELF)
   v1.[bits 0 to 7] FROM \nothing
   v2.[bits 32 to 63] FROM \nothing
   v3.[bits 0 to 34359738359] FROM \nothing (and SELF)
@@ -995,8 +995,8 @@
 [from] call to Frama_C_dump_each at imprecise.c:76 (by garbled_mix_null):
   \result FROM \nothing
 [from] call to gm_f2 at imprecise.c:77 (by garbled_mix_null):
-  NULL[100..199] FROM NULL[100..199] (and SELF)
-  \result FROM NULL[100..199]
+  &100[0..99] FROM &100[0..99] (and SELF)
+  \result FROM &100[0..99]
 [from] call to Frama_C_dump_each at imprecise.c:78 (by garbled_mix_null):
   \result FROM \nothing
 [from] call to f at imprecise.c:11 (by invalid_assigns_imprecise):
@@ -1012,7 +1012,7 @@
 [from] call to invalid_assigns_imprecise at imprecise.c:144 (by main):
   NO EFFECTS
 [from] call to write_garbled at imprecise.c:145 (by main):
-  NULL[100..200] FROM \nothing (and SELF)
+  &100[0..100] FROM \nothing (and SELF)
 [from] call to abstract_structs at imprecise.c:146 (by main):
   v1.[bits 0 to 7] FROM \nothing
   v2.[bits 32 to 63] FROM \nothing
@@ -1021,7 +1021,7 @@
 [from] call to cast_address at imprecise.c:147 (by main):
   NO EFFECTS
 [from] call to garbled_mix_null at imprecise.c:148 (by main):
-  NULL[100..199] FROM NULL[100..199] (and SELF)
+  &100[0..99] FROM &100[0..99] (and SELF)
   p_gm_null FROM \nothing
 [from] call to weak_update_imprecise_size at imprecise.c:149 (by main):
   NO EFFECTS
@@ -1032,8 +1032,8 @@
 [from] call to paste_big at imprecise.c:152 (by main):
   NO EFFECTS
 [from] entry point:
-  NULL[100..199] FROM NULL[100..199] (and SELF)
-      [200] FROM \nothing (and SELF)
+  &100[0..99] FROM &100[0..99] (and SELF)
+      [100] FROM \nothing (and SELF)
   v1.[bits 0 to 7] FROM \nothing
   v2.[bits 32 to 63] FROM \nothing
   v3.[bits 0 to ..] FROM \nothing (and SELF)
@@ -1052,14 +1052,14 @@
   Sure outputs:
     p; c1; c2; c3
 [inout] Out (internal) for function garbled_mix_null:
-    NULL[100..199]; p_gm_null
+    &100[0..99]; p_gm_null
 [inout] Inputs for function garbled_mix_null:
-    NULL[100..199]; p_gm_null
+    &100[0..99]; p_gm_null
 [inout] InOut (internal) for function garbled_mix_null:
   Operational inputs:
-    NULL[100..199]
+    &100[0..99]
   Operational inputs on termination:
-    NULL[100..199]
+    &100[0..99]
   Sure outputs:
     p_gm_null
 [inout] Out (internal) for function invalid_assigns_imprecise:
@@ -1130,7 +1130,7 @@
   Sure outputs:
     vx
 [inout] Out (internal) for function write_garbled:
-    NULL[100..200]; i; j; k[0..4]; p
+    &100[0..100]; i; j; k[0..4]; p
 [inout] Inputs for function write_garbled:
     \nothing
 [inout] InOut (internal) for function write_garbled:
@@ -1141,14 +1141,14 @@
   Sure outputs:
     i; j; k[0..4]; p
 [inout] Out (internal) for function main:
-    NULL[100..200]; v1.[bits 0 to 7]; v2.[bits 32 to 63]; v3.[bits 0 to ..];
+    &100[0..100]; v1.[bits 0 to 7]; v2.[bits 32 to 63]; v3.[bits 0 to ..];
     v5.[bits 0 to ..]; p_gm_null
 [inout] Inputs for function main:
-    NULL[100..199]; v; v1.[bits 0 to 7]; p_gm_null
+    &100[0..99]; v; v1.[bits 0 to 7]; p_gm_null
 [inout] InOut (internal) for function main:
   Operational inputs:
-    NULL[100..199]; v; v1.[bits 0 to 7]
+    &100[0..99]; v; v1.[bits 0 to 7]
   Operational inputs on termination:
-    NULL[100..199]; v; v1.[bits 0 to 7]
+    &100[0..99]; v; v1.[bits 0 to 7]
   Sure outputs:
     v1.[bits 0 to 7]; v2.[bits 32 to 63]; p_gm_null

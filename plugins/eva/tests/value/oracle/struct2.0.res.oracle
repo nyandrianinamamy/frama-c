@@ -3,7 +3,7 @@
 [eva:progress] Computing initial state
 [eva:progress] Initial state computed
 [eva:initial-state] Values of globals at initialization
-  NULL[rbits 32768 to 65543] ∈ [--..--]
+  &4096[rbits 0 to 32775] ∈ [--..--]
   tabst[0..9] ∈ {0}
   tabst2[0..9] ∈ {0}
   tab_s[0..1] ∈ {0}
@@ -100,12 +100,12 @@
 [scope:rm_asserts] removing 2 assertion(s)
 [eva] ====== VALUES COMPUTED ======
 [eva:final-states] Values at end of function f_precis:
-  NULL[rbits 32768 to 32799] ∈ {{ NULL + {2} ; (? *)&a }}
-      [rbits 32800 to 33151] ∈ [--..--]
-      [rbits 33152 to 33183] ∈ {2; 4160}
-      [rbits 33184 to 33407] ∈ [--..--]
-      [rbits 33408 to 33439] ∈ [2..8188],0%2
-      [rbits 33440 to 65543] ∈ [--..--]
+  &4096[rbits 0 to 31] ∈ {{ NULL + {2} ; (? *)&a }}
+       [rbits 32 to 383] ∈ [--..--]
+       [rbits 384 to 415] ∈ {2; 4160}
+       [rbits 416 to 639] ∈ [--..--]
+       [rbits 640 to 671] ∈ [2..8188],0%2
+       [rbits 672 to 32775] ∈ [--..--]
   tab_s[0] ∈ {0}
        [1].a ∈ [--..--]
        [1]{.d[0..9]; .b; .e[0..9]; .c} ∈ {0}
@@ -162,10 +162,9 @@
 [from] ====== DEPENDENCIES COMPUTED ======
   These dependencies hold at termination for the executions that terminate:
 [from] Function f_precis:
-  NULL{[4096..4099]; [4144..4147]} FROM NULL[4176..4179]; i
-      {[4100..4111]; [4116..4143]; [4148..8191]}
-      FROM NULL[4176..4179]; i (and SELF)
-      [4112..4115] FROM NULL{[4128..4131]; [4176..4179]}; i
+  &4096{[0..3]; [48..51]} FROM &4096[80..83]; i
+       {[4..15]; [20..47]; [52..4095]} FROM &4096[80..83]; i (and SELF)
+       [16..19] FROM &4096{[32..35]; [80..83]}; i
   tab_s[0] FROM s2
        [1].a FROM x
   tab_s1{[0].b; [1].b} FROM s8; i (and SELF)
@@ -180,7 +179,7 @@
     .d[0..1] FROM x; i (and SELF)
     {.b.b; .c} FROM \nothing
   s4.e[0].a
-    FROM NULL{[4176..4179]; [4192]; [4200]}; tabst[2].a;
+    FROM &4096{[80..83]; [96]; [104]}; tabst[2].a;
          tabst2{[0].a; [1].a; [2].a; [3].a; [4].a; [5].a; [6].a; [7].a;
                 [8].a; [9].a};
           s5.e[0].b; tab2[0..1]; tab3[0..1]; i; j; k; l; m
@@ -207,12 +206,12 @@
   b FROM v; i (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function f_precis:
-    NULL[4096..8191]; tab_s{[0]; [1].a}; tab_s1{[0].b; [1].b}; tab_s2[0];
+    &4096[0..4095]; tab_s{[0]; [1].a}; tab_s1{[0].b; [1].b}; tab_s2[0];
     tab_s3[0].a; tab_s4{[0].a; [1].a}; s1; s2{{.a; .d[0..1]}; .b; .c};
     s4.e[0].a; s8.b; s7; tab1[0..1]; tab2[0..1]; tab3[0..1]; tab4[0]; tab5[0];
     tab6[0..1]; p; p2; p3; p4; p5; p6; p7; q; r; s; t; a; b
 [inout] Inputs for function f_precis:
-    NULL{[4128..4131]; [4176..4179]; [4192]; [4200]}; tabst[2].a;
+    &4096{[32..35]; [80..83]; [96]; [104]}; tabst[2].a;
     tabst2{[0].a; [1].a; [2].a; [3].a; [4].a; [5].a; [6].a; [7].a; [8].a;
            [9].a}; s1; s2; s5.e[0].b; s6.b; s8; tabl[0..1]; tab1[0..1];
     tab2[0..1]; tab3[0..1]; p; p2; p3; p6; q; r; s; t; a; v

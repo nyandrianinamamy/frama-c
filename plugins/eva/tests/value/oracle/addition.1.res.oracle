@@ -3,7 +3,7 @@
 [eva:progress] Computing initial state
 [eva:progress] Initial state computed
 [eva:initial-state] Values of globals at initialization
-  NULL[rbits 360 to 399] ∈ [--..--]
+  &45[rbits 0 to 39] ∈ [--..--]
   t[0..9] ∈ {0}
   x ∈ {0}
   y ∈ {0}
@@ -206,7 +206,7 @@
 [from] ====== DEPENDENCIES COMPUTED ======
   These dependencies hold at termination for the executions that terminate:
 [from] Function main:
-  t[1] FROM NULL[45..49]
+  t[1] FROM &45[0..4]
    [2] FROM \nothing
   z FROM \nothing
   p1 FROM \nothing
@@ -224,7 +224,7 @@
   p13 FROM \nothing
   p14 FROM \nothing
   p15 FROM \nothing
-  p16 FROM NULL[45..49]; t[0][bits 16 to 31]
+  p16 FROM &45[0..4]; t[0][bits 16 to 31]
   p17 FROM u4
   u1 FROM \nothing
   q1 FROM \nothing
@@ -258,5 +258,5 @@
     rem4; quo5; rem5; mm1; mm2; mm3; quo6; c1; c2; qu1; qu2; ll1; ll2; 
     tt[0].b; square; u2; s; t_0; __retres
 [inout] Inputs for function main:
-    NULL[45..49]; t{{[0][bits 16 to 31]; [1][bits 0 to 15]}; [2]}; z; p17;
+    &45[0..4]; t{{[0][bits 16 to 31]; [1][bits 0 to 15]}; [2]}; z; p17;
     q1[bits 0 to 7]; ll1; ll2; tt[0].b

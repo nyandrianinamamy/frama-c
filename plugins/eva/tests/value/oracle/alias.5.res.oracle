@@ -1,9 +1,10 @@
+[kernel] Warning: Absolute valid range 0-0xFF includes NULL pointer 0.
 [kernel] Parsing alias.i (no preprocessing)
 [eva] Analyzing a complete application starting at main11
 [eva:progress] Computing initial state
 [eva:progress] Initial state computed
 [eva:initial-state] Values of globals at initialization
-  NULL[rbits 0 to 2047] ∈ [--..--]
+  &0[rbits 0 to 2047] ∈ [--..--]
   A ∈ {0}
   B ∈ {0}
   C ∈ {0}
@@ -63,7 +64,7 @@
 [eva:show] alias.i:23: 
   Frama_C_dump_each:
   # cvalue:
-  NULL[rbits 0 to 2047] ∈ [--..--]
+  &0[rbits 0 to 2047] ∈ [--..--]
   x_0 ∈ {{ (char *)&p2 }}
   q_0 ∈ {{ &p2 + {1} }}
   A ∈ {0}
@@ -203,9 +204,9 @@
   t FROM c2
   x FROM \nothing (and SELF)
   y FROM p[1]; q[2]; c
-  z FROM NULL[0..3]; PTR2; c
+  z FROM &0[0..3]; PTR2; c
   PTR1 FROM c
-  PTR2 FROM NULL[0..3]; PTR2
+  PTR2 FROM &0[0..3]; PTR2
   PTR3 FROM c
   PTR4 FROM c1
   c1 FROM c1
@@ -220,5 +221,5 @@
     A; B; D; p[1]; q[2]; p2{[0][bits 0 to 15]; [1..2]}; q2[0..1]; t; x; 
     y; z; PTR1; PTR2; PTR3; PTR4; c1; U; ll1; i_0; tm; tmp
 [inout] Inputs for function main11:
-    NULL[0..3]; A; p[1]; q[2]; p2{[0][bits 0 to 15]; [1..2]}; q2[0]; t; 
-    PTR1; PTR2; PTR3; PTR4; c; c1; c2; ll1
+    &0[0..3]; A; p[1]; q[2]; p2{[0][bits 0 to 15]; [1..2]}; q2[0]; t; PTR1;
+    PTR2; PTR3; PTR4; c; c1; c2; ll1
