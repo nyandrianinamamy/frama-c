@@ -327,6 +327,7 @@
     .dome-xForm-field-block > .dome-xForm-field {
         display:flex;
         flex-wrap: wrap;
+        align-items: center;
     }
 
     .dome-xForm-field-block {

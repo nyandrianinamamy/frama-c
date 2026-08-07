@@ -32,12 +32,14 @@ export interface RadioFieldListProps {
   state: Forms.FieldState<TypeValue>;
   values: RadioList;
   fieldProps: Forms.GenericFieldProps;
+  title: string;
 }
 
 export interface ButtonFieldListProps {
   classeName?: string;
   state: Forms.FieldState<KeyVal<boolean>>;
   fieldProps: Forms.GenericFieldProps;
+  title: string;
 }
 
 export type fieldsName =
