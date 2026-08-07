@@ -1,0 +1,107 @@
+[kernel] Expanding arguments from absolute_addresses_options.txt
+[kernel] Parsing absolute_addresses.c (with preprocessing)
+[eva] Analyzing a complete application starting at test_valid_pointer_reduction
+[eva:progress] Computing initial state
+[eva:progress] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  &512[rbits 0 to 7] ∈ [--..--]
+  &1024[rbits 0 to 31] ∈ [--..--]
+  &1028[rbits 0 to 31] ∈ [--..--]
+  &1032[rbits 0 to 31] ∈ [--..--]
+  &1036[rbits 0 to 31] ∈ [--..--]
+  &1534[rbits 0 to 31] ∈ [--..--]
+  &1538[rbits 0 to 31] ∈ [--..--]
+  &1542[rbits 0 to 31] ∈ [--..--]
+  &1546[rbits 0 to 31] ∈ [--..--]
+  &2048[rbits 0 to 127] ∈ [--..--]
+  &3072[rbits 0 to 31] ∈ [--..--]
+  &4096[rbits 0 to 31] ∈ [--..--]
+  &5120[rbits 0 to 31] ∈ [--..--]
+  nondet ∈ [--..--]
+  g ∈ {0}
+[eva:show] absolute_addresses.c:55: Frama_C_show_each_char_ptr: [0..4294967295]
+[eva:alarm] absolute_addresses.c:56: Warning: 
+  out of bounds read. assert \valid_read(char_ptr);
+[eva:show] absolute_addresses.c:58: 
+  Frama_C_show_each_read_char_ptr:
+  {512} ∪ [1024..1039] ∪ [1534..1549] ∪ [2048..2063] ∪ [3072..3075] ∪ [4096..4099]
+   ∪ [5120..5123]
+[eva:alarm] absolute_addresses.c:59: Warning: 
+  out of bounds write. assert \valid(char_ptr);
+[eva:show] absolute_addresses.c:61: 
+  Frama_C_show_each_written_char_ptr:
+  {512} ∪ [1024..1039] ∪ [1534..1549] ∪ [2048..2063] ∪ [4096..4099]
+[eva:alarm] absolute_addresses.c:63: Warning: 
+  out of bounds write. assert \valid(char_ptr);
+[eva:alarm] absolute_addresses.c:65: Warning: 
+  unaligned pointer creation.
+  assert \aligned((void *)nondet,alignof(int volatile));
+[eva:show] absolute_addresses.c:67: 
+  Frama_C_show_each_int_ptr: [0..4294967292],0%4
+[eva:alarm] absolute_addresses.c:68: Warning: 
+  out of bounds read. assert \valid_read(int_ptr);
+[eva:show] absolute_addresses.c:70: 
+  Frama_C_show_each_read_int_ptr:
+  {1024; 1028; 1032; 1036; 2048; 2052; 2056; 2060; 3072; 4096; 5120}
+[eva:alarm] absolute_addresses.c:71: Warning: 
+  out of bounds write. assert \valid(int_ptr);
+[eva:show] absolute_addresses.c:73: 
+  Frama_C_show_each_write_int_ptr:
+  {1024; 1028; 1032; 1036; 2048; 2052; 2056; 2060; 4096}
+[eva:alarm] absolute_addresses.c:75: Warning: 
+  out of bounds write. assert \valid(int_ptr);
+[eva:alarm] absolute_addresses.c:77: Warning: 
+  unaligned pointer creation.
+  assert \aligned((void *)((unsigned int)(nondet % 1500)),alignof(int));
+[eva:alarm] absolute_addresses.c:78: Warning: 
+  out of bounds read. assert \valid_read(ptr);
+[eva:show] absolute_addresses.c:81: 
+  Frama_C_show_each_precise: {1024; 1028; 1032; 1036}
+[eva:alarm] absolute_addresses.c:82: Warning: 
+  out of bounds write. assert \valid(ptr);
+[eva:progress] Recording results for test_valid_pointer_reduction
+[eva:progress] Done for function test_valid_pointer_reduction
+[scope:rm_asserts] removing 2 assertion(s)
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function test_valid_pointer_reduction:
+  &512[rbits 0 to 7] ∈ [--..--]
+  &1024[rbits 0 to 31] ∈ [--..--]
+  &1028[rbits 0 to 31] ∈ [--..--]
+  &1032[rbits 0 to 31] ∈ [--..--]
+  &1036[rbits 0 to 31] ∈ [--..--]
+  &1534[rbits 0 to 31] ∈ [--..--]
+  &1538[rbits 0 to 31] ∈ [--..--]
+  &1542[rbits 0 to 31] ∈ [--..--]
+  &1546[rbits 0 to 31] ∈ [--..--]
+  &2048[rbits 0 to 127] ∈ [--..--]
+  &4096[rbits 0 to 31] ∈ [--..--]
+  char_ptr ∈ {512} ∪ [1024..1039] ∪ [1534..1549] ∪ [2048..2063] ∪ [4096..4099]
+  c ∈ [--..--]
+  int_ptr ∈ {1024; 1028; 1032; 1036; 2048; 2052; 2056; 2060; 4096}
+  r ∈ [--..--]
+  ptr ∈ {1024; 1028; 1032; 1036}
+[from] Computing for function test_valid_pointer_reduction
+[from] Done for function test_valid_pointer_reduction
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function test_valid_pointer_reduction:
+  &512[0] FROM nondet (and SELF)
+  &1024[0..3] FROM nondet (and SELF)
+  &1028[0..3] FROM nondet (and SELF)
+  &1032[0..3] FROM nondet (and SELF)
+  &1036[0..3] FROM nondet (and SELF)
+  &1534[0..3] FROM nondet (and SELF)
+  &1538[0..3] FROM nondet (and SELF)
+  &1542[0..3] FROM nondet (and SELF)
+  &1546[0..3] FROM nondet (and SELF)
+  &2048[0..15] FROM nondet (and SELF)
+  &4096[0..3] FROM nondet (and SELF)
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function test_valid_pointer_reduction:
+    &512[0]; &1024[0..3]; &1028[0..3]; &1032[0..3]; &1036[0..3]; &1534[0..3];
+    &1538[0..3]; &1542[0..3]; &1546[0..3]; &2048[0..15]; &4096[0..3]; char_ptr;
+    c; int_ptr; r; ptr
+[inout] Inputs for function test_valid_pointer_reduction:
+    &512[0]; &1024[0..3]; &1028[0..3]; &1032[0..3]; &1036[0..3]; &1534[0..3];
+    &1538[0..3]; &1542[0..3]; &1546[0..3]; &2048[0..15]; &3072[0..3];
+    &4096[0..3]; &5120[0..3]; nondet

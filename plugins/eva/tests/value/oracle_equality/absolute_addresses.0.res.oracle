@@ -1,0 +1,4 @@
+144c144
+<   Frama_C_show_each: {{ NULL + {1024; 2048} ; &g }}, {0; 42}
+---
+>   Frama_C_show_each: {{ NULL + {1024; 2048} ; &g }}, {42}
