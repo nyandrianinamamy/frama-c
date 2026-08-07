@@ -36,11 +36,17 @@
     position:relative ;
 }
 
-.dome-xIcon-default { fill: var(--default-color) ; }
+.dome-xIcon-default { fill: var(--text) ; }
 .dome-xIcon-primary { fill: var(--primary-color) ; }
 .dome-xIcon-positive { fill: var(--positive-color) ; }
 .dome-xIcon-negative { fill: var(--negative-color) ; }
 .dome-xIcon-warning { fill: var(--warning-color) ; }
+
+.dome-xIcon-default-disabled { fill: var(--disabled-text) ; }
+.dome-xIcon-primary-disabled { fill: var(--primary-color-disabled) ; }
+.dome-xIcon-positive-disabled { fill: var(--positive-color-disabled) ; }
+.dome-xIcon-negative-disabled { fill: var(--negative-color-disabled) ; }
+.dome-xIcon-warning-disabled { fill: var(--warning-color-disabled) ; }
 
 .dome-xIcon-spinning svg { animation: dome-xIcon-spinner 1.3s linear infinite; }
 
@@ -80,94 +86,80 @@
     box-shadow: 0 1px 1px rgba(0, 0, 0, 0.06);
 }
 
-/* Default button behaviors */
+/* generic button behaviors */
+
+.dome-xButton { /* Pay attention to the order in .dome-xButton */
+    color: var(--text);
+    border-color: var(--border);
+    background-image: var(--button-img);
+
+    &:hover {
+        background-image: var(--button-img-hover);
+    }
+
+    &:not(:disabled):not(.dome-xButton-no-background):active {
+        background-image: var(--button-img-active);
+        box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.25);
+        transform: translateY(1px);
+    }
+
+    &.dome-xButton-selected {
+        background-image: var(--button-img-selected);
+        border: solid 1px var(--button-border-color);
+        box-shadow: 0 0 3px var(--button-border-color);
+
+        &.dome-xIconButton svg{
+            filter: drop-shadow(0 0 6px var(--button-border-color));
+        }
+    }
+
+    &:disabled {
+        background-image: var(--button-img-disabled);
+        color: var(--disabled-text);
+    }
+}
+
+/* button colors */
 
 .dome-xButton-default {
-    color: var(--text);
-    border-color: var(--border);
-    background-image: var(--default-button-img);
+    --button-img: var(--default-button-img);
+    --button-img-hover: var(--default-button-img-hover);
+    --button-img-selected: var(--default-button-img-selected);
+    --button-img-disabled: var(--default-button-img-disabled);
+    --button-img-active: var(--default-button-img-active);
+    --button-border-color: var(--default-button-border-color);
 }
-
-.dome-xButton-default:hover {
-    background-color: var(--default-button-hover);
-    background-image: none;
-}
-
-.dome-xButton-default:active {
-    background-color: var(--default-button-active);
-    background-image: none;
-}
-
-/* Primary button behaviors */
-
 .dome-xButton-primary {
-    color: var(--text);
-    border-color: var(--border);
-    background-image: var(--primary-button-img);
+    --button-img: var(--primary-button-img);
+    --button-img-hover: var(--primary-button-img-hover);
+    --button-img-selected: var(--primary-button-img-selected);
+    --button-img-disabled: var(--primary-button-img-disabled);
+    --button-img-active: var(--primary-button-img-active);
+    --button-border-color: var(--primary-button-border-color);
 }
-
-.dome-xButton-primary:hover {
-    background-color: var(--primary-button-hover);
-    background-image: none ;
-}
-
-.dome-xButton-primary:active {
-    background-color: var(--primary-button-active);
-    background-image: none;
-}
-
-/* Positive button behaviors */
-
 .dome-xButton-positive {
-    color: var(--text);
-    border-color: var(--border);
-    background-image: var(--positive-button-img);
+    --button-img: var(--positive-button-img);
+    --button-img-hover: var(--positive-button-img-hover);
+    --button-img-selected: var(--positive-button-img-selected);
+    --button-img-disabled: var(--positive-button-img-disabled);
+    --button-img-active: var(--positive-button-img-active);
+    --button-border-color: var(--positive-button-border-color);
 }
-
-.dome-xButton-positive:hover {
-    background-color: var(--positive-button-hover);
-    background-image: none ;
-}
-
-.dome-xButton-positive:active {
-    background-color: var(--positive-button-active);
-    background-image: none;
-}
-
-/* Negative button behaviors */
-
 .dome-xButton-negative {
-    color: var(--text);
-    border-color: var(--border);
-    background-image: var(--negative-button-img);
+    --button-img: var(--negative-button-img);
+    --button-img-hover: var(--negative-button-img-hover);
+    --button-img-selected: var(--negative-button-img-selected);
+    --button-img-disabled: var(--negative-button-img-disabled);
+    --button-img-active: var(--negative-button-img-active);
+    --button-border-color: var(--negative-button-border-color);
 }
-
-.dome-xButton-negative:hover {
-    background-color: var(--negative-button-hover);
-    background-image: none ;
-}
-
-.dome-xButton-negative:active {
-    background-color: var(--negative-button-active);
-    background-image: none;
-}
-
-/* Warning button behaviors */
-
 .dome-xButton-warning {
-    color: var(--text);
-    border-color: var(--border);
-    background-image: var(--warning-button-img);
-}
-
-.dome-xButton-warning:hover {
-    background-color: var(--warning-button-hover);
-    background-image: none ;
-}
-
-.dome-xButton-warning:active {
-    background-color: var(--warning-button-active);
-    background-image: none;
+    --button-img: var(--warning-button-img);
+    --button-img-hover: var(--warning-button-img-hover);
+    --button-img-selected: var(--warning-button-img-selected);
+    --button-img-disabled: var(--warning-button-img-disabled);
+    --button-img-active: var(--warning-button-img-active);
+    --button-border-color: var(--warning-button-border-color);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -188,13 +180,13 @@
     &:not(.dome-xButtongroup-separate) {
         .dome-xButton { margin: 0 ; }
 
-        & > *:not(:first-child):not(.dome-control-selected) {
+        & > *:not(:first-child):not(.dome-xButton-selected) {
             border-left: none;
             border-top-left-radius: 0;
             border-bottom-left-radius: 0;
         }
 
-        & > *:not(:last-child):not(.dome-control-selected) {
+        & > *:not(:last-child):not(.dome-xButton-selected) {
             border-right: none;
             border-top-right-radius: 0;
             border-bottom-right-radius: 0;
@@ -249,8 +241,8 @@
     border-radius: 6px;
     box-shadow: 0 1px 1px rgba(0, 0, 0, 0.06);
 
-    color: var(--lcd-button-color);
-    background-color: var(--lcd-button-background);
+    color: var(--text);
+    background-color: var(--default-color);
     border-color: var(--border);
 }
 
@@ -313,48 +305,11 @@ meter::-webkit-meter-even-less-good-value  {
 }
 
 /* -------------------------------------------------------------------------- */
-/* --- Styling Checkbox                                                   --- */
-/* -------------------------------------------------------------------------- */
-
-.dome-xCheckbox {
-    display: flex ;
-    align-items: center ;
-    padding: 0 ;
-    margin: 2px 4px 0 ;
-    display: flex ;
-    align-items: center ;
-    gap: 4px ;
-    border-radius: 4px ;
-}
-
-.dome-xCheckbox > .dome-xIcon {
-    display: inline-flex ;
-    align-items: center ;
-    margin: 0 ;
-    padding: 0 ;
-    line-height: 0 ;
-}
-
-.dome-xCheckbox:hover {
-    cursor: pointer ;
-    background-color: var(--background-softer) ;
-}
-
-.dome-xRadio-group {
-    display: flex ;
-    overflow: hidden ;
-    flex-flow: column nowrap ;
-    align-items: flex-start ;
-    justify-content: flex-start ;
-}
-
-/* -------------------------------------------------------------------------- */
 /* --- Styling IconButton                                                 --- */
 /* -------------------------------------------------------------------------- */
 
-.dome-xIconButton:not(:disabled):hover {
-    fill: var(--text) ;
-    background: var(--background-profound-hover) ;
+.dome-xIconButton:not(:disabled):hover .dome-xIcon{
+    fill: var(--text-discrete) ;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -414,8 +369,7 @@ meter::-webkit-meter-even-less-good-value  {
   box-shadow: none;
 }
 
-.dome-xButton.dome-xButton-no-background.dome-control-selected > div {
-    color: var(--text) ;
+.dome-xButton.dome-xButton-no-background.dome-xButton-selected > div {
     font-weight: bold ;
 }
 

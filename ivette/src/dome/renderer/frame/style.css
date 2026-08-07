@@ -307,8 +307,7 @@
 /* Layout */
 .dome-xToolBar {
   .dome-xButton {
-    height: 21px;
-    margin: 6px 5px;
+    height: 20px;
     padding: 2px 5px;
     border-radius: 4px;
     outline: none ;

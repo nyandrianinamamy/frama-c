@@ -129,8 +129,7 @@ function BaseButton(props: BaseButtonProps): JSX.Element {
     `dome-xButton-${kind}`,
     blink && 'dome-xButton-blink',
     noBackground && 'dome-xButton-no-background',
-    isSelected && 'dome-control-selected',
-    disabled && 'dome-control-disabled',
+    isSelected && 'dome-xButton-selected',
     !visible && 'dome-control-hidden',
     !display && 'dome-control-erased',
     className,
@@ -161,7 +160,12 @@ function BaseButton(props: BaseButtonProps): JSX.Element {
       onMouseDown={nofocus && ((evt) => evt.preventDefault())}
     >
       {icon &&
-        <Icon id={icon} size={size} kind={getIconKind()} fill={color}/>
+        <Icon id={icon}
+          size={size}
+          kind={getIconKind()}
+          fill={color}
+          disabled={disabled}
+        />
       }
       {label && <div>{label}</div>}
     </button>
@@ -200,7 +204,7 @@ export function TextButton(props: BaseButtonProps): JSX.Element {
 // --------------------------------------------------------------------------
 
 export interface IconButtonProps extends
-  Omit<BaseButtonProps, 'label' | 'value' | 'icon' > { icon: string; }
+  Omit<BaseButtonProps, 'label' | 'value' | 'icon'> { icon: string; }
 
 /** Borderless Icon Button. Label property is ignored. */
 export function IconButton(props: IconButtonProps): JSX.Element | null {
@@ -506,7 +510,7 @@ export const Field = (props: FieldProps): JSX.Element => {
       type="text"
       autoFocus={!disabled && props.autoFocus}
       value={current}
-      className={`dome - xField ${className} `}
+      className={`dome-xField ${className}`}
       style={props.style}
       disabled={disabled}
       placeholder={props.placeholder}

@@ -81,6 +81,8 @@ export interface IconProps extends SVGprops {
   className?: string;
   /** Display (default is true). */
   display?: boolean;
+  /** Defaults to `false`. */
+  disabled?: boolean;
   /** Visibility (default is true). */
   visible?: boolean;
   /** Additional DIV style. */
@@ -99,14 +101,14 @@ export interface IconProps extends SVGprops {
  */
 export function Icon(props: IconProps): JSX.Element {
   const {
-    id, title, kind='default',
+    id, title, kind='default', disabled=false,
     size, className, style,
     visible = true, display = true,
     onMouseEnter, onMouseLeave
   } = props;
   const divClass = classes(
     'dome-xIcon',
-    `dome-xIcon-${kind}`,
+    !disabled ? `dome-xIcon-${kind}` : `dome-xIcon-${kind}-disabled`,
     !visible && 'dome-control-hidden',
     !display && 'dome-control-erased',
     id === "SPINNER" && 'dome-xIcon-spinning',

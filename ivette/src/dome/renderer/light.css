@@ -3,7 +3,7 @@
     --text: #333333;
     --text-discrete: #606060;
     --disabled-text: #b0b0b0;
-    --disabled-text-sidebar: #a0a0a0;
+    --disabled-text-control: #a0a0a0;
     --info-text: #777;
     --info-text-discrete: #888;
     --text-highlighted: blue;
@@ -40,8 +40,11 @@
     --selected-element: #8ce0fb;
     --checked-element: #54abef;
 
-    --lcd-button-color: #61611a;
-    --lcd-button-background: #b2b798;
+    /* LED */
+    --default-led-img: radial-gradient(circle at center, #9fd2f9, #81c9ff);
+    --positive-led-img: radial-gradient(circle at center, #50c140, #279c16);
+    --negative-led-img: radial-gradient(circle at center, #ff5b56, #f75a55c7);
+    --warning-led-img: radial-gradient(circle at center, #ffc749, #ecd44f);
 
     /** Color kind */
     --default-color: #afafaf;
@@ -50,39 +53,48 @@
     --negative-color: #ec453e;
     --warning-color: #fece72;
 
-    --default-led-img: radial-gradient(circle at center, #9fd2f9, #81c9ff);
-    --default-button-img: linear-gradient(to bottom, #e8e8e8 0%, #f1f1f1 100%);
-    --default-button-hover: #ffffff;
-    --default-button-active: #f9f9f9;
+    /** Color kind disabled */
+    --default-color-disabled:  #d0d0d0;
+    --primary-color-disabled:  #a9cbed;
+    --positive-color-disabled: #a8c9ad;
+    --negative-color-disabled: #edaaa7;
+    --warning-color-disabled:  #e8d6a8;
 
-    --primary-button-img: linear-gradient(to bottom, #449bef 0%, #4990e2 100%);
-    --primary-button-hover: #00b6ff;
-    --primary-button-active: #ddd;
+    /** Button type */
+    --default-button-img: linear-gradient(120deg, #c9c9c9 0%, #e7e7e7 50%, #c5c5c5 100%);
+    --default-button-img-hover: linear-gradient(120deg, #c3c3c3 0%, #dddddd 50%, #bfbfbf 100%);
+    --default-button-img-selected: linear-gradient(120deg, #bdbdbd 0%, #d7d7d7 50%, #b8b8b8 100%);
+    --default-button-img-disabled: linear-gradient(120deg, #d0d0d0 0%, #dddddd 100%);
+    --default-button-img-active: linear-gradient(120deg, #bfbfbf 0%, #dadada 50%, #bababa 100%);
+    --default-button-border-color: #666666;
 
-    --positive-led-img: radial-gradient(circle at center, #50c140, #279c16);
-    --positive-button-img: linear-gradient(to bottom, #34ff52 0%, #48fd64 100%);
-    --positive-button-hover: #ffffff;
-    --positive-button-active: #ffffff;
+    --primary-button-img: linear-gradient(120deg, #8fc2f5 0%, #b9dcfa 50%, #79b4f1 100%);
+    --primary-button-img-hover: linear-gradient(120deg, #86baf0 0%, #aed4f7 50%, #70acec 100%);
+    --primary-button-img-selected: linear-gradient(120deg, #7fb3e9 0%, #a6cef3 50%, #69a5e4 100%);
+    --primary-button-img-disabled: linear-gradient(120deg, #a9cbed 0%, #c1dcf3 100%);
+    --primary-button-img-active: linear-gradient(120deg, #82b7ed 0%, #acd2f6 50%, #6eaaeb 100%);
+    --primary-button-border-color: #2475b8;
 
-    --negative-led-img: radial-gradient(circle at center, #ff5b56, #f75a55c7);
-    --negative-button-img: linear-gradient(to bottom, #ec453e 0%, #ff4c47 100%);
-    --negative-button-hover: red;
-    --negative-button-active: #ffffff;
+    --positive-button-img: linear-gradient(120deg, #8bc496 0%, #b8dbbe 50%, #79b985 100%);
+    --positive-button-img-hover: linear-gradient(120deg, #82bd8d 0%, #add4b4 50%, #70b17c 100%);
+    --positive-button-img-selected: linear-gradient(120deg, #79b484 0%, #a5cfad 50%, #68a975 100%);
+    --positive-button-img-disabled: linear-gradient(120deg, #a8c9ad 0%, #c1d9c4 100%);
+    --positive-button-img-active: linear-gradient(120deg, #7fbb8b 0%, #aad2b1 50%, #6db07a 100%);
+    --positive-button-border-color: #23612d;
 
-    --warning-led-img: radial-gradient(circle at center, #ffc749, #ecd44f);
-    --warning-button-img: linear-gradient(to bottom, #ffb000 0%, #ffb449 100%);
-    --warning-button-hover: orange;
-    --warning-button-active: #ffffff;
+    --negative-button-img: linear-gradient(120deg, #f58d88 0%, #fac2bf 50%, #f27a73 100%);
+    --negative-button-img-hover: linear-gradient(120deg, #f2837d 0%, #f7b9b5 50%, #ee716a 100%);
+    --negative-button-img-selected: linear-gradient(120deg, #ef7973 0%, #f4b0ac 50%, #eb6861 100%);
+    --negative-button-img-disabled: linear-gradient(120deg, #edaaa7 0%, #f2c2bf 100%);
+    --negative-button-img-active: linear-gradient(120deg, #f07d77 0%, #f5b5b1 50%, #ec6d66 100%);
+    --negative-button-border-color: #a52a25;
 
-    --cancel-button-img: #c0c0c0;
-    --cancel-button-hover: #c4c4c4;
-    --cancel-button-active: #bcbcbc;
-
-    --selected-button-img: #afafaf;
-    --selected-button-hover: #a9a9a9;
-
-    --activated-button-color: #449bef;
-    --activated-button-hover: #c54dae;
+    --warning-button-img: linear-gradient(120deg, #fbd98f 0%, #fff0c2 50%, #f8d17b 100%);
+    --warning-button-img-hover: linear-gradient(120deg, #f8d284 0%, #ffeab5 50%, #f5ca70 100%);
+    --warning-button-img-selected: linear-gradient(120deg, #f4ca76 0%, #ffe3a6 50%, #f1c261 100%);
+    --warning-button-img-disabled: linear-gradient(120deg, #e8d6a8 0%, #f0e3c4 100%);
+    --warning-button-img-active: linear-gradient(120deg, #f6ce7c 0%, #ffe6ad 50%, #f3c76b 100%);
+    --warning-button-border-color: #946200;
 
     --grid-layout-holder: lightblue;
     --grid-layout-target: #64b4f0;

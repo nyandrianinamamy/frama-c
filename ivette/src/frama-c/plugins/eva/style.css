@@ -383,18 +383,6 @@ tr:first-of-type > .eva-table-callsite-box {
 /* -------------------------------------------------------------------------- */
 
 /* ------------------ */
-/* --- Tools Eva  --- */
-.eva-tools {
-  .dome-xIconButton {
-    padding: 2px 5px;
-  }
-  .dome-xIconButton:hover {
-    cursor: pointer;
-    color: var(--background-button-hover);
-  }
-}
-
-/* ------------------ */
 /* --- Form Eva   --- */
 .eva-form {
   >label.dome-xCheckbox{

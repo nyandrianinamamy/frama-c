@@ -335,6 +335,7 @@ function ButtonGroups(): React.JSX.Element {
             { value: 'positive', kind: 'positive' },
             { value: 'warning', kind: 'warning' },
             { value: 'negative', kind: 'negative' },
+            { value: 'disabled', kind: 'negative', disabled: true },
           ]}
           details='buttonGroup glued: option "separate" by default'
         />
@@ -344,7 +345,8 @@ function ButtonGroups(): React.JSX.Element {
             { value: 'primary', kind: 'primary' },
             { value: 'positive', kind: 'positive' },
             { value: 'warning', kind: 'warning' },
-            { value: 'negative', kind: 'negative', disabled: true },
+            { value: 'negative', kind: 'negative' },
+            { value: 'disabled', kind: 'negative', disabled: true },
           ]}
           separate={true}
           details='buttonGroup separated'
@@ -354,7 +356,7 @@ function ButtonGroups(): React.JSX.Element {
             { value: 'Value 1', icon: 'FILTER' },
             { value: 'Value 2', icon: 'FILTER' },
             { value: 'Value 3', icon: 'FILTER' },
-            { value: 'Value 4', icon: 'FILTER', disabled: true },
+            { value: 'disabled', icon: 'FILTER', disabled: true },
             { value: 'Value 5', icon: 'FILTER' },
           ]}
           multiple={true}
@@ -367,7 +369,8 @@ function ButtonGroups(): React.JSX.Element {
             { value: 'primary', kind: 'primary' },
             { value: 'positive', kind: 'positive' },
             { value: 'warning', kind: 'warning' },
-            { value: 'negative', kind: 'negative', disabled: true },
+            { value: 'negative', kind: 'negative' },
+            { value: 'disabled', kind: 'negative', disabled: true },
           ]}
           details='buttonGroup style radio, option vertical=true'
           type='radio'
@@ -379,7 +382,8 @@ function ButtonGroups(): React.JSX.Element {
             { value: 'primary', kind: 'primary' },
             { value: 'positive', kind: 'positive' },
             { value: 'warning', kind: 'warning' },
-            { value: 'negative', kind: 'negative', disabled: true },
+            { value: 'negative', kind: 'negative' },
+            { value: 'disabled', kind: 'negative', disabled: true },
           ]}
           multiple={true}
           details='buttonGroup style checkbox, option vertical=true'
@@ -510,7 +514,7 @@ function Controls(): JSX.Element {
 
 registerSandbox({
   id: 'sandbox.controls',
-  label: 'Controls',
+  label: 'Displays & Controls',
   children: <Controls />,
 });
 
