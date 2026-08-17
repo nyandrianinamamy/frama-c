@@ -53,7 +53,7 @@ const flexCenter = {
 function Display(): React.JSX.Element {
   return (
     <Section
-      key={'Dispalyed'} defaultUnfold
+      key={'Displayed'} defaultUnfold
       label={'Display.tsx'}
     >
       <Grid style={gridStyle} columns="auto auto auto">

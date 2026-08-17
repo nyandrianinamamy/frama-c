@@ -107,10 +107,6 @@
         background-image: var(--button-img-selected);
         border: solid 1px var(--button-border-color);
         box-shadow: 0 0 3px var(--button-border-color);
-
-        &.dome-xIconButton svg{
-            filter: drop-shadow(0 0 6px var(--button-border-color));
-        }
     }
 
     &:disabled {
@@ -308,8 +304,13 @@ meter::-webkit-meter-even-less-good-value  {
 /* --- Styling IconButton                                                 --- */
 /* -------------------------------------------------------------------------- */
 
+
 .dome-xIconButton:not(:disabled):hover .dome-xIcon{
     fill: var(--text-discrete) ;
+}
+
+.dome-xButton-selected.dome-xIconButton svg{
+    filter: drop-shadow(0 0 6px var(--button-border-color));
 }
 
 /* -------------------------------------------------------------------------- */
