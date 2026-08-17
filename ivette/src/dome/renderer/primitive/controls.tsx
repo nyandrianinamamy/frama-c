@@ -268,7 +268,7 @@ interface ButtonGroupProps {
    * to determine the current selection state.
    */
   isSelected?: Selected,
-  /** Callback on clicked on a button */
+  /** callback function when the group's value changes */
   onGroupChanged?: OnEvent,
 }
 
