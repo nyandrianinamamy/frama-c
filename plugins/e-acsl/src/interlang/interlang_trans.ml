@@ -100,21 +100,27 @@ let assert_register_term ~loc ?force e t =
 
 let rec compile exp =
   let* e, coerce, cast_info = compile_with_rtes exp in
-  match cast_info with (* [cast_info] specifies type type we cast from. *)
-  | Some (strnum, name) ->
-    let name = if name = "" then None else Some name in
-    let* {kf} = M.read in
-    let loc = Misc.get_loc_from_pot exp.origin in
-    M.modifying_env (fun env ->
-        Typed_number.add_cast ~loc
-          ?name
-          env
-          kf
-          coerce
-          strnum
-          (Misc.get_term_from_pot exp.origin)
-          e)
-  | None -> M.return e (* no cast required *)
+  let* res =
+    match cast_info with (* [cast_info] specifies the type we cast from. *)
+    | Some (strnum, name) ->
+      let name = if name = "" then None else Some name in
+      let* {kf} = M.read in
+      let loc = Misc.get_loc_from_pot exp.origin in
+      M.modifying_env (fun env ->
+          Typed_number.add_cast ~loc
+            ?name
+            env
+            kf
+            coerce
+            strnum
+            (Misc.get_term_from_pot exp.origin)
+            e)
+    | None -> M.return e (* no cast required *)
+  in
+  Options.feedback ~dkey ~level:4 "compile @[%a@] = @[%a@]"
+    Interlang.Pretty.pp_exp exp
+    Printer.pp_exp res;
+  M.return res
 
 and compile_with_rtes exp =
   let cil = M.with_rtes exp.rtes @@ compile_context_insensitive exp in
