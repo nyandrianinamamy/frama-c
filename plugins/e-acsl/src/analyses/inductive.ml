@@ -261,9 +261,9 @@ module rec Constructor : sig
     predicate : predicate
   }
 
-  val analyze_mode : lv_rec:logic_var -> predicate -> mode -> Modus.t option
-  (** determine whether [mode] is a viable mode for predicate [p]. [lv_rec] is
-      the inductive definition of the [p]'s constructor. *)
+  val analyze_mode : lv_rec:logic_var -> t -> mode -> Modus.t option
+  (** determine whether given mode is viable for constructor.
+      [lv_rec] is the inductive definition containing the constructor. *)
 
   val pretty : Format.formatter -> t -> unit
 
@@ -298,7 +298,7 @@ end = struct
     in
     solve arg (Logic_const.tvar ~loc:arg.term_loc formal)
 
-  let analyze_mode ~lv_rec p mode =
+  let analyze_mode ~lv_rec {Constructor.predicate = p; name = constr_name} mode =
     let quantifiers, p = extract_foralls p in
     let is_rec_occurrence ~labels li =
       Logic_var.equal li.l_var_info lv_rec
@@ -375,9 +375,10 @@ end = struct
         else
           let () =
             Options.feedback ~dkey ~level:4
-              "mode %a could not bind: %a"
+              "%a.%s: cannot bind %a in mode %a"
+              Logic_var.pretty lv_rec constr_name
+              Vars.pretty unbound_quantified_vars
               Mode.pretty mode
-              Vars.pretty unbound_quantified_vars;
           in None
       | Papp _ ->
         unsupported ~loc:p.pred_loc
@@ -413,9 +414,6 @@ end = struct (* internal representation of inductives *)
   let memo_tbl = Logic_info.Hashtbl.create 9
   let clear () = Logic_info.Hashtbl.clear memo_tbl
 
-  let analyze_constructor ~li mode {Constructor.predicate = p} =
-    Constructor.analyze_mode ~lv_rec:li.l_var_info p mode
-
   let analyze_modes li = Logic_info.Hashtbl.memo memo_tbl li @@ fun li ->
     let ctors = ctors li in
     Options.debug ~dkey ~level:4
@@ -424,7 +422,7 @@ end = struct (* internal representation of inductives *)
     let try_mode mode =
       let exception Analysis_failed in
       let analyze_const ctor =
-        match analyze_constructor ~li mode ctor with
+        match Constructor.analyze_mode ~lv_rec:li.l_var_info ctor mode with
         | Some modus -> modus
         | None -> raise Analysis_failed
       in
