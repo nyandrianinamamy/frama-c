@@ -52,9 +52,6 @@ list next = {.hd = 2, .next = &last};
 list root = {.hd = 1, .next = &next};
 
 int main() {
-  // strange: without this the next assertion fails
-  //@ assert \valid(&root);
-
   //@ assert reachable(&root, &next);
   //@ assert !reachable(&next, &root);
 
