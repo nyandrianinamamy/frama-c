@@ -91,26 +91,26 @@
 .dome-xButton { /* Pay attention to the order in .dome-xButton */
     color: var(--text);
     border-color: var(--border);
-    background-image: var(--button-img);
-
-    &:hover {
-        background-image: var(--button-img-hover);
-    }
+    background-color: var(--color);
 
     &:not(:disabled):not(.dome-xButton-no-background):active {
-        background-image: var(--button-img-active);
+        background-color: var(--color-active);
         box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.25);
         transform: translateY(1px);
     }
 
     &.dome-xButton-selected {
-        background-image: var(--button-img-selected);
-        border: solid 1px var(--button-border-color);
-        box-shadow: 0 0 3px var(--button-border-color);
+        background-color: var(--color-selected);
+        border: solid 1px var(--color-border);
+        box-shadow: 0 0 5px var(--color-border);
+    }
+
+    &:hover {
+        background-color: var(--color-hover);
     }
 
     &:disabled {
-        background-image: var(--button-img-disabled);
+        background-color: var(--color-disabled);
         color: var(--disabled-text);
     }
 }
@@ -118,44 +118,44 @@
 /* button colors */
 
 .dome-xButton-default {
-    --button-img: var(--default-button-img);
-    --button-img-hover: var(--default-button-img-hover);
-    --button-img-selected: var(--default-button-img-selected);
-    --button-img-disabled: var(--default-button-img-disabled);
-    --button-img-active: var(--default-button-img-active);
-    --button-border-color: var(--default-button-border-color);
+    --color: var(--default-color);
+    --color-hover: var(--default-color-hover);
+    --color-selected: var(--default-color-selected);
+    --color-disabled: var(--default-color-disabled);
+    --color-active: var(--default-color-active);
+    --color-border: var(--default-border-color);
 }
 .dome-xButton-primary {
-    --button-img: var(--primary-button-img);
-    --button-img-hover: var(--primary-button-img-hover);
-    --button-img-selected: var(--primary-button-img-selected);
-    --button-img-disabled: var(--primary-button-img-disabled);
-    --button-img-active: var(--primary-button-img-active);
-    --button-border-color: var(--primary-button-border-color);
+    --color: var(--primary-color);
+    --color-hover: var(--primary-color-hover);
+    --color-selected: var(--primary-color-selected);
+    --color-disabled: var(--primary-color-disabled);
+    --color-active: var(--primary-color-active);
+    --color-border: var(--primary-border-color);
 }
 .dome-xButton-positive {
-    --button-img: var(--positive-button-img);
-    --button-img-hover: var(--positive-button-img-hover);
-    --button-img-selected: var(--positive-button-img-selected);
-    --button-img-disabled: var(--positive-button-img-disabled);
-    --button-img-active: var(--positive-button-img-active);
-    --button-border-color: var(--positive-button-border-color);
+    --color: var(--positive-color);
+    --color-hover: var(--positive-color-hover);
+    --color-selected: var(--positive-color-selected);
+    --color-disabled: var(--positive-color-disabled);
+    --color-active: var(--positive-color-active);
+    --color-border: var(--positive-border-color);
 }
 .dome-xButton-negative {
-    --button-img: var(--negative-button-img);
-    --button-img-hover: var(--negative-button-img-hover);
-    --button-img-selected: var(--negative-button-img-selected);
-    --button-img-disabled: var(--negative-button-img-disabled);
-    --button-img-active: var(--negative-button-img-active);
-    --button-border-color: var(--negative-button-border-color);
+    --color: var(--negative-color);
+    --color-hover: var(--negative-color-hover);
+    --color-selected: var(--negative-color-selected);
+    --color-disabled: var(--negative-color-disabled);
+    --color-active: var(--negative-color-active);
+    --color-border: var(--negative-border-color);
 }
 .dome-xButton-warning {
-    --button-img: var(--warning-button-img);
-    --button-img-hover: var(--warning-button-img-hover);
-    --button-img-selected: var(--warning-button-img-selected);
-    --button-img-disabled: var(--warning-button-img-disabled);
-    --button-img-active: var(--warning-button-img-active);
-    --button-border-color: var(--warning-button-border-color);
+    --color: var(--warning-color);
+    --color-hover: var(--warning-color-hover);
+    --color-selected: var(--warning-color-selected);
+    --color-disabled: var(--warning-color-disabled);
+    --color-active: var(--warning-color-active);
+    --color-border: var(--warning-border-color);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -310,7 +310,7 @@ meter::-webkit-meter-even-less-good-value  {
 }
 
 .dome-xButton-selected.dome-xIconButton svg{
-    filter: drop-shadow(0 0 6px var(--button-border-color));
+    filter: drop-shadow(0 0 6px var(--color-border));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -365,7 +365,6 @@ meter::-webkit-meter-even-less-good-value  {
 .dome-xButton.dome-xButton-no-background,
 .dome-xButton.dome-xButton-no-background > div {
   background: transparent;
-  background-image: none;
   border: none;
   box-shadow: none;
 }
@@ -384,7 +383,6 @@ meter::-webkit-meter-even-less-good-value  {
     fill: var(--disabled-text-control) ;
     font-weight: lighter ;
     border-color: var(--border-discrete) ;
-    background-image: none;
     background-color: var(--background-disabled);
 
     &:hover {

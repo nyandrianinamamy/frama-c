@@ -60,41 +60,34 @@
     --negative-color-disabled: #9d7373;
     --warning-color-disabled:  #a99272;
 
-    /** Button type */
-    --default-button-img: linear-gradient(120deg, #313d4c 0%, #3c495b 50%, #4a596d 100%);
-    --default-button-img-hover: linear-gradient(120deg, #2b3644 0%, #364355 50%, #445265 100%);
-    --default-button-img-selected: linear-gradient(120deg, #293341 0%, #333f50 50%, #404d60 100%);
-    --default-button-img-disabled: linear-gradient(120deg, #5c6875 0%, #6c7886 100%);
-    --default-button-img-active: linear-gradient(120deg, #283341 0%, #344152 50%, #435165 100%);
-    --default-button-border-color: #8ea0b5;
+    /** Color kind hover */
+    --default-color-hover: #4b5a6d;
+    --primary-color-hover: #2388e8;
+    --positive-color-hover: #438b31;
+    --negative-color-hover: #c51d1d;
+    --warning-color-hover: #c47b25;
 
-    --primary-button-img: linear-gradient(120deg, #0d4f9c 0%, #146bbf 50%, #2388e8 100%);
-    --primary-button-img-hover: linear-gradient(120deg, #0b4385 0%, #125fa8 50%, #1d7bd1 100%);
-    --primary-button-img-selected: linear-gradient(120deg, #0b4385 0%, #125fa8 50%, #1d7bd1 100%);
-    --primary-button-img-disabled: linear-gradient(120deg, #9abbd8, #b6d0e8);
-    --primary-button-img-active: linear-gradient(120deg, #075985, #146bbf, #0891b2);
-    --primary-button-border-color: #5bb7ff;
+    /** Color kind selected */
+    --default-color-selected: #566579;
+    --primary-color-selected: #2d8fe5;
+    --positive-color-selected: #4b9638;
+    --negative-color-selected: #d12626;
+    --warning-color-selected: #d28a2d;
 
-    --positive-button-img: linear-gradient(120deg, #225019 0%, #327024 50%, #4b9638 100%);
-    --positive-button-img-hover: linear-gradient(120deg, #1d4615 0%, #2b641f 50%, #43832f 100%);
-    --positive-button-img-selected: linear-gradient(120deg, #1d4615 0%, #2b641f 50%, #43832f 100%);
-    --positive-button-img-disabled: linear-gradient(120deg, #78906f, #9aae92);
-    --positive-button-img-active: linear-gradient(120deg, #225019, #327024, #438b31);
-    --positive-button-border-color: #72c45a;
+    /** Color kind active */
+    --default-color-active: #344152;
+    --primary-color-active: #125fa8;
+    --positive-color-active: #2b641f;
+    --negative-color-active: #900d0d;
+    --warning-color-active: #914f16;
 
-    --negative-button-img: linear-gradient(120deg, #720b0b 0%, #a10f0f 50%, #d12626 100%);
-    --negative-button-img-hover: linear-gradient(120deg, #650909 0%, #900d0d 50%, #bc2020 100%);
-    --negative-button-img-selected: linear-gradient(120deg, #650909 0%, #900d0d 50%, #bc2020 100%);
-    --negative-button-img-disabled: linear-gradient(120deg, #a26b6b, #c18d8d);
-    --negative-button-img-active: linear-gradient(120deg, #720b0b, #a10f0f, #c51d1d);
-    --negative-button-border-color: #ff6b6b;
+    /** Color kind border */
+    --default-border-color: #8ea0b5;
+    --primary-border-color: #5bb7ff;
+    --positive-border-color: #72c45a;
+    --negative-border-color: #ff6b6b;
+    --warning-border-color: #ffc266;
 
-    --warning-button-img: linear-gradient(120deg, #754313 0%, #a4601a 50%, #d28a2d 100%);
-    --warning-button-img-hover: linear-gradient(120deg, #683b10 0%, #914f16 50%, #bb7725 100%);
-    --warning-button-img-selected: linear-gradient(120deg, #683b10 0%, #914f16 50%, #bb7725 100%);
-    --warning-button-img-disabled: linear-gradient(120deg, #b39a7c, #cbb99e);
-    --warning-button-img-active: linear-gradient(120deg, #754313, #a4601a, #c47b25);
-    --warning-button-border-color: #ffc266;
 
     --grid-layout-holder: #266475;
     --grid-layout-target: #34b4c0;
