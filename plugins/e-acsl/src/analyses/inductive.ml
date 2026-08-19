@@ -314,7 +314,7 @@ end = struct
     let rec test_mode ~lb ~fv p =
       let recurse ?(lb = lb) ?(fv = fv) = test_mode ~lb ~fv in
       let add_fv fv terms = Vars.unions @@ fv :: List.map free_vars terms in
-      Options.debug ~dkey ~level:5 "test_mode@ ~lb:%a ~fv:%a@ ~mode:%a@ %a"
+      Options.debug ~dkey ~level:4 "test_mode@ ~lb:%a ~fv:%a@ ~mode:%a@ %a"
         Vars.pretty lb
         Vars.pretty fv
         Mode.pretty mode
@@ -374,7 +374,7 @@ end = struct
         then Some {Modus.mode; substs}
         else
           let () =
-            Options.feedback ~dkey ~level:4
+            Options.feedback ~dkey ~level:3
               "%a.%s: cannot bind %a in mode %a"
               Logic_var.pretty lv_rec constr_name
               Vars.pretty unbound_quantified_vars
@@ -416,7 +416,7 @@ end = struct (* internal representation of inductives *)
 
   let analyze_modes li = Logic_info.Hashtbl.memo memo_tbl li @@ fun li ->
     let ctors = ctors li in
-    Options.debug ~dkey ~level:4
+    Options.debug ~dkey ~level:3
       "@[<2>performing mode analysis on inductive:@ @[%a@]@]"
       pp_logic_info li;
     let try_mode mode =
@@ -516,7 +516,7 @@ end = functor (Out : Out_language) -> struct
           Out.mk_if ~loc:conjunction.pred_loc conjunction case_true next_ctor
       in
       let rec compile ~uv ~conds p =
-        Options.debug ~dkey ~level:5 "compile ~uv:%a ~conds:[%a] %a"
+        Options.debug ~dkey ~level:4 "compile ~uv:%a ~conds:[%a] %a"
           Vars.pretty uv
           (Pretty_utils.pp_list ~sep:", " Printer.pp_predicate) conds
           Printer.pp_predicate p;
@@ -546,7 +546,7 @@ end = functor (Out : Out_language) -> struct
               t
           in
           let new_args = List.mapi normalize_arg args in
-          Options.debug ~dkey ~level:5
+          Options.debug ~dkey ~level:4
             "equations generated from conclusion: %a"
             (Pretty_utils.pp_list ~sep:" ∧ " Predicate.pretty) !eqs;
           let case_true = Out.mk_concl ~mode new_args in
