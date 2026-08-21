@@ -104,6 +104,7 @@ int main(void)
   }
   /*@ assert t[2] == 4; */ ;
   {
+    int __gen_e_acsl_and;
     __e_acsl_assert_data_t __gen_e_acsl_assert_data_6 =
       {.values = (void *)0};
     __e_acsl_assert_data_t __gen_e_acsl_assert_data_7 =
@@ -112,10 +113,14 @@ int main(void)
                                  0,4);
     __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_7,
                                  "sizeof((int)0x0)",0,4);
-    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_7,"sizeof(int)",
-                                 0,4);
-    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_7,
-                                 "sizeof((int)0x0)",0,4);
+    if (1) {
+      __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_7,
+                                   "sizeof(int)",0,4);
+      __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_7,
+                                   "sizeof((int)0x0)",0,4);
+      __gen_e_acsl_and = 1;
+    }
+    else __gen_e_acsl_and = 0;
     /*@ assert
           E_ACSL: "index out of bounds":
             0 <= (2 * sizeof(int)) / sizeof((int)0x0) < (int)3;
@@ -128,7 +133,7 @@ int main(void)
       __gen_e_acsl_assert_data_7.fct = "main";
       __gen_e_acsl_assert_data_7.line = 15;
       __gen_e_acsl_assert_data_7.name = "index out of bounds";
-      __e_acsl_assert(1,& __gen_e_acsl_assert_data_7);
+      __e_acsl_assert(__gen_e_acsl_and,& __gen_e_acsl_assert_data_7);
       __e_acsl_assert_clean(& __gen_e_acsl_assert_data_7);
     }
     __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_6,
@@ -148,7 +153,7 @@ int main(void)
     int i = 0;
     while (i < 2) {
       {
-        int __gen_e_acsl_and;
+        int __gen_e_acsl_and_2;
         __e_acsl_assert_data_t __gen_e_acsl_assert_data_8 =
           {.values = (void *)0};
         __e_acsl_assert_data_t __gen_e_acsl_assert_data_9 =
@@ -156,9 +161,9 @@ int main(void)
         __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_9,"i",0,i);
         if (0 <= i) {
           __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_9,"i",0,i);
-          __gen_e_acsl_and = i < 3;
+          __gen_e_acsl_and_2 = i < 3;
         }
-        else __gen_e_acsl_and = 0;
+        else __gen_e_acsl_and_2 = 0;
         /*@ assert E_ACSL: "index out of bounds": 0 <= i < (int)3; */
         {
           __gen_e_acsl_assert_data_9.blocking = 1;
@@ -168,7 +173,7 @@ int main(void)
           __gen_e_acsl_assert_data_9.fct = "main";
           __gen_e_acsl_assert_data_9.line = 18;
           __gen_e_acsl_assert_data_9.name = "index out of bounds";
-          __e_acsl_assert(__gen_e_acsl_and,& __gen_e_acsl_assert_data_9);
+          __e_acsl_assert(__gen_e_acsl_and_2,& __gen_e_acsl_assert_data_9);
           __e_acsl_assert_clean(& __gen_e_acsl_assert_data_9);
         }
         __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_8,"t[i]",0,
@@ -185,7 +190,7 @@ int main(void)
       }
       /*@ assert t[i] == i + 2; */ ;
       {
-        int __gen_e_acsl_and_2;
+        int __gen_e_acsl_and_3;
         __e_acsl_assert_data_t __gen_e_acsl_assert_data_10 =
           {.values = (void *)0};
         __e_acsl_assert_data_t __gen_e_acsl_assert_data_11 =
@@ -193,9 +198,9 @@ int main(void)
         __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_11,"i",0,i);
         if (0L <= 2L - i) {
           __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_11,"i",0,i);
-          __gen_e_acsl_and_2 = 2L - i < 3L;
+          __gen_e_acsl_and_3 = 2L - i < 3L;
         }
-        else __gen_e_acsl_and_2 = 0;
+        else __gen_e_acsl_and_3 = 0;
         /*@ assert E_ACSL: "index out of bounds": 0 <= 2 - i < (int)3; */
         {
           __gen_e_acsl_assert_data_11.blocking = 1;
@@ -205,7 +210,7 @@ int main(void)
           __gen_e_acsl_assert_data_11.fct = "main";
           __gen_e_acsl_assert_data_11.line = 19;
           __gen_e_acsl_assert_data_11.name = "index out of bounds";
-          __e_acsl_assert(__gen_e_acsl_and_2,& __gen_e_acsl_assert_data_11);
+          __e_acsl_assert(__gen_e_acsl_and_3,& __gen_e_acsl_assert_data_11);
           __e_acsl_assert_clean(& __gen_e_acsl_assert_data_11);
         }
         __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_10,
@@ -223,7 +228,7 @@ int main(void)
       }
       /*@ assert t[2 - i] == 4 - i; */ ;
       {
-        int __gen_e_acsl_and_3;
+        int __gen_e_acsl_and_4;
         int __gen_e_acsl_aligned_2;
         int __gen_e_acsl_valid_read_2;
         __e_acsl_assert_data_t __gen_e_acsl_assert_data_12 =
@@ -233,9 +238,9 @@ int main(void)
         __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_13,"i",0,i);
         if ((-9223372036854775807L-1L) <= (long)i) {
           __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_13,"i",0,i);
-          __gen_e_acsl_and_3 = (long)i <= 9223372036854775807L;
+          __gen_e_acsl_and_4 = (long)i <= 9223372036854775807L;
         }
-        else __gen_e_acsl_and_3 = 0;
+        else __gen_e_acsl_and_4 = 0;
         /*@ assert
               E_ACSL: "signed downcast":
                 -9223372036854775808 <= i <= 9223372036854775807;
@@ -248,7 +253,7 @@ int main(void)
           __gen_e_acsl_assert_data_13.fct = "main";
           __gen_e_acsl_assert_data_13.line = 20;
           __gen_e_acsl_assert_data_13.name = "signed downcast";
-          __e_acsl_assert(__gen_e_acsl_and_3,& __gen_e_acsl_assert_data_13);
+          __e_acsl_assert(__gen_e_acsl_and_4,& __gen_e_acsl_assert_data_13);
           __e_acsl_assert_clean(& __gen_e_acsl_assert_data_13);
         }
         __e_acsl_assert_data_t __gen_e_acsl_assert_data_14 =
@@ -382,7 +387,7 @@ int main(void)
   int k = -1;
   {
     int __gen_e_acsl_aligned_4;
-    int __gen_e_acsl_and_4;
+    int __gen_e_acsl_and_5;
     int __gen_e_acsl_aligned_5;
     int __gen_e_acsl_valid_read_4;
     __e_acsl_assert_data_t __gen_e_acsl_assert_data_19 =
@@ -411,9 +416,9 @@ int main(void)
     __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_21,"k",0,k);
     if ((-9223372036854775807L-1L) <= (long)k) {
       __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_21,"k",0,k);
-      __gen_e_acsl_and_4 = (long)k <= 9223372036854775807L;
+      __gen_e_acsl_and_5 = (long)k <= 9223372036854775807L;
     }
-    else __gen_e_acsl_and_4 = 0;
+    else __gen_e_acsl_and_5 = 0;
     /*@ assert
           E_ACSL: "signed downcast":
             -9223372036854775808 <= k <= 9223372036854775807;
@@ -426,7 +431,7 @@ int main(void)
       __gen_e_acsl_assert_data_21.fct = "main";
       __gen_e_acsl_assert_data_21.line = 28;
       __gen_e_acsl_assert_data_21.name = "signed downcast";
-      __e_acsl_assert(__gen_e_acsl_and_4,& __gen_e_acsl_assert_data_21);
+      __e_acsl_assert(__gen_e_acsl_and_5,& __gen_e_acsl_assert_data_21);
       __e_acsl_assert_clean(& __gen_e_acsl_assert_data_21);
     }
     __e_acsl_assert_data_t __gen_e_acsl_assert_data_22 =

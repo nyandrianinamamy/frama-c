@@ -2453,21 +2453,67 @@ int main(void)
   }
   /*@ assert 4 / 2 == 2; */ ;
   {
+    int __gen_e_acsl_or;
     __e_acsl_assert_data_t __gen_e_acsl_assert_data_2 =
       {.values = (void *)0};
+    if (1) __gen_e_acsl_or = 1;
+    else {
+      int __gen_e_acsl_initialized;
+      __e_acsl_assert_data_t __gen_e_acsl_assert_data_3 =
+        {.values = (void *)0};
+      __gen_e_acsl_initialized = __e_acsl_initialized((void *)(& y),
+                                                      sizeof(int));
+      __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_3,"&y",
+                                   (void *)(& y));
+      __e_acsl_assert_register_ulong(& __gen_e_acsl_assert_data_3,
+                                     "sizeof(int)",0,sizeof(int));
+      __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_3,
+                                   "uninitialized: \\initialized(&y)",0,
+                                   __gen_e_acsl_initialized);
+      /*@ assert E_ACSL: uninitialized: \initialized(&y); */
+      {
+        __gen_e_acsl_assert_data_3.blocking = 1;
+        __gen_e_acsl_assert_data_3.kind = "E-ACSL RTE";
+        __gen_e_acsl_assert_data_3.pred_txt = "\\initialized(&y)";
+        __gen_e_acsl_assert_data_3.file = "rte.c";
+        __gen_e_acsl_assert_data_3.fct = "main";
+        __gen_e_acsl_assert_data_3.line = 123;
+        __gen_e_acsl_assert_data_3.name = "uninitialized";
+        __e_acsl_assert(__gen_e_acsl_initialized,
+                        & __gen_e_acsl_assert_data_3);
+        __e_acsl_assert_clean(& __gen_e_acsl_assert_data_3);
+      }
+      __e_acsl_assert_data_t __gen_e_acsl_assert_data_4 =
+        {.values = (void *)0};
+      __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_4,"y",0,y);
+      /*@ assert E_ACSL: "division by zero": y != 0; */
+      {
+        __gen_e_acsl_assert_data_4.blocking = 1;
+        __gen_e_acsl_assert_data_4.kind = "E-ACSL RTE";
+        __gen_e_acsl_assert_data_4.pred_txt = "y != 0";
+        __gen_e_acsl_assert_data_4.file = "rte.c";
+        __gen_e_acsl_assert_data_4.fct = "main";
+        __gen_e_acsl_assert_data_4.line = 123;
+        __gen_e_acsl_assert_data_4.name = "division by zero";
+        __e_acsl_assert(y != 0,& __gen_e_acsl_assert_data_4);
+        __e_acsl_assert_clean(& __gen_e_acsl_assert_data_4);
+      }
+      __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_2,"y",0,y);
+      __gen_e_acsl_or = 1 / y < 2;
+    }
     __gen_e_acsl_assert_data_2.blocking = 1;
     __gen_e_acsl_assert_data_2.kind = "Assertion";
     __gen_e_acsl_assert_data_2.pred_txt = "1 == 1 || 1 / y < 2";
     __gen_e_acsl_assert_data_2.file = "rte.c";
     __gen_e_acsl_assert_data_2.fct = "main";
     __gen_e_acsl_assert_data_2.line = 123;
-    __e_acsl_assert(1,& __gen_e_acsl_assert_data_2);
+    __e_acsl_assert(__gen_e_acsl_or,& __gen_e_acsl_assert_data_2);
     __e_acsl_assert_clean(& __gen_e_acsl_assert_data_2);
   }
   /*@ assert 1 == 1 || 1 / y < 2; */ ;
   {
     int __gen_e_acsl_initialized_2;
-    int __gen_e_acsl_or;
+    int __gen_e_acsl_or_2;
     __e_acsl_assert_data_t __gen_e_acsl_assert_data_5 =
       {.values = (void *)0};
     __e_acsl_assert_data_t __gen_e_acsl_assert_data_6 =
@@ -2510,7 +2556,7 @@ int main(void)
       __e_acsl_assert_clean(& __gen_e_acsl_assert_data_7);
     }
     __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_5,"y",0,y);
-    if (4 / y == 2) __gen_e_acsl_or = 1;
+    if (4 / y == 2) __gen_e_acsl_or_2 = 1;
     else {
       int __gen_e_acsl_initialized_3;
       __e_acsl_assert_data_t __gen_e_acsl_assert_data_8 =
@@ -2553,7 +2599,7 @@ int main(void)
         __e_acsl_assert_clean(& __gen_e_acsl_assert_data_9);
       }
       __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_5,"w",0,w);
-      __gen_e_acsl_or = 1 / w > 0;
+      __gen_e_acsl_or_2 = 1 / w > 0;
     }
     __gen_e_acsl_assert_data_5.blocking = 1;
     __gen_e_acsl_assert_data_5.kind = "Assertion";
@@ -2561,7 +2607,7 @@ int main(void)
     __gen_e_acsl_assert_data_5.file = "rte.c";
     __gen_e_acsl_assert_data_5.fct = "main";
     __gen_e_acsl_assert_data_5.line = 124;
-    __e_acsl_assert(__gen_e_acsl_or,& __gen_e_acsl_assert_data_5);
+    __e_acsl_assert(__gen_e_acsl_or_2,& __gen_e_acsl_assert_data_5);
     __e_acsl_assert_clean(& __gen_e_acsl_assert_data_5);
   }
   /*@ assert 4 / y == 2 || 1 / w > 0; */ ;
@@ -2880,7 +2926,7 @@ int main(void)
   __e_acsl_full_init((void *)(& v));
   {
     int __gen_e_acsl_initialized_9;
-    int __gen_e_acsl_or_2;
+    int __gen_e_acsl_or_3;
     int __gen_e_acsl_initialized_10;
     int __gen_e_acsl_aligned;
     int __gen_e_acsl_aligned_2;
@@ -2929,7 +2975,7 @@ int main(void)
     __e_acsl_assert_data_t __gen_e_acsl_assert_data_27 =
       {.values = (void *)0};
     __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_27,"x",(void *)x);
-    if ((char *)0 == x) __gen_e_acsl_or_2 = 1;
+    if ((char *)0 == x) __gen_e_acsl_or_3 = 1;
     else {
       int __gen_e_acsl_object_pointer;
       __gen_e_acsl_object_pointer = __e_acsl_object_pointer((void *)x,
@@ -2943,7 +2989,7 @@ int main(void)
       __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_27,
                                    "\\object_pointer(x)",0,
                                    __gen_e_acsl_object_pointer);
-      __gen_e_acsl_or_2 = __gen_e_acsl_object_pointer;
+      __gen_e_acsl_or_3 = __gen_e_acsl_object_pointer;
     }
     /*@ assert E_ACSL: "invalid pointer": \null == x || \object_pointer(x);
     */
@@ -2955,7 +3001,7 @@ int main(void)
       __gen_e_acsl_assert_data_27.fct = "main";
       __gen_e_acsl_assert_data_27.line = 142;
       __gen_e_acsl_assert_data_27.name = "invalid pointer";
-      __e_acsl_assert(__gen_e_acsl_or_2,& __gen_e_acsl_assert_data_27);
+      __e_acsl_assert(__gen_e_acsl_or_3,& __gen_e_acsl_assert_data_27);
       __e_acsl_assert_clean(& __gen_e_acsl_assert_data_27);
     }
     __e_acsl_assert_data_t __gen_e_acsl_assert_data_28 =
@@ -3017,7 +3063,7 @@ int main(void)
   }
   /*@ assert \aligned(x,v); */ ;
   {
-    int __gen_e_acsl_or_3;
+    int __gen_e_acsl_or_4;
     int __gen_e_acsl_initialized_11;
     int __gen_e_acsl_aligned_3;
     int __gen_e_acsl_aligned_4;
@@ -3026,7 +3072,7 @@ int main(void)
     __e_acsl_assert_data_t __gen_e_acsl_assert_data_31 =
       {.values = (void *)0};
     __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_31,"x",(void *)x);
-    if ((char *)0 == x) __gen_e_acsl_or_3 = 1;
+    if ((char *)0 == x) __gen_e_acsl_or_4 = 1;
     else {
       int __gen_e_acsl_object_pointer_2;
       __gen_e_acsl_object_pointer_2 = __e_acsl_object_pointer((void *)x,
@@ -3040,7 +3086,7 @@ int main(void)
       __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_31,
                                    "\\object_pointer(x)",0,
                                    __gen_e_acsl_object_pointer_2);
-      __gen_e_acsl_or_3 = __gen_e_acsl_object_pointer_2;
+      __gen_e_acsl_or_4 = __gen_e_acsl_object_pointer_2;
     }
     /*@ assert E_ACSL: "invalid pointer": \null == x || \object_pointer(x);
     */
@@ -3052,7 +3098,7 @@ int main(void)
       __gen_e_acsl_assert_data_31.fct = "main";
       __gen_e_acsl_assert_data_31.line = 143;
       __gen_e_acsl_assert_data_31.name = "invalid pointer";
-      __e_acsl_assert(__gen_e_acsl_or_3,& __gen_e_acsl_assert_data_31);
+      __e_acsl_assert(__gen_e_acsl_or_4,& __gen_e_acsl_assert_data_31);
       __e_acsl_assert_clean(& __gen_e_acsl_assert_data_31);
     }
     __e_acsl_assert_data_t __gen_e_acsl_assert_data_32 =
@@ -3458,7 +3504,7 @@ int main(void)
   __e_acsl_store_block((void *)(& n_0),8UL);
   __e_acsl_full_init((void *)(& n_0));
   {
-    int __gen_e_acsl_or_4;
+    int __gen_e_acsl_or_5;
     int __gen_e_acsl_initialized_19;
     int __gen_e_acsl_aligned_5;
     int __gen_e_acsl_initialized_20;
@@ -3469,7 +3515,7 @@ int main(void)
       {.values = (void *)0};
     __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_51,"n_0",
                                  (void *)n_0);
-    if ((int *)0 == n_0) __gen_e_acsl_or_4 = 1;
+    if ((int *)0 == n_0) __gen_e_acsl_or_5 = 1;
     else {
       int __gen_e_acsl_object_pointer_3;
       __gen_e_acsl_object_pointer_3 = __e_acsl_object_pointer((void *)n_0,
@@ -3483,7 +3529,7 @@ int main(void)
       __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_51,
                                    "\\object_pointer(n_0)",0,
                                    __gen_e_acsl_object_pointer_3);
-      __gen_e_acsl_or_4 = __gen_e_acsl_object_pointer_3;
+      __gen_e_acsl_or_5 = __gen_e_acsl_object_pointer_3;
     }
     /*@ assert
           E_ACSL: "invalid pointer": \null == n_0 || \object_pointer(n_0);
@@ -3496,7 +3542,7 @@ int main(void)
       __gen_e_acsl_assert_data_51.fct = "main";
       __gen_e_acsl_assert_data_51.line = 154;
       __gen_e_acsl_assert_data_51.name = "invalid pointer";
-      __e_acsl_assert(__gen_e_acsl_or_4,& __gen_e_acsl_assert_data_51);
+      __e_acsl_assert(__gen_e_acsl_or_5,& __gen_e_acsl_assert_data_51);
       __e_acsl_assert_clean(& __gen_e_acsl_assert_data_51);
     }
     __e_acsl_assert_data_t __gen_e_acsl_assert_data_52 =
@@ -4236,14 +4282,14 @@ int main(void)
   __e_acsl_initialize((void *)*(*p),sizeof(int));
   *(*(*p)) = 23;
   {
-    int __gen_e_acsl_or_5;
+    int __gen_e_acsl_or_6;
     int __gen_e_acsl_initialized_28;
     int __gen_e_acsl_aligned_7;
-    int __gen_e_acsl_or_6;
+    int __gen_e_acsl_or_7;
     int __gen_e_acsl_initialized_29;
     int __gen_e_acsl_aligned_8;
     int __gen_e_acsl_valid_read_3;
-    int __gen_e_acsl_or_7;
+    int __gen_e_acsl_or_8;
     int __gen_e_acsl_initialized_30;
     int __gen_e_acsl_aligned_9;
     int __gen_e_acsl_valid_read_4;
@@ -4255,7 +4301,7 @@ int main(void)
     __e_acsl_assert_data_t __gen_e_acsl_assert_data_73 =
       {.values = (void *)0};
     __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_73,"p",(void *)p);
-    if ((int ***)0 == p) __gen_e_acsl_or_5 = 1;
+    if ((int ***)0 == p) __gen_e_acsl_or_6 = 1;
     else {
       int __gen_e_acsl_object_pointer_4;
       __gen_e_acsl_object_pointer_4 = __e_acsl_object_pointer((void *)p,
@@ -4269,7 +4315,7 @@ int main(void)
       __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_73,
                                    "\\object_pointer(p)",0,
                                    __gen_e_acsl_object_pointer_4);
-      __gen_e_acsl_or_5 = __gen_e_acsl_object_pointer_4;
+      __gen_e_acsl_or_6 = __gen_e_acsl_object_pointer_4;
     }
     /*@ assert E_ACSL: "invalid pointer": \null == p || \object_pointer(p);
     */
@@ -4281,7 +4327,7 @@ int main(void)
       __gen_e_acsl_assert_data_73.fct = "main";
       __gen_e_acsl_assert_data_73.line = 173;
       __gen_e_acsl_assert_data_73.name = "invalid pointer";
-      __e_acsl_assert(__gen_e_acsl_or_5,& __gen_e_acsl_assert_data_73);
+      __e_acsl_assert(__gen_e_acsl_or_6,& __gen_e_acsl_assert_data_73);
       __e_acsl_assert_clean(& __gen_e_acsl_assert_data_73);
     }
     __e_acsl_assert_data_t __gen_e_acsl_assert_data_74 =
@@ -4331,7 +4377,7 @@ int main(void)
       {.values = (void *)0};
     __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_76,"*p",
                                  (void *)*p);
-    if ((int **)0 == *p) __gen_e_acsl_or_6 = 1;
+    if ((int **)0 == *p) __gen_e_acsl_or_7 = 1;
     else {
       int __gen_e_acsl_object_pointer_5;
       __gen_e_acsl_object_pointer_5 = __e_acsl_object_pointer((void *)*p,
@@ -4345,7 +4391,7 @@ int main(void)
       __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_76,
                                    "\\object_pointer(*p)",0,
                                    __gen_e_acsl_object_pointer_5);
-      __gen_e_acsl_or_6 = __gen_e_acsl_object_pointer_5;
+      __gen_e_acsl_or_7 = __gen_e_acsl_object_pointer_5;
     }
     /*@ assert E_ACSL: "invalid pointer": \null == *p || \object_pointer(*p);
     */
@@ -4357,7 +4403,7 @@ int main(void)
       __gen_e_acsl_assert_data_76.fct = "main";
       __gen_e_acsl_assert_data_76.line = 173;
       __gen_e_acsl_assert_data_76.name = "invalid pointer";
-      __e_acsl_assert(__gen_e_acsl_or_6,& __gen_e_acsl_assert_data_76);
+      __e_acsl_assert(__gen_e_acsl_or_7,& __gen_e_acsl_assert_data_76);
       __e_acsl_assert_clean(& __gen_e_acsl_assert_data_76);
     }
     __e_acsl_assert_data_t __gen_e_acsl_assert_data_77 =
@@ -4430,7 +4476,7 @@ int main(void)
       {.values = (void *)0};
     __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_80,"*(*p)",
                                  (void *)*(*p));
-    if ((int *)0 == *(*p)) __gen_e_acsl_or_7 = 1;
+    if ((int *)0 == *(*p)) __gen_e_acsl_or_8 = 1;
     else {
       int __gen_e_acsl_object_pointer_6;
       __gen_e_acsl_object_pointer_6 = __e_acsl_object_pointer((void *)*(*p),
@@ -4444,7 +4490,7 @@ int main(void)
       __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_80,
                                    "\\object_pointer(*(*p))",0,
                                    __gen_e_acsl_object_pointer_6);
-      __gen_e_acsl_or_7 = __gen_e_acsl_object_pointer_6;
+      __gen_e_acsl_or_8 = __gen_e_acsl_object_pointer_6;
     }
     /*@ assert
           E_ACSL: "invalid pointer": \null == *(*p) || \object_pointer(*(*p));
@@ -4457,7 +4503,7 @@ int main(void)
       __gen_e_acsl_assert_data_80.fct = "main";
       __gen_e_acsl_assert_data_80.line = 173;
       __gen_e_acsl_assert_data_80.name = "invalid pointer";
-      __e_acsl_assert(__gen_e_acsl_or_7,& __gen_e_acsl_assert_data_80);
+      __e_acsl_assert(__gen_e_acsl_or_8,& __gen_e_acsl_assert_data_80);
       __e_acsl_assert_clean(& __gen_e_acsl_assert_data_80);
     }
     __e_acsl_assert_data_t __gen_e_acsl_assert_data_81 =
@@ -4632,7 +4678,7 @@ int main(void)
   __e_acsl_initialize((void *)(& struct_s.b),sizeof(int *));
   struct_s.b = & c;
   {
-    int __gen_e_acsl_or_8;
+    int __gen_e_acsl_or_9;
     int __gen_e_acsl_initialized_33;
     int __gen_e_acsl_aligned_10;
     int __gen_e_acsl_size_8;
@@ -4644,7 +4690,7 @@ int main(void)
       {.values = (void *)0};
     __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_89,"struct_s.b",
                                  (void *)struct_s.b);
-    if ((int *)0 == struct_s.b) __gen_e_acsl_or_8 = 1;
+    if ((int *)0 == struct_s.b) __gen_e_acsl_or_9 = 1;
     else {
       int __gen_e_acsl_object_pointer_7;
       __gen_e_acsl_object_pointer_7 = __e_acsl_object_pointer((void *)struct_s.b,
@@ -4658,7 +4704,7 @@ int main(void)
       __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_89,
                                    "\\object_pointer(struct_s.b)",0,
                                    __gen_e_acsl_object_pointer_7);
-      __gen_e_acsl_or_8 = __gen_e_acsl_object_pointer_7;
+      __gen_e_acsl_or_9 = __gen_e_acsl_object_pointer_7;
     }
     /*@ assert
           E_ACSL: "invalid pointer":
@@ -4672,7 +4718,7 @@ int main(void)
       __gen_e_acsl_assert_data_89.fct = "main";
       __gen_e_acsl_assert_data_89.line = 177;
       __gen_e_acsl_assert_data_89.name = "invalid pointer";
-      __e_acsl_assert(__gen_e_acsl_or_8,& __gen_e_acsl_assert_data_89);
+      __e_acsl_assert(__gen_e_acsl_or_9,& __gen_e_acsl_assert_data_89);
       __e_acsl_assert_clean(& __gen_e_acsl_assert_data_89);
     }
     __e_acsl_assert_data_t __gen_e_acsl_assert_data_90 =
