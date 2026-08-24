@@ -25,9 +25,10 @@
 Plugin E-ACSL <next-release>
 ###############################################################################
 
+-* E-ACSL     [2026-09-04] Fix crash that occurred when imposing GMP types
 -* E-ACSL     [2026-08-24] Fix uncaught exception Error_Bottom during typing
 -  E-ACSL     [2026-08-17] New option -e-acsl-O-implicit-downcast that generates
-                           guards for implicit downcasts done by the translation.
+                           guards for implicit downcasts done by the translation
 -  E-ACSL     [2026-08-10] New option -e-acsl-O-smart-cil similar to
                            -e-acsl-O-smart-il but for cil predicates and
                            statements

@@ -114,7 +114,7 @@ int main(void)
     int __gen_e_acsl_eq;
     __e_acsl_assert_data_t __gen_e_acsl_assert_data_3 =
       {.values = (void *)0};
-    __gen_e_acsl_u_3 = 1;
+    __gmpz_init_set_si(__gen_e_acsl_u_3,1L);
     __gmpz_init_set_si(__gen_e_acsl__4,1L);
     __gmpz_init(__gen_e_acsl_add_2);
     __gmpz_add(__gen_e_acsl_add_2,
@@ -148,7 +148,7 @@ int main(void)
     int __gen_e_acsl_eq_2;
     __e_acsl_assert_data_t __gen_e_acsl_assert_data_4 =
       {.values = (void *)0};
-    __gen_e_acsl_u_4 = 1;
+    __gmpz_init_set_si(__gen_e_acsl_u_4,1L);
     __gmpz_init_set_si(__gen_e_acsl__6,1L);
     __gmpz_init(__gen_e_acsl_add_3);
     __gmpz_add(__gen_e_acsl_add_3,
@@ -187,7 +187,7 @@ int main(void)
     int __gen_e_acsl_eq_3;
     __e_acsl_assert_data_t __gen_e_acsl_assert_data_5 =
       {.values = (void *)0};
-    __gen_e_acsl_u_5 = 1;
+    __gmpz_init_set_si(__gen_e_acsl_u_5,1L);
     __gmpz_init_set_si(__gen_e_acsl__8,1L);
     __gmpz_init(__gen_e_acsl_add_4);
     __gmpz_add(__gen_e_acsl_add_4,
@@ -225,7 +225,7 @@ int main(void)
     int __gen_e_acsl_gt_2;
     __e_acsl_assert_data_t __gen_e_acsl_assert_data_6 =
       {.values = (void *)0};
-    __gen_e_acsl_u_7 = m;
+    __gmpz_init_set_si(__gen_e_acsl_u_7,m);
     __gmpz_init(__gen_e_acsl_mul_3);
     __gmpz_mul(__gen_e_acsl_mul_3,
                (__e_acsl_mpz_struct const *)(__gen_e_acsl_u_7),
@@ -259,7 +259,7 @@ int main(void)
     int __gen_e_acsl_lt;
     __e_acsl_assert_data_t __gen_e_acsl_assert_data_7 =
       {.values = (void *)0};
-    __gen_e_acsl_u_8 = 'b';
+    __gmpz_init_set_si(__gen_e_acsl_u_8,(long)'b');
     __gmpz_init_set_si(__gen_e_acsl_c,(long)c);
     __gen_e_acsl_lt = __gmpz_cmp((__e_acsl_mpz_struct const *)(__gen_e_acsl_c),
                                  (__e_acsl_mpz_struct const *)(__gen_e_acsl_u_8));
@@ -287,7 +287,8 @@ int main(void)
     int __gen_e_acsl_eq_4;
     __e_acsl_assert_data_t __gen_e_acsl_assert_data_8 =
       {.values = (void *)0};
-    __gen_e_acsl_u_9 = f;
+    __gmpq_init(__gen_e_acsl_u_9);
+    __gmpq_set_d(__gen_e_acsl_u_9,(double)f);
     __gmpq_init(__gen_e_acsl_f);
     __gmpq_set_d(__gen_e_acsl_f,(double)f);
     __gen_e_acsl_eq_4 = __gmpq_cmp((__e_acsl_mpq_struct const *)(__gen_e_acsl_u_9),
