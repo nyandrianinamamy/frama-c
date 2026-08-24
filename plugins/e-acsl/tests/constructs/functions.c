@@ -82,6 +82,15 @@ int z = 8;
       : a > 0 ? Issue105(a - 1, b - 1) : \true;
 */
 
+// causes uncaught exception during interval analysis: e-acsl#335
+/*@ predicate Issue335(char c, ℤ from, ℤ to) =
+      1 ≥ to
+            ? from < to
+              ? Issue335(c, from, to)
+              : c ≢ 1
+            : \true;
+*/
+
 // RECURSIVE FUNCTIONS
 
 /*@ logic integer identity(integer n) = n <= 0 ? n : identity(n-1) + 1; */
@@ -158,7 +167,7 @@ int main(void) {
   /*@ assert even(-6); @*/;
   /*@ assert even_and_not_negative(8); */;
   /*@ assert Issue105(3,8); */
-  /*@ assert Issue105(-3,8); */
+  //@ assert Issue335(c, 0, 2);
 
   // RECURSIVE FUNCTIONS
   /*@ assert identity(x) == x; */
