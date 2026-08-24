@@ -1,0 +1,32 @@
+[e-acsl] beginning translation.
+[e-acsl] let.c:40: Warning: 
+  E-ACSL construct `let-binding on array or pointer' is not yet supported.
+  Ignoring annotation.
+[e-acsl] translation done in project "e-acsl".
+[eva:alarm] let.c:13: Warning: 
+  function __e_acsl_assert, behavior blocking: precondition got status unknown.
+[eva:alarm] let.c:15: Warning: 
+  function __e_acsl_assert, behavior blocking: precondition got status unknown.
+[eva:alarm] let.c:19: Warning: 
+  function __e_acsl_assert, behavior blocking: precondition got status unknown.
+[eva:alarm] let.c:21: Warning: 
+  function __e_acsl_assert, behavior blocking: precondition got status unknown.
+[eva:alarm] let.c:25: Warning: 
+  function __e_acsl_assert, behavior blocking: precondition got status unknown.
+[eva:alarm] let.c:30: Warning: 
+  function __e_acsl_assert, behavior blocking: precondition got status unknown.
+[eva:alarm] let.c:33: Warning: 
+  function __e_acsl_assert, behavior blocking: precondition got status unknown.
+[eva:alarm] let.c:36: Warning: 
+  function __e_acsl_assert, behavior blocking: precondition got status unknown.
+[eva:alarm] let.c:36: Warning: assertion got status unknown.
+[eva:alarm] let.c:40: Warning: assertion got status unknown.
+[eva:alarm] let.c:42: Warning: 
+  function __e_acsl_assert, behavior blocking: precondition got status unknown.
+[eva:alarm] let.c:42: Warning: assertion got status unknown.
+[eva:alarm] let.c:47: Warning: 
+  function __e_acsl_assert, behavior blocking: precondition got status unknown.
+[eva:alarm] let.c:47: Warning: assertion got status unknown.
+[eva:alarm] let.c:54: Warning: 
+  function __e_acsl_assert, behavior blocking: precondition got status unknown.
+[eva:alarm] let.c:54: Warning: assertion got status unknown.
