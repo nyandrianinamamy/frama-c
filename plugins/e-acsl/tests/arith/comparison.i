@@ -14,6 +14,7 @@ int main(void) {
   /*@ assert y > x; */
   /*@ assert x <= 0; */
   /*@ assert y >= 1; */
+  /*@ assert x == y || x != y; */  // pathological case of issue #331
   char *s = "toto";
   /*@ assert s == s; */
   // waiting for clarification of semantics of ACSL's literal strings
