@@ -129,10 +129,11 @@ predicate even_and_not_negative(integer n) =
 int __gen_e_acsl_even_and_not_negative(__e_acsl_mpz_struct * n);
 
 /*@
-predicate P(integer a, integer b) =
-  a < 0 ? P(a + 1, b - 1) : (a > 0 ? P(a - 1, b - 1) : \true);
- */
-int __gen_e_acsl_P(__e_acsl_mpz_struct * a, __e_acsl_mpz_struct * b);
+predicate Issue105(integer a, integer b) =
+  a < 0 ? Issue105(a + 1, b - 1) : (a > 0 ? Issue105(a - 1, b - 1) : \true);
+
+*/
+int __gen_e_acsl_Issue105(__e_acsl_mpz_struct * a, __e_acsl_mpz_struct * b);
 
 /*@ logic integer identity(integer n) = n <= 0 ? n : identity(n - 1) + 1;
 
@@ -891,51 +892,51 @@ int main(void)
   {
     __e_acsl_mpz_t __gen_e_acsl__52;
     __e_acsl_mpz_t __gen_e_acsl__53;
-    int __gen_e_acsl_P_6;
+    int __gen_e_acsl_Issue105_6;
     __e_acsl_assert_data_t __gen_e_acsl_assert_data_29 =
       {.values = (void *)0};
     __gmpz_init_set_str(__gen_e_acsl__52,"8",10);
     __gmpz_init_set_str(__gen_e_acsl__53,"3",10);
-    __gen_e_acsl_P_6 = __gen_e_acsl_P((__e_acsl_mpz_struct *)__gen_e_acsl__53,
-                                      (__e_acsl_mpz_struct *)__gen_e_acsl__52);
-    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_29,"P(3, 8)",0,
-                                 __gen_e_acsl_P_6);
+    __gen_e_acsl_Issue105_6 = __gen_e_acsl_Issue105((__e_acsl_mpz_struct *)__gen_e_acsl__53,
+                                                    (__e_acsl_mpz_struct *)__gen_e_acsl__52);
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_29,
+                                 "Issue105(3, 8)",0,__gen_e_acsl_Issue105_6);
     __gen_e_acsl_assert_data_29.blocking = 1;
     __gen_e_acsl_assert_data_29.kind = "Assertion";
-    __gen_e_acsl_assert_data_29.pred_txt = "P(3, 8)";
+    __gen_e_acsl_assert_data_29.pred_txt = "Issue105(3, 8)";
     __gen_e_acsl_assert_data_29.file = "functions.c";
     __gen_e_acsl_assert_data_29.fct = "main";
     __gen_e_acsl_assert_data_29.line = 160;
-    __e_acsl_assert(__gen_e_acsl_P_6,& __gen_e_acsl_assert_data_29);
+    __e_acsl_assert(__gen_e_acsl_Issue105_6,& __gen_e_acsl_assert_data_29);
     __e_acsl_assert_clean(& __gen_e_acsl_assert_data_29);
     __gmpz_clear(__gen_e_acsl__52);
     __gmpz_clear(__gen_e_acsl__53);
   }
-  /*@ assert P(3, 8); */ ;
+  /*@ assert Issue105(3, 8); */ ;
   {
     __e_acsl_mpz_t __gen_e_acsl__58;
     __e_acsl_mpz_t __gen_e_acsl__59;
-    int __gen_e_acsl_P_8;
+    int __gen_e_acsl_Issue105_8;
     __e_acsl_assert_data_t __gen_e_acsl_assert_data_30 =
       {.values = (void *)0};
     __gmpz_init_set_str(__gen_e_acsl__58,"8",10);
     __gmpz_init_set_str(__gen_e_acsl__59,"-3",10);
-    __gen_e_acsl_P_8 = __gen_e_acsl_P((__e_acsl_mpz_struct *)__gen_e_acsl__59,
-                                      (__e_acsl_mpz_struct *)__gen_e_acsl__58);
-    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_30,"P(-3, 8)",0,
-                                 __gen_e_acsl_P_8);
+    __gen_e_acsl_Issue105_8 = __gen_e_acsl_Issue105((__e_acsl_mpz_struct *)__gen_e_acsl__59,
+                                                    (__e_acsl_mpz_struct *)__gen_e_acsl__58);
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_30,
+                                 "Issue105(-3, 8)",0,__gen_e_acsl_Issue105_8);
     __gen_e_acsl_assert_data_30.blocking = 1;
     __gen_e_acsl_assert_data_30.kind = "Assertion";
-    __gen_e_acsl_assert_data_30.pred_txt = "P(-3, 8)";
+    __gen_e_acsl_assert_data_30.pred_txt = "Issue105(-3, 8)";
     __gen_e_acsl_assert_data_30.file = "functions.c";
     __gen_e_acsl_assert_data_30.fct = "main";
     __gen_e_acsl_assert_data_30.line = 161;
-    __e_acsl_assert(__gen_e_acsl_P_8,& __gen_e_acsl_assert_data_30);
+    __e_acsl_assert(__gen_e_acsl_Issue105_8,& __gen_e_acsl_assert_data_30);
     __e_acsl_assert_clean(& __gen_e_acsl_assert_data_30);
     __gmpz_clear(__gen_e_acsl__58);
     __gmpz_clear(__gen_e_acsl__59);
   }
-  /*@ assert P(-3, 8); */ ;
+  /*@ assert Issue105(-3, 8); */ ;
   {
     __e_acsl_mpz_t __gen_e_acsl_x_5;
     __e_acsl_mpz_t __gen_e_acsl_identity_4;
@@ -1827,7 +1828,7 @@ int __gen_e_acsl_even_and_not_negative(__e_acsl_mpz_struct * n)
 
 /*@ assigns \result;
     assigns \result \from *(&(a[0])), *(&(b[0])); */
-int __gen_e_acsl_P(__e_acsl_mpz_struct * a, __e_acsl_mpz_struct * b)
+int __gen_e_acsl_Issue105(__e_acsl_mpz_struct * a, __e_acsl_mpz_struct * b)
 {
   __e_acsl_mpz_t __gen_e_acsl__54;
   int __gen_e_acsl_lt_6;
@@ -1839,7 +1840,7 @@ int __gen_e_acsl_P(__e_acsl_mpz_struct * a, __e_acsl_mpz_struct * b)
     __e_acsl_mpz_t __gen_e_acsl__55;
     __e_acsl_mpz_t __gen_e_acsl_sub_4;
     __e_acsl_mpz_t __gen_e_acsl_add_8;
-    int __gen_e_acsl_P_3;
+    int __gen_e_acsl_Issue105_3;
     __gmpz_init_set_si(__gen_e_acsl__55,1L);
     __gmpz_init(__gen_e_acsl_sub_4);
     __gmpz_sub(__gen_e_acsl_sub_4,(__e_acsl_mpz_struct const *)(b),
@@ -1847,9 +1848,9 @@ int __gen_e_acsl_P(__e_acsl_mpz_struct * a, __e_acsl_mpz_struct * b)
     __gmpz_init(__gen_e_acsl_add_8);
     __gmpz_add(__gen_e_acsl_add_8,(__e_acsl_mpz_struct const *)(a),
                (__e_acsl_mpz_struct const *)(__gen_e_acsl__55));
-    __gen_e_acsl_P_3 = __gen_e_acsl_P((__e_acsl_mpz_struct *)__gen_e_acsl_add_8,
-                                      (__e_acsl_mpz_struct *)__gen_e_acsl_sub_4);
-    __gen_e_acsl_if_10 = __gen_e_acsl_P_3;
+    __gen_e_acsl_Issue105_3 = __gen_e_acsl_Issue105((__e_acsl_mpz_struct *)__gen_e_acsl_add_8,
+                                                    (__e_acsl_mpz_struct *)__gen_e_acsl_sub_4);
+    __gen_e_acsl_if_10 = __gen_e_acsl_Issue105_3;
     __gmpz_clear(__gen_e_acsl__55);
     __gmpz_clear(__gen_e_acsl_sub_4);
     __gmpz_clear(__gen_e_acsl_add_8);
@@ -1865,7 +1866,7 @@ int __gen_e_acsl_P(__e_acsl_mpz_struct * a, __e_acsl_mpz_struct * b)
       __e_acsl_mpz_t __gen_e_acsl__57;
       __e_acsl_mpz_t __gen_e_acsl_sub_5;
       __e_acsl_mpz_t __gen_e_acsl_sub_6;
-      int __gen_e_acsl_P_5;
+      int __gen_e_acsl_Issue105_5;
       __gmpz_init_set_si(__gen_e_acsl__57,1L);
       __gmpz_init(__gen_e_acsl_sub_5);
       __gmpz_sub(__gen_e_acsl_sub_5,(__e_acsl_mpz_struct const *)(b),
@@ -1873,9 +1874,9 @@ int __gen_e_acsl_P(__e_acsl_mpz_struct * a, __e_acsl_mpz_struct * b)
       __gmpz_init(__gen_e_acsl_sub_6);
       __gmpz_sub(__gen_e_acsl_sub_6,(__e_acsl_mpz_struct const *)(a),
                  (__e_acsl_mpz_struct const *)(__gen_e_acsl__57));
-      __gen_e_acsl_P_5 = __gen_e_acsl_P((__e_acsl_mpz_struct *)__gen_e_acsl_sub_6,
-                                        (__e_acsl_mpz_struct *)__gen_e_acsl_sub_5);
-      __gen_e_acsl_if_9 = __gen_e_acsl_P_5;
+      __gen_e_acsl_Issue105_5 = __gen_e_acsl_Issue105((__e_acsl_mpz_struct *)__gen_e_acsl_sub_6,
+                                                      (__e_acsl_mpz_struct *)__gen_e_acsl_sub_5);
+      __gen_e_acsl_if_9 = __gen_e_acsl_Issue105_5;
       __gmpz_clear(__gen_e_acsl__57);
       __gmpz_clear(__gen_e_acsl_sub_5);
       __gmpz_clear(__gen_e_acsl_sub_6);

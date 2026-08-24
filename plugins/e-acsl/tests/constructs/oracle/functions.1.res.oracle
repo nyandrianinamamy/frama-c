@@ -96,13 +96,13 @@
   function __e_acsl_assert, behavior blocking: precondition got status unknown.
 [eva:alarm] functions.c:159: Warning: assertion got status unknown.
 [eva] functions.c:81: Warning: 
-  Using specification of function __gen_e_acsl_P for recursive calls.
-  Analysis of function __gen_e_acsl_P is thus incomplete and its soundness
-  relies on the written specification.
+  Using specification of function __gen_e_acsl_Issue105 for recursive calls.
+  Analysis of function __gen_e_acsl_Issue105 is thus incomplete
+  and its soundness relies on the written specification.
 [eva] functions.c:82: Warning: 
-  Using specification of function __gen_e_acsl_P for recursive calls.
-  Analysis of function __gen_e_acsl_P is thus incomplete and its soundness
-  relies on the written specification.
+  Using specification of function __gen_e_acsl_Issue105 for recursive calls.
+  Analysis of function __gen_e_acsl_Issue105 is thus incomplete
+  and its soundness relies on the written specification.
 [eva:alarm] functions.c:160: Warning: 
   function __e_acsl_assert, behavior blocking: precondition got status unknown.
 [eva:alarm] functions.c:160: Warning: assertion got status unknown.
