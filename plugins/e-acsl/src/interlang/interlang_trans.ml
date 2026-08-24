@@ -134,7 +134,12 @@ and force_rtes () =
 
 and compile_conditional ~ity ~origin ?(name = "if") op1 op2 op3 =
   let* {kf; loc} = M.read in
-  let ty = Typing.typ_of_number_ty ity in
+  (* temporary solution since [origin] should have no semantic significance *)
+  let ty =
+    match origin with
+    | Analyses_types.PoT_pred _ (* predicate *) -> Cil_const.intType
+    | _ -> Typing.typ_of_number_ty ity
+  in
   let* e1 = M.with_generating_adata @@ compile op1 in
   let* () = M.push_env () in
   let* e2 = M.with_generating_adata @@ compile op2 in
