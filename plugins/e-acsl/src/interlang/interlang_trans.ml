@@ -358,8 +358,19 @@ and compile_offset = function
   | Field (fieldinfo, offset) ->
     let* offset = compile_offset offset in
     M.return @@ Cil_types.Field (fieldinfo, offset)
-  | Index (e, offset) ->
-    let* e = M.without_registering_adata @@ compile e in
+  | Index (exp, offset) ->
+    let* {kf} = M.read in
+    let* e = M.without_registering_adata @@ compile exp in
+    (* temporary solution since implicit cast should be handled by a more
+       general mechanism *)
+    let* e = M.modifying_env @@ fun env ->
+      Typed_number.add_gmp_cast
+        ~loc:(Misc.get_loc_from_pot exp.origin)
+        env
+        kf
+        (Machine.sizeof_type ())
+        e
+    in
     let* offset = M.without_registering_adata @@ compile_offset offset in
     M.return @@ Cil_types.Index (e, offset)
 

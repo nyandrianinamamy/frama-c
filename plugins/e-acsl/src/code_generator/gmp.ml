@@ -188,7 +188,7 @@ module Z = struct
                fname
                [ e ] ])
     in
-    e, env
+    Cil.mkCastT ~force:false ~oldt:new_ty ~newt:ty e, env
 
   let binop ~loc t_opt bop env kf e1 e2 =
     let name = name_arith_bop bop in

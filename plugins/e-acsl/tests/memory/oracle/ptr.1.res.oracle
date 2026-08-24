@@ -13,13 +13,7 @@
 [eva:alarm] ptr.i:20: Warning: 
   function __e_acsl_assert, behavior blocking: precondition got status unknown.
 [eva:alarm] ptr.i:20: Warning: 
-  accessing out of bounds index. assert 0 <= __gen_e_acsl_div;
-[eva:alarm] ptr.i:20: Warning: 
-  accessing out of bounds index. assert __gen_e_acsl_div < 3;
-[eva:alarm] ptr.i:20: Warning: 
-  accessing out of bounds index. assert 0 <= __gen_e_acsl_div;
-[eva:alarm] ptr.i:20: Warning: 
-  accessing out of bounds index. assert __gen_e_acsl_div < 3;
+  accessing out of bounds index. assert __gen_e_acsl__13 < 3;
 [eva:alarm] ptr.i:20: Warning: 
   function __e_acsl_assert, behavior blocking: precondition got status unknown.
 [eva:alarm] ptr.i:23: Warning: 
@@ -29,13 +23,7 @@
 [eva:alarm] ptr.i:24: Warning: 
   function __e_acsl_assert, behavior blocking: precondition got status unknown.
 [eva:alarm] ptr.i:24: Warning: 
-  accessing out of bounds index. assert 0 <= __gen_e_acsl_sub;
-[eva:alarm] ptr.i:24: Warning: 
-  accessing out of bounds index. assert __gen_e_acsl_sub < 3;
-[eva:alarm] ptr.i:24: Warning: 
-  accessing out of bounds index. assert 0 <= __gen_e_acsl_sub;
-[eva:alarm] ptr.i:24: Warning: 
-  accessing out of bounds index. assert __gen_e_acsl_sub < 3;
+  accessing out of bounds index. assert __gen_e_acsl__26 < 3;
 [eva:alarm] ptr.i:24: Warning: 
   function __e_acsl_assert, behavior blocking: precondition got status unknown.
 [eva:alarm] ptr.i:25: Warning: 
