@@ -61,14 +61,15 @@ val sub_int_under: t -> t -> t
 
 val min_int : t -> Z.t option
 (** A [None] result means the argument is unbounded.
-    Raises [Error_Bottom] if the argument is bottom. *)
+    @raise [Error_Bottom] if the argument is bottom. *)
 
 val max_int : t -> Z.t option
 (** A [None] result means the argument is unbounded.
-    Raises [Error_Bottom] if the argument is bottom. *)
+    @raise [Error_Bottom] if the argument is bottom. *)
 
 val min_max_r_mod :
   t -> Z.t option * Z.t option * Z.t * Z.t
+(** @raise [Error_Bottom] if the argument is bottom. *)
 
 val min_and_max :
   t -> Z.t option * Z.t option
