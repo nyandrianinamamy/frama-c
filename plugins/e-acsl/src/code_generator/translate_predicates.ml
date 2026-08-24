@@ -272,6 +272,15 @@ let rec predicate_content_to_exp_old ?(inplace=false) ?name ~loc ~adata ~env ~kf
           (align_e, adata), env
         )
     in
+    let align_e, env =
+      Typed_number.add_gmp_cast
+        ~loc:align.term_loc
+        ?name
+        env
+        kf
+        (Machine.sizeof_type ())
+        align_e
+    in
     let (ptr_e, adata), env =
       Env.with_params_and_result ~env (fun env ->
           let ptr_e, adata, env = Translate_terms.to_exp ~adata kf env ptr in

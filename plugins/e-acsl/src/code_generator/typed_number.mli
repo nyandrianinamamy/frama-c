@@ -25,3 +25,14 @@ val add_cast:
   term option ->
   exp ->
   exp * Env.t
+
+(** [add_gmp_cast ~loc ?name env kf mrd_ty e] create an explicit coercion
+    from a GMP type to a C integer type if necessary. *)
+val add_gmp_cast:
+  loc:Fileloc.t ->
+  ?name:string ->
+  Env.t ->
+  kernel_function ->
+  typ ->
+  exp ->
+  exp * Env.t
