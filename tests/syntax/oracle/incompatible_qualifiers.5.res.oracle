@@ -1,6 +1,7 @@
 [kernel] Parsing incompatible_qualifiers.c (with preprocessing)
 [kernel] incompatible_qualifiers.c:55: User Error: 
-  Declaration of n does not match previous declaration from incompatible_qualifiers.c:53 (different qualifiers).
+  Declaration of n does not match previous declaration from incompatible_qualifiers.c:53 (different qualifiers in types: 'fp1 * const *(int *(*f)(int , fp1 **))' and
+  'fp2 * const *(int *(*f)(int volatile , fp2 * const *))').
   53    fp1 *const *n(int *f(int, fp1 *[]));
   54    #ifdef INCOMPATIBLE5
   55    fp2 *const *n(int *f(volatile int, fp2 *const[])); // conflicting types for 'n'

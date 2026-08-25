@@ -5463,7 +5463,10 @@ let compatibleTypes ?strictReturnTypes ?context t1 t2 =
   (* C99, 6.7.3 §9: "... to be compatible, both shall have the identically
      qualified version of a compatible type;" *)
   if not (have_compatible_qualifiers_deep ?context t1 t2) then
-    raise (Cannot_combine "different qualifiers");
+    raise (Cannot_combine (Format.asprintf
+                             "different qualifiers in types:@ '%a' and@ '%a'"
+                             !pp_typ_ref t1
+                             !pp_typ_ref t2));
   (* Note: different non-qualifier attributes will be silently dropped. *)
   r
 

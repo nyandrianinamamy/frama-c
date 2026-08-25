@@ -1,6 +1,7 @@
 [kernel] Parsing incompatible_qualifiers.c (with preprocessing)
 [kernel] incompatible_qualifiers.c:20: User Error: 
-  Declaration of f does not match previous declaration from incompatible_qualifiers.c:18 (different qualifiers).
+  Declaration of f does not match previous declaration from incompatible_qualifiers.c:18 (different qualifiers in types: 'int (int a, char volatile *b)' and
+  'int (int a, char *b)').
   18    int f(int a, char volatile *b);
   19    #ifdef INCOMPATIBLE1
   20    int f(int a, char *b); // conflicting types for 'f'
