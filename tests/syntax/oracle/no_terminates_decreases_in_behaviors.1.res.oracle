@@ -1,0 +1,5 @@
+[kernel] Parsing no_terminates_decreases_in_behaviors.i (no preprocessing)
+[kernel:annot-error] no_terminates_decreases_in_behaviors.i:10: Failure: 
+  Terminates in behaviors is not allowed.
+[kernel] User Error: warning annot-error treated as fatal error.
+[kernel] Frama-C aborted: invalid user input.

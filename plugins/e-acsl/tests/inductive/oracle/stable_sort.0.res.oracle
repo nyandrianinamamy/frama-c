@@ -1,5 +1,5 @@
 [kernel] stable_sort.c:45: Warning: 
-  parsing obsolete ACSL construct '\valid_range(addr,min,max)'. '\valid(addr+(min..max))' should be used instead.
+  Parsing obsolete ACSL construct '\valid_range(addr,min,max)'. '\valid(addr+(min..max))' should be used instead.
 [e-acsl] beginning translation.
 [e-acsl:analysis:inductive] stable_sort.c:16: 
   conclusion not an occurrence of the enclosing predicate: Permut{L, L}

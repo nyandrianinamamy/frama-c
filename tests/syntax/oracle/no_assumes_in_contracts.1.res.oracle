@@ -1,0 +1,5 @@
+[kernel] Parsing no_assumes_in_contracts.i (no preprocessing)
+[kernel:annot-error] no_assumes_in_contracts.i:8: Failure: 
+  Assumes outside behaviors is not allowed.
+[kernel] User Error: warning annot-error treated as fatal error.
+[kernel] Frama-C aborted: invalid user input.
