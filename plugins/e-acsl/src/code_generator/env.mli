@@ -151,6 +151,18 @@ val top_loop_variant: t -> (term * logic_info option) option
 val top_loop_invariants: t -> toplevel_predicate list
 val pop_loop: t -> t
 
+(* ************************************************************************** *)
+(** {2 RTEs} *)
+(* ************************************************************************** *)
+
+val push_rte_annotations: t -> t
+(** [push_rte_annotations env] pushes a new local list of annotations in the
+    context *)
+
+val pop_and_add_rte_annotations: kf:kernel_function -> t -> t
+(** [pop_and_add_rte_annotations ~kf env] pops the last list of annotations and
+    adds each annotation in the annotation table. *)
+
 module Logic_env: sig
   val push_new: t -> Profile.t -> t
   val add : t -> logic_var -> ival -> t

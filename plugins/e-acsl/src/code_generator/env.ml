@@ -33,8 +33,6 @@ type mp_tbl = {
 }
 
 type block_info = {
-  block_annotations: (stmt * predicate) list;
-  (* annotations to be added *)
   new_block_vars: varinfo list;
   (* generated variables local to the block *)
   new_stmts: stmt list;
@@ -76,11 +74,12 @@ type t = {
   (* type of variables used in calls to logic functions and predicates *)
   kinstr: kinstr;
   (* Current kinstr of the environment *)
+  rte_annotations: (stmt * predicate) list list;
+  (* Annotations to be added *)
 }
 
 let empty_block =
-  { block_annotations = [];
-    new_block_vars = [];
+  { new_block_vars = [];
     new_stmts = [];
     pre_stmts = [];
     post_stmts = [] }
@@ -108,7 +107,8 @@ let empty =
     loop_envs = [];
     cpt = 0;
     logic_env_stack = [ Analyses_datatype.Logic_env.empty ];
-    kinstr = Kglobal }
+    kinstr = Kglobal;
+    rte_annotations = [] }
 
 let top env = match env.env_stack with
   | [] -> Options.fatal "Empty environment. That is unexpected."
@@ -206,8 +206,7 @@ let do_new_var ~loc ?(scope=Varname.Block) ?(name="") env kf t ty mk_stmts =
       v :: local_block.new_block_vars
   in
   let new_block =
-    { block_annotations = local_block.block_annotations;
-      new_block_vars = new_block_vars;
+    { new_block_vars = new_block_vars;
       new_stmts = new_stmts;
       pre_stmts = local_block.pre_stmts;
       post_stmts = local_block.post_stmts
@@ -366,8 +365,22 @@ module Logic_scope = struct
     else env
 end
 
-let add_block_annotation stmt block annot =
-  { block with block_annotations = (stmt, annot) :: block.block_annotations }
+let add_rte_annotation env stmt annot =
+  match env.rte_annotations with
+  | ca :: t ->
+    { env with rte_annotations = ((stmt, annot) :: ca) :: t }
+  | [] -> Options.fatal "try to add an RTE annotations in an empty environment"
+
+let push_rte_annotations env =
+  { env with rte_annotations = [] :: env.rte_annotations }
+
+let pop_and_add_rte_annotations ~kf env =
+  match env.rte_annotations with
+  | ca :: t ->
+    List.iter
+      (fun (stmt, p) -> Annotations.add_assert Options.emitter ~kf stmt p) ca;
+    { env with rte_annotations = t }
+  | _ -> Options.fatal "try to pop an empty stack of RTE annotations"
 
 let add_stmt ?(post=false) ?annot env stmt =
   let local_env, tl = top env in
@@ -378,8 +391,8 @@ let add_stmt ?(post=false) ?annot env stmt =
     else
       { block with new_stmts = stmt :: block.new_stmts }
   in
-  let block =
-    Option.fold ~none:block ~some:(add_block_annotation stmt block) annot
+  let env =
+    Option.fold ~none:env ~some:(add_rte_annotation env stmt) annot
   in
   let local_env = { local_env with block_info = block } in
   { env with env_stack = local_env :: tl }
@@ -415,9 +428,7 @@ let transfer ~from env = match from.env_stack, env.env_stack with
   | { block_info = from_blk } :: _, ({ block_info = env_blk } as local) :: tl
     ->
     let new_blk =
-      { block_annotations =
-          from_blk.block_annotations @ env_blk.block_annotations;
-        new_block_vars = from_blk.new_block_vars @ env_blk.new_block_vars;
+      { new_block_vars = from_blk.new_block_vars @ env_blk.new_block_vars;
         new_stmts = from_blk.new_stmts @ env_blk.new_stmts;
         pre_stmts = from_blk.pre_stmts @ env_blk.pre_stmts;
         post_stmts = from_blk.post_stmts @ env_blk.post_stmts }
@@ -427,7 +438,7 @@ let transfer ~from env = match from.env_stack, env.env_stack with
     assert false
 
 type where = Before | Middle | After
-let pop_and_get ~kf ?(split=false) env stmt ~global_clear where =
+let pop_and_get ~kf:_ ?(split=false) env stmt ~global_clear where =
   let split = split && stmt.labels = [] in
   (* Options.feedback "pop_and_get ~kf from %a (%b)" Printer.pp_stmt stmt split; *)
   let local_env, tl = top env in
@@ -441,7 +452,6 @@ let pop_and_get ~kf ?(split=false) env stmt ~global_clear where =
   (*  Options.feedback "clearing %d mpz (global_clear: %b)"
       (List.length clear) global_clear;*)
   let block = local_env.block_info in
-  List.iter (fun (stmt, p) ->Annotations.add_assert Options.emitter ~kf stmt p) block.block_annotations;
   let b =
     let pre_stmts, stmt =
       let rec extract stmt acc = function

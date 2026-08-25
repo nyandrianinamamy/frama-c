@@ -634,7 +634,9 @@ let inject_in_fundec main fundec =
   (* recursive visit *)
   Options.feedback ~dkey ~level:2 "entering in function %a."
     Kernel_function.pretty kf;
-  let env = inject_in_block Env.empty kf fundec.sbody in
+  let env = Env.push_rte_annotations Env.empty in
+  let env = inject_in_block env kf fundec.sbody in
+  let env = Env.pop_and_add_rte_annotations ~kf env in
   Exit_points.clear ();
   add_generated_variables_in_function env fundec;
   add_malloc_and_free_stmts kf fundec;

@@ -196,7 +196,7 @@ let generate_kf ~loc fname env params_ty ret_ty params_ival li =
     let env = (* cannot use bindings from other functions (the use site) *)
       Env.Logic_binding.clear env
     in
-    let env = Env.push env in
+    let env = Env.push_rte_annotations @@ Env.push env in
     (* fill the typing environment with the function's parameters
        before generating the code (code generation invokes typing) *)
     let env = Env.Logic_env.push_new env profile in
@@ -263,7 +263,8 @@ let generate_kf ~loc fname env params_ty ret_ty params_ival li =
     List.iter
       (fun lvi ->
          ignore (Env.Logic_binding.remove env lvi))
-      li.l_profile
+      li.l_profile;
+    ignore @@ Env.pop_and_add_rte_annotations ~kf env
   in
   vi, kf, gen_body
 

@@ -25,6 +25,7 @@
 Plugin E-ACSL <next-release>
 ###############################################################################
 
+-* E-ACSL     [2026-09-04] Fix crash caused by RTE annotations
 -* E-ACSL     [2026-08-24] Fix uncaught exception Error_Bottom during typing
 -  E-ACSL     [2026-08-17] New option -e-acsl-O-implicit-downcast that generates
                            guards for implicit downcasts done by the translation.
