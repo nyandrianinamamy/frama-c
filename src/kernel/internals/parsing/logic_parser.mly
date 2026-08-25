@@ -1108,9 +1108,10 @@ spec:
 ;
 
 contract:
-| requires terminates decreases simple_clauses behaviors complete_or_disjoint
-    { let requires=$1 in
-      let (empty,(allocation,assigns,post_cond,extended)) = $4 in
+| pre_clauses terminates decreases post_clauses behaviors complete_or_disjoint
+    { let (extended_pre,requires)=$1 in
+      let (empty,(allocation,assigns,post_cond,extended_post)) = $4 in
+      let extended = extended_pre@extended_post in
       let behaviors = $5 in
       let (completes,disjoints) = $6 in
       let behaviors =
@@ -1137,43 +1138,43 @@ contract:
           spec_disjoint_behaviors = disjoints;
         }, loc $sloc
     }
-| requires ne_terminates REQUIRES { clause_order $loc($3) "requires" "terminates" }
-| requires terminates ne_decreases REQUIRES
+| pre_clauses ne_terminates REQUIRES { clause_order $loc($3) "requires" "terminates" }
+| pre_clauses terminates ne_decreases REQUIRES
       { clause_order $loc($4) "requires" "decreases" }
-| requires terminates ne_decreases TERMINATES
+| pre_clauses terminates ne_decreases TERMINATES
       { clause_order $loc($4) "terminates" "decreases" }
-| requires terminates decreases ne_simple_clauses REQUIRES
+| pre_clauses terminates decreases ne_post_clauses REQUIRES
       { clause_order $loc($5) "requires" "post-condition, assigns or allocates" }
-| requires terminates decreases ne_simple_clauses TERMINATES
+| pre_clauses terminates decreases ne_post_clauses TERMINATES
       { clause_order $loc($5) "terminates" "post-condition, assigns or allocates" }
-| requires terminates decreases ne_simple_clauses DECREASES
+| pre_clauses terminates decreases ne_post_clauses DECREASES
       { clause_order $loc($5) "decreases" "post-condition, assigns or allocates" }
-| requires terminates decreases simple_clauses ne_behaviors TERMINATES
+| pre_clauses terminates decreases post_clauses ne_behaviors TERMINATES
       { clause_order $loc($6) "terminates" "behavior" }
-| requires terminates decreases simple_clauses ne_behaviors DECREASES
+| pre_clauses terminates decreases post_clauses ne_behaviors DECREASES
       { clause_order $loc($6) "decreases" "behavior" }
-| requires terminates decreases simple_clauses behaviors ne_complete_or_disjoint
+| pre_clauses terminates decreases post_clauses behaviors ne_complete_or_disjoint
   REQUIRES
       { clause_order $loc($7) "requires" "complete or disjoint" }
-| requires terminates decreases simple_clauses behaviors ne_complete_or_disjoint
+| pre_clauses terminates decreases post_clauses behaviors ne_complete_or_disjoint
   TERMINATES
       { clause_order $loc($7) "terminates" "complete or disjoint" }
-| requires terminates decreases simple_clauses behaviors ne_complete_or_disjoint
+| pre_clauses terminates decreases post_clauses behaviors ne_complete_or_disjoint
   DECREASES
       { clause_order $loc($7) "decreases" "complete or disjoint" }
-| requires terminates decreases simple_clauses behaviors ne_complete_or_disjoint
+| pre_clauses terminates decreases post_clauses behaviors ne_complete_or_disjoint
   BEHAVIOR
       { clause_order $loc($7) "behavior" "complete or disjoint" }
-| requires terminates decreases simple_clauses behaviors ne_complete_or_disjoint
+| pre_clauses terminates decreases post_clauses behaviors ne_complete_or_disjoint
   ASSIGNS
       { clause_order $loc($7) "assigns" "complete or disjoint" }
-| requires terminates decreases simple_clauses behaviors ne_complete_or_disjoint
+| pre_clauses terminates decreases post_clauses behaviors ne_complete_or_disjoint
   ALLOCATES
       { clause_order $loc($7) "allocates" "complete or disjoint" }
-| requires terminates decreases simple_clauses behaviors ne_complete_or_disjoint
+| pre_clauses terminates decreases post_clauses behaviors ne_complete_or_disjoint
   FREES
       { clause_order $loc($7) "frees" "complete or disjoint" }
-| requires terminates decreases simple_clauses behaviors ne_complete_or_disjoint
+| pre_clauses terminates decreases post_clauses behaviors ne_complete_or_disjoint
   post_cond_kind
       { clause_order $loc($7) "post-condition" "complete or disjoint" }
 ;
@@ -1203,19 +1204,29 @@ clause_kw:
 | EOF { "end of annotation" }
 ;
 
-requires:
-| /* epsilon */ { [] }
-| ne_requires { $1 }
+pre_clauses:
+| /* epsilon */ { ([],[]) }
+| ne_pre_clauses { $1 }
 ;
 
-ne_requires:
-| REQUIRES lexpr SEMICOLON requires { toplevel_pred Assert $2::$4 }
-| CHECK_REQUIRES lexpr SEMICOLON requires { toplevel_pred Check $2 :: $4 }
-| ADMIT_REQUIRES lexpr SEMICOLON requires { toplevel_pred Admit $2 :: $4 }
-| REQUIRES lexpr clause_kw { missing $loc($2) ";" $3 }
-| CHECK_REQUIRES lexpr clause_kw { missing $loc($2) ";" $3 }
-| ADMIT_REQUIRES lexpr clause_kw { missing $loc($2) ";" $3 }
+ne_pre_clauses:
+| extended SEMICOLON pre_clauses {($1::fst $3, snd $3)}
+| REQUIRES lexpr SEMICOLON pre_clauses { (fst $4, toplevel_pred Assert $2::snd $4) }
+| CHECK_REQUIRES lexpr SEMICOLON pre_clauses { (fst $4, toplevel_pred Check $2::snd $4) }
+| ADMIT_REQUIRES lexpr SEMICOLON pre_clauses { (fst $4, toplevel_pred Admit $2::snd $4) }
+| REQUIRES lexpr clause_kw { ([], missing $loc($2) ";" $3) }
+| CHECK_REQUIRES lexpr clause_kw { ([], missing $loc($2) ";" $3) }
+| ADMIT_REQUIRES lexpr clause_kw { ([], missing $loc($2) ";" $3) }
 ;
+
+extended:
+| EXT_CONTRACT extension_content
+    { let name, plugin = $1 in
+      let processed = Logic_env.preprocess_extension ~plugin name $2 in
+      let ext = extension name plugin processed in
+      ext
+    }
+
 
 terminates:
 | /* epsilon */ { None }
@@ -1242,33 +1253,33 @@ variant:
 | lexpr                     { ($1, None) }
 ;
 
-simple_clauses:
+post_clauses:
 | /* epsilon */ { true,(FreeAllocAny,WritesAny,[],[]) }
-| ne_simple_clauses { false,$1 }
+| ne_post_clauses { false,$1 }
 ;
 
 allocation:
 | ALLOCATES zones { FreeAlloc([],$2) }
 | FREES zones { FreeAlloc($2,[]) }
 
-ne_simple_clauses:
-| post_cond_kind lexpr SEMICOLON simple_clauses
+ne_post_clauses:
+| post_cond_kind lexpr SEMICOLON post_clauses
     { let tp_kind, kind = $1 in
       let allocation,assigns,post_cond,extended = snd $4 in
       allocation,assigns,
       ((kind,toplevel_pred tp_kind $2)::post_cond),extended }
-| allocation SEMICOLON simple_clauses
+| allocation SEMICOLON post_clauses
     { let allocation,assigns,post_cond,extended = snd $3 in
       let a = concat_allocation allocation $1 in
       a,assigns,post_cond,extended
     }
-| ASSIGNS assigns SEMICOLON simple_clauses
+| ASSIGNS assigns SEMICOLON post_clauses
     { let allocation,assigns,post_cond,extended = snd $4 in
       let a = concat_assigns $sloc assigns $2
       in allocation,a,post_cond,extended
     }
-| unknown_extension SEMICOLON simple_clauses { snd $3 }
-| EXT_CONTRACT extension_content SEMICOLON simple_clauses
+| unknown_extension SEMICOLON post_clauses { snd $3 }
+| EXT_CONTRACT extension_content SEMICOLON post_clauses
     { let allocation,assigns,post_cond,extended = snd $4 in
       let name, plugin = $1 in
       let processed = Logic_env.preprocess_extension ~plugin name $2 in
@@ -1301,7 +1312,8 @@ behaviors:
 
 ne_behaviors:
 | BEHAVIOR behavior_name COLON behavior_body behaviors
-      { let (assumes,requires,(allocation,assigns,post_cond,extended)) = $4 in
+      { let (assumes,(ext_pre,requires),(allocation,assigns,post_cond,ext_post)) = $4 in
+        let extended = ext_pre@ext_post in
         let behaviors = $5 in
         let b =
           Cabshelper.mk_behavior
@@ -1312,12 +1324,12 @@ ne_behaviors:
 ;
 
 behavior_body:
-| assumes requires simple_clauses { $1,$2,snd $3 }
-| assumes ne_requires ASSUMES
+| assumes pre_clauses post_clauses { $1,$2,snd $3 }
+| assumes ne_pre_clauses ASSUMES
       { clause_order $loc($3) "assumes" "requires" }
-| assumes requires ne_simple_clauses ASSUMES
+| assumes pre_clauses ne_post_clauses ASSUMES
       { clause_order $loc($4) "assumes" "assigns or post-condition" }
-| assumes requires ne_simple_clauses REQUIRES
+| assumes pre_clauses ne_post_clauses REQUIRES
       { clause_order $loc($4) "requires" "assigns or post-condition" }
 ;
 
