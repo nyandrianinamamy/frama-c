@@ -124,7 +124,7 @@ let stmt_mt_status subtrace get_state stmt =
        | false, false ->
          (* This case is supposed to handle [*p(...)], with [p] pointing to
             both an Mthread function and a non-Mthread one. *)
-         Self.abort ?source:(Mt_cil.kinstr_to_source (Kstmt stmt))
+         Self.abort ?loc:(Mt_cil.kinstr_to_source (Kstmt stmt))
            "Simultaneous call to a mthread function and to another function: \
             very strangely written mthread binding?";
       )
@@ -196,12 +196,12 @@ let rec make_cfg_aux ~eop ~subtrace ~caller_succ callstack =
       let next () =
         match stmt.succs with
         | [] -> Self.fatal
-                  ?source:(Mt_cil.kinstr_to_source (Kstmt stmt))
+                  ?loc:(Mt_cil.kinstr_to_source (Kstmt stmt))
                   "Statement with no successor encountered at \
                    an unexpected place (sid %d)" stmt.sid
         | [stmt'] -> aux stmt'
         | _ :: _ :: _ -> Self.fatal
-                           ?source:(Mt_cil.kinstr_to_source (Kstmt stmt))
+                           ?loc:(Mt_cil.kinstr_to_source (Kstmt stmt))
                            "Statement with more than one successor encountered at an \
                             unexpected place: (sid %d), succs %a"
                            stmt.sid pretty_succs stmt

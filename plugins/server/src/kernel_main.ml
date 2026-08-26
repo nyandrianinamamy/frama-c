@@ -369,10 +369,10 @@ let () = States.option model ~name:"category"
 let () = States.option model ~name:"source"
     ~descr:(Md.plain "Source file position")
     ~data:(module Kernel_ast.Position)
-    ~get:(fun (evt, _) -> evt.Log.evt_source)
+    ~get:(fun (evt, _) -> evt.Log.evt_position)
 
 let getMarker (evt, _id) =
-  Option.bind Printer_tag.pos_to_localizable evt.Log.evt_source
+  Option.bind Printer_tag.pos_to_localizable evt.Log.evt_position
 
 let getDecl t =
   Option.bind Printer_tag.declaration_of_localizable (getMarker t)
@@ -439,7 +439,7 @@ struct
     R.set plugin evt.Log.evt_plugin |>
     R.set kind evt.Log.evt_kind |>
     R.set category evt.Log.evt_category |>
-    R.set source evt.Log.evt_source |>
+    R.set source evt.Log.evt_position |>
     R.set message (Log.Event.message evt) |>
     R.to_json
 
@@ -449,7 +449,7 @@ struct
       Log.evt_plugin = R.get plugin r ;
       Log.evt_kind = R.get kind r ;
       Log.evt_category = R.get category r ;
-      Log.evt_source = R.get source r ;
+      Log.evt_position = R.get source r ;
       Log.evt_message = Rich_text.of_string (R.get message r) ;
     }
 

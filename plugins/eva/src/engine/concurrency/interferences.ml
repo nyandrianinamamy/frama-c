@@ -220,7 +220,7 @@ struct
     in
     let new_interferences_by_pos =
       let add (stmt, callstack as pos) acc_map =
-        let source = Pos.loc pos in
+        let loc = Pos.loc pos in
         let state = Engine.get_state ~callstack (After stmt) in
         match state with
         | `Bottom -> acc_map (* no interference to add *)
@@ -231,7 +231,7 @@ struct
           in
           let access = Inout_access.at ~filter (Position.of_local pos) in
           if Top.is_top state then
-            Self.warning ~once:false ~source
+            Self.warning ~once:false ~loc
               "Imprecise interference computed";
           let interference : Interference.t = { state; access } in
           ByPosition.add_and_widen pos interference acc_map

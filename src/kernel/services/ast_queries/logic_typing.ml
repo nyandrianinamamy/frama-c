@@ -1920,7 +1920,7 @@ struct
                     | TFloat fk -> fkind_to_string fk
                     | _ -> Kernel.fatal "floating point type expected"
                   in
-                  Kernel.warning ~source:loc
+                  Kernel.warning ~loc
                     ~wkey:Kernel.wkey_acsl_float_compare
                     "comparing two %s values as real values. You might \
                      want to use \\%s_%s instead" kind
@@ -3922,7 +3922,6 @@ struct
     append_loop_labels (append_here_label (append_pre_label (Lenv.empty())))
 
   let code_annot loc current_behaviors current_return_type ca =
-    let source = loc in
     let annot = match ca with
       | AAssert (behav,{tp_kind = kind; tp_statement = p}) ->
         check_behavior_names loc current_behaviors behav;
@@ -3970,7 +3969,7 @@ struct
           | exception Not_found ->
             Kernel.(
               warning
-                ~source ~wkey:wkey_acsl_extension
+                ~loc ~wkey:wkey_acsl_extension
                 "%s is not an extension" name);
             code_annot_env (), fun _ -> Lenv.empty()
           | Ext_code_annot Ext_here, false ->
@@ -3983,21 +3982,21 @@ struct
           | Ext_code_annot Ext_next_loop, false ->
             Kernel.(
               warning
-                ~source ~wkey:wkey_acsl_extension
+                ~loc ~wkey:wkey_acsl_extension
                 "%s is a loop annotation extension, \
                  but used here as code annotation" name);
             code_annot_env (), fun _ -> Lenv.empty()
           | Ext_code_annot (Ext_here | Ext_next_stmt), true ->
             Kernel.(
               warning
-                ~source ~wkey:wkey_acsl_extension
+                ~loc ~wkey:wkey_acsl_extension
                 "%s is a code annotation extension, \
                  but used here as loop annotation" name);
             code_annot_env (), fun _ -> Lenv.empty()
           | (Ext_global | Ext_contract),_ ->
             Kernel.(
               warning
-                ~source ~wkey:wkey_acsl_extension
+                ~loc ~wkey:wkey_acsl_extension
                 "%s is not a code annotation extension" name);
             code_annot_env (), fun _ -> Lenv.empty()
         in
@@ -4358,7 +4357,7 @@ struct
     match def.l_body with
     | LBnone -> (pos_use, neg_use)
     | LBreads _ | LBinductive _ ->
-      Kernel.fatal ~source:loc "Unexpected definition in a \\let"
+      Kernel.fatal ~loc "Unexpected definition in a \\let"
     | LBterm t ->
       find_occurrences_term def.l_var_info ~polarity ~pos_use ~neg_use t
     | LBpred p ->

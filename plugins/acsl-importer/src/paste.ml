@@ -957,20 +957,20 @@ let set_current_function (fct, loc) =
   with
     Not_found ->
     Options.annot_error
-      ~source:loc
+      ~loc
       "could not find function %s for ACSL importer." fct;
     current_function := None
 
 exception Kf_not_found
-let with_current_function ?source () =
+let with_current_function ?loc () =
   match !current_function with
   | None -> Options.annot_warning ~raising:(fun () -> raise Kf_not_found)
-              ?source "no proper function found for ACSL importer."
+              ?loc "no proper function found for ACSL importer."
   | Some kf -> kf
 
-let get_current_function ?source () =
+let get_current_function ?loc () =
   match !current_function with
-  | None -> Options.abort ?source "no proper function found for ACSL importer."
+  | None -> Options.abort ?loc "no proper function found for ACSL importer."
   | Some kf -> kf
 
 (*--------*)
@@ -1036,42 +1036,42 @@ let parse_lexpr s =
 (*-----------------------------------------------------------------------*)
 exception Stmt_not_found of Kernel_function.t
 
-let find_stmt_set ?source find =
-  let kf = with_current_function ?source () in
+let find_stmt_set ?loc find =
+  let kf = with_current_function ?loc () in
   let stmts = try find kf with Not_found -> raise (Stmt_not_found kf) in
   stmts
 
-let find_loop_stmt_set_from_loop_number ?source number =
-  find_stmt_set ?source (Statement.find_loop_stmt_set number)
+let find_loop_stmt_set_from_loop_number ?loc number =
+  find_stmt_set ?loc (Statement.find_loop_stmt_set number)
 
-let find_loop_body_set_from_loop_number ?source number =
-  find_stmt_set ?source (Statement.find_body_stmt_set number)
+let find_loop_body_set_from_loop_number ?loc number =
+  find_stmt_set ?loc (Statement.find_body_stmt_set number)
 
-let find_stmt_set_from_call_to ?source kf_opt num_opt =
-  find_stmt_set ?source (Statement.find_call2_stmt_set kf_opt num_opt)
+let find_stmt_set_from_call_to ?loc kf_opt num_opt =
+  find_stmt_set ?loc (Statement.find_call2_stmt_set kf_opt num_opt)
 
-let find_stmt_set_from_call_number ?source number =
-  find_stmt_set ?source (Statement.find_call_stmt_set number)
+let find_stmt_set_from_call_number ?loc number =
+  find_stmt_set ?loc (Statement.find_call_stmt_set number)
 
-let find_stmt_set_from_asm_number ?source number =
-  find_stmt_set ?source (Statement.find_asm_stmt_set number)
+let find_stmt_set_from_asm_number ?loc number =
+  find_stmt_set ?loc (Statement.find_asm_stmt_set number)
 
-let find_stmt_set_from_label ?source label =
-  find_stmt_set ?source (fun kf -> S_Stmt.singleton !(Kernel_function.find_label kf label))
+let find_stmt_set_from_label ?loc label =
+  find_stmt_set ?loc (fun kf -> S_Stmt.singleton !(Kernel_function.find_label kf label))
 
-let find_stmt_set_from_sid ?source local_sid =
-  find_stmt_set ?source (fun kf -> S_Stmt.singleton (Statement.find_stmt local_sid kf))
+let find_stmt_set_from_sid ?loc local_sid =
+  find_stmt_set ?loc (fun kf -> S_Stmt.singleton (Statement.find_stmt local_sid kf))
 
-let find_stmt_set_from_return ?source () =
-  find_stmt_set ?source (fun kf -> S_Stmt.singleton (Kernel_function.find_return kf))
+let find_stmt_set_from_return ?loc () =
+  find_stmt_set ?loc (fun kf -> S_Stmt.singleton (Kernel_function.find_return kf))
 
-let find_stmt_set_from_misc ?source label =
-  let kf = get_current_function ?source () in
+let find_stmt_set_from_misc ?loc label =
+  let kf = get_current_function ?loc () in
   let find_stmt,otherwise =
     try
       let local_sid = int_of_string label in
       (fun () -> Statement.find_stmt local_sid kf),
-      (fun () -> Options.abort ?source "statement ID %s not found into %a function for ACSL import."
+      (fun () -> Options.abort ?loc "statement ID %s not found into %a function for ACSL import."
           label Kernel_function.pretty kf)
     with
     | Failure _ -> (* label is not a statement number *)
@@ -1082,7 +1082,7 @@ let find_stmt_set_from_misc ?source label =
           (fun () -> !(Kernel_function.find_label kf label))
       in
       find_stmt,
-      (fun () -> Options.abort ?source "statement label %S not found into %a function for ACSL import."
+      (fun () -> Options.abort ?loc "statement label %S not found into %a function for ACSL import."
           label Kernel_function.pretty kf)
   in
   let stmt =
@@ -1100,7 +1100,7 @@ let integral_cast ty t =
     begin
       let loc = t.term_loc in
       let ty = Ast_types.C.remove_attributes_for_logic_type ty in
-      Options.warning ~wkey:Options.wkey_integer_cast ~source:loc
+      Options.warning ~wkey:Options.wkey_integer_cast ~loc
         "Casting term %a of type %a into type %a."
         Printer.pp_term t Printer.pp_logic_type Linteger Printer.pp_typ ty;
       Logic_const.tcast ~loc t ty
@@ -1113,7 +1113,7 @@ let integral_cast ty t =
 let lt_error loc fmt =
   Options.annot_warning
     ~raising:(fun () -> raise Exit)
-    ~source:loc
+    ~loc
     fmt
 
 let lt_on_error action finally arg =
@@ -1165,7 +1165,7 @@ let add_global_annot g_annots =
 (** Add a function contract. *)
 let add_funspec spec loc =
   try
-    let kf = with_current_function ~source:loc () in
+    let kf = with_current_function ~loc () in
     let file = !current_module in
     let scope = !current_scope in
     let module LT =
@@ -1340,7 +1340,7 @@ let add_annots_aux kf file ?loop_number loc annots stmt =
 
 let add_annots ?loop_number stmts loc annots =
   try
-    let kf = with_current_function ~source:loc () in
+    let kf = with_current_function ~loc () in
     let file = !current_module in
     S_Stmt.iter (add_annots_aux kf file ?loop_number loc annots) stmts
   with | Kf_not_found ->

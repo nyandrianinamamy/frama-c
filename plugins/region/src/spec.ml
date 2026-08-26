@@ -159,7 +159,7 @@ let flush source env =
   if env.flags <> Attr.empty &&
      not @@ List.exists (applies env.flags) env.rpaths
   then
-    Options.warning ~source:env.source "%a has no object to apply on"
+    Options.warning ~loc:env.source "%a has no object to apply on"
       Attr.pretty env.flags ;
   if env.rpaths <> [] then
     begin

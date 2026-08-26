@@ -228,8 +228,8 @@
 	    then AAllocation (bhvs2,fa2) :: annots
             else annots
 
-  let obsolete name ~source ~now =
-    Kernel.warning ~source
+  let obsolete name ~loc ~now =
+    Kernel.warning ~loc
       "parsing obsolete ACSL construct '%s'. '%s' should be used instead."
       name now
 
@@ -493,13 +493,13 @@ lexpr_inner:
 | VALID_READ opt_label_1 LPAR lexpr RPAR { info $sloc (PLvalid_read ($2,$4)) }
 | VALID_FUNCTION LPAR lexpr RPAR { info $sloc (PLvalid_function $3) }
 | VALID_INDEX opt_label_1 LPAR lexpr COMMA lexpr RPAR {
-  let source = loc $sloc in
-  obsolete ~source "\\valid_index(addr,idx)" ~now:"\\valid(addr+idx)";
+  let loc = loc $sloc in
+  obsolete ~loc "\\valid_index(addr,idx)" ~now:"\\valid(addr+idx)";
   info $sloc (PLvalid ($2,info $sloc (PLbinop ($4, Badd, $6)))) }
 | VALID_RANGE opt_label_1 LPAR lexpr COMMA lexpr COMMA lexpr RPAR {
-  let source = from_pos $symbolstartpos in
+  let loc = from_pos $symbolstartpos in
   obsolete "\\valid_range(addr,min,max)"
-    ~source ~now:"\\valid(addr+(min..max))";
+    ~loc ~now:"\\valid(addr+(min..max))";
   info $sloc (PLvalid
           ($2,info $sloc (PLbinop ($4, Badd, (info $sloc (PLrange((Some $6),Some $8)))))))
 }
@@ -513,23 +513,23 @@ lexpr_inner:
 | ALLOCABLE opt_label_1 LPAR lexpr RPAR { info $sloc (PLallocable ($2,$4)) }
 | FREEABLE opt_label_1 LPAR lexpr RPAR { info $sloc (PLfreeable ($2,$4)) }
 | ALLOCATION opt_label_1 LPAR lexpr RPAR
-  { let source = from_pos $symbolstartpos in
-    Kernel.not_yet_implemented ~source "\\allocation" }
+  { let loc = from_pos $symbolstartpos in
+    Kernel.not_yet_implemented ~loc "\\allocation" }
 | AUTOMATIC {
-  let source = from_pos $symbolstartpos in
-  Kernel.not_yet_implemented ~source "\\automatic" }
+  let loc = from_pos $symbolstartpos in
+  Kernel.not_yet_implemented ~loc "\\automatic" }
 | DYNAMIC {
-  let source = from_pos $symbolstartpos in
-  Kernel.not_yet_implemented ~source "\\dynamic" }
+  let loc = from_pos $symbolstartpos in
+  Kernel.not_yet_implemented ~loc "\\dynamic" }
 | REGISTER {
-  let source = from_pos $symbolstartpos in
-  Kernel.not_yet_implemented ~source "\\register" }
+  let loc = from_pos $symbolstartpos in
+  Kernel.not_yet_implemented ~loc "\\register" }
 | STATIC {
-  let source = from_pos $symbolstartpos in
-  Kernel.not_yet_implemented ~source "\\static" }
+  let loc = from_pos $symbolstartpos in
+  Kernel.not_yet_implemented ~loc "\\static" }
 | UNALLOCATED {
-  let source = from_pos $symbolstartpos in
-  Kernel.not_yet_implemented ~source "\\unallocated" }
+  let loc = from_pos $symbolstartpos in
+  Kernel.not_yet_implemented ~loc "\\unallocated" }
 | NULL { info $sloc PLnull }
 | constant { info $sloc (PLconstant $1) }
 | lexpr_inner PLUS lexpr_inner { info $sloc (PLbinop ($1, Badd, $3)) }
@@ -732,8 +732,8 @@ abs_param_type_list:
 | /* empty */    { [ ] }
 | abs_param_list { $1 }
 | abs_param_list COMMA DOTDOTDOT {
-  let source = from_pos $symbolstartpos in
-  Kernel.not_yet_implemented ~source "variadic C function types"
+  let loc = from_pos $symbolstartpos in
+  Kernel.not_yet_implemented ~loc "variadic C function types"
   }
 ;
 
@@ -1514,7 +1514,7 @@ loop_grammar_extension:
       | _ -> raise Not_found
     end
   with Not_found ->
-    Kernel.fatal ~source:(loc $loc($2))
+    Kernel.fatal ~loc:(loc $loc($2))
       "%s is not a code annotation extension. Parser got wrong lexeme." name
 }
 ;
@@ -1568,7 +1568,7 @@ code_annotation:
         | _ -> raise Not_found
       end
     with Not_found ->
-      Kernel.fatal ~source:(from_pos $startpos($1))
+      Kernel.fatal ~loc:(from_pos $startpos($1))
         "%s is not a code annotation extension. Parser got wrong lexeme" name
   }
 ;
@@ -1745,7 +1745,7 @@ push_module_name:
 ext_loader:
 | IDENTIFIER COLON {
     Kernel.warning ~once:true ~wkey:Kernel.wkey_extension_unknown
-      ~source:(loc $sloc)
+      ~loc:(loc $sloc)
       "Ignoring unregistered module importer extension '%s'" $1;
     raise Unknown_ext
   }

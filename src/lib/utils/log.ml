@@ -27,7 +27,7 @@ type event = {
   evt_kind : kind ;
   evt_plugin : string ;
   evt_category : string option;
-  evt_source : Filepos.t option ;
+  evt_position : Filepos.t option ;
   evt_message : Rich_text.t ;
 }
 
@@ -217,7 +217,7 @@ module Event =
 struct
   type t = event
 
-  let pp_source fmt = function
+  let pp_pos fmt = function
     | None -> ()
     | Some pos ->
       Format.fprintf fmt "%a: @?" Filepos.pretty pos
@@ -243,12 +243,12 @@ struct
     let header = Rich_text.mprintf ~trim:false "@{<bold>[%s%a] %a%a@}"
         evt.evt_plugin
         pp_category evt.evt_category
-        pp_source evt.evt_source
+        pp_pos evt.evt_position
         pp_kind evt.evt_kind
     in
     let pp_header fmt header = Rich_text.pretty fmt header in
     let long_header = match evt with
-      | { evt_category = None ; evt_source = None } -> false
+      | { evt_category = None ; evt_position = None } -> false
       | _ -> true
     in
     (* whenever the header-part shall be separated from the message-part *)
@@ -296,16 +296,16 @@ let do_transient terminal ~plugin message =
     end
 
 (* -------------------------------------------------------------------------- *)
-(* --- Source                                                             --- *)
+(* --- Loc                                                             --- *)
 (* -------------------------------------------------------------------------- *)
 
 let current_loc = ref (fun () -> raise Not_found)
 
-let set_current_source fpos = current_loc := fpos
+let set_current_loc loc = current_loc := loc
 
-let get_current_source () = !current_loc ()
+let get_current_loc () = !current_loc ()
 
-let get_source current = function
+let get_pos current = function
   | None -> if current then Some (Fileloc.start_pos (!current_loc ())) else None
   | Some loc -> Some (Fileloc.start_pos loc)
 
@@ -468,14 +468,14 @@ let logwithfinal finally channel
     ?(fire=true)     (* fire channel listeners *)
     ?(kind=Feedback) (* message kind *)
     ?category        (* message category *)
-    ?(current=false) (* use current source as default *)
-    ?source          (* source location *)
+    ?(current=false) (* use current loc as default *)
+    ?loc             (* location *)
     ?emitwith        (* additional emitter *)
     ?(echo=true)     (* echo on terminal *)
     ?(once=false)    (* log and emit only once *)
     ?(append=ignore) (* additional text *)
     text =
-  let source = get_source current source in
+  let pos = get_pos current loc in
   let buffer = open_buffer channel in
   Rich_text.Buffer.bprintf buffer "%a" Format.pp_open_vbox 0 ;
   Rich_text.Buffer.kbprintf
@@ -493,7 +493,7 @@ let logwithfinal finally channel
                evt_plugin = channel.plugin ;
                evt_category = category ;
                evt_message = message ;
-               evt_source = source ;
+               evt_position = pos ;
              } in
              if not once || !check_not_yet event then
                begin
@@ -563,7 +563,7 @@ let deferred_raise ~fatal event msg =
   let pp_pos_opt = Pretty_utils.pp_opt pp_pos in
   let print_event fmt =
     Format.fprintf fmt "@\n%a%a"
-      pp_pos_opt event.evt_source
+      pp_pos_opt event.evt_position
       (Event.pp_message ?truncate:None) event.evt_message
   in
   let append = Some print_event in
@@ -599,19 +599,19 @@ let treat_deferred_error () =
 (* -------------------------------------------------------------------------- *)
 
 type 'a pretty_printer =
-  ?current:bool -> ?source:Fileloc.t ->
+  ?current:bool -> ?loc:Fileloc.t ->
   ?emitwith:(event -> unit) -> ?echo:bool -> ?once:bool ->
   ?append:(Format.formatter -> unit) ->
   ('a,Format.formatter,unit) format -> 'a
 
 type ('a,'b) pretty_aborter =
-  ?current:bool -> ?source:Fileloc.t -> ?echo:bool ->
+  ?current:bool -> ?loc:Fileloc.t -> ?echo:bool ->
   ?append:(Format.formatter -> unit) ->
   ('a,Format.formatter,unit,'b) format4 -> 'a
 
-let log_channel channel ?(kind=Result) ?current ?source ?emitwith ?echo ?once
+let log_channel channel ?(kind=Result) ?current ?loc ?emitwith ?echo ?once
     ?append text =
-  logwithfinal finally_unit channel ~kind ?current ?source ?emitwith ?echo ?once
+  logwithfinal finally_unit channel ~kind ?current ?loc ?emitwith ?echo ?once
     ?append text
 
 let echo e =
@@ -831,7 +831,7 @@ sig
   val debug_atleast: int -> bool
 
   val printf : ?level:int -> ?dkey:category ->
-    ?current:bool -> ?source:Fileloc.t ->
+    ?current:bool -> ?loc:Fileloc.t ->
     ?append:(Format.formatter -> unit) ->
     ?header:(Format.formatter -> unit) ->
     ('a,Format.formatter,unit) format -> 'a
@@ -847,7 +847,7 @@ sig
   val fatal   : ('a,'b) pretty_aborter
   val verify  : bool -> ('a,bool) pretty_aborter
 
-  val not_yet_implemented : ?current:bool -> ?source:Fileloc.t ->
+  val not_yet_implemented : ?current:bool -> ?loc:Fileloc.t ->
     ('a,Format.formatter,unit,'b) format4 -> 'a
   val deprecated : string -> now:string -> ('a -> 'b) -> 'a -> 'b
 
@@ -1076,25 +1076,25 @@ struct
     | v , d -> verbose_atleast v || debug_atleast d
 
 
-  let log ?(kind=Result) ?(verbose=0) ?(debug=0) ?current ?source ?emitwith
+  let log ?(kind=Result) ?(verbose=0) ?(debug=0) ?current ?loc ?emitwith
       ?echo ?once ?append text =
     if to_be_log verbose debug then
-      logwithfinal finally_unit std ~kind ?current ?source ?emitwith ?echo
+      logwithfinal finally_unit std ~kind ?current ?loc ?emitwith ?echo
         ?once ?append text
     else Pretty_utils.nullprintf text
 
-  let result ?(level=1) ?dkey ?current ?source ?emitwith ?echo ?once ?append
+  let result ?(level=1) ?dkey ?current ?loc ?emitwith ?echo ?once ?append
       text =
     if verbose_atleast level && has_debug_key dkey then
       logwithfinal finally_unit std ~kind:Result ?category:dkey ?current
-        ?source ?emitwith ?echo ?once ?append text
+        ?loc ?emitwith ?echo ?once ?append text
     else Pretty_utils.nullprintf text
 
   let transient channel = channel.terminal.isatty
 
   let has_tty () = transient std
 
-  let feedback ?(ontty=`Message) ?(level=1) ?dkey ?current ?source ?emitwith
+  let feedback ?(ontty=`Message) ?(level=1) ?dkey ?current ?loc ?emitwith
       ?echo ?once ?append text =
     let mode =
       if verbose_atleast level && has_debug_key dkey
@@ -1108,7 +1108,7 @@ struct
     in match mode with
     | `Message ->
       logwithfinal finally_unit std ~kind:Feedback ?category:dkey ?current
-        ?source ?emitwith ?echo ?once ?append text
+        ?loc ?emitwith ?echo ?once ?append text
     | `Transient -> logtransient std text
     | `Silent -> Pretty_utils.nullprintf text
 
@@ -1119,10 +1119,10 @@ struct
     | None, Some _ -> has_debug_key dkey
     | Some l, Some _ -> debug_atleast l && has_debug_key dkey
 
-  let debug ?level ?dkey ?current ?source ?emitwith ?echo ?once ?append text =
+  let debug ?level ?dkey ?current ?loc ?emitwith ?echo ?once ?append text =
     if should_output_debug level dkey then
       logwithfinal finally_unit std ~kind:Debug ?category:dkey ?current
-        ?source ?emitwith ?echo ?once ?append text
+        ?loc ?emitwith ?echo ?once ?append text
     else
       Pretty_utils.nullprintf text
 
@@ -1132,7 +1132,7 @@ struct
         evt_plugin = std.plugin;
         evt_category = Some unreported_error;
         evt_message = Rich_text.of_string "Silent error";
-        evt_source = None
+        evt_position = None
       }
     | Some evt -> evt
 
@@ -1142,30 +1142,30 @@ struct
   let finally_internal_error evt =
     let evt = force_error evt in update_deferred_exn (DFatal evt)
 
-  let error ?current ?source ?emitwith ?echo ?once ?append text =
-    logwithfinal finally_user_error std ~kind:Error ?current ?source
+  let error ?current ?loc ?emitwith ?echo ?once ?append text =
+    logwithfinal finally_user_error std ~kind:Error ?current ?loc
       ?emitwith ?echo ?once ?append text
 
-  let abort ?current ?source ?echo ?append text =
+  let abort ?current ?loc ?echo ?append text =
     logwithfinal (finally_raise (AbortError P.channel)) std ~kind:Error
-      ?current ?source ?echo ?append text
+      ?current ?loc ?echo ?append text
 
-  let failure ?current ?source ?emitwith ?echo ?once ?append text =
-    logwithfinal finally_internal_error std ~kind:Failure ?current ?source
+  let failure ?current ?loc ?emitwith ?echo ?once ?append text =
+    logwithfinal finally_internal_error std ~kind:Failure ?current ?loc
       ?emitwith ?echo ?once ?append text
 
-  let fatal ?current ?source ?echo ?append text =
+  let fatal ?current ?loc ?echo ?append text =
     logwithfinal (finally_raise (AbortFatal P.channel)) std ~kind:Failure
-      ?current ?source ?echo ?append text
+      ?current ?loc ?echo ?append text
 
-  let verify assertion ?current ?source ?echo ?append text =
+  let verify assertion ?current ?loc ?echo ?append text =
     if assertion then
       Format.kfprintf (fun _ -> true) Pretty_utils.null text
     else
-      logwithfinal finally_false std ~kind:Failure ?current ?source ?echo
+      logwithfinal finally_false std ~kind:Failure ?current ?loc ?echo
         ?append text
 
-  let logwith finally ?(wkey="") ?emitwith ?once ?current ?source ?echo ?append
+  let logwith finally ?(wkey="") ?emitwith ?once ?current ?loc ?echo ?append
       text =
     let status = get_warn_status wkey in
     let kind =
@@ -1211,42 +1211,42 @@ struct
             | Some app ->
               Some (fun fmt -> app fmt; append_once_suffix fmt)
         in
-        logwithfinal finally std ~kind ?category ?current ?source ?emitwith
+        logwithfinal finally std ~kind ?category ?current ?loc ?emitwith
           ?once ?echo ?append text
       end
     else Pretty_utils.with_null (fun () -> finally None) text
 
-  let warning ?wkey ?current ?source ?emitwith ?echo ?once ?append text =
-    logwith finally_unit ?wkey ?current ?source ?emitwith ?echo ?once ?append
+  let warning ?wkey ?current ?loc ?emitwith ?echo ?once ?append text =
+    logwith finally_unit ?wkey ?current ?loc ?emitwith ?echo ?once ?append
       text
 
-  let with_result finally ?current ?source ?echo ?append text =
-    logwithfinal finally std ~kind:Result ?current ?source ?echo ?append
+  let with_result finally ?current ?loc ?echo ?append text =
+    logwithfinal finally std ~kind:Result ?current ?loc ?echo ?append
       text
 
-  let with_warning finally ?current ?source ?echo ?append text =
-    logwithfinal finally std ~kind:Warning ?current ?source ?echo ?append
+  let with_warning finally ?current ?loc ?echo ?append text =
+    logwithfinal finally std ~kind:Warning ?current ?loc ?echo ?append
       text
 
-  let with_error finally ?current ?source ?echo ?append text =
-    logwithfinal finally std ~kind:Error ?current ?source ?echo ?append
+  let with_error finally ?current ?loc ?echo ?append text =
+    logwithfinal finally std ~kind:Error ?current ?loc ?echo ?append
       text
 
-  let with_failure finally ?current ?source ?echo ?append text =
-    logwithfinal finally std ~kind:Failure ?current ?source ?echo ?append
+  let with_failure finally ?current ?loc ?echo ?append text =
+    logwithfinal finally std ~kind:Failure ?current ?loc ?echo ?append
       text
 
   let register kd f =
     let em = std.emitters.(nth_kind kd) in
     em.listeners <- em.listeners @ [f]
 
-  let not_yet_implemented ?(current=false) ?source text =
+  let not_yet_implemented ?(current=false) ?loc text =
     let buffer = Buffer.create 80 in
-    let source = get_source current source in
+    let pos = get_pos current loc in
     let finally fmt =
       Format.pp_print_flush fmt ();
       let msg = Buffer.contents buffer in
-      raise (FeatureRequest(source,std.plugin,msg)) in
+      raise (FeatureRequest(pos,std.plugin,msg)) in
     let fmt = Format.formatter_of_buffer buffer in
     Format.kfprintf finally fmt text
 
@@ -1266,13 +1266,13 @@ struct
       output buffer start length
     end
 
-  let printf ?(level=1) ?dkey ?current ?source ?(append=noprint) ?header text =
+  let printf ?(level=1) ?dkey ?current ?loc ?(append=noprint) ?header text =
     if verbose_atleast level && has_debug_key dkey then
       begin
         (* Header is a regular message *)
         let header = match header with None -> noprint | Some h -> h in
         logwithfinal finally_unit std ~fire:false ~kind:Result
-          ?category:dkey ?current ?source  "%t" header;
+          ?category:dkey ?current ?loc  "%t" header;
         let bol = ref true in
         let fmt = delayed_terminal stdout in
         let fmt = formatter_with ~output:(spynewline bol) fmt in

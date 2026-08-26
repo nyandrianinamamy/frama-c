@@ -277,12 +277,12 @@ let key_callstack_hash =
 
 type 'a pretty_printer =
   ?emitwith:(Log.event -> unit) -> ?once:bool ->
-  ?pos:Position.t -> ?current:bool -> ?source:Fileloc.t ->
+  ?pos:Position.t -> ?current:bool -> ?loc:Fileloc.t ->
   ?stacktrace:bool ->  ?append:(Format.formatter -> unit) -> ?echo:bool ->
   ('a,Format.formatter,unit) format -> 'a
 
 type ('a,'b) pretty_aborter =
-  ?pos:Position.t -> ?current:bool -> ?source:Fileloc.t ->
+  ?pos:Position.t -> ?current:bool -> ?loc:Fileloc.t ->
   ?stacktrace:bool -> ?append:(Format.formatter -> unit) -> ?echo:bool ->
   ('a,Format.formatter,unit,'b) format4 -> 'a
 
@@ -304,19 +304,19 @@ let append_callstack ?(stacktrace=false) ?append ~callstack fmt =
 
 let lift_aborter (aborter : ('a,'b) Log.pretty_aborter)
   : ('a,'b) pretty_aborter =
-  fun ?pos ?current ?source ?stacktrace ?append ->
+  fun ?pos ?current ?loc ?stacktrace ?append ->
   (* Extract source location *)
   match pos with
   | Some pos ->
     let callstack = Position.callstack pos in
-    let source = Option.value ~default:(Position.loc pos) source
+    let loc = Option.value ~default:(Position.loc pos) loc
     (* Append callstack if requested *)
     and append = append_callstack ?stacktrace ?append ~callstack in
-    aborter ?current:None ~source ~append
+    aborter ?current:None ~loc ~append
   | None ->
     let callstack = Current_callstack.get () in
     let append = append_callstack ?stacktrace ?append ~callstack in
-    aborter ?current ?source ~append
+    aborter ?current ?loc ~append
 
 
 let lift_printer (printer : 'a Log.pretty_printer) : 'a pretty_printer =

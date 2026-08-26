@@ -456,44 +456,44 @@ struct
 
   exception Operation_failed
 
-  let fail ~source message =
+  let fail ~loc message =
     let warn_and_raise message =
-      Self.warning ~source ~once:true "%s" message;
+      Self.warning ~loc ~once:true "%s" message;
       raise Operation_failed
     in
     Format.kasprintf warn_and_raise message
 
-  let evaluate_exp_to_ival ~source state exp =
+  let evaluate_exp_to_ival ~loc state exp =
     (* Evaluate the expression *)
     let valuation, value =
       match evaluate state exp with
       | `Value (valuation, value), alarms when Alarmset.is_empty alarms ->
         valuation, value
       | _ ->
-        fail ~source "this partitioning parameter cannot be evaluated safely on \
-                      all states"
+        fail ~loc "this partitioning parameter cannot be evaluated safely on \
+                   all states"
     in
     (* Get the cvalue *)
     let cvalue = match Abstract.Val.get Main_values.CVal.key with
       | Some get_cvalue -> get_cvalue value
-      | None -> fail ~source "partitioning is disabled when the CValue domain is \
-                              not active"
+      | None -> fail ~loc "partitioning is disabled when the CValue domain is \
+                           not active"
     in
     (* Extract the ival *)
     let ival =
       try
         Cvalue.V.project_ival cvalue
       with Cvalue.V.Not_based_on_null ->
-        fail ~source "this partitioning parameter must evaluate to an integer"
+        fail ~loc "this partitioning parameter must evaluate to an integer"
     in
     valuation, ival
 
   exception Split_limit of Z.t option
 
   let split_by_value ~monitor state exp =
-    let source = monitor.split_loc in
+    let loc = monitor.split_loc in
     let module SplitValues = Z.Set in
-    let valuation, ival = evaluate_exp_to_ival ~source state exp in
+    let valuation, ival = evaluate_exp_to_ival ~loc state exp in
     (* Build a state with the lvalue set to a singleton *)
     let build i acc =
       let value = Abstract.Val.inject_int exp.typ i in
@@ -504,9 +504,9 @@ struct
       in
       match state with
       | `Value state ->
-        let _,new_ival = evaluate_exp_to_ival ~source state exp in
+        let _,new_ival = evaluate_exp_to_ival ~loc state exp in
         if not (Ival.is_singleton_int new_ival) then
-          fail ~source "failing to learn perfectly from split" ;
+          fail ~loc "failing to learn perfectly from split" ;
         monitor.split_values <-
           SplitValues.add i monitor.split_values;
         (i, state) :: acc
@@ -538,18 +538,18 @@ struct
         | None -> ()
         | Some c -> Format.fprintf fmt " (%a)" Z.pretty c
       in
-      fail ~source "split on more than %d values%t prevented ; try to improve \
-                    the analysis precision or look at the option -eva-split-limit \
-                    to increase this limit."
+      fail ~loc "split on more than %d values%t prevented ; try to improve \
+                 the analysis precision or look at the option -eva-split-limit \
+                 to increase this limit."
         monitor.split_limit pp_count
 
-  let eval_exp_to_int ~source state exp =
-    let _valuation, ival = evaluate_exp_to_ival ~source state exp in
+  let eval_exp_to_int ~loc state exp =
+    let _valuation, ival = evaluate_exp_to_ival ~loc state exp in
     try Z.to_int (Ival.project_int ival)
     with
     | Ival.Not_Singleton_Int ->
-      fail ~source "this partitioning parameter must evaluate to a singleton"
-    | Z.Overflow -> fail ~source "this partitioning parameter overflows an integer"
+      fail ~loc "this partitioning parameter must evaluate to a singleton"
+    | Z.Overflow -> fail ~loc "this partitioning parameter overflows an integer"
 
   let split_by_predicate state predicate =
     let env =
@@ -560,14 +560,14 @@ struct
     | True -> [ Z.one, state ]
     | False -> [ Z.zero, state ]
     | Unknown ->
-      let source = predicate.Cil_types.pred_loc in
+      let loc = predicate.Cil_types.pred_loc in
       let aux positive =
         let+ state' =
           Abstract.Dom.reduce_by_predicate env state predicate positive in
         let x = Abstract.Dom.evaluate_predicate env state' predicate in
         if x == Unknown
         then
-          Self.warning ~source ~once:true
+          Self.warning ~loc ~once:true
             "failing to learn perfectly from split predicate";
         if Abstract.Dom.equal state' state then raise Operation_failed;
         let value = if positive then Z.one else Z.zero in
@@ -658,7 +658,7 @@ struct
           let limit = try match limit_kind with
             | ExpLimit cil_exp ->
               let exp = Eva_ast.translate_exp cil_exp in
-              eval_exp_to_int ~source:cil_exp.eloc x exp
+              eval_exp_to_int ~loc:cil_exp.eloc x exp
             | IntLimit i -> i
             | AutoUnroll (loop, min_unroll, max_unroll) ->
               match AutoLoopUnroll.compute ~max_unroll x loop with

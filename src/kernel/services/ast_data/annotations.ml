@@ -1541,8 +1541,8 @@ let do_add_code_annot ~keep_empty emitter ?kf stmt ca =
     (match v with
      | [] -> fill_tables ca (Property.ip_of_code_annot kf stmt ca)
      | _ ->
-       let source = Cil_datatype.Stmt.loc stmt in
-       Kernel.fatal ~source
+       let loc = Cil_datatype.Stmt.loc stmt in
+       Kernel.fatal ~loc
          "trying to register a second variant for statement %a"
          Stmt.pretty stmt)
   | AAssigns (bhvs, assigns) ->

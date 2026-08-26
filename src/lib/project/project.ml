@@ -37,7 +37,7 @@ let pretty kind fmt msg =
     Log.evt_kind = kind;
     evt_plugin = !get_source ();
     evt_category = Some "project";
-    evt_source = None;
+    evt_position = None;
     evt_message = Rich_text.of_string msg;
   } in
   Format.fprintf fmt "%a" (Log.Event.pretty ?truncate:None) evt

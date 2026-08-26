@@ -241,7 +241,7 @@ let check_fct_assigns kf ab ~pre_state found_froms =
          let bol = Property.Id_contract (Datatype.String.Set.empty,b) in
          let ip = Option.get (Property.ip_of_assigns kf Kglobal bol b.b_assigns)
          in
-         let source = Property.location ip in
+         let loc = Property.location ip in
          (* First, check the assigns. *)
          let assigns = List.map fst assigns_deps in
          let assigns_zones = List.map (eval_assigns_from pre_state) assigns in
@@ -256,7 +256,7 @@ let check_fct_assigns kf ab ~pre_state found_froms =
              "unknown", Unknown, Property_status.Dont_know)
            else "valid", True, Property_status.True
          in
-         msg_status vstatus ~once:true ~source ~stacktrace:true
+         msg_status vstatus ~once:true ~loc ~stacktrace:true
            "%a: assigns got status %s.%a"
            (pp_header kf) b
            status_txt
@@ -275,8 +275,8 @@ let check_fct_assigns kf ab ~pre_state found_froms =
                check_from pre_state asgn assigns_zone deps found_froms
              in
              let ip = Option.get (Property.ip_of_from kf Kglobal bol from) in
-             let source = asgn.it_content.term_loc in
-             msg_status status ~once:true ~source ~stacktrace:true
+             let loc = asgn.it_content.term_loc in
+             msg_status status ~once:true ~loc ~stacktrace:true
                "%a: \\from ... part in assign clause got status %s.%a"
                (pp_header kf) b
                status_txt

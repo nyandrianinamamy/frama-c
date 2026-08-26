@@ -104,11 +104,11 @@ module Make (Engine: Engine_Subset) = struct
 
   (* Applies a single initializer, using the standard transfer function on
      assignments. Warns if the results is bottom. *)
-  let apply_eva_single_initializer ~source ~pos state lval expr =
+  let apply_eva_single_initializer ~loc ~pos state lval expr =
     match Engine.Transfer_stmt.assign state ~pos lval expr with
     | `Bottom ->
       if not (Position.is_local pos) then
-        Self.warning ~pos ~source ~once:true
+        Self.warning ~pos ~loc ~once:true
           "evaluation of initializer '%a' failed@." Eva_ast.pp_exp expr;
       raise Initialization_failed
     | `Value v -> v
@@ -117,7 +117,7 @@ module Make (Engine: Engine_Subset) = struct
      Auxiliary function used for string and wide string literals: [zero] is the
      null character and [constant] builds the Eva constant form a character.
      Applies [apply_eva_single_initializer] for each character. *)
-  let init_char_array_aux ~source ~pos zero constant lval seq state =
+  let init_char_array_aux ~loc ~pos zero constant lval seq state =
     let _, size = Ast_types.C.array_elem_type_and_size lval.typ in
     (* Adds [zero] characters to the sequence. *)
     let seq =
@@ -134,12 +134,12 @@ module Make (Engine: Engine_Subset) = struct
       let index = Index (index_exp, NoOffset) in
       let lval = Eva_ast.(add_offset lval index) in
       let expr = Eva_ast_builder.mk_exp (Const (constant c)) in
-      apply_eva_single_initializer ~pos ~source state lval expr
+      apply_eva_single_initializer ~pos ~loc state lval expr
     in
     Seq.fold_lefti init_element state seq
 
   (* Initializes array [lval] from string literal [str] in [state]. *)
-  let init_char_array ~source ~pos lval str state =
+  let init_char_array ~loc ~pos lval str state =
     if not (Ast_types.C.is_any_char_array lval.typ) then
       Self.fatal
         "Initialization of %a of type %a with a string literal, \
@@ -148,10 +148,10 @@ module Make (Engine: Engine_Subset) = struct
     let zero = '\000' in
     let seq = String.to_seq str in
     let constant c = CChr c in
-    init_char_array_aux ~source ~pos zero constant lval seq state
+    init_char_array_aux ~loc ~pos zero constant lval seq state
 
   (* Initializes array [lval] from wide string literal [list] in [state]. *)
-  let init_wchar_array ~source ~pos lval list state =
+  let init_wchar_array ~loc ~pos lval list state =
     if not (Ast_types.C.is_wchar_array lval.typ) then
       Self.fatal
         "Initialization of %a of type %a with a wide string literal, \
@@ -160,7 +160,7 @@ module Make (Engine: Engine_Subset) = struct
     let zero = Int64.zero in
     let constant i = CInt64 (Z.of_int64 i, Machine.wchar_kind (), None) in
     let seq = List.to_seq list in
-    init_char_array_aux ~source ~pos zero constant lval seq state
+    init_char_array_aux ~loc ~pos zero constant lval seq state
 
   let get_string_literal e =
     match e.node with
@@ -170,19 +170,19 @@ module Make (Engine: Engine_Subset) = struct
 
   (* Applies a single initializer, with the special case of char or wchar arrays
      being initialized with string literals. *)
-  let apply_eva_single_initializer_or_str ~source ~pos state lval expr =
+  let apply_eva_single_initializer_or_str ~loc ~pos state lval expr =
     if Ast_types.C.is_any_char_array lval.typ then begin
       match get_string_literal expr with
-      | Some (Str s) -> init_char_array ~source ~pos lval s state
+      | Some (Str s) -> init_char_array ~loc ~pos lval s state
       | None | Some (Wstr _) ->
         Self.fatal "Single init of a char array can only be a string literal"
     end else if Ast_types.C.is_wchar_array lval.typ then begin
       match get_string_literal expr with
-      | Some (Wstr ws) -> init_wchar_array ~source ~pos lval ws state
+      | Some (Wstr ws) -> init_wchar_array ~loc ~pos lval ws state
       | None | Some (Str _) ->
         Self.fatal "Single init of a wchar array can only be a wide string literal"
     end else
-      apply_eva_single_initializer ~source ~pos state lval expr
+      apply_eva_single_initializer ~loc ~pos state lval expr
 
   (* Applies an initializer. If [top_volatile] is true, sets volatile locations
      to top without applying the initializer. Otherwise, lets the standard
@@ -192,8 +192,8 @@ module Make (Engine: Engine_Subset) = struct
     then initialize_top_volatile lval state
     else
       match init with
-      | SingleInit (exp, source) ->
-        apply_eva_single_initializer_or_str ~pos ~source state lval exp
+      | SingleInit (exp, loc) ->
+        apply_eva_single_initializer_or_str ~pos ~loc state lval exp
       | CompoundInit (_typ, l) ->
         let doinit state (off, init) =
           let lval = Eva_ast.add_offset lval off in
@@ -214,7 +214,7 @@ module Make (Engine: Engine_Subset) = struct
   (* Initializes a varinfo, padding bits + optionally an initializer. *)
   let initialize_var_not_lib_entry ~pos ~local vi init state =
     ignore (warn_unknown_size vi);
-    let source = vi.vdecl in
+    let loc = vi.vdecl in
     let lval = Eva_ast.Build.var vi in
     let volatile_everywhere = Ast_types.C.has_qualifier "volatile" vi.vtype in
     let state =
@@ -236,8 +236,8 @@ module Make (Engine: Engine_Subset) = struct
     (* Applies the real initializer on top. *)
     match init with
     | None -> state
-    | Some (StrInit (Str s)) -> init_char_array ~source ~pos lval s state
-    | Some (StrInit (Wstr a)) -> init_wchar_array ~source ~pos lval a state
+    | Some (StrInit (Str s)) -> init_char_array ~loc ~pos lval s state
+    | Some (StrInit (Wstr a)) -> init_wchar_array ~loc ~pos lval a state
     | Some (CInit init) ->
       apply_eva_initializer ~pos ~top_volatile:false lval init state
 
@@ -255,8 +255,8 @@ module Make (Engine: Engine_Subset) = struct
       then
         let lval = Eva_ast.translate_lval lval
         and exp = Eva_ast.translate_exp exp
-        and source = exp.eloc in
-        apply_eva_single_initializer_or_str ~pos ~source state lval exp
+        and loc = exp.eloc in
+        apply_eva_single_initializer_or_str ~pos ~loc state lval exp
       else state
     | CompoundInit (typ, l) ->
       if Ast_types.C.has_qualifier "volatile" typ || not (Ast_types.C.is_const typ)

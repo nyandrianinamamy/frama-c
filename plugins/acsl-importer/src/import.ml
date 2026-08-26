@@ -48,20 +48,20 @@ let parse ~iDir ~pfile ~init_module_from_file_name ~init_typenames ast =
       with
       | Failure s ->
         Options.abort
-          ~source:(Fileloc.of_lexing_pos lexbuf.Lexing.lex_curr_p)
+          ~loc:(Fileloc.of_lexing_pos lexbuf.Lexing.lex_curr_p)
           "[Failure while parsing] %s."
           s
       | Sys_error s ->
         Options.abort
-          ~source:(Fileloc.of_lexing_pos lexbuf.Lexing.lex_curr_p)
+          ~loc:(Fileloc.of_lexing_pos lexbuf.Lexing.lex_curr_p)
           "[System error while parsing] %s."
           s
       | Logic_utils.Not_well_formed(loc, s) ->
-        Options.abort ~source:loc "[Syntax error] %s (near %s)." s
+        Options.abort ~loc "[Syntax error] %s (near %s)." s
           (Lexing.lexeme lexbuf)
       | Parsing.Parse_error ->
         Options.abort
-          ~source:(Fileloc.of_lexing_pos lexbuf.Lexing.lex_curr_p)
+          ~loc:(Fileloc.of_lexing_pos lexbuf.Lexing.lex_curr_p)
           "[Syntax error] %s."
           (Lexing.lexeme lexbuf)
     with
@@ -132,7 +132,6 @@ let typecheck ~iDir ext_spec_file ast =
       | Ext_glob decl_spec -> paste_decl_spec decl_spec
       | Ext_spec (spec, loc) -> if Options.continue_after_parsing () then Paste.add_funspec spec loc
       | Ext_stmt (stmt_markup, annot, loc) ->
-        let source = loc in
         if Options.continue_after_parsing () then
           begin
             let at_markup = decode stmt_markup in
@@ -140,15 +139,15 @@ let typecheck ~iDir ext_spec_file ast =
               let adds =
                 match at_markup, annot with
                 | AtLoop (Loop, loop), Acode_annot _
-                | AtLoop (LoopBody, loop), _  -> Paste.add_annots ~loop_number:loop (Paste.find_loop_body_set_from_loop_number ~source loop)
+                | AtLoop (LoopBody, loop), _  -> Paste.add_annots ~loop_number:loop (Paste.find_loop_body_set_from_loop_number ~loc loop)
                 | AtLoop (Loop,     loop), _
-                | AtLoop (LoopStmt, loop), _  -> Paste.add_annots (Paste.find_loop_stmt_set_from_loop_number ~source loop)
-                | AtStmt sid, _               -> Paste.add_annots (Paste.find_stmt_set_from_sid ~source sid)
-                | AtLabel label, _            -> Paste.add_annots (Paste.find_stmt_set_from_label ~source label)
-                | AtCallN call, _             -> Paste.add_annots (Paste.find_stmt_set_from_call_number ~source call)
-                | AtCallF (kf_opt, num_opt),_ -> Paste.add_annots (Paste.find_stmt_set_from_call_to ~source kf_opt num_opt)
-                | AtAsm  asm, _               -> Paste.add_annots (Paste.find_stmt_set_from_asm_number ~source asm)
-                | AtReturn, _                 -> Paste.add_annots (Paste.find_stmt_set_from_return ~source ())
+                | AtLoop (LoopStmt, loop), _  -> Paste.add_annots (Paste.find_loop_stmt_set_from_loop_number ~loc loop)
+                | AtStmt sid, _               -> Paste.add_annots (Paste.find_stmt_set_from_sid ~loc sid)
+                | AtLabel label, _            -> Paste.add_annots (Paste.find_stmt_set_from_label ~loc label)
+                | AtCallN call, _             -> Paste.add_annots (Paste.find_stmt_set_from_call_number ~loc call)
+                | AtCallF (kf_opt, num_opt),_ -> Paste.add_annots (Paste.find_stmt_set_from_call_to ~loc kf_opt num_opt)
+                | AtAsm  asm, _               -> Paste.add_annots (Paste.find_stmt_set_from_asm_number ~loc asm)
+                | AtReturn, _                 -> Paste.add_annots (Paste.find_stmt_set_from_return ~loc ())
                 | AtError, _ -> raise StmtMarkupError
               in
               match annot with
@@ -157,44 +156,44 @@ let typecheck ~iDir ext_spec_file ast =
               | Acode_annot (loc, annot) ->
                 adds loc [annot]
               | Adecl _ ->
-                Options.annot_error ~source "disallowed declaration by ACSL importer."
+                Options.annot_error ~loc "disallowed declaration by ACSL importer."
               | Aspec  ->
-                Options.annot_error ~source "disallowed incomplete function specification by ACSL importer."
+                Options.annot_error ~loc "disallowed incomplete function specification by ACSL importer."
             with
             | StmtMarkupError ->
-              Options.annot_error ~source "invalid statement markup '%a' for ACSL importer."
+              Options.annot_error ~loc "invalid statement markup '%a' for ACSL importer."
                 pp_stmt_markup stmt_markup
             | Paste.Kf_not_found ->
-              Options.annot_error ~source "invalid function markup for ACSL importer."
+              Options.annot_error ~loc "invalid function markup for ACSL importer."
             | Paste.Stmt_not_found kf ->
               begin
                 match at_markup, annot with
                 | AtLoop(Loop, loop), Acode_annot _
                 | AtLoop(LoopBody, loop), _  ->
-                  Options.annot_error ~source "loop body %d not found into %a function for ACSL importer."
+                  Options.annot_error ~loc "loop body %d not found into %a function for ACSL importer."
                     loop Kernel_function.pretty kf
                 | AtLoop(Loop, loop), _
                 | AtLoop(LoopStmt, loop), _  ->
-                  Options.annot_error ~source "loop %d not found into %a function for ACSL importer."
+                  Options.annot_error ~loc "loop %d not found into %a function for ACSL importer."
                     loop Kernel_function.pretty kf
                 | AtStmt sid, _              ->
-                  Options.annot_error ~source "statement ID %d not found into %a function for ACSL importer."
+                  Options.annot_error ~loc "statement ID %d not found into %a function for ACSL importer."
                     sid Kernel_function.pretty kf
                 | AtLabel label, _           ->
-                  Options.annot_error ~source "statement label %S not found into %a function for ACSL importer."
+                  Options.annot_error ~loc "statement label %S not found into %a function for ACSL importer."
                     label Kernel_function.pretty kf
                 | AtCallN _, _
                 | AtCallF _, _             ->
-                  Options.annot_error ~source "call %a not found into %a function for ACSL importer."
+                  Options.annot_error ~loc "call %a not found into %a function for ACSL importer."
                     pp_stmt_markup (match stmt_markup with _::m | m -> m) Kernel_function.pretty kf
                 | AtAsm asm, _             ->
-                  Options.annot_error ~source "assembly call %d not found into %a function for ACSL importer."
+                  Options.annot_error ~loc "assembly call %d not found into %a function for ACSL importer."
                     asm Kernel_function.pretty kf
                 | AtReturn, _                ->
-                  Options.annot_error ~source "return statement not found into %a function for ACSL importer."
+                  Options.annot_error ~loc "return statement not found into %a function for ACSL importer."
                     Kernel_function.pretty kf
                 | AtError, _                ->
-                  Options.annot_error ~source "invalid statement markup '%a' for ACSL importer."
+                  Options.annot_error ~loc "invalid statement markup '%a' for ACSL importer."
                     pp_stmt_markup stmt_markup
               end
           end

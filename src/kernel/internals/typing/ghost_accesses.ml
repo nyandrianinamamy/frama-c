@@ -9,52 +9,52 @@
 open Cil_types
 
 module Error = struct
-  let error ?source ?once ?current =
-    Kernel.warning ~wkey:Kernel.wkey_ghost_bad_use ?source ?once ?current
+  let error ?loc ?once ?current =
+    Kernel.warning ~wkey:Kernel.wkey_ghost_bad_use ?loc ?once ?current
 
-  let cannot_check_ghost_call ?source ?once ?current kf =
-    error ?source ?current ?once
+  let cannot_check_ghost_call ?loc ?once ?current kf =
+    error ?loc ?current ?once
       "No definition, nor assigns specification for ghost function '%s'"
       (Kernel_function.get_name kf)
 
-  let invalid_ghost_type_for_varinfo ?source ?once ?current v =
-    error ?source ?current ?once
+  let invalid_ghost_type_for_varinfo ?loc ?once ?current v =
+    error ?loc ?current ?once
       "Invalid type for '%s': indirection from non-ghost to ghost" v.vname
 
-  let invalid_ghost_type_for_return ?source ?once ?current () =
-    error ?source ?once ?current
+  let invalid_ghost_type_for_return ?loc ?once ?current () =
+    error ?loc ?once ?current
       "Invalid return type: indirection from non-ghost to ghost"
 
-  let assigns_non_ghost_term ?source ?once ?current t =
-    error ?source ?once ?current
+  let assigns_non_ghost_term ?loc ?once ?current t =
+    error ?loc ?once ?current
       "'%a' is a non-ghost lvalue, it cannot be assigned in ghost code"
       Cil_printer.pp_term t
 
-  let assigns_non_ghost_lvalue ?source ?once ?current lv =
-    error ?source ?once ?current
+  let assigns_non_ghost_lvalue ?loc ?once ?current lv =
+    error ?loc ?once ?current
       "'%a' is a non-ghost lvalue, it cannot be assigned in ghost code"
       Cil_printer.pp_lval lv
 
-  let bad_cast_on_return ?source ?once ?current f ret_type lv =
-    error ?source ?once ?current
+  let bad_cast_on_return ?loc ?once ?current f ret_type lv =
+    error ?loc ?once ?current
       "Cannot cast return of '%a' from '%a' to '%a'"
       Cil_printer.pp_lhost f
       Cil_printer.pp_typ ret_type
       Cil_printer.pp_typ (Cil.typeOfLval lv)
 
-  let bad_cast ?source ?once ?current exp t =
-    error ?source ?once ?current
+  let bad_cast ?loc ?once ?current exp t =
+    error ?loc ?once ?current
       "Invalid cast of '%a' from '%a' to '%a'"
       Cil_printer.pp_exp exp
       Cil_printer.pp_typ (Cil.typeOf exp)
       Cil_printer.pp_typ t
 
-  let non_ghost_function_call_in_ghost ?source ?once ?current () =
-    error ?source ?once ?current
+  let non_ghost_function_call_in_ghost ?loc ?once ?current () =
+    error ?loc ?once ?current
       "Call to non-ghost function from ghost code is not allowed"
 
-  let function_pointer_call ?source ?once ?current () =
-    error ?source ?once ?current
+  let function_pointer_call ?loc ?once ?current () =
+    error ?loc ?once ?current
       "Call via a function pointer cannot be checked" ;
 end
 
@@ -106,15 +106,15 @@ class visitor = object(self)
     | None -> false
 
   method private bad_ghost_function kf =
-    let source = match preferred_loc with
+    let loc = match preferred_loc with
       | None -> Current_loc.get()
       | Some l -> l
     in
-    Error.cannot_check_ghost_call ~source ~current:true ~once:true kf
+    Error.cannot_check_ghost_call ~loc ~current:true ~once:true kf
 
   method! vglob_aux = function
     | GFunDecl(_, vi, _) when vi.vghost ->
-      self#prefer_loc (Log.get_current_source ()) ;
+      self#prefer_loc (Log.get_current_loc ()) ;
       let post g = self#reset_loc() ; g in
 
       let kf = Globals.Functions.get vi in
@@ -135,19 +135,19 @@ class visitor = object(self)
     | _ -> Cil.SkipChildren
 
   method! vvdec v =
-    let current, source =
+    let current, loc =
       match preferred_loc with
       | Some l -> false, l
-      | None -> true, (Log.get_current_source ())
+      | None -> true, (Log.get_current_loc ())
     in
     if not(is_generated_ret_var v)
     && not (Ast_types.C.is_wellformed_ghost v.vtype) then
-      Error.invalid_ghost_type_for_varinfo ~once:true ~current ~source v ;
+      Error.invalid_ghost_type_for_varinfo ~once:true ~current ~loc v ;
     if Ast_types.C.(is_fun (unroll v.vtype)) then begin
       let ftype = Cil.getReturnType (Ast_types.C.unroll v.vtype) in
       match ftype.tnode with
       | TPtr t when not (Ast_types.C.is_wellformed_ghost t) ->
-        Error.invalid_ghost_type_for_return ~once:true ~current ~source ()
+        Error.invalid_ghost_type_for_return ~once:true ~current ~loc ()
       | _ -> ()
     end ;
     Cil.DoChildren

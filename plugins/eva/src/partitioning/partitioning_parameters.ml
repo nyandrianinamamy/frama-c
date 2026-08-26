@@ -57,7 +57,7 @@ struct
         else Log_key.warn_missing_loop_unroll
       in
       Self.warning
-        ~wkey ~source:(Cil_datatype.Stmt.loc stmt)
+        ~wkey ~loc:(Cil_datatype.Stmt.loc stmt)
         ~once:true
         "%s loop without unroll annotation" loop_kind
 

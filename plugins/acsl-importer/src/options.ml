@@ -18,11 +18,11 @@ let dkey = register_category "trace-options"
 
 (** {1 Messages and warning categories} *)
 
-let annot_error ?source fmt =
-  Kernel.warning ~wkey:Kernel.wkey_annot_error ?source fmt
+let annot_error ?loc fmt =
+  Kernel.warning ~wkey:Kernel.wkey_annot_error ?loc fmt
 
-let annot_warning ?source ~raising fmt =
-  Kernel.logwith (fun _ -> raising ()) ~wkey:Kernel.wkey_annot_error ?source fmt
+let annot_warning ?loc ~raising fmt =
+  Kernel.logwith (fun _ -> raising ()) ~wkey:Kernel.wkey_annot_error ?loc fmt
 
 let wkey_integer_cast = register_warn_category "annot:integer-cast"
 

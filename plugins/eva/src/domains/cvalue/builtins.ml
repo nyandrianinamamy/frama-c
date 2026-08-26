@@ -88,40 +88,40 @@ let print_builtins_and_exit () =
 (* --- Prepare builtins for an analysis                                   --- *)
 (* -------------------------------------------------------------------------- *)
 
-let warn_incompatible_type ~source name kf =
+let warn_incompatible_type ~loc name kf =
   let kf_typ = Kernel_function.get_type kf in
-  Self.warning ~wkey:Log_key.warn_builtins_override ~source ~once:true
+  Self.warning ~wkey:Log_key.warn_builtins_override ~loc ~once:true
     "Builtin %s will not be used for function %a of incompatible type %a."
     name Kernel_function.pretty kf Printer.pp_typ kf_typ
 
-let warn_no_specification ~source kf =
-  Self.warning ~wkey:Log_key.warn_builtins_missing_spec ~source ~once:true
+let warn_no_specification ~loc kf =
+  Self.warning ~wkey:Log_key.warn_builtins_missing_spec ~loc ~once:true
     "The builtin for function %a will not be used, as its frama-c libc \
      specification is not available."
     Kernel_function.pretty kf
 
-let warn_no_default_behavior ~source kf =
-  Self.warning ~wkey:Log_key.warn_builtins_missing_spec ~source ~once:true
+let warn_no_default_behavior ~loc kf =
+  Self.warning ~wkey:Log_key.warn_builtins_missing_spec ~loc ~once:true
     "The builtin for function %a will not be used, as its specification \
      has no default behavior."
     Kernel_function.pretty kf
 
-let warn_no_assigns ~source kf =
-  Self.warning ~wkey:Log_key.warn_builtins_missing_spec ~source ~once:true
+let warn_no_assigns ~loc kf =
+  Self.warning ~wkey:Log_key.warn_builtins_missing_spec ~loc ~once:true
     "The builtin for function %a will not be used, as its specification has \
      no assigns clause."
     Kernel_function.pretty kf
 
-let warn_user_specification ~source kf =
-  Self.warning ~wkey:Log_key.warn_builtins_missing_spec ~source ~once:true
+let warn_user_specification ~loc kf =
+  Self.warning ~wkey:Log_key.warn_builtins_missing_spec ~loc ~once:true
     "No Frama-C libc specification found for function %a, for which a \
      builtin is used; its soundness relies on the specification provided \
      by the user."
     Kernel_function.pretty kf
 
-let warn_builtin_override ~source kf bname =
+let warn_builtin_override ~loc kf bname =
   let fname = Kernel_function.get_name kf in
-  Self.warning ~wkey:Log_key.warn_builtins_override ~source ~once:true
+  Self.warning ~wkey:Log_key.warn_builtins_override ~loc ~once:true
     "Definition of function %s is overridden by %s"
     fname (if fname = bname then "its builtin" else "builtin " ^ bname)
 
@@ -167,14 +167,14 @@ let inconsistent_builtin_typ kf = function
    function [kf], if its type is compatible with [expected_typ] and it has a
    suitable specification. *)
 let prepare_builtin kf name builtin expected_typ =
-  let source = Kernel_function.get_location kf in
+  let loc = Kernel_function.get_location kf in
   if inconsistent_builtin_typ kf expected_typ
-  then warn_incompatible_type ~source name kf
+  then warn_incompatible_type ~loc name kf
   else
     match find_builtin_specification kf with
-    | NoSpec -> warn_no_specification ~source kf
-    | NoDefaultBehavior -> warn_no_default_behavior ~source kf
-    | NoAssigns -> warn_no_assigns ~source kf
+    | NoSpec -> warn_no_specification ~loc kf
+    | NoDefaultBehavior -> warn_no_default_behavior ~loc kf
+    | NoAssigns -> warn_no_assigns ~loc kf
     | Spec spec ->
       BuiltinsOverride.add kf;
       Hashtbl.replace builtins_table kf (name, builtin, spec)
@@ -206,12 +206,12 @@ let prepare_builtins () =
 (* Emits warning if builtin [name] overrides function definition [kf], or if
    the Frama-C specification of [kf] is missing. *)
 let check_builtin kf (name, _, _) =
-  let source = Kernel_function.get_location kf in
+  let loc = Kernel_function.get_location kf in
   if not (Kernel_function.is_in_libc kf || is_frama_c_builtin kf)
-  then warn_user_specification ~source kf;
+  then warn_user_specification ~loc kf;
   let is_internal = Filepath.is_relative ~base:System_config.Share.libc in
-  if Kernel_function.is_definition kf && not (is_internal (Fileloc.path source))
-  then warn_builtin_override ~source kf name
+  if Kernel_function.is_definition kf && not (is_internal (Fileloc.path loc))
+  then warn_builtin_override ~loc kf name
 
 let find_builtin_override kf =
   let builtin = Hashtbl.find_opt builtins_table kf in

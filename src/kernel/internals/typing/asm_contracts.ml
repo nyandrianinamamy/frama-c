@@ -126,10 +126,10 @@ class visit_assembly =
            specified outputs and inputs. *)
         let mem_clobbered = List.mem "memory" asm_clobbers in
         if  mem_clobbered then begin
-          let source = Cil_datatype.Instr.loc i in
+          let loc = Cil_datatype.Instr.loc i in
           let once = true in
           Kernel.warning
-            ~once ~source ~wkey:Kernel.wkey_asm
+            ~once ~loc ~wkey:Kernel.wkey_asm
             "Clobber list contains \"memory\" argument. Assuming no \
              side effects beyond those mentioned in operands."
         end;
