@@ -1,18 +1,18 @@
 [kernel] Parsing pragma-pack.c (with preprocessing)
-[kernel:typing:pragma] Pushing fc_stdlib __fc_gcc_builtins.h
-[kernel:typing:pragma] Popping fc_stdlib __fc_gcc_builtins.h
-[kernel:typing:pragma] Pushing fc_stdlib stdint.h
-[kernel:typing:pragma] Pushing fc_stdlib __fc_define_intptr_t.h
-[kernel:typing:pragma] Popping fc_stdlib __fc_define_intptr_t.h
-[kernel:typing:pragma] Popping fc_stdlib stdint.h
-[kernel:typing:pragma] Pushing fc_stdlib stddef.h
-[kernel:typing:pragma] Pushing fc_stdlib __fc_define_size_t.h
-[kernel:typing:pragma] Popping fc_stdlib __fc_define_size_t.h
-[kernel:typing:pragma] Pushing fc_stdlib __fc_define_ssize_t.h
-[kernel:typing:pragma] Popping fc_stdlib __fc_define_ssize_t.h
-[kernel:typing:pragma] Pushing fc_stdlib __fc_define_wchar_t.h
-[kernel:typing:pragma] Popping fc_stdlib __fc_define_wchar_t.h
-[kernel:typing:pragma] Popping fc_stdlib stddef.h
+[kernel:typing:pragma] Debug: Pushing fc_stdlib __fc_gcc_builtins.h
+[kernel:typing:pragma] Debug: Popping fc_stdlib __fc_gcc_builtins.h
+[kernel:typing:pragma] Debug: Pushing fc_stdlib stdint.h
+[kernel:typing:pragma] Debug: Pushing fc_stdlib __fc_define_intptr_t.h
+[kernel:typing:pragma] Debug: Popping fc_stdlib __fc_define_intptr_t.h
+[kernel:typing:pragma] Debug: Popping fc_stdlib stdint.h
+[kernel:typing:pragma] Debug: Pushing fc_stdlib stddef.h
+[kernel:typing:pragma] Debug: Pushing fc_stdlib __fc_define_size_t.h
+[kernel:typing:pragma] Debug: Popping fc_stdlib __fc_define_size_t.h
+[kernel:typing:pragma] Debug: Pushing fc_stdlib __fc_define_ssize_t.h
+[kernel:typing:pragma] Debug: Popping fc_stdlib __fc_define_ssize_t.h
+[kernel:typing:pragma] Debug: Pushing fc_stdlib __fc_define_wchar_t.h
+[kernel:typing:pragma] Debug: Popping fc_stdlib __fc_define_wchar_t.h
+[kernel:typing:pragma] Debug: Popping fc_stdlib stddef.h
 [kernel:typing:pragma] pragma-pack.c:52: packing pragma: setting alignment to 8
 [kernel:typing:pragma] pragma-pack.c:53: 
   adding aligned(1) attribute to field 'PACK8.i' due to packing pragma

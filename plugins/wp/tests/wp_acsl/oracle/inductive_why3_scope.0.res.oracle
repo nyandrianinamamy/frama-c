@@ -2,7 +2,7 @@
 [kernel] Parsing inductive_why3_scope.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] 2 goals scheduled
-[wp:print-generated] 
+[wp:print-generated] Debug: 
   theory WP
     
     (* use why3.BuiltIn.BuiltIn *)
@@ -40,7 +40,7 @@ theory Axiomatic
   lemma Q_l : P_i1 10 /\ P_d1 (- 10)
   
 end
-[wp:print-generated] 
+[wp:print-generated] Debug: 
   theory WP1
     
     (* use why3.BuiltIn.BuiltIn *)

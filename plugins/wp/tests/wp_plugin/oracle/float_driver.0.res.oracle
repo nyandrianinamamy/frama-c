@@ -7,7 +7,7 @@
 [wp] [Valid] Goal for_float_exits (Cfg) (Unreachable)
 [wp] [Valid] Goal for_float_terminates (Cfg) (Trivial)
 [wp] 20 goals scheduled
-[wp:print-generated] 
+[wp:print-generated] Debug: 
   theory WP
     
     (* use why3.BuiltIn.BuiltIn *)
@@ -18,7 +18,7 @@
   
   goal wp :
     forall f:t. eq_f64 (add_f64 f (0x1.0p0:t)) (round_double RNE (of_f64 f))
-[wp:print-generated] 
+[wp:print-generated] Debug: 
   theory WP1
     
     (* use why3.BuiltIn.BuiltIn *)
@@ -29,7 +29,7 @@
   
   goal wp :
     forall f:t. eq_f64 (add_f64 f (0x1.0p0:t)) (round_double RNA (of_f64 f))
-[wp:print-generated] 
+[wp:print-generated] Debug: 
   theory WP2
     
     (* use why3.BuiltIn.BuiltIn *)
@@ -40,7 +40,7 @@
   
   goal wp :
     forall f:t. eq_f64 (add_f64 f (0x1.0p0:t)) (round_double RTZ (of_f64 f))
-[wp:print-generated] 
+[wp:print-generated] Debug: 
   theory WP3
     
     (* use why3.BuiltIn.BuiltIn *)
@@ -51,7 +51,7 @@
   
   goal wp :
     forall f:t. eq_f64 (add_f64 f (0x1.0p0:t)) (round_double RTP (of_f64 f))
-[wp:print-generated] 
+[wp:print-generated] Debug: 
   theory WP4
     
     (* use why3.BuiltIn.BuiltIn *)
@@ -62,7 +62,7 @@
   
   goal wp :
     forall f:t. eq_f64 (add_f64 f (0x1.0p0:t)) (round_double RTN (of_f64 f))
-[wp:print-generated] 
+[wp:print-generated] Debug: 
   theory WP5
     
     (* use why3.BuiltIn.BuiltIn *)
@@ -72,7 +72,7 @@
   end
   
   goal wp : forall f:t. is_finite_f64 (add_f64 f (0x1.0p0:t))
-[wp:print-generated] 
+[wp:print-generated] Debug: 
   theory WP6
     
     (* use why3.BuiltIn.BuiltIn *)
@@ -82,7 +82,7 @@
   end
   
   goal wp : forall f:t. is_infinite_f64 (add_f64 f (0x1.0p0:t))
-[wp:print-generated] 
+[wp:print-generated] Debug: 
   theory WP7
     
     (* use why3.BuiltIn.BuiltIn *)
@@ -92,7 +92,7 @@
   end
   
   goal wp : forall f:t. is_NaN_f64 (add_f64 f (0x1.0p0:t))
-[wp:print-generated] 
+[wp:print-generated] Debug: 
   theory WP8
     
     (* use why3.BuiltIn.BuiltIn *)
@@ -102,7 +102,7 @@
   end
   
   goal wp : forall f:t. is_positive_infinite_f64 (add_f64 f (0x1.0p0:t))
-[wp:print-generated] 
+[wp:print-generated] Debug: 
   theory WP9
     
     (* use why3.BuiltIn.BuiltIn *)
@@ -112,7 +112,7 @@
   end
   
   goal wp : forall f:t. is_negative_infinite_f64 (add_f64 f (0x1.0p0:t))
-[wp:print-generated] 
+[wp:print-generated] Debug: 
   theory WP10
     
     (* use why3.BuiltIn.BuiltIn *)
@@ -123,7 +123,7 @@
   
   goal wp :
     forall f:t1. eq_f32 (add_f32 f (0x1.0p0:t1)) (round_float RNE (of_f32 f))
-[wp:print-generated] 
+[wp:print-generated] Debug: 
   theory WP11
     
     (* use why3.BuiltIn.BuiltIn *)
@@ -134,7 +134,7 @@
   
   goal wp :
     forall f:t1. eq_f32 (add_f32 f (0x1.0p0:t1)) (round_float RNA (of_f32 f))
-[wp:print-generated] 
+[wp:print-generated] Debug: 
   theory WP12
     
     (* use why3.BuiltIn.BuiltIn *)
@@ -145,7 +145,7 @@
   
   goal wp :
     forall f:t1. eq_f32 (add_f32 f (0x1.0p0:t1)) (round_float RTZ (of_f32 f))
-[wp:print-generated] 
+[wp:print-generated] Debug: 
   theory WP13
     
     (* use why3.BuiltIn.BuiltIn *)
@@ -156,7 +156,7 @@
   
   goal wp :
     forall f:t1. eq_f32 (add_f32 f (0x1.0p0:t1)) (round_float RTP (of_f32 f))
-[wp:print-generated] 
+[wp:print-generated] Debug: 
   theory WP14
     
     (* use why3.BuiltIn.BuiltIn *)
@@ -167,7 +167,7 @@
   
   goal wp :
     forall f:t1. eq_f32 (add_f32 f (0x1.0p0:t1)) (round_float RTN (of_f32 f))
-[wp:print-generated] 
+[wp:print-generated] Debug: 
   theory WP15
     
     (* use why3.BuiltIn.BuiltIn *)
@@ -177,7 +177,7 @@
   end
   
   goal wp : forall f:t1. is_finite_f32 (add_f32 f (0x1.0p0:t1))
-[wp:print-generated] 
+[wp:print-generated] Debug: 
   theory WP16
     
     (* use why3.BuiltIn.BuiltIn *)
@@ -187,7 +187,7 @@
   end
   
   goal wp : forall f:t1. is_infinite_f32 (add_f32 f (0x1.0p0:t1))
-[wp:print-generated] 
+[wp:print-generated] Debug: 
   theory WP17
     
     (* use why3.BuiltIn.BuiltIn *)
@@ -197,7 +197,7 @@
   end
   
   goal wp : forall f:t1. is_NaN_f32 (add_f32 f (0x1.0p0:t1))
-[wp:print-generated] 
+[wp:print-generated] Debug: 
   theory WP18
     
     (* use why3.BuiltIn.BuiltIn *)
@@ -207,7 +207,7 @@
   end
   
   goal wp : forall f:t1. is_positive_infinite_f32 (add_f32 f (0x1.0p0:t1))
-[wp:print-generated] 
+[wp:print-generated] Debug: 
   theory WP19
     
     (* use why3.BuiltIn.BuiltIn *)

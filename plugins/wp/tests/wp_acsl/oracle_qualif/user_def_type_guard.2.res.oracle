@@ -15,7 +15,7 @@ theory Axiomatic1
   function L_x (mint:addr -> int) (p:addr) : int = get mint p
   
 end
-[wp:print-generated] 
+[wp:print-generated] Debug: 
   theory WP
     
     (* use why3.BuiltIn.BuiltIn *)

@@ -11,7 +11,7 @@
 [wp] [Valid] Goal float_convertible_exits (Cfg) (Unreachable)
 [wp] [Valid] Goal float_convertible_terminates (Cfg) (Trivial)
 [wp] 8 goals scheduled
-[wp:print-generated] 
+[wp:print-generated] Debug: 
   theory WP
     
     (* use why3.BuiltIn.BuiltIn *)
@@ -22,7 +22,7 @@
   
   goal wp :
     forall f:t. eq_f32 f (0x1.99999Ap-4:t) -> not of_f32 f = (1.0 / 10.0)
-[wp:print-generated] 
+[wp:print-generated] Debug: 
   theory WP1
     
     (* use why3.BuiltIn.BuiltIn *)
@@ -34,7 +34,7 @@
   goal wp :
     forall f:t.
      eq_f32 f (0x1.99999Ap-4:t) -> of_f32 f = (13421773.0 / 134217728.0)
-[wp:print-generated] 
+[wp:print-generated] Debug: 
   theory WP2
     
     (* use why3.BuiltIn.BuiltIn *)
@@ -47,7 +47,7 @@
     forall f:t.
      eq_f32 f (0x1.99999Ap-4:t) ->
      not of_f32 f = (3602879701896397.0 / 36028797018963968.0)
-[wp:print-generated] 
+[wp:print-generated] Debug: 
   theory WP3
     
     (* use why3.BuiltIn.BuiltIn *)
@@ -60,7 +60,7 @@
     forall f:t.
      let r = of_f32 f in
      eq_f32 f (0x1.99999Ap-4:t) -> of_f32 (to_f32 (of_f64 (to_f64 r))) = r
-[wp:print-generated] 
+[wp:print-generated] Debug: 
   theory WP4
     
     (* use why3.BuiltIn.BuiltIn *)
@@ -72,7 +72,7 @@
   goal wp :
     forall f:t1.
      eq_f64 f (0x1.999999999999Ap-4:t1) -> not of_f64 f = (1.0 / 10.0)
-[wp:print-generated] 
+[wp:print-generated] Debug: 
   theory WP5
     
     (* use why3.BuiltIn.BuiltIn *)
@@ -85,7 +85,7 @@
     forall f:t1.
      eq_f64 f (0x1.999999999999Ap-4:t1) ->
      of_f64 f = (3602879701896397.0 / 36028797018963968.0)
-[wp:print-generated] 
+[wp:print-generated] Debug: 
   theory WP6
     
     (* use why3.BuiltIn.BuiltIn *)
@@ -98,7 +98,7 @@
     forall f:t1.
      eq_f64 f (0x1.999999999999Ap-4:t1) ->
      not of_f64 f = (13421773.0 / 134217728.0)
-[wp:print-generated] 
+[wp:print-generated] Debug: 
   theory WP7
     
     (* use why3.BuiltIn.BuiltIn *)

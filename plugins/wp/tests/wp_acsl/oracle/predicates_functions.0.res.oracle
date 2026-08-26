@@ -2,7 +2,7 @@
 [kernel] Parsing predicates_functions.i (no preprocessing)
 [wp] Running WP plugin...
 [wp] 1 goal scheduled
-[wp:print-generated] 
+[wp:print-generated] Debug: 
   theory WP
     
     (* use why3.BuiltIn.BuiltIn *)

@@ -1,5 +1,5 @@
 [e-acsl] beginning translation.
-[e-acsl:analysis:inductive] 
+[e-acsl:analysis:inductive] Debug: 
   extracting predicate from CountInd using mode: complete
 [e-acsl] count.c:35: Warning: 
   no assigns clause generated for function CountInd because pointers as arguments is not yet supported

@@ -1,7 +1,8 @@
-519a520,736
+542a543,771
 > [eva:progress] realloc.c:152: Call to builtin realloc
-> [eva:debug:malloc] bases_to_realloc: {__realloc_w_main10_l152}
-> [eva:debug:malloc] realloc.c:152: weak free on bases: {__realloc_w_main10_l152}
+> [eva:debug:malloc] Debug: bases_to_realloc: {__realloc_w_main10_l152}
+> [eva:debug:malloc] realloc.c:152: Debug: 
+>   weak free on bases: {__realloc_w_main10_l152}
 > [eva:show] realloc.c:154: Frama_C_show_each_main10: {4}
 > [eva:show] realloc.c:155: 
 >   Frama_C_dump_each:
@@ -18,8 +19,9 @@
 >                          [1] ∈ UNINITIALIZED
 >   ==END OF DUMP==
 > [eva:progress] realloc.c:152: Call to builtin realloc
-> [eva:debug:malloc] bases_to_realloc: {__realloc_w_main10_l152}
-> [eva:debug:malloc] realloc.c:152: weak free on bases: {__realloc_w_main10_l152}
+> [eva:debug:malloc] Debug: bases_to_realloc: {__realloc_w_main10_l152}
+> [eva:debug:malloc] realloc.c:152: Debug: 
+>   weak free on bases: {__realloc_w_main10_l152}
 > [eva:show] realloc.c:154: Frama_C_show_each_main10: {4}
 > [eva:show] realloc.c:155: 
 >   Frama_C_dump_each:
@@ -36,8 +38,9 @@
 >                          [1] ∈ UNINITIALIZED
 >   ==END OF DUMP==
 > [eva:progress] realloc.c:152: Call to builtin realloc
-> [eva:debug:malloc] bases_to_realloc: {__realloc_w_main10_l152}
-> [eva:debug:malloc] realloc.c:152: weak free on bases: {__realloc_w_main10_l152}
+> [eva:debug:malloc] Debug: bases_to_realloc: {__realloc_w_main10_l152}
+> [eva:debug:malloc] realloc.c:152: Debug: 
+>   weak free on bases: {__realloc_w_main10_l152}
 > [eva:show] realloc.c:154: Frama_C_show_each_main10: {4}
 > [eva:show] realloc.c:155: 
 >   Frama_C_dump_each:
@@ -54,8 +57,9 @@
 >                          [1] ∈ UNINITIALIZED
 >   ==END OF DUMP==
 > [eva:progress] realloc.c:152: Call to builtin realloc
-> [eva:debug:malloc] bases_to_realloc: {__realloc_w_main10_l152}
-> [eva:debug:malloc] realloc.c:152: weak free on bases: {__realloc_w_main10_l152}
+> [eva:debug:malloc] Debug: bases_to_realloc: {__realloc_w_main10_l152}
+> [eva:debug:malloc] realloc.c:152: Debug: 
+>   weak free on bases: {__realloc_w_main10_l152}
 > [eva:show] realloc.c:154: Frama_C_show_each_main10: {4}
 > [eva:show] realloc.c:155: 
 >   Frama_C_dump_each:
@@ -72,8 +76,9 @@
 >                          [1] ∈ UNINITIALIZED
 >   ==END OF DUMP==
 > [eva:progress] realloc.c:152: Call to builtin realloc
-> [eva:debug:malloc] bases_to_realloc: {__realloc_w_main10_l152}
-> [eva:debug:malloc] realloc.c:152: weak free on bases: {__realloc_w_main10_l152}
+> [eva:debug:malloc] Debug: bases_to_realloc: {__realloc_w_main10_l152}
+> [eva:debug:malloc] realloc.c:152: Debug: 
+>   weak free on bases: {__realloc_w_main10_l152}
 > [eva:show] realloc.c:154: Frama_C_show_each_main10: {4}
 > [eva:show] realloc.c:155: 
 >   Frama_C_dump_each:
@@ -90,8 +95,9 @@
 >                          [1] ∈ UNINITIALIZED
 >   ==END OF DUMP==
 > [eva:progress] realloc.c:152: Call to builtin realloc
-> [eva:debug:malloc] bases_to_realloc: {__realloc_w_main10_l152}
-> [eva:debug:malloc] realloc.c:152: weak free on bases: {__realloc_w_main10_l152}
+> [eva:debug:malloc] Debug: bases_to_realloc: {__realloc_w_main10_l152}
+> [eva:debug:malloc] realloc.c:152: Debug: 
+>   weak free on bases: {__realloc_w_main10_l152}
 > [eva:show] realloc.c:154: Frama_C_show_each_main10: {4}
 > [eva:show] realloc.c:155: 
 >   Frama_C_dump_each:
@@ -108,8 +114,9 @@
 >                          [1] ∈ UNINITIALIZED
 >   ==END OF DUMP==
 > [eva:progress] realloc.c:152: Call to builtin realloc
-> [eva:debug:malloc] bases_to_realloc: {__realloc_w_main10_l152}
-> [eva:debug:malloc] realloc.c:152: weak free on bases: {__realloc_w_main10_l152}
+> [eva:debug:malloc] Debug: bases_to_realloc: {__realloc_w_main10_l152}
+> [eva:debug:malloc] realloc.c:152: Debug: 
+>   weak free on bases: {__realloc_w_main10_l152}
 > [eva:show] realloc.c:154: Frama_C_show_each_main10: {4}
 > [eva:show] realloc.c:155: 
 >   Frama_C_dump_each:
@@ -126,8 +133,9 @@
 >                          [1] ∈ UNINITIALIZED
 >   ==END OF DUMP==
 > [eva:progress] realloc.c:152: Call to builtin realloc
-> [eva:debug:malloc] bases_to_realloc: {__realloc_w_main10_l152}
-> [eva:debug:malloc] realloc.c:152: weak free on bases: {__realloc_w_main10_l152}
+> [eva:debug:malloc] Debug: bases_to_realloc: {__realloc_w_main10_l152}
+> [eva:debug:malloc] realloc.c:152: Debug: 
+>   weak free on bases: {__realloc_w_main10_l152}
 > [eva:show] realloc.c:154: Frama_C_show_each_main10: {4}
 > [eva:show] realloc.c:155: 
 >   Frama_C_dump_each:
@@ -144,8 +152,9 @@
 >                          [1] ∈ UNINITIALIZED
 >   ==END OF DUMP==
 > [eva:progress] realloc.c:152: Call to builtin realloc
-> [eva:debug:malloc] bases_to_realloc: {__realloc_w_main10_l152}
-> [eva:debug:malloc] realloc.c:152: weak free on bases: {__realloc_w_main10_l152}
+> [eva:debug:malloc] Debug: bases_to_realloc: {__realloc_w_main10_l152}
+> [eva:debug:malloc] realloc.c:152: Debug: 
+>   weak free on bases: {__realloc_w_main10_l152}
 > [eva:show] realloc.c:154: Frama_C_show_each_main10: {4}
 > [eva:show] realloc.c:155: 
 >   Frama_C_dump_each:
@@ -163,8 +172,9 @@
 >   ==END OF DUMP==
 > [eva:partition] realloc.c:150: starting to merge loop iterations
 > [eva:progress] realloc.c:152: Call to builtin realloc
-> [eva:debug:malloc] bases_to_realloc: {__realloc_w_main10_l152}
-> [eva:debug:malloc] realloc.c:152: weak free on bases: {__realloc_w_main10_l152}
+> [eva:debug:malloc] Debug: bases_to_realloc: {__realloc_w_main10_l152}
+> [eva:debug:malloc] realloc.c:152: Debug: 
+>   weak free on bases: {__realloc_w_main10_l152}
 > [eva:show] realloc.c:154: Frama_C_show_each_main10: {4}
 > [eva:show] realloc.c:155: 
 >   Frama_C_dump_each:
@@ -181,8 +191,9 @@
 >                          [1] ∈ UNINITIALIZED
 >   ==END OF DUMP==
 > [eva:progress] realloc.c:152: Call to builtin realloc
-> [eva:debug:malloc] bases_to_realloc: {__realloc_w_main10_l152}
-> [eva:debug:malloc] realloc.c:152: weak free on bases: {__realloc_w_main10_l152}
+> [eva:debug:malloc] Debug: bases_to_realloc: {__realloc_w_main10_l152}
+> [eva:debug:malloc] realloc.c:152: Debug: 
+>   weak free on bases: {__realloc_w_main10_l152}
 > [eva:show] realloc.c:154: Frama_C_show_each_main10: {4}
 > [eva:show] realloc.c:155: 
 >   Frama_C_dump_each:
@@ -199,8 +210,9 @@
 >                          [1] ∈ UNINITIALIZED
 >   ==END OF DUMP==
 > [eva:progress] realloc.c:152: Call to builtin realloc
-> [eva:debug:malloc] bases_to_realloc: {__realloc_w_main10_l152}
-> [eva:debug:malloc] realloc.c:152: weak free on bases: {__realloc_w_main10_l152}
+> [eva:debug:malloc] Debug: bases_to_realloc: {__realloc_w_main10_l152}
+> [eva:debug:malloc] realloc.c:152: Debug: 
+>   weak free on bases: {__realloc_w_main10_l152}
 > [eva:show] realloc.c:154: Frama_C_show_each_main10: {4}
 > [eva:show] realloc.c:155: 
 >   Frama_C_dump_each:
@@ -216,7 +228,7 @@
 >   __realloc_w_main10_l152[0] ∈ {4}
 >                          [1] ∈ UNINITIALIZED
 >   ==END OF DUMP==
-590a808,882
+616a846,924
 > [eva:progress] realloc.c:167: Call to builtin reallocarray
 > [eva:progress] realloc.c:167: Call to builtin reallocarray
 > [eva:progress] 
@@ -228,71 +240,75 @@
 >   Called from realloc.c:169.
 > [eva:progress] Done for function Frama_C_interval
 > [eva:progress] realloc.c:171: Call to builtin reallocarray
-> [eva:debug:malloc] bases_to_realloc: {}
-> [eva:debug:malloc] realloc.c:171: strong free on bases: {}
+> [eva:debug:malloc] Debug: bases_to_realloc: {}
+> [eva:debug:malloc] realloc.c:171: Debug: strong free on bases: {}
 > [eva:progress] realloc.c:171: Call to builtin reallocarray
-> [eva:debug:malloc] bases_to_realloc: {}
-> [eva:debug:malloc] realloc.c:171: strong free on bases: {}
+> [eva:debug:malloc] Debug: bases_to_realloc: {}
+> [eva:debug:malloc] realloc.c:171: Debug: strong free on bases: {}
 > [eva:show] realloc.c:172: Frama_C_show_each_p: {{ &__realloc_main11_l171 }}
 > [eva:show] realloc.c:172: Frama_C_show_each_p: {0}
 > [eva:show] realloc.c:172: Frama_C_show_each_p: {{ &__realloc_main11_l171 }}
 > [eva:show] realloc.c:172: Frama_C_show_each_p: {0}
 > [eva:progress] realloc.c:165: Call to builtin reallocarray
-> [eva:debug:malloc] bases_to_realloc: {__realloc_main11_l171}
-> [eva:debug:malloc] realloc.c:165: weak free on bases: {__realloc_main11_l171}
+> [eva:debug:malloc] Debug: bases_to_realloc: {__realloc_main11_l171}
+> [eva:debug:malloc] realloc.c:165: Debug: 
+>   weak free on bases: {__realloc_main11_l171}
 > [eva:progress] realloc.c:167: Call to builtin reallocarray
 > [eva:progress] 
 >   computing for function Frama_C_interval <- main11 <- main.
 >   Called from realloc.c:169.
 > [eva:progress] Done for function Frama_C_interval
 > [eva:progress] realloc.c:171: Call to builtin reallocarray
-> [eva:debug:malloc] bases_to_realloc: {}
+> [eva:debug:malloc] Debug: bases_to_realloc: {}
 > [eva:malloc:weak] realloc.c:171: 
 >   marking variable `__realloc_main11_l171' as weak
-> [eva:debug:malloc] realloc.c:171: strong free on bases: {}
+> [eva:debug:malloc] realloc.c:171: Debug: strong free on bases: {}
 > [eva:show] realloc.c:172: 
 >   Frama_C_show_each_p: {{ NULL ; &__realloc_w_main11_l171 }}
 > [eva:partition] realloc.c:163: starting to merge loop iterations
 > [eva:progress] realloc.c:165: Call to builtin reallocarray
-> [eva:debug:malloc] bases_to_realloc: {__realloc_w_main11_l171}
-> [eva:debug:malloc] realloc.c:165: weak free on bases: {__realloc_w_main11_l171}
+> [eva:debug:malloc] Debug: bases_to_realloc: {__realloc_w_main11_l171}
+> [eva:debug:malloc] realloc.c:165: Debug: 
+>   weak free on bases: {__realloc_w_main11_l171}
 > [eva:progress] realloc.c:167: Call to builtin reallocarray
 > [eva:progress] 
 >   computing for function Frama_C_interval <- main11 <- main.
 >   Called from realloc.c:169.
 > [eva:progress] Done for function Frama_C_interval
 > [eva:progress] realloc.c:171: Call to builtin reallocarray
-> [eva:debug:malloc] bases_to_realloc: {}
-> [eva:debug:malloc] realloc.c:171: strong free on bases: {}
+> [eva:debug:malloc] Debug: bases_to_realloc: {}
+> [eva:debug:malloc] realloc.c:171: Debug: strong free on bases: {}
 > [eva:show] realloc.c:172: 
 >   Frama_C_show_each_p: {{ NULL ; &__realloc_w_main11_l171 }}
 > [eva:progress] realloc.c:165: Call to builtin reallocarray
-> [eva:debug:malloc] bases_to_realloc: {__realloc_w_main11_l171}
-> [eva:debug:malloc] realloc.c:165: weak free on bases: {__realloc_w_main11_l171}
+> [eva:debug:malloc] Debug: bases_to_realloc: {__realloc_w_main11_l171}
+> [eva:debug:malloc] realloc.c:165: Debug: 
+>   weak free on bases: {__realloc_w_main11_l171}
 > [eva:progress] realloc.c:167: Call to builtin reallocarray
 > [eva:progress] 
 >   computing for function Frama_C_interval <- main11 <- main.
 >   Called from realloc.c:169.
 > [eva:progress] Done for function Frama_C_interval
 > [eva:progress] realloc.c:171: Call to builtin reallocarray
-> [eva:debug:malloc] bases_to_realloc: {}
-> [eva:debug:malloc] realloc.c:171: strong free on bases: {}
+> [eva:debug:malloc] Debug: bases_to_realloc: {}
+> [eva:debug:malloc] realloc.c:171: Debug: strong free on bases: {}
 > [eva:show] realloc.c:172: 
 >   Frama_C_show_each_p: {{ NULL ; &__realloc_w_main11_l171 }}
 > [eva:progress] realloc.c:165: Call to builtin reallocarray
-> [eva:debug:malloc] bases_to_realloc: {__realloc_w_main11_l171}
-> [eva:debug:malloc] realloc.c:165: weak free on bases: {__realloc_w_main11_l171}
+> [eva:debug:malloc] Debug: bases_to_realloc: {__realloc_w_main11_l171}
+> [eva:debug:malloc] realloc.c:165: Debug: 
+>   weak free on bases: {__realloc_w_main11_l171}
 > [eva:progress] realloc.c:167: Call to builtin reallocarray
 > [eva:progress] 
 >   computing for function Frama_C_interval <- main11 <- main.
 >   Called from realloc.c:169.
 > [eva:progress] Done for function Frama_C_interval
 > [eva:progress] realloc.c:171: Call to builtin reallocarray
-> [eva:debug:malloc] bases_to_realloc: {}
-> [eva:debug:malloc] realloc.c:171: strong free on bases: {}
+> [eva:debug:malloc] Debug: bases_to_realloc: {}
+> [eva:debug:malloc] realloc.c:171: Debug: strong free on bases: {}
 > [eva:show] realloc.c:172: 
 >   Frama_C_show_each_p: {{ NULL ; &__realloc_w_main11_l171 }}
-669,670c961,963
+695,696c1003,1005
 <   p ∈ {{ NULL ; &__malloc_main11_l160 ; (int *)&__realloc_main11_l171 }}
 <   q ∈ {0} or UNINITIALIZED or ESCAPINGADDR
 ---

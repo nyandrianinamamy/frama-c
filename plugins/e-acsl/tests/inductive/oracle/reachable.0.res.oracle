@@ -1,5 +1,5 @@
 [e-acsl] beginning translation.
-[e-acsl:analysis:inductive] 
+[e-acsl:analysis:inductive] Debug: 
   extracting predicate from reachable using mode: complete
 [e-acsl:analysis:inductive] no valid mode found for: same_elements
 [e-acsl] Warning: Unable to extract executable code from inductive definition of same_elements.

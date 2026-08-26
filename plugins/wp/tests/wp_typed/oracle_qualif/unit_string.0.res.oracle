@@ -64,7 +64,7 @@ theory Globals
   axiom Q_K___fc_lit_string1_24_binit : binit K___fc_lit_string1_24
   
 end
-[wp:print-generated] 
+[wp:print-generated] Debug: 
   theory WP
     
     (* use why3.BuiltIn.BuiltIn *)
@@ -81,7 +81,7 @@ end
     forall t:int -> int.
      linked t -> valid_rd t (shift_sint8 (global K___fc_lit_string2_26) 0) 3
 [wp] [Valid] typed_f_assert_B_valid (Alt-Ergo) (Cached)
-[wp:print-generated] 
+[wp:print-generated] Debug: 
   theory WP1
     
     (* use why3.BuiltIn.BuiltIn *)
@@ -101,7 +101,7 @@ end
      linked t ->
      valid_rd t (shift_sint8 a1 0) 3 -> valid_rd t (shift_sint8 a1 3) 1
 [wp] [Valid] typed_f_assert_B_end (Alt-Ergo) (Cached)
-[wp:print-generated] 
+[wp:print-generated] Debug: 
   theory WP2
     
     (* use why3.BuiltIn.BuiltIn *)
@@ -122,7 +122,7 @@ end
      valid_rd t (shift_sint8 a1 0) 3 ->
      valid_rd t (shift_sint8 a1 3) 1 -> not valid_rd t (shift_sint8 a1 4) 1
 [wp] [Valid] typed_f_assert_B_out (Alt-Ergo) (Cached)
-[wp:print-generated] 
+[wp:print-generated] Debug: 
   theory WP3
     
     (* use why3.BuiltIn.BuiltIn *)
@@ -144,7 +144,7 @@ end
      valid_rd t (shift_sint8 a1 3) 1 ->
      not valid_rd t (shift_sint8 a1 4) 1 -> not valid_rw t (shift_sint8 a1 1) 1
 [wp] [Valid] typed_f_assert_B_rw (Alt-Ergo) (Cached)
-[wp:print-generated] 
+[wp:print-generated] Debug: 
   theory WP4
     
     (* use why3.BuiltIn.BuiltIn *)

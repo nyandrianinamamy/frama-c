@@ -1,5 +1,5 @@
 [e-acsl] beginning translation.
-[e-acsl:analysis:inductive] 
+[e-acsl:analysis:inductive] Debug: 
   extracting predicate from signum using mode: complete
 [e-acsl] translation done in project "e-acsl".
 [eva:alarm] sign.c:25: Warning: assertion got status unknown.

@@ -104,7 +104,7 @@ theory Compound
      Load_S1_S p mint3 mint4 mint5 = Load_S1_S p mint mint1 mint2
   
 end
-[wp:print-generated] 
+[wp:print-generated] Debug: 
   theory WP
     
     (* use why3.BuiltIn.BuiltIn *)

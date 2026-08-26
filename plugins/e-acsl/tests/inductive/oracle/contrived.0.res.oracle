@@ -1,37 +1,37 @@
 [e-acsl] beginning translation.
-[e-acsl:analysis:inductive] 
+[e-acsl:analysis:inductive] Debug: 
   extracting predicate from use_multimode using mode: complete
-[e-acsl:analysis:inductive] 
+[e-acsl:analysis:inductive] Debug: 
   extracting function from multimode with mode: incomplete in 2
-[e-acsl:analysis:inductive] 
+[e-acsl:analysis:inductive] Debug: 
   extracting function from multimode with mode: incomplete in 3
 [e-acsl] Warning: Negative verdicts of use_multimode might be unsound
-[e-acsl:analysis:inductive] 
+[e-acsl:analysis:inductive] Debug: 
   extracting predicate from simple_complex_argument using mode: complete
-[e-acsl:analysis:inductive] 
+[e-acsl:analysis:inductive] Debug: 
   extracting predicate from conds using mode: incomplete in 3
-[e-acsl:analysis:inductive] 
+[e-acsl:analysis:inductive] Debug: 
   extracting function from conds with mode: incomplete in 3
 [e-acsl] Warning: Negative verdicts of conds might be unsound
-[e-acsl:analysis:inductive] 
+[e-acsl:analysis:inductive] Debug: 
   extracting predicate from use_var_bind_and_subst using mode: complete
-[e-acsl:analysis:inductive] 
+[e-acsl:analysis:inductive] Debug: 
   extracting predicate from fibo using mode: incomplete in 2
-[e-acsl:analysis:inductive] 
+[e-acsl:analysis:inductive] Debug: 
   extracting function from fibo with mode: incomplete in 2
 [e-acsl] Warning: Negative verdicts of fibo might be unsound
-[e-acsl:analysis:inductive] 
+[e-acsl:analysis:inductive] Debug: 
   extracting predicate from use_var_use_bind_and_subst using mode: complete
-[e-acsl:analysis:inductive] 
+[e-acsl:analysis:inductive] Debug: 
   extracting predicate from bind_twice using mode: incomplete in 3
-[e-acsl:analysis:inductive] 
+[e-acsl:analysis:inductive] Debug: 
   extracting function from bind_twice with mode: incomplete in 3
 [e-acsl] Warning: Negative verdicts of bind_twice might be unsound
-[e-acsl:analysis:inductive] 
+[e-acsl:analysis:inductive] Debug: 
   extracting predicate from subst_let using mode: complete
-[e-acsl:analysis:inductive] 
+[e-acsl:analysis:inductive] Debug: 
   extracting predicate from dupl using mode: incomplete in 2
-[e-acsl:analysis:inductive] 
+[e-acsl:analysis:inductive] Debug: 
   extracting function from dupl with mode: incomplete in 2
 [e-acsl] Warning: Negative verdicts of dupl might be unsound
 [e-acsl] translation done in project "e-acsl".
