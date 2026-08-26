@@ -192,7 +192,7 @@ let is_singleton_int = function
 (* ********************************************************************* *)
 
 let extract_ival = function
-  | Ival iv -> Some iv
+  | Ival iv when not @@ Ival.is_bottom iv -> Some iv
   | _ -> None
 
 let bottom = Ival Ival.bottom
