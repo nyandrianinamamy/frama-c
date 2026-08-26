@@ -132,11 +132,11 @@ class internal_generic_frama_c_visitor fundec queue current_kf behavior: frama_c
       let plain_post = post_action (fun x -> x) in
       match res with
       | Cil.SkipChildren -> res
-      | Cil.JustCopy -> JustCopyPost copy
-      | Cil.JustCopyPost f -> JustCopyPost (f $ copy)
-      | Cil.DoChildren -> DoChildrenPost plain_post
-      | Cil.DoChildrenPost f -> DoChildrenPost (f $ plain_post)
-      | Cil.ChangeTo _ | ChangeToPost _ -> res
+      | Cil.JustCopy -> Cil.JustCopyPost copy
+      | Cil.JustCopyPost f -> Cil.JustCopyPost (f $ copy)
+      | Cil.DoChildren -> Cil.DoChildrenPost plain_post
+      | Cil.DoChildrenPost f -> Cil.DoChildrenPost (f $ plain_post)
+      | Cil.ChangeTo _ | Cil.ChangeToPost _ -> res
       | Cil.ChangeDoChildrenPost (stmt,f) ->
         Cil.ChangeDoChildrenPost (stmt, post_action f)
 
@@ -809,13 +809,13 @@ class internal_generic_frama_c_visitor fundec queue current_kf behavior: frama_c
         change_glob g None;
         if has_kf then self#reset_current_kf();
         res
-      | Cil.JustCopy -> JustCopyPost post_action
-      | Cil.JustCopyPost f -> JustCopyPost (post_action $ f)
-      | Cil.DoChildren -> DoChildrenPost (post_do_children Fun.id)
-      | Cil.DoChildrenPost f -> DoChildrenPost (post_do_children f)
-      | Cil.ChangeTo l -> ChangeToPost (l,post_change_to)
-      | Cil.ChangeToPost (l,f) -> ChangeToPost (l, post_change_to $ f)
-      | Cil.ChangeDoChildrenPost (l,f) -> ChangeDoChildrenPost (l, post_do_children f)
+      | Cil.JustCopy -> Cil.JustCopyPost post_action
+      | Cil.JustCopyPost f -> Cil.JustCopyPost (post_action $ f)
+      | Cil.DoChildren -> Cil.DoChildrenPost (post_do_children Fun.id)
+      | Cil.DoChildrenPost f -> Cil.DoChildrenPost (post_do_children f)
+      | Cil.ChangeTo l -> Cil.ChangeToPost (l,post_change_to)
+      | Cil.ChangeToPost (l,f) -> Cil.ChangeToPost (l, post_change_to $ f)
+      | Cil.ChangeDoChildrenPost (l,f) -> Cil.ChangeDoChildrenPost (l, post_do_children f)
   end
 
 class generic_frama_c_visitor bhv =
