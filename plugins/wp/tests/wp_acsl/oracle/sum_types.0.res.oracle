@@ -26,7 +26,7 @@ theory A_A
   predicate P_P A_InAxiomatic
   
 end
-[wp:print-generated] 
+[wp:print-generated] Debug: 
   theory WP
     
     (* use why3.BuiltIn.BuiltIn *)
@@ -74,7 +74,7 @@ theory A_X
   predicate P_Q A_AtTopLevel
   
 end
-[wp:print-generated] 
+[wp:print-generated] Debug: 
   theory WP1
     
     (* use why3.BuiltIn.BuiltIn *)
@@ -123,7 +123,7 @@ theory A_Y
   predicate P_R A_Rec
   
 end
-[wp:print-generated] 
+[wp:print-generated] Debug: 
   theory WP2
     
     (* use why3.BuiltIn.BuiltIn *)

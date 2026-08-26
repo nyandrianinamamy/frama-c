@@ -17,7 +17,7 @@ theory Compound
   function shift_sint32 (p:addr) (k:int) : addr = shift p k
   
 end
-[wp:print-generated] 
+[wp:print-generated] Debug: 
   theory WP
     
     (* use why3.BuiltIn.BuiltIn *)

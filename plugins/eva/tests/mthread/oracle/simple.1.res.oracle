@@ -31,7 +31,7 @@
         pthread_mutex_lock :: simple.c:49 <- main
       read by <main> at FRAMAC_SHARE/eva/mthread_pthread.c:56 <-
         pthread_mutex_unlock :: simple.c:51 <- main
-[eva:debug:interferences] 
+[eva:debug:interferences] Debug: 
   Interferences from thread <main>
     concurrent writes:
     shared bases: {}
@@ -39,7 +39,7 @@
     interferences by mutexes:
 [eva:thread-fixpoint] 
   Analyzing thread job1 starting at f1, iteration 1 (first iteration).
-[eva:debug:interferences] 
+[eva:debug:interferences] Debug: 
   inject threads interferences at the start of f1 for thread job1
 [eva:mutex] simple.c:22: Lock lock
 [eva] using specification for function g1
@@ -56,7 +56,7 @@
         pthread_mutex_lock :: simple.c:22 <- f1
       read by job1 at FRAMAC_SHARE/eva/mthread_pthread.c:56 <-
         pthread_mutex_unlock :: simple.c:27 <- f1
-[eva:debug:interferences] 
+[eva:debug:interferences] Debug: 
   Interferences from thread job1
     concurrent writes:
     shared bases: {}
@@ -64,7 +64,7 @@
     interferences by mutexes:
 [eva:thread-fixpoint] 
   Analyzing thread job2 starting at f2, iteration 1 (first iteration).
-[eva:debug:interferences] 
+[eva:debug:interferences] Debug: 
   inject threads interferences at the start of f2 for thread job2
 [eva:mutex] simple.c:33: Lock lock
 [eva] using specification for function g2
@@ -81,7 +81,7 @@
         pthread_mutex_lock :: simple.c:33 <- f2
       read by job2 at FRAMAC_SHARE/eva/mthread_pthread.c:56 <-
         pthread_mutex_unlock :: simple.c:38 <- f2
-[eva:debug:interferences] 
+[eva:debug:interferences] Debug: 
   Interferences from thread job2
     concurrent writes:
     shared bases: {}
@@ -115,7 +115,7 @@
         pthread_mutex_lock :: simple.c:49 <- main
       read by <main> at FRAMAC_SHARE/eva/mthread_pthread.c:56 <-
         pthread_mutex_unlock :: simple.c:51 <- main
-[eva:debug:interferences] 
+[eva:debug:interferences] Debug: 
   Interferences from thread <main>
     concurrent writes:
     shared bases: {a, b, c, v}
@@ -124,13 +124,13 @@
 [eva:thread-fixpoint] 
   Analyzing thread job1 starting at f1, iteration 2 (potential shared vars
     changed and interferences changed).
-[eva:debug:interferences] simple.c:23: 
+[eva:debug:interferences] simple.c:23: Debug: 
   inject threads interferences at this point
-[eva:debug:interferences] simple.c:24: 
+[eva:debug:interferences] simple.c:24: Debug: 
   inject threads interferences at this point
-[eva:debug:interferences] simple.c:25: 
+[eva:debug:interferences] simple.c:25: Debug: 
   inject threads interferences at this point
-[eva:debug:interferences] simple.c:26: 
+[eva:debug:interferences] simple.c:26: Debug: 
   inject threads interferences at this point
 [eva:global-accesses] 
   Globals accessed by thread:
@@ -144,7 +144,7 @@
         pthread_mutex_lock :: simple.c:22 <- f1
       read by job1 at FRAMAC_SHARE/eva/mthread_pthread.c:56 <-
         pthread_mutex_unlock :: simple.c:27 <- f1
-[eva:debug:interferences] 
+[eva:debug:interferences] Debug: 
   Interferences from thread job1
     concurrent writes:
       a = 1; simple.c:23 <- f1
@@ -182,13 +182,13 @@
 [eva:thread-fixpoint] 
   Analyzing thread job2 starting at f2, iteration 2 (potential shared vars
     changed and interferences changed).
-[eva:debug:interferences] simple.c:34: 
+[eva:debug:interferences] simple.c:34: Debug: 
   inject threads interferences at this point
-[eva:debug:interferences] simple.c:35: 
+[eva:debug:interferences] simple.c:35: Debug: 
   inject threads interferences at this point
-[eva:debug:interferences] simple.c:36: 
+[eva:debug:interferences] simple.c:36: Debug: 
   inject threads interferences at this point
-[eva:debug:interferences] simple.c:37: 
+[eva:debug:interferences] simple.c:37: Debug: 
   inject threads interferences at this point
 [eva:global-accesses] 
   Globals accessed by thread:
@@ -202,7 +202,7 @@
         pthread_mutex_lock :: simple.c:33 <- f2
       read by job2 at FRAMAC_SHARE/eva/mthread_pthread.c:56 <-
         pthread_mutex_unlock :: simple.c:38 <- f2
-[eva:debug:interferences] 
+[eva:debug:interferences] Debug: 
   Interferences from thread job2
     concurrent writes:
       b = 2; simple.c:34 <- f2
@@ -269,7 +269,7 @@
     changed and interferences changed).
 [eva:thread] simple.c:47: 
   New context for job2, fun f2, parent <main>, args {{ &a }}
-[eva:debug:interferences] simple.c:50: 
+[eva:debug:interferences] simple.c:50: Debug: 
   inject threads interferences at this point
 [eva:global-accesses] 
   Globals accessed by thread:
@@ -288,7 +288,7 @@
         pthread_mutex_lock :: simple.c:49 <- main
       read by <main> at FRAMAC_SHARE/eva/mthread_pthread.c:56 <-
         pthread_mutex_unlock :: simple.c:51 <- main
-[eva:debug:interferences] 
+[eva:debug:interferences] Debug: 
   Interferences from thread <main>
     concurrent writes:
     shared bases: {a, b, c, v}
@@ -308,7 +308,7 @@
         pthread_mutex_lock :: simple.c:22 <- f1
       read by job1 at FRAMAC_SHARE/eva/mthread_pthread.c:56 <-
         pthread_mutex_unlock :: simple.c:27 <- f1
-[eva:debug:interferences] 
+[eva:debug:interferences] Debug: 
   Interferences from thread job1
     concurrent writes:
       a = 1; simple.c:23 <- f1
@@ -358,7 +358,7 @@
         pthread_mutex_lock :: simple.c:33 <- f2
       read by job2 at FRAMAC_SHARE/eva/mthread_pthread.c:56 <-
         pthread_mutex_unlock :: simple.c:38 <- f2
-[eva:debug:interferences] 
+[eva:debug:interferences] Debug: 
   Interferences from thread job2
     concurrent writes:
       b = 2; simple.c:34 <- f2
@@ -427,7 +427,7 @@
         pthread_mutex_lock :: simple.c:49 <- main
       read by <main> at FRAMAC_SHARE/eva/mthread_pthread.c:56 <-
         pthread_mutex_unlock :: simple.c:51 <- main
-[eva:debug:interferences] 
+[eva:debug:interferences] Debug: 
   Interferences from thread <main>
     concurrent writes:
     shared bases: {a, b, c, v}

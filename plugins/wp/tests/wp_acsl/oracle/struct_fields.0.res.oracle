@@ -86,7 +86,7 @@ theory Compound
      eqmem init init1 p 3 -> Load_Init_S1_X p init1 = Load_Init_S1_X p init
   
 end
-[wp:print-generated] 
+[wp:print-generated] Debug: 
   theory WP
     
     (* use why3.BuiltIn.BuiltIn *)
@@ -116,7 +116,7 @@ end
      linked t1 ->
      sconst t2 ->
      scinit t -> IsS1_X (Load_S1_X a1 t2 t3 t4) -> valid_rd t1 a1 3
-[wp:print-generated] 
+[wp:print-generated] Debug: 
   theory WP1
     
     (* use why3.BuiltIn.BuiltIn *)

@@ -35,7 +35,7 @@ theory S1_s
   predicate IsArray_S1_s (t:int -> s) = forall i:int. IsS1_s (get t i)
   
 end
-[wp:print-generated] 
+[wp:print-generated] Debug: 
   theory WP
     
     (* use why3.BuiltIn.BuiltIn *)

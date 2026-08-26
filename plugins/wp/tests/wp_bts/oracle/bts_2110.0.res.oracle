@@ -46,7 +46,7 @@ theory S2_A
   predicate EqS2_A (s:A) (s1:A) = dummy s1 = dummy s
   
 end
-[wp:print-generated] 
+[wp:print-generated] Debug: 
   theory WP
     
     (* use why3.BuiltIn.BuiltIn *)

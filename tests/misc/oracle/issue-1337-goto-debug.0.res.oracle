@@ -1,14 +1,14 @@
 [kernel] Parsing issue-1337-goto-debug.i (no preprocessing)
-[kernel:typing:global] createGlobal: x
-[kernel:typing:global] 
+[kernel:typing:global] Debug: createGlobal: x
+[kernel:typing:global] Debug: 
   makeGlobalVarinfo isadef=true vi.vname=x(21), vreferenced=false
-[kernel:typing:global] x not in the env already
-[kernel:typing:global] first definition for x(21)
-[kernel:typing:global] Definition of f at issue-1337-goto-debug.i:7:6-7
-[kernel:typing:global] 
+[kernel:typing:global] Debug: x not in the env already
+[kernel:typing:global] Debug: first definition for x(21)
+[kernel:typing:global] Debug: Definition of f at issue-1337-goto-debug.i:7:6-7
+[kernel:typing:global] Debug: 
   makeGlobalVarinfo isadef=true vi.vname=f(22), vreferenced=false
-[kernel:typing:global] f not in the env already
-[kernel:typing:chunk] 
+[kernel:typing:global] Debug: f not in the env already
+[kernel:typing:chunk] Debug: 
   Concat:
   
   
@@ -29,16 +29,16 @@
    
    */
    goto L;}
-[kernel:typing:chunk] 
+[kernel:typing:chunk] Debug: 
   Removing x from chunk
   /* UNDEFINED ORDER */
   
   
   {}
-[kernel:typing:cast] no cast to perform
-[kernel:typing:cast] no cast to perform
-[kernel:typing:cast] no cast to perform
-[kernel:typing:chunk] 
+[kernel:typing:cast] Debug: no cast to perform
+[kernel:typing:cast] Debug: no cast to perform
+[kernel:typing:cast] Debug: no cast to perform
+[kernel:typing:chunk] Debug: 
   Concat:
   
   
@@ -60,7 +60,7 @@
    
    */
    x ++;}
-[kernel:typing:chunk] 
+[kernel:typing:chunk] Debug: 
   Concat:
   
   
@@ -90,16 +90,16 @@
    
    */
    x ++;}
-[kernel:typing:chunk] 
+[kernel:typing:chunk] Debug: 
   Removing x from chunk
   /* UNDEFINED ORDER */
   
   
   {}
-[kernel:typing:cast] no cast to perform
-[kernel:typing:cast] no cast to perform
-[kernel:typing:cast] no cast to perform
-[kernel:typing:chunk] 
+[kernel:typing:cast] Debug: no cast to perform
+[kernel:typing:cast] Debug: no cast to perform
+[kernel:typing:cast] Debug: no cast to perform
+[kernel:typing:chunk] Debug: 
   Concat:
   
   
@@ -121,7 +121,7 @@
    
    */
    x ++;}
-[kernel:typing:chunk] 
+[kernel:typing:chunk] Debug: 
   Concat:
   
   
@@ -161,7 +161,7 @@
    
    */
    L: x ++;}
-[kernel:typing:chunk] 
+[kernel:typing:chunk] Debug: 
   Concat:
   
   

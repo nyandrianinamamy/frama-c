@@ -27,7 +27,7 @@ theory Axiomatic
   predicate P_P int
   
 end
-[wp:print-generated] 
+[wp:print-generated] Debug: 
   theory WP
     
     (* use why3.BuiltIn.BuiltIn *)
@@ -106,7 +106,7 @@ theory Axiomatic1
   predicate P_P1 int
   
 end
-[wp:print-generated] 
+[wp:print-generated] Debug: 
   theory WP1
     
     (* use why3.BuiltIn.BuiltIn *)

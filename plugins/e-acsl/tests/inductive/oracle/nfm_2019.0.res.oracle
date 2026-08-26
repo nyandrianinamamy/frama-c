@@ -1,5 +1,5 @@
 [e-acsl] beginning translation.
-[e-acsl:analysis:inductive] 
+[e-acsl:analysis:inductive] Debug: 
   extracting predicate from null_vector using mode: complete
 [e-acsl] nfm_2019.c:25: Warning: 
   no assigns clause generated for function null_vector because pointers as arguments is not yet supported

@@ -50,7 +50,7 @@
 [eva:progress] malloc-size-zero.c:37: Call to builtin free
 [eva:progress] malloc-size-zero.c:37: 
   function free: precondition 'freeable' got status valid.
-[eva:debug:malloc] malloc-size-zero.c:37: 
+[eva:debug:malloc] malloc-size-zero.c:37: Debug: 
   strong free on bases: {__malloc_main_l16}
 [eva:show] malloc-size-zero.c:39: Frama_C_show_each: {{ &__malloc_w_main_l29 }}
 [eva:progress] malloc-size-zero.c:40: assertion got status valid.
@@ -65,7 +65,7 @@
 [eva:progress] malloc-size-zero.c:44: Call to builtin free
 [eva:progress] malloc-size-zero.c:44: 
   function free: precondition 'freeable' got status valid.
-[eva:debug:malloc] malloc-size-zero.c:44: 
+[eva:debug:malloc] malloc-size-zero.c:44: Debug: 
   weak free on bases: {__malloc_w_main_l29}
 [eva:progress] Recording results for main
 [eva:progress] Done for function main

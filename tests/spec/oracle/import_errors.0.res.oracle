@@ -1,23 +1,27 @@
-[kernel:acsl-extension] Registering acsl extension unfold
-[kernel:acsl-extension] Registering acsl extension calls
-[kernel:acsl-extension] Registering acsl extension instanceof
-[kernel:acsl-extension] Registering acsl extension \eva::widen_hints
-[kernel:acsl-extension] Registering acsl extension \eva::slevel
-[kernel:acsl-extension] Registering acsl extension \eva::unroll
-[kernel:acsl-extension] Registering acsl extension \eva::split
-[kernel:acsl-extension] Registering acsl extension \eva::merge
-[kernel:acsl-extension] Registering acsl extension \eva::dynamic_split
-[kernel:acsl-extension] Registering acsl extension \eva::subdivide
-[kernel:acsl-extension] Registering acsl extension \eva::eva_allocate
-[kernel:acsl-extension] Registering acsl extension \eva::array_partition
-[kernel:acsl-extension] Registering acsl extension \eva::eva_domain_scope
-[kernel:acsl-extension] Registering acsl extension \eva::taints
-[kernel:acsl-extension] Registering acsl extension \eva::taint
+[kernel:acsl-extension] Debug: Registering acsl extension unfold
+[kernel:acsl-extension] Debug: Registering acsl extension calls
+[kernel:acsl-extension] Debug: Registering acsl extension instanceof
+[kernel:acsl-extension] Debug: Registering acsl extension \eva::widen_hints
+[kernel:acsl-extension] Debug: Registering acsl extension \eva::slevel
+[kernel:acsl-extension] Debug: Registering acsl extension \eva::unroll
+[kernel:acsl-extension] Debug: Registering acsl extension \eva::split
+[kernel:acsl-extension] Debug: Registering acsl extension \eva::merge
+[kernel:acsl-extension] Debug: Registering acsl extension \eva::dynamic_split
+[kernel:acsl-extension] Debug: Registering acsl extension \eva::subdivide
+[kernel:acsl-extension] Debug: Registering acsl extension \eva::eva_allocate
+[kernel:acsl-extension] Debug: Registering acsl extension \eva::array_partition
+[kernel:acsl-extension] Debug: Registering acsl extension \eva::eva_domain_scope
+[kernel:acsl-extension] Debug: Registering acsl extension \eva::taints
+[kernel:acsl-extension] Debug: Registering acsl extension \eva::taint
 [test-import] Linking.
-[kernel:acsl-extension] Registering module importer extension \myplugin1::foo
-[kernel:acsl-extension] Registering module importer extension \myplugin1::bar
-[kernel:acsl-extension] Registering module importer extension \myplugin2::foo
-[kernel:acsl-extension] Registering module importer extension \myplugin1::foo
+[kernel:acsl-extension] Debug: 
+  Registering module importer extension \myplugin1::foo
+[kernel:acsl-extension] Debug: 
+  Registering module importer extension \myplugin1::bar
+[kernel:acsl-extension] Debug: 
+  Registering module importer extension \myplugin2::foo
+[kernel:acsl-extension] Debug: 
+  Registering module importer extension \myplugin1::foo
 [kernel:acsl-extension] Warning: 
   Trying to register module importer extension foo twice with plugin myplugin1. Ignoring the second extension
 [kernel] Parsing import_errors.c (with preprocessing)

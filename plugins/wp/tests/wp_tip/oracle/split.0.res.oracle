@@ -54,7 +54,7 @@
 [wp] [Valid] Goal test_step_pneq_terminates (Cfg) (Trivial)
 [wp] 25 goals scheduled
 [wp] [Valid] typed_test_step_branch_terminates (Qed)
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   Goal Post-condition ("split.i", line 37, characters 13-14) in 'test_step_branch':
   Assume {
     Type: is_sint32(a) /\ is_sint32(b).
@@ -66,31 +66,31 @@
   
   ------------------------------------------------------------
 [wp] [Valid] typed_test_step_branch_exits (Qed)
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   Goal Post-condition ("split.i", line 47, characters 13-14) in 'test_step_or':
   Assume { (* Pre-condition *) Have: P_P \/ P_Q \/ P_R. }
   Prove: P_S.
   
   ------------------------------------------------------------
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   Goal Post-condition ("split.i", line 51, characters 13-14) in 'test_step_and':
   Assume { (* Pre-condition *) Have: P_P /\ P_Q /\ P_R. }
   Prove: P_S.
   
   ------------------------------------------------------------
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   Goal Post-condition ("split.i", line 55, characters 13-14) in 'test_step_peq':
   Assume { (* Pre-condition *) Have: L_LQ <-> L_LP. }
   Prove: P_S.
   
   ------------------------------------------------------------
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   Goal Post-condition ("split.i", line 59, characters 13-14) in 'test_step_pneq':
   Assume { (* Pre-condition *) Have: !(L_LQ <-> L_LP). }
   Prove: P_S.
   
   ------------------------------------------------------------
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   Goal Post-condition ("split.i", line 63, characters 13-14) in 'test_step_neq':
   Assume {
     Type: is_sint32(a) /\ is_sint32(b).
@@ -100,7 +100,7 @@
   Prove: P_S.
   
   ------------------------------------------------------------
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   Goal Post-condition ("split.i", line 67, characters 13-14) in 'test_step_leq':
   Assume {
     Type: is_sint32(a) /\ is_sint32(b).
@@ -110,14 +110,14 @@
   Prove: P_S.
   
   ------------------------------------------------------------
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   Goal Post-condition ("split.i", line 71, characters 13-14) in 'test_step_lt':
   Assume { Type: is_sint32(a) /\ is_sint32(b). (* Pre-condition *) Have: a < b.
   }
   Prove: P_S.
   
   ------------------------------------------------------------
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   Goal Post-condition ("split.i", line 75, characters 13-14) in 'test_step_if':
   Assume {
     Type: is_sint32(a) /\ is_sint32(b).
@@ -127,7 +127,7 @@
   Prove: P_S.
   
   ------------------------------------------------------------
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   Goal Post-condition ("split.i", line 79, characters 13-14) in 'test_step_fa_if':
   Assume {
     (* Heap *)
@@ -138,7 +138,7 @@
   Prove: P_S.
   
   ------------------------------------------------------------
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   Goal Post-condition ("split.i", line 83, characters 13-14) in 'test_step_fa_or':
   Assume {
     (* Pre-condition *)
@@ -147,7 +147,7 @@
   Prove: P_S.
   
   ------------------------------------------------------------
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   Goal Post-condition ("split.i", line 87, characters 13-14) in 'test_step_fa_and':
   Assume {
     (* Pre-condition *)
@@ -156,7 +156,7 @@
   Prove: P_S.
   
   ------------------------------------------------------------
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   Goal Post-condition ("split.i", line 91, characters 13-14) in 'test_inside_leq':
   Assume {
     Type: is_sint32(a) /\ is_sint32(b).
@@ -166,7 +166,7 @@
   Prove: P_Q.
   
   ------------------------------------------------------------
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   Goal Post-condition ("split.i", line 95, characters 13-14) in 'test_inside_lt':
   Assume {
     Type: is_sint32(a) /\ is_sint32(b).
@@ -176,7 +176,7 @@
   Prove: P_Q.
   
   ------------------------------------------------------------
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   Goal Post-condition ("split.i", line 99, characters 13-14) in 'test_inside_neq':
   Assume {
     Type: is_sint32(a) /\ is_sint32(b).
@@ -186,43 +186,43 @@
   Prove: P_Q.
   
   ------------------------------------------------------------
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   Goal Post-condition ("split.i", line 103, characters 13-24) in 'test_goal_and':
   Assume { (* Pre-condition *) Have: P_S. }
   Prove: P_P /\ P_Q /\ P_R.
   
   ------------------------------------------------------------
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   Goal Post-condition ("split.i", line 107, characters 13-21) in 'test_goal_eq':
   Assume { (* Pre-condition *) Have: P_S. }
   Prove: L_LQ <-> L_LP.
   
   ------------------------------------------------------------
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   Goal Post-condition ("split.i", line 111, characters 13-21) in 'test_goal_neq':
   Assume { (* Pre-condition *) Have: P_S. }
   Prove: !(L_LQ <-> L_LP).
   
   ------------------------------------------------------------
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   Goal Post-condition ("split.i", line 115, characters 13-28) in 'test_goal_if':
   Assume { Type: is_sint32(a) /\ is_sint32(b). (* Pre-condition *) Have: P_S. }
   Prove: if (a < b) then P_P else P_Q.
   
   ------------------------------------------------------------
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   Goal Post-condition ("split.i", line 119, characters 13-57) in 'test_goal_ex_and':
   Assume { (* Pre-condition *) Have: P_S. }
   Prove: exists i : Z. P_P /\ P_Q /\ P_Pi(i) /\ P_Qi(i).
   
   ------------------------------------------------------------
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   Goal Post-condition ("split.i", line 123, characters 13-57) in 'test_goal_ex_or':
   Assume { (* Pre-condition *) Have: P_S. }
   Prove: exists i : Z. P_P \/ P_Q \/ P_Pi(i) \/ P_Qi(i).
   
   ------------------------------------------------------------
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   Goal Post-condition ("split.i", line 127, characters 13-66) in 'test_goal_ex_if':
   Assume {
     (* Heap *)
@@ -233,13 +233,13 @@
   Prove: exists i : Z. if (a < b) then (P_Pi(i) /\ P_Qi(i)) else (P_P /\ P_Q).
   
   ------------------------------------------------------------
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   Goal Post-condition ("split.i", line 131, characters 13-53) in 'test_goal_ex_imply':
   Assume { (* Pre-condition *) Have: P_S. }
   Prove: exists i : Z. (P_Q -> (P_Pi(i) -> P_Qi(i))).
   
   ------------------------------------------------------------
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   typed_test_step_branch_ensures subgoal:
   
   Goal Wp.Tactical.typed_test_step_branch_ensures-0 (generated by WP):
@@ -253,7 +253,7 @@
   Prove: P_S.
   
   ------------------------------------------------------------
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   typed_test_step_branch_ensures subgoal:
   
   Goal Wp.Tactical.typed_test_step_branch_ensures-1 (generated by WP):
@@ -268,7 +268,7 @@
   
   ------------------------------------------------------------
 [wp] [Unsuccess] typed_test_step_branch_ensures (Tactic) (Qed)
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   typed_test_step_or_ensures subgoal:
   
   Goal Wp.Tactical.typed_test_step_or_ensures-0 (generated by WP):
@@ -276,7 +276,7 @@
   Prove: P_S.
   
   ------------------------------------------------------------
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   typed_test_step_or_ensures subgoal:
   
   Goal Wp.Tactical.typed_test_step_or_ensures-1 (generated by WP):
@@ -284,7 +284,7 @@
   Prove: P_S.
   
   ------------------------------------------------------------
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   typed_test_step_or_ensures subgoal:
   
   Goal Wp.Tactical.typed_test_step_or_ensures-2 (generated by WP):
@@ -293,7 +293,7 @@
   
   ------------------------------------------------------------
 [wp] [Unsuccess] typed_test_step_or_ensures (Tactic) (Qed)
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   typed_test_step_and_ensures subgoal:
   
   Goal Wp.Tactical.typed_test_step_and_ensures-0 (generated by WP):
@@ -309,7 +309,7 @@
   
   ------------------------------------------------------------
 [wp] [Unsuccess] typed_test_step_and_ensures (Tactic) (Qed)
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   typed_test_step_peq_ensures subgoal:
   
   Goal Wp.Tactical.typed_test_step_peq_ensures-0 (generated by WP):
@@ -317,7 +317,7 @@
   Prove: P_S.
   
   ------------------------------------------------------------
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   typed_test_step_peq_ensures subgoal:
   
   Goal Wp.Tactical.typed_test_step_peq_ensures-1 (generated by WP):
@@ -326,7 +326,7 @@
   
   ------------------------------------------------------------
 [wp] [Unsuccess] typed_test_step_peq_ensures (Tactic) (Qed)
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   typed_test_step_pneq_ensures subgoal:
   
   Goal Wp.Tactical.typed_test_step_pneq_ensures-0 (generated by WP):
@@ -334,7 +334,7 @@
   Prove: P_S.
   
   ------------------------------------------------------------
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   typed_test_step_pneq_ensures subgoal:
   
   Goal Wp.Tactical.typed_test_step_pneq_ensures-1 (generated by WP):
@@ -343,7 +343,7 @@
   
   ------------------------------------------------------------
 [wp] [Unsuccess] typed_test_step_pneq_ensures (Tactic) (Qed)
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   typed_test_step_neq_ensures subgoal:
   
   Goal Wp.Tactical.typed_test_step_neq_ensures-0 (generated by WP):
@@ -351,7 +351,7 @@
   Prove: P_S.
   
   ------------------------------------------------------------
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   typed_test_step_neq_ensures subgoal:
   
   Goal Wp.Tactical.typed_test_step_neq_ensures-1 (generated by WP):
@@ -359,7 +359,7 @@
   Prover Qed returns Valid
   
   ------------------------------------------------------------
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   typed_test_step_neq_ensures subgoal:
   
   Goal Wp.Tactical.typed_test_step_neq_ensures-2 (generated by WP):
@@ -368,7 +368,7 @@
   
   ------------------------------------------------------------
 [wp] [Unsuccess] typed_test_step_neq_ensures (Tactic) (Qed 1/3)
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   typed_test_step_leq_ensures subgoal:
   
   Goal Wp.Tactical.typed_test_step_leq_ensures-0 (generated by WP):
@@ -376,14 +376,14 @@
   Prove: P_S.
   
   ------------------------------------------------------------
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   typed_test_step_leq_ensures subgoal:
   
   Goal Wp.Tactical.typed_test_step_leq_ensures-1 (generated by WP):
   Prove: P_S.
   
   ------------------------------------------------------------
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   typed_test_step_leq_ensures subgoal:
   
   Goal Wp.Tactical.typed_test_step_leq_ensures-2 (generated by WP):
@@ -392,7 +392,7 @@
   
   ------------------------------------------------------------
 [wp] [Unsuccess] typed_test_step_leq_ensures (Tactic) (Qed 1/3)
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   typed_test_step_lt_ensures subgoal:
   
   Goal Wp.Tactical.typed_test_step_lt_ensures-0 (generated by WP):
@@ -406,14 +406,14 @@
   Prove: P_S.
   
   ------------------------------------------------------------
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   typed_test_step_lt_ensures subgoal:
   
   Goal Wp.Tactical.typed_test_step_lt_ensures-1 (generated by WP):
   Prove: P_S.
   
   ------------------------------------------------------------
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   typed_test_step_lt_ensures subgoal:
   
   Goal Wp.Tactical.typed_test_step_lt_ensures-2 (generated by WP):
@@ -422,7 +422,7 @@
   
   ------------------------------------------------------------
 [wp] [Unsuccess] typed_test_step_lt_ensures (Tactic) (Qed 1/3)
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   typed_test_step_if_ensures subgoal:
   
   Goal Wp.Tactical.typed_test_step_if_ensures-0 (generated by WP):
@@ -431,7 +431,7 @@
   Prove: P_S.
   
   ------------------------------------------------------------
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   typed_test_step_if_ensures subgoal:
   
   Goal Wp.Tactical.typed_test_step_if_ensures-1 (generated by WP):
@@ -444,7 +444,7 @@
   
   ------------------------------------------------------------
 [wp] [Unsuccess] typed_test_step_if_ensures (Tactic) (Qed)
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   typed_test_step_fa_if_ensures subgoal:
   
   Goal Wp.Tactical.typed_test_step_fa_if_ensures-0 (generated by WP):
@@ -457,7 +457,7 @@
   Prove: P_S.
   
   ------------------------------------------------------------
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   typed_test_step_fa_if_ensures subgoal:
   
   Goal Wp.Tactical.typed_test_step_fa_if_ensures-1 (generated by WP):
@@ -471,7 +471,7 @@
   
   ------------------------------------------------------------
 [wp] [Unsuccess] typed_test_step_fa_if_ensures (Tactic) (Qed)
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   typed_test_step_fa_or_ensures subgoal:
   
   Goal Wp.Tactical.typed_test_step_fa_or_ensures-0 (generated by WP):
@@ -479,7 +479,7 @@
   Prove: P_S.
   
   ------------------------------------------------------------
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   typed_test_step_fa_or_ensures subgoal:
   
   Goal Wp.Tactical.typed_test_step_fa_or_ensures-1 (generated by WP):
@@ -488,7 +488,7 @@
   
   ------------------------------------------------------------
 [wp] [Unsuccess] typed_test_step_fa_or_ensures (Tactic) (Qed)
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   typed_test_step_fa_and_ensures subgoal:
   
   Goal Wp.Tactical.typed_test_step_fa_and_ensures-0 (generated by WP):
@@ -501,7 +501,7 @@
   
   ------------------------------------------------------------
 [wp] [Unsuccess] typed_test_step_fa_and_ensures (Tactic) (Qed)
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   typed_test_inside_leq_ensures subgoal:
   
   Goal Wp.Tactical.typed_test_inside_leq_ensures-0 (generated by WP):
@@ -515,7 +515,7 @@
   Prove: P_Q.
   
   ------------------------------------------------------------
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   typed_test_inside_leq_ensures subgoal:
   
   Goal Wp.Tactical.typed_test_inside_leq_ensures-1 (generated by WP):
@@ -523,7 +523,7 @@
   Prove: P_Q.
   
   ------------------------------------------------------------
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   typed_test_inside_leq_ensures subgoal:
   
   Goal Wp.Tactical.typed_test_inside_leq_ensures-2 (generated by WP):
@@ -532,7 +532,7 @@
   
   ------------------------------------------------------------
 [wp] [Unsuccess] typed_test_inside_leq_ensures (Tactic) (Qed 1/3)
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   typed_test_inside_lt_ensures subgoal:
   
   Goal Wp.Tactical.typed_test_inside_lt_ensures-0 (generated by WP):
@@ -546,7 +546,7 @@
   Prove: P_Q.
   
   ------------------------------------------------------------
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   typed_test_inside_lt_ensures subgoal:
   
   Goal Wp.Tactical.typed_test_inside_lt_ensures-1 (generated by WP):
@@ -554,7 +554,7 @@
   Prove: P_Q.
   
   ------------------------------------------------------------
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   typed_test_inside_lt_ensures subgoal:
   
   Goal Wp.Tactical.typed_test_inside_lt_ensures-2 (generated by WP):
@@ -563,7 +563,7 @@
   
   ------------------------------------------------------------
 [wp] [Unsuccess] typed_test_inside_lt_ensures (Tactic) (Qed 1/3)
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   typed_test_inside_neq_ensures subgoal:
   
   Goal Wp.Tactical.typed_test_inside_neq_ensures-0 (generated by WP):
@@ -577,7 +577,7 @@
   Prove: P_Q.
   
   ------------------------------------------------------------
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   typed_test_inside_neq_ensures subgoal:
   
   Goal Wp.Tactical.typed_test_inside_neq_ensures-1 (generated by WP):
@@ -585,7 +585,7 @@
   Prover Qed returns Valid
   
   ------------------------------------------------------------
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   typed_test_inside_neq_ensures subgoal:
   
   Goal Wp.Tactical.typed_test_inside_neq_ensures-2 (generated by WP):
@@ -600,7 +600,7 @@
   
   ------------------------------------------------------------
 [wp] [Unsuccess] typed_test_inside_neq_ensures (Tactic) (Qed 1/3)
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   typed_test_goal_and_ensures subgoal:
   
   Goal Wp.Tactical.typed_test_goal_and_ensures-0 (generated by WP):
@@ -608,7 +608,7 @@
   Prove: P_P.
   
   ------------------------------------------------------------
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   typed_test_goal_and_ensures subgoal:
   
   Goal Wp.Tactical.typed_test_goal_and_ensures-1 (generated by WP):
@@ -616,7 +616,7 @@
   Prove: P_Q.
   
   ------------------------------------------------------------
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   typed_test_goal_and_ensures subgoal:
   
   Goal Wp.Tactical.typed_test_goal_and_ensures-2 (generated by WP):
@@ -625,7 +625,7 @@
   
   ------------------------------------------------------------
 [wp] [Unsuccess] typed_test_goal_and_ensures (Tactic) (Qed)
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   typed_test_goal_eq_ensures subgoal:
   
   Goal Wp.Tactical.typed_test_goal_eq_ensures-0 (generated by WP):
@@ -633,7 +633,7 @@
   Prove: L_LP.
   
   ------------------------------------------------------------
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   typed_test_goal_eq_ensures subgoal:
   
   Goal Wp.Tactical.typed_test_goal_eq_ensures-1 (generated by WP):
@@ -642,7 +642,7 @@
   
   ------------------------------------------------------------
 [wp] [Unsuccess] typed_test_goal_eq_ensures (Tactic) (Qed)
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   typed_test_goal_neq_ensures subgoal:
   
   Goal Wp.Tactical.typed_test_goal_neq_ensures-0 (generated by WP):
@@ -650,7 +650,7 @@
   Prove: !L_LP.
   
   ------------------------------------------------------------
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   typed_test_goal_neq_ensures subgoal:
   
   Goal Wp.Tactical.typed_test_goal_neq_ensures-1 (generated by WP):
@@ -659,7 +659,7 @@
   
   ------------------------------------------------------------
 [wp] [Unsuccess] typed_test_goal_neq_ensures (Tactic) (Qed)
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   typed_test_goal_if_ensures subgoal:
   
   Goal Wp.Tactical.typed_test_goal_if_ensures-0 (generated by WP):
@@ -672,7 +672,7 @@
   Prove: P_P.
   
   ------------------------------------------------------------
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   typed_test_goal_if_ensures subgoal:
   
   Goal Wp.Tactical.typed_test_goal_if_ensures-1 (generated by WP):
@@ -686,7 +686,7 @@
   
   ------------------------------------------------------------
 [wp] [Unsuccess] typed_test_goal_if_ensures (Tactic) (Qed)
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   typed_test_goal_ex_and_ensures subgoal:
   
   Goal Wp.Tactical.typed_test_goal_ex_and_ensures-0 (generated by WP):
@@ -694,7 +694,7 @@
   Prove: P_P /\ P_Q.
   
   ------------------------------------------------------------
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   typed_test_goal_ex_and_ensures subgoal:
   
   Goal Wp.Tactical.typed_test_goal_ex_and_ensures-1 (generated by WP):
@@ -703,7 +703,7 @@
   
   ------------------------------------------------------------
 [wp] [Unsuccess] typed_test_goal_ex_and_ensures (Tactic) (Qed)
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   typed_test_goal_ex_or_ensures subgoal:
   
   Goal Wp.Tactical.typed_test_goal_ex_or_ensures-0 (generated by WP):
@@ -712,7 +712,7 @@
   
   ------------------------------------------------------------
 [wp] [Unsuccess] typed_test_goal_ex_or_ensures (Tactic) (Qed)
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   typed_test_goal_ex_if_ensures subgoal:
   
   Goal Wp.Tactical.typed_test_goal_ex_if_ensures-0 (generated by WP):
@@ -726,7 +726,7 @@
   Prove: exists i : Z. P_Pi(i) /\ P_Qi(i).
   
   ------------------------------------------------------------
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   typed_test_goal_ex_if_ensures subgoal:
   
   Goal Wp.Tactical.typed_test_goal_ex_if_ensures-1 (generated by WP):
@@ -741,7 +741,7 @@
   
   ------------------------------------------------------------
 [wp] [Unsuccess] typed_test_goal_ex_if_ensures (Tactic) (Qed)
-[wp:script:allgoals] 
+[wp:script:allgoals] Debug: 
   typed_test_goal_ex_imply_ensures subgoal:
   
   Goal Wp.Tactical.typed_test_goal_ex_imply_ensures-0 (generated by WP):

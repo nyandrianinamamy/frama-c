@@ -17,7 +17,7 @@
     Function false_positive is declared without prototype.
     Its formals will be inferred from actual arguments at first call.
     Declare it as false_positive(void) if the function does not take any parameters.
-  [list-functions] List written to: list-functions2.json
+  [list-functions] Debug: List written to: list-functions2.json
 
   $ cat list-functions2.json
   [ { "extf": { "declarations": [ "list-functions2.h:1",

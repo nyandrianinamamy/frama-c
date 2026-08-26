@@ -1,93 +1,99 @@
 [kernel] Parsing loop.i (no preprocessing)
-[acsl-import:trace-transformations] Unrolling loop conditions in file: loop ...
-[acsl-import:trace-transformations] 
+[acsl-import:trace-transformations] Debug: 
+  Unrolling loop conditions in file: loop ...
+[acsl-import:trace-transformations] Debug: 
   Unrolling loop condition of loop #1 of function "while1".
-[acsl-import:trace-transformations] 
+[acsl-import:trace-transformations] Debug: 
   Unrolling loop condition of loop #2 of function "sum".
-[acsl-import:trace-transformations] 
+[acsl-import:trace-transformations] Debug: 
   Unrolling loop condition of loop #2 of function "job".
 [acsl-import] Loop condition of loop #3 of function "job" was not unrolled since there is a loop annotation.
-[acsl-import:trace-transformations] 
+[acsl-import:trace-transformations] Debug: 
   Unrolling loop condition of loop #4 of function "job".
-[acsl-import:trace-transformations] 
+[acsl-import:trace-transformations] Debug: 
   Unrolling loop condition of loop #5 of function "job".
-[acsl-import:trace-transformations] 
+[acsl-import:trace-transformations] Debug: 
   Unrolling loop condition of loop #6 of function "job".
-[acsl-import:trace-transformations] 
+[acsl-import:trace-transformations] Debug: 
   Unrolling loop condition of loop #7 of function "job".
-[acsl-import:trace-transformations] 
+[acsl-import:trace-transformations] Debug: 
   Unrolling loop condition of loop #8 of function "job".
-[acsl-import:trace-transformations] 
+[acsl-import:trace-transformations] Debug: 
   Unrolling loop condition of loop #9 of function "job".
-[acsl-import:trace-transformations] 
+[acsl-import:trace-transformations] Debug: 
   Unrolling loop condition of loop #10 of function "job".
-[acsl-import:trace-transformations] 
+[acsl-import:trace-transformations] Debug: 
   Unrolling loop condition of loop #11 of function "job".
-[acsl-import:trace-transformations] 
+[acsl-import:trace-transformations] Debug: 
   Unrolling loop condition of loop #12 of function "job".
-[acsl-import:trace-transformations] 
+[acsl-import:trace-transformations] Debug: 
   Unrolling loop condition of loop #13 of function "job".
-[acsl-import:trace-transformations] 
+[acsl-import:trace-transformations] Debug: 
   Unrolling loop condition of loop #14 of function "job".
-[acsl-import:trace-transformations] 
+[acsl-import:trace-transformations] Debug: 
   Unrolling loop condition of loop #15 of function "job".
-[acsl-import:trace-job] Start ACSL_importer plugin...
-[acsl-import] Importing...
-[acsl-import:trace-inputs] Looking for file: ./loop.acsl
-[acsl-import:trace-actions] Set current module to "loop"
-[acsl-import:trace-actions] Set current scope to file
-[acsl-import:trace-tables] Clear macro table from file scope
-[acsl-import:trace-actions] MODULE loop
-[acsl-import:trace-actions] Set current scope to function
-[acsl-import:trace-tables] Clear macro table from function scope
-[acsl-import:trace-actions] Set current function to "sum"
-[acsl-import:trace-tables] Indexing the C symbol table...
-[acsl-import:trace-symbols] FunDecl: "f_extern"
-[acsl-import:trace-symbols] Fun: "while1"
-[acsl-import:trace-symbols] Fun: "sum"
-[acsl-import:trace-symbols] Fun: "job"
-[acsl-import:trace-actions] FUNCTION sum
-[acsl-import:trace-table] Computing loop body table for function "sum"
-[acsl-import:trace-pasting] 
+[acsl-import:trace-job] Debug: Start ACSL_importer plugin...
+[acsl-import] Debug: Importing...
+[acsl-import:trace-inputs] Debug: Looking for file: ./loop.acsl
+[acsl-import:trace-actions] Debug: Set current module to "loop"
+[acsl-import:trace-actions] Debug: Set current scope to file
+[acsl-import:trace-tables] Debug: Clear macro table from file scope
+[acsl-import:trace-actions] Debug: MODULE loop
+[acsl-import:trace-actions] Debug: Set current scope to function
+[acsl-import:trace-tables] Debug: Clear macro table from function scope
+[acsl-import:trace-actions] Debug: Set current function to "sum"
+[acsl-import:trace-tables] Debug: Indexing the C symbol table...
+[acsl-import:trace-symbols] Debug: FunDecl: "f_extern"
+[acsl-import:trace-symbols] Debug: Fun: "while1"
+[acsl-import:trace-symbols] Debug: Fun: "sum"
+[acsl-import:trace-symbols] Debug: Fun: "job"
+[acsl-import:trace-actions] Debug: FUNCTION sum
+[acsl-import:trace-table] Debug: Computing loop body table for function "sum"
+[acsl-import:trace-pasting] Debug: 
   Adding invariant annotation:
   invariant i ≤ a;
-[acsl-import:trace-table] Computing loop index table for function "sum"
-[acsl-import:trace-pasting] Converting invariant into loop invariant for loop #1
-[acsl-import:trace-pasting] 
+[acsl-import:trace-table] Debug: Computing loop index table for function "sum"
+[acsl-import:trace-pasting] Debug: 
+  Converting invariant into loop invariant for loop #1
+[acsl-import:trace-pasting] Debug: 
   Adding invariant annotation:
   invariant j ≤ b;
-[acsl-import:trace-pasting] Converting invariant into loop invariant for loop #2
-[acsl-import:trace-actions] Set current scope to function
-[acsl-import:trace-tables] Clear macro table from function scope
-[acsl-import:trace-actions] Set current function to "while1"
-[acsl-import:trace-actions] FUNCTION while1
-[acsl-import:trace-table] Computing loop body table for function "while1"
-[acsl-import:trace-pasting] 
+[acsl-import:trace-pasting] Debug: 
+  Converting invariant into loop invariant for loop #2
+[acsl-import:trace-actions] Debug: Set current scope to function
+[acsl-import:trace-tables] Debug: Clear macro table from function scope
+[acsl-import:trace-actions] Debug: Set current function to "while1"
+[acsl-import:trace-actions] Debug: FUNCTION while1
+[acsl-import:trace-table] Debug: Computing loop body table for function "while1"
+[acsl-import:trace-pasting] Debug: 
   Adding invariant annotation:
   invariant i ≥ 0 ∧ i < m;
-[acsl-import:trace-table] Computing loop index table for function "while1"
-[acsl-import:trace-pasting] Converting invariant into loop invariant for loop #1
-[acsl-import:trace-actions] Set current scope to function
-[acsl-import:trace-tables] Clear macro table from function scope
-[acsl-import:trace-actions] Set current function to "job"
-[acsl-import:trace-actions] FUNCTION job
-[acsl-import:trace-table] Computing loop body table for function "job"
-[acsl-import:trace-pasting] 
+[acsl-import:trace-table] Debug: 
+  Computing loop index table for function "while1"
+[acsl-import:trace-pasting] Debug: 
+  Converting invariant into loop invariant for loop #1
+[acsl-import:trace-actions] Debug: Set current scope to function
+[acsl-import:trace-tables] Debug: Clear macro table from function scope
+[acsl-import:trace-actions] Debug: Set current function to "job"
+[acsl-import:trace-actions] Debug: FUNCTION job
+[acsl-import:trace-table] Debug: Computing loop body table for function "job"
+[acsl-import:trace-pasting] Debug: 
   Adding invariant annotation:
   invariant i > 0;
-[acsl-import:trace-table] Computing loop index table for function "job"
-[acsl-import:trace-pasting] Converting invariant into loop invariant for loop #1
+[acsl-import:trace-table] Debug: Computing loop index table for function "job"
+[acsl-import:trace-pasting] Debug: 
+  Converting invariant into loop invariant for loop #1
 [acsl-import] Success for loop.acsl
-[acsl-import:trace-tables] Clear macro table from file scope
-[acsl-import:trace-table] Clear symbol table
-[acsl-import:trace-table] Clear loop index table
-[acsl-import:trace-table] Clear loop body table
-[acsl-import:trace-table] Clear asm call table
-[acsl-import:trace-table] Clear function call tables
+[acsl-import:trace-tables] Debug: Clear macro table from file scope
+[acsl-import:trace-table] Debug: Clear symbol table
+[acsl-import:trace-table] Debug: Clear loop index table
+[acsl-import:trace-table] Debug: Clear loop body table
+[acsl-import:trace-table] Debug: Clear asm call table
+[acsl-import:trace-table] Debug: Clear function call tables
 [acsl-import] Done: 1 file.
-[acsl-import:trace-job] Start ACSL_importer plugin...
-[acsl-import:trace-job] Stop ACSL_importer plugin...
-[acsl-import:trace-job] Stop ACSL_importer plugin...
+[acsl-import:trace-job] Debug: Start ACSL_importer plugin...
+[acsl-import:trace-job] Debug: Stop ACSL_importer plugin...
+[acsl-import:trace-job] Debug: Stop ACSL_importer plugin...
 /* Generated by Frama-C */
 extern int f_extern(int i);
 

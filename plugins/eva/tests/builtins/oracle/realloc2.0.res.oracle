@@ -10,10 +10,10 @@
 [eva:progress] realloc2.c:27: Call to builtin realloc
 [eva:progress] realloc2.c:27: 
   function realloc: precondition 'freeable' got status valid.
-[eva:debug:malloc] bases_to_realloc: {}
+[eva:debug:malloc] Debug: bases_to_realloc: {}
 [eva:malloc:new] realloc2.c:27: 
   allocating variable __realloc_test_exact_null_l27
-[eva:debug:malloc] realloc2.c:27: strong free on bases: {}
+[eva:debug:malloc] realloc2.c:27: Debug: strong free on bases: {}
 [eva:progress] 
   computing for function fill <- test_exact_null <- main.
   Called from realloc2.c:28.
@@ -27,10 +27,10 @@
 [eva:progress] realloc2.c:32: Call to builtin realloc
 [eva:progress] realloc2.c:32: 
   function realloc: precondition 'freeable' got status valid.
-[eva:debug:malloc] bases_to_realloc: {}
+[eva:debug:malloc] Debug: bases_to_realloc: {}
 [eva:malloc:new] realloc2.c:32: 
   allocating variable __realloc_test_exact_null_free_l32
-[eva:debug:malloc] realloc2.c:32: strong free on bases: {}
+[eva:debug:malloc] realloc2.c:32: Debug: strong free on bases: {}
 [eva:progress] Recording results for test_exact_null_free
 [eva:progress] Done for function test_exact_null_free
 [eva:progress] 
@@ -47,10 +47,11 @@
 [eva:progress] realloc2.c:38: Call to builtin realloc
 [eva:progress] realloc2.c:38: 
   function realloc: precondition 'freeable' got status valid.
-[eva:debug:malloc] bases_to_realloc: {__malloc_test_exact_nonnull_expand_l36}
+[eva:debug:malloc] Debug: 
+  bases_to_realloc: {__malloc_test_exact_nonnull_expand_l36}
 [eva:malloc:new] realloc2.c:38: 
   allocating variable __realloc_test_exact_nonnull_expand_l38
-[eva:debug:malloc] realloc2.c:38: 
+[eva:debug:malloc] realloc2.c:38: Debug: 
   strong free on bases: {__malloc_test_exact_nonnull_expand_l36}
 [eva:progress] 
   computing for function fill <- test_exact_nonnull_expand <- main.
@@ -73,10 +74,11 @@
 [eva:progress] realloc2.c:46: Call to builtin realloc
 [eva:progress] realloc2.c:46: 
   function realloc: precondition 'freeable' got status valid.
-[eva:debug:malloc] bases_to_realloc: {__malloc_test_exact_nonnull_shrink_l44}
+[eva:debug:malloc] Debug: 
+  bases_to_realloc: {__malloc_test_exact_nonnull_shrink_l44}
 [eva:malloc:new] realloc2.c:46: 
   allocating variable __realloc_test_exact_nonnull_shrink_l46
-[eva:debug:malloc] realloc2.c:46: 
+[eva:debug:malloc] realloc2.c:46: Debug: 
   strong free on bases: {__malloc_test_exact_nonnull_shrink_l44}
 [eva:progress] 
   computing for function fill <- test_exact_nonnull_shrink <- main.
@@ -99,10 +101,11 @@
 [eva:progress] realloc2.c:53: Call to builtin realloc
 [eva:progress] realloc2.c:53: 
   function realloc: precondition 'freeable' got status valid.
-[eva:debug:malloc] bases_to_realloc: {__malloc_test_exact_nonnull_free_l51}
+[eva:debug:malloc] Debug: 
+  bases_to_realloc: {__malloc_test_exact_nonnull_free_l51}
 [eva:malloc:new] realloc2.c:53: 
   allocating variable __realloc_test_exact_nonnull_free_l53
-[eva:debug:malloc] realloc2.c:53: 
+[eva:debug:malloc] realloc2.c:53: Debug: 
   strong free on bases: {__malloc_test_exact_nonnull_free_l51}
 [eva:progress] Recording results for test_exact_nonnull_free
 [eva:progress] Done for function test_exact_nonnull_free
@@ -115,10 +118,10 @@
 [eva:progress] realloc2.c:58: Call to builtin realloc
 [eva:progress] realloc2.c:58: 
   function realloc: precondition 'freeable' got status valid.
-[eva:debug:malloc] bases_to_realloc: {__malloc_test_maybe_nonnull_l57}
+[eva:debug:malloc] Debug: bases_to_realloc: {__malloc_test_maybe_nonnull_l57}
 [eva:malloc:new] realloc2.c:58: 
   allocating variable __realloc_test_maybe_nonnull_l58
-[eva:debug:malloc] realloc2.c:58: 
+[eva:debug:malloc] realloc2.c:58: Debug: 
   weak free on bases: {__malloc_test_maybe_nonnull_l57}
 [eva:progress] 
   computing for function fill <- test_maybe_nonnull <- main.
@@ -140,9 +143,9 @@
 [eva:progress] realloc2.c:65: Call to builtin realloc
 [eva:progress] realloc2.c:65: 
   function realloc: precondition 'freeable' got status valid.
-[eva:debug:malloc] bases_to_realloc: {__malloc_test_same_size_l63}
+[eva:debug:malloc] Debug: bases_to_realloc: {__malloc_test_same_size_l63}
 [eva:malloc:new] realloc2.c:65: allocating variable __realloc_test_same_size_l65
-[eva:debug:malloc] realloc2.c:65: 
+[eva:debug:malloc] realloc2.c:65: Debug: 
   strong free on bases: {__malloc_test_same_size_l63}
 [eva:progress] Recording results for test_same_size
 [eva:progress] Done for function test_same_size
@@ -152,10 +155,10 @@
 [eva:progress] realloc2.c:70: Call to builtin realloc
 [eva:progress] realloc2.c:70: 
   function realloc: precondition 'freeable' got status valid.
-[eva:debug:malloc] bases_to_realloc: {}
+[eva:debug:malloc] Debug: bases_to_realloc: {}
 [eva:malloc:new] realloc2.c:70: 
   allocating variable __realloc_test_imprecise_size_l70
-[eva:debug:malloc] realloc2.c:70: strong free on bases: {}
+[eva:debug:malloc] realloc2.c:70: Debug: strong free on bases: {}
 [eva:progress] 
   computing for function fill <- test_imprecise_size <- main.
   Called from realloc2.c:71.
@@ -170,10 +173,10 @@
 [eva:progress] realloc2.c:76: Call to builtin realloc
 [eva:progress] realloc2.c:76: 
   function realloc: precondition 'freeable' got status valid.
-[eva:debug:malloc] bases_to_realloc: {}
+[eva:debug:malloc] Debug: bases_to_realloc: {}
 [eva:malloc:new] realloc2.c:76: 
   allocating variable __realloc_test_imprecise_size_but_precise_fill_l76
-[eva:debug:malloc] realloc2.c:76: strong free on bases: {}
+[eva:debug:malloc] realloc2.c:76: Debug: strong free on bases: {}
 [eva:progress] 
   computing for function fill <- test_imprecise_size_but_precise_fill <- main.
   Called from realloc2.c:77.
@@ -195,10 +198,11 @@
 [eva:progress] realloc2.c:84: Call to builtin realloc
 [eva:progress] realloc2.c:84: 
   function realloc: precondition 'freeable' got status valid.
-[eva:debug:malloc] bases_to_realloc: {__malloc_test_imprecise_size_free_l81}
+[eva:debug:malloc] Debug: 
+  bases_to_realloc: {__malloc_test_imprecise_size_free_l81}
 [eva:malloc:new] realloc2.c:84: 
   allocating variable __realloc_test_imprecise_size_free_l84
-[eva:debug:malloc] realloc2.c:84: 
+[eva:debug:malloc] realloc2.c:84: Debug: 
   strong free on bases: {__malloc_test_imprecise_size_free_l81}
 [eva:progress] 
   computing for function fill <- test_imprecise_size_free <- main.
@@ -216,10 +220,10 @@
 [eva:progress] realloc2.c:91: Call to builtin realloc
 [eva:progress] realloc2.c:91: 
   function realloc: precondition 'freeable' got status valid.
-[eva:debug:malloc] bases_to_realloc: {__malloc_test_imprecise_both_l89}
+[eva:debug:malloc] Debug: bases_to_realloc: {__malloc_test_imprecise_both_l89}
 [eva:malloc:new] realloc2.c:91: 
   allocating variable __realloc_test_imprecise_both_l91
-[eva:debug:malloc] realloc2.c:91: 
+[eva:debug:malloc] realloc2.c:91: Debug: 
   weak free on bases: {__malloc_test_imprecise_both_l89}
 [eva:progress] 
   computing for function fill <- test_imprecise_both <- main.
@@ -237,11 +241,11 @@
 [eva:progress] realloc2.c:99: Call to builtin realloc
 [eva:alarm] realloc2.c:99: Warning: 
   function realloc: precondition 'freeable' got status unknown.
-[eva:debug:malloc] 
+[eva:debug:malloc] Debug: 
   bases_to_realloc: {__malloc_test_possibly_invalid_realloc_l96}
 [eva:malloc:new] realloc2.c:99: 
   allocating variable __realloc_test_possibly_invalid_realloc_l99
-[eva:debug:malloc] realloc2.c:99: 
+[eva:debug:malloc] realloc2.c:99: Debug: 
   strong free on bases: {__malloc_test_possibly_invalid_realloc_l96}
 [eva:progress] 
   computing for function fill <- test_possibly_invalid_realloc <- main.
@@ -289,18 +293,20 @@
 [eva:progress] realloc2.c:125: Call to builtin realloc
 [eva:progress] realloc2.c:125: 
   function realloc: precondition 'freeable' got status valid.
-[eva:debug:malloc] bases_to_realloc: {__malloc_test_realloc_sequence_l124}
+[eva:debug:malloc] Debug: 
+  bases_to_realloc: {__malloc_test_realloc_sequence_l124}
 [eva:malloc:new] realloc2.c:125: 
   allocating variable __realloc_test_realloc_sequence_l125
-[eva:debug:malloc] realloc2.c:125: 
+[eva:debug:malloc] realloc2.c:125: Debug: 
   strong free on bases: {__malloc_test_realloc_sequence_l124}
 [eva:progress] realloc2.c:126: Call to builtin realloc
 [eva:progress] realloc2.c:126: 
   function realloc: precondition 'freeable' got status valid.
-[eva:debug:malloc] bases_to_realloc: {__realloc_test_realloc_sequence_l125}
+[eva:debug:malloc] Debug: 
+  bases_to_realloc: {__realloc_test_realloc_sequence_l125}
 [eva:malloc:new] realloc2.c:126: 
   allocating variable __realloc_test_realloc_sequence_l126
-[eva:debug:malloc] realloc2.c:126: 
+[eva:debug:malloc] realloc2.c:126: Debug: 
   strong free on bases: {__realloc_test_realloc_sequence_l125}
 [eva:progress] 
   computing for function fill <- test_realloc_sequence <- main.
@@ -323,10 +329,10 @@
 [eva:progress] realloc2.c:138: Call to builtin realloc
 [eva:progress] realloc2.c:138: 
   function realloc: precondition 'freeable' got status valid.
-[eva:debug:malloc] bases_to_realloc: {__malloc_test_realloc_loop_l131}
+[eva:debug:malloc] Debug: bases_to_realloc: {__malloc_test_realloc_loop_l131}
 [eva:malloc:new] realloc2.c:138: 
   allocating variable __realloc_test_realloc_loop_l138
-[eva:debug:malloc] realloc2.c:138: 
+[eva:debug:malloc] realloc2.c:138: Debug: 
   strong free on bases: {__malloc_test_realloc_loop_l131}
 [eva:progress] 
   computing for function fill <- test_realloc_loop <- main.
@@ -334,12 +340,12 @@
 [eva:progress] Recording results for fill
 [eva:progress] Done for function fill
 [eva:progress] realloc2.c:138: Call to builtin realloc
-[eva:debug:malloc] bases_to_realloc: {__realloc_test_realloc_loop_l138}
+[eva:debug:malloc] Debug: bases_to_realloc: {__realloc_test_realloc_loop_l138}
 [eva:malloc:weak] realloc2.c:138: 
   marking variable `__realloc_test_realloc_loop_l138' as weak
 [eva:malloc] realloc2.c:138: 
   resizing variable `__realloc_w_test_realloc_loop_l138' (0..79) to fit 0..119
-[eva:debug:malloc] realloc2.c:138: 
+[eva:debug:malloc] realloc2.c:138: Debug: 
   weak free on bases: {__realloc_w_test_realloc_loop_l138}
 [eva:progress] 
   computing for function fill <- test_realloc_loop <- main.
@@ -347,11 +353,11 @@
 [eva:progress] Recording results for fill
 [eva:progress] Done for function fill
 [eva:progress] realloc2.c:138: Call to builtin realloc
-[eva:debug:malloc] bases_to_realloc: {__realloc_w_test_realloc_loop_l138}
+[eva:debug:malloc] Debug: bases_to_realloc: {__realloc_w_test_realloc_loop_l138}
 [eva:malloc] realloc2.c:138: 
   resizing variable `__realloc_w_test_realloc_loop_l138'
   (0..79/119) to fit 0..159
-[eva:debug:malloc] realloc2.c:138: 
+[eva:debug:malloc] realloc2.c:138: Debug: 
   weak free on bases: {__realloc_w_test_realloc_loop_l138}
 [eva:progress] 
   computing for function fill <- test_realloc_loop <- main.
@@ -359,11 +365,11 @@
 [eva:progress] Recording results for fill
 [eva:progress] Done for function fill
 [eva:progress] realloc2.c:138: Call to builtin realloc
-[eva:debug:malloc] bases_to_realloc: {__realloc_w_test_realloc_loop_l138}
+[eva:debug:malloc] Debug: bases_to_realloc: {__realloc_w_test_realloc_loop_l138}
 [eva:malloc] realloc2.c:138: 
   resizing variable `__realloc_w_test_realloc_loop_l138'
   (0..79/159) to fit 0..199
-[eva:debug:malloc] realloc2.c:138: 
+[eva:debug:malloc] realloc2.c:138: Debug: 
   weak free on bases: {__realloc_w_test_realloc_loop_l138}
 [eva:progress] 
   computing for function fill <- test_realloc_loop <- main.
@@ -371,11 +377,11 @@
 [eva:progress] Recording results for fill
 [eva:progress] Done for function fill
 [eva:progress] realloc2.c:138: Call to builtin realloc
-[eva:debug:malloc] bases_to_realloc: {__realloc_w_test_realloc_loop_l138}
+[eva:debug:malloc] Debug: bases_to_realloc: {__realloc_w_test_realloc_loop_l138}
 [eva:malloc] realloc2.c:138: 
   resizing variable `__realloc_w_test_realloc_loop_l138'
   (0..79/199) to fit 0..239
-[eva:debug:malloc] realloc2.c:138: 
+[eva:debug:malloc] realloc2.c:138: Debug: 
   weak free on bases: {__realloc_w_test_realloc_loop_l138}
 [eva:progress] 
   computing for function fill <- test_realloc_loop <- main.
@@ -396,20 +402,21 @@
 [eva:progress] realloc2.c:156: Call to builtin realloc
 [eva:progress] realloc2.c:156: 
   function realloc: precondition 'freeable' got status valid.
-[eva:debug:malloc] bases_to_realloc: {__malloc_test_realloc_multiple_bases_l151}
+[eva:debug:malloc] Debug: 
+  bases_to_realloc: {__malloc_test_realloc_multiple_bases_l151}
 [eva:malloc:new] realloc2.c:156: 
   allocating variable __realloc_test_realloc_multiple_bases_l156
-[eva:debug:malloc] realloc2.c:156: 
+[eva:debug:malloc] realloc2.c:156: Debug: 
   strong free on bases: {__malloc_test_realloc_multiple_bases_l151}
 [eva:progress] realloc2.c:158: Call to builtin realloc
 [eva:progress] realloc2.c:158: 
   function realloc: precondition 'freeable' got status valid.
-[eva:debug:malloc] 
+[eva:debug:malloc] Debug: 
   bases_to_realloc: {__malloc_test_realloc_multiple_bases_l154,
                      __realloc_test_realloc_multiple_bases_l156}
 [eva:malloc:new] realloc2.c:158: 
   allocating variable __realloc_test_realloc_multiple_bases_l158
-[eva:debug:malloc] realloc2.c:158: 
+[eva:debug:malloc] realloc2.c:158: Debug: 
   weak free on bases: {__malloc_test_realloc_multiple_bases_l154,
                        __realloc_test_realloc_multiple_bases_l156}
 [eva:progress] 
@@ -433,11 +440,11 @@
 [eva:progress] realloc2.c:166: Call to builtin realloc
 [eva:progress] realloc2.c:166: 
   function realloc: precondition 'freeable' got status valid.
-[eva:debug:malloc] 
+[eva:debug:malloc] Debug: 
   bases_to_realloc: {__malloc_test_realloc_multiple_bases2_l163}
 [eva:malloc:new] realloc2.c:166: 
   allocating variable __realloc_test_realloc_multiple_bases2_l166
-[eva:debug:malloc] realloc2.c:166: 
+[eva:debug:malloc] realloc2.c:166: Debug: 
   strong free on bases: {__malloc_test_realloc_multiple_bases2_l163}
 [eva:progress] realloc2.c:166: Call to builtin malloc
 [eva:malloc:new] realloc2.c:166: 
@@ -450,22 +457,22 @@
 [eva:progress] realloc2.c:169: Call to builtin realloc
 [eva:progress] realloc2.c:169: 
   function realloc: precondition 'freeable' got status valid.
-[eva:debug:malloc] 
+[eva:debug:malloc] Debug: 
   bases_to_realloc: {__realloc_test_realloc_multiple_bases2_l166,
                      __malloc_test_realloc_multiple_bases2_l166}
 [eva:malloc:new] realloc2.c:169: 
   allocating variable __realloc_test_realloc_multiple_bases2_l169
-[eva:debug:malloc] realloc2.c:169: 
+[eva:debug:malloc] realloc2.c:169: Debug: 
   weak free on bases: {__realloc_test_realloc_multiple_bases2_l166,
                        __malloc_test_realloc_multiple_bases2_l166}
 [eva:progress] realloc2.c:171: Call to builtin realloc
 [eva:progress] realloc2.c:171: 
   function realloc: precondition 'freeable' got status valid.
-[eva:debug:malloc] 
+[eva:debug:malloc] Debug: 
   bases_to_realloc: {__realloc_test_realloc_multiple_bases2_l169}
 [eva:malloc:new] realloc2.c:171: 
   allocating variable __realloc_test_realloc_multiple_bases2_l171
-[eva:debug:malloc] realloc2.c:171: 
+[eva:debug:malloc] realloc2.c:171: Debug: 
   strong free on bases: {__realloc_test_realloc_multiple_bases2_l169}
 [eva:progress] 
   computing for function fill <- test_realloc_multiple_bases2 <- main.
@@ -483,12 +490,12 @@
 [eva:progress] realloc2.c:177: Call to builtin realloc
 [eva:progress] realloc2.c:177: 
   function realloc: precondition 'freeable' got status valid.
-[eva:debug:malloc] 
+[eva:debug:malloc] Debug: 
   bases_to_realloc: {__realloc_test_realloc_multiple_bases2_l171,
                      __malloc_test_realloc_multiple_bases2_l174}
 [eva:malloc:new] realloc2.c:177: 
   allocating variable __realloc_test_realloc_multiple_bases2_l177
-[eva:debug:malloc] realloc2.c:177: 
+[eva:debug:malloc] realloc2.c:177: Debug: 
   weak free on bases: {__realloc_test_realloc_multiple_bases2_l171,
                        __malloc_test_realloc_multiple_bases2_l174}
 [eva:progress] 
@@ -507,11 +514,11 @@
 [eva:progress] realloc2.c:187: Call to builtin realloc
 [eva:progress] realloc2.c:187: 
   function realloc: precondition 'freeable' got status valid.
-[eva:debug:malloc] 
+[eva:debug:malloc] Debug: 
   bases_to_realloc: {__malloc_test_realloc_multiple_bases_loop_l184}
 [eva:malloc:new] realloc2.c:187: 
   allocating variable __realloc_test_realloc_multiple_bases_loop_l187
-[eva:debug:malloc] realloc2.c:187: 
+[eva:debug:malloc] realloc2.c:187: Debug: 
   strong free on bases: {__malloc_test_realloc_multiple_bases_loop_l184}
 [eva:progress] 
   computing for function fill <- test_realloc_multiple_bases_loop <- main.
@@ -520,7 +527,7 @@
 [eva:progress] Done for function fill
 [eva:partition] realloc2.c:185: starting to merge loop iterations
 [eva:progress] realloc2.c:187: Call to builtin realloc
-[eva:debug:malloc] 
+[eva:debug:malloc] Debug: 
   bases_to_realloc: {__malloc_test_realloc_multiple_bases_loop_l184,
                      __realloc_test_realloc_multiple_bases_loop_l187}
 [eva:malloc:weak] realloc2.c:187: 
@@ -528,7 +535,7 @@
 [eva:malloc] realloc2.c:187: 
   resizing variable `__realloc_w_test_realloc_multiple_bases_loop_l187'
   (0..79) to fit 0..79/95
-[eva:debug:malloc] realloc2.c:187: 
+[eva:debug:malloc] realloc2.c:187: Debug: 
   weak free on bases: {__malloc_test_realloc_multiple_bases_loop_l184,
                        __realloc_w_test_realloc_multiple_bases_loop_l187}
 [eva:progress] 
@@ -537,13 +544,13 @@
 [eva:progress] Recording results for fill
 [eva:progress] Done for function fill
 [eva:progress] realloc2.c:187: Call to builtin realloc
-[eva:debug:malloc] 
+[eva:debug:malloc] Debug: 
   bases_to_realloc: {__malloc_test_realloc_multiple_bases_loop_l184,
                      __realloc_w_test_realloc_multiple_bases_loop_l187}
 [eva:malloc] realloc2.c:187: 
   resizing variable `__realloc_w_test_realloc_multiple_bases_loop_l187'
   (0..79/95) to fit 0..79/111
-[eva:debug:malloc] realloc2.c:187: 
+[eva:debug:malloc] realloc2.c:187: Debug: 
   weak free on bases: {__malloc_test_realloc_multiple_bases_loop_l184,
                        __realloc_w_test_realloc_multiple_bases_loop_l187}
 [eva:progress] 
@@ -552,13 +559,13 @@
 [eva:progress] Recording results for fill
 [eva:progress] Done for function fill
 [eva:progress] realloc2.c:187: Call to builtin realloc
-[eva:debug:malloc] 
+[eva:debug:malloc] Debug: 
   bases_to_realloc: {__malloc_test_realloc_multiple_bases_loop_l184,
                      __realloc_w_test_realloc_multiple_bases_loop_l187}
 [eva:malloc] realloc2.c:187: 
   resizing variable `__realloc_w_test_realloc_multiple_bases_loop_l187'
   (0..79/111) to fit 0..79/223
-[eva:debug:malloc] realloc2.c:187: 
+[eva:debug:malloc] realloc2.c:187: Debug: 
   weak free on bases: {__malloc_test_realloc_multiple_bases_loop_l184,
                        __realloc_w_test_realloc_multiple_bases_loop_l187}
 [eva:progress] 
@@ -567,10 +574,10 @@
 [eva:progress] Recording results for fill
 [eva:progress] Done for function fill
 [eva:progress] realloc2.c:187: Call to builtin realloc
-[eva:debug:malloc] 
+[eva:debug:malloc] Debug: 
   bases_to_realloc: {__malloc_test_realloc_multiple_bases_loop_l184,
                      __realloc_w_test_realloc_multiple_bases_loop_l187}
-[eva:debug:malloc] realloc2.c:187: 
+[eva:debug:malloc] realloc2.c:187: Debug: 
   weak free on bases: {__malloc_test_realloc_multiple_bases_loop_l184,
                        __realloc_w_test_realloc_multiple_bases_loop_l187}
 [eva:progress] 
@@ -594,10 +601,11 @@
 [eva:progress] realloc2.c:209: Call to builtin realloc
 [eva:progress] realloc2.c:209: 
   function realloc: precondition 'freeable' got status valid.
-[eva:debug:malloc] bases_to_realloc: {__malloc_test_imprecise_update_l201}
+[eva:debug:malloc] Debug: 
+  bases_to_realloc: {__malloc_test_imprecise_update_l201}
 [eva:malloc:new] realloc2.c:209: 
   allocating variable __realloc_test_imprecise_update_l209
-[eva:debug:malloc] realloc2.c:209: 
+[eva:debug:malloc] realloc2.c:209: Debug: 
   strong free on bases: {__malloc_test_imprecise_update_l201}
 [eva:show] realloc2.c:212: Frama_C_show_each: {1001}
 [eva:partition] realloc2.c:203: starting to merge loop iterations
@@ -606,7 +614,7 @@
   Called from realloc2.c:206.
 [eva:progress] Done for function write
 [eva:progress] realloc2.c:209: Call to builtin realloc
-[eva:debug:malloc] 
+[eva:debug:malloc] Debug: 
   bases_to_realloc: {__malloc_test_imprecise_update_l201,
                      __realloc_test_imprecise_update_l209}
 [eva:malloc:weak] realloc2.c:209: 
@@ -614,7 +622,7 @@
 [eva:malloc] realloc2.c:209: 
   resizing variable `__realloc_w_test_imprecise_update_l209'
   (0..7) to fit 0..7/8007
-[eva:debug:malloc] realloc2.c:209: 
+[eva:debug:malloc] realloc2.c:209: Debug: 
   weak free on bases: {__malloc_test_imprecise_update_l201,
                        __realloc_w_test_imprecise_update_l209}
 [eva:show] realloc2.c:212: Frama_C_show_each: {1001; 2001}
@@ -623,13 +631,13 @@
   Called from realloc2.c:206.
 [eva:progress] Done for function write
 [eva:progress] realloc2.c:209: Call to builtin realloc
-[eva:debug:malloc] 
+[eva:debug:malloc] Debug: 
   bases_to_realloc: {__malloc_test_imprecise_update_l201,
                      __realloc_w_test_imprecise_update_l209}
 [eva:malloc] realloc2.c:209: 
   resizing variable `__realloc_w_test_imprecise_update_l209'
   (0..7/8007) to fit 0..7/16007
-[eva:debug:malloc] realloc2.c:209: 
+[eva:debug:malloc] realloc2.c:209: Debug: 
   weak free on bases: {__malloc_test_imprecise_update_l201,
                        __realloc_w_test_imprecise_update_l209}
 [eva:show] realloc2.c:212: Frama_C_show_each: {1001; 2001; 3001}
@@ -638,13 +646,13 @@
   Called from realloc2.c:206.
 [eva:progress] Done for function write
 [eva:progress] realloc2.c:209: Call to builtin realloc
-[eva:debug:malloc] 
+[eva:debug:malloc] Debug: 
   bases_to_realloc: {__malloc_test_imprecise_update_l201,
                      __realloc_w_test_imprecise_update_l209}
 [eva:malloc] realloc2.c:209: 
   resizing variable `__realloc_w_test_imprecise_update_l209'
   (0..7/16007) to fit 0..7/17179864007
-[eva:debug:malloc] realloc2.c:209: 
+[eva:debug:malloc] realloc2.c:209: Debug: 
   weak free on bases: {__malloc_test_imprecise_update_l201,
                        __realloc_w_test_imprecise_update_l209}
 [eva:show] realloc2.c:212: Frama_C_show_each: [1001..2147484001],1%1000
@@ -653,13 +661,13 @@
   Called from realloc2.c:206.
 [eva:progress] Done for function write
 [eva:progress] realloc2.c:209: Call to builtin realloc
-[eva:debug:malloc] 
+[eva:debug:malloc] Debug: 
   bases_to_realloc: {__malloc_test_imprecise_update_l201,
                      __realloc_w_test_imprecise_update_l209}
 [eva:malloc] realloc2.c:209: 
   resizing variable `__realloc_w_test_imprecise_update_l209'
   (0..7/17179864007) to fit 0..7/17179872007
-[eva:debug:malloc] realloc2.c:209: 
+[eva:debug:malloc] realloc2.c:209: Debug: 
   weak free on bases: {__malloc_test_imprecise_update_l201,
                        __realloc_w_test_imprecise_update_l209}
 [eva:show] realloc2.c:212: Frama_C_show_each: [1001..2147485001],1%1000
@@ -668,13 +676,13 @@
   Called from realloc2.c:206.
 [eva:progress] Done for function write
 [eva:progress] realloc2.c:209: Call to builtin realloc
-[eva:debug:malloc] 
+[eva:debug:malloc] Debug: 
   bases_to_realloc: {__malloc_test_imprecise_update_l201,
                      __realloc_w_test_imprecise_update_l209}
 [eva:malloc] realloc2.c:209: 
   resizing variable `__realloc_w_test_imprecise_update_l209'
   (0..7/17179872007) to fit 0..7/34359736007
-[eva:debug:malloc] realloc2.c:209: 
+[eva:debug:malloc] realloc2.c:209: Debug: 
   weak free on bases: {__malloc_test_imprecise_update_l201,
                        __realloc_w_test_imprecise_update_l209}
 [eva:show] realloc2.c:212: Frama_C_show_each: [1..4294967289],1%8
@@ -683,13 +691,13 @@
   Called from realloc2.c:206.
 [eva:progress] Done for function write
 [eva:progress] realloc2.c:209: Call to builtin realloc
-[eva:debug:malloc] 
+[eva:debug:malloc] Debug: 
   bases_to_realloc: {__malloc_test_imprecise_update_l201,
                      __realloc_w_test_imprecise_update_l209}
 [eva:malloc] realloc2.c:209: 
   resizing variable `__realloc_w_test_imprecise_update_l209'
   (0..7/34359736007) to fit 0..7/34359738311
-[eva:debug:malloc] realloc2.c:209: 
+[eva:debug:malloc] realloc2.c:209: Debug: 
   weak free on bases: {__malloc_test_imprecise_update_l201,
                        __realloc_w_test_imprecise_update_l209}
 [eva:show] realloc2.c:212: Frama_C_show_each: [1..4294967289],1%8
@@ -698,13 +706,13 @@
   Called from realloc2.c:206.
 [eva:progress] Done for function write
 [eva:progress] realloc2.c:209: Call to builtin realloc
-[eva:debug:malloc] 
+[eva:debug:malloc] Debug: 
   bases_to_realloc: {__malloc_test_imprecise_update_l201,
                      __realloc_w_test_imprecise_update_l209}
 [eva:malloc] realloc2.c:209: 
   resizing variable `__realloc_w_test_imprecise_update_l209'
   (0..7/34359738367) to fit 0..7/34359738311
-[eva:debug:malloc] realloc2.c:209: 
+[eva:debug:malloc] realloc2.c:209: Debug: 
   weak free on bases: {__malloc_test_imprecise_update_l201,
                        __realloc_w_test_imprecise_update_l209}
 [eva:show] realloc2.c:212: Frama_C_show_each: [1..4294967289],1%8

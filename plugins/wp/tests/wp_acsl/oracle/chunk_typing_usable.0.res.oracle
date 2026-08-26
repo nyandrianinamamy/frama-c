@@ -75,7 +75,7 @@ theory A_Occ
      L_occ mint v p f ((- 1) + t) = L_occ mint v p f t
   
 end
-[wp:print-generated] 
+[wp:print-generated] Debug: 
   theory WP
     
     (* use why3.BuiltIn.BuiltIn *)
@@ -183,7 +183,7 @@ theory Axiomatic1
      (L_occ1 mint v p f s + L_occ1 mint v p s t) = L_occ1 mint v p f t
   
 end
-[wp:print-generated] 
+[wp:print-generated] Debug: 
   theory WP1
     
     (* use why3.BuiltIn.BuiltIn *)
@@ -290,7 +290,7 @@ theory Axiomatic11
      (L_occ2 mint v p f s + L_occ2 mint v p s t) = L_occ2 mint v p f t
   
 end
-[wp:print-generated] 
+[wp:print-generated] Debug: 
   theory WP2
     
     (* use why3.BuiltIn.BuiltIn *)
