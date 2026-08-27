@@ -8,12 +8,6 @@
 
 open Cil_types
 
-module Location_Bytes = Addresses.Bytes
-module Location_Bits = Addresses.Bits
-
-module Zone = Memory_zone
-
-
 type t =
   { addr : Addresses.Bits.t;
     size : Z_or_top.t }
