@@ -59,7 +59,7 @@ for entry in jcdb:
     else:
         files.add((os.path.relpath(filepath, pwd), os.path.relpath(filepath, fcmake_pwd)))
 
-files_for_fcmake = map(lambda x: (x[1]), files)
+files_for_fcmake = [f[1] for f in files]
 print("# Paths as seen by a makefile inside subdirectory '.frama-c':")
 print("SRCS=\\\n" + " \\\n".join(sorted(files_for_fcmake)) + " \\")
 print()

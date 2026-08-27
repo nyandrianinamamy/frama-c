@@ -21,7 +21,7 @@ if len(sys.argv) < 2:
     print("        prints a heuristic callgraph for the specified files.")
     sys.exit(1)
 else:
-    files = set([Path(f) for f in sys.argv[1:]])
+    files = {Path(f) for f in sys.argv[1:]}
 
 cg = build_callgraph.compute(files)
 build_callgraph.detect_recursion(cg)

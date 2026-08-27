@@ -47,7 +47,7 @@ fname = args["funcname"]
 dirs = args["dir"]
 
 if re.match("[a-zA-Z_][a-zA-Z0-9_]*$", fname) is None:
-    print("error: function name contains invalid characters: %s" % fname)
+    print(f"error: function name contains invalid characters: {fname}")
     print("       (only letters/digits/underscore allowed)")
     sys.exit(1)
 
@@ -65,7 +65,7 @@ for d in dirs:
     # need them, try using glob.glob instead.
     files.update(d.glob("**/*.[ich]"))
 
-print("Looking for '%s' inside %d file(s)..." % (fname, len(files)))
+print(f"Looking for '{fname}' inside {len(files)} file(s)...")
 
 possible_declarators = []
 possible_definers = []
@@ -87,7 +87,7 @@ def relative_path_to(start):
 
 
 if not possible_declarators and not possible_definers:
-    print("No declaration/definition found for function '%s'" % fname)
+    print(f"No declaration/definition found for function '{fname}'")
     sys.exit(0)
 
 if reldir != ".":

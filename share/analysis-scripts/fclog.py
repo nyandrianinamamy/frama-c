@@ -48,7 +48,7 @@ def init(debug, verbose):
                 if sys.platform == "win32" and e.errno == 22:
                     sys.stdout = None
                     sys.exit(0)
-                raise e
+                raise
 
         sys.stdout.flush = new_flush
     elif debug == "stderr":

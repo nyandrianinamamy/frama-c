@@ -6,6 +6,7 @@
 import argparse
 import os
 import subprocess
+import sys
 
 import dotenv
 import ijson
@@ -21,7 +22,7 @@ def check_config(value, name):
     is the case."""
     if not value:
         print(f"The '{name}' option should be provided and not empty.")
-        exit(1)
+        sys.exit(1)
 
 
 @ijson.coroutine

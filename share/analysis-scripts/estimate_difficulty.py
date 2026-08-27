@@ -67,6 +67,8 @@ under_test = os.getenv("FRAMAC_TESTING")
 
 fclog.init(debug, verbose)
 
+logger = logging.getLogger(__name__)
+
 ### Auxiliary functions #######################################################
 
 
@@ -101,7 +103,7 @@ def collect_files_and_local_dirs(paths) -> tuple[set[Path], set[Path]]:
 
 
 def extract_keys(keys):
-    return [list(key.keys())[0] for key in keys]
+    return [next(iter(key.keys())) for key in keys]
 
 
 def get_framac_libc_function_statuses(
@@ -109,7 +111,7 @@ def get_framac_libc_function_statuses(
 ) -> tuple[list[str], list[str]]:
     if framac:
         _handler, metrics_tmpfile = tempfile.mkstemp(prefix="fc_script_est_diff", suffix=".json")
-        logging.debug("metrics_tmpfile: %s", metrics_tmpfile)
+        logger.debug("metrics_tmpfile: %s", metrics_tmpfile)
         fc_runtime = framac_share / "libc" / "__fc_runtime.c"
         fc_libc_headers = framac_share / "libc" / "__fc_libc.h"
         subprocess.run(
@@ -142,9 +144,7 @@ def get_framac_libc_function_statuses(
 def grep_includes_in_file(filename: Path):
     re_include = re.compile(r'\s*#\s*include\s*("|<)([^">]+)("|>)')
     file_content = source_filter.open_and_filter(filename, not under_test)
-    i = 0
-    for line in file_content.splitlines():
-        i += 1
+    for i, line in enumerate(file_content.splitlines()):
         m = re_include.match(line)
         if m:
             kind = m.group(1)
@@ -158,9 +158,9 @@ def get_includes(files: set[Path]):
     for filename in files:
         for line, kind, header in grep_includes_in_file(filename):
             if kind == "<":
-                includes = chevron_includes[header] if header in chevron_includes else []
+                includes = chevron_includes.get(header, [])
             else:
-                includes = quote_includes[header] if header in quote_includes else []
+                includes = quote_includes.get(header, [])
             includes.append((filename, line))
             if kind == "<":
                 chevron_includes[header] = includes
@@ -224,7 +224,7 @@ score = {
 
 framac_bin = os.getenv("FRAMAC_BIN")
 if not framac_bin:
-    logging.info(
+    logger.info(
         "Running script in no-Frama-C mode (set FRAMAC_BIN to the directory"
         + " containing frama-c if you want to use it)."
     )
@@ -242,22 +242,22 @@ if not no_cloc:
     cloc = external_tool.get_command("cloc", "CLOC")
     if cloc:
         data = external_tool.run_and_check(
-            [cloc, "--hide-rate", "--progress-rate=0", "--csv"] + list(str(f) for f in files), ""
+            [cloc, "--hide-rate", "--progress-rate=0", "--csv"] + [str(f) for f in files], ""
         )
         datas = data.splitlines()
         [nfiles, _sum, nblank, ncomment, ncode] = datas[-1].split(",")
         nlines = int(nblank) + int(ncomment) + int(ncode)
-        logging.info(
+        logger.info(
             "Processing %d file(s), approx. %d lines of code (out of %d lines)",
             int(nfiles),
             int(ncode),
             nlines,
         )
 
-logging.info("Building callgraph...")
+logger.info("Building callgraph...")
 cg = build_callgraph.compute(files)
 
-logging.info("Computing data about libc/POSIX functions...")
+logger.info("Computing data about libc/POSIX functions...")
 libc_defined_functions, libc_specified_functions = get_framac_libc_function_statuses(
     framac, framac_share
 )
@@ -283,7 +283,7 @@ for cycle_start_loc, cycle in recursive_cycles:
             res += f" -> {y}"
         return res
 
-    logging.info(
+    logger.info(
         "[recursion] found recursive cycle near %s:%d: %s", filename, line, pretty_cycle(cycle)
     )
     score["recursion"] += 1
@@ -291,7 +291,7 @@ for cycle_start_loc, cycle in recursive_cycles:
 callees_list = [callee for (_, callee) in list(cg.edges.keys())]
 callees = set(callees_list)
 used_headers = set()
-logging.info("Estimating difficulty for %d function calls...", len(callees))
+logger.info("Estimating difficulty for %d function calls...", len(callees))
 warnings = 0
 
 problematic_posix_functions = [
@@ -335,9 +335,9 @@ for callee in sorted(callees):
         if status == "warning":
             warnings += 1
         if status == "warning":
-            logging.warning("%s %s", callee, reason)
+            logger.warning("%s %s", callee, reason)
         else:
-            logging.log(fclog.VERBOSE, "%s: %s %s", status, callee, reason)
+            logger.log(fclog.VERBOSE, "%s: %s %s", status, callee, reason)
 
     if callee in problematic_posix_functions:
         callee_status(
@@ -352,10 +352,10 @@ for callee in sorted(callees):
         if callee in handled_by_variadic:
             callee_status("ok", "is handled by the Variadic module")
 
-logging.info("Function-related warnings: %d", warnings)
+logger.info("Function-related warnings: %d", warnings)
 score["libc"] = warnings
 
-logging.log(
+logger.log(
     fclog.VERBOSE,
     "Used POSIX headers:\n%s",
     "\n".join([f"  <{header}>" for header in sorted(used_headers)]),
@@ -363,9 +363,7 @@ logging.log(
 
 chevron_includes, quote_includes = get_includes(files)
 
-logging.info(
-    "Estimating difficulty for %d '#include <header>' directives...", len(chevron_includes)
-)
+logger.info("Estimating difficulty for %d '#include <header>' directives...", len(chevron_includes))
 non_posix_headers = []
 header_warnings = 0
 
@@ -464,30 +462,30 @@ for header in sorted(chevron_includes, key=str.casefold):
         continue  # ignore included non-header files
     if header in unsupported_posix_headers:
         header_warnings += 1
-        logging.warning("included header <%s> is explicitly unsupported by Frama-C", header)
+        logger.warning("included header <%s> is explicitly unsupported by Frama-C", header)
     else:
-        logging.log(
+        logger.log(
             fclog.VERBOSE,
             "included header %s",
             header,
         )
     if is_local_header(local_dirs, header):
-        logging.log(fclog.VERBOSE, "ok: included header <%s> seems to be available locally", header)
+        logger.log(fclog.VERBOSE, "ok: included header <%s> seems to be available locally", header)
     elif header not in posix_headers:
         non_posix_headers.append(header)
         header_warnings += 1
-        logging.warning("included non-POSIX header <%s>", header)
+        logger.warning("included non-POSIX header <%s>", header)
 
 
-logging.info("Header-related warnings: %d", header_warnings)
+logger.info("Header-related warnings: %d", header_warnings)
 score["includes"] = header_warnings
 
 # dynamic allocation
 
-dynalloc_functions = set(["malloc", "calloc", "free", "realloc", "alloca", "mmap"])
+dynalloc_functions = {"malloc", "calloc", "free", "realloc", "alloca", "mmap"}
 dyncallees = dynalloc_functions.intersection(callees)
 if dyncallees:
-    logging.info("Calls to dynamic allocation functions: %s", ", ".join(sorted(dyncallees)))
+    logger.info("Calls to dynamic allocation functions: %s", ", ".join(sorted(dyncallees)))
     score["malloc"] = len(dyncallees)
 
 # unsupported C11 or non-standard specific features
@@ -500,16 +498,16 @@ unsupported_keywords = {
 for ff in files:
     found = grep_keywords(unsupported_keywords.keys(), ff)
     if found:
-        logging.warning(pretty_unsupported_keywords(ff, unsupported_keywords, found))
+        logger.warning(pretty_unsupported_keywords(ff, unsupported_keywords, found))
     score["keywords"] += len(found)
 
 # assembly code
 
 if "asm" in callees or "__asm" in callees or "__asm__" in callees:
-    logging.warning("code seems to contain inline assembly ('asm(...)')")
+    logger.warning("code seems to contain inline assembly ('asm(...)')")
     score["asm"] = 1
 
-logging.info(
+logger.info(
     "Overall difficulty score:\n%s",
     "\n".join([k + ": " + str(v) for (k, v) in sorted(score.items())]),
 )

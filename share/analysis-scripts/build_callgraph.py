@@ -1,3 +1,4 @@
+#! /usr/bin/env python3
 ##########################################################################
 #                                                                        #
 #  SPDX-License-Identifier LGPL-2.1                                      #
@@ -138,7 +139,7 @@ def compute_recursive_cycles(cg, acc) -> None:
     visited: set[str] = set()
     while to_visit:
         just_visited: set[str] = set()
-        n = sorted(list(to_visit))[0]
+        n = min(to_visit)
         cycle = cycle_bfs(cg, visited, just_visited, n)
         visited = visited.union(just_visited)
         if cycle:
@@ -156,7 +157,7 @@ def detect_recursion(cg) -> None:
     has_cycle = False
     while to_visit:
         just_visited: set[str] = set()
-        n = sorted(list(to_visit))[0]
+        n = min(to_visit)
         cycle = cycle_bfs(cg, visited, just_visited, n)
         visited = visited.union(just_visited)
         if cycle:

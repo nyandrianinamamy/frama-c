@@ -45,7 +45,7 @@ type_prefix = (
 optional_type_prefix = "(?:" + type_prefix + whitespace + ")?"
 argument_list = r"\([^)]*\)"
 
-debug = os.getenv("DEBUG", False)
+debug = os.getenv("DEBUG")
 
 
 # Precomputes the regex for 'fname'
@@ -215,7 +215,7 @@ def find_definitions_and_declarations(
                             f"skipping potential definition of '{funcname}'"
                         )
                         continue
-        if debug:
+        if debug is not None:
             print(
                 f"function_finder: {'def' if is_def else 'decl'} of "
                 f"{funcname} between {start} and {end}"
