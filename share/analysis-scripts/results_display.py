@@ -6,11 +6,10 @@
 #                                                                        #
 ##########################################################################
 
-import re
-import sys
-import string
 import curses
-
+import re
+import string
+import sys
 
 sensitivity = 0.02
 

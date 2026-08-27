@@ -7,8 +7,9 @@
 ##########################################################################
 
 from __future__ import annotations
-import os
+
 import csv
+import os
 import sqlite3
 
 import git_utils

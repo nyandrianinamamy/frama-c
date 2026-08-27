@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 
 # Test server that listen on URL /alert for JSON emitted by a program monitored
 # by E-ACSL and print received alerts to the console output.
