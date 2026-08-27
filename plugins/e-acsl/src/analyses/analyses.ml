@@ -24,7 +24,7 @@ let check_integrity () =
          Prepare_ast.prepare_global will generate a declaration
          for that function with the same contract *)
       method! vglob = function
-        | GFunDecl _ -> Cil.SkipChildren
+        | Cil_types.GFunDecl _ -> Cil.SkipChildren
         | _ -> Cil.DoChildren
 
       (* The same logic_info may occur multiple times. Only visit once.
@@ -39,7 +39,7 @@ let check_integrity () =
         else (Logic_infos.add visited_logic_infos li (); Cil.DoChildren)
 
       method! vannotation = function
-        | Dfun_or_pred (li, _) ->
+        | Cil_types.Dfun_or_pred (li, _) ->
           begin match li.l_body with
             | _ ->
               if li.l_labels <> [] then

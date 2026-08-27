@@ -193,7 +193,7 @@ class annot_visitor kf flags on_alarm = object (self)
       else begin
         Option.iter self#check_aligned_access ret_opt ;
         Option.iter (self#check_mem_access ~kind:Alarms.For_writing) ret_opt ;
-        (* Alarm if the call is through a pointer. Done in DoChildrenPost to get a
+        (* Alarm if the call is through a pointer. Done in Cil.DoChildrenPost to get a
            more pleasant ordering of annotations. *)
         let do_ptr () =
           if self#do_pointer_call () then

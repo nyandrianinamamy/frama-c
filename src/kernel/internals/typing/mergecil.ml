@@ -1356,7 +1356,7 @@ let rec update_type_repr t =
 
 let static_var_visitor = object
   inherit Cil.nopCilVisitor
-  method! vvrbl vi = if vi.vstorage = Static then raise Exit; DoChildren
+  method! vvrbl vi = if vi.vstorage = Static then raise Exit; Cil.DoChildren
 end
 
 (*
@@ -1859,26 +1859,26 @@ class renameVisitorClass =
        | None -> Cil.DoChildren
        | Some (li,_) ->
          let lv' = li.l_var_info in
-         if lv == lv' then DoChildren (* Replacement already done... *)
-         else ChangeTo lv')
+         if lv == lv' then Cil.DoChildren (* Replacement already done... *)
+         else Cil.ChangeTo lv')
     | LVC ->
       let vi = Option.get lv.lv_origin in
-      if not vi.vglob then DoChildren
+      if not vi.vglob then Cil.DoChildren
       else begin
         match PlainMerging.findReplacement true vEq !currentFidx vi.vname
         with
-        | None -> DoChildren
+        | None -> Cil.DoChildren
         | Some (vi',_) ->
           vi'.vreferenced <- true;
-          if vi == vi' then DoChildren (* replacement was done already*)
+          if vi == vi' then Cil.DoChildren (* replacement was done already*)
           else begin
             (match vi'.vlogic_var_assoc with
                None ->
-               vi'.vlogic_var_assoc <- Some lv; DoChildren
-             | Some lv' -> ChangeTo lv')
+               vi'.vlogic_var_assoc <- Some lv; Cil.DoChildren
+             | Some lv' -> Cil.ChangeTo lv')
           end
       end
-    | LVFormal | LVQuant | LVLocal -> DoChildren
+    | LVFormal | LVQuant | LVLocal -> Cil.DoChildren
   in
   let find_enumitem_replacement ei =
     match EnumMerging.findReplacement true eEq !currentFidx ei.eihost with
@@ -1903,20 +1903,20 @@ class renameVisitorClass =
   object (self)
     inherit Cil.nopCilVisitor
 
-    method! vvdec (_vi: varinfo) = DoChildren
+    method! vvdec (_vi: varinfo) = Cil.DoChildren
 
     (* This is a variable use. See if we must change it *)
     method! vvrbl (vi: varinfo) : varinfo Cil.visitAction =
-      if not vi.vglob then DoChildren
+      if not vi.vglob then Cil.DoChildren
       else begin
         match PlainMerging.findReplacement true vEq !currentFidx vi.vname with
-          None -> DoChildren
+          None -> Cil.DoChildren
         | Some (vi', oldfidx) ->
           Kernel.debug ~dkey:Kernel.dkey_linker
             "Renaming use of var %s(%d) to %s(%d)"
             vi.vname !currentFidx vi'.vname oldfidx;
           H.add varUsedAlready vi'.vname ();
-          ChangeTo vi'
+          Cil.ChangeTo vi'
       end
 
     method! vlogic_var_decl lv = rename_associated_logic_var lv
@@ -1931,74 +1931,74 @@ class renameVisitorClass =
           (Pretty_utils.pp_list ~sep:",@ " Cil_printer.pp_logic_type)
           (List.map (fun v -> v.lv_type) li.l_profile)
           !currentFidx;
-        DoChildren
+        Cil.DoChildren
       | Some(li',oldfidx) ->
         Kernel.debug ~dkey:Kernel.dkey_linker
           "Renaming use of logic function %s(%a)(%d) to %s(%a)(%d)"
           li.l_var_info.lv_name pp_profiles li !currentFidx
           li'.l_var_info.lv_name pp_profiles li' oldfidx;
-        ChangeTo li'
+        Cil.ChangeTo li'
 
     method! vlogic_info_decl li =
       match LogicMerging.findReplacement true lfEq !currentFidx li with
         None ->
         Kernel.debug ~dkey:Kernel.dkey_linker "Using logic function %s(%a)(%d)"
           li.l_var_info.lv_name pp_profiles li !currentFidx;
-        DoChildren
+        Cil.DoChildren
       | Some(li',oldfidx) ->
         Kernel.debug ~dkey:Kernel.dkey_linker
           "Renaming use of logic function %s(%a)(%d) to %s(%a)(%d)"
           li.l_var_info.lv_name pp_profiles li !currentFidx
           li'.l_var_info.lv_name pp_profiles li' oldfidx;
-        ChangeTo li'
+        Cil.ChangeTo li'
 
     method! vlogic_type_info_use lt =
       match PlainMerging.findReplacement true ltEq !currentFidx lt.lt_name with
         None ->
         Kernel.debug ~dkey:Kernel.dkey_linker
           "Using logic type %s(%d)" lt.lt_name !currentFidx;
-        DoChildren
+        Cil.DoChildren
       | Some(lt',oldfidx) ->
         Kernel.debug ~dkey:Kernel.dkey_linker
           "Renaming use of logic type %s(%d) to %s(%d)"
           lt.lt_name !currentFidx lt'.lt_name oldfidx;
-        ChangeTo lt'
+        Cil.ChangeTo lt'
 
     method! vlogic_type_info_decl lt =
       match PlainMerging.findReplacement true ltEq !currentFidx lt.lt_name with
       | None ->
         Kernel.debug ~dkey:Kernel.dkey_linker
           "Using logic type %s(%d)" lt.lt_name !currentFidx;
-        DoChildren
+        Cil.DoChildren
       | Some(lt',oldfidx) ->
         Kernel.debug ~dkey:Kernel.dkey_linker
           "Renaming use of logic function %s(%d) to %s(%d)"
           lt.lt_name !currentFidx lt'.lt_name oldfidx;
-        ChangeTo lt'
+        Cil.ChangeTo lt'
 
     method! vlogic_ctor_info_use lc =
       match PlainMerging.findReplacement true lcEq !currentFidx lc.ctor_name with
         None ->
         Kernel.debug ~dkey:Kernel.dkey_linker "Using logic constructor %s(%d)"
           lc.ctor_name !currentFidx;
-        DoChildren
+        Cil.DoChildren
       | Some(lc',oldfidx) ->
         Kernel.debug ~dkey:Kernel.dkey_linker
           "Renaming use of logic type %s(%d) to %s(%d)"
           lc.ctor_name !currentFidx lc'.ctor_name oldfidx;
-        ChangeTo lc'
+        Cil.ChangeTo lc'
 
     method! vlogic_ctor_info_decl lc =
       match PlainMerging.findReplacement true lcEq !currentFidx lc.ctor_name with
         None ->
         Kernel.debug ~dkey:Kernel.dkey_linker "Using logic constructor %s(%d)"
           lc.ctor_name !currentFidx;
-        DoChildren
+        Cil.DoChildren
       | Some(lc',oldfidx) ->
         Kernel.debug ~dkey:Kernel.dkey_linker
           "Renaming use of logic function %s(%d) to %s(%d)"
           lc.ctor_name !currentFidx lc'.ctor_name oldfidx;
-        ChangeTo lc'
+        Cil.ChangeTo lc'
 
     (* The use of a type. Change only those types whose underlying info
      * is not a root. *)
@@ -2009,47 +2009,47 @@ class renameVisitorClass =
             None ->
             Kernel.debug ~dkey:Kernel.dkey_linker "No renaming needed %s(%d)"
               ci.cname !currentFidx;
-            DoChildren
+            Cil.DoChildren
           | Some (ci', oldfidx) ->
             Kernel.debug ~dkey:Kernel.dkey_linker
               "Renaming use of %s(%d) to %s(%d)"
               ci.cname !currentFidx ci'.cname oldfidx;
             let tattr = Cil.visitCilAttributes (self :> Cil.cilVisitor) t.tattr in
-            ChangeTo (Cil_const.mk_tcomp ~tattr ci')
+            Cil.ChangeTo (Cil_const.mk_tcomp ~tattr ci')
         end
       | TComp ci ->
         Kernel.debug ~dkey:Kernel.dkey_linker
           "%s(%d) referenced. No change" ci.cname !currentFidx;
-        DoChildren
+        Cil.DoChildren
       | TEnum ei when not ei.ereferenced -> begin
           match EnumMerging.findReplacement true eEq !currentFidx ei with
-            None -> DoChildren
+            None -> Cil.DoChildren
           | Some (ei', _) ->
             let tattr = Cil.visitCilAttributes (self :> Cil.cilVisitor) t.tattr in
             if ei'.ename = enumInfoName ei'.ekind then
               (* This is actually our friend intEnumInfo *)
-              ChangeTo (Cil_const.mk_tint ~tattr ei'.ekind)
+              Cil.ChangeTo (Cil_const.mk_tint ~tattr ei'.ekind)
             else
-              ChangeTo (Cil_const.mk_tenum ~tattr ei')
+              Cil.ChangeTo (Cil_const.mk_tenum ~tattr ei')
         end
 
       | TNamed ti when not ti.treferenced -> begin
           match PlainMerging.findReplacement true tEq !currentFidx ti.tname with
-            None -> DoChildren
+            None -> Cil.DoChildren
           | Some (ti', _) ->
             let tattr = Cil.visitCilAttributes (self :> Cil.cilVisitor) t.tattr in
-            ChangeTo (Cil_const.mk_tnamed ~tattr ti')
+            Cil.ChangeTo (Cil_const.mk_tnamed ~tattr ti')
         end
 
-      | _ -> DoChildren
+      | _ -> Cil.DoChildren
 
     method! vexpr e =
       match e.enode with
       | Const (CEnum ei) ->
         (match find_enumitem_replacement ei with
-           None -> DoChildren
+           None -> Cil.DoChildren
          | Some c ->
-           ChangeTo { e with enode = Const c })
+           Cil.ChangeTo { e with enode = Const c })
       | CastE _ ->
         (* Maybe the cast is no longer necessary if an enum has been replaced
            by an integer type. *)
@@ -2059,22 +2059,22 @@ class renameVisitorClass =
             exp
           | _ -> e
         in
-        ChangeDoChildrenPost (e,post_action)
-      | _ -> DoChildren
+        Cil.ChangeDoChildrenPost (e,post_action)
+      | _ -> Cil.DoChildren
 
     method! vterm e =
       match e.term_node with
       | TConst(LEnum ei) ->
         (match find_enumitem_replacement ei with
-           None -> DoChildren
+           None -> Cil.DoChildren
          | Some c ->
            let t = Cil.visitCilLogicType (self:>Cil.cilVisitor) e.term_type in
-           ChangeTo
+           Cil.ChangeTo
              { e with
                term_node = TConst (Logic_utils.constant_to_lconstant c);
                term_type = t
              })
-      | _ -> DoChildren
+      | _ -> Cil.DoChildren
 
     method private update_field f =
       (* See if the compinfo was changed *)
@@ -2106,16 +2106,16 @@ class renameVisitorClass =
     method! voffs = function
         Field (f, o) -> begin
           match self#update_field f with
-          | None -> DoChildren
-          | Some f' -> ChangeDoChildrenPost (Field (f', o), fun x -> x)
+          | None -> Cil.DoChildren
+          | Some f' -> Cil.ChangeDoChildrenPost (Field (f', o), fun x -> x)
         end
-      | _ -> DoChildren
+      | _ -> Cil.DoChildren
 
     method! vterm_offset = function
         TField (f, o) -> begin
           match self#update_field f with
-          | None -> DoChildren
-          | Some f' -> ChangeDoChildrenPost (TField (f', o), fun x -> x)
+          | None -> Cil.DoChildren
+          | Some f' -> Cil.ChangeDoChildrenPost (TField (f', o), fun x -> x)
         end
       | TModel(f,o) ->
         (match
@@ -2129,12 +2129,12 @@ class renameVisitorClass =
              (ModelMerging.find_eq_table
                 mfEq (!currentFidx,(f.mi_name, f.mi_base_type))).ndata
            in
-           if f == f' then DoChildren (* already the representative. *)
-           else ChangeDoChildrenPost (TModel(f',o),fun x -> x)
+           if f == f' then Cil.DoChildren (* already the representative. *)
+           else Cil.ChangeDoChildrenPost (TModel(f',o),fun x -> x)
          | Some (f',_) ->
-           ChangeDoChildrenPost (TModel(f',o), fun x -> x))
+           Cil.ChangeDoChildrenPost (TModel(f',o), fun x -> x))
 
-      | _ -> DoChildren
+      | _ -> Cil.DoChildren
 
     method! vinitoffs o =
       (self#voffs o)      (* treat initializer offsets same as lvalue offsets *)
@@ -2159,15 +2159,15 @@ class renameInlineVisitorClass = object(self)
 
   (* This is a variable use. See if we must change it *)
   method! vvrbl (vi: varinfo) : varinfo Cil.visitAction =
-    if not vi.vglob || Cil_datatype.Varinfo.Set.mem vi visited then DoChildren
+    if not vi.vglob || Cil_datatype.Varinfo.Set.mem vi visited then Cil.DoChildren
     else begin
       match PlainMerging.findReplacement true vEq !currentFidx vi.vname with
-        None -> self#visit vi; DoChildren
+        None -> self#visit vi; Cil.DoChildren
       | Some (vi', oldfidx) ->
         Kernel.debug ~dkey:Kernel.dkey_linker "Renaming var %s(%d) to %s(%d)"
           vi.vname !currentFidx vi'.vname oldfidx;
         self#visit vi';
-        ChangeTo vi'
+        Cil.ChangeTo vi'
     end
 
   (* And rename some declarations of inlines to remove. We cannot drop this
@@ -2181,13 +2181,13 @@ class renameInlineVisitorClass = object(self)
         in
         (* Now see if this must be replaced *)
         match PlainMerging.findReplacement true vEq !currentFidx origname with
-          None -> self#visit vi; DoChildren
+          None -> self#visit vi; Cil.DoChildren
         | Some (vi', _) ->
           (*TODO: visit the spec to change references to formals *)
           self#visit vi';
-          ChangeTo [GFunDecl (spec,vi', l)]
+          Cil.ChangeTo [GFunDecl (spec,vi', l)]
       end
-    | _ -> DoChildren
+    | _ -> Cil.DoChildren
 
 end
 let renameInlinesVisitor = new renameInlineVisitorClass
@@ -3165,15 +3165,15 @@ let find_decls g =
     object(self)
       inherit Cil.nopCilVisitor
       method! vvdec v =
-        c_res:=Cil_datatype.Varinfo.Set.add v !c_res; DoChildren
+        c_res:=Cil_datatype.Varinfo.Set.add v !c_res; Cil.DoChildren
       method! vlogic_var_decl lv =
         res := Cil_datatype.Logic_var.Set.add lv !res;
-        SkipChildren
+        Cil.SkipChildren
       method! vspec _ = Cil.SkipChildren
       method! vfunc f =
         ignore (self#vvdec f.svar);
         Option.iter (ignore $ self#vlogic_var_decl) f.svar.vlogic_var_assoc;
-        SkipChildren
+        Cil.SkipChildren
     end
   in
   ignore (Cil.visitCilGlobal visit g); !c_res, !res
@@ -3186,7 +3186,7 @@ let used_vars g =
       inherit Cil.nopCilVisitor
       method! vlogic_var_decl lv =
         locals := Cil_datatype.Logic_var.Set.add lv !locals;
-        SkipChildren
+        Cil.SkipChildren
       method! vlogic_var_use lv =
         if not (Cil_datatype.Logic_var.Set.mem lv !locals)
         && not (Logic_env.is_builtin_logic_function lv.lv_name)
@@ -3195,7 +3195,7 @@ let used_vars g =
           begin
             res:=Cil_datatype.Logic_var.Set.add lv !res
           end;
-        SkipChildren
+        Cil.SkipChildren
     end
   in
   ignore (Cil.visitCilGlobal visit g); !res

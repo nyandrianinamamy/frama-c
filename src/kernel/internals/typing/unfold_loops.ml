@@ -104,8 +104,8 @@ let refresh_vars old_var new_var =
   let visit = object
     inherit Visitor.frama_c_inplace
     method! vvrbl vi =
-      try ChangeTo (snd (List.find (fun (x,_) -> x.vid = vi.vid) assoc))
-      with Not_found -> SkipChildren
+      try Cil.ChangeTo (snd (List.find (fun (x,_) -> x.vid = vi.vid) assoc))
+      with Not_found -> Cil.SkipChildren
 
     method! vexpr e =
       (* Since we are not using a refresh or copy visitor, we must refresh
@@ -115,7 +115,7 @@ let refresh_vars old_var new_var =
           Cil.new_exp ~loc:e.eloc e'.enode
         else e
       in
-      DoChildrenPost do_post
+      Cil.DoChildrenPost do_post
   end
   in
   fun b -> ignore (Visitor.visitFramacBlock visit b)
@@ -131,8 +131,8 @@ let update_gotos sid_tbl block =
              let new_stmt = Cil_datatype.Stmt.Map.find !sref sid_tbl in
              sref := new_stmt
            with Not_found -> ()) ;
-          DoChildren
-        | _ -> DoChildren
+          Cil.DoChildren
+        | _ -> Cil.DoChildren
       (* speed up: skip non interesting subtrees *)
       method! vvdec _ = Cil.SkipChildren (* via visitCilFunction *)
       method! vspec _ = Cil.SkipChildren (* via visitCilFunction *)
@@ -150,7 +150,7 @@ let is_referenced stmt l =
     method! vlogic_label l =
       match l with
       | StmtLabel s when !s == stmt -> raise Found.Found
-      | _ -> DoChildren
+      | _ -> Cil.DoChildren
   end
   in
   try
@@ -165,13 +165,13 @@ let copy_annotations kf assoc labelled_stmt_tbl (break_continue_must_change, stm
       inherit Visitor.frama_c_copy (Project.current())
       method! vlogic_var_use vi =
         match vi.lv_origin with
-          None -> SkipChildren
+          None -> Cil.SkipChildren
         | Some vi ->
           begin
             try
               let vi'= snd (List.find (fun (x,_) -> x.vid = vi.vid) assoc) in
-              ChangeTo (Option.get vi'.vlogic_var_assoc)
-            with Not_found -> SkipChildren
+              Cil.ChangeTo (Option.get vi'.vlogic_var_assoc)
+            with Not_found -> Cil.SkipChildren
                | Invalid_argument _ ->
                  Kernel.abort
                    "Loop unfolding: cannot find new representative for \
@@ -184,9 +184,9 @@ let copy_annotations kf assoc labelled_stmt_tbl (break_continue_must_change, stm
           (try (* A deep copy has already been done.
                   Just modifies the reference in place. *)
              let new_stmt = Cil_datatype.Stmt.Map.find !stmt labelled_stmt_tbl
-             in ChangeTo (StmtLabel (ref new_stmt))
-           with Not_found -> SkipChildren) ;
-        | BuiltinLabel _ | FormalLabel _ -> SkipChildren
+             in Cil.ChangeTo (StmtLabel (ref new_stmt))
+           with Not_found -> Cil.SkipChildren) ;
+        | BuiltinLabel _ | FormalLabel _ -> Cil.SkipChildren
     end
     in Cil.visitCilCodeAnnotation (visitor:>Cil.cilVisitor) (Logic_const.refresh_code_annotation a)
   in
@@ -247,12 +247,12 @@ let update_loop_current kf loop_current block =
     initializer self#set_current_kf kf
     method! vlogic_label =
       function
-      | BuiltinLabel LoopCurrent -> ChangeTo (StmtLabel (ref loop_current))
-      | BuiltinLabel _ | FormalLabel _ | StmtLabel _ -> DoChildren
+      | BuiltinLabel LoopCurrent -> Cil.ChangeTo (StmtLabel (ref loop_current))
+      | BuiltinLabel _ | FormalLabel _ | StmtLabel _ -> Cil.DoChildren
     method! vstmt_aux s =
       match s.skind with
-      | Loop _ -> SkipChildren (* loop init and current are not the same here. *)
-      | _ -> DoChildren
+      | Loop _ -> Cil.SkipChildren (* loop init and current are not the same here. *)
+      | _ -> Cil.DoChildren
   end in
   ignore (Visitor.visitFramacBlock vis block)
 
@@ -262,12 +262,12 @@ let update_loop_entry kf loop_entry stmt =
     initializer self#set_current_kf kf
     method! vlogic_label =
       function
-      | BuiltinLabel LoopEntry -> ChangeTo (StmtLabel (ref loop_entry))
-      | BuiltinLabel _ | FormalLabel _ | StmtLabel _ -> DoChildren
+      | BuiltinLabel LoopEntry -> Cil.ChangeTo (StmtLabel (ref loop_entry))
+      | BuiltinLabel _ | FormalLabel _ | StmtLabel _ -> Cil.DoChildren
     method! vstmt_aux s =
       match s.skind with
-      | Loop _ -> SkipChildren (* loop init and current are not the same here. *)
-      | _ -> DoChildren
+      | Loop _ -> Cil.SkipChildren (* loop init and current are not the same here. *)
+      | _ -> Cil.DoChildren
   end in
   ignore (Visitor.visitFramacStmt vis stmt)
 
@@ -549,14 +549,14 @@ class do_it global_find_init ((force:bool),(times:int)) = object(self)
          gotos <- [] ;
          Cil_datatype.Stmt.Hashtbl.clear moved_labels ;
          id) in
-    ChangeDoChildrenPost (fundec, post_goto_updater)
+    Cil.ChangeDoChildrenPost (fundec, post_goto_updater)
 
   method! vstmt_aux s =
     let open Current_loc.Operators in
     match s.skind with
     | Goto _ ->
       gotos <- s::gotos; (* gotos that may need to be updated *)
-      DoChildren
+      Cil.DoChildren
     | Switch _ -> (* Update the labels pointed to by the switch if needed *)
       let update s =
         if has_unrolled_loop then
@@ -586,7 +586,7 @@ class do_it global_find_init ((force:bool),(times:int)) = object(self)
            | _ -> ());
         s
       in
-      ChangeDoChildrenPost (s, update)
+      Cil.ChangeDoChildrenPost (s, update)
     | Loop(_,_,loc,_,_) ->
       let infos = extract_unroll_spec global_find_init s in
       let number = Option.value ~default:times infos.unroll_number in
@@ -693,9 +693,9 @@ class do_it global_find_init ((force:bool),(times:int)) = object(self)
       let fgh =
         if (number > 0) && not is_ignored_unrolling then fgh else (fun s -> s)
       in
-      ChangeDoChildrenPost (s, fgh)
+      Cil.ChangeDoChildrenPost (s, fgh)
 
-    | _ -> DoChildren
+    | _ -> Cil.DoChildren
 
   method! vinst _ = Cil.SkipChildren
   method! vexpr _ = Cil.SkipChildren

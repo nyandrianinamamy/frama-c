@@ -11,8 +11,8 @@ let run () =
             "Term comparison between %a of type %a and %a of type %a"
             Printer.pp_term t1 Printer.pp_logic_type t1.term_type
             Printer.pp_term t2 Printer.pp_logic_type t2.term_type;
-          DoChildren
-        | _ -> DoChildren
+          Cil.DoChildren
+        | _ -> Cil.DoChildren
       method! vpredicate p =
         match p.pred_content with
         | Prel ((Rlt | Rgt | Rle | Rge | Req | Rneq), t1, t2) ->
@@ -20,8 +20,8 @@ let run () =
             "Predicate comparison between %a of type %a and %a of type %a"
             Printer.pp_term t1 Printer.pp_logic_type t1.term_type
             Printer.pp_term t2 Printer.pp_logic_type t2.term_type;
-          DoChildren
-        | _ -> DoChildren
+          Cil.DoChildren
+        | _ -> Cil.DoChildren
     end
   in
   Visitor.visitFramacFileSameGlobals vis (Ast.get())

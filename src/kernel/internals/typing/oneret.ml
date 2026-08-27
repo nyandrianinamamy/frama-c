@@ -20,8 +20,8 @@ let adjust_assigns_clause loc var code_annot =
   let change_result = object
     inherit Cil.nopCilVisitor
     method! vterm_lhost = function
-      | TResult _ -> ChangeTo (TVar var)
-      | TVar _ | TMem _ -> DoChildren
+      | TResult _ -> Cil.ChangeTo (TVar var)
+      | TVar _ | TMem _ -> Cil.DoChildren
   end
   in
   let change_term t = Cil.visitCilTerm change_result t in
@@ -30,7 +30,7 @@ let adjust_assigns_clause loc var code_annot =
     inherit Cil.nopCilVisitor
     method! vterm_lhost = function
       | TVar v when Cil_datatype.Logic_var.equal var v -> raise M.Found
-      | TVar _ | TResult _ | TMem _ -> DoChildren
+      | TVar _ | TResult _ | TMem _ -> Cil.DoChildren
   end
   in
   let contains_var l =
@@ -118,13 +118,13 @@ let encapsulate_local_vars f =
       inherit Cil.nopCilVisitor
       method! vblock b =
         Stack.push b sb;
-        DoChildrenPost (fun b -> ignore (Stack.pop sb); b)
+        Cil.DoChildrenPost (fun b -> ignore (Stack.pop sb); b)
 
       method! vstmt s =
         match s.skind with
         | Return _ -> raise (Found (sb, s));
-        | Instr _ -> SkipChildren
-        | _ -> DoChildren
+        | Instr _ -> Cil.SkipChildren
+        | _ -> Cil.DoChildren
     end
     in
     let stack_block, ret_stmt =
@@ -205,8 +205,8 @@ let oneret ?(callback: callback option) (f: fundec) : unit =
       method! vterm_lhost = function
         | TResult _ ->
           let v = getRetVar Kernel.gen_loc in
-          ChangeTo (TVar (Cil.cvar_to_lvar v))
-        | TMem _ | TVar _ -> DoChildren
+          Cil.ChangeTo (TVar (Cil.cvar_to_lvar v))
+        | TMem _ | TVar _ -> Cil.DoChildren
     end
     in Cil.visitCilPredicate vis p
   in

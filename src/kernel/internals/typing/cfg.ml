@@ -33,11 +33,11 @@ class caseLabeledStmtFinder slr = object
     then begin
       slr := s :: (!slr);
       match s.skind with
-      | Switch(_,_,_,_) -> SkipChildren
-      | _ -> DoChildren
+      | Switch(_,_,_,_) -> Cil.SkipChildren
+      | _ -> Cil.DoChildren
     end else match s.skind with
-      | Switch(_,_,_,_) -> SkipChildren
-      | _ -> DoChildren
+      | Switch(_,_,_,_) -> Cil.SkipChildren
+      | _ -> Cil.DoChildren
 end
 
 let findCaseLabeledStmts (b : block) : stmt list =
@@ -270,7 +270,7 @@ and cfgStmt env (s: stmt) next break cont =
 let forallStmts todo (fd : fundec) =
   let vis = object
     inherit Cil.nopCilVisitor
-    method! vstmt stmt = ignore (todo stmt); DoChildren
+    method! vstmt stmt = ignore (todo stmt); Cil.DoChildren
     method! vinst _ = Cil.SkipChildren
     method! vexpr _ = Cil.SkipChildren
     method! vlval _ = Cil.SkipChildren
@@ -714,7 +714,7 @@ class registerLabelsVisitor : Cil.cilVisitor = object
             ~lookupname:name ~data:()
         | _ -> ())
       labels;
-    DoChildren
+    Cil.DoChildren
   end
   method! vexpr _ = Cil.SkipChildren
   method! vtype _ = Cil.SkipChildren

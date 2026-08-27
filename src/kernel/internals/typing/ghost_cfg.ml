@@ -35,7 +35,7 @@ let noGhostFD prj fd =
         s.skind <- Instr(Skip (Stmt.loc s)) ;
         s.labels <- [] ;
         s.ghost <- false ;
-        SkipChildren
+        Cil.SkipChildren
       end else
         begin match s.skind with
           | Switch(e, block, cases, loc) ->
@@ -43,20 +43,20 @@ let noGhostFD prj fd =
                 (fun s -> not (self#original s).ghost) cases
             in
             s.skind <- Switch(e, block, cases, loc) ;
-            DoChildren
+            Cil.DoChildren
           | _ ->
             let o = self#original s in
             s.sattr <- if has_annot o then [(annot_attr, [])] else [] ;
-            DoChildren
+            Cil.DoChildren
         end
 
     method! vblock b =
       if Cil.is_ghost_else b then begin
         b.bstmts <- [] ;
         b.battrs <- Ast_attributes.(drop frama_c_ghost_else b.battrs);
-        SkipChildren
+        Cil.SkipChildren
       end else
-        DoChildren
+        Cil.DoChildren
 
     method getBehavior () = self#behavior
   end in

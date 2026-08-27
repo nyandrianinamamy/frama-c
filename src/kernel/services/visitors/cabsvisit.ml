@@ -27,7 +27,7 @@ type nameKind =
   | NType                               (* The name of a type *)
 
 (* All visit methods are called in preorder! (but you can use
- * ChangeDoChildrenPost to change the order) *)
+ * Cil.ChangeDoChildrenPost to change the order) *)
 class type cabsVisitor = object
   method vexpr: expression -> expression Cil.visitAction   (* expressions *)
   method vinitexpr: init_expression -> init_expression Cil.visitAction

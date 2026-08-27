@@ -45,17 +45,17 @@ module BoolInfo = struct
     inherit Visitor.frama_c_inplace
     method! vlogic_var_use v =
       match v.lv_origin with
-      | None -> DoChildren
+      | None -> Cil.DoChildren
       | Some v when v.vformal ->
         let n_param = Kernel_function.get_formal_position v kf + 1 in
         if not (param_visible (fm,kf) n_param)
         then raise M.Invisible
-        else DoChildren
+        else Cil.DoChildren
       | Some v when not v.vglob ->
         if not (loc_var_visible (fm, kf) v)
         then raise M.Invisible
-        else DoChildren
-      | Some _ -> DoChildren
+        else Cil.DoChildren
+      | Some _ -> Cil.DoChildren
   end
 
   let term_visible (fm,kf) t =

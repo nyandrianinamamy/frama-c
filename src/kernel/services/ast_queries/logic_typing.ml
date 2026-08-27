@@ -2086,7 +2086,7 @@ struct
     object
       inherit Cil.nopCilVisitor
       method! vlogic_var_use v =
-        if v.lv_id = v1.lv_id then ChangeTo v2 else SkipChildren
+        if v.lv_id = v1.lv_id then Cil.ChangeTo v2 else Cil.SkipChildren
     end
 
   (* rename v1 into v2 in t *)
@@ -2345,13 +2345,13 @@ struct
         method! vterm_node t =
           match t with
           | Tapp(info',[],args) when Cil_datatype.Logic_info.equal info info' ->
-            ChangeDoChildrenPost(Tapp(info,[curr_lab], args),Fun.id)
-          | _ -> DoChildren
+            Cil.ChangeDoChildrenPost(Tapp(info,[curr_lab], args),Fun.id)
+          | _ -> Cil.DoChildren
         method! vpredicate_node p =
           match p with
           | Papp(info',[],args) when Cil_datatype.Logic_info.equal info info' ->
-            ChangeDoChildrenPost (Papp(info, [curr_lab], args),Fun.id)
-          | _ -> DoChildren
+            Cil.ChangeDoChildrenPost (Papp(info, [curr_lab], args),Fun.id)
+          | _ -> Cil.DoChildren
 
         method private treat_ind_case (n,labs,t,p as ind) =
           match labs with
@@ -2372,8 +2372,8 @@ struct
           | LBinductive l ->
             let l' = List.map_no_copy self#treat_ind_case l in
             if l != l' then info.l_body <- LBinductive l';
-            SkipChildren
-          | _ -> DoChildren
+            Cil.SkipChildren
+          | _ -> Cil.DoChildren
       end
     in
     (* body will be changed in place by visitor if needed. *)

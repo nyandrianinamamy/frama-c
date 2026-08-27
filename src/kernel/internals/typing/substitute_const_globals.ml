@@ -52,10 +52,10 @@ class constGlobSubstVisitorClass : Cil.cilVisitor = object
       in
       let typ = Ast_types.C.unroll_deep vi.vtype in
       if is_arithmetic_type typ && Ast_types.C.is_const typ
-      then ChangeDoChildrenPost ([g], List.map register)
-      else DoChildren
-    | GFun _ -> DoChildren
-    | _ -> SkipChildren
+      then Cil.ChangeDoChildrenPost ([g], List.map register)
+      else Cil.DoChildren
+    | GFun _ -> Cil.DoChildren
+    | _ -> Cil.SkipChildren
 
   (* Visit expressions and replace lvals, with a registered varinfo in
      [vi_to_init_opt], with respective initializing constant expressions. *)
@@ -98,27 +98,27 @@ class constGlobSubstVisitorClass : Cil.cilVisitor = object
              (match Cil.constFoldToInt i with
               | Some z when Z.leq Z.zero z && Z.lt z l ->
                 let c = s.[Z.to_int z] in
-                ChangeTo (Cil.new_exp ~loc (Const (CChr c)))
+                Cil.ChangeTo (Cil.new_exp ~loc (Const (CChr c)))
               | Some z when Z.equal z l ->
-                ChangeTo (Cil.new_exp ~loc (Const (CChr '\000')))
-              | Some _ | None -> DoChildren
+                Cil.ChangeTo (Cil.new_exp ~loc (Const (CChr '\000')))
+              | Some _ | None -> Cil.DoChildren
              )
            | StrInit (Wstr l), Index(i,NoOffset) ->
              let len = Z.of_int (List.length l) in
              (match Cil.constFoldToInt i with
               | Some z when Z.leq Z.zero z && Z.lt z len ->
                 let c = List.nth l (Z.to_int z) in
-                ChangeTo
+                Cil.ChangeTo
                   (Cil.kinteger64 ~loc ~kind:(Machine.wchar_kind()) (Z.of_int64 c))
               | Some z when Z.equal z len ->
-                ChangeTo (Cil.kinteger64 ~loc ~kind:(Machine.wchar_kind()) Z.zero)
-              | Some _ | None -> DoChildren)
-           | StrInit _, _ -> DoChildren)
+                Cil.ChangeTo (Cil.kinteger64 ~loc ~kind:(Machine.wchar_kind()) Z.zero)
+              | Some _ | None -> Cil.DoChildren)
+           | StrInit _, _ -> Cil.DoChildren)
         | exception Not_found ->
-          DoChildren
+          Cil.DoChildren
       end
     | _ ->
-      DoChildren
+      Cil.DoChildren
 
   method! vtype _ = Cil.SkipChildren
   method! vspec _ = Cil.SkipChildren

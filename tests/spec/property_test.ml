@@ -28,8 +28,8 @@ class visit prj =
             self#get_filling_actions;
           b
         in
-        ChangeDoChildrenPost(b, post)
-      end else DoChildren
+        Cil.ChangeDoChildrenPost(b, post)
+      end else Cil.DoChildren
 
     method! vstmt_aux stmt =
       match stmt.skind with

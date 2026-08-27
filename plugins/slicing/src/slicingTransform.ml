@@ -181,7 +181,7 @@ module Visibility (SliceName : sig
       inherit Visitor.frama_c_inplace
       method! vlogic_var_use v =
         match v.lv_origin with
-          None -> DoChildren
+          None -> Cil.DoChildren
         | Some v when
             v.vformal &&
             not
@@ -196,7 +196,7 @@ module Visibility (SliceName : sig
             not v.vglob &&
             not (visible_mark (Fct_slice.get_local_var_mark ff v)) ->
           raise Exn.Invisible
-        | Some _ -> DoChildren
+        | Some _ -> Cil.DoChildren
     end
     in (fun ff pred ->
         try

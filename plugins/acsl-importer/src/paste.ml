@@ -60,13 +60,13 @@ struct
       inherit Cil.nopCilVisitor as super
       method! vstmt stmt = f stmt; super#vstmt stmt
       (* speed up: skip non interesting subtrees *)
-      method! vvdec _ = SkipChildren (* via visitCilFunction *)
-      method! vspec _ = SkipChildren (* via visitCilFunction *)
-      method! vcode_annot _ = SkipChildren (* via Code_annot stmt and Loop stmt *)
-      method! vinst _ = SkipChildren (* via stmt such as Instr *)
-      method! vexpr _ = SkipChildren (* via stmt such as Return, IF, ... *)
-      method! vlval _ = SkipChildren (* via stmt such as Set, Call, Asm, ... *)
-      method! vattr _ = SkipChildren (* via Asm stmt *)
+      method! vvdec _ = Cil.SkipChildren (* via visitCilFunction *)
+      method! vspec _ = Cil.SkipChildren (* via visitCilFunction *)
+      method! vcode_annot _ = Cil.SkipChildren (* via Code_annot stmt and Loop stmt *)
+      method! vinst _ = Cil.SkipChildren (* via stmt such as Instr *)
+      method! vexpr _ = Cil.SkipChildren (* via stmt such as Return, IF, ... *)
+      method! vlval _ = Cil.SkipChildren (* via stmt such as Set, Call, Asm, ... *)
+      method! vattr _ = Cil.SkipChildren (* via Asm stmt *)
     end
     in
     ignore (Cil.visitCilFunction (visitor:>Cil.cilVisitor) definition)
@@ -1615,8 +1615,8 @@ let () =
           match ca.annot_content with
           | AStmtSpec(a,_) ->
             active <- Some a;
-            DoChildrenPost (fun r -> active <- None; r)
-          | _ -> SkipChildren (* nothing to do outside of contract. *)
+            Cil.DoChildrenPost (fun r -> active <- None; r)
+          | _ -> Cil.SkipChildren (* nothing to do outside of contract. *)
 
         method! vbehavior bhv =
           let my_ext =
@@ -1624,7 +1624,7 @@ let () =
               (fun {ext_name} -> ext_name = clause_extension) bhv.b_extended
           in
           match my_ext with
-          | [] -> SkipChildren
+          | [] -> Cil.SkipChildren
           | _ ->
             List.iter
               (fun clause_extension ->
@@ -1659,7 +1659,7 @@ let () =
             in
             Annotations.add_ensures
               Options.emitter kf ?stmt ?active ?behavior clauses;
-            SkipChildren
+            Cil.SkipChildren
       end
     in
     Visitor.visitFramacFileSameGlobals vis ast

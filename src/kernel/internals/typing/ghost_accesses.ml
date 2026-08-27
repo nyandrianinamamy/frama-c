@@ -180,7 +180,7 @@ class visitor = object(self)
           Error.non_ghost_function_call_in_ghost ~current:true () ; true
         | _ -> false
       in
-      if failed then SkipChildren
+      if failed then Cil.SkipChildren
       else begin
         begin match (get_lvalue i) with
           | Some lv -> begin
@@ -206,7 +206,7 @@ class visitor = object(self)
           *)
           | _ -> ()
         end ;
-        DoChildren
+        Cil.DoChildren
       end
     end
 
@@ -214,8 +214,8 @@ class visitor = object(self)
     | { enode = CastE (t, exp) }
       when self#ghost_incompatible t (Cil.typeOf exp) ->
       Error.bad_cast ~current:true exp t ;
-      DoChildren
-    | _ -> DoChildren
+      Cil.DoChildren
+    | _ -> Cil.DoChildren
 
   method! vassigns assigns =
     if self#in_ghost_section () then begin

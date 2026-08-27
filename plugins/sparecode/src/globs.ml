@@ -36,30 +36,30 @@ class collect_visitor = object (self)
 
   method! vtype t = match t.tnode with
     | TNamed ti ->
-      if Typeinfo.Hashtbl.mem used_typeinfo ti then SkipChildren
+      if Typeinfo.Hashtbl.mem used_typeinfo ti then Cil.SkipChildren
       else begin
         debug "add used typedef %s@." ti.tname;
         Typeinfo.Hashtbl.add used_typeinfo ti ();
         ignore (Cil.visitCilType (self:>Cil.cilVisitor) ti.ttype);
-        DoChildren
+        Cil.DoChildren
       end
     | TEnum ei ->
-      if Enuminfo.Hashtbl.mem used_enuminfo ei then SkipChildren
+      if Enuminfo.Hashtbl.mem used_enuminfo ei then Cil.SkipChildren
       else begin
         debug "add used enum %s@." ei.ename;
-        Enuminfo.Hashtbl.add used_enuminfo ei (); DoChildren
+        Enuminfo.Hashtbl.add used_enuminfo ei (); Cil.DoChildren
       end
     | TComp ci ->
-      if Compinfo.Hashtbl.mem used_compinfo ci then SkipChildren
+      if Compinfo.Hashtbl.mem used_compinfo ci then Cil.SkipChildren
       else begin
         debug "add used comp %s@." ci.cname;
         Compinfo.Hashtbl.add used_compinfo ci ();
         List.iter
           (fun f -> ignore (Cil.visitCilType (self:>Cil.cilVisitor) f.ftype))
           (Option.value ~default:[] ci.cfields);
-        DoChildren
+        Cil.DoChildren
       end
-    | _ -> DoChildren
+    | _ -> Cil.DoChildren
 
   method! vvrbl v =
     if v.vglob && not (Varinfo.Hashtbl.mem used_variables v) then begin
@@ -71,7 +71,7 @@ class collect_visitor = object (self)
         ignore (Cil.visitCilInit_or_str (self:>Cil.cilVisitor) v init)
       with Not_found -> ()
     end;
-    DoChildren
+    Cil.DoChildren
 
   method! vglob_aux g = match g with
     | GFun (f, _) ->
@@ -91,7 +91,7 @@ class collect_visitor = object (self)
               ignore (Cil.visitCilInit_or_str (self:>Cil.cilVisitor) v init)
           end
       in Cil.SkipChildren
-    | GFunDecl _ -> DoChildren
+    | GFunDecl _ -> Cil.DoChildren
     | _ -> Cil.SkipChildren
 
 end
@@ -106,30 +106,30 @@ class filter_visitor prj = object
       -> Cil.DoChildren (* keep everything *)
     | GVar (v, _, _) (* variable definition *)
     | GVarDecl (v, _) | GFunDecl (_, v, _) -> (* variable/function declaration *)
-      if Varinfo.Hashtbl.mem used_variables v then DoChildren
+      if Varinfo.Hashtbl.mem used_variables v then Cil.DoChildren
       else begin
         debug "remove var %s@." v.vname;
-        ChangeTo []
+        Cil.ChangeTo []
       end
     | GType (ti, _loc) (* typedef *) ->
-      if Typeinfo.Hashtbl.mem used_typeinfo ti then DoChildren
+      if Typeinfo.Hashtbl.mem used_typeinfo ti then Cil.DoChildren
       else begin
         debug "remove typedef %s@." ti.tname;
-        ChangeTo []
+        Cil.ChangeTo []
       end
     | GCompTag (ci, _loc) (* struct/union definition *)
     | GCompTagDecl (ci, _loc) (* struct/union declaration *) ->
-      if Compinfo.Hashtbl.mem used_compinfo ci then DoChildren
+      if Compinfo.Hashtbl.mem used_compinfo ci then Cil.DoChildren
       else begin
         debug "remove comp %s@." ci.cname;
-        ChangeTo []
+        Cil.ChangeTo []
       end
     | GEnumTag (ei, _loc) (* enum definition *)
     | GEnumTagDecl (ei, _loc) (* enum declaration *) ->
-      if Enuminfo.Hashtbl.mem used_enuminfo ei then DoChildren
+      if Enuminfo.Hashtbl.mem used_enuminfo ei then Cil.DoChildren
       else begin
         debug "remove enum %s@." ei.ename;
-        DoChildren (* ChangeTo [] *)
+        Cil.DoChildren (* Cil.ChangeTo [] *)
       end
     | _ -> Cil.DoChildren
 end

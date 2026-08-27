@@ -53,8 +53,8 @@ class non_zero_divisor prj = object (self)
         (fun () ->
            Annotations.add_assert syntax_alarm ~kf:new_kf new_stmt assertion)
         self#get_filling_actions;
-      DoChildren
-    | _ -> DoChildren
+      Cil.DoChildren
+    | _ -> Cil.DoChildren
 end
 
 (* This function creates a new project initialized with the current file plus

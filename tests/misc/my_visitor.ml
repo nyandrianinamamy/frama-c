@@ -55,9 +55,9 @@ class foo = object (self)
   method! vstmt_aux stmt =
     let loc = Current_loc.get () in
     add_assert loc (Option.get self#current_kf) stmt;
-    DoChildren
+    Cil.DoChildren
 
-  method! vglob_aux _ = DoChildren
+  method! vglob_aux _ = Cil.DoChildren
 
 end;;
 

@@ -305,17 +305,17 @@ class markReachableVisitor
       | GType (typeinfo, _) ->
         Kernel.debug ~dkey "marking reachable: type %s" typeinfo.tname;
         InfoHashtbl.replace reachable_tbl (Type typeinfo) true;
-        DoChildren
+        Cil.DoChildren
       | GCompTag (compinfo, _)
       | GCompTagDecl (compinfo, _) ->
         Kernel.debug ~dkey "marking reachable: comp decl %s" compinfo.cname;
         InfoHashtbl.replace reachable_tbl (Comp compinfo) true;
-        DoChildren
+        Cil.DoChildren
       | GEnumTag (enuminfo, _)
       | GEnumTagDecl (enuminfo, _) ->
         Kernel.debug ~dkey "marking reachable: enum decl %s" enuminfo.ename;
         InfoHashtbl.replace reachable_tbl (Enum enuminfo) true;
-        DoChildren
+        Cil.DoChildren
       | GVar (varinfo, _, _)
       | GVarDecl (varinfo, _)
       | GFunDecl (_,varinfo, _)
@@ -325,10 +325,10 @@ class markReachableVisitor
             Kernel.debug ~dkey "marking reachable: function %s" varinfo.vname;
             InfoHashtbl.replace reachable_tbl (Var varinfo) true;
           end;
-        DoChildren
-      | GAnnot _ -> DoChildren
+        Cil.DoChildren
+      | GAnnot _ -> Cil.DoChildren
       | _ ->
-        SkipChildren
+        Cil.SkipChildren
 
     method! vstmt s =
       match s.skind with
@@ -342,8 +342,8 @@ class markReachableVisitor
                List.iter (fun (v,_) -> ignore (self#vvrbl v)) l
              | Catch_all -> ())
           c;
-        DoChildren
-      | _ -> DoChildren
+        Cil.DoChildren
+      | _ -> Cil.DoChildren
 
     method! vinst = function
       | Asm (_, tmpls, _, _) when Machine.msvcMode () ->
@@ -361,8 +361,8 @@ class markReachableVisitor
                  InfoHashtbl.replace reachable_tbl (Var v) true
              ) fd.slocals
          | _ -> assert false);
-        DoChildren
-      | _ -> DoChildren
+        Cil.DoChildren
+      | _ -> Cil.DoChildren
 
     method! vvrbl v =
       if not (is_reachable reachable_tbl (Var v)) then
@@ -386,7 +386,7 @@ class markReachableVisitor
               List.iter descend globals
             end
         end;
-      SkipChildren
+      Cil.SkipChildren
 
     method private mark_enum e =
       if not (is_reachable reachable_tbl (Enum e)) then
@@ -402,13 +402,13 @@ class markReachableVisitor
 
     method! vexpr e =
       match e.enode with
-        Const (CEnum {eihost = ei}) -> self#mark_enum ei; DoChildren
-      | _ -> DoChildren
+        Const (CEnum {eihost = ei}) -> self#mark_enum ei; Cil.DoChildren
+      | _ -> Cil.DoChildren
 
     method! vterm_node t =
       match t with
-        TConst (LEnum {eihost = ei}) -> self#mark_enum ei; DoChildren
-      | _ -> DoChildren
+        TConst (LEnum {eihost = ei}) -> self#mark_enum ei; Cil.DoChildren
+      | _ -> Cil.DoChildren
 
     method private visitAttrs attrs =
       ignore (Cil.visitCilAttributes (self :> Cil.cilVisitor) attrs)
@@ -458,16 +458,16 @@ class markReachableVisitor
          Option.iter (List.iter (fun (_,ty,_) -> ignore (self#vtype ty))) args;
          self#visitAttrs typ.tattr
       );
-      SkipChildren
+      Cil.SkipChildren
 
     method! vlogic_var_decl lv =
       Kernel.debug ~dkey "markReachable: found LOGIC VAR DECL for: %s (%d)\n" lv.lv_name lv.lv_id;
-      DoChildren
+      Cil.DoChildren
 
     method! vlogic_var_use lv =
       Kernel.debug ~dkey "markReachable: found LOGIC VAR USE for: %s (%d)\n" lv.lv_name lv.lv_id;
       match lv.lv_origin with
-      | None -> SkipChildren
+      | None -> Cil.SkipChildren
       | Some v ->
         if not (is_reachable reachable_tbl (Var v)) then
           begin
@@ -490,7 +490,7 @@ class markReachableVisitor
                 List.iter descend globals
               end
           end;
-        SkipChildren
+        Cil.SkipChildren
   end
 
 
@@ -570,27 +570,27 @@ class markReferencedVisitor = object (self)
       Kernel.debug ~loc ~dkey
         "referenced: type %s" typeinfo.tname;
       typeinfo.treferenced <- true;
-      DoChildren
+      Cil.DoChildren
     | GCompTag (compinfo, loc)
     | GCompTagDecl (compinfo, loc) ->
       Kernel.debug ~loc ~dkey
         "referenced: comp %s" compinfo.cname;
       compinfo.creferenced <- true;
-      DoChildren
+      Cil.DoChildren
     | GEnumTag (enuminfo, loc)
     | GEnumTagDecl (enuminfo, loc) ->
       Kernel.debug ~loc ~dkey
         "referenced: enum %s" enuminfo.ename;
       enuminfo.ereferenced <- true;
-      DoChildren
+      Cil.DoChildren
     | GVar (varinfo, _, loc) | GFun ({svar = varinfo}, loc) ->
       self#reference varinfo loc;
-      DoChildren
+      Cil.DoChildren
     | GVarDecl (varinfo, loc)
     | GFunDecl (_,varinfo, loc) ->
       self#reference varinfo loc;
-      SkipChildren
-    | _ -> SkipChildren
+      Cil.SkipChildren
+    | _ -> Cil.SkipChildren
 
   method! vtype t =
     match t.tnode with
@@ -599,38 +599,38 @@ class markReferencedVisitor = object (self)
         Kernel.debug ~current:true ~dkey "referenced: type %s" ti.tname;
         ti.treferenced <- true;
       end;
-      DoChildren
+      Cil.DoChildren
     | TComp ci ->
       if not (Stack.is_empty inside_typ) then begin
         Kernel.debug ~current:true ~dkey "referenced: comp %s" ci.cname;
         ci.creferenced <- true;
       end;
-      DoChildren
+      Cil.DoChildren
     | TEnum ei ->
       if not (Stack.is_empty inside_typ) then begin
         Kernel.debug ~current:true ~dkey "referenced: enum %s" ei.ename;
         ei.ereferenced <- true;
       end;
-      DoChildren
+      Cil.DoChildren
     | TVoid
     | TInt _
     | TFloat _
     | TPtr _
     | TArray _
     | TFun _
-    | TBuiltin_va_list -> DoChildren
+    | TBuiltin_va_list -> Cil.DoChildren
 
   method! vexpr e =
     match e.enode with
     | SizeOf t | AlignOf (t, _) | UnOp (_, _, t) | BinOp (_, _, _, t) ->
       Stack.push t inside_typ;
-      DoChildrenPost (fun e -> ignore (Stack.pop inside_typ); e)
-    | _ -> DoChildren
+      Cil.DoChildrenPost (fun e -> ignore (Stack.pop inside_typ); e)
+    | _ -> Cil.DoChildren
 
   method! vvrbl v =
     Kernel.debug ~current:true ~dkey "referenced: var %s" v.vname;
     v.vreferenced <- true;
-    SkipChildren
+    Cil.SkipChildren
 
   method! vspec _ = Cil.SkipChildren
   method! vcode_annot _ = Cil.SkipChildren
@@ -721,8 +721,8 @@ class markUsedLabels is_removable (labelMap: (string, unit) Hashtbl.t) =
 
     method! vstmt (s: stmt) =
       match s.skind with
-        Goto (dest, _) -> keep_label dest; DoChildren
-      | _ -> DoChildren
+        Goto (dest, _) -> keep_label dest; Cil.DoChildren
+      | _ -> Cil.DoChildren
 
     method! vterm_node t =
       begin
@@ -732,7 +732,7 @@ class markUsedLabels is_removable (labelMap: (string, unit) Hashtbl.t) =
           List.iter keep_label_logic labs
         | _ -> ()
       end;
-      DoChildren
+      Cil.DoChildren
 
     method! vpredicate_node t =
       begin
@@ -742,7 +742,7 @@ class markUsedLabels is_removable (labelMap: (string, unit) Hashtbl.t) =
           List.iter keep_label_logic labs
         | _ -> ()
       end;
-      DoChildren
+      Cil.DoChildren
 
     (* No need to go into expressions or types *)
     method! vexpr _ = Cil.SkipChildren
@@ -762,7 +762,7 @@ class removeUnusedLabels is_removable (labelMap: (string, unit) Hashtbl.t) = obj
          (lab :: lrest)
        else
          lrest);
-    DoChildren
+    Cil.DoChildren
 
   (* No need to go into expressions or instructions *)
   method! vexpr _ = Cil.SkipChildren
@@ -832,7 +832,7 @@ let removeUnmarked isRoot ast reachable_tbl =
         method! vblock b =
           b.blocals <- List.filter filterLocal b.blocals;
           b.bstatics <- List.filter filterLocal b.bstatics;
-          DoChildren
+          Cil.DoChildren
       end
       in
       ((is_reachable reachable_tbl (Var func.svar))

@@ -94,7 +94,7 @@ class visitPostDom = object(self)
     test_strict f;
     test_nearest kf f;
 
-    SkipChildren
+    Cil.SkipChildren
 end
 
 let cover_errors () =

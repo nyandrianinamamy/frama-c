@@ -31,8 +31,8 @@ let replace_call def proto =
     inherit Visitor.frama_c_inplace
     method! vinst = function
       | Call(rcv,Var _, args, l) ->
-        ChangeTo [Call(rcv, Var vi, args, l)]
-      | _ -> SkipChildren
+        Cil.ChangeTo [Call(rcv, Var vi, args, l)]
+      | _ -> Cil.SkipChildren
   end
   in
   let body = Kernel_function.get_definition def in

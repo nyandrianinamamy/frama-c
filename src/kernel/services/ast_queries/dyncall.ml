@@ -115,7 +115,7 @@ class dyncall =
 
     method! vfunc _ =
       scope <- [] ;
-      DoChildren
+      Cil.DoChildren
 
     method! vcode_annot ca =
       match ca.annot_content with
@@ -161,8 +161,8 @@ class dyncall =
               Property_status.logical_consequence emitter annot !pool ;
             end
         end;
-        SkipChildren
-      | _ -> SkipChildren
+        Cil.SkipChildren
+      | _ -> Cil.SkipChildren
 
     method! vspec spec =
       let calls = get_calls "instanceof" spec.Cil_types.spec_behavior in
@@ -176,7 +176,7 @@ class dyncall =
                            Kernel_function.pretty kf bhv pp_calls kfs))
               calls
         end;
-      SkipChildren
+      Cil.SkipChildren
 
     method! vstmt_aux s =
       match s.skind with

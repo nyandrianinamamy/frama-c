@@ -94,18 +94,18 @@ class change_formals old_kf new_kf =
     inherit Visitor.frama_c_inplace
     method! vlogic_var_use lv =
       match lv.lv_origin with
-      | None -> SkipChildren
+      | None -> Cil.SkipChildren
       | Some vi ->
         try
           let vi'= List.assq vi formals in
-          ChangeTo (Cil.cvar_to_lvar vi')
-        with Not_found -> SkipChildren
+          Cil.ChangeTo (Cil.cvar_to_lvar vi')
+        with Not_found -> Cil.SkipChildren
 
     method! vvrbl vi =
       try
         let vi' = List.assq vi formals in
-        ChangeTo vi'
-      with Not_found -> SkipChildren
+        Cil.ChangeTo vi'
+      with Not_found -> Cil.SkipChildren
   end
 
 (* update \result to param of f_post when it exists. Must not be called if
@@ -116,8 +116,8 @@ class change_result new_kf =
     inherit Visitor.frama_c_inplace
     method! vterm_lhost lh =
       match lh with
-        TResult _ -> ChangeTo (TVar (Cil.cvar_to_lvar v))
-      | _ -> DoChildren
+        TResult _ -> Cil.ChangeTo (TVar (Cil.cvar_to_lvar v))
+      | _ -> Cil.DoChildren
   end
 
 (**
@@ -224,10 +224,10 @@ class visit_adding_code_for_synchronisation =
         let kf = Globals.Functions.get fundec.svar in
         if Data_for_aorai.isObservableFunction kf then
           let globs = self#do_fundec fundec loc in
-          ChangeDoChildrenPost([g], fun x -> globs @ x)
+          Cil.ChangeDoChildrenPost([g], fun x -> globs @ x)
         else
-          DoChildren
-      | _ -> DoChildren
+          Cil.DoChildren
+      | _ -> Cil.DoChildren
 
     method! vstmt_aux stmt =
       match stmt.skind with
@@ -253,8 +253,8 @@ class visit_adding_code_for_synchronisation =
           let new_stmts = [call; new_return] in
           stmt.skind<-Block(Cil.mkBlock(new_stmts))
         end;
-        SkipChildren
-      | _ -> DoChildren
+        Cil.SkipChildren
+      | _ -> Cil.DoChildren
 
   end
 
@@ -896,7 +896,7 @@ class visit_adding_pre_post_from_buch treatloops =
            let bhv = Cil.mk_behavior ~requires ~post_cond () in
            Annotations.add_behaviors Aorai_option.emitter my_kf (bhv :: bhvs));
       let after f = update_assigns f.svar.vdecl my_kf Kglobal spec; f in
-      ChangeDoChildrenPost(f,after)
+      Cil.ChangeDoChildrenPost(f,after)
 
     method! vglob_aux g =
       match g with
@@ -914,7 +914,7 @@ class visit_adding_pre_post_from_buch treatloops =
              Visitor.visitFramacBehaviors vis bhvs
            in
            Annotations.add_behaviors Aorai_option.emitter my_kf bhvs;
-           SkipChildren
+           Cil.SkipChildren
          | Post kf ->
            (* must advance the automaton according to return event. *)
            let (rt, _, _, _) =
@@ -934,11 +934,11 @@ class visit_adding_pre_post_from_buch treatloops =
 
            in
            Annotations.add_behaviors Aorai_option.emitter my_kf bhvs;
-           SkipChildren
+           Cil.SkipChildren
          | Aux _ | Not_aux_func ->
-           DoChildren (* they are not considered here. *))
+           Cil.DoChildren (* they are not considered here. *))
 
-      | _ -> DoChildren;
+      | _ -> Cil.DoChildren;
 
     method! vstmt_aux stmt =
       let kf = Option.get self#current_kf in
@@ -1076,15 +1076,15 @@ class visit_adding_pre_post_from_buch treatloops =
       if treatloops then
         match stmt.skind with
         | Loop (_,block,_,_,_) ->
-          ChangeDoChildrenPost(stmt, after $ (treat_loop (ref block)))
+          Cil.ChangeDoChildrenPost(stmt, after $ (treat_loop (ref block)))
 
-        | _ -> ChangeDoChildrenPost(stmt, after)
+        | _ -> Cil.ChangeDoChildrenPost(stmt, after)
       else
-        ChangeDoChildrenPost(stmt,after)
+        Cil.ChangeDoChildrenPost(stmt,after)
 
     method! vinst = function
-      | Call _ | Local_init (_, ConsInit _, _) -> self#call (); DoChildren
-      | _ -> DoChildren
+      | Call _ | Local_init (_, ConsInit _, _) -> self#call (); Cil.DoChildren
+      | _ -> Cil.DoChildren
 
   end
 

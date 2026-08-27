@@ -113,7 +113,7 @@ class inline_stmt_contract =
            let res = Cil.mkStmt ~valid_sid:true (Block b) in
            Ast.mark_as_grown ();
            File.must_recompute_cfg (Option.get self#current_func);
-           ChangeTo res
+           Cil.ChangeTo res
         )
       | [ _ ] -> Kernel.fatal "code annotation was expected to be a contract"
       | _ :: _ -> Kernel.fatal "a statement can only have one contract"

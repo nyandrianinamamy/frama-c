@@ -19,8 +19,8 @@ class vis prj =
         in
         f2.svar <- v2;
         self#set_current_kf my_kf;
-        ChangeTo ([GFun(f1,loc); GFun(f2,loc)])
-      | _ -> DoChildren
+        Cil.ChangeTo ([GFun(f1,loc); GFun(f2,loc)])
+      | _ -> Cil.DoChildren
   end
 
 let run () =

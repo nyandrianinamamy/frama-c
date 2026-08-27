@@ -255,28 +255,28 @@ let transform_cabs cabs =
           FOR(li,init,cond,inc,(mk_body []),loc)
       | _ -> assert false
 
-    method! vexpr _ = SkipChildren (* share the AST via stmt such as
-                                      Return, IF, ... *)
-    method! vinitexpr _ = SkipChildren  (* share the AST *)
-    method! vtypespec _ = SkipChildren (* share the AST *)
-    method! vdecltype _ = SkipChildren (* share the AST *)
-    method! vname _ _ _ = SkipChildren (* share the AST *)
-    method! vspec _ = SkipChildren (* share the AST via visitCilFunction *)
-    method! vattr _ = SkipChildren (* share the AST via Asm stmt *)
+    method! vexpr _ = Cil.SkipChildren (* share the AST via stmt such as
+                                          Return, IF, ... *)
+    method! vinitexpr _ = Cil.SkipChildren  (* share the AST *)
+    method! vtypespec _ = Cil.SkipChildren (* share the AST *)
+    method! vdecltype _ = Cil.SkipChildren (* share the AST *)
+    method! vname _ _ _ = Cil.SkipChildren (* share the AST *)
+    method! vspec _ = Cil.SkipChildren (* share the AST via visitCilFunction *)
+    method! vattr _ = Cil.SkipChildren (* share the AST via Asm stmt *)
 
     method! vdef def = match def with
       | FUNDEF (_,(_,(name,_,_,_)),_,_,_) -> begin
           loop_cpt <- 0 ;
           fct_name <- name ;
-          DoChildren
+          Cil.DoChildren
         end
-      | _ -> SkipChildren
+      | _ -> Cil.SkipChildren
 
     method! vblock block =
       match S.get_processed_label block.bstmts with
-      | None -> DoChildren
+      | None -> Cil.DoChildren
       | Some bstmts ->
-        ChangeDoChildrenPost ( {block with bstmts }, fun x -> x)
+        Cil.ChangeDoChildrenPost ( {block with bstmts }, fun x -> x)
 
     method! vstmt sref =
       let change f = Cil.ChangeDoChildrenPost ([f ~sref], fun x -> x) in
@@ -289,7 +289,7 @@ let transform_cabs cabs =
       | DOWHILE(_,_,body,_)
       | FOR(_,_,_,_,body,_) when Mark.is_loop_attr_markup body
         -> change loop_process
-      | _ -> DoChildren
+      | _ -> Cil.DoChildren
   end
   in if unroll_loop_cond then
     (let rec get_basename name = try
@@ -354,15 +354,15 @@ class do_it = object(_self)
            cfg_has_changed <- false
          end;
          id) in
-    ChangeDoChildrenPost (fundec, post_goto_updater)
+    Cil.ChangeDoChildrenPost (fundec, post_goto_updater)
 
   method! vstmt_aux s = match s.skind with
     | Loop (_,block,_,_,_) ->
       loop_cpt <- 1 + loop_cpt ;
       block.Cil_types.battrs <-
         Ast_attributes.add (loop_ident_attr_cil loop_cpt) block.Cil_types.battrs ;
-      DoChildren
-    | _ -> DoChildren
+      Cil.DoChildren
+    | _ -> Cil.DoChildren
 end
 
 let transform_cil file =

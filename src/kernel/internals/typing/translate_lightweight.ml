@@ -181,14 +181,14 @@ class annotateFunFromDeclspec =
     method! vglob_aux = function
       | GFun(f,_) ->
         annotate_fun f.svar;
-        SkipChildren
+        Cil.SkipChildren
       | GFunDecl(_,v,_) ->
         if not v.vdefined then annotate_fun v;
-        SkipChildren
-      | GAnnot _ -> DoChildren
+        Cil.SkipChildren
+      | GAnnot _ -> Cil.DoChildren
       | GCompTag _ | GType _ | GCompTagDecl _ | GEnumTagDecl _
       | GEnumTag _ | GAsm _ | GPragma _ | GText _ | GVar _ | GVarDecl _ ->
-        SkipChildren
+        Cil.SkipChildren
   end
 
 let interpret file =

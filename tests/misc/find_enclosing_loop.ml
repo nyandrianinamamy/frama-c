@@ -11,7 +11,7 @@ class check =
           Cil.ChangeDoChildrenPost
             (s,
              fun s -> ignore (Stack.pop current_loop); s)
-        | _ -> DoChildren
+        | _ -> Cil.DoChildren
       in
       let has_loop =
         try

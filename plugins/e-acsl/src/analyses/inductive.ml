@@ -61,7 +61,7 @@ include struct (* auxiliary functions *)
               Printer.pp_term subst
               Printer.pp_term t;
             raise Unsupported
-          | None, _ -> DoChildren
+          | None, _ -> Cil.DoChildren
         end
       | _ -> Cil.DoChildren
   end
@@ -558,8 +558,8 @@ end = functor (Out : Out_language) -> struct
             method !vpredicate p = match p.pred_content with
               | Papp (li, labels, args) when is_inductive li ->
                 let li' = PredicateExtractor.extract li in
-                ChangeTo {p with pred_content = Papp (li', labels, args)}
-              | _ -> DoChildren
+                Cil.ChangeTo {p with pred_content = Papp (li', labels, args)}
+              | _ -> Cil.DoChildren
           end in
           let pl' = Visitor.visitFramacPredicate extractor pl in
           recurse ~conds:(pl' :: conds) pr
