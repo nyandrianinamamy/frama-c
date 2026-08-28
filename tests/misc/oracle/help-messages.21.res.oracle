@@ -17,6 +17,7 @@ Options taking a string as argument should preferably be written
                     -no-region)
 -region-assert      Generate ACSL 'assert' annotations instead of checks
                     (opposite option is -region-check)
+-region-check       Generate ACSL 'check' annotations (set by default)
 
 *** DEBUG
 

@@ -70,6 +70,17 @@ Options taking a string as argument should preferably be written
 -e-acsl-O-implicit-downcast  (O ≤ 2) generate RTE guards for implicit
                     downcast done by the translation (set by default,
                     opposite option is -e-acsl-O-no-implicit-downcast)
+-e-acsl-O-no-gmp-only  opposite of -e-acsl-O-gmp-only (set by default)
+-e-acsl-O-no-hyp-gath  opposite of -e-acsl-O-hyp-gath
+-e-acsl-O-no-implicit-downcast  opposite of -e-acsl-O-implicit-downcast
+-e-acsl-O-no-print-values  opposite of -e-acsl-O-print-values
+-e-acsl-O-no-rte    opposite of -e-acsl-O-rte
+-e-acsl-O-no-rte-initialized  opposite of -e-acsl-O-rte-initialized (set by
+                    default)
+-e-acsl-O-no-smart-cil  opposite of -e-acsl-O-smart-cil
+-e-acsl-O-no-smart-il  opposite of -e-acsl-O-smart-il
+-e-acsl-O-no-trivial-rte  opposite of -e-acsl-O-trivial-rte (set by default)
+-e-acsl-O-no-valid  opposite of -e-acsl-O-valid (set by default)
 -e-acsl-O-print-values  (O ≤ 3) print values of variables involved in a
                     failed verification along with the runtime error message
                     (set by default, opposite option is

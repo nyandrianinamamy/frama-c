@@ -156,7 +156,7 @@ struct
     let add_option opp name =
       let opp_msg name = "opposite option is " ^ negative_option_name name in
       let help =
-        if X.default then
+        if not !Parameter_customize.default_value_hidden_ref && X.default then
           if X.help = empty_string then empty_string
           else
             X.help ^
@@ -171,21 +171,27 @@ struct
     let add_negative_option name =
       let neg_name = negative_option_name name in
       let mk_help s =
-        if X.default then s else s ^ default_message empty_string
+        if !Parameter_customize.default_value_hidden_ref || X.default
+        then s
+        else s ^ default_message empty_string
       in
       (* Add help messages even for invisible negative options, since
          these messages are useful for option '-explain' *)
       let s = !Parameter_customize.negative_option_help_ref in
-      let neg_visible, neg_help =
+      let neg_help =
         if s = empty_string then
-          !Parameter_customize.negative_option_name_ref <> None,
-          (if not X.default then "(set by default) " else "") ^
-          "opposite of option " ^ name ^ ", whose help message is:\n" ^ X.help
+          (if not !Parameter_customize.default_value_hidden_ref && not X.default
+           then "(set by default) "
+           else "")
+          ^ "opposite of option " ^ name ^ ", whose help message is:\n" ^ X.help
         else
-          is_visible, mk_help s
+          mk_help s
       in
       let neg_visible =
-        neg_visible && !Parameter_customize.negative_option_visible_ref
+        match !Parameter_customize.negative_option_visible_ref with
+        | Some false -> false
+        | Some true -> !Parameter_customize.negative_option_name_ref <> Some ""
+        | None -> !Parameter_customize.negative_option_help_ref <> empty_string
       in
       generic_add_option neg_name neg_help neg_visible is_safe false;
       neg_name

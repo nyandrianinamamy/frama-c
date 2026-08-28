@@ -11,14 +11,18 @@ let empty_string = ""
 let cmdline_stage_ref = ref Cmdline.Configuring
 let set_cmdline_stage s = cmdline_stage_ref := s
 
-let negative_option_visible_ref = ref false
+let default_value_hidden_ref = ref false
+let set_default_value_hidden () = default_value_hidden_ref := true
+
+let negative_option_visible_ref = ref None
 let negative_option_name_ref = ref None
-let set_negative_option_name ?(visible = false) s =
+let set_negative_option_name ?visible s =
   negative_option_visible_ref := visible;
   negative_option_name_ref := Some s
 
 let negative_option_help_ref = ref empty_string
-let set_negative_option_help s = negative_option_help_ref := s
+let set_negative_option_help s =
+  negative_option_help_ref := s
 
 let unset_option_name_ref = ref empty_string
 let set_unset_option_name s = unset_option_name_ref := s
@@ -97,7 +101,8 @@ let add_function_name_transformation f =
 
 let reset () =
   cmdline_stage_ref := Cmdline.Configuring;
-  negative_option_visible_ref := true;
+  default_value_hidden_ref := false;
+  negative_option_visible_ref := None;
   negative_option_name_ref := None;
   negative_option_help_ref := empty_string;
   unset_option_name_ref:= empty_string;
