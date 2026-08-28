@@ -515,14 +515,7 @@ struct
 
   module Prototype = struct
     include Model
-    let filter = project
     let name = Params.name
-    let join s1 s2 =
-      let oracle = mk_bioracle s1 s2 in
-      join ~oracle s1 s2
-    let widen kf stmt s1 s2 =
-      let oracle = mk_bioracle s1 s2 in
-      widen ~oracle kf stmt s1 s2
   end
 
   include Domain_builder.Complete (Prototype)
@@ -531,6 +524,16 @@ struct
   type value = Value.t
   type location = Precise_locs.precise_location (* should be Location.t *)
   type origin
+
+  (* Lattice *)
+
+  let join s1 s2 =
+    let oracle = mk_bioracle s1 s2 in
+    join ~oracle s1 s2
+
+  let widen kf stmt s1 s2 =
+    let oracle = mk_bioracle s1 s2 in
+    widen ~oracle kf stmt s1 s2
 
   (* Eva Queries *)
 
@@ -783,6 +786,7 @@ struct
 
   let relate _bases _state = Base.SetLattice.empty
 
+  let filter = Model.project
   let project = Model.project
 
   let reuse bases ~current_input ~previous_output =
