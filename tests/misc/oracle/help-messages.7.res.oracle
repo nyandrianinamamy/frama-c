@@ -72,7 +72,7 @@ Options taking a string as argument should preferably be written
 -e-acsl-O-print-values  (O ≤ 3) print values of variables involved in a
                     failed verification along with the runtime error message
                     (opposite option is -e-acsl-O-no-print-values)
--e-acsl-O-rte       (O ≤ 2) generate RTE guards for specifications (opposite
+-e-acsl-O-rte       (O ≤ 2) generate RTE guards for annotations (opposite
                     option is -e-acsl-O-no-rte)
 -e-acsl-O-rte-initialized  (O ≤ 1) generate 'initialization' RTE guards for
                     all specifications (opposite option is

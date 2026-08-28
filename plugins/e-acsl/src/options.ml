@@ -182,7 +182,7 @@ module Optimisations = struct
     Make (struct
       let name = "rte"
       let level = Leq 2
-      let descr = "generate RTE guards for specifications"
+      let descr = "generate RTE guards for annotations"
     end)
 
   module Trivial_rte =
