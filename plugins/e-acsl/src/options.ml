@@ -160,7 +160,7 @@ module Optimisations = struct
       let open Parameter_customize in
       set_group Group.optimisation;
       set_negative_option_name ("-e-acsl-O-no-" ^ C.name);
-      set_negative_option_help ("opposite of -e-acsl-O-" ^ C.name)
+      set_default_value_hidden ()
     module Res = Bool (struct
         let option_name = "-e-acsl-O-" ^ C.name
         let help = Format.asprintf "(O %a) %s" pp_level C.level C.descr
