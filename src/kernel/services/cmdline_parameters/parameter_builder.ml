@@ -183,7 +183,7 @@ struct
           (if not !Parameter_customize.default_value_hidden_ref && not X.default
            then "(set by default) "
            else "")
-          ^ "opposite of option " ^ name ^ ", whose help message is:\n" ^ X.help
+          ^ "opposite of option " ^ name
         else
           mk_help s
       in
