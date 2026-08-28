@@ -35,6 +35,7 @@ Ono = "Ono"
 PARMS = "PARMS" # abbr. of parameters
 Padd = "Padd" # constructor for addition
 Referers = "Referers" # apparently the OED now accepts this
+SME = "SME" # part of libc constant
 SUR = "SUR" # French word present in some tests (PROP_SUR_XX)
 TOU = "TOU" # as in TOC TOU (time-of-check to time-of-use)
 Unsuccess = "Unsuccess" # WP uses this as a PO status

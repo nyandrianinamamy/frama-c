@@ -37,6 +37,7 @@ int main() {
   r = pthread_join(thread, (void **)&retv);
   if (r) {
     printf("pthread_join failed\n");
+    pthread_kill(thread, 0);
     return 1;
   }
   printf("pthread_join succeeded, retval = %d\n", *retv);

@@ -112,3 +112,5 @@ int pthread_cond_init(pthread_cond_t *restrict cond,
 int pthread_cond_signal(pthread_cond_t *cond) { return 0; }
 int pthread_cond_destroy(pthread_cond_t *cond) { return 0; }
 int pthread_cond_broadcast(pthread_cond_t *cond) { return 0; }
+
+int pthread_kill(pthread_t thread, int sig) { return 0; }

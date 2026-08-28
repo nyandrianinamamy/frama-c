@@ -25,13 +25,13 @@
   Ignoring annotation.
 [e-acsl] FRAMAC_SHARE/libc/stdio.h:512: Warning: 
   E-ACSL construct `assigns clause' is not yet supported. Ignoring annotation.
-[e-acsl] FRAMAC_SHARE/libc/pthread.h:490: Warning: 
+[e-acsl] FRAMAC_SHARE/libc/pthread.h:496: Warning: 
   E-ACSL construct `assigns clause' is not yet supported. Ignoring annotation.
-[e-acsl] FRAMAC_SHARE/libc/pthread.h:485: Warning: 
+[e-acsl] FRAMAC_SHARE/libc/pthread.h:491: Warning: 
   E-ACSL construct `assigns clause' is not yet supported. Ignoring annotation.
-[e-acsl] FRAMAC_SHARE/libc/pthread.h:458: Warning: 
+[e-acsl] FRAMAC_SHARE/libc/pthread.h:464: Warning: 
   E-ACSL construct `assigns clause' is not yet supported. Ignoring annotation.
-[e-acsl] FRAMAC_SHARE/libc/pthread.h:442: Warning: 
+[e-acsl] FRAMAC_SHARE/libc/pthread.h:448: Warning: 
   E-ACSL construct `assigns clause' is not yet supported. Ignoring annotation.
 [e-acsl] FRAMAC_SHARE/libc/pthread.h:397: Warning: 
   E-ACSL construct `assigns clause' is not yet supported. Ignoring annotation.
@@ -48,11 +48,11 @@
 [e-acsl] FRAMAC_SHARE/libc/pthread.h:272: Warning: 
   E-ACSL construct `assigns clause' is not yet supported. Ignoring annotation.
 [e-acsl] translation done in project "e-acsl".
-[eva:alarm] FRAMAC_SHARE/libc/pthread.h:449: Warning: 
-  function __e_acsl_assert, behavior blocking: precondition got status unknown.
-[eva:alarm] FRAMAC_SHARE/libc/pthread.h:443: Warning: 
+[eva:alarm] FRAMAC_SHARE/libc/pthread.h:455: Warning: 
   function __e_acsl_assert, behavior blocking: precondition got status unknown.
 [eva:alarm] FRAMAC_SHARE/libc/pthread.h:449: Warning: 
+  function __e_acsl_assert, behavior blocking: precondition got status unknown.
+[eva:alarm] FRAMAC_SHARE/libc/pthread.h:455: Warning: 
   function __e_acsl_assert, behavior blocking: precondition got status unknown.
 [eva:alarm] FRAMAC_SHARE/libc/pthread.h:290: Warning: 
   function __e_acsl_assert, behavior blocking: precondition got status unknown.
@@ -72,5 +72,5 @@
   function __e_acsl_assert, behavior blocking: precondition got status unknown.
 [eva:alarm] FRAMAC_SHARE/libc/pthread.h:350: Warning: 
   function __e_acsl_assert, behavior blocking: precondition got status unknown.
-[eva:alarm] FRAMAC_SHARE/libc/pthread.h:491: Warning: 
+[eva:alarm] FRAMAC_SHARE/libc/pthread.h:497: Warning: 
   function __e_acsl_assert, behavior blocking: precondition got status unknown.

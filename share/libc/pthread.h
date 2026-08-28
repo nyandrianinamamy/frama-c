@@ -423,6 +423,12 @@ extern int pthread_key_create(pthread_key_t *key, void (*destruct)(void*));
 extern int pthread_key_delete(pthread_key_t key);
 
 /*@
+ //missing: assigns 'thread to be killed';
+ assigns \result \from indirect:thread, indirect:sig;
+*/
+extern int pthread_kill(pthread_t thread, int sig);
+
+/*@
   assigns \result, *mutex \from *mutex;
 */
 extern int pthread_mutex_consistent(pthread_mutex_t *mutex);
