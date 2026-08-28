@@ -51,7 +51,7 @@ opam install -y --confirm-level=unsafe-yes \
 
 # build why3 relocatable
 
-WHY3_VERSION="$(grep '^- why3' reference-configuration.md | sed 's/^- why3\.//' | sed 's/ (.*)//')"
+WHY3_VERSION="$(jq '.why3.version' nix/sources.json)"
 WHY3="why3-$WHY3_VERSION"
 
 rm -rf "$WHY3*"

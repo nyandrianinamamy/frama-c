@@ -130,6 +130,7 @@ depends: [
   "dune-configurator"
   "dune-site" { > "3.15.0" }
   ( "alt-ergo-free" | "alt-ergo" )
+  "alt-ergo" { with-dev-setup & = "2.6.2" }
   "camlzip"
   "conf-graphviz" { post }
   "conf-time" { with-test }
