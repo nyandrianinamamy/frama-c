@@ -83,7 +83,8 @@ module ConsiderAcceptance =
     let help = "if set, considers acceptation states"
   end)
 
-let () = Parameter_customize.set_negative_option_name "-aorai-raw-auto"
+let () =
+  Parameter_customize.set_negative_option_name ~visible:true "-aorai-raw-auto"
 module AutomataSimplification=
   True
     (struct

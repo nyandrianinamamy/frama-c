@@ -172,6 +172,9 @@ Options taking a string as argument should preferably be written
                     must have been given to -inline-calls. Warning: this does
                     not check if the given functions were fully inlined.
                     (preferably use -remove-inlined="f1, ..., fn")
+-remove-unused-types  (set by default) opposite of option -keep-unused-types,
+                    whose help message is:
+                    keep unused types (false by default)
 -simplify-cfg       remove break, continue and switch statements before
                     analyses (opposite option is -no-simplify-cfg)
 -simplify-trivial-loops  simplify trivial loops, such as do ... while(0)

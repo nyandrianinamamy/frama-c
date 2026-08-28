@@ -34,6 +34,9 @@ Options taking a string as argument should preferably be written
                     -aorai-no-generate-deterministic-lemmas)
 -aorai-instrumentation-history <N>  the instrumentation will keep an history
                     of the N last states
+-aorai-raw-auto     opposite of option -aorai-simplified-auto, whose help
+                    message is:
+                    If set, does not simplify automata
 -aorai-simple-AI    use simple abstract interpretation (opposite option is
                     -aorai-no-simple-AI)
 -aorai-simplified-auto  If set, does not simplify automata (set by default,

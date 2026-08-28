@@ -1355,7 +1355,9 @@ let () =
     ["none"; "user-specified"; "all"; "all_debug"]
 
 let () = Parameter_customize.set_group normalisation
-let () = Parameter_customize.set_negative_option_name "-remove-unused-types"
+let () =
+  Parameter_customize.set_negative_option_name
+    ~visible:true "-remove-unused-types"
 module Keep_unused_types =
   False(struct
     let option_name = "-keep-unused-types"
