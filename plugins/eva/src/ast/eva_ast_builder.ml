@@ -146,7 +146,7 @@ struct
     let ikind = match ikind with
       | Some ikind -> ikind
       | None when Cil.fitsInInt IInt i -> Cil_types.IInt
-      | None -> Cil.intKindForValue i false
+      | None -> Cil.intKindForValue i Z.(gt i zero)
     in
     let i', _truncated = Cil.truncateInteger64 ikind i in
     mk_exp (Const (CInt64 (i', ikind, None)))
