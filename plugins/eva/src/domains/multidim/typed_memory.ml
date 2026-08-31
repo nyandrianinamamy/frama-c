@@ -489,7 +489,7 @@ struct
                 Some (Bound.of_exp l, Bound.of_exp u)
               with Bound.UnsupportedBoundExpression ->
                 let+ lv = oracle l |> Int_val.min_int
-                and+ uv = oracle l |> Int_val.max_int in
+                and+ uv = oracle u |> Int_val.max_int in
                 Bound.of_integer lv, Bound.of_integer uv
             in
             A.read ~oracle (aux offset') reduce a.array_value lb ub
@@ -541,7 +541,7 @@ struct
                 Some (Bound.of_exp l, Bound.(succ (of_exp u)), weak)
               with Bound.UnsupportedBoundExpression ->
                 let+ lv = oracle l |> Int_val.min_int
-                and+ uv = oracle l |> Int_val.max_int in
+                and+ uv = oracle u |> Int_val.max_int in
                 let weak = weak || not (Z.equal lv uv) in
                 Bound.of_integer lv, Bound.(succ (of_integer uv)), weak
             in
