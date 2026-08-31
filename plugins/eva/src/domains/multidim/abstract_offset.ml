@@ -81,15 +81,14 @@ let rec hash = function
 let structural_descr =
   let open Structural_descr in
   let r = Recursive.create () in
-  let ival = Int_val.packed_descr in
-  let t = Cil_datatype.Typ.packed_descr in
+  let typ = Cil_datatype.Typ.packed_descr in
   let fi = Cil_datatype.Fieldinfo.packed_descr in
-  let exp = Descr.str Eva_ast.Exp.datatype_descr |> t_option |> pack in
-  let no_offset = [| t |] in
-  let index = [| exp ; ival ; recursive_pack r |] in
+  let exp = Eva_ast.Exp.packed_descr in
+  let no_offset = [| typ |] in
+  let index = [| exp ; exp ;  typ ; recursive_pack r |] in
   let field = [| fi ; recursive_pack r |] in
   let descr = t_sum [| no_offset ; index ; field |] in
-  Recursive.update r descr ;
+  Recursive.update r descr;
   descr
 
 include Datatype.Make_with_collections
