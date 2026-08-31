@@ -1,10 +1,11 @@
-from dataclasses import dataclass
+import argparse
+import functools
+import os
 import random
 import subprocess
-import argparse
-import os
-import functools
-from multiprocessing import Pool, freeze_support
+import sys
+from dataclasses import dataclass
+from multiprocessing import Pool
 
 parser = argparse.ArgumentParser()
 
@@ -29,14 +30,14 @@ types = [
     ("unsigned long long", 64),
 ]
 
-type struct = list[tuple[str, int | None]]
+type Struct = list[tuple[str, int | None]]
 
 
 def flip():
     return random.choice([True, False])
 
 
-def gen_layout() -> struct:
+def gen_layout() -> Struct:
     res: list[tuple[str, int | None]] = []
     if flip():
         res.append((random.choice(types)[0], None))
@@ -59,7 +60,7 @@ def gen_layout() -> struct:
     return res
 
 
-def print_struct(filename: str, struct: struct) -> None:
+def print_struct(filename: str, struct: Struct) -> None:
     with open(filename, "w") as f:
         print("#include <stdio.h>", file=f)
         print("#include <string.h>", file=f)
@@ -89,8 +90,7 @@ def print_struct(filename: str, struct: struct) -> None:
             file=f,
         )
         print("typedef struct {", file=f)
-        i = 0
-        for t, s in struct:
+        for i, (t, s) in enumerate(struct):
             field = f"{t}"
             if s is None:
                 field += f" f{i}"
@@ -100,7 +100,6 @@ def print_struct(filename: str, struct: struct) -> None:
                 field += f" f{i}: {s}"
             field += ";"
             print(field, file=f)
-            i += 1
         print("}", file=f)
         if flip():
             print("__attribute__((packed))", file=f)
@@ -108,15 +107,13 @@ def print_struct(filename: str, struct: struct) -> None:
         print("S x;", file=f)
         print("int main() {", file=f)
         print("size_t o;", file=f)
-        i = 0
-        for t, s in struct:
+        for i, (t, s) in enumerate(struct):
             if s is not None and s != 0:
                 print("memset(&x,0,sizeof(x));", file=f)
                 print(f"x.f{i} = (1ULL << {s}) - 1;", file=f)
                 print("o = offset_bit((char*)&x, sizeof(x));", file=f)
                 print(f'printf("f{i} at offset %zu\\n",o);', file=f)
                 print("print((char*)&x,sizeof(x));", file=f)
-            i += 1
         print("}", file=f)
 
 
@@ -127,7 +124,7 @@ def check(verbose: bool, test_id: int):
     if verbose:
         print(f"Generating struct in {filename}")
     res = subprocess.run(
-        ["frama-c", "-typecheck", "-check", filename], text=True, capture_output=True
+        ["frama-c", "-typecheck", "-check", filename], text=True, capture_output=True, check=False
     )
     if res.returncode != 0:
         print(f"bitfield definition in {filename} led to ill-formed AST. Frama-C output is:")
@@ -147,10 +144,10 @@ def main():
             with Pool(args.nb_procs) as p:
                 res = p.map(functools.partial(check, args.verbose), tests)
     else:
-        res = map(lambda x: check(args.verbose, x), tests)
+        res = [check(args.verbose, x) for x in tests]
     for b in res:
         if not b:
-            exit(1)
+            sys.exit(1)
 
 
 main()
