@@ -1007,7 +1007,7 @@ struct
   let of_value v = fst v |> CvalueOrUninitialized.of_value, snd v
 
   let of_flagged (fv : value Eval.flagged_value) : t =
-    map_value_with_flags fst fv |> CvalueOrUninitialized.of_flagged,
+    CvalueOrUninitialized.of_flagged { fv with v = Bottom.map fst fv.v },
     Bottom.value ~bottom:Value.top (let+ (_cv, v) = fv.v in v)
 
   let map' (f  : (value -> value or_bottom)) (cv,v : t) : t or_bottom =

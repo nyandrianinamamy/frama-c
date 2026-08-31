@@ -89,9 +89,6 @@ let pretty_value_with_flags pp fmt value = match value.v with
     then pp fmt v
     else Format.fprintf fmt "%a or %a" pp v pretty_flags value
 
-let map_value_with_flags f v =
-  { v with v = Bottom.map f v.v }
-
 (* Data record associated to each evaluated expression. *)
 type ('a, 'origin) record_val = {
   value : 'a flagged_value; (* The resulting abstract value *)
@@ -210,10 +207,6 @@ type ('loc, 'value) assigned =
 let value_assigned = function
   | Assign v -> `Value v
   | Copy (_, copied) -> copied.v
-
-let map_assigned f = function
-  | Assign v -> Assign (f v)
-  | Copy (loc, copied) -> Copy (loc, map_value_with_flags f copied)
 
 type 'location location_or_address =
   | Location of 'location

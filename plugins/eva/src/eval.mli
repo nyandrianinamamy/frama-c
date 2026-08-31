@@ -113,8 +113,6 @@ val pretty_value_with_flags:
   (Format.formatter -> 'a -> unit) ->
   Format.formatter -> 'a flagged_value -> unit
 
-val map_value_with_flags: ('a -> 'b) -> 'a flagged_value -> 'b flagged_value
-
 (** Data record associated to each evaluated expression. *)
 type ('a, 'origin) record_val = {
   value: 'a flagged_value;  (** The resulting abstract value *)
@@ -188,9 +186,6 @@ type ('loc, 'value) assigned =
 
 (* Extract the assigned value from a [value assigned]. *)
 val value_assigned : ('loc, 'value) assigned -> 'value or_bottom
-
-(* Map a function to an assigned value. *)
-val map_assigned : ('a -> 'b) -> ('loc, 'a) assigned -> ('loc, 'b) assigned
 
 (** The location of a logic dependency:
     - the memory location of <lval> for a clause "\from lval" (default case).
