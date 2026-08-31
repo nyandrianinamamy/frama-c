@@ -22,7 +22,7 @@ module type Value = sig
   include Abstract_value.Leaf
 
   (** Widening operation to ensure convergence. *)
-  val widen : widen_hint -> t -> t -> t
+  val widen: size:Z.t -> hint:Ival.widen_hint ->  t -> t -> t
 
   (** This function must return [true] if the given variable should be
       tracked by the domain. All untracked variables are implicitly

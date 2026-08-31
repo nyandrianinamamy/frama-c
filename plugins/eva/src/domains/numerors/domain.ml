@@ -108,6 +108,7 @@ end
 (* Instantiate the value using the model. *)
 module Value = struct
   include Value.Make (Model)
+  let widen ~size:_ ~hint:(_, hint) = widen ~hint
   let contextualize (name, builtin) = (name, builtin ())
   let builtins = List.map contextualize builtins
 end

@@ -15,7 +15,7 @@ module Sign_Value = struct
   let track_variable vi = Ast_types.C.is_integral vi.vtype
 
   (* The base lattice is finite, we can use join to perform widening *)
-  let widen _ = join
+  let widen ~size:_ ~hint:_ = join
 
   let builtins = []
 end
