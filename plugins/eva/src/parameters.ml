@@ -230,6 +230,19 @@ module OctagonCall =
 let () = add_precision_dep OctagonCall.parameter
 
 let () = Parameter_customize.set_group domains
+module SignMemoryModel =
+  Enum
+    (struct
+      type t = [ `Simple | `Cell ]
+      let option_name = "-eva-sign-memory-model"
+      let help = "Select the memory model used for the sign domain: <simple> \
+                  is fast but only supports scalar variables while <cell> is \
+                  experimental but supports arrays, structs and unions."
+      let default = `Simple
+      let values = [ `Simple, "simple"; `Cell, "cell" ]
+    end)
+
+let () = Parameter_customize.set_group domains
 module TaintAuto =
   False
     (struct

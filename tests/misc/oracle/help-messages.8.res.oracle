@@ -72,6 +72,10 @@ Options taking a string as argument should preferably be written
                     data may depend on high-security private data. Public and
                     private data must be specified using corresponding custom
                     attributes. (opposite option is -eva-no-secure-flow)
+-eva-sign-memory-model <simple|cell>  Select the memory model used for the
+                    sign domain: <simple> is fast but only supports scalar
+                    variables while <cell> is experimental but supports
+                    arrays, structs and unions.
 -eva-taint-auto     Automatically taint the function parameters of user input
                     based functions (scanf, fgets, etc). (opposite option is
                     -eva-no-taint-auto)

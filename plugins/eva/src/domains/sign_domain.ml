@@ -21,10 +21,15 @@ module Sign_Value = struct
 end
 
 module Name = struct let name = "sign" end
-module Domain = Simple_memory.Make_Domain (Name) (Sign_Value)
-include Domain
+module Simple = Simple_memory.Make_Domain (Name) (Sign_Value)
+module Cell = Cell_memory.Make (Name) (Sign_Value)
+
+let choose () : (module Abstract_domain.Leaf) =
+  match Parameters.SignMemoryModel.get () with
+  | `Simple -> (module Simple)
+  | `Cell -> (module Cell)
 
 let registered =
   let name = "sign"
   and descr = "Infers the sign of program variables." in
-  Abstractions.Domain.register ~name ~descr ~priority:4 (module Domain)
+  Abstractions.Domain.dynamic_register ~name ~descr ~priority:4 choose
