@@ -637,7 +637,8 @@ struct
     if recursion <> None
     then
       Self.abort ~current:true
-        "The cell memory model does not support recursive calls yet";
+        "The %s domain relies on the cell memory model, \
+         which does not support recursive calls yet." Params.name;
     let oracle = valuation_to_oracle state valuation in
     let bind state arg =
       state >>-:
