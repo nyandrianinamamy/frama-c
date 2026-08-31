@@ -394,8 +394,6 @@ sig
   val unify : oracle:bioracle -> (submemory -> submemory -> submemory) ->
     t -> t -> t or_top
   val single : bit -> bound -> bound -> submemory -> t
-  val iter :
-    (Eva_ast.exp * Eva_ast.exp -> submemory -> unit) -> t -> unit
   val fold :
     (Eva_ast.exp * Eva_ast.exp -> submemory -> 'a -> 'a) -> t -> 'a -> 'a
   val map :
@@ -862,15 +860,6 @@ struct
         m.segments
     in
     check { m with segments }
-
-  let iter f m =
-    let _last =
-      List.fold_left
-        (fun l (v,u) -> f (B.to_exp l, B.(to_exp (pred u))) v; u)
-        m.start
-        m.segments
-    in
-    ()
 
   let fold f m acc =
     let _last, acc =

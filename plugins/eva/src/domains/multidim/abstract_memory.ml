@@ -173,7 +173,6 @@ sig
   val join : oracle:bioracle -> t -> t -> t
   val smash : oracle:oracle -> t -> t -> t
   val map : (offset -> value -> value) -> t -> t
-  val iter : (offset -> value -> unit) -> t -> unit
   val fold : (offset -> value -> 'a -> 'a) -> t -> 'a -> 'a
   val read : oracle:oracle -> (Cil_types.typ -> t -> 'a) -> ('a -> 'a -> 'a) ->
     offset -> t -> 'a

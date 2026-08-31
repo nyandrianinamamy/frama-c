@@ -41,8 +41,6 @@ sig
   val unify : oracle:bioracle -> (submemory -> submemory -> submemory) ->
     t -> t -> t or_top
   val single : bit -> bound -> bound -> submemory -> t
-  val iter :
-    (Eva_ast.exp * Eva_ast.exp -> submemory -> unit) -> t -> unit
   val fold :
     (Eva_ast.exp * Eva_ast.exp -> submemory -> 'a -> 'a) -> t -> 'a -> 'a
   val map :

@@ -106,7 +106,6 @@ struct
     | `Value loc -> Memory.overwrite ~oracle ~weak dst loc src
 
   let map = Memory.map
-  let iter = Memory.iter
   let fold = Memory.fold
 
   let segmentation_hint ~oracle m loc bounds =
@@ -457,11 +456,6 @@ struct
     let f base o v = f (Location.singleton base o) v in
     let f base (m, t) = Some (BaseModel.map (f base) m, t) in
     (MemoryMap.filter_map f m, t)
-
-  let iter (f : location -> value -> unit) (m,_ : t) : unit =
-    let f base o v = f (Location.singleton base o) v in
-    let f base (m, _) = BaseModel.iter (f base) m in
-    MemoryMap.iter f m
 
   let fold (f : location -> value -> 'a -> 'a) (m,_ : t) (acc :'a) : 'a =
     let f base o v acc = f (Location.singleton base o) v acc in
@@ -1067,8 +1061,8 @@ struct
     Model.erase ~oracle ?weak memory loc b
 
   let iter f state =
-    let f' loc (_,v) = f loc v in
-    iter f' state
+    let f' loc (_,v) () = f loc v in
+    fold f' state ()
 
   let fold f state acc =
     let f' loc (_,v) acc = f loc v acc in

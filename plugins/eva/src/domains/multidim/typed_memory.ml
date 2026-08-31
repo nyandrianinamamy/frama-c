@@ -369,33 +369,6 @@ struct
 
     let smash ~oracle = join ~oracle:(fun _ -> oracle)
 
-    let rec iter f m =
-      let open Abstract_offset in
-      match m with
-      | Raw _ -> ()
-      | Scalar s ->
-        f (NoOffset s.scalar_type) s.scalar_value
-      | Struct s ->
-        let f' fi =
-          iter (fun off' v -> f (Field (fi, off')) v)
-        in
-        S.iter f' s.struct_value
-      | Disjunct d ->
-        let f' fi =
-          iter (fun off' v -> f (Field (fi, off')) v)
-        in
-        D.iter f' d.disj_value
-      | Union u ->
-        let f' =
-          iter (fun off' v -> f (Field (u.union_field, off')) v)
-        in
-        f' u.union_value
-      | Array a ->
-        let f' (l,u) =
-          iter (fun off' v -> f (Index (l, u, a.array_cell_type, off')) v)
-        in
-        A.iter f' a.array_value
-
     let rec fold f m acc =
       let open Abstract_offset in
       let fold_field fi = fold (fun off -> f (Field (fi, off))) in
