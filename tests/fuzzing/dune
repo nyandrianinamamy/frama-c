@@ -74,4 +74,5 @@
 (cram
  (applies_to bitfield)
  (enabled_if %{read:../../python-3.10-available})
+ (deps (env_var "NB_TESTS") (env_var "NB_CORES"))
 )
