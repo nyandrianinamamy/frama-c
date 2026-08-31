@@ -223,7 +223,7 @@ struct
     include Datatype.Serializable_undefined
     include S
 
-    let name = "Abstract_Memory.Disjunction.S"
+    let name = "Abstract_structure.Disjunction.S"
     let reprs = [ of_raw Bit.zero ]
     let eval_key key m = M.to_singleton_int (read m key)
     let suitable_key key m = Option.is_some (eval_key key m)

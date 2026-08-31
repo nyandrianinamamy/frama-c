@@ -60,7 +60,7 @@ struct
   struct
     include Datatype.Undefined
     include Memory
-    let name = "Cell_memory.Memory (" ^ CellValue.datatype_name ^ ")"
+    let name = "Cell_memory.BaseModel(" ^ CellValue.datatype_name ^ ")"
     let reprs = [ Memory.top ]
   end
 
@@ -184,7 +184,8 @@ struct
   type location = Location.t
   type value = Value.t
 
-  let datatype_name = "BaseModel (...) (" ^ Value.datatype_name ^ ")"
+  let datatype_name =
+    "Cell_memory.Make_Generic_Memory(" ^ Value.datatype_name ^ ")"
 
   let cache_name s =
     Hptmap_sig.PersistentCache (datatype_name ^ "." ^ s)
@@ -957,7 +958,7 @@ module type Lattice = sig
   val widen : size:Z.t -> hint:Ival.widen_hint ->  t -> t -> t
 end
 
-module Make_GenericCellValue (Value : Lattice) =
+module Make_Generic_Cell_Value (Value : Lattice) =
 struct
   open Bottom.Operators
 
@@ -1014,7 +1015,7 @@ end
 module Make_Memory (Value : Lattice) =
 struct
   open Bottom.Operators
-  module CellValue = Make_GenericCellValue (Value)
+  module CellValue = Make_Generic_Cell_Value (Value)
   module Model = Make_Generic_Memory (CellValue)
   include Model
 
@@ -1116,7 +1117,7 @@ sig
   val builtins: (string * t builtin) list
 end
 
-module Make_GenericValue (Value : Value) =
+module Make_Generic_Value (Value : Value) =
 struct
   open Bottom.Operators
 
@@ -1140,7 +1141,7 @@ end
 
 module Make (Params : sig val name : string end) (Value : Value) =
 struct
-  module GenericValue = Make_GenericValue (Value)
-  module GenericCellValue = Make_GenericCellValue (Value)
+  module GenericValue = Make_Generic_Value (Value)
+  module GenericCellValue = Make_Generic_Cell_Value (Value)
   include Make_Generic_Domain (Params) (GenericValue) (GenericCellValue)
 end
