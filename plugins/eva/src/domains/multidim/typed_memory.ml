@@ -535,13 +535,11 @@ struct
           let m' =
             let open TopBottom.Operators in
             let* lb, ub, weak =
-              Top.of_option @@
-              let open Option.Operators in
               try
-                Some (Bound.of_exp l, Bound.(succ (of_exp u)), weak)
+                `Value (Bound.of_exp l, Bound.(succ (of_exp u)), weak)
               with Bound.UnsupportedBoundExpression ->
-                let+ lv = oracle l |> Int_val.min_int
-                and+ uv = oracle u |> Int_val.max_int in
+                let+ lv = oracle l |> Int_val.min_int |> Top.of_option
+                and+ uv = oracle u |> Int_val.max_int |> Top.of_option in
                 let weak = weak || not (Z.equal lv uv) in
                 Bound.of_integer lv, Bound.(succ (of_integer uv)), weak
             in

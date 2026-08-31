@@ -191,13 +191,9 @@ struct
     | Ptroffset _ -> assert false (* Not produced by of_exp *)
 
   let to_exp = function
-    | Exp (e, c) ->
-      let ikind = Cil.intKindForValue c false in
-      Eva_ast.Build.(add e (integer ~ikind c))
-    | Const i ->
-      let ikind = Cil.intKindForValue i false in
-      Eva_ast.Build.integer ~ikind i
-    | Ptroffset _ -> assert false
+    | Exp (e, c) -> Eva_ast.Build.(add e (integer c))
+    | Const i -> Eva_ast.Build.integer i
+    | Ptroffset _ -> raise Not_implemented
 
   (* Convert bound to interval using oracle *)
   let to_int_val ~oracle = function
@@ -887,7 +883,7 @@ struct
 
   let read_any map reduce (m : t) =
     map (M.of_raw m.padding) |>
-    fold (fun _ v acc-> reduce acc (map v)) m
+    fold (fun _ v acc -> reduce acc (map v)) m
 
   let add_segmentation_bounds ~oracle bounds m =
     let add_bound m b =

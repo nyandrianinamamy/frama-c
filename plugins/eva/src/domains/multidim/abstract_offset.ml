@@ -114,24 +114,23 @@ let add_index ~oracle base exp =
   in
   aux base
 
-let rec join o1 o2 =
+(* Unused function. *)
+let rec _join o1 o2 =
   match o1, o2 with
   | NoOffset t, NoOffset t'
     when Bit_utils.type_compatible t t' ->
     `Value (NoOffset t)
   | Field (fi, sub1), Field (fi', sub2)
     when Cil_datatype.Fieldinfo.equal fi fi' ->
-    let+ sub' = join sub1 sub2 in
+    let+ sub' = _join sub1 sub2 in
     Field (fi, sub')
   | Index (l1, u1, t1, sub1), Index (l2, u2, t2, sub2)
     when Bit_utils.type_compatible t1 t2 ->
     let+ l = if Eva_ast.Exp.equal l1 l2 then `Value l1 else `Top
     and+ u = if Eva_ast.Exp.equal u1 u2 then `Value u1 else `Top
-    and+ sub = join sub1 sub2 in
+    and+ sub = _join sub1 sub2 in
     Index (l, u, t1, sub)
   | _ -> `Top
-
-let _join =  join
 
 let array_bounds array_size =
   (* TODO: handle undefined sizes and not const foldable sizes *)

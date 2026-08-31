@@ -106,10 +106,10 @@ struct
     | `Top -> Memory.top
     | `Value loc -> Memory.overwrite ~oracle ~weak dst loc src
 
-  let map      f m = Memory.map     f m
-  let iter     f m = Memory.iter    f m
-  let for_all  f m = Memory.for_all f m
-  let fold f m acc = Memory.fold f m acc
+  let map = Memory.map
+  let iter = Memory.iter
+  let for_all = Memory.for_all
+  let fold = Memory.fold
 
   let segmentation_hint ~oracle m loc bounds =
     match loc with
@@ -209,11 +209,6 @@ struct
       Option.fold ~none:true ~some:(Tracking.mem b) tracked
     | Null -> true
     | CLogic_Var _ | Allocated (_, _, _) -> false
-
-  let join_tracked tracked1 tracked2 =
-    match tracked1, tracked2 with
-    | None, tracked | tracked, None -> tracked
-    | Some s1, Some s2 -> Some (Tracking.union s1 s2)
 
   let set_tracking (base_map, tracked : t) bases =
     let set = Option.value ~default:Tracking.empty tracked in
@@ -438,7 +433,7 @@ struct
       BaseModel.widen ~oracle (get_hints base) m1 m2, Referers.union r1 r2
     in
     generic_join ~cache ~symmetric:false ~idempotent:true ~decide m1 m2,
-    join_tracked t1 t2
+    Option.merge Tracking.union t1 t2
 
   let overwrite =
     let cache = cache_name "overwrite_bases" in
