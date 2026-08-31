@@ -19,6 +19,18 @@
      removing Logic_ptree.location. *)
   type location = Fileloc.t
 
+  type clauses_list =  {
+    mutable assumes : lexpr list;
+    mutable requires : toplevel_predicate list;
+    mutable extended : extension list;
+    mutable terminates : lexpr option;
+    mutable decreases : variant option;
+    mutable allocation : allocation;
+    mutable assigns : assigns;
+    mutable post_cond : (termination_kind * toplevel_predicate) list;
+    mutable empty : bool;
+  }
+
   let loc (start_pos, end_pos) =
     Errorloc.convert_loc (start_pos, end_pos)
 
@@ -48,14 +60,33 @@
     raise
       (Not_well_formed
          (loc start_end,
-          "wrong order of clause in contract: "
+          "Wrong order of clause in contract: "
           ^ name1 ^ " after " ^ name2 ^ "."))
 
   let missing start_end token next_token =
     raise
       (Not_well_formed
          (loc start_end,
-          Format.asprintf "expecting '%s' before %s" token next_token))
+          Format.asprintf "Expecting '%s' before %s." token next_token))
+
+  type clause_type = Pre_clauses | Post_clauses
+
+  let check_clause_order start_end clauses_record name = function
+    | Pre_clauses ->
+      if clauses_record.assumes <> []
+      then
+        clause_order start_end "assumes" name
+      else
+        ()
+    | Post_clauses ->
+      if clauses_record.assumes <> []
+      then
+        clause_order start_end "assumes" name
+      else if clauses_record.requires <> []
+      then
+        clause_order start_end "requires" name
+      else
+        ()
 
   type sense_of_relation = Unknown | Disequal | Less | Greater
 
@@ -166,7 +197,7 @@
       | Writes [], [] -> a1
       | Writes [], _  | Writes _, [] ->
         raise (
-          Not_well_formed (loc start_pos,"Mixing \\nothing and a real location"))
+          Not_well_formed (loc start_pos,"Mixing \\nothing and a real location."))
       | Writes a1, a2 -> Writes (concat_froms (concat_froms [] a2) a1)
 
   let concat_loop_assigns_allocation start_pos annots bhvs2 a2 fa2=
@@ -230,7 +261,7 @@
 
   let obsolete name ~loc ~now =
     Kernel.warning ~loc
-      "parsing obsolete ACSL construct '%s'. '%s' should be used instead."
+      "Parsing obsolete ACSL construct '%s'. '%s' should be used instead."
       name now
 
   let escape =
@@ -1108,75 +1139,185 @@ spec:
 ;
 
 contract:
-| pre_clauses terminates decreases post_clauses behaviors complete_or_disjoint
-    { let (extended_pre,requires)=$1 in
-      let (empty,(allocation,assigns,post_cond,extended_post)) = $4 in
-      let extended = extended_pre@extended_post in
-      let behaviors = $5 in
-      let (completes,disjoints) = $6 in
+| clauses_list behaviors complete_or_disjoint
+    { if $1.assumes <> []
+      then
+        raise (Not_well_formed (loc $loc($1),"Assumes outside behaviors is not allowed."));
+      let (completes,disjoints) = $3 in
       let behaviors =
-        if requires <> [] || post_cond <> [] ||
-	   allocation <> FreeAllocAny ||
-           assigns <> WritesAny || extended <> []
+        if $1.requires <> [] || $1.post_cond <> [] ||
+           $1.allocation <> FreeAllocAny || $1.assigns <> WritesAny ||
+           $1.extended <> []
         then
           (Cabshelper.mk_behavior
-             ~requires ~post_cond ~assigns ~allocation ~extended ())
-          :: behaviors
-        else if $2<>None || $3<>None ||
-                behaviors<>[] || completes<>[] ||disjoints<>[]
-        then behaviors
+            ~requires:$1.requires ~post_cond:$1.post_cond ~assigns:$1.assigns
+            ~allocation:$1.allocation ~extended:$1.extended ())::$2
+        else if $1.terminates<>None || $1.decreases<>None || $2<>[] ||
+                completes<>[] || disjoints<>[]
+        then
+          $2
         else
-          if empty then
-            raise (Not_well_formed (loc $sloc,"Empty annotation is not allowed"))
+          if $1.empty then
+            raise (Not_well_formed (loc $sloc,"Empty annotation is not allowed."))
           else
             raise Unknown_ext
       in
-        { spec_terminates = $2;
-          spec_variant = $3;
+        { spec_terminates = $1.terminates;
+          spec_variant = $1.decreases;
           spec_behavior = behaviors;
           spec_complete_behaviors = completes;
           spec_disjoint_behaviors = disjoints;
         }, loc $sloc
     }
-| pre_clauses ne_terminates REQUIRES { clause_order $loc($3) "requires" "terminates" }
-| pre_clauses terminates ne_decreases REQUIRES
-      { clause_order $loc($4) "requires" "decreases" }
-| pre_clauses terminates ne_decreases TERMINATES
-      { clause_order $loc($4) "terminates" "decreases" }
-| pre_clauses terminates decreases ne_post_clauses REQUIRES
-      { clause_order $loc($5) "requires" "post-condition, assigns or allocates" }
-| pre_clauses terminates decreases ne_post_clauses TERMINATES
-      { clause_order $loc($5) "terminates" "post-condition, assigns or allocates" }
-| pre_clauses terminates decreases ne_post_clauses DECREASES
-      { clause_order $loc($5) "decreases" "post-condition, assigns or allocates" }
-| pre_clauses terminates decreases post_clauses ne_behaviors TERMINATES
-      { clause_order $loc($6) "terminates" "behavior" }
-| pre_clauses terminates decreases post_clauses ne_behaviors DECREASES
-      { clause_order $loc($6) "decreases" "behavior" }
-| pre_clauses terminates decreases post_clauses behaviors ne_complete_or_disjoint
-  REQUIRES
-      { clause_order $loc($7) "requires" "complete or disjoint" }
-| pre_clauses terminates decreases post_clauses behaviors ne_complete_or_disjoint
-  TERMINATES
-      { clause_order $loc($7) "terminates" "complete or disjoint" }
-| pre_clauses terminates decreases post_clauses behaviors ne_complete_or_disjoint
-  DECREASES
-      { clause_order $loc($7) "decreases" "complete or disjoint" }
-| pre_clauses terminates decreases post_clauses behaviors ne_complete_or_disjoint
-  BEHAVIOR
-      { clause_order $loc($7) "behavior" "complete or disjoint" }
-| pre_clauses terminates decreases post_clauses behaviors ne_complete_or_disjoint
-  ASSIGNS
-      { clause_order $loc($7) "assigns" "complete or disjoint" }
-| pre_clauses terminates decreases post_clauses behaviors ne_complete_or_disjoint
-  ALLOCATES
-      { clause_order $loc($7) "allocates" "complete or disjoint" }
-| pre_clauses terminates decreases post_clauses behaviors ne_complete_or_disjoint
-  FREES
-      { clause_order $loc($7) "frees" "complete or disjoint" }
-| pre_clauses terminates decreases post_clauses behaviors ne_complete_or_disjoint
-  post_cond_kind
-      { clause_order $loc($7) "post-condition" "complete or disjoint" }
+
+behaviors:
+| /* epsilon */ { [] }
+| ne_behaviors { $1 }
+
+ne_behaviors:
+| BEHAVIOR behavior_name COLON clauses_list behaviors
+      { if $4.terminates <> None
+        then
+          raise (Not_well_formed (loc $loc($4),"Terminates in behaviors is not allowed."));
+        if $4.decreases <> None
+        then
+          raise (Not_well_formed (loc $loc($4),"Decreases in behaviors is not allowed."));
+        let behaviors = $5 in
+        let b =
+          Cabshelper.mk_behavior
+            ~name:$2 ~assumes:$4.assumes ~requires:$4.requires
+            ~post_cond:$4.post_cond ~assigns:$4.assigns
+            ~allocation:$4.allocation ~extended:$4.extended ()
+        in b::behaviors
+      }
+;
+
+complete_or_disjoint:
+| /* epsilon */ { [],[] }
+| ne_complete_or_disjoint { $1 }
+
+ne_complete_or_disjoint:
+| COMPLETE BEHAVIORS behavior_name_list SEMICOLON
+    complete_or_disjoint
+      { let complete,disjoint = $5 in $3::complete, disjoint }
+| DISJOINT BEHAVIORS behavior_name_list SEMICOLON
+          complete_or_disjoint
+      { let complete,disjoint = $5 in complete,$3::disjoint }
+/* complete behaviors decreases; is valid (provided there's a behavior
+   named decreases)
+*/
+| COMPLETE BEHAVIORS ne_behavior_name_list clause_kw { missing $loc($3) ";" $4 }
+| DISJOINT BEHAVIORS ne_behavior_name_list clause_kw { missing $loc($3) ";" $4 }
+;
+
+clauses_list:
+| /* epsilon */
+  { { assumes = [];
+      requires = [];
+      extended = [];
+      terminates = None;
+      decreases = None;
+      allocation = FreeAllocAny;
+      assigns = WritesAny;
+      post_cond = [];
+      empty = true;
+    }
+  }
+| ne_clauses_list { $1.empty <- false; $1 }
+
+ne_clauses_list:
+| ASSUMES lexpr SEMICOLON clauses_list
+    { $4.assumes <- $2::$4.assumes;
+      $4
+    }
+| REQUIRES lexpr SEMICOLON clauses_list
+    { check_clause_order $loc($2) $4 "requires" Pre_clauses;
+      $4.requires <- toplevel_pred Assert $2::$4.requires;
+      $4
+    }
+| CHECK_REQUIRES lexpr SEMICOLON clauses_list
+    { check_clause_order $loc($2) $4 "requires" Pre_clauses;
+      $4.requires <- toplevel_pred Check $2::$4.requires;
+      $4
+    }
+| ADMIT_REQUIRES lexpr SEMICOLON clauses_list
+    { check_clause_order $loc($2) $4 "requires" Pre_clauses;
+      $4.requires <- toplevel_pred Admit $2::$4.requires;
+      $4
+    }
+| EXT_CONTRACT extension_content SEMICOLON clauses_list
+    { check_clause_order $loc($2) $4 "extended" Pre_clauses;
+      let name, plugin = $1 in
+      let processed = Logic_env.preprocess_extension ~plugin name $2 in
+      let ext = extension name plugin processed in
+      $4.extended <- ext::$4.extended;
+      $4
+    }
+| TERMINATES lexpr SEMICOLON clauses_list
+    { check_clause_order $loc($2) $4 "terminates" Post_clauses;
+      $4.terminates <- Some($2);
+      $4
+    }
+| DECREASES variant SEMICOLON clauses_list
+    { check_clause_order $loc($2) $4 "decreases" Post_clauses;
+      $4.decreases <- Some($2);
+      $4
+    }
+| post_cond_kind lexpr SEMICOLON clauses_list
+    { check_clause_order $loc($2) $4 "post_cond" Post_clauses;
+      let tp_kind, kind = $1 in
+      $4.post_cond <- (kind,toplevel_pred tp_kind $2)::$4.post_cond;
+      $4
+    }
+| allocation SEMICOLON clauses_list
+    { check_clause_order $loc($1) $3 "allocates" Post_clauses;
+      $3.allocation <- concat_allocation $3.allocation $1;
+      $3
+    }
+| ASSIGNS assigns SEMICOLON clauses_list
+    { check_clause_order $loc($2) $4 "assigns" Post_clauses;
+      $4.assigns <- concat_assigns $sloc $4.assigns $2;
+      $4
+    }
+| unknown_extension SEMICOLON clauses_list
+    { check_clause_order $loc($1) $3 "extended" Pre_clauses;
+      $3
+    }
+| ASSUMES lexpr clause_kw { missing $loc($2) ";" $3 }
+| REQUIRES lexpr clause_kw { missing $loc($2) ";" $3 }
+| CHECK_REQUIRES lexpr clause_kw { missing $loc($2) ";" $3 }
+| ADMIT_REQUIRES lexpr clause_kw { missing $loc($2) ";" $3 }
+| EXT_CONTRACT ne_extension_content clause_kw { missing $loc($2) ";" $3 }
+| TERMINATES lexpr clause_kw { missing $loc($2) ";" $3 }
+| DECREASES variant clause_kw { missing $loc($2) ";" $3 }
+| post_cond_kind lexpr clause_kw { missing $loc($2) ";" $3 }
+| allocation clause_kw { missing $loc($1) ";" $2 }
+| ASSIGNS assigns clause_kw { missing $loc($2) ";" $3 }
+//| unknown_extension clause_kw { missing $loc($2) ";" $2 }
+;
+
+variant:
+| lexpr FOR full_identifier { ($1, Some $3) }
+| lexpr                     { ($1, None) }
+;
+
+allocation:
+| ALLOCATES zones { FreeAlloc([],$2) }
+| FREES zones { FreeAlloc($2,[]) }
+;
+
+/* possibly empty list of terms, for ACSL extensions registered by plugins. */
+extension_content:
+| /* epsilon */ { [] }
+| zones { $1 }
+;
+
+ne_extension_content:
+| zones { $1 }
+;
+
+post_cond_kind:
+| post_cond { fst $1 }
 ;
 
 // use that to detect potentially missing ';' at end of clause
@@ -1202,159 +1343,6 @@ clause_kw:
 | EXT_CONTRACT { fst $1 }
 | id=IDENTIFIER_EXT { id }
 | EOF { "end of annotation" }
-;
-
-pre_clauses:
-| /* epsilon */ { ([],[]) }
-| ne_pre_clauses { $1 }
-;
-
-ne_pre_clauses:
-| extended SEMICOLON pre_clauses {($1::fst $3, snd $3)}
-| REQUIRES lexpr SEMICOLON pre_clauses { (fst $4, toplevel_pred Assert $2::snd $4) }
-| CHECK_REQUIRES lexpr SEMICOLON pre_clauses { (fst $4, toplevel_pred Check $2::snd $4) }
-| ADMIT_REQUIRES lexpr SEMICOLON pre_clauses { (fst $4, toplevel_pred Admit $2::snd $4) }
-| REQUIRES lexpr clause_kw { ([], missing $loc($2) ";" $3) }
-| CHECK_REQUIRES lexpr clause_kw { ([], missing $loc($2) ";" $3) }
-| ADMIT_REQUIRES lexpr clause_kw { ([], missing $loc($2) ";" $3) }
-;
-
-extended:
-| EXT_CONTRACT extension_content
-    { let name, plugin = $1 in
-      let processed = Logic_env.preprocess_extension ~plugin name $2 in
-      let ext = extension name plugin processed in
-      ext
-    }
-
-
-terminates:
-| /* epsilon */ { None }
-| ne_terminates { Some $1 }
-;
-
-ne_terminates:
-| TERMINATES lexpr SEMICOLON { $2 }
-| TERMINATES lexpr clause_kw { missing $loc($2) ";" $3 }
-;
-
-decreases:
-| /* epsilon */   { None }
-| ne_decreases { Some $1 }
-;
-
-ne_decreases:
-| DECREASES variant SEMICOLON { $2 }
-| DECREASES variant clause_kw { missing $loc($2) ";" $3 }
-;
-
-variant:
-| lexpr FOR full_identifier { ($1, Some $3) }
-| lexpr                     { ($1, None) }
-;
-
-post_clauses:
-| /* epsilon */ { true,(FreeAllocAny,WritesAny,[],[]) }
-| ne_post_clauses { false,$1 }
-;
-
-allocation:
-| ALLOCATES zones { FreeAlloc([],$2) }
-| FREES zones { FreeAlloc($2,[]) }
-
-ne_post_clauses:
-| post_cond_kind lexpr SEMICOLON post_clauses
-    { let tp_kind, kind = $1 in
-      let allocation,assigns,post_cond,extended = snd $4 in
-      allocation,assigns,
-      ((kind,toplevel_pred tp_kind $2)::post_cond),extended }
-| allocation SEMICOLON post_clauses
-    { let allocation,assigns,post_cond,extended = snd $3 in
-      let a = concat_allocation allocation $1 in
-      a,assigns,post_cond,extended
-    }
-| ASSIGNS assigns SEMICOLON post_clauses
-    { let allocation,assigns,post_cond,extended = snd $4 in
-      let a = concat_assigns $sloc assigns $2
-      in allocation,a,post_cond,extended
-    }
-| unknown_extension SEMICOLON post_clauses { snd $3 }
-| EXT_CONTRACT extension_content SEMICOLON post_clauses
-    { let allocation,assigns,post_cond,extended = snd $4 in
-      let name, plugin = $1 in
-      let processed = Logic_env.preprocess_extension ~plugin name $2 in
-      let ext = extension name plugin processed in
-      allocation,assigns,post_cond,ext::extended
-    }
-| post_cond_kind lexpr clause_kw { missing $loc($2) ";" $3 }
-| allocation clause_kw { missing $loc($1) ";" $2 }
-| ASSIGNS assigns clause_kw { missing $loc($2) ";" $3 }
-| EXT_CONTRACT ne_grammar_extension clause_kw { missing $loc($1) ";" $3 }
-;
-
-ne_grammar_extension:
-| zones { $1 }
-;
-
-/* possibly empty list of terms, for ACSL extensions registered by plugins. */
-extension_content:
-| /* epsilon */ { [] }
-| zones { $1 }
-;
-
-post_cond_kind:
-| post_cond { fst $1 }
-;
-
-behaviors:
-| /* epsilon */ { [] }
-| ne_behaviors { $1 }
-
-ne_behaviors:
-| BEHAVIOR behavior_name COLON behavior_body behaviors
-      { let (assumes,(ext_pre,requires),(allocation,assigns,post_cond,ext_post)) = $4 in
-        let extended = ext_pre@ext_post in
-        let behaviors = $5 in
-        let b =
-          Cabshelper.mk_behavior
-            ~name:$2
-            ~assumes ~requires ~post_cond ~assigns ~allocation ~extended ()
-        in b::behaviors
-      }
-;
-
-behavior_body:
-| assumes pre_clauses post_clauses { $1,$2,snd $3 }
-| assumes ne_pre_clauses ASSUMES
-      { clause_order $loc($3) "assumes" "requires" }
-| assumes pre_clauses ne_post_clauses ASSUMES
-      { clause_order $loc($4) "assumes" "assigns or post-condition" }
-| assumes pre_clauses ne_post_clauses REQUIRES
-      { clause_order $loc($4) "requires" "assigns or post-condition" }
-;
-
-assumes:
-| /* epsilon */ { [] }
-| ASSUMES lexpr SEMICOLON assumes { $2::$4 }
-| ASSUMES lexpr clause_kw { missing $loc($2) ";" $3 }
-;
-
-complete_or_disjoint:
-| /* epsilon */ { [],[] }
-| ne_complete_or_disjoint { $1 }
-
-ne_complete_or_disjoint:
-| COMPLETE BEHAVIORS behavior_name_list SEMICOLON
-    complete_or_disjoint
-      { let complete,disjoint = $5 in $3::complete, disjoint }
-| DISJOINT BEHAVIORS behavior_name_list SEMICOLON
-          complete_or_disjoint
-      { let complete,disjoint = $5 in complete,$3::disjoint }
-/* complete behaviors decreases; is valid (provided there's a behavior
-   named decreases)
-*/
-| COMPLETE BEHAVIORS ne_behavior_name_list clause_kw { missing $loc($3) ";" $4 }
-| DISJOINT BEHAVIORS ne_behavior_name_list clause_kw { missing $loc($3) ";" $4 }
 ;
 
 /*** assigns and tsets ***/
@@ -1398,7 +1386,7 @@ annotation:
 | code_annotation beg_code_annotation
       { raise
           (Not_well_formed (loc $sloc,
-                            "Only one code annotation is allowed per comment"))
+                            "Only one code annotation is allowed per comment."))
       }
 | attribute_annot {
     raise (Not_well_formed (loc $sloc,
@@ -1471,11 +1459,11 @@ loop_annot_stack:
         | Writes _ ->
           raise
             (Not_well_formed
-               (pos,"loop assigns is not allowed after loop variant.")));
+               (pos,"Loop assigns is not allowed after loop variant.")));
       check_empty
-        (pos,"loop behavior is not allowed after loop variant.") b ;
+        (pos,"Loop behavior is not allowed after loop variant.") b ;
       check_empty
-        (pos,"loop annotations can have at most one variant.") v ;
+        (pos,"Loop annotations can have at most one variant.") v ;
       (i,fa,a,b,AVariant loop_variant::v,p,e) }
 | loop_grammar_extension loop_annot_opt {
     let (i,fa,a,b,v,p,e) = $2 in
@@ -1522,7 +1510,7 @@ loop_grammar_extension:
       | Ext_code_annot (Ext_here | Ext_next_stmt) ->
         raise
           (Not_well_formed
-            (loc $loc($2), name ^ " is not a loop annotation extension"))
+            (loc $loc($2), name ^ " is not a loop annotation extension."))
       | _ -> raise Not_found
     end
   with Not_found ->
@@ -1581,7 +1569,7 @@ code_annotation:
       end
     with Not_found ->
       Kernel.fatal ~loc:(from_pos $startpos($1))
-        "%s is not a code annotation extension. Parser got wrong lexeme" name
+        "%s is not a code annotation extension. Parser got wrong lexeme." name
   }
 ;
 
@@ -1758,7 +1746,7 @@ ext_loader:
 | IDENTIFIER COLON {
     Kernel.warning ~once:true ~wkey:Kernel.wkey_extension_unknown
       ~loc:(loc $sloc)
-      "Ignoring unregistered module importer extension '%s'" $1;
+      "Ignoring unregistered module importer extension '%s'." $1;
     raise Unknown_ext
   }
 | EXT_LOADER COLON  { $1 }
@@ -1856,15 +1844,15 @@ opt_label_1:
 | opt_label_list { match $1 with
 		     | [] -> None
 		     | l::[] -> Some l
-		     | _ -> raise (Not_well_formed (loc $sloc,"Only one label is allowed")) }
+		     | _ -> raise (Not_well_formed (loc $sloc,"Only one label is allowed.")) }
 ;
 
 opt_label_2:
 | opt_label_list { match $1 with
 		     | [] -> None
 		     | l1::l2::[] -> Some (l1,l2)
-		     | _::[] -> raise (Not_well_formed (loc $sloc,"One label is missing"))
-		     | _ -> raise (Not_well_formed (loc $sloc,"Only two labels are allowed")) }
+		     | _::[] -> raise (Not_well_formed (loc $sloc,"One label is missing."))
+		     | _ -> raise (Not_well_formed (loc $sloc,"Only two labels are allowed.")) }
 ;
 
 opt_label_list:
@@ -1924,12 +1912,12 @@ bounded_var:
 | is_acsl_typename /* Since TYPENAME cannot be accepted by lexpr rule */
     { raise
 	(Not_well_formed(loc $sloc,
-			 "Type names are not allowed as binding variable"))
+			 "Type names are not allowed as binding variable."))
     }
 | TYPENAME  /* Since TYPENAME cannot be accepted by lexpr rule */
     { raise
 	(Not_well_formed(loc $sloc,
-			 "Type names are not allowed as binding variable"))
+			 "Type names are not allowed as binding variable."))
     }
 ;
 
@@ -1986,6 +1974,7 @@ is_acsl_spec:
 | post_cond  { snd $1 }
 | EXT_CONTRACT { fst $1 }
 | ASSIGNS    { "assigns" }
+| ASSUMES    { "assumes" }
 | ALLOCATES  { "allocates" }
 | FREES      { "frees" }
 | BEHAVIOR   { "behavior" }
@@ -2006,7 +1995,6 @@ is_acsl_decl_or_code_annot:
 | EXT_LOADER_PLUGIN { fst $1 }
 | IDENTIFIER_EXT { $1 }
 | IDENTIFIER_LOADER { $1 }
-| ASSUMES   { "assumes" }
 | ASSERT    { "assert" }
 | CHECK     { "check" }
 | ADMIT     { "admit" }
