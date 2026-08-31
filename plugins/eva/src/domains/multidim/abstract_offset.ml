@@ -30,11 +30,6 @@ let rec pretty fmt = function
 
 let ( <?> ) a b = if a = 0 then Lazy.force b else a
 
-let reprs =
-  let open List.Operators in
-  let+ typ = Cil_datatype.Typ.reprs in
-  NoOffset typ
-
 let rec compare t t' =
   match t, t' with
   | NoOffset t, NoOffset t' -> Cil_datatype.Typ.compare t t'
@@ -49,20 +44,6 @@ let rec compare t t' =
     lazy (Eva_ast.Exp.compare l l') <?>
     lazy (Eva_ast.Exp.compare u u') <?>
     lazy (compare s s')
-
-let rec copy = function
-  | NoOffset t ->
-    NoOffset (Cil_datatype.Typ.copy t)
-  | Field (fi, offset) ->
-    let fi = Cil_datatype.Fieldinfo.copy fi in
-    let offset = copy offset in
-    Field (fi, offset)
-  | Index (l, u, t, offset) ->
-    let l = Eva_ast.Exp.copy l in
-    let u = Eva_ast.Exp.copy u in
-    let t = Cil_datatype.Typ.copy t in
-    let offset = copy offset in
-    Index (l, u, t, offset)
 
 let rec hash = function
   | NoOffset t ->
@@ -94,16 +75,16 @@ let structural_descr =
 include Datatype.Make_with_collections
     (struct
       type t = offset
-      let reprs = reprs
-      let rehash = Datatype.identity
+      let reprs = [ NoOffset (List.hd Cil_datatype.Typ.reprs) ]
       let structural_descr = structural_descr
-      let mem_project = Datatype.never_any_project
       let name = "Eva.Multidim.Abstract_offset"
-      let copy = copy
       let hash = hash
       let pretty = pretty
       let compare = compare
-      let equal l r = compare l r = 0
+      let equal = Datatype.from_compare
+      let copy = Datatype.undefined
+      let rehash = Datatype.identity
+      let mem_project = Datatype.never_any_project
     end)
 
 let rec append o1 o2 =
