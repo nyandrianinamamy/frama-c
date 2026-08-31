@@ -398,67 +398,39 @@ struct
 
     let rec fold f m acc =
       let open Abstract_offset in
+      let fold_field fi = fold (fun off -> f (Field (fi, off))) in
       match m with
       | Raw _ -> acc
       | Scalar s ->
         f (NoOffset s.scalar_type) s.scalar_value acc
       | Struct s ->
-        let f' fi =
-          fold (fun off' v acc -> f (Field (fi, off')) v acc)
-        in
-        S.fold f' s.struct_value acc
+        S.fold fold_field s.struct_value acc
       | Disjunct d ->
-        let f' fi =
-          fold (fun off' v acc -> f (Field (fi, off')) v acc)
-        in
-        D.fold f' d.disj_value acc
+        D.fold fold_field d.disj_value acc
       | Union u ->
-        let f' =
-          fold (fun off' v acc -> f (Field (u.union_field, off')) v acc)
-        in
-        f' u.union_value acc
-      | Array a ->
-        let f' (l,u) =
-          fold (fun off' v -> f (Index (l, u, a.array_cell_type, off')) v)
-        in
-        A.fold f' a.array_value acc
+        fold_field u.union_field u.union_value acc
+      | Array { array_cell_type = typ; array_value } ->
+        let fold_index (l, u) = fold (fun off -> f (Index (l, u, typ, off))) in
+        A.fold fold_index array_value acc
 
     let rec map f m =
       let open Abstract_offset in
+      let map_field fi = map (fun off -> f (Field (fi, off))) in
       match m with
       | Raw _ -> m
       | Scalar s ->
-        Scalar
-          { s with
-            scalar_value = f (NoOffset s.scalar_type) s.scalar_value }
+        let offset = NoOffset s.scalar_type in
+        Scalar { s with scalar_value = f offset s.scalar_value }
       | Struct s ->
-        let f' fi =
-          map (fun off' v -> f (Field (fi, off')) v)
-        in
-        Struct
-          { s with
-            struct_value = S.map f' s.struct_value }
+        Struct { s with struct_value = S.map map_field s.struct_value }
       | Disjunct d ->
-        let f' fi =
-          map (fun off' v -> f (Field (fi, off')) v)
-        in
-        Disjunct
-          { d with
-            disj_value = D.map f' d.disj_value }
+        Disjunct { d with disj_value = D.map map_field d.disj_value }
       | Union u ->
-        let f' =
-          map (fun off' v -> f (Field (u.union_field, off')) v)
-        in
-        Union
-          { u with
-            union_value = f' u.union_value }
+        Union { u with union_value = map_field u.union_field u.union_value }
       | Array a ->
-        let f' (l,u) =
-          map (fun off' v -> f (Index (l, u, a.array_cell_type, off')) v)
-        in
-        Array
-          { a with
-            array_value = A.map f' a.array_value }
+        let typ = a.array_cell_type in
+        let map_index (l, u) = map (fun off -> f (Index (l, u, typ, off))) in
+        Array { a with array_value = A.map map_index a.array_value }
 
     let read ~oracle (map : Cil_types.typ -> t -> 'a) (reduce : 'a -> 'a -> 'a) =
       let rec aux offset m =
