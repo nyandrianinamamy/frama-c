@@ -253,44 +253,24 @@ kernel-tests:
     - ./nix/build-proxy.sh kernel-tests
   <<: *coverage
 
-crowbar-tests:
+fuzzing-tests:
   stage: tests
   script:
-    - ./nix/build-proxy.sh crowbar-tests
+    - ./nix/build-proxy.sh fuzzing-tests
   allow_failure: true
   <<: *manual_when_not_special_pipeline
 
-crowbar-tests-weekly:
+fuzzing-tests-weekly:
   stage: tests
   script:
-    - ./nix/build-proxy.sh crowbar-tests
+    - ./nix/build-proxy.sh fuzzing-tests
   allow_failure: true
   <<: *when_weekly
 
-crowbar-tests-release:
+fuzzing-tests-release:
   stage: tests
   script:
-    - ./nix/build-proxy.sh crowbar-tests
-  <<: *when_release
-
-cram-tests:
-  stage: tests
-  script:
-    - ./nix/build-proxy.sh cram-tests
-  allow_failure: true
-  <<: *manual_when_not_special_pipeline
-
-cram-tests-weekly:
-  stage: tests
-  script:
-    - ./nix/build-proxy.sh cram-tests
-  allow_failure: true
-  <<: *when_weekly
-
-cram-tests-release:
-  stage: tests
-  script:
-    - ./nix/build-proxy.sh cram-tests
+    - ./nix/build-proxy.sh fuzzing-tests
   <<: *when_release
 
 plugins-tests:

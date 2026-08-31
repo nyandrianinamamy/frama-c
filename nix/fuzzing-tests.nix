@@ -4,9 +4,9 @@
 } :
 
 mk_tests {
-  tests-name = "crowbar-tests";
+  tests-name = "fuzzing-tests";
   tests-command = ''
-    CROWBAR= dune runtest tests/crowbar
+    FC_FUZZING= dune runtest tests/fuzzing
   '';
   additional-build-inputs = [ crowbar ];
 }

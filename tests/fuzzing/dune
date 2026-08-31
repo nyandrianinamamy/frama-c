@@ -5,14 +5,17 @@
  (action
   (progn
    (echo "  - Crowbar Tests:" %{read:tests-crowbar-deps-available} "\n")
-   (echo "    - CROWBAR env var:" %{env:CROWBAR=false} "\n")
+   (echo "    - FC_FUZZING env var:" %{env:FC_FUZZING=false} "\n")
    (echo "    - Crowbar: " %{lib-available:crowbar} "\n")
    (echo "    - Crowbar Utils:" %{lib-available:crowbar_utils} "\n")
    (echo "    - Inout:" %{lib-available:frama-c-inout.core} "\n")
    (echo "    - Eva:" %{lib-available:frama-c-eva.core} "\n")
    ; If you add some dependencies here, do not forget to add them to the
-   ; crowbar_deps_fake_lib library to update
-   ; tests-crowbar-deps-available
+   ; crowbar_fake_lib library to update tests-crowbar-deps-available
+   (echo "  - Other Fuzzing Tests:" %{read:tests-fuzzing-deps-available} "\n")
+   (echo "    - FC_FUZZING env var:" %{env:FC_FUZZING=false} "\n")
+   (echo "    - Python:" %{read:../../python-3.10-available} "\n")
+   ; If you add some dependencies here, do not forget to update tests_configurator.ml
   ))
 )
 
@@ -23,7 +26,7 @@
   (name crowbar_deps_fake_lib)
   (enabled_if
     (and
-      (<> %{env:CROWBAR=false} "false")
+      (<> %{env:FC_FUZZING=false} "false")
       %{lib-available:crowbar}
       %{lib-available:crowbar_utils}
       %{lib-available:frama-c-inout.core}
@@ -40,14 +43,35 @@
  (action (with-stdout-to "tests-crowbar-deps-available"
   (echo "false (Crowbar tests are disabled)"))))
 
-(cram
-  (enabled_if (<> %{env:CROWBAR=false} "false")))
-(cram
-  (deps (package frama-c) (package crowbar_utils)))
+(rule
+ (deps (universe))
+ (enabled_if (and (<> %{env:FC_FUZZING=false} "false") (<> %{read:../../tests-fuzzing-deps-available} "true")))
+ (action (with-stdout-to "tests-fuzzing-deps-available"
+  (echo "true"))))
+(rule
+ (deps (universe))
+ (enabled_if (not (and (<> %{env:FC_FUZZING=false} "false") (<> %{read:../../tests-fuzzing-deps-available} "true"))))
+ (action (with-stdout-to "tests-fuzzing-deps-available"
+  (echo "false (Fuzzing tests are disabled)"))))
 
 (cram
-  (applies_to constfold)
-  (deps
-    (package frama-c-eva)
-    (package frama-c-inout))
+ (enabled_if (<> %{env:FC_FUZZING=false} "false"))
+ (deps (package frama-c))
+)
+
+(cram
+ (applies_to * \ bitfield)
+ (deps (package crowbar_utils))
+)
+
+(cram
+ (applies_to constfold)
+ (deps
+  (package frama-c-eva)
+  (package frama-c-inout))
+)
+
+(cram
+ (applies_to bitfield)
+ (enabled_if %{read:../../python-3.10-available})
 )

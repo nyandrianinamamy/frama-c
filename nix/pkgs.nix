@@ -49,11 +49,13 @@ let
     eva-symblocs-tests = oself.callPackage ./eva-tests.nix { config = "symblocs" ; };
     full-tests = oself.callPackage ./full-tests.nix {};
     kernel-tests = oself.callPackage ./kernel-tests.nix {};
-    crowbar-tests = oself.callPackage ./crowbar-tests.nix {};
-    cram-tests = oself.callPackage ./cram-tests.nix {};
     plugins-tests = oself.callPackage ./plugins-tests.nix {};
     wp-cache = oself.callPackage ./wp-cache.nix {};
     wp-tests = oself.callPackage ./wp-tests.nix {};
+
+    # Fuzzing campaign for selected fc features
+
+    fuzzing-tests = oself.callPackage ./fuzzing-tests.nix {};
 
     # Internal tests
     internal-tests = oself.callPackage ./internal-tests.nix {

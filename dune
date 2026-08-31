@@ -42,6 +42,7 @@
   tests-dependencies-comment
   ; Kernel
   tests-fc_scripts-deps-available
+  tests-fuzzing-deps-available
   tests-jcdb-deps-available
   tests-libc-deps-available
   tests-metrics-deps-available
