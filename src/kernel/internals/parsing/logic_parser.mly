@@ -197,7 +197,8 @@
       | Writes [], [] -> a1
       | Writes [], _  | Writes _, [] ->
         raise (
-          Not_well_formed (loc start_pos,"Mixing \\nothing and a real location."))
+          Not_well_formed (loc start_pos,
+                           "Mixing \\nothing and a real location."))
       | Writes a1, a2 -> Writes (concat_froms (concat_froms [] a2) a1)
 
   let concat_loop_assigns_allocation start_pos annots bhvs2 a2 fa2=
@@ -416,46 +417,49 @@ lexpr:
 | lexpr AMP lexpr { info $sloc (PLbinop ($1, Bbw_and, $3)) }
 | lexpr PIPE lexpr { info $sloc (PLbinop ($1, Bbw_or, $3)) }
 | lexpr HAT lexpr { info $sloc (PLbinop ($1, Bbw_xor, $3)) }
-| lexpr BIMPLIES lexpr { info $sloc (PLbinop (info $sloc (PLunop (Ubw_not, $1)), Bbw_or, $3)) }
-| lexpr BIFF lexpr { info $sloc (PLbinop (info $sloc (PLunop (Ubw_not, $1)), Bbw_xor, $3)) }
-| lexpr IN lexpr { info $sloc (PLapp ("\\subset", [], [info $sloc (PLset [$1]);$3])) }
+| lexpr BIMPLIES lexpr
+    { info $sloc (PLbinop (info $sloc (PLunop (Ubw_not, $1)), Bbw_or, $3)) }
+| lexpr BIFF lexpr
+    { info $sloc (PLbinop (info $sloc (PLunop (Ubw_not, $1)), Bbw_xor, $3)) }
+| lexpr IN lexpr
+    { info $sloc (PLapp ("\\subset", [], [info $sloc (PLset [$1]);$3])) }
 | lexpr QUESTION lexpr COLON2 lexpr %prec prec_question
     { info $sloc (PLif ($1, $3, $5)) }
 /* both terms and predicates */
 | any_identifier COLON lexpr %prec prec_named { info $sloc (PLnamed ($1, $3)) }
 | string COLON lexpr %prec prec_named
-      { let (iswide,str) = $1 in
-        if iswide then begin
-           let l = loc $sloc in
-           raise (Not_well_formed(l, "Wide strings are not allowed as labels."))
-         end;
-        let str = escape str in
-         info $sloc (PLnamed (str, $3))
-       }
+    { let (iswide,str) = $1 in
+      if iswide then begin
+         let l = loc $sloc in
+         raise (Not_well_formed(l, "Wide strings are not allowed as labels."))
+       end;
+      let str = escape str in
+       info $sloc (PLnamed (str, $3))
+     }
 | lexpr_rel { $1 }
 ;
 
 lexpr_rel:
 | lexpr_end_rel  { $1 }
 | lexpr_inner rel_list
-      { let rel, rhs, _, oth_rel = $2 in
-        let loc = Fileloc.join $1.lexpr_loc rhs.lexpr_loc in
-        let relation = loc_info loc (PLrel($1,rel,rhs)) in
-        match oth_rel with
-            None -> relation
-          | Some oth_relation -> info $sloc (pland relation oth_relation)
-      }
+    { let rel, rhs, _, oth_rel = $2 in
+      let loc = Fileloc.join $1.lexpr_loc rhs.lexpr_loc in
+      let relation = loc_info loc (PLrel($1,rel,rhs)) in
+      match oth_rel with
+          None -> relation
+        | Some oth_relation -> info $sloc (pland relation oth_relation)
+    }
 ;
 
 lexpr_binder:
 | LET bounded_var EQUAL lexpr SEMICOLON lexpr %prec LET
-      { info $sloc (PLlet($2,$4,$6))}
+    { info $sloc (PLlet($2,$4,$6))}
 | FORALL binders SEMICOLON lexpr  %prec prec_forall
-      { info $sloc (PLforall ($2, $4)) }
+    { info $sloc (PLforall ($2, $4)) }
 | EXISTS binders SEMICOLON lexpr  %prec prec_exists
-      { info $sloc (PLexists ($2, $4)) }
+    { info $sloc (PLexists ($2, $4)) }
 | LAMBDA binders SEMICOLON lexpr  %prec prec_lambda
-      { info $sloc (PLlambda ($2,$4)) }
+    { info $sloc (PLlambda ($2,$4)) }
 ;
 
 lexpr_end_rel:
@@ -466,28 +470,27 @@ lexpr_end_rel:
 
 rel_list:
 | relation lexpr_end_rel
-  { $1, $2, fst(relation_sense $1 Unknown), None }
+    { $1, $2, fst(relation_sense $1 Unknown), None }
 | relation lexpr_inner rel_list
-  {
-    let next_rel, rhs, sense, oth_rel = $3 in
-    let (sense, correct) = relation_sense $1 sense
-    in
-    if correct then
-      let loc = Fileloc.join $2.lexpr_loc rhs.lexpr_loc in
-      let my_rel = loc_info loc (PLrel($2,next_rel,rhs)) in
-      let oth_rel =
-        match oth_rel with
-        | None -> my_rel
-        | Some rel ->
-          let loc = Fileloc.join $2.lexpr_loc rel.lexpr_loc in
-	        loc_info loc (pland my_rel rel)
+    { let next_rel, rhs, sense, oth_rel = $3 in
+      let (sense, correct) = relation_sense $1 sense
       in
-      $1,$2,sense,Some oth_rel
-    else begin
-      let loc = loc $sloc in
-      raise (Not_well_formed(loc,"Inconsistent relation chain."));
-    end
-  }
+      if correct then
+        let loc = Fileloc.join $2.lexpr_loc rhs.lexpr_loc in
+        let my_rel = loc_info loc (PLrel($2,next_rel,rhs)) in
+        let oth_rel =
+          match oth_rel with
+          | None -> my_rel
+          | Some rel ->
+            let loc = Fileloc.join $2.lexpr_loc rel.lexpr_loc in
+	          loc_info loc (pland my_rel rel)
+        in
+        $1,$2,sense,Some oth_rel
+      else begin
+        let loc = loc $sloc in
+        raise (Not_well_formed(loc,"Inconsistent relation chain."));
+      end
+    }
 ;
 
 relation:
@@ -498,8 +501,8 @@ relation:
 | EQ    { Eq }
 | NE    { Neq }
     /* C. Marche: added to produce better error messages */
-| EQUAL {
-      let l = loc $sloc in
+| EQUAL
+    { let l = loc $sloc in
       raise
         (Not_well_formed(l,
                          "Assignment operators not allowed in annotations."))
@@ -507,8 +510,8 @@ relation:
 ;
 
 lexpr_inner:
-| string {
-      let (is_wide,content) = $1 in
+| string
+    { let (is_wide,content) = $1 in
       let cst = if is_wide then
         WStringConstant content
       else
@@ -519,7 +522,8 @@ lexpr_inner:
 | NOT lexpr_inner { info $sloc (PLnot $2) }
 | TRUE { info $sloc PLtrue }
 | FALSE { info $sloc PLfalse }
-| OBJECT_POINTER opt_label_1 LPAR lexpr RPAR { info $sloc (PLobject_pointer ($2,$4)) }
+| OBJECT_POINTER opt_label_1 LPAR lexpr RPAR
+    { info $sloc (PLobject_pointer ($2,$4)) }
 | VALID opt_label_1 LPAR lexpr RPAR { info $sloc (PLvalid ($2,$4)) }
 | VALID_READ opt_label_1 LPAR lexpr RPAR { info $sloc (PLvalid_read ($2,$4)) }
 | VALID_FUNCTION LPAR lexpr RPAR { info $sloc (PLvalid_function $3) }
@@ -537,15 +541,17 @@ lexpr_inner:
 | INITIALIZED opt_label_1 LPAR lexpr RPAR { info $sloc (PLinitialized ($2,$4)) }
 | DANGLING opt_label_1 LPAR lexpr RPAR { info $sloc (PLdangling ($2,$4)) }
 | ALIGNED LPAR lexpr COMMA lexpr RPAR { info $sloc (PLaligned ($3,$5)) }
-| FRESH opt_label_2 LPAR lexpr COMMA lexpr RPAR { info $sloc (PLfresh ($2,$4, $6)) }
+| FRESH opt_label_2 LPAR lexpr COMMA lexpr RPAR
+    { info $sloc (PLfresh ($2,$4, $6)) }
 | BASE_ADDR opt_label_1 LPAR lexpr RPAR { info $sloc (PLbase_addr ($2,$4)) }
-| BLOCK_LENGTH opt_label_1 LPAR lexpr RPAR { info $sloc (PLblock_length ($2,$4)) }
+| BLOCK_LENGTH opt_label_1 LPAR lexpr RPAR
+    { info $sloc (PLblock_length ($2,$4)) }
 | OFFSET opt_label_1 LPAR lexpr RPAR { info $sloc (PLoffset ($2,$4)) }
 | ALLOCABLE opt_label_1 LPAR lexpr RPAR { info $sloc (PLallocable ($2,$4)) }
 | FREEABLE opt_label_1 LPAR lexpr RPAR { info $sloc (PLfreeable ($2,$4)) }
 | ALLOCATION opt_label_1 LPAR lexpr RPAR
-  { let loc = from_pos $symbolstartpos in
-    Kernel.not_yet_implemented ~loc "\\allocation" }
+    { let loc = from_pos $symbolstartpos in
+      Kernel.not_yet_implemented ~loc "\\allocation" }
 | AUTOMATIC {
   let loc = from_pos $symbolstartpos in
   Kernel.not_yet_implemented ~loc "\\automatic" }
@@ -586,13 +592,13 @@ lexpr_inner:
 | AT LPAR lexpr COMMA label_name RPAR { info $sloc (PLat ($3, $5)) }
 | RESULT { info $sloc PLresult }
 | SEPARATED LPAR ne_lexpr_list RPAR
-      { info $sloc (PLseparated $3) }
+    { info $sloc (PLseparated $3) }
 | symbol_identifier LPAR ne_lexpr_list RPAR
-      { info $sloc (PLapp ($1, [], $3)) }
+    { info $sloc (PLapp ($1, [], $3)) }
 | symbol_identifier LBRACE ne_label_args RBRACE LPAR ne_lexpr_list RPAR
-      { info $sloc (PLapp ($1, $3, $6)) }
+    { info $sloc (PLapp ($1, $3, $6)) }
 | symbol_identifier LBRACE ne_label_args RBRACE
-      { info $sloc (PLapp ($1, $3, [])) }
+    { info $sloc (PLapp ($1, $3, [])) }
 | symbol_identifier  { info $sloc (PLvar $1) }
 | PI  { info $sloc (PLvar "\\pi") }
 | lexpr_inner GTGT lexpr_inner { info $sloc (PLbinop ($1, Brshift, $3))}
@@ -624,7 +630,7 @@ lexpr_inner:
       { info $sloc (PLcomprehension ($2,$4,None)) }
 | LBRACE lexpr_inner PIPE binders SEMICOLON lexpr RBRACE
       { info $sloc (PLcomprehension ($2,$4,Some $6)) }
-    /* Aggregated object initialization */
+/* Aggregated object initialization */
 | LBRACE field_init RBRACE
       { info $sloc (PLinitField($2)) }
 | LBRACE array_init RBRACE
@@ -639,6 +645,7 @@ lexpr_inner:
 ne_label_args:
 | identifier_or_typename_full { [ $1 ] }
 | identifier_or_typename_full COMMA ne_label_args { $1 :: $3 }
+;
 
 string:
 | STRING_LITERAL { $1 }
@@ -674,7 +681,7 @@ array_path_elt:
 
 array_init_elt:
 | array_path_elt EQUAL lexpr { ($1, $3) }
-
+;
 
 array_init:
 | array_init_elt                  { [$1] }
@@ -717,12 +724,14 @@ binders_reentrance:
     }
 | binders_reentrance COMMA var_spec
     { let last_type_spec, vars = $1 in
-        (last_type_spec, vars @ [ let (modif, name) = $3 in (modif last_type_spec, name)])
+        (last_type_spec, vars @
+         [ let (modif, name) = $3 in (modif last_type_spec, name)])
     }
 ;
 
 decl_spec:
-| type_spec(typesymbol) var_spec { ($1, let (modif, name) = $2 in (modif $1, name))  }
+| type_spec(typesymbol) var_spec
+  { ($1, let (modif, name) = $2 in (modif $1, name))  }
 ;
 
 var_spec:
@@ -823,6 +832,7 @@ type_spec_cv:
 cv_after:
   /* empty */ { fun t -> t }
 | cv cv_after { fun t -> $2 (LTattribute (t,$1)) }
+;
 
 cast_logic_type:
  | type_spec_cv abs_spec_cv_option { $2 $1 }
@@ -853,13 +863,13 @@ abs_spec:
 ;
 
 abs_spec_cv:
-|                         tabs { $1 }
-| stars_cv                       { $1 }
-| stars_cv                 tabs                { fun t -> $2 ($1 t) }
-| stars_cv abs_spec_bis_cv       { fun t -> $2 ($1 t) }
-| stars_cv abs_spec_bis_cv tabs                { fun t -> $2 ($3 ($1 t)) }
-|          abs_spec_bis_cv tabs                { fun t -> $1 ($2 t) }
-|          abs_spec_bis_cv       { $1 }
+|                          tabs { $1 }
+| stars_cv                      { $1 }
+| stars_cv                 tabs { fun t -> $2 ($1 t) }
+| stars_cv abs_spec_bis_cv      { fun t -> $2 ($1 t) }
+| stars_cv abs_spec_bis_cv tabs { fun t -> $2 ($3 ($1 t)) }
+|          abs_spec_bis_cv tabs { fun t -> $1 ($2 t) }
+|          abs_spec_bis_cv      { $1 }
 ;
 
 abs_spec_bis:
@@ -1005,12 +1015,13 @@ full_identifier:
 
 %inline unknown_extension:
 | id=IDENTIFIER_EXT content=extension_content { (id,content) }
-
+;
 
 /*** ACSL extension for external spec file ***/
 
 ext_spec:
- | ext_global_clauses_opt ext_module_specs_opt ext_global_specs_opt EOF { (None,$1,$2)::$3 }
+ | ext_global_clauses_opt ext_module_specs_opt ext_global_specs_opt EOF
+    { (None,$1,$2)::$3 }
 ;
 
 ext_global_clauses_opt:
@@ -1025,10 +1036,12 @@ ext_global_clauses:
 
 ext_global_clause:
 | decl  { Ext_decl (loc_decl $sloc $1) }
-| GLOBAL
-  EXT_SPEC_LET any_identifier EQUAL lexpr SEMICOLON { Ext_macro (true, $3, $5) }
-| EXT_SPEC_LET any_identifier EQUAL lexpr SEMICOLON { Ext_macro (false, $2, $4) }
-| EXT_SPEC_INCLUDE string SEMICOLON { let b,s = $2 in Ext_include(b,s, loc $sloc) }
+| GLOBAL EXT_SPEC_LET any_identifier EQUAL lexpr SEMICOLON
+    { Ext_macro (true, $3, $5) }
+| EXT_SPEC_LET any_identifier EQUAL lexpr SEMICOLON
+    { Ext_macro (false, $2, $4) }
+| EXT_SPEC_INCLUDE string SEMICOLON
+    { let b,s = $2 in Ext_include(b,s, loc $sloc) }
 ;
 
 ext_global_specs_opt:
@@ -1094,7 +1107,10 @@ ext_fun_spec:
 
 ext_stmt_loop_spec:
 | annotation { $1 }
-| ext_contract_markup contract { let s, pos = $2 in Acode_annot (pos, AStmtSpec ([],s)) }
+| ext_contract_markup contract
+    { let s, pos = $2 in
+      Acode_annot (pos, AStmtSpec ([],s))
+    }
 ;
 
 ext_identifier_opt:
@@ -1120,7 +1136,7 @@ ext_contract_markup:
 
 stmt_markup:
 | any_identifier { $1 }
-| INT_CONSTANT { $1 }
+| INT_CONSTANT   { $1 }
 ;
 
 stmt_markup_attr:
@@ -1142,7 +1158,8 @@ contract:
 | clauses_list behaviors complete_or_disjoint
     { if $1.assumes <> []
       then
-        raise (Not_well_formed (loc $loc($1),"Assumes outside behaviors is not allowed."));
+        raise (Not_well_formed (loc $loc($1),
+                                "Assumes outside behaviors is not allowed."));
       let (completes,disjoints) = $3 in
       let behaviors =
         if $1.requires <> [] || $1.post_cond <> [] ||
@@ -1152,13 +1169,14 @@ contract:
           (Cabshelper.mk_behavior
             ~requires:$1.requires ~post_cond:$1.post_cond ~assigns:$1.assigns
             ~allocation:$1.allocation ~extended:$1.extended ())::$2
-        else if $1.terminates<>None || $1.decreases<>None || $2<>[] ||
-                completes<>[] || disjoints<>[]
+        else if $1.terminates <> None || $1.decreases <> None || $2 <> [] ||
+                completes <> [] || disjoints <> []
         then
           $2
         else
           if $1.empty then
-            raise (Not_well_formed (loc $sloc,"Empty annotation is not allowed."))
+            raise (Not_well_formed (loc $sloc,
+                                    "Empty annotation is not allowed."))
           else
             raise Unknown_ext
       in
@@ -1169,61 +1187,71 @@ contract:
           spec_disjoint_behaviors = disjoints;
         }, loc $sloc
     }
+;
 
 behaviors:
 | /* epsilon */ { [] }
-| ne_behaviors { $1 }
+| ne_behaviors  { $1 }
+;
 
 ne_behaviors:
 | BEHAVIOR behavior_name COLON clauses_list behaviors
-      { if $4.terminates <> None
-        then
-          raise (Not_well_formed (loc $loc($4),"Terminates in behaviors is not allowed."));
-        if $4.decreases <> None
-        then
-          raise (Not_well_formed (loc $loc($4),"Decreases in behaviors is not allowed."));
-        let behaviors = $5 in
-        let b =
-          Cabshelper.mk_behavior
-            ~name:$2 ~assumes:$4.assumes ~requires:$4.requires
-            ~post_cond:$4.post_cond ~assigns:$4.assigns
-            ~allocation:$4.allocation ~extended:$4.extended ()
-        in b::behaviors
-      }
+    { if $4.terminates <> None
+      then
+        raise
+          (Not_well_formed (loc $loc($4),
+                            "Terminates in behaviors is not allowed."));
+      if $4.decreases <> None
+      then
+        raise
+          (Not_well_formed (loc $loc($4),
+                            "Decreases in behaviors is not allowed."));
+      let behaviors = $5 in
+      let b =
+        Cabshelper.mk_behavior
+          ~name:$2 ~assumes:$4.assumes ~requires:$4.requires
+          ~post_cond:$4.post_cond ~assigns:$4.assigns
+          ~allocation:$4.allocation ~extended:$4.extended ()
+      in b::behaviors
+    }
 ;
 
 complete_or_disjoint:
-| /* epsilon */ { [],[] }
+| /* epsilon */        { [],[] }
 | ne_complete_or_disjoint { $1 }
+;
 
 ne_complete_or_disjoint:
-| COMPLETE BEHAVIORS behavior_name_list SEMICOLON
-    complete_or_disjoint
-      { let complete,disjoint = $5 in $3::complete, disjoint }
-| DISJOINT BEHAVIORS behavior_name_list SEMICOLON
-          complete_or_disjoint
-      { let complete,disjoint = $5 in complete,$3::disjoint }
+| COMPLETE BEHAVIORS behavior_name_list SEMICOLON complete_or_disjoint
+    { let complete,disjoint = $5 in $3::complete, disjoint }
+| DISJOINT BEHAVIORS behavior_name_list SEMICOLON complete_or_disjoint
+    { let complete,disjoint = $5 in complete,$3::disjoint }
 /* complete behaviors decreases; is valid (provided there's a behavior
    named decreases)
 */
 | COMPLETE BEHAVIORS ne_behavior_name_list clause_kw { missing $loc($3) ";" $4 }
 | DISJOINT BEHAVIORS ne_behavior_name_list clause_kw { missing $loc($3) ";" $4 }
+| COMPLETE BEHAVIORS behavior_name_list SEMICOLON BEHAVIOR
+    { clause_order $loc($2) "list of behaviors" "complete behaviors"}
+| DISJOINT BEHAVIORS behavior_name_list SEMICOLON BEHAVIOR
+    { clause_order $loc($2) "list of behaviors" "disjoint behaviors"}
 ;
 
 clauses_list:
 | /* epsilon */
-  { { assumes = [];
-      requires = [];
-      extended = [];
-      terminates = None;
-      decreases = None;
-      allocation = FreeAllocAny;
-      assigns = WritesAny;
-      post_cond = [];
-      empty = true;
+    { { assumes = [];
+        requires = [];
+        extended = [];
+        terminates = None;
+        decreases = None;
+        allocation = FreeAllocAny;
+        assigns = WritesAny;
+        post_cond = [];
+        empty = true;
+      }
     }
-  }
 | ne_clauses_list { $1.empty <- false; $1 }
+;
 
 ne_clauses_list:
 | ASSUMES lexpr SEMICOLON clauses_list
@@ -1293,7 +1321,6 @@ ne_clauses_list:
 | post_cond_kind lexpr clause_kw { missing $loc($2) ";" $3 }
 | allocation clause_kw { missing $loc($1) ";" $2 }
 | ASSIGNS assigns clause_kw { missing $loc($2) ";" $3 }
-//| unknown_extension clause_kw { missing $loc($2) ";" $2 }
 ;
 
 variant:
@@ -1303,13 +1330,13 @@ variant:
 
 allocation:
 | ALLOCATES zones { FreeAlloc([],$2) }
-| FREES zones { FreeAlloc($2,[]) }
+| FREES zones     { FreeAlloc($2,[]) }
 ;
 
 /* possibly empty list of terms, for ACSL extensions registered by plugins. */
 extension_content:
 | /* epsilon */ { [] }
-| zones { $1 }
+| zones         { $1 }
 ;
 
 ne_extension_content:
@@ -1364,7 +1391,7 @@ ne_zones:
 /*** annotations ***/
 
 annot:
-| annotation EOF  { $1 }
+| annotation EOF          { $1 }
 | is_acsl_spec any EOF { Aspec }
 | decl_list EOF   { Adecl ($1) }
 ;
@@ -1376,29 +1403,30 @@ attribute_annot:
 
 annotation:
 | loop_annotations
-      { let (b,v,p) = $1 in
-        (* TODO: do better, do not lose the structure ! *)
-        let l = b@v@p in
-        Aloop_annot (loc $sloc, l) }
+    { let (b,v,p) = $1 in
+      (* TODO: do better, do not lose the structure ! *)
+      let l = b@v@p in
+      Aloop_annot (loc $sloc, l) }
 | FOR ne_behavior_name_list COLON contract_or_code_annotation
-      { $4 $2 }
+    { $4 $2 }
 | code_annotation { Acode_annot (loc $sloc,$1 []) }
 | code_annotation beg_code_annotation
-      { raise
-          (Not_well_formed (loc $sloc,
-                            "Only one code annotation is allowed per comment."))
-      }
-| attribute_annot {
-    raise (Not_well_formed (loc $sloc,
-      "Attribute annotation '"^ $1 ^"' are not supported anymore, use regular \
-       C attributes instead."))
-  }
+    { raise
+        (Not_well_formed (loc $sloc,
+                          "Only one code annotation is allowed per comment."))
+    }
+| attribute_annot
+    { raise
+        (Not_well_formed (loc $sloc,
+                          "Attribute annotation '"^ $1 ^"' are not supported \
+                           anymore, use regular C attributes instead."))
+    }
 | unknown_extension SEMICOLON { raise Unknown_ext }
 ;
 
 contract_or_code_annotation:
 | contract
-      { fun bhvs -> let s, pos = $1 in Acode_annot (pos, AStmtSpec (bhvs,s)) }
+    { fun bhvs -> let s, pos = $1 in Acode_annot (pos, AStmtSpec (bhvs,s)) }
 | code_annotation { fun bhvs -> Acode_annot (loc $sloc, ($1 bhvs)) }
 ;
 
@@ -1420,7 +1448,7 @@ loop_annotations:
         | FreeAllocAny -> oth
         | _ -> AAllocation ([],fa)::oth
       in
-	(invs@oth@ext,v,p)
+	    (invs@oth@ext,v,p)
     }
 ;
 
@@ -1464,11 +1492,12 @@ loop_annot_stack:
         (pos,"Loop behavior is not allowed after loop variant.") b ;
       check_empty
         (pos,"Loop annotations can have at most one variant.") v ;
-      (i,fa,a,b,AVariant loop_variant::v,p,e) }
-| loop_grammar_extension loop_annot_opt {
-    let (i,fa,a,b,v,p,e) = $2 in
-    (i,fa,a,b,v,p, $1::e)
-  }
+      (i,fa,a,b,AVariant loop_variant::v,p,e)
+    }
+| loop_grammar_extension loop_annot_opt
+    { let (i,fa,a,b,v,p,e) = $2 in
+      (i,fa,a,b,v,p, $1::e)
+    }
 | LOOP unknown_extension SEMICOLON loop_annot_opt { $4 }
 ;
 
@@ -1499,24 +1528,24 @@ loop_variant:
 
 /* Grammar Extensibility for plugins */
 loop_grammar_extension:
-| LOOP EXT_CODE_ANNOT extension_content SEMICOLON {
-  let open Cil_types in
-  let name, plugin = $2 in
-  try
-    begin match Logic_env.extension_category ~plugin name with
-      | Ext_code_annot (Ext_next_loop | Ext_next_both) ->
-        let processed = Logic_env.preprocess_extension ~plugin name $3 in
-        {ext_name = name; ext_plugin = plugin; ext_content = processed}
-      | Ext_code_annot (Ext_here | Ext_next_stmt) ->
-        raise
-          (Not_well_formed
-            (loc $loc($2), name ^ " is not a loop annotation extension."))
-      | _ -> raise Not_found
-    end
-  with Not_found ->
-    Kernel.fatal ~loc:(loc $loc($2))
-      "%s is not a code annotation extension. Parser got wrong lexeme." name
-}
+| LOOP EXT_CODE_ANNOT extension_content SEMICOLON
+    { let open Cil_types in
+      let name, plugin = $2 in
+      try
+        begin match Logic_env.extension_category ~plugin name with
+          | Ext_code_annot (Ext_next_loop | Ext_next_both) ->
+            let processed = Logic_env.preprocess_extension ~plugin name $3 in
+            {ext_name = name; ext_plugin = plugin; ext_content = processed}
+          | Ext_code_annot (Ext_here | Ext_next_stmt) ->
+            raise
+              (Not_well_formed (loc $loc($2),
+                                name ^ " is not a loop annotation extension."))
+          | _ -> raise Not_found
+        end
+      with Not_found ->
+        Kernel.fatal ~loc:(loc $loc($2))
+          "%s is not a code annotation extension. Parser got wrong lexeme." name
+    }
 ;
 
 
@@ -1536,41 +1565,41 @@ beg_code_annotation:
 
 code_annotation:
 | ASSERT lexpr SEMICOLON
-  { fun bhvs -> AAssert (bhvs,toplevel_pred Assert $2) }
+    { fun bhvs -> AAssert (bhvs,toplevel_pred Assert $2) }
 | CHECK lexpr SEMICOLON
-  { fun bhvs -> AAssert (bhvs,toplevel_pred Check $2) }
+    { fun bhvs -> AAssert (bhvs,toplevel_pred Check $2) }
 | ADMIT lexpr SEMICOLON
-  { fun bhvs -> AAssert (bhvs,toplevel_pred Admit $2) }
+    { fun bhvs -> AAssert (bhvs,toplevel_pred Admit $2) }
 | INVARIANT lexpr SEMICOLON
-  { fun bhvs -> AInvariant (bhvs,false,toplevel_pred Assert $2) }
+    { fun bhvs -> AInvariant (bhvs,false,toplevel_pred Assert $2) }
 | CHECK_INVARIANT lexpr SEMICOLON
-  { fun bhvs -> AInvariant (bhvs,false,toplevel_pred Check $2) }
+    { fun bhvs -> AInvariant (bhvs,false,toplevel_pred Check $2) }
 | ADMIT_INVARIANT lexpr SEMICOLON
-  { fun bhvs -> AInvariant (bhvs,false,toplevel_pred Admit $2) }
+    { fun bhvs -> AInvariant (bhvs,false,toplevel_pred Admit $2) }
 | EXT_CODE_ANNOT extension_content SEMICOLON
-  { fun bhvs ->
-    let open Cil_types in
-    let name, plugin = $1 in
-    try
-      begin match Logic_env.extension_category ~plugin name with
-        | Ext_code_annot (Ext_here | Ext_next_stmt | Ext_next_both) ->
-          let processed = Logic_env.preprocess_extension ~plugin name $2 in
-          let ext = extension name plugin processed in
-          Logic_ptree.AExtended(bhvs,false,ext)
-        | Ext_code_annot Ext_next_loop ->
-          raise
-            (Not_well_formed
-               (loc $loc($1),
-                Printf.sprintf
-                  "%s is a loop annotation extension. It can't be used as a \
-                   plain code annotation extension. Did you mean 'loop %s'?"
-                  name name))
-        | _ -> raise Not_found
-      end
-    with Not_found ->
-      Kernel.fatal ~loc:(from_pos $startpos($1))
-        "%s is not a code annotation extension. Parser got wrong lexeme." name
-  }
+    { fun bhvs ->
+      let open Cil_types in
+      let name, plugin = $1 in
+      try
+        begin match Logic_env.extension_category ~plugin name with
+          | Ext_code_annot (Ext_here | Ext_next_stmt | Ext_next_both) ->
+            let processed = Logic_env.preprocess_extension ~plugin name $2 in
+            let ext = extension name plugin processed in
+            Logic_ptree.AExtended(bhvs,false,ext)
+          | Ext_code_annot Ext_next_loop ->
+            raise
+              (Not_well_formed
+                (loc $loc($1),
+                  Printf.sprintf
+                    "%s is a loop annotation extension. It can't be used as a \
+                    plain code annotation extension. Did you mean 'loop %s'?"
+                    name name))
+          | _ -> raise Not_found
+        end
+      with Not_found ->
+        Kernel.fatal ~loc:(from_pos $startpos($1))
+          "%s is not a code annotation extension. Parser got wrong lexeme." name
+    }
 ;
 
 /*** declarations and logical definitions ***/
@@ -1591,19 +1620,19 @@ decl:
 ;
 
 ext_decl:
-| EXT_GLOBAL extension_content SEMICOLON {
-    let name, plugin = $1 in
-     let processed = Logic_env.preprocess_extension ~plugin name $2 in
-     let ext = extension name plugin processed in
-     Ext_lexpr ext
-   }
-| EXT_GLOBAL_BLOCK any_identifier LBRACE ext_decls RBRACE {
-    let name, plugin = $1 in
-    let processed_id,processed_block =
-       Logic_env.preprocess_extension_block ~plugin name ($2,$4)
-    in
-    global_extension name plugin processed_id processed_block
-   }
+| EXT_GLOBAL extension_content SEMICOLON
+    { let name, plugin = $1 in
+      let processed = Logic_env.preprocess_extension ~plugin name $2 in
+      let ext = extension name plugin processed in
+      Ext_lexpr ext
+    }
+| EXT_GLOBAL_BLOCK any_identifier LBRACE ext_decls RBRACE
+    { let name, plugin = $1 in
+      let processed_id,processed_block =
+        Logic_env.preprocess_extension_block ~plugin name ($2,$4)
+      in
+      global_extension name plugin processed_id processed_block
+    }
 ;
 
 ext_decls:
@@ -1621,25 +1650,28 @@ ext_decl_loc:
 volatile_opt:
 | /* empty */ { None, None }
 | READS any_identifier volatile_opt
-              { let read,write=$3 in
-                  if read = None then
+    { let read,write=$3 in
+      if read = None
+      then
 		    (Some $2),write
 		  else
-                    (Format.eprintf "Warning: read %s ignored@." $2; $3)
-	      }
+        (Format.eprintf "Warning: read %s ignored@." $2; $3)
+	  }
 | WRITES any_identifier volatile_opt
-              { let read,write=$3 in
-                  if write = None then
+    { let read,write=$3 in
+      if write = None
+      then
 		    read,(Some $2)
 		  else
-                    (Format.eprintf "Warning: write %s ignored@." $2; $3)
-	      }
+        (Format.eprintf "Warning: write %s ignored@." $2; $3)
+	  }
 ;
 
 type_annot:
-| TYPE INVARIANT any_identifier LPAR parameter RPAR EQUAL
-    lexpr SEMICOLON
-  { let typ,name = $5 in{ inv_name = $3; this_name = name; this_type = typ; inv = $8; } }
+| TYPE INVARIANT any_identifier LPAR parameter RPAR EQUAL lexpr SEMICOLON
+    { let typ,name = $5 in
+      { inv_name = $3; this_name = name; this_type = typ; inv = $8; }
+    }
 ;
 
 opt_semicolon:
@@ -1649,9 +1681,9 @@ opt_semicolon:
 
 model_annot:
 | MODEL type_spec(typename) LBRACE parameter opt_semicolon RBRACE SEMICOLON
-  { let typ,name = $4 in
-    { model_for_type = $2; model_name = name; model_type = typ; }
-  }
+    { let typ,name = $4 in
+      { model_for_type = $2; model_name = name; model_type = typ; }
+    }
 ;
 
 poly_id_type:
@@ -1690,30 +1722,36 @@ logic_def:
 | LOGIC logic_rt_type poly_id opt_parameters EQUAL lexpr SEMICOLON
     { let (id, labels, tvars) = $3 in
       exit_type_variables_scope ();
-      LDlogic_def (id, labels, tvars, $2, $4, $6) }
+      LDlogic_def (id, labels, tvars, $2, $4, $6)
+    }
 /* predicate definition */
 | PREDICATE poly_id opt_parameters EQUAL lexpr SEMICOLON
     { let (id,labels,tvars) = $2 in
       exit_type_variables_scope ();
-      LDpredicate_def (id, labels, tvars, $3, $5) }
+      LDpredicate_def (id, labels, tvars, $3, $5)
+    }
 /* inductive predicate definition */
 | INDUCTIVE pred = poly_id params = parameters
     midrule({exit_type_variables_scope()})
     LBRACE cases = indcases RBRACE
     { let (id,labels,tvars) = pred in
-      LDinductive_def(id, labels, tvars, params, cases) }
+      LDinductive_def(id, labels, tvars, params, cases)
+    }
 | LEMMA poly_id COLON lexpr SEMICOLON
     { let (id,labels,tvars) = $2 in
       exit_type_variables_scope ();
-      LDlemma (id, labels, tvars, toplevel_pred Assert $4) }
+      LDlemma (id, labels, tvars, toplevel_pred Assert $4)
+    }
 | CHECK_LEMMA poly_id COLON lexpr SEMICOLON
     { let (id,labels,tvars) = $2 in
       exit_type_variables_scope ();
-      LDlemma (id, labels, tvars, toplevel_pred Check $4) }
+      LDlemma (id, labels, tvars, toplevel_pred Check $4)
+    }
 | ADMIT_LEMMA poly_id COLON lexpr SEMICOLON
     { let (id,labels,tvars) = $2 in
       exit_type_variables_scope ();
-      LDlemma (id, labels, tvars, toplevel_pred Admit $4) }
+      LDlemma (id, labels, tvars, toplevel_pred Admit $4)
+    }
 | AXIOMATIC any_identifier LBRACE logic_decls RBRACE
     { LDaxiomatic($2,$4) }
 | MODULE push_module_name LBRACE logic_decls RBRACE
@@ -1727,10 +1765,10 @@ logic_def:
 | IMPORT loader = ext_loader mId = module_name AS id = IDENTIFIER SEMICOLON
     { import (Some loader) mId (Some id) }
 | TYPE poly_id_type_add_typename EQUAL typedef SEMICOLON
-        { let (id,tvars) = $2 in
-          exit_type_variables_scope ();
-          LDtype(id,tvars,Some $4)
-        }
+    { let (id,tvars) = $2 in
+      exit_type_variables_scope ();
+      LDtype(id,tvars,Some $4)
+    }
 ;
 
 module_name:
@@ -1743,12 +1781,12 @@ push_module_name:
 ;
 
 ext_loader:
-| IDENTIFIER COLON {
-    Kernel.warning ~once:true ~wkey:Kernel.wkey_extension_unknown
-      ~loc:(loc $sloc)
-      "Ignoring unregistered module importer extension '%s'." $1;
-    raise Unknown_ext
-  }
+| IDENTIFIER COLON
+    { Kernel.warning ~once:true ~wkey:Kernel.wkey_extension_unknown
+        ~loc:(loc $sloc)
+        "Ignoring unregistered module importer extension '%s'." $1;
+      raise Unknown_ext
+    }
 | EXT_LOADER COLON  { $1 }
 | EXT_LOADER_PLUGIN { $1 }
 | IDENTIFIER_LOADER { raise Unknown_ext }
@@ -1767,23 +1805,27 @@ logic_decl:
 | LOGIC logic_rt_type poly_id opt_parameters reads_clause SEMICOLON
     { let (id, labels, tvars) = $3 in
       exit_type_variables_scope ();
-      LDlogic_reads (id, labels, tvars, $2, $4, $5) }
+      LDlogic_reads (id, labels, tvars, $2, $4, $5)
+    }
 /* predicate declaration */
 | PREDICATE poly_id opt_parameters reads_clause SEMICOLON
     { let (id,labels,tvars) = $2 in
       exit_type_variables_scope ();
-      LDpredicate_reads (id, labels, tvars, $3, $4) }
+      LDpredicate_reads (id, labels, tvars, $3, $4)
+    }
 /* type declaration */
 | TYPE poly_id_type SEMICOLON
     { let (id,tvars) = $2 in
       exit_type_variables_scope ();
       push_typename id;
-      LDtype(id,tvars,None) }
+      LDtype(id,tvars,None)
+    }
 /* axiom */
 | AXIOM poly_id COLON lexpr SEMICOLON
     { let (id,labels,tvars) = $2 in
       exit_type_variables_scope ();
-      LDlemma (id, labels, tvars, toplevel_pred Admit $4) }
+      LDlemma (id, labels, tvars, toplevel_pred Admit $4)
+    }
 ;
 
 logic_decl_loc:
@@ -1826,7 +1868,8 @@ indcases:
 | CASE poly_id COLON lexpr SEMICOLON indcases
     { let (id,labels,tvars) = $2 in
       exit_type_variables_scope ();
-      (id,labels,tvars,$4)::$6 }
+      (id,labels,tvars,$4)::$6
+    }
 ;
 
 
@@ -1841,18 +1884,25 @@ ne_label_list:
 ;
 
 opt_label_1:
-| opt_label_list { match $1 with
-		     | [] -> None
-		     | l::[] -> Some l
-		     | _ -> raise (Not_well_formed (loc $sloc,"Only one label is allowed.")) }
+| opt_label_list
+    { match $1 with
+		  | [] -> None
+		  | l::[] -> Some l
+		  | _ -> raise (Not_well_formed (loc $sloc,
+                                     "Only one label is allowed."))
+    }
 ;
 
 opt_label_2:
-| opt_label_list { match $1 with
-		     | [] -> None
-		     | l1::l2::[] -> Some (l1,l2)
-		     | _::[] -> raise (Not_well_formed (loc $sloc,"One label is missing."))
-		     | _ -> raise (Not_well_formed (loc $sloc,"Only two labels are allowed.")) }
+| opt_label_list
+    { match $1 with
+		  | [] -> None
+	    | l1::l2::[] -> Some (l1,l2)
+		  | _::[] -> raise (Not_well_formed (loc $sloc,
+                                         "One label is missing."))
+		  | _ -> raise (Not_well_formed (loc $sloc,
+                                     "Only two labels are allowed."))
+    }
 ;
 
 opt_label_list:
@@ -1911,13 +1961,13 @@ bounded_var:
 | full_identifier { $1 }
 | is_acsl_typename /* Since TYPENAME cannot be accepted by lexpr rule */
     { raise
-	(Not_well_formed(loc $sloc,
-			 "Type names are not allowed as binding variable."))
+	      (Not_well_formed(loc $sloc,
+			                   "Type names are not allowed as binding variable."))
     }
 | TYPENAME  /* Since TYPENAME cannot be accepted by lexpr rule */
     { raise
-	(Not_well_formed(loc $sloc,
-			 "Type names are not allowed as binding variable."))
+	      (Not_well_formed(loc $sloc,
+			                   "Type names are not allowed as binding variable."))
     }
 ;
 
