@@ -791,13 +791,11 @@ let cfg_accesses th node =
   !r
 
 
-let compute_node_context th mutexes iter state node =
+let compute_node_context th mutexes iter state =
   let extract ~default v = match v with
     | Ok v -> v
     | Error error ->
-      Self.warning ~once:true
-        "Error when computing Mthread CFG at node %a: %s"
-        CfgNode.pretty_with_stmts node error;
+      Self.warning ~once:true "Error when computing MThread CFG: %s" error;
       default
   in
   let mutexes =
@@ -840,11 +838,11 @@ let update_cfg_contexts analysis th =
     (fun node ->
        let state_after = node.cfgn_value_state.state_after in
        if Cvalue.Model.is_reachable state_after then
-         node.cfgn_context <- compute_context state_after node
+         node.cfgn_context <- compute_context state_after
        else
          (* Useful to deal with memory accesses that fail and cause the
             value analysis to crash, but that occur on shared zones *)
          let state_before = node.cfgn_value_state.state_before in
          if Cvalue.Model.is_reachable state_before then
-           node.cfgn_context <- compute_context state_before node
+           node.cfgn_context <- compute_context state_before
     ) th.th_cfg
