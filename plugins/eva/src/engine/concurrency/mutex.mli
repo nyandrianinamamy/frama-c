@@ -6,10 +6,6 @@
 (*                                                                        *)
 (**************************************************************************)
 
-include Datatype.S_with_collections
+include Mt_ids.S
 
-val id : t -> int
-val label : t -> string
-val find : int -> t option
 val create : Position.local -> Concurrency.Name.t option -> t
-val reset_state : unit -> unit

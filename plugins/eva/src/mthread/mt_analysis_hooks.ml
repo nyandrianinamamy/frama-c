@@ -157,14 +157,13 @@ module ThreadOp = struct
     { name = "cancel"; before = [started; suspended]; after = cancelled; }
 
   let check_and_write analysis state thread operation =
-    let id = Mt_ids.of_thread thread in
-    let value = Mt_ids.read_id_state state id in
+    let value = Thread.read_state state thread in
     let warn failure_reason =
       warning analysis "Trying to %s thread %a, but %s."
         operation.name Thread.pretty thread failure_reason
     in
     check_value warn possible_values operation value;
-    Mt_ids.write_id_state state id operation.after
+    Thread.write_state state thread operation.after
 end
 
 (* Operations on mutexes. *)
@@ -183,14 +182,13 @@ module MutexOp = struct
   let unlock = { name = "unlock"; before = [locked]; after = unlocked; }
 
   let check_and_write analysis state mutex operation =
-    let id = Mt_ids.of_mutex mutex in
-    let value = Mt_ids.read_id_state state id in
+    let value = Mutex.read_state state mutex in
     let warn failure_reason =
       warning analysis "Trying to %s mutex %a, but %s."
         operation.name Mutex.pretty mutex failure_reason
     in
     check_value warn possible_values operation value;
-    Mt_ids.write_id_state state id operation.after
+    Mutex.write_state state mutex operation.after
 end
 
 (* Operations on message queues. *)
@@ -210,14 +208,13 @@ module QueueOp = struct
   let receive = use "receive message from"
 
   let check_and_write analysis state queue operation =
-    let id = Mt_ids.of_queue queue in
-    let value = Mt_ids.read_id_state state id in
+    let value = Mqueue.read_state state queue in
     let warn failure_reason =
       warning analysis "Trying to %s message queue %a, but %s."
         operation.name Mqueue.pretty queue failure_reason
     in
     check_value warn possible_values operation value;
-    Mt_ids.write_id_state state id operation.after
+    Mqueue.write_state state queue operation.after
 end
 
 (** When a thread is created, it must not inherit from its creator the status
@@ -225,7 +222,7 @@ end
     (unlocked). *)
 let reset_mutexes mutexes state =
   Mutex.Set.fold
-    (fun mutex state -> Mt_ids.replace_id_value state (Mt_ids.of_mutex mutex) ~before:2 ~after:1)
+    (fun mutex state -> Mutex.replace_value state mutex ~before:2 ~after:1)
     mutexes state
 
 
@@ -413,7 +410,7 @@ let hook_thread_creation analysis state : hook_sig = function
               Cvalue.Model.bottom params (Some analysis.curr_thread));
     register_event analysis (CreateThread eva_thread);
     (* Thread is started as suspended *)
-    Mt_ids.write_id_state state (Mt_ids.of_thread eva_thread) 2,
+    Thread.write_state state eva_thread 2,
     wrap_res (Thread.id eva_thread)
 
   | _ ->
@@ -826,7 +823,7 @@ let catch_functions_calls analysis (stack : Callstack.callstack) kf state kind =
              in
              (* Start the interrupt thread *)
              let state =
-               Mt_ids.write_id_state state (Mt_ids.of_thread th.th_eva_thread) 1
+               Thread.write_state state th.th_eva_thread 1
              in
              (th :: interrupts, state))
           interrupt_handlers

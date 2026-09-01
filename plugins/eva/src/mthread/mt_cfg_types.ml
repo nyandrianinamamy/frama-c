@@ -109,18 +109,18 @@ module NodeValueState = struct
     state_after  = Cvalue.Model.bottom;
   }
 
-  let aux_presence raw_id f state =
+  let aux_presence read_state_enumerate pretty t f state =
     let open Result.Operators in
-    let* l = Mt_ids.read_id_state_enumerate 4 state raw_id in
+    let* l = read_state_enumerate 4 state t in
     let error () =
-      Format.asprintf "Id %a contains strange state {%a}"
-        Mt_ids.pretty raw_id
+      Format.asprintf "%a contains strange state {%a}"
+        pretty t
         (Pretty_utils.pp_list ~sep:" " Format.pp_print_int) l;
     in
     f (List.sort compare l) |> Result.map_error error
 
   let mutex_presence m =
-    aux_presence (Mt_ids.of_mutex m)
+    aux_presence Mutex.read_state_enumerate Mutex.pretty m
       (function
         | [0] |[1] | [0;1] -> Ok NotPresent
         | [2] -> Ok Present
@@ -128,7 +128,7 @@ module NodeValueState = struct
         | _ -> Error ())
 
   let threads_presence started th =
-    aux_presence (Mt_ids.of_thread th)
+    aux_presence Thread.read_state_enumerate Thread.pretty th
       (fun l -> match l, started with
          | [0], (`Prior | `Started) -> Ok Present
          | [0], `MaybeStarted -> Ok MaybePresent

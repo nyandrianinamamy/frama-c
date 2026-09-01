@@ -87,9 +87,9 @@ let pre_analysis () =
   (* Engine can now be rebuilt *)
   let module Engine = (val Engine.reset ()) in
   Engine.Interferences.reset ();
-  Thread.reset_state ();
-  Mutex.reset_state ();
-  Mqueue.reset_state ();
+  Thread.clear ();
+  Mutex.clear ();
+  Mqueue.clear ();
   Mt_summary.clear ();
 
   if not (Kernel.AuditCheck.is_empty ()) then
