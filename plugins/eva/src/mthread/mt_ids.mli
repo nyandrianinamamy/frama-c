@@ -6,20 +6,18 @@
 (*                                                                        *)
 (**************************************************************************)
 
-type id_type
+type t
 
-type raw_id = id_type * int
-val pretty_raw_id : Format.formatter -> raw_id -> unit
+type state = Mt_memory.Types.state
+type value = Mt_memory.Types.value
 
-val read_id_state : Mt_memory.Types.state -> raw_id -> Mt_memory.Types.value
-val read_id_state_enumerate :
-  int -> Mt_memory.Types.state -> raw_id -> int list Mt_memory.conversion
-val write_id_state :
-  Mt_memory.Types.state -> raw_id -> int -> Mt_memory.Types.state
-val replace_id_value :
-  Mt_memory.Types.state ->
-  raw_id -> before:int -> after:int -> Mt_memory.Types.state
+val pretty : Format.formatter -> t -> unit
 
-val of_thread : Thread.t -> raw_id
-val of_mutex: Mutex.t -> raw_id
-val of_queue: Mqueue.t -> raw_id
+val read_id_state : state -> t -> value
+val read_id_state_enumerate : int -> state -> t -> int list Mt_memory.conversion
+val write_id_state : state -> t -> int -> state
+val replace_id_value : state -> t -> before:int -> after:int -> state
+
+val of_thread : Thread.t -> t
+val of_mutex : Mutex.t -> t
+val of_queue : Mqueue.t -> t

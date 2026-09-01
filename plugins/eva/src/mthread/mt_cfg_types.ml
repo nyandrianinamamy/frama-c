@@ -114,7 +114,7 @@ module NodeValueState = struct
     let* l = Mt_ids.read_id_state_enumerate 4 state raw_id in
     let error () =
       Format.asprintf "Id %a contains strange state {%a}"
-        Mt_ids.pretty_raw_id raw_id
+        Mt_ids.pretty raw_id
         (Pretty_utils.pp_list ~sep:" " Format.pp_print_int) l;
     in
     f (List.sort compare l) |> Result.map_error error

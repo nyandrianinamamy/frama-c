@@ -6,30 +6,29 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open Mt_memory.Types
+type kind = IdThread | IdMutex | IdQueue
+type t = kind * int
 
-type id_type = IdThread | IdMutex | IdQueue
+type state = Mt_memory.Types.state
+type value = Mt_memory.Types.value
 
 let to_string = function
   | IdThread -> "thread"
   | IdMutex -> "mutex"
   | IdQueue -> "queue"
 
-type raw_id = id_type * int
+let pretty fmt (kind, id) =
+  Format.fprintf fmt "%s_%d" (to_string kind) id
 
-let pretty_raw_id fmt (idt, offset) =
-  Format.fprintf fmt "%s_%d" (to_string idt) offset
-
-
-let array_of_idt = function
+let array_of_ids = function
   | IdThread -> Mt_lib.array_threads ()
   | IdMutex -> Mt_lib.array_mutexes ()
   | IdQueue -> Mt_lib.array_queues ()
 
-let pointer_of_id ((idt, offset): raw_id) : pointer =
-  assert (offset > 0);
-  let array = array_of_idt idt
-  and offset = (offset - 1) * (Machine.Sizeof.int ())
+let pointer_of_id ((kind, id): t) : Mt_memory.Types.pointer =
+  assert (id > 0);
+  let array = array_of_ids kind
+  and offset = (id - 1) * (Machine.Sizeof.int ())
   (* Let us not lose the first cell of the array *)
   in
   array, offset
@@ -43,7 +42,7 @@ let read_id_state_enumerate cardinal state raw_id =
   read_id_state state raw_id |>
   Mt_memory.extract_int_list ~cardinal |>
   Result.map_error
-    (fun s -> Format.asprintf "Id %a contains %s" pretty_raw_id raw_id s)
+    (fun s -> Format.asprintf "Id %a contains %s" pretty raw_id s)
 
 
 let write_id_state state raw_id v =
