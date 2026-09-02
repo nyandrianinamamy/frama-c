@@ -134,12 +134,6 @@ val preprocess_predicate :
   unit
 (** compute and store the types of all the terms in a given predicate  *)
 
-val preprocess_rte :
-  logic_env:Logic_env.t ->
-  code_annotation ->
-  unit
-(** compute and store the type of all the terms in a code annotation *)
-
 val preprocess_term:
   use_gmp_opt:bool ->
   ?ctx:number_ty ->
