@@ -9,7 +9,6 @@
         - [Installing opam](#installing-opam)
         - [Installing Frama-C (including dependencies) via opam](#installing-frama-c-including-dependencies-via-opam)
         - [Installing the GUI](#installing-the-gui)
-        - [Reference configuration](#reference-configuration)
         - [Installing Custom Versions of Frama-C](#installing-custom-versions-of-frama-c)
         - [Installing Frama-C on Windows via WSL](#installing-frama-c-on-windows-via-wsl)
     - [Installing Frama-C via your Linux distribution (Debian/Ubuntu/Fedora)](#installing-frama-c-via-your-linux-distribution-debianubuntufedora)
@@ -115,10 +114,10 @@ opam binaries available at:
 
 http://opam.ocaml.org/doc/Install.html
 
-Once installed, set up a compatible OCaml version (replace `<version>` with the
-version indicated in the [reference configuration](#reference-configuration)):
+And then run:
+
 ```shell
-opam switch create <version>
+opam init
 ```
 
 Note: the `opam` binary itself is very small, but the initialization of an
@@ -133,6 +132,7 @@ The Frama-C package in opam is called `frama-c`. It includes:
 
 Note: GUI's dependencies are _not_ included in the opam package,
 but downloaded from `npm` when the user runs `frama-c-gui` for the first time.
+Check section [Installing the GUI](#installing-the-gui) below for more details.
 
 `frama-c` has some non-OCaml dependencies, such as GMP. opam includes
 a mechanism (`depext`) to handle such dependencies. It may require
@@ -153,7 +153,7 @@ indicating your distribution and error message.
 #### macOS: troubleshoot pkg-config/homebrew issues
 
 It is likely that, at this point, opam will fail due to some Homebrew
-packages and pkg-config.** The error messages should indicate what you need
+packages and pkg-config. The error messages should indicate what you need
 to do, e.g.:
 
 ```shell
@@ -189,11 +189,6 @@ GUI.
 Note that on Ubuntu, the AppArmor configuration is strict and this build will
 not generate a profile (it requires `sudo` rights), thus, running the GUI
 requires to add the option `--no-sandbox`.
-
-### Reference configuration
-
-See file [reference-configuration.md](reference-configuration.md)
-for a set of packages that is known to work with this version of Frama-C.
 
 ### Installing Custom Versions of Frama-C
 
@@ -267,8 +262,7 @@ opam install -y depext
 ```
 
 You can force a particular Ocaml version during `opam init` by using the option
-`-c <version>` if needed. For instance, you can try installing the OCaml version
-mentioned in the [reference configuration](reference-configuration.md).
+`-c <version>` if needed.
 
 Now, to install Frama-C, run the following commands, which will use `apt` to
 install the dependencies of the opam packages and then install them:
@@ -422,7 +416,6 @@ For more precise build configurations, use directly the `dune` command.
 Basic tests can be executed using:
 
 ```shell
-make run-ptests
 make default-tests
 ```
 
@@ -430,11 +423,7 @@ make default-tests
 
 Type `make install` (depending on the installation directory, this may require
 superuser privileges. The installation directory is chosen through the variable
-`PREFIX`). This is a shortcut for:
-
-```shell
-dune install
-```
+`PREFIX`).
 
 Makefile (and dune) support the `DESTDIR` variable, which can be used to
 configure the location of the installation.

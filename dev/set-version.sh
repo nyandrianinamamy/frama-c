@@ -132,8 +132,4 @@ else
   $SED -i "s/\(^\\\\section\*{Frama-C\(+\|~\)dev}\)/%\1\n\n\\\\section\*{Frama-C $NEXT_MAJOR.$NEXT_MINOR ($NEXT_CODENAME)}/g" \
     plugins/volatile/doc/manual/user-changes.tex
 
-  # Reference configuration
-  $SED -i "s/Frama-C [1-9][0-9]\.[0-9]/Frama-C $NEXT_MAJOR.$NEXT_MINOR/gI" \
-    reference-configuration.md
-
 fi
