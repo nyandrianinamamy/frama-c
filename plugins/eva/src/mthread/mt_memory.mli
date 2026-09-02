@@ -31,9 +31,6 @@ module Types : sig
 
   val map_functions_states_to_get_state: map_functions_states -> (stmt -> state)
 
-  val iter_requests:
-    state_accesser -> stmt -> (Results.request -> unit) -> unit
-
   val merge_map_non_map_functions_states:
     map_functions_states -> functions_states -> map_functions_states
   val merge_map_functions_states:
