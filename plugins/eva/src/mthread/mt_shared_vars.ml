@@ -116,20 +116,16 @@ let read_written_by_thread ?(watch_only=Memory_zone.top) sm th =
            acc)
     AccessesByZone.empty_map
 
-let functions_states_to_request h stmt =
-  let state =
-    try Cil_datatype.Stmt.Hashtbl.find h stmt
-    with Not_found -> Cvalue.Model.bottom
-  in
-  Results.in_cvalue_state state
-
 let iter_requests = function
   | Global ->
     fun stmt f ->
       let requests = Results.(before stmt |> by_callstack |> List.map snd) in
-      List.iter (fun request-> f request) requests
+      List.iter f requests
   | Local hs ->
-    fun stmt f -> f (functions_states_to_request hs stmt)
+    fun stmt f ->
+      let default = Cvalue.Model.bottom in
+      let state = Cil_datatype.Stmt.Hashtbl.find_default ~default hs stmt in
+      f (Results.in_cvalue_state state)
 
 (** In global mode, we do a rough analysis using the synthetic results of
     Value. In local mode, we supply precise states for each statement of the
