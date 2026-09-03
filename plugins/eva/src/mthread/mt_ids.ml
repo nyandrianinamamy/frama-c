@@ -9,6 +9,17 @@
 type state = Mt_memory.Types.state
 type value = Mt_memory.Types.value
 
+let array_size (v : Cil_types.varinfo) =
+  let exception Not_an_array in
+  try
+    match Ast_types.C.unroll_node v.vtype with
+    | TArray (_, size) -> Cil.lenOfArray size
+    | _ -> raise Not_an_array
+  with Not_an_array | Cil.LenOfArray _ ->
+    Self.abort
+      "Incorrect declaration of variable %S, required for the Mthread analysis."
+      v.vname
+
 module type Data = sig
   type t
   val repr : t
@@ -82,11 +93,10 @@ module Make (Identity : Identity) (Data : Data) = struct
   let label = Pretty_utils.to_string pretty
 
   let pointer_of_id id : Mt_memory.Types.pointer =
-    assert (id > 0);
-    let array = Data.array_of_ids ()
-    and offset = (id - 1) * (Machine.Sizeof.int ())
+    let array = Data.array_of_ids () in
+    assert (id > 0 && id <= array_size array);
     (* Let us not lose the first cell of the array *)
-    in
+    let offset = (id - 1) * (Machine.Sizeof.int ()) in
     array, offset
 
   let read_state state t =
@@ -120,8 +130,20 @@ module Make (Identity : Identity) (Data : Data) = struct
   module Identities =
     State_builder.Hashtbl (Id_Datatype.Hashtbl) (D) (val info "Identities")
 
+  (* Check that [id] fits in the C array used by the cvalue domain
+     to represent its state. Do not check ids from [created_global], as they
+     are created before the AST, so these C arrays don't exist yet. *)
+  let check_id id =
+    let len = Data.array_of_ids () |> array_size in
+    if id > len then
+      Self.abort
+        "Too many %s ids, unable to register another one. Try to \
+         increase MTHREAD_NUMBER_IDS above %d in the preprocessing directive."
+        Data.name len
+
   let create identity data =
-    Identities.memo (fun _ -> make data) identity
+    let make _ = let t = make data in check_id t.id; t in
+    Identities.memo make identity
 
   (* Values created with [create_global] always exist and should not be affected
      by function [clear] below. *)
