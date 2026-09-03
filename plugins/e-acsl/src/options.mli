@@ -50,6 +50,7 @@ val must_visit: unit -> bool
 
 module Dkey: sig
   val prepare: category
+  val analysis: category
   val logic_normalizer: category
   val bound_variables: category
   val rte: category
@@ -58,6 +59,7 @@ module Dkey: sig
   val mtracking: category
   val typing: category
   val labels: category
+  val analysis_print_ast: category
   val translation: category
   val env: category
   val interlang_translation: category

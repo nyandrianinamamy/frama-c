@@ -220,7 +220,6 @@ module Optimisations = struct
       let descr = "optimises cil statements and predicates using smart constructors"
     end)
 
-
   module Verify_valid =
     Make (struct
       let name = "valid"
@@ -339,6 +338,9 @@ let must_visit () = Run.get ()
 
 module Dkey = struct
   let prepare = register_category "preparation"
+  let analysis =
+    let help = "information related to analysis phase" in
+    register_category ~help "analysis"
   let logic_normalizer = register_category "analysis:logic_normalizer"
   let bound_variables = register_category "analysis:bound_variables"
   let rte = register_category "analysis:rte"
@@ -350,6 +352,9 @@ module Dkey = struct
   let mtracking = register_category "analysis:memory_tracking"
   let typing = register_category "analysis:typing"
   let labels = register_category "analysis:labels"
+  let analysis_print_ast =
+    let help = "print AST after analyses; consider printer:* message keys" in
+    register_category ~help "analysis:print-ast"
   let translation = register_category "translation"
   let env = register_category "translation:env"
   let interlang_translation =

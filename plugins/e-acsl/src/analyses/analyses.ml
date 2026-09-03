@@ -78,7 +78,9 @@ let preprocess () =
   Typing.type_program ast;
   analyses_feedback
     "computing future locations of labeled predicates and terms";
-  Labels.preprocess ast
+  Labels.preprocess ast;
+  Options.debug ~dkey:Options.Dkey.analysis_print_ast "%a"
+    Printer.pp_file (Ast.get ())
 
 let reset () =
   Memory_tracking.reset ();
