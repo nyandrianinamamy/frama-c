@@ -17,6 +17,8 @@ let convert_oracle (oracle : oracle) exp =
   | None | exception Cvalue.V.Not_based_on_null -> Int_val.top
 
 let default_oracle (get : getter) : oracle =
+  (* Until Eva gives access to good oracles, we use this poor stupid oracle
+     instead *)
   let rec oracle (exp : Eva_ast.exp) : Cvalue.V.t =
     match exp.node with
     | Lval lval ->
