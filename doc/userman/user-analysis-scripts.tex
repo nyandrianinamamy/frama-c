@@ -100,8 +100,9 @@ The standard way of setting up a new analysis is via these steps:
   (all \FramaC-related files will be stored inside it).
 \item copy the {\em analysis template} in the \texttt{.frama-c} directory.
   This template is a Makefile located in
-  \texttt{FRAMAC\_LIB/analysis-scripts/template.mk}\footnote{See
-  Section~\ref{sec:env-variables} for details about \texttt{FRAMAC\_LIB}.}.
+  \texttt{FRAMAC\_LIB/analysis-scripts/template.mk}\footnote{%
+  \texttt{FRAMAC\_LIB} is the result of the command
+  \texttt{frama-c -print-lib-path}}.
   It is usually renamed as \texttt{GNUmakefile}.
 \item open this Makefile and fill in the required information:
   \begin{itemize}
@@ -455,25 +456,33 @@ The following commands require a JSON Compilation Database.
   the JCDB file.
 \end{description}
 
-Finally, there is the following script, which is {\em not} available as a
-command in \texttt{frama-c-script}, since its usage scenario is very
-different. It is available at\\
-\texttt{\$FRAMAC\_LIB/analysis-scripts/creduce.sh}.
+Finally, there is the following command, based on an external tool
+(C-Reduce\footnote{See \url{https://embed.cs.utah.edu/creduce} for more
+details.}, or its Python rewrite, \texttt{cvise}):
 
 \begin{description}
-\item[creduce.sh]: A script to help running the C-Reduce\footnote{%
-  See \url{https://embed.cs.utah.edu/creduce} for more details.} tool to minify
+\item[creduce]: A script to help running the C-Reduce tool to minify
   C programs causing crashes in \FramaC; useful e.g. when submitting a bug
   report to \FramaC, without needing to submit potentially confidential data.
-  The script contains extensive comments about its usage. It is also
-  described in a post\footnote{%
+  Basic usage is as follows:
+
+\begin{verbatim}
+frama-c-script creduce file.i [frama-c options]
+\end{verbatim}
+
+The script requires a single file name (better if preprocessed, but also works
+with \texttt{.c} files) followed by \FramaC options that cause the
+crash. It creates a \texttt{script\_for\_creduce.sh} file in the current
+directory, as well as a \texttt{creducing} subdirectory containing the reduced
+code under progress. The script contains extensive comments about its usage,
+and it is also described in a \FramaC blog post\footnote{%
     {\em Debugging Frama-C analyses: better privacy with C-Reduce},
-    at \url{https://pub.frama-c.com/scripts/usability/2020/04/02/creduce.html}.}
-  from the \FramaC blog.
+    at \url{https://www.frama-c.com/scripts/usability/2020/04/02/creduce.html}.}.
 \end{description}
 
-To use the \texttt{creduce.sh} script, you need to have the C-Reduce tool
-installed in your path or in environment variable \texttt{CREDUCE}.
+To use the \texttt{creduce} command, you need to have the \texttt{creduce} or
+\texttt{cvise} tools installed in your path, or in environment variable
+\texttt{CREDUCE}.
 
 \section{Practical Examples: Open Source Case Studies}
 
