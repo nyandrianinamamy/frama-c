@@ -4072,9 +4072,10 @@ a clause of the form \verb|kw e1,...,en;|,
 where each \verb|ei| can be any syntactically valid ACSL term or predicate,
 will be treated by the parser as belonging to the extension \verb|kw|.
 
-Contract extension clauses must occur after \verb|assumes| and \verb|requires| clauses if any, but
-can be freely mixed with other behavior clauses (post-conditions, \verb|assigns|, \verb|frees| and
-\verb|allocates|).
+Contract extension clauses must occur after \verb|assumes| if any. They can be
+freely mixed with \verb|requires| clauses in pre-clauses, but also with other
+clauses (\verb|terminates|, \verb|decreases|, post-conditions, \verb|assigns|,
+\verb|frees| and \verb|allocates|) in post-clauses.
 
 Similarly, in a loop annotation, \verb|loop kw e1, ..., en;| will be treated as belonging to the
 \verb|kw| extension. In case the loop annotation has a \verb|loop variant|, the extension must
