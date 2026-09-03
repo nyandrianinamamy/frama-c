@@ -368,6 +368,15 @@ struct
     MemoryMap.inter_with_shape bases base_map,
     Option.map (Tracking.inter bases) tracked
 
+  (* Oracle *)
+
+  let mk_oracle (memory : t) =
+    let get ~oracle lval =
+      match Location.of_lval ~oracle lval with
+      | `Top -> `Value Cvalue.V.top
+      | `Value loc -> get ~oracle memory loc >>-: Value.to_cvalue
+    in default_oracle get
+
   (* Lattice *)
 
   let top = MemoryMap.empty, None
@@ -484,13 +493,8 @@ struct
       try Some (Table.find table (Kernel_function.get_name kf))
       with Not_found -> None
 
-  let mk_oracle (state : state) =
-    let open Bottom.Operators in
-    let get ~oracle lval =
-      match Location.of_lval ~oracle lval with
-      | `Top -> `Value Cvalue.V.top
-      | `Value loc -> Model.get ~oracle state loc >>-: CellValue.to_cvalue
-    in default_oracle get
+  let mk_oracle =
+    Model.mk_oracle
 
   let mk_bioracle s1 s2 =
     let oracle_left = mk_oracle s1
@@ -1012,13 +1016,6 @@ struct
   include Model
 
   type oracle = Cell_oracle.oracle
-
-  let mk_oracle (memory : t) =
-    let get ~oracle lval =
-      match Location.of_lval ~oracle lval with
-      | `Top -> `Value Cvalue.V.top
-      | `Value loc -> Model.get ~oracle memory loc >>-: CellValue.to_cvalue
-    in default_oracle get
 
   let mk_bioracle s1 s2 =
     let oracle_left = mk_oracle s1
