@@ -60,6 +60,7 @@ include Mt_ids.Make (Identity) (Data)
 
 let main = create_global Main
 let is_main = equal main
+let main_id = id main
 
 let from_callstack cs =
   match find cs.Callstack.thread with

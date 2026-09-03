@@ -13,6 +13,9 @@ include Mt_ids.S
 val main : t
 val is_main : t -> bool
 
+(** Used to create root positions and callstacks for the main thread. *)
+val main_id : int
+
 val from_callstack : Callstack.t -> t
 val from_local_position : Position.local -> t
 val from_position : Position.t -> t
