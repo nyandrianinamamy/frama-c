@@ -1016,6 +1016,7 @@ struct
   include Model
 
   type oracle = Cell_oracle.oracle
+  type location = Cell_location.t
 
   let mk_bioracle s1 s2 =
     let oracle_left = mk_oracle s1
