@@ -460,12 +460,6 @@ struct
           { a with
             array_value = A.map f' a.array_value }
 
-    let for_all f m =
-      let f' offset v =
-        if f offset v then () else raise Exit
-      in
-      try iter f' m; true with Not_found -> false
-
     let read ~oracle (map : Cil_types.typ -> t -> 'a) (reduce : 'a -> 'a -> 'a) =
       let rec aux offset m =
         match offset, m with

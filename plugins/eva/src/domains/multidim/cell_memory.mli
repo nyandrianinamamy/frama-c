@@ -56,7 +56,6 @@ sig
   val map  : (Cell_location.t -> Value.t -> Value.t) -> t -> t
   val iter : (Cell_location.t -> Value.t -> unit) -> t -> unit
   val fold : (Cell_location.t -> Value.t -> 'a -> 'a) -> t -> 'a -> 'a
-  val filter : (Cell_location.t -> Value.t -> bool) -> t -> t
 
   val set_tracking : t -> Base.t list -> t
   val add_references : t -> Base.t -> Base.t list -> t

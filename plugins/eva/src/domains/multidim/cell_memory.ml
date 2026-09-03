@@ -108,7 +108,6 @@ struct
 
   let map = Memory.map
   let iter = Memory.iter
-  let for_all = Memory.for_all
   let fold = Memory.fold
 
   let segmentation_hint ~oracle m loc bounds =
@@ -460,14 +459,6 @@ struct
     let f base o v acc = f (Location.singleton base o) v acc in
     let f base (m, _) acc = BaseModel.fold (f base) m acc in
     MemoryMap.fold f m acc
-
-  let filter (f : location -> value -> bool) (m, t : t) : t =
-    let f' base (m, t) =
-      if BaseModel.for_all (fun o v -> f (Location.singleton base o) v) m
-      then Some (m, t)
-      else None
-    in
-    (MemoryMap.filter_map f' m, t)
 end
 
 
@@ -1101,10 +1092,6 @@ struct
   let map f state =
     let f' loc (c, v) = (c, f loc v) in
     map f' state
-
-  let filter f state =
-    let f' loc (_, v) = f loc v in
-    filter f' state
 end
 
 

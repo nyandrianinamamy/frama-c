@@ -99,10 +99,6 @@ sig
   (* Map on all stored values. *)
   val map : (offset -> value -> value) -> t -> t
 
-  (* Check if a predicate is true for all stored values.
-     Always return false on raw memory. *)
-  val for_all : (offset -> value -> bool) -> t -> bool
-
   (* Finest partition that is coarcer than both *)
   val join : oracle:bioracle -> t -> t -> t
 

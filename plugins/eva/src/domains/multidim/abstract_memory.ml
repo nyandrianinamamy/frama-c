@@ -175,7 +175,6 @@ sig
   val map : (offset -> value -> value) -> t -> t
   val iter : (offset -> value -> unit) -> t -> unit
   val fold : (offset -> value -> 'a -> 'a) -> t -> 'a -> 'a
-  val for_all : (offset -> value -> bool) -> t -> bool
   val read : oracle:oracle -> (Cil_types.typ -> t -> 'a) -> ('a -> 'a -> 'a) ->
     offset -> t -> 'a
   val update : oracle:oracle ->
