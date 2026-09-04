@@ -196,43 +196,37 @@ let () =
 
 let conditional_to_exp ?(name="if") ~loc kf t_opt e1 (e2, env2) (e3, env3) =
   let env = Env.pop (Env.pop env3) in
-  match e1.enode with
-  | Const(CInt64(n, _, _)) when Z.is_zero n ->
-    e3, Env.transfer ~from:env3 env
-  | Const(CInt64(n, _, _)) when Z.is_one n ->
-    e2, Env.transfer ~from:env2 env
-  | _ ->
-    let ty = match t_opt with
-      | None (* predicate *) -> Cil_const.intType
-      | Some t -> Typing.get_typ ~logic_env:(Env.Logic_env.get env) t
-    in
-    let _, e, env =
-      Env.new_var
-        ~loc
-        ~name
-        env
-        kf
-        t_opt
-        ty
-        (fun v ev ->
-           let lv = Cil.var v in
-           let ty = Cil.typeOf ev in
-           let init_set =
-             assert (not (Gmp_types.Q.is_t ty));
-             Gmp.init_set
-           in
-           let affect e = init_set ~loc lv ev e in
-           let then_blk, _ =
-             let s = affect e2 in
-             Env.pop_and_get ~kf env2 s ~global_clear:false Env.Middle
-           in
-           let else_blk, _ =
-             let s = affect e3 in
-             Env.pop_and_get ~kf env3 s ~global_clear:false Env.Middle
-           in
-           [ Smart_stmt.if_stmt ~loc ~cond:e1 then_blk ~else_blk ])
-    in
-    e, env
+  let ty = match t_opt with
+    | None (* predicate *) -> Cil_const.intType
+    | Some t -> Typing.get_typ ~logic_env:(Env.Logic_env.get env) t
+  in
+  let _, e, env =
+    Env.new_var
+      ~loc
+      ~name
+      env
+      kf
+      t_opt
+      ty
+      (fun v ev ->
+         let lv = Cil.var v in
+         let ty = Cil.typeOf ev in
+         let init_set =
+           assert (not (Gmp_types.Q.is_t ty));
+           Gmp.init_set
+         in
+         let affect e = init_set ~loc lv ev e in
+         let then_blk, _ =
+           let s = affect e2 in
+           Env.pop_and_get ~kf env2 s ~global_clear:false Env.Middle
+         in
+         let else_blk, _ =
+           let s = affect e3 in
+           Env.pop_and_get ~kf env3 s ~global_clear:false Env.Middle
+         in
+         [ Smart_stmt.if_stmt ~loc ~cond:e1 then_blk ~else_blk ])
+  in
+  e, env
 
 let env_of_li ~adata ~loc kf env li =
   match li.l_var_info.lv_type with
