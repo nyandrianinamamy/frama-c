@@ -13,6 +13,9 @@ struct my_exn2 bar;
 
 int x = 42;
 
+void c(int *x, int i) { }
+void d(int *x) { }
+
 int f (int c) {
   return c;
 }
@@ -38,10 +41,16 @@ int f4 (int c) {
   return c+3;
 }
 
+int f5(int c) {
+  int t = 4;
+  return c+t;
+}
+
 /*@ ensures \result != 42; */
 int h(int c) {
   if (c-1<=0) return f1(c);
   else if (c-100<=0) /*@ returns \result == c+1; */ return f2(c);
   else if (c>360) { int x = f3(c); return x; }
-  else return f4(c);
+  else if (c>1000) return f4(c);
+  else return f5(c);
 }

@@ -109,12 +109,40 @@ let add_catch my_exn my_exn2 f =
   in
   f.sbody <- Cil.mkBlock [ catch_stmt ]
 
-let change_body my_exn my_exn2 glob f =
+let add_local_init cons f =
+  let t = List.hd f.slocals in
+  t.vattr <- Ast_attributes.add (Ast_attributes.frama_c_destructor, [AAddrOf (AStr "d")]) t.vattr;
+  let x = Cil.makeLocalVar f ~scope:f.sbody "x" Cil_const.intType in
+  x.vdefined <- true;
+  x.vreferenced <- true;
+  let prm = List.hd f.sformals in
+  let loc = Kernel.gen_loc in
+  let instr =
+    Cil.mkStmtOneInstr (Local_init (x,ConsInit(cons,[Cil.evar ~loc prm],Constructor),loc))
+  in
+  match f.sbody.bstmts with
+  | [] -> assert false
+  | init :: tl ->
+    let vis = object
+      inherit Cil.nopCilVisitor
+      method! vstmt s =
+        match s.skind with
+        | Return (_,loc) -> s.skind <- Return(Some (Cil.evar ~loc x),loc); Cil.SkipChildren
+        | _ -> Cil.DoChildren
+    end
+    in
+    let tl = List.map (Cil.visitCilStmt vis) tl in
+    let nbb = Cil.mkBlockNonScoping (init :: instr :: tl) in
+    let stmt = Cil.mkStmt (Block nbb) in
+    f.sbody.bstmts <- [stmt]
+let change_body my_exn my_exn2 glob cons f =
   match f.svar.vname with
+  | "c" -> add_int_exn f; File.must_recompute_cfg f
   | "f1" -> add_my_exn my_exn f; File.must_recompute_cfg f
   | "f2" -> add_int_exn f; File.must_recompute_cfg f
   | "f3" -> add_int_ptr_exn glob f; File.must_recompute_cfg f
   | "f4" -> add_my_exn my_exn2 f; File.must_recompute_cfg f
+  | "f5" -> add_local_init (Option.get cons) f; File.must_recompute_cfg f
   | "h" -> add_catch my_exn my_exn2 f; File.must_recompute_cfg f
   | _ -> ()
 
@@ -122,6 +150,7 @@ let add_exn ast =
   let my_exn = ref None in
   let my_exn2 = ref None in
   let glob = ref None in
+  let cons = ref None in
   let treat_glob =
     function
     | GCompTag(ci,_) ->
@@ -130,8 +159,9 @@ let add_exn ast =
        | Some _ -> my_exn2 := Some ci)
     | GVar(v,_,_) when v.vname = "x" -> glob := Some v
     | GFun(f,_) ->
+      if f.svar.vname = "c" then cons := Some f.svar;
       change_body
-        (Option.get !my_exn) (Option.get !my_exn2) (Option.get !glob) f
+        (Option.get !my_exn) (Option.get !my_exn2) (Option.get !glob) !cons f
     | _ -> ()
   in
   List.iter treat_glob ast.globals
