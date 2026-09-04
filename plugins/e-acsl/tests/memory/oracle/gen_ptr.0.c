@@ -37,7 +37,7 @@ int main(void)
       __gen_e_acsl_assert_data_2.pred_txt = "\\aligned(p,4)";
       __gen_e_acsl_assert_data_2.file = "ptr.i";
       __gen_e_acsl_assert_data_2.fct = "main";
-      __gen_e_acsl_assert_data_2.line = 12;
+      __gen_e_acsl_assert_data_2.line = 17;
       __gen_e_acsl_assert_data_2.name = "pointer alignment";
       __e_acsl_assert(__gen_e_acsl_aligned,& __gen_e_acsl_assert_data_2);
       __e_acsl_assert_clean(& __gen_e_acsl_assert_data_2);
@@ -59,7 +59,7 @@ int main(void)
       __gen_e_acsl_assert_data_3.pred_txt = "\\valid_read(p)";
       __gen_e_acsl_assert_data_3.file = "ptr.i";
       __gen_e_acsl_assert_data_3.fct = "main";
-      __gen_e_acsl_assert_data_3.line = 12;
+      __gen_e_acsl_assert_data_3.line = 17;
       __gen_e_acsl_assert_data_3.name = "memory access";
       __e_acsl_assert(__gen_e_acsl_valid_read,& __gen_e_acsl_assert_data_3);
       __e_acsl_assert_clean(& __gen_e_acsl_assert_data_3);
@@ -70,7 +70,7 @@ int main(void)
     __gen_e_acsl_assert_data.pred_txt = "*p == 1";
     __gen_e_acsl_assert_data.file = "ptr.i";
     __gen_e_acsl_assert_data.fct = "main";
-    __gen_e_acsl_assert_data.line = 12;
+    __gen_e_acsl_assert_data.line = 17;
     __e_acsl_assert(*p == 1,& __gen_e_acsl_assert_data);
     __e_acsl_assert_clean(& __gen_e_acsl_assert_data);
   }
@@ -84,7 +84,7 @@ int main(void)
     __gen_e_acsl_assert_data_4.pred_txt = "t[0] == 2";
     __gen_e_acsl_assert_data_4.file = "ptr.i";
     __gen_e_acsl_assert_data_4.fct = "main";
-    __gen_e_acsl_assert_data_4.line = 13;
+    __gen_e_acsl_assert_data_4.line = 18;
     __e_acsl_assert(t[0] == 2,& __gen_e_acsl_assert_data_4);
     __e_acsl_assert_clean(& __gen_e_acsl_assert_data_4);
   }
@@ -98,7 +98,7 @@ int main(void)
     __gen_e_acsl_assert_data_5.pred_txt = "t[2] == 4";
     __gen_e_acsl_assert_data_5.file = "ptr.i";
     __gen_e_acsl_assert_data_5.fct = "main";
-    __gen_e_acsl_assert_data_5.line = 14;
+    __gen_e_acsl_assert_data_5.line = 19;
     __e_acsl_assert(t[2] == 4,& __gen_e_acsl_assert_data_5);
     __e_acsl_assert_clean(& __gen_e_acsl_assert_data_5);
   }
@@ -131,7 +131,7 @@ int main(void)
       __gen_e_acsl_assert_data_7.pred_txt = "0 <= (2 * sizeof(int)) / sizeof((int)0x0) < (int)3";
       __gen_e_acsl_assert_data_7.file = "ptr.i";
       __gen_e_acsl_assert_data_7.fct = "main";
-      __gen_e_acsl_assert_data_7.line = 15;
+      __gen_e_acsl_assert_data_7.line = 20;
       __gen_e_acsl_assert_data_7.name = "index out of bounds";
       __e_acsl_assert(__gen_e_acsl_and,& __gen_e_acsl_assert_data_7);
       __e_acsl_assert_clean(& __gen_e_acsl_assert_data_7);
@@ -144,7 +144,7 @@ int main(void)
     __gen_e_acsl_assert_data_6.pred_txt = "t[(2 * sizeof(int)) / sizeof((int)0x0)] == 4";
     __gen_e_acsl_assert_data_6.file = "ptr.i";
     __gen_e_acsl_assert_data_6.fct = "main";
-    __gen_e_acsl_assert_data_6.line = 15;
+    __gen_e_acsl_assert_data_6.line = 20;
     __e_acsl_assert(t[2] == 4,& __gen_e_acsl_assert_data_6);
     __e_acsl_assert_clean(& __gen_e_acsl_assert_data_6);
   }
@@ -171,7 +171,7 @@ int main(void)
           __gen_e_acsl_assert_data_9.pred_txt = "0 <= i < (int)3";
           __gen_e_acsl_assert_data_9.file = "ptr.i";
           __gen_e_acsl_assert_data_9.fct = "main";
-          __gen_e_acsl_assert_data_9.line = 18;
+          __gen_e_acsl_assert_data_9.line = 23;
           __gen_e_acsl_assert_data_9.name = "index out of bounds";
           __e_acsl_assert(__gen_e_acsl_and_2,& __gen_e_acsl_assert_data_9);
           __e_acsl_assert_clean(& __gen_e_acsl_assert_data_9);
@@ -184,7 +184,7 @@ int main(void)
         __gen_e_acsl_assert_data_8.pred_txt = "t[i] == i + 2";
         __gen_e_acsl_assert_data_8.file = "ptr.i";
         __gen_e_acsl_assert_data_8.fct = "main";
-        __gen_e_acsl_assert_data_8.line = 18;
+        __gen_e_acsl_assert_data_8.line = 23;
         __e_acsl_assert((long)t[i] == i + 2L,& __gen_e_acsl_assert_data_8);
         __e_acsl_assert_clean(& __gen_e_acsl_assert_data_8);
       }
@@ -208,7 +208,7 @@ int main(void)
           __gen_e_acsl_assert_data_11.pred_txt = "0 <= 2 - i < (int)3";
           __gen_e_acsl_assert_data_11.file = "ptr.i";
           __gen_e_acsl_assert_data_11.fct = "main";
-          __gen_e_acsl_assert_data_11.line = 19;
+          __gen_e_acsl_assert_data_11.line = 24;
           __gen_e_acsl_assert_data_11.name = "index out of bounds";
           __e_acsl_assert(__gen_e_acsl_and_3,& __gen_e_acsl_assert_data_11);
           __e_acsl_assert_clean(& __gen_e_acsl_assert_data_11);
@@ -221,7 +221,7 @@ int main(void)
         __gen_e_acsl_assert_data_10.pred_txt = "t[2 - i] == 4 - i";
         __gen_e_acsl_assert_data_10.file = "ptr.i";
         __gen_e_acsl_assert_data_10.fct = "main";
-        __gen_e_acsl_assert_data_10.line = 19;
+        __gen_e_acsl_assert_data_10.line = 24;
         __e_acsl_assert((long)t[2L - i] == 4L - i,
                         & __gen_e_acsl_assert_data_10);
         __e_acsl_assert_clean(& __gen_e_acsl_assert_data_10);
@@ -251,7 +251,7 @@ int main(void)
           __gen_e_acsl_assert_data_13.pred_txt = "-9223372036854775808 <= i <= 9223372036854775807";
           __gen_e_acsl_assert_data_13.file = "ptr.i";
           __gen_e_acsl_assert_data_13.fct = "main";
-          __gen_e_acsl_assert_data_13.line = 20;
+          __gen_e_acsl_assert_data_13.line = 25;
           __gen_e_acsl_assert_data_13.name = "signed downcast";
           __e_acsl_assert(__gen_e_acsl_and_4,& __gen_e_acsl_assert_data_13);
           __e_acsl_assert_clean(& __gen_e_acsl_assert_data_13);
@@ -272,7 +272,7 @@ int main(void)
           __gen_e_acsl_assert_data_14.pred_txt = "\\aligned(&t[2] - i,4)";
           __gen_e_acsl_assert_data_14.file = "ptr.i";
           __gen_e_acsl_assert_data_14.fct = "main";
-          __gen_e_acsl_assert_data_14.line = 20;
+          __gen_e_acsl_assert_data_14.line = 25;
           __gen_e_acsl_assert_data_14.name = "pointer alignment";
           __e_acsl_assert(__gen_e_acsl_aligned_2,
                           & __gen_e_acsl_assert_data_14);
@@ -299,7 +299,7 @@ int main(void)
           __gen_e_acsl_assert_data_15.pred_txt = "\\valid_read(&t[2] - i)";
           __gen_e_acsl_assert_data_15.file = "ptr.i";
           __gen_e_acsl_assert_data_15.fct = "main";
-          __gen_e_acsl_assert_data_15.line = 20;
+          __gen_e_acsl_assert_data_15.line = 25;
           __gen_e_acsl_assert_data_15.name = "memory access";
           __e_acsl_assert(__gen_e_acsl_valid_read_2,
                           & __gen_e_acsl_assert_data_15);
@@ -313,7 +313,7 @@ int main(void)
         __gen_e_acsl_assert_data_12.pred_txt = "*(&t[2] - i) == 4 - i";
         __gen_e_acsl_assert_data_12.file = "ptr.i";
         __gen_e_acsl_assert_data_12.fct = "main";
-        __gen_e_acsl_assert_data_12.line = 20;
+        __gen_e_acsl_assert_data_12.line = 25;
         __e_acsl_assert((long)*(& t[2] - i) == 4L - i,
                         & __gen_e_acsl_assert_data_12);
         __e_acsl_assert_clean(& __gen_e_acsl_assert_data_12);
@@ -345,7 +345,7 @@ int main(void)
       __gen_e_acsl_assert_data_17.pred_txt = "\\aligned(p,4)";
       __gen_e_acsl_assert_data_17.file = "ptr.i";
       __gen_e_acsl_assert_data_17.fct = "main";
-      __gen_e_acsl_assert_data_17.line = 26;
+      __gen_e_acsl_assert_data_17.line = 31;
       __gen_e_acsl_assert_data_17.name = "pointer alignment";
       __e_acsl_assert(__gen_e_acsl_aligned_3,& __gen_e_acsl_assert_data_17);
       __e_acsl_assert_clean(& __gen_e_acsl_assert_data_17);
@@ -367,7 +367,7 @@ int main(void)
       __gen_e_acsl_assert_data_18.pred_txt = "\\valid_read(p)";
       __gen_e_acsl_assert_data_18.file = "ptr.i";
       __gen_e_acsl_assert_data_18.fct = "main";
-      __gen_e_acsl_assert_data_18.line = 26;
+      __gen_e_acsl_assert_data_18.line = 31;
       __gen_e_acsl_assert_data_18.name = "memory access";
       __e_acsl_assert(__gen_e_acsl_valid_read_3,
                       & __gen_e_acsl_assert_data_18);
@@ -379,7 +379,7 @@ int main(void)
     __gen_e_acsl_assert_data_16.pred_txt = "*p == 5";
     __gen_e_acsl_assert_data_16.file = "ptr.i";
     __gen_e_acsl_assert_data_16.fct = "main";
-    __gen_e_acsl_assert_data_16.line = 26;
+    __gen_e_acsl_assert_data_16.line = 31;
     __e_acsl_assert(*p == 5,& __gen_e_acsl_assert_data_16);
     __e_acsl_assert_clean(& __gen_e_acsl_assert_data_16);
   }
@@ -406,7 +406,7 @@ int main(void)
       __gen_e_acsl_assert_data_20.pred_txt = "\\aligned(p,4)";
       __gen_e_acsl_assert_data_20.file = "ptr.i";
       __gen_e_acsl_assert_data_20.fct = "main";
-      __gen_e_acsl_assert_data_20.line = 28;
+      __gen_e_acsl_assert_data_20.line = 33;
       __gen_e_acsl_assert_data_20.name = "pointer alignment";
       __e_acsl_assert(__gen_e_acsl_aligned_4,& __gen_e_acsl_assert_data_20);
       __e_acsl_assert_clean(& __gen_e_acsl_assert_data_20);
@@ -429,7 +429,7 @@ int main(void)
       __gen_e_acsl_assert_data_21.pred_txt = "-9223372036854775808 <= k <= 9223372036854775807";
       __gen_e_acsl_assert_data_21.file = "ptr.i";
       __gen_e_acsl_assert_data_21.fct = "main";
-      __gen_e_acsl_assert_data_21.line = 28;
+      __gen_e_acsl_assert_data_21.line = 33;
       __gen_e_acsl_assert_data_21.name = "signed downcast";
       __e_acsl_assert(__gen_e_acsl_and_5,& __gen_e_acsl_assert_data_21);
       __e_acsl_assert_clean(& __gen_e_acsl_assert_data_21);
@@ -449,7 +449,7 @@ int main(void)
       __gen_e_acsl_assert_data_22.pred_txt = "\\aligned(p + k,4)";
       __gen_e_acsl_assert_data_22.file = "ptr.i";
       __gen_e_acsl_assert_data_22.fct = "main";
-      __gen_e_acsl_assert_data_22.line = 28;
+      __gen_e_acsl_assert_data_22.line = 33;
       __gen_e_acsl_assert_data_22.name = "pointer alignment";
       __e_acsl_assert(__gen_e_acsl_aligned_5,& __gen_e_acsl_assert_data_22);
       __e_acsl_assert_clean(& __gen_e_acsl_assert_data_22);
@@ -473,7 +473,7 @@ int main(void)
       __gen_e_acsl_assert_data_23.pred_txt = "\\valid_read(p + k)";
       __gen_e_acsl_assert_data_23.file = "ptr.i";
       __gen_e_acsl_assert_data_23.fct = "main";
-      __gen_e_acsl_assert_data_23.line = 28;
+      __gen_e_acsl_assert_data_23.line = 33;
       __gen_e_acsl_assert_data_23.name = "memory access";
       __e_acsl_assert(__gen_e_acsl_valid_read_4,
                       & __gen_e_acsl_assert_data_23);
@@ -486,7 +486,7 @@ int main(void)
     __gen_e_acsl_assert_data_19.pred_txt = "*(p + k) == 3";
     __gen_e_acsl_assert_data_19.file = "ptr.i";
     __gen_e_acsl_assert_data_19.fct = "main";
-    __gen_e_acsl_assert_data_19.line = 28;
+    __gen_e_acsl_assert_data_19.line = 33;
     __e_acsl_assert(*(p + k) == 3,& __gen_e_acsl_assert_data_19);
     __e_acsl_assert_clean(& __gen_e_acsl_assert_data_19);
   }

@@ -268,8 +268,11 @@ int __gen_e_acsl_linked_n_here(struct list *root, struct list **cArr,
     if (__gen_e_acsl_and_7) {
       long __gen_e_acsl_index;
       __gen_e_acsl_index = __gmpz_get_si((__e_acsl_mpz_struct const *)(index));
-      /*@ assert Eva: mem_access: \valid_read(cArr + __gen_e_acsl_index); */
-      __gen_e_acsl_and_8 = root == *(cArr + __gen_e_acsl_index);
+      /*@ assert
+            Eva: mem_access:
+              \valid_read(cArr + (long long)__gen_e_acsl_index);
+      */
+      __gen_e_acsl_and_8 = root == *(cArr + (long long)__gen_e_acsl_index);
     }
     else __gen_e_acsl_and_8 = 0;
     if (__gen_e_acsl_and_8) {

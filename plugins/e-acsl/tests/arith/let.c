@@ -1,5 +1,11 @@
 /* run.config
    COMMENT: let binding
+   STDOPT:
+   STDOPT: #"-e-acsl-O-gmp-only"
+*/
+/* run.config_dev
+   EXECNOW: LOG @EACSL_ERR@ @EACSL_EXEC@
+   MACRO: ROOT_EACSL_GCC_OPTS_EXT --gmp
 */
 
 int main(void) {

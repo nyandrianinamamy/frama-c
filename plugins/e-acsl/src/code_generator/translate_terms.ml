@@ -212,6 +212,14 @@ and toffset_to_offset kf env = function
     Field(f, offset), env
   | TIndex(t, offset) ->
     let e, _, env = to_exp ~adata:Assert.no_data kf env t in
+    let e, env =
+      Typed_number.add_gmp_cast
+        ~loc:t.term_loc
+        env
+        kf
+        (Machine.sizeof_type ())
+        e
+    in
     let offset, env = toffset_to_offset kf env offset in
     Index(e, offset), env
   | TModel _ -> Env.not_yet env "model"
@@ -737,6 +745,14 @@ and context_insensitive_term_to_exp_old ~adata ?(inplace=false) kf env t =
     in
     let e1, adata, env = to_exp ~adata kf env t1 in
     let e2, adata, env = to_exp ~adata kf env t2 in
+    let e2, env =
+      Typed_number.add_gmp_cast
+        ~loc:t2.term_loc
+        env
+        kf
+        (Machine.sizeof_type ())
+        e2
+    in
     let e = Cil.new_exp ~loc (BinOp(bop, e1, e2, ty)) in
     e, adata, env, Analyses_types.C_number, ""
   | TBinOp(MinusPP, t1, t2) ->

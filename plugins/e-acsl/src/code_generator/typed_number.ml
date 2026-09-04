@@ -57,3 +57,20 @@ let add_cast ~loc ?name env kf ctx strnum t_opt e =
       else
         (* C type --> another C type *)
         Cil.mkCastT ~force:false ~oldt:ty ~newt:ctx e, env
+
+let add_gmp_cast ~loc ?name env kf mdr_ty e =
+  let ty = Cil.typeOf e in
+  (* must be cast into a C type *)
+  if not (Gmp_types.Z.is_t mdr_ty) && not (Gmp_types.Q.is_t mdr_ty) then
+    if Gmp_types.Z.is_t ty then
+      (* GMPz-type value casts into a C type *)
+      Gmp.Z.add_cast ~loc ?name env kf mdr_ty e
+    else if Gmp_types.Q.is_t ty then
+      (* GMPq-type value casts into a C-type *)
+      Gmp.Q.add_cast ~loc ?name env kf mdr_ty e
+    else
+      (* C-type value casts into an another C-type *)
+      e, env
+  else
+    (* the mandatory type is a GMP *)
+    e, env

@@ -531,9 +531,10 @@ int __gen_e_acsl_conds_fun3(__e_acsl_mpz_struct * a, __e_acsl_mpz_struct * b)
     __gmpz_clear(__gen_e_acsl_if_5);
   }
   __gen_e_acsl__14 = __gmpz_get_si((__e_acsl_mpz_struct const *)(__gen_e_acsl_if_6));
+  int __retres = (int)__gen_e_acsl__14;
   __gmpz_clear(__gen_e_acsl_);
   __gmpz_clear(__gen_e_acsl_if_6);
-  return __gen_e_acsl__14;
+  return __retres;
 }
 
 /*@ assigns (*__retres_arg)[0];
@@ -629,7 +630,7 @@ void __gen_e_acsl_conds_fun3_2(__e_acsl_mpz_t *__retres_arg,
     __gmpz_clear(__gen_e_acsl_if_3);
   }
   __gen_e_acsl__11 = __gmpz_get_si((__e_acsl_mpz_struct const *)(__gen_e_acsl_if_4));
-  __gmpz_init_set_si(*__retres_arg,__gen_e_acsl__11);
+  __gmpz_init_set_si(*__retres_arg,(long)((int)__gen_e_acsl__11));
   __gmpz_clear(__gen_e_acsl__5);
   __gmpz_clear(__gen_e_acsl_if_4);
   return;

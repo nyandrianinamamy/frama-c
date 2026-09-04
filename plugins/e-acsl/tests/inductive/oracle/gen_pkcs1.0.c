@@ -662,10 +662,11 @@ int __gen_e_acsl_valid_tlv_here(u1 *start, int prev_pars,
       __gen_e_acsl_add_2 = __gmpz_get_si((__e_acsl_mpz_struct const *)(__gen_e_acsl_add));
       /*@ assert
             Eva: mem_access:
-              \valid_read(__gen_e_acsl_tlv_cur + __gen_e_acsl_add_2);
+              \valid_read(__gen_e_acsl_tlv_cur +
+                          (long long)__gen_e_acsl_add_2);
       */
       __gen_e_acsl_and_7 = (int)*(start + prev_pars) == (int)((u1)((int)*(
-                           __gen_e_acsl_tlv_cur + __gen_e_acsl_add_2)));
+                           __gen_e_acsl_tlv_cur + (long long)__gen_e_acsl_add_2)));
       __gmpz_clear(__gen_e_acsl__8);
       __gmpz_clear(__gen_e_acsl_sub_4);
       __gmpz_clear(__gen_e_acsl__9);
@@ -799,9 +800,10 @@ int __gen_e_acsl_valid_tlv_here(u1 *start, int prev_pars,
         __gen_e_acsl_add_5 = __gmpz_get_si((__e_acsl_mpz_struct const *)(__gen_e_acsl_add_4));
         /*@ assert
               Eva: mem_access:
-                \valid_read(__gen_e_acsl_tlv_cur_2 + __gen_e_acsl_add_5);
+                \valid_read(__gen_e_acsl_tlv_cur_2 +
+                            (long long)__gen_e_acsl_add_5);
         */
-        __gen_e_acsl_and_13 = (int)((u1)((int)*(__gen_e_acsl_tlv_cur_2 + __gen_e_acsl_add_5))) == 1;
+        __gen_e_acsl_and_13 = (int)((u1)((int)*(__gen_e_acsl_tlv_cur_2 + (long long)__gen_e_acsl_add_5))) == 1;
         __gmpz_clear(__gen_e_acsl__12);
         __gmpz_clear(__gen_e_acsl__13);
         __gmpz_clear(__gen_e_acsl_sub_6);
@@ -987,7 +989,7 @@ int __gen_e_acsl_valid_tlv_here(u1 *start, int prev_pars,
         __e_acsl_assert_data_t __gen_e_acsl_assert_data_11 =
           {.values = (void *)0};
         __gen_e_acsl_add_9 = __gmpz_get_si((__e_acsl_mpz_struct const *)(__gen_e_acsl_add_6));
-        __gen_e_acsl_aligned_6 = __e_acsl_aligned((void *)(__gen_e_acsl_tlv_cur_3 + __gen_e_acsl_add_9),
+        __gen_e_acsl_aligned_6 = __e_acsl_aligned((void *)(__gen_e_acsl_tlv_cur_3 + (long long)__gen_e_acsl_add_9),
                                                   4UL);
         __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_11,"tlv_cur",
                                      (void *)__gen_e_acsl_tlv_cur_3);
@@ -1016,7 +1018,7 @@ int __gen_e_acsl_valid_tlv_here(u1 *start, int prev_pars,
         __e_acsl_assert_data_t __gen_e_acsl_assert_data_12 =
           {.values = (void *)0};
         __gen_e_acsl_add_10 = __gmpz_get_si((__e_acsl_mpz_struct const *)(__gen_e_acsl_add_6));
-        __gen_e_acsl_valid_read = __e_acsl_valid_read((void *)(__gen_e_acsl_tlv_cur_3 + __gen_e_acsl_add_10),
+        __gen_e_acsl_valid_read = __e_acsl_valid_read((void *)(__gen_e_acsl_tlv_cur_3 + (long long)__gen_e_acsl_add_10),
                                                       sizeof(uint const),
                                                       (void *)__gen_e_acsl_tlv_cur_3,
                                                       (void *)(& __gen_e_acsl_tlv_cur_3));
@@ -1049,9 +1051,10 @@ int __gen_e_acsl_valid_tlv_here(u1 *start, int prev_pars,
         }
         /*@ assert
               Eva: mem_access:
-                \valid_read(__gen_e_acsl_tlv_cur_3 + __gen_e_acsl_add_8);
+                \valid_read(__gen_e_acsl_tlv_cur_3 +
+                            (long long)__gen_e_acsl_add_8);
         */
-        __gen_e_acsl_tlv_link = *(__gen_e_acsl_tlv_cur_3 + __gen_e_acsl_add_8);
+        __gen_e_acsl_tlv_link = *(__gen_e_acsl_tlv_cur_3 + (long long)__gen_e_acsl_add_8);
         __gen_e_acsl_nest_prev_pars = 0;
         __gen_e_acsl_le_5 = __gmpz_cmp((__e_acsl_mpz_struct const *)(__gen_e_acsl__16),
                                        (__e_acsl_mpz_struct const *)(tlv_num_pars));
@@ -1088,9 +1091,10 @@ int __gen_e_acsl_valid_tlv_here(u1 *start, int prev_pars,
           __gen_e_acsl_add_12 = __gmpz_get_si((__e_acsl_mpz_struct const *)(__gen_e_acsl_add_11));
           /*@ assert
                 Eva: mem_access:
-                  \valid_read(__gen_e_acsl_tlv_cur_3 + __gen_e_acsl_add_12);
+                  \valid_read(__gen_e_acsl_tlv_cur_3 +
+                              (long long)__gen_e_acsl_add_12);
           */
-          __gen_e_acsl_and_18 = (int)((u1)((int)*(__gen_e_acsl_tlv_cur_3 + __gen_e_acsl_add_12))) == 0;
+          __gen_e_acsl_and_18 = (int)((u1)((int)*(__gen_e_acsl_tlv_cur_3 + (long long)__gen_e_acsl_add_12))) == 0;
           __gmpz_clear(__gen_e_acsl__21);
           __gmpz_clear(__gen_e_acsl__22);
           __gmpz_clear(__gen_e_acsl_sub_9);
@@ -1550,7 +1554,7 @@ int __gen_e_acsl_prim_gh_set_here(u1 *start, int prev_pars,
         __e_acsl_assert_data_t __gen_e_acsl_assert_data_29 =
           {.values = (void *)0};
         __gen_e_acsl_add_19 = __gmpz_get_si((__e_acsl_mpz_struct const *)(__gen_e_acsl_add_16));
-        __gen_e_acsl_aligned_16 = __e_acsl_aligned((void *)(__gen_e_acsl_tlv_cur_7 + __gen_e_acsl_add_19),
+        __gen_e_acsl_aligned_16 = __e_acsl_aligned((void *)(__gen_e_acsl_tlv_cur_7 + (long long)__gen_e_acsl_add_19),
                                                    4UL);
         __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_29,"tlv_cur",
                                      (void *)__gen_e_acsl_tlv_cur_7);
@@ -1579,7 +1583,7 @@ int __gen_e_acsl_prim_gh_set_here(u1 *start, int prev_pars,
         __e_acsl_assert_data_t __gen_e_acsl_assert_data_30 =
           {.values = (void *)0};
         __gen_e_acsl_add_20 = __gmpz_get_si((__e_acsl_mpz_struct const *)(__gen_e_acsl_add_16));
-        __gen_e_acsl_valid_read_2 = __e_acsl_valid_read((void *)(__gen_e_acsl_tlv_cur_7 + __gen_e_acsl_add_20),
+        __gen_e_acsl_valid_read_2 = __e_acsl_valid_read((void *)(__gen_e_acsl_tlv_cur_7 + (long long)__gen_e_acsl_add_20),
                                                         sizeof(uint const),
                                                         (void *)__gen_e_acsl_tlv_cur_7,
                                                         (void *)(& __gen_e_acsl_tlv_cur_7));
@@ -1612,9 +1616,10 @@ int __gen_e_acsl_prim_gh_set_here(u1 *start, int prev_pars,
         }
         /*@ assert
               Eva: mem_access:
-                \valid_read(__gen_e_acsl_tlv_cur_7 + __gen_e_acsl_add_18);
+                \valid_read(__gen_e_acsl_tlv_cur_7 +
+                            (long long)__gen_e_acsl_add_18);
         */
-        __gen_e_acsl_tlv_link_2 = *(__gen_e_acsl_tlv_cur_7 + __gen_e_acsl_add_18);
+        __gen_e_acsl_tlv_link_2 = *(__gen_e_acsl_tlv_cur_7 + (long long)__gen_e_acsl_add_18);
         __gen_e_acsl_nest_prev_pars_2 = 0;
         __gen_e_acsl_le_10 = __gmpz_cmp((__e_acsl_mpz_struct const *)(__gen_e_acsl__38),
                                         (__e_acsl_mpz_struct const *)(tlv_num_pars));
@@ -1651,9 +1656,10 @@ int __gen_e_acsl_prim_gh_set_here(u1 *start, int prev_pars,
           __gen_e_acsl_add_22 = __gmpz_get_si((__e_acsl_mpz_struct const *)(__gen_e_acsl_add_21));
           /*@ assert
                 Eva: mem_access:
-                  \valid_read(__gen_e_acsl_tlv_cur_7 + __gen_e_acsl_add_22);
+                  \valid_read(__gen_e_acsl_tlv_cur_7 +
+                              (long long)__gen_e_acsl_add_22);
           */
-          __gen_e_acsl_and_40 = (int)((u1)((int)*(__gen_e_acsl_tlv_cur_7 + __gen_e_acsl_add_22))) == 0;
+          __gen_e_acsl_and_40 = (int)((u1)((int)*(__gen_e_acsl_tlv_cur_7 + (long long)__gen_e_acsl_add_22))) == 0;
           __gmpz_clear(__gen_e_acsl__43);
           __gmpz_clear(__gen_e_acsl__44);
           __gmpz_clear(__gen_e_acsl_sub_19);
@@ -1844,9 +1850,9 @@ int __gen_e_acsl_prim_tlv_stored_here(u1 *start,
   __gen_e_acsl_add_15 = __gmpz_get_si((__e_acsl_mpz_struct const *)(__gen_e_acsl_add_14));
   /*@ assert
         Eva: mem_access:
-          \valid_read(__gen_e_acsl_tlv_cur_6 + __gen_e_acsl_add_15);
+          \valid_read(__gen_e_acsl_tlv_cur_6 + (long long)__gen_e_acsl_add_15);
   */
-  if ((int)((u1)((int)*(__gen_e_acsl_tlv_cur_6 + __gen_e_acsl_add_15))) == 1) {
+  if ((int)((u1)((int)*(__gen_e_acsl_tlv_cur_6 + (long long)__gen_e_acsl_add_15))) == 1) {
     int __gen_e_acsl_aligned_13;
     __e_acsl_mpz_t __gen_e_acsl__36;
     __e_acsl_mpz_t __gen_e_acsl_sub_15;
@@ -1879,9 +1885,10 @@ int __gen_e_acsl_prim_tlv_stored_here(u1 *start,
     __gen_e_acsl_sub_16 = __gmpz_get_si((__e_acsl_mpz_struct const *)(__gen_e_acsl_sub_15));
     /*@ assert
           Eva: mem_access:
-            \valid_read(__gen_e_acsl_tlv_p_curr + __gen_e_acsl_sub_16);
+            \valid_read(__gen_e_acsl_tlv_p_curr +
+                        (long long)__gen_e_acsl_sub_16);
     */
-    __gen_e_acsl_and_34 = *(__gen_e_acsl_tlv_p_curr + __gen_e_acsl_sub_16) == 
+    __gen_e_acsl_and_34 = *(__gen_e_acsl_tlv_p_curr + (long long)__gen_e_acsl_sub_16) == 
                           start + prev_pars;
     __gmpz_clear(__gen_e_acsl__36);
     __gmpz_clear(__gen_e_acsl_sub_15);

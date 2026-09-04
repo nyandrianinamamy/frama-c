@@ -63,7 +63,7 @@ int main(void)
     __gen_e_acsl_assert_data.file = "longlong.i";
     __gen_e_acsl_assert_data.fct = "main";
     __gen_e_acsl_assert_data.line = 19;
-    __e_acsl_assert(__gen_e_acsl_mod_2 == 1L,& __gen_e_acsl_assert_data);
+    __e_acsl_assert((int)__gen_e_acsl_mod_2 == 1,& __gen_e_acsl_assert_data);
     __e_acsl_assert_clean(& __gen_e_acsl_assert_data);
     __gmpz_clear(__gen_e_acsl_);
     __gmpz_clear(__gen_e_acsl_x);

@@ -2731,9 +2731,12 @@ int main(void)
     __gen_e_acsl_assert_data_12.file = "rte.c";
     __gen_e_acsl_assert_data_12.fct = "main";
     __gen_e_acsl_assert_data_12.line = 127;
-    /*@ assert Eva: signed_overflow: -2147483648 <= 1 + __gen_e_acsl__3; */
-    /*@ assert Eva: signed_overflow: 1 + __gen_e_acsl__3 <= 2147483647; */
-    __e_acsl_assert(1 + __gen_e_acsl__3 == 1,& __gen_e_acsl_assert_data_12);
+    /*@ assert Eva: signed_downcast: -2147483648 <= __gen_e_acsl__3; */
+    /*@ assert Eva: signed_downcast: __gen_e_acsl__3 <= 2147483647; */
+    /*@ assert Eva: signed_overflow: 1 + (int)__gen_e_acsl__3 <= 2147483647;
+    */
+    __e_acsl_assert(1 + (int)__gen_e_acsl__3 == 1,
+                    & __gen_e_acsl_assert_data_12);
     __e_acsl_assert_clean(& __gen_e_acsl_assert_data_12);
     __gmpz_clear(__gen_e_acsl_z);
     __gmpz_clear(__gen_e_acsl_);

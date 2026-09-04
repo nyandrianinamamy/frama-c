@@ -1,5 +1,11 @@
 /* run.config
    COMMENT: comparison operators
+   STDOPT:
+   STDOPT: #"-e-acsl-O-gmp-only"
+*/
+/* run.config_dev
+   EXECNOW: LOG @EACSL_ERR@ @EACSL_EXEC@
+   MACRO: ROOT_EACSL_GCC_OPTS_EXT --gmp
 */
 
 int main(void) {
@@ -8,6 +14,7 @@ int main(void) {
   /*@ assert y > x; */
   /*@ assert x <= 0; */
   /*@ assert y >= 1; */
+  /*@ assert x == y || x != y; */  // pathological case of issue #331
   char *s = "toto";
   /*@ assert s == s; */
   // waiting for clarification of semantics of ACSL's literal strings

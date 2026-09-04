@@ -512,7 +512,7 @@ int main(void)
           long __gen_e_acsl_i_5;
           int __gen_e_acsl_valid_4;
           __gen_e_acsl_i_5 = __gmpz_get_si((__e_acsl_mpz_struct const *)(__gen_e_acsl_i_4));
-          __gen_e_acsl_valid_4 = __e_acsl_valid((void *)(& buf[__gen_e_acsl_i_5]),
+          __gen_e_acsl_valid_4 = __e_acsl_valid((void *)(& buf[(long long)__gen_e_acsl_i_5]),
                                                 sizeof(int),(void *)(buf),
                                                 (void *)0);
           if (__gen_e_acsl_valid_4) ;

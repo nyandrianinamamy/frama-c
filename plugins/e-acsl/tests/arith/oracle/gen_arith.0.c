@@ -434,10 +434,10 @@ int main(void)
     __gen_e_acsl_assert_data_30.file = "arith.i";
     __gen_e_acsl_assert_data_30.fct = "main";
     __gen_e_acsl_assert_data_30.line = 48;
-    /*@ assert Eva: signed_overflow: -2147483648 <= 1 + __gen_e_acsl_div_2;
+    /*@ assert
+          Eva: signed_overflow: 1 + (int)__gen_e_acsl_div_2 <= 2147483647;
     */
-    /*@ assert Eva: signed_overflow: 1 + __gen_e_acsl_div_2 <= 2147483647; */
-    __e_acsl_assert(1 + __gen_e_acsl_div_2 == 1,
+    __e_acsl_assert(1 + (int)__gen_e_acsl_div_2 == 1,
                     & __gen_e_acsl_assert_data_30);
     __e_acsl_assert_clean(& __gen_e_acsl_assert_data_30);
     __gmpz_clear(__gen_e_acsl_z);

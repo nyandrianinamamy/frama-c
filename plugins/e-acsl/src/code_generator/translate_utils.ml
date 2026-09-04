@@ -237,6 +237,10 @@ let env_of_li ~adata ~loc kf env li =
     let vi, vi_e, env = Env.Logic_binding.add ~ty env kf li.l_var_info in
     let e, adata, env = Translate_terms.to_exp ~adata kf env t in
     let stmt = match Typing.get_number_ty ~logic_env t with
+      | C_integer _ when Options.Optimisations.Gmp_only.get () ->
+        Gmp.init_set ~loc (Cil.var vi) vi_e e
+      | C_float _ when Options.Optimisations.Gmp_only.get () ->
+        Gmp.init_set ~loc (Cil.var vi) vi_e e
       | C_integer _ | C_float _ | Nan ->
         Smart_stmt.assigns ~loc ~result:(Cil.var vi) e
       | Gmpz | Rational -> Gmp.init_set ~loc (Cil.var vi) vi_e e

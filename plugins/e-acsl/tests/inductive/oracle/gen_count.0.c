@@ -249,8 +249,10 @@ int __gen_e_acsl_CountInd_here(int *arr, __e_acsl_mpz_struct * len, int val,
       __gmpz_sub(__gen_e_acsl_sub,(__e_acsl_mpz_struct const *)(len),
                  (__e_acsl_mpz_struct const *)(__gen_e_acsl__6));
       __gen_e_acsl_sub_2 = __gmpz_get_si((__e_acsl_mpz_struct const *)(__gen_e_acsl_sub));
-      /*@ assert Eva: mem_access: \valid_read(arr + __gen_e_acsl_sub_2); */
-      __gen_e_acsl_and_2 = *(arr + __gen_e_acsl_sub_2) == val;
+      /*@ assert
+            Eva: mem_access: \valid_read(arr + (long long)__gen_e_acsl_sub_2);
+      */
+      __gen_e_acsl_and_2 = *(arr + (long long)__gen_e_acsl_sub_2) == val;
       __gmpz_clear(__gen_e_acsl__6);
       __gmpz_clear(__gen_e_acsl_sub);
     }
@@ -316,8 +318,11 @@ int __gen_e_acsl_CountInd_here(int *arr, __e_acsl_mpz_struct * len, int val,
         __gmpz_sub(__gen_e_acsl_sub_6,(__e_acsl_mpz_struct const *)(len),
                    (__e_acsl_mpz_struct const *)(__gen_e_acsl__10));
         __gen_e_acsl_sub_7 = __gmpz_get_si((__e_acsl_mpz_struct const *)(__gen_e_acsl_sub_6));
-        /*@ assert Eva: mem_access: \valid_read(arr + __gen_e_acsl_sub_7); */
-        __gen_e_acsl_and_5 = *(arr + __gen_e_acsl_sub_7) != val;
+        /*@ assert
+              Eva: mem_access:
+                \valid_read(arr + (long long)__gen_e_acsl_sub_7);
+        */
+        __gen_e_acsl_and_5 = *(arr + (long long)__gen_e_acsl_sub_7) != val;
         __gmpz_clear(__gen_e_acsl__10);
         __gmpz_clear(__gen_e_acsl_sub_6);
       }

@@ -102,7 +102,7 @@ int find_last_of(int const *a, int len, int value)
         __e_acsl_assert_data_t __gen_e_acsl_assert_data_4 =
           {.values = (void *)0};
         __gen_e_acsl_i_3 = __gmpz_get_si((__e_acsl_mpz_struct const *)(__gen_e_acsl_i));
-        __gen_e_acsl_aligned_2 = __e_acsl_aligned((void *)(a + __gen_e_acsl_i_3),
+        __gen_e_acsl_aligned_2 = __e_acsl_aligned((void *)(a + (long long)__gen_e_acsl_i_3),
                                                   4UL);
         __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_4,"a",
                                      (void *)a);
@@ -127,7 +127,7 @@ int find_last_of(int const *a, int len, int value)
         __e_acsl_assert_data_t __gen_e_acsl_assert_data_5 =
           {.values = (void *)0};
         __gen_e_acsl_i_4 = __gmpz_get_si((__e_acsl_mpz_struct const *)(__gen_e_acsl_i));
-        __gen_e_acsl_valid_read = __e_acsl_valid_read((void *)(a + __gen_e_acsl_i_4),
+        __gen_e_acsl_valid_read = __e_acsl_valid_read((void *)(a + (long long)__gen_e_acsl_i_4),
                                                       sizeof(int const),
                                                       (void *)a,
                                                       (void *)(& a));
@@ -155,8 +155,10 @@ int find_last_of(int const *a, int len, int value)
           __e_acsl_assert_clean(& __gen_e_acsl_assert_data_5);
         }
         __gmpz_clear(__gen_e_acsl_);
-        /*@ assert Eva: mem_access: \valid_read(a + __gen_e_acsl_i_2); */
-        if (*(a + __gen_e_acsl_i_2) != value) ;
+        /*@ assert
+              Eva: mem_access: \valid_read(a + (long long)__gen_e_acsl_i_2);
+        */
+        if (*(a + (long long)__gen_e_acsl_i_2) != value) ;
         else {
           __gen_e_acsl_forall = 0;
           goto e_acsl_end_loop1;
@@ -286,7 +288,7 @@ int find_last_of(int const *a, int len, int value)
         __e_acsl_assert_data_t __gen_e_acsl_assert_data_9 =
           {.values = (void *)0};
         __gen_e_acsl_i_7 = __gmpz_get_si((__e_acsl_mpz_struct const *)(__gen_e_acsl_i_5));
-        __gen_e_acsl_aligned_4 = __e_acsl_aligned((void *)(a + __gen_e_acsl_i_7),
+        __gen_e_acsl_aligned_4 = __e_acsl_aligned((void *)(a + (long long)__gen_e_acsl_i_7),
                                                   4UL);
         __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_9,"a",
                                      (void *)a);
@@ -311,7 +313,7 @@ int find_last_of(int const *a, int len, int value)
         __e_acsl_assert_data_t __gen_e_acsl_assert_data_10 =
           {.values = (void *)0};
         __gen_e_acsl_i_8 = __gmpz_get_si((__e_acsl_mpz_struct const *)(__gen_e_acsl_i_5));
-        __gen_e_acsl_valid_read_2 = __e_acsl_valid_read((void *)(a + __gen_e_acsl_i_8),
+        __gen_e_acsl_valid_read_2 = __e_acsl_valid_read((void *)(a + (long long)__gen_e_acsl_i_8),
                                                         sizeof(int const),
                                                         (void *)a,
                                                         (void *)(& a));
@@ -339,8 +341,10 @@ int find_last_of(int const *a, int len, int value)
           __e_acsl_assert_clean(& __gen_e_acsl_assert_data_10);
         }
         __gmpz_clear(__gen_e_acsl__4);
-        /*@ assert Eva: mem_access: \valid_read(a + __gen_e_acsl_i_6); */
-        if (*(a + __gen_e_acsl_i_6) != value) ;
+        /*@ assert
+              Eva: mem_access: \valid_read(a + (long long)__gen_e_acsl_i_6);
+        */
+        if (*(a + (long long)__gen_e_acsl_i_6) != value) ;
         else {
           __gen_e_acsl_forall_2 = 0;
           goto e_acsl_end_loop2;
