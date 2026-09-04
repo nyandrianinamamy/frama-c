@@ -20,15 +20,15 @@
   type location = Fileloc.t
 
   type clauses_list =  {
-    mutable assumes : lexpr list;
-    mutable requires : toplevel_predicate list;
-    mutable extended : extension list;
-    mutable terminates : lexpr option;
-    mutable decreases : variant option;
-    mutable allocation : allocation;
-    mutable assigns : assigns;
-    mutable post_cond : (termination_kind * toplevel_predicate) list;
-    mutable empty : bool;
+    assumes : lexpr list;
+    requires : toplevel_predicate list;
+    extended : extension list;
+    terminates : lexpr option;
+    decreases : variant option;
+    allocation : allocation;
+    assigns : assigns;
+    post_cond : (termination_kind * toplevel_predicate) list;
+    empty : bool;
   }
 
   let loc (start_pos, end_pos) =
@@ -1250,62 +1250,52 @@ clauses_list:
         empty = true;
       }
     }
-| ne_clauses_list { $1.empty <- false; $1 }
+| ne_clauses_list { { $1 with empty = false } }
 ;
 
 ne_clauses_list:
 | ASSUMES lexpr SEMICOLON clauses_list
-    { $4.assumes <- $2::$4.assumes;
-      $4
+    { { $4 with assumes = $2::$4.assumes }
     }
 | REQUIRES lexpr SEMICOLON clauses_list
     { check_clause_order $loc($2) $4 "requires" Pre_clauses;
-      $4.requires <- toplevel_pred Assert $2::$4.requires;
-      $4
+      { $4 with requires = toplevel_pred Assert $2::$4.requires }
     }
 | CHECK_REQUIRES lexpr SEMICOLON clauses_list
     { check_clause_order $loc($2) $4 "requires" Pre_clauses;
-      $4.requires <- toplevel_pred Check $2::$4.requires;
-      $4
+      { $4 with requires = toplevel_pred Check $2::$4.requires }
     }
 | ADMIT_REQUIRES lexpr SEMICOLON clauses_list
     { check_clause_order $loc($2) $4 "requires" Pre_clauses;
-      $4.requires <- toplevel_pred Admit $2::$4.requires;
-      $4
+      { $4 with requires = toplevel_pred Admit $2::$4.requires }
     }
 | EXT_CONTRACT extension_content SEMICOLON clauses_list
     { check_clause_order $loc($2) $4 "extended" Pre_clauses;
       let name, plugin = $1 in
       let processed = Logic_env.preprocess_extension ~plugin name $2 in
       let ext = extension name plugin processed in
-      $4.extended <- ext::$4.extended;
-      $4
+      { $4 with extended = ext::$4.extended }
     }
 | TERMINATES lexpr SEMICOLON clauses_list
     { check_clause_order $loc($2) $4 "terminates" Post_clauses;
-      $4.terminates <- Some($2);
-      $4
+      { $4 with terminates = Some($2) }
     }
 | DECREASES variant SEMICOLON clauses_list
     { check_clause_order $loc($2) $4 "decreases" Post_clauses;
-      $4.decreases <- Some($2);
-      $4
+      { $4 with decreases = Some($2) }
     }
 | post_cond_kind lexpr SEMICOLON clauses_list
     { check_clause_order $loc($2) $4 "post_cond" Post_clauses;
       let tp_kind, kind = $1 in
-      $4.post_cond <- (kind,toplevel_pred tp_kind $2)::$4.post_cond;
-      $4
+      { $4 with post_cond = (kind,toplevel_pred tp_kind $2)::$4.post_cond }
     }
 | allocation SEMICOLON clauses_list
     { check_clause_order $loc($1) $3 "allocates" Post_clauses;
-      $3.allocation <- concat_allocation $3.allocation $1;
-      $3
+      { $3 with allocation = concat_allocation $3.allocation $1 }
     }
 | ASSIGNS assigns SEMICOLON clauses_list
     { check_clause_order $loc($2) $4 "assigns" Post_clauses;
-      $4.assigns <- concat_assigns $sloc $4.assigns $2;
-      $4
+      { $4 with assigns = concat_assigns $sloc $4.assigns $2 }
     }
 | unknown_extension SEMICOLON clauses_list
     { check_clause_order $loc($1) $3 "extended" Pre_clauses;
