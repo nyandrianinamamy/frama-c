@@ -56,9 +56,8 @@ sig
   val get : ?oracle:oracle -> t -> location ->
     (Cvalue.V.t * Value.t * bool) or_bottom
 
-  (** Same as the previous function, but only returns the value. Aborts if no
-      value has been recorded for the set of locations. *)
-  val read : ?oracle:oracle -> t -> location -> Value.t
+  (** Same as the previous function, but only returns the value. *)
+  val read : ?oracle:oracle -> t -> location -> Value.t or_bottom
 
   (** Sets a value on a set of locations *)
   val set : ?oracle:oracle -> t -> location -> Cvalue.V.t -> Value.t -> t
@@ -66,9 +65,9 @@ sig
   (** Removes all information on a given varinfo. *)
   val remove : ?oracle:oracle -> Cil_types.varinfo -> t -> t
 
-  (** [replace state dst src] replaces all information for the [dst] location
-      by the ones recorded for the [src] location. *)
-  val replace : ?oracle:oracle -> t -> location -> location -> t
+  (** [replace state ~dst ~src] replaces all information for the [dst]
+      location by the ones recorded for the [src] location. *)
+  val replace : ?oracle:oracle -> t -> dst:location -> src:location -> t
 
   (** Erases / initializes the memory on a set of locations. *)
   val erase : ?oracle:oracle -> ?weak:bool -> t -> location ->

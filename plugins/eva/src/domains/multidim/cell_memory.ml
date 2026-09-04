@@ -335,7 +335,7 @@ struct
     let oracle = convert_oracle oracle in
     write (BaseModel.set ~oracle ~weak v) state dst
 
-  let replace ~oracle (state : t) (dst : location) (src : location) : t =
+  let replace ~oracle (state : t) ~dst ~src : t =
     match extract ~oracle state src with
     | `Bottom -> state (* no source *)
     | `Value value ->
@@ -615,7 +615,7 @@ struct
           let b = CellValue.(to_bit (of_flagged value)) in
           Model.erase ~oracle state dst b
         | `Value src ->
-          Model.replace ~oracle state dst src
+          Model.replace ~oracle state ~dst ~src
 
   let assign ~pos:_ { lval=dst } src assigned_value valuation state =
     if Z_or_top.is_zero (Bit_utils.sizeof dst.typ)
@@ -1010,7 +1010,6 @@ end
 
 module Make_Memory (Value : Lattice) =
 struct
-  open Bottom.Operators
   module CellValue = Make_Generic_Cell_Value (Value)
   module Model = Make_Generic_Memory (CellValue)
   include Model
@@ -1059,8 +1058,8 @@ struct
 
   let read ?oracle memory loc =
     match get ?oracle memory loc with
-    | `Bottom -> assert false
-    | `Value (_, v, _) -> v
+    | `Bottom ->  `Bottom
+    | `Value (_, v, _) -> `Value v
 
   let set ?oracle m loc c v =
     let oracle = Option.(oracle <? mk_oracle m) in
