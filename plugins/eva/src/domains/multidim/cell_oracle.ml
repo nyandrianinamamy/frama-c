@@ -22,6 +22,8 @@ let default_oracle (get : getter) : oracle =
   let rec oracle (exp : Eva_ast.exp) : Cvalue.V.t =
     match exp.node with
     | Lval lval ->
+      (* Locations should never be empty so the safeguard on bottom
+         should never trigger. *)
       get ~oracle lval |> Bottom.value ~bottom:Cvalue.V.bottom
     | Const CInt64 (i, _, _) ->
       Cvalue.V.inject_int i
