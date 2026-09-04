@@ -46,41 +46,42 @@ sig
   val narrow : t -> t -> t or_bottom
   val widen : Cil_types.kernel_function -> Cil_types.stmt -> t -> t -> t
 
-  (* For all the following functions, if no oracle is provided, the functions
-     use the default oracle provided by [Cell_oracle]. *)
+  (** All following functions use the default oracle from {!Cell_oracle}
+      if no oracle is provided. *)
 
-  (* Reads and return all information recorded for a given set of locations.
-     The function returns a triplet composed of the recorded cvalue, the
-     recorded value and a boolean set to true if the locations are initialized.
-     The call returns bottom if no information has been recorded for the set. *)
+  (** Reads information recorded for a given set of locations.
+      Returns the recorded cvalue, the recorded value and a boolean set to true
+      if all the locations are initialized. Returns bottom if no information has
+      been recorded for this set of location. *)
   val get : ?oracle:oracle -> t -> location ->
     (Cvalue.V.t * Value.t * bool) or_bottom
 
-  (* Same as the previous function, but only returns the value. Abort if no
-     value has been recorded for the set of locations. *)
+  (** Same as the previous function, but only returns the value. Aborts if no
+      value has been recorded for the set of locations. *)
   val read : ?oracle:oracle -> t -> location -> Value.t
 
-  (* Set a value on a set of locations *)
+  (** Sets a value on a set of locations *)
   val set : ?oracle:oracle -> t -> location -> Cvalue.V.t -> Value.t -> t
 
-  (* Remove all information on a given varinfo. *)
+  (** Removes all information on a given varinfo. *)
   val remove : ?oracle:oracle -> Cil_types.varinfo -> t -> t
 
-  (* The call [replace state dst src] replaces all information for the [dst]
-     location by the ones recorded for the [src] location. *)
+  (** [replace state dst src] replaces all information for the [dst] location
+      by the ones recorded for the [src] location. *)
   val replace : ?oracle:oracle -> t -> location -> location -> t
 
-  (* Erase / initialize the memory on a set of locations. *)
+  (** Erases / initializes the memory on a set of locations. *)
   val erase : ?oracle:oracle -> ?weak:bool -> t -> location ->
     Abstract_memory.bit -> t
 
-  (* Reinforce values on a set of locations when the locations match the
-     memory structure ; does nothing on locations that cannot be matched *)
+  (** Reinforces values on a set of locations when the locations match the
+      memory structure; does nothing on locations that cannot be matched. *)
   val reinforce : ?oracle:oracle ->
     (Cvalue.V.t * Value.t -> (Cvalue.V.t * Value.t) or_bottom) ->
     t -> location -> t or_bottom
 
-  (* Iterators over memories. *)
+  (** Iterators over memories. *)
+
   val map  : (location -> Value.t -> Value.t) -> t -> t
   val iter : (location -> Value.t -> unit) -> t -> unit
   val fold : (location -> Value.t -> 'a -> 'a) -> t -> 'a -> 'a
