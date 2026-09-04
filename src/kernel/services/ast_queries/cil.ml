@@ -4027,7 +4027,7 @@ let bitfield_access_unit bf =
           (* we are at a byte boundary, no need to go further. *)
           storage_offset
         else
-          (* we're in the middle of byte, keep accumulating bitfields *)
+          (* we're in the middle of a byte, keep accumulating bitfields *)
           span_left (min o storage_offset) tl
       end
   in
@@ -4037,11 +4037,11 @@ let bitfield_access_unit bf =
   in
   assert (start_offset mod 8 = 0);
   (* now look for an appropriate right bound, that encompasses the bitfield
-     contains an exact number of bytes *)
+     and contains an exact number of bytes *)
   let next_offset = foffset_bits + fwidth_bits in
   (* start_new_unit is true until we have seen one non-zero bitfield.
      Basically, 0-sized bitfields are merged with the next non-zero one,
-     unless they are at the very end of a bitfield sequences, in which case
+     unless they are at the very end of a bitfield sequence, in which case
      they will denote a 0-length unit (which we can't refer to anyway, since
      those bitfields are anonymous). *)
   let rec span_right start_new_unit next_offset = function
