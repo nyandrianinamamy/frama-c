@@ -134,6 +134,8 @@ let change_printer =
               then Logic_normalizer.get_pred p
               else p
             in
+            if Options.is_debug_key_enabled Options.Dkey.printer_pred_addr then
+              Format.fprintf fmt "%#x:" (Obj.magic p);
             super#predicate fmt p
 
           method !global_annotation fmt g = match g with
@@ -163,6 +165,8 @@ let change_printer =
               then Logic_normalizer.get_term t
               else t
             in
+            if Options.is_debug_key_enabled Options.Dkey.printer_term_addr then
+              Format.fprintf fmt "%x#:" (Obj.magic t);
             super#term fmt t;
             if Options.is_debug_key_enabled Options.Dkey.printer_rte then
               self#rtes_of_term fmt t

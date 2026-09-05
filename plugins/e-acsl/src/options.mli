@@ -51,6 +51,8 @@ val must_visit: unit -> bool
 module Dkey: sig
   val prepare: category
   val printer_normalized: category
+  val printer_term_addr: category
+  val printer_pred_addr: category
   val printer_rte: category
   val analysis: category
   val logic_normalizer: category
