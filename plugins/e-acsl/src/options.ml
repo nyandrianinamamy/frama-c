@@ -342,6 +342,10 @@ module Dkey = struct
     let help = "pretty-printer: print rewritten form of terms, logic functions \
                 and predicates" in
     register_category ~help "printer:normalized"
+  let printer_rte =
+    let help = "pretty-printer: print next to terms their E-ACSL RTEs \
+                (more detailed output with -e-acsl-debug 2 or greater)" in
+    register_category ~help "printer:rte"
   let analysis =
     let help = "information related to analysis phase" in
     register_category ~help "analysis"

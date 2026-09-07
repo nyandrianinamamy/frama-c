@@ -146,12 +146,26 @@ let change_printer =
               super#global_annotation fmt g
             | _ -> super#global_annotation fmt g
 
+          method private rtes_of_term fmt t =
+            let first = ref true in
+            Rte_analysis.iter_on_guards t (fun p ->
+                if !first then
+                  let () = Format.pp_print_string fmt "[RTEs: " in first := false
+                else Format.pp_print_string fmt ", ";
+                if Options.debug_atleast 2
+                then self#predicate fmt p
+                else Format.pp_print_string fmt (List.hd p.pred_name)
+              );
+            if not !first then Format.pp_print_string fmt "]"
+
           method !term fmt t =
             let t = if Options.is_debug_key_enabled Options.Dkey.printer_normalized
               then Logic_normalizer.get_term t
               else t
             in
-            super#term fmt t
+            super#term fmt t;
+            if Options.is_debug_key_enabled Options.Dkey.printer_rte then
+              self#rtes_of_term fmt t
 
           method !instr fmt i =
             match i with
