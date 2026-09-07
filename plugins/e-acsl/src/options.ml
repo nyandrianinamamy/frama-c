@@ -338,6 +338,10 @@ let must_visit () = Run.get ()
 
 module Dkey = struct
   let prepare = register_category "preparation"
+  let printer_normalized =
+    let help = "pretty-printer: print rewritten form of terms, logic functions \
+                and predicates" in
+    register_category ~help "printer:normalized"
   let analysis =
     let help = "information related to analysis phase" in
     register_category ~help "analysis"

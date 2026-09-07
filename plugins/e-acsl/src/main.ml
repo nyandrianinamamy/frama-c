@@ -105,7 +105,7 @@ let change_printer =
     if !first then begin
       first := false;
       let module Printer_class(X: Printer.PrinterClass) = struct
-        class printer () = object
+        class printer () = object (self)
           inherit X.printer () as super
 
           method !varinfo fmt vi =
@@ -128,6 +128,30 @@ let change_printer =
               | None ->
                 (* Otherwise use the original printer *)
                 super#varinfo fmt vi
+
+          method !predicate fmt p =
+            let p = if Options.is_debug_key_enabled Options.Dkey.printer_normalized
+              then Logic_normalizer.get_pred p
+              else p
+            in
+            super#predicate fmt p
+
+          method !global_annotation fmt g = match g with
+            | Cil_types.Dfun_or_pred (li, loc)
+              when Options.is_debug_key_enabled Options.Dkey.printer_normalized ->
+              let derived = Logic_normalizer.Logic_infos.generated_of li in
+              Cil_datatype.Logic_info.Set.iter
+                (fun li -> self#global_annotation fmt @@ Cil_types.Dfun_or_pred (li, loc))
+                derived;
+              super#global_annotation fmt g
+            | _ -> super#global_annotation fmt g
+
+          method !term fmt t =
+            let t = if Options.is_debug_key_enabled Options.Dkey.printer_normalized
+              then Logic_normalizer.get_term t
+              else t
+            in
+            super#term fmt t
 
           method !instr fmt i =
             match i with
