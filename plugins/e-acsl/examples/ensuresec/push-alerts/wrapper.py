@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 # Wrapper for an E-ACSL monitored executable that will POST each raised alert
 # to a specific URL.
 
 import argparse
+import os
+import subprocess
+import sys
+
 import dotenv
 import ijson
-import os
 import requests
-import subprocess
 
 ALERT_URL = 'ENSURESEC_ALERT_URL'
 EE_ID = 'ENSURESEC_EE_ID'
@@ -20,8 +21,8 @@ def check_config(value, name):
     """Check if the given value is empty and exit with an error message if that
     is the case."""
     if not value:
-        print("The '{}' option should be provided and not empty.".format(name))
-        exit(1)
+        print(f"The '{name}' option should be provided and not empty.")
+        sys.exit(1)
 
 
 @ijson.coroutine
@@ -60,22 +61,22 @@ def main():
         nargs='*')
     parser.add_argument(
         '-u', '--alert-url',
-        help="URL where alerts raised by the E-ACSL program must be pushed, \
-              default to environment variable {}.".format(ALERT_URL),
+        help=f"URL where alerts raised by the E-ACSL program must be pushed, \
+              default to environment variable {ALERT_URL}.",
         metavar='url',
         default=default[ALERT_URL],
         dest='alert_url')
     parser.add_argument(
         '-i', '--id',
-        help="Ensuresec e-commerce ecosystem id, default to environment \
-              variable {}.".format(EE_ID),
+        help=f"Ensuresec e-commerce ecosystem id, default to environment \
+              variable {EE_ID}.",
         metavar='id',
         default=default[EE_ID],
         dest='id')
     parser.add_argument(
         '-t', '--tool-id',
-        help="Ensuresec e-commerce ecosystem tool id, default to environment \
-              variable {}.".format(EE_TOOL_ID),
+        help=f"Ensuresec e-commerce ecosystem tool id, default to environment \
+              variable {EE_TOOL_ID}.",
         metavar="id",
         default=default[EE_TOOL_ID],
         dest='tool_id')

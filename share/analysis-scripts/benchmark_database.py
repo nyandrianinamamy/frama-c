@@ -7,8 +7,9 @@
 ##########################################################################
 
 from __future__ import annotations
-import os
+
 import csv
+import os
 import sqlite3
 
 import git_utils
@@ -40,7 +41,7 @@ class Database:
         self.reference_results = self.query_rdb(self.reference_hash)
 
     def update(self, results):
-        if not self.benchmark_tag is None:
+        if self.benchmark_tag is not None:
             for result in results:
                 inserted = result["target"] in self.inserted_targets
                 if result["up_to_date"] and not inserted:

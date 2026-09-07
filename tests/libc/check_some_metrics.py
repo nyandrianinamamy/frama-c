@@ -27,15 +27,13 @@ runs = []
 
 title_re = re.compile(r"(\[metrics\] )?([a-zA-Z0-9'][a-zA-Z0-9' -]+)+ +\(([0-9]+)\)")
 
-cur_run = 0
-for run in range(0, len(args) // 5):
+for run in range(len(args) // 5):
     r = {}
-    r["Defined functions"] = args[5 * cur_run]
-    r["Specified-only functions"] = args[5 * cur_run + 1]
-    r["Undefined and unspecified functions"] = args[5 * cur_run + 2]
-    r["'Extern' global variables"] = args[5 * cur_run + 3]
-    r["Potential entry points"] = args[5 * cur_run + 4]
-    cur_run += 1
+    r["Defined functions"] = args[5 * run]
+    r["Specified-only functions"] = args[5 * run + 1]
+    r["Undefined and unspecified functions"] = args[5 * run + 2]
+    r["'Extern' global variables"] = args[5 * run + 3]
+    r["Potential entry points"] = args[5 * run + 4]
     runs.append(r)
 
 

@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+#! /usr/bin/env python3
 ##########################################################################
 #                                                                        #
 #  SPDX-License-Identifier LGPL-2.1                                      #
@@ -11,8 +11,8 @@
 for a given function name, via heuristic syntactic matching."""
 
 import os
-from pathlib import Path
 import sys
+from pathlib import Path
 
 import function_finder
 import source_filter
@@ -42,7 +42,7 @@ class Callgraph:
             self.edges[(caller, callee)].append(loc)
         else:
             # new edge: check if caller exists
-            if not caller in self.succs:
+            if caller not in self.succs:
                 self.succs[caller] = []
             # add callee as successor of caller
             self.succs[caller].append(callee)
@@ -139,7 +139,7 @@ def compute_recursive_cycles(cg, acc) -> None:
     visited: set[str] = set()
     while to_visit:
         just_visited: set[str] = set()
-        n = sorted(list(to_visit))[0]
+        n = min(to_visit)
         cycle = cycle_bfs(cg, visited, just_visited, n)
         visited = visited.union(just_visited)
         if cycle:
@@ -157,7 +157,7 @@ def detect_recursion(cg) -> None:
     has_cycle = False
     while to_visit:
         just_visited: set[str] = set()
-        n = sorted(list(to_visit))[0]
+        n = min(to_visit)
         cycle = cycle_bfs(cg, visited, just_visited, n)
         visited = visited.union(just_visited)
         if cycle:

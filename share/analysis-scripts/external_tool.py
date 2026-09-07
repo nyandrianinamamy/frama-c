@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 ##########################################################################
 #                                                                        #
 #  SPDX-License-Identifier LGPL-2.1                                      #
@@ -11,10 +10,10 @@
 available in the PATH or via PyInstaller."""
 
 import os
-from pathlib import Path
 import shutil
 import subprocess
 import sys
+from pathlib import Path
 
 # warnings about missing commands are disabled during testing
 emit_warns = os.getenv("FRAMAC_TESTING") is None

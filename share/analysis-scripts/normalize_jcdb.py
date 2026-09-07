@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 ##########################################################################
 #                                                                        #
 #  SPDX-License-Identifier LGPL-2.1                                      #
@@ -12,9 +11,9 @@
 
 # See: http://clang.llvm.org/docs/JSONCompilationDatabase.html
 
-import sys
-import os
 import json
+import os
+import sys
 from pathlib import Path
 
 if len(sys.argv) < 2:

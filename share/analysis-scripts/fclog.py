@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 ##########################################################################
 #                                                                        #
 #  SPDX-License-Identifier LGPL-2.1                                      #
@@ -25,7 +24,7 @@ def init(debug, verbose):
 
     logging.addLevelName(VERBOSE, "")
     logging.addLevelName(logging.ERROR, "ERROR: ")
-    logging.addLevelName(logging.WARN, "WARNING: ")
+    logging.addLevelName(logging.WARNING, "WARNING: ")
     logging.addLevelName(logging.INFO, "")
     log_level = logging.DEBUG if debug else VERBOSE if verbose else logging.INFO
     log_format = "%(levelname)s%(message)s"
@@ -49,7 +48,7 @@ def init(debug, verbose):
                 if sys.platform == "win32" and e.errno == 22:
                     sys.stdout = None
                     sys.exit(0)
-                raise e
+                raise
 
         sys.stdout.flush = new_flush
     elif debug == "stderr":

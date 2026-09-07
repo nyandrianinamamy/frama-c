@@ -6,11 +6,10 @@
 #                                                                        #
 ##########################################################################
 
-import re
-import sys
-import string
 import curses
-
+import re
+import string
+import sys
 
 sensitivity = 0.02
 
@@ -208,7 +207,7 @@ class CursesDisplay(PlainDisplay):
                 self.window.refresh(self.scroll_y + 2, 0, 2, 0, height - 1, width - 1)
             else:
                 self.window.refresh(0, 0, 0, 0, height - 1, width - 1)
-        except Exception:
+        except curses.error:
             # getmaxyx may be out of date, especially when resizing down the
             # window ; just ignore errors
             pass
@@ -228,7 +227,7 @@ class CursesDisplay(PlainDisplay):
             elif c == curses.KEY_PPAGE:
                 self.scroll_y -= 10
             elif c == curses.KEY_MOUSE:
-                id, x, y, z, bstate = curses.getmouse()
+                _id, _x, _y, z, _bstate = curses.getmouse()
                 if z > 0:
                     self.scroll_y += 1
                 elif z < 0:

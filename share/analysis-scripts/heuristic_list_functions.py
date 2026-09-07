@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 ##########################################################################
 #                                                                        #
 #  SPDX-License-Identifier LGPL-2.1                                      #
@@ -11,16 +10,17 @@
 """This script uses heuristics to list all function definitions and
 declarations in a set of files."""
 
-from pathlib import Path
-import sys
 import os
+import sys
+from pathlib import Path
+
 import function_finder
 
 debug = os.getenv("DEBUG")
 
 arg = ""
 if len(sys.argv) < 4:
-    print("usage: %s want_defs want_decls file..." % sys.argv[0])
+    print(f"usage: {sys.argv[0]} want_defs want_decls file...")
     print("       looks for likely function definitions and/or declarations")
     print("       in the specified files.")
     sys.exit(1)
@@ -36,7 +36,7 @@ def boolish_string(s: str) -> bool:
 
 want_defs = boolish_string(sys.argv[1])
 want_decls = boolish_string(sys.argv[2])
-files = set([Path(f) for f in sys.argv[3:]])
+files = {Path(f) for f in sys.argv[3:]}
 
 for f in sorted(files):
     with open(f, encoding="ascii", errors="ignore") as data:

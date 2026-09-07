@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 ##########################################################################
 #                                                                        #
 #  SPDX-License-Identifier LGPL-2.1                                      #
@@ -11,8 +10,9 @@
 """This script finds files containing likely declarations and definitions
 for a given function name, via heuristic syntactic matching."""
 
-from pathlib import Path
 import sys
+from pathlib import Path
+
 import build_callgraph
 
 dotfile = None
@@ -30,7 +30,7 @@ prints a heuristic callgraph for the specified files.
 If --dot is specified, print in DOT (Graphviz) format
 to file outfile, or to stdout if outfile is '-'.""")
 
-cg = build_callgraph.compute(set([Path(a) for a in args]))
+cg = build_callgraph.compute({Path(a) for a in args})
 if dotfile:
     if dotfile == "-":
         out = sys.stdout

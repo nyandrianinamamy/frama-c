@@ -16,6 +16,7 @@ def rev_parse(gitdir, rev):
         stderr=subprocess.DEVNULL,
         encoding="ascii",
         cwd=gitdir,
+        check=False,
     )
     name = res.stdout.strip()
     return name if name else None
@@ -28,6 +29,7 @@ def name_rev(gitdir, rev):
         stderr=subprocess.DEVNULL,
         encoding="ascii",
         cwd=gitdir,
+        check=False,
     )
     name = res.stdout.strip()
     return name if name else None
@@ -47,5 +49,6 @@ def is_clean(gitdir):
         stderr=subprocess.DEVNULL,
         encoding="ascii",
         cwd=gitdir,
+        check=False,
     )
     return res.returncode == 0 and not res.stdout
