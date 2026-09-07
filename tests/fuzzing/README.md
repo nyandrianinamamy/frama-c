@@ -1,18 +1,21 @@
 # Crowbar tests
 
-This folder groups some tests using the OCaml library Crowbar.
-To run these tests the environment variable `CROWBAR` must be defined :
+This folder groups some fuzzing tests, many of them relying on the
+`Crowbar` OCaml library.
+To run these tests the environment variable `FC_FUZZING` must be defined :
 
 ```bash
-CROWBAR= dune test tests/crowbar
+FC_FUZZING= dune test tests/fuzzing
 ```
 
-If `CROWBAR` is defined, these tests can also be run using `dune build
+If `FC_FUZZING` is defined, these tests can also be run using `dune build
 @runtest`.
 
 # Adding a test
 
-tests are seen as separate dune projects, so to create a new test, you must
+## With Crowbar
+
+Tests using `Crowbar` are seen as separate dune projects, so to create a new test, you must
 create a directory `my_test.t` containing the following files:
 
 - `dune-project`
@@ -26,5 +29,10 @@ basically be copied from existing directories (just make sure that you change th
 `libraries`, especially in terms of tested plug-ins
 
 `Crowbar` runs in qcheck mode, generating by default 5000 random inputs. If you feel like
-your particular test is taking to much time, you can add an `action` field in the `test` directive
+your particular test is taking too much time, you can add an `action` field in the `test` directive
 of your `dune` file, e.g. `(action (run %{test} -r 2000))` for generating 2000 random test cases
+
+## Standalone
+
+If your fuzzer does not use OCaml (e.g. is python-based like `bitfield.t`), there's no requirement
+to have a dune project.

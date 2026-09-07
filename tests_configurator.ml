@@ -83,6 +83,11 @@ let tests_fc_scripts_deps_available configurator =
   test_aux "tests-fc_scripts-deps-available" configurator
     [python; clang; yq]
 
+let tests_fuzzing_deps_available configurator =
+  let python = dep "python-3.10-available" in
+  test_aux "tests-fuzzing-deps-available" configurator
+    [python]
+
 let tests_jcdb_deps_available configurator =
   let python = dep "python-3.10-available" in
   test_aux  "tests-jcdb-deps-available" configurator
@@ -151,6 +156,7 @@ let tests_deps_available configurator =
   let tests = [
     (* Kernel *)
     tests_fc_scripts_deps_available
+  ; tests_fuzzing_deps_available
   ; tests_jcdb_deps_available
   ; tests_libc_deps_available
   ; tests_metrics_deps_available

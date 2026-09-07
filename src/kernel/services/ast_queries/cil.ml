@@ -3983,6 +3983,110 @@ let bitsSizeOfBitfield typlv =
      | _ -> bitsSizeOf t)
   | t -> bitsSizeOf t
 
+let bitfield_access_unit bf =
+  if Option.is_none bf.fbitfield then
+    Kernel.fatal "bitfield_access_unit called on non-bitfield %a"
+      Cil_datatype.Fieldinfo.pretty bf;
+  let fields = Option.get bf.fcomp.cfields in
+  (* basically, we split the fields of the struct at bf. However, 0-sized
+     bitfields are a bit special, as they only signal a cut in a sequence
+     of bitfields. For all intents and purposes, they behave here as the
+     next non-0-sized bitfield, except when it does not exist, in which case
+     we take the rightmost 0-sized bitfields as split *)
+  let rec partition prev f next =
+    if f.forder >= bf.forder &&
+       (Option.is_none f.fbitfield || Option.get f.fbitfield <> 0)
+    then prev, f, next
+    else begin
+      match next with
+      | [] -> prev, f, next
+      | nf :: _ when f.forder >= bf.forder && Option.is_none nf.fbitfield -> prev, f, next
+      | nf :: tl -> partition (f::prev) nf tl
+    end
+  in
+  (* there's at least one field, bf *)
+  let prev_fields, bf, next_fields =
+    partition [] (List.hd fields) (List.tl fields)
+  in
+  (* our initial constraint: we want a number of bytes encompassing the interval
+     starting at foffset_bits and spanning fwidth_bits. *)
+  let foffset_bits, fwidth_bits = fieldBitsOffset bf in
+  let storage_offset = foffset_bits - foffset_bits mod (8) in
+  (* first, find an appropriate starting offset, aligned with a byte *)
+  let rec span_left storage_offset = function
+    | [] -> 0
+    | f :: tl ->
+      let (o,w) = fieldBitsOffset f in
+      if Option.is_none f.fbitfield || Option.get f.fbitfield = 0 then
+        (* previous field is in another unit, stop here.
+           The result should be byte-aligned or there's a bug in fieldBitsOffset
+        *)
+        o+w
+      else begin
+        if o+w <= storage_offset && storage_offset mod 8 = 0 then
+          (* we are at a byte boundary, no need to go further. *)
+          storage_offset
+        else
+          (* we're in the middle of a byte, keep accumulating bitfields *)
+          span_left (min o storage_offset) tl
+      end
+  in
+  let start_offset =
+    if fwidth_bits = 0 then storage_offset else
+      span_left storage_offset prev_fields
+  in
+  assert (start_offset mod 8 = 0);
+  (* now look for an appropriate right bound, that encompasses the bitfield
+     and contains an exact number of bytes *)
+  let next_offset = foffset_bits + fwidth_bits in
+  (* start_new_unit is true until we have seen one non-zero bitfield.
+     Basically, 0-sized bitfields are merged with the next non-zero one,
+     unless they are at the very end of a bitfield sequence, in which case
+     they will denote a 0-length unit (which we can't refer to anyway, since
+     those bitfields are anonymous). *)
+  let rec span_right start_new_unit next_offset = function
+    | [] ->
+      (* in case we have bitfields at the end of a struct, we might not
+         end exactly at a char boundary. just add some padding offset here. *)
+      if next_offset mod (8) = 0 then next_offset
+      else next_offset + (8) - (next_offset mod (8))
+    | f :: tl ->
+      let (o,w) = fieldBitsOffset f in
+      if Option.is_none f.fbitfield ||
+         (Option.get f.fbitfield = 0 && not start_new_unit)
+      then begin
+        (* next field starts a new unit anyways. We stop here. If
+           o is not at a byte boundary, something is wrong in fieldBitsOffset.
+        *)
+        assert (o mod 8 = 0); o
+      end else if not start_new_unit && o >= next_offset && o mod 8 = 0 then
+        (* next bitfield starts at a brand new byte, we can stop here. *)
+        o
+      else begin
+        (* we're in the middle of a byte, keep extending our access unit. *)
+        let next_offset = max next_offset (o+w) in
+        let start_new_unit = Option.get f.fbitfield = 0 in
+        span_right start_new_unit next_offset tl
+      end
+  in
+  (* if current bifield is of size 0, it's basically the start of the access
+     unit of the next one. *)
+  let start_new_unit = fwidth_bits = 0 in
+  let next_offset = span_right start_new_unit next_offset next_fields in
+  let width = next_offset - start_offset in
+  assert (width mod 8 == 0);
+  let typ =
+    match List.find_opt (fun i -> bitsSizeOfInt i = width)
+            [ IUChar; IUShort; IUInt; IULong; IULongLong; IUInt128 ]
+    with
+    | Some i -> Cil_const.mk_tint i
+    | None ->
+      let loc = Kernel.gen_loc in
+      Cil_const.(mk_tarray (mk_tint IChar)
+                   (Some (kinteger ~loc (Machine.sizeof_kind()) (width/8))))
+  in
+  start_offset / 8, typ
+
 let () = constfoldtoint := constFoldToInt ~machdep:true
 
 let bytesAlignOf t =
