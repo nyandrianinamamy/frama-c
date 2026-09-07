@@ -35,7 +35,7 @@ let create_slice kf =
 
 (** Delete [ff_to_remove] if it is not called.
  * @raise T.CantRemoveCalledFf if it is.
-*)
+ *)
 let remove_ff ff_to_remove =
   let rec remove ff_list ff_num = match ff_list with
     | [] -> raise Not_found

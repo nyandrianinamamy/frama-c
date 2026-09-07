@@ -195,7 +195,7 @@ end
 
 (** [FctMarks] manages the mapping between a function elements and their
  * marks. See {!module:PdgIndex.FctIndex} to know what an element is.
-*)
+ *)
 module FctMarks : sig
   type t (* =  SlicingInternals.marks_index *)
 
@@ -546,7 +546,7 @@ end = struct
   (** We know that the 'call' element is visible.
    * We have to check that all the associated nodes and
    * the dependencies of these nodes are, at least, marked as 'spare'.
-  *)
+   *)
   let mark_spare_nodes ff nodes =
     let ff_marks = get_ff_marks ff in
     let m_spare = SlicingMarks.mk_gen_spare in
@@ -863,7 +863,7 @@ let apply_add_marks ff nodes_marks =
 (** a function that doesn't modify anything but test if the [nodes_marks]
  * are already in the slice or not.
  * @return the [nodes_marks] that are not already in.
-*)
+ *)
 let filter_already_in ff selection =
   FctMarks.get_new_marks ff selection
 
@@ -1238,7 +1238,7 @@ let apply_missing_inputs ff call missing_inputs =
  * The missing marks are [output_marks].
  * The slicing level has to be used to choose either to modify the called
  * function [g] or to change it.
-*)
+ *)
 let apply_missing_outputs ff call output_marks more_outputs =
   SlicingParameters.debug ~level:2 "[Fct_Slice.apply_missing_outputs]";
   let ff_g = match CallInfo.get_call_f_called (ff, call) with
@@ -1265,7 +1265,7 @@ let apply_missing_outputs ff call output_marks more_outputs =
  * change the function call and propagate missing marks in the inputs
  * if needed.
  * @raise ChangeCallErr if [f_to_call] doesn't compute enough outputs.
-*)
+ *)
 let apply_change_call ff call f_to_call =
   SlicingParameters.debug ~level:1 "[Fct_Slice.apply_change_call]";
   let pdg = SlicingMacros.get_ff_pdg ff in

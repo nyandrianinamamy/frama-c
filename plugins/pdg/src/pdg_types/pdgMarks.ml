@@ -9,7 +9,7 @@
 (** This file provides useful things to help to associate an information
  * (called mark) to PDG elements and to propagate it across the
  * dependencies.
-*)
+ *)
 
 open PdgIndex
 
@@ -91,7 +91,7 @@ end
  * it means that if this statement is visible,
  * so must be the computation of [a] and [b], but [a] and/or [b] can be
  * visible while [x] is not.
-*)
+ *)
 module F_Fct (M : Mark)
   : Fct with type mark = M.t
          and type call_info = M.call_info
@@ -163,7 +163,7 @@ module F_Fct (M : Mark)
    *
    * This function [add_to_to_prop] groups similar information,
    * and keep the list sorted.
-  *)
+   *)
   let add_to_to_prop to_prop key mark =
     let rec add_out_key l key = match l with
       | [] -> [(key, mark)]

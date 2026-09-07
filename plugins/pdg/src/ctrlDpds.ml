@@ -64,7 +64,7 @@ end = struct
    * and build the links inside [stmt] (when it contains blocks)
    * @return a list of the last statements in [stmt] to continue processing
    *         with the statement that follows.
-  *)
+   *)
   let rec process_stmt graph ~prev_list ~stmt =
     Pdg_parameters.debug ~dkey "computing for statement %a@."
       pp_stmt stmt;
@@ -108,7 +108,7 @@ end = struct
    * knowing that the first element of 'tail'
    * is the successor of every statement in prev_list.
    * @return a list of the last statements in tail or prev_list if tail=[].
-  *)
+   *)
   and process_block graph blk =
     let rec process_stmts prev_list stmts = match stmts with
       | [] -> prev_list

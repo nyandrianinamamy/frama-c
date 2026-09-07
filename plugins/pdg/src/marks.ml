@@ -13,7 +13,7 @@ open PdgIndex
 
 (** compute the marks to propagate in the caller nodes from the marks of
  * a function inputs [in_marks].
-*)
+ *)
 let in_marks_to_caller pdg call m2m ?(rqs=[]) in_marks =
   let add_n_m acc n z_opt m =
     let select = PdgMarks.mk_select_node ~z_opt n in

@@ -164,7 +164,7 @@ let get_string_null (ic:in_channel) =
  *
  * Defaults to reading the file entirely since any integer will ever be greater
  * or equal than [max_int].
-*)
+ *)
 let read_lines ?nlines:(nlines=max_int) get_line filename =
   let lines = ref [] in
   let ic = if filename = "--stdin" then stdin else open_in filename in
@@ -414,7 +414,7 @@ let extract_header filename template_hdr =
  * @param headers a license header -> template header file hashtable
  * @requires all files in specs exist
  * @requires all header specifications have a corresponding existing template
-*)
+ *)
 let check_spec_discrepancies
     ~config_file_opts
     (specs: (string, string) Hashtbl.t)
@@ -495,7 +495,7 @@ let check_forbidden_headers (forbidden_headers:StringSet.t) header_specification
  * @param header_specifications file -> license header name hashtable
  * @param distributed_files a set of files considered for distribution
  * @param exceptions a set of files distributed but that should not be checked
-*)
+ *)
 let check files_ignored header_specifications distributed_files exceptions =
   if not !quiet then
     job_head "Checking that all distributed files do exist... @?";
@@ -558,7 +558,7 @@ let check files_ignored header_specifications distributed_files exceptions =
  * @param ~config_file_opts -> headache options setting the list of config files
  * @param header_specifications file -> license header name hashtable
  * @requires: files and licenses appearing in [header_specifications] exists
-*)
+ *)
 let update_headers ~config_file_opts header_specifications =
   let headers = get_header_files () in
   check_declared_headers header_specifications headers;

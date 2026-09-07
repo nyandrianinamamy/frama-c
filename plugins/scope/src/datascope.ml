@@ -114,7 +114,7 @@ let register_modified_zones lmap stmt =
 
 (** compute the mapping for the function
  * @raise Kernel_function.No_Definition if [kf] has no definition
-*)
+ *)
 let compute kf =
   let open Current_loc.Operators in
   R.debug ~level:1 "computing for function %a" Kernel_function.pretty kf;
@@ -293,7 +293,7 @@ let add_s s acc =
  * - forward only,
  * - forward and backward,
  * - backward only.
-*)
+ *)
 let find_scope allstmts modif_stmts modif_edge s kf =
   (* Add only statements for which the lvalue certainly did not change. *)
   let add get_state acc s =
@@ -389,7 +389,7 @@ let is_modified_by_edge kf z s1 s2 =
 (** Try to find the statement set where [data] has the same value than
  * before [stmt].
  * @raise Kernel_function.No_Definition if [kf] has no definition
-*)
+ *)
 let get_data_scope_at_stmt kf stmt lval =
   let zone = Eva.Results.(before stmt |> lval_deps lval) in
   let allstmts, info = compute kf in

@@ -532,7 +532,7 @@ let xform_switch_block ?(keepSwitch=false) b =
              * }
              * label_break: ; // break_stmt
              *
-            *)
+             *)
             let label_index = label_index + 1 in
             let break_stmt = Cil.mkStmt (Instr (Skip loc)) in
             break_stmt.labels <-
