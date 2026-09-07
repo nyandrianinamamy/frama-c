@@ -134,6 +134,8 @@ let change_printer =
               then Logic_normalizer.get_pred p
               else p
             in
+            if Options.is_debug_key_enabled Options.Dkey.printer_bound_variables then
+              Bound_variables.pp_preprocessed_quantifier_debug fmt p;
             if Options.is_debug_key_enabled Options.Dkey.printer_pred_addr then
               Format.fprintf fmt "%#x:" (Obj.magic p);
             super#predicate fmt p

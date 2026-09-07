@@ -348,6 +348,9 @@ module Dkey = struct
   let printer_pred_addr =
     let help = "pretty-printer: prefix predicates with their OCaml address" in
     register_category ~help "printer:pred-addr"
+  let printer_bound_variables =
+    let help = "pretty-printer: show results of bound variables analysis" in
+    register_category ~help "printer:bound_variables"
   let printer_rte =
     let help = "pretty-printer: print next to terms their E-ACSL RTEs \
                 (more detailed output with -e-acsl-debug 2 or greater)" in

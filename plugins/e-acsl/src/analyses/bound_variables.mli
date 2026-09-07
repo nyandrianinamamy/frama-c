@@ -17,6 +17,11 @@ val get_preprocessed_quantifier:
     @raises Typing_error if predicate cannot be typed.
     @raises Abort.fatal if predicate has not been preprocessed. *)
 
+(** Pretty-print the preprocessed quantifiers (if present) of the given
+    predicate for debug purposes. If the predicate has not yet been analysed,
+    print nothing. If an error occurred, pretty-print the exception. *)
+val pp_preprocessed_quantifier_debug : Format.formatter -> predicate -> unit
+
 val add_guard_for_small_type : logic_var -> predicate -> unit
 (** Adds an optional additional guard condition that comes from the typing *)
 
