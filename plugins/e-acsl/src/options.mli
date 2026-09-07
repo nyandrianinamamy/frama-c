@@ -53,6 +53,7 @@ module Dkey: sig
   val printer_normalized: category
   val printer_term_addr: category
   val printer_pred_addr: category
+  val printer_labels: category
   val printer_bound_variables: category
   val printer_rte: category
   val analysis: category

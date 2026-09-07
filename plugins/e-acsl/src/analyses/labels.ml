@@ -99,6 +99,10 @@ let at_for_stmt stmt =
     stmt
     Printer.pp_stmt
 
+let label_for_pot_debug pt =
+  Option.map (fun {Analyses_types.label} -> label)
+    (Pred_or_term.Hashtbl.find_opt at_data_for_pots pt)
+
 let at_for_pot pot =
   let retrieve pot =
     match Pred_or_term.Hashtbl.find_opt at_data_for_pots pot with

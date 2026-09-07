@@ -134,6 +134,9 @@ let change_printer =
               then Logic_normalizer.get_pred p
               else p
             in
+            if Options.is_debug_key_enabled Options.Dkey.printer_labels then
+              Pretty_utils.pp_opt ~pre:"[L:" ~suf:"]" Printer.pp_logic_label fmt
+                (Labels.label_for_pot_debug @@ PoT_pred p);
             if Options.is_debug_key_enabled Options.Dkey.printer_bound_variables then
               Bound_variables.pp_preprocessed_quantifier_debug fmt p;
             if Options.is_debug_key_enabled Options.Dkey.printer_pred_addr then
@@ -167,6 +170,9 @@ let change_printer =
               then Logic_normalizer.get_term t
               else t
             in
+            if Options.is_debug_key_enabled Options.Dkey.printer_labels then
+              Pretty_utils.pp_opt ~pre:"[L:" ~suf:"]" Printer.pp_logic_label fmt
+                (Labels.label_for_pot_debug @@ PoT_term t);
             if Options.is_debug_key_enabled Options.Dkey.printer_term_addr then
               Format.fprintf fmt "%x#:" (Obj.magic t);
             super#term fmt t;
