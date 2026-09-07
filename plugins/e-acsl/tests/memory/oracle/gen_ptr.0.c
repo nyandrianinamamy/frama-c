@@ -109,11 +109,10 @@ int main(void)
       {.values = (void *)0};
     __e_acsl_assert_data_t __gen_e_acsl_assert_data_7 =
       {.values = (void *)0};
-    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_7,
-                                 "sizeof((int)0x0)",0,4);
     if (1) {
       __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_7,
-                                   "sizeof((int)0x0)",0,4);
+                                   "(2 * sizeof(int)) / sizeof((int)0x0)",0,
+                                   2);
       __gen_e_acsl_and = 1;
     }
     else __gen_e_acsl_and = 0;

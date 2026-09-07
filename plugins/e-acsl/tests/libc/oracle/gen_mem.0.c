@@ -201,6 +201,10 @@ int main(void)
     __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_6,"&(b[0])",
                                  (void *)(b));
     __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_6,
+                                 "sizeof(int) * 2",0,8);
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_6,
+                                 "sizeof(int) * ((3 - 2) + 1)",0,8);
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_6,
                                  "\\initialized(&b[2 .. 3])",0,
                                  __gen_e_acsl_initialized_6);
     __gen_e_acsl_assert_data_6.blocking = 1;
@@ -282,6 +286,10 @@ int main(void)
     __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_9,"&(c[0])",
                                  (void *)(c));
     __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_9,
+                                 "sizeof(char) * 1",0,1);
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_9,
+                                 "sizeof(char) * ((2 - 1) + 1)",0,2);
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_9,
                                  "\\initialized(&c[1 .. 2])",0,
                                  __gen_e_acsl_initialized_9);
     __gen_e_acsl_assert_data_9.blocking = 1;
@@ -338,6 +346,10 @@ int main(void)
                                                        (size_t)__gen_e_acsl_if_3);
     __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_11,"&(c[0])",
                                  (void *)(c));
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_11,
+                                 "sizeof(char) * 0",0,0);
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_11,
+                                 "sizeof(char) * ((2 - 0) + 1)",0,3);
     __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_11,
                                  "\\initialized(&c[0 .. 2])",0,
                                  __gen_e_acsl_initialized_11);
@@ -668,6 +680,8 @@ void *__gen_e_acsl_memcpy(void * restrict dest, void const * restrict src,
                                                   __gen_e_acsl_if,dest,
                                                   (void *)(& dest));
     __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_5,"dest",dest);
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_5,
+                                 "sizeof(char) * 0",0,0);
     __e_acsl_assert_register_ulong(& __gen_e_acsl_assert_data_5,"n",0,n);
     __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_5,
                                  "\"memory access\": \\valid_read((char *)dest + (0 .. n - 1))",
@@ -732,6 +746,8 @@ void *__gen_e_acsl_memcpy(void * restrict dest, void const * restrict src,
                                                     (void *)(& src));
     __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_7,"src",
                                  (void *)src);
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_7,
+                                 "sizeof(char) * 0",0,0);
     __e_acsl_assert_register_ulong(& __gen_e_acsl_assert_data_7,"n",0,n);
     __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_7,
                                  "\"memory access\": \\valid_read((char *)src + (0 .. n - 1))",
@@ -764,9 +780,13 @@ void *__gen_e_acsl_memcpy(void * restrict dest, void const * restrict src,
                                                 (char *)src + 0,
                                                 __gen_e_acsl_if_4);
     __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_3,"dest",dest);
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_3,
+                                 "sizeof(char) * 0",0,0);
     __e_acsl_assert_register_ulong(& __gen_e_acsl_assert_data_3,"n",0,n);
     __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_3,"src",
                                  (void *)src);
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_3,
+                                 "sizeof(char) * 0",0,0);
     __e_acsl_assert_register_ulong(& __gen_e_acsl_assert_data_3,"n",0,n);
     __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_3,
                                  "separation:\n  \\separated((char *)dest + (0 .. n - 1), (char *)src + (0 .. n - 1))",

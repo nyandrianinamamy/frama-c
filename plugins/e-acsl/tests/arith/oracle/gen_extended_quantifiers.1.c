@@ -513,6 +513,8 @@ int main(void)
                                  "\\sum(x, 10, \\lambda integer k; -2147483647 - 1)",
                                  0,
                                  (__e_acsl_mpz_struct const *)(__gen_e_acsl_accumulator_8));
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_8,
+                                 "0 == 0 ? 1 : 10",0,1);
     __gen_e_acsl_assert_data_8.blocking = 1;
     __gen_e_acsl_assert_data_8.kind = "Assertion";
     __gen_e_acsl_assert_data_8.pred_txt = "\\let x = 0 == 0 ? 1 : 10; \\sum(x, 10, \\lambda integer k; -2147483647 - 1) < 0";

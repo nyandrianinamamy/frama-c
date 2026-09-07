@@ -384,7 +384,19 @@ and context_insensitive_term_to_exp_il ?inplace t =
   | TLval lv ->
     let* l = tlval_to_lval_il lv in
     M.return @@ IL.Exp.lval ~origin:(PoT_term t) l
-  | TSizeOf ty -> M.return @@ IL.Exp.sizeof ~origin:(PoT_term t) ty
+  | TSizeOf ty ->
+    let+ logic_env = M.read_logic_env in
+    let ity = Typing.get_number_ty ~logic_env t in
+    IL.Exp.sizeof ~origin:(PoT_term t) ~ity ty
+  | TSizeOfE t' ->
+    (* [sizeof] does not evaluate its operand: only its type is relevant. *)
+    begin match Ast_types.Acsl.unroll t'.term_type with
+      | Ctype ty ->
+        let+ logic_env = M.read_logic_env in
+        let ity = Typing.get_number_ty ~logic_env t in
+        IL.Exp.sizeof ~origin:(PoT_term t) ~ity ty
+      | _ -> M.not_covered Printer.pp_term t
+    end
   | Tif (p, t1, t2) ->
     let* logic_env = M.read_logic_env in
     let* e1 = Translate_predicates.to_exp_il p in
@@ -454,12 +466,12 @@ and context_insensitive_term_to_exp_old ~adata ?(inplace=false) kf env t =
     e, adata, env, Analyses_types.C_number, name
   | TSizeOf ty ->
     let e = Cil.sizeOf ~loc ty in
-    let adata = Assert.register_term ~loc ~force:true t e adata in
+    let adata = Assert.register_term ~loc t e adata in
     e, adata, env, Analyses_types.C_number, "sizeof"
   | TSizeOfE t' ->
     let e', _, env = to_exp ~adata:Assert.no_data kf env t' in
     let e = Cil.sizeOf ~loc (Cil.typeOf e') in
-    let adata = Assert.register_term ~loc ~force:true t e adata in
+    let adata = Assert.register_term ~loc t e adata in
     e, adata, env, Analyses_types.C_number, "sizeof"
   | TAlignOf ty ->
     let e = Cil.new_exp ~loc (AlignOf(ty, `Standard)) in

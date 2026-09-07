@@ -112,6 +112,8 @@ int *new_inversed(int len, int *v)
       __e_acsl_assert_register_ulong(& __gen_e_acsl_assert_data,
                                      "\\offset(v)",0,__gen_e_acsl_offset);
       __e_acsl_assert_register_int(& __gen_e_acsl_assert_data,"len",0,len);
+      __e_acsl_assert_register_long(& __gen_e_acsl_assert_data,"sizeof(int)",
+                                    0,4L);
       __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data,"v",(void *)v);
       __e_acsl_assert_register_ulong(& __gen_e_acsl_assert_data,
                                      "\\block_length(v)",0,

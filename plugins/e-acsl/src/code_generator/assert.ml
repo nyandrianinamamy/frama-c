@@ -175,34 +175,37 @@ let do_pending_register_data env =
     in
     do_queue env
 
-let register ~loc ?(force=false) name e adata =
+let is_constant e = match e.enode with Const _ -> true | _ -> false
+
+let rec is_literal_term t =
+  match (Terms.strip_shallow_cast t).term_node with
+  | TConst (Integer _ | LReal _ | LChr _ | Boolean _) -> true
+  | TUnOp (_, t) -> is_literal_term t
+  | TBinOp (_, t1, t2) -> is_literal_term t1 && is_literal_term t2
+  | TConst (LStr _ | LWStr _ | LEnum _) | _ -> false
+
+let register_data ~loc ~skip name e adata =
   if Options.Optimisations.Print_values.get () then
-    match adata, e.enode with
-    | Some adata, Const _ when not force ->
-      (* By default, do not register constant expressions because the name of
-         the data will be its value. For instance in expression [a + 3], the
-         data [a] needs to be registered, but [3] already appears in the
-         predicate message, and trying to register it will result in a data with
-         name "3" and value [3].
-         The registration can be forced for expressions like [sizeof(int)] for
-         instance that are [Const] values but not directly known. *)
-      Some adata
-    | Some adata, _ ->
+    match adata with
+    | Some adata when skip -> Some adata
+    | Some adata ->
       let adata = { adata with data_registered = true } in
       add_pending_register_data ~loc adata name e;
       Some adata
-    | None, _ -> None
+    | None -> None
   else
     adata
 
-let register_term ~loc ?force t e adata =
-  let name =
-    Format.asprintf "@[%a@]"
-      Printer.pp_term (Logic_normalizer.get_orig_term t)
-  in
-  register ~loc name ?force e adata
+let register ~loc name e adata =
+  (* Constant values are registered only when meaningful, like [sizeof(int)] *)
+  register_data ~loc ~skip:(is_constant e) name e adata
 
-let register_pred ~loc env ?force p e adata =
+let register_term ~loc t e adata =
+  let t = Logic_normalizer.get_orig_term t in
+  let name = Format.asprintf "@[%a@]" Printer.pp_term t in
+  register_data ~loc ~skip:(is_constant e && is_literal_term t) name e adata
+
+let register_pred ~loc env p e adata =
   if Env.annotation_kind env == RTE then
     (* When translating RTE, we do not want to print the result of the predicate
        because they should be the only predicate in an assertion clause. *)
@@ -210,12 +213,12 @@ let register_pred ~loc env ?force p e adata =
   else
     let p = Logic_normalizer.get_orig_pred p in
     let name = Format.asprintf "@[%a@]" Printer.pp_predicate p in
-    register ~loc name ?force e adata
+    register ~loc name e adata
 
-let register_pred_or_term ~loc env ?force pot e adata =
+let register_pred_or_term ~loc env pot e adata =
   match pot with
-  | PoT_term t -> register_term ~loc ?force t e adata
-  | PoT_pred p -> register_pred ~loc env ?force p e adata
+  | PoT_term t -> register_term ~loc t e adata
+  | PoT_pred p -> register_pred ~loc env p e adata
 
 let kind_to_string loc k =
   Cil.mkAddrOrStartOf ~loc

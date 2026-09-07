@@ -59,6 +59,9 @@ int main(void)
                                   __gen_e_acsl_n);
     __e_acsl_assert_register_mpz(& __gen_e_acsl_assert_data_2,"f(n)",0,
                                  (__e_acsl_mpz_struct const *)(__gen_e_acsl_f_6));
+    __e_acsl_assert_register_ulong(& __gen_e_acsl_assert_data_2,
+                                   "0 == 0 ? 9223372036854775807L : -1",0,
+                                   9223372036854775807UL);
     __gen_e_acsl_assert_data_2.blocking = 1;
     __gen_e_acsl_assert_data_2.kind = "Assertion";
     __gen_e_acsl_assert_data_2.pred_txt = "\\let n = 0 == 0 ? 9223372036854775807L : -1; f(n) != 0";

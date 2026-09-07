@@ -1216,6 +1216,9 @@ int main(void)
                                  (__e_acsl_mpz_struct const *)(__gen_e_acsl_n));
     __e_acsl_assert_register_mpz(& __gen_e_acsl_assert_data_41,"rf5(n)",0,
                                  (__e_acsl_mpz_struct const *)(__gen_e_acsl_rf5_6));
+    __e_acsl_assert_register_ulong(& __gen_e_acsl_assert_data_41,
+                                   "0 == 0 ? 0x7fffffffffffffffL : -1",0,
+                                   9223372036854775807UL);
     __gen_e_acsl_assert_data_41.blocking = 1;
     __gen_e_acsl_assert_data_41.kind = "Assertion";
     __gen_e_acsl_assert_data_41.pred_txt = "\\let n = 0 == 0 ? 0x7fffffffffffffffL : -1; rf5(n) == 0";

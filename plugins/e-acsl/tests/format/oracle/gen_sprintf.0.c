@@ -33,6 +33,10 @@ int main(void)
       __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data,"&(buf[0])",
                                    (void *)(buf));
       __e_acsl_assert_register_int(& __gen_e_acsl_assert_data,
+                                   "sizeof(char) * 0",0,0);
+      __e_acsl_assert_register_int(& __gen_e_acsl_assert_data,
+                                   "sizeof(char) * ((3 - 0) + 1)",0,4);
+      __e_acsl_assert_register_int(& __gen_e_acsl_assert_data,
                                    "\\initialized(&buf[0 .. 3])",0,
                                    __gen_e_acsl_initialized);
       __gen_e_acsl_assert_data.blocking = 1;
@@ -65,6 +69,10 @@ int main(void)
                                                         (size_t)__gen_e_acsl_if_2);
       __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_2,"&(buf[0])",
                                    (void *)(buf));
+      __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_2,
+                                   "sizeof(char) * 0",0,0);
+      __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_2,
+                                   "sizeof(char) * ((2 - 0) + 1)",0,3);
       __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_2,
                                    "\\initialized(&buf[0 .. 2])",0,
                                    __gen_e_acsl_initialized_2);
@@ -128,6 +136,10 @@ int main(void)
       __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_4,
                                    "&(buf_0[0])",(void *)(buf_0));
       __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_4,
+                                   "sizeof(char) * 0",0,0);
+      __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_4,
+                                   "sizeof(char) * ((3 - 0) + 1)",0,4);
+      __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_4,
                                    "\\initialized(&buf_0[0 .. 3])",0,
                                    __gen_e_acsl_initialized_4);
       __gen_e_acsl_assert_data_4.blocking = 1;
@@ -161,6 +173,10 @@ int main(void)
                                                         (size_t)__gen_e_acsl_if_4);
       __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_5,
                                    "&(buf_0[0])",(void *)(buf_0));
+      __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_5,
+                                   "sizeof(char) * 0",0,0);
+      __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_5,
+                                   "sizeof(char) * ((1 - 0) + 1)",0,2);
       __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_5,
                                    "\\initialized(&buf_0[0 .. 1])",0,
                                    __gen_e_acsl_initialized_5);
@@ -248,6 +264,10 @@ int main(void)
       __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_8,
                                    "&(buf_1[0])",(void *)(buf_1));
       __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_8,
+                                   "sizeof(char) * 0",0,0);
+      __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_8,
+                                   "sizeof(char) * ((3 - 0) + 1)",0,4);
+      __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_8,
                                    "\\initialized(&buf_1[0 .. 3])",0,
                                    __gen_e_acsl_initialized_8);
       __gen_e_acsl_assert_data_8.blocking = 1;
@@ -281,6 +301,10 @@ int main(void)
                                                         (size_t)__gen_e_acsl_if_6);
       __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_9,
                                    "&(buf_1[0])",(void *)(buf_1));
+      __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_9,
+                                   "sizeof(char) * 0",0,0);
+      __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_9,
+                                   "sizeof(char) * ((2 - 0) + 1)",0,3);
       __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_9,
                                    "\\initialized(&buf_1[0 .. 2])",0,
                                    __gen_e_acsl_initialized_9);

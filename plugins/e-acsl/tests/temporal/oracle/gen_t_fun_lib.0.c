@@ -305,6 +305,11 @@ char *__gen_e_acsl_realpath(char const * restrict file_name,
       __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_7,
                                    "resolved_name",(void *)resolved_name);
       __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_7,
+                                   "sizeof(char) * 0",0,0);
+      __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_7,
+                                   "sizeof(char) * (((4096 - 1) - 0) + 1)",0,
+                                   4096);
+      __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_7,
                                    "\\valid(resolved_name + (0 .. 4096 - 1))",
                                    0,__gen_e_acsl_valid);
       __gen_e_acsl_or = __gen_e_acsl_valid;

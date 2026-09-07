@@ -14,7 +14,6 @@ int main(void)
   x ++;
   {
     __e_acsl_assert_data_t __gen_e_acsl_assert_data = {.values = (void *)0};
-    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data,"sizeof(x)",0,4);
     __gen_e_acsl_assert_data.blocking = 1;
     __gen_e_acsl_assert_data.kind = "Assertion";
     __gen_e_acsl_assert_data.pred_txt = "sizeof(int) == sizeof(x)";
@@ -22,7 +21,6 @@ int main(void)
     __gen_e_acsl_assert_data.fct = "main";
     __gen_e_acsl_assert_data.line = 8;
     __e_acsl_assert(1,& __gen_e_acsl_assert_data);
-    __e_acsl_assert_clean(& __gen_e_acsl_assert_data);
   }
   /*@ assert sizeof(int) == sizeof(x); */ ;
   __retres = 0;

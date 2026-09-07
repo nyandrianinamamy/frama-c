@@ -135,7 +135,7 @@ int __gen_e_acsl_main(int argc, char **argv)
     }
     __gen_e_acsl_block_length = __e_acsl_block_length((void *)argv);
     __gmpz_init_set_ui(__gen_e_acsl_block_length_2,__gen_e_acsl_block_length);
-    __gmpz_init_set_si(__gen_e_acsl_mul,(argc + 1L) * 8);
+    __gmpz_init_set_si(__gen_e_acsl_mul,(argc + 1L) * 8L);
     __gen_e_acsl_eq = __gmpz_cmp((__e_acsl_mpz_struct const *)(__gen_e_acsl_block_length_2),
                                  (__e_acsl_mpz_struct const *)(__gen_e_acsl_mul));
     __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_4,"argv",
@@ -144,6 +144,8 @@ int __gen_e_acsl_main(int argc, char **argv)
                                    "\\block_length(argv)",0,
                                    __gen_e_acsl_block_length);
     __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_4,"argc",0,argc);
+    __e_acsl_assert_register_long(& __gen_e_acsl_assert_data_4,
+                                  "sizeof(char *)",0,8L);
     __gen_e_acsl_assert_data_4.blocking = 1;
     __gen_e_acsl_assert_data_4.kind = "Assertion";
     __gen_e_acsl_assert_data_4.pred_txt = "\\block_length(argv) == (argc + 1) * sizeof(char *)";

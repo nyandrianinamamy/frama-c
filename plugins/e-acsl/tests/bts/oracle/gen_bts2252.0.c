@@ -221,6 +221,8 @@ char *__gen_e_acsl_strncpy(char * restrict dest, char const * restrict src,
                                         (void *)dest,(void *)(& dest));
     __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_7,"dest",
                                  (void *)dest);
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_7,
+                                 "sizeof(char) * 0",0,0);
     __e_acsl_assert_register_ulong(& __gen_e_acsl_assert_data_7,"n",0,n);
     __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_7,
                                  "room_nstring: \\valid(dest + (0 .. n - 1))",
@@ -273,6 +275,8 @@ char *__gen_e_acsl_strncpy(char * restrict dest, char const * restrict src,
                                                     (void *)(& dest));
     __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_11,"dest",
                                  (void *)dest);
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_11,
+                                 "sizeof(char) * 0",0,0);
     __e_acsl_assert_register_ulong(& __gen_e_acsl_assert_data_11,"n",0,n);
     __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_11,
                                  "\"memory access\": \\valid_read(dest + (0 .. n - 1))",
@@ -340,6 +344,8 @@ char *__gen_e_acsl_strncpy(char * restrict dest, char const * restrict src,
                                                     (void *)(& src));
     __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_13,"src",
                                  (void *)src);
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_13,
+                                 "sizeof(char const) * 0",0,0);
     __e_acsl_assert_register_ulong(& __gen_e_acsl_assert_data_13,"n",0,n);
     __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_13,
                                  "\"memory access\": \\valid_read(src + (0 .. n - 1))",
@@ -371,9 +377,13 @@ char *__gen_e_acsl_strncpy(char * restrict dest, char const * restrict src,
                                                 __gen_e_acsl_if_7);
     __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_9,"dest",
                                  (void *)dest);
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_9,
+                                 "sizeof(char) * 0",0,0);
     __e_acsl_assert_register_ulong(& __gen_e_acsl_assert_data_9,"n",0,n);
     __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_9,"src",
                                  (void *)src);
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_9,
+                                 "sizeof(char const) * 0",0,0);
     __e_acsl_assert_register_ulong(& __gen_e_acsl_assert_data_9,"n",0,n);
     __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_9,
                                  "separation: \\separated(dest + (0 .. n - 1), src + (0 .. n - 1))",
@@ -472,6 +482,10 @@ char *__gen_e_acsl_strncpy(char * restrict dest, char const * restrict src,
                                                       __gen_e_acsl_if_8);
     __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_16,"\\old(dest)",
                                  (void *)__gen_e_acsl_at_4);
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_16,
+                                 "sizeof(char) * 0",0,0);
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_16,
+                                 "sizeof(char)",0,1);
     __e_acsl_assert_register_mpz(& __gen_e_acsl_assert_data_16,"\\old(n)",0,
                                  (__e_acsl_mpz_struct const *)(__gen_e_acsl_at_3));
     __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_16,

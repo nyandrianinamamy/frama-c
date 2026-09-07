@@ -385,7 +385,11 @@ int main(void)
     __e_acsl_assert_data_t __gen_e_acsl_assert_data_18 =
       {.values = (void *)0};
     __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_18,"x",0,x);
-    if (x != 0) __gen_e_acsl_or_9 = 1;
+    if (x != 0) {
+      __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_18,
+                                   "x != 0 || y != 0",0,1);
+      __gen_e_acsl_or_9 = 1;
+    }
     else {
       __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_18,"y",0,y);
       __gen_e_acsl_or_9 = y != 0;
@@ -411,7 +415,11 @@ int main(void)
       __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_19,"y",0,y);
       __gen_e_acsl_and_5 = y != 0;
     }
-    else __gen_e_acsl_and_5 = 0;
+    else {
+      __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_19,
+                                   "x != 0 && y != 0",0,0);
+      __gen_e_acsl_and_5 = 0;
+    }
     __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_19,"x",0,x);
     __gen_e_acsl_assert_data_19.blocking = 1;
     __gen_e_acsl_assert_data_19.kind = "Assertion";

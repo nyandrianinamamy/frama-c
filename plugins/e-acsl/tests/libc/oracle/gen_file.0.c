@@ -167,6 +167,8 @@ size_t __gen_e_acsl_fread(void * restrict ptr, size_t size, size_t nmemb,
                                         __gen_e_acsl_size_3,ptr,
                                         (void *)(& ptr));
     __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data,"ptr",ptr);
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data,
+                                 "sizeof(char) * 0",0,0);
     __e_acsl_assert_register_ulong(& __gen_e_acsl_assert_data,"nmemb",0,
                                    nmemb);
     __e_acsl_assert_register_ulong(& __gen_e_acsl_assert_data,"size",0,size);
@@ -396,6 +398,10 @@ size_t __gen_e_acsl_fread(void * restrict ptr, size_t size, size_t nmemb,
                                                     __gen_e_acsl_size_7);
     __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_8,"\\old(ptr)",
                                  __gen_e_acsl_at_2);
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_8,
+                                 "sizeof(char) * 0",0,0);
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_8,"sizeof(char)",
+                                 0,1);
     __e_acsl_assert_register_ulong(& __gen_e_acsl_assert_data_8,"\\result",0,
                                    __retres);
     __e_acsl_assert_register_mpz(& __gen_e_acsl_assert_data_8,"\\old(size)",
@@ -795,6 +801,10 @@ int main(void)
                                                       (size_t)__gen_e_acsl_if);
     __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_9,"&(buf2[0])",
                                  (void *)(buf2));
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_9,
+                                 "sizeof(int) * 1",0,4);
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_9,
+                                 "sizeof(int) * ((4 - 1) + 1)",0,16);
     __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_9,
                                  "\\initialized(&buf2[1 .. 4])",0,
                                  __gen_e_acsl_initialized_9);

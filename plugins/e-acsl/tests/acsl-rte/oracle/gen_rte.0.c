@@ -3698,6 +3698,10 @@ int main(void)
     __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_58,"&(t_1[0])",
                                  (void *)(t_1));
     __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_58,
+                                 "sizeof(int) * 0",0,0);
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_58,
+                                 "sizeof(int) * ((2 - 0) + 1)",0,12);
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_58,
                                  "uninitialized: \\initialized(&t_1[0 .. 2])",
                                  0,__gen_e_acsl_initialized_21);
     /*@ assert E_ACSL: uninitialized: \initialized(&t_1[0 .. 2]); */
@@ -3728,6 +3732,10 @@ int main(void)
                                                        (size_t)__gen_e_acsl_if_3);
     __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_59,"&(t_2[0])",
                                  (void *)(t_2));
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_59,
+                                 "sizeof(int) * 0",0,0);
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_59,
+                                 "sizeof(int) * ((2 - 0) + 1)",0,12);
     __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_59,
                                  "uninitialized: \\initialized(&t_2[0 .. 2])",
                                  0,__gen_e_acsl_initialized_22);
@@ -3828,6 +3836,10 @@ int main(void)
     __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_61,"&(t_1[0])",
                                  (void *)(t_1));
     __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_61,
+                                 "sizeof(int) * 0",0,0);
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_61,
+                                 "sizeof(int) * ((2 - 0) + 1)",0,12);
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_61,
                                  "uninitialized: \\initialized(&t_1[0 .. 2])",
                                  0,__gen_e_acsl_initialized_23);
     /*@ assert E_ACSL: uninitialized: \initialized(&t_1[0 .. 2]); */
@@ -3911,6 +3923,10 @@ int main(void)
     __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_62,
                                  "&(*((int (*)[])ptr_t)[0])",
                                  (void *)(*((int (*)[])ptr_t)));
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_62,
+                                 "sizeof(int) * 0",0,0);
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_62,"sizeof(int)",
+                                 0,4);
     __e_acsl_assert_register_array(& __gen_e_acsl_assert_data_62,
                                    "*((int (*)[])ptr_t)",
                                    (void *)(*((int (*)[])ptr_t)));
@@ -3997,6 +4013,10 @@ int main(void)
     __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_64,
                                  "&(*((int (*)[])ptr_t)[0])",
                                  (void *)(*((int (*)[])ptr_t)));
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_64,
+                                 "sizeof(int) * 0",0,0);
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_64,"sizeof(int)",
+                                 0,4);
     __e_acsl_assert_register_array(& __gen_e_acsl_assert_data_64,
                                    "*((int (*)[])ptr_t)",
                                    (void *)(*((int (*)[])ptr_t)));
@@ -4750,6 +4770,10 @@ int main(void)
                                                        (size_t)__gen_e_acsl_if_7);
     __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_87,"struct_s.b",
                                  (void *)struct_s.b);
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_87,
+                                 "sizeof(int) * 0",0,0);
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_87,
+                                 "sizeof(int) * ((1 - 0) + 1)",0,8);
     __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_87,
                                  "\\initialized(struct_s.b + (0 .. 1))",0,
                                  __gen_e_acsl_initialized_34);

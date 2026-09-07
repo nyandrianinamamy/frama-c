@@ -72,6 +72,10 @@ int main(void)
                                         (void *)(& p));
     __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data,"p",(void *)p);
     __e_acsl_assert_register_int(& __gen_e_acsl_assert_data,
+                                 "sizeof(char) * 0",0,0);
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data,
+                                 "sizeof(char) * ((9 - 0) + 1)",0,10);
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data,
                                  "\\valid(p + (0 .. 9))",0,
                                  __gen_e_acsl_valid);
     __gen_e_acsl_assert_data.blocking = 1;
@@ -104,6 +108,10 @@ int main(void)
                                           (void *)(t),(void *)0);
     __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_3,"&(t[0])",
                                  (void *)(t));
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_3,
+                                 "sizeof(char) * 0",0,0);
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_3,
+                                 "sizeof(char) * ((9 - 0) + 1)",0,10);
     __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_3,
                                  "\\valid(&t[0 .. 9])",0,
                                  __gen_e_acsl_valid_2);
