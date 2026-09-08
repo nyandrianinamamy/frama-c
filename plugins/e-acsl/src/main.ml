@@ -173,6 +173,9 @@ let change_printer =
             if Options.is_debug_key_enabled Options.Dkey.printer_labels then
               Pretty_utils.pp_opt ~pre:"[L:" ~suf:"]" Printer.pp_logic_label fmt
                 (Labels.label_for_pot_debug @@ PoT_term t);
+            if Options.is_debug_key_enabled Options.Dkey.printer_untyped then
+              if not @@ Typing.has_been_typed t then
+                Format.fprintf fmt "[UNTYPED]";
             if Options.is_debug_key_enabled Options.Dkey.printer_term_addr then
               Format.fprintf fmt "%x#:" (Obj.magic t);
             super#term fmt t;

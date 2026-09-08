@@ -354,6 +354,9 @@ module Dkey = struct
   let printer_bound_variables =
     let help = "pretty-printer: show results of bound variables analysis" in
     register_category ~help "printer:bound_variables"
+  let printer_untyped =
+    let help = "pretty-printer: indicate if a term has not undergone typing"
+    in register_category ~help "printer:untyped"
   let printer_rte =
     let help = "pretty-printer: print next to terms their E-ACSL RTEs \
                 (more detailed output with -e-acsl-debug 2 or greater)" in

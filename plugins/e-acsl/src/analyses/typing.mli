@@ -101,6 +101,9 @@ val get_effective_typ: logic_env:Logic_env.t -> term -> typ
 val get_cast: logic_env:Logic_env.t -> term -> typ option
 (** Get the type which the given term must be converted to (if any). *)
 
+val has_been_typed : term -> bool
+(** @return whether the given term has undergone typing. *)
+
 val unsafe_set:
   term ->
   ?ctx:number_ty ->
