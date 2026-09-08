@@ -1277,11 +1277,23 @@ ne_clauses_list:
       { $4 with extended = ext::$4.extended }
     }
 | TERMINATES lexpr SEMICOLON clauses_list
-    { check_clause_order $loc($2) $4 "terminates" Post_clauses;
+    { if $4.terminates <> None
+      then
+        raise
+          (Not_well_formed (loc $loc($1),
+                            "A contract can contain at most one terminates \
+                             clause."));
+      check_clause_order $loc($2) $4 "terminates" Post_clauses;
       { $4 with terminates = Some($2) }
     }
 | DECREASES variant SEMICOLON clauses_list
-    { check_clause_order $loc($2) $4 "decreases" Post_clauses;
+    { if $4.decreases <> None
+      then
+        raise
+          (Not_well_formed (loc $loc($1),
+                            "A contract can contain at most one decreases \
+                             clause."));
+      check_clause_order $loc($2) $4 "decreases" Post_clauses;
       { $4 with decreases = Some($2) }
     }
 | post_cond_kind lexpr SEMICOLON clauses_list
