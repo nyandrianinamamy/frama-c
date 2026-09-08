@@ -1611,11 +1611,11 @@ module AbsoluteValidRange = struct
     let option_name = "-absolute-valid-range"
     let arg_name = "min-max,..."
     let help =
-      "min and max must be integers in decimal, hexadecimal (0x, 0X), octal (0o) \
-       or binary (0b) notation and fit in 64 bits. Assume that all absolute \
-       addresses within [min-max] range are valid. Several ranges of valid \
-       absolute addresses can be defined. By default, all absolute addresses \
-       are assumed to be invalid."
+      "min and max must be 64-bit integers in decimal, hexadecimal (0x, 0X), \
+       octal (0o), or binary (0b) notation. Each [min-max] pair defines an \
+       inclusive range of valid absolute addresses. Multiple valid ranges \
+       may be specified. Any absolute address not contained in one of the \
+       specified ranges is considered invalid."
     let module_name = "AbsoluteValidRange"
   end
   include String_list (Info)

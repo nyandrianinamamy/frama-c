@@ -165,11 +165,11 @@ val absolute_addresses: unit -> (absolute_range * t) list
 (** {2 Type, size and alignment of a base} *)
 
 (** Type of the memory block that starts from the given base. Useful to give to
-    the function {!Bit_utils.pretty_bits}, typically. Returns [None] on Null
-    and Absolute bases. *)
+    the function {!Bit_utils.pretty_bits}, typically. Returns [None] on [Null]
+    and [Absolute] bases. *)
 val typeof : t -> Cil_types.typ option
 
-(** Size in bits of the memory represented by the base. *)
+(** Size in bits of the memory starting at base. *)
 val bits_sizeof : t -> Z_or_top.t
 
 (** Minimum alignment (in bytes) of the base: the address of a variable

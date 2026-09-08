@@ -347,7 +347,7 @@ end
 module Bits = struct
   include Bytes
 
-  (* Converts integers bound to Null base to offsets of absolute ranges. *)
+  (* Converts integers bound to Null base into offsets of absolute ranges. *)
   let convert_absolute_addresses loc =
     let ival = find Base.null loc in
     if Ival.is_bottom ival then

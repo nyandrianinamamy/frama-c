@@ -230,13 +230,13 @@ let parse_absolute_ranges list =
     Kernel.abort
       "Invalid -absolute-valid-range integer-integer: each integer may be in \
        decimal, hexadecimal (0x, 0X), octal (0o) or binary (0b) notation. \
-       A correct example is -absolute-valid-range 1-0xFFFFFF0.@\nError was %S@."
+       A correct example is -absolute-valid-range 1-0xFFFFFF0.@\nError is: %S@."
       (Printexc.to_string e)
 
 let rec check_absolute_ranges previous_range = function
   | [] -> ()
   | (str, min, max, _) as current :: tail ->
-    let abort = Kernel.abort "Invalid %s specified to -absolute-valid-range" in
+    let abort = Kernel.abort "Invalid %s specified by -absolute-valid-range" in
     if Z.gt min max then abort ("empty range " ^ str);
     if Z.lt min 0z then abort ("negative range " ^ str);
     if Z.equal min 0z then
