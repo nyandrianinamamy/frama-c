@@ -244,28 +244,30 @@ let nearly_valid_bits = function
   | Base.Known (min, max) | Base.Unknown (min, _, max) -> min, Z.succ max
   | Base.Variable variable -> Z.zero, Z.succ variable.Base.max_alloc
 
-let nearly_valid_offset base =
-  let min, max = nearly_valid_bits base in
-  Ival.inject_range (Some min) (Some max)
+(* Reduces [ival] to nearly valid offsets (pointing in or one past the object),
+   expressed in bits, for [base]. Also returns a boolean which is [true] is
+   [ival] only contains nearly valid offsets. *)
+let reduce_to_nearly_valid_bit_offset base ival =
+  let min, max = nearly_valid_bits (Base.validity base) in
+  let nearly_valid_ival = Ival.inject_range (Some min) (Some max) in
+  let new_ival = Ival.narrow ival nearly_valid_ival in
+  if Base.is_null base && Ival.contains_zero ival
+  then Ival.(join zero new_ival), Ival.is_zero ival
+  else new_ival, Ival.equal ival new_ival
 
 let assume_pointer value =
-  let aux base ival (acc_v, acc_ok) =
-    let validity = Base.validity base in
-    let nearly_valid_ival = nearly_valid_offset validity in
-    let new_ival = Ival.narrow ival nearly_valid_ival in
-    let ival, ok =
-      if Base.is_null base && Ival.contains_zero ival
-      then Ival.(join zero new_ival), acc_ok && Ival.is_zero ival
-      else new_ival, acc_ok && Ival.equal ival new_ival
-    in
-    Addresses.Bits.add base ival acc_v, ok
-  in
   try
-    (* Converts pointer value into Addresses.Bits to convert integer values
-       into absolute addresses if possible. *)
+    (* Convert pointer value from Addresses.Bytes into Addresses.Bits to
+       convert integers into offsets of absolute bases, so that they are
+       properly reduced according to their base validity. *)
     let loc = Addresses.Bits.of_bytes value in
+    let aux base ival (acc_v, acc_ok) =
+      let new_ival, ok = reduce_to_nearly_valid_bit_offset base ival in
+      Addresses.Bits.add base new_ival acc_v, acc_ok && ok
+    in
+    (* Reduce [loc] to nearly valid locations. *)
     let loc, ok = Addresses.Bits.(fold_topset_ok aux loc (bottom, true)) in
-    (* Converts Addresses.Bits back into a byte value. *)
+    (* Convert Addresses.Bits back into a Cvalue.V value, expressed in bytes. *)
     let value = Addresses.Bits.to_bytes loc in
     if Cvalue.V.is_bottom value then `False else
     if ok then `True else `Unknown value

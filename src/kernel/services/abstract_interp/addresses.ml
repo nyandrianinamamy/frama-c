@@ -350,6 +350,7 @@ module Bits = struct
   (* Converts integers bound to Null base into offsets of absolute ranges. *)
   let convert_absolute_addresses loc =
     let ival = find Base.null loc in
+    (* Do nothing if the Null base is not present in [loc]. *)
     if Ival.is_bottom ival then
       loc
     else
@@ -363,6 +364,10 @@ module Bits = struct
           acc
         else
           let acc = add base valid_offset acc in
+          (* Remove offsets bound to [Null] only if they all correspond to the
+             [valid_offset] now bound to [base]. Otherwise, keep [Null] offsets.
+             We could reduce the [Null] offset to those that don't correspond to
+             [valid_offset] to avoid false alarms in rare cases. *)
           if Ival.equal offset valid_offset
           then add Base.null Ival.bottom acc
           else acc
