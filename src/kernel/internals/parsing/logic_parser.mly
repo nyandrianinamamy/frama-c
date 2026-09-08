@@ -71,15 +71,14 @@
   let clause_order start_end name1 name2 =
     raise
       (Not_well_formed
-         (loc start_end,
-          "Wrong order of clause in contract: "
-          ^ name1 ^ " after " ^ name2 ^ "."))
+        (loc start_end,
+         "Wrong order of clause in contract: " ^ name1 ^ " after " ^ name2 ^ "."))
 
   let missing start_end token next_token =
     raise
       (Not_well_formed
-         (loc start_end,
-          Format.asprintf "Expecting '%s' before %s." token next_token))
+        (loc start_end,
+         Format.asprintf "Expecting '%s' before %s." token next_token))
 
   type clause_type = Pre_clauses | Post_clauses
 
@@ -208,9 +207,9 @@
         WritesAny,a -> Writes (concat_froms [] a)
       | Writes [], [] -> a1
       | Writes [], _  | Writes _, [] ->
-        raise (
-          Not_well_formed (loc start_pos,
-                           "Mixing \\nothing and a real location."))
+        raise
+          (Not_well_formed
+            (loc start_pos, "Mixing \\nothing and a real location."))
       | Writes a1, a2 -> Writes (concat_froms (concat_froms [] a2) a1)
 
   let concat_loop_assigns_allocation start_pos annots bhvs2 a2 fa2=
@@ -443,7 +442,7 @@ lexpr:
     { let (iswide,str) = $1 in
       if iswide then begin
          let l = loc $sloc in
-         raise (Not_well_formed(l, "Wide strings are not allowed as labels."))
+         raise (Not_well_formed (l, "Wide strings are not allowed as labels."))
        end;
       let str = escape str in
        info $sloc (PLnamed (str, $3))
@@ -500,7 +499,7 @@ rel_list:
         $1,$2,sense,Some oth_rel
       else begin
         let loc = loc $sloc in
-        raise (Not_well_formed(loc,"Inconsistent relation chain."));
+        raise (Not_well_formed (loc,"Inconsistent relation chain."));
       end
     }
 ;
@@ -516,8 +515,8 @@ relation:
 | EQUAL
     { let l = loc $sloc in
       raise
-        (Not_well_formed(l,
-                         "Assignment operators not allowed in annotations."))
+        (Not_well_formed
+          (l, "Assignment operators not allowed in annotations."))
     }
 ;
 
@@ -1172,8 +1171,8 @@ contract:
             assigns; post_cond; empty } = $1 in
       if assumes <> []
       then
-        raise (Not_well_formed (loc $loc($1),
-                                "Assumes outside behaviors is not allowed."));
+        raise (Not_well_formed
+                (loc $loc($1), "Assumes outside behaviors is not allowed."));
       let (completes,disjoints) = $3 in
       let behaviors =
         if requires <> [] || post_cond <> [] ||
@@ -1188,8 +1187,8 @@ contract:
           $2
         else
           if empty then
-            raise (Not_well_formed (loc $sloc,
-                                    "Empty annotation is not allowed."))
+            raise (Not_well_formed
+                    (loc $sloc, "Empty annotation is not allowed."))
           else
             raise Unknown_ext
       in
@@ -1212,13 +1211,13 @@ ne_behaviors:
     { if $4.terminates <> None
       then
         raise
-          (Not_well_formed (loc $loc($4),
-                            "Terminates in behaviors is not allowed."));
+          (Not_well_formed
+            (loc $loc($4), "Terminates in behaviors is not allowed."));
       if $4.decreases <> None
       then
         raise
-          (Not_well_formed (loc $loc($4),
-                            "Decreases in behaviors is not allowed."));
+          (Not_well_formed
+            (loc $loc($4), "Decreases in behaviors is not allowed."));
       let behaviors = $5 in
       let b =
         Cabshelper.mk_behavior
@@ -1318,9 +1317,8 @@ clauses_list:
     { if $4.terminates <> None
       then
         raise
-          (Not_well_formed (loc $loc($1),
-                            "A contract can contain at most one terminates \
-                             clause."));
+          (Not_well_formed
+            (loc $loc($1), "A contract can contain at most one terminates clause."));
       check_clause_order $loc($2) $4 "terminates" Post_clauses;
       { $4 with terminates = Some($2); empty = false }
     }
@@ -1328,9 +1326,8 @@ clauses_list:
     { if $4.decreases <> None
       then
         raise
-          (Not_well_formed (loc $loc($1),
-                            "A contract can contain at most one decreases \
-                             clause."));
+          (Not_well_formed
+            (loc $loc($1), "A contract can contain at most one decreases clause."));
       check_clause_order $loc($2) $4 "decreases" Post_clauses;
       { $4 with decreases = Some($2); empty = false }
     }
@@ -1453,14 +1450,14 @@ annotation:
 | code_annotation { Acode_annot (loc $sloc,$1 []) }
 | code_annotation beg_code_annotation
     { raise
-        (Not_well_formed (loc $sloc,
-                          "Only one code annotation is allowed per comment."))
+        (Not_well_formed
+          (loc $sloc, "Only one code annotation is allowed per comment."))
     }
 | attribute_annot
     { raise
-        (Not_well_formed (loc $sloc,
-                          "Attribute annotation '"^ $1 ^"' are not supported \
-                           anymore, use regular C attributes instead."))
+        (Not_well_formed
+          (loc $sloc,
+           "Attribute annotation '"^ $1 ^"' are not supported anymore, use regular C attributes instead."))
     }
 | unknown_extension SEMICOLON { raise Unknown_ext }
 ;
@@ -1528,7 +1525,7 @@ loop_annot_stack:
         | Writes _ ->
           raise
             (Not_well_formed
-               (pos,"Loop assigns is not allowed after loop variant.")));
+              (pos,"Loop assigns is not allowed after loop variant.")));
       check_empty
         (pos,"Loop behavior is not allowed after loop variant.") b ;
       check_empty
@@ -1579,8 +1576,8 @@ loop_grammar_extension:
             {ext_name = name; ext_plugin = plugin; ext_content = processed}
           | Ext_code_annot (Ext_here | Ext_next_stmt) ->
             raise
-              (Not_well_formed (loc $loc($2),
-                                name ^ " is not a loop annotation extension."))
+              (Not_well_formed
+                (loc $loc($2), name ^ " is not a loop annotation extension."))
           | _ -> raise Not_found
         end
       with Not_found ->
@@ -1929,8 +1926,8 @@ opt_label_1:
     { match $1 with
 		  | [] -> None
 		  | l::[] -> Some l
-		  | _ -> raise (Not_well_formed (loc $sloc,
-                                     "Only one label is allowed."))
+		  | _ -> raise (Not_well_formed
+                     (loc $sloc, "Only one label is allowed."))
     }
 ;
 
@@ -1939,10 +1936,10 @@ opt_label_2:
     { match $1 with
 		  | [] -> None
 	    | l1::l2::[] -> Some (l1,l2)
-		  | _::[] -> raise (Not_well_formed (loc $sloc,
-                                         "One label is missing."))
-		  | _ -> raise (Not_well_formed (loc $sloc,
-                                     "Only two labels are allowed."))
+		  | _::[] -> raise (Not_well_formed
+                         (loc $sloc, "One label is missing."))
+		  | _ -> raise (Not_well_formed
+                     (loc $sloc, "Only two labels are allowed."))
     }
 ;
 
@@ -2002,13 +1999,13 @@ bounded_var:
 | full_identifier { $1 }
 | is_acsl_typename /* Since TYPENAME cannot be accepted by lexpr rule */
     { raise
-	      (Not_well_formed(loc $sloc,
-			                   "Type names are not allowed as binding variable."))
+	      (Not_well_formed
+          (loc $sloc, "Type names are not allowed as binding variable."))
     }
 | TYPENAME  /* Since TYPENAME cannot be accepted by lexpr rule */
     { raise
-	      (Not_well_formed(loc $sloc,
-			                   "Type names are not allowed as binding variable."))
+	      (Not_well_formed
+          (loc $sloc, "Type names are not allowed as binding variable."))
     }
 ;
 
