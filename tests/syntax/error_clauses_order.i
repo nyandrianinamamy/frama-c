@@ -88,6 +88,6 @@ int *f9(int i);
   behavior B1:
     assumes i>0;
   disjoint behaviors;
-  requires true;
+  requires \true;
 */
 int *f10(int i);
