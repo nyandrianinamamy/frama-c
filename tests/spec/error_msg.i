@@ -11,7 +11,7 @@ int g(int x);
 /*@ assigns \nothing */
 int g2(int x);
 
-/*@ allocates \result*/
+/*@ allocates \result */
 int g3(int x);
 
 /*@ terminates \true */
