@@ -15,8 +15,7 @@ module Conf = struct
     {kf : kernel_function;
      loc : Fileloc.t;
      vars : exp Term.Map.t;
-     env : Env.t;
-     rte : bool}
+     env : Env.t}
 
   type state = exp Term.Map.t (* local variables *)
 

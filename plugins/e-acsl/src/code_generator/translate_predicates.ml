@@ -360,7 +360,7 @@ and to_exp_old ~loc:_ ?inplace ?name ~adata ~env ~kf p =
 
 and to_exp_il p = predicate_content_to_exp_il p
 
-(** [to_exp ~adata ?inplace ?name kf ?rte env p] converts an ACSL predicate into
+(** [to_exp ~adata ?inplace ?name kf env p] converts an ACSL predicate into
     a corresponding C expression.
     - [adata]: assertion context.
     - [inplace]: if the root predicate has a label, indicates if it should be
@@ -368,8 +368,6 @@ and to_exp_il p = predicate_content_to_exp_il p
       the translation.
     - [name]: name to use for generated variables.
     - [kf]: the enclosing function.
-    - [rte]: if true, generate and translate RTE before translating the
-      predicate.
     - [env]: the current environment.
     - [p]: the predicate to translate. *)
 and to_exp ~adata ?inplace ?name kf env p =
@@ -442,8 +440,8 @@ let rte_guards_to_exp_old ~loc ~kf t env =
   Rte_analysis.remove t;
   env
 
-let predicate_to_exp_without_rte ~adata kf env p =
-  (* forget optional argument ?rte and ?name*)
+let predicate_to_exp_without_name ~adata kf env p =
+  (* forget optional argument ?name*)
   to_exp ~adata kf env p
 
 let predicate_to_exp_without_inplace ~adata ?name kf env p =
@@ -453,10 +451,10 @@ let () =
   Translate_utils.predicate_to_exp_ref := predicate_to_exp_without_inplace;
   Translate_ats.predicate_to_exp_ref := to_exp;
   Loops.translate_predicate_ref := do_it;
-  Loops.predicate_to_exp_ref := predicate_to_exp_without_rte;
-  Quantif.predicate_to_exp_ref := predicate_to_exp_without_rte;
-  Memory_translate.predicate_to_exp_ref := predicate_to_exp_without_rte;
-  Logic_functions.predicate_to_exp_ref := predicate_to_exp_without_rte;
+  Loops.predicate_to_exp_ref := predicate_to_exp_without_name;
+  Quantif.predicate_to_exp_ref := predicate_to_exp_without_name;
+  Memory_translate.predicate_to_exp_ref := predicate_to_exp_without_name;
+  Logic_functions.predicate_to_exp_ref := predicate_to_exp_without_name;
   Translate_terms.Translate_predicates.rte_guards_to_exp_old_ref :=
     rte_guards_to_exp_old;
   Translate_terms.Translate_predicates.rte_guards_to_exp_il_ref :=

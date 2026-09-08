@@ -32,8 +32,7 @@ type env =
   {kf : Cil_types.kernel_function;
    loc : Fileloc.t;
    vars : exp Cil_datatype.Term.Map.t;
-   env : Env.t;
-   rte : bool}
+   env : Env.t}
 
 (** The State variable of {!M} includes a map of local variables (initially
     empty) which is enriched with newly generated variables. This is done such
