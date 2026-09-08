@@ -1156,32 +1156,33 @@ spec:
 
 contract:
 | clauses_list behaviors complete_or_disjoint
-    { if $1.assumes <> []
+    { let { assumes; requires; extended; terminates; decreases; allocation;
+            assigns; post_cond; empty } = $1 in
+      if assumes <> []
       then
         raise (Not_well_formed (loc $loc($1),
                                 "Assumes outside behaviors is not allowed."));
       let (completes,disjoints) = $3 in
       let behaviors =
-        if $1.requires <> [] || $1.post_cond <> [] ||
-           $1.allocation <> FreeAllocAny || $1.assigns <> WritesAny ||
-           $1.extended <> []
+        if requires <> [] || post_cond <> [] ||
+           allocation <> FreeAllocAny || assigns <> WritesAny ||
+           extended <> []
         then
-          (Cabshelper.mk_behavior
-            ~requires:$1.requires ~post_cond:$1.post_cond ~assigns:$1.assigns
-            ~allocation:$1.allocation ~extended:$1.extended ())::$2
-        else if $1.terminates <> None || $1.decreases <> None || $2 <> [] ||
+          (Cabshelper.mk_behavior ~requires ~post_cond ~assigns ~allocation
+                                  ~extended ())::$2
+        else if terminates <> None || decreases <> None || $2 <> [] ||
                 completes <> [] || disjoints <> []
         then
           $2
         else
-          if $1.empty then
+          if empty then
             raise (Not_well_formed (loc $sloc,
                                     "Empty annotation is not allowed."))
           else
             raise Unknown_ext
       in
-        { spec_terminates = $1.terminates;
-          spec_variant = $1.decreases;
+        { spec_terminates = terminates;
+          spec_variant = decreases;
           spec_behavior = behaviors;
           spec_complete_behaviors = completes;
           spec_disjoint_behaviors = disjoints;
