@@ -31,6 +31,18 @@
     empty : bool;
   }
 
+  let empty_clauses_list () =
+    { assumes = [];
+      requires = [];
+      extended = [];
+      terminates = None;
+      decreases = None;
+      allocation = FreeAllocAny;
+      assigns = WritesAny;
+      post_cond = [];
+      empty = true;
+    }
+
   let loc (start_pos, end_pos) =
     Errorloc.convert_loc (start_pos, end_pos)
 
@@ -1279,43 +1291,28 @@ ne_complete_or_disjoint:
 ;
 
 clauses_list:
-| /* epsilon */
-    { { assumes = [];
-        requires = [];
-        extended = [];
-        terminates = None;
-        decreases = None;
-        allocation = FreeAllocAny;
-        assigns = WritesAny;
-        post_cond = [];
-        empty = true;
-      }
-    }
-| ne_clauses_list { { $1 with empty = false } }
-;
-
-ne_clauses_list:
+| /* epsilon */ { empty_clauses_list () }
 | ASSUMES lexpr SEMICOLON clauses_list
-    { { $4 with assumes = $2::$4.assumes }
+    { { $4 with assumes = $2::$4.assumes; empty = false }
     }
 | REQUIRES lexpr SEMICOLON clauses_list
     { check_clause_order $loc($2) $4 "requires" Pre_clauses;
-      { $4 with requires = toplevel_pred Assert $2::$4.requires }
+      { $4 with requires = toplevel_pred Assert $2::$4.requires; empty = false }
     }
 | CHECK_REQUIRES lexpr SEMICOLON clauses_list
     { check_clause_order $loc($2) $4 "requires" Pre_clauses;
-      { $4 with requires = toplevel_pred Check $2::$4.requires }
+      { $4 with requires = toplevel_pred Check $2::$4.requires; empty = false }
     }
 | ADMIT_REQUIRES lexpr SEMICOLON clauses_list
     { check_clause_order $loc($2) $4 "requires" Pre_clauses;
-      { $4 with requires = toplevel_pred Admit $2::$4.requires }
+      { $4 with requires = toplevel_pred Admit $2::$4.requires; empty = false }
     }
 | EXT_CONTRACT extension_content SEMICOLON clauses_list
     { check_clause_order $loc($2) $4 "extended" Pre_clauses;
       let name, plugin = $1 in
       let processed = Logic_env.preprocess_extension ~plugin name $2 in
       let ext = extension name plugin processed in
-      { $4 with extended = ext::$4.extended }
+      { $4 with extended = ext::$4.extended; empty = false }
     }
 | TERMINATES lexpr SEMICOLON clauses_list
     { if $4.terminates <> None
@@ -1325,7 +1322,7 @@ ne_clauses_list:
                             "A contract can contain at most one terminates \
                              clause."));
       check_clause_order $loc($2) $4 "terminates" Post_clauses;
-      { $4 with terminates = Some($2) }
+      { $4 with terminates = Some($2); empty = false }
     }
 | DECREASES variant SEMICOLON clauses_list
     { if $4.decreases <> None
@@ -1335,24 +1332,25 @@ ne_clauses_list:
                             "A contract can contain at most one decreases \
                              clause."));
       check_clause_order $loc($2) $4 "decreases" Post_clauses;
-      { $4 with decreases = Some($2) }
+      { $4 with decreases = Some($2); empty = false }
     }
 | post_cond_kind lexpr SEMICOLON clauses_list
     { check_clause_order $loc($2) $4 "post_cond" Post_clauses;
       let tp_kind, kind = $1 in
-      { $4 with post_cond = (kind,toplevel_pred tp_kind $2)::$4.post_cond }
+      { $4 with post_cond = (kind,toplevel_pred tp_kind $2)::$4.post_cond;
+                empty = false }
     }
 | allocation SEMICOLON clauses_list
     { check_clause_order $loc($1) $3 "allocates" Post_clauses;
-      { $3 with allocation = concat_allocation $3.allocation $1 }
+      { $3 with allocation = concat_allocation $3.allocation $1; empty = false }
     }
 | ASSIGNS assigns SEMICOLON clauses_list
     { check_clause_order $loc($2) $4 "assigns" Post_clauses;
-      { $4 with assigns = concat_assigns $sloc $4.assigns $2 }
+      { $4 with assigns = concat_assigns $sloc $4.assigns $2; empty = false }
     }
 | unknown_extension SEMICOLON clauses_list
     { check_clause_order $loc($1) $3 "extended" Pre_clauses;
-      $3
+      { $3 with empty = false }
     }
 | ASSUMES lexpr clause_kw { missing $loc($2) ";" $3 }
 | REQUIRES lexpr clause_kw { missing $loc($2) ";" $3 }
