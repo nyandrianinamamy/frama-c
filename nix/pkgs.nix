@@ -11,6 +11,7 @@ let
       cmdliner = oself.cmdliner.override { version = "1.3.0"; };
     };
     combinetura = oself.callPackage ./combinetura.nix {};
+    ocp-indent = oself.callPackage ./ocp-indent.nix {};
     why3 = oself.callPackage ./why3.nix {
       coqPackages = pkgs.coqPackages_8_19 ;
     };
