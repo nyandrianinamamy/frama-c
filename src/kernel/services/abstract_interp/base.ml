@@ -225,12 +225,14 @@ let parse_absolute_ranges list =
   in
   try List.map parse list;
   with
-  | End_of_file | Scanf.Scan_failure _ | Failure _
-  | Invalid_argument _ as e ->
+  | End_of_file | Scanf.Scan_failure _ | Failure _ | Invalid_argument _ as e ->
     Kernel.abort
-      "Invalid -absolute-valid-range integer-integer: each integer may be in \
-       decimal, hexadecimal (0x, 0X), octal (0o) or binary (0b) notation. \
-       A correct example is -absolute-valid-range 1-0xFFFFFF0.@\nError is: %S@."
+      "Invalid -absolute-valid-range argument. Expected a comma-separated list \
+       of integer ranges min-max with optional const or volatile qualifiers. \
+       Each integer may be in decimal, hexadecimal (0x, 0X), octal (0o) or \
+       binary (0b) notation.@\nA correct example is \
+       1024-1423,0x800-0x81F:const,0x1000-0x101F:volatile.\
+       @\nError is: %S@."
       (Printexc.to_string e)
 
 let rec check_absolute_ranges previous_range = function
