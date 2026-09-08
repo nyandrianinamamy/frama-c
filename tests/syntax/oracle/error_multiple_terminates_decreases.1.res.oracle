@@ -1,0 +1,5 @@
+[kernel] Parsing error_multiple_terminates_decreases.i (no preprocessing)
+[kernel:annot-error] error_multiple_terminates_decreases.i:8: Failure: 
+  A contract can contain at most one decreases clause.
+[kernel] User Error: warning annot-error treated as fatal error.
+[kernel] Frama-C aborted: invalid user input.

@@ -1,0 +1,5 @@
+[kernel] Parsing error_multiple_terminates_decreases.i (no preprocessing)
+[kernel:annot-error] error_multiple_terminates_decreases.i:8: Warning: 
+  A contract can contain at most one decreases clause.
+[kernel:annot-error] error_multiple_terminates_decreases.i:14: Warning: 
+  A contract can contain at most one terminates clause.
