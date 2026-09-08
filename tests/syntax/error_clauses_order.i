@@ -73,3 +73,21 @@ int *f7(int i);
   disjoint behaviors;
 */
 int *f8(int i);
+
+/*@
+  assigns \nothing;
+  behavior B1:
+    assumes i>0;
+  complete behaviors;
+  assigns \nothing;
+*/
+int *f9(int i);
+
+/*@
+  assigns \nothing;
+  behavior B1:
+    assumes i>0;
+  disjoint behaviors;
+  requires true;
+*/
+int *f10(int i);

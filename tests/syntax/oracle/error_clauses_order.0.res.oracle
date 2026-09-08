@@ -15,6 +15,10 @@
   Wrong order of clause in contract: list of behaviors after complete behaviors.
 [kernel:annot-error] error_clauses_order.i:59: Warning: 
   Wrong order of clause in contract: list of behaviors after disjoint behaviors.
+[kernel:annot-error] error_clauses_order.i:81: Warning: 
+  Wrong order of clause in contract: assigns after complete behaviors.
+[kernel:annot-error] error_clauses_order.i:90: Warning: 
+  Wrong order of clause in contract: requires after disjoint behaviors.
 [kernel:annot-error] error_clauses_order.i:55: Warning: 
   complete or disjoint behaviors clause in a contract with empty list of behavior. Ignoring specification of function f7
 [kernel:annot-error] error_clauses_order.i:63: Warning: 
