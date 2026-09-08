@@ -3415,7 +3415,7 @@ addresses which are intended to be accessed by the analyzed program,
 for instance in order to communicate with hardware.
 
 The option \lstinline|-absolute-valid-range m-M| specifies that
-absolute addresses between \lstinline$m$ and \lstinline$M$ inclusive
+absolute addresses between \lstinline$m$ and \lstinline$M$, inclusive,
 are valid (for reading and writing). Other absolute addresses remain
 invalid by default.
 This option allows specifying several ranges of valid absolute addresses:
@@ -3428,7 +3428,7 @@ and/or volatile memory:
   reads in this range of absolute addresses are allowed,
   but writes lead to memory access alarms.
 \item \lstinline|-absolute-valid-range m1-M1:volatile|:
-  the analysis considers that any read to these absolute addresses
+  the analysis considers that any read from these absolute addresses
   results in any possible values.
 \item \lstinline|-absolute-valid-range m1-M1:const volatile|:
   the memory of this range is both volatile and read-only.

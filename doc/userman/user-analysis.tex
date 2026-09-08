@@ -121,12 +121,12 @@ these options are very likely to be modified in future versions of \FramaC.
 
 \begin{description}
 \item \optiondef{-}{absolute-valid-range} \texttt{m-M}
-specifies that absolute addresses comprised between \lstinline$m$ and
-\lstinline$M$ inclusive are valid (for reading or writing).
+specifies that absolute addresses between \lstinline$m$ and 
+\lstinline$M$, inclusive, are valid (for reading or writing).
 All other absolute addresses are considered invalid.
-This option allows to specify several disjoint intervals of absolute valid
+This option allows specifying several disjoint intervals of valid absolute
 addresses.
-$m$ and $M$ can be written either in decimal or hexadecimal notation.
+$m$ and $M$ may be written either in decimal or hexadecimal notation.
 
 \item \optiondef{-}{unsafe-arrays} can be used when the source
 code manipulates n-dimensional arrays, or arrays within structures,
