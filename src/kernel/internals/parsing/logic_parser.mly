@@ -1236,6 +1236,46 @@ ne_complete_or_disjoint:
     { clause_order $loc($2) "list of behaviors" "complete behaviors"}
 | DISJOINT BEHAVIORS behavior_name_list SEMICOLON BEHAVIOR
     { clause_order $loc($2) "list of behaviors" "disjoint behaviors"}
+| COMPLETE BEHAVIORS behavior_name_list SEMICOLON ASSUMES
+    { clause_order $loc($2) "assumes" "complete behaviors"}
+| DISJOINT BEHAVIORS behavior_name_list SEMICOLON ASSUMES
+    { clause_order $loc($2) "assumes" "disjoint behaviors"}
+| COMPLETE BEHAVIORS behavior_name_list SEMICOLON REQUIRES
+    { clause_order $loc($2) "requires" "complete behaviors"}
+| DISJOINT BEHAVIORS behavior_name_list SEMICOLON REQUIRES
+    { clause_order $loc($2) "requires" "disjoint behaviors"}
+| COMPLETE BEHAVIORS behavior_name_list SEMICOLON CHECK_REQUIRES
+    { clause_order $loc($2) "requires" "complete behaviors"}
+| DISJOINT BEHAVIORS behavior_name_list SEMICOLON CHECK_REQUIRES
+    { clause_order $loc($2) "requires" "disjoint behaviors"}
+| COMPLETE BEHAVIORS behavior_name_list SEMICOLON ADMIT_REQUIRES
+    { clause_order $loc($2) "requires" "complete behaviors"}
+| DISJOINT BEHAVIORS behavior_name_list SEMICOLON ADMIT_REQUIRES
+    { clause_order $loc($2) "requires" "disjoint behaviors"}
+| COMPLETE BEHAVIORS behavior_name_list SEMICOLON EXT_CONTRACT
+    { clause_order $loc($2) "extension" "complete behaviors"}
+| DISJOINT BEHAVIORS behavior_name_list SEMICOLON EXT_CONTRACT
+    { clause_order $loc($2) "extension" "disjoint behaviors"}
+| COMPLETE BEHAVIORS behavior_name_list SEMICOLON TERMINATES
+    { clause_order $loc($2) "terminates" "complete behaviors"}
+| DISJOINT BEHAVIORS behavior_name_list SEMICOLON TERMINATES
+    { clause_order $loc($2) "terminates" "disjoint behaviors"}
+| COMPLETE BEHAVIORS behavior_name_list SEMICOLON DECREASES
+    { clause_order $loc($2) "decreases" "complete behaviors"}
+| DISJOINT BEHAVIORS behavior_name_list SEMICOLON DECREASES
+    { clause_order $loc($2) "decreases" "disjoint behaviors"}
+| COMPLETE BEHAVIORS behavior_name_list SEMICOLON post_cond
+    { clause_order $loc($2) "post_cond" "complete behaviors"}
+| DISJOINT BEHAVIORS behavior_name_list SEMICOLON post_cond
+    { clause_order $loc($2) "post_cond" "disjoint behaviors"}
+| COMPLETE BEHAVIORS behavior_name_list SEMICOLON allocation
+    { clause_order $loc($2) "allocation" "complete behaviors"}
+| DISJOINT BEHAVIORS behavior_name_list SEMICOLON allocation
+    { clause_order $loc($2) "allocation" "disjoint behaviors"}
+| COMPLETE BEHAVIORS behavior_name_list SEMICOLON ASSIGNS
+    { clause_order $loc($2) "assigns" "complete behaviors"}
+| DISJOINT BEHAVIORS behavior_name_list SEMICOLON ASSIGNS
+    { clause_order $loc($2) "assigns" "disjoint behaviors"}
 ;
 
 clauses_list:
