@@ -1181,8 +1181,8 @@ contract:
         then
           (Cabshelper.mk_behavior ~requires ~post_cond ~assigns ~allocation
                                   ~extended ())::$2
-        else if terminates <> None || decreases <> None || $2 <> [] ||
-                completes <> [] || disjoints <> []
+        else if Option.is_some terminates || Option.is_some decreases ||
+                $2 <> [] || completes <> [] || disjoints <> []
         then
           $2
         else
@@ -1208,12 +1208,12 @@ behaviors:
 
 ne_behaviors:
 | BEHAVIOR behavior_name COLON clauses_list behaviors
-    { if $4.terminates <> None
+    { if Option.is_some $4.terminates
       then
         raise
           (Not_well_formed
             (loc $loc($4), "Terminates in behaviors is not allowed."));
-      if $4.decreases <> None
+      if Option.is_some $4.decreases
       then
         raise
           (Not_well_formed
