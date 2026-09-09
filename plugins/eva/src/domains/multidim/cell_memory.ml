@@ -1024,14 +1024,6 @@ struct
     | Abstract_memory.Left -> convert_oracle oracle_left
     | Right -> convert_oracle oracle_right
 
-  let remove_references ?oracle base memory =
-    let oracle = Option.(oracle <? mk_oracle memory) in
-    Model.remove_base_references ~oracle base memory
-
-  let update_references ?oracle location exp memory =
-    let oracle = Option.(oracle <? mk_oracle memory) in
-    Model.update_references ~oracle location exp memory
-
   let reinforce ?oracle f memory loc =
     let open Bottom.Operators in
     let oracle = Option.(oracle <? mk_oracle memory) in

@@ -40,11 +40,17 @@ sig
   type oracle = Cell_oracle.oracle
   type location = Cell_location.t
 
+  (** {3 Lattice constant and operators} *)
+
+  (** See {!Abstract_domain.Lattice} for documentation. *)
+
   val top : t
   val is_included : t -> t -> bool
   val join : t -> t -> t
   val narrow : t -> t -> t or_bottom
   val widen : Cil_types.kernel_function -> Cil_types.stmt -> t -> t -> t
+
+  (** {3 Memory model handling} *)
 
   (** All following functions use the default oracle from {!Cell_oracle}
       if no oracle is provided. *)
@@ -79,16 +85,21 @@ sig
     (Cvalue.V.t * Value.t -> (Cvalue.V.t * Value.t) or_bottom) ->
     t -> location -> t or_bottom
 
-  (** Iterators over memories. *)
+  (** {3 Iterators over memories} *)
 
   val map  : (location -> Value.t -> Value.t) -> t -> t
   val iter : (location -> Value.t -> unit) -> t -> unit
   val fold : (location -> Value.t -> 'a -> 'a) -> t -> 'a -> 'a
 
+  (** {3 Tracking restriction} *)
+
+  (** Restrict the memory model to the locations contained in the given bases.
+      Any assignment to a location outside these bases is ignored. *)
   val set_tracking : t -> Base.t list -> t
-  val add_references : t -> Base.t -> Base.t list -> t
-  val remove_references : ?oracle:oracle -> Base.t -> t -> t
-  val update_references : ?oracle:oracle -> location -> Eva_ast.exp option -> t -> t
+
+  (** {3 Memexec Caching} *)
+
+  (** See {!Abstract_domain.Caching} for documentation. *)
 
   val project : Base.Hptset.t -> t -> t
   val overwrite : Base.Hptset.t -> on:t -> by:t -> t
