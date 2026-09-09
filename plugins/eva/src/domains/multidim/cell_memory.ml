@@ -36,7 +36,6 @@ sig
   val bottom : t (* used for set of values containing only escaping addresses *)
   val narrow : t -> t -> t or_bottom
   val widen : size:Z.t -> hint:Ival.widen_hint ->  t -> t -> t
-  val is_topint : t -> bool
   val is_bottom : t -> bool
   val is_initialized : t -> bool
   val to_cvalue : t -> Cvalue.V.t
@@ -573,13 +572,12 @@ struct
   let assume_exp valuation expr record state' =
     let* state = state' in
     let oracle = valuation_to_oracle state valuation in
-    match (expr : Eva_ast.exp).node with
-    | Lval lv when Ast_types.C.is_scalar lv.typ ->
-      let value = CellValue.of_flagged record.value in
-      if not (CellValue.is_topint value) then
-        match Location.of_lval ~oracle lv with
-        | `Top -> `Value state (* location evaluate to top, ignore *)
-        | `Value loc ->
+    match (expr : Eva_ast.exp).node, record.reductness with
+    | Lval lv, (Reduced | Created)
+      when Ast_types.C.is_scalar lv.typ ->
+      begin match Location.of_lval ~oracle lv with
+        | `Value loc when Location.is_singleton ~oracle loc ->
+          let value = CellValue.of_flagged record.value in
           let update value' =
             let v = CellValue.narrow value value' in
             (* The value can legitimately be bottom on escaping variables,
@@ -589,11 +587,13 @@ struct
             then `Value CellValue.bottom
             else v
           in
-          if Location.is_singleton ~oracle loc
-          then Model.reinforce ~oracle update state loc
-          else `Value state
-      else `Value state
-    | _ -> `Value state
+          Model.reinforce ~oracle update state loc
+        | `Value _ (* multiple locations, cannot strong update *)
+        | `Top -> (* location evaluate to top, ignore *)
+          `Value state
+      end
+
+    | _, _ -> `Value state
 
   let assume_valuation valuation state =
     valuation.Abstract_domain.fold (assume_exp valuation) (`Value state)
@@ -918,9 +918,6 @@ struct
       then Abstract_memory.Zero (initialization)
       else Abstract_memory.Any (V.get_bases v, initialization)
 
-  let is_topint v' =
-    get_v v' |> V.is_topint
-
   let map' f v' =
     let+ new_v = f (get_v v') in
     map (fun _ -> new_v) v'
@@ -991,7 +988,6 @@ struct
     CvalueOrUninitialized.widen ~size ~hint cv1 cv2,
     Value.widen ~size ~hint v1 v2
 
-  let is_topint v = fst v |> CvalueOrUninitialized.is_topint
   let is_bottom v = fst v |> CvalueOrUninitialized.is_bottom
   let is_initialized v = fst v |> CvalueOrUninitialized.is_initialized
   let to_cvalue v = fst v |> CvalueOrUninitialized.to_cvalue
