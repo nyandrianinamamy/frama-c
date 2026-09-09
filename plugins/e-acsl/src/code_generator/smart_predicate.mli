@@ -9,6 +9,7 @@
 open Cil_types
 
 val prel :
+  ?smart:bool ->
   ?loc:Fileloc.t ->
   ?names:string list ->
   relation ->
@@ -19,6 +20,7 @@ val prel :
     [-e-acsl-O-smart-cil] option. *)
 
 val pand :
+  ?smart:bool ->
   ?loc:Fileloc.t ->
   ?names:string list ->
   predicate ->
@@ -28,6 +30,7 @@ val pand :
     option. *)
 
 val por :
+  ?smart:bool ->
   ?loc:Fileloc.t ->
   ?names:string list ->
   predicate ->
