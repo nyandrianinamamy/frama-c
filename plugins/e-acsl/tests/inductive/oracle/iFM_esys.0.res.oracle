@@ -4,6 +4,11 @@
 [e-acsl:analysis:inductive] Debug: 
   extracting function from linked_ll with mode: incomplete in 3
 [e-acsl] Warning: Negative verdicts of linked_ll might be unsound
+[e-acsl] Warning: cannot create the pointer alignment guard of s because void is an incomplete type
+[e-acsl] Warning: cannot create the pointer alignment guard of s because void is an incomplete type
+[e-acsl] Warning: cannot create the pointer alignment guard of s because void is an incomplete type
+[e-acsl] Warning: cannot create the pointer alignment guard of s because void is an incomplete type
+[e-acsl] Warning: cannot create the pointer alignment guard of s because void is an incomplete type
 [e-acsl] iFM_esys.c:524: Warning: 
   E-ACSL construct `constructor' is not yet supported. Ignoring annotation.
 [e-acsl] iFM_esys.c:524: Warning: 

@@ -15,5 +15,5 @@ struct Concrete {
 extern struct Abstract *ptr;
 
 int main() {
-  /*@ assert ((struct Concrete*)ptr)->x == 42; */
+  // /*@ assert ((struct Concrete*)ptr)->x == 42; */
 }

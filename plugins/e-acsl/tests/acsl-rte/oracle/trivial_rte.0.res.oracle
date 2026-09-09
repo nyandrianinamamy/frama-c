@@ -1,4 +1,6 @@
 [e-acsl] beginning translation.
+[e-acsl] Warning: cannot create the pointer alignment guard of (int (*)[])ptr_t because int [] is an incomplete type
+[e-acsl] Warning: cannot create the pointer alignment guard of (int (*)[])ptr_t because int [] is an incomplete type
 [e-acsl] translation done in project "e-acsl".
 [eva:alarm] trivial_rte.i:15: Warning: 
   function __e_acsl_assert, behavior blocking: precondition got status unknown.

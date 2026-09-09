@@ -6,6 +6,13 @@
 [e-acsl] Warning: annotating undefined function `pthread_cond_init':
   the generated program may miss memory instrumentation
   if there are memory-related annotations.
+[e-acsl] Warning: cannot create the pointer alignment guard of arg because void is an incomplete type
+[e-acsl] Warning: cannot create the pointer alignment guard of arg because void is an incomplete type
+[e-acsl] Warning: cannot create the pointer alignment guard of arg because void is an incomplete type
+[e-acsl] Warning: cannot create the pointer alignment guard of *retval because void is an incomplete type
+[e-acsl] Warning: cannot create the pointer alignment guard of *retval because void is an incomplete type
+[e-acsl] Warning: cannot create the pointer alignment guard of arg because void is an incomplete type
+[e-acsl] Warning: cannot create the pointer alignment guard of arg because void is an incomplete type
 [e-acsl] FRAMAC_SHARE/libc/unistd.h:1295: Warning: 
   E-ACSL construct `assigns clause' is not yet supported. Ignoring annotation.
 [e-acsl] FRAMAC_SHARE/libc/stdlib.h:738: Warning: 

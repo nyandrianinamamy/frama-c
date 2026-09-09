@@ -1,4 +1,9 @@
 [e-acsl] beginning translation.
+[e-acsl] Warning: cannot create the pointer alignment guard of buf because void const is an incomplete type
+[e-acsl] Warning: cannot create the pointer alignment guard of \result because void is an incomplete type
+[e-acsl] Warning: cannot create the pointer alignment guard of buf because void const is an incomplete type
+[e-acsl] Warning: cannot create the pointer alignment guard of buf because void const is an incomplete type
+[e-acsl] Warning: cannot create the pointer alignment guard of \result because void is an incomplete type
 [e-acsl] translation done in project "e-acsl".
 [eva:builtins:missing-spec] bts1390.c:13: Warning: 
   The builtin for function memchr will not be used, as its frama-c libc specification is not available.

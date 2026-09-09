@@ -504,13 +504,23 @@ let rte_visitor =
            [Ast_types.direct_pointed_type] can fail. *)
         assert (Ast_types.C.is_ptr typ);
         let pointed_typ = Ast_types.C.direct_pointed typ in
-        let t = Cil.stripTermCasts t in
-        if Options.Optimisations.Trivial_rte.get () ||
-           not (self#trivially_aligned t typ pointed_typ)
+        if Cil.isCompleteType pointed_typ
         then
-          Guards.add orig
-            (Undefined_behaviours.pointer_alignment
-               ~loc:orig.term_loc t pointed_typ)
+          begin
+            let t = Cil.stripTermCasts t in
+            if Options.Optimisations.Trivial_rte.get () ||
+               not (self#trivially_aligned t typ pointed_typ)
+            then
+              Guards.add orig
+                (Undefined_behaviours.pointer_alignment
+                   ~loc:orig.term_loc t pointed_typ)
+          end
+        else
+          Options.warning
+            "cannot create the pointer alignment guard of %a because %a is \
+             an incomplete type"
+            Printer.pp_term orig
+            Printer.pp_typ pointed_typ
       end
 
     method private add_aligned_cast ~orig t dst =
