@@ -1203,22 +1203,27 @@ behaviors:
 
 ne_behaviors:
 | BEHAVIOR behavior_name COLON clauses_list behaviors
-    { if Option.is_some $4.terminates
+    { let { assumes; requires; extended; terminates; decreases; allocation;
+            assigns; post_cond } = $4 in
+      if Option.is_some terminates
       then
         raise
           (Not_well_formed
             (loc $loc($4), "Terminates in behaviors is not allowed."));
-      if Option.is_some $4.decreases
+      if Option.is_some decreases
       then
         raise
           (Not_well_formed
             (loc $loc($4), "Decreases in behaviors is not allowed."));
+      if assumes = [] && requires = [] && post_cond = [] &&
+         allocation = FreeAllocAny && assigns = WritesAny && extended = []
+      then
+        raise
+          (Not_well_formed
+            (loc $loc($4), "Empty named behavior is not allowed."));
       let behaviors = $5 in
-      let b =
-        Cabshelper.mk_behavior
-          ~name:$2 ~assumes:$4.assumes ~requires:$4.requires
-          ~post_cond:$4.post_cond ~assigns:$4.assigns
-          ~allocation:$4.allocation ~extended:$4.extended ()
+      let b = Cabshelper.mk_behavior ~name:$2 ~assumes ~requires ~post_cond
+                                     ~assigns ~allocation ~extended ()
       in b::behaviors
     }
 ;
