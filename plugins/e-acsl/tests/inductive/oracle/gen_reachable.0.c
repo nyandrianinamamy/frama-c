@@ -129,72 +129,49 @@ int main(void)
   __e_acsl_memory_init((int *)0,(char ***)0,8UL);
   __e_acsl_globals_init();
   {
-    int __gen_e_acsl_valid;
-    __e_acsl_assert_data_t __gen_e_acsl_assert_data = {.values = (void *)0};
-    __gen_e_acsl_valid = __e_acsl_valid((void *)(& root),sizeof(list),
-                                        (void *)(& root),(void *)0);
-    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data,"&root",
-                                 (void *)(& root));
-    __e_acsl_assert_register_ulong(& __gen_e_acsl_assert_data,"sizeof(list)",
-                                   0,sizeof(list));
-    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data,"\\valid(&root)",
-                                 0,__gen_e_acsl_valid);
-    __gen_e_acsl_assert_data.blocking = 1;
-    __gen_e_acsl_assert_data.kind = "Assertion";
-    __gen_e_acsl_assert_data.pred_txt = "\\valid(&root)";
-    __gen_e_acsl_assert_data.file = "reachable.c";
-    __gen_e_acsl_assert_data.fct = "main";
-    __gen_e_acsl_assert_data.line = 56;
-    __e_acsl_assert(__gen_e_acsl_valid,& __gen_e_acsl_assert_data);
-    __e_acsl_assert_clean(& __gen_e_acsl_assert_data);
-  }
-  /*@ assert \valid(&root); */ ;
-  {
     int __gen_e_acsl_reachable_here_4;
-    __e_acsl_assert_data_t __gen_e_acsl_assert_data_2 =
-      {.values = (void *)0};
+    __e_acsl_assert_data_t __gen_e_acsl_assert_data = {.values = (void *)0};
     __gen_e_acsl_reachable_here_4 = __gen_e_acsl_reachable_here(& root,
                                                                 & next);
-    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_2,"&next",
+    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data,"&next",
                                  (void *)(& next));
-    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_2,"&root",
+    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data,"&root",
                                  (void *)(& root));
-    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_2,
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data,
                                  "reachable(&root, &next)",0,
                                  __gen_e_acsl_reachable_here_4);
-    __gen_e_acsl_assert_data_2.blocking = 1;
-    __gen_e_acsl_assert_data_2.kind = "Assertion";
-    __gen_e_acsl_assert_data_2.pred_txt = "reachable(&root, &next)";
-    __gen_e_acsl_assert_data_2.file = "reachable.c";
-    __gen_e_acsl_assert_data_2.fct = "main";
-    __gen_e_acsl_assert_data_2.line = 58;
-    __e_acsl_assert(__gen_e_acsl_reachable_here_4,
-                    & __gen_e_acsl_assert_data_2);
-    __e_acsl_assert_clean(& __gen_e_acsl_assert_data_2);
+    __gen_e_acsl_assert_data.blocking = 1;
+    __gen_e_acsl_assert_data.kind = "Assertion";
+    __gen_e_acsl_assert_data.pred_txt = "reachable(&root, &next)";
+    __gen_e_acsl_assert_data.file = "reachable.c";
+    __gen_e_acsl_assert_data.fct = "main";
+    __gen_e_acsl_assert_data.line = 55;
+    __e_acsl_assert(__gen_e_acsl_reachable_here_4,& __gen_e_acsl_assert_data);
+    __e_acsl_assert_clean(& __gen_e_acsl_assert_data);
   }
   /*@ assert reachable(&root, &next); */ ;
   {
     int __gen_e_acsl_reachable_here_6;
-    __e_acsl_assert_data_t __gen_e_acsl_assert_data_3 =
+    __e_acsl_assert_data_t __gen_e_acsl_assert_data_2 =
       {.values = (void *)0};
     __gen_e_acsl_reachable_here_6 = __gen_e_acsl_reachable_here(& next,
                                                                 & root);
-    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_3,"&root",
+    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_2,"&root",
                                  (void *)(& root));
-    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_3,"&next",
+    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_2,"&next",
                                  (void *)(& next));
-    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_3,
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_2,
                                  "reachable(&next, &root)",0,
                                  __gen_e_acsl_reachable_here_6);
-    __gen_e_acsl_assert_data_3.blocking = 1;
-    __gen_e_acsl_assert_data_3.kind = "Assertion";
-    __gen_e_acsl_assert_data_3.pred_txt = "!reachable(&next, &root)";
-    __gen_e_acsl_assert_data_3.file = "reachable.c";
-    __gen_e_acsl_assert_data_3.fct = "main";
-    __gen_e_acsl_assert_data_3.line = 59;
+    __gen_e_acsl_assert_data_2.blocking = 1;
+    __gen_e_acsl_assert_data_2.kind = "Assertion";
+    __gen_e_acsl_assert_data_2.pred_txt = "!reachable(&next, &root)";
+    __gen_e_acsl_assert_data_2.file = "reachable.c";
+    __gen_e_acsl_assert_data_2.fct = "main";
+    __gen_e_acsl_assert_data_2.line = 56;
     __e_acsl_assert(! __gen_e_acsl_reachable_here_6,
-                    & __gen_e_acsl_assert_data_3);
-    __e_acsl_assert_clean(& __gen_e_acsl_assert_data_3);
+                    & __gen_e_acsl_assert_data_2);
+    __e_acsl_assert_clean(& __gen_e_acsl_assert_data_2);
   }
   /*@ assert !reachable(&next, &root); */ ;
   int arr[3] = {1, 2, 3};
@@ -214,11 +191,11 @@ int __gen_e_acsl_reachable_here(struct list *root, struct list *to)
   int __gen_e_acsl_or;
   if (to == root) __gen_e_acsl_or = 1;
   else {
-    int __gen_e_acsl_valid_2;
+    int __gen_e_acsl_valid;
     int __gen_e_acsl_and;
-    __gen_e_acsl_valid_2 = __e_acsl_valid((void *)root,sizeof(struct list),
-                                          (void *)root,(void *)(& root));
-    if (__gen_e_acsl_valid_2) {
+    __gen_e_acsl_valid = __e_acsl_valid((void *)root,sizeof(struct list),
+                                        (void *)root,(void *)(& root));
+    if (__gen_e_acsl_valid) {
       int __gen_e_acsl_reachable_here_3;
       __gen_e_acsl_reachable_here_3 = __gen_e_acsl_reachable_here(root->next,
                                                                   to);

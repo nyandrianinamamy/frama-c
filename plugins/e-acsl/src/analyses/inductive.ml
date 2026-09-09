@@ -261,9 +261,9 @@ module rec Constructor : sig
     predicate : predicate
   }
 
-  val analyze_mode : lv_rec:logic_var -> predicate -> mode -> Modus.t option
-  (** determine whether [mode] is a viable mode for predicate [p]. [lv_rec] is
-      the inductive definition of the [p]'s constructor. *)
+  val analyze_mode : lv_rec:logic_var -> t -> mode -> Modus.t option
+  (** determine whether given mode is viable for constructor.
+      [lv_rec] is the inductive definition containing the constructor. *)
 
   val pretty : Format.formatter -> t -> unit
 
@@ -298,9 +298,12 @@ end = struct
     in
     solve arg (Logic_const.tvar ~loc:arg.term_loc formal)
 
-  let analyze_mode ~lv_rec p mode =
+  let analyze_mode ~lv_rec {Constructor.predicate = p; name = constr_name} mode =
     let quantifiers, p = extract_foralls p in
-    let is_rec_occurrence li = Logic_var.equal li.l_var_info lv_rec in
+    let is_rec_occurrence ~labels li =
+      Logic_var.equal li.l_var_info lv_rec
+      && labels = li.l_labels
+    in
     (* fv: free variables that have been used up to the current point *)
     (* they will need to be substituted for in the conclusion unless they have
        been let-bound. *)
@@ -311,7 +314,7 @@ end = struct
     let rec test_mode ~lb ~fv p =
       let recurse ?(lb = lb) ?(fv = fv) = test_mode ~lb ~fv in
       let add_fv fv terms = Vars.unions @@ fv :: List.map free_vars terms in
-      Options.debug ~dkey ~level:5 "test_mode@ ~lb:%a ~fv:%a@ ~mode:%a@ %a"
+      Options.debug ~dkey ~level:4 "test_mode@ ~lb:%a ~fv:%a@ ~mode:%a@ %a"
         Vars.pretty lb
         Vars.pretty fv
         Mode.pretty mode
@@ -335,8 +338,8 @@ end = struct
         let pl' = {pl with pred_content = Pimplies (p2, pr)} in
         let p' = {p with pred_content = Pimplies (p1, pl')} in
         recurse p'
-      | Pimplies ({pred_content = Papp (li, _, args)}, pr)
-        when is_rec_occurrence li -> (* recursive occurrence *)
+      | Pimplies ({pred_content = Papp (li, labels , args)}, pr)
+        when is_rec_occurrence ~labels li -> (* recursive occurrence *)
         predicate_call ~mode args pr
       | Pimplies (pl, _) when predicate_has_rec_occurrence ~lv_rec pl ->
         unsupported ~loc:p.pred_loc
@@ -356,7 +359,7 @@ end = struct
         unsupported ~loc:p.pred_loc
           "only \\let expressions that bind terms are supported, not: %a"
           Printer.pp_predicate p
-      | Papp (li, _, args) when is_rec_occurrence li -> (* conclusion *)
+      | Papp (li, labels, args) when is_rec_occurrence ~labels li -> (* conclusion *)
         let substs =
           let pairs, _ = Mode.in_out_args ~mode (List.combine args li.l_profile) in
           Substs.of_list @@ List.filter_map (mk_var_subst quantifiers) pairs
@@ -371,10 +374,11 @@ end = struct
         then Some {Modus.mode; substs}
         else
           let () =
-            Options.feedback ~dkey ~level:4
-              "mode %a could not bind: %a"
+            Options.feedback ~dkey ~level:3
+              "%a.%s: cannot bind %a in mode %a"
+              Logic_var.pretty lv_rec constr_name
+              Vars.pretty unbound_quantified_vars
               Mode.pretty mode
-              Vars.pretty unbound_quantified_vars;
           in None
       | Papp _ ->
         unsupported ~loc:p.pred_loc
@@ -410,18 +414,15 @@ end = struct (* internal representation of inductives *)
   let memo_tbl = Logic_info.Hashtbl.create 9
   let clear () = Logic_info.Hashtbl.clear memo_tbl
 
-  let analyze_constructor ~li mode {Constructor.predicate = p} =
-    Constructor.analyze_mode ~lv_rec:li.l_var_info p mode
-
   let analyze_modes li = Logic_info.Hashtbl.memo memo_tbl li @@ fun li ->
     let ctors = ctors li in
-    Options.debug ~dkey ~level:4
+    Options.debug ~dkey ~level:3
       "@[<2>performing mode analysis on inductive:@ @[%a@]@]"
       pp_logic_info li;
     let try_mode mode =
       let exception Analysis_failed in
       let analyze_const ctor =
-        match analyze_constructor ~li mode ctor with
+        match Constructor.analyze_mode ~lv_rec:li.l_var_info ctor mode with
         | Some modus -> modus
         | None -> raise Analysis_failed
       in
@@ -500,7 +501,10 @@ end = functor (Out : Out_language) -> struct
       let free_vars t = Vars.inter quantifiers @@ free_vars t in
       let free_vars_pred p = Vars.inter quantifiers @@ free_vars_pred p in
       let li_rec = li in
-      let is_rec_occurrence li' = Logic_var.equal li'.l_var_info li_rec.l_var_info in
+      let is_rec_occurrence ~labels li' =
+        Logic_var.equal li'.l_var_info li_rec.l_var_info
+        && List.equal Logic_label.equal labels li_rec.l_labels
+      in
       let flush_conds ~conds case_true =
         if conds = [] then case_true else
           let conjunction =
@@ -512,8 +516,9 @@ end = functor (Out : Out_language) -> struct
           Out.mk_if ~loc:conjunction.pred_loc conjunction case_true next_ctor
       in
       let rec compile ~uv ~conds p =
-        Options.debug ~dkey ~level:5 "compile ~uv:%a ~conds %a"
+        Options.debug ~dkey ~level:4 "compile ~uv:%a ~conds:[%a] %a"
           Vars.pretty uv
+          (Pretty_utils.pp_list ~sep:", " Printer.pp_predicate) conds
           Printer.pp_predicate p;
         let recurse ?(uv = uv) ?(conds = conds) p =
           if Options.Optimisations.Hypothesis_gathering.get ()
@@ -525,7 +530,7 @@ end = functor (Out : Out_language) -> struct
           (* treat  p ∧ q ⇒ r  as  p ⇒ q ⇒ r *)
           let pl' = {pl with pred_content = Pimplies (p2, pr)} in
           recurse {p with pred_content = Pimplies (p1, pl')}
-        | Papp (li, _, args) when is_rec_occurrence li -> (* conclusion *)
+        | Papp (li, labels, args) when is_rec_occurrence ~labels li -> (* conclusion *)
           let eqs = ref [] in
           let normalize_arg i arg =
             match mode with
@@ -541,7 +546,7 @@ end = functor (Out : Out_language) -> struct
               t
           in
           let new_args = List.mapi normalize_arg args in
-          Options.debug ~dkey ~level:5
+          Options.debug ~dkey ~level:4
             "equations generated from conclusion: %a"
             (Pretty_utils.pp_list ~sep:" ∧ " Predicate.pretty) !eqs;
           let case_true = Out.mk_concl ~mode new_args in
@@ -566,7 +571,7 @@ end = functor (Out : Out_language) -> struct
         | Pimplies ({pred_content = Papp (li, labels, args)} as pl, pr)
           when is_inductive li ->
           let in_out_args', li' =
-            if is_rec_occurrence li
+            if is_rec_occurrence ~labels li
             then Mode.in_out_args ~mode args, li
             else (* foreign predicate *)
               let mode' =
@@ -604,7 +609,7 @@ end = functor (Out : Out_language) -> struct
                                l_type = Some res.term_type}
                 in
                 recurse (Logic_const.plet ~loc:p.pred_loc li pr)
-              | _ when is_rec_occurrence li ->
+              | _ when is_rec_occurrence ~labels li ->
                 let p = Logic_const.prel (Req, rec_call (), res) in
                 recurse ~conds:(p :: conds) pr
               | _ -> (* foreign predicate *)
