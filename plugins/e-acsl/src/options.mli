@@ -50,6 +50,14 @@ val must_visit: unit -> bool
 
 module Dkey: sig
   val prepare: category
+  val printer_normalized: category
+  val printer_term_addr: category
+  val printer_pred_addr: category
+  val printer_labels: category
+  val printer_untyped: category
+  val printer_bound_variables: category
+  val printer_rte: category
+  val analysis: category
   val logic_normalizer: category
   val bound_variables: category
   val rte: category
@@ -58,6 +66,7 @@ module Dkey: sig
   val mtracking: category
   val typing: category
   val labels: category
+  val analysis_print_ast: category
   val translation: category
   val env: category
   val interlang_translation: category

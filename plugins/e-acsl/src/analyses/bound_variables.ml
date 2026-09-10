@@ -110,6 +110,24 @@ end = struct
     Quantified_predicate.Hashtbl.clear tbl
 end
 
+let pp_normalised_guard fmt (t1, lv, t2) =
+  Format.fprintf fmt "%a %t %a < %a"
+    Printer.pp_term t1
+    Unicode.pp_le
+    Printer.pp_logic_var lv
+    Printer.pp_term t2
+
+let pp_preprocessed_quantifier_debug fmt p =
+  match p.pred_content with
+  | Pforall _ | Pexists _ -> begin
+      match Quantifier.get p with
+      | Ok (guards, _p) ->
+        Pretty_utils.pp_list ~pre:"[BV: " ~sep:"; " ~suf:"]" pp_normalised_guard fmt guards
+      | exception Error.Not_memoized _ -> ()
+      | Error exn -> Format.fprintf fmt "[BV error: %s]" (Printexc.to_string exn)
+    end
+  | _ -> ()
+
 (** Getters and setters *)
 
 let get_preprocessed_quantifier p =

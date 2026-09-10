@@ -123,6 +123,7 @@ module Memo: sig
     term ->
     computed_info Error.result
   val get: profile: Profile.t -> term -> computed_info Error.result
+  val has_been_typed : term -> bool
   val clear: unit -> unit
 end = struct
 
@@ -142,6 +143,8 @@ end = struct
        extra variable in some cases. *)
   let tbl : computed_info Error.result Terms.Id.Hashtbl.t =
     Terms.Id.Hashtbl.create 97
+
+  let has_been_typed t = Terms.Id.Hashtbl.mem tbl t
 
   (* The type of the logic function
      \\@ logic integer f (integer x) = x + 1;
@@ -939,6 +942,8 @@ let get_effective_ty ~logic_env t =
 
 let get_effective_typ ~logic_env t =
   extract_typ t (get_effective_ty ~logic_env t)
+
+let has_been_typed = Memo.has_been_typed
 
 let clear = Memo.clear
 

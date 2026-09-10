@@ -25,6 +25,10 @@ val at_for_stmt: stmt -> At_data.t list
 (** @return the set of labeled predicates and terms to be translated on the
     given statement. *)
 
+(** @return the logic label of the given predicate/term according to the labels
+    analysis, for debug purposes. @return [None] if it has not been analysed. *)
+val label_for_pot_debug : Pred_or_term.t -> logic_label option
+
 val at_for_pot : Pred_or_term.t -> At_data.t
 (** @return the set of labeled predicates and terms to be translated on the
     given predicate/term. *)

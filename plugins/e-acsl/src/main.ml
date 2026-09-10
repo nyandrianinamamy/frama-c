@@ -105,7 +105,7 @@ let change_printer =
     if !first then begin
       first := false;
       let module Printer_class(X: Printer.PrinterClass) = struct
-        class printer () = object
+        class printer () = object (self)
           inherit X.printer () as super
 
           method !varinfo fmt vi =
@@ -128,6 +128,59 @@ let change_printer =
               | None ->
                 (* Otherwise use the original printer *)
                 super#varinfo fmt vi
+
+          method !predicate fmt p =
+            let p = if Options.is_debug_key_enabled Options.Dkey.printer_normalized
+              then Logic_normalizer.get_pred p
+              else p
+            in
+            if Options.is_debug_key_enabled Options.Dkey.printer_labels then
+              Pretty_utils.pp_opt ~pre:"[L:" ~suf:"]" Printer.pp_logic_label fmt
+                (Labels.label_for_pot_debug @@ PoT_pred p);
+            if Options.is_debug_key_enabled Options.Dkey.printer_bound_variables then
+              Bound_variables.pp_preprocessed_quantifier_debug fmt p;
+            if Options.is_debug_key_enabled Options.Dkey.printer_pred_addr then
+              Format.fprintf fmt "%#x:" (Obj.magic p);
+            super#predicate fmt p
+
+          method !global_annotation fmt g = match g with
+            | Cil_types.Dfun_or_pred (li, loc)
+              when Options.is_debug_key_enabled Options.Dkey.printer_normalized ->
+              let derived = Logic_normalizer.Logic_infos.generated_of li in
+              Cil_datatype.Logic_info.Set.iter
+                (fun li -> self#global_annotation fmt @@ Cil_types.Dfun_or_pred (li, loc))
+                derived;
+              super#global_annotation fmt g
+            | _ -> super#global_annotation fmt g
+
+          method private rtes_of_term fmt t =
+            let first = ref true in
+            Rte_analysis.iter_on_guards t (fun p ->
+                if !first then
+                  let () = Format.pp_print_string fmt "[RTEs: " in first := false
+                else Format.pp_print_string fmt ", ";
+                if Options.debug_atleast 2
+                then self#predicate fmt p
+                else Format.pp_print_string fmt (List.hd p.pred_name)
+              );
+            if not !first then Format.pp_print_string fmt "]"
+
+          method !term fmt t =
+            let t = if Options.is_debug_key_enabled Options.Dkey.printer_normalized
+              then Logic_normalizer.get_term t
+              else t
+            in
+            if Options.is_debug_key_enabled Options.Dkey.printer_labels then
+              Pretty_utils.pp_opt ~pre:"[L:" ~suf:"]" Printer.pp_logic_label fmt
+                (Labels.label_for_pot_debug @@ PoT_term t);
+            if Options.is_debug_key_enabled Options.Dkey.printer_untyped then
+              if not @@ Typing.has_been_typed t then
+                Format.fprintf fmt "[UNTYPED]";
+            if Options.is_debug_key_enabled Options.Dkey.printer_term_addr then
+              Format.fprintf fmt "%x#:" (Obj.magic t);
+            super#term fmt t;
+            if Options.is_debug_key_enabled Options.Dkey.printer_rte then
+              self#rtes_of_term fmt t
 
           method !instr fmt i =
             match i with

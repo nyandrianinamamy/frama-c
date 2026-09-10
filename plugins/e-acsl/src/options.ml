@@ -220,7 +220,6 @@ module Optimisations = struct
       let descr = "optimises cil statements and predicates using smart constructors"
     end)
 
-
   module Verify_valid =
     Make (struct
       let name = "valid"
@@ -339,6 +338,32 @@ let must_visit () = Run.get ()
 
 module Dkey = struct
   let prepare = register_category "preparation"
+  let printer_normalized =
+    let help = "pretty-printer: print rewritten form of terms, logic functions \
+                and predicates" in
+    register_category ~help "printer:normalized"
+  let printer_term_addr =
+    let help = "pretty-printer: prefix terms with their OCaml address" in
+    register_category ~help "printer:term-addr"
+  let printer_pred_addr =
+    let help = "pretty-printer: prefix predicates with their OCaml address" in
+    register_category ~help "printer:pred-addr"
+  let printer_labels =
+    let help = "pretty-printer: show results of labels analysis" in
+    register_category ~help "printer:labels"
+  let printer_bound_variables =
+    let help = "pretty-printer: show results of bound variables analysis" in
+    register_category ~help "printer:bound_variables"
+  let printer_untyped =
+    let help = "pretty-printer: indicate if a term has not undergone typing"
+    in register_category ~help "printer:untyped"
+  let printer_rte =
+    let help = "pretty-printer: print next to terms their E-ACSL RTEs \
+                (more detailed output with -e-acsl-debug 2 or greater)" in
+    register_category ~help "printer:rte"
+  let analysis =
+    let help = "information related to analysis phase" in
+    register_category ~help "analysis"
   let logic_normalizer = register_category "analysis:logic_normalizer"
   let bound_variables = register_category "analysis:bound_variables"
   let rte = register_category "analysis:rte"
@@ -350,6 +375,9 @@ module Dkey = struct
   let mtracking = register_category "analysis:memory_tracking"
   let typing = register_category "analysis:typing"
   let labels = register_category "analysis:labels"
+  let analysis_print_ast =
+    let help = "print AST after analyses; consider printer:* message keys" in
+    register_category ~help "analysis:print-ast"
   let translation = register_category "translation"
   let env = register_category "translation:env"
   let interlang_translation =
