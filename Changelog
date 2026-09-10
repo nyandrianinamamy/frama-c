@@ -18,6 +18,11 @@
 Open Source Release <next-release>
 ###############################################################################
 
+-*   ACSL     [2026-09-10] ACSL extension can now be written before requires
+              clauses, and terminates and decreases clauses can now be written
+              anywhere between requires clauses and behaviors. Empty named
+              behaviors are now forbidden in function contracts and in statement
+              contracts, as declared by the ACSL manual.
 -!  Kernel    [2026-07-24] New minimal OCaml version: 5.2
 o!  Fclib     [2026-06-25] Changed the `source` optional parameter of Log
               functions (`warning`, `abort`, `fatal`, etc) to take a location
