@@ -142,11 +142,16 @@ let add_offset (lval : lval) (offset : offset) : lval =
 
 module Build =
 struct
-  let integer ~ikind i =
+  let integer ?ikind i =
+    let ikind = match ikind with
+      | Some ikind -> ikind
+      | None when Cil.fitsInInt IInt i -> Cil_types.IInt
+      | None -> Cil.intKindForValue i Z.(gt i zero)
+    in
     let i', _truncated = Cil.truncateInteger64 ikind i in
     mk_exp (Const (CInt64 (i', ikind, None)))
 
-  let int ~ikind i = integer ~ikind (Z.of_int i)
+  let int ?ikind i = integer ?ikind (Z.of_int i)
 
   let zero = int ~ikind:IInt 0
   let one = int ~ikind:IInt 1
@@ -185,6 +190,7 @@ struct
     | _ -> invalid_arg "unsupported construction"
 
   let add = binop PlusA
+  let sub = binop MinusA
   let div = binop Div
   let eq = binop Eq
   let ne = binop Ne

@@ -51,11 +51,16 @@ type side = Left | Right
 type oracle = Eva_ast.exp -> Int_val.t
 type bioracle = side -> oracle
 
+(* Offsets *)
+type offset = Abstract_offset.t
+
 (* Early stage of memory abstraction building *)
 module type ProtoMemory =
 sig
   type t
   type value
+
+  val name : string (* name of type for State instantiation *)
 
   val pretty : Format.formatter -> t -> unit
   val pretty_root : Format.formatter -> t -> unit
@@ -74,6 +79,9 @@ sig
     (size:size -> value -> value -> value) -> t -> t -> t
   val join : oracle:bioracle -> t -> t -> t
   val smash : oracle:oracle -> t -> t -> t
+  val map : (offset -> value -> value) -> t -> t
+  val iter : (offset -> value -> unit) -> t -> unit
+  val fold : (offset -> value -> 'a -> 'a) -> t -> 'a -> 'a
   val read : oracle:oracle -> (Cil_types.typ -> t -> 'a) -> ('a -> 'a -> 'a) ->
     Abstract_offset.t -> t -> 'a
   val update : oracle:oracle ->

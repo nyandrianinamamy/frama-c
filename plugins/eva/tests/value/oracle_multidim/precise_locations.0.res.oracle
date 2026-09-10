@@ -1,27 +1,10 @@
 215,216d214
 < [eva:alarm] precise_locations.i:48: Warning: 
 <   function f: precondition got status unknown.
-221,222c219,234
+221,222d218
 < [eva:alarm] precise_locations.i:49: Warning: 
 <   function g: precondition got status unknown.
----
-> [eva:progress] Done for function g
-> [eva:progress] 
->   computing for function f <- main.
->   Called from precise_locations.i:48:7-20.
-> [eva:progress] Done for function f
-> [eva:progress] 
->   computing for function g <- main.
->   Called from precise_locations.i:49:7-22.
-> [eva:progress] Done for function g
-> [eva:progress] 
->   computing for function f <- main.
->   Called from precise_locations.i:48:7-20.
-> [eva:progress] Done for function f
-> [eva:progress] 
->   computing for function g <- main.
->   Called from precise_locations.i:49:7-22.
-334,336c346,348
+334,336c330,332
 <   q ∈ [0..255]
 <   r ∈ [0..256]
 <   __retres ∈ [0..511]
@@ -29,56 +12,39 @@
 >   q ∈ {0; 10; 20}
 >   r ∈ {0; 1; 11; 21}
 >   __retres ∈ {0; 1; 10; 11; 20; 21; 31; 41}
-397,398c409,410
+397,398c393,394
 < [    -    ] Pre-condition ("precise_locations.i", line 18, characters 14-22)
 <             tried with Call Preconditions.
 ---
 > [  Valid  ] Pre-condition ("precise_locations.i", line 18, characters 14-22)
 >             by Call Preconditions.
-408,409c420,421
+408,409c404,405
 < [    -    ] Pre-condition ("precise_locations.i", line 21, characters 14-22)
 <             tried with Call Preconditions.
 ---
 > [  Valid  ] Pre-condition ("precise_locations.i", line 21, characters 14-22)
 >             by Call Preconditions.
-419c431
+419c415
 < [    -    ] Instance of 'Pre-condition ("precise_locations.i", line 18, characters 14-22)' at call 'f' ("precise_locations.i", line 48, characters 7-20)
 ---
 > [  Valid  ] Instance of 'Pre-condition ("precise_locations.i", line 18, characters 14-22)' at call 'f' ("precise_locations.i", line 48, characters 7-20)
-421,422c433,434
+421,422c417,418
 <             tried with Eva.
 < [    -    ] Instance of 'Pre-condition ("precise_locations.i", line 21, characters 14-22)' at call 'g' ("precise_locations.i", line 49, characters 7-22)
 ---
 >             by Eva.
 > [  Valid  ] Instance of 'Pre-condition ("precise_locations.i", line 21, characters 14-22)' at call 'g' ("precise_locations.i", line 49, characters 7-22)
-424c436
+424c420
 <             tried with Eva.
 ---
 >             by Eva.
-429c441
+429c425
 <      2 Completely validated
 ---
 >      6 Completely validated
-431d442
+431d426
 <      4 To be validated
-833a845,860
-> [eva:progress] 
->   computing for function f <- main.
->   Called from precise_locations.i:48:7-20.
-> [eva:progress] Done for function f
-> [eva:progress] 
->   computing for function g <- main.
->   Called from precise_locations.i:49:7-22.
-> [eva:progress] Done for function g
-> [eva:progress] 
->   computing for function f <- main.
->   Called from precise_locations.i:48:7-20.
-> [eva:progress] Done for function f
-> [eva:progress] 
->   computing for function g <- main.
->   Called from precise_locations.i:49:7-22.
-> [eva:progress] Done for function g
-1224a1252
+1224a1220
 >             by Eva (v1).
-1227a1256
+1227a1224
 >             by Eva (v1).

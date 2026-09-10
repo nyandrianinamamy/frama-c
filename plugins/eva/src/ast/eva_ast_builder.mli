@@ -53,13 +53,24 @@ sig
   val zero: exp
   val one: exp
 
-  val int: ikind:Cil_types.ikind -> int -> exp
+
+  (** Builds an integer constant.
+      If [ikind] is provided, truncates the integer if it does not fit.
+      If [ikind] is not provided, uses type [int] if possible, or the largest
+      signed or unsigned integer type which can represent the integer.
+      @raise Cil.Not_representable if no ikind is provided and the integer does
+      not fit in any integer type. *)
+  val integer: ?ikind:Cil_types.ikind -> Z.t -> exp
+
+  (** Same as [integer] above for an ocaml int. *)
+  val int: ?ikind:Cil_types.ikind -> int -> exp
+
   val float: fkind:Cil_types.fkind -> float -> exp
-  val integer: ikind:Cil_types.ikind -> Z.t -> exp
   val bool: bool -> exp (* convert booleans to an expression 0 or 1 *)
 
   val cast: typ -> exp -> exp (* (typ)x *)
   val add: exp -> exp -> exp (* x + y *)
+  val sub: exp -> exp -> exp (* x - y *)
   val div: exp -> exp -> exp (* x / y *)
   val eq: exp -> exp -> exp (* x == y *)
   val ne: exp -> exp -> exp (* x != y *)

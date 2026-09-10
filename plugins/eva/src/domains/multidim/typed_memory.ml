@@ -11,7 +11,6 @@
 [@@@warning "-60"]
 
 open Lattice_bounds
-open Abstract_offset
 open Abstract_memory
 
 module Bound = Segmentation.Bound
@@ -44,7 +43,7 @@ module type Value =
 sig
   type t
 
-  val name : string
+  val datatype_name : string
 
   val hash : t -> int
   val equal : t -> t -> bool
@@ -96,6 +95,7 @@ struct
       array_cell_type: Cil_types.typ;
     }
 
+    let name = "Typed_memory.Make(" ^ V.datatype_name ^ ")"
 
     let are_scalar_compatible s1 s2 =
       are_typ_compatible s1.scalar_type s2.scalar_type
@@ -369,10 +369,101 @@ struct
 
     let smash ~oracle = join ~oracle:(fun _ -> oracle)
 
+    let rec iter f m =
+      let open Abstract_offset in
+      match m with
+      | Raw _ -> ()
+      | Scalar s ->
+        f (NoOffset s.scalar_type) s.scalar_value
+      | Struct s ->
+        let f' fi =
+          iter (fun off' v -> f (Field (fi, off')) v)
+        in
+        S.iter f' s.struct_value
+      | Disjunct d ->
+        let f' fi =
+          iter (fun off' v -> f (Field (fi, off')) v)
+        in
+        D.iter f' d.disj_value
+      | Union u ->
+        let f' =
+          iter (fun off' v -> f (Field (u.union_field, off')) v)
+        in
+        f' u.union_value
+      | Array a ->
+        let f' (l,u) =
+          iter (fun off' v -> f (Index (l, u, a.array_cell_type, off')) v)
+        in
+        A.iter f' a.array_value
+
+    let rec fold f m acc =
+      let open Abstract_offset in
+      match m with
+      | Raw _ -> acc
+      | Scalar s ->
+        f (NoOffset s.scalar_type) s.scalar_value acc
+      | Struct s ->
+        let f' fi =
+          fold (fun off' v acc -> f (Field (fi, off')) v acc)
+        in
+        S.fold f' s.struct_value acc
+      | Disjunct d ->
+        let f' fi =
+          fold (fun off' v acc -> f (Field (fi, off')) v acc)
+        in
+        D.fold f' d.disj_value acc
+      | Union u ->
+        let f' =
+          fold (fun off' v acc -> f (Field (u.union_field, off')) v acc)
+        in
+        f' u.union_value acc
+      | Array a ->
+        let f' (l,u) =
+          fold (fun off' v -> f (Index (l, u, a.array_cell_type, off')) v)
+        in
+        A.fold f' a.array_value acc
+
+    let rec map f m =
+      let open Abstract_offset in
+      match m with
+      | Raw _ -> m
+      | Scalar s ->
+        Scalar
+          { s with
+            scalar_value = f (NoOffset s.scalar_type) s.scalar_value }
+      | Struct s ->
+        let f' fi =
+          map (fun off' v -> f (Field (fi, off')) v)
+        in
+        Struct
+          { s with
+            struct_value = S.map f' s.struct_value }
+      | Disjunct d ->
+        let f' fi =
+          map (fun off' v -> f (Field (fi, off')) v)
+        in
+        Disjunct
+          { d with
+            disj_value = D.map f' d.disj_value }
+      | Union u ->
+        let f' =
+          map (fun off' v -> f (Field (u.union_field, off')) v)
+        in
+        Union
+          { u with
+            union_value = f' u.union_value }
+      | Array a ->
+        let f' (l,u) =
+          map (fun off' v -> f (Index (l, u, a.array_cell_type, off')) v)
+        in
+        Array
+          { a with
+            array_value = A.map f' a.array_value }
+
     let read ~oracle (map : Cil_types.typ -> t -> 'a) (reduce : 'a -> 'a -> 'a) =
       let rec aux offset m =
         match offset, m with
-        | NoOffset t, m ->
+        | Abstract_offset.NoOffset t, m ->
           map t m
         | Field (fi, offset'), Struct s
           when s.struct_type.ckey = fi.fcomp.ckey ->
@@ -383,27 +474,23 @@ struct
         | Field (fi, offset'), Union u
           when Cil_datatype.Fieldinfo.equal u.union_field fi ->
           aux offset' u.union_value
-        | Index (exp, index, elem_type, offset'), Array a
+        | Index (l, u, elem_type, offset'), Array a
           when are_typ_compatible a.array_cell_type elem_type ->
-          let open Top.Operators in
-          let m =
-            let+ lindex, uindex = match Option.map Bound.of_exp exp with
-              | Some b -> `Value (b, b)
-              | None | exception Bound.UnsupportedBoundExpression ->
-                let l, u = Int_val.min_and_max index in
-                let+ l = Top.of_option l
-                and+ u = Top.of_option u in
-                Bound.of_integer l, Bound.of_integer u
+          let v =
+            let open Option.Operators in
+            let+ lb, ub =
+              try
+                Some (Bound.of_exp l, Bound.of_exp u)
+              with Bound.UnsupportedBoundExpression ->
+                let+ lv = oracle l |> Int_val.min_int
+                and+ uv = oracle u |> Int_val.max_int in
+                Bound.of_integer lv, Bound.of_integer uv
             in
-            A.read ~oracle (aux offset') reduce a.array_value lindex uindex
+            A.read ~oracle (aux offset') reduce a.array_value lb ub
           in
-          begin match m with
-            | `Value v -> v
-            | `Top ->
-              A.fold
-                (fun m' acc -> reduce (aux offset' m') acc)
-                (fun p () -> aux offset' (Raw p))
-                a.array_value ()
+          begin match v with
+            | Some v -> v
+            | None -> A.read_any (aux offset') reduce a.array_value
           end
         | _, m -> (* structure mismatch *)
           let r = Raw (raw m) in
@@ -417,7 +504,7 @@ struct
       let open Bottom.Operators in
       let rec aux ~weak offset m =
         match offset with
-        | NoOffset t ->
+        | Abstract_offset.NoOffset t ->
           f ~weak t m
         | Field (fi, offset') ->
           if fi.fcomp.cstruct then (* Structures *)
@@ -438,34 +525,27 @@ struct
             in
             let+ union_value = aux ~weak offset' old.union_value in
             Union { old with union_value }
-        | Index (exp, index, elem_type, offset') ->
+        | Index (l, u, elem_type, offset') ->
           let m' =
             let open TopBottom.Operators in
-            let* lindex, uindex, weak =
-              match Option.map Bound.of_exp exp with
-              | Some b -> `Value (b, Bound.succ b, weak)
-              | None | exception Bound.UnsupportedBoundExpression ->
-                begin match Int_val.min_and_max index with
-                  | None, _ | _, None -> `Top
-                  | Some l, Some u ->
-                    let l' = Bound.of_integer l
-                    and u' = Bound.(succ (of_integer u)) in
-                    let weak =
-                      weak ||
-                      Option.is_some exp && not (Z.equal l u)
-                    in
-                    `Value (l', u', weak)
-                end
+            let* lb, ub, weak =
+              try
+                `Value (Bound.of_exp l, Bound.(succ (of_exp u)), weak)
+              with Bound.UnsupportedBoundExpression ->
+                let+ lv = oracle l |> Int_val.min_int |> Top.of_option
+                and+ uv = oracle u |> Int_val.max_int |> Top.of_option in
+                let weak = weak || not (Z.equal lv uv) in
+                Bound.of_integer lv, Bound.(succ (of_integer uv)), weak
             in
             match m with
             | Array a when are_typ_compatible a.array_cell_type elem_type ->
               let+ array_value = A.update ~oracle (aux ~weak offset')
-                  a.array_value lindex uindex in
+                  a.array_value lb ub in
               Array { a with array_value }
             | _ ->
               let b = raw m in
               let+ new_value = aux ~weak offset' (Raw b) in
-              let array_value = A.single b lindex uindex new_value in
+              let array_value = A.single b lb ub new_value in
               Array { array_cell_type = elem_type ; array_value }
           in
           match m' with
@@ -477,14 +557,21 @@ struct
     let incr_bound ~oracle vi x m = (* TODO: keep subtree when nothing changes *)
       let rec aux = function
         | (Raw _ | Scalar _) as m -> m
-        | Struct s -> Struct { s with struct_value = S.map aux s.struct_value }
-        | Disjunct d -> Disjunct { d with disj_value = D.map aux d.disj_value }
-        | Union u -> Union { u with union_value = aux u.union_value }
+        | Struct s ->
+          Struct
+            { s with
+              struct_value = S.map (fun _field -> aux) s.struct_value }
+        | Disjunct d ->
+          Disjunct
+            { d with
+              disj_value = D.map (fun _field -> aux) d.disj_value }
+        | Union u ->
+          Union { u with union_value = aux u.union_value }
         | Array a ->
           match  A.incr_bound ~oracle vi x a.array_value with
           | `Top -> Raw (A.raw a.array_value)
           | `Value array_value ->
-            Array { a with array_value=A.map aux array_value }
+            Array { a with array_value=A.map (fun _offset -> aux) array_value }
       in
       aux m
 

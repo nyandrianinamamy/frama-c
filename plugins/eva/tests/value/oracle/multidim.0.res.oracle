@@ -196,10 +196,9 @@
   Frama_C_domain_show_each:
   t : # cvalue: [0].typ ∈ {INT; FLOAT} or UNINITIALIZED
                 {[0].val; [1..999]} ∈ [--..--] or UNINITIALIZED
-      # multidim: [0 .. 999] = {
-                    { .typ = {1}, .val.i = {42} } or 
+      # multidim: [0 .. 999] = 
+                    { .typ = {1}, .val.i = {42} } or
                     { .typ = {2}, .val.f = {42.} }
-                  }
 [eva:progress] 
   computing for function Frama_C_interval <- main7 <- main.
   Called from multidim.c:147.

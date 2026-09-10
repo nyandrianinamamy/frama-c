@@ -190,6 +190,11 @@ struct
     | Const _ -> assert false (* should not happen ? even with absolute addresses ? *)
     | Ptroffset _ -> assert false (* Not produced by of_exp *)
 
+  let to_exp = function
+    | Exp (e, c) -> Eva_ast.Build.(add e (integer c))
+    | Const i -> Eva_ast.Build.integer i
+    | Ptroffset _ -> raise Not_implemented
+
   (* Convert bound to interval using oracle *)
   let to_int_val ~oracle = function
     | Const i -> Int_val.inject_singleton i
@@ -337,6 +342,7 @@ struct
   let equal_regardless_age (b1,_a1) (b2,_a2) =
     Bound.equal b1 b2
   let equal = equal_regardless_age
+  let to_exp (b,_) = Bound.to_exp b
   let pred (b,a) = (Bound.pred b, a)
   let incr_or_constantify ~oracle vi i (b,a) =
     Bound.incr_or_constantify ~oracle vi i b |> Option.map (fun b -> b,a)
@@ -388,14 +394,20 @@ sig
   val unify : oracle:bioracle -> (submemory -> submemory -> submemory) ->
     t -> t -> t or_top
   val single : bit -> bound -> bound -> submemory -> t
+  val iter :
+    (Eva_ast.exp * Eva_ast.exp -> submemory -> unit) -> t -> unit
+  val fold :
+    (Eva_ast.exp * Eva_ast.exp -> submemory -> 'a -> 'a) -> t -> 'a -> 'a
+  val map :
+    (Eva_ast.exp * Eva_ast.exp -> submemory -> submemory) -> t -> t
   val read : oracle:oracle ->
     (submemory -> 'a) -> ('a -> 'a -> 'a) -> t -> bound -> bound -> 'a
+  val read_any :
+    (submemory -> 'a) -> ('a -> 'a -> 'a) -> t -> 'a
   val update : oracle:oracle -> (submemory -> submemory or_bottom) ->
     t -> bound -> bound -> t or_top_bottom
   val incr_bound :
     oracle:oracle -> Cil_types.varinfo -> Z.t option -> t -> t or_top
-  val map : (submemory -> submemory) -> t -> t
-  val fold : (submemory -> 'a -> 'a) -> (bit -> 'b -> 'a) -> t -> 'b -> 'a
   val add_segmentation_bounds : oracle:oracle -> bound list -> t -> t
 end
 
@@ -415,6 +427,13 @@ struct
 
   type segments = (M.t * B.t) list
 
+  let to_seq (m : t) =
+    let rec aux l segments () = match segments with
+      | [] -> Seq.Nil
+      | (v,u) :: tail -> Seq.Cons ((l,v,u), aux u tail)
+    in
+    aux m.start m.segments
+
   let _pretty_debug fmt (l,s) : unit =
     Format.fprintf fmt " {%a} " B.pretty l;
     let pp fmt (v,u) =
@@ -422,7 +441,7 @@ struct
     in
     List.iter (pp fmt) s
 
-  let pretty_segments fmt ((l : B.t), (s : (M.t * B.t) list)) : unit =
+  let pretty fmt (m : t) : unit =
     let pp fmt (l,v,u) =
       let u = B.pred u in (* Upper bound is not included *)
       (* Less strict than B.equal even with no oracles *)
@@ -431,18 +450,11 @@ struct
       else
         Format.fprintf fmt "[%a .. %a]%a" B.pretty l B.pretty u M.pretty v
     in
-    match s with
-    | [] -> Format.fprintf fmt "[]" (* should not happen *)
-    | [(v,u)] -> pp fmt (l,v,u)
-    | _ :: _ ->
-      let iter l f segments =
-        (* fold the previous upper bound = the current lower bound *)
-        ignore (List.fold_left (fun l (v,u) -> f (l,v,u) ; u) l segments)
-      in
-      Pretty_memory.pp_iter (iter l) pp fmt s
-
-  let pretty fmt (m : t) : unit =
-    pretty_segments fmt (m.start,m.segments)
+    match m.segments with
+    | [(v,u)] -> pp fmt (m.start,v,u)
+    | _ ->
+      Pretty.pretty_seq ~format:"{@;<1 2>%t@ }" ~sep:",@;<1 2>" ~item:"@[<hv>%a@]"
+        pp fmt  (to_seq m)
 
   let hash (m : t) : int =
     Hashtbl.hash (
@@ -843,10 +855,35 @@ struct
     incr_start m.padding m.start m.segments
 
   let map f m =
-    check { m with segments=List.map (fun (v,u) -> f v, u) m.segments }
+    let _last, segments =
+      List.fold_left_map
+        (fun l (v,u) -> u, (f (B.to_exp l, B.(to_exp (pred u))) v, u))
+        m.start
+        m.segments
+    in
+    check { m with segments }
 
-  let fold fs fp m acc =
-    List.fold_left (fun acc (v,_) -> fs v acc) (fp m.padding acc) m.segments
+  let iter f m =
+    let _last =
+      List.fold_left
+        (fun l (v,u) -> f (B.to_exp l, B.(to_exp (pred u))) v; u)
+        m.start
+        m.segments
+    in
+    ()
+
+  let fold f m acc =
+    let _last, acc =
+      List.fold_left
+        (fun (l,acc) (v,u) -> u, f (B.to_exp l, B.(to_exp (pred u))) v acc)
+        (m.start,acc)
+        m.segments
+    in
+    acc
+
+  let read_any map reduce (m : t) =
+    map (M.of_raw m.padding) |>
+    fold (fun _ v acc -> reduce acc (map v)) m
 
   let add_segmentation_bounds ~oracle bounds m =
     let add_bound m b =

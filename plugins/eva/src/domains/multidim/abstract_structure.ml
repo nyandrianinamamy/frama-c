@@ -39,10 +39,12 @@ sig
   val weak_erase : Bit.t -> t -> t
   val is_included : t -> t -> bool
   val unify : (submemory -> submemory -> submemory) -> t -> t -> t
+  val iter : (Cil_types.fieldinfo -> submemory -> unit) -> t -> unit
+  val fold : (Cil_types.fieldinfo -> submemory -> 'a -> 'a) -> t -> 'a -> 'a
+  val map : (Cil_types.fieldinfo -> submemory -> submemory) -> t -> t
   val read : t -> Cil_types.fieldinfo -> submemory
   val update : (submemory -> submemory or_bottom) -> t -> Cil_types.fieldinfo ->
     t or_bottom
-  val map : (submemory -> submemory) -> t -> t
 end
 
 module Make (Config : Config) (M : ProtoMemory) =
@@ -58,7 +60,6 @@ struct
       struct
         include Datatype.Serializable_undefined
         include M
-        let name = "Abstract_Memory.Structure.Values"
         let reprs = [ of_raw Bit.zero ]
       end)
   end
@@ -78,8 +79,9 @@ struct
   type submemory = M.t
 
   let pretty fmt m =
-    Pretty_memory.pp_iter2 ~format:"@[<hv>.%a%a@]"
-      FieldMap.iter Field.pretty M.pretty fmt m.fields
+    Pretty.pretty_seq2
+      ~format:"{@;<1 2>%t@ }" ~sep:",@;<1 2>" ~item:"@[<hv>.%a%a@]"
+      Field.pretty M.pretty fmt (FieldMap.to_seq m.fields)
 
   let hash m =
     Hashtbl.hash (m.padding, FieldMap.hash m.fields)
@@ -127,6 +129,17 @@ struct
         m1.fields m2.fields
     in { padding = Bit.join m1.padding m2.padding ; fields }
 
+  let iter f m =
+    FieldMap.iter f m.fields
+
+  let fold f m acc =
+    FieldMap.fold f m.fields acc
+
+  let map f m =
+    { m with
+      fields = FieldMap.filter_map (fun fi m' -> Some (f fi m')) m.fields
+    }
+
   let read m fi =
     try
       FieldMap.find fi m.fields
@@ -144,9 +157,6 @@ struct
       `Value { m with fields = FieldMap.replace update' fi m.fields }
     with Exit ->
       `Bottom
-
-  let map f m =
-    { m with fields = FieldMap.map f m.fields }
 end
 
 
@@ -183,11 +193,13 @@ sig
   val is_included : t -> t -> bool
   val unify : oracle:bioracle -> (submemory -> submemory -> submemory) ->
     t -> t -> t
+  val iter : (Cil_types.fieldinfo -> submemory -> unit) -> t -> unit
+  val fold : (Cil_types.fieldinfo -> submemory -> 'a -> 'a) -> t -> 'a -> 'a
+  val map : (Cil_types.fieldinfo -> submemory -> submemory) -> t -> t
   val read : (submemory -> 'a) -> ('a -> 'a -> 'a)  ->
     t -> Cil_types.fieldinfo -> 'a
   val update : oracle:oracle -> (submemory -> submemory or_bottom) ->
     t -> Cil_types.fieldinfo -> t or_bottom
-  val map : (submemory -> submemory) -> t -> t
 end
 
 module Disjunction (M : ProtoMemory)
@@ -211,7 +223,7 @@ struct
     include Datatype.Serializable_undefined
     include S
 
-    let name = "Abstract_Memory.Disjunction.S"
+    let name = "Abstract_structure.Disjunction.S"
     let reprs = [ of_raw Bit.zero ]
     let eval_key key m = M.to_singleton_int (read m key)
     let suitable_key key m = Option.is_some (eval_key key m)
@@ -245,8 +257,9 @@ struct
     | [(_,s)] -> S.pretty fmt s
     | bindings ->
       let l = List.map snd bindings in
-      Pretty_memory.pp_iter ~format:"@[<hv>%a@]" ~sep:" or @;<1 2>"
-        List.iter S.pretty fmt l
+      List.pretty
+        ~format:"@;<1 2>%t" ~sep:" or@;<1 2>" ~item:"@[<hv>%a@]"
+        S.pretty fmt l
 
   let hash (m : t) =
     Hashtbl.hash (Map.fold (fun _ s acc -> s :: acc) m [])
@@ -305,6 +318,15 @@ struct
     and m2 = reevaluate ~oracle:(oracle Right) keys m2 in
     Map.union (fun _k m1 m2 -> Some (S.unify f m1 m2)) m1 m2
 
+  let iter f (m : t) =
+    Map.iter (fun _ s -> S.iter f s) m
+
+  let fold f (m : t) acc =
+    Map.fold (fun _ s acc -> S.fold f s acc) m acc
+
+  let map f m =
+    Map.map (S.map f) m
+
   let read map reduce (m : t) (fi : Cil_types.fieldinfo) =
     let aux _k s acc =
       map (S.read s fi) |>
@@ -329,7 +351,4 @@ struct
         `Value (reevaluate ~oracle new_keys m)
       else
         `Value (m)
-
-  let map f m =
-    Map.map (S.map f) m
 end

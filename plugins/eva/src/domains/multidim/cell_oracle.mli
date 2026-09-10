@@ -6,8 +6,11 @@
 (*                                                                        *)
 (**************************************************************************)
 
-include Abstract_domain.Leaf
-  with type value = Cvalue.V.t
-   and type location = Precise_locs.precise_location
+open Eval
 
-val registered: Abstractions.Domain.registered
+type oracle = exp -> Cvalue.V.t
+type getter = oracle:(exp -> Cvalue.V.t) -> lval -> Cvalue.V.t or_bottom
+
+val convert_oracle : oracle -> exp -> Int_val.t
+
+val default_oracle : getter -> oracle

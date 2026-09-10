@@ -33,7 +33,7 @@ module type Value =
 sig
   type t
 
-  val name : string
+  val datatype_name : string
 
   val hash : t -> int
   val equal : t -> t -> bool
@@ -89,6 +89,15 @@ sig
 
   (* Test inclusion of one memory map into another *)
   val is_included : t -> t -> bool
+
+  (* Iter on all the stored values. *)
+  val iter : (offset -> value -> unit) -> t -> unit
+
+  (* Fold on all the stored values. *)
+  val fold : (offset -> value -> 'a -> 'a) -> t -> 'a -> 'a
+
+  (* Map on all stored values. *)
+  val map : (offset -> value -> value) -> t -> t
 
   (* Finest partition that is coarcer than both *)
   val join : oracle:bioracle -> t -> t -> t
