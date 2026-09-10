@@ -55,7 +55,6 @@ module Eva =
       let option_name = "-eva"
       let help = "Run the Eva analysis."
     end)
-let () = Eva.add_aliases ~deprecated:true ["-val"]
 
 let domains = add_group "Abstract Domains"
 let precision_tuning = add_group "Precision vs. time"
@@ -79,35 +78,6 @@ module Domains =
       let default = Datatype.String.Set.of_list ["cvalue"]
     end)
 let () = add_precision_dep Domains.parameter
-
-let remove_domain name =
-  Domains.set (Datatype.String.Set.filter ((!=) name) (Domains.get ()))
-
-(* For backward compatibility, creates an invisible option for the domain [name]
-   that sets up -eva-domains with [name]. To be removed one day. *)
-let create_domain_option name =
-  let option_name =
-    match name with
-    | "apron-box" -> "-eva-apron-box"
-    | "apron-octagon" -> "-eva-apron-oct"
-    | "apron-polka-loose" -> "-eva-polka-loose"
-    | "apron-polka-strict" -> "-eva-polka-strict"
-    | "apron-polka-equality" -> "-eva-polka-equalities"
-    | _ -> "-eva-" ^ name ^ "-domain"
-  in
-  let module Input = struct
-    let option_name = option_name
-    let help = "Use the " ^ name ^ " domain of eva."
-    let default = name = "cvalue"
-  end in
-  Parameter_customize.set_group domains;
-  Parameter_customize.is_invisible ();
-  let module Parameter = Bool (Input) in
-  Parameter.add_set_hook
-    (fun _old _new ->
-       warning "Option %s is deprecated. Use -eva-domains %s%s instead."
-         option_name (if _new then "" else "-") name;
-       if _new then Domains.add name else remove_domain name)
 
 let () = Parameter_customize.set_group performance
 module NoResultsDomain =
@@ -157,7 +127,6 @@ let print_domains_and_exit () =
 
 (* Registers a new domain. Updates the help message of -eva-domains. *)
 let register_domain ~name ~descr ~priority =
-  create_domain_option name;
   domains_ref := ((name, descr), priority) :: !domains_ref;
   Cmdline.replace_option_help
     Domains.option_name ~plugin:"eva" ~group:domains (domains_help ())
@@ -467,22 +436,6 @@ module WarnPointerSubtraction =
          offsets. When unset, do not warn but generate imprecise offsets."
     end)
 let () = add_correctness_dep WarnPointerSubtraction.parameter
-
-let () = Parameter_customize.set_group alarms
-let () = Parameter_customize.is_invisible ()
-module IgnoreRecursiveCalls =
-  False
-    (struct
-      let option_name = "-eva-ignore-recursive-calls"
-      let help = "Deprecated."
-    end)
-let () =
-  IgnoreRecursiveCalls.add_set_hook
-    (fun _old _new ->
-       warning
-         "@[Option -eva-ignore-recursive-calls has no effect.@ Recursive calls \
-          can be unrolled@ through option -eva-unroll-recursive-calls,@ or their \
-          specification is used@ to interpret them.@]")
 
 let () = Parameter_customize.set_group alarms
 let () = Parameter_customize.argument_may_be_fundecl ();
@@ -1256,6 +1209,8 @@ module Annot =
 (* --- Deprecated options and aliases                                     --- *)
 (* -------------------------------------------------------------------------- *)
 
+(* DO NOT REMOVE
+   Even if it has been deprecated for more that 4 versions. *)
 let () = Parameter_customize.set_group alarms
 let () = Parameter_customize.is_invisible ()
 module AllRoundingModesConstants =
@@ -1308,56 +1263,6 @@ let () =
     Self.Message_category.set (prefix ^ "summary");
   in
   ForcePrintSummary.add_set_hook hook
-
-let deprecated_aliases : ((module Parameter_sig.S) * string) list =
-  [ (module SLevel), "-slevel"
-  ; (module SlevelFunction), "-slevel-function"
-  ; (module NoResultsFunction), "-no-results-function"
-  ; (module ResultsAll), "-results"
-  ; (module JoinResults), "-val-join-results"
-  ; (module AllRoundingModesConstants), "-all-rounding-modes-constants"
-  ; (module UndefinedPointerComparisonPropagateAll), "-undefined-pointer-comparison-propagate-all"
-  ; (module WarnPointerComparison), "-val-warn-undefined-pointer-comparison"
-  ; (module WarnSignedConvertedDowncast), "-val-warn-signed-converted-downcast"
-  ; (module WarnPointerSubtraction), "-val-warn-pointer-subtraction"
-  ; (module IgnoreRecursiveCalls), "-val-ignore-recursive-calls"
-  ; (module WarnCopyIndeterminate), "-val-warn-copy-indeterminate"
-  ; (module ReduceOnLogicAlarms), "-val-reduce-on-logic-alarms"
-  ; (module InitializedLocals), "-val-initialized-locals"
-  ; (module ContextDepth), "-context-depth"
-  ; (module ContextWidth), "-context-width"
-  ; (module ContextValidPointers), "-context-valid-pointers"
-  ; (module InitializationPaddingGlobals), "-val-initialization-padding-globals"
-  ; (module WideningDelay), "-wlevel"
-  ; (module SlevelMergeAfterLoop), "-val-slevel-merge-after-loop"
-  ; (module SplitReturnFunction), "-val-split-return-function"
-  ; (module SplitReturn), "-val-split-return"
-  ; (module ILevel), "-val-ilevel"
-  ; (module BuiltinsOverrides), "-val-builtin"
-  ; (module BuiltinsAuto), "-val-builtins-auto"
-  ; (module SubdivideNonLinear), "-val-subdivide-non-linear"
-  ; (module UseSpec), "-val-use-spec"
-  ; (module SkipLibcSpecs), "-val-skip-stdlib-specs"
-  ; (module RmAssert), "-remove-redundant-alarms"
-  ; (module Memexec), "-memexec-all"
-  ; (module ArrayPrecisionLevel), "-plevel"
-  ; (module ValShowProgress), "-val-show-progress"
-  ; (module ShowPerf), "-val-show-perf"
-  ; (module Flamegraph), "-val-flamegraph"
-  ; (module ShowSlevel), "-val-show-slevel"
-  ; (module PrintCallstacks), "-val-print-callstacks"
-  ; (module InterpreterMode), "-val-interpreter-mode"
-  ; (module StopAtNthAlarm), "-val-stop-at-nth-alarm"
-  ; (module AllocFunctions), "-val-malloc-functions"
-  ; (module AllocReturnsNull), "-val-alloc-returns-null"
-  ; (module MallocLevel), "-val-mlevel"
-  ]
-
-let add_deprecated_alias ((module P: Parameter_sig.S), name) =
-  P.add_aliases ~visible:false ~deprecated:true [name]
-
-let () = List.iter add_deprecated_alias deprecated_aliases
-
 
 (* -------------------------------------------------------------------------- *)
 (* --- Meta options                                                       --- *)

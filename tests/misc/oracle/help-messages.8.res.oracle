@@ -15,7 +15,6 @@ Options taking a string as argument should preferably be written
 ***** LIST OF AVAILABLE OPTIONS:
 
 -eva                Run the Eva analysis. (opposite option is -no-eva)
--val                alias for option -eva
 -eva-precision <n>  Meta-option that automatically sets up some Eva
                     parameters for a quick configuration of an analysis, from
                     0 (fastest but rather imprecise analysis) to 11 (accurate
