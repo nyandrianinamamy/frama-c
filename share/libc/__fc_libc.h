@@ -88,6 +88,7 @@
 #include "sys/msg.h"
 #include "sys/param.h"
 #include "sys/poll.h"
+#include "sys/prctl.h"
 #include "sys/random.h"
 #include "sys/resource.h"
 #include "sys/select.h"
