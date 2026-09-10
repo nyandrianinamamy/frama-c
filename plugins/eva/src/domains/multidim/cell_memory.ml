@@ -206,6 +206,7 @@ struct
       not (Ast_types.C.is_volatile vi.vtype) &&
       Option.fold ~none:true ~some:(Tracking.mem b) tracked
     | Null -> true
+    | Absolute { volatile; _ } -> not volatile
     | CLogic_Var _ | Allocated (_, _, _) -> false
 
   let set_tracking (base_map, tracked : t) bases =
