@@ -18,7 +18,7 @@
 Open Source Release <next-release>
 ###############################################################################
 
--*   ACSL     [2026-09-10] ACSL extension can now be written before requires
+-*   ACSL     [2026-09-10] ACSL extensions can now be written before requires
               clauses, and terminates and decreases clauses can now be written
               anywhere between requires clauses and behaviors. Empty named
               behaviors are now forbidden in function contracts and in statement
