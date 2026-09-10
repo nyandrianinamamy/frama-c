@@ -1,6 +1,7 @@
 /*@     behavior foo: ensures \true;
 
         behavior bar:
+          ensures \true;
 
         complete behaviors foo, bar, UNEXISTENT_BEHAVIOR;
 */
@@ -13,6 +14,7 @@ void f() {
 /*@     behavior foo: ensures \true;
 
         behavior bar:
+          ensures \true;
 
         disjoint behaviors foo, bar, UNEXISTENT_BEHAVIOR;
 */
@@ -56,12 +58,12 @@ void j () {
   }
 }
 
-/*@ behavior boolean: ensures boolean:\true; 
-    behavior char: ensures char:\true; 
-    behavior for: ensures for:\true; 
-    behavior while: ensures while:\true; 
-    behavior ensures: ensures ensures: \true; 
-    behavior logic: ensures logic: \true; 
+/*@ behavior boolean: ensures boolean:\true;
+    behavior char: ensures char:\true;
+    behavior for: ensures for:\true;
+    behavior while: ensures while:\true;
+    behavior ensures: ensures ensures: \true;
+    behavior logic: ensures logic: \true;
  */
 void keyword_as_behavior_and_term_names () {
   ;

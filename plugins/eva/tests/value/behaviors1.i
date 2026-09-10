@@ -482,6 +482,7 @@ char T[10];
 
   behavior b:
     // no assigns clause (reverts to the default behavior's)
+    ensures \true;
 */
 void f2(char * out, unsigned int l) ;
 

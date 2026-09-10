@@ -1,0 +1,3 @@
+[kernel] Parsing no_assumes_in_contracts.i (no preprocessing)
+[kernel:annot-error] no_assumes_in_contracts.i:8: Warning: 
+  Assumes outside behaviors is not allowed.

@@ -1,0 +1,25 @@
+[kernel] Parsing error_clauses_order.i (no preprocessing)
+[kernel:annot-error] error_clauses_order.i:8: Warning: 
+  Wrong order of clause in contract: assumes after requires.
+[kernel:annot-error] error_clauses_order.i:14: Warning: 
+  Wrong order of clause in contract: assumes after terminates.
+[kernel:annot-error] error_clauses_order.i:20: Warning: 
+  Wrong order of clause in contract: requires after assigns.
+[kernel:annot-error] error_clauses_order.i:28: Warning: 
+  Wrong order of clause in contract: requires after post_cond.
+[kernel:annot-error] error_clauses_order.i:36: Warning: 
+  Wrong order of clause in contract: assumes after post_cond.
+[kernel:annot-error] error_clauses_order.i:44: Warning: 
+  Wrong order of clause in contract: assumes after requires.
+[kernel:annot-error] error_clauses_order.i:51: Warning: 
+  Wrong order of clause in contract: list of behaviors after complete behaviors.
+[kernel:annot-error] error_clauses_order.i:59: Warning: 
+  Wrong order of clause in contract: list of behaviors after disjoint behaviors.
+[kernel:annot-error] error_clauses_order.i:81: Warning: 
+  Wrong order of clause in contract: assigns after complete behaviors.
+[kernel:annot-error] error_clauses_order.i:90: Warning: 
+  Wrong order of clause in contract: requires after disjoint behaviors.
+[kernel:annot-error] error_clauses_order.i:55: Warning: 
+  complete or disjoint behaviors clause in a contract with empty list of behavior. Ignoring specification of function f7
+[kernel:annot-error] error_clauses_order.i:63: Warning: 
+  complete or disjoint behaviors clause in a contract with empty list of behavior. Ignoring specification of function f8

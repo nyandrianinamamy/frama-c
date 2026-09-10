@@ -1,0 +1,5 @@
+[kernel] Parsing error_clauses_order.i (no preprocessing)
+[kernel:annot-error] error_clauses_order.i:8: Failure: 
+  Wrong order of clause in contract: assumes after requires.
+[kernel] User Error: warning annot-error treated as fatal error.
+[kernel] Frama-C aborted: invalid user input.

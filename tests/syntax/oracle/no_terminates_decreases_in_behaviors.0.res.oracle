@@ -1,0 +1,5 @@
+[kernel] Parsing no_terminates_decreases_in_behaviors.i (no preprocessing)
+[kernel:annot-error] no_terminates_decreases_in_behaviors.i:10: Warning: 
+  Terminates in behaviors is not allowed.
+[kernel:annot-error] no_terminates_decreases_in_behaviors.i:19: Warning: 
+  Decreases in behaviors is not allowed.
