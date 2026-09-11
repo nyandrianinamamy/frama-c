@@ -24,8 +24,7 @@ let pointer v =
   | None -> Options.fatal "Not a pointer value"
 
 let add_nullable r =
-  let () = List.iter (Memory.add_flag [`Nullable]) @@ Memory.pointed_by r in
-  r
+  let () = List.iter (Memory.add_flag [`Nullable]) @@ Memory.pointed_by r in r
 
 let rec add_lval (m:map) (s:stmt) (lv:lval) : node =
   let h = fst lv in

@@ -104,7 +104,6 @@
   "resolutions": {
     "react": "^18",
     "react-dom": "^18",
-    "yauzl": "^3.3.1",
     "@types/react": "^18"
   },
   "build": {
