@@ -45,6 +45,7 @@
 [wp] Goal typed_ref_equal_elements_assert_rte_mem_access_6 : trivial
 [wp] Goal typed_ref_equal_elements_assert_rte_mem_access_7 : trivial
 [wp] Goal typed_ref_equal_elements_assert_rte_mem_access_8 : trivial
+[wp] Goal typed_ref_equal_elements_assert_help_v1_sound1 : not tried
 [wp] Goal typed_ref_equal_elements_assert_rte_index_bound_5 : not tried
 [wp] Goal typed_ref_equal_elements_assert_rte_index_bound_6 : not tried
 [wp] Goal typed_ref_equal_elements_assert_rte_signed_overflow_2 : not tried

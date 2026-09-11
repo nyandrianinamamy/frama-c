@@ -6,7 +6,7 @@
 [wp] Warning: Missing RTE guards
 [wp] 1 goal scheduled
 [wp] User Error: Ill-formed inductive declaration (non-positive premises)
-[wp] Warning: Goal Property: running prover Alt-Ergo:2.6.2 failed ([User Error])
+[wp] Warning: Goal Property: running prover Alt-Ergo:2.6.4 failed ([User Error])
 [wp] [Failure] typed_foo_assert (Alt-Ergo) (No Cache)
 [wp] Proved goals:    2 / 3
   Terminating:     1

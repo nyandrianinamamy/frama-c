@@ -6,7 +6,7 @@
 [rte:annot] annotating function equal_elements
 [wp] [Valid] Goal equal_elements_exits (Cfg) (Unreachable)
 [wp] [Valid] Goal equal_elements_terminates (Cfg) (Trivial)
-[wp] 51 goals scheduled
+[wp] 52 goals scheduled
 [wp] [Valid] typed_ref_equal_elements_ensures_v1_good (Alt-Ergo) (Cached)
 [wp] [Valid] typed_ref_equal_elements_ensures_v2_good (Alt-Ergo) (Cached)
 [wp] [Valid] typed_ref_equal_elements_ensures_v1_v2_diff (Alt-Ergo) (Cached)
@@ -46,6 +46,7 @@
 [wp] [Valid] typed_ref_equal_elements_assert_rte_mem_access_6 (Qed)
 [wp] [Valid] typed_ref_equal_elements_assert_rte_mem_access_7 (Qed)
 [wp] [Valid] typed_ref_equal_elements_assert_rte_mem_access_8 (Qed)
+[wp] [Valid] typed_ref_equal_elements_assert_help_v1_sound1 (Alt-Ergo) (Cached)
 [wp] [Valid] typed_ref_equal_elements_assert_rte_index_bound_5 (Qed)
 [wp] [Valid] typed_ref_equal_elements_assert_rte_index_bound_6 (Qed)
 [wp] [Valid] typed_ref_equal_elements_assert_rte_signed_overflow_2 (Qed)
@@ -58,14 +59,14 @@
 [wp] [Valid] typed_ref_equal_elements_loop_variant_decrease (Qed)
 [wp] [Valid] typed_ref_equal_elements_loop_variant_2_positive (Qed)
 [wp] [Valid] typed_ref_equal_elements_loop_variant_2_decrease (Qed)
-[wp] Proved goals:   53 / 53
+[wp] Proved goals:   54 / 54
   Terminating:     1
   Unreachable:     1
   Qed:            33
-  Alt-Ergo:       18
+  Alt-Ergo:       19
 ------------------------------------------------------------
  Functions                 WP     Alt-Ergo  Total   Success
-  equal_elements           35       18       53       100%
+  equal_elements           35       19       54       100%
 ------------------------------------------------------------
 [wp] frama_c_exo3_solved.old.v2.c:56: Warning: 
   Memory model hypotheses for function 'equal_elements':
