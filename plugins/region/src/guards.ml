@@ -53,6 +53,10 @@ and offset env s t r = function
 
 and addr env e = Option.get @@ exp env e
 and eval env e = ignore @@ exp env e
+and eval_cond env e =
+  Option.iter
+    (fun (_,r) -> List.iter (Memory.add_flag [`Nullable]) @@ Memory.pointed_by r)
+  @@ exp env e
 
 and exp env e =
   match e.enode with
@@ -63,13 +67,17 @@ and exp env e =
     let s,_,r = lval env lv in
     if not s then add env @@ g_valid Region (L lv) ;
     Option.map (fun r -> false,r) @@ Memory.points_to r
-  | CastE(t,e) when
-      Ast_types.C.is_fun_or_ptr t &&
-      not (Ast_types.C.is_fun_or_ptr @@ Cil.typeOf e) ->
-    Options.not_yet_implemented ~loc:e.eloc
-      "Integral to pointer casts"
-  | CastE(_,e) ->
-    Option.map (fun (_,r) -> false,r) @@ exp env e
+  | CastE(t,e) -> begin
+      let add_nullable (_,r) =
+        List.iter (Memory.add_flag [`Nullable]) @@ Memory.pointed_by r ;
+        (false,r) in
+      match Ast_types.C.is_fun_or_ptr t, Ast_types.C.is_fun_or_ptr @@ Cil.typeOf e with
+      | true, _ when Ast_info.is_null_expr e ->
+        Option.map add_nullable @@ exp env e
+      | true, true | false, _ -> Option.map (fun (_,r) -> false,r) @@ exp env e
+      | true, false ->
+        Options.not_yet_implemented ~source:e.eloc "Integral to pointer casts"
+    end
   | BinOp((PlusPI|MinusPI),p,k,_) ->
     eval env k ;
     Option.map (fun (_,r) -> false,r) @@ exp env p
@@ -221,7 +229,8 @@ let instr env stmt = function
 let stmtkind env stmt = function
   | Instr i -> instr env stmt i
   | Return(r,_) -> Option.iter (eval env) r
-  | If(e,_,_,_) | Switch(e,_,_,_)| Throw (Some(e,_),_) -> eval env e
+  | If(e,_,_,_) | Switch(e,_,_,_)| Throw (Some(e,_),_) ->
+    eval_cond env e
   | Goto _ | Break _ | Continue _ | Loop _ | Block _
   | Throw(None,_) | TryCatch _ | TryFinally _ -> ()
   | TryExcept(_,(ks,e),_,_) -> List.iter (instr env stmt) ks ; eval env e

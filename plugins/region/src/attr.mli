@@ -23,6 +23,7 @@ val union : flags -> flags -> flags (** Union of attributes *)
 val bottom : flags
 (** Neutral for merge *)
 
+val add_flag : flags -> attr -> flags
 val merge : flags -> flags -> flags
 (** Combine flags:
     - [`Nullable] if {i either} is nullable
