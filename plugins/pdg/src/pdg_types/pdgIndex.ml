@@ -30,7 +30,7 @@ module Signature = struct
       (** implicit inputs :
           Maybe we should use [Lmap_bitwise.Make_bitwise] ?
           but that would make things a lot more complicated... :-? *)
-      in_implicits : (Memory_zone.t * 'info) list ;
+      implicit_inputs : (Memory_zone.t * 'info) list ;
       out_ret : 'info option ;
       outputs : (Memory_zone.t * 'info) list }
 
@@ -52,7 +52,7 @@ module Signature = struct
   end
 
   let empty = { in_ctrl = None ;
-                in_params = [] ; in_implicits = [] ;
+                in_params = [] ; implicit_inputs = [] ;
                 out_ret = None; outputs = [] }
 
   let in_key n = In (InNum n)
@@ -128,8 +128,8 @@ module Signature = struct
                  add_in_list sgn.in_params n info (add_replace replace) }
 
   let add_impl_input sgn loc info ~replace =
-    { sgn with in_implicits =
-                 add_loc sgn.in_implicits loc info (add_replace replace) }
+    { sgn with implicit_inputs =
+                 add_loc sgn.implicit_inputs loc info (add_replace replace) }
 
   let add_output sgn loc info ~replace =
     { sgn with outputs =
@@ -186,7 +186,7 @@ module Signature = struct
         if Memory_zone.equal in_loc loc then e
         else find tl
     in
-    find sgn.in_implicits
+    find sgn.implicit_inputs
 
   let find_in_top sgn =
     find_implicit_input sgn Memory_zone.top
@@ -218,13 +218,13 @@ module Signature = struct
 
   let fold_num_inputs f acc sgn = List.fold_left f acc sgn.in_params
 
-  let fold_impl_inputs f acc sgn = List.fold_left f acc sgn.in_implicits
+  let fold_impl_inputs f acc sgn = List.fold_left f acc sgn.implicit_inputs
 
   let fold_matching_impl_inputs loc f acc sgn =
     let test acc (in_loc, info) =
       if (Memory_zone.intersects in_loc loc) then f acc (in_loc, info)
       else acc
-    in List.fold_left test acc sgn.in_implicits
+    in List.fold_left test acc sgn.implicit_inputs
 
   let fold_all_inputs f acc sgn =
     let acc = match  sgn.in_ctrl with
@@ -252,14 +252,14 @@ module Signature = struct
       | _, None -> sgn1.in_ctrl
       | Some i1, Some i2 -> Some (merge_info i1 i2)
     in
-    assert (sgn1.in_implicits = [] && sgn2.in_implicits = []);
+    assert (sgn1.implicit_inputs = [] && sgn2.implicit_inputs = []);
     let out_ret = match sgn1.out_ret, sgn2.out_ret with
       | None, _ -> sgn2.out_ret
       | _, None -> sgn1.out_ret
       | Some i1, Some i2 -> Some (merge_info i1 i2)
     in
     { in_ctrl = in_ctrl; in_params = inputs ;
-      in_implicits = [] ;
+      implicit_inputs = [] ;
       out_ret = out_ret ; outputs = outputs }
 
   let pretty_in_key fmt key = match key with
