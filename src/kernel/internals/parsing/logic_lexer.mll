@@ -468,7 +468,8 @@ rule token = parse
   | "!"                     { NOT }
   | "$"                     { DOLLAR }
   | ","                     { COMMA }
-  | "->"                    { ARROW }
+  | "->"                    { RARROW }
+  | "<-"                    { LARROW }
   | "?"                     { Stack.push Test state_stack; QUESTION }
   | ";"                     { SEMICOLON }
   | ":"                     { match get_state() with
@@ -497,6 +498,9 @@ rule token = parse
   | "=="                    { EQ }
   | "="                     { EQUAL }
   | "!="                    { NE }
+  | "+="                    { PLUS_EQ }
+  | "-="                    { MINUS_EQ }
+  | ":="                    { COLON_EQ }
   | "("                     { Stack.push Normal state_stack; LPAR }
   | ")"                     { pop_state(); RPAR }
   | "{"                     { Stack.push Normal state_stack; LBRACE }

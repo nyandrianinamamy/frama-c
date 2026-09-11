@@ -320,7 +320,8 @@
 %token <string> STRING_CONSTANT
 %token <string> WSTRING_CONSTANT
 %token LPAR RPAR IF ELSE COLON COLON2 COLONCOLON DOT DOTDOT DOTDOTDOT
-%token INT INTEGER REAL BOOLEAN BOOL FLOAT FLOAT32 FLOAT64 LT GT LE GE EQ NE COMMA ARROW EQUAL
+%token INT INTEGER REAL BOOLEAN BOOL FLOAT FLOAT32 FLOAT64 LT GT LE GE EQ NE
+%token COMMA RARROW LARROW EQUAL PLUS_EQ MINUS_EQ COLON_EQ
 %token FORALL EXISTS IFF IMPLIES AND OR NOT SEPARATED
 %token TRUE FALSE OLD AS AT RESULT
 %token BLOCK_LENGTH BASE_ADDR OFFSET VALID VALID_READ VALID_INDEX VALID_RANGE
@@ -328,13 +329,15 @@
 %token ALLOCATION STATIC REGISTER AUTOMATIC DYNAMIC UNALLOCATED
 %token ALLOCABLE FREEABLE FRESH
 %token DOLLAR QUESTION MINUS PLUS STAR AMP SLASH PERCENT LSQUARE RSQUARE EOF
-%token GLOBAL INVARIANT VARIANT DECREASES FOR LABEL ASSERT CHECK ADMIT SEMICOLON NULL EMPTY
+%token GLOBAL INVARIANT VARIANT DECREASES FOR LABEL ASSERT CHECK ADMIT
+%token SEMICOLON NULL EMPTY
 %token REQUIRES ENSURES ALLOCATES FREES ASSIGNS LOOP NOTHING FROM
 %token CHECK_REQUIRES CHECK_LOOP CHECK_INVARIANT CHECK_LEMMA
 %token CHECK_ENSURES CHECK_EXITS CHECK_CONTINUES CHECK_BREAKS CHECK_RETURNS
 %token ADMIT_REQUIRES ADMIT_LOOP ADMIT_INVARIANT ADMIT_LEMMA
 %token ADMIT_ENSURES ADMIT_EXITS ADMIT_CONTINUES ADMIT_BREAKS ADMIT_RETURNS
-%token <string * string> EXT_CODE_ANNOT EXT_GLOBAL EXT_GLOBAL_BLOCK EXT_CONTRACT EXT_LOADER EXT_LOADER_PLUGIN
+%token <string * string> EXT_CODE_ANNOT EXT_GLOBAL EXT_GLOBAL_BLOCK EXT_CONTRACT
+%token <string * string> EXT_LOADER EXT_LOADER_PLUGIN
 %token EXITS BREAKS CONTINUES RETURNS
 %token VOLATILE READS WRITES
 %token LOGIC PREDICATE INDUCTIVE AXIOM LEMMA LBRACE RBRACE
@@ -372,7 +375,7 @@
 %left PLUS MINUS
 %left STAR SLASH PERCENT
 %right prec_cast TILDE NOT prec_unary_op
-%left DOT ARROW LSQUARE
+%left DOT RARROW LSQUARE
 
 %type <Logic_ptree.lexpr> lexpr_eof
 %start lexpr_eof
@@ -592,7 +595,7 @@ lexpr_inner:
 | lexpr_inner SLASH lexpr_inner { info $sloc (PLbinop ($1, Bdiv, $3)) }
 | lexpr_inner PERCENT lexpr_inner { info $sloc (PLbinop ($1, Bmod, $3)) }
 | lexpr_inner STARHAT lexpr_inner  { info $sloc (PLrepeat ($1, $3)) }
-| lexpr_inner ARROW identifier_or_typename_full { info $sloc (PLarrow ($1, $3)) }
+| lexpr_inner RARROW identifier_or_typename_full { info $sloc (PLarrow ($1, $3)) }
 | lexpr_inner DOT identifier_or_typename_full { info $sloc (PLdot ($1, $3)) }
 | lexpr_inner LSQUARE range RSQUARE { info $sloc (PLarrget ($1, $3)) }
 | lexpr_inner LSQUARE lexpr RSQUARE { info $sloc (PLarrget ($1, $3)) }
@@ -683,6 +686,7 @@ range:
 field_path_elt:
 | DOT identifier_or_typename_full { $2 }
 ;
+
 field_init_elt:
 | field_path_elt EQUAL lexpr { ($1, $3) }
 ;
@@ -713,8 +717,17 @@ update:
 ;
 
 update_elt:
-| path EQUAL lexpr                     { $1, PLupdateTerm $3 }
-| path EQUAL LBRACE WITH update RBRACE { $1, PLupdateCont $5 }
+| path update_op lexpr                     { $1, PLupdateTerm $3 }
+| path update_op LBRACE WITH update RBRACE { $1, PLupdateCont $5 }
+;
+
+update_op:
+| EQUAL {}
+| RARROW {}
+| LARROW {}
+| PLUS_EQ {}
+| MINUS_EQ {}
+| COLON_EQ {}
 ;
 
 path:
@@ -2191,12 +2204,12 @@ wildcard:
 | bs_keyword { () }
 | AMP { () }
 | AND { () }
-| ARROW { () }
 | BIFF { () }
 | BIMPLIES { () }
 | COLON { () }
 | COLON2 { () }
 | COLONCOLON { () }
+| COLON_EQ { () }
 | COMMA { () }
 | INT_CONSTANT { () }
 | FLOAT_CONSTANT { () }
@@ -2216,6 +2229,7 @@ wildcard:
 | HATHAT { () }
 | IFF { () }
 | IMPLIES { () }
+| LARROW { () }
 | LBRACE { () }
 | LE { () }
 | LPAR { () }
@@ -2224,6 +2238,7 @@ wildcard:
 | LT { () }
 | LTLT { () }
 | MINUS { () }
+| MINUS_EQ { () }
 | NE { () }
 | NOT { () }
 | OR { () }
@@ -2231,7 +2246,9 @@ wildcard:
 | PI { () }
 | PIPE { () }
 | PLUS { () }
+| PLUS_EQ { () }
 | QUESTION { () }
+| RARROW { () }
 | RBRACE { () }
 | RPAR { () }
 | RSQUARE { () }
