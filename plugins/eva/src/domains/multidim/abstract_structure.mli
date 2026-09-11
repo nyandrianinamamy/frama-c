@@ -29,7 +29,6 @@ sig
   val weak_erase : Bit.t -> t -> t
   val is_included : t -> t -> bool
   val unify : (submemory -> submemory -> submemory) -> t -> t -> t
-  val iter : (Cil_types.fieldinfo -> submemory -> unit) -> t -> unit
   val fold : (Cil_types.fieldinfo -> submemory -> 'a -> 'a) -> t -> 'a -> 'a
   val map : (Cil_types.fieldinfo -> submemory -> submemory) -> t -> t
   val read : t -> Cil_types.fieldinfo -> submemory
@@ -57,7 +56,6 @@ sig
   val is_included : t -> t -> bool
   val unify : oracle:bioracle -> (submemory -> submemory -> submemory) ->
     t -> t -> t
-  val iter : (Cil_types.fieldinfo -> submemory -> unit) -> t -> unit
   val fold : (Cil_types.fieldinfo -> submemory -> 'a -> 'a) -> t -> 'a -> 'a
   val map : (Cil_types.fieldinfo -> submemory -> submemory) -> t -> t
   val read : (submemory -> 'a) -> ('a -> 'a -> 'a)  ->

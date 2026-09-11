@@ -90,9 +90,6 @@ sig
   (* Test inclusion of one memory map into another *)
   val is_included : t -> t -> bool
 
-  (* Iter on all the stored values. *)
-  val iter : (offset -> value -> unit) -> t -> unit
-
   (* Fold on all the stored values. *)
   val fold : (offset -> value -> 'a -> 'a) -> t -> 'a -> 'a
 
