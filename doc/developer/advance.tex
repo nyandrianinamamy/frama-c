@@ -4270,6 +4270,28 @@ version in the interface:
 
 \includegraphics[width=\textwidth]{examples/acsl_extension_ext_types/acsl_extension_ext_types}
 
+\paragraph{Extended ACSL syntax.}
+\label{par:ext-acsl-syntax}
+
+An extension can use an extended part of the ACSL syntax that is parsed but not
+typed in pure ACSL annotations. Those extended terms can be typed by the typer
+of the extension.
+
+The only implemented extension of the ACSL syntax is an extension of functional
+update.
+
+The syntax is similar to the functional update of a structure, but without a dot
+at the beginning of an element, with semicolons instead of commas and with more
+supported operators:
+\begin{lstlisting}[style=c]
+//@ kw { f \with State = S ; In <- A ; Out -> B ; } ;
+\end{lstlisting}
+
+The final semicolon of the update is optional. The list of supported operator
+is \verb|=|, \verb|+=|,\verb|-=|,\verb|:=|,\verb|<-|, and \verb|->|.
+
+The corresponding term is PLupdExt.
+
 \paragraph{External Modules.}
 \label{par:ext-modules}
 
