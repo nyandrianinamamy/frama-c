@@ -13,8 +13,8 @@ type value = Mt_memory.Types.value
 module type Data = sig
   type t
 
-  (** Datatype witness. *)
-  val repr : t
+  (** Datatype witnesses. *)
+  val reprs : t list
 
   (** Short name of the type, used in datatype names and log messages. *)
   val name : string
@@ -30,7 +30,7 @@ end
 (* Identity used to group different values to the same id. *)
 module type Identity = sig
   type t
-  val repr : t
+  val reprs : t list
   val equal : t -> t -> bool
   val compare : t -> t -> int
   val hash : t -> int

@@ -22,7 +22,7 @@ let array_size (v : Cil_types.varinfo) =
 
 module type Data = sig
   type t
-  val repr : t
+  val reprs : t list
   val name : string
   val pretty : Format.formatter -> t * int -> unit
   val array_of_ids : unit -> Cil_types.varinfo
@@ -30,7 +30,7 @@ end
 
 module type Identity = sig
   type t
-  val repr : t
+  val reprs : t list
   val equal : t -> t -> bool
   val compare : t -> t -> int
   val hash : t -> int
@@ -57,7 +57,7 @@ module Make (Identity : Identity) (Data : Data) = struct
     type t = { id: int; data: Data.t }
 
     let name = "Mt_ids.Make(" ^ Data.name ^ ")"
-    let reprs = [ { id = 0; data = Data.repr } ]
+    let reprs = List.map (fun data -> { id = 0; data }) Data.reprs
     let equal t1 t2 = Int.equal t1.id t2.id
     let compare t1 t2 = Int.compare t1.id t2.id
     let hash th = th.id
@@ -122,7 +122,6 @@ module Make (Identity : Identity) (Data : Data) = struct
   module Id_Prototype = struct
     include Datatype.Serializable_undefined
     include Identity
-    let reprs = [ repr ]
     let name = "Eva." ^ Data.name ^ ".Identity"
   end
   module Id_Datatype = Datatype.Make_with_collections (Id_Prototype)

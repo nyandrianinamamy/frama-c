@@ -10,7 +10,7 @@
 
 module Data = struct
   type t = Concurrency.Name.t option
-  let repr = None
+  let reprs = List.map Option.some Concurrency.Name.reprs
   let name = "mutex"
   let array_of_ids = Mt_lib.array_mutexes
 
@@ -29,7 +29,9 @@ module Identity = struct
     | ByCreationPoint of Position.Local.t
   [@@deriving eq, ord]
 
-  let repr = ByName (Concurrency.Name.of_string "dummy")
+  let reprs =
+    List.map (fun name -> ByName name) Concurrency.Name.reprs @
+    List.map (fun pos -> ByCreationPoint pos) Position.Local.reprs
 
   let hash = function
     | ByName name -> Hashtbl.hash(1, Concurrency.Name.hash name)

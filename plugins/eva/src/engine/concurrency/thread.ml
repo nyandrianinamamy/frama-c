@@ -17,9 +17,12 @@ type kind =
 
 module Data = struct
   type t = kind
-  let repr = Main
   let name = "thread"
   let array_of_ids = Mt_lib.array_threads
+
+  let reprs =
+    List.map (fun kf -> InterruptHandler kf) Kernel_function.reprs @
+    List.map (fun name -> Thread (Some name)) Concurrency.Name.reprs
 
   let pretty fmt (kind, id) =
     match kind with
@@ -43,9 +46,15 @@ module Identity = struct
 
   type t = { key: key; entry_point: Kernel_function.t; } [@@deriving eq, ord]
 
-  let repr =
-    let kf = List.hd Kernel_function.reprs in
-    { key = ByInterruptHandler kf; entry_point = kf }
+  let key_reprs =
+    List.map (fun name -> ByName name) Concurrency.Name.reprs @
+    List.map (fun pos -> BySpawnPoint pos) Position.Local.reprs @
+    List.map (fun kf -> ByInterruptHandler kf) Kernel_function.reprs
+
+  let reprs =
+    List.product_map
+      (fun key entry_point -> { key; entry_point })
+      key_reprs Kernel_function.reprs
 
   let hash_key = function
     | ByName name -> Hashtbl.hash (1, Concurrency.Name.hash name)
