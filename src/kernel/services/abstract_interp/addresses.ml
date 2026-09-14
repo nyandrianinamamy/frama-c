@@ -41,7 +41,7 @@ module Comp_exact = struct
 end
 
 
-module Bytes = struct
+module Addresses = struct
 
   module M = struct
     include Hptmap.Make_with_compositional_bool
@@ -344,8 +344,33 @@ module Bytes = struct
       | Map m1, Map m2 -> Map (widen_map m1 m2)
 end
 
+
+module Bytes = struct
+  include Addresses
+
+  let inject base ival =
+    match base with
+    | Base.Absolute { start } ->
+      inject Base.null (Ival.add_singleton_int start ival)
+    | _ -> inject base ival
+
+  let add base ival t =
+    match base with
+    | Base.Absolute { start } ->
+      let ival = Ival.add_singleton_int start ival in
+      let ival_null = find Base.null t in
+      add Base.null (Ival.join ival ival_null) t
+    | _ -> add base ival t
+
+  let inject_top_origin origin bases =
+    let is_not_absolute = function Base.Absolute _ -> false | _ -> true in
+    let bases = Base.Hptset.filter is_not_absolute bases in
+    (* The Null base is already added to [bases] by [inject_top_origin]. *)
+    inject_top_origin origin bases
+end
+
 module Bits = struct
-  include Bytes
+  include Addresses
 
   (* Converts integers bound to Null base into offsets of absolute ranges. *)
   let convert_absolute_addresses loc =
@@ -388,6 +413,23 @@ module Bits = struct
     try fold_topset_ok filter_absolute loc loc
     with Abstract_interp.Error_Top -> loc
 
+  let inject_top_origin origin bases =
+    let bases =
+      if Base.Hptset.exists Base.is_null bases
+      then
+        let absolute_bases = Base.absolute_addresses () |> List.map snd in
+        Base.Hptset.union bases (Base.Hptset.of_list absolute_bases)
+      else bases
+    in
+    inject_top_origin origin bases
+
+  let inject base ival =
+    let addr = inject base ival in
+    if Base.is_null base then convert_absolute_addresses addr else addr
+
+  let add base ival t =
+    let addr = add base ival t in
+    if Base.is_null base then convert_absolute_addresses addr else addr
 
   let of_bytes x =
     map (Ival.scale (Bit_utils.sizeofchar())) x
