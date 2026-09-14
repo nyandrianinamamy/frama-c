@@ -712,8 +712,14 @@ array_init:
 
 /*** Functional update ***/
 update:
-| update_elt              { [$1] }
-| update_elt COMMA update { $1::$3 }
+| update_elt                            { [$1] }
+| update_elt COMMA update_comma         { $1::$3 }
+;
+
+update_comma:
+| /* epsilon */                 { [] }
+| update_elt                    { [$1] }
+| update_elt COMMA update_comma { $1::$3 }
 ;
 
 update_elt:
