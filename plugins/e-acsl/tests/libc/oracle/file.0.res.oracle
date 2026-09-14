@@ -1,4 +1,7 @@
 [e-acsl] beginning translation.
+[e-acsl] Warning: cannot create the pointer alignment guard of ptr because void is an incomplete type
+[e-acsl] Warning: cannot create the pointer alignment guard of ptr because void is an incomplete type
+[e-acsl] Warning: cannot create the pointer alignment guard of ptr because void is an incomplete type
 [e-acsl] FRAMAC_SHARE/libc/stdio.h:379: Warning: 
   E-ACSL construct `assigns clause' is not yet supported. Ignoring annotation.
 [e-acsl] FRAMAC_SHARE/libc/stdio.h:177: Warning: 

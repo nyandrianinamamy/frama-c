@@ -214,9 +214,11 @@ struct
       is not equal to [Z.zero]. The guard does not contain directly [divider]
       but a copy of it. *)
   let div_by_zero ~loc divider =
-    let divider_cpy = Smart_term.copy divider in
+    let smart = not @@ Options.Optimisations.Trivial_rte.get () in
+    let divider_cpy = Smart_term.copy ~smart divider in
     let pred =
       Smart_predicate.prel
+        ~smart
         ~loc
         ~names:["division by zero"]
         Rneq
@@ -229,14 +231,16 @@ struct
   (** [shift_negative ~loc ~kind shift] creates the predicate that checks if
       [shift] is greater or equal to [Z.zero]. *)
   let shift_negative ~loc ~kind shift =
+    let smart = not @@ Options.Optimisations.Trivial_rte.get () in
     let names =
       match kind with
       | Guard.Left -> ["left shift negative"]
       | Right -> ["right shift negative"]
     in
-    let shift_cpy = Smart_term.copy shift in
+    let shift_cpy = Smart_term.copy ~smart shift in
     let pred =
       Smart_predicate.prel
+        ~smart
         ~loc
         ~names
         Rle (Logic_const.tint Z.zero) shift_cpy
@@ -260,14 +264,16 @@ struct
   (** [index_bound ~loc t size] creates the predicate that check if [t] is
       between [Z.zero] and the array's upper bound regards of its [size]. *)
   let index_bound ~loc t size =
-    let t_cpy_1 = Smart_term.copy t in
-    let t_cpy_2 = Smart_term.copy t in
+    let smart = not @@ Options.Optimisations.Trivial_rte.get () in
+    let t_cpy_1 = Smart_term.copy ~smart t in
+    let t_cpy_2 = Smart_term.copy ~smart t in
     let pred =
       Smart_predicate.pand
+        ~smart
         ~loc
         ~names:["index out of bounds"]
-        (Smart_predicate.prel Rle (Logic_const.tint Z.zero) t_cpy_1)
-        (Smart_predicate.prel Rlt t_cpy_2 (Logic_utils.expr_to_term size))
+        (Smart_predicate.prel ~smart Rle (Logic_const.tint Z.zero) t_cpy_1)
+        (Smart_predicate.prel ~smart Rlt t_cpy_2 (Logic_utils.expr_to_term size))
     in
     preprocess_guard pred;
     Guard.make Out_of_bounds pred
@@ -285,19 +291,21 @@ struct
   (** [pointer_alignment ~loc t typ] creates the predicate that check if [t] is
       aligned regards of [typ]. *)
   let pointer_alignment ~loc t typ =
+    let smart = not @@ Options.Optimisations.Trivial_rte.get () in
     let pred =
       Logic_const.paligned
         ~loc
         ~names:["pointer alignment"]
-        (Smart_term.copy t, Smart_term.talignof ~loc typ)
+        (Smart_term.copy ~smart t, Smart_term.talignof ~smart ~loc typ)
     in
     preprocess_guard pred;
     Guard.make Pointer_alignment pred
 
   let pointer_value ~loc t =
+    let smart = not @@ Options.Optimisations.Trivial_rte.get () in
     let null = Logic_const.term ~loc Tnull t.term_type in
-    let t_cpy_1 = Smart_term.copy t in
-    let t_cpy_2 = Smart_term.copy t in
+    let t_cpy_1 = Smart_term.copy ~smart t in
+    let t_cpy_2 = Smart_term.copy ~smart t in
     let correct_ptr =
       if Ast_types.Acsl.is_fun_ptr (Ast_types.Acsl.unroll t.term_type)
       then Logic_const.pvalid_function ~loc t_cpy_1
@@ -308,9 +316,10 @@ struct
     in
     let pred =
       Smart_predicate.por
+        ~smart
         ~loc
         ~names:["invalid pointer"]
-        (Smart_predicate.prel ~loc Req null t_cpy_2)
+        (Smart_predicate.prel ~smart ~loc Req null t_cpy_2)
         correct_ptr
     in
     preprocess_guard pred;
@@ -319,6 +328,7 @@ struct
   (** [downcast ~kind ~loc t (lb,ub)] creates the predicate that check if [t] is
       between [lb] and [ub]. *)
   let downcast ~kind ~loc t (lb,ub) =
+    let smart = not @@ Options.Optimisations.Trivial_rte.get () in
     let on_bounds i =
       let t = Logic_const.tint i in
       match kind with
@@ -326,7 +336,7 @@ struct
       | _ -> t
     in
     let on_t t =
-      let t = Smart_term.copy t in
+      let t = Smart_term.copy ~smart t in
       match kind with
       | Pointer -> Logic_const.tcast ~loc t (Machine.uintptr_type ())
       | _ -> t
@@ -339,10 +349,11 @@ struct
     in
     let pred =
       Smart_predicate.pand
+        ~smart
         ~loc
         ~names
-        (Smart_predicate.prel ~loc Rle (on_bounds lb) (on_t t))
-        (Smart_predicate.prel ~loc Rle (on_t t) (on_bounds ub))
+        (Smart_predicate.prel ~smart ~loc Rle (on_bounds lb) (on_t t))
+        (Smart_predicate.prel ~smart ~loc Rle (on_t t) (on_bounds ub))
     in
     preprocess_guard pred;
     Guard.make (Guard.Downcast kind) pred
@@ -493,13 +504,23 @@ let rte_visitor =
            [Ast_types.direct_pointed_type] can fail. *)
         assert (Ast_types.C.is_ptr typ);
         let pointed_typ = Ast_types.C.direct_pointed typ in
-        let t = Cil.stripTermCasts t in
-        if Options.Optimisations.Trivial_rte.get () ||
-           not (self#trivially_aligned t typ pointed_typ)
+        if Cil.isCompleteType pointed_typ
         then
-          Guards.add orig
-            (Undefined_behaviours.pointer_alignment
-               ~loc:orig.term_loc t pointed_typ)
+          begin
+            let t = Cil.stripTermCasts t in
+            if Options.Optimisations.Trivial_rte.get () ||
+               not (self#trivially_aligned t typ pointed_typ)
+            then
+              Guards.add orig
+                (Undefined_behaviours.pointer_alignment
+                   ~loc:orig.term_loc t pointed_typ)
+          end
+        else
+          Options.warning
+            "cannot create the pointer alignment guard of %a because %a is \
+             an incomplete type"
+            Printer.pp_term orig
+            Printer.pp_typ pointed_typ
       end
 
     method private add_aligned_cast ~orig t dst =

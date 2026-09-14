@@ -1,4 +1,38 @@
 [e-acsl] beginning translation.
+[e-acsl] Warning: cannot create the pointer alignment guard of s because void is an incomplete type
+[e-acsl] Warning: cannot create the pointer alignment guard of s because void is an incomplete type
+[e-acsl] Warning: cannot create the pointer alignment guard of s because void is an incomplete type
+[e-acsl] Warning: cannot create the pointer alignment guard of s because void is an incomplete type
+[e-acsl] Warning: cannot create the pointer alignment guard of s because void is an incomplete type
+[e-acsl] Warning: cannot create the pointer alignment guard of s because void is an incomplete type
+[e-acsl] Warning: cannot create the pointer alignment guard of s because void is an incomplete type
+[e-acsl] Warning: cannot create the pointer alignment guard of \result because void is an incomplete type
+[e-acsl] Warning: cannot create the pointer alignment guard of s because void is an incomplete type
+[e-acsl] Warning: cannot create the pointer alignment guard of s because void is an incomplete type
+[e-acsl] Warning: cannot create the pointer alignment guard of \result because void is an incomplete type
+[e-acsl] Warning: cannot create the pointer alignment guard of s because void is an incomplete type
+[e-acsl] Warning: cannot create the pointer alignment guard of dest because void is an incomplete type
+[e-acsl] Warning: cannot create the pointer alignment guard of src because void const is an incomplete type
+[e-acsl] Warning: cannot create the pointer alignment guard of dest because void is an incomplete type
+[e-acsl] Warning: cannot create the pointer alignment guard of src because void const is an incomplete type
+[e-acsl] Warning: cannot create the pointer alignment guard of \result because void is an incomplete type
+[e-acsl] Warning: cannot create the pointer alignment guard of dest because void is an incomplete type
+[e-acsl] Warning: cannot create the pointer alignment guard of dest because void is an incomplete type
+[e-acsl] Warning: cannot create the pointer alignment guard of src because void const is an incomplete type
+[e-acsl] Warning: cannot create the pointer alignment guard of \result because void is an incomplete type
+[e-acsl] Warning: cannot create the pointer alignment guard of dest because void is an incomplete type
+[e-acsl] Warning: cannot create the pointer alignment guard of dest because void is an incomplete type
+[e-acsl] Warning: cannot create the pointer alignment guard of src because void const is an incomplete type
+[e-acsl] Warning: cannot create the pointer alignment guard of dest because void is an incomplete type
+[e-acsl] Warning: cannot create the pointer alignment guard of src because void const is an incomplete type
+[e-acsl] Warning: cannot create the pointer alignment guard of dest because void is an incomplete type
+[e-acsl] Warning: cannot create the pointer alignment guard of src because void const is an incomplete type
+[e-acsl] Warning: cannot create the pointer alignment guard of \result because void is an incomplete type
+[e-acsl] Warning: cannot create the pointer alignment guard of dest because void is an incomplete type
+[e-acsl] Warning: cannot create the pointer alignment guard of dest because void is an incomplete type
+[e-acsl] Warning: cannot create the pointer alignment guard of src because void const is an incomplete type
+[e-acsl] Warning: cannot create the pointer alignment guard of \result because void is an incomplete type
+[e-acsl] Warning: cannot create the pointer alignment guard of dest because void is an incomplete type
 [e-acsl] FRAMAC_SHARE/libc/string.h:164: Warning: 
   no assigns clause generated for function valid_or_empty because pointers as arguments is not yet supported
 [e-acsl] FRAMAC_SHARE/libc/string.h:164: Warning: 
