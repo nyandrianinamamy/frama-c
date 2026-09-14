@@ -47,13 +47,21 @@ let getParenthLevel e =
   | PLalignof _ | PLsizeof _ | PLsizeofE _ -> 20
   | PLapp _ | PLold _ | PLat _
   | PLoffset _ | PLbase_addr _ | PLblock_length _
-  | PLupdate _  | PLinitField _ | PLinitIndex _
+  | PLupdate _  | PLupdExt _ | PLinitField _ | PLinitIndex _
   | PLvalid _ | PLvalid_read _ | PLobject_pointer _ | PLvalid_function _
   | PLinitialized _ | PLdangling _ | PLaligned _
   | PLallocable _ | PLfreeable _ | PLfresh _
   | PLseparated _ | PLunion _ | PLinter _ -> 10
   | PLvar _ | PLconstant _ | PLresult | PLnull | PLtypeof _ | PLtype _
   | PLfalse | PLtrue | PLcomprehension _ | PLempty | PLset _ | PLlist _ -> 0
+
+let get_upop_string = function
+  | UPeq -> "="
+  | UPrarrow -> "->"
+  | UPlarrow -> "<-"
+  | UPplus_eq -> "+="
+  | UPminus_eq -> "-="
+  | UPcolon_eq -> ":="
 
 let print_constant fmt = function
   | IntConstant s -> pp_print_string fmt s
@@ -126,6 +134,21 @@ and print_path_val fmt (path, v) =
   | PLupdateCont path_val_list ->
     fprintf fmt "{ \\with %a@ }"
       (pp_list ~sep:",@ " print_path_val) path_val_list
+  | PLupdExtCont _ -> ()
+
+and print_path_ext_val fmt (path, op, v) =
+  match v with
+  | PLupdateTerm e ->
+    fprintf fmt "@[%s@ %s@ %a@]"
+      path (get_upop_string op) print_lexpr e
+  | PLupdateCont path_val_list ->
+    fprintf fmt "@[%s@ %s@ { \\with %a@ }@]"
+      path (get_upop_string op)
+      (pp_list ~sep:",@ " print_path_val) path_val_list
+  | PLupdExtCont path_ext_val_list ->
+    fprintf fmt "@[%s@ %s@ { \\with %a@ }@]"
+      path (get_upop_string op)
+      (pp_list ~sep:";@ " print_path_ext_val) path_ext_val_list
 
 and print_init_index fmt (i,v) =
   print_path_val fmt ([PLpathIndex i], PLupdateTerm v)
@@ -198,6 +221,9 @@ and print_lexpr_level n fmt e =
     | PLupdate(e1,path,e2) ->
       fprintf fmt "{@ @[%a@ \\with@ %a@]}"
         print_lexpr_plain e1 print_path_val (path, e2)
+    | PLupdExt(e1,path,op,e2) ->
+      fprintf fmt "{@ @[%a@ \\with@ %a@]}"
+        print_lexpr_plain e1 print_path_ext_val (path, op, e2)
     | PLinitField(init_field_list) ->
       fprintf fmt "{@ %a@}"
         (pp_list ~sep:",@ " print_init_field) init_field_list

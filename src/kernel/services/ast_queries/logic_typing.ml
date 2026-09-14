@@ -2562,6 +2562,8 @@ struct
             normalize_update_term ctxt env loc t v contoffs
           | contoffs,PLupdateCont cont ->
             normalize_update_cont ctxt env loc t (cont, contoffs)
+          | _,PLupdExtCont _ ->
+            ctxt.error loc "Unsupported construct in pure ACSL"
         in
         let normalize_folding (tn,typ) cont =
           normalize (Logic_const.term ~loc tn typ) cont
@@ -2640,7 +2642,10 @@ struct
       let env = drop_qualifiers env in
       let t = term env t in
       normalize_update_term ctxt env loc t v toff
-
+    | PLupdate (_, _, PLupdExtCont _) ->
+      ctxt.error loc "Unsupported construct in pure ACSL"
+    | PLupdExt (_, _,_,_) ->
+      ctxt.error loc "Unsupported construct in pure ACSL"
     | PLalignof typ ->
       let env = drop_qualifiers env in
       (match Ast_types.Acsl.unroll_ltdef (logic_type ctxt loc env typ)
@@ -2648,7 +2653,6 @@ struct
          Ctype t -> TAlignOf t,Linteger
        | _ -> if ctxt.silent then raise Backtrack;
          ctxt.error loc "sizeof can only handle C types")
-
     | PLsizeof typ ->
       let env = drop_qualifiers env in
       (match Ast_types.Acsl.unroll_ltdef (logic_type ctxt loc env typ)
@@ -3609,7 +3613,7 @@ struct
     | PLdot _ | PLbinop _ | PLunop _ | PLconstant _
     | PLnull | PLresult | PLalignof _ | PLsizeof _
     | PLsizeofE _ | PLlambda _
-    | PLupdate _ | PLinitIndex _ | PLinitField _
+    | PLupdate _ | PLupdExt _ | PLinitIndex _ | PLinitField _
     | PLtypeof _ | PLtype _ -> boolean_to_predicate ctxt env p0
     | PLrange _ -> ctxt.error loc "cannot use operator .. within a predicate"
     | PLnamed (n, p) ->

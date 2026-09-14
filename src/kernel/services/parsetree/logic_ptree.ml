@@ -22,6 +22,10 @@ type binop = Badd | Bsub | Bmul | Bdiv | Bmod | Bbw_and | Bbw_or | Bbw_xor |
 type unop = Uminus | Ustar | Uamp | Ubw_not
 [@@deriving show { with_path = false } ]
 
+(** update operators. *)
+type upop = UPeq | UPrarrow | UPlarrow | UPplus_eq | UPminus_eq | UPcolon_eq
+[@@deriving show { with_path = false } ]
+
 (** logic constants. *)
 type constant =
     IntConstant of string (** integer constant *)
@@ -75,6 +79,7 @@ and path_elt =
 and update_term =
   | PLupdateTerm of lexpr
   | PLupdateCont of ((path_elt list) * update_term) list
+  | PLupdExtCont of (string * upop * update_term) list
 
 (** Kind of expression *)
 and lexpr_node =
@@ -101,6 +106,8 @@ and lexpr_node =
   | PLsizeofE of lexpr (** sizeof the type of an expression. *)
   | PLupdate of lexpr * (path_elt list) * update_term
   (** functional update of the field of a structure. *)
+  | PLupdExt of lexpr * string * upop * update_term
+  (** Syntax only used by extensions, based on functional update. *)
   | PLinitIndex of (lexpr * lexpr) list (** array constructor. *)
   | PLinitField of (string * lexpr) list (** struct/union constructor. *)
   | PLtypeof of lexpr (** type tag for an expression. *)

@@ -1202,6 +1202,18 @@ let is_same_binop op1 op2 =
   | (Badd | Bsub | Bmul | Bdiv | Bmod | Bbw_and | Bbw_or
     | Bbw_xor | Blshift | Brshift),_ -> false
 
+let is_same_upop op1 op2 =
+  let open Logic_ptree in
+  match op1,op2 with
+  | UPeq, UPeq
+  | UPrarrow, UPrarrow
+  | UPlarrow, UPlarrow
+  | UPplus_eq, UPplus_eq
+  | UPminus_eq, UPminus_eq -> true
+  | UPcolon_eq, UPcolon_eq -> true
+  | (UPeq | UPrarrow | UPlarrow | UPplus_eq | UPminus_eq
+    | UPcolon_eq), _ -> false
+
 let is_same_relation r1 r2 =
   let open Logic_ptree in
   match r1, r2 with
@@ -1280,7 +1292,12 @@ and is_same_update_term t1 t2 =
     let is_same_elt (p1,e1) (p2,e2) =
       is_same_list is_same_path_elt p1 p2 && is_same_update_term e1 e2
     in is_same_list is_same_elt l1 l2
-  | (PLupdateTerm _ | PLupdateCont _), _ -> false
+  | PLupdExtCont l1, PLupdExtCont l2 ->
+    let is_same_elt (p1,op1,e1) (p2,op2,e2) =
+      is_same_upop op1 op2 &&
+      is_same_string p1 p2 && is_same_update_term e1 e2
+    in is_same_list is_same_elt l1 l2
+  | (PLupdateTerm _ | PLupdateCont _ | PLupdExtCont _ ), _ -> false
 
 and is_same_lexpr l1 l2 =
   let open Logic_ptree in
@@ -1320,6 +1337,9 @@ and is_same_lexpr l1 l2 =
   | PLupdate(b1,p1,r1), PLupdate(b2,p2,r2) ->
     is_same_lexpr b1 b2
     && is_same_list is_same_path_elt p1 p2 && is_same_update_term r1 r2
+  | PLupdExt(b1,p1,op1,r1), PLupdExt(b2,p2,op2,r2) ->
+    is_same_upop op1 op2 && is_same_lexpr b1 b2
+    && is_same_string p1 p2 && is_same_update_term r1 r2
   | PLinitIndex l1, PLinitIndex l2 ->
     let is_same_elt (i1,v1) (i2,v2) =
       is_same_lexpr i1 i2 && is_same_lexpr v1 v2
@@ -1371,7 +1391,7 @@ and is_same_lexpr l1 l2 =
     | PLbase_addr _ | PLblock_length _ | PLoffset _
     | PLresult | PLnull | PLcast _
     | PLrange _ | PLalignof _ | PLsizeof _ | PLsizeofE _ | PLtypeof _
-    | PLupdate _ | PLinitIndex _ | PLtype _ | PLfalse
+    | PLupdate _ | PLupdExt _ | PLinitIndex _ | PLtype _ | PLfalse
     | PLtrue | PLinitField _ | PLrel _ | PLand _ | PLor _ | PLxor _
     | PLimplies _ | PLiff _ | PLnot _ | PLif _ | PLforall _
     | PLexists _ | PLvalid _ | PLvalid_read _

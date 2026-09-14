@@ -659,6 +659,11 @@ lexpr_inner:
     { List.fold_left
 	      (fun a (path,upd_val) -> info $sloc (PLupdate(a,path,upd_val))) $2 $4
     }
+| LBRACE lexpr_inner WITH updext RBRACE
+    { List.fold_left
+	      (fun a (path,op,upd_val) -> info $sloc (PLupdExt(a,path,op,upd_val)))
+                                    $2 $4
+    }
 /*
 | LET bounded_var EQUAL lexpr SEMICOLON lexpr %prec LET { info $sloc (PLlet($2,$4,$6))}*/
 ;
@@ -712,8 +717,8 @@ array_init:
 
 /*** Functional update ***/
 update:
-| update_elt                            { [$1] }
-| update_elt COMMA update_comma         { $1::$3 }
+| update_elt                    { [$1] }
+| update_elt COMMA update_comma { $1::$3 }
 ;
 
 update_comma:
@@ -723,17 +728,34 @@ update_comma:
 ;
 
 update_elt:
-| path update_op lexpr                     { $1, PLupdateTerm $3 }
-| path update_op LBRACE WITH update RBRACE { $1, PLupdateCont $5 }
+| path EQUAL lexpr                     { $1, PLupdateTerm $3 }
+| path EQUAL LBRACE WITH update RBRACE { $1, PLupdateCont $5 }
+;
+
+updext:
+| updext_elt                            { [$1] }
+| updext_elt SEMICOLON updext_semicolon { $1::$3 }
+;
+
+updext_semicolon:
+| /* epsilon */                         { [] }
+| updext_elt                            { [$1] }
+| updext_elt SEMICOLON updext_semicolon { $1::$3 }
+;
+
+updext_elt:
+| identifier_or_typename_full update_op lexpr                     { $1, $2, PLupdateTerm $3 }
+| identifier_or_typename_full update_op LBRACE WITH updext RBRACE { $1, $2, PLupdExtCont $5 }
+| identifier_or_typename_full update_op LBRACE WITH update RBRACE { $1, $2, PLupdateCont $5 }
 ;
 
 update_op:
-| EQUAL {}
-| RARROW {}
-| LARROW {}
-| PLUS_EQ {}
-| MINUS_EQ {}
-| COLON_EQ {}
+| EQUAL    { UPeq }
+| RARROW   { UPrarrow }
+| LARROW   { UPlarrow }
+| PLUS_EQ  { UPplus_eq }
+| MINUS_EQ { UPminus_eq }
+| COLON_EQ { UPcolon_eq }
 ;
 
 path:
