@@ -25,6 +25,8 @@
 Plugin E-ACSL <next-release>
 ###############################################################################
 
+-* E-ACSL     [2026-09-14] Fix infinite loop due to booleans and assert error
+                           with \result
 -* E-ACSL     [2026-09-04] Fix crash caused by RTE annotations
 -* E-ACSL     [2026-09-04] Fix crash that occurred when imposing GMP types
 -* E-ACSL     [2026-08-24] Fix uncaught exception Error_Bottom during typing

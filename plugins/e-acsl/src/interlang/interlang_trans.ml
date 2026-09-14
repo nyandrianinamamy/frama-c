@@ -419,8 +419,7 @@ and compile_rte_guard rte =
 
 let generate_and_compile ~loc ~adata ~env ~kf m source =
   let interlang, _, _ =
-    let env = Interlang_gen.{kf; loc; env; rte = true;
-                             vars = Cil_datatype.Term.Map.empty} in
+    let env = Interlang_gen.{kf; loc; env; vars = Cil_datatype.Term.Map.empty} in
     let state = Cil_datatype.Term.Map.empty (* local variables *) in
     Interlang_gen.M.run ~env ~state @@ m source
   in

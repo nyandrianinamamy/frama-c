@@ -188,6 +188,44 @@ struct
     if Kernel.UnsignedDowncast.is_set ()
     then Kernel.UnsignedDowncast.get ()
     else false
+
+  let pretty fmt () =
+    let pp_kernel_functions fmt () =
+      RteGen.Options.DoInitialized.iter
+        (fun kf ->
+           let kf_name = match kf.fundec with
+             | Declaration (_,var,_,_) -> var.vname
+             | Definition (f,_) -> f.svar.vname
+           in
+           Format.fprintf fmt "%s " kf_name)
+    in
+    Format.fprintf fmt "RTE flags state:\n \
+                        \t division by zero: %b\n \
+                        \t memory access: %b\n \
+                        \t initialization set function: %a\n \
+                        \t initialization forced: %b\n \
+                        \t pointer alignment: %b\n \
+                        \t pointer value: %b\n \
+                        \t left shift negative: %b\n \
+                        \t right shift negative: %b\n \
+                        \t float to int: %b\n \
+                        \t pointer downcast: %b\n \
+                        \t signed downcast: %b\n \
+                        \t unsigned downcast: %b\n \
+                        \t implicit downcast: %b"
+      (needs_div_mod ())
+      (needs_mem_access ())
+      pp_kernel_functions ()
+      (Options.Optimisations.Implicit_downcast.get ())
+      (needs_pointer_alignment ())
+      (needs_pointer_value ())
+      (needs_left_shift_negative ())
+      (needs_right_shift_negative ())
+      (needs_float_to_int ())
+      (needs_pointer_downcast ())
+      (needs_signed_downcast ())
+      (needs_unsigned_downcast ())
+      (Options.Optimisations.Implicit_downcast.get ())
 end
 
 (** The module [Undefined_behaviours] contains functions that makes a guard for
@@ -726,19 +764,23 @@ let rte_visitor =
 let preprocess ast =
   if Options.Optimisations.Rte.get ()
   then begin
+    Options.debug ~level:2 ~dkey "%a" Flags.pretty ();
     ignore @@ rte_visitor#visit_file ast;
-    Options.feedback ~dkey "Result of the RTE analysis.%!";
-    Options.feedback ~dkey "%a%!" Guards.pretty ()
+    Options.feedback ~dkey "RTE analysis done on the AST.%!";
+    Options.debug ~level:3 ~dkey "Result of the RTE analysis.%!";
+    Options.debug ~level:3 ~dkey "%a%!" Guards.pretty ()
   end else
-    Options.feedback ~dkey "Skip the RTE analysis.%!"
+    Options.feedback ~level:3 ~dkey "Skip the RTE analysis.%!"
 
 let preprocess_predicate p =
   if Options.Optimisations.Rte.get ()
   then begin
+    Options.debug ~level:2 ~dkey "%a" Flags.pretty ();
     ignore @@ rte_visitor#visit_predicate p;
-    Options.feedback ~dkey "Result of the RTE analysis on %a.%!"
+    Options.feedback ~dkey "RTE analysis done on %a.%!"
       Printer.pp_predicate p;
-    Options.feedback ~dkey "%a%!" Guards.pretty ()
+    Options.debug ~level:3 ~dkey "Result of the RTE analysis.%!";
+    Options.debug ~level:3 ~dkey "%a%!" Guards.pretty ()
   end else
     Options.feedback ~dkey "Skip the RTE analysis on %a.%!"
       Printer.pp_predicate p
