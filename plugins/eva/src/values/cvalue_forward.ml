@@ -245,7 +245,7 @@ let nearly_valid_bits = function
   | Base.Variable variable -> Z.zero, Z.succ variable.Base.max_alloc
 
 (* Reduces [ival] to nearly valid offsets (pointing in or one past the object),
-   expressed in bits, for [base]. Also returns a boolean which is [true] is
+   expressed in bits, for [base]. Also returns a boolean which is [true] if
    [ival] only contains nearly valid offsets. *)
 let reduce_to_nearly_valid_bit_offset base ival =
   let min, max = nearly_valid_bits (Base.validity base) in
