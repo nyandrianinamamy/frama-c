@@ -65,7 +65,7 @@ void test_memory_tracking(void)
       int __gen_e_acsl_initialized;
       __e_acsl_assert_data_t __gen_e_acsl_assert_data =
         {.values = (void *)0};
-      __gen_e_acsl_size = 1 * 4;
+      __gen_e_acsl_size = 4;
       __e_acsl_assert_register_int(& __gen_e_acsl_assert_data,"size",0,
                                    __gen_e_acsl_size);
       if (__gen_e_acsl_size <= 0) __gen_e_acsl_if = 0;
@@ -78,8 +78,10 @@ void test_memory_tracking(void)
                                                       (size_t)__gen_e_acsl_if);
       __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data,"&(dest[0])",
                                    (void *)(dest));
-      __e_acsl_assert_register_int(& __gen_e_acsl_assert_data,"sizeof(char)",
-                                   0,1);
+      __e_acsl_assert_register_int(& __gen_e_acsl_assert_data,
+                                   "sizeof(char) * 0",0,0);
+      __e_acsl_assert_register_int(& __gen_e_acsl_assert_data,
+                                   "sizeof(char) * ((3 - 0) + 1)",0,4);
       __e_acsl_assert_register_int(& __gen_e_acsl_assert_data,
                                    "\\initialized(&dest[0 .. 3])",0,
                                    __gen_e_acsl_initialized);
@@ -99,7 +101,7 @@ void test_memory_tracking(void)
       int __gen_e_acsl_initialized_2;
       __e_acsl_assert_data_t __gen_e_acsl_assert_data_2 =
         {.values = (void *)0};
-      __gen_e_acsl_size_2 = 1 * 2;
+      __gen_e_acsl_size_2 = 2;
       __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_2,"size",0,
                                    __gen_e_acsl_size_2);
       if (__gen_e_acsl_size_2 <= 0) __gen_e_acsl_if_2 = 0;
@@ -113,7 +115,9 @@ void test_memory_tracking(void)
       __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_2,"&(src[0])",
                                    (void *)(src));
       __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_2,
-                                   "sizeof(char)",0,1);
+                                   "sizeof(char) * 0",0,0);
+      __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_2,
+                                   "sizeof(char) * ((1 - 0) + 1)",0,2);
       __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_2,
                                    "\\initialized(&src[0 .. 1])",0,
                                    __gen_e_acsl_initialized_2);
@@ -135,7 +139,7 @@ void test_memory_tracking(void)
       int __gen_e_acsl_initialized_3;
       __e_acsl_assert_data_t __gen_e_acsl_assert_data_3 =
         {.values = (void *)0};
-      __gen_e_acsl_size_3 = 1 * 2;
+      __gen_e_acsl_size_3 = 2;
       __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_3,"size",0,
                                    __gen_e_acsl_size_3);
       if (__gen_e_acsl_size_3 <= 0) __gen_e_acsl_if_3 = 0;
@@ -149,7 +153,9 @@ void test_memory_tracking(void)
       __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_3,"&(dest[0])",
                                    (void *)(dest));
       __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_3,
-                                   "sizeof(char)",0,1);
+                                   "sizeof(char) * 0",0,0);
+      __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_3,
+                                   "sizeof(char) * ((1 - 0) + 1)",0,2);
       __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_3,
                                    "\\initialized(&dest[0 .. 1])",0,
                                    __gen_e_acsl_initialized_3);
@@ -170,7 +176,7 @@ void test_memory_tracking(void)
       int __gen_e_acsl_initialized_4;
       __e_acsl_assert_data_t __gen_e_acsl_assert_data_4 =
         {.values = (void *)0};
-      __gen_e_acsl_size_4 = 1 * 2;
+      __gen_e_acsl_size_4 = 2;
       __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_4,"size",0,
                                    __gen_e_acsl_size_4);
       if (__gen_e_acsl_size_4 <= 0) __gen_e_acsl_if_4 = 0;
@@ -179,14 +185,14 @@ void test_memory_tracking(void)
                                      __gen_e_acsl_size_4);
         __gen_e_acsl_if_4 = __gen_e_acsl_size_4;
       }
-      __gen_e_acsl_initialized_4 = __e_acsl_initialized((void *)(dest + 1 * 2),
+      __gen_e_acsl_initialized_4 = __e_acsl_initialized((void *)(dest + 2),
                                                         (size_t)__gen_e_acsl_if_4);
       __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_4,"&(dest[0])",
                                    (void *)(dest));
       __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_4,
-                                   "sizeof(char)",0,1);
+                                   "sizeof(char) * 2",0,2);
       __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_4,
-                                   "sizeof(char)",0,1);
+                                   "sizeof(char) * ((3 - 2) + 1)",0,2);
       __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_4,
                                    "\\initialized(&dest[2 .. 3])",0,
                                    __gen_e_acsl_initialized_4);
@@ -216,7 +222,7 @@ void test_memory_tracking(void)
       int __gen_e_acsl_initialized_5;
       __e_acsl_assert_data_t __gen_e_acsl_assert_data_5 =
         {.values = (void *)0};
-      __gen_e_acsl_size_5 = 1 * 4;
+      __gen_e_acsl_size_5 = 4;
       __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_5,"size",0,
                                    __gen_e_acsl_size_5);
       if (__gen_e_acsl_size_5 <= 0) __gen_e_acsl_if_5 = 0;
@@ -230,7 +236,9 @@ void test_memory_tracking(void)
       __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_5,
                                    "&(dest_0[0])",(void *)(dest_0));
       __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_5,
-                                   "sizeof(char)",0,1);
+                                   "sizeof(char) * 0",0,0);
+      __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_5,
+                                   "sizeof(char) * ((3 - 0) + 1)",0,4);
       __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_5,
                                    "\\initialized(&dest_0[0 .. 3])",0,
                                    __gen_e_acsl_initialized_5);
@@ -251,7 +259,7 @@ void test_memory_tracking(void)
       int __gen_e_acsl_initialized_6;
       __e_acsl_assert_data_t __gen_e_acsl_assert_data_6 =
         {.values = (void *)0};
-      __gen_e_acsl_size_6 = 1 * 4;
+      __gen_e_acsl_size_6 = 4;
       __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_6,"size",0,
                                    __gen_e_acsl_size_6);
       if (__gen_e_acsl_size_6 <= 0) __gen_e_acsl_if_6 = 0;
@@ -265,7 +273,9 @@ void test_memory_tracking(void)
       __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_6,
                                    "&(src_0[0])",(void *)(src_0));
       __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_6,
-                                   "sizeof(char)",0,1);
+                                   "sizeof(char) * 0",0,0);
+      __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_6,
+                                   "sizeof(char) * ((3 - 0) + 1)",0,4);
       __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_6,
                                    "\\initialized(&src_0[0 .. 3])",0,
                                    __gen_e_acsl_initialized_6);
@@ -311,7 +321,7 @@ void test_memory_tracking(void)
       int __gen_e_acsl_initialized_8;
       __e_acsl_assert_data_t __gen_e_acsl_assert_data_8 =
         {.values = (void *)0};
-      __gen_e_acsl_size_7 = 1 * 3;
+      __gen_e_acsl_size_7 = 3;
       __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_8,"size",0,
                                    __gen_e_acsl_size_7);
       if (__gen_e_acsl_size_7 <= 0) __gen_e_acsl_if_7 = 0;
@@ -327,7 +337,7 @@ void test_memory_tracking(void)
       __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_8,
                                    "sizeof(char) * 1",0,1);
       __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_8,
-                                   "sizeof(char)",0,1);
+                                   "sizeof(char) * ((3 - 1) + 1)",0,3);
       __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_8,
                                    "\\initialized(&dest_0[1 .. 3])",0,
                                    __gen_e_acsl_initialized_8);
@@ -357,7 +367,7 @@ void test_memory_tracking(void)
       int __gen_e_acsl_initialized_9;
       __e_acsl_assert_data_t __gen_e_acsl_assert_data_9 =
         {.values = (void *)0};
-      __gen_e_acsl_size_8 = 1 * 4;
+      __gen_e_acsl_size_8 = 4;
       __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_9,"size",0,
                                    __gen_e_acsl_size_8);
       if (__gen_e_acsl_size_8 <= 0) __gen_e_acsl_if_8 = 0;
@@ -371,7 +381,9 @@ void test_memory_tracking(void)
       __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_9,
                                    "&(dest_1[0])",(void *)(dest_1));
       __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_9,
-                                   "sizeof(char)",0,1);
+                                   "sizeof(char) * 0",0,0);
+      __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_9,
+                                   "sizeof(char) * ((3 - 0) + 1)",0,4);
       __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_9,
                                    "\\initialized(&dest_1[0 .. 3])",0,
                                    __gen_e_acsl_initialized_9);
@@ -392,7 +404,7 @@ void test_memory_tracking(void)
       int __gen_e_acsl_initialized_10;
       __e_acsl_assert_data_t __gen_e_acsl_assert_data_10 =
         {.values = (void *)0};
-      __gen_e_acsl_size_9 = 1 * 4;
+      __gen_e_acsl_size_9 = 4;
       __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_10,"size",0,
                                    __gen_e_acsl_size_9);
       if (__gen_e_acsl_size_9 <= 0) __gen_e_acsl_if_9 = 0;
@@ -406,7 +418,9 @@ void test_memory_tracking(void)
       __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_10,
                                    "&(src_1[0])",(void *)(src_1));
       __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_10,
-                                   "sizeof(char)",0,1);
+                                   "sizeof(char) * 0",0,0);
+      __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_10,
+                                   "sizeof(char) * ((3 - 0) + 1)",0,4);
       __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_10,
                                    "\\initialized(&src_1[0 .. 3])",0,
                                    __gen_e_acsl_initialized_10);
@@ -428,7 +442,7 @@ void test_memory_tracking(void)
       int __gen_e_acsl_initialized_11;
       __e_acsl_assert_data_t __gen_e_acsl_assert_data_11 =
         {.values = (void *)0};
-      __gen_e_acsl_size_10 = 1 * 3;
+      __gen_e_acsl_size_10 = 3;
       __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_11,"size",0,
                                    __gen_e_acsl_size_10);
       if (__gen_e_acsl_size_10 <= 0) __gen_e_acsl_if_10 = 0;
@@ -442,7 +456,9 @@ void test_memory_tracking(void)
       __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_11,
                                    "&(dest_1[0])",(void *)(dest_1));
       __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_11,
-                                   "sizeof(char)",0,1);
+                                   "sizeof(char) * 0",0,0);
+      __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_11,
+                                   "sizeof(char) * ((2 - 0) + 1)",0,3);
       __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_11,
                                    "\\initialized(&dest_1[0 .. 2])",0,
                                    __gen_e_acsl_initialized_11);

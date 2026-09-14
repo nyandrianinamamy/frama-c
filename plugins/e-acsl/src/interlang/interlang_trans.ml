@@ -93,10 +93,10 @@ let compile_binop = function
   | And -> LAnd
   | Or -> LOr
 
-let assert_register_term ~loc ?force e t =
+let assert_register_term ~loc e t =
   M.do_if_registering_adata @@
   M.modify_adata @@ fun a ->
-  Assert.register_term ~loc ?force t e a
+  Assert.register_term ~loc t e a
 
 let rec compile exp =
   let* e, coerce, cast_info = compile_with_rtes exp in
@@ -209,6 +209,14 @@ and compile_context_insensitive {Interlang.enode; origin} =
            representation, the kind would be ignored in the generated code and
            so [1] would be generated. *)
         Cil.kinteger64 ~loc ~kind n, C_number
+    in
+    let* () =
+      match strnum with
+      | Analyses_types.C_number ->
+        M.Option.iter
+          (assert_register_term ~loc e)
+          (Misc.get_term_from_pot origin)
+      | Analyses_types.Str_Z | Analyses_types.Str_R -> M.return ()
     in
     M.return (e, None, Some (strnum, ""))
   | BinOp {ity; binop = Lt | Gt | Le | Ge | Eq | Ne as binop; op1; op2} ->
@@ -325,7 +333,7 @@ and compile_context_insensitive {Interlang.enode; origin} =
     let e = Cil.sizeOf ~loc ty in
     let* () =
       M.Option.iter
-        (assert_register_term ~loc ~force:true e)
+        (assert_register_term ~loc e)
         (Misc.get_term_from_pot origin)
     in
     M.return (e, None, Some (Analyses_types.C_number, "sizeof"))

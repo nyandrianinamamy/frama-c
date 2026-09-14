@@ -53,54 +53,45 @@ val do_pending_register_data:
 
 val register:
   loc:Fileloc.t ->
-  ?force:bool ->
   string ->
   exp ->
   t ->
   t
-(** [register ~loc env ?force name e adata] registers the data [e] corresponding
+(** [register ~loc name e adata] registers the data [e] corresponding
     to the name [name] to the assertion context [adata].
-    If [force] is false (default), the data is not registered if the expression
-    is a constant. If [force] is true, the data is registered even if the
-    expression is a constant. *)
+    The data is not registered if the expression is a constant, since its value
+    is then already visible in the generated code. *)
 
 val register_term:
   loc:Fileloc.t ->
-  ?force:bool ->
   term ->
   exp ->
   t ->
   t
-(** [register_term ~loc env ?force t e adata] registers the data [e]
-    corresponding to the term [t] to the assertion context [adata]. The
-    parameter [force] has the same signification than for the function
-    [register]. *)
+(** [register_term ~loc t e adata] registers the data [e] corresponding to the
+    term [t] to the assertion context [adata], under the name of the original
+    term [t]. *)
 
 val register_pred:
   loc:Fileloc.t ->
   Env.t ->
-  ?force:bool ->
   predicate ->
   exp ->
   t ->
   t
-(** [register_pred ~loc env ?force p e adata] registers the data [e]
-    corresponding to the predicate [p] to the assertion context [adata]. The
-    parameter [force] has the same signification than for the function
-    [register]. *)
+(** [register_pred ~loc env p e adata] registers the data [e]
+    corresponding to the predicate [p] to the assertion context [adata]. *)
 
 val register_pred_or_term:
   loc:Fileloc.t ->
   Env.t ->
-  ?force:bool ->
   pred_or_term ->
   exp ->
   t ->
   t
-(** [register_pred_or_term ~loc kf env ?force pot e adata] registers the data
-    [e] corresponding to the predicate or term [pot] to the assertion context
-    [adata]. The parameter [force] has the same signification than for the
-    function [register]. *)
+(** [register_pred_or_term ~loc env pot e adata] registers the data
+    [e] corresponding to the predicate or term [pot] to the assertion
+    context [adata]. *)
 
 val runtime_check:
   adata:t ->

@@ -780,7 +780,7 @@ int main(void)
     __e_acsl_assert_register_ulong(& __gen_e_acsl_assert_data_35,
                                    "\\offset(q)",0,__gen_e_acsl_offset_21);
     __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_35,
-                                 "sizeof(long)",0,8);
+                                 "sizeof(long) * 3",0,24);
     __gen_e_acsl_assert_data_35.blocking = 1;
     __gen_e_acsl_assert_data_35.kind = "Assertion";
     __gen_e_acsl_assert_data_35.pred_txt = "\\offset(q) == sizeof(long) * 3";
@@ -823,7 +823,7 @@ int main(void)
     __e_acsl_assert_register_ulong(& __gen_e_acsl_assert_data_37,
                                    "\\offset(q)",0,__gen_e_acsl_offset_22);
     __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_37,
-                                 "sizeof(long)",0,8);
+                                 "sizeof(long) * 7",0,56);
     __gen_e_acsl_assert_data_37.blocking = 1;
     __gen_e_acsl_assert_data_37.kind = "Assertion";
     __gen_e_acsl_assert_data_37.pred_txt = "\\offset(q) == sizeof(long) * 7";

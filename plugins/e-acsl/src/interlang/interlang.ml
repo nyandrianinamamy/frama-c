@@ -146,6 +146,10 @@ exception No_opt
 module Optimisation = struct
   open Aux
 
+  let sizeof ~origin ~ity ty =
+    try integer ~origin ~rtes:[] ~ity (Z.of_int @@ Cil.bytesSizeOf ty)
+    with Cil.SizeOfError _ -> raise No_opt
+
   let neg ~origin ~ity e =
     match e.enode with
     | Integer {n} ->
@@ -310,7 +314,6 @@ module Exp = struct
 
   let lval ~origin lval = of_exp_node ~origin @@ Lval lval
   let integer ~origin ~ity n = of_exp_node ~origin @@ Integer {ity; n}
-  let sizeof ~origin ty = of_exp_node ~origin @@ SizeOf ty
   let rte rte =
     of_exp_node ~origin:(Analyses_types.PoT_pred rte.rorigin) rte.rnode
 
@@ -326,6 +329,11 @@ module Exp = struct
           "@[%a@] => @[%a@]" Pretty.pp_exp orig Pretty.pp_exp res;
         res
       with No_opt -> orig
+
+  let sizeof ~origin ~ity ty =
+    try_optimise ~origin
+      (SizeOf ty)
+      (fun () -> Optimisation.sizeof ~origin ~ity ty)
 
   let unop ~origin uop ity e =
     try_optimise ~origin

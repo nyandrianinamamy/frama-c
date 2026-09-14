@@ -99,7 +99,7 @@ end
 module Exp : sig
   val lval : origin:pred_or_term -> lval -> exp
   val integer : origin:pred_or_term -> ity:number_ty -> Z.t -> exp
-  val sizeof : origin:pred_or_term -> typ -> exp
+  val sizeof : origin:pred_or_term -> ity:number_ty -> typ -> exp
   val rte : rte -> exp
 
   val mk_true : origin:pred_or_term -> unit -> exp
