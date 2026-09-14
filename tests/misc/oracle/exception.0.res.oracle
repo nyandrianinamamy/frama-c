@@ -9,24 +9,40 @@ struct my_exn2 {
 struct my_exn foo;
 struct my_exn2 bar;
 int x = 42;
-int f(int c)
+void c(int *x_0, int i)
+{
+  if (x_0 < 50) {
+    int exn;
+    exn = 0;
+    throw (exn);
+  }
+  else goto return_label;
+  return_label: return;
+}
+
+void d(int *x_0)
+{
+  return;
+}
+
+int f(int c_0)
 {
   int __retres;
-  if (c) 
+  if (c_0) 
     throw (x);
   else {
-    __retres = c;
+    __retres = c_0;
     goto return_label;
   }
   return_label: return __retres;
 }
 
-int g(int c)
+int g(int c_0)
 {
   int __retres;
   try {
     int tmp;
-    tmp = f(c);
+    tmp = f(c_0);
     __retres = tmp;
     goto return_label;
   }
@@ -41,101 +57,117 @@ int g(int c)
   return_label: return __retres;
 }
 
-int f1(int c)
+int f1(int c_0)
 {
   int __retres;
-  if (c) {
+  if (c_0) {
     struct my_exn exn;
     exn.e = 0;
     throw (exn);
   }
   else {
-    __retres = c;
+    __retres = c_0;
     goto return_label;
   }
   return_label: return __retres;
 }
 
-/*@ ensures \result ≡ \old(c) + 1; */
-int f2(int c)
+/*@ ensures \result ≡ \old(c_0) + 1; */
+int f2(int c_0)
 {
   int __retres;
-  if (c < 50) {
+  if (c_0 < 50) {
     int exn;
     exn = 0;
     throw (exn);
   }
   else {
-    __retres = c + 1;
+    __retres = c_0 + 1;
     goto return_label;
   }
   return_label: return __retres;
 }
 
-int f3(int c)
+int f3(int c_0)
 {
   int __retres;
-  if (c > 150) {
+  if (c_0 > 150) {
     int *exn;
     exn = & x;
     throw (exn);
   }
   else {
-    __retres = c + 2;
+    __retres = c_0 + 2;
     goto return_label;
   }
   return_label: return __retres;
 }
 
-int f4(int c)
+int f4(int c_0)
 {
   int __retres;
-  if (c) {
+  if (c_0) {
     struct my_exn2 exn;
     exn.c = (char)0;
     throw (exn);
   }
   else {
-    __retres = c + 3;
+    __retres = c_0 + 3;
     goto return_label;
   }
   return_label: return __retres;
 }
 
+int f5(int c_0)
+{
+  int t = 4;
+  int x;
+  c(& x,c_0);
+  d(& t);
+  return x;
+}
+
 /*@ ensures \result ≢ 42; */
-int h(int c)
+int h(int c_0)
 {
   int __retres;
   try 
-    if (c - 1 <= 0) {
+    if (c_0 - 1 <= 0) {
       int tmp;
-      tmp = f1(c);
+      tmp = f1(c_0);
       __retres = tmp;
       goto return_label;
     }
     else 
-      if (c - 100 <= 0) {
+      if (c_0 - 100 <= 0) {
         int tmp_0;
-        /*@ returns \result ≡ c + 1; */
+        /*@ returns \result ≡ c_0 + 1; */
         {
-          tmp_0 = f2(c);
+          tmp_0 = f2(c_0);
           __retres = tmp_0;
-          /*@ assert __retres ≡ c + 1; */ ;
+          /*@ assert __retres ≡ c_0 + 1; */ ;
           goto return_label;
         }
       }
       else 
-        if (c > 360) {
-          int x_0 = f3(c);
+        if (c_0 > 360) {
+          int x_0 = f3(c_0);
           __retres = x_0;
           goto return_label;
         }
-        else {
-          int tmp_2;
-          tmp_2 = f4(c);
-          __retres = tmp_2;
-          goto return_label;
-        }
+        else 
+          if (c_0 > 1000) {
+            int tmp_2;
+            tmp_2 = f4(c_0);
+            __retres = tmp_2;
+            goto return_label;
+          }
+          else {
+            int tmp_3;
+            tmp_3 = f5(c_0);
+            __retres = tmp_3;
+            goto return_label;
+          }
   catch ( struct my_exn exn
             struct my_exn exn_aux
             struct my_exn2 exn2

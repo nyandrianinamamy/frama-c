@@ -305,8 +305,8 @@ let oneret ?(callback: callback option) (f: fundec) : unit =
 
     | [] -> List.rev acc
 
-    | [{skind=Return (Some ({enode = Lval(Var _,NoOffset)}), _l)} as s]
-      when mainbody && not !haveGoto ->
+    | [{skind=Return (Some ({enode = Lval(Var v,NoOffset)}), _l)} as s]
+      when mainbody && not !haveGoto && not (v.vdefined && Kernel.RemoveExn.get()) ->
       (* We're not changing the return into goto, so returns clause will still
          have effect.
       *)
