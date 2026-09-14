@@ -50,7 +50,7 @@ module type S = sig
   val clear : unit -> unit
 end
 
-module Make (Identity : Identity) (Data : Data) = struct
+module Make (Data : Data) = struct
 
   module Prototype = struct
     include Datatype.Serializable_undefined
@@ -117,18 +117,6 @@ module Make (Identity : Identity) (Data : Data) = struct
     let p = pointer_of_id t.id in
     Mt_memory.replace_value_at_int_pointer p ~before ~after state
 
-  (* --- Identity --- *)
-
-  module Id_Prototype = struct
-    include Datatype.Serializable_undefined
-    include Identity
-    let name = "Eva." ^ Data.name ^ ".Identity"
-  end
-  module Id_Datatype = Datatype.Make_with_collections (Id_Prototype)
-
-  module Identities =
-    State_builder.Hashtbl (Id_Datatype.Hashtbl) (D) (val info "Identities")
-
   (* Check that [id] fits in the C array used by the cvalue domain
      to represent its state. Do not check ids from [created_global], as they
      are created before the AST, so these C arrays don't exist yet. *)
@@ -140,9 +128,10 @@ module Make (Identity : Identity) (Data : Data) = struct
          increase MTHREAD_NUMBER_IDS above %d in the preprocessing directive."
         Data.name len
 
-  let create identity data =
-    let make _ = let t = make data in check_id t.id; t in
-    Identities.memo make identity
+  let create data =
+    let t = make data in
+    check_id t.id;
+    t
 
   (* Values created with [create_global] always exist and should not be affected
      by function [clear] below. *)
@@ -153,16 +142,36 @@ module Make (Identity : Identity) (Data : Data) = struct
     global_values := t :: !global_values;
     t
 
+  let clear_ref = ref []
+
+  module Memoization (Identity: Identity) = struct
+
+    module Id_Prototype = struct
+      include Datatype.Serializable_undefined
+      include Identity
+      let name = "Eva." ^ Data.name ^ ".Identity"
+    end
+    module Id_Datatype = Datatype.Make_with_collections (Id_Prototype)
+
+    module Identities =
+      State_builder.Hashtbl (Id_Datatype.Hashtbl) (D) (val info "Identities")
+
+    let () = clear_ref := Identities.clear :: !clear_ref
+
+    let create identity data =
+      Identities.memo (fun _ -> create data) identity
+
+    let mem_identity = Identities.mem
+    let fold_identity = Identities.fold
+  end
+
   let clear () =
     last_id := 0;
     ById.clear ();
-    Identities.clear ();
+    List.iter (fun clear -> clear ()) !clear_ref;
     let reset t =
       last_id := max !last_id t.id;
       ById.add t.id t
     in
     List.iter reset !global_values
-
-  let mem_identity = Identities.mem
-  let fold_identity = Identities.fold
 end

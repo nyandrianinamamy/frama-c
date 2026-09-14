@@ -65,7 +65,8 @@ module Identity = struct
     Hashtbl.hash (hash_key key, Kernel_function.hash entry_point)
 end
 
-include Mt_ids.Make (Identity) (Data)
+include Mt_ids.Make (Data)
+include Memoization (Identity)
 
 let main = create_global Main
 let is_main = equal main

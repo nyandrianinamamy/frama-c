@@ -38,7 +38,8 @@ module Identity = struct
     | ByCreationPoint al -> Hashtbl.hash(2, Position.Local.hash al)
 end
 
-include Mt_ids.Make (Identity) (Data)
+include Mt_ids.Make (Data)
+include Memoization (Identity)
 
 let create creation_point name =
   let identity = match name with

@@ -56,22 +56,26 @@ module type S = sig
 end
 
 (** Build a datatype of Data.t associated with unique ids. *)
-module Make (Identity : Identity) (Data : Data) : sig
+module Make (Data : Data) : sig
   include S
   val get : t -> Data.t
-
-  (** [create identity data] associates a unique id to [data] with memoization
-      over [identity]: it returns the same value as any previous call with the
-      same [identity], if any. Function [clear] resets this memoization. *)
-  val create : Identity.t -> Data.t -> t
 
   (** Associates a unique id to a global value, i.e. a value created before
       the analysis and which always remains valid (unaffected by [clear]).  *)
   val create_global : Data.t -> t
 
-  (** Has a value already been created with this identity? *)
-  val mem_identity : Identity.t -> bool
+  (** Creation of ids with memoization according to identities. *)
+  module Memoization (Identity : Identity) : sig
 
-  (** Applies the given function to all values created by [create]. *)
-  val fold_identity : (Identity.t -> t -> 'a -> 'a) -> 'a -> 'a
+    (** [create identity data] associates a unique id to [data] with memoization
+        over [identity]: it returns the same value as any previous call with the
+        same [identity], if any. Function [clear] resets this memoization. *)
+    val create : Identity.t -> Data.t -> t
+
+    (** Has a value already been created with this identity? *)
+    val mem_identity : Identity.t -> bool
+
+    (** Applies the given function to all values created by [create]. *)
+    val fold_identity : (Identity.t -> t -> 'a -> 'a) -> 'a -> 'a
+  end
 end
