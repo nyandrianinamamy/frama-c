@@ -5765,6 +5765,18 @@ explains in more details their effect on the analysis.
   \end{tabular*}
   \par\end{center}
 
+\section{Generating annotations}
+
+\Eva{} is able to express some properties inferred by its analysis as ACSL
+annotations. More precisely, \Eva{} can generate annotations at each statement
+of the analyzed program to define the set of possible values of variables
+read or written.
+Option {\tt -eva-annot f,g} instructs \Eva{} to generate such annotations on
+functions \lstinline|f| and \lstinline|g|.
+These generated annotations can be numerous and verbose; they are intended to
+be used programmatically by other Frama-C plug-ins, rather than for reading
+by the end-user.
+
 
 \chapter{Primitives}\label{primitives}
 \vspace{2cm}
