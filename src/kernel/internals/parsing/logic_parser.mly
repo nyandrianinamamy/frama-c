@@ -321,7 +321,8 @@
 %token <string> WSTRING_CONSTANT
 %token LPAR RPAR IF ELSE COLON COLON2 COLONCOLON DOT DOTDOT DOTDOTDOT
 %token INT INTEGER REAL BOOLEAN BOOL FLOAT FLOAT32 FLOAT64 LT GT LE GE EQ NE
-%token COMMA RARROW LARROW EQUAL PLUS_EQ MINUS_EQ COLON_EQ
+%token COMMA RARROW LARROW EQUAL PLUS_EQ MINUS_EQ COLON_EQ STAR_EQ SLASH_EQ
+%token PERCENT_EQ PIPE_EQ AND_EQ CIRC_EQ
 %token FORALL EXISTS IFF IMPLIES AND OR NOT SEPARATED
 %token TRUE FALSE OLD AS AT RESULT
 %token BLOCK_LENGTH BASE_ADDR OFFSET VALID VALID_READ VALID_INDEX VALID_RANGE
@@ -748,12 +749,19 @@ updext_elt:
 ;
 
 update_op:
-| EQUAL    { UPeq }
-| RARROW   { UPrarrow }
-| LARROW   { UPlarrow }
-| PLUS_EQ  { UPplus_eq }
-| MINUS_EQ { UPminus_eq }
-| COLON_EQ { UPcolon_eq }
+| EQ         { UPeq }
+| EQUAL      { UPequal }
+| COLON_EQ   { UPcolon_eq }
+| PLUS_EQ    { UPplus_eq }
+| MINUS_EQ   { UPminus_eq }
+| STAR_EQ    { UPstar_eq }
+| SLASH_EQ   { UPslash_eq }
+| PERCENT_EQ { UPpercent_eq }
+| PIPE_EQ    { UPpipe_eq }
+| AND_EQ     { UPand_eq }
+| CIRC_EQ    { UPcirc_eq }
+| RARROW     { UPrarrow }
+| LARROW     { UPlarrow }
 ;
 
 path:
@@ -2227,8 +2235,10 @@ wildcard:
 | bs_keyword { () }
 | AMP { () }
 | AND { () }
+| AND_EQ { () }
 | BIFF { () }
 | BIMPLIES { () }
+| CIRC_EQ { () }
 | COLON { () }
 | COLON2 { () }
 | COLONCOLON { () }
@@ -2266,8 +2276,10 @@ wildcard:
 | NOT { () }
 | OR { () }
 | PERCENT { () }
+| PERCENT_EQ { () }
 | PI { () }
 | PIPE { () }
+| PIPE_EQ { () }
 | PLUS { () }
 | PLUS_EQ { () }
 | QUESTION { () }
@@ -2278,7 +2290,9 @@ wildcard:
 | RSQUAREPIPE { () }
 | SEMICOLON { () }
 | SLASH { () }
+| SLASH_EQ { () }
 | STAR { () }
+| STAR_EQ { () }
 | STARHAT { () }
 | STRING_LITERAL { () }
 | TILDE { () }

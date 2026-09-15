@@ -56,12 +56,19 @@ let getParenthLevel e =
   | PLfalse | PLtrue | PLcomprehension _ | PLempty | PLset _ | PLlist _ -> 0
 
 let get_upop_string = function
-  | UPeq -> "="
-  | UPrarrow -> "->"
-  | UPlarrow -> "<-"
+  | UPequal -> "="
+  | UPeq -> "=="
+  | UPcolon_eq -> ":="
   | UPplus_eq -> "+="
   | UPminus_eq -> "-="
-  | UPcolon_eq -> ":="
+  | UPstar_eq -> "*="
+  | UPslash_eq -> "/="
+  | UPpercent_eq -> "%="
+  | UPpipe_eq -> "|="
+  | UPand_eq -> "&="
+  | UPcirc_eq -> "^="
+  | UPrarrow -> "->"
+  | UPlarrow -> "<-"
 
 let print_constant fmt = function
   | IntConstant s -> pp_print_string fmt s

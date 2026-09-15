@@ -498,9 +498,15 @@ rule token = parse
   | "=="                    { EQ }
   | "="                     { EQUAL }
   | "!="                    { NE }
+  | ":="                    { COLON_EQ }
   | "+="                    { PLUS_EQ }
   | "-="                    { MINUS_EQ }
-  | ":="                    { COLON_EQ }
+  | "*="                    { STAR_EQ }
+  | "/="                    { SLASH_EQ }
+  | "%="                    { PERCENT_EQ }
+  | "|="                    { PIPE_EQ }
+  | "&="                    { AND_EQ }
+  | "^="                    { CIRC_EQ }
   | "("                     { Stack.push Normal state_stack; LPAR }
   | ")"                     { pop_state(); RPAR }
   | "{"                     { Stack.push Normal state_stack; LBRACE }

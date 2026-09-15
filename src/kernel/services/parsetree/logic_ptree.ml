@@ -23,7 +23,9 @@ type unop = Uminus | Ustar | Uamp | Ubw_not
 [@@deriving show { with_path = false } ]
 
 (** update operators. *)
-type upop = UPeq | UPrarrow | UPlarrow | UPplus_eq | UPminus_eq | UPcolon_eq
+type upop = UPequal | UPeq | UPcolon_eq |UPplus_eq | UPminus_eq | UPstar_eq |
+            UPslash_eq | UPpercent_eq | UPpipe_eq | UPand_eq | UPcirc_eq |
+            UPrarrow | UPlarrow
 [@@deriving show { with_path = false } ]
 
 (** logic constants. *)

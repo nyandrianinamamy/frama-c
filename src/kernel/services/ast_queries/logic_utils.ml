@@ -1205,14 +1205,22 @@ let is_same_binop op1 op2 =
 let is_same_upop op1 op2 =
   let open Logic_ptree in
   match op1,op2 with
+  | UPequal, UPequal
   | UPeq, UPeq
-  | UPrarrow, UPrarrow
-  | UPlarrow, UPlarrow
+  | UPcolon_eq, UPcolon_eq -> true
   | UPplus_eq, UPplus_eq
   | UPminus_eq, UPminus_eq -> true
-  | UPcolon_eq, UPcolon_eq -> true
-  | (UPeq | UPrarrow | UPlarrow | UPplus_eq | UPminus_eq
-    | UPcolon_eq), _ -> false
+  | UPstar_eq, UPstar_eq -> true
+  | UPslash_eq, UPslash_eq -> true
+  | UPpercent_eq, UPpercent_eq -> true
+  | UPpipe_eq, UPpipe_eq -> true
+  | UPand_eq, UPand_eq -> true
+  | UPcirc_eq, UPcirc_eq -> true
+  | UPrarrow, UPrarrow
+  | UPlarrow, UPlarrow
+  | (UPequal | UPeq | UPcolon_eq | UPplus_eq | UPminus_eq | UPstar_eq |
+     UPslash_eq | UPpercent_eq | UPpipe_eq | UPand_eq | UPcirc_eq |
+     UPrarrow | UPlarrow ), _ -> false
 
 let is_same_relation r1 r2 =
   let open Logic_ptree in
