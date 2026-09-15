@@ -18,7 +18,7 @@ let debug = false
 
 (** a [Mark] is used to represent some information about the status of
  * a PDG element in a slice.
-*)
+ *)
 module Mark : sig
   val bottom : SlicingInternals.mark
   val spare : SlicingInternals.mark
@@ -329,7 +329,7 @@ module SigMarks = struct
    * If the location is not included in the union of the implicit inputs,
    * it returns bottom.
    * Else, it returns the intersection of the inputs that intersect the location.
-  *)
+   *)
   let get_input_loc_under_mark cm loc =
     if debug then
       Format.printf "get_input_loc_under_mark of %a"

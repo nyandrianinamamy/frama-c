@@ -141,7 +141,7 @@ let add_decl_dpds pdg node dpd_kind varset =
 (** [add_dpds pdg v dpd_kind state loc]
  * add 'dpd_kind' dependencies from node n to each element
  * which are stored for loc in state
-*)
+ *)
 let add_dpds pdg n dpd_kind state loc =
   let add (node,z_part) =
     (* we only use [z_part] for dependencies to OutCall.
@@ -253,7 +253,7 @@ let process_call_args pdg d_state stmt args_dpds : arg_nodes =
 
 (** Add a PDG node for each formal argument,
  * and add its dependencies to the corresponding argument node.
-*)
+ *)
 let process_call_params pdg d_state stmt called_kf (arg_nodes:arg_nodes) =
   let ctrl_node = ctrl_call_node pdg stmt in
   let param_list = Kernel_function.get_formals called_kf in
@@ -403,7 +403,7 @@ let mk_jump_node pdg stmt controlled_stmts =
     | Break _ | Continue _ ->
       (* can use : add_dpd_goto_label pdg new_node s
        * if we want later to change break and continue to goto...
-      *) ()
+       *) ()
     | Goto (sref,_) -> add_dpd_goto_label pdg new_node !sref
     | Switch (_,_,stmts,_) -> add_dpd_switch_cases pdg new_node stmts
     | _ -> assert false
@@ -731,7 +731,7 @@ let process_call pdg state stmt lvaloption func argl _loc =
 
 (** Add a node in the PDG for the conditional statement,
  * and register the statements that are control-dependent on it.
-*)
+ *)
 let process_condition ctrl_dpds_infos pdg state stmt condition =
   let loc_cond = Eva.Results.(before stmt |> expr_deps condition) in
   let decls_cond = Cil.extract_varinfos_from_exp condition in

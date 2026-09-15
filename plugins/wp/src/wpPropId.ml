@@ -17,7 +17,7 @@ open Cil_datatype
  * depending on which part of the computation is involved.
  * For instance, properties on loops are split in 2 parts : establishment and
  * preservation.
-*)
+ *)
 
 type prop_kind =
   | PKTactic      (** tactical sub-goal *)
@@ -868,7 +868,7 @@ let pp_assigns_desc fmt a = Wp_error.pp_assigns fmt a.a_assigns
  * - Assigns properties are composed of the assigns list from Cil,
  * and a label to know where to stop.
  * - Predicates are just the predicate type from Cil.
-*)
+ *)
 (*----------------------------------------------------------------------------*)
 
 type pred_info = prop_id * Cil_types.predicate

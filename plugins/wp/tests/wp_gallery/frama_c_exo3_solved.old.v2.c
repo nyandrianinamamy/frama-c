@@ -2,7 +2,7 @@
    OPT: -wp-model Typed+Ref -wp-no-print -wp-rte
 */
 /* run.config_qualif
-   OPT: -wp-model Typed+Ref -wp-rte -wp
+   OPT: -wp-model Typed+Ref -wp-rte -wp -wp-timeout 2
 */
 /* ************/
 /* Autre solution d'une proposition de TP donné par Julien à L'IFIPS */
@@ -103,6 +103,7 @@ void equal_elements(int *a, int *v1, int *v2)
     if (seen[v]) {
       if (*v1 == -1) *v1 = v;
       else if (*v2 == -1 && v != *v1) *v2 = v;
+      //@ assert help: v1_sound1: *v1 != -1 ==> 2 <= occ(a,0,i+1,*v1);
     } else {
       seen[v] = 1;
     }

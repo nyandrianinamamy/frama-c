@@ -31,7 +31,7 @@ let print_proj basename title n =
 
 (* apply all requests of the project and generate a .jpg file for each step.
  * (begin at number [n])
-*)
+ *)
 let build_all_graphs basename title first_n =
   Format.printf "Processing %s : " basename;
   let rec next n =

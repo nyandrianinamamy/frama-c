@@ -8,7 +8,7 @@
 
 (** Slicing  module public macros that should be used to avoid  using the type
  * concrete definition from other modules.
-*)
+ *)
 
 (**/**)
 

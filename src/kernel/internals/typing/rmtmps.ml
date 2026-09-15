@@ -57,7 +57,7 @@ let pp_info fmt = function
  *
  *  Scanning and categorization of pragmas
  *
-*)
+ *)
 
 
 (* collections of names of things to keep *)
@@ -77,7 +77,7 @@ exception Bad_pragma
 (* CIL and CCured define several pragmas which prevent removal of
  * various global varinfos.  Here we scan for those pragmas and build
  * up collections of the corresponding varinfos' names.
-*)
+ *)
 
 let categorizePragmas ast =
 
@@ -159,7 +159,7 @@ let categorizePragmas ast =
  *
  *  Root collection from pragmas
  *
-*)
+ *)
 
 
 let isPragmaRoot keepers = function
@@ -187,7 +187,7 @@ let isPragmaRoot keepers = function
  *
  *  Common root collecting utilities
  *
-*)
+ *)
 let hasExportingAttribute funvar =
   let isExportingAttribute = function
     | ("constructor", []) -> true
@@ -200,7 +200,7 @@ let hasExportingAttribute funvar =
  *
  *  Root collection from external linkage
  *
-*)
+ *)
 
 
 (* Exported roots are those global varinfos which are visible to the
@@ -210,7 +210,7 @@ let hasExportingAttribute funvar =
  * - functions declared extern but not inline
  * - functions declared neither inline nor static
  * - the function named "main"
-*)
+ *)
 
 let isExportedRoot global =
   let result, reason = match global with
@@ -264,13 +264,13 @@ let isExportedRoot global =
  *
  *  Root collection for complete programs
  *
-*)
+ *)
 
 
 (* Exported roots are "main()" and functions bearing a "constructor"
  * or "destructor" attribute.  These are the only things which must be
  * retained in a complete program.
-*)
+ *)
 
 let isCompleteProgramRoot global =
   let result = match global with
@@ -290,7 +290,7 @@ let isCompleteProgramRoot global =
  *
  *  Transitive reachability closure from roots
  *
-*)
+ *)
 
 
 (* This visitor recursively marks all reachable types and variables as used. *)
@@ -774,7 +774,7 @@ end
  *
  *  Removal of unused varinfos
  *
-*)
+ *)
 
 let label_removable = function
     Label (_,_,user) -> not user
@@ -875,7 +875,7 @@ let removeUnmarked isRoot ast reachable_tbl =
  *
  *  Exported interface
  *
-*)
+ *)
 
 let removeUnused ?(isRoot=isExportedRoot) ast =
   if not !keepUnused then

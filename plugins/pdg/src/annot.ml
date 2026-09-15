@@ -75,7 +75,7 @@ let find_fun_postcond_nodes pdg p =
        (* find is \result is used in p, and if it is the case,
         * add the node [Sets.find_output_node pdg]
         * to the returned list of nodes.
-       *)
+        *)
        if Logic_deps.to_result_from_pred p then
          (Sets.find_output_node pdg)::nodes
        else nodes

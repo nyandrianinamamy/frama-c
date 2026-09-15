@@ -44,7 +44,7 @@
  * Note that certain CIL- and CCured-specific pragmas induce
  * additional global roots.  This functionality is always present, and
  * is not subject to replacement by "filterRoots".
-*)
+ *)
 
 
 val isExportedRoot : Cil_types.global -> bool

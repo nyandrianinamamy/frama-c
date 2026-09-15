@@ -22,11 +22,11 @@
 
 let
   pname = "alt-ergo";
-  version = "2.6.2";
+  version = "2.6.4";
 
   src = fetchurl {
     url = "https://github.com/OCamlPro/alt-ergo/releases/download/v${version}/alt-ergo-${version}.tbz";
-    sha256 = "sha256-OeLJEop9HonzMuMaJxbzWfO54akl/oHxH6SnSbXSTYI=";
+    sha256 = "sha256-w1tbSewoFqJMkyWwg+7+I3g566zrgzMa7vBBvtcgsTc=";
   };
 in
 

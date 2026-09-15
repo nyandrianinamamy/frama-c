@@ -268,13 +268,13 @@ end = struct
       | true, false, false, false ->
         (* always goes in the 'then' branch,
          * but the else branch is not empty :
-        *)
+         *)
         mk_new_stmt s (If (Cil.one ~loc, bthen, belse, loc))
       | true, true, false, false ->
         (* always goes in the 'then' empty branch,
          * but the else branch is not empty :
          * build (if (0) belse else empty.
-        *)
+         *)
         mk_new_stmt s (If (Cil.zero ~loc, belse, bthen, loc))
       | true,  false, true,  false
       | false, false, false, false ->

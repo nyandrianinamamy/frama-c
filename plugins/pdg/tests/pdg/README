@@ -10,7 +10,7 @@ Program Dependence Graph computation.
 ** tests/pdg/simple_call.c
    tests for the PDG of function calls.
 
-** tests/pdg/calls_and_implicits.c
+** tests/pdg/calls_and_implicit.c
    test the PDG for dependencies between global variables in calls.
    Check if inputs and outputs are not mixed up.
 
@@ -59,4 +59,3 @@ Program Dependence Graph computation.
 ** tests/pdg/doc_dot.c
    A very simple example to show the different kinds of nodes and link
    in a .dot file (also for the documentation).
-

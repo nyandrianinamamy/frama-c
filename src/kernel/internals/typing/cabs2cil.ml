@@ -2404,7 +2404,7 @@ type expAction =
    * e.g. p[p[0]] when p[0] is initially
    * 0, so the location won't change
    * after assignment.
-  *)
+   *)
   | AExp of typ option                  (* Return the exp as usual.
                                          * Optionally we can specify an
                                          * expected type. This is useful for
@@ -2915,7 +2915,7 @@ let rec setOneInit this o preinit =
  * (ANSI C, 6.7.8, para 22).
  * Finally, we return the set of lvals that are read for the evaluation of
  * the initializer (for unspecified sequences)
-*)
+ *)
 let rec collectInitializer
     reads (* lval already read by the rest of the initializer. *)
     (this: preInit)
@@ -5378,7 +5378,7 @@ and isIntegerConstant ghost (aexp) : int option =
  * - a chunk representing side-effects occurring during evaluation
  * - the CIL expression
  * - its type.
-*)
+ *)
 and doExp local_env
     (asconst: expConst)   (* This expression is used as a constant *)
     (e: Cabs.expression)
@@ -5398,7 +5398,7 @@ and doExp local_env
    * essentially doExp should never return things of type TFun or TArray.
    * We make an exception for (wide) string literals, which are themselves
    * lvalues.
-  *)
+   *)
   let processArrayFun e t =
     let loc = e.eloc in
     let t' = Ast_types.C.unroll t in
@@ -7596,7 +7596,7 @@ and doBinOp loc (bop: binop) (e1: exp) (e2: exp) =
 (* Constant fold a conditional. This is because we want to avoid having
  * conditionals in the initializers. So, we try very hard to avoid creating
  * new statements.
-*)
+ *)
 and doCondExp local_env asconst
     (* Try to evaluate the conditional expression
      * to TRUE or FALSE, because it occurs in a constant *)
@@ -7804,7 +7804,7 @@ and doInitializer loc local_env (vi: varinfo) (inite: Cabs.init_expression)
   (* Return the accumulated chunk, the initializer and the new type (might be
    * different for arrays), together with the lvals read during evaluation of
    * the initializer (for local initialization)
-  *)
+   *)
   : chunk * init_or_str * typ * Cil_datatype.Lval.Set.t =
   let open Current_loc.Operators in
   let normal_init vi inite =

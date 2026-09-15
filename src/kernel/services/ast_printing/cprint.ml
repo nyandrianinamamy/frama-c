@@ -33,7 +33,7 @@
  **      2.1d    8.25.99 Hugues Cassé    Rebuild escape sequences in string and
  **                                                                      characters.
  **      2.1e    9.1.99  Hugues Cassé    Fix, recognize and correctly display '\0'.
-*)
+ *)
 
 (* George Necula: I changed this pretty dramatically since CABS changed *)
 open Format
@@ -612,7 +612,7 @@ and print_def fmt def =
 
 (*  print abstract_syntax -> ()
  **              Pretty printing the given abstract syntax program.
-*)
+ *)
 let printFile fmt ((_fname, defs) : file) = print_defs fmt defs
 
 let () = Cil_datatype.Cabs_file.pretty_ref := printFile

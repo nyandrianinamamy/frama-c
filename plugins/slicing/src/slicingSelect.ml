@@ -223,7 +223,7 @@ let select_label kf ?(select=empty_db_select kf) label mark =
 
 (** marking a call node means that a [choose_call] will have to decide that to
  * call according to the slicing-level, but anyway, the call will be visible.
-*)
+ *)
 let select_minimal_call kf ?(select=empty_db_select kf) stmt m =
   SlicingParameters.debug ~level:1 "[Register.select_minimal_call]";
   try
@@ -335,7 +335,7 @@ let add_crit_ff_change_call ff_caller call f_to_call =
  * This is a user request, so it might be the case that
  * the new function doesn't compute enough outputs :
  * in that case, add outputs first.
-*)
+ *)
 let call_ff_in_caller ~caller ~to_call =
   let kf_caller = SlicingMacros.get_ff_kf caller in
   let kf_to_call = SlicingMacros.get_ff_kf to_call in

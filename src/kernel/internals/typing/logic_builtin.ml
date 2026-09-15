@@ -233,7 +233,7 @@ let init =
             (* TODO ?
              * div() frexp() ldexp()
              * ldiv() modf() modf()
-            *)
+             *)
 
             "\\sum", [], ["min",Linteger;
                           "max", Linteger;

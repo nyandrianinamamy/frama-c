@@ -1719,7 +1719,7 @@ and childrenOffset (vis: cilVisitor) (off: offset) : offset =
  * above since recursive offsets are visited by voffs.  (this point
  * is moot according to cil.mli which claims the offsets in
  * initializers will never recursively contain offsets)
-*)
+ *)
 and visitCilInitOffset (vis: cilVisitor) (off: offset) : offset =
   doVisitCil vis id vis#vinitoffs childrenOffset off
 
@@ -4128,7 +4128,7 @@ let intTypeIncluded kind1 kind2 =
  *
  * First we convert 'AB\nD' into the list [ 65 ; 66 ; 10 ; 68 ], then we
  * multiply and add to get the desired value.
-*)
+ *)
 
 (* Given a character constant (like 'a' or 'abc') as a list of 64-bit
  * values, turn it into a CIL constant.  Multi-character constants are

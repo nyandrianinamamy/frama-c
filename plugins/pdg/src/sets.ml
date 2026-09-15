@@ -33,7 +33,7 @@ let find_node pdg key = FctIndex.find_info (PdgTypes.Pdg.get_index pdg) key
 (** notice that there can be several nodes if the statement is a call.
  * For If, Switch, ... the node represent only the condition
  * (see find_stmt_nodes below).
-*)
+ *)
 let find_simple_stmt_nodes pdg stmt =
   let idx = PdgTypes.Pdg.get_index pdg in
   let key = Key.stmt_key stmt in
@@ -79,7 +79,7 @@ let rec add_stmt_nodes pdg nodes s =
 (** notice that there can be several nodes if the statement is a call.
  * If the stmt is a composed instruction (block, etc), all the nodes of the
  * enclosed statements are considered.
-*)
+ *)
 let find_stmt_and_blocks_nodes pdg stmt =
   add_stmt_nodes pdg [] stmt
 
