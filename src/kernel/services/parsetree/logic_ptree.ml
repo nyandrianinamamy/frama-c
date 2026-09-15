@@ -26,7 +26,7 @@ type unop = Uminus | Ustar | Uamp | Ubw_not
 type upop = UPequal | UPeq | UPcolon_eq |UPplus_eq | UPminus_eq | UPstar_eq |
             UPslash_eq | UPpercent_eq | UPpipe_eq | UPand_eq | UPcirc_eq |
             UPrarrow | UPlarrow
-[@@deriving show { with_path = false } ]
+[@@deriving eq,show { with_path = false } ]
 
 (** logic constants. *)
 type constant =

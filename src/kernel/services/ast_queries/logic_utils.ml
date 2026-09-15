@@ -1202,26 +1202,6 @@ let is_same_binop op1 op2 =
   | (Badd | Bsub | Bmul | Bdiv | Bmod | Bbw_and | Bbw_or
     | Bbw_xor | Blshift | Brshift),_ -> false
 
-let is_same_upop op1 op2 =
-  let open Logic_ptree in
-  match op1,op2 with
-  | UPequal, UPequal
-  | UPeq, UPeq
-  | UPcolon_eq, UPcolon_eq -> true
-  | UPplus_eq, UPplus_eq
-  | UPminus_eq, UPminus_eq -> true
-  | UPstar_eq, UPstar_eq -> true
-  | UPslash_eq, UPslash_eq -> true
-  | UPpercent_eq, UPpercent_eq -> true
-  | UPpipe_eq, UPpipe_eq -> true
-  | UPand_eq, UPand_eq -> true
-  | UPcirc_eq, UPcirc_eq -> true
-  | UPrarrow, UPrarrow
-  | UPlarrow, UPlarrow
-  | (UPequal | UPeq | UPcolon_eq | UPplus_eq | UPminus_eq | UPstar_eq |
-     UPslash_eq | UPpercent_eq | UPpipe_eq | UPand_eq | UPcirc_eq |
-     UPrarrow | UPlarrow ), _ -> false
-
 let is_same_relation r1 r2 =
   let open Logic_ptree in
   match r1, r2 with
@@ -1302,7 +1282,7 @@ and is_same_update_term t1 t2 =
     in is_same_list is_same_elt l1 l2
   | PLupdExtCont l1, PLupdExtCont l2 ->
     let is_same_elt (p1,op1,e1) (p2,op2,e2) =
-      is_same_upop op1 op2 &&
+      Logic_ptree.equal_upop op1 op2 &&
       is_same_string p1 p2 && is_same_update_term e1 e2
     in is_same_list is_same_elt l1 l2
   | (PLupdateTerm _ | PLupdateCont _ | PLupdExtCont _ ), _ -> false
@@ -1346,7 +1326,7 @@ and is_same_lexpr l1 l2 =
     is_same_lexpr b1 b2
     && is_same_list is_same_path_elt p1 p2 && is_same_update_term r1 r2
   | PLupdExt(b1,p1,op1,r1), PLupdExt(b2,p2,op2,r2) ->
-    is_same_upop op1 op2 && is_same_lexpr b1 b2
+    Logic_ptree.equal_upop op1 op2 && is_same_lexpr b1 b2
     && is_same_string p1 p2 && is_same_update_term r1 r2
   | PLinitIndex l1, PLinitIndex l2 ->
     let is_same_elt (i1,v1) (i2,v2) =
