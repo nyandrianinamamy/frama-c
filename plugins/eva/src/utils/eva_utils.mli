@@ -43,9 +43,6 @@ val postconditions_mention_result: Cil_types.funspec -> bool
 
 val conv_relation: relation -> Abstract_interp.Comp.t
 
-val lval_to_exp: lval -> exp
-(** This function is memoized to avoid creating too many expressions *)
-
 (** Computes the height of an expression, that is the maximum number of nested
     operations in this expression. *)
 val height_expr: exp -> int

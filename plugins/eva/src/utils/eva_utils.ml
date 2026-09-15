@@ -80,19 +80,6 @@ let conv_relation rel =
 module PairExpBool =
   Datatype.Pair_with_collections(Cil_datatype.Exp)(Datatype.Bool)
 
-module MemoLvalToExp =
-  Cil_state_builder.Lval_hashtbl
-    (Cil_datatype.Exp)
-    (struct
-      let name = "Eva_utils.MemoLvalToExp"
-      let size = 64
-      let dependencies = [ Ast.self ]
-    end)
-
-let lval_to_exp =
-  MemoLvalToExp.memo
-    (fun lv -> Cil.new_exp ~loc:Self.gen_loc (Lval lv))
-
 let rec height_expr expr =
   match expr.enode with
   | Const _ | SizeOf _ | AlignOf _ -> 0
