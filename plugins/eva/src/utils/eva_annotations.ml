@@ -308,7 +308,16 @@ module Subdivision = Register (struct
     let print fmt i = Format.pp_print_int fmt i
   end)
 
-let get_subdivision_annot = Subdivision.get
+let get_subdivision_annot stmt =
+  match Subdivision.get stmt with
+  | [] -> None
+  | [x] -> Some x
+  | x :: _ ->
+    Self.warning ~current:true ~once:true
+      "Several subdivision annotations at the same statement; selecting %i\
+       and ignoring the others." x;
+    Some x
+
 let add_subdivision_annot = Subdivision.add
 
 

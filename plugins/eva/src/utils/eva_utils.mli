@@ -17,9 +17,6 @@ val emitter : Emitter.t
     intended for other plug-ins. Used by the {!Export} module. *)
 val export_emitter : Emitter.t
 
-(* TODO: Document the rest of this file. *)
-
-val get_subdivision: stmt -> int
 
 (* Statements for which the analysis has degenerated. [true] means that this is
    the statement on which the degeneration occurred, or a statement above in

@@ -46,7 +46,13 @@ let is_determinate kf =
   (warn_indeterminate kf || Function_calls.use_spec_instead_of_definition kf)
   && not (Ast_info.start_with_frama_c_builtin name)
 
-let subdivide_stmt = Eva_utils.get_subdivision
+let subdivide_stmt stmt =
+  match Eva_annotations.get_subdivision_annot stmt with
+  | Some i -> i
+  | None ->
+    let open Parameters in
+    try SubdivideNonLinearFunction.find (Kernel_function.find_englobing_kf stmt)
+    with Not_found -> SubdivideNonLinear.get ()
 
 let subdivide_pos ~pos = match Position.stmt pos with
   | None -> Parameters.SubdivideNonLinear.get ()

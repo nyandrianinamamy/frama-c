@@ -19,22 +19,6 @@ let emitter = create_emitter "Eva" [ Emitter.Property_status; Emitter.Alarm ]
 let export_emitter = create_emitter "Eva_export" [ Emitter.Code_annot ]
 
 
-let get_subdivision_option stmt =
-  try
-    let kf = Kernel_function.find_englobing_kf stmt in
-    Parameters.SubdivideNonLinearFunction.find kf
-  with Not_found -> Parameters.SubdivideNonLinear.get ()
-
-let get_subdivision stmt =
-  match Eva_annotations.get_subdivision_annot stmt with
-  | [] -> get_subdivision_option stmt
-  | [x] -> x
-  | x :: _ ->
-    Self.warning ~current:true ~once:true
-      "Several subdivision annotations at the same statement; selecting %i\
-       and ignoring the others." x;
-    x
-
 module DegenerationPoints =
   Cil_state_builder.Stmt_hashtbl
     (Datatype.Bool)

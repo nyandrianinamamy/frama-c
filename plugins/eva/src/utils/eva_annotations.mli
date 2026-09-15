@@ -57,7 +57,7 @@ type domain_scope =
 val get_slevel_annot : Cil_types.stmt -> slevel_annotation option
 val get_unroll_annot : Cil_types.stmt -> unroll_annotation list
 val get_flow_annot : Cil_types.stmt -> flow_annotation list
-val get_subdivision_annot : Cil_types.stmt -> int list
+val get_subdivision_annot : Cil_types.stmt -> int option
 val get_allocation: Cil_types.stmt -> allocation_kind
 
 val add_slevel_annot : emitter:Emitter.t ->
