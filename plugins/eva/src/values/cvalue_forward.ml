@@ -197,8 +197,8 @@ let assume_comparable comparison v1 v2 =
 
 let are_comparable op ev1 ev2 =
   let kind = match op with
-    | Abstract_interp.Comp.Eq
-    | Abstract_interp.Comp.Ne -> Abstract_value.Equality
+    | Req
+    | Rneq -> Abstract_value.Equality
     | _ -> Abstract_value.Relation
   in
   fst (are_comparable_reason kind ev1 ev2)
@@ -311,13 +311,11 @@ let assume_aligned modulo loc =
    -------------------------------------------------------------------------- *)
 
 let assume_bounded_fval bound_kind fval_bound fval =
-  let open Abstract_interp.Comp in
   match bound_kind with
-  | Lower_bound -> Fval.forward_comp Ge fval fval_bound
-  | Upper_bound -> Fval.forward_comp Le fval fval_bound
+  | Lower_bound -> Fval.forward_comp Rge fval fval_bound
+  | Upper_bound -> Fval.forward_comp Rle fval fval_bound
 
 let assume_bounded_float fkind bound_kind bound value =
-  let open Abstract_interp.Comp in
   try
     let fval = V.project_float value in
     let fval_bound = Fval.inject_singleton (Fval.F.of_float bound) in
@@ -327,23 +325,21 @@ let assume_bounded_float fkind bound_kind bound value =
     | Unknown ->
       let kind = Fval.kind fkind in
       let fval = match bound_kind with
-        | Lower_bound -> Fval.backward_comp_left_true Ge kind fval fval_bound
-        | Upper_bound -> Fval.backward_comp_left_true Le kind fval fval_bound
+        | Lower_bound -> Fval.backward_comp_left_true Rge kind fval fval_bound
+        | Upper_bound -> Fval.backward_comp_left_true Rle kind fval fval_bound
       in
       let fval = Bottom.non_bottom fval in
       `Unknown (Cvalue.V.inject_float fval)
   with V.Not_based_on_null -> `Unknown value
 
 let assume_bounded_ival bound_kind bound ival =
-  let open Abstract_interp.Comp in
   match bound_kind with
-  | Lower_bound -> Ival.forward_comp_int Ge ival (Ival.inject_singleton bound)
-  | Upper_bound -> Ival.forward_comp_int Le ival (Ival.inject_singleton bound)
+  | Lower_bound -> Ival.forward_comp_int Rge ival (Ival.inject_singleton bound)
+  | Upper_bound -> Ival.forward_comp_int Rle ival (Ival.inject_singleton bound)
 
 (* Only reduces the integer part of the cvalue; pointer values are left
    unchanged. *)
 let assume_bounded_int bound_kind bound value =
-  let open Abstract_interp.Comp in
   let ival, pointer = V.split Base.null value in
   let status =
     if V.is_bottom pointer
@@ -496,18 +492,17 @@ let forward_unop typ op value =
       | _ -> assert false
     end
   | LNot ->
-    let eq = Abstract_interp.Comp.Eq in
     (* [!c] holds iff [c] is equal to [O] *)
     if Ast_types.C.is_float typ then
       try
         let i = V.project_ival value in
         let f = Ival.project_float i in
-        V.inject_comp_result (Fval.forward_comp eq f Fval.plus_zero)
+        V.inject_comp_result (Fval.forward_comp Req f Fval.plus_zero)
       with V.Not_based_on_null -> V.zero_or_one
     else
       let signed = Bit_utils.is_signed_int_enum_pointer typ in
       V.inject_comp_result
-        (V.forward_comp_int ~signed eq value V.singleton_zero)
+        (V.forward_comp_int ~signed Req value V.singleton_zero)
 
 (* --------------------------------------------------------------------------
                                   Cast

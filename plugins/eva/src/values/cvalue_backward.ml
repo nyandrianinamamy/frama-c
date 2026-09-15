@@ -288,12 +288,11 @@ let backward_binop ~typ_res ~res_value ~typ_e1 v1 binop v2 =
     let v1' v1 res =
       V.add_untyped ~factor:Z.one res (V.mul (V.div v1 v2) v2)
     in
-    let ge = Abstract_interp.Comp.Ge and le = Abstract_interp.Comp.Le in
-    let v1_pos =  V.backward_comp_int_left ge v1 V.singleton_zero in
-    let res_pos = V.backward_comp_int_left ge res_value V.singleton_zero in
+    let v1_pos =  V.backward_comp_int_left Rge v1 V.singleton_zero in
+    let res_pos = V.backward_comp_int_left Rge res_value V.singleton_zero in
     let v1'_pos = v1' v1_pos res_pos in
-    let v1_neg =  V.backward_comp_int_left le v1 V.singleton_zero in
-    let res_neg = V.backward_comp_int_left le res_value V.singleton_zero in
+    let v1_neg =  V.backward_comp_int_left Rle v1 V.singleton_zero in
+    let res_neg = V.backward_comp_int_left Rle res_value V.singleton_zero in
     let v1'_neg = v1' v1_neg res_neg in
     let v1' = V.join v1'_pos v1'_neg in
     (* v2 *)

@@ -193,19 +193,18 @@ let translate_binop = function
   | Mod    -> Texpr1.Mod
   | _ -> raise (Out_of_Scope "translate_binop unhandled")
 
-let translate_relation expr typ =
-  let open Abstract_interp.Comp in
-  function
-  | Le ->
+let translate_relation expr typ (op: Cil_types.relation) =
+  match op with
+  | Rle ->
     let expr = Texpr1.unop Texpr1.Neg expr typ round in
     Tcons1.make expr Tcons1.SUPEQ
-  | Lt ->
+  | Rlt ->
     let expr = Texpr1.unop Texpr1.Neg expr typ round in
     Tcons1.make expr Tcons1.SUP
-  | Ge -> Tcons1.make expr Tcons1.SUPEQ
-  | Gt -> Tcons1.make expr Tcons1.SUP
-  | Eq -> Tcons1.make expr Tcons1.EQ
-  | Ne -> Tcons1.make expr Tcons1.DISEQ
+  | Rge -> Tcons1.make expr Tcons1.SUPEQ
+  | Rgt -> Tcons1.make expr Tcons1.SUP
+  | Req -> Tcons1.make expr Tcons1.EQ
+  | Rneq -> Tcons1.make expr Tcons1.DISEQ
 
 let translate_varinfo varinfo =
   if not (is_relevant_varinfo varinfo)

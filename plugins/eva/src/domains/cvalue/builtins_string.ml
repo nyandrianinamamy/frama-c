@@ -58,7 +58,7 @@ let backward_comp_left comp ival integer =
    precision of the computed length. This reduction assumes that all the reads
    at [offset] are consecutive. *)
 let break ~offset ~from read =
-  let from = backward_comp_left Comp.Gt from (the_max_int offset) in
+  let from = backward_comp_left Rgt from (the_max_int offset) in
   { read; from; stop = Ival.is_bottom from }
 
 (* Computes the precise offset and length when reading exactly the searched
@@ -67,14 +67,14 @@ let break ~offset ~from read =
    length for the first offset or the period of [offset]. *)
 let read_exact_char ~offset ~from =
   let min = Z.max (the_max_int from) (pos_min_int offset) in
-  let offset = backward_comp_left Comp.Le offset min in
+  let offset = backward_comp_left Rle offset min in
   let length = Ival.sub_int offset from in
   if not (Ival.is_singleton_int offset)
   then
     let _, _, _, modu = Ival.min_max_r_mod offset in
     let start_length = Z.sub (pos_min_int offset) (pos_min_int from) in
     let max_length = Z.max start_length modu in
-    let length = backward_comp_left Comp.Lt length max_length in
+    let length = backward_comp_left Rlt length max_length in
     offset, length
   else offset, length
 
@@ -86,7 +86,7 @@ let check_limit kind ~offset ~from t =
   | Some limit ->
     let offset = Ival.add_singleton_int kind.size offset in
     let length = Ival.sub_int offset from in
-    let limit_reached = Ival.backward_comp_int_left Comp.Le limit length in
+    let limit_reached = Ival.backward_comp_int_left Rle limit length in
     if Ival.is_bottom limit_reached then t else
       let length = Ival.join t.length limit_reached in
       { t with null = true; length }
@@ -280,11 +280,11 @@ let return_length kind ~zero basemap =
   (* The computed length and the limit are expressed in bits. *)
   let positions = match kind.limit with
     | None -> positions
-    | Some l -> Ival.backward_comp_int_left Comp.Le positions l
+    | Some l -> Ival.backward_comp_int_left Rle positions l
   in
   (* The returned length is expressed in number of characters. *)
   let positions = Ival.scale_div ~pos:false kind.size positions in
-  let positions = Ival.backward_comp_int_left Comp.Ge positions Ival.zero in
+  let positions = Ival.backward_comp_int_left Rge positions Ival.zero in
   Cvalue.V.inject_ival positions
 
 (* Computes a pointer to the characters found by [search_by_base]. Adds the null

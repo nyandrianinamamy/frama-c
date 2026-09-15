@@ -981,11 +981,11 @@ module IntDomain = struct
 
   let assume_literal t dom = match Lang.F.repr t with
     | Eq(a,b)  when is_int a && is_int b ->
-      assume_cmp "==" Abstract_interp.Comp.Eq a b dom
+      assume_cmp "==" Req a b dom
     | Leq(a,b) when is_int a && is_int b ->
-      assume_cmp "<=" Abstract_interp.Comp.Le a b dom
+      assume_cmp "<=" Rle a b dom
     | Lt(a,b)  when is_int a && is_int b ->
-      assume_cmp "<" Abstract_interp.Comp.Lt a b dom
+      assume_cmp "<" Rlt a b dom
     | Fun(g,[a]) -> begin try
           let ubound =
             c_int_bounds_ival (is_cint g) (* may raise Not_found *) in
@@ -1123,13 +1123,13 @@ let is_cint_simplifier =
         match Lang.F.repr t with (* NB. [var] has an int type *)
         | _ when not (is_prop t) -> ()
         | Leq(a,b) when Lang.F.equal a var && is_int b ->
-          reduce Abstract_interp.Comp.Le var_domain b
+          reduce Rle var_domain b
         | Leq(b,a) when Lang.F.equal a var && is_int b ->
-          reduce Abstract_interp.Comp.Ge var_domain b
+          reduce Rge var_domain b
         | Lt(a,b) when Lang.F.equal a var && is_int b ->
-          reduce Abstract_interp.Comp.Lt var_domain b
+          reduce Rlt var_domain b
         | Lt(b,a) when Lang.F.equal a var  && is_int b ->
-          reduce Abstract_interp.Comp.Gt var_domain b
+          reduce Rgt var_domain b
         | And l -> List.iter (reduce_on_neg var var_domain) l
         | Not p -> reduce_on_pos var var_domain p
         | _ -> ()

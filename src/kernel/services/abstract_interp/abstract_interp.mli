@@ -30,7 +30,7 @@ val inv_truth: truth -> truth
 
 (** Signatures for comparison operators [==, !=, <, >, <=, >=]. *)
 module Comp: sig
-  type t = Lt | Gt | Le | Ge | Eq | Ne (** comparison operators *)
+  type t = Cil_types.relation (** comparison operators *)
 
   type result = truth = True | False | Unknown (** result of a comparison *)
 

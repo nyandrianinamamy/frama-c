@@ -1519,7 +1519,7 @@ and eval_known_logic_function ~alarm_mode env li labels args =
   | ("\\min" | "\\max"), Some typ, _, t1 :: t2 :: tail_args ->
     begin
       let min = lvi.lv_name = "\\min" in
-      let comp = Abstract_interp.Comp.(if min then Le else Ge) in
+      let comp = if min then Rle else Rge in
       let backward =
         match typ with
         | Linteger -> Cvalue.V.backward_comp_int_left comp
@@ -2130,9 +2130,8 @@ and reduce_left_by_base_addr_eq ~alarm_mode env tl tr =
 (* reduce [tl] so that [rl rel tr] holds *)
 and reduce_left_by_relation ~alarm_mode env positive tl rel tr =
   let rtl = eval_term ~alarm_mode env tr in
-  let comp = Eva_utils.conv_relation rel in
   let reduce typ cvalue =
-    Eval_op.backward_comp_left_from_type typ positive comp cvalue rtl.eover
+    Eval_op.backward_comp_left_from_type typ positive rel cvalue rtl.eover
   in
   reduce_exact_location ~alarm_mode env reduce tl
 
@@ -2754,23 +2753,23 @@ and eval_predicate env pred =
     | "\\is_infinite", [arg] -> unary_float Fval.is_infinite arg
     | "\\is_plus_infinity", [arg] ->
       let pos_inf = Fval.pos_infinity Float_sig.Single in
-      unary_float (fun f -> Fval.forward_comp Comp.Eq f pos_inf) arg
+      unary_float (fun f -> Fval.forward_comp Req f pos_inf) arg
     | "\\is_minus_infinity", [arg] ->
       let neg_inf = Fval.neg_infinity Float_sig.Single in
-      unary_float (fun f -> Fval.forward_comp Comp.Eq f neg_inf) arg
+      unary_float (fun f -> Fval.forward_comp Req f neg_inf) arg
     | "\\is_NaN", [arg] -> inv_truth (unary_float Fval.is_not_nan arg)
     | ("\\eq_float" | "\\eq_float32" | "\\eq_float64" | "\\eq_double"),
-      [arg1;arg2] -> fval_cmp Comp.Eq arg1 arg2
+      [arg1;arg2] -> fval_cmp Req arg1 arg2
     | ("\\ne_float" | "\\ne_float32" | "\\ne_float64" | "\\ne_double"),
-      [arg1;arg2] -> fval_cmp Comp.Ne arg1 arg2
+      [arg1;arg2] -> fval_cmp Rneq arg1 arg2
     | ("\\lt_float" | "\\lt_float32" | "\\lt_float64" | "\\lt_double"),
-      [arg1;arg2] -> fval_cmp Comp.Lt arg1 arg2
+      [arg1;arg2] -> fval_cmp Rlt arg1 arg2
     | ("\\le_float" | "\\le_float32" | "\\le_float64" | "\\le_double"),
-      [arg1;arg2] -> fval_cmp Comp.Le arg1 arg2
+      [arg1;arg2] -> fval_cmp Rle arg1 arg2
     | ("\\gt_float" | "\\gt_float32" | "\\gt_float64" | "\\gt_double"),
-      [arg1;arg2] -> fval_cmp Comp.Gt arg1 arg2
+      [arg1;arg2] -> fval_cmp Rgt arg1 arg2
     | ("\\ge_float" | "\\ge_float32" | "\\ge_float64" | "\\ge_double"),
-      [arg1;arg2] -> fval_cmp Comp.Ge arg1 arg2
+      [arg1;arg2] -> fval_cmp Rge arg1 arg2
     | "\\warning", _ -> begin
         match args with
         | [{ term_node = TConst(LStr(str))}] ->

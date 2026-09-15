@@ -65,16 +65,6 @@ let postconditions_mention_result spec =
     false
   with Exit -> true
 
-let conv_relation rel =
-  let module C = Abstract_interp.Comp in
-  match rel with
-  | Req -> C.Eq
-  | Rneq -> C.Ne
-  | Rle -> C.Le
-  | Rlt -> C.Lt
-  | Rge -> C.Ge
-  | Rgt -> C.Gt
-
 module PairExpBool =
   Datatype.Pair_with_collections(Cil_datatype.Exp)(Datatype.Bool)
 

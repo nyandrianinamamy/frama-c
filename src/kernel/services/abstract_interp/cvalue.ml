@@ -274,7 +274,6 @@ module V = struct
     with Not_based_on_null -> `Value None
 
   let backward_rel_int_left op l r =
-    let open Abstract_interp.Comp in
     match l with
     | Top _  -> l
     | Map m1 ->
@@ -283,7 +282,7 @@ module V = struct
         let v1 = find_or_bottom k m1 in
         let v1' = Ival.backward_comp_int_left op v1 v2 in
         let r = add k v1' l in
-        if (not (Base.equal k Base.null)) && (op = Ge || op = Gt)
+        if (not (Base.equal k Base.null)) && (op = Rge || op = Rgt)
         then diff_if_one r singleton_zero
         else r
       with Not_found -> l
@@ -314,34 +313,32 @@ module V = struct
         let zr = Ival.contains_zero ir in
         let il' = Ival.backward_comp_int_left op il ir in
         let pl' = fold_topset_ok aux_base pl bottom in
-        let open Abstract_interp.Comp in
         (* i1' and p1' are pointwise application of the comparison operator,
            and will be in the result in all cases. *)
         if debug then Kernel.result "%a %a %a %a %a -> %a %a"
-            Ival.pretty il pretty pl pretty_comp op Ival.pretty ir pretty pr
+            Ival.pretty il pretty pl Printer.pp_relation op Ival.pretty ir pretty pr
             Ival.pretty il' pretty pl';
         match op, zl, zr with
-        | (Le | Lt), false, _ (*  il       + pl <~ (ir + ?0) + pr *)
-        | (Ge | Gt), _, false (* (il + ?0) + pl >~  ir       + pr *) ->
+        | (Rle | Rlt), false, _ (*  il       + pl <~ (ir + ?0) + pr *)
+        | (Rge | Rgt), _, false (* (il + ?0) + pl >~  ir       + pr *) ->
           add Base.null il' pl'
-        | (Le | Lt), true, _ -> (* 0 + il + pl <~ ir + pr *)
+        | (Rle | Rlt), true, _ -> (* 0 + il + pl <~ ir + pr *)
           if is_bottom pr then
             add Base.null il' pl'
           else
             (* also keep the NULL pointer, that compares less than pr *)
             add Base.null (Ival.join Ival.zero il') pl'
-        | (Ge | Gt), _, true -> (* il + pl >~ 0 + pr *)
+        | (Rge | Rgt), _, true -> (* il + pl >~ 0 + pr *)
           (* keep all of pl, as they are all greater than 0; this includes pl'*)
           add Base.null il' pl
         | _ -> assert false
       with Error_Top -> l
 
   let backward_comp_int_left op l r =
-    let open Abstract_interp.Comp in
     match op with
-    | Ne -> diff_if_one l r
-    | Eq -> narrow l r
-    | Le | Lt | Ge | Gt -> backward_rel_int_left op l r
+    | Rneq -> diff_if_one l r
+    | Req -> narrow l r
+    | Rle | Rlt | Rge | Rgt -> backward_rel_int_left op l r
 
   let backward_comp_float_left_true op fkind l r =
     try
@@ -363,7 +360,6 @@ module V = struct
     | Comp.Unknown -> zero_or_one
 
   let forward_rel_int ~signed op e1 e2 =
-    let open Abstract_interp.Comp in
     try
       let k1,v1 = find_lonely_key e1 in
       let k2,v2 = find_lonely_key e2 in
@@ -376,12 +372,12 @@ module V = struct
           (* k1 -> v1, k2 -> v2, k1 <> k2 *)
           let e1_zero = equal e1 singleton_zero in
           let e2_zero = equal e2 singleton_zero in
-          if (e1_zero && (op = Le || op = Lt))
-          || (e2_zero && (op = Ge || op = Gt))
+          if (e1_zero && (op = Rle || op = Rlt))
+          || (e2_zero && (op = Rge || op = Rgt))
           then True (* if e1/e2 is NULL, then e2/e1 is a pointer *)
           else
-          if (e2_zero && (op = Le || op = Lt))
-          || (e1_zero && (op = Ge || op = Gt))
+          if (e2_zero && (op = Rle || op = Rlt))
+          || (e1_zero && (op = Rge || op = Rgt))
           then False
           else Unknown
         end
@@ -396,11 +392,10 @@ module V = struct
     else Comp.False
 
   let forward_comp_int ~signed op v1 v2 =
-    let open Abstract_interp.Comp in
     match op with
-    | Eq -> forward_eq_int v1 v2
-    | Ne -> inv_truth (forward_eq_int v1 v2)
-    | Le | Ge | Lt | Gt -> forward_rel_int ~signed op v1 v2
+    | Req -> forward_eq_int v1 v2
+    | Rneq -> inv_truth (forward_eq_int v1 v2)
+    | Rle | Rge | Rlt | Rgt -> forward_rel_int ~signed op v1 v2
 
 
   (** Casts and reinterpretation *)

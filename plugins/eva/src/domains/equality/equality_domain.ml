@@ -310,7 +310,7 @@ struct
       fun valuation e1 e2 ->
         let cval1 = get_cvalue (find_val valuation e1)
         and cval2 = get_cvalue (find_val valuation e2) in
-        Cvalue_forward.are_comparable Abstract_interp.Comp.Eq cval1 cval2
+        Cvalue_forward.are_comparable Req cval1 cval2
         && not (incompatible_zeros cval1 cval2)
 
   exception Top_location

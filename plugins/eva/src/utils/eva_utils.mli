@@ -37,8 +37,6 @@ val find_return_var: kernel_function -> varinfo option
 val postconditions_mention_result: Cil_types.funspec -> bool
 (** Does the post-conditions of this specification mention [\result]? *)
 
-val conv_relation: relation -> Abstract_interp.Comp.t
-
 (** Computes the height of an expression, that is the maximum number of nested
     operations in this expression. *)
 val height_expr: exp -> int

@@ -265,13 +265,12 @@ let test_forward_comp () =
     List.iter (test_comp_on_itv ~ne op fval_op str_op) l4
   in
   let ne = false in
-  let open Abstract_interp in
-  test_comp ~ne (=) Comp.Eq "==";
-  test_comp ~ne (<) Comp.Lt "<";
-  test_comp ~ne (<=) Comp.Le "<=";
-  test_comp ~ne (>) Comp.Gt ">";
-  test_comp ~ne (>=) Comp.Ge ">=";
-  test_comp ~ne:true (<>) Comp.Ne "<>"
+  test_comp ~ne (=) Req "==";
+  test_comp ~ne (<) Rlt "<";
+  test_comp ~ne (<=) Rle "<=";
+  test_comp ~ne (>) Rgt ">";
+  test_comp ~ne (>=) Rge ">=";
+  test_comp ~ne:true (<>) Rneq "<>"
 
 let main _ =
   test_forward_unop ();

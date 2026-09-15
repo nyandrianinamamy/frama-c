@@ -116,12 +116,12 @@ let invert_relation : binop -> binop = function
   | _ -> invalid_arg "invert_relation: must be given a comparison operator"
 
 let conv_relation : binop -> Abstract_interp.Comp.t = function
-  | Eq -> Eq
-  | Ne -> Ne
-  | Le -> Le
-  | Lt -> Lt
-  | Ge -> Ge
-  | Gt -> Gt
+  | Eq -> Req
+  | Ne -> Rneq
+  | Le -> Rle
+  | Lt -> Rlt
+  | Ge -> Rge
+  | Gt -> Rgt
   | _ -> invalid_arg "conv_relation: must be given a comparison operator"
 
 

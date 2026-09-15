@@ -335,7 +335,7 @@ let intersects v1 v2 =
   | Bottom, _ | _, Bottom -> false
   | Int i1, Int i2 -> Int_val.intersects i1 i2
   | Float f1, Float f2 -> begin
-      match Fval.forward_comp Comp.Eq f1 f2 with
+      match Fval.forward_comp Req f1 f2 with
       | Comp.False -> false
       | Comp.True | Comp.Unknown -> true
     end

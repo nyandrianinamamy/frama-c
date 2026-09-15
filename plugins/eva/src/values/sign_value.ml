@@ -262,15 +262,14 @@ let reduced v = `Value (Some v)
 (* This function must reduce the value [right] assuming that the
    comparison [left op right] holds. *)
 let backward_comp_right op ~left ~right =
-  let open Abstract_interp.Comp in
   match op with
-  | Eq ->
+  | Req ->
     narrow left right >>- reduced
-  | Ne ->
+  | Rneq ->
     if equal left zero then
       narrow right non_zero >>- reduced
     else unreduced
-  | Le ->
+  | Rle ->
     if ge_zero left then
       (* [left] is positive or zero. Hence, [right] is at least also positive
          or zero. *)
@@ -281,18 +280,18 @@ let backward_comp_right op ~left ~right =
         (* [left] is strictly positive, hence so is [right] *)
         narrow right pos >>- reduced
     else unreduced
-  | Lt ->
+  | Rlt ->
     if ge_zero left then
       narrow right pos >>- reduced
     else unreduced
-  | Ge ->
+  | Rge ->
     if le_zero left then
       if left.zero then
         narrow right neg_or_zero >>- reduced
       else
         narrow right neg >>- reduced
     else unreduced
-  | Gt ->
+  | Rgt ->
     if le_zero left then
       narrow right neg >>- reduced
     else unreduced

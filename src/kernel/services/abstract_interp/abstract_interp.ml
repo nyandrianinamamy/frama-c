@@ -24,33 +24,33 @@ let inv_truth = function
   | False -> True
 
 module Comp = struct
-  type t = Lt | Gt | Le | Ge | Eq | Ne
+  type t = Cil_types.relation = Rlt | Rgt | Rle | Rge | Req | Rneq
 
   type result = truth = True | False | Unknown
 
   let inv = function
-    | Gt -> Le
-    | Lt -> Ge
-    | Le -> Gt
-    | Ge -> Lt
-    | Eq -> Ne
-    | Ne -> Eq
+    | Rgt -> Rle
+    | Rlt -> Rge
+    | Rle -> Rgt
+    | Rge -> Rlt
+    | Req -> Rneq
+    | Rneq -> Req
 
   let sym = function
-    | Gt -> Lt
-    | Lt -> Gt
-    | Le -> Ge
-    | Ge -> Le
-    | Eq -> Eq
-    | Ne -> Ne
+    | Rgt -> Rlt
+    | Rlt -> Rgt
+    | Rle -> Rge
+    | Rge -> Rle
+    | Req -> Req
+    | Rneq -> Rneq
 
   let pretty_comp fmt = function
-    | Gt -> Format.pp_print_string fmt ">"
-    | Lt -> Format.pp_print_string fmt "<"
-    | Le -> Format.pp_print_string fmt "<="
-    | Ge -> Format.pp_print_string fmt ">="
-    | Eq -> Format.pp_print_string fmt "=="
-    | Ne -> Format.pp_print_string fmt "!="
+    | Rgt -> Format.pp_print_string fmt ">"
+    | Rlt -> Format.pp_print_string fmt "<"
+    | Rle -> Format.pp_print_string fmt "<="
+    | Rge -> Format.pp_print_string fmt ">="
+    | Req -> Format.pp_print_string fmt "=="
+    | Rneq -> Format.pp_print_string fmt "!="
 
 
 end

@@ -505,21 +505,22 @@ module Make (F: Float_sig.S) = struct
     else if Cmp.le_ieee e2 b1 then Comp.False
     else Comp.Unknown
 
-  let forward_comp op f1 f2 = match f1, f2 with
+  let forward_comp (op: Cil_types.relation) f1 f2 =
+    match f1, f2 with
     | FRange.NaN, _ | _, FRange.NaN ->
-      if op = Comp.Ne then Comp.True else Comp.False
+      if op = Rneq then Comp.True else Comp.False
     | FRange.Itv (b1, e1, nan1), FRange.Itv (b2, e2, nan2) ->
       let r = match op with
-        | Comp.Le -> forward_le (b1, e1) (b2, e2)
-        | Comp.Ge -> forward_le (b2, e2) (b1, e1)
-        | Comp.Lt -> forward_lt (b1, e1) (b2, e2)
-        | Comp.Gt -> forward_lt (b2, e2) (b1, e1)
-        | Comp.Eq -> forward_eq (b1, e1) (b2, e2)
-        | Comp.Ne -> Abstract_interp.inv_truth (forward_eq (b1, e1) (b2, e2))
+        | Rle -> forward_le (b1, e1) (b2, e2)
+        | Rge -> forward_le (b2, e2) (b1, e1)
+        | Rlt -> forward_lt (b1, e1) (b2, e2)
+        | Rgt -> forward_lt (b2, e2) (b1, e1)
+        | Req -> forward_eq (b1, e1) (b2, e2)
+        | Rneq -> Abstract_interp.inv_truth (forward_eq (b1, e1) (b2, e2))
       in
       if nan1 || nan2
       then
-        if op = Comp.Ne
+        if op = Rneq
         then (match r with Comp.True -> Comp.True | _ -> Comp.Unknown)
         else (match r with Comp.False -> Comp.False | _ -> Comp.Unknown)
       else r
@@ -577,12 +578,12 @@ module Make (F: Float_sig.S) = struct
   let backward_comp_left_true_finite op prec f1' f2' =
     let f1 = if_not_nan f1' in
     let (b2, e2) = if_not_nan f2' in
-    match op with
-    | Comp.Le -> backward_le prec f1 e2
-    | Comp.Ge -> backward_ge prec f1 b2
-    | Comp.Lt -> backward_lt prec f1 e2
-    | Comp.Gt -> backward_gt prec f1 b2
-    | Comp.Eq ->
+    match (op: Cil_types.relation) with
+    | Rle -> backward_le prec f1 e2
+    | Rge -> backward_ge prec f1 b2
+    | Rlt -> backward_lt prec f1 e2
+    | Rgt -> backward_gt prec f1 b2
+    | Req ->
       (* -0 and +0 must not be distinguished here *)
       let f2 =
         if contains_a_zero f2'
@@ -590,7 +591,7 @@ module Make (F: Float_sig.S) = struct
         else f2'
       in
       narrow f1' f2
-    | Comp.Ne ->
+    | Rneq ->
       (* compute (f1 ∩ [-infty,min[ ) ∪ (f1 ∩ ]max,infty]) *)
       let before_or_after min max =
         Bottom.join join
@@ -625,13 +626,13 @@ module Make (F: Float_sig.S) = struct
 
   let backward_comp_left_true op prec =
     let backward_finite = backward_comp_left_true_finite op prec in
-    if op = Comp.Ne
+    if op = Rneq
     then backward_comp_with_nan backward_finite
     else backward_comp_no_nan backward_finite
 
   let backward_comp_left_false op prec =
     let backward_finite = backward_comp_left_true_finite (Comp.inv op) prec in
-    if op = Comp.Ne
+    if op = Rneq
     then backward_comp_no_nan backward_finite
     else backward_comp_with_nan backward_finite
 
