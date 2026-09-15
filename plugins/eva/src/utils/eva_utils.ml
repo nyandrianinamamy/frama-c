@@ -35,10 +35,6 @@ let get_subdivision stmt =
        and ignoring the others." x;
     x
 
-let pretty_actuals fmt actuals =
-  let pp fmt (e,x) = Cvalue.V.pretty_typ (Some (e.Eva_ast.typ)) fmt x in
-  Pretty_utils.pp_flowlist pp fmt actuals
-
 module DegenerationPoints =
   Cil_state_builder.Stmt_hashtbl
     (Datatype.Bool)

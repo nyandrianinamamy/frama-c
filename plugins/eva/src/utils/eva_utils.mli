@@ -20,8 +20,6 @@ val export_emitter : Emitter.t
 (* TODO: Document the rest of this file. *)
 
 val get_subdivision: stmt -> int
-val pretty_actuals :
-  Format.formatter -> (Eva_ast.exp * Cvalue.V.t) list -> unit
 
 (* Statements for which the analysis has degenerated. [true] means that this is
    the statement on which the degeneration occurred, or a statement above in
