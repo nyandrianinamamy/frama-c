@@ -19,7 +19,6 @@ val export_emitter : Emitter.t
 
 (* TODO: Document the rest of this file. *)
 
-val get_slevel : Kernel_function.t -> Parameters.SlevelFunction.value
 val get_subdivision: stmt -> int
 val pretty_actuals :
   Format.formatter -> (Eva_ast.exp * Cvalue.V.t) list -> unit
