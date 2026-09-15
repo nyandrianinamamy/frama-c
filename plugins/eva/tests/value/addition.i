@@ -1,7 +1,7 @@
 /* run.config*
-   STDOPT: +"-eva-warn-copy-indeterminate=-main -eva-warn-key garbled-mix -absolute-valid-range 0x2D-0x30 -no-warn-unaligned-pointer -eva-no-warn-pointer-subtraction" +"-then -absolute-valid-range 0x2D-0x31"
+   STDOPT: +"-eva-warn-copy-indeterminate=-main -eva-warn-key garbled-mix -absolute-valid-range 0x2D-0x30 -no-warn-unaligned-pointer -eva-no-warn-pointer-subtraction"
+   STDOPT: +"-eva-warn-copy-indeterminate=-main -eva-warn-key garbled-mix -absolute-valid-range 0x2D-0x31 -no-warn-unaligned-pointer -eva-no-warn-pointer-subtraction"
 */
-
 
 
 int t[10],x,y,z,zz;

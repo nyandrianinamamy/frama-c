@@ -5,7 +5,7 @@
 [eva:progress] Computing initial state
 [eva:progress] Initial state computed
 [eva:initial-state] Values of globals at initialization
-  NULL[rbits 80 to 247] ∈ [--..--]
+  &10[rbits 0 to 167] ∈ [--..--]
   undet ∈ [--..--]
 [eva:progress] 
   computing for function pointer_computation <- main.

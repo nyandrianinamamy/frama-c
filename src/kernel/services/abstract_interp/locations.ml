@@ -267,6 +267,7 @@ let is_volatile loc =
       Ast_types.C.has_qualifier "volatile" vi.vtype
       || (Ast_types.C.has_attribute_memory_block "volatile" vi.vtype
           && is_volatile_offset vi offset loc.size)
+    | Base.Absolute { volatile } -> volatile
     | _ -> false
   in
   Addresses.Bits.exists is_base_volatile loc.addr

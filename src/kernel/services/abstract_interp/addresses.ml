@@ -41,7 +41,7 @@ module Comp_exact = struct
 end
 
 
-module Bytes = struct
+module Addresses = struct
 
   module M = struct
     include Hptmap.Make_with_compositional_bool
@@ -344,13 +344,103 @@ module Bytes = struct
       | Map m1, Map m2 -> Map (widen_map m1 m2)
 end
 
+
+module Bytes = struct
+  include Addresses
+
+  let inject base ival =
+    match base with
+    | Base.Absolute { start } ->
+      inject Base.null (Ival.add_singleton_int start ival)
+    | _ -> inject base ival
+
+  let add base ival t =
+    match base with
+    | Base.Absolute { start } ->
+      let ival = Ival.add_singleton_int start ival in
+      let ival_null = find Base.null t in
+      add Base.null (Ival.join ival ival_null) t
+    | _ -> add base ival t
+
+  let inject_top_origin origin bases =
+    (* Remove absolute bases (if any). No need to replace them by the Null base
+       here, as [inject_top_origin] always adds the Null base anyway. *)
+    let is_not_absolute = function Base.Absolute _ -> false | _ -> true in
+    let bases = Base.Hptset.filter is_not_absolute bases in
+    inject_top_origin origin bases
+end
+
 module Bits = struct
-  include Bytes
+  include Addresses
+
+  (* Converts integers bound to Null base into offsets of absolute ranges. *)
+  let convert_absolute_addresses loc =
+    let ival = find Base.null loc in
+    (* Do nothing if the Null base is not present in [loc]. *)
+    if Ival.is_bottom ival then
+      loc
+    else
+      let absolute_list = Base.absolute_addresses () in
+      let f acc (absolute, base) =
+        let shift = Z.neg absolute.Base.start in
+        let offset = Ival.add_singleton_int shift ival in
+        let range = Base.valid_offset Object_pointer base in
+        let valid_offset = Ival.narrow range offset in
+        if Ival.is_bottom valid_offset then
+          acc
+        else
+          let acc = add base valid_offset acc in
+          (* Remove offsets bound to [Null] only if they all correspond to the
+             [valid_offset] now bound to [base]. Otherwise, keep [Null] offsets.
+             TODO: we could reduce the [Null] offsets to those that don't
+             correspond to [valid_offset] to avoid false alarms in rare cases. *)
+          if Ival.equal offset valid_offset
+          then add Base.null Ival.bottom acc
+          else acc
+      in
+      List.fold_left f loc absolute_list
+
+  (* Converts offsets of absolute ranges into integers bound to Null base. *)
+  let remove_absolute_addresses loc =
+    let filter_absolute base ival acc =
+      match base with
+      | Base.Absolute { start } ->
+        let acc = add base Ival.bottom acc in
+        let ival = Ival.add_singleton_int start ival in
+        let ival_null = find Base.null acc in
+        add Base.null (Ival.join ival ival_null) acc
+      | _ -> acc
+    in
+    try fold_topset_ok filter_absolute loc loc
+    with Abstract_interp.Error_Top -> loc
+
+  let inject_top_origin origin bases =
+    let bases =
+      if Base.Hptset.exists Base.is_null bases
+      then
+        let absolute_bases = Base.absolute_addresses () |> List.map snd in
+        Base.Hptset.union bases (Base.Hptset.of_list absolute_bases)
+      else bases
+    in
+    inject_top_origin origin bases
+
+  let inject base ival =
+    let addr = inject base ival in
+    if Base.is_null base then convert_absolute_addresses addr else addr
+
+  let add base ival t =
+    let addr = add base ival t in
+    if Base.is_null base then convert_absolute_addresses addr else addr
 
   let of_bytes x =
     map (Ival.scale (Bit_utils.sizeofchar())) x
+    |> convert_absolute_addresses
+
   let to_bytes x =
-    map (Ival.scale_div ~pos:true (Bit_utils.sizeofchar())) x
+    remove_absolute_addresses x
+    |> map (Ival.scale_div ~pos:true (Bit_utils.sizeofchar()))
+
   let to_bytes_under x =
-    map (Ival.scale_div_under ~pos:true (Bit_utils.sizeofchar())) x
+    remove_absolute_addresses x
+    |> map (Ival.scale_div_under ~pos:true (Bit_utils.sizeofchar()))
 end

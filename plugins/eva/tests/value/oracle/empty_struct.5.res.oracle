@@ -1,9 +1,10 @@
+[kernel] Warning: Absolute valid range 0-1 includes NULL pointer 0.
 [kernel] Parsing empty_struct.c (with preprocessing)
 [eva] Analyzing a complete application starting at main3
 [eva:progress] Computing initial state
 [eva:progress] Initial state computed
 [eva:initial-state] Values of globals at initialization
-  NULL[rbits 0 to 15] ∈ [--..--]
+  &0[rbits 0 to 15] ∈ [--..--]
   s2 ∈ {0}
   nondet ∈ [--..--]
   pgs ∈ {{ &gs }}

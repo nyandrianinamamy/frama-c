@@ -112,7 +112,9 @@ let pretty fmt = function
   | Alarm (_stmt,alarm) ->
     Printer.pp_predicate fmt (Alarms.create_predicate alarm)
   | AbsoluteMemory ->
-    Format.fprintf fmt "%s" (Kernel.AbsoluteValidRange.get ())
+    Format.fprintf fmt "%a"
+      (Pretty_utils.pp_list ~sep:"," Format.pp_print_string)
+      (Kernel.AbsoluteValidRange.get ())
   | Const e ->
     Format.fprintf fmt "%a" Cil_printer.pp_exp e
   | Error s ->

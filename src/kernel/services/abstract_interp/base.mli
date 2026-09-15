@@ -23,12 +23,25 @@ type variable_validity = private {
     variable-length array ([VLA]). *)
 type deallocation = Malloc | VLA | Alloca
 
+(* Valid range of absolute addresses (like [(int* )0x123]) specified by
+   -absolute-valid-range. *)
+type absolute_range = {
+  id: int;    (** Unique id between all bases. *)
+  start: Z.t; (** Start in bits of the range. *)
+  size: Z.t;  (** Size in bits of the range. *)
+  read_only: bool; (** Read-only memory. *)
+  volatile: bool; (** Volatile memory. *)
+}
+
 type base = private
   | Var of Cil_types.varinfo * validity
   (** Base for a standard C variable. *)
   | CLogic_Var of Cil_types.logic_var * Cil_types.typ * validity
   (** Base for a logic variable that has a C type. *)
-  | Null (** Base for an address like [(int* )0x123] *)
+  | Null
+  (** Null pointer: no valid memory. *)
+  | Absolute of absolute_range
+  (** Base for one range of valid absolute addresses. *)
   | Allocated of Cil_types.varinfo * deallocation  * validity
   (** Base for a variable dynamically allocated via malloc/calloc/realloc/alloca *)
 
@@ -144,18 +157,19 @@ val is_null : t -> bool
 val null_set: Hptset.t
 (** Set containing only the base {!null}. *)
 
-val min_valid_absolute_address: unit -> Z.t
-val max_valid_absolute_address: unit -> Z.t
-(** Bounds for option absolute-valid-range *)
+(** List of all ranges of absolute addresses specified by -absolute-valid-range,
+    with their related base. *)
+val absolute_addresses: unit -> (absolute_range * t) list
 
 
 (** {2 Type, size and alignment of a base} *)
 
 (** Type of the memory block that starts from the given base. Useful to give to
-    the function {!Bit_utils.pretty_bits}, typically. *)
+    the function {!Bit_utils.pretty_bits}, typically. Returns [None] on [Null]
+    and [Absolute] bases. *)
 val typeof : t -> Cil_types.typ option
 
-(** Size in bits of the base. *)
+(** Size in bits of the memory starting at base. *)
 val bits_sizeof : t -> Z_or_top.t
 
 (** Minimum alignment (in bytes) of the base: the address of a variable

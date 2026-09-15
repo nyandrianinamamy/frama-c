@@ -149,6 +149,7 @@ struct
       | Base.Var (vi, _) -> Format.sprintf "MVar_%s" (LogicUsage.basename vi)
       | Base.CLogic_Var (_, _, _) -> assert false (* not supposed to append. *)
       | Base.Null -> "MNull"
+      | Base.Absolute { id } -> Format.sprintf "MAbsolute_%d" id
       | Base.Allocated (vi, _dealloc, _) ->
         Format.sprintf "MAlloc_%s" (LogicUsage.basename vi)
 

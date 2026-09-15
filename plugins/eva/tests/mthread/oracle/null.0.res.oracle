@@ -13,7 +13,7 @@
   out of bounds read. assert \valid_read((char *)i);
 [eva:global-accesses] 
   Globals accessed by thread:
-    NULL[100..200]: read by <main> at null.c:27 <- main
+    &100[0..100]: read by <main> at null.c:27 <- main
     v: read by <main> at null.c:26 <- main
 [eva:debug:interferences] Debug: 
   Interferences from thread <main>
@@ -28,7 +28,7 @@
 [eva:alarm] null.c:16: Warning: out of bounds write. assert \valid((char *)i);
 [eva:global-accesses] 
   Globals accessed by thread:
-    NULL[100..200]: write by tjob0 at null.c:16 <- job0
+    &100[0..100]: write by tjob0 at null.c:16 <- job0
     v: read by tjob0 at null.c:15 <- job0
 [eva:debug:interferences] Debug: 
   Interferences from thread tjob0
@@ -40,7 +40,7 @@
   Concurrent imprecise accesses have changed: before
     \nothing
   vs.
-    NULL[100..200]
+    &100[0..100]
 [eva:thread-fixpoint] 
   Analyzing thread <main> starting at main, iteration 2 (potential shared vars
     changed).
@@ -48,12 +48,12 @@
 [eva:thread] null.c:24: Thread tjob0, fun job0, parent <main>, args {0}
 [eva:global-accesses] 
   Globals accessed by thread:
-    NULL[100..200]: read by <main> at null.c:27 <- main
+    &100[0..100]: read by <main> at null.c:27 <- main
     v: read by <main> at null.c:26 <- main
 [eva:debug:interferences] Debug: 
   Interferences from thread <main>
     concurrent writes:
-    shared bases: {NULL}
+    shared bases: {&100}
     interferences by location:
     interferences by mutexes:
 [eva:thread-fixpoint] 
@@ -63,31 +63,31 @@
   inject threads interferences at this point
 [eva:global-accesses] 
   Globals accessed by thread:
-    NULL[100..200]: write by tjob0 at null.c:16 <- job0
+    &100[0..100]: write by tjob0 at null.c:16 <- job0
     v: read by tjob0 at null.c:15 <- job0
 [eva:debug:interferences] Debug: 
   Interferences from thread tjob0
     concurrent writes:
       /*@ assert Eva: mem_access: \valid((char *)i); */
       *((char *)i) = (char)1; null.c:16 <- job0
-    shared bases: {NULL}
+    shared bases: {&100}
     interferences by location:
       null.c:16:
-        # cvalue: NULL[rbits 800 to 1607] ∈ [--..--] 
+        # cvalue: &100[rbits 0 to 807] ∈ [--..--] 
     interferences by mutexes:
       {}:
-        # cvalue: NULL[rbits 800 to 1607] ∈ [--..--]
+        # cvalue: &100[rbits 0 to 807] ∈ [--..--]
 [eva:shared-memory:values] 
-  <main> reads  NULL[rbits 800 to 1607] ∈ [--..--]  // null.c:27
+  <main> reads  &100[rbits 0 to 807] ∈ [--..--]  // null.c:27
 [eva:shared-memory:values] 
-  tjob0 writes  NULL[rbits 800 to 1607] ∈ [--..--]  // null.c:16
+  tjob0 writes  &100[rbits 0 to 807] ∈ [--..--]  // null.c:16
 [eva:shared-memory:iteration] 
   Concurrent precise var accesses have changed: before
     \nothing
   vs.
-    NULL[100..200]
+    &100[0..100]
 [eva:shared-memory:values] 
-  Write summary for tjob0 (updated): NULL[rbits 800 to 1607] ∈ [--..--]
+  Write summary for tjob0 (updated): &100[rbits 0 to 807] ∈ [--..--]
 [eva:thread-fixpoint] 
   Analyzing thread <main> starting at main, iteration 3 (shared vars values
     changed and interferences changed).
@@ -95,26 +95,26 @@
   inject threads interferences at this point
 [eva:global-accesses] 
   Globals accessed by thread:
-    NULL[100..200]: read by <main> at null.c:27 <- main
+    &100[0..100]: read by <main> at null.c:27 <- main
     v: read by <main> at null.c:26 <- main
 [eva:debug:interferences] Debug: 
   Interferences from thread <main>
     concurrent writes:
-    shared bases: {NULL}
+    shared bases: {&100}
     interferences by location:
     interferences by mutexes:
 [eva:shared-memory:values] 
-  Write summary for tjob0: NULL[rbits 800 to 1607] ∈ [--..--]
+  Write summary for tjob0: &100[rbits 0 to 807] ∈ [--..--]
 [eva:thread-fixpoint] Analysis performed in 3 iterations
-[eva:shared-memory:zone] Shared memory: NULL[100..200]
+[eva:shared-memory:zone] Shared memory: &100[0..100]
 [eva:shared-memory:mutex] 
   Mutexes protecting access to shared memory:
-    NULL[100..200]  unprotected
+    &100[0..100]  unprotected
 [eva:shared-memory:mutex-details] 
   Detailed shared memory protections:
-    NULL[100..200]: Read by <main>, Write by tjob0: unprotected
+    &100[0..100]: Read by <main>, Write by tjob0: unprotected
 [eva:data-races] 
   Possible read/write data races:
-    NULL[100..200]:
+    &100[0..100]:
       read by <main> at null.c:27, unprotected
       write by tjob0 at null.c:16, unprotected

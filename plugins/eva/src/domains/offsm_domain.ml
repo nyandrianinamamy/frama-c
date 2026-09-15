@@ -23,7 +23,8 @@ module Default_offsetmap = struct
 
   let default_offsetmap b =
     match b with
-    | Base.Var _ | Base.CLogic_Var _ | Base.Null | Base.Allocated _ ->
+    | Base.Var _ | Base.CLogic_Var _ | Base.Allocated _
+    | Base.Null | Base.Absolute _ ->
       let validity = Base.validity b in
       match V_Offsetmap.size_from_validity validity with
       | `Bottom -> `Bottom

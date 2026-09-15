@@ -3,7 +3,7 @@
 [eva:progress] Computing initial state
 [eva:progress] Initial state computed
 [eva:initial-state] Values of globals at initialization
-  NULL[rbits 2147483648 to 515396075527] ∈ [--..--]
+  &268435456[rbits 0 to 513248591879] ∈ [--..--]
 [eva:alarm] asm_initialized.i:9: Warning: 
   assertion 'inline_stmt_contract' got status unknown.
 [eva:alarm] asm_initialized.i:10: Warning: 
@@ -14,18 +14,18 @@
 [eva:progress] Done for function main
 [eva] ====== VALUES COMPUTED ======
 [eva:final-states] Values at end of function main:
-  NULL[rbits 2147483648 to 515396075527] ∈ [--..--]
+  &268435456[rbits 0 to 513248591879] ∈ [--..--]
   x ∈ {2}
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
   These dependencies hold at termination for the executions that terminate:
 [from] Function main:
-  NULL[268435456..4294967295] FROM \nothing (and SELF)
+  &268435456[0..4026531839] FROM \nothing (and SELF)
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-    NULL[268435456..4294967295]; x
+    &268435456[0..4026531839]; x
 [inout] Inputs for function main:
     \nothing
 [report] Computing properties status...

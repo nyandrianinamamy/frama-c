@@ -1,0 +1,408 @@
+[kernel] Expanding arguments from absolute_addresses_options.txt
+[kernel] Parsing absolute_addresses.c (with preprocessing)
+[eva] Analyzing a complete application starting at main
+[eva:progress] Computing initial state
+[eva:progress] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  &512[rbits 0 to 7] ∈ [--..--]
+  &1024[rbits 0 to 31] ∈ [--..--]
+  &1028[rbits 0 to 31] ∈ [--..--]
+  &1032[rbits 0 to 31] ∈ [--..--]
+  &1036[rbits 0 to 31] ∈ [--..--]
+  &1534[rbits 0 to 31] ∈ [--..--]
+  &1538[rbits 0 to 31] ∈ [--..--]
+  &1542[rbits 0 to 31] ∈ [--..--]
+  &1546[rbits 0 to 31] ∈ [--..--]
+  &2048[rbits 0 to 127] ∈ [--..--]
+  &3072[rbits 0 to 31] ∈ [--..--]
+  &4096[rbits 0 to 31] ∈ [--..--]
+  &5120[rbits 0 to 31] ∈ [--..--]
+  nondet ∈ [--..--]
+  g ∈ {0}
+[eva:progress] 
+  computing for function write_global_zero <- main.
+  Called from absolute_addresses.c:202.
+[eva:alarm] absolute_addresses.c:30: Warning: 
+  out of bounds write. assert \valid(tmp);
+                       (tmp from p++)
+[eva:alarm] absolute_addresses.c:37: Warning: 
+  out of bounds write. assert \valid(tmp_1);
+                       (tmp_1 from r++)
+[eva:alarm] absolute_addresses.c:41: Warning: 
+  out of bounds write. assert \valid((int *)3072);
+[eva] absolute_addresses.c:41: Warning: 
+  all target addresses were invalid. This path is assumed to be dead.
+[eva:alarm] absolute_addresses.c:42: Warning: 
+  out of bounds write. assert \valid((int volatile *)5120);
+[eva] absolute_addresses.c:42: Warning: 
+  all target addresses were invalid. This path is assumed to be dead.
+[eva:progress] Recording results for write_global_zero
+[eva:progress] Done for function write_global_zero
+[eva:progress] 
+  computing for function test_valid_pointer_reduction <- main.
+  Called from absolute_addresses.c:203.
+[eva:show] absolute_addresses.c:55: Frama_C_show_each_char_ptr: [0..4294967295]
+[eva:alarm] absolute_addresses.c:56: Warning: 
+  out of bounds read. assert \valid_read(char_ptr);
+[eva:show] absolute_addresses.c:58: Frama_C_show_each_read_char_ptr: [512..5123]
+[eva:alarm] absolute_addresses.c:59: Warning: 
+  out of bounds write. assert \valid(char_ptr);
+[eva:show] absolute_addresses.c:61: 
+  Frama_C_show_each_written_char_ptr: [512..4099]
+[eva:alarm] absolute_addresses.c:63: Warning: 
+  out of bounds write. assert \valid(char_ptr);
+[eva:alarm] absolute_addresses.c:65: Warning: 
+  unaligned pointer creation.
+  assert \aligned((void *)nondet,alignof(int volatile));
+[eva:show] absolute_addresses.c:67: 
+  Frama_C_show_each_int_ptr: [0..4294967292],0%4
+[eva:alarm] absolute_addresses.c:68: Warning: 
+  out of bounds read. assert \valid_read(int_ptr);
+[eva:show] absolute_addresses.c:70: 
+  Frama_C_show_each_read_int_ptr: [1024..5120],0%4
+[eva:alarm] absolute_addresses.c:71: Warning: 
+  out of bounds write. assert \valid(int_ptr);
+[eva:show] absolute_addresses.c:73: 
+  Frama_C_show_each_write_int_ptr: [1024..4096],0%4
+[eva:alarm] absolute_addresses.c:75: Warning: 
+  out of bounds write. assert \valid(int_ptr);
+[eva:alarm] absolute_addresses.c:77: Warning: 
+  unaligned pointer creation.
+  assert \aligned((void *)((unsigned int)(nondet % 1500)),alignof(int));
+[eva:alarm] absolute_addresses.c:78: Warning: 
+  out of bounds read. assert \valid_read(ptr);
+[eva:show] absolute_addresses.c:81: 
+  Frama_C_show_each_precise: {1024; 1028; 1032; 1036}
+[eva:alarm] absolute_addresses.c:82: Warning: 
+  out of bounds write. assert \valid(ptr);
+[eva:progress] Recording results for test_valid_pointer_reduction
+[eva:progress] Done for function test_valid_pointer_reduction
+[eva:progress] 
+  computing for function test_pointer_reduction <- main.
+  Called from absolute_addresses.c:204.
+[eva:alarm] absolute_addresses.c:91: Warning: 
+  out of bounds write. assert \valid(tmp);
+                       (tmp from p++)
+[eva:show] absolute_addresses.c:96: 
+  Frama_C_show_each:
+  {1024; 1028; 1032; 1036; 2048; 2052; 2056; 2060},
+  {0; 1; 2; 3; 10; 11; 12; 13}
+[eva:alarm] absolute_addresses.c:98: Warning: 
+  out of bounds read. assert \valid_read(ptr);
+[eva:show] absolute_addresses.c:98: Frama_C_show_each_2: {1032}, {2}
+[eva:alarm] absolute_addresses.c:99: Warning: 
+  out of bounds read. assert \valid_read(ptr);
+[eva:show] absolute_addresses.c:99: 
+  Frama_C_show_each_gt_10: {2052; 2056; 2060}, {11; 12; 13}
+[eva:progress] Recording results for test_pointer_reduction
+[eva:progress] Done for function test_pointer_reduction
+[eva:progress] 
+  computing for function write_global_zero <- main.
+  Called from absolute_addresses.c:205.
+[eva:progress] Recording results for write_global_zero
+[eva:progress] Done for function write_global_zero
+[eva:progress] 
+  computing for function test_out_of_bound_access <- main.
+  Called from absolute_addresses.c:206.
+[eva:alarm] absolute_addresses.c:108: Warning: 
+  out of bounds read. assert \valid_read(sptr);
+[eva:alarm] absolute_addresses.c:112: Warning: 
+  out of bounds write. assert \valid(sptr);
+[eva:show] absolute_addresses.c:113: Frama_C_show_each_c: {{ &s }}
+[eva:alarm] absolute_addresses.c:119: Warning: 
+  out of bounds write. assert \valid(ptr);
+[eva] absolute_addresses.c:119: Warning: 
+  all target addresses were invalid. This path is assumed to be dead.
+[eva:show] absolute_addresses.c:123: Frama_C_show_each_0_3: {0; 1; 2; 3}
+[eva:alarm] absolute_addresses.c:128: Warning: 
+  out of bounds write. assert \valid(ptr);
+[eva] absolute_addresses.c:128: Warning: 
+  all target addresses were invalid. This path is assumed to be dead.
+[eva:show] absolute_addresses.c:132: Frama_C_show_each_0_3: {0; 1; 2; 3}
+[eva:alarm] absolute_addresses.c:137: Warning: 
+  out of bounds read. assert \valid_read(ptr);
+[eva:progress] Recording results for test_out_of_bound_access
+[eva:progress] Done for function test_out_of_bound_access
+[eva:progress] 
+  computing for function write_global_zero <- main.
+  Called from absolute_addresses.c:207.
+[eva:progress] Recording results for write_global_zero
+[eva:progress] Done for function write_global_zero
+[eva:progress] 
+  computing for function test_const <- main.
+  Called from absolute_addresses.c:208.
+[eva:show] absolute_addresses.c:146: 
+  Frama_C_show_each_unknown: [-2147483648..2147483647]
+[eva:show] absolute_addresses.c:148: Frama_C_show_each_42: {42}
+[eva:alarm] absolute_addresses.c:151: Warning: 
+  out of bounds write. assert \valid(ptr);
+[eva] absolute_addresses.c:151: Warning: 
+  all target addresses were invalid. This path is assumed to be dead.
+[eva:alarm] absolute_addresses.c:158: Warning: 
+  out of bounds write. assert \valid(ptr);
+[eva:show] absolute_addresses.c:161: 
+  Frama_C_show_each: {{ NULL + {1024; 2048} ; &g }}, {0; 42}
+[eva:progress] Recording results for test_const
+[eva:progress] Done for function test_const
+[eva:progress] 
+  computing for function test_volatile <- main.
+  Called from absolute_addresses.c:209.
+[eva:volatile] absolute_addresses.c:181: Warning: 
+  Lvalue *iptr with non-volatile-qualified type may refer to an object defined with a volatile-qualified type.
+[eva:volatile] absolute_addresses.c:185: Warning: 
+  Lvalue *iptr with non-volatile-qualified type may refer to an object defined with a volatile-qualified type.
+[eva:show] absolute_addresses.c:190: 
+  Frama_C_show_each_unknown: [-2147483648..2147483647]
+[eva:progress] 
+  computing for function check_volatile_reduction <- test_volatile <- main.
+  Called from absolute_addresses.c:192.
+[eva:show] absolute_addresses.c:168: 
+  Frama_C_show_each_unknown: [-2147483648..2147483647]
+[eva:show] absolute_addresses.c:171: 
+  Frama_C_show_each_unknown: [-2147483648..2147483647]
+[eva:progress] Recording results for check_volatile_reduction
+[eva:progress] Done for function check_volatile_reduction
+[eva:progress] 
+  computing for function check_volatile_reduction <- test_volatile <- main.
+  Called from absolute_addresses.c:193.
+[eva:show] absolute_addresses.c:168: 
+  Frama_C_show_each_unknown: [-2147483648..2147483647]
+[eva:show] absolute_addresses.c:171: 
+  Frama_C_show_each_unknown: [-2147483648..2147483647]
+[eva:progress] Recording results for check_volatile_reduction
+[eva:progress] Done for function check_volatile_reduction
+[eva:progress] 
+  computing for function check_volatile_reduction <- test_volatile <- main.
+  Called from absolute_addresses.c:196.
+[eva:alarm] absolute_addresses.c:167: Warning: 
+  out of bounds read. assert \valid_read(ptr);
+[eva:show] absolute_addresses.c:168: 
+  Frama_C_show_each_unknown: [-2147483648..2147483647]
+[eva:alarm] absolute_addresses.c:170: Warning: 
+  out of bounds read. assert \valid_read(ptr);
+[eva:show] absolute_addresses.c:171: 
+  Frama_C_show_each_unknown: [-2147483648..2147483647]
+[eva:progress] Recording results for check_volatile_reduction
+[eva:progress] Done for function check_volatile_reduction
+[eva:progress] Recording results for test_volatile
+[eva:progress] Done for function test_volatile
+[eva:progress] Recording results for main
+[eva:progress] Done for function main
+[eva] absolute_addresses.c:41: 
+  assertion 'Eva,mem_access' got final status invalid.
+[eva] absolute_addresses.c:42: 
+  assertion 'Eva,mem_access' got final status invalid.
+[eva] absolute_addresses.c:108: 
+  assertion 'Eva,mem_access' got final status invalid.
+[eva] absolute_addresses.c:137: 
+  assertion 'Eva,mem_access' got final status invalid.
+[eva] absolute_addresses.c:151: 
+  assertion 'Eva,mem_access' got final status invalid.
+[scope:rm_asserts] removing 4 assertion(s)
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function check_volatile_reduction:
+  
+[eva:final-states] Values at end of function test_const:
+  &1024[rbits 0 to 31] ∈ {0; 42}
+  &2048[rbits 0 to 31] ∈ {0; 42}
+       [rbits 32 to 127] ∈ {0}
+  g ∈ {0; 42}
+  ptr ∈ {{ NULL + {1024; 2048} ; &g }}
+  res ∈ [--..--]
+[eva:final-states] Values at end of function test_out_of_bound_access:
+  &1024[rbits 0 to 31] ∈ {0}
+  &1028[rbits 0 to 31] ∈ {0; 1}
+  &1032[rbits 0 to 31] ∈ {0; 2}
+  &1036[rbits 0 to 31] ∈ {0; 3}
+  &2048[rbits 0 to 31] ∈ {0}
+       [rbits 32 to 63] ∈ {0; 1}
+       [rbits 64 to 95] ∈ {0; 2}
+       [rbits 96 to 127] ∈ {0; 3}
+  s ∈ {0}
+  sptr ∈ {{ &s }}
+  ptr ∈ {1536}
+  i ∈ {0; 1; 2; 3}
+[eva:final-states] Values at end of function test_pointer_reduction:
+  &1024[rbits 0 to 31] ∈ {0}
+  &1028[rbits 0 to 31] ∈ {1}
+  &1032[rbits 0 to 31] ∈ {2}
+  &1036[rbits 0 to 31] ∈ {3}
+  &2048[rbits 0 to 31] ∈ {10}
+       [rbits 32 to 63] ∈ {11}
+       [rbits 64 to 95] ∈ {12}
+       [rbits 96 to 127] ∈ {13}
+  p ∈ {1040}
+  q ∈ {2064}
+  ptr ∈ {1024; 1028; 1032; 1036; 2048; 2052; 2056; 2060}
+[eva:final-states] Values at end of function test_valid_pointer_reduction:
+  &512[rbits 0 to 7] ∈ [--..--]
+  &1024[rbits 0 to 31] ∈ [--..--]
+  &1028[rbits 0 to 31] ∈ [--..--]
+  &1032[rbits 0 to 31] ∈ [--..--]
+  &1036[rbits 0 to 31] ∈ [--..--]
+  &1534[rbits 0 to 31] ∈ [--..--]
+  &1538[rbits 0 to 31] ∈ [--..--]
+  &1542[rbits 0 to 31] ∈ [--..--]
+  &1546[rbits 0 to 31] ∈ [--..--]
+  &2048[rbits 0 to 127] ∈ [--..--]
+  &4096[rbits 0 to 31] ∈ [--..--]
+  char_ptr ∈ [512..4099]
+  c ∈ [--..--]
+  int_ptr ∈ [1024..4096],0%4
+  r ∈ [--..--]
+  ptr ∈ {1024; 1028; 1032; 1036}
+[eva:final-states] Values at end of function test_volatile:
+  &4096[rbits 0 to 31] ∈ [--..--]
+  i ∈ [--..--] or UNINITIALIZED
+  iptr ∈ {{ NULL + {4096} ; &i }}
+  ptr ∈ {4096; 5120}
+[eva:final-states] Values at end of function write_global_zero:
+  &512[rbits 0 to 7] ∈ {0}
+  &1024[rbits 0 to 31] ∈ {0}
+  &1028[rbits 0 to 31] ∈ {0}
+  &1032[rbits 0 to 31] ∈ {0}
+  &1036[rbits 0 to 31] ∈ {0}
+  &1534[rbits 0 to 31] ∈ {0}
+  &1538[rbits 0 to 31] ∈ {0}
+  &1542[rbits 0 to 31] ∈ {0}
+  &1546[rbits 0 to 31] ∈ {0}
+  &2048[rbits 0 to 127] ∈ {0}
+  &4096[rbits 0 to 31] ∈ [--..--]
+  g ∈ {0}
+  p ∈ {1040}
+  q ∈ {2064}
+  r ∈ {1550}
+[eva:final-states] Values at end of function main:
+  &512[rbits 0 to 7] ∈ {0}
+  &1024[rbits 0 to 31] ∈ {0; 42}
+  &1028[rbits 0 to 31] ∈ {0}
+  &1032[rbits 0 to 31] ∈ {0}
+  &1036[rbits 0 to 31] ∈ {0}
+  &1534[rbits 0 to 31] ∈ {0}
+  &1538[rbits 0 to 31] ∈ {0}
+  &1542[rbits 0 to 31] ∈ {0}
+  &1546[rbits 0 to 31] ∈ {0}
+  &2048[rbits 0 to 31] ∈ {0; 42}
+       [rbits 32 to 127] ∈ {0}
+  &4096[rbits 0 to 31] ∈ [--..--]
+  g ∈ {0; 42}
+[from] Computing for function check_volatile_reduction
+[from] Done for function check_volatile_reduction
+[from] Computing for function test_const
+[from] Done for function test_const
+[from] Computing for function test_out_of_bound_access
+[from] Done for function test_out_of_bound_access
+[from] Computing for function test_pointer_reduction
+[from] Done for function test_pointer_reduction
+[from] Computing for function test_valid_pointer_reduction
+[from] Done for function test_valid_pointer_reduction
+[from] Computing for function test_volatile
+[from] Done for function test_volatile
+[from] Computing for function write_global_zero
+[from] Done for function write_global_zero
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function check_volatile_reduction:
+  NO EFFECTS
+[from] Function test_const:
+  &1024[0..3] FROM nondet (and SELF)
+  &2048[0..3] FROM nondet (and SELF)
+  g FROM nondet (and SELF)
+[from] Function test_out_of_bound_access:
+  &1024[0..3] FROM nondet (and SELF)
+  &1028[0..3] FROM nondet (and SELF)
+  &1032[0..3] FROM nondet (and SELF)
+  &1036[0..3] FROM nondet (and SELF)
+  &2048[0..15] FROM nondet (and SELF)
+[from] Function test_pointer_reduction:
+  &1024[0..3] FROM \nothing (and SELF)
+  &1028[0..3] FROM \nothing (and SELF)
+  &1032[0..3] FROM \nothing (and SELF)
+  &1036[0..3] FROM \nothing (and SELF)
+  &2048[0..15] FROM \nothing (and SELF)
+[from] Function test_valid_pointer_reduction:
+  &512[0] FROM nondet (and SELF)
+  &1024[0..3] FROM nondet (and SELF)
+  &1028[0..3] FROM nondet (and SELF)
+  &1032[0..3] FROM nondet (and SELF)
+  &1036[0..3] FROM nondet (and SELF)
+  &1534[0..3] FROM nondet (and SELF)
+  &1538[0..3] FROM nondet (and SELF)
+  &1542[0..3] FROM nondet (and SELF)
+  &1546[0..3] FROM nondet (and SELF)
+  &2048[0..15] FROM nondet (and SELF)
+  &4096[0..3] FROM nondet (and SELF)
+[from] Function test_volatile:
+  &4096[0..3] FROM \nothing
+[from] Function write_global_zero:
+  &512[0] FROM \nothing
+  &1024[0..3] FROM \nothing (and SELF)
+  &1028[0..3] FROM \nothing (and SELF)
+  &1032[0..3] FROM \nothing (and SELF)
+  &1036[0..3] FROM \nothing (and SELF)
+  &1534[0..3] FROM \nothing (and SELF)
+  &1538[0..3] FROM \nothing (and SELF)
+  &1542[0..3] FROM \nothing (and SELF)
+  &1546[0..3] FROM \nothing (and SELF)
+  &2048[0..15] FROM \nothing (and SELF)
+  &4096[0..3] FROM \nothing
+  g FROM \nothing
+[from] Function main:
+  &512[0] FROM \nothing
+  &1024[0..3] FROM nondet (and SELF)
+  &1028[0..3] FROM nondet (and SELF)
+  &1032[0..3] FROM nondet (and SELF)
+  &1036[0..3] FROM nondet (and SELF)
+  &1534[0..3] FROM nondet (and SELF)
+  &1538[0..3] FROM nondet (and SELF)
+  &1542[0..3] FROM nondet (and SELF)
+  &1546[0..3] FROM nondet (and SELF)
+  &2048[0..15] FROM nondet (and SELF)
+  &4096[0..3] FROM \nothing
+  g FROM nondet
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function check_volatile_reduction:
+    \nothing
+[inout] Inputs for function check_volatile_reduction:
+    &4096[0..3]; &5120[0..3]
+[inout] Out (internal) for function test_const:
+    &1024[0..3]; &2048[0..3]; g; ptr; res
+[inout] Inputs for function test_const:
+    &1024[0..3]; &2048[0..3]; &3072[0..3]; nondet; g
+[inout] Out (internal) for function test_out_of_bound_access:
+    &1024[0..3]; &1028[0..3]; &1032[0..3]; &1036[0..3]; &2048[0..15]; s; 
+    sptr; c; ptr; i; i_0
+[inout] Inputs for function test_out_of_bound_access:
+    nondet
+[inout] Out (internal) for function test_pointer_reduction:
+    &1024[0..3]; &1028[0..3]; &1032[0..3]; &1036[0..3]; &2048[0..15]; p; 
+    q; i; tmp; tmp_0; ptr; tmp_1
+[inout] Inputs for function test_pointer_reduction:
+    &1024[0..3]; &1028[0..3]; &1032[0..3]; &1036[0..3]; &2048[0..15]; nondet
+[inout] Out (internal) for function test_valid_pointer_reduction:
+    &512[0]; &1024[0..3]; &1028[0..3]; &1032[0..3]; &1036[0..3]; &1534[0..3];
+    &1538[0..3]; &1542[0..3]; &1546[0..3]; &2048[0..15]; &4096[0..3]; char_ptr;
+    c; int_ptr; r; ptr
+[inout] Inputs for function test_valid_pointer_reduction:
+    &512[0]; &1024[0..3]; &1028[0..3]; &1032[0..3]; &1036[0..3]; &1534[0..3];
+    &1538[0..3]; &1542[0..3]; &1546[0..3]; &2048[0..15]; &3072[0..3];
+    &4096[0..3]; &5120[0..3]; nondet
+[inout] Out (internal) for function test_volatile:
+    &4096[0..3]; i; iptr; i_0; ptr
+[inout] Inputs for function test_volatile:
+    &4096[0..3]; &5120[0..3]; nondet
+[inout] Out (internal) for function write_global_zero:
+    &512[0]; &1024[0..3]; &1028[0..3]; &1032[0..3]; &1036[0..3]; &1534[0..3];
+    &1538[0..3]; &1542[0..3]; &1546[0..3]; &2048[0..15]; &4096[0..3]; g; 
+    p; q; i; tmp; tmp_0; r; i_0; tmp_1
+[inout] Inputs for function write_global_zero:
+    nondet
+[inout] Out (internal) for function main:
+    &512[0]; &1024[0..3]; &1028[0..3]; &1032[0..3]; &1036[0..3]; &1534[0..3];
+    &1538[0..3]; &1542[0..3]; &1546[0..3]; &2048[0..15]; &4096[0..3]; g
+[inout] Inputs for function main:
+    &512[0]; &1024[0..3]; &1028[0..3]; &1032[0..3]; &1036[0..3]; &1534[0..3];
+    &1538[0..3]; &1542[0..3]; &1546[0..3]; &2048[0..15]; &3072[0..3];
+    &4096[0..3]; &5120[0..3]; nondet; g

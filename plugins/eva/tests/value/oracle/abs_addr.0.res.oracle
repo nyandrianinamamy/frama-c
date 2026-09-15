@@ -3,7 +3,7 @@
 [eva:progress] Computing initial state
 [eva:progress] Initial state computed
 [eva:initial-state] Values of globals at initialization
-  NULL[rbits 1048576 to 2097151] ∈ [--..--]
+  &131072[rbits 0 to 1048575] ∈ [--..--]
   AutoTest[0..999] ∈ {0}
 [eva:progress] 
   computing for function TstRomUcmm <- main.
@@ -34,16 +34,16 @@
 [from] ====== DEPENDENCIES COMPUTED ======
   These dependencies hold at termination for the executions that terminate:
 [from] Function TstRomUcmm:
-  AutoTest[73] FROM NULL[131072..262143] (and SELF)
-  \result FROM NULL[131072..262143]; AutoTest[73]
+  AutoTest[73] FROM &131072[0..131071] (and SELF)
+  \result FROM &131072[0..131071]; AutoTest[73]
 [from] Function main:
-  AutoTest[73] FROM NULL[131072..262143] (and SELF)
+  AutoTest[73] FROM &131072[0..131071] (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function TstRomUcmm:
     AutoTest[73]; rom; chkrom; ptrom; __retres
 [inout] Inputs for function TstRomUcmm:
-    NULL[131072..262143]; AutoTest[73]
+    &131072[0..131071]; AutoTest[73]
 [inout] Out (internal) for function main:
     AutoTest[73]
 [inout] Inputs for function main:
-    NULL[131072..262143]; AutoTest[73]
+    &131072[0..131071]; AutoTest[73]

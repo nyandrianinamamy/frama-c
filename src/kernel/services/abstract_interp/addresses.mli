@@ -6,14 +6,33 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Represent a set of addresses by associating bases with offsets. *)
+(** Represent a set of addresses by associating bases with integer offsets. *)
+
+(** Invariants of both exported modules:
+
+    {!Bytes} is intended to represent sets of pointer values:
+    - possible offsets of each base are expressed in bytes.
+    - absolute addresses are represented as integers bound to {!Base.Null},
+      allowing the same representation to be used for both integer values
+      and absolute addresses.
+
+    {!Bits} is intended to represent sets of lvalue addresses:
+    - possible offsets of each base are expressed in bits, allowing it to
+      represent the address of a bitfield.
+    - valid absolute addresses are represented as offsets of Absolute bases,
+      so that reads from and writes to these bases are interpreted correctly.
+      Absolute addresses outside all valid absolute ranges are represented as
+      integers bound to {!Base.Null}.
+
+    Conversion functions {!Bits.of_bytes} and {!Bits.to_bytes} convert integer
+    offsets and absolute addresses to enforce these invariants. *)
 
 (** Association between bases and offsets in byte.
+    Absolute addresses are represented as integers bound to {!Base.Null}.
+
     @see <https://frama-c.com/download/frama-c-plugin-development-guide.pdf>
     @before 33.0-Arsenic was Locations.Location_Bytes *)
 module Bytes : sig
-  (* TODOBY: write an mli for MapLattice, and name the result. Use it there,
-     and simplify *)
 
   module M : sig
     type key = Base.t
@@ -62,7 +81,7 @@ module Bytes : sig
 
   val add : Base.t -> Ival.t ->  t ->  t
   (** [add b i addr] binds [b] to [i] in [addr] when [i] is not {!Ival.bottom},
-      and returns {!bottom} otherwise. *)
+      and removes [b] from [addr] otherwise. *)
 
   val replace_base: Base.substitution -> t -> bool * t
   (** [replace_base subst addr] changes addresses [addr] by substituting the
@@ -212,6 +231,10 @@ module Bytes : sig
 end
 
 (** Association between bases and offsets in bits.
+    Valid absolute addresses are represented as offsets bound to Absolute bases.
+    Absolute addresses outside all valid absolute ranges are represented as
+    integers bound to {!Base.Null}.
+
     @see <https://frama-c.com/download/frama-c-plugin-development-guide.pdf>
     @before 33.0-Arsenic was Locations.Location_Bits *)
 module Bits : sig

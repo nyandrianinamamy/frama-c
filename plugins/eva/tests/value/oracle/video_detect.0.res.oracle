@@ -3,7 +3,7 @@
 [eva:progress] Computing initial state
 [eva:progress] Initial state computed
 [eva:initial-state] Values of globals at initialization
-  NULL[rbits 256 to 287] ∈ [--..--]
+  &32[rbits 0 to 31] ∈ [--..--]
   G ∈ {0}
 [eva:progress] 
   computing for function detect_video <- main.
@@ -14,13 +14,13 @@
 [eva:progress] Done for function main
 [eva] ====== VALUES COMPUTED ======
 [eva:final-states] Values at end of function detect_video:
-  NULL[rbits 256 to 287] ∈ [--..--]
+  &32[rbits 0 to 31] ∈ [--..--]
   p ∈ {32}
   saved1 ∈ [--..--]
   saved2 ∈ [--..--]
   video_found ∈ {0}
 [eva:final-states] Values at end of function main:
-  NULL[rbits 256 to 287] ∈ [--..--]
+  &32[rbits 0 to 31] ∈ [--..--]
   ADDR ∈ {32}
 [from] Computing for function detect_video
 [from] Done for function detect_video
@@ -29,19 +29,19 @@
 [from] ====== DEPENDENCIES COMPUTED ======
   These dependencies hold at termination for the executions that terminate:
 [from] Function detect_video:
-  NULL[32..33] FROM NULL[32..33]; video_base
-      [34..35] FROM NULL[34..35]; video_base
+  &32[0..1] FROM &32[0..1]; video_base
+     [2..3] FROM &32[2..3]; video_base
   \result FROM video_base
 [from] Function main:
-  NULL[32..33] FROM NULL[32..33]
-      [34..35] FROM NULL[34..35]
+  &32[0..1] FROM &32[0..1]
+     [2..3] FROM &32[2..3]
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function detect_video:
-    NULL[32..35]; p; saved1; saved2; video_found
+    &32[0..3]; p; saved1; saved2; video_found
 [inout] Inputs for function detect_video:
-    NULL[32..35]
+    &32[0..3]
 [inout] Out (internal) for function main:
-    NULL[32..35]; ADDR; tmp
+    &32[0..3]; ADDR; tmp
 [inout] Inputs for function main:
-    NULL[32..35]
+    &32[0..3]

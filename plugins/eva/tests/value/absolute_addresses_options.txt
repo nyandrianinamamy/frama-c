@@ -1,0 +1,12 @@
+# range of only 1 byte
+-absolute-valid-range 512-512
+# 4 consecutive ranges of 4 bytes each
+-absolute-valid-range 1024-1027,1028-1031,1032-1035,1036-1039
+# 4 consecutive ranges of 4 bytes each, unaligned
+-absolute-valid-range 1534-1537,1538-1541,1542-1545,1546-1549
+# 1 range of 4 bytes
+-absolute-valid-range 2048-2063
+# 3 separate ranges of 4 bytes each with various qualifiers
+-absolute-valid-range 3072-3075:const
+-absolute-valid-range 4096-4099:volatile
+-absolute-valid-range "5120-5123:const volatile"

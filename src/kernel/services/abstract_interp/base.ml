@@ -90,16 +90,28 @@ module Validity = Datatype.Make
 
 type deallocation = Malloc | VLA | Alloca
 
+(* Valid range of absolute addresses (like [(int* )0x123]) specified by
+   -absolute-valid-range. *)
+type absolute_range = {
+  id: int;    (* Unique id between all bases. *)
+  start: Z.t; (* Start in bits of the range. *)
+  size: Z.t;  (* Size in bits of the range. *)
+  read_only: bool; (* Read-only memory. *)
+  volatile: bool; (* Volatile memory. *)
+}
+
 type base =
   | Var of varinfo * validity
   | CLogic_Var of logic_var * typ * validity
-  | Null (** base for addresses like [(int* )0x123] *)
+  | Null
+  | Absolute of absolute_range
   | Allocated of varinfo * deallocation * validity
 
 let id = function
   | Var (vi,_) | Allocated (vi,_,_) -> vi.vid
   | CLogic_Var (lvi, _, _) -> lvi.lv_id
   | Null -> 0
+  | Absolute { id } -> id
 
 let hash = id
 
@@ -111,6 +123,9 @@ let is_string_literal = function
   | Var(v, _) -> Ast_info.is_string_literal v
   | _ -> false
 
+let pretty_absolute fmt abs =
+  Format.fprintf fmt "&%a" Z.pretty (Z.div abs.start 8z)
+
 let pretty fmt t =
   match t with
   | Var(v,_) when Ast_info.is_string_literal v ->
@@ -118,13 +133,14 @@ let pretty fmt t =
   | Var (t,_) | Allocated (t,_,_) -> Printer.pp_varinfo fmt t
   | CLogic_Var (lvi, _, _) -> Printer.pp_logic_var fmt lvi
   | Null -> Format.pp_print_string fmt "NULL"
+  | Absolute abs -> pretty_absolute fmt abs
 
 let pretty_addr fmt t =
   (match t with
    | Var (v,_) when Ast_info.is_string_literal v -> ()
    | Var _ | CLogic_Var _ | Allocated _ ->
      Format.pp_print_string fmt "&"
-   | Null -> ()
+   | Null | Absolute _ -> ()
   );
   pretty fmt t
 
@@ -133,12 +149,13 @@ let compare v1 v2 = Datatype.Int.compare (id v1) (id v2)
 let typeof v =
   match v with
   | CLogic_Var (_, ty, _) -> Some ty
-  | Null -> None
+  | Null | Absolute _ -> None
   | Var (v,_) | Allocated(v,_,_) -> Some (Ast_types.C.unroll v.vtype)
 
 let bits_sizeof v =
   match v with
   | Null -> Z_or_top.top
+  | Absolute { size } -> Z_or_top.inject size
   | Var (v,_) | Allocated (v,_,_) ->
     Bit_utils.sizeof_vid v
   | CLogic_Var (_, ty, _) -> Bit_utils.sizeof ty
@@ -147,6 +164,7 @@ let alignof base =
   try
     match base with
     | Null -> 0 (* Address of null is 0. *)
+    | Absolute { start } -> Z.to_int_opt start |> Option.value ~default:1
     | CLogic_Var (_, typ, _) -> Cil.bytesAlignOf typ
     | Var (vi, _) | Allocated (vi, _, _) -> Cil.bytesAlignOfVarinfo vi
   with Cil.SizeOfError (msg, _) ->
@@ -155,45 +173,95 @@ let alignof base =
       "Unknown alignment of base %a: %s" pretty base msg;
     1
 
-let dep_absolute = [Kernel.AbsoluteValidRange.self]
 
-module MinValidAbsoluteAddress =
-  State_builder.Ref
-    (Z)
+module Absolute =
+  Datatype.Make_with_collections
     (struct
-      let name = "MinValidAbsoluteAddress"
-      let dependencies = dep_absolute
-      let default () = Z.zero
+      include Datatype.Serializable_undefined
+      type t = absolute_range
+      let name = "Base.Absolute"
+      let reprs = [{ id = 0; start = Z.zero; size = Z.zero;
+                     read_only = false; volatile = false }]
+      let equal a1 a2 = Stdlib.Int.equal a1.id a2.id
+      let compare a1 a2 = Stdlib.Int.compare a1.id a2.id
+      let pretty = pretty_absolute
+      let hash a = a.id
     end)
 
-module MaxValidAbsoluteAddress =
-  State_builder.Ref
-    (Z)
+module AbsoluteList =
+  State_builder.List_ref
+    (Absolute)
     (struct
-      let name = "MaxValidAbsoluteAddress"
-      let dependencies = dep_absolute
-      let default () = Z.minus_one
+      let name = "Base.AbsoluteList"
+      let dependencies = [ Kernel.AbsoluteValidRange.self ]
     end)
+
+type qualifiers = { read_only: bool; volatile:bool }
+let default_qualifiers = { read_only = false; volatile = false }
+let join_qualifiers q1 q2 =
+  { read_only = q1.read_only || q2.read_only;
+    volatile = q1.volatile || q2.volatile }
+
+let create_absolute_base (_str, min, max, qualifiers) =
+  let mul_char_bit = Z.mul 8z in
+  let start = mul_char_bit min in
+  let size = mul_char_bit (Z.add (Z.sub max min) 1z) in
+  let id = Cil_const.new_raw_vid () in
+  let { read_only; volatile } = qualifiers in
+  { id; start; size; read_only; volatile }
+
+let parse_qualifiers = function
+  | "" -> default_qualifiers
+  | "const" -> { default_qualifiers with read_only = true }
+  | "volatile" -> { default_qualifiers with volatile = true }
+  | str -> Kernel.abort "Invalid -absolute-valid-range qualifier %S." str
+
+let parse_absolute_ranges list =
+  let parse str =
+    Scanf.sscanf str "%s@-%s@:%s@ %s"
+      (fun min max q1 q2 ->
+         str, Z.of_string min, Z.of_string max,
+         join_qualifiers (parse_qualifiers q1) (parse_qualifiers q2))
+  in
+  try List.map parse list;
+  with
+  | End_of_file | Scanf.Scan_failure _ | Failure _ | Invalid_argument _ as e ->
+    Kernel.abort
+      "Invalid -absolute-valid-range argument. Expected a comma-separated list \
+       of integer ranges min-max with optional const or volatile qualifiers. \
+       Each integer may be in decimal, hexadecimal (0x, 0X), octal (0o) or \
+       binary (0b) notation.@\nA correct example is \
+       1024-1423,0x800-0x81F:const,0x1000-0x101F:volatile.\
+       @\nError is: %S@."
+      (Printexc.to_string e)
+
+let rec check_absolute_ranges previous_range = function
+  | [] -> ()
+  | (str, min, max, _) as current :: tail ->
+    let abort = Kernel.abort "Invalid %s specified by -absolute-valid-range" in
+    if Z.gt min max then abort ("empty range " ^ str);
+    if Z.lt min 0z then abort ("negative range " ^ str);
+    if Z.equal min 0z then
+      Kernel.warning "Absolute valid range %s includes NULL pointer 0." str;
+    let check_overlapping (prev_str, _, prev_max, _) =
+      if Z.geq prev_max min
+      then abort ("overlapping ranges " ^ prev_str ^ " and " ^ str)
+    in
+    Option.iter check_overlapping previous_range;
+    check_absolute_ranges (Some current) tail
+
+let register_absolute_bases list =
+  let ranges = parse_absolute_ranges list in
+  let cmp (_, b1, _, _) (_, b2, _, _) = Z.compare b1 b2 in
+  let sorted_ranges = List.fast_sort cmp ranges in
+  check_absolute_ranges None sorted_ranges;
+  AbsoluteList.set (List.map create_absolute_base sorted_ranges)
 
 let () =
-  Kernel.AbsoluteValidRange.add_set_hook
-    (fun _ x ->
-       try Scanf.sscanf x "%s@-%s"
-             (fun min max ->
-                (* let mul_CHAR_BIT = Int64.mul (Int64.of_int (bitsSizeOf charType)) in *)
-                (* the above is what we would like to write but it is too early *)
-                let mul_CHAR_BIT = Z.mul 8z in
-                MinValidAbsoluteAddress.set
-                  (mul_CHAR_BIT (Z.of_string min));
-                MaxValidAbsoluteAddress.set
-                  ((Z.pred (mul_CHAR_BIT (Z.succ (Z.of_string max))))))
-       with End_of_file | Scanf.Scan_failure _ | Failure _
-          | Invalid_argument _ as e ->
-         Kernel.abort "Invalid -absolute-valid-range integer-integer: each integer may be in decimal, hexadecimal (0x, 0X), octal (0o) or binary (0b) notation and has to hold in 64 bits. A correct example is -absolute-valid-range 1-0xFFFFFF0.@\nError was %S@."
-           (Printexc.to_string e))
+  Kernel.AbsoluteValidRange.add_set_hook (fun _ x -> register_absolute_bases x)
 
-let min_valid_absolute_address = MinValidAbsoluteAddress.get
-let max_valid_absolute_address = MaxValidAbsoluteAddress.get
+let absolute_addresses () =
+  List.map (fun abs -> abs, Absolute abs) (AbsoluteList.get ())
 
 let validity_from_size size =
   assert (Z.geq size 0z);
@@ -211,17 +279,13 @@ let validity_from_known_size size =
 let validity b =
   match b with
   | Var (_,v) | CLogic_Var (_, _, v) | Allocated (_,_,v) -> v
-  | Null ->
-    let mn = min_valid_absolute_address ()in
-    let mx = max_valid_absolute_address () in
-    if Z.gt mx mn then
-      Known (mn, mx)
-    else
-      Invalid
+  | Null -> Invalid
+  | Absolute { size } -> validity_from_size size
 
 let is_read_only base =
   match base with
   | Var (v,_) -> Ast_types.C.has_qualifier "const" v.vtype
+  | Absolute { read_only } -> read_only
   | _ -> false
 
 (* Minor optimization compared to [is_weak (validity b)] *)
@@ -327,7 +391,7 @@ let is_valid_offset access base offset =
 
 let is_function base =
   match base with
-  | Null | CLogic_Var _ | Allocated _ -> false
+  | Null | Absolute _ | CLogic_Var _ | Allocated _ -> false
   | Var(v,_) ->
     Ast_types.C.is_fun v.vtype
 
@@ -337,44 +401,44 @@ let is_any_formal_or_local v =
   match v with
   | Var (v,_) -> v.vsource && not v.vglob
   | Allocated _ | CLogic_Var _ -> false
-  | Null -> false
+  | Null | Absolute _ -> false
 
 let is_any_local v =
   match v with
   | Var (v,_) -> v.vsource && not v.vglob && not v.vformal
   | Allocated _ | CLogic_Var _ -> false
-  | Null -> false
+  | Null | Absolute _ -> false
 
 let is_global v =
   match v with
   | Var (v,_) -> v.vglob
-  | Allocated _ | Null -> true
+  | Allocated _ | Null | Absolute _ -> true
   | CLogic_Var _ -> false
 
 let is_formal_or_local v fundec =
   match v with
   | Var (v,_) -> Ast_info.Function.is_formal_or_local v fundec
-  | Allocated _ | CLogic_Var _ | Null -> false
+  | Allocated _ | CLogic_Var _ | Null | Absolute _ -> false
 
 let is_formal_of_prototype v vi =
   match v with
   | Var (v,_) -> Ast_info.Function.is_formal_of_prototype v vi
-  | Allocated _ | CLogic_Var _ | Null -> false
+  | Allocated _ | CLogic_Var _ | Null | Absolute _ -> false
 
 let is_local v fundec =
   match v with
   | Var (v,_) -> Ast_info.Function.is_local v fundec
-  | Allocated _ | CLogic_Var _ | Null -> false
+  | Allocated _ | CLogic_Var _ | Null | Absolute _ -> false
 
 let is_formal v fundec =
   match v with
   | Var (v,_)  -> Ast_info.Function.is_formal v fundec
-  | Allocated _ | CLogic_Var _ | Null -> false
+  | Allocated _ | CLogic_Var _ | Null | Absolute _ -> false
 
 let is_block_local v block =
   match v with
   | Var (v,_) -> Ast_info.is_block_local v block
-  | Allocated _ | CLogic_Var _ | Null -> false
+  | Allocated _ | CLogic_Var _ | Null | Absolute _ -> false
 
 let validity_from_type v =
   if Ast_types.C.is_fun v.vtype then Invalid
@@ -502,7 +566,7 @@ exception Not_a_C_variable
 
 let to_varinfo t = match t with
   | Var (t,_) | Allocated (t,_,_) -> t
-  | CLogic_Var _ | Null -> raise Not_a_C_variable
+  | CLogic_Var _ | Null | Absolute _ -> raise Not_a_C_variable
 
 module SetLattice = Make_Hashconsed_Lattice_Set(Base)(Hptset)
 

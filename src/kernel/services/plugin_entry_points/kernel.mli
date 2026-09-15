@@ -501,7 +501,7 @@ module UnalignedPointer: Parameter_sig.Bool
     @since 32.0-Germanium
 *)
 
-module AbsoluteValidRange: Parameter_sig.String
+module AbsoluteValidRange: Parameter_sig.String_list
 (** Behavior of option "-absolute-valid-range" *)
 
 (*

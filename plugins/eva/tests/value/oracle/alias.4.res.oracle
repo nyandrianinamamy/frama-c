@@ -1,9 +1,10 @@
+[kernel] Warning: Absolute valid range 0-0xFF includes NULL pointer 0.
 [kernel] Parsing alias.i (no preprocessing)
 [eva] Analyzing a complete application starting at main6
 [eva:progress] Computing initial state
 [eva:progress] Initial state computed
 [eva:initial-state] Values of globals at initialization
-  NULL[rbits 0 to 2047] ∈ [--..--]
+  &0[rbits 0 to 2047] ∈ [--..--]
   A ∈ {0}
   B ∈ {0}
   C ∈ {0}
@@ -96,11 +97,11 @@
   w FROM c
   x FROM \nothing (and SELF)
   y FROM p[1]; q[2]; c
-  z FROM NULL[0..3]; PTR2; c
+  z FROM &0[0..3]; PTR2; c
   PTR1 FROM c
-  PTR2 FROM NULL[0..3]; PTR2
+  PTR2 FROM &0[0..3]; PTR2
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main6:
     p[1]; q[2]; u; v; w; x; y; z; PTR1; PTR2; i_0
 [inout] Inputs for function main6:
-    NULL[0..3]; p[1]; q[2]; u; v; PTR1; PTR2; c
+    &0[0..3]; p[1]; q[2]; u; v; PTR1; PTR2; c

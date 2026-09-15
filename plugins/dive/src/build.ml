@@ -183,7 +183,7 @@ let enumerate_cells ~is_folded_base gstmt lval =
             Seq.return (Composite (vi))
       end
     | CLogic_Var _ -> Seq.return (Error "logic variables not supported")
-    | Null -> Seq.return AbsoluteMemory
+    | Null | Absolute _ -> Seq.return AbsoluteMemory
   in
   try
     Addresses.Bits.to_seq_i location.addr |> Seq.flat_map map_base

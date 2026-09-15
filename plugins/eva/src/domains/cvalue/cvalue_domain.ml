@@ -305,27 +305,19 @@ module State = struct
   let empty () =
     let open Cvalue in
     let state = Model.empty_map in
-    let min_valid = Base.min_valid_absolute_address () in
-    let max_valid = Base.max_valid_absolute_address () in
-    if Z.leq min_valid max_valid
-    then begin
-      (* Bind everything between [0..max] to bottom. Offsetmaps cannot
-         contain holes, which can happen when min > 0 holds. *)
-      let bot =
-        V_Offsetmap.create_isotropic
-          ~size:max_valid (V_Or_Uninitialized.initialized V.bottom)
-      in
-      let v = if true (* TODO: command line option *)
-        then V_Or_Uninitialized.initialized V.top_int
-        else V_Or_Uninitialized.uninitialized
-      in
-      let offsm =
-        V_Offsetmap.add
-          (min_valid, max_valid) (v, Z.one, Abstract_interp.Rel.zero) bot
-      in
-      Cvalue.Model.add_base Base.null offsm state, Locals_scoping.bottom ()
-    end
-    else state, Locals_scoping.bottom ()
+    let absolute_bases = Base.absolute_addresses () in
+    let absolute_value =
+      if true (* TODO: command line option *)
+      then V_Or_Uninitialized.initialized V.top_int
+      else V_Or_Uninitialized.uninitialized
+    in
+    let add_absolute_base state (abs, base) =
+      let size = abs.Base.size in
+      let offsm = V_Offsetmap.create_isotropic ~size absolute_value in
+      Cvalue.Model.add_base base offsm state
+    in
+    let state = List.fold_left add_absolute_base state absolute_bases in
+    state, Locals_scoping.bottom ()
 
   let initialize_variable_using_type kind varinfo (state, clob) =
     match kind with
