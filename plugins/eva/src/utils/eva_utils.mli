@@ -30,10 +30,6 @@ val create_new_var: ?alignas:int -> string -> typ -> varinfo
     has its [vlogic] field set, meaning it is not a source variable. The
     freshness of the name must be ensured by the user. *)
 
-val is_const_write_invalid: typ -> bool
-(** Detect that the type is const, and that option [-global-const] is set. In
-    this case, we forbid writing in a l-value that has this type. *)
-
 val find_return_var: kernel_function -> varinfo option
 (** Returns the varinfo returned by the given function.
     Returns None if the function returns void or has no return statement. *)

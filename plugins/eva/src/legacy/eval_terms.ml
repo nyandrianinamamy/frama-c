@@ -2519,7 +2519,7 @@ and eval_predicate env pred =
       in
       let typ_pointed = Ast_types.Acsl.direct_pointed_ctype tsets.term_type in
       (* Check if we are trying to write in a const l-value *)
-      if kind = Write && Eva_utils.is_const_write_invalid typ_pointed
+      if kind = Write && Ast_types.C.has_qualifier "const" typ_pointed
       then False
       else
         let eover, eunder, indeterminate, empty =

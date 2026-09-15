@@ -41,8 +41,6 @@ let create_new_var ?alignas name typ =
   register_new_var vi typ;
   vi
 
-let is_const_write_invalid typ = Ast_types.C.has_qualifier "const" typ
-
 let find_return_var kf =
   match (Kernel_function.find_return kf).skind with
   | Return (Some ({enode = Lval ((Var vi, NoOffset))}), _) -> Some vi
