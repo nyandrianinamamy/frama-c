@@ -39,7 +39,7 @@ module BoolInfo = struct
     let key = PdgIndex.Key.decl_var_key var in
     key_visible "loc_var_visible" fm key
 
-  module M = struct exception Invisible end
+  exception Invisible
 
   let annot_visitor (fm, kf) = object
     inherit Visitor.frama_c_inplace
@@ -49,22 +49,22 @@ module BoolInfo = struct
       | Some v when v.vformal ->
         let n_param = Kernel_function.get_formal_position v kf + 1 in
         if not (param_visible (fm,kf) n_param)
-        then raise M.Invisible
+        then raise Invisible
         else Cil.DoChildren
       | Some v when not v.vglob ->
         if not (loc_var_visible (fm, kf) v)
-        then raise M.Invisible
+        then raise Invisible
         else Cil.DoChildren
       | Some _ -> Cil.DoChildren
   end
 
   let term_visible (fm,kf) t =
     try ignore (Visitor.visitFramacTerm (annot_visitor (fm,kf)) t); true
-    with M.Invisible -> false
+    with Invisible -> false
 
   let extended_visible (fm,kf) t =
     try ignore (Visitor.visitFramacExtended (annot_visitor (fm,kf)) t); true
-    with M.Invisible -> false
+    with Invisible -> false
 
   let body_visible _fm = true
 

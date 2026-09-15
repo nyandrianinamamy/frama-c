@@ -595,19 +595,19 @@ let find_in_env env counter s =
   match check_one true current counter s with
     Some lv -> lv
   | None ->
-    let module M = struct exception Found of term end in
+    let exception Found of term in
     (try
        List.iter
          (fun x ->
             match check_one false x counter s with
               None -> ()
-            | Some lv -> raise (M.Found lv))
+            | Some lv -> raise (Found lv))
          stack;
        (match Globals.Syntactic_search.find_in_scope s Program with
         | Some vi -> Logic_const.tvar (Cil.cvar_to_lvar vi)
         | None -> Aorai_option.abort "Unknown variable %s" s)
      with
-       M.Found lv -> lv)
+       Found lv -> lv)
 
 let find_prm_in_env env ?tr counter f x =
   let kf =

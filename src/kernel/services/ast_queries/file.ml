@@ -1319,12 +1319,12 @@ module Global_annotation_graph = struct
 end
 
 let find_typeinfo ty =
-  let module F = struct exception Found of global end in
+  let exception Found of global in
   let globs = (Ast.get()).globals in
   try
     List.iter
       (fun g -> match g with
-         | GType (ty',_) when ty == ty' -> raise (F.Found g)
+         | GType (ty',_) when ty == ty' -> raise (Found g)
          | GType (ty',_) when ty.tname = ty'.tname ->
            Kernel.fatal
              "Lost sharing between definition and declaration of type %s"
@@ -1332,7 +1332,7 @@ let find_typeinfo ty =
          | _ -> ())
       globs;
     Kernel.fatal "Reordering AST: unknown typedef for %s"  ty.tname
-  with F.Found g -> g
+  with Found g -> g
 
 let extract_logic_infos g =
   let rec aux acc = function
@@ -1343,7 +1343,7 @@ let extract_logic_infos g =
   in aux [] g
 
 let find_logic_info_decl li =
-  let module F = struct exception Found of global end in
+  let exception Found of global in
   let globs = (Ast.get()).globals in
   try
     List.iter
@@ -1353,13 +1353,13 @@ let find_logic_info_decl li =
              List.exists
                (fun li' -> Cil_datatype.Logic_info.equal li li')
                (extract_logic_infos ga)
-           then raise (F.Found g)
+           then raise (Found g)
          | _ -> ())
       globs;
     Kernel.fatal "Reordering AST: unknown declaration \
                   for logic function or predicate %s"
       li.l_var_info.lv_name
-  with F.Found g -> g
+  with Found g -> g
 
 class reorder_ast: Visitor.frama_c_visitor =
   let unique_name_recursive_axiomatic =

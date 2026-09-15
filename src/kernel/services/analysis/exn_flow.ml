@@ -184,19 +184,15 @@ class exn_visit =
       | Local_init(_, ConsInit(f, _, _), _) ->
         let kf = Globals.Functions.get f in
         if self#recursive_call kf then begin
-          let module Found =
-          struct
-            exception F of Cil_datatype.Typ.Set.t
-          end
-          in
+          let exception Found of Cil_datatype.Typ.Set.t in
           let computed_exn =
             try
               Stack.iter
                 (fun (kf', exns) ->
-                   if Kernel_function.equal kf kf' then raise (Found.F !exns))
+                   if Kernel_function.equal kf kf' then raise (Found !exns))
                 stack;
               Kernel.fatal "No cycle found!"
-            with Found.F exns -> exns
+            with Found exns -> exns
           in
           let known_exn =
             try Exns.find kf with Not_found -> Cil_datatype.Typ.Set.empty

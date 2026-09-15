@@ -144,19 +144,19 @@ let update_gotos sid_tbl block =
   in Cil.visitCilBlock (goto_updater:>Cil.cilVisitor) block
 
 let is_referenced stmt l =
-  let module Found = struct exception Found end in
+  let exception Found in
   let vis = object
     inherit Visitor.frama_c_inplace
     method! vlogic_label l =
       match l with
-      | StmtLabel s when !s == stmt -> raise Found.Found
+      | StmtLabel s when !s == stmt -> raise Found
       | _ -> Cil.DoChildren
   end
   in
   try
     List.iter (fun x -> ignore (Visitor.visitFramacStmt vis x)) l;
     false
-  with Found.Found -> true
+  with Found -> true
 
 (* Deep copy of annotations taking care of labels into annotations. *)
 let copy_annotations kf assoc labelled_stmt_tbl (break_continue_must_change, stmt_src,stmt_dst) =

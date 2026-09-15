@@ -457,18 +457,18 @@ module Make (Engine: Engine_Subset) = struct
      Returns `Bottom if a all the behaviors of a complete set have a false
      \assumes clause.  *)
   let promote_complete_behaviors behaviors complete_list =
-    let module E = struct exception Bottom end in
+    let exception Bottom in
     let is_not_false b = List.assoc b behaviors <> Alarmset.False in
     let complete_list = List.map (List.filter is_not_false) complete_list in
     let promote acc = function
       (* If a complete set of behaviors is empty here, then it contains only
          false behaviors, and thus its interpretation is bottom. *)
-      | [] -> raise E.Bottom
+      | [] -> raise Bottom
       | [b] -> replace_in_list b Alarmset.True acc
       | _ -> acc
     in
     try `Value (List.fold_left promote behaviors complete_list, complete_list)
-    with E.Bottom -> `Bottom
+    with Bottom -> `Bottom
 
   (* Evaluates the \assumes of each behavior, and returns an association list
      between behaviors and their status. Also removes false behaviors from

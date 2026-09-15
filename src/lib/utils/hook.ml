@@ -98,12 +98,12 @@ struct
 
   (* No find in OCamlgraph API... *)
   let find_vertex v1 =
-    let module F = struct exception Found of Nodes.t end in
+    let exception Found of Nodes.t in
     try
       Hooks.iter_vertex
-        (fun v2 -> if Nodes.equal v1 v2 then raise (F.Found v2)) hooks;
+        (fun v2 -> if Nodes.equal v1 v2 then raise (Found v2)) hooks;
       raise Not_found
-    with F.Found v -> v
+    with Found v -> v
 
   let register_key k =
     let empty_node = k, Queue.create() in
@@ -120,9 +120,9 @@ struct
     Hooks.add_edge hooks v1 v2
 
   let empty_nodes () =
-    let module F = struct exception Full end in
-    let empty_node (_,q) = if not (Queue.is_empty q) then raise F.Full in
-    try Hooks.iter_vertex empty_node hooks; true with F.Full -> false
+    let exception Full in
+    let empty_node (_,q) = if not (Queue.is_empty q) then raise Full in
+    try Hooks.iter_vertex empty_node hooks; true with Full -> false
 
   let is_empty () = Hooks.is_empty hooks || empty_nodes ()
 

@@ -25,17 +25,17 @@ let adjust_assigns_clause loc var code_annot =
   end
   in
   let change_term t = Cil.visitCilTerm change_result t in
-  let module M = struct exception Found end in
+  let exception Found in
   let check_var = object
     inherit Cil.nopCilVisitor
     method! vterm_lhost = function
-      | TVar v when Cil_datatype.Logic_var.equal var v -> raise M.Found
+      | TVar v when Cil_datatype.Logic_var.equal var v -> raise Found
       | TVar _ | TResult _ | TMem _ -> Cil.DoChildren
   end
   in
   let contains_var l =
     try ignore (Cil.visitCilAssigns check_var (Writes l)); false
-    with M.Found -> true
+    with Found -> true
   in
   let change_from = function
     | FromAny -> FromAny

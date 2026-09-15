@@ -176,7 +176,7 @@ module Visibility (SliceName : sig
   let all_logic_var_visible, all_logic_var_visible_identified_term, all_logic_var_visible_term,
       all_logic_var_visible_assigns, all_logic_var_visible_deps,
       all_logic_var_visible_extended =
-    let module Exn = struct exception Invisible end in
+    let exception Invisible in
     let vis ff = object
       inherit Visitor.frama_c_inplace
       method! vlogic_var_use v =
@@ -191,37 +191,37 @@ module Visibility (SliceName : sig
                        (SlicingMacros.get_ff_kf ff)+1)))
           (* For some reason, pdg counts parameters starting
              from 1 *)
-          -> raise Exn.Invisible
+          -> raise Invisible
         | Some v when
             not v.vglob &&
             not (visible_mark (Fct_slice.get_local_var_mark ff v)) ->
-          raise Exn.Invisible
+          raise Invisible
         | Some _ -> Cil.DoChildren
     end
     in (fun ff pred ->
         try
           ignore (Visitor.visitFramacPredicate (vis ff) pred); true
-        with Exn.Invisible -> false),
+        with Invisible -> false),
        (fun ff term ->
           try
             ignore (Visitor.visitFramacIdTerm (vis ff) term); true
-          with Exn.Invisible -> false),
+          with Invisible -> false),
        (fun ff term ->
           try
             ignore (Visitor.visitFramacTerm (vis ff) term); true
-          with Exn.Invisible -> false),
+          with Invisible -> false),
        (fun ff (b,_) ->
           try
             ignore (Visitor.visitFramacTerm (vis ff) b.it_content); true
-          with Exn.Invisible -> false),
+          with Invisible -> false),
        (fun ff d ->
           try
             ignore (Visitor.visitFramacTerm (vis ff) d.it_content); true
-          with Exn.Invisible -> false),
+          with Invisible -> false),
        (fun ff a ->
           try
             ignore (Visitor.visitFramacExtended (vis ff) a); true
-          with Exn.Invisible -> false)
+          with Invisible -> false)
 
   let annotation_visible ff_opt stmt annot =
     SlicingParameters.debug ~current:true ~level:2

@@ -4682,16 +4682,16 @@ let visitCilFile vis f =
 
 
 let appears_in_expr v e =
-  let module M = struct exception Found end in
+  let exception Found in
   let vis = object
     inherit nopCilVisitor
     method! vvrbl v' =
-      if Cil_datatype.Varinfo.equal v v' then raise M.Found;
+      if Cil_datatype.Varinfo.equal v v' then raise Found;
       SkipChildren
   end
   in
   try ignore (visitCilExpr vis e); false
-  with M.Found -> true
+  with Found -> true
 
 (* Fold over all globals, including the global initializer *)
 let mapGlobals (fl: file)
@@ -4929,16 +4929,16 @@ let fold_local_init b f acc =
 let find_def_stmt b v =
   if not (v.vdefined && List.exists (Cil_datatype.Varinfo.equal v) b.blocals)
   then Kernel.fatal "inconsistent arguments for find_def_stmt";
-  let module M = struct exception Found of stmt end in
+  let exception Found of stmt in
   let action s (v',_,_) () =
-    if Cil_datatype.Varinfo.equal v v' then raise (M.Found s) else ()
+    if Cil_datatype.Varinfo.equal v v' then raise (Found s) else ()
   in
   try
     fold_local_init b action ();
     Kernel.fatal ~loc:v.vdecl
       "inconsistent AST: local variable %a is supposed to be initialized, \
        but no initialization statement found." !pp_varinfo_ref v
-  with M.Found s -> s
+  with Found s -> s
 
 let has_extern_local_init b =
   (* a scoping block defines all the locals inside it.*)

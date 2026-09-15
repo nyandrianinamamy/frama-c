@@ -252,9 +252,9 @@ module Transfer = struct
   let start_call  ~pos:_ _ _ _ state = `Value state
 
   let map_non_bottom f xs =
-    let module E = struct exception Bottom end in
-    let f v = match f v with `Value v -> v | `Bottom -> raise E.Bottom in
-    try `Value (List.map f xs) with E.Bottom -> `Bottom
+    let exception Bottom in
+    let f v = match f v with `Value v -> v | `Bottom -> raise Bottom in
+    try `Value (List.map f xs) with Bottom -> `Bottom
 
   let finalize_call ~pos call _ ~pre:_ ~post =
     let name = Kernel_function.get_name call.kf in
