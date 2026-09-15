@@ -660,8 +660,7 @@ lexpr_inner:
     }
 | LBRACE lexpr_inner WITH updext RBRACE
     { List.fold_left
-	      (fun a (path,op,upd_val) -> info $sloc (PLupdExt(a,path,op,upd_val)))
-                                    $2 $4
+	      (fun a (path,op,upd_val) -> info $sloc (PLupdExt(a,path,op,upd_val))) $2 $4
     }
 /*
 | LET bounded_var EQUAL lexpr SEMICOLON lexpr %prec LET { info $sloc (PLlet($2,$4,$6))}*/
@@ -774,25 +773,22 @@ binders:
 ;
 
 binders_reentrance:
-| decl_spec
-    { let (lt, var) = $1 in
-      (lt, [var])
-    }
+| decl_spec { let (lt, var) = $1 in (lt, [var]) }
 | binders_reentrance COMMA decl_spec
     { let _, vars = $1 in
       let (lt, var) = $3 in
-        (lt, vars @ [ var ])
+      (lt, vars @ [ var ])
     }
 | binders_reentrance COMMA var_spec
     { let last_type_spec, vars = $1 in
-        (last_type_spec, vars @
-         [ let (modif, name) = $3 in (modif last_type_spec, name)])
+      (last_type_spec, vars @
+        [ let (modif, name) = $3 in (modif last_type_spec, name)])
     }
 ;
 
 decl_spec:
 | type_spec(typesymbol) var_spec
-    { ($1, let (modif, name) = $2 in (modif $1, name))  }
+    { ($1, let (modif, name) = $2 in (modif $1, name)) }
 ;
 
 var_spec:
