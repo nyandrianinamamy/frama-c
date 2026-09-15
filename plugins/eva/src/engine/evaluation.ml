@@ -232,58 +232,21 @@ module Make
   type origin = Domain.origin
   type loc = Loc.location
 
-  module ECache = Eva_ast.Exp.Map
-  module LCache = Eva_ast.Lval.Map
+  (** Imperative cache for the evaluation:
+      all intermediate results of an evaluation are cached here.
+      See {!Evaluation_cache} for more details. *)
+  module Cache = Evaluation_cache.Make (struct
+      type nonrec value = value
+      type nonrec origin = origin
+      type nonrec loc = loc
 
-  (* Imperative cache for the evaluation:
-     all intermediate results of an evaluation are cached here.
-     See [eval.mli] for more details. *)
-  module Cache = struct
-    type value = Value.t
-    type origin = Domain.origin
-    type loc = Loc.location
+      type val_report = forward_report
+      type nonrec loc_report = forward_report * loc_report
 
-    (* For expression, the forward_report about the evaluation is also stored. *)
-    type t =
-      ((value, origin) record_val * forward_report) ECache.t
-      * (loc record_loc * (forward_report * loc_report)) LCache.t
+      let default_val_report = extern_report
+      let default_loc = Loc.top
+    end)
 
-    (* Interface of Context.Valuation *)
-    let empty : t = ECache.empty, LCache.empty
-    let find (cache:t) exp =
-      try `Value (fst (ECache.find exp (fst cache)))
-      with Not_found -> `Top
-    let add (cache:t) exp record =
-      let s, t = cache in ECache.add exp (record, extern_report) s, t
-    let fold f (cache:t) acc =
-      ECache.fold (fun e (r, _) acc -> f e r acc) (fst cache) acc
-
-    (* Functions used by the evaluator, with the boolean for backward
-       reduction. *)
-    let find' (cache:t) exp = ECache.find exp (fst cache)
-    let add' (cache:t) exp record =
-      let s, t = cache in ECache.add exp record s, t
-
-    (* Locations of lvalue. *)
-    let find_loc (cache:t) lval =
-      try `Value (fst (LCache.find lval (snd cache)))
-      with Not_found -> `Top
-
-    let find_loc_def cache lval =
-      match find_loc cache lval with
-      | `Top -> Loc.top
-      | `Value record -> record.loc
-
-    (* Locations of lvalue. *)
-    let find_loc' (cache:t) lval =
-      try `Value (LCache.find lval (snd cache))
-      with Not_found -> `Top
-    let add_loc' (cache:t) lval record =
-      let s, t = cache in s, LCache.add lval record t
-
-    let remove (s, t) expr = ECache.remove expr s, t
-    let remove_loc (s, t) lval = s, LCache.remove lval t
-  end
 
   (* Was the fuel entirely consumed? *)
   let fuel_consumed = ref false
@@ -313,12 +276,12 @@ module Make
       (* TODO: allow to reduce initialized and escaping flags? *)
       let record = { record with value = define_value value; reductness } in
       let report = { report with reduction = kind } in
-      cache := Cache.add' !cache expr (record, report)
+      Cache.add_val cache expr (record, report)
 
   (* Updates the abstractions stored in the cache for the expression [expr]
      with the value [value]. [kind] is the type of the reduction.*)
   let reduce_expr_value ~cache kind expr value =
-    let record, report = Cache.find' !cache expr in
+    let record, report = Cache.find_val cache expr in
     reduce_expr_recording ~cache kind expr (record, report) value
 
   let reduce_value record =
@@ -846,7 +809,7 @@ module Make
       remaining_fuel: int;
       (* The oracle which can be used by abstract domains to get a value for
          some expressions. *)
-      oracle: cache: Cache.t ref -> recursive_environment -> exp -> Value.t evaluated;
+      oracle: cache: Cache.t -> recursive_environment -> exp -> Value.t evaluated;
       (* Was the current evaluation requested by use of the oracle? *)
       oracle_evaluation: bool;
     }
@@ -864,7 +827,7 @@ module Make
   let rec root_forward_eval ~cache env expr =
     (* Search in the cache for the result of a previous computation. *)
     try
-      let record, report = Cache.find' !cache expr in
+      let record, report = Cache.find_val cache expr in
       (* If the record was computed with more fuel than [fuel], return it. *)
       if report.fuel = Loop then fuel_consumed := true;
       if less_fuel_than env.remaining_fuel report.fuel
@@ -876,7 +839,7 @@ module Make
       (* Fuel not consumed for this new evaluation. *)
       fuel_consumed := false;
       (* Fill the cache to avoid loops in the use of the oracle. *)
-      cache := Cache.add' !cache expr top_entry;
+      Cache.add_val cache expr top_entry;
       (* Evaluation of [expr]. *)
       let result, alarms = coop_forward_eval ~cache env expr in
       let value =
@@ -889,7 +852,7 @@ module Make
         let fuel = env.remaining_fuel in
         let fuel = if !fuel_consumed then Finite fuel else Infty in
         let report = { fuel; reduction } in
-        cache := Cache.add' !cache expr (record, report);
+        Cache.add_val cache expr (record, report);
         let+ v = record.value.v in v, record.volatile_expr
       in
       (* Reset the flag fuel_consumed. *)
@@ -1069,18 +1032,18 @@ module Make
         let record = { loc; volatile_loc; volatile_lval; loc_alarms = alarms }
         and report = { fuel = Finite fuel; reduction = red }
         and loc_report = { for_writing; with_reduction = reduction } in
-        cache := Cache.add_loc' !cache lval (record, (report, loc_report));
+        Cache.add_loc cache lval (record, (report, loc_report));
         record
       in
       res, alarms
     in
     let already_precise = already_precise_loc_report ~for_writing ~reduction in
     let not_enough_fuel = less_fuel_than env.remaining_fuel in
-    match Cache.find_loc' !cache lval with
-    | `Value (record, (report, loc_report))
+    match Cache.find_loc cache lval with
+    | record, (report, loc_report)
       when already_precise loc_report && not_enough_fuel report.fuel ->
       `Value record, record.loc_alarms
-    | _ -> compute ()
+    | _ | exception Not_found -> compute ()
 
   (* If [reduction] is false, don't reduce the location and the offset by their
      valid parts, and don't emit alarms about their validity. *)
@@ -1224,7 +1187,7 @@ module Make
   end
 
   module Subdivided_Evaluation =
-    Subdivided_evaluation.Make (Value) (Loc) (Cache) (Forward_Evaluation)
+    Subdivided_evaluation.Make (Value) (Loc) (Cache.Valuation) (Forward_Evaluation)
 
   let oracle ~cache env =
     let remaining_fuel = pred env.remaining_fuel in
@@ -1300,19 +1263,15 @@ module Make
 
   (* Find the value of a previously evaluated expression. *)
   let find_val ~cache expr =
-    match Cache.find !cache expr with
-    | `Value record -> record.value.v
-    | `Top -> assert false (* [expr] must have been evaluated already. *)
+    match Cache.find_val cache expr with
+    | record, _report -> record.value.v
+    | exception Not_found -> assert false (* [expr] must have been evaluated already. *)
 
   (* Find the record computed for an lvalue.
      Return None if no reduction can be performed. *)
   let find_loc_for_reduction ~cache lval =
     if may_be_reduced_lval lval then
-      let record, report =
-        match Cache.find_loc' !cache lval with
-        | `Value all -> all
-        | `Top -> assert false
-      in
+      let record, report = Cache.find_loc cache lval in
       if (snd report).with_reduction then Some (record, report) else None
     else None
 
@@ -1320,11 +1279,11 @@ module Make
      report indicating if a forward reduction during the forward evaluation may
      be propagated backward. *)
   let evaluate_for_reduction ~cache state expr =
-    try `Value (Cache.find' !cache expr)
+    try `Value (Cache.find_val cache expr)
     with Not_found ->
       let* env = fast_eval_environment state in
       let+ _ = forward_eval ~cache env expr |> fst in
-      try Cache.find' !cache expr
+      try Cache.find_val cache expr
       with Not_found -> assert false
 
   (* The backward propagation at a step is relevant only if:
@@ -1497,7 +1456,7 @@ module Make
       if b && not record.volatile_lval then
         let record = { record with loc } in
         let report = { (fst report) with reduction = Backward }, snd report in
-        cache := Cache.add_loc' !cache lval (record, report);
+        Cache.add_loc cache lval (record, report);
       else ();
       if b || (fst report).reduction = Forward
       then Some (loc, value)
@@ -1569,7 +1528,7 @@ module Make
       to a less precise value than the one stored after the backward evaluation.
       This means that the backward propagation has not been precise enough. *)
   let rec second_forward_eval ~cache state expr =
-    let find e = try Cache.find' !cache e with Not_found -> assert false in
+    let find e = try Cache.find_val cache e with Not_found -> assert false in
     let record, report = find expr in
     if report.reduction == Backward then
       let* value = record.value.v in
@@ -1592,11 +1551,7 @@ module Make
 
   and second_eval_lval ~cache state lval value =
     if may_be_reduced_lval lval then
-      let record, report =
-        match Cache.find_loc' !cache lval with
-        | `Value all -> all
-        | `Top -> assert false
-      in
+      let record, report = Cache.find_loc cache lval in
       let* env = fast_eval_environment state in
       let* () =
         if (fst report).reduction = Backward then
@@ -1609,7 +1564,7 @@ module Make
           let in_record loc = Loc.equal_loc record.loc loc in
           let reduction = if in_record loc then Neither else Forward in
           let report = { (fst report) with reduction }, snd report in
-          cache := Cache.add_loc' !cache lval (record, report);
+          Cache.add_loc cache lval (record, report);
         else `Value ()
       in
       let* record, _ = eval_lval ~cache env lval |> fst in
@@ -1646,7 +1601,7 @@ module Make
                               Generic Interface
      ------------------------------------------------------------------------ *)
 
-  module Valuation = Cache
+  module Valuation = Cache.Valuation
 
   let to_domain_valuation valuation =
     let find = Valuation.find valuation in
@@ -1673,7 +1628,7 @@ module Make
     in
     Abstract_domain.{ find ; fold ; find_loc ; find_loc_def; is_volatile; }
 
-  let evaluate ?(valuation=Cache.empty) ?(reduction=true) ?subdivnb state expr =
+  let evaluate ?(valuation=Valuation.empty) ?(reduction=true) ?subdivnb state expr =
     let eval, alarms = subdivided_forward_eval valuation ?subdivnb state expr in
     let result =
       if reduction && not (Alarmset.is_empty alarms) then
@@ -1688,13 +1643,13 @@ module Make
     in
     result, alarms
 
-  let copy_lvalue ?(valuation=Cache.empty) ?subdivnb state lval =
+  let copy_lvalue ?(valuation=Valuation.empty) ?subdivnb state lval =
     let open Evaluated.Operators in
     let expr = Eva_ast.Build.lval lval in
     let cache = ref valuation in
     let* env = root_environment ?subdivnb state, Alarmset.none in
     try
-      let record, report = Cache.find' valuation expr in
+      let record, report = Cache.find_val cache expr in
       if less_fuel_than env.remaining_fuel report.fuel
       then `Value (valuation, record.value), record.val_alarms
       else raise Not_found
@@ -1704,8 +1659,8 @@ module Make
       (* Cache the computed result with an appropriate report. *)
       let fuel = Finite (root_fuel ()) in
       let report = { fuel; reduction = Neither } in
-      let valuation = Cache.add' !cache expr (record, report) in
-      valuation, record.value
+      Cache.add_val cache expr (record, report);
+      !cache, record.value
 
   (* When evaluating an lvalue, we use the subdivided evaluation for the
      expressions included in the lvalue. *)
@@ -1723,7 +1678,7 @@ module Make
     | Var _ -> `Value valuation, Alarmset.none
     | Mem e -> subdivided_forward_eval valuation ?subdivnb state e >>=: fst
 
-  let lvaluate ?(valuation=Cache.empty) ?subdivnb ~for_writing state lval =
+  let lvaluate ?(valuation=Valuation.empty) ?subdivnb ~for_writing state lval =
     let open Evaluated.Operators in
     (* If [for_writing] is true, the location of [lval] is reduced by removing
        const bases. Use [for_writing:false] if const bases can be written
@@ -1738,11 +1693,11 @@ module Make
     let& _ = lval_to_loc ~cache env ~for_writing ~reduction:true lval in
     let open Bottom.Operators in
     let+ () = backward_lval ~cache (backward_fuel ()) env.context state lval in
-    match Cache.find_loc !cache lval with
-    | `Value record -> !cache, record.loc
-    | `Top -> assert false
+    match Cache.find_loc cache lval with
+    | record, _report -> !cache, record.loc
+    | exception Not_found -> assert false
 
-  let reduce ?valuation:(valuation=Cache.empty) state expr positive =
+  let reduce ?valuation:(valuation=Valuation.empty) state expr positive =
     let open Evaluated.Operators in
     (* Generate [e == 0] *)
     let expr = Eva_ast.normalize_condition expr (not positive) in
@@ -1764,7 +1719,7 @@ module Make
         Subdivided_Evaluation.reduce_by_enumeration env !cache expr false
       else `Value !cache
 
-  let assume ?valuation:(valuation=Cache.empty) state expr value =
+  let assume ?valuation:(valuation=Valuation.empty) state expr value =
     let cache = ref valuation in
     let fuel = backward_fuel () in
     let* context = get_context state in
