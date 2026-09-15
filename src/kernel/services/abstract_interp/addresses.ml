@@ -363,9 +363,10 @@ module Bytes = struct
     | _ -> add base ival t
 
   let inject_top_origin origin bases =
+    (* Remove absolute bases (if any). No need to replace them by the Null base
+       here, as [inject_top_origin] always adds the Null base anyway. *)
     let is_not_absolute = function Base.Absolute _ -> false | _ -> true in
     let bases = Base.Hptset.filter is_not_absolute bases in
-    (* The Null base is already added to [bases] by [inject_top_origin]. *)
     inject_top_origin origin bases
 end
 
