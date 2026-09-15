@@ -534,19 +534,19 @@ let compare_max_min max min =
   | Some max, Some min -> Z.compare max min
 
 let forward_le_int i1 i2 =
-  if compare_max_min (max_int i1) (min_int i2) <= 0 then Comp.True
-  else if compare_min_max (min_int i1) (max_int i2) > 0 then Comp.False
-  else Comp.Unknown
+  if compare_max_min (max_int i1) (min_int i2) <= 0 then True
+  else if compare_min_max (min_int i1) (max_int i2) > 0 then False
+  else Unknown
 
 let forward_lt_int i1 i2 =
-  if compare_max_min (max_int i1) (min_int i2) < 0 then Comp.True
-  else if compare_min_max (min_int i1) (max_int i2) >= 0 then Comp.False
-  else Comp.Unknown
+  if compare_max_min (max_int i1) (min_int i2) < 0 then True
+  else if compare_min_max (min_int i1) (max_int i2) >= 0 then False
+  else Unknown
 
 let forward_eq_int i1 i2 =
-  if cardinal_zero_or_one i1 && equal i1 i2 then Comp.True
-  else if intersects i2 i2 then Comp.Unknown
-  else Comp.False
+  if cardinal_zero_or_one i1 && equal i1 i2 then True
+  else if intersects i2 i2 then Unknown
+  else False
 
 let forward_comp (op: Cil_types.relation) i1 i2 =
   match op with

@@ -11,7 +11,7 @@ open Cil_types
 module M = Alarms.Map
 
 type alarm = Alarms.t
-type status = Abstract_interp.Comp.result = True | False | Unknown
+type status = Abstract_interp.truth = True | False | Unknown
 type s = status M.t
 type t = Just of s | AllBut of s
 

@@ -232,9 +232,9 @@ let assume_not_nan ~assume_finite fkind v =
     if Cvalue.V.is_bottom v then `True else `Unknown v
   | res ->
     match evaluate res with
-    | Abstract_interp.Comp.False -> `False
-    | Abstract_interp.Comp.True -> `True
-    | Abstract_interp.Comp.Unknown ->
+    | Abstract_interp.False -> `False
+    | Abstract_interp.True -> `True
+    | Abstract_interp.Unknown ->
       let res = Bottom.non_bottom (backward_propagate kind res) in
       `Unknown (V.inject_float res)
 

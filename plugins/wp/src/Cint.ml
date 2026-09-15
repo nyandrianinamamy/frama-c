@@ -957,7 +957,7 @@ module IntDomain = struct
       in
       match encode t1, encode t2 with
       | Local.Integer cst1, Local.Integer cst2 -> (* assume cmp cst1 cst2 *)
-        if Abstract_interp.Comp.False = Ival.forward_comp_int cmp cst1 cst2
+        if Abstract_interp.False = Ival.forward_comp_int cmp cst1 cst2
         then
           (Wp_parameters.debug ~dkey "* Assume FALSE: %a %s %a@."
              pretty (t1,cst1) cmp_str pretty (t2,cst2);

@@ -406,33 +406,33 @@ module Make (F: Float_sig.S) = struct
     | FRange.NaN -> assert false
     | FRange.Itv (b, e, _) -> b, e
 
-  let is_not_nan = function
-    | FRange.NaN -> Comp.False
-    | FRange.Itv (_b, _e, nan) -> if nan then Comp.Unknown else Comp.True
+  let is_not_nan : t -> Abstract_interp.truth = function
+    | FRange.NaN -> False
+    | FRange.Itv (_b, _e, nan) -> if nan then Unknown else True
 
-  let is_infinite = function
-    | FRange.NaN -> Comp.False
+  let is_infinite : t -> Abstract_interp.truth = function
+    | FRange.NaN -> False
     | FRange.Itv (b, e, nan) ->
       if F.is_infinite b || F.is_infinite e
-      then if Cmp.equal b e && not nan then Comp.True else Comp.Unknown
-      else Comp.False
+      then if Cmp.equal b e && not nan then True else Unknown
+      else False
 
-  let is_finite = function
-    | FRange.NaN -> Comp.False
+  let is_finite : t -> Abstract_interp.truth = function
+    | FRange.NaN -> False
     | FRange.Itv (b, e, nan) ->
       if Cmp.is_neg_infinity e || Cmp.is_pos_infinity b
-      then Comp.False
+      then False
       else if nan || Cmp.is_neg_infinity b || Cmp.is_pos_infinity e
-      then Comp.Unknown
-      else Comp.True
+      then Unknown
+      else True
 
-  let is_negative = function
+  let is_negative : t -> Abstract_interp.truth = function
     | FRange.Itv (b, e, false) ->
-      if F.is_negative e then Comp.True
-      else if not (F.is_negative b) then Comp.False
-      else Comp.Unknown
+      if F.is_negative e then True
+      else if not (F.is_negative b) then False
+      else Unknown
     | FRange.Itv (_, _, true)
-    | FRange.NaN -> Comp.Unknown
+    | FRange.NaN -> Unknown
 
   let backward_is_nan ~positive = function
     | FRange.NaN as v -> if positive then `Value v else `Bottom
@@ -487,28 +487,28 @@ module Make (F: Float_sig.S) = struct
                                 Comparisons
      ------------------------------------------------------------------------ *)
 
-  let forward_eq (b1,e1) (b2,e2) =
+  let forward_eq (b1,e1) (b2,e2) : Abstract_interp.truth =
     let not_intersects = Cmp.lt_ieee e2 b1 || Cmp.lt_ieee e1 b2 in
     if not_intersects
-    then Comp.False
+    then False
     else if Cmp.equal_ieee b1 e1 && Cmp.equal_ieee b2 e2
-    then Comp.True
-    else Comp.Unknown
+    then True
+    else Unknown
 
-  let forward_le (b1, e1) (b2, e2) =
-    if Cmp.le_ieee e1 b2 then Comp.True
-    else if Cmp.lt_ieee e2 b1 then Comp.False
-    else Comp.Unknown
+  let forward_le (b1, e1) (b2, e2) : Abstract_interp.truth =
+    if Cmp.le_ieee e1 b2 then True
+    else if Cmp.lt_ieee e2 b1 then False
+    else Unknown
 
-  let forward_lt (b1, e1) (b2, e2) =
-    if Cmp.lt_ieee e1 b2 then Comp.True
-    else if Cmp.le_ieee e2 b1 then Comp.False
-    else Comp.Unknown
+  let forward_lt (b1, e1) (b2, e2) : Abstract_interp.truth =
+    if Cmp.lt_ieee e1 b2 then True
+    else if Cmp.le_ieee e2 b1 then False
+    else Unknown
 
-  let forward_comp (op: Cil_types.relation) f1 f2 =
+  let forward_comp (op: Cil_types.relation) f1 f2 : Abstract_interp.truth =
     match f1, f2 with
     | FRange.NaN, _ | _, FRange.NaN ->
-      if op = Rneq then Comp.True else Comp.False
+      if op = Rneq then True else False
     | FRange.Itv (b1, e1, nan1), FRange.Itv (b2, e2, nan2) ->
       let r = match op with
         | Rle -> forward_le (b1, e1) (b2, e2)
@@ -521,8 +521,8 @@ module Make (F: Float_sig.S) = struct
       if nan1 || nan2
       then
         if op = Rneq
-        then (match r with Comp.True -> Comp.True | _ -> Comp.Unknown)
-        else (match r with Comp.False -> Comp.False | _ -> Comp.Unknown)
+        then (match r with True -> True | _ -> Unknown)
+        else (match r with False -> False | _ -> Unknown)
       else r
 
   (* This function intentionally returns different results with

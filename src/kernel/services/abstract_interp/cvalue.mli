@@ -8,8 +8,6 @@
 
 (** Representation of Value's abstract memory. *)
 
-open Abstract_interp
-
 (** Estimation of the cardinal of the concretization of an abstract state
     or value. *)
 module CardinalEstimate: sig
@@ -64,13 +62,17 @@ module V : sig
 
   val backward_mult_int_left: right:t -> result:t -> t option Lattice_bounds.or_bottom
 
-  val backward_comp_int_left: Comp.t -> t -> t -> t
-  val backward_comp_float_left_true: Comp.t -> Fval.kind -> t -> t -> t
-  val backward_comp_float_left_false: Comp.t -> Fval.kind -> t -> t -> t
+  val backward_comp_int_left:
+    Cil_types.relation -> t -> t -> t
+  val backward_comp_float_left_true:
+    Cil_types.relation -> Fval.kind -> t -> t -> t
+  val backward_comp_float_left_false:
+    Cil_types.relation -> Fval.kind -> t -> t -> t
 
-  val forward_comp_int: signed:bool -> Comp.t -> t -> t -> Comp.result
+  val forward_comp_int:
+    signed:bool -> Cil_types.relation -> t -> t -> Abstract_interp.truth
 
-  val inject_comp_result: Comp.result -> t
+  val inject_comp_result: Abstract_interp.truth -> t
 
   val inject_int : Z.t -> t
   val inject_float : Fval.t -> t

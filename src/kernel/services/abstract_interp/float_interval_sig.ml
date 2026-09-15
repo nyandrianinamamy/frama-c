@@ -78,11 +78,11 @@ module type S = sig
       [False] iff all values are positive; and [Unknown] otherwise.
       Note that we do not keep sign information for NaN, so if [f] may contain
       NaN, the result is always [Unknown]. *)
-  val is_negative: t -> Abstract_interp.Comp.result
+  val is_negative: t -> Abstract_interp.truth
 
-  val is_finite: t -> Abstract_interp.Comp.result
-  val is_infinite: t -> Abstract_interp.Comp.result
-  val is_not_nan: t -> Abstract_interp.Comp.result
+  val is_finite: t -> Abstract_interp.truth
+  val is_infinite: t -> Abstract_interp.truth
+  val is_not_nan: t -> Abstract_interp.truth
   val backward_is_finite: positive:bool -> prec -> t -> t or_bottom
   val backward_is_infinite: positive:bool -> prec -> t -> t or_bottom
   val backward_is_nan: positive:bool -> t -> t or_bottom
@@ -96,19 +96,19 @@ module type S = sig
   val has_smaller_max_bound: t -> t -> int
 
   val forward_comp:
-    Abstract_interp.Comp.t -> t -> t -> Abstract_interp.Comp.result
+    Cil_types.relation -> t -> t -> Abstract_interp.truth
 
   (** [backward_comp_left_true op prec f1 f2] attempts to reduce
       [f1] into [f1'] so that the relation [f1' op f2] holds.
       [prec] is the precision of [f1] and [f1'], but not necessarily of [f2]. *)
   val backward_comp_left_true:
-    Abstract_interp.Comp.t -> prec -> t -> t -> t or_bottom
+    Cil_types.relation -> prec -> t -> t -> t or_bottom
 
   (** [backward_comp_left_false op prec f1 f2] attempts to reduce
       [f1] into [f1'] so that the relation [f1' op f2] doesn't holds.
       [prec] is the precision of [f1] and [f1'], but not necessarily of [f2]. *)
   val backward_comp_left_false:
-    Abstract_interp.Comp.t -> prec -> t -> t -> t or_bottom
+    Cil_types.relation -> prec -> t -> t -> t or_bottom
 
   val neg: t -> t
   val abs: prec -> t -> t

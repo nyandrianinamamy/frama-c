@@ -25,7 +25,7 @@
 type s
 type t = private Just of s | AllBut of s
 type alarm = Alarms.t
-type status = Abstract_interp.Comp.result = True | False | Unknown
+type status = Abstract_interp.truth = True | False | Unknown
 
 type 'a if_consistent = [ `Value of 'a | `Inconsistent ]
 

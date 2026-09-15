@@ -11,7 +11,7 @@ open Cvalue
 
 (* Truth values for a predicate analyzed by the value analysis *)
 
-type predicate_status = Abstract_interp.Comp.result = True | False | Unknown
+type predicate_status = Abstract_interp.truth = True | False | Unknown
 
 let join_predicate_status x y = match x, y with
   | True, True -> True

@@ -20,7 +20,7 @@ val offsetmap_of_loc:
 
 val backward_comp_left_from_type:
   logic_type ->
-  (bool -> Abstract_interp.Comp.t -> Cvalue.V.t -> Cvalue.V.t -> Cvalue.V.t)
+  (bool -> relation -> Cvalue.V.t -> Cvalue.V.t -> Cvalue.V.t)
 (** Reduction of a {!Cvalue.V.t} by [==], [!=], [>=], [>], [<=] and [<].
     [backward_comp_left_from_type positive op l r] reduces [l]
     so that the relation [l op r] holds. [typ] is the type of [l]. *)

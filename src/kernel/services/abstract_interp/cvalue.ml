@@ -355,9 +355,9 @@ module V = struct
     with Not_based_on_null -> l
 
   let inject_comp_result = function
-    | Comp.True -> singleton_one
-    | Comp.False -> singleton_zero
-    | Comp.Unknown -> zero_or_one
+    | True -> singleton_one
+    | False -> singleton_zero
+    | Unknown -> zero_or_one
 
   let forward_rel_int ~signed op e1 e2 =
     try
@@ -382,14 +382,14 @@ module V = struct
           else Unknown
         end
       end
-    with Not_found -> Comp.Unknown
+    with Not_found -> Unknown
 
   let forward_eq_int e1 e2 =
     if (equal e1 e2) && (cardinal_zero_or_one e1)
-    then Comp.True
+    then True
     else if intersects e1 e2
-    then Comp.Unknown
-    else Comp.False
+    then Unknown
+    else False
 
   let forward_comp_int ~signed op v1 v2 =
     match op with

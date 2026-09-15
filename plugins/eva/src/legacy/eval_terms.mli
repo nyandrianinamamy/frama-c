@@ -12,7 +12,7 @@ open Cil_types
 open Cvalue
 
 (** Evaluating a predicate. [Unknown] is the Top of the lattice *)
-type predicate_status = Abstract_interp.Comp.result = True | False | Unknown
+type predicate_status = Abstract_interp.truth = True | False | Unknown
 
 val join_predicate_status :
   predicate_status -> predicate_status -> predicate_status

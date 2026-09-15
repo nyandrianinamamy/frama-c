@@ -336,8 +336,8 @@ let intersects v1 v2 =
   | Int i1, Int i2 -> Int_val.intersects i1 i2
   | Float f1, Float f2 -> begin
       match Fval.forward_comp Req f1 f2 with
-      | Comp.False -> false
-      | Comp.True | Comp.Unknown -> true
+      | False -> false
+      | True | Unknown -> true
     end
   | Float f, other | other, Float f ->
     equal top other || (Fval.contains_plus_zero f && contains_zero other)

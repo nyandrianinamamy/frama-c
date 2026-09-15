@@ -12,7 +12,7 @@ open Cvalue
 open Cil_types
 open Abstract_value
 
-val are_comparable: Abstract_interp.Comp.t -> V.t -> V.t -> bool
+val are_comparable: relation -> V.t -> V.t -> bool
 
 (** Subtype of {!Abstract_value.truth}. *)
 type 'a truth = [ `False | `Unknown of 'a | `True ]

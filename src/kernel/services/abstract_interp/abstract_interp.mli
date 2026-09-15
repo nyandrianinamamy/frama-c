@@ -30,16 +30,11 @@ val inv_truth: truth -> truth
 
 (** Signatures for comparison operators [==, !=, <, >, <=, >=]. *)
 module Comp: sig
-  type t = Cil_types.relation (** comparison operators *)
 
-  type result = truth = True | False | Unknown (** result of a comparison *)
-
-  val pretty_comp: t Pretty_utils.formatter
-
-  val inv: t -> t
+  val inv: Cil_types.relation -> Cil_types.relation
   (** Inverse relation: [a op b <==> ! (a (inv op) b)].  *)
 
-  val sym: t -> t
+  val sym: Cil_types.relation -> Cil_types.relation
   (** Opposite relation: [a op b <==> b (sym op) a]. *)
 
 end

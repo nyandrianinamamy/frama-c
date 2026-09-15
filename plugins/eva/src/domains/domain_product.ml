@@ -247,7 +247,7 @@ module Make
       (* This may happen when the product of states has no concretization.
          We would need an "Inconsistent" status to be precise, but it should
          not be usable by the domains. *)
-      Abstract_interp.Comp.True
+      Abstract_interp.True
     | `Value status -> status
 
   let reduce_by_predicate logic_environment (left, right) pred positive =

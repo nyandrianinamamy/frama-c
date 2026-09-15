@@ -30,9 +30,9 @@ val translate_init_or_str : Cil_types.init_or_str -> init_or_str
 (** Inverse a relation, op must be a comparison operator *)
 val invert_relation : binop -> binop
 
-(** Convert a relation to Abstract_interp.Comp, op must be a comparison
-    operator *)
-val conv_relation : binop -> Abstract_interp.Comp.t
+(** Convert a binary operator to a relation operator, op must be a comparison
+    operator. *)
+val conv_relation : binop -> Cil_types.relation
 
 (** [normalize_condition e positive] returns the expression corresponding to
     [e != 0] when [positive] is true, and [e == 0] otherwise. The

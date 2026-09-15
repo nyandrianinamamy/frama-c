@@ -24,9 +24,7 @@ let inv_truth = function
   | False -> True
 
 module Comp = struct
-  type t = Cil_types.relation = Rlt | Rgt | Rle | Rge | Req | Rneq
-
-  type result = truth = True | False | Unknown
+  open Cil_types
 
   let inv = function
     | Rgt -> Rle
@@ -43,16 +41,6 @@ module Comp = struct
     | Rge -> Rle
     | Req -> Req
     | Rneq -> Rneq
-
-  let pretty_comp fmt = function
-    | Rgt -> Format.pp_print_string fmt ">"
-    | Rlt -> Format.pp_print_string fmt "<"
-    | Rle -> Format.pp_print_string fmt "<="
-    | Rge -> Format.pp_print_string fmt ">="
-    | Req -> Format.pp_print_string fmt "=="
-    | Rneq -> Format.pp_print_string fmt "!="
-
-
 end
 
 
