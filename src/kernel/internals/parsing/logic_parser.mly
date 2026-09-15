@@ -634,8 +634,7 @@ lexpr_inner:
 | EMPTY { info $sloc PLempty }
 | BSUNION LPAR lexpr_list RPAR { info $sloc (PLunion $3) }
 | INTER LPAR lexpr_list RPAR { info $sloc (PLinter $3) }
-| LBRACE RBRACE
-    { info $sloc (PLset []) }
+| LBRACE RBRACE { info $sloc (PLset []) }
 /* because LONGIDENT can be both a type name or a plain identifier,
    we can't have a full lexpr here, as there would be an ambiguity
    in { x | a::b * ...: should a::b be considered as a type (hence
