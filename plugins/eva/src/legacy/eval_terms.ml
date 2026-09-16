@@ -2156,10 +2156,7 @@ and reduce_by_relation ~alarm_mode env positive t1 rel t2 =
       | _ -> reduce_left_by_relation ~alarm_mode env positive t1 rel t2
     in
     let env = reduce_left env t1 rel t2 in
-    let sym_rel = match rel with
-      | Rgt -> Rlt | Rlt -> Rgt | Rle -> Rge | Rge -> Rle
-      | Req -> Req | Rneq -> Rneq
-    in
+    let sym_rel = Logic_utils.symmetric_relation rel in
     reduce_left env t2 sym_rel t1
 
 (* if you add something here, update [known_predicates] above also
