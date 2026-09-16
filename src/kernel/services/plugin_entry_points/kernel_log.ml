@@ -331,6 +331,8 @@ let wkey_multi_from = register_warn_category "annot:multi-from"
 
 let wkey_no_proto = register_warn_category "typing:no-proto"
 
+let wkey_pp_double_std = register_warn_category "pp:extra-args-std"
+
 let wkey_parser_unsupported = register_warn_category "parser:unsupported"
 
 let wkey_parser_unsupported_attributes = register_warn_category "parser:unsupported:attributes"
