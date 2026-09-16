@@ -46,6 +46,9 @@ extern  __attribute__((__FC_BUILTIN__)) int __e_acsl_sound_verdict;
     behavior stat_loc_non_null:
       assumes stat_loc_non_null: stat_loc != \null;
       requires valid_stat_loc: \valid(stat_loc);
+      assigns \result, *stat_loc;
+      assigns \result \from (indirect: options);
+      assigns *stat_loc \from (indirect: options);
  */
 pid_t __gen_e_acsl_waitpid(pid_t pid, int *stat_loc, int options);
 
@@ -126,6 +129,9 @@ pid_t __gen_e_acsl_fork(void)
     behavior stat_loc_non_null:
       assumes stat_loc_non_null: stat_loc != \null;
       requires valid_stat_loc: \valid(stat_loc);
+      assigns \result, *stat_loc;
+      assigns \result \from (indirect: options);
+      assigns *stat_loc \from (indirect: options);
  */
 pid_t __gen_e_acsl_waitpid(pid_t pid, int *stat_loc, int options)
 {

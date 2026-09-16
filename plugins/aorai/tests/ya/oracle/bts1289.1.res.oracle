@@ -48,28 +48,189 @@ enum aorai_OpStatusList {
      
      behavior buch_state_S_out:
        ensures 0 ≡ S;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns S
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns T
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
      
      behavior buch_state_T_out:
        ensures 0 ≡ T;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns S
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns T
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
      
      behavior buch_state_aorai_intermediate_state_in:
        assumes 1 ≡ S;
        ensures 1 ≡ aorai_intermediate_state;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns S
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns T
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
      
      behavior buch_state_aorai_intermediate_state_out:
        assumes 0 ≡ S;
        ensures 0 ≡ aorai_intermediate_state;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns S
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns T
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
      
      behavior buch_state_aorai_intermediate_state_0_in:
        assumes 1 ≡ T;
        ensures 1 ≡ aorai_intermediate_state_0;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns S
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns T
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
      
      behavior buch_state_aorai_intermediate_state_0_out:
        assumes 0 ≡ T;
        ensures 0 ≡ aorai_intermediate_state_0;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns S
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns T
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
      
      behavior buch_state_init_out:
        ensures 0 ≡ init;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns S
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns T
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
    @/
   void a_pre_func(void)
   {
@@ -137,27 +298,188 @@ enum aorai_OpStatusList {
      behavior buch_state_S_in:
        assumes 1 ≡ aorai_intermediate_state_0;
        ensures 1 ≡ S;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns S
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns T
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
      
      behavior buch_state_S_out:
        assumes 0 ≡ aorai_intermediate_state_0;
        ensures 0 ≡ S;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns S
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns T
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
      
      behavior buch_state_T_in:
        assumes 1 ≡ aorai_intermediate_state;
        ensures 1 ≡ T;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns S
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns T
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
      
      behavior buch_state_T_out:
        assumes 0 ≡ aorai_intermediate_state;
        ensures 0 ≡ T;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns S
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns T
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
      
      behavior buch_state_aorai_intermediate_state_out:
        ensures 0 ≡ aorai_intermediate_state;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns S
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns T
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
      
      behavior buch_state_aorai_intermediate_state_0_out:
        ensures 0 ≡ aorai_intermediate_state_0;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns S
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns T
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
      
      behavior buch_state_init_out:
        ensures 0 ≡ init;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns S
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns T
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
    @/
   void a_post_func(void)
   {
@@ -261,22 +583,160 @@ void a(void)
      behavior buch_state_S_in:
        assumes 1 ≡ init;
        ensures 1 ≡ S;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns S
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns T
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
      
      behavior buch_state_S_out:
        assumes 0 ≡ init;
        ensures 0 ≡ S;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns S
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns T
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
      
      behavior buch_state_T_out:
        ensures 0 ≡ T;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns S
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns T
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
      
      behavior buch_state_aorai_intermediate_state_out:
        ensures 0 ≡ aorai_intermediate_state;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns S
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns T
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
      
      behavior buch_state_aorai_intermediate_state_0_out:
        ensures 0 ≡ aorai_intermediate_state_0;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns S
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns T
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
      
      behavior buch_state_init_out:
        ensures 0 ≡ init;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns S
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns T
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
    @/
   void main_pre_func(void)
   {
@@ -342,22 +802,160 @@ void a(void)
      behavior buch_state_S_in:
        assumes 1 ≡ S;
        ensures 1 ≡ S;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns S
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns T
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
      
      behavior buch_state_S_out:
        assumes 0 ≡ S;
        ensures 0 ≡ S;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns S
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns T
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
      
      behavior buch_state_T_out:
        ensures 0 ≡ T;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns S
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns T
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
      
      behavior buch_state_aorai_intermediate_state_out:
        ensures 0 ≡ aorai_intermediate_state;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns S
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns T
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
      
      behavior buch_state_aorai_intermediate_state_0_out:
        ensures 0 ≡ aorai_intermediate_state_0;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns S
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns T
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
      
      behavior buch_state_init_out:
        ensures 0 ≡ init;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns S
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns T
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, S, T,
+               aorai_intermediate_state, aorai_intermediate_state_0, init;
    @/
   void main_post_func(void)
   {

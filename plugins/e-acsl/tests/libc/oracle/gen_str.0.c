@@ -33,11 +33,17 @@ char *__gen_e_acsl_strcpy(char * restrict dest, char const * restrict src);
     behavior complete:
       assumes src_fits: strlen(src) < n;
       ensures equal_after_copy: strcmp(\old(dest), \old(src)) == 0;
+      assigns *(dest + (0 .. n - 1)), \result;
+      assigns *(dest + (0 .. n - 1)) \from *(src + (0 .. n - 1));
+      assigns \result \from dest;
     
     behavior partial:
       assumes src_too_long: n <= strlen(src);
       ensures
         equal_prefix: memcmp{Post, Post}(\old(dest), \old(src), \old(n)) == 0;
+      assigns *(dest + (0 .. n - 1)), \result;
+      assigns *(dest + (0 .. n - 1)) \from *(src + (0 .. n - 1));
+      assigns \result \from dest;
  */
 char *__gen_e_acsl_strncpy(char * restrict dest, char const * restrict src,
                            size_t n);
@@ -590,11 +596,17 @@ char *__gen_e_acsl_strcat(char * restrict dest, char const * restrict src)
     behavior complete:
       assumes src_fits: strlen(src) < n;
       ensures equal_after_copy: strcmp(\old(dest), \old(src)) == 0;
+      assigns *(dest + (0 .. n - 1)), \result;
+      assigns *(dest + (0 .. n - 1)) \from *(src + (0 .. n - 1));
+      assigns \result \from dest;
     
     behavior partial:
       assumes src_too_long: n <= strlen(src);
       ensures
         equal_prefix: memcmp{Post, Post}(\old(dest), \old(src), \old(n)) == 0;
+      assigns *(dest + (0 .. n - 1)), \result;
+      assigns *(dest + (0 .. n - 1)) \from *(src + (0 .. n - 1));
+      assigns \result \from dest;
  */
 char *__gen_e_acsl_strncpy(char * restrict dest, char const * restrict src,
                            size_t n)

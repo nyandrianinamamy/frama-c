@@ -30,14 +30,41 @@ enum aorai_OpStatusList {
      
      behavior buch_state_S0_out:
        ensures 0 ≡ S0;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S0, S1;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, S1, s->x, s;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, S1, s->x, s;
+       assigns S0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, S1, s->x, s;
+       assigns S1
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, S1, s->x, s;
      
      behavior buch_state_S1_in:
        assumes 1 ≡ S0 ∧ (s->x < 0 ∨ s->x ≥ 0);
        ensures 1 ≡ S1;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S0, S1;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, S1, s->x, s;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, S1, s->x, s;
+       assigns S0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, S1, s->x, s;
+       assigns S1
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, S1, s->x, s;
      
      behavior buch_state_S1_out:
        assumes 0 ≡ S0 ∨ (¬(s->x < 0) ∧ ¬(s->x ≥ 0));
        ensures 0 ≡ S1;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S0, S1;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, S1, s->x, s;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, S1, s->x, s;
+       assigns S0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, S1, s->x, s;
+       assigns S1
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, S1, s->x, s;
    @/
   void main_pre_func(struct S *s)
   {
@@ -80,14 +107,35 @@ enum aorai_OpStatusList {
      
      behavior buch_state_S0_out:
        ensures 0 ≡ S0;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S0, S1;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, S1;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, S1;
+       assigns S0 \from aorai_CurOpStatus, aorai_CurOperation, S0, S1;
+       assigns S1 \from aorai_CurOpStatus, aorai_CurOperation, S0, S1;
      
      behavior buch_state_S1_in:
        assumes 1 ≡ S1;
        ensures 1 ≡ S1;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S0, S1;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, S1;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, S1;
+       assigns S0 \from aorai_CurOpStatus, aorai_CurOperation, S0, S1;
+       assigns S1 \from aorai_CurOpStatus, aorai_CurOperation, S0, S1;
      
      behavior buch_state_S1_out:
        assumes 0 ≡ S1;
        ensures 0 ≡ S1;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S0, S1;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, S1;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, S1;
+       assigns S0 \from aorai_CurOpStatus, aorai_CurOperation, S0, S1;
+       assigns S1 \from aorai_CurOpStatus, aorai_CurOperation, S0, S1;
    @/
   void main_post_func(void)
   {

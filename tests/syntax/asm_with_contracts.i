@@ -17,7 +17,6 @@ int f(int z) {
   asm ("mov %1, %0\n\t" : "=r" (x) : "r" (y));
 
   /*@
-    assigns x,y;
     behavior c:
       assumes x>=0;
       ensures y>=0;

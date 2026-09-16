@@ -46,6 +46,9 @@ extern  __attribute__((__FC_BUILTIN__)) int __e_acsl_sound_verdict;
     behavior stat_loc_non_null:
       assumes stat_loc_non_null: stat_loc != \null;
       requires valid_stat_loc: \valid(stat_loc);
+      assigns \result, *stat_loc;
+      assigns \result \from (indirect: options);
+      assigns *stat_loc \from (indirect: options);
  */
 pid_t __gen_e_acsl_waitpid(pid_t pid, int *stat_loc, int options);
 
@@ -78,10 +81,16 @@ size_t __gen_e_acsl_strlen(char const *s);
       ensures
         result_first_occurrence:
           \forall char *p; \old(s) <= p < \result ==> *p != (char)\old(c);
+      assigns \result;
+      assigns \result
+        \from s, (indirect: *(s + (0 .. strlen{Old}(s)))), (indirect: c);
     
     behavior not_found:
       assumes char_not_found: !(strchr(s, c) == \true);
       ensures result_null: \result == \null;
+      assigns \result;
+      assigns \result
+        \from s, (indirect: *(s + (0 .. strlen{Old}(s)))), (indirect: c);
     
     complete behaviors not_found, found;
     disjoint behaviors not_found, found;
@@ -485,10 +494,16 @@ char *__gen_e_acsl_strcpy(char * restrict dest, char const * restrict src)
       ensures
         result_first_occurrence:
           \forall char *p; \old(s) <= p < \result ==> *p != (char)\old(c);
+      assigns \result;
+      assigns \result
+        \from s, (indirect: *(s + (0 .. strlen{Old}(s)))), (indirect: c);
     
     behavior not_found:
       assumes char_not_found: !(strchr(s, c) == \true);
       ensures result_null: \result == \null;
+      assigns \result;
+      assigns \result
+        \from s, (indirect: *(s + (0 .. strlen{Old}(s)))), (indirect: c);
     
     complete behaviors not_found, found;
     disjoint behaviors not_found, found;
@@ -847,6 +862,9 @@ pid_t __gen_e_acsl_fork(void)
     behavior stat_loc_non_null:
       assumes stat_loc_non_null: stat_loc != \null;
       requires valid_stat_loc: \valid(stat_loc);
+      assigns \result, *stat_loc;
+      assigns \result \from (indirect: options);
+      assigns *stat_loc \from (indirect: options);
  */
 pid_t __gen_e_acsl_waitpid(pid_t pid, int *stat_loc, int options)
 {

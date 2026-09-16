@@ -32,9 +32,11 @@ int g(void)
     
     behavior b1:
       assumes \true;
+      assigns \nothing;
     
     behavior b2:
       assumes \false;
+      assigns \nothing;
     
     disjoint behaviors b1, b2;
  */

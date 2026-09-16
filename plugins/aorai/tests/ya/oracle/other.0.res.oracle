@@ -36,28 +36,94 @@ int x = 0;
      behavior buch_state_init_in:
        assumes (1 ≡ last ∧ x ≡ 4) ∨ (1 ≡ init ∧ x ≢ 3);
        ensures 1 ≡ init;
+       assigns aorai_CurOpStatus, aorai_CurOperation, init, last, step1;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns last
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns step1
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
      
      behavior buch_state_init_out:
        assumes (0 ≡ last ∨ ¬(x ≡ 4)) ∧ (0 ≡ init ∨ ¬(x ≢ 3));
        ensures 0 ≡ init;
+       assigns aorai_CurOpStatus, aorai_CurOperation, init, last, step1;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns last
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns step1
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
      
      behavior buch_state_last_in:
        assumes (1 ≡ step1 ∧ x ≡ 4) ∨ (1 ≡ last ∧ x ≢ 4 ∧ x ≢ 3);
        ensures 1 ≡ last;
+       assigns aorai_CurOpStatus, aorai_CurOperation, init, last, step1;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns last
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns step1
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
      
      behavior buch_state_last_out:
        assumes (0 ≡ step1 ∨ ¬(x ≡ 4)) ∧ (0 ≡ last ∨ ¬(x ≢ 4 ∧ x ≢ 3));
        ensures 0 ≡ last;
+       assigns aorai_CurOpStatus, aorai_CurOperation, init, last, step1;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns last
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns step1
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
      
      behavior buch_state_step1_in:
        assumes (1 ≡ step1 ∧ x ≢ 4) ∨ (1 ≡ last ∧ x ≡ 3) ∨ (1 ≡ init ∧ x ≡ 3);
        ensures 1 ≡ step1;
+       assigns aorai_CurOpStatus, aorai_CurOperation, init, last, step1;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns last
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns step1
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
      
      behavior buch_state_step1_out:
        assumes
          (0 ≡ step1 ∨ ¬(x ≢ 4)) ∧ (0 ≡ last ∨ ¬(x ≡ 3)) ∧
          (0 ≡ init ∨ ¬(x ≡ 3));
        ensures 0 ≡ step1;
+       assigns aorai_CurOpStatus, aorai_CurOperation, init, last, step1;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns last
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns step1
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
    @/
   void f_pre_func(void)
   {
@@ -135,28 +201,94 @@ int x = 0;
      behavior buch_state_init_in:
        assumes (1 ≡ last ∧ x ≡ 4) ∨ (1 ≡ init ∧ x ≢ 3);
        ensures 1 ≡ init;
+       assigns aorai_CurOpStatus, aorai_CurOperation, init, last, step1;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns last
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns step1
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
      
      behavior buch_state_init_out:
        assumes (0 ≡ last ∨ ¬(x ≡ 4)) ∧ (0 ≡ init ∨ ¬(x ≢ 3));
        ensures 0 ≡ init;
+       assigns aorai_CurOpStatus, aorai_CurOperation, init, last, step1;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns last
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns step1
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
      
      behavior buch_state_last_in:
        assumes (1 ≡ step1 ∧ x ≡ 4) ∨ (1 ≡ last ∧ x ≢ 4 ∧ x ≢ 3);
        ensures 1 ≡ last;
+       assigns aorai_CurOpStatus, aorai_CurOperation, init, last, step1;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns last
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns step1
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
      
      behavior buch_state_last_out:
        assumes (0 ≡ step1 ∨ ¬(x ≡ 4)) ∧ (0 ≡ last ∨ ¬(x ≢ 4 ∧ x ≢ 3));
        ensures 0 ≡ last;
+       assigns aorai_CurOpStatus, aorai_CurOperation, init, last, step1;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns last
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns step1
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
      
      behavior buch_state_step1_in:
        assumes (1 ≡ step1 ∧ x ≢ 4) ∨ (1 ≡ last ∧ x ≡ 3) ∨ (1 ≡ init ∧ x ≡ 3);
        ensures 1 ≡ step1;
+       assigns aorai_CurOpStatus, aorai_CurOperation, init, last, step1;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns last
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns step1
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
      
      behavior buch_state_step1_out:
        assumes
          (0 ≡ step1 ∨ ¬(x ≢ 4)) ∧ (0 ≡ last ∨ ¬(x ≡ 3)) ∧
          (0 ≡ init ∨ ¬(x ≡ 3));
        ensures 0 ≡ step1;
+       assigns aorai_CurOpStatus, aorai_CurOperation, init, last, step1;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns last
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns step1
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
    @/
   void f_post_func(void)
   {
@@ -290,28 +422,94 @@ void f(void)
      behavior buch_state_init_in:
        assumes (1 ≡ last ∧ x ≡ 4) ∨ (1 ≡ init ∧ x ≢ 3);
        ensures 1 ≡ init;
+       assigns aorai_CurOpStatus, aorai_CurOperation, init, last, step1;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns last
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns step1
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
      
      behavior buch_state_init_out:
        assumes (0 ≡ last ∨ ¬(x ≡ 4)) ∧ (0 ≡ init ∨ ¬(x ≢ 3));
        ensures 0 ≡ init;
+       assigns aorai_CurOpStatus, aorai_CurOperation, init, last, step1;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns last
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns step1
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
      
      behavior buch_state_last_in:
        assumes (1 ≡ step1 ∧ x ≡ 4) ∨ (1 ≡ last ∧ x ≢ 4 ∧ x ≢ 3);
        ensures 1 ≡ last;
+       assigns aorai_CurOpStatus, aorai_CurOperation, init, last, step1;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns last
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns step1
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
      
      behavior buch_state_last_out:
        assumes (0 ≡ step1 ∨ ¬(x ≡ 4)) ∧ (0 ≡ last ∨ ¬(x ≢ 4 ∧ x ≢ 3));
        ensures 0 ≡ last;
+       assigns aorai_CurOpStatus, aorai_CurOperation, init, last, step1;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns last
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns step1
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
      
      behavior buch_state_step1_in:
        assumes (1 ≡ step1 ∧ x ≢ 4) ∨ (1 ≡ last ∧ x ≡ 3) ∨ (1 ≡ init ∧ x ≡ 3);
        ensures 1 ≡ step1;
+       assigns aorai_CurOpStatus, aorai_CurOperation, init, last, step1;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns last
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns step1
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
      
      behavior buch_state_step1_out:
        assumes
          (0 ≡ step1 ∨ ¬(x ≢ 4)) ∧ (0 ≡ last ∨ ¬(x ≡ 3)) ∧
          (0 ≡ init ∨ ¬(x ≡ 3));
        ensures 0 ≡ step1;
+       assigns aorai_CurOpStatus, aorai_CurOperation, init, last, step1;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns last
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns step1
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
    @/
   void g_pre_func(void)
   {
@@ -389,28 +587,94 @@ void f(void)
      behavior buch_state_init_in:
        assumes (1 ≡ last ∧ x ≡ 4) ∨ (1 ≡ init ∧ x ≢ 3);
        ensures 1 ≡ init;
+       assigns aorai_CurOpStatus, aorai_CurOperation, init, last, step1;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns last
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns step1
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
      
      behavior buch_state_init_out:
        assumes (0 ≡ last ∨ ¬(x ≡ 4)) ∧ (0 ≡ init ∨ ¬(x ≢ 3));
        ensures 0 ≡ init;
+       assigns aorai_CurOpStatus, aorai_CurOperation, init, last, step1;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns last
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns step1
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
      
      behavior buch_state_last_in:
        assumes (1 ≡ step1 ∧ x ≡ 4) ∨ (1 ≡ last ∧ x ≢ 4 ∧ x ≢ 3);
        ensures 1 ≡ last;
+       assigns aorai_CurOpStatus, aorai_CurOperation, init, last, step1;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns last
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns step1
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
      
      behavior buch_state_last_out:
        assumes (0 ≡ step1 ∨ ¬(x ≡ 4)) ∧ (0 ≡ last ∨ ¬(x ≢ 4 ∧ x ≢ 3));
        ensures 0 ≡ last;
+       assigns aorai_CurOpStatus, aorai_CurOperation, init, last, step1;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns last
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns step1
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
      
      behavior buch_state_step1_in:
        assumes (1 ≡ step1 ∧ x ≢ 4) ∨ (1 ≡ last ∧ x ≡ 3) ∨ (1 ≡ init ∧ x ≡ 3);
        ensures 1 ≡ step1;
+       assigns aorai_CurOpStatus, aorai_CurOperation, init, last, step1;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns last
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns step1
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
      
      behavior buch_state_step1_out:
        assumes
          (0 ≡ step1 ∨ ¬(x ≢ 4)) ∧ (0 ≡ last ∨ ¬(x ≡ 3)) ∧
          (0 ≡ init ∨ ¬(x ≡ 3));
        ensures 0 ≡ step1;
+       assigns aorai_CurOpStatus, aorai_CurOperation, init, last, step1;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns last
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns step1
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
    @/
   void g_post_func(void)
   {
@@ -543,21 +807,76 @@ void g(void)
      behavior buch_state_init_in:
        assumes 1 ≡ init ∧ x ≢ 3;
        ensures 1 ≡ init;
+       assigns aorai_CurOpStatus, aorai_CurOperation, init, last, step1;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns last
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns step1
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
      
      behavior buch_state_init_out:
        assumes 0 ≡ init ∨ ¬(x ≢ 3);
        ensures 0 ≡ init;
+       assigns aorai_CurOpStatus, aorai_CurOperation, init, last, step1;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns last
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns step1
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
      
      behavior buch_state_last_out:
        ensures 0 ≡ last;
+       assigns aorai_CurOpStatus, aorai_CurOperation, init, last, step1;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns last
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns step1
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
      
      behavior buch_state_step1_in:
        assumes 1 ≡ init ∧ x ≡ 3;
        ensures 1 ≡ step1;
+       assigns aorai_CurOpStatus, aorai_CurOperation, init, last, step1;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns last
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns step1
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
      
      behavior buch_state_step1_out:
        assumes 0 ≡ init ∨ ¬(x ≡ 3);
        ensures 0 ≡ step1;
+       assigns aorai_CurOpStatus, aorai_CurOperation, init, last, step1;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns last
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns step1
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
    @/
   void main_pre_func(void)
   {
@@ -606,28 +925,94 @@ void g(void)
      behavior buch_state_init_in:
        assumes (1 ≡ last ∧ x ≡ 4) ∨ (1 ≡ init ∧ x ≢ 3);
        ensures 1 ≡ init;
+       assigns aorai_CurOpStatus, aorai_CurOperation, init, last, step1;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns last
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns step1
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
      
      behavior buch_state_init_out:
        assumes (0 ≡ last ∨ ¬(x ≡ 4)) ∧ (0 ≡ init ∨ ¬(x ≢ 3));
        ensures 0 ≡ init;
+       assigns aorai_CurOpStatus, aorai_CurOperation, init, last, step1;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns last
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns step1
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
      
      behavior buch_state_last_in:
        assumes (1 ≡ step1 ∧ x ≡ 4) ∨ (1 ≡ last ∧ x ≢ 4 ∧ x ≢ 3);
        ensures 1 ≡ last;
+       assigns aorai_CurOpStatus, aorai_CurOperation, init, last, step1;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns last
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns step1
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
      
      behavior buch_state_last_out:
        assumes (0 ≡ step1 ∨ ¬(x ≡ 4)) ∧ (0 ≡ last ∨ ¬(x ≢ 4 ∧ x ≢ 3));
        ensures 0 ≡ last;
+       assigns aorai_CurOpStatus, aorai_CurOperation, init, last, step1;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns last
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns step1
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
      
      behavior buch_state_step1_in:
        assumes (1 ≡ step1 ∧ x ≢ 4) ∨ (1 ≡ last ∧ x ≡ 3) ∨ (1 ≡ init ∧ x ≡ 3);
        ensures 1 ≡ step1;
+       assigns aorai_CurOpStatus, aorai_CurOperation, init, last, step1;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns last
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns step1
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
      
      behavior buch_state_step1_out:
        assumes
          (0 ≡ step1 ∨ ¬(x ≢ 4)) ∧ (0 ≡ last ∨ ¬(x ≡ 3)) ∧
          (0 ≡ init ∨ ¬(x ≡ 3));
        ensures 0 ≡ step1;
+       assigns aorai_CurOpStatus, aorai_CurOperation, init, last, step1;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns init
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns last
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
+       assigns step1
+         \from aorai_CurOpStatus, aorai_CurOperation, init, last, step1, x;
    @/
   void main_post_func(int res)
   {

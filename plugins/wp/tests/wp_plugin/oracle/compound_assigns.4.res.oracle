@@ -439,6 +439,42 @@ Assume {
 Prove: EqS1_A(a_5, a_4).
 
 ------------------------------------------------------------
+
+Goal Assigns for 'Left' ("compound_assigns.i", line 52, characters 11-13) in 'copy' (1/6):
+Effect at line 66
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns for 'Left' ("compound_assigns.i", line 52, characters 11-13) in 'copy' (2/6):
+Effect at line 66
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns for 'Left' ("compound_assigns.i", line 52, characters 11-13) in 'copy' (3/6):
+Effect at line 67
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns for 'Left' ("compound_assigns.i", line 52, characters 11-13) in 'copy' (4/6):
+Effect at line 67
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns for 'Left' ("compound_assigns.i", line 52, characters 11-13) in 'copy' (5/6):
+Effect at line 69
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns for 'Left' ("compound_assigns.i", line 52, characters 11-13) in 'copy' (6/6):
+Effect at line 71
+Prove: true.
+
+------------------------------------------------------------
 ------------------------------------------------------------
   Function copy with behavior Right
 ------------------------------------------------------------
@@ -531,6 +567,42 @@ Assume {
   Have: a = a_1.
 }
 Prove: EqS1_A(a, a_1).
+
+------------------------------------------------------------
+
+Goal Assigns for 'Right' ("compound_assigns.i", line 52, characters 11-13) in 'copy' (1/6):
+Effect at line 66
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns for 'Right' ("compound_assigns.i", line 52, characters 11-13) in 'copy' (2/6):
+Effect at line 66
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns for 'Right' ("compound_assigns.i", line 52, characters 11-13) in 'copy' (3/6):
+Effect at line 67
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns for 'Right' ("compound_assigns.i", line 52, characters 11-13) in 'copy' (4/6):
+Effect at line 67
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns for 'Right' ("compound_assigns.i", line 52, characters 11-13) in 'copy' (5/6):
+Effect at line 69
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns for 'Right' ("compound_assigns.i", line 52, characters 11-13) in 'copy' (6/6):
+Effect at line 71
+Prove: true.
 
 ------------------------------------------------------------
 ------------------------------------------------------------

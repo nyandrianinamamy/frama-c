@@ -27,11 +27,13 @@ extern void exit(int val);
     behavior no_exit:
       assumes cond != 0;
       exits False;
+      assigns \nothing;
     
     behavior no_return:
       assumes cond == 0;
       exits \exit_status == \old(val);
       ensures \false;
+      assigns \nothing;
     
     complete behaviors no_return, no_exit;
     disjoint behaviors no_return, no_exit;
