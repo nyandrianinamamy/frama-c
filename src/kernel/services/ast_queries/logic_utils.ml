@@ -839,36 +839,6 @@ let is_same_pconstant c1 c2 =
   | StringConstant _,_ | _,StringConstant _ -> false
   | WStringConstant c1, WStringConstant c2 -> c1 = c2
 
-let is_same_binop o1 o2 =
-  match o1,o2 with
-  | PlusA, PlusA
-  | PlusPI, PlusPI
-  | MinusA, MinusA
-  | MinusPI, MinusPI
-  | MinusPP, MinusPP
-  | Mult, Mult
-  | Div, Div
-  | Mod, Mod
-  | Shiftlt, Shiftlt
-  | Shiftrt, Shiftrt
-  | Cil_types.Lt, Cil_types.Lt
-  | Cil_types.Gt, Cil_types.Gt
-  | Cil_types.Le, Cil_types.Le
-  | Cil_types.Ge, Cil_types.Ge
-  | Cil_types.Eq, Cil_types.Eq
-  | Cil_types.Ne, Cil_types.Ne
-  | BAnd, BAnd
-  | BXor, BXor
-  | BOr, BOr
-  | LAnd, LAnd
-  | LOr, LOr ->
-    true
-  | (PlusA | PlusPI | MinusA | MinusPI | MinusPP | Mult | Div
-    | Mod | Shiftlt | Shiftrt | Cil_types.Lt | Cil_types.Gt | Cil_types.Le
-    | Cil_types.Ge | Cil_types.Eq | Cil_types.Ne
-    | BAnd | BXor | BOr | LAnd | LOr), _ ->
-    false
-
 let rec is_same_term t1 t2 =
   match t1.term_node, t2.term_node with
     TConst c1, TConst c2 -> Cil_datatype.Logic_constant.equal c1 c2
@@ -879,7 +849,7 @@ let rec is_same_term t1 t2 =
   | TAlignOfE t1, TAlignOfE t2 -> is_same_term t1 t2
   | TUnOp (o1,t1), TUnOp(o2,t2) -> o1 = o2 && is_same_term t1 t2
   | TBinOp(o1,l1,r1), TBinOp(o2,l2,r2) ->
-    is_same_binop o1 o2 && is_same_term l1 l2 && is_same_term r1 r2
+    Cil_types.equal_binop o1 o2 && is_same_term l1 l2 && is_same_term r1 r2
   | TCast (b1, ty1,t1), TCast (b2, ty2,t2) ->
     b1 = b2 && Cil_datatype.Logic_type_ByName.equal ty1 ty2 && is_same_term t1 t2
   | TAddrOf l1, TAddrOf l2 -> is_same_tlval l1 l2
@@ -1184,30 +1154,6 @@ let is_same_pl_constant c1 c2 =
   | (IntConstant _| FloatConstant _
     | StringConstant _ | WStringConstant _), _ -> false
 
-let is_same_unop op1 op2 =
-  let open Logic_ptree in
-  match op1,op2 with
-  | Uminus, Uminus
-  | Ubw_not, Ubw_not
-  | Ustar, Ustar
-  | Uamp, Uamp -> true
-  | (Uminus | Ustar | Uamp | Ubw_not), _ -> false
-
-let is_same_binop op1 op2 =
-  let open Logic_ptree in
-  match op1, op2 with
-  | Badd, Badd | Bsub, Bsub | Bmul, Bmul | Bdiv, Bdiv | Bmod, Bmod
-  | Bbw_and, Bbw_and | Bbw_or, Bbw_or | Bbw_xor, Bbw_xor
-  | Blshift, Blshift | Brshift, Brshift -> true
-  | (Badd | Bsub | Bmul | Bdiv | Bmod | Bbw_and | Bbw_or
-    | Bbw_xor | Blshift | Brshift),_ -> false
-
-let is_same_relation r1 r2 =
-  let open Logic_ptree in
-  match r1, r2 with
-  | Lt, Lt | Gt, Gt | Le, Le | Ge, Ge | Eq, Eq | Neq, Neq -> true
-  | (Lt | Gt | Le | Ge | Eq | Neq), _ -> false
-
 let rec is_same_pl_array_size c1 c2 =
   match c1,c2 with
   | None, None -> true
@@ -1282,7 +1228,7 @@ and is_same_update_term t1 t2 =
     in is_same_list is_same_elt l1 l2
   | PLupdExtCont l1, PLupdExtCont l2 ->
     let is_same_elt (p1,op1,e1) (p2,op2,e2) =
-      Logic_ptree.equal_upop op1 op2 &&
+      equal_upop op1 op2 &&
       is_same_string p1 p2 && is_same_update_term e1 e2
     in is_same_list is_same_elt l1 l2
   | (PLupdateTerm _ | PLupdateCont _ | PLupdExtCont _ ), _ -> false
@@ -1301,9 +1247,9 @@ and is_same_lexpr l1 l2 =
     x1 = x2 && is_same_lexpr d1 d2 && is_same_lexpr e1 e2
   | PLconstant c1, PLconstant c2 -> is_same_pl_constant c1 c2
   | PLunop(op1,e1), PLunop(op2,e2) ->
-    is_same_unop op1 op2 && is_same_lexpr e1 e2
+    equal_unop op1 op2 && is_same_lexpr e1 e2
   | PLbinop(le1,op1,re1), PLbinop(le2,op2,re2) ->
-    is_same_binop op1 op2 && is_same_lexpr le1 le2 && is_same_lexpr re1 re2
+    equal_binop op1 op2 && is_same_lexpr le1 le2 && is_same_lexpr re1 re2
   | PLdot(e1,f1), PLdot(e2,f2) | PLarrow(e1,f1), PLarrow(e2,f2) ->
     f1 = f2 && is_same_lexpr e1 e2
   | PLarrget(b1,o1), PLarrget(b2,o2) ->
@@ -1326,7 +1272,7 @@ and is_same_lexpr l1 l2 =
     is_same_lexpr b1 b2
     && is_same_list is_same_path_elt p1 p2 && is_same_update_term r1 r2
   | PLupdExt(b1,p1,op1,r1), PLupdExt(b2,p2,op2,r2) ->
-    Logic_ptree.equal_upop op1 op2 && is_same_lexpr b1 b2
+    equal_upop op1 op2 && is_same_lexpr b1 b2
     && is_same_string p1 p2 && is_same_update_term r1 r2
   | PLinitIndex l1, PLinitIndex l2 ->
     let is_same_elt (i1,v1) (i2,v2) =
@@ -1337,7 +1283,7 @@ and is_same_lexpr l1 l2 =
     is_same_list is_same_elt l1 l2
   | PLtype t1, PLtype t2 -> is_same_pl_type t1 t2
   | PLrel(le1,r1,re1), PLrel(le2,r2,re2) ->
-    is_same_relation r1 r2 && is_same_lexpr le1 le2 && is_same_lexpr re1 re2
+    equal_relation r1 r2 && is_same_lexpr le1 le2 && is_same_lexpr re1 re2
   | PLrepeat (l1, r1), PLrepeat (l2,r2)
   | PLand(l1,r1), PLand(l2,r2) | PLor(l1,r1), PLor(l2,r2)
   | PLimplies(l1,r1), PLimplies(l2,r2) | PLxor(l1,r1), PLxor(l2,r2)

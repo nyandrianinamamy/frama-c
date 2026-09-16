@@ -11,16 +11,16 @@
 
 (** comparison operators. *)
 type relation = Lt | Gt | Le | Ge | Eq | Neq
-[@@deriving show { with_path = false } ]
+[@@deriving eq, show { with_path = false } ]
 
 (** arithmetic and logic binary operators. *)
 type binop = Badd | Bsub | Bmul | Bdiv | Bmod | Bbw_and | Bbw_or | Bbw_xor |
              Blshift | Brshift
-[@@deriving show { with_path = false } ]
+[@@deriving eq, show { with_path = false } ]
 
 (** unary operators. *)
 type unop = Uminus | Ustar | Uamp | Ubw_not
-[@@deriving show { with_path = false } ]
+[@@deriving eq, show { with_path = false } ]
 
 (** update operators. *)
 type upop = UPequal | UPeq | UPcolon_eq |UPplus_eq | UPminus_eq | UPstar_eq |
