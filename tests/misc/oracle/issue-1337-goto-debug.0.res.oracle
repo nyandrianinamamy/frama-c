@@ -51,7 +51,7 @@
    Calls:
    
    */
-   x ++;}
+   x += 1;}
   LEADS TO
   
   
@@ -59,7 +59,7 @@
    Calls:
    
    */
-   x ++;}
+   x += 1;}
 [kernel:typing:chunk] Debug: 
   Concat:
   
@@ -76,7 +76,7 @@
    Calls:
    
    */
-   x ++;}
+   x += 1;}
   LEADS TO
   
   
@@ -89,7 +89,7 @@
    Calls:
    
    */
-   x ++;}
+   x += 1;}
 [kernel:typing:chunk] Debug: 
   Removing x from chunk
   /* UNDEFINED ORDER */
@@ -112,7 +112,7 @@
    Calls:
    
    */
-   x ++;}
+   x += 1;}
   LEADS TO
   
   
@@ -120,7 +120,7 @@
    Calls:
    
    */
-   x ++;}
+   x += 1;}
 [kernel:typing:chunk] Debug: 
   Concat:
   
@@ -134,7 +134,7 @@
    Calls:
    
    */
-   x ++;}
+   x += 1;}
   WITH
   
   
@@ -142,7 +142,7 @@
    Calls:
    
    */
-   L: x ++;}
+   L: x += 1;}
   LEADS TO
   
   
@@ -155,12 +155,12 @@
    Calls:
    
    */
-   x ++;;
+   x += 1;;
    /*() x <- 
    Calls:
    
    */
-   L: x ++;}
+   L: x += 1;}
 [kernel:typing:chunk] Debug: 
   Concat:
   
@@ -174,12 +174,12 @@
    Calls:
    
    */
-   x ++;;
+   x += 1;;
    /*() x <- 
    Calls:
    
    */
-   L: x ++;}
+   L: x += 1;}
   WITH
   
   
@@ -200,12 +200,12 @@
    Calls:
    
    */
-   x ++;;
+   x += 1;;
    /*() x <- 
    Calls:
    
    */
-   L: x ++;;
+   L: x += 1;;
    /*()  <- 
    Calls:
    
