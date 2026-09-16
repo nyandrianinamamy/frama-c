@@ -43,7 +43,7 @@ let backward_comp_int_left positive comp l r =
   && not (Cvalue_forward.are_comparable comp l r)
   then l
   else
-    let binop = if positive then comp else Comp.inv comp in
+    let binop = if positive then comp else Logic_utils.opposite_relation comp in
     V.backward_comp_int_left binop l r
 
 let backward_comp_float_left fkind positive comp l r =

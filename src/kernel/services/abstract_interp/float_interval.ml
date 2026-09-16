@@ -6,7 +6,6 @@
 (*                                                                        *)
 (**************************************************************************)
 
-module Comp = Abstract_interp.Comp
 open Lattice_bounds
 open Bottom.Operators
 
@@ -631,7 +630,8 @@ module Make (F: Float_sig.S) = struct
     else backward_comp_no_nan backward_finite
 
   let backward_comp_left_false op prec =
-    let backward_finite = backward_comp_left_true_finite (Comp.inv op) prec in
+    let opposite = Logic_utils.opposite_relation op in
+    let backward_finite = backward_comp_left_true_finite opposite prec in
     if op = Rneq
     then backward_comp_no_nan backward_finite
     else backward_comp_with_nan backward_finite

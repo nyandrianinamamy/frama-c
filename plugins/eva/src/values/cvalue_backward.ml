@@ -15,7 +15,7 @@ let propagate_all_comparison typ =
 
 let backward_int_relation typ op v1 v2 =
   let v1' = V.backward_comp_int_left op v1 v2 in
-  let op' = Abstract_interp.Comp.sym op in
+  let op' = Logic_utils.symmetric_relation op in
   let v2' = V.backward_comp_int_left op' v2 v1 in
   if propagate_all_comparison typ
   && not (Cvalue_forward.are_comparable op v1 v2)
@@ -41,14 +41,14 @@ let backward_float_relation fkind ~positive op v1 v2 =
     else V.backward_comp_float_left_false
   in
   let v1' = backward_comp op fkind v1 v2 in
-  let op' = Abstract_interp.Comp.sym op in
+  let op' = Logic_utils.symmetric_relation op in
   let v2' = backward_comp op' fkind v2 v1 in
   Some (v1', v2')
 
 let backward_relation typ ~positive op =
   match Ast_types.C.unroll_node typ with
   | TInt _ | TEnum _ | TPtr _ ->
-    let op = if positive then op else Abstract_interp.Comp.inv op in
+    let op = if positive then op else Logic_utils.opposite_relation op in
     backward_int_relation typ op
   | TFloat fk ->
     backward_float_relation (Fval.kind fk) ~positive op

@@ -6,8 +6,6 @@
 (*                                                                        *)
 (**************************************************************************)
 
-module Comp = Abstract_interp.Comp
-
 (* Definition of a search. *)
 type kind =
   { search: Ival.t;         (* Set of possible characters searched. *)

@@ -970,12 +970,12 @@ module IntDomain = struct
         add t1 (Ival.backward_comp_int_left cmp v1 cst2) dom
       | Local.Integer cst1, Local.Term opt2 ->
         let v2 = term_dom opt2 in
-        let cmp_sym = Abstract_interp.Comp.sym cmp in
+        let cmp_sym = Logic_utils.symmetric_relation cmp in
         add t2 (Ival.backward_comp_int_left cmp_sym v2 cst1) dom
       | Local.Term opt1, Local.Term opt2 ->
         let v1 = term_dom opt1 in
         let v2 = term_dom opt2 in
-        let cmp_sym = Abstract_interp.Comp.sym cmp in
+        let cmp_sym = Logic_utils.symmetric_relation cmp in
         add t1 (Ival.backward_comp_int_left cmp v1 v2)
           (add t2 (Ival.backward_comp_int_left cmp_sym v2 v1) dom)
 

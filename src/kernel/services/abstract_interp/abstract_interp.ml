@@ -23,26 +23,6 @@ let inv_truth = function
   | True -> False
   | False -> True
 
-module Comp = struct
-  open Cil_types
-
-  let inv = function
-    | Rgt -> Rle
-    | Rlt -> Rge
-    | Rle -> Rgt
-    | Rge -> Rlt
-    | Req -> Rneq
-    | Rneq -> Req
-
-  let sym = function
-    | Rgt -> Rlt
-    | Rlt -> Rgt
-    | Rle -> Rge
-    | Rge -> Rle
-    | Req -> Req
-    | Rneq -> Rneq
-end
-
 
 module Make_Generic_Lattice_Set
     (V: Datatype.S)

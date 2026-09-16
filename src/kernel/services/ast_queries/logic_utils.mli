@@ -87,6 +87,18 @@ val array_to_ptr : logic_type -> logic_type
 *)
 val coerce_type : typ -> logic_type
 
+
+(** {2 Relational operators} *)
+
+(** Opposite relational operator:
+    [a op b <==> ! (a (opposite_relation op) b)].  *)
+val opposite_relation: relation -> relation
+
+(** Symmetric relational operator:
+    [a op b <==> b (symmetric_relation op) a]. *)
+val symmetric_relation: relation -> relation
+
+
 (** {2 Predicates} *)
 
 (** transforms \old and \at(,Old) into \at(,L) for L a label pointing

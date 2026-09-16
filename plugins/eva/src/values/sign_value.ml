@@ -8,7 +8,6 @@
 
 open Cil_types
 open Eval
-open Abstract_interp
 
 (** Sign domain: abstraction of integer numerical values by their signs. *)
 
@@ -306,14 +305,16 @@ let backward_binop _ctx ~input_type:_ ~resulting_type:_ op ~left ~right ~result 
     if equal zero result then
       (* The comparison is false, as it always evaluate to false. Reduce by the
          fact that the inverse comparison is true.  *)
-      let op = Comp.inv op in
+      let op = Logic_utils.opposite_relation op in
+      let sym_op = Logic_utils.symmetric_relation op in
       backward_comp_right op ~left ~right >>- fun right' ->
-      backward_comp_right (Comp.sym op) ~left:right ~right:left >>- fun left' ->
+      backward_comp_right sym_op ~left:right ~right:left >>- fun left' ->
       `Value (left', right')
     else if not result.zero then
+      let sym_op = Logic_utils.symmetric_relation op in
       (* The comparison always hold, as it never evaluates to false. *)
       backward_comp_right op ~left ~right >>- fun right' ->
-      backward_comp_right (Comp.sym op) ~left:right ~right:left >>- fun left' ->
+      backward_comp_right sym_op ~left:right ~right:left >>- fun left' ->
       `Value (left', right')
     else
       (* The comparison may or may not hold, it is not possible to reduce *)
