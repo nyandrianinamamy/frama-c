@@ -722,7 +722,17 @@ let reduce g =
   WpContext.on_context (get_context g) (VC_Annot.resolve ~pid) g.po_formula
 
 let resolve g =
-  is_trivial g ||
+  (* If some valid result obtained by Qed or CFG already exist, we do not need
+     to resolve anything (since no further tactics will be applied anyway),
+     *plus* we DO NOT want to apply it since Qed would override CFG results.
+     Yet, if no result exist, we want the result to be registered even if it is
+     trivial, else no result is recorded for the goal and proof scripts might be
+     incomplete.
+  *)
+  List.exists
+    (fun (p, v) -> (p = Prover.CFG || p = Qed) && VCS.is_valid v)
+    (get_results g)
+  ||
   let valid = reduce g in
   if valid then
     let result = VCS.result ~solver:(qed_time g) VCS.Valid in
