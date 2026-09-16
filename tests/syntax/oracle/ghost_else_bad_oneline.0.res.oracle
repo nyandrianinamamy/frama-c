@@ -1,5 +1,5 @@
 [kernel] Parsing ghost_else_bad_oneline.i (no preprocessing)
-[kernel] ghost_else_bad_oneline.i:8: 
+[kernel] ghost_else_bad_oneline.i:8: User Error: 
   syntax error:
   Location: "ghost_else_bad_oneline.i", line 8, character 19,
             before or at token: 

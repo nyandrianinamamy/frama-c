@@ -994,13 +994,13 @@ let compute_pdg kf =
     Pdg_parameters.warning "%s" what ;
     degenerated false kf
   | Value_State_Top -> degenerated true kf
-  | Log.AbortFatal what ->
+  | Log.AbortFatal event ->
     (* [JS 2012/08/24] nobody should catch this exception *)
-    Pdg_parameters.warning "internal error: %s" what ;
+    Pdg_parameters.warning "internal error: %s" event.evt_plugin ;
     degenerated true kf
-  | Log.AbortError what ->
+  | Log.AbortError event ->
     (* [JS 2012/08/24] nobody should catch this exception *)
-    Pdg_parameters.warning "user error: %s" what ;
+    Pdg_parameters.warning "user error: %s" event.evt_plugin ;
     degenerated true kf
   | Pdg_state.Cannot_fold ->
     Pdg_parameters.warning "too imprecise value analysis : abort" ;

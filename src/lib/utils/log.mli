@@ -75,14 +75,12 @@ type ('a,'b) pretty_aborter =
     @since Beryllium-20090601-beta1 *)
 (* -------------------------------------------------------------------------- *)
 
-exception AbortError of string
-(** User error that prevents a plugin to terminate. Argument is the name
-    of the plugin.
+exception AbortError of event
+(** User error that prevents a plugin to terminate.
     @since Beryllium-20090601-beta1 *)
 
-exception AbortFatal of string
-(** Internal error that prevents a plugin to terminate. Argument is the
-    name of the plugin.
+exception AbortFatal of event
+(** Internal error that prevents a plugin to terminate.
     @since Beryllium-20090601-beta1 *)
 
 exception FeatureRequest of Filepos.t option * string * string

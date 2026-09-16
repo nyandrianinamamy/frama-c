@@ -1,5 +1,5 @@
 [kernel] Parsing alignas_typing_constrains.c (with preprocessing)
-[kernel] alignas_typing_constrains.c:221: 
+[kernel] alignas_typing_constrains.c:221: User Error: 
   syntax error:
   Location: "alignas_typing_constrains.c", line 221,
             before or at token: _Alignas

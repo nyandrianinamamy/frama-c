@@ -1,5 +1,5 @@
 [kernel] Parsing ghost_parameters.c (with preprocessing)
-[kernel] ghost_parameters.c:195: 
+[kernel] ghost_parameters.c:195: User Error: 
   syntax error:
   Location: "ghost_parameters.c", line 195, before or at token: )
   193   #ifdef VOID_EMPTY_GHOST_PARAMETER_LIST

@@ -1,5 +1,5 @@
 [kernel] Parsing c23-bool-kws.c (with preprocessing)
-[kernel] c23-bool-kws.c:32: 
+[kernel] c23-bool-kws.c:32: User Error: 
   syntax error:
   Location: "c23-bool-kws.c", line 32, before or at token: b1
           bool b1 = false ;

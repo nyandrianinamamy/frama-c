@@ -1,5 +1,5 @@
 [kernel] Parsing ghost_cv_parsing_errors.c (with preprocessing)
-[kernel] ghost_cv_parsing_errors.c:20: 
+[kernel] ghost_cv_parsing_errors.c:20: User Error: 
   Use of \ghost out of ghost code:
   Location: "ghost_cv_parsing_errors.c", line 20, before or at token: \ghost
   18    #ifdef IN_DECL

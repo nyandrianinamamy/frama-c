@@ -1,5 +1,5 @@
 [kernel] Parsing typedef_namespace_bts1500.c (with preprocessing)
-[kernel] typedef_namespace_bts1500.c:24: 
+[kernel] typedef_namespace_bts1500.c:24: User Error: 
   syntax error:
   Location: "typedef_namespace_bts1500.c", line 24, before or at token: y
   22      // error: digit is now a variable

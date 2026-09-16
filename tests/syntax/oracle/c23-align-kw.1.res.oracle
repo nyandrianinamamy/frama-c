@@ -1,5 +1,5 @@
 [kernel] Parsing c23-align-kw.c (with preprocessing)
-[kernel] c23-align-kw.c:11: 
+[kernel] c23-align-kw.c:11: User Error: 
   syntax error:
   Location: "c23-align-kw.c", line 11, before or at token: alignof
   9     void f(void){

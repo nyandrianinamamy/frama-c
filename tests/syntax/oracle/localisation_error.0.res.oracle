@@ -1,5 +1,5 @@
 [kernel] Parsing localisation_error.i (no preprocessing)
-[kernel] localisation_error.i:7: 
+[kernel] localisation_error.i:7: User Error: 
   syntax error:
   Location: "localisation_error.i", line 7, character 58, before or at token: /
   5     int main() {

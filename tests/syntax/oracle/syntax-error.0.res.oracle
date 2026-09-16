@@ -1,5 +1,5 @@
 [kernel] Parsing syntax-error.i (no preprocessing)
-[kernel] syntax-error.i:5: 
+[kernel] syntax-error.i:5: User Error: 
   syntax error:
   Location: "syntax-error.i", line 5, character 2, before or at token: {
   3        STDOPT:

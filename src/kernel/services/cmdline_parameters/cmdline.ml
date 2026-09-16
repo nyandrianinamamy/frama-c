@@ -83,14 +83,14 @@ let protect = function
      | "", "" -> error
      | "", t | t, "" -> Printf.sprintf "%s (%s)" error t
      | f, x -> Printf.sprintf "%s (%s %S)" error f x)
-  | Log.AbortError p ->
+  | Log.AbortError event ->
     Printf.sprintf "%s aborted: invalid user input."
-      (long_plugin_name p)
-  | Log.AbortFatal p ->
+      (long_plugin_name event.evt_plugin)
+  | Log.AbortFatal event ->
     print_backtrace ();
     Printf.sprintf
       "%s aborted: internal error.\n%s"
-      (long_plugin_name p)
+      (long_plugin_name event.evt_plugin)
       request_crash_report
   | Log.FeatureRequest(s, p, m) ->
     let name = long_plugin_name p in

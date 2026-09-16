@@ -1,5 +1,5 @@
 [kernel] Parsing c23-align-kw.c (with preprocessing)
-[kernel] c23-align-kw.c:14: 
+[kernel] c23-align-kw.c:14: User Error: 
   syntax error:
   Location: "c23-align-kw.c", line 14, before or at token: =
   12    #endif

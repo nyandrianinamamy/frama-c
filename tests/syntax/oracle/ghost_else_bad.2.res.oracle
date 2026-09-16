@@ -1,5 +1,5 @@
 [kernel] Parsing ghost_else_bad.c (with preprocessing)
-[kernel] ghost_else_bad.c:49: 
+[kernel] ghost_else_bad.c:49: User Error: 
   syntax error:
   Location: "ghost_else_bad.c", line 49, before or at token: else
   47      } /*@ ghost

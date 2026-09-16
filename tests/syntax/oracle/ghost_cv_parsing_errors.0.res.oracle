@@ -1,5 +1,5 @@
 [kernel] Parsing ghost_cv_parsing_errors.c (with preprocessing)
-[kernel] ghost_cv_parsing_errors.c:14: 
+[kernel] ghost_cv_parsing_errors.c:14: User Error: 
   Use of \ghost out of ghost code:
   Location: "ghost_cv_parsing_errors.c", line 14, before or at token: \ghost
   12    struct S {
