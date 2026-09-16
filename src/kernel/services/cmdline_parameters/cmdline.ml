@@ -89,8 +89,9 @@ let protect = function
   | Log.AbortFatal event ->
     print_backtrace ();
     Printf.sprintf
-      "%s aborted: internal error.\n%s"
+      "%s aborted: internal error (%s).\n\n%s"
       (long_plugin_name event.evt_plugin)
+      (Rich_text.to_string event.evt_message)
       request_crash_report
   | Log.FeatureRequest(s, p, m) ->
     let name = long_plugin_name p in
