@@ -51,19 +51,17 @@ let set_tty isatty =
 let long_plugin_name s =
   if s = Kernel_log.kernel_label_name then "Frama-C" else "Plug-in " ^ s
 
-let get_backtrace () =
+let print_backtrace () =
   (* Get the backtrace before potentially destroying it in the handler below *)
   let bt = Printexc.get_backtrace () in
-  let current_src_string =
-    let src_text =
-      try
-        let src = Log.get_current_loc () in
-        Format.asprintf "%a" Filepos.pretty (Fileloc.start_pos src)
-      with Not_found -> "<unset>"
-    in
-    Format.asprintf "Current location was: %s@." src_text
+  let current_loc =
+    try
+      let src = Log.get_current_loc () in
+      Format.asprintf "%a" Filepos.pretty (Fileloc.start_pos src)
+    with Not_found -> "<unset>"
   in
-  current_src_string ^ "The full backtrace is:\n" ^ bt
+  Kernel_log.feedback ~dkey:Kernel_log.dkey_backtrace
+    "Current location was: %s@.The full backtrace is:@.%s" current_loc bt
 
 let request_crash_report =
   Format.sprintf
@@ -76,8 +74,8 @@ let request_crash_report =
 
 let protect = function
   | Sys.Break ->
+    if Kernel_log.Debug_level.get () > 0 then print_backtrace ();
     "User Interruption (Ctrl-C)"
-    ^ if Kernel_log.Debug_level.get () > 0 then "\n" ^ get_backtrace () else ""
   | Sys_error s -> Printf.sprintf "System error: %s" s
   | Unix.Unix_error(err, a, b) ->
     let error = Printf.sprintf "System error: %s" (Unix.error_message err) in
@@ -89,10 +87,9 @@ let protect = function
     Printf.sprintf "%s aborted: invalid user input."
       (long_plugin_name p)
   | Log.AbortFatal p ->
-    let bt = get_backtrace () in
+    print_backtrace ();
     Printf.sprintf
-      "%s\n%s aborted: internal error.\n%s"
-      bt
+      "%s aborted: internal error.\n%s"
       (long_plugin_name p)
       request_crash_report
   | Log.FeatureRequest(s, p, m) ->
@@ -108,10 +105,9 @@ let protect = function
        '[%s] %s'."
       pp_oloc s name name m
   | e ->
-    let bt = get_backtrace () in
+    print_backtrace ();
     Printf.sprintf
-      "%s\nUnexpected error (%s).\n%s"
-      bt
+      "Unexpected error (%s).\n%s"
       (Printexc.to_string e)
       request_crash_report
 
