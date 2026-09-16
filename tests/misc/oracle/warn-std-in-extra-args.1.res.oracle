@@ -1,0 +1,3 @@
+[kernel:pp:extra-args-std] Warning: 
+  -cpp-extra-args-for-file warn-std-in-extra-args.c contains '-std'; make sure it is consistent with Frama-C's '-std' option
+[kernel] Parsing warn-std-in-extra-args.c (with preprocessing)
