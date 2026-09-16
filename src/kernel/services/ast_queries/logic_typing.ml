@@ -3825,9 +3825,18 @@ struct
         [Cabshelper.mk_behavior ()]
       else spec_behavior
     in
+
+    let ba_default =
+      match List.find_opt (fun {b_name; _} -> b_name = Cil.default_behavior_name) spec_behavior with
+      | Some b -> b.b_assigns
+      | None -> WritesAny in
+
     let b = List.map
         (fun {b_assigns= ba; b_name; b_post_cond=be; b_assumes= bas;
               b_allocation=bfa; b_requires=br; b_extended=bext} ->
+          let ba = match ba with
+            | Writes _ -> ba
+            | WritesAny -> ba_default in
           let typing_context = make_typing_context
               ~pre_state:env
               ~post_state:multiple_post_clauses_state_env
