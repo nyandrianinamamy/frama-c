@@ -2563,7 +2563,8 @@ struct
           | contoffs,PLupdateCont cont ->
             normalize_update_cont ctxt env loc t (cont, contoffs)
           | _,PLupdExtCont _ ->
-            ctxt.error loc "Unsupported construct in pure ACSL"
+            ctxt.error loc "This construct can only appear in an ACSL \
+                            extension that supports it."
         in
         let normalize_folding (tn,typ) cont =
           normalize (Logic_const.term ~loc tn typ) cont
@@ -2643,9 +2644,11 @@ struct
       let t = term env t in
       normalize_update_term ctxt env loc t v toff
     | PLupdate (_, _, PLupdExtCont _) ->
-      ctxt.error loc "Unsupported construct in pure ACSL"
+      ctxt.error loc "This construct can only appear in an ACSL extension \
+                      that supports it."
     | PLupdExt (_, _,_,_) ->
-      ctxt.error loc "Unsupported construct in pure ACSL"
+      ctxt.error loc "This construct can only appear in an ACSL extension \
+                      that supports it."
     | PLalignof typ ->
       let env = drop_qualifiers env in
       (match Ast_types.Acsl.unroll_ltdef (logic_type ctxt loc env typ)
