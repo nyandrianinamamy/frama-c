@@ -253,6 +253,8 @@ val wkey_implicit_function_declaration: warn_category
 
 val wkey_implicit_int: warn_category
 
+val wkey_addrof_packed_field: warn_category
+
 val wkey_incompatible_pointer_types: warn_category
 
 val wkey_incompatible_types_call: warn_category

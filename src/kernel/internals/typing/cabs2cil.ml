@@ -1199,10 +1199,24 @@ let mkAddrOfAndMark loc ((b, off) as lval) : exp =
   begin match Cil.lastOffset off with
     | NoOffset ->
       (match b with
+       | Var vi when vi.vstorage = Cil_types.Register ->
+         Errorloc.abort_context
+           "address of register variable '%s' requested"
+           vi.vname
        | Var vi -> vi.vaddrof <- true
        | _ -> ())
     | Index _ -> ()
-    | Field(fi,_) -> fi.faddrof <- true
+    | Field(fi,_) when Option.is_some fi.fbitfield ->
+      Errorloc.abort_context
+        "cannot take address of bit-field '%s'" fi.fname
+    | Field(fi,_) when Ast_attributes.contains "packed" fi.fcomp.cattr ->
+      Kernel.warning ~wkey:Kernel_log.wkey_addrof_packed_field
+        "taking address of packed member of '%s' may result \
+         in an unaligned pointer value "
+        fi.fcomp.cname ;
+      fi.faddrof <- true
+    | Field(fi,_) ->
+      fi.faddrof <- true
   end;
   Cil.mkAddrOf ~loc lval
 

@@ -279,6 +279,9 @@ let wkey_implicit_function_declaration = register_warn_category
 let wkey_implicit_int = register_warn_category "typing:implicit-int"
 let () = set_warn_status wkey_implicit_int Log.Werror
 
+let wkey_addrof_packed_field =
+  register_warn_category "typing:addr-of-packed-field"
+
 let wkey_incompatible_pointer_types =
   register_warn_category "typing:incompatible-pointer-types"
 
