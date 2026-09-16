@@ -574,7 +574,7 @@ void __gen_e_acsl_f(int *t)
         {.values = (void *)0};
       __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_2,"m",0,
                                    __gen_e_acsl_m);
-      if ((-9223372036854775807L-1L) <= __gen_e_acsl_m - 4) {
+      if ((-9223372036854775807L-1L) <= (long)(__gen_e_acsl_m - 4)) {
         __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_2,"m",0,
                                      __gen_e_acsl_m);
         __gen_e_acsl_and = (unsigned long)(__gen_e_acsl_m - 4) <= 9223372036854775807UL;
@@ -788,7 +788,7 @@ void __gen_e_acsl_f(int *t)
           {.values = (void *)0};
         __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_10,"n",0,
                                      __gen_e_acsl_n);
-        if ((-9223372036854775807L-1L) <= __gen_e_acsl_n - 1) {
+        if ((-9223372036854775807L-1L) <= (long)(__gen_e_acsl_n - 1)) {
           __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_10,"n",0,
                                        __gen_e_acsl_n);
           __gen_e_acsl_and_3 = (unsigned long)(__gen_e_acsl_n - 1) <= 9223372036854775807UL;

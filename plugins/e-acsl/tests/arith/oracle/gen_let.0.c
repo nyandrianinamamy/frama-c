@@ -135,7 +135,8 @@ int main(void)
     __gen_e_acsl_assert_data_6.file = "let.c";
     __gen_e_acsl_assert_data_6.fct = "main";
     __gen_e_acsl_assert_data_6.line = 30;
-    __e_acsl_assert(5000050000UL == (__gen_e_acsl_n * (__gen_e_acsl_n + 1U)) / 2UL,
+    __e_acsl_assert(5000050000UL == (__gen_e_acsl_n * (unsigned long)(
+                                     __gen_e_acsl_n + 1U)) / 2UL,
                     & __gen_e_acsl_assert_data_6);
     __e_acsl_assert_clean(& __gen_e_acsl_assert_data_6);
   }

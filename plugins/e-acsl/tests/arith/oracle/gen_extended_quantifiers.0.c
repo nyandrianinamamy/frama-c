@@ -377,7 +377,7 @@ int main(void)
       __gen_e_acsl_cond_8 = __gen_e_acsl_k_8 > 10;
       if (__gen_e_acsl_cond_8) break;
       else {
-        __gen_e_acsl_lambda_8 = -2147483648L;
+        __gen_e_acsl_lambda_8 = (-2147483647-1);
         /*@ assert
               Eva: signed_overflow:
                 -9223372036854775808 <=

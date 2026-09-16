@@ -336,19 +336,6 @@ let rec type_term
   let open Current_loc.Operators in
   let<> UpdatedCurrentLoc = t.term_loc in
   let ctx = Option.map (mk_ctx ~use_gmp_opt) ctx in
-  let compute_ctx ?ctx i =
-    (* in order to get a minimal amount of generated casts for operators, the
-       result is typed in the given context [ctx], but not the operands.
-       This function returns a tuple (ctx_of_result, ctx_of_operands) *)
-    match ctx with
-    | None ->
-      (* no context: factorize *)
-      let ctx =  mk_ctx ~use_gmp_opt:true (ty_of_interv i) in
-      ctx, ctx
-    | Some ctx ->
-      mk_ctx ~use_gmp_opt:true (ty_of_interv ~ctx i),
-      mk_ctx ~use_gmp_opt:true (ty_of_interv i)
-  in
   let infer t =
     (* this pattern matching implements the formal rules of the JFLA's paper
        (and of course also covers the missing cases). Also enforce the invariant
@@ -390,8 +377,10 @@ let rec type_term
     | TUnOp (LNot, t') ->
       let ctx =
         try
-          let i = Interval.joins_from_profile ~profile [t'; t] in
-          Some (mk_ctx ~use_gmp_opt:true (ty_of_interv i))
+          Option.some @@
+          mk_ctx ~use_gmp_opt:true @@
+          ty_of_interv @@
+          Interval.joins_from_profile ~profile [t'; t]
         (* during the typing phase, we catch the Not_yet exception so that [t']
            gets typed even if [t] is not. This prevents exceptions during the
            translation phase *)
@@ -402,18 +391,21 @@ let rec type_term
       c_int (* converted into [t == 0] in case of GMP *)
 
     | TUnOp ((Neg | BNot), t') ->
-      let ctx_res, ctx =
-        compute_ctx ?ctx (Interval.joins_from_profile ~profile [t'; t])
+      let ctx =
+        mk_ctx ~use_gmp_opt:true @@
+        ty_of_interv @@
+        Interval.joins_from_profile ~profile [t'; t]
       in
       ignore (type_term ~use_gmp_opt:true ~arith_operand:true ~ctx ~profile t');
-      ctx_res
-
+      ctx
 
     | TBinOp ((PlusA | MinusA | Mult | Div | Mod | Shiftlt | Shiftrt | BAnd
               | BOr | BXor), t1, t2)
       ->
-      let ctx_res, ctx =
-        compute_ctx ?ctx (Interval.joins_from_profile ~profile [t2; t1; t])
+      let ctx =
+        mk_ctx ~use_gmp_opt:true @@
+        ty_of_interv @@
+        Interval.joins_from_profile ~profile [t2; t1; t]
       in
       (* it is enough to explicitly coerce when required one operand to [ctx]
          (through [arith_operand]) in order to force the type of the
@@ -429,7 +421,7 @@ let rec type_term
         (type_term ~use_gmp_opt:true ~arith_operand:cast_first ~ctx ~profile t1);
       ignore
         (type_term ~use_gmp_opt:true ~arith_operand:(not cast_first) ~ctx ~profile t2);
-      ctx_res
+      ctx
 
     | TBinOp ((Lt | Gt | Le | Ge | Eq | Ne), t1, t2) ->
       assert

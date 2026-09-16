@@ -295,31 +295,23 @@ int main(void)
   short a = (short)1;
   short b = (short)1;
   {
+    __e_acsl_mpq_t __gen_e_acsl_add_5;
     __e_acsl_mpq_t __gen_e_acsl__22;
     __e_acsl_mpq_t __gen_e_acsl__23;
-    __e_acsl_mpq_t __gen_e_acsl_add_5;
-    __e_acsl_mpq_t __gen_e_acsl__24;
-    __e_acsl_mpq_t __gen_e_acsl__25;
     __e_acsl_mpq_t __gen_e_acsl_sub_2;
     int __gen_e_acsl_gt;
     __e_acsl_assert_data_t __gen_e_acsl_assert_data_10 =
       {.values = (void *)0};
-    __gmpq_init(__gen_e_acsl__22);
-    __gmpq_set_si(__gen_e_acsl__22,(long)a,1UL);
-    __gmpq_init(__gen_e_acsl__23);
-    __gmpq_set_si(__gen_e_acsl__23,(long)((int)b),1UL);
     __gmpq_init(__gen_e_acsl_add_5);
-    __gmpq_add(__gen_e_acsl_add_5,
-               (__e_acsl_mpq_struct const *)(__gen_e_acsl__22),
-               (__e_acsl_mpq_struct const *)(__gen_e_acsl__23));
-    __gmpq_init(__gen_e_acsl__24);
-    __gmpq_set_d(__gen_e_acsl__24,2.);
-    __gmpq_init(__gen_e_acsl__25);
-    __gmpq_set_d(__gen_e_acsl__25,1.);
+    __gmpq_set_si(__gen_e_acsl_add_5,(long)(a + (int)b),1UL);
+    __gmpq_init(__gen_e_acsl__22);
+    __gmpq_set_d(__gen_e_acsl__22,2.);
+    __gmpq_init(__gen_e_acsl__23);
+    __gmpq_set_d(__gen_e_acsl__23,1.);
     __gmpq_init(__gen_e_acsl_sub_2);
     __gmpq_sub(__gen_e_acsl_sub_2,
-               (__e_acsl_mpq_struct const *)(__gen_e_acsl__24),
-               (__e_acsl_mpq_struct const *)(__gen_e_acsl__25));
+               (__e_acsl_mpq_struct const *)(__gen_e_acsl__22),
+               (__e_acsl_mpq_struct const *)(__gen_e_acsl__23));
     __gen_e_acsl_gt = __gmpq_cmp((__e_acsl_mpq_struct const *)(__gen_e_acsl_add_5),
                                  (__e_acsl_mpq_struct const *)(__gen_e_acsl_sub_2));
     __e_acsl_assert_register_short(& __gen_e_acsl_assert_data_10,"a",0,a);
@@ -332,11 +324,9 @@ int main(void)
     __gen_e_acsl_assert_data_10.line = 31;
     __e_acsl_assert(__gen_e_acsl_gt > 0,& __gen_e_acsl_assert_data_10);
     __e_acsl_assert_clean(& __gen_e_acsl_assert_data_10);
+    __gmpq_clear(__gen_e_acsl_add_5);
     __gmpq_clear(__gen_e_acsl__22);
     __gmpq_clear(__gen_e_acsl__23);
-    __gmpq_clear(__gen_e_acsl_add_5);
-    __gmpq_clear(__gen_e_acsl__24);
-    __gmpq_clear(__gen_e_acsl__25);
     __gmpq_clear(__gen_e_acsl_sub_2);
   }
   /*@ assert a + b > 2. - 1.; */ ;
