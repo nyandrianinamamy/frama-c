@@ -1,9 +1,9 @@
 /*run.config
  PLUGIN: @EVA_PLUGINS@
  DEPS: pragma-pack-utils.h
-  STDOPT: +"-machdep gcc_x86_64 -kernel-msg-key typing:pragma"
-  STDOPT: +"-machdep gcc_x86_32"
-  STDOPT: +"-machdep msvc_x86_64"
+  STDOPT: +"-machdep gcc_x86_64 -kernel-msg-key typing:pragma -kernel-warn-key typing:addr-of-packed-field=inactive"
+  STDOPT: +"-machdep gcc_x86_32 -kernel-warn-key typing:addr-of-packed-field=inactive"
+  STDOPT: +"-machdep msvc_x86_64 -kernel-warn-key typing:addr-of-packed-field=inactive"
  */
 #include "pragma-pack-utils.h"
 #include <stdint.h>

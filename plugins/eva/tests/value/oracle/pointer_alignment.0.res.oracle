@@ -1,4 +1,14 @@
 [kernel] Parsing pointer_alignment.c (with preprocessing)
+[kernel:typing:addr-of-packed-field] Warning: 
+  taking address of packed member of 'Packed' may result in an unaligned pointer value
+[kernel:typing:addr-of-packed-field] Warning: 
+  taking address of packed member of 'Packed' may result in an unaligned pointer value
+[kernel:typing:addr-of-packed-field] Warning: 
+  taking address of packed member of 'Packed' may result in an unaligned pointer value
+[kernel:typing:addr-of-packed-field] Warning: 
+  taking address of packed member of 'Packed' may result in an unaligned pointer value
+[kernel:typing:addr-of-packed-field] Warning: 
+  taking address of packed member of 'Packed' may result in an unaligned pointer value
 [eva] Analyzing a complete application starting at main
 [eva:progress] Computing initial state
 [eva:progress] Initial state computed

@@ -1,0 +1,10 @@
+[kernel] Parsing addrof_forbidden.c (with preprocessing)
+[kernel] addrof_forbidden.c:35: User Error: 
+  address of register variable 'x' requested
+  33      register int x[3];
+  34      x[0] = 1; // allowed
+  35      &x; // rejected
+          ^^
+  36    #endif
+  37
+[kernel] Frama-C aborted: invalid user input.
