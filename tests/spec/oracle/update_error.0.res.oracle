@@ -1,0 +1,11 @@
+[kernel] Parsing update_error.i (no preprocessing)
+[kernel:annot-error] update_error.i:14: Warning: unexpected token 'a'
+[kernel:annot-error] update_error.i:17: Warning: unexpected token ';'
+[kernel:annot-error] update_error.i:20: Warning: unexpected token '.'
+[kernel:annot-error] update_error.i:23: Warning: unexpected token ','
+[kernel:annot-error] update_error.i:26: Warning: unexpected token 't'
+[kernel:annot-error] update_error.i:29: Warning: unexpected token '->'
+[kernel:annot-error] update_error.i:32: Warning: unexpected token '<-'
+[kernel:annot-error] update_error.i:35: Warning: unexpected token '-='
+[kernel:annot-error] update_error.i:38: Warning: unexpected token '+='
+[kernel:annot-error] update_error.i:41: Warning: unexpected token 't'

@@ -101,7 +101,7 @@
 
   let check_empty (loc,msg) l =
     match l with
-        [] -> ()
+      | [] -> ()
       | _ -> raise (Not_well_formed (loc,msg))
 
   let relation_sense rel sense =
@@ -202,7 +202,7 @@
   (* a1 represents the assigns _after_ the current clause a2. *)
   let concat_assigns start_pos a1 a2 =
     match a1,a2 with
-        WritesAny,a -> Writes (concat_froms [] a)
+      | WritesAny,a -> Writes (concat_froms [] a)
       | Writes [], [] -> a1
       | Writes [], _  | Writes _, [] ->
         raise
@@ -231,7 +231,7 @@
     in
     let treat_one ca (bhvs2,acc) =
       match ca,a2,fa2 with
-          (AAssigns(bhvs1,a1)),(Writes a2),_ ->
+        | (AAssigns(bhvs1,a1)),(Writes a2),_ ->
             let (only1,both,only2) = split bhvs1 bhvs2 in
             (match both with
               | [] -> bhvs2, ca::acc
@@ -320,7 +320,9 @@
 %token <string> STRING_CONSTANT
 %token <string> WSTRING_CONSTANT
 %token LPAR RPAR IF ELSE COLON COLON2 COLONCOLON DOT DOTDOT DOTDOTDOT
-%token INT INTEGER REAL BOOLEAN BOOL FLOAT FLOAT32 FLOAT64 LT GT LE GE EQ NE COMMA ARROW EQUAL
+%token INT INTEGER REAL BOOLEAN BOOL FLOAT FLOAT32 FLOAT64 LT GT LE GE EQ NE
+%token COMMA RARROW LARROW EQUAL PLUS_EQ MINUS_EQ COLON_EQ STAR_EQ SLASH_EQ
+%token PERCENT_EQ PIPE_EQ AND_EQ CIRC_EQ
 %token FORALL EXISTS IFF IMPLIES AND OR NOT SEPARATED
 %token TRUE FALSE OLD AS AT RESULT
 %token BLOCK_LENGTH BASE_ADDR OFFSET VALID VALID_READ VALID_INDEX VALID_RANGE
@@ -328,13 +330,15 @@
 %token ALLOCATION STATIC REGISTER AUTOMATIC DYNAMIC UNALLOCATED
 %token ALLOCABLE FREEABLE FRESH
 %token DOLLAR QUESTION MINUS PLUS STAR AMP SLASH PERCENT LSQUARE RSQUARE EOF
-%token GLOBAL INVARIANT VARIANT DECREASES FOR LABEL ASSERT CHECK ADMIT SEMICOLON NULL EMPTY
+%token GLOBAL INVARIANT VARIANT DECREASES FOR LABEL ASSERT CHECK ADMIT
+%token SEMICOLON NULL EMPTY
 %token REQUIRES ENSURES ALLOCATES FREES ASSIGNS LOOP NOTHING FROM
 %token CHECK_REQUIRES CHECK_LOOP CHECK_INVARIANT CHECK_LEMMA
 %token CHECK_ENSURES CHECK_EXITS CHECK_CONTINUES CHECK_BREAKS CHECK_RETURNS
 %token ADMIT_REQUIRES ADMIT_LOOP ADMIT_INVARIANT ADMIT_LEMMA
 %token ADMIT_ENSURES ADMIT_EXITS ADMIT_CONTINUES ADMIT_BREAKS ADMIT_RETURNS
-%token <string * string> EXT_CODE_ANNOT EXT_GLOBAL EXT_GLOBAL_BLOCK EXT_CONTRACT EXT_LOADER EXT_LOADER_PLUGIN
+%token <string * string> EXT_CODE_ANNOT EXT_GLOBAL EXT_GLOBAL_BLOCK EXT_CONTRACT
+%token <string * string> EXT_LOADER EXT_LOADER_PLUGIN
 %token EXITS BREAKS CONTINUES RETURNS
 %token VOLATILE READS WRITES
 %token LOGIC PREDICATE INDUCTIVE AXIOM LEMMA LBRACE RBRACE
@@ -372,7 +376,7 @@
 %left PLUS MINUS
 %left STAR SLASH PERCENT
 %right prec_cast TILDE NOT prec_unary_op
-%left DOT ARROW LSQUARE
+%left DOT RARROW LSQUARE
 
 %type <Logic_ptree.lexpr> lexpr_eof
 %start lexpr_eof
@@ -395,14 +399,15 @@
 
 lexpr_list_eof:
 | lexpr_list EOF { $1 }
+;
 
 lexpr_list:
 | /* epsilon */ { [] }
-| ne_lexpr_list  { $1 }
+| ne_lexpr_list { $1 }
 ;
 
 ne_lexpr_list:
-| lexpr                    { [$1] }
+| lexpr                     { [$1] }
 | lexpr COMMA ne_lexpr_list { $1 :: $3 }
 ;
 
@@ -416,12 +421,12 @@ lexpr_option:
 ;
 
 lexpr:
-  /* predicates */
+/* predicates */
 | lexpr IMPLIES lexpr { info $sloc (PLimplies ($1, $3)) }
 | lexpr IFF lexpr { info $sloc (PLiff ($1, $3)) }
-| lexpr OR lexpr     { info $sloc (plor $1 $3) }
-| lexpr AND lexpr    { info $sloc (pland $1 $3) }
-| lexpr HATHAT lexpr    { info $sloc (PLxor ($1, $3)) }
+| lexpr OR lexpr { info $sloc (plor $1 $3) }
+| lexpr AND lexpr { info $sloc (pland $1 $3) }
+| lexpr HATHAT lexpr { info $sloc (PLxor ($1, $3)) }
 /* terms */
 | lexpr AMP lexpr { info $sloc (PLbinop ($1, Bbw_and, $3)) }
 | lexpr PIPE lexpr { info $sloc (PLbinop ($1, Bbw_or, $3)) }
@@ -449,13 +454,13 @@ lexpr:
 ;
 
 lexpr_rel:
-| lexpr_end_rel  { $1 }
+| lexpr_end_rel { $1 }
 | lexpr_inner rel_list
     { let rel, rhs, _, oth_rel = $2 in
       let loc = Fileloc.join $1.lexpr_loc rhs.lexpr_loc in
       let relation = loc_info loc (PLrel($1,rel,rhs)) in
       match oth_rel with
-          None -> relation
+        | None -> relation
         | Some oth_relation -> info $sloc (pland relation oth_relation)
     }
 ;
@@ -472,8 +477,8 @@ lexpr_binder:
 ;
 
 lexpr_end_rel:
-  lexpr_inner  { $1 }
-| lexpr_binder { $1 }
+| lexpr_inner      { $1 }
+| lexpr_binder     { $1 }
 | NOT lexpr_binder { info $sloc (PLnot $2) }
 ;
 
@@ -503,12 +508,12 @@ rel_list:
 ;
 
 relation:
-| LT    { Lt }
-| GT    { Gt }
-| LE    { Le }
-| GE    { Ge }
-| EQ    { Eq }
-| NE    { Neq }
+| LT { Lt }
+| GT { Gt }
+| LE { Le }
+| GE { Ge }
+| EQ { Eq }
+| NE { Neq }
     /* C. Marche: added to produce better error messages */
 | EQUAL
     { let l = loc $sloc in
@@ -536,17 +541,18 @@ lexpr_inner:
 | VALID opt_label_1 LPAR lexpr RPAR { info $sloc (PLvalid ($2,$4)) }
 | VALID_READ opt_label_1 LPAR lexpr RPAR { info $sloc (PLvalid_read ($2,$4)) }
 | VALID_FUNCTION LPAR lexpr RPAR { info $sloc (PLvalid_function $3) }
-| VALID_INDEX opt_label_1 LPAR lexpr COMMA lexpr RPAR {
-  let loc = loc $sloc in
-  obsolete ~loc "\\valid_index(addr,idx)" ~now:"\\valid(addr+idx)";
-  info $sloc (PLvalid ($2,info $sloc (PLbinop ($4, Badd, $6)))) }
-| VALID_RANGE opt_label_1 LPAR lexpr COMMA lexpr COMMA lexpr RPAR {
-  let loc = from_pos $symbolstartpos in
-  obsolete "\\valid_range(addr,min,max)"
-    ~loc ~now:"\\valid(addr+(min..max))";
-  info $sloc (PLvalid
-          ($2,info $sloc (PLbinop ($4, Badd, (info $sloc (PLrange((Some $6),Some $8)))))))
-}
+| VALID_INDEX opt_label_1 LPAR lexpr COMMA lexpr RPAR
+    { let loc = loc $sloc in
+      obsolete ~loc "\\valid_index(addr,idx)" ~now:"\\valid(addr+idx)";
+      info $sloc (PLvalid ($2,info $sloc (PLbinop ($4, Badd, $6))))
+    }
+| VALID_RANGE opt_label_1 LPAR lexpr COMMA lexpr COMMA lexpr RPAR
+    { let loc = from_pos $symbolstartpos in
+      obsolete "\\valid_range(addr,min,max)"
+        ~loc ~now:"\\valid(addr+(min..max))";
+      info $sloc (PLvalid
+        ($2,info $sloc (PLbinop ($4, Badd, (info $sloc (PLrange((Some $6),Some $8)))))))
+    }
 | INITIALIZED opt_label_1 LPAR lexpr RPAR { info $sloc (PLinitialized ($2,$4)) }
 | DANGLING opt_label_1 LPAR lexpr RPAR { info $sloc (PLdangling ($2,$4)) }
 | ALIGNED LPAR lexpr COMMA lexpr RPAR { info $sloc (PLaligned ($3,$5)) }
@@ -560,22 +566,28 @@ lexpr_inner:
 | FREEABLE opt_label_1 LPAR lexpr RPAR { info $sloc (PLfreeable ($2,$4)) }
 | ALLOCATION opt_label_1 LPAR lexpr RPAR
     { let loc = from_pos $symbolstartpos in
-      Kernel.not_yet_implemented ~loc "\\allocation" }
-| AUTOMATIC {
-  let loc = from_pos $symbolstartpos in
-  Kernel.not_yet_implemented ~loc "\\automatic" }
-| DYNAMIC {
-  let loc = from_pos $symbolstartpos in
-  Kernel.not_yet_implemented ~loc "\\dynamic" }
-| REGISTER {
-  let loc = from_pos $symbolstartpos in
-  Kernel.not_yet_implemented ~loc "\\register" }
-| STATIC {
-  let loc = from_pos $symbolstartpos in
-  Kernel.not_yet_implemented ~loc "\\static" }
-| UNALLOCATED {
-  let loc = from_pos $symbolstartpos in
-  Kernel.not_yet_implemented ~loc "\\unallocated" }
+      Kernel.not_yet_implemented ~loc "\\allocation"
+    }
+| AUTOMATIC
+    { let loc = from_pos $symbolstartpos in
+      Kernel.not_yet_implemented ~loc "\\automatic"
+    }
+| DYNAMIC
+    { let loc = from_pos $symbolstartpos in
+      Kernel.not_yet_implemented ~loc "\\dynamic"
+    }
+| REGISTER
+    { let loc = from_pos $symbolstartpos in
+      Kernel.not_yet_implemented ~loc "\\register"
+    }
+| STATIC
+    { let loc = from_pos $symbolstartpos in
+      Kernel.not_yet_implemented ~loc "\\static"
+    }
+| UNALLOCATED
+    { let loc = from_pos $symbolstartpos in
+      Kernel.not_yet_implemented ~loc "\\unallocated"
+    }
 | NULL { info $sloc PLnull }
 | constant { info $sloc (PLconstant $1) }
 | lexpr_inner PLUS lexpr_inner { info $sloc (PLbinop ($1, Badd, $3)) }
@@ -584,7 +596,7 @@ lexpr_inner:
 | lexpr_inner SLASH lexpr_inner { info $sloc (PLbinop ($1, Bdiv, $3)) }
 | lexpr_inner PERCENT lexpr_inner { info $sloc (PLbinop ($1, Bmod, $3)) }
 | lexpr_inner STARHAT lexpr_inner  { info $sloc (PLrepeat ($1, $3)) }
-| lexpr_inner ARROW identifier_or_typename_full { info $sloc (PLarrow ($1, $3)) }
+| lexpr_inner RARROW identifier_or_typename_full { info $sloc (PLarrow ($1, $3)) }
 | lexpr_inner DOT identifier_or_typename_full { info $sloc (PLdot ($1, $3)) }
 | lexpr_inner LSQUARE range RSQUARE { info $sloc (PLarrget ($1, $3)) }
 | lexpr_inner LSQUARE lexpr RSQUARE { info $sloc (PLarrget ($1, $3)) }
@@ -615,7 +627,7 @@ lexpr_inner:
 | LPAR lexpr RPAR { info $sloc $2.lexpr_node }
 | LPAR range RPAR { info $sloc $2.lexpr_node }
 | LPAR cast_logic_type RPAR lexpr_inner %prec prec_cast
-      { info $sloc (PLcast ($2, $4)) }
+    { info $sloc (PLcast ($2, $4)) }
 | TYPEOF LPAR lexpr RPAR { info $sloc (PLtypeof $3) }
 | BSTYPE LPAR type_spec(typename) RPAR { info $sloc (PLtype $3) }
 | BSTYPE LPAR type_spec(typename) stars RPAR { info $sloc (PLtype ($4 $3)) }
@@ -623,8 +635,7 @@ lexpr_inner:
 | EMPTY { info $sloc PLempty }
 | BSUNION LPAR lexpr_list RPAR { info $sloc (PLunion $3) }
 | INTER LPAR lexpr_list RPAR { info $sloc (PLinter $3) }
-| LBRACE RBRACE
-      { info $sloc (PLset []) }
+| LBRACE RBRACE { info $sloc (PLset []) }
 /* because LONGIDENT can be both a type name or a plain identifier,
    we can't have a full lexpr here, as there would be an ambiguity
    in { x | a::b * ...: should a::b be considered as a type (hence
@@ -632,34 +643,39 @@ lexpr_inner:
    (hence, we are still parsing an lexpr).
 */
 | LBRACE lexpr_inner RBRACE
-      { info $sloc (PLset [$2]) }
+    { info $sloc (PLset [$2]) }
 | LBRACE lexpr_inner COMMA lexpr_list RBRACE
-      { info $sloc (PLset ($2 :: $4)) }
+    { info $sloc (PLset ($2 :: $4)) }
 | LBRACE lexpr_inner PIPE binders RBRACE
-      { info $sloc (PLcomprehension ($2,$4,None)) }
+    { info $sloc (PLcomprehension ($2,$4,None)) }
 | LBRACE lexpr_inner PIPE binders SEMICOLON lexpr RBRACE
-      { info $sloc (PLcomprehension ($2,$4,Some $6)) }
+    { info $sloc (PLcomprehension ($2,$4,Some $6)) }
 /* Aggregated object initialization */
 | LBRACE field_init RBRACE
-      { info $sloc (PLinitField($2)) }
+    { info $sloc (PLinitField($2)) }
 | LBRACE array_init RBRACE
-      { info $sloc (PLinitIndex($2)) }
+    { info $sloc (PLinitIndex($2)) }
 | LBRACE lexpr_inner WITH update RBRACE
-      { List.fold_left
-	  (fun a (path,upd_val) -> info $sloc (PLupdate(a,path,upd_val))) $2 $4 }
+    { List.fold_left
+	      (fun a (path,upd_val) -> info $sloc (PLupdate(a,path,upd_val))) $2 $4
+    }
+| LBRACE lexpr_inner WITH updext RBRACE
+    { List.fold_left
+	      (fun a (path,op,upd_val) -> info $sloc (PLupdExt(a,path,op,upd_val))) $2 $4
+    }
 /*
 | LET bounded_var EQUAL lexpr SEMICOLON lexpr %prec LET { info $sloc (PLlet($2,$4,$6))}*/
 ;
 
 ne_label_args:
-| identifier_or_typename_full { [ $1 ] }
+| identifier_or_typename_full                     { [ $1 ] }
 | identifier_or_typename_full COMMA ne_label_args { $1 :: $3 }
 ;
 
 string:
 | STRING_LITERAL { $1 }
-| string STRING_LITERAL {
-      let (is_wide,prefix) = $1 in
+| string STRING_LITERAL
+    { let (is_wide,prefix) = $1 in
       let (is_wide2,suffix) = $2 in
       (is_wide || is_wide2, prefix ^ suffix)
     }
@@ -674,6 +690,7 @@ range:
 field_path_elt:
 | DOT identifier_or_typename_full { $2 }
 ;
+
 field_init_elt:
 | field_path_elt EQUAL lexpr { ($1, $3) }
 ;
@@ -684,8 +701,8 @@ field_init:
 ;
 
 array_path_elt:
-| LSQUARE lexpr RSQUARE      { $2 }
-| LSQUARE range RSQUARE      { $2 }
+| LSQUARE lexpr RSQUARE { $2 }
+| LSQUARE range RSQUARE { $2 }
 ;
 
 array_init_elt:
@@ -699,13 +716,52 @@ array_init:
 
 /*** Functional update ***/
 update:
-| update_elt                  { [$1] }
-| update_elt COMMA update { $1::$3 }
+| update_elt                    { [$1] }
+| update_elt COMMA update_comma { $1::$3 }
+;
+
+update_comma:
+| /* epsilon */                 { [] }
+| update_elt                    { [$1] }
+| update_elt COMMA update_comma { $1::$3 }
 ;
 
 update_elt:
-| path EQUAL lexpr                { $1, PLupdateTerm $3 }
+| path EQUAL lexpr                     { $1, PLupdateTerm $3 }
 | path EQUAL LBRACE WITH update RBRACE { $1, PLupdateCont $5 }
+;
+
+updext:
+| updext_elt                            { [$1] }
+| updext_elt SEMICOLON updext_semicolon { $1::$3 }
+;
+
+updext_semicolon:
+| /* epsilon */                         { [] }
+| updext_elt                            { [$1] }
+| updext_elt SEMICOLON updext_semicolon { $1::$3 }
+;
+
+updext_elt:
+| identifier_or_typename_full update_op lexpr                     { $1, $2, PLupdateTerm $3 }
+| identifier_or_typename_full update_op LBRACE WITH updext RBRACE { $1, $2, PLupdExtCont $5 }
+| identifier_or_typename_full update_op LBRACE WITH update RBRACE { $1, $2, PLupdateCont $5 }
+;
+
+update_op:
+| EQ         { UPeq }
+| EQUAL      { UPequal }
+| COLON_EQ   { UPcolon_eq }
+| PLUS_EQ    { UPplus_eq }
+| MINUS_EQ   { UPminus_eq }
+| STAR_EQ    { UPstar_eq }
+| SLASH_EQ   { UPslash_eq }
+| PERCENT_EQ { UPpercent_eq }
+| PIPE_EQ    { UPpipe_eq }
+| AND_EQ     { UPand_eq }
+| CIRC_EQ    { UPcirc_eq }
+| RARROW     { UPrarrow }
+| LARROW     { UPlarrow }
 ;
 
 path:
@@ -729,65 +785,72 @@ binders_reentrance:
 | binders_reentrance COMMA decl_spec
     { let _, vars = $1 in
       let (lt, var) = $3 in
-        (lt, vars @ [ var ])
+      (lt, vars @ [ var ])
     }
 | binders_reentrance COMMA var_spec
     { let last_type_spec, vars = $1 in
-        (last_type_spec, vars @
-         [ let (modif, name) = $3 in (modif last_type_spec, name)])
+      (last_type_spec, vars @
+        [ let (modif, name) = $3 in (modif last_type_spec, name)])
     }
 ;
 
 decl_spec:
 | type_spec(typesymbol) var_spec
-  { ($1, let (modif, name) = $2 in (modif $1, name))  }
+    { ($1, let (modif, name) = $2 in (modif $1, name)) }
 ;
 
 var_spec:
-|       var_spec_bis { let (outer, inner,name) = $1 in
-                       ((fun x -> outer (inner x)), name)}
+| var_spec_bis
+    { let (outer, inner,name) = $1 in
+      ((fun x -> outer (inner x)), name)
+    }
 | stars var_spec_bis
-  { let (outer, inner, name) = $2 in
-      ((fun x -> outer (inner ($1 x))), name) }
+    { let (outer, inner, name) = $2 in
+      ((fun x -> outer (inner ($1 x))), name)
+    }
 ;
 
 constant:
-| INT_CONSTANT   { IntConstant $1 }
-| FLOAT_CONSTANT { FloatConstant $1 }
-| STRING_CONSTANT { StringConstant $1 }
+| INT_CONSTANT     { IntConstant $1 }
+| FLOAT_CONSTANT   { FloatConstant $1 }
+| STRING_CONSTANT  { StringConstant $1 }
 | WSTRING_CONSTANT { WStringConstant $1 }
 ;
 
 array_size:
-| lexpr {Some $1}
-| /* empty */ { None }
+| /* epsilon */ { None }
+| lexpr         {Some $1}
 ;
 
 var_spec_bis:
-| full_identifier     { ((fun x -> x),(fun x -> x), $1) }
+| full_identifier
+    { ((fun x -> x),(fun x -> x), $1) }
 | var_spec_bis LSQUARE array_size RSQUARE
-      { let (outer, inner, name) = $1 in
-          (outer, (fun x -> inner (LTarray (x,$3))), name)
-      }
-| LPAR var_spec RPAR { let (modif, name) = $2 in (modif, (fun x -> x), name) }
+    { let (outer, inner, name) = $1 in
+      (outer, (fun x -> inner (LTarray (x,$3))), name)
+    }
+| LPAR var_spec RPAR
+    { let (modif, name) = $2 in
+      (modif, (fun x -> x), name)
+    }
 | var_spec_bis LPAR abs_param_type_list RPAR
-      { let (outer, inner,name) = $1 in
-        let params = $3 in
-        (outer, (fun x -> inner (LTarrow (params,x))), name)
-      }
+    { let (outer, inner,name) = $1 in
+      let params = $3 in
+      (outer, (fun x -> inner (LTarrow (params,x))), name)
+    }
 ;
 
 abs_param_type_list:
-| /* empty */    { [ ] }
+| /* epsilon */  { [ ] }
 | abs_param_list { $1 }
-| abs_param_list COMMA DOTDOTDOT {
-  let loc = from_pos $symbolstartpos in
-  Kernel.not_yet_implemented ~loc "variadic C function types"
-  }
+| abs_param_list COMMA DOTDOTDOT
+    { let loc = from_pos $symbolstartpos in
+      Kernel.not_yet_implemented ~loc "variadic C function types"
+    }
 ;
 
 abs_param_list:
-| abs_param { [ $1 ] }
+| abs_param                      { [ $1 ] }
 | abs_param_list COMMA abs_param { $1 @ [ $3 ] }
 ;
 
@@ -796,17 +859,19 @@ since its name can be omitted
 */
 abs_param:
 | type_spec(identifier_or_typename) abs_spec_option { $2 $1 }
-| parameter { fst $1 }
+| parameter                                         { fst $1 }
 ;
 
 ne_parameters:
-| parameter { [$1] }
+| parameter                     { [$1] }
 | parameter COMMA ne_parameters { $1 :: $3 }
 ;
 
 parameter:
 | type_spec(identifier_or_typename) var_spec
-  { let (modif, name) = $2 in (modif $1, name)}
+  { let (modif, name) = $2 in
+    (modif $1, name)
+  }
 ;
 
 
@@ -821,30 +886,33 @@ typename:
 ;
 
 typesymbol:
-| name = TYPENAME { name }
+| name = TYPENAME  { name }
 | name = LONGIDENT { name }
 /* TODO treat the case of an ACSL keyword that is also a typedef */
 ;
 
-logic_type: logic_type_gen(typesymbol) { $1 }
+logic_type:
+| logic_type_gen(typesymbol) { $1 }
+;
 
 cv:
-  CONST { cv_const }
+| CONST    { cv_const }
 | VOLATILE { cv_volatile }
-| GHOST { cv_ghost }
+| GHOST    { cv_ghost }
 ;
 
 type_spec_cv:
-     type_spec(TYPENAME) cv_after { $2 $1 }
-|    cv type_spec_cv { LTattribute ($2, $1) }
+| type_spec(TYPENAME) cv_after { $2 $1 }
+| cv type_spec_cv              { LTattribute ($2, $1) }
+;
 
 cv_after:
-  /* empty */ { fun t -> t }
-| cv cv_after { fun t -> $2 (LTattribute (t,$1)) }
+| /* epsilon */ { fun t -> t }
+| cv cv_after   { fun t -> $2 (LTattribute (t,$1)) }
 ;
 
 cast_logic_type:
- | type_spec_cv abs_spec_cv_option { $2 $1 }
+| type_spec_cv abs_spec_cv_option { $2 $1 }
 ;
 
 logic_rt_type:
@@ -852,13 +920,13 @@ logic_rt_type:
 ;
 
 abs_spec_option:
-| /* empty */ { fun t -> t }
-| abs_spec    { $1 }
+| /* epsilon */ { fun t -> t }
+| abs_spec      { $1 }
 ;
 
 abs_spec_cv_option:
-| /* empty */   { fun t -> t }
-| abs_spec_cv { $1 }
+| /* epsilon */ { fun t -> t }
+| abs_spec_cv   { $1 }
 ;
 
 abs_spec:
@@ -882,84 +950,78 @@ abs_spec_cv:
 ;
 
 abs_spec_bis:
-| LPAR abs_spec RPAR { $2 }
+| LPAR abs_spec RPAR                         { $2 }
 | abs_spec_bis LPAR abs_param_type_list RPAR { fun t -> $1 (LTarrow($3,t)) };
 ;
 
 abs_spec_bis_cv:
-| LPAR abs_spec_cv RPAR { $2 }
+| LPAR abs_spec_cv RPAR                         { $2 }
 | abs_spec_bis_cv LPAR abs_param_type_list RPAR { fun t -> $1 (LTarrow($3,t)) };
 ;
 
 stars:
-| STAR          { fun t -> LTpointer t }
-| stars STAR    { fun t -> (LTpointer ($1 t)) }
+| STAR       { fun t -> LTpointer t }
+| stars STAR { fun t -> (LTpointer ($1 t)) }
 ;
 
 stars_cv:
-| STAR          { fun t -> LTpointer t }
-| STAR cv       { fun t -> LTattribute ((LTpointer t), $2) }
+| STAR             { fun t -> LTpointer t }
+| STAR cv          { fun t -> LTattribute ((LTpointer t), $2) }
 | stars_cv STAR    { fun t -> (LTpointer ($1 t)) }
 | stars_cv STAR cv { fun t -> (LTattribute ((LTpointer ($1 t)), $3)) }
 ;
 
 tabs:
-| LSQUARE array_size RSQUARE
-    {
-      fun t -> LTarray (t,$2)
-    }
-| LSQUARE array_size RSQUARE tabs
-    {
-      fun t -> (LTarray ($4 t,$2))
-    }
+| LSQUARE array_size RSQUARE      { fun t -> LTarray (t,$2) }
+| LSQUARE array_size RSQUARE tabs { fun t -> (LTarray ($4 t,$2)) }
 ;
 
 type_spec(tname):
-| INTEGER        { LTinteger }
-| REAL           { LTreal }
-| BOOLEAN        { LTboolean }
-| VOID           { LTvoid }
-| BOOL           { LTint IBool }
-| CHAR           { LTint IChar }       /** [char] */
-| SIGNED CHAR    { LTint ISChar }      /** [signed char] */
-| UNSIGNED CHAR  { LTint IUChar }      /** [unsigned char] */
-| INT            { LTint IInt }        /** [int] */
-| SIGNED INT     { LTint IInt }        /** [int] */
-| UNSIGNED INT   { LTint IUInt }       /** [unsigned int] */
-| UNSIGNED       { LTint IUInt }
-| SHORT          { LTint IShort }      /** [short] */
-| SIGNED SHORT   { LTint IShort }      /** [short] */
-| UNSIGNED SHORT { LTint IUShort }     /** [unsigned short] */
+| INTEGER            { LTinteger }
+| REAL               { LTreal }
+| BOOLEAN            { LTboolean }
+| VOID               { LTvoid }
+| BOOL               { LTint IBool }
+| CHAR               { LTint IChar }       /** [char] */
+| SIGNED CHAR        { LTint ISChar }      /** [signed char] */
+| UNSIGNED CHAR      { LTint IUChar }      /** [unsigned char] */
+| INT                { LTint IInt }        /** [int] */
+| SIGNED INT         { LTint IInt }        /** [int] */
+| UNSIGNED INT       { LTint IUInt }       /** [unsigned int] */
+| UNSIGNED           { LTint IUInt }
+| SHORT              { LTint IShort }      /** [short] */
+| SIGNED SHORT       { LTint IShort }      /** [short] */
+| UNSIGNED SHORT     { LTint IUShort }     /** [unsigned short] */
 | SHORT INT          { LTint IShort }      /** [short] */
 | SIGNED SHORT INT   { LTint IShort }      /** [short] */
 | UNSIGNED SHORT INT { LTint IUShort }     /** [unsigned short] */
-| LONG           { LTint ILong }       /** [long] */
-| SIGNED LONG    { LTint ILong }       /** [long] */
-| UNSIGNED LONG  { LTint IULong }      /** [unsigned long] */
-| SIGNED LONG INT{ LTint ILong }       /** [long] */
-| LONG  INT      { LTint ILong }       /** [long] */
-| UNSIGNED LONG INT { LTint IULong }      /** [unsigned long] */
-| LONG LONG      { LTint ILongLong }   /** [long long] (or [_int64] on
+| LONG               { LTint ILong }       /** [long] */
+| SIGNED LONG        { LTint ILong }       /** [long] */
+| UNSIGNED LONG      { LTint IULong }      /** [unsigned long] */
+| SIGNED LONG INT    { LTint ILong }       /** [long] */
+| LONG  INT          { LTint ILong }       /** [long] */
+| UNSIGNED LONG INT  { LTint IULong }      /** [unsigned long] */
+| LONG LONG          { LTint ILongLong }   /** [long long] (or [_int64] on
 					   Microsoft Visual C) */
 | SIGNED LONG LONG   { LTint ILongLong }   /** [long long] (or [_int64] on
 					   Microsoft Visual C) */
 | UNSIGNED LONG LONG { LTint IULongLong }  /** [unsigned long long]
                                 (or [unsigned _int64] on Microsoft Visual C) */
-| LONG LONG INT     { LTint ILongLong }   /** [long long] (or [_int64] on
+| LONG LONG INT      { LTint ILongLong }   /** [long long] (or [_int64] on
 					   Microsoft Visual C) */
-| SIGNED LONG LONG INT  { LTint ILongLong }   /** [long long] (or [_int64] on
+| SIGNED LONG LONG INT { LTint ILongLong }   /** [long long] (or [_int64] on
 					   Microsoft Visual C) */
 | UNSIGNED LONG LONG INT { LTint IULongLong }  /** [unsigned long long]
                                 (or [unsigned _int64] on Microsoft Visual C) */
-| FLOAT             { LTfloat FFloat }
-| FLOAT32           { LTfloat FFloat32 }
-| FLOAT64           { LTfloat FFloat64 }
-| DOUBLE            { LTfloat FDouble }
-| LONG DOUBLE       { LTfloat FLongDouble }
+| FLOAT              { LTfloat FFloat }
+| FLOAT32            { LTfloat FFloat32 }
+| FLOAT64            { LTfloat FFloat64 }
+| DOUBLE             { LTfloat FDouble }
+| LONG DOUBLE        { LTfloat FLongDouble }
 | STRUCT id = identifier_or_typename_full { LTstruct id }
-| ENUM id = identifier_or_typename_full { LTenum id }
+| ENUM id = identifier_or_typename_full   { LTenum id }
 | UNION id = identifier_or_typename_full  { LTunion id }
-| name = tname          { LTnamed (name,[]) }
+| name = tname                                        { LTnamed (name,[]) }
 | name = tname LT prms = ne_logic_type_list(tname) GT { LTnamed(name,prms) }
 ;
 
@@ -969,7 +1031,7 @@ ne_logic_type_list(tname):
 
 symbol_identifier:
 | id = full_identifier { id }
-| name = LONGIDENT { name }
+| name = LONGIDENT     { name }
 ;
 
 full_identifier:
@@ -1029,13 +1091,13 @@ full_identifier:
 /*** ACSL extension for external spec file ***/
 
 ext_spec:
- | ext_global_clauses_opt ext_module_specs_opt ext_global_specs_opt EOF
+| ext_global_clauses_opt ext_module_specs_opt ext_global_specs_opt EOF
     { (None,$1,$2)::$3 }
 ;
 
 ext_global_clauses_opt:
- | /* empty */         { [] }
- | ext_global_clauses  { $1 }
+| /* epsilon */      { [] }
+| ext_global_clauses { $1 }
 ;
 
 ext_global_clauses:
@@ -1044,7 +1106,8 @@ ext_global_clauses:
 ;
 
 ext_global_clause:
-| decl  { Ext_decl (loc_decl $sloc $1) }
+| decl
+    { Ext_decl (loc_decl $sloc $1) }
 | GLOBAL EXT_SPEC_LET any_identifier EQUAL lexpr SEMICOLON
     { Ext_macro (true, $3, $5) }
 | EXT_SPEC_LET any_identifier EQUAL lexpr SEMICOLON
@@ -1054,8 +1117,8 @@ ext_global_clause:
 ;
 
 ext_global_specs_opt:
- | /* empty */       { [] }
- | ext_global_specs  { $1 }
+| /* epsilon */    { [] }
+| ext_global_specs { $1 }
 ;
 
 ext_global_specs:
@@ -1064,17 +1127,15 @@ ext_global_specs:
 ;
 
 ext_global_spec:
-| ext_module_markup ext_global_clauses_opt ext_module_specs
-    { (Some $1),$2,$3 }
-| ext_module_markup ext_global_clauses_opt
-    { (Some $1),$2,[] }
+| ext_module_markup ext_global_clauses_opt ext_module_specs { (Some $1),$2,$3 }
+| ext_module_markup ext_global_clauses_opt                  { (Some $1),$2,[] }
 ;
 
 ext_module_specs_opt:
- | /* empty */      { [] }
- | ext_module_specs { $1 }
- | ext_fun_specs { [None, $1] }
- | ext_fun_specs ext_module_specs { (None, $1)::$2 }
+| /* epsilon */                  { [] }
+| ext_module_specs               { $1 }
+| ext_fun_specs                  { [None, $1] }
+| ext_fun_specs ext_module_specs { (None, $1)::$2 }
 ;
 
 ext_module_specs:
@@ -1087,13 +1148,13 @@ ext_module_spec:
 ;
 
 ext_function_specs_opt:
-| /* empty */         { [] }
-| ext_function_specs  { $1 }
+| /* epsilon */      { [] }
+| ext_function_specs { $1 }
 ;
 
 ext_function_specs:
-| ext_at_stmt_markup  { []}
-| ext_function_spec   { [$1] }
+| ext_at_stmt_markup                   { []}
+| ext_function_spec                    { [$1] }
 | ext_function_spec ext_function_specs { $1::$2 }
 ;
 
@@ -1108,10 +1169,8 @@ ext_fun_specs:
 ;
 
 ext_fun_spec:
-| ext_at_stmt_markup ext_stmt_loop_spec
-    { Ext_stmt($1,$2,loc $sloc) }
-| ext_contract_markup contract
-    { let s,pos = $2 in Ext_spec (s,pos) }
+| ext_at_stmt_markup ext_stmt_loop_spec { Ext_stmt($1,$2,loc $sloc) }
+| ext_contract_markup contract          { let s,pos = $2 in Ext_spec (s,pos) }
 ;
 
 ext_stmt_loop_spec:
@@ -1123,7 +1182,7 @@ ext_stmt_loop_spec:
 ;
 
 ext_identifier_opt:
-| /* empty*/     { "" }
+| /* epsilon*/   { "" }
 | ext_identifier { $1 }
 ;
 
@@ -1149,7 +1208,7 @@ stmt_markup:
 ;
 
 stmt_markup_attr:
-| stmt_markup                      { [$1] }
+| stmt_markup                  { [$1] }
 | stmt_markup stmt_markup_attr { $1 :: $2 }
 ;
 
@@ -1229,7 +1288,7 @@ ne_behaviors:
 ;
 
 complete_or_disjoint:
-| /* epsilon */        { [],[] }
+| /* epsilon */           { [],[] }
 | ne_complete_or_disjoint { $1 }
 ;
 
@@ -1292,8 +1351,7 @@ ne_complete_or_disjoint:
 clauses_list:
 | /* epsilon */ { empty_clauses_list () }
 | ASSUMES lexpr SEMICOLON clauses_list
-    { { $4 with assumes = $2::$4.assumes }
-    }
+    { { $4 with assumes = $2::$4.assumes } }
 | REQUIRES lexpr SEMICOLON clauses_list
     { check_clause_order $loc($2) $4 "requires" Pre_clauses;
       { $4 with requires = toplevel_pred Assert $2::$4.requires }
@@ -1428,15 +1486,16 @@ ne_zones:
 /*** annotations ***/
 
 annot:
-| annotation EOF          { $1 }
+| annotation EOF       { $1 }
 | is_acsl_spec any EOF { Aspec }
-| decl_list EOF   { Adecl ($1) }
+| decl_list EOF        { Adecl ($1) }
 ;
 
 // Not supported anymore
 attribute_annot:
 | identifier { $1 }
-| GHOST { "\\ghost" }
+| GHOST      { "\\ghost" }
+;
 
 annotation:
 | loop_annotations
@@ -1520,7 +1579,7 @@ loop_annot_stack:
               (pos,"loop allocates is not allowed after loop variant.") a
         | FreeAllocAny -> ());
       (match a with
-          WritesAny -> ()
+        | WritesAny -> ()
         | Writes _ ->
           raise
             (Not_well_formed
@@ -1539,10 +1598,8 @@ loop_annot_stack:
 ;
 
 loop_annot_opt:
-| /* epsilon */
-    { ([], FreeAllocAny, WritesAny, [], [], [], []) }
-| loop_annot_stack
-    { $1 }
+| /* epsilon */    { ([], FreeAllocAny, WritesAny, [], [], [], []) }
+| loop_annot_stack { $1 }
 ;
 
 loop_effects:
@@ -1554,7 +1611,7 @@ loop_allocation:
 ;
 
 loop_invariant:
-| LOOP INVARIANT lexpr SEMICOLON { toplevel_pred Assert $3 }
+| LOOP INVARIANT lexpr SEMICOLON       { toplevel_pred Assert $3 }
 | CHECK_LOOP INVARIANT lexpr SEMICOLON { toplevel_pred Check $3 }
 | ADMIT_LOOP INVARIANT lexpr SEMICOLON { toplevel_pred Admit $3 }
 ;
@@ -1564,6 +1621,7 @@ loop_variant:
 ;
 
 /* Grammar Extensibility for plugins */
+
 loop_grammar_extension:
 | LOOP EXT_CODE_ANNOT extension_content SEMICOLON
     { let open Cil_types in
@@ -1585,8 +1643,8 @@ loop_grammar_extension:
     }
 ;
 
-
 /*** code annotations ***/
+
 beg_code_annotation:
 | FOR {}
 | ASSERT {}
@@ -1642,8 +1700,8 @@ code_annotation:
 /*** declarations and logical definitions ***/
 
 decl_list:
-| decl            { [loc_decl $sloc $1] }
-| decl decl_list  { (loc_decl $sloc $1) :: $2 }
+| decl           { [loc_decl $sloc $1] }
+| decl decl_list { (loc_decl $sloc $1) :: $2 }
 ;
 
 decl:
@@ -1673,11 +1731,9 @@ ext_decl:
 ;
 
 ext_decls:
-| /* epsilon */
-    { [] }
+| /* epsilon */                         { [] }
 | unknown_extension SEMICOLON ext_decls { $3 }
-| ext_decl_loc ext_decls
-    { $1::$2 }
+| ext_decl_loc ext_decls                { $1::$2 }
 ;
 
 ext_decl_loc:
@@ -1685,7 +1741,7 @@ ext_decl_loc:
 ;
 
 volatile_opt:
-| /* empty */ { None, None }
+| /* epsilon */ { None, None }
 | READS any_identifier volatile_opt
     { let read,write=$3 in
       if read = None
@@ -1713,7 +1769,7 @@ type_annot:
 
 opt_semicolon:
 | /* epsilon */ { }
-| SEMICOLON { }
+| SEMICOLON     { }
 ;
 
 model_annot:
@@ -1740,14 +1796,14 @@ poly_id_type_add_typename:
 poly_id:
 | poly_id_type { let (id,tvar) = $1 in (id,[],tvar) }
 | full_identifier LBRACE ne_label_list RBRACE
-      { enter_type_variables_scope []; ($1,$3,[]) }
+    { enter_type_variables_scope []; ($1,$3,[]) }
 | full_identifier LBRACE ne_label_list RBRACE LT ne_tvar_list GT
-      { enter_type_variables_scope $6; $1,$3,$6 }
+    { enter_type_variables_scope $6; $1,$3,$6 }
 ;
 
 opt_parameters:
 | /*epsilon*/ { [] }
-| parameters { $1 }
+| parameters  { $1 }
 ;
 
 parameters:
@@ -1827,13 +1883,11 @@ ext_loader:
 | EXT_LOADER COLON  { $1 }
 | EXT_LOADER_PLUGIN { $1 }
 | IDENTIFIER_LOADER { raise Unknown_ext }
-
+;
 
 logic_decls:
-| /* epsilon */
-    { [] }
-| logic_decl_loc logic_decls
-    { $1::$2 }
+| /* epsilon */              { [] }
+| logic_decl_loc logic_decls { $1::$2 }
 ;
 
 logic_decl:
@@ -1869,34 +1923,33 @@ logic_decl_loc:
 | logic_decl { loc_decl $sloc $1 }
 ;
 
-
 reads_clause:
 | /* epsilon */ { None }
-| READS zones { Some $2 }
+| READS zones   { Some $2 }
 ;
 
 typedef:
 | ne_datacons_list { TDsum $1 }
-| logic_type { TDsyn $1 }
+| logic_type       { TDsyn $1 }
 ;
 
 datacons_list:
-| /* epsilon */ { [] }
+| /* epsilon */               { [] }
 | PIPE datacons datacons_list { $2 :: $3 }
 ;
 
 ne_datacons_list:
-| datacons datacons_list { $1 :: $2 }
+| datacons datacons_list      { $1 :: $2 }
 | PIPE datacons datacons_list { $2 :: $3 }
 ;
 
 datacons:
-| full_identifier { ($1,[]) }
+| full_identifier                        { ($1,[]) }
 | full_identifier LPAR ne_type_list RPAR { ($1,$3) }
 ;
 
 ne_type_list:
-| logic_type { [$1] }
+| logic_type                    { [$1] }
 | logic_type COMMA ne_type_list { $1::$3 }
 
 indcases:
@@ -1967,22 +2020,22 @@ behavior_name:
 ;
 
 any_identifier:
-| identifier { $1 }
+| identifier       { $1 }
 | is_acsl_typename { $1 }
-| TYPENAME { $1 }
-| keyword { $1 }
+| TYPENAME         { $1 }
+| keyword          { $1 }
 ;
 
 identifier_or_typename:
-| TYPENAME { $1 }
-| LONGIDENT { $1 }
+| TYPENAME        { $1 }
+| LONGIDENT       { $1 }
 | full_identifier { $1 }
 ;
 
 identifier_or_typename_full: /* allowed as C field names */
-| is_acsl_typename  { $1 }
-| TYPENAME { $1 }
-| full_identifier { $1 }
+| is_acsl_typename { $1 }
+| TYPENAME         { $1 }
+| full_identifier  { $1 }
 ;
 
 identifier: /* part included into 'identifier_or_typename', but duplicated to avoid parsing conflicts */
@@ -2040,38 +2093,38 @@ acsl_c_keyword:
 ;
 
 post_cond:
-| ENSURES { (Assert,Normal), "ensures" }
-| EXITS   { (Assert,Exits), "exits" }
-| BREAKS  { (Assert,Breaks), "breaks" }
-| CONTINUES { (Assert,Continues), "continues" }
-| RETURNS { (Assert,Returns), "returns" }
-| CHECK_ENSURES { (Check,Normal), "check ensures" }
-| CHECK_EXITS   { (Check,Exits), "check exits" }
-| CHECK_BREAKS  { (Check,Breaks), "check breaks" }
+| ENSURES         { (Assert,Normal), "ensures" }
+| EXITS           { (Assert,Exits), "exits" }
+| BREAKS          { (Assert,Breaks), "breaks" }
+| CONTINUES       { (Assert,Continues), "continues" }
+| RETURNS         { (Assert,Returns), "returns" }
+| CHECK_ENSURES   { (Check,Normal), "check ensures" }
+| CHECK_EXITS     { (Check,Exits), "check exits" }
+| CHECK_BREAKS    { (Check,Breaks), "check breaks" }
 | CHECK_CONTINUES { (Check,Continues), "check continues" }
-| CHECK_RETURNS { (Check,Returns), "check returns" }
-| ADMIT_ENSURES { (Admit,Normal), "admit ensures" }
-| ADMIT_EXITS   { (Admit,Exits), "admit exits" }
-| ADMIT_BREAKS  { (Admit,Breaks), "admit breaks" }
+| CHECK_RETURNS   { (Check,Returns), "check returns" }
+| ADMIT_ENSURES   { (Admit,Normal), "admit ensures" }
+| ADMIT_EXITS     { (Admit,Exits), "admit exits" }
+| ADMIT_BREAKS    { (Admit,Breaks), "admit breaks" }
 | ADMIT_CONTINUES { (Admit,Continues), "admit continues" }
-| ADMIT_RETURNS { (Admit,Returns), "admit returns" }
+| ADMIT_RETURNS   { (Admit,Returns), "admit returns" }
 ;
 
 is_acsl_spec:
-| post_cond  { snd $1 }
-| EXT_CONTRACT { fst $1 }
-| ASSIGNS    { "assigns" }
-| ASSUMES    { "assumes" }
-| ALLOCATES  { "allocates" }
-| FREES      { "frees" }
-| BEHAVIOR   { "behavior" }
-| REQUIRES   { "requires" }
+| post_cond      { snd $1 }
+| EXT_CONTRACT   { fst $1 }
+| ASSIGNS        { "assigns" }
+| ASSUMES        { "assumes" }
+| ALLOCATES      { "allocates" }
+| FREES          { "frees" }
+| BEHAVIOR       { "behavior" }
+| REQUIRES       { "requires" }
 | CHECK_REQUIRES { "check requires" }
 | ADMIT_REQUIRES { "admit requires" }
-| TERMINATES { "terminates" }
-| COMPLETE   { "complete" }
-| DECREASES  { "decreases" }
-| DISJOINT   { "disjoint" }
+| TERMINATES     { "terminates" }
+| COMPLETE       { "complete" }
+| DECREASES      { "decreases" }
+| DISJOINT       { "disjoint" }
 ;
 
 is_acsl_decl_or_code_annot:
@@ -2107,8 +2160,8 @@ is_acsl_decl_or_code_annot:
 ;
 
 is_acsl_typename:
-| INTEGER  { "integer" (* token that can be used in C fields *) }
-| REAL     { "real" (* token that can be used in C fields *) }
+| INTEGER { "integer" (* token that can be used in C fields *) }
+| REAL    { "real" (* token that can be used in C fields *) }
 ;
 
 is_ext_spec:
@@ -2121,15 +2174,15 @@ is_ext_spec:
 ;
 
 keyword:
-| LOGIC   { "logic" }
+| LOGIC             { "logic" }
 | non_logic_keyword { $1 }
 ;
 
 non_logic_keyword:
-| c_keyword      { $1 }
-| acsl_c_keyword { $1 }
-| is_ext_spec    { $1 }
-| is_acsl_spec   { $1 }
+| c_keyword                  { $1 }
+| acsl_c_keyword             { $1 }
+| is_ext_spec                { $1 }
+| is_acsl_spec               { $1 }
 | is_acsl_decl_or_code_annot { $1 }
 ;
 
@@ -2182,12 +2235,14 @@ wildcard:
 | bs_keyword { () }
 | AMP { () }
 | AND { () }
-| ARROW { () }
+| AND_EQ { () }
 | BIFF { () }
 | BIMPLIES { () }
+| CIRC_EQ { () }
 | COLON { () }
 | COLON2 { () }
 | COLONCOLON { () }
+| COLON_EQ { () }
 | COMMA { () }
 | INT_CONSTANT { () }
 | FLOAT_CONSTANT { () }
@@ -2207,6 +2262,7 @@ wildcard:
 | HATHAT { () }
 | IFF { () }
 | IMPLIES { () }
+| LARROW { () }
 | LBRACE { () }
 | LE { () }
 | LPAR { () }
@@ -2215,21 +2271,28 @@ wildcard:
 | LT { () }
 | LTLT { () }
 | MINUS { () }
+| MINUS_EQ { () }
 | NE { () }
 | NOT { () }
 | OR { () }
 | PERCENT { () }
+| PERCENT_EQ { () }
 | PI { () }
 | PIPE { () }
+| PIPE_EQ { () }
 | PLUS { () }
+| PLUS_EQ { () }
 | QUESTION { () }
+| RARROW { () }
 | RBRACE { () }
 | RPAR { () }
 | RSQUARE { () }
 | RSQUAREPIPE { () }
 | SEMICOLON { () }
 | SLASH { () }
+| SLASH_EQ { () }
 | STAR { () }
+| STAR_EQ { () }
 | STARHAT { () }
 | STRING_LITERAL { () }
 | TILDE { () }
