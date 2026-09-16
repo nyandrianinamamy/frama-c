@@ -22,6 +22,11 @@ void f_compliant(int i, int *b) {
   print("%d, %d", a, i);
 }
 
+void f_array_non_compliant(int i, int*b) {
+  int a[2] = { i++, i+b[i] };
+  print("%d, %d", a[0], a[1]);
+}
+
 int main(void) {
   int i = 0;
   int b[] = {40, 41, 42, 43};
