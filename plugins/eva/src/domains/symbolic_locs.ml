@@ -43,18 +43,18 @@ module K2V = struct
     M.inter ~cache ~symmetric ~idempotent ~decide
 
   let _narrow =
-    let module E = struct exception Bottom end in
+    let exception Bottom in
     let cache_name = cache_prefix ^ ".narrow" in
     let cache = Hptmap_sig.PersistentCache cache_name in
     let symmetric = true in
     let idempotent = true in
     let decide _ v1 v2 =
       let v = V.narrow v1 v2 in
-      if V.is_bottom v then raise E.Bottom else v
+      if V.is_bottom v then raise Bottom else v
     in
     fun a b ->
       try `Value (M.join ~cache ~symmetric ~idempotent ~decide a b)
-      with E.Bottom -> `Bottom
+      with Bottom -> `Bottom
 
   let merge =
     let cache_name = cache_prefix ^ ".join" in

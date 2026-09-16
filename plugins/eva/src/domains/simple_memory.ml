@@ -48,16 +48,16 @@ module Make_Memory (Info: sig val name: string end) (Value: Value) = struct
     join ~cache ~symmetric:true ~idempotent:true ~decide
 
   let narrow =
-    let module E = struct exception Bottom end in
+    let exception Bottom in
     let cache = cache_name "narrow" in
     let decide _ v1 v2 =
       match Value.narrow v1 v2 with
-      | `Bottom -> raise E.Bottom
+      | `Bottom -> raise Bottom
       | `Value v -> v
     in
     fun a b ->
       try `Value (join ~cache ~symmetric:true ~idempotent:true ~decide a b)
-      with E.Bottom -> `Bottom
+      with Bottom -> `Bottom
 
   let join =
     let cache = cache_name "join" in

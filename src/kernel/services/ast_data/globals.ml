@@ -693,18 +693,18 @@ module Syntactic_search = struct
       | None when strict -> candidate
       | None -> find_in_scope x next_scope
     in
-    let module M = struct exception Found of varinfo end in
+    let exception Found of varinfo in
     match scope with
     | Global ->
       (try
-         Vars.iter (fun v _ -> if has_name v then raise (M.Found v));
+         Vars.iter (fun v _ -> if has_name v then raise (Found v));
          None
-       with M.Found v -> Some v)
+       with Found v -> Some v)
     | Program ->
       (try
-         Vars.iter (fun v _ -> if global_has_name v then raise (M.Found v));
+         Vars.iter (fun v _ -> if global_has_name v then raise (Found v));
          None
-       with M.Found v -> Some v)
+       with Found v -> Some v)
     | Translation_unit file ->
       let symbols,_ = List.split (FileIndex.get_globals file) in
       List.find_opt global_has_name symbols |> lookup Program
@@ -719,9 +719,9 @@ module Syntactic_search = struct
       let blocks = !find_all_enclosing_blocks stmt in
       let find_in_block b =
         if List.exists has_name b.blocals then
-          raise (M.Found (List.find has_name b.blocals))
+          raise (Found (List.find has_name b.blocals))
         else if List.exists has_name b.bstatics then
-          raise (M.Found (List.find has_name b.bstatics))
+          raise (Found (List.find has_name b.bstatics))
       in
       try
         (* blocks can't be empty, we have at least the body of the function. *)
@@ -733,7 +733,7 @@ module Syntactic_search = struct
             let kf = !find_englobing_kf stmt in
             if strict then None else find_in_scope x (Formal kf)
           end
-      with M.Found v -> Some v
+      with Found v -> Some v
 
   and find_in_scope ?(strict=false) x scope =
     Scope_info.memo find_var (x,scope,strict)

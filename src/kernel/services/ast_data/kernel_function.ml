@@ -289,7 +289,7 @@ let common_block s1 s2 =
 let () = Globals.find_all_enclosing_blocks := find_all_enclosing_blocks
 
 let stmt_in_loop kf stmt =
-  let module Res = struct exception Found of bool end in
+  let exception Found of bool in
   let vis = object
     inherit Cil.nopCilVisitor
     val is_in_loop = Stack.create ()
@@ -297,10 +297,10 @@ let stmt_in_loop kf stmt =
       match s.skind with
       | Loop _ ->
         Stack.push true is_in_loop;
-        if Cil_datatype.Stmt.equal s stmt then raise (Res.Found true);
+        if Cil_datatype.Stmt.equal s stmt then raise (Found true);
         Cil.DoChildrenPost (fun s -> ignore (Stack.pop is_in_loop); s)
       | _ when Cil_datatype.Stmt.equal s stmt ->
-        raise (Res.Found (Stack.top is_in_loop))
+        raise (Found (Stack.top is_in_loop))
       | _  -> Cil.DoChildren
     initializer Stack.push false is_in_loop
   end
@@ -310,11 +310,11 @@ let stmt_in_loop kf stmt =
       (Cil.visitCilFunction vis (get_definition kf));
     false
   with
-  | Res.Found f -> f
+  | Found f -> f
   | No_Definition -> false (* Not the good kf obviously. *)
 
 let find_enclosing_loop kf stmt =
-  let module Res = struct exception Found of Cil_types.stmt end in
+  let exception Found of Cil_types.stmt in
   let vis = object
     inherit Cil.nopCilVisitor
     val loops = Stack.create ()
@@ -324,7 +324,7 @@ let find_enclosing_loop kf stmt =
         Stack.push s loops;
         Cil.DoChildrenPost (fun s -> ignore (Stack.pop loops); s)
       | _ when Cil_datatype.Stmt.equal s stmt ->
-        raise (Res.Found (Stack.top loops))
+        raise (Found (Stack.top loops))
       | _ -> Cil.DoChildren
   end
   in
@@ -338,7 +338,7 @@ let find_enclosing_loop kf stmt =
   with
   | No_Definition -> raise Not_found (* Not the good kf obviously. *)
   | Stack.Empty -> raise Not_found (* statement outside of a loop *)
-  | Res.Found s -> s
+  | Found s -> s
 
 exception Got_return of stmt
 exception No_Statement

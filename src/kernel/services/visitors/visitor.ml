@@ -297,9 +297,9 @@ class internal_generic_frama_c_visitor fundec queue current_kf behavior: frama_c
              if not (List.memq x elts) then
                add_queue (fun () -> remove e new_kf x))
           old;
-        let module M = struct exception Found of Emitter.t end in
+        let exception Found of Emitter.t in
         let already_there x =
-          fold (fun e y () -> if x == y then raise (M.Found e)) new_kf b.b_name ()
+          fold (fun e y () -> if x == y then raise (Found e)) new_kf b.b_name ()
         in
         List.iter
           (fun x ->
@@ -308,7 +308,7 @@ class internal_generic_frama_c_visitor fundec queue current_kf behavior: frama_c
                   try
                     already_there x;
                     add emitter new_kf b.b_name x
-                  with M.Found e ->
+                  with Found e ->
                     (* We keep x at its right place inside b. *)
                     remove e new_kf x;
                     add e new_kf b.b_name x))
