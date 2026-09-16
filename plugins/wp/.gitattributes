@@ -8,7 +8,6 @@
 *.css header_spec=CEA_LGPL
 
 Makefile header_spec=CEA_LGPL
-Makefile.resources header_spec=CEA_LGPL
 MakeDoc header_spec=CEA_LGPL
 
 #######################
@@ -17,8 +16,6 @@ MakeDoc header_spec=CEA_LGPL
 
 # If these files are removed, do not forget to remove corresponding header
 # files in 'headers' since they are only used here.
-
-/doc/coqdoc/coq2tex/*.mll header_spec=XL_COMPCERT
 
 /share/coqwp/BuiltIn.v header_spec=UNMODIFIED_WHY3
 /share/coqwp/HighOrd.v header_spec=UNMODIFIED_WHY3
@@ -46,11 +43,6 @@ MakeDoc header_spec=CEA_LGPL
 ########################
 # HEADER_SPEC: .ignore #
 ########################
-
-/doc/coqdoc/coq2tex/coq2html.js header_spec=.ignore
-/doc/coqdoc/coq2tex/*.css header_spec=.ignore
-/doc/coqdoc/coq2tex/*.html header_spec=.ignore
-/doc/coqdoc/*.tex header_spec=.ignore
 
 /doc/manual/nullable.c header_spec=.ignore
 /doc/manual/*.tex header_spec=.ignore

@@ -10,8 +10,7 @@
 # This script helps with cleaning up .gitattributes. It does so by identifying
 # entries from the .gitattributes in the current directory, which do not match
 # any existing file.
-# It has not been tested extensively, so do not delete entries solely on its
-# output.
+# Entries reported might still be useful so don't remove them blindingly
 
 if [ ! -f .gitattributes ]; then
   echo "Error: there are no .gitattributes here!"

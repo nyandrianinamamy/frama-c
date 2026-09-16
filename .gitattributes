@@ -24,17 +24,14 @@ Changelog merge=union
 # note: unset "-check-eoleof" and "-check-utf8" for "binary"
 *.ico binary -check-eoleof -check-utf8
 *.icns binary -check-eoleof -check-utf8
-
 *.eps binary -check-eoleof -check-utf8
 *.ps  binary -check-eoleof -check-utf8
 *.gif binary -check-eoleof -check-utf8
 *.jpg binary -check-eoleof -check-utf8
 *.png binary -check-eoleof -check-utf8
 *.svg binary -check-eoleof -check-utf8
-
 *.odg binary -check-eoleof -check-utf8
 *.pdf binary -check-eoleof -check-utf8
-
 *.eot binary -check-eoleof -check-utf8
 *.woff binary -check-eoleof -check-utf8
 
@@ -103,7 +100,6 @@ Make* header_spec=CEA_LGPL
 *.c header_spec=CEA_LGPL
 *.h header_spec=CEA_LGPL
 
-*.htm header_spec=CEA_LGPL
 *.html header_spec=CEA_LGPL
 
 *.js header_spec=CEA_LGPL
@@ -149,7 +145,6 @@ README* header_spec=.ignore
 
 *.eps header_spec=.ignore
 *.ps header_spec=.ignore
-
 *.gif header_spec=.ignore
 *.ico header_spec=.ignore
 *.jpg header_spec=.ignore
@@ -181,7 +176,6 @@ ptests_config header_spec=.ignore
 /VERSION header_spec=.ignore
 /VERSION_CODENAME header_spec=.ignore
 
-/dev/docker/*.sh header_spec=.ignore
 /dev/docker/Dockerfile header_spec=.ignore
 /dev/_typos.toml header_spec=.ignore
 /dev/*.json header_spec=.ignore
@@ -191,7 +185,6 @@ ptests_config header_spec=.ignore
 /doc/LICENSE header_spec=.ignore
 /doc/MakeLaTeXModern header_spec=.ignore
 /doc/developer/dune-workspace.bench header_spec=.ignore
-/doc/developer/examples/**/Makefile* header_spec=.ignore
 /doc/developer/examples/**/dune header_spec=.ignore
 /doc/developer/examples/**/dune-project header_spec=.ignore
 /doc/developer/tutorial/**/Makefile* header_spec=.ignore
@@ -209,7 +202,6 @@ ptests_config header_spec=.ignore
 /doc/eva/examples/parametrizing/*.log header_spec=.ignore
 /doc/eva/examples/mthread/*.log header_spec=.ignore
 /doc/**/make* header_spec=.ignore
-/doc/**/TODO header_spec=.ignore
 /doc/**/*.bnf header_spec=.ignore
 /doc/**/*.c header_spec=.ignore
 /doc/**/*.graphml header_spec=.ignore
@@ -221,8 +213,6 @@ ptests_config header_spec=.ignore
 /doc/**/*.mll header_spec=.ignore
 /doc/**/*.oracle header_spec=.ignore
 /doc/**/*.tex header_spec=.ignore
-/doc/*/*/**/*.txt header_spec=.ignore
-/doc/**/*.sh header_spec=.ignore
 
 /headers/* header_spec=.ignore
 /headers/dune header_spec=CEA_LGPL
@@ -277,8 +267,6 @@ ptests_config header_spec=.ignore
 /src/kernel/internals/parsing/logic_parser.mly header_spec=CEA_INRIA_LGPL
 /src/kernel/internals/parsing/logic_preprocess.mli header_spec=CEA_INRIA_LGPL
 /src/kernel/internals/parsing/logic_preprocess.mll header_spec=CEA_INRIA_LGPL
-/src/kernel/internals/runtime/machdeps.ml header_spec=CIL
-/src/kernel/internals/runtime/machdeps.mli header_spec=CIL
 /src/kernel/internals/typing/alpha.ml header_spec=CIL
 /src/kernel/internals/typing/alpha.mli header_spec=CIL
 /src/kernel/internals/typing/cabs2cil.ml header_spec=CIL
@@ -299,7 +287,6 @@ ptests_config header_spec=.ignore
 /src/kernel/internals/typing/translate_lightweight.mli header_spec=CEA_INRIA_LGPL
 /src/kernel/services/analysis/dataflows.ml header_spec=CIL
 /src/kernel/services/analysis/dataflows.mli header_spec=CIL
-/src/kernel/services/ast_data/cil_types.mli header_spec=CIL
 /src/kernel/services/ast_data/cil_types.ml header_spec=CIL
 /src/kernel/services/ast_printing/cprint.ml header_spec=CIL
 /src/kernel/services/ast_printing/cprint.mli header_spec=CIL
