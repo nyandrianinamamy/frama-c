@@ -39,3 +39,13 @@ inductive P(integer x) {
   case base: ok_let(0);
 }
 */
+
+/*@ inductive R(int* p){
+      case c: \forall int* p ; \false;
+  }
+*/
+
+/*@ inductive R(int* p){
+      case c: \forall int* p ; 0!=0;
+  }
+*/
