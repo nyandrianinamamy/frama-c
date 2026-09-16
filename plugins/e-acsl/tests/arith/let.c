@@ -26,6 +26,10 @@ int main(void) {
       (\let u = u + 1; u) == 2; */
   ;
 
+  /*@ assert
+      \let n = 100000;
+      5000050000 == n * (n+1) / 2; */  // issue e-acsl #183
+
   long m = 0x7fffffffffffffffL;
   /*@ assert (\let u = m; u*u) > m; */;
 
