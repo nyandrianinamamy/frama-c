@@ -8946,6 +8946,7 @@ and createLocal ghost ((_, sto, _, _, _) as specs)
         end
       end else empty
     in
+    let se1 = unspecified_chunk se1 in
     let se1 = local_var_chunk se1 vi in
     if must_ignore_init vi inite then
       se1 (* skipChunk *)
