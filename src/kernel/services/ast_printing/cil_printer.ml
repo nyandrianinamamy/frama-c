@@ -1191,7 +1191,7 @@ class cil_printer () = object (self)
                   match pickLabel !r.labels with
                   | Some label -> Format.pp_print_string  fmt label
                   | None ->
-                    Kernel.error "Cannot find label for target of asm goto: %a"
+                    Kernel.failure "Cannot find label for target of asm goto: %a"
                       (self#without_annot self#stmt) !r;
                     Format.pp_print_string fmt "__invalid_label")
                fmt
@@ -1211,7 +1211,7 @@ class cil_printer () = object (self)
   method private getLastNamedArgument () =
     match self#current_function with
     | None ->
-      Kernel.error ~current:true "Current stmt not positioned";
+      Kernel.failure ~current:true "Current stmt not positioned";
       Cil_datatype.Exp.dummy
     | Some vi ->
       let formals = Cil.getFormalsDecl vi in
@@ -1501,7 +1501,7 @@ class cil_printer () = object (self)
             self#pp_keyword "goto"
             lbl
         | None ->
-          Kernel.error "Cannot find label for target of goto: %a"
+          Kernel.failure "Cannot find label for target of goto: %a"
             (self#without_annot self#stmt) !sref;
           fprintf fmt "@[%a@ __invalid_label;@]" self#pp_keyword "goto"
       end
