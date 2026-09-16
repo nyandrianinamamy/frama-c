@@ -29,6 +29,14 @@ let symmetric_relation = function
   | Req -> Req
   | Rneq -> Rneq
 
+let relation_to_binop = function
+  | Rlt -> Lt
+  | Rgt -> Gt
+  | Rle -> Le
+  | Rge -> Ge
+  | Req -> Eq
+  | Rneq -> Ne
+
 let is_compatible_ltype t1 t2 =
   Cil_datatype.Logic_type.equal t1 t2 ||
   (match Ast_types.Acsl.unroll_ltdef t1, Ast_types.Acsl.unroll_ltdef t2 with

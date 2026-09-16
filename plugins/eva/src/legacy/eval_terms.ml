@@ -465,15 +465,6 @@ let is_rel_binop = function
   | Ne -> true
   | _ -> false
 
-let lop_to_cop op =
-  match op with
-  | Req -> Eq
-  | Rneq -> Ne
-  | Rle -> Le
-  | Rge -> Ge
-  | Rlt -> Lt
-  | Rgt -> Gt
-
 let rel_of_binop = function
   | Lt -> Rlt
   | Gt -> Rgt
@@ -2606,8 +2597,9 @@ and eval_predicate env pred =
         | _ -> assert false
       end
 
-    | Prel (op,t1,t2) ->
-      let r = eval_binop ~alarm_mode env (lop_to_cop op) t1 t2 in
+    | Prel (rel, t1, t2) ->
+      let binop = Logic_utils.relation_to_binop rel in
+      let r = eval_binop ~alarm_mode env binop t1 t2 in
       (* [eval_binop] uses the forward semantics of [Cvalue.V], which does not
          handle empty sets. Returns [Unknown] if empty sets are possible. *)
       if r.empty

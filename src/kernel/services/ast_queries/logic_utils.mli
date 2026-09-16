@@ -98,6 +98,10 @@ val opposite_relation: relation -> relation
     [a op b <==> b (symmetric_relation op) a]. *)
 val symmetric_relation: relation -> relation
 
+(** Returns the binary operator corresponding to the given relational
+    operator. *)
+val relation_to_binop: relation -> binop
+
 
 (** {2 Predicates} *)
 
