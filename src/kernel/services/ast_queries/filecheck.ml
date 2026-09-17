@@ -252,6 +252,11 @@ module Base_checker = struct
 
       method! vfunc f =
         self#push_behavior_stack ();
+        let pretty =
+          if is_normalized then (module Printer: Printer_api.S_pp)
+          else (module Cil_printer: Printer_api.S_pp)
+        in
+        let module Printer = (val pretty: Printer_api.S_pp) in
         (* Initial AST does not have kf *)
         if is_normalized then begin
           let kf = Option.get self#current_kf in
