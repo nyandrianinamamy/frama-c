@@ -34,9 +34,7 @@ Options taking a string as argument should preferably be written
                     -aorai-no-generate-deterministic-lemmas)
 -aorai-instrumentation-history <N>  the instrumentation will keep an history
                     of the N last states
--aorai-raw-auto     opposite of option -aorai-simplified-auto, whose help
-                    message is:
-                    If set, does not simplify automata
+-aorai-raw-auto     opposite of option -aorai-simplified-auto
 -aorai-simple-AI    use simple abstract interpretation (opposite option is
                     -aorai-no-simple-AI)
 -aorai-simplified-auto  If set, does not simplify automata (set by default,
@@ -44,9 +42,6 @@ Options taking a string as argument should preferably be written
 -aorai-smoke-tests  Add assertion in the generated functions to ensure that
                     the automaton is always in at least one state (opposite
                     option is -aorai-no-smoke-tests)
--aorai-spec-off     opposite of option -aorai-spec-on, whose help message
-                    is:
-                    if set, does not axiomatize automata
 -aorai-spec-on      if set, does not axiomatize automata (set by default,
                     opposite option is -aorai-spec-off)
 

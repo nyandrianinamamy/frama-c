@@ -88,9 +88,6 @@ Options taking a string as argument should preferably be written
 
 *** ANALYSIS OF CONCURRENT PROGRAMS
 
--mt-consider-null   (set by default) opposite of option -mt-ignore-null,
-                    whose help message is:
-                    Ignore shared accesses to numeric memory (NULL base)
 -mt-extract <[html]>  extraction of models (preferably use
                     -mt-extract="[html]")
 -mt-ignore-null     Ignore shared accesses to numeric memory (NULL base)

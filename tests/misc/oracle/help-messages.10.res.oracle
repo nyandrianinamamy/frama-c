@@ -21,9 +21,6 @@ Options taking a string as argument should preferably be written
 -impact-in-callers  compute compute impact in callers as well as in callees
                     (set by default, opposite option is
                     -impact-not-in-callers)
--impact-not-in-callers  opposite of option -impact-in-callers, whose help
-                    message is:
-                    compute compute impact in callers as well as in callees
 -impact-print       print the impacted stmt (opposite option is
                     -impact-no-print)
 -impact-skip <v1,...,vn>  consider that those variables are not impacted

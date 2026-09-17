@@ -33,14 +33,22 @@ val do_not_save: unit -> unit
 (** Prevent serialization of the parameter.
     @since Carbon-20110201 *)
 
-val set_negative_option_name: string -> unit
-(** For boolean parameters, set the name of the negative
-    option generating automatically from the positive one (the given option
-    name). The default used value prefixes the given option name by "-no".
-    Assume that the given string is a valid option name or empty.
-    If it is empty, no negative option is created.
-    @since Beryllium-20090601-beta1
-    @see <https://frama-c.com/download/frama-c-plugin-development-guide.pdf> *)
+val set_default_value_hidden: unit -> unit
+(** Do not display default value. *)
+
+val set_negative_option_name: ?visible:bool -> string -> unit
+(** For boolean parameters, explicitly set the name of the negative/opposite
+    option, which is normally generated automatically from the original one:
+    it prefixes the original option name by "-no".
+    If the provided string is empty, no negative option is created.
+    [visible] controls whether the negative option will
+    be displayed in the help message as a dedicated entry:
+    - if set to [false] it will not be displayed
+    - if set to [true] and its name is not empty it will be displayed
+    - if no value is provided, then it will be displayed only if a help message
+      was provided using [set_negative_option_help]
+      @since Beryllium-20090601-beta1
+      @see <https://frama-c.com/download/frama-c-plugin-development-guide.pdf> *)
 
 val set_negative_option_help: string -> unit
 (** For boolean parameters, set the help message of the negative
@@ -178,6 +186,8 @@ val find_kf_by_name: (string -> Cil_types.kernel_function) ref
 (* ************************************************************************* *)
 
 val cmdline_stage_ref: Cmdline.stage ref
+val default_value_hidden_ref: bool ref
+val negative_option_visible_ref: bool option ref
 val negative_option_name_ref: string option ref
 val negative_option_help_ref: string ref
 val unset_option_name_ref: string ref
