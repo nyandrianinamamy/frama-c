@@ -36,18 +36,16 @@ let () = Request.register ~package
     ~signals:Update.signals
     callers
 
-let eval_callee stmt f =
-  Results.(before stmt |> eval_callee f |> default [])
-
 let callees = function
-  | Printer_tag.PLval (_kf, Kstmt stmt, (Mem _, NoOffset as lval))
-    when Cil.(Ast_types.C.is_fun (typeOfLval lval)) ->
-    List.map (fun kf -> Printer_tag.SFunction kf) @@
-    eval_callee stmt (fst lval)
   | Printer_tag.PLval (_kf, Kstmt stmt, lval)
     when Ast_types.C.is_fun_ptr (Cil.typeOfLval lval) ->
-    List.map (fun kf -> Printer_tag.SFunction kf) @@
-    eval_callee stmt (Mem (Eva_utils.lval_to_exp lval))
+    let lhost =
+      match lval with
+      | Mem _ as lhost, NoOffset -> lhost
+      | _ -> Mem (Cil.new_exp ~loc:Self.gen_loc (Lval lval))
+    in
+    let kfs = Results.(before stmt |> eval_callee lhost |> default []) in
+    List.map (fun kf -> Printer_tag.SFunction kf) kfs
   | _ -> []
 
 let () = Request.register ~package

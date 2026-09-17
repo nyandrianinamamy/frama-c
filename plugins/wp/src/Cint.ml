@@ -957,7 +957,7 @@ module IntDomain = struct
       in
       match encode t1, encode t2 with
       | Local.Integer cst1, Local.Integer cst2 -> (* assume cmp cst1 cst2 *)
-        if Abstract_interp.Comp.False = Ival.forward_comp_int cmp cst1 cst2
+        if Abstract_interp.False = Ival.forward_comp_int cmp cst1 cst2
         then
           (Wp_parameters.debug ~dkey "* Assume FALSE: %a %s %a@."
              pretty (t1,cst1) cmp_str pretty (t2,cst2);
@@ -970,22 +970,22 @@ module IntDomain = struct
         add t1 (Ival.backward_comp_int_left cmp v1 cst2) dom
       | Local.Integer cst1, Local.Term opt2 ->
         let v2 = term_dom opt2 in
-        let cmp_sym = Abstract_interp.Comp.sym cmp in
+        let cmp_sym = Logic_utils.symmetric_relation cmp in
         add t2 (Ival.backward_comp_int_left cmp_sym v2 cst1) dom
       | Local.Term opt1, Local.Term opt2 ->
         let v1 = term_dom opt1 in
         let v2 = term_dom opt2 in
-        let cmp_sym = Abstract_interp.Comp.sym cmp in
+        let cmp_sym = Logic_utils.symmetric_relation cmp in
         add t1 (Ival.backward_comp_int_left cmp v1 v2)
           (add t2 (Ival.backward_comp_int_left cmp_sym v2 v1) dom)
 
   let assume_literal t dom = match Lang.F.repr t with
     | Eq(a,b)  when is_int a && is_int b ->
-      assume_cmp "==" Abstract_interp.Comp.Eq a b dom
+      assume_cmp "==" Req a b dom
     | Leq(a,b) when is_int a && is_int b ->
-      assume_cmp "<=" Abstract_interp.Comp.Le a b dom
+      assume_cmp "<=" Rle a b dom
     | Lt(a,b)  when is_int a && is_int b ->
-      assume_cmp "<" Abstract_interp.Comp.Lt a b dom
+      assume_cmp "<" Rlt a b dom
     | Fun(g,[a]) -> begin try
           let ubound =
             c_int_bounds_ival (is_cint g) (* may raise Not_found *) in
@@ -1123,13 +1123,13 @@ let is_cint_simplifier =
         match Lang.F.repr t with (* NB. [var] has an int type *)
         | _ when not (is_prop t) -> ()
         | Leq(a,b) when Lang.F.equal a var && is_int b ->
-          reduce Abstract_interp.Comp.Le var_domain b
+          reduce Rle var_domain b
         | Leq(b,a) when Lang.F.equal a var && is_int b ->
-          reduce Abstract_interp.Comp.Ge var_domain b
+          reduce Rge var_domain b
         | Lt(a,b) when Lang.F.equal a var && is_int b ->
-          reduce Abstract_interp.Comp.Lt var_domain b
+          reduce Rlt var_domain b
         | Lt(b,a) when Lang.F.equal a var  && is_int b ->
-          reduce Abstract_interp.Comp.Gt var_domain b
+          reduce Rgt var_domain b
         | And l -> List.iter (reduce_on_neg var var_domain) l
         | Not p -> reduce_on_pos var var_domain p
         | _ -> ()

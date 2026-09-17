@@ -22,14 +22,6 @@ open M.Operators
 (* Transforming predicates into C expressions (if any) *)
 (* ************************************************************************** *)
 
-let relation_to_binop = function
-  | Rlt -> Lt
-  | Rgt -> Gt
-  | Rle -> Le
-  | Rge -> Ge
-  | Req -> Eq
-  | Rneq -> Ne
-
 let c_int = Analyses_types.C_integer IInt
 
 let rec predicate_content_to_exp_il p =
@@ -128,7 +120,7 @@ let rec predicate_content_to_exp_old ?(inplace=false) ?name ~loc ~adata ~env ~kf
         kf
         env
         ity
-        (relation_to_binop rel)
+        (Logic_utils.relation_to_binop rel)
         e1
         e2
         None

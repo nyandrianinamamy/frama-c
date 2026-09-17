@@ -167,7 +167,7 @@ let test_comp_on_nan ~ne fval_op sop fval_1 fval_2 =
   let fval_2_nan = join nan fval_2 in
   let check f_1 f_2 =
     let f_r = forward_comp fval_op f_1 f_2 in
-    let bug = f_r = Abstract_interp.Comp.(if ne then False else True) in
+    let bug = f_r = Abstract_interp.(if ne then False else True) in
     report bug
       "NAN %a %s %a -> %b  &&  %a"
       pretty f_1 sop pretty f_2 ne pretty_truth f_r
@@ -183,7 +183,7 @@ let test_comp_on_itv ~ne op fval_op str_op ((b1, e1), (b2, e2)) =
   test_comp_on_nan ~ne fval_op str_op fval_1 fval_2;
   let check x y  =
     let r = op x y in
-    let bug = fval_r = Abstract_interp.Comp.(if r then False else True) in
+    let bug = fval_r = Abstract_interp.(if r then False else True) in
     report bug "COMP %F %s %F -> %b  &&  %a %s %a -> %a"
       x str_op y r pretty fval_1 str_op pretty fval_2 pretty_truth fval_r
   in
@@ -265,13 +265,12 @@ let test_forward_comp () =
     List.iter (test_comp_on_itv ~ne op fval_op str_op) l4
   in
   let ne = false in
-  let open Abstract_interp in
-  test_comp ~ne (=) Comp.Eq "==";
-  test_comp ~ne (<) Comp.Lt "<";
-  test_comp ~ne (<=) Comp.Le "<=";
-  test_comp ~ne (>) Comp.Gt ">";
-  test_comp ~ne (>=) Comp.Ge ">=";
-  test_comp ~ne:true (<>) Comp.Ne "<>"
+  test_comp ~ne (=) Req "==";
+  test_comp ~ne (<) Rlt "<";
+  test_comp ~ne (<=) Rle "<=";
+  test_comp ~ne (>) Rgt ">";
+  test_comp ~ne (>=) Rge ">=";
+  test_comp ~ne:true (<>) Rneq "<>"
 
 let main _ =
   test_forward_unop ();

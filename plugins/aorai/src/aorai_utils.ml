@@ -560,14 +560,6 @@ let crosscond_to_exp generated_kf curr_f curr_status loc cond res =
   let check_current_event f status =
     Kernel_function.equal curr_f f && curr_status = status
   in
-  let rel_convert = function
-    | Rlt -> Lt
-    | Rgt -> Gt
-    | Rle -> Le
-    | Rge -> Ge
-    | Req -> Eq
-    | Rneq -> Ne
-  in
   let rec expnode_convert =
     function
     | TOr  (c1, c2) ->
@@ -618,9 +610,9 @@ let crosscond_to_exp generated_kf curr_f curr_status loc cond res =
     | TTrue -> [], [], Cil_datatype.Varinfo.Set.empty, Cil.one ~loc
     | TFalse -> [], [], Cil_datatype.Varinfo.Set.empty, Cil.zero ~loc
     | TRel(rel,t1,t2) ->
+      let binop = Logic_utils.relation_to_binop rel in
       [], [], Cil_datatype.Varinfo.Set.empty,
-      make_binop ~loc
-        (rel_convert rel) (term_to_exp t1 res) (term_to_exp t2 res)
+      make_binop ~loc binop (term_to_exp t1 res) (term_to_exp t2 res)
   in
   expnode_convert cond
 

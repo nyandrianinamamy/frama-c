@@ -19,15 +19,6 @@ let pretty_dnf fmt l =
   Format.fprintf fmt "@[<2>[%a@]]@\n"
     (Pretty_utils.pp_list pretty_clause) l
 
-let opposite_rel =
-  function
-  | Rlt -> Rge
-  | Rgt -> Rle
-  | Rge -> Rlt
-  | Rle -> Rgt
-  | Req -> Rneq
-  | Rneq -> Req
-
 let rec condToDNF cond =
   (*Typing : condition --> list of list of terms (disjunction of conjunction of terms)
     DNF(term)   = {{term}}
@@ -55,7 +46,7 @@ let rec condToDNF cond =
       | TNot (c1) -> condToDNF c1
       | TTrue -> condToDNF TFalse
       | TFalse -> condToDNF TTrue
-      | TRel(rel,t1,t2) -> [[TRel(opposite_rel rel,t1,t2)]]
+      | TRel(rel,t1,t2) -> [[TRel(Logic_utils.opposite_relation rel,t1,t2)]]
       | _ as t -> [[TNot(t)]]
     end
   | TTrue -> [[TTrue]]
@@ -191,18 +182,11 @@ let rel_are_equals (rel1,t11,t12) (rel2,t21,t22) =
   && Logic_utils.is_same_term t12 t22
 
 let swap_rel (rel,t1,t2) =
-  let rel = match rel with
-    | Rlt -> Rgt
-    | Rle -> Rge
-    | Rge -> Rle
-    | Rgt -> Rlt
-    | Req -> Req
-    | Rneq -> Rneq
-  in (rel,t2,t1)
+  (Logic_utils.symmetric_relation rel, t1, t2)
 
 let contradict_rel r1 (rel2,t21,t22) =
-  rel_are_equals r1 (opposite_rel rel2, t21,t22)
-  || rel_are_equals (swap_rel r1) (opposite_rel rel2, t21, t22)
+  rel_are_equals r1 (Logic_utils.opposite_relation rel2, t21,t22)
+  || rel_are_equals (swap_rel r1) (Logic_utils.opposite_relation rel2, t21, t22)
 
 let rec termsAreEqual term1 term2 =
   match term1,term2 with
@@ -308,7 +292,7 @@ let rec tnot t =
     TOr (TNot (TReturn c), TAnd(TReturn c, tnot t))
   | TAnd (t1,t2) -> TOr(tnot t1, tnot t2)
   | TOr (t1,t2) -> TAnd(tnot t1, tnot t2)
-  | TRel(rel,t1,t2) -> TRel(opposite_rel rel, t1, t2)
+  | TRel(rel,t1,t2) -> TRel(Logic_utils.opposite_relation rel, t1, t2)
   | TCall _ | TReturn _ -> TNot t
 
 let tands l = List.fold_right tand l TTrue

@@ -17,12 +17,6 @@ val emitter : Emitter.t
     intended for other plug-ins. Used by the {!Export} module. *)
 val export_emitter : Emitter.t
 
-(* TODO: Document the rest of this file. *)
-
-val get_slevel : Kernel_function.t -> Parameters.SlevelFunction.value
-val get_subdivision: stmt -> int
-val pretty_actuals :
-  Format.formatter -> (Eva_ast.exp * Cvalue.V.t) list -> unit
 
 (* Statements for which the analysis has degenerated. [true] means that this is
    the statement on which the degeneration occurred, or a statement above in
@@ -36,21 +30,12 @@ val create_new_var: ?alignas:int -> string -> typ -> varinfo
     has its [vlogic] field set, meaning it is not a source variable. The
     freshness of the name must be ensured by the user. *)
 
-val is_const_write_invalid: typ -> bool
-(** Detect that the type is const, and that option [-global-const] is set. In
-    this case, we forbid writing in a l-value that has this type. *)
-
 val find_return_var: kernel_function -> varinfo option
 (** Returns the varinfo returned by the given function.
     Returns None if the function returns void or has no return statement. *)
 
 val postconditions_mention_result: Cil_types.funspec -> bool
 (** Does the post-conditions of this specification mention [\result]? *)
-
-val conv_relation: relation -> Abstract_interp.Comp.t
-
-val lval_to_exp: lval -> exp
-(** This function is memoized to avoid creating too many expressions *)
 
 (** Computes the height of an expression, that is the maximum number of nested
     operations in this expression. *)

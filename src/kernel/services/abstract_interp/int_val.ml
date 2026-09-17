@@ -534,42 +534,42 @@ let compare_max_min max min =
   | Some max, Some min -> Z.compare max min
 
 let forward_le_int i1 i2 =
-  if compare_max_min (max_int i1) (min_int i2) <= 0 then Comp.True
-  else if compare_min_max (min_int i1) (max_int i2) > 0 then Comp.False
-  else Comp.Unknown
+  if compare_max_min (max_int i1) (min_int i2) <= 0 then True
+  else if compare_min_max (min_int i1) (max_int i2) > 0 then False
+  else Unknown
 
 let forward_lt_int i1 i2 =
-  if compare_max_min (max_int i1) (min_int i2) < 0 then Comp.True
-  else if compare_min_max (min_int i1) (max_int i2) >= 0 then Comp.False
-  else Comp.Unknown
+  if compare_max_min (max_int i1) (min_int i2) < 0 then True
+  else if compare_min_max (min_int i1) (max_int i2) >= 0 then False
+  else Unknown
 
 let forward_eq_int i1 i2 =
-  if cardinal_zero_or_one i1 && equal i1 i2 then Comp.True
-  else if intersects i2 i2 then Comp.Unknown
-  else Comp.False
+  if cardinal_zero_or_one i1 && equal i1 i2 then True
+  else if intersects i2 i2 then Unknown
+  else False
 
-let forward_comp op i1 i2 =
+let forward_comp (op: Cil_types.relation) i1 i2 =
   match op with
-  | Comp.Le -> forward_le_int i1 i2
-  | Comp.Ge -> forward_le_int i2 i1
-  | Comp.Lt -> forward_lt_int i1 i2
-  | Comp.Gt -> forward_lt_int i2 i1
-  | Comp.Eq -> forward_eq_int i1 i2
-  | Comp.Ne -> inv_truth (forward_eq_int i1 i2)
+  | Rle -> forward_le_int i1 i2
+  | Rge -> forward_le_int i2 i1
+  | Rlt -> forward_lt_int i1 i2
+  | Rgt -> forward_lt_int i2 i1
+  | Req -> forward_eq_int i1 i2
+  | Rneq -> inv_truth (forward_eq_int i1 i2)
 
 let backward_le_int max v = narrow v (inject_range None max)
 let backward_ge_int min v = narrow v (inject_range min None)
 let backward_lt_int max v = backward_le_int (Option.map Z.pred max) v
 let backward_gt_int min v = backward_ge_int (Option.map Z.succ min) v
 
-let backward_comp_left op l r =
+let backward_comp_left (op: Cil_types.relation) l r =
   match op with
-  | Comp.Le -> backward_le_int (max_int r) l
-  | Comp.Ge -> backward_ge_int (min_int r) l
-  | Comp.Lt -> backward_lt_int (max_int r) l
-  | Comp.Gt -> backward_gt_int (min_int r) l
-  | Comp.Eq -> narrow l r
-  | Comp.Ne -> diff_if_one l r
+  | Rle -> backward_le_int (max_int r) l
+  | Rge -> backward_ge_int (min_int r) l
+  | Rlt -> backward_lt_int (max_int r) l
+  | Rgt -> backward_gt_int (min_int r) l
+  | Req -> narrow l r
+  | Rneq -> diff_if_one l r
 
 (* ----------------------------------- Misc --------------------------------- *)
 

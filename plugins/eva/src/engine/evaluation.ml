@@ -1085,7 +1085,7 @@ module Make
     let reduce_valid_index = reduction in
     let evaluated = eval_offset env ~reduce_valid_index basetyp offset in
     let* (offs, offset_volatile) = evaluated in
-    if for_writing && Eva_utils.is_const_write_invalid lval.typ then
+    if for_writing && Ast_types.C.has_qualifier "const" lval.typ then
       let cil_lval = Eva_ast.to_cil_lval lval in
       let alarm = Alarms.(Memory_access (cil_lval, For_writing)) in
       `Bottom, Alarmset.singleton ~status:Alarmset.False alarm

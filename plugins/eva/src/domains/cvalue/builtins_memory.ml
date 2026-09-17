@@ -25,6 +25,10 @@ let rec pretty_lval_of_address exp =
     pretty_lval_of_address exp
   | _ -> Eva_ast.Build.mem exp
 
+let pretty_actuals fmt actuals =
+  let pp fmt (e, x) = Cvalue.V.pretty_typ (Some e.Eva_ast.typ) fmt x in
+  Pretty_utils.pp_flowlist pp fmt actuals
+
 let warn_imprecise_offsm_write ~name dst_expr offsetmap =
   let prefix = "Builtin " ^ name in
   let dst_lval = pretty_lval_of_address dst_expr in
@@ -540,7 +544,7 @@ let frama_c_memset state actuals =
         with ImpreciseMemset reason ->
           Self.feedback ~mkey ~current:true ~stacktrace:true
             "Call to builtin precise_memset(%a) failed; %s"
-            Eva_utils.pretty_actuals actuals (imprecision_descr reason);
+            pretty_actuals actuals (imprecision_descr reason);
           frama_c_memset_imprecise state dst_expr dst v size
       in
       let assigns =
@@ -629,7 +633,7 @@ let frama_c_interval_split _state actuals =
       | Ival.Not_Singleton_Int ->
         Self.abort
           "Invalid call to Frama_C_interval_split%a"
-          Eva_utils.pretty_actuals actuals
+          pretty_actuals actuals
     end
   | _ -> raise (Builtins.Invalid_nb_of_args 2)
 

@@ -19,30 +19,6 @@ let emitter = create_emitter "Eva" [ Emitter.Property_status; Emitter.Alarm ]
 let export_emitter = create_emitter "Eva_export" [ Emitter.Code_annot ]
 
 
-let get_slevel kf =
-  try Parameters.SlevelFunction.find kf
-  with Not_found -> Parameters.SLevel.get ()
-
-let get_subdivision_option stmt =
-  try
-    let kf = Kernel_function.find_englobing_kf stmt in
-    Parameters.SubdivideNonLinearFunction.find kf
-  with Not_found -> Parameters.SubdivideNonLinear.get ()
-
-let get_subdivision stmt =
-  match Eva_annotations.get_subdivision_annot stmt with
-  | [] -> get_subdivision_option stmt
-  | [x] -> x
-  | x :: _ ->
-    Self.warning ~current:true ~once:true
-      "Several subdivision annotations at the same statement; selecting %i\
-       and ignoring the others." x;
-    x
-
-let pretty_actuals fmt actuals =
-  let pp fmt (e,x) = Cvalue.V.pretty_typ (Some (e.Eva_ast.typ)) fmt x in
-  Pretty_utils.pp_flowlist pp fmt actuals
-
 module DegenerationPoints =
   Cil_state_builder.Stmt_hashtbl
     (Datatype.Bool)
@@ -64,8 +40,6 @@ let create_new_var ?alignas name typ =
   let vi = Cil.makeGlobalVar ~source:false ~temp:false ?alignas name typ in
   register_new_var vi typ;
   vi
-
-let is_const_write_invalid typ = Ast_types.C.has_qualifier "const" typ
 
 let find_return_var kf =
   match (Kernel_function.find_return kf).skind with
@@ -91,31 +65,8 @@ let postconditions_mention_result spec =
     false
   with Exit -> true
 
-let conv_relation rel =
-  let module C = Abstract_interp.Comp in
-  match rel with
-  | Req -> C.Eq
-  | Rneq -> C.Ne
-  | Rle -> C.Le
-  | Rlt -> C.Lt
-  | Rge -> C.Ge
-  | Rgt -> C.Gt
-
 module PairExpBool =
   Datatype.Pair_with_collections(Cil_datatype.Exp)(Datatype.Bool)
-
-module MemoLvalToExp =
-  Cil_state_builder.Lval_hashtbl
-    (Cil_datatype.Exp)
-    (struct
-      let name = "Eva_utils.MemoLvalToExp"
-      let size = 64
-      let dependencies = [ Ast.self ]
-    end)
-
-let lval_to_exp =
-  MemoLvalToExp.memo
-    (fun lv -> Cil.new_exp ~loc:Self.gen_loc (Lval lv))
 
 let rec height_expr expr =
   match expr.enode with

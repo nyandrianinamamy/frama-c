@@ -155,10 +155,10 @@ val bitwise_unsigned_not: size:int -> t -> t
 
 (** [forward_comp op l r] returns the result of the comparison [l op r]. *)
 val forward_comp:
-  Abstract_interp.Comp.t -> t -> t -> Abstract_interp.Comp.result
+  Cil_types.relation -> t -> t -> Abstract_interp.truth
 
 (** [backward_comp_left op l r] reduces [l] by assuming [l op r] holds. *)
-val backward_comp_left: Abstract_interp.Comp.t -> t -> t -> t or_bottom
+val backward_comp_left: Cil_types.relation -> t -> t -> t or_bottom
 
 
 (** {2 Misc} *)

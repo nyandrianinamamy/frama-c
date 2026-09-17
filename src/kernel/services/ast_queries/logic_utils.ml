@@ -13,6 +13,30 @@ open Cil_types
 exception Not_well_formed of Fileloc.t * string
 exception Unknown_ext
 
+let opposite_relation = function
+  | Rgt -> Rle
+  | Rlt -> Rge
+  | Rle -> Rgt
+  | Rge -> Rlt
+  | Req -> Rneq
+  | Rneq -> Req
+
+let symmetric_relation = function
+  | Rgt -> Rlt
+  | Rlt -> Rgt
+  | Rle -> Rge
+  | Rge -> Rle
+  | Req -> Req
+  | Rneq -> Rneq
+
+let relation_to_binop = function
+  | Rlt -> Lt
+  | Rgt -> Gt
+  | Rle -> Le
+  | Rge -> Ge
+  | Req -> Eq
+  | Rneq -> Ne
+
 let is_compatible_ltype t1 t2 =
   Cil_datatype.Logic_type.equal t1 t2 ||
   (match Ast_types.Acsl.unroll_ltdef t1, Ast_types.Acsl.unroll_ltdef t2 with

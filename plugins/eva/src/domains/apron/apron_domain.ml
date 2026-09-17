@@ -193,19 +193,18 @@ let translate_binop = function
   | Mod    -> Texpr1.Mod
   | _ -> raise (Out_of_Scope "translate_binop unhandled")
 
-let translate_relation expr typ =
-  let open Abstract_interp.Comp in
-  function
-  | Le ->
+let translate_relation expr typ (op: Cil_types.relation) =
+  match op with
+  | Rle ->
     let expr = Texpr1.unop Texpr1.Neg expr typ round in
     Tcons1.make expr Tcons1.SUPEQ
-  | Lt ->
+  | Rlt ->
     let expr = Texpr1.unop Texpr1.Neg expr typ round in
     Tcons1.make expr Tcons1.SUP
-  | Ge -> Tcons1.make expr Tcons1.SUPEQ
-  | Gt -> Tcons1.make expr Tcons1.SUP
-  | Eq -> Tcons1.make expr Tcons1.EQ
-  | Ne -> Tcons1.make expr Tcons1.DISEQ
+  | Rge -> Tcons1.make expr Tcons1.SUPEQ
+  | Rgt -> Tcons1.make expr Tcons1.SUP
+  | Req -> Tcons1.make expr Tcons1.EQ
+  | Rneq -> Tcons1.make expr Tcons1.DISEQ
 
 let translate_varinfo varinfo =
   if not (is_relevant_varinfo varinfo)
@@ -272,7 +271,9 @@ let rec constraint_expr eval oracle env expr positive =
     let e = Texpr1.Binop (Texpr1.Sub, e1'', e2'', typ, round) in
     let expr = Texpr1.of_expr env e in
     let binop = Eva_ast.conv_relation binop in
-    let binop = if positive then binop else Abstract_interp.Comp.inv  binop in
+    let binop =
+      if positive then binop else Logic_utils.opposite_relation binop
+    in
     translate_relation expr typ binop
   | _ -> raise (Out_of_Scope "constraint_expr not handled")
 

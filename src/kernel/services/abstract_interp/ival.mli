@@ -10,8 +10,6 @@
     The interfaces of this module may change between
     Frama-C versions. Contact us if you need stable APIs. *)
 
-open Abstract_interp
-
 type t
 
 (** {2 General guidelines of this module}
@@ -268,16 +266,18 @@ val all_values: size:Z.t -> t -> bool
 
 val backward_mult_int_left: right:t -> result:t -> t option Lattice_bounds.or_bottom
 
-val backward_comp_int_left : Comp.t -> t -> t -> t
+val backward_comp_int_left : Cil_types.relation -> t -> t -> t
 (** [backward_comp_int op l r] reduces [l] into [l'] so that
     [l' op r] holds. [l] is assumed to be an integer *)
 
-val backward_comp_float_left_true : Comp.t -> Fval.kind -> t -> t -> t
-val backward_comp_float_left_false : Comp.t -> Fval.kind -> t -> t -> t
+val backward_comp_float_left_true :
+  Cil_types.relation -> Fval.kind -> t -> t -> t
+val backward_comp_float_left_false :
+  Cil_types.relation -> Fval.kind -> t -> t -> t
 (** Same as {!backward_comp_int_left}, except that the arguments should now
     be floating-point values. *)
 
-val forward_comp_int: Comp.t -> t -> t -> Comp.result
+val forward_comp_int: Cil_types.relation -> t -> t -> Abstract_interp.truth
 
 val scale_or_top : Z_or_top.t -> t -> t
 

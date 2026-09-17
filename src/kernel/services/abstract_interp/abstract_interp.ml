@@ -23,38 +23,6 @@ let inv_truth = function
   | True -> False
   | False -> True
 
-module Comp = struct
-  type t = Lt | Gt | Le | Ge | Eq | Ne
-
-  type result = truth = True | False | Unknown
-
-  let inv = function
-    | Gt -> Le
-    | Lt -> Ge
-    | Le -> Gt
-    | Ge -> Lt
-    | Eq -> Ne
-    | Ne -> Eq
-
-  let sym = function
-    | Gt -> Lt
-    | Lt -> Gt
-    | Le -> Ge
-    | Ge -> Le
-    | Eq -> Eq
-    | Ne -> Ne
-
-  let pretty_comp fmt = function
-    | Gt -> Format.pp_print_string fmt ">"
-    | Lt -> Format.pp_print_string fmt "<"
-    | Le -> Format.pp_print_string fmt "<="
-    | Ge -> Format.pp_print_string fmt ">="
-    | Eq -> Format.pp_print_string fmt "=="
-    | Ne -> Format.pp_print_string fmt "!="
-
-
-end
-
 
 module Make_Generic_Lattice_Set
     (V: Datatype.S)

@@ -11,7 +11,7 @@ open Cvalue
 
 (* Truth values for a predicate analyzed by the value analysis *)
 
-type predicate_status = Abstract_interp.Comp.result = True | False | Unknown
+type predicate_status = Abstract_interp.truth = True | False | Unknown
 
 let join_predicate_status x y = match x, y with
   | True, True -> True
@@ -464,15 +464,6 @@ let is_rel_binop = function
   | Eq
   | Ne -> true
   | _ -> false
-
-let lop_to_cop op =
-  match op with
-  | Req -> Eq
-  | Rneq -> Ne
-  | Rle -> Le
-  | Rge -> Ge
-  | Rlt -> Lt
-  | Rgt -> Gt
 
 let rel_of_binop = function
   | Lt -> Rlt
@@ -1519,7 +1510,7 @@ and eval_known_logic_function ~alarm_mode env li labels args =
   | ("\\min" | "\\max"), Some typ, _, t1 :: t2 :: tail_args ->
     begin
       let min = lvi.lv_name = "\\min" in
-      let comp = Abstract_interp.Comp.(if min then Le else Ge) in
+      let comp = if min then Rle else Rge in
       let backward =
         match typ with
         | Linteger -> Cvalue.V.backward_comp_int_left comp
@@ -2130,9 +2121,8 @@ and reduce_left_by_base_addr_eq ~alarm_mode env tl tr =
 (* reduce [tl] so that [rl rel tr] holds *)
 and reduce_left_by_relation ~alarm_mode env positive tl rel tr =
   let rtl = eval_term ~alarm_mode env tr in
-  let comp = Eva_utils.conv_relation rel in
   let reduce typ cvalue =
-    Eval_op.backward_comp_left_from_type typ positive comp cvalue rtl.eover
+    Eval_op.backward_comp_left_from_type typ positive rel cvalue rtl.eover
   in
   reduce_exact_location ~alarm_mode env reduce tl
 
@@ -2157,10 +2147,7 @@ and reduce_by_relation ~alarm_mode env positive t1 rel t2 =
       | _ -> reduce_left_by_relation ~alarm_mode env positive t1 rel t2
     in
     let env = reduce_left env t1 rel t2 in
-    let sym_rel = match rel with
-      | Rgt -> Rlt | Rlt -> Rgt | Rle -> Rge | Rge -> Rle
-      | Req -> Req | Rneq -> Rneq
-    in
+    let sym_rel = Logic_utils.symmetric_relation rel in
     reduce_left env t2 sym_rel t1
 
 (* if you add something here, update [known_predicates] above also
@@ -2519,7 +2506,7 @@ and eval_predicate env pred =
       in
       let typ_pointed = Ast_types.Acsl.direct_pointed_ctype tsets.term_type in
       (* Check if we are trying to write in a const l-value *)
-      if kind = Write && Eva_utils.is_const_write_invalid typ_pointed
+      if kind = Write && Ast_types.C.has_qualifier "const" typ_pointed
       then False
       else
         let eover, eunder, indeterminate, empty =
@@ -2610,8 +2597,9 @@ and eval_predicate env pred =
         | _ -> assert false
       end
 
-    | Prel (op,t1,t2) ->
-      let r = eval_binop ~alarm_mode env (lop_to_cop op) t1 t2 in
+    | Prel (rel, t1, t2) ->
+      let binop = Logic_utils.relation_to_binop rel in
+      let r = eval_binop ~alarm_mode env binop t1 t2 in
       (* [eval_binop] uses the forward semantics of [Cvalue.V], which does not
          handle empty sets. Returns [Unknown] if empty sets are possible. *)
       if r.empty
@@ -2754,23 +2742,23 @@ and eval_predicate env pred =
     | "\\is_infinite", [arg] -> unary_float Fval.is_infinite arg
     | "\\is_plus_infinity", [arg] ->
       let pos_inf = Fval.pos_infinity Float_sig.Single in
-      unary_float (fun f -> Fval.forward_comp Comp.Eq f pos_inf) arg
+      unary_float (fun f -> Fval.forward_comp Req f pos_inf) arg
     | "\\is_minus_infinity", [arg] ->
       let neg_inf = Fval.neg_infinity Float_sig.Single in
-      unary_float (fun f -> Fval.forward_comp Comp.Eq f neg_inf) arg
+      unary_float (fun f -> Fval.forward_comp Req f neg_inf) arg
     | "\\is_NaN", [arg] -> inv_truth (unary_float Fval.is_not_nan arg)
     | ("\\eq_float" | "\\eq_float32" | "\\eq_float64" | "\\eq_double"),
-      [arg1;arg2] -> fval_cmp Comp.Eq arg1 arg2
+      [arg1;arg2] -> fval_cmp Req arg1 arg2
     | ("\\ne_float" | "\\ne_float32" | "\\ne_float64" | "\\ne_double"),
-      [arg1;arg2] -> fval_cmp Comp.Ne arg1 arg2
+      [arg1;arg2] -> fval_cmp Rneq arg1 arg2
     | ("\\lt_float" | "\\lt_float32" | "\\lt_float64" | "\\lt_double"),
-      [arg1;arg2] -> fval_cmp Comp.Lt arg1 arg2
+      [arg1;arg2] -> fval_cmp Rlt arg1 arg2
     | ("\\le_float" | "\\le_float32" | "\\le_float64" | "\\le_double"),
-      [arg1;arg2] -> fval_cmp Comp.Le arg1 arg2
+      [arg1;arg2] -> fval_cmp Rle arg1 arg2
     | ("\\gt_float" | "\\gt_float32" | "\\gt_float64" | "\\gt_double"),
-      [arg1;arg2] -> fval_cmp Comp.Gt arg1 arg2
+      [arg1;arg2] -> fval_cmp Rgt arg1 arg2
     | ("\\ge_float" | "\\ge_float32" | "\\ge_float64" | "\\ge_double"),
-      [arg1;arg2] -> fval_cmp Comp.Ge arg1 arg2
+      [arg1;arg2] -> fval_cmp Rge arg1 arg2
     | "\\warning", _ -> begin
         match args with
         | [{ term_node = TConst(LStr(str))}] ->

@@ -50,13 +50,17 @@ module DatatypeMerge = Datatype.Make(struct
     let mem_project = Datatype.never_any_project
   end)
 
+let get_slevel_parameter kf =
+  try Parameters.SlevelFunction.find kf
+  with Not_found -> Parameters.SLevel.get ()
+
 let kf_contains_slevel_directive kf =
   List.exists
     (fun stmt -> get_slevel_annot stmt <> None)
     (Kernel_function.get_definition kf).sallstmts
 
 let compute kf =
-  let default_slevel = Eva_utils.get_slevel kf in
+  let default_slevel = get_slevel_parameter kf in
   if not (kf_contains_slevel_directive kf) then
     Global default_slevel (* No slevel directive *), NoMerge
   else

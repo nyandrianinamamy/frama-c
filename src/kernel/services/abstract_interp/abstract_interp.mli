@@ -28,22 +28,6 @@ type truth = True | False | Unknown
 
 val inv_truth: truth -> truth
 
-(** Signatures for comparison operators [==, !=, <, >, <=, >=]. *)
-module Comp: sig
-  type t = Lt | Gt | Le | Ge | Eq | Ne (** comparison operators *)
-
-  type result = truth = True | False | Unknown (** result of a comparison *)
-
-  val pretty_comp: t Pretty_utils.formatter
-
-  val inv: t -> t
-  (** Inverse relation: [a op b <==> ! (a (inv op) b)].  *)
-
-  val sym: t -> t
-  (** Opposite relation: [a op b <==> b (sym op) a]. *)
-
-end
-
 
 (** "Relative" integers. They are subtraction between two absolute integers *)
 module Rel : sig
