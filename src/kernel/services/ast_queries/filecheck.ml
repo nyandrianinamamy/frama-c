@@ -33,6 +33,10 @@ let pretty_logic_var_kind fmt = function
   | LVQuant -> Format.pp_print_string fmt "quantified variable"
   | LVLocal -> Format.pp_print_string fmt "local parameter"
 
+module Fc_printer = Printer
+(* ensure we don't have unguarded usage of toplevel Printer module *)
+module Printer = struct end
+
 module Base_checker = struct
   class check ?(is_normalized=true) what : Visitor.frama_c_visitor =
     let check_abort fmt =
@@ -40,9 +44,15 @@ module Base_checker = struct
     in
     let abort_if cond = if cond then check_abort else Pretty_utils.nullprintf in
     let pretty =
-      if is_normalized then (module Printer: Printer_api.S_pp)
+      if is_normalized then (module Fc_printer: Printer_api.S_pp)
       else (module Cil_printer: Printer_api.S_pp)
     in
+    (* ideally, we would create a local module here, but the code
+       below is syntactically forbidden at this point. Hence,
+       each method wanting to pretty-print an AST node must
+       define its own module based on pretty.
+       [let module Printer = (val pretty: Printer_api.S_pp) in]
+    *)
     object(self)
       inherit Visitor.frama_c_inplace as plain
       val known_enuminfos = Enuminfo.Hashtbl.create 7
@@ -180,6 +190,7 @@ module Base_checker = struct
         Cil.DoChildren
 
       method! vquantifiers l =
+        let module Printer = (val pretty: Printer_api.S_pp) in
         let orig =
           try Stack.top quant_orig
           with Stack.Empty ->
@@ -199,6 +210,7 @@ module Base_checker = struct
         Cil.DoChildren
 
       method! vlogic_var_decl lv =
+        let module Printer = (val pretty: Printer_api.S_pp) in
         if lv.lv_name = "" then
           check_abort "logic variable of id %d has an empty name" lv.lv_id;
         Logic_var.Hashtbl.add known_logic_vars lv lv;
@@ -252,6 +264,7 @@ module Base_checker = struct
 
       method! vfunc f =
         self#push_behavior_stack ();
+        let module Printer = (val pretty: Printer_api.S_pp) in
         (* Initial AST does not have kf *)
         if is_normalized then begin
           let kf = Option.get self#current_kf in
@@ -365,6 +378,7 @@ module Base_checker = struct
         Cil.DoChildrenPost check
 
       method private check_label s =
+        let module Printer = (val pretty: Printer_api.S_pp) in
         let ok = List.exists (function Label _ -> true | _ -> false) !s.labels in
         if not ok then
           check_abort
@@ -375,6 +389,7 @@ module Base_checker = struct
         labelled_stmt <- !s :: labelled_stmt
 
       method private check_switch_post s remaining_cases =
+        let module Printer = (val pretty: Printer_api.S_pp) in
         Stmt.Hashtbl.iter
           (fun x _ ->
              check_abort
@@ -386,6 +401,7 @@ module Base_checker = struct
           remaining_cases
 
       method private check_labels s =
+        let module Printer = (val pretty: Printer_api.S_pp) in
         let check_one = function
           | Label _ -> () (* Nothing to check *)
           | Case _ | Default _ as label ->
@@ -413,6 +429,7 @@ module Base_checker = struct
         | Catch_all -> ()
 
       method! vstmt_aux s =
+        let module Printer = (val pretty: Printer_api.S_pp) in
         Stmt.Hashtbl.add known_stmts s s;
         self#check_labels s;
         self#push_behavior_stack ();
@@ -535,6 +552,7 @@ module Base_checker = struct
          | _ -> Cil.ChangeDoChildrenPost (s,post_action));
 
       method private check_local_var v =
+        let module Printer = (val pretty: Printer_api.S_pp) in
         let prefix fmt =
           Format.fprintf fmt "Local variable %a(%d) in function %a"
             Printer.pp_varinfo v v.vid
@@ -551,6 +569,7 @@ module Base_checker = struct
         end
 
       method private check_local_static v =
+        let module Printer = (val pretty: Printer_api.S_pp) in
         let prefix fmt =
           Format.fprintf fmt
             "Local variable %a(%d) in function %a"
@@ -577,6 +596,7 @@ module Base_checker = struct
       val current_block_vars = Stack.create ()
 
       method! vblock b =
+        let module Printer = (val pretty: Printer_api.S_pp) in
         let check_locals b =
           List.iter
             (fun v ->
@@ -629,6 +649,7 @@ module Base_checker = struct
         Cil.DoChildrenPost (fun s -> logic_labels <- old_labels; s)
 
       method! vcode_annot ca =
+        let module Printer = (val pretty: Printer_api.S_pp) in
         if Hashtbl.mem known_code_annot_id ca.annot_id then begin
           check_abort "duplicated code annotation id: %d@\n%a@\nand@\n%a"
             ca.annot_id
@@ -706,7 +727,9 @@ module Base_checker = struct
           end;
           Cil.DoChildren
 
-      method! vterm_offset = function
+      method! vterm_offset o =
+        let module Printer = (val pretty: Printer_api.S_pp) in
+        match o with
         | TNoOffset -> Cil.SkipChildren
         | TIndex _ -> Cil.DoChildren
         | TModel(mi,_) ->
@@ -781,6 +804,7 @@ module Base_checker = struct
       (* can't use vlogic_label, as it also visits the declared labels in
          Tapp and Papp. *)
       method private check_logic_label lab =
+        let module Printer = (val pretty: Printer_api.S_pp) in
         match lab with
         | StmtLabel _ -> ()
         | FormalLabel _
@@ -794,6 +818,7 @@ module Base_checker = struct
               Printer.pp_logic_label lab
 
       method private check_logic_app li labs args =
+        let module Printer = (val pretty: Printer_api.S_pp) in
         let expect = List.length li.l_profile in
         let actual = List.length args in
         let pred_or_func =
@@ -825,6 +850,7 @@ module Base_checker = struct
           (fun lab -> self#check_logic_label lab) labs
 
       method! vterm t =
+        let module Printer = (val pretty: Printer_api.S_pp) in
         match t.term_node with
         | TLval lv ->
           (match lv with
@@ -1064,6 +1090,7 @@ module Base_checker = struct
       method! vglob g = if is_normalized then plain#vglob g else self#vglob_aux g
 
       method! vglob_aux g =
+        let module Printer = (val pretty: Printer_api.S_pp) in
         match g with
         | GFunDecl(_,v,_) ->
           self#remove_globals_function v;
@@ -1162,6 +1189,7 @@ module Base_checker = struct
         | _ -> Cil.DoChildren
 
       method! vfile _ =
+        let module Printer = (val pretty: Printer_api.S_pp) in
         let print_var_vid fmt vi =
           Format.fprintf fmt "%a(%d)" Printer.pp_varinfo vi vi.vid
         in
@@ -1191,6 +1219,7 @@ module Base_checker = struct
         Cil.DoChildrenPost check_end
 
       method! vannotation a =
+        let module Printer = (val pretty: Printer_api.S_pp) in
         match a with
         | Dfun_or_pred (li,_) | Dinvariant (li,_) | Dtype_annot (li,_) ->
           if
@@ -1269,7 +1298,9 @@ module Base_checker = struct
         | StmtLabel l -> self#check_label l; Cil.SkipChildren
         | _ -> Cil.DoChildren
 
-      method! vpredicate_node = function
+      method! vpredicate_node p =
+        let module Printer = (val pretty: Printer_api.S_pp) in
+        match p with
         | Papp(li,labs,args) ->
           (match li.l_type with
            | None -> ()
@@ -1302,6 +1333,7 @@ module Base_checker = struct
         logic_labels <- old_labels
 
       method! vlogic_info_decl li =
+        let module Printer = (val pretty: Printer_api.S_pp) in
         Logic_var.Hashtbl.add known_logic_info li.l_var_info li;
         List.iter
           (fun lv ->
@@ -1354,6 +1386,7 @@ module Base_checker = struct
         | _ -> false
 
       method! vexpr e =
+        let module Printer = (val pretty: Printer_api.S_pp) in
         if Ast_types.C.has_attribute "volatile" (Cil.typeOf e) then begin
           Kernel.warning ~wkey:Kernel.wkey_check_volatile ~current:true
             "Expression with volatile qualification %a" Printer.pp_exp e
@@ -1376,6 +1409,7 @@ module Base_checker = struct
 
 
       method private check_initialized_var v =
+        let module Printer = (val pretty: Printer_api.S_pp) in
         let block_vars = Stack.pop current_block_vars in
         match List.partition (Cil_datatype.Varinfo.equal v) block_vars with
         | [_], block_vars ->
@@ -1396,6 +1430,7 @@ module Base_checker = struct
             Printer.pp_varinfo v
 
       method! vinst i =
+        let module Printer = (val pretty: Printer_api.S_pp) in
         let treat_call lvopt f args _loc =
           match f with
           | Var f ->
@@ -1465,6 +1500,7 @@ module Base_checker = struct
         | _ -> Cil.DoChildren
 
       method! vtype ty =
+        let module Printer = (val pretty: Printer_api.S_pp) in
         match ty.tnode with
         | TArray _ ->
           let elt, _ = Ast_attributes.split_array_attributes ty.tattr in
@@ -1519,7 +1555,7 @@ let check_ast ?is_normalized ?(ast = Ast.get()) what =
     "Checking integrity of %s (%snormalized):@\n%a"
     what (if Option.value ~default:true is_normalized then "" else "not ")
     (if Option.value ~default:true is_normalized
-     then Printer.pp_file else Cil_printer.pp_file)
+     then Fc_printer.pp_file else Cil_printer.pp_file)
     ast;
   Cil.visitCilFileSameGlobals
     (new M.check ?is_normalized what :> Cil.cilVisitor) ast
