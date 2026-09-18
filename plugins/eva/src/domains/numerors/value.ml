@@ -132,8 +132,8 @@ module Make (Model : IEEE754.Modeling) = struct
       let exact = widen (module Exact) exact hints in
       join after (make exact absolute relative format)
 
-  let widen (_, hints) before after =
-    widen_or_top hints before after |>
+  let widen ~hint before after =
+    widen_or_top hint before after |>
     Eval.Top.value ~top:top
 
 end

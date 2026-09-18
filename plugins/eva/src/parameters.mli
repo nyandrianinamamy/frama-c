@@ -29,6 +29,8 @@ module MultidimSegmentLimit: Parameter_sig.Int
 module MultidimDisjunctiveInvariants: Parameter_sig.Bool
 module MultidimFastImprecise: Parameter_sig.Bool
 
+module SignMemoryModel: Parameter_sig.S with type t = [ `Simple | `Cell ]
+
 module TaintAuto: Parameter_sig.Bool
 module TaintSingletons: Parameter_sig.Bool
 module SecureFlow: Parameter_sig.Bool

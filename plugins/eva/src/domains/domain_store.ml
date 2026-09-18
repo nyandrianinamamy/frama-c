@@ -53,9 +53,11 @@ end
 
 module Make (Domain: InputDomain) = struct
 
+  let dname = Domain.name ^ ": " ^ Domain.datatype_name
+
   let info name : (module State_builder.Info_with_size) =
     (module struct
-      let name = Format.asprintf "Eva.Domain_store.Make(%s).%s" Domain.name name
+      let name = Format.asprintf "Eva.Domain_store.Make(%s).%s" dname name
       let size = 17
       let dependencies = [ Self.state ]
     end)

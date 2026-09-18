@@ -34,8 +34,8 @@ Save analysis performed with most domains.
     ----------------------------------------------------------------------------
     No logical properties have been reached by the analysis.
     ----------------------------------------------------------------------------
-  [eva] Warning: Cannot save states of multidim domain on disk.
   [eva] Warning: Cannot save states of apron-octagon domain on disk.
+  [eva] Warning: Cannot save states of multidim domain on disk.
 
 Load analysis file.
   $ frama-c -no-autoload-plugins -load-module eva,eva.apron,inout,scope -load eva.sav

@@ -13,7 +13,7 @@ type widen_hint = Z.Set.t * Datatype.Float.Set.t
 
 module type Value = sig
   include Abstract_value.Leaf
-  val widen : Addresses.Bytes.widen_hint -> t -> t -> t
+  val widen: size:Z.t -> hint:Ival.widen_hint -> t -> t -> t
   val track_variable: Cil_types.varinfo -> bool
   val builtins: (string * t builtin) list
 end
@@ -71,8 +71,10 @@ module Make_Memory (Info: sig val name: string end) (Value: Value) = struct
     let _, get_hints = Widen.getWidenHints kf stmt in
     let cache = cache_name "widen"  in
     let decide base b1 b2 =
-      let widen_hints = get_hints base in
-      let r = Value.widen widen_hints b1 b2 in
+      let open Option.Operators in
+      let* size = Base.bits_sizeof base |> Top.to_option in
+      let hint = get_hints base in
+      let r = Value.widen ~size ~hint b1 b2 in
       if Value.(equal top r) then None else Some r
     in
     inter ~cache ~symmetric:false ~idempotent:true ~decide

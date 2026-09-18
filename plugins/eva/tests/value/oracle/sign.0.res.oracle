@@ -1,0 +1,121 @@
+[kernel] Parsing sign.c (with preprocessing)
+[eva] Analyzing a complete application starting at main
+[eva:progress] Computing initial state
+[eva:progress] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  nondet ∈ [--..--]
+  pos_nondet ∈ [--..--]
+[eva:progress] 
+  computing for function scalar <- main.
+  Called from sign.c:83.
+[eva:alarm] sign.c:20: Warning: division by zero. assert x ≢ 0;
+[eva:progress] Recording results for scalar
+[eva:progress] Done for function scalar
+[eva:progress] 
+  computing for function array <- main.
+  Called from sign.c:84.
+[eva:partition] sign.c:45: starting to merge loop iterations
+[eva:alarm] sign.c:49: Warning: 
+  division by zero. assert a[(unsigned int)(pos_nondet % 256)] ≢ 0;
+[eva:partition] sign.c:51: starting to merge loop iterations
+[eva:alarm] sign.c:54: Warning: 
+  division by zero. assert a[(unsigned int)(pos_nondet % 256)] ≢ 0;
+[eva:alarm] sign.c:58: Warning: division by zero. assert a[i] ≢ 0;
+[eva:partition] sign.c:61: starting to merge loop iterations
+[eva:alarm] sign.c:64: Warning: 
+  division by zero. assert a[(unsigned int)(pos_nondet % 256)] ≢ 0;
+[eva:alarm] sign.c:67: Warning: division by zero. assert a[43] ≢ 0;
+[eva:progress] 
+  computing for function range <- array <- main.
+  Called from sign.c:68.
+[eva:progress] Recording results for range
+[eva:progress] Done for function range
+[eva:alarm] sign.c:68: Warning: 
+  division by zero. assert a[tmp_0] ≢ 0;
+                    (tmp_0 from range(0, 41))
+[eva:progress] 
+  computing for function range <- array <- main.
+  Called from sign.c:69.
+[eva:progress] Recording results for range
+[eva:progress] Done for function range
+[eva:alarm] sign.c:69: Warning: 
+  division by zero. assert a[tmp_1] ≢ 0;
+                    (tmp_1 from range(10, 42))
+[eva:progress] 
+  computing for function range <- array <- main.
+  Called from sign.c:70.
+[eva:progress] Recording results for range
+[eva:progress] Done for function range
+[eva:alarm] sign.c:70: Warning: 
+  division by zero. assert a[tmp_2] ≢ 0;
+                    (tmp_2 from range(42, 100))
+[eva:progress] 
+  computing for function range <- array <- main.
+  Called from sign.c:71.
+[eva:progress] Recording results for range
+[eva:progress] Done for function range
+[eva:alarm] sign.c:71: Warning: 
+  division by zero. assert a[tmp_3] ≢ 0;
+                    (tmp_3 from range(41, 43))
+[eva:alarm] sign.c:73: Warning: division by zero. assert a[42] ≢ 0;
+[eva:progress] 
+  computing for function range <- array <- main.
+  Called from sign.c:77.
+[eva:progress] Recording results for range
+[eva:progress] Done for function range
+[eva:alarm] sign.c:78: Warning: division by zero. assert a[101] ≢ 0;
+[eva:alarm] sign.c:79: Warning: division by zero. assert a[111] ≢ 0;
+[eva:progress] Recording results for array
+[eva:progress] Done for function array
+[eva:progress] Recording results for main
+[eva:progress] Done for function main
+[eva] sign.c:73: assertion 'Eva,division_by_zero' got final status invalid.
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function range:
+  __retres ∈ [0..110]
+[eva:final-states] Values at end of function array:
+  a[0..41] ∈ [--..--]
+   [42] ∈ {0}
+   [43..255] ∈ [--..--]
+  i ∈ {256}
+  r ∈ [-100..100]
+[eva:final-states] Values at end of function scalar:
+  x ∈ [-999..999]
+  r ∈ [-100..100]
+[eva:final-states] Values at end of function main:
+  
+[from] Computing for function range
+[from] Done for function range
+[from] Computing for function array
+[from] Done for function array
+[from] Computing for function scalar
+[from] Done for function scalar
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function range:
+  \result FROM pos_nondet; min; max
+[from] Function array:
+  NO EFFECTS
+[from] Function scalar:
+  NO EFFECTS
+[from] Function main:
+  NO EFFECTS
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function range:
+    __retres
+[inout] Inputs for function range:
+    pos_nondet
+[inout] Out (internal) for function array:
+    a[0..255]; i; r; tmp; r_0; tmp_0; tmp_1; tmp_2; tmp_3; tmp_4
+[inout] Inputs for function array:
+    nondet; pos_nondet
+[inout] Out (internal) for function scalar:
+    x; r; r_0; r_1; r_2; tmp; r_3
+[inout] Inputs for function scalar:
+    nondet
+[inout] Out (internal) for function main:
+    \nothing
+[inout] Inputs for function main:
+    nondet; pos_nondet
