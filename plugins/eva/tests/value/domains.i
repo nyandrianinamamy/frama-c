@@ -1,10 +1,14 @@
 /* run.config
+   STDOPT: #"-eva-domains=-cvalue"
    LOG: domains_dump_0
    STDOPT: #"-eva-domains sign,equality,bitwise,symbolic-locations,gauges,octagon,multidim -eva-msg-key=d-equality,d-symbolic-locations,d-gauges,d-octagon,d-multidim,d-bitwise,d-sign -eva-warn-key experimental=inactive"
 */
 /* run.config*
    DONTRUN: avoids duplication of domains_dump oracle
 */
+
+/* First run tests the analysis without any domain.
+   Second run tests the analysis with many domains. */
 
 volatile int nondet;
 
