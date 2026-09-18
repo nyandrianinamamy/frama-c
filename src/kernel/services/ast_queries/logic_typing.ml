@@ -4500,7 +4500,7 @@ struct
         Cil_printer.pp_logic_info p
     in
     match pred.pred_content with
-    | Pfalse | Ptrue -> ()
+    | Pfalse | Ptrue -> conclusion_not_pred ()
     | Papp(p,_,args) ->
       if Cil_datatype.Logic_var.Set.mem p.l_var_info neg_use then
         conclusion_neg_pred p;
