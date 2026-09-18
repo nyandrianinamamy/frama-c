@@ -46,8 +46,7 @@ module Context = struct
   let init : structured = Unit
 
   (* During the complete abstraction build, we need to verify that there is at
-     least one context in the computed abstraction.
-     TODO: better error handling. *)
+     least one context in the computed abstraction. *)
   let assert_not_unit = function
     | Unit -> Self.fatal "The built context cannot be unit."
     | Context interactive -> interactive
@@ -185,8 +184,7 @@ module Value = struct
   let init (context : 'c context) : 'c structured = Unit context
 
   (* During the complete abstraction build, we need to verify that there is at
-     least one value in the computed abstraction.
-     TODO: better error handling. *)
+     least one value in the computed abstraction. *)
   let assert_not_unit = function
     | Unit _ -> Self.fatal "The built value cannot be unit."
     | Value interactive -> interactive
@@ -350,8 +348,7 @@ module Location = struct
   let init (value : 'v value) : 'v structured = Unit value
 
   (* During the complete abstraction build, we need to verify that there is at
-     least one location in the computed abstraction.
-     TODO: better error handling. *)
+     least one location in the computed abstraction. *)
   let assert_not_unit = function
     | Unit _ -> Self.fatal "The built location cannot be unit."
     | Location interactive -> interactive
@@ -617,10 +614,11 @@ module Domain = struct
 
   type 'a identity = 'a -> 'a
 
+  type input = domain_info * domain * Domain_mode.t option
+
   (* Adding a registered domain into a structured one consists of performing a
      lifting of the registered one if needed before performing the product,
      configuring the name and restricting the domain depending of the mode. *)
-  type input = domain_info * domain * Domain_mode.t option
   let add : type c v l. input -> (c, v, l) structured identity =
     fun (info, domain, mode) structured ->
     let wkey = Log_key.warn_experimental in
@@ -737,9 +735,8 @@ module Domain = struct
     | Domain  (module D) -> Location.fold add D.location_dependencies locs
     | Functor (module D) -> Location.fold add D.location_dependencies locs
 
-  let build domains =
-    let make (registered, mode) = registered.info, registered.domain (), mode in
-    let domains = List.map make domains in
+  (* The input list of domains must not be empty. *)
+  let build (domains: input list) =
     (* Build the contexts *)
     let contexts = List.fold_left add_contexts Context.init domains in
     let interactive_ctx c = Context.(make_interactive c |> assert_not_unit) in
@@ -870,7 +867,27 @@ module Open (Structured : Domain.Structured) : S = struct
   end
 end
 
+(* Special unit domain used with cvalue values and locations
+   when no domain is active. *)
+let unit_domain =
+  let info = Domain.{ name = "unit"; experimental = false; priority = 0 } in
+  let module Deps = struct
+    type value = Main_values.CVal.t
+    type location = Main_locations.PLoc.location
+    let value = Main_values.cval
+    let location = Main_locations.ploc
+  end in
+  let domain = Domain.Domain (module (Unit_domain.Make (Deps))) in
+  info, domain, None
+
 let make config =
-  let abstractions = Config.elements config |> Domain.build in
+  let domains = Config.elements config in
+  let make (registered, mode : Domain.registered_with_mode) =
+    registered.info, registered.domain (), mode
+  in
+  let domains =
+    if domains = [] then [ unit_domain ] else List.map make domains
+  in
+  let abstractions = Domain.build domains in
   let abstractions = (module Open (val abstractions) : S) in
   Hooks.apply abstractions

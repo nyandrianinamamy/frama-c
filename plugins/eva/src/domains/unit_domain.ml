@@ -10,9 +10,7 @@ module Static = struct
   module D = struct
     include Datatype.Unit
     type state = t
-
     let name = "unit"
-    let structure = Abstract.Domain.Unit
 
     let top = ()
     let is_included _ _ = true
@@ -25,17 +23,29 @@ module Static = struct
   include Domain_builder.Complete (D)
 end
 
-module Make
-    (Value: Abstract_value.S)
-    (Loc: Abstract_location.S)
-= struct
+module type Dependencies = sig
+  type value
+  type location
+  val value: value Abstract_value.dependencies
+  val location: location Abstract_location.dependencies
+end
+
+module Make (Deps : Dependencies) = struct
 
   include Static
-  type value = Value.t
-  type location = Loc.location
+  type value = Deps.value
+  type location = Deps.location
   type origin
 
-  let eval_top = `Value (Value.top, None), Alarmset.all
+  let value_dependencies = Deps.value
+  let location_dependencies = Deps.location
+
+  let rec get_top: type v. v Abstract_value.dependencies -> v = function
+    | Leaf (module Value) -> Value.top
+    | Node (d1, d2) -> (get_top d1, get_top d2)
+
+  let top_value = get_top Deps.value
+  let eval_top = `Value (top_value, None), Alarmset.all
   let extract_expr ~oracle:_ _ _ _ = eval_top
   let extract_lval ~oracle:_ _ _ _ _ = eval_top
 
