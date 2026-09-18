@@ -48,6 +48,14 @@ let kf_string_category
   : (unit -> string Parameter_category.t) ref
   = Extlib.mk_fun "Parameter_builder.kf_string_category"
 
+let ast_is_computed
+  : (unit -> bool) ref
+  = Extlib.mk_fun "Parameter_builder.ast_is_computed"
+
+let ast_apply_after_computed
+  : ((Cil_types.file -> unit) -> unit) ref
+  = Extlib.mk_fun "Parameter_builder.ast_apply_after_computed"
+
 let force_ast_compute
   : (unit -> unit) ref
   = Extlib.mk_fun "Parameter_builder.force_ast_compute"
@@ -1265,6 +1273,9 @@ struct
   sig
     include Parameter_sig.Set with type elt = E.t and type t = E.Set.t
     module S: sig val self: State.t end (* typed state *)
+
+    val convert_and_apply: (t -> t -> 'a) -> string -> string -> 'a
+    (* some parameters need to delay application *)
   end =
   struct
 
@@ -1375,6 +1386,27 @@ struct
           let dependencies = []
           let default = Cil_datatype.Kf.Set.empty
         end)
+
+    let waiting = ref []
+
+    let apply_waiting () =
+      List.iter (fun f -> f ()) !waiting ;
+      waiting := []
+
+    let () =
+      !ast_apply_after_computed (fun _ -> apply_waiting ())
+
+    let wait_ast_then_convert_and_apply f old new_ =
+      let f () = convert_and_apply f old new_ in
+      if !ast_is_computed () then f ()
+      else (* The AST is not ready we have to wait until functions are known *)
+        waiting := f :: !waiting
+
+    let add_set_hook f =
+      As_string.add_set_hook (wait_ast_then_convert_and_apply f)
+
+    let add_update_hook f =
+      As_string.add_set_hook (wait_ast_then_convert_and_apply f)
 
     let () =
       if A.accept_fundecl then Category.enable_all_as (!kf_category ())

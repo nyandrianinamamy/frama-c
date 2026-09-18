@@ -49,6 +49,7 @@ let add_monotonic_state state = monotonic_states := state :: !monotonic_states
 module After_building = Hook.Build(struct type t = Cil_types.file end)
 
 let apply_after_computed = After_building.extend
+let () = Parameter_builder.ast_apply_after_computed := apply_after_computed
 
 let mark_as_changed () =
   Kernel.debug "AST has changed";
@@ -102,6 +103,7 @@ let force_compute () =
 let get () = memo (fun () -> force_compute ())
 
 let is_computed () = is_computed () (* hide the optional argument [?project] *)
+let () = Parameter_builder.ast_is_computed := is_computed
 
 let compute () = if not (is_computed ()) then ignore (force_compute ())
 let () = Parameter_builder.force_ast_compute := compute
