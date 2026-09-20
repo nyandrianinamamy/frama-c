@@ -1,5 +1,5 @@
 [kernel] Parsing error_end_decl.i (no preprocessing)
-[kernel] error_end_decl.i:7: 
+[kernel] error_end_decl.i:7: User Error: 
   syntax error:
   Location: "error_end_decl.i", lines 7-12
   5     

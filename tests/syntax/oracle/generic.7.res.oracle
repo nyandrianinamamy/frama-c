@@ -1,5 +1,5 @@
 [kernel] Parsing generic.c (with preprocessing)
-[kernel] generic.c:62: 
+[kernel] generic.c:62: User Error: 
   syntax error:
   Location: "generic.c", line 62, before or at token: int
   60    #endif

@@ -386,14 +386,13 @@ let parse_error ?loc msg =
       Format.fprintf fmt ",@ before or at token: %s" token
   in
   Format.kasprintf (fun str ->
-      Kernel.feedback ~loc "%s:@." str
+      Kernel.abort ~loc "%s:@." str
         ~append:(fun fmt ->
             Format.fprintf fmt "Location: @[<hv>%a%a@]\n"
               Fileloc.pretty_long_with_inclusions loc
               pretty_token (Lexing.lexeme current.lexbuf);
             Format.fprintf fmt "%a@."
-              (pp_context_from_file ~ctx:2) loc);
-      raise (Log.AbortError "kernel"))
+              (pp_context_from_file ~ctx:2) loc))
     msg
 
 

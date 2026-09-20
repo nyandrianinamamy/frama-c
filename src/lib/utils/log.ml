@@ -36,8 +36,8 @@ type event = {
 (* -------------------------------------------------------------------------- *)
 
 exception FeatureRequest of Filepos.t option * string * string
-exception AbortError of string (* plug-in *)
-exception AbortFatal of string (* plug-in *)
+exception AbortError of event
+exception AbortFatal of event
 
 (* -------------------------------------------------------------------------- *)
 (* --- Terminal Management                                                --- *)
@@ -524,7 +524,6 @@ let logwithfinal finally channel
     ) buffer text
 
 let finally_unit _ = ()
-let finally_raise e _ = raise e
 let finally_false _ = false
 
 type deferred_exn =
@@ -568,10 +567,9 @@ let deferred_raise ~fatal event msg =
   in
   let append = Some print_event in
   let exn =
-    if fatal then AbortFatal event.evt_plugin
-    else AbortError event.evt_plugin
+    if fatal then AbortFatal event else AbortError event
   in
-  let finally = finally_raise exn in
+  let finally _ = raise exn in
   (* change the kind to avoid re-appending 'Error' to the message *)
   logwithfinal finally channel ?append ~kind:Result msg
 
@@ -1147,7 +1145,8 @@ struct
       ?emitwith ?echo ?once ?append text
 
   let abort ?current ?loc ?echo ?append text =
-    logwithfinal (finally_raise (AbortError P.channel)) std ~kind:Error
+    let finally evt_opt = raise (AbortError (force_error evt_opt)) in
+    logwithfinal finally std ~kind:Error
       ?current ?loc ?echo ?append text
 
   let failure ?current ?loc ?emitwith ?echo ?once ?append text =
@@ -1155,7 +1154,8 @@ struct
       ?emitwith ?echo ?once ?append text
 
   let fatal ?current ?loc ?echo ?append text =
-    logwithfinal (finally_raise (AbortFatal P.channel)) std ~kind:Failure
+    let finally evt_opt = raise (AbortFatal (force_error evt_opt)) in
+    logwithfinal finally std ~kind:Failure
       ?current ?loc ?echo ?append text
 
   let verify assertion ?current ?loc ?echo ?append text =

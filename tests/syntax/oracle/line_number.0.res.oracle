@@ -1,5 +1,5 @@
 [kernel] Parsing line_number.c (with preprocessing)
-[kernel] line_number.c:6: 
+[kernel] line_number.c:6: User Error: 
   syntax error:
   Location: "line_number.c", line 6
         /*@ assert \result == 0;*/

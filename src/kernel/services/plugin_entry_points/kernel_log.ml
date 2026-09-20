@@ -63,6 +63,10 @@ let dkey_attrs =
     ~help:"displays some info related to the handling of attributes"
     "attrs"
 
+let dkey_backtrace =
+  register_category "backtrace" ~default:true
+    ~help:"prints the backtrace when an internal error happens"
+
 let dkey_builtins =
   register_category ~help:"Cil builtins" "builtins"
 

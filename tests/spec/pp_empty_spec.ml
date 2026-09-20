@@ -17,11 +17,11 @@ let run () =
   (try
      Annotations.add_complete e main ["foo"; "bar"];
    with
-     Log.AbortFatal s -> Kernel.warning "Caught fatal error: %s" s);
+     Log.AbortFatal e -> Kernel.warning "Caught fatal error: %s" e.evt_plugin);
   (try
      Annotations.add_disjoint e main ["foo"; "bar"];
    with
-     Log.AbortFatal s -> Kernel.warning "Caught fatal error: %s" s);
+     Log.AbortFatal e -> Kernel.warning "Caught fatal error: %s" e.evt_plugin);
   File.pretty_ast();
   let behavior = "foo" in
   Annotations.add_assumes e main ~behavior

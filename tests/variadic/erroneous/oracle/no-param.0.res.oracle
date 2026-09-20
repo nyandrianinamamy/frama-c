@@ -1,5 +1,5 @@
 [kernel] Parsing no-param.i (no preprocessing)
-[kernel] no-param.i:5: 
+[kernel] no-param.i:5: User Error: 
   syntax error:
   Location: "no-param.i", line 5, character 8, before or at token: ...
   3        STDOPT:

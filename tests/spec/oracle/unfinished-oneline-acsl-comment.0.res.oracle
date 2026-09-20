@@ -1,5 +1,5 @@
 [kernel] Parsing unfinished-oneline-acsl-comment.i (no preprocessing)
-[kernel] unfinished-oneline-acsl-comment.i:6: 
+[kernel] unfinished-oneline-acsl-comment.i:6: User Error: 
   Invalid C file: should end with a newline:
   Location: "unfinished-oneline-acsl-comment.i", line 6, character 8,
             before or at token: 

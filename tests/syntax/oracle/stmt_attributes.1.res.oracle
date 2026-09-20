@@ -1,5 +1,5 @@
 [kernel] Parsing stmt_attributes.c (with preprocessing)
-[kernel] stmt_attributes.c:14: 
+[kernel] stmt_attributes.c:14: User Error: 
   syntax error:
   Location: "stmt_attributes.c", line 14, before or at token: ;
   12    

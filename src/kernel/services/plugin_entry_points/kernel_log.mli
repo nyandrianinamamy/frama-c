@@ -66,6 +66,8 @@ val dkey_ast: category
 val dkey_attrs: category
 (** Display debug information related to attributes in Frama-C. *)
 
+val dkey_backtrace: category
+
 val dkey_builtins: category
 
 val dkey_check: category
