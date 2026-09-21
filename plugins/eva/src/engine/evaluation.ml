@@ -1766,8 +1766,12 @@ module Make
       match evaluate ?subdivnb state v with
       | `Bottom, alarms -> `Bottom, alarms
       | `Value (valuation, value), alarms ->
+        let cil_v = Eva_ast.to_cil_exp v in
+        let cil_args = Option.map (List.map Eva_ast.to_cil_exp) args in
+        let fct_ptr_alarm = Alarms.Function_pointer (cil_v, cil_args) in
         match Value.resolve_functions value with
-        | `Top, _ -> `Top, Alarmset.all
+        | `Top, _ ->
+          `Top,  Alarmset.set fct_ptr_alarm Unknown alarms
         | `Value kfs, alarm ->
           let open Bottom.Operators in
           let args_types = Option.map (List.map (fun e -> e.typ)) args in
@@ -1782,8 +1786,5 @@ module Make
             else if alarm || alarm' then Alarmset.Unknown
             else Alarmset.True
           in
-          let cil_v = Eva_ast.to_cil_exp v in
-          let cil_args = Option.map (List.map Eva_ast.to_cil_exp) args in
-          let alarm = Alarms.Function_pointer (cil_v, cil_args) in
-          `Value reduced_kfs, Alarmset.set alarm status alarms
+          `Value reduced_kfs, Alarmset.set fct_ptr_alarm status alarms
 end
