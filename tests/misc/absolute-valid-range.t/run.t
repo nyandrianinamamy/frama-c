@@ -39,7 +39,8 @@ Same ranges with different qualifiers.
   [1]
 
 Accept repetition of the same range with the same qualifiers.
-  $ frama-c -absolute-valid-range 0x400-0x41F:volatile -absolute-valid-range 0x400-0x41F:volatile
+  $ frama-c -absolute-valid-range 0x400-0x41F:volatile -absolute-valid-range 1024-1055:volatile \
+  > -absolute-valid-range 0x500-0x51F:"const volatile" -absolute-valid-range="0x500-0x51F:volatile const"
 
 Warning: range contains the NULL pointer.
   $ frama-c -absolute-valid-range 0-0xFF
