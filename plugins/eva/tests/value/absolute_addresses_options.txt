@@ -10,3 +10,8 @@
 -absolute-valid-range 3072-3075:const
 -absolute-valid-range 4096-4099:volatile
 -absolute-valid-range "5120-5123:const volatile"
+# repetition of already specified ranges: should not warn or fail
+-absolute-valid-range 2048-2063
+-absolute-valid-range 3072-3075:const
+-absolute-valid-range 4096-4099:volatile
+-absolute-valid-range "5120-5123:const volatile"

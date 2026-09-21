@@ -35,6 +35,8 @@ let pretty_validity fmt v =
     Format.fprintf fmt "Variable [0..%a--%a]"
       Z.pretty variable_v.min_alloc Z.pretty variable_v.max_alloc
 
+let (<?>) c cmp = if c <> 0 then c else Lazy.force cmp
+
 module Validity = Datatype.Make
     (struct
       type t = validity
@@ -46,21 +48,16 @@ module Validity = Datatype.Make
       let compare v1 v2 = match v1, v2 with
         | Empty, Empty -> 0
         | Known (b1, e1), Known (b2, e2) ->
-          let c = Z.compare b1 b2 in
-          if c = 0 then Z.compare e1 e2 else c
+          Z.compare b1 b2 <?>
+          lazy (Z.compare e1 e2)
         | Unknown (b1, m1, e1), Unknown (b2, m2, e2) ->
-          let c = Z.compare b1 b2 in
-          if c = 0 then
-            let c = Option.compare Z.compare m1 m2 in
-            if c = 0 then Z.compare e1 e2 else c
-          else c
+          Z.compare b1 b2 <?>
+          lazy (Option.compare Z.compare m1 m2) <?>
+          lazy (Z.compare e1 e2)
         | Variable v1, Variable v2 ->
-          let c = Z.compare v1.min_alloc v2.min_alloc in
-          if c = 0 then
-            let c = Z.compare v1.max_alloc v2.max_alloc in
-            if c = 0 then Z.compare v1.max_allocable v2.max_allocable
-            else c
-          else c
+          Z.compare v1.min_alloc v2.min_alloc <?>
+          lazy (Z.compare v1.max_alloc v2.max_alloc) <?>
+          lazy (Z.compare v1.max_allocable v2.max_allocable)
         | Invalid, Invalid -> 0
         | Empty, (Known _ | Unknown _ | Variable _ | Invalid)
         | Known _, (Unknown _ | Variable _ | Invalid)
@@ -198,9 +195,14 @@ module AbsoluteList =
 
 type qualifiers = { read_only: bool; volatile:bool }
 let default_qualifiers = { read_only = false; volatile = false }
+
 let join_qualifiers q1 q2 =
   { read_only = q1.read_only || q2.read_only;
     volatile = q1.volatile || q2.volatile }
+
+let cmp_qualifiers q1 q2 =
+  Bool.compare q1.read_only q2.read_only <?>
+  lazy (Bool.compare q1.volatile q2.volatile)
 
 let create_absolute_base (_str, min, max, qualifiers) =
   let mul_char_bit = Z.mul 8z in
@@ -252,8 +254,12 @@ let rec check_absolute_ranges previous_range = function
 
 let register_absolute_bases list =
   let ranges = parse_absolute_ranges list in
-  let cmp (_, b1, _, _) (_, b2, _, _) = Z.compare b1 b2 in
-  let sorted_ranges = List.fast_sort cmp ranges in
+  let cmp (_, b1, e1, attrs1) (_, b2, e2, attrs2) =
+    Z.compare b1 b2 <?>
+    lazy (Z.compare e1 e2) <?>
+    lazy (cmp_qualifiers attrs1 attrs2)
+  in
+  let sorted_ranges = List.sort_uniq cmp ranges in
   check_absolute_ranges None sorted_ranges;
   AbsoluteList.set (List.map create_absolute_base sorted_ranges)
 
