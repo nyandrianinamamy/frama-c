@@ -3734,10 +3734,21 @@ and blockCanBreak b =
   in aux b.bstmts
 
 let has_local_init chunk =
-  List.exists
-    (fun (s,_,_,_,_) ->
-       match s.skind with Instr (Local_init _) -> true | _ -> false)
-    chunk.stmts
+  let exception Found in
+  let vis = object
+    inherit Cil.nopCilVisitor
+    method! vinst = function
+      | Local_init _ -> raise Found
+      | _ -> Cil.SkipChildren
+    method! vexpr _ = Cil.SkipChildren
+  end
+  in
+  let aux s =
+    try
+      ignore (Cil.visitCilStmt vis s); false
+    with Found -> true
+  in
+  List.exists (fun (s,_,_,_,_) -> aux s) chunk.stmts
 
 let append_chunk_to_annot ~ghost annot_chunk current_chunk =
   match current_chunk.stmts with
@@ -3746,8 +3757,8 @@ let append_chunk_to_annot ~ghost annot_chunk current_chunk =
 
   (* if we have a single statement,
      we can avoid enclosing it into a block. *)
-  | [ (_s,_,_,_,_) ] ->
-    (*     Format.eprintf "Statement is: %a@." d_stmt _s;  *)
+  | [ (_s,_,_,_,_) ] when not (has_local_init current_chunk) ->
+    Format.eprintf "Statement is: %a@." Cil_printer.pp_stmt _s;
     annot_chunk @@@ (current_chunk, ghost)
   (* Make a block, and put labels of the first statement
      on the block itself, so as to respect scoping rules
