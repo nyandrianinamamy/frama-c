@@ -204,3 +204,9 @@ void f5(long int j) {}
 void test_f5() {
   f5(1);
 }
+
+// e-acsl#341: assertion failure during widening
+//@ predicate rec_rational(ℝ x) = x > 0 || rec_rational(x + 2.);
+void test_rec_rational() {
+  //@ assert rec_rational(5);
+}
