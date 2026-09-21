@@ -634,25 +634,28 @@ let rec consolidate gvars marked n =
     let node = UF.get n in
     let ps = UF.find_all node.cparents in
     begin
-      let flags fs = node.cflags <- Attr.merge node.cflags fs in
+      let add_flags fs = node.cflags <- Attr.merge node.cflags fs in
       let size = sizeof node.clayout in
       let path s = node.cpaths <- node.cpaths + (if s = size then 1 else 2) in
       Vset.iter
         (fun v ->
            path @@ Fields.bitsSizeOf v.vtype ;
-           flags @@ Attr.cvar ~garbage:(Vset.mem v gvars) v
+           add_flags @@ Attr.cvar ~garbage:(Vset.mem v gvars) v
         ) node.ccvars ;
       Bag.iter
         (function Root r ->
            path (if Term.equal r.inf r.sup then size else max_int) ;
-           flags r.flags
+           add_flags r.flags ;
+           if Attr.mem `Nullable r.flags  then begin
+             List.iter (add_flag [`Nullable]) @@ pointed_by n ;
+           end
         ) node.croots ;
       List.iter
         (fun p ->
            consolidate gvars marked p ;
            let parent = UF.get p in
            node.cdepth <- max node.cdepth (succ parent.cdepth) ;
-           flags parent.cflags ;
+           add_flags parent.cflags ;
            if node.cpaths <= 1 then
              if parent.cpaths = 1 then
                iter_parent_path parent path n
@@ -920,17 +923,3 @@ let lock m =
   end
 
 (* -------------------------------------------------------------------------- *)
-
-let add_nullable n =
-  begin
-    let store = UF.store n in
-    let flags = Attr.add_flag Attr.bottom `Nullable in
-    (* merge n @@ new_chunk store ~flags ()
-       ( * *)
-    let ptr = new_chunk store ~ptr:n ~flags () in
-    merge n @@ new_chunk store ~pointed:ptr () ;
-    Format.eprintf "+++++ Add `Nullable pointer:@.|-... %a@....-> %a@."
-      pp_region (region ptr)
-      pp_region @@ region n ;
-    (* *)
-  end

@@ -51,6 +51,8 @@ let pretty fmt w =
     Format.fprintf fmt "@]" ;
   end
 
+let add_flag s f = merge s @@ add f bottom
+
 open Cil_types
 
 let is_local v =
@@ -72,5 +74,3 @@ let cvar ~garbage v =
   if is_const v then set `Validread ;
   if not @@ is_initialized ~garbage v then set `Garbage ;
   !flags
-
-let add_flag s f = merge s @@ add f bottom
