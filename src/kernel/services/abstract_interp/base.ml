@@ -196,11 +196,18 @@ module AbsoluteList =
       let dependencies = [ Kernel.AbsoluteValidRange.self ]
     end)
 
+let (<?>) c cmp = if c <> 0 then c else Lazy.force cmp
+
 type qualifiers = { read_only: bool; volatile:bool }
 let default_qualifiers = { read_only = false; volatile = false }
+
 let join_qualifiers q1 q2 =
   { read_only = q1.read_only || q2.read_only;
     volatile = q1.volatile || q2.volatile }
+
+let cmp_qualifiers q1 q2 =
+  Bool.compare q1.read_only q2.read_only <?>
+  lazy (Bool.compare q1.volatile q2.volatile)
 
 let create_absolute_base (_str, min, max, qualifiers) =
   let mul_char_bit = Z.mul 8z in
@@ -252,8 +259,12 @@ let rec check_absolute_ranges previous_range = function
 
 let register_absolute_bases list =
   let ranges = parse_absolute_ranges list in
-  let cmp (_, b1, _, _) (_, b2, _, _) = Z.compare b1 b2 in
-  let sorted_ranges = List.fast_sort cmp ranges in
+  let cmp (_, b1, e1, attrs1) (_, b2, e2, attrs2) =
+    Z.compare b1 b2 <?>
+    lazy (Z.compare e1 e2) <?>
+    lazy (cmp_qualifiers attrs1 attrs2)
+  in
+  let sorted_ranges = List.sort_uniq cmp ranges in
   check_absolute_ranges None sorted_ranges;
   AbsoluteList.set (List.map create_absolute_base sorted_ranges)
 
