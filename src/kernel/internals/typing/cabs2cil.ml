@@ -3740,6 +3740,11 @@ let has_local_init chunk =
     method! vinst = function
       | Local_init _ -> raise Found
       | _ -> Cil.SkipChildren
+    method! vstmt s =
+      match s.skind with
+      | Instr _ | UnspecifiedSequence _ -> Cil.DoChildren
+      | Block b when not b.bscoping -> Cil.DoChildren
+      | _ -> Cil.SkipChildren
     method! vexpr _ = Cil.SkipChildren
   end
   in
@@ -3755,10 +3760,10 @@ let append_chunk_to_annot ~ghost annot_chunk current_chunk =
   | [] -> annot_chunk @@@ (current_chunk, ghost)
   (* don't forget locals of current_chunk *)
 
-  (* if we have a single statement,
-     we can avoid enclosing it into a block. *)
+  (* if we have a single statement which is not an unspecified
+     sequence enclosing a local init, we can avoid enclosing it into a block. *)
+  | [ { skind = Instr (Local_init _)},_,_,_,_ ] -> annot_chunk @@@ (current_chunk, ghost)
   | [ (_s,_,_,_,_) ] when not (has_local_init current_chunk) ->
-    Format.eprintf "Statement is: %a@." Cil_printer.pp_stmt _s;
     annot_chunk @@@ (current_chunk, ghost)
   (* Make a block, and put labels of the first statement
      on the block itself, so as to respect scoping rules
@@ -3773,12 +3778,14 @@ let append_chunk_to_annot ~ghost annot_chunk current_chunk =
       *)
       let res =
         match current_chunk.stmts with
-        | [(s1, m1, w1, r1, c1); (s2, m2, w2, r2, c2)] ->
+        | [{skind = UnspecifiedSequence [(s1,m1,w1,r1,c1);(s2,m2,w2,r2,c2)]},_,_,_,_]
+        (* the chunk list is reversed. *)
+        | [(s2, m2, w2, r2, c2); (s1, m1, w1, r1, c1)] ->
           Option.bind
             (function
               | [ s1' ] -> Some (s1', m1 @ m2, w1 @ w2, r1 @ r2, c1 @ c2)
               | _ -> None (* should not happen. *))
-            (collapseCallCast (s2,s1)) (* the chunk list is reversed.*)
+            (collapseCallCast (s1,s2))
         | _ -> None
       in
       match res with
@@ -5873,7 +5880,7 @@ and doExp local_env
             (* Now pretend that e is just a reference to the newly created
              * variable *)
             let v = { expr_node = Cabs.VARIABLE newvar; expr_loc = loc } in
-            let r, se, e', t' =
+            let _, _, e', t' =
               doExp (no_paren_local_env local_env) asconst v what'
             in
             (* If typ is an array then the doExp above has already added a
@@ -5888,7 +5895,7 @@ and doExp local_env
              * type of the expression e2, so we do not need a cast. We have
              * to worry about this because otherwise, we might need to cast
              * between arrays or structures. *)
-            (r, se1 @@@ (se, ghost), e2, t2), false
+            ([], se1, e2, t2), false
           end
       in
       let (t'', e'') =

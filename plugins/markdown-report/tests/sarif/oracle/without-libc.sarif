@@ -51,7 +51,7 @@
           "kind": "pass",
           "level": "none",
           "message": {
-            "text": "specialization of valid_string_s at stmt 2."
+            "text": "specialization of valid_string_s at stmt 3."
           },
           "locations": [
             {

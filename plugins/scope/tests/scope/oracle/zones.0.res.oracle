@@ -126,21 +126,21 @@ Zones for T[0] at current program point =
 Stmt:7 -> T[0]; x; y
 Stmt:8 -> T[0]; y
 Stmt:10 -> T[0]
-Stmt:61 -> T[0]
+Stmt:63 -> T[0]
 
 
 Zones for T[1] at current program point =
 Stmt:7 -> T[1]; x
 Stmt:8 -> T[1]
 Stmt:10 -> T[1]
-Stmt:61 -> T[1]
+Stmt:63 -> T[1]
 
 
 Zones for T[x] at current program point =
 Stmt:7 -> T[0..9]; x; y
 Stmt:8 -> T[0..9]; x; y
 Stmt:10 -> T[0..9]; x
-Stmt:61 -> T[0..9]; x
+Stmt:63 -> T[0..9]; x
 [pdg] computing for function struct1
 [pdg] done for function struct1
 
@@ -151,7 +151,7 @@ Stmt:12 -> x
 Stmt:13 -> x
 Stmt:14 -> s.a
 Stmt:16 -> s.a
-Stmt:63 -> s.a
+Stmt:65 -> s.a
 
 
 Zones for s.b at current program point =
@@ -159,7 +159,7 @@ Stmt:12 -> S; y
 Stmt:13 -> y; s.b
 Stmt:14 -> y; s.b
 Stmt:16 -> s.b
-Stmt:63 -> s.b
+Stmt:65 -> s.b
 
 
 Zones for s at current program point =
@@ -167,7 +167,7 @@ Stmt:12 -> S; x; y
 Stmt:13 -> x; y; s.b
 Stmt:14 -> y; s
 Stmt:16 -> s
-Stmt:63 -> s
+Stmt:65 -> s
 [pdg] computing for function ctrl1
 [pdg] done for function ctrl1
 
@@ -206,13 +206,15 @@ Stmt:39 -> cond; v
 Stmt:40 -> cond; v; z1
 Stmt:41 -> cond; v; z1
 Stmt:42 -> cond; v; z1
+Stmt:43 -> cond; v; z1
 Stmt:44 -> cond; v; z1
-Stmt:45 -> v; z1
-Stmt:46 -> v; z1
-Stmt:47 -> v; z1; tmp
-Stmt:48 -> v; z1; pf
-Stmt:49 -> Yf; v; pf
-Stmt:50 -> Yf; v; pf
-Stmt:51 -> Yf
+Stmt:46 -> cond; v; z1
+Stmt:47 -> v; z1
+Stmt:48 -> v; z1
+Stmt:49 -> v; z1; tmp
+Stmt:50 -> v; z1; pf
+Stmt:51 -> Yf; v; pf
+Stmt:52 -> Yf; v; pf
+Stmt:53 -> Yf
 
 

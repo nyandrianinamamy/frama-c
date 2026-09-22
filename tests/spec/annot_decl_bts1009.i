@@ -3,7 +3,8 @@ void f() {
   int x;
   //@ ensures x==3;
   int y = x = 3;
-  x = 0;
-  y = 1;
+  //@ ensures z == 4;
+  int z = 4;
+  x = z + y;
   return;
 }

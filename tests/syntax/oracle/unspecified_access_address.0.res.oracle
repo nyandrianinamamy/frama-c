@@ -15,7 +15,9 @@ int g(void)
   int x = 3;
   x ++;
   tmp = f(& x,x);
+  /*effects: () x <- */
   int y = tmp;
+  /*effects: () y <- */
   int a[10] = {0};
   int *b = a;
   int z = f(b + x,*(b + 2));
@@ -24,7 +26,9 @@ int g(void)
   ;
   /*effects: ()  <- b, x*/
   tmp_1 = f(b + x,x);
+  /*effects: () x <- b, x*/
   int t = tmp_1;
+  /*effects: () t <- */
   tmp_2 = b;
   /*effects: ()  <- */
   b ++;
@@ -34,7 +38,9 @@ int g(void)
   ;
   /*effects: ()  <- b*/
   tmp_3 = f(b + 2,*tmp_2);
+  /*effects: () b <- b, *tmp_2, tmp_2*/
   int u = tmp_3;
+  /*effects: () u <- */
   return y;
 }
 

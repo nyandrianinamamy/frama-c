@@ -12,7 +12,6 @@
 [kernel] x -> temporary_location.c:15
 [kernel] x -> temporary_location.c:15
 [kernel] x -> temporary_location.c:15
-[kernel] x -> temporary_location.c:15
 [kernel] y -> temporary_location.c:16
 [kernel] tmp -> temporary_location.c:16
 [kernel] __retres -> temporary_location.c:17
