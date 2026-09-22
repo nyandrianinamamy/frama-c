@@ -12,9 +12,8 @@
 /* -------------------------------------------------------------------------- */
 
 import React from 'react';
-import { Label } from 'dome/controls/labels';
-import { LCD } from 'dome/controls/displays';
-import { Button } from 'dome/controls/buttons';
+import { Label, LCD } from 'dome/primitive/displays';
+import { Button } from 'dome/primitive/controls';
 import * as Box from 'dome/layout/boxes';
 import * as DnD from 'dome/dnd';
 import { registerSandbox } from 'ivette';

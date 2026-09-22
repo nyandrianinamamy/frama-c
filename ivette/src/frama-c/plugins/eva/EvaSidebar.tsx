@@ -9,12 +9,12 @@
 import React from 'react';
 
 import { useStringSettings } from 'dome';
-import * as Toolbar from 'dome/frame/toolbars';
 import { SidebarTitle } from 'dome/frame/sidebars';
 import * as Forms from 'dome/layout/forms';
 import { HelpButton } from 'dome/help';
 import { Hbox } from 'dome/layout/boxes';
 import { GlobalState, useGlobalState } from 'dome/data/states';
+import { Button, ButtonGroup } from 'dome/primitive/controls';
 
 import * as Ivette from 'ivette';
 
@@ -289,22 +289,22 @@ function EvaSidebarSelection(): React.JSX.Element {
   return (<>
     <SidebarTitle label='Selection' >
       <Hbox style={{ alignItems: "center" }}>
-        <Toolbar.ButtonGroup>
-          <Toolbar.Button
+        <ButtonGroup>
+          <Button
             key='taints'
             label='Taints'
             title='Show taints selection'
             selected={selected === 'taints'}
             onClick={() => setSelected('taints')}
-            /><Toolbar.Button
+          /><Button
             key='callstacks'
             label='Callstacks'
             title='Show callstacks selection'
             selected={selected === 'callstacks'}
             onClick={() => setSelected('callstacks')}
-            />
-        </Toolbar.ButtonGroup>
-        <HelpButton id={'eva-sidebars'} size={13} />
+          />
+        </ButtonGroup>
+      <HelpButton id={'eva-sidebars'} size={13} />
       </Hbox>
     </SidebarTitle>
     <div ref={scrollableArea} className="globals-scrollable-area">

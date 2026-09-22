@@ -12,15 +12,14 @@
 
 import React from 'react';
 import * as Dome from 'dome';
-import { Button, IconButton } from 'dome/controls/buttons';
-import { LED } from 'dome/controls/displays';
+import { Button, IconButton } from 'dome/primitive/controls';
 import { Scroll } from 'dome/layout/boxes';
 import { GlobalState, useGlobalState } from 'dome/data/states';
 import { BSplit } from 'dome/layout/splitters';
 import * as Models from 'dome/table/models';
 import * as Arrays from 'dome/table/arrays';
 import { Column, Renderer, Table } from 'dome/table/views';
-import { Label } from 'dome/controls/labels';
+import { Label, LED } from 'dome/primitive/displays';
 
 import { TitleBar } from 'ivette';
 import * as Display from 'ivette/display';
@@ -208,10 +207,11 @@ function FilterRatio(
   Models.useModel(model);
   const [filtered, total] = [model.getRowCount(), model.getTotalRowCount()];
   return (
-    <Label className="component-info" title="filtered / Total">
-      { filtered} / {total }
-    </Label>
-  );
+    <Label
+      label={`${filtered} / ${total}`}
+      className="component-info"
+      title="filtered / Total"
+    />);
 }
 
 export default function PivotTableComponent(): JSX.Element {

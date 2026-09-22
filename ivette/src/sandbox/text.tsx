@@ -14,8 +14,8 @@
 import React from 'react';
 import * as Dome from 'dome';
 import { ToolBar, Filler } from 'dome/frame/toolbars';
-import { Code } from 'dome/controls/labels';
-import { Button, IconButton } from 'dome/controls/buttons';
+import { Code } from 'dome/primitive/displays';
+import { Button, IconButton } from 'dome/primitive/controls';
 import {
   TextView,
   TextProxy,
@@ -147,23 +147,23 @@ function UseText(): JSX.Element {
           icon="ITEMS.LIST"
           selected={useLines}
           title={'Line Numbers'}
-          onClick={flipUseLines}
+          onClick={(_evt) => flipUseLines()}
         />
         <Button
           icon="TERMINAL"
           selected={useCurrent}
           title={'Show Current Line'}
-          onClick={flipUseCurrent}
+          onClick={(_evt) => flipUseCurrent()}
         />
         <Button
           icon={readOnly ? 'LOCK' : 'EDIT'}
           title={readOnly ? 'Read Only' : 'Editable'}
-          onClick={flipReadOnly}
+          onClick={(_evt) => flipReadOnly()}
         />
         <Button
           icon={useProxy ? 'DISPLAY' : 'SAVE'}
           title={useProxy ? 'Use TextProxy' : 'Use TextBuffer (persistent)'}
-          onClick={flipUseProxy}
+          onClick={(_evt) => flipUseProxy()}
         />
         <Filler/>
         <Code
@@ -172,25 +172,25 @@ function UseText(): JSX.Element {
           label={`Decorations: ${decorations.length}`}
         />
         <IconButton
-          enabled={isLine}
+          disabled={!isLine}
           icon="CIRC.INFO"
           title="Add Gutter Decoration"
           onClick={addGutterDecoration}
         />
         <IconButton
-          enabled={isLine}
+          disabled={!isLine}
           icon="CIRC.CHECK"
           title="Add Line Decoration"
           onClick={addLineDecoration}
         />
         <IconButton
-          enabled={isRange}
+          disabled={!isRange}
           icon="CIRC.PLUS"
           title="Add Decoration"
           onClick={addDecoration}
         />
         <IconButton
-          enabled={decorations.length > 0}
+          disabled={decorations.length <= 0}
           kind={inconsistent ? 'negative' : 'default'}
           icon="CIRC.CLOSE"
           title="Clear Decorations"
@@ -221,8 +221,8 @@ function UseText(): JSX.Element {
         <Code label={`View ${v.fromLine}-${v.toLine}`} />
         <Code label={`Hover ${h ? h.offset : '-'}:${h ? h.line : '-'}`} />
         <Filler />
-        <Code>{evt}</Code>
-        <Code>{`Changes: ${changes}`}</Code>
+        <Code label={evt}/>
+        <Code label={`Changes: ${changes}`}/>
       </ToolBar>
     </>
   );

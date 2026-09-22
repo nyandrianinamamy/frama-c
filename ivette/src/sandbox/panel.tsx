@@ -13,16 +13,16 @@
 
 import React from 'react';
 import * as Dome from 'dome';
-import { IconButton } from 'dome/controls/buttons';
+import { IconButton } from 'dome/primitive/controls';
 import { registerSandbox, TitleBar } from 'ivette';
 import {
   Panel, ListElement, Element, PanelPosition
 } from 'dome/frame/panel';
-import { Button, ButtonGroup } from 'dome/frame/toolbars';
-import { Icon } from 'dome/controls/icons';
+import { Button, ButtonGroup } from 'dome/primitive/controls';
 import './style.css';
-import { Label } from 'dome/controls/labels';
+import { Label, Icon } from 'dome/primitive/displays';
 import { Modal, showModal } from 'dome/dialogs';
+import { Hbox } from 'dome/layout/boxes';
 
 /* -------------------------------------------------------------------------- */
 /* --- Use Panel                                                          --- */
@@ -64,7 +64,7 @@ function UsePanel(): JSX.Element {
         <IconButton
           icon="SIDEBAR"
           title={"show or hide the panel"}
-          onClick={flipVisible}
+          onClick={() => flipVisible()}
         />
       </TitleBar>
       <div style={{ position: 'relative', height: '100%' }}>
@@ -78,7 +78,8 @@ function UsePanel(): JSX.Element {
             }
         >
           <>
-            <Label label="Open test modal">
+            <Hbox>
+              <Label label="Open test modal"/>
               <Button
                 label='Open'
                 kind={modalTestOpen ? 'positive' : 'default'}
@@ -88,57 +89,48 @@ function UsePanel(): JSX.Element {
                     label="Test modal title"
                     className='sandbox-modal'
                     onClose={() => setModalTestOpen(false)}
-                  >
+                    >
                     <div>{ modalText }</div>
                   </Modal>); }
-                }
+                }/>
+            </Hbox>
+
+            <ButtonGroup>
+              <Button
+                label='left'
+                selected={position === 'left'}
+                onClick={() => setPosition('left')} />
+              <Button
+                label='top'
+                selected={position === 'top'}
+                onClick={() => setPosition('top')} />
+              <Button
+                label='right'
+                selected={position === 'right'}
+                onClick={() => setPosition('right')} />
+              <Button
+                label='bottom'
+                selected={position === 'bottom'}
+                onClick={() => setPosition('bottom')} />
+            </ButtonGroup>
+
+            <Hbox>
+              <Label
+                label="List icon"
+                title="Text Component"
               />
-            </Label>
-
-            <Label
-              label="label"
-              title="Text Component"
-              icon="CODE"
-            >
-              Content of the Text component.
-            </Label>
-
-            <Label>
-              <ButtonGroup>
-                <Button
-                  label='left'
-                  selected={position === 'left'}
-                  onClick={() => setPosition('left')} />
-                <Button
-                  label='top'
-                  selected={position === 'top'}
-                  onClick={() => setPosition('top')} />
-                <Button
-                  label='right'
-                  selected={position === 'right'}
-                  onClick={() => setPosition('right')} />
-                <Button
-                  label='bottom'
-                  selected={position === 'bottom'}
-                  onClick={() => setPosition('bottom')} />
-              </ButtonGroup>
-            </Label>
-
-            <Label
-              label="List icon"
-              title="Text Component"
-            >
               <Icon id="WARNING"/>
               <Icon id="SETTINGS"/>
               <Icon id="RELOAD"/>
               <Icon id="DOWNLOAD"/>
               <Icon id="LOCK"/>
-            </Label>
+            </Hbox>
 
-            <Label
-              label="Add/remove element"
-              title="Text Component"
-            >
+            <Hbox>
+              <Label
+                label="Add/remove element"
+                title="Text Component"
+              />
               <Button
                 icon='PLUS'
                 title="This button add an element t the end of the list."
@@ -161,7 +153,7 @@ function UsePanel(): JSX.Element {
                   }
                 )}
               />
-            </Label>
+            </Hbox>
             <ListElement>
               { list.list.map((elt, k) =>
                 <Element

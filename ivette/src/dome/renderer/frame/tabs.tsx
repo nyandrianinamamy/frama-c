@@ -16,7 +16,8 @@
 */
 
 import React from 'react';
-import { Icon } from 'dome/controls/icons';
+import { Icon } from 'dome/primitive/displays';
+import { IconButton } from 'dome/primitive/controls';
 import { classes } from 'dome/misc/utils';
 
 import './style.css';
@@ -78,19 +79,17 @@ export function Tab(props: TabProps): JSX.Element {
       !enabled && 'dome-control-disabled'
     );
     return (
-      <Icon key={icon}
+      <IconButton key={icon}
         className={className}
         title={title}
-        id={icon} size={10} offset={1}
+        icon={icon} size={10}
         onClick={enabled ? icn.onClick : undefined}
       />
     );
   };
   const labelIcon = icon ? (
-    <Icon key='icon'
-      className='dome-xTab-icon'
-      id={icon} size={10} offset={1} />
-  ) : null;
+      <Icon key='icon' className='dome-xTab-icon' id={icon} size={10} />
+    ) : null;
   const header = selected ? headIcons.map(makeIcon) : null;
   const trailer = selected ? tailIcons.map(makeIcon) : null;
   const classNames = classes(

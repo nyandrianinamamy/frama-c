@@ -18,9 +18,8 @@ import * as States from 'frama-c/states';
 import * as DATA from 'frama-c/kernel/api/data';
 import * as Ast from 'frama-c/kernel/api/ast';
 import { MarkerText, Modifier, selectMarker } from 'frama-c/richtext';
-import { Icon } from 'dome/controls/icons';
-import { Code } from 'dome/controls/labels';
-import { IconButton } from 'dome/controls/buttons';
+import { Code } from 'dome/primitive/displays';
+import { IconButton } from 'dome/primitive/controls';
 import * as Boxes from 'dome/layout/boxes';
 import { TitleBar } from 'ivette';
 import { current as currentProject } from 'frama-c/kernel/api/project';
@@ -95,7 +94,6 @@ function MarkButton(props: MarkButtonProps): JSX.Element {
     <IconButton
       className="astinfo-markerbutton"
       size={10}
-      offset={0}
       {...props}
     />
   );
@@ -136,8 +134,7 @@ function MarkInfos(props: InfoSectionProps): JSX.Element {
   const filtered = markerFields.filter((fd) => !excluded.includes(fd.id));
   const hasMore = filtered.length < markerFields.length;
   const displayed = expand ? markerFields : filtered;
-  const onFoldUnfold = (evt: React.MouseEvent): void => {
-    evt.stopPropagation();
+  const onFoldUnfold = (): void => {
     setUnfold(!unfold);
   };
   const onChildSelected = (m: Ast.marker, modifier: Modifier): void => {
@@ -161,21 +158,20 @@ function MarkInfos(props: InfoSectionProps): JSX.Element {
         className={`astinfo-markerbar ${highlight}`}
         title={descr}
       >
-        <Icon
+        <IconButton
           key="FOLDER"
           className="astinfo-folderbutton"
           visible={displayed.length > 0}
           size={10}
-          offset={-2}
-          id={unfold ? 'TRIANGLE.DOWN' : 'TRIANGLE.RIGHT'}
+          icon={unfold ? 'TRIANGLE.DOWN' : 'TRIANGLE.RIGHT'}
           onClick={onFoldUnfold}
         />
-        <Code key="NAME" className="astinfo-markercode">
-          <span className="astinfo-markerkind" title={titleKind}>
-            {labelKind}
-          </span> {descr}
-        </Code>
-        <Code key="SCOPE" className="" display={foreign}>[in {label}]</Code>
+        <Boxes.Hbox>
+          <Code label={labelKind}
+            className="astinfo-markerkind" title={titleKind}/>
+          <Code key="NAME" label={descr} className="astinfo-markercode"/>
+        </Boxes.Hbox>
+        <Code key="SCOPE" label={`[in ${label}]`} display={foreign}/>
         <MarkButton
           key="MORE"
           icon="CIRC.PLUS"

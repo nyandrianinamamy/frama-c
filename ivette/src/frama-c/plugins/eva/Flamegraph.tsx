@@ -11,7 +11,7 @@ import AutoSizer, { Size } from 'react-virtualized-auto-sizer';
 import flamegraph from "d3-flame-graph";
 import { select, Selection } from 'd3-selection';
 
-import { IconButton } from 'dome/controls/buttons';
+import { IconButton } from 'dome/primitive/controls';
 import { Inset } from 'dome/frame/toolbars';
 import { useFlipSettings } from 'dome';
 

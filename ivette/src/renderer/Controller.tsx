@@ -16,9 +16,8 @@ import * as Json from 'dome/data/json';
 import * as Settings from 'dome/data/settings';
 import * as Preferences from 'ivette/prefs';
 import * as Toolbars from 'dome/frame/toolbars';
-import { IconButton } from 'dome/controls/buttons';
-import { Icon } from 'dome/controls/icons';
-import { Label } from 'dome/controls/labels';
+import { Button, ButtonGroup, IconButton } from 'dome/primitive/controls';
+import { Icon, Label } from 'dome/primitive/displays';
 import * as Text from 'dome/text/richtext';
 import { TextBuffer, TextView } from 'dome/text/richtext';
 import { resolve } from 'dome/system';
@@ -208,26 +207,26 @@ export const Control = (): JSX.Element => {
   }
 
   return (
-    <Toolbars.ButtonGroup>
-      <Toolbars.Button
+    <ButtonGroup>
+      <Button
         icon="MEDIA.PLAY"
-        enabled={play.enabled}
+        disabled={!play.enabled}
         onClick={play.onClick}
         title="Start the server"
       />
-      <Toolbars.Button
+      <Button
         icon="RELOAD"
-        enabled={reload.enabled}
+        disabled={!reload.enabled}
         onClick={reload.onClick}
         title="Restart the server"
       />
-      <Toolbars.Button
+      <Button
         icon="MEDIA.STOP"
-        enabled={stop.enabled}
+        disabled={!stop.enabled}
         onClick={stop.onClick}
         title="Stop the server"
       />
-    </Toolbars.ButtonGroup>
+    </ButtonGroup>
   );
 };
 
@@ -374,12 +373,11 @@ export function RenderConsole(): JSX.Element {
         />
         <Toolbars.Space />
         <Label
+          label={`${1 + cursor} / ${n}`}
           className="component-info"
           title="Command history (newest first)"
           display={edited}
-        >
-          {1 + cursor} / {n}
-        </Label>
+        />
         <Toolbars.Space />
         <IconButton
           icon="MEDIA.PLAY"
@@ -438,7 +436,6 @@ export const Status = (): JSX.Element => {
   const pending = Server.getPending();
   let icon = 'CIRC.EMPTY';
   let title = undefined;
-  let spinning = false;
 
   switch (status) {
     case Server.Status.OFF:
@@ -446,12 +443,10 @@ export const Status = (): JSX.Element => {
       break;
     case Server.Status.STARTING:
       icon = 'SPINNER';
-      spinning = true;
       title = 'Server is starting';
       break;
     case Server.Status.ON:
       icon = pending > 0 ? 'SPINNER' : 'CIRC.CHECK';
-      spinning = pending > 0;
       title = pending > 0
         ? `Server is running (${pending} pending requests)`
         : 'Server is running (idle)';
@@ -466,7 +461,6 @@ export const Status = (): JSX.Element => {
       break;
     case Server.Status.RESTARTING:
       icon = 'RELOAD';
-      spinning = true;
       title = 'Server is restarting';
       break;
     case Server.Status.FAILURE:
@@ -479,8 +473,6 @@ export const Status = (): JSX.Element => {
     <Icon
       id={icon}
       size={14}
-      offset={0}
-      spinning={spinning}
       className="server-status"
       title={title}
     />

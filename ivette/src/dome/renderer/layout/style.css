@@ -327,6 +327,7 @@
     .dome-xForm-field-block > .dome-xForm-field {
         display:flex;
         flex-wrap: wrap;
+        align-items: center;
     }
 
     .dome-xForm-field-block {
@@ -346,7 +347,10 @@
           top: 0 !important; /* !important needed because of hard style */
         }
 
-        .dome-xForm-field-actions { margin: auto 0; }
+        .dome-xForm-field-actions {
+            margin: auto 0;
+            display: flex;
+        }
 
         > .dome-xForm-field {
             max-width: 100%;
@@ -364,42 +368,6 @@
     .message-emitter-category { margin-bottom: 10px; }
     .dome-xForm-field { padding: 1px; }
 
-    .dome-xButton {
-      border: solid 1px;
-      border-color: var(--border);
-      color: var(--text-discrete);
-      background-color: transparent;
-      background-image: none;
-    }
-
-    .dome-xButton:disabled, .dome-xButton:active:disabled {
-      fill: var(--disabled-text);
-      color: var(--disabled-text);
-      border-color: var(--border-discrete) ;
-      background-image: none;
-    }
-
-    .dome-xButton:hover:not(:disabled) {
-      cursor: pointer;
-      border-color: var(--text-highlighted);
-      color: var(--text-highlighted);
-      background-color: transparent;
-      background-image: none ;
-    }
-
-    .dome-xButton-selected {
-      color: var(--text);
-      background-color: var(--checked-element);
-      background-image: none;
-    }
-
-    .dome-xButton-selected:hover {
-      border-color: var(--text-highlighted);
-      background-image: none ;
-      background-color: var(--checked-element);
-      opacity: 0.5;
-    }
-
     .dome-xSelect:hover {
       background-color: var(--background-interaction);
     }
@@ -407,7 +375,6 @@
     select.dome-xSelect {
       border: none;
       min-width: 80px;
-      background-color: var(--background-interaction);
       background-image: none;
     }
 
@@ -421,6 +388,16 @@
       margin-right: 5px;
       border: none;
     }
+}
+
+select.dome-xSelect:not(:disabled),
+input[type=number]:not(:disabled) {
+  color: var(--text);
+  background-color: var(--background-interaction);
+}
+
+input[type=number] {
+  border: none;
 }
 
 /* -------------------------------------------------------------------------- */

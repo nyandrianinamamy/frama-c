@@ -9,18 +9,18 @@
 import React from 'react';
 import * as Utils from 'dome/misc/utils';
 import * as Forms from 'dome/layout/forms';
-import { Icon } from 'dome/controls/icons';
-import { Label } from 'dome/controls/labels';
+import { Label, Icon } from 'dome/primitive/displays';
 import { showHelp } from 'dome/help';
 import {
   Checkbox,
-  Switch,
   Button,
-  SelectMenu,
-  Spinner,
   IconButton,
-  Field
-} from 'dome/controls/buttons';
+  Select,
+  Spinner,
+  Field,
+  Switch,
+  TextButton
+} from 'dome/primitive/controls';
 import { SidebarTitle } from 'dome/frame/sidebars';
 import { DivProps, Hbox, Hfill, Space, Vbox } from 'dome/layout/boxes';
 import * as Server from 'frama-c/server';
@@ -58,7 +58,7 @@ function SidebarBlock(props: SidebarBlockProps): JSX.Element {
     <Vbox className={Utils.classes('wp-sidebar-block')} {...others}>
       <Hbox className={Utils.classes('wp-sidebar-block-title')}>
         <Hbox>
-          {title && <Label
+          {title && <TextButton
             label={ftitle}
             icon={ititle}
             className={Utils.classes('wp-sidebar-block-title-label')}
@@ -78,7 +78,7 @@ function SidebarBlock(props: SidebarBlockProps): JSX.Element {
 const makeSidebarHelp = (anchor: string): JSX.Element => {
   const help = (): void => { showHelp(anchor); };
   return (
-    <IconButton key='help' icon='HELP' onClick={help} offset={-1} />
+    <IconButton key='help' icon='HELP' onClick={help} />
   );
 };
 
@@ -106,7 +106,7 @@ function Tools(): JSX.Element {
         icon='MEDIA.STOP'
         title='Stop proof tasks'
         onClick={stop}
-        enabled={running}
+        disabled={!running}
       />
       <Button
         icon='TRASH'
@@ -148,8 +148,8 @@ function Prover(props: ProverConfig): JSX.Element {
   return (
     <Switch
       label={label}
-      value={checked}
-      onChange={onChange}
+      selected={checked}
+      onClick={() => onChange(!checked)}
     />
   );
 }
@@ -176,11 +176,11 @@ function CacheSelector(): JSX.Element {
       );
   return (
     <>
-      <SelectMenu
+      <Select
         value={cacheMode}
         onChange={onChange}
         className="wp-config-field wp-config-select"
-      >{options}</SelectMenu>
+      >{options}</Select>
       <IconButton icon='HELP' title={help} />
     </>
   );
@@ -207,14 +207,15 @@ function InteractiveSelector(): JSX.Element {
         <option key={value} value={value}>{value}</option>
       );
   return (
-    <Label label='Mode'>
-      <SelectMenu
+    <Hbox>
+      <Label label='Mode'/>
+      <Select
         value={inter}
         onChange={onChange}
         className="wp-config-field wp-config-select"
-      >{options}</SelectMenu>
+      >{options}</Select>
       <IconButton icon='HELP' title={help} />
-    </Label>
+    </Hbox>
   );
 }
 
@@ -239,14 +240,15 @@ function TipSelector(): JSX.Element {
         <option key={value} value={value}>{value}</option>
       );
   return (
-    <Label label='Mode'>
-      <SelectMenu
+    <Hbox>
+      <Label label='Mode'/>
+      <Select
         value={tipMode}
         onChange={onChange}
         className="wp-config-field wp-config-select"
-      >{options}</SelectMenu>
+      >{options}</Select>
       <IconButton icon='HELP' title={help} />
-    </Label>
+    </Hbox>
   );
 }
 
@@ -275,7 +277,8 @@ function ProversConfiguration(): JSX.Element {
         title='General configuration'
         titleButtons={[makeSidebarHelp('wp-config-provers-general')]}
       >
-        <Label label='Timeout' icon='CLOCK' >
+        <Hbox>
+          <Label label='Timeout' icon='CLOCK' />
           <Spinner
             className="wp-config-field wp-config-spinner"
             value={timeout || 0}
@@ -283,8 +286,9 @@ function ProversConfiguration(): JSX.Element {
             vstep={1}
             onChange={setTimeout}
           />
-        </Label>
-        <Label label='Processes' icon='SETTINGS'>
+        </Hbox>
+        <Hbox>
+        <Label label='Processes' icon='SETTINGS'/>
           <Spinner
             className="wp-config-field wp-config-spinner"
             value={processes || 0}
@@ -292,10 +296,11 @@ function ProversConfiguration(): JSX.Element {
             vstep={1}
             onChange={setProcesses}
           />
-        </Label>
-        <Label label='Cache' icon='SERVER'>
+        </Hbox>
+        <Hbox>
+        <Label label='Cache' icon='SERVER'/>
           <CacheSelector />
-        </Label>
+        </Hbox>
       </SidebarBlock>
       <SidebarBlock
         title='Automatic Provers'
@@ -303,9 +308,9 @@ function ProversConfiguration(): JSX.Element {
       >
         <Checkbox
           label='Generate counter-examples'
-          onChange={setCE}
-          value={ce}
-          enabled={goals === 0}
+          selected={ce}
+          onClick={() => setCE(!ce)}
+          disabled={goals !== 0}
           title={
             goals === 0
               ? undefined
@@ -363,13 +368,13 @@ function ProversConfiguration(): JSX.Element {
         <Space style={{ flexBasis: '8px' }} />
         <Switch
           label='Use scripts'
-          onChange={setScripts}
-          value={scripts}
+          selected={scripts}
+          onClick={() => setScripts(!scripts)}
         />
         <Switch
           label='Use strategies'
-          onChange={setStrats}
-          value={strategies}
+          selected={strategies}
+          onClick={() => setStrats(!strategies)}
         />
       </SidebarBlock>
     </Forms.Section>
@@ -394,11 +399,12 @@ function SelectionButton(props: SelectionProps): JSX.Element {
   );
   return (
     <div className={className}>
-      <Label label={name} >
-        <Icon
-          id='CROSS'
+      <Hbox>
+        <Label label={name} />
+        <IconButton
+          icon='CROSS'
           onClick={remove} />
-      </Label>
+      </Hbox>
     </div>
   );
 }
@@ -499,23 +505,23 @@ function PropertiesFilter(): JSX.Element {
       <Hbox>
         <Button
           icon={'PLUS'}
-          enabled={canCommit(true)}
+          disabled={canCommit(false)}
           onClick={() => { onCommit(true); }}
           className={Utils.classes('wp-sidebar-selection-commit')}
         />
         <Button
           icon={'MINUS'}
-          enabled={canCommit(false)}
+          disabled={canCommit(true)}
           onClick={() => { onCommit(false); }}
           className={Utils.classes('wp-sidebar-selection-commit')}
         />
-        <SelectMenu
+        <Select
           value={selected}
           onChange={onChange}
         >
           {options.map((value) =>
             <option key={value} value={value}>{displayName(value)}</option>)}
-        </SelectMenu>
+        </Select>
         <Field
           style={selected !== custom ? { display: 'none' } : {}}
           onEdited={(value) => { setField(value); }}
@@ -543,9 +549,9 @@ function BoolOption(props: BoolOptionProps): JSX.Element {
     <Hbox title={ !supported ? 'WP does not support this option' : undefined}>
       <Checkbox
         label={descr}
-        onChange={setOpt}
-        value={opt}
-        enabled={supported}
+        selected={opt}
+        onClick={() => setOpt(!opt)}
+        disabled={!supported}
       />
       {!supported && <Icon id='WARNING' kind='warning'/>}
     </Hbox>
@@ -578,15 +584,15 @@ function SpecialFloats(): JSX.Element {
             ? 'Remove special floats to disable these guards'
             : 'Add special floats to enable these guards'
         }
-        value={sf !== 'none'}
+        selected={sf !== 'none'}
       />
-      <SelectMenu
+      <Select
         value={sf}
         onChange={(newV) => { if (newV) setSF(newV); }}
         className='wp-config-field wp-config-select'
       >
         {specialFloats.map(mkSF)}
-      </SelectMenu>
+      </Select>
     </Hbox>
   );
 }
@@ -686,7 +692,7 @@ function Initialization(): JSX.Element {
             ? 'Clear selection to disable these guards'
             : 'Add functions to the selection to enable these guards'
         }
-        value={elems.length !== 0 || !only}
+        selected={elems.length !== 0 || !only}
       />
       <Hbox>
         <Button
@@ -701,7 +707,7 @@ function Initialization(): JSX.Element {
         />
         <Button
           label='Clear'
-          enabled={elems.length !== 0 || !only}
+          disabled={elems.length === 0 && only}
           onClick={(): void => { setInit({ only: true, elems: [] }); }}
         />
       </Hbox>
@@ -765,8 +771,8 @@ function RTE(): JSX.Element {
           <Checkbox
             key="generate"
             label='Generate'
-            value={rte}
-            onChange={setRte}
+            selected={rte}
+            onClick={() => setRte(!rte)}
           />,
           makeSidebarHelp('wp-config-properties-rte')
         ]
@@ -801,8 +807,8 @@ function SmokeTests(): JSX.Element {
           <Checkbox
             key="generate"
             label='Generate'
-            value={smoke}
-            onChange={setSmoke}
+            selected={smoke}
+            onClick={() => setSmoke(!smoke)}
           />,
           makeSidebarHelp('wp-config-properties-smoke')
         ]
@@ -810,11 +816,13 @@ function SmokeTests(): JSX.Element {
       foldable={true}
     >
       <Vbox>
-        <Checkbox label='Assumes' onChange={setAssumes} value={assumes} />
-        <Checkbox label='Code' onChange={setCode} value={code} />
-        <Checkbox label='Call' onChange={setCall} value={call} />
-        <Checkbox label='Local Initialization' onChange={setLoc} value={loc} />
-        <Checkbox label='Loop' onChange={setLoop} value={loop} />
+        <Checkbox label='Assumes' selected={assumes}
+          onClick={() => setAssumes(!assumes)} />
+        <Checkbox label='Code' selected={code} onClick={() => setCode(!code)} />
+        <Checkbox label='Call' selected={call} onClick={() => setCall(!call)} />
+        <Checkbox label='Local Initialization'
+          selected={loc} onClick={() => setLoc(!loc)} />
+        <Checkbox label='Loop' selected={loop} onClick={() => setLoop(!loop)} />
       </Vbox>
     </SidebarBlock>
   );
@@ -853,10 +861,10 @@ function SimplOption(props: SimplOptionProps): JSX.Element {
     <Hbox>
       <Checkbox
         label={label}
-        onChange={setValue}
+        selected={value}
+        onClick={() => setValue(value)}
         title={message}
-        enabled={enabled}
-        value={value}
+        disabled={!enabled}
       />
       <IconButton icon='HELP' title={help} />
     </Hbox>
@@ -929,9 +937,9 @@ function Simplifications(): JSX.Element {
               key='Enabled'
               label='Enabled'
               title={globalMessage}
-              value={qed}
-              enabled={goals === 0}
-              onChange={setQed}
+              selected={qed}
+              onClick={() => setQed(!qed)}
+              disabled={goals !== 0}
             />,
             makeSidebarHelp('wp-config-simpl')
           ]
@@ -939,10 +947,10 @@ function Simplifications(): JSX.Element {
       >
         <Checkbox
           label='Clean'
-          onChange={setClean}
+          selected={clean}
+          onClick={() => setClean(!clean)}
           title={cleanMessage}
-          enabled={!qed && goals === 0}
-          value={clean}
+          disabled={qed || goals !== 0}
         />
         {simplifications.map(makeBox)}
       </SidebarBlock>

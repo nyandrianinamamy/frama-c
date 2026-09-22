@@ -11,7 +11,7 @@ import { shell } from 'electron';
 
 import { Modal, showModal } from 'dome/dialogs';
 import { Hbox } from 'dome/layout/boxes';
-import { Button } from 'dome/controls/buttons';
+import { Button } from 'dome/primitive/controls';
 import { Markdown } from 'dome/text/markdown';
 
 import { registerDocChapter } from 'ivette';

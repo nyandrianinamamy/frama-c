@@ -7,7 +7,7 @@
 /* ************************************************************************ */
 
 import React from 'react';
-import { IconButton } from 'dome/controls/buttons';
+import { IconButton } from 'dome/primitive/controls';
 import { Hbox } from 'dome/layout/boxes';
 import * as Forms from 'dome/layout/forms';
 import * as Server from 'frama-c/server';
@@ -74,7 +74,7 @@ export default function EvaTools(
           icon="CIRC.CLOSE"
           title="Clear Eva results, including alarms and statuses"
           size={iconSize}
-          enabled={evaComputed !== "computing"}
+          disabled={evaComputed === "computing"}
           onClick={clear}
         />
         <IconButton

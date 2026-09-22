@@ -12,9 +12,8 @@
 
 import React from 'react';
 import * as Dome from 'dome';
-import { Label } from 'dome/controls/labels';
-import { IconButton } from 'dome/controls/buttons';
-import { Meter } from 'dome/controls/displays';
+import { Label, Meter } from 'dome/primitive/displays';
+import { IconButton } from 'dome/primitive/controls';
 import { Group, Inset } from 'dome/frame/toolbars';
 import { GlobalState, useGlobalState } from 'dome/data/states';
 import * as Ivette from 'ivette';
@@ -139,18 +138,16 @@ function WPGoals(): JSX.Element {
         title={tip ? 'Interactive Proof Transformer' : 'Generated Goals'}
         help={tip ? 'wp-tip' : 'wp-goals'}
       >
-        <Label display={goals < total}>
-          {goals} / {total}
-        </Label>
+        <Label label ={`${goals} / ${total}`} display={goals < total}/>
         <Inset />
         <IconButton
           icon='FILTER' title='Filters'
-          enabled={hasGoals}
+          disabled={!hasGoals}
           onClick={() => Dome.popupMenu(filterItems)} />
         <IconButton
           icon='MEDIA.PLAY'
           title={tip ? 'Back to Goals' : 'Interactive Proof Transformer'}
-          enabled={!!current}
+          disabled={!current}
           selected={tip}
           onClick={() => setTip(!tip)} />
       </Ivette.TitleBar>
@@ -210,11 +207,11 @@ function ServerActivity(): JSX.Element {
   const title = `${done} / ${todo} (${active} running, ${procs} procs)`;
   return (
     <Group display={total > 0} title={title}>
-      <Label>WP</Label>
+      <Label label='WP'/>
       <Meter min={0} value={progress} max={objective} />
       <Inset />
       <IconButton
-        icon="MEDIA.HALT" kind="negative" enabled={running}
+        icon="MEDIA.HALT" kind="negative" disabled={!running}
         onClick={TIP.cancelProofTasks} />
       <Inset />
     </Group>

@@ -12,7 +12,7 @@
 
 import React from 'react';
 import { Hbox } from 'dome/layout/boxes';
-import { Label, Cell, Code } from 'dome/controls/labels';
+import { Label, Cell, Code } from 'dome/primitive/displays';
 import * as Ast from 'frama-c/kernel/api/ast';
 import * as States from 'frama-c/states';
 import * as Region from './api';
@@ -24,11 +24,11 @@ import * as Region from './api';
 function ACS(props: { mark: string; kind: string; acs: number }): JSX.Element {
   return (
     <Label
+      label=
+        {`${props.acs} ${props.kind}${props.acs > 1 ? 's' : ''} ({props.mark})`}
       display={props.acs > 0}
       title={`Number of {kind}s`}
-    >
-      {props.acs} {props.kind}{props.acs > 1 ? 's' : ''} ({props.mark})
-    </Label>
+    />
   );
 }
 
@@ -45,7 +45,7 @@ export function Attributes(props: AttributesProps): JSX.Element | null {
     (region.inits.length + region.reads.length + region.writes.length > 0);
   return (
     <Hbox>
-      <Code icon="COMPONENT" className="dimmed">#{region.node}</Code>
+      <Code label={`#${region.node}`} icon="COMPONENT" className="dimmed"/>
       <ACS key="I" mark="I" kind="init" acs={region.inits.length} />
       <ACS key="R" mark="R" kind="read" acs={region.reads.length} />
       <ACS key="W" mark="W" kind="write" acs={region.writes.length} />

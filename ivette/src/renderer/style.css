@@ -102,6 +102,7 @@
     padding: 0px;
     background: var(--background);
     border-right: solid 1px var(--border-discrete);
+    gap: 0;
 }
 
 /* Clipped horizontal viewport for the laboratory tab strip. */
@@ -251,7 +252,7 @@
 }
 
 .labview-close:hover {
-    fill: var(--negative-button-color);
+    fill: var(--negative-color);
 }
 
 .labview-icon {
@@ -284,7 +285,7 @@
 }
 
 .labview-notification-message {
-    background: var(--primary-button-color);
+    background: var(--primary-color);
 }
 
 .labview-notification-message:hover {
@@ -292,7 +293,7 @@
 }
 
 .labview-notification-warning {
-    background: var(--warning-button-color);
+    background: var(--warning-color);
 }
 
 .labview-notification-warning:hover {
@@ -300,7 +301,7 @@
 }
 
 .labview-notification-error {
-    background: var(--negative-button-color);
+    background: var(--negative-color);
 }
 
 .labview-notification-error:hover {
@@ -345,17 +346,6 @@
     border-radius: 4px;
 }
 
-.labview-layout-action-icon {
-    position: absolute;
-    top: -3px;
-    right: 1px;
-    fill: var(--info-text);
-}
-
-.labview-layout-action:hover .labview-layout-action-icon {
-    fill: var(--text);
-}
-
 /* -------------------------------------------------------------------------- */
 /* --- Dock & Tabs                                                        --- */
 /* -------------------------------------------------------------------------- */
@@ -372,30 +362,17 @@
     line-height: 1;
     height: 28px;
     min-width: 120px;
-    margin: 0px 1px 0px 0px;
+    margin: 0;
     padding: 5px 8px 5px 10px;
     border: solid 1px var(--border-discrete);
     border-bottom-color: var(--background);
     border-radius: 0px;
     box-shadow: none;
     background: var(--background);
+    gap: 3px;
 }
 
-.labview-tab > svg,
-.labview-tab > label,
-.labview-tab-closing {
-    align-self: center;
-}
-
-.labview-tab > svg {
-    position: static;
-}
-
-.labview-tab > label {
-    line-height: 1;
-}
-
-.dome-xToolBar-control.labview-tab.dome-selected {
+.labview-tab.dome-selected {
     color: var(--text);
     fill: var(--text);
     background: var(--background-profound);
@@ -406,18 +383,17 @@
     z-index: 1;
 }
 
-.dome-xToolBar-control.labview-tab.dome-selected:hover {
+.labview-tab.dome-selected:hover {
     background: var(--background-profound);
 }
 
-.dome-xToolBar-control.labview-tab:hover {
+.labview-tab:hover {
     fill: var(--text);
     color: var(--text);
     background: var(--background-softer);
 }
 
 .labview-tab-closing {
-    margin-left: auto;
     fill: var(--info-text-discrete);
 }
 

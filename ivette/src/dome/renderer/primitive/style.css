@@ -1,0 +1,409 @@
+:root {
+  --margin-button: 2px 4px;
+}
+
+/* -------------------------------------------------------------------------- */
+/* --- Styling Labels                                                     --- */
+/* -------------------------------------------------------------------------- */
+
+.dome-xLabel {
+    display: flex;
+    align-items: center;
+    padding: 2px;
+    margin: var(--margin-button);
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.dome-xLabel.dome-text-descr {
+    white-space: normal ;
+}
+
+/* -------------------------------------------------------------------------- */
+/* --- Styling Icons                                                      --- */
+/* -------------------------------------------------------------------------- */
+@keyframes dome-xIcon-spinner { to { rotate: 360deg; } }
+
+.dome-xIcon {
+    flex: 0 0 auto ;
+    display: flex ;
+    align-items: center;
+    margin: 2px ;
+    padding: 2px ;
+}
+
+.dome-xIcon svg {
+    position:relative ;
+}
+
+.dome-xIcon-default { fill: var(--text) ; }
+.dome-xIcon-primary { fill: var(--primary-color) ; }
+.dome-xIcon-positive { fill: var(--positive-color) ; }
+.dome-xIcon-negative { fill: var(--negative-color) ; }
+.dome-xIcon-warning { fill: var(--warning-color) ; }
+
+.dome-xIcon-default-disabled { fill: var(--disabled-text) ; }
+.dome-xIcon-primary-disabled { fill: var(--primary-color-disabled) ; }
+.dome-xIcon-positive-disabled { fill: var(--positive-color-disabled) ; }
+.dome-xIcon-negative-disabled { fill: var(--negative-color-disabled) ; }
+.dome-xIcon-warning-disabled { fill: var(--warning-color-disabled) ; }
+
+.dome-xIcon-spinning svg { animation: dome-xIcon-spinner 1.3s linear infinite; }
+
+/* -------------------------------------------------------------------------- */
+/* --- Styling Buttons (may be factorized with xToolBar)                  --- */
+/* -------------------------------------------------------------------------- */
+
+/* Layout */
+
+.dome-xButton {
+    flex: 0 0 auto ;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+
+    &:not(:disabled):hover {
+        cursor: pointer;
+    }
+}
+
+.dome-xBoxButton {
+    padding: 3px 8px ;
+    margin: var(--margin-button);
+    cursor: default;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.06);
+}
+
+.dome-xCircButton {
+    padding: 2px ;
+    margin: var(--margin-button);
+    cursor: default;
+    border: 1px solid transparent;
+    border-radius: 20px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.06);
+}
+
+/* generic button behaviors */
+
+.dome-xButton { /* Pay attention to the order in .dome-xButton */
+    color: var(--text);
+    border-color: var(--border);
+    background-color: var(--color);
+
+    &:not(:disabled):not(.dome-xButton-no-background):active {
+        background-color: var(--color-active);
+        box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.25);
+        transform: translateY(1px);
+    }
+
+    &.dome-xButton-selected {
+        background-color: var(--color-selected);
+        border: solid 1px var(--color-border);
+        box-shadow: 0 0 5px var(--color-border);
+    }
+
+    &:hover {
+        background-color: var(--color-hover);
+    }
+
+    &:disabled {
+        background-color: var(--color-disabled);
+        color: var(--disabled-text);
+    }
+}
+
+/* button colors */
+
+.dome-xButton-default {
+    --color: var(--default-color);
+    --color-hover: var(--default-color-hover);
+    --color-selected: var(--default-color-selected);
+    --color-disabled: var(--default-color-disabled);
+    --color-active: var(--default-color-active);
+    --color-border: var(--default-border-color);
+}
+.dome-xButton-primary {
+    --color: var(--primary-color);
+    --color-hover: var(--primary-color-hover);
+    --color-selected: var(--primary-color-selected);
+    --color-disabled: var(--primary-color-disabled);
+    --color-active: var(--primary-color-active);
+    --color-border: var(--primary-border-color);
+}
+.dome-xButton-positive {
+    --color: var(--positive-color);
+    --color-hover: var(--positive-color-hover);
+    --color-selected: var(--positive-color-selected);
+    --color-disabled: var(--positive-color-disabled);
+    --color-active: var(--positive-color-active);
+    --color-border: var(--positive-border-color);
+}
+.dome-xButton-negative {
+    --color: var(--negative-color);
+    --color-hover: var(--negative-color-hover);
+    --color-selected: var(--negative-color-selected);
+    --color-disabled: var(--negative-color-disabled);
+    --color-active: var(--negative-color-active);
+    --color-border: var(--negative-border-color);
+}
+.dome-xButton-warning {
+    --color: var(--warning-color);
+    --color-hover: var(--warning-color-hover);
+    --color-selected: var(--warning-color-selected);
+    --color-disabled: var(--warning-color-disabled);
+    --color-active: var(--warning-color-active);
+    --color-border: var(--warning-border-color);
+}
+
+/* -------------------------------------------------------------------------- */
+/* --- Styling Button Group                                       --- */
+/* -------------------------------------------------------------------------- */
+
+.dome-xButtongroup {
+    display: flex ;
+    flex-direction: row ;
+    flex-wrap: nowrap ;
+    margin: var(--margin-button);
+
+    &.dome-xButtongroup-vertical {
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    &:not(.dome-xButtongroup-separate) {
+        .dome-xButton { margin: 0 ; }
+
+        & > *:not(:first-child):not(.dome-xButton-selected) {
+            border-left: none;
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+        }
+
+        & > *:not(:last-child):not(.dome-xButton-selected) {
+            border-right: none;
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+    }
+}
+
+/* -------------------------------------------------------------------------- */
+/* --- Styling Badge                                                      --- */
+/* -------------------------------------------------------------------------- */
+
+.dome-xBadge {
+    flex: 0 0 auto ;
+    display: flex ;
+    margin: 1px ;
+    padding: 1px 6px 1px 6px ;
+    height: 16px ;
+    fill: var(--background-intense) ;
+    color: var(--background-intense) ;
+    font-family: sans-serif ;
+    font-size: smaller ;
+    font-weight: bold ;
+    border-radius: 8px ;
+    background: var(--info-text) ;
+
+    .dome-xIcon {
+      fill: var(--background-intense) ;
+    }
+}
+
+.dome-disabled .dome-xBadge {
+    background: var(--background-profound) ;
+    color: var(--background-intense) ;
+    fill: var(--background-intense) ;
+}
+
+.dome-xBadge label {
+    position: relative ;
+    bottom: -1px ;
+}
+/* -------------------------------------------------------------------------- */
+/* --- Styling LED & LCD                                                  --- */
+/* -------------------------------------------------------------------------- */
+
+.dome-xLCD {
+    flex: 0 0 auto;
+    align-items: center;
+    padding: 3px 8px;
+    margin: var(--margin-button);
+    cursor: default;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.06);
+
+    color: var(--text);
+    background-color: var(--default-color);
+    border-color: var(--border);
+}
+
+.dome-xButton-led {
+    display: inline-block ;
+    position: relative ;
+    border-color: var(--border) ;
+    border-style: solid ;
+    border-width: 1px ;
+    border-radius: 50% ;
+    margin: var(--margin-button);
+    padding: 2px ;
+    width: 11px ;
+    height: 11px ;
+}
+
+.dome-xButton-led-inactive {
+    background: none ;
+}
+
+.dome-xButton-led-active {
+    background: var(--default-led-img);
+}
+
+.dome-xButton-led-positive {
+    background: var(--positive-led-img);
+}
+
+.dome-xButton-led-negative {
+    background: var(--negative-led-img);
+}
+
+.dome-xButton-led-warning {
+    background: var(--warning-led-img);
+}
+
+/* -------------------------------------------------------------------------- */
+/* --- Styling Meters                                                     --- */
+/* -------------------------------------------------------------------------- */
+
+meter::-webkit-meter-bar {
+  height: 14px;
+  width: 70px;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  background: none;
+  box-shadow: 0px 3px 2px -3px var(--text) inset;
+}
+
+meter::-webkit-meter-optimum-value {
+  background: var(--meter-optimum);
+}
+
+meter::-webkit-meter-suboptimum-value {
+  background: var(--meter-subopti);
+}
+
+meter::-webkit-meter-even-less-good-value  {
+  background: var(--meter-evenless);
+}
+
+/* -------------------------------------------------------------------------- */
+/* --- Styling IconButton                                                 --- */
+/* -------------------------------------------------------------------------- */
+
+
+.dome-xIconButton:not(:disabled):hover .dome-xIcon{
+    fill: var(--text-discrete) ;
+}
+
+.dome-xButton-selected.dome-xIconButton svg{
+    filter: drop-shadow(0 0 6px var(--color-border));
+}
+
+/* -------------------------------------------------------------------------- */
+/* --- Styling Select                                                     --- */
+/* -------------------------------------------------------------------------- */
+
+.dome-xSelect {
+    width: max-content ;
+}
+
+/* -------------------------------------------------------------------------- */
+/* --- Styling Spinner                                                    --- */
+/* -------------------------------------------------------------------------- */
+
+.dome-xSpinner {
+    text-align: right ;
+    padding-left:  12px ;
+    width: 80px ;
+}
+
+/* -------------------------------------------------------------------------- */
+/* --- Styling Field                                                     --- */
+/* -------------------------------------------------------------------------- */
+
+.dome-xField {
+    font-size: 10pt ;
+    width: 120px ;
+    padding-top:    1px ;
+    padding-bottom: 1px ;
+    padding-right: 4px ;
+    padding-left:  4px ;
+}
+
+/* -------------------------------------------------------------------------- */
+/* --- Blinker
+/* -------------------------------------------------------------------------- */
+
+.dome-xButton-blink {
+    animation: dome-xButton-blinker 1s linear infinite;
+}
+
+@keyframes dome-xButton-blinker {
+  50% {
+    background: none;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* --- No background                                                        --- */
+/* -------------------------------------------------------------------------- */
+
+.dome-xButton.dome-xButton-no-background,
+.dome-xButton.dome-xButton-no-background > div {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.dome-xButton.dome-xButton-no-background.dome-xButton-selected > div {
+    font-weight: bold ;
+}
+
+/* -------------------------------------------------------------------------- */
+/* --- Base Styling                                                       --- */
+/* -------------------------------------------------------------------------- */
+
+.dome-control-disabled,
+.dome-control-disabled > div {
+    color: var(--disabled-text-control) ;
+    fill: var(--disabled-text-control) ;
+    font-weight: lighter ;
+    border-color: var(--border-discrete) ;
+    background-color: var(--background-disabled);
+
+    &:hover {
+        background-color: var(--background-disabled-hover);
+    }
+}
+
+.dome-control-selected {
+    color: var(--text-highlighted) ;
+    fill: var(--disabled-text) ;
+    font-weight: lighter ;
+    box-shadow: 0 0 5px var(--text-highlighted);
+    z-index: +1;
+}
+
+.dome-control-hidden {
+    visibility: hidden ;
+}
+
+.dome-control-erased {
+    display: none ;
+}
+
+/* -------------------------------------------------------------------------- */

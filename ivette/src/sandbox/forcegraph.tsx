@@ -11,8 +11,9 @@
 /* -------------------------------------------------------------------------- */
 
 import React from 'react';
-import { Code } from 'dome/controls/labels';
-import { ToolBar, ButtonGroup, Button, Filler } from 'dome/frame/toolbars';
+import { Code } from 'dome/primitive/displays';
+import { ToolBar, Filler } from 'dome/frame/toolbars';
+import { ButtonGroup, Button } from 'dome/primitive/controls';
 import { Graph, Node, Edge, Layout } from 'dome/graph/graph';
 import { registerSandbox } from 'ivette';
 
@@ -63,9 +64,9 @@ function GraphSample(): JSX.Element {
             selected={layout === '3D'}
             onClick={() => setLayout('3D')} />
         </ButtonGroup>
-        <Code>Selected: {selected ?? '-'}</Code>
+        <Code label={`Selected: ${selected ?? '-'}`}/>
         <Filler/>
-        <Code>Nodes: {nodes.length} Edges: {edges.length}</Code>
+        <Code label={`Nodes: ${nodes.length} Edges: ${edges.length}`}/>
         <Button
           icon='CIRC.PLUS'
           label='Node'

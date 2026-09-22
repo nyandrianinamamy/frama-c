@@ -89,7 +89,7 @@
     }
 
     &.node-selected {
-      border: solid var(--activated-button-color) 2px;
+      border: solid var(--activated-color) 2px;
     }
   }
 

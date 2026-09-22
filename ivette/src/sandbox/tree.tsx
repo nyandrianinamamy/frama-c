@@ -16,10 +16,10 @@ import { registerSandbox } from 'ivette';
 
 import { Tree, Node, FoldIconPosition } from 'dome/frame/tree';
 import { Panel } from 'dome/frame/panel';
-import { IconButton } from 'dome/controls/buttons';
+import { IconButton } from 'dome/primitive/controls';
 
 import './style.css';
-import { Label } from 'dome/controls/labels';
+import { Label } from 'dome/primitive/displays';
 
 interface SboxNode {
   id: string;

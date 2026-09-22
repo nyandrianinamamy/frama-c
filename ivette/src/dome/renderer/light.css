@@ -3,7 +3,7 @@
     --text: #333333;
     --text-discrete: #606060;
     --disabled-text: #b0b0b0;
-    --disabled-text-sidebar: #a0a0a0;
+    --disabled-text-control: #a0a0a0;
     --info-text: #777;
     --info-text-discrete: #888;
     --text-highlighted: blue;
@@ -28,59 +28,65 @@
     --background-disabled-hover: #a6a6a6;
     --background-intense: #dcdcdc;
     --background-softer: #f0f0f0;
-    --background-sidebar: #e3e8ec;
+    --background-sidebar: #d5d5d5;
     --background-button-hover: #c0c0c0;
     --background-alterning-odd: #fdfdfd;
     --background-alterning-even: #efefef;
     --background-interaction: white;
     --background-report: white;
-    --background-block-form: #dadada;
+    --background-block-form: #cacaca;
     --background-popup: #eaeaea;
 
     --selected-element: #8ce0fb;
     --checked-element: #54abef;
 
-    --lcd-button-color: #61611a;
-    --lcd-button-background: #b2b798;
-
-    --default-button-color: #e8e8e8;
+    /* LED */
     --default-led-img: radial-gradient(circle at center, #9fd2f9, #81c9ff);
-    --default-button-img: linear-gradient(to bottom, #e8e8e8 0%, #f1f1f1 100%);
-    --default-button-hover: #ffffff;
-    --default-button-active: #f9f9f9;
-
-    --primary-button-color: #449bef;
-    --primary-button-img: linear-gradient(to bottom, #449bef 0%, #4990e2 100%);
-    --primary-button-hover: #00b6ff;
-    --primary-button-active: #ddd;
-
-    --positive-button-color: #31873e;
     --positive-led-img: radial-gradient(circle at center, #50c140, #279c16);
-    --positive-button-img: linear-gradient(to bottom, #34ff52 0%, #48fd64 100%);
-    --positive-button-hover: #ffffff;
-    --positive-button-active: #ffffff;
-
-    --negative-button-color: #ec453e;
     --negative-led-img: radial-gradient(circle at center, #ff5b56, #f75a55c7);
-    --negative-button-img: linear-gradient(to bottom, #ec453e 0%, #ff4c47 100%);
-    --negative-button-hover: red;
-    --negative-button-active: #ffffff;
-
-    --warning-button-color: #fece72;
     --warning-led-img: radial-gradient(circle at center, #ffc749, #ecd44f);
-    --warning-button-img: linear-gradient(to bottom, #ffb000 0%, #ffb449 100%);
-    --warning-button-hover: orange;
-    --warning-button-active: #ffffff;
 
-    --cancel-button-img: #c0c0c0;
-    --cancel-button-hover: #c4c4c4;
-    --cancel-button-active: #bcbcbc;
+    /** Color kind */
+    --default-color: #c8c8c8;
+    --primary-color: #78b8f5;
+    --positive-color: #72ad7b;
+    --negative-color: #f27a73;
+    --warning-color: #e5ad62;
 
-    --selected-button-img: #afafaf;
-    --selected-button-hover: #a9a9a9;
+    /** Color kind hover */
+    --default-color-hover: #d2d2d2;
+    --primary-color-hover: #8ac3f7;
+    --positive-color-hover: #82ba8a;
+    --negative-color-hover: #f58b85;
+    --warning-color-hover: #edba75;
 
-    --activated-button-color: #449bef;
-    --activated-button-hover: #c54dae;
+    /** Color kind selected */
+    --default-color-selected: #bcbcbc;
+    --primary-color-selected: #68acf1;
+    --positive-color-selected: #68a572;
+    --negative-color-selected: #ed6c65;
+    --warning-color-selected: #dda255;
+
+    /** Color kind active */
+    --default-color-active: #c2c2c2;
+    --primary-color-active: #70b1f3;
+    --positive-color-active: #6daa77;
+    --negative-color-active: #ef716a;
+    --warning-color-active: #e2a85c;
+
+    /** Color kind disabled */
+    --default-color-disabled: #d0d0d0;
+    --primary-color-disabled: #a9cbed;
+    --positive-color-disabled: #a8c9ad;
+    --negative-color-disabled: #edaaa7;
+    --warning-color-disabled: #e8d6a8;
+
+    /** Color kind border */
+    --default-border-color: #666666;
+    --primary-border-color: #2475b8;
+    --negative-border-color: #a52a25;
+    --positive-border-color: #23612d;
+    --warning-border-color: #946200;
 
     --grid-layout-holder: lightblue;
     --grid-layout-target: #64b4f0;

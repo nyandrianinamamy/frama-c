@@ -11,8 +11,8 @@ import React from 'react';
 import * as Dome from 'dome';
 
 import { State } from 'dome/data/states';
-import { Spinner } from 'dome/controls/buttons';
-import { ToolBar, ButtonGroup, Button, Filler } from 'dome/frame/toolbars';
+import { ToolBar, Filler } from 'dome/frame/toolbars';
+import { ButtonGroup, Button, Spinner } from 'dome/primitive/controls';
 
 import {
   ModeDisplay, SelectedNodes, SetSelectedNodes

@@ -10,14 +10,12 @@ import React from 'react';
 import * as Ivette from 'ivette';
 
 import { useFlipSettings, useStringSettings } from 'dome';
-import { Button, ButtonGroup, ToolBar } from 'dome/frame/toolbars';
+import { ToolBar } from 'dome/frame/toolbars';
 import { useModel } from 'dome/table/models';
-import { Label } from 'dome/controls/labels';
-import { Icon } from 'dome/controls/icons';
-import { IconButton } from 'dome/controls/buttons';
+import { Label, LED, LEDstatus, Icon } from 'dome/primitive/displays';
+import { Button, ButtonGroup, IconButton } from 'dome/primitive/controls';
 import { State } from 'dome/data/states';
 import * as Forms from 'dome/layout/forms';
-import { LED, LEDstatus } from 'dome/controls/displays';
 import { useColorTheme, useStyle } from 'dome/themes';
 import { HelpButton } from 'dome/help';
 
@@ -148,7 +146,7 @@ function Element(props: ElementProps): React.JSX.Element {
   const content = <>
     { title &&
         typeof(title) === "string" ?
-          <Label title={title}>{title}</Label>
+          <Label label={title} title={title}/>
           : <div className='mthread-element-title'>{ title }</div>
     }
     { hasChildren && <div className={classesContent}>{ children }</div> }
@@ -639,7 +637,7 @@ function Variable(props: VariableProps): React.ReactNode {
 
   function getPinButton(base: string): React.JSX.Element {
     return <IconButton icon='TABLE' title={`Filter on base ${base}`}
-        kind={varPin === base ? 'selected' : 'default'}
+        kind={varPin === base ? 'primary' : 'default'}
         onClick={() => setvarPin(varPin === base ? undefined : base)
       }
     />;
@@ -652,7 +650,7 @@ function Variable(props: VariableProps): React.ReactNode {
     const label = isArray ? `${base}[ ]` : base;
     const title = <>
       <LED status={varStatus} />
-      <Label title={label}>{label}</Label>
+      <Label label={label} title={label}/>
       <div className='action'>
         { getSelectionButton(base, data) }
         { isArray && getPinButton(base) }

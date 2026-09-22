@@ -17,7 +17,7 @@ import * as Dome from 'dome';
 import {
   Graph, IGraphOptions3D, ILinksOptions,
 } from 'dome/graph/graph';
-import { Icon } from 'dome/controls/icons';
+import { Icon } from 'dome/primitive/displays';
 import * as Themes from 'dome/themes';
 import * as Server from 'frama-c/server';
 import { useFunctionFilter } from 'frama-c/kernel/Globals';

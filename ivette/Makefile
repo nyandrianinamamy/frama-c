@@ -133,7 +133,7 @@ VERSION=$(shell echo "console.log(require('./package.json').version)" | node -)
 DOC_ICONS_CSS= src/dome/doc/gallery.css
 DOC_ICONS_MAKE= src/dome/doc/iconsmd.js
 DOC_ICONS_GALLERY= src/dome/doc/guides/icons.md
-DOC_ICONS_DATA= src/dome/renderer/controls/gallery.json
+DOC_ICONS_DATA= src/dome/renderer/primitive/gallery.json
 DOC_GUIDES= src/dome/doc/guides
 
 NODEBIN= ./node_modules/.bin

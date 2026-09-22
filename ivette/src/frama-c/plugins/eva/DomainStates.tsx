@@ -15,8 +15,8 @@ import * as Eva from 'frama-c/plugins/eva/api/analysis';
 import * as Boxes from 'dome/layout/boxes';
 import { HSplit } from 'dome/layout/splitters';
 import { Text } from 'frama-c/richtext';
-import { Checkbox, SelectMenu } from 'dome/controls/buttons';
-import { Label } from 'dome/controls/labels';
+import { Checkbox, Select } from 'dome/primitive/controls';
+import { Label } from 'dome/primitive/displays';
 import { EvaStatus } from './components/AnalysisStatus';
 
 const globalSelectedDomain = new GlobalState("");
@@ -59,14 +59,14 @@ export function EvaStates(): JSX.Element {
   return (
     <>
       <Boxes.Hbox className="domain-state-box">
-        <Label>Domain: </Label>
-        <SelectMenu
+        <Label label='Domain:'/>
+        <Select
           title="Select the analysis domain to be shown"
           value={selected}
           onChange={(domain) => setSelected(domain ?? "")}
         >
           {list}
-        </SelectMenu>
+        </Select>
         <Boxes.Filler/>
         <Checkbox
           label="Filtered state"
@@ -74,8 +74,8 @@ export function EvaStates(): JSX.Element {
         selected marker are shown, for domains supporting this feature.
         For other domains or if disabled, entire domain states are printed.
         Beware that entire domain states can be very large."
-          value={filter}
-          onChange={setFilter}
+          selected={filter}
+          onClick={() => setFilter(!filter)}
         />
       </Boxes.Hbox>
       <Boxes.Scroll>

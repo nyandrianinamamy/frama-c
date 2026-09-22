@@ -12,7 +12,7 @@
 
 import React from 'react';
 import * as Dome from 'dome';
-import { Icon } from 'dome/controls/icons';
+import { Icon } from 'dome/primitive/displays';
 import { SideBar } from 'dome/frame/sidebars';
 import { Catch } from 'dome/errors';
 import { classes } from 'dome/misc/utils';

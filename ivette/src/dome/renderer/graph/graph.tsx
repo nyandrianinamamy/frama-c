@@ -32,7 +32,7 @@ import AutoSizer from 'react-virtualized-auto-sizer';
 
 import * as Dome from 'dome';
 import * as Themes from 'dome/themes';
-import { transformColor } from '../colors';
+import { transformColor } from '../primitive/colors';
 
 /* -------------------------------------------------------------------------- */
 /* --- Graph Specifications                                               --- */

@@ -17,7 +17,7 @@
 
 import React from 'react';
 import { DEVEL } from 'dome';
-import { Label } from 'dome/controls/labels';
+import { Label } from 'dome/primitive/displays';
 import { DefineElement } from 'dome/layout/dispatch';
 import { Inset } from 'dome/frame/toolbars';
 import { ChapterProps, docHistory, HelpButton } from 'dome/help';

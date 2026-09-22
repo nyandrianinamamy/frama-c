@@ -179,7 +179,7 @@
 }
 
 .cm-editor .cm-button {
-  background-image: var(--default-button-img);
+  background-image: var(--default-color);
   border: 1px solid var(--border);
   color: var(--text);
 }

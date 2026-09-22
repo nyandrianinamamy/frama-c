@@ -193,9 +193,12 @@ input[type="text"]::placeholder {
 input[type="text"] {
   vertical-align: middle;
   margin: 2px 4px 2px 0px;
-  background-color: var(--background-interaction);
   border: var(--border);
   border-radius: 2px;
+
+  &:not(:disabled) {
+    background-color: var(--background-interaction);
+  }
 }
 
 input:focus-visible {

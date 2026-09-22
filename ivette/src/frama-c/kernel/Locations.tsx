@@ -16,10 +16,9 @@ import * as States from 'frama-c/states';
 
 import { CompactModel } from 'dome/table/arrays';
 import { Table, Column, Renderer } from 'dome/table/views';
-import { Label, Cell } from 'dome/controls/labels';
-import {
-  IconButton, Multiselect, MultiselectItem
-} from 'dome/controls/buttons';
+import { Label, Cell } from 'dome/primitive/displays';
+import { Button, Checkbox, IconButton
+} from 'dome/primitive/controls';
 import { Inset } from 'dome/frame/toolbars';
 import { Dropdown } from 'dome/dialogs';
 import { TitleBar } from 'ivette';
@@ -27,6 +26,7 @@ import * as Display from 'ivette/display';
 import * as Ast from 'frama-c/kernel/api/ast';
 import * as Server from 'frama-c/server';
 import { current as currentProject } from 'frama-c/kernel/api/project';
+import { Vbox } from 'dome/layout/boxes';
 
 // --------------------------------------------------------------------------
 // --- Global Multi-Selection
@@ -183,7 +183,7 @@ const renderLocation: Renderer<Data> =
   };
 
 const renderAttr: Renderer<Ast.markerAttributesData> =
-  (attr) => <Cell title={attr.descr}>{attr.descr}</Cell>;
+  (attr) => <Cell title={attr.descr} label={attr.descr} />;
 
 export default function LocationsTable(): JSX.Element {
 
@@ -234,30 +234,22 @@ export default function LocationsTable(): JSX.Element {
   }, [model, visibleScopes]);
 
   const itemsComp = scopes && scopes.map((e, i) =>
-    <MultiselectItem key={i} item={{
-       label: getDecl(e)?.name || e,
-       id: e,
-       enabled: true,
-       checked: visibleScopes.has(e),
-       onClick: () => setVisible(e)
-      }}
+    <Checkbox key={i}
+      label={getDecl(e)?.name || e}
+      selected={visibleScopes.has(e)}
+      onClick={() => setVisible(e)}
     />
   );
 
   const allChecked = visibleScopes.size === scopes?.length;
-  const checkAllItem =
-    { label: allChecked ? 'Uncheck all' : 'Check all',
-      enabled: true,
-      checked: false,
-      onClick: () => setVisibleScopes(new Set(allChecked ? [] : scopes)),
-    };
-
   const filter =
-    <Multiselect>
-      <MultiselectItem key={'all'} item={checkAllItem} />
-      <MultiselectItem key={'separator'} item='separator' />
+    <Vbox>
+      <Button key={'all'}
+        label={allChecked ? 'Uncheck all' : 'Check all'}
+        onClick={() => setVisibleScopes(new Set(allChecked ? [] : scopes))} />
+      <div className='dome-xSection-title dome-separator' />
       {itemsComp && itemsComp}
-    </Multiselect>;
+    </Vbox>;
 
   const filterKind =
     visibleScopes.size === scopes?.length ? 'positive' :
@@ -267,7 +259,7 @@ export default function LocationsTable(): JSX.Element {
 
   const filterButton =
     <IconButton
-      icon='FILTER' kind={filterKind} enabled={filterEnabled}
+      icon='FILTER' kind={filterKind} disabled={!filterEnabled}
       title='Filtering options'
     />;
 
@@ -278,13 +270,13 @@ export default function LocationsTable(): JSX.Element {
         <IconButton
           icon='ANGLE.LEFT'
           title='Previous location'
-          enabled={0 < kindex}
+          disabled={0 >= kindex}
           onClick={() => goToPrevVisibleIndex(kindex, model)}
         />
         <IconButton
           icon='ANGLE.RIGHT'
           title='Next location'
-          enabled={(-1) <= kindex && kindex + 1 < size}
+          disabled={(-1) > kindex || kindex + 1 >= size}
           onClick={() => goToNextVisibleIndex(kindex, model)}
         />
         <Inset />

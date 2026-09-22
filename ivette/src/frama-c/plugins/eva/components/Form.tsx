@@ -16,7 +16,6 @@ import { classes } from 'dome/misc/utils';
 import * as States from 'frama-c/states';
 import * as Ast from 'frama-c/kernel/api/ast';
 import * as EvaDef from 'frama-c/plugins/eva/EvaDefinitions';
-import { Icon } from 'dome/controls/icons';
 
 /* -------------------------------------------------------------------------- */
 /* --- Eva form section                                                   --- */
@@ -47,7 +46,7 @@ function OptionsButton(props: EvaDef.OptionsButtonProps): JSX.Element {
 function ButtonFieldList(
   props: EvaDef.ButtonFieldListProps
 ): JSX.Element {
-  const { classeName, state, fieldProps } = props;
+  const { classeName, state, fieldProps, title } = props;
   const { value } = state;
 
   const htmlButtonList = Object.keys(value)
@@ -58,7 +57,7 @@ function ButtonFieldList(
       fieldState={state}
     />);
   return (
-    <Forms.Field  {...fieldProps}>
+    <Forms.Field  {...fieldProps} title={title}>
       <div className={classeName}></div>
       {htmlButtonList}
     </Forms.Field>
@@ -68,7 +67,7 @@ function ButtonFieldList(
 export function RadioFieldList(
   props: EvaDef.RadioFieldListProps
 ): JSX.Element {
-  const { classeName, state, values, fieldProps } = props;
+  const { classeName, state, values, fieldProps, title } = props;
   const htmlRadioList = Object.entries(values)
     .map(([k, v]) => <Forms.RadioField
       key={k}
@@ -77,7 +76,7 @@ export function RadioFieldList(
       state={state}
     />);
   return (
-    <Forms.Field  {...fieldProps}>
+    <Forms.Field  {...fieldProps} title={title}>
       <div className={classeName}></div>
       {htmlRadioList}
     </Forms.Field>
@@ -95,18 +94,11 @@ interface EvaFormOptionsProps {
 
 function getActions<A>(
   state: Forms.FieldState<A>,
-  name: EvaDef.fieldsName,
   equal?: (a: A, b: A) => boolean,
 ): JSX.Element | undefined {
   if(!state) return undefined;
   return (
     <Forms.Actions>
-      <Icon
-        id = "HELP"
-        title = {EvaDef.fieldHelp[name]}
-        size = {12}
-        className = "eva-field-help"
-      />
       <Forms.ResetButton
         state={state}
         title="Reset"
@@ -169,12 +161,13 @@ export function EvaFormOptions(
     return (
     <Forms.SpinnerField
       label={field.label}
+      title={EvaDef.fieldHelp[name]}
       step={field.step}
       min={field.min as number}
       max={field.max as number}
       state={field.state as Forms.FieldState<number | undefined>}
       className={getClasses(state, name)}
-      actions={getActions(state, name)}
+      actions={getActions(state)}
       />
     );
   }
@@ -184,9 +177,10 @@ export function EvaFormOptions(
     const state = field.state;
     return (
       <RadioFieldList
+        title={EvaDef.fieldHelp[name]}
         fieldProps={{
           label: field.label,
-          actions: getActions(state, name)
+          actions: getActions(state)
         }}
         classeName={getClasses(state, name)}
         values={field.optionRadio as EvaDef.RadioList}
@@ -201,7 +195,8 @@ export function EvaFormOptions(
     return (
       <Forms.Field
         label={field.label}
-        actions={getActions(state, name)}
+        title={EvaDef.fieldHelp[name]}
+        actions={getActions(state)}
       >
         <div className={getClasses(state, name)} />
         <Forms.ButtonField
@@ -222,8 +217,9 @@ export function EvaFormOptions(
   const mainField =
     <Forms.SelectField
       label="Main"
+      title={EvaDef.fieldHelp["-main"]}
       state={fields["-main"].state as Forms.FieldState<string | undefined>}
-      actions={getActions(fields["-main"].state, "-main")}
+      actions={getActions(fields["-main"].state)}
     >
       { errorMain &&
         <option
@@ -246,9 +242,9 @@ export function EvaFormOptions(
       label: "Domains",
       actions: getActions(
         fields["-eva-domains"].state,
-        "-eva-domains",
         EvaDef.buttonListEquality)
     }}
+    title={EvaDef.fieldHelp["-eva-domains"]}
     classeName={getClasses(fields["-eva-domains"].state, "-eva-domains")}
     state={fields["-eva-domains"].state}
     />;

@@ -9,8 +9,9 @@
 import React from 'react';
 import * as Ivette from 'ivette';
 
-import { IconButton } from 'dome/controls/buttons';
-import { Button, ButtonGroup, Inset } from 'dome/frame/toolbars';
+import { IconButton } from 'dome/primitive/controls';
+import { Inset } from 'dome/frame/toolbars';
+import { Button, ButtonGroup } from 'dome/primitive/controls';
 import * as Themes from 'dome/themes';
 import { Pattern } from 'dome/text/markdown';
 import { Dropdown } from 'dome/dialogs';

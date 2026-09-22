@@ -13,8 +13,8 @@ import { useSyncState, useSyncValue } from 'frama-c/states';
 import * as EvaParams from 'frama-c/kernel/api/parameters';
 import * as EvaTaint from 'frama-c/plugins/eva/api/taint';
 import * as Toolbars from 'dome/frame/toolbars';
-import { Label } from 'dome/controls/labels';
-import { Checkbox, IconButton } from 'dome/controls/buttons';
+import { Label } from 'dome/primitive/displays';
+import { Button, IconButton, Checkbox } from 'dome/primitive/controls';
 import * as AnalysisStatus from 'frama-c/plugins/eva/components/AnalysisStatus';
 import { domainsToKeyVal } from 'frama-c/plugins/eva/EvaDefinitions';
 
@@ -86,7 +86,7 @@ function Taints({ taintNames }: { taintNames: string[] }): React.JSX.Element {
         className='dome-xTree-actions dome-xSideBarSection-title'
         style={{ justifyContent: "flex-end" }}
       >
-        <Toolbars.Button
+        <Button
           icon='TUNINGS'
           title='Configure selection'
           onClick={() => onContextMenu()}
@@ -99,8 +99,8 @@ function Taints({ taintNames }: { taintNames: string[] }): React.JSX.Element {
             <Checkbox
               label={name}
               title={name}
-              value={selected}
-              onChange={() => onSelection(name)}
+              selected={selected}
+              onClick={() => onSelection(name)}
             />
             <span
               aria-hidden
@@ -131,7 +131,7 @@ function NoTaintsMessage(
       <div className="eva-status-content">
         <div className="eva-status-message">{title}</div>
         <AnalysisStatus.StatusIcon size={50} status={status} />
-        <Label className="eva-status-timer">{message}</Label>
+        <Label label={message} className="eva-status-timer"/>
       </div>
     </div>
   );

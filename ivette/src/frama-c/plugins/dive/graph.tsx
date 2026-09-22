@@ -27,7 +27,7 @@ import 'tippy.js/themes/light-border.css';
 import 'tippy.js/animations/shift-away.css';
 import './tippy.css';
 
-import { IconButton } from 'dome/controls/buttons';
+import { IconButton } from 'dome/primitive/controls';
 import { Inset } from 'dome/frame/toolbars';
 
 import { EvaReady, EvaStatus }
@@ -35,9 +35,8 @@ import { EvaReady, EvaStatus }
 import style from './style.json';
 import layouts from './layouts.json';
 import './dive.css';
-import { Label } from 'dome/controls/labels';
+import { Label, SVG } from 'dome/primitive/displays';
 import { Vbox } from 'dome/layout/boxes';
-import { SVG } from 'dome/controls/icons';
 
 const Debug = new Dome.Debug('dive');
 

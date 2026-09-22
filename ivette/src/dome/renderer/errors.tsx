@@ -17,8 +17,8 @@
 
 import React, { ReactNode } from 'react';
 import { DEVEL, Debug } from 'dome';
-import { Label } from 'dome/controls/labels';
-import { Button } from 'dome/controls/buttons';
+import { Label } from 'dome/primitive/displays';
+import { Button } from 'dome/primitive/controls';
 
 const D = new Debug('Dome');
 
@@ -96,7 +96,7 @@ export class Catch extends React.Component<CatchProps, CatchState, unknown> {
             onClick={this.logerr}
           />
           <Button icon="RELOAD" onClick={this.reload} />
-          <Label>{label}</Label>
+          <Label label={label} />
         </div>
       );
     }

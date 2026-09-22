@@ -8,10 +8,9 @@
 
 import React from 'react';
 
-import { Icon } from 'dome/controls/icons';
-import { Label } from 'dome/controls/labels';
+import { Label, Icon } from 'dome/primitive/displays';
 import { classes } from 'dome/misc/utils';
-import { Button } from 'dome/controls/buttons';
+import { Button } from 'dome/primitive/controls';
 import { closeModal, Modal, showModal } from 'dome/dialogs';
 
 import * as Eva from 'frama-c/plugins/eva/api/analysis';
@@ -98,7 +97,7 @@ function Timer({ start }: {start: number}): React.JSX.Element | null {
     return () => clearInterval(interval);
   }, [start]);
 
-  return <Label className={className}>{timeToString(time)}</Label>;
+  return <Label label={timeToString(time)} className={className}/>;
 }
 
 function EvaStatusPanel(): JSX.Element {

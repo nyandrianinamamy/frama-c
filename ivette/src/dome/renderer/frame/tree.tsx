@@ -15,8 +15,8 @@
 
 import React from 'react';
 import { classes, styles } from 'dome/misc/utils';
-import { Label } from 'dome/controls/labels';
-import { IconButton } from 'dome/controls/buttons';
+import { Label } from 'dome/primitive/displays';
+import { IconButton } from 'dome/primitive/controls';
 import { Actions } from 'dome/layout/forms';
 
 /* --------------------------------------------------------------------------*/

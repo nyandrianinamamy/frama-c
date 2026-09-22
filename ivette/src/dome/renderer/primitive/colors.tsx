@@ -14,6 +14,16 @@
 import React from 'react';
 import { useStyle, useColorTheme } from 'dome/themes';
 
+export const colorKindList = [
+  'primary', 'default', 'positive', 'negative', 'warning'
+] as const;
+
+export type ColorKind = typeof colorKindList[number];
+
+export function jColorKind(js : string) : ColorKind | undefined {
+  return colorKindList.find(elt => elt === js);
+}
+
 export enum EColor {
   DEFAULT = "default",
   WHITE = 'white',

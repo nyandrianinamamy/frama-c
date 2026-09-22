@@ -122,18 +122,8 @@
     display: flex ;
     flex-flow: row nowrap ;
     align-items: center ;
+    justify-content: space-between;
     background: var(--background-sidebar) ;
-}
-
-.dome-xSideBarSection-title > .dome-xLabel {
-    flex: 1 1 ;
-    overflow: hidden ;
-    text-overflow: ellipsis ;
-    font-weight: bold ;
-}
-
-.dome-xSideBarSection-title > .dome-xBadge {
-    flex: 0 0 ;
 }
 
 .dome-xSideBarSection-infos {
@@ -177,6 +167,16 @@
   display: flex;
 }
 
+.dome-xSection-title {
+  padding: 5px 10px;
+  font-size: 1.2em;
+  margin-bottom: 5px;
+}
+
+.dome-separator {
+  border-bottom: solid 1px var(--disabled-text);
+}
+
 /* -------------------------------------------------------------------------- */
 /* --- SideBar Items                                                      --- */
 /* -------------------------------------------------------------------------- */
@@ -198,6 +198,8 @@
 
 .dome-xSideBarItem > .dome-xLabel {
     flex: 1 1 ;
+    display: flex;
+    align-items: center;
     overflow: hidden ;
     text-overflow: ellipsis ;
     padding-left: 12px ;
@@ -303,163 +305,37 @@
 /* -------------------------------------------------------------------------- */
 
 /* Layout */
-
-.dome-xToolBar-control {
-    flex: 0 0 auto ;
-    height: 21px ;
-    margin: 6px 5px 6px 5px ;
-    padding: 2px 5px 2px 5px ;
-    box-shadow: 0 1px 1px rgba(0, 0, 0, .06);
-    border: 1px solid transparent;
+.dome-xToolBar {
+  .dome-xButton {
+    height: 20px;
+    padding: 2px 5px;
     border-radius: 4px;
     outline: none ;
+    line-height: 1;
+
+    svg {
+      height: 10px ;
+      position: relative ;
+    }
+
+    svg + label {
+        margin-left: 4px ;
+    }
+  }
+
+  .dome-xButton-buttongroup {
+    & > .dome-xButton:first-child {
+      border-top-left-radius: 4x;
+      border-bottom-left-radius: 4px;
+    }
+
+    & > .dome-xButton:last-child {
+      border-top-right-radius: 4px;
+      border-bottom-right-radius: 4px;
+    }
+  }
 }
 
-.dome-xToolBar-control svg {
-    height: 10px ;
-    position: relative ;
-}
-
-.dome-xToolBar-control svg + label {
-    margin-left: 4px ;
-}
-
-/* Default button behaviors */
-
-.dome-xToolBar-control {
-    background-image: var(--default-button-img);
-    color: var(--text);
-}
-
-.dome-xToolBar-control:hover:not(:disabled) {
-    background-color: var(--default-button-hover);
-    background-image: none ;
-}
-
-.dome-xToolBar-control:active:not(:disabled) {
-    background-color: var(--default-button-active);
-    background-image: none;
-}
-
-/* Positive button behaviors */
-
-.dome-xToolBar-control.dome-xToolBar-positive:not(:disabled) {
-    background-image: var(--positive-button-img);
-}
-
-.dome-xToolBar-control.dome-xToolBar-positive:hover:not(:disabled) {
-    background-color: var(--positive-button-hover);
-    background-image: none ;
-}
-
-.dome-xToolBar-control.dome-xToolBar-positive:active:not(:disabled) {
-    background-color: var(--positive-button-active);
-    background-image: none;
-}
-
-/* Negative button behaviors */
-
-.dome-xToolBar-control.dome-xToolBar-negative:not(:disabled) {
-    background-image: var(--negative-button-img);
-}
-
-.dome-xToolBar-control.dome-xToolBar-negative:hover:not(:disabled) {
-    background-color: var(--negative-button-hover);
-    background-image: none ;
-}
-
-.dome-xToolBar-control.dome-xToolBar-negative:active:not(:disabled) {
-    background-color: var(--negative-button-active);
-    background-image: none;
-}
-
-/* Warning button behaviors */
-
-.dome-xToolBar-control.dome-xToolBar-warning:not(:disabled) {
-    background-image: var(--warning-button-img);
-}
-
-.dome-xToolBar-control.dome-xToolBar-warning:hover:not(:disabled) {
-    background-color: var(--warning-button-hover);
-    background-image: none ;
-}
-
-.dome-xToolBar-control.dome-xToolBar-warning:active:not(:disabled) {
-    background-color: var(--warning-button-active);
-    background-image: none;
-}
-
-/* Cancel button behaviors */
-
-.dome-xToolBar-control.dome-xToolBar-cancel:not(:disabled) {
-    background-color: var(--cancel-button-img);
-    background-image: none ;
-}
-
-.dome-xToolBar-control.dome-xToolBar-cancel:hover:not(:disabled) {
-    background-image: var(--cancel-button-hover);
-}
-
-.dome-xToolBar-control.dome-xToolBar-cancel:active:not(:disabled) {
-    background-color: var(--cancel-button-active);
-    background-image: none;
-}
-
-/* Disabled */
-
-.dome-xToolBar-control:disabled {
-    fill: var(--disabled-text) ;
-    color: var(--disabled-text) ;
-}
-
-/* Selected */
-
-.dome-xToolBar-control.dome-selected {
-    fill:  var(--text);
-    color: var(--text);
-    border: 1px solid transparent ;
-    background-color: var(--selected-button-img) ;
-    background-image: none ;
-}
-
-.dome-xToolBar-control.dome-selected:hover {
-    background-color: var(--selected-button-hover) ;
-    background-image: none ;
-}
-
-/* Selected & Disabled */
-
-.dome-xToolBar-control.dome-selected:disabled {
-    fill: var(--info-text) ;
-    color: var(--info-text) ;
-    border: 1px solid var(--border-discrete) ;
-}
-
-/* -------------------------------------------------------------------------- */
-/* --- Styling ToolBar Button Group                                       --- */
-/* -------------------------------------------------------------------------- */
-
-.dome-xToolBar-buttongroup {
-    display: flex ;
-    flex-direction: row ;
-    flex-wrap: nowrap ;
-    margin: 6px 5px 6px 5px ;
-}
-
-.dome-xToolBar-buttongroup .dome-xToolBar-control {
-    margin: 0 ;
-    border-radius: 0;
-}
-
-.dome-xToolBar-buttongroup > .dome-xToolBar-control:first-child {
-  border-top-left-radius: 4px;
-  border-bottom-left-radius: 4px;
-}
-
-.dome-xToolBar-buttongroup > .dome-xToolBar-control:last-child {
-  border-top-right-radius: 4px;
-  border-bottom-right-radius: 4px;
-}
 
 .dome-xToolBar-buttongroup-separation > .dome-xToolBar-control:not(:first-child){
   border-left: solid 1px var(--border-discrete);
@@ -521,7 +397,6 @@
   opacity: 30%;
 }
 
-
 .dome-xToolBar-searchComponent div.dome-xToolBar-suggestions {
   position: absolute;
   overflow-x: hidden;
@@ -530,6 +405,7 @@
   z-index: +10;
   width: 0px;
   background: var(--background-alterning-odd);
+  width: 100% ;
 }
 
 .dome-xToolBar-searchComponent:focus-within div.dome-xToolBar-suggestions {
@@ -538,7 +414,7 @@
 }
 
 .dome-xToolBar-searchItem {
-  display: block ;
+  display: flex ;
   width: 100% ;
   margin-left: 0px ;
   margin-right: 0px ;
@@ -555,59 +431,13 @@
 }
 
 .dome-xToolBar-searchMode {
-  background: var(--primary-button-color);
+  background: var(--primary-color);
   fill: var(--text-discrete);
 }
 
 .dome-xToolBar-disabledMode {
   background: var(--background-profound);
   fill: var(--disabled-text);
-}
-
-/* -------------------------------------------------------------------------- */
-
-.dome-xSwitch {
-  position: relative;
-  display: inline-block;
-  width: 34px;
-  height: 21px;
-}
-
-.dome-xSwitch input {
-  visibility: hidden;
-}
-
-.dome-xSwitch-slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: var(--background-softer);
-  box-shadow: 0 0 1px var(--border);
-  -webkit-transition: .4s;
-  transition: .4s;
-  border-radius: 21px;
-}
-
-.dome-xSwitch-slider:before {
-  position: absolute;
-  content: "";
-  height: 15px;
-  width: 15px;
-  left: 3px;
-  bottom: 3px;
-  background-color: var(--text-discrete);
-  -webkit-transition: .4s;
-  transition: .4s;
-  border-radius: 50%;
-}
-
-.dome-xSwitch input:checked + .dome-xSwitch-slider:before {
-  -webkit-transform: translateX(13px);
-  -ms-transform: translateX(13px);
-  transform: translateX(13px);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -764,6 +594,7 @@
 
   .dome-xTree-node {
     display: flex;
+    align-items: center;
     flex-direction: row;
     background-color: inherit;
     justify-content: space-between;
@@ -810,16 +641,6 @@
 /* -------------------------------------------------------------------------- */
 /* --- Pinned  icon                                                       --- */
 /* -------------------------------------------------------------------------- */
-
-.dome-xToolBar-control.dome-xIcon-pinned-messages {
-  background-color: var(--selected-button-img);
-  background-image: none;
-}
-
-.dome-xToolBar-control.dome-xIcon-pinned-messages:hover:not(:disabled) {
-  background-color: var(--selected-button-hover);
-  background-image: none;
-}
 
 .dome-xIcon-pinned-content {
   padding: 5px 10px;

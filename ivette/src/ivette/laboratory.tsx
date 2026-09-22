@@ -13,11 +13,9 @@ import * as Json from 'dome/data/json';
 import * as States from 'dome/data/states';
 import * as Settings from 'dome/data/settings';
 import * as Sidebars from 'dome/frame/sidebars';
-import * as Toolbar from 'dome/frame/toolbars';
 import * as DnD from 'dome/dnd';
-import { Icon } from 'dome/controls/icons';
-import { IconButton } from 'dome/controls/buttons';
-import { Label } from 'dome/controls/labels';
+import { Button, IconButton, TextButton } from 'dome/primitive/controls';
+import { Label } from 'dome/primitive/displays';
 import { Hbox, Hfill, Vfill, Grid } from 'dome/layout/boxes';
 import { QPane, QSplit } from 'dome/layout/qsplit';
 import { RenderElement } from 'dome/layout/dispatch';
@@ -28,6 +26,7 @@ import * as Ivette from 'ivette';
 import { compId, LayoutPosition, VIEW, COMPONENT, GROUP } from 'ivette';
 import { NotificationTimer } from 'ivette/prefs';
 import * as State from 'ivette/state';
+import { ColorKind } from 'dome/primitive/colors';
 
 /* -------------------------------------------------------------------------- */
 /* --- LabView State                                                      --- */
@@ -846,14 +845,13 @@ interface ActionProps {
 function Action(props: ActionProps): JSX.Element {
   const { icon, label, display, onClick } = props;
   return (
-    <Label
+    <TextButton
       className='labview-layout-action'
+      icon={icon}
       display={display}
       label={label}
       onClick={onClick}
-    >
-      <Icon className='labview-layout-action-icon' id={icon} />
-    </Label>
+    />
   );
 }
 
@@ -941,10 +939,8 @@ function LayoutMenu(): JSX.Element | null {
 /* --- Notification Stack                                                 --- */
 /* -------------------------------------------------------------------------- */
 
-export type NotificationKind = 'message' | 'warning' | 'error';
-
 export interface Notification {
-  kind: NotificationKind;
+  kind: ColorKind;
   label: string;
   title?: string;
 }
@@ -969,18 +965,11 @@ function clearMessage(id: string): void {
 }
 
 function NotificationItem(props: NotificationItemProps): JSX.Element {
-  const { id, kind = 'message', label, title } = props;
-  const className = classes(
-    'labview-notification-item',
-    'labview-notification-' + kind,
-  );
-  const icon = props.kind === 'message' ? 'CIRC.INFO' : 'WARNING';
+  const { id, kind = 'primary' } = props;
+  const icon = props.kind === 'primary' ? 'CIRC.INFO' : 'WARNING';
   const onClick = (): void => clearMessage(id);
   return (
-    <Label
-      className={className}
-      icon={icon} title={title} label={label}
-      onClick={onClick} />
+    <Button {...props} icon={icon} kind={kind} onClick={onClick} />
   );
 }
 
@@ -1347,7 +1336,7 @@ function DockItem(props: DockItemProps): JSX.Element | null {
   };
 
   return (
-    <Label
+    <Button
       className={className}
       icon={icon}
       label={label}
@@ -1413,29 +1402,37 @@ function TabView(props: TabViewProps): JSX.Element | null {
       { label: 'Close Tab', display: custom <= 0, onClick: onClose },
     ]);
   };
-  const onAuxClick = (_value: undefined, event: React.MouseEvent): void => {
+  const onAuxClick = (event: React.MouseEvent): void => {
     if (event.button === 1) onClose();
   };
 
   const icon = 'DISPLAY';
 
+  const theClass = classes(
+    'labview-tab',
+    selected && 'dome-selected'
+  );
+
   return (
-    <Toolbar.Button
-      className='labview-tab'
-      icon={icon}
-      label={label}
-      title={title}
-      selected={selected}
-      onClick={onClick}
-      onContextMenu={onContextMenu}
-      onAuxClick={onAuxClick}
-    >
+    <Hbox className={theClass}>
+      <TextButton
+        icon={icon}
+        label={label}
+        title={title}
+        style={{ padding: '0', margin: '0' }}
+        noBackground={true}
+        onClick={onClick}
+        onContextMenu={onContextMenu}
+        onAuxClick={onAuxClick}
+        />
       <IconButton
+        noBackground={true}
         className='labview-tab-closing'
+        style={{ padding: '0', margin: '0' }}
         icon='CIRC.CLOSE'
         onClick={onClose}
-      />
-    </Toolbar.Button>
+        />
+    </Hbox>
   );
 }
 

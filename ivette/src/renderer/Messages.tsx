@@ -8,10 +8,9 @@
 
 import * as React from 'react';
 import * as Dome from 'dome';
-import { IconButton } from 'dome/controls/buttons';
-import { Label, Cell } from 'dome/controls/labels';
+import { IconButton } from 'dome/primitive/controls';
+import { Label, Cell, Icon } from 'dome/primitive/displays';
 import { Page } from 'dome/text/pages';
-import { Icon } from 'dome/controls/icons';
 import { Scroll, Vbox } from 'dome/layout/boxes';
 import { RSplit, BSplit } from 'dome/layout/splitters';
 import * as Forms from 'dome/layout/forms';
@@ -300,11 +299,10 @@ function FilterRatio<K, R>(
   { model }: { model: Arrays.ArrayModel<K, R> }
 ): JSX.Element {
   const [filtered, total] = [model.getRowCount(), model.getTotalRowCount()];
+  const label = `${filtered} / ${total}`;
   const title = `${filtered} displayed messages / ${total} total messages`;
   return (
-    <Label className="component-info" title={title}>
-      {filtered} / {total}
-    </Label>
+    <Label label={label} title={title} className="component-info" />
   );
 }
 
@@ -328,7 +326,7 @@ const renderKind: Renderer<logkind> =
   };
 
 const renderCell: Renderer<string> =
-  (text: string): JSX.Element => (<Cell title={text}>{text}</Cell>);
+  (text: string): JSX.Element => (<Cell label={text} title={text}/>);
 
 const renderMessage: Renderer<string> =
   (text: string): JSX.Element =>

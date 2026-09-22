@@ -12,12 +12,10 @@ import * as Dome from 'dome';
 import * as Display from 'ivette/display';
 import { showHelp } from 'dome/help';
 import { FieldState, TextField, useState } from 'dome/layout/forms';
-import { Label } from 'dome/controls/labels';
+import { Label, Icon } from 'dome/primitive/displays';
 import { closeModal, Modal, showModal } from 'dome/dialogs';
-import { IconButton } from 'dome/controls/buttons';
-import { Button, ButtonGroup } from 'dome/frame/toolbars';
+import { Button, ButtonGroup, IconButton } from 'dome/primitive/controls';
 import { Hbox } from 'dome/layout/boxes';
-import { Icon } from 'dome/controls/icons';
 
 import * as Server from 'frama-c/server';
 import * as Ast from 'frama-c/kernel/api/ast';
@@ -140,9 +138,8 @@ function ModalStudiaSearch(props: ModalTextFieldProps) : React.JSX.Element {
   >
     <EvaReady>
       <div>
-        <Label>
-          Find all statements that may {readOrWrite} the given lvalue:
-        </Label>
+        <Label label=
+          {`Find all statements that may ${readOrWrite} the given lvalue:`}/>
         <Hbox>
           <ButtonGroup>
             <Button

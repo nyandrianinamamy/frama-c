@@ -17,13 +17,12 @@
 
 import React from 'react';
 import * as Dome from 'dome';
-import { SVG } from 'dome/controls/icons';
-import { Label } from 'dome/controls/labels';
 import { classes } from 'dome/misc/utils';
-import './style.css';
 import { GlobalState, useGlobalState } from 'dome/data/states';
+import { Label, LED, LEDstatus, SVG } from 'dome/primitive/displays';
+import { Button, TextButton } from 'dome/primitive/controls';
 import { Dropdown } from 'dome/dialogs';
-import { LED, LEDstatus } from 'dome/controls/displays';
+import './style.css';
 
 // --------------------------------------------------------------------------
 // --- ToolBar Container
@@ -148,18 +147,13 @@ export function PinnedMessages(): React.ReactNode {
   );
   const button = (
     <Button
-      enabled={hasMessages}
+      disabled={!hasMessages}
+      icon='PIN'
       className={className}
       title={
         hasMessages ? "Selection of Eva results" : "No selection of Eva results"
       }
-    >
-      <SVG
-        id='PIN'
-        offset={-1}
-        className='dome-xIcon-pinned-icon'
-      />
-    </Button>
+    />
   );
 
   if (!hasMessages) return button;
@@ -180,220 +174,6 @@ export function PinnedMessages(): React.ReactNode {
         }
       </div>
     </Dropdown>
-  );
-}
-
-// --------------------------------------------------------------------------
-// --- ToolBar Controls
-// --------------------------------------------------------------------------
-
-const SELECT = 'dome-xToolBar-control dome-selected';
-const BUTTON = 'dome-xToolBar-control dome-color-frame';
-const KIND = (kind: undefined | string): string => (
-  kind ? ` dome-xToolBar-${kind}` : ''
-);
-
-export type ButtonKind =
-  | 'default' | 'cancel' | 'warning' | 'positive' | 'negative';
-
-export interface ButtonProps<A> {
-  /** Button icon, Cf. [gallery](../../doc/guides/icons.md). */
-  icon?: string;
-  /** Button label. */
-  label?: string;
-  /** Button tooltip text. */
-  title?: string;
-  /** Button kind. */
-  kind?: ButtonKind;
-  /** Button is displayed (default `true`). */
-  visible?: boolean;
-  /** Button is hidden (default `false`). */
-  hidden?: boolean;
-  /** Enabled State (default `true`). */
-  enabled?: boolean;
-  /** Disabled State (default `false`). */
-  disabled?: boolean;
-  /** Selection State (defaults to `false` or `selection` equal to `value`). */
-  selected?: boolean;
-  /** Button's value. */
-  value?: A;
-  /** Currently selected value. */
-  selection?: A;
-  /** Selection callback. Receives the button's value. */
-  onClick?: (value: A | undefined, evt:React.MouseEvent) => void;
-  /** Right-Click callback. Receives the button's value. */
-  onContextMenu?: (value: A | undefined, evt:React.MouseEvent) => void;
-  /** Callback for other mouse button click. Receives the button's value. */
-  onAuxClick?: (value: A | undefined, evt:React.MouseEvent) => void;
-  /** Further Styling */
-  className?: string;
-  /** Button contents */
-  children?: React.ReactNode;
-}
-
-/** Toolbar Button. */
-export function Button<A = undefined>(
-  props: ButtonProps<A>
-): JSX.Element | null {
-  const { visible = true, hidden = false } = props;
-  if (!visible || hidden) return null;
-  const { enabled = true, disabled = false } = props;
-  const { selected, value, selection } = props;
-  const { onClick, onContextMenu, onAuxClick } = props;
-  const isSelected = selected !== undefined
-    ? selected : (value !== undefined && value === selection);
-  const className = classes(
-    isSelected ? SELECT : (BUTTON + KIND(props.kind)),
-    props.className,
-  );
-  return (
-    <button
-      type="button"
-      disabled={disabled || !enabled}
-      className={className}
-      onClick={onClick && ((evt) => onClick(value, evt))}
-      onContextMenu={onContextMenu && ((evt) => onContextMenu(value, evt))}
-      onAuxClick={onAuxClick && ((evt) => onAuxClick(value, evt))}
-      title={props.title}
-    >
-      {props.icon && <SVG offset={-1} id={props.icon} />}
-      {props.label && <label>{props.label}</label>}
-      {props.children}
-    </button>
-  );
-}
-
-export interface SwitchProps {
-  /** Switch tooltip. */
-  title?: string;
-  /** Additional class. */
-  className?: string;
-  /** Additional style. */
-  style?: React.CSSProperties;
-  /** Defaults to `true`. */
-  enabled?: boolean;
-  /** Defaults to `false`. */
-  disabled?: boolean;
-  /** Switch position. Defaults to 'left'. */
-  position?: 'left' | 'right';
-  /** Click callback. */
-  onChange?: (newPosition: 'left' | 'right') => void;
-}
-
-/** Toolbar Left/Right Switch. */
-export function Switch(props: SwitchProps): JSX.Element | null {
-  const { position, onChange } = props;
-  const checked = position === 'right';
-  const { title, className, style } = props;
-  const { enabled = true, disabled = false } = props;
-  const callback = onChange && (() => onChange(checked ? 'left' : 'right'));
-  if (disabled || !enabled) return null;
-  return (
-    <label className={classes('dome-xSwitch', className)} style={style}>
-      <input type={'checkbox'} checked={checked} onChange={callback} />
-      <span className={'dome-xSwitch-slider'} title={title} />
-    </label >
-  );
-}
-
-// --------------------------------------------------------------------------
-// --- Selection Props
-// --------------------------------------------------------------------------
-
-export interface SelectionProps<A> {
-  title?: string;
-  /** Enabled Group (default `true`). */
-  enabled?: boolean;
-  /** Disabled Group (default `false`). */
-  disabled?: boolean;
-  /** Currently selected button. */
-  value?: A;
-  /** Callback on clicked buttons. */
-  onChange?: (value: undefined | A) => void;
-  /** Buttons array. */
-  children: React.ReactElement[];
-}
-
-// --------------------------------------------------------------------------
-// --- ToolBar Button Group
-// --------------------------------------------------------------------------
-
-export interface ButtonGroupProps<A> extends SelectionProps<A> {
-  /** add vertical separation between button */
-  verticalSep?: boolean;
-  /** Additional class. */
-  className?: string;
-  /** Additional style. */
-  style?: React.CSSProperties;
-}
-
-/**
-   Toolbar Button Group.
-
-   Properties of the button group are passed down the buttons of the group
-   as appropriate defaults.
- */
-export function ButtonGroup<A>(props: ButtonGroupProps<A>): JSX.Element {
-  const { children, value, onChange, enabled, disabled,
-    verticalSep = false } = props;
-  const baseProps: ButtonProps<A> = {
-    enabled,
-    disabled,
-    selection: value,
-    onClick: onChange,
-  };
-  const className = classes(
-    'dome-xToolBar-buttongroup',
-    verticalSep && 'dome-xToolBar-buttongroup-separation',
-    props.className);
-  return (
-    <div className={className} style={props.style}>
-      {React.Children.map(children, (elt) => React.cloneElement(
-        elt,
-        { ...baseProps, ...elt.props },
-      ))}
-    </div>
-  );
-}
-
-// --------------------------------------------------------------------------
-// --- ToolBar Menu
-// --------------------------------------------------------------------------
-
-export interface SelectProps extends SelectionProps<string>
-{
-  className?: string;
-  style?: React.CSSProperties;
-}
-
-/** Toolbar Selector Menu.
-
-   Behaves likes a standard `<select>` element, except that callback directly
-   receives the select value, not the entire event.
-   The list of options shall be given with standard
-   `<option value={...} label={...}>` elements.
- */
-export function Select(props: SelectProps): JSX.Element {
-  const { enabled = true, disabled = false, onChange } = props;
-  const callback =
-    (evt: React.ChangeEvent<HTMLSelectElement>): void => {
-      if (onChange) onChange(evt.target.value);
-    };
-  const className = classes(
-    'dome-xToolBar-control dome-color-frame',
-    props.className
-  );
-  return (
-    <select
-      className={className}
-      style={props.style}
-      title={props.title}
-      value={props.value}
-      disabled={disabled || !enabled}
-      onChange={callback}
-    >
-      {props.children}
-    </select>
   );
 }
 
@@ -432,7 +212,6 @@ function ModeButton(props: ModeButtonComponentProps): JSX.Element {
       <SVG
         className="dome-xToolBar-modeIcon"
         id={icon}
-        offset={-1}
       />
     </div>
   );
@@ -449,7 +228,7 @@ interface SuggestionsProps {
   onHint?: (hint: Hint) => void;
 }
 
-function scrollToRef(r: null | HTMLLabelElement): void {
+function scrollToRef(r: null | HTMLButtonElement): void {
   if (r) r.scrollIntoView({ block: 'nearest' });
 }
 
@@ -465,16 +244,15 @@ function Suggestions(props: SuggestionsProps): JSX.Element {
       if (onHint) onHint(h);
     };
     return (
-      <Label
+      <TextButton
         ref={selected ? scrollToRef : undefined}
         key={h.id}
+        label={h.label}
         icon={h.icon}
         title={h.title}
         className={className}
         onClick={onClick}
-      >
-        {h.label}
-      </Label>
+      />
     );
   });
 
@@ -487,7 +265,7 @@ function Suggestions(props: SuggestionsProps): JSX.Element {
     >
       {suggestions}
       {hints.length > 100 ?
-        <Label>({hints.length - 100} omitted)</Label> :
+        <Label label={`${hints.length - 100} omitted`}/> :
         null}
     </div>
   );

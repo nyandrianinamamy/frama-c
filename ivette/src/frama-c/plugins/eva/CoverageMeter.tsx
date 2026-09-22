@@ -7,7 +7,7 @@
 /* ************************************************************************ */
 
 import React from 'react';
-import { Meter } from 'dome/controls/displays';
+import { Meter } from 'dome/primitive/displays';
 
 export interface Coverage {
   reachable: number;

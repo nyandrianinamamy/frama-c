@@ -54,7 +54,7 @@ export function showMessage(msg: Message): void {
   const short = typeof msg === 'string';
   const label = short ? msg : msg.label;
   const title = short ? msg : msg.title;
-  Laboratory.showMessage({ kind: "message", label, title });
+  Laboratory.showMessage({ kind: "primary", label, title });
 }
 
 /** Warning notification. */
@@ -72,7 +72,7 @@ export function showError(msg: Message): void {
   const short = typeof msg === 'string';
   const label = short ? msg : msg.label;
   const title = short ? msg : msg.title;
-  Laboratory.showMessage({ kind: 'error', label, title });
+  Laboratory.showMessage({ kind: 'negative', label, title });
 }
 
 export function clearMessages(): void {

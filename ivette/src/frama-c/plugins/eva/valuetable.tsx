@@ -15,10 +15,9 @@ import * as Display from 'ivette/display';
 import * as Dome from 'dome';
 import { GlobalState, useGlobalState } from 'dome/data/states';
 import { classes } from 'dome/misc/utils';
-import { Icon } from 'dome/controls/icons';
-import { Button, Inset } from 'dome/frame/toolbars';
-import { Cell, Code, Label } from 'dome/controls/labels';
-import { IconButton } from 'dome/controls/buttons';
+import { Inset } from 'dome/frame/toolbars';
+import { Cell, Code, Label, Icon } from 'dome/primitive/displays';
+import { Button, IconButton } from 'dome/primitive/controls';
 import { Filler, Hpack, Hfill, Vpack, Vfill, Hbox } from 'dome/layout/boxes';
 import { Modal, showModal, closeModal } from 'dome/dialogs';
 import { FieldState, TextField, useState } from 'dome/layout/forms';
@@ -187,15 +186,23 @@ interface StmtProps {
   short?: boolean;
 }
 
-function Stmt(props: StmtProps): JSX.Element | null {
+function getStmtLocAsStr(props: StmtProps): [string, string] | null {
   const { stmt, marker, short } = props;
-  const { descr, scope } = States.useMarker(stmt);
-  const { sloc } = States.useMarker(marker);
-  const { name: fct } = States.useDeclaration(scope);
+  const { descr, scope } = States.getMarker(stmt);
+  const { sloc } = States.getMarker(marker);
+  const { name: fct } = States.getDeclaration(scope);
   if (!marker || !fct) return null;
   // Location sloc should always be defined for statements.
-  const label = short ? `@L${sloc?.line}` : `@${sloc?.base}:${sloc?.line}`;
+  const label = short ? `L${sloc?.line}` : `${sloc?.base}:${sloc?.line}`;
   const title = stmt ? descr : "Start of function " + fct;
+  return [label, title];
+}
+
+function Stmt(props: StmtProps): JSX.Element | null {
+  const stmtLocAsStr = getStmtLocAsStr(props);
+  if(!stmtLocAsStr) return null;
+  const [title, loc] = stmtLocAsStr;
+  const label = "@" + loc;
   const className = 'dome-text-cell eva-stmt';
   return <span className={className} title={title}>{label}</span>;
 }
@@ -215,7 +222,7 @@ function AlarmsInfos(probe?: Probe): Request<callstack, JSX.Element> {
     if (alarms.length <= 0) return <></>;
     const renderAlarm = ([status, alarm]: Alarm): JSX.Element => {
       const className = classes('eva-alarm-info', `eva-alarm-${status}`);
-      return <Code className={className} icon="WARNING">{alarm}</Code>;
+      return <Code label={alarm} className={className} icon="WARNING"/>;
     };
     const children = React.Children.toArray(alarms.map(renderAlarm));
     return <Vpack className="eva-info">{children}</Vpack>;
@@ -253,17 +260,20 @@ async function StackInfos(props: StackInfosProps): Promise<JSX.Element> {
       evt.preventDefault();
       select(true);
     };
+    const params = { stmt: stmt, marker: stmt };
+    const [scope, loc] = getStmtLocAsStr(params) ?? ['', ''];
+    const title = scope && loc ? `${scope}: ${loc}` : '';
+
     return (
-      <Cell
+      <Button
         key={key}
+        label={name}
+        title={title}
         icon='TRIANGLE.LEFT'
         className={className}
         onClick={onClick}
         onDoubleClick={onDoubleClick}
-      >
-        {name}
-        <Stmt stmt={stmt} marker={stmt} />
-      </Cell>
+      />
     );
   };
   const children = React.Children.toArray(callsites.map(makeCallsite));
@@ -330,7 +340,7 @@ function ProbeHeader(props: ProbeHeaderProps): JSX.Element {
   };
 
   const buttons =
-    <div>
+    <Hbox>
       <IconButton
         icon='PIN'
         className={buttonClass}
@@ -344,7 +354,7 @@ function ProbeHeader(props: ProbeHeaderProps): JSX.Element {
         title="Remove the column"
         onClick={() => removeProbe()}
       />
-    </div>;
+    </Hbox>;
 
   return (
     <th
@@ -710,7 +720,7 @@ async function ScopeSection(props: ScopeProps): Promise<JSX.Element> {
           icon={folded ? 'ANGLE.RIGHT' : 'ANGLE.DOWN'}
           onClick={() => setFolded(!folded)}
         />
-        <Cell className="eva-fct-name">{name}</Cell>
+        <Cell label={name} className="eva-fct-name"/>
         <Filler />
         <div className='eva-nb-callstacks'>
           {`${allCallstacks.length} callstack${onlyOneCallstack ? '' : 's'}`}
@@ -719,7 +729,7 @@ async function ScopeSection(props: ScopeProps): Promise<JSX.Element> {
           icon="ITEMS.LIST"
           className="eva-button"
           selected={byCallstacks}
-          enabled={allCallstacks.length > 1}
+          disabled={allCallstacks.length <= 1}
           title="Show values by callstack"
           onClick={() => setByCallstacks(!byCallstacks)}
         />
@@ -1163,7 +1173,7 @@ function ModalEvaluate(props: ModalTextFieldProps): React.JSX.Element {
   return (
     <Modal className='modal-evaluate' label={'Eva: evaluate expression'}>
       <div>
-        <Label>Compute the possible values of: </Label>
+        <Label label='Compute the possible values of:'/>
         <Hbox>
           <TextField
             label=''

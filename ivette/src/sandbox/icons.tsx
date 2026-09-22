@@ -12,8 +12,7 @@
 /* -------------------------------------------------------------------------- */
 
 import React from 'react';
-import { Label, Code } from 'dome/controls/labels';
-import { IconData, forEach } from 'dome/controls/icons';
+import { Label, Code, IconData, forEach } from 'dome/primitive/displays';
 import { Section } from 'dome/frame/sidebars';
 import { Scroll, Grid } from 'dome/layout/boxes';
 import { registerSandbox } from 'ivette';
