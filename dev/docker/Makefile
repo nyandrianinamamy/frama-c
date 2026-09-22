@@ -7,13 +7,12 @@
 ##########################################################################
 
 .ONESHELL:
-.PHONY: dev* custom* help push
+.PHONY: dev custom help push
 
 help:
 	@echo "Available targets are:"
 	echo "- dev: public Git development version"
-	echo "- custom: version based on a frama-c-*.tar.gz archive"
-	echo "  (custom targets require FRAMAC_ARCHIVE to be set)"
+	echo "- custom: version based on a frama-c.tar.gz archive"
 	echo ""
 	echo "Targets for users with write access to the framac Docker Hub:"
 	echo "- push TAG=<tag1> AS=<tag2>: perform a docker push with image"
@@ -28,20 +27,10 @@ BUILD_ARGS += --build-arg=OPAM=2.4
 dev: $(DEPS)
 	docker build . -t framac/frama-c:$@ $(BUILD_ARGS) --target frama-c
 
-ifeq ($(FRAMAC_ARCHIVE),)
-custom:
-	@echo "error: run '$(MAKE) $@ FRAMAC_ARCHIVE=frama-c-<version>.tar.gz',"
-	echo "       where frama-c-<version>.tar.gz is the name of the archive."
-	echo "Note: the archive must be in the current directory and be named as"
-	echo "      'frama-c-<version>.tar.gz' (where <version> is at your choice)."
-	exit 1
-else
-BUILD_ARGS += --build-arg=from_archive=$(FRAMAC_ARCHIVE)
+BUILD_ARGS += --build-arg=from_archive=frama-c.tar.gz
 
 custom: $(DEPS)
-	docker build . -t frama-c-$@ $(BUILD_ARGS) --target frama-c
-
-endif
+	docker build . -t frama-c-custom $(BUILD_ARGS) --target frama-c
 
 # check if either TAG or AS are empty
 ifeq ($(TAG)$(AS),$(AS)$(TAG))
