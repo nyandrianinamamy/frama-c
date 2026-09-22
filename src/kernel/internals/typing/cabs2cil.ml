@@ -1419,6 +1419,11 @@ struct
                                        * visible at the outer level *)
   }
 
+  let print_cil_as_is fmt format =
+    let old = Kernel.PrintAsIs.get () in
+    Kernel.PrintAsIs.set true;
+    Format.kfprintf (fun _fmt -> Kernel.PrintAsIs.set old) fmt format
+
   let d_stmt_chunk fmt (s,modified,write,reads,calls) =
     Format.fprintf fmt "@[<v 0>/*@[(%a) %a@ <-@ %a@]@;Calls:@;%a@;*/@;%a@]"
       (Pretty_utils.pp_list ~sep:",@ " Cil_printer.pp_lval) modified
@@ -1429,7 +1434,7 @@ struct
       Cil_printer.pp_stmt s
 
   let d_chunk fmt (c: chunk) =
-    Format.fprintf fmt "@[<v 0>@[%a%a@\n%a@]@;@[<v 2>{%a@]}@]"
+    print_cil_as_is fmt "@[<v 0>@[%a%a@\n%a@]@;@[<v 2>{%a@]}@]"
       (fun fmt b -> if b then Format.fprintf fmt "/* UNDEFINED ORDER */@\n")
       c.unspecified_order
       (Pretty_utils.pp_list ~sep:";" Cil_printer.pp_varinfo) c.locals

@@ -1,0 +1,189 @@
+[kernel] Parsing issue-1669-debug-typing.c (with preprocessing)
+[kernel:typing:global] Debug: createGlobal: va
+[kernel:typing:global] Debug: 
+  makeGlobalVarinfo isadef=true vi.vname=va(21), vreferenced=false
+[kernel:typing:global] Debug: va not in the env already
+[kernel:typing:global] Debug: first definition for va(21)
+[kernel:typing:global] Debug: Definition of vf at issue-1669-debug-typing.c:7
+[kernel:typing:global] Debug: 
+  makeGlobalVarinfo isadef=true vi.vname=vf(22), vreferenced=false
+[kernel:typing:global] Debug: vf not in the env already
+[kernel:typing:chunk] Debug: 
+  Concat:
+  /* UNDEFINED ORDER */
+  
+  
+  {}
+  WITH
+  /* UNDEFINED ORDER */
+  
+  
+  {/*()  <- s
+   Calls:
+   
+   */
+   }
+  LEADS TO
+  /* UNDEFINED ORDER */
+  
+  
+  {/*()  <- s
+   Calls:
+   
+   */
+   }
+[kernel:typing:cast] Debug: no cast to perform
+[kernel:typing:chunk] Debug: 
+  Concat:
+  /* UNDEFINED ORDER */
+  
+  
+  {/*()  <- s
+   Calls:
+   
+   */
+   }
+  WITH
+  /* UNDEFINED ORDER */
+  
+  
+  {/*()  <- va
+   Calls:
+   
+   */
+   }
+  LEADS TO
+  /* UNDEFINED ORDER */
+  
+  
+  {/*()  <- s
+   Calls:
+   
+   */
+   ;
+   /*()  <- va
+   Calls:
+   
+   */
+   }
+[kernel:typing:chunk] Debug: 
+  Concat:
+  /* UNDEFINED ORDER */
+  
+  
+  {}
+  WITH
+  /* UNDEFINED ORDER */
+  
+  
+  {/*()  <- s
+   Calls:
+   
+   */
+   ;
+   /*()  <- va
+   Calls:
+   
+   */
+   }
+  LEADS TO
+  /* UNDEFINED ORDER */
+  
+  
+  {/*()  <- s
+   Calls:
+   
+   */
+   ;
+   /*()  <- va
+   Calls:
+   
+   */
+   }
+[kernel:typing:chunk] Debug: 
+  Concat:
+  /* UNDEFINED ORDER */
+  
+  
+  {}
+  WITH
+  /* UNDEFINED ORDER */
+  
+  
+  {}
+  LEADS TO
+  /* UNDEFINED ORDER */
+  
+  
+  {}
+[kernel:typing:chunk] Debug: 
+  Concat:
+  /* UNDEFINED ORDER */
+  
+  
+  {}
+  WITH
+  
+  
+  {}
+  LEADS TO
+  /* UNDEFINED ORDER */
+  
+  
+  {}
+[kernel:typing:chunk] Debug: 
+  Concat:
+  
+  
+  {}
+  WITH
+  /* UNDEFINED ORDER */
+  
+  
+  {}
+  LEADS TO
+  
+  
+  {}
+[kernel:typing:chunk] Debug: 
+  Concat:
+  
+  
+  {}
+  WITH
+  
+  
+  {/*()  <- 
+   Calls:
+   __builtin_va_start(va);
+   */
+   __builtin_va_start(va);}
+  LEADS TO
+  
+  
+  {/*()  <- 
+   Calls:
+   __builtin_va_start(va);
+   */
+   __builtin_va_start(va);}
+[kernel:typing:chunk] Debug: 
+  Concat:
+  
+  
+  {}
+  WITH
+  
+  
+  {/*()  <- 
+   Calls:
+   __builtin_va_start(va);
+   */
+   __builtin_va_start(va);}
+  LEADS TO
+  
+  
+  {/*()  <- 
+   Calls:
+   __builtin_va_start(va);
+   */
+   __builtin_va_start(va);}
