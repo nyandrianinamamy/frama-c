@@ -1,7 +1,7 @@
 Test error and warning messages on invalid -absolute-valid-range arguments.
 
 Do not load any plug-ins.
-  $ alias="frama-c -no-autoload-plugins"
+  $ alias frama-c="frama-c -no-autoload-plugins"
 
 Argument is not an integer range.
   $ frama-c -absolute-valid-range foobar
