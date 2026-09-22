@@ -69,9 +69,9 @@ let widen ?(arg = false) li i1 i2 =
   match i1, i2 with
   | Ival i1, i2 when Ival.is_bottom i1 -> i2
   | Ival i1, Ival i2 -> widen_ival ~arg li.l_var_info.lv_name i1 i2
-  | Float _, Float _ | Rational, Rational | Real, Real | Nan, Nan ->
-    join i1 i2
-  | Ival _, _| Float _, _ | Rational, _ | Real, _ | Nan, _ -> assert false
+  | Nan, i2 when i2 <> Nan -> assert false
+  | i1, Nan when i1 <> Nan -> assert false
+  | i1, i2 -> join i1 i2
 
 let widen_profile li profile new_profile =
   Cil_datatype.Logic_var.Map.mapi
