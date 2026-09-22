@@ -7,7 +7,7 @@ int main() {
   wchar_t buf[30];
   wchar_t *res = fgetws(buf, 29, fd);
   if (!res) return 1;
-  //@ assert res == buf;
+  //@ assert res == &buf[0];
   wchar_t buf2[2];
   buf2[0] = L'a';
   wchar_t *r = wmemchr(buf2, L'a', 2); // no warning
@@ -31,7 +31,7 @@ int main() {
   wchar_t *wsrc = L"wide thing";
   wchar_t wdst[10];
   r = wcsncpy(wdst, wsrc, 10); // no warning
-  //@ check ok: r == wdst;
+  //@ check ok: r == &wdst[0];
   //@ check ok: \initialized(&wdst[9]);
   if (v) {
     r = wcsncpy(wdst, wsrc, wcslen(wsrc)+1); // error: not enough room

@@ -166,15 +166,16 @@ let rec is_C_array t =
     | TMem _ -> true
     | TVar _ -> false
   in
-  Ast_types.Acsl.is_array t.term_type &&
-  (match t.term_node with
-   | TStartOf (lh,_) -> is_C_array_lhost lh
-   | TLval(lh,_) -> is_C_array_lhost lh
-   | Tif(_,t1,t2) -> is_C_array t1 && is_C_array t2
-   | Tlet (_,t) -> is_C_array t
-   | _ -> false)
-(* TUpdate gives back a logic array, TStartOf has pointer type anyway,
-   other constructors are never arrays. *)
+  (* TUpdate gives back a logic array, TStartOf has pointer type anyway,
+     other constructors are never arrays. *)
+  let is_C = function
+    | TStartOf (lh,_) -> is_C_array_lhost lh
+    | TLval(lh,_) -> is_C_array_lhost lh
+    | Tif(_,t1,t2) -> is_C_array t1 && is_C_array t2
+    | Tlet (_,t) -> is_C_array t
+    | _ -> false
+  in
+  Ast_types.Acsl.is_array t.term_type && is_C t.term_node
 
 (** do not use it on something which is not a C array *)
 let rec mk_logic_StartOf t =
@@ -205,11 +206,11 @@ let mk_logic_AddrOf ?(loc=Kernel.gen_loc) lval typ =
   | _ ->
     Logic_const.term ~loc (TAddrOf lval) (lift_set typ)
 
-let isLogicPointer t =
-  Ast_types.Acsl.is_ptr t.term_type || (is_C_array t)
+let is_C_array_or_ptr t =
+  Ast_types.Acsl.is_ptr t.term_type || is_C_array t
 
 let mk_logic_pointer_or_StartOf t =
-  if isLogicPointer t then
+  if is_C_array_or_ptr t then
     if is_C_array t then mk_logic_StartOf t else t
   else
     Kernel.fatal ~loc:t.term_loc
@@ -2654,6 +2655,8 @@ let type_of_list_elem = Ast_types.Acsl.list_element
 let type_of_pointed = Ast_types.Acsl.direct_pointed
 
 let type_of_array_elem = Ast_types.Acsl.direct_array_element
+
+let isLogicPointer = is_C_array_or_ptr
 
 let isLogicType = Ast_types.Acsl.plain_or_set_ctype
 

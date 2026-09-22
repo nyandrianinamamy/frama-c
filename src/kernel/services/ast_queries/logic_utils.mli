@@ -122,8 +122,8 @@ val mk_logic_StartOf : term -> term
     @since Neon-20140301 *)
 val mk_logic_AddrOf: ?loc:Fileloc.t -> term_lval -> logic_type -> term
 
-(** [true] if the term is a pointer. *)
-val isLogicPointer : term -> bool
+(** [true] if [t] is a pointer or a C array. *)
+val is_C_array_or_ptr : term -> bool
 
 (** creates either a TStartOf or the corresponding TLval. *)
 val mk_logic_pointer_or_StartOf : term -> term
@@ -608,3 +608,9 @@ val type_of_list_elem : logic_type -> logic_type
 val is_same_type : logic_type -> logic_type -> bool
 [@@deprecated "Cil_datatype.Logic_type_ByName.equal instead"]
 [@@migrate { repl = Cil_datatype.Logic_type_ByName.equal }]
+
+(** {1 Predefined tests over terms} *)
+
+val isLogicPointer : term -> bool
+[@@deprecated "Use is_C_array_or_ptr instead"]
+[@@migrate { repl = is_C_array_or_ptr }]

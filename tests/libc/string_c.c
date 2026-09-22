@@ -8,7 +8,7 @@ void test_memcpy()
 {
   char dest[6], src[6] = "hello";
   char *p = memcpy(dest, src, 6);
-  //@assert p == dest;
+  //@assert p == &dest[0];
   //@assert dest[0] == 'h';
   //@assert dest[4] == 'o';
   //@assert dest[5] == '\0';
@@ -90,7 +90,7 @@ void test_memset()
 {
   char dest[4] = {0, 0, 0, 0};
   char *p = memset(dest, 42, 3);
-  //@assert p == dest;
+  //@assert p == &dest[0];
   //@assert dest[2] == 42;
   //@assert dest[3] == 0;
   memset(dest, 9, 0);
@@ -122,7 +122,7 @@ void test_strcat(void)
   char s[10];
   s[0] = 0;
   char *p = strcat(s, "hello");
-  //@assert p == s;
+  //@assert p == &s[0];
   //@assert s[0] == 'h' && s[4] == 'o' && s[5] == 0;
   s[4] = 0;
   s[7] = 'l';
@@ -139,7 +139,7 @@ void test_strcpy(void)
 {
   char s[7];
   char *p = strcpy(s, "hello");
-  //@assert p == s;
+  //@assert p == &s[0];
   //@assert s[0] == 'h' && s[4] == 'o';
   strcpy(s, "654321");
   //@assert s[2] == '4' && s[6] == 0;
@@ -151,7 +151,7 @@ void test_strncpy(void)
 {
   char s[7];
   char *p = strncpy(s, "hello", 7);
-  //@assert p == s;
+  //@assert p == &s[0];
   //@assert s[5] == 0 && s[6] == 0;
   strncpy(s, "bye", 3);
   //@assert s[2] == 'e' && s[3] == 'l';
@@ -224,34 +224,34 @@ void test_memchr()
 {
   char s[6] = {1, 2, 3, 1, 2, 4};
   char *p = memchr(s, 1, 6);
-  //@assert s == p;
+  //@assert p == &s[0];
   p = memchr(s, 5, 6);
   //@assert p == \null;
   p = memchr(s, 2, 6);
-  //@assert p == s+1;
+  //@assert p == &s[0] + 1;
   p = memchr(s, 1, 0);
   //@assert p == \null;
   p = memchr(s, 5, 0);
   //@assert p == \null;
   p = memchr(s, 1, 1);
-  //@assert p == s;
+  //@assert p == &s[0];
 }
 
 void test_memrchr()
 {
   char s[6] = {1, 2, 3, 1, 2, 4};
   char *p = memrchr(s, 1, 6);
-  //@assert s+3 == p;
+  //@assert p == &s[0] + 3;
   p = memrchr(s, 5, 6);
   //@assert p == \null;
   p = memrchr(s, 2, 6);
-  //@assert p == s+4;
+  //@assert p == &s[0] + 4;
   p = memrchr(s, 1, 0);
   //@assert p == \null;
   p = memrchr(s, 5, 0);
   //@assert p == \null;
   p = memrchr(s, 1, 1);
-  //@assert p == s;
+  //@assert p == &s[0];
 }
 
 void test_strstr()
@@ -279,13 +279,13 @@ void test_mempcpy()
 {
   char dest[6], src[6] = "hello";
   char *p = mempcpy(dest, src, 6);
-  //@assert p == dest + 6;
+  //@assert p == &dest[0] + 6;
   //@assert dest[5] == '\0';
   char src2[5] = "a\0b\0";
   p = mempcpy(dest, src2, 3);
-  //@assert p == dest + 3;
+  //@assert p == &dest[0] + 3;
   p = mempcpy(dest, "", 0);
-  //@assert p == dest;
+  //@assert p == &dest[0];
 }
 
 int main(int argc, char **argv)

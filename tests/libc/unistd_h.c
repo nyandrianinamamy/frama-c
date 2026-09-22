@@ -45,7 +45,7 @@ int main() {
   char cwd[64];
   char *res_getcwd = getcwd(cwd, 64);
   if (res_getcwd) {
-    //@ assert res_getcwd == cwd;
+    //@ assert res_getcwd == &cwd[0];
     //@ assert valid_read_string((char*)cwd); // currently imprecise
   }
 
