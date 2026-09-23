@@ -49,8 +49,7 @@ type exp = private
     rtes : rte list;
     origin : pred_or_term
   }
-(** [origin] is required to calculate casts. Note that [origin] is [None] when
-    it stems from a predicate as predicates never require casts. *)
+(** [origin] is required to calculate casts. *)
 
 and exp_node = private
   | Integer of {ity : number_ty; n : Z.t}
