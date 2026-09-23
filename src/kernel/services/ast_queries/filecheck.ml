@@ -1391,6 +1391,11 @@ module Base_checker = struct
           Kernel.warning ~wkey:Kernel.wkey_check_volatile ~current:true
             "Expression with volatile qualification %a" Printer.pp_exp e
         end;
+        let continue () =
+          Stack.push (self#accept_array e.enode) accept_array;
+          let pop e = ignore (Stack.pop accept_array); e in
+          Cil.ChangeDoChildrenPost (e, pop)
+        in
         match e.enode with
         | Const (CEnum ei) -> self#check_ei ei
         | Lval ((Var v, _) as lv) when
@@ -1402,11 +1407,27 @@ module Base_checker = struct
         | StartOf lv when not (Ast_types.C.is_array (Cil.typeOfLval lv)) ->
           check_abort "%a is supposed to be an array, but has type %a"
             Printer.pp_lval lv Printer.pp_typ (Cil.typeOfLval lv)
-        | _ ->
-          Stack.push (self#accept_array e.enode) accept_array;
-          Cil.ChangeDoChildrenPost (e,
-                                    fun e -> ignore (Stack.pop accept_array); e)
+        | AddrOf (Var vi, _) when vi.vstorage = Register ->
+          check_abort "register variable %a (id: %d) has its address taken"
+            Printer.pp_varinfo vi vi.vid;
+        | AddrOf (Var vi, off) ->
+          begin match Cil.lastOffset off with
+            | NoOffset | Index _ when not vi.vaddrof ->
+              check_abort
+                "%a (id: %d) has its address taken (%a) but vaddrof is not set"
+                Printer.pp_varinfo vi vi.vid
+                Printer.pp_exp e
+              ;
+            | Field ({ fname ; fbitfield = Some _ }, _) ->
+              check_abort "bitfield %s has its address taken" fname
+            | Field ({ fname ; faddrof = false }, _) ->
+              check_abort
+                "field %s has its address taken but faddrof is not set"
+                fname
 
+            | _ -> continue ()
+          end
+        | _ -> continue ()
 
       method private check_initialized_var v =
         let module Printer = (val pretty: Printer_api.S_pp) in
