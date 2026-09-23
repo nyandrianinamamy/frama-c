@@ -1,4 +1,8 @@
 [kernel] Parsing cert_exp10.c (with preprocessing)
+[kernel:CERT:EXP:10] cert_exp10.c:10: Warning: 
+  Potential unsequenced side-effects
+[kernel:CERT:EXP:10] cert_exp10.c:11: Warning: 
+  Potential unsequenced side-effects
 [kernel:CERT:EXP:10] cert_exp10.c:11: Warning: 
   Potential unsequenced side-effects
 [kernel:CERT:EXP:10] cert_exp10.c:13: Warning: 

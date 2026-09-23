@@ -2803,7 +2803,7 @@ let mkForIncr ?sattr ~(iter : varinfo) ~(first: exp) ~(stopat: exp) ~(incr: exp)
     ~body ()
 
 let block_from_unspecified_sequence us =
-  mkBlock (List.map (fun (x,_,_,_,_) ->x) us)
+  mkBlockNonScoping (List.map (fun (x,_,_,_,_) ->x) us)
 
 let rec stripCasts (e: exp) =
   match e.enode with CastE(_, e') -> stripCasts e' | _ -> e

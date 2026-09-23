@@ -99,19 +99,19 @@
    -[--d]-> 11
    -[a--]-> 12
    -[-c-]-> 13
- {n16}: Call44-InCtrl : tmp = lib_f(1,(void * const *)(__va_args));
+ {n16}: Call45-InCtrl : tmp = lib_f(1,(void * const *)(__va_args));
    -[-c-]-> 7
    -[-c-]-> 13
- {n17}: Call44-In1 : tmp = lib_f(1,(void * const *)(__va_args));
+ {n17}: Call45-In1 : tmp = lib_f(1,(void * const *)(__va_args));
    -[-c-]-> 7
    -[-c-]-> 13
    -[-c-]-> 16
- {n18}: Call44-In2 : tmp = lib_f(1,(void * const *)(__va_args));
+ {n18}: Call45-In2 : tmp = lib_f(1,(void * const *)(__va_args));
    -[-c-]-> 7
    -[--d]-> 12
    -[-c-]-> 13
    -[-c-]-> 16
- {n19}: Call44-OutRet : tmp = lib_f(1,(void * const *)(__va_args));
+ {n19}: Call45-OutRet : tmp = lib_f(1,(void * const *)(__va_args));
    -[-c-]-> 7
    -[a--]-> 10
    -[-c-]-> 13
@@ -157,19 +157,19 @@
    -[--d]-> 29
    -[a--]-> 30
    -[-c-]-> 31
- {n35}: Call49-InCtrl : tmp = lib_f(2,(void * const *)(__va_args));
+ {n35}: Call50-InCtrl : tmp = lib_f(2,(void * const *)(__va_args));
    -[-c-]-> 22
    -[-c-]-> 31
- {n36}: Call49-In1 : tmp = lib_f(2,(void * const *)(__va_args));
+ {n36}: Call50-In1 : tmp = lib_f(2,(void * const *)(__va_args));
    -[-c-]-> 22
    -[-c-]-> 31
    -[-c-]-> 35
- {n37}: Call49-In2 : tmp = lib_f(2,(void * const *)(__va_args));
+ {n37}: Call50-In2 : tmp = lib_f(2,(void * const *)(__va_args));
    -[-c-]-> 22
    -[--d]-> 30
    -[-c-]-> 31
    -[-c-]-> 35
- {n38}: Call49-OutRet : tmp = lib_f(2,(void * const *)(__va_args));
+ {n38}: Call50-OutRet : tmp = lib_f(2,(void * const *)(__va_args));
    -[-c-]-> 22
    -[a--]-> 27
    -[-c-]-> 31
@@ -227,19 +227,19 @@
    -[--d]-> 51
    -[a--]-> 52
    -[-c-]-> 53
- {n58}: Call55-InCtrl : tmp = lib_f(3,(void * const *)(__va_args));
+ {n58}: Call56-InCtrl : tmp = lib_f(3,(void * const *)(__va_args));
    -[-c-]-> 41
    -[-c-]-> 53
- {n59}: Call55-In1 : tmp = lib_f(3,(void * const *)(__va_args));
+ {n59}: Call56-In1 : tmp = lib_f(3,(void * const *)(__va_args));
    -[-c-]-> 41
    -[-c-]-> 53
    -[-c-]-> 58
- {n60}: Call55-In2 : tmp = lib_f(3,(void * const *)(__va_args));
+ {n60}: Call56-In2 : tmp = lib_f(3,(void * const *)(__va_args));
    -[-c-]-> 41
    -[--d]-> 52
    -[-c-]-> 53
    -[-c-]-> 58
- {n61}: Call55-OutRet : tmp = lib_f(3,(void * const *)(__va_args));
+ {n61}: Call56-OutRet : tmp = lib_f(3,(void * const *)(__va_args));
    -[-c-]-> 41
    -[a--]-> 48
    -[-c-]-> 53
@@ -281,67 +281,67 @@
  {n80}: int a6 = 6;
    -[-c-]-> 64
    -[a--]-> 70
- {n81}: Call32-InCtrl : s1 = f1(a1);
+ {n81}: Call33-InCtrl : s1 = f1(a1);
    -[-c-]-> 64
- {n82}: Call32-In1 : s1 = f1(a1);
+ {n82}: Call33-In1 : s1 = f1(a1);
    -[-c-]-> 64
    -[--d]-> 65
    -[--d]-> 75
    -[-c-]-> 81
- {n83}: Call32-OutRet : s1 = f1(a1);
+ {n83}: Call33-OutRet : s1 = f1(a1);
    -[-c-]-> 64
    -[a--]-> 72
    -[-c-]-> 81
- {n84}: Call33-InCtrl : s2 = f2(a2,a3);
+ {n84}: Call34-InCtrl : s2 = f2(a2,a3);
    -[-c-]-> 64
- {n85}: Call33-In1 : s2 = f2(a2,a3);
+ {n85}: Call34-In1 : s2 = f2(a2,a3);
    -[-c-]-> 64
    -[--d]-> 66
    -[--d]-> 76
    -[-c-]-> 84
- {n86}: Call33-In2 : s2 = f2(a2,a3);
+ {n86}: Call34-In2 : s2 = f2(a2,a3);
    -[-c-]-> 64
    -[--d]-> 67
    -[--d]-> 77
    -[-c-]-> 84
- {n87}: Call33-OutRet : s2 = f2(a2,a3);
+ {n87}: Call34-OutRet : s2 = f2(a2,a3);
    -[-c-]-> 64
    -[a--]-> 73
    -[-c-]-> 84
- {n88}: Call34-InCtrl : s3 = f3(a4,a5,a6);
+ {n88}: Call35-InCtrl : s3 = f3(a4,a5,a6);
    -[-c-]-> 64
- {n89}: Call34-In1 : s3 = f3(a4,a5,a6);
+ {n89}: Call35-In1 : s3 = f3(a4,a5,a6);
    -[-c-]-> 64
    -[--d]-> 68
    -[--d]-> 78
    -[-c-]-> 88
- {n90}: Call34-In2 : s3 = f3(a4,a5,a6);
+ {n90}: Call35-In2 : s3 = f3(a4,a5,a6);
    -[-c-]-> 64
    -[--d]-> 69
    -[--d]-> 79
    -[-c-]-> 88
- {n91}: Call34-In3 : s3 = f3(a4,a5,a6);
+ {n91}: Call35-In3 : s3 = f3(a4,a5,a6);
    -[-c-]-> 64
    -[--d]-> 70
    -[--d]-> 80
    -[-c-]-> 88
- {n92}: Call34-OutRet : s3 = f3(a4,a5,a6);
+ {n92}: Call35-OutRet : s3 = f3(a4,a5,a6);
    -[-c-]-> 64
    -[a--]-> 74
    -[-c-]-> 88
- {n93}: Call35-InCtrl : s = f2(s1,s2);
+ {n93}: Call36-InCtrl : s = f2(s1,s2);
    -[-c-]-> 64
- {n94}: Call35-In1 : s = f2(s1,s2);
+ {n94}: Call36-In1 : s = f2(s1,s2);
    -[-c-]-> 64
    -[--d]-> 72
    -[--d]-> 83
    -[-c-]-> 93
- {n95}: Call35-In2 : s = f2(s1,s2);
+ {n95}: Call36-In2 : s = f2(s1,s2);
    -[-c-]-> 64
    -[--d]-> 73
    -[--d]-> 87
    -[-c-]-> 93
- {n96}: Call35-OutRet : s = f2(s1,s2);
+ {n96}: Call36-OutRet : s = f2(s1,s2);
    -[-c-]-> 64
    -[a--]-> 71
    -[-c-]-> 93

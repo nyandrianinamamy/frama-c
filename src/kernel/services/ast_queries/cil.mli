@@ -1095,7 +1095,9 @@ val mkWhile: ?sattr:attributes -> guard:exp -> body:stmt list -> unit ->
 val mkDoWhile: ?sattr:attributes -> body:stmt list -> guard:exp -> unit ->
   stmt list
 
-(** creates a block with empty attributes from an unspecified sequence. *)
+(** creates a _non-scoping_ block with empty attributes from an unspecified sequence.
+    @before Frama-C+dev the block created a new scope (while the sequence itself didn't)
+*)
 val block_from_unspecified_sequence:
   (stmt * lval list * lval list * lval list * stmt ref list) list -> block
 
@@ -1120,7 +1122,7 @@ val find_def_stmt: block -> varinfo -> stmt
 
 (** returns [true] iff the given non-scoping block contains local init
     statements (thus of locals belonging to an outer block), either directly or
-    within a non-scoping block or undefined sequence.labels
+    within a non-scoping block or undefined sequence.
 
     @since Phosphorus-20170501-beta1
 *)

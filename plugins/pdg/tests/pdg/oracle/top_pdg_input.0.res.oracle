@@ -175,64 +175,64 @@ Cannot filter: dumping raw memory (including unchanged variables)
 [pdg] PDG for f2
  Top PDG
 [pdg] PDG for strlen
- {n19}: InCtrl
- {n20}: VarDecl : p
-   -[a--]-> 21
- {n21}: In1
-   -[a--]-> 20
- {n22}: VarDecl : q
- {n23}: VarDecl : k
- {n24}: int k = 0;
-   -[-c-]-> 19
+ {n21}: InCtrl
+ {n22}: VarDecl : p
    -[a--]-> 23
- {n25}: q = p;
-   -[-c-]-> 19
-   -[--d]-> 20
-   -[--d]-> 21
+ {n23}: In1
    -[a--]-> 22
- {n26}: while(1)
-   -[-c-]-> 19
-   -[-c-]-> 26
-   -[-c-]-> 27
-   -[-c-]-> 30
- {n27}: *q
-   -[-c-]-> 19
+ {n24}: VarDecl : q
+ {n25}: VarDecl : k
+ {n26}: int k = 0;
+   -[-c-]-> 21
+   -[a--]-> 25
+ {n27}: q = p;
+   -[-c-]-> 21
    -[--d]-> 22
-   -[--d]-> 25
-   -[-c-]-> 26
-   -[-c-]-> 27
-   -[--d]-> 29
-   -[-c-]-> 30
-   -[--d]-> 33
- {n28}: k ++;
-   -[-c-]-> 19
-   -[a-d]-> 23
-   -[--d]-> 24
-   -[-c-]-> 26
-   -[-c-]-> 27
-   -[--d]-> 28
-   -[-c-]-> 30
- {n29}: q ++;
-   -[-c-]-> 19
-   -[a-d]-> 22
-   -[--d]-> 25
-   -[-c-]-> 26
-   -[-c-]-> 27
-   -[--d]-> 29
-   -[-c-]-> 30
- {n30}: break;
-   -[-c-]-> 19
-   -[-c-]-> 26
-   -[-c-]-> 27
-   -[-c-]-> 30
- {n31}: return k;
-   -[-c-]-> 19
    -[--d]-> 23
+   -[a--]-> 24
+ {n28}: while(1)
+   -[-c-]-> 21
+   -[-c-]-> 28
+   -[-c-]-> 29
+   -[-c-]-> 32
+ {n29}: *q
+   -[-c-]-> 21
    -[--d]-> 24
-   -[--d]-> 28
- {n32}: OutRet
+   -[--d]-> 27
+   -[-c-]-> 28
+   -[-c-]-> 29
    -[--d]-> 31
- {n33}: In(S_0_S_p_str[0..1])
+   -[-c-]-> 32
+   -[--d]-> 35
+ {n30}: k ++;
+   -[-c-]-> 21
+   -[a-d]-> 25
+   -[--d]-> 26
+   -[-c-]-> 28
+   -[-c-]-> 29
+   -[--d]-> 30
+   -[-c-]-> 32
+ {n31}: q ++;
+   -[-c-]-> 21
+   -[a-d]-> 24
+   -[--d]-> 27
+   -[-c-]-> 28
+   -[-c-]-> 29
+   -[--d]-> 31
+   -[-c-]-> 32
+ {n32}: break;
+   -[-c-]-> 21
+   -[-c-]-> 28
+   -[-c-]-> 29
+   -[-c-]-> 32
+ {n33}: return k;
+   -[-c-]-> 21
+   -[--d]-> 25
+   -[--d]-> 26
+   -[--d]-> 30
+ {n34}: OutRet
+   -[--d]-> 33
+ {n35}: In(S_0_S_p_str[0..1])
 [pdg] PDG for main
  Top PDG
 [eva] Analyzing a complete application starting at main_asm
@@ -284,47 +284,47 @@ Cannot filter: dumping raw memory (including unchanged variables)
 [pdg] done for function main_asm
 [pdg] ====== PDG GRAPH COMPUTED ======
 [pdg] PDG for fun_asm
- {n47}: InCtrl
- {n48}: VarDecl : i
-   -[a--]-> 49
- {n49}: In1
-   -[a--]-> 48
- {n50}: VarDecl : __retres
- {n51}: __asm__ ("BLA");
-   -[-c-]-> 47
- {n52}: __retres = i + 1;
-   -[-c-]-> 47
-   -[--d]-> 48
-   -[--d]-> 49
+ {n49}: InCtrl
+ {n50}: VarDecl : i
+   -[a--]-> 51
+ {n51}: In1
    -[a--]-> 50
- {n53}: return __retres;
-   -[-c-]-> 47
+ {n52}: VarDecl : __retres
+ {n53}: __asm__ ("BLA");
+   -[-c-]-> 49
+ {n54}: __retres = i + 1;
+   -[-c-]-> 49
    -[--d]-> 50
+   -[--d]-> 51
+   -[a--]-> 52
+ {n55}: return __retres;
+   -[-c-]-> 49
    -[--d]-> 52
- {n54}: OutRet
-   -[--d]-> 53
+   -[--d]-> 54
+ {n56}: OutRet
+   -[--d]-> 55
 [pdg] PDG for main_asm
- {n55}: InCtrl
- {n56}: VarDecl : j
- {n57}: VarDecl : tmp
- {n58}: int j = 3;
-   -[-c-]-> 55
-   -[a--]-> 56
- {n59}: Call53-InCtrl : tmp = fun_asm(j);
-   -[-c-]-> 55
- {n60}: Call53-In1 : tmp = fun_asm(j);
-   -[-c-]-> 55
-   -[--d]-> 56
+ {n57}: InCtrl
+ {n58}: VarDecl : j
+ {n59}: VarDecl : tmp
+ {n60}: int j = 3;
+   -[-c-]-> 57
+   -[a--]-> 58
+ {n61}: Call55-InCtrl : tmp = fun_asm(j);
+   -[-c-]-> 57
+ {n62}: Call55-In1 : tmp = fun_asm(j);
+   -[-c-]-> 57
    -[--d]-> 58
-   -[-c-]-> 59
- {n61}: Call53-OutRet : tmp = fun_asm(j);
-   -[-c-]-> 55
-   -[a--]-> 57
-   -[-c-]-> 59
    -[--d]-> 60
- {n62}: return tmp;
-   -[-c-]-> 55
-   -[--d]-> 57
-   -[--d]-> 61
- {n63}: OutRet
+   -[-c-]-> 61
+ {n63}: Call55-OutRet : tmp = fun_asm(j);
+   -[-c-]-> 57
+   -[a--]-> 59
+   -[-c-]-> 61
    -[--d]-> 62
+ {n64}: return tmp;
+   -[-c-]-> 57
+   -[--d]-> 59
+   -[--d]-> 63
+ {n65}: OutRet
+   -[--d]-> 64
