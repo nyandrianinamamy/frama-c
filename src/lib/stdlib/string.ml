@@ -108,3 +108,117 @@ let%test "utf8_length" =
      el saxofón detrás del palenque de paja."
   in
   utf8_length pangram = 112
+
+(* Features from OCaml 5.5 *)
+
+(******************************************************************************)
+(*                                                                            *)
+(*                                   OCaml                                    *)
+(*                                                                            *)
+(*             Damien Doligez, projet Gallium, INRIA Rocquencourt             *)
+(*                                                                            *)
+(*  Copyright 2014 Institut National de Recherche en Informatique et          *)
+(*                 en Automatique.                                            *)
+(*                                                                            *)
+(*  All rights reserved.  This file is distributed under the terms of the     *)
+(*  GNU Lesser General Public License version 2.1, with the special           *)
+(*  exception on linking described below. See the GNU Library General Public  *)
+(*  License version 2 for more details (enclosed in the file                  *)
+(*  licenses/LGPLv2).                                                         *)
+(*  As a special exception to the GNU Library General Public License, you     *)
+(*  may link, statically or dynamically, a "work that uses the Library" with  *)
+(*  a publicly distributed version of the Library to produce an executable    *)
+(*  file containing portions of the Library, and distribute that executable   *)
+(*  file under terms of your choice, without any of the additional            *)
+(*  requirements listed in clause 6 of the GNU Library General Public         *)
+(*  License.                                                                  *)
+(*  By "a publicly distributed version of the Library", we mean either the    *)
+(*  unmodified Library as distributed by INRIA, or a modified version of the  *)
+(*  Library that is distributed under the conditions defined in clause 2 of   *)
+(*  the GNU Library General Public License. This exception does not however   *)
+(*  invalidate any other reasons why the executable file might be covered by  *)
+(*  the GNU Library General Public License.                                   *)
+(*                                                                            *)
+(******************************************************************************)
+
+let invalid_start ~start len =
+  let i = string_of_int in
+  invalid_arg @@ concat "" ["start: "; i start; " not in range [0;"; i len; "]"]
+
+module Search = struct
+  (* Two way string search, see https://doi.org/10.1145/116825.116845 or
+     http://www-igm.univ-mlv.fr/~lecroq/string/node26.html#SECTION00260 *)
+
+  let find_maximal_suffix_and_period ~sub =
+    let sublen = length sub in
+    let i = ref (-1) and j = ref 0 and k = ref 1 and p = ref 1 in
+    let[@inline] maximal_suffix ~order =
+      while (!j + !k < sublen) do
+        let c = order * Char.compare (get sub (!j + !k)) (get sub (!i + !k)) in
+        if c < 0 then (j := !j + !k; k := 1; p := !j - !i) else
+        if c > 0 then (i := !j; j := !i + 1; k := 1; p := 1) else
+          (* c = 0 *)
+        if !k = !p then (j := !j + !p; k := 1) else incr k
+      done;
+    in
+    (maximal_suffix[@inlined]) ~order:1;
+    let l0 = !i and p0 = !p in
+    i := -1; j := 0; k := 1; p := 1;
+    (maximal_suffix[@inlined]) ~order:(-1);
+    let l1 = !i and p1 = !p in
+    if l0 > l1 then (l0, p0) else (l1, p1)
+
+  let is_sub_periodic ~sub ~sub_lp:(l, p) =
+    l <= p &&
+    let i = ref 0 in
+    while !i <= l && Char.equal (get sub !i) (get sub (!i + p))
+    do incr i done;
+    !i > l
+
+  let find ~start ~sub ~sub_lp:(l, p) ~sub_periodic s = (* -1 on not found *)
+    let slen = length s and sublen = length sub in
+    if not (0 <= start && start <= slen) then invalid_start ~start slen else
+      let smax = slen - sublen in
+      let j = ref start in
+      try
+        if sub_periodic then begin
+          let memory = ref (-1) in
+          while (!j <= smax) do
+            let i = ref (1 + Int.max l !memory) in
+            while (!i < sublen && Char.equal (get sub !i) (get s (!i + !j)))
+            do incr i done;
+            if !i < sublen then (j := !j + (!i - l); memory := -1) else
+              begin
+                i := l;
+                while (!i > !memory && Char.equal (get sub !i) (get s (!i + !j)))
+                do decr i done;
+                if !i <= !memory then raise_notrace Exit else
+                  (j := !j + p; memory := sublen - p - 1)
+              end
+          done;
+          -1
+        end else begin
+          let q = 1 + Int.max (l + 1) (sublen - l - 1) in
+          while (!j <= smax) do
+            let i = ref (l + 1) in
+            while (!i < sublen && Char.equal (get sub !i) (get s (!i + !j)))
+            do incr i done;
+            if !i < sublen then (j := !j + (!i - l)) else
+              begin
+                i := l;
+                while (!i >= 0 && Char.equal (get sub !i) (get s (!i + !j)))
+                do decr i done;
+                if !i < 0 then raise_notrace Exit else (j := !j + q)
+              end
+          done;
+          -1
+        end
+      with Exit -> !j
+end
+
+let find_first ~sub =
+  let sub_lp = Search.find_maximal_suffix_and_period ~sub in
+  let sub_periodic = Search.is_sub_periodic ~sub ~sub_lp in
+  fun ?(start = 0) s ->
+    match Search.find ~start ~sub ~sub_lp ~sub_periodic s with
+    | -1 -> None | i -> Some i

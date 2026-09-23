@@ -295,6 +295,8 @@ val wkey_multi_from: warn_category
 
 val wkey_no_proto: warn_category
 
+val wkey_pp_double_std: warn_category
+
 val wkey_parser_unsupported: warn_category
 (** Warning related to unsupported parsing-related features. *)
 

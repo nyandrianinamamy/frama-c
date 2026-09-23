@@ -385,7 +385,7 @@ let pretty_machdep ?fmt ?machdep () =
 
 let cpp_name cmd =
   let cmd = List.hd (String.split_on_char ' ' cmd) in
-  Filename.basename cmd
+  Filename.remove_extension @@ Filename.basename cmd
 
 let replace_in_cpp_cmd cmdl supp_args in_file out_file =
   (* using Filename.quote for filenames which contain space or shell
@@ -447,6 +447,12 @@ let silence_cpp_machdep_warnings cmdl =
   else
     []
 
+let std_name cmdl =
+  let exe = cpp_name cmdl in
+  if exe = "cl"
+  then "/std"
+  else "-std"
+
 let c_standard_option cmdl =
   let exe = cpp_name cmdl in
   if exe = "clang" || exe = "gcc"
@@ -475,9 +481,24 @@ let censored_macros cpp_args =
     known_bad_macros
     (List.(flatten (map (String.split_on_char ' ') cpp_args)))
 
+let has_std cmdl =
+  List.exists
+    (fun s -> Option.is_some @@ String.find_first ~sub:(std_name cmdl) s)
+
 let build_cpp_cmd = function
   | NoCPP _ | External _ -> None
   | NeedCPP (f, cmdl, extra_for_this_file, is_gnu_like) ->
+    if has_std cmdl @@ Kernel.CppExtraArgs.get () then
+      Kernel.warning ~wkey:Kernel.wkey_pp_double_std ~once:true
+        "-cpp-extra-args contains '%s'; make sure it is consistent with \
+         Frama-C's '-std' option"
+        (std_name cmdl);
+    if has_std cmdl extra_for_this_file then
+      Kernel.warning ~wkey:Kernel.wkey_pp_double_std
+        "-cpp-extra-args-for-file %a contains '%s'; make sure it is consistent \
+         with Frama-C's '-std' option"
+        Filepath.pretty f
+        (std_name cmdl);
     let extra_args = extra_for_this_file @ Kernel.CppExtraArgs.get () in
     if not (Filesystem.exists f) then
       Kernel.abort "source file %a does not exist"

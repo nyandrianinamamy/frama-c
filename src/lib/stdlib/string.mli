@@ -51,3 +51,7 @@ val percent_encode: string -> string
     @since 33.0-Arsenic
 *)
 val means_yes: string -> bool
+
+(** Exactly Stdlib.find_first from OCaml 5.5
+    @since Frama-C+dev *)
+val find_first : sub:string -> ?start:int -> string -> int option
