@@ -194,7 +194,10 @@ let () = Request.register
     ~descr:(Md.plain "Return one parameter information")
     ~input:(module Jstring)
     ~output:(module ParameterData)
-    Typed_parameter.get
+    begin fun name ->
+      try Typed_parameter.get name
+      with Not_found -> Data.failure "No parameter of name %S" name
+    end
 
 let () = Request.register
     ~package ~kind:`GET ~name:"isSetParameter"
