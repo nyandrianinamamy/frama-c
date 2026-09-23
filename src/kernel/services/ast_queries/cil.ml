@@ -4864,13 +4864,20 @@ let rec peepHole2 ~aggressive (dotwo: stmt * stmt -> stmt list option) (ss: stmt
 
 (* Make an AddrOf. Given an lval of type T will give back an expression of
  * type ptr(T)  *)
-let mkAddrOf ~loc ((_b, _off) as lval) : exp =
-  (* Never take the address of a register variable *)
-  (match lval with
-     Var vi, _off when vi.vstorage = Register -> vi.vstorage <- NoStorage
-   | _ -> ());
+let mkAddrOf ~loc ((b, off) as lval) : exp =
+  let fatal kind =
+    Kernel.fatal "Taking the address of a %s with &[ %a ]" kind !pp_lval_ref lval
+  in
+  begin match b with
+    | Var vi when vi.vstorage = Register -> fatal "register variable"
+    | _ -> ()
+  end;
+  begin match lastOffset off with
+    | Field (fi, _) when Option.is_some fi.fbitfield -> fatal "bitfield"
+    | _ -> ()
+  end;
   match lval with
-    Mem e, NoOffset -> e
+  | Mem e, NoOffset -> e
   | b, Index(z, NoOffset) when isZero z -> new_exp ~loc (StartOf (b, NoOffset))
   (* array *)
   | _ -> new_exp ~loc (AddrOf lval)
