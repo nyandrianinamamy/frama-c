@@ -197,13 +197,16 @@ void test_f4() {
 
 // same term \at(j, Old) twice in different typing contexts
 /*@
-  behavior a:
-    ensures 1 == -j;
-  behavior b:
-    ensures 2 == j;
+  behavior a: ensures 1 == -j;
+  behavior b: ensures 2 == j;
  */
-int f5(long int j) {}
-
-int test_f5() {
+void f5(long int j) {}
+void test_f5() {
   f5(1);
+}
+
+// e-acsl#341: assertion failure during widening
+//@ predicate rec_rational(ℝ x) = x > 0 || rec_rational(x + 2.);
+void test_rec_rational() {
+  //@ assert rec_rational(5);
 }

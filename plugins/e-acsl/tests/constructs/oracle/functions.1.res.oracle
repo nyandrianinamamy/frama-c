@@ -1,7 +1,3 @@
-[kernel:CERT:MSC:37] functions.c:205: Warning: 
-  Body of function f5 falls-through. Adding a return statement
-[kernel:CERT:MSC:37] functions.c:209: Warning: 
-  Body of function test_f5 falls-through. Adding a return statement
 [e-acsl] beginning translation.
 [e-acsl] functions.c:144: Warning: 
   E-ACSL construct `function application' is not yet supported.

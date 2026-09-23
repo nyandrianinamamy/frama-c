@@ -1281,45 +1281,48 @@ void test_f4(void)
     
     behavior b:
       ensures 2 == \old(j); */
-int __gen_e_acsl_f5(long j);
+void __gen_e_acsl_f5(long j);
 
-int f5(long j)
+void f5(long j)
 {
-  int __retres;
-  {
-    __e_acsl_assert_data_t __gen_e_acsl_assert_data = {.values = (void *)0};
-    __gen_e_acsl_assert_data.blocking = 1;
-    __gen_e_acsl_assert_data.kind = "Assertion";
-    __gen_e_acsl_assert_data.pred_txt = "\\false";
-    __gen_e_acsl_assert_data.file = "functions.c";
-    __gen_e_acsl_assert_data.fct = "f5";
-    __gen_e_acsl_assert_data.line = 205;
-    __gen_e_acsl_assert_data.name = "missing_return";
-    __e_acsl_assert(0,& __gen_e_acsl_assert_data);
-  }
-  /*@ assert missing_return: \false; */ ;
-  __retres = 0;
-  return __retres;
+  return;
 }
 
-int test_f5(void)
+void test_f5(void)
 {
-  int __retres;
   __gen_e_acsl_f5(1L);
+  return;
+}
+
+/*@ predicate rec_rational(real x) = x > 0 || rec_rational(x + 2.);
+
+*/
+int __gen_e_acsl_rec_rational(__e_acsl_mpq_t x);
+
+void test_rec_rational(void)
+{
   {
+    __e_acsl_mpq_t __gen_e_acsl_const_5;
+    int __gen_e_acsl_rec_rational_4;
     __e_acsl_assert_data_t __gen_e_acsl_assert_data = {.values = (void *)0};
+    __gmpq_init(__gen_e_acsl_const_5);
+    __gmpq_set_si(__gen_e_acsl_const_5,5L,1UL);
+    __gen_e_acsl_rec_rational_4 = __gen_e_acsl_rec_rational(__gen_e_acsl_const_5);
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data,
+                                 "rec_rational(5)",0,
+                                 __gen_e_acsl_rec_rational_4);
     __gen_e_acsl_assert_data.blocking = 1;
     __gen_e_acsl_assert_data.kind = "Assertion";
-    __gen_e_acsl_assert_data.pred_txt = "\\false";
+    __gen_e_acsl_assert_data.pred_txt = "rec_rational(5)";
     __gen_e_acsl_assert_data.file = "functions.c";
-    __gen_e_acsl_assert_data.fct = "test_f5";
-    __gen_e_acsl_assert_data.line = 209;
-    __gen_e_acsl_assert_data.name = "missing_return";
-    __e_acsl_assert(0,& __gen_e_acsl_assert_data);
+    __gen_e_acsl_assert_data.fct = "test_rec_rational";
+    __gen_e_acsl_assert_data.line = 211;
+    __e_acsl_assert(__gen_e_acsl_rec_rational_4,& __gen_e_acsl_assert_data);
+    __e_acsl_assert_clean(& __gen_e_acsl_assert_data);
+    __gmpq_clear(__gen_e_acsl_const_5);
   }
-  /*@ assert missing_return: \false; */ ;
-  __retres = 0;
-  return __retres;
+  /*@ assert rec_rational(5); */ ;
+  return;
 }
 
 /*@ behavior a:
@@ -1327,11 +1330,10 @@ int test_f5(void)
     
     behavior b:
       ensures 2 == \old(j); */
-int __gen_e_acsl_f5(long j)
+void __gen_e_acsl_f5(long j)
 {
   __e_acsl_contract_t *__gen_e_acsl_contract;
   __e_acsl_mpz_t __gen_e_acsl_at;
-  int __retres;
   {
     __e_acsl_mpz_t __gen_e_acsl_j;
     __gmpz_init_set_si(__gen_e_acsl_j,j);
@@ -1342,7 +1344,7 @@ int __gen_e_acsl_f5(long j)
     __e_acsl_contract_set_behavior_assumes(__gen_e_acsl_contract,1UL,1);
     __gmpz_clear(__gen_e_acsl_j);
   }
-  __retres = f5(j);
+  f5(j);
   {
     int __gen_e_acsl_assumes_value;
     __gen_e_acsl_assumes_value = __e_acsl_contract_get_behavior_assumes
@@ -1366,7 +1368,7 @@ int __gen_e_acsl_f5(long j)
       __gen_e_acsl_assert_data.pred_txt = "1 == -\\old(j)";
       __gen_e_acsl_assert_data.file = "functions.c";
       __gen_e_acsl_assert_data.fct = "f5";
-      __gen_e_acsl_assert_data.line = 201;
+      __gen_e_acsl_assert_data.line = 200;
       __gen_e_acsl_assert_data.name = "a";
       __e_acsl_assert(__gen_e_acsl_eq == 0,& __gen_e_acsl_assert_data);
       __e_acsl_assert_clean(& __gen_e_acsl_assert_data);
@@ -1390,7 +1392,7 @@ int __gen_e_acsl_f5(long j)
       __gen_e_acsl_assert_data_2.pred_txt = "2 == \\old(j)";
       __gen_e_acsl_assert_data_2.file = "functions.c";
       __gen_e_acsl_assert_data_2.fct = "f5";
-      __gen_e_acsl_assert_data_2.line = 203;
+      __gen_e_acsl_assert_data_2.line = 201;
       __gen_e_acsl_assert_data_2.name = "b";
       __e_acsl_assert(__gen_e_acsl_eq_2 == 0,& __gen_e_acsl_assert_data_2);
       __e_acsl_assert_clean(& __gen_e_acsl_assert_data_2);
@@ -1398,7 +1400,7 @@ int __gen_e_acsl_f5(long j)
     }
     __e_acsl_contract_clean(__gen_e_acsl_contract);
     __gmpz_clear(__gen_e_acsl_at);
-    return __retres;
+    return;
   }
 }
 
@@ -2441,6 +2443,36 @@ void __gen_e_acsl_f4(__e_acsl_mpz_t *__retres_arg, __e_acsl_mpz_struct * x)
   __gmpz_clear(__gen_e_acsl__2);
   __gmpz_clear(__gen_e_acsl_if_2);
   return;
+}
+
+/*@ assigns \result;
+    assigns \result \from *(&(x[0])); */
+int __gen_e_acsl_rec_rational(__e_acsl_mpq_t x)
+{
+  __e_acsl_mpq_t __gen_e_acsl_;
+  int __gen_e_acsl_gt;
+  int __gen_e_acsl_or;
+  __gmpq_init(__gen_e_acsl_);
+  __gmpq_set_str(__gen_e_acsl_,"0",10);
+  __gen_e_acsl_gt = __gmpq_cmp((__e_acsl_mpq_struct const *)(x),
+                               (__e_acsl_mpq_struct const *)(__gen_e_acsl_));
+  if (__gen_e_acsl_gt > 0) __gen_e_acsl_or = 1;
+  else {
+    __e_acsl_mpq_t __gen_e_acsl__2;
+    __e_acsl_mpq_t __gen_e_acsl_add;
+    int __gen_e_acsl_rec_rational_3;
+    __gmpq_init(__gen_e_acsl__2);
+    __gmpq_set_d(__gen_e_acsl__2,2.);
+    __gmpq_init(__gen_e_acsl_add);
+    __gmpq_add(__gen_e_acsl_add,(__e_acsl_mpq_struct const *)(x),
+               (__e_acsl_mpq_struct const *)(__gen_e_acsl__2));
+    __gen_e_acsl_rec_rational_3 = __gen_e_acsl_rec_rational(__gen_e_acsl_add);
+    __gen_e_acsl_or = __gen_e_acsl_rec_rational_3;
+    __gmpq_clear(__gen_e_acsl__2);
+    __gmpq_clear(__gen_e_acsl_add);
+  }
+  __gmpq_clear(__gen_e_acsl_);
+  return __gen_e_acsl_or;
 }
 
 /*@ assigns (*__retres_arg)[0];
