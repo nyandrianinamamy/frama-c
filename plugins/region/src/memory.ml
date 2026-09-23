@@ -646,9 +646,6 @@ let rec consolidate gvars marked n =
         (function Root r ->
            path (if Term.equal r.inf r.sup then size else max_int) ;
            add_flags r.flags ;
-           if Attr.mem `Nullable r.flags  then begin
-             List.iter (add_flag [`Nullable]) @@ pointed_by n ;
-           end
         ) node.croots ;
       List.iter
         (fun p ->
