@@ -1,7 +1,9 @@
 /* run.config
-   STDOPT: #"-unspecified-access"
+   PLUGIN: eva,inout,scope
+   STDOPT: #"-eva -unspecified-access"
 */
 
+//@ assigns \nothing;
 extern void print(const char*, int, int);
 
 void f_noncompliant(int i, int *b) {
@@ -27,10 +29,12 @@ void f_array_non_compliant(int i, int*b) {
   print("%d, %d", a[0], a[1]);
 }
 
+volatile int nondet;
+
 int main(void) {
   int i = 0;
   int b[] = {40, 41, 42, 43};
   f_compliant(i, b);
-  f_noncompliant(i, b);
-  f_noncompliant_bis(i, b);
+  if(nondet) f_noncompliant(i, b);
+  if(nondet) f_noncompliant_bis(i, b);
 }
