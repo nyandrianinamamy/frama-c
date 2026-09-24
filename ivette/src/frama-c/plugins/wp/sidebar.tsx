@@ -866,7 +866,7 @@ function SimplOption(props: SimplOptionProps): JSX.Element {
       <Checkbox
         label={label}
         selected={value}
-        onClick={() => setValue(value)}
+        onClick={() => setValue(!value)}
         title={message}
         disabled={!enabled}
       />
