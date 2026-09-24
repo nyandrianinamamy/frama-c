@@ -1,4 +1,4 @@
-#!/bin/bash -eu
+#!/usr/bin/env bash
 ##########################################################################
 #                                                                        #
 #  SPDX-License-Identifier LGPL-2.1                                      #
@@ -6,6 +6,8 @@
 #  CEA (Commissariat à l'énergie atomique et aux énergies alternatives)  #
 #                                                                        #
 ##########################################################################
+
+set -eu
 
 database="benchmark-results.db"
 stats="$1"
@@ -63,7 +65,7 @@ SQL
 # --- Comparison ---
 
 result=`sqlite3 benchmark-results.db <<SQL
-  SELECT 
+  SELECT
     printf("%+.1f", 100*$user_time/avg(user_time) - 100),
     printf("%+d", $warnings - min(warnings)),
     printf("%+d", $alarms - min(alarms))

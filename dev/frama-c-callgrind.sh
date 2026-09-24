@@ -1,4 +1,4 @@
-#!/bin/bash -eu
+#!/usr/bin/env bash
 ##########################################################################
 #                                                                        #
 #  SPDX-License-Identifier LGPL-2.1                                      #
@@ -6,6 +6,8 @@
 #  CEA (Commissariat à l'énergie atomique et aux énergies alternatives)  #
 #                                                                        #
 ##########################################################################
+
+set -eu
 
 # Script for profiling Frama-C with callgrind (a valgrind tool).
 # Note: execution time with valgrind is about 15x-20x slower.

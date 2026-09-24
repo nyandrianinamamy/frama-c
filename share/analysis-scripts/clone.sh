@@ -1,4 +1,4 @@
-#!/bin/bash -eu
+#!/usr/bin/env bash
 ##########################################################################
 #                                                                        #
 #  SPDX-License-Identifier LGPL-2.1                                      #
@@ -6,6 +6,8 @@
 #  CEA (Commissariat à l'énergie atomique et aux énergies alternatives)  #
 #                                                                        #
 ##########################################################################
+
+set -eu
 
 git_hash="master"
 clone_dir="frama-c-clones"

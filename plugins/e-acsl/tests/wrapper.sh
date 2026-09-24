@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Wrapper script to compile a test file and execute the resulting binary
 
 # Base dir of this script
