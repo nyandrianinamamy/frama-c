@@ -1371,6 +1371,37 @@ struct
 
   end
 
+  (* Overrides update hooks for parameters that need the AST to be computed
+     before converting from string to actual datatype. *)
+  module Ast_synchronized_hooks
+      (H: sig
+         type t
+         val convert_and_apply: (t -> t -> 'a) -> string -> string -> 'a
+         val as_string_add_set_hook: (string -> string -> unit) -> unit
+         val as_string_add_update_hook: (string -> string -> unit) -> unit
+       end) =
+  struct
+    let waiting = ref []
+
+    let apply_waiting () =
+      List.iter (fun f -> f ()) !waiting ;
+      waiting := []
+
+    let () =
+      !ast_apply_after_computed (fun _ -> apply_waiting ())
+
+    let wait_ast_then_convert_and_apply f old new_ =
+      let f () = H.convert_and_apply f old new_ in
+      if !ast_is_computed () then f ()
+      else waiting := f :: !waiting
+
+    let add_set_hook f =
+      H.as_string_add_set_hook (wait_ast_then_convert_and_apply f)
+
+    let add_update_hook f =
+      H.as_string_add_update_hook (wait_ast_then_convert_and_apply f)
+  end
+
   module Kernel_function_set(X: Parameter_sig.Input_with_arg) = struct
 
     module A = struct
@@ -1387,26 +1418,13 @@ struct
           let default = Cil_datatype.Kf.Set.empty
         end)
 
-    let waiting = ref []
-
-    let apply_waiting () =
-      List.iter (fun f -> f ()) !waiting ;
-      waiting := []
-
-    let () =
-      !ast_apply_after_computed (fun _ -> apply_waiting ())
-
-    let wait_ast_then_convert_and_apply f old new_ =
-      let f () = convert_and_apply f old new_ in
-      if !ast_is_computed () then f ()
-      else (* The AST is not ready we have to wait until functions are known *)
-        waiting := f :: !waiting
-
-    let add_set_hook f =
-      As_string.add_set_hook (wait_ast_then_convert_and_apply f)
-
-    let add_update_hook f =
-      As_string.add_set_hook (wait_ast_then_convert_and_apply f)
+    include Ast_synchronized_hooks
+        (struct
+          type nonrec t = t
+          let convert_and_apply = convert_and_apply
+          let as_string_add_set_hook = As_string.add_set_hook
+          let as_string_add_update_hook = As_string.add_update_hook
+        end)
 
     let () =
       if A.accept_fundecl then Category.enable_all_as (!kf_category ())
@@ -1438,6 +1456,14 @@ struct
           include X
           let dependencies = []
           let default = Cil_datatype.Fundec.Set.empty
+        end)
+
+    include Ast_synchronized_hooks
+        (struct
+          type nonrec t = t
+          let convert_and_apply = convert_and_apply
+          let as_string_add_set_hook = As_string.add_set_hook
+          let as_string_add_update_hook = As_string.add_update_hook
         end)
 
     let () = Category.enable_all_as (!fundec_category ())
@@ -1709,6 +1735,14 @@ struct
         (V)
         (struct include X let dependencies = [] end)
 
+    include Ast_synchronized_hooks
+        (struct
+          type nonrec t = t
+          let convert_and_apply = convert_and_apply
+          let as_string_add_set_hook = As_string.add_set_hook
+          let as_string_add_update_hook = As_string.add_update_hook
+        end)
+
     let () = extend_ast_dependencies S.self
 
   end
@@ -1857,6 +1891,14 @@ struct
         (Kernel_function_string(A))
         (V)
         (struct include X let dependencies = [] end)
+
+    include Ast_synchronized_hooks
+        (struct
+          type nonrec t = t
+          let convert_and_apply = convert_and_apply
+          let as_string_add_set_hook = As_string.add_set_hook
+          let as_string_add_update_hook = As_string.add_update_hook
+        end)
 
     let () = extend_ast_dependencies S.self
 
