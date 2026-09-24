@@ -86,10 +86,8 @@ let generate_code =
 
 (* The Frama-C standard library contains specific built-in variables prefixed by
    "__fc_" and declared as extern: they prevent the generated code to be
-   linked. Some are used to represent internal states of the specifications and
-   should not be printed. Others are used as targets of standard library
-   macros like stdout or errno and in that case the original macro should be
-   printed instead.
+   linked. They are used for instance to represent internal states of the
+   specifications and should not be printed.
    Moreover, the builtins for VLA allocation and deallocation are specific to
    Frama-C. This printer reprint the original builtins (or nothing for the
    deallocation).
@@ -115,19 +113,13 @@ let change_printer =
             else if Options.Replace_libc_functions.get () &&
                     Functions.Libc.has_replacement vi.vorig_name
             then
-              Format.pp_print_string fmt (Functions.Libc.replacement_name vi.vorig_name)
+              (* Pretty-prints builtin declarations when in libc replacement
+                 mode *)
+              Format.pp_print_string fmt
+                (Functions.Libc.replacement_name vi.vorig_name)
             else
-              let replacement =
-                Ast_attributes.find_fc_stdlib_extern_replacement vi.vattr
-              in
-              match replacement with
-              | Some replacement ->
-                (* The varinfo is replacing a libc macro, print the replaced
-                   name. *)
-                Format.pp_print_string fmt replacement
-              | None ->
-                (* Otherwise use the original printer *)
-                super#varinfo fmt vi
+              (* Otherwise use the original printer *)
+              super#varinfo fmt vi
 
           method !predicate fmt p =
             let p = if Options.is_debug_key_enabled Options.Dkey.printer_normalized

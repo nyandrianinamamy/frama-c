@@ -668,7 +668,18 @@ class cil_printer () = object (self)
       );
       Format.fprintf fmt " */"
     end;
-    self#varname fmt v.vname
+    let replacement =
+      if not state.print_cil_as_is &&
+         not (Kernel.PrintLibc.get ()) then
+        (* If we do not want to print Cil as-is, and if we do not want to print
+           the content of the libc, then we try to find if the variable that we
+           are printing is a replacmement for a libc macro. *)
+        Ast_attributes.find_fc_stdlib_extern_replacement v.vattr
+      else
+        None
+    in
+    let vname = Option.value ~default:v.vname replacement in
+    self#varname fmt vname
 
   method private no_ghost_at_first_level t =
     match t.tnode with
