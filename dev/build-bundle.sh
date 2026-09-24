@@ -31,7 +31,7 @@ CI=${CI:-false}
 
 # Customizing variables specific to the bundle
 BUNDLE_GUI=${BUNDLE_GUI:-true}
-BUNDLE_EXTERNAL_PLUGINS=${BUNDLE_EXTERNAL_PLUGINS:-meta:frama-c/meta}
+BUNDLE_EXTERNAL_PLUGINS=${BUNDLE_EXTERNAL_PLUGINS:-}
 BUNDLE_IVETTE_PLUGINS=${BUNDLE_IVETTE_PLUGINS:-}
 BUNDLE_CUSTOM_OUI_FILE=${BUNDLE_CUSTOM_OUI_FILE:-}
 BUNDLE_ARCH=${BUNDLE_ARCH:-linux-x86-64}
@@ -64,15 +64,13 @@ do
       echo "                                The <name> is used as folder name when"
       echo "                                cloning the repository, the <group>/<project>"
       echo "                                part is a project on git.frama-c.com."
-      echo "                                (default to 'meta:frama-c/meta')."
-      echo "  --no-external-plugins         Equivalent to --external-plugins \"\""
+      echo "                                (default to '')."
       echo "  --ivette-plugins <plugins>    Bundle the given Ivette plugins."
       echo "                                Comma-separated list of <name>:<group>/<project>."
       echo "                                The <name> is used as folder name when"
       echo "                                cloning the repository, the <group>/<project>"
       echo "                                part is a project on git.frama-c.com."
       echo "                                (default to '')."
-      echo "  --no-ivette-plugins           Equivalent to --ivette-plugins \"\""
       echo "  --custom-oui-file <file>      Use provided Oui file."
       echo "  --bundle-arch <arch>          Architecture used in the bundle filename"
       echo "                                (default to 'linux-x86-64')"
@@ -100,15 +98,9 @@ do
       shift
       BUNDLE_EXTERNAL_PLUGINS="$1"
       ;;
-    --no-external-plugins)
-      BUNDLE_EXTERNAL_PLUGINS=""
-      ;;
     --ivette-plugins)
       shift
       BUNDLE_IVETTE_PLUGINS="$1"
-      ;;
-    --no-ivette-plugins)
-      BUNDLE_IVETTE_PLUGINS=""
       ;;
     --custom-oui-file)
       shift

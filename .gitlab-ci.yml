@@ -387,12 +387,18 @@ build-distrib-tarball:
       - ./frama-c.tar.gz
     expire_in: 1 week
 
-# Build linux bundle
+# Build bundles
 
+.build_template: &bundle_config
+  variables:
+    BUNDLE_EXTERNAL_PLUGINS: "meta:frama-c/meta"
+
+## Build linux bundle
 .build_template: &bundle_docker_setup
   image: 'registry.frama-c.com/frama-c/frama-c:release'
 
 .build_template: &linux_bundle
+  <<: *bundle_config
   script:
     - ./dev/build-bundle.sh
   artifacts:
@@ -418,9 +424,10 @@ build-linux-x86-64-bundle-release:
   <<: *linux_x86_64_bundle
   <<: *when_release
 
-# Build macOS bundle
+## Build macOS bundle
 
 .build_template: &macos_bundle
+  <<: *bundle_config
   stage: distrib
   variables:
     BUNDLE_EXT: "pkg"
