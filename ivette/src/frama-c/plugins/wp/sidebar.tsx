@@ -497,7 +497,7 @@ function PropertiesFilter(): JSX.Element {
             icon={'CROSS'}
             className={Utils.classes('wp-sidebar-selection-commit')}
             onClick={() => setProperties([])}
-          />,
+          />
           {properties.map((value) =>
             <SelectionButton
               key={value}
@@ -509,13 +509,13 @@ function PropertiesFilter(): JSX.Element {
       <Hbox>
         <Button
           icon={'PLUS'}
-          disabled={canCommit(false)}
+          disabled={!canCommit(true)}
           onClick={() => { onCommit(true); }}
           className={Utils.classes('wp-sidebar-selection-commit')}
         />
         <Button
           icon={'MINUS'}
-          disabled={canCommit(true)}
+          disabled={!canCommit(false)}
           onClick={() => { onCommit(false); }}
           className={Utils.classes('wp-sidebar-selection-commit')}
         />
