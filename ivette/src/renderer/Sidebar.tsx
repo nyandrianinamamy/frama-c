@@ -157,7 +157,7 @@ function Selector(props: SelectorProps): JSX.Element {
   const title = props.title ?? `${label} Sidebar`;
   const component =
     icon
-      ? <Icon size={20} className="sidebar-selector-icon" id={icon} />
+      ? <Icon size={20} id={icon} />
       : <label className="sidebar-selector-label">{label}</label>;
   return (
     <div className={className} title={title} onClick={onClick}>
