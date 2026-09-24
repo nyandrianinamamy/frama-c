@@ -312,7 +312,7 @@
                        [2] ∈ {67}
                        [3] ∈ {0}
 [eva:final-states] Values at end of function wcsdup:
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   __fc_heap_status ∈ [--..--]
   l ∈ {4}
   p ∈ {{ NULL ; &__malloc_wcsdup_l88[0] ; &__malloc_wcsdup_l88_0[0] }}
@@ -329,7 +329,7 @@
   buf[0..4] ∈ [--..--]
      [5..19] ∈ UNINITIALIZED
 [eva:final-states] Values at end of function main:
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   __fc_heap_status ∈ [--..--]
   sc1 ∈ {{ L"Needle" }}
   sc2 ∈ {{ L"Haystack" }}

@@ -300,13 +300,13 @@
 [eva] ====== VALUES COMPUTED ======
 [eva:final-states] Values at end of function posix_memalign:
   __fc_heap_status ∈ [--..--]
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   p_al0 ∈ {{ NULL ; &__malloc_posix_memalign_l186[0] }}
   p_al1 ∈ {{ NULL ; &__malloc_posix_memalign_l186_0[0] }} or UNINITIALIZED
   __retres ∈ {0; 12; 22}
 [eva:final-states] Values at end of function realpath:
   __fc_heap_status ∈ [--..--]
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   Frama_C_entropy_source ∈ [--..--]
   resolved_name ∈
                {{ NULL ; &__malloc_main_l47[0] ; &__malloc_realpath_l211[0] ;
@@ -322,13 +322,13 @@
                           [1..4095] ∈ [--..--] or UNINITIALIZED
 [eva:final-states] Values at end of function canonicalize_file_name:
   __fc_heap_status ∈ [--..--]
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   Frama_C_entropy_source ∈ [--..--]
   __malloc_realpath_l211_0[0] ∈ [--..--]
                           [1..4095] ∈ [--..--] or UNINITIALIZED
 [eva:final-states] Values at end of function main:
   __fc_heap_status ∈ [--..--]
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   Frama_C_entropy_source ∈ [--..--]
   p ∈ {{ NULL ; &__calloc_main_l15 }}
   nmemb ∈ [1..4294967295]

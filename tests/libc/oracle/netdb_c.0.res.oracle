@@ -286,7 +286,7 @@
      [2..126] ∈ [--..--] or UNINITIALIZED
      [127] ∈ {0}
 [eva:final-states] Values at end of function getaddrinfo:
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   __fc_heap_status ∈ [--..--]
   Frama_C_entropy_source ∈ [--..--]
   result ∈ {{ &__malloc_getaddrinfo_l44 }} or UNINITIALIZED
@@ -322,7 +322,7 @@
   n ∈ [-1..128]
   __retres ∈ {{ NULL ; &__fc_ghbn.host }}
 [eva:final-states] Values at end of function main:
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   __fc_fds[0..1023] ∈ [--..--]
   __fc_heap_status ∈ [--..--]
   Frama_C_entropy_source ∈ [--..--]

@@ -298,7 +298,7 @@
 [eva:progress] Done for function main
 [eva] ====== VALUES COMPUTED ======
 [eva:final-states] Values at end of function main:
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   __fc_ctime[0..25] ∈ [--..--]
   __fc_time_tm{.tm_sec; .tm_min; .tm_hour; .tm_mday; .tm_mon; .tm_year; .tm_wday; .tm_yday; .tm_isdst; .tm_gmtoff} ∈
               [--..--]

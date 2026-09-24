@@ -146,7 +146,7 @@
 [eva:progress] Done for function main
 [eva] ====== VALUES COMPUTED ======
 [eva:final-states] Values at end of function main:
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   __fc_mbrtoc8_internal_mbstate ∈ [--..--]
   __fc_c8rtomb_internal_mbstate ∈ [--..--]
   __fc_mbrtoc16_internal_mbstate ∈ [--..--]
