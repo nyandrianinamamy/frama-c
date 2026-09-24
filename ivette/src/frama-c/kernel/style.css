@@ -378,6 +378,11 @@ label.locations {
     padding: 5px;
     background-color: var(--background-sidebar);
 
+    .dome-xButton {
+      padding: 2px 5px;
+      line-height: 1;
+    }
+
     .sidebar-files-tools-filter {
         display: flex;
         flex-wrap: wrap;
