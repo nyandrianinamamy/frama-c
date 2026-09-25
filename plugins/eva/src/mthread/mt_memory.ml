@@ -33,21 +33,6 @@ module Types = struct
     try Cil_datatype.Stmt.Map.find s m
     with Not_found -> Cvalue.Model.bottom
 
-  let functions_states_to_request h stmt =
-    let state =
-      try Cil_datatype.Stmt.Hashtbl.find h stmt
-      with Not_found -> Cvalue.Model.bottom
-    in
-    Results.in_cvalue_state state
-
-  let iter_requests = function
-    | Global ->
-      fun stmt f ->
-        let requests = Results.(before stmt |> by_callstack |> List.map snd) in
-        List.iter (fun request-> f request) requests
-    | Local hs ->
-      fun stmt f -> f (functions_states_to_request hs stmt)
-
   let merge_map_non_map_functions_states map h =
     Cil_datatype.Stmt.Hashtbl.fold
       (fun stmt state m ->

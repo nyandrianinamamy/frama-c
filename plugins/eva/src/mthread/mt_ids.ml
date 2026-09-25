@@ -6,54 +6,172 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open Mt_memory.Types
+type state = Mt_memory.Types.state
+type value = Mt_memory.Types.value
 
-type id_type = IdThread | IdMutex | IdQueue
+let array_size (v : Cil_types.varinfo) =
+  let exception Not_an_array in
+  try
+    match Ast_types.C.unroll_node v.vtype with
+    | TArray (_, size) -> Cil.lenOfArray size
+    | _ -> raise Not_an_array
+  with Not_an_array | Cil.LenOfArray _ ->
+    Self.abort
+      "Incorrect declaration of variable %S, required for the Mthread analysis."
+      v.vname
 
-let to_string = function
-  | IdThread -> "thread"
-  | IdMutex -> "mutex"
-  | IdQueue -> "queue"
+module type Data = sig
+  type t
+  val reprs : t list
+  val name : string
+  val pretty : Format.formatter -> t * int -> unit
+  val array_of_ids : unit -> Cil_types.varinfo
+end
 
-type raw_id = id_type * int
+module type Identity = sig
+  type t
+  val reprs : t list
+  val equal : t -> t -> bool
+  val compare : t -> t -> int
+  val hash : t -> int
+end
 
-let pretty_raw_id fmt (idt, offset) =
-  Format.fprintf fmt "%s_%d" (to_string idt) offset
+module type S = sig
+  include Datatype.S_with_collections
+  val label : t -> string
+  val id : t -> int
+  val find : int -> t option
 
+  val read_state : state -> t -> value
+  val read_state_enumerate : int -> state -> t -> int list Mt_memory.conversion
+  val write_state : state -> t -> int -> state
+  val replace_value : state -> t -> before:int -> after:int -> state
 
-let array_of_idt = function
-  | IdThread -> Mt_lib.array_threads ()
-  | IdMutex -> Mt_lib.array_mutexes ()
-  | IdQueue -> Mt_lib.array_queues ()
+  val clear : unit -> unit
+end
 
-let pointer_of_id ((idt, offset): raw_id) : pointer =
-  assert (offset > 0);
-  let array = array_of_idt idt
-  and offset = (offset - 1) * (Machine.Sizeof.int ())
-  (* Let us not lose the first cell of the array *)
-  in
-  array, offset
+module Make (Data : Data) = struct
 
+  module Prototype = struct
+    include Datatype.Serializable_undefined
+    type t = { id: int; data: Data.t }
 
-let read_id_state state raw_id =
-  let p = pointer_of_id raw_id in
-  Mt_memory.read_int_pointer p state
+    let name = "Mt_ids.Make(" ^ Data.name ^ ")"
+    let reprs = List.map (fun data -> { id = 0; data }) Data.reprs
+    let equal t1 t2 = Int.equal t1.id t2.id
+    let compare t1 t2 = Int.compare t1.id t2.id
+    let hash th = th.id
+    let pretty fmt t = Data.pretty fmt (t.data, t.id)
+  end
 
-let read_id_state_enumerate cardinal state raw_id =
-  read_id_state state raw_id |>
-  Mt_memory.extract_int_list ~cardinal |>
-  Result.map_error
-    (fun s -> Format.asprintf "Id %a contains %s" pretty_raw_id raw_id s)
+  module D = Datatype.Make_with_collections (Prototype)
+  include D
+  include Prototype
 
+  let info name : (module State_builder.Info_with_size) =
+    (module struct
+      let name = datatype_name ^ "." ^ name
+      let dependencies = []
+      let size = 13
+    end)
 
-let write_id_state state raw_id v =
-  let p = pointer_of_id raw_id in
-  Mt_memory.write_int_pointer p v state
+  module ById =
+    State_builder.Hashtbl (Datatype.Int.Hashtbl) (D) (val info "ById")
 
-let replace_id_value state raw_id ~before ~after =
-  let p = pointer_of_id raw_id in
-  Mt_memory.replace_value_at_int_pointer p ~before ~after state
+  let last_id = ref 0
+  let next_id () = incr last_id; !last_id
 
-let of_thread th = IdThread, Thread.id th
-let of_mutex m = IdMutex, Mutex.id m
-let of_queue q = IdQueue, Mqueue.id q
+  let make data =
+    let t = { id = next_id (); data } in
+    ById.add t.id t;
+    t
+
+  let find = ById.find_opt
+
+  let id t = t.id
+  let get t = t.data
+  let label = Pretty_utils.to_string pretty
+
+  let pointer_of_id id : Mt_memory.Types.pointer =
+    let array = Data.array_of_ids () in
+    assert (id > 0 && id <= array_size array);
+    (* Let us not lose the first cell of the array *)
+    let offset = (id - 1) * (Machine.Sizeof.int ()) in
+    array, offset
+
+  let read_state state t =
+    let p = pointer_of_id t.id in
+    Mt_memory.read_int_pointer p state
+
+  let read_state_enumerate cardinal state t =
+    read_state state t |>
+    Mt_memory.extract_int_list ~cardinal |>
+    Result.map_error
+      (fun s -> Format.asprintf "%s id %i contains %s" Data.name t.id s)
+
+  let write_state state t v =
+    let p = pointer_of_id t.id in
+    Mt_memory.write_int_pointer p v state
+
+  let replace_value state t ~before ~after =
+    let p = pointer_of_id t.id in
+    Mt_memory.replace_value_at_int_pointer p ~before ~after state
+
+  (* Check that [id] fits in the C array used by the cvalue domain
+     to represent its state. Do not check ids from [created_global], as they
+     are created before the AST, so these C arrays don't exist yet. *)
+  let check_id id =
+    let len = Data.array_of_ids () |> array_size in
+    if id > len then
+      Self.abort
+        "Too many %s ids, unable to register another one. Try to \
+         increase MTHREAD_NUMBER_IDS above %d in the preprocessing directive."
+        Data.name len
+
+  let create data =
+    let t = make data in
+    check_id t.id;
+    t
+
+  (* Values created with [create_global] always exist and should not be affected
+     by function [clear] below. *)
+  let global_values = ref []
+
+  let create_global data =
+    let t = make data in
+    global_values := t :: !global_values;
+    t
+
+  let clear_ref = ref []
+
+  module Memoization (Identity: Identity) = struct
+
+    module Id_Prototype = struct
+      include Datatype.Serializable_undefined
+      include Identity
+      let name = "Eva." ^ Data.name ^ ".Identity"
+    end
+    module Id_Datatype = Datatype.Make_with_collections (Id_Prototype)
+
+    module Identities =
+      State_builder.Hashtbl (Id_Datatype.Hashtbl) (D) (val info "Identities")
+
+    let () = clear_ref := Identities.clear :: !clear_ref
+
+    let create identity data =
+      Identities.memo (fun _ -> create data) identity
+
+    let mem_identity = Identities.mem
+    let fold_identity = Identities.fold
+  end
+
+  let clear () =
+    last_id := 0;
+    ById.clear ();
+    List.iter (fun clear -> clear ()) !clear_ref;
+    let reset t =
+      last_id := max !last_id t.id;
+      ById.add t.id t
+    in
+    List.iter reset !global_values
+end

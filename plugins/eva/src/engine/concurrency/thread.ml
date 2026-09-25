@@ -8,70 +8,69 @@
 
 (* --- Threads definition --- *)
 
+(* This type only defines immutable properties of threads and is enough
+   to print a human-readable description of the thread. *)
 type kind =
   | Main
   | InterruptHandler of Kernel_function.t
   | Thread of Concurrency.Name.t option
 
-module Prototype =
-struct
-  include Datatype.Serializable_undefined
+module Data = struct
+  type t = kind
+  let name = "thread"
+  let array_of_ids = Mt_lib.array_threads
 
-  (* This type only defines immutable properties of threads and is enough
-     to print a human-readable description of the thread. *)
-  type t = {
-    id: int;
-    kind: kind
-  }
+  let reprs =
+    List.map (fun kf -> InterruptHandler kf) Kernel_function.reprs @
+    List.map (fun name -> Thread (Some name)) Concurrency.Name.reprs
 
-  let name = "Eva.Thread"
-  let main = { id = 1; kind = Main } (* The main thread always is the thread 0 *)
-  let reprs = [main]
-  let equal th1 th2 = Int.equal th1.id th2.id
-  let compare th1 th2 = Int.compare th1.id th2.id
-  let hash th = th.id
-
-  let pretty fmt th =
-    match th.kind with
-    | Thread Some name ->
-      Concurrency.Name.pretty fmt name
-    | Thread None ->
-      Format.fprintf fmt "#%i" th.id
-    | Main ->
-      Format.fprintf fmt "<main>"
+  let pretty fmt (kind, id) =
+    match kind with
+    | Thread Some name -> Concurrency.Name.pretty fmt name
+    | Thread None -> Format.fprintf fmt "#%i" id
+    | Main -> Format.fprintf fmt "<main>"
     | InterruptHandler kf ->
-      Format.fprintf fmt "<interrupt_handler %a>"
-        Kernel_function.pretty kf
+      Format.fprintf fmt "<interrupt_handler %a>" Kernel_function.pretty kf
 end
 
-module Thread = Datatype.Make_with_collections (Prototype)
-include Prototype
-include Thread
+(* The identity of a thread is used to choose whether to group thread
+   analyses or not. If two spawned threads share the same identity, they
+   will be handled in the same analysis. *)
+module Identity = struct
 
+  type key =
+    | ByName of Concurrency.Name.t
+    | BySpawnPoint of Position.Local.t
+    | ByInterruptHandler of Kernel_function.t
+  [@@deriving eq, ord]
+
+  type t = { key: key; entry_point: Kernel_function.t; } [@@deriving eq, ord]
+
+  let key_reprs =
+    List.map (fun name -> ByName name) Concurrency.Name.reprs @
+    List.map (fun pos -> BySpawnPoint pos) Position.Local.reprs @
+    List.map (fun kf -> ByInterruptHandler kf) Kernel_function.reprs
+
+  let reprs =
+    List.product_map
+      (fun key entry_point -> { key; entry_point })
+      key_reprs Kernel_function.reprs
+
+  let hash_key = function
+    | ByName name -> Hashtbl.hash (1, Concurrency.Name.hash name)
+    | BySpawnPoint al -> Hashtbl.hash (2, Position.Local.hash al)
+    | ByInterruptHandler kf -> Hashtbl.hash (3, Kernel_function.hash kf)
+
+  let hash { key; entry_point } =
+    Hashtbl.hash (hash_key key, Kernel_function.hash entry_point)
+end
+
+include Mt_ids.Make (Data)
+include Memoization (Identity)
+
+let main = create_global Main
 let is_main = equal main
-let id th = th.id
-let label th = Pretty_utils.to_string pretty th
-
-
-(* --- Threads registering --- *)
-
-module ThreadsById = State_builder.Hashtbl (Datatype.Int.Hashtbl) (Thread)
-    (struct
-      let name = "Eva.Thread.ThreadsById"
-      let dependencies = []
-      let size = 13
-    end)
-
-let last_thread_id = ref main.id
-
-let create kind =
-  incr last_thread_id;
-  let th = { id = !last_thread_id; kind } in
-  ThreadsById.add th.id th;
-  th
-
-let find id =
-  if Int.equal id main.id then Some main else ThreadsById.find_opt id
+let main_id = id main
 
 let from_callstack cs =
   match find cs.Callstack.thread with
@@ -91,70 +90,6 @@ let from_position pos =
   (* The only position that do not have a callstack associated is GlobalInit.
      The global variables initialization are done by the main thread. *)
   |> Option.fold ~some:from_callstack ~none:main
-
-(* --- Thread identity --- *)
-
-(* The identity of a thread is used to choose whether to group thread
-   analyses or not. If two spawned threads share the same identity, they
-   will be handled in the same analysis. *)
-
-module Identity =
-struct
-  module Key =
-  struct
-    type t =
-      | ByName of Concurrency.Name.t
-      | BySpawnPoint of Position.Local.t
-      | ByInterruptHandler of Kernel_function.t
-    [@@deriving eq, ord]
-
-    let reprs =
-      List.map (fun n -> ByName n) Concurrency.Name.reprs @
-      List.map (fun al -> BySpawnPoint al) Position.Local.reprs @
-      List.map (fun kf -> ByInterruptHandler kf) Kernel_function.reprs
-
-    let hash = function
-      | ByName name ->
-        Stdlib.Hashtbl.hash(1, Concurrency.Name.hash name)
-      | BySpawnPoint al ->
-        Stdlib.Hashtbl.hash(2, Position.Local.hash al)
-      | ByInterruptHandler kf ->
-        Stdlib.Hashtbl.hash(3, Kernel_function.hash kf)
-  end
-
-  module Prototype =
-  struct
-    include Datatype.Serializable_undefined
-
-    type t = {
-      key: Key.t;
-      entry_point: Kernel_function.t;
-    }
-    [@@deriving eq, ord]
-
-    let name = "Eva.Thread.Identity"
-    let reprs =
-      List.concat_map
-        (fun k -> List.map
-            (fun kf -> { key = k ; entry_point = kf })
-            Kernel_function.reprs)
-        Key.reprs
-    let hash identity =
-      let { key ; entry_point } = identity in
-      Stdlib.Hashtbl.hash (Key.hash key, Kernel_function.hash entry_point)
-  end
-
-  include Prototype
-  include Datatype.Make_with_collections (Prototype)
-end
-
-module Identities = State_builder.Hashtbl (Identity.Hashtbl) (Thread)
-    (struct
-      let name = "Eva.Thread.Identities"
-      let dependencies = []
-      let size = 13
-    end)
-
 
 (* --- Thread state --- *)
 
@@ -272,15 +207,17 @@ module State = State_builder.Hashtbl (Hashtbl) (Properties)
       let size = 13
     end)
 
+let clear () = clear (); State.clear ()
+
 
 let spawn spawn_point name entry_point arguments =
   let key = match name with
-    | Some name -> Identity.Key.ByName name
+    | Some name -> Identity.ByName name
     | None -> BySpawnPoint spawn_point
   in
-  let identity = Identity.Prototype.{ key; entry_point } in
+  let identity = Identity.{ key; entry_point } in
   let kind = Thread name in
-  let th = Identities.memo (fun _ -> create kind) identity in
+  let th = create identity kind in
   let properties = match State.find_opt th with
     (* The thread identity is new; register this thread *)
     | None ->
@@ -293,20 +230,19 @@ let spawn spawn_point name entry_point arguments =
   th
 
 let is_interrupt_handler entry_point =
-  let key = Identity.Key.ByInterruptHandler entry_point in
-  let identity = Identity.Prototype.{ key; entry_point } in
-  Identities.mem identity
+  let key = Identity.ByInterruptHandler entry_point in
+  mem_identity Identity.{ key; entry_point }
 
 let interrupt_handler entry_point =
-  let key = Identity.Key.ByInterruptHandler entry_point in
-  let identity = Identity.Prototype.{ key; entry_point } in
+  let key = Identity.ByInterruptHandler entry_point in
+  let identity = Identity.{ key; entry_point } in
   let kind = InterruptHandler entry_point in
-  Identities.memo (fun _ -> create kind) identity
+  create identity kind
 
 let interrupt_handlers () =
-  Identities.fold
+  fold_identity
     (fun _ th handlers ->
-       match th.kind with
+       match get th with
        | InterruptHandler _ -> th :: handlers
        | Thread _ | Main -> handlers)
     []
@@ -316,14 +252,8 @@ let register_interrupt_handlers kfs =
     (fun kf -> interrupt_handler kf |> ignore)
     kfs
 
-let reset_state () =
-  last_thread_id := 1;
-  ThreadsById.clear ();
-  Identities.clear ();
-  State.clear ()
-
 let properties thread =
-  match thread.kind with
+  match get thread with
   | Main -> Properties.main_properties ()
   | InterruptHandler kf -> Properties.interrupt_properties kf
   | Thread _ -> State.find thread

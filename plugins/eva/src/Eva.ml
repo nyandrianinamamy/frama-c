@@ -45,6 +45,8 @@ module Callstack = Callstack
 (** Types for the memory dependencies of an expression or lvalue. *)
 module Deps = Deps
 
+(** Id of the main thread. It can be used to create callstacks and positions. *)
+module Thread = (Thread : sig val main_id : int end)
 
 (** {2 Configuration of the analysis} *)
 

@@ -8,14 +8,14 @@
 
 (** {2 Thread id} *)
 
-include Datatype.S_with_collections
+include Mt_ids.S
 
 val main : t
 val is_main : t -> bool
 
-val id : t -> int
-val label : t -> string
-val find : int -> t option
+(** Used to create root positions and callstacks for the main thread. *)
+val main_id : int
+
 val from_callstack : Callstack.t -> t
 val from_local_position : Position.local -> t
 val from_position : Position.t -> t
@@ -51,8 +51,6 @@ val interrupt_handlers : unit -> t list
 
 (** Register a set of functions serving as interrupt handlers. *)
 val register_interrupt_handlers : Kernel_function.Set.t -> unit
-
-val reset_state : unit -> unit
 
 type properties = {
   entry_point : Cil_types.kernel_function;
