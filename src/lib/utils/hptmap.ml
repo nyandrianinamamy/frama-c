@@ -1397,14 +1397,24 @@ struct
         end
       end
       else if (Big_Endian.shorter m1 m2) && (match_prefix p2 p1 m1)
-      then
+      then begin
         let sub1 = if (p2 land m1) = 0 then l1 else r1 in
         if sub1 != t2 then comp_prefixes sub1 t2
-        else if (Big_Endian.shorter m2 m1) && (match_prefix p1 p2 m2)
-        then
-          let sub2 = if (p1 land m2) = 0 then l2 else r2 in
-          if sub2 != t1 then
-            comp_prefixes t1 sub2
+      end
+      else if (Big_Endian.shorter m2 m1) && (match_prefix p1 p2 m2)
+      then
+        let sub2 = if (p1 land m2) = 0 then l2 else r2 in
+        if sub2 != t1 then comp_prefixes t1 sub2
+    | Leaf (key, _, _), Branch (p, m, l, r, _) ->
+      let k_id = Key.id key in
+      if match_prefix k_id p m then
+        let sub = if (k_id land m) = 0 then l else r in
+        if sub != t1 then comp_prefixes t1 sub
+    | Branch (p, m, l, r, _), Leaf (key, _, _) ->
+      let k_id = Key.id key in
+      if match_prefix k_id p m then
+        let sub = if (k_id land m) = 0 then l else r in
+        if sub != t2 then comp_prefixes sub t2
     | _, _ -> ()
 
   let rec find_prefix t (p, m as prefix) =
