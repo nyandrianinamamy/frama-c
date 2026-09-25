@@ -1,4 +1,6 @@
 [kernel] Parsing pragma.i (no preprocessing)
+[kernel:pp:line-directive] pragma.i:1: Warning: 
+  unexpected '#' directive in preprocessed file
 [kernel] pragma.i:12: Warning: Unexpected attribute in #pragma
 [kernel] pragma.i:14: Warning: Unexpected attribute in #pragma
 [kernel] pragma.i:15: Warning: Unexpected attribute in #pragma

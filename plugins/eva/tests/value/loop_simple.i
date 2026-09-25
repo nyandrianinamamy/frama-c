@@ -1,6 +1,6 @@
 int i,j,k,n,r;
 
-#if 0
+
 void main2() {
   r=0;
   goto L;
@@ -15,7 +15,7 @@ void main2() {
 
   r=10;
 }
-#endif
+
 
 int main() {
   r = 0;

@@ -731,7 +731,7 @@ and hash = parse
 
   (* #line directive, the "line" before the number can be omitted. *)
   | ("line" blank +)? (intnum as s)
-    { 
+    {
     let msg () = Kernel.warning "Bad line number in preprocessed file: %s" s in
     let lineno = try int_of_string s with Failure _ -> msg () ; 0 in
     (* A file name may follow *)
@@ -749,9 +749,15 @@ and hash = parse
     }
 
   | "pragma"  { pragmaLine := true ; PRAGMA (currentLoc ()) }
-  | _         { endline lexbuf }
+  | _
+    {
+    let loc = currentLoc () in
+    Kernel.warning ~wkey:Kernel.wkey_line_directive ~loc ~once:true 
+      "unexpected '#' directive in preprocessed file";
+    endline lexbuf
+    }
 
-and ignore_line_end = parse 
+and ignore_line_end = parse
   | '\n' { E.newline () }
   | eof { }
   | _ { ignore_line_end lexbuf }

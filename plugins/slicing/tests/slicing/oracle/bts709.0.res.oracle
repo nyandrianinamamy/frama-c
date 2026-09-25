@@ -122,6 +122,4 @@ void inputsOf_testcase_func_slice_1(void)
 }
 
 
-[kernel] Parsing ocode_0_bts709.i (no preprocessing)
-[kernel:typing:implicit-function-declaration] ocode_0_bts709.i:25: Warning: 
-  Calling undeclared function __FC_assert. Old style K&R code?
+[kernel] Parsing ocode_0_bts709.c (with preprocessing)
