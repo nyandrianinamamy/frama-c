@@ -788,56 +788,52 @@ let dkey_logicusage = Wp_parameters.register_category "logicusage"
 let dkey_refusage = Wp_parameters.register_category "refusage"
 let dkey_wp_rte = Wp_parameters.register_category "wp-rte"
 
-let cmdline_run () =
+let cmdline_run fct =
   begin
     if Wp_parameters.CachePrint.get () then
       Wp_parameters.feedback "Cache directory: %a"
         Filepath.pretty (Wp_parameters.CacheDir.get ()) ;
-    let fct = Wp_parameters.get_fct () in
-    if fct <> Wp_parameters.Fct_none then
+    Wp_parameters.feedback ~ontty:`Feedback "Running WP plugin...";
+    let generator = Generator.create () in
+    let model = generator#model in
+    Ast.compute ();
+    Dyncall.compute ();
+    if Wp_parameters.has_dkey dkey_wp_rte then
       begin
-        Wp_parameters.feedback ~ontty:`Feedback "Running WP plugin...";
-        let generator = Generator.create () in
-        let model = generator#model in
-        Ast.compute ();
-        Dyncall.compute ();
-        if Wp_parameters.has_dkey dkey_wp_rte then
-          begin
-            if Wp_parameters.RTE.get () then
-              WpRTE.generate_all model ;
-          end ;
-        if Wp_parameters.has_dkey dkey_logicusage then
-          begin
-            LogicUsage.compute ();
-            LogicUsage.dump ();
-          end ;
-        if Wp_parameters.has_dkey dkey_refusage then
-          begin
-            RefUsage.compute ();
-            RefUsage.dump ();
-          end ;
-        let bhv = Wp_parameters.Behaviors.get () in
-        let prop = Wp_parameters.Properties.get () in
-        (* TODO entry point *)
-        if Wp_parameters.has_dkey dkey_builtins then
-          begin
-            WpContext.on_context (model,WpContext.Global)
-              LogicBuiltins.dump ();
-          end ;
-        WpTarget.compute model ~fct ~bhv ~prop () ;
-        wp_compute_memory_context model ;
-        if Wp_parameters.CheckMemoryContext.get () then
-          wp_insert_memory_context model ;
-        let goals = generator#compute_main ~fct ~bhv ~prop () in
-        do_wp_proofs goals ;
-        begin
-          if fct <> Wp_parameters.Fct_all then
-            do_wp_print_for goals
-          else
-            do_wp_print model ;
-        end ;
-        do_wp_report model ;
-      end
+        if Wp_parameters.RTE.get () then
+          WpRTE.generate_all model ;
+      end ;
+    if Wp_parameters.has_dkey dkey_logicusage then
+      begin
+        LogicUsage.compute ();
+        LogicUsage.dump ();
+      end ;
+    if Wp_parameters.has_dkey dkey_refusage then
+      begin
+        RefUsage.compute ();
+        RefUsage.dump ();
+      end ;
+    let bhv = Wp_parameters.Behaviors.get () in
+    let prop = Wp_parameters.Properties.get () in
+    (* TODO entry point *)
+    if Wp_parameters.has_dkey dkey_builtins then
+      begin
+        WpContext.on_context (model,WpContext.Global)
+          LogicBuiltins.dump ();
+      end ;
+    WpTarget.compute model ~fct ~bhv ~prop () ;
+    wp_compute_memory_context model ;
+    if Wp_parameters.CheckMemoryContext.get () then
+      wp_insert_memory_context model ;
+    let goals = generator#compute_main ~fct ~bhv ~prop () in
+    do_wp_proofs goals ;
+    begin
+      if fct <> Wp_parameters.Fct_all then
+        do_wp_print_for goals
+      else
+        do_wp_print model ;
+    end ;
+    do_wp_report model ;
   end
 
 (* ------------------------------------------------------------------------ *)
@@ -882,7 +878,7 @@ let () = Cmdline.run_after_setting_files
 
 let () = Cmdline.run_after_configuring_stage Why3Env.configure
 
-let do_prover_detect () =
+let do_list_provers () =
   if Wp_parameters.ListProvers.get () && not @@ Wp_parameters.is_interactive () then
     let provers = Prover.provers ~filter:Prover.is_extern () in
     if provers = [] then
@@ -901,6 +897,9 @@ let do_prover_detect () =
              (Prover.shortcut p)
              print_ce p
         ) provers
+
+let () =
+  Cmdline.at_normal_exit do_list_provers
 
 (* ------------------------------------------------------------------------ *)
 (* --- Tactic Searching                                                 --- *)
@@ -967,6 +966,9 @@ let do_search_tactics () =
             (fun fmt -> List.iter (pp_parameter fmt) t#params)
       end
 
+let () =
+  Cmdline.at_normal_exit do_search_tactics
+
 (* ------------------------------------------------------------------------ *)
 (* ---  Main Entry Points                                               --- *)
 (* ------------------------------------------------------------------------ *)
@@ -980,7 +982,7 @@ let rec try_sequence jobs () = match jobs with
   | head :: tail ->
     step_finally ~finally:(try_sequence tail) head ()
 
-let sequence jobs () =
+let sequence jobs =
   if Wp_parameters.has_dkey dkey_raised
   then List.iter (fun f -> f ()) jobs
   else try_sequence jobs ()
@@ -1009,18 +1011,18 @@ let tracelog () =
         (Format.pp_print_list ~pp_sep pp_category) active_keys)
   end
 
-let main =
-  sequence [
-    (fun () -> Wp_parameters.debug ~dkey:dkey_main "Start WP plugin...@.") ;
-    do_prover_detect ;
-    do_search_tactics ;
-    prepare_scripts ;
-    cmdline_run ;
-    tracelog ;
-    finalize_scripts ;
-    Wp_parameters.reset ;
-    (fun () -> Wp_parameters.debug ~dkey:dkey_main "Stop WP plugin...@.") ;
-  ]
+let main () =
+  let fct = Wp_parameters.get_fct () in
+  if fct <> Wp_parameters.Fct_none then
+    sequence [
+      (fun () -> Wp_parameters.debug ~dkey:dkey_main "Start WP plugin...@.") ;
+      prepare_scripts ;
+      (fun () -> cmdline_run fct) ;
+      tracelog ;
+      finalize_scripts ;
+      Wp_parameters.reset ;
+      (fun () -> Wp_parameters.debug ~dkey:dkey_main "Stop WP plugin...@.") ;
+    ]
 
 let () = Cmdline.at_normal_exit do_cache_cleanup
 let () = Boot.Main.extend main
