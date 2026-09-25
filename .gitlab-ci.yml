@@ -155,6 +155,7 @@ prepare-wp-cache:
   script:
     - ./nix/shell-checkers.sh "make -f share/Makefile.linting check-lint LINTCK_EXTRA=-s"
     - ./nix/shell-checkers.sh "typos --config=dev/_typos.toml"
+    - ./nix/shell-checkers.sh "./dev/check-shebangs.sh"
 
 .build_template: &headers_template
   script:
