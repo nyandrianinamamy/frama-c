@@ -2,7 +2,7 @@
    STDOPT: +"-eva-widening-delay 1"
 */
 
-#include "__fc_builtin.h"
+
 
 int test1(int n)
 {
@@ -72,4 +72,3 @@ void main(void)
   test2(10);
   test3(10);
 }
-
