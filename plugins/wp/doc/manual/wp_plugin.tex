@@ -1883,14 +1883,25 @@ options, the user should be aware of the following precisions:
   cleared by \texttt{-then}. Hence, running \texttt{-wp-prop A}
   \texttt{-then} \texttt{-wp-fct F} does what you expect:
   properties tagged by \texttt{A} are proved only once.
-\item[\tt -wp-print, -wp-status, -wp-prover, -wp-gen, -wp-detect.]
-  These options do not
-  generate new proof-obligations, but run other actions on all
-  previously generated ones. For the same reasons, they are not saved
-  and cleared by \texttt{-then}.
-\item[\tt -wp-xxx.] All other options are tunings that can be easily
-  turned on and off or set to the desired value.
-  They are saved and kept across \texttt{-then} commands.
+\item[\tt -wp-provers] These option configure the provers to use for
+  generateds proof-obligations. It is cleared after \textsf{WP} run so that a
+  \textsf{Frama-C} run like \texttt{-wp-fct f} \texttt{-wp-prover z3} \texttt{-then}
+  \texttt{-wp-fct g} \texttt{-wp-prover cvc5} indeed uses \textsf{Z3} to prove
+  \texttt{f} and \textsf{CVC5} to prove \texttt{g} (and not \textsf{Z3} +
+  \textsf{CVC5}).
+\item[\tt -wp-print, -wp-status.]
+  These options configure feedback on generated proof obligations, generally
+  they are used for debugging proofs thus positioned to debug particular proofs
+  not all of them. Thus, they are not saved and cleared after a \textsf{WP} run.
+\item[\tt -wp-list-provers, -wp-tactic]
+  These options are used to display information about available provers and
+  tactics, they are run when \textsf{Frama-C} exits.
+\item[\tt -wp-gen -wp-dump]
+  These options are mostly advanced debugging options. Thus, they are not saved
+  and cleared after a \textsf{WP} run.
+\item[\tt -wp-xxx.] All other options are tunings that can be easily turned on
+  and off or set to the desired value. They are saved and kept across
+  \texttt{-then} commands.
 \end{description}
 
 \section{Proof Strategies}
