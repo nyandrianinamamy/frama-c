@@ -1217,7 +1217,7 @@ function SidebarFilesTools(props: SidebarFilesToolProps): React.JSX.Element {
         label=''
         placeholder='Search'
         state={searchByNameState}
-        actions={<Button
+        actions={<IconButton
           icon='TRASH'
           onClick={() =>
             searchByNameState.onChanged(undefined, undefined, false)}
