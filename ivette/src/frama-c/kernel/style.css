@@ -379,7 +379,7 @@ label.locations {
     background-color: var(--background-sidebar);
 
     .dome-xButton {
-      padding: 2px 5px;
+      padding: 3px;
       line-height: 1;
     }
 

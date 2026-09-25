@@ -311,6 +311,7 @@ meter::-webkit-meter-even-less-good-value  {
 
 .dome-xButton-selected.dome-xIconButton svg{
     filter: drop-shadow(0 0 6px var(--text-highlighted));
+    fill: var(--text-highlighted);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -417,7 +418,7 @@ meter::-webkit-meter-even-less-good-value  {
 .dome-xModal-header {
   .dome-xButton {
     height: 20px;
-    padding: 0;
+    padding: 1px;
     border-radius: 4px;
     outline: none ;
     line-height: 1;
