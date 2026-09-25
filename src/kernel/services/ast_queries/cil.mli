@@ -822,16 +822,24 @@ val var: varinfo -> lval
 val evar: ?loc:Fileloc.t -> varinfo -> exp
 
 (** Make an AddrOf. Given an lvalue of type T will give back an expression of
-    type ptr(T). It optimizes somewhat expressions like "& v" and "& v[0]"  *)
+    type ptr(T). It optimizes somewhat expressions like "& v" and "& v[0]" and
+    positions {!Cil_types.vaddrof} and {!Cil_types.faddrof} accordingly.
+    @before Frama-C+dev [vaddrof] and [faddrof] were not set.
+*)
 val mkAddrOf: loc:Fileloc.t -> lval -> exp
 
-(** Creates an expression corresponding to "&v".
-    @since Oxygen-20120901 *)
+(** Creates an expression corresponding to "&v" and positions
+    {!Cil_types.vaddrof} accordingly.
+    @before Frama-C+dev [vaddrof] was not set.
+*)
 val mkAddrOfVi: varinfo -> exp
 
 (** Like mkAddrOf except if the type of lval is an array then it uses
     StartOf. This is the right operation for getting a pointer to the start
-    of the storage denoted by lval. *)
+    of the storage denoted by lval and positions {!Cil_types.vaddrof} and
+    {!Cil_types.faddrof} accordingly.
+    @before Frama-C+dev [vaddrof] and [faddrof] were not set.
+*)
 val mkAddrOrStartOf: loc:Fileloc.t -> lval -> exp
 
 (** Make a Mem, while optimizing AddrOf. The type of the addr must be

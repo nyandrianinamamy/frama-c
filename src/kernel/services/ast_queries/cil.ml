@@ -4868,38 +4868,37 @@ let mkAddrOf ~loc ((b, off) as lval) : exp =
   let fatal kind =
     Kernel.fatal "Taking the address of a %s with &[ %a ]" kind !pp_lval_ref lval
   in
-  begin match b with
-    | Var vi when vi.vstorage = Register -> fatal "register variable"
-    | _ -> ()
-  end;
-  begin match lastOffset off with
-    | Field (fi, _) when Option.is_some fi.fbitfield -> fatal "bitfield"
+  begin match b, lastOffset off with
+    | _, Field ({ fbitfield = Some _}, _) -> fatal "bitfield"
+    | Var { vstorage = Register }, _ -> fatal "register variable"
+    | _, Field (fi, _) -> fi.faddrof <- true
+    | Var vi, _ -> vi.vaddrof <- true
     | _ -> ()
   end;
   match lval with
   | Mem e, NoOffset -> e
   | b, Index(z, NoOffset) when isZero z -> new_exp ~loc (StartOf (b, NoOffset))
-  (* array *)
   | _ -> new_exp ~loc (AddrOf lval)
 
-let mkAddrOfVi vi = mkAddrOf ~loc:vi.vdecl (var vi)
+let mkAddrOfVi vi =
+  mkAddrOf ~loc:vi.vdecl (var vi)
 
 let mkAddrOrStartOf ~loc (lv: lval) : exp =
   match Ast_types.C.unroll_skel (typeOfLval lv) with
-  | TArray _ -> new_exp ~loc (StartOf lv)
+  | TArray _ ->
+    begin match lv with
+      | Var vi, _ -> vi.vaddrof <- true
+      | _ -> ()
+    end;
+    new_exp ~loc (StartOf lv)
   | _ -> mkAddrOf ~loc lv
 
 let mkMem ~(addr: exp) ~(off: offset) : lval =
-  let res =
-    match addr.enode, off with
-    | AddrOf lv, _ -> addOffsetLval off lv
-    | StartOf lv, _ -> (* Must be an array *)
-      addOffsetLval (Index(zero ~loc:addr.eloc, off)) lv
-    | _, _ -> Mem addr, off
-  in
-  (* ignore (E.log "memof : %a:%a\nresult = %a\n" d_plainexp addr d_plainoffset
-     off d_plainexp res); *)
-  res
+  match addr.enode with
+  | AddrOf lv -> addOffsetLval off lv
+  | StartOf lv -> (* Must be an array *)
+    addOffsetLval (Index(zero ~loc:addr.eloc, off)) lv
+  | _ -> Mem addr, off
 
 let mkTermMem ~(addr: term) ~(off: term_offset) : term_lval =
   let loc = addr.term_loc in

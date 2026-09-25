@@ -6781,7 +6781,7 @@ and doExp local_env
                 match !pargs with
                 | marker :: ({enode = SizeOf resTyp} as size) :: _ -> begin
                     (* Make a variable of the desired type *)
-                    let is_real, destlv, r, destlvtyp =
+                    let is_real, ((b, off) as destlv), r, destlvtyp =
                       match !pwhat with
                       | ASet (is_real,lv, r, lvt) -> is_real, lv, r, lvt
                       | _ ->
@@ -6790,6 +6790,11 @@ and doExp local_env
                         false, Cil.var v, [], resTyp
                     in
                     pwhat := ASet (is_real, destlv, r, destlvtyp);
+                    begin match b, Cil.lastOffset off with (* mark addrof *)
+                      | _, Field (fi, _) -> fi.faddrof <- true
+                      | Var vi, _ -> vi.vaddrof <- true
+                      | _ -> ()
+                    end;
                     pargs := [marker; size;
                               Cil.new_exp ~loc
                                 (CastE(voidPtrType,

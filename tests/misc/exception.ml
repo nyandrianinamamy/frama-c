@@ -60,7 +60,7 @@ let add_int_ptr_exn glob f =
     Cil.new_exp ~loc (BinOp (Gt,c,Cil.kinteger ~loc IInt 150, Cil_const.intType))
   in
   let init =
-    SingleInit (Cil.new_exp ~loc (AddrOf(Var glob,NoOffset)))
+    SingleInit (Cil.mkAddrOfVi glob)
   in
   add_throw_test f Cil_const.intPtrType test init
 
