@@ -55,3 +55,11 @@ val means_yes: string -> bool
 (** Exactly Stdlib.find_first from OCaml 5.5
     @since Frama-C+dev *)
 val find_first : sub:string -> ?start:int -> string -> int option
+
+(** Exactly Stdlib.find_last from OCaml 5.5
+    @since Frama-C+dev *)
+val find_last : sub:string -> ?start:int -> string -> int option
+
+(** Exactly Stdlib.take_first_while from OCaml 5.5
+    @since Frama-C+dev *)
+val take_first_while : (char -> bool) -> string -> string
