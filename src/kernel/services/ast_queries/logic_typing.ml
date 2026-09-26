@@ -3780,6 +3780,12 @@ struct
         Stdlib.(compare (List.sort compare s1) (List.sort compare s2))
     end)
 
+  let is_default_behavior b =
+    Cil.default_behavior_name = b.b_name && b.b_assumes = []
+
+  let find_default_behavior spec_behavior =
+    List.find_opt is_default_behavior spec_behavior
+
   let type_spec old_behaviors loc is_stmt_contract result env s =
     let env = append_here_label env in
     let env_with_result = add_result env result in
@@ -3827,7 +3833,7 @@ struct
     in
 
     let ba_default =
-      match List.find_opt (fun {b_name; _} -> b_name = Cil.default_behavior_name) spec_behavior with
+      match find_default_behavior spec_behavior with
       | Some b -> b.b_assigns
       | None -> WritesAny in
 

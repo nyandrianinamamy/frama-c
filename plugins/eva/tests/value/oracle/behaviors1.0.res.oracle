@@ -389,8 +389,6 @@
   Called from behaviors1.i:491:3-11.
 [eva] using specification for function f2
 [eva:progress] behaviors1.i:491: function f2: precondition got status valid.
-[kernel] behaviors1.i:491: Warning: 
-  keeping only assigns from behaviors: default!
 [eva:progress] Done for function f2
 [eva:progress] Recording results for test_assigns2
 [eva:progress] Done for function test_assigns2
@@ -481,8 +479,6 @@
   Called from behaviors1.i:577:12-18.
 [eva] using specification for function f8
 [eva:progress] behaviors1.i:577: function f8: precondition got status valid.
-[kernel] behaviors1.i:577: Warning: 
-  keeping only assigns from behaviors: default!
 [eva:progress] Done for function f8
 [eva:progress] Recording results for test_small6
 [eva:progress] Done for function test_small6
@@ -494,8 +490,6 @@
   Called from behaviors1.i:592:12-22.
 [eva] using specification for function f8_bis
 [eva:progress] behaviors1.i:592: function f8_bis: precondition got status valid.
-[kernel] behaviors1.i:592: Warning: 
-  keeping only assigns from behaviors: default!
 [eva:progress] Done for function f8_bis
 [eva:progress] Recording results for test_small6_bis
 [eva:progress] Done for function test_small6_bis
