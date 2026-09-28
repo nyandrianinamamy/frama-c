@@ -40,15 +40,19 @@ opam install -y --confirm-level=unsafe-yes \
   ppx_inline_test
 
 # Manually build relocatable why3
-WHY3_VERSION="$(jq '.why3.version' nix/sources.json)"
+WHY3_VERSION="$(jq --raw-output '.why3.version' "$SCRIPT_DIR/../nix/sources.json")"
 WHY3="why3-$WHY3_VERSION"
+echo "### Found Why3 version '$WHY3_VERSION'"
 
 rm -rf "$WHY3*"
-curl "https://why3.gitlabpages.inria.fr/releases/$WHY3.tar.gz" -o "$WHY3.tar.gz"
+WHY3_URL="https://why3.gitlabpages.inria.fr/releases/$WHY3.tar.gz"
+echo "### Downloading '$WHY3_URL'"
+curl "$WHY3_URL" -o "$WHY3.tar.gz"
 tar xzf "$WHY3.tar.gz"
 
 cd "$WHY3" || exit 1 ;
 
+echo "### Compiling Why3"
 ./configure \
   --enable-relocation \
   --disable-frama-c \
