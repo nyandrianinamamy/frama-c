@@ -214,6 +214,86 @@ module Search = struct
           -1
         end
       with Exit -> !j
+
+  let[@inline] get s i = get s (length s - 1 - i)
+
+  let rfind_maximal_suffix_and_period ~sub =
+    let sublen = length sub in
+    let i = ref (-1) and j = ref 0 and k = ref 1 and p = ref 1 in
+    let[@inline] maximal_suffix ~order =
+      while (!j + !k < sublen) do
+        let c = order * Char.compare (get sub (!j + !k)) (get sub (!i + !k)) in
+        if c < 0 then (j := !j + !k; k := 1; p := !j - !i) else
+        if c > 0 then (i := !j; j := !i + 1; k := 1; p := 1) else
+          (* c = 0 *)
+        if !k = !p then (j := !j + !p; k := 1) else incr k
+      done;
+    in
+    (maximal_suffix[@inlined]) ~order:1;
+    let l0 = !i and p0 = !p in
+    i := -1; j := 0; k := 1; p := 1;
+    (maximal_suffix[@inlined]) ~order:(-1);
+    let l1 = !i and p1 = !p in
+    if l0 > l1 then (l0, p0) else (l1, p1)
+
+  let ris_sub_periodic ~sub ~rsub_lp:(l, p) =
+    l <= p &&
+    let i = ref 0 in
+    while !i <= l && Char.equal (get sub !i) (get sub (!i + p))
+    do incr i done;
+    !i > l
+
+  let rfind ~start ~sub ~rsub_lp:(l, p) ~rsub_periodic s = (* -1 on not found *)
+    let slen = length s and sublen = length sub in
+    if not (0 <= start && start <= slen) then invalid_start ~start slen else
+      let start =
+        (* In the reverse space we start searches at the index of the end of
+           [sub] so we need to adjust start to search from there which is the
+           index [start + sublen - 1]. This index is then converted into the
+           reverse index space. That may end up negative, e.g. if [start] is
+           toward the end and [sub] is large so we clamp to 0. *)
+        Int.max 0 (slen - 1 - (start + (sublen - 1)))
+      in
+      let smax = slen - sublen in
+      let j = ref start in
+      try
+        if rsub_periodic then begin
+          let memory = ref (-1) in
+          while (!j <= smax) do
+            let i = ref (1 + Int.max l !memory) in
+            while (!i < sublen && Char.equal (get sub !i) (get s (!i + !j)))
+            do incr i done;
+            if !i < sublen then (j := !j + (!i - l); memory := -1) else
+              begin
+                i := l;
+                while (!i > !memory && Char.equal (get sub !i) (get s (!i + !j)))
+                do decr i done;
+                if !i <= !memory then raise_notrace Exit else
+                  (j := !j + p; memory := sublen - p - 1)
+              end
+          done;
+          -1
+        end else begin
+          let q = 1 + Int.max (l + 1) (sublen - l - 1) in
+          while (!j <= smax) do
+            let i = ref (l + 1) in
+            while (!i < sublen && Char.equal (get sub !i) (get s (!i + !j)))
+            do incr i done;
+            if !i < sublen then (j := !j + (!i - l)) else
+              begin
+                i := l;
+                while (!i >= 0 && Char.equal (get sub !i) (get s (!i + !j)))
+                do decr i done;
+                if !i < 0 then raise_notrace Exit else (j := !j + q)
+              end
+          done;
+          -1
+        end
+      with Exit ->
+        (* This transforms back from the reverse space and compensates
+           for the fact that we found the index of the end of [sub]. *)
+        slen - 1 - (!j + (sublen - 1))
+
 end
 
 let find_first ~sub =
@@ -222,3 +302,16 @@ let find_first ~sub =
   fun ?(start = 0) s ->
     match Search.find ~start ~sub ~sub_lp ~sub_periodic s with
     | -1 -> None | i -> Some i
+
+let find_last ~sub =
+  let rsub_lp = Search.rfind_maximal_suffix_and_period ~sub in
+  let rsub_periodic = Search.ris_sub_periodic ~sub ~rsub_lp in
+  fun ?start s ->
+    let start = match start with None -> length s | Some s -> s in
+    match Search.rfind ~start ~sub ~rsub_lp ~rsub_periodic s with
+    | -1 -> None | i -> Some i
+
+let take_first_while sat s =
+  let len = length s and i = ref 0 in
+  while !i < len && sat (unsafe_get s !i) do incr i done;
+  if !i = len then s else sub s 0 !i

@@ -1,0 +1,6 @@
+[
+    { "directory": ".",
+      "command": "gcc -E -std=c17",
+      "file": "warn-std-in-extra-args.c"
+    }
+]

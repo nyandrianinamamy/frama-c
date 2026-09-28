@@ -1,3 +1,3 @@
 [kernel:pp:extra-args-std] Warning: 
-  -cpp-extra-args-for-file warn-std-in-extra-args.c contains '-std'; make sure it is consistent with Frama-C's '-std' option
+  Preprocessing options contain '-std='; make sure they are consistent with Frama-C's '-std' option. These arguments may come from -cpp-command, -cpp-extra-args, -cpp-extra-args-per-file, or from a compilation database. Use '-kernel-warn-key=pp:extra-args-std=inactive' to disable this warning.
 [kernel] Parsing warn-std-in-extra-args.c (with preprocessing)

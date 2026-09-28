@@ -450,8 +450,8 @@ let silence_cpp_machdep_warnings cmdl =
 let std_name cmdl =
   let exe = cpp_name cmdl in
   if exe = "cl"
-  then "/std"
-  else "-std"
+  then "/std:"
+  else "-std="
 
 let c_standard_option cmdl =
   let exe = cpp_name cmdl in
@@ -481,25 +481,54 @@ let censored_macros cpp_args =
     known_bad_macros
     (List.(flatten (map (String.split_on_char ' ') cpp_args)))
 
-let has_std cmdl =
-  List.exists
-    (fun s -> Option.is_some @@ String.find_first ~sub:(std_name cmdl) s)
+
+(* is_white is to be replaced with {!Char.Ascii.is_white} when the minimal
+   supported OCaml is 5.4 *)
+let is_white c =
+  c = ' ' || c = '\t' || c = '\r' || c = '\n'
+
+(* If several occurrences of '-std=/std:' are found, only considers the last one
+   (as do most compilers). Iterates the list of extra args in reverse order and
+   stops when the first is found. *)
+let get_last_std_arg cmdl l =
+  let exception Found of string in
+  try
+    let l' = List.rev l in
+    List.iter (fun s ->
+        match String.find_last ~sub:(std_name cmdl) s with
+        | None -> ()
+        | Some i ->
+          let n = String.length s in
+          let i' = i + 5 (* i + '-std=' or '/std:' *) in
+          let rest = String.sub s i' (n-i') in
+          let arg =
+            String.take_first_while (fun c -> not (is_white c)) rest
+          in
+          raise (Found arg)
+      ) l';
+    None
+  with Found arg -> Some arg
+
+let check_inconsistent_std_args cmdl extra_args =
+  match get_last_std_arg cmdl (cmdl :: extra_args) with
+  | None -> ()
+  | Some arg ->
+    let kernel_std = Kernel.CStd.get () in
+    let kernel_arg = List.assoc kernel_std Kernel.CStd.values in
+    if arg <> kernel_arg then
+      Kernel.warning ~wkey:Kernel.wkey_pp_double_std ~once:true
+        "Preprocessing options contain '%s'; make sure they are consistent \
+         with Frama-C's '-std' option. These arguments may come from \
+         -cpp-command, -cpp-extra-args, -cpp-extra-args-per-file, \
+         or from a compilation database. \
+         Use '-kernel-warn-key=%s=inactive' to disable this warning."
+        (std_name cmdl) (Kernel.wkey_name Kernel.wkey_pp_double_std)
 
 let build_cpp_cmd = function
   | NoCPP _ | External _ -> None
   | NeedCPP (f, cmdl, extra_for_this_file, is_gnu_like) ->
-    if has_std cmdl @@ Kernel.CppExtraArgs.get () then
-      Kernel.warning ~wkey:Kernel.wkey_pp_double_std ~once:true
-        "-cpp-extra-args contains '%s'; make sure it is consistent with \
-         Frama-C's '-std' option"
-        (std_name cmdl);
-    if has_std cmdl extra_for_this_file then
-      Kernel.warning ~wkey:Kernel.wkey_pp_double_std
-        "-cpp-extra-args-for-file %a contains '%s'; make sure it is consistent \
-         with Frama-C's '-std' option"
-        Filepath.pretty f
-        (std_name cmdl);
     let extra_args = extra_for_this_file @ Kernel.CppExtraArgs.get () in
+    check_inconsistent_std_args cmdl extra_args;
     if not (Filesystem.exists f) then
       Kernel.abort "source file %a does not exist"
         Filepath.pretty f;

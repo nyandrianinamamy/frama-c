@@ -1084,17 +1084,19 @@ type iso_c = C11 | C17 | C23 | C2y
 
 let () = Parameter_customize.set_group parsing
 let () = Parameter_customize.do_not_reset_on_copy ()
-module CStd =
-  P.Enum
-    (struct
-      type t = iso_c
-      let default = C11
-      let option_name = "-std"
-      let help =
-        "Configures the ISO standard to use. Note that your preprocessor must \
-         support it, else it will lead to preprocessing failure."
-      let values = [ C11, "c11" ; C17, "c17" ; C23, "c23"  ; C2y, "c2y"]
-    end)
+module CStd = struct
+  let values = [ C11, "c11" ; C17, "c17" ; C23, "c23"  ; C2y, "c2y"]
+  include P.Enum
+      (struct
+        type t = iso_c
+        let default = C11
+        let option_name = "-std"
+        let help =
+          "Configures the ISO standard to use. Note that your preprocessor must \
+           support it, else it will lead to preprocessing failure."
+        let values = values
+      end)
+end
 
 type attr_info =
     Default | Class of string | Print of bool | Ignore of bool

@@ -357,7 +357,10 @@ val normalization_parameters: unit -> Typed_parameter.t list
 
 type iso_c = C11 | C17 | C23 | C2y
 
-module CStd: Parameter_sig.S with type t = iso_c
+module CStd: sig
+  include Parameter_sig.S with type t = iso_c
+  val values: (iso_c * string) list
+end
 (** ISO C version to consider.
     @since 32.0-Germanium
 *)
