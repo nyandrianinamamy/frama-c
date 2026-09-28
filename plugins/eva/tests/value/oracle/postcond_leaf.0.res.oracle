@@ -68,7 +68,11 @@
 
 [ Extern  ] Post-condition for 'b' ("postcond_leaf.c", line 28)
             Unverifiable but considered Valid.
+[ Extern  ] Assigns for 'b' ("postcond_leaf.c", line 25)
+            Unverifiable but considered Valid.
 [ Extern  ] Assigns ("postcond_leaf.c", line 25)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms for 'b' ("postcond_leaf.c", line 25)
             Unverifiable but considered Valid.
 [ Extern  ] Froms ("postcond_leaf.c", line 25)
             Unverifiable but considered Valid.
@@ -123,6 +127,8 @@
              - Unreachable g2
 [  Alarm  ] Behavior 'b'
             By Frama-C kernel, with pending:
+             - Assigns for 'b' ("postcond_leaf.c", line 52)
+             - Froms for 'b' ("postcond_leaf.c", line 52)
              - Unreachable g2
 
 --------------------------------------------------------------------------------
@@ -155,6 +161,7 @@
              - Unreachable h2
 [  Alarm  ] Behavior 'b'
             By Frama-C kernel, with pending:
+             - Assigns for 'b' nothing
              - Unreachable h2
 
 --------------------------------------------------------------------------------
@@ -197,8 +204,8 @@
 --- Status Report Summary
 --------------------------------------------------------------------------------
      5 Completely validated
-    13 Considered valid
+    15 Considered valid
      6 To be validated
     10 Alarms emitted
-    34 Total
+    36 Total
 --------------------------------------------------------------------------------

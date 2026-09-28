@@ -367,10 +367,12 @@ int main(void)
         behavior pos:
           assumes x >= 0;
           ensures z == x;
+          assigns x;
         
         behavior neg:
           assumes x < 0;
           ensures z == -x;
+          assigns x;
         
         complete behaviors neg, pos;
         disjoint behaviors neg, pos;

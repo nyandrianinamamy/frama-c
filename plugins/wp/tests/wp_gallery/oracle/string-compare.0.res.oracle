@@ -47,7 +47,25 @@
 [wp] Goal typed_stringCompare_assigns_part8 : not tried
 [wp] Goal typed_stringCompare_assigns_part9 : not tried
 [wp] Goal typed_stringCompare_allEqual_ensures : not tried
+[wp] Goal typed_stringCompare_allEqual_assigns_part1 : not tried
+[wp] Goal typed_stringCompare_allEqual_assigns_part2 : not tried
+[wp] Goal typed_stringCompare_allEqual_assigns_part3 : not tried
+[wp] Goal typed_stringCompare_allEqual_assigns_part4 : not tried
+[wp] Goal typed_stringCompare_allEqual_assigns_part5 : not tried
+[wp] Goal typed_stringCompare_allEqual_assigns_part6 : not tried
+[wp] Goal typed_stringCompare_allEqual_assigns_part7 : not tried
+[wp] Goal typed_stringCompare_allEqual_assigns_part8 : not tried
+[wp] Goal typed_stringCompare_allEqual_assigns_part9 : not tried
 [wp] Goal typed_stringCompare_SomeDifferent_ensures : not tried
+[wp] Goal typed_stringCompare_SomeDifferent_assigns_part1 : not tried
+[wp] Goal typed_stringCompare_SomeDifferent_assigns_part2 : not tried
+[wp] Goal typed_stringCompare_SomeDifferent_assigns_part3 : not tried
+[wp] Goal typed_stringCompare_SomeDifferent_assigns_part4 : not tried
+[wp] Goal typed_stringCompare_SomeDifferent_assigns_part5 : not tried
+[wp] Goal typed_stringCompare_SomeDifferent_assigns_part6 : not tried
+[wp] Goal typed_stringCompare_SomeDifferent_assigns_part7 : not tried
+[wp] Goal typed_stringCompare_SomeDifferent_assigns_part8 : not tried
+[wp] Goal typed_stringCompare_SomeDifferent_assigns_part9 : not tried
 [wp] Goal typed_stringLength_terminates : trivial
 [wp] Goal typed_stringLength_ensures_rightResult : not tried
 [wp] Goal typed_stringLength_ensures_rightEndCharacter : not tried

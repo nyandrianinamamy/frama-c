@@ -79,29 +79,421 @@ enum aorai_OpStatusList {
      
      behavior buch_state_S0_out:
        ensures 0 ≡ S0;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns S0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns Sf
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_1
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_2
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_3
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
      
      behavior buch_state_Sf_out:
        ensures 0 ≡ Sf;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns S0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns Sf
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_1
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_2
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_3
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
      
      behavior buch_state_aorai_intermediate_state_out:
        ensures 0 ≡ aorai_intermediate_state;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns S0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns Sf
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_1
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_2
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_3
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
      
      behavior buch_state_aorai_intermediate_state_0_out:
        ensures 0 ≡ aorai_intermediate_state_0;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns S0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns Sf
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_1
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_2
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_3
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
      
      behavior buch_state_aorai_intermediate_state_1_in:
        assumes 1 ≡ aorai_intermediate_state;
        ensures 1 ≡ aorai_intermediate_state_1;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns S0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns Sf
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_1
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_2
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_3
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
      
      behavior buch_state_aorai_intermediate_state_1_out:
        assumes 0 ≡ aorai_intermediate_state;
        ensures 0 ≡ aorai_intermediate_state_1;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns S0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns Sf
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_1
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_2
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_3
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
      
      behavior buch_state_aorai_intermediate_state_2_out:
        ensures 0 ≡ aorai_intermediate_state_2;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns S0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns Sf
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_1
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_2
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_3
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
      
      behavior buch_state_aorai_intermediate_state_3_out:
        ensures 0 ≡ aorai_intermediate_state_3;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns S0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns Sf
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_1
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_2
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_3
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
    @/
   void f_pre_func(void)
   {
@@ -202,29 +594,421 @@ enum aorai_OpStatusList {
      
      behavior buch_state_S0_out:
        ensures 0 ≡ S0;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns S0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns Sf
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_1
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_2
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_3
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
      
      behavior buch_state_Sf_out:
        ensures 0 ≡ Sf;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns S0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns Sf
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_1
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_2
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_3
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
      
      behavior buch_state_aorai_intermediate_state_out:
        ensures 0 ≡ aorai_intermediate_state;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns S0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns Sf
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_1
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_2
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_3
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
      
      behavior buch_state_aorai_intermediate_state_0_in:
        assumes 1 ≡ aorai_intermediate_state_1;
        ensures 1 ≡ aorai_intermediate_state_0;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns S0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns Sf
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_1
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_2
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_3
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
      
      behavior buch_state_aorai_intermediate_state_0_out:
        assumes 0 ≡ aorai_intermediate_state_1;
        ensures 0 ≡ aorai_intermediate_state_0;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns S0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns Sf
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_1
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_2
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_3
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
      
      behavior buch_state_aorai_intermediate_state_1_out:
        ensures 0 ≡ aorai_intermediate_state_1;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns S0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns Sf
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_1
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_2
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_3
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
      
      behavior buch_state_aorai_intermediate_state_2_out:
        ensures 0 ≡ aorai_intermediate_state_2;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns S0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns Sf
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_1
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_2
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_3
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
      
      behavior buch_state_aorai_intermediate_state_3_out:
        ensures 0 ≡ aorai_intermediate_state_3;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns S0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns Sf
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_1
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_2
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_3
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
    @/
   void f_post_func(void)
   {
@@ -350,48 +1134,587 @@ void f(void)
      
      behavior buch_state_S0_out:
        ensures 0 ≡ S0;
+       assigns aorai_counter, aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns S0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns Sf
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_1
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_2
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_3
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
      
      behavior buch_state_Sf_out:
        ensures 0 ≡ Sf;
+       assigns aorai_counter, aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns S0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns Sf
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_1
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_2
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_3
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
      
      behavior buch_state_aorai_intermediate_state_out:
        ensures 0 ≡ aorai_intermediate_state;
+       assigns aorai_counter, aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns S0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns Sf
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_1
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_2
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_3
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
      
      behavior buch_state_aorai_intermediate_state_0_out:
        ensures 0 ≡ aorai_intermediate_state_0;
+       assigns aorai_counter, aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns S0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns Sf
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_1
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_2
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_3
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
      
      behavior buch_state_aorai_intermediate_state_1_out:
        ensures 0 ≡ aorai_intermediate_state_1;
+       assigns aorai_counter, aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns S0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns Sf
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_1
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_2
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_3
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
      
      behavior buch_state_aorai_intermediate_state_2_out:
        ensures 0 ≡ aorai_intermediate_state_2;
+       assigns aorai_counter, aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns S0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns Sf
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_1
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_2
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_3
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
      
      behavior buch_state_aorai_intermediate_state_3_in_0:
        assumes 1 ≡ aorai_intermediate_state_2 ∧ aorai_counter < 2;
        ensures 1 ≡ aorai_intermediate_state_3;
        ensures aorai_counter ≡ \old(aorai_counter) + 1;
+       assigns aorai_counter, aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns S0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns Sf
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_1
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_2
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_3
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
      
      behavior buch_state_aorai_intermediate_state_3_in_1:
        assumes 1 ≡ aorai_intermediate_state_0;
        ensures 1 ≡ aorai_intermediate_state_3;
        ensures aorai_counter ≡ 1;
+       assigns aorai_counter, aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns S0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns Sf
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_1
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_2
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_3
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
      
      behavior buch_state_aorai_intermediate_state_3_in_2:
        assumes 1 ≡ aorai_intermediate_state;
        ensures 1 ≡ aorai_intermediate_state_3;
        ensures aorai_counter ≡ 1;
+       assigns aorai_counter, aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns S0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns Sf
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_1
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_2
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_3
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
      
      behavior buch_state_aorai_intermediate_state_3_out:
        assumes
          (0 ≡ aorai_intermediate_state_2 ∨ ¬(aorai_counter < 2)) ∧
          0 ≡ aorai_intermediate_state_0 ∧ 0 ≡ aorai_intermediate_state;
        ensures 0 ≡ aorai_intermediate_state_3;
+       assigns aorai_counter, aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns S0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns Sf
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_1
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_2
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_3
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
      
      behavior aorai_counter_unchanged:
        assumes 0 ≡ aorai_intermediate_state;
        assumes 0 ≡ aorai_intermediate_state_0;
        assumes 0 ≡ aorai_intermediate_state_2 ∨ ¬(aorai_counter < 2);
        ensures aorai_counter ≡ \old(aorai_counter);
+       assigns aorai_counter, aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns S0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns Sf
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_1
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_2
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_3
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
    @/
   void g_pre_func(void)
   {
@@ -502,29 +1825,421 @@ void f(void)
      
      behavior buch_state_S0_out:
        ensures 0 ≡ S0;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns S0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns Sf
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_1
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_2
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_3
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
      
      behavior buch_state_Sf_out:
        ensures 0 ≡ Sf;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns S0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns Sf
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_1
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_2
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_3
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
      
      behavior buch_state_aorai_intermediate_state_out:
        ensures 0 ≡ aorai_intermediate_state;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns S0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns Sf
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_1
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_2
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_3
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
      
      behavior buch_state_aorai_intermediate_state_0_out:
        ensures 0 ≡ aorai_intermediate_state_0;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns S0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns Sf
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_1
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_2
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_3
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
      
      behavior buch_state_aorai_intermediate_state_1_out:
        ensures 0 ≡ aorai_intermediate_state_1;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns S0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns Sf
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_1
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_2
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_3
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
      
      behavior buch_state_aorai_intermediate_state_2_in:
        assumes 1 ≡ aorai_intermediate_state_3;
        ensures 1 ≡ aorai_intermediate_state_2;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns S0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns Sf
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_1
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_2
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_3
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
      
      behavior buch_state_aorai_intermediate_state_2_out:
        assumes 0 ≡ aorai_intermediate_state_3;
        ensures 0 ≡ aorai_intermediate_state_2;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns S0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns Sf
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_1
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_2
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_3
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
      
      behavior buch_state_aorai_intermediate_state_3_out:
        ensures 0 ≡ aorai_intermediate_state_3;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns S0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns Sf
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_1
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_2
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_3
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
    @/
   void g_post_func(void)
   {
@@ -662,29 +2377,421 @@ void g(void)
      
      behavior buch_state_S0_out:
        ensures 0 ≡ S0;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns S0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns Sf
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_1
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_2
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_3
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
      
      behavior buch_state_Sf_out:
        ensures 0 ≡ Sf;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns S0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns Sf
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_1
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_2
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_3
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
      
      behavior buch_state_aorai_intermediate_state_in:
        assumes 1 ≡ S0;
        ensures 1 ≡ aorai_intermediate_state;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns S0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns Sf
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_1
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_2
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_3
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
      
      behavior buch_state_aorai_intermediate_state_out:
        assumes 0 ≡ S0;
        ensures 0 ≡ aorai_intermediate_state;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns S0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns Sf
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_1
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_2
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_3
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
      
      behavior buch_state_aorai_intermediate_state_0_out:
        ensures 0 ≡ aorai_intermediate_state_0;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns S0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns Sf
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_1
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_2
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_3
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
      
      behavior buch_state_aorai_intermediate_state_1_out:
        ensures 0 ≡ aorai_intermediate_state_1;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns S0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns Sf
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_1
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_2
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_3
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
      
      behavior buch_state_aorai_intermediate_state_2_out:
        ensures 0 ≡ aorai_intermediate_state_2;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns S0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns Sf
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_1
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_2
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_3
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
      
      behavior buch_state_aorai_intermediate_state_3_out:
        ensures 0 ≡ aorai_intermediate_state_3;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns S0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns Sf
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_1
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_2
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_3
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
    @/
   void main_pre_func(int c)
   {
@@ -786,29 +2893,421 @@ void g(void)
      
      behavior buch_state_S0_out:
        ensures 0 ≡ S0;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns S0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns Sf
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_1
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_2
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_3
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
      
      behavior buch_state_Sf_in:
        assumes 1 ≡ aorai_intermediate_state_2 ∧ 1 ≤ aorai_counter;
        ensures 1 ≡ Sf;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns S0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns Sf
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_1
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_2
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_3
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
      
      behavior buch_state_Sf_out:
        assumes 0 ≡ aorai_intermediate_state_2 ∨ ¬(1 ≤ aorai_counter);
        ensures 0 ≡ Sf;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns S0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns Sf
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_1
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_2
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_3
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
      
      behavior buch_state_aorai_intermediate_state_out:
        ensures 0 ≡ aorai_intermediate_state;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns S0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns Sf
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_1
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_2
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_3
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
      
      behavior buch_state_aorai_intermediate_state_0_out:
        ensures 0 ≡ aorai_intermediate_state_0;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns S0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns Sf
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_1
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_2
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_3
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
      
      behavior buch_state_aorai_intermediate_state_1_out:
        ensures 0 ≡ aorai_intermediate_state_1;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns S0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns Sf
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_1
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_2
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_3
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
      
      behavior buch_state_aorai_intermediate_state_2_out:
        ensures 0 ≡ aorai_intermediate_state_2;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns S0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns Sf
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_1
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_2
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_3
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
      
      behavior buch_state_aorai_intermediate_state_3_out:
        ensures 0 ≡ aorai_intermediate_state_3;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns S0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns Sf
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_0
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_1
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_2
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
+       assigns aorai_intermediate_state_3
+         \from aorai_CurOpStatus, aorai_CurOperation, S0, Sf,
+               aorai_intermediate_state, aorai_intermediate_state_0,
+               aorai_intermediate_state_1, aorai_intermediate_state_2,
+               aorai_intermediate_state_3, aorai_counter;
    @/
   void main_post_func(int res)
   {

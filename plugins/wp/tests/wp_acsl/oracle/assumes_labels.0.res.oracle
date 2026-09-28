@@ -50,3 +50,8 @@ Goal Post-condition for 'b1' ("assumes_labels.i", line 6, characters 15-21) in '
 Prove: true.
 
 ------------------------------------------------------------
+
+Goal Assigns for 'b1' ("assumes_labels.i", line 3, characters 13-14) in 'foo':
+Prove: true.
+
+------------------------------------------------------------

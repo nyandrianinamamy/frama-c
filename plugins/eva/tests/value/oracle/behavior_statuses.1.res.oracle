@@ -4,10 +4,10 @@
   under 2 hypothesis
 [kernel:prop-status:emit] 
   Frama-C kernel emits status unknown for property behavior t_null
-  under 0 hypothesis
+  under 2 hypothesis
 [kernel:prop-status:emit] 
   Frama-C kernel emits status unknown for property behavior t_not_null
-  under 0 hypothesis
+  under 2 hypothesis
 [eva] Analyzing a complete application starting at main
 [eva:progress] Computing initial state
 [eva:progress] Initial state computed

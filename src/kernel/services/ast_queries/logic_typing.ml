@@ -3780,6 +3780,12 @@ struct
         Stdlib.(compare (List.sort compare s1) (List.sort compare s2))
     end)
 
+  let is_default_behavior b =
+    Cil.default_behavior_name = b.b_name && b.b_assumes = []
+
+  let find_default_behavior spec_behavior =
+    List.find_opt is_default_behavior spec_behavior
+
   let type_spec old_behaviors loc is_stmt_contract result env s =
     let env = append_here_label env in
     let env_with_result = add_result env result in
@@ -3825,9 +3831,18 @@ struct
         [Cabshelper.mk_behavior ()]
       else spec_behavior
     in
+
+    let ba_default =
+      match find_default_behavior spec_behavior with
+      | Some b -> b.b_assigns
+      | None -> WritesAny in
+
     let b = List.map
         (fun {b_assigns= ba; b_name; b_post_cond=be; b_assumes= bas;
               b_allocation=bfa; b_requires=br; b_extended=bext} ->
+          let ba = match ba with
+            | Writes _ -> ba
+            | WritesAny -> ba_default in
           let typing_context = make_typing_context
               ~pre_state:env
               ~post_state:multiple_post_clauses_state_env

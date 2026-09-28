@@ -13,9 +13,7 @@ int f(int z)
   /*@ assigns x;
       assigns x \from y; */
   __asm__ ("mov %1, %0\n\t" : "=r" (x) : "r" (y));
-  /*@ assigns x, y;
-      
-      behavior c:
+  /*@ behavior c:
         assumes x ≥ 0;
         ensures y ≥ 0;
         assigns y;

@@ -27,12 +27,20 @@ extern  __attribute__((__FC_BUILTIN__)) int __e_acsl_sound_verdict;
       ensures
         result_old_handler_or_error:
           \result == \old(__fc_signal_handlers[sig]) || \result == &SIG_ERR;
+      assigns __fc_signal_handlers[sig], \result;
+      assigns __fc_signal_handlers[sig] \from func;
+      assigns \result
+        \from \old(__fc_signal_handlers[sig]), SIG_ERR, SIG_DFL, SIG_IGN;
     
     behavior old_handler_not_set:
       assumes old_handler_null: __fc_signal_handlers[sig] == \null;
       ensures
         result_ok_or_error:
           \result == &SIG_DFL || \result == &SIG_IGN || \result == &SIG_ERR;
+      assigns __fc_signal_handlers[sig], \result;
+      assigns __fc_signal_handlers[sig] \from func;
+      assigns \result
+        \from \old(__fc_signal_handlers[sig]), SIG_ERR, SIG_DFL, SIG_IGN;
     
     complete behaviors old_handler_not_set, old_handler_is_set;
     disjoint behaviors old_handler_not_set, old_handler_is_set;
@@ -185,12 +193,20 @@ int __gen_e_acsl_raise(int sig)
       ensures
         result_old_handler_or_error:
           \result == \old(__fc_signal_handlers[sig]) || \result == &SIG_ERR;
+      assigns __fc_signal_handlers[sig], \result;
+      assigns __fc_signal_handlers[sig] \from func;
+      assigns \result
+        \from \old(__fc_signal_handlers[sig]), SIG_ERR, SIG_DFL, SIG_IGN;
     
     behavior old_handler_not_set:
       assumes old_handler_null: __fc_signal_handlers[sig] == \null;
       ensures
         result_ok_or_error:
           \result == &SIG_DFL || \result == &SIG_IGN || \result == &SIG_ERR;
+      assigns __fc_signal_handlers[sig], \result;
+      assigns __fc_signal_handlers[sig] \from func;
+      assigns \result
+        \from \old(__fc_signal_handlers[sig]), SIG_ERR, SIG_DFL, SIG_IGN;
     
     complete behaviors old_handler_not_set, old_handler_is_set;
     disjoint behaviors old_handler_not_set, old_handler_is_set;

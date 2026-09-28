@@ -4,7 +4,7 @@
 [wp] Warning: Missing RTE guards
 [wp] [Valid] Goal stringCompare_exits_never (Cfg) (Unreachable)
 [wp] [Valid] Goal stringLength_exits_never (Cfg) (Unreachable)
-[wp] 55 goals scheduled
+[wp] 73 goals scheduled
 [wp] [Valid] typed_stringCompare_complete_SomeDifferent_allEqual (Qed)
 [wp] [Valid] typed_stringCompare_disjoint_SomeDifferent_allEqual (Qed)
 [wp] [Valid] typed_stringCompare_terminates (Qed)
@@ -37,7 +37,25 @@
 [wp] [Valid] typed_stringCompare_assigns_part8 (Qed)
 [wp] [Valid] typed_stringCompare_assigns_part9 (Qed)
 [wp] [Valid] typed_stringCompare_allEqual_ensures (Alt-Ergo) (Cached)
+[wp] [Valid] typed_stringCompare_allEqual_assigns_part1 (Qed)
+[wp] [Valid] typed_stringCompare_allEqual_assigns_part2 (Qed)
+[wp] [Valid] typed_stringCompare_allEqual_assigns_part3 (Qed)
+[wp] [Valid] typed_stringCompare_allEqual_assigns_part4 (Qed)
+[wp] [Valid] typed_stringCompare_allEqual_assigns_part5 (Qed)
+[wp] [Valid] typed_stringCompare_allEqual_assigns_part6 (Qed)
+[wp] [Valid] typed_stringCompare_allEqual_assigns_part7 (Qed)
+[wp] [Valid] typed_stringCompare_allEqual_assigns_part8 (Qed)
+[wp] [Valid] typed_stringCompare_allEqual_assigns_part9 (Qed)
 [wp] [Valid] typed_stringCompare_SomeDifferent_ensures (Alt-Ergo) (Cached)
+[wp] [Valid] typed_stringCompare_SomeDifferent_assigns_part1 (Qed)
+[wp] [Valid] typed_stringCompare_SomeDifferent_assigns_part2 (Qed)
+[wp] [Valid] typed_stringCompare_SomeDifferent_assigns_part3 (Qed)
+[wp] [Valid] typed_stringCompare_SomeDifferent_assigns_part4 (Qed)
+[wp] [Valid] typed_stringCompare_SomeDifferent_assigns_part5 (Qed)
+[wp] [Valid] typed_stringCompare_SomeDifferent_assigns_part6 (Qed)
+[wp] [Valid] typed_stringCompare_SomeDifferent_assigns_part7 (Qed)
+[wp] [Valid] typed_stringCompare_SomeDifferent_assigns_part8 (Qed)
+[wp] [Valid] typed_stringCompare_SomeDifferent_assigns_part9 (Qed)
 [wp] [Valid] typed_stringLength_terminates (Qed)
 [wp] [Valid] typed_stringLength_ensures_rightResult (Alt-Ergo) (Cached)
 [wp] [Valid] typed_stringLength_ensures_rightEndCharacter (Alt-Ergo) (Cached)
@@ -60,13 +78,13 @@
 [wp] [Valid] typed_main_assigns_normal_part2 (Qed)
 [wp] [Valid] typed_main_assigns_exit (Qed)
 [wp] [Valid] typed_main_call_stringCompare_requires_validStrings (Alt-Ergo) (Cached)
-[wp] Proved goals:   57 / 57
+[wp] Proved goals:   75 / 75
   Unreachable:     2
-  Qed:            36
+  Qed:            54
   Alt-Ergo:       19
 ------------------------------------------------------------
  Functions                 WP     Alt-Ergo  Total   Success
-  stringCompare            21       13       34       100%
+  stringCompare            39       13       52       100%
   stringLength             11        4       15       100%
   main                      6        2        8       100%
 ------------------------------------------------------------
@@ -90,7 +108,7 @@
   Alt-Ergo:        6
 ------------------------------------------------------------
  Functions                 WP     Alt-Ergo  Total   Success
-  stringCompare            23       18       41       100%
+  stringCompare            41       18       59       100%
   stringLength             11        5       16       100%
   main                      6        2        8       100%
 ------------------------------------------------------------

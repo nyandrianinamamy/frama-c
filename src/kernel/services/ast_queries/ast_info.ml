@@ -181,7 +181,7 @@ let merge_assigns_internal (get:'b -> assigns) (origin:'b -> string list)
       Some ((a',(false,origin b)),List.length l)
     | (Some((a,(w,orig)),n)), Writes l ->
       let w = (* warning is needed? *)
-        w || (a != a' && a <> WritesAny)
+        w || (not (Logic_utils.is_same_assigns a a') && a <> WritesAny)
       in (* use the number of assigned terms as measure *)
       let m = List.length l in
       if n<0 || m<n then Some((a',(w,origin b)),m) else Some((a,(w,orig)),n)

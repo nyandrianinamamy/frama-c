@@ -15,10 +15,12 @@ lemma foo{L}:
     behavior all_equal:
       assumes ∀ int i; 0 ≤ i < n ⇒ *(a + i) ≡ *(b + i);
       ensures \result ≡ 1;
+      assigns \nothing;
     
     behavior some_not_equal:
       assumes ∃ int i; 0 ≤ i < n ∧ *(a + i) ≢ *(b + i);
       ensures \result ≡ 0;
+      assigns \nothing;
     
     complete behaviors all_equal, some_not_equal;
     disjoint behaviors all_equal, some_not_equal;
@@ -52,10 +54,12 @@ int equal(int const *a, int n, int const *b)
       ensures 0 ≤ \result < \old(n);
       ensures *(\old(a) + \result) ≡ \old(val);
       ensures ∀ int i; 0 ≤ i < \result ⇒ *(\old(a) + i) ≢ \old(val);
+      assigns \nothing;
     
     behavior none:
       assumes ∀ int i; 0 ≤ i < n ⇒ *(a + i) ≢ val;
       ensures \result ≡ \old(n);
+      assigns \nothing;
     
     complete behaviors some, none;
     disjoint behaviors some, none;
@@ -94,10 +98,12 @@ predicate found{A}(int *a, int n, int val) =
       ensures 0 ≤ \result < \old(n);
       ensures *(\old(a) + \result) ≡ \old(val);
       ensures ¬found(\old(a), \result, \old(val));
+      assigns \nothing;
     
     behavior none:
       assumes ¬found(a, n, val);
       ensures \result ≡ \old(n);
+      assigns \nothing;
     
     complete behaviors some, none;
     disjoint behaviors some, none;
@@ -137,10 +143,12 @@ predicate found_first_of{A}(int *a, int m, int *b, int n) =
       ensures 0 ≤ \result < \old(m);
       ensures found(\old(b), \old(n), *(\old(a) + \result));
       ensures ¬found_first_of(\old(a), \result, \old(b), \old(n));
+      assigns \nothing;
     
     behavior not_found:
       assumes ¬found_first_of(a, m, b, n);
       ensures \result ≡ \old(m);
+      assigns \nothing;
     
     complete behaviors found, not_found;
     disjoint behaviors found, not_found;
@@ -175,6 +183,7 @@ int find_first_of(int const *a, int m, int const *b, int n)
     behavior empty:
       assumes n ≡ 0;
       ensures \result ≡ 0;
+      assigns \nothing;
     
     behavior not_empty:
       assumes 0 < n;
@@ -183,6 +192,7 @@ int find_first_of(int const *a, int m, int const *b, int n)
         ∀ int i; 0 ≤ i < \old(n) ⇒ *(\old(a) + i) ≤ *(\old(a) + \result);
       ensures
         ∀ int i; 0 ≤ i < \result ⇒ *(\old(a) + i) < *(\old(a) + \result);
+      assigns \nothing;
     
     complete behaviors empty, not_empty;
     disjoint behaviors empty, not_empty;
@@ -447,10 +457,12 @@ predicate adjacent_found{Label}(int *a, int n) =
       ensures 0 ≤ \result < \old(n) - 1;
       ensures *(\old(a) + \result) ≡ *(\old(a) + (\result + 1));
       ensures ¬adjacent_found(\old(a), \result);
+      assigns \nothing;
     
     behavior none:
       assumes ¬adjacent_found(a, n);
       ensures \result ≡ \old(n);
+      assigns \nothing;
     
     complete behaviors some, none;
     disjoint behaviors some, none;
@@ -487,6 +499,7 @@ int adjacent_find(int *a, int n)
     behavior empty:
       assumes n ≡ 0;
       ensures \result ≡ 0;
+      assigns \nothing;
     
     behavior not_empty:
       assumes 0 < n;
@@ -495,6 +508,7 @@ int adjacent_find(int *a, int n)
         ∀ int i; 0 ≤ i < \old(n) ⇒ *(\old(a) + \result) ≤ *(\old(a) + i);
       ensures
         ∀ int i; 0 ≤ i < \result ⇒ *(\old(a) + \result) < *(\old(a) + i);
+      assigns \nothing;
  */
 int min_element(int *a, int n)
 {

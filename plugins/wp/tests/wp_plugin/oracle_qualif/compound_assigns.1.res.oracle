@@ -8,7 +8,7 @@
 [wp] [Valid] Goal init_terminates (Cfg) (Trivial)
 [wp] [Valid] Goal swap_exits (Cfg) (Unreachable)
 [wp] [Valid] Goal swap_terminates (Cfg) (Trivial)
-[wp] 22 goals scheduled
+[wp] 34 goals scheduled
 [wp] [Valid] region_swap_ensures_P (Alt-Ergo) (Cached)
 [wp] [Valid] region_swap_ensures_Q (Alt-Ergo) (Cached)
 [wp] [Valid] region_swap_assigns_part1 (Qed)
@@ -24,22 +24,34 @@
 [wp] [Valid] region_copy_Left_ensures_CopyQ (Alt-Ergo) (Cached)
 [wp] [Valid] region_copy_Left_ensures_KeepQ (Alt-Ergo) (Cached)
 [wp] [Valid] region_copy_Left_ensures_SaveR (Alt-Ergo) (Cached)
+[wp] [Valid] region_copy_Left_assigns_part1 (Qed)
+[wp] [Valid] region_copy_Left_assigns_part2 (Qed)
+[wp] [Valid] region_copy_Left_assigns_part3 (Qed)
+[wp] [Valid] region_copy_Left_assigns_part4 (Qed)
+[wp] [Valid] region_copy_Left_assigns_part5 (Qed)
+[wp] [Valid] region_copy_Left_assigns_part6 (Qed)
 [wp] [Valid] region_copy_Right_ensures_CopyR (Alt-Ergo) (Cached)
 [wp] [Valid] region_copy_Right_ensures_SaveQ (Alt-Ergo) (Cached)
 [wp] [Valid] region_copy_Right_ensures_KeepR (Alt-Ergo) (Cached)
+[wp] [Valid] region_copy_Right_assigns_part1 (Qed)
+[wp] [Valid] region_copy_Right_assigns_part2 (Qed)
+[wp] [Valid] region_copy_Right_assigns_part3 (Qed)
+[wp] [Valid] region_copy_Right_assigns_part4 (Qed)
+[wp] [Valid] region_copy_Right_assigns_part5 (Qed)
+[wp] [Valid] region_copy_Right_assigns_part6 (Qed)
 [wp] [Valid] region_init_ensures (Alt-Ergo) (Cached)
 [wp] [Valid] region_init_ensures_2 (Alt-Ergo) (Cached)
 [wp] [Unsuccess] region_init_assert_PF_Z3_only (Alt-Ergo) (Cached)
 [wp] [Valid] region_init_assigns (Qed)
-[wp] Proved goals:   27 / 28
+[wp] Proved goals:   39 / 40
   Terminating:     3
   Unreachable:     3
-  Qed:             9
+  Qed:            21
   Alt-Ergo:       12
   Unsuccess:       1
 ------------------------------------------------------------
  Functions                 WP     Alt-Ergo  Total   Success
   swap                      4        2        6       100%
-  copy                      8        8       16       100%
+  copy                     20        8       28       100%
   init                      3        2        6      83.3%
 ------------------------------------------------------------

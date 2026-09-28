@@ -44,6 +44,18 @@ Goal Post-condition for 'EQ' 'Q' in 'f':
 Prove: true.
 
 ------------------------------------------------------------
+
+Goal Assigns for 'EQ' ("affectations.c", line 8) in 'f' (1/2):
+Effect at line 20
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns for 'EQ' ("affectations.c", line 8) in 'f' (2/2):
+Effect at line 21
+Prove: true.
+
+------------------------------------------------------------
 ------------------------------------------------------------
   Function f with behavior SEP
 ------------------------------------------------------------
@@ -94,5 +106,17 @@ Assume {
   Have: q != p.
 }
 Prove: x_2 = x_1.
+
+------------------------------------------------------------
+
+Goal Assigns for 'SEP' ("affectations.c", line 8) in 'f' (1/2):
+Effect at line 20
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns for 'SEP' ("affectations.c", line 8) in 'f' (2/2):
+Effect at line 21
+Prove: true.
 
 ------------------------------------------------------------

@@ -56,26 +56,208 @@ int rr = 1;
      
      behavior buch_state_S1_out:
        ensures 0 ≡ S1;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, i;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, i;
+       assigns S1
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, i;
+       assigns S2
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, i;
+       assigns S3
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, i;
+       assigns S4
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, i;
+       assigns SF
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, i;
+       assigns mainst
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, i;
      
      behavior buch_state_S2_in:
        assumes 1 ≡ S1 ∧ i ≥ 0;
        ensures 1 ≡ S2;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, i;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, i;
+       assigns S1
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, i;
+       assigns S2
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, i;
+       assigns S3
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, i;
+       assigns S4
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, i;
+       assigns SF
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, i;
+       assigns mainst
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, i;
      
      behavior buch_state_S2_out:
        assumes 0 ≡ S1 ∨ ¬(i ≥ 0);
        ensures 0 ≡ S2;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, i;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, i;
+       assigns S1
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, i;
+       assigns S2
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, i;
+       assigns S3
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, i;
+       assigns S4
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, i;
+       assigns SF
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, i;
+       assigns mainst
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, i;
      
      behavior buch_state_S3_out:
        ensures 0 ≡ S3;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, i;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, i;
+       assigns S1
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, i;
+       assigns S2
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, i;
+       assigns S3
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, i;
+       assigns S4
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, i;
+       assigns SF
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, i;
+       assigns mainst
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, i;
      
      behavior buch_state_S4_out:
        ensures 0 ≡ S4;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, i;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, i;
+       assigns S1
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, i;
+       assigns S2
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, i;
+       assigns S3
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, i;
+       assigns S4
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, i;
+       assigns SF
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, i;
+       assigns mainst
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, i;
      
      behavior buch_state_SF_out:
        ensures 0 ≡ SF;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, i;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, i;
+       assigns S1
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, i;
+       assigns S2
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, i;
+       assigns S3
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, i;
+       assigns S4
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, i;
+       assigns SF
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, i;
+       assigns mainst
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, i;
      
      behavior buch_state_mainst_out:
        ensures 0 ≡ mainst;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, i;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, i;
+       assigns S1
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, i;
+       assigns S2
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, i;
+       assigns S3
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, i;
+       assigns S4
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, i;
+       assigns SF
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, i;
+       assigns mainst
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, i;
    @/
   void opa_pre_func(int i, int j)
   {
@@ -147,26 +329,208 @@ int rr = 1;
      
      behavior buch_state_S1_out:
        ensures 0 ≡ S1;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S1
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S2
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S3
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S4
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns SF
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns mainst
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
      
      behavior buch_state_S2_out:
        ensures 0 ≡ S2;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S1
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S2
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S3
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S4
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns SF
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns mainst
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
      
      behavior buch_state_S3_in:
        assumes 1 ≡ S2;
        ensures 1 ≡ S3;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S1
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S2
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S3
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S4
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns SF
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns mainst
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
      
      behavior buch_state_S3_out:
        assumes 0 ≡ S2;
        ensures 0 ≡ S3;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S1
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S2
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S3
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S4
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns SF
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns mainst
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
      
      behavior buch_state_S4_out:
        ensures 0 ≡ S4;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S1
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S2
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S3
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S4
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns SF
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns mainst
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
      
      behavior buch_state_SF_out:
        ensures 0 ≡ SF;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S1
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S2
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S3
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S4
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns SF
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns mainst
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
      
      behavior buch_state_mainst_out:
        ensures 0 ≡ mainst;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S1
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S2
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S3
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S4
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns SF
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns mainst
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
    @/
   void opa_post_func(void)
   {
@@ -255,26 +619,208 @@ void opa(int i, int j)
      
      behavior buch_state_S1_out:
        ensures 0 ≡ S1;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S1
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S2
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S3
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S4
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns SF
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns mainst
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
      
      behavior buch_state_S2_out:
        ensures 0 ≡ S2;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S1
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S2
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S3
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S4
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns SF
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns mainst
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
      
      behavior buch_state_S3_out:
        ensures 0 ≡ S3;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S1
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S2
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S3
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S4
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns SF
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns mainst
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
      
      behavior buch_state_S4_in:
        assumes 1 ≡ S3;
        ensures 1 ≡ S4;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S1
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S2
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S3
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S4
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns SF
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns mainst
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
      
      behavior buch_state_S4_out:
        assumes 0 ≡ S3;
        ensures 0 ≡ S4;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S1
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S2
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S3
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S4
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns SF
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns mainst
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
      
      behavior buch_state_SF_out:
        ensures 0 ≡ SF;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S1
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S2
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S3
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S4
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns SF
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns mainst
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
      
      behavior buch_state_mainst_out:
        ensures 0 ≡ mainst;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S1
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S2
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S3
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S4
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns SF
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns mainst
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
    @/
   void opb_pre_func(void)
   {
@@ -345,26 +891,208 @@ void opa(int i, int j)
      
      behavior buch_state_S1_out:
        ensures 0 ≡ S1;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, res;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, res;
+       assigns S1
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, res;
+       assigns S2
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, res;
+       assigns S3
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, res;
+       assigns S4
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, res;
+       assigns SF
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, res;
+       assigns mainst
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, res;
      
      behavior buch_state_S2_out:
        ensures 0 ≡ S2;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, res;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, res;
+       assigns S1
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, res;
+       assigns S2
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, res;
+       assigns S3
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, res;
+       assigns S4
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, res;
+       assigns SF
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, res;
+       assigns mainst
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, res;
      
      behavior buch_state_S3_out:
        ensures 0 ≡ S3;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, res;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, res;
+       assigns S1
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, res;
+       assigns S2
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, res;
+       assigns S3
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, res;
+       assigns S4
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, res;
+       assigns SF
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, res;
+       assigns mainst
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, res;
      
      behavior buch_state_S4_out:
        ensures 0 ≡ S4;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, res;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, res;
+       assigns S1
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, res;
+       assigns S2
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, res;
+       assigns S3
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, res;
+       assigns S4
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, res;
+       assigns SF
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, res;
+       assigns mainst
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, res;
      
      behavior buch_state_SF_in:
        assumes 1 ≡ S4 ∧ res > 0;
        ensures 1 ≡ SF;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, res;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, res;
+       assigns S1
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, res;
+       assigns S2
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, res;
+       assigns S3
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, res;
+       assigns S4
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, res;
+       assigns SF
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, res;
+       assigns mainst
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, res;
      
      behavior buch_state_SF_out:
        assumes 0 ≡ S4 ∨ ¬(res > 0);
        ensures 0 ≡ SF;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, res;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, res;
+       assigns S1
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, res;
+       assigns S2
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, res;
+       assigns S3
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, res;
+       assigns S4
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, res;
+       assigns SF
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, res;
+       assigns mainst
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, res;
      
      behavior buch_state_mainst_out:
        ensures 0 ≡ mainst;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, res;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, res;
+       assigns S1
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, res;
+       assigns S2
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, res;
+       assigns S3
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, res;
+       assigns S4
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, res;
+       assigns SF
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, res;
+       assigns mainst
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst, res;
    @/
   void opb_post_func(int res)
   {
@@ -454,25 +1182,207 @@ int opb(void)
      behavior buch_state_S1_in:
        assumes 1 ≡ mainst;
        ensures 1 ≡ S1;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S1
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S2
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S3
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S4
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns SF
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns mainst
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
      
      behavior buch_state_S1_out:
        assumes 0 ≡ mainst;
        ensures 0 ≡ S1;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S1
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S2
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S3
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S4
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns SF
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns mainst
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
      
      behavior buch_state_S2_out:
        ensures 0 ≡ S2;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S1
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S2
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S3
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S4
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns SF
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns mainst
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
      
      behavior buch_state_S3_out:
        ensures 0 ≡ S3;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S1
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S2
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S3
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S4
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns SF
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns mainst
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
      
      behavior buch_state_S4_out:
        ensures 0 ≡ S4;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S1
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S2
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S3
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S4
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns SF
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns mainst
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
      
      behavior buch_state_SF_out:
        ensures 0 ≡ SF;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S1
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S2
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S3
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S4
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns SF
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns mainst
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
      
      behavior buch_state_mainst_out:
        ensures 0 ≡ mainst;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S1
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S2
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S3
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S4
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns SF
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns mainst
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
    @/
   void main_pre_func(void)
   {
@@ -542,26 +1452,208 @@ int opb(void)
      
      behavior buch_state_S1_out:
        ensures 0 ≡ S1;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S1
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S2
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S3
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S4
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns SF
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns mainst
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
      
      behavior buch_state_S2_out:
        ensures 0 ≡ S2;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S1
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S2
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S3
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S4
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns SF
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns mainst
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
      
      behavior buch_state_S3_out:
        ensures 0 ≡ S3;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S1
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S2
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S3
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S4
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns SF
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns mainst
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
      
      behavior buch_state_S4_out:
        ensures 0 ≡ S4;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S1
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S2
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S3
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S4
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns SF
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns mainst
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
      
      behavior buch_state_SF_in:
        assumes 1 ≡ SF;
        ensures 1 ≡ SF;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S1
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S2
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S3
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S4
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns SF
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns mainst
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
      
      behavior buch_state_SF_out:
        assumes 0 ≡ SF;
        ensures 0 ≡ SF;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S1
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S2
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S3
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S4
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns SF
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns mainst
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
      
      behavior buch_state_mainst_out:
        ensures 0 ≡ mainst;
+       assigns aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOpStatus
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns aorai_CurOperation
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S1
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S2
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S3
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns S4
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns SF
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
+       assigns mainst
+         \from aorai_CurOpStatus, aorai_CurOperation, S1, S2, S3, S4, SF,
+               mainst;
    @/
   void main_post_func(int res)
   {

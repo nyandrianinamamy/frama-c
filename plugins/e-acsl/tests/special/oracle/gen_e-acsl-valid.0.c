@@ -22,6 +22,8 @@ extern  __attribute__((__FC_BUILTIN__)) int __e_acsl_sound_verdict;
     behavior b2:
       assumes *x == 0;
       ensures *\old(x) == 1;
+      assigns *x;
+      assigns *x \from *x, x;
     
     complete behaviors b2, b1;
     disjoint behaviors b1, b2;
@@ -276,6 +278,8 @@ int main(void)
     behavior b2:
       assumes *x == 0;
       ensures *\old(x) == 1;
+      assigns *x;
+      assigns *x \from *x, x;
     
     complete behaviors b2, b1;
     disjoint behaviors b1, b2;
