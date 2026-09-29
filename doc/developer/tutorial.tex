@@ -720,6 +720,55 @@ Operations to perform when modifying the plug-in code:
   otherwise, fix code and re-run the first steps.
 \end{enumerate}
 
+\subsubsection{Using Frama-C's Test Script}
+
+It is also possible to use the \verb+frama-c-test.sh+ shell script to execute
+all these steps automatically. This script is installed with \verb+frama-c+
+and you shall execute it from the root directory of your plugin. It automatically
+invokes \verb+frama-c-ptests+ and \verb+dune+ to prepare, run and update tests.
+The general command-line syntax is as follows:
+
+\begin{shell}
+\$ frama-c-test.sh [OPTIONS] [PATHS]
+\end{shell}
+
+The script will execute several testing actions (defined by \verb+[OPTIONS]+) on
+one or several tests, an entire directory or all available tests
+(according to \verb+[PATHS]+). The complete list of options is available with
+\verb+frama-c-test.sh --help+. Here is an extract of the most useful ones:
+
+\begin{center}
+\begin{tabular}{l@{\quad}l}
+\hline
+\verb$-p|--ptests$     & run frama-c-ptests before dune \\
+\verb$-l|--logs$       & dump test outputs \\
+\verb$-g|--generate$   & generate missing oracles \\
+\verb$-u|--update$     & update test oracle with dune promote \\
+\verb$-a|--all$        & execute on all test configurations \\
+\verb$-c <cfg>$        & execute only test configuration \verb+<cfg>+ \\
+\hline
+\end{tabular}
+\end{center}
+
+The \verb+frama-c-test.sh+ greatly facilitates all testing operations.
+Using this script is highly recommended instead of using the
+low-level \verb+frama-c-ptests+ and \verb+dune+ commands.
+
+Here is a short cookbook:
+\begin{shell}
+# Adding a new test:
+\$ frama-c-test.sh -p -g -a tests/foo/bar.i
+
+# Checking a test output for a specific configuration:
+\$ frama-c-test.sh -l -c cfg tests/foo/bar.i
+
+# Updating all tests in a directory (default config, no ptests):
+\$ frama-c-test.sh -u tests/foo
+
+# Updating all tests for all configurations:
+\$ frama-c-test.sh -p -u -a
+\end{shell}
+
 \subsection{Documenting your Source Code}
 \label{tut2:doc}
 \index{Plug-in!Documentation}
