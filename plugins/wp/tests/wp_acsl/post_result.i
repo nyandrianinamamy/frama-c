@@ -5,7 +5,7 @@
 int a[5];
 
 /*@
-  ensures \result == a ;
+  ensures \result == &a[0] ;
   assigns \result[0..n];
 */
 int * job(int n);

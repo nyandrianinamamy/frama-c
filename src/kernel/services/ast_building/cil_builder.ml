@@ -683,10 +683,12 @@ struct
       and t2' = build_term ~scope ~loc ~restyp t2 in
       let ty = t1'.Cil_types.term_type in
       let op' = match op with (* Normalize operation *)
-        | PlusA when Logic_utils.isLogicPointer t1' -> Cil_types.PlusPI
-        | MinusA when Logic_utils.isLogicPointer t1' -> Cil_types.MinusPI
-        | PlusPI when not (Logic_utils.isLogicPointer t1') -> Cil_types.PlusA
-        | MinusPI when not (Logic_utils.isLogicPointer t1') -> Cil_types.MinusA
+        | PlusA when Logic_utils.is_C_array_or_ptr t1' -> Cil_types.PlusPI
+        | MinusA when Logic_utils.is_C_array_or_ptr t1' -> Cil_types.MinusPI
+        | PlusPI when Ast_types.Acsl.is_arithmetic t1'.term_type ->
+          Cil_types.PlusA
+        | MinusPI when Ast_types.Acsl.is_arithmetic t1'.term_type ->
+          Cil_types.MinusA
         | op -> op
       in
       (* TODO: type conversion *)

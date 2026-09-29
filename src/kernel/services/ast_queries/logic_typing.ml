@@ -2827,7 +2827,7 @@ struct
       check_current_label loc env;
       (* memory access need a current label to have some semantics *)
       let t = term env t in
-      if isLogicPointer t then begin
+      if is_C_array_or_ptr t then begin
         let t = mk_logic_pointer_or_StartOf t in
         check_non_void_ptr loc t.term_type;
         let t = mk_mem t TNoOffset in
@@ -2878,7 +2878,7 @@ struct
         | Blshift | Brshift
           when Ast_types.Acsl.is_integral ty1 && Ast_types.Acsl.is_integral ty2 ->
           binop (type_binop op) (Ast_types.Acsl.arithmetic_conversion ty1 ty2)
-        | Badd when isLogicPointer t1 && Ast_types.Acsl.is_integral ty2 ->
+        | Badd when is_C_array_or_ptr t1 && Ast_types.Acsl.is_integral ty2 ->
           let t1 = mk_logic_pointer_or_StartOf t1 in
           let ty1 = t1.term_type in
           (match t1.term_node with
@@ -2889,7 +2889,7 @@ struct
            | _ ->
              TBinOp (PlusPI, t1, mk_cast t2 (integral_promotion ty2))),
           Ast_types.Acsl.set_conversion ty1 ty2
-        | Badd when Ast_types.Acsl.is_integral ty1 && isLogicPointer t2 ->
+        | Badd when Ast_types.Acsl.is_integral ty1 && is_C_array_or_ptr t2 ->
           let t2 = mk_logic_pointer_or_StartOf t2 in
           let ty2 = t2.term_type in
           assert (Ast_types.Acsl.is_ptr t2.term_type);
@@ -2900,11 +2900,11 @@ struct
            | _ ->
              TBinOp (PlusPI, t2, mk_cast t1 (integral_promotion ty1))),
           Ast_types.Acsl.set_conversion ty2 ty1
-        | Bsub when isLogicPointer t1 && Ast_types.Acsl.is_integral ty2 ->
+        | Bsub when is_C_array_or_ptr t1 && Ast_types.Acsl.is_integral ty2 ->
           let t1 = mk_logic_pointer_or_StartOf t1 in
           TBinOp (MinusPI, t1, mk_cast t2 (integral_promotion ty2)),
           Ast_types.Acsl.set_conversion ty1 ty2
-        | Bsub when isLogicPointer t1 && isLogicPointer t2 ->
+        | Bsub when is_C_array_or_ptr t1 && is_C_array_or_ptr t2 ->
           let t1 = mk_logic_pointer_or_StartOf t1 in
           let t2 = mk_logic_pointer_or_StartOf t2 in
           TBinOp (MinusPP, t1, mk_cast t2 ty1), Linteger
@@ -2929,7 +2929,7 @@ struct
       check_current_label loc env;
       (* memory access need a current label to have some semantics *)
       let t = term env t in
-      if not (isLogicPointer t) then
+      if not (is_C_array_or_ptr t) then
         ctxt.error loc "%a is not a pointer" Cil_printer.pp_term t;
       let t = mk_logic_pointer_or_StartOf t in
       let struct_type = Ast_types.Acsl.direct_pointed t.term_type in
@@ -2945,7 +2945,7 @@ struct
       let t2 = term (drop_qualifiers env) t2 in
       (* access to a C value (either array or pointer) *)
       let t'1, t'2, tres =
-        if isLogicPointer t1 && Ast_types.Acsl.is_integral t2.term_type then
+        if is_C_array_or_ptr t1 && Ast_types.Acsl.is_integral t2.term_type then
           begin
             check_current_label loc env;
             (* memory access need a current label to have some semantics *)
@@ -2958,7 +2958,7 @@ struct
             in
             (t1, t2, Ast_types.Acsl.set_conversion typ t2.term_type)
           end
-        else if Ast_types.Acsl.is_integral t1.term_type && isLogicPointer t2
+        else if Ast_types.Acsl.is_integral t1.term_type && is_C_array_or_ptr t2
         then begin
           check_current_label loc env;
           (* memory access need a current label to have some semantics *)
@@ -3225,7 +3225,7 @@ struct
       | _ when Ast_types.Acsl.is_plain_arithmetic ty1
             && Ast_types.Acsl.is_plain_arithmetic ty2 ->
         conditional_conversion t1 t2
-      | Eq | Neq when isLogicPointer t1 && Cil.isLogicNull t2 ->
+      | Eq | Neq when is_C_array_or_ptr t1 && Cil.isLogicNull t2 ->
         let t1 = mk_logic_pointer_or_StartOf t1 in
         let t2 =
           (* in case of a set, we perform two conversions: first from
@@ -3235,7 +3235,7 @@ struct
           else t2
         in
         f loc op t1 (mk_cast t2 t1.term_type)
-      | Eq | Neq when isLogicPointer t2 && Cil.isLogicNull t1 ->
+      | Eq | Neq when is_C_array_or_ptr t2 && Cil.isLogicNull t1 ->
         let t2 = mk_logic_pointer_or_StartOf t2 in
         let t1 =
           if Ast_types.Acsl.is_plain_set t2.term_type then
@@ -3248,9 +3248,8 @@ struct
         else
           ctxt.error loc "comparison of incompatible types %a and %a"
             Cil_printer.pp_logic_type ty1 Cil_printer.pp_logic_type ty2
-      | _ when isLogicPointer t1 && isLogicPointer t2 ->
-        let t1 = mk_logic_pointer_or_StartOf t1 in
-        let t2 = mk_logic_pointer_or_StartOf t2 in
+      | _ when Ast_types.Acsl.is_ptr t1.term_type &&
+               Ast_types.Acsl.is_ptr t2.term_type ->
         if is_same_logic_ptr_type ty1 ty2 ||
            ((op = Eq || op = Neq) &&
             (Ast_types.Acsl.is_void_ptr t1.term_type ||
@@ -3540,9 +3539,8 @@ struct
       predicate_label_ptr ~check_non_void:false pobject_pointer l t
     | PLvalid_function t ->
       let t = term env t in
-      if isLogicPointer t then begin
+      if Ast_types.Acsl.is_ptr t.term_type then begin
         check_fun_ptr loc t.term_type;
-        let t = mk_logic_pointer_or_StartOf t in
         pvalid_function ~loc t
       end else
         ctxt.error loc "subscripted value is neither array nor pointer"

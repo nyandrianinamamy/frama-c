@@ -232,7 +232,7 @@ uint h[100];
 uint* get_imprecise_pointer(void);
 
 /*@ assigns \result \from &g, &h;
-    ensures \result == &g || \result == h; */
+    ensures \result == &g || \result == &h[0]; */
 uint* get_exact_pointer(void);
 
 /*@ assigns \result \from &g, &h;
