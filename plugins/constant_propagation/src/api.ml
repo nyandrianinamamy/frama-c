@@ -151,7 +151,14 @@ class propagate project fnames ~cast_intro = object(self)
               let offset = Z.mul offset 8z in
               let m = Bit_utils.MatchType typ_pointed in
               let off, _ = Bit_utils.(find_offset vi.vtype ~offset m) in
-              Cil.mkAddrOrStartOf ~loc (Var vi, off)
+              let[@tail_mod_cons] rec map_offset = function
+                | NoOffset -> NoOffset
+                | Index (x, off) -> Index (x, map_offset off)
+                | Field (fi, off) ->
+                  let fi' = Visitor_behavior.Memo.fieldinfo self#behavior fi in
+                  Field (fi', map_offset off)
+              in
+              Cil.mkAddrOrStartOf ~loc (Var vi, map_offset off)
             with Bit_utils.NoMatchingOffset ->
               (* Build [((char* )&t[idx])+rem] when vi is an array, or
                  [(char* )(&vi+idx)+rem] otherwise. Automatically simplify

@@ -1,7 +1,7 @@
 /* run.config
 PLUGIN: @EVA_PLUGINS@
-   STDOPT: +"-machdep gcc_x86_64"
-   STDOPT: +"-machdep msvc_x86_64"
+   STDOPT: +"-machdep gcc_x86_64 -kernel-warn-key typing:addr-of-packed-field=inactive"
+   STDOPT: +"-machdep msvc_x86_64 -kernel-warn-key typing:addr-of-packed-field=inactive"
  */
 // #pragma pack(0) is not supported by MSVC, but allowed in GCC.
 // In MSVC mode, we ignore it.

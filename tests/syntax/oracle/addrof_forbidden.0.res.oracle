@@ -1,0 +1,3 @@
+[kernel] Parsing addrof_forbidden.c (with preprocessing)
+[kernel:typing:addr-of-packed-field] Warning: 
+  taking address of packed member of 'mps' may result in an unaligned pointer value

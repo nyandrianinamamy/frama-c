@@ -1,0 +1,10 @@
+[kernel] Parsing addrof_forbidden.c (with preprocessing)
+[kernel] addrof_forbidden.c:26: User Error: 
+  cannot take address of bit-field 'b'
+  24        char b : 1;
+  25      } b;
+  26      &b.b; // rejected
+          ^^^^
+  27    #endif
+  28    #ifdef REGISTER
+[kernel] Frama-C aborted: invalid user input.

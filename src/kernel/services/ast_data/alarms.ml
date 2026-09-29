@@ -464,6 +464,11 @@ let create_special_float_predicate ~loc e fkind predicate =
   Logic_const.unnamed ~loc (Papp (pi, [], [ t ]))
 
 let create_predicate ?(loc=Kernel.gen_loc) alarm =
+  let mkAddrOfLval lv = (* we might need the address of bitfields or register *)
+    let llv = Logic_utils.lval_to_term_lval lv in
+    let lt = Ctype (Cil.typeOfLval lv) in
+    Logic_utils.mk_logic_AddrOf ~loc llv lt
+  in
   let aux = function
     | Division_by_zero e ->
       (* e != 0 *)
@@ -477,8 +482,7 @@ let create_predicate ?(loc=Kernel.gen_loc) alarm =
         | For_reading -> Logic_const.pvalid_read
         | For_writing -> Logic_const.pvalid
       in
-      let e = Cil.mkAddrOrStartOf ~loc lv in
-      let t = Logic_utils.expr_to_term e in
+      let t = mkAddrOfLval lv in
       valid ~loc (Logic_const.here_label, t)
 
     | Index_out_of_bound(e1, e2) ->
@@ -598,32 +602,26 @@ let create_predicate ?(loc=Kernel.gen_loc) alarm =
 
     | Not_separated(lv1, lv2) ->
       (* \separated(lv1, lv2) *)
-      let e1 = Cil.mkAddrOf ~loc lv1 in
-      let t1 = Logic_utils.expr_to_term e1 in
-      let e2 = Cil.mkAddrOf ~loc lv2 in
-      let t2 = Logic_utils.expr_to_term e2 in
+      let t1 = mkAddrOfLval lv1 in
+      let t2 = mkAddrOfLval lv2 in
       Logic_const.pseparated ~loc [ t1; t2 ]
 
     | Overlap(lv1, lv2) ->
       (* (lv1 == lv2) || \separated(lv1, lv2) *)
-      let e1 = Cil.mkAddrOf ~loc lv1 in
-      let t1 = Logic_utils.expr_to_term e1 in
-      let e2 = Cil.mkAddrOf ~loc lv2 in
-      let t2 = Logic_utils.expr_to_term e2 in
+      let t1 = mkAddrOfLval lv1 in
+      let t2 = mkAddrOfLval lv2 in
       let eq = Logic_const.prel ~loc (Req, t1, t2) in
       let sep = Logic_const.pseparated ~loc [ t1; t2 ] in
       Logic_const.por ~loc (eq, sep)
 
     | Uninitialized lv ->
       (* \initialized(lv) *)
-      let e = Cil.mkAddrOrStartOf ~loc lv in
-      let t = Logic_utils.expr_to_term e in
+      let t = mkAddrOfLval lv in
       Logic_const.pinitialized ~loc (Logic_const.here_label, t)
 
     | Dangling lv ->
       (* !\dangling(lv) *)
-      let e = Cil.mkAddrOrStartOf ~loc lv in
-      let t = Logic_utils.expr_to_term e in
+      let t = mkAddrOfLval lv in
       Logic_const.(pnot ~loc (pdangling ~loc (Logic_const.here_label, t)))
 
     | Is_nan_or_infinite (e, fkind) ->

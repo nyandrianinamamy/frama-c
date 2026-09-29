@@ -1,6 +1,10 @@
 [kernel] Parsing merge_union.c (with preprocessing)
 [kernel] Parsing merge_union_2.c (with preprocessing)
+[kernel:typing:addr-of-packed-field] Warning: 
+  taking address of packed member of '__anonstruct_st_2' may result in an unaligned pointer value
 [kernel] Parsing merge_union_3.c (with preprocessing)
+[kernel:typing:addr-of-packed-field] Warning: 
+  taking address of packed member of '__anonstruct_st_2' may result in an unaligned pointer value
 [kernel:linker:drop-conflicting-unused] Warning: 
   Incompatible declaration for G1:
   Definitions of type st are not isomorphic. Reason follows:

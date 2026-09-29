@@ -1199,10 +1199,24 @@ let mkAddrOfAndMark loc ((b, off) as lval) : exp =
   begin match Cil.lastOffset off with
     | NoOffset ->
       (match b with
+       | Var vi when vi.vstorage = Cil_types.Register ->
+         Errorloc.abort_context
+           "address of register variable '%s' requested"
+           vi.vname
        | Var vi -> vi.vaddrof <- true
        | _ -> ())
     | Index _ -> ()
-    | Field(fi,_) -> fi.faddrof <- true
+    | Field(fi,_) when Option.is_some fi.fbitfield ->
+      Errorloc.abort_context
+        "cannot take address of bit-field '%s'" fi.fname
+    | Field(fi,_) when Ast_attributes.contains "packed" fi.fcomp.cattr ->
+      Kernel.warning ~wkey:Kernel_log.wkey_addrof_packed_field
+        "taking address of packed member of '%s' may result \
+         in an unaligned pointer value "
+        fi.fcomp.cname ;
+      fi.faddrof <- true
+    | Field(fi,_) ->
+      fi.faddrof <- true
   end;
   Cil.mkAddrOf ~loc lval
 
@@ -6767,7 +6781,7 @@ and doExp local_env
                 match !pargs with
                 | marker :: ({enode = SizeOf resTyp} as size) :: _ -> begin
                     (* Make a variable of the desired type *)
-                    let is_real, destlv, r, destlvtyp =
+                    let is_real, ((b, off) as destlv), r, destlvtyp =
                       match !pwhat with
                       | ASet (is_real,lv, r, lvt) -> is_real, lv, r, lvt
                       | _ ->
@@ -6776,6 +6790,11 @@ and doExp local_env
                         false, Cil.var v, [], resTyp
                     in
                     pwhat := ASet (is_real, destlv, r, destlvtyp);
+                    begin match b, Cil.lastOffset off with (* mark addrof *)
+                      | _, Field (fi, _) -> fi.faddrof <- true
+                      | Var vi, _ -> vi.vaddrof <- true
+                      | _ -> ()
+                    end;
                     pargs := [marker; size;
                               Cil.new_exp ~loc
                                 (CastE(voidPtrType,

@@ -417,7 +417,7 @@ let rec term_to_exp t res =
        Aorai_option.fatal
          "A floating-point type was expected, got %a." Printer.pp_typ ty)
   | TCast (false, Ctype ty, t) -> Cil.new_exp ~loc (CastE (ty, term_to_exp t res))
-  | TAddrOf tlval -> Cil.new_exp ~loc (AddrOf (tlval_to_lval tlval res))
+  | TAddrOf tlval -> Cil.mkAddrOf ~loc (tlval_to_lval tlval res)
   | TStartOf tlval -> Cil.new_exp ~loc (StartOf (tlval_to_lval tlval res))
   | TCast (true, _,t) -> term_to_exp t res
   | _ ->
