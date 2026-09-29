@@ -16,13 +16,14 @@ fi
 if [ "$1" == "-h" -o "$1" == "--help" ]
 then
     echo ""
-    echo "Multi-repository git broadcast"
+    echo "Multi-repository git broadcast helper"
     echo ""
     echo "  git.sh -h|--help"
     echo "  git.sh clone <repo> <dir>"
     echo "  git.sh remove <dir>"
     echo "  git.sh exec <command...>"
     echo "  git.sh cat <file> <command...>"
+    echo "  git.sh hooks"
     echo "  git.sh <command...>"
     echo ""
     echo "Command 'git.sh clone <repo> <dir>' performs"
@@ -38,10 +39,20 @@ then
     echo "Command 'git.sh cat <file> <command>' executes the given command"
     echo "in each git repository and concat their output to the given file."
     echo ""
+    echo "Command 'git.sh hooks' installs frama-c git hooks (main repo only)."
+    echo ""
     echo "Otherwise, 'git.sh <command>' broadcast the command"
     echo "to all '.git' repository accessible from the root."
     echo "The default command is 'status -s -b'."
     echo ""
+    exit 0
+fi
+
+if [ "$1" == "hooks" ]
+then
+    ln -fs ../../dev/git-hooks/pre-commit.sh .git/hooks/pre-commit
+    ln -fs ../../dev/git-hooks/pre-push.sh   .git/hooks/pre-push
+    echo "Frama-C git hooks linked to .git/hooks"
     exit 0
 fi
 
