@@ -1883,8 +1883,8 @@ options, the user should be aware of the following precisions:
   cleared by \texttt{-then}. Hence, running \texttt{-wp-prop A}
   \texttt{-then} \texttt{-wp-fct F} does what you expect:
   properties tagged by \texttt{A} are proved only once.
-\item[\tt -wp-provers] These option configure the provers to use for
-  generateds proof-obligations. It is cleared after \textsf{WP} run so that a
+\item[\tt -wp-provers] This option configure the provers to use for
+  generated proof-obligations. It is cleared after \textsf{WP} run so that a
   \textsf{Frama-C} run like \texttt{-wp-fct f} \texttt{-wp-prover z3} \texttt{-then}
   \texttt{-wp-fct g} \texttt{-wp-prover cvc5} indeed uses \textsf{Z3} to prove
   \texttt{f} and \textsf{CVC5} to prove \texttt{g} (and not \textsf{Z3} +
