@@ -6,14 +6,24 @@
 (*                                                                        *)
 (**************************************************************************)
 
-type attr = [ `Nullable | `Allocated | `Garbage | `Validread ]
+type attr = [ `Nullable | `Allocated | `Garbage | `Validread | `Written ]
 type flags = A of int [@@ unboxed]
+type mask = M of int [@@ unboxed]
+
 
 let flag = function
-  | `Nullable  -> 0b0001
-  | `Allocated -> 0b0010
-  | `Garbage   -> 0b0100
-  | `Validread  -> 0b1000
+  | `Nullable  -> 0b00001
+  | `Allocated -> 0b00010
+  | `Garbage   -> 0b00100
+  | `Validread -> 0b01000
+  | `Written   -> 0b10000
+let all_flags =   0b11111
+
+let generate_mask l =
+  let rec mask (M m) = function
+    | [] -> M m
+    | attr :: rest -> mask (M (m lor flag attr)) rest
+  in mask (M 0) l
 
 let empty = A 0
 let add a (A w) = A (flag a lor w)
@@ -31,14 +41,17 @@ let pp_attr fmt = function
   | `Allocated -> Format.pp_print_string fmt "allocated"
   | `Garbage   -> Format.pp_print_string fmt "garbage"
   | `Validread -> Format.pp_print_string fmt "validread"
+  | `Written   -> Format.pp_print_string fmt "written"
 
 let reversed = flag `Validread
 (* flags that shall be merged with land instead of lor *)
 
 let bottom = A reversed
-let merge (A x) (A y) =
+
+let merge ?mask:(M m = M all_flags) (A x) (A y) =
+  let x_m, y_m = x lor m, y lor m in
   let flip w = reversed lxor w in
-  A (flip (flip x lor flip y))
+  A ((x lor lnot m) lor (flip (flip x_m lor flip y_m)))
 
 let pretty fmt w =
   begin

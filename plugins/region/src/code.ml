@@ -19,7 +19,7 @@ module Vmap = Varinfo.Map
 (* Represents an abstract value returned by an expression:
    - [None] means a primitive value build from no pointer at all;
    - [Some r] means a primitive value or a pointer value to region [r].
- *)
+*)
 type value = node option
 
 let pointer v =
