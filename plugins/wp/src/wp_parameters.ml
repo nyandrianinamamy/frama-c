@@ -1029,7 +1029,6 @@ module ReportJson =
     let existence = Fclib.Filepath.Indifferent
     let help = "Output proof results in JSON format."
   end)
-let () = on_reset ReportJson.clear
 
 let () = Parameter_customize.set_group wp_po
 let () = Parameter_customize.do_not_save ()
