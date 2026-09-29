@@ -1,6 +1,6 @@
 Test of Eva abort messages.
 
-Load test_request and used plugins, and define shared options.
+Only load used plugins, and define shared options.
   $ alias frama-c="frama-c abort.i \
   > -no-autoload-plugins -load-module eva,inout,scope \
   > -eva -eva-verbose 1"
