@@ -321,22 +321,22 @@ In "states.i" file:
   [test] Request EXEC plugins.eva.analysis.compute;
   [test] ----- State at statement int x = nondet % 10; -----
   [test] Request GET plugins.eva.analysis.getStates [ int x = nondet % 10;, true ]:
-      [ [ cvalue,
-          nondet ∈ [--..--] x ∈ UNINITIALIZED,
-          nondet ∈ [--..--] x ∈ [-9..9] ] ]
+      [ { name: cvalue,
+          before: nondet ∈ [--..--] x ∈ UNINITIALIZED,
+          after: nondet ∈ [--..--] x ∈ [-9..9] } ]
   [test] ----- State at statement g = 10; -----
   [test] Request GET plugins.eva.analysis.getStates [ g = 10;, true ]:
-      [ [ cvalue, g ∈ {1}, g ∈ {10} ] ]
+      [ { name: cvalue, before: g ∈ {1}, after: g ∈ {10} } ]
   [test] ----- State at statement int z = x + g; -----
   [test] Request GET plugins.eva.analysis.getStates [ int z = x + g;, true ]:
-      [ [ cvalue,
-          g ∈ {10} x ∈ [-9..9] z ∈ UNINITIALIZED,
-          g ∈ {10} x ∈ [-9..9] z ∈ [1..19] ] ]
+      [ { name: cvalue,
+          before: g ∈ {10} x ∈ [-9..9] z ∈ UNINITIALIZED,
+          after: g ∈ {10} x ∈ [-9..9] z ∈ [1..19] } ]
   [test] ----- State at statement return; -----
   [test] Request GET plugins.eva.analysis.getStates [ return;, true ]:
       []
   [test] ----- Complete state at return statement -----
   [test] Request GET plugins.eva.analysis.getStates [ return;, false ]:
-      [ [ cvalue,
-          nondet ∈ [--..--] g ∈ {10} h ∈ {0} x ∈ [-9..9] z ∈ [1..19],
-          nondet ∈ [--..--] g ∈ {10} h ∈ {0} x ∈ [-9..9] z ∈ [1..19] ] ]
+      [ { name: cvalue,
+          before: nondet ∈ [--..--] g ∈ {10} h ∈ {0} x ∈ [-9..9] z ∈ [1..19],
+          after: nondet ∈ [--..--] g ∈ {10} h ∈ {0} x ∈ [-9..9] z ∈ [1..19] } ]

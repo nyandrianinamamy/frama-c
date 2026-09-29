@@ -141,11 +141,28 @@ let get_states (marker, filter) =
       in
       List.rev_map2 join states_before states_after
 
+module JStates = struct
+  type t = string * string * string (* name, state before, state after *)
+
+  let jtype =
+    let descr = Markdown.plain "Domain states before and after a statement" in
+    Server.Data.declare ~package ~name:"states" ~descr
+      (Jrecord [ "name", Jstring; "before", Jstring; "after", Jstring; ])
+
+  let to_json (name, before, after) =
+    `Assoc [
+      "name", Data.Jstring.to_json name;
+      "before", Data.Jstring.to_json before;
+      "after", Data.Jstring.to_json after;
+    ]
+
+  let of_json _ = Data.failure "JStates.of_json not implemented"
+end
+
 let () = Request.register ~package
     ~kind:`GET ~name:"getStates"
     ~descr:(Markdown.plain "Get the domain states about the given marker")
     ~input:(module Data.Jpair (Kernel_ast.Marker) (Data.Jbool))
-    ~output:(module Data.Jlist
-          (Data.Jtriple (Data.Jstring) (Data.Jstring) (Data.Jstring)))
+    ~output:(module Data.Jlist (JStates))
     ~signals:Update.signals
     get_states
