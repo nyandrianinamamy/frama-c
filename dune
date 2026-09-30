@@ -8,7 +8,7 @@
 
 
 (alias (name default) (deps (alias install)))
-(dirs bin headers man share lib plugins src ppx tools tests)
+(dirs bin dev headers lib man plugins ppx share src tests tools)
 
 (executable
  (name configurator)
