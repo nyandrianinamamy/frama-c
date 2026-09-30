@@ -139,21 +139,20 @@ export BUNDLE
 
 # Debug infos
 if [ "$CI" = "true" ]; then
-  echo "Debug information"
-  echo "  CI=${CI}"
-  echo "  BUNDLE_GUI=${BUNDLE_GUI}"
-  echo "  BUNDLE_EXTERNAL_PLUGINS=${BUNDLE_EXTERNAL_PLUGINS}"
-  echo "  BUNDLE_IVETTE_PLUGINS=${BUNDLE_IVETTE_PLUGINS}"
-  echo "  BUNDLE_CUSTOM_OUI_FILE=${BUNDLE_CUSTOM_OUI_FILE}"
-  echo "  BUNDLE_USE_NVM=${BUNDLE_USE_NVM}"
-  echo "  BUNDLE_ARCH=${BUNDLE_ARCH}"
-  echo "  BUNDLE_EXT=${BUNDLE_EXT}"
-  echo "  OUI_FILE=${OUI_FILE}"
-  echo "  OCAML=${OCAML}"
-  echo "  NODE=${NODE}"
-  echo "  DEFAULT=${DEFAULT}"
-  echo "  OPAM=${OPAM}"
-  echo "  BUNDLE=${BUNDLE}"
+  show_step "Debug information"
+  echo_green "  CI=${CI}"
+  echo_green "  BUNDLE_GUI=${BUNDLE_GUI}"
+  echo_green "  BUNDLE_EXTERNAL_PLUGINS=${BUNDLE_EXTERNAL_PLUGINS}"
+  echo_green "  BUNDLE_IVETTE_PLUGINS=${BUNDLE_IVETTE_PLUGINS}"
+  echo_green "  BUNDLE_CUSTOM_OUI_FILE=${BUNDLE_CUSTOM_OUI_FILE}"
+  echo_green "  BUNDLE_ARCH=${BUNDLE_ARCH}"
+  echo_green "  BUNDLE_EXT=${BUNDLE_EXT}"
+  echo_green "  OUI_FILE=${OUI_FILE}"
+  echo_green "  LAST_OCAML=${LAST_OCAML}"
+  echo_green "  OCAML=${OCAML}"
+  echo_green "  DEFAULT=${DEFAULT}"
+  echo_green "  OPAM=${OPAM}"
+  echo_green "  BUNDLE=${BUNDLE}"
 fi
 
 # Reset bundle
