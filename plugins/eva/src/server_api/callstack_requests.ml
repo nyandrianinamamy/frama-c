@@ -72,7 +72,6 @@ module JCallsite = struct
           "caller", Kernel_ast.Decl.jtype;
           "callee", Kernel_ast.Decl.jtype;
           "stmt", Kernel_ast.Stmt.jtype;
-          "rank", Jnumber;
         ])
 
   let to_json' ~caller (callee, stmt) =
@@ -80,7 +79,6 @@ module JCallsite = struct
       "caller", fct_decl caller;
       "callee", fct_decl callee;
       "stmt", Kernel_ast.Stmt.to_json stmt;
-      "rank", Data.Jint.to_json stmt.sid ;
     ]
 
   let to_json (callee, stmt) =

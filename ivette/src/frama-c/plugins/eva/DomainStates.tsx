@@ -35,14 +35,14 @@ export function EvaStates(): JSX.Element {
 
   React.useEffect(() => {
     if (states && states.length > 0) {
-      const names = states.map((d) => d[0]);
+      const names = states.map((d) => d.name);
       setDomains(names);
       if (!names.includes(selected))
         setSelected(names[0]);
-      const selectedDomain = states.find((d) => d[0] === selected);
+      const selectedDomain = states.find((d) => d.name === selected);
       if (selectedDomain) {
-        setStateBefore(selectedDomain[1]);
-        setStateAfter(selectedDomain[2]);
+        setStateBefore(selectedDomain.before);
+        setStateAfter(selectedDomain.after);
       }
     } else
       setDomains([]);

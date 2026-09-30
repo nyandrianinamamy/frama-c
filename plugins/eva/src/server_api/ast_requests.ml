@@ -24,8 +24,9 @@ let package =
 
 let callers = function
   | Printer_tag.SFunction kf ->
-    let list = Results.callsites kf in
-    List.concat (List.map (fun (kf, l) -> List.map (fun s -> kf, s) l) list)
+    let callsites = Results.callsites kf in
+    let stmts = List.map snd callsites |> List.concat in
+    List.map (fun stmt -> kf, stmt) stmts
   | _ -> []
 
 let () = Request.register ~package
