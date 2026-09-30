@@ -332,6 +332,8 @@ struct
     preprocess_guard pred;
     Guard.make Pointer_alignment pred
 
+  (** [pointer_value ~loc t] creates the predicate that check if [t] is [null]
+      or an object pointer. *)
   let pointer_value ~loc t =
     let smart = not @@ Options.Optimisations.Trivial_rte.get () in
     let null = Logic_const.term ~loc Tnull t.term_type in
@@ -435,6 +437,8 @@ let rte_visitor =
         Guards.add orig
           (Undefined_behaviours.div_by_zero ~loc:orig.term_loc divider)
 
+    (** [add_shift_negative ~orig ~kind shift] adds an entry for [orig] if
+        [shift] can be negative. *)
     method private add_shift_negative ~orig ~kind shift =
       if Misc.is_signed_int shift.term_type &&
          (kind = Guard.Left && Flags.needs_left_shift_negative ()) ||
@@ -444,18 +448,16 @@ let rte_visitor =
           (Undefined_behaviours.shift_negative ~loc:orig.term_loc ~kind shift)
 
     (** [add_index ~index size] adds [index] as key in [table] with a
-            guard that checks if [index] is between [0] (included) and [size]
-            (excluded). *)
+        guard that checks if [index] is between [0] (included) and [size]
+        (excluded). *)
     method private add_index ~index size =
       Guards.add index
         (Undefined_behaviours.index_bound ~loc:index.term_loc index size)
 
-    (**
-       [add_mem_access ~orig lv] checks if the lvalue [lv] is a
-       variable or a dereference (other cases are not checked). In both, it
-       calls the function [unroll_offset] with the information of being a
-       dereference or not through the [~is_deref] argument.
-    *)
+    (** [add_mem_access ~orig lv] checks if the lvalue [lv] is a
+        variable or a dereference (other cases are not checked). In both, it
+        calls the function [unroll_offset] with the information of being a
+        dereference or not through the [~is_deref] argument. *)
     method private add_mem_access ~orig lv =
       let rec unroll_offset ~is_deref off typ =
         match off with
@@ -498,6 +500,9 @@ let rte_visitor =
           end
         | _ -> ()
 
+    (** [add_array_comparison tl tr] applies the analysis on the range of the
+        array [tl[0..size(tl)]] (respectively [tr[0..size(tr)]]) instead of
+        [tl] (respectively [tr]) *)
     method private add_array_comparison tl tr =
       let both x y f = f x; f y in
       both tl tr @@ fun t ->
@@ -510,8 +515,8 @@ let rte_visitor =
       ignore @@ self#vterm rt;
       Guards.transfer rt t
 
-    (** [add_initialized ~orig ~loc divider] adds an entry for [orig] if [lv]
-        is a variable. *)
+    (** [add_initialized ~orig ~loc lv typ] adds an entry for [orig] if [lv]
+        is a C variable. *)
     method private add_initialized ~orig ~loc lv typ =
       let needs_guard lv =
         match lv with
@@ -554,6 +559,8 @@ let rte_visitor =
             Printer.pp_typ pointed_typ
       end
 
+    (** [add_aligned_cast ~orig t dst] adds an entry for [orig] if [dst] the
+        destination type of the cast is a pointer type. *)
     method private add_aligned_cast ~orig t dst =
       let aux src =
         match Ast_types.C.unroll_node src,  Ast_types.C.unroll_node dst with
@@ -567,16 +574,21 @@ let rte_visitor =
       | Ctype src -> aux src
       | _ -> ()
 
+    (** [add_aligned_access lv] adds an entry for [t] if [lv = *t]. *)
     method private add_aligned_access lv =
       match lv with
       | TMem ({term_type = Ctype typ} as t), _ -> self#add_aligned ~orig:t t typ
       | _ -> ()
 
+    (** [add_pointer_value] associates [orig] to a guard that check if [orig] is
+        a pointer value in the table. *)
     method private add_pointer_value ~orig =
       if Flags.needs_pointer_value () then
         Guards.add orig
           (Undefined_behaviours.pointer_value ~loc:orig.term_loc orig)
 
+    (** [add_pointer_value_cast ~orig dst] adds an entry for [orig] if [dst]
+        the destination type of the cast is a pointer type. *)
     method private add_pointer_value_cast ~orig dst =
       let aux src =
         match Ast_types.C.unroll_node src,  Ast_types.C.unroll_node dst with
@@ -589,8 +601,8 @@ let rte_visitor =
       | _ -> ()
 
     (** [add_C_downcast ~orig t src dst] adds an entry for [orig] if the
-               [dst] type is 'smaller' than the source type and the corresponding
-               options are set on. *)
+        [dst] type is 'smaller' than the source type and the corresponding
+        options are set on. *)
     method private add_C_downcast ~orig ~implicit t src dst =
       let get_bounds size is_signed =
         if is_signed then Cil.min_signed_number size, Cil.max_signed_number size
