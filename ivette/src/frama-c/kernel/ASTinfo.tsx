@@ -94,6 +94,7 @@ function MarkButton(props: MarkButtonProps): JSX.Element {
     <IconButton
       className="astinfo-markerbutton"
       size={10}
+      kind={props.selected ? "positive" : "default"}
       {...props}
     />
   );
@@ -166,11 +167,12 @@ function MarkInfos(props: InfoSectionProps): JSX.Element {
           icon={unfold ? 'TRIANGLE.DOWN' : 'TRIANGLE.RIGHT'}
           onClick={onFoldUnfold}
         />
-        <Boxes.Hbox>
-          <Code label={labelKind}
-            className="astinfo-markerkind" title={titleKind}/>
-          <Code key="NAME" label={descr} className="astinfo-markercode"/>
-        </Boxes.Hbox>
+        <Code
+          label={labelKind}
+          className="astinfo-markerkind"
+          title={titleKind}
+          />
+        <Code key="NAME" label={descr} className="astinfo-markercode"/>
         <Code key="SCOPE" label={`[in ${label}]`} display={foreign}/>
         <MarkButton
           key="MORE"

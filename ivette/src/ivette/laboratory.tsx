@@ -1589,13 +1589,15 @@ export function Tabs(): JSX.Element {
   return (
     <div className="labview-tabs">
       {hasScrollButtons &&
-        <IconButton
-          className="labview-tab-scroll"
-          icon="ANGLE.LEFT"
-          title="Scroll tabs left"
-          disabled={!canScrollLeft}
-          onClick={() => scrollTabs('left')}
-        />}
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <IconButton
+            className="labview-tab-scroll"
+            icon="ANGLE.LEFT"
+            title="Scroll tabs left"
+            disabled={!canScrollLeft}
+            onClick={() => scrollTabs('left')}
+          />
+        </div>}
       <div
         // The clipped element that actually scrolls horizontally.
         ref={viewportRef}
@@ -1614,14 +1616,16 @@ export function Tabs(): JSX.Element {
         </div>
       </div>
       {hasScrollButtons &&
-        <IconButton
-          className="labview-tab-scroll"
-          icon="ANGLE.RIGHT"
-          title="Scroll tabs right"
-          disabled={!canScrollRight}
-          onClick={() => scrollTabs('right')}
-        />}
-    </div>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <IconButton
+            className="labview-tab-scroll"
+            icon="ANGLE.RIGHT"
+            title="Scroll tabs right"
+            disabled={!canScrollRight}
+            onClick={() => scrollTabs('right')}
+          />
+        </div>}
+      </div>
   );
 }
 

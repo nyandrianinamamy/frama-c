@@ -301,47 +301,6 @@
 }
 
 /* -------------------------------------------------------------------------- */
-/* --- Styling ToolBar Buttons                                            --- */
-/* -------------------------------------------------------------------------- */
-
-/* Layout */
-.dome-xToolBar {
-  .dome-xButton {
-    height: 20px;
-    padding: 2px 5px;
-    border-radius: 4px;
-    outline: none ;
-    line-height: 1;
-
-    svg {
-      height: 10px ;
-      position: relative ;
-    }
-
-    svg + label {
-        margin-left: 4px ;
-    }
-  }
-
-  .dome-xButton-buttongroup {
-    & > .dome-xButton:first-child {
-      border-top-left-radius: 4x;
-      border-bottom-left-radius: 4px;
-    }
-
-    & > .dome-xButton:last-child {
-      border-top-right-radius: 4px;
-      border-bottom-right-radius: 4px;
-    }
-  }
-}
-
-
-.dome-xToolBar-buttongroup-separation > .dome-xToolBar-control:not(:first-child){
-  border-left: solid 1px var(--border-discrete);
-}
-
-/* -------------------------------------------------------------------------- */
 /* --- Styling ToolBar Search Field                                       --- */
 /* -------------------------------------------------------------------------- */
 

@@ -175,14 +175,14 @@ function CacheSelector(): JSX.Element {
         <option key={value} value={value}>{value}</option>
       );
   return (
-    <>
+    <div className="wp-sidebar-input">
       <Select
         value={cacheMode}
         onChange={onChange}
         className="wp-config-field wp-config-select"
       >{options}</Select>
       <IconButton icon='HELP' title={help} />
-    </>
+    </div>
   );
 }
 
@@ -279,26 +279,30 @@ function ProversConfiguration(): JSX.Element {
       >
         <Hbox>
           <Label label='Timeout' icon='CLOCK' />
-          <Spinner
-            className="wp-config-field wp-config-spinner"
-            value={timeout || 0}
-            vmin={0}
-            vstep={1}
-            onChange={setTimeout}
-          />
+          <div className="wp-sidebar-input">
+            <Spinner
+              className="wp-config-field wp-config-spinner"
+              value={timeout || 0}
+              vmin={0}
+              vstep={1}
+              onChange={setTimeout}
+            />
+          </div>
         </Hbox>
         <Hbox>
-        <Label label='Processes' icon='SETTINGS'/>
-          <Spinner
-            className="wp-config-field wp-config-spinner"
-            value={processes || 0}
-            vmin={0}
-            vstep={1}
-            onChange={setProcesses}
-          />
+          <Label label='Processes' icon='SETTINGS'/>
+          <div className="wp-sidebar-input">
+            <Spinner
+              className="wp-config-field wp-config-spinner"
+              value={processes || 0}
+              vmin={0}
+              vstep={1}
+              onChange={setProcesses}
+            />
+          </div>
         </Hbox>
         <Hbox>
-        <Label label='Cache' icon='SERVER'/>
+          <Label label='Cache' icon='SERVER'/>
           <CacheSelector />
         </Hbox>
       </SidebarBlock>
@@ -493,7 +497,7 @@ function PropertiesFilter(): JSX.Element {
             icon={'CROSS'}
             className={Utils.classes('wp-sidebar-selection-commit')}
             onClick={() => setProperties([])}
-          />,
+          />
           {properties.map((value) =>
             <SelectionButton
               key={value}
@@ -505,13 +509,13 @@ function PropertiesFilter(): JSX.Element {
       <Hbox>
         <Button
           icon={'PLUS'}
-          disabled={canCommit(false)}
+          disabled={!canCommit(true)}
           onClick={() => { onCommit(true); }}
           className={Utils.classes('wp-sidebar-selection-commit')}
         />
         <Button
           icon={'MINUS'}
-          disabled={canCommit(true)}
+          disabled={!canCommit(false)}
           onClick={() => { onCommit(false); }}
           className={Utils.classes('wp-sidebar-selection-commit')}
         />
@@ -862,7 +866,7 @@ function SimplOption(props: SimplOptionProps): JSX.Element {
       <Checkbox
         label={label}
         selected={value}
-        onClick={() => setValue(value)}
+        onClick={() => setValue(!value)}
         title={message}
         disabled={!enabled}
       />

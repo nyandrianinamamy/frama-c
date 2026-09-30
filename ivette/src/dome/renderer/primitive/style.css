@@ -310,7 +310,8 @@ meter::-webkit-meter-even-less-good-value  {
 }
 
 .dome-xButton-selected.dome-xIconButton svg{
-    filter: drop-shadow(0 0 6px var(--color-border));
+    filter: drop-shadow(0 0 6px var(--text-highlighted));
+    fill: var(--text-highlighted);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -406,4 +407,47 @@ meter::-webkit-meter-even-less-good-value  {
     display: none ;
 }
 
+
+/* -------------------------------------------------------------------------- */
+/* --- Styling Buttons in others context                                  --- */
+/* -------------------------------------------------------------------------- */
+
+/* Layout */
+.dome-xToolBar,
+.dome-xTitleBar,
+.dome-xModal-header {
+  .dome-xButton {
+    height: 20px;
+    padding: 1px;
+    border-radius: 4px;
+    outline: none ;
+    line-height: 1;
+
+    svg {
+      height: 10px ;
+      position: relative ;
+    }
+
+    svg + label {
+        margin-left: 4px ;
+    }
+  }
+
+  .dome-xButton-buttongroup {
+    & > .dome-xButton:first-child {
+      border-top-left-radius: 4x;
+      border-bottom-left-radius: 4px;
+    }
+
+    & > .dome-xButton:last-child {
+      border-top-right-radius: 4px;
+      border-bottom-right-radius: 4px;
+    }
+  }
+}
+
+
+.dome-xToolBar-buttongroup-separation > .dome-xToolBar-control:not(:first-child){
+  border-left: solid 1px var(--border-discrete);
+}
 /* -------------------------------------------------------------------------- */
