@@ -75,7 +75,7 @@ void context_allocread(int *a_allocread)
 /*@ \region::region a_nullread[0..0], \nullable, \validread; */
 void context_nullread(int *a_nullread)
 {
-  /*@ check region: spec_garbage: \valid(a_nullread); */
+  /*@ check region: spec_garbage: a_nullread ≢ \null; */
   spec_garbage(a_nullread);
   return;
 }

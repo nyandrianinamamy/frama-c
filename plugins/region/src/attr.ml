@@ -43,15 +43,15 @@ let pp_attr fmt = function
   | `Validread -> Format.pp_print_string fmt "validread"
   | `Written   -> Format.pp_print_string fmt "written"
 
-let reversed = flag `Validread
+let reversed = 0b0
 (* flags that shall be merged with land instead of lor *)
 
 let bottom = A reversed
 
 let merge ?mask:(M m = M all_flags) (A x) (A y) =
-  let x_m, y_m = x lor m, y lor m in
+  let x_m, y_m = x land m, y land m in
   let flip w = reversed lxor w in
-  A ((x lor lnot m) lor (flip (flip x_m lor flip y_m)))
+  A ((x land lnot m) lor (flip (flip x_m lor flip y_m)))
 
 let pretty fmt w =
   begin
