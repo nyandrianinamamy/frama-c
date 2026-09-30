@@ -16,6 +16,10 @@ void f(int *a1, int *a2, int *b1, int *b2, int n);
 /*@ \region::region *(d + (..)); */
 void job1_mix(int *d, int a1, int a2, int b1, int b2, int n)
 {
+  /*@ check region: f: A: \valid_read((d + a1) + (0 .. n)); */
+  /*@ check region: f: A: \valid_read((d + a2) + (0 .. n)); */
+  /*@ check region: f: B: \valid_read((d + b1) + (0 .. n)); */
+  /*@ check region: f: B: \valid_read((d + b2) + (0 .. n)); */
   /*@ check
         region: f: A: B: \separated((d + a1) + (0 .. n), (d + b1) + (0 .. n));
   */
@@ -35,6 +39,10 @@ void job1_mix(int *d, int a1, int a2, int b1, int b2, int n)
 /*@ \region::region P: *(a + (..)), Q: *(b + (..)); */
 void job2_ok(int *a, int p1, int p2, int *b, int q1, int q2, int n)
 {
+  /*@ check region: f: A: \valid_read((a + p1) + (0 .. n)); */
+  /*@ check region: f: A: \valid_read((a + p2) + (0 .. n)); */
+  /*@ check region: f: B: \valid_read((b + q1) + (0 .. n)); */
+  /*@ check region: f: B: \valid_read((b + q2) + (0 .. n)); */
   f(a + p1,a + p2,b + q1,b + q2,n);
   return;
 }
@@ -42,6 +50,10 @@ void job2_ok(int *a, int p1, int p2, int *b, int q1, int q2, int n)
 /*@ \region::region P: *(a + (..)), Q: *(b + (..)); */
 void job2_mix(int *a, int p1, int p2, int *b, int q1, int q2, int n)
 {
+  /*@ check region: f: A: \valid_read((a + p1) + (0 .. n)); */
+  /*@ check region: f: A: \valid_read((b + q1) + (0 .. n)); */
+  /*@ check region: f: B: \valid_read((a + p2) + (0 .. n)); */
+  /*@ check region: f: B: \valid_read((b + q2) + (0 .. n)); */
   /*@ check
         region: f: A: B: \separated((a + p1) + (0 .. n), (a + p2) + (0 .. n));
   */
@@ -55,6 +67,10 @@ void job2_mix(int *a, int p1, int p2, int *b, int q1, int q2, int n)
 /*@ \region::region P: *(a + (..)), Q: *(b + (..)), R: *(c + (..)); */
 void job3_ok(int *a, int *b, int *c, int p, int q, int n)
 {
+  /*@ check region: f: A: \valid_read(a + (0 .. n)); */
+  /*@ check region: f: A: \valid_read(b + (0 .. n)); */
+  /*@ check region: f: B: \valid_read((c + p) + (0 .. n)); */
+  /*@ check region: f: B: \valid_read((c + q) + (0 .. n)); */
   f(a,b,c + p,c + q,n);
   return;
 }
@@ -62,6 +78,10 @@ void job3_ok(int *a, int *b, int *c, int p, int q, int n)
 /*@ \region::region P: *(a + (..)), Q: *(b + (..)), R: *(c + (..)); */
 void job3_mix(int *a, int *b, int *c, int p, int q, int n)
 {
+  /*@ check region: f: A: \valid_read(a + (0 .. n)); */
+  /*@ check region: f: A: \valid_read((c + p) + (0 .. n)); */
+  /*@ check region: f: B: \valid_read(b + (0 .. n)); */
+  /*@ check region: f: B: \valid_read((c + q) + (0 .. n)); */
   /*@ check
         region: f: A: B: \separated((c + p) + (0 .. n), (c + q) + (0 .. n));
   */
@@ -76,6 +96,10 @@ void job3_mix(int *a, int *b, int *c, int p, int q, int n)
  */
 void job4_ok(int *a, int *b, int *c, int *d, int n)
 {
+  /*@ check region: f: A: \valid_read(a + (0 .. n)); */
+  /*@ check region: f: A: \valid_read(b + (0 .. n)); */
+  /*@ check region: f: B: \valid_read(c + (0 .. n)); */
+  /*@ check region: f: B: \valid_read(d + (0 .. n)); */
   f(a,b,c,d,n);
   return;
 }
@@ -84,6 +108,10 @@ void job4_ok(int *a, int *b, int *c, int *d, int n)
  */
 void job4_mix(int *a, int *b, int *c, int *d, int n)
 {
+  /*@ check region: f: A: \valid_read(a + (0 .. n)); */
+  /*@ check region: f: A: \valid_read(b + (0 .. n)); */
+  /*@ check region: f: B: \valid_read(c + (0 .. n)); */
+  /*@ check region: f: B: \valid_read(d + (0 .. n)); */
   /*@ check region: f: A: B: \separated(a + (0 .. n), c + (0 .. n)); */
   /*@ check region: f: A: B: \separated(b + (0 .. n), d + (0 .. n)); */
   f(a,b,c,d,n);

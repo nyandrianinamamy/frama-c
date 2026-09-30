@@ -15,29 +15,24 @@ type attr = [
   | `Written (** Only for [Regions]: at least one write access has been recorded in this region. *)
 ]
 
-type mask
-
-val generate_mask : attr list -> mask (** Generate the mask under which only the flags specified as input will be counted as effective *)
-
 val empty : flags
 val add : attr -> flags -> flags
 val mem : attr -> flags -> bool
 val subset : flags -> flags -> bool
-val union : flags -> flags -> flags (** Union of attributes under the mask [mask] when specified *)
+val union : flags -> flags -> flags (** Union of attributes *)
+val inter : flags -> flags -> flags (** Intersection of attributes *)
 
 val bottom : flags
 (** Neutral for merge *)
 
+val generate_flags : attr list -> flags
 val add_flag : flags -> attr -> flags
+
+type mask
+val generate_mask : attr list -> mask (** Generate the mask for merge *)
 val merge : ?mask:mask -> flags -> flags -> flags
-(** [merge ?mask x y]: combine flags under [mask] when specified:
-    - [`Nullable] if {i either} is nullable
-    - [`Allocated] if {i either} is allocated
-    - [`Garbage] if {i either} is garbage
-    - [`Validread] if {i both} are validread (meaningful only for [objects])
-    - [`Written] if {i either} is written (meaningful only for [regions])
-      It merges all flags appearing in [mask] from both [x] and [y].
-      It keeps from [x] all flags not appearing in [mask].
+(** [merge ?mask x y]: combine flags under [mask] when specified,
+    or equivalent to [union] [x] ([inter] [mask] [y]).
 *)
 
 val iter : (attr -> unit) -> flags -> unit

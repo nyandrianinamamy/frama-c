@@ -12,6 +12,8 @@ void f(int *a, int *b, int *c, int *d, int n);
 /*@ \region::region a[0..n], b[0..n], *(c + (..)), *(d + (..)); */
 void job(int *a, int *b, int *c, int *d, int n)
 {
+  /*@ check region: f: A: \valid_read(a + (0 .. n)); */
+  /*@ check region: f: B: \valid_read(b + (0 .. n)); */
   /*@ check
         region: f: A: B: b ≢ \null ⇒ \separated(a + (0 .. n), b + (0 .. n));
   */

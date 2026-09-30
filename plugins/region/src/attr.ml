@@ -17,7 +17,7 @@ let flag = function
   | `Garbage   -> 0b00100
   | `Validread -> 0b01000
   | `Written   -> 0b10000
-let all_flags =   0b11111
+let flags =   0b11111
 
 let generate_mask l =
   let rec mask (M m) = function
@@ -27,8 +27,11 @@ let generate_mask l =
 
 let empty = A 0
 let add a (A w) = A (flag a lor w)
+let generate_flags (fs : attr list) =
+  List.fold_left (fun acc f -> add f acc) empty fs
 let mem a (A w) = flag a land w <> 0
 let union (A x) (A y) = A (x lor y)
+let inter (A x) (A y) = A (x land y)
 let subset (A x) (A y) = (x lor y) = y
 
 let iter f w =
@@ -43,15 +46,10 @@ let pp_attr fmt = function
   | `Validread -> Format.pp_print_string fmt "validread"
   | `Written   -> Format.pp_print_string fmt "written"
 
-let reversed = 0b0
-(* flags that shall be merged with land instead of lor *)
+let bottom = A 0b0
 
-let bottom = A reversed
-
-let merge ?mask:(M m = M all_flags) (A x) (A y) =
-  let x_m, y_m = x land m, y land m in
-  let flip w = reversed lxor w in
-  A ((x land lnot m) lor (flip (flip x_m lor flip y_m)))
+let merge ?mask:(M m = M flags) (A x) (A y) =
+  A (x lor (m land y))
 
 let pretty fmt w =
   begin

@@ -629,14 +629,19 @@ let iter_parent_path parent f r =
          if equal r rg.data then f rg.length
       ) rgs
 
-let rec consolidate_down gvars marked n =
+
+let mask_forward =
+  Attr.generate_mask [ `Allocated ; `Garbage ; `Nullable ; `Written ]
+let mask_backward =
+  Attr.generate_mask [ `Written ]
+
+let rec consolidate_forward gvars marked n =
   if not @@ UF.test_and_mark marked n then
     let node = UF.get n in
     let ps = UF.find_all node.cparents in
     begin
-      let down =
-        Attr.generate_mask [ `Allocated ; `Garbage ; `Nullable ; `Written ] in
-      let add_flags fs = node.cflags <- Attr.merge ~mask:down node.cflags fs in
+      let add_flags fs =
+        node.cflags <- Attr.merge ~mask:mask_forward node.cflags fs in
       let () = if not @@ Access.Set.is_empty node.cwrites then
           node.cflags <- Attr.add `Written node.cflags
       in
@@ -654,7 +659,7 @@ let rec consolidate_down gvars marked n =
         ) node.croots ;
       List.iter
         (fun p ->
-           consolidate_down gvars marked p ;
+           consolidate_forward gvars marked p ;
            let parent = UF.get p in
            node.cdepth <- max node.cdepth (succ parent.cdepth) ;
            add_flags parent.cflags ;
@@ -667,15 +672,14 @@ let rec consolidate_down gvars marked n =
       if node.cpaths = 0 then node.cflags <- Attr.empty ;
     end
 
-let rec consolidate_up ?flags:(flags=Attr.empty) marked n =
+let rec consolidate_backward ?flags:(flags=Attr.empty) marked n =
   if not @@ UF.test_and_mark marked n then
     let node = UF.get n in
     if not @@ Access.Set.is_empty node.cwrites then begin
       node.cflags <- Attr.add `Written node.cflags
     end;
-    let up = Attr.generate_mask [ `Written ] in
-    let () = node.cflags <- Attr.merge ~mask:up node.cflags flags in
-    List.iter (consolidate_up ~flags:node.cflags marked) node.cparents
+    let () = node.cflags <- Attr.merge ~mask:mask_backward node.cflags flags in
+    List.iter (consolidate_backward ~flags:node.cflags marked) node.cparents
 
 
 
@@ -933,9 +937,9 @@ let lock m =
   begin
     witer m UF.lock ;
     let marks = UF.marks () in
-    iter (consolidate_down m.gvars marks) m ;
+    iter (consolidate_forward m.gvars marks) m ;
     let marks = UF.marks () in
-    iter (consolidate_up marks) m;
+    iter (consolidate_backward marks) m;
   end
 
 (* -------------------------------------------------------------------------- *)
