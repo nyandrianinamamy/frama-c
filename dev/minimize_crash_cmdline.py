@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 ##########################################################################
 #                                                                        #
 #  SPDX-License-Identifier LGPL-2.1                                      #
@@ -11,9 +10,9 @@
 # Receives a command line which crashes and removes as many command-line
 # arguments as possible, while ensuring it still crashes.
 
-import sys
 import os
 import subprocess
+import sys
 
 if len(sys.argv) < 2:
     print(
@@ -57,7 +56,7 @@ else:
 def check_cmdline_crashes(args):
     cmdline = ["frama-c"] + args
     try:
-        proc = subprocess.run(cmdline, cwd=test_dir, timeout=30, capture_output=True)
+        proc = subprocess.run(cmdline, cwd=test_dir, timeout=30, capture_output=True, check=False)
         return proc.returncode == 4 or proc.returncode == 125, proc
     except subprocess.TimeoutExpired:
         sys.exit("TODO: timeout reached during execution")

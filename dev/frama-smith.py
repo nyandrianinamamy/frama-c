@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 ##########################################################################
 #                                                                        #
 #  SPDX-License-Identifier LGPL-2.1                                      #
@@ -30,11 +29,13 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
+
 import psutil
 
+logger = logging.getLogger(__name__)
+
 if len(sys.argv) >= 2 and sys.argv[1] == "--help":
-    print(
-        """
+    print("""
 Frama-Smith: a mini-fuzzer for the Frama-C command-line
 
 Usage: currently, almost all arguments are passed via environment variables.
@@ -113,8 +114,7 @@ TIMEOUT: timeout (in seconds) before terminating execution of a test.
     Note: timeout is currently buggy and does not work in all cases;
           some processes may keep executing longer than they should.
     Default: 10
-"""
-    )
+""")
     sys.exit(0)
 
 script_dir = Path(os.path.dirname(os.path.realpath(__file__)))
@@ -138,14 +138,14 @@ templates_json = Path(os.getenv("TEMPLATES", script_dir / "frama-smith-templates
 # add double quotes around extra arguments to be forwarded to the
 # 'new' command line; this compensates their 'loss' by the shell when passed
 # to this Python process.
-extra_args = " ".join('"%s"' % arg for arg in sys.argv[1:])
+extra_args = " ".join(f'"{arg}"' for arg in sys.argv[1:])
 
 framac = "frama-c"
 fc_script = f"{framac}-script"
 
 if log_and_keep:
     print(f"Logging commands causing crashes to: '{log_and_keep}'")
-    logging.basicConfig(
+    logger.basicConfig(
         format="[%(asctime)s] %(message)s",
         filename=log_and_keep,
         # (for Python 3.9) encoding='utf-8',
@@ -199,7 +199,7 @@ def random_biased_towards_lower(a, b):
     else:
         # generate a number slightly biased towards a
         return a + math.trunc(random.random() * (b - a)) >> random.randint(
-            0, math.trunc(math.log(b - a, 2))
+            0, math.trunc(math.log2(b - a))
         )
 
 
@@ -332,7 +332,7 @@ for path in glob_expression.split(","):
 if not sources_set:
     sys.exit(f"error: no files matching expression: {glob_expression}")
 
-for exc in sources_blacklist.keys():
+for exc in sources_blacklist:
     sources_set -= set(glob.glob(exc))
 
 if not sources_set:
@@ -394,7 +394,7 @@ def list_functions(chosen_sources, cpp_extra, add_load):
         return []
 
 
-def generate_random_args(min_args, max_args, functions=[]):
+def generate_random_args(min_args, max_args, functions):
     n_args = random.randint(min_args, max_args)
     chosen_opts = random.sample(all_options_keys_list, n_args)
     args = ""
@@ -530,7 +530,7 @@ async def run_and_log_command(args, timeout):
                     kill_shell_and_children(process.pid)  # timeout
                     return (124, "")
                 except ValueError as e:
-                    print(f"### VALUE ERROR: {repr(e)}")
+                    print(f"### VALUE ERROR: {e!r}")
                     kill_shell_and_children(process.pid)  # timeout
                     return (1, "")
                 else:
@@ -544,9 +544,9 @@ async def run_and_log_command(args, timeout):
             retcode = await process.wait()  # wait for the child process to exit
             timer.cancel()
         except Exception as e:
-            print(f"killing subprocess {process.pid} before re-raising exception <{repr(e)}>...")
+            print(f"killing subprocess {process.pid} before re-raising exception <{e!r}>...")
             kill_shell_and_children(process.pid)
-            raise e
+            raise
     with open(logname, "r", encoding="utf-8") as logfile:
         output = logfile.read()
     os.remove(logname)
@@ -565,14 +565,14 @@ for i in range(1, n_tries + 1):
     add_load = "-load " if source_mode == "load" else ""
     functions = list_functions(chosen_sources, cpp_extra, add_load)
     cmdline = f"{framac} {mandatory_args} {add_load}{chosen_sources} {cpp_extra}{extra_args}"
-    cmdline += generate_random_args(2, 15, functions=functions)
+    cmdline += generate_random_args(2, 15, functions)
     print(f"running: {cmdline}")
-    (retcode, res_stdout, please_report) = loop.run_until_complete(
+    retcode, res_stdout, please_report = loop.run_until_complete(
         run_and_log_command(cmdline, timeout)
     )
     if retcode in (4, 125) and please_report:
         if log_and_keep:
-            logging.info("CRASH with: %s", cmdline)
+            logger.info("CRASH with: %s", cmdline)
         else:
             sys.exit(f"Crash detected in Frama-C, stopping. Command line:\n{cmdline}")
     else:
@@ -584,7 +584,7 @@ for i in range(1, n_tries + 1):
             )
         if res_stdout.find("Please report") != -1:
             if log_and_keep:
-                logging.info("Fatal crash with: %s", cmdline)
+                logger.info("Fatal crash with: %s", cmdline)
             else:
                 if quiet:
                     print("### Output from fatal crash:")
