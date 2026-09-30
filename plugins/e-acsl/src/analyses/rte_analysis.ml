@@ -39,7 +39,10 @@ struct
     | Initialized -> 1
     | Pointer_alignment -> 2
     | Memory_access -> 3
-    | _ -> 4
+    | Division_by_zero -> 4
+    | Downcast _ -> 5
+    | Out_of_bounds -> 6
+    | Shift _ -> 7
 
   let compare g1 g2 = compare (priority g1) (priority g2)
 end
