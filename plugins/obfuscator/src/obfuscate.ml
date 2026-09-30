@@ -138,7 +138,11 @@ class visitor = object
 
   method! vterm t =
     List.iter (fun s -> warn "term" s) t.term_name;
-    Cil.DoChildren
+    match t.term_node with
+    | TConst (LStr _ | LWStr _ as lc) ->
+      let s = Dictionary.fresh_acsl_string_literal lc in
+      Cil.ChangeTo { t with term_node = TConst (LStr s) }
+    | _ -> Cil.DoChildren
 
   method! vannotation = function
     | Daxiomatic(str, globs, attrs, loc) ->
@@ -231,7 +235,9 @@ module UpdatePrinter (X: Printer.PrinterClass) = struct
              else acc)
           Cil_datatype.Varinfo.Set.empty
       in
-      if not (Cil_datatype.Varinfo.Set.is_empty literal_strings) then begin
+      if not (Cil_datatype.Varinfo.Set.is_empty literal_strings)
+      || Dictionary.has_acsl_string_literals ()
+      then begin
         let string_fmt =
           if Options.String_literal.is_default () then fmt
           else begin
@@ -253,6 +259,7 @@ module UpdatePrinter (X: Printer.PrinterClass) = struct
 /* *********************************************************** */@\n";
         Cil_datatype.Varinfo.Set.iter
           (define_string_lit string_fmt) literal_strings;
+        Dictionary.pp_acsl_string_literal_dict string_fmt;
         Format.fprintf string_fmt "\
 /* ********************************************************* */@\n\
 /* end of dictionary required to compile the obfuscated code */@\n\
@@ -280,6 +287,11 @@ module UpdatePrinter (X: Printer.PrinterClass) = struct
         when Ast_info.is_string_literal v ->
         Format.fprintf fmt "%s%a" v.vname self#term_offset o
       | _ -> super#term_lval fmt lv
+
+    method! term_node fmt t =
+      match t.term_node with
+      | TConst (LStr s) -> Format.pp_print_string fmt s
+      | _ -> super#term_node fmt t
 
     method! global fmt g =
       match g with

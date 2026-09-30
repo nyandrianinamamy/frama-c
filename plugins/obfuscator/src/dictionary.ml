@@ -16,14 +16,14 @@ module Dictionary =
       let dependencies = [ Ast.self ]
     end)
 
-module String_literals =
+module Acsl_string_literals =
   State_builder.Hashtbl
     (Datatype.String.Hashtbl)
-    (Datatype.String)
+    (Cil_datatype.Logic_constant)
     (struct
       let name = "Obfuscator.Literal_strings"
       let size = 17
-      let dependencies = [ Dictionary.self ]
+      let dependencies = [ Ast.self ]
     end)
 
 let fresh kind name =
@@ -31,11 +31,21 @@ let fresh kind name =
   let idx = Datatype.String.Hashtbl.length h + 1 in
   let fresh = Obfuscator_kind.prefix kind ^ string_of_int idx in
   Datatype.String.Hashtbl.add h fresh name;
-  if kind = Obfuscator_kind.String_literal && not (String_literals.mem name)
-  then String_literals.add name fresh;
   fresh
 
-let id_of_string_literal = String_literals.find
+let fresh_acsl_string_literal lc =
+  let idx = Acsl_string_literals.length () + 1 in
+  let fresh = "ACSL_STRING_" ^ string_of_int idx in
+  Acsl_string_literals.add fresh lc;
+  fresh
+
+let pp_acsl_string_literal_dict fmt =
+  let pp_entry s lc =
+    Format.fprintf fmt "#define %s %a@\n" s Printer.pp_logic_constant lc
+  in
+  Acsl_string_literals.iter pp_entry
+
+let has_acsl_string_literals () = not (Acsl_string_literals.length () = 0)
 
 let iter_sorted_kind f k h =
   if Datatype.String.Hashtbl.length h > 0 then
@@ -52,10 +62,7 @@ let iter_sorted f =
 
 let pretty_entry fmt k =
   Format.fprintf fmt "// %as@\n" Obfuscator_kind.pretty k;
-  let quote = k = Obfuscator_kind.String_literal in
-  fun new_ old ->
-    if quote then Format.fprintf fmt "#define %s %S@\n" new_ old
-    else Format.fprintf fmt "#define %s %s@\n" new_ old
+  fun new_ old -> Format.fprintf fmt "#define %s %s@\n" new_ old
 
 let pretty_kind fmt k =
   try
@@ -69,14 +76,14 @@ let pretty fmt =
 /* *********************************** */@\n\
 /* start of dictionary for obfuscation */@\n\
 /* *********************************** */@\n";
-  iter_sorted
-    (fun k ->
-       if k = Obfuscator_kind.String_literal then fun _ _ -> ()
-       else pretty_entry fmt k);
+  iter_sorted (pretty_entry fmt);
   Format.fprintf fmt "\
 /*********************************** */@\n\
 /* end of dictionary for obfuscation */@\n\
 /*********************************** */@\n@\n"
 
-let mark_as_computed () = Dictionary.mark_as_computed ()
-let is_computed () = Dictionary.is_computed ()
+let mark_as_computed () =
+  Dictionary.mark_as_computed (); Acsl_string_literals.mark_as_computed()
+
+let is_computed () =
+  Dictionary.is_computed () && Acsl_string_literals.is_computed ()
