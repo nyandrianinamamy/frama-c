@@ -10,6 +10,7 @@
 # Receives a command line which crashes and removes as many command-line
 # arguments as possible, while ensuring it still crashes.
 
+import itertools
 import os
 import subprocess
 import sys
@@ -20,22 +21,9 @@ if len(sys.argv) < 2:
     )
     print("alternative syntax (copied from frama-smith.py output):")
     print(
-        "{sys.argv[0]} frama-c <test directory>/<source file> <frama-c command line options causing a crash>"
+        f"{sys.argv[0]} frama-c <test directory>/<source file> <frama-c command line options causing a crash>"
     )
     sys.exit(0)
-
-# auxiliary function for iterating a list as a pair (cur, next);
-# from SO: https://stackoverflow.com/questions/5434891
-# This will likely be available in Python 3.10
-import itertools
-
-
-def pairwise(iterable):
-    "s -> (s0,s1), (s1,s2), (s2, s3), ..."
-    a, b = itertools.tee(iterable)
-    next(b, None)
-    return zip(a, b)
-
 
 # we check if the first argument is the test directory (syntax 1)
 # or 'frama-c' (syntax 2)
@@ -83,7 +71,7 @@ def has_comma_between_quotes(s):
 def normalize_commas(args):
     new_args = []
     skip_next = False
-    for prev, cur in pairwise(args):
+    for prev, cur in itertools.pairwise(args):
         if skip_next:
             skip_next = False
             continue

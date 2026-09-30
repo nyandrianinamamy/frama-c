@@ -11,7 +11,7 @@
 
 # Usage examples:
 #
-# N_TRIES=1000 SOURCES_GLOB="tests/**/*.[ci],src/plugins/*/tests/**/*.[ci]" dev/frama-smith.py [mandatory arguments]
+# N_TRIES=1000 SOURCES_GLOB="tests/**/*.[ci],plugins/*/tests/**/*.[ci]" dev/frama-smith.py [mandatory arguments]
 #
 # Works better with stand-alone programs; when using Frama-C
 # non-regression test suites, due to lack of the specific flags used in
@@ -50,8 +50,8 @@ SOURCES_GLOB: a glob expression (may contain '*', '**', '[]', etc) matching
     In this mode, a _single_ file among the globbed ones is used for each test.
     Note: curly braces ({}) are _not_ accepted.
     Incompatible with MULTI_SOURCES_GLOB and LOAD_SAVE.
-    E.g. : SOURCES_GLOB="src/plugins/wp/tests/**/*.[ci]"
-    Default: "tests/**/*.[ci]", unless MULTI_SOURCES_GLOB is set.
+    E.g. : SOURCES_GLOB="tests/**/*.[ci],plugins/*/tests/**/*.[ci]"
+    Default: "" (off)
 
 MULTI_SOURCES_GLOB: a glob expression (may contain '*', '**', '[]', etc)
     matching all source files to be used as inputs for fuzzying.
@@ -134,6 +134,7 @@ quiet = os.getenv("QUIET")
 sources_exclude = os.getenv("SOURCES_EXCLUDE", "")
 timeout = int(os.getenv("TIMEOUT", "10"))
 templates_json = Path(os.getenv("TEMPLATES", script_dir / "frama-smith-templates.json"))
+testing = os.getenv("FRAMAC_TESTING", "no")
 
 # add double quotes around extra arguments to be forwarded to the
 # 'new' command line; this compensates their 'loss' by the shell when passed
@@ -348,6 +349,9 @@ if not sources_set:
 
 sources = sorted(sources_set)
 
+sources_count = f"{len(sources)}" if testing == "no" else "<COUNT>"
+print(f"{sources_count} fuzzable sources.")
+
 if list_options:
     print("Listing all options that could be generated:")
     print("\n".join(sorted(all_options)))
@@ -357,8 +361,9 @@ if list_options:
 
 all_options_keys_list = list(all_options.keys())
 
+options_count = f"{len(all_options_keys_list)}/{n_opts}" if testing == "no" else "<COUNT>"
 print(
-    f"Autocomplete filter: '{autocomplete_filter}'. Fuzzing {len(all_options_keys_list)}/{n_opts} Frama-C command-line options ({unsupported_n_opts} option(s) not supported in current mode)."
+    f"Autocomplete filter: '{autocomplete_filter}'. Fuzzing {options_count} Frama-C command-line options ({unsupported_n_opts} option(s) not supported in current mode)."
 )
 
 re_list_functions = re.compile("^([A-Za-z0-9_]+): (defined|declared) at.*")
