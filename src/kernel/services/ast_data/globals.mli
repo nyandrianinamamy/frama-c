@@ -21,6 +21,9 @@ module Vars: sig
 
   val find: varinfo -> initinfo
 
+  (** @since Frama-C~dev *)
+  val find_opt: varinfo -> initinfo option
+
   (** Retrieve the (wide)string literal associated to a given varinfo.
       Fatal error if the variable does not have the corresponding attribute
       (see {!Ast_info.is_string_literal})
