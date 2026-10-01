@@ -309,8 +309,24 @@ fi
 show_step "Clean build artifacts from the directory"
 "$ROOT"/dev/clean-bundle.sh --quiet bundle
 
+show_step "Merge Oui file with plugins' patches"
+declare -a oui_patches=()
+for plugin in "$ROOT"/plugins/*; do
+  ouipatch="${plugin}/dev/bundle-oui-patch.json"
+  if [ -f "${ouipatch}" ]; then
+    oui_patches+=("${ouipatch}")
+  fi
+done
+
+tmp_oui_file="$(mktemp tmp_oui_XXXXXX.json)"
+cleanup() {
+  rm -f "$tmp_oui_file"
+}
+trap cleanup EXIT
+jq --from-file "$SCRIPT_DIR/meld-oui-files.jq" "$OUI_FILE" "${oui_patches[@]}" > "$tmp_oui_file"
+
 show_step "Create Oui bundle"
-oui build "$OUI_FILE" -o "frama-c-$BUNDLE_ARCH.$BUNDLE_EXT" bundle
+oui build "$tmp_oui_file" -o "frama-c-$BUNDLE_ARCH.$BUNDLE_EXT" bundle
 
 if [ -f "frama-c-$BUNDLE_ARCH.pkg" ]; then # sign macOS bundle
   show_step "Sign MacOS bundle"
