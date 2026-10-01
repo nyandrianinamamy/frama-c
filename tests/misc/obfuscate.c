@@ -81,3 +81,7 @@ void my_f() {}
 
 /*@ lemma string_literal: "foobar"[3] != "raw"[0]; */
 char sl[] = "global str";
+
+char use_sl() { return sl[4]; }
+
+char* sl_ptr() { return &sl[4]; }

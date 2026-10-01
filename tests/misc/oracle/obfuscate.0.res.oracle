@@ -22,6 +22,8 @@
 #define F5 implem
 #define F6 test_func
 #define F7 my_f
+#define F8 use_sl
+#define F9 sl_ptr
 // global variables
 #define G1 my_var
 #define G2 example_struct
@@ -60,6 +62,8 @@
 #define V4 __retres
 #define V5 x
 #define V6 __retres
+#define V7 __retres
+#define V8 __retres
 // formal variables
 #define f1 p
 #define f2 f1
@@ -208,4 +212,18 @@ lemma LE2:
 
 */
 char G3[11UL] = G3_content;
+char F8(void)
+{
+  char V7;
+  V7 = G3[4];
+  return V7;
+}
+
+char *F9(void)
+{
+  char *V8;
+  V8 = & G3[4];
+  return V8;
+}
+
 
