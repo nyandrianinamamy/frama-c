@@ -12,6 +12,8 @@ open Cil_datatype
 let warn kind name =
   Options.warning ~once:true "unobfuscated %s name `%s'" kind name
 
+let content_macro s = s ^ "_content"
+
 class visitor = object
 
   inherit Visitor.frama_c_inplace
@@ -217,9 +219,19 @@ let obfuscate_behaviors () =
          (fun e kf l -> Annotations.remove_disjoint e kf l)
          (fun e kf l -> Annotations.add_disjoint e kf l))
 
+let string_definition_opt v =
+  let open Option.Operators in
+  let extract_string = function StrInit s -> Some s | _ -> None in
+  (Globals.Vars.find_opt v) >>- (fun v -> v.init) >>- extract_string
+
+let get_string_definition v = Option.get (string_definition_opt v)
+
+let has_string_definition v = Option.is_some (string_definition_opt v)
+
 let define_string_lit fmt v =
+  let name = if Ast_info.is_string_literal v then v.vname else content_macro v.vname in
   Format.fprintf fmt "#define %s %a@\n"
-    v.vname Cil_printer.pp_str_literal (Globals.Vars.get_string_literal v)
+    name Cil_printer.pp_str_literal (get_string_definition v)
 
 module UpdatePrinter (X: Printer.PrinterClass) = struct
   (* obfuscated printer *)
@@ -230,7 +242,7 @@ module UpdatePrinter (X: Printer.PrinterClass) = struct
       let literal_strings =
         Globals.Vars.fold
           (fun v _ acc ->
-             if Ast_info.is_string_literal v then
+             if has_string_definition v then
                Cil_datatype.Varinfo.Set.add v acc
              else acc)
           Cil_datatype.Varinfo.Set.empty
@@ -277,14 +289,14 @@ module UpdatePrinter (X: Printer.PrinterClass) = struct
     method! lval fmt lv =
       match lv with
       | Var v, (NoOffset | Index _ as o)
-        when Ast_info.is_string_literal v ->
+        when has_string_definition v ->
         Format.fprintf fmt "%s%a" v.vname self#offset o
       | _ -> super#lval fmt lv
 
     method! term_lval fmt lv =
       match lv with
       | TVar { lv_origin = Some v }, (TNoOffset | TIndex _ as o)
-        when Ast_info.is_string_literal v ->
+        when has_string_definition v ->
         Format.fprintf fmt "%s%a" v.vname self#term_offset o
       | _ -> super#term_lval fmt lv
 
@@ -299,6 +311,8 @@ module UpdatePrinter (X: Printer.PrinterClass) = struct
          (which makes little sense with -obfuscate anyways)
       *)
       | GVarDecl (v,_) | GVar(v,_,_) when Ast_info.is_string_literal v -> ()
+      | GVar (v,_,_) when has_string_definition v ->
+        Format.fprintf fmt "@[%a = %s;@]@\n" self#vdecl v (content_macro v.vname)
       | _ -> super#global fmt g
 
   end
