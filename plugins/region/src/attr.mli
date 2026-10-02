@@ -15,25 +15,19 @@ type attr = [
   | `Written (** Only for [Regions]: at least one write access has been recorded in this region. *)
 ]
 
+val all_flags : flags
+
 val empty : flags
-val add : attr -> flags -> flags
+val generate_flags : attr list -> flags
+
+val add : flags -> attr -> flags
 val mem : attr -> flags -> bool
 val subset : flags -> flags -> bool
 val union : flags -> flags -> flags (** Union of attributes *)
 val inter : flags -> flags -> flags (** Intersection of attributes *)
 
-val bottom : flags
-(** Neutral for merge *)
-
-val generate_flags : attr list -> flags
-val add_flag : flags -> attr -> flags
-
-type mask
-val generate_mask : attr list -> mask (** Generate the mask for merge *)
-val merge : ?mask:mask -> flags -> flags -> flags
-(** [merge ?mask x y]: combine flags under [mask] when specified,
-    or equivalent to [union] [x] ([inter] [mask] [y]).
-*)
+val merge : ?mask:flags -> flags -> flags -> flags
+(** [merge ?mask x y] is [union x (inter mask y)]. *)
 
 val iter : (attr -> unit) -> flags -> unit
 

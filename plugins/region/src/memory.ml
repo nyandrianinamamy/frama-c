@@ -127,7 +127,7 @@ let empty = {
   clayout = Blob 0 ;
   cdepth = 0 ;
   cpaths = 0 ;
-  cflags = Attr.bottom ;
+  cflags = Attr.empty ;
 }
 
 (* -------------------------------------------------------------------------- *)
@@ -230,7 +230,7 @@ module Nhash = Hashtbl.Make(Node)
 (* -------------------------------------------------------------------------- *)
 
 let new_chunk store ?parent ?(size=0) ?(value=false) ?ptr ?pointed
-    ?(flags=Attr.bottom) ?(result=false) () =
+    ?(flags=Attr.empty) ?(result=false) () =
   let cresult = result in
   let clayout =
     match ptr with
@@ -294,10 +294,10 @@ let ltyp (m:map) ?(ctxt) (lt:logic_type) =
   Option.fold ~none:d ~some:(fun (c:context) -> Domain.subst c d) ctxt
 
 let add_flag (f : Attr.attr list) (n: node) =
-  update n (fun c -> c.cflags <- List.fold_left Attr.add_flag c.cflags f ; c)
+  update n (fun c -> c.cflags <- List.fold_left Attr.add c.cflags f ; c)
 
 let add_intptr (m:map) = function
-  | 0 -> fresh ~flags:(Attr.add_flag Attr.bottom `Nullable) m
+  | 0 -> fresh ~flags:(Attr.generate_flags [`Nullable]) m
   | _ -> assert false
 
 let fresh m = fresh m
@@ -631,9 +631,9 @@ let iter_parent_path parent f r =
 
 
 let mask_forward =
-  Attr.generate_mask [ `Allocated ; `Garbage ; `Nullable ; `Written ]
+  Attr.generate_flags [ `Allocated ; `Garbage ; `Nullable ; `Written ]
 let mask_backward =
-  Attr.generate_mask [ `Written ]
+  Attr.generate_flags [ `Written ]
 
 let rec consolidate_forward gvars marked n =
   if not @@ UF.test_and_mark marked n then
@@ -643,7 +643,7 @@ let rec consolidate_forward gvars marked n =
       let add_flags fs =
         node.cflags <- Attr.merge ~mask:mask_forward node.cflags fs in
       let () = if not @@ Access.Set.is_empty node.cwrites then
-          node.cflags <- Attr.add `Written node.cflags
+          node.cflags <- Attr.add node.cflags `Written
       in
       let size = sizeof node.clayout in
       let path s = node.cpaths <- node.cpaths + (if s = size then 1 else 2) in
@@ -676,7 +676,7 @@ let rec consolidate_backward ?flags:(flags=Attr.empty) marked n =
   if not @@ UF.test_and_mark marked n then
     let node = UF.get n in
     if not @@ Access.Set.is_empty node.cwrites then begin
-      node.cflags <- Attr.add `Written node.cflags
+      node.cflags <- Attr.add node.cflags `Written
     end;
     let () = node.cflags <- Attr.merge ~mask:mask_backward node.cflags flags in
     List.iter (consolidate_backward ~flags:node.cflags marked) node.cparents

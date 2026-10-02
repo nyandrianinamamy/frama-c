@@ -8,7 +8,6 @@
 
 type attr = [ `Nullable | `Allocated | `Garbage | `Validread | `Written ]
 type flags = A of int [@@ unboxed]
-type mask = M of int [@@ unboxed]
 
 
 let flag = function
@@ -17,18 +16,11 @@ let flag = function
   | `Garbage   -> 0b00100
   | `Validread -> 0b01000
   | `Written   -> 0b10000
-let flags =   0b11111
-
-let generate_mask l =
-  let rec mask (M m) = function
-    | [] -> M m
-    | attr :: rest -> mask (M (m lor flag attr)) rest
-  in mask (M 0) l
+let all_flags = A 0b11111
 
 let empty = A 0
-let add a (A w) = A (flag a lor w)
-let generate_flags (fs : attr list) =
-  List.fold_left (fun acc f -> add f acc) empty fs
+let add (A w) a = A (flag a lor w)
+let generate_flags (fs : attr list) = List.fold_left add empty fs
 let mem a (A w) = flag a land w <> 0
 let union (A x) (A y) = A (x lor y)
 let inter (A x) (A y) = A (x land y)
@@ -46,10 +38,7 @@ let pp_attr fmt = function
   | `Validread -> Format.pp_print_string fmt "validread"
   | `Written   -> Format.pp_print_string fmt "written"
 
-let bottom = A 0b0
-
-let merge ?mask:(M m = M flags) (A x) (A y) =
-  A (x lor (m land y))
+let merge ?mask:(A m = all_flags) (A x) (A y) = A (x lor (m land y))
 
 let pretty fmt w =
   begin
@@ -61,8 +50,6 @@ let pretty fmt w =
     iter next w ;
     Format.fprintf fmt "@]" ;
   end
-
-let add_flag s f = merge s @@ add f bottom
 
 open Cil_types
 
@@ -80,7 +67,7 @@ let is_const v =
 
 let cvar ~garbage v =
   let flags = ref empty in
-  let set f = flags := add f !flags in
+  let set f = flags := add !flags f in
   if is_local v then set `Allocated ;
   if is_const v then set `Validread ;
   if not @@ is_initialized ~garbage v then set `Garbage ;
