@@ -20,17 +20,16 @@ help:
 	echo "  make push TAG=framac/frama-c:dev AS=framac/frama-c:dev"
 	echo ""
 
-DEPS=../../opam Dockerfile $(wildcard *.sh)
+DEPS=../../opam Dockerfile
 
 BUILD_ARGS += --build-arg=OPAM=2.4
 
 dev: $(DEPS)
 	docker build . -t framac/frama-c:$@ $(BUILD_ARGS) --target frama-c
 
-BUILD_ARGS += --build-arg=from_archive=frama-c.tar.gz
 
 custom: $(DEPS)
-	docker build . -t frama-c-custom $(BUILD_ARGS) --target frama-c
+	docker build . -t frama-c-custom --build-arg=from_archive=frama-c.tar.gz $(BUILD_ARGS) --target frama-c
 
 # check if either TAG or AS are empty
 ifeq ($(TAG)$(AS),$(AS)$(TAG))

@@ -23,7 +23,7 @@ FROM base AS frama-c
 ARG from_archive=git
 
 ## The following line copies a frama-c archive if it exists, else nothing
-COPY --chown=opam:opam README.md frama-c.tar.gz /frama-c/
+COPY --chown=opam:opam README.md frama-c*.tar.gz /frama-c/
 
 RUN \
 if [ "${from_archive}" != "git" ]; then \
