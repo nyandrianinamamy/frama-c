@@ -3482,11 +3482,26 @@ struct
     | PLrel (t1, (Eq | Neq | Lt | Le | Gt | Ge as op), t2) ->
       let f loc op t1 t2 = prel ~loc (type_rel op, t1, t2) in
       type_relation ctxt env f t1 op t2
-    | PLand (p1, p2) -> pand ~loc (predicate env p1, predicate env p2)
-    | PLor (p1, p2) -> por ~loc (predicate env p1, predicate env p2)
-    | PLxor (p1, p2) -> pxor ~loc (predicate env p1, predicate env p2)
-    | PLimplies (p1, p2) -> pimplies ~loc (predicate env p1, predicate env p2)
-    | PLiff (p1, p2) -> piff ~loc (predicate env p1, predicate env p2)
+    | PLand (p1, p2) ->
+      let p1 = predicate env p1 in
+      let p2 = predicate env p2 in
+      pand ~loc (p1, p2)
+    | PLor (p1, p2) ->
+      let p1 = predicate env p1 in
+      let p2 = predicate env p2 in
+      por ~loc (p1, p2)
+    | PLxor (p1, p2) ->
+      let p1 = predicate env p1 in
+      let p2 = predicate env p2 in
+      pxor ~loc (p1, p2)
+    | PLimplies (p1, p2) ->
+      let p1 = predicate env p1 in
+      let p2 = predicate env p2 in
+      pimplies ~loc (p1, p2)
+    | PLiff (p1, p2) ->
+      let p1 = predicate env p1 in
+      let p2 = predicate env p2 in
+      piff ~loc (p1, p2)
     | PLnot p ->
       (match (predicate env p) with
        | {pred_content = Prel (Cil_types.Rneq, t, z)} when Cil.isLogicZero z ->
@@ -3506,7 +3521,9 @@ struct
       end
     | PLif (p0, p1, p2) ->
       let c = predicate env p0 in
-      pif ~loc (c, predicate env p1, predicate env p2)
+      let p1 = predicate env p1 in
+      let p2 = predicate env p2 in
+      pif ~loc (c, p1, p2)
     | PLforall (q, p) ->
       let q, env' = add_quantifiers ctxt loc ~kind:LVQuant q env in
       pforall ~loc (q, predicate env' p)

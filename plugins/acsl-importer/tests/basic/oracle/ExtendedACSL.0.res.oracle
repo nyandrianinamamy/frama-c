@@ -17,21 +17,21 @@ int f(int x);
 /*@ behavior imported_test:
       \test::foo imported: y ≡ 1;
       \test::bar imported: \old(y) + \result ≡ 0;
-      \test::bla imported: \trace(3) ∧ \trace(2);
+      \test::bla imported: \trace(2) ∧ \trace(3);
     
     behavior test:
       \test::foo y ≡ 1;
       \test::bar \old(y) + \result ≡ 0;
-      \test::bla \trace(6) ∧ \trace(5);
+      \test::bla \trace(5) ∧ \trace(6);
  */
 int g(int y);
 
 /*@ \test::foo imported: x ≡ 0;
     \test::bar imported: \result ≡ 0;
-    \test::bla imported: \trace(9) ∨ \trace(8);
+    \test::bla imported: \trace(8) ∨ \trace(9);
     \test::foo x ≡ 0;
     \test::bar \result ≡ 0;
-    \test::bla \trace(12) ∨ \trace(11);
+    \test::bla \trace(11) ∨ \trace(12);
  */
 int f(int x)
 {
@@ -90,21 +90,21 @@ int f(int x);
 /*@ behavior imported_test:
       \test::foo imported: y ≡ 1;
       \test::bar imported: \old(y) + \result ≡ 0;
-      \test::bla imported: \trace(3) ∧ \trace(2);
+      \test::bla imported: \trace(2) ∧ \trace(3);
     
     behavior test:
       \test::foo y ≡ 1;
       \test::bar \old(y) + \result ≡ 0;
-      \test::bla \trace(6) ∧ \trace(5);
+      \test::bla \trace(5) ∧ \trace(6);
  */
 int g(int y);
 
 /*@ \test::foo imported: x ≡ 0;
     \test::bar imported: \result ≡ 0;
-    \test::bla imported: \trace(9) ∨ \trace(8);
+    \test::bla imported: \trace(8) ∨ \trace(9);
     \test::foo x ≡ 0;
     \test::bar \result ≡ 0;
-    \test::bla \trace(12) ∨ \trace(11);
+    \test::bla \trace(11) ∨ \trace(12);
  */
 int f(int x)
 {
@@ -163,21 +163,21 @@ int f(int x);
 /*@ behavior imported_test:
       \test::foo imported: y ≡ 1;
       \test::bar imported: \old(y) + \result ≡ 0;
-      \test::bla imported: \trace(12) ∧ \trace(11);
+      \test::bla imported: \trace(11) ∧ \trace(12);
     
     behavior test:
       \test::foo y ≡ 1;
       \test::bar \old(y) + \result ≡ 0;
-      \test::bla \trace(6) ∧ \trace(5);
+      \test::bla \trace(5) ∧ \trace(6);
  */
 int g(int y);
 
 /*@ \test::foo imported: x ≡ 0;
     \test::bar imported: \result ≡ 0;
-    \test::bla imported: \trace(9) ∨ \trace(8);
+    \test::bla imported: \trace(8) ∨ \trace(9);
     \test::foo x ≡ 0;
     \test::bar \result ≡ 0;
-    \test::bla \trace(3) ∨ \trace(2);
+    \test::bla \trace(2) ∨ \trace(3);
  */
 int f(int x)
 {
@@ -236,21 +236,21 @@ int f(int x);
 /*@ behavior imported_test:
       \test::foo imported: y ≡ 1;
       \test::bar imported: \old(y) + \result ≡ 0;
-      \test::bla imported: \trace(3) ∧ \trace(2);
+      \test::bla imported: \trace(2) ∧ \trace(3);
     
     behavior test:
       \test::foo y ≡ 1;
       \test::bar \old(y) + \result ≡ 0;
-      \test::bla \trace(6) ∧ \trace(5);
+      \test::bla \trace(5) ∧ \trace(6);
  */
 int g(int y);
 
 /*@ \test::foo imported: x ≡ 0;
     \test::bar imported: \result ≡ 0;
-    \test::bla imported: \trace(9) ∨ \trace(8);
+    \test::bla imported: \trace(8) ∨ \trace(9);
     \test::foo x ≡ 0;
     \test::bar \result ≡ 0;
-    \test::bla \trace(12) ∨ \trace(11);
+    \test::bla \trace(11) ∨ \trace(12);
  */
 int f(int x)
 {
@@ -309,21 +309,21 @@ int f(int x);
 /*@ behavior imported_test:
       \test::foo imported: y ≡ 1;
       \test::bar imported: \old(y) + \result ≡ 0;
-      \test::bla imported: \trace(3) ∧ \trace(2);
+      \test::bla imported: \trace(2) ∧ \trace(3);
     
     behavior test:
       \test::foo y ≡ 1;
       \test::bar \old(y) + \result ≡ 0;
-      \test::bla \trace(6) ∧ \trace(5);
+      \test::bla \trace(5) ∧ \trace(6);
  */
 int g(int y);
 
 /*@ \test::foo imported: x ≡ 0;
     \test::bar imported: \result ≡ 0;
-    \test::bla imported: \trace(9) ∨ \trace(8);
+    \test::bla imported: \trace(8) ∨ \trace(9);
     \test::foo x ≡ 0;
     \test::bar \result ≡ 0;
-    \test::bla \trace(12) ∨ \trace(11);
+    \test::bla \trace(11) ∨ \trace(12);
  */
 int f(int x)
 {
