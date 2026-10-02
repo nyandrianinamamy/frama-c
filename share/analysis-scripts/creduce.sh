@@ -198,7 +198,7 @@ else
         exit $cpp_retcode
     fi
     CPP=$(echo "$cpp_output" | \
-          "$SED" -n '/Preprocessing command:/{n;p;}' | "$SED" "s|'.*' -o '.*'||")
+          "$SED" -n '/Preprocessing command:/{n;p;}' | "$SED" "s|'[^']*' -o '[^']*'||")
     if [[ "$CPP" = "" ]]; then
         echo "[info] Could not get preprocessing flags when running Frama-C,"
         echo "       using default flags"
@@ -210,7 +210,7 @@ else
         CPP=$(echo $CPP | \
                   "$SED" 's| -E | -fsyntax-only |' | \
                   "$SED" 's| -nostdinc | |' | \
-                  "$SED" 's| -I[^ ]\+/libc | |' )
+                  "$SED" "s| -I'[^']\+/libc' | |" )
     fi
 fi
 
