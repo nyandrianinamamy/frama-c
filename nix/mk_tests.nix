@@ -99,6 +99,7 @@ stdenvNoCC.mkDerivation {
     export HOME=$(pwd)/home
     export FONTCONFIG_FILE="${pkgs.fontconfig.out}/etc/fonts/fonts.conf"
     export FONTCONFIG_PATH="${pkgs.fontconfig.out}/etc/fonts/"
+    export QCHECK_SEED=0
     '' +
     (if has-wp-proofs
      then ''

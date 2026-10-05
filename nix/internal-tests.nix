@@ -163,6 +163,7 @@ stdenvNoCC.mkDerivation rec {
     export FONTCONFIG_PATH="${pkgs.fontconfig.out}/etc/fonts/"
     export FRAMAC_WP_CACHE=offline
     export FRAMAC_WP_CACHEDIR=$wp_cache
+    export QCHECK_SEED=0
   '';
 
   # The export NIX_GCC_DONT_MANGLE_PREFIX_MAP is meant to disable the
