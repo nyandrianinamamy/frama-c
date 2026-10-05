@@ -18,7 +18,7 @@ type attr = [
 val all_flags : flags
 
 val empty : flags
-val generate_flags : attr list -> flags
+val flags : attr list -> flags
 
 val add : flags -> attr -> flags
 val mem : attr -> flags -> bool

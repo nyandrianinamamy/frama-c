@@ -297,7 +297,7 @@ let add_flag (f : Attr.attr list) (n: node) =
   update n (fun c -> c.cflags <- List.fold_left Attr.add c.cflags f ; c)
 
 let add_intptr (m:map) = function
-  | 0 -> fresh ~flags:(Attr.generate_flags [`Nullable]) m
+  | 0 -> fresh ~flags:(Attr.flags [`Nullable]) m
   | _ -> assert false
 
 let fresh m = fresh m
@@ -630,18 +630,16 @@ let iter_parent_path parent f r =
       ) rgs
 
 
-let mask_forward =
-  Attr.generate_flags [ `Allocated ; `Garbage ; `Nullable ; `Written ]
-let mask_backward =
-  Attr.generate_flags [ `Written ]
+let mask_fwd = Attr.flags [ `Allocated ; `Garbage ; `Nullable ; `Written ]
+let mask_bwd = Attr.flags [ `Written ]
 
-let rec consolidate_forward gvars marked n =
+let rec consolidate_fwd gvars marked n =
   if not @@ UF.test_and_mark marked n then
     let node = UF.get n in
     let ps = UF.find_all node.cparents in
     begin
       let add_flags fs =
-        node.cflags <- Attr.merge ~mask:mask_forward node.cflags fs in
+        node.cflags <- Attr.merge ~mask:mask_fwd node.cflags fs in
       let () = if not @@ Access.Set.is_empty node.cwrites then
           node.cflags <- Attr.add node.cflags `Written
       in
@@ -659,7 +657,7 @@ let rec consolidate_forward gvars marked n =
         ) node.croots ;
       List.iter
         (fun p ->
-           consolidate_forward gvars marked p ;
+           consolidate_fwd gvars marked p ;
            let parent = UF.get p in
            node.cdepth <- max node.cdepth (succ parent.cdepth) ;
            add_flags parent.cflags ;
@@ -672,14 +670,14 @@ let rec consolidate_forward gvars marked n =
       if node.cpaths = 0 then node.cflags <- Attr.empty ;
     end
 
-let rec consolidate_backward ?flags:(flags=Attr.empty) marked n =
+let rec consolidate_bwd ?flags:(flags=Attr.empty) marked n =
   if not @@ UF.test_and_mark marked n then
     let node = UF.get n in
     if not @@ Access.Set.is_empty node.cwrites then begin
       node.cflags <- Attr.add node.cflags `Written
     end;
-    let () = node.cflags <- Attr.merge ~mask:mask_backward node.cflags flags in
-    List.iter (consolidate_backward ~flags:node.cflags marked) node.cparents
+    let () = node.cflags <- Attr.merge ~mask:mask_bwd node.cflags flags in
+    List.iter (consolidate_bwd ~flags:node.cflags marked) node.cparents
 
 
 
@@ -937,9 +935,9 @@ let lock m =
   begin
     witer m UF.lock ;
     let marks = UF.marks () in
-    iter (consolidate_forward m.gvars marks) m ;
+    iter (consolidate_fwd m.gvars marks) m ;
     let marks = UF.marks () in
-    iter (consolidate_backward marks) m;
+    iter (consolidate_bwd marks) m;
   end
 
 (* -------------------------------------------------------------------------- *)

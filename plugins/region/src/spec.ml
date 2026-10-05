@@ -147,7 +147,7 @@ let parse_field env p =
   with Not_found ->
     error env ~loc:p.lexpr_loc "Expected field l-value for range path"
 
-let garbage = Attr.(generate_flags [`Garbage])
+let garbage = Attr.flags [`Garbage]
 
 let applies flags = function
   | Range _ -> true

@@ -20,7 +20,7 @@ let all_flags = A 0b11111
 
 let empty = A 0
 let add (A w) a = A (flag a lor w)
-let generate_flags (fs : attr list) = List.fold_left add empty fs
+let flags (fs : attr list) = List.fold_left add empty fs
 let mem a (A w) = flag a land w <> 0
 let union (A x) (A y) = A (x lor y)
 let inter (A x) (A y) = A (x land y)
