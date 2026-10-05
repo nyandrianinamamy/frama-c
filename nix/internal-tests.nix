@@ -19,6 +19,9 @@
 # UnitCheck
 , alcotest
 , angstrom
+, ppx_deriving_qcheck
+, qcheck-alcotest
+, qcheck-core
 # Frama-C build
 , apron
 , camlzip
@@ -103,9 +106,11 @@ stdenvNoCC.mkDerivation rec {
     ocamlgraph
     pcre2
     ppx_deriving
+    ppx_deriving_qcheck
     ppx_deriving_yaml
     ppx_deriving_yojson
     ppx_inline_test
+    qcheck-core
     unionFind
     yojson
     which
@@ -124,6 +129,7 @@ stdenvNoCC.mkDerivation rec {
     python3
     python3Packages.jsonschema
     python3Packages.pyaml
+    qcheck-alcotest
     socat
     swi-prolog
     time
