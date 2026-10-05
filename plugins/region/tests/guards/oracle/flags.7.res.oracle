@@ -77,8 +77,6 @@ void context_allocread(int *a_allocread)
 /*@ \region::region a_nullread[0..0], \nullable, \validread; */
 void context_nullread(int *a_nullread)
 {
-  /*@ check region: spec_nullgarb: a_nullread ≢ \null ⇒ \valid(a_nullread);
-  */
   spec_nullgarb(a_nullread);
   return;
 }

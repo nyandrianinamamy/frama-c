@@ -8,29 +8,26 @@
 
 type flags
 type attr = [
-  | `Nullable (** Might be null *)
-  | `Allocated  (** Might be dynamically allocated *)
-  | `Garbage  (** Might be non-initialized *)
-  | `Validread (** Might have no write access  *)
+  | `Nullable (** For [Objects]: either NULL or [\valid]. For [Regions]: might be null. *)
+  | `Allocated  (** Might be dynamically allocated. *)
+  | `Garbage  (** Might be non-initialized. *)
+  | `Validread (** Only for [Objects]: might have no write access  *)
+  | `Written (** Only for [Regions]: at least one write access has been recorded in this region. *)
 ]
 
+val all_flags : flags
+
 val empty : flags
-val add : attr -> flags -> flags
+val flags : attr list -> flags
+
+val add : flags -> attr -> flags
 val mem : attr -> flags -> bool
 val subset : flags -> flags -> bool
 val union : flags -> flags -> flags (** Union of attributes *)
+val inter : flags -> flags -> flags (** Intersection of attributes *)
 
-val bottom : flags
-(** Neutral for merge *)
-
-val add_flag : flags -> attr -> flags
-val merge : flags -> flags -> flags
-(** Combine flags:
-    - [`Nullable] if {i either} is nullable
-    - [`Allocated] if {i either} is allocated
-    - [`Garbage] if {i either} is garbage
-    - [`Validread] if {i both} are validread
-*)
+val merge : ?mask:flags -> flags -> flags -> flags
+(** [merge ?mask x y] is [union x (inter mask y)]. *)
 
 val iter : (attr -> unit) -> flags -> unit
 

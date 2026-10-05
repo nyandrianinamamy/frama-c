@@ -147,7 +147,7 @@ let parse_field env p =
   with Not_found ->
     error env ~loc:p.lexpr_loc "Expected field l-value for range path"
 
-let garbage = Attr.(add `Garbage empty)
+let garbage = Attr.flags [`Garbage]
 
 let applies flags = function
   | Range _ -> true
@@ -175,10 +175,10 @@ let flush source env =
 
 let rec parse_region (env:env) p =
   match p.lexpr_node with
-  | PLvar "\\nullable"  -> env.flags <- Attr.add `Nullable  env.flags
-  | PLvar "\\allocated" -> env.flags <- Attr.add `Allocated env.flags
-  | PLvar "\\garbage"   -> env.flags <- Attr.add `Garbage   env.flags
-  | PLvar "\\validread" -> env.flags <- Attr.add `Validread env.flags
+  | PLvar "\\nullable"  -> env.flags <- Attr.add env.flags `Nullable
+  | PLvar "\\allocated" -> env.flags <- Attr.add env.flags `Allocated
+  | PLvar "\\garbage"   -> env.flags <- Attr.add env.flags `Garbage
+  | PLvar "\\validread" -> env.flags <- Attr.add env.flags `Validread
   | PLnamed( name , p ) ->
     flush p.lexpr_loc env ;
     env.named <- name ;

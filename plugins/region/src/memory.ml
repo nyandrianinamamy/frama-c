@@ -127,7 +127,7 @@ let empty = {
   clayout = Blob 0 ;
   cdepth = 0 ;
   cpaths = 0 ;
-  cflags = Attr.bottom ;
+  cflags = Attr.empty ;
 }
 
 (* -------------------------------------------------------------------------- *)
@@ -230,7 +230,7 @@ module Nhash = Hashtbl.Make(Node)
 (* -------------------------------------------------------------------------- *)
 
 let new_chunk store ?parent ?(size=0) ?(value=false) ?ptr ?pointed
-    ?(flags=Attr.bottom) ?(result=false) () =
+    ?(flags=Attr.empty) ?(result=false) () =
   let cresult = result in
   let clayout =
     match ptr with
@@ -294,10 +294,10 @@ let ltyp (m:map) ?(ctxt) (lt:logic_type) =
   Option.fold ~none:d ~some:(fun (c:context) -> Domain.subst c d) ctxt
 
 let add_flag (f : Attr.attr list) (n: node) =
-  update n (fun c -> c.cflags <- List.fold_left Attr.add_flag c.cflags f ; c)
+  update n (fun c -> c.cflags <- List.fold_left Attr.add c.cflags f ; c)
 
 let add_intptr (m:map) = function
-  | 0 -> fresh ~flags:(Attr.add_flag Attr.bottom `Nullable) m
+  | 0 -> fresh ~flags:(Attr.flags [`Nullable]) m
   | _ -> assert false
 
 let fresh m = fresh m
@@ -629,30 +629,38 @@ let iter_parent_path parent f r =
          if equal r rg.data then f rg.length
       ) rgs
 
-let rec consolidate gvars marked n =
+
+let mask_fwd = Attr.flags [ `Allocated ; `Garbage ; `Nullable ; `Written ]
+let mask_bwd = Attr.flags [ `Written ]
+
+let rec consolidate_fwd gvars marked n =
   if not @@ UF.test_and_mark marked n then
     let node = UF.get n in
     let ps = UF.find_all node.cparents in
     begin
-      let flags fs = node.cflags <- Attr.merge node.cflags fs in
+      let add_flags fs =
+        node.cflags <- Attr.merge ~mask:mask_fwd node.cflags fs in
+      let () = if not @@ Access.Set.is_empty node.cwrites then
+          node.cflags <- Attr.add node.cflags `Written
+      in
       let size = sizeof node.clayout in
       let path s = node.cpaths <- node.cpaths + (if s = size then 1 else 2) in
       Vset.iter
         (fun v ->
            path @@ Fields.bitsSizeOf v.vtype ;
-           flags @@ Attr.cvar ~garbage:(Vset.mem v gvars) v
+           add_flags @@ Attr.cvar ~garbage:(Vset.mem v gvars) v
         ) node.ccvars ;
       Bag.iter
         (function Root r ->
            path (if Term.equal r.inf r.sup then size else max_int) ;
-           flags r.flags
+           add_flags r.flags ;
         ) node.croots ;
       List.iter
         (fun p ->
-           consolidate gvars marked p ;
+           consolidate_fwd gvars marked p ;
            let parent = UF.get p in
            node.cdepth <- max node.cdepth (succ parent.cdepth) ;
-           flags parent.cflags ;
+           add_flags parent.cflags ;
            if node.cpaths <= 1 then
              if parent.cpaths = 1 then
                iter_parent_path parent path n
@@ -661,6 +669,17 @@ let rec consolidate gvars marked n =
       (* Warning about empty region shall be emitted here *)
       if node.cpaths = 0 then node.cflags <- Attr.empty ;
     end
+
+let rec consolidate_bwd ?flags:(flags=Attr.empty) marked n =
+  if not @@ UF.test_and_mark marked n then
+    let node = UF.get n in
+    if not @@ Access.Set.is_empty node.cwrites then begin
+      node.cflags <- Attr.add node.cflags `Written
+    end;
+    let () = node.cflags <- Attr.merge ~mask:mask_bwd node.cflags flags in
+    List.iter (consolidate_bwd ~flags:node.cflags marked) node.cparents
+
+
 
 (* -------------------------------------------------------------------------- *)
 (* --- Included & Separated                                               --- *)
@@ -916,21 +935,9 @@ let lock m =
   begin
     witer m UF.lock ;
     let marks = UF.marks () in
-    iter (consolidate m.gvars marks) m ;
+    iter (consolidate_fwd m.gvars marks) m ;
+    let marks = UF.marks () in
+    iter (consolidate_bwd marks) m;
   end
 
 (* -------------------------------------------------------------------------- *)
-
-let add_nullable n =
-  begin
-    let store = UF.store n in
-    let flags = Attr.add_flag Attr.bottom `Nullable in
-    (* merge n @@ new_chunk store ~flags ()
-       ( * *)
-    let ptr = new_chunk store ~ptr:n ~flags () in
-    merge n @@ new_chunk store ~pointed:ptr () ;
-    Format.eprintf "+++++ Add `Nullable pointer:@.|-... %a@....-> %a@."
-      pp_region (region ptr)
-      pp_region @@ region n ;
-    (* *)
-  end

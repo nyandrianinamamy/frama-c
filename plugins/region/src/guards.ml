@@ -26,6 +26,10 @@ let iter f env = List.iter f @@ List.rev env.guards
 (* ---  Lval/Exp Side Conditions                                          --- *)
 (* -------------------------------------------------------------------------- *)
 
+(* Returns a triple [s,ty,r] where:
+   - `s=true` if the l-value is always safe w.r.t to region map
+   - `ty` is the type of the l-value (the loaded/stored element)
+   - `r` is the region where the l-value lives *)
 let rec lval env (h,o) =
   let t,r = lhost env h in
   offset env true t r o
@@ -58,6 +62,10 @@ and eval_cond env e =
     (fun (_,r) -> List.iter (Memory.add_flag [`Nullable]) @@ Memory.pointed_by r)
   @@ exp env e
 
+(* Returns:
+   - [None] when the expression has a primitive value;
+   - [Some(s,r)] when the expression might be a pointer value;
+     [s=true] is the pointer is always safe, and [r] is the pointed region. *)
 and exp env e =
   match e.enode with
   | AddrOf lv | StartOf lv ->
@@ -67,17 +75,7 @@ and exp env e =
     let s,_,r = lval env lv in
     if not s then add env @@ g_valid Region (L lv) ;
     Option.map (fun r -> false,r) @@ Memory.points_to r
-  | CastE(t,e) -> begin
-      let add_nullable (_,r) =
-        List.iter (Memory.add_flag [`Nullable]) @@ Memory.pointed_by r ;
-        (false,r) in
-      match Ast_types.C.is_fun_or_ptr t, Ast_types.C.is_fun_or_ptr @@ Cil.typeOf e with
-      | true, _ when Ast_info.is_null_expr e ->
-        Option.map add_nullable @@ exp env e
-      | true, true | false, _ -> Option.map (fun (_,r) -> false,r) @@ exp env e
-      | true, false ->
-        Options.not_yet_implemented ~source:e.eloc "Integral to pointer casts"
-    end
+  | CastE(_,p) -> exp env p
   | BinOp((PlusPI|MinusPI),p,k,_) ->
     eval env k ;
     Option.map (fun (_,r) -> false,r) @@ exp env p
@@ -101,7 +99,7 @@ let nullable ~flags p =
 
 let valid ~flags acs p =
   match acs with
-  | Write when Attr.mem `Validread flags -> g_valid acs p
+  | Write when not @@ Attr.mem `Written flags -> g_valid Read p
   | Read | Write when not @@ Attr.mem `Allocated flags -> nullable ~flags p
   | Initialized when not @@ Attr.mem `Garbage flags -> g_true
   | _ -> g_valid acs p

@@ -1,6 +1,6 @@
 [kernel] Parsing nullable.i (no preprocessing)
 [region] Function f:
-  R0001: -R-- p (int *) 64b (*R0002) (singleton) (nullable) ;
+  R0001: -R-- p (int *) 64b (*R0002) (singleton) ;
   R0002: -R-- (int) 32b ;
   R0003: -RW- tmp (int) 32b (singleton) (allocated) ;
   R0004: --W- \result (int) 32b ;
@@ -8,7 +8,7 @@
 [region] Function seteq_if_notnull:
   R0001: -RW- p1 (int *) 64b (*R0002) (singleton) ;
   R0002: -R-- (int) 32b ;
-  R0003: -R-- p2 (int *) 64b (*R0002) (singleton) (nullable) ;
+  R0003: -R-- p2 (int *) 64b (*R0002) (singleton) ;
   R0004: -RW- __retres (int) 32b (singleton) (allocated) ;
   R0005: --W- \result (int) 32b ;
 [region] annotating function seteq_if_notnull

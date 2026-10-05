@@ -16,15 +16,16 @@ module Vmap = Varinfo.Map
 (* ---  L-Values & Expressions                                            --- *)
 (* -------------------------------------------------------------------------- *)
 
+(* Represents an abstract value returned by an expression:
+   - [None] means a primitive value build from no pointer at all;
+   - [Some r] means a primitive value or a pointer value to region [r].
+*)
 type value = node option
 
 let pointer v =
   match v with
   | Some p -> p
   | None -> Options.fatal "Not a pointer value"
-
-let add_nullable r =
-  let () = List.iter (Memory.add_flag [`Nullable]) @@ Memory.pointed_by r in r
 
 let rec add_lval (m:map) (s:stmt) (lv:lval) : node =
   let h = fst lv in
@@ -66,13 +67,15 @@ and add_exp (m: map) (s:stmt) (e:exp) : value =
   | BinOp(_,a,b,_) ->
     add_value m s a ; add_value m s b ; None
 
-  | CastE(t,p) -> begin
-      match Ast_types.C.is_fun_or_ptr t, Ast_types.C.is_fun_or_ptr @@ Cil.typeOf p with
-      | true, _ when Ast_info.is_null_expr p ->
-        Option.map add_nullable @@ add_exp m s p
-      | true, true  | false, _ -> add_exp m s p
-      | true, false ->
-        Options.not_yet_implemented ~source:e.eloc "Integral to pointer casts"
+  | CastE(t,p) ->
+    begin
+      match add_exp m s p with
+      | None when Ast_types.C.is_fun_or_ptr t ->
+        let r = Memory.fresh m in
+        if Ast_info.is_null_expr p then
+          Memory.add_flag [`Nullable] r ;
+        Some r
+      | result -> result
     end
 
   | Const _
@@ -81,9 +84,7 @@ and add_exp (m: map) (s:stmt) (e:exp) : value =
     -> None
 
 let add_condition (m: map) (s: stmt) (e: exp) =
-  let add_nullable r = ignore @@ add_nullable r in
-  Option.iter add_nullable @@ add_exp m s e
-
+  Option.iter (Memory.add_flag [`Nullable]) @@ add_exp m s e
 
 (* -------------------------------------------------------------------------- *)
 (* --- Compound L-Values                                                  --- *)
