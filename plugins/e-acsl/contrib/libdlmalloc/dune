@@ -1,0 +1,42 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                                        ;;
+;;  SPDX-License-Identifier LGPL-2.1                                      ;;
+;;  Copyright (C)                                                         ;;
+;;  CEA (Commissariat à l'énergie atomique et aux énergies alternatives)  ;;
+;;                                                                        ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; BUILD LIBDLMALLOC
+(foreign_library
+ (archive_name eacsl-dlmalloc)
+ (language c)
+ (flags
+   -O2 -g3
+   ; Don't forget to update "e-acsl-gcc" if the flags are updated
+   -DHAVE_MORECORE=0
+   -DHAVE_MMAP=1
+   -DNO_MALLINFO=1
+   -DNO_MALLOC_STATS=1
+   -DMSPACES=1
+   -DONLY_MSPACES
+   -DMALLOC_ALIGNMENT=32
+   -DMSPACE_PREFIX=__e_acsl_
+   -DUSE_LOCKS=1
+   -DUSE_SPIN_LOCKS=1)
+ (names dlmalloc))
+
+; CONTRIB FILE
+(install
+ (package frama-c-e-acsl)
+ (section
+  (site
+   (frama-c-e-acsl contrib)))
+ (files
+  (dlmalloc.c as libdlmalloc/dlmalloc.c)))
+
+; LIB DLMALLOC
+(install
+ (package frama-c-e-acsl)
+ (section lib)
+ (files
+  (libeacsl-dlmalloc.a as libeacsl-dlmalloc.a)))
