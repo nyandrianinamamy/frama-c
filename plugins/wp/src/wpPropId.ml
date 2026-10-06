@@ -160,6 +160,11 @@ let mk_fct_assigns_id kf kf_has_exit b tkind a =
   let p = Property.ip_of_assigns kf Kglobal b (Writes a) in
   Option.map (mk_prop kind) p
 
+let mk_fct_allocation_id kf b allocs frees =
+  let b = Property.Id_contract(Datatype.String.Set.empty,b) in
+  let p = Property.ip_of_allocation kf Kglobal b (FreeAlloc(allocs, frees)) in
+  Option.map (mk_prop PKProp) p
+
 let mk_pre_id kf ki b p =
   mk_prop PKProp (Property.ip_of_requires kf ki b p)
 
@@ -942,6 +947,11 @@ let merge_assign_info a1 a2 = match a1,a2 with
     (AssignsLocations _ | AssignsAny _) ->
     Wp_parameters.fatal "Several assigns ?"
 
+type allocation_info = prop_id * bool
+
+type allocation_full_info =
+  | AllocationInfo of allocation_info
+  | NoAllocationInfo
 
 (* -------------------------------------------------------------------------- *)
 (* --- Axioms                                                             --- *)

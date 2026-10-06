@@ -41,6 +41,7 @@ type behavior = {
   bhv_exits: WpPropId.pred_info list ;
   bhv_post_assigns: WpPropId.assigns_full_info ;
   bhv_exit_assigns: WpPropId.assigns_full_info ;
+  bhv_allocation: WpPropId.allocation_full_info;
 }
 
 let normalize_assumes h =
@@ -103,10 +104,20 @@ let normalize_fct_assigns kf ~exits bhv = function
     make Normal,
     if exits then make Exits else WpPropId.empty_assigns_info
 
+let normalize_fct_allocation kf bhv alloc =
+  let open WpPropId in
+  match alloc with
+  | FreeAllocAny -> NoAllocationInfo
+  | FreeAlloc(allocs,frees) ->
+    match mk_fct_allocation_id kf bhv allocs frees with
+    | None -> NoAllocationInfo
+    | Some id -> AllocationInfo(id, true)
+
 let get_behavior_goals kf ?(smoking=false) ?(exits=false) bhv =
   let pre_cond = normalize_pre ~goal:false kf bhv in
   let post_cond = normalize_post ~goal:true kf bhv in
   let p_asgn, e_asgn = normalize_fct_assigns kf ~exits bhv bhv.b_assigns in
+  let allocation = normalize_fct_allocation kf bhv bhv.b_allocation in
   let smokes =
     let do_assumes =
       Wp_parameters.SmokeDeadassumes.get() && bhv.b_assumes <> [] in
@@ -132,6 +143,7 @@ let get_behavior_goals kf ?(smoking=false) ?(exits=false) bhv =
     bhv_exits = List.filter_map (post_cond Exits) bhv.b_post_cond ;
     bhv_post_assigns = p_asgn ;
     bhv_exit_assigns = e_asgn ;
+    bhv_allocation = allocation ;
     bhv_smokes = smokes;
   }
 
@@ -212,6 +224,7 @@ type contract = {
   contract_exit : WpPropId.pred_info list ;
   contract_smoke : WpPropId.pred_info list ;
   contract_assigns : Cil_types.assigns ;
+  contract_allocation : bool ;
   contract_terminates : bool * Cil_types.predicate ;
   contract_decreases : Cil_types.variant option ;
 }
@@ -286,6 +299,11 @@ let get_precond_at kf stmt (id,p) =
   let id_at = WpPropId.mk_call_pre_id kf stmt pi pi_at in
   id_at , p
 
+
+let unsupported_use_allocation = function
+  | FreeAlloc (f, a) -> f <> [] || a <> []
+  | _ -> false
+
 module CallContract = WpContext.StaticGenerator(Kernel_function)
     (struct
       type key = kernel_function
@@ -316,6 +334,9 @@ module CallContract = WpContext.StaticGenerator(Kernel_function)
           | WritesAny -> WritesAny
           | Writes froms -> Writes (normalize_froms Normal froms)
         in
+        let allocation =
+          List.exists (fun b -> unsupported_use_allocation b.b_allocation) behaviors
+        in
         let terminates = get_terminates_hyp kf in
         let decreases = Option.map normalize_decreases @@ get_decreases_hyp kf in
         {
@@ -325,6 +346,7 @@ module CallContract = WpContext.StaticGenerator(Kernel_function)
           contract_exit = List.rev !wexit ;
           contract_smoke = [] ;
           contract_assigns = assigns ;
+          contract_allocation = allocation ;
           contract_terminates = terminates ;
           contract_decreases = decreases ;
         }
@@ -477,6 +499,8 @@ type loop_contract = {
   loop_smoke: WpPropId.pred_info list;
   (* assigned by loop body *)
   loop_assigns: WpPropId.assigns_full_info list;
+  (* unsupported *)
+  loop_allocation : bool;
 }
 
 let default_assigns stmt l =
@@ -559,12 +583,15 @@ module LoopContract = WpContext.StaticGenerator(CodeKey)
                   let asgn = WpPropId.mk_assigns_info id a in
                   { l with loop_assigns = asgn :: l.loop_assigns }
               end
+            | AAllocation(_, a) when unsupported_use_allocation a ->
+              { l with loop_allocation = true }
             | _ -> l
           end
           { loop_terminates = Some Logic_const.pfalse ;
             loop_invariants = [] ;
             loop_smoke = [] ;
             loop_assigns = [] ;
+            loop_allocation = false ;
           }
           all_annot
     end)

@@ -26,6 +26,7 @@ type behavior = {
   bhv_exits: pred_info list ;
   bhv_post_assigns: assigns_full_info ;
   bhv_exit_assigns: assigns_full_info ;
+  bhv_allocation: allocation_full_info ;
 }
 
 val get_requires :
@@ -79,10 +80,9 @@ type loop_invariant = {
 type loop_contract = {
   loop_terminates: predicate option;
   loop_invariants: loop_invariant list;
-  (** to be proved after loop invariants *)
-  loop_smoke: pred_info list;
-  (** assigned by loop body *)
-  loop_assigns: assigns_full_info list;
+  loop_smoke: pred_info list; (** to be proved after loop invariants *)
+  loop_assigns: assigns_full_info list; (** assigned by loop body *)
+  loop_allocation: bool; (** false if nothing or unspecified *)
 }
 
 val get_loop_contract : ?smoking:bool -> ?terminates:predicate ->
@@ -103,6 +103,7 @@ type contract = {
   contract_exit : pred_info list ;
   contract_smoke : pred_info list ;
   contract_assigns : assigns ;
+  contract_allocation : bool ; (** false if nothing or unspecified *)
   contract_terminates : bool * predicate ; (* boolean: assumed terminates *)
   contract_decreases : variant option ;
 }

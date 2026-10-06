@@ -8,6 +8,7 @@
 [rte:annot] annotating function stringLength
 [wp] [Valid] Goal stringCompare_exits_never (Cfg) (Unreachable)
 [wp] [Valid] Goal stringLength_exits_never (Cfg) (Unreachable)
+[wp] string-compare.c:28: Warning: Unsupported frees/allocates clause (skipped)
 [wp] Goal typed_stringCompare_complete_SomeDifferent_allEqual : trivial
 [wp] Goal typed_stringCompare_disjoint_SomeDifferent_allEqual : trivial
 [wp] Goal typed_stringCompare_terminates : trivial

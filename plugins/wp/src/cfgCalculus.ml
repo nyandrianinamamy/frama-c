@@ -20,7 +20,6 @@ module G = Cfg.G
 module V = Cfg.Vertex
 module Vhash = V.Hashtbl
 type vertex = Cfg.vertex
-type assigns = WpPropId.assigns_full_info
 
 (* -------------------------------------------------------------------------- *)
 (* --- Calculus Modes (passes)                                            --- *)
@@ -151,7 +150,7 @@ struct
   let is_selected_callpre { props } (pid,_) =
     is_selected_props props pid
 
-  let use_assigns env (a : assigns) w =
+  let use_assigns env (a : WpPropId.assigns_full_info) w =
     match a with
     | NoAssignsInfo -> assert false
     | AssignsAny ad ->
@@ -160,13 +159,33 @@ struct
       W.use_assigns env.we None ad w
     | AssignsLocations(ap,ad) -> W.use_assigns env.we (Some ap) ad w
 
-  let prove_assigns env (a : assigns) w =
+  let use_allocation env has_allocation stmt w =
+    if has_allocation then begin
+      let any = WpPropId.mk_stmt_assigns_any_desc stmt in
+      WpLog.warning ~current:true ~once:true
+        "Unsupported frees/allocates clause (assigns 'everything' instead)" ;
+      W.use_assigns env.we None any w
+    end
+    else w
+
+  let prove_assigns env (a : WpPropId.assigns_full_info) w =
     match a with
     | NoAssignsInfo | AssignsAny _ -> w
     | AssignsLocations ai ->
       if is_selected ~goal:true env ai
       then W.add_assigns env.we ai w
       else w
+
+  let prove_allocation env (a : WpPropId.allocation_full_info) w =
+    match a with
+    | NoAllocationInfo -> w
+    | AllocationInfo ((id, has_alloc) as ai) ->
+      if is_selected ~goal:true env ai && has_alloc then begin
+        let loc = Property.location @@ WpPropId.property_of_id id in
+        WpLog.warning ~loc ~once:true
+          "Unsupported frees/allocates clause (skipped)"
+      end ;
+      w
 
   let use_property ?for_pid env (p : WpPropId.pred_info) w =
     if is_selected ~goal:false env p then W.add_hyp ?for_pid env.we p w else w
@@ -271,6 +290,7 @@ struct
     insert_terminates @@
     List.fold_right (established env) lc.loop_invariants @@
     List.fold_right (use_assigns env) lc.loop_assigns @@
+    use_allocation env lc.loop_allocation s @@
     W.label env.we None (Clabels.loop_current s) @@
     List.fold_right (loop_current_hyp env) lc.loop_invariants @@
     List.fold_right (prove_property env) lc.loop_smoke @@
@@ -352,6 +372,7 @@ struct
         ~post:c.contract_post
         ~pexit:c.contract_exit
         ~assigns:c.contract_assigns
+        ~allocation:c.contract_allocation
         ~p_post ~p_exit in
     let w_pre = if is_default_bhv env.mode then
         let pre = List.filter (is_selected_callpre env) c.contract_cond in
@@ -480,13 +501,15 @@ struct
     W.label env.we None Clabels.post @@
     W.scope env.we formals SC_Frame_out @@
     List.fold_right (prove_property env) b.bhv_ensures @@
-    prove_assigns env b.bhv_post_assigns w
+    prove_assigns env b.bhv_post_assigns @@
+    prove_allocation env b.bhv_allocation w
 
   let do_exit env ~formals (b : CfgAnnot.behavior) w =
     W.label env.we None Clabels.exit @@
     W.scope env.we formals SC_Frame_out @@
     List.fold_right (prove_property env) b.bhv_exits @@
-    prove_assigns env b.bhv_exit_assigns w
+    prove_assigns env b.bhv_exit_assigns @@
+    prove_allocation env b.bhv_allocation w
 
   let do_funbehavior env ~formals ~exits (b:CfgAnnot.behavior) w =
     match env.body with
