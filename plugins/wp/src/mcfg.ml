@@ -130,6 +130,7 @@ module type S = sig
     post:    WpPropId.pred_info list ->
     pexit:   WpPropId.pred_info list ->
     assigns: assigns ->
+    allocation: bool -> (* has allocation clause with non empty frees or allocates *)
     p_post: t_prop ->
     p_exit: t_prop ->
     t_prop

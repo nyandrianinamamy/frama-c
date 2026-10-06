@@ -292,7 +292,7 @@ let call_decreases env _s ?kf _es (_id, (caller_d, rel)) ?caller_t ?callee_d k =
   Format.fprintf !out "  %a -> %a [ style=dotted ] ;@." pretty u pretty k ;
   merge env u k
 
-let call env stmt _r kf _es ~pre ~post ~pexit ~assigns ~p_post ~p_exit =
+let call env stmt _r kf _es ~pre ~post ~pexit ~assigns ~allocation ~p_post ~p_exit =
   let u_post = List.fold_right (add_hyp env) post p_post in
   let u_exit = List.fold_right (add_hyp env) pexit p_exit in
   let u = node () in
@@ -300,6 +300,10 @@ let call env stmt _r kf _es ~pre ~post ~pexit ~assigns ~p_post ~p_exit =
   Format.fprintf !out
     "  %a [ color=orange , label=\"Call %a @[<hov 2>(assigns%a)@]\" ] ;@."
     pretty u Kernel_function.pretty kf pp_assigns assigns ;
+  if allocation then
+    Format.fprintf !out
+      "  %a [ color=red , label=\"Call %a @[<hov 2>(does allocation@]\" ] ;@."
+      pretty u Kernel_function.pretty kf ;
   ignore stmt ;
   List.fold_right (add_hyp env) pre u
 

@@ -165,6 +165,9 @@ val mk_loop_assigns_id : kernel_function -> stmt -> code_annotation ->
 val mk_fct_assigns_id : kernel_function -> bool -> funbehavior ->
   termination_kind -> from list -> prop_id option
 
+val mk_fct_allocation_id : kernel_function -> funbehavior ->
+  identified_term list -> identified_term list -> prop_id option
+
 val mk_pre_id : kernel_function -> kinstr -> funbehavior ->
   identified_predicate -> prop_id
 
@@ -230,6 +233,15 @@ val mk_kf_assigns_desc : from list -> assigns_desc
 val mk_init_assigns : assigns_desc
 
 val is_call_assigns : assigns_desc -> bool
+
+(*----------------------------------------------------------------------------*)
+
+(** true if something should have been verified *)
+type allocation_info = prop_id * bool
+
+type allocation_full_info =
+  | AllocationInfo of allocation_info
+  | NoAllocationInfo
 
 (*----------------------------------------------------------------------------*)
 
