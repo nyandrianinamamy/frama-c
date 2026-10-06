@@ -1,4 +1,4 @@
-#!/bin/bash -eu
+#!/usr/bin/env bash
 ##########################################################################
 #                                                                        #
 #  SPDX-License-Identifier LGPL-2.1                                      #
@@ -6,6 +6,8 @@
 #  CEA (Commissariat à l'énergie atomique et aux énergies alternatives)  #
 #                                                                        #
 ##########################################################################
+
+set -eu
 
 usage() {
    echo "usage: frama-c-script cmd [args]"
@@ -206,7 +208,8 @@ configure_for_frama_c() {
     mkdir -p "$fc_machdep_dir/wrappers"
     for p in cc gcc clang; do
         cat > "$fc_machdep_dir/wrappers/$p" <<EOF
-#!/bin/bash -eu
+#!/usr/bin/env bash
+set -eu
 SCRIPT_DIR=\$( cd -- "\$( dirname -- "\${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 path_without_pwd=\$(echo \$PATH | sed "s|\$SCRIPT_DIR:||")
 PATH=\$path_without_pwd $p -I$fc_machdep_dir -I${FRAMAC_SHARE}/libc "\$@"

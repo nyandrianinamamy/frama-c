@@ -209,3 +209,5 @@
 | ".*\.ts"  -> frame open:"/* "  line:"*" close:" */"
 | ".*\.jsx" -> frame open:"/* "  line:"*" close:" */"
 | ".*\.tsx" -> frame open:"/* "  line:"*" close:" */"
+# Jq filters
+| ".*\.jq" -> frame open:"#" line:"#" close:"#"

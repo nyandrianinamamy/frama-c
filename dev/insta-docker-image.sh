@@ -1,4 +1,4 @@
-#!/usr/bin/bash -eu
+#!/usr/bin/env bash
 ##########################################################################
 #                                                                        #
 #  SPDX-License-Identifier LGPL-2.1                                      #
@@ -6,6 +6,8 @@
 #  CEA (Commissariat à l'énergie atomique et aux énergies alternatives)  #
 #                                                                        #
 ##########################################################################
+
+set -eu
 
 # Script used to quickly generate a Frama-C Docker image based on the
 # current state of the repository

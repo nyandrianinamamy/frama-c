@@ -1,4 +1,4 @@
-#!/bin/bash -eu
+#!/usr/bin/env bash
 ##########################################################################
 #                                                                        #
 #  SPDX-License-Identifier LGPL-2.1                                      #
@@ -7,7 +7,7 @@
 #                                                                        #
 ##########################################################################
 
-set -o pipefail
+set -euo pipefail
 
 header_column=""
 delete_first=""

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 ##########################################################################
 #                                                                        #
 #  SPDX-License-Identifier LGPL-2.1                                      #
@@ -24,6 +24,6 @@ read syn_reach_stmt sem_reach_stmt reach_stmt_percent \
   printf 'syn_reach_fun=%s\n' $syn_reach_fun;
   printf 'total_fun=%s\n' $total_fun;
   printf 'sem_reach_stmt=%s\n' $sem_reach_stmt;
-  printf 'syn_reach_stmt=%s\n' $syn_reach_stmt; 
+  printf 'syn_reach_stmt=%s\n' $syn_reach_stmt;
 ) >> $stats_file
 

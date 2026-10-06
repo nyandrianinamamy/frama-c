@@ -1,4 +1,4 @@
-#!/bin/bash -eu
+#!/usr/bin/env bash
 
 # This script is needed because Dune does not allow setting a specific shell
 # for Cram tests; we need to use Bash to avoid issues with older Dash versions
@@ -8,7 +8,7 @@
 # with_error.txt src_empty.c -then -print | \
 # sed 's/^\(\s*use `\).*\(frama-c -help.*\)$/\1\2/g')
 
-set -o pipefail
+set -euo pipefail
 
 dune exec --cache=disabled -- \
      frama-c -no-autoload-plugins -load-module eva,inout,scope -commands-file with_error.txt src_empty.c -then -print \

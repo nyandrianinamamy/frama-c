@@ -103,6 +103,7 @@ Make* header_spec=CEA_LGPL
 *.html header_spec=CEA_LGPL
 
 *.js header_spec=CEA_LGPL
+*.jq header_spec=CEA_LGPL
 
 *.ml header_spec=CEA_LGPL
 *.mli header_spec=CEA_LGPL
