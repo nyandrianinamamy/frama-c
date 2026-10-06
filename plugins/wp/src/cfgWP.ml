@@ -1380,9 +1380,7 @@ struct
   (* --- Call Rule --- *)
 
   let call_proper wenv stmt lvr kf es ~pre ~post ~pexit ~assigns ~allocation ~p_post ~p_exit () =
-    if allocation then
-      Warning.error "Unsupported allocates/frees clause" ;
-
+    if allocation then Warning.error "Unsupported allocates/frees clause" ;
     let call = cc_callenv wenv.main lvr kf es assigns p_post p_exit in
     let env_pre = L.move_at wenv.main call.sigma_pre in
     let env_post = L.move_at wenv.main call.seq_post.post in
