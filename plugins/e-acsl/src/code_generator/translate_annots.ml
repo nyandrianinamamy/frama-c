@@ -77,7 +77,7 @@ let pre_code_annotation kf stmt env annot =
         in
         if loop_invariant then
           let pred = Terms.Id.deep_copy_predicate p.tp_statement in
-          Rte_analysis.preprocess_predicate pred;
+          Rte_analysis.preprocess_predicate ~kf pred;
           Typing.preprocess_predicate ~logic_env:(Env.Logic_env.get env) pred;
           Env.add_loop_invariant env {p with tp_statement = pred}
         else env

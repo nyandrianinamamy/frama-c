@@ -400,8 +400,6 @@ let rte_visitor =
 
     inherit E_acsl_visitor.visitor dkey
 
-    val mutable current_func : kernel_function option = None
-
     method private trivially_aligned t typ ptyp: bool =
       if Ast_types.C.is_void ptyp || Ast_types.C.is_fun ptyp
       then
@@ -531,7 +529,7 @@ let rte_visitor =
         | TResult _, TNoOffset -> false
         | _ -> not Ast_types.C.(is_fun typ || is_struct_or_union typ)
       in
-      if Flags.needs_initialized current_func && needs_guard lv then
+      if Flags.needs_initialized self#current_kf && needs_guard lv then
         Guards.add orig (Undefined_behaviours.initialized ~loc lv)
 
     (** [add_aligned ~orig t typ] adds an entry for [orig] if [t] has a pointer
@@ -763,10 +761,6 @@ let rte_visitor =
         List.iter (fun t -> self#add_mem_access ~orig:t (deref t)) tlist;
         Cil.DoChildren
       | _ -> (); Cil.DoChildren
-
-    method !vfunc f =
-      current_func <- Option.some @@ Globals.Functions.get f.svar;
-      Cil.DoChildrenPost (fun f -> current_func <- None; f)
   end
 
 let preprocess ast =
@@ -780,10 +774,11 @@ let preprocess ast =
   end else
     Options.feedback ~level:3 ~dkey "Skip the RTE analysis.%!"
 
-let preprocess_predicate p =
+let preprocess_predicate ~kf p =
   if Options.Optimisations.Rte.get ()
   then begin
     Options.debug ~level:2 ~dkey "%a" Flags.pretty ();
+    rte_visitor#set_current_kf kf;
     ignore @@ rte_visitor#visit_predicate p;
     Options.feedback ~dkey "RTE analysis done on %a.%!"
       Printer.pp_predicate p;
