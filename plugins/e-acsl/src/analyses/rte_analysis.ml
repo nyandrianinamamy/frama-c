@@ -468,6 +468,7 @@ let rte_visitor =
         | TIndex (index, off) ->
           begin match Ast_types.C.unroll_node typ with
             | TArray (typ, Some size) ->
+              let index = Logic_normalizer.get_term index in
               self#add_index ~index size;
               unroll_offset ~is_deref off typ
             (* if no size provided, then we act as it is a dereferencement. *)
@@ -490,6 +491,7 @@ let rte_visitor =
         | TMem lh, off ->
           if not @@ Ast_types.Acsl.is_plain_fun @@ Cil.typeOfTermLval lv
           then begin
+            let lh = Logic_normalizer.get_term lh in
             try
               unroll_offset ~is_deref:true off @@
               Ast_types.C.direct_pointed @@
@@ -544,7 +546,7 @@ let rte_visitor =
         if Cil.isCompleteType pointed_typ
         then
           begin
-            let t = Cil.stripTermCasts t in
+            let t = Logic_normalizer.get_term @@ Cil.stripTermCasts t in
             if Options.Optimisations.Trivial_rte.get () ||
                not (self#trivially_aligned t typ pointed_typ)
             then
@@ -578,7 +580,9 @@ let rte_visitor =
     (** [add_aligned_access lv] adds an entry for [t] if [lv = *t]. *)
     method private add_aligned_access lv =
       match lv with
-      | TMem ({term_type = Ctype typ} as t), _ -> self#add_aligned ~orig:t t typ
+      | TMem ({term_type = Ctype typ} as t), _ ->
+        let t = Logic_normalizer.get_term t in
+        self#add_aligned ~orig:t t typ
       | _ -> ()
 
     (** [add_pointer_value] associates [orig] to a guard that check if [orig] is
@@ -702,17 +706,25 @@ let rte_visitor =
       | _ -> self#add_logic_downcast ~orig ~implicit t t.term_type dst
 
     method !vterm t =
+      let t = Logic_normalizer.get_term t in
       begin match t.term_node with
-        | TBinOp ((Div | Mod),_,divider) -> self#add_div_mod ~orig:t divider
+        | TBinOp ((Div | Mod),_,divider) ->
+          let divider = Logic_normalizer.get_term divider in
+          self#add_div_mod ~orig:t divider
         | TBinOp ((PlusPI | MinusPI), _, t2) ->
+          let t2 = Logic_normalizer.get_term t2 in
           self#add_pointer_value ~orig:t;
           (* [t2] has to be at most a [ILongLong] (typing constraint) *)
           self#add_downcast ~orig:t2 ~implicit:true t2 (Cil_const.mk_tint ILongLong)
         | TBinOp (Shiftlt,t1,t2) ->
+          let t1 = Logic_normalizer.get_term t1 in
+          let t2 = Logic_normalizer.get_term t2 in
           self#add_shift_negative ~orig:t ~kind:Left t1;
           (* [t2] has to be at most a [IULong] (typing constraint) *)
           self#add_downcast ~orig:t2 ~implicit:true t2 (Cil_const.mk_tint IULong)
         | TBinOp (Shiftrt,t1,t2) ->
+          let t1 = Logic_normalizer.get_term t1 in
+          let t2 = Logic_normalizer.get_term t2 in
           self#add_shift_negative ~orig:t ~kind:Right t1;
           (* [t2] has to be at most a [IULong] (typing constraint) *)
           self#add_downcast ~orig:t2 ~implicit:true t2 (Cil_const.mk_tint IULong)
@@ -730,6 +742,7 @@ let rte_visitor =
           end
         (* [false] means an explicit cast into a C type *)
         | TCast (false,ty,t') ->
+          let t' = Logic_normalizer.get_term t' in
           begin match Ast_types.Acsl.unroll ~unroll_typedef:false ty with
             | Ctype dst ->
               self#add_pointer_value_cast ~orig:t dst;
@@ -746,19 +759,27 @@ let rte_visitor =
       Cil.DoChildren
 
     method !vpredicate p =
+      let p = Logic_normalizer.get_pred p in
       match p.pred_content with
       | Paligned (_,v) ->
+        let v = Logic_normalizer.get_term v in
         self#add_div_mod ~orig:v v;
         (* [v] has to be at most a [size_t] (typing constraint) *)
         self#add_downcast ~orig:v ~implicit:true v (Machine.sizeof_type ());
         Cil.DoChildren
       | Prel((Req | Rneq),t1,t2) when Logic_utils.is_C_array t1 &&
                                       Logic_utils.is_C_array t2 ->
+        let t1 = Logic_normalizer.get_term t1 in
+        let t2 = Logic_normalizer.get_term t2 in
         self#add_array_comparison t1 t2;
         Cil.SkipChildren
       | Pseparated tlist ->
         let deref t = ((TMem t),TNoOffset) in
-        List.iter (fun t -> self#add_mem_access ~orig:t (deref t)) tlist;
+        List.iter
+          (fun t ->
+             let t = Logic_normalizer.get_term t in
+             self#add_mem_access ~orig:t (deref t))
+          tlist;
         Cil.DoChildren
       | _ -> (); Cil.DoChildren
   end
