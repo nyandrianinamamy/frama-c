@@ -13,7 +13,7 @@ val dkey : Options.category
 val preprocess : file -> unit
 (** compute the RTE table for a given file. *)
 
-val preprocess_predicate : predicate -> unit
+val preprocess_predicate : kf:kernel_function -> predicate -> unit
 (** compute the RTE table for a given predicate. *)
 
 val iter_on_guards : term -> (predicate -> unit) -> unit

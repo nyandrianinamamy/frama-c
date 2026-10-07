@@ -39,7 +39,10 @@ struct
     | Initialized -> 1
     | Pointer_alignment -> 2
     | Memory_access -> 3
-    | _ -> 4
+    | Division_by_zero -> 4
+    | Downcast _ -> 5
+    | Out_of_bounds -> 6
+    | Shift _ -> 7
 
   let compare g1 g2 = compare (priority g1) (priority g2)
 end
@@ -67,13 +70,6 @@ struct
     match Terms.find_opt tbl t with
     | Some guards -> Guards.fold (fun g x -> f (Guard.pred g) x) guards default
     | _ -> default
-
-  (** [copy t_src t_dst] replaces the current binding of [t_dst] in [tbl] by the
-      one of [t_src]. It does nothing if [t_src] is not bound in [tbl]. *)
-  let copy t_src t_dst =
-    match Terms.find_opt tbl t_src with
-    | Some guards -> Terms.replace tbl t_dst guards
-    | None -> ()
 
   let remove t = Terms.remove tbl t
 
@@ -339,6 +335,8 @@ struct
     preprocess_guard pred;
     Guard.make Pointer_alignment pred
 
+  (** [pointer_value ~loc t] creates the predicate that check if [t] is [null]
+      or an object pointer. *)
   let pointer_value ~loc t =
     let smart = not @@ Options.Optimisations.Trivial_rte.get () in
     let null = Logic_const.term ~loc Tnull t.term_type in
@@ -402,8 +400,6 @@ let rte_visitor =
 
     inherit E_acsl_visitor.visitor dkey
 
-    val mutable current_func : kernel_function option = None
-
     method private trivially_aligned t typ ptyp: bool =
       if Ast_types.C.is_void ptyp || Ast_types.C.is_fun ptyp
       then
@@ -442,6 +438,8 @@ let rte_visitor =
         Guards.add orig
           (Undefined_behaviours.div_by_zero ~loc:orig.term_loc divider)
 
+    (** [add_shift_negative ~orig ~kind shift] adds an entry for [orig] if
+        [shift] can be negative. *)
     method private add_shift_negative ~orig ~kind shift =
       if Misc.is_signed_int shift.term_type &&
          (kind = Guard.Left && Flags.needs_left_shift_negative ()) ||
@@ -451,18 +449,16 @@ let rte_visitor =
           (Undefined_behaviours.shift_negative ~loc:orig.term_loc ~kind shift)
 
     (** [add_index ~index size] adds [index] as key in [table] with a
-            guard that checks if [index] is between [0] (included) and [size]
-            (excluded). *)
+        guard that checks if [index] is between [0] (included) and [size]
+        (excluded). *)
     method private add_index ~index size =
       Guards.add index
         (Undefined_behaviours.index_bound ~loc:index.term_loc index size)
 
-    (**
-       [add_mem_access ~orig lv] checks if the lvalue [lv] is a
-       variable or a dereference (other cases are not checked). In both, it
-       calls the function [unroll_offset] with the information of being a
-       dereference or not through the [~is_deref] argument.
-    *)
+    (** [add_mem_access ~orig lv] checks if the lvalue [lv] is a
+        variable or a dereference (other cases are not checked). In both, it
+        calls the function [unroll_offset] with the information of being a
+        dereference or not through the [~is_deref] argument. *)
     method private add_mem_access ~orig lv =
       let rec unroll_offset ~is_deref off typ =
         match off with
@@ -472,6 +468,7 @@ let rte_visitor =
         | TIndex (index, off) ->
           begin match Ast_types.C.unroll_node typ with
             | TArray (typ, Some size) ->
+              let index = Logic_normalizer.get_term index in
               self#add_index ~index size;
               unroll_offset ~is_deref off typ
             (* if no size provided, then we act as it is a dereferencement. *)
@@ -494,6 +491,7 @@ let rte_visitor =
         | TMem lh, off ->
           if not @@ Ast_types.Acsl.is_plain_fun @@ Cil.typeOfTermLval lv
           then begin
+            let lh = Logic_normalizer.get_term lh in
             try
               unroll_offset ~is_deref:true off @@
               Ast_types.C.direct_pointed @@
@@ -505,6 +503,9 @@ let rte_visitor =
           end
         | _ -> ()
 
+    (** [add_array_comparison tl tr] applies the analysis on the range of the
+        array [tl[0..size(tl)]] (respectively [tr[0..size(tr)]]) instead of
+        [tl] (respectively [tr]) *)
     method private add_array_comparison tl tr =
       let both x y f = f x; f y in
       both tl tr @@ fun t ->
@@ -515,10 +516,10 @@ let rte_visitor =
           (Ast_types.Acsl.direct_array_element t.term_type)
       in
       ignore @@ self#vterm rt;
-      Guards.copy rt t
+      Guards.transfer rt t
 
-    (** [add_initialized ~orig ~loc divider] adds an entry for [orig] if [lv]
-        is a variable. *)
+    (** [add_initialized ~orig ~loc lv typ] adds an entry for [orig] if [lv]
+        is a C variable. *)
     method private add_initialized ~orig ~loc lv typ =
       let needs_guard lv =
         match lv with
@@ -530,7 +531,7 @@ let rte_visitor =
         | TResult _, TNoOffset -> false
         | _ -> not Ast_types.C.(is_fun typ || is_struct_or_union typ)
       in
-      if Flags.needs_initialized current_func && needs_guard lv then
+      if Flags.needs_initialized self#current_kf && needs_guard lv then
         Guards.add orig (Undefined_behaviours.initialized ~loc lv)
 
     (** [add_aligned ~orig t typ] adds an entry for [orig] if [t] has a pointer
@@ -545,7 +546,7 @@ let rte_visitor =
         if Cil.isCompleteType pointed_typ
         then
           begin
-            let t = Cil.stripTermCasts t in
+            let t = Logic_normalizer.get_term @@ Cil.stripTermCasts t in
             if Options.Optimisations.Trivial_rte.get () ||
                not (self#trivially_aligned t typ pointed_typ)
             then
@@ -561,6 +562,8 @@ let rte_visitor =
             Printer.pp_typ pointed_typ
       end
 
+    (** [add_aligned_cast ~orig t dst] adds an entry for [orig] if [dst] the
+        destination type of the cast is a pointer type. *)
     method private add_aligned_cast ~orig t dst =
       let aux src =
         match Ast_types.C.unroll_node src,  Ast_types.C.unroll_node dst with
@@ -574,16 +577,23 @@ let rte_visitor =
       | Ctype src -> aux src
       | _ -> ()
 
+    (** [add_aligned_access lv] adds an entry for [t] if [lv = *t]. *)
     method private add_aligned_access lv =
       match lv with
-      | TMem ({term_type = Ctype typ} as t), _ -> self#add_aligned ~orig:t t typ
+      | TMem ({term_type = Ctype typ} as t), _ ->
+        let t = Logic_normalizer.get_term t in
+        self#add_aligned ~orig:t t typ
       | _ -> ()
 
+    (** [add_pointer_value] associates [orig] to a guard that check if [orig] is
+        a pointer value in the table. *)
     method private add_pointer_value ~orig =
       if Flags.needs_pointer_value () then
         Guards.add orig
           (Undefined_behaviours.pointer_value ~loc:orig.term_loc orig)
 
+    (** [add_pointer_value_cast ~orig dst] adds an entry for [orig] if [dst]
+        the destination type of the cast is a pointer type. *)
     method private add_pointer_value_cast ~orig dst =
       let aux src =
         match Ast_types.C.unroll_node src,  Ast_types.C.unroll_node dst with
@@ -596,8 +606,8 @@ let rte_visitor =
       | _ -> ()
 
     (** [add_C_downcast ~orig t src dst] adds an entry for [orig] if the
-               [dst] type is 'smaller' than the source type and the corresponding
-               options are set on. *)
+        [dst] type is 'smaller' than the source type and the corresponding
+        options are set on. *)
     method private add_C_downcast ~orig ~implicit t src dst =
       let get_bounds size is_signed =
         if is_signed then Cil.min_signed_number size, Cil.max_signed_number size
@@ -696,17 +706,25 @@ let rte_visitor =
       | _ -> self#add_logic_downcast ~orig ~implicit t t.term_type dst
 
     method !vterm t =
+      let t = Logic_normalizer.get_term t in
       begin match t.term_node with
-        | TBinOp ((Div | Mod),_,divider) -> self#add_div_mod ~orig:t divider
+        | TBinOp ((Div | Mod),_,divider) ->
+          let divider = Logic_normalizer.get_term divider in
+          self#add_div_mod ~orig:t divider
         | TBinOp ((PlusPI | MinusPI), _, t2) ->
+          let t2 = Logic_normalizer.get_term t2 in
           self#add_pointer_value ~orig:t;
           (* [t2] has to be at most a [ILongLong] (typing constraint) *)
           self#add_downcast ~orig:t2 ~implicit:true t2 (Cil_const.mk_tint ILongLong)
         | TBinOp (Shiftlt,t1,t2) ->
+          let t1 = Logic_normalizer.get_term t1 in
+          let t2 = Logic_normalizer.get_term t2 in
           self#add_shift_negative ~orig:t ~kind:Left t1;
           (* [t2] has to be at most a [IULong] (typing constraint) *)
           self#add_downcast ~orig:t2 ~implicit:true t2 (Cil_const.mk_tint IULong)
         | TBinOp (Shiftrt,t1,t2) ->
+          let t1 = Logic_normalizer.get_term t1 in
+          let t2 = Logic_normalizer.get_term t2 in
           self#add_shift_negative ~orig:t ~kind:Right t1;
           (* [t2] has to be at most a [IULong] (typing constraint) *)
           self#add_downcast ~orig:t2 ~implicit:true t2 (Cil_const.mk_tint IULong)
@@ -724,6 +742,7 @@ let rte_visitor =
           end
         (* [false] means an explicit cast into a C type *)
         | TCast (false,ty,t') ->
+          let t' = Logic_normalizer.get_term t' in
           begin match Ast_types.Acsl.unroll ~unroll_typedef:false ty with
             | Ctype dst ->
               self#add_pointer_value_cast ~orig:t dst;
@@ -740,25 +759,29 @@ let rte_visitor =
       Cil.DoChildren
 
     method !vpredicate p =
+      let p = Logic_normalizer.get_pred p in
       match p.pred_content with
       | Paligned (_,v) ->
+        let v = Logic_normalizer.get_term v in
         self#add_div_mod ~orig:v v;
         (* [v] has to be at most a [size_t] (typing constraint) *)
         self#add_downcast ~orig:v ~implicit:true v (Machine.sizeof_type ());
         Cil.DoChildren
       | Prel((Req | Rneq),t1,t2) when Logic_utils.is_C_array t1 &&
                                       Logic_utils.is_C_array t2 ->
+        let t1 = Logic_normalizer.get_term t1 in
+        let t2 = Logic_normalizer.get_term t2 in
         self#add_array_comparison t1 t2;
         Cil.SkipChildren
       | Pseparated tlist ->
         let deref t = ((TMem t),TNoOffset) in
-        List.iter (fun t -> self#add_mem_access ~orig:t (deref t)) tlist;
+        List.iter
+          (fun t ->
+             let t = Logic_normalizer.get_term t in
+             self#add_mem_access ~orig:t (deref t))
+          tlist;
         Cil.DoChildren
       | _ -> (); Cil.DoChildren
-
-    method !vfunc f =
-      current_func <- Option.some @@ Globals.Functions.get f.svar;
-      Cil.DoChildrenPost (fun f -> current_func <- None; f)
   end
 
 let preprocess ast =
@@ -772,10 +795,11 @@ let preprocess ast =
   end else
     Options.feedback ~level:3 ~dkey "Skip the RTE analysis.%!"
 
-let preprocess_predicate p =
+let preprocess_predicate ~kf p =
   if Options.Optimisations.Rte.get ()
   then begin
     Options.debug ~level:2 ~dkey "%a" Flags.pretty ();
+    rte_visitor#set_current_kf kf;
     ignore @@ rte_visitor#visit_predicate p;
     Options.feedback ~dkey "RTE analysis done on %a.%!"
       Printer.pp_predicate p;

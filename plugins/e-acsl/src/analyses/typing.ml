@@ -693,9 +693,8 @@ let rec type_term
            | None -> { ty; cast = None }
            | Some ctx -> coerce ~arith_operand ~ctx ty
          in
-         (* /!\ The table stores original version of [t]. *)
          Rte_analysis.iter_on_guards
-           (Logic_normalizer.get_orig_term t)
+           t
            (fun p ->
               try type_predicate ~profile p
               with Error.Not_yet _ | Error.Typing_error _ -> ());
@@ -706,8 +705,7 @@ let rec type_term
     Options.debug ~dkey ~level:5 "%a" pp_call_with_result result;
     result
   | Result.Error exn ->
-    (* /!\ The table stores original version of [t]. *)
-    Rte_analysis.remove @@ Logic_normalizer.get_orig_term t;
+    Rte_analysis.remove t;
     raise exn
 
 and type_term_lval ~profile (host, offset) =
@@ -959,10 +957,6 @@ let type_program ast =
   let visitor = typing_visitor Profile.empty in
   visitor#visit_file ast
 
-let type_code_annot lenv annot =
-  let visitor = typing_visitor lenv in
-  ignore @@ visitor#visit_code_annot annot
-
 let preprocess_predicate ~logic_env p =
   Logic_normalizer.preprocess_predicate p;
   Bound_variables.preprocess_predicate p;
@@ -970,13 +964,6 @@ let preprocess_predicate ~logic_env p =
   let profile = Logic_env.get_profile logic_env in
   let visitor = typing_visitor profile in
   ignore @@ visitor#visit_predicate p
-
-let preprocess_rte ~logic_env rte =
-  Logic_normalizer.preprocess_annot rte;
-  Bound_variables.preprocess_annot rte;
-  ignore (Interval.preprocess_code_annot ~logic_env rte);
-  let profile = Logic_env.get_profile logic_env in
-  type_code_annot profile rte
 
 let preprocess_term ~use_gmp_opt ?ctx ~logic_env t =
   ignore (Interval.preprocess_term ~logic_env t);

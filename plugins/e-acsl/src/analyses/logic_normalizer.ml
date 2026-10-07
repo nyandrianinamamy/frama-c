@@ -329,9 +329,6 @@ let preprocess ast =
   preprocessor#visit_file ast;
   Inductive.Derived_functions.iter Auxiliary_functions.M.add
 
-let preprocess_annot annot =
-  ignore @@ preprocessor#visit_code_annot annot
-
 let preprocess_predicate p =
   ignore @@ preprocessor#visit_predicate p
 

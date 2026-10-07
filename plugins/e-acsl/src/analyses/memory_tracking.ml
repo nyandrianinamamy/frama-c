@@ -423,7 +423,8 @@ module rec Transfer
           Cil.DoChildren
         end
     method !vterm term =
-      state_ref := register_rte_guards kf term !state_ref;
+      state_ref :=
+        register_rte_guards kf (Logic_normalizer.get_term term) !state_ref;
       match term.term_node with
       | Tbase_addr(_, t) | Toffset(_, t) | Tblock_length(_, t) | Tlet(_, t) ->
         state_ref := register_term kf !state_ref t;

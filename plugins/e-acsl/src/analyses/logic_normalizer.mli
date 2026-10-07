@@ -21,10 +21,6 @@ open Cil_datatype
 val preprocess : file -> unit
 (** Preprocess all the predicates of the ast and store the results *)
 
-val preprocess_annot : code_annotation -> unit
-(** Preprocess of the predicate of a single code annotation and store
-    the results *)
-
 val preprocess_predicate : predicate -> unit
 (** Preprocess a predicate and its children and store the results  *)
 
