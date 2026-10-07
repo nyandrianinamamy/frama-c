@@ -5,6 +5,15 @@
 .git-blame-ignore-revs merge=union
 Changelog merge=union
 
+###############
+# END OF LINE #
+###############
+
+# All text sources use LF end-of-line, regardless of the host OS
+# This is notably necessary on windows where Git might checkout files
+# with crlf end-of-lines while Cygwin's bash expects lf end-of-lines.
+* text eol=lf
+
 ################
 # DISTRIBUTION #
 ################
