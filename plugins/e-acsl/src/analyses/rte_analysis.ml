@@ -68,13 +68,6 @@ struct
     | Some guards -> Guards.fold (fun g x -> f (Guard.pred g) x) guards default
     | _ -> default
 
-  (** [copy t_src t_dst] replaces the current binding of [t_dst] in [tbl] by the
-      one of [t_src]. It does nothing if [t_src] is not bound in [tbl]. *)
-  let copy t_src t_dst =
-    match Terms.find_opt tbl t_src with
-    | Some guards -> Terms.replace tbl t_dst guards
-    | None -> ()
-
   let remove t = Terms.remove tbl t
 
   let transfer t_src t_dst =
@@ -515,7 +508,7 @@ let rte_visitor =
           (Ast_types.Acsl.direct_array_element t.term_type)
       in
       ignore @@ self#vterm rt;
-      Guards.copy rt t
+      Guards.transfer rt t
 
     (** [add_initialized ~orig ~loc divider] adds an entry for [orig] if [lv]
         is a variable. *)
