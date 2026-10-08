@@ -1,6 +1,6 @@
 /* run.config*
- PLUGIN: @EVA_MAIN_PLUGINS@ 
-   OPT: -eva @EVA_CONFIG@ -cpp-extra-args="-DPTEST"
+ PLUGIN: @EVA_MAIN_PLUGINS@
+   OPT: -eva @EVA_OPTIONS@ -cpp-extra-args="-DPTEST"
 */
 
 

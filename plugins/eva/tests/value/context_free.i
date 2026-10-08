@@ -1,6 +1,6 @@
 /* run.config*
  PLUGIN: @EVA_MAIN_PLUGINS@
-   OPT: -eva @EVA_CONFIG@ -lib-entry -main f -eva-msg-key initial-state
+   OPT: -eva @EVA_OPTIONS@ -lib-entry -main f -eva-msg-key initial-state
 */
 
 

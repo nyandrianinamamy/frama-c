@@ -1,6 +1,6 @@
 /* run.config*
   PLUGIN: @EVA_MAIN_PLUGINS@
-   OPT: -print -eva @EVA_CONFIG@ -machdep x86_16
+   OPT: -print -eva @EVA_OPTIONS@ -machdep x86_16
 */
 
 volatile unsigned char t[10];

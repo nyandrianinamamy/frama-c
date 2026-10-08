@@ -1,6 +1,6 @@
 /* run.config*
  PLUGIN: @EVA_MAIN_PLUGINS@
-   OPT: -eva @EVA_CONFIG@ -eva-context-width 3 -then -eva-slevel 3
+   OPT: -eva @EVA_OPTIONS@ -eva-context-width 3 -then -eva-slevel 3
 */
 
 int x, y;

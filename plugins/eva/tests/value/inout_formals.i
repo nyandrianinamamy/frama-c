@@ -1,6 +1,6 @@
 /*run.config*
 PLUGIN: @EVA_MAIN_PLUGINS@ inout
-  OPT: @EVA_CONFIG@ -inout -input-with-formals -inout-with-formals
+  OPT: @EVA_OPTIONS@ -inout -input-with-formals -inout-with-formals
 */
 int x, y;
 void main(int * const i) {

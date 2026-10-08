@@ -1,7 +1,7 @@
 /* run.config*
 PLUGIN: @EVA_MAIN_PLUGINS@
-   OPT: -eva @EVA_CONFIG@ -eva-slevel 100 -cpp-extra-args="-DPTEST " -no-warn-signed-overflow
-   OPT: -eva @EVA_CONFIG@ -eva-slevel 100 -cpp-extra-args="-DPTEST " -machdep ppc_32 -no-warn-signed-overflow
+   OPT: -eva @EVA_OPTIONS@ -eva-slevel 100 -cpp-extra-args="-DPTEST " -no-warn-signed-overflow
+   OPT: -eva @EVA_OPTIONS@ -eva-slevel 100 -cpp-extra-args="-DPTEST " -machdep ppc_32 -no-warn-signed-overflow
 */
 #ifndef PTEST
 #include <stdio.h>
@@ -13,7 +13,7 @@ char s[S];
 int c=0;
 int s_int;
 int *p_int;
-char ones[]="11111111"; 
+char ones[]="11111111";
 char one23[]="1223";
 int col_ones;
 int col_123;

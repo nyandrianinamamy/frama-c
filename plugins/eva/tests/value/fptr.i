@@ -1,7 +1,7 @@
 /* run.config*
  PLUGIN: @EVA_MAIN_PLUGINS@ from,inout
-   OPT: -eva @EVA_CONFIG@ -then -deps -out
-   OPT: -eva @EVA_CONFIG@ -main main_uninit -then -deps -out
+   OPT: -eva @EVA_OPTIONS@ -then -deps -out
+   OPT: -eva @EVA_OPTIONS@ -main main_uninit -then -deps -out
 */
 int R=77; volatile int v; int n;
 
@@ -68,5 +68,3 @@ void main_uninit (int c)
     G=f(GLOBAL[i],i);
   }
 }
-
-

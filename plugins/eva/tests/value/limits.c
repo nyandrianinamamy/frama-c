@@ -1,6 +1,6 @@
 /* run.config*
  PLUGIN: @EVA_MAIN_PLUGINS@
-   OPT: -eva @EVA_CONFIG@ -warn-signed-overflow
+   OPT: -eva @EVA_OPTIONS@ -warn-signed-overflow
 */
 #include <limits.h>
 

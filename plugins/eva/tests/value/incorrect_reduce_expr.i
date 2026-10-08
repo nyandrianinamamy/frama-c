@@ -1,6 +1,6 @@
 /* run.config*
  PLUGIN: @EVA_MAIN_PLUGINS@
-   OPT: -eva @EVA_CONFIG@ -absolute-valid-range 32-36
+   OPT: -eva @EVA_OPTIONS@ -absolute-valid-range 32-36
 */
 char t[5];
 int *p;
@@ -12,5 +12,3 @@ void main(int c)
   if (c) p+=1;
   *(char*)p = 13;
 }
-  
-  

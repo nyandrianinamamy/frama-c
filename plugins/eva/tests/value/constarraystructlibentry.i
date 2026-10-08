@@ -1,6 +1,6 @@
 /* run.config*
  PLUGIN: @EVA_MAIN_PLUGINS@
-   OPT: -eva @EVA_CONFIG@ -lib-entry -eva-initialization-padding-globals yes -then -eva-initialization-padding-globals no
+   OPT: -eva @EVA_OPTIONS@ -lib-entry -eva-initialization-padding-globals yes -then -eva-initialization-padding-globals no
 */
 const int t[] = { 1, 2, 3, 4, 5 } ;
 

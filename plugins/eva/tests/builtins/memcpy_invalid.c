@@ -1,5 +1,5 @@
 /* run.config*
-   OPT: -eva @EVA_CONFIG@ -calldeps
+   OPT: -eva @EVA_OPTIONS@ -calldeps
 */
 
 /*@ assigns \result \from min, max;
@@ -23,4 +23,3 @@ extern int main(void)
   if (v) test(8);
   return 0;
 }
-

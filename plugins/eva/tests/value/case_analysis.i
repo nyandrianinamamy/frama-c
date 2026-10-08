@@ -1,6 +1,6 @@
 /* run.config*
  PLUGIN: @EVA_MAIN_PLUGINS@
-   OPT: -eva @EVA_CONFIG@ -eva-slevel 30 -float-print norm
+   OPT: -eva @EVA_OPTIONS@ -eva-slevel 30 -float-print norm
 */
 
 int sq,s;

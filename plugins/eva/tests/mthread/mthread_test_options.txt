@@ -4,6 +4,7 @@
 -mthread
 -eva-slevel 15
 # Kernel options
+-machdep x86_64
 -no-warn-unaligned-pointer
 # Parsing
 -mt-threads-lib pthreads

@@ -1,6 +1,6 @@
 /* run.config*
  PLUGIN: @EVA_MAIN_PLUGINS@
-   OPT: -eva @EVA_CONFIG@ -eva-no-results -then -float-print hex -main mainbis
+   OPT: -eva @EVA_OPTIONS@ -eva-no-results -then -float-print hex -main mainbis
 */
 typedef double D;
 typedef float F;
@@ -39,34 +39,34 @@ void main1()
 
   switch ((char)d1)
   {
-   case 0: 
+   case 0:
      b = 0;
      break;
-   case 1: 
+   case 1:
      b = 1;
      break;
-   case 2: 
+   case 2:
      b = 2;
      break;
-   case 3: 
+   case 3:
      b = 3;
      break;
-   case 4: 
+   case 4:
      b = 4;
      break;
-   case 5: 
+   case 5:
      b = 5;
      break;
-   case 6: 
+   case 6:
      b = 6;
      break;
-   case 7: 
+   case 7:
      b = 7;
      break;
    case 8:
      b = 8;
      break;
-   default : 
+   default :
      b = 999;
      break;
   }
@@ -108,7 +108,7 @@ void main3() {
   // Integer/real
   //@ assert i > 50.;  // TODO
 
- 
+
   //@ assert (int)f4 > 10;
   //@ assert (int)d2 > 10;
 

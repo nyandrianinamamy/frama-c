@@ -1,6 +1,6 @@
 /* run.config*
    STDOPT: #"-eva-domains-function symbolic-locations:infer+w,symbolic-locations:use+r,symbolic-locations:test_propagation-,symbolic-locations:enabled,symbolic-locations:disabled-,symbolic-locations:recursively_enabled+"
-   STDOPT: #"-eva @EVA_CONFIG@ -main test_successive_runs -eva-domains-function octagon:need_symbolic_locations,symbolic-locations:need_octagon -then -eva-domains-function symbolic-locations:need_symbolic_locations,octagon:need_octagon"
+   STDOPT: #"-eva @EVA_OPTIONS@ -main test_successive_runs -eva-domains-function octagon:need_symbolic_locations,symbolic-locations:need_octagon -then -eva-domains-function symbolic-locations:need_symbolic_locations,octagon:need_octagon"
 */
 
 #include "__fc_builtin.h"
