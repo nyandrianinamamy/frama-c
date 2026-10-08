@@ -37,6 +37,9 @@ BUNDLE_CUSTOM_OUI_FILE=${BUNDLE_CUSTOM_OUI_FILE:-}
 BUNDLE_ARCH=${BUNDLE_ARCH:-linux-x86-64}
 BUNDLE_EXT=${BUNDLE_EXT:-run}
 
+# Do not allow to customize this variable with an environment variable
+BUNDLE_MANAGE_OPAM=true
+
 # Customizing variables used in other CI jobs
 LAST_OCAML=$(opam switch list-available --all \
   | grep ocaml-base-compiler \
@@ -76,6 +79,9 @@ do
       echo "                                (default to 'linux-x86-64')"
       echo "  --bundle-ext <ext>            Extension of the bundle filename"
       echo "                                (default to 'run')"
+      echo "  --unmanaged-opam              Do not create local opam repository but use the"
+      echo "                                available one from the environment."
+      echo "                                (not recommended)"
       echo ""
       echo "ENVIRONMENT VARIABLES"
       echo ""
@@ -114,6 +120,9 @@ do
       shift
       BUNDLE_EXT="$1"
       ;;
+    --unmanaged-opam)
+      BUNDLE_MANAGE_OPAM=false
+      ;;
     *)
       echo_red "Unknown option '$1'"
       exit 1
@@ -132,7 +141,11 @@ fi
 # Fully qualified paths to _opam and bundle
 # (Some part of the script still use relative paths, be careful when
 # changing those variables)
-OPAM="$ROOT/_opam"
+if [ "$BUNDLE_MANAGE_OPAM" = "true" ]; then
+  OPAM="$ROOT/_opam"
+else
+  OPAM=$(opam var prefix)
+fi
 export OPAM
 BUNDLE="$ROOT/bundle"
 export BUNDLE
@@ -231,13 +244,15 @@ if [ "${#ivette_plugins[@]}" -gt 0 ]; then
 fi
 
 # _opam
-show_step "Build local opam switch"
+if [ "$BUNDLE_MANAGE_OPAM" = "true" ]; then
+  show_step "Create local opam switch"
+  rm -rf "$OPAM"
+  opam switch create --empty .
+  opam switch set-invariant "ocaml>=$OCAML" --no-action
+  eval "$(opam env)"
+fi
 
-rm -rf "$OPAM"
-opam switch create --empty .
-opam switch set-invariant "ocaml>=$OCAML" --no-action
-eval "$(opam env)"
-
+show_step "Install base opam dependencies"
 opam pin add -n \
   https://github.com/Frama-C/ocaml-universal-installer.git#reference
 
@@ -333,3 +348,9 @@ if [ -f "frama-c-$BUNDLE_ARCH.pkg" ]; then # sign macOS bundle
   xattr -dr com.apple.quarantine "frama-c-$BUNDLE_ARCH.pkg"
   codesign -s - --deep --force ./"frama-c-$BUNDLE_ARCH.pkg"
 fi
+
+if [ "$BUNDLE_MANAGE_OPAM" = "true" ]; then
+  show_step "Remove local opam repository"
+  rm -rf "$OPAM"
+fi
+
