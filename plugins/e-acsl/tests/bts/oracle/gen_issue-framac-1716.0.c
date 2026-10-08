@@ -6,11 +6,197 @@
 #include "time.h"
 extern  __attribute__((__FC_BUILTIN__)) int __e_acsl_sound_verdict;
 
+struct Abstract;
+struct Concrete {
+   int x ;
+};
+extern struct Abstract *ptr;
+
+void __e_acsl_globals_init(void)
+{
+  static char __e_acsl_already_run = 0;
+  if (! __e_acsl_already_run) {
+    __e_acsl_already_run = 1;
+    __e_acsl_store_block((void *)(& ptr),8UL);
+    __e_acsl_full_init((void *)(& ptr));
+  }
+  return;
+}
+
+void __e_acsl_globals_clean(void)
+{
+  __e_acsl_delete_block((void *)(& ptr));
+  return;
+}
+
 int main(void)
 {
   int __retres;
   __e_acsl_memory_init((int *)0,(char ***)0,8UL);
+  __e_acsl_globals_init();
+  {
+    int __gen_e_acsl_or;
+    int __gen_e_acsl_aligned;
+    int __gen_e_acsl_initialized;
+    int __gen_e_acsl_valid_read;
+    __e_acsl_assert_data_t __gen_e_acsl_assert_data = {.values = (void *)0};
+    __e_acsl_assert_data_t __gen_e_acsl_assert_data_2 =
+      {.values = (void *)0};
+    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_2,"ptr",
+                                 (void *)ptr);
+    /*@ assert
+          Eva: ptr_comparison: \pointer_comparable((void *)0, (void *)ptr);
+    */
+    if ((struct Abstract *)0 == ptr) __gen_e_acsl_or = 1;
+    else {
+      int __gen_e_acsl_object_pointer;
+      __gen_e_acsl_object_pointer = __e_acsl_object_pointer((void *)ptr,
+                                                            sizeof(struct Abstract),
+                                                            (void *)ptr,
+                                                            (void *)(& ptr));
+      __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_2,"ptr",
+                                   (void *)ptr);
+      __e_acsl_assert_register_ulong(& __gen_e_acsl_assert_data_2,
+                                     "sizeof(struct Abstract)",0,
+                                     sizeof(struct Abstract));
+      __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_2,
+                                   "\\object_pointer(ptr)",0,
+                                   __gen_e_acsl_object_pointer);
+      __gen_e_acsl_or = __gen_e_acsl_object_pointer;
+    }
+    /*@ assert
+          E_ACSL: "invalid pointer": \null == ptr || \object_pointer(ptr);
+    */
+    {
+      __gen_e_acsl_assert_data_2.blocking = 1;
+      __gen_e_acsl_assert_data_2.kind = "E-ACSL RTE";
+      __gen_e_acsl_assert_data_2.pred_txt = "\\null == ptr || \\object_pointer(ptr)";
+      __gen_e_acsl_assert_data_2.file = "issue-framac-1716.c";
+      __gen_e_acsl_assert_data_2.fct = "main";
+      __gen_e_acsl_assert_data_2.line = 18;
+      __gen_e_acsl_assert_data_2.name = "invalid pointer";
+      __e_acsl_assert(__gen_e_acsl_or,& __gen_e_acsl_assert_data_2);
+      __e_acsl_assert_clean(& __gen_e_acsl_assert_data_2);
+    }
+    __e_acsl_assert_data_t __gen_e_acsl_assert_data_3 =
+      {.values = (void *)0};
+    __gen_e_acsl_aligned = __e_acsl_aligned((void *)ptr,
+                                            _Alignof(struct Concrete));
+    __e_acsl_assert_register_ulong(& __gen_e_acsl_assert_data_3,
+                                   "alignof(struct Concrete)",0,
+                                   _Alignof(struct Concrete));
+    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_3,"ptr",
+                                 (void *)ptr);
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_3,
+                                 "\"pointer alignment\": \\aligned(ptr,alignof(struct Concrete))",
+                                 0,__gen_e_acsl_aligned);
+    /*@ assert
+          E_ACSL: "pointer alignment": \aligned(ptr,alignof(struct Concrete));
+    */
+    {
+      __gen_e_acsl_assert_data_3.blocking = 1;
+      __gen_e_acsl_assert_data_3.kind = "E-ACSL RTE";
+      __gen_e_acsl_assert_data_3.pred_txt = "\\aligned(ptr,alignof(struct Concrete))";
+      __gen_e_acsl_assert_data_3.file = "issue-framac-1716.c";
+      __gen_e_acsl_assert_data_3.fct = "main";
+      __gen_e_acsl_assert_data_3.line = 18;
+      __gen_e_acsl_assert_data_3.name = "pointer alignment";
+      __e_acsl_assert(__gen_e_acsl_aligned,& __gen_e_acsl_assert_data_3);
+      __e_acsl_assert_clean(& __gen_e_acsl_assert_data_3);
+    }
+    __e_acsl_assert_data_t __gen_e_acsl_assert_data_4 =
+      {.values = (void *)0};
+    /*@ assert
+          Eva: pointer_alignment: \aligned(ptr,alignof(struct Concrete));
+    */
+    __gen_e_acsl_initialized = __e_acsl_initialized((void *)(& ((struct Concrete *)ptr)->x),
+                                                    sizeof(int));
+    /*@ assert
+          Eva: pointer_alignment: \aligned(ptr,alignof(struct Concrete));
+    */
+    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_4,
+                                 "&((struct Concrete *)ptr)->x",
+                                 (void *)(& ((struct Concrete *)ptr)->x));
+    __e_acsl_assert_register_ulong(& __gen_e_acsl_assert_data_4,
+                                   "sizeof(int)",0,sizeof(int));
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_4,
+                                 "uninitialized: \\initialized(&((struct Concrete *)ptr)->x)",
+                                 0,__gen_e_acsl_initialized);
+    /*@ assert
+          E_ACSL: uninitialized: \initialized(&((struct Concrete *)ptr)->x);
+    */
+    {
+      __gen_e_acsl_assert_data_4.blocking = 1;
+      __gen_e_acsl_assert_data_4.kind = "E-ACSL RTE";
+      __gen_e_acsl_assert_data_4.pred_txt = "\\initialized(&((struct Concrete *)ptr)->x)";
+      __gen_e_acsl_assert_data_4.file = "issue-framac-1716.c";
+      __gen_e_acsl_assert_data_4.fct = "main";
+      __gen_e_acsl_assert_data_4.line = 18;
+      __gen_e_acsl_assert_data_4.name = "uninitialized";
+      __e_acsl_assert(__gen_e_acsl_initialized,& __gen_e_acsl_assert_data_4);
+      __e_acsl_assert_clean(& __gen_e_acsl_assert_data_4);
+    }
+    __e_acsl_assert_data_t __gen_e_acsl_assert_data_5 =
+      {.values = (void *)0};
+    /*@ assert
+          Eva: pointer_alignment: \aligned(ptr,alignof(struct Concrete));
+    */
+    __gen_e_acsl_valid_read = __e_acsl_valid_read((void *)(& ((struct Concrete *)ptr)->x),
+                                                  sizeof(int),
+                                                  (void *)(& ((struct Concrete *)ptr)->x),
+                                                  (void *)0);
+    /*@ assert
+          Eva: pointer_alignment: \aligned(ptr,alignof(struct Concrete));
+    */
+    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_5,
+                                 "&((struct Concrete *)ptr)->x",
+                                 (void *)(& ((struct Concrete *)ptr)->x));
+    __e_acsl_assert_register_ulong(& __gen_e_acsl_assert_data_5,
+                                   "sizeof(int)",0,sizeof(int));
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_5,
+                                 "\"memory access\": \\valid_read(&((struct Concrete *)ptr)->x)",
+                                 0,__gen_e_acsl_valid_read);
+    /*@ assert
+          E_ACSL: "memory access": \valid_read(&((struct Concrete *)ptr)->x);
+    */
+    {
+      __gen_e_acsl_assert_data_5.blocking = 1;
+      __gen_e_acsl_assert_data_5.kind = "E-ACSL RTE";
+      __gen_e_acsl_assert_data_5.pred_txt = "\\valid_read(&((struct Concrete *)ptr)->x)";
+      __gen_e_acsl_assert_data_5.file = "issue-framac-1716.c";
+      __gen_e_acsl_assert_data_5.fct = "main";
+      __gen_e_acsl_assert_data_5.line = 18;
+      __gen_e_acsl_assert_data_5.name = "memory access";
+      __e_acsl_assert(__gen_e_acsl_valid_read,& __gen_e_acsl_assert_data_5);
+      __e_acsl_assert_clean(& __gen_e_acsl_assert_data_5);
+    }
+    /*@ assert
+          Eva: pointer_alignment: \aligned(ptr,alignof(struct Concrete));
+    */
+    /*@ assert
+          Eva: initialization: \initialized(&((struct Concrete *)ptr)->x);
+    */
+    /*@ assert Eva: mem_access: \valid_read(&((struct Concrete *)ptr)->x); */
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data,
+                                 "((struct Concrete *)ptr)->x",0,
+                                 ((struct Concrete *)ptr)->x);
+    __gen_e_acsl_assert_data.blocking = 1;
+    __gen_e_acsl_assert_data.kind = "Assertion";
+    __gen_e_acsl_assert_data.pred_txt = "((struct Concrete *)ptr)->x == 42";
+    __gen_e_acsl_assert_data.file = "issue-framac-1716.c";
+    __gen_e_acsl_assert_data.fct = "main";
+    __gen_e_acsl_assert_data.line = 18;
+    /*@ assert
+          Eva: pointer_alignment: \aligned(ptr,alignof(struct Concrete));
+    */
+    /*@ assert Eva: mem_access: \valid_read(&((struct Concrete *)ptr)->x); */
+    __e_acsl_assert(((struct Concrete *)ptr)->x == 42,
+                    & __gen_e_acsl_assert_data);
+    __e_acsl_assert_clean(& __gen_e_acsl_assert_data);
+  }
+  /*@ assert ((struct Concrete *)ptr)->x == 42; */ ;
   __retres = 0;
+  __e_acsl_globals_clean();
   __e_acsl_memory_clean();
   return __retres;
 }

@@ -1,2 +1,40 @@
 [e-acsl] beginning translation.
+[e-acsl] Warning: cannot create the pointer alignment guard of ptr because struct Abstract is an incomplete type
 [e-acsl] translation done in project "e-acsl".
+[eva:unknown-size] issue-framac-1716.c:15: Warning: 
+  during initialization of variable 'ptr', size of type 'struct Abstract'
+  cannot be computed (abstract type 'struct Abstract')
+[eva:alarm] issue-framac-1716.c:18: Warning: 
+  pointer comparison. assert \pointer_comparable((void *)0, (void *)ptr);
+[eva:alarm] issue-framac-1716.c:18: Warning: 
+  assertion 'E_ACSL,invalid pointer' got status unknown.
+[eva:alarm] issue-framac-1716.c:18: Warning: 
+  function __e_acsl_assert, behavior blocking: precondition got status unknown.
+[eva:alarm] issue-framac-1716.c:18: Warning: 
+  assertion 'E_ACSL,pointer alignment' got status unknown.
+[eva:alarm] issue-framac-1716.c:18: Warning: 
+  function __e_acsl_assert, behavior blocking: precondition got status unknown.
+[eva:alarm] issue-framac-1716.c:18: Warning: 
+  unaligned pointer creation. assert \aligned(ptr,alignof(struct Concrete));
+[eva:alarm] issue-framac-1716.c:18: Warning: 
+  unaligned pointer creation. assert \aligned(ptr,alignof(struct Concrete));
+[eva:alarm] issue-framac-1716.c:18: Warning: 
+  assertion 'E_ACSL,uninitialized' got status unknown.
+[eva:alarm] issue-framac-1716.c:18: Warning: 
+  unaligned pointer creation. assert \aligned(ptr,alignof(struct Concrete));
+[eva:alarm] issue-framac-1716.c:18: Warning: 
+  unaligned pointer creation. assert \aligned(ptr,alignof(struct Concrete));
+[eva:alarm] issue-framac-1716.c:18: Warning: 
+  assertion 'E_ACSL,memory access' got status unknown.
+[eva:alarm] issue-framac-1716.c:18: Warning: 
+  unaligned pointer creation. assert \aligned(ptr,alignof(struct Concrete));
+[eva:alarm] issue-framac-1716.c:18: Warning: 
+  accessing uninitialized left-value.
+  assert \initialized(&((struct Concrete *)ptr)->x);
+[eva:alarm] issue-framac-1716.c:18: Warning: 
+  out of bounds read. assert \valid_read(&((struct Concrete *)ptr)->x);
+[eva:alarm] issue-framac-1716.c:18: Warning: 
+  unaligned pointer creation. assert \aligned(ptr,alignof(struct Concrete));
+[eva:alarm] issue-framac-1716.c:18: Warning: 
+  out of bounds read. assert \valid_read(&((struct Concrete *)ptr)->x);
+[eva:alarm] issue-framac-1716.c:18: Warning: assertion got status unknown.
