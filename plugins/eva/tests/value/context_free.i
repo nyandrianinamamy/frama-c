@@ -1,7 +1,7 @@
 /* run.config*
- PLUGIN: @EVA_MAIN_PLUGINS@
    OPT: -eva @EVA_OPTIONS@ -lib-entry -main f -eva-msg-key initial-state
 */
+
 
 
 int a,b,c; volatile int vol;

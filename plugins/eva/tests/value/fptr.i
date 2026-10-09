@@ -1,8 +1,8 @@
 /* run.config*
- PLUGIN: @EVA_MAIN_PLUGINS@ from,inout
    OPT: -eva @EVA_OPTIONS@ -then -deps -out
    OPT: -eva @EVA_OPTIONS@ -main main_uninit -then -deps -out
 */
+
 int R=77; volatile int v; int n;
 
 int f(int (ptr(int x)), int i) {

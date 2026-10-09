@@ -1,9 +1,9 @@
 /* run.config*
  EXIT: 1
- PLUGIN: eva
    OPT: -eva @EVA_OPTIONS@ -main main1
    OPT: -eva @EVA_OPTIONS@ -main main2
 */
+
 struct s;
 struct s s;
 

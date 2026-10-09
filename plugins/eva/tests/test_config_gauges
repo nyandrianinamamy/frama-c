@@ -1,5 +1,4 @@
-MACRO: EVA_MAIN_PLUGINS eva,scope
-MACRO: EVA_PLUGINS from,inout @EVA_MAIN_PLUGINS@
+MACRO: EVA_PLUGINS eva,from,inout,scope,callgraph
 MACRO: EVA_TEST -eva @EVA_OPTIONS@ -out -input -deps
 
 # Compare the result with the oracle of the default config.

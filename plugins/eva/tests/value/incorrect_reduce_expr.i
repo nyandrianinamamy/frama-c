@@ -1,7 +1,7 @@
 /* run.config*
- PLUGIN: @EVA_MAIN_PLUGINS@
    OPT: -eva @EVA_OPTIONS@ -absolute-valid-range 32-36
 */
+
 char t[5];
 int *p;
 int x;

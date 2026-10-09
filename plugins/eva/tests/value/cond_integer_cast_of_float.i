@@ -1,7 +1,7 @@
 /* run.config*
- PLUGIN: @EVA_MAIN_PLUGINS@
    OPT: -eva @EVA_OPTIONS@ -eva-no-results -then -float-print hex -main mainbis
 */
+
 typedef double D;
 typedef float F;
 int b;

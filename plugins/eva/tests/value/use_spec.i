@@ -1,9 +1,9 @@
 /* run.config*
- PLUGIN: @EVA_MAIN_PLUGINS@ from,inout
  EXIT: 1
    OPT: -eva-use-spec f,h -eva @EVA_OPTIONS@ -inout -calldeps
    OPT: -eva-use-spec f,h -eva @EVA_OPTIONS@ -inout -calldeps -show-indirect-deps
 */
+
 
 
 

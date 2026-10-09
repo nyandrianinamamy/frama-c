@@ -1,10 +1,10 @@
 /* run.config*
-  PLUGIN: @EVA_MAIN_PLUGINS@
    OPT: -eva @EVA_OPTIONS@ -machdep gcc_x86_32
    OPT: -eva @EVA_OPTIONS@ -lib-entry -machdep gcc_x86_32
  EXIT: 1
    OPT: -eva @EVA_OPTIONS@ -lib-entry
 */
+
 char T[];
 char U[0];
 char V[][2];

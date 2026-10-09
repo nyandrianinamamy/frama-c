@@ -1,5 +1,5 @@
 /* run.config*
-PLUGIN: @EVA_MAIN_PLUGINS@ report rtegen
+   PLUGIN: @EVA_PLUGINS@ report rtegen
    OPT: -machdep x86_32 -rte -then -eva @EVA_OPTIONS@ -then -report -report-print-properties
    OPT: -machdep x86_32 -eva @EVA_OPTIONS@ -then -rte -then -report -report-print-properties
 */

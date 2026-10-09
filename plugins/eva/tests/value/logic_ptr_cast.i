@@ -1,7 +1,7 @@
 /* run.config*
- PLUGIN: @EVA_MAIN_PLUGINS@
    OPT: -eva @EVA_OPTIONS@ -print -eva-no-results
 */
+
 int *p;
 int t[90];
 int main(){

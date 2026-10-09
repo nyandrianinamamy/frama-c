@@ -1,8 +1,8 @@
 /* run.config*
- PLUGIN: @EVA_MAIN_PLUGINS@
    FILTER: sed -e 's/<....>/<????>/g'
    OPT: -eva @EVA_OPTIONS@ -eva-msg-key=callstacks,callstack-hash,-progress -eva-no-results
 */
+
 int *p, x;
 void f(void)
 {

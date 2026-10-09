@@ -1,10 +1,10 @@
 /* run.config*
- PLUGIN: @EVA_MAIN_PLUGINS@
    OPT: -no-annot -eva @EVA_OPTIONS@ -then -kernel-warn-key=annot-error=warning -annot -eva
    OPT: -kernel-warn-key=annot-error=warning -eva @EVA_OPTIONS@ -main main3
    OPT: -kernel-warn-key=annot-error=warning -eva @EVA_OPTIONS@ -main main_err1
    OPT: -kernel-warn-key=annot-error=warning -eva @EVA_OPTIONS@ -main main_err2
 */
+
 
 void main(void)
 { int n = 13;

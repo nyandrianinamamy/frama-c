@@ -1,5 +1,5 @@
 /* run.config*
-PLUGIN: @EVA_MAIN_PLUGINS@ report
+PLUGIN: @EVA_PLUGINS@ report
   OPT: @EVA_OPTIONS@ -eva-slevel-function main2:20 -pp-annot -eva -then -report
 */
 /*@ requires valid: \valid(&t[0..s-1]);

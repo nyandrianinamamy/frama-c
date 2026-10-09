@@ -1,5 +1,5 @@
 /* run.config*
- PLUGIN: @EVA_MAIN_PLUGINS@ report
+   PLUGIN: @EVA_PLUGINS@ report
    OPT: @EVA_OPTIONS@ -eva-msg-key=-progress -eva -eva-use-spec g1,g2,g3 -then -report
 */
 

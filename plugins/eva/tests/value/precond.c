@@ -1,5 +1,5 @@
 /* run.config*
- PLUGIN: @EVA_MAIN_PLUGINS@ report
+   PLUGIN: @EVA_PLUGINS@ report
    OPT: -lib-entry -eva @EVA_OPTIONS@ -then -report -report-print-properties -then -report-no-specialized
 */
 
