@@ -54,188 +54,188 @@
   S_gpp[0..1] ∈ [--..--]
 [eva:progress] 
   computing for function origin_arithmetic_1 <- main.
-  Called from origin.i:94:3-24.
-[eva:alarm] origin.i:14: Warning: 
+  Called from origin.i:93:3-24.
+[eva:alarm] origin.i:13: Warning: 
   pointer downcast. assert (unsigned int)(&(ta1[0])) ≤ 2147483647;
-[eva:alarm] origin.i:14: Warning: 
+[eva:alarm] origin.i:13: Warning: 
   signed overflow. assert -2147483648 ≤ -((int)(&(ta1[0])));
-[eva:alarm] origin.i:14: Warning: 
+[eva:alarm] origin.i:13: Warning: 
   signed overflow. assert -((int)(&(ta1[0]))) ≤ 2147483647;
-[eva:garbled-mix:write] origin.i:14: 
+[eva:garbled-mix:write] origin.i:13: 
   Assigning imprecise value to pa1
   because of arithmetic operation on addresses.
-[eva:alarm] origin.i:15: Warning: out of bounds write. assert \valid(pa1);
+[eva:alarm] origin.i:14: Warning: out of bounds write. assert \valid(pa1);
 [eva:progress] Recording results for origin_arithmetic_1
 [eva:progress] Done for function origin_arithmetic_1
 [eva:progress] 
   computing for function origin_arithmetic_2 <- main.
-  Called from origin.i:95:3-26.
-[eva:alarm] origin.i:19: Warning: 
+  Called from origin.i:94:3-26.
+[eva:alarm] origin.i:18: Warning: 
   pointer downcast. assert (unsigned int)(&(ta2[0])) ≤ 2147483647;
-[eva:alarm] origin.i:19: Warning: 
+[eva:alarm] origin.i:18: Warning: 
   signed overflow. assert -2147483648 ≤ -((int)(&(ta2[0])));
-[eva:alarm] origin.i:19: Warning: 
+[eva:alarm] origin.i:18: Warning: 
   signed overflow. assert -((int)(&(ta2[0]))) ≤ 2147483647;
-[eva:garbled-mix:write] origin.i:19: 
+[eva:garbled-mix:write] origin.i:18: 
   Assigning imprecise value to pa2
   because of arithmetic operation on addresses.
-[eva:alarm] origin.i:20: Warning: 
+[eva:alarm] origin.i:19: Warning: 
   pointer downcast. assert (unsigned int)(&(tta2[0])) ≤ 2147483647;
-[eva:alarm] origin.i:20: Warning: 
+[eva:alarm] origin.i:19: Warning: 
   signed overflow. assert -2147483648 ≤ -((int)(&(tta2[0])));
-[eva:alarm] origin.i:20: Warning: 
+[eva:alarm] origin.i:19: Warning: 
   signed overflow. assert -((int)(&(tta2[0]))) ≤ 2147483647;
-[eva:garbled-mix:write] origin.i:20: 
+[eva:garbled-mix:write] origin.i:19: 
   Assigning imprecise value to qa2
   because of arithmetic operation on addresses.
-[eva:alarm] origin.i:21: Warning: out of bounds write. assert \valid(qa2);
-[eva:alarm] origin.i:21: Warning: 
+[eva:alarm] origin.i:20: Warning: out of bounds write. assert \valid(qa2);
+[eva:alarm] origin.i:20: Warning: 
   pointer downcast. assert (unsigned int)(&aa2) ≤ 2147483647;
 [eva:progress] Recording results for origin_arithmetic_2
 [eva:progress] Done for function origin_arithmetic_2
 [eva:progress] 
   computing for function origin_arithmetic_3 <- main.
-  Called from origin.i:96:3-24.
-[eva:alarm] origin.i:25: Warning: 
+  Called from origin.i:95:3-24.
+[eva:alarm] origin.i:24: Warning: 
   pointer downcast. assert (unsigned int)(&(ta3[0])) ≤ 2147483647;
-[eva:alarm] origin.i:25: Warning: 
+[eva:alarm] origin.i:24: Warning: 
   signed overflow. assert -2147483648 ≤ -((int)(&(ta3[0])));
-[eva:alarm] origin.i:25: Warning: 
+[eva:alarm] origin.i:24: Warning: 
   signed overflow. assert -((int)(&(ta3[0]))) ≤ 2147483647;
-[eva:garbled-mix:write] origin.i:25: 
+[eva:garbled-mix:write] origin.i:24: 
   Assigning imprecise value to pa3
   because of arithmetic operation on addresses.
-[eva:alarm] origin.i:26: Warning: out of bounds write. assert \valid(pa3);
+[eva:alarm] origin.i:25: Warning: out of bounds write. assert \valid(pa3);
 [eva:progress] Recording results for origin_arithmetic_3
 [eva:progress] Done for function origin_arithmetic_3
 [eva:progress] 
   computing for function origin_leaf_1 <- main.
-  Called from origin.i:97:3-19.
-[kernel:annot:missing-spec] origin.i:38: Warning: 
+  Called from origin.i:96:3-19.
+[kernel:annot:missing-spec] origin.i:37: Warning: 
   Neither code nor specification for function g, generating default assigns.
   See -generated-spec-* options for more info.
 [eva:progress] 
   computing for function g <- origin_leaf_1 <- main.
-  Called from origin.i:38:8-11.
+  Called from origin.i:37:8-11.
 [eva] using specification for function g
 [eva:progress] Done for function g
 [eva:progress] Recording results for origin_leaf_1
 [eva:progress] Done for function origin_leaf_1
 [eva:progress] 
   computing for function g <- main.
-  Called from origin.i:99:9-12.
+  Called from origin.i:98:9-12.
 [eva:progress] Done for function g
-[eva:alarm] origin.i:99: Warning: 
+[eva:alarm] origin.i:98: Warning: 
   signed overflow. assert -2147483648 ≤ l2 + tmp;
                    (tmp from g())
-[eva:alarm] origin.i:99: Warning: 
+[eva:alarm] origin.i:98: Warning: 
   signed overflow. assert l2 + tmp ≤ 2147483647;
                    (tmp from g())
 [eva:progress] 
   computing for function gp <- main.
-  Called from origin.i:100:8-12.
+  Called from origin.i:99:8-12.
 [eva] using specification for function gp
-[eva:garbled-mix:assigns] origin.i:100: 
+[eva:garbled-mix:assigns] origin.i:99: 
   The specification of function gp has generated a garbled mix of addresses
   for assigns clause \result.
 [eva:progress] Done for function gp
-[eva:alarm] origin.i:101: Warning: out of bounds read. assert \valid_read(pl);
+[eva:alarm] origin.i:100: Warning: out of bounds read. assert \valid_read(pl);
 [eva:progress] 
   computing for function origin_misalign_1 <- main.
-  Called from origin.i:102:3-22.
-[eva:garbled-mix:write] origin.i:48: 
+  Called from origin.i:101:3-22.
+[eva:garbled-mix:write] origin.i:47: 
   Assigning imprecise value to pm1 because of misaligned read of addresses.
-[eva:alarm] origin.i:49: Warning: out of bounds write. assert \valid(pm1);
+[eva:alarm] origin.i:48: Warning: out of bounds write. assert \valid(pm1);
 [eva:progress] Recording results for origin_misalign_1
 [eva:progress] Done for function origin_misalign_1
 [eva:progress] 
   computing for function origin_misalign_2 <- main.
-  Called from origin.i:103:3-22.
-[eva:garbled-mix:write] origin.i:54: 
+  Called from origin.i:102:3-22.
+[eva:garbled-mix:write] origin.i:53: 
   Assigning imprecise value to qm2 because of misaligned read of addresses.
-[eva:show] origin.i:55: 
+[eva:show] origin.i:54: 
   Frama_C_show_each:
-  {{ garbled mix of &{a; b} (origin: Misaligned read {origin.i:54:9-14}) }}
-[eva:alarm] origin.i:56: Warning: out of bounds write. assert \valid(qm2);
-[eva:alarm] origin.i:56: Warning: 
+  {{ garbled mix of &{a; b} (origin: Misaligned read {origin.i:53:9-14}) }}
+[eva:alarm] origin.i:55: Warning: out of bounds write. assert \valid(qm2);
+[eva:alarm] origin.i:55: Warning: 
   pointer downcast. assert (unsigned int)(&a) ≤ 2147483647;
 [eva:progress] Recording results for origin_misalign_2
 [eva:progress] Done for function origin_misalign_2
 [eva:progress] 
   computing for function origin_uninitialized_1 <- main.
-  Called from origin.i:106:3-29.
-[eva:alarm] origin.i:65: Warning: 
+  Called from origin.i:105:3-29.
+[eva:alarm] origin.i:64: Warning: 
   accessing uninitialized left-value. assert \initialized(&pi);
 [eva:progress] Recording results for origin_uninitialized_1
 [eva:progress] Done for function origin_uninitialized_1
 [eva:progress] 
   computing for function origin_uninitialized_2 <- main.
-  Called from origin.i:107:3-33.
-[eva:alarm] origin.i:72: Warning: 
+  Called from origin.i:106:3-33.
+[eva:alarm] origin.i:71: Warning: 
   accessing uninitialized left-value. assert \initialized(&pi);
-[eva:alarm] origin.i:75: Warning: 
+[eva:alarm] origin.i:74: Warning: 
   accessing uninitialized left-value. assert \initialized(&i);
 [eva:progress] Recording results for origin_uninitialized_2
 [eva:progress] Done for function origin_uninitialized_2
 [eva:progress] 
   computing for function local_escape_1 <- main.
-  Called from origin.i:108:3-21.
+  Called from origin.i:107:3-21.
+[eva:alarm] origin.i:82: Warning: 
+  pointer downcast. assert (unsigned int)(&arg) ≤ 2147483647;
 [eva:alarm] origin.i:83: Warning: 
+  pointer downcast. assert (unsigned int)(&local1) ≤ 2147483647;
+[eva:alarm] origin.i:84: Warning: 
   pointer downcast. assert (unsigned int)(&arg) ≤ 2147483647;
 [eva:alarm] origin.i:84: Warning: 
-  pointer downcast. assert (unsigned int)(&local1) ≤ 2147483647;
-[eva:alarm] origin.i:85: Warning: 
-  pointer downcast. assert (unsigned int)(&arg) ≤ 2147483647;
-[eva:alarm] origin.i:85: Warning: 
   signed overflow. assert -2147483648 ≤ -((int)(&arg));
-[eva:alarm] origin.i:85: Warning: 
+[eva:alarm] origin.i:84: Warning: 
   signed overflow. assert -((int)(&arg)) ≤ 2147483647;
-[eva:garbled-mix:write] origin.i:85: 
+[eva:garbled-mix:write] origin.i:84: 
   Assigning imprecise value to esc3
   because of arithmetic operation on addresses.
-[eva:alarm] origin.i:87: Warning: 
+[eva:alarm] origin.i:86: Warning: 
   pointer downcast. assert (unsigned int)(&local1) ≤ 2147483647;
-[eva:alarm] origin.i:88: Warning: 
+[eva:alarm] origin.i:87: Warning: 
   pointer downcast. assert (unsigned int)(&esc1) ≤ 2147483647;
 [eva:progress] Recording results for local_escape_1
 [eva:progress] Done for function local_escape_1
-[eva:locals-escaping] origin.i:108: Warning: 
+[eva:locals-escaping] origin.i:107: Warning: 
   locals {arg} escaping the scope of local_escape_1 through esc1
-[eva:locals-escaping] origin.i:108: Warning: 
+[eva:locals-escaping] origin.i:107: Warning: 
   locals {local1} escaping the scope of local_escape_1 through esc2
-[eva:locals-escaping] origin.i:108: Warning: 
+[eva:locals-escaping] origin.i:107: Warning: 
   locals {arg} escaping the scope of local_escape_1 through esc3
-[eva:locals-escaping] origin.i:108: Warning: 
+[eva:locals-escaping] origin.i:107: Warning: 
   locals {local1} escaping the scope of local_escape_1 through esc4
 [eva:progress] Recording results for main
 [eva:progress] Done for function main
 [eva:garbled-mix:summary] 
   Origins of garbled mix generated during analysis:
-    origin.i:19:9-26: arithmetic operation on addresses
+    origin.i:18:9-26: arithmetic operation on addresses
       (read in 2 statements, propagated through 2 statements)
       garbled mix of &{ta2; tta2}
-    origin.i:54:9-14: misaligned read of addresses
+    origin.i:53:9-14: misaligned read of addresses
       (read in 2 statements, propagated through 1 statement)
       garbled mix of &{a; b}
-    origin.i:14:9-26: arithmetic operation on addresses
+    origin.i:13:9-26: arithmetic operation on addresses
       (read in 1 statement, propagated through 1 statement)
       garbled mix of &{ta1}
-    origin.i:25:9-26: arithmetic operation on addresses
+    origin.i:24:9-26: arithmetic operation on addresses
       (read in 1 statement, propagated through 1 statement)
       garbled mix of &{ta3}
-    origin.i:100:8-12: assigns clause on addresses
+    origin.i:99:8-12: assigns clause on addresses
       (read in 1 statement, propagated through 1 statement)
       garbled mix of &{S_gpp}
-    origin.i:48:10-36: misaligned read of addresses
+    origin.i:47:10-36: misaligned read of addresses
       (read in 1 statement, propagated through 1 statement)
       garbled mix of &{a; b}
-[eva] origin.i:75: assertion 'Eva,initialization' got final status invalid.
+[eva] origin.i:74: assertion 'Eva,initialization' got final status invalid.
 [scope:rm_asserts] removing 2 assertion(s)
 [eva] ====== VALUES COMPUTED ======
 [eva:final-states] Values at end of function local_escape_1:
   esc1 ∈ {{ (int)&arg }}
   esc2 ∈ {{ (int)&local1 }}
-  esc3 ∈ {{ garbled mix of &{arg} (origin: Arithmetic {origin.i:85:10-22}) }}
+  esc3 ∈ {{ garbled mix of &{arg} (origin: Arithmetic {origin.i:84:10-22}) }}
   esc4 ∈ {{ NULL + {12} ; (int)&local1 }}
   esc5 ∈ {{ (int)&esc1 }}
   local2 ∈ {{ (int)&local1 }}
@@ -243,14 +243,14 @@
   pa1 ∈ {{ &ta1 + [0..36] }}
   ta1[0..9] ∈ {0}
 [eva:final-states] Values at end of function origin_arithmetic_2:
-  pa2 ∈ {{ garbled mix of &{ta2} (origin: Arithmetic {origin.i:19:9-26}) }}
+  pa2 ∈ {{ garbled mix of &{ta2} (origin: Arithmetic {origin.i:18:9-26}) }}
   qa2 ∈ {{ &ta2 + [0..36] ; &tta2 + [0..36] }}
   ta2[0..9] ∈
      {{ garbled mix of &{aa2}
-      (origin: Misaligned write {origin.i:21:10-20}) }}
+      (origin: Misaligned write {origin.i:20:10-20}) }}
   tta2[0..9] ∈
       {{ garbled mix of &{aa2}
-       (origin: Misaligned write {origin.i:21:10-20}) }}
+       (origin: Misaligned write {origin.i:20:10-20}) }}
 [eva:final-states] Values at end of function origin_arithmetic_3:
   pa3 ∈ {{ &ta3 + [0..36] }}
   ta3[0..9] ∈ [--..--]
@@ -279,23 +279,23 @@
   p[bits 0 to 15]# ∈ {{ (? *)&a }}%32, bits 16 to 31 
    [bits 16 to 31]# ∈ {{ (? *)&b }}%32, bits 0 to 15 
   pa1 ∈ {{ &ta1 + [0..36] }}
-  pa2 ∈ {{ garbled mix of &{ta2} (origin: Arithmetic {origin.i:19:9-26}) }}
+  pa2 ∈ {{ garbled mix of &{ta2} (origin: Arithmetic {origin.i:18:9-26}) }}
   qa2 ∈ {{ &ta2 + [0..36] ; &tta2 + [0..36] }}
   pa3 ∈ {{ &ta3 + [0..36] }}
   q[bits 0 to 7] ∈
-   {{ garbled mix of &{a} (origin: Merge {origin.i:106:3-29}) }}
+   {{ garbled mix of &{a} (origin: Merge {origin.i:105:3-29}) }}
    [bits 8 to 15] ∈
-   {{ garbled mix of &{a; b} (origin: Merge {origin.i:106:3-29}) }}
+   {{ garbled mix of &{a; b} (origin: Merge {origin.i:105:3-29}) }}
    [bits 16 to 31] ∈
-   {{ garbled mix of &{b} (origin: Merge {origin.i:106:3-29}) }}
+   {{ garbled mix of &{b} (origin: Merge {origin.i:105:3-29}) }}
   ta1[0..9] ∈ {0}
   ta2[0..9] ∈
      {{ garbled mix of &{aa2}
-      (origin: Misaligned write {origin.i:21:10-20}) }}
+      (origin: Misaligned write {origin.i:20:10-20}) }}
   ta3[0..9] ∈ [--..--]
   tta2[0..9] ∈
       {{ garbled mix of &{aa2}
-       (origin: Misaligned write {origin.i:21:10-20}) }}
+       (origin: Misaligned write {origin.i:20:10-20}) }}
   l1 ∈ [--..--]
   l2 ∈ [--..--]
   l3 ∈ [--..--]

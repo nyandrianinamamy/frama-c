@@ -5,7 +5,6 @@
    OPT: -kernel-warn-key=annot-error=warning -eva @EVA_OPTIONS@ -main main_err2
 */
 
-
 void main(void)
 { int n = 13;
   int i,j;

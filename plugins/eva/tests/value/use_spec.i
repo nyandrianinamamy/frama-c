@@ -4,9 +4,6 @@
    OPT: -eva-use-spec f,h -eva @EVA_OPTIONS@ -inout -calldeps -show-indirect-deps
 */
 
-
-
-
 void f(int *x) {
 }
 

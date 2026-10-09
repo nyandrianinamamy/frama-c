@@ -2,8 +2,6 @@
    OPT: -eva @EVA_OPTIONS@ -lib-entry -main f -eva-msg-key initial-state
 */
 
-
-
 int a,b,c; volatile int vol;
 
 int star_p, star_w___500;

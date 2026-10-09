@@ -2,8 +2,6 @@
    OPT: -eva @EVA_OPTIONS@ -cpp-extra-args="-DPTEST"
 */
 
-
-
 #ifndef PTEST
 #include <stdio.h>
 #endif

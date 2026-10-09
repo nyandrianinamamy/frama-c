@@ -6,7 +6,6 @@
    OPT: @EVA_OPTIONS@ -inout -deps -main call_may_not_terminate
 */
 
-
 int Xt, Xs, Xs_I, Ys, Ys_I, Z, I;
 
 void inout_11_0 (int i1, int i2, int *i) {

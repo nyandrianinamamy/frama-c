@@ -3,7 +3,6 @@
    OPT: @EVA_OPTIONS@ -deps -show-indirect-deps
 */
 
-
 int a,b,c,d, x,y,z,t;
 int g(int w)
 {

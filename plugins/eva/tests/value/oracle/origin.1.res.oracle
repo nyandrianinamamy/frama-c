@@ -52,32 +52,32 @@
    .t[0] ∈ {{ &y }}
    .t[1] ∈ {0}
   S_gpp[0..1] ∈ [--..--]
-[kernel:annot:missing-spec] origin.i:124: Warning: 
+[kernel:annot:missing-spec] origin.i:123: Warning: 
   Neither code nor specification for function f, generating default assigns.
   See -generated-spec-* options for more info.
 [eva:progress] 
   computing for function f <- origin.
-  Called from origin.i:124:9-12.
+  Called from origin.i:123:9-12.
 [eva] using specification for function f
 [eva:progress] Done for function f
-[eva:garbled-mix:write] origin.i:126: 
+[eva:garbled-mix:write] origin.i:125: 
   Assigning imprecise value to r.p because of misaligned read of addresses.
-[eva:garbled-mix:write] origin.i:129: 
+[eva:garbled-mix:write] origin.i:128: 
   Assigning imprecise value to r.t[0] because of imprecise merge of addresses.
-[eva:alarm] origin.i:130: Warning: 
+[eva:alarm] origin.i:129: Warning: 
   pointer downcast. assert (unsigned int)(&x) ≤ 2147483647;
-[eva:alarm] origin.i:130: Warning: 
+[eva:alarm] origin.i:129: Warning: 
   signed overflow. assert -2147483648 ≤ -((int)(&x));
-[eva:alarm] origin.i:130: Warning: 
+[eva:alarm] origin.i:129: Warning: 
   signed overflow. assert -((int)(&x)) ≤ 2147483647;
-[eva:garbled-mix:write] origin.i:130: 
+[eva:garbled-mix:write] origin.i:129: 
   Assigning imprecise value to r.t[1]
   because of arithmetic operation on addresses.
 [eva:progress] Recording results for origin
 [eva:progress] Done for function origin
 [eva:garbled-mix:summary] 
   Origins of garbled mix generated during analysis:
-    origin.i:126:9-28: misaligned read of addresses
+    origin.i:125:9-28: misaligned read of addresses
       (read in 1 statement, propagated through 2 statements)
       garbled mix of &{x; y}
 [eva] ====== VALUES COMPUTED ======
@@ -86,17 +86,17 @@
    .[bits 8 to 15] ∈ UNINITIALIZED
    .i ∈ [--..--]
    .p ∈
-   {{ garbled mix of &{x} (origin: Misaligned read {origin.i:126:9-28}) }}
+   {{ garbled mix of &{x} (origin: Misaligned read {origin.i:125:9-28}) }}
    .t[0][bits 0 to 7] ∈
-   {{ garbled mix of &{y} (origin: Merge {origin.i:129:12-14}) }}
+   {{ garbled mix of &{y} (origin: Merge {origin.i:128:12-14}) }}
    .t[0][bits 8 to 15]# ∈ {{ NULL ; (? *)&y }}%32, bits 24 to 31 
    .t[0][bits 16 to 31] ∈ {0}
    .t[1] ∈
-   {{ garbled mix of &{x} (origin: Arithmetic {origin.i:130:12-30}) }}
+   {{ garbled mix of &{x} (origin: Arithmetic {origin.i:129:12-30}) }}
   q1[bits 0 to 15]# ∈ {{ (? *)&y }}%32, bits 16 to 31 
     [bits 16 to 31] ∈ {0}
   q2[bits 0 to 7] ∈
-    {{ garbled mix of &{y} (origin: Merge {origin.i:129:12-14}) }}
+    {{ garbled mix of &{y} (origin: Merge {origin.i:128:12-14}) }}
     [bits 8 to 15]# ∈ {{ NULL ; (? *)&y }}%32, bits 24 to 31 
     [bits 16 to 31] ∈ {0}
 [from] Computing for function origin

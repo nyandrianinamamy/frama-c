@@ -3,7 +3,6 @@
    OPT: @EVA_OPTIONS@ -no-warn-unaligned-pointer -eva -eva-warn-copy-indeterminate=-origin_misalign_2,-origin -main origin -then -out -deps
 */
 
-
 char f(void);
 
 int a, b, aa2, *p, *pa1, *pa2, *qa2, *pa3, *q;

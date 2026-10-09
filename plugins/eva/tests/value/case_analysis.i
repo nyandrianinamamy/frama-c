@@ -2,7 +2,6 @@
    OPT: -eva @EVA_OPTIONS@ -eva-slevel 30 -float-print norm
 */
 
-
 int sq,s;
 
 float rq,r;

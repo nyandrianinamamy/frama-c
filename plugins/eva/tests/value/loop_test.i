@@ -3,7 +3,6 @@
    OPT: -eva @EVA_OPTIONS@ -main test_cent_onzes
 */
 
-
 /***************** var CMP cste **********************/
 int onze_0 (void) {
   int onze; for (onze=1000; onze >= 12 ; onze--) ; return onze ;
