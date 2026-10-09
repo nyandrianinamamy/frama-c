@@ -107,6 +107,10 @@ function Usage
     echo "  FRAMAC_WP_CACHEDIR"
     echo "    Absolute path to wp-cache directory (git clone locally by default)"
     echo ""
+    echo "  QCHECK_SEED"
+    echo "    Integer to initialize the seed of QCheck random state used with"
+    echo "    Alcotest."
+    echo ""
     echo "DOCUMENTATION"
     echo ""
     echo "  Additional documentation for ${THIS_SCRIPT} and how to run tests"
@@ -380,6 +384,20 @@ function PrepareWPCache
     SetEnv
     if [ "$USEWPCACHE" = "yes" ]; then
         GetCache
+    fi
+}
+
+# --------------------------------------------------------------------------
+# ---  QCheck
+# --------------------------------------------------------------------------
+
+function PrepareQCheck
+{
+    if [ "$QCHECK_SEED" = "" ]; then
+        export QCHECK_SEED="$(($SRANDOM % (2 ** 31)))"
+        Head "QCHECK_SEED=$QCHECK_SEED (random)"
+    else
+        Head "QCHECK_SEED=$QCHECK_SEED (fixed)"
     fi
 }
 
@@ -715,6 +733,7 @@ function Status
 
 # Preparations
 PrepareWPCache
+PrepareQCheck
 PrepareCoverage
 PrepareTests
 CheckDuneFiles

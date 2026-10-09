@@ -97,6 +97,7 @@ stdenv.mkDerivation {
   # Some plugins have sh scripts during check
   preCheck = ''
     patchShebangs .
+    export QCHECK_SEED=0
   '' + (if has-wp-proofs then ''
     export FRAMAC_WP_CACHE=offline
     export FRAMAC_WP_CACHEDIR=$wp_cache
