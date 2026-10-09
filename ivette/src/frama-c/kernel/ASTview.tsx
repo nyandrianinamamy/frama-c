@@ -502,16 +502,16 @@ export function getMarkerMenuItems(
   const { kind, name, labelKind, definition } = attributes;
   if (kind === 'DFUN') {
     if (callers) {
-      const groupedCallers = Lodash.groupBy(callers, ({ callee }) => callee);
+      const groupedCallers = Lodash.groupBy(callers, ({ caller }) => caller);
       const markers = callers.map(({ stmt }) => stmt);
       const descr = `Calls to ${name}`;
       Lodash.forEach(groupedCallers, (group) => {
         const n = group.length;
-        const { callee }: callsite = group[0];
-        const { name: fct } = States.getDeclaration(callee);
+        const { caller }: callsite = group[0];
+        const { name: fct } = States.getDeclaration(caller);
         const nsites = n > 1 ? ` (${n} call sites)` : '';
         const label = `Go to caller ${fct}${nsites}`;
-        const index = callers.findIndex(({ callee: f }) => f === callee);
+        const index = callers.findIndex(({ caller: f }) => f === caller);
         const onClick = (): void => Locations.setSelection({
           label: descr, markers, index, plugin: 'Callers',
         });
