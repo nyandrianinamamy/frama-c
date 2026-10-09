@@ -1704,6 +1704,8 @@ struct
       (struct
         include Fclib.Filepath
         let of_string s =
+          if s = "" then
+            cannot_build "empty file path";
           try
             [ Fclib.Filepath.of_string ~existence:X.existence s ]
           with
