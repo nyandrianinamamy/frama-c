@@ -124,24 +124,6 @@ module Bottom = struct
     | `Value _, `Bottom
     | `Bottom, `Bottom -> `Bottom
 
-  (* Combination *)
-
-  let zip x y =
-    match x, y with
-    | `Bottom, _ | _, `Bottom -> `Bottom
-    | `Value x, `Value y -> `Value (x,y)
-
-  (* Monadic operations *)
-
-  module Monad = Monad.Make_based_on_bind_with_product (struct
-      type 'a t = 'a or_bottom
-      let return x = `Value x
-      let bind f = function `Bottom -> `Bottom | `Value x -> f x
-      let product l r = zip l r
-    end)
-
-  include Monad
-
   (** Conversion *)
 
   let of_option = function
@@ -152,24 +134,40 @@ module Bottom = struct
     | `Bottom  -> []
     | `Value v -> [v]
 
-  (** Operators redefinition *)
+  (** Monadic operations *)
 
-  let bind f = function
-    | `Bottom -> `Bottom
-    | `Value x -> f x
+  module Monad = struct
 
-  let map f = function
-    | `Bottom -> `Bottom
-    | `Value x -> `Value (f x)
+    type 'a t = 'a or_bottom
 
-  module Operators= struct
-    let ( >>-  ) m f = bind f m
-    let ( let* ) m f = bind f m
-    let ( and* ) = zip
-    let ( >>-: ) m f = map f m
-    let ( let+ ) m f = map f m
-    let ( and+ ) = zip
+    let return x = `Value x
+
+    let bind f = function
+      | `Bottom -> `Bottom
+      | `Value x -> f x
+
+    let map f = function
+      | `Bottom -> `Bottom
+      | `Value x -> `Value (f x)
+
+    let product x y =
+      match x, y with
+      | `Bottom, _ | _, `Bottom -> `Bottom
+      | `Value x, `Value y -> `Value (x,y)
+
+    let flatten m = bind (fun x -> x) m
+
+    module Operators= struct
+      let ( >>-  ) m f = bind f m
+      let ( let* ) m f = bind f m
+      let ( and* ) = product
+      let ( >>-: ) m f = map f m
+      let ( let+ ) m f = map f m
+      let ( and+ ) = product
+    end
   end
+
+  include Monad
 
   (** List manipulation *)
 
