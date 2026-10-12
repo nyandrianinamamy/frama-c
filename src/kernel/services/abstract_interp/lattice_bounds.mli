@@ -96,7 +96,7 @@ module Bottom : sig
       with type 'a iterable := 'a list
        and type 'a monad := 'a t
 
-    (** [add_to_list elt list] adds [elt] to the [list] if it is not bottom. *)
+    (** [add elt list] adds [elt] to the [list] if it is not bottom. *)
     val add : 'a t -> 'a list -> 'a list
 
     (** Filters the given list to remove Bottom elements. *)
@@ -108,7 +108,7 @@ module Bottom : sig
     (** [join_values] filters the given list to remove [`Bottom] elements and
         join the remaining values. Returns [`Bottom] if the list is empty.
         [join_values f l] has the same result as [values l |> join f] but only
-        iterate through the list once. *)
+        iterates through the list once. *)
     val join_values : ('a -> 'a -> 'a) -> 'a t list -> 'a t
 
     (** [filter_map f l] maps the function [f] to the list [l] and does not

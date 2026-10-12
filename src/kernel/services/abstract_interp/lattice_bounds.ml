@@ -166,8 +166,8 @@ module Bottom = struct
     let ( >>-  ) m f = bind f m
     let ( let* ) m f = bind f m
     let ( and* ) = zip
-    let ( >>-: ) m f = map  f m
-    let ( let+ ) m f = map  f m
+    let ( >>-: ) m f = map f m
+    let ( let+ ) m f = map f m
     let ( and+ ) = zip
   end
 
