@@ -720,80 +720,98 @@ struct
   let cannot_build format =
     Format.kasprintf (fun msg -> raise (Cannot_build msg)) format
 
-  (** [split_key_value s] splits the string [s] of the form ["key:value"] into a
-      string ["key"] and a string ["value"]. *)
-  let split_key_value =
-    let r = Str.regexp "\\([^:]\\|^\\):\\([^:]\\|$\\)" in
-    (* delimiter is no more than 3 characters long, the first belonging to
-       the element before it, the third belonging to the element after it.
-       Treats :: as part of a word to be able to handle C++ function names
-       in a non too awkward manner.
-    *)
-    let split_delim d = (* handle different possible length of the delimiter *)
-      let rbis = Str.regexp ":" in
-      match Str.bounded_full_split rbis d 2 with
-      | [ Str.Delim _] -> (empty_string, empty_string)
-      | [ Str.Delim _; Str.Text t2 ] -> (empty_string, t2)
-      | [ Str.Text t1; Str.Delim _; ] -> (t1, empty_string)
-      | [ Str.Text t1; Str.Delim _; Str.Text t2 ] -> (t1, t2)
-      | _ -> (* impossible case *)
-        cannot_build "delimiter=%s" d
+  (** [split_on_colon s] splits the string [s] on the first unquoted single
+      colon character. Unquoted because the string ["\"abc:def\":ghi"] will
+      split into ["\"abc:def\""] and ["ghi"]. Single because the string
+      ["abc::def:ghi"] will split into ["abc::def"] and ["ghi"].
+      @raises Not_found if no colon character can be found. *)
+  let split_on_colon =
+    let re =
+      Str.regexp
+        ({|^\(|} (* Start of the match, start first group *)
+         ^ {|"\([^"\\]\|\\.\)*"|} (* Double-quoted string *)
+         ^ {|\|'\([^'\\]\|\\.\)*'|} (* Single-quoted string *)
+         ^ {|\|\([^:]\|::\)*|} (* Unquoted string *)
+         ^ {|\):\(.*\)$|}) (* End of the first group and end of the match *)
     in
     fun s ->
-      match Str.bounded_full_split r s 2 with
-      | [] -> cannot_build "cannot interpret '%s'" s
-      | [ Str.Text k ] -> cannot_build "no value bound to '%s'" k
-      | [ Str.Delim d ] ->
-        split_delim d
-      | [ Str.Delim d; Str.Text t ] ->
-        let (f,s) = split_delim d in
-        f, (s ^ t)
-      | [ Str.Text t1; Str.Delim d; Str.Text t2 ] ->
-        let (f,s) = split_delim d in
-        (t1 ^ f), (s ^ t2)
-      | [ Str.Text t; Str.Delim d] ->
-        let (f,s) = split_delim d in
-        (t ^ f), s
-      | _ -> (* by definition of [Str.bounded_full_split]: *)
-        assert false
+      if Str.string_match re s 0 then
+        let key = Str.matched_group 1 s in
+        let value = Str.matched_group 5 s in
+        key, value
+      else
+        raise Not_found
+
+  (** [unquote_split s] removes surrounding quotes (single or double) from
+      the string [s] retrieved from [split_on_colon], and unescape the
+      surrounding quotes in the content. *)
+  let unquote_split =
+    let re_double_quotes = Str.regexp {|^"\(.*\)"$|} in
+    let re_single_quotes = Str.regexp {|^'\(.*\)'$|} in
+    let re_escaped_char = Str.regexp {|\\\(.\)|} in
+    fun s ->
+      if Str.string_match re_double_quotes s 0
+      || Str.string_match re_single_quotes s 0 then
+        let s = Str.matched_group 1 s in
+        Str.global_replace re_escaped_char "\\1" s
+      else
+        s
+
+  (** [quote_split s] is the inverse operation of [unquote_split]. It adds
+      surrounding double-quotes to [s] if necessary so that it can be put in a
+      key/value map or multi-map where keys and values are separated with a
+      colon. *)
+  let quote_split raw =
+    let needs_quote = function
+      (* Contains the map separator *)
+      | ':'
+      (* Already contains some quotes that we want to preserve *)
+      | '"' | '\''
+      (* Just in case *)
+      | '\\' | ' ' ->
+        true
+      | _ -> false
+    in
+    if Stdlib.String.exists needs_quote raw then begin
+      let b = Buffer.create 17 in
+      Buffer.add_char b '"';
+      Stdlib.String.iter
+        (fun c ->
+           if c = '\"' || c = '\\' then Buffer.add_char b '\\';
+           Buffer.add_char b c)
+        raw;
+      Buffer.add_char b '"';
+      Buffer.contents b
+    end else
+      raw
+
+  (** [split_key_value s] splits the string [s] of the form ["key:value"] into a
+      string ["key"] and a string ["value"]. *)
+  let split_key_value s =
+    let key, value =
+      try split_on_colon s
+      with Not_found ->
+        cannot_build "no value bound to '%s'" s
+    in
+    unquote_split key, unquote_split value
 
   (** [split_key_value_list s] splits the string [s] of the form ["key:v1:v2"]
       into a string ["key"] and a list with the values [["v1";"v2"]]. *)
-  let split_key_value_list =
-    let r = Str.regexp "[^:]:[^:]" in
-    let split_delim d =
-      (Stdlib.String.sub d 0 1, Stdlib.String.sub d 2 1)
+  let split_key_value_list s =
+    let key, values =
+      try split_on_colon s
+      with Not_found ->
+        cannot_build "no value bound to %S" s
     in
-    let rec parse_values acc s = function
-      | [] -> List.rev (s :: acc)
-      | [Str.Text t] -> List.rev ((s ^ t) :: acc)
-      | Str.Text t :: Str.Delim d :: l ->
-        let (suf, pre) = split_delim d in
-        let v = (s ^ t ^ suf) in
-        parse_values (v :: acc) pre l
-      | Str.Delim d :: l ->
-        let (suf,pre) = split_delim d in
-        let v = (s ^ suf) in
-        parse_values (v :: acc) pre l
-      | Str.Text _ :: Str.Text _ :: _ ->
-        (* By construction, there must be a Delim between two consecutive
-           Text in the value returned by full_split *)
-        assert false
+    let rec parse_values acc values =
+      try
+        let value, rest_values = split_on_colon values in
+        parse_values (value :: acc) rest_values
+      with Not_found ->
+        values :: acc
     in
-    fun s ->
-      let f, s, l =
-        match Str.full_split r s with
-        | [] -> cannot_build "cannot interpret '%s'" s
-        | [Str.Text k] -> cannot_build "no value bound to '%s'" k
-        | Str.Delim d :: l ->
-          let (f,s) = split_delim d in
-          f, s, l
-        | Str.Text t :: Str.Delim d :: l ->
-          let (f,s) = split_delim d in
-          (t ^ f), s, l
-        | Str.Text _ :: Str.Text _ :: _ -> (* see above *) assert false
-      in
-      f, parse_values [] s l
+    let values = parse_values [] values in
+    unquote_split key, List.rev_map unquote_split values
 
   let%test_module _ = (module struct
     (** Test that calling [f] with [s] returns [expected]. *)
@@ -826,6 +844,26 @@ struct
         false
       with Cannot_build _ -> true
 
+    (* Test quote/unquote *)
+    let%test _ =
+      let res = ref true in
+      let test_str_equal name actual expected =
+        let res' = actual = expected in
+        if not res' then
+          Format.eprintf "@[<v 2>%s:@ expected: %s@ actual: %s@]@\n"
+            name expected actual;
+        res := !res && res'
+      in
+      let orig = {|"abc\"def\'ghi\\jkl\\'mno"|} in
+      let unq = unquote_split in
+      let q = quote_split in
+      test_str_equal "unquote" (unq orig) {|abc"def'ghi\jkl\'mno|};
+      test_str_equal "quote unquote" (q (unq orig)) {|"abc\"def'ghi\\jkl\\'mno"|};
+      let a = unq orig in
+      test_str_equal "unquote quote a = a" (unq (q a)) a;
+      !res
+
+
     (* Test [split_key_value] *)
 
     let test_skv, cannot_build_skv =
@@ -836,12 +874,22 @@ struct
       test_cannot_build pp_str pp_str fname f
 
     let%test _ = test_skv ":" ("", "")
+    let%test _ = test_skv ":::" ("::", "")
     let%test _ = test_skv "abc:" ("abc", "")
     let%test _ = test_skv ":abc" ("", "abc")
     let%test _ = test_skv "abc:def" ("abc", "def")
     let%test _ = test_skv "abc:def:ghi" ("abc", "def:ghi")
     let%test _ = test_skv "abc::def:ghi" ("abc::def", "ghi")
-    (* let%test _ = test_skv "\"abc:def\":ghi" ("abc:def", "ghi") (1* FIXME *1) *)
+    let%test _ = test_skv "abc:def::ghi" ("abc", "def::ghi")
+    let%test _ = test_skv "\"abc:def\":ghi" ("abc:def", "ghi")
+    let%test _ = test_skv "'abc:def':ghi" ("abc:def", "ghi")
+    let%test _ = test_skv {|a\"b\'c\\d:value|} ({|a\"b\'c\\d|}, "value")
+    let%test _ = test_skv {|"a\"b\'c\\d":value|} ({|a"b'c\d|}, "value")
+    let%test _ = test_skv {|'a\"b\'c\\d':value|} ({|a"b'c\d|}, "value")
+    let%test _ =
+      test_skv "\"abc:'def\\\":ghi\":jkl" ("abc:'def\":ghi", "jkl")
+    let%test _ =
+      test_skv "'abc:\\'def\":ghi':jkl" ("abc:'def\":ghi", "jkl")
     let%test _ = cannot_build_skv ""
     let%test _ = cannot_build_skv "abc"
 
@@ -858,17 +906,22 @@ struct
       test pp_key pp_val fname f,
       test_cannot_build pp_key pp_val fname f
 
-    (* let%test _ = test_skvl ":" ("", [""]) (1* FIXME *1) *)
-    (* let%test _ = test_skvl "abc:" ("abc", [""]) (1* FIXME *1) *)
-    (* let%test _ = test_skvl ":abc" ("", ["abc"]) (1* FIXME *1) *)
+    let%test _ = test_skvl ":" ("", [""])
+    let%test _ = test_skvl "abc:" ("abc", [""])
+    let%test _ = test_skvl ":abc" ("", ["abc"])
     let%test _ = test_skvl "abc:def"  ("abc", ["def"])
-    (* let%test _ = test_skvl ":abc:def:"  ("", ["abc"; "def"; ""]) (1* FIXME *1) *)
+    let%test _ = test_skvl ":abc:def:"  ("", ["abc"; "def"; ""])
     let%test _ = test_skvl "abc:def:ghi"  ("abc", ["def"; "ghi"])
     let%test _ = test_skvl "abc::def:ghi"  ("abc::def", ["ghi"])
-    (* let%test _ = test_skvl "\"abc:def\":ghi"  ("abc:def", ["ghi"]) (1* FIXME *1) *)
-    (* let%test _ = *)
-    (*   test_skvl "\"abc:def\":ghi::jkl:\"mno:pqr\":stu" *)
-    (*     ("abc:def", ["ghi::jkl"; "mno:pqr"; "stu"]) (1* FIXME *1) *)
+    let%test _ = test_skvl "\"abc:def\":ghi"  ("abc:def", ["ghi"])
+    let%test _ = test_skvl "'abc:def':ghi"  ("abc:def", ["ghi"])
+    let%test _ = test_skvl "abc:'def:ghi':jkl"  ("abc", ["def:ghi"; "jkl"])
+    let%test _ =
+      test_skvl "\"abc:def\":ghi::jkl:\"mno':\\\"pqr\":stu"
+        ("abc:def", ["ghi::jkl"; "mno':\"pqr"; "stu"])
+    let%test _ =
+      test_skvl "\"abc:def\":ghi::jkl:'mno\\':\"pqr':stu"
+        ("abc:def", ["ghi::jkl"; "mno':\"pqr"; "stu"])
     let%test _ = cannot_build_skvl ""
     let%test _ = cannot_build_skvl "abc"
   end)
@@ -1738,7 +1791,9 @@ struct
       include Datatype.Pair(K)(V)
 
       let to_string (key, v) =
-        Format.asprintf "%s:%s" (K.to_string key) (V.to_string v)
+        Format.asprintf "%s:%s"
+          (K.to_string key |> quote_split)
+          (V.to_string v |> quote_split)
     end
 
     module C = struct
@@ -1889,12 +1944,12 @@ struct
 
       let to_string (key, l) =
         Format.asprintf "%s%t"
-          (K.to_string key)
+          (K.to_string key |> quote_split)
           (fun fmt ->
              let rec pp_custom_list = function
                | [] -> ()
                | v :: l ->
-                 Format.fprintf fmt ":%s" (V.to_string v);
+                 Format.fprintf fmt ":%s" (V.to_string v |> quote_split);
                  pp_custom_list l
              in
              pp_custom_list l)
