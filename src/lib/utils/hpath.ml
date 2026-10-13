@@ -41,30 +41,59 @@ let re_drive = Str.regexp {|[A-Za-z]:|}
 let re_path = Str.regexp {|[/\\]|}
 let re_root = Str.regexp {|/\|\([A-Za-z]:\\\)\|\([A-Za-z]:/\)|}
 
-(* Can not use Weak, since the internal [t] representation is temporary.
-   Can not use a weak-cache because each minor GC
-   may empty the cache (see #191). *)
 
+(** Cache using a hash table from unnormalized paths to normalized paths. *)
+module Cache : sig
+  val memo : t -> string -> (unit -> t) -> t
+  val clear : unit -> unit
+end =
+struct
+  (* Until Hashtbl.memo is implemented in stdlib's Hashtbl, we store the hash
+     with the key to prevent computing the hash twice. *)
+  module Key = struct
+    type t = { base: Prototype.t; file_path: string; hash: int }
+
+    let make base file_path =
+      let hash = Hashtbl.hash (String.hash file_path, Prototype.hash base) in
+      { base; file_path; hash }
+
+    let equal k1 k2 =
+      k1.base == k2.base &&
+      String.equal k1.file_path k2.file_path
+
+    let hash k = k.hash
+  end
+
+  module Table = Hashtbl.Make (Key)
+
+  let table : t Table.t = Table.create 256
+
+  let memo base file_path f =
+    let key = Key.make base file_path in
+    Table.memo table key (fun _ -> f ())
+
+  let clear () = Table.clear table
+end
+
+(** Hashconsing table for [Hpath.t].
+    It ensures that [==] can be used to test equality between them. *)
 module Hcons : sig
   val merge : t -> t
   val clear : unit -> unit
   val iter : (t -> unit) -> unit
 end =
 struct
-  let table = Table.create 128
-  let merge p =
-    try
-      Table.find table p
-    with Not_found ->
-      Table.add table p p ; p
+  (** Cannot use {!Weak}, since the internal [t] representation is temporary.
+      Cannot use a weak-cache because each minor GC may empty the cache
+      (see #191). *)
+  let table : t Table.t = Table.create 128
+  let merge p = Table.memo table p (fun _ -> p)
   let clear () = Table.clear table
   let iter f =
     let cmp p1 p2 = String.compare p1.path_name p2.path_name in
     Table.iter_sorted_by_value ~cmp (fun _ p -> f p) table
 end
 
-
-let cache = Array.make 256 None
 let dir path =
   match path.dir with
   | None -> empty (* the parent of the root directory is itself *)
@@ -91,34 +120,22 @@ let rec norm path = function
   | p :: ps -> norm (make path p) ps
 
 let insert ~base path_name =
-  let full_path_name =
-    (* if a <base> is provided with a <file> which is already absolute
-       (and thus matches [re_root]) then the <base> is not taken
-       into account *)
+  Cache.memo base path_name @@ fun () ->
+  let base =
+    (* if a <base> is provided while a <file> is already absolute
+        (and thus matches [re_root]) then the <base> is not taken
+        into account *)
     if Str.string_match re_root path_name 0
-    then path_name
-    else base.path_name ^ "/" ^ path_name in
-  let hash = Hashtbl.hash full_path_name in
-  match Array.get cache (hash land 255) with
-  | Some (pn, p) when full_path_name = pn -> p
-  | _ ->
-    let base =
-      (* if a <base> is provided while a <file> is already absolute
-         (and thus matches [re_root]) then the <base> is not taken
-         into account *)
-      if Str.string_match re_root path_name 0
-      then root (String.sub path_name 0 (Str.group_end 0 - 1))
-      else base in
-    let name_parts = Str.split re_path path_name in
-    (* Windows paths may start with '<drive>:'. If so, remove it *)
-    let parts = if List.length name_parts > 0 &&
-                   Str.string_match re_drive (List.nth name_parts 0) 0 then
-        List.tl name_parts
-      else name_parts
-    in
-    let path = norm base parts in
-    Array.set cache (hash land 255) (Some (path_name, path));
-    path
+    then root (String.sub path_name 0 (Str.group_end 0 - 1))
+    else base in
+  let name_parts = Str.split re_path path_name in
+  (* Windows paths may start with '<drive>:'. If so, remove it *)
+  let parts = if List.length name_parts > 0 &&
+                 Str.string_match re_drive (List.nth name_parts 0) 0 then
+      List.tl name_parts
+    else name_parts
+  in
+  norm base parts
 
 let cwd =
   Unix.(realpath (getcwd ()))
@@ -194,7 +211,7 @@ end
 
 let _test_paths paths expected =
   Hcons.clear ();
-  Array.fill cache 0 (Array.length cache) None;
+  Cache.clear ();
   List.iter (fun s -> insert ~base:empty s |> ignore) paths;
   let pp_path fmt p =
     Format.fprintf fmt "\n%S" p.path_name;
