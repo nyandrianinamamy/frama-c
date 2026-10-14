@@ -48,6 +48,8 @@ let re_root = Str.regexp "/\\|\\([A-Za-z]:\\\\\\)\\|\\([A-Za-z]:/\\)"
 module Hcons : sig
   val find : t -> t
   val merge : t -> t
+  val clear : unit -> unit
+  val iter : (t -> unit) -> unit
 end =
 struct
   let table = Table.create 128
@@ -57,6 +59,10 @@ struct
       Table.find table p
     with Not_found ->
       Table.add table p p ; p
+  let clear () = Table.clear table
+  let iter f =
+    let cmp p1 p2 = String.compare p1.path_name p2.path_name in
+    Table.iter_sorted_by_value ~cmp (fun _ p -> f p) table
 end
 
 
@@ -185,3 +191,43 @@ module Names = struct
     |> List.of_seq
     |> List.sort compare
 end
+
+
+(* -------------------------------------------------------------------------- *)
+(* --- Testing                                                            --- *)
+(* -------------------------------------------------------------------------- *)
+
+let _test_paths paths expected =
+  Hcons.clear ();
+  Array.fill cache 0 (Array.length cache) None;
+  List.iter (fun s -> insert ~base:empty s |> ignore) paths;
+  let pp_path fmt p =
+    Format.fprintf fmt "\n%S" p.path_name;
+    match p.dir with
+    | None -> Format.fprintf fmt " (root)"
+    | Some p -> Format.fprintf fmt " -> %S" p.path_name
+  in
+  let pp_paths fmt =
+    Hcons.iter (pp_path fmt)
+  in
+  let actual = Format.asprintf "%t" pp_paths in
+  let success = String.equal actual expected in
+  if not success then
+    Format.eprintf "Test failed.\nActual:\n%s\nExpected:\n%s\n" actual expected;
+  success
+
+let%test "absolute directories" =
+  _test_paths
+    [ {|c:\a\b\c|};
+      {|c:/a/b/d|};
+      {|/a/x/c|}; ]
+    {|
+"" (root)
+"/a" -> ""
+"/a/x" -> "/a"
+"/a/x/c" -> "/a/x"
+"c:" (root)
+"c:/a" -> "c:"
+"c:/a/b" -> "c:/a"
+"c:/a/b/c" -> "c:/a/b"
+"c:/a/b/d" -> "c:/a/b"|}
