@@ -46,14 +46,12 @@ let re_root = Str.regexp "/\\|\\([A-Za-z]:\\\\\\)\\|\\([A-Za-z]:/\\)"
    may empty the cache (see #191). *)
 
 module Hcons : sig
-  val find : t -> t
   val merge : t -> t
   val clear : unit -> unit
   val iter : (t -> unit) -> unit
 end =
 struct
   let table = Table.create 128
-  let find = Table.find table
   let merge p =
     try
       Table.find table p
@@ -104,26 +102,23 @@ let insert ~base path_name =
   match Array.get cache (hash land 255) with
   | Some (pn, p) when full_path_name = pn -> p
   | _ ->
-    let p = { empty with path_name = full_path_name; hash } in
-    try Hcons.find p
-    with Not_found ->
-      let base =
-        (* if a <base> is provided while a <file> is already absolute
-           (and thus matches [re_root]) then the <base> is not taken
-           into account *)
-        if Str.string_match re_root path_name 0
-        then root (String.sub path_name 0 (Str.group_end 0 - 1))
-        else base in
-      let name_parts = Str.split re_path path_name in
-      (* Windows paths may start with '<drive>:'. If so, remove it *)
-      let parts = if List.length name_parts > 0 &&
-                     Str.string_match re_drive (List.nth name_parts 0) 0 then
-          List.tl name_parts
-        else name_parts
-      in
-      let path = norm base parts in
-      Array.set cache (hash land 255) (Some (path_name, path));
-      path
+    let base =
+      (* if a <base> is provided while a <file> is already absolute
+         (and thus matches [re_root]) then the <base> is not taken
+         into account *)
+      if Str.string_match re_root path_name 0
+      then root (String.sub path_name 0 (Str.group_end 0 - 1))
+      else base in
+    let name_parts = Str.split re_path path_name in
+    (* Windows paths may start with '<drive>:'. If so, remove it *)
+    let parts = if List.length name_parts > 0 &&
+                   Str.string_match re_drive (List.nth name_parts 0) 0 then
+        List.tl name_parts
+      else name_parts
+    in
+    let path = norm base parts in
+    Array.set cache (hash land 255) (Some (path_name, path));
+    path
 
 let cwd =
   Unix.(realpath (getcwd ()))
