@@ -35,11 +35,10 @@ let empty = {
   symbolic_name = None
 }
 
-(* re_drive and re_root match drive expressions to deal with non-Cygwin
-   Windows-like paths (e.g. with MinGW) *)
+(* re_drive match drive expressions to deal with non-Cygwin Windows-like paths
+   (e.g. with MinGW) *)
 let re_drive = Str.regexp {|[A-Za-z]:|}
-let re_path = Str.regexp {|[/\\]|}
-let re_root = Str.regexp {|/\|\([A-Za-z]:\\\)\|\([A-Za-z]:/\)|}
+let re_dir_separator = Str.regexp {|[/\\]|}
 
 
 (** Cache using a hash table from unnormalized paths to normalized paths. *)
@@ -113,29 +112,19 @@ let make dir base_name =
       dir = Some dir
     }
 
-let rec norm path = function
-  | [] -> path
-  | ".." :: ps -> norm (dir path) ps
-  | "." :: ps -> norm path ps
-  | p :: ps -> norm (make path p) ps
+let rec normalize parent = function
+  | [] | [""] -> parent
+  | ".." :: ps -> normalize (dir parent) ps
+  | "." :: ps -> normalize parent ps
+  | p :: ps -> normalize (make parent p) ps
 
 let insert ~base path_name =
   Cache.memo base path_name @@ fun () ->
-  let base =
-    (* if a <base> is provided while a <file> is already absolute
-        (and thus matches [re_root]) then the <base> is not taken
-        into account *)
-    if Str.string_match re_root path_name 0
-    then root (String.sub path_name 0 (Str.group_end 0 - 1))
-    else base in
-  let name_parts = Str.split re_path path_name in
-  (* Windows paths may start with '<drive>:'. If so, remove it *)
-  let parts = if List.length name_parts > 0 &&
-                 Str.string_match re_drive (List.nth name_parts 0) 0 then
-      List.tl name_parts
-    else name_parts
-  in
-  norm base parts
+  match Str.split_delim re_dir_separator path_name with
+  | p :: parts when p = "" || Str.string_match re_drive p 0 ->
+    normalize (root p) parts
+  | parts ->
+    normalize base parts
 
 let cwd =
   Unix.(realpath (getcwd ()))
