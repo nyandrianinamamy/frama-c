@@ -940,7 +940,7 @@ module Make
           in
           v, alarms
       end
-    | _ ->
+    | Const _ | AddrOf _ | StartOf _ | SizeOfArray _ ->
       let open Evaluated.Operators in
       let+ value, reduction, volatile_expr = internal_forward_eval env expr in
       let value = define_value value and origin = None in
@@ -1000,6 +1000,19 @@ module Make
         | _ -> v
       in
       compute_reduction v volatile
+
+    | SizeOfArray { elt_size; array_length } ->
+      let typ = Machine.sizeof_type () in
+      let range = Machine.sizeof_kind () |> Eval_typ.ik_range in
+      let* elt_size, volatile1 = root_forward_eval env elt_size in
+      let* array_length, volatile2 = root_forward_eval env array_length in
+      (* Sizeof value is [sizeof(elt) * array_size]. *)
+      let v = Value.forward_binop env.context typ Mult elt_size array_length in
+      (* Bottom should never happen on a multiplication. *)
+      let v = Bottom.non_bottom v in
+      (* Emits an alarm if the resulting value does not fit in size_t type. *)
+      let v = truncate_integer Alarms.Unsigned expr range v in
+      compute_reduction v (volatile1 || volatile2)
 
   and internal_forward_eval_constant env expr constant =
     let open Evaluated.Operators in
@@ -1415,17 +1428,19 @@ module Make
         let* v = backward ~src_val ~dst_val:value in
         backward_eval fuel context state e v
       end
-    | _ -> `Value ()
+    | Const _ | AddrOf _ | StartOf _ | SizeOfArray _ -> `Value ()
 
   and recursive_descent fuel context state expr =
     match expr.node with
-    | Lval lval -> backward_lval fuel context state lval
-    | UnOp (_, e, _)
-    | CastE (_, e) -> backward_eval fuel context state e None
-    | BinOp (_binop, e1, e2, _typ) ->
+    | Lval lval ->
+      backward_lval fuel context state lval
+    | UnOp (_, e, _) | CastE (_, e) ->
+      backward_eval fuel context state e None
+    | BinOp (_, e1, e2, _) | SizeOfArray { elt_size = e1; array_length = e2 } ->
       let* () = backward_eval fuel context state e1 None in
       backward_eval fuel context state e2 None
-    | _ -> `Value ()
+    | Const _ | AddrOf _ | StartOf _ ->
+      `Value ()
 
   and recursive_descent_lval fuel context state lval =
     let (host, offset) = lval.node in
@@ -1588,13 +1603,14 @@ module Make
 
   and recursive_descent state expr =
     match expr.node with
-    | Lval lval -> recursive_descent_lval state lval
-    | UnOp (_, e, _)
-    | CastE (_, e) -> second_forward_eval state e
-    | BinOp (_, e1, e2, _) ->
+    | Lval lval ->
+      recursive_descent_lval state lval
+    | UnOp (_, e, _) | CastE (_, e) ->
+      second_forward_eval state e
+    | BinOp (_, e1, e2, _) | SizeOfArray { elt_size = e1; array_length = e2 } ->
       let* () = second_forward_eval state e1 in
       second_forward_eval state e2
-    | _ -> `Value ()
+    | Const _ | AddrOf _ | StartOf _ -> `Value ()
 
   and recursive_descent_lval state lval =
     let (host, offset) = lval.node in

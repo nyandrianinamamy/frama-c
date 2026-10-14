@@ -37,6 +37,7 @@ and hash_exp e =
   | CastE (typ, e) -> Hashtbl.hash (5, Typ.hash typ, hash_exp e)
   | AddrOf lv -> Hashtbl.hash (6, hash_lval lv)
   | StartOf lv -> Hashtbl.hash (7, hash_lval lv)
+  | SizeOfArray { typ } -> Hashtbl.hash (8, Typ.hash typ)
 
 and hash_constant c =
   match c with

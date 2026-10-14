@@ -72,10 +72,10 @@ let rec translate_exp (e : Cil_types.exp) =
           (* C11, 6.5.3.4 §2: if the type of the [sizeof] operand is a variable
              length array type, the operand is evaluated. So the expression must
              be evaluated by the analysis for possible undefined behaviors. *)
-          let elem_typ, size = Ast_types.C.array_elem_type_and_size typ in
-          let array_size = Option.get size |> translate_exp in
-          let elem_size = Cil.sizeOf ~loc:e.eloc elem_typ |> translate_exp in
-          BinOp (Mult, array_size, elem_size, Machine.sizeof_type ())
+          let elt_type, array_length = Ast_types.C.array_elem_type_and_size typ in
+          let elt_size = Cil.sizeOf ~loc:e.eloc elt_type |> translate_exp in
+          let array_length = Option.get array_length |> translate_exp in
+          SizeOfArray { typ; elt_size; array_length }
         | _ -> Const (CTopInt (Machine.sizeof_kind ()))
   in
   mk_exp ~origin:(Exp e) node
