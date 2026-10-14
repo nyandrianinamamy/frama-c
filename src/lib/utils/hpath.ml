@@ -37,9 +37,9 @@ let empty = {
 
 (* re_drive and re_root match drive expressions to deal with non-Cygwin
    Windows-like paths (e.g. with MinGW) *)
-let re_drive = Str.regexp "[A-Za-z]:"
-let re_path = Str.regexp "[/\\\\]"
-let re_root = Str.regexp "/\\|\\([A-Za-z]:\\\\\\)\\|\\([A-Za-z]:/\\)"
+let re_drive = Str.regexp {|[A-Za-z]:|}
+let re_path = Str.regexp {|[/\\]|}
+let re_root = Str.regexp {|/\|\([A-Za-z]:\\\)\|\([A-Za-z]:/\)|}
 
 (* Can not use Weak, since the internal [t] representation is temporary.
    Can not use a weak-cache because each minor GC
