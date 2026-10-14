@@ -1,0 +1,6 @@
+[kernel] Parsing gcc_modes.c (with preprocessing)
+[kernel] gcc_modes.c:22: User Error: 
+  unsupported 'mode(word)' attribute for wordsize: 15
+[kernel] User Error: stopping on file "gcc_modes.c" that has errors. Add '-kernel-msg-key pp'
+  for preprocessing command.
+[kernel] Frama-C aborted: invalid user input.

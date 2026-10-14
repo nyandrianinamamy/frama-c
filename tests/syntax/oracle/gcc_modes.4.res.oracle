@@ -1,0 +1,7 @@
+[kernel] Parsing gcc_modes.c (with preprocessing)
+[kernel] gcc_modes.c:26: User Error: unsupported 'mode(__foo__)' attribute
+[kernel] gcc_modes.c:29: User Error: 
+  unsupported 'mode' attribute for non-integer type: float
+[kernel] User Error: stopping on file "gcc_modes.c" that has errors. Add '-kernel-msg-key pp'
+  for preprocessing command.
+[kernel] Frama-C aborted: invalid user input.
