@@ -21,7 +21,7 @@ module Vars: sig
 
   val find: varinfo -> initinfo
 
-  (** @since Frama-C~dev *)
+  (** @since 34.0-Selenium *)
   val find_opt: varinfo -> initinfo option
 
   (** Retrieve the (wide)string literal associated to a given varinfo.

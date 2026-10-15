@@ -37,7 +37,7 @@ val is_builtin: varinfo -> bool
     - the name has been registered in the {!Builtin_functions} state;
     - the name has been registered in the {!Builtin_templates} state.
       @before 29.0-Copper Only check for {!has_fc_builtin_attr}.
-      @before Frama-C+dev Only check for {!has_fc_builtin_attr} and
+      @before 34.0-Selenium Only check for {!has_fc_builtin_attr} and
                         {!is_special_builtin}.
       @since Fluorine-20130401 *)
 

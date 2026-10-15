@@ -56,7 +56,7 @@ type 'a pretty_printer =
    - [append] adds some actions performed on the formatter after the event
      has been processed.
      @since Beryllium-20090601-beta1
-     @before Frama-C+dev [loc] parameter was named [source].
+     @before 34.0-Selenium [loc] parameter was named [source].
 *)
 
 type ('a,'b) pretty_aborter =
@@ -66,7 +66,7 @@ type ('a,'b) pretty_aborter =
 (** Same as {!Log.pretty_printer} except that channels having this type
     denote a fatal error aborting Frama-C.
     @since Beryllium-20090601-beta1
-    @before Frama-C+dev [loc] parameter was named [source].
+    @before 34.0-Selenium [loc] parameter was named [source].
 *)
 
 (* -------------------------------------------------------------------------- *)
@@ -159,7 +159,7 @@ sig
       key-categories are taken into account like event messages.
       The header formatted message is emitted as a regular [result]
       message.
-      @before Frama-C+dev [loc] parameter was named [source].
+      @before 34.0-Selenium [loc] parameter was named [source].
   *)
 
   val result : ?level:int -> ?dkey:category -> 'a pretty_printer
@@ -224,7 +224,7 @@ sig
       message to the user.
       @since Beryllium-20090901
       @before 23.0-Vanadium there was no [current] and [source] arguments.
-      @before Frama-C+dev [loc] parameter was named [source].
+      @before 34.0-Selenium [loc] parameter was named [source].
   *)
 
   val deprecated: string -> now:string -> ('a -> 'b) -> ('a -> 'b)

@@ -824,13 +824,13 @@ val evar: ?loc:Fileloc.t -> varinfo -> exp
 (** Make an AddrOf. Given an lvalue of type T will give back an expression of
     type ptr(T). It optimizes somewhat expressions like "& v" and "& v[0]" and
     positions {!Cil_types.vaddrof} and {!Cil_types.faddrof} accordingly.
-    @before Frama-C+dev [vaddrof] and [faddrof] were not set.
+    @before 34.0-Selenium [vaddrof] and [faddrof] were not set.
 *)
 val mkAddrOf: loc:Fileloc.t -> lval -> exp
 
 (** Creates an expression corresponding to "&v" and positions
     {!Cil_types.vaddrof} accordingly.
-    @before Frama-C+dev [vaddrof] was not set.
+    @before 34.0-Selenium [vaddrof] was not set.
 *)
 val mkAddrOfVi: varinfo -> exp
 
@@ -838,7 +838,7 @@ val mkAddrOfVi: varinfo -> exp
     StartOf. This is the right operation for getting a pointer to the start
     of the storage denoted by lval and positions {!Cil_types.vaddrof} and
     {!Cil_types.faddrof} accordingly.
-    @before Frama-C+dev [vaddrof] and [faddrof] were not set.
+    @before 34.0-Selenium [vaddrof] and [faddrof] were not set.
 *)
 val mkAddrOrStartOf: loc:Fileloc.t -> lval -> exp
 
@@ -1104,7 +1104,7 @@ val mkDoWhile: ?sattr:attributes -> body:stmt list -> guard:exp -> unit ->
   stmt list
 
 (** creates a _non-scoping_ block with empty attributes from an unspecified sequence.
-    @before Frama-C+dev the block created a new scope (while the sequence itself didn't)
+    @before 34.0-Selenium the block created a new scope (while the sequence itself didn't)
 *)
 val block_from_unspecified_sequence:
   (stmt * lval list * lval list * lval list * stmt ref list) list -> block
@@ -1997,7 +1997,7 @@ val fieldBitsOffset: fieldinfo -> int * int
     will be an integer type, otherwise an array of unsigned char (i.e. bytes).
 
     @raise AbortFatal if the given fieldinfo is not a bitfield
-    @since Frama-C+dev
+    @since 34.0-Selenium
 *)
 val bitfield_access_unit: fieldinfo -> int * typ
 

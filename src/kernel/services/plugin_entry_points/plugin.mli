@@ -19,13 +19,13 @@ module type S_no_log = sig
 
   (** Location generated for the plug-in, to be used when a location is
       required (e.g., to build Cil fragments) but none is available.
-      @since Frama-C+dev
+      @since 34.0-Selenium
   *)
   val gen_loc: Fileloc.t
 
   (** Make a new location for a generated input. The given location is copied
       except for its origin which will use the plug-in's name as generator.
-      @since Frama-C+dev
+      @since 34.0-Selenium
   *)
   val gen_loc_from: Fileloc.t -> Fileloc.t
 
@@ -199,7 +199,7 @@ val fold_on_plugins: (plugin -> 'a -> 'a) -> 'a -> 'a
 
 val kernel_shortname: string
 (** Shortname of the Kernel.
-    @since Frama-C+dev *)
+    @since 34.0-Selenium *)
 
 (**/**)
 (* ************************************************************************* *)
