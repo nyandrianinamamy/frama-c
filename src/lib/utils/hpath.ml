@@ -10,11 +10,11 @@
 
 module Prototype = struct
   type t = {
-    hash : int ;
     path_name : string ;
     base_name : string ; (* Filename.basename *)
-    dir : t option ; (* path whose path_name is Filename.dirname *)
-    mutable symbolic_name : string option ; (* Symbolic name *)
+    parent : t option ; (* path whose path_name is Filename.dirname *)
+    hash : int ;
+    mutable symbolic_name : string option; (* Symbolic name *)
   }
   let hash p = p.hash
   let equal p q = p.path_name = q.path_name
@@ -25,21 +25,10 @@ include Prototype
 module Table = Hashtbl.Make (Prototype)
 
 
-(* --- Construction --- *)
-
-let empty = {
-  path_name = "";
-  hash = 0;
-  base_name = ".";
-  dir = None;
-  symbolic_name = None
-}
-
 (* re_drive match drive expressions to deal with non-Cygwin Windows-like paths
    (e.g. with MinGW) *)
 let re_drive = Str.regexp {|[A-Za-z]:|}
 let re_dir_separator = Str.regexp {|[/\\]|}
-
 
 (** Cache using a hash table from unnormalized paths to normalized paths. *)
 module Cache : sig
@@ -93,42 +82,46 @@ struct
     Table.iter_sorted_by_value ~cmp (fun _ p -> f p) table
 end
 
-let dir path =
-  match path.dir with
-  | None -> empty (* the parent of the root directory is itself *)
-  | Some d -> d
+(* --- Construction --- *)
 
-let root path_name =
-  Hcons.merge { empty with path_name ; hash = Hashtbl.hash path_name }
-
-let make dir base_name =
-  let path_name = Printf.sprintf "%s/%s" dir.path_name base_name in
-  let hash = Hashtbl.hash path_name in
+let make ?parent base_name =
+  let path_name = match parent with
+    | None -> base_name
+    | Some parent ->  Printf.sprintf "%s/%s" parent.path_name base_name
+  in
+  let hash = String.hash path_name in
   Hcons.merge
-    { empty with
-      path_name;
+    { path_name;
+      base_name;
+      parent;
       hash;
-      base_name = base_name;
-      dir = Some dir
+      symbolic_name = None
     }
 
-let rec normalize parent = function
-  | [] | [""] -> parent
-  | ".." :: ps -> normalize (dir parent) ps
-  | "." :: ps -> normalize parent ps
-  | p :: ps -> normalize (make parent p) ps
+let empty = make ""
 
-let insert ~base path_name =
+(* --- Normalization --- *)
+
+let parent path =
+  match path.parent with
+  | None -> path (* the parent of the root directory is itself *)
+  | Some d -> d
+
+let rec normalize parent_path = function
+  | [] | [""] -> parent_path
+  | ".." :: ps -> normalize (parent parent_path) ps
+  | "." :: ps -> normalize parent_path ps
+  | p :: ps -> normalize (make ~parent:parent_path p) ps
+
+let insert ?(base=empty) path_name =
   Cache.memo base path_name @@ fun () ->
   match Str.split_delim re_dir_separator path_name with
   | p :: parts when p = "" || Str.string_match re_drive p 0 ->
-    normalize (root p) parts
+    normalize (make p) parts
   | parts ->
     normalize base parts
 
-let cwd =
-  Unix.(realpath (getcwd ()))
-  |> insert ~base:empty
+let cwd = Unix.(realpath (getcwd ())) |> insert
 
 
 (* --- Conversion --- *)
@@ -149,7 +142,7 @@ let to_uri path =
     | Some sn -> Name (sn, path)
     | None when path == cwd (* hconsed *) -> Cwd
     | None ->
-      match path.dir with
+      match path.parent with
       | None -> (* root *)
         Buffer.add_string buffer path.path_name;
         Absolute
@@ -201,10 +194,10 @@ end
 let _test_paths paths expected =
   Hcons.clear ();
   Cache.clear ();
-  List.iter (fun s -> insert ~base:empty s |> ignore) paths;
+  List.iter (fun s -> insert s |> ignore) paths;
   let pp_path fmt p =
     Format.fprintf fmt "\n%S" p.path_name;
-    match p.dir with
+    match p.parent with
     | None -> Format.fprintf fmt " (root)"
     | Some p -> Format.fprintf fmt " -> %S" p.path_name
   in
