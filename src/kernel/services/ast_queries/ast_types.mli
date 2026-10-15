@@ -12,7 +12,7 @@
 
 open Cil_types
 
-(** @before Frama-C+dev all these functions were at top level *)
+(** @before 34.0-Selenium all these functions were at top level *)
 module C : sig
 
   (* ************************************************************************* *)
@@ -251,7 +251,7 @@ module C : sig
   val is_fun : typ -> bool
 
   (** True if the argument is a variadic function type.
-      @since Frama-C+dev
+      @since 34.0-Selenium
   *)
   val is_variadic : typ -> bool
 
@@ -259,7 +259,7 @@ module C : sig
   val is_fun_ptr : typ -> bool
 
   (** True if the argument is a pointer {i or} a function type.
-      @since Frama-C+dev
+      @since 34.0-Selenium
   *)
   val is_fun_or_ptr : typ -> bool
 
@@ -272,7 +272,7 @@ module C : sig
   val is_object : typ -> bool
 
   (** True if the argument is an object pointer type.
-      @since Frama-C+dev
+      @since 34.0-Selenium
   *)
   val is_object_ptr : typ -> bool
 
@@ -778,7 +778,7 @@ val array_elem_type_and_size : typ -> typ * exp option
 (** This module contains all functions related to logic types.
     Most of these functions where moved from {!Logic_const} or {!Logic_utils}
     and renamed for better consistency.
-    @since Frama-C+dev
+    @since 34.0-Selenium
 *)
 module Acsl : sig
 

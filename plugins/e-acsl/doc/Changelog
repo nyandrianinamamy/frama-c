@@ -25,6 +25,10 @@
 Plugin E-ACSL <next-release>
 ###############################################################################
 
+###############################################################################
+Plugin E-ACSL 34.0 (Selenium)
+###############################################################################
+
 -* E-ACSL     [2026-10-07] Fix missing RTE guards
 -* E-ACSL     [2026-09-22] Fix crash and exception being raised during widening
 -* E-ACSL     [2026-09-16] Fix typing of arithmetic operations

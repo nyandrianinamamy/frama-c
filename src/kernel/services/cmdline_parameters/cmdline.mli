@@ -336,7 +336,7 @@ val inside_tests: bool
 (** Indicates if the current execution is done inside a test or not. This is
     determined using ["FRAMAC_TESTING"] environment variable.
     @see <https://frama-c.com/download/frama-c-plugin-development-guide.pdf>
-    @since Frama-C+dev
+    @since 34.0-Selenium
 *)
 
 val tty: bool

@@ -60,7 +60,7 @@ val pretty_debug: t Pretty_utils.formatter
 (** {2 Conversion from/to Lexing.position } *)
 
 (** Convert a [Lexing.position] to a [Fileloc.t].
-    @since Frama-C+dev *)
+    @since 34.0-Selenium *)
 val of_lexing_pos : Lexing.position -> t
 
 (** Convert a pair of [Lexing.position] to a [Fileloc.t]. *)
@@ -72,11 +72,11 @@ val to_lexing_loc : t -> Lexing.position * Lexing.position
 (** {2 Accessors } *)
 
 (** Get the starting position of a location
-    @since Frama-C+dev. *)
+    @since 34.0-Selenium. *)
 val start_pos : t -> Filepos.t
 
 (** Get the ending position of a location
-    @since Frama-C+dev. *)
+    @since 34.0-Selenium. *)
 val end_pos : t -> Filepos.t
 
 (** Get the first line of the location. *)
@@ -96,30 +96,30 @@ val is_empty : t -> bool
     ways to to it. *)
 
 (** Create a location between a starting and ending position.
-    @since Frama-C+dev *)
+    @since 34.0-Selenium *)
 val make : start_pos:Filepos.t -> end_pos:Filepos.t -> t
 
 (** Convert a location to a pair of positions.
-    @since Frama-C+dev *)
+    @since 34.0-Selenium *)
 val positions :  t -> Filepos.t * Filepos.t
 
 (** Create a location from the given position.
-    @since Frama-C+dev *)
+    @since 34.0-Selenium *)
 val of_pos : Filepos.t -> t
 
 (** Create a location from the union of two locations using [Fileloc.compare]
     to find the starting and ending positions.
-    @since Frama-C+dev *)
+    @since 34.0-Selenium *)
 val join : t -> t -> t
 
 (** [start_loc loc] returns a new location pointing only to the beginning of
     [loc], i.e. reduced to a single position equal to the start of [loc].
-    @since Frama-C+dev *)
+    @since 34.0-Selenium *)
 val start_loc : t -> t
 
 (** [end_loc loc] returns a new location pointing only to the end of
     [loc], i.e. reduced to a single position equal to the end of [loc].
-    @since Frama-C+dev *)
+    @since 34.0-Selenium *)
 val end_loc : t -> t
 
 
