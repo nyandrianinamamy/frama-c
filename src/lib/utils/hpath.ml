@@ -193,31 +193,33 @@ end
 (* --- Testing                                                            --- *)
 (* -------------------------------------------------------------------------- *)
 
-let _test_paths paths expected =
-  Hcons.clear ();
-  Cache.clear ();
-  List.iter (fun s -> insert s |> ignore) paths;
-  let pp_path fmt p =
-    Format.fprintf fmt "\n%S" p.path_name;
-    match p.parent with
-    | None -> Format.fprintf fmt " (root)"
-    | Some p -> Format.fprintf fmt " -> %S" p.path_name
-  in
-  let pp_paths fmt =
-    Hcons.iter (pp_path fmt)
-  in
-  let actual = Format.asprintf "%t" pp_paths in
-  let success = String.equal actual expected in
-  if not success then
-    Format.eprintf "Test failed.\nActual:\n%s\nExpected:\n%s\n" actual expected;
-  success
+let%test_module _ = (module struct
+  let test_paths paths expected =
+    Hcons.clear ();
+    Cache.clear ();
+    List.iter (fun s -> insert s |> ignore) paths;
+    let pp_path fmt p =
+      Format.fprintf fmt "\n%S" p.path_name;
+      match p.parent with
+      | None -> Format.fprintf fmt " (root)"
+      | Some p -> Format.fprintf fmt " -> %S" p.path_name
+    in
+    let pp_paths fmt =
+      Hcons.iter (pp_path fmt)
+    in
+    let actual = Format.asprintf "%t" pp_paths in
+    let success = String.equal actual expected in
+    if not success then
+      Format.eprintf "Test failed.\nActual:\n%s\nExpected:\n%s\n"
+        actual expected;
+    success
 
-let%test "absolute directories" =
-  _test_paths
-    [ {|c:\a\b\c|};
-      {|c:/a/b/d|};
-      {|/a/x/c|}; ]
-    {|
+  let%test "absolute directories" =
+    test_paths
+      [ {|c:\a\b\c|};
+        {|c:/a/b/d|};
+        {|/a/x/c|}; ]
+      {|
 "" (root)
 "/a" -> ""
 "/a/x" -> "/a"
@@ -227,3 +229,4 @@ let%test "absolute directories" =
 "c:/a/b" -> "c:/a"
 "c:/a/b/c" -> "c:/a/b"
 "c:/a/b/d" -> "c:/a/b"|}
+end)
