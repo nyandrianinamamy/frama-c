@@ -6,6 +6,12 @@
 (*                                                                        *)
 (**************************************************************************)
 
+(* re_drive match drive expressions to deal with non-Cygwin Windows-like paths
+   (e.g. with MinGW) *)
+let re_drive = Str.regexp {|[A-Za-z]:|}
+let re_dir_separator = Str.regexp {|[/\\]|}
+
+
 (* --- Type definition --- *)
 
 module Prototype = struct
@@ -24,11 +30,46 @@ include Prototype
 
 module Table = Hashtbl.Make (Prototype)
 
+(** Hashconsing table for [Hpath.t].
+    It ensures that [==] can be used to test equality between them. *)
+module Hcons : sig
+  val merge : t -> t
+  val clear : unit -> unit
+  val iter : (t -> unit) -> unit
+end =
+struct
+  (** Cannot use {!Weak}, since the internal [t] representation is temporary.
+      Cannot use a weak-cache because each minor GC may empty the cache
+      (see #191). *)
+  let table : t Table.t = Table.create 128
+  let merge p = Table.memo table p (fun _ -> p)
+  let clear () = Table.clear table
+  let iter f =
+    let cmp p1 p2 = String.compare p1.path_name p2.path_name in
+    Table.iter_sorted_by_value ~cmp (fun _ p -> f p) table
+end
 
-(* re_drive match drive expressions to deal with non-Cygwin Windows-like paths
-   (e.g. with MinGW) *)
-let re_drive = Str.regexp {|[A-Za-z]:|}
-let re_dir_separator = Str.regexp {|[/\\]|}
+
+(* --- Construction --- *)
+
+let make ?parent base_name =
+  let path_name = match parent with
+    | None -> base_name
+    | Some parent ->  Printf.sprintf "%s/%s" parent.path_name base_name
+  in
+  let hash = String.hash path_name in
+  Hcons.merge
+    { path_name;
+      base_name;
+      parent;
+      hash;
+      symbolic_name = None
+    }
+
+let empty = make ""
+
+
+(* --- Normalization --- *)
 
 (** Cache using a hash table from unnormalized paths to normalized paths. *)
 module Cache : sig
@@ -62,45 +103,6 @@ struct
 
   let clear () = Table.clear table
 end
-
-(** Hashconsing table for [Hpath.t].
-    It ensures that [==] can be used to test equality between them. *)
-module Hcons : sig
-  val merge : t -> t
-  val clear : unit -> unit
-  val iter : (t -> unit) -> unit
-end =
-struct
-  (** Cannot use {!Weak}, since the internal [t] representation is temporary.
-      Cannot use a weak-cache because each minor GC may empty the cache
-      (see #191). *)
-  let table : t Table.t = Table.create 128
-  let merge p = Table.memo table p (fun _ -> p)
-  let clear () = Table.clear table
-  let iter f =
-    let cmp p1 p2 = String.compare p1.path_name p2.path_name in
-    Table.iter_sorted_by_value ~cmp (fun _ p -> f p) table
-end
-
-(* --- Construction --- *)
-
-let make ?parent base_name =
-  let path_name = match parent with
-    | None -> base_name
-    | Some parent ->  Printf.sprintf "%s/%s" parent.path_name base_name
-  in
-  let hash = String.hash path_name in
-  Hcons.merge
-    { path_name;
-      base_name;
-      parent;
-      hash;
-      symbolic_name = None
-    }
-
-let empty = make ""
-
-(* --- Normalization --- *)
 
 let parent path =
   match path.parent with
