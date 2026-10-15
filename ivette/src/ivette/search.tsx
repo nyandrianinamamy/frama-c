@@ -151,9 +151,10 @@ export function SearchField(): JSX.Element {
   const disabled = mode.id === '';
   const { hints: getHints, enabled = true } = mode;
   const hints = React.useMemo(() => {
-    if (!getHints) return [];
+    const isSwitch = currMode === switchMode.id;
+    if (!getHints || (pattern.length < 2 && !isSwitch)) return [];
     return lookupHints(getHints(), pattern);
-  }, [getHints, pattern]);
+  }, [getHints, pattern, currMode]);
   React.useEffect(() => {
     if (currMode && currMode !== switchMode.id)
       userMode.current = currMode;
