@@ -207,10 +207,11 @@ let%test_module _ = (module struct
     in
     Hcons.iter (pp_path fmt)
 
-  let test_paths paths expected =
+  let test_paths ?(base="") paths expected =
     reset_tables ();
     (* Insert paths in Hcons table *)
-    List.iter (fun s -> insert s |> ignore) paths;
+    let base = insert ~base:empty base in
+    List.iter (fun s -> insert ~base s |> ignore) paths;
     (* Print and compare the result *)
     let actual = Format.asprintf "%t" pretty_paths in
     let success = String.equal actual expected in
@@ -234,4 +235,23 @@ let%test_module _ = (module struct
 "c:/a/b" -> "c:/a"
 "c:/a/b/c" -> "c:/a/b"
 "c:/a/b/d" -> "c:/a/b"|}
+
+  let%test "relative directories" =
+    test_paths ~base:"/root/subdir"
+      [ {||};
+        {|f|};
+        {|../f|};
+        {|./../g|};
+        {|.././h|};
+        {|i/../i/../j|} ]
+      {|
+"" (root)
+"/root" -> ""
+"/root/f" -> "/root"
+"/root/g" -> "/root"
+"/root/h" -> "/root"
+"/root/subdir" -> "/root"
+"/root/subdir/f" -> "/root/subdir"
+"/root/subdir/i" -> "/root/subdir"
+"/root/subdir/j" -> "/root/subdir"|}
 end)
