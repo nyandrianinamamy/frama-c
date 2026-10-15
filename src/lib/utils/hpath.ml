@@ -115,7 +115,10 @@ let rec normalize parent_path = function
 let insert ?(base=empty) path_name =
   Cache.memo base path_name @@ fun () ->
   match Str.split_delim re_dir_separator path_name with
-  | p :: parts when p = "" || Str.string_match re_drive p 0 ->
+  | "" :: parts ->
+    normalize empty parts
+  | p :: parts when Str.string_match re_drive p 0 ->
+    let p = String.lowercase_ascii p in (* Normalize windows drive letter *)
     normalize (make p) parts
   | parts ->
     normalize base parts
@@ -219,7 +222,7 @@ let%test_module _ = (module struct
   let%test "absolute directories" =
     test_paths
       [ {|c:\a\b\c|};
-        {|c:/a/b/d|};
+        {|C:/a/b/d|};
         {|/a/x/c|}; ]
       {|
 "" (root)
