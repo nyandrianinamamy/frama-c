@@ -74,7 +74,6 @@ let empty = make ""
 (** Cache using a hash table from unnormalized paths to normalized paths. *)
 module Cache : sig
   val memo : t -> string -> (unit -> t) -> t
-  val clear : unit -> unit
 end =
 struct
   (* Until Hashtbl.memo is implemented in stdlib's Hashtbl, we store the hash
@@ -100,8 +99,6 @@ struct
   let memo base file_path f =
     let key = Key.make base file_path in
     Table.memo table key (fun _ -> f ())
-
-  let clear () = Table.clear table
 end
 
 let parent path =
@@ -194,20 +191,25 @@ end
 (* -------------------------------------------------------------------------- *)
 
 let%test_module _ = (module struct
-  let test_paths paths expected =
+  let reset_tables () =
     Hcons.clear ();
-    Cache.clear ();
-    List.iter (fun s -> insert s |> ignore) paths;
+    Hcons.merge empty |> ignore
+
+  let pretty_paths fmt =
     let pp_path fmt p =
       Format.fprintf fmt "\n%S" p.path_name;
       match p.parent with
       | None -> Format.fprintf fmt " (root)"
       | Some p -> Format.fprintf fmt " -> %S" p.path_name
     in
-    let pp_paths fmt =
-      Hcons.iter (pp_path fmt)
-    in
-    let actual = Format.asprintf "%t" pp_paths in
+    Hcons.iter (pp_path fmt)
+
+  let test_paths paths expected =
+    reset_tables ();
+    (* Insert paths in Hcons table *)
+    List.iter (fun s -> insert s |> ignore) paths;
+    (* Print and compare the result *)
+    let actual = Format.asprintf "%t" pretty_paths in
     let success = String.equal actual expected in
     if not success then
       Format.eprintf "Test failed.\nActual:\n%s\nExpected:\n%s\n"
