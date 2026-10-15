@@ -34,7 +34,7 @@ workflow:
 
 variables:
   # CI global configuration
-  DEFAULT: "stable/selenium"
+  DEFAULT: "master"
   OCAML: "5.5"
   NODE: "24"
   # Specific options for Opam
