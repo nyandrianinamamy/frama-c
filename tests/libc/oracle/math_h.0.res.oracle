@@ -993,72 +993,72 @@
 [eva:progress] Done for function __finitef
 [eva:progress] math_h.c:122: assertion got status valid.
 [eva:progress] 
-  computing for function __fc_fpclassifyf <- main.
+  computing for function fpclassify <- main.
   Called from math_h.c:123.
 [eva] using specification for function __fc_fpclassifyf
-[eva:progress] Done for function __fc_fpclassifyf
+[eva:progress] Done for function fpclassify
 [eva:progress] 
-  computing for function __fc_fpclassifyf <- main.
+  computing for function fpclassify <- main.
   Called from math_h.c:124.
-[eva:progress] Done for function __fc_fpclassifyf
+[eva:progress] Done for function fpclassify
 [eva:progress] math_h.c:125: assertion got status valid.
 [eva:progress] 
-  computing for function __fc_fpclassify <- main.
+  computing for function fpclassify <- main.
   Called from math_h.c:128.
 [eva] using specification for function __fc_fpclassify
-[eva:progress] Done for function __fc_fpclassify
+[eva:progress] Done for function fpclassify
 [eva:progress] math_h.c:129: assertion got status valid.
 [eva:progress] 
-  computing for function __fc_fpclassify <- main.
+  computing for function fpclassify <- main.
   Called from math_h.c:130.
-[eva:progress] Done for function __fc_fpclassify
+[eva:progress] Done for function fpclassify
 [eva:progress] math_h.c:131: assertion got status valid.
 [eva:progress] 
-  computing for function __fc_fpclassifyf <- main.
+  computing for function fpclassify <- main.
   Called from math_h.c:132.
-[eva:progress] Done for function __fc_fpclassifyf
+[eva:progress] Done for function fpclassify
 [eva:progress] math_h.c:133: assertion got status valid.
 [eva:progress] 
-  computing for function __fc_signbitf <- main.
+  computing for function signbit <- main.
   Called from math_h.c:136.
 [eva] using specification for function __fc_signbitf
-[eva:progress] Done for function __fc_signbitf
+[eva:progress] Done for function signbit
 [eva:progress] math_h.c:137: assertion got status valid.
 [eva:progress] 
-  computing for function __fc_signbit <- main.
+  computing for function signbit <- main.
   Called from math_h.c:138.
 [eva] using specification for function __fc_signbit
-[eva:progress] Done for function __fc_signbit
+[eva:progress] Done for function signbit
 [eva:alarm] math_h.c:139: Warning: assertion got status unknown.
 [eva:progress] 
-  computing for function __fc_signbit <- main.
+  computing for function signbit <- main.
   Called from math_h.c:140.
-[eva:progress] Done for function __fc_signbit
+[eva:progress] Done for function signbit
 [eva:progress] math_h.c:141: assertion got status valid.
 [eva:progress] 
-  computing for function __fc_signbitf <- main.
+  computing for function signbit <- main.
   Called from math_h.c:142.
-[eva:progress] Done for function __fc_signbitf
+[eva:progress] Done for function signbit
 [eva:alarm] math_h.c:143: Warning: assertion got status unknown.
 [eva:progress] 
-  computing for function __fc_signbitf <- main.
+  computing for function signbit <- main.
   Called from math_h.c:145.
-[eva:progress] Done for function __fc_signbitf
+[eva:progress] Done for function signbit
 [eva:progress] math_h.c:146: assertion got status valid.
 [eva:progress] 
-  computing for function __fc_signbitf <- main.
+  computing for function signbit <- main.
   Called from math_h.c:147.
-[eva:progress] Done for function __fc_signbitf
+[eva:progress] Done for function signbit
 [eva:alarm] math_h.c:148: Warning: assertion got status unknown.
 [eva:progress] 
-  computing for function __fc_signbitf <- main.
+  computing for function signbit <- main.
   Called from math_h.c:150.
-[eva:progress] Done for function __fc_signbitf
+[eva:progress] Done for function signbit
 [eva:progress] Recording results for main
 [eva:progress] Done for function main
 [eva] ====== VALUES COMPUTED ======
 [eva:final-states] Values at end of function main:
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   exponent ∈ [--..--] or UNINITIALIZED
   r ∈ [--..--]
   __retres ∈ {0}

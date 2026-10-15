@@ -77,7 +77,7 @@
 [eva:progress] Done for function main
 [eva] ====== VALUES COMPUTED ======
 [eva:final-states] Values at end of function main:
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   __fc_fds[0..1023] ∈ [--..--]
   out_fd ∈ [-1..1023] or UNINITIALIZED
   in_fd ∈ [-1..1023]

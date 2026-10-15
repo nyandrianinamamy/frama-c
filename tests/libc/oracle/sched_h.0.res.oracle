@@ -32,7 +32,7 @@
 [eva:progress] Done for function main
 [eva] ====== VALUES COMPUTED ======
 [eva:final-states] Values at end of function main:
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   r ∈ [--..--]
   sp ∈ [--..--] or UNINITIALIZED
   interval ∈ [--..--] or UNINITIALIZED

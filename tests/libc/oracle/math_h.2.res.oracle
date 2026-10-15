@@ -1328,32 +1328,32 @@
   function ldexpf: precondition 'finite_logic_res' got status unknown.
 [eva:progress] Done for function ldexpf
 [eva:progress] 
-  computing for function __fc_signbitf <- main.
+  computing for function signbit <- main.
   Called from math_h.c:136.
 [eva] using specification for function __fc_signbitf
-[eva:progress] Done for function __fc_signbitf
+[eva:progress] Done for function signbit
 [eva:progress] math_h.c:137: assertion got status valid.
 [eva:progress] 
-  computing for function __fc_signbit <- main.
+  computing for function signbit <- main.
   Called from math_h.c:138.
 [eva] using specification for function __fc_signbit
-[eva:progress] Done for function __fc_signbit
+[eva:progress] Done for function signbit
 [eva:alarm] math_h.c:139: Warning: assertion got status unknown.
 [eva:progress] 
-  computing for function __fc_signbit <- main.
+  computing for function signbit <- main.
   Called from math_h.c:140.
-[eva:progress] Done for function __fc_signbit
+[eva:progress] Done for function signbit
 [eva:progress] math_h.c:141: assertion got status valid.
 [eva:progress] 
-  computing for function __fc_signbitf <- main.
+  computing for function signbit <- main.
   Called from math_h.c:142.
-[eva:progress] Done for function __fc_signbitf
+[eva:progress] Done for function signbit
 [eva:alarm] math_h.c:143: Warning: assertion got status unknown.
 [eva:progress] Recording results for main
 [eva:progress] Done for function main
 [eva] ====== VALUES COMPUTED ======
 [eva:final-states] Values at end of function main:
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   exponent ∈ [--..--] or UNINITIALIZED
   r ∈ [--..--]
   __retres ∈ {0}

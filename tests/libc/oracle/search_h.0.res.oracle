@@ -212,7 +212,7 @@
   S___fc_stdout[0..1] ∈ [--..--]
 [eva:final-states] Values at end of function main_tdelete:
   __fc_heap_status ∈ [--..--]
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   root ∈ {0}
   str[0..2048] ∈ [--..--] or UNINITIALIZED
   length ∈ {0}
@@ -225,7 +225,7 @@
   __fc_search_data[0..63] ∈ [--..--]
   __fc_search_tbl ∈ [--..--]
   __fc_heap_status ∈ [--..--]
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   root ∈ {0}
   __retres ∈ {0}
   S___fc_stderr[0..1] ∈ [--..--]

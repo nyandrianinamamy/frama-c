@@ -118,7 +118,7 @@ Verbose 8 should enable "malloc" but not "malloc:new" unset by user.
   [eva] ====== VALUES COMPUTED ======
   [eva:final-states] Values at end of function main:
     __fc_heap_status ∈ [--..--]
-    __fc_errno ∈ [--..--]
+    errno ∈ [--..--]
     p ∈ {{ NULL ; &__malloc_w_main_l9[0] }}
     i ∈ {2}
 

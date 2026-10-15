@@ -1,8 +1,8 @@
 [kernel] Parsing example2.c (with preprocessing)
 [alias] analysing global variable definition: __fc_heap_status = {};
 [alias] May-aliases after global variable definition __fc_heap_status are <none>
-[alias] analysing global variable definition: __fc_errno = {};
-[alias] May-aliases after global variable definition __fc_errno are <none>
+[alias] analysing global variable definition: errno = {};
+[alias] May-aliases after global variable definition errno are <none>
 [alias] analysing global variable definition: __fc_rand_max =
   (unsigned long)2147483647;
 [alias] May-aliases after global variable definition __fc_rand_max are <none>

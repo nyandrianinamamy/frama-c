@@ -121,7 +121,7 @@
   __malloc_w_main_l25[0..9] ∈ [0..9] or UNINITIALIZED
 [eva:final-states] Values at end of function main:
   __fc_heap_status ∈ [--..--]
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   p ∈ {{ &__malloc_w_main_l12[0] }}
   q ∈ {{ &__malloc_main_l17[0] }}
   r ∈ {{ &__malloc_w_main_l25[0] }}
@@ -142,11 +142,11 @@
   __malloc_w_main_l25[0..9] FROM p; k (and SELF)
 [from] Function malloc:
   __fc_heap_status FROM __fc_heap_status; size (and SELF)
-  __fc_errno FROM __fc_heap_status; size
+  errno FROM __fc_heap_status; size
   \result FROM __fc_heap_status; size
 [from] Function main:
   __fc_heap_status FROM __fc_heap_status (and SELF)
-  __fc_errno FROM __fc_heap_status
+  errno FROM __fc_heap_status
   __malloc_w_main_l12[0] FROM __fc_heap_status; i; j (and SELF)
   __malloc_main_l17[0] FROM __fc_heap_status; j
   __malloc_w_main_l25[0..9] FROM __fc_heap_status; v (and SELF)
@@ -154,21 +154,21 @@
 [from] ====== DISPLAYING CALLWISE DEPENDENCIES ======
 [from] call to malloc at malloc-deps.c:12 (by main):
   __fc_heap_status FROM __fc_heap_status; size (and SELF)
-  __fc_errno FROM __fc_heap_status; size
+  errno FROM __fc_heap_status; size
   \result FROM __fc_heap_status; size
 [from] call to malloc at malloc-deps.c:17 (by main):
   __fc_heap_status FROM __fc_heap_status; size (and SELF)
-  __fc_errno FROM __fc_heap_status; size
+  errno FROM __fc_heap_status; size
   \result FROM __fc_heap_status; size
 [from] call to malloc at malloc-deps.c:25 (by main):
   __fc_heap_status FROM __fc_heap_status; size (and SELF)
-  __fc_errno FROM __fc_heap_status; size
+  errno FROM __fc_heap_status; size
   \result FROM __fc_heap_status; size
 [from] call to g at malloc-deps.c:26 (by main):
   __malloc_w_main_l25[0..9] FROM p; k (and SELF)
 [from] entry point:
   __fc_heap_status FROM __fc_heap_status (and SELF)
-  __fc_errno FROM __fc_heap_status
+  errno FROM __fc_heap_status
   __malloc_w_main_l12[0] FROM __fc_heap_status; i; j (and SELF)
   __malloc_main_l17[0] FROM __fc_heap_status; j
   __malloc_w_main_l25[0..9] FROM __fc_heap_status; v (and SELF)
@@ -186,4 +186,4 @@
   Operational inputs on termination:
     __fc_heap_status; v; i; j
   Sure outputs:
-    __fc_errno; p; q; l; __malloc_main_l17[0]
+    errno; p; q; l; __malloc_main_l17[0]

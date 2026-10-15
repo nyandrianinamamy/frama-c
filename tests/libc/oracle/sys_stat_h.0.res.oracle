@@ -134,7 +134,7 @@
 [eva] ====== VALUES COMPUTED ======
 [eva:final-states] Values at end of function main:
   __fc_fds[0..1023] ∈ [--..--]
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   fd ∈ [-1..1023]
   st ∈ [--..--] or UNINITIALIZED
   r ∈ {-1; 0} or UNINITIALIZED

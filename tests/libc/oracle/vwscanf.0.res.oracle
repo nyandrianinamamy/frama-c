@@ -1038,7 +1038,7 @@
   lc ∈ [--..--] or UNINITIALIZED
   __retres ∈ [-128..127]
 [eva:final-states] Values at end of function vwscanf:
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   Frama_C_entropy_source ∈ [--..--]
   d ∈ [--..--] or UNINITIALIZED
   c ∈ [--..--] or UNINITIALIZED
@@ -1050,7 +1050,7 @@
   lc ∈ [--..--] or UNINITIALIZED
   __retres ∈ [-128..127]
 [eva:final-states] Values at end of function caller_stub_for_vwscanf:
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   Frama_C_entropy_source ∈ [--..--]
   d ∈ [--..--] or UNINITIALIZED
   c ∈ [--..--] or UNINITIALIZED
@@ -1063,7 +1063,7 @@
   args ∈ {{ &__va_args[0] }}
   res ∈ [-128..127]
 [eva:final-states] Values at end of function main:
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   Frama_C_entropy_source ∈ [--..--]
   d ∈ [--..--] or UNINITIALIZED
   c ∈ [--..--] or UNINITIALIZED

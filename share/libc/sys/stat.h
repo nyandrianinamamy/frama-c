@@ -22,11 +22,11 @@ __BEGIN_DECLS
 /*@
   // missing: assigns 'filesystem' \frompath, path[0..], mode;
   requires valid_path: valid_read_string(path);
-  assigns \result, __fc_errno
+  assigns \result, errno
           \from indirect:path, indirect:path[0 .. strlen(path)],
                 indirect:mode; //missing: \from 'filesystem'
-  ensures errno_set: __fc_errno == \old(__fc_errno) ||
-                     __fc_errno \in {EACCES, EINTR, EINVAL, ELOOP,
+  ensures errno_set: errno == \old(errno) ||
+                     errno \in {EACCES, EINTR, EINVAL, ELOOP,
                                      ENAMETOOLONG, ENOENT, ENOTDIR, EPERM,
                                      EROFS};
   ensures result_ok_or_error: \result == 0 || \result == -1;
@@ -36,11 +36,11 @@ extern int chmod(const char *path, mode_t mode);
 /*@
   // missing: assigns 'filesystem' \from fd, path, path[0..], mode, flag;
   requires valid_path: valid_read_string(path);
-  assigns \result, __fc_errno
+  assigns \result, errno
           \from indirect:fd, indirect:path, indirect:path[0 .. strlen(path)],
                 indirect:mode, indirect:flag; //missing: \from 'filesystem'
-  ensures errno_set: __fc_errno == \old(__fc_errno) ||
-                     __fc_errno \in {EACCES, EBADF, EINTR, EINVAL, ELOOP,
+  ensures errno_set: errno == \old(errno) ||
+                     errno \in {EACCES, EBADF, EINTR, EINVAL, ELOOP,
                                      ENAMETOOLONG, ENOENT, ENOTDIR, EOPNOTSUPP,
                                      EPERM, EROFS};
   ensures result_ok_or_error: \result == 0 || \result == -1;
@@ -49,10 +49,10 @@ extern int fchmodat(int fd, const char *path, mode_t mode, int flag);
 
 /*@
   // missing: assigns 'filesystem' \from fildes, mode;
-  assigns \result, __fc_errno
+  assigns \result, errno
           \from indirect:fildes, indirect:mode; //missing: \from 'filesystem'
-  ensures errno_set: __fc_errno == \old(__fc_errno) ||
-                     __fc_errno \in {EBADF, EINTR, EINVAL, EPERM, EROFS};
+  ensures errno_set: errno == \old(errno) ||
+                     errno \in {EBADF, EINTR, EINVAL, EPERM, EROFS};
   ensures result_ok_or_error: \result == 0 || \result == -1;
 */
 extern int fchmod(int fildes, mode_t mode);
@@ -61,11 +61,11 @@ extern int fchmod(int fildes, mode_t mode);
 /*@
   // missing: assigns 'filesystem' \from path, path[0..], mode;
   requires valid_path: valid_read_string(path);
-  assigns \result, __fc_errno
+  assigns \result, errno
           \from indirect:path, indirect:path[0 .. strlen(path)],
                 indirect:mode; //missing: \from 'filesystem'
-  ensures errno_set: __fc_errno == \old(__fc_errno) ||
-                     __fc_errno \in {EACCES, EINTR, EINVAL, ELOOP,
+  ensures errno_set: errno == \old(errno) ||
+                     errno \in {EACCES, EINTR, EINVAL, ELOOP,
                                      ENAMETOOLONG, ENOENT, ENOTDIR, EPERM,
                                      EROFS};
   ensures result_ok_or_error: \result == 0 || \result == -1;
@@ -76,10 +76,10 @@ extern int lchmod(const char *path, mode_t mode);
   //TODO: define proper initialization postcondition; it involves only a few
   //      specific fields, and only a few bits within those fields.
   requires valid_buf: \valid(buf);
-  assigns \result, *buf, __fc_errno
+  assigns \result, *buf, errno
           \from indirect:fildes; //missing: \from 'filesystem'
-  ensures errno_set: __fc_errno == \old(__fc_errno) ||
-                     __fc_errno \in {EBADF, EIO, EOVERFLOW};
+  ensures errno_set: errno == \old(errno) ||
+                     errno \in {EBADF, EIO, EOVERFLOW};
   ensures result_ok_or_error: \result == 0 || \result == -1;
 */
 extern int fstat(int fildes, struct stat *buf);
@@ -88,11 +88,11 @@ extern int fstat(int fildes, struct stat *buf);
   // missing: assigns 'filesystem' \from fd, path, path[0..], flag;
   requires valid_path: valid_read_string(path);
   requires valid_buf: \valid(buf);
-  assigns \result, *buf, __fc_errno
+  assigns \result, *buf, errno
           \from indirect:fd, indirect:path, indirect:path[0 .. strlen(path)],
                 indirect:flag; //missing: \from 'filesystem'
-  ensures errno_set: __fc_errno == \old(__fc_errno) ||
-                     __fc_errno \in {EACCES, EBADF, EINVAL, EIO, ELOOP,
+  ensures errno_set: errno == \old(errno) ||
+                     errno \in {EACCES, EBADF, EINVAL, EIO, ELOOP,
                                      ENAMETOOLONG, ENOENT, ENOMEM, ENOTDIR,
                                      EOVERFLOW};
   ensures result_ok_or_error: \result == 0 || \result == -1;
@@ -174,8 +174,8 @@ extern mode_t umask(mode_t cmask);
     \initialized(times+(0 .. 1)) || times == \null;
   assigns \result \from indirect:dirfd, indirect:path, indirect:path[0..],
                         indirect:times, indirect:times[0..], indirect:flags;
-  ensures errno_set: __fc_errno == \old(__fc_errno) ||
-                     __fc_errno \in {EACCES, EBADF, EFAULT, EINVAL, ELOOP,
+  ensures errno_set: errno == \old(errno) ||
+                     errno \in {EACCES, EBADF, EFAULT, EINVAL, ELOOP,
                                      ENAMETOOLONG, ENOENT, ENOTDIR, EPERM,
                                      EROFS, ESRCH};
   ensures result_ok_or_error: \result == 0 || \result == -1;
@@ -190,8 +190,8 @@ extern int utimensat(int dirfd, const char *path,
   requires initialized_times_or_null:initialization:
     \initialized(times+(0 .. 1)) || times == \null;
   assigns \result \from indirect:fd, indirect:times, indirect:times[0..];
-  ensures errno_set: __fc_errno == \old(__fc_errno) ||
-                     __fc_errno \in {EACCES, EBADF, EFAULT, EINVAL, EPERM,
+  ensures errno_set: errno == \old(errno) ||
+                     errno \in {EACCES, EBADF, EFAULT, EINVAL, EPERM,
                                      EROFS};
   ensures result_ok_or_error: \result == 0 || \result == -1;
 */

@@ -30,7 +30,7 @@ int fprintf_va_2(FILE * restrict stream, char const * restrict format,
 
 void main(void)
 {
-  fprintf(__fc_stderr,"%d ",42); /* fprintf_va_2 */
+  fprintf(stderr,"%d ",42); /* fprintf_va_2 */
   return;
 }
 

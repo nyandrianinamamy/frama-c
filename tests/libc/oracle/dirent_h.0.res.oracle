@@ -67,7 +67,7 @@
 [scope:rm_asserts] removing 1 assertion(s)
 [eva] ====== VALUES COMPUTED ======
 [eva:final-states] Values at end of function main:
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   __fc_opendir[0..15] ∈
               {{ garbled mix of &{S___fc_dir_inode_0___fc_opendir;
                                   S___fc_dir_entries_0___fc_opendir;

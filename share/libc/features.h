@@ -129,7 +129,7 @@
 
 // The `__FC_EXTERN_FOR_MACRO` can be used to mark that a variable internal to
 // Frama-C replaces an existing libc macro. For instance `errno` is a macro
-// that points to `__fc_errno` in Frama-C's libc, in this case `__fc_errno` is
+// that points to `errno` in Frama-C's libc, in this case `errno` is
 // marked with `__FC_EXTERN_FOR_MACRO(errno)`. The macro adds the attributes
 // `__fc_stdlib_internal` and `__fc_stdlib_for_macro(macro)`.
 #ifndef __FC_EXTERN_FOR_MACRO

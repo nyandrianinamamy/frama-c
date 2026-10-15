@@ -163,7 +163,7 @@
 [eva] builtins.c:111: assertion 'Eva,initialization' got final status invalid.
 [eva] ====== VALUES COMPUTED ======
 [eva:final-states] Values at end of function main_log_exp:
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   l1 ∈ {0} or UNINITIALIZED
   l2 ∈ {1.00063188031} or UNINITIALIZED
   l3 ∈ {1.09861228867} or UNINITIALIZED

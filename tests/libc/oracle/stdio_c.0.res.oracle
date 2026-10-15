@@ -456,30 +456,30 @@
 [eva:progress] Done for function main
 [eva] ====== VALUES COMPUTED ======
 [eva:final-states] Values at end of function fgetc:
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   Frama_C_entropy_source ∈ [--..--]
   __retres ∈ [-1..255]
 [eva:final-states] Values at end of function fgets:
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   Frama_C_entropy_source ∈ [--..--]
   i ∈ [0..9] or UNINITIALIZED
   buf[0..8] ∈ [--..--] or UNINITIALIZED
      [9] ∈ {0} or UNINITIALIZED
   __retres ∈ {{ NULL ; &buf[0] }}
 [eva:final-states] Values at end of function getchar:
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   Frama_C_entropy_source ∈ [--..--]
 [eva:final-states] Values at end of function is_valid_mode:
   __retres ∈ {1}
 [eva:final-states] Values at end of function fmemopen:
   __fc_heap_status ∈ [--..--]
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   Frama_C_entropy_source ∈ [--..--]
   buf ∈ {{ NULL ; (void *)&__malloc_fmemopen_l209 }}
   __retres ∈ {{ NULL ; &__fc_fopen + [0..120],0%8 }}
 [eva:final-states] Values at end of function getline:
   __fc_heap_status ∈ [--..--]
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   Frama_C_entropy_source ∈ [--..--]
   cur ∈ [0..2147483647] or UNINITIALIZED
   line ∈
@@ -491,7 +491,7 @@
                          [2147483646] ∈ {0} or UNINITIALIZED
 [eva:final-states] Values at end of function vasprintf:
   __fc_heap_status ∈ [--..--]
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   Frama_C_entropy_source ∈ [--..--]
   len ∈ [1..256]
   s ∈ {{ NULL ; &__malloc_vasprintf_l102[0] }}
@@ -500,7 +500,7 @@
                          [255] ∈ {0} or UNINITIALIZED
 [eva:final-states] Values at end of function asprintf:
   __fc_heap_status ∈ [--..--]
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   Frama_C_entropy_source ∈ [--..--]
   args ∈ {{ &__va_args[0] }}
   res ∈ [-1..256]
@@ -509,7 +509,7 @@
                          [255] ∈ {0} or UNINITIALIZED
 [eva:final-states] Values at end of function main:
   __fc_heap_status ∈ [--..--]
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   Frama_C_entropy_source ∈ [--..--]
   __fc_fopen[0..15] ∈ [--..--]
   __fc_initial_stdout.__fc_FILE_id ∈ {1}

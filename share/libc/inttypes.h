@@ -267,24 +267,24 @@ extern imaxdiv_t imaxdiv(intmax_t numer, intmax_t denom);
                         indirect:base;
   assigns *endptr \from nptr, indirect:nptr[0 .. strlen(nptr)],
                         indirect:endptr, indirect:base;
-  assigns __fc_errno \from indirect:nptr[0 .. strlen(nptr)], indirect:base;
+  assigns errno \from indirect:nptr[0 .. strlen(nptr)], indirect:base;
   behavior cannot_convert:
     assumes
       no_conversion: str_to_integer(nptr, INTMAX_MIN, INTMAX_MAX, base) == 0;
     assigns \result \from indirect:nptr, indirect:nptr[0 .. strlen(nptr)],
                           indirect:base;
-    assigns __fc_errno \from indirect:nptr[0 .. strlen(nptr)], indirect:base;
+    assigns errno \from indirect:nptr[0 .. strlen(nptr)], indirect:base;
     ensures result_no_conversion: \result == 0;
-    ensures errno_set: __fc_errno == EINVAL;
+    ensures errno_set: errno == EINVAL;
   behavior out_of_range_null_endptr:
     assumes
       out_of_range: str_to_integer(nptr, INTMAX_MIN, INTMAX_MAX, base) == 2;
     assumes null_endptr: endptr == \null;
     assigns \result \from indirect:nptr, indirect:nptr[0 .. strlen(nptr)],
                           indirect:base;
-    assigns __fc_errno \from indirect:nptr[0 .. strlen(nptr)], indirect:base;
+    assigns errno \from indirect:nptr[0 .. strlen(nptr)], indirect:base;
     ensures result_out_of_range: \result == INTMAX_MIN || \result == INTMAX_MAX;
-    ensures errno_set: __fc_errno == ERANGE;
+    ensures errno_set: errno == ERANGE;
   behavior out_of_range_nonnull_endptr:
     // Note: the standard does not state that endptr is definitively assigned
     //       to in this case, so we assume it may be.
@@ -299,9 +299,9 @@ extern imaxdiv_t imaxdiv(intmax_t numer, intmax_t denom);
     ensures initialization: \initialized(endptr);
     ensures valid_endptr_content: \valid_read(*endptr);
     ensures endptr_same_base: \base_addr(*endptr) == \base_addr(nptr);
-    assigns __fc_errno \from indirect:nptr[0 .. strlen(nptr)], indirect:base;
+    assigns errno \from indirect:nptr[0 .. strlen(nptr)], indirect:base;
     ensures result_out_of_range: \result == INTMAX_MIN || \result == INTMAX_MAX;
-    ensures errno_set: __fc_errno == ERANGE;
+    ensures errno_set: errno == ERANGE;
   behavior in_range_null_endptr:
     assumes in_range: str_to_integer(nptr, INTMAX_MIN, INTMAX_MAX, base) == 1;
     assumes null_endptr: endptr == \null;
@@ -332,24 +332,24 @@ extern intmax_t strtoimax(const char * restrict nptr,
                         indirect:base;
   assigns *endptr \from nptr, indirect:nptr[0 .. strlen(nptr)],
                         indirect:endptr, indirect:base;
-  assigns __fc_errno \from indirect:nptr[0 .. strlen(nptr)], indirect:base;
+  assigns errno \from indirect:nptr[0 .. strlen(nptr)], indirect:base;
   behavior cannot_convert:
     assumes
       no_conversion: str_to_integer(nptr, 0, UINTMAX_MAX, base) == 0;
     assigns \result \from indirect:nptr, indirect:nptr[0 .. strlen(nptr)],
                           indirect:base;
-    assigns __fc_errno \from indirect:nptr[0 .. strlen(nptr)], indirect:base;
+    assigns errno \from indirect:nptr[0 .. strlen(nptr)], indirect:base;
     ensures result_no_conversion: \result == 0;
-    ensures errno_set: __fc_errno == EINVAL;
+    ensures errno_set: errno == EINVAL;
   behavior out_of_range_null_endptr:
     assumes
       out_of_range: str_to_integer(nptr, 0, UINTMAX_MAX, base) == 2;
     assumes null_endptr: endptr == \null;
     assigns \result \from indirect:nptr, indirect:nptr[0 .. strlen(nptr)],
                           indirect:base;
-    assigns __fc_errno \from indirect:nptr[0 .. strlen(nptr)], indirect:base;
+    assigns errno \from indirect:nptr[0 .. strlen(nptr)], indirect:base;
     ensures result_out_of_range: \result == UINTMAX_MAX;
-    ensures errno_set: __fc_errno == ERANGE;
+    ensures errno_set: errno == ERANGE;
   behavior out_of_range_nonnull_endptr:
     // Note: the standard does not state that endptr is definitively assigned
     //       to in this case, so we assume it may be.
@@ -364,9 +364,9 @@ extern intmax_t strtoimax(const char * restrict nptr,
     ensures initialization: \initialized(endptr);
     ensures valid_endptr_content: \valid_read(*endptr);
     ensures endptr_same_base: \base_addr(*endptr) == \base_addr(nptr);
-    assigns __fc_errno \from indirect:nptr[0 .. strlen(nptr)], indirect:base;
+    assigns errno \from indirect:nptr[0 .. strlen(nptr)], indirect:base;
     ensures result_out_of_range: \result == UINTMAX_MAX;
-    ensures errno_set: __fc_errno == ERANGE;
+    ensures errno_set: errno == ERANGE;
   behavior in_range_null_endptr:
     assumes in_range: str_to_integer(nptr, 0, UINTMAX_MAX, base) == 1;
     assumes null_endptr: endptr == \null;
@@ -397,24 +397,24 @@ extern uintmax_t strtoumax(const char * restrict nptr,
                         indirect:base;
   assigns *endptr \from nptr, indirect:nptr[0 .. wcslen(nptr)],
                         indirect:endptr, indirect:base;
-  assigns __fc_errno \from indirect:nptr[0 .. wcslen(nptr)], indirect:base;
+  assigns errno \from indirect:nptr[0 .. wcslen(nptr)], indirect:base;
   behavior cannot_convert:
     assumes
       no_conversion: wcs_to_integer(nptr, INTMAX_MIN, INTMAX_MAX, base) == 0;
     assigns \result \from indirect:nptr, indirect:nptr[0 .. wcslen(nptr)],
                           indirect:base;
-    assigns __fc_errno \from indirect:nptr[0 .. wcslen(nptr)], indirect:base;
+    assigns errno \from indirect:nptr[0 .. wcslen(nptr)], indirect:base;
     ensures result_no_conversion: \result == 0;
-    ensures errno_set: __fc_errno == EINVAL;
+    ensures errno_set: errno == EINVAL;
   behavior out_of_range_null_endptr:
     assumes
       out_of_range: wcs_to_integer(nptr, INTMAX_MIN, INTMAX_MAX, base) == 2;
     assumes null_endptr: endptr == \null;
     assigns \result \from indirect:nptr, indirect:nptr[0 .. wcslen(nptr)],
                           indirect:base;
-    assigns __fc_errno \from indirect:nptr[0 .. wcslen(nptr)], indirect:base;
+    assigns errno \from indirect:nptr[0 .. wcslen(nptr)], indirect:base;
     ensures result_out_of_range: \result == INTMAX_MIN || \result == INTMAX_MAX;
-    ensures errno_set: __fc_errno == ERANGE;
+    ensures errno_set: errno == ERANGE;
   behavior out_of_range_nonnull_endptr:
     // Note: the standard does not state that endptr is definitively assigned
     //       to in this case, so we assume it may be.
@@ -429,9 +429,9 @@ extern uintmax_t strtoumax(const char * restrict nptr,
     ensures initialization: \initialized(endptr);
     ensures valid_endptr_content: \valid_read(*endptr);
     ensures endptr_same_base: \base_addr(*endptr) == \base_addr(nptr);
-    assigns __fc_errno \from indirect:nptr[0 .. wcslen(nptr)], indirect:base;
+    assigns errno \from indirect:nptr[0 .. wcslen(nptr)], indirect:base;
     ensures result_out_of_range: \result == INTMAX_MIN || \result == INTMAX_MAX;
-    ensures errno_set: __fc_errno == ERANGE;
+    ensures errno_set: errno == ERANGE;
   behavior in_range_null_endptr:
     assumes in_range: wcs_to_integer(nptr, INTMAX_MIN, INTMAX_MAX, base) == 1;
     assumes null_endptr: endptr == \null;
@@ -462,24 +462,24 @@ extern intmax_t wcstoimax(const wchar_t * restrict nptr,
                         indirect:base;
   assigns *endptr \from nptr, indirect:nptr[0 .. wcslen(nptr)],
                         indirect:endptr, indirect:base;
-  assigns __fc_errno \from indirect:nptr[0 .. wcslen(nptr)], indirect:base;
+  assigns errno \from indirect:nptr[0 .. wcslen(nptr)], indirect:base;
   behavior cannot_convert:
     assumes
       no_conversion: wcs_to_integer(nptr, 0, UINTMAX_MAX, base) == 0;
     assigns \result \from indirect:nptr, indirect:nptr[0 .. wcslen(nptr)],
                           indirect:base;
-    assigns __fc_errno \from indirect:nptr[0 .. wcslen(nptr)], indirect:base;
+    assigns errno \from indirect:nptr[0 .. wcslen(nptr)], indirect:base;
     ensures result_no_conversion: \result == 0;
-    ensures errno_set: __fc_errno == EINVAL;
+    ensures errno_set: errno == EINVAL;
   behavior out_of_range_null_endptr:
     assumes
       out_of_range: wcs_to_integer(nptr, 0, UINTMAX_MAX, base) == 2;
     assumes null_endptr: endptr == \null;
     assigns \result \from indirect:nptr, indirect:nptr[0 .. wcslen(nptr)],
                           indirect:base;
-    assigns __fc_errno \from indirect:nptr[0 .. wcslen(nptr)], indirect:base;
+    assigns errno \from indirect:nptr[0 .. wcslen(nptr)], indirect:base;
     ensures result_out_of_range: \result == UINTMAX_MAX;
-    ensures errno_set: __fc_errno == ERANGE;
+    ensures errno_set: errno == ERANGE;
   behavior out_of_range_nonnull_endptr:
     // Note: the standard does not state that endptr is definitively assigned
     //       to in this case, so we assume it may be.
@@ -494,9 +494,9 @@ extern intmax_t wcstoimax(const wchar_t * restrict nptr,
     ensures initialization: \initialized(endptr);
     ensures valid_endptr_content: \valid_read(*endptr);
     ensures endptr_same_base: \base_addr(*endptr) == \base_addr(nptr);
-    assigns __fc_errno \from indirect:nptr[0 .. wcslen(nptr)], indirect:base;
+    assigns errno \from indirect:nptr[0 .. wcslen(nptr)], indirect:base;
     ensures result_out_of_range: \result == UINTMAX_MAX;
-    ensures errno_set: __fc_errno == ERANGE;
+    ensures errno_set: errno == ERANGE;
   behavior in_range_null_endptr:
     assumes in_range: wcs_to_integer(nptr, 0, UINTMAX_MAX, base) == 1;
     assumes null_endptr: endptr == \null;

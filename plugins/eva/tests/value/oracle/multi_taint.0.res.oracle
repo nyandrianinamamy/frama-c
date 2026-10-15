@@ -62,7 +62,7 @@
   # cvalue:
   __fc_heap_status ∈ [--..--]
   Frama_C_entropy_source ∈ [--..--]
-  __fc_stdin ∈ {{ NULL ; &S___fc_stdin[0] }}
+  stdin ∈ {{ NULL ; &S___fc_stdin[0] }}
   undet ∈ [--..--]
   taint_var ∈ {{ &taint_var }}
   t ∈ [--..--]
