@@ -6,10 +6,84 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* re_drive match drive expressions to deal with non-Cygwin Windows-like paths
-   (e.g. with MinGW) *)
-let re_drive = Str.regexp {|[A-Za-z]:|}
-let re_dir_separator = Str.regexp {|[/\\]|}
+let re_dir_separator = Str.regexp {|[/\\]+|}
+
+(* Special path handling *)
+type absolute_path_kind =
+  | WindowsUnparsed
+  | WindowsDevice
+  | WindowsNetwork of string (* host name *)
+  | WindowsAbsolute of string (* drive letter *)
+  | UnixNetwork of string (* host name *)
+  | UnixAbsolute
+  | EnvironmentVariable of string
+
+type relative_path_kind =
+  | WindowsRelative of string (* drive letter *)
+  | AnyPlatform
+
+type path_kind =
+  | Absolute of absolute_path_kind
+  | Relative of relative_path_kind
+
+let re_special_paths =
+  let (|^) l r = l ^ "\\|" ^ r in
+  let group s = "\\(" ^  s ^ "\\)" in
+  let alpha = "[A-Za-z]" in
+  Str.regexp (
+    group {|\\\\?\\|} |^
+    group {|\\\\.\\|} |^
+    {|\\\\|} ^ group (alpha ^ "+") ^ {|\\|} |^
+    group alpha ^ ":\\\\" |^
+    group alpha ^ ":" |^
+    {|//|} ^ group (alpha ^ "+") ^ {|/|} |^
+    group {|/|} |^
+    "$" ^ group (alpha ^ "+")
+  )
+
+let parse_special_path s =
+  let matched_group () =
+    let rec aux i =
+      try
+        Str.group_beginning i |> ignore;
+        i, lazy (Str.matched_group i s)
+      with
+      | Not_found -> aux (i + 1)
+      | Invalid_argument _ -> -1, lazy ""
+    in
+    aux 1
+  in
+  if not (Str.string_match re_special_paths s 0) then
+    Relative AnyPlatform, s
+  else begin
+    let kind = match matched_group () with
+      | 1, _ -> Absolute WindowsUnparsed
+      | 2, _ -> Absolute WindowsDevice
+      | 3, hostname -> Absolute (WindowsNetwork (Lazy.force hostname))
+      | 4, drive ->
+        let drive = Lazy.force drive |> String.lowercase_ascii in
+        Absolute (WindowsAbsolute drive)
+      | 5, drive ->
+        let drive = Lazy.force drive |> String.lowercase_ascii in
+        Relative (WindowsRelative drive)
+      | 6, hostname -> Absolute (UnixNetwork (Lazy.force hostname))
+      | 7, _ -> Absolute UnixAbsolute
+      | 8, variable -> Absolute (EnvironmentVariable (Lazy.force variable))
+      | _ -> assert false
+    in
+    let pos = Str.match_end () in
+    let rest = String.sub s pos (String.length s - pos) in
+    kind, rest
+  end
+
+let absolute_path_prefix = function
+  | WindowsUnparsed -> "\\\\?\\"
+  | WindowsDevice -> "\\\\.\\"
+  | WindowsNetwork hostname -> Printf.sprintf "\\\\%s\\" hostname
+  | WindowsAbsolute drive -> Printf.sprintf "%s:\\" drive
+  | UnixAbsolute -> "/"
+  | UnixNetwork hostname -> Printf.sprintf "//%s/" hostname
+  | EnvironmentVariable variable -> Printf.sprintf "$%s/" variable
 
 
 (* --- Type definition --- *)
@@ -24,6 +98,13 @@ module Prototype = struct
   }
   let hash p = p.hash
   let equal p q = p.path_name = q.path_name
+  let dummy =
+    { path_name="";
+      base_name="";
+      parent=None;
+      hash=0;
+      symbolic_name=None;
+    }
 end
 
 include Prototype
@@ -54,8 +135,12 @@ end
 
 let make ?parent base_name =
   let path_name = match parent with
-    | None -> base_name
-    | Some parent ->  Printf.sprintf "%s/%s" parent.path_name base_name
+    | None ->
+      base_name
+    | Some { parent=None; path_name=parent_path } ->
+      parent_path ^ base_name (* parent_path already contains "/" or "\\" *)
+    | Some { parent=Some _; path_name=parent_path } ->
+      Printf.sprintf "%s/%s" parent_path base_name
   in
   let hash = String.hash path_name in
   Hcons.merge
@@ -65,8 +150,6 @@ let make ?parent base_name =
       hash;
       symbolic_name = None
     }
-
-let empty = make ""
 
 
 (* --- Normalization --- *)
@@ -101,29 +184,36 @@ struct
     Table.memo table key (fun _ -> f ())
 end
 
-let parent path =
+let parent_path path =
   match path.parent with
-  | None -> path (* the parent of the root directory is itself *)
+  | None -> path (* the parent of a root directory is itself *)
   | Some d -> d
 
-let rec normalize parent_path = function
-  | [] | [""] -> parent_path
-  | ".." :: ps -> normalize (parent parent_path) ps
-  | "." :: ps -> normalize parent_path ps
-  | p :: ps -> normalize (make ~parent:parent_path p) ps
+let rec normalize ~parent = function
+  | [] -> parent
+  | [""] -> parent (* ignore empty parts *)
+  | ".." :: ps -> normalize ~parent:(parent_path parent) ps
+  | "." :: ps -> normalize ~parent ps
+  | p :: ps -> normalize ~parent:(make ~parent p) ps
 
-let insert ?(base=empty) path_name =
+let insert ~base path_name =
   Cache.memo base path_name @@ fun () ->
-  match Str.split_delim re_dir_separator path_name with
-  | "" :: parts ->
-    normalize empty parts
-  | p :: parts when Str.string_match re_drive p 0 ->
-    let p = String.lowercase_ascii p in (* Normalize windows drive letter *)
-    normalize (make p) parts
-  | parts ->
-    normalize base parts
+  let path_kind, parts_string = parse_special_path path_name in
+  let parent =
+    match path_kind with
+    | Relative (WindowsRelative _)
+    | Absolute (WindowsUnparsed | WindowsDevice | WindowsNetwork _) ->
+      invalid_arg "unsupported windows relative or special path"
+    | Relative AnyPlatform ->
+      assert (base != dummy);
+      base
+    | Absolute (WindowsAbsolute _ | UnixAbsolute | UnixNetwork _ | EnvironmentVariable _ as kind)->
+      make (absolute_path_prefix kind)
+  in
+  let parts = Str.split_delim re_dir_separator parts_string in
+  normalize ~parent parts
 
-let cwd = Unix.(realpath (getcwd ())) |> insert
+let cwd = Unix.(realpath (getcwd ())) |> insert ~base:dummy
 
 
 (* --- Conversion --- *)
@@ -150,7 +240,7 @@ let to_uri path =
         Absolute
       | Some parent ->
         let base = add_component parent in
-        if Buffer.length buffer > 0 || base = Absolute then
+        if Buffer.length buffer > 0 && parent.parent != None then
           Buffer.add_char buffer '/';
         Buffer.add_string buffer path.base_name;
         base
@@ -194,10 +284,6 @@ end
 (* -------------------------------------------------------------------------- *)
 
 let%test_module _ = (module struct
-  let reset_tables () =
-    Hcons.clear ();
-    Hcons.merge empty |> ignore
-
   let pretty_paths fmt =
     let pp_path fmt p =
       Format.fprintf fmt "\n%S" p.path_name;
@@ -207,11 +293,10 @@ let%test_module _ = (module struct
     in
     Hcons.iter (pp_path fmt)
 
-  let test_paths ?(base="") paths expected =
-    reset_tables ();
+  let test_paths ?base paths expected =
+    Hcons.clear ();
     (* Insert paths in Hcons table *)
-    let base = insert ~base:empty base in
-    List.iter (fun s -> insert ~base s |> ignore) paths;
+    List.iter (fun s -> of_string ?base s |> ignore) paths;
     (* Print and compare the result *)
     let actual = Format.asprintf "%t" pretty_paths in
     let success = String.equal actual expected in
@@ -223,18 +308,18 @@ let%test_module _ = (module struct
   let%test "absolute directories" =
     test_paths
       [ {|c:\a\b\c|};
-        {|C:/a/b/d|};
+        {|C:\a/b/d|};
         {|/a/x/c|}; ]
       {|
-"" (root)
-"/a" -> ""
+"/" (root)
+"/a" -> "/"
 "/a/x" -> "/a"
 "/a/x/c" -> "/a/x"
-"c:" (root)
-"c:/a" -> "c:"
-"c:/a/b" -> "c:/a"
-"c:/a/b/c" -> "c:/a/b"
-"c:/a/b/d" -> "c:/a/b"|}
+"c:\\" (root)
+"c:\\a" -> "c:\\"
+"c:\\a/b" -> "c:\\a"
+"c:\\a/b/c" -> "c:\\a/b"
+"c:\\a/b/d" -> "c:\\a/b"|}
 
   let%test "relative directories" =
     test_paths ~base:"/root/subdir"
@@ -245,8 +330,8 @@ let%test_module _ = (module struct
         {|.././h|};
         {|i/../i/../j|} ]
       {|
-"" (root)
-"/root" -> ""
+"/" (root)
+"/root" -> "/"
 "/root/f" -> "/root"
 "/root/g" -> "/root"
 "/root/h" -> "/root"
@@ -254,4 +339,17 @@ let%test_module _ = (module struct
 "/root/subdir/f" -> "/root/subdir"
 "/root/subdir/i" -> "/root/subdir"
 "/root/subdir/j" -> "/root/subdir"|}
+
+  let%test "multiple slashes" =
+    test_paths
+      [ "//";
+        "///";
+        "//host//";
+        "///tmp//dir///subdir//" ]
+      {|
+"/" (root)
+"//host/" (root)
+"/tmp" -> "/"
+"/tmp/dir" -> "/tmp"
+"/tmp/dir/subdir" -> "/tmp/dir"|}
 end)

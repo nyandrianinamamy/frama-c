@@ -227,7 +227,7 @@ let all_symbolic_dirs () =
 let%test _ = of_string "/" = "/"
 let%test _ = of_string "/.." = "/"
 let%test _ = of_string "/../../." = "/"
-let%test _ = of_string "///" = "//"
+let%test _ = of_string "///" = "/"
 let%test _ = of_string "//tmp//" = "//tmp/"
 let%test _ = of_string "/../tmp/../.." = "/"
 let%test _ = of_string "/tmp/inexistent_directory/.." = "/tmp"
