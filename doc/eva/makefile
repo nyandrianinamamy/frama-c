@@ -9,7 +9,6 @@ OPENSOURCE?=yes
 export OPENSOURCE
 
 main.pdf: ../../VERSION examples/**.c
-	$(MAKE) -C examples/parametrizing
 	$(MAKE) $(FRAMAC_MODERN)
 	latexmk -pdf main.tex
 ifeq ($(OPENSOURCE),no)
@@ -19,7 +18,7 @@ else
 endif
 
 mthread.pdf: ../../VERSION ../../VERSION_CODENAME examples/mthread/**.c
-	$(MAKE) -C examples/mthread
+	$(MAKE) -C examples/mthread pdf
 	$(MAKE) $(FRAMAC_MODERN)
 	latexmk -pdf mthread/mthread.tex
 	@echo "Generated Mthread manual"
@@ -27,11 +26,17 @@ mthread.pdf: ../../VERSION ../../VERSION_CODENAME examples/mthread/**.c
 clean:
 	latexmk -C -bibtex
 	latexmk -C -bibtex mthread/mthread.tex
-	$(MAKE) -C examples/parametrizing clean
-	$(MAKE) -C examples/mthread clean
 
 install:
 	rm -f ../manuals/eva-manual.pdf
 	rm -f ../manuals/mthread-manual.pdf
 	cp main.pdf ../manuals/eva-manual.pdf
 	cp mthread.pdf ../manuals/mthread-manual.pdf
+
+# Update example logs used in the manual. Differences should be reviewed to
+# update the manual accordingly.
+update-examples:
+	$(MAKE) -C examples/parametrizing clean
+	$(MAKE) -C examples/parametrizing
+	$(MAKE) -C examples/mthread clean
+	$(MAKE) -C examples/mthread
