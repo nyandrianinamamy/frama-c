@@ -1,8 +1,8 @@
 /* run.config*
- PLUGIN: @EVA_MAIN_PLUGINS@
-   OPT: -eva @EVA_CONFIG@ -machdep x86_64
-   OPT: -eva @EVA_CONFIG@
+   OPT: -eva @EVA_OPTIONS@ -machdep x86_64
+   OPT: -eva @EVA_OPTIONS@
 */
+
 int x;
 long x2;
 unsigned long x9[6][2];

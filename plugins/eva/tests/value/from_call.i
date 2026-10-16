@@ -1,9 +1,8 @@
 /* run.config*
-  PLUGIN: @EVA_MAIN_PLUGINS@ from
-   OPT: -calldeps -eva @EVA_CONFIG@ -then -input
-  PLUGIN: @EVA_MAIN_PLUGINS@ from
-   OPT: @EVA_CONFIG@ -deps -show-indirect-deps
+   OPT: -calldeps -eva @EVA_OPTIONS@ -then -input
+   OPT: @EVA_OPTIONS@ -deps -show-indirect-deps
 */
+
 int a,b,c,d, x,y,z,t;
 int g(int w)
 {

@@ -1,10 +1,10 @@
 /* run.config*
-  PLUGIN: @EVA_MAIN_PLUGINS@
-   OPT: -eva @EVA_CONFIG@ -machdep gcc_x86_32
-   OPT: -eva @EVA_CONFIG@ -lib-entry -machdep gcc_x86_32
+   OPT: -eva @EVA_OPTIONS@ -machdep gcc_x86_32
+   OPT: -eva @EVA_OPTIONS@ -lib-entry -machdep gcc_x86_32
  EXIT: 1
-   OPT: -eva @EVA_CONFIG@ -lib-entry
+   OPT: -eva @EVA_OPTIONS@ -lib-entry
 */
+
 char T[];
 char U[0];
 char V[][2];
@@ -37,10 +37,10 @@ void main(int c, char **v) {
   T[2]= 3;
   if (c&1)  T[1] = T[3] +3;
 
-  if (c&8)  V[2][1] = 3;    
+  if (c&8)  V[2][1] = 3;
   if (c&16) V[1][1] = V[3][1] +3;
 
-  if (c&32) W[2][1] = 3;    
+  if (c&32) W[2][1] = 3;
   if (c&64) W[1][1] = W[3][1] +3;
   if (c&128) pW = &W[0][1];
 }

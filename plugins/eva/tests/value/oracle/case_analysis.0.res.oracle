@@ -7,8 +7,8 @@
   s ∈ {0}
   rq ∈ {0}
   r ∈ {0}
-[eva:progress] case_analysis.i:14: assertion got status valid.
-[eva:progress] case_analysis.i:17: assertion got status valid.
+[eva:progress] case_analysis.i:13: assertion got status valid.
+[eva:progress] case_analysis.i:16: assertion got status valid.
 [eva:progress] Recording results for main
 [eva:progress] Done for function main
 [eva] ====== VALUES COMPUTED ======

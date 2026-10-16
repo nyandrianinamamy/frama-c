@@ -1,5 +1,5 @@
 /* run.config*
-   OPT: -eva @EVA_CONFIG@ -eva-slevel 50 -eva-mlevel 5
+   OPT: -eva @EVA_OPTIONS@ -eva-slevel 50 -eva-mlevel 5
 */
 #include<stdlib.h>
 #define MAX 10
@@ -9,7 +9,7 @@ int allocate_T(int v)
 { int counter;
   int error=0;
   T[0]=malloc(sizeof(long long)) ;
-  
+
   for(counter=1;counter<MAX;counter++)
     { T[counter]=malloc(sizeof(long long));
       *(T[counter]) = v;

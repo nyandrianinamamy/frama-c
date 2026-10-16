@@ -4,6 +4,7 @@
 -mthread
 -eva-slevel 15
 # Kernel options
+-machdep x86_64
 -no-warn-unaligned-pointer
 # Parsing
 -mt-threads-lib pthreads
@@ -11,5 +12,5 @@
 # Verbosity options
 -eva-verbose 3
 -eva-msg-key debug:interferences,thread,mutex,message-queue,shared-memory,data-races,global-accesses
--eva-msg-key=-summary
+-eva-msg-key=-progress
 -eva-warn-key experimental=inactive

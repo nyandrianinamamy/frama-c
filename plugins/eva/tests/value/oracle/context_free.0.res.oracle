@@ -75,17 +75,17 @@
 [eva:initial-state] creating variable S_0_S_vvv with imprecise size (type void)
 [eva:initial-state] creating variable S_1_S_vvv with imprecise size (type void)
 [eva:initial-state] creating variable S_vv with imprecise size (type void)
-[eva:alarm] context_free.i:46: Warning: out of bounds write. assert \valid(p);
-[eva:alarm] context_free.i:52: Warning: out of bounds write. assert \valid(vvv);
-[eva:alarm] context_free.i:56: Warning: 
+[eva:alarm] context_free.i:44: Warning: out of bounds write. assert \valid(p);
+[eva:alarm] context_free.i:50: Warning: out of bounds write. assert \valid(vvv);
+[eva:alarm] context_free.i:54: Warning: 
   out of bounds write. assert \valid(ta + 1);
+[eva:alarm] context_free.i:57: Warning: 
+  out of bounds write. assert \valid(pvoid);
 [eva:alarm] context_free.i:59: Warning: 
   out of bounds write. assert \valid(pvoid);
-[eva:alarm] context_free.i:61: Warning: 
-  out of bounds write. assert \valid(pvoid);
-[eva:alarm] context_free.i:61: Warning: 
+[eva:alarm] context_free.i:59: Warning: 
   pointer downcast. assert (unsigned int)(&pvoid) ≤ 127;
-[eva:alarm] context_free.i:62: Warning: 
+[eva:alarm] context_free.i:60: Warning: 
   pointer to function with incompatible type. assert \valid_function(g);
 [eva:progress] Recording results for f
 [eva:progress] Done for function f
@@ -93,7 +93,7 @@
   Origins of garbled mix generated during analysis:
     Initial state (read in 7 statements, propagated through 5 statements)
       garbled mix of &{WELL_uu; S_p_svoid; S_qvoid; S_0_S_vvv; S_vv}
-[eva] context_free.i:62: 
+[eva] context_free.i:60: 
   assertion 'Eva,function_pointer' got final status invalid.
 [eva] ====== VALUES COMPUTED ======
 [eva:final-states] Values at end of function f:

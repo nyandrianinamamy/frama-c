@@ -1,7 +1,7 @@
 /* run.config*
- PLUGIN: @EVA_MAIN_PLUGINS@
-   OPT: -eva @EVA_CONFIG@ -cpp-extra-args="-Dprintf=Frama_C_show_each"
+   OPT: -eva @EVA_OPTIONS@ -cpp-extra-args="-Dprintf=Frama_C_show_each"
 */
+
 struct X50 {
  long long int z:50;
 } s50 = { 2 };

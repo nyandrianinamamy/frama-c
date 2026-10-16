@@ -1,7 +1,7 @@
 /* run.config*
-   OPT: -eva @EVA_CONFIG@ -warn-special-float non-finite
-   OPT: -eva @EVA_CONFIG@ -warn-special-float nan
-   OPT: -eva @EVA_CONFIG@ -warn-special-float none
+   OPT: -eva @EVA_OPTIONS@ -warn-special-float non-finite
+   OPT: -eva @EVA_OPTIONS@ -warn-special-float nan
+   OPT: -eva @EVA_OPTIONS@ -warn-special-float none
 */
 
 union { long long l ; float f ; double d ; } u1, u2;
@@ -17,7 +17,7 @@ void main1 (long long l){
   u2.l = l;
   d = u2.d + 1.0;
   Frama_C_dump_each();
-  
+
   float vf = fd();
   double vd = fd();
   long long i = vd;
