@@ -48,16 +48,8 @@
 # define __NTH(fct)	fct
 #endif
 
-// Frama-C does not support GCC's __builtin_object_size.
-// To improve compatibility with some codebases,
-// we define it anyway, but it always returns -1, as if
-// the compiler were unable to statically determine
-// the object size (we only consider the cases where type
-// is either 0 or 1).
-// Note that for some built-ins, we force them to our definition,
-// while others we leave unmodified if they exist
-#undef __builtin_object_size
-#define __builtin_object_size (ptr, type) ((size_t)-1)
+// These macros are related to GCC's __builtin_object_size, which is
+// supported on GCC machdeps
 #undef __bos
 #define __bos(ptr) __builtin_object_size (ptr, 0)
 #undef __bos0
