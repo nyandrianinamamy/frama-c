@@ -144,7 +144,7 @@ int main(void)
 [kernel] - division_by_zero = true
 [kernel] - pointer_call = true
 [kernel] - pointer_value = false
-[kernel] - pointer_alignment = false
+[kernel] - pointer_alignment = true
 [kernel] - mem_access = true
 [kernel] - initialized = false
 [kernel] kf = main
@@ -162,7 +162,7 @@ int main(void)
 [kernel] - division_by_zero = true
 [kernel] - pointer_call = true
 [kernel] - pointer_value = false
-[kernel] - pointer_alignment = false
+[kernel] - pointer_alignment = true
 [kernel] - mem_access = true
 [kernel] - initialized = false
 [kernel] ================================
@@ -242,7 +242,7 @@ int main(void)
 [kernel] - division_by_zero = true
 [kernel] - pointer_call = true
 [kernel] - pointer_value = false
-[kernel] - pointer_alignment = false
+[kernel] - pointer_alignment = true
 [kernel] - mem_access = true
 [kernel] - initialized = false
 [kernel] kf = main
@@ -260,7 +260,7 @@ int main(void)
 [kernel] - division_by_zero = true
 [kernel] - pointer_call = true
 [kernel] - pointer_value = false
-[kernel] - pointer_alignment = false
+[kernel] - pointer_alignment = true
 [kernel] - mem_access = true
 [kernel] - initialized = false
 [kernel] ================================
