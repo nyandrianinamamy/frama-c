@@ -1384,17 +1384,8 @@ struct
             (pretty_prefix prefix) t1 (pretty_prefix prefix) t2;
           raise (Found_prefix(prefix, t1, t2));
         end;
-        let go_left = l1 != l2 in
-        if go_left
-        then begin
-          let go_right = r1 != r2 in
-          if go_right then comp_prefixes r1 r2;
-          comp_prefixes l1 l2;
-        end
-        else begin
-          assert (r1 != r2);
-          comp_prefixes r1 r2;
-        end
+        if l1 != l2 then comp_prefixes l1 l2;
+        if r1 != r2 then comp_prefixes r1 r2;
       end
       else if (Big_Endian.shorter m1 m2) && (match_prefix p2 p1 m1)
       then begin
