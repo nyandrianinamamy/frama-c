@@ -219,7 +219,7 @@ module Make (Engine: Engine_Subset) = struct
     let rec disjunctive_narrow states = function
       | [] -> states
       | set :: tail ->
-        let narrow s s' acc = Bottom.add_to_list (Domain.narrow s s') acc in
+        let narrow s s' acc = Bottom.List.add (Domain.narrow s s') acc in
         let states = fold2 narrow states set [] in
         disjunctive_narrow states tail
     in
@@ -231,13 +231,13 @@ module Make (Engine: Engine_Subset) = struct
      TODO: it would be useful to have an heuristic to choose the set to
      be kept. *)
   let approximate_narrow_states_list states_list =
-    let joined_list = List.map (Bottom.of_list ~join:Domain.join) states_list in
+    let joined_list = List.map (Bottom.List.join Domain.join) states_list in
     let narrowed_state = match joined_list with
       | [] -> assert false
       | hd :: tl -> List.fold_left (Bottom.narrow Domain.narrow) hd tl
     in
     narrowed_state >>- fun narrowed_state ->
-    Bottom.list_filter_map (Domain.narrow narrowed_state) (List.hd states_list)
+    Bottom.List.filter_map (Domain.narrow narrowed_state) (List.hd states_list)
 
 
   (* Narrowing of a list of disjunctive sets of states. *)
@@ -371,7 +371,7 @@ module Make (Engine: Engine_Subset) = struct
   let compute_effects ~warn call spec behaviors status states =
     let kf = Callstack.top_kf call.callstack in
     let pos = Eval.position_of_call call in
-    Bottom.of_list ~join:Domain.join states >>- fun pre_state ->
+    Bottom.List.join Domain.join states >>- fun pre_state ->
     let behavior = List.hd behaviors in
     let retres_loc = Option.map Location.eval_varinfo call.return in
     let assigns = get_assigns_for_behavior spec behavior in
@@ -486,7 +486,7 @@ module Make (Engine: Engine_Subset) = struct
       Transfer_logic.process_inactive_behaviors kinstr kf behaviors;
       `Bottom
     in
-    match Bottom.of_list ~join:Domain.join states with
+    match Bottom.List.join Domain.join states with
     (* If the preconditions of the default behavior led to bottom, all other
        behaviors are inactive. *)
     | `Bottom -> all_inactive ()

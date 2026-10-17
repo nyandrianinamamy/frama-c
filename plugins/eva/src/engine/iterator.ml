@@ -118,7 +118,7 @@ module Make_Dataflow
     else Transfer_logic.check_fct_preconditions call_kinstr kf ab state
 
   let initial_state =
-    match Bottom.of_list ~join:Domain.join initial_states with
+    match Bottom.List.join Domain.join initial_states with
     | `Bottom -> Domain.top (* No analysis in this case. *)
     | `Value state -> state
 

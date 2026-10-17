@@ -17,9 +17,6 @@ type 'a or_top_bottom = [ `Value of 'a | `Bottom | `Top ]
 module Bottom : sig
 
   include Monad.S_with_product with type 'a t = 'a or_bottom
-  module List : Monad.Iterators
-    with type 'a iterable := 'a list
-     and type 'a monad := 'a t
 
   (** Datatype constructor *)
   module Make_Datatype (X: Datatype.S) :
@@ -49,7 +46,6 @@ module Bottom : sig
   val is_included : ('a -> 'b -> bool) -> 'a t -> 'b t -> bool
   val join : ('a -> 'a -> 'a) -> 'a t -> 'a t -> 'a t
   val narrow : ('a -> 'a -> 'a t) -> 'a t -> 'a t -> 'a t
-  val join_list : ('a -> 'a -> 'a) -> 'a t list -> 'a t
 
   (** Iterator. *)
   val iter : ('a -> unit) -> 'a t -> unit
@@ -61,21 +57,65 @@ module Bottom : sig
   val to_option : 'a t -> 'a option
   val of_option : 'a option -> 'a t
 
-  (** Joins all elements of a list. Returns Bottom if the list is empty. *)
-  val of_list : join:('a -> 'a -> 'a) -> 'a list -> 'a t
-
   (** Returns an empty list on Bottom, and a list of one element otherwise. *)
   val to_list : 'a t -> 'a list
 
-  (** Filters the given list to remove Bottom elements. *)
-  val list_values : 'a t list -> 'a list
+  (** {3 Operators } *)
 
-  (** [list_filter_map f l] maps the function [f] to the list [l] and does not
-      keep bottoms. *)
-  val list_filter_map : ('a -> 'b t) -> 'a list -> 'b list
+  (** This is a redefinition of {!Monad}'s operators for documentation
+      purposes. *)
+  module Operators : sig
+    val ( >>-  ) : 'a t -> ('a -> 'b t) -> 'b t
+    val ( >>-: ) : 'a t -> ('a -> 'b) -> 'b t
 
-  (** [add_to_list elt list] adds [elt] to the [list] if it is not bottom. *)
-  val add_to_list : 'a t -> 'a list -> 'a list
+    (** [let* x = value_or_bottom in expr] sequences computations of type
+        ['a or_bottom].
+
+        If [value_or_bottom] evaluates to [`Value v], [v] is bound to [x] and
+        [expr] is evaluated. If it evaluates to [`Bottom], [expr] is not
+        evaluated and the whole expression returns [`Bottom]. *)
+    val ( let* ) : 'a t -> ('a -> 'b t) -> 'b t
+
+    (** Same as {!let*} but the expression after [in] must be of type ['b]
+        instead of ['b or_bottom]. *)
+    val ( let+ ) : 'a t -> ('a -> 'b) -> 'b t
+
+    (** [and*] can be used we [let*] when several variables must be defined.
+        If one of the variables is [`Bottom], then the whole [let* ... and*]
+        expression will be [`Bottom] as well. *)
+    val ( and* ) : 'a t -> 'b t -> ('a * 'b) t
+
+    (** Same as {!and*} but must be used with {!let+}. *)
+    val ( and+ ) : 'a t -> 'b t -> ('a * 'b) t
+  end
+
+  (** {3 List manipulation } *)
+  module List : sig
+
+    include Monad.Iterators
+      with type 'a iterable := 'a list
+       and type 'a monad := 'a t
+
+    (** [add elt list] adds [elt] to the [list] if it is not bottom. *)
+    val add : 'a t -> 'a list -> 'a list
+
+    (** Filters the given list to remove Bottom elements. *)
+    val values : 'a t list -> 'a list
+
+    (** Joins all elements of a list. Returns [`Bottom] if the list is empty. *)
+    val join : ('a -> 'a -> 'a) -> 'a list -> 'a t
+
+    (** [join_values] filters the given list to remove [`Bottom] elements and
+        join the remaining values. Returns [`Bottom] if the list is empty.
+        [join_values f l] has the same result as [values l |> join f] but only
+        iterates through the list once. *)
+    val join_values : ('a -> 'a -> 'a) -> 'a t list -> 'a t
+
+    (** [filter_map f l] maps the function [f] to the list [l] and does not
+        keep bottoms. *)
+    val filter_map : ('a -> 'b t) -> 'a list -> 'b list
+
+  end
 
 end
 

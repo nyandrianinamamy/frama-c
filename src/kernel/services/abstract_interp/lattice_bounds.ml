@@ -124,54 +124,77 @@ module Bottom = struct
     | `Value _, `Bottom
     | `Bottom, `Bottom -> `Bottom
 
-  let join_list f = Stdlib.List.fold_left (join f) `Bottom
-
-  (* Combination *)
-
-  let zip x y =
-    match x, y with
-    | `Bottom, _ | _, `Bottom -> `Bottom
-    | `Value x, `Value y -> `Value (x,y)
-
-  (* Monadic operations *)
-
-  module Monad = Monad.Make_based_on_bind_with_product (struct
-      type 'a t = 'a or_bottom
-      let return x = `Value x
-      let bind f = function `Bottom -> `Bottom | `Value x -> f x
-      let product l r = zip l r
-    end)
-
-  include Monad
-  module List = List.Make_monadic_iterators (Monad)
-
   (** Conversion *)
 
   let of_option = function
     | None -> `Bottom
     | Some v -> `Value v
 
-  (** List operations *)
-
-  let of_list ~join = function
-    | [] -> `Bottom
-    | x :: list -> `Value (Stdlib.List.fold_left join x list)
-
   let to_list = function
     | `Bottom  -> []
     | `Value v -> [v]
 
-  let add_to_list elt list =
-    match elt with
-    | `Bottom    -> list
-    | `Value elt -> elt :: list
+  (** Monadic operations *)
 
-  let list_values l =
-    Stdlib.List.fold_left (fun l elt -> add_to_list elt l) [] l
+  module Monad = struct
 
-  let list_filter_map f l =
-    let f' x = to_option (f x) in
-    Stdlib.List.filter_map f' l
+    type 'a t = 'a or_bottom
+
+    let return x = `Value x
+
+    let bind f = function
+      | `Bottom -> `Bottom
+      | `Value x -> f x
+
+    let map f = function
+      | `Bottom -> `Bottom
+      | `Value x -> `Value (f x)
+
+    let product x y =
+      match x, y with
+      | `Bottom, _ | _, `Bottom -> `Bottom
+      | `Value x, `Value y -> `Value (x,y)
+
+    let flatten m = bind (fun x -> x) m
+
+    module Operators= struct
+      let ( >>-  ) m f = bind f m
+      let ( let* ) m f = bind f m
+      let ( and* ) = product
+      let ( >>-: ) m f = map f m
+      let ( let+ ) m f = map f m
+      let ( and+ ) = product
+    end
+  end
+
+  include Monad
+
+  (** List manipulation *)
+
+  module List = struct
+
+    include List.Make_monadic_iterators (Monad)
+
+    let add elt list =
+      match elt with
+      | `Bottom    -> list
+      | `Value elt -> elt :: list
+
+    let values l =
+      List.fold_left (fun l elt -> add elt l) [] l
+
+    let join_values f =
+      List.fold_left (join f) `Bottom
+
+    let join f = function
+      | [] -> `Bottom
+      | x :: list -> `Value (List.fold_left f x list)
+
+    let filter_map f l =
+      let f' x = to_option (f x) in
+      List.filter_map f' l
+
+  end
 
   (** Datatype construction *)
 

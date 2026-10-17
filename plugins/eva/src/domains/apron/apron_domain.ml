@@ -571,7 +571,7 @@ module Make (Man : Input) = struct
             then `Bottom
             else `Value (constraint_reduction env expr interval)
           in
-          Bottom.add_to_list cons acc
+          Bottom.List.add cons acc
         with Out_of_Scope _ -> acc
       else acc
     in
