@@ -309,6 +309,7 @@ let%test_module _ = (module struct
     test_paths
       [ {|c:\a\b\c|};
         {|C:\a/b/d|};
+        {|d:\a\e|};
         {|/a/x/c|}; ]
       {|
 "/" (root)
@@ -319,7 +320,10 @@ let%test_module _ = (module struct
 "c:\\a" -> "c:\\"
 "c:\\a/b" -> "c:\\a"
 "c:\\a/b/c" -> "c:\\a/b"
-"c:\\a/b/d" -> "c:\\a/b"|}
+"c:\\a/b/d" -> "c:\\a/b"
+"d:\\" (root)
+"d:\\a" -> "d:\\"
+"d:\\a/e" -> "d:\\a"|}
 
   let%test "relative directories" =
     test_paths ~base:"/root/subdir"
