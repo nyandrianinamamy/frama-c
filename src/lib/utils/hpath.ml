@@ -6,42 +6,51 @@
 (*                                                                        *)
 (**************************************************************************)
 
-let re_dir_separator = Str.regexp {|[/\\]+|}
+(* When testing this module, allow windows paths *)
+let testing_mode = ref false
+
+let%test_module _ = (module struct
+  let () = testing_mode := true
+end)
+
 
 (* Special path handling *)
 type absolute_path_kind =
   | WindowsUnparsed
   | WindowsDevice
-  | WindowsNetwork of string (* host name *)
-  | WindowsAbsolute of string (* drive letter *)
-  | UnixNetwork of string (* host name *)
-  | UnixAbsolute
-  | EnvironmentVariable of string
+  | WindowsDriveAbsolute of string (* drive letter *)
+  | Network of string (* host name *)
+  | FilesystemRoot
 
 type relative_path_kind =
-  | WindowsRelative of string (* drive letter *)
-  | AnyPlatform
+  | WindowsDriveRelative of string (* drive letter *)
+  | CwdRelative
 
 type path_kind =
   | Absolute of absolute_path_kind
   | Relative of relative_path_kind
 
-let re_special_paths =
+
+(* --- Parsing --- *)
+
+let re_special_paths, re_dir_separator =
+  let win32 = Sys.win32 || !testing_mode in
+  let slash = if win32 then "[\\\\/]" else "/" in
+  let no_slash = if win32 then "[^\\\\/]" else "[^/]" in
   let (|^) l r = l ^ "\\|" ^ r in
   let group s = "\\(" ^  s ^ "\\)" in
   let alpha = "[A-Za-z]" in
   Str.regexp (
-    group {|\\\\?\\|} |^
-    group {|\\\\.\\|} |^
-    {|\\\\|} ^ group (alpha ^ "+") ^ {|\\|} |^
-    group alpha ^ ":\\\\" |^
-    group alpha ^ ":" |^
-    {|//|} ^ group (alpha ^ "+") ^ {|/|} |^
-    group {|/|} |^
-    "$" ^ group (alpha ^ "+")
-  )
+    group (slash ^ slash ^ "\\?" ^ slash) |^ (* \\?\path *)
+    group (slash ^ slash ^ "\\." ^ slash) |^ (* \\.\path *)
+    slash ^ slash ^ group (no_slash ^ "+") ^ slash |^ (* //host/path *)
+    group alpha ^ ":" ^  slash |^ (* c:\path *)
+    group alpha ^ ":" |^ (* c:path *)
+    group slash (* /path *)
+  ),
+  Str.regexp (slash ^ "+")
 
-let parse_special_path s =
+let parse_path s =
   let matched_group () =
     let rec aux i =
       try
@@ -53,37 +62,35 @@ let parse_special_path s =
     in
     aux 1
   in
-  if not (Str.string_match re_special_paths s 0) then
-    Relative AnyPlatform, s
-  else begin
-    let kind = match matched_group () with
-      | 1, _ -> Absolute WindowsUnparsed
-      | 2, _ -> Absolute WindowsDevice
-      | 3, hostname -> Absolute (WindowsNetwork (Lazy.force hostname))
-      | 4, drive ->
-        let drive = Lazy.force drive |> String.lowercase_ascii in
-        Absolute (WindowsAbsolute drive)
-      | 5, drive ->
-        let drive = Lazy.force drive |> String.lowercase_ascii in
-        Relative (WindowsRelative drive)
-      | 6, hostname -> Absolute (UnixNetwork (Lazy.force hostname))
-      | 7, _ -> Absolute UnixAbsolute
-      | 8, variable -> Absolute (EnvironmentVariable (Lazy.force variable))
-      | _ -> assert false
-    in
-    let pos = Str.match_end () in
-    let rest = String.sub s pos (String.length s - pos) in
-    kind, rest
-  end
+  let kind, rest =
+    if not (Str.string_match re_special_paths s 0) then
+      Relative CwdRelative, s
+    else
+      let kind = match matched_group () with
+        | 1, _ -> Absolute WindowsUnparsed
+        | 2, _ -> Absolute WindowsDevice
+        | 3, hostname -> Absolute (Network (Lazy.force hostname))
+        | 4, drive ->
+          let drive = Lazy.force drive |> String.lowercase_ascii in
+          Absolute (WindowsDriveAbsolute drive)
+        | 5, drive ->
+          let drive = Lazy.force drive |> String.lowercase_ascii in
+          Relative (WindowsDriveRelative drive)
+        | 6, _ -> Absolute FilesystemRoot
+        | _ -> assert false
+      in
+      let pos = Str.match_end () in
+      let rest = String.sub s pos (String.length s - pos) in
+      kind, rest
+  in
+  kind, Str.split_delim re_dir_separator rest
 
 let absolute_path_prefix = function
   | WindowsUnparsed -> "\\\\?\\"
   | WindowsDevice -> "\\\\.\\"
-  | WindowsNetwork hostname -> Printf.sprintf "\\\\%s\\" hostname
-  | WindowsAbsolute drive -> Printf.sprintf "%s:\\" drive
-  | UnixAbsolute -> "/"
-  | UnixNetwork hostname -> Printf.sprintf "//%s/" hostname
-  | EnvironmentVariable variable -> Printf.sprintf "$%s/" variable
+  | WindowsDriveAbsolute drive -> Printf.sprintf "%s:\\" drive
+  | Network hostname -> Printf.sprintf "//%s/" hostname
+  | FilesystemRoot -> "/"
 
 
 (* --- Type definition --- *)
@@ -198,19 +205,18 @@ let rec normalize ~parent = function
 
 let insert ~base path_name =
   Cache.memo base path_name @@ fun () ->
-  let path_kind, parts_string = parse_special_path path_name in
+  let path_kind, parts = parse_path path_name in
   let parent =
     match path_kind with
-    | Relative (WindowsRelative _)
-    | Absolute (WindowsUnparsed | WindowsDevice | WindowsNetwork _) ->
+    | Relative (WindowsDriveRelative _)
+    | Absolute (WindowsUnparsed | WindowsDevice) ->
       invalid_arg "unsupported windows relative or special path"
-    | Relative AnyPlatform ->
+    | Relative CwdRelative ->
       assert (base != dummy);
       base
-    | Absolute (WindowsAbsolute _ | UnixAbsolute | UnixNetwork _ | EnvironmentVariable _ as kind)->
+    | Absolute (WindowsDriveAbsolute _ | FilesystemRoot | Network _ as kind)->
       make (absolute_path_prefix kind)
   in
-  let parts = Str.split_delim re_dir_separator parts_string in
   normalize ~parent parts
 
 let cwd = Unix.(realpath (getcwd ())) |> insert ~base:dummy
