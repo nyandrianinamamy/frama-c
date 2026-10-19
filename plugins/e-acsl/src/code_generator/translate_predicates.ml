@@ -176,9 +176,13 @@ let rec predicate_content_to_exp_old ?(inplace=false) ?name ~loc ~adata ~env ~kf
     to_exp ~adata ~name:"implies" kf env rewritten
   | Piff(p1, p2) ->
     let rewritten = (* (p1 <==> p2) <==> (p1 ==> p2 && p2 ==> p1) *)
+      let p1' = Terms.Id.deep_copy_predicate p1 in
+      let p2' = Terms.Id.deep_copy_predicate p2 in
+      Rte_analysis.preprocess_predicate ~kf p1';
+      Rte_analysis.preprocess_predicate ~kf p2';
       Logic_const.pand ~loc
         (Logic_const.pimplies ~loc (p1, p2),
-         Logic_const.pimplies ~loc (p2, p1))
+         Logic_const.pimplies ~loc (p2', p1'))
     in
     Typing.preprocess_predicate ~logic_env rewritten;
     to_exp ~adata ~name:"equiv" kf env rewritten

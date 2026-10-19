@@ -589,6 +589,8 @@ let rte_visitor =
     (** [add_aligned_access lv] adds an entry for [t] if [lv = *t]. *)
     method private add_aligned_access lv =
       match lv with
+      (* this case will be handle later *)
+      | TMem ({term_node = TLval _}), _ -> ()
       | TMem ({term_type = Ctype typ} as t), _ ->
         let t = Logic_normalizer.get_term t in
         self#add_aligned ~orig:t t typ
