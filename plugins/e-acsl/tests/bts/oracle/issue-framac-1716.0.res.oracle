@@ -1,16 +1,12 @@
 [e-acsl] beginning translation.
 [e-acsl] issue-framac-1716.c:18: Warning: 
+  cannot create the invalid pointer guard of ptr because struct Abstract is an incomplete type
+[e-acsl] issue-framac-1716.c:18: Warning: 
   cannot create the pointer alignment guard of ptr because struct Abstract is an incomplete type
 [e-acsl] translation done in project "e-acsl".
 [eva:unknown-size] issue-framac-1716.c:15: Warning: 
   during initialization of variable 'ptr', size of type 'struct Abstract'
   cannot be computed (abstract type 'struct Abstract')
-[eva:alarm] issue-framac-1716.c:18: Warning: 
-  pointer comparison. assert \pointer_comparable((void *)0, (void *)ptr);
-[eva:alarm] issue-framac-1716.c:18: Warning: 
-  assertion 'E_ACSL,invalid pointer' got status unknown.
-[eva:alarm] issue-framac-1716.c:18: Warning: 
-  function __e_acsl_assert, behavior blocking: precondition got status unknown.
 [eva:alarm] issue-framac-1716.c:18: Warning: 
   assertion 'E_ACSL,pointer alignment' got status unknown.
 [eva:alarm] issue-framac-1716.c:18: Warning: 

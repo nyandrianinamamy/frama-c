@@ -596,8 +596,19 @@ let rte_visitor =
         a pointer value in the table. *)
     method private add_pointer_value ~orig =
       if Flags.needs_pointer_value () then
-        Guards.add orig
-          (Undefined_behaviours.pointer_value ~loc:orig.term_loc orig)
+        let pointed_typ =
+          Ast_types.Acsl.(direct_pointed_ctype @@ unroll orig.term_type)
+        in
+        if Cil.isCompleteType pointed_typ
+        then
+          Guards.add orig
+            (Undefined_behaviours.pointer_value ~loc:orig.term_loc orig)
+        else
+          Options.warning ~current:true ~once:true
+            "cannot create the invalid pointer guard of %a because %a is \
+             an incomplete type"
+            Printer.pp_term orig
+            Printer.pp_typ pointed_typ
 
     (** [add_pointer_value_cast ~orig dst] adds an entry for [orig] if [dst]
         the destination type of the cast is a pointer type. *)
