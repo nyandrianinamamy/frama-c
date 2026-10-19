@@ -593,6 +593,11 @@ and context_insensitive_term_to_exp_old ~adata ?(inplace=false) kf env t =
     in
     let e1, adata, env = to_exp ~adata kf env t1 in
     let e2, adata, env = to_exp ~adata kf env t2 in
+    let env =
+      if Translate_utils.do_guards_for_cmp ity e1 e2
+      then early_rte_guards_to_exp_old env
+      else env
+    in
     let e, env =
       Translate_utils.comparison_to_exp
         ~loc
