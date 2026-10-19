@@ -1384,27 +1384,28 @@ struct
             (pretty_prefix prefix) t1 (pretty_prefix prefix) t2;
           raise (Found_prefix(prefix, t1, t2));
         end;
-        let go_left = l1 != l2 in
-        if go_left
-        then begin
-          let go_right = r1 != r2 in
-          if go_right then comp_prefixes r1 r2;
-          comp_prefixes l1 l2;
-        end
-        else begin
-          assert (r1 != r2);
-          comp_prefixes r1 r2;
-        end
+        if l1 != l2 then comp_prefixes l1 l2;
+        if r1 != r2 then comp_prefixes r1 r2;
       end
       else if (Big_Endian.shorter m1 m2) && (match_prefix p2 p1 m1)
-      then
+      then begin
         let sub1 = if (p2 land m1) = 0 then l1 else r1 in
         if sub1 != t2 then comp_prefixes sub1 t2
-        else if (Big_Endian.shorter m2 m1) && (match_prefix p1 p2 m2)
-        then
-          let sub2 = if (p1 land m2) = 0 then l2 else r2 in
-          if sub2 != t1 then
-            comp_prefixes t1 sub2
+      end
+      else if (Big_Endian.shorter m2 m1) && (match_prefix p1 p2 m2)
+      then
+        let sub2 = if (p1 land m2) = 0 then l2 else r2 in
+        if sub2 != t1 then comp_prefixes t1 sub2
+    | Leaf (key, _, _), Branch (p, m, l, r, _) ->
+      let k_id = Key.id key in
+      if match_prefix k_id p m then
+        let sub = if (k_id land m) = 0 then l else r in
+        if sub != t1 then comp_prefixes t1 sub
+    | Branch (p, m, l, r, _), Leaf (key, _, _) ->
+      let k_id = Key.id key in
+      if match_prefix k_id p m then
+        let sub = if (k_id land m) = 0 then l else r in
+        if sub != t2 then comp_prefixes sub t2
     | _, _ -> ()
 
   let rec find_prefix t (p, m as prefix) =
