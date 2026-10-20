@@ -95,14 +95,15 @@ let add_sure_deps ~size ~src ~dst (deps_table, sure_output) =
   let sure_zone = if exact then dst_zone else Memory_zone.bottom in
   deps_table, Memory_zone.join sure_zone sure_output
 
-(* Copy the offsetmap of size [size] from [src] to [dst] in [state]. *)
-let copy_offsetmap ~name ~exact ~size ~src ~dst ~dst_expr state =
-  match Cvalue.Model.copy_offsetmap src size state with
+(* Copy the offsetmap of size [size] from [src] addresses in [src_state]
+   to [dst] addresses in [dst_state]. *)
+let copy_offsetmap ~name ~exact ~size ~src ~src_state ~dst ~dst_expr ~dst_state =
+  match Cvalue.Model.copy_offsetmap src size src_state with
   | `Bottom -> Cvalue.Model.bottom
   | `Value offsetmap ->
     check_indeterminate_offsetmap ~name offsetmap;
     warn_imprecise_offsm_write ~name dst_expr offsetmap;
-    Cvalue.Model.paste_offsetmap ~from:offsetmap ~dst_addr:dst ~size ~exact state
+    Cvalue.Model.paste_offsetmap ~from:offsetmap ~dst_addr:dst ~size ~exact dst_state
 
 (* Returns the min and max size of a copy from an Ival.t. *)
 let min_max_size size =
@@ -125,7 +126,7 @@ let shift ~factor:i src dst size =
    after the copy for the minimum size has already been done.
    Iterates on all possible values of [size] (after the first), and does the
    copy for [previous_size..size]. *)
-let copy_remaining_size_by_size ~name ~src ~dst ~dst_expr ~size state =
+let copy_remaining_size_by_size ~name ~src ~dst ~dst_expr ~size ~src_state ~dst_state =
   let exception Result of Cvalue.Model.t in
   let do_size size (state, previous_size) =
     (* First iteration: this copy has already been performed, skip. *)
@@ -135,33 +136,37 @@ let copy_remaining_size_by_size ~name ~src ~dst ~dst_expr ~size state =
       (* Copy data between [previous_size] and [size]. *)
       let src, dst, size = shift ~factor:previous_size src dst size in
       (* [exact] is false as all these copies may not happen according to the
-          concrete value of [size]. *)
+         concrete value of [size]. *)
       let exact = false in
-      let new_state = copy_offsetmap ~name ~exact ~size ~src ~dst ~dst_expr state in
+      let new_state =
+        copy_offsetmap ~name ~exact ~size ~src ~dst ~dst_expr
+          ~src_state ~dst_state:state
+      in
       (* If this copy failed, the current size is completely invalid, and so
          will be the following ones. Stop now with the previous state. *)
       if not (Cvalue.Model.is_reachable new_state) then raise (Result state);
       new_state, size
   in
-  try fst (Ival.fold_int do_size size (state, Z.minus_one))
+  try fst (Ival.fold_int do_size size (dst_state, Z.minus_one))
   with Result state -> state
 
-(* Copy the value at location [src_loc] to location [dst_loc] in [state]. *)
-let imprecise_copy ~name ~src_loc ~dst_loc ~dst_expr state =
+(* Copy the value at location [src] from [src_state] to location [dst] in state
+   [dst_state]. *)
+let imprecise_copy ~name ~src_loc ~dst_loc ~dst_expr ~src_state ~dst_state =
   Self.feedback ~mkey ~once:true ~current:true
     "In %s builtin: too many sizes to enumerate, possible loss of precision"
     name;
   (* conflate_bottom:false as we want to copy padding bits *)
-  let v = Model.find_indeterminate ~conflate_bottom:false state src_loc in
+  let v = Model.find_indeterminate ~conflate_bottom:false src_state src_loc in
   warn_indeterminate_value ~name v;
   let value = Cvalue.V_Or_Uninitialized.get_v v in
   warn_imprecise_write ~name dst_expr dst_loc value;
   let new_state =
-    Cvalue.Model.add_indeterminate_binding ~exact:false state dst_loc v
+    Cvalue.Model.add_indeterminate_binding ~exact:false dst_state dst_loc v
   in
   (* Beware that all sizes may be invalid, in which case [add_binding] will
      return [bottom]. In this case, return the previously computed state *)
-  if Model.is_reachable new_state then new_state else state
+  if Model.is_reachable new_state then new_state else dst_state
 
 (* Creates the location {loc + [min_size..max_size-1]} of size char. *)
 let char_location loc ?(min_size=Z.zero) max_size =
@@ -177,6 +182,7 @@ let char_location loc ?(min_size=Z.zero) max_size =
   Locations.make addr (`Value size_char)
 
 let compute_memcpy ~name ~dst_expr ~dst ~src ~size state =
+  let src_state = state in
   let size_min, size_max = min_max_size size in
   (* Empty \from dependencies and sure output *)
   let empty_deps = Assigns.Memory.empty, Memory_zone.bottom in
@@ -186,7 +192,8 @@ let compute_memcpy ~name ~dst_expr ~dst ~src ~size state =
     if Z.gt size_min Z.zero
     then
       let state =
-        copy_offsetmap ~name ~exact:true ~size:size_min ~src ~dst ~dst_expr state
+        copy_offsetmap ~name ~exact:true ~size:size_min ~src ~dst ~dst_expr
+          ~src_state ~dst_state:state
       in
       (* If the copy succeeded, update \from dependencies and sure output. *)
       if Cvalue.Model.is_reachable state
@@ -210,11 +217,12 @@ let compute_memcpy ~name ~dst_expr ~dst ~src ~size state =
        via [copy_remaining_size_by_size]. Otherwise, use [imprecise_copy] in one
        step to read the entire range src+(size_min..size_max-1) as one byte, and
        write the result as one byte in dst+(size_min..size_max-1). *)
-    let state =
+    let copy_remaining =
       if Ival.cardinal_is_less_than size (plevel () / 10)
-      then copy_remaining_size_by_size ~name ~src ~dst ~dst_expr ~size state
-      else imprecise_copy ~name ~src_loc ~dst_loc ~dst_expr state
+      then copy_remaining_size_by_size ~src ~dst ~size
+      else imprecise_copy ~src_loc ~dst_loc
     in
+    let state = copy_remaining ~name ~dst_expr ~src_state ~dst_state:state in
     state, deps_table, written_zone
 
 let frama_c_memcpy name state actuals =
