@@ -320,9 +320,18 @@ external-plugins:
           "minimal",
           "pathcrawler",
           "security",
-          "synchrone",
-          "unitcheck"
+          "synchrone"
         ]
+
+# The unitcheck external plugin is incompatible with OCaml 5.2. When the minimum
+# supported OCaml version becomes 5.3, move unitcheck in the job above.
+external-unitcheck:
+  stage: tests
+  except:
+    variables:
+      - $OCAML == "5.2"
+  script:
+    - ./nix/external-plugin-ci.sh unitcheck
 
 ivette-plugins:
   stage: tests
@@ -334,6 +343,11 @@ ivette-plugins:
     - ./nix/ivette-plugins-ci.sh
   tags:
     - docker
+  # The unitcheck external plugin is incompatible with OCaml 5.2. Remove this
+  # rule when the minimum supported OCaml version becomes 5.3.
+  except:
+    variables:
+      - $OCAML == "5.2"
 
 ################################################################################
 ### DISTRIB
