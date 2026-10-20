@@ -41,12 +41,12 @@ let re_special_paths, re_dir_separator =
   let group s = "\\(" ^  s ^ "\\)" in
   let alpha = "[A-Za-z]" in
   Str.regexp (
-    group (slash ^ slash ^ "\\?" ^ slash) |^ (* \\?\path *)
-    group (slash ^ slash ^ "\\." ^ slash) |^ (* \\.\path *)
-    slash ^ slash ^ group (no_slash ^ "+") ^ slash |^ (* //host/path *)
-    group alpha ^ ":" ^  slash |^ (* c:\path *)
-    group alpha ^ ":" |^ (* c:path *)
-    group slash (* /path *)
+    "^" ^ group (slash ^ slash ^ "\\?" ^ slash) |^ (* \\?\path *)
+    "^" ^ group (slash ^ slash ^ "\\." ^ slash) |^ (* \\.\path *)
+    "^" ^ slash ^ slash ^ group (no_slash ^ "+") ^ slash |^ (* //host/path *)
+    "^" ^ group alpha ^ ":" ^  slash |^ (* c:\path *)
+    "^" ^ group alpha ^ ":" |^ (* c:path *)
+    "^" ^ group slash (* /path *)
   ),
   Str.regexp (slash ^ "+")
 
@@ -88,7 +88,7 @@ let parse_path s =
 let absolute_path_prefix = function
   | WindowsUnparsed -> "\\\\?\\"
   | WindowsDevice -> "\\\\.\\"
-  | WindowsDriveAbsolute drive -> Printf.sprintf "%s:\\" drive
+  | WindowsDriveAbsolute drive -> Printf.sprintf "%s:/" drive
   | Network hostname -> Printf.sprintf "//%s/" hostname
   | FilesystemRoot -> "/"
 
@@ -322,14 +322,14 @@ let%test_module _ = (module struct
 "/a" -> "/"
 "/a/x" -> "/a"
 "/a/x/c" -> "/a/x"
-"c:\\" (root)
-"c:\\a" -> "c:\\"
-"c:\\a/b" -> "c:\\a"
-"c:\\a/b/c" -> "c:\\a/b"
-"c:\\a/b/d" -> "c:\\a/b"
-"d:\\" (root)
-"d:\\a" -> "d:\\"
-"d:\\a/e" -> "d:\\a"|}
+"c:/" (root)
+"c:/a" -> "c:/"
+"c:/a/b" -> "c:/a"
+"c:/a/b/c" -> "c:/a/b"
+"c:/a/b/d" -> "c:/a/b"
+"d:/" (root)
+"d:/a" -> "d:/"
+"d:/a/e" -> "d:/a"|}
 
   let%test "relative directories" =
     test_paths ~base:"/root/subdir"
