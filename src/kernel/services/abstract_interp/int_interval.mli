@@ -77,7 +77,8 @@ val scale_div_under: pos:bool -> Z.t -> t -> t or_bottom
 val scale_rem: pos:bool -> Z.t -> t -> t
 
 val mul: t -> t -> t
-val div: t -> t -> t or_bottom
+val div: t -> t -> t or_bottom (** Integer division. *)
+val ediv: t -> t -> t or_bottom (** Euclidian division. *)
 val c_rem: t -> t -> t or_bottom
 
 val cast: size:Z.t -> signed:bool -> t -> t
