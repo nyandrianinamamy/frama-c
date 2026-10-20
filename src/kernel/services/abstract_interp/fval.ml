@@ -178,7 +178,7 @@ exception Not_Singleton_Float
 let floor _ = floor
 let ceil _ = ceil
 let trunc _ = trunc
-let fround _ = fround
+let round _ = round
 
 let project_float t = match min_and_max t with
   | Some (b, e), false when F.equal b e -> b
