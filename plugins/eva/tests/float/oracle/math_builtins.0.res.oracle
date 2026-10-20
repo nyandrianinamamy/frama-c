@@ -11,7 +11,7 @@
   any_float ∈ [--..--]
 [eva:progress] 
   computing for function test_cos_det <- main.
-  Called from math_builtins.c:740.
+  Called from math_builtins.c:745.
 [eva:progress] math_builtins.c:19: Call to builtin Frama_C_cos for function cos
 [eva:progress] math_builtins.c:19: 
   function cos: precondition 'finite_arg' got status valid.
@@ -25,7 +25,7 @@
 [eva:progress] Done for function test_cos_det
 [eva:progress] 
   computing for function test_sin_det <- main.
-  Called from math_builtins.c:741.
+  Called from math_builtins.c:746.
 [eva:progress] math_builtins.c:25: Call to builtin Frama_C_sin for function sin
 [eva:progress] math_builtins.c:25: 
   function sin: precondition 'finite_arg' got status valid.
@@ -39,7 +39,7 @@
 [eva:progress] Done for function test_sin_det
 [eva:progress] 
   computing for function test_acos <- main.
-  Called from math_builtins.c:742.
+  Called from math_builtins.c:747.
 [eva:progress] math_builtins.c:31: Call to builtin acos
 [eva:progress] math_builtins.c:31: 
   function acos: precondition 'in_domain' got status valid.
@@ -95,7 +95,7 @@
 [eva:progress] Done for function test_acos
 [eva:progress] 
   computing for function test_asin <- main.
-  Called from math_builtins.c:743.
+  Called from math_builtins.c:748.
 [eva:progress] math_builtins.c:59: Call to builtin asin
 [eva:progress] math_builtins.c:59: 
   function asin: precondition 'in_domain' got status valid.
@@ -151,7 +151,7 @@
 [eva:progress] Done for function test_asin
 [eva:progress] 
   computing for function test_atan <- main.
-  Called from math_builtins.c:744.
+  Called from math_builtins.c:749.
 [eva:progress] math_builtins.c:87: Call to builtin atan
 [eva:progress] math_builtins.c:87: 
   function atan: precondition 'number_arg' got status valid.
@@ -186,7 +186,7 @@
 [eva:progress] Done for function test_atan
 [eva:progress] 
   computing for function test_atan2_det <- main.
-  Called from math_builtins.c:745.
+  Called from math_builtins.c:750.
 [eva:progress] math_builtins.c:99: 
   Call to builtin Frama_C_atan2 for function atan2
 [eva:progress] math_builtins.c:99: 
@@ -243,7 +243,7 @@
 [eva:progress] Done for function test_atan2_det
 [eva:progress] 
   computing for function test_atan2 <- main.
-  Called from math_builtins.c:746.
+  Called from math_builtins.c:751.
 [eva:progress] 
   computing for function double_interval <- test_atan2 <- main.
   Called from math_builtins.c:116.
@@ -364,7 +364,7 @@
 [eva:progress] Done for function test_atan2
 [eva:progress] 
   computing for function test_pow_det <- main.
-  Called from math_builtins.c:747.
+  Called from math_builtins.c:752.
 [eva:progress] math_builtins.c:145: Call to builtin Frama_C_pow for function pow
 [eva:progress] math_builtins.c:145: 
   function pow: precondition 'finite_logic_res' got status valid.
@@ -393,7 +393,7 @@
 [eva:progress] Done for function test_pow_det
 [eva:progress] 
   computing for function test_pow_singleton_exp <- main.
-  Called from math_builtins.c:748.
+  Called from math_builtins.c:753.
 [eva:progress] 
   computing for function double_interval <- test_pow_singleton_exp <- main.
   Called from math_builtins.c:168.
@@ -500,7 +500,7 @@
 [eva:progress] Done for function test_pow_singleton_exp
 [eva:progress] 
   computing for function test_pow <- main.
-  Called from math_builtins.c:749.
+  Called from math_builtins.c:754.
 [eva:progress] 
   computing for function double_interval <- test_pow <- main.
   Called from math_builtins.c:217.
@@ -734,7 +734,7 @@
 [eva:progress] Done for function test_pow
 [eva:progress] 
   computing for function test_fmod_det <- main.
-  Called from math_builtins.c:750.
+  Called from math_builtins.c:755.
 [eva:progress] math_builtins.c:405: 
   Call to builtin Frama_C_fmod for function fmod
 [eva:progress] math_builtins.c:405: 
@@ -767,7 +767,7 @@
 [eva:progress] Done for function test_fmod_det
 [eva:progress] 
   computing for function test_fmod <- main.
-  Called from math_builtins.c:751.
+  Called from math_builtins.c:756.
 [eva:progress] 
   computing for function double_interval <- test_fmod <- main.
   Called from math_builtins.c:416.
@@ -1038,7 +1038,7 @@
 [eva:progress] Done for function test_fmod
 [eva:progress] 
   computing for function test_sqrt_det <- main.
-  Called from math_builtins.c:752.
+  Called from math_builtins.c:757.
 [eva:progress] math_builtins.c:478: 
   Call to builtin Frama_C_sqrt for function sqrt
 [eva:progress] math_builtins.c:478: 
@@ -1073,7 +1073,7 @@
 [eva:progress] Done for function test_sqrt_det
 [eva:progress] 
   computing for function test_sqrt <- main.
-  Called from math_builtins.c:753.
+  Called from math_builtins.c:758.
 [eva:progress] 
   computing for function double_interval <- test_sqrt <- main.
   Called from math_builtins.c:486.
@@ -1122,7 +1122,7 @@
 [eva:progress] Done for function test_sqrt
 [eva:progress] 
   computing for function test_exp_det <- main.
-  Called from math_builtins.c:754.
+  Called from math_builtins.c:759.
 [eva:progress] math_builtins.c:516: Call to builtin Frama_C_exp for function exp
 [eva:progress] math_builtins.c:516: 
   function exp: precondition 'not_overflow_argument' got status valid.
@@ -1169,7 +1169,7 @@
 [eva:progress] Done for function test_exp_det
 [eva:progress] 
   computing for function test_log_det <- main.
-  Called from math_builtins.c:755.
+  Called from math_builtins.c:760.
 [eva:progress] math_builtins.c:533: Call to builtin Frama_C_log for function log
 [eva:progress] math_builtins.c:533: 
   function log: precondition 'finite_arg' got status valid.
@@ -1204,7 +1204,7 @@
 [eva:progress] Done for function test_log_det
 [eva:progress] 
   computing for function test_log10_det <- main.
-  Called from math_builtins.c:756.
+  Called from math_builtins.c:761.
 [eva:progress] math_builtins.c:551: 
   Call to builtin Frama_C_log10 for function log10
 [eva:progress] math_builtins.c:551: 
@@ -1245,7 +1245,7 @@
 [eva:progress] Done for function test_log10_det
 [eva:progress] 
   computing for function test_powf_det <- main.
-  Called from math_builtins.c:758.
+  Called from math_builtins.c:763.
 [eva:progress] math_builtins.c:156: 
   Call to builtin Frama_C_powf for function powf
 [eva:progress] math_builtins.c:156: 
@@ -1282,7 +1282,7 @@
 [eva:progress] Done for function test_powf_det
 [eva:progress] 
   computing for function test_powf_singleton_exp <- main.
-  Called from math_builtins.c:759.
+  Called from math_builtins.c:764.
 [eva:progress] 
   computing for function double_interval <- test_powf_singleton_exp <- main.
   Called from math_builtins.c:301.
@@ -1406,7 +1406,7 @@
 [eva:progress] Done for function test_powf_singleton_exp
 [eva:progress] 
   computing for function test_powf <- main.
-  Called from math_builtins.c:760.
+  Called from math_builtins.c:765.
 [eva:progress] 
   computing for function double_interval <- test_powf <- main.
   Called from math_builtins.c:350.
@@ -1568,7 +1568,7 @@
 [eva:progress] Done for function test_powf
 [eva:progress] 
   computing for function test_sqrtf_det <- main.
-  Called from math_builtins.c:761.
+  Called from math_builtins.c:766.
 [eva:progress] math_builtins.c:497: 
   Call to builtin Frama_C_sqrtf for function sqrtf
 [eva:progress] math_builtins.c:497: 
@@ -1603,7 +1603,7 @@
 [eva:progress] Done for function test_sqrtf_det
 [eva:progress] 
   computing for function test_sqrtf <- main.
-  Called from math_builtins.c:762.
+  Called from math_builtins.c:767.
 [eva:progress] 
   computing for function double_interval <- test_sqrtf <- main.
   Called from math_builtins.c:505.
@@ -1652,7 +1652,7 @@
 [eva:progress] Done for function test_sqrtf
 [eva:progress] 
   computing for function test_expf_det <- main.
-  Called from math_builtins.c:763.
+  Called from math_builtins.c:768.
 [eva:progress] math_builtins.c:525: 
   Call to builtin Frama_C_expf for function expf
 [eva:progress] math_builtins.c:525: 
@@ -1697,7 +1697,7 @@
 [eva:progress] Done for function test_expf_det
 [eva:progress] 
   computing for function test_logf_det <- main.
-  Called from math_builtins.c:764.
+  Called from math_builtins.c:769.
 [eva:progress] math_builtins.c:542: 
   Call to builtin Frama_C_logf for function logf
 [eva:progress] math_builtins.c:542: 
@@ -1738,7 +1738,7 @@
 [eva:progress] Done for function test_logf_det
 [eva:progress] 
   computing for function test_log10f_det <- main.
-  Called from math_builtins.c:765.
+  Called from math_builtins.c:770.
 [eva:progress] math_builtins.c:560: 
   Call to builtin Frama_C_log10f for function log10f
 [eva:progress] math_builtins.c:560: 
@@ -1779,7 +1779,7 @@
 [eva:progress] Done for function test_log10f_det
 [eva:progress] 
   computing for function test_diff_pow_powf <- main.
-  Called from math_builtins.c:767.
+  Called from math_builtins.c:772.
 [eva:progress] math_builtins.c:569: Call to builtin Frama_C_pow for function pow
 [eva:progress] math_builtins.c:569: 
   function pow: precondition 'finite_logic_res' got status valid.
@@ -1791,7 +1791,7 @@
 [eva:progress] Done for function test_diff_pow_powf
 [eva:progress] 
   computing for function test_floor_det <- main.
-  Called from math_builtins.c:769.
+  Called from math_builtins.c:774.
 [eva:progress] math_builtins.c:574: 
   Call to builtin Frama_C_floor for function floor
 [eva:progress] math_builtins.c:574: 
@@ -1820,7 +1820,7 @@
 [eva:progress] Done for function test_floor_det
 [eva:progress] 
   computing for function test_ceil_det <- main.
-  Called from math_builtins.c:770.
+  Called from math_builtins.c:775.
 [eva:progress] math_builtins.c:583: 
   Call to builtin Frama_C_ceil for function ceil
 [eva:progress] math_builtins.c:583: 
@@ -1849,7 +1849,7 @@
 [eva:progress] Done for function test_ceil_det
 [eva:progress] 
   computing for function test_trunc_det <- main.
-  Called from math_builtins.c:771.
+  Called from math_builtins.c:776.
 [eva:progress] math_builtins.c:592: 
   Call to builtin Frama_C_trunc for function trunc
 [eva:progress] math_builtins.c:592: 
@@ -1878,7 +1878,7 @@
 [eva:progress] Done for function test_trunc_det
 [eva:progress] 
   computing for function test_round_det <- main.
-  Called from math_builtins.c:772.
+  Called from math_builtins.c:777.
 [eva:progress] math_builtins.c:601: 
   Call to builtin Frama_C_round for function round
 [eva:progress] math_builtins.c:601: 
@@ -1907,404 +1907,404 @@
 [eva:progress] Done for function test_round_det
 [eva:progress] 
   computing for function test_floor <- main.
-  Called from math_builtins.c:773.
+  Called from math_builtins.c:778.
 [eva:progress] 
   computing for function double_interval <- test_floor <- main.
-  Called from math_builtins.c:611.
+  Called from math_builtins.c:616.
 [eva:progress] Recording results for double_interval
 [eva:progress] Done for function double_interval
-[eva:progress] math_builtins.c:612: 
+[eva:progress] math_builtins.c:617: 
   Call to builtin Frama_C_floor for function floor
-[eva:progress] math_builtins.c:612: 
+[eva:progress] math_builtins.c:617: 
   function floor: precondition 'finite_arg' got status valid.
 [eva:progress] 
   computing for function double_interval <- test_floor <- main.
-  Called from math_builtins.c:613.
+  Called from math_builtins.c:618.
 [eva:progress] Recording results for double_interval
 [eva:progress] Done for function double_interval
-[eva:progress] math_builtins.c:614: 
+[eva:progress] math_builtins.c:619: 
   Call to builtin Frama_C_floor for function floor
-[eva:progress] math_builtins.c:614: 
+[eva:progress] math_builtins.c:619: 
   function floor: precondition 'finite_arg' got status valid.
 [eva:progress] 
   computing for function double_interval <- test_floor <- main.
-  Called from math_builtins.c:615.
+  Called from math_builtins.c:620.
 [eva:progress] Recording results for double_interval
 [eva:progress] Done for function double_interval
-[eva:progress] math_builtins.c:616: 
+[eva:progress] math_builtins.c:621: 
   Call to builtin Frama_C_floor for function floor
-[eva:progress] math_builtins.c:616: 
+[eva:progress] math_builtins.c:621: 
   function floor: precondition 'finite_arg' got status valid.
 [eva:progress] Recording results for test_floor
 [eva:progress] Done for function test_floor
 [eva:progress] 
   computing for function test_ceil <- main.
-  Called from math_builtins.c:774.
+  Called from math_builtins.c:779.
 [eva:progress] 
   computing for function double_interval <- test_ceil <- main.
-  Called from math_builtins.c:621.
+  Called from math_builtins.c:626.
 [eva:progress] Recording results for double_interval
 [eva:progress] Done for function double_interval
-[eva:progress] math_builtins.c:622: 
+[eva:progress] math_builtins.c:627: 
   Call to builtin Frama_C_ceil for function ceil
-[eva:progress] math_builtins.c:622: 
+[eva:progress] math_builtins.c:627: 
   function ceil: precondition 'finite_arg' got status valid.
 [eva:progress] 
   computing for function double_interval <- test_ceil <- main.
-  Called from math_builtins.c:623.
+  Called from math_builtins.c:628.
 [eva:progress] Recording results for double_interval
 [eva:progress] Done for function double_interval
-[eva:progress] math_builtins.c:624: 
+[eva:progress] math_builtins.c:629: 
   Call to builtin Frama_C_ceil for function ceil
-[eva:progress] math_builtins.c:624: 
+[eva:progress] math_builtins.c:629: 
   function ceil: precondition 'finite_arg' got status valid.
 [eva:progress] 
   computing for function double_interval <- test_ceil <- main.
-  Called from math_builtins.c:625.
+  Called from math_builtins.c:630.
 [eva:progress] Recording results for double_interval
 [eva:progress] Done for function double_interval
-[eva:progress] math_builtins.c:626: 
+[eva:progress] math_builtins.c:631: 
   Call to builtin Frama_C_ceil for function ceil
-[eva:progress] math_builtins.c:626: 
+[eva:progress] math_builtins.c:631: 
   function ceil: precondition 'finite_arg' got status valid.
 [eva:progress] Recording results for test_ceil
 [eva:progress] Done for function test_ceil
 [eva:progress] 
   computing for function test_trunc <- main.
-  Called from math_builtins.c:775.
+  Called from math_builtins.c:780.
 [eva:progress] 
   computing for function double_interval <- test_trunc <- main.
-  Called from math_builtins.c:631.
+  Called from math_builtins.c:636.
 [eva:progress] Recording results for double_interval
 [eva:progress] Done for function double_interval
-[eva:progress] math_builtins.c:632: 
+[eva:progress] math_builtins.c:637: 
   Call to builtin Frama_C_trunc for function trunc
-[eva:progress] math_builtins.c:632: 
+[eva:progress] math_builtins.c:637: 
   function trunc: precondition 'finite_arg' got status valid.
 [eva:progress] 
   computing for function double_interval <- test_trunc <- main.
-  Called from math_builtins.c:633.
+  Called from math_builtins.c:638.
 [eva:progress] Recording results for double_interval
 [eva:progress] Done for function double_interval
-[eva:progress] math_builtins.c:634: 
+[eva:progress] math_builtins.c:639: 
   Call to builtin Frama_C_trunc for function trunc
-[eva:progress] math_builtins.c:634: 
+[eva:progress] math_builtins.c:639: 
   function trunc: precondition 'finite_arg' got status valid.
 [eva:progress] 
   computing for function double_interval <- test_trunc <- main.
-  Called from math_builtins.c:635.
+  Called from math_builtins.c:640.
 [eva:progress] Recording results for double_interval
 [eva:progress] Done for function double_interval
-[eva:progress] math_builtins.c:636: 
+[eva:progress] math_builtins.c:641: 
   Call to builtin Frama_C_trunc for function trunc
-[eva:progress] math_builtins.c:636: 
+[eva:progress] math_builtins.c:641: 
   function trunc: precondition 'finite_arg' got status valid.
 [eva:progress] Recording results for test_trunc
 [eva:progress] Done for function test_trunc
 [eva:progress] 
   computing for function test_round <- main.
-  Called from math_builtins.c:776.
+  Called from math_builtins.c:781.
 [eva:progress] 
   computing for function double_interval <- test_round <- main.
-  Called from math_builtins.c:641.
+  Called from math_builtins.c:646.
 [eva:progress] Recording results for double_interval
 [eva:progress] Done for function double_interval
-[eva:progress] math_builtins.c:642: 
+[eva:progress] math_builtins.c:647: 
   Call to builtin Frama_C_round for function round
-[eva:progress] math_builtins.c:642: 
+[eva:progress] math_builtins.c:647: 
   function round: precondition 'finite_arg' got status valid.
 [eva:progress] 
   computing for function double_interval <- test_round <- main.
-  Called from math_builtins.c:643.
+  Called from math_builtins.c:648.
 [eva:progress] Recording results for double_interval
 [eva:progress] Done for function double_interval
-[eva:progress] math_builtins.c:644: 
+[eva:progress] math_builtins.c:649: 
   Call to builtin Frama_C_round for function round
-[eva:progress] math_builtins.c:644: 
+[eva:progress] math_builtins.c:649: 
   function round: precondition 'finite_arg' got status valid.
 [eva:progress] 
   computing for function double_interval <- test_round <- main.
-  Called from math_builtins.c:645.
+  Called from math_builtins.c:650.
 [eva:progress] Recording results for double_interval
 [eva:progress] Done for function double_interval
-[eva:progress] math_builtins.c:646: 
+[eva:progress] math_builtins.c:651: 
   Call to builtin Frama_C_round for function round
-[eva:progress] math_builtins.c:646: 
+[eva:progress] math_builtins.c:651: 
   function round: precondition 'finite_arg' got status valid.
 [eva:progress] Recording results for test_round
 [eva:progress] Done for function test_round
 [eva:progress] 
   computing for function test_floorf_det <- main.
-  Called from math_builtins.c:778.
-[eva:progress] math_builtins.c:650: 
-  Call to builtin Frama_C_floorf for function floorf
-[eva:progress] math_builtins.c:650: 
-  function floorf: precondition 'finite_arg' got status valid.
-[eva:progress] math_builtins.c:651: 
-  Call to builtin Frama_C_floorf for function floorf
-[eva:progress] math_builtins.c:651: 
-  function floorf: precondition 'finite_arg' got status valid.
-[eva:progress] math_builtins.c:652: 
-  Call to builtin Frama_C_floorf for function floorf
-[eva:progress] math_builtins.c:652: 
-  function floorf: precondition 'finite_arg' got status valid.
-[eva:progress] math_builtins.c:653: 
-  Call to builtin Frama_C_floorf for function floorf
-[eva:progress] math_builtins.c:653: 
-  function floorf: precondition 'finite_arg' got status valid.
-[eva:progress] math_builtins.c:654: 
-  Call to builtin Frama_C_floorf for function floorf
-[eva:progress] math_builtins.c:654: 
-  function floorf: precondition 'finite_arg' got status valid.
+  Called from math_builtins.c:783.
 [eva:progress] math_builtins.c:655: 
   Call to builtin Frama_C_floorf for function floorf
 [eva:progress] math_builtins.c:655: 
+  function floorf: precondition 'finite_arg' got status valid.
+[eva:progress] math_builtins.c:656: 
+  Call to builtin Frama_C_floorf for function floorf
+[eva:progress] math_builtins.c:656: 
+  function floorf: precondition 'finite_arg' got status valid.
+[eva:progress] math_builtins.c:657: 
+  Call to builtin Frama_C_floorf for function floorf
+[eva:progress] math_builtins.c:657: 
+  function floorf: precondition 'finite_arg' got status valid.
+[eva:progress] math_builtins.c:658: 
+  Call to builtin Frama_C_floorf for function floorf
+[eva:progress] math_builtins.c:658: 
+  function floorf: precondition 'finite_arg' got status valid.
+[eva:progress] math_builtins.c:659: 
+  Call to builtin Frama_C_floorf for function floorf
+[eva:progress] math_builtins.c:659: 
+  function floorf: precondition 'finite_arg' got status valid.
+[eva:progress] math_builtins.c:660: 
+  Call to builtin Frama_C_floorf for function floorf
+[eva:progress] math_builtins.c:660: 
   function floorf: precondition 'finite_arg' got status valid.
 [eva:progress] Recording results for test_floorf_det
 [eva:progress] Done for function test_floorf_det
 [eva:progress] 
   computing for function test_ceilf_det <- main.
-  Called from math_builtins.c:779.
-[eva:progress] math_builtins.c:659: 
-  Call to builtin Frama_C_ceilf for function ceilf
-[eva:progress] math_builtins.c:659: 
-  function ceilf: precondition 'finite_arg' got status valid.
-[eva:progress] math_builtins.c:660: 
-  Call to builtin Frama_C_ceilf for function ceilf
-[eva:progress] math_builtins.c:660: 
-  function ceilf: precondition 'finite_arg' got status valid.
-[eva:progress] math_builtins.c:661: 
-  Call to builtin Frama_C_ceilf for function ceilf
-[eva:progress] math_builtins.c:661: 
-  function ceilf: precondition 'finite_arg' got status valid.
-[eva:progress] math_builtins.c:662: 
-  Call to builtin Frama_C_ceilf for function ceilf
-[eva:progress] math_builtins.c:662: 
-  function ceilf: precondition 'finite_arg' got status valid.
-[eva:progress] math_builtins.c:663: 
-  Call to builtin Frama_C_ceilf for function ceilf
-[eva:progress] math_builtins.c:663: 
-  function ceilf: precondition 'finite_arg' got status valid.
+  Called from math_builtins.c:784.
 [eva:progress] math_builtins.c:664: 
   Call to builtin Frama_C_ceilf for function ceilf
 [eva:progress] math_builtins.c:664: 
+  function ceilf: precondition 'finite_arg' got status valid.
+[eva:progress] math_builtins.c:665: 
+  Call to builtin Frama_C_ceilf for function ceilf
+[eva:progress] math_builtins.c:665: 
+  function ceilf: precondition 'finite_arg' got status valid.
+[eva:progress] math_builtins.c:666: 
+  Call to builtin Frama_C_ceilf for function ceilf
+[eva:progress] math_builtins.c:666: 
+  function ceilf: precondition 'finite_arg' got status valid.
+[eva:progress] math_builtins.c:667: 
+  Call to builtin Frama_C_ceilf for function ceilf
+[eva:progress] math_builtins.c:667: 
+  function ceilf: precondition 'finite_arg' got status valid.
+[eva:progress] math_builtins.c:668: 
+  Call to builtin Frama_C_ceilf for function ceilf
+[eva:progress] math_builtins.c:668: 
+  function ceilf: precondition 'finite_arg' got status valid.
+[eva:progress] math_builtins.c:669: 
+  Call to builtin Frama_C_ceilf for function ceilf
+[eva:progress] math_builtins.c:669: 
   function ceilf: precondition 'finite_arg' got status valid.
 [eva:progress] Recording results for test_ceilf_det
 [eva:progress] Done for function test_ceilf_det
 [eva:progress] 
   computing for function test_truncf_det <- main.
-  Called from math_builtins.c:780.
-[eva:progress] math_builtins.c:668: 
-  Call to builtin Frama_C_truncf for function truncf
-[eva:progress] math_builtins.c:668: 
-  function truncf: precondition 'finite_arg' got status valid.
-[eva:progress] math_builtins.c:669: 
-  Call to builtin Frama_C_truncf for function truncf
-[eva:progress] math_builtins.c:669: 
-  function truncf: precondition 'finite_arg' got status valid.
-[eva:progress] math_builtins.c:670: 
-  Call to builtin Frama_C_truncf for function truncf
-[eva:progress] math_builtins.c:670: 
-  function truncf: precondition 'finite_arg' got status valid.
-[eva:progress] math_builtins.c:671: 
-  Call to builtin Frama_C_truncf for function truncf
-[eva:progress] math_builtins.c:671: 
-  function truncf: precondition 'finite_arg' got status valid.
-[eva:progress] math_builtins.c:672: 
-  Call to builtin Frama_C_truncf for function truncf
-[eva:progress] math_builtins.c:672: 
-  function truncf: precondition 'finite_arg' got status valid.
+  Called from math_builtins.c:785.
 [eva:progress] math_builtins.c:673: 
   Call to builtin Frama_C_truncf for function truncf
 [eva:progress] math_builtins.c:673: 
+  function truncf: precondition 'finite_arg' got status valid.
+[eva:progress] math_builtins.c:674: 
+  Call to builtin Frama_C_truncf for function truncf
+[eva:progress] math_builtins.c:674: 
+  function truncf: precondition 'finite_arg' got status valid.
+[eva:progress] math_builtins.c:675: 
+  Call to builtin Frama_C_truncf for function truncf
+[eva:progress] math_builtins.c:675: 
+  function truncf: precondition 'finite_arg' got status valid.
+[eva:progress] math_builtins.c:676: 
+  Call to builtin Frama_C_truncf for function truncf
+[eva:progress] math_builtins.c:676: 
+  function truncf: precondition 'finite_arg' got status valid.
+[eva:progress] math_builtins.c:677: 
+  Call to builtin Frama_C_truncf for function truncf
+[eva:progress] math_builtins.c:677: 
+  function truncf: precondition 'finite_arg' got status valid.
+[eva:progress] math_builtins.c:678: 
+  Call to builtin Frama_C_truncf for function truncf
+[eva:progress] math_builtins.c:678: 
   function truncf: precondition 'finite_arg' got status valid.
 [eva:progress] Recording results for test_truncf_det
 [eva:progress] Done for function test_truncf_det
 [eva:progress] 
   computing for function test_roundf_det <- main.
-  Called from math_builtins.c:781.
-[eva:progress] math_builtins.c:677: 
-  Call to builtin Frama_C_roundf for function roundf
-[eva:progress] math_builtins.c:677: 
-  function roundf: precondition 'finite_arg' got status valid.
-[eva:progress] math_builtins.c:678: 
-  Call to builtin Frama_C_roundf for function roundf
-[eva:progress] math_builtins.c:678: 
-  function roundf: precondition 'finite_arg' got status valid.
-[eva:progress] math_builtins.c:679: 
-  Call to builtin Frama_C_roundf for function roundf
-[eva:progress] math_builtins.c:679: 
-  function roundf: precondition 'finite_arg' got status valid.
-[eva:progress] math_builtins.c:680: 
-  Call to builtin Frama_C_roundf for function roundf
-[eva:progress] math_builtins.c:680: 
-  function roundf: precondition 'finite_arg' got status valid.
-[eva:progress] math_builtins.c:681: 
-  Call to builtin Frama_C_roundf for function roundf
-[eva:progress] math_builtins.c:681: 
-  function roundf: precondition 'finite_arg' got status valid.
+  Called from math_builtins.c:786.
 [eva:progress] math_builtins.c:682: 
   Call to builtin Frama_C_roundf for function roundf
 [eva:progress] math_builtins.c:682: 
+  function roundf: precondition 'finite_arg' got status valid.
+[eva:progress] math_builtins.c:683: 
+  Call to builtin Frama_C_roundf for function roundf
+[eva:progress] math_builtins.c:683: 
+  function roundf: precondition 'finite_arg' got status valid.
+[eva:progress] math_builtins.c:684: 
+  Call to builtin Frama_C_roundf for function roundf
+[eva:progress] math_builtins.c:684: 
+  function roundf: precondition 'finite_arg' got status valid.
+[eva:progress] math_builtins.c:685: 
+  Call to builtin Frama_C_roundf for function roundf
+[eva:progress] math_builtins.c:685: 
+  function roundf: precondition 'finite_arg' got status valid.
+[eva:progress] math_builtins.c:686: 
+  Call to builtin Frama_C_roundf for function roundf
+[eva:progress] math_builtins.c:686: 
+  function roundf: precondition 'finite_arg' got status valid.
+[eva:progress] math_builtins.c:687: 
+  Call to builtin Frama_C_roundf for function roundf
+[eva:progress] math_builtins.c:687: 
   function roundf: precondition 'finite_arg' got status valid.
 [eva:progress] Recording results for test_roundf_det
 [eva:progress] Done for function test_roundf_det
 [eva:progress] 
   computing for function test_floorf <- main.
-  Called from math_builtins.c:782.
+  Called from math_builtins.c:787.
 [eva:progress] 
   computing for function double_interval <- test_floorf <- main.
-  Called from math_builtins.c:687.
+  Called from math_builtins.c:692.
 [eva:progress] Recording results for double_interval
 [eva:progress] Done for function double_interval
-[eva:progress] math_builtins.c:688: 
+[eva:progress] math_builtins.c:693: 
   Call to builtin Frama_C_floorf for function floorf
-[eva:progress] math_builtins.c:688: 
+[eva:progress] math_builtins.c:693: 
   function floorf: precondition 'finite_arg' got status valid.
 [eva:progress] 
   computing for function double_interval <- test_floorf <- main.
-  Called from math_builtins.c:689.
+  Called from math_builtins.c:694.
 [eva:progress] Recording results for double_interval
 [eva:progress] Done for function double_interval
-[eva:progress] math_builtins.c:690: 
+[eva:progress] math_builtins.c:695: 
   Call to builtin Frama_C_floorf for function floorf
-[eva:progress] math_builtins.c:690: 
+[eva:progress] math_builtins.c:695: 
   function floorf: precondition 'finite_arg' got status valid.
 [eva:progress] 
   computing for function double_interval <- test_floorf <- main.
-  Called from math_builtins.c:691.
+  Called from math_builtins.c:696.
 [eva:progress] Recording results for double_interval
 [eva:progress] Done for function double_interval
-[eva:progress] math_builtins.c:692: 
+[eva:progress] math_builtins.c:697: 
   Call to builtin Frama_C_floorf for function floorf
-[eva:progress] math_builtins.c:692: 
+[eva:progress] math_builtins.c:697: 
   function floorf: precondition 'finite_arg' got status valid.
 [eva:progress] Recording results for test_floorf
 [eva:progress] Done for function test_floorf
 [eva:progress] 
   computing for function test_ceilf <- main.
-  Called from math_builtins.c:783.
+  Called from math_builtins.c:788.
 [eva:progress] 
   computing for function double_interval <- test_ceilf <- main.
-  Called from math_builtins.c:697.
+  Called from math_builtins.c:702.
 [eva:progress] Recording results for double_interval
 [eva:progress] Done for function double_interval
-[eva:progress] math_builtins.c:698: 
+[eva:progress] math_builtins.c:703: 
   Call to builtin Frama_C_ceilf for function ceilf
-[eva:progress] math_builtins.c:698: 
+[eva:progress] math_builtins.c:703: 
   function ceilf: precondition 'finite_arg' got status valid.
 [eva:progress] 
   computing for function double_interval <- test_ceilf <- main.
-  Called from math_builtins.c:699.
+  Called from math_builtins.c:704.
 [eva:progress] Recording results for double_interval
 [eva:progress] Done for function double_interval
-[eva:progress] math_builtins.c:700: 
+[eva:progress] math_builtins.c:705: 
   Call to builtin Frama_C_ceilf for function ceilf
-[eva:progress] math_builtins.c:700: 
+[eva:progress] math_builtins.c:705: 
   function ceilf: precondition 'finite_arg' got status valid.
 [eva:progress] 
   computing for function double_interval <- test_ceilf <- main.
-  Called from math_builtins.c:701.
+  Called from math_builtins.c:706.
 [eva:progress] Recording results for double_interval
 [eva:progress] Done for function double_interval
-[eva:progress] math_builtins.c:702: 
+[eva:progress] math_builtins.c:707: 
   Call to builtin Frama_C_ceilf for function ceilf
-[eva:progress] math_builtins.c:702: 
+[eva:progress] math_builtins.c:707: 
   function ceilf: precondition 'finite_arg' got status valid.
 [eva:progress] Recording results for test_ceilf
 [eva:progress] Done for function test_ceilf
 [eva:progress] 
   computing for function test_truncf <- main.
-  Called from math_builtins.c:784.
+  Called from math_builtins.c:789.
 [eva:progress] 
   computing for function double_interval <- test_truncf <- main.
-  Called from math_builtins.c:707.
+  Called from math_builtins.c:712.
 [eva:progress] Recording results for double_interval
 [eva:progress] Done for function double_interval
-[eva:progress] math_builtins.c:708: 
+[eva:progress] math_builtins.c:713: 
   Call to builtin Frama_C_truncf for function truncf
-[eva:progress] math_builtins.c:708: 
+[eva:progress] math_builtins.c:713: 
   function truncf: precondition 'finite_arg' got status valid.
 [eva:progress] 
   computing for function double_interval <- test_truncf <- main.
-  Called from math_builtins.c:709.
+  Called from math_builtins.c:714.
 [eva:progress] Recording results for double_interval
 [eva:progress] Done for function double_interval
-[eva:progress] math_builtins.c:710: 
+[eva:progress] math_builtins.c:715: 
   Call to builtin Frama_C_truncf for function truncf
-[eva:progress] math_builtins.c:710: 
+[eva:progress] math_builtins.c:715: 
   function truncf: precondition 'finite_arg' got status valid.
 [eva:progress] 
   computing for function double_interval <- test_truncf <- main.
-  Called from math_builtins.c:711.
+  Called from math_builtins.c:716.
 [eva:progress] Recording results for double_interval
 [eva:progress] Done for function double_interval
-[eva:progress] math_builtins.c:712: 
+[eva:progress] math_builtins.c:717: 
   Call to builtin Frama_C_truncf for function truncf
-[eva:progress] math_builtins.c:712: 
+[eva:progress] math_builtins.c:717: 
   function truncf: precondition 'finite_arg' got status valid.
 [eva:progress] Recording results for test_truncf
 [eva:progress] Done for function test_truncf
 [eva:progress] 
   computing for function test_roundf <- main.
-  Called from math_builtins.c:785.
+  Called from math_builtins.c:790.
 [eva:progress] 
   computing for function double_interval <- test_roundf <- main.
-  Called from math_builtins.c:717.
+  Called from math_builtins.c:722.
 [eva:progress] Recording results for double_interval
 [eva:progress] Done for function double_interval
-[eva:progress] math_builtins.c:718: 
+[eva:progress] math_builtins.c:723: 
   Call to builtin Frama_C_roundf for function roundf
-[eva:progress] math_builtins.c:718: 
+[eva:progress] math_builtins.c:723: 
   function roundf: precondition 'finite_arg' got status valid.
 [eva:progress] 
   computing for function double_interval <- test_roundf <- main.
-  Called from math_builtins.c:719.
+  Called from math_builtins.c:724.
 [eva:progress] Recording results for double_interval
 [eva:progress] Done for function double_interval
-[eva:progress] math_builtins.c:720: 
+[eva:progress] math_builtins.c:725: 
   Call to builtin Frama_C_roundf for function roundf
-[eva:progress] math_builtins.c:720: 
+[eva:progress] math_builtins.c:725: 
   function roundf: precondition 'finite_arg' got status valid.
 [eva:progress] 
   computing for function double_interval <- test_roundf <- main.
-  Called from math_builtins.c:721.
+  Called from math_builtins.c:726.
 [eva:progress] Recording results for double_interval
 [eva:progress] Done for function double_interval
-[eva:progress] math_builtins.c:722: 
+[eva:progress] math_builtins.c:727: 
   Call to builtin Frama_C_roundf for function roundf
-[eva:progress] math_builtins.c:722: 
+[eva:progress] math_builtins.c:727: 
   function roundf: precondition 'finite_arg' got status valid.
 [eva:progress] Recording results for test_roundf
 [eva:progress] Done for function test_roundf
 [eva:progress] 
   computing for function test_uninit <- main.
-  Called from math_builtins.c:787.
-[eva:alarm] math_builtins.c:728: Warning: 
+  Called from math_builtins.c:792.
+[eva:alarm] math_builtins.c:733: Warning: 
   accessing uninitialized left-value. assert \initialized(&a);
 [eva:progress] 
   computing for function double_interval <- test_uninit <- main.
-  Called from math_builtins.c:733.
+  Called from math_builtins.c:738.
 [eva:progress] Recording results for double_interval
 [eva:progress] Done for function double_interval
-[eva:alarm] math_builtins.c:735: Warning: 
+[eva:alarm] math_builtins.c:740: Warning: 
   accessing uninitialized left-value. assert \initialized(&a);
-[eva:progress] math_builtins.c:735: 
+[eva:progress] math_builtins.c:740: 
   Call to builtin Frama_C_sqrt for function sqrt
-[eva:progress] math_builtins.c:735: 
+[eva:progress] math_builtins.c:740: 
   function sqrt: precondition 'finite_arg' got status valid.
-[eva:progress] math_builtins.c:735: 
+[eva:progress] math_builtins.c:740: 
   function sqrt: precondition 'arg_positive' got status valid.
-[eva:alarm] math_builtins.c:736: Warning: 
+[eva:alarm] math_builtins.c:741: Warning: 
   accessing uninitialized left-value. assert \initialized(&b);
-[eva:progress] math_builtins.c:736: Call to builtin Frama_C_pow for function pow
-[eva:progress] math_builtins.c:736: 
+[eva:progress] math_builtins.c:741: Call to builtin Frama_C_pow for function pow
+[eva:progress] math_builtins.c:741: 
   function pow: precondition 'finite_logic_res' got status valid.
 [eva:progress] Recording results for test_uninit
 [eva:progress] Done for function test_uninit
 [eva:progress] Recording results for main
 [eva:progress] Done for function main
-[eva] math_builtins.c:728: 
+[eva] math_builtins.c:733: 
   assertion 'Eva,initialization' got final status invalid.
 [eva] ====== VALUES COMPUTED ======
 [eva:final-states] Values at end of function double_interval:
