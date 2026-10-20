@@ -44,7 +44,12 @@ struct
     | Out_of_bounds -> 6
     | Shift _ -> 7
 
-  let compare g1 g2 = compare (priority g1) (priority g2)
+  let pretty fmt g = Printer.pp_predicate fmt g.pred
+
+  let compare g1 g2 =
+    let cmp = compare (priority g1) (priority g2) in
+    if cmp = 0
+    then Cil_datatype.PredicateStructEq.compare g1.pred g2.pred else cmp
 end
 
 module Guards =
@@ -95,10 +100,7 @@ struct
   let pretty fmt () =
     let pp_data fmt d =
       Pretty_utils.pp_list
-        ~pre:"[" ~suf:"]" ~sep:";@ "
-        Printer.pp_predicate
-        fmt
-        (List.map (fun g -> (Guard.pred g)) (Guards.elements d))
+        ~pre:"[" ~suf:"]" ~sep:";@ " Guard.pretty fmt (Guards.elements d)
     in
     Terms.pretty
       ~item:(format_of_string "%a --> %a") Printer.pp_term pp_data fmt tbl

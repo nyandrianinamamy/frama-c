@@ -3,6 +3,12 @@
   cannot create the pointer alignment guard of (int (*)[])ptr_t because int [] is an incomplete type
 [e-acsl] rte.c:167: Warning: 
   E-ACSL construct `R to Int' is not yet supported. Ignoring annotation.
+[e-acsl] rte.c:177: Warning: 
+  RTE guard "invalid pointer":
+              \null == struct_s.b + (0 .. 1) ||
+              \object_pointer(struct_s.b + (0 .. 1)) cannot be translated because construct 'range' is not supported yet. Ignoring RTE guard.
+[e-acsl] rte.c:177: Warning: 
+  E-ACSL construct `range' is not yet supported. Ignoring annotation.
 [e-acsl] translation done in project "e-acsl".
 [eva:alarm] rte.c:127: Warning: 
   signed downcast. assert -2147483648 <= __gen_e_acsl__3;

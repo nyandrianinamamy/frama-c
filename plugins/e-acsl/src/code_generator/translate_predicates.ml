@@ -416,19 +416,28 @@ let rte_guards_to_exp_old ~loc ~kf t env =
     Assert.push_pending_register_data ();
     let adata, env = Assert.empty ~loc kf env in
     let annot = Translate_utils.update_lv_origin env p in
-    let cil, adata, env = to_exp ~adata kf env p in
-    let stmt, env = Assert.runtime_check
-        ~adata
-        ~pred_kind:Assert
-        RTE
-        kf
-        env
-        cil
-        annot
-    in
-    let env = Assert.do_pending_register_data env in
-    let env = Env.add_stmt ~annot env stmt in
-    env
+    Env.handle_error (fun env ->
+        try
+          let cil, adata, env = to_exp ~adata kf env p in
+          let stmt, env = Assert.runtime_check
+              ~adata
+              ~pred_kind:Assert
+              RTE
+              kf
+              env
+              cil
+              annot
+          in
+          let env = Assert.do_pending_register_data env in
+          Env.add_stmt ~annot env stmt
+        with Error.Not_yet (_,_,s) as e ->
+          Options.warning ~current:true
+            "RTE guard %a cannot be translated because construct '%s' is not \
+             supported yet. Ignoring RTE guard."
+            Printer.pp_predicate p
+            s;
+          raise e)
+      env
   in
   Rte_analysis.remove t;
   env
