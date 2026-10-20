@@ -14,7 +14,7 @@
 [eva:show] sqrt.c:19: 
   Frama_C_dump_each:
   # cvalue:
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   k ∈ UNINITIALIZED
   i ∈ {-0.}
   j ∈ {-0.}
@@ -25,7 +25,7 @@
 [eva:show] sqrt.c:23: 
   Frama_C_dump_each:
   # cvalue:
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   k ∈ UNINITIALIZED
   i ∈ {-0.}
   j ∈ {-0.}

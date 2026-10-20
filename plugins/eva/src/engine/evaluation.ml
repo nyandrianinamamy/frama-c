@@ -1780,7 +1780,7 @@ module Make
           let kfs, alarm' = compatible_funcs ?args:args_types kfs in
           let reduce = backward_function_pointer valuation state v in
           let reduce kf = let+ value = reduce kf in (kf, value) in
-          let reduced_kfs = Bottom.list_filter_map reduce kfs in
+          let reduced_kfs = Bottom.List.filter_map reduce kfs in
           let status =
             if reduced_kfs = [] then Alarmset.False
             else if alarm || alarm' then Alarmset.Unknown

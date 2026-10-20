@@ -4,4 +4,4 @@ COMMENT: No generation of dot files in alternative configuration.
 MACRO: LOG_MT_DOT_FILES_FILENAME
 MACRO: LOG_MT_DOT_FILES_OPTS
 
-OPT: -commands-file %{dep:mthread_test_options.txt} -eva-domains octagon
+OPT: @EVA_OPTIONS@ -commands-file %{dep:mthread_test_options.txt}

@@ -48,16 +48,8 @@
 # define __NTH(fct)	fct
 #endif
 
-// Frama-C does not support GCC's __builtin_object_size.
-// To improve compatibility with some codebases,
-// we define it anyway, but it always returns -1, as if
-// the compiler were unable to statically determine
-// the object size (we only consider the cases where type
-// is either 0 or 1).
-// Note that for some built-ins, we force them to our definition,
-// while others we leave unmodified if they exist
-#undef __builtin_object_size
-#define __builtin_object_size (ptr, type) ((size_t)-1)
+// These macros are related to GCC's __builtin_object_size, which is
+// supported on GCC machdeps
 #undef __bos
 #define __bos(ptr) __builtin_object_size (ptr, 0)
 #undef __bos0
@@ -129,7 +121,7 @@
 
 // The `__FC_EXTERN_FOR_MACRO` can be used to mark that a variable internal to
 // Frama-C replaces an existing libc macro. For instance `errno` is a macro
-// that points to `__fc_errno` in Frama-C's libc, in this case `__fc_errno` is
+// that points to `errno` in Frama-C's libc, in this case `errno` is
 // marked with `__FC_EXTERN_FOR_MACRO(errno)`. The macro adds the attributes
 // `__fc_stdlib_internal` and `__fc_stdlib_for_macro(macro)`.
 #ifndef __FC_EXTERN_FOR_MACRO

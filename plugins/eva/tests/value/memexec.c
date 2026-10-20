@@ -1,6 +1,6 @@
 /* run.config*
    PLUGIN: @PTEST_PLUGIN@ rtegen
-   STDOPT: #"-machdep x86_32 -rte-select fbug @RTE_TEST@ -then -eva"
+   STDOPT: #"-machdep x86_32 -rte-select fbug -rte -then -eva"
 */
 int x1, y1, z1, z2; volatile int c, nondet;
 

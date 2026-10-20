@@ -7,7 +7,7 @@
 [eva] ====== VALUES COMPUTED ======
 [eva:final-states] Values at end of function pack:
   __fc_heap_status ∈ [--..--]
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   ret ∈ {{ &__malloc_pack_l20[0] }}
   size ∈ {6}
   i ∈ {6}
@@ -16,7 +16,7 @@
                    [6] ∈ {0}
 [eva:final-states] Values at end of function main:
   __fc_heap_status ∈ [--..--]
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   p ∈ {{ &__malloc_pack_l20[0] }}
   __va_arg0 ∈ {42}
   __va_arg1 ∈ {42}

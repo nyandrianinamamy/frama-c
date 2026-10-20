@@ -71,12 +71,12 @@
 [eva:final-states] Values at end of function main4:
   d ∈ [1. .. 1.79769313486e+308]
 [eva:final-states] Values at end of function main3:
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   f1 ∈ [-2147483648. .. 2147483647.]
   f2 ∈ [-2147483648. .. 2147483647.]
   r ∈ [-1.79769313486e+308 .. 1.79769313486e+308]
 [eva:final-states] Values at end of function main:
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
 [eva:summary] ====== ANALYSIS SUMMARY ======
   ----------------------------------------------------------------------------
   5 functions analyzed (out of 5): 100% coverage.
@@ -185,12 +185,12 @@
 [eva:final-states] Values at end of function main4:
   d ∈ [1. .. 1.79769313486e+308]
 [eva:final-states] Values at end of function main3:
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   f1 ∈ [-2147483648. .. 2147483647.]
   f2 ∈ [-2147483648. .. 2147483647.]
   r ∈ [-1.79769313486e+308 .. 1.79769313486e+308]
 [eva:final-states] Values at end of function main:
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
 [eva:summary] ====== ANALYSIS SUMMARY ======
   ----------------------------------------------------------------------------
   5 functions analyzed (out of 5): 100% coverage.

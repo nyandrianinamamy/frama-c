@@ -277,7 +277,7 @@
                       [3..64] ∈ {0}
   handler ∈ {{ &SIG_DFL ; &SIG_IGN ; &signal_handler }}
 [eva:final-states] Values at end of function signal:
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   __fc_signal_handlers[0..1] ∈ {0}
                       [2] ∈ {{ NULL ; &signal_handler }}
                       [3..64] ∈ {0}
@@ -292,7 +292,7 @@
   signal_status ∈ {0; 2}
   __retres ∈ {-1; 0}
 [eva:final-states] Values at end of function test_sigaction:
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   __fc_sigaction[0..9] ∈ {0}
                 [10] ∈
                 {{ garbled mix of &{__fc_sigaction}
@@ -315,7 +315,7 @@
       (origin: Library function {signal_c_h.c:60}) }} or UNINITIALIZED
   __retres ∈ {-1; 0; 1; 2; 3}
 [eva:final-states] Values at end of function test_sighandler:
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   __fc_signal_handlers[0..1] ∈ {0}
                       [2] ∈
                       {{ NULL ; &SIG_DFL ; &SIG_IGN ; &signal_handler }}
@@ -325,7 +325,7 @@
   res_raise ∈ {-1; 0}
   handler_called ∈ {0; 1}
 [eva:final-states] Values at end of function main:
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   __fc_signal_handlers[0..1] ∈ {0}
                       [2] ∈
                       {{ NULL ; &SIG_DFL ; &SIG_IGN ; &signal_handler }}

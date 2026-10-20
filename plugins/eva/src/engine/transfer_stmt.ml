@@ -429,7 +429,7 @@ module Make (Engine: Engine_Subset) = struct
       let+ state' = process_resulting_state state in
       key, state'
     in
-    let states = Bottom.list_filter_map process call_result.states in
+    let states = Bottom.List.filter_map process call_result.states in
     { call_result with states }
 
 

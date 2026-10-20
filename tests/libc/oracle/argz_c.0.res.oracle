@@ -1156,7 +1156,7 @@
   len ∈ {0}
   count ∈ {3; 6}
 [eva:final-states] Values at end of function argz_create:
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   __fc_heap_status ∈ [--..--]
   argc ∈ {3}
   tlen ∈ {13}
@@ -1179,7 +1179,7 @@
                            [11] ∈ {122}
                            [12] ∈ {0}
 [eva:final-states] Values at end of function argz_create_sep:
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   __fc_heap_status ∈ [--..--]
   nlen ∈ {7; 8}
   argz ∈ {{ NULL ; &__malloc_argz_create_sep_l189[0] }}
@@ -1273,7 +1273,7 @@
                               [21..22] ∈ {122}
                               [23] ∈ {0}
 [eva:final-states] Values at end of function strndup:
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   __fc_heap_status ∈ [--..--]
   l ∈ {0}
   p ∈ {{ NULL ; &__malloc_strndup_l336 ; &__malloc_strndup_l336_0 }}
@@ -1283,7 +1283,7 @@
 [eva:final-states] Values at end of function strstr:
   __retres ∈ {{ NULL ; &__realloc_argz_append_l258_1{[7], [18]} }}
 [eva:final-states] Values at end of function argz_replace:
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   __fc_heap_status ∈ [--..--]
   er ∈ {0; 12}
   argz ∈
@@ -1315,7 +1315,7 @@
                               [21] ∈ {97}
                               [22] ∈ {0}
 [eva:final-states] Values at end of function main:
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   __fc_heap_status ∈ [--..--]
   res ∈ {0}
   argv[0] ∈ {{ "this" }}

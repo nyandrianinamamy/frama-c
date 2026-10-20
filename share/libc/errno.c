@@ -9,6 +9,6 @@
 #include "errno.h"
 __PUSH_FC_STDLIB
 
-int __fc_errno = 0;
+_Thread_local int __fc_errno = 0;
 
 __POP_FC_STDLIB

@@ -1,5 +1,5 @@
 11,12d10
-< [eva:alarm] loop_wvar.i:53: Warning: 
+< [eva:alarm] loop_wvar.i:52: Warning: 
 <   signed overflow. assert next + 1 ≤ 2147483647;
 39c37
 <   next ∈ [0..2147483647]

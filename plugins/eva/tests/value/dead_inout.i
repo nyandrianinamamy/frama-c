@@ -1,7 +1,7 @@
 /* run.config*
-PLUGIN: @EVA_MAIN_PLUGINS@ inout
-   OPT: @EVA_CONFIG@ -out -input -inout -inout -main main_all
+   OPT: @EVA_OPTIONS@ -out -input -inout -inout -main main_all
  */
+
 // This tests a potential imprecision with the computation of input and outputs if one forgets to test that a statement is dead
 int a, b;
 
@@ -19,7 +19,7 @@ void main(){
   g ();
 }
 
-// This tests the computation of inout with non-conditional ifs 
+// This tests the computation of inout with non-conditional ifs
 void f2(int v, int *p, int *q) {
   if (v)
     *q = 1;

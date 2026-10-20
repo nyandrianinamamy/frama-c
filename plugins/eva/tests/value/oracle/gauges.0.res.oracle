@@ -371,7 +371,7 @@
   Frama_C_dump_each:
   # cvalue:
   __fc_heap_status ∈ [--..--]
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   __fc_rand_max ∈ {2147483647}
   __fc_random48_init ∈ {0}
   v ∈ [--..--]
@@ -421,7 +421,7 @@
   Frama_C_dump_each:
   # cvalue:
   __fc_heap_status ∈ [--..--]
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   __fc_rand_max ∈ {2147483647}
   __fc_random48_init ∈ {0}
   v ∈ [--..--]
@@ -470,7 +470,7 @@
   Frama_C_dump_each:
   # cvalue:
   __fc_heap_status ∈ [--..--]
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   __fc_rand_max ∈ {2147483647}
   __fc_random48_init ∈ {0}
   v ∈ [--..--]
@@ -519,7 +519,7 @@
   Frama_C_dump_each:
   # cvalue:
   __fc_heap_status ∈ [--..--]
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   __fc_rand_max ∈ {2147483647}
   __fc_random48_init ∈ {0}
   v ∈ [--..--]
@@ -575,7 +575,7 @@
   Frama_C_dump_each:
   # cvalue:
   __fc_heap_status ∈ [--..--]
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   __fc_rand_max ∈ {2147483647}
   __fc_random48_init ∈ {0}
   v ∈ [--..--]
@@ -626,7 +626,7 @@
   Frama_C_dump_each:
   # cvalue:
   __fc_heap_status ∈ [--..--]
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   __fc_rand_max ∈ {2147483647}
   __fc_random48_init ∈ {0}
   v ∈ [--..--]
@@ -835,12 +835,12 @@
     (origin: Arithmetic {gauges.c:188}) }} or UNINITIALIZED
 [eva:final-states] Values at end of function main17:
   __fc_heap_status ∈ [--..--]
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   q ∈ {0}
   p ∈ {{ &x ; &__malloc_w_main17_l343 }}
 [eva:final-states] Values at end of function main:
   __fc_heap_status ∈ [--..--]
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   t[0..4] ∈ {0}
    [5] ∈ [0..48],0%3
    [6] ∈ {0}
@@ -1002,14 +1002,14 @@
   NO EFFECTS
 [from] Function malloc:
   __fc_heap_status FROM __fc_heap_status; size (and SELF)
-  __fc_errno FROM __fc_heap_status; size
+  errno FROM __fc_heap_status; size
   \result FROM __fc_heap_status; size
 [from] Function main17:
   __fc_heap_status FROM __fc_heap_status (and SELF)
-  __fc_errno FROM __fc_heap_status
+  errno FROM __fc_heap_status
 [from] Function main:
   __fc_heap_status FROM __fc_heap_status (and SELF)
-  __fc_errno FROM __fc_heap_status
+  errno FROM __fc_heap_status
   t{[5]; [7]; [9]; [11]; [13]; [15]; [17]; [19]; [21]; [23]; [25]; [27];
     [29]; [31]; [33]; [35]; [37]}
    FROM \nothing (and SELF)
@@ -1130,11 +1130,11 @@
 [inout] Inputs for function main9:
     \nothing
 [inout] Out (internal) for function main17:
-    __fc_heap_status; __fc_errno; q; p
+    __fc_heap_status; errno; q; p
 [inout] Inputs for function main17:
     __fc_heap_status
 [inout] Out (internal) for function main:
-    __fc_heap_status; __fc_errno;
+    __fc_heap_status; errno;
     t{[5]; [7]; [9]; [11]; [13]; [15]; [17]; [19]; [21]; [23]; [25]; [27];
       [29]; [31]; [33]; [35]; [37]}; u[0..99]; T[0..99]
 [inout] Inputs for function main:

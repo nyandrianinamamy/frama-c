@@ -341,7 +341,7 @@
   Frama_C_entropy_source ∈ [--..--]
   __retres ∈ {{ NULL ; "BLA=1" ; &s[0] ; &__fc_env_strings + [0..63] }}
 [eva:final-states] Values at end of function putenv:
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   __fc_env[0..4095] ∈
           {{ NULL ; "BLA=1" ; &s[0] ; &__fc_env_strings + [0..63] }}
   Frama_C_entropy_source ∈ [--..--]
@@ -351,7 +351,7 @@
   __fc_initenv_init ∈ {1}
   __retres ∈ [--..--]
 [eva:final-states] Values at end of function setenv:
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   __fc_env[0..4095] ∈
           {{ NULL ; "BLA=1" ; &s[0] ; &__fc_env_strings + [0..63] }}
   Frama_C_entropy_source ∈ [--..--]
@@ -360,14 +360,14 @@
                   [63] ∈ {0}
   __retres ∈ {-1; 0}
 [eva:final-states] Values at end of function unsetenv:
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   __fc_env[0..4095] ∈
           {{ NULL ; "BLA=1" ; &s[0] ; &__fc_env_strings + [0..63] }}
   Frama_C_entropy_source ∈ [--..--]
   namelen ∈ [0..63] or UNINITIALIZED
   __retres ∈ {-1; 0}
 [eva:final-states] Values at end of function main:
-  __fc_errno ∈ {22}
+  errno ∈ {22}
   __fc_env[0..4095] ∈
           {{ NULL ; "BLA=1" ; &s[0] ; &__fc_env_strings + [0..63] }}
   Frama_C_entropy_source ∈ [--..--]

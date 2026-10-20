@@ -1,5 +1,5 @@
 /* run.config*
-   OPT: -eva @EVA_CONFIG@ -float-print norm -eva-no-results
+   OPT: -eva @EVA_OPTIONS@ -float-print norm -eva-no-results
 
 */
 int main()

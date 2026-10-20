@@ -4,7 +4,7 @@
 [eva:progress] Initial state computed
 [eva:initial-state] Values of globals at initialization
   
-[eva:partition] loop_wvar.i:35: starting to merge loop iterations
+[eva:partition] loop_wvar.i:34: starting to merge loop iterations
 [eva:progress] Recording results for main_err2
 [eva:progress] Done for function main_err2
 [eva] ====== VALUES COMPUTED ======

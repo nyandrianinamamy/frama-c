@@ -146,8 +146,7 @@ module Make (Engine: Engine_sig.S) = struct
     let states =
       Spec.compute_using_specification ~warn:false call spec state
     in
-    let join = Engine.Dom.join in
-    let final_state = Bottom.of_list ~join (List.map snd states) in
+    let final_state = Bottom.List.join Engine.Dom.join (List.map snd states) in
     match final_state with
     | `Bottom ->
       apply_call_results_hooks call state (`Builtin ([], None));
@@ -237,7 +236,7 @@ module Make (Engine: Engine_sig.S) = struct
       check_main_function_target kf (Function_calls.analysis_target kf Kglobal);
       let final_result = compute_call call None init_state in
       let final_states = List.map snd (final_result.states) in
-      let final_state = Bottom.of_list ~join:Engine.Dom.join final_states in
+      let final_state = Bottom.List.join Engine.Dom.join final_states in
       final_state
     in
 

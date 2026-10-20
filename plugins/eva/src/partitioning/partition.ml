@@ -573,7 +573,7 @@ struct
         let value = if positive then Z.one else Z.zero in
         value, state'
       in
-      Bottom.list_values [ aux true; aux false ]
+      Bottom.List.values [ aux true; aux false ]
 
   (* --- Applying partitioning actions onto flows --------------------------- *)
 

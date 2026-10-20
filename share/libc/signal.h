@@ -292,9 +292,9 @@ extern int pthread_sigmask(int how, const sigset_t * restrict set,
     // missing: assigns \result from 'possible thread interruption'
     // missing: terminates 'only when interrupted'
   requires valid_mask_or_null: sigmask == \null || \valid_read(sigmask);
-  assigns __fc_errno, \result \from indirect:sigmask;
+  assigns errno, \result \from indirect:sigmask;
   ensures result_means_interrupted: \result == -1;
-  ensures errno_set: __fc_errno == EINTR;
+  ensures errno_set: errno == EINTR;
 */
 extern int sigsuspend(const sigset_t *sigmask);
 

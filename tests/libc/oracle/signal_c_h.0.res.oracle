@@ -223,7 +223,7 @@
 [eva:progress] Done for function main
 [eva] ====== VALUES COMPUTED ======
 [eva:final-states] Values at end of function test_sigaction:
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   __fc_sigaction[0]{.sa_handler; .sa_sigaction} ∈ {0}
                 [0]{.sa_mask; .sa_flags} ∈ [--..--]
                 {[0].sa_restorer; [1]{.sa_handler; .sa_sigaction}} ∈ {0}
@@ -377,7 +377,7 @@
   res_raise ∈ [--..--]
   handler_called ∈ {0}
 [eva:final-states] Values at end of function main:
-  __fc_errno ∈ [--..--]
+  errno ∈ [--..--]
   __fc_signal_handlers[0..1] ∈ {0}
                       [2] ∈ {{ NULL ; &signal_handler }}
                       [3..64] ∈ {0}

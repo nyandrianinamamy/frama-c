@@ -1,5 +1,5 @@
 /* run.config*
-   OPT: -eva @EVA_CONFIG@ -eva-slevel 1000 -float-print norm
+   OPT: -eva @EVA_OPTIONS@ -eva-slevel 1000 -float-print norm
 */
 
 #include "__fc_builtin.h"
@@ -9,7 +9,7 @@
 float Frama_C_float_interval(float, float);
 
 int main(){
-  float f = Frama_C_float_interval(-3.1875, -3.1875+0.25);  
+  float f = Frama_C_float_interval(-3.1875, -3.1875+0.25);
   while (f <= 3.1875)
     { //Frama_C_show_each_f(f);
       Frama_C_show_each_s((float)sin(f));

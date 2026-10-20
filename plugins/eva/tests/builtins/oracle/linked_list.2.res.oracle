@@ -9,10 +9,10 @@
   Frama_C_dump_each:
   # cvalue:
   MEMORY[0..0x3FF] ∈ {0}
-  __fc_errno ∈ [--..--]
-  __fc_stderr ∈ {{ &__fc_initial_stderr }}
-  __fc_stdin ∈ {{ &__fc_initial_stdin }}
-  __fc_stdout ∈ {{ &__fc_initial_stdout }}
+  errno ∈ [--..--]
+  stderr ∈ {{ &__fc_initial_stderr }}
+  stdin ∈ {{ &__fc_initial_stdin }}
+  stdout ∈ {{ &__fc_initial_stdout }}
   __fc_fopen[0..15] ∈ {0}
   __fc_tmpnam[0..19] ∈ {0}
   __fc_heap_status ∈ [--..--]
@@ -55,10 +55,10 @@
   Frama_C_dump_each:
   # cvalue:
   MEMORY[0..0x3FF] ∈ {0}
-  __fc_errno ∈ [--..--]
-  __fc_stderr ∈ {{ &__fc_initial_stderr }}
-  __fc_stdin ∈ {{ &__fc_initial_stdin }}
-  __fc_stdout ∈ {{ &__fc_initial_stdout }}
+  errno ∈ [--..--]
+  stderr ∈ {{ &__fc_initial_stderr }}
+  stdin ∈ {{ &__fc_initial_stdin }}
+  stdout ∈ {{ &__fc_initial_stdout }}
   __fc_fopen[0..15] ∈ {0}
   __fc_tmpnam[0..19] ∈ {0}
   __fc_heap_status ∈ [--..--]
@@ -97,10 +97,10 @@
   # cvalue:
   MEMORY[bits 0 to 31] ∈ {1}
         [4..0x3FF] ∈ {0}
-  __fc_errno ∈ [--..--]
-  __fc_stderr ∈ {{ &__fc_initial_stderr }}
-  __fc_stdin ∈ {{ &__fc_initial_stdin }}
-  __fc_stdout ∈ {{ &__fc_initial_stdout }}
+  errno ∈ [--..--]
+  stderr ∈ {{ &__fc_initial_stderr }}
+  stdin ∈ {{ &__fc_initial_stdin }}
+  stdout ∈ {{ &__fc_initial_stdout }}
   __fc_fopen[0..15] ∈ {0}
   __fc_tmpnam[0..19] ∈ {0}
   __fc_heap_status ∈ [--..--]
@@ -138,10 +138,10 @@
   # cvalue:
   MEMORY[bits 0 to 31] ∈ {1}
         [4..0x3FF] ∈ {0}
-  __fc_errno ∈ [--..--]
-  __fc_stderr ∈ {{ &__fc_initial_stderr }}
-  __fc_stdin ∈ {{ &__fc_initial_stdin }}
-  __fc_stdout ∈ {{ &__fc_initial_stdout }}
+  errno ∈ [--..--]
+  stderr ∈ {{ &__fc_initial_stderr }}
+  stdin ∈ {{ &__fc_initial_stdin }}
+  stdout ∈ {{ &__fc_initial_stdout }}
   __fc_fopen[0..15] ∈ {0}
   __fc_tmpnam[0..19] ∈ {0}
   __fc_heap_status ∈ [--..--]
@@ -179,10 +179,10 @@
         [bits 64 to 95] ∈ {2}
         [bits 96 to 127] ∈ {{ (? *)&MEMORY }}
         [16..0x3FF] ∈ {0}
-  __fc_errno ∈ [--..--]
-  __fc_stderr ∈ {{ &__fc_initial_stderr }}
-  __fc_stdin ∈ {{ &__fc_initial_stdin }}
-  __fc_stdout ∈ {{ &__fc_initial_stdout }}
+  errno ∈ [--..--]
+  stderr ∈ {{ &__fc_initial_stderr }}
+  stdin ∈ {{ &__fc_initial_stdin }}
+  stdout ∈ {{ &__fc_initial_stdout }}
   __fc_fopen[0..15] ∈ {0}
   __fc_tmpnam[0..19] ∈ {0}
   __fc_heap_status ∈ [--..--]
@@ -223,10 +223,10 @@
         [bits 64 to 95] ∈ {2}
         [bits 96 to 127] ∈ {{ (? *)&MEMORY }}
         [16..0x3FF] ∈ {0}
-  __fc_errno ∈ [--..--]
-  __fc_stderr ∈ {{ &__fc_initial_stderr }}
-  __fc_stdin ∈ {{ &__fc_initial_stdin }}
-  __fc_stdout ∈ {{ &__fc_initial_stdout }}
+  errno ∈ [--..--]
+  stderr ∈ {{ &__fc_initial_stderr }}
+  stdin ∈ {{ &__fc_initial_stdin }}
+  stdout ∈ {{ &__fc_initial_stdout }}
   __fc_fopen[0..15] ∈ {0}
   __fc_tmpnam[0..19] ∈ {0}
   __fc_heap_status ∈ [--..--]
@@ -264,10 +264,10 @@
         [bits 128 to 159] ∈ {3}
         [bits 160 to 191] ∈ {{ (? *)&MEMORY[8] }}
         [24..0x3FF] ∈ {0}
-  __fc_errno ∈ [--..--]
-  __fc_stderr ∈ {{ &__fc_initial_stderr }}
-  __fc_stdin ∈ {{ &__fc_initial_stdin }}
-  __fc_stdout ∈ {{ &__fc_initial_stdout }}
+  errno ∈ [--..--]
+  stderr ∈ {{ &__fc_initial_stderr }}
+  stdin ∈ {{ &__fc_initial_stdin }}
+  stdout ∈ {{ &__fc_initial_stdout }}
   __fc_fopen[0..15] ∈ {0}
   __fc_tmpnam[0..19] ∈ {0}
   __fc_heap_status ∈ [--..--]
@@ -310,10 +310,10 @@
         [bits 128 to 159] ∈ {3}
         [bits 160 to 191] ∈ {{ (? *)&MEMORY[8] }}
         [24..0x3FF] ∈ {0}
-  __fc_errno ∈ [--..--]
-  __fc_stderr ∈ {{ &__fc_initial_stderr }}
-  __fc_stdin ∈ {{ &__fc_initial_stdin }}
-  __fc_stdout ∈ {{ &__fc_initial_stdout }}
+  errno ∈ [--..--]
+  stderr ∈ {{ &__fc_initial_stderr }}
+  stdin ∈ {{ &__fc_initial_stdin }}
+  stdout ∈ {{ &__fc_initial_stdout }}
   __fc_fopen[0..15] ∈ {0}
   __fc_tmpnam[0..19] ∈ {0}
   __fc_heap_status ∈ [--..--]
@@ -353,10 +353,10 @@
         [bits 192 to 223] ∈ {4}
         [bits 224 to 255] ∈ {{ (? *)&MEMORY[16] }}
         [32..0x3FF] ∈ {0}
-  __fc_errno ∈ [--..--]
-  __fc_stderr ∈ {{ &__fc_initial_stderr }}
-  __fc_stdin ∈ {{ &__fc_initial_stdin }}
-  __fc_stdout ∈ {{ &__fc_initial_stdout }}
+  errno ∈ [--..--]
+  stderr ∈ {{ &__fc_initial_stderr }}
+  stdin ∈ {{ &__fc_initial_stdin }}
+  stdout ∈ {{ &__fc_initial_stdout }}
   __fc_fopen[0..15] ∈ {0}
   __fc_tmpnam[0..19] ∈ {0}
   __fc_heap_status ∈ [--..--]
@@ -401,10 +401,10 @@
         [bits 192 to 223] ∈ {4}
         [bits 224 to 255] ∈ {{ (? *)&MEMORY[16] }}
         [32..0x3FF] ∈ {0}
-  __fc_errno ∈ [--..--]
-  __fc_stderr ∈ {{ &__fc_initial_stderr }}
-  __fc_stdin ∈ {{ &__fc_initial_stdin }}
-  __fc_stdout ∈ {{ &__fc_initial_stdout }}
+  errno ∈ [--..--]
+  stderr ∈ {{ &__fc_initial_stderr }}
+  stdin ∈ {{ &__fc_initial_stdin }}
+  stdout ∈ {{ &__fc_initial_stdout }}
   __fc_fopen[0..15] ∈ {0}
   __fc_tmpnam[0..19] ∈ {0}
   __fc_heap_status ∈ [--..--]
@@ -446,10 +446,10 @@
         [bits 256 to 0x11F] ∈ {5}
         [bits 0x120 to 0x13F] ∈ {{ (? *)&MEMORY[24] }}
         [40..0x3FF] ∈ {0}
-  __fc_errno ∈ [--..--]
-  __fc_stderr ∈ {{ &__fc_initial_stderr }}
-  __fc_stdin ∈ {{ &__fc_initial_stdin }}
-  __fc_stdout ∈ {{ &__fc_initial_stdout }}
+  errno ∈ [--..--]
+  stderr ∈ {{ &__fc_initial_stderr }}
+  stdin ∈ {{ &__fc_initial_stdin }}
+  stdout ∈ {{ &__fc_initial_stdout }}
   __fc_fopen[0..15] ∈ {0}
   __fc_tmpnam[0..19] ∈ {0}
   __fc_heap_status ∈ [--..--]
@@ -496,10 +496,10 @@
         [bits 256 to 0x11F] ∈ {5}
         [bits 0x120 to 0x13F] ∈ {{ (? *)&MEMORY[24] }}
         [40..0x3FF] ∈ {0}
-  __fc_errno ∈ [--..--]
-  __fc_stderr ∈ {{ &__fc_initial_stderr }}
-  __fc_stdin ∈ {{ &__fc_initial_stdin }}
-  __fc_stdout ∈ {{ &__fc_initial_stdout }}
+  errno ∈ [--..--]
+  stderr ∈ {{ &__fc_initial_stderr }}
+  stdin ∈ {{ &__fc_initial_stdin }}
+  stdout ∈ {{ &__fc_initial_stdout }}
   __fc_fopen[0..15] ∈ {0}
   __fc_tmpnam[0..19] ∈ {0}
   __fc_heap_status ∈ [--..--]
@@ -543,10 +543,10 @@
         [bits 0x140 to 0x15F] ∈ {6}
         [bits 0x160 to 0x17F] ∈ {{ (? *)&MEMORY[32] }}
         [48..0x3FF] ∈ {0}
-  __fc_errno ∈ [--..--]
-  __fc_stderr ∈ {{ &__fc_initial_stderr }}
-  __fc_stdin ∈ {{ &__fc_initial_stdin }}
-  __fc_stdout ∈ {{ &__fc_initial_stdout }}
+  errno ∈ [--..--]
+  stderr ∈ {{ &__fc_initial_stderr }}
+  stdin ∈ {{ &__fc_initial_stdin }}
+  stdout ∈ {{ &__fc_initial_stdout }}
   __fc_fopen[0..15] ∈ {0}
   __fc_tmpnam[0..19] ∈ {0}
   __fc_heap_status ∈ [--..--]
@@ -595,10 +595,10 @@
         [bits 0x140 to 0x15F] ∈ {6}
         [bits 0x160 to 0x17F] ∈ {{ (? *)&MEMORY[32] }}
         [48..0x3FF] ∈ {0}
-  __fc_errno ∈ [--..--]
-  __fc_stderr ∈ {{ &__fc_initial_stderr }}
-  __fc_stdin ∈ {{ &__fc_initial_stdin }}
-  __fc_stdout ∈ {{ &__fc_initial_stdout }}
+  errno ∈ [--..--]
+  stderr ∈ {{ &__fc_initial_stderr }}
+  stdin ∈ {{ &__fc_initial_stdin }}
+  stdout ∈ {{ &__fc_initial_stdout }}
   __fc_fopen[0..15] ∈ {0}
   __fc_tmpnam[0..19] ∈ {0}
   __fc_heap_status ∈ [--..--]
@@ -644,10 +644,10 @@
         [bits 0x180 to 0x19F] ∈ {7}
         [bits 0x1A0 to 0x1BF] ∈ {{ (? *)&MEMORY[40] }}
         [56..0x3FF] ∈ {0}
-  __fc_errno ∈ [--..--]
-  __fc_stderr ∈ {{ &__fc_initial_stderr }}
-  __fc_stdin ∈ {{ &__fc_initial_stdin }}
-  __fc_stdout ∈ {{ &__fc_initial_stdout }}
+  errno ∈ [--..--]
+  stderr ∈ {{ &__fc_initial_stderr }}
+  stdin ∈ {{ &__fc_initial_stdin }}
+  stdout ∈ {{ &__fc_initial_stdout }}
   __fc_fopen[0..15] ∈ {0}
   __fc_tmpnam[0..19] ∈ {0}
   __fc_heap_status ∈ [--..--]
@@ -698,10 +698,10 @@
         [bits 0x180 to 0x19F] ∈ {7}
         [bits 0x1A0 to 0x1BF] ∈ {{ (? *)&MEMORY[40] }}
         [56..0x3FF] ∈ {0}
-  __fc_errno ∈ [--..--]
-  __fc_stderr ∈ {{ &__fc_initial_stderr }}
-  __fc_stdin ∈ {{ &__fc_initial_stdin }}
-  __fc_stdout ∈ {{ &__fc_initial_stdout }}
+  errno ∈ [--..--]
+  stderr ∈ {{ &__fc_initial_stderr }}
+  stdin ∈ {{ &__fc_initial_stdin }}
+  stdout ∈ {{ &__fc_initial_stdout }}
   __fc_fopen[0..15] ∈ {0}
   __fc_tmpnam[0..19] ∈ {0}
   __fc_heap_status ∈ [--..--]
@@ -749,10 +749,10 @@
         [bits 0x1C0 to 0x1DF] ∈ {8}
         [bits 0x1E0 to 0x1FF] ∈ {{ (? *)&MEMORY[48] }}
         [64..0x3FF] ∈ {0}
-  __fc_errno ∈ [--..--]
-  __fc_stderr ∈ {{ &__fc_initial_stderr }}
-  __fc_stdin ∈ {{ &__fc_initial_stdin }}
-  __fc_stdout ∈ {{ &__fc_initial_stdout }}
+  errno ∈ [--..--]
+  stderr ∈ {{ &__fc_initial_stderr }}
+  stdin ∈ {{ &__fc_initial_stdin }}
+  stdout ∈ {{ &__fc_initial_stdout }}
   __fc_fopen[0..15] ∈ {0}
   __fc_tmpnam[0..19] ∈ {0}
   __fc_heap_status ∈ [--..--]
@@ -805,10 +805,10 @@
         [bits 0x1C0 to 0x1DF] ∈ {8}
         [bits 0x1E0 to 0x1FF] ∈ {{ (? *)&MEMORY[48] }}
         [64..0x3FF] ∈ {0}
-  __fc_errno ∈ [--..--]
-  __fc_stderr ∈ {{ &__fc_initial_stderr }}
-  __fc_stdin ∈ {{ &__fc_initial_stdin }}
-  __fc_stdout ∈ {{ &__fc_initial_stdout }}
+  errno ∈ [--..--]
+  stderr ∈ {{ &__fc_initial_stderr }}
+  stdin ∈ {{ &__fc_initial_stdin }}
+  stdout ∈ {{ &__fc_initial_stdout }}
   __fc_fopen[0..15] ∈ {0}
   __fc_tmpnam[0..19] ∈ {0}
   __fc_heap_status ∈ [--..--]
@@ -858,10 +858,10 @@
         [bits 0x200 to 0x21F] ∈ {9}
         [bits 0x220 to 0x23F] ∈ {{ (? *)&MEMORY[56] }}
         [72..0x3FF] ∈ {0}
-  __fc_errno ∈ [--..--]
-  __fc_stderr ∈ {{ &__fc_initial_stderr }}
-  __fc_stdin ∈ {{ &__fc_initial_stdin }}
-  __fc_stdout ∈ {{ &__fc_initial_stdout }}
+  errno ∈ [--..--]
+  stderr ∈ {{ &__fc_initial_stderr }}
+  stdin ∈ {{ &__fc_initial_stdin }}
+  stdout ∈ {{ &__fc_initial_stdout }}
   __fc_fopen[0..15] ∈ {0}
   __fc_tmpnam[0..19] ∈ {0}
   __fc_heap_status ∈ [--..--]
@@ -916,10 +916,10 @@
         [bits 0x200 to 0x21F] ∈ {9}
         [bits 0x220 to 0x23F] ∈ {{ (? *)&MEMORY[56] }}
         [72..0x3FF] ∈ {0}
-  __fc_errno ∈ [--..--]
-  __fc_stderr ∈ {{ &__fc_initial_stderr }}
-  __fc_stdin ∈ {{ &__fc_initial_stdin }}
-  __fc_stdout ∈ {{ &__fc_initial_stdout }}
+  errno ∈ [--..--]
+  stderr ∈ {{ &__fc_initial_stderr }}
+  stdin ∈ {{ &__fc_initial_stdin }}
+  stdout ∈ {{ &__fc_initial_stdout }}
   __fc_fopen[0..15] ∈ {0}
   __fc_tmpnam[0..19] ∈ {0}
   __fc_heap_status ∈ [--..--]

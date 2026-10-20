@@ -1,7 +1,7 @@
 /* run.config*
- PLUGIN: @EVA_MAIN_PLUGINS@
-   OPT: -eva @EVA_CONFIG@
+   OPT: -eva @EVA_OPTIONS@
 */
+
 int main() {
   Frama_C_show_each(sizeof(unsigned int));
 
@@ -11,4 +11,3 @@ int main() {
       i+=2;
     }
 }
-

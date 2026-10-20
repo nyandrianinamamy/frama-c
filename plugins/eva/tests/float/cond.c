@@ -1,5 +1,5 @@
 /* run.config*
-   OPT: -eva @EVA_CONFIG@ -float-print hex
+   OPT: -eva @EVA_OPTIONS@ -float-print hex
 */
 
 #include "__fc_builtin.h"

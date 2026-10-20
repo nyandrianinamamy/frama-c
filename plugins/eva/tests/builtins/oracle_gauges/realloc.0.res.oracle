@@ -8,7 +8,7 @@
 >   Frama_C_dump_each:
 >   # cvalue:
 >   __fc_heap_status ∈ [--..--]
->   __fc_errno ∈ [--..--]
+>   errno ∈ [--..--]
 >   __fc_rand_max ∈ {2147483647}
 >   __fc_random48_init ∈ {0}
 >   Frama_C_entropy_source ∈ [--..--]
@@ -27,7 +27,7 @@
 >   Frama_C_dump_each:
 >   # cvalue:
 >   __fc_heap_status ∈ [--..--]
->   __fc_errno ∈ [--..--]
+>   errno ∈ [--..--]
 >   __fc_rand_max ∈ {2147483647}
 >   __fc_random48_init ∈ {0}
 >   Frama_C_entropy_source ∈ [--..--]
@@ -46,7 +46,7 @@
 >   Frama_C_dump_each:
 >   # cvalue:
 >   __fc_heap_status ∈ [--..--]
->   __fc_errno ∈ [--..--]
+>   errno ∈ [--..--]
 >   __fc_rand_max ∈ {2147483647}
 >   __fc_random48_init ∈ {0}
 >   Frama_C_entropy_source ∈ [--..--]
@@ -65,7 +65,7 @@
 >   Frama_C_dump_each:
 >   # cvalue:
 >   __fc_heap_status ∈ [--..--]
->   __fc_errno ∈ [--..--]
+>   errno ∈ [--..--]
 >   __fc_rand_max ∈ {2147483647}
 >   __fc_random48_init ∈ {0}
 >   Frama_C_entropy_source ∈ [--..--]
@@ -84,7 +84,7 @@
 >   Frama_C_dump_each:
 >   # cvalue:
 >   __fc_heap_status ∈ [--..--]
->   __fc_errno ∈ [--..--]
+>   errno ∈ [--..--]
 >   __fc_rand_max ∈ {2147483647}
 >   __fc_random48_init ∈ {0}
 >   Frama_C_entropy_source ∈ [--..--]
@@ -103,7 +103,7 @@
 >   Frama_C_dump_each:
 >   # cvalue:
 >   __fc_heap_status ∈ [--..--]
->   __fc_errno ∈ [--..--]
+>   errno ∈ [--..--]
 >   __fc_rand_max ∈ {2147483647}
 >   __fc_random48_init ∈ {0}
 >   Frama_C_entropy_source ∈ [--..--]
@@ -122,7 +122,7 @@
 >   Frama_C_dump_each:
 >   # cvalue:
 >   __fc_heap_status ∈ [--..--]
->   __fc_errno ∈ [--..--]
+>   errno ∈ [--..--]
 >   __fc_rand_max ∈ {2147483647}
 >   __fc_random48_init ∈ {0}
 >   Frama_C_entropy_source ∈ [--..--]
@@ -141,7 +141,7 @@
 >   Frama_C_dump_each:
 >   # cvalue:
 >   __fc_heap_status ∈ [--..--]
->   __fc_errno ∈ [--..--]
+>   errno ∈ [--..--]
 >   __fc_rand_max ∈ {2147483647}
 >   __fc_random48_init ∈ {0}
 >   Frama_C_entropy_source ∈ [--..--]
@@ -160,7 +160,7 @@
 >   Frama_C_dump_each:
 >   # cvalue:
 >   __fc_heap_status ∈ [--..--]
->   __fc_errno ∈ [--..--]
+>   errno ∈ [--..--]
 >   __fc_rand_max ∈ {2147483647}
 >   __fc_random48_init ∈ {0}
 >   Frama_C_entropy_source ∈ [--..--]
@@ -180,7 +180,7 @@
 >   Frama_C_dump_each:
 >   # cvalue:
 >   __fc_heap_status ∈ [--..--]
->   __fc_errno ∈ [--..--]
+>   errno ∈ [--..--]
 >   __fc_rand_max ∈ {2147483647}
 >   __fc_random48_init ∈ {0}
 >   Frama_C_entropy_source ∈ [--..--]
@@ -199,7 +199,7 @@
 >   Frama_C_dump_each:
 >   # cvalue:
 >   __fc_heap_status ∈ [--..--]
->   __fc_errno ∈ [--..--]
+>   errno ∈ [--..--]
 >   __fc_rand_max ∈ {2147483647}
 >   __fc_random48_init ∈ {0}
 >   Frama_C_entropy_source ∈ [--..--]
@@ -218,7 +218,7 @@
 >   Frama_C_dump_each:
 >   # cvalue:
 >   __fc_heap_status ∈ [--..--]
->   __fc_errno ∈ [--..--]
+>   errno ∈ [--..--]
 >   __fc_rand_max ∈ {2147483647}
 >   __fc_random48_init ∈ {0}
 >   Frama_C_entropy_source ∈ [--..--]

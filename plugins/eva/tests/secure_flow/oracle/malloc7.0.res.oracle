@@ -12,11 +12,11 @@
   __fc_heap_status FROM __fc_heap_status (and SELF)
 [from] Function realloc:
   __fc_heap_status FROM __fc_heap_status (and SELF)
-  __fc_errno FROM __fc_heap_status; size
+  errno FROM __fc_heap_status; size
   \result FROM __fc_heap_status; ptr; size
 [from] Function main:
   __fc_heap_status FROM __fc_heap_status (and SELF)
-  __fc_errno FROM __fc_heap_status
+  errno FROM __fc_heap_status
   \result FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
