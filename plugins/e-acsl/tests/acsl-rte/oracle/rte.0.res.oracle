@@ -1,5 +1,6 @@
 [e-acsl] beginning translation.
-[e-acsl] Warning: cannot create the pointer alignment guard of (int (*)[])ptr_t because int [] is an incomplete type
+[e-acsl] rte.c:161: Warning: 
+  cannot create the pointer alignment guard of (int (*)[])ptr_t because int [] is an incomplete type
 [e-acsl] rte.c:167: Warning: 
   E-ACSL construct `R to Int' is not yet supported. Ignoring annotation.
 [e-acsl] translation done in project "e-acsl".

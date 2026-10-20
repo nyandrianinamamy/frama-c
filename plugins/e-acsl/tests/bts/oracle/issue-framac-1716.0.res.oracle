@@ -1,5 +1,6 @@
 [e-acsl] beginning translation.
-[e-acsl] Warning: cannot create the pointer alignment guard of ptr because struct Abstract is an incomplete type
+[e-acsl] issue-framac-1716.c:18: Warning: 
+  cannot create the pointer alignment guard of ptr because struct Abstract is an incomplete type
 [e-acsl] translation done in project "e-acsl".
 [eva:unknown-size] issue-framac-1716.c:15: Warning: 
   during initialization of variable 'ptr', size of type 'struct Abstract'

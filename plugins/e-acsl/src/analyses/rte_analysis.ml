@@ -562,7 +562,7 @@ let rte_visitor =
                    ~loc:orig.term_loc t pointed_typ)
           end
         else
-          Options.warning
+          Options.warning ~current:true ~once:true
             "cannot create the pointer alignment guard of %a because %a is \
              an incomplete type"
             Printer.pp_term orig
