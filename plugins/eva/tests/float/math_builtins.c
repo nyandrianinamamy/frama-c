@@ -604,11 +604,11 @@ void test_round_det() {
   double d = round(-0.0);
   double e = round(-0.5);
   double f = round(-1.5);
-
-
-
-
-
+  // Bug if round is interpreted as roundf.
+  double g = round(0.49999999999999994); // largest double below 0.5
+  double h = round(16777217.0); // first integer not representable in single precision
+  double i = round(1e10 + 0.5);
+  double j = round(1e100); // would overflow in single precision
 }
 
 void test_floor() {

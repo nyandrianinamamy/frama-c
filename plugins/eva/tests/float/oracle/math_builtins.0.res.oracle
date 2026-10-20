@@ -1903,6 +1903,22 @@
   Call to builtin Frama_C_round for function round
 [eva:progress] math_builtins.c:606: 
   function round: precondition 'finite_arg' got status valid.
+[eva:progress] math_builtins.c:608: 
+  Call to builtin Frama_C_round for function round
+[eva:progress] math_builtins.c:608: 
+  function round: precondition 'finite_arg' got status valid.
+[eva:progress] math_builtins.c:609: 
+  Call to builtin Frama_C_round for function round
+[eva:progress] math_builtins.c:609: 
+  function round: precondition 'finite_arg' got status valid.
+[eva:progress] math_builtins.c:610: 
+  Call to builtin Frama_C_round for function round
+[eva:progress] math_builtins.c:610: 
+  function round: precondition 'finite_arg' got status valid.
+[eva:progress] math_builtins.c:611: 
+  Call to builtin Frama_C_round for function round
+[eva:progress] math_builtins.c:611: 
+  function round: precondition 'finite_arg' got status valid.
 [eva:progress] Recording results for test_round_det
 [eva:progress] Done for function test_round_det
 [eva:progress] 
@@ -2603,6 +2619,10 @@
   d ∈ {-0.0000000000000000}
   e ∈ {-1.0000000000000000}
   f ∈ {-2.0000000000000000}
+  g ∈ {0}
+  h ∈ {1.0000000596046447*2^24}
+  i ∈ {1.1641532183857634*2^33}
+  j ∈ {1.1429873912822750*2^332}
 [eva:final-states] Values at end of function test_roundf:
   f32__x ∈ [-2.500000 .. -1.000000*2^-1]
   f32__a ∈ [-1.000000 .. 2.000000]
@@ -3105,7 +3125,7 @@
 [inout] Inputs for function test_round:
     nondet
 [inout] Out (internal) for function test_round_det:
-    a; b; c; d; e; f
+    a; b; c; d; e; f; g; h; i; j
 [inout] Inputs for function test_round_det:
     \nothing
 [inout] Out (internal) for function test_roundf:
@@ -3931,6 +3951,10 @@ void test_round_det(void)
   double d = round(- 0.0);
   double e = round(- 0.5);
   double f = round(- 1.5);
+  double g = round(0.49999999999999994);
+  double h = round(16777217.0);
+  double i = round(1e10 + 0.5);
+  double j = round(1e100);
   return;
 }
 
