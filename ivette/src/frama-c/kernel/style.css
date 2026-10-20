@@ -2,13 +2,6 @@
 /* --- Properties                                                         --- */
 /* -------------------------------------------------------------------------- */
 
-.code-column {
-    margin: 0px;
-    padding: 0px;
-    display: block;
-    text-overflow: ellipsis;
-}
-
 .properties-section-names .dome-xSideBarSection-content label {
     display: none;
 }
@@ -263,6 +256,10 @@
 /* -------------------------------------------------------------------------- */
 /* --- Messages                                                           --- */
 /* -------------------------------------------------------------------------- */
+
+.message-icon {
+  padding: 0;
+}
 
 .message-cell {
     user-select: text;

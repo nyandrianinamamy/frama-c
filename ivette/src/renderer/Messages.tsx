@@ -322,7 +322,14 @@ const renderKind: Renderer<logkind> =
       case 'WARNING': icon = 'ATTENTION'; color = '#C00000'; break;
       case 'ERROR': case 'FAILURE': icon = 'WARNING'; color = '#C00000'; break;
     }
-    return <Icon title={label} id={icon} fill={color} />;
+    return (
+      <Icon
+        title={label}
+        id={icon}
+        className='message-icon'
+        fill={color}
+      />
+    );
   };
 
 const renderCell: Renderer<string> =

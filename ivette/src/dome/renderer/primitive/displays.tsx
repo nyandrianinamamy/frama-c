@@ -284,20 +284,25 @@ export interface LabelProps {
 }
 
 const makeLabel = (className: string) =>
-  function Label( props: LabelProps): JSX.Element {
+  function Label(props: LabelProps): JSX.Element {
     const { display = true } = props;
     const allClasses = classes(
       className,
       !display && 'dome-control-erased',
       props.className,
     );
+    const iconClasses =
+      className.includes('dome-xTable-cell') ?
+        classes(props.iconClassName, 'dome-xTable-cell-icon') :
+        props.iconClassName;
     return (
       <div className={allClasses} title={props.title} style={props.style}>
         {props.icon &&
-          <Icon title={props.title}
-                kind={props.kind}
-                id={props.icon}
-                className={props.iconClassName}
+          <Icon
+            title={props.title}
+            kind={props.kind}
+            id={props.icon}
+            className={iconClasses}
           />}
         {props.label}
       </div>
@@ -312,9 +317,10 @@ const LABEL = 'dome-xLabel dome-text-label';
 const TITLE = 'dome-xLabel dome-text-title';
 const DESCR = 'dome-xLabel dome-text-descr';
 const TDATA = 'dome-xLabel dome-text-data';
-const TCODE = 'dome-xLabel dome-text-code';
-const TCELL = 'dome-xLabel dome-text-cell';
+const TCODE = 'dome-xLabel dome-text-code dome-xTable-cell';
+const TCELL = 'dome-xLabel dome-text-cell dome-xTable-cell';
 const TITEM = 'dome-xLabel dome-text-item';
+const TLCD = 'dome-xLabel dome-text-code dome-xLCD';
 
 // --------------------------------------------------------------------------
 // --- Components
@@ -347,10 +353,8 @@ export const Item = makeLabel(TITEM);
 // --------------------------------------------------------------------------
 
 /** label in a button style. */
-export function LCD(props: LabelProps): JSX.Element {
-  const className = classes('dome-xLCD ', props.className);
-  return <Code {...props} className={className} />;
-}
+export const LCD = makeLabel(TLCD);
+
 
 // --------------------------------------------------------------------------
 // ---  Badge Component
