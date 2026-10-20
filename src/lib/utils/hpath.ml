@@ -48,7 +48,7 @@ let re_special_paths, re_dir_separator =
     "^" ^ group alpha ^ ":" |^ (* c:path *)
     "^" ^ group slash (* /path *)
   ),
-  Str.regexp (slash ^ "+")
+  Str.regexp slash
 
 let parse_path s =
   let matched_group () =
@@ -198,7 +198,7 @@ let parent_path path =
 
 let rec normalize ~parent = function
   | [] -> parent
-  | [""] -> parent (* ignore empty parts *)
+  | "" :: ps -> normalize ~parent ps (* ignore empty parts *)
   | ".." :: ps -> normalize ~parent:(parent_path parent) ps
   | "." :: ps -> normalize ~parent ps
   | p :: ps -> normalize ~parent:(make ~parent p) ps
