@@ -31,13 +31,46 @@
 [eva:alarm] shift_neg.c:29: Warning: 
   invalid LHS operand for left shift. assert 0 ≤ (int)(-44);
 [eva:show] shift_neg.c:36: Frama_C_show_each_neg_right_shift: {-1}, {-6}
+[eva:show] shift_neg.c:39: 
+  Frama_C_show_each: {-3}, {{ ">>" }}, {2}, {{ "=" }}, {-1}
+[eva:show] shift_neg.c:40: 
+  Frama_C_show_each: {-63}, {{ ">>" }}, {2}, {{ "=" }}, {-16}
+[eva:show] shift_neg.c:41: 
+  Frama_C_show_each: {-64}, {{ ">>" }}, {2}, {{ "=" }}, {-16}
+[eva:show] shift_neg.c:42: 
+  Frama_C_show_each: {-65}, {{ ">>" }}, {2}, {{ "=" }}, {-17}
+[eva:progress] 
+  computing for function Frama_C_interval <- main.
+  Called from shift_neg.c:44.
+[eva:progress] shift_neg.c:44: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva:progress] Done for function Frama_C_interval
+[eva:show] shift_neg.c:45: 
+  Frama_C_show_each: [-65..-3], {{ ">>" }}, {2}, {{ "=" }}, [-17..-1]
+[eva:progress] 
+  computing for function Frama_C_interval <- main.
+  Called from shift_neg.c:47.
+[eva:progress] shift_neg.c:47: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva:progress] Done for function Frama_C_interval
+[eva:show] shift_neg.c:48: 
+  Frama_C_show_each: {-3}, {{ ">>" }}, [2..10], {{ "=" }}, {-1}
+[eva:show] shift_neg.c:49: 
+  Frama_C_show_each: {-63}, {{ ">>" }}, [2..10], {{ "=" }}, [-16..-1]
+[eva:show] shift_neg.c:50: 
+  Frama_C_show_each: {-64}, {{ ">>" }}, [2..10], {{ "=" }}, [-16..-1]
+[eva:show] shift_neg.c:51: 
+  Frama_C_show_each: {-65}, {{ ">>" }}, [2..10], {{ "=" }}, [-17..-1]
+[eva:show] shift_neg.c:53: 
+  Frama_C_show_each: [-65..-3], {{ ">>" }}, [2..10], {{ "=" }}, [-17..-1]
 [eva:progress] Recording results for main
 [eva:progress] Done for function main
 [eva] shift_neg.c:29: assertion 'Eva,shift' got final status invalid.
 [eva] ====== VALUES COMPUTED ======
 [eva:final-states] Values at end of function main:
   Frama_C_entropy_source ∈ [--..--]
-  x ∈ [-8..12]
+  x ∈ [-65..-3]
+  y ∈ [2..10]
   r ∈ {-2; -1; 0; 1; 2; 3}
 [from] Computing for function main
 [from] Computing for function Frama_C_interval <-main
@@ -52,6 +85,6 @@
   Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-    Frama_C_entropy_source; x; r; k; i; j
+    Frama_C_entropy_source; x; y; r; k; i; j
 [inout] Inputs for function main:
     Frama_C_entropy_source; rand
