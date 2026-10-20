@@ -396,7 +396,10 @@ and compile_lval (host, offset) =
 and compile_rte_guard rte =
   let* ({loc; kf}) = M.read in
   let* orig_state = M.get in
-  let annot = Translate_utils.update_lv_origin orig_state.env rte.rorigin in
+  let annot =
+    Terms.Id.deep_copy_predicate @@
+    Translate_utils.update_lv_origin orig_state.env rte.rorigin
+  in
   let* () = M.modify @@ fun { env } ->
     Assert.push_pending_register_data ();
     let adata, env = Assert.empty ~loc kf env in

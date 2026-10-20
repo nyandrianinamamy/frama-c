@@ -49,33 +49,56 @@ int main(void)
   node1.next = & node2;
   __e_acsl_initialize((void *)(& node2.next),sizeof(struct list *));
   node2.next = & node3;
-  __e_acsl_initialize((void *)(& node3.next),sizeof(struct list *));
-  node3.next = (struct list *)0;
   struct list *l = & node1;
   __e_acsl_store_block((void *)(& l),8UL);
   __e_acsl_full_init((void *)(& l));
   {
+    int __gen_e_acsl_initialized;
     int __gen_e_acsl_aligned;
     long __gen_e_acsl_length_here_2;
     __e_acsl_assert_data_t __gen_e_acsl_assert_data = {.values = (void *)0};
     __e_acsl_assert_data_t __gen_e_acsl_assert_data_2 =
       {.values = (void *)0};
-    __gen_e_acsl_aligned = __e_acsl_aligned((void *)l,8UL);
-    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_2,"l",(void *)l);
+    __gen_e_acsl_initialized = __e_acsl_initialized((void *)(& l),
+                                                    sizeof(struct list *));
+    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_2,"&l",
+                                 (void *)(& l));
+    __e_acsl_assert_register_ulong(& __gen_e_acsl_assert_data_2,
+                                   "sizeof(struct list *)",0,
+                                   sizeof(struct list *));
     __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_2,
+                                 "uninitialized: \\initialized(&l)",0,
+                                 __gen_e_acsl_initialized);
+    /*@ assert E_ACSL: uninitialized: \initialized(&l); */
+    {
+      __gen_e_acsl_assert_data_2.blocking = 1;
+      __gen_e_acsl_assert_data_2.kind = "E-ACSL RTE";
+      __gen_e_acsl_assert_data_2.pred_txt = "\\initialized(&l)";
+      __gen_e_acsl_assert_data_2.file = "functions_contiki.c";
+      __gen_e_acsl_assert_data_2.fct = "main";
+      __gen_e_acsl_assert_data_2.line = 33;
+      __gen_e_acsl_assert_data_2.name = "uninitialized";
+      __e_acsl_assert(__gen_e_acsl_initialized,& __gen_e_acsl_assert_data_2);
+      __e_acsl_assert_clean(& __gen_e_acsl_assert_data_2);
+    }
+    __e_acsl_assert_data_t __gen_e_acsl_assert_data_3 =
+      {.values = (void *)0};
+    __gen_e_acsl_aligned = __e_acsl_aligned((void *)l,8UL);
+    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_3,"l",(void *)l);
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_3,
                                  "\"pointer alignment\": \\aligned(l,8)",0,
                                  __gen_e_acsl_aligned);
     /*@ assert E_ACSL: "pointer alignment": \aligned(l,8); */
     {
-      __gen_e_acsl_assert_data_2.blocking = 1;
-      __gen_e_acsl_assert_data_2.kind = "E-ACSL RTE";
-      __gen_e_acsl_assert_data_2.pred_txt = "\\aligned(l,8)";
-      __gen_e_acsl_assert_data_2.file = "functions_contiki.c";
-      __gen_e_acsl_assert_data_2.fct = "main";
-      __gen_e_acsl_assert_data_2.line = 29;
-      __gen_e_acsl_assert_data_2.name = "pointer alignment";
-      __e_acsl_assert(__gen_e_acsl_aligned,& __gen_e_acsl_assert_data_2);
-      __e_acsl_assert_clean(& __gen_e_acsl_assert_data_2);
+      __gen_e_acsl_assert_data_3.blocking = 1;
+      __gen_e_acsl_assert_data_3.kind = "E-ACSL RTE";
+      __gen_e_acsl_assert_data_3.pred_txt = "\\aligned(l,8)";
+      __gen_e_acsl_assert_data_3.file = "functions_contiki.c";
+      __gen_e_acsl_assert_data_3.fct = "main";
+      __gen_e_acsl_assert_data_3.line = 33;
+      __gen_e_acsl_assert_data_3.name = "pointer alignment";
+      __e_acsl_assert(__gen_e_acsl_aligned,& __gen_e_acsl_assert_data_3);
+      __e_acsl_assert_clean(& __gen_e_acsl_assert_data_3);
     }
     __gen_e_acsl_length_here_2 = __gen_e_acsl_length_here(l);
     __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data,"l",(void *)l);
@@ -86,7 +109,7 @@ int main(void)
     __gen_e_acsl_assert_data.pred_txt = "length(l) == 3";
     __gen_e_acsl_assert_data.file = "functions_contiki.c";
     __gen_e_acsl_assert_data.fct = "main";
-    __gen_e_acsl_assert_data.line = 29;
+    __gen_e_acsl_assert_data.line = 33;
     __e_acsl_assert(__gen_e_acsl_length_here_2 == 3L,
                     & __gen_e_acsl_assert_data);
     __e_acsl_assert_clean(& __gen_e_acsl_assert_data);
@@ -104,7 +127,26 @@ int main(void)
 /*@ assigns \result; */
 long __gen_e_acsl_length_here(struct list *l)
 {
+  int __gen_e_acsl_aligned_2;
   long __gen_e_acsl_length_aux_here_4;
+  __e_acsl_assert_data_t __gen_e_acsl_assert_data_4 = {.values = (void *)0};
+  __gen_e_acsl_aligned_2 = __e_acsl_aligned((void *)l,8UL);
+  __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_4,"l",(void *)l);
+  __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_4,
+                               "\"pointer alignment\": \\aligned(l,8)",0,
+                               __gen_e_acsl_aligned_2);
+  /*@ assert E_ACSL: "pointer alignment": \aligned(l,8); */
+  {
+    __gen_e_acsl_assert_data_4.blocking = 1;
+    __gen_e_acsl_assert_data_4.kind = "E-ACSL RTE";
+    __gen_e_acsl_assert_data_4.pred_txt = "\\aligned(l,8)";
+    __gen_e_acsl_assert_data_4.file = "functions_contiki.c";
+    __gen_e_acsl_assert_data_4.fct = "length_here";
+    __gen_e_acsl_assert_data_4.line = 25;
+    __gen_e_acsl_assert_data_4.name = "pointer alignment";
+    __e_acsl_assert(__gen_e_acsl_aligned_2,& __gen_e_acsl_assert_data_4);
+    __e_acsl_assert_clean(& __gen_e_acsl_assert_data_4);
+  }
   __gen_e_acsl_length_aux_here_4 = __gen_e_acsl_length_aux_here(l,0U);
   return __gen_e_acsl_length_aux_here_4;
 }
@@ -115,12 +157,130 @@ long __gen_e_acsl_length_aux_here(struct list *l, unsigned int n)
   long __gen_e_acsl_if_3;
   if (n < 0U) __gen_e_acsl_if_3 = -1;
   else {
+    int __gen_e_acsl_aligned_3;
     long __gen_e_acsl_if_2;
+    __e_acsl_assert_data_t __gen_e_acsl_assert_data_5 =
+      {.values = (void *)0};
+    __gen_e_acsl_aligned_3 = __e_acsl_aligned((void *)l,8UL);
+    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_5,"l",(void *)l);
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_5,
+                                 "\"pointer alignment\": \\aligned(l,8)",0,
+                                 __gen_e_acsl_aligned_3);
+    /*@ assert E_ACSL: "pointer alignment": \aligned(l,8); */
+    {
+      __gen_e_acsl_assert_data_5.blocking = 1;
+      __gen_e_acsl_assert_data_5.kind = "E-ACSL RTE";
+      __gen_e_acsl_assert_data_5.pred_txt = "\\aligned(l,8)";
+      __gen_e_acsl_assert_data_5.file = "functions_contiki.c";
+      __gen_e_acsl_assert_data_5.fct = "length_aux_here";
+      __gen_e_acsl_assert_data_5.line = 22;
+      __gen_e_acsl_assert_data_5.name = "pointer alignment";
+      __e_acsl_assert(__gen_e_acsl_aligned_3,& __gen_e_acsl_assert_data_5);
+      __e_acsl_assert_clean(& __gen_e_acsl_assert_data_5);
+    }
     if (l == (struct list *)0) __gen_e_acsl_if_2 = n;
     else {
       long __gen_e_acsl_if;
       if (n < 2147483647U) {
+        int __gen_e_acsl_aligned_4;
+        int __gen_e_acsl_initialized_2;
+        int __gen_e_acsl_aligned_5;
+        int __gen_e_acsl_valid_read;
         long __gen_e_acsl_length_aux_here_3;
+        __e_acsl_assert_data_t __gen_e_acsl_assert_data_6 =
+          {.values = (void *)0};
+        __gen_e_acsl_aligned_4 = __e_acsl_aligned((void *)l,8UL);
+        __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_6,"l",
+                                     (void *)l);
+        __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_6,
+                                     "\"pointer alignment\": \\aligned(l,8)",
+                                     0,__gen_e_acsl_aligned_4);
+        /*@ assert E_ACSL: "pointer alignment": \aligned(l,8); */
+        {
+          __gen_e_acsl_assert_data_6.blocking = 1;
+          __gen_e_acsl_assert_data_6.kind = "E-ACSL RTE";
+          __gen_e_acsl_assert_data_6.pred_txt = "\\aligned(l,8)";
+          __gen_e_acsl_assert_data_6.file = "functions_contiki.c";
+          __gen_e_acsl_assert_data_6.fct = "length_aux_here";
+          __gen_e_acsl_assert_data_6.line = 23;
+          __gen_e_acsl_assert_data_6.name = "pointer alignment";
+          __e_acsl_assert(__gen_e_acsl_aligned_4,
+                          & __gen_e_acsl_assert_data_6);
+          __e_acsl_assert_clean(& __gen_e_acsl_assert_data_6);
+        }
+        __e_acsl_assert_data_t __gen_e_acsl_assert_data_7 =
+          {.values = (void *)0};
+        __gen_e_acsl_initialized_2 = __e_acsl_initialized((void *)(& l->next),
+                                                          sizeof(struct list *));
+        __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_7,"&l->next",
+                                     (void *)(& l->next));
+        __e_acsl_assert_register_ulong(& __gen_e_acsl_assert_data_7,
+                                       "sizeof(struct list *)",0,
+                                       sizeof(struct list *));
+        __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_7,
+                                     "uninitialized: \\initialized(&l->next)",
+                                     0,__gen_e_acsl_initialized_2);
+        /*@ assert E_ACSL: uninitialized: \initialized(&l->next); */
+        {
+          __gen_e_acsl_assert_data_7.blocking = 1;
+          __gen_e_acsl_assert_data_7.kind = "E-ACSL RTE";
+          __gen_e_acsl_assert_data_7.pred_txt = "\\initialized(&l->next)";
+          __gen_e_acsl_assert_data_7.file = "functions_contiki.c";
+          __gen_e_acsl_assert_data_7.fct = "length_aux_here";
+          __gen_e_acsl_assert_data_7.line = 23;
+          __gen_e_acsl_assert_data_7.name = "uninitialized";
+          __e_acsl_assert(__gen_e_acsl_initialized_2,
+                          & __gen_e_acsl_assert_data_7);
+          __e_acsl_assert_clean(& __gen_e_acsl_assert_data_7);
+        }
+        __e_acsl_assert_data_t __gen_e_acsl_assert_data_8 =
+          {.values = (void *)0};
+        __gen_e_acsl_aligned_5 = __e_acsl_aligned((void *)l->next,8UL);
+        __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_8,"l->next",
+                                     (void *)l->next);
+        __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_8,
+                                     "\"pointer alignment\": \\aligned(l->next,8)",
+                                     0,__gen_e_acsl_aligned_5);
+        /*@ assert E_ACSL: "pointer alignment": \aligned(l->next,8); */
+        {
+          __gen_e_acsl_assert_data_8.blocking = 1;
+          __gen_e_acsl_assert_data_8.kind = "E-ACSL RTE";
+          __gen_e_acsl_assert_data_8.pred_txt = "\\aligned(l->next,8)";
+          __gen_e_acsl_assert_data_8.file = "functions_contiki.c";
+          __gen_e_acsl_assert_data_8.fct = "length_aux_here";
+          __gen_e_acsl_assert_data_8.line = 23;
+          __gen_e_acsl_assert_data_8.name = "pointer alignment";
+          __e_acsl_assert(__gen_e_acsl_aligned_5,
+                          & __gen_e_acsl_assert_data_8);
+          __e_acsl_assert_clean(& __gen_e_acsl_assert_data_8);
+        }
+        __e_acsl_assert_data_t __gen_e_acsl_assert_data_9 =
+          {.values = (void *)0};
+        __gen_e_acsl_valid_read = __e_acsl_valid_read((void *)(& l->next),
+                                                      sizeof(struct list *),
+                                                      (void *)(& l->next),
+                                                      (void *)0);
+        __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_9,"&l->next",
+                                     (void *)(& l->next));
+        __e_acsl_assert_register_ulong(& __gen_e_acsl_assert_data_9,
+                                       "sizeof(struct list *)",0,
+                                       sizeof(struct list *));
+        __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_9,
+                                     "\"memory access\": \\valid_read(&l->next)",
+                                     0,__gen_e_acsl_valid_read);
+        /*@ assert E_ACSL: "memory access": \valid_read(&l->next); */
+        {
+          __gen_e_acsl_assert_data_9.blocking = 1;
+          __gen_e_acsl_assert_data_9.kind = "E-ACSL RTE";
+          __gen_e_acsl_assert_data_9.pred_txt = "\\valid_read(&l->next)";
+          __gen_e_acsl_assert_data_9.file = "functions_contiki.c";
+          __gen_e_acsl_assert_data_9.fct = "length_aux_here";
+          __gen_e_acsl_assert_data_9.line = 23;
+          __gen_e_acsl_assert_data_9.name = "memory access";
+          __e_acsl_assert(__gen_e_acsl_valid_read,
+                          & __gen_e_acsl_assert_data_9);
+          __e_acsl_assert_clean(& __gen_e_acsl_assert_data_9);
+        }
         __gen_e_acsl_length_aux_here_3 = __gen_e_acsl_length_aux_here
         (l->next,n + 1U);
         __gen_e_acsl_if = __gen_e_acsl_length_aux_here_3;

@@ -419,10 +419,13 @@ let rte_guards_to_exp_old ~loc ~kf t env =
     Rte_analysis.fold_guards ~default:env t @@ fun p env ->
     Assert.push_pending_register_data ();
     let adata, env = Assert.empty ~loc kf env in
-    let annot = Translate_utils.update_lv_origin env p in
     Env.handle_error (fun env ->
         try
           let cil, adata, env = to_exp ~adata kf env p in
+          let annot =
+            Terms.Id.deep_copy_predicate @@
+            Translate_utils.update_lv_origin env p
+          in
           let stmt, env = Assert.runtime_check
               ~adata
               ~pred_kind:Assert

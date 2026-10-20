@@ -10,6 +10,7 @@ open Cil_types
 
 let dkey = Options.Dkey.rte
 
+module Logic_info = Cil_datatype.Logic_info
 module Guard =
 struct
   type downcast_kind = Signed | Unsigned | FloatToInt | Pointer
@@ -401,6 +402,8 @@ let rte_visitor =
 
     inherit E_acsl_visitor.visitor dkey
 
+    val mutable visited_logic_infos = Logic_info.Hashtbl.create 9
+
     method private trivially_aligned t typ ptyp: bool =
       if Ast_types.C.is_void ptyp || Ast_types.C.is_fun ptyp
       then
@@ -771,6 +774,18 @@ let rte_visitor =
         | _ -> ()
       end;
       Cil.DoChildren
+
+    method !vlogic_info_use li =
+      if not @@ Logic_info.Hashtbl.mem visited_logic_infos li
+      then begin
+        Logic_info.Hashtbl.add visited_logic_infos li ();
+        let derived = Logic_normalizer.Logic_infos.generated_of li in
+        let visit_logic_info =
+          Visitor.visitFramacLogicInfo (self :> Visitor.frama_c_visitor)
+        in
+        ignore @@ Cil_datatype.Logic_info.Set.map visit_logic_info derived
+      end;
+      Cil.SkipChildren
 
     method !vpredicate p =
       let p = Logic_normalizer.get_pred p in

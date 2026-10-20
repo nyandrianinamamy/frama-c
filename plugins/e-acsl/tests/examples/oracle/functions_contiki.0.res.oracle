@@ -1,9 +1,16 @@
 [e-acsl] beginning translation.
-[e-acsl] functions_contiki.c:29: Warning: 
+[e-acsl] functions_contiki.c:33: Warning: 
   no assigns clause generated for function length because pointers as arguments is not yet supported
-[e-acsl] functions_contiki.c:20: Warning: 
+[e-acsl] functions_contiki.c:25: Warning: 
   no assigns clause generated for function length_aux because pointers as arguments is not yet supported
 [e-acsl] translation done in project "e-acsl".
-[eva:alarm] functions_contiki.c:29: Warning: 
+[eva:alarm] functions_contiki.c:33: Warning: 
   function __e_acsl_assert, behavior blocking: precondition got status unknown.
-[eva:alarm] functions_contiki.c:29: Warning: assertion got status unknown.
+[eva:alarm] functions_contiki.c:25: Warning: 
+  function __e_acsl_assert, behavior blocking: precondition got status unknown.
+[eva:alarm] functions_contiki.c:22: Warning: 
+  function __e_acsl_assert, behavior blocking: precondition got status unknown.
+[eva:alarm] functions_contiki.c:23: Warning: 
+  function __e_acsl_assert, behavior blocking: precondition got status unknown.
+[eva:alarm] functions_contiki.c:23: Warning: 
+  assertion 'E_ACSL,uninitialized' got status invalid (stopping propagation).
