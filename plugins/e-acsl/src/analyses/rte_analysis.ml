@@ -107,99 +107,107 @@ end
 module Flags =
 struct
 
-  (** [needs_div_mod ()] depends on [-rte-div] from the RTE plugin ([true] if
-      not set). *)
-  let needs_div_mod () =
-    if RteGen.Options.DoDivMod.is_set ()
-    then RteGen.Options.DoDivMod.get ()
-    else true
 
-  (** [needs_mem_access ()] depends on [-rte-mem] from the RTE plugin ([true] if
-      not set). *)
-  let needs_mem_access () =
-    if RteGen.Options.DoMemAccess.is_set ()
-    then RteGen.Options.DoMemAccess.get ()
-    else true
+  let needs_trivial () = Options.Rte.Lvl.get () = 3
 
-  (** [needs_initialized okf] firstly depends on [-rte-initialized] from the RTE
-      plugin. However, if it is not set, the function result depends on
-      [-e-acsl-O-rte-initialized], which is [true] if [O < 2]. *)
+  (** [needs_rte ()] returns [true] if [n > 0], where [n] is the level of
+      correction from the option [-e-acsl-rte n]. If not set, the function
+      returns [true] if [o < 3], where [o] is the level of optimization from
+      the option [-e-acsl-O o]. *)
+  let needs_rte () =
+    if Options.Rte.Lvl.is_set ()
+    then Options.Rte.Lvl.get () > 0
+    else Options.O.get () < 3
+
+  (** [needs_initialized okf] firstly depends on [-e-acsl-rte-initialized]. If
+      it is not set,it depends on [-rte-initialized]. And finally, if neither of
+      them are defined it returns [true] if [n > 1] where [n] is the level of
+      correction from the option [-e-acsl-rte n]. *)
   let needs_initialized okf =
-    if RteGen.Options.DoInitialized.is_set ()
-    then Option.fold ~none:false ~some:RteGen.Options.DoInitialized.mem okf
-    else Options.Optimisations.Rte_initialized.get ()
+    if Options.Rte.Initialized.is_set ()
+    then Option.fold ~none:false ~some:Options.Rte.Initialized.mem okf
+    else begin
+      if RteGen.Options.DoInitialized.is_set ()
+      then Option.fold ~none:false ~some:RteGen.Options.DoInitialized.mem okf
+      else Options.Rte.Lvl.get () > 1
+    end
 
-  (** [needs_pointer_alignment ()] depends on [-warn-unaligned-pointer] ([true]
-      if not set). *)
-  let needs_pointer_alignment () =
-    if Kernel.UnalignedPointer.is_set ()
-    then not @@ Kernel.UnalignedPointer.get ()
-    else true
+  (** [needs_pointer_alignment ()] only depends on [-warn-unaligned-pointer]. *)
+  let needs_pointer_alignment () = Kernel.UnalignedPointer.get ()
 
-  (** [needs_pointer_value ()] depends on [-warn-invalid-pointer] ([false] if
-      not set). *)
-  let needs_pointer_value () =
-    if Kernel.InvalidPointer.is_set ()
-    then Kernel.InvalidPointer.get ()
-    else false
+  (** [needs_pointer_alignment ()] only depends on [-warn-left-shift-negative]. *)
+  let needs_left_shift_negative () = Kernel.LeftShiftNegative.get ()
 
-  (** [needs_left_shift_negative ()] depends on [-warn-left-shift-negative]
-      ([true] if not set). *)
-  let needs_left_shift_negative () =
-    if Kernel.LeftShiftNegative.is_set ()
-    then Kernel.LeftShiftNegative.get ()
-    else true
+  (** [needs_pointer_alignment ()] only depends on [-warn-pointer-downcast]. *)
+  let needs_pointer_downcast () = Kernel.PointerDowncast.get ()
 
-  (** [needs_right_shift_negative ()] depends on [-warn-right-shift-negative]
-      ([false] if not set. *)
-  let needs_right_shift_negative () =
-    if Kernel.RightShiftNegative.is_set ()
-    then Kernel.RightShiftNegative.get ()
-    else false
+  (** [needs_rte_opts ~min_lvl modules] takes a list of boolean options and
+      returns the value of the first one (in the list order) set by the user. If
+      no modules are set then it compares the [min_lvl] value with [n] the
+      current level of correction from the option [-e-acsl-rte n]. *)
+  let needs_rte_opts ~min_lvl modules =
+    let opt =
+      List.fold_left
+        (fun acc opt ->
+           match acc with
+           | Some _ -> acc
+           | None ->
+             let module Opt = (val opt : Parameter_sig.Bool) in
+             if Opt.is_set ()
+             then Some (Opt.get ())
+             else None)
+        None
+        modules
+    in
+    Option.value_or_else opt ~none:(fun () -> Options.Rte.Lvl.get () > min_lvl)
 
-  (** [needs_float_to_int ()] depends on [-rte-float-to-int] from the RTE plugin
-      ([true] if not set). *)
+  let needs_div_mod () =
+    needs_rte_opts ~min_lvl:0
+      [(module Options.Rte.DivMod); (module RteGen.Options.DoDivMod)]
+
+  let needs_mem_access () =
+    needs_rte_opts ~min_lvl:0
+      [(module Options.Rte.Mem); (module RteGen.Options.DoMemAccess)]
+
   let needs_float_to_int () =
-    if RteGen.Options.DoFloatToInt.is_set ()
-    then RteGen.Options.DoFloatToInt.get ()
-    else true
+    needs_rte_opts ~min_lvl:0
+      [(module Options.Rte.FloatToInt); (module RteGen.Options.DoFloatToInt)]
 
-  (** [needs_pointer_downcast ()] depends on [-warn-pointer-downcast] ([true] if
-      not set). *)
-  let needs_pointer_downcast () =
-    if Kernel.PointerDowncast.is_set ()
-    then Kernel.PointerDowncast.get ()
-    else true
+  let needs_implicit_downcast () =
+    needs_rte_opts ~min_lvl:0 [(module Options.Rte.ImplicitDowncast)]
 
-  (** [needs_signed_downcast ()] depends on [-warn-signed-downcast] ([false] if
-      not set). *)
+  let needs_pointer_value () =
+    needs_rte_opts ~min_lvl:1 [(module Kernel.InvalidPointer)]
+
+  let needs_right_shift_negative () =
+    needs_rte_opts ~min_lvl:1 [(module Kernel.RightShiftNegative)]
+
   let needs_signed_downcast () =
-    if Kernel.SignedDowncast.is_set ()
-    then Kernel.SignedDowncast.get ()
-    else false
+    needs_rte_opts ~min_lvl:1 [(module Kernel.SignedDowncast)]
 
-  (** [needs_unsigned_downcast ()] depends on [-warn-unsigned-downcast] ([false]
-      if not set). *)
   let needs_unsigned_downcast () =
-    if Kernel.UnsignedDowncast.is_set ()
-    then Kernel.UnsignedDowncast.get ()
-    else false
+    needs_rte_opts ~min_lvl:1 [(module Kernel.UnsignedDowncast)]
 
   let pretty fmt () =
     let pp_kernel_functions fmt () =
-      RteGen.Options.DoInitialized.iter
+      let kfs =
+        if Options.Rte.Initialized.is_set ()
+        then Options.Rte.Initialized.get ()
+        else RteGen.Options.DoInitialized.get ()
+      in
+      Kernel_function.Set.iter
         (fun kf ->
            let kf_name = match kf.fundec with
              | Declaration (_,var,_,_) -> var.vname
              | Definition (f,_) -> f.svar.vname
            in
            Format.fprintf fmt "%s " kf_name)
+        kfs
     in
     Format.fprintf fmt "RTE flags state:\n \
                         \t division by zero: %b\n \
                         \t memory access: %b\n \
                         \t initialization set function: %a\n \
-                        \t initialization forced: %b\n \
                         \t pointer alignment: %b\n \
                         \t pointer value: %b\n \
                         \t left shift negative: %b\n \
@@ -212,7 +220,6 @@ struct
       (needs_div_mod ())
       (needs_mem_access ())
       pp_kernel_functions ()
-      (Options.Optimisations.Implicit_downcast.get ())
       (needs_pointer_alignment ())
       (needs_pointer_value ())
       (needs_left_shift_negative ())
@@ -221,7 +228,7 @@ struct
       (needs_pointer_downcast ())
       (needs_signed_downcast ())
       (needs_unsigned_downcast ())
-      (Options.Optimisations.Implicit_downcast.get ())
+      (needs_implicit_downcast ())
 end
 
 (** The module [Undefined_behaviours] contains functions that makes a guard for
@@ -248,7 +255,7 @@ struct
       is not equal to [Z.zero]. The guard does not contain directly [divider]
       but a copy of it. *)
   let div_by_zero ~loc divider =
-    let smart = not @@ Options.Optimisations.Trivial_rte.get () in
+    let smart = not @@ Flags.needs_trivial () in
     let divider_cpy = Smart_term.copy ~smart divider in
     let pred =
       Smart_predicate.prel
@@ -265,7 +272,7 @@ struct
   (** [shift_negative ~loc ~kind shift] creates the predicate that checks if
       [shift] is greater or equal to [Z.zero]. *)
   let shift_negative ~loc ~kind shift =
-    let smart = not @@ Options.Optimisations.Trivial_rte.get () in
+    let smart = not @@ Flags.needs_trivial () in
     let names =
       match kind with
       | Guard.Left -> ["left shift negative"]
@@ -298,7 +305,7 @@ struct
   (** [index_bound ~loc t size] creates the predicate that check if [t] is
       between [Z.zero] and the array's upper bound regards of its [size]. *)
   let index_bound ~loc t size =
-    let smart = not @@ Options.Optimisations.Trivial_rte.get () in
+    let smart = not @@ Flags.needs_trivial () in
     let t_cpy_1 = Smart_term.copy ~smart t in
     let t_cpy_2 = Smart_term.copy ~smart t in
     let pred =
@@ -325,7 +332,7 @@ struct
   (** [pointer_alignment ~loc t typ] creates the predicate that check if [t] is
       aligned regards of [typ]. *)
   let pointer_alignment ~loc t typ =
-    let smart = not @@ Options.Optimisations.Trivial_rte.get () in
+    let smart = not @@ Flags.needs_trivial () in
     let pred =
       Logic_const.paligned
         ~loc
@@ -338,7 +345,7 @@ struct
   (** [pointer_value ~loc t] creates the predicate that check if [t] is [null]
       or an object pointer. *)
   let pointer_value ~loc t =
-    let smart = not @@ Options.Optimisations.Trivial_rte.get () in
+    let smart = not @@ Flags.needs_trivial () in
     let null = Logic_const.term ~loc Tnull t.term_type in
     let t_cpy_1 = Smart_term.copy ~smart t in
     let t_cpy_2 = Smart_term.copy ~smart t in
@@ -364,7 +371,7 @@ struct
   (** [downcast ~kind ~loc t (lb,ub)] creates the predicate that check if [t] is
       between [lb] and [ub]. *)
   let downcast ~kind ~loc t (lb,ub) =
-    let smart = not @@ Options.Optimisations.Trivial_rte.get () in
+    let smart = not @@ Flags.needs_trivial () in
     let on_bounds i =
       let t = Logic_const.tint i in
       match kind with
@@ -547,7 +554,7 @@ let rte_visitor =
         then
           begin
             let t = Logic_normalizer.get_term @@ Cil.stripTermCasts t in
-            if Options.Optimisations.Trivial_rte.get () ||
+            if Flags.needs_trivial () ||
                not (self#trivially_aligned t typ pointed_typ)
             then
               Guards.add orig
@@ -622,7 +629,7 @@ let rte_visitor =
         in
         if dst_signed && Flags.needs_signed_downcast () ||
            not dst_signed && Flags.needs_unsigned_downcast () ||
-           implicit && Options.Optimisations.Implicit_downcast.get ()
+           implicit && Flags.needs_implicit_downcast ()
         then
           let src_signed = Cil.isSigned src_ik in
           let   src_size = Cil.bitsSizeOfInt src_ik in
@@ -636,7 +643,7 @@ let rte_visitor =
       (* From float, To int *)
       | TFloat _, TInt ikind ->
         if Flags.needs_float_to_int () ||
-           implicit && Options.Optimisations.Implicit_downcast.get ()
+           implicit && Flags.needs_implicit_downcast ()
         then
           let signed = Cil.isSigned ikind in
           let   size = Cil.bitsSizeOfInt ikind in
@@ -650,7 +657,7 @@ let rte_visitor =
       | TPtr _, TInt ikind ->
         if Flags.needs_pointer_downcast () &&
            not Ast_types.C.(is_intptr_t dst || is_uintptr_t dst) ||
-           implicit && Options.Optimisations.Implicit_downcast.get ()
+           implicit && Flags.needs_implicit_downcast ()
         then
           let signed = Cil.isSigned ikind in
           let   size = Cil.bitsSizeOfInt ikind in
@@ -677,7 +684,7 @@ let rte_visitor =
         in
         if dst_signed && Flags.needs_signed_downcast () ||
            not dst_signed && Flags.needs_unsigned_downcast () ||
-           implicit && Options.Optimisations.Implicit_downcast.get ()
+           implicit && Flags.needs_implicit_downcast ()
         then
           let dst_size = Cil.bitsSizeOfInt dst_ik in
           Guards.add orig
@@ -686,7 +693,7 @@ let rte_visitor =
       (* From real, To int *)
       | Lreal, TInt ikind ->
         if Flags.needs_float_to_int () ||
-           implicit && Options.Optimisations.Implicit_downcast.get ()
+           implicit && Flags.needs_implicit_downcast ()
         then
           let signed = Cil.isSigned ikind in
           let   size = Cil.bitsSizeOfInt ikind in
@@ -785,7 +792,7 @@ let rte_visitor =
   end
 
 let preprocess ast =
-  if Options.Optimisations.Rte.get ()
+  if Flags.needs_rte ()
   then begin
     Options.debug ~level:2 ~dkey "%a" Flags.pretty ();
     ignore @@ rte_visitor#visit_file ast;
@@ -796,7 +803,7 @@ let preprocess ast =
     Options.feedback ~level:3 ~dkey "Skip the RTE analysis.%!"
 
 let preprocess_predicate ~kf p =
-  if Options.Optimisations.Rte.get ()
+  if Flags.needs_rte ()
   then begin
     Options.debug ~level:2 ~dkey "%a" Flags.pretty ();
     rte_visitor#set_current_kf kf;
@@ -808,6 +815,8 @@ let preprocess_predicate ~kf p =
   end else
     Options.feedback ~dkey "Skip the RTE analysis on %a.%!"
       Printer.pp_predicate p
+
+let needs_rte_guards = Flags.needs_rte
 
 let iter_on_guards = Guards.iter_on_guards
 

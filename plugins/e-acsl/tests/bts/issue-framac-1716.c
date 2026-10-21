@@ -1,9 +1,9 @@
 /* run.config
  * COMMENT: Check that the RTE guards are generated at the right place.
- * STDOPT: #"-e-acsl-O-trivial-rte"
+ * STDOPT: #"-e-acsl-rte 3"
 */
 /* run.config_dev
- * MACRO: ROOT_EACSL_GCC_FC_EXTRA_EXT -e-acsl-O-trivial-rte
+ * DONTRUN:
 */
 
 struct Abstract;
@@ -15,5 +15,5 @@ struct Concrete {
 extern struct Abstract *ptr;
 
 int main() {
-  // /*@ assert ((struct Concrete*)ptr)->x == 42; */
+  /*@ assert ((struct Concrete*)ptr)->x == 42; */
 }
