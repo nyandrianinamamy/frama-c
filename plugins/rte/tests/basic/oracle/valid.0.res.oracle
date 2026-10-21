@@ -304,16 +304,13 @@ int main(void)
   pp = & p;
   ppp = & pp;
   pppp = & ppp;
-  /*@ assert rte: pointer_alignment: \aligned(pp,alignof(struct P)); */
   p.next = pp;
   p.znexts = pppp;
-  /*@ assert rte: pointer_alignment: \aligned(pp,alignof(struct P)); */
   tmp = pp;
   /*@ assert rte: mem_access: \valid(&p.nexts[i2][i3]); */
   p.nexts[i2][i3] = tmp;
   /*@ assert rte: mem_access: \valid(&p.nexts[i0][i1]); */
   p.nexts[i0][i1] = tmp;
-  /*@ assert rte: pointer_alignment: \aligned(pp,alignof(struct P)); */
   q.next = pp;
   /*@ assert rte: mem_access: \valid(&q.id[i0]); */
   q.id[i0] = 0;
@@ -326,72 +323,40 @@ int main(void)
   /*@ assert rte: mem_access: \valid(&p2.id[i1]); */
   /*@ assert rte: mem_access: \valid_read(&p.id[i3]); */
   p2.id[i1] = p.id[i3];
-  /*@ assert rte: pointer_alignment: \aligned(p.next,alignof(struct P)); */
   /*@ assert rte: mem_access: \valid_read(p.next); */
   struct P np = *(p.next);
-  /*@ assert rte: pointer_alignment: \aligned(p.next,alignof(struct P)); */
   struct P *npp = p.next;
   /*@ assert rte: mem_access: \valid_read(&p.id[3]); */
   v = p.id[3];
-  /*@ assert rte: pointer_alignment: \aligned(pp,alignof(struct P)); */
   /*@ assert rte: mem_access: \valid_read(&pp->id[3]); */
   v = pp->id[3];
   /*@ assert rte: mem_access: \valid_read(i); */
   v = *i;
-  /*@ assert rte: pointer_alignment: \aligned(pp,alignof(struct P)); */
   /*@ assert rte: mem_access: \valid_read(&pp->val); */
   v = pp->val;
-  /*@ assert rte: pointer_alignment: \aligned(pp,alignof(struct P)); */
   /*@ assert rte: mem_access: \valid_read(&pp->id[3]); */
   v = pp->id[3];
-  /*@ assert rte: pointer_alignment: \aligned(pp,alignof(struct P)); */
-  /*@ assert
-        rte: pointer_alignment: \aligned(pp->nexts[i0][i1],alignof(struct P));
-  */
   /*@ assert rte: mem_access: \valid_read(&pp->nexts[i0][i1]); */
   struct P *z = pp->nexts[i0][i1];
-  /*@ assert rte: pointer_alignment: \aligned(pp,alignof(struct P)); */
-  /*@ assert
-        rte: pointer_alignment: \aligned(pp->nexts[i0][i1],alignof(struct P));
-  */
   /*@ assert rte: mem_access: \valid_read(&pp->nexts[i0][i1]); */
   /*@ assert rte: mem_access: \valid_read(&(pp->nexts[i0][i1])->val); */
   v = (pp->nexts[i0][i1])->val;
-  /*@ assert rte: pointer_alignment: \aligned(pp,alignof(struct P)); */
-  /*@ assert rte: pointer_alignment: \aligned(pp->next,alignof(struct P)); */
   /*@ assert rte: mem_access: \valid_read(&pp->next); */
   /*@ assert rte: mem_access: \valid_read(&(pp->next)->val); */
   v = (pp->next)->val;
-  /*@ assert rte: pointer_alignment: \aligned(pp,alignof(struct P)); */
-  /*@ assert rte: pointer_alignment: \aligned(pp->next,alignof(struct P)); */
   /*@ assert rte: mem_access: \valid_read(&pp->next); */
-  /*@ assert
-        rte: pointer_alignment: \aligned((pp->next)->next,alignof(struct P));
-  */
   /*@ assert rte: mem_access: \valid_read(&(pp->next)->next); */
   /*@ assert rte: mem_access: \valid_read(&((pp->next)->next)->val); */
   v = ((pp->next)->next)->val;
-  /*@ assert
-        rte: pointer_alignment: \aligned(p.nexts[i0][i1],alignof(struct P));
-  */
   /*@ assert rte: mem_access: \valid_read(&p.nexts[i0][i1]); */
   /*@ assert rte: mem_access: \valid_read(&(p.nexts[i0][i1])->val); */
   v = (p.nexts[i0][i1])->val;
-  /*@ assert rte: pointer_alignment: \aligned(pp,alignof(struct P)); */
   /*@ assert rte: mem_access: \valid_read(&pp->id[i2]); */
   v = pp->id[i2];
-  /*@ assert rte: pointer_alignment: \aligned(pp,alignof(struct P)); */
   /*@ assert rte: mem_access: \valid_read(&pp->oth[i0][i1]); */
   v = pp->oth[i0][i1];
-  /*@ assert
-        rte: pointer_alignment: \aligned(p.nexts[i1][i2],alignof(struct P));
-  */
   /*@ assert rte: mem_access: \valid_read(&p.nexts[i1][i2]); */
   /*@ assert rte: mem_access: \valid_read(i); */
-  /*@ assert
-        rte: pointer_alignment:
-          \aligned((p.nexts[i1][i2])->nexts[i3][*i],alignof(struct P));
-  */
   /*@ assert rte: mem_access: \valid_read(&(p.nexts[i1][i2])->nexts[i3][*i]);
   */
   /*@ assert
@@ -404,40 +369,15 @@ int main(void)
   v = p.q.id[i4];
   /*@ assert rte: mem_access: \valid_read(&p.tq[i3][i1].v); */
   v = p.tq[i3][i1].v;
-  /*@ assert
-        rte: pointer_alignment: \aligned(p.tq[i1][i2].next,alignof(struct P));
-  */
   /*@ assert rte: mem_access: \valid_read(&p.tq[i1][i2].next); */
   /*@ assert
         rte: mem_access: \valid_read(&(p.tq[i1][i2].next)->tq[i3][i4].v);
   */
   v = (p.tq[i1][i2].next)->tq[i3][i4].v;
-  /*@ assert rte: pointer_alignment: \aligned(pp,alignof(struct P)); */
   /*@ assert rte: mem_access: \valid_read(&pp->tq[i3][i1].v); */
   v = pp->tq[i3][i1].v;
-  /*@ assert rte: pointer_alignment: \aligned(p.znexts,alignof(struct P **));
-  */
-  /*@ assert
-        rte: pointer_alignment:
-          \aligned(*(p.znexts + i0),alignof(struct P *));
-  */
-  /*@ assert
-        rte: pointer_alignment: \aligned(p.znexts + i0,alignof(struct P **));
-  */
   /*@ assert rte: mem_access: \valid_read(p.znexts + i0); */
-  /*@ assert
-        rte: pointer_alignment:
-          \aligned(*(*(p.znexts + i0) + i1),alignof(struct P));
-  */
-  /*@ assert
-        rte: pointer_alignment:
-          \aligned(*(p.znexts + i0) + i1,alignof(struct P *));
-  */
   /*@ assert rte: mem_access: \valid_read(*(p.znexts + i0) + i1); */
-  /*@ assert
-        rte: pointer_alignment:
-          \aligned(*(*(p.znexts + i0) + i1) + i2,alignof(struct P));
-  */
   /*@ assert
         rte: mem_access: \valid_read(&(*(*(p.znexts + i0) + i1) + i2)->val);
   */
@@ -446,7 +386,6 @@ int main(void)
   q = p.tq[i0][i1];
   /*@ assert rte: mem_access: \valid_read(&p.tq[i0][i1].tr[i2].v); */
   v = p.tq[i0][i1].tr[i2].v;
-  /*@ assert rte: pointer_alignment: \aligned(pp,alignof(struct P)); */
   /*@ assert rte: mem_access: \valid_read(&pp->val); */
   v = pp->val;
   v = p.val;
