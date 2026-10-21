@@ -415,6 +415,7 @@ let rte_guards_to_exp_old ~loc ~kf t env =
     Rte_analysis.fold_guards ~default:env t @@ fun p env ->
     Assert.push_pending_register_data ();
     let adata, env = Assert.empty ~loc kf env in
+    let annot = Translate_utils.update_lv_origin env p in
     let cil, adata, env = to_exp ~adata kf env p in
     let stmt, env = Assert.runtime_check
         ~adata
@@ -423,10 +424,10 @@ let rte_guards_to_exp_old ~loc ~kf t env =
         kf
         env
         cil
-        p
+        annot
     in
     let env = Assert.do_pending_register_data env in
-    let env = Env.add_stmt ~annot:p env stmt in
+    let env = Env.add_stmt ~annot env stmt in
     env
   in
   Rte_analysis.remove t;

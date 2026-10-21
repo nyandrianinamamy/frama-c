@@ -24,8 +24,6 @@
 [eva:alarm] functions.c:128: Warning: 
   function __e_acsl_assert, behavior blocking: precondition got status unknown.
 [eva:alarm] functions.c:143: Warning: assertion got status unknown.
-[eva:alarm] functions.c:44: Warning: 
-  assertion 'E_ACSL,division by zero' got status unknown.
 [eva:alarm] functions.c:149: Warning: 
   non-finite double value. assert \is_finite(__gen_e_acsl_div_2);
 [eva:alarm] functions.c:149: Warning: 

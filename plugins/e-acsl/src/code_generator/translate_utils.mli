@@ -73,6 +73,10 @@ val env_of_li:
 (** [env_of_li ~adata ~loc kf env li] translates the logic info [li] in the
     given environment with the given assertion context. *)
 
+val update_lv_origin: Env.t -> predicate -> predicate
+(** [update_lv_origin env p] adds an [lv_origin] for each logic variable which
+    has an equivalent C variable in the generated code in the given predicate. *)
+
 (**************************************************************************)
 (********************** Forward references ********************************)
 (**************************************************************************)

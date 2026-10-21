@@ -255,3 +255,17 @@ let env_of_li ~adata ~loc kf env li =
     Env.not_yet env "type variable"
   | Larrow _ ->
     Env.not_yet env "lambda-abstraction"
+
+let update_lv_origin env p =
+  let visitor env = object
+    inherit Visitor.frama_c_inplace
+    method! vlogic_var_use lv =
+      match Env.Logic_binding.get_opt env lv with
+      | Some v -> Cil.DoChildrenPost (fun lv -> {lv with lv_origin = Some v})
+      | _ -> Cil.DoChildren
+    method! vlogic_type _ =
+      (* optimisation: we copy terms and logic types do not contain terms *)
+      Cil.SkipChildren
+  end
+  in
+  Visitor.visitFramacPredicate (visitor env) p

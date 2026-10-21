@@ -37,8 +37,6 @@
 [eva:alarm] bts1390.c:9: Warning: 
   function __e_acsl_assert, behavior blocking: precondition got status unknown.
 [eva:alarm] bts1390.c:9: Warning: 
-  assertion 'E_ACSL,signed downcast' got status unknown.
-[eva:alarm] bts1390.c:9: Warning: 
   assertion 'E_ACSL,memory access' got status unknown.
 [eva:alarm] bts1390.c:12: Warning: 
   function __e_acsl_assert, behavior blocking: precondition got status unknown.

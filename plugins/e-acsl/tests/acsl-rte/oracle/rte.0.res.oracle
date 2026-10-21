@@ -12,8 +12,6 @@
   signed overflow. assert 1 + (int)__gen_e_acsl__3 <= 2147483647;
 [eva:alarm] rte.c:127: Warning: 
   function __e_acsl_assert, behavior blocking: precondition got status unknown.
-[eva:alarm] rte.c:42: Warning: 
-  assertion 'E_ACSL,division by zero' got status unknown.
 [eva:alarm] rte.c:132: Warning: 
   non-finite double value. assert \is_finite(__gen_e_acsl_div_3);
 [eva:alarm] rte.c:132: Warning: 

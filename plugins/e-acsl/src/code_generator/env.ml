@@ -331,6 +331,13 @@ module Logic_binding = struct
     in
     v, e, add_binding env logic_v v
 
+  let get_opt env logic_v =
+    try
+      let varinfos = Logic_var.Map.find logic_v env.var_mapping in
+      Option.return @@ Stack.top varinfos
+    with
+    | Not_found | Stack.Empty -> None
+
   let get env logic_v =
     try
       let varinfos = Logic_var.Map.find logic_v env.var_mapping in
