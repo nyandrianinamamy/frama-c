@@ -127,7 +127,7 @@ struct
       correction from the option [-e-acsl-rte n]. *)
   let needs_initialized okf =
     if Options.Rte.Initialized.is_set ()
-    then Option.fold ~none:false ~some:Options.Rte.Initialized.mem okf
+    then Options.Rte.Initialized.get ()
     else begin
       if RteGen.Options.DoInitialized.is_set ()
       then Option.fold ~none:false ~some:RteGen.Options.DoInitialized.mem okf
@@ -191,20 +191,12 @@ struct
     needs_rte_opts ~min_lvl:1 [(module Kernel.UnsignedDowncast)]
 
   let pretty fmt () =
-    let pp_kernel_functions fmt () =
-      let kfs =
-        if Options.Rte.Initialized.is_set ()
-        then Options.Rte.Initialized.get ()
-        else RteGen.Options.DoInitialized.get ()
-      in
-      Kernel_function.Set.iter
-        (fun kf ->
-           let kf_name = match kf.fundec with
-             | Declaration (_,var,_,_) -> var.vname
-             | Definition (f,_) -> f.svar.vname
-           in
-           Format.fprintf fmt "%s " kf_name)
-        kfs
+    let pp_initialized fmt () =
+      if Options.Rte.Initialized.is_set ()
+      then Format.fprintf fmt "all"
+      else
+        Kernel_function.Set.iter
+          (Kernel_function.pretty fmt) (RteGen.Options.DoInitialized.get ())
     in
     Format.fprintf fmt "RTE flags state:\n \
                         \t division by zero: %b\n \
@@ -221,7 +213,7 @@ struct
                         \t implicit downcast: %b"
       (needs_div_mod ())
       (needs_mem_access ())
-      pp_kernel_functions ()
+      pp_initialized ()
       (needs_pointer_alignment ())
       (needs_pointer_value ())
       (needs_left_shift_negative ())

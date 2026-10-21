@@ -245,13 +245,11 @@ struct
 
   let () = Lvl.set_range ~min:0 ~max:3
 
-  module Initialized = Kernel_function_set
+  module Initialized = False
       (struct
         let () = Parameter_customize.set_group Group.rte
         let option_name = "-e-acsl-rte-initialized"
-        let arg_name = "fct"
-        let help = "for each function in 'fct', generates RTE guards for \
-                    initialization"
+        let help = "generates RTE guards for initialization"
       end)
 
   module ImplicitDowncast = True

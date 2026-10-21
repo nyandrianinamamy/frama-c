@@ -31,7 +31,7 @@ end
 
 module Rte : sig
   module Lvl : Parameter_sig.Int
-  module Initialized : Parameter_sig.Kernel_function_set
+  module Initialized : Parameter_sig.Bool
   module ImplicitDowncast : Parameter_sig.Bool
   module DivMod : Parameter_sig.Bool
   module Mem : Parameter_sig.Bool

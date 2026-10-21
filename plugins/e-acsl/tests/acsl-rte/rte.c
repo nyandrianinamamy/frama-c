@@ -1,9 +1,9 @@
 /* run.config
  * COMMENT: Check that the RTE guards are generated at the right place.
- * STDOPT: #"-e-acsl-rte-initialized=@all -warn-invalid-pointer -warn-signed-downcast -warn-unsigned-downcast"
+ * STDOPT: #"-e-acsl-rte-initialized -warn-invalid-pointer -warn-signed-downcast -warn-unsigned-downcast"
 */
 /* run.config_dev
- * MACRO: ROOT_EACSL_GCC_FC_EXTRA_EXT -e-acsl-rte-initialized=@all -warn-invalid-pointer -warn-signed-downcast -warn-unsigned-downcast
+ * MACRO: ROOT_EACSL_GCC_FC_EXTRA_EXT -e-acsl-rte-initialized -warn-invalid-pointer -warn-signed-downcast -warn-unsigned-downcast
 */
 
 #include <limits.h>

@@ -125,9 +125,8 @@ Options taking a string as argument should preferably be written
 -e-acsl-rte-implicit-downcast  generate RTE guards for implicit downcast done
                     by the translation (set by default, opposite option is
                     -e-acsl-no-rte-implicit-downcast)
--e-acsl-rte-initialized <fct>  for each function in 'fct', generates RTE
-                    guards for initialization (preferably use
-                    -e-acsl-rte-initialized="fct")
+-e-acsl-rte-initialized  generates RTE guards for initialization (opposite
+                    option is -e-acsl-no-rte-initialized)
 -e-acsl-rte-mem     generate RTE guards for valid pointer or array access
                     (set by default, opposite option is -e-acsl-no-rte-mem)
 
