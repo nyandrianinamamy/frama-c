@@ -182,8 +182,8 @@ let rewrite_repeat s n =
     match repr s with
     | L.Fun( repeat , [s0 ; n0] ) (* n0>=0 && n>=0 ==> ((s0 *^ n0) *^ n) == (s0 *^ (n0 * n)) *)
       when (f_repeat @= repeat) &&
-           (Cint.is_positive_or_null n) &&
-           (Cint.is_positive_or_null n0) -> v_repeat s0 (e_mul n0 n) (typeof s)
+           (Cint.is_positive ~strict:false n) &&
+           (Cint.is_positive ~strict:false n0) -> v_repeat s0 (e_mul n0 n) (typeof s)
     | _ -> raise Not_found
 
 let rec leftmost a ms =

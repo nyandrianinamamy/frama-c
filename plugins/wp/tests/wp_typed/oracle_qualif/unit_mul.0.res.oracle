@@ -1,0 +1,11 @@
+# frama-c -wp [...]
+[kernel] Parsing unit_mul.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] 1 goal scheduled
+[wp] [Unsuccess] typed_lemma_L_mulneg_KO (Alt-Ergo) (Cached)
+[wp] Proved goals:    0 / 1
+  Unsuccess:       1
+------------------------------------------------------------
+ Axiomatics                WP     Alt-Ergo  Total   Success
+  Lemma                     -        -        1       0.0%
+------------------------------------------------------------
