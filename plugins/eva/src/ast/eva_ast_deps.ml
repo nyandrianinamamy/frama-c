@@ -38,6 +38,8 @@ module MakeDepsOf (Loc : DepsOfInput) : DepsOf with type location =
         Deps.join (process e1) (process e2)
       | StartOf lv | AddrOf lv ->
         Deps.data (indirect_zone_of_lval find_loc lv)
+      | SizeOfArray { elt_size; array_length } ->
+        Deps.join (process elt_size) (process array_length)
       | Const _ ->
         Deps.bottom
     in

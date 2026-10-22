@@ -29,7 +29,7 @@ struct
 
   let exp_level e = match e.node with
     | BinOp (op, _, _, _) -> binop_level op
-    | CastE _ | AddrOf _ | StartOf _ | UnOp _ -> 30
+    | CastE _ | AddrOf _ | StartOf _ | UnOp _ | SizeOfArray _ -> 30
     | Lval lval -> lval_level lval
     | Const _ -> 0
 end
@@ -85,6 +85,8 @@ and pp_exp fmt exp =
     Format.fprintf fmt "& %a" (pp_lval' ~precedence) lv
   | StartOf lv ->
     Format.fprintf fmt "%a" (pp_lval' ~precedence) lv
+  | SizeOfArray { typ } ->
+    Format.fprintf fmt "sizeof(%a)" Printer.pp_typ typ
 
 and pp_exp' ~precedence fmt exp =
   if Precedence.exp_level exp >= precedence then

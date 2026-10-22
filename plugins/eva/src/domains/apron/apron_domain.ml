@@ -250,7 +250,8 @@ let rec translate_expr eval oracle expr = match expr.node with
     Texpr1.(Binop (op', e1', e2', translate_typ typ, round))
   | CastE (typ, e)->
     coerce ~cast:true eval typ (translate_expr_linearize eval oracle e)
-  | AddrOf _ | StartOf _  -> raise (Out_of_Scope "translate_expr addr")
+  | AddrOf _ | StartOf _ | SizeOfArray _ ->
+    raise (Out_of_Scope "translate_expr addr")
 (* Expressions that cannot be translated by [translate_expr] are replaced
    using an oracle. Of course, this oracle must be sound!. If the oracle
    cannot find a suitable replacement, it can re-raise the expression. *)

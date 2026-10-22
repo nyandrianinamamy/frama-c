@@ -137,7 +137,7 @@ struct
   let rec linearity vi (exp : Eva_ast.exp) =
     match exp.node with
     | Const _
-    | AddrOf _ | StartOf _ -> Z.zero
+    | AddrOf _ | StartOf _ | SizeOfArray _ -> Z.zero
     | Lval {node = Var vi', NoOffset} ->
       if Var.equal  vi' vi
       then Z.one

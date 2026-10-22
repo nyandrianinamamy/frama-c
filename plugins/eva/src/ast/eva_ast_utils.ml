@@ -39,6 +39,7 @@ and build_cil_exp exp =
     | CastE (t, e) -> CastE (t, to_cil_exp e)
     | AddrOf lv -> AddrOf (to_cil_lval lv)
     | StartOf lv -> StartOf (to_cil_lval lv)
+    | SizeOfArray { typ } -> SizeOf typ
   in
   Cil.new_exp ~loc:Self.gen_loc exp_node
 
@@ -141,8 +142,9 @@ let rec height_exp exp =
   match exp.node with
   | Const _ -> 0
   | Lval lv | AddrOf lv | StartOf lv  -> height_lval lv + 1
-  | UnOp (_,e,_) | CastE (_, e) -> height_exp e + 1
-  | BinOp (_,e1,e2,_) -> max (height_exp e1) (height_exp e2) + 1
+  | UnOp (_, e, _) | CastE (_, e) -> height_exp e + 1
+  | BinOp (_, e1, e2, _) | SizeOfArray { elt_size = e1; array_length = e2 } ->
+    max (height_exp e1) (height_exp e2) + 1
 
 and height_lval lv =
   let host, offset = lv.node in
@@ -253,6 +255,10 @@ let rec const_fold (exp: exp) : exp =
   | CastE (t, e) -> const_fold_cast t e
   | UnOp (op, e, t) -> const_fold_unop op e t
   | BinOp (op, e1, e2, t) -> const_fold_binop op e1 e2 t
+  | SizeOfArray { typ; elt_size; array_length } ->
+    let elt_size = const_fold elt_size in
+    let array_length = const_fold array_length in
+    mk_exp (SizeOfArray { typ; elt_size; array_length })
 
 and const_fold_cast (t : typ) (e : exp) : exp  =
   let e = const_fold e in

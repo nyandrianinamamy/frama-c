@@ -986,7 +986,7 @@ module G = struct
        expression that cannot be handled, [Untranslatable] is raised. *)
     let rec aux_gauge e =
       match e.node with
-      | Const _ | AddrOf _ | StartOf _ ->
+      | Const _ | AddrOf _ | StartOf _ | SizeOfArray _ ->
         raise Untranslatable (* constant: using linearization directly *)
 
       | CastE (typ_dst ,e) ->

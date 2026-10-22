@@ -44,6 +44,7 @@ let type_of_exp_node : exp_node -> typ = function
   | UnOp (_, _, t) -> t
   | BinOp (_, _, _, t) -> t
   | CastE (t, _) -> t
+  | SizeOfArray _ -> Machine.sizeof_type ()
   | AddrOf lv -> Cil_const.mk_tptr lv.typ
   | StartOf lv ->
     match Ast_types.C.unroll lv.typ with
