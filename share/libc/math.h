@@ -1943,7 +1943,7 @@ extern long double truncl(long double x);
 /*@
   assigns errno, \result \from x, y;
   behavior normal_argument:
-    assumes in_domain: !\is_NaN(x) && !\is_NaN(y) && y != 0.;
+    assumes in_domain: \is_finite(x) && !\is_NaN(y) && y != 0.;
     assigns \result \from x, y;
     ensures finite_result: \is_finite(\result);
     ensures no_error: errno == \old(errno);
@@ -1964,7 +1964,7 @@ extern double fmod(double x, double y);
 /*@
   assigns errno, \result \from x, y;
   behavior normal_argument:
-    assumes in_domain: !\is_NaN(x) && !\is_NaN(y) && y != 0.;
+    assumes in_domain: \is_finite(x) && !\is_NaN(y) && y != 0.;
     assigns \result \from x, y;
     ensures finite_result: \is_finite(\result);
     ensures no_error: errno == \old(errno);
