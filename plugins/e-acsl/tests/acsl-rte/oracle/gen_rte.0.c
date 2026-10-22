@@ -4715,47 +4715,49 @@ int main(void)
     }
     __e_acsl_assert_data_t __gen_e_acsl_assert_data_89 =
       {.values = (void *)0};
+    __e_acsl_assert_data_t __gen_e_acsl_assert_data_90 =
+      {.values = (void *)0};
     __gen_e_acsl_initialized_33 = __e_acsl_initialized((void *)(& struct_s.b),
                                                        sizeof(int *));
-    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_89,"&struct_s.b",
+    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_90,"&struct_s.b",
                                  (void *)(& struct_s.b));
-    __e_acsl_assert_register_ulong(& __gen_e_acsl_assert_data_89,
+    __e_acsl_assert_register_ulong(& __gen_e_acsl_assert_data_90,
                                    "sizeof(int *)",0,sizeof(int *));
-    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_89,
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_90,
                                  "uninitialized: \\initialized(&struct_s.b)",
                                  0,__gen_e_acsl_initialized_33);
     /*@ assert E_ACSL: uninitialized: \initialized(&struct_s.b); */
     {
-      __gen_e_acsl_assert_data_89.blocking = 1;
-      __gen_e_acsl_assert_data_89.kind = "E-ACSL RTE";
-      __gen_e_acsl_assert_data_89.pred_txt = "\\initialized(&struct_s.b)";
-      __gen_e_acsl_assert_data_89.file = "rte.c";
-      __gen_e_acsl_assert_data_89.fct = "main";
-      __gen_e_acsl_assert_data_89.line = 177;
-      __gen_e_acsl_assert_data_89.name = "uninitialized";
+      __gen_e_acsl_assert_data_90.blocking = 1;
+      __gen_e_acsl_assert_data_90.kind = "E-ACSL RTE";
+      __gen_e_acsl_assert_data_90.pred_txt = "\\initialized(&struct_s.b)";
+      __gen_e_acsl_assert_data_90.file = "rte.c";
+      __gen_e_acsl_assert_data_90.fct = "main";
+      __gen_e_acsl_assert_data_90.line = 177;
+      __gen_e_acsl_assert_data_90.name = "uninitialized";
       __e_acsl_assert(__gen_e_acsl_initialized_33,
-                      & __gen_e_acsl_assert_data_89);
-      __e_acsl_assert_clean(& __gen_e_acsl_assert_data_89);
+                      & __gen_e_acsl_assert_data_90);
+      __e_acsl_assert_clean(& __gen_e_acsl_assert_data_90);
     }
-    __e_acsl_assert_data_t __gen_e_acsl_assert_data_90 =
+    __e_acsl_assert_data_t __gen_e_acsl_assert_data_91 =
       {.values = (void *)0};
     __gen_e_acsl_aligned_9 = __e_acsl_aligned((void *)struct_s.b,4UL);
-    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_90,"struct_s.b",
+    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_91,"struct_s.b",
                                  (void *)struct_s.b);
-    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_90,
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_91,
                                  "\"pointer alignment\": \\aligned(struct_s.b,4)",
                                  0,__gen_e_acsl_aligned_9);
     /*@ assert E_ACSL: "pointer alignment": \aligned(struct_s.b,4); */
     {
-      __gen_e_acsl_assert_data_90.blocking = 1;
-      __gen_e_acsl_assert_data_90.kind = "E-ACSL RTE";
-      __gen_e_acsl_assert_data_90.pred_txt = "\\aligned(struct_s.b,4)";
-      __gen_e_acsl_assert_data_90.file = "rte.c";
-      __gen_e_acsl_assert_data_90.fct = "main";
-      __gen_e_acsl_assert_data_90.line = 177;
-      __gen_e_acsl_assert_data_90.name = "pointer alignment";
-      __e_acsl_assert(__gen_e_acsl_aligned_9,& __gen_e_acsl_assert_data_90);
-      __e_acsl_assert_clean(& __gen_e_acsl_assert_data_90);
+      __gen_e_acsl_assert_data_91.blocking = 1;
+      __gen_e_acsl_assert_data_91.kind = "E-ACSL RTE";
+      __gen_e_acsl_assert_data_91.pred_txt = "\\aligned(struct_s.b,4)";
+      __gen_e_acsl_assert_data_91.file = "rte.c";
+      __gen_e_acsl_assert_data_91.fct = "main";
+      __gen_e_acsl_assert_data_91.line = 177;
+      __gen_e_acsl_assert_data_91.name = "pointer alignment";
+      __e_acsl_assert(__gen_e_acsl_aligned_9,& __gen_e_acsl_assert_data_91);
+      __e_acsl_assert_clean(& __gen_e_acsl_assert_data_91);
     }
     __gen_e_acsl_size_8 = 8;
     __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_87,"size",0,
@@ -4768,7 +4770,7 @@ int main(void)
     }
     __gen_e_acsl_initialized_34 = __e_acsl_initialized((void *)((char *)struct_s.b + 0),
                                                        (size_t)__gen_e_acsl_if_7);
-    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_87,"struct_s.b",
+    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_89,"struct_s.b",
                                  (void *)struct_s.b);
     __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_87,
                                  "sizeof(int) * 0",0,0);

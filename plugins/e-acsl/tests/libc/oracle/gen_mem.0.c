@@ -443,21 +443,21 @@ void *__gen_e_acsl_memset(void *s, int c, size_t n)
   __retres = memset(s,c,n);
   __e_acsl_initialize(s,n);
   {
-    __e_acsl_assert_data_t __gen_e_acsl_assert_data_3 =
+    __e_acsl_assert_data_t __gen_e_acsl_assert_data_5 =
       {.values = (void *)0};
-    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_3,"\\result",
+    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_5,"\\result",
                                  __retres);
-    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_3,"\\old(s)",
+    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_5,"\\old(s)",
                                  __gen_e_acsl_at);
-    __gen_e_acsl_assert_data_3.blocking = 1;
-    __gen_e_acsl_assert_data_3.kind = "Postcondition";
-    __gen_e_acsl_assert_data_3.pred_txt = "\\result == \\old(s)";
-    __gen_e_acsl_assert_data_3.file = "FRAMAC_SHARE/libc/string.h";
-    __gen_e_acsl_assert_data_3.fct = "memset";
-    __gen_e_acsl_assert_data_3.line = 168;
-    __gen_e_acsl_assert_data_3.name = "result_ptr";
-    __e_acsl_assert(__retres == __gen_e_acsl_at,& __gen_e_acsl_assert_data_3);
-    __e_acsl_assert_clean(& __gen_e_acsl_assert_data_3);
+    __gen_e_acsl_assert_data_5.blocking = 1;
+    __gen_e_acsl_assert_data_5.kind = "Postcondition";
+    __gen_e_acsl_assert_data_5.pred_txt = "\\result == \\old(s)";
+    __gen_e_acsl_assert_data_5.file = "FRAMAC_SHARE/libc/string.h";
+    __gen_e_acsl_assert_data_5.fct = "memset";
+    __gen_e_acsl_assert_data_5.line = 168;
+    __gen_e_acsl_assert_data_5.name = "result_ptr";
+    __e_acsl_assert(__retres == __gen_e_acsl_at,& __gen_e_acsl_assert_data_5);
+    __e_acsl_assert_clean(& __gen_e_acsl_assert_data_5);
     __e_acsl_delete_block((void *)(& n));
     __e_acsl_delete_block((void *)(& c));
     __e_acsl_delete_block((void *)(& s));
@@ -530,21 +530,21 @@ void *__gen_e_acsl_memmove(void *dest, void const *src, size_t n)
   __retres = memmove(dest,src,n);
   __e_acsl_initialize(dest,n);
   {
-    __e_acsl_assert_data_t __gen_e_acsl_assert_data_4 =
+    __e_acsl_assert_data_t __gen_e_acsl_assert_data_6 =
       {.values = (void *)0};
-    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_4,"\\result",
+    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_6,"\\result",
                                  __retres);
-    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_4,"\\old(dest)",
+    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_6,"\\old(dest)",
                                  __gen_e_acsl_at);
-    __gen_e_acsl_assert_data_4.blocking = 1;
-    __gen_e_acsl_assert_data_4.kind = "Postcondition";
-    __gen_e_acsl_assert_data_4.pred_txt = "\\result == \\old(dest)";
-    __gen_e_acsl_assert_data_4.file = "FRAMAC_SHARE/libc/string.h";
-    __gen_e_acsl_assert_data_4.fct = "memmove";
-    __gen_e_acsl_assert_data_4.line = 158;
-    __gen_e_acsl_assert_data_4.name = "result_ptr";
-    __e_acsl_assert(__retres == __gen_e_acsl_at,& __gen_e_acsl_assert_data_4);
-    __e_acsl_assert_clean(& __gen_e_acsl_assert_data_4);
+    __gen_e_acsl_assert_data_6.blocking = 1;
+    __gen_e_acsl_assert_data_6.kind = "Postcondition";
+    __gen_e_acsl_assert_data_6.pred_txt = "\\result == \\old(dest)";
+    __gen_e_acsl_assert_data_6.file = "FRAMAC_SHARE/libc/string.h";
+    __gen_e_acsl_assert_data_6.fct = "memmove";
+    __gen_e_acsl_assert_data_6.line = 158;
+    __gen_e_acsl_assert_data_6.name = "result_ptr";
+    __e_acsl_assert(__retres == __gen_e_acsl_at,& __gen_e_acsl_assert_data_6);
+    __e_acsl_assert_clean(& __gen_e_acsl_assert_data_6);
     __e_acsl_delete_block((void *)(& n));
     __e_acsl_delete_block((void *)(& src));
     __e_acsl_delete_block((void *)(& dest));
@@ -833,11 +833,31 @@ void *__gen_e_acsl_memcpy(void * restrict dest, void const * restrict src,
 /*@ assigns \result; */
 int __gen_e_acsl_valid_or_empty_here(void *s, unsigned long n)
 {
+  int __gen_e_acsl_aligned;
   int __gen_e_acsl_object_pointer;
   int __gen_e_acsl_and;
+  __e_acsl_assert_data_t __gen_e_acsl_assert_data_2 = {.values = (void *)0};
+  __gen_e_acsl_aligned = __e_acsl_aligned(s,1UL);
+  __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_2,"s",s);
+  __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_2,
+                               "\"pointer alignment\": \\aligned(s,1)",0,
+                               __gen_e_acsl_aligned);
+  /*@ assert E_ACSL: "pointer alignment": \aligned(s,1); */
+  {
+    __gen_e_acsl_assert_data_2.blocking = 1;
+    __gen_e_acsl_assert_data_2.kind = "E-ACSL RTE";
+    __gen_e_acsl_assert_data_2.pred_txt = "\\aligned(s,1)";
+    __gen_e_acsl_assert_data_2.file = "FRAMAC_SHARE/libc/string.h";
+    __gen_e_acsl_assert_data_2.fct = "valid_or_empty_here";
+    __gen_e_acsl_assert_data_2.line = 48;
+    __gen_e_acsl_assert_data_2.name = "pointer alignment";
+    __e_acsl_assert(__gen_e_acsl_aligned,& __gen_e_acsl_assert_data_2);
+    __e_acsl_assert_clean(& __gen_e_acsl_assert_data_2);
+  }
   __gen_e_acsl_object_pointer = __e_acsl_object_pointer(s,sizeof(char),s,
                                                         (void *)(& s));
   if (__gen_e_acsl_object_pointer) {
+    int __gen_e_acsl_aligned_2;
     unsigned long __gen_e_acsl_size;
     __e_acsl_mpz_t __gen_e_acsl_n;
     __e_acsl_mpz_t __gen_e_acsl_;
@@ -845,6 +865,25 @@ int __gen_e_acsl_valid_or_empty_here(void *s, unsigned long n)
     __e_acsl_mpz_t __gen_e_acsl_add;
     unsigned long __gen_e_acsl_if;
     int __gen_e_acsl_valid;
+    __e_acsl_assert_data_t __gen_e_acsl_assert_data_3 =
+      {.values = (void *)0};
+    __gen_e_acsl_aligned_2 = __e_acsl_aligned(s,1UL);
+    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_3,"s",s);
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_3,
+                                 "\"pointer alignment\": \\aligned(s,1)",0,
+                                 __gen_e_acsl_aligned_2);
+    /*@ assert E_ACSL: "pointer alignment": \aligned(s,1); */
+    {
+      __gen_e_acsl_assert_data_3.blocking = 1;
+      __gen_e_acsl_assert_data_3.kind = "E-ACSL RTE";
+      __gen_e_acsl_assert_data_3.pred_txt = "\\aligned(s,1)";
+      __gen_e_acsl_assert_data_3.file = "FRAMAC_SHARE/libc/string.h";
+      __gen_e_acsl_assert_data_3.fct = "valid_or_empty_here";
+      __gen_e_acsl_assert_data_3.line = 48;
+      __gen_e_acsl_assert_data_3.name = "pointer alignment";
+      __e_acsl_assert(__gen_e_acsl_aligned_2,& __gen_e_acsl_assert_data_3);
+      __e_acsl_assert_clean(& __gen_e_acsl_assert_data_3);
+    }
     __gmpz_init_set_ui(__gen_e_acsl_n,n);
     __gmpz_init_set_si(__gen_e_acsl_,1L);
     __gmpz_init(__gen_e_acsl_sub);
@@ -873,11 +912,31 @@ int __gen_e_acsl_valid_or_empty_here(void *s, unsigned long n)
 /*@ assigns \result; */
 int __gen_e_acsl_valid_read_or_empty_here(void *s, unsigned long n)
 {
+  int __gen_e_acsl_aligned;
   int __gen_e_acsl_object_pointer;
   int __gen_e_acsl_and;
+  __e_acsl_assert_data_t __gen_e_acsl_assert_data_3 = {.values = (void *)0};
+  __gen_e_acsl_aligned = __e_acsl_aligned(s,1UL);
+  __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_3,"s",s);
+  __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_3,
+                               "\"pointer alignment\": \\aligned(s,1)",0,
+                               __gen_e_acsl_aligned);
+  /*@ assert E_ACSL: "pointer alignment": \aligned(s,1); */
+  {
+    __gen_e_acsl_assert_data_3.blocking = 1;
+    __gen_e_acsl_assert_data_3.kind = "E-ACSL RTE";
+    __gen_e_acsl_assert_data_3.pred_txt = "\\aligned(s,1)";
+    __gen_e_acsl_assert_data_3.file = "FRAMAC_SHARE/libc/string.h";
+    __gen_e_acsl_assert_data_3.fct = "valid_read_or_empty_here";
+    __gen_e_acsl_assert_data_3.line = 51;
+    __gen_e_acsl_assert_data_3.name = "pointer alignment";
+    __e_acsl_assert(__gen_e_acsl_aligned,& __gen_e_acsl_assert_data_3);
+    __e_acsl_assert_clean(& __gen_e_acsl_assert_data_3);
+  }
   __gen_e_acsl_object_pointer = __e_acsl_object_pointer(s,sizeof(char),s,
                                                         (void *)(& s));
   if (__gen_e_acsl_object_pointer) {
+    int __gen_e_acsl_aligned_2;
     unsigned long __gen_e_acsl_size;
     __e_acsl_mpz_t __gen_e_acsl_n;
     __e_acsl_mpz_t __gen_e_acsl_;
@@ -885,6 +944,25 @@ int __gen_e_acsl_valid_read_or_empty_here(void *s, unsigned long n)
     __e_acsl_mpz_t __gen_e_acsl_add;
     unsigned long __gen_e_acsl_if;
     int __gen_e_acsl_valid_read;
+    __e_acsl_assert_data_t __gen_e_acsl_assert_data_4 =
+      {.values = (void *)0};
+    __gen_e_acsl_aligned_2 = __e_acsl_aligned(s,1UL);
+    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_4,"s",s);
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_4,
+                                 "\"pointer alignment\": \\aligned(s,1)",0,
+                                 __gen_e_acsl_aligned_2);
+    /*@ assert E_ACSL: "pointer alignment": \aligned(s,1); */
+    {
+      __gen_e_acsl_assert_data_4.blocking = 1;
+      __gen_e_acsl_assert_data_4.kind = "E-ACSL RTE";
+      __gen_e_acsl_assert_data_4.pred_txt = "\\aligned(s,1)";
+      __gen_e_acsl_assert_data_4.file = "FRAMAC_SHARE/libc/string.h";
+      __gen_e_acsl_assert_data_4.fct = "valid_read_or_empty_here";
+      __gen_e_acsl_assert_data_4.line = 51;
+      __gen_e_acsl_assert_data_4.name = "pointer alignment";
+      __e_acsl_assert(__gen_e_acsl_aligned_2,& __gen_e_acsl_assert_data_4);
+      __e_acsl_assert_clean(& __gen_e_acsl_assert_data_4);
+    }
     __gmpz_init_set_ui(__gen_e_acsl_n,n);
     __gmpz_init_set_si(__gen_e_acsl_,1L);
     __gmpz_init(__gen_e_acsl_sub);

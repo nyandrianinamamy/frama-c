@@ -37,6 +37,10 @@ val gmp_to_sizet:
     be positive.
     If [pp] is provided, this term is used in the messages of the RTE checks. *)
 
+val do_guards_for_cmp : number_ty -> exp -> exp -> bool
+(** [do_guards_for_cmp ity e1 e2] @return [true] if it is a comparison between
+    two array or between two [gmp]. *)
+
 val comparison_to_exp :
   loc:Fileloc.t ->
   kernel_function ->
@@ -72,6 +76,10 @@ val env_of_li:
   Assert.t * Env.t
 (** [env_of_li ~adata ~loc kf env li] translates the logic info [li] in the
     given environment with the given assertion context. *)
+
+val update_lv_origin: Env.t -> predicate -> predicate
+(** [update_lv_origin env p] adds an [lv_origin] for each logic variable which
+    has an equivalent C variable in the generated code in the given predicate. *)
 
 (**************************************************************************)
 (********************** Forward references ********************************)

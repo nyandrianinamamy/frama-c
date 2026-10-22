@@ -10,6 +10,7 @@ open Cil_types
 
 let dkey = Options.Dkey.rte
 
+module Logic_info = Cil_datatype.Logic_info
 module Guard =
 struct
   type downcast_kind = Signed | Unsigned | FloatToInt | Pointer
@@ -44,7 +45,12 @@ struct
     | Out_of_bounds -> 6
     | Shift _ -> 7
 
-  let compare g1 g2 = compare (priority g1) (priority g2)
+  let pretty fmt g = Printer.pp_predicate fmt g.pred
+
+  let compare g1 g2 =
+    let cmp = compare (priority g1) (priority g2) in
+    if cmp = 0
+    then Cil_datatype.PredicateStructEq.compare g1.pred g2.pred else cmp
 end
 
 module Guards =
@@ -95,10 +101,7 @@ struct
   let pretty fmt () =
     let pp_data fmt d =
       Pretty_utils.pp_list
-        ~pre:"[" ~suf:"]" ~sep:";@ "
-        Printer.pp_predicate
-        fmt
-        (List.map (fun g -> (Guard.pred g)) (Guards.elements d))
+        ~pre:"[" ~suf:"]" ~sep:";@ " Guard.pretty fmt (Guards.elements d)
     in
     Terms.pretty
       ~item:(format_of_string "%a --> %a") Printer.pp_term pp_data fmt tbl
@@ -125,7 +128,7 @@ struct
       correction from the option [-e-acsl-rte n]. *)
   let needs_initialized okf =
     if Options.Rte.Initialized.is_set ()
-    then Option.fold ~none:false ~some:Options.Rte.Initialized.mem okf
+    then Options.Rte.Initialized.get ()
     else begin
       if RteGen.Options.DoInitialized.is_set ()
       then Option.fold ~none:false ~some:RteGen.Options.DoInitialized.mem okf
@@ -189,20 +192,12 @@ struct
     needs_rte_opts ~min_lvl:1 [(module Kernel.UnsignedDowncast)]
 
   let pretty fmt () =
-    let pp_kernel_functions fmt () =
-      let kfs =
-        if Options.Rte.Initialized.is_set ()
-        then Options.Rte.Initialized.get ()
-        else RteGen.Options.DoInitialized.get ()
-      in
-      Kernel_function.Set.iter
-        (fun kf ->
-           let kf_name = match kf.fundec with
-             | Declaration (_,var,_,_) -> var.vname
-             | Definition (f,_) -> f.svar.vname
-           in
-           Format.fprintf fmt "%s " kf_name)
-        kfs
+    let pp_initialized fmt () =
+      if Options.Rte.Initialized.is_set ()
+      then Format.fprintf fmt "all"
+      else
+        Kernel_function.Set.iter
+          (Kernel_function.pretty fmt) (RteGen.Options.DoInitialized.get ())
     in
     Format.fprintf fmt "RTE flags state:\n \
                         \t division by zero: %b\n \
@@ -219,7 +214,7 @@ struct
                         \t implicit downcast: %b"
       (needs_div_mod ())
       (needs_mem_access ())
-      pp_kernel_functions ()
+      pp_initialized ()
       (needs_pointer_alignment ())
       (needs_pointer_value ())
       (needs_left_shift_negative ())
@@ -407,6 +402,8 @@ let rte_visitor =
 
     inherit E_acsl_visitor.visitor dkey
 
+    val mutable visited_logic_infos = Logic_info.Hashtbl.create 9
+
     method private trivially_aligned t typ ptyp: bool =
       if Ast_types.C.is_void ptyp || Ast_types.C.is_fun ptyp
       then
@@ -562,7 +559,7 @@ let rte_visitor =
                    ~loc:orig.term_loc t pointed_typ)
           end
         else
-          Options.warning
+          Options.warning ~current:true ~once:true
             "cannot create the pointer alignment guard of %a because %a is \
              an incomplete type"
             Printer.pp_term orig
@@ -587,6 +584,8 @@ let rte_visitor =
     (** [add_aligned_access lv] adds an entry for [t] if [lv = *t]. *)
     method private add_aligned_access lv =
       match lv with
+      (* this case will be handle later *)
+      | TMem ({term_node = TLval _}), _ -> ()
       | TMem ({term_type = Ctype typ} as t), _ ->
         let t = Logic_normalizer.get_term t in
         self#add_aligned ~orig:t t typ
@@ -596,8 +595,19 @@ let rte_visitor =
         a pointer value in the table. *)
     method private add_pointer_value ~orig =
       if Flags.needs_pointer_value () then
-        Guards.add orig
-          (Undefined_behaviours.pointer_value ~loc:orig.term_loc orig)
+        let pointed_typ =
+          Ast_types.Acsl.(direct_pointed_ctype @@ unroll orig.term_type)
+        in
+        if Cil.isCompleteType pointed_typ
+        then
+          Guards.add orig
+            (Undefined_behaviours.pointer_value ~loc:orig.term_loc orig)
+        else
+          Options.warning ~current:true ~once:true
+            "cannot create the invalid pointer guard of %a because %a is \
+             an incomplete type"
+            Printer.pp_term orig
+            Printer.pp_typ pointed_typ
 
     (** [add_pointer_value_cast ~orig dst] adds an entry for [orig] if [dst]
         the destination type of the cast is a pointer type. *)
@@ -764,6 +774,18 @@ let rte_visitor =
         | _ -> ()
       end;
       Cil.DoChildren
+
+    method !vlogic_info_use li =
+      if not @@ Logic_info.Hashtbl.mem visited_logic_infos li
+      then begin
+        Logic_info.Hashtbl.add visited_logic_infos li ();
+        let derived = Logic_normalizer.Logic_infos.generated_of li in
+        let visit_logic_info =
+          Visitor.visitFramacLogicInfo (self :> Visitor.frama_c_visitor)
+        in
+        ignore @@ Cil_datatype.Logic_info.Set.map visit_logic_info derived
+      end;
+      Cil.SkipChildren
 
     method !vpredicate p =
       let p = Logic_normalizer.get_pred p in

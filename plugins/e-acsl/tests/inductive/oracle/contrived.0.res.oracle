@@ -81,6 +81,8 @@
 [eva:alarm] contrived.c:109: Warning: assertion got status unknown.
 [eva:alarm] contrived.c:110: Warning: assertion got status unknown.
 [eva:alarm] contrived.c:111: Warning: assertion got status unknown.
+[eva:alarm] contrived.c:72: Warning: 
+  assertion 'E_ACSL,division by zero' got status unknown.
 [eva:alarm] contrived.c:112: Warning: assertion got status unknown.
 [eva:alarm] contrived.c:113: Warning: assertion got status unknown.
 [eva:alarm] contrived.c:114: Warning: assertion got status unknown.

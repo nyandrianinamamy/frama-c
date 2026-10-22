@@ -31,7 +31,6 @@ open Interlang
 type env =
   {kf : Cil_types.kernel_function;
    loc : Fileloc.t;
-   vars : exp Cil_datatype.Term.Map.t;
    env : Env.t}
 
 (** The State variable of {!M} includes a map of local variables (initially

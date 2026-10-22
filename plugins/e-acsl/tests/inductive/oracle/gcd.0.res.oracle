@@ -4,6 +4,8 @@
 [e-acsl:analysis:inductive] Debug: 
   extracting predicate from gcd2 using mode: complete
 [e-acsl] translation done in project "e-acsl".
+[eva:alarm] gcd.c:12: Warning: 
+  assertion 'E_ACSL,division by zero' got status unknown.
 [eva:alarm] gcd.c:24: Warning: assertion got status unknown.
 [eva:alarm] gcd.c:25: Warning: assertion got status unknown.
 [eva] gcd.c:17: Warning: 

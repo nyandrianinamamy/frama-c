@@ -157,6 +157,19 @@ let gmp_to_sizet ~adata ~loc ~name ?(check_lower_bound=true) ?pp kf env t =
 let () =
   Memory_translate.gmp_to_sizet_ref := gmp_to_sizet
 
+let do_guards_for_cmp ity e1 e2 =
+  let ty1 = Cil.typeOf e1 in
+  let ty2 = Cil.typeOf e2 in
+  match Logic_aggr.get_t ty1, Logic_aggr.get_t ty2 with
+  | Logic_aggr.Array, Logic_aggr.Array -> true
+  | Logic_aggr.NotAggregate, Logic_aggr.NotAggregate -> begin
+      match ity with
+      | C_integer _ | C_float _ | Nan -> false
+      | Gmpz | Rational -> true
+      | Real -> false
+    end
+  | _, _ -> false
+
 let comparison_to_exp
     ~loc kf env ity bop e1 e2 ?(name = Misc.name_of_binop bop) t_opt =
   let ty1 = Cil.typeOf e1 in
@@ -255,3 +268,17 @@ let env_of_li ~adata ~loc kf env li =
     Env.not_yet env "type variable"
   | Larrow _ ->
     Env.not_yet env "lambda-abstraction"
+
+let update_lv_origin env p =
+  let visitor env = object
+    inherit Visitor.frama_c_inplace
+    method! vlogic_var_use lv =
+      match Env.Logic_binding.get_opt env lv with
+      | Some v -> Cil.DoChildrenPost (fun lv -> {lv with lv_origin = Some v})
+      | _ -> Cil.DoChildren
+    method! vlogic_type _ =
+      (* optimisation: we copy terms and logic types do not contain terms *)
+      Cil.SkipChildren
+  end
+  in
+  Visitor.visitFramacPredicate (visitor env) p

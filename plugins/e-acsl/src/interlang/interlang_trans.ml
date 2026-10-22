@@ -396,6 +396,10 @@ and compile_lval (host, offset) =
 and compile_rte_guard rte =
   let* ({loc; kf}) = M.read in
   let* orig_state = M.get in
+  let annot =
+    Terms.Id.deep_copy_predicate @@
+    Translate_utils.update_lv_origin orig_state.env rte.rorigin
+  in
   let* () = M.modify @@ fun { env } ->
     Assert.push_pending_register_data ();
     let adata, env = Assert.empty ~loc kf env in
@@ -411,15 +415,15 @@ and compile_rte_guard rte =
       kf
       env
       cil
-      rte.rorigin
+      annot
   in
   let env = Assert.do_pending_register_data env in
-  let env = Env.add_stmt ~annot:rte.rorigin env stmt in
+  let env = Env.add_stmt ~annot env stmt in
   {orig_state with env}
 
 let generate_and_compile ~loc ~adata ~env ~kf m source =
   let interlang, _, _ =
-    let env = Interlang_gen.{kf; loc; env; vars = Cil_datatype.Term.Map.empty} in
+    let env = Interlang_gen.{kf; loc; env} in
     let state = Cil_datatype.Term.Map.empty (* local variables *) in
     Interlang_gen.M.run ~env ~state @@ m source
   in

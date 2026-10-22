@@ -598,14 +598,41 @@ int __gen_e_acsl_Sorted_here(int *a, int l, int h)
     while (1) {
       if (__gen_e_acsl_j < h) ; else break;
       {
+        int __gen_e_acsl_aligned_3;
         int __gen_e_acsl_and;
+        int __gen_e_acsl_aligned_4;
+        int __gen_e_acsl_valid_read;
+        int __gen_e_acsl_aligned_5;
         int __gen_e_acsl_and_2;
+        int __gen_e_acsl_aligned_6;
+        int __gen_e_acsl_valid_read_2;
         __e_acsl_assert_data_t __gen_e_acsl_assert_data_5 =
           {.values = (void *)0};
-        __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_5,"i",0,
+        __gen_e_acsl_aligned_3 = __e_acsl_aligned((void *)a,4UL);
+        __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_5,"a",
+                                     (void *)a);
+        __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_5,
+                                     "\"pointer alignment\": \\aligned(a,4)",
+                                     0,__gen_e_acsl_aligned_3);
+        /*@ assert E_ACSL: "pointer alignment": \aligned(a,4); */
+        {
+          __gen_e_acsl_assert_data_5.blocking = 1;
+          __gen_e_acsl_assert_data_5.kind = "E-ACSL RTE";
+          __gen_e_acsl_assert_data_5.pred_txt = "\\aligned(a,4)";
+          __gen_e_acsl_assert_data_5.file = "stable_sort.c";
+          __gen_e_acsl_assert_data_5.fct = "Sorted_here";
+          __gen_e_acsl_assert_data_5.line = 32;
+          __gen_e_acsl_assert_data_5.name = "pointer alignment";
+          __e_acsl_assert(__gen_e_acsl_aligned_3,
+                          & __gen_e_acsl_assert_data_5);
+          __e_acsl_assert_clean(& __gen_e_acsl_assert_data_5);
+        }
+        __e_acsl_assert_data_t __gen_e_acsl_assert_data_6 =
+          {.values = (void *)0};
+        __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_6,"i",0,
                                      __gen_e_acsl_i);
         if ((-9223372036854775807L-1L) <= (long)__gen_e_acsl_i) {
-          __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_5,"i",0,
+          __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_6,"i",0,
                                        __gen_e_acsl_i);
           __gen_e_acsl_and = (long)__gen_e_acsl_i <= 9223372036854775807L;
         }
@@ -615,22 +642,94 @@ int __gen_e_acsl_Sorted_here(int *a, int l, int h)
                 -9223372036854775808 <= i <= 9223372036854775807;
         */
         {
-          __gen_e_acsl_assert_data_5.blocking = 1;
-          __gen_e_acsl_assert_data_5.kind = "E-ACSL RTE";
-          __gen_e_acsl_assert_data_5.pred_txt = "-9223372036854775808 <= i <= 9223372036854775807";
-          __gen_e_acsl_assert_data_5.file = "stable_sort.c";
-          __gen_e_acsl_assert_data_5.fct = "Sorted_here";
-          __gen_e_acsl_assert_data_5.line = 32;
-          __gen_e_acsl_assert_data_5.name = "signed downcast";
-          __e_acsl_assert(__gen_e_acsl_and,& __gen_e_acsl_assert_data_5);
-          __e_acsl_assert_clean(& __gen_e_acsl_assert_data_5);
+          __gen_e_acsl_assert_data_6.blocking = 1;
+          __gen_e_acsl_assert_data_6.kind = "E-ACSL RTE";
+          __gen_e_acsl_assert_data_6.pred_txt = "-9223372036854775808 <= i <= 9223372036854775807";
+          __gen_e_acsl_assert_data_6.file = "stable_sort.c";
+          __gen_e_acsl_assert_data_6.fct = "Sorted_here";
+          __gen_e_acsl_assert_data_6.line = 32;
+          __gen_e_acsl_assert_data_6.name = "signed downcast";
+          __e_acsl_assert(__gen_e_acsl_and,& __gen_e_acsl_assert_data_6);
+          __e_acsl_assert_clean(& __gen_e_acsl_assert_data_6);
         }
-        __e_acsl_assert_data_t __gen_e_acsl_assert_data_6 =
+        __e_acsl_assert_data_t __gen_e_acsl_assert_data_7 =
           {.values = (void *)0};
-        __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_6,"j",0,
+        __gen_e_acsl_aligned_4 = __e_acsl_aligned((void *)(a + __gen_e_acsl_i),
+                                                  4UL);
+        __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_7,"a",
+                                     (void *)a);
+        __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_7,"i",0,
+                                     __gen_e_acsl_i);
+        __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_7,
+                                     "\"pointer alignment\": \\aligned(a + i,4)",
+                                     0,__gen_e_acsl_aligned_4);
+        /*@ assert E_ACSL: "pointer alignment": \aligned(a + i,4); */
+        {
+          __gen_e_acsl_assert_data_7.blocking = 1;
+          __gen_e_acsl_assert_data_7.kind = "E-ACSL RTE";
+          __gen_e_acsl_assert_data_7.pred_txt = "\\aligned(a + i,4)";
+          __gen_e_acsl_assert_data_7.file = "stable_sort.c";
+          __gen_e_acsl_assert_data_7.fct = "Sorted_here";
+          __gen_e_acsl_assert_data_7.line = 32;
+          __gen_e_acsl_assert_data_7.name = "pointer alignment";
+          __e_acsl_assert(__gen_e_acsl_aligned_4,
+                          & __gen_e_acsl_assert_data_7);
+          __e_acsl_assert_clean(& __gen_e_acsl_assert_data_7);
+        }
+        __e_acsl_assert_data_t __gen_e_acsl_assert_data_8 =
+          {.values = (void *)0};
+        __gen_e_acsl_valid_read = __e_acsl_valid_read((void *)(a + __gen_e_acsl_i),
+                                                      sizeof(int),(void *)a,
+                                                      (void *)(& a));
+        __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_8,"a",
+                                     (void *)a);
+        __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_8,"i",0,
+                                     __gen_e_acsl_i);
+        __e_acsl_assert_register_ulong(& __gen_e_acsl_assert_data_8,
+                                       "sizeof(int)",0,sizeof(int));
+        __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_8,
+                                     "\"memory access\": \\valid_read(a + i)",
+                                     0,__gen_e_acsl_valid_read);
+        /*@ assert E_ACSL: "memory access": \valid_read(a + i); */
+        {
+          __gen_e_acsl_assert_data_8.blocking = 1;
+          __gen_e_acsl_assert_data_8.kind = "E-ACSL RTE";
+          __gen_e_acsl_assert_data_8.pred_txt = "\\valid_read(a + i)";
+          __gen_e_acsl_assert_data_8.file = "stable_sort.c";
+          __gen_e_acsl_assert_data_8.fct = "Sorted_here";
+          __gen_e_acsl_assert_data_8.line = 32;
+          __gen_e_acsl_assert_data_8.name = "memory access";
+          __e_acsl_assert(__gen_e_acsl_valid_read,
+                          & __gen_e_acsl_assert_data_8);
+          __e_acsl_assert_clean(& __gen_e_acsl_assert_data_8);
+        }
+        __e_acsl_assert_data_t __gen_e_acsl_assert_data_9 =
+          {.values = (void *)0};
+        __gen_e_acsl_aligned_5 = __e_acsl_aligned((void *)a,4UL);
+        __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_9,"a",
+                                     (void *)a);
+        __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_9,
+                                     "\"pointer alignment\": \\aligned(a,4)",
+                                     0,__gen_e_acsl_aligned_5);
+        /*@ assert E_ACSL: "pointer alignment": \aligned(a,4); */
+        {
+          __gen_e_acsl_assert_data_9.blocking = 1;
+          __gen_e_acsl_assert_data_9.kind = "E-ACSL RTE";
+          __gen_e_acsl_assert_data_9.pred_txt = "\\aligned(a,4)";
+          __gen_e_acsl_assert_data_9.file = "stable_sort.c";
+          __gen_e_acsl_assert_data_9.fct = "Sorted_here";
+          __gen_e_acsl_assert_data_9.line = 32;
+          __gen_e_acsl_assert_data_9.name = "pointer alignment";
+          __e_acsl_assert(__gen_e_acsl_aligned_5,
+                          & __gen_e_acsl_assert_data_9);
+          __e_acsl_assert_clean(& __gen_e_acsl_assert_data_9);
+        }
+        __e_acsl_assert_data_t __gen_e_acsl_assert_data_10 =
+          {.values = (void *)0};
+        __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_10,"j",0,
                                      __gen_e_acsl_j);
         if ((-9223372036854775807L-1L) <= (long)__gen_e_acsl_j) {
-          __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_6,"j",0,
+          __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_10,"j",0,
                                        __gen_e_acsl_j);
           __gen_e_acsl_and_2 = (long)__gen_e_acsl_j <= 9223372036854775807L;
         }
@@ -640,15 +739,67 @@ int __gen_e_acsl_Sorted_here(int *a, int l, int h)
                 -9223372036854775808 <= j <= 9223372036854775807;
         */
         {
-          __gen_e_acsl_assert_data_6.blocking = 1;
-          __gen_e_acsl_assert_data_6.kind = "E-ACSL RTE";
-          __gen_e_acsl_assert_data_6.pred_txt = "-9223372036854775808 <= j <= 9223372036854775807";
-          __gen_e_acsl_assert_data_6.file = "stable_sort.c";
-          __gen_e_acsl_assert_data_6.fct = "Sorted_here";
-          __gen_e_acsl_assert_data_6.line = 32;
-          __gen_e_acsl_assert_data_6.name = "signed downcast";
-          __e_acsl_assert(__gen_e_acsl_and_2,& __gen_e_acsl_assert_data_6);
-          __e_acsl_assert_clean(& __gen_e_acsl_assert_data_6);
+          __gen_e_acsl_assert_data_10.blocking = 1;
+          __gen_e_acsl_assert_data_10.kind = "E-ACSL RTE";
+          __gen_e_acsl_assert_data_10.pred_txt = "-9223372036854775808 <= j <= 9223372036854775807";
+          __gen_e_acsl_assert_data_10.file = "stable_sort.c";
+          __gen_e_acsl_assert_data_10.fct = "Sorted_here";
+          __gen_e_acsl_assert_data_10.line = 32;
+          __gen_e_acsl_assert_data_10.name = "signed downcast";
+          __e_acsl_assert(__gen_e_acsl_and_2,& __gen_e_acsl_assert_data_10);
+          __e_acsl_assert_clean(& __gen_e_acsl_assert_data_10);
+        }
+        __e_acsl_assert_data_t __gen_e_acsl_assert_data_11 =
+          {.values = (void *)0};
+        __gen_e_acsl_aligned_6 = __e_acsl_aligned((void *)(a + __gen_e_acsl_j),
+                                                  4UL);
+        __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_11,"a",
+                                     (void *)a);
+        __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_11,"j",0,
+                                     __gen_e_acsl_j);
+        __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_11,
+                                     "\"pointer alignment\": \\aligned(a + j,4)",
+                                     0,__gen_e_acsl_aligned_6);
+        /*@ assert E_ACSL: "pointer alignment": \aligned(a + j,4); */
+        {
+          __gen_e_acsl_assert_data_11.blocking = 1;
+          __gen_e_acsl_assert_data_11.kind = "E-ACSL RTE";
+          __gen_e_acsl_assert_data_11.pred_txt = "\\aligned(a + j,4)";
+          __gen_e_acsl_assert_data_11.file = "stable_sort.c";
+          __gen_e_acsl_assert_data_11.fct = "Sorted_here";
+          __gen_e_acsl_assert_data_11.line = 32;
+          __gen_e_acsl_assert_data_11.name = "pointer alignment";
+          __e_acsl_assert(__gen_e_acsl_aligned_6,
+                          & __gen_e_acsl_assert_data_11);
+          __e_acsl_assert_clean(& __gen_e_acsl_assert_data_11);
+        }
+        __e_acsl_assert_data_t __gen_e_acsl_assert_data_12 =
+          {.values = (void *)0};
+        __gen_e_acsl_valid_read_2 = __e_acsl_valid_read((void *)(a + __gen_e_acsl_j),
+                                                        sizeof(int),
+                                                        (void *)a,
+                                                        (void *)(& a));
+        __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_12,"a",
+                                     (void *)a);
+        __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_12,"j",0,
+                                     __gen_e_acsl_j);
+        __e_acsl_assert_register_ulong(& __gen_e_acsl_assert_data_12,
+                                       "sizeof(int)",0,sizeof(int));
+        __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_12,
+                                     "\"memory access\": \\valid_read(a + j)",
+                                     0,__gen_e_acsl_valid_read_2);
+        /*@ assert E_ACSL: "memory access": \valid_read(a + j); */
+        {
+          __gen_e_acsl_assert_data_12.blocking = 1;
+          __gen_e_acsl_assert_data_12.kind = "E-ACSL RTE";
+          __gen_e_acsl_assert_data_12.pred_txt = "\\valid_read(a + j)";
+          __gen_e_acsl_assert_data_12.file = "stable_sort.c";
+          __gen_e_acsl_assert_data_12.fct = "Sorted_here";
+          __gen_e_acsl_assert_data_12.line = 32;
+          __gen_e_acsl_assert_data_12.name = "memory access";
+          __e_acsl_assert(__gen_e_acsl_valid_read_2,
+                          & __gen_e_acsl_assert_data_12);
+          __e_acsl_assert_clean(& __gen_e_acsl_assert_data_12);
         }
         if (*(a + __gen_e_acsl_i) <= *(a + __gen_e_acsl_j)) ;
         else {

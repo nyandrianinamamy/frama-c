@@ -1,7 +1,14 @@
 [e-acsl] beginning translation.
-[e-acsl] Warning: cannot create the pointer alignment guard of (int (*)[])ptr_t because int [] is an incomplete type
+[e-acsl] rte.c:161: Warning: 
+  cannot create the pointer alignment guard of (int (*)[])ptr_t because int [] is an incomplete type
 [e-acsl] rte.c:167: Warning: 
   E-ACSL construct `R to Int' is not yet supported. Ignoring annotation.
+[e-acsl] rte.c:177: Warning: 
+  RTE guard "invalid pointer":
+              \null == struct_s.b + (0 .. 1) ||
+              \object_pointer(struct_s.b + (0 .. 1)) cannot be translated because construct 'range' is not supported yet. Ignoring RTE guard.
+[e-acsl] rte.c:177: Warning: 
+  E-ACSL construct `range' is not yet supported. Ignoring annotation.
 [e-acsl] translation done in project "e-acsl".
 [eva:alarm] rte.c:127: Warning: 
   signed downcast. assert -2147483648 <= __gen_e_acsl__3;
@@ -11,8 +18,6 @@
   signed overflow. assert 1 + (int)__gen_e_acsl__3 <= 2147483647;
 [eva:alarm] rte.c:127: Warning: 
   function __e_acsl_assert, behavior blocking: precondition got status unknown.
-[eva:alarm] rte.c:42: Warning: 
-  assertion 'E_ACSL,division by zero' got status unknown.
 [eva:alarm] rte.c:132: Warning: 
   non-finite double value. assert \is_finite(__gen_e_acsl_div_3);
 [eva:alarm] rte.c:132: Warning: 

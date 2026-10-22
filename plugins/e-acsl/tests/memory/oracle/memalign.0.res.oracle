@@ -5,17 +5,28 @@
 [e-acsl] Warning: annotating undefined function `posix_memalign':
   the generated program may miss memory instrumentation
   if there are memory-related annotations.
-[e-acsl] Warning: cannot create the pointer alignment guard of *\old(memptr) because void is an incomplete type
-[e-acsl] Warning: cannot create the pointer alignment guard of *\old(memptr) because void is an incomplete type
-[e-acsl] Warning: cannot create the pointer alignment guard of \result because void is an incomplete type
-[e-acsl] Warning: cannot create the pointer alignment guard of \result because void is an incomplete type
-[e-acsl] Warning: cannot create the pointer alignment guard of \result because void is an incomplete type
-[e-acsl] Warning: cannot create the pointer alignment guard of \result because void is an incomplete type
-[e-acsl] Warning: cannot create the pointer alignment guard of \result because void is an incomplete type
-[e-acsl] Warning: cannot create the pointer alignment guard of \result because void is an incomplete type
-[e-acsl] Warning: cannot create the pointer alignment guard of \result because void is an incomplete type
-[e-acsl] Warning: cannot create the pointer alignment guard of \result because void is an incomplete type
-[e-acsl] Warning: cannot create the pointer alignment guard of \result because void is an incomplete type
+[e-acsl] FRAMAC_SHARE/libc/stdlib.h:1006: Warning: 
+  cannot create the pointer alignment guard of *\old(memptr) because void is an incomplete type
+[e-acsl] FRAMAC_SHARE/libc/stdlib.h:1020: Warning: 
+  cannot create the pointer alignment guard of *\old(memptr) because void is an incomplete type
+[e-acsl] FRAMAC_SHARE/libc/stdlib.h:544: Warning: 
+  cannot create the pointer alignment guard of \result because void is an incomplete type
+[e-acsl] FRAMAC_SHARE/libc/stdlib.h:542: Warning: 
+  cannot create the pointer alignment guard of \result because void is an incomplete type
+[e-acsl] FRAMAC_SHARE/libc/stdlib.h:554: Warning: 
+  cannot create the pointer alignment guard of \result because void is an incomplete type
+[e-acsl] FRAMAC_SHARE/libc/stdlib.h:555: Warning: 
+  cannot create the pointer alignment guard of \result because void is an incomplete type
+[e-acsl] FRAMAC_SHARE/libc/stdlib.h:556: Warning: 
+  cannot create the pointer alignment guard of \result because void is an incomplete type
+[e-acsl] FRAMAC_SHARE/libc/stdlib.h:564: Warning: 
+  cannot create the pointer alignment guard of \result because void is an incomplete type
+[e-acsl] FRAMAC_SHARE/libc/stdlib.h:565: Warning: 
+  cannot create the pointer alignment guard of \result because void is an incomplete type
+[e-acsl] FRAMAC_SHARE/libc/stdlib.h:571: Warning: 
+  cannot create the pointer alignment guard of \result because void is an incomplete type
+[e-acsl] FRAMAC_SHARE/libc/stdlib.h:572: Warning: 
+  cannot create the pointer alignment guard of \result because void is an incomplete type
 [e-acsl] FRAMAC_SHARE/libc/stdlib.h:537: Warning: 
   E-ACSL construct `\fresh' is not yet supported. Ignoring annotation.
 [e-acsl] FRAMAC_SHARE/libc/stdlib.h:1004: Warning: 

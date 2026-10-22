@@ -1,8 +1,12 @@
 [e-acsl] beginning translation.
-[e-acsl] Warning: cannot create the pointer alignment guard of (int (*)[])g because int [] is an incomplete type
-[e-acsl] Warning: cannot create the pointer alignment guard of (int (*)[])f because int [] is an incomplete type
-[e-acsl] Warning: cannot create the pointer alignment guard of (int (*)[][2])g because int [][2] is an incomplete type
-[e-acsl] Warning: cannot create the pointer alignment guard of (int (*)[][2])f because int [][2] is an incomplete type
+[e-acsl] array.i:41: Warning: 
+  cannot create the pointer alignment guard of (int (*)[])g because int [] is an incomplete type
+[e-acsl] array.i:43: Warning: 
+  cannot create the pointer alignment guard of (int (*)[])f because int [] is an incomplete type
+[e-acsl] array.i:125: Warning: 
+  cannot create the pointer alignment guard of (int (*)[][2])g because int [][2] is an incomplete type
+[e-acsl] array.i:127: Warning: 
+  cannot create the pointer alignment guard of (int (*)[][2])f because int [][2] is an incomplete type
 [e-acsl] translation done in project "e-acsl".
 [eva:alarm] array.i:21: Warning: assertion got status unknown.
 [eva:alarm] array.i:22: Warning: assertion got status unknown.

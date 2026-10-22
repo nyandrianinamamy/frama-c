@@ -1431,7 +1431,26 @@ int main(void)
 /*@ assigns \result; */
 int __gen_e_acsl_P_here(int *i)
 {
+  int __gen_e_acsl_aligned_24;
   int __gen_e_acsl_valid_22;
+  __e_acsl_assert_data_t __gen_e_acsl_assert_data_37 = {.values = (void *)0};
+  __gen_e_acsl_aligned_24 = __e_acsl_aligned((void *)i,4UL);
+  __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_37,"i",(void *)i);
+  __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_37,
+                               "\"pointer alignment\": \\aligned(i,4)",0,
+                               __gen_e_acsl_aligned_24);
+  /*@ assert E_ACSL: "pointer alignment": \aligned(i,4); */
+  {
+    __gen_e_acsl_assert_data_37.blocking = 1;
+    __gen_e_acsl_assert_data_37.kind = "E-ACSL RTE";
+    __gen_e_acsl_assert_data_37.pred_txt = "\\aligned(i,4)";
+    __gen_e_acsl_assert_data_37.file = "valid.c";
+    __gen_e_acsl_assert_data_37.fct = "P_here";
+    __gen_e_acsl_assert_data_37.line = 27;
+    __gen_e_acsl_assert_data_37.name = "pointer alignment";
+    __e_acsl_assert(__gen_e_acsl_aligned_24,& __gen_e_acsl_assert_data_37);
+    __e_acsl_assert_clean(& __gen_e_acsl_assert_data_37);
+  }
   __gen_e_acsl_valid_22 = __e_acsl_valid((void *)i,sizeof(int),(void *)i,
                                          (void *)(& i));
   return __gen_e_acsl_valid_22;
