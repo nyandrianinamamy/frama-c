@@ -80,6 +80,7 @@ let term_clean t =
          See https://en.wikipedia.org/wiki/ANSI_escape_code
       *)
       Format.pp_print_string t.formatter "\r\027[K" ;
+      Format.pp_print_flush t.formatter ();
       t.clean <- true ;
     end
 
@@ -291,7 +292,7 @@ let do_transient terminal ~plugin message =
         with Not_found -> width in
       Rich_text.pretty ~truncate:(`Right limit) ~ellipsis fmt message ;
       if terminal.isatty
-      then terminal.clean <- false
+      then (Format.pp_print_flush fmt (); terminal.clean <- false)
       else Format.pp_print_newline fmt () ;
     end
 
@@ -372,7 +373,6 @@ let get_emitters plugin =
   with Not_found ->
     let e = new_emitters () in
     Hashtbl.replace all_channels plugin (NotCreatedYet e) ; e
-
 
 let new_channel plugin =
   let create_with_emitters plugin emitters =
