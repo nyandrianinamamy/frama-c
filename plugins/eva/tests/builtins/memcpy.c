@@ -220,29 +220,29 @@ void copy_0() {
   if (nondet) memcpy(&l, 0, 0);
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+/* Tests memmove builtin when source and destination overlap, as the semantics
+   of memmove are identical to memcpy, except that it allows this to happen. */
+void test_memmove() {
+  char a[5] = {1,2,3,4,5};
+  char b[5] = {1,2,3,4,5};
+  char c[5] = {1,2,3,4,5};
+  char d[5] = {1,2,3,4,5};
+  char e[5] = {1,2,3,4,5};
+  char f[5] = {1,2,3,4,5};
+  // Precise size, dst > src.
+  memmove(a+1, a, 3);
+  // Precise size, dst < src.
+  memmove(b, b+2, 3);
+  // Precise size, dst = src
+  memmove(c+1, c+1, 3);
+  size_t size = nondet ? 2 : 3;
+  // Imprecise size, dst > src.
+  memmove(d+1, d, size);
+  // Imprecise size, dst < src.
+  memmove(e, e+2, size);
+  // Imprecise size, dst = src
+  memmove(f+1, f+1, size);
+}
 
 
 void main () {
@@ -250,5 +250,6 @@ void main () {
   else if (nondet) test_uninit ();
   else if (nondet) test_local ();
   else if (nondet) copy_0 ();
+  else if (nondet) test_memmove ();
   while (1); // results of main are unimportant
 }

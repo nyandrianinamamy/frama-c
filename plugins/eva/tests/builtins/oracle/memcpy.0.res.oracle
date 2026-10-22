@@ -497,6 +497,45 @@
 [from] Computing for function copy_0
 [from] Done for function copy_0
 [eva:progress] Done for function copy_0
+[eva:progress] 
+  computing for function test_memmove <- main.
+  Called from memcpy.c:253.
+[eva:progress] memcpy.c:233: Call to builtin memmove
+[eva:progress] memcpy.c:233: 
+  function memmove: precondition 'valid_dest' got status valid.
+[eva:progress] memcpy.c:233: 
+  function memmove: precondition 'valid_src' got status valid.
+[eva:acsl:unsupported] FRAMAC_SHARE/libc/string.h:157: 
+  cannot evaluate ACSL term, unsupported ACSL construct: logic function memcmp
+[eva:progress] memcpy.c:235: Call to builtin memmove
+[eva:progress] memcpy.c:235: 
+  function memmove: precondition 'valid_dest' got status valid.
+[eva:progress] memcpy.c:235: 
+  function memmove: precondition 'valid_src' got status valid.
+[eva:progress] memcpy.c:237: Call to builtin memmove
+[eva:progress] memcpy.c:237: 
+  function memmove: precondition 'valid_dest' got status valid.
+[eva:progress] memcpy.c:237: 
+  function memmove: precondition 'valid_src' got status valid.
+[eva:progress] memcpy.c:240: Call to builtin memmove
+[eva:progress] memcpy.c:240: 
+  function memmove: precondition 'valid_dest' got status valid.
+[eva:progress] memcpy.c:240: 
+  function memmove: precondition 'valid_src' got status valid.
+[eva:progress] memcpy.c:242: Call to builtin memmove
+[eva:progress] memcpy.c:242: 
+  function memmove: precondition 'valid_dest' got status valid.
+[eva:progress] memcpy.c:242: 
+  function memmove: precondition 'valid_src' got status valid.
+[eva:progress] memcpy.c:244: Call to builtin memmove
+[eva:progress] memcpy.c:244: 
+  function memmove: precondition 'valid_dest' got status valid.
+[eva:progress] memcpy.c:244: 
+  function memmove: precondition 'valid_src' got status valid.
+[eva:progress] Recording results for test_memmove
+[from] Computing for function test_memmove
+[from] Done for function test_memmove
+[eva:progress] Done for function test_memmove
 [eva:progress] Recording results for main
 [from] Computing for function main
 [from] Done for function main
@@ -736,6 +775,36 @@
 [eva:final-states] Values at end of function test_local:
   p ∈ ESCAPINGADDR
   q ∈ {0}
+[eva:final-states] Values at end of function test_memmove:
+  a[0..1] ∈ {1}
+   [2] ∈ {2}
+   [3] ∈ {3}
+   [4] ∈ {5}
+  b[0] ∈ {3}
+   [1] ∈ {4}
+   [2] ∈ {5}
+   [3] ∈ {4}
+   [4] ∈ {5}
+  c[0] ∈ {1}
+   [1] ∈ {2}
+   [2] ∈ {3}
+   [3] ∈ {4}
+   [4] ∈ {5}
+  d[0..1] ∈ {1}
+   [2] ∈ {2}
+   [3] ∈ {3; 4}
+   [4] ∈ {5}
+  e[0] ∈ {3}
+   [1] ∈ {4}
+   [2] ∈ {3; 5}
+   [3] ∈ {4}
+   [4] ∈ {5}
+  f[0] ∈ {1}
+   [1] ∈ {2}
+   [2] ∈ {3}
+   [3] ∈ {4}
+   [4] ∈ {5}
+  size ∈ {2; 3}
 [eva:final-states] Values at end of function test_uninit:
   a[0..9] ∈ [--..--] or UNINITIALIZED
    [10..49] ∈ UNINITIALIZED
@@ -848,6 +917,27 @@
   \result FROM dest
 [from] call to Frama_C_dump_each at memcpy.c:214 (by test_local):
   \result FROM \nothing
+[from] call to memmove at memcpy.c:233 (by test_memmove):
+  a[1..3] FROM a[0..2]
+  \result FROM dest
+[from] call to memmove at memcpy.c:235 (by test_memmove):
+  b[0..2] FROM b[2..4]
+  \result FROM dest
+[from] call to memmove at memcpy.c:237 (by test_memmove):
+  c[1..3] FROM c[1..3]
+  \result FROM dest
+[from] call to memmove at memcpy.c:240 (by test_memmove):
+  d[1..2] FROM d[0..1]
+   [3] FROM d[2] (and SELF)
+  \result FROM dest
+[from] call to memmove at memcpy.c:242 (by test_memmove):
+  e[0..1] FROM e[2..3]
+   [2] FROM e[4] (and SELF)
+  \result FROM dest
+[from] call to memmove at memcpy.c:244 (by test_memmove):
+  f[1..2] FROM f[1..2]
+   [3] FROM f[3] (and SELF)
+  \result FROM dest
 [from] call to memcpy at memcpy.c:174 (by test_uninit):
   b[0..9] FROM a[0..9]
   \result FROM dest
@@ -930,6 +1020,8 @@
   NO EFFECTS
 [from] call to copy_0 at memcpy.c:252 (by main):
   NO EFFECTS
+[from] call to test_memmove at memcpy.c:253 (by main):
+  NO EFFECTS
 [from] entry point:
   NON TERMINATING - NO EFFECTS
 [from] ====== END OF CALLWISE DEPENDENCIES ======
@@ -1008,6 +1100,17 @@
     \nothing
   Sure outputs:
     p; q
+[inout] Out (internal) for function test_memmove:
+    a[0..4]; b[0..4]; c[0..4]; d[0..4]; e[0..4]; f[0..4]; size; tmp
+[inout] Inputs for function test_memmove:
+    nondet
+[inout] InOut (internal) for function test_memmove:
+  Operational inputs:
+    nondet
+  Operational inputs on termination:
+    nondet
+  Sure outputs:
+    a[0..4]; b[0..4]; c[0..4]; d[0..4]; e[0..4]; f[0..4]; size; tmp
 [inout] Out (internal) for function test_uninit:
     a[0..9]; b[0..24]; r; tmp; tmp_0; tmp_1; tmp_2
 [inout] Inputs for function test_uninit:
@@ -1192,6 +1295,27 @@
 [ Extern  ] Froms ("FRAMAC_SHARE/libc/string.h", line 132)
             Unverifiable but considered Valid.
 [ Extern  ] Froms ("FRAMAC_SHARE/libc/string.h", line 133)
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'memmove'
+--------------------------------------------------------------------------------
+
+[  Valid  ] Pre-condition 'valid_dest'
+            by Call Preconditions.
+[  Valid  ] Pre-condition 'valid_src'
+            by Call Preconditions.
+[ Extern  ] Post-condition 'copied_contents'
+            Unverifiable but considered Valid.
+[ Extern  ] Post-condition 'result_ptr'
+            Unverifiable but considered Valid.
+[ Extern  ] Assigns ("FRAMAC_SHARE/libc/string.h", line 155)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms ("FRAMAC_SHARE/libc/string.h", line 155)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms ("FRAMAC_SHARE/libc/string.h", line 156)
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
             by Frama-C kernel.
@@ -1646,12 +1770,53 @@
             by Eva.
 
 --------------------------------------------------------------------------------
+--- Properties of Function 'test_memmove'
+--------------------------------------------------------------------------------
+
+[  Valid  ] Instance of 'Pre-condition 'valid_dest'' at call 'memmove' ("memcpy.c", line 233)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'valid_src'' at call 'memmove' ("memcpy.c", line 233)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'valid_dest'' at call 'memmove' ("memcpy.c", line 235)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'valid_src'' at call 'memmove' ("memcpy.c", line 235)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'valid_dest'' at call 'memmove' ("memcpy.c", line 237)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'valid_src'' at call 'memmove' ("memcpy.c", line 237)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'valid_dest'' at call 'memmove' ("memcpy.c", line 240)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'valid_src'' at call 'memmove' ("memcpy.c", line 240)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'valid_dest'' at call 'memmove' ("memcpy.c", line 242)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'valid_src'' at call 'memmove' ("memcpy.c", line 242)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'valid_dest'' at call 'memmove' ("memcpy.c", line 244)
+
+            by Eva.
+[  Valid  ] Instance of 'Pre-condition 'valid_src'' at call 'memmove' ("memcpy.c", line 244)
+
+            by Eva.
+
+--------------------------------------------------------------------------------
 --- Status Report Summary
 --------------------------------------------------------------------------------
-   108 Completely validated
+   123 Completely validated
      1 Locally validated
-    46 Considered valid
+    51 Considered valid
     48 To be validated
      4 Alarms emitted
-   207 Total
+   227 Total
 --------------------------------------------------------------------------------
