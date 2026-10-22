@@ -6,7 +6,7 @@
 
 #include "string.h"
 
-volatile int i;
+volatile int nondet;
 char src[20];
 char dst1[20], dst2[20], dst3[20], dst4[20], dst5[100];
 
@@ -24,11 +24,9 @@ void init () {
   for (j=0;j<100;j++) dst5[j] = -1;
 }
 
-volatile int maybe;
-
 void buggy () {
   char c;
-  char *p = maybe ? &c: "abc";
+  char *p = nondet ? &c: "abc";
   memcpy(p,"d",1);
 }
 
@@ -44,7 +42,7 @@ typ ttyp[1000];
 
 void many() {
   char s[] = "abcd";
-  unsigned int p = maybe;
+  unsigned int p = nondet;
   //@ assert p < 1000;
 
   tm[0]=0;
@@ -94,18 +92,18 @@ void test (int a, int b){
   v4.y = (int) &t[0];
   memcpy(&v5 + (int)&v5, &v4, sizeof(v4)-20);
 
-  if (maybe) {
+  if (nondet) {
     int x=1;
     while(1)
-      memcpy((void *)&x, (void const*)&x, i);
+      memcpy((void *)&x, (void const*)&x, nondet);
   }
 
   char *p;
-  p = maybe ? &dst5[0] : &dst5[20];
+  p = nondet ? &dst5[0] : &dst5[20];
   memcpy(p, &src[0], b);
-  b = maybe;
+  b = nondet;
   //@ assert 1 <= b < 20;
-  p = maybe ? &dst5[40] : &dst5[70];
+  p = nondet ? &dst5[40] : &dst5[70];
   memcpy(p, &src[0], b);
 
   // Destination pointer is unbounded
@@ -113,7 +111,7 @@ void test (int a, int b){
   int *pptop = ptop1;
   while (1) {
     pptop++;
-    if (maybe) break;
+    if (nondet) break;
   }
   memcpy(pptop, src, 4);
 
@@ -121,25 +119,25 @@ void test (int a, int b){
   pptop = &ptop2[750];
   while (1) {
     pptop--;
-    if (maybe) break;
+    if (nondet) break;
   }
   memcpy(pptop, src+1, 4);
 
   char ptop3[800];
   pptop = &ptop3[2];
   while (1) {
-    if (maybe) pptop--;
-    if (maybe) pptop++;
-    if (maybe) break;
+    if (nondet) pptop--;
+    if (nondet) pptop++;
+    if (nondet) break;
   }
   memcpy(pptop, src+2, 4);
 
   char ptop4[800];
   pptop = &ptop4[2];
   while (1) {
-    if (maybe) pptop--;
-    if (maybe) pptop++;
-    if (maybe) break;
+    if (nondet) pptop--;
+    if (nondet) pptop++;
+    if (nondet) break;
   }
   memcpy(pptop, src+2, 5);
 
@@ -150,7 +148,7 @@ void test (int a, int b){
 
   // Sure size may be zero
   char dstmaybesize1[15], dstmaybesize2[150];
-  int maybesize = maybe;
+  int maybesize = nondet;
   //@ assert 0 <= maybesize <= 22; // >= plevel / 10
   memcpy(dstmaybesize1, src, maybesize);
   //@ assert 0 <= maybesize <= 6;
@@ -163,7 +161,7 @@ void test (int a, int b){
 int itv(int l, int u);
 
 /*@ requires \valid(p + (0 .. l-1));
-   assigns p[0 .. l-1] \from maybe;
+   assigns p[0 .. l-1] \from nondet;
    ensures \initialized(p + (0 .. l-1));
 */
 void make_unknown(unsigned char *p, size_t l);
@@ -172,22 +170,22 @@ void test_uninit () {
  unsigned char a[50];
  unsigned char b[50];
  int r = 0;
- if (maybe) {
+ if (nondet) {
    memcpy(b, a, 10);
    //@ assert !\initialized(&b[8]);
    memcpy(b, a, itv(0,25));
    //@ assert !\initialized(&b[11]);
  }
- else if (maybe) {
+ else if (nondet) {
    make_unknown(a, 10);
    memcpy(b, a, 10);
    //@ assert \initialized(&b[8]);
    memcpy(b, a, itv(0,25));
    r += b[11]; // initialisation unknown
  }
- else if (maybe) {
+ else if (nondet) {
    make_unknown(b, 10);
-   if (maybe) {
+   if (nondet) {
      memcpy(b, a, 10); // de-initialize b
      //@ assert !\initialized(&b[8]);
    } else {
@@ -196,7 +194,7 @@ void test_uninit () {
      r += b[8]; // initialisation unknown
    }
  }
- else if (maybe) {
+ else if (nondet) {
    make_unknown(a, 10);
    make_unknown(b, 10);
    memcpy(b, a, 10);
@@ -218,15 +216,15 @@ void test_local() {
 
 void copy_0() {
   int l;
-  if (i) memcpy(0, &l, 0);
-  if (i) memcpy(&l, 0, 0);
+  if (nondet) memcpy(0, &l, 0);
+  if (nondet) memcpy(&l, 0, 0);
 }
 
 
 void main () {
-  if (maybe) test (maybe, maybe);
-  else if (maybe) test_uninit ();
-  else if (maybe) test_local ();
-  else if (maybe) copy_0 ();
+  if (nondet) test (nondet, nondet);
+  else if (nondet) test_uninit ();
+  else if (nondet) test_local ();
+  else if (nondet) copy_0 ();
   while (1); // results of main are unimportant
 }
