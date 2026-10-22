@@ -12,6 +12,15 @@ open Bottom.Operators
 type round = Float_sig.round = Up | Down | Near | Zero
 type prec = Float_sig.prec = Single | Double | Long_Double | Real
 
+let compare_precision prec1 prec2 =
+  let rank = function
+    | Single -> 0
+    | Double -> 1
+    | Long_Double -> 2
+    | Real -> 3
+  in
+  Int.compare (rank prec1) (rank prec2)
+
 module Make (F: Float_sig.S) = struct
 
   (* Definitions of useful floating-point constants. *)
@@ -1076,9 +1085,15 @@ module Make (F: Float_sig.S) = struct
       inject ~nan (round b) (round e)
 
   (* This function must make sure to return a result with float 32 bounds *)
-  let backward_cast ~src = function
+  let backward_cast ~src ~dst = function
     | FRange.NaN -> `Value nan
-    | FRange.Itv (b, e, nan) -> FRange.inject_after_tighten src ~nan b e
+    | FRange.Itv (b, e, nan) as itv ->
+      let cmp = compare_precision src dst in
+      if cmp < 0
+      then FRange.inject_after_tighten src ~nan b e
+      else if cmp > 0
+      then `Value itv (* TODO: this is unsound! *)
+      else `Value itv
 
   let cast_int_to_float prec min max =
     let min = match min with

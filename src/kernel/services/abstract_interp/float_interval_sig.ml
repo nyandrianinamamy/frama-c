@@ -147,7 +147,11 @@ module type S = sig
     (t * t) or_bottom
 
   val forward_cast: dst:prec -> t -> t
-  val backward_cast: src:prec -> t -> t or_bottom
+
+  (** [backward_cast ~src ~dst t] returns an over-approximation of all possible
+      values v of precision [src] such that [(dst)v] is in interval [t]. *)
+  val backward_cast: src:prec -> dst:prec -> t -> t or_bottom
+
   val cast_int_to_float: prec -> Z.t option -> Z.t option -> t
 
   (** Bitwise reinterpretation of a floating-point interval of double precision

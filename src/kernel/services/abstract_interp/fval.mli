@@ -119,13 +119,6 @@ val ceil: kind -> t -> t
 val trunc: kind -> t -> t
 val round: kind -> t -> t
 
-val backward_cast_float_to_double: t -> t Lattice_bounds.or_bottom
-(** [backward_cast_float_to_double d] return all possible float32 [f] such that
-    [(double)f = d]. The double of [d] that have no float32 equivalent are
-    discarded. *)
-
-val backward_cast_double_to_real: t -> t
-
 val kind: Cil_types.fkind -> kind
 (** Classify a [Cil_types.fkind] as either a 32 or 64 floating-point type.
     Long double are over approximated by Reals *)
