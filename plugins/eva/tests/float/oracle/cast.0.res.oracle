@@ -27,9 +27,9 @@
   computing for function test_backward_cast_double_to_float <- main.
   Called from cast.i:105:3-40.
 [eva:alarm] cast.i:23: Warning: non-finite double value. assert \is_finite(v);
-[eva:show] cast.i:29: Frama_C_show_each: {1.5}
-[eva:show] cast.i:34: Frama_C_show_each: [-0.75 .. 0.75]
-[eva:show] cast.i:39: Frama_C_show_each: [-0.749999940395 .. 0.749999940395]
+[eva:show] cast.i:29: Frama_C_show_each: [1.49999988079 .. 1.50000011921]
+[eva:show] cast.i:34: Frama_C_show_each: [-0.750000059605 .. 0.750000059605]
+[eva:show] cast.i:39: Frama_C_show_each: [-0.75 .. 0.75]
 [eva:progress] Recording results for test_backward_cast_double_to_float
 [eva:progress] Done for function test_backward_cast_double_to_float
 [eva:progress] 

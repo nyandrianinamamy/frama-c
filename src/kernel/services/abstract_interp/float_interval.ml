@@ -1084,16 +1084,24 @@ module Make (F: Float_sig.S) = struct
       let round = F.round_to_precision Near dst in
       inject ~nan (round b) (round e)
 
-  (* This function must make sure to return a result with float 32 bounds *)
+  (* This function must return a result in [src] precision. *)
   let backward_cast ~src ~dst = function
     | FRange.NaN -> `Value nan
     | FRange.Itv (b, e, nan) as itv ->
       let cmp = compare_precision src dst in
-      if cmp < 0
-      then FRange.inject_after_tighten src ~nan b e
-      else if cmp > 0
-      then `Value itv (* TODO: this is unsound! *)
-      else `Value itv
+      if cmp < 0 then
+        FRange.inject_after_tighten src ~nan b e
+      else if cmp > 0 then
+        (* [src] is more precise than [dst]: the interval must be broaden
+           to include all values in [src] precision that are rounded down to
+           [itv] when converted into [dst] precision.
+           We could probably compute more precise bounds here. *)
+        let round = F.round_to_precision Near src in
+        let b = F.prev_float dst b |> round |> F.next_float src in
+        let e = F.next_float dst e |> round |> F.prev_float src in
+        `Value (FRange.inject ~nan b e)
+      else
+        `Value itv
 
   let cast_int_to_float prec min max =
     let min = match min with
