@@ -221,6 +221,30 @@ void copy_0() {
 }
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 void main () {
   if (nondet) test (nondet, nondet);
   else if (nondet) test_uninit ();
