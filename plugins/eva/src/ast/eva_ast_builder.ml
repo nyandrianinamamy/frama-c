@@ -66,17 +66,15 @@ let rec translate_exp (e : Cil_types.exp) =
     | SizeOf _ | SizeOfE _ | AlignOf _ | AlignOfE _ ->
       match (Cil.constFold true e).enode with
       | Const c -> Const (translate_constant c)
-      | _ ->
-        match e.enode with
-        | SizeOf typ when Ast_types.C.is_sized_array typ ->
-          (* C11, 6.5.3.4 §2: if the type of the [sizeof] operand is a variable
-             length array type, the operand is evaluated. So the expression must
-             be evaluated by the analysis for possible undefined behaviors. *)
-          let elt_type, array_length = Ast_types.C.array_elem_type_and_size typ in
-          let elt_size = Cil.sizeOf ~loc:e.eloc elt_type |> translate_exp in
-          let array_length = Option.get array_length |> translate_exp in
-          SizeOfArray { typ; elt_size; array_length }
-        | _ -> Const (CTopInt (Machine.sizeof_kind ()))
+      | SizeOf typ when Ast_types.C.is_sized_array typ ->
+        (* C11, 6.5.3.4 §2: if the type of the [sizeof] operand is a variable
+           length array type, the operand is evaluated. So the expression must
+           be evaluated by the analysis for possible undefined behaviors. *)
+        let elt_type, array_length = Ast_types.C.array_elem_type_and_size typ in
+        let elt_size = Cil.sizeOf ~loc:e.eloc elt_type |> translate_exp in
+        let array_length = Option.get array_length |> translate_exp in
+        SizeOfArray { typ; elt_size; array_length }
+      | _ -> Const (CTopInt (Machine.sizeof_kind ()))
   in
   mk_exp ~origin:(Exp e) node
 
