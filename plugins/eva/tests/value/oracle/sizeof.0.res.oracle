@@ -1,4 +1,4 @@
-[kernel] Parsing sizeof.i (no preprocessing)
+[kernel] Parsing sizeof.c (with preprocessing)
 [eva] Analyzing a complete application starting at main
 [eva:progress] Computing initial state
 [eva:progress] Initial state computed
@@ -11,63 +11,63 @@
   i ∈ [--..--]
 [eva:progress] 
   computing for function main1 <- main.
-  Called from sizeof.i:56:3-10.
-[eva:progress] sizeof.i:10: assertion got status valid.
-[eva:progress] sizeof.i:14: assertion got status valid.
-[eva:progress] sizeof.i:17: assertion got status valid.
+  Called from sizeof.c:93.
+[eva:progress] sizeof.c:15: assertion got status valid.
+[eva:progress] sizeof.c:19: assertion got status valid.
+[eva:progress] sizeof.c:22: assertion got status valid.
 [eva:progress] Recording results for main1
 [eva:progress] Done for function main1
 [eva:progress] 
   computing for function main2 <- main.
-  Called from sizeof.i:57:3-10.
-[eva:alarm] sizeof.i:32: Warning: 
+  Called from sizeof.c:94.
+[eva:alarm] sizeof.c:37: Warning: 
   pointer downcast. assert (unsigned int)(&s1) ≤ 2147483647;
-[eva:garbled-mix:write] sizeof.i:32: 
+[eva:garbled-mix:write] sizeof.c:37: 
   Assigning imprecise value to p because of arithmetic operation on addresses.
-[eva:alarm] sizeof.i:33: Warning: 
+[eva:alarm] sizeof.c:38: Warning: 
   unaligned pointer creation. assert \aligned(p,alignof(struct s));
-[eva:alarm] sizeof.i:33: Warning: 
+[eva:alarm] sizeof.c:38: Warning: 
   accessing out of bounds index.
   assert (unsigned int)(sizeof(int [10]) - (unsigned int)i) < 10;
-[eva:alarm] sizeof.i:33: Warning: 
+[eva:alarm] sizeof.c:38: Warning: 
   out of bounds write.
   assert \valid(&p->t[(unsigned int)(sizeof(int [10]) - (unsigned int)i)]);
-[eva:alarm] sizeof.i:34: Warning: 
+[eva:alarm] sizeof.c:39: Warning: 
   unaligned pointer creation. assert \aligned(p,alignof(struct s));
-[eva:alarm] sizeof.i:34: Warning: 
+[eva:alarm] sizeof.c:39: Warning: 
   accessing out of bounds index.
   assert (unsigned int)(sizeof(int [10]) - (unsigned int)i) < 10;
-[eva:alarm] sizeof.i:34: Warning: 
+[eva:alarm] sizeof.c:39: Warning: 
   out of bounds write.
   assert \valid(&p->t[(unsigned int)(sizeof(int [10]) - (unsigned int)i)]);
 [eva:progress] Recording results for main2
 [eva:progress] Done for function main2
 [eva:progress] 
   computing for function sizeof_void <- main.
-  Called from sizeof.i:58:3-16.
+  Called from sizeof.c:95.
 [eva:progress] Recording results for sizeof_void
 [eva:progress] Done for function sizeof_void
 [eva:progress] 
   computing for function f <- main.
-  Called from sizeof.i:59:3-20.
+  Called from sizeof.c:96.
 [eva:progress] Recording results for f
 [eva:progress] Done for function f
 [eva:progress] 
   computing for function fsize3 <- main.
-  Called from sizeof.i:60:11-20.
-[eva:progress] sizeof.i:51: assertion 'alloca_bounds' got status valid.
-[eva:progress] sizeof.i:51: Call to builtin __fc_vla_alloc
-[eva:malloc:new] sizeof.i:51: allocating variable __malloc_fsize3_l51
-[eva:progress] sizeof.i:51: Call to builtin __fc_vla_free
+  Called from sizeof.c:97.
+[eva:progress] sizeof.c:56: assertion 'alloca_bounds' got status valid.
+[eva:progress] sizeof.c:56: Call to builtin __fc_vla_alloc
+[eva:malloc:new] sizeof.c:56: allocating variable __malloc_fsize3_l56
+[eva:progress] sizeof.c:56: Call to builtin __fc_vla_free
 [eva:progress] Recording results for fsize3
 [eva:progress] Done for function fsize3
-[eva:malloc:automatic-free] sizeof.i:60: 
-  freeing automatic bases: {__malloc_fsize3_l51}
+[eva:malloc:automatic-free] sizeof.c:97: 
+  freeing automatic bases: {__malloc_fsize3_l56}
 [eva:progress] Recording results for main
 [eva:progress] Done for function main
 [eva:garbled-mix:summary] 
   Origins of garbled mix generated during analysis:
-    sizeof.i:32:13-14: arithmetic operation on addresses
+    sizeof.c:37: arithmetic operation on addresses
       (read in 1 statement, propagated through 1 statement)
       garbled mix of &{s1}
 [scope:rm_asserts] removing 1 assertion(s)

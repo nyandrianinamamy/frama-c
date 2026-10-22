@@ -2,6 +2,11 @@
    STDOPT: +"-print -machdep gcc_x86_32"
 */
 
+
+
+
+
+
 int sz_str,sz_typ,align_str,align_typ;
 
 void main1()
@@ -51,6 +56,38 @@ unsigned fsize3(int n) {
   char b[n + 3]; // variable length array
   return sizeof b; // execution time sizeof
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 void main(int *p, int *q, int j) {
   main1();
