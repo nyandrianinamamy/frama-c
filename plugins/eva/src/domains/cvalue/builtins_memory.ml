@@ -122,10 +122,10 @@ let shift ~factor:i src dst size =
   let new_dst = Addresses.Bits.shift ival dst in
   new_src, new_dst, new_size
 
-(* Performs the remaining copy from [src] to [dst] for all other possible [size],
-   after the copy for the minimum size has already been done.
-   Iterates on all possible values of [size] (after the first), and does the
-   copy for [previous_size..size]. *)
+(* Performs the remaining copy from [src] in [src_state] to [dst] in [dst_state]
+   for all other possible [size], after the copy for the minimum size has
+   already been done. Iterates on all possible values of [size] (after the first),
+   and does the copy for [previous_size..size]. *)
 let copy_remaining_size_by_size ~name ~src ~dst ~dst_expr ~size ~src_state ~dst_state =
   let exception Result of Cvalue.Model.t in
   let do_size size (state, previous_size) =
@@ -150,8 +150,8 @@ let copy_remaining_size_by_size ~name ~src ~dst ~dst_expr ~size ~src_state ~dst_
   try fst (Ival.fold_int do_size size (dst_state, Z.minus_one))
   with Result state -> state
 
-(* Copy the value at location [src] from [src_state] to location [dst] in state
-   [dst_state]. *)
+(* Copy the value at location [src_loc] from [src_state] to location [dst_loc]
+   in state [dst_state]. *)
 let imprecise_copy ~name ~src_loc ~dst_loc ~dst_expr ~src_state ~dst_state =
   Self.feedback ~mkey ~once:true ~current:true
     "In %s builtin: too many sizes to enumerate, possible loss of precision"
