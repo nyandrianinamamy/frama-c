@@ -69,7 +69,11 @@ if [[ ! -f "./nix/external-plugins.txt" ]]; then
 fi
 
 while read -r var value; do
-  plugins[$var]=$value
+  # The unitcheck plugin is incompatible with OCaml 5.2. Remove this condition
+  # when the minimal supported OCaml version becomes 5.3.
+  if [[ "$OCAML" != "5_2" || "$var" != "unitcheck" ]]; then
+    plugins[$var]=$value
+  fi
 done < "./nix/external-plugins.txt"
 
 for plugin in ${!plugins[@]}; do
