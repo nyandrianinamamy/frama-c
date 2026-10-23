@@ -40,11 +40,11 @@
 [eva:show] cast.i:51: Frama_C_show_each_float_16777217: {16777216.}
 [eva:show] cast.i:52: Frama_C_show_each_float_16777218: {16777218.}
 [eva:show] cast.i:56: Frama_C_show_each_reduced_16777215: {16777215}
-[eva:show] cast.i:60: Frama_C_show_each_not_singleton: {16777216}
+[eva:show] cast.i:60: Frama_C_show_each_not_singleton: [1..19999999]
 [eva:show] cast.i:65: Frama_C_show_each_bound_16777215: [0..16777215]
-[eva:show] cast.i:69: Frama_C_show_each_bound_16777217: [0..16777216]
+[eva:show] cast.i:69: Frama_C_show_each_bound_16777217: [0..19999999]
 [eva:show] cast.i:75: Frama_C_show_each_reduced_neg_16777215: {-16777215}
-[eva:show] cast.i:79: Frama_C_show_each_not_singleton: {-16777216}
+[eva:show] cast.i:79: Frama_C_show_each_not_singleton: [-19999999..-1]
 [eva:progress] Recording results for test_backward_cast_int_to_float
 [eva:progress] Done for function test_backward_cast_int_to_float
 [eva:progress] 
