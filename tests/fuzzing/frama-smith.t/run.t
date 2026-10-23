@@ -10,8 +10,15 @@
 We create a plugin that simply crashes and use it to test a script
   $ dune build --cache=disabled --root . @install
 
-  $ dune exec --cache=disabled -- ../../../dev/minimize-crash-cmdline.py . foo.c -no-autoload-plugins -load-module crash
+  $ dune exec --cache=disabled -- ../../../dev/minimize-crash-cmdline.py . foo.c -no-autoload-plugins
   [kernel] Parsing foo.c (with preprocessing)
   
   error: supplied command line did not crash (expected return code 4, got 0)!
   [1]
+
+  $ dune exec --cache=disabled -- ../../../dev/minimize-crash-cmdline.py . foo.c -no-autoload-plugins -load-module crash.core
+  iterating... (4 options remaining)
+  iterating... (3 options remaining)
+  iterating... (3 options remaining)
+  iterating... (3 options remaining)
+  Minimized command line: (cd . && frama-c "-no-autoload-plugins" "-load-module" "crash.core")
