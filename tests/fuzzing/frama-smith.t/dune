@@ -2,11 +2,26 @@
  (name crash)
  (public_name crash.core)
  (flags -open Frama_c_kernel :standard)
+ (modules crash)
  (libraries frama-c.kernel))
 
 (plugin
  (optional)
  (name crash)
  (libraries crash.core)
+ (package crash)
+ (site
+  (frama-c plugins)))
+
+(library
+ (name args_reader)
+ (public_name args_reader.core)
+ (modules args_reader)
+ (libraries frama-c.kernel))
+
+(plugin
+ (name args_reader)
+ (libraries args_reader.core)
+ (package args_reader)
  (site
   (frama-c plugins)))

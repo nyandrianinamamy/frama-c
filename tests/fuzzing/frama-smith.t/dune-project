@@ -1,4 +1,4 @@
 (lang dune 3.15)
 (using dune_site 0.1)
-(name crash)
 (package (name crash))
+(package (name args_reader))
