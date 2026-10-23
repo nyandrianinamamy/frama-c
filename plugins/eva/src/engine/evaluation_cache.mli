@@ -6,6 +6,12 @@
 (*                                                                        *)
 (**************************************************************************)
 
+(** This module implements the mutable cache used by {!Evaluation} to
+    store computed values for expressions and locations for lvalues.
+
+    The cache is implemented as a reference to an abstract type [valuation]
+    that can be used through an adaptation interface [Valuation] which matches {!Eval.Valuation}. **)
+
 module type T = sig
   type value
   type origin
