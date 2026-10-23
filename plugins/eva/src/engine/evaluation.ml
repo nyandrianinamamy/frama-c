@@ -1410,7 +1410,7 @@ module Make
     | BinOp (_, e1, e2, _) | SizeOfArray { elt_size = e1; array_length = e2 } ->
       let* () = backward_eval ~cache fuel context state e1 None in
       backward_eval ~cache fuel context state e2 None
-    | _ -> `Value ()
+    | Const _ | StartOf _ | AddrOf _ -> `Value ()
 
   and recursive_descent_lval ~cache fuel context state lval =
     let (host, offset) = lval.node in
@@ -1577,7 +1577,7 @@ module Make
     | BinOp (_, e1, e2, _) | SizeOfArray { elt_size = e1; array_length = e2 } ->
       let* () = second_forward_eval ~cache state e1 in
       second_forward_eval ~cache state e2
-    | _ -> `Value ()
+    | Const _ | AddrOf _ | StartOf _ -> `Value ()
 
   and recursive_descent_lval ~cache state lval =
     let (host, offset) = lval.node in
