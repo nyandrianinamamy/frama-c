@@ -85,13 +85,6 @@ let parse_path s =
   in
   kind, Str.split_delim re_dir_separator rest
 
-let absolute_path_prefix = function
-  | WindowsUnparsed -> "\\\\?\\"
-  | WindowsDevice -> "\\\\.\\"
-  | WindowsDriveAbsolute drive -> Printf.sprintf "%s:/" drive
-  | Network hostname -> Printf.sprintf "//%s/" hostname
-  | FilesystemRoot -> "/"
-
 
 (* --- Type definition --- *)
 
@@ -140,6 +133,15 @@ end
 
 (* --- Construction --- *)
 
+let dir_sep = "/"
+
+let absolute_path_prefix = function
+  | WindowsUnparsed -> "\\\\?\\"
+  | WindowsDevice -> "\\\\.\\"
+  | WindowsDriveAbsolute drive -> Printf.sprintf "%s:%s" drive dir_sep
+  | Network hostname -> Printf.sprintf "//%s/" hostname
+  | FilesystemRoot -> dir_sep
+
 let make ?parent base_name =
   let path_name = match parent with
     | None ->
@@ -147,7 +149,7 @@ let make ?parent base_name =
     | Some { parent=None; path_name=parent_path } ->
       parent_path ^ base_name (* parent_path already contains "/" or "\\" *)
     | Some { parent=Some _; path_name=parent_path } ->
-      Printf.sprintf "%s/%s" parent_path base_name
+      Printf.sprintf "%s%s%s" parent_path dir_sep base_name
   in
   let hash = String.hash path_name in
   Hcons.merge
@@ -247,7 +249,7 @@ let to_uri path =
       | Some parent ->
         let base = add_component parent in
         if Buffer.length buffer > 0 && parent.parent != None then
-          Buffer.add_char buffer '/';
+          Buffer.add_string buffer dir_sep;
         Buffer.add_string buffer path.base_name;
         base
   in

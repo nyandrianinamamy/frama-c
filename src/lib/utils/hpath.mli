@@ -12,6 +12,7 @@
 type t
 
 val cwd : t
+val dir_sep : string
 
 val of_string : ?base:string -> string -> t
 val to_string : t -> string
