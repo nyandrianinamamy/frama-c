@@ -18,6 +18,7 @@
 # many tests (e.g. -cpp-extra-args), many tests fail early.
 
 import asyncio
+import atexit
 import glob
 import json
 import logging
@@ -25,6 +26,8 @@ import math
 import os
 import random
 import re
+import shlex
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -139,7 +142,7 @@ testing = os.getenv("FRAMAC_TESTING", "no")
 # add double quotes around extra arguments to be forwarded to the
 # 'new' command line; this compensates their 'loss' by the shell when passed
 # to this Python process.
-extra_args = " ".join(f'"{arg}"' for arg in sys.argv[1:])
+extra_args = " ".join(shlex.quote(arg) for arg in sys.argv[1:])
 
 framac = "frama-c"
 fc_script = f"{framac}-script"
@@ -149,7 +152,6 @@ if log_and_keep:
     logger.basicConfig(
         format="[%(asctime)s] %(message)s",
         filename=log_and_keep,
-        # (for Python 3.9) encoding='utf-8',
         level=logging.INFO,
         datefmt="%Y-%m-%d %H:%M:%S",
     )
@@ -183,13 +185,9 @@ for entry in options_to_ignore_wildcards:
         # option prefix
         prefixes_to_ignore.append(entry[:-1])
 
-# print(f"substrings_to_ignore: {substrings_to_ignore}")
-# print(f"prefixes_to_ignore: {prefixes_to_ignore}")
-# print(f"suffixes_to_ignore: {suffixes_to_ignore}")
 
-
-# generates a random integer between a and b, biased towards a
-def random_biased_towards_lower(a, b):
+# generates a random integer between a and b, possibly biased towards a
+def random_maybe_biased_towards_lower(a, b):
     dist = b - a
     if dist > 1000:
         # generate a number VERY biased towards a
@@ -198,10 +196,7 @@ def random_biased_towards_lower(a, b):
         else:
             return a + math.trunc(random.random() * (b - a))
     else:
-        # generate a number slightly biased towards a
-        return a + math.trunc(random.random() * (b - a)) >> random.randint(
-            0, math.trunc(math.log2(b - a))
-        )
+        return random.randrange(a, b + 1)
 
 
 def option_to_ignore(opt):
@@ -221,16 +216,25 @@ def option_to_ignore(opt):
 
 not_yet_implemented = ["variable"]
 
-must_exist_dir = "/tmp/frama-smith-dir1-always-exists"
-must_exist_input_file = must_exist_dir + "/garbage-in"
+must_exist_dir = tempfile.mkdtemp(prefix="frama_smith_must_exist")
+atexit.register(shutil.rmtree, must_exist_dir, ignore_errors=True)
+
+tmpfd, must_exist_input_file = tempfile.mkstemp(prefix="frama_smith_must_exist_file")
+os.close(tmpfd)
+atexit.register(
+    lambda: os.unlink(must_exist_input_file) if os.path.exists(must_exist_input_file) else None
+)
+
+may_exist_dir = tempfile.gettempdir() + "/frama_smith_may_exist"
+atexit.register(shutil.rmtree, may_exist_dir, ignore_errors=True)
 
 subtypes = {}
 subtypes["directory"] = [must_exist_dir]
 subtypes["output_file"] = [must_exist_dir + "/out1", must_exist_dir + "/out2"]
 subtypes["input_file"] = [must_exist_input_file]
 if not must_succeed:
-    subtypes["directory"] += [must_exist_dir, "/tmp/frama-smith-dir2-may-exist"]
-    subtypes["output_file"] += ["/tmp/frama-smith-dir2-may-exist/out3"]
+    subtypes["directory"] += [must_exist_dir, may_exist_dir]
+    subtypes["output_file"] += [may_exist_dir + "/out3"]
     subtypes["input_file"] += [
         must_exist_dir + "/non-existing-file",
         "/tmp/non-existing-dir/non-existing-file",
@@ -258,15 +262,10 @@ for line in lines:
             # ignore option
             continue
         if option in templates:
-            # some templates are 'dual': made of a list of keys and a list of values
-            if "keys" in templates[option]:
-                all_options[option] = "template_dual"
-            elif templates[option] in not_yet_implemented:
+            if templates[option] in not_yet_implemented:
                 # not yet implemented; ignore
                 continue
-            else:
-                # print(f"option {option} has a template: {templates[option]}")
-                all_options[option] = "template"
+            all_options[option] = "template"
         else:
             # no template : a bool, an integer range, a list of strings,
             # a subtype, or something needing a template
@@ -354,7 +353,8 @@ print(f"{sources_count} fuzzable sources.")
 
 if list_options:
     print("Listing all options that could be generated:")
-    print("\n".join(sorted(all_options)))
+    for k, v in sorted(all_options.items()):
+        print(f"{k}: {v}")
     sys.exit(0)
 
 ### END OF COMMAND-LINE CHECKS; EXECUTION WILL TAKE PLACE
@@ -403,27 +403,22 @@ def generate_random_args(min_args, max_args, functions):
     n_args = random.randint(min_args, max_args)
     chosen_opts = random.sample(all_options_keys_list, n_args)
     args = ""
-    # print(f"chosen_opts = {chosen_opts}")
     for opt in chosen_opts:
         entry = all_options[opt]
-        # print(f"opt = {opt}, all_options[opt] = '{all_options[opt]}', type(entry) = {type(entry)}")
         if entry == "":
-            # print(f"OPTION {opt}: no argument");
             args += f" {opt}"
-        elif type(entry) is dict:
+        elif isinstance(entry, dict):
             # range
             if "range" in entry:
                 rmin = int(entry["range"][0])
                 rmax = int(entry["range"][1])
-                rand = random_biased_towards_lower(rmin, rmax)
+                rand = random_maybe_biased_towards_lower(rmin, rmax)
                 args += f" {opt} {rand}"
             elif "values" in entry:
                 args += f" {opt} {random.choice(entry['values'])}"
             else:
                 sys.exit(f"error: unknown entry for option '{opt}': '{entry}'")
-                # print(f"OPTION {opt}: TEMPLATE! choices: {templates[opt]}");
         elif entry == "template":
-            # print(f"OPTION {opt}: TEMPLATE! choices: {templates[opt]}");
             template = templates[opt]
             if isinstance(template, list):
                 args += f" {opt} {random.choice(template)}"
@@ -432,7 +427,7 @@ def generate_random_args(min_args, max_args, functions):
                 if "range" in template:
                     rmin = int(template["range"][0])
                     rmax = int(template["range"][1])
-                    rand = random_biased_towards_lower(rmin, rmax)
+                    rand = random_maybe_biased_towards_lower(rmin, rmax)
                     args += f" {opt} {rand}"
                 elif template == "functions":
                     if functions != []:
@@ -442,26 +437,19 @@ def generate_random_args(min_args, max_args, functions):
                         args += f" {opt} {function_subset}"
                     else:
                         # did not get a list of functions; ignore option
-                        pass
+                        continue
                 elif template == "function":
                     if functions != []:
                         args += f" {opt} {random.choice(functions)}"
                     else:
                         # did not get a list of functions; ignore option
-                        pass
+                        continue
                 else:
                     sys.exit(f"error: unknown special template '{template}' for option '{opt}'")
-        elif entry == "template_dual":
-            # print(f"OPTION {opt}: DUAL TEMPLATE!");
-            key = random.choice(templates[opt]["keys"])
-            value = random.choice(templates[opt]["values"])
-            args += f" {opt}={key}:{value}"
-        elif entry == "string" or entry == "int":
+        elif entry in ("string", "int"):
             sys.exit(f"error: option '{opt}' of type '{entry}' is unbounded and has no template")
         else:
             sys.exit(f"error: invalid argument? {opt} has type {entry}")
-    # print(f"final command line ({n_args} arguments):")
-    # print(f"{args}")
     return args
 
 
@@ -536,7 +524,7 @@ async def run_and_log_command(args, timeout):
                     return (124, "")
                 except ValueError as e:
                     print(f"### VALUE ERROR: {e!r}")
-                    kill_shell_and_children(process.pid)  # timeout
+                    kill_shell_and_children(process.pid)
                     return (1, "")
                 else:
                     if not line:  # EOF
@@ -587,7 +575,7 @@ for i in range(1, n_tries + 1):
             sys.exit(
                 f"Frama-C returned {retcode} in mode MUST_SUCCEED, stopping. Command line:\n{cmdline}"
             )
-        if res_stdout.find("Please report") != -1:
+        if please_report:
             if log_and_keep:
                 logger.info("Fatal crash with: %s", cmdline)
             else:

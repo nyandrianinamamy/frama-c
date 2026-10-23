@@ -12,6 +12,7 @@
 
 import itertools
 import os
+import shlex
 import subprocess
 import sys
 
@@ -94,17 +95,10 @@ def normalize_commas(args):
                 new_args.append(prev)
                 continue
             continue
-        else:
-            new_args.append(prev)
+        new_args.append(prev)
     if not skip_next:
         new_args.append(args[-1])
     return new_args
-
-
-# Detects if an -eva-precision option has been given, and if so, replaces it
-# with its elements
-def normalize_eva_precision(args):
-    pass  # TODO
 
 
 # sanity check: initial run _must_ crash
@@ -125,7 +119,6 @@ while progress:
         print(f"iterating... ({len(args)} options remaining)")
         new_args = args.copy()
         popped = new_args.pop(i)
-        # print(f"trying '{popped}' ({len(new_args)} remaining)")
         crash, proc = check_cmdline_crashes(new_args)
         if not crash:
             # try removing successor
@@ -134,24 +127,15 @@ while progress:
                 popped_succ = newer_args.pop(i)
                 crash, proc = check_cmdline_crashes(newer_args)
                 if crash:
-                    # print(f"*** PROGRESS: removed unnecessary arguments: '{popped} {popped_succ}'")
                     progress = True
                     args = newer_args.copy()
                     break  # inner for
-                else:
-                    pass
-                    # print(f"removed essential arguments ('{popped} {popped_succ}'), restoring")
-            else:
-                pass
-                # print(f"removed essential argument '{popped}', restoring")
         else:
-            # print(f"*** PROGRESS: removed unnecessary argument: '{popped}'")
             progress = True
             args = new_args.copy()
             break  # inner for
 
-cmdline = [f'"{arg}"' for arg in args]
-cmdline = "frama-c " + " ".join([f'"{arg}"' for arg in args])
+cmdline = "frama-c " + " ".join([shlex.quote(arg) for arg in args])
 
 # Now that ptests run tests inside the result directory, we need to add
 # a 'cd' command to make the crash more easily reproducible

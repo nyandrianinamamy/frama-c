@@ -21,7 +21,7 @@ We create a plugin that simply crashes and use it to test a script
   iterating... (3 options remaining)
   iterating... (3 options remaining)
   iterating... (3 options remaining)
-  Minimized command line: (cd . && frama-c "-no-autoload-plugins" "-load-module" "crash.core")
+  Minimized command line: (cd . && frama-c -no-autoload-plugins -load-module crash.core)
 
   $ FRAMAC_TESTING=yes N_TRIES=1 SOURCES_GLOB="*.[ci]" PRINT_UP_TO=6 dune exec --cache=disabled -- ../../../dev/frama-smith.py -no-autoload-plugins -load-module args_reader.core -cpp-extra-args="\"-I foo\"" | grep -v "running: frama-c"
   1: [foo.c]
