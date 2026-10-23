@@ -20,6 +20,13 @@ typedef int _int64_t __attribute__ ((__mode__ (__DI__)));
 typedef int _int128_t __attribute__ ((__mode__ (__TI__)));
 
 typedef int register_t __attribute__ ((__mode__ (__word__)));
+typedef unsigned int unsigned_register_t __attribute__ ((__mode__ (__word__)));
+
+typedef int my_int8 __attribute__ ((__mode__ (__byte__)));
+typedef unsigned int my_uint8 __attribute__ ((__mode__ (__byte__)));
+
+typedef int my_intptr __attribute__ ((__mode__ (__pointer__)));
+typedef unsigned int my_uintptr __attribute__ ((__mode__ (__pointer__)));
 
 #ifdef FOO
 // Invalid mode
@@ -41,4 +48,11 @@ _int32_t i32;
 _int64_t i64;
 _int128_t i128;
 
-register_t foo = 42;
+register_t foo = -42;
+unsigned_register_t ufoo = 42;
+
+my_int8 foo8 = -42;
+my_uint8 foou8 = 42;
+
+my_intptr poo = -42;
+my_uintptr poou = 42;

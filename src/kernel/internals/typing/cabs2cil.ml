@@ -9647,16 +9647,24 @@ and doModeAttrs bt (attrs : Cabs.attribute list) =
         | false, "DI" -> Some (Cil.uint64_t ())
         | true, "TI"  -> Some (Cil.int128_t ())
         | false, "TI" -> Some (Cil.uint128_t ())
-        | true, "word"  ->
-          let word = Machine.wordsize () in
-          if word = "32" then Some (Cil.int32_t ())
-          else if word = "64" then Some (Cil.int64_t ())
-          else if word = "16" then Some (Cil.int16_t ())
-          else begin
-            Kernel.error ~once:true ~current:true
-              "unsupported 'mode(word)' attribute for wordsize: %s" word;
-            None
+        | _, "word"  ->
+          begin
+            match signed, Machine.wordsize () with
+            | true, "32" -> Some (Cil.int32_t ())
+            | false, "32" -> Some (Cil.uint32_t ())
+            | true, "64" -> Some (Cil.int64_t ())
+            | false, "64" -> Some (Cil.uint64_t ())
+            | true, "16" -> Some (Cil.int16_t ())
+            | false, "16" -> Some (Cil.uint16_t ())
+            | _, word ->
+              Kernel.error ~once:true ~current:true
+                "unsupported 'mode(word)' attribute for wordsize: %s" word;
+              None
           end
+        | true, "byte" -> Some (Cil_const.charType)
+        | false, "byte" -> Some (Cil_const.ucharType)
+        | true, "pointer" -> Some (Cil_const.intPtrType)
+        | false, "pointer" -> Some (Cil_const.uintPtrType)
         | _, _ ->
           Kernel.error ~once:true ~current:true
             "unsupported 'mode(%s)' attribute" mode;

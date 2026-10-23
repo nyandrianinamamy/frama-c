@@ -1,6 +1,6 @@
 [kernel] Parsing gcc_modes.c (with preprocessing)
-[kernel] gcc_modes.c:26: User Error: unsupported 'mode(__foo__)' attribute
-[kernel] gcc_modes.c:29: User Error: 
+[kernel] gcc_modes.c:33: User Error: unsupported 'mode(__foo__)' attribute
+[kernel] gcc_modes.c:36: User Error: 
   unsupported 'mode' attribute for non-integer type: float
 [kernel] User Error: stopping on file "gcc_modes.c" that has errors. Add '-kernel-msg-key pp'
   for preprocessing command.
