@@ -9699,8 +9699,9 @@ and doModeAttrs bt (attrs : Cabs.attribute list) =
             | None -> bt, attrs
             | Some new_bt ->
               Kernel.feedback ~dkey:Kernel.dkey_typing_gcc_mode ~current:true
-                "Converting type '%a' with 'mode' attribute into mode-less type '%a'"
+                "Converting type '%a' with 'mode(%s)' attribute into mode-less type '%a'"
                 Cil_printer.pp_typ bt
+                s2
                 Cil_printer.pp_typ new_bt;
               new_bt, []
           end
