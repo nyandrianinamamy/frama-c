@@ -4,36 +4,118 @@
 [eva:progress] Initial state computed
 [eva:initial-state] Values of globals at initialization
   v ∈ [--..--]
+  nondet ∈ [--..--]
+[eva:progress] 
+  computing for function test_backward_cast_float_to_double <- main.
+  Called from cast.i:104:3-39.
 [eva:alarm] cast.i:11: Warning: non-finite double value. assert \is_finite(v);
 [eva:alarm] cast.i:11: Warning: 
   non-finite float value. assert \is_finite((float)v);
 [eva:progress] 
-  computing for function assert_subnormal <- main.
-  Called from cast.i:15:3-22.
+  computing for function assert_subnormal <- 
+                          test_backward_cast_float_to_double <- main.
+  Called from cast.i:16:5-24.
 [eva] using specification for function assert_subnormal
-[eva:progress] cast.i:15: 
+[eva:progress] cast.i:16: 
   function assert_subnormal: precondition \is_finite(d) got status valid.
-[eva:alarm] cast.i:15: Warning: 
+[eva:alarm] cast.i:16: Warning: 
   function assert_subnormal: precondition 0.0 < d < 0x1p-1022 got status unknown.
 [eva:progress] Done for function assert_subnormal
+[eva:progress] Recording results for test_backward_cast_float_to_double
+[eva:progress] Done for function test_backward_cast_float_to_double
+[eva:progress] 
+  computing for function test_backward_cast_double_to_float <- main.
+  Called from cast.i:105:3-40.
+[eva:alarm] cast.i:23: Warning: non-finite double value. assert \is_finite(v);
+[eva:show] cast.i:29: Frama_C_show_each: {1.5}
+[eva:show] cast.i:34: Frama_C_show_each: [-0.75 .. 0.75]
+[eva:show] cast.i:39: Frama_C_show_each: [-0.749999940395 .. 0.749999940395]
+[eva:progress] Recording results for test_backward_cast_double_to_float
+[eva:progress] Done for function test_backward_cast_double_to_float
+[eva:progress] 
+  computing for function test_backward_cast_int_to_float <- main.
+  Called from cast.i:106:3-36.
+[eva:show] cast.i:49: Frama_C_show_each_float_16777215: {16777215.}
+[eva:show] cast.i:50: Frama_C_show_each_float_16777216: {16777216.}
+[eva:show] cast.i:51: Frama_C_show_each_float_16777217: {16777216.}
+[eva:show] cast.i:52: Frama_C_show_each_float_16777218: {16777218.}
+[eva:show] cast.i:56: Frama_C_show_each_reduced_16777215: {16777215}
+[eva:show] cast.i:60: Frama_C_show_each_not_singleton: {16777216}
+[eva:show] cast.i:65: Frama_C_show_each_bound_16777215: [0..16777215]
+[eva:show] cast.i:69: Frama_C_show_each_bound_16777217: [0..16777216]
+[eva:show] cast.i:75: Frama_C_show_each_reduced_neg_16777215: {-16777215}
+[eva:show] cast.i:79: Frama_C_show_each_not_singleton: {-16777216}
+[eva:progress] Recording results for test_backward_cast_int_to_float
+[eva:progress] Done for function test_backward_cast_int_to_float
+[eva:progress] 
+  computing for function test_forward_cast_int_to_float <- main.
+  Called from cast.i:107:3-35.
+[eva:show] cast.i:90: Frama_C_show_each_0: {0}
+[eva:show] cast.i:91: Frama_C_show_each_1: {1}
+[eva:alarm] cast.i:93: Warning: check 'true' got status invalid.
+[eva:show] cast.i:97: Frama_C_show_each_0: {0}
+[eva:show] cast.i:98: Frama_C_show_each_1: {1}
+[eva:alarm] cast.i:99: Warning: check 'true' got status invalid.
+[eva:progress] Recording results for test_forward_cast_int_to_float
+[eva:progress] Done for function test_forward_cast_int_to_float
 [eva:progress] Recording results for main
 [eva:progress] Done for function main
 [eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function test_backward_cast_double_to_float:
+  d ∈ [-1.79769313486e+308 .. 1.79769313486e+308]
+[eva:final-states] Values at end of function test_backward_cast_float_to_double:
+  f ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
+[eva:final-states] Values at end of function test_backward_cast_int_to_float:
+  i ∈ [-20000000..0]
+[eva:final-states] Values at end of function test_forward_cast_int_to_float:
+  vd ∈ {-9.00719925474e+15}
+  vl ∈ {-9007199254740993}
 [eva:final-states] Values at end of function main:
-  NON TERMINATING FUNCTION
-[from] Computing for function main
-[from] Computing for function assert_subnormal <-main
+  
+[from] Computing for function test_backward_cast_double_to_float
+[from] Done for function test_backward_cast_double_to_float
+[from] Computing for function test_backward_cast_float_to_double
+[from] Computing for function assert_subnormal <-test_backward_cast_float_to_double
 [from] Done for function assert_subnormal
-[from] Non-terminating function main (no dependencies)
+[from] Done for function test_backward_cast_float_to_double
+[from] Computing for function test_backward_cast_int_to_float
+[from] Done for function test_backward_cast_int_to_float
+[from] Computing for function test_forward_cast_int_to_float
+[from] Done for function test_forward_cast_int_to_float
+[from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
   These dependencies hold at termination for the executions that terminate:
 [from] Function assert_subnormal:
   NO EFFECTS
+[from] Function test_backward_cast_double_to_float:
+  NO EFFECTS
+[from] Function test_backward_cast_float_to_double:
+  NO EFFECTS
+[from] Function test_backward_cast_int_to_float:
+  NO EFFECTS
+[from] Function test_forward_cast_int_to_float:
+  NO EFFECTS
 [from] Function main:
-  NON TERMINATING - NO EFFECTS
+  NO EFFECTS
 [from] ====== END OF DEPENDENCIES ======
-[inout] Out (internal) for function main:
-    f
-[inout] Inputs for function main:
+[inout] Out (internal) for function test_backward_cast_double_to_float:
+    d
+[inout] Inputs for function test_backward_cast_double_to_float:
     v
+[inout] Out (internal) for function test_backward_cast_float_to_double:
+    f
+[inout] Inputs for function test_backward_cast_float_to_double:
+    v; nondet
+[inout] Out (internal) for function test_backward_cast_int_to_float:
+    i
+[inout] Inputs for function test_backward_cast_int_to_float:
+    nondet
+[inout] Out (internal) for function test_forward_cast_int_to_float:
+    vd; vl
+[inout] Inputs for function test_forward_cast_int_to_float:
+    \nothing
+[inout] Out (internal) for function main:
+    \nothing
+[inout] Inputs for function main:
+    v; nondet
