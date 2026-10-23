@@ -1111,7 +1111,7 @@ module Make (F: Float_sig.S) = struct
         F.of_float round prec (Z.to_float v)
     in
     let max = match max with
-      | None -> Cst.neg_infinity prec
+      | None -> Cst.pos_infinity prec
       | Some v ->
         let round = if F.is_exact prec then Near else Up in
         F.of_float round prec (Z.to_float v)
