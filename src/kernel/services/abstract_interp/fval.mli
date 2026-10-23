@@ -117,7 +117,7 @@ val log10: kind -> t -> t
 val floor: kind -> t -> t
 val ceil: kind -> t -> t
 val trunc: kind -> t -> t
-val fround: kind -> t -> t
+val round: kind -> t -> t
 
 val backward_cast_float_to_double: t -> t Lattice_bounds.or_bottom
 (** [backward_cast_float_to_double d] return all possible float32 [f] such that

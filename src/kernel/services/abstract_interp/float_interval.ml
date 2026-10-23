@@ -654,7 +654,7 @@ module Make (F: Float_sig.S) = struct
   let floor t = t >> F.floor
   let ceil t = t >> F.ceil
   let trunc t = t >> F.trunc
-  let fround t = t >> F.fround
+  let round t = t >> F.round
 
   let neg = function
     | FRange.Itv (b, e, nan) ->
