@@ -37,39 +37,38 @@
     "noImplicitReturns": true, /* Report error when not all code paths in function return a value. */
     "noFallthroughCasesInSwitch": true, /* Report errors for fallthrough cases in switch statement. */
     /* Module Resolution Options */
-    "moduleResolution": "node", /* Specify module resolution strategy: 'node' (Node.js) or 'classic' (TypeScript pre-1.6). */
+    "moduleResolution": "bundler", /* 'bundler' added in TS 5 */
     "resolveJsonModule": true, /* Allow to load JSON files as module. */
-    "baseUrl": ".", /* Base directory to resolve non-absolute module names. */
     "paths": { /* A series of entries which re-map imports to lookup locations relative to the 'baseUrl'. */
       "ivette": [
-        "src/ivette/index.tsx"
+        "./src/ivette/index.tsx"
       ],
       "ivette/*": [
-        "src/ivette/*"
+        "./src/ivette/*"
       ],
       "frama-c/*": [
-        "src/frama-c/*"
+        "./src/frama-c/*"
       ],
       "dome": [
-        "src/dome/renderer/dome.tsx"
+        "./src/dome/renderer/dome.tsx"
       ],
       "dome/main": [
-        "src/dome/main/dome.ts"
+        "./src/dome/main/dome.ts"
       ],
       "dome/system": [
-        "src/dome/misc/system.ts"
+        "./src/dome/misc/system.ts"
       ],
       "dome/devtools": [
-        "src/dome/misc/devtools.js"
+        "./src/dome/misc/devtools.js"
       ],
       "dome/misc/*": [
-        "src/dome/misc/*"
+        "./src/dome/misc/*"
       ],
       "dome/*": [
-        "src/dome/renderer/*"
+        "./src/dome/renderer/*"
       ],
       "codemirror/lib/codemirror": [
-        "node_modules/@types/codemirror/index.d.ts"
+        "./node_modules/@types/codemirror/index.d.ts"
       ],
     },
     // "rootDirs": [],                        /* List of root folders whose combined content represents the structure of the project at runtime. */
