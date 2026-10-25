@@ -34,6 +34,9 @@ void f_unsigned(unsigned int a, unsigned int b) {
   /*@ assert f == (a & b); */
   unsigned int g = a ^ b;
   /*@ assert g == (a ^ b); */
+  /* E-ACSL issue #349: */
+  unsigned long x = 18104032443557962508UL;
+  /*@ assert (-x) >> 32 == -4215173526; */
 }
 
 // Operations on arbitrary precision signed integers

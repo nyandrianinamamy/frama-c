@@ -15,7 +15,6 @@ module Guard =
 struct
   type downcast_kind = Signed | Unsigned | FloatToInt | Pointer
 
-  type shift_kind = Left | Right
 
   type kind =
     | Division_by_zero
@@ -24,7 +23,6 @@ struct
     | Initialized
     | Pointer_alignment
     | Pointer_value
-    | Shift of shift_kind
     | Downcast of downcast_kind
 
   type t = { kind: kind; pred: predicate }
@@ -43,7 +41,6 @@ struct
     | Division_by_zero -> 4
     | Downcast _ -> 5
     | Out_of_bounds -> 6
-    | Shift _ -> 7
 
   let pretty fmt g = Printer.pp_predicate fmt g.pred
 
@@ -234,8 +231,6 @@ end
     - initialization
     - pointer alignment
     - pointer value
-    - left shift negative
-    - right shift negative
     - signed downcast
     - unsigned downcast
     - pointer downcast *)
@@ -263,26 +258,6 @@ struct
     in
     preprocess_guard pred;
     Guard.make Division_by_zero pred
-
-  (** [shift_negative ~loc ~kind shift] creates the predicate that checks if
-      [shift] is greater or equal to [Z.zero]. *)
-  let shift_negative ~loc ~kind shift =
-    let smart = not @@ Flags.needs_trivial () in
-    let names =
-      match kind with
-      | Guard.Left -> ["left shift negative"]
-      | Right -> ["right shift negative"]
-    in
-    let shift_cpy = Smart_term.copy ~smart shift in
-    let pred =
-      Smart_predicate.prel
-        ~smart
-        ~loc
-        ~names
-        Rle (Logic_const.tint Z.zero) shift_cpy
-    in
-    preprocess_guard pred;
-    Guard.make (Shift kind) pred
 
   (** [mem_access ~loc lv] creates the predicate that checks if [lv] is a
        valid read. *)
@@ -441,16 +416,6 @@ let rte_visitor =
       if Flags.needs_div_mod () then
         Guards.add orig
           (Undefined_behaviours.div_by_zero ~loc:orig.term_loc divider)
-
-    (** [add_shift_negative ~orig ~kind shift] adds an entry for [orig] if
-        [shift] can be negative. *)
-    method private add_shift_negative ~orig ~kind shift =
-      if Misc.is_signed_int shift.term_type &&
-         (kind = Guard.Left && Flags.needs_left_shift_negative ()) ||
-         (kind = Guard.Right && Flags.needs_right_shift_negative ())
-      then
-        Guards.add orig
-          (Undefined_behaviours.shift_negative ~loc:orig.term_loc ~kind shift)
 
     (** [add_index ~index size] adds [index] as key in [table] with a
         guard that checks if [index] is between [0] (included) and [size]
@@ -733,18 +698,6 @@ let rte_visitor =
           self#add_pointer_value ~orig:t;
           (* [t2] has to be at most a [ILongLong] (typing constraint) *)
           self#add_downcast ~orig:t2 ~implicit:true t2 (Cil_const.mk_tint ILongLong)
-        | TBinOp (Shiftlt,t1,t2) ->
-          let t1 = Logic_normalizer.get_term t1 in
-          let t2 = Logic_normalizer.get_term t2 in
-          self#add_shift_negative ~orig:t ~kind:Left t1;
-          (* [t2] has to be at most a [IULong] (typing constraint) *)
-          self#add_downcast ~orig:t2 ~implicit:true t2 (Cil_const.mk_tint IULong)
-        | TBinOp (Shiftrt,t1,t2) ->
-          let t1 = Logic_normalizer.get_term t1 in
-          let t2 = Logic_normalizer.get_term t2 in
-          self#add_shift_negative ~orig:t ~kind:Right t1;
-          (* [t2] has to be at most a [IULong] (typing constraint) *)
-          self#add_downcast ~orig:t2 ~implicit:true t2 (Cil_const.mk_tint IULong)
         | TLval lv ->
           begin match Ast_types.Acsl.unroll t.term_type with
             | Ctype typ ->
