@@ -399,7 +399,7 @@ let rec type_term
       ignore (type_term ~use_gmp_opt:true ~arith_operand:true ~ctx ~profile t');
       ctx
 
-    | TBinOp ((PlusA | MinusA | Mult | Div | Mod | Shiftlt | Shiftrt | BAnd
+    | TBinOp ((PlusA | MinusA | Mult | Div | Mod | Shiftrt | BAnd
               | BOr | BXor), t1, t2)
       ->
       let ctx =
@@ -422,6 +422,20 @@ let rec type_term
       ignore
         (type_term ~use_gmp_opt:true ~arith_operand:(not cast_first) ~ctx ~profile t2);
       ctx
+
+    | TBinOp(Shiftlt, t1, t2) ->
+      let ctx =
+        mk_ctx ~use_gmp_opt:true @@
+        ty_of_interv @@
+        Interval.joins_from_profile ~profile [t2; t1; t]
+      in
+      (* For left-shift, the first operand must always be coerced to the largest
+         type, Frama-C issue #1800 (case e-acsl-shift-left-narrow) *)
+      ignore (type_term ~use_gmp_opt:true ~arith_operand:true ~ctx ~profile t1);
+      ignore
+        (type_term ~use_gmp_opt:true ~arith_operand:false ~ctx ~profile t2);
+      ctx
+
 
     | TBinOp ((Lt | Gt | Le | Ge | Eq | Ne), t1, t2) ->
       assert
