@@ -30,6 +30,16 @@ int main(void) {
   short a = 1, b = 1;
   //@ assert a+b > 2.  - 1.; // gitlab public issue #14
 
+  /* Frama-C issue #1800 */
+  int i = 16777217;
+  float g = 16777216.0f;
+  /*@ assert i > g; */
+
+  /* Frama-C issue #1800 as well */
+  long vl = 9007199254740993L;
+  double vd = 9007199254740992.0;
+  /*@ assert vl > vd; */
+
   // Not yet:
   // long double ld = 0.1l;
   // /*@ assert d + 1 != ld + 1; */ ; // long double

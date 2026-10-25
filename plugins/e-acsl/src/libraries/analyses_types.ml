@@ -64,7 +64,7 @@ type ival =
 
 let pp_ival fmt = function
   | Ival i -> Ival.pretty fmt i
-  | Float _ -> Format.fprintf fmt "F"
+  | Float(fk, _) -> Format.fprintf fmt "F(%a)" Printer.pp_fkind fk
   | Rational -> Format.fprintf fmt "Q"
   | Real -> Format.fprintf fmt "R"
   | Nan -> Format.fprintf fmt "Nan"

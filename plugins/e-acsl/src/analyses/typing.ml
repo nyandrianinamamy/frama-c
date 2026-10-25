@@ -245,10 +245,11 @@ let coerce ~arith_operand ~ctx ty =
        operation to be of the expected type. *)
   if (ctx = Gmpz && ty <> Gmpz) || arith_operand
   then { ty; cast = Some ctx }
-  else
-  if ctx = Rational && ty <> Rational
-  then {ty; cast = Some ctx}
-  else {ty; cast = None}
+  else match ty, ctx with
+    | (C_integer _ | C_float _), Rational
+    | C_integer _, C_float _ ->
+      { ty; cast = Some ctx }
+    | _, _ -> { ty; cast = None }
 
 let number_ty_of_typ ~post ty =
   (* Consider GMP types only in a post typing phase *)
@@ -294,15 +295,16 @@ let mk_ctx ~use_gmp_opt = function
     else c
   | Gmpz | Rational | Real | Nan as c -> c
 
-(* If a term has a C type, return it when it is smaller than [int] or [int], \
-   return [None] if the term has no C type *)
-let c_type_or_int_in_ival_of t i =
+(* If a term has a C integer type,
+   return it when it is smaller than [int] or [int],
+   return [None] if the term has no C integer type *)
+let c_type_or_int_in_ival_of t ival =
   let t = Logic_utils.remove_logic_coerce t in
   match t.term_type with
   | Ctype typ ->
     (match Ast_types.C.unroll_node typ with
      | TInt ik | TEnum { ekind = ik } when
-         Interval.is_included_in_typ i typ
+         Interval.is_included_in_typ ival typ
        ->
        if Cil.intTypeIncluded ik IInt
        then Some (C_integer IInt)
@@ -874,12 +876,17 @@ and type_predicate ~profile p =
     - Otherwise use the type corresponding to the union *)
 and ctx_relation ~profile t1 t2 =
   let i = Interval.joins_from_profile ~profile [t2; t1] in
-  let ty =
-    match c_type_or_int_in_ival_of t1 i, c_type_or_int_in_ival_of t2 i with
-    | Some ty, _
-    | None, Some ty -> ty
-    | None, None -> ty_of_interv ~ctx:c_int i
-  in mk_ctx ~use_gmp_opt:true ty
+  match i with
+  | Ival _ ->
+    let ty =
+      match c_type_or_int_in_ival_of t1 i, c_type_or_int_in_ival_of t2 i with
+      | Some ty, _
+      | None, Some ty -> ty
+      | None, None -> ty_of_interv ~ctx:c_int i
+    in
+    mk_ctx ~use_gmp_opt:true ty
+  | Float _ | Rational | Real | Nan ->
+    ty_of_interv i
 
 let type_term ~use_gmp_opt ?ctx ~profile t =
   Options.debug ~dkey ~level:4 "typing term '%a'%a."
