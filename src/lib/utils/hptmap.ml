@@ -1384,8 +1384,8 @@ struct
             (pretty_prefix prefix) t1 (pretty_prefix prefix) t2;
           raise (Found_prefix(prefix, t1, t2));
         end;
-        if l1 != l2 then comp_prefixes l1 l2;
         if r1 != r2 then comp_prefixes r1 r2;
+        if l1 != l2 then comp_prefixes l1 l2;
       end
       else if (Big_Endian.shorter m1 m2) && (match_prefix p2 p1 m1)
       then begin
