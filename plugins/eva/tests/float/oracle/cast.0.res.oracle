@@ -52,10 +52,10 @@
   Called from cast.i:107:3-35.
 [eva:show] cast.i:90: Frama_C_show_each_0: {0}
 [eva:show] cast.i:91: Frama_C_show_each_1: {1}
-[eva:alarm] cast.i:93: Warning: check 'true' got status invalid.
+[eva:alarm] cast.i:93: Warning: check 'true' got status unknown.
 [eva:show] cast.i:97: Frama_C_show_each_0: {0}
 [eva:show] cast.i:98: Frama_C_show_each_1: {1}
-[eva:alarm] cast.i:99: Warning: check 'true' got status invalid.
+[eva:alarm] cast.i:99: Warning: check 'true' got status unknown.
 [eva:progress] Recording results for test_forward_cast_int_to_float
 [eva:progress] Done for function test_forward_cast_int_to_float
 [eva:progress] Recording results for main

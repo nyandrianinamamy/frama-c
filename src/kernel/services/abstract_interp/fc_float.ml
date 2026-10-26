@@ -51,6 +51,9 @@ let of_float = round_to_precision
 
 let to_float f = f
 
+let of_integer round prec i =
+  let f = with_rounding_mode round Z.to_float i in
+  of_float round prec f
 
 
 (** NOTE: all floating-point comparisons using OCaml's standard operators

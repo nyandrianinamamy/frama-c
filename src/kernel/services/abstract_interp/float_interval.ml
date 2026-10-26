@@ -1108,13 +1108,13 @@ module Make (F: Float_sig.S) = struct
       | None -> Cst.neg_infinity prec
       | Some v ->
         let round = if F.is_exact prec then Near else Down in
-        F.of_float round prec (Z.to_float v)
+        F.of_integer round prec v
     in
     let max = match max with
       | None -> Cst.pos_infinity prec
       | Some v ->
         let round = if F.is_exact prec then Near else Up in
-        F.of_float round prec (Z.to_float v)
+        F.of_integer round prec v
     in
     FRange.inject min max
 
