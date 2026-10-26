@@ -127,24 +127,25 @@ let meet i1 i2 = match i1, i2 with
   | Float(k1, None), Float(k2, None) ->
     let k = if Cil.frank k1 >= Cil.frank k2 then k2 else k1 in
     Float(k, None)
-  | Float(k, Some f), Ival iv
-  | Ival iv, Float(k, Some f) ->
+  | (Float(_, Some f) as float), Ival iv
+  | Ival iv, (Float(_, Some f) as float) ->
     begin
-      match Ival.min_and_max iv with
+      try match Ival.min_and_max iv with
       | None, None ->
         (* unbounded integers *)
-        Float(k, Some f)
+        float
       | Some min, Some max ->
         (* if the float type fits into the interval of integers, then return
            this float type; otherwise return Rational *)
-        (try
-           let to_float n = Int64.to_float (Z.to_int64 n) in
-           let mini, maxi = to_float min, to_float max in
-           if mini <= f && maxi >= f then Float(k, Some f) else Ival Ival.bottom
-         with Z.Overflow | Exit ->
-           Rational)
-      | None, Some _ | Some _, None ->
-        assert false
+        let to_float n = Int64.to_float (Z.to_int64 n) in
+        let mini, maxi = to_float min, to_float max in
+        if mini <= f && maxi >= f then float else Ival Ival.bottom
+      | Some min, None ->
+        if f >= Int64.to_float (Z.to_int64 min) then float else Ival Ival.bottom
+      | None, Some max ->
+        if f <= Int64.to_float (Z.to_int64 max) then float else Ival Ival.bottom
+      with Z.Overflow | Exit ->
+        Rational
     end
   | Ival iv, Float(k, None)
   | Float(k, None), Ival iv ->
