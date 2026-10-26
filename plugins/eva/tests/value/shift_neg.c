@@ -36,7 +36,7 @@ void main() {
     Frama_C_show_each_neg_right_shift(i, j);
   }
   // Singleton values.
-  Frama_C_show_each(-3, ">>", 2, "=", -2 >> 2);
+  Frama_C_show_each(-3, ">>", 2, "=", -3 >> 2);
   Frama_C_show_each(-63, ">>", 2, "=", -63 >> 2);
   Frama_C_show_each(-64, ">>", 2, "=", -64 >> 2);
   Frama_C_show_each(-65, ">>", 2, "=", -65 >> 2);
