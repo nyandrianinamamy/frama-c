@@ -460,14 +460,15 @@ let mul v1 v2 =
       then Itv (Int_interval.scale (Int_set.min s) i)
       else Itv (Int_interval.mul i (make_itv_from_set s))
 
-let div x y =
+let div_generic itv_op scale_op x y =
   match y with
   | Set sy ->
-    Int_set.fold
-      (fun elt acc ->
-         Bottom.join join acc (scale_div_or_bottom ~pos:false elt x))
-      sy `Bottom
-  | Itv iy -> Int_interval.div (make_range x) iy >>-: inject_itv
+    Int_set.fold (fun elt -> Bottom.join join (scale_op elt x)) sy `Bottom
+  | Itv iy ->
+    itv_op (make_range x) iy >>-: inject_itv
+
+let div = div_generic Int_interval.div (scale_div_or_bottom ~pos:false)
+let ediv = div_generic Int_interval.ediv (scale_div_or_bottom ~pos:true)
 
 (* [scale_rem ~pos:false f v] is an over-approximation of the set of
    elements [x mod f] for [x] in [v].
@@ -514,8 +515,8 @@ let shift_aux scale op (x: t) (y: t) =
     else top
 
 let shift_right x y =
-  let div a b = Bottom.non_bottom (div a b) in
-  shift_aux (scale_div ~pos:true) div x y
+  let ediv a b = Bottom.non_bottom (ediv a b) in
+  shift_aux (scale_div ~pos:true) ediv x y
 
 let shift_left x y = shift_aux scale mul x y
 
