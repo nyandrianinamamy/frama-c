@@ -51,4 +51,12 @@ void main() {
   Frama_C_show_each(-65, ">>", y, "=", -65 >> y);
   // Both operands are intervals.
   Frama_C_show_each(x, ">>", y, "=", x >> y);
+  // Only the first interval crosses zero.
+  int xz = Frama_C_interval(-65, 3);
+  Frama_C_show_each(xz, ">>", y, "=", xz >> y);
+  // Only the second interval crosses zero.
+  int yz = Frama_C_interval(-2, 10);
+  Frama_C_show_each(x, ">>", yz, "=", x >> yz);
+  // Both intervals cross zero.
+  Frama_C_show_each(xz, ">>", yz, "=", xz >> yz);
 }

@@ -63,6 +63,24 @@
   Frama_C_show_each: {-65}, {{ ">>" }}, [2..10], {{ "=" }}, [-17..-1]
 [eva:show] shift_neg.c:53: 
   Frama_C_show_each: [-65..-3], {{ ">>" }}, [2..10], {{ "=" }}, [-17..-1]
+[eva:progress] 
+  computing for function Frama_C_interval <- main.
+  Called from shift_neg.c:55.
+[eva:progress] shift_neg.c:55: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva:progress] Done for function Frama_C_interval
+[eva:show] shift_neg.c:56: 
+  Frama_C_show_each: [-65..3], {{ ">>" }}, [2..10], {{ "=" }}, [-17..0]
+[eva:progress] 
+  computing for function Frama_C_interval <- main.
+  Called from shift_neg.c:58.
+[eva:progress] shift_neg.c:58: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva:progress] Done for function Frama_C_interval
+[eva:show] shift_neg.c:59: 
+  Frama_C_show_each: [-65..-3], {{ ">>" }}, [-2..10], {{ "=" }}, [-65..-1]
+[eva:show] shift_neg.c:61: 
+  Frama_C_show_each: [-65..3], {{ ">>" }}, [-2..10], {{ "=" }}, [-65..3]
 [eva:progress] Recording results for main
 [eva:progress] Done for function main
 [eva] shift_neg.c:29: assertion 'Eva,shift' got final status invalid.
@@ -72,6 +90,8 @@
   x ∈ [-65..-3]
   y ∈ [2..10]
   r ∈ {-2; -1; 0; 1; 2; 3}
+  xz ∈ [-65..3]
+  yz ∈ [-2..10]
 [from] Computing for function main
 [from] Computing for function Frama_C_interval <-main
 [from] Done for function Frama_C_interval
@@ -85,6 +105,6 @@
   Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-    Frama_C_entropy_source; x; y; r; k; i; j
+    Frama_C_entropy_source; x; y; r; k; i; j; xz; yz
 [inout] Inputs for function main:
     Frama_C_entropy_source; rand
