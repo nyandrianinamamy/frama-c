@@ -11,7 +11,7 @@
 [kernel:typing:gcc-mode] gcc_modes.c:15: 
   Converting type 'unsigned int' with 'mode(__TI__)' attribute into mode-less type 'unsigned __int128'
 [kernel:typing:gcc-mode] gcc_modes.c:16: 
-  Converting type 'int' with 'mode(__QI__)' attribute into mode-less type 'char'
+  Converting type 'int' with 'mode(__QI__)' attribute into mode-less type 'signed char'
 [kernel:typing:gcc-mode] gcc_modes.c:17: 
   Converting type 'int' with 'mode(__HI__)' attribute into mode-less type 'int'
 [kernel:typing:gcc-mode] gcc_modes.c:18: 
@@ -25,7 +25,7 @@
 [kernel] gcc_modes.c:23: User Error: 
   unsupported 'mode(word)' attribute for wordsize: 15
 [kernel:typing:gcc-mode] gcc_modes.c:25: 
-  Converting type 'int' with 'mode(__byte__)' attribute into mode-less type 'char'
+  Converting type 'int' with 'mode(__byte__)' attribute into mode-less type 'signed char'
 [kernel:typing:gcc-mode] gcc_modes.c:26: 
   Converting type 'unsigned int' with 'mode(__byte__)' attribute into mode-less type 'unsigned char'
 [kernel:typing:gcc-mode] gcc_modes.c:28: 

@@ -11,7 +11,7 @@
 [kernel:typing:gcc-mode] gcc_modes.c:15: 
   Converting type 'unsigned int' with 'mode(__TI__)' attribute into mode-less type 'unsigned __int128'
 [kernel:typing:gcc-mode] gcc_modes.c:16: 
-  Converting type 'int' with 'mode(__QI__)' attribute into mode-less type 'char'
+  Converting type 'int' with 'mode(__QI__)' attribute into mode-less type 'signed char'
 [kernel:typing:gcc-mode] gcc_modes.c:17: 
   Converting type 'int' with 'mode(__HI__)' attribute into mode-less type 'short'
 [kernel:typing:gcc-mode] gcc_modes.c:18: 
@@ -25,7 +25,7 @@
 [kernel:typing:gcc-mode] gcc_modes.c:23: 
   Converting type 'unsigned int' with 'mode(__word__)' attribute into mode-less type 'unsigned long'
 [kernel:typing:gcc-mode] gcc_modes.c:25: 
-  Converting type 'int' with 'mode(__byte__)' attribute into mode-less type 'char'
+  Converting type 'int' with 'mode(__byte__)' attribute into mode-less type 'signed char'
 [kernel:typing:gcc-mode] gcc_modes.c:26: 
   Converting type 'unsigned int' with 'mode(__byte__)' attribute into mode-less type 'unsigned char'
 [kernel:typing:gcc-mode] gcc_modes.c:28: 
@@ -38,14 +38,14 @@ typedef unsigned short u_int16_t;
 typedef unsigned int u_int32_t;
 typedef unsigned long u_int64_t;
 typedef unsigned __int128 u_int128_t;
-typedef char _int8_t;
+typedef signed char _int8_t;
 typedef short _int16_t;
 typedef int _int32_t;
 typedef long _int64_t;
 typedef __int128 _int128_t;
 typedef long register_t;
 typedef unsigned long unsigned_register_t;
-typedef char my_int8;
+typedef signed char my_int8;
 typedef unsigned char my_uint8;
 typedef int *my_intptr;
 typedef unsigned int *my_uintptr;

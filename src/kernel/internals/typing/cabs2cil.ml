@@ -9637,7 +9637,7 @@ and doModeAttrs bt (attrs : Cabs.attribute list) =
       let mode' = String.trim_underscores mode in
       begin
         match signed, mode' with
-        | true, "QI"  -> Some (Cil_const.charType)
+        | true, "QI"  -> Some (Cil_const.scharType)
         | false, "QI" -> Some (Cil_const.ucharType)
         | true, "HI"  -> Some (Cil.int16_t ())
         | false, "HI" -> Some (Cil.uint16_t ())
@@ -9661,7 +9661,7 @@ and doModeAttrs bt (attrs : Cabs.attribute list) =
                 "unsupported 'mode(word)' attribute for wordsize: %s" word;
               None
           end
-        | true, "byte" -> Some (Cil_const.charType)
+        | true, "byte" -> Some (Cil_const.scharType)
         | false, "byte" -> Some (Cil_const.ucharType)
         | true, "pointer" -> Some (Cil_const.intPtrType)
         | false, "pointer" -> Some (Cil_const.uintPtrType)
