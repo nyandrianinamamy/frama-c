@@ -683,14 +683,15 @@ let mul t1 t2 =
   let rem = Z.erem (Z.mul t1.rem t2.rem) modu in
   make ~min:(ext_proj min) ~max:(ext_proj max) ~rem ~modu
 
-(* ymin and ymax must be the same sign *)
-let div_range op x ymn ymx =
+(* Sound only if [ymin] and [ymax] have the same nonzero sign: divisors near
+   zero could otherwise yield quotients outside the four-corner bounds. *)
+let div_range op x ymin ymax =
   match min_and_max x with
-  | Some xmn, Some xmx ->
-    let c1 = op xmn ymn in
-    let c2 = op xmx ymn in
-    let c3 = op xmn ymx in
-    let c4 = op xmx ymx in
+  | Some xmin, Some xmax ->
+    let c1 = op xmin ymin in
+    let c2 = op xmax ymin in
+    let c3 = op xmin ymax in
+    let c4 = op xmax ymax in
     let min = Z.min (Z.min c1 c2) (Z.min c3 c4) in
     let max = Z.max (Z.max c1 c2) (Z.max c3 c4) in
     inject_range (Some min) (Some max)
