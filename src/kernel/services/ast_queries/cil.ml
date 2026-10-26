@@ -2353,6 +2353,7 @@ let intKindForSize (s:int) (unsigned:bool) : ikind =
     else if s = Sizeof.long () then IULong
     else if s = Sizeof.short () then IUShort
     else if s = Sizeof.longlong () then IULongLong
+    else if s = 16 then IUInt128
     else raise Not_found
   else
     (* Test the most common sizes first *)
@@ -2361,6 +2362,7 @@ let intKindForSize (s:int) (unsigned:bool) : ikind =
   else if s = Sizeof.long () then ILong
   else if s = Sizeof.short () then IShort
   else if s = Sizeof.longlong () then ILongLong
+  else if s = 16 then IInt128
   else raise Not_found
 
 let uint128_t () = Cil_const.mk_tint (intKindForSize 16 true)

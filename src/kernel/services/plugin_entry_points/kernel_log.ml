@@ -198,6 +198,10 @@ let dkey_typing_init = register_category "typing:initializer"
 
 let dkey_typing_pragma = register_category "typing:pragma"
 
+let dkey_typing_gcc_mode =
+  register_category "typing:gcc-mode" ~default:true
+    ~help:"type transformations related to GCC 'mode' attributes"
+
 let dkey_ulevel = register_category "ulevel"
 
 let dkey_variadic = register_category "variadic"

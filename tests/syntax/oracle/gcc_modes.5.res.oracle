@@ -1,0 +1,37 @@
+[kernel] Warning: Unknown message key typing:mode
+[kernel] Parsing gcc_modes.c (with preprocessing)
+[kernel:typing:gcc-mode] gcc_modes.c:11: 
+  Converting type 'unsigned int' with 'mode(__QI__)' attribute into mode-less type 'unsigned char'
+[kernel:typing:gcc-mode] gcc_modes.c:12: 
+  Converting type 'unsigned int' with 'mode(__HI__)' attribute into mode-less type 'unsigned int'
+[kernel:typing:gcc-mode] gcc_modes.c:13: 
+  Converting type 'unsigned int' with 'mode(SI)' attribute into mode-less type 'unsigned long'
+[kernel:typing:gcc-mode] gcc_modes.c:14: 
+  Converting type 'unsigned int' with 'mode(DI)' attribute into mode-less type 'unsigned long long'
+[kernel:typing:gcc-mode] gcc_modes.c:15: 
+  Converting type 'unsigned int' with 'mode(__TI__)' attribute into mode-less type 'unsigned __int128'
+[kernel:typing:gcc-mode] gcc_modes.c:16: 
+  Converting type 'int' with 'mode(__QI__)' attribute into mode-less type 'signed char'
+[kernel:typing:gcc-mode] gcc_modes.c:17: 
+  Converting type 'int' with 'mode(__HI__)' attribute into mode-less type 'int'
+[kernel:typing:gcc-mode] gcc_modes.c:18: 
+  Converting type 'int' with 'mode(__SI__)' attribute into mode-less type 'long'
+[kernel:typing:gcc-mode] gcc_modes.c:19: 
+  Converting type 'int' with 'mode(__DI__)' attribute into mode-less type 'long long'
+[kernel:typing:gcc-mode] gcc_modes.c:20: 
+  Converting type 'int' with 'mode(__TI__)' attribute into mode-less type '__int128'
+[kernel] gcc_modes.c:22: User Error: 
+  unsupported 'mode(word)' attribute for wordsize: 15
+[kernel] gcc_modes.c:23: User Error: 
+  unsupported 'mode(word)' attribute for wordsize: 15
+[kernel:typing:gcc-mode] gcc_modes.c:25: 
+  Converting type 'int' with 'mode(__byte__)' attribute into mode-less type 'signed char'
+[kernel:typing:gcc-mode] gcc_modes.c:26: 
+  Converting type 'unsigned int' with 'mode(__byte__)' attribute into mode-less type 'unsigned char'
+[kernel:typing:gcc-mode] gcc_modes.c:28: 
+  Converting type 'int' with 'mode(__pointer__)' attribute into mode-less type 'int *'
+[kernel:typing:gcc-mode] gcc_modes.c:29: 
+  Converting type 'unsigned int' with 'mode(__pointer__)' attribute into mode-less type 'unsigned int *'
+[kernel] User Error: stopping on file "gcc_modes.c" that has errors. Add '-kernel-msg-key pp'
+  for preprocessing command.
+[kernel] Frama-C aborted: invalid user input.

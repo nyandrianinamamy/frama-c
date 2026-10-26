@@ -22,6 +22,8 @@ Open Source Release <next-release>
 Open Source Release 34.0 (Selenium)
 ###############################################################################
 
+-    Kernel   [2026-10-26] Add partial support for GCC machine modes via
+              conversion from '__attribute__((mode(<MODE>)))' to integer types.
 -*   Rte      [2026-09-29] Fix a bug with option hooks that would prevent one
               from finely configuring `rte-initialized`
 -*   Kernel   [2026-09-29] Remove the implicit conversion of an array to a

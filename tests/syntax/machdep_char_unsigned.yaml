@@ -47,7 +47,7 @@ sig_atomic_t: 'int'
 time_t: 'long'
 has__builtin_va_list: true
 weof: '(-1L)'
-wordsize: '16'
+wordsize: '15' # exotic value chosen on purpose, for gcc_modes.c
 posix_c_source: ''
 bufsiz: '8192'
 eof: '(-1)'

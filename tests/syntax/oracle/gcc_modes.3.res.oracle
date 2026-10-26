@@ -1,0 +1,36 @@
+[kernel] Parsing gcc_modes.c (with preprocessing)
+[kernel] gcc_modes.c:11: User Error: 
+  'mode' attribute only allowed for GCC machdeps; see option -machdep or run 'frama-c -machdep help' for the list of available machdeps
+[kernel] gcc_modes.c:12: User Error: 
+  'mode' attribute only allowed for GCC machdeps; see option -machdep or run 'frama-c -machdep help' for the list of available machdeps
+[kernel] gcc_modes.c:13: User Error: 
+  'mode' attribute only allowed for GCC machdeps; see option -machdep or run 'frama-c -machdep help' for the list of available machdeps
+[kernel] gcc_modes.c:14: User Error: 
+  'mode' attribute only allowed for GCC machdeps; see option -machdep or run 'frama-c -machdep help' for the list of available machdeps
+[kernel] gcc_modes.c:15: User Error: 
+  'mode' attribute only allowed for GCC machdeps; see option -machdep or run 'frama-c -machdep help' for the list of available machdeps
+[kernel] gcc_modes.c:16: User Error: 
+  'mode' attribute only allowed for GCC machdeps; see option -machdep or run 'frama-c -machdep help' for the list of available machdeps
+[kernel] gcc_modes.c:17: User Error: 
+  'mode' attribute only allowed for GCC machdeps; see option -machdep or run 'frama-c -machdep help' for the list of available machdeps
+[kernel] gcc_modes.c:18: User Error: 
+  'mode' attribute only allowed for GCC machdeps; see option -machdep or run 'frama-c -machdep help' for the list of available machdeps
+[kernel] gcc_modes.c:19: User Error: 
+  'mode' attribute only allowed for GCC machdeps; see option -machdep or run 'frama-c -machdep help' for the list of available machdeps
+[kernel] gcc_modes.c:20: User Error: 
+  'mode' attribute only allowed for GCC machdeps; see option -machdep or run 'frama-c -machdep help' for the list of available machdeps
+[kernel] gcc_modes.c:22: User Error: 
+  'mode' attribute only allowed for GCC machdeps; see option -machdep or run 'frama-c -machdep help' for the list of available machdeps
+[kernel] gcc_modes.c:23: User Error: 
+  'mode' attribute only allowed for GCC machdeps; see option -machdep or run 'frama-c -machdep help' for the list of available machdeps
+[kernel] gcc_modes.c:25: User Error: 
+  'mode' attribute only allowed for GCC machdeps; see option -machdep or run 'frama-c -machdep help' for the list of available machdeps
+[kernel] gcc_modes.c:26: User Error: 
+  'mode' attribute only allowed for GCC machdeps; see option -machdep or run 'frama-c -machdep help' for the list of available machdeps
+[kernel] gcc_modes.c:28: User Error: 
+  'mode' attribute only allowed for GCC machdeps; see option -machdep or run 'frama-c -machdep help' for the list of available machdeps
+[kernel] gcc_modes.c:29: User Error: 
+  'mode' attribute only allowed for GCC machdeps; see option -machdep or run 'frama-c -machdep help' for the list of available machdeps
+[kernel] User Error: stopping on file "gcc_modes.c" that has errors. Add '-kernel-msg-key pp'
+  for preprocessing command.
+[kernel] Frama-C aborted: invalid user input.

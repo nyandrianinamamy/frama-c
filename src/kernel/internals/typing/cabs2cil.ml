@@ -9627,6 +9627,89 @@ and doDecl local_env (isglobal: bool) (def: Cabs.definition) : chunk =
   | Cabs.GLOBANNOT _ | Cabs.PRAGMA _ | Cabs.GLOBASM _ | Cabs.FUNDEF _ ->
     Errorloc.abort_context "this form of declaration must be global"
 
+(* remove 'mode(DI)' and similar attributes and replace with corresponding
+   integer types *)
+and doModeAttrs bt (attrs : Cabs.attribute list) =
+  let type_for_mode t mode =
+    match t with
+    | {tnode = TInt ik} ->
+      let signed = Cil.isSigned ik in
+      let mode' = String.trim_underscores mode in
+      begin
+        match signed, mode' with
+        | true, "QI"  -> Some (Cil_const.scharType)
+        | false, "QI" -> Some (Cil_const.ucharType)
+        | true, "HI"  -> Some (Cil.int16_t ())
+        | false, "HI" -> Some (Cil.uint16_t ())
+        | true, "SI"  -> Some (Cil.int32_t ())
+        | false, "SI" -> Some (Cil.uint32_t ())
+        | true, "DI"  -> Some (Cil.int64_t ())
+        | false, "DI" -> Some (Cil.uint64_t ())
+        | true, "TI"  -> Some (Cil.int128_t ())
+        | false, "TI" -> Some (Cil.uint128_t ())
+        | _, "word"  ->
+          begin
+            match signed, Machine.wordsize () with
+            | true, "32" -> Some (Cil.int32_t ())
+            | false, "32" -> Some (Cil.uint32_t ())
+            | true, "64" -> Some (Cil.int64_t ())
+            | false, "64" -> Some (Cil.uint64_t ())
+            | true, "16" -> Some (Cil.int16_t ())
+            | false, "16" -> Some (Cil.uint16_t ())
+            | _, word ->
+              Kernel.error ~once:true ~current:true
+                "unsupported 'mode(word)' attribute for wordsize: %s" word;
+              None
+          end
+        | true, "byte" -> Some (Cil_const.scharType)
+        | false, "byte" -> Some (Cil_const.ucharType)
+        | true, "pointer" -> Some (Cil_const.intPtrType)
+        | false, "pointer" -> Some (Cil_const.uintPtrType)
+        | _, _ ->
+          Kernel.error ~once:true ~current:true
+            "unsupported 'mode(%s)' attribute" mode;
+          None
+      end
+    | _ ->
+      Kernel.error ~once:true ~current:true
+        "unsupported 'mode' attribute for non-integer type: %a"
+        Cil_printer.pp_typ bt;
+      None
+  in
+  begin
+    match attrs with
+    | [ (_s, exps) ] ->
+      begin
+        match exps with
+        | [ { expr_node = CALL({ expr_node = VARIABLE s1 },
+                               [ { expr_node = VARIABLE s2 } ], []) } ] when
+            String.trim_underscores s1 = "mode" ->
+          let new_bt =
+            begin
+              if not (Machine.gccMode ()) then begin
+                Kernel.error ~once:true ~current:true
+                  "'mode' attribute %s" (Machdep.allowed_machdep "GCC");
+                None
+              end
+              else type_for_mode bt s2
+            end
+          in
+          begin
+            match new_bt with
+            | None -> bt, attrs
+            | Some new_bt ->
+              Kernel.feedback ~dkey:Kernel.dkey_typing_gcc_mode ~current:true
+                "Converting type '%a' with 'mode(%s)' attribute into mode-less type '%a'"
+                Cil_printer.pp_typ bt
+                s2
+                Cil_printer.pp_typ new_bt;
+              new_bt, []
+          end
+        | _ -> bt, attrs
+      end
+    | _ -> bt, attrs
+  end
+
 and doTypedef ghost ((specs, nl): Cabs.name_group) =
   (* Do the specifiers exactly once *)
   if !scopes <> [] then
@@ -9644,7 +9727,8 @@ and doTypedef ghost ((specs, nl): Cabs.name_group) =
   let createTypedef ((n,ndt,a,_) : Cabs.name) =
     (*    E.s (error "doTypeDef") *)
     let newTyp, tattr =
-      doType ghost `Typedef AttrType bt (Cabs.PARENTYPE(attrs, ndt, a))  in
+      let bt', a' = doModeAttrs bt a in
+      doType ghost `Typedef AttrType bt' (Cabs.PARENTYPE(attrs, ndt, a'))  in
     checkTypedefSize n newTyp;
     let tattr = fc_stdlib_attribute tattr in
     let newTyp' = Ast_types.C.add_attributes tattr newTyp in
