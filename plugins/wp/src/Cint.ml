@@ -704,13 +704,16 @@ let smp_cmp_with_lsl cmp a0 b0 =
     cmp a e_zero (* p>=0 ==> ( ((a<<p) cmp 0) <==> (a cmp 0) ) *)
   else
     let a,p = match_fun !@f_lsl a0 |> match_positive_or_null_arg2 in
+    let sign_a = Sign.get a in
     let b,q = match_fun !@f_lsl b0 |> match_positive_or_null_arg2 in
     if p == q then
       (* p>=0 && q>=0 && p==q ==> ( ((a<<p)cmp(b<<q))<==>(a cmp b) ) *)
       cmp a b
-    else if a == b && (cmp==e_eq || is_positive ~strict:false a) then
-      (* p>=0 && q>=0 && a==b         ==> ( ((a<<p)== (b<<q))<==>(p ==  q) ) *)
-      (* p>=0 && q>=0 && a==b && a>=0 ==> ( ((a<<p)cmp(b<<q))<==>(p cmp q) ) *)
+    else if a == b && not sign_a.Sign_val.zero &&
+            (cmp==e_eq || sign_a.Sign_val.pos)
+    then
+      (* p>=0 && q>=0 && a==b && a != 0 ==> ( ((a<<p)== (b<<q))<==>(p ==  q) ) *)
+      (* p>=0 && q>=0 && a==b && a > 0  ==> ( ((a<<p)cmp(b<<q))<==>(p cmp q) ) *)
       cmp p q
     else if a == b && is_negative ~strict:true a then
       (* p>=0 && q>=0 && a==b && a<0  ==> ( ((a<<p)cmp(b<<q))<==>(q cmp p) ) *)
@@ -770,27 +773,17 @@ let smp_eq_with_lsr a0 b0 =
 let smp_leq_with_lsr x y =
   try
     let a,p = match_fun !@f_lsr y |> match_positive_or_null_integer_arg2 in
-    (* x <= (a >> p) with p >= 0 *)
-    if x == e_zero then
-      (* p >= 0 ==> ( 0 <= (a >> p) <==> 0 <= a )*)
-      e_leq e_zero a
-    else
-      (* p >= 0 ==> ( x <= (a >> p) <==> x <= a/(2**p) ) *)
-      let k = two_power_k p in
-      e_leq x (e_div a (e_zint k))
+    (* p >= 0 ==> ( x <= (a >> p) <==> x * 2**p <= a ) *)
+    let k = two_power_k p in
+    e_leq (e_mul (e_zint k) x) a
   with Not_found ->
   try
     let a,p = match_fun !@f_lsr x |> match_positive_or_null_integer_arg2 in
-    (* (a >> p) <= y with p >= 0 *)
-    if y == e_zero then
-      (* p >= 0 ==> ( (a >> p) <= 0 <==> a <= 0 ) *)
-      e_leq a e_zero
-    else
-      (* p >= 0 ==> ( (a >> p) <= y <==> a/(2**p) <= y ) *)
-      let k = two_power_k p in
-      e_leq (e_div a (e_zint k)) y
+    (* p >= 0 ==> ( (a >> p) <= y <==> a <= (y + 1) * 2**p - 1 ) *)
+    let k = two_power_k p in
+    e_leq a (e_sub (e_mul (e_add y e_one) (e_zint k)) e_one)
   with Not_found ->
-    (* x <= y && 0 <= (a&b) ==> x <= (a >> b) *)
+    (* x <= y && 0 <= (a&b) ==> x <= (a >> b)*)
     smp_leq_improved !@f_lsr x y
 
 

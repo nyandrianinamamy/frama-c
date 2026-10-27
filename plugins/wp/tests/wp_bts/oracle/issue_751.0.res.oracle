@@ -50,11 +50,11 @@ Assume {
   (* Goal *)
   When: !invalid(Malloc_0, shift_sint32(Data_0, x_2), 1).
   (* Pre-condition *)
-  Have: (0 < x) /\ (x <= 2303).
+  Have: (256 <= x) /\ (x <= 2303).
   (* Invariant 'RANGE' *)
   Have: (0 < j) /\ (j <= (1 + x_1)).
   (* Then *)
-  Have: j <= (x / 256).
+  Have: (256 * j) <= x.
 }
 Prove: j <= 8.
 
@@ -88,17 +88,17 @@ Prove: true.
 
 ------------------------------------------------------------
 
-Goal Check ("issue_751.i", line 34, characters 14-46):
+Goal Check ("issue_751.i", line 34, characters 14-50):
 Prove: true.
 
 ------------------------------------------------------------
 
-Goal Check ("issue_751.i", line 35, characters 15-49):
+Goal Check ("issue_751.i", line 35, characters 15-45):
 Prove: true.
 
 ------------------------------------------------------------
 
-Goal Check ("issue_751.i", line 36, characters 14-49):
+Goal Check ("issue_751.i", line 36, characters 14-46):
 Prove: true.
 
 ------------------------------------------------------------

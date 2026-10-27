@@ -13,19 +13,19 @@
 //-- int
 //===============================================
 
-/*@ ensures ok: \result == (a & b); 
+/*@ ensures ok: \result == (a & b);
 */
-int band_int(int a,int b) { 
+int band_int(int a,int b) {
   //@ assert ok: (a & 172) <= 281 ;
   //@ assert ko: (a & 281) <= 172 ;
-  return a & b ; 
+  return a & b ;
 }
 
-/*@ ensures ok: \result == (a | b); 
+/*@ ensures ok: \result == (a | b);
  */
 int bor_int(int a,int b) { return a | b ; }
 
-/*@ ensures ok: \result == (a ^ b); 
+/*@ ensures ok: \result == (a ^ b);
  */
 int bxor_int(int a,int b) { return a ^ b ; }
 
@@ -42,7 +42,7 @@ int lshift_int(int a,int n) { return a << n ; }
 int rshift_int(int a,int n) { return a >> n ; }
 
 //===============================================
-//-- unsigned int 
+//-- unsigned int
 //===============================================
 typedef unsigned int uint;
 
@@ -52,16 +52,16 @@ void band1_uint(uint a) {
    //@ assert ok: 0 <= b <= 1;
 }
 
-/*@ ensures ok: \result == (a & b); 
+/*@ ensures ok: \result == (a & b);
 */
 uint band_uint(uint a,uint b) { return a & b ; }
 
-/*@ ensures ok: \result == (a | b); 
+/*@ ensures ok: \result == (a | b);
  */
 uint bor_uint(uint a,uint b) { return a | b ; }
 
-/*@ ensures ok: \result == (uint)(a ^ b); 
-    ensures ok: \result == (a ^ b); 
+/*@ ensures ok: \result == (uint)(a ^ b);
+    ensures ok: \result == (a ^ b);
  */
 uint bxor_uint(uint a,uint b) { return a ^ b ; }
 
@@ -82,15 +82,15 @@ uint rshift_uint(uint a,uint n) { return a >> n ; }
 //-- char
 //===============================================
 
-/*@ ensures ok: \result == (a & b); 
+/*@ ensures ok: \result == (a & b);
 */
 char band_char(char a,char b) { return a & b ; }
 
-/*@ ensures ok: \result == (a | b); 
+/*@ ensures ok: \result == (a | b);
  */
 char bor_char(char a,char b) { return a | b ; }
 
-/*@ ensures ok: \result == (a ^ b); 
+/*@ ensures ok: \result == (a ^ b);
  */
 char bxor_char(char a,char b) { return a ^ b ; }
 
@@ -117,16 +117,16 @@ void band1_uchar(uchar a) {
    //@ assert ok: 0 <= b <= 1;
 }
 
-/*@ ensures ok: \result == (a & b); 
+/*@ ensures ok: \result == (a & b);
 */
 uchar band_uchar(uchar a,uchar b) { return a & b ; }
 
-/*@ ensures ok: \result == (a | b); 
+/*@ ensures ok: \result == (a | b);
  */
 uchar bor_uchar(uchar a,uchar b) { return a | b ; }
 
-/*@ ensures ok: \result == (uchar)(a ^ b); 
-    ensures ok: \result == (a ^ b); 
+/*@ ensures ok: \result == (uchar)(a ^ b);
+    ensures ok: \result == (a ^ b);
  */
 uchar bxor_uchar(uchar a,uchar b) { return a ^ b ; }
 
@@ -172,7 +172,7 @@ void band1_ulong(unsigned long a) {
 
 /*@ ensures ok: \result == c ;
  */
-uchar cast(uchar c,uint i,long long j) { 
+uchar cast(uchar c,uint i,long long j) {
   //@ assert ok: ((uint)((int) i)) == i ;
   //@ assert ok: ((int)((uint) i)) == (int)i ;
   //@ assert ok: ((uchar)((int) i)) == (uchar)i ;
@@ -185,6 +185,22 @@ uchar cast(uchar c,uint i,long long j) {
 
   //@ assert ko: ((uint)((char) c)) == (char)c ;
 
-  return (uint) c ; 
+  return (uint) c ;
 }
 
+// should fail
+/*@ check lemma lsl_0_eq_ko: \forall integer a; 0 <= a <= 1 ==> (a << 2) != (a << 1); */
+/*@ check lemma lsl_0_cmp_ko: \forall integer a; 0 <= a <= 1 ==> (a << 2) <= (a << 1); */
+
+/*@ requires a > 0;
+    ensures ko: \result > 0; // false for a == 1
+*/
+unsigned shift_zero(unsigned a) { return a >> 1; }
+
+/*@ check lemma lsr_negative_ko: \forall integer a; a == -3 ==> -1 <= (a >> 1); */
+
+/*@ requires -3 <= a <= -2;
+    assigns \nothing;
+    ensures ko: \result >= -1;   // false for a == -3: -3 >> 1 == -2
+*/
+int shift_negative(int a) { return a >> 1; }
