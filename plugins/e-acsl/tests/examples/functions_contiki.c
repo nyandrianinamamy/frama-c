@@ -1,6 +1,11 @@
 /* run.config
-   STDOPT: +"-eva-unroll-recursive-calls 5"
+   STDOPT: #"-e-acsl-rte-initialized -eva-unroll-recursive-calls 5"
    COMMENT: functions used in Contiki
+*/
+/* run.config_dev
+   MACRO: ROOT_EACSL_GCC_FC_EXTRA_EXT -e-acsl-rte-initialized
+   MACRO: ROOT_EACSL_EXEC_EXIT_CODE 134
+   MACRO: ROOT_EACSL_EXEC_FILTER sed -e s_0x[0-9a-f-]*_0x0000-0000-0000_g
 */
 
 #include <limits.h>
@@ -24,7 +29,6 @@ int main(void) {
   struct list node1, node2, node3;
   node1.next = &node2;
   node2.next = &node3;
-  node3.next = NULL;
   struct list *l = &node1;
   /*@ assert length(l) == 3; */;
 }

@@ -683,21 +683,22 @@ let mul t1 t2 =
   let rem = Z.erem (Z.mul t1.rem t2.rem) modu in
   make ~min:(ext_proj min) ~max:(ext_proj max) ~rem ~modu
 
-(* ymin and ymax must be the same sign *)
-let div_range x ymn ymx =
+(* Sound only if [ymin] and [ymax] have the same nonzero sign: divisors near
+   zero could otherwise yield quotients outside the four-corner bounds. *)
+let div_range op x ymin ymax =
   match min_and_max x with
-  | Some xmn, Some xmx ->
-    let c1 = Z.div xmn ymn in
-    let c2 = Z.div xmx ymn in
-    let c3 = Z.div xmn ymx in
-    let c4 = Z.div xmx ymx in
+  | Some xmin, Some xmax ->
+    let c1 = op xmin ymin in
+    let c2 = op xmax ymin in
+    let c3 = op xmin ymax in
+    let c4 = op xmax ymax in
     let min = Z.min (Z.min c1 c2) (Z.min c3 c4) in
     let max = Z.max (Z.max c1 c2) (Z.max c3 c4) in
     inject_range (Some min) (Some max)
   | _ ->
     top
 
-let div x y =
+let div_generic op x y =
   match y.min, y.max with
   | None, _ | _, None -> `Value top
   | Some min, Some max ->
@@ -709,7 +710,7 @@ let div x y =
           then min
           else Z.round_up_to_r ~min:Z.one ~r:y.rem ~modu:y.modu
         in
-        `Value (div_range x lpos max)
+        `Value (div_range op x lpos max)
       else `Bottom
     in
     let result_neg =
@@ -720,10 +721,14 @@ let div x y =
           then max
           else Z.round_down_to_r ~max:Z.minus_one ~r:y.rem ~modu:y.modu
         in
-        `Value (div_range x min gneg)
+        `Value (div_range op x min gneg)
       else `Bottom
     in
     Lattice_bounds.Bottom.join join result_neg result_pos
+
+let div = div_generic Z.div
+let ediv = div_generic Z.ediv
+
 
 (* ----------------------------------- Misc --------------------------------- *)
 

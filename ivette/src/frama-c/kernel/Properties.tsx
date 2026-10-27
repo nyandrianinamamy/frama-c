@@ -17,7 +17,7 @@ import * as Dome from 'dome';
 import * as Json from 'dome/data/json';
 import * as Compare from 'dome/data/compare';
 import * as Settings from 'dome/data/settings';
-import { Label, Code, Icon } from 'dome/primitive/displays';
+import { Label, Code, Icon, Cell } from 'dome/primitive/displays';
 import { IconButton, Checkbox, BaseButtonProps } from 'dome/primitive/controls';
 import * as Form from 'dome/layout/forms';
 import * as Models from 'dome/table/models';
@@ -400,12 +400,12 @@ const renderCode: Renderer<string> =
 
 const renderTag: Renderer<States.Tag> =
   (d: States.Tag): JSX.Element =>
-    (<Label label={d.label ?? d.name} title={d.descr} />);
+    (<Cell label={d.label ?? d.name} title={d.descr} />);
 
 const renderNames: Renderer<string[]> =
   (names: string[]): JSX.Element | null => {
     const label = names?.join(': ');
-    return (label ? <Label label={label} /> : null);
+    return (label ? <Cell label={label} /> : null);
   };
 
 const renderDir: Renderer<Ast.source> =

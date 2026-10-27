@@ -122,8 +122,16 @@
 /* -------------------------------------------------------------------------- */
 
 .dome-xTable-cell {
-    display: block ;
     position: relative ;
+    margin: 0px ;
+    padding: 0px ;
+    text-overflow: ellipsis;
+}
+
+.dome-xTable-cell-icon {
+    position: relative ;
+    margin: 0px 4px 0px 0px ;
+    padding: 0px ;
 }
 
 /* -------------------------------------------------------------------------- */

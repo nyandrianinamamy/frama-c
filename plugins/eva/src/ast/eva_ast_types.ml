@@ -43,13 +43,14 @@ type varinfo = Varinfo.t [@@deriving eq,ord]
 type exp = exp_node tag
 
 and exp_node =
-  | Const      of constant
-  | Lval       of lval
-  | UnOp       of unop * exp * typ
-  | BinOp      of binop * exp * exp * typ
-  | CastE      of typ * exp
-  | AddrOf     of lval
-  | StartOf    of lval
+  | Const       of constant
+  | Lval        of lval
+  | UnOp        of unop * exp * typ
+  | BinOp       of binop * exp * exp * typ
+  | CastE       of typ * exp
+  | AddrOf      of lval
+  | StartOf     of lval
+  | SizeOfArray of { typ: typ; elt_size: exp; array_length: exp }
 
 (** Constants *)
 and constant =

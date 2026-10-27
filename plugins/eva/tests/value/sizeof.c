@@ -2,6 +2,11 @@
    STDOPT: +"-print -machdep gcc_x86_32"
 */
 
+#include <stddef.h>
+#include <stdint.h>
+#include <limits.h>
+
+volatile unsigned int nondet;
 int sz_str,sz_typ,align_str,align_typ;
 
 void main1()
@@ -52,10 +57,43 @@ unsigned fsize3(int n) {
   return sizeof b; // execution time sizeof
 }
 
+/* Test the interpretation of sizeof applied to variable length array type,
+   where the operand must be evaluated (and possible alarms emitted). */
+void sizeof_vla_type(void) {
+  int x, y, z;
+  size_t size;
+  /* Test the values computed for sizeof. */
+  x = 42;
+  size = sizeof(char[x]);
+  Frama_C_show_each_42(size);
+  size = sizeof(int[x+8]);
+  Frama_C_show_each_200(size);
+  x = 3; y = 4; z = 5;
+  size = sizeof(short[x][y][z]);
+  Frama_C_show_each_120(size);
+  x = nondet % 21;
+  size = sizeof(int[x]);
+  Frama_C_show_each_0_80(size);
+  x = nondet % 9; // [0..8]
+  y = nondet % 5 + 6; // [6..10]
+  z = nondet % 3; // [0..2]
+  size = sizeof(short[x+2][y-z][2]);
+  Frama_C_show_each_32_400(size);
+  /* Test the emission of alarms in the evaluation of sizeof. */
+  y = nondet % 10;
+  size = sizeof(int[x/y]); // possible division by zero
+  x = INT_MAX;
+  if (nondet) size = sizeof(int[x+1][2]); // invalid integer overflow alarm
+  size_t max = SIZE_MAX;
+  if (nondet) size = sizeof(char[max]);
+  if (nondet) size = sizeof(int[max]); // overflow: sizeof exceeds SIZE_MAX
+}
+
 void main(int *p, int *q, int j) {
   main1();
   main2();
   sizeof_void();
   f(sizeof(*p) * j); // must not crash with equality domain
   int r = fsize3(5);
+  sizeof_vla_type();
 }

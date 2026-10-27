@@ -11,7 +11,6 @@
 
 type t
 
-val empty : t
 val cwd : t
 
 val of_string : ?base:string -> string -> t

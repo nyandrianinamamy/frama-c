@@ -1,38 +1,72 @@
 [e-acsl] beginning translation.
-[e-acsl] Warning: cannot create the pointer alignment guard of s because void is an incomplete type
-[e-acsl] Warning: cannot create the pointer alignment guard of s because void is an incomplete type
-[e-acsl] Warning: cannot create the pointer alignment guard of s because void is an incomplete type
-[e-acsl] Warning: cannot create the pointer alignment guard of s because void is an incomplete type
-[e-acsl] Warning: cannot create the pointer alignment guard of s because void is an incomplete type
-[e-acsl] Warning: cannot create the pointer alignment guard of s because void is an incomplete type
-[e-acsl] Warning: cannot create the pointer alignment guard of s because void is an incomplete type
-[e-acsl] Warning: cannot create the pointer alignment guard of \result because void is an incomplete type
-[e-acsl] Warning: cannot create the pointer alignment guard of s because void is an incomplete type
-[e-acsl] Warning: cannot create the pointer alignment guard of s because void is an incomplete type
-[e-acsl] Warning: cannot create the pointer alignment guard of \result because void is an incomplete type
-[e-acsl] Warning: cannot create the pointer alignment guard of s because void is an incomplete type
-[e-acsl] Warning: cannot create the pointer alignment guard of dest because void is an incomplete type
-[e-acsl] Warning: cannot create the pointer alignment guard of src because void const is an incomplete type
-[e-acsl] Warning: cannot create the pointer alignment guard of dest because void is an incomplete type
-[e-acsl] Warning: cannot create the pointer alignment guard of src because void const is an incomplete type
-[e-acsl] Warning: cannot create the pointer alignment guard of \result because void is an incomplete type
-[e-acsl] Warning: cannot create the pointer alignment guard of dest because void is an incomplete type
-[e-acsl] Warning: cannot create the pointer alignment guard of dest because void is an incomplete type
-[e-acsl] Warning: cannot create the pointer alignment guard of src because void const is an incomplete type
-[e-acsl] Warning: cannot create the pointer alignment guard of \result because void is an incomplete type
-[e-acsl] Warning: cannot create the pointer alignment guard of dest because void is an incomplete type
-[e-acsl] Warning: cannot create the pointer alignment guard of dest because void is an incomplete type
-[e-acsl] Warning: cannot create the pointer alignment guard of src because void const is an incomplete type
-[e-acsl] Warning: cannot create the pointer alignment guard of dest because void is an incomplete type
-[e-acsl] Warning: cannot create the pointer alignment guard of src because void const is an incomplete type
-[e-acsl] Warning: cannot create the pointer alignment guard of dest because void is an incomplete type
-[e-acsl] Warning: cannot create the pointer alignment guard of src because void const is an incomplete type
-[e-acsl] Warning: cannot create the pointer alignment guard of \result because void is an incomplete type
-[e-acsl] Warning: cannot create the pointer alignment guard of dest because void is an incomplete type
-[e-acsl] Warning: cannot create the pointer alignment guard of dest because void is an incomplete type
-[e-acsl] Warning: cannot create the pointer alignment guard of src because void const is an incomplete type
-[e-acsl] Warning: cannot create the pointer alignment guard of \result because void is an incomplete type
-[e-acsl] Warning: cannot create the pointer alignment guard of dest because void is an incomplete type
+[e-acsl] FRAMAC_SHARE/libc/string.h:24: Warning: 
+  cannot create the pointer alignment guard of s because void is an incomplete type
+[e-acsl] FRAMAC_SHARE/libc/string.h:48: Warning: 
+  cannot create the pointer alignment guard of s because void is an incomplete type
+[e-acsl] FRAMAC_SHARE/libc/string.h:48: Warning: 
+  cannot create the pointer alignment guard of s because void is an incomplete type
+[e-acsl] FRAMAC_SHARE/libc/string.h:51: Warning: 
+  cannot create the pointer alignment guard of s because void is an incomplete type
+[e-acsl] FRAMAC_SHARE/libc/string.h:51: Warning: 
+  cannot create the pointer alignment guard of s because void is an incomplete type
+[e-acsl] FRAMAC_SHARE/libc/string.h:164: Warning: 
+  cannot create the pointer alignment guard of s because void is an incomplete type
+[e-acsl] FRAMAC_SHARE/libc/string.h:165: Warning: 
+  cannot create the pointer alignment guard of s because void is an incomplete type
+[e-acsl] FRAMAC_SHARE/libc/string.h:166: Warning: 
+  cannot create the pointer alignment guard of \result because void is an incomplete type
+[e-acsl] FRAMAC_SHARE/libc/string.h:166: Warning: 
+  cannot create the pointer alignment guard of s because void is an incomplete type
+[e-acsl] FRAMAC_SHARE/libc/string.h:167: Warning: 
+  cannot create the pointer alignment guard of s because void is an incomplete type
+[e-acsl] FRAMAC_SHARE/libc/string.h:168: Warning: 
+  cannot create the pointer alignment guard of \result because void is an incomplete type
+[e-acsl] FRAMAC_SHARE/libc/string.h:168: Warning: 
+  cannot create the pointer alignment guard of s because void is an incomplete type
+[e-acsl] FRAMAC_SHARE/libc/string.h:153: Warning: 
+  cannot create the pointer alignment guard of dest because void is an incomplete type
+[e-acsl] FRAMAC_SHARE/libc/string.h:154: Warning: 
+  cannot create the pointer alignment guard of src because void const is an incomplete type
+[e-acsl] FRAMAC_SHARE/libc/string.h:155: Warning: 
+  cannot create the pointer alignment guard of dest because void is an incomplete type
+[e-acsl] FRAMAC_SHARE/libc/string.h:155: Warning: 
+  cannot create the pointer alignment guard of src because void const is an incomplete type
+[e-acsl] FRAMAC_SHARE/libc/string.h:156: Warning: 
+  cannot create the pointer alignment guard of \result because void is an incomplete type
+[e-acsl] FRAMAC_SHARE/libc/string.h:156: Warning: 
+  cannot create the pointer alignment guard of dest because void is an incomplete type
+[e-acsl] FRAMAC_SHARE/libc/string.h:157: Warning: 
+  cannot create the pointer alignment guard of dest because void is an incomplete type
+[e-acsl] FRAMAC_SHARE/libc/string.h:157: Warning: 
+  cannot create the pointer alignment guard of src because void const is an incomplete type
+[e-acsl] FRAMAC_SHARE/libc/string.h:158: Warning: 
+  cannot create the pointer alignment guard of \result because void is an incomplete type
+[e-acsl] FRAMAC_SHARE/libc/string.h:158: Warning: 
+  cannot create the pointer alignment guard of dest because void is an incomplete type
+[e-acsl] FRAMAC_SHARE/libc/string.h:128: Warning: 
+  cannot create the pointer alignment guard of dest because void is an incomplete type
+[e-acsl] FRAMAC_SHARE/libc/string.h:129: Warning: 
+  cannot create the pointer alignment guard of src because void const is an incomplete type
+[e-acsl] FRAMAC_SHARE/libc/string.h:131: Warning: 
+  cannot create the pointer alignment guard of dest because void is an incomplete type
+[e-acsl] FRAMAC_SHARE/libc/string.h:131: Warning: 
+  cannot create the pointer alignment guard of src because void const is an incomplete type
+[e-acsl] FRAMAC_SHARE/libc/string.h:132: Warning: 
+  cannot create the pointer alignment guard of dest because void is an incomplete type
+[e-acsl] FRAMAC_SHARE/libc/string.h:132: Warning: 
+  cannot create the pointer alignment guard of src because void const is an incomplete type
+[e-acsl] FRAMAC_SHARE/libc/string.h:133: Warning: 
+  cannot create the pointer alignment guard of \result because void is an incomplete type
+[e-acsl] FRAMAC_SHARE/libc/string.h:133: Warning: 
+  cannot create the pointer alignment guard of dest because void is an incomplete type
+[e-acsl] FRAMAC_SHARE/libc/string.h:134: Warning: 
+  cannot create the pointer alignment guard of dest because void is an incomplete type
+[e-acsl] FRAMAC_SHARE/libc/string.h:134: Warning: 
+  cannot create the pointer alignment guard of src because void const is an incomplete type
+[e-acsl] FRAMAC_SHARE/libc/string.h:135: Warning: 
+  cannot create the pointer alignment guard of \result because void is an incomplete type
+[e-acsl] FRAMAC_SHARE/libc/string.h:135: Warning: 
+  cannot create the pointer alignment guard of dest because void is an incomplete type
 [e-acsl] FRAMAC_SHARE/libc/string.h:164: Warning: 
   no assigns clause generated for function valid_or_empty because pointers as arguments is not yet supported
 [e-acsl] FRAMAC_SHARE/libc/string.h:164: Warning: 
@@ -56,11 +90,19 @@
   is not yet supported.
   Ignoring annotation.
 [e-acsl] translation done in project "e-acsl".
+[eva:alarm] FRAMAC_SHARE/libc/string.h:48: Warning: 
+  function __e_acsl_assert, behavior blocking: precondition got status unknown.
+[eva:alarm] FRAMAC_SHARE/libc/string.h:48: Warning: 
+  function __e_acsl_assert, behavior blocking: precondition got status unknown.
 [eva:alarm] FRAMAC_SHARE/libc/string.h:164: Warning: 
   function __e_acsl_assert, behavior blocking: precondition got status unknown.
 [eva:alarm] FRAMAC_SHARE/libc/string.h:167: Warning: 
   function __gen_e_acsl_memset: postcondition 'acsl_c_equiv' got status unknown.
 [eva:alarm] FRAMAC_SHARE/libc/string.h:128: Warning: 
+  function __e_acsl_assert, behavior blocking: precondition got status unknown.
+[eva:alarm] FRAMAC_SHARE/libc/string.h:51: Warning: 
+  function __e_acsl_assert, behavior blocking: precondition got status unknown.
+[eva:alarm] FRAMAC_SHARE/libc/string.h:51: Warning: 
   function __e_acsl_assert, behavior blocking: precondition got status unknown.
 [eva:alarm] FRAMAC_SHARE/libc/string.h:129: Warning: 
   function __e_acsl_assert, behavior blocking: precondition got status unknown.

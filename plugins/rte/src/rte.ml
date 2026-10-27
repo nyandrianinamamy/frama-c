@@ -464,14 +464,12 @@ let pointer_alignment ~remove_trivial ~on_alarm (expr, t) =
   assert (Ast_types.C.is_ptr t) ;
   let pointed_to = Ast_types.C.direct_pointed t in
   let expr = Cil.stripCasts expr in
-  match trivially_aligned expr pointed_to with
-  | Yes ->
-    if not remove_trivial
-    then on_alarm ~invalid:false (Alarms.Unaligned_pointer (expr, pointed_to))
-  | No ->
-    on_alarm ~invalid:true (Alarms.Unaligned_pointer (expr, pointed_to))
-  | Maybe ->
-    on_alarm ~invalid:false (Alarms.Unaligned_pointer (expr, pointed_to))
+  if not remove_trivial
+  then on_alarm ~invalid:false (Alarms.Unaligned_pointer (expr, pointed_to))
+  else match trivially_aligned expr pointed_to with
+    | Yes -> ()
+    | No -> on_alarm ~invalid:true (Alarms.Unaligned_pointer (expr, pointed_to))
+    | Maybe -> on_alarm ~invalid:false (Alarms.Unaligned_pointer (expr, pointed_to))
 
 let bool_value ~remove_trivial ~on_alarm lv =
   match remove_trivial, lv with

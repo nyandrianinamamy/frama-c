@@ -66,24 +66,14 @@ Options taking a string as argument should preferably be written
                     types (opposite option is -e-acsl-O-no-gmp-only)
 -e-acsl-O-hyp-gath  (O ≥ 1) hypothesis gathering (in inductive extraction)
                     (opposite option is -e-acsl-O-no-hyp-gath)
--e-acsl-O-implicit-downcast  (O ≤ 2) generate RTE guards for implicit
-                    downcast done by the translation (opposite option is
-                    -e-acsl-O-no-implicit-downcast)
 -e-acsl-O-print-values  (O ≤ 3) print values of variables involved in a
                     failed verification along with the runtime error message
                     (opposite option is -e-acsl-O-no-print-values)
--e-acsl-O-rte       (O ≤ 2) generate RTE guards for annotations (opposite
-                    option is -e-acsl-O-no-rte)
--e-acsl-O-rte-initialized  (O ≤ 1) generate 'initialization' RTE guards for
-                    all specifications (opposite option is
-                    -e-acsl-O-no-rte-initialized)
 -e-acsl-O-smart-cil  (O ≥ 1) optimises cil statements and predicates using
                     smart constructors (opposite option is
                     -e-acsl-O-no-smart-cil)
 -e-acsl-O-smart-il  (O ≥ 1) optimises expressions using smart constructors
                     (opposite option is -e-acsl-O-no-smart-il)
--e-acsl-O-trivial-rte  (O = 0) generate trivial RTE guards (opposite option
-                    is -e-acsl-O-no-trivial-rte)
 -e-acsl-O-valid     (O = 0) verify annotations which have been proven valid
                     (opposite option is -e-acsl-O-no-valid)
 
@@ -110,6 +100,35 @@ Options taking a string as argument should preferably be written
                     warning, error, abort, feedback-once, warning-once,
                     error-once. Defaults to warning. (preferably use
                     -e-acsl-warn-key="k1[=s1][,...,kn[=sn]]")
+
+*** RTE ANALYSIS FOR ANNOTATIONS
+
+-e-acsl-rte <n>     RTE analysis level (default: 1). The value n gives a
+                    global control on the RTE guards generation for
+                    annotations. Individual options below, kernel options and
+                    RTE options are always given priority over n (except for
+                    n = 0 or O > 2 where O is the optimization level). 
+                    0: no RTE guards are generated. 
+                    1: RTE guards are generated, kinds of RTE considered
+                    depends only on the default values of individual options.
+                    
+                    2: same as n = 1, but all kinds of RTE are considered by
+                    default 
+                    3: same as n = 2, but statically verified RTE guards are
+                    also generated.
+-e-acsl-rte-div     generate RTE guards for potential modulo or division by
+                    zero (set by default, opposite option is
+                    -e-acsl-no-rte-div)
+-e-acsl-rte-float-to-int  generate RTE guards for casts from floating-point
+                    to integer (set by default, opposite option is
+                    -e-acsl-no-rte-float-to-int)
+-e-acsl-rte-implicit-downcast  generate RTE guards for implicit downcast done
+                    by the translation (set by default, opposite option is
+                    -e-acsl-no-rte-implicit-downcast)
+-e-acsl-rte-initialized  generates RTE guards for initialization (opposite
+                    option is -e-acsl-no-rte-initialized)
+-e-acsl-rte-mem     generate RTE guards for valid pointer or array access
+                    (set by default, opposite option is -e-acsl-no-rte-mem)
 
 *** TWEAKING INTEGER ANALYSIS (EXPERTS ONLY)
 

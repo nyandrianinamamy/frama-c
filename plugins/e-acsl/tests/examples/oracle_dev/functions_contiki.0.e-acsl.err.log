@@ -1,0 +1,10 @@
+functions_contiki.c: In function 'length_aux_here'
+functions_contiki.c:23: Error: E-ACSL RTE failed:
+	The failing predicate is:
+	uninitialized:
+		\initialized(&l->next).
+	With values at failure point:
+	- uninitialized: \initialized(&l->next): 0
+	- sizeof(struct list *): 8
+	- &l->next: 0x0000-0000-0000
+

@@ -470,6 +470,7 @@ let annotate ?flags kf =
   if comp Initialized.accessor
       (not @@ Kernel_function.Set.is_empty flags.initialized) |||
      comp Mem_access.accessor flags.mem_access |||
+     comp Pointer_alignment.accessor flags.pointer_alignment |||
      comp Pointer_value.accessor flags.pointer_value |||
      comp Pointer_call.accessor flags.pointer_call |||
      comp Div_mod.accessor flags.div_mod |||

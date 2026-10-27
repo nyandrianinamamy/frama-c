@@ -19,6 +19,7 @@ include P
 module Group = struct
   let optimisation = add_group "Optimisation"
   let widening = add_group "Tweaking integer analysis (experts only)"
+  let rte = add_group "RTE analysis for annotations"
 end
 
 module Run =
@@ -178,34 +179,6 @@ module Optimisations = struct
       let descr = "hypothesis gathering (in inductive extraction)"
     end)
 
-  module Rte =
-    Make (struct
-      let name = "rte"
-      let level = Leq 2
-      let descr = "generate RTE guards for annotations"
-    end)
-
-  module Trivial_rte =
-    Make (struct
-      let name = "trivial-rte"
-      let level = Eq 0
-      let descr = "generate trivial RTE guards"
-    end)
-
-  module Rte_initialized =
-    Make (struct
-      let name = "rte-initialized"
-      let level = Leq 1
-      let descr = "generate 'initialization' RTE guards for all specifications"
-    end)
-
-  module Implicit_downcast =
-    Make (struct
-      let name = "implicit-downcast"
-      let level = Leq 2
-      let descr = "generate RTE guards for implicit downcast done by the translation"
-    end)
-
   module Smart_il =
     Make (struct
       let name = "smart-il"
@@ -249,6 +222,66 @@ module Optimisations = struct
 
 end
 
+module Rte =
+struct
+  module Lvl = Int (struct
+      let () = Parameter_customize.set_group Group.rte
+      let default = 1
+      let option_name = "-e-acsl-rte"
+      let arg_name = "n"
+      let help = "RTE analysis level (default: 1). The value n gives a global \
+                  control on the RTE guards generation for annotations. \
+                  Individual options below, kernel options and RTE options are \
+                  always given priority over n (except for n = 0 or O > 2 \
+                  where O is the optimization level). \
+                  \n0: no RTE guards are generated. \
+                  \n1: RTE guards are generated, kinds of RTE considered depends \
+                  only on the default values of individual options. \
+                  \n2: same as n = 1, but all kinds of RTE are considered by \
+                  default \
+                  \n3: same as n = 2, but statically verified RTE guards are \
+                  also generated."
+    end)
+
+  let () = Lvl.set_range ~min:0 ~max:3
+
+  module Initialized = False
+      (struct
+        let () = Parameter_customize.set_group Group.rte
+        let option_name = "-e-acsl-rte-initialized"
+        let help = "generates RTE guards for initialization"
+      end)
+
+  module ImplicitDowncast = True
+      (struct
+        let () = Parameter_customize.set_group Group.rte
+        let option_name = "-e-acsl-rte-implicit-downcast"
+        let help = "generate RTE guards for implicit downcast done by the \
+                    translation"
+      end)
+  module DivMod = True
+      (struct
+        let () = Parameter_customize.set_group Group.rte
+        let option_name = "-e-acsl-rte-div"
+        let help = "generate RTE guards for potential modulo or division by zero"
+      end)
+
+  module Mem = True
+      (struct
+        let () = Parameter_customize.set_group Group.rte
+        let option_name = "-e-acsl-rte-mem"
+        let help = "generate RTE guards for valid pointer or array access"
+      end)
+
+  module FloatToInt = True
+      (struct
+        let () = Parameter_customize.set_group Group.rte
+        let option_name = "-e-acsl-rte-float-to-int"
+        let help = "generate RTE guards for casts from floating-point to \
+                    integer"
+      end)
+
+end
 
 module Widening_arguments_base = Int
     (struct
@@ -324,7 +357,13 @@ let emitter =
     ~correctness:[ Functions.parameter;
                    Instrument.parameter;
                    Validate_format_strings.parameter;
-                   Temporal_validity.parameter ]
+                   Temporal_validity.parameter;
+                   Rte.Lvl.parameter;
+                   Rte.DivMod.parameter;
+                   Rte.Mem.parameter;
+                   Rte.FloatToInt.parameter;
+                   Rte.Initialized.parameter;
+                   Rte.ImplicitDowncast.parameter ]
     ~tuning:[ Optimisations.Gmp_only.parameter;
               Optimisations.Verify_valid.parameter;
               Replace_libc_functions.parameter;

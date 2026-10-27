@@ -58,6 +58,11 @@ struct
     | CastE (t, e) ->
       let e' = visitor.exp e in
       replace_if (e' != e) (CastE (t, e'))
+    | SizeOfArray { typ; elt_size; array_length } ->
+      let elt_size' = visitor.exp elt_size in
+      let array_length' = visitor.exp array_length in
+      replace_if (elt_size' != elt_size || array_length' != array_length)
+        (SizeOfArray { typ; elt_size = elt_size'; array_length = array_length' })
     | Const _ ->
       exp
 
@@ -132,9 +137,9 @@ struct
     match exp.node with
     | Lval lv | AddrOf lv | StartOf lv ->
       visitor.lval lv
-    | UnOp (_, e, _) | CastE (_, e) ->
+    | UnOp (_, e, _) | CastE (_, e)  ->
       visitor.exp e
-    | BinOp (_op, e1, e2, _t) ->
+    | BinOp (_, e1, e2, _) | SizeOfArray { elt_size = e1; array_length = e2 } ->
       visitor.combine (visitor.exp e1) (visitor.exp e2)
     | Const _ ->
       visitor.neutral

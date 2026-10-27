@@ -124,7 +124,7 @@ let floor = floor
 let ceil  = ceil
 
 let trunc  f = Typed_float.(double f |> trunc |> to_float)
-let fround f = Typed_float.(single f |> round |> to_float)
+let round f = Typed_float.(double f |> round |> to_float)
 
 type format = Format : 'f Typed_float.format -> format
 

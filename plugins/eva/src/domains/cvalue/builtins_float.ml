@@ -102,7 +102,7 @@ let () =
   register_arity1 "floor" Cil_types.FDouble floor;
   register_arity1 "ceil" Cil_types.FDouble ceil;
   register_arity1 "trunc" Cil_types.FDouble trunc;
-  register_arity1 "round" Cil_types.FDouble fround;
+  register_arity1 "round" Cil_types.FDouble round;
 
   register_arity1 "cosf" Cil_types.FFloat cos;
   register_arity1 "sinf" Cil_types.FFloat sin;
@@ -116,4 +116,4 @@ let () =
   register_arity1 "floorf" Cil_types.FFloat floor;
   register_arity1 "ceilf" Cil_types.FFloat ceil;
   register_arity1 "truncf" Cil_types.FFloat trunc;
-  register_arity1 "roundf" Cil_types.FFloat fround
+  register_arity1 "roundf" Cil_types.FFloat round

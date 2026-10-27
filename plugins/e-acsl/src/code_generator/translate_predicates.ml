@@ -176,9 +176,13 @@ let rec predicate_content_to_exp_old ?(inplace=false) ?name ~loc ~adata ~env ~kf
     to_exp ~adata ~name:"implies" kf env rewritten
   | Piff(p1, p2) ->
     let rewritten = (* (p1 <==> p2) <==> (p1 ==> p2 && p2 ==> p1) *)
+      let p1' = Terms.Id.deep_copy_predicate p1 in
+      let p2' = Terms.Id.deep_copy_predicate p2 in
+      Rte_analysis.preprocess_predicate ~kf p1';
+      Rte_analysis.preprocess_predicate ~kf p2';
       Logic_const.pand ~loc
         (Logic_const.pimplies ~loc (p1, p2),
-         Logic_const.pimplies ~loc (p2, p1))
+         Logic_const.pimplies ~loc (p2', p1'))
     in
     Typing.preprocess_predicate ~logic_env rewritten;
     to_exp ~adata ~name:"equiv" kf env rewritten
@@ -415,19 +419,32 @@ let rte_guards_to_exp_old ~loc ~kf t env =
     Rte_analysis.fold_guards ~default:env t @@ fun p env ->
     Assert.push_pending_register_data ();
     let adata, env = Assert.empty ~loc kf env in
-    let cil, adata, env = to_exp ~adata kf env p in
-    let stmt, env = Assert.runtime_check
-        ~adata
-        ~pred_kind:Assert
-        RTE
-        kf
-        env
-        cil
-        p
-    in
-    let env = Assert.do_pending_register_data env in
-    let env = Env.add_stmt ~annot:p env stmt in
-    env
+    Env.handle_error (fun env ->
+        try
+          let cil, adata, env = to_exp ~adata kf env p in
+          let annot =
+            Terms.Id.deep_copy_predicate @@
+            Translate_utils.update_lv_origin env p
+          in
+          let stmt, env = Assert.runtime_check
+              ~adata
+              ~pred_kind:Assert
+              RTE
+              kf
+              env
+              cil
+              annot
+          in
+          let env = Assert.do_pending_register_data env in
+          Env.add_stmt ~annot env stmt
+        with Error.Not_yet (_,_,s) as e ->
+          Options.warning ~current:true
+            "RTE guard %a cannot be translated because construct '%s' is not \
+             supported yet. Ignoring RTE guard."
+            Printer.pp_predicate p
+            s;
+          raise e)
+      env
   in
   Rte_analysis.remove t;
   env

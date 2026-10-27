@@ -83,185 +83,93 @@ int main(void)
   {
     __e_acsl_mpz_t __gen_e_acsl__5;
     int __gen_e_acsl_null_vector_here_6;
-    __e_acsl_assert_data_t __gen_e_acsl_assert_data_2 =
+    __e_acsl_assert_data_t __gen_e_acsl_assert_data_6 =
       {.values = (void *)0};
     __gmpz_init_set_str(__gen_e_acsl__5,"1",10);
     __gen_e_acsl_null_vector_here_6 = __gen_e_acsl_null_vector_here((int *)(& arr),
                                                                     (__e_acsl_mpz_struct *)__gen_e_acsl__5);
-    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_2,"&arr",
+    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_6,"&arr",
                                  (void *)(& arr));
-    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_2,
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_6,
                                  "null_vector((int *)(&arr), 1)",0,
                                  __gen_e_acsl_null_vector_here_6);
-    __gen_e_acsl_assert_data_2.blocking = 1;
-    __gen_e_acsl_assert_data_2.kind = "Assertion";
-    __gen_e_acsl_assert_data_2.pred_txt = "!null_vector((int *)(&arr), 1)";
-    __gen_e_acsl_assert_data_2.file = "nfm_2019.c";
-    __gen_e_acsl_assert_data_2.fct = "main";
-    __gen_e_acsl_assert_data_2.line = 26;
+    __gen_e_acsl_assert_data_6.blocking = 1;
+    __gen_e_acsl_assert_data_6.kind = "Assertion";
+    __gen_e_acsl_assert_data_6.pred_txt = "!null_vector((int *)(&arr), 1)";
+    __gen_e_acsl_assert_data_6.file = "nfm_2019.c";
+    __gen_e_acsl_assert_data_6.fct = "main";
+    __gen_e_acsl_assert_data_6.line = 26;
     __e_acsl_assert(! __gen_e_acsl_null_vector_here_6,
-                    & __gen_e_acsl_assert_data_2);
-    __e_acsl_assert_clean(& __gen_e_acsl_assert_data_2);
+                    & __gen_e_acsl_assert_data_6);
+    __e_acsl_assert_clean(& __gen_e_acsl_assert_data_6);
     __gmpz_clear(__gen_e_acsl__5);
   }
   /*@ assert !null_vector((int *)(&arr), 1); */ ;
   {
     __e_acsl_mpz_t __gen_e_acsl__6;
     int __gen_e_acsl_null_vector_here_8;
-    __e_acsl_assert_data_t __gen_e_acsl_assert_data_3 =
+    __e_acsl_assert_data_t __gen_e_acsl_assert_data_7 =
       {.values = (void *)0};
     __gmpz_init_set_str(__gen_e_acsl__6,"2",10);
     __gen_e_acsl_null_vector_here_8 = __gen_e_acsl_null_vector_here((int *)(& arr),
                                                                     (__e_acsl_mpz_struct *)__gen_e_acsl__6);
-    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_3,"&arr",
+    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_7,"&arr",
                                  (void *)(& arr));
-    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_3,
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_7,
                                  "null_vector((int *)(&arr), 2)",0,
                                  __gen_e_acsl_null_vector_here_8);
-    __gen_e_acsl_assert_data_3.blocking = 1;
-    __gen_e_acsl_assert_data_3.kind = "Assertion";
-    __gen_e_acsl_assert_data_3.pred_txt = "!null_vector((int *)(&arr), 2)";
-    __gen_e_acsl_assert_data_3.file = "nfm_2019.c";
-    __gen_e_acsl_assert_data_3.fct = "main";
-    __gen_e_acsl_assert_data_3.line = 27;
+    __gen_e_acsl_assert_data_7.blocking = 1;
+    __gen_e_acsl_assert_data_7.kind = "Assertion";
+    __gen_e_acsl_assert_data_7.pred_txt = "!null_vector((int *)(&arr), 2)";
+    __gen_e_acsl_assert_data_7.file = "nfm_2019.c";
+    __gen_e_acsl_assert_data_7.fct = "main";
+    __gen_e_acsl_assert_data_7.line = 27;
     __e_acsl_assert(! __gen_e_acsl_null_vector_here_8,
-                    & __gen_e_acsl_assert_data_3);
-    __e_acsl_assert_clean(& __gen_e_acsl_assert_data_3);
+                    & __gen_e_acsl_assert_data_7);
+    __e_acsl_assert_clean(& __gen_e_acsl_assert_data_7);
     __gmpz_clear(__gen_e_acsl__6);
   }
   /*@ assert !null_vector((int *)(&arr), 2); */ ;
   {
     __e_acsl_mpz_t __gen_e_acsl__7;
     int __gen_e_acsl_null_vector_here_10;
-    __e_acsl_assert_data_t __gen_e_acsl_assert_data_4 =
+    __e_acsl_assert_data_t __gen_e_acsl_assert_data_8 =
       {.values = (void *)0};
     __gmpz_init_set_str(__gen_e_acsl__7,"3",10);
     __gen_e_acsl_null_vector_here_10 = __gen_e_acsl_null_vector_here((int *)(& arr),
                                                                     (__e_acsl_mpz_struct *)__gen_e_acsl__7);
-    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_4,"&arr",
+    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_8,"&arr",
                                  (void *)(& arr));
-    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_4,
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_8,
                                  "null_vector((int *)(&arr), 3)",0,
                                  __gen_e_acsl_null_vector_here_10);
-    __gen_e_acsl_assert_data_4.blocking = 1;
-    __gen_e_acsl_assert_data_4.kind = "Assertion";
-    __gen_e_acsl_assert_data_4.pred_txt = "!null_vector((int *)(&arr), 3)";
-    __gen_e_acsl_assert_data_4.file = "nfm_2019.c";
-    __gen_e_acsl_assert_data_4.fct = "main";
-    __gen_e_acsl_assert_data_4.line = 28;
+    __gen_e_acsl_assert_data_8.blocking = 1;
+    __gen_e_acsl_assert_data_8.kind = "Assertion";
+    __gen_e_acsl_assert_data_8.pred_txt = "!null_vector((int *)(&arr), 3)";
+    __gen_e_acsl_assert_data_8.file = "nfm_2019.c";
+    __gen_e_acsl_assert_data_8.fct = "main";
+    __gen_e_acsl_assert_data_8.line = 28;
     __e_acsl_assert(! __gen_e_acsl_null_vector_here_10,
-                    & __gen_e_acsl_assert_data_4);
-    __e_acsl_assert_clean(& __gen_e_acsl_assert_data_4);
+                    & __gen_e_acsl_assert_data_8);
+    __e_acsl_assert_clean(& __gen_e_acsl_assert_data_8);
     __gmpz_clear(__gen_e_acsl__7);
   }
   /*@ assert !null_vector((int *)(&arr), 3); */ ;
   {
     __e_acsl_mpz_t __gen_e_acsl__8;
-    int __gen_e_acsl_aligned;
+    int __gen_e_acsl_aligned_4;
     int __gen_e_acsl_null_vector_here_12;
-    __e_acsl_assert_data_t __gen_e_acsl_assert_data_5 =
-      {.values = (void *)0};
-    __gmpz_init_set_str(__gen_e_acsl__8,"0",10);
-    __e_acsl_assert_data_t __gen_e_acsl_assert_data_6 =
-      {.values = (void *)0};
-    __gen_e_acsl_aligned = __e_acsl_aligned((void *)(& arr[1]),4UL);
-    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_6,"&arr[1]",
-                                 (void *)(& arr[1]));
-    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_6,
-                                 "\"pointer alignment\": \\aligned(&arr[1],4)",
-                                 0,__gen_e_acsl_aligned);
-    /*@ assert E_ACSL: "pointer alignment": \aligned(&arr[1],4); */
-    {
-      __gen_e_acsl_assert_data_6.blocking = 1;
-      __gen_e_acsl_assert_data_6.kind = "E-ACSL RTE";
-      __gen_e_acsl_assert_data_6.pred_txt = "\\aligned(&arr[1],4)";
-      __gen_e_acsl_assert_data_6.file = "nfm_2019.c";
-      __gen_e_acsl_assert_data_6.fct = "main";
-      __gen_e_acsl_assert_data_6.line = 29;
-      __gen_e_acsl_assert_data_6.name = "pointer alignment";
-      __e_acsl_assert(__gen_e_acsl_aligned,& __gen_e_acsl_assert_data_6);
-      __e_acsl_assert_clean(& __gen_e_acsl_assert_data_6);
-    }
-    __gen_e_acsl_null_vector_here_12 = __gen_e_acsl_null_vector_here(& arr[1],
-                                                                    (__e_acsl_mpz_struct *)__gen_e_acsl__8);
-    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_5,"&arr[1]",
-                                 (void *)(& arr[1]));
-    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_5,
-                                 "null_vector((int *)(&arr[1]), 0)",0,
-                                 __gen_e_acsl_null_vector_here_12);
-    __gen_e_acsl_assert_data_5.blocking = 1;
-    __gen_e_acsl_assert_data_5.kind = "Assertion";
-    __gen_e_acsl_assert_data_5.pred_txt = "null_vector((int *)(&arr[1]), 0)";
-    __gen_e_acsl_assert_data_5.file = "nfm_2019.c";
-    __gen_e_acsl_assert_data_5.fct = "main";
-    __gen_e_acsl_assert_data_5.line = 29;
-    __e_acsl_assert(__gen_e_acsl_null_vector_here_12,
-                    & __gen_e_acsl_assert_data_5);
-    __e_acsl_assert_clean(& __gen_e_acsl_assert_data_5);
-    __gmpz_clear(__gen_e_acsl__8);
-  }
-  /*@ assert null_vector((int *)(&arr[1]), 0); */ ;
-  {
-    __e_acsl_mpz_t __gen_e_acsl__9;
-    int __gen_e_acsl_aligned_2;
-    int __gen_e_acsl_null_vector_here_14;
-    __e_acsl_assert_data_t __gen_e_acsl_assert_data_7 =
-      {.values = (void *)0};
-    __gmpz_init_set_str(__gen_e_acsl__9,"1",10);
-    __e_acsl_assert_data_t __gen_e_acsl_assert_data_8 =
-      {.values = (void *)0};
-    __gen_e_acsl_aligned_2 = __e_acsl_aligned((void *)(& arr[1]),4UL);
-    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_8,"&arr[1]",
-                                 (void *)(& arr[1]));
-    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_8,
-                                 "\"pointer alignment\": \\aligned(&arr[1],4)",
-                                 0,__gen_e_acsl_aligned_2);
-    /*@ assert E_ACSL: "pointer alignment": \aligned(&arr[1],4); */
-    {
-      __gen_e_acsl_assert_data_8.blocking = 1;
-      __gen_e_acsl_assert_data_8.kind = "E-ACSL RTE";
-      __gen_e_acsl_assert_data_8.pred_txt = "\\aligned(&arr[1],4)";
-      __gen_e_acsl_assert_data_8.file = "nfm_2019.c";
-      __gen_e_acsl_assert_data_8.fct = "main";
-      __gen_e_acsl_assert_data_8.line = 30;
-      __gen_e_acsl_assert_data_8.name = "pointer alignment";
-      __e_acsl_assert(__gen_e_acsl_aligned_2,& __gen_e_acsl_assert_data_8);
-      __e_acsl_assert_clean(& __gen_e_acsl_assert_data_8);
-    }
-    __gen_e_acsl_null_vector_here_14 = __gen_e_acsl_null_vector_here(& arr[1],
-                                                                    (__e_acsl_mpz_struct *)__gen_e_acsl__9);
-    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_7,"&arr[1]",
-                                 (void *)(& arr[1]));
-    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_7,
-                                 "null_vector((int *)(&arr[1]), 1)",0,
-                                 __gen_e_acsl_null_vector_here_14);
-    __gen_e_acsl_assert_data_7.blocking = 1;
-    __gen_e_acsl_assert_data_7.kind = "Assertion";
-    __gen_e_acsl_assert_data_7.pred_txt = "null_vector((int *)(&arr[1]), 1)";
-    __gen_e_acsl_assert_data_7.file = "nfm_2019.c";
-    __gen_e_acsl_assert_data_7.fct = "main";
-    __gen_e_acsl_assert_data_7.line = 30;
-    __e_acsl_assert(__gen_e_acsl_null_vector_here_14,
-                    & __gen_e_acsl_assert_data_7);
-    __e_acsl_assert_clean(& __gen_e_acsl_assert_data_7);
-    __gmpz_clear(__gen_e_acsl__9);
-  }
-  /*@ assert null_vector((int *)(&arr[1]), 1); */ ;
-  {
-    __e_acsl_mpz_t __gen_e_acsl__10;
-    int __gen_e_acsl_aligned_3;
-    int __gen_e_acsl_null_vector_here_16;
     __e_acsl_assert_data_t __gen_e_acsl_assert_data_9 =
       {.values = (void *)0};
-    __gmpz_init_set_str(__gen_e_acsl__10,"2",10);
+    __gmpz_init_set_str(__gen_e_acsl__8,"0",10);
     __e_acsl_assert_data_t __gen_e_acsl_assert_data_10 =
       {.values = (void *)0};
-    __gen_e_acsl_aligned_3 = __e_acsl_aligned((void *)(& arr[1]),4UL);
+    __gen_e_acsl_aligned_4 = __e_acsl_aligned((void *)(& arr[1]),4UL);
     __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_10,"&arr[1]",
                                  (void *)(& arr[1]));
     __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_10,
                                  "\"pointer alignment\": \\aligned(&arr[1],4)",
-                                 0,__gen_e_acsl_aligned_3);
+                                 0,__gen_e_acsl_aligned_4);
     /*@ assert E_ACSL: "pointer alignment": \aligned(&arr[1],4); */
     {
       __gen_e_acsl_assert_data_10.blocking = 1;
@@ -269,119 +177,211 @@ int main(void)
       __gen_e_acsl_assert_data_10.pred_txt = "\\aligned(&arr[1],4)";
       __gen_e_acsl_assert_data_10.file = "nfm_2019.c";
       __gen_e_acsl_assert_data_10.fct = "main";
-      __gen_e_acsl_assert_data_10.line = 31;
+      __gen_e_acsl_assert_data_10.line = 29;
       __gen_e_acsl_assert_data_10.name = "pointer alignment";
-      __e_acsl_assert(__gen_e_acsl_aligned_3,& __gen_e_acsl_assert_data_10);
+      __e_acsl_assert(__gen_e_acsl_aligned_4,& __gen_e_acsl_assert_data_10);
       __e_acsl_assert_clean(& __gen_e_acsl_assert_data_10);
     }
-    __gen_e_acsl_null_vector_here_16 = __gen_e_acsl_null_vector_here(& arr[1],
-                                                                    (__e_acsl_mpz_struct *)__gen_e_acsl__10);
+    __gen_e_acsl_null_vector_here_12 = __gen_e_acsl_null_vector_here(& arr[1],
+                                                                    (__e_acsl_mpz_struct *)__gen_e_acsl__8);
     __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_9,"&arr[1]",
                                  (void *)(& arr[1]));
     __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_9,
-                                 "null_vector((int *)(&arr[1]), 2)",0,
-                                 __gen_e_acsl_null_vector_here_16);
+                                 "null_vector((int *)(&arr[1]), 0)",0,
+                                 __gen_e_acsl_null_vector_here_12);
     __gen_e_acsl_assert_data_9.blocking = 1;
     __gen_e_acsl_assert_data_9.kind = "Assertion";
-    __gen_e_acsl_assert_data_9.pred_txt = "!null_vector((int *)(&arr[1]), 2)";
+    __gen_e_acsl_assert_data_9.pred_txt = "null_vector((int *)(&arr[1]), 0)";
     __gen_e_acsl_assert_data_9.file = "nfm_2019.c";
     __gen_e_acsl_assert_data_9.fct = "main";
-    __gen_e_acsl_assert_data_9.line = 31;
-    __e_acsl_assert(! __gen_e_acsl_null_vector_here_16,
+    __gen_e_acsl_assert_data_9.line = 29;
+    __e_acsl_assert(__gen_e_acsl_null_vector_here_12,
                     & __gen_e_acsl_assert_data_9);
     __e_acsl_assert_clean(& __gen_e_acsl_assert_data_9);
+    __gmpz_clear(__gen_e_acsl__8);
+  }
+  /*@ assert null_vector((int *)(&arr[1]), 0); */ ;
+  {
+    __e_acsl_mpz_t __gen_e_acsl__9;
+    int __gen_e_acsl_aligned_5;
+    int __gen_e_acsl_null_vector_here_14;
+    __e_acsl_assert_data_t __gen_e_acsl_assert_data_11 =
+      {.values = (void *)0};
+    __gmpz_init_set_str(__gen_e_acsl__9,"1",10);
+    __e_acsl_assert_data_t __gen_e_acsl_assert_data_12 =
+      {.values = (void *)0};
+    __gen_e_acsl_aligned_5 = __e_acsl_aligned((void *)(& arr[1]),4UL);
+    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_12,"&arr[1]",
+                                 (void *)(& arr[1]));
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_12,
+                                 "\"pointer alignment\": \\aligned(&arr[1],4)",
+                                 0,__gen_e_acsl_aligned_5);
+    /*@ assert E_ACSL: "pointer alignment": \aligned(&arr[1],4); */
+    {
+      __gen_e_acsl_assert_data_12.blocking = 1;
+      __gen_e_acsl_assert_data_12.kind = "E-ACSL RTE";
+      __gen_e_acsl_assert_data_12.pred_txt = "\\aligned(&arr[1],4)";
+      __gen_e_acsl_assert_data_12.file = "nfm_2019.c";
+      __gen_e_acsl_assert_data_12.fct = "main";
+      __gen_e_acsl_assert_data_12.line = 30;
+      __gen_e_acsl_assert_data_12.name = "pointer alignment";
+      __e_acsl_assert(__gen_e_acsl_aligned_5,& __gen_e_acsl_assert_data_12);
+      __e_acsl_assert_clean(& __gen_e_acsl_assert_data_12);
+    }
+    __gen_e_acsl_null_vector_here_14 = __gen_e_acsl_null_vector_here(& arr[1],
+                                                                    (__e_acsl_mpz_struct *)__gen_e_acsl__9);
+    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_11,"&arr[1]",
+                                 (void *)(& arr[1]));
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_11,
+                                 "null_vector((int *)(&arr[1]), 1)",0,
+                                 __gen_e_acsl_null_vector_here_14);
+    __gen_e_acsl_assert_data_11.blocking = 1;
+    __gen_e_acsl_assert_data_11.kind = "Assertion";
+    __gen_e_acsl_assert_data_11.pred_txt = "null_vector((int *)(&arr[1]), 1)";
+    __gen_e_acsl_assert_data_11.file = "nfm_2019.c";
+    __gen_e_acsl_assert_data_11.fct = "main";
+    __gen_e_acsl_assert_data_11.line = 30;
+    __e_acsl_assert(__gen_e_acsl_null_vector_here_14,
+                    & __gen_e_acsl_assert_data_11);
+    __e_acsl_assert_clean(& __gen_e_acsl_assert_data_11);
+    __gmpz_clear(__gen_e_acsl__9);
+  }
+  /*@ assert null_vector((int *)(&arr[1]), 1); */ ;
+  {
+    __e_acsl_mpz_t __gen_e_acsl__10;
+    int __gen_e_acsl_aligned_6;
+    int __gen_e_acsl_null_vector_here_16;
+    __e_acsl_assert_data_t __gen_e_acsl_assert_data_13 =
+      {.values = (void *)0};
+    __gmpz_init_set_str(__gen_e_acsl__10,"2",10);
+    __e_acsl_assert_data_t __gen_e_acsl_assert_data_14 =
+      {.values = (void *)0};
+    __gen_e_acsl_aligned_6 = __e_acsl_aligned((void *)(& arr[1]),4UL);
+    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_14,"&arr[1]",
+                                 (void *)(& arr[1]));
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_14,
+                                 "\"pointer alignment\": \\aligned(&arr[1],4)",
+                                 0,__gen_e_acsl_aligned_6);
+    /*@ assert E_ACSL: "pointer alignment": \aligned(&arr[1],4); */
+    {
+      __gen_e_acsl_assert_data_14.blocking = 1;
+      __gen_e_acsl_assert_data_14.kind = "E-ACSL RTE";
+      __gen_e_acsl_assert_data_14.pred_txt = "\\aligned(&arr[1],4)";
+      __gen_e_acsl_assert_data_14.file = "nfm_2019.c";
+      __gen_e_acsl_assert_data_14.fct = "main";
+      __gen_e_acsl_assert_data_14.line = 31;
+      __gen_e_acsl_assert_data_14.name = "pointer alignment";
+      __e_acsl_assert(__gen_e_acsl_aligned_6,& __gen_e_acsl_assert_data_14);
+      __e_acsl_assert_clean(& __gen_e_acsl_assert_data_14);
+    }
+    __gen_e_acsl_null_vector_here_16 = __gen_e_acsl_null_vector_here(& arr[1],
+                                                                    (__e_acsl_mpz_struct *)__gen_e_acsl__10);
+    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_13,"&arr[1]",
+                                 (void *)(& arr[1]));
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_13,
+                                 "null_vector((int *)(&arr[1]), 2)",0,
+                                 __gen_e_acsl_null_vector_here_16);
+    __gen_e_acsl_assert_data_13.blocking = 1;
+    __gen_e_acsl_assert_data_13.kind = "Assertion";
+    __gen_e_acsl_assert_data_13.pred_txt = "!null_vector((int *)(&arr[1]), 2)";
+    __gen_e_acsl_assert_data_13.file = "nfm_2019.c";
+    __gen_e_acsl_assert_data_13.fct = "main";
+    __gen_e_acsl_assert_data_13.line = 31;
+    __e_acsl_assert(! __gen_e_acsl_null_vector_here_16,
+                    & __gen_e_acsl_assert_data_13);
+    __e_acsl_assert_clean(& __gen_e_acsl_assert_data_13);
     __gmpz_clear(__gen_e_acsl__10);
   }
   /*@ assert !null_vector((int *)(&arr[1]), 2); */ ;
   {
     __e_acsl_mpz_t __gen_e_acsl__11;
-    int __gen_e_acsl_aligned_4;
+    int __gen_e_acsl_aligned_7;
     int __gen_e_acsl_null_vector_here_18;
-    __e_acsl_assert_data_t __gen_e_acsl_assert_data_11 =
+    __e_acsl_assert_data_t __gen_e_acsl_assert_data_15 =
       {.values = (void *)0};
     __gmpz_init_set_str(__gen_e_acsl__11,"0",10);
-    __e_acsl_assert_data_t __gen_e_acsl_assert_data_12 =
+    __e_acsl_assert_data_t __gen_e_acsl_assert_data_16 =
       {.values = (void *)0};
-    __gen_e_acsl_aligned_4 = __e_acsl_aligned((void *)(& arr[2]),4UL);
-    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_12,"&arr[2]",
+    __gen_e_acsl_aligned_7 = __e_acsl_aligned((void *)(& arr[2]),4UL);
+    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_16,"&arr[2]",
                                  (void *)(& arr[2]));
-    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_12,
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_16,
                                  "\"pointer alignment\": \\aligned(&arr[2],4)",
-                                 0,__gen_e_acsl_aligned_4);
+                                 0,__gen_e_acsl_aligned_7);
     /*@ assert E_ACSL: "pointer alignment": \aligned(&arr[2],4); */
     {
-      __gen_e_acsl_assert_data_12.blocking = 1;
-      __gen_e_acsl_assert_data_12.kind = "E-ACSL RTE";
-      __gen_e_acsl_assert_data_12.pred_txt = "\\aligned(&arr[2],4)";
-      __gen_e_acsl_assert_data_12.file = "nfm_2019.c";
-      __gen_e_acsl_assert_data_12.fct = "main";
-      __gen_e_acsl_assert_data_12.line = 32;
-      __gen_e_acsl_assert_data_12.name = "pointer alignment";
-      __e_acsl_assert(__gen_e_acsl_aligned_4,& __gen_e_acsl_assert_data_12);
-      __e_acsl_assert_clean(& __gen_e_acsl_assert_data_12);
+      __gen_e_acsl_assert_data_16.blocking = 1;
+      __gen_e_acsl_assert_data_16.kind = "E-ACSL RTE";
+      __gen_e_acsl_assert_data_16.pred_txt = "\\aligned(&arr[2],4)";
+      __gen_e_acsl_assert_data_16.file = "nfm_2019.c";
+      __gen_e_acsl_assert_data_16.fct = "main";
+      __gen_e_acsl_assert_data_16.line = 32;
+      __gen_e_acsl_assert_data_16.name = "pointer alignment";
+      __e_acsl_assert(__gen_e_acsl_aligned_7,& __gen_e_acsl_assert_data_16);
+      __e_acsl_assert_clean(& __gen_e_acsl_assert_data_16);
     }
     __gen_e_acsl_null_vector_here_18 = __gen_e_acsl_null_vector_here(& arr[2],
                                                                     (__e_acsl_mpz_struct *)__gen_e_acsl__11);
-    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_11,"&arr[2]",
+    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_15,"&arr[2]",
                                  (void *)(& arr[2]));
-    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_11,
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_15,
                                  "null_vector((int *)(&arr[2]), 0)",0,
                                  __gen_e_acsl_null_vector_here_18);
-    __gen_e_acsl_assert_data_11.blocking = 1;
-    __gen_e_acsl_assert_data_11.kind = "Assertion";
-    __gen_e_acsl_assert_data_11.pred_txt = "null_vector((int *)(&arr[2]), 0)";
-    __gen_e_acsl_assert_data_11.file = "nfm_2019.c";
-    __gen_e_acsl_assert_data_11.fct = "main";
-    __gen_e_acsl_assert_data_11.line = 32;
+    __gen_e_acsl_assert_data_15.blocking = 1;
+    __gen_e_acsl_assert_data_15.kind = "Assertion";
+    __gen_e_acsl_assert_data_15.pred_txt = "null_vector((int *)(&arr[2]), 0)";
+    __gen_e_acsl_assert_data_15.file = "nfm_2019.c";
+    __gen_e_acsl_assert_data_15.fct = "main";
+    __gen_e_acsl_assert_data_15.line = 32;
     __e_acsl_assert(__gen_e_acsl_null_vector_here_18,
-                    & __gen_e_acsl_assert_data_11);
-    __e_acsl_assert_clean(& __gen_e_acsl_assert_data_11);
+                    & __gen_e_acsl_assert_data_15);
+    __e_acsl_assert_clean(& __gen_e_acsl_assert_data_15);
     __gmpz_clear(__gen_e_acsl__11);
   }
   /*@ assert null_vector((int *)(&arr[2]), 0); */ ;
   {
     __e_acsl_mpz_t __gen_e_acsl__12;
-    int __gen_e_acsl_aligned_5;
+    int __gen_e_acsl_aligned_8;
     int __gen_e_acsl_null_vector_here_20;
-    __e_acsl_assert_data_t __gen_e_acsl_assert_data_13 =
+    __e_acsl_assert_data_t __gen_e_acsl_assert_data_17 =
       {.values = (void *)0};
     __gmpz_init_set_str(__gen_e_acsl__12,"1",10);
-    __e_acsl_assert_data_t __gen_e_acsl_assert_data_14 =
+    __e_acsl_assert_data_t __gen_e_acsl_assert_data_18 =
       {.values = (void *)0};
-    __gen_e_acsl_aligned_5 = __e_acsl_aligned((void *)(& arr[2]),4UL);
-    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_14,"&arr[2]",
+    __gen_e_acsl_aligned_8 = __e_acsl_aligned((void *)(& arr[2]),4UL);
+    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_18,"&arr[2]",
                                  (void *)(& arr[2]));
-    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_14,
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_18,
                                  "\"pointer alignment\": \\aligned(&arr[2],4)",
-                                 0,__gen_e_acsl_aligned_5);
+                                 0,__gen_e_acsl_aligned_8);
     /*@ assert E_ACSL: "pointer alignment": \aligned(&arr[2],4); */
     {
-      __gen_e_acsl_assert_data_14.blocking = 1;
-      __gen_e_acsl_assert_data_14.kind = "E-ACSL RTE";
-      __gen_e_acsl_assert_data_14.pred_txt = "\\aligned(&arr[2],4)";
-      __gen_e_acsl_assert_data_14.file = "nfm_2019.c";
-      __gen_e_acsl_assert_data_14.fct = "main";
-      __gen_e_acsl_assert_data_14.line = 33;
-      __gen_e_acsl_assert_data_14.name = "pointer alignment";
-      __e_acsl_assert(__gen_e_acsl_aligned_5,& __gen_e_acsl_assert_data_14);
-      __e_acsl_assert_clean(& __gen_e_acsl_assert_data_14);
+      __gen_e_acsl_assert_data_18.blocking = 1;
+      __gen_e_acsl_assert_data_18.kind = "E-ACSL RTE";
+      __gen_e_acsl_assert_data_18.pred_txt = "\\aligned(&arr[2],4)";
+      __gen_e_acsl_assert_data_18.file = "nfm_2019.c";
+      __gen_e_acsl_assert_data_18.fct = "main";
+      __gen_e_acsl_assert_data_18.line = 33;
+      __gen_e_acsl_assert_data_18.name = "pointer alignment";
+      __e_acsl_assert(__gen_e_acsl_aligned_8,& __gen_e_acsl_assert_data_18);
+      __e_acsl_assert_clean(& __gen_e_acsl_assert_data_18);
     }
     __gen_e_acsl_null_vector_here_20 = __gen_e_acsl_null_vector_here(& arr[2],
                                                                     (__e_acsl_mpz_struct *)__gen_e_acsl__12);
-    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_13,"&arr[2]",
+    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_17,"&arr[2]",
                                  (void *)(& arr[2]));
-    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_13,
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_17,
                                  "null_vector((int *)(&arr[2]), 1)",0,
                                  __gen_e_acsl_null_vector_here_20);
-    __gen_e_acsl_assert_data_13.blocking = 1;
-    __gen_e_acsl_assert_data_13.kind = "Assertion";
-    __gen_e_acsl_assert_data_13.pred_txt = "!null_vector((int *)(&arr[2]), 1)";
-    __gen_e_acsl_assert_data_13.file = "nfm_2019.c";
-    __gen_e_acsl_assert_data_13.fct = "main";
-    __gen_e_acsl_assert_data_13.line = 33;
+    __gen_e_acsl_assert_data_17.blocking = 1;
+    __gen_e_acsl_assert_data_17.kind = "Assertion";
+    __gen_e_acsl_assert_data_17.pred_txt = "!null_vector((int *)(&arr[2]), 1)";
+    __gen_e_acsl_assert_data_17.file = "nfm_2019.c";
+    __gen_e_acsl_assert_data_17.fct = "main";
+    __gen_e_acsl_assert_data_17.line = 33;
     __e_acsl_assert(! __gen_e_acsl_null_vector_here_20,
-                    & __gen_e_acsl_assert_data_13);
-    __e_acsl_assert_clean(& __gen_e_acsl_assert_data_13);
+                    & __gen_e_acsl_assert_data_17);
+    __e_acsl_assert_clean(& __gen_e_acsl_assert_data_17);
     __gmpz_clear(__gen_e_acsl__12);
   }
   /*@ assert !null_vector((int *)(&arr[2]), 1); */ ;
@@ -412,11 +412,32 @@ int __gen_e_acsl_null_vector_here(int *a, __e_acsl_mpz_struct * size)
     if (__gen_e_acsl_gt > 0) {
       __e_acsl_mpz_t __gen_e_acsl__4;
       __e_acsl_mpz_t __gen_e_acsl_sub;
+      int __gen_e_acsl_aligned;
       int __gen_e_acsl_null_vector_here_3;
       __gmpz_init_set_si(__gen_e_acsl__4,1L);
       __gmpz_init(__gen_e_acsl_sub);
       __gmpz_sub(__gen_e_acsl_sub,(__e_acsl_mpz_struct const *)(size),
                  (__e_acsl_mpz_struct const *)(__gen_e_acsl__4));
+      __e_acsl_assert_data_t __gen_e_acsl_assert_data_2 =
+        {.values = (void *)0};
+      __gen_e_acsl_aligned = __e_acsl_aligned((void *)a,4UL);
+      __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_2,"a",
+                                   (void *)a);
+      __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_2,
+                                   "\"pointer alignment\": \\aligned(a,4)",0,
+                                   __gen_e_acsl_aligned);
+      /*@ assert E_ACSL: "pointer alignment": \aligned(a,4); */
+      {
+        __gen_e_acsl_assert_data_2.blocking = 1;
+        __gen_e_acsl_assert_data_2.kind = "E-ACSL RTE";
+        __gen_e_acsl_assert_data_2.pred_txt = "\\aligned(a,4)";
+        __gen_e_acsl_assert_data_2.file = "<unknown>";
+        __gen_e_acsl_assert_data_2.fct = "null_vector_here";
+        __gen_e_acsl_assert_data_2.line = 0;
+        __gen_e_acsl_assert_data_2.name = "pointer alignment";
+        __e_acsl_assert(__gen_e_acsl_aligned,& __gen_e_acsl_assert_data_2);
+        __e_acsl_assert_clean(& __gen_e_acsl_assert_data_2);
+      }
       __gen_e_acsl_null_vector_here_3 = __gen_e_acsl_null_vector_here
       (a + 1,(__e_acsl_mpz_struct *)__gen_e_acsl_sub);
       __gen_e_acsl_and = __gen_e_acsl_null_vector_here_3;
@@ -424,7 +445,76 @@ int __gen_e_acsl_null_vector_here(int *a, __e_acsl_mpz_struct * size)
       __gmpz_clear(__gen_e_acsl_sub);
     }
     else __gen_e_acsl_and = 0;
-    if (__gen_e_acsl_and) __gen_e_acsl_and_2 = *(a + 0) == 0;
+    if (__gen_e_acsl_and) {
+      int __gen_e_acsl_aligned_2;
+      int __gen_e_acsl_aligned_3;
+      int __gen_e_acsl_valid_read;
+      __e_acsl_assert_data_t __gen_e_acsl_assert_data_3 =
+        {.values = (void *)0};
+      __gen_e_acsl_aligned_2 = __e_acsl_aligned((void *)a,4UL);
+      __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_3,"a",
+                                   (void *)a);
+      __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_3,
+                                   "\"pointer alignment\": \\aligned(a,4)",0,
+                                   __gen_e_acsl_aligned_2);
+      /*@ assert E_ACSL: "pointer alignment": \aligned(a,4); */
+      {
+        __gen_e_acsl_assert_data_3.blocking = 1;
+        __gen_e_acsl_assert_data_3.kind = "E-ACSL RTE";
+        __gen_e_acsl_assert_data_3.pred_txt = "\\aligned(a,4)";
+        __gen_e_acsl_assert_data_3.file = "<unknown>";
+        __gen_e_acsl_assert_data_3.fct = "null_vector_here";
+        __gen_e_acsl_assert_data_3.line = 0;
+        __gen_e_acsl_assert_data_3.name = "pointer alignment";
+        __e_acsl_assert(__gen_e_acsl_aligned_2,& __gen_e_acsl_assert_data_3);
+        __e_acsl_assert_clean(& __gen_e_acsl_assert_data_3);
+      }
+      __e_acsl_assert_data_t __gen_e_acsl_assert_data_4 =
+        {.values = (void *)0};
+      __gen_e_acsl_aligned_3 = __e_acsl_aligned((void *)(a + 0),4UL);
+      __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_4,"a",
+                                   (void *)a);
+      __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_4,
+                                   "\"pointer alignment\": \\aligned(a + 0,4)",
+                                   0,__gen_e_acsl_aligned_3);
+      /*@ assert E_ACSL: "pointer alignment": \aligned(a + 0,4); */
+      {
+        __gen_e_acsl_assert_data_4.blocking = 1;
+        __gen_e_acsl_assert_data_4.kind = "E-ACSL RTE";
+        __gen_e_acsl_assert_data_4.pred_txt = "\\aligned(a + 0,4)";
+        __gen_e_acsl_assert_data_4.file = "nfm_2019.c";
+        __gen_e_acsl_assert_data_4.fct = "null_vector_here";
+        __gen_e_acsl_assert_data_4.line = 13;
+        __gen_e_acsl_assert_data_4.name = "pointer alignment";
+        __e_acsl_assert(__gen_e_acsl_aligned_3,& __gen_e_acsl_assert_data_4);
+        __e_acsl_assert_clean(& __gen_e_acsl_assert_data_4);
+      }
+      __e_acsl_assert_data_t __gen_e_acsl_assert_data_5 =
+        {.values = (void *)0};
+      __gen_e_acsl_valid_read = __e_acsl_valid_read((void *)(a + 0),
+                                                    sizeof(int),(void *)a,
+                                                    (void *)(& a));
+      __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_5,"a",
+                                   (void *)a);
+      __e_acsl_assert_register_ulong(& __gen_e_acsl_assert_data_5,
+                                     "sizeof(int)",0,sizeof(int));
+      __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_5,
+                                   "\"memory access\": \\valid_read(a + 0)",
+                                   0,__gen_e_acsl_valid_read);
+      /*@ assert E_ACSL: "memory access": \valid_read(a + 0); */
+      {
+        __gen_e_acsl_assert_data_5.blocking = 1;
+        __gen_e_acsl_assert_data_5.kind = "E-ACSL RTE";
+        __gen_e_acsl_assert_data_5.pred_txt = "\\valid_read(a + 0)";
+        __gen_e_acsl_assert_data_5.file = "nfm_2019.c";
+        __gen_e_acsl_assert_data_5.fct = "null_vector_here";
+        __gen_e_acsl_assert_data_5.line = 13;
+        __gen_e_acsl_assert_data_5.name = "memory access";
+        __e_acsl_assert(__gen_e_acsl_valid_read,& __gen_e_acsl_assert_data_5);
+        __e_acsl_assert_clean(& __gen_e_acsl_assert_data_5);
+      }
+      __gen_e_acsl_and_2 = *(a + 0) == 0;
+    }
     else __gen_e_acsl_and_2 = 0;
     __gen_e_acsl_or = __gen_e_acsl_and_2;
     __gmpz_clear(__gen_e_acsl__3);

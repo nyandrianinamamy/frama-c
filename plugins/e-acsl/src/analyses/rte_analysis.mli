@@ -10,6 +10,9 @@ open Cil_types
 
 val dkey : Options.category
 
+val needs_rte_guards : unit -> bool
+(** return [true] if the RTE analysis must be done. *)
+
 val preprocess : file -> unit
 (** compute the RTE table for a given file. *)
 

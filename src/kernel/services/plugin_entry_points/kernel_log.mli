@@ -181,6 +181,8 @@ val dkey_typing_init: category
 
 val dkey_typing_pragma: category
 
+val dkey_typing_gcc_mode: category
+
 val dkey_ulevel: category
 
 val dkey_variadic: category

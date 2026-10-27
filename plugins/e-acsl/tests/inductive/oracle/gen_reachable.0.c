@@ -152,26 +152,26 @@ int main(void)
   /*@ assert reachable(&root, &next); */ ;
   {
     int __gen_e_acsl_reachable_here_6;
-    __e_acsl_assert_data_t __gen_e_acsl_assert_data_2 =
+    __e_acsl_assert_data_t __gen_e_acsl_assert_data_9 =
       {.values = (void *)0};
     __gen_e_acsl_reachable_here_6 = __gen_e_acsl_reachable_here(& next,
                                                                 & root);
-    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_2,"&root",
+    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_9,"&root",
                                  (void *)(& root));
-    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_2,"&next",
+    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_9,"&next",
                                  (void *)(& next));
-    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_2,
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_9,
                                  "reachable(&next, &root)",0,
                                  __gen_e_acsl_reachable_here_6);
-    __gen_e_acsl_assert_data_2.blocking = 1;
-    __gen_e_acsl_assert_data_2.kind = "Assertion";
-    __gen_e_acsl_assert_data_2.pred_txt = "!reachable(&next, &root)";
-    __gen_e_acsl_assert_data_2.file = "reachable.c";
-    __gen_e_acsl_assert_data_2.fct = "main";
-    __gen_e_acsl_assert_data_2.line = 56;
+    __gen_e_acsl_assert_data_9.blocking = 1;
+    __gen_e_acsl_assert_data_9.kind = "Assertion";
+    __gen_e_acsl_assert_data_9.pred_txt = "!reachable(&next, &root)";
+    __gen_e_acsl_assert_data_9.file = "reachable.c";
+    __gen_e_acsl_assert_data_9.fct = "main";
+    __gen_e_acsl_assert_data_9.line = 56;
     __e_acsl_assert(! __gen_e_acsl_reachable_here_6,
-                    & __gen_e_acsl_assert_data_2);
-    __e_acsl_assert_clean(& __gen_e_acsl_assert_data_2);
+                    & __gen_e_acsl_assert_data_9);
+    __e_acsl_assert_clean(& __gen_e_acsl_assert_data_9);
   }
   /*@ assert !reachable(&next, &root); */ ;
   int arr[3] = {1, 2, 3};
@@ -188,15 +188,165 @@ int main(void)
 /*@ assigns \result; */
 int __gen_e_acsl_reachable_here(struct list *root, struct list *to)
 {
+  int __gen_e_acsl_aligned;
+  int __gen_e_acsl_aligned_2;
   int __gen_e_acsl_or;
+  __e_acsl_assert_data_t __gen_e_acsl_assert_data_2 = {.values = (void *)0};
+  __gen_e_acsl_aligned = __e_acsl_aligned((void *)to,8UL);
+  __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_2,"to",(void *)to);
+  __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_2,
+                               "\"pointer alignment\": \\aligned(to,8)",0,
+                               __gen_e_acsl_aligned);
+  /*@ assert E_ACSL: "pointer alignment": \aligned(to,8); */
+  {
+    __gen_e_acsl_assert_data_2.blocking = 1;
+    __gen_e_acsl_assert_data_2.kind = "E-ACSL RTE";
+    __gen_e_acsl_assert_data_2.pred_txt = "\\aligned(to,8)";
+    __gen_e_acsl_assert_data_2.file = "<unknown>";
+    __gen_e_acsl_assert_data_2.fct = "reachable_here";
+    __gen_e_acsl_assert_data_2.line = 0;
+    __gen_e_acsl_assert_data_2.name = "pointer alignment";
+    __e_acsl_assert(__gen_e_acsl_aligned,& __gen_e_acsl_assert_data_2);
+    __e_acsl_assert_clean(& __gen_e_acsl_assert_data_2);
+  }
+  __e_acsl_assert_data_t __gen_e_acsl_assert_data_3 = {.values = (void *)0};
+  __gen_e_acsl_aligned_2 = __e_acsl_aligned((void *)root,8UL);
+  __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_3,"root",
+                               (void *)root);
+  __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_3,
+                               "\"pointer alignment\": \\aligned(root,8)",0,
+                               __gen_e_acsl_aligned_2);
+  /*@ assert E_ACSL: "pointer alignment": \aligned(root,8); */
+  {
+    __gen_e_acsl_assert_data_3.blocking = 1;
+    __gen_e_acsl_assert_data_3.kind = "E-ACSL RTE";
+    __gen_e_acsl_assert_data_3.pred_txt = "\\aligned(root,8)";
+    __gen_e_acsl_assert_data_3.file = "<unknown>";
+    __gen_e_acsl_assert_data_3.fct = "reachable_here";
+    __gen_e_acsl_assert_data_3.line = 0;
+    __gen_e_acsl_assert_data_3.name = "pointer alignment";
+    __e_acsl_assert(__gen_e_acsl_aligned_2,& __gen_e_acsl_assert_data_3);
+    __e_acsl_assert_clean(& __gen_e_acsl_assert_data_3);
+  }
   if (to == root) __gen_e_acsl_or = 1;
   else {
+    int __gen_e_acsl_aligned_3;
     int __gen_e_acsl_valid;
     int __gen_e_acsl_and;
+    __e_acsl_assert_data_t __gen_e_acsl_assert_data_4 =
+      {.values = (void *)0};
+    __gen_e_acsl_aligned_3 = __e_acsl_aligned((void *)root,8UL);
+    __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_4,"root",
+                                 (void *)root);
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_4,
+                                 "\"pointer alignment\": \\aligned(root,8)",
+                                 0,__gen_e_acsl_aligned_3);
+    /*@ assert E_ACSL: "pointer alignment": \aligned(root,8); */
+    {
+      __gen_e_acsl_assert_data_4.blocking = 1;
+      __gen_e_acsl_assert_data_4.kind = "E-ACSL RTE";
+      __gen_e_acsl_assert_data_4.pred_txt = "\\aligned(root,8)";
+      __gen_e_acsl_assert_data_4.file = "<unknown>";
+      __gen_e_acsl_assert_data_4.fct = "reachable_here";
+      __gen_e_acsl_assert_data_4.line = 0;
+      __gen_e_acsl_assert_data_4.name = "pointer alignment";
+      __e_acsl_assert(__gen_e_acsl_aligned_3,& __gen_e_acsl_assert_data_4);
+      __e_acsl_assert_clean(& __gen_e_acsl_assert_data_4);
+    }
     __gen_e_acsl_valid = __e_acsl_valid((void *)root,sizeof(struct list),
                                         (void *)root,(void *)(& root));
     if (__gen_e_acsl_valid) {
+      int __gen_e_acsl_aligned_4;
+      int __gen_e_acsl_aligned_5;
+      int __gen_e_acsl_aligned_6;
+      int __gen_e_acsl_valid_read;
       int __gen_e_acsl_reachable_here_3;
+      __e_acsl_assert_data_t __gen_e_acsl_assert_data_5 =
+        {.values = (void *)0};
+      __gen_e_acsl_aligned_4 = __e_acsl_aligned((void *)to,8UL);
+      __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_5,"to",
+                                   (void *)to);
+      __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_5,
+                                   "\"pointer alignment\": \\aligned(to,8)",
+                                   0,__gen_e_acsl_aligned_4);
+      /*@ assert E_ACSL: "pointer alignment": \aligned(to,8); */
+      {
+        __gen_e_acsl_assert_data_5.blocking = 1;
+        __gen_e_acsl_assert_data_5.kind = "E-ACSL RTE";
+        __gen_e_acsl_assert_data_5.pred_txt = "\\aligned(to,8)";
+        __gen_e_acsl_assert_data_5.file = "<unknown>";
+        __gen_e_acsl_assert_data_5.fct = "reachable_here";
+        __gen_e_acsl_assert_data_5.line = 0;
+        __gen_e_acsl_assert_data_5.name = "pointer alignment";
+        __e_acsl_assert(__gen_e_acsl_aligned_4,& __gen_e_acsl_assert_data_5);
+        __e_acsl_assert_clean(& __gen_e_acsl_assert_data_5);
+      }
+      __e_acsl_assert_data_t __gen_e_acsl_assert_data_6 =
+        {.values = (void *)0};
+      __gen_e_acsl_aligned_5 = __e_acsl_aligned((void *)root,8UL);
+      __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_6,"root",
+                                   (void *)root);
+      __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_6,
+                                   "\"pointer alignment\": \\aligned(root,8)",
+                                   0,__gen_e_acsl_aligned_5);
+      /*@ assert E_ACSL: "pointer alignment": \aligned(root,8); */
+      {
+        __gen_e_acsl_assert_data_6.blocking = 1;
+        __gen_e_acsl_assert_data_6.kind = "E-ACSL RTE";
+        __gen_e_acsl_assert_data_6.pred_txt = "\\aligned(root,8)";
+        __gen_e_acsl_assert_data_6.file = "<unknown>";
+        __gen_e_acsl_assert_data_6.fct = "reachable_here";
+        __gen_e_acsl_assert_data_6.line = 0;
+        __gen_e_acsl_assert_data_6.name = "pointer alignment";
+        __e_acsl_assert(__gen_e_acsl_aligned_5,& __gen_e_acsl_assert_data_6);
+        __e_acsl_assert_clean(& __gen_e_acsl_assert_data_6);
+      }
+      __e_acsl_assert_data_t __gen_e_acsl_assert_data_7 =
+        {.values = (void *)0};
+      __gen_e_acsl_aligned_6 = __e_acsl_aligned((void *)root->next,8UL);
+      __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_7,"root->next",
+                                   (void *)root->next);
+      __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_7,
+                                   "\"pointer alignment\": \\aligned(root->next,8)",
+                                   0,__gen_e_acsl_aligned_6);
+      /*@ assert E_ACSL: "pointer alignment": \aligned(root->next,8); */
+      {
+        __gen_e_acsl_assert_data_7.blocking = 1;
+        __gen_e_acsl_assert_data_7.kind = "E-ACSL RTE";
+        __gen_e_acsl_assert_data_7.pred_txt = "\\aligned(root->next,8)";
+        __gen_e_acsl_assert_data_7.file = "reachable.c";
+        __gen_e_acsl_assert_data_7.fct = "reachable_here";
+        __gen_e_acsl_assert_data_7.line = 19;
+        __gen_e_acsl_assert_data_7.name = "pointer alignment";
+        __e_acsl_assert(__gen_e_acsl_aligned_6,& __gen_e_acsl_assert_data_7);
+        __e_acsl_assert_clean(& __gen_e_acsl_assert_data_7);
+      }
+      __e_acsl_assert_data_t __gen_e_acsl_assert_data_8 =
+        {.values = (void *)0};
+      __gen_e_acsl_valid_read = __e_acsl_valid_read((void *)(& root->next),
+                                                    sizeof(struct list *),
+                                                    (void *)(& root->next),
+                                                    (void *)0);
+      __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_8,
+                                   "&root->next",(void *)(& root->next));
+      __e_acsl_assert_register_ulong(& __gen_e_acsl_assert_data_8,
+                                     "sizeof(struct list *)",0,
+                                     sizeof(struct list *));
+      __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_8,
+                                   "\"memory access\": \\valid_read(&root->next)",
+                                   0,__gen_e_acsl_valid_read);
+      /*@ assert E_ACSL: "memory access": \valid_read(&root->next); */
+      {
+        __gen_e_acsl_assert_data_8.blocking = 1;
+        __gen_e_acsl_assert_data_8.kind = "E-ACSL RTE";
+        __gen_e_acsl_assert_data_8.pred_txt = "\\valid_read(&root->next)";
+        __gen_e_acsl_assert_data_8.file = "reachable.c";
+        __gen_e_acsl_assert_data_8.fct = "reachable_here";
+        __gen_e_acsl_assert_data_8.line = 19;
+        __gen_e_acsl_assert_data_8.name = "memory access";
+        __e_acsl_assert(__gen_e_acsl_valid_read,& __gen_e_acsl_assert_data_8);
+        __e_acsl_assert_clean(& __gen_e_acsl_assert_data_8);
+      }
       __gen_e_acsl_reachable_here_3 = __gen_e_acsl_reachable_here(root->next,
                                                                   to);
       __gen_e_acsl_and = __gen_e_acsl_reachable_here_3;

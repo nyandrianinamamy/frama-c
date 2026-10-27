@@ -30,14 +30,67 @@
 [eva:show] shift_neg.c:31: Frama_C_show_each_neg_left_shift: {-1441792}, {-352}
 [eva:alarm] shift_neg.c:34: Warning: 
   invalid LHS operand for left shift. assert 0 ≤ (int)(-44);
+[eva:show] shift_neg.c:39: 
+  Frama_C_show_each: {-3}, {{ ">>" }}, {2}, {{ "=" }}, ⊥
+[eva:show] shift_neg.c:40: 
+  Frama_C_show_each: {-63}, {{ ">>" }}, {2}, {{ "=" }}, ⊥
+[eva:show] shift_neg.c:41: 
+  Frama_C_show_each: {-64}, {{ ">>" }}, {2}, {{ "=" }}, ⊥
+[eva:show] shift_neg.c:42: 
+  Frama_C_show_each: {-65}, {{ ">>" }}, {2}, {{ "=" }}, ⊥
+[eva:progress] 
+  computing for function Frama_C_interval <- main.
+  Called from shift_neg.c:44.
+[eva:progress] shift_neg.c:44: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva:progress] Done for function Frama_C_interval
+[eva:show] shift_neg.c:45: 
+  Frama_C_show_each: [-65..-3], {{ ">>" }}, {2}, {{ "=" }}, ⊥
+[eva:progress] 
+  computing for function Frama_C_interval <- main.
+  Called from shift_neg.c:47.
+[eva:progress] shift_neg.c:47: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva:progress] Done for function Frama_C_interval
+[eva:show] shift_neg.c:48: 
+  Frama_C_show_each: {-3}, {{ ">>" }}, [2..10], {{ "=" }}, ⊥
+[eva:show] shift_neg.c:49: 
+  Frama_C_show_each: {-63}, {{ ">>" }}, [2..10], {{ "=" }}, ⊥
+[eva:show] shift_neg.c:50: 
+  Frama_C_show_each: {-64}, {{ ">>" }}, [2..10], {{ "=" }}, ⊥
+[eva:show] shift_neg.c:51: 
+  Frama_C_show_each: {-65}, {{ ">>" }}, [2..10], {{ "=" }}, ⊥
+[eva:show] shift_neg.c:53: 
+  Frama_C_show_each: [-65..-3], {{ ">>" }}, [2..10], {{ "=" }}, ⊥
+[eva:progress] 
+  computing for function Frama_C_interval <- main.
+  Called from shift_neg.c:55.
+[eva:progress] shift_neg.c:55: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva:progress] Done for function Frama_C_interval
+[eva:show] shift_neg.c:56: 
+  Frama_C_show_each: [-65..3], {{ ">>" }}, [2..10], {{ "=" }}, {0}
+[eva:progress] 
+  computing for function Frama_C_interval <- main.
+  Called from shift_neg.c:58.
+[eva:progress] shift_neg.c:58: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva:progress] Done for function Frama_C_interval
+[eva:show] shift_neg.c:59: 
+  Frama_C_show_each: [-65..-3], {{ ">>" }}, [-2..10], {{ "=" }}, ⊥
+[eva:show] shift_neg.c:61: 
+  Frama_C_show_each: [-65..3], {{ ">>" }}, [-2..10], {{ "=" }}, {0; 1; 2; 3}
 [eva:progress] Recording results for main
 [eva:progress] Done for function main
 [eva] shift_neg.c:34: assertion 'Eva,shift' got final status invalid.
 [eva] ====== VALUES COMPUTED ======
 [eva:final-states] Values at end of function main:
   Frama_C_entropy_source ∈ [--..--]
-  x ∈ [0..12]
+  x ∈ [-65..-3]
+  y ∈ [2..10]
   r ∈ {0; 1; 2; 3}
+  xz ∈ [-65..3]
+  yz ∈ [-2..10]
 [from] Computing for function main
 [from] Computing for function Frama_C_interval <-main
 [from] Done for function Frama_C_interval
@@ -51,6 +104,6 @@
   Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
 [from] ====== END OF DEPENDENCIES ======
 [inout] Out (internal) for function main:
-    Frama_C_entropy_source; x; r; k; l; i
+    Frama_C_entropy_source; x; y; r; k; l; i; xz; yz
 [inout] Inputs for function main:
     Frama_C_entropy_source; rand

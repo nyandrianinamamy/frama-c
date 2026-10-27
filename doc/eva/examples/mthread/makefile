@@ -15,9 +15,10 @@ PDF_CFG_TARGETS = $(CFG_TARGETS:.dot=.pdf)
 
 
 .SECONDEXPANSION:
-.PHONY: all clean
+.PHONY: all pdf clean
 
 all: $(TARGETS) $(CFG_TARGETS) $(PDF_CFG_TARGETS)
+pdf: $(PDF_CFG_TARGETS)
 clean:
 	$(RM) *.log
 	$(RM) *.dot

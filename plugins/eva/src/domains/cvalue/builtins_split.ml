@@ -111,7 +111,8 @@ let rec gather_lv_in_exp acc e =
   | Const _ -> acc
   | Lval lv | AddrOf lv | StartOf lv -> gather_lv_in_lv acc lv
   | UnOp (_, e, _) | CastE (_, e) -> gather_lv_in_exp acc e
-  | BinOp (_, e1, e2, _) -> gather_lv_in_exp (gather_lv_in_exp acc e1) e2
+  | BinOp (_, e1, e2, _) | SizeOfArray { elt_size = e1; array_length = e2 } ->
+    gather_lv_in_exp (gather_lv_in_exp acc e1) e2
 and gather_lv_in_lv acc lv =
   let (host, offset) = lv.node in
   let acc =

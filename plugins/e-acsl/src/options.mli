@@ -22,15 +22,20 @@ module Interlang_force: Parameter_sig.Bool
 module O : Parameter_sig.Int
 module Optimisations : sig
   module Hypothesis_gathering : Parameter_sig.Bool
-  module Rte : Parameter_sig.Bool
-  module Rte_initialized : Parameter_sig.Bool
-  module Trivial_rte : Parameter_sig.Bool
-  module Implicit_downcast : Parameter_sig.Bool
   module Smart_il : Parameter_sig.Bool
   module Smart_cil : Parameter_sig.Bool
   module Verify_valid: Parameter_sig.Bool
   module Print_values: Parameter_sig.Bool
   module Gmp_only: Parameter_sig.Bool
+end
+
+module Rte : sig
+  module Lvl : Parameter_sig.Int
+  module Initialized : Parameter_sig.Bool
+  module ImplicitDowncast : Parameter_sig.Bool
+  module DivMod : Parameter_sig.Bool
+  module Mem : Parameter_sig.Bool
+  module FloatToInt : Parameter_sig.Bool
 end
 
 module Functions: Parameter_sig.Kernel_function_set

@@ -81,7 +81,7 @@ module type S = sig
   val floor: t -> t
   val ceil: t -> t
   val trunc: t -> t
-  val fround: t -> t
+  val round: t -> t
 
   val add: round -> prec -> t -> t -> t
   val sub: round -> prec -> t -> t -> t

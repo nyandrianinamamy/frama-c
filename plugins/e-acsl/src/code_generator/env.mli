@@ -68,6 +68,9 @@ module Logic_binding: sig
   val get: t -> logic_var -> varinfo
   (* Return the latest C binding. *)
 
+  val get_opt: t -> logic_var -> varinfo option
+  (* Return the latest C binding or [None] if no binding is found. *)
+
   val remove: t -> logic_var -> unit
   (* Remove the latest C binding. *)
 

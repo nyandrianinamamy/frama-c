@@ -1,8 +1,7 @@
 /* run.config*
  COMMENT: see below
- STDOPT:
+ OPT: -machdep gcc_x86_32 -print
 */
-
 /* This test contains attributes that may appear in glibc, musl, case studies,
    etc. Most of these can be safely ignored by Frama-C (e.g. they provide
    hints to the compiler). Plug-ins such as E-ACSL may need to include such

@@ -410,8 +410,29 @@ void array(void)
       __gen_e_acsl_implies = __gen_e_acsl_object_pointer;
     }
     if (__gen_e_acsl_implies) {
+      int __gen_e_acsl_aligned_2;
       int __gen_e_acsl_object_pointer_2;
       int __gen_e_acsl_implies_2;
+      __e_acsl_assert_data_t __gen_e_acsl_assert_data_3 =
+        {.values = (void *)0};
+      __gen_e_acsl_aligned_2 = __e_acsl_aligned((void *)q,4UL);
+      __e_acsl_assert_register_ptr(& __gen_e_acsl_assert_data_3,"q",
+                                   (void *)q);
+      __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_3,
+                                   "\"pointer alignment\": \\aligned(q,4)",0,
+                                   __gen_e_acsl_aligned_2);
+      /*@ assert E_ACSL: "pointer alignment": \aligned(q,4); */
+      {
+        __gen_e_acsl_assert_data_3.blocking = 1;
+        __gen_e_acsl_assert_data_3.kind = "E-ACSL RTE";
+        __gen_e_acsl_assert_data_3.pred_txt = "\\aligned(q,4)";
+        __gen_e_acsl_assert_data_3.file = "objects.c";
+        __gen_e_acsl_assert_data_3.fct = "array";
+        __gen_e_acsl_assert_data_3.line = 33;
+        __gen_e_acsl_assert_data_3.name = "pointer alignment";
+        __e_acsl_assert(__gen_e_acsl_aligned_2,& __gen_e_acsl_assert_data_3);
+        __e_acsl_assert_clean(& __gen_e_acsl_assert_data_3);
+      }
       __gen_e_acsl_object_pointer_2 = __e_acsl_object_pointer((void *)q,
                                                               sizeof(int),
                                                               (void *)q,
