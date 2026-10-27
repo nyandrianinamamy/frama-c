@@ -155,6 +155,16 @@ Prove: true.
 
 ------------------------------------------------------------
 
+Goal Check Lemma 'lor_3_ko':
+Assume Lemmas: 'lxor_com' 'lxor_assoc' 'lor_stb' 'lor_neu' 'lor_com'
+  'lor_assoc' 'land_stb' 'land_abs' 'land_com' 'land_assoc' 'blsr_uint8'
+  'band_uint8' 'bor_uint8' 'blsr_sint8' 'band_sint8' 'bor_sint8' 'bxor_sint8'
+  'bnot_sint8'
+Assume { Have: (6 land (1 lor y lor z)) = 6. }
+Prove: (6 land y) = 6.
+
+------------------------------------------------------------
+
 Goal Lemma 'lor_assoc':
 Assume Lemmas: 'land_stb' 'land_abs' 'land_com' 'land_assoc' 'blsr_uint8'
   'band_uint8' 'bor_uint8' 'blsr_sint8' 'band_sint8' 'bor_sint8' 'bxor_sint8'

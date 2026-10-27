@@ -62,7 +62,7 @@
 [wp] [Valid] Goal rshift_uint_terminates (Cfg) (Trivial)
 [wp] [Valid] Goal shift_negative_exits (Cfg) (Unreachable)
 [wp] [Valid] Goal shift_negative_terminates (Cfg) (Trivial)
-[wp] 65 goals scheduled
+[wp] 66 goals scheduled
 [wp] [Valid] typed_lemma_band_sint8 (Alt-Ergo) (Cached)
 [wp] [Valid] typed_lemma_band_uint8 (Alt-Ergo) (Cached)
 [wp] [Valid] typed_lemma_blsr_sint8 (Alt-Ergo) (Cached)
@@ -75,6 +75,7 @@
 [wp] [Valid] typed_lemma_land_assoc (Qed)
 [wp] [Valid] typed_lemma_land_com (Qed)
 [wp] [Valid] typed_lemma_land_stb (Qed)
+[wp] [Unsuccess] typed_check_lemma_lor_3_ko (Alt-Ergo) (Cached)
 [wp] [Valid] typed_lemma_lor_assoc (Qed)
 [wp] [Valid] typed_lemma_lor_com (Qed)
 [wp] [Valid] typed_lemma_lor_neu (Qed)
@@ -128,15 +129,15 @@
 [wp] [Valid] typed_cast_assert_ok_6 (Qed)
 [wp] [Valid] typed_cast_assert_ok_7 (Qed)
 [wp] [Valid] typed_shift_negative_assigns (Qed)
-[wp] Proved goals:  122 / 125
+[wp] Proved goals:  122 / 126
   Terminating:    30
   Unreachable:    30
   Qed:            47
   Alt-Ergo:       15
-  Unsuccess:       3
+  Unsuccess:       4
 ------------------------------------------------------------
  Axiomatics                WP     Alt-Ergo  Total   Success
-  Lemma                    11        7       21      85.7%
+  Lemma                    11        7       22      81.8%
 ------------------------------------------------------------
  Functions                 WP     Alt-Ergo  Total   Success
   band_int                  4        -        4       100%

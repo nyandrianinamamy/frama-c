@@ -1390,10 +1390,11 @@ module Masks = struct
     try
       let k,es = match_list_head match_integer es in
       (* N.B. requires v<>bottom *)
-      let set = Z.logand (Z.logor v.set v.unset)
+      let set = Z.logand
+          (Z.logor v.set v.unset)
           (Z.logxor v.set k)
       in
-      reduce_exn ctx (e_fun !@f_land es) { v with set }
+      reduce_exn ctx (e_fun !@f_lor es) { v with set }
     with Not_found ->
       if Z.is_zero v.unset then ctx else
         List.fold_left (fun ctx t ->

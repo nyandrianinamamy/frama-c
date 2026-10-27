@@ -204,3 +204,5 @@ unsigned shift_zero(unsigned a) { return a >> 1; }
     ensures ko: \result >= -1;   // false for a == -3: -3 >> 1 == -2
 */
 int shift_negative(int a) { return a >> 1; }
+
+/*@ check lemma lor_3_ko: \forall integer y, z; ((1 | y | z) & 6) == 6 ==> (y & 6) == 6 ; */
