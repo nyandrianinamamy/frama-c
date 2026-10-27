@@ -1365,10 +1365,10 @@ struct
 
   let rec comp_prefixes t1 t2 =
     assert (t1 != t2);
-    let all_comp = compositional_bool t1 && compositional_bool t2 in
+    let all_comp () = compositional_bool t1 && compositional_bool t2 in
     match t1, t2 with
     | Leaf (k1, _v1, _), Leaf (k2, _v2, _) ->
-      if Key.equal k1 k2 && all_comp
+      if Key.equal k1 k2 && all_comp ()
       then begin
         let prefix = Key.id k1, -1 in
         debug_msg "PREF leaves:@\n%a@\n%a@."
@@ -1378,14 +1378,14 @@ struct
     | Branch (p1, m1, l1, r1, _), Branch (p2, m2, l2, r2, _) ->
       if (p1 = p2) && (m1 = m2)
       then begin
-        if all_comp then begin
+        if all_comp () then begin
           let prefix = p1 ,m1 in
           debug_msg "PREF subtree:@\n%a@\n%a@."
             (pretty_prefix prefix) t1 (pretty_prefix prefix) t2;
           raise (Found_prefix(prefix, t1, t2));
         end;
-        if l1 != l2 then comp_prefixes l1 l2;
         if r1 != r2 then comp_prefixes r1 r2;
+        if l1 != l2 then comp_prefixes l1 l2;
       end
       else if (Big_Endian.shorter m1 m2) && (match_prefix p2 p1 m1)
       then begin
@@ -1396,12 +1396,12 @@ struct
       then
         let sub2 = if (p1 land m2) = 0 then l2 else r2 in
         if sub2 != t1 then comp_prefixes t1 sub2
-    | Leaf (key, _, _), Branch (p, m, l, r, _) ->
+    | Leaf (key, _, _), Branch (p, m, l, r, _) when compositional_bool t1 ->
       let k_id = Key.id key in
       if match_prefix k_id p m then
         let sub = if (k_id land m) = 0 then l else r in
         if sub != t1 then comp_prefixes t1 sub
-    | Branch (p, m, l, r, _), Leaf (key, _, _) ->
+    | Branch (p, m, l, r, _), Leaf (key, _, _) when compositional_bool t2 ->
       let k_id = Key.id key in
       if match_prefix k_id p m then
         let sub = if (k_id land m) = 0 then l else r in
