@@ -477,6 +477,9 @@ let smp_bitk_positive = function
       | Logic.Fun( conv , [a] ) (* when is_to_c_int conv *) ->
         let iota = to_cint conv in
         let range = Ctypes.i_bits iota in
+        if range = 1 then
+          (* rejects [to_bool()] that is not a modulo *)
+          raise Not_found ;
         let signed = Ctypes.signed iota in
         if signed then (* beware of sign-bit *)
           begin match is_leq k (e_int (range-2)) with
@@ -1335,6 +1338,8 @@ module Masks = struct
     with Not_found -> top
 
   let eval_to_cint eval_exn ctx iota e =
+    if iota = Ctypes.CBool then
+      raise Not_found ;
     let v = eval_exn ctx e in (* may raise Bottom *)
     let min,max = Ctypes.bounds iota in
     if not (Ctypes.signed iota) then
@@ -1406,6 +1411,7 @@ module Masks = struct
     reduce_exn ctx e (mk ~set:v.unset ~unset:v.set)
 
   let reduce_to_cint reduce_exn ctx v iota e =
+    if iota = Ctypes.CBool then raise Not_found ;
     (* The lowest bits can be reduced *)
     let mask = if not (Ctypes.signed iota) then
         snd (Ctypes.bounds iota)
@@ -1570,6 +1576,7 @@ module MasksDomain = struct
       match F.repr h with
       | Fun(f,[x]) ->
         let iota = is_cint f in (* may raise Not_found *)
+        if iota = Ctypes.CBool then raise Not_found ;
         if not (Ctypes.signed iota) then
           (* The uppest bits are unset *)
           let mask = snd (Ctypes.bounds iota) in
