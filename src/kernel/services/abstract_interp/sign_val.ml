@@ -93,9 +93,9 @@ let cmod v1 v2 =
    |   0   +      0       +       +       0        0
    |   0   0      0       0       0       0        0
    |   0   -      0       -       -       0        0
-   |   -   +      +0      -       -       -        -0
+   |   -   +      +0      -       -       -        -  /!\ -1 >>  1 == -1
    |   -   0      0       -       -       -        -
-   |   -   -      -       -       +0      -0       -
+   |   -   -      -       -       +0      -        -  /!\ -1 << -1 == -1
 *)
 
 let bitwise_and v1 v2 =
@@ -126,7 +126,7 @@ let bitwise_lsl a b =
   { a with zero = a.zero || (a.pos && b.neg) || (a.neg && b.neg) }
 
 let bitwise_lsr a b =
-  { a with zero = a.zero || (a.pos && b.pos) || (a.neg && b.pos) }
+  { a with zero = a.zero || (a.pos && b.pos) }
 
 let logical_and v1 v2 =
   let pos = (v1.pos || v1.neg) && (v2.pos || v2.neg) in
