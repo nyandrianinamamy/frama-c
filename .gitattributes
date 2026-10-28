@@ -11,6 +11,14 @@ Changelog merge=union
 
 /doc/** export-ignore
 
+########################
+# GITLAB CONFIGURATION #
+########################
+
+# Configure syntax highlighting for .i file as C files
+# See https://docs.gitlab.com/user/project/repository/files/highlighting/
+*.i gitlab-language=c
+
 ##################################################
 # BINARY/CHECK-SYNTAX/INDENT/EOL-EOF: set/-unset #
 ##################################################
