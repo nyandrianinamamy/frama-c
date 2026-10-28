@@ -425,6 +425,8 @@ take into account without a deep refactoring of the WP rule of calls. We current
 \item[Bytes, unions \& casts.]
 Memory models with non-typed access and bit- or byte-precision access would
 be easy to implement, although terribly inefficient. We are currently working on a new memory analysis that would provide a deep understanding of how to make \emph{different} memory models soundly working with each others on distinct memory regions. This would deserve a brand new research plan, to be founded by collaborative projects (\textit{hard}).
+\item[Bitfields.]
+Adding bitfield support in the typed memory model would be easy.
 \item[Floats.]
 A new sound but incomplete model for floats is provided since \textsf{Frama-C 21} (Scandium). Here, by incomplete we means that it is generally difficult
 to prove arithmetic properties of float operations by lack of good support from \textsf{SMT} solvers. Although, recent advances on our \textsf{Colibri} solver open the road to a better support for float operations in a near future (\textit{medium/hard}).

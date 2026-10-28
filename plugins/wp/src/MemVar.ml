@@ -442,8 +442,10 @@ struct
     | Loc l -> Loc (M.field l f)
     | Ref x -> noref ~op:"field access to" x
     | Val(m,x,ofs) ->
-      if not @@ is_heap_allocated m then
+      if not @@ is_heap_allocated m then begin
         MemMemory.unsupported_union ~model:"Hoare" f ;
+        MemMemory.unsupported_bitfield ~model:"Hoare" f ;
+      end;
       Val(m,x,ofs @ [Field f])
 
   let rec ofs_shift obj k = function

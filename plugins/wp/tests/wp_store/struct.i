@@ -22,10 +22,26 @@ void f(struct t* a) {
 }
 
 struct St {int a; int b;};
-struct St v={1,2}, w={1,2} ; 
+struct St v={1,2}, w={1,2} ;
 struct St * p = &v ;
 
 /*@ ensures P: qed_ok: v == w;
   @ ensures Q: qed_ok: *p == w;
 */
 void main(void) { return; }
+
+struct bf {
+  int a: 3;
+};
+
+void function(void){
+  struct bf x ;
+  x.a = 2; // unsupported in Hoare
+
+  struct bf y ;
+  &y ;
+  y.a = 2; // unsupported in Typed
+
+  //@ assert x.a == 2;
+  //@ assert y.a == 2;
+}
