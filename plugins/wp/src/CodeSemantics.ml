@@ -456,11 +456,59 @@ struct
     | Warning.Result(warn , hyp) -> warn , hyp
 
 
+  let init_one_char ~sigma:sigma ~loc lv telt acc idx c =
+    let e_type = Ast_types.C.array_element @@ Cil.typeOfLval lv in
+    let exp = Cil.mkCast ~newt:e_type @@ Cil.new_exp ~loc (Const (CChr c)) in
+    let idx = Index (Cil.kinteger ~loc (Machine.sizeof_kind()) idx,NoOffset) in
+    let lv = Cil.addOffsetLval idx lv in
+    init_value ~sigma lv telt (Some exp) :: acc
+
+  let init_one_wchar ~sigma ~loc lv telt acc idx c =
+    let exp =
+      Cil.kinteger64 ~loc ~kind:(Machine.wchar_kind()) (Z.of_int64_unsigned c)
+    in
+    let idx = Index (Cil.kinteger ~loc (Machine.sizeof_kind()) idx,NoOffset) in
+    let lv = Cil.addOffsetLval idx lv in
+    init_value ~sigma lv telt (Some exp) :: acc
+
+  let init_end_array ~sigma ~loc lv telt low up =
+    match up with
+    | Some len when Z.lt low len ->
+      [init_range ~sigma lv telt low (Z.pred len) (Some (Cil.zero ~loc))]
+    | Some _ -> []
+    | None -> [] (* TODO: emit a warning *)
+
+  (* note: might initialize a literal or a variable from a literal *)
+  let init_string ~sigma ~loc lv s =
+    let typ = Cil.typeOfLval lv in
+    if not (Ast_types.C.is_array typ) then
+      WpLog.fatal
+        "CIL invariant broken: String literal can only initialize an array";
+    let telt, len = Ast_types.C.array_elem_type_and_size typ in
+    let len = Option.bind (Cil.constFoldToInt ~machdep:true) len in
+    match s with
+    | Str s ->
+      let size = Z.of_int (String.length s) in
+      let rest = init_end_array ~sigma ~loc lv telt size len in
+      if Wp_parameters.Literals.get () then
+        Seq.fold_lefti (init_one_char ~sigma ~loc lv telt) rest (String.to_seq s)
+      else rest
+    | Wstr l ->
+      let size = Z.of_int (List.length l) in
+      let rest = init_end_array ~sigma ~loc lv telt size len in
+      if Wp_parameters.Literals.get () then
+        Seq.fold_lefti (init_one_wchar ~sigma ~loc lv telt) rest (List.to_seq l)
+      else rest
+
   type warned_hyp = Warning.Set.t * (Lang.F.pred * Lang.F.pred)
 
   (* Hypothesis for initialization of one variable *)
   let rec init_variable ~sigma lv init acc =
     match init with
+    | SingleInit ({ enode = Lval(Var vi, NoOffset) ; eloc })
+      when Ast_info.is_string_literal vi ->
+      let literal = Globals.Vars.get_string_literal vi in
+      init_string ~sigma ~loc:eloc lv literal @ acc
 
     | SingleInit exp ->
       init_value ~sigma lv (Cil.typeOfLval lv) (Some exp) :: acc
@@ -575,51 +623,9 @@ struct
              init_variable ~sigma lv init acc)
           acc (List.rev initl)
 
-  let init_one_char ~sigma:sigma v telt acc idx c =
-    let loc = v.vdecl in
-    let exp = Cil.new_exp ~loc (Const (CChr c)) in
-    let idx = Index (Cil.kinteger ~loc (Machine.sizeof_kind()) idx,NoOffset) in
-    init_value ~sigma (Var v, idx) telt (Some exp) :: acc
-
-  let init_one_wchar ~sigma v telt acc idx c =
-    let loc = v.vdecl in
-    let exp =
-      Cil.kinteger64 ~loc  ~kind:(Machine.wchar_kind()) (Z.of_int64_unsigned c)
-    in
-    let idx = Index (Cil.kinteger ~loc (Machine.sizeof_kind()) idx,NoOffset) in
-    init_value ~sigma (Var v, idx) telt (Some exp) :: acc
-
-  let init_end_array ~sigma v telt low up =
-    let loc = v.vdecl in
-    match up with
-    | Some len when Z.lt low len ->
-      [init_range ~sigma (Cil.var v) telt low (Z.pred len) (Some (Cil.zero ~loc))]
-    | Some _ -> []
-    | None -> [] (* TODO: emit a warning *)
-
-  let init_string_literal ~sigma v s =
-    if not (Ast_types.C.is_array v.vtype) then
-      WpLog.fatal
-        "CIL invariant broken: String literal can only initialize an array";
-    let telt, len = Ast_types.C.array_elem_type_and_size v.vtype in
-    let len = Option.bind (Cil.constFoldToInt ~machdep:true) len in
-    match s with
-    | Str s ->
-      let size = Z.of_int (String.length s) in
-      let rest = init_end_array ~sigma v telt size len in
-      if Wp_parameters.Literals.get () then
-        Seq.fold_lefti (init_one_char ~sigma v telt) rest (String.to_seq s)
-      else rest
-    | Wstr l ->
-      let size = Z.of_int (List.length l) in
-      let rest = init_end_array ~sigma v telt size len in
-      if Wp_parameters.Literals.get () then
-        Seq.fold_lefti (init_one_wchar ~sigma v telt) rest (List.to_seq l)
-      else rest
-
   let init ~sigma v = function
     | None -> [init_value ~sigma (Cil.var v) v.vtype None]
     | Some (CInit init) -> List.rev (init_variable ~sigma (Cil.var v) init [])
-    | Some (StrInit s) -> init_string_literal ~sigma v s
+    | Some (StrInit s) -> init_string ~sigma ~loc:v.vdecl (Cil.var v) s
 
 end

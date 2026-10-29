@@ -20,3 +20,17 @@ void f(void)
   //@ assert VAL: \forall integer i; 0 <= i <= 2 ==> b[i] == d[3+i] ;
   /* The ending '0' is ok ! */
 }
+
+const unsigned char g[] = "\xff";
+
+/*@ ensures \false; */
+int glob(void) { return g[0]; }
+
+/*@ ensures \false; */
+int ptr(void) { const char *p = "\xff"; return *p; }
+
+/*@ ensures \false; */
+int loc(void) { unsigned char s[] = "\xff"; return s[0]; }
+
+/*@ ensures \false; */
+int loc_signed(void) { signed char s[] = "\xff"; return s[0]; }
