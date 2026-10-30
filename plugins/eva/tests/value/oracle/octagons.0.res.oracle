@@ -6,7 +6,7 @@
   undet ∈ [--..--]
 [eva:progress] 
   computing for function demo <- main.
-  Called from octagons.c:276.
+  Called from octagons.c:301.
 [eva:progress] 
   computing for function Frama_C_interval <- demo <- main.
   Called from octagons.c:13.
@@ -22,7 +22,7 @@
 [eva:progress] Done for function demo
 [eva:progress] 
   computing for function integer_types <- main.
-  Called from octagons.c:277.
+  Called from octagons.c:302.
 [eva:progress] 
   computing for function Frama_C_interval <- integer_types <- main.
   Called from octagons.c:24.
@@ -82,7 +82,7 @@
 [eva:progress] Done for function integer_types
 [eva:progress] 
   computing for function arith <- main.
-  Called from octagons.c:278.
+  Called from octagons.c:303.
 [eva:progress] 
   computing for function Frama_C_interval <- arith <- main.
   Called from octagons.c:71.
@@ -127,7 +127,7 @@
 [eva:progress] Done for function arith
 [eva:progress] 
   computing for function join <- main.
-  Called from octagons.c:279.
+  Called from octagons.c:304.
 [eva:progress] 
   computing for function Frama_C_interval <- join <- main.
   Called from octagons.c:104.
@@ -162,7 +162,7 @@
 [eva:progress] Done for function join
 [eva:progress] 
   computing for function loop <- main.
-  Called from octagons.c:280.
+  Called from octagons.c:305.
 [eva:progress] 
   computing for function Frama_C_interval <- loop <- main.
   Called from octagons.c:129.
@@ -191,7 +191,7 @@
 [eva:progress] Done for function loop
 [eva:progress] 
   computing for function pointers <- main.
-  Called from octagons.c:281.
+  Called from octagons.c:306.
 [eva:progress] 
   computing for function Frama_C_interval <- pointers <- main.
   Called from octagons.c:152.
@@ -219,7 +219,7 @@
 [eva:progress] Done for function pointers
 [eva:progress] 
   computing for function saturate <- main.
-  Called from octagons.c:282.
+  Called from octagons.c:307.
 [eva:progress] 
   computing for function Frama_C_interval <- saturate <- main.
   Called from octagons.c:170.
@@ -237,7 +237,7 @@
 [eva:progress] Done for function saturate
 [eva:progress] 
   computing for function interprocedural <- main.
-  Called from octagons.c:283.
+  Called from octagons.c:308.
 [eva:progress] 
   computing for function Frama_C_interval <- interprocedural <- main.
   Called from octagons.c:195.
@@ -289,7 +289,7 @@
 [eva:progress] Done for function interprocedural
 [eva:progress] 
   computing for function dump <- main.
-  Called from octagons.c:284.
+  Called from octagons.c:309.
 [eva:progress] 
   computing for function Frama_C_interval <- dump <- main.
   Called from octagons.c:222.
@@ -317,7 +317,7 @@
 [eva:progress] Done for function dump
 [eva:progress] 
   computing for function pub301 <- main.
-  Called from octagons.c:285.
+  Called from octagons.c:310.
 [eva:progress] 
   computing for function Frama_C_interval <- pub301 <- main.
   Called from octagons.c:232.
@@ -334,7 +334,7 @@
 [eva:progress] Done for function pub301
 [eva:progress] 
   computing for function arrays <- main.
-  Called from octagons.c:286.
+  Called from octagons.c:311.
 [eva:progress] 
   computing for function Frama_C_interval <- arrays <- main.
   Called from octagons.c:251.
@@ -359,6 +359,13 @@
 [eva:partition] octagons.c:268: starting to merge loop iterations
 [eva:progress] Recording results for arrays
 [eva:progress] Done for function arrays
+[eva:progress] 
+  computing for function risky_assignments <- main.
+  Called from octagons.c:312.
+[eva:show] octagons.c:284: Frama_C_show_each_zero: [-18..18]
+[eva:show] octagons.c:297: Frama_C_show_each_not_singleton: [-5..5]
+[eva:progress] Recording results for risky_assignments
+[eva:progress] Done for function risky_assignments
 [eva:progress] Recording results for main
 [eva:progress] Done for function main
 [eva] ====== VALUES COMPUTED ======
@@ -437,6 +444,11 @@
   Frama_C_entropy_source ∈ [--..--]
   len ∈ [0..1024]
   n ∈ [0..63]
+[eva:final-states] Values at end of function risky_assignments:
+  x ∈ {-1; 0; 1}
+  ptr ∈ {{ &x }}
+  t[0] ∈ {0; 1; 2}
+   [1..2] ∈ [-4..4]
 [eva:final-states] Values at end of function saturate:
   Frama_C_entropy_source ∈ [--..--]
   k ∈ [-6..4]
@@ -489,6 +501,8 @@
 [from] Done for function pointers
 [from] Computing for function pub301
 [from] Done for function pub301
+[from] Computing for function risky_assignments
+[from] Done for function risky_assignments
 [from] Computing for function saturate
 [from] Done for function saturate
 [from] Computing for function test_non_integer_args
@@ -527,6 +541,8 @@
   Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
 [from] Function pub301:
   Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+[from] Function risky_assignments:
+  NO EFFECTS
 [from] Function saturate:
   Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
 [from] Function test_non_integer_args:
@@ -581,6 +597,10 @@
     Frama_C_entropy_source; len; tmp; n; tmp_0
 [inout] Inputs for function pub301:
     Frama_C_entropy_source
+[inout] Out (internal) for function risky_assignments:
+    x; ptr; t[0..2]
+[inout] Inputs for function risky_assignments:
+    undet
 [inout] Out (internal) for function saturate:
     Frama_C_entropy_source; k; x; y; z; result
 [inout] Inputs for function saturate:
