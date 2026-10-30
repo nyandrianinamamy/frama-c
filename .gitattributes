@@ -12,7 +12,7 @@ Changelog merge=union
 # All text sources use LF end-of-line, regardless of the host OS
 # This is notably necessary on windows where Git might checkout files
 # with crlf end-of-lines while Cygwin's bash expects lf end-of-lines.
-* text eol=lf
+* text=auto eol=lf
 
 ################
 # DISTRIBUTION #
