@@ -131,10 +131,10 @@ let rtl_call ~loc ?result ?(prefix=Functions.RTL.api_prefix) fname args =
   let fname = prefix ^ fname in
   let vi =
     try Rtl.Symbols.find_vi fname
-    with Rtl.Symbols.Unregistered f ->
+    with Rtl.Symbols.Unregistered _ as exn ->
     try Builtins.find fname
     with Not_found ->
-      Options.fatal "unregistered function %s" f
+      raise exn
   in
   do_call ~loc ?result vi args
 
