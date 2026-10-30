@@ -60,7 +60,7 @@
 )
 
 (cram
- (applies_to * \ bitfield)
+ (applies_to * \ bitfield frama-smith)
  (deps (package crowbar_utils))
 )
 
@@ -75,4 +75,12 @@
  (applies_to bitfield)
  (enabled_if %{read:../../python-3.10-available})
  (deps (env_var "NB_TESTS") (env_var "NB_CORES"))
+)
+
+(cram
+ (applies_to frama-smith)
+ (deps
+   %{project_root}/dev/frama-smith.py
+   %{project_root}/dev/minimize-crash-cmdline.py
+   %{project_root}/dev/frama-smith-templates.json)
 )
