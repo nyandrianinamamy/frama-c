@@ -201,18 +201,18 @@ void f_unsigned(unsigned int a, unsigned int b)
     __gen_e_acsl_cst_shiftr_coerced = __gmpz_get_ui((__e_acsl_mpz_struct const *)(__gen_e_acsl_));
     __e_acsl_assert_clean(& __gen_e_acsl_assert_data_7);
     __gmpz_init(__gen_e_acsl_shiftr);
-    __gmpz_tdiv_q_2exp(__gen_e_acsl_shiftr,
+    __gmpz_fdiv_q_2exp(__gen_e_acsl_shiftr,
                        (__e_acsl_mpz_struct const *)(__gen_e_acsl_neg),
                        __gen_e_acsl_cst_shiftr_coerced);
     __gen_e_acsl__2 = __gmpz_get_si((__e_acsl_mpz_struct const *)(__gen_e_acsl_shiftr));
     __e_acsl_assert_register_ulong(& __gen_e_acsl_assert_data_7,"x",0,x);
     __gen_e_acsl_assert_data_6.blocking = 1;
     __gen_e_acsl_assert_data_6.kind = "Assertion";
-    __gen_e_acsl_assert_data_6.pred_txt = "-x >> 32 == -4215173526";
+    __gen_e_acsl_assert_data_6.pred_txt = "-x >> 32 == -4215173527";
     __gen_e_acsl_assert_data_6.file = "bitwise.c";
     __gen_e_acsl_assert_data_6.fct = "f_unsigned";
     __gen_e_acsl_assert_data_6.line = 39;
-    __e_acsl_assert(__gen_e_acsl__2 == -4215173526L,
+    __e_acsl_assert(__gen_e_acsl__2 == -4215173527L,
                     & __gen_e_acsl_assert_data_6);
     __e_acsl_assert_clean(& __gen_e_acsl_assert_data_6);
     __gmpz_clear(__gen_e_acsl_x);
@@ -220,7 +220,7 @@ void f_unsigned(unsigned int a, unsigned int b)
     __gmpz_clear(__gen_e_acsl_);
     __gmpz_clear(__gen_e_acsl_shiftr);
   }
-  /*@ assert -x >> 32 == -4215173526; */ ;
+  /*@ assert -x >> 32 == -4215173527; */ ;
   return;
 }
 
@@ -295,7 +295,7 @@ void g_signed(int a, int b)
     __gen_e_acsl_b_shiftr_coerced = __gmpz_get_ui((__e_acsl_mpz_struct const *)(__gen_e_acsl_b_2));
     __e_acsl_assert_clean(& __gen_e_acsl_assert_data_5);
     __gmpz_init(__gen_e_acsl_shiftr);
-    __gmpz_tdiv_q_2exp(__gen_e_acsl_shiftr,
+    __gmpz_fdiv_q_2exp(__gen_e_acsl_shiftr,
                        (__e_acsl_mpz_struct const *)(__gen_e_acsl_a_2),
                        __gen_e_acsl_b_shiftr_coerced);
     __gen_e_acsl_eq_2 = __gmpz_cmp((__e_acsl_mpz_struct const *)(__gen_e_acsl_d),
@@ -369,7 +369,7 @@ void g_signed(int a, int b)
     __gmpz_init_set_si(__gen_e_acsl__5,1L);
     __gen_e_acsl_cst_shiftr_coerced = __gmpz_get_ui((__e_acsl_mpz_struct const *)(__gen_e_acsl__5));
     __gmpz_init(__gen_e_acsl_shiftr_2);
-    __gmpz_tdiv_q_2exp(__gen_e_acsl_shiftr_2,
+    __gmpz_fdiv_q_2exp(__gen_e_acsl_shiftr_2,
                        (__e_acsl_mpz_struct const *)(__gen_e_acsl__4),
                        __gen_e_acsl_cst_shiftr_coerced);
     __gen_e_acsl__6 = __gmpz_get_ui((__e_acsl_mpz_struct const *)(__gen_e_acsl_shiftr_2));
@@ -567,7 +567,7 @@ void g_unsigned(unsigned int a, unsigned int b)
     __gen_e_acsl_b_shiftr_coerced = __gmpz_get_ui((__e_acsl_mpz_struct const *)(__gen_e_acsl_b_2));
     __e_acsl_assert_clean(& __gen_e_acsl_assert_data_5);
     __gmpz_init(__gen_e_acsl_shiftr);
-    __gmpz_tdiv_q_2exp(__gen_e_acsl_shiftr,
+    __gmpz_fdiv_q_2exp(__gen_e_acsl_shiftr,
                        (__e_acsl_mpz_struct const *)(__gen_e_acsl_a_2),
                        __gen_e_acsl_b_shiftr_coerced);
     __gen_e_acsl_eq_2 = __gmpz_cmp((__e_acsl_mpz_struct const *)(__gen_e_acsl_d),
@@ -641,7 +641,7 @@ void g_unsigned(unsigned int a, unsigned int b)
     __gmpz_init_set_si(__gen_e_acsl__5,1L);
     __gen_e_acsl_cst_shiftr_coerced = __gmpz_get_ui((__e_acsl_mpz_struct const *)(__gen_e_acsl__5));
     __gmpz_init(__gen_e_acsl_shiftr_2);
-    __gmpz_tdiv_q_2exp(__gen_e_acsl_shiftr_2,
+    __gmpz_fdiv_q_2exp(__gen_e_acsl_shiftr_2,
                        (__e_acsl_mpz_struct const *)(__gen_e_acsl__4),
                        __gen_e_acsl_cst_shiftr_coerced);
     __gen_e_acsl__6 = __gmpz_get_ui((__e_acsl_mpz_struct const *)(__gen_e_acsl_shiftr_2));

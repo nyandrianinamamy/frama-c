@@ -134,7 +134,7 @@ module Z = struct
     | BOr -> "__gmpz_ior"
     | BXor -> "__gmpz_xor"
     | Shiftlt -> "__gmpz_mul_2exp"
-    | Shiftrt -> "__gmpz_tdiv_q_2exp"
+    | Shiftrt -> "__gmpz_fdiv_q_2exp"
     | Lt | Gt | Le | Ge | Eq | Ne | LAnd | LOr | PlusPI | MinusPI
     | MinusPP as bop ->
       Options.fatal

@@ -62,11 +62,7 @@ val rtl_call:
 (** Construct a call to a library function with the given name.
 
     [prefix] defaults to the E-ACSL RTL API prefix and can be explicitly
-    provided to call functions without this prefix.
-
-    @raise Rtl.Symbols.Unregistered if the given string does not represent
-    such a function or if library functions were never registered (only possible
-    when using E-ACSL through its API). *)
+    provided to call functions without this prefix. *)
 
 val store_stmt: ?str_size:exp -> varinfo -> stmt
 (** Construct a call to [__e_acsl_store_block] that observes the allocation of
