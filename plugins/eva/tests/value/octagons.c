@@ -280,7 +280,8 @@ void risky_assignments (void) {
   /* The value of *p is modified by the assignment: octagons must not infer
      x-(*p) ∈ {5} as this relation does not hold after the assignment. */
   x = *ptr + 5;
-  Frama_C_show_each_not_singleton(x - *ptr);
+  // The inferred value can be imprecise but it must include 0.
+  Frama_C_show_each_zero(x - *ptr);
 
   int t[3];
   t[0] = 0;

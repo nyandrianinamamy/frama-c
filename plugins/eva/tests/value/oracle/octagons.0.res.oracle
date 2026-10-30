@@ -6,7 +6,7 @@
   undet ∈ [--..--]
 [eva:progress] 
   computing for function demo <- main.
-  Called from octagons.c:300.
+  Called from octagons.c:301.
 [eva:progress] 
   computing for function Frama_C_interval <- demo <- main.
   Called from octagons.c:13.
@@ -22,7 +22,7 @@
 [eva:progress] Done for function demo
 [eva:progress] 
   computing for function integer_types <- main.
-  Called from octagons.c:301.
+  Called from octagons.c:302.
 [eva:progress] 
   computing for function Frama_C_interval <- integer_types <- main.
   Called from octagons.c:24.
@@ -82,7 +82,7 @@
 [eva:progress] Done for function integer_types
 [eva:progress] 
   computing for function arith <- main.
-  Called from octagons.c:302.
+  Called from octagons.c:303.
 [eva:progress] 
   computing for function Frama_C_interval <- arith <- main.
   Called from octagons.c:71.
@@ -127,7 +127,7 @@
 [eva:progress] Done for function arith
 [eva:progress] 
   computing for function join <- main.
-  Called from octagons.c:303.
+  Called from octagons.c:304.
 [eva:progress] 
   computing for function Frama_C_interval <- join <- main.
   Called from octagons.c:104.
@@ -162,7 +162,7 @@
 [eva:progress] Done for function join
 [eva:progress] 
   computing for function loop <- main.
-  Called from octagons.c:304.
+  Called from octagons.c:305.
 [eva:progress] 
   computing for function Frama_C_interval <- loop <- main.
   Called from octagons.c:129.
@@ -191,7 +191,7 @@
 [eva:progress] Done for function loop
 [eva:progress] 
   computing for function pointers <- main.
-  Called from octagons.c:305.
+  Called from octagons.c:306.
 [eva:progress] 
   computing for function Frama_C_interval <- pointers <- main.
   Called from octagons.c:152.
@@ -219,7 +219,7 @@
 [eva:progress] Done for function pointers
 [eva:progress] 
   computing for function saturate <- main.
-  Called from octagons.c:306.
+  Called from octagons.c:307.
 [eva:progress] 
   computing for function Frama_C_interval <- saturate <- main.
   Called from octagons.c:170.
@@ -237,7 +237,7 @@
 [eva:progress] Done for function saturate
 [eva:progress] 
   computing for function interprocedural <- main.
-  Called from octagons.c:307.
+  Called from octagons.c:308.
 [eva:progress] 
   computing for function Frama_C_interval <- interprocedural <- main.
   Called from octagons.c:195.
@@ -289,7 +289,7 @@
 [eva:progress] Done for function interprocedural
 [eva:progress] 
   computing for function dump <- main.
-  Called from octagons.c:308.
+  Called from octagons.c:309.
 [eva:progress] 
   computing for function Frama_C_interval <- dump <- main.
   Called from octagons.c:222.
@@ -317,7 +317,7 @@
 [eva:progress] Done for function dump
 [eva:progress] 
   computing for function pub301 <- main.
-  Called from octagons.c:309.
+  Called from octagons.c:310.
 [eva:progress] 
   computing for function Frama_C_interval <- pub301 <- main.
   Called from octagons.c:232.
@@ -334,7 +334,7 @@
 [eva:progress] Done for function pub301
 [eva:progress] 
   computing for function arrays <- main.
-  Called from octagons.c:310.
+  Called from octagons.c:311.
 [eva:progress] 
   computing for function Frama_C_interval <- arrays <- main.
   Called from octagons.c:251.
@@ -361,9 +361,9 @@
 [eva:progress] Done for function arrays
 [eva:progress] 
   computing for function risky_assignments <- main.
-  Called from octagons.c:311.
-[eva:show] octagons.c:283: Frama_C_show_each_not_singleton: [-18..18]
-[eva:show] octagons.c:296: Frama_C_show_each_not_singleton: [-5..5]
+  Called from octagons.c:312.
+[eva:show] octagons.c:284: Frama_C_show_each_zero: [-18..18]
+[eva:show] octagons.c:297: Frama_C_show_each_not_singleton: [-5..5]
 [eva:progress] Recording results for risky_assignments
 [eva:progress] Done for function risky_assignments
 [eva:progress] Recording results for main
