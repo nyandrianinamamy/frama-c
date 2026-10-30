@@ -31,6 +31,10 @@ module type S = sig
       Must work on infinities and on negative and positive zeros. *)
   val of_float: round -> prec -> float -> t
 
+  (** Converts an integer into a floating-point number of the given precision
+      with the given rounding mode. *)
+  val of_integer: round -> prec -> Z.t -> t
+
   (** Converts a floating-point number of single or double precision into
       a caml float. Never called on better precision than double. *)
   val to_float: t -> float

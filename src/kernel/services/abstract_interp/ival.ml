@@ -867,7 +867,7 @@ let cast_int_to_float_inverse_not_nan ~single_precision (min, max) =
   (* We find the integer range included in [f] *)
   let min = Fval.F.to_float min in
   let max = Fval.F.to_float max in
-  if exact_min <= min && max <= exact_max then
+  if exact_min < min && max < exact_max then
     (* Round to integers in the proper direction: discard the non-floating-point
        values on each extremity. *)
     let min = ceil min in

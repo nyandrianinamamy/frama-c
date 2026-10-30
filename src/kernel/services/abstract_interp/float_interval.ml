@@ -12,6 +12,15 @@ open Bottom.Operators
 type round = Float_sig.round = Up | Down | Near | Zero
 type prec = Float_sig.prec = Single | Double | Long_Double | Real
 
+let compare_precision prec1 prec2 =
+  let rank = function
+    | Single -> 0
+    | Double -> 1
+    | Long_Double -> 2
+    | Real -> 3
+  in
+  Int.compare (rank prec1) (rank prec2)
+
 module Make (F: Float_sig.S) = struct
 
   (* Definitions of useful floating-point constants. *)
@@ -1075,23 +1084,37 @@ module Make (F: Float_sig.S) = struct
       let round = F.round_to_precision Near dst in
       inject ~nan (round b) (round e)
 
-  (* This function must make sure to return a result with float 32 bounds *)
-  let backward_cast ~src = function
+  (* This function must return a result in [src] precision. *)
+  let backward_cast ~src ~dst = function
     | FRange.NaN -> `Value nan
-    | FRange.Itv (b, e, nan) -> FRange.inject_after_tighten src ~nan b e
+    | FRange.Itv (b, e, nan) as itv ->
+      let cmp = compare_precision src dst in
+      if cmp < 0 then
+        FRange.inject_after_tighten src ~nan b e
+      else if cmp > 0 then
+        (* [src] is more precise than [dst]: the interval must be broaden
+           to include all values in [src] precision that are rounded down to
+           [itv] when converted into [dst] precision.
+           We could probably compute more precise bounds here. *)
+        let round = F.round_to_precision Near src in
+        let b = F.prev_float dst b |> round |> F.next_float src in
+        let e = F.next_float dst e |> round |> F.prev_float src in
+        `Value (FRange.inject ~nan b e)
+      else
+        `Value itv
 
   let cast_int_to_float prec min max =
     let min = match min with
       | None -> Cst.neg_infinity prec
       | Some v ->
         let round = if F.is_exact prec then Near else Down in
-        F.of_float round prec (Z.to_float v)
+        F.of_integer round prec v
     in
     let max = match max with
-      | None -> Cst.neg_infinity prec
+      | None -> Cst.pos_infinity prec
       | Some v ->
         let round = if F.is_exact prec then Near else Up in
-        F.of_float round prec (Z.to_float v)
+        F.of_integer round prec v
     in
     FRange.inject min max
 

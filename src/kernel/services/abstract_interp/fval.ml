@@ -184,7 +184,4 @@ let project_float t = match min_and_max t with
   | Some (b, e), false when F.equal b e -> b
   | _ -> raise Not_Singleton_Float
 
-let backward_cast_float_to_double = backward_cast ~src:Single
-let backward_cast_double_to_real t = t
-
 let subdiv_float_interval = subdivide
