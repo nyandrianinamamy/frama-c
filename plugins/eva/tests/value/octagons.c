@@ -272,6 +272,30 @@ void arrays () {
   }
 }
 
+/* Tests complex assignments where relations inferred by a naive octagon domain
+   may be unsound. */
+void risky_assignments (void) {
+  int x = undet % 10;
+  int *ptr = &x;
+  /* The value of *p is modified by the assignment: octagons must not infer
+     x-(*p) ∈ {5} as this relation does not hold after the assignment. */
+  x = *ptr + 5;
+  Frama_C_show_each_not_singleton(x - *ptr);
+
+  int t[3];
+  t[0] = 0;
+  t[1] = undet % 5;
+  t[2] = undet % 5;
+  // Imprecise value so that octagons may infer relations about [x].
+  x = undet % 2;
+  /* The address of t[t[0]] is modified by the assignment: octagons must not
+     infer relations about this lvalue here. */
+  t[t[0]] = x + 1;
+  /* t[0] now have values in {0; 1; 2}, so that t[t[0]] may be equal to t[1]
+     or t[2], which have imprecise values. */
+  Frama_C_show_each_not_singleton(t[t[0]] - x);
+}
+
 void main () {
   demo ();
   integer_types ();
@@ -284,4 +308,5 @@ void main () {
   dump ();
   pub301 ();
   arrays ();
+  risky_assignments();
 }
