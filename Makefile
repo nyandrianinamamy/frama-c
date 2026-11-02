@@ -99,13 +99,13 @@ ifeq (${FRAMAC_DEVELOPER},yes)
 
 install::
 	@echo "Installing frama-c-hdrck and frama-c-lint"
-	dune install ${WORKSPACE_OPT} --root ${FRAMAC_HDRCK_SRC} --prefix ${PREFIX} ${MANDIR_OPT} 2> /dev/null
-	dune install ${WORKSPACE_OPT} --root ${FRAMAC_LINTCK_SRC} --prefix ${PREFIX} ${MANDIR_OPT} 2> /dev/null
+	dune install ${WORKSPACE_OPT} --root ${FRAMAC_HDRCK_SRC} --prefix "${PREFIX}" ${MANDIR_OPT} 2> /dev/null
+	dune install ${WORKSPACE_OPT} --root ${FRAMAC_LINTCK_SRC} --prefix "${PREFIX}" ${MANDIR_OPT} 2> /dev/null
 
 uninstall::
 	@echo "Uninstalling frama-c-hdrck and frama-c-lint"
-	dune uninstall ${WORKSPACE_OPT} --root ${FRAMAC_HDRCK_SRC} --prefix ${PREFIX} ${MANDIR_OPT} 2> /dev/null
-	dune uninstall ${WORKSPACE_OPT} --root ${FRAMAC_LINTCK_SRC} --prefix ${PREFIX} ${MANDIR_OPT} 2> /dev/null
+	dune uninstall ${WORKSPACE_OPT} --root ${FRAMAC_HDRCK_SRC} --prefix "${PREFIX}" ${MANDIR_OPT} 2> /dev/null
+	dune uninstall ${WORKSPACE_OPT} --root ${FRAMAC_LINTCK_SRC} --prefix "${PREFIX}" ${MANDIR_OPT} 2> /dev/null
 
 endif
 

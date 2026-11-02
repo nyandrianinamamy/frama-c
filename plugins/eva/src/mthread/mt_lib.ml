@@ -65,7 +65,8 @@ let load_threads_library lib =
     pp_threads_lib lib;
   (* Add Mthread folder to the include path. *)
   let mt_include_dir =
-    Format.asprintf "-I%a" Filepath.pretty_abs (Self.Share.get_dir ".")
+    Format.asprintf "-I%s"
+      (Filepath.to_string_abs ~quoted:true (Self.Share.get_dir "."))
   in
   Kernel.CppExtraArgs.add mt_include_dir;
   (* Add the stubbed library files to the list of files to parse. *)
