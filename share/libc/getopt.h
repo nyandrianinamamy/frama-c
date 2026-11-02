@@ -53,7 +53,7 @@ struct option
            longind == \null ? \true :
            (\initialized(longind) && *longind >= 0 &&
             \valid(longopts + *longind))) ||
-          \result > 0;
+          (\result > 0 && (\result == ':' || \result == '?' || \subset(\result, longopts[0..].val)));
  */
 extern int getopt_long (int argc, char *const argv[],
                         const char *shortopts,
