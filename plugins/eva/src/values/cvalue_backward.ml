@@ -379,24 +379,14 @@ let backward_cast ~src_typ ~dst_typ ~src_val ~dst_val =
     else None
 
   | TFloat fk_dst, TFloat fk_src -> begin
-      let f_dst = Fval.kind fk_dst in
-      let f_src = Fval.kind fk_src in
+      let dst = Fval.kind fk_dst in
+      let src = Fval.kind fk_src in
       match V.project_float dst_val with
       | exception V.Not_based_on_null -> None
-      | dst_f ->
-        match f_dst, f_src with
-        | (Fval.Double | Fval.Real | Fval.Long_Double), Fval.Single ->
-          begin
-            match Fval.backward_cast_float_to_double dst_f with
-            | `Bottom -> Some V.bottom
-            | `Value fval ->  Some (V.inject_float fval)
-          end
-        | (Fval.Real | Fval.Long_Double), Fval.Double ->
-          Some (V.inject_float (Fval.backward_cast_double_to_real dst_f))
-        | _, _ -> (* downcasts or dummy casts. *)
-          (* beware that we must return a float32 when f_src is float32, so
-             that the result remains "well-typed". This is the case here. *)
-          Some dst_val
+      | dst_fval ->
+        match Fval.backward_cast ~src ~dst dst_fval with
+        | `Bottom -> Some V.bottom
+        | `Value fval -> Some (V.inject_float fval)
     end
 
   | TInt _, TFloat fkind ->

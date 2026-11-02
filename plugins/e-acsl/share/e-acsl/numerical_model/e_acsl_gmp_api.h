@@ -303,9 +303,10 @@ extern void __gmpz_tdiv_r(eacsl_mpz_t z1, const eacsl_mpz_t z2,
 /*@ requires \valid(z1);
   @ requires \valid_read(z2);
   @ ensures \initialized(z1);
-  @ assigns *z1 \from *z2, n; */
-extern void __gmpz_tdiv_q_2exp(eacsl_mpz_t z1, const eacsl_mpz_t z2,
-                               eacsl_mp_bitcnt_t n) __attribute__((FC_BUILTIN));
+  @ assigns *z1 \from *z2, z3; */
+extern void __gmpz_fdiv_q_2exp(eacsl_mpz_t z1, const eacsl_mpz_t z2,
+                               eacsl_mp_bitcnt_t z3)
+    __attribute__((FC_BUILTIN));
 
 /*@ requires \valid(q1);
   @ requires \valid_read(q2);

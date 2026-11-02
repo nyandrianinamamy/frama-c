@@ -1731,10 +1731,10 @@ module Domain = struct
     let eval_exp, eval_deps = evaluator_from_valuation valuation in
     let variable = Variable.make_lval lvalue in
     (* Remove lvals referring to the variable *)
-    let lvalue_zone = (eval_deps variable).data in
-    let modified = Memory_zone.join state.modified lvalue_zone in
+    let lvalue_deps = eval_deps variable in
+    let modified = Memory_zone.join state.modified lvalue_deps.data in
     let state = { state with modified } in
-    let vars = Deps.intersects_zone state.deps lvalue_zone in
+    let vars = Deps.intersects_zone state.deps lvalue_deps.data in
     let vars = List.filter (Fun.negate (Variable.equal variable)) vars in
     let state = List.fold_left State.remove state vars in
     (* Interpret inversible assignment if possible *)
@@ -1750,18 +1750,36 @@ module Domain = struct
       with Not_found -> State.remove state variable
     in
     let state = assign_interval eval_deps variable assigned state in
-    let left_expr = Eva_ast.Build.lval lvalue in
-    (* On the assignment X = E; if X-E can be rewritten as ±(X±Y-v),
-       then the octagonal constraint [X±Y ∈ v] holds. *)
-    let octagons = Rewriting.rewrite_binop eval_exp env left_expr Sub expr in
-    let state =
-      List.fold_left
-        (fun acc (_sign, octagon) ->
-           acc >>- fun state ->
-           State.add_octagon (Some eval_deps) state octagon)
-        (`Value state) octagons
-    in
-    state >>-: check "precise assign"
+    if Memory_zone.intersects lvalue_deps.data lvalue_deps.indirect
+    then `Value state
+    else
+      let left_expr = Eva_ast.Build.lval lvalue in
+      (* On the assignment X = E; if X-E can be rewritten as ±(X±Y-v),
+         then the octagonal constraint [X±Y ∈ v] holds. *)
+      let octagons = Rewriting.rewrite_binop eval_exp env left_expr Sub expr in
+      (* Is variable [var] modified by the assignment? *)
+      let is_modified var =
+        let deps = eval_deps var in
+        let zone = Memory_zone.join deps.data deps.indirect in
+        Memory_zone.intersects zone lvalue_deps.data
+      in
+      (* We can infer octagons about the modified variable and any other
+         variable not modified by the assignment. *)
+      let is_safe octagon =
+        let x, y = Pair.get octagon.variables in
+        (Variable.equal x variable && not (is_modified y))
+        || (Variable.equal y variable && not (is_modified x))
+      in
+      let state =
+        List.fold_left
+          (fun acc (_sign, octagon) ->
+             acc >>- fun state ->
+             if is_safe octagon
+             then State.add_octagon (Some eval_deps) state octagon
+             else `Value state)
+          (`Value state) octagons
+      in
+      state >>-: check "precise assign"
 
   let assign ~pos left_value expr assigned valuation state =
     if Position.is_local pos

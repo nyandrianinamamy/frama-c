@@ -20,6 +20,9 @@ void f_signed(int a, int b) {
   /*@ assert f == (a & b); */
   int g = a ^ b;
   /*@ assert g == (a ^ b); */
+  /* from Frama-C issue #1800: */
+  signed char h = 1;
+  /*@ assert (h << 40) == 1099511627776; */
 }
 
 // Operations on unsigned C integers
@@ -34,6 +37,12 @@ void f_unsigned(unsigned int a, unsigned int b) {
   /*@ assert f == (a & b); */
   unsigned int g = a ^ b;
   /*@ assert g == (a ^ b); */
+  /* E-ACSL issue #349: */
+  unsigned long x = 18104032443557962508UL;
+  /*@ assert (-x) >> 32 == -4215173527; */
+  /* from Frama-C issue #1800: */
+  unsigned h = 0x80000000u;
+  /*@ assert (h << 1) == 4294967296; */
 }
 
 // Operations on arbitrary precision signed integers

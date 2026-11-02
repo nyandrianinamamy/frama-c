@@ -1,0 +1,592 @@
+#!/usr/bin/env python3
+##########################################################################
+#                                                                        #
+#  SPDX-License-Identifier LGPL-2.1                                      #
+#  Copyright (C)                                                         #
+#  CEA (Commissariat à l'énergie atomique et aux énergies alternatives)  #
+#                                                                        #
+##########################################################################
+
+# Mini-fuzzer for the Frama-C command line.
+
+# Usage examples:
+#
+# N_TRIES=1000 SOURCES_GLOB="tests/**/*.[ci],plugins/*/tests/**/*.[ci]" dev/frama-smith.py [mandatory arguments]
+#
+# Works better with stand-alone programs; when using Frama-C
+# non-regression test suites, due to lack of the specific flags used in
+# many tests (e.g. -cpp-extra-args), many tests fail early.
+
+import asyncio
+import atexit
+import glob
+import json
+import logging
+import math
+import os
+import random
+import re
+import shlex
+import shutil
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
+
+import psutil
+
+logger = logging.getLogger(__name__)
+
+if len(sys.argv) >= 2 and sys.argv[1] == "--help":
+    print("""
+Frama-Smith: a mini-fuzzer for the Frama-C command-line
+
+Usage: currently, almost all arguments are passed via environment variables.
+       Arguments in the command line are passed as extra options
+       to all generated command lines.
+
+##### Important options
+
+SOURCES_GLOB: a glob expression (may contain '*', '**', '[]', etc) matching
+    all source files to be used as inputs for fuzzying.
+    Splits commas found in the string and adds all files to a set.
+    In this mode, a _single_ file among the globbed ones is used for each test.
+    Note: curly braces ({}) are _not_ accepted.
+    Incompatible with MULTI_SOURCES_GLOB and LOAD_SAVE.
+    E.g. : SOURCES_GLOB="tests/**/*.[ci],plugins/*/tests/**/*.[ci]"
+    Default: "" (off)
+
+MULTI_SOURCES_GLOB: a glob expression (may contain '*', '**', '[]', etc)
+    matching all source files to be used as inputs for fuzzying.
+    In this mode, _all_ globbed files are used at each test.
+    Note: curly braces ({}) are _not_ accepted.
+    Incompatible with SOURCES_GLOB and LOAD_SAVE.
+    E.g. : MULTI_SOURCES_GLOB="tests/idct/*.c"
+    Default: "" (off)
+
+LOAD_SAVE: a glob expression (may contain '*', '**', '[]', etc) matching
+    Frama-C save files (.sav) to be used as inputs for fuzzying (via -load).
+    Replaces (and is incompatible with) SOURCES_GLOB and MULTI_SOURCES_GLOB.
+    Default: "" (off)
+
+AUTOCOMPLETE_FILTER: filter given to option -autocomplete to determine which
+    options will be used.
+    E.g.: use AUTOCOMPLETE_FILTER="<shortname>" to only generate
+    options for plugin <shortname>, or
+    AUTOCOMPLETE_FILTER="@all,-<shortname>" to generate options for
+    all plugins _except_ <shortname>.
+    Default: @all
+
+Also, take a look at the "mandatory_args" entry in the JSON template, for
+options that will be always inserted in the command line. See option
+TEMPLATES below for more details.
+
+##### Secondary options
+
+CPP_EXTRA_ARGS: preprocessing flags to be passed to option '-cpp-extra-args'.
+    Default: "" (empty string)
+
+LIST_OPTIONS: do not run; list all options that could be generated, then quit.
+    Default: 0 (off)
+
+LOG_AND_KEEP: for every crash, append the faulty command line to a file,
+    and keep generating commands. Otherwise, stop at first generated crash.
+    Default: "" (empty string; off)
+
+MUST_SUCCEED: stops whenever a Frama-C run gives _any_ errors
+    (return code != 0). Disables some fuzzying to avoid too many
+    false positives.
+
+N_TRIES: number of test runs.
+    Default: 100
+
+QUIET: set to 1 to avoid outputting messages in stdout.
+    Messages are still logged to a temporary file.
+    Default: 0 (off)
+
+SOURCES_EXCLUDE: a comma-separated list of glob expressions (may contain
+    '*', '**', '[]', etc) matching all source files to be _excluded_ from
+    being fuzzying inputs.
+    Default: "" (empty string; off).
+
+TEMPLATES: the JSON file containing the templates for option generation,
+    options to be excluded, etc.
+    Default: <directory containing this script>/frama-smith-templates.json
+
+TIMEOUT: timeout (in seconds) before terminating execution of a test.
+    Note: timeout is currently buggy and does not work in all cases;
+          some processes may keep executing longer than they should.
+    Default: 10
+""")
+    sys.exit(0)
+
+script_dir = Path(os.path.dirname(os.path.realpath(__file__)))
+
+# Currently, all options are passed via environment variables
+sources_glob = os.getenv("SOURCES_GLOB", "")
+multi_sources_glob = os.getenv("MULTI_SOURCES_GLOB", "")
+load_save = os.getenv("LOAD_SAVE", "")
+autocomplete_filter = os.getenv("AUTOCOMPLETE_FILTER", "@all")
+cpp_extra_args = os.getenv("CPP_EXTRA_ARGS", "")
+list_options = bool(os.getenv("LIST_OPTIONS"))
+log_and_keep_value = os.getenv("LOG_AND_KEEP", "")
+log_and_keep = Path(log_and_keep_value) if log_and_keep_value else None
+must_succeed = bool(os.getenv("MUST_SUCCEED"))
+n_tries = int(os.getenv("N_TRIES", "100"))
+quiet = os.getenv("QUIET")
+sources_exclude = os.getenv("SOURCES_EXCLUDE", "")
+timeout = int(os.getenv("TIMEOUT", "10"))
+templates_json = Path(os.getenv("TEMPLATES", script_dir / "frama-smith-templates.json"))
+testing = os.getenv("FRAMAC_TESTING", "no")
+
+# add double quotes around extra arguments to be forwarded to the
+# 'new' command line; this compensates their 'loss' by the shell when passed
+# to this Python process.
+extra_args = " ".join(shlex.quote(arg) for arg in sys.argv[1:])
+
+framac = "frama-c"
+fc_script = f"{framac}-script"
+
+if log_and_keep:
+    print(f"Logging commands causing crashes to: '{log_and_keep}'")
+    logger.basicConfig(
+        format="[%(asctime)s] %(message)s",
+        filename=log_and_keep,
+        level=logging.INFO,
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+
+with open(templates_json, encoding="utf-8") as template_file:
+    json_obj = json.loads(template_file.read())
+    options_to_ignore_wildcards = json_obj["options_to_ignore_wildcards"]
+    options_to_ignore = list(json_obj["options_to_ignore"].keys())
+    templates = json_obj["templates"]
+    mandatory_args = json_obj["mandatory_args"]
+    sources_blacklist = json_obj["sources_blacklist"]
+    del sources_blacklist["<LIST_TERMINATOR>"]
+
+re_argtype = re.compile(r" (-[^ ]+): ([^ ]+)( \((.*)\))?")
+lines = subprocess.check_output(
+    [framac, f"-autocomplete={autocomplete_filter}"], stderr=subprocess.STDOUT, encoding="UTF-8"
+).splitlines()
+
+substrings_to_ignore = []
+prefixes_to_ignore = []
+suffixes_to_ignore = []
+
+for entry in options_to_ignore_wildcards:
+    if entry[0] == "*" and entry[-1] == "*":
+        # substring
+        substrings_to_ignore.append(entry[1:-1])
+    elif entry[0] == "*":
+        # option suffix
+        suffixes_to_ignore.append(entry[1:])
+    elif entry[-1] == "*":
+        # option prefix
+        prefixes_to_ignore.append(entry[:-1])
+
+
+# generates a random integer between a and b, possibly biased towards a
+def random_maybe_biased_towards_lower(a, b):
+    dist = b - a
+    if dist > 1000:
+        # generate a number VERY biased towards a
+        if random.random() <= 0.97:
+            return a + math.trunc(random.random() * 10)
+        else:
+            return a + math.trunc(random.random() * (b - a))
+    else:
+        return random.randrange(a, b + 1)
+
+
+def option_to_ignore(opt):
+    if opt in options_to_ignore:
+        return True
+    for pre in prefixes_to_ignore:
+        if opt.startswith(pre):
+            return True
+    for suf in suffixes_to_ignore:
+        if opt.endswith(suf):
+            return True
+    for f in substrings_to_ignore:
+        if f in opt:
+            return True
+    return False
+
+
+not_yet_implemented = ["variable"]
+
+must_exist_dir = tempfile.mkdtemp(prefix="frama_smith_must_exist")
+atexit.register(shutil.rmtree, must_exist_dir, ignore_errors=True)
+
+tmpfd, must_exist_input_file = tempfile.mkstemp(prefix="frama_smith_must_exist_file")
+os.close(tmpfd)
+atexit.register(
+    lambda: os.unlink(must_exist_input_file) if os.path.exists(must_exist_input_file) else None
+)
+
+may_exist_dir = tempfile.gettempdir() + "/frama_smith_may_exist"
+atexit.register(shutil.rmtree, may_exist_dir, ignore_errors=True)
+
+subtypes = {}
+subtypes["directory"] = [must_exist_dir]
+subtypes["output_file"] = [must_exist_dir + "/out1", must_exist_dir + "/out2"]
+subtypes["input_file"] = [must_exist_input_file]
+if not must_succeed:
+    subtypes["directory"] += [must_exist_dir, may_exist_dir]
+    subtypes["output_file"] += [may_exist_dir + "/out3"]
+    subtypes["input_file"] += [
+        must_exist_dir + "/non-existing-file",
+        "/tmp/non-existing-dir/non-existing-file",
+    ]
+
+if not os.path.exists(must_exist_dir):
+    os.mkdir(must_exist_dir)
+
+with open(must_exist_input_file, "w", encoding="utf-8") as out_file:
+    if must_succeed:
+        out_file.write("[]\n")
+    else:
+        out_file.write("[{(\n")
+
+all_options = {}
+n_opts = 0
+unsupported_n_opts = 0
+missing_templates = 0
+for line in lines:
+    m = re_argtype.search(line)
+    if m:
+        n_opts += 1
+        option = m.group(1)
+        if option_to_ignore(option):
+            # ignore option
+            continue
+        if option in templates:
+            if templates[option] in not_yet_implemented:
+                # not yet implemented; ignore
+                continue
+            all_options[option] = "template"
+        else:
+            # no template : a bool, an integer range, a list of strings,
+            # a subtype, or something needing a template
+            option_type = m.group(2)
+            if option_type == "bool":
+                all_options[option] = ""
+            elif option_type == "int":
+                irange = m.group(4)
+                if irange:
+                    [imin, imax] = irange.split(", ")
+                    all_options[option] = {"range": [imin, imax]}
+                else:
+                    print(f"missing template for option: {option} (int)")
+                    missing_templates += 1
+            elif option_type == "string":
+                values = m.group(4)
+                if values:
+                    values_list = values.split(", ")
+                    # remove key 'help' if present, since it leads to early termination
+                    if "help" in values_list:
+                        values_list.remove("help")
+                    all_options[option] = {"values": values_list}
+                else:
+                    print(f"missing template for option: {option} (string)")
+                    missing_templates += 1
+            elif option_type == "directory":
+                all_options[option] = {"values": subtypes["directory"]}
+            elif option_type == "input_file":
+                all_options[option] = {"values": subtypes["input_file"]}
+            elif option_type == "output_file":
+                all_options[option] = {"values": subtypes["output_file"]}
+            else:
+                sys.exit(f"invalid option_type: {option_type}")
+
+if missing_templates > 0:
+    sys.exit(f"{missing_templates} missing template(s) found, quitting")
+
+# A few command-line options are special and do not appear in autocomplete;
+# we explicitly add them here
+all_options["-then"] = ""
+
+nb_source_opts = 0
+if sources_glob != "":
+    nb_source_opts += 1
+    glob_expression = sources_glob
+    source_mode = "single"
+if multi_sources_glob != "":
+    nb_source_opts += 1
+    glob_expression = multi_sources_glob
+    source_mode = "multi"
+if load_save != "":
+    nb_source_opts += 1
+    glob_expression = load_save
+    source_mode = "load"
+
+if nb_source_opts == 0:
+    sys.exit("error: no sources (use SOURCES_GLOB, MULTI_SOURCES_GLOB or LOAD_SAVE)")
+elif nb_source_opts > 1:
+    sys.exit("error: only one of SOURCES_GLOB, MULTI_SOURCES_GLOB and LOAD_SAVE must be set")
+
+sources_set = set()
+for path in glob_expression.split(","):
+    sources_set = sources_set.union(glob.glob(path))
+if not sources_set:
+    sys.exit(f"error: no files matching expression: {glob_expression}")
+
+for exc in sources_blacklist:
+    sources_set -= set(glob.glob(exc))
+
+if not sources_set:
+    sys.exit(
+        f"error: no remaining files after applying sources blacklist: {list(sources_blacklist.keys())}"
+    )
+
+for exc in sources_exclude.split(","):
+    sources_set -= set(glob.glob(exc))
+
+if not sources_set:
+    sys.exit(f"error: no remaining files after applying source exclusions: {sources_exclude}")
+
+sources = sorted(sources_set)
+
+sources_count = f"{len(sources)}" if testing == "no" else "<COUNT>"
+print(f"{sources_count} fuzzable sources.")
+
+if list_options:
+    print("Listing all options that could be generated:")
+    for k, v in sorted(all_options.items()):
+        print(f"{k}: {v}")
+    sys.exit(0)
+
+### END OF COMMAND-LINE CHECKS; EXECUTION WILL TAKE PLACE
+
+all_options_keys_list = list(all_options.keys())
+
+options_count = f"{len(all_options_keys_list)}/{n_opts}" if testing == "no" else "<COUNT>"
+print(
+    f"Autocomplete filter: '{autocomplete_filter}'. Fuzzing {options_count} Frama-C command-line options ({unsupported_n_opts} option(s) not supported in current mode)."
+)
+
+re_list_functions = re.compile("^([A-Za-z0-9_]+): (defined|declared) at.*")
+
+
+def list_functions(chosen_sources, cpp_extra, add_load):
+    # Note: frama-c-script loads no modules, so we do not include most options.
+    # We must keep however those related to preprocessing, such as
+    # '-cpp-extra-args', to ensure parsing succeeds and we get the list of
+    # functions.
+    fc_script_cmdline = f"{fc_script} list-functions {add_load}{chosen_sources} {cpp_extra}"
+    try:
+        fc_script_proc = subprocess.run(
+            fc_script_cmdline,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            encoding="utf-8",
+            shell=True,
+            timeout=5,
+            check=False,
+        )
+        if fc_script_proc.returncode != 0:
+            # could not get functions, return empty list
+            return []
+        functions = []
+        for line in fc_script_proc.stdout.splitlines():
+            m = re_list_functions.match(line)
+            if m:
+                functions.append(m.group(1))
+        return functions
+    except subprocess.TimeoutExpired:
+        # timeout getting functions
+        return []
+
+
+def generate_random_args(min_args, max_args, functions):
+    n_args = random.randint(min_args, max_args)
+    chosen_opts = random.sample(all_options_keys_list, n_args)
+    args = ""
+    for opt in chosen_opts:
+        entry = all_options[opt]
+        if entry == "":
+            args += f" {opt}"
+        elif isinstance(entry, dict):
+            # range
+            if "range" in entry:
+                rmin = int(entry["range"][0])
+                rmax = int(entry["range"][1])
+                rand = random_maybe_biased_towards_lower(rmin, rmax)
+                args += f" {opt} {rand}"
+            elif "values" in entry:
+                args += f" {opt} {random.choice(entry['values'])}"
+            else:
+                sys.exit(f"error: unknown entry for option '{opt}': '{entry}'")
+        elif entry == "template":
+            template = templates[opt]
+            if isinstance(template, list):
+                args += f" {opt} {random.choice(template)}"
+            else:
+                # check for special template types
+                if "range" in template:
+                    rmin = int(template["range"][0])
+                    rmax = int(template["range"][1])
+                    rand = random_maybe_biased_towards_lower(rmin, rmax)
+                    args += f" {opt} {rand}"
+                elif template == "functions":
+                    if functions != []:
+                        function_subset = ",".join(
+                            random.sample(functions, random.randint(1, len(functions)))
+                        )
+                        args += f" {opt} {function_subset}"
+                    else:
+                        # did not get a list of functions; ignore option
+                        continue
+                elif template == "function":
+                    if functions != []:
+                        args += f" {opt} {random.choice(functions)}"
+                    else:
+                        # did not get a list of functions; ignore option
+                        continue
+                else:
+                    sys.exit(f"error: unknown special template '{template}' for option '{opt}'")
+        elif entry in ("string", "int"):
+            sys.exit(f"error: option '{opt}' of type '{entry}' is unbounded and has no template")
+        else:
+            sys.exit(f"error: invalid argument? {opt} has type {entry}")
+    return args
+
+
+re_possible_values = re.compile("Possible values are: (.*)")
+re_invalid_input = re.compile(r"invalid input .* for option (-.*)\.")
+
+ok_tries = 0
+timeouts = 0
+
+
+# Timer for test execution timeout
+class Timer:
+    def __init__(self, timeout, callback, process):
+        self._timeout = timeout
+        self._callback = callback
+        self._task = asyncio.ensure_future(self._job())
+        self._process = process
+
+    async def _job(self):
+        await asyncio.sleep(self._timeout)
+        await self._callback(self._timeout, self._process)
+
+    def cancel(self):
+        self._task.cancel()
+
+
+# This function ensures that, especially in the case of timeouts, the children
+# processes of the shell running Frama-C will also be terminated.
+# If we use a simple 'process.kill()' applied to the created subprocess, this
+# will not be enough, and the child process will keep running.
+def kill_shell_and_children(pid):
+    try:
+        process = psutil.Process(pid)
+        for child in process.children(recursive=True):
+            try:
+                print(f"killing child: {child.pid}")
+                child.kill()
+            except psutil.NoSuchProcess:
+                print(f"process {child.pid} already killed, ignoring")
+        print(f"killing process: {pid}")
+        process.kill()
+    except psutil.NoSuchProcess:
+        print(f"process {pid} already killed, ignoring")
+
+
+async def timeout_callback(timeout, process):
+    print(f"### TIMEOUT ({timeout} seconds) running process {process.pid}, ignoring...")
+    kill_shell_and_children(process.pid)
+    global timeouts
+    timeouts += 1
+
+
+async def run_and_log_command(args, timeout):
+    process = await asyncio.create_subprocess_shell(
+        args, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT, limit=1024 * 256
+    )
+    # read line asynchronously
+    logfd, logname = tempfile.mkstemp(prefix="frama_smith_")
+    with open(logname, "bw") as logfile:
+        try:
+            if quiet:
+                print(f"*** logging output to: {logname}")
+            timer = Timer(timeout, timeout_callback, process)
+            while True:
+                try:
+                    line = await asyncio.wait_for(process.stdout.readline(), timeout)
+                except (asyncio.TimeoutError, asyncio.exceptions.TimeoutError):
+                    print(
+                        f"### TIMEOUT ({timeout} seconds) reading process {process.pid}, ignoring..."
+                    )
+                    kill_shell_and_children(process.pid)  # timeout
+                    return (124, "")
+                except ValueError as e:
+                    print(f"### VALUE ERROR: {e!r}")
+                    kill_shell_and_children(process.pid)
+                    return (1, "")
+                else:
+                    if not line:  # EOF
+                        break
+                    logfile.write(line)
+                    if not quiet:
+                        sys.stdout.buffer.write(line)
+                        sys.stdout.flush()
+                    continue
+            retcode = await process.wait()  # wait for the child process to exit
+            timer.cancel()
+        except Exception as e:
+            print(f"killing subprocess {process.pid} before re-raising exception <{e!r}>...")
+            kill_shell_and_children(process.pid)
+            raise
+    with open(logname, "r", encoding="utf-8") as logfile:
+        output = logfile.read()
+    os.remove(logname)
+    os.close(logfd)
+    contains_please_report = "Please report as" in output
+    return (retcode, output, contains_please_report)
+
+
+loop = asyncio.new_event_loop()
+asyncio.set_event_loop(loop)
+
+for i in range(1, n_tries + 1):
+    print(f"*** Generating command {i}/{n_tries}...")
+    chosen_sources = " ".join(sources) if source_mode == "multi" else random.choice(sources)
+    cpp_extra = f'-cpp-extra-args="{cpp_extra_args}" ' if source_mode != "load" else ""
+    add_load = "-load " if source_mode == "load" else ""
+    functions = list_functions(chosen_sources, cpp_extra, add_load)
+    cmdline = f"{framac} {mandatory_args} {add_load}{chosen_sources} {cpp_extra}{extra_args}"
+    cmdline += generate_random_args(2, 15, functions)
+    print(f"running: {cmdline}")
+    retcode, res_stdout, please_report = loop.run_until_complete(
+        run_and_log_command(cmdline, timeout)
+    )
+    if retcode in (4, 125) and please_report:
+        if log_and_keep:
+            logger.info("CRASH with: %s", cmdline)
+        else:
+            sys.exit(f"Crash detected in Frama-C, stopping. Command line:\n{cmdline}")
+    else:
+        if retcode == 0:
+            ok_tries += 1
+        elif must_succeed:
+            sys.exit(
+                f"Frama-C returned {retcode} in mode MUST_SUCCEED, stopping. Command line:\n{cmdline}"
+            )
+        if please_report:
+            if log_and_keep:
+                logger.info("Fatal crash with: %s", cmdline)
+            else:
+                if quiet:
+                    print("### Output from fatal crash:")
+                    print(res_stdout)
+                    sys.exit(
+                        f"Detected fatal crash, interrupting execution. Command line:\n{cmdline}"
+                    )
+
+
+loop.close()
+
+print(f"*** Executions ended without error: {ok_tries}/{n_tries} ({timeouts} timeouts)")
