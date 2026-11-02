@@ -62,9 +62,9 @@ let lift_arith_binop f i1 i2 = match i1, i2 with
   | Nan, (Ival _ | Float _ | Rational | Real) ->
     Nan
 
-exception Join_float of fkind
-
-let join i1 i2 = match i1, i2 with
+let join i1 i2 =
+  let exception Join_float of fkind in
+  match i1, i2 with
   | Ival iv, i when Ival.is_bottom iv -> i
   | i, Ival iv when Ival.is_bottom iv -> i
   | Ival i1, Ival i2 ->
@@ -91,9 +91,9 @@ let join i1 i2 = match i1, i2 with
           begin match k with
             | FFloat | FFloat32 ->
               (* try float, then double *)
-              List.iter check [ k, 23; FDouble, 53 ]
+              List.iter check [ k, 23; FDouble, 52 ]
             | FDouble | FFloat64 ->
-               check (FDouble, 53)
+               check (FDouble, 52)
             | FLongDouble ->
               ()
           end;

@@ -871,8 +871,9 @@ and type_predicate ~profile p =
 (** When typing a binary relation, generate the context in which the relation
     should be typed, to avoid spurious casts:
     - Compute the union of the interval of the two terms
-    - Check if any of the term has a number C type that contains this union,
-      and if so use this C type, or [int] if this type is smaller than [int]
+    - If the union is an integer interval, check if any of the term has an
+      integer C type that contains this union, and if so use this C type, or
+      [int] if this type is smaller than [int]
     - Otherwise use the type corresponding to the union *)
 and ctx_relation ~profile t1 t2 =
   let i = Interval.joins_from_profile ~profile [t2; t1] in
