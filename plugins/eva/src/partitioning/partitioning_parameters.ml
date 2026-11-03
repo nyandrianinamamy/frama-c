@@ -129,9 +129,9 @@ struct
       match annotation with
       | FlowSplit (ConditionalCases, _) ->
         let do_branch (src,edge,dest) =
-          let source = src.Eva_automata.vertex_key in
-          let branch = edge.Eva_automata.edge_key in
-          (dest, Partition.SyntacticSplit (source, branch))
+          let vertex = src.Eva_automata.vertex_key in
+          let edge = edge.Eva_automata.edge_key in
+          (dest, Partition.SyntacticSplit (vertex, edge))
         in
         (* Find first vertex with several successors. *)
         let rec find_next_branches vertex =
@@ -243,12 +243,12 @@ struct
     in
     flow_actions, store_results
 
-  let flow_actions_e ~several_sources ek v =
+  let flow_actions_e ~several_sources edge v =
     if several_sources && should_partition_at v then
-      let b = Partition.Graph_branch (ek, v.vertex_key) in
-      Partition.Add_branch (b, history_size) :: should_merge_what ek
+      let b = Partition.Graph_branch { edge; junction=v.vertex_key } in
+      Partition.Add_branch (b, history_size) :: should_merge_what edge
     else
-      should_merge_what ek
+      should_merge_what edge
 
   let call_return_policy =
     Partition.{

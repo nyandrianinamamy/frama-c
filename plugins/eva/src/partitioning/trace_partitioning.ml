@@ -137,8 +137,8 @@ struct
       if List.compare_length_with states 1 <= 0 then
         fun _ s -> key, s
       else
-        fun i s ->
-          let branch = Disjunction_case (stmt, i) in
+        fun rank s ->
+          let branch = Disjunction_case { stmt; rank } in
           Partition.Key.add_branch ~history_size branch key, s
     in
     List.mapi add_key states

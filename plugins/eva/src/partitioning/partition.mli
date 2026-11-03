@@ -24,18 +24,35 @@
 
 (** {2 Keys and partitions.} *)
 
+type edge_key = int
+type vertex_key = int
+
 type branch =
-  | Graph_branch of int * int
-  (** Junction branch id in the control flow. The integers are the edge key and
-      the vertex key. *)
-  | Builtin_result of Kernel_function.t * Cil_datatype.Kinstr.t * int
-  (** Case of a builtin. The integer is an index. *)
-  | Spec_behavior of Kernel_function.t * Cil_datatype.Kinstr.t * int
-  (** Behavior of a spec. The integer is an index. *)
-  | Disjunction_case of Cil_datatype.Stmt.t * int
-  (** Case of a disjunction in an ACSL annotation. The integer is an index. *)
-  | Call_branch of Cil_datatype.Stmt.t * branch
-  (** Branch resulting of a call. *)
+  | Graph_branch of
+      { edge: edge_key;
+        junction: vertex_key
+      }
+  | Builtin_result of
+      { kf: Kernel_function.t;
+        kinstr : Cil_datatype.Kinstr.t;
+        rank : int; (* Position in the builtin returned list of states *)
+      }
+  | Spec_behavior of
+      { kf : Kernel_function.t;
+        kinstr : Cil_datatype.Kinstr.t;
+        rank : int;
+        (* Position in the list of states returned by Transfer_specification *)
+      }
+  | Disjunction_case of
+      { stmt: Cil_datatype.Stmt.t;
+        rank: int;
+        (* Position in the list of states in Iterator.transfer_statement *)
+      }
+  | Call_branch of
+      { stmt: Cil_datatype.Stmt.t;
+        callee_branch: branch;
+        (* The actual branch selected in the callee *)
+      }
 
 (** Partitioning keys attached to states. *)
 type key
@@ -143,7 +160,7 @@ type action =
       The integer is the maximum number of successive branches kept in the keys:
       this action also removes the oldest branches from the keys to meet this
       constraint. *)
-  | Remove_branch of int
+  | Remove_branch of vertex_key
   (** Removes the branch identified by the given vertex key, in order to
       provoke a merging of keys. *)
   | Remove_call_branch of Cil_types.stmt
@@ -177,7 +194,7 @@ type action =
   | Merge of split_term
   (** Forgets the split of an expression: states that were kept separate only
       by the split of this expression will be joined together. *)
-  | SyntacticSplit of int * int
+  | SyntacticSplit of vertex_key * edge_key
   (** Record that the state attached to this key have been obtained after
       taking a if-then-else or switch branch - identified by the vertex id
       of the split and the edge id of the branch taken. *)
