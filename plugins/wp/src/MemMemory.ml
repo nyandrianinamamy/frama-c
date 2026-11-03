@@ -86,12 +86,24 @@ let () = Context.register
 (* --- Unsupported Unions                                                 --- *)
 (* -------------------------------------------------------------------------- *)
 
-let wkey = Wp_parameters.register_warn_category "union"
+let wkey = Wp_parameters.register_warn_category "unsupported:union"
 
 let unsupported_union ~model (fd : Cil_types.fieldinfo) =
   if not fd.fcomp.cstruct then
     Wp_parameters.warning ~once:true ~wkey
       "Accessing union fields with %s model might be unsound.@\n\
+       Please refer to WP manual." model
+
+(* -------------------------------------------------------------------------- *)
+(* --- Unsupported Bitfields                                              --- *)
+(* -------------------------------------------------------------------------- *)
+
+let wkey = Wp_parameters.register_warn_category "unsupported:bitfield"
+
+let unsupported_bitfield ~model (fd : Cil_types.fieldinfo) =
+  if Option.is_some fd.fbitfield then
+    Wp_parameters.warning ~once:true ~wkey
+      "Accessing bitfields with %s model might be unsound.@\n\
        Please refer to WP manual." model
 
 (* -------------------------------------------------------------------------- *)

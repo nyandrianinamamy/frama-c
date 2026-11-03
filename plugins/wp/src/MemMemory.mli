@@ -33,5 +33,6 @@ val framed : term -> pred
 (** {2 Unsupported Union Fields} *)
 
 val unsupported_union : model:string -> Cil_types.fieldinfo -> unit
+val unsupported_bitfield : model:string -> Cil_types.fieldinfo -> unit
 
 (* -------------------------------------------------------------------------- *)

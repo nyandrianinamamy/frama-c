@@ -422,6 +422,7 @@ module Shift = WpContext.Generator(Cobj)
 
 let field l f =
   MemMemory.unsupported_union ~model:"Typed" f ;
+  MemMemory.unsupported_bitfield ~model:"Typed" f ;
   F.e_fun (ShiftField.get f) [l]
 
 let shift l obj k = F.e_fun (Shift.get obj) [l;k]
