@@ -514,6 +514,11 @@ module type Map = sig
   (** Search a given key in the map.
       @raise Not_found if there is no such key in the map. *)
 
+  val find_opt: key -> value option
+  (** Search a given key in the map. Returns [None] if there is no such key in
+      the map.
+      @since Frama-C+dev *)
+
   val mem: key -> bool
 
 end

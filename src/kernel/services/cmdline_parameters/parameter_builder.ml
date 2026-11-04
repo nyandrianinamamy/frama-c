@@ -1676,6 +1676,7 @@ struct
     (* ********************************************************************** *)
 
     let find k = K.Map.find k (get ())
+    let find_opt k = K.Map.find_opt k (get ())
     let mem k = K.Map.mem k (get ())
     let get_default () = X.default
 
