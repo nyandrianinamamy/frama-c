@@ -295,6 +295,7 @@ int __fc_v_wscanf(const wchar_t * restrict format, va_list arg) {
           break;
         case L:
           *va_arg(arg, wint_t*) = Frama_C_wint_t_interval(WINT_MIN, WINT_MAX);
+          break;
         default:
           // Undefined behavior
           //@ assert invalid_scanf_specifier: \false;
@@ -312,6 +313,7 @@ int __fc_v_wscanf(const wchar_t * restrict format, va_list arg) {
           // TODO: take into account field width
           Frama_C_make_unknown_wchar(va_arg(arg, wchar_t*),
                                      Frama_C_size_t_interval(0, SIZE_MAX/sizeof(wchar_t)));
+          break;
         default:
           // Undefined behavior
           //@ assert invalid_scanf_specifier: \false;
