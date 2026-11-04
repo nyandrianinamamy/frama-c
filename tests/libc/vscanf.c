@@ -25,7 +25,8 @@ int main() {
   uintmax_t j;
   size_t z;
   wchar_t lc;
-  int res = caller_stub_for_vscanf("%d %2c %41Lf %s %ti %jx %zu %lc", &d, &c, &Ld, s, &t, &j, &z, &lc);
+  int n;
+  int res = caller_stub_for_vscanf("%d %2c %41Lf %s %ti %jx %zu %lc %n", &d, &c, &Ld, s, &t, &j, &z, &lc, &n);
 #ifdef __FRAMAC__
   if (res >= 1) {
     //@ check \initialized(&d);
@@ -39,6 +40,7 @@ int main() {
   if (res >= 8) {
     //@ check \initialized(&s);
     Frama_C_show_each_must_be_reachable(d, c, Ld, s, t, j, z, lc);
+    //@ assert n > 8;
   }
 #else
   printf("res = %d\n", res);
