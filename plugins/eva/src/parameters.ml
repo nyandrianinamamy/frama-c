@@ -710,79 +710,89 @@ let () = add_precision_dep DefaultLoopUnroll.parameter
 let () = DefaultLoopUnroll.set_range ~min:0 ~max:max_int
 
 let () = Parameter_customize.set_group precision_tuning
-module HistoryPartitioning =
+module PathPartitioning =
   Int
     (struct
-      let option_name = "-eva-partition-history"
+      let option_name = "-eva-partition-path"
       let arg_name = "n"
       let default = 0
       let help =
-        "Keep states distinct at junction points, until <n> further junction \
-         points are crossed. (A value of 0 deactivates this feature)"
+        "Partition the space of reachable states according to the path taken \
+         to reach a control point. Takes only into account only the last <n> \
+         junction points. (A value of 0 deactivates this feature)"
     end)
-let () = add_precision_dep HistoryPartitioning.parameter
-let () = HistoryPartitioning.set_range ~min:0 ~max:max_int
+let () = add_precision_dep PathPartitioning.parameter
+let () = PathPartitioning.set_range ~min:0 ~max:max_int
+let () = PathPartitioning.add_aliases ~visible:false ~deprecated:true
+    ["-eva-partition-history"]
 
 let () = Parameter_customize.set_group precision_tuning
 let () = Parameter_customize.argument_may_be_fundecl ()
-module HistoryPartitioningFunction =
+module PathPartitioningFunction =
   Kernel_function_map
     (Value_int)
     (struct
-      let option_name = "-eva-partition-history-function"
+      let option_name = "-eva-partition-path-function"
       let arg_name = "f:n"
-      let help = "Override partition-history with <n> when analyzing <f>"
+      let help = "Override -eva-partition-path with <n> when analyzing <f>."
       let default = Kernel_function.Map.empty
     end)
-let () = add_precision_dep HistoryPartitioningFunction.parameter
+let () = add_precision_dep PathPartitioningFunction.parameter
+let () = PathPartitioningFunction.add_aliases ~visible:false ~deprecated:true
+    ["-eva-partition-history-function"]
 
 let () = Parameter_customize.set_group precision_tuning
-module PartitioningHeuristic =
+module AutoPathPartitioning =
   False
     (struct
-      let option_name = "-eva-partition-heuristic"
-      let help = "Use a heuristic to determine where partition history is \
-                  useful, thus not keeping distinct states at most junction \
-                  points."
+      let option_name = "-eva-auto-partition-path"
+      let help =
+        "Use a heuristic to improve state partitioning by path. \
+         It guesses which junction points in paths are worth considering for \
+         states partitioning."
     end)
-let () = add_precision_dep PartitioningHeuristic.parameter
+let () = add_precision_dep AutoPathPartitioning.parameter
 
 let () = Parameter_customize.set_group precision_tuning
 let () = Parameter_customize.is_invisible ()
-module PartitioningHeuristicIncludeGuards =
+module AutoPathPartitioningIncludeGuards =
   True
     (struct
-      let option_name = "-eva-ph-include-guards"
-      let help = "With the partitioning heuristic: treat guards in branches as \
-                  writes which can lead the heuristic to keep states distinct. \
-                  If disabled, you should probably subtract 1 to the number \
-                  of required writes."
+      let option_name = "-eva-auto-partition-path-include-guards"
+      let help =
+        "With -eva-auto-partition-path: consider that guards are as meaningful \
+        as as writes when choosing relevant junction points for state \
+        partitioning. \
+        If disabled, you should probably subtract 1 to the number of required \
+        writes."
     end)
-let () = add_precision_dep PartitioningHeuristicIncludeGuards.parameter
+let () = add_precision_dep AutoPathPartitioningIncludeGuards.parameter
 
 let () = Parameter_customize.set_group precision_tuning
 let () = Parameter_customize.is_invisible ()
-module PartitioningHeuristicRequiredWrites =
+module AutoPathPartitioningRequiredWrites =
   Int
     (struct
-      let option_name = "-eva-ph-required-writes"
+      let option_name = "-eva-auto-partition-path-required-writes"
       let arg_name = "n"
       let default = 2
-      let help = "With the partitioning heuristic: keep states distinct only \
-                  if at least the given amount of memory locations is written \
-                  in the branches."
+      let help = "With -eva-auto-partition-path: sets the minimum number \
+                  of writes required for two paths to be considered distinct \
+                  by the heuristic."
     end)
-let () = add_precision_dep PartitioningHeuristicRequiredWrites.parameter
-let () = PartitioningHeuristicRequiredWrites.set_range ~min:1 ~max:max_int
+let () = add_precision_dep AutoPathPartitioningRequiredWrites.parameter
+let () = AutoPathPartitioningRequiredWrites.set_range ~min:1 ~max:max_int
 
 let () = Parameter_customize.set_group precision_tuning
-module InterproceduralHistory =
+module InterproceduralPathPartitioning =
   False
     (struct
-      let option_name = "-eva-interprocedural-history"
+      let option_name = "-eva-interprocedural-partition-path"
       let help = "Keep partitioning history through function returns"
     end)
-let () = add_precision_dep InterproceduralHistory.parameter
+let () = add_precision_dep InterproceduralPathPartitioning.parameter
+let () = PathPartitioningFunction.add_aliases ~visible:false ~deprecated:true
+    ["-eva-interprocedural-history"]
 
 let () = Parameter_customize.set_group precision_tuning
 module ValuePartitioning =
@@ -1391,7 +1401,7 @@ let () =
   bind (module MinLoopUnroll) (fun n -> max 0 (n - 7));
   bind (module AutoLoopUnroll) (get auto_unroll);
   bind (module WideningDelay) (fun n -> 1 + n / 2);
-  bind (module HistoryPartitioning) (fun n -> (n - 1) / 5);
+  bind (module PathPartitioning) (fun n -> (n - 1) / 5);
   bind (module SLevel) (get slevel_power);
   bind (module ILevel) (get ilevel_power);
   bind (module ArrayPrecisionLevel) (get plevel_power);

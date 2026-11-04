@@ -78,7 +78,7 @@ function EvaSidebarConfig(): JSX.Element {
 
   const sLevel = useField(Params.evaSlevel, 0);
   const SplitReturn = useField(Params.evaSplitReturn, "none");
-  const PartitionHistory = useField(Params.evaPartitionHistory, 0);
+  const PartitionHistory = useField(Params.evaAutoPartitionPath, 0);
 
   const iLevel = useField(Params.evaIlevel, 0);
   const pLevel = useField(Params.evaPlevel, 0);
@@ -174,7 +174,7 @@ function EvaSidebarConfig(): JSX.Element {
       step: 100, min: 0, max: 5000,
       state: pLevel
     },
-    "-eva-partition-history": {
+    "-eva-partition-path": {
       label: "History partitioning",
       step: 1, min: 0, max: 5,
       state: PartitionHistory

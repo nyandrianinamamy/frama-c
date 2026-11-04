@@ -93,8 +93,8 @@ struct
       default
 
   let history_size =
-    try HistoryPartitioningFunction.find kf
-    with Not_found -> HistoryPartitioning.get ()
+    try PathPartitioningFunction.find kf
+    with Not_found -> PathPartitioning.get ()
 
   let split_limit = SplitLimit.get ()
 
@@ -188,14 +188,14 @@ struct
     | (NoSplit | SplitEqList _), _ ->
       Partition.Ration (Partition.new_rationing ~limit:0 ~merge:false)
 
-  let history_heuristic = PartitioningHeuristic.get ()
+  let history_heuristic = AutoPathPartitioning.get ()
   let history_tables =
     let options = Path_partitioning_heuristic.{
         enabled = history_heuristic;
         dist_limit = history_size;
-        interproc = Parameters.InterproceduralHistory.get ();
-        include_guards = PartitioningHeuristicIncludeGuards.get ();
-        required_writes = PartitioningHeuristicRequiredWrites.get ();
+        interproc = Parameters.InterproceduralPathPartitioning.get ();
+        include_guards = AutoPathPartitioningIncludeGuards.get ();
+        required_writes = AutoPathPartitioningRequiredWrites.get ();
       } in
     Path_partitioning_heuristic.compute kf options
   let should_partition_at =
@@ -253,7 +253,7 @@ struct
   let call_return_policy =
     Partition.{
       callee_splits = Parameters.InterproceduralSplits.get ();
-      callee_history = Parameters.InterproceduralHistory.get ();
+      callee_history = Parameters.InterproceduralPathPartitioning.get ();
       caller_history = true;
       history_size = history_size;
     }

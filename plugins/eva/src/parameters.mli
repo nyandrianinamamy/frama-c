@@ -64,15 +64,15 @@ module MinLoopUnroll : Parameter_sig.Int
 module AutoLoopUnroll : Parameter_sig.Int
 module DefaultLoopUnroll : Parameter_sig.Int
 
-module HistoryPartitioning : Parameter_sig.Int
-module HistoryPartitioningFunction :
+module PathPartitioning : Parameter_sig.Int
+module PathPartitioningFunction :
   Parameter_sig.Map with type key = Cil_types.kernel_function
                      and type value = int
 
-module PartitioningHeuristic : Parameter_sig.Bool
-module PartitioningHeuristicIncludeGuards : Parameter_sig.Bool
-module PartitioningHeuristicRequiredWrites : Parameter_sig.Int
-module InterproceduralHistory : Parameter_sig.Bool
+module AutoPathPartitioning : Parameter_sig.Bool
+module AutoPathPartitioningIncludeGuards : Parameter_sig.Bool
+module AutoPathPartitioningRequiredWrites : Parameter_sig.Int
+module InterproceduralPathPartitioning : Parameter_sig.Bool
 module ValuePartitioning : Parameter_sig.String_set
 module SplitLimit : Parameter_sig.Int
 

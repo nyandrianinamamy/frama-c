@@ -1,8 +1,8 @@
 /* run.config*
 
-   STDOPT: +"-eva-partition-history 3 -then -eva-partition-heuristic -eva-ph-include-guards -eva-ph-required-writes 1"
-   STDOPT: +"-main main_interproc -eva-partition-history 3 -eva-interprocedural-history -then -eva-partition-heuristic -eva-ph-include-guards -eva-ph-required-writes 1"
-   STDOPT: +"-main main_enhanced -eva-partition-history 3 -then -eva-partition-heuristic"
+   STDOPT: +"-eva-partition-path 3 -then -eva-auto-partition-path -eva-auto-partition-path-include-guards -eva-auto-partition-path-required-writes 1"
+   STDOPT: +"-main main_interproc -eva-partition-path 3 -eva-interprocedural-partition-path -then -eva-auto-partition-path -eva-auto-partition-path-include-guards -eva-auto-partition-path-required-writes 1"
+   STDOPT: +"-main main_enhanced -eva-partition-path 3 -then -eva-auto-partition-path"
 */
 
 #include "__fc_builtin.h"
