@@ -74,8 +74,8 @@ let join i1 i2 = match i1, i2 with
   | Float(k, _), Ival iv ->
     begin
       match Ival.min_and_max iv with
-      | None, None ->
-        (* unbounded integers *)
+      | None, (None | Some _) | Some _, None  ->
+        (* (semi-)unbounded integers *)
         Rational
       | Some min, Some max ->
         (* if the interval of integers fits into the float types, then return
@@ -91,8 +91,6 @@ let join i1 i2 = match i1, i2 with
            if mini >= minf && maxi <= maxf then Float(k, None) else Rational
          with Z.Overflow | Exit ->
            Rational)
-      | None, Some _ | Some _, None ->
-        assert false
     end
   | (Ival _ | Float _ | Rational), (Float _ | Rational)
   | Rational, Ival _ ->
@@ -153,6 +151,12 @@ let meet i1 i2 = match i1, i2 with
   | Ival iv, Float(k, None)
   | Float(k, None), Ival iv ->
     begin
+      let to_float n = Int64.to_float (Z.to_int64 n) in
+      let get_bounds = function
+        | FFloat  | FFloat32 -> Floating_point.finite_range_of Single
+        | FDouble | FFloat64 -> Floating_point.finite_range_of Double
+        | FLongDouble -> raise Exit
+      in
       match Ival.min_and_max iv with
       | None, None ->
         (* unbounded integers *)
@@ -161,18 +165,19 @@ let meet i1 i2 = match i1, i2 with
         (* if the float type fits into the interval of integers, then return
            this float type; otherwise return Rational *)
         (try
-           let to_float n = Int64.to_float (Z.to_int64 n) in
            let mini, maxi = to_float min, to_float max in
-           let minf, maxf = match k with
-             | FFloat  | FFloat32 -> Floating_point.finite_range_of Single
-             | FDouble | FFloat64 -> Floating_point.finite_range_of Double
-             | FLongDouble -> raise Exit
-           in
+           let minf, maxf = get_bounds k in
            if mini <= minf && maxi >= maxf then Float(k, None) else Rational
          with Z.Overflow | Exit ->
            Rational)
-      | None, Some _ | Some _, None ->
-        assert false
+      | None, Some max ->
+        let maxi = to_float max in
+        let _, maxf = get_bounds k in
+        if maxi >= maxf then Float(k, None) else Rational
+      | Some min, None ->
+        let mini = to_float min in
+        let minf, _ = get_bounds k in
+        if mini <= minf then Float(k, None) else Rational
     end
   | (Ival _ | Float _ | Rational), (Float _ | Rational)
   | Rational, Ival _ ->
