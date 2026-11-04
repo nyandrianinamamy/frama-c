@@ -108,21 +108,6 @@ int __fc_v_wscanf(const wchar_t * restrict format, va_list arg) {
       if (*p == L'%') {
         break;
       }
-      // skip any flags
-      while (1) {
-        switch (*p) {
-        case L'-':
-        case L'+':
-        case L' ':
-        case L'#':
-        case L'0':
-          break;
-        default:
-          goto post_flags;
-        }
-        p++;
-      }
-    post_flags:
       // skip field width
       while (*p >= L'0' && *p <= L'9') {
         p++;
@@ -131,18 +116,6 @@ int __fc_v_wscanf(const wchar_t * restrict format, va_list arg) {
       if (*p == L'*') {
         asterisks++;
         p++;
-      }
-      if (*p == L'.') {
-        // skip precision
-        p++;
-        while (*p >= L'0' && *p <= L'9') {
-          p++;
-        }
-        // special precision
-        if (*p == L'*') {
-          asterisks++;
-          p++;
-        }
       }
       // length modifier
       switch (*p) {
@@ -348,6 +321,7 @@ int __fc_v_wscanf(const wchar_t * restrict format, va_list arg) {
           *va_arg(arg, ptrdiff_t*) = conversion_counter;
           break;
         }
+        conversion_counter--; // to compensate for the 'mandatory' increment below
         break;
         //TODO
       }

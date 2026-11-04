@@ -238,21 +238,6 @@ int __fc_v_scanf(const char * restrict format, va_list arg) {
       if (*p == '%') {
         break;
       }
-      // skip any flags
-      while (1) {
-        switch (*p) {
-        case '-':
-        case '+':
-        case ' ':
-        case '#':
-        case '0':
-          break;
-        default:
-          goto post_flags;
-        }
-        p++;
-      }
-    post_flags:
       // skip field width
       while (*p >= '0' && *p <= '9') {
         p++;
@@ -261,18 +246,6 @@ int __fc_v_scanf(const char * restrict format, va_list arg) {
       if (*p == '*') {
         asterisks++;
         p++;
-      }
-      if (*p == '.') {
-        // skip precision
-        p++;
-        while (*p >= '0' && *p <= '9') {
-          p++;
-        }
-        // special precision
-        if (*p == '*') {
-          asterisks++;
-          p++;
-        }
       }
       // length modifier
       switch (*p) {
@@ -478,6 +451,7 @@ int __fc_v_scanf(const char * restrict format, va_list arg) {
           *va_arg(arg, ptrdiff_t*) = conversion_counter;
           break;
         }
+        conversion_counter--; // to compensate for the 'mandatory' increment below
         break;
         //TODO
       }
