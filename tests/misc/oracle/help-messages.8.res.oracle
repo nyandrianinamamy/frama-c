@@ -244,10 +244,15 @@ Options taking a string as argument should preferably be written
 -eva-auto-loop-unroll <n>  Limit of the automatic loop unrolling: all loops
                     whose number of iterations can be easily bounded by <n>
                     are completely unrolled.
--eva-auto-partition-path  Use a heuristic to improve state partitioning by
-                    path. It guesses which junction points in paths are worth
-                    considering for states partitioning. (opposite option is
-                    -eva-no-auto-partition-path)
+-eva-auto-partition-path <n>  Partition the space of reachable states
+                    according to the path taken to reach a control point.
+                    Unlike -eva-auto-path, it takes only into account the
+                    most meaningful junction points among the last <n>
+                    junction points chosen by an heuristic. (A value of 0
+                    deactivates this feature).
+-eva-auto-partition-path-function <f:n>  Override -eva-auto-partition-path
+                    with <n> when analyzing <f>. (preferably use
+                    -eva-auto-partition-path-function="f:n")
 -eva-builtin <f:ffc>  When analyzing function <f>, try to use Frama-C builtin
                     <ffc> instead. Fall back to <f> if <ffc> cannot handle
                     its arguments. (preferably use -eva-builtin="f:ffc")
@@ -282,7 +287,8 @@ Options taking a string as argument should preferably be written
 -eva-partition-path <n>  Partition the space of reachable states according to
                     the path taken to reach a control point. Takes only into
                     account only the last <n> junction points. (A value of 0
-                    deactivates this feature)
+                    deactivates this feature) See -eva-auto-partition-path
+                    for a more selective and smarter version of this option.
 -eva-partition-path-function <f:n>  Override -eva-partition-path with <n>
                     when analyzing <f>. (preferably use
                     -eva-partition-path-function="f:n")

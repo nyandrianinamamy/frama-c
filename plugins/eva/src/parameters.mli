@@ -69,9 +69,13 @@ module PathPartitioningFunction :
   Parameter_sig.Map with type key = Cil_types.kernel_function
                      and type value = int
 
-module AutoPathPartitioning : Parameter_sig.Bool
+module AutoPathPartitioning : Parameter_sig.Int
 module AutoPathPartitioningIncludeGuards : Parameter_sig.Bool
 module AutoPathPartitioningRequiredWrites : Parameter_sig.Int
+module AutoPathPartitioningFunction :
+  Parameter_sig.Map with type key = Cil_types.kernel_function
+                     and type value = int
+
 module InterproceduralPathPartitioning : Parameter_sig.Bool
 module ValuePartitioning : Parameter_sig.String_set
 module SplitLimit : Parameter_sig.Int

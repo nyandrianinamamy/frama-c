@@ -719,7 +719,9 @@ module PathPartitioning =
       let help =
         "Partition the space of reachable states according to the path taken \
          to reach a control point. Takes only into account only the last <n> \
-         junction points. (A value of 0 deactivates this feature)"
+         junction points. (A value of 0 deactivates this feature) \
+         See -eva-auto-partition-path for a more selective and smarter version \
+         of this option."
     end)
 let () = add_precision_dep PathPartitioning.parameter
 let () = PathPartitioning.set_range ~min:0 ~max:max_int
@@ -743,15 +745,32 @@ let () = PathPartitioningFunction.add_aliases ~visible:false ~deprecated:true
 
 let () = Parameter_customize.set_group precision_tuning
 module AutoPathPartitioning =
-  False
+  Int
     (struct
       let option_name = "-eva-auto-partition-path"
+      let arg_name = "n"
+      let default = 0
       let help =
-        "Use a heuristic to improve state partitioning by path. \
-         It guesses which junction points in paths are worth considering for \
-         states partitioning."
+        "Partition the space of reachable states according to the path taken \
+         to reach a control point. Unlike -eva-auto-path, it takes only into \
+         account the most meaningful junction points among the last <n> \
+         junction points chosen by an heuristic. (A value of 0 deactivates \
+         this feature)."
     end)
 let () = add_precision_dep AutoPathPartitioning.parameter
+
+let () = Parameter_customize.set_group precision_tuning
+let () = Parameter_customize.argument_may_be_fundecl ()
+module AutoPathPartitioningFunction =
+  Kernel_function_map
+    (Value_int)
+    (struct
+      let option_name = "-eva-auto-partition-path-function"
+      let arg_name = "f:n"
+      let help = "Override -eva-auto-partition-path with <n> when analyzing <f>."
+      let default = Kernel_function.Map.empty
+    end)
+let () = add_precision_dep AutoPathPartitioningFunction.parameter
 
 let () = Parameter_customize.set_group precision_tuning
 let () = Parameter_customize.is_invisible ()
@@ -761,10 +780,10 @@ module AutoPathPartitioningIncludeGuards =
       let option_name = "-eva-auto-partition-path-include-guards"
       let help =
         "With -eva-auto-partition-path: consider that guards are as meaningful \
-        as as writes when choosing relevant junction points for state \
-        partitioning. \
-        If disabled, you should probably subtract 1 to the number of required \
-        writes."
+         as as writes when choosing relevant junction points for state \
+         partitioning. \
+         If disabled, you should probably subtract 1 to the number of required \
+         writes."
     end)
 let () = add_precision_dep AutoPathPartitioningIncludeGuards.parameter
 

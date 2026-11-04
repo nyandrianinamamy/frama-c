@@ -92,9 +92,25 @@ struct
       warn "more than one loop unroll annotation; ignoring";
       default
 
-  let history_size =
-    try PathPartitioningFunction.find kf
-    with Not_found -> PathPartitioning.get ()
+  let path_partition_heuristic, history_size =
+    match
+      PathPartitioningFunction.find_opt kf,
+      AutoPathPartitioningFunction.find_opt kf
+    with
+    | Some _, Some _ ->
+      Self.abort "Conflicting options %s and %s. Use only one."
+        PathPartitioningFunction.name
+        AutoPathPartitioningFunction.name
+    | Some size, None -> false, size
+    | None, Some size -> true, size
+    | None, None ->
+      match PathPartitioning.get (), AutoPathPartitioning.get () with
+      | x, 0 -> false, x
+      | 0, x -> true, x
+      | _, _ ->
+        Self.abort "Conflicting options %s and %s. Use only one."
+          PathPartitioning.name
+          AutoPathPartitioning.name
 
   let split_limit = SplitLimit.get ()
 
@@ -188,10 +204,9 @@ struct
     | (NoSplit | SplitEqList _), _ ->
       Partition.Ration (Partition.new_rationing ~limit:0 ~merge:false)
 
-  let history_heuristic = AutoPathPartitioning.get ()
   let history_tables =
     let options = Path_partitioning_heuristic.{
-        enabled = history_heuristic;
+        enabled = path_partition_heuristic;
         dist_limit = history_size;
         interproc = Parameters.InterproceduralPathPartitioning.get ();
         include_guards = AutoPathPartitioningIncludeGuards.get ();
@@ -199,12 +214,12 @@ struct
       } in
     Path_partitioning_heuristic.compute kf options
   let should_partition_at =
-    if history_heuristic then
+    if path_partition_heuristic then
       fun v -> Eva_automata.Vertex.Hashtbl.mem history_tables.split_v v
     else
       fun _ -> true
   let should_merge_what =
-    if history_heuristic then
+    if path_partition_heuristic then
       fun ek ->
         let merge_actions =
           Datatype.Int.Hashtbl.find_all history_tables.merge_e ek
