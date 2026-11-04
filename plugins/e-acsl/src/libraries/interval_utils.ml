@@ -146,8 +146,9 @@ let meet i1 i2 = match i1, i2 with
         | None, Some max ->
           if f <= Int64.to_float (Z.to_int64 max) then float
           else Ival Ival.bottom
-      with Z.Overflow | Exit ->
-        Rational
+      with
+      | Abstract_interp.Error_Bottom -> Ival Ival.bottom
+      | Z.Overflow -> Rational
     end
   | Ival iv, Float(k, None)
   | Float(k, None), Ival iv ->
