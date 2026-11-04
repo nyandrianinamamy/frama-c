@@ -78,7 +78,7 @@ function EvaSidebarConfig(): JSX.Element {
 
   const sLevel = useField(Params.evaSlevel, 0);
   const SplitReturn = useField(Params.evaSplitReturn, "none");
-  const PartitionHistory = useField(Params.evaAutoPartitionPath, 0);
+  const PartitionHistory = useField(Params.evaPartitionPath, 0);
 
   const iLevel = useField(Params.evaIlevel, 0);
   const pLevel = useField(Params.evaPlevel, 0);

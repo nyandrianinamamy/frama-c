@@ -718,8 +718,8 @@ module PathPartitioning =
       let default = 0
       let help =
         "Partition the space of reachable states according to the path taken \
-         to reach a control point. Takes only into account only the last <n> \
-         junction points. (A value of 0 deactivates this feature) \
+         to reach a control point. Take into account only the last <n> \
+         junction points. A value of 0 (the default) deactivates this feature. \
          See -eva-auto-partition-path for a more selective and smarter version \
          of this option."
     end)
@@ -752,10 +752,9 @@ module AutoPathPartitioning =
       let default = 0
       let help =
         "Partition the space of reachable states according to the path taken \
-         to reach a control point. Unlike -eva-auto-path, it takes only into \
-         account the most meaningful junction points among the last <n> \
-         junction points chosen by an heuristic. (A value of 0 deactivates \
-         this feature)."
+         to reach a control point. It uses heuristics to only consider the \
+         most meaningful path junctions among the last <n>. \
+         A value of 0 (the default) deactivates this feature."
     end)
 let () = add_precision_dep AutoPathPartitioning.parameter
 
@@ -780,7 +779,7 @@ module AutoPathPartitioningIncludeGuards =
       let option_name = "-eva-auto-partition-path-include-guards"
       let help =
         "With -eva-auto-partition-path: consider that guards are as meaningful \
-         as as writes when choosing relevant junction points for state \
+         as writes when choosing relevant junction points for state \
          partitioning. \
          If disabled, you should probably subtract 1 to the number of required \
          writes."
@@ -807,10 +806,11 @@ module InterproceduralPathPartitioning =
   False
     (struct
       let option_name = "-eva-interprocedural-partition-path"
-      let help = "Keep partitioning history through function returns"
+      let help = "Keep state partitioning from -eva-partition-path and \
+                  -eva-auto-partition-path through function returns."
     end)
 let () = add_precision_dep InterproceduralPathPartitioning.parameter
-let () = PathPartitioningFunction.add_aliases ~visible:false ~deprecated:true
+let () = InterproceduralPathPartitioning.add_aliases ~visible:false ~deprecated:true
     ["-eva-interprocedural-history"]
 
 let () = Parameter_customize.set_group precision_tuning

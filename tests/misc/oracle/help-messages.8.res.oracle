@@ -245,11 +245,10 @@ Options taking a string as argument should preferably be written
                     whose number of iterations can be easily bounded by <n>
                     are completely unrolled.
 -eva-auto-partition-path <n>  Partition the space of reachable states
-                    according to the path taken to reach a control point.
-                    Unlike -eva-auto-path, it takes only into account the
-                    most meaningful junction points among the last <n>
-                    junction points chosen by an heuristic. (A value of 0
-                    deactivates this feature).
+                    according to the path taken to reach a control point. It
+                    uses heuristics to only consider the most meaningful path
+                    junctions among the last <n>. A value of 0 (the default)
+                    deactivates this feature.
 -eva-auto-partition-path-function <f:n>  Override -eva-auto-partition-path
                     with <n> when analyzing <f>. (preferably use
                     -eva-auto-partition-path-function="f:n")
@@ -266,8 +265,9 @@ Options taking a string as argument should preferably be written
 -eva-ilevel <n>     Sets of integers are represented as sets up to <n>
                     elements. Above, intervals with congruence information
                     are used (defaults to 8, must be above 2)
--eva-interprocedural-partition-path  Keep partitioning history through
-                    function returns (opposite option is
+-eva-interprocedural-partition-path  Keep state partitioning from
+                    -eva-partition-path and -eva-auto-partition-path through
+                    function returns. (opposite option is
                     -eva-no-interprocedural-partition-path)
 -eva-interprocedural-splits  Keep partitioning splits through function
                     returns (opposite option is
@@ -285,10 +285,11 @@ Options taking a string as argument should preferably be written
                     domain for the evaluation of an expression. Set 0 to
                     disable the oracle.
 -eva-partition-path <n>  Partition the space of reachable states according to
-                    the path taken to reach a control point. Takes only into
-                    account only the last <n> junction points. (A value of 0
-                    deactivates this feature) See -eva-auto-partition-path
-                    for a more selective and smarter version of this option.
+                    the path taken to reach a control point. Take into
+                    account only the last <n> junction points. A value of 0
+                    (the default) deactivates this feature. See
+                    -eva-auto-partition-path for a more selective and smarter
+                    version of this option.
 -eva-partition-path-function <f:n>  Override -eva-partition-path with <n>
                     when analyzing <f>. (preferably use
                     -eva-partition-path-function="f:n")
