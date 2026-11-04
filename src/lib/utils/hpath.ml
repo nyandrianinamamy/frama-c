@@ -6,14 +6,6 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* When testing this module, allow windows paths *)
-let testing_mode = ref false
-
-let%test_module _ = (module struct
-  let () = testing_mode := true
-end)
-
-
 (* Special path handling *)
 type absolute_path_kind =
   | WindowsUnparsed
@@ -33,22 +25,31 @@ type path_kind =
 
 (* --- Parsing --- *)
 
-let re_special_paths, re_dir_separator =
-  let win32 = Sys.win32 || !testing_mode in
+let re_special_paths = ref (Str.regexp_string "")
+let re_dir_separator = ref (Str.regexp_string "")
+
+let init_regex ~testing_mode =
+  let win32 = Sys.win32 || testing_mode in
   let slash = if win32 then "[\\\\/]" else "/" in
   let no_slash = if win32 then "[^\\\\/]" else "[^/]" in
   let (|^) l r = l ^ "\\|" ^ r in
   let group s = "\\(" ^  s ^ "\\)" in
   let alpha = "[A-Za-z]" in
-  Str.regexp (
-    "^" ^ group (slash ^ slash ^ "\\?" ^ slash) |^ (* \\?\path *)
-    "^" ^ group (slash ^ slash ^ "\\." ^ slash) |^ (* \\.\path *)
-    "^" ^ slash ^ slash ^ group (no_slash ^ "+") ^ slash |^ (* //host/path *)
-    "^" ^ group alpha ^ ":" ^  slash |^ (* c:\path *)
-    "^" ^ group alpha ^ ":" |^ (* c:path *)
-    "^" ^ group slash (* /path *)
-  ),
-  Str.regexp slash
+  re_special_paths :=
+    Str.regexp (
+      "^" ^ group (slash ^ slash ^ "\\?" ^ slash) |^ (* \\?\path *)
+      "^" ^ group (slash ^ slash ^ "\\." ^ slash) |^ (* \\.\path *)
+      "^" ^ slash ^ slash ^ group (no_slash ^ "+") ^ slash |^ (* //host/path *)
+      "^" ^ group alpha ^ ":" ^  slash |^ (* c:\path *)
+      "^" ^ group alpha ^ ":" |^ (* c:path *)
+      "^" ^ group slash (* /path *)
+    );
+  re_dir_separator := Str.regexp slash
+
+let () = init_regex ~testing_mode:false
+
+(* When testing this module, allow windows paths *)
+let testing_mode () = init_regex ~testing_mode:true
 
 let parse_path s =
   let matched_group () =
@@ -63,7 +64,7 @@ let parse_path s =
     aux 1
   in
   let kind, rest =
-    if not (Str.string_match re_special_paths s 0) then
+    if not (Str.string_match !re_special_paths s 0) then
       Relative CwdRelative, s
     else
       let kind = match matched_group () with
@@ -83,7 +84,7 @@ let parse_path s =
       let rest = String.sub s pos (String.length s - pos) in
       kind, rest
   in
-  kind, Str.split_delim re_dir_separator rest
+  kind, Str.split_delim !re_dir_separator rest
 
 
 (* --- Type definition --- *)
@@ -292,6 +293,8 @@ end
 (* -------------------------------------------------------------------------- *)
 
 let%test_module _ = (module struct
+  let () = testing_mode ()
+
   let pretty_paths fmt =
     let pp_path fmt p =
       Format.fprintf fmt "\n%S" p.path_name;

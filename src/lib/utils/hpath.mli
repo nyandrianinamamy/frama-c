@@ -26,3 +26,5 @@ module Names  : sig
   val remove : t -> unit
   val all : unit -> (t * string) list
 end
+
+val testing_mode : unit -> unit
