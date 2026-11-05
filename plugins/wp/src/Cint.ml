@@ -782,9 +782,9 @@ let smp_leq_with_lsr x y =
   with Not_found ->
   try
     let a,p = match_fun !@f_lsr x |> match_positive_or_null_integer_arg2 in
-    (* p >= 0 ==> ( (a >> p) <= y <==> a <= (y + 1) * 2**p - 1 ) *)
+    (* p >= 0 ==> ( (a >> p) <= y <==> a < (y + 1) * 2**p ) *)
     let k = two_power_k p in
-    e_leq a (e_sub (e_mul (e_add y e_one) (e_zint k)) e_one)
+    e_lt a (e_mul (e_add y e_one) (e_zint k))
   with Not_found ->
     (* x <= y && 0 <= (a&b) ==> x <= (a >> b)*)
     smp_leq_improved !@f_lsr x y
