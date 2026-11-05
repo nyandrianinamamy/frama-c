@@ -60,7 +60,9 @@
 [wp] [Valid] Goal rshift_uchar_terminates (Cfg) (Trivial)
 [wp] [Valid] Goal rshift_uint_exits (Cfg) (Unreachable)
 [wp] [Valid] Goal rshift_uint_terminates (Cfg) (Trivial)
-[wp] 61 goals scheduled
+[wp] [Valid] Goal shift_negative_exits (Cfg) (Unreachable)
+[wp] [Valid] Goal shift_negative_terminates (Cfg) (Trivial)
+[wp] 66 goals scheduled
 [wp] [Valid] typed_lemma_band_sint8 (Alt-Ergo) (Cached)
 [wp] [Valid] typed_lemma_band_uint8 (Alt-Ergo) (Cached)
 [wp] [Valid] typed_lemma_blsr_sint8 (Alt-Ergo) (Cached)
@@ -73,10 +75,14 @@
 [wp] [Valid] typed_lemma_land_assoc (Qed)
 [wp] [Valid] typed_lemma_land_com (Qed)
 [wp] [Valid] typed_lemma_land_stb (Qed)
+[wp] [Unsuccess] typed_check_lemma_lor_3_ko (Alt-Ergo) (Cached)
 [wp] [Valid] typed_lemma_lor_assoc (Qed)
 [wp] [Valid] typed_lemma_lor_com (Qed)
 [wp] [Valid] typed_lemma_lor_neu (Qed)
 [wp] [Valid] typed_lemma_lor_stb (Qed)
+[wp] [Unsuccess] typed_check_lemma_lsl_0_cmp_ko (Alt-Ergo) (Cached)
+[wp] [Unsuccess] typed_check_lemma_lsl_0_eq_ko (Alt-Ergo) (Cached)
+[wp] [Unsuccess] typed_check_lemma_lsr_negative_ko (Alt-Ergo) (Cached)
 [wp] [Valid] typed_lemma_lxor_assoc (Qed)
 [wp] [Valid] typed_lemma_lxor_com (Qed)
 [wp] [Valid] typed_band_int_ensures_ok (Qed)
@@ -122,14 +128,16 @@
 [wp] [Valid] typed_cast_assert_ok_5 (Qed)
 [wp] [Valid] typed_cast_assert_ok_6 (Qed)
 [wp] [Valid] typed_cast_assert_ok_7 (Qed)
-[wp] Proved goals:  119 / 119
-  Terminating:    29
-  Unreachable:    29
-  Qed:            46
+[wp] [Valid] typed_shift_negative_assigns (Qed)
+[wp] Proved goals:  122 / 126
+  Terminating:    30
+  Unreachable:    30
+  Qed:            47
   Alt-Ergo:       15
+  Unsuccess:       4
 ------------------------------------------------------------
  Axiomatics                WP     Alt-Ergo  Total   Success
-  Lemma                    11        7       18       100%
+  Lemma                    11        7       22      81.8%
 ------------------------------------------------------------
  Functions                 WP     Alt-Ergo  Total   Success
   band_int                  4        -        4       100%
@@ -161,4 +169,5 @@
   band1_ushort              4        -        4       100%
   band1_ulong               4        -        4       100%
   cast                     10        -       10       100%
+  shift_negative            3        -        3       100%
 ------------------------------------------------------------

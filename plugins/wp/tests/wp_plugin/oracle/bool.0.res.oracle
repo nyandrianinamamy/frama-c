@@ -11,6 +11,26 @@
 [wp] [Valid] Goal job_exits (Cfg) (Unreachable)
 [wp] [Valid] Goal job_terminates (Cfg) (Trivial)
 ------------------------------------------------------------
+  Global
+------------------------------------------------------------
+
+Goal Check Lemma 'bitbool_iff_ko':
+Prove: bit_test(to_bool(x), 0) <-> bit_test(x, 0).
+
+------------------------------------------------------------
+
+Goal Check Lemma 'mask_eval_ko':
+Assume { Have: (3 land x) = 2. }
+Prove: to_bool(x) = 0.
+
+------------------------------------------------------------
+
+Goal Check Lemma 'mask_reduce_ko':
+Assume { Have: to_bool(x) = 1. }
+Prove: bit_test(x, 0).
+
+------------------------------------------------------------
+------------------------------------------------------------
   Function band_bool
 ------------------------------------------------------------
 

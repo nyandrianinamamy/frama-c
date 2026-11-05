@@ -99,61 +99,44 @@ let match_mod t =
   | _ -> raise Not_found
 
 (* integration with qed should be improved! *)
-let is_positive t =
-  match F.repr t with
-  | Logic.Kint c -> Z.leq Z.one c
-  | _ -> false
+module Sign =
+struct
+  open Sign_val
 
-(* integration with qed should be improved! *)
-let rec is_positive_or_null e = match F.repr e with
-  | Logic.Fun( f , [e] ) when f_lnot @= f -> is_negative e
-  | Logic.Fun( f , es ) when f_land @= f  ->
-    List.exists is_positive_or_null es
-  | Logic.Fun( f , es ) when f_lor @= f   ->
-    List.for_all is_positive_or_null es
-  | Logic.Fun( f , es ) when f_lxor @= f  ->
-    (match mul_xor_sign es with | Some b -> b | _ -> false)
-  | Logic.Fun( f , es ) when f_lsr @= f || f_lsl @= f
-    -> List.for_all is_positive_or_null es
-  | _ -> (* try some improvement first then ask to qed *)
-    let improved_is_positive_or_null e = match F.repr e with
-      | Logic.Add es -> List.for_all is_positive_or_null es
-      | Logic.Mul es -> (match mul_xor_sign es with | Some b -> b | _ -> false)
-      | Logic.Mod(e1,e2) when is_positive e2 || is_negative e2 ->
-        (* e2<>0 ==> ( 0<=(e1 % e2) <=> 0<=e1 ) *)
-        is_positive_or_null e1
-      | _ -> false
-    in if improved_is_positive_or_null e then true
-    else match F.is_true (F.e_leq e_zero e) with
-      | Logic.Yes -> true
-      | Logic.No | Logic.Maybe -> false
-and is_negative e = match F.repr e with
-  | Logic.Fun( f , [e] ) when f_lnot @= f -> is_positive_or_null e
-  | Logic.Fun( f , es ) when f_lor @= f   -> List.exists is_negative es
-  | Logic.Fun( f , es ) when f_land @= f  -> List.for_all is_negative es
-  | Logic.Fun( f , es ) when f_lxor @= f  ->
-    (match mul_xor_sign es with | Some b -> (not b) | _ -> false)
-  | Logic.Fun( f , [k;n] ) when f_lsr @= f || f_lsl @= f
-    -> is_positive_or_null n && is_negative k
-  | _ -> (* try some improvement first then ask to qed *)
-    let improved_is_negative e = match F.repr e with
-      | Logic.Add es -> List.for_all is_negative es
-      | Logic.Mul es ->
-        (match mul_xor_sign es with | Some b -> (not b) | _ -> false)
-      | _ -> false
-    in if improved_is_negative e then true
-    else match F.is_true (F.e_lt e e_zero) with
-      | Logic.Yes -> true
-      | Logic.No | Logic.Maybe -> false
-and mul_xor_sign es = try
-    Some (List.fold_left (fun acc e ->
-        if is_positive_or_null e then acc (* as previous *)
-        else if is_negative e then (not acc) (* opposite sign *)
-        else raise Not_found) true es)
-  with Not_found -> None
+  let rec get e = match F.repr e with
+    | Logic.Kint c -> inject_int c
+    | Logic.Fun( f , [e] ) when f_lnot @= f -> bitwise_not @@ get e
+    | Logic.Fun( f , es ) when f_land @= f -> fold bitwise_and neg es
+    | Logic.Fun( f , es ) when f_lor @= f -> fold bitwise_or zero es
+    | Logic.Fun( f , es ) when f_lxor @= f -> fold bitwise_xor zero es
+    | Logic.Fun( f , [a ; b] ) when f_lsl @= f -> bitwise_lsl (get a) (get b)
+    | Logic.Fun( f , [a ; b] ) when f_lsr @= f -> bitwise_lsr (get a) (get b)
+    | Logic.Add es -> fold plus zero es
+    | Logic.Mul es -> fold mul pos es
+    | Logic.Div (e1, e2) -> cdiv (get e1) (get e2)
+    | Logic.Mod (e1, e2) -> cmod (get e1) (get e2)
+    | _ ->
+      if      F.(decide @@ e_eq  e_zero e) then zero
+      else if F.(decide @@ e_lt  e_zero e) then pos
+      else if F.(decide @@ e_lt  e e_zero) then neg
+      else if F.(decide @@ e_leq e_zero e) then pos_or_zero
+      else if F.(decide @@ e_leq e e_zero) then neg_or_zero
+      else if F.(decide @@ e_neq e_zero e) then non_zero
+      else top
+  and fold op neutral = function
+    | [] -> neutral
+    | [e] -> get e
+    | x :: l -> List.fold_left (fun a t -> op a (get t)) (get x) l
+end
+
+let is_positive ~strict e =
+  Sign_val.(if strict then gt_zero else ge_zero) @@ Sign.get e
+
+let is_negative ~strict e =
+  Sign_val.(if strict then lt_zero else le_zero) @@ Sign.get e
 
 let match_positive_or_null e =
-  if not (is_positive_or_null e) then raise Not_found;
+  if not (is_positive ~strict:false e) then raise Not_found;
   e
 
 let match_log2 x =
@@ -168,7 +151,7 @@ let match_power2, match_power2_minus1 =
       | Logic.Kint z
         when is_power2 z -> e_zint (match_log2 z)
       | Logic.Fun( f , [n;k] )
-        when f_lsl @= f && is_positive_or_null k ->
+        when f_lsl @= f && is_positive ~strict:false k ->
         e_add k (match_power2 n)
       | _ -> raise Not_found
   in let match_power2_minus1 e = match F.repr e with
@@ -280,7 +263,7 @@ let configure_to_int iota =
         | Logic.Fun( fland , es )
           when f_land @= fland &&
                not (Ctypes.signed iota) &&
-               List.exists is_positive_or_null es ->
+               List.exists (is_positive ~strict:false) es ->
           (* to_uintN(a) == a & (2^N-1) when a >= 0 *)
           let m = F.e_zint (snd (Ctypes.bounds iota)) in
           e_fun !@f_land (m :: es)
@@ -473,11 +456,11 @@ let smp_bitk_positive = function
         let zk = match_positive_or_null_integer k (* simplifies constants *)
         in if Z.(is_zero (za land (shift_left_z one zk)))
         then e_false else e_true
-      | Logic.Fun( f , [e;n] ) when f_lsr @= f
-                                 && is_positive_or_null n ->
+      | Logic.Fun( f , [e;n] )
+        when f_lsr @= f && is_positive ~strict:false n ->
         bitk (e_add k n) e
-      | Logic.Fun( f , [e;n] ) when f_lsl @= f
-                                 && is_positive_or_null n ->
+      | Logic.Fun( f , [e;n] )
+        when f_lsl @= f && is_positive ~strict:false n ->
         begin match is_leq n k with
           | Logic.Yes -> bitk (e_sub k n) e
           | Logic.No  -> e_false
@@ -494,6 +477,9 @@ let smp_bitk_positive = function
       | Logic.Fun( conv , [a] ) (* when is_to_c_int conv *) ->
         let iota = to_cint conv in
         let range = Ctypes.i_bits iota in
+        if range = 1 then
+          (* rejects [to_bool()] that is not a modulo *)
+          raise Not_found ;
         let signed = Ctypes.signed iota in
         if signed then (* beware of sign-bit *)
           begin match is_leq k (e_int (range-2)) with
@@ -550,7 +536,7 @@ let smp_shift zf =
       | Logic.Kint c1, Logic.Kint c2 when Z.leq Z.zero c2 ->
         (* undefined when c2 is negative *)
         e_zint (zf c1 c2)
-      | Logic.Kint c1, _ when Z.is_zero c1 && is_positive_or_null e2 ->
+      | Logic.Kint c1, _ when Z.is_zero c1 && is_positive ~strict:false e2 ->
         (* undefined when c2 is negative *)
         e1
       | _ -> raise Not_found
@@ -572,9 +558,9 @@ let smp_lnot = function
 
 let smp_leq_improved f a b =
   ignore (match_fun f b) ;
-  (* It must be an improved of [is_positive_or_null f(args)] *)
+  (* It must be an improved of [is_positive ~strict:false f(args)] *)
   (* a <= 0 && 0 <= f(args) *)
-  if F.decide (F.e_leq a F.e_zero) && is_positive_or_null b
+  if F.decide (F.e_leq a F.e_zero) && is_positive ~strict:false b
   then e_true
   else raise Not_found
 
@@ -612,7 +598,7 @@ let smp_eq_with_land a b =
     (* note: a positive or null k is required
        by match_power2, match_power2_minus1 *)
     let k',_,es = match_power2_minus1_extraction es in
-    if not ((is_positive_or_null b1) &&
+    if not ((is_positive ~strict:false b1) &&
             (F.decide (F.e_eq k k')) &&
             (F.decide (F.e_eq b1 (e_fun !@f_land es))))
     then raise Not_found ;
@@ -702,7 +688,7 @@ let smp_eq_with_lsl_cst a0 b0 =
       e_eq e (e_zint (Z.shift_right_z b1 a2))
   with Not_found -> (* looks at the fistt arg of a0 *)
     let a1,e= match_integer_arg1 es in
-    if is_negative e then raise Not_found ;
+    if is_negative ~strict:true e then raise Not_found ;
     (* [PB] can be generalized to any term for a1 *)
     if Z.leq Z.zero a1 && Z.lt b1 a1 then
       (* e>=0 && 0<=a1 && b1<a1 ==> ( (a1<<e)==b1 <==> false ) *)
@@ -721,15 +707,18 @@ let smp_cmp_with_lsl cmp a0 b0 =
     cmp a e_zero (* p>=0 ==> ( ((a<<p) cmp 0) <==> (a cmp 0) ) *)
   else
     let a,p = match_fun !@f_lsl a0 |> match_positive_or_null_arg2 in
+    let sign_a = Sign.get a in
     let b,q = match_fun !@f_lsl b0 |> match_positive_or_null_arg2 in
     if p == q then
       (* p>=0 && q>=0 && p==q ==> ( ((a<<p)cmp(b<<q))<==>(a cmp b) ) *)
       cmp a b
-    else if a == b && (cmp==e_eq || is_positive_or_null a) then
-      (* p>=0 && q>=0 && a==b         ==> ( ((a<<p)== (b<<q))<==>(p ==  q) ) *)
-      (* p>=0 && q>=0 && a==b && a>=0 ==> ( ((a<<p)cmp(b<<q))<==>(p cmp q) ) *)
+    else if a == b && not sign_a.Sign_val.zero &&
+            (cmp==e_eq || sign_a.Sign_val.pos)
+    then
+      (* p>=0 && q>=0 && a==b && a != 0 ==> ( ((a<<p)== (b<<q))<==>(p ==  q) ) *)
+      (* p>=0 && q>=0 && a==b && a > 0  ==> ( ((a<<p)cmp(b<<q))<==>(p cmp q) ) *)
       cmp p q
-    else if a == b && is_negative a then
+    else if a == b && is_negative ~strict:true a then
       (* p>=0 && q>=0 && a==b && a<0  ==> ( ((a<<p)cmp(b<<q))<==>(q cmp p) ) *)
       cmp q p
     else
@@ -787,27 +776,17 @@ let smp_eq_with_lsr a0 b0 =
 let smp_leq_with_lsr x y =
   try
     let a,p = match_fun !@f_lsr y |> match_positive_or_null_integer_arg2 in
-    (* x <= (a >> p) with p >= 0 *)
-    if x == e_zero then
-      (* p >= 0 ==> ( 0 <= (a >> p) <==> 0 <= a )*)
-      e_leq e_zero a
-    else
-      (* p >= 0 ==> ( x <= (a >> p) <==> x <= a/(2**p) ) *)
-      let k = two_power_k p in
-      e_leq x (e_div a (e_zint k))
+    (* p >= 0 ==> ( x <= (a >> p) <==> x * 2**p <= a ) *)
+    let k = two_power_k p in
+    e_leq (e_mul (e_zint k) x) a
   with Not_found ->
   try
     let a,p = match_fun !@f_lsr x |> match_positive_or_null_integer_arg2 in
-    (* (a >> p) <= y with p >= 0 *)
-    if y == e_zero then
-      (* p >= 0 ==> ( (a >> p) <= 0 <==> a <= 0 ) *)
-      e_leq a e_zero
-    else
-      (* p >= 0 ==> ( (a >> p) <= y <==> a/(2**p) <= y ) *)
-      let k = two_power_k p in
-      e_leq (e_div a (e_zint k)) y
+    (* p >= 0 ==> ( (a >> p) <= y <==> a < (y + 1) * 2**p ) *)
+    let k = two_power_k p in
+    e_lt a (e_mul (e_add y e_one) (e_zint k))
   with Not_found ->
-    (* x <= y && 0 <= (a&b) ==> x <= (a >> b) *)
+    (* x <= y && 0 <= (a&b) ==> x <= (a >> b)*)
     smp_leq_improved !@f_lsr x y
 
 
@@ -1359,6 +1338,8 @@ module Masks = struct
     with Not_found -> top
 
   let eval_to_cint eval_exn ctx iota e =
+    if iota = Ctypes.CBool then
+      raise Not_found ;
     let v = eval_exn ctx e in (* may raise Bottom *)
     let min,max = Ctypes.bounds iota in
     if not (Ctypes.signed iota) then
@@ -1414,10 +1395,11 @@ module Masks = struct
     try
       let k,es = match_list_head match_integer es in
       (* N.B. requires v<>bottom *)
-      let set = Z.logand (Z.logor v.set v.unset)
+      let set = Z.logand
+          (Z.logor v.set v.unset)
           (Z.logxor v.set k)
       in
-      reduce_exn ctx (e_fun !@f_land es) { v with set }
+      reduce_exn ctx (e_fun !@f_lor es) { v with set }
     with Not_found ->
       if Z.is_zero v.unset then ctx else
         List.fold_left (fun ctx t ->
@@ -1429,6 +1411,7 @@ module Masks = struct
     reduce_exn ctx e (mk ~set:v.unset ~unset:v.set)
 
   let reduce_to_cint reduce_exn ctx v iota e =
+    if iota = Ctypes.CBool then raise Not_found ;
     (* The lowest bits can be reduced *)
     let mask = if not (Ctypes.signed iota) then
         snd (Ctypes.bounds iota)
@@ -1593,6 +1576,7 @@ module MasksDomain = struct
       match F.repr h with
       | Fun(f,[x]) ->
         let iota = is_cint f in (* may raise Not_found *)
+        if iota = Ctypes.CBool then raise Not_found ;
         if not (Ctypes.signed iota) then
           (* The uppest bits are unset *)
           let mask = snd (Ctypes.bounds iota) in

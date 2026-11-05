@@ -37,3 +37,7 @@ _Bool band_bool(_Bool a, _Bool b) { return (_Bool)(((int)a & (int)b) != 0); }
   @   ensures \result == 0;
  */
 _Bool bxor_bool(_Bool a, _Bool b) { return (_Bool)(((int)a ^ (int)b) != 0); }
+
+/*@ check lemma mask_eval_ko: \forall integer x; (x & 3) == 2 ==> (_Bool)x == 0 ; */
+/*@ check lemma mask_reduce_ko: \forall integer x; (_Bool)x == 1 ==> (x & 1) == 1 ; */
+/*@ check lemma bitbool_iff_ko: \forall integer x; ((_Bool)x & 1) != 0 <==> (x & 1) != 0 ; */

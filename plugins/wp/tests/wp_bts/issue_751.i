@@ -31,15 +31,15 @@ int issue_751(int V)
 { int n = 2;
   int k = 1<<n;
   //@ check (V >> n) <=  16 <==>  V <   16*k + k;
-  //@ check (V >> n) <= -16 <==>  V <= -16*k;
-  //@ check  16 <= (V >> n) <==>  16*k     <= V;
-  //@ check -16 <= (V >> n) <==> -16*k - k <  V;
+  //@ check (V >> n) <= -16 <==>  V <  -15*k;
+  //@ check  16 <= (V >> n) <==>  16*k <= V;
+  //@ check -16 <= (V >> n) <==> -16*k <=  V;
 
   checks ( 21, V, 3);
   checks (-27, V, 7);
 
   checks (V,  5, 19);
   checks (V, -7, 23);
- 
+
   return V;
 }
