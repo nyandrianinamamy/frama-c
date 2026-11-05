@@ -619,8 +619,8 @@ module Make (Engine: Engine_Subset) = struct
       let states =
         compute_specification ~warn call spec state
       in
-      let add_key behavior_id state =
-        let branch = Partition.Spec_behavior (call.kf, kinstr, behavior_id) in
+      let add_key rank state =
+        let branch = Partition.Spec_behavior { kf=call.kf; kinstr; rank } in
         Partition.Key.(add_branch branch empty), state
       in
       List.mapi add_key states

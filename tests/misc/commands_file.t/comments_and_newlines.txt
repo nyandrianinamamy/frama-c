@@ -31,4 +31,4 @@ src_empty.c
 
 # No crash if the last line ends with a backslash (no new line at the end of the
 # config file on purpose for the test)
--eva-partition-history 2 \
+-eva-partition-path 2 \

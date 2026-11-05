@@ -1,6 +1,6 @@
 /* run.config*
-   STDOPT: -eva-partition-history 2 -eva-slevel 0
-   STDOPT: -eva-partition-history 2 -eva-slevel 10
+   STDOPT: -eva-partition-path 2 -eva-slevel 0
+   STDOPT: -eva-partition-path 2 -eva-slevel 10
    STDOPT: -eva-slevel 10 -eva-split-return full -main check_slevel
 */
 

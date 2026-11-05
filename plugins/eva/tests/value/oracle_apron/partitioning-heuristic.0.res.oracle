@@ -1,0 +1,18 @@
+42,43c42,46
+< [eva:progress] partitioning-heuristic.c:30: 
+<   Reusing old results for call to something
+---
+> [eva:progress] 
+>   computing for function something <- simple <- main.
+>   Called from partitioning-heuristic.c:30.
+> [eva:progress] Recording results for something
+> [eva:progress] Done for function something
+79,80c82,86
+< [eva:progress] partitioning-heuristic.c:42: 
+<   Reusing old results for call to something
+---
+> [eva:progress] 
+>   computing for function something <- simple <- main.
+>   Called from partitioning-heuristic.c:42.
+> [eva:progress] Recording results for something
+> [eva:progress] Done for function something

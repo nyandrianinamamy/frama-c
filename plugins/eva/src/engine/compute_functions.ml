@@ -158,9 +158,9 @@ module Make (Engine: Engine_sig.S) = struct
       let cvalue_states, cacheable =
         Builtins.apply_builtin builtin cvalue_call ~pre ~post
       in
-      let insert result_id cvalue_state =
+      let insert rank cvalue_state =
         let kinstr = Callstack.top_callsite call.callstack in
-        let branch = Partition.Builtin_result (call.kf, kinstr, result_id) in
+        let branch = Partition.Builtin_result { kf=call.kf; kinstr; rank } in
         Partition.Key.(add_branch branch empty),
         Engine.Dom.set Cvalue_domain.State.key cvalue_state final_state
       in

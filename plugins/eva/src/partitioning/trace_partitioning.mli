@@ -76,8 +76,8 @@ sig
 
   (** After the analysis of a function call, recombines callee partitioning keys
       with the caller key. *)
-  val call_return:
-    caller:Partition.key -> Engine_sig.call_kind ->
+  val call_return :
+    caller:Partition.key -> Engine_sig.call_kind -> Cil_types.stmt ->
     (Partition.key * state) list -> (Partition.key * state) list
 
   (* --- Operators --- *)
@@ -105,7 +105,7 @@ sig
       This function also interprets partitioning annotations at the store
       vertex (slevel, splits, merges, ...) which will generally change the
       current partitioning. *)
-  val join : (int * flow) list -> store -> flow
+  val join : (int * flow) list -> Eva_automata.vertex -> store -> flow
 
   (** Widen a flow. The widening object keeps track of the previous widenings
       and previous propagated states to ensure termination. *)

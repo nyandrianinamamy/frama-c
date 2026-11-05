@@ -22,6 +22,8 @@ val to_cil_lval : lval -> Cil_types.lval
 val is_mutable : lval -> bool
 val is_initialized : lval -> bool
 
+val is_no_effect_frama_c_builtin : lhost -> bool
+
 
 (** Expressions/Lvalue heights *)
 

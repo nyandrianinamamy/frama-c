@@ -22,6 +22,11 @@ Open Source Release <next-release>
 Open Source Release 34.0 (Selenium)
 ###############################################################################
 
+-   Eva       [2026-11-04] New option -eva-auto-partition-path using heuristics
+              to identify paths worth considering for state partitioning,
+              improving precision on statements that depend on past conditional
+              branches. It improves performance over -eva-partition-path.
+-   Eva       [2026-11-04] Rename -eva-partition-history to -eva-partition-path.
 -*   Eva      [2026-10-30] Fix soundness of the octagon domain on assignments
               such as x=*p+1 when p points to x.
 -*   Eva      [2026-10-30] Fix soundness issues in the interpretation of casts

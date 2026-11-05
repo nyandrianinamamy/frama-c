@@ -4,7 +4,7 @@
     option -eva-min-loop-unroll set to 0 (default value).
     option -eva-auto-loop-unroll already set to 20 (not modified).
     option -eva-widening-delay set to 2.
-    option -eva-partition-history set to 0 (default value).
+    option -eva-partition-path set to 0 (default value).
     option -eva-slevel already set to 0 (not modified).
     option -eva-ilevel set to 24.
     option -eva-plevel set to 70.

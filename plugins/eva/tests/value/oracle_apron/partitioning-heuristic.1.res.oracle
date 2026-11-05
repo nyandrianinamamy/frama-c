@@ -1,0 +1,50 @@
+21,24c21,38
+< [eva:progress] partitioning-heuristic.c:166: 
+<   Reusing old results for call to interproc_f1
+< [eva:progress] partitioning-heuristic.c:166: 
+<   Reusing old results for call to interproc_f1
+---
+> [eva:progress] 
+>   computing for function interproc_f1 <- main_interproc.
+>   Called from partitioning-heuristic.c:166.
+> [eva:progress] 
+>   computing for function Frama_C_interval <- interproc_f1 <- main_interproc.
+>   Called from partitioning-heuristic.c:147.
+> [eva:progress] Done for function Frama_C_interval
+> [eva:progress] Recording results for interproc_f1
+> [eva:progress] Done for function interproc_f1
+> [eva:progress] 
+>   computing for function interproc_f1 <- main_interproc.
+>   Called from partitioning-heuristic.c:166.
+> [eva:progress] 
+>   computing for function Frama_C_interval <- interproc_f1 <- main_interproc.
+>   Called from partitioning-heuristic.c:147.
+> [eva:progress] Done for function Frama_C_interval
+> [eva:progress] Recording results for interproc_f1
+> [eva:progress] Done for function interproc_f1
+43,44c57,65
+< [eva:progress] partitioning-heuristic.c:172: 
+<   Reusing old results for call to interproc_f2
+---
+> [eva:progress] 
+>   computing for function interproc_f2 <- main_interproc.
+>   Called from partitioning-heuristic.c:172.
+> [eva:progress] 
+>   computing for function Frama_C_interval <- interproc_f2 <- main_interproc.
+>   Called from partitioning-heuristic.c:156.
+> [eva:progress] Done for function Frama_C_interval
+> [eva:progress] Recording results for interproc_f2
+> [eva:progress] Done for function interproc_f2
+116,117c137,145
+< [eva:progress] partitioning-heuristic.c:166: 
+<   Reusing old results for call to interproc_f1
+---
+> [eva:progress] 
+>   computing for function interproc_f1 <- main_interproc.
+>   Called from partitioning-heuristic.c:166.
+> [eva:progress] 
+>   computing for function Frama_C_interval <- interproc_f1 <- main_interproc.
+>   Called from partitioning-heuristic.c:147.
+> [eva:progress] Done for function Frama_C_interval
+> [eva:progress] Recording results for interproc_f1
+> [eva:progress] Done for function interproc_f1

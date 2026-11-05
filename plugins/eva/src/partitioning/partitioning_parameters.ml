@@ -92,9 +92,25 @@ struct
       warn "more than one loop unroll annotation; ignoring";
       default
 
-  let history_size =
-    try HistoryPartitioningFunction.find kf
-    with Not_found -> HistoryPartitioning.get ()
+  let path_partition_heuristic, history_size =
+    match
+      PathPartitioningFunction.find_opt kf,
+      AutoPathPartitioningFunction.find_opt kf
+    with
+    | Some _, Some _ ->
+      Self.abort "Conflicting options %s and %s. Use only one."
+        PathPartitioningFunction.name
+        AutoPathPartitioningFunction.name
+    | Some size, None -> false, size
+    | None, Some size -> true, size
+    | None, None ->
+      match PathPartitioning.get (), AutoPathPartitioning.get () with
+      | x, 0 -> false, x
+      | 0, x -> true, x
+      | _, _ ->
+        Self.abort "Conflicting options %s and %s. Use only one."
+          PathPartitioning.name
+          AutoPathPartitioning.name
 
   let split_limit = SplitLimit.get ()
 
@@ -129,9 +145,9 @@ struct
       match annotation with
       | FlowSplit (ConditionalCases, _) ->
         let do_branch (src,edge,dest) =
-          let source = src.Eva_automata.vertex_key in
-          let branch = edge.Eva_automata.edge_key in
-          (dest, Partition.SyntacticSplit (source, branch))
+          let vertex = src.Eva_automata.vertex_key in
+          let edge = edge.Eva_automata.edge_key in
+          (dest, Partition.SyntacticSplit (vertex, edge))
         in
         (* Find first vertex with several successors. *)
         let rec find_next_branches vertex =
@@ -188,7 +204,39 @@ struct
     | (NoSplit | SplitEqList _), _ ->
       Partition.Ration (Partition.new_rationing ~limit:0 ~merge:false)
 
-  let flow_actions vertex =
+  let history_tables =
+    let options = Path_partitioning_heuristic.{
+        enabled = path_partition_heuristic;
+        dist_limit = history_size;
+        interproc = Parameters.InterproceduralPathPartitioning.get ();
+        include_guards = AutoPathPartitioningIncludeGuards.get ();
+        required_writes = AutoPathPartitioningRequiredWrites.get ();
+      } in
+    Path_partitioning_heuristic.compute kf options
+  let should_partition_at =
+    if path_partition_heuristic then
+      fun v -> Eva_automata.Vertex.Hashtbl.mem history_tables.split_v v
+    else
+      fun _ -> true
+  let should_merge_what =
+    if path_partition_heuristic then
+      fun ek ->
+        let merge_actions =
+          Datatype.Int.Hashtbl.find_all history_tables.merge_e ek
+          |> List.map (fun v ->
+              Partition.Remove_branch v.Eva_automata.vertex_key)
+        and call_merge_actions =
+          Datatype.Int.Hashtbl.find_all history_tables.call_merge_e ek
+          |> List.map (fun stmt -> Partition.Remove_call_branch stmt)
+        in
+        merge_actions @ call_merge_actions
+        (* We include call_merge_actions even if interprocedural history is not
+           enabled, because interprocedural history is always enabled for
+           builtins and specs. *)
+    else
+      fun _ -> []
+
+  let flow_actions_v vertex =
     let flow_actions =
       VertexTable.find_default ~default:[] flow_annotations_table vertex
     in
@@ -210,10 +258,17 @@ struct
     in
     flow_actions, store_results
 
+  let flow_actions_e ~several_sources edge v =
+    if several_sources && should_partition_at v then
+      let b = Partition.Graph_branch { edge; junction=v.vertex_key } in
+      Partition.Add_branch (b, history_size) :: should_merge_what edge
+    else
+      should_merge_what edge
+
   let call_return_policy =
     Partition.{
       callee_splits = Parameters.InterproceduralSplits.get ();
-      callee_history = Parameters.InterproceduralHistory.get ();
+      callee_history = Parameters.InterproceduralPathPartitioning.get ();
       caller_history = true;
       history_size = history_size;
     }

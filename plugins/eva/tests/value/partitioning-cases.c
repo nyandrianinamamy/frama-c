@@ -1,7 +1,7 @@
 /* run.config*
 
-   STDOPT: #"-eva-partition-history 0"
-   STDOPT: #"-eva-partition-history 1"
+   STDOPT: #"-eva-partition-path 0"
+   STDOPT: #"-eva-partition-path 1"
 */
 
 #include "__fc_builtin.h"
