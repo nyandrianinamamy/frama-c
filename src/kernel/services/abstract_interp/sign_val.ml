@@ -83,7 +83,7 @@ let cmod v1 v2 =
    giving the sign of the result according to the sign of both operands.
 
    For shift, we take the semantics of ACSL, Rocq, etc:
-   x << -n (resp >>) = x << n (resp >>)
+   x << -n (resp >>) = x >> n (resp <<)
 
        v1  v2   v1&v2   v1|v2   v1^v2   v1<<v2   v1>>v2
    ----------------------------------------------------
