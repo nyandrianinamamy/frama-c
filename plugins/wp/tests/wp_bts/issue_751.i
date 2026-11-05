@@ -31,7 +31,7 @@ int issue_751(int V)
 { int n = 2;
   int k = 1<<n;
   //@ check (V >> n) <=  16 <==>  V <   16*k + k;
-  //@ check (V >> n) <= -16 <==>  V <= -15*k - 1;
+  //@ check (V >> n) <= -16 <==>  V <  -15*k;
   //@ check  16 <= (V >> n) <==>  16*k <= V;
   //@ check -16 <= (V >> n) <==> -16*k <=  V;
 
