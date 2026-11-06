@@ -351,7 +351,7 @@ with tempfile.TemporaryDirectory() as tmpdirname:
 
     for f, typ in source_files:
         p = my_path / f
-        cmd = compilation_command + [str(p)]
+        cmd = compilation_command + [str(p.resolve())]
         if typ in ("macro", "macrolist"):
             # We're just interested in expanding a macro,
             # treatment is a bit different than the rest.
@@ -419,7 +419,7 @@ with tempfile.TemporaryDirectory() as tmpdirname:
     # on the exact compilation context.
     def test_possible_alignas(align_test):
         f = my_path / "max_extended_alignment.c"
-        cmd = compilation_command + [f"-DALIGN_TEST={align_test}", str(f)]
+        cmd = compilation_command + [f"-DALIGN_TEST={align_test}", str(f.resolve())]
         if args.verbose:
             print(f"[INFO] running command: {' '.join(cmd)}")
         proc = subprocess.run(cmd, capture_output=True, cwd=tmpdirname, check=False)
