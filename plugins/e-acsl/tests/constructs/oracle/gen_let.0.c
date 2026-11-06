@@ -35,6 +35,28 @@ int main(void)
     __e_acsl_assert_clean(& __gen_e_acsl_assert_data);
   }
   /*@ assert f(1) == 0; */ ;
+  {
+    double __gen_e_acsl_x;
+    double __gen_e_acsl_if_5;
+    __e_acsl_assert_data_t __gen_e_acsl_assert_data_2 =
+      {.values = (void *)0};
+    __gen_e_acsl_x = 2.5;
+    __e_acsl_assert_register_double(& __gen_e_acsl_assert_data_2,"x",
+                                    __gen_e_acsl_x);
+    if (__gen_e_acsl_x < 3.) __gen_e_acsl_if_5 = __gen_e_acsl_x;
+    else __gen_e_acsl_if_5 = 0.;
+    __e_acsl_assert_register_double(& __gen_e_acsl_assert_data_2,"x",
+                                    __gen_e_acsl_x);
+    __gen_e_acsl_assert_data_2.blocking = 1;
+    __gen_e_acsl_assert_data_2.kind = "Assertion";
+    __gen_e_acsl_assert_data_2.pred_txt = "\\let x = 2.5; (x < 3 ? x : 0.0) == 2.5";
+    __gen_e_acsl_assert_data_2.file = "let.c";
+    __gen_e_acsl_assert_data_2.fct = "main";
+    __gen_e_acsl_assert_data_2.line = 20;
+    __e_acsl_assert(__gen_e_acsl_if_5 == 2.5,& __gen_e_acsl_assert_data_2);
+    __e_acsl_assert_clean(& __gen_e_acsl_assert_data_2);
+  }
+  /*@ assert \let x = 2.5; (x < 3 ? x : 0.0) == 2.5; */ ;
   __retres = 0;
   __e_acsl_memory_clean();
   return __retres;
