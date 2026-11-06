@@ -93,7 +93,7 @@ let join i1 i2 =
               (* try float, then double *)
               List.iter check [ k, 23; FDouble, 52 ]
             | FDouble | FFloat64 ->
-               check (FDouble, 52)
+              check (FDouble, 52)
             | FLongDouble ->
               ()
           end;
