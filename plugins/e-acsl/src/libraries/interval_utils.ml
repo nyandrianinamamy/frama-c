@@ -160,26 +160,26 @@ let meet i1 i2 = match i1, i2 with
         | FLongDouble -> raise Exit
       in
       try
-         match Ival.min_and_max iv with
-         | None, None ->
-           (* unbounded integers *)
-           Float(k, None)
-         | Some min, Some max ->
-           (* if the float type fits into the interval of integers, then return
-              this float type; otherwise return Rational *)
-           let mini, maxi = to_float min, to_float max in
-           let minf, maxf = get_bounds k in
-           if mini <= minf && maxi >= maxf then Float(k, None) else Rational
-         | None, Some max ->
-           let maxi = to_float max in
-           let _, maxf = get_bounds k in
-           if maxi >= maxf then Float(k, None) else Rational
-         | Some min, None ->
-           let mini = to_float min in
-           let minf, _ = get_bounds k in
-           if mini <= minf then Float(k, None) else Rational
-       with Z.Overflow | Exit ->
-         Rational
+        match Ival.min_and_max iv with
+        | None, None ->
+          (* unbounded integers *)
+          Float(k, None)
+        | Some min, Some max ->
+          (* if the float type fits into the interval of integers, then return
+             this float type; otherwise return Rational *)
+          let mini, maxi = to_float min, to_float max in
+          let minf, maxf = get_bounds k in
+          if mini <= minf && maxi >= maxf then Float(k, None) else Rational
+        | None, Some max ->
+          let maxi = to_float max in
+          let _, maxf = get_bounds k in
+          if maxi >= maxf then Float(k, None) else Rational
+        | Some min, None ->
+          let mini = to_float min in
+          let minf, _ = get_bounds k in
+          if mini <= minf then Float(k, None) else Rational
+      with Z.Overflow | Exit ->
+        Rational
     end
   | (Ival _ | Float _ | Rational), (Float _ | Rational)
   | Rational, Ival _ ->
