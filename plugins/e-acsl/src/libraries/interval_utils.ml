@@ -82,8 +82,8 @@ let join i1 i2 =
       | Some min, Some max ->
         (* if the interval of integers fits into a float type, then return
            this float type; otherwise return Rational *)
-        let check (k, mantisse) =
-          let power = Z.two_power_of_int (mantisse + 1) in
+        let check (k, significand) =
+          let power = Z.two_power_of_int (significand + 1) in
           if Z.geq min (Z.neg power) && Z.leq max power
           then raise (Join_float k)
         in
