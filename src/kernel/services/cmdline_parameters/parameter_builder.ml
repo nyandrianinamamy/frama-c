@@ -521,6 +521,11 @@ struct
     try
       Filepath.of_string ~existence s
     with
+    | Invalid_argument msg ->
+      P.L.abort "Unable to parse %s%sfile '%s': %s"
+        file_kind
+        (if file_kind = "" then "" else " ")
+        s msg
     | Filepath.No_file ->
       P.L.abort "%s%sfile '%s' does not exist"
         file_kind
@@ -531,6 +536,9 @@ struct
         file_kind
         (if file_kind = "" then "" else " ")
         (Filepath.(to_string (of_string s)))
+
+  let filepath_to_string = Filepath.to_string_rel
+  let pp_filepath = Filepath.pretty_rel
 
   module Filepath
       (X: sig
@@ -546,11 +554,12 @@ struct
           include X
           let default () = Filepath.empty
           let functor_name = "Filepath"
+          let pretty = pp_filepath
         end)
 
     let convert f oldstr newstr =
-      let oldfp = Filepath.to_string oldstr in
-      let newfp = Filepath.to_string newstr in
+      let oldfp = filepath_to_string oldstr in
+      let newfp = filepath_to_string newstr in
       f oldfp newfp
 
     let set_str s =
@@ -569,7 +578,7 @@ struct
         stage
         (Cmdline.String set_str)
 
-    let parameter_get fp = Filepath.to_string (get fp)
+    let parameter_get fp = filepath_to_string (get fp)
     let parameter_add_set_hook f = add_set_hook (convert f)
     let parameter_add_update_hook f = add_update_hook (convert f)
 
@@ -1743,7 +1752,8 @@ struct
     Make_list
       (struct
         include Fclib.Filepath
-        let to_string s = Fclib.Filepath.to_string_abs s
+        let to_string s = filepath_to_string s
+        let pretty = pp_filepath
 
         let of_string s =
           [ normalize_filepath ~existence:X.existence ~file_kind:X.file_kind s ]
@@ -1878,15 +1888,9 @@ struct
         let of_string s =
           if s = "" then
             cannot_build "empty file path";
-          try
-            [ Fclib.Filepath.of_string ~existence:X.existence s ]
-          with
-          | Fclib.Filepath.No_file ->
-            P.L.abort "file '%s' not found" s
-          | Fclib.Filepath.File_exists ->
-            P.L.abort "file '%s' already exists" s
-        let to_string p = Fclib.Filepath.to_string_rel p
-        let pretty = Fclib.Filepath.pretty_rel
+          [ normalize_filepath ~existence:X.existence ~file_kind:"" s ]
+        let to_string p = filepath_to_string p
+        let pretty = pp_filepath
       end)
       (V)
       (struct include X let dependencies = [] end)
