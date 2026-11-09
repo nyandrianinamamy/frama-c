@@ -225,18 +225,43 @@ let all_symbolic_dirs () =
 (* --- Tests                                                              --- *)
 (* -------------------------------------------------------------------------- *)
 
-let%test _ = of_string "/" = "/"
-let%test _ = of_string "/.." = "/"
-let%test _ = of_string "/../../." = "/"
-let%test _ = of_string "///" = "/"
-let%test _ = of_string "//tmp//" = "//tmp/"
-let%test _ = of_string "/../tmp/../.." = "/"
-let%test _ = of_string "/tmp/inexistent_directory/.." = "/tmp"
-let%test _ = of_string "" = ""
-let%test _ = to_string_rel (of_string ".") = "."
-let%test _ = to_string_rel (of_string "./tests/..") = "."
-let%test _ =
-  to_string_rel ~base:(of_string "/a/b/") (of_string "/a/bc/d") = "/a/bc/d"
-let%test _ =
-  add_symbolic_dir "SYMB" (of_string "/tmp/symb/");
-  to_string (of_string "/tmp/symb/file.c") = "SYMB/file.c"
+let%test_module _ = (module struct
+  let () = Hpath.testing_mode ()
+
+  let test actual expected =
+    let res = expected = actual in
+    if not res then begin
+      Format.eprintf "@[<v 2>expected: %s@ actual: %s@]@\n"
+        expected actual
+    end;
+    res
+
+  let%test _ = test (of_string "/") "/"
+  let%test _ = test (of_string "c:\\") "c:/"
+  let%test _ = test (of_string "/..") "/"
+  let%test _ = test (of_string "c:\\..") "c:/"
+  let%test _ = test (of_string "/../../.") "/"
+  let%test _ = test (of_string "c:/../../.") "c:/"
+  let%test _ = test (of_string "///") "/"
+  let%test _ = test (of_string "c:\\\\\\") "c:/"
+  let%test _ = test (of_string "//tmp//") "//tmp/"
+  let%test _ = test (of_string "/../tmp/../..") "/"
+  let%test _ = test (of_string "c:/../tmp/../..") "c:/"
+  let%test _ = test (of_string "/tmp/inexistent_directory/..") "/tmp"
+  let%test _ = test (of_string "c:\\tmp\\inexistent_directory\\..") "c:/tmp"
+  let%test _ = test (of_string "c:\\mixed/folder\\separators") "c:/mixed/folder/separators"
+  let%test _ = test (of_string "") ""
+  let%test _ = test (to_string_rel (of_string ".")) "."
+  let%test _ = test (to_string_rel (of_string "./tests/..")) "."
+  let%test _ = test (to_string_rel (of_string ".\\tests\\..")) "."
+  let%test _ =
+    test (to_string_rel ~base:(of_string "/a/b/") (of_string "/a/bc/d")) "/a/bc/d"
+  let%test _ =
+    test (to_string_rel ~base:(of_string "c:\\a\\b\\") (of_string "c:\\a\\bc\\d")) "c:/a/bc/d"
+  let%test _ =
+    add_symbolic_dir "SYMB" (of_string "/tmp/symb/");
+    test (to_string (of_string "/tmp/symb/file.c")) "SYMB/file.c"
+  let%test _ =
+    add_symbolic_dir "SYMB" (of_string "c:\\tmp\\symb\\");
+    test (to_string (of_string "c:\\tmp\\symb\\file.c")) "SYMB/file.c"
+end)
