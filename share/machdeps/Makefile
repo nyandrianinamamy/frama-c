@@ -16,7 +16,7 @@ machdep_gcc_x86_32.yaml \
 machdep_gcc_x86_64.yaml \
 machdep_ppc_32.yaml : \
 %.yaml: machdep-schema.yaml make_machdep/make_machdep.py make_machdep/*.c
-	@./make_machdep/make_machdep.py -i --from-file $@ --check
+	@./make_machdep/make_machdep.py -i --from-file $@ --check $(EXTRA_ARGS)
 
 machdep_x86_16.yaml machdep_x86_32.yaml machdep_x86_64.yaml: \
 machdep_%.yaml: machdep_gcc_%.yaml Makefile
@@ -41,11 +41,11 @@ machdep_%.yaml: machdep_gcc_%.yaml Makefile
 ifeq ($(CI),true)
 check-schema:
 	@$(foreach machdep, $(wildcard machdep_*.yaml), \
-           ./make_machdep/make_machdep.py --from-file $(machdep) --check-only \
+           ./make_machdep/make_machdep.py --from-file $(machdep) --check-only $(EXTRA_ARGS) \
            || (echo "$(machdep) does not conform to machdep schema"; exit 1);)
 else
 check-schema:
 	@$(foreach machdep, $(wildcard machdep_*.yaml), \
-           ./make_machdep/make_machdep.py --from-file $(machdep) --check-only \
+           ./make_machdep/make_machdep.py --from-file $(machdep) --check-only $(EXTRA_ARGS) \
            || echo "$(machdep) does not conform to machdep schema";)
 endif
