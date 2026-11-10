@@ -12,10 +12,10 @@
 [wp] [Valid] Goal fs1_terminates (Cfg) (Trivial)
 [wp] [Valid] Goal main_exits (Cfg) (Unreachable)
 [wp] [Valid] Goal main_terminates (Cfg) (Trivial)
-[wp:union] init_value.i:61: Warning: 
+[wp:unsupported:union] init_value.i:61: Warning: 
   Accessing union fields with Hoare model might be unsound.
   Please refer to WP manual.
-[wp:union] init_value.i:40: Warning: 
+[wp:unsupported:union] init_value.i:40: Warning: 
   Accessing union fields with Hoare model might be unsound.
   Please refer to WP manual.
 [wp] 24 goals scheduled

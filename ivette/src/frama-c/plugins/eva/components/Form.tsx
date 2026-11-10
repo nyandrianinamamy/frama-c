@@ -280,7 +280,7 @@ export function EvaFormOptions(
       <Section label="Partitioning and Disjunctions" >
         {getSpinnerField("-eva-slevel")}
         {getRadioField("-eva-split-return")}
-        {getSpinnerField("-eva-partition-history")}
+        {getSpinnerField("-eva-partition-path")}
         {getSpinnerField("-eva-ilevel")}
         {getSpinnerField("-eva-plevel")}
         {getSpinnerField("-eva-subdivide-non-linear")}

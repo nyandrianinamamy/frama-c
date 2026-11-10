@@ -1,8 +1,8 @@
 /* run.config*
 
-   STDOPT: #"-main cassign_test -eva-partition-history 1 -eva-interprocedural-history"
-   STDOPT: #"-main fabs_test -eva-partition-history 1 -eva-domains equality -eva-interprocedural-history"
-   STDOPT: #"-main fabs_splits_test -eva-partition-history 1 -eva-domains equality -eva-interprocedural-splits"
+   STDOPT: #"-main cassign_test -eva-partition-path 1 -eva-interprocedural-partition-path"
+   STDOPT: #"-main fabs_test -eva-partition-path 1 -eva-domains equality -eva-interprocedural-partition-path"
+   STDOPT: #"-main fabs_splits_test -eva-partition-path 1 -eva-domains equality -eva-interprocedural-splits"
    */
 #include "__fc_builtin.h"
 

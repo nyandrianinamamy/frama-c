@@ -216,7 +216,7 @@ module type Graph = sig
   module type Domain =
   sig
     type t
-    val join : t -> t -> t
+    val join : vertex -> t -> t -> t
     val widen : t -> t -> t widening
     val transfer : edge -> t -> t option
   end
@@ -388,7 +388,7 @@ module MakeGraph (Vertex : Vertex) (Edge : Edge) = struct
   sig
     type t
 
-    val join : t -> t -> t
+    val join : vertex -> t -> t -> t
     val widen : t -> t -> t widening
     val transfer : G.edge -> t -> t option
   end
@@ -430,7 +430,7 @@ module MakeGraph (Vertex : Vertex) (Edge : Edge) = struct
           States.remove results v
         | v1 :: vl ->
           (* Join incoming values *)
-          let result = List.fold_left D.join v1 vl in
+          let result = List.fold_left (D.join v) v1 vl in
           States.replace results v result
       in
 

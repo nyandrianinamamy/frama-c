@@ -9,46 +9,13 @@
 open Cil_types
 open Eval
 
-(** Sign domain: abstraction of integer numerical values by their signs. *)
-
-type signs = {
-  pos: bool;  (** true: maybe positive, false: never positive *)
-  zero: bool; (** true: maybe zero, false: never zero *)
-  neg: bool;  (** true: maybe negative, false: never negative *)
-}
-
-let top =         { pos = true;  zero = true;  neg = true  }
-let pos_or_zero = { pos = true;  zero = true;  neg = false }
-let pos =         { pos = true;  zero = false; neg = false }
-let neg_or_zero = { pos = false; zero = true;  neg = true  }
-let neg =         { pos = false; zero = false; neg = true  }
-let zero =        { pos = false; zero = true;  neg = false }
-let non_zero =    { pos = true;  zero = false; neg = true  }
-let ge_zero v = not v.neg
-let le_zero v = not v.pos
+include Sign_val
 
 (* Bottom is a special value (`Bottom) in Eva, and need not be part of
    the lattice. Here, we have a value which is equivalent to it, defined
    there only for commodity. *)
 let empty = { pos = false; zero = false; neg = false }
 
-(* Datatypes are Frama-C specific modules used among other things for
-   serialization. There is no need to understand them in detail.
-   They are created mostly via copy/paste of templates. *)
-include Datatype.Make(struct
-    type t = signs
-    include Datatype.Serializable_undefined
-    let compare = Stdlib.compare
-    let equal = Datatype.from_compare
-    let hash = Hashtbl.hash
-    let reprs = [top]
-    let name = "Value.Sign_values.signs"
-    let pretty fmt v =
-      Format.fprintf fmt "%s%s%s"
-        (if v.neg  then "-" else "")
-        (if v.zero then "0" else "")
-        (if v.pos  then "+" else "")
-  end)
 let pretty_typ _ = pretty
 
 type context = unit
@@ -79,11 +46,7 @@ let narrow v1 v2 =
 
 let top_int = top
 
-(* [inject_int] creates an abstract value corresponding to the singleton [i]. *)
-let inject_int _ i =
-  if Z.lt i Z.zero then neg
-  else if Z.gt i Z.zero then pos
-  else zero
+let inject_int _ = inject_int
 
 let constant _context _expr = function
   | Eva_ast.CInt64 (i, _, _) -> inject_int () i
@@ -119,17 +82,13 @@ let assume_comparable _ v1 v2 = `Unknown (v1, v2)
    wrappings for the operations on machine integers are taken into account by
    the functions [truncate_integer] and [rewrap_integer]. *)
 
-let neg_unop v = { v with neg = v.pos; pos = v.neg }
-
 let bitwise_not typ v =
   match Ast_types.C.unroll_node typ with
   | TInt ikind | TEnum {ekind=ikind} ->
     if Cil.isSigned ikind
-    then { pos = v.neg; neg = v.pos || v.zero; zero = v.neg }
+    then bitwise_not v
     else { pos = v.pos || v.zero; neg = false; zero = v.pos }
   | _ -> top
-
-let logical_not v = { pos = v.zero; neg = false; zero = v.pos || v.neg }
 
 let forward_unop _context typ op v =
   match op with
@@ -137,85 +96,12 @@ let forward_unop _context typ op v =
   | BNot -> `Value (bitwise_not typ v)
   | LNot -> `Value (logical_not v)
 
-let plus v1 v2 =
-  let neg = v1.neg || v2.neg in
-  let pos = v1.pos || v2.pos in
-  let same_sign v1 v2 =
-    (le_zero v1 && le_zero v2) || (ge_zero v1 && ge_zero v2)
-  in
-  let zero = not (same_sign v1 v2) || (v1.zero && v2.zero) in
-  { neg; pos; zero }
-
-let mul v1 v2 =
-  let pos = (v1.pos && v2.pos) || (v1.neg && v2.neg) in
-  let neg = (v1.pos && v2.neg) || (v1.neg && v2.pos) in
-  let zero = v1.zero || v2.zero in
-  { neg; pos; zero }
-
-let div v1 v2 =
-  let pos = (v1.pos && v2.pos) || (v1.neg && v2.neg) in
-  let neg = (v1.pos && v2.neg) || (v1.neg && v2.pos) in
-  let zero = true in (* zero can appear with large enough v2 *)
-  { neg; pos; zero }
-
-(* The implementation of the bitwise operators below relies on this table
-   giving the sign of the result according to the sign of both operands.
-
-       v1  v2   v1&v2   v1|v2   v1^v2
-   -----------------------------------
-   |   +   +      +0      +       +0
-   |   +   0      0       +       +
-   |   +   -      +0      -       -
-   |   0   +      0       +       +
-   |   0   0      0       0       0
-   |   0   -      0       -       -
-   |   -   +      +0      -       -
-   |   -   0      0       -       -
-   |   -   -      -       -       +0
-*)
-
-let bitwise_and v1 v2 =
-  let pos = (v1.pos && (v2.pos || v2.neg)) || (v2.pos && v1.neg) in
-  let neg = v1.neg && v2.neg in
-  let zero = v1.zero || v1.pos || v2.zero || v2.pos in
-  { neg; pos; zero }
-
-let bitwise_or v1 v2 =
-  let pos = (v1.pos && (v2.pos || v2.zero)) || (v1.zero && v2.pos) in
-  let neg = v1.neg || v2.neg in
-  let zero = v1.zero && v2.zero in
-  { neg; pos; zero }
-
-let bitwise_xor v1 v2 =
-  let pos =
-    (v1.pos && v2.pos) || (v1.pos && v2.zero) || (v1.zero && v2.pos)
-    || (v1.neg && v2.neg)
-  in
-  let neg =
-    (v1.neg && (v2.pos || v2.zero)) ||
-    (v2.neg && (v1.pos || v1.zero))
-  in
-  let zero = (v1.zero && v2.zero) || (v1.pos && v2.pos) || (v1.neg && v2.neg) in
-  { neg; pos; zero }
-
-let logical_and v1 v2 =
-  let pos = (v1.pos || v1.neg) && (v2.pos || v2.neg) in
-  let neg = false in
-  let zero = v1.zero || v2.zero in
-  { pos; neg; zero }
-
-let logical_or v1 v2 =
-  let pos = v1.pos || v1.neg || v2.pos || v2.neg in
-  let neg = false in
-  let zero = v1.zero && v2.zero in
-  { pos; neg; zero }
-
 let forward_binop _context _typ op v1 v2 =
   match op with
   | Eva_ast.PlusA  -> `Value (plus v1 v2)
   | MinusA -> `Value (plus v1 (neg_unop v2))
   | Mult   -> `Value (mul v1 v2)
-  | Div    -> if equal zero v2 then `Bottom else `Value (div v1 v2)
+  | Div    -> if equal zero v2 then `Bottom else `Value (cdiv v1 v2)
   | BAnd -> `Value (bitwise_and v1 v2)
   | BOr -> `Value (bitwise_or v1 v2)
   | BXor -> `Value (bitwise_xor v1 v2)

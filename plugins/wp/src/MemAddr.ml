@@ -36,7 +36,7 @@ let f_int_of_addr = Lang.extern_f "frama_c_wp.memaddr.MemAddr.int_of_addr"
 let p_statically_allocated = Lang.extern_f "frama_c_wp.memaddr.MemAddr.statically_allocated"
 
 let f_table_of_base = Lang.extern_f "frama_c_wp.memaddr.MemAddr.table_of_base"
-let f_table_to_offset = Lang.extern_f ~category:Injection "frama_c_wp.memaddr.MemAddr.table_to_offset"
+let f_table_to_offset = Lang.extern_f "frama_c_wp.memaddr.MemAddr.table_to_offset"
 
 let p_valid_rd = Lang.extern_f "frama_c_wp.memaddr.MemAddr.valid_rd"
 let p_valid_rw = Lang.extern_f "frama_c_wp.memaddr.MemAddr.valid_rw"

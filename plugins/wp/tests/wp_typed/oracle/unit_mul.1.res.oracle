@@ -1,0 +1,11 @@
+# frama-c -wp -wp-model 'Typed (Ref)' [...]
+[kernel] Parsing unit_mul.i (no preprocessing)
+[wp] Running WP plugin...
+------------------------------------------------------------
+  Global
+------------------------------------------------------------
+
+Goal Lemma 'L_mulneg_KO':
+Prove: 0 <= lnot((1 land a) * lnot(1 land b)).
+
+------------------------------------------------------------

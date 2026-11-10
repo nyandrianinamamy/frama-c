@@ -183,33 +183,62 @@ end
 module Int = Datatype.Int
 module SplitMap = SplitTerm.Map
 
-type branch =
-  | Branch of int
-  | Builtin_result of Kernel_function.t * Cil_datatype.Kinstr.t * int
-  | Spec_behavior of Kernel_function.t * Cil_datatype.Kinstr.t * int
-  | Disjunction_case of Cil_datatype.Stmt.t * int
+type edge_key = int
+and vertex_key = int
 [@@deriving eq, ord]
 
-module BranchDatatype = Datatype.Make_with_collections (struct
+type branch =
+  | Graph_branch of
+      { edge: edge_key;
+        junction: vertex_key
+      }
+  | Builtin_result of
+      { kf: Kernel_function.t;
+        kinstr : Cil_datatype.Kinstr.t;
+        rank : int;
+      }
+  | Spec_behavior of
+      { kf : Kernel_function.t;
+        kinstr : Cil_datatype.Kinstr.t;
+        rank : int;
+      }
+  | Disjunction_case of
+      { stmt: Cil_datatype.Stmt.t;
+        rank: int;
+      }
+  | Call_branch of
+      { stmt: Cil_datatype.Stmt.t;
+        callee_branch: branch;
+      }
+[@@deriving eq, ord]
+
+module Branch = Datatype.Make_with_collections (struct
     include Datatype.Serializable_undefined
     type t = branch [@@deriving eq, ord]
     let name = "Partition.Branch"
-    let reprs = [Branch 0]
-    let pretty fmt = function
-      | Branch id -> Format.fprintf fmt "%d" id
-      | Builtin_result (kf, _, id) | Spec_behavior (kf, _, id) ->
-        Format.fprintf fmt "%s#%d" (Kernel_function.get_name kf) id
-      | Disjunction_case (stmt, id) -> Format.fprintf fmt "@%d#%d" stmt.sid id
-    let hash = function
-      | Branch id -> Hashtbl.hash (1, id)
-      | Builtin_result (kf, kinstr, id) ->
+    let reprs = [Graph_branch { edge=0; junction=0 }]
+    let rec pretty fmt = function
+      | Graph_branch { edge; _ } ->
+        Format.fprintf fmt "%d" edge
+      | Builtin_result { kf; rank } | Spec_behavior { kf; rank } ->
+        Format.fprintf fmt "%s#%d" (Kernel_function.get_name kf) rank
+      | Disjunction_case { stmt; rank } ->
+        Format.fprintf fmt "@%d#%d" stmt.sid rank
+      | Call_branch { stmt; callee_branch } ->
+        Format.fprintf fmt "%d:%a" stmt.sid pretty callee_branch
+    let rec hash = function
+      | Graph_branch { edge; junction=_ } ->
+        Hashtbl.hash (1, edge)
+      | Builtin_result { kf; kinstr; rank } ->
         Hashtbl.hash
-          (2, Kernel_function.hash kf, Cil_datatype.Kinstr.hash kinstr, id)
-      | Spec_behavior (kf, kinstr, id) ->
+          (2, Kernel_function.hash kf, Cil_datatype.Kinstr.hash kinstr, rank)
+      | Spec_behavior { kf; kinstr; rank } ->
         Hashtbl.hash
-          (3, Kernel_function.hash kf, Cil_datatype.Kinstr.hash kinstr, id)
-      | Disjunction_case (stmt, id) ->
-        Hashtbl.hash (4, Cil_datatype.Stmt.hash stmt, id)
+          (3, Kernel_function.hash kf, Cil_datatype.Kinstr.hash kinstr, rank)
+      | Disjunction_case { stmt; rank } ->
+        Hashtbl.hash (4, Cil_datatype.Stmt.hash stmt, rank)
+      | Call_branch { stmt; callee_branch } ->
+        Hashtbl.hash (5, Cil_datatype.Stmt.hash stmt, hash callee_branch)
   end)
 
 (* The key have several fields, one for each kind of partitioning:
@@ -254,7 +283,7 @@ module Key =
 struct
   module IntPair = Datatype.Pair (Int) (Int)
   module Stamp = Datatype.Option (IntPair)
-  module BranchList = Datatype.List (BranchDatatype)
+  module BranchList = Datatype.List (Branch)
   module LoopList = Datatype.List (LoopUnrolling)
   module Splits = SplitMap.Make (Z)
   module DSplits = SplitMap.Make (SplitMonitor)
@@ -319,7 +348,7 @@ struct
           | None -> ()
         end;
         Pretty_utils.pp_list ~pre:"[@[" ~sep:" ;@ " ~suf:"@]]"
-          BranchDatatype.pretty
+          Branch.pretty
           fmt
           key.branches;
         Pretty_utils.pp_list ~pre:"(@[" ~sep:" ;@ " ~suf:"@])"
@@ -336,13 +365,15 @@ struct
 
   let exceed_rationing key = key.ration_stamp = None
 
-  let combine ~policy ~caller ~callee =
+  let combine ~policy ~stmt ~caller ~callee =
     let combine_map merge_map get_map =
       let keep_second _ v1 v2 = if Option.is_some v2 then v2 else v1 in
       if policy.callee_splits
       then merge_map keep_second (get_map caller) (get_map callee)
       else get_map caller
     in
+    let wrap_cb callee_branch = Call_branch { stmt; callee_branch } in
+    let callee_branches () = List.map wrap_cb callee.branches in
     (* There is no need to preserve the uniqueness of ration stamps here, as
        keys will always be given new stamps before the merge of identical keys.
        This invariant depends on the sequence of operations performed by
@@ -351,7 +382,7 @@ struct
       ration_stamp = None;
       branches =
         List.take policy.history_size (
-          (if policy.callee_history then callee.branches else []) @
+          (if policy.callee_history then callee_branches () else []) @
           (if policy.caller_history then caller.branches else [])
         );
       loops = caller.loops;
@@ -393,12 +424,14 @@ type action =
   | Enter_loop of unroll_limit * Eva_automata.loop
   | Leave_loop
   | Incr_loop
-  | Add_branch of int * int
+  | Add_branch of branch * int
+  | Remove_branch of vertex_key
+  | Remove_call_branch of Cil_types.stmt
   | Ration of rationing
   | Restrict of Eva_ast.exp * Z.t list
   | Split of split_monitor
   | Merge of split_term
-  | SyntacticSplit of int * int
+  | SyntacticSplit of vertex_key * edge_key
   | MergeSyntacticSplits
   | Update_dynamic_splits
 
@@ -444,6 +477,9 @@ struct
 
   let union (p1 : t) (p2 : t) : t =
     p1 @ p2
+
+  let flatten (pl : t list) : t =
+    List.flatten pl
 
   (* --- Automatic loop unrolling ------------------------------------------- *)
 
@@ -688,7 +724,23 @@ struct
           end
 
         | Add_branch (b,max) -> fun k _x ->
-          Key.add_branch ~history_size:max (Branch b) k
+          Key.add_branch ~history_size:max b k
+
+        | Remove_branch junction -> fun k _x ->
+          let not_with_junction = function
+            | Graph_branch { junction=j; _ } -> not (Int.equal j junction)
+            | _ -> true
+          in
+          let branches = List.filter not_with_junction k.branches in
+          { k with branches }
+
+        | Remove_call_branch stmt -> fun k _x ->
+          let not_with_stmt = function
+            | Call_branch { stmt=s; _ } -> not (Cil_datatype.Stmt.equal s stmt)
+            | _ -> true
+          in
+          let branches = List.filter not_with_stmt k.branches in
+          { k with branches }
 
         | Ration { current; limit; merge } ->
           let length = List.length p in

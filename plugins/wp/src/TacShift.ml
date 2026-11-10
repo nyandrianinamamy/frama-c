@@ -13,14 +13,14 @@ let select_op f =
   let rewrite_lsl e a n =
     (* from selection e='a<<n', rewrites the sequent 'Hs |- G' into:
        - Hs[e := a*2^n] |- G[e := a*2^n)] *)
-    let b = F.e_mul a (F.e_int (1 lsl n)) in
+    let b = F.e_mul a (F.e_zint Z.(one lsl n)) in
     rewrite "shift" e b
   in
   let rewrite_lsr e a n =
     (* from selection e='a>>n', rewrites the sequent 'Hs |- G' into:
        - Hs |- 0<=a
        - Hs[e := a*2^n] |- G[e := a*2^n] *)
-    let b = F.e_div a (F.e_int (1 lsl n)) in
+    let b = F.e_div a (F.e_zint Z.(one lsl n)) in
     (fun seq -> ("positive" , (fst seq , F.p_leq F.e_zero a)) ::
                 rewrite "shift" e b seq)
   in

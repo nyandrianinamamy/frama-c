@@ -29,3 +29,17 @@ void g(void){
   //@ check KO: \offset(xb) == \offset(zb) ;
   //@ check KO: \offset(xb) != \offset(yb) ;
 }
+
+struct T { char c; int i; };
+
+/* example layout for next test;
+
+   struct T t;
+   char b[8];
+*/
+
+/*@ requires \offset(&ps->i) == \offset(q);
+    assigns \nothing;
+    ensures KO: \offset(&ps->c) == \offset(q-1); // false for ps=&t, q=&b[4]
+*/
+void h(struct T *ps, char *q) { }

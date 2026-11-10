@@ -22,20 +22,52 @@ Open Source Release <next-release>
 Open Source Release 34.0 (Selenium)
 ###############################################################################
 
+-   Eva       [2026-11-04] New option -eva-auto-partition-path using heuristics
+              to identify paths worth considering for state partitioning,
+              improving precision on statements that depend on past conditional
+              branches. It improves performance over -eva-partition-path.
+-   Eva       [2026-11-04] Rename -eva-partition-history to -eva-partition-path.
+-*   Eva      [2026-10-30] Fix soundness of the octagon domain on assignments
+              such as x=*p+1 when p points to x.
+-*   Eva      [2026-10-30] Fix soundness issues in the interpretation of casts
+              from/to floating-point values.
 -    Kernel   [2026-10-26] Add partial support for GCC machine modes via
               conversion from '__attribute__((mode(<MODE>)))' to integer types.
+-*   Eva      [2026-10-26] Fix interpretation of right shifts on negative values
+              when the second operand is imprecise.
+-*   Eva      [2026-10-23] Fix interpretation of `memmove` when the source and
+              destination locations overlap and the size is imprecise.
+-    Eva      [2026-10-22] Evaluate `sizeof` when its operand is a variable
+              length array type, and emit alarms if needed.
 -*   Rte      [2026-09-29] Fix a bug with option hooks that would prevent one
               from finely configuring `rte-initialized`
 -*   Kernel   [2026-09-29] Remove the implicit conversion of an array to a
               pointer in the case of comparison operations
+-    Eva      [2026-09-25] Cleanly abort the analysis when the analyzed program
+              creates too many threads, mutexes or message queues.
 -*   Kernel   [2026-09-23] Fix missing unsequenced effect warning in local def
               (UB CC.35). Fixes #@1219
+-    Eva      [2026-09-21] Allows running an analysis without any domain with
+              `-eva-domains=-cvalue`. This mode emits all alarms and does not
+              support function pointer.
+-    Eva      [2026-09-15] Improve specification of absolute addresses:
+              users can specify several ranges of valid absolute addresses, as
+              well as read-only and volatile ranges via `-absolute-valid-range`.
+              The analysis interprets and checks memory accesses accordingly.
 -*   ACSL     [2026-09-10] ACSL extensions can now be written before requires
               clauses, and terminates and decreases clauses can now be written
               anywhere between requires clauses and behaviors. Empty named
               behaviors are now forbidden in function contracts and in statement
               contracts, as declared by the ACSL manual.
+-   Eva       [2026-08-04] New help message on `-eva-help`.
+-   Eva       [2026-07-31] Improve textual output of `-eva-msg-key help`.
+-   Eva       [2026-07-29] Reduce default verbosity of analyses with -mthread.
+              Messages are now prefixed by [eva] instead of [mt], have dedicated
+              message keys and are enabled/disabled according to `-eva-verbose`.
+              Documentation of message keys is available via `-eva-msg-key help`.
 -!  Kernel    [2026-07-24] New minimal OCaml version: 5.2
+-   Eva       [2026-07-16] Warns when the properties inferred by a domain cannot
+              be saved into a file by `-save`.
 o!  Fclib     [2026-06-25] Changed the `source` optional parameter of Log
               functions (`warning`, `abort`, `fatal`, etc) to take a location
               instead of a position.

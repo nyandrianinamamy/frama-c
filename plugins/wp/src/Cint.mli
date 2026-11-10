@@ -90,4 +90,4 @@ val is_cint_simplifier: simplifier
 val mask_simplifier: simplifier
 
 (* under approximation: [is_positive_or_null e] ==> [e] >= 0 *)
-val is_positive_or_null: term -> bool
+val is_positive: strict:bool -> term -> bool

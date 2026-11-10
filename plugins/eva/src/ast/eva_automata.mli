@@ -107,7 +107,7 @@ type 'a widening = Fixpoint | Widening of 'a
 module type Domain =
 sig
   type t
-  val join : t -> t -> t
+  val join : vertex -> t -> t -> t
   val widen : t -> t -> t widening
   val transfer : vertex * edge * vertex -> t -> t option
 end

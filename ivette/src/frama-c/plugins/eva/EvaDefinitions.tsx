@@ -58,7 +58,7 @@ export type fieldsName =
   "-eva-split-return" |
   "-eva-ilevel" |
   "-eva-plevel" |
-  "-eva-partition-history" |
+  "-eva-partition-path" |
   "-eva-subdivide-non-linear" |
   "-eva-alloc-builtin" |
   "-eva-alloc-returns-null" |
@@ -145,7 +145,7 @@ Above, intervals with congruence information are used\n \
 "Use <n> as the precision level for arrays accesses.\n \
 Array accesses are precise as long as the interval for the\n \
 index contains less than n values. (defaults to 200)",
-  "-eva-partition-history":
+  "-eva-partition-path":
 "Keep states distinct as long as the <n> last branching in their\n \
 traces are also distinct. (A value of 0 deactivates this feature)",
   "-eva-subdivide-non-linear":
@@ -209,7 +209,7 @@ export const fieldsAlwaysVisible:fieldsName[] = [
   "-eva-auto-loop-unroll",
   "-eva-slevel",
   "-eva-split-return",
-  "-eva-partition-history",
+  "-eva-partition-path",
   "-eva-ilevel",
 ];
 

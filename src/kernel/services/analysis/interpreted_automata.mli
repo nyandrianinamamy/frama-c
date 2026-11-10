@@ -223,7 +223,7 @@ sig
   type t (** States propagated by the dataflow analysis. *)
 
   (** Merges two states coming from different paths. *)
-  val join : t -> t -> t
+  val join : vertex -> t -> t -> t
 
   (** [widen v1 v2] is called on loop heads after each iteration of the
       analysis on the loop body: [v1] is the previous state before the
@@ -349,7 +349,7 @@ module type Graph = sig
   module type Domain =
   sig
     type t
-    val join : t -> t -> t
+    val join : vertex -> t -> t -> t
     val widen : t -> t -> t widening
     val transfer : edge -> t -> t option
   end

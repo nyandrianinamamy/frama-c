@@ -26,7 +26,7 @@ struct
   type state = Domain.t
 
   type store = {
-    flow_actions : action list; (* partitioning actions to be applied *)
+    flow_actions_v : action list; (* partitioning actions to be applied *)
     rationing: bool; (* Is there a slevel rationing in above actions? *)
     store_stmt : stmt option;
     store_is_loop_head : bool;
@@ -57,9 +57,9 @@ struct
   (* Constructors *)
 
   let empty_store (v : Eva_automata.vertex) : store =
-    let flow_actions, rationing = flow_actions v in
+    let flow_actions_v, rationing = flow_actions_v v in
     {
-      flow_actions;
+      flow_actions_v;
       rationing;
       store_stmt = Eva_automata.Vertex.stmt v;
       store_is_loop_head = Eva_automata.Vertex.is_loop_head v;
@@ -137,8 +137,8 @@ struct
       if List.compare_length_with states 1 <= 0 then
         fun _ s -> key, s
       else
-        fun i s ->
-          let branch = Disjunction_case (stmt, i) in
+        fun rank s ->
+          let branch = Disjunction_case { stmt; rank } in
           Partition.Key.add_branch ~history_size branch key, s
     in
     List.mapi add_key states
@@ -152,13 +152,14 @@ struct
   let next_loop_iteration (flow : flow) (_loop : stmt) : flow =
     Flow.transfer_keys flow Incr_loop
 
-  let call_return ~caller kind result =
+  let call_return ~caller kind stmt result =
     let policy = call_return_policy in
     let callee_history =
-      policy.callee_history || kind = `Spec || kind = `Builtin
+      List.compare_length_with result 1 >= 1 &&
+      (policy.callee_history || kind = `Spec || kind = `Builtin)
     in
     let policy = { policy with callee_history } in
-    let combine = Partition.Key.combine ~policy in
+    let combine = Partition.Key.combine ~policy ~stmt in
     List.map (fun (k, s) -> combine ~caller ~callee:k, s) result
 
 
@@ -218,32 +219,25 @@ struct
       "reached statement %d with %d incoming states, %d to propagate"
       stmt.sid dest.incoming_states (flow_size flow)
 
-  let join (sources : (int*flow) list) (dest : store) : flow =
-    (* Get every source flow *)
-    let sources_states =
-      (* Is there more than one non-empty incoming flow? *)
-      match sources with
-      | [(_,flow)] -> [flow]
-      | sources ->
-        (* Several branches -> partition according to the incoming branch *)
-        let get (b,flow) =
-          Flow.transfer_keys flow (Add_branch (b,history_size))
-        in
-        List.map get sources
+  let join sources v dest =
+    (* Execute edge actions *)
+    let several_sources = List.compare_length_with sources 1 > 0 in
+    let apply_edge_actions (ek, flow) =
+      let flow_actions = flow_actions_e ~several_sources ek v in
+      List.fold_left Flow.transfer_keys flow flow_actions
     in
+    let sources_states = List.map apply_edge_actions sources in
     (* Merge incoming flows *)
+    let flow_states = Flow.flatten sources_states in
+    (* Execute vertex actions *)
     let flow_states =
-      List.fold_left Flow.union Flow.empty sources_states
-    in
-    (* Execute actions *)
-    let flow_states =
-      List.fold_left Flow.transfer_keys flow_states dest.flow_actions
+      List.fold_left Flow.transfer_keys flow_states dest.flow_actions_v
     in
     (* Add the propagated state to the store *)
     let add_state key s =
       dest.store_partition <- Partition.replace key s dest.store_partition;
     in
-    if not (dest.rationing) then begin
+    if not dest.rationing then begin
       Flow.iter add_state flow_states;
       flow_states
     end else begin

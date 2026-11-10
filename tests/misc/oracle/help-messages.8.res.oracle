@@ -244,6 +244,14 @@ Options taking a string as argument should preferably be written
 -eva-auto-loop-unroll <n>  Limit of the automatic loop unrolling: all loops
                     whose number of iterations can be easily bounded by <n>
                     are completely unrolled.
+-eva-auto-partition-path <n>  Partition the space of reachable states
+                    according to the path taken to reach a control point. It
+                    uses heuristics to only consider the most meaningful path
+                    junctions among the last <n>. A value of 0 (the default)
+                    deactivates this feature.
+-eva-auto-partition-path-function <f:n>  Override -eva-auto-partition-path
+                    with <n> when analyzing <f>. (preferably use
+                    -eva-auto-partition-path-function="f:n")
 -eva-builtin <f:ffc>  When analyzing function <f>, try to use Frama-C builtin
                     <ffc> instead. Fall back to <f> if <ffc> cannot handle
                     its arguments. (preferably use -eva-builtin="f:ffc")
@@ -257,9 +265,10 @@ Options taking a string as argument should preferably be written
 -eva-ilevel <n>     Sets of integers are represented as sets up to <n>
                     elements. Above, intervals with congruence information
                     are used (defaults to 8, must be above 2)
--eva-interprocedural-history  Keep partitioning history through function
-                    returns (opposite option is
-                    -eva-no-interprocedural-history)
+-eva-interprocedural-partition-path  Keep state partitioning from
+                    -eva-partition-path and -eva-auto-partition-path through
+                    function returns. (opposite option is
+                    -eva-no-interprocedural-partition-path)
 -eva-interprocedural-splits  Keep partitioning splits through function
                     returns (opposite option is
                     -eva-no-interprocedural-splits)
@@ -275,14 +284,17 @@ Options taking a string as argument should preferably be written
 -eva-oracle-depth <n>  Maximum number of successive uses of the oracle by the
                     domain for the evaluation of an expression. Set 0 to
                     disable the oracle.
--eva-partition-history <n>  Keep states distinct as long as the <n> last
-                    branching in their traces are also distinct. (A value of
-                    0 deactivates this feature)
--eva-partition-history-function <f:n>  Override partition-history with <n>
-                    when analyzing <f> (preferably use
-                    -eva-partition-history-function="f:n")
+-eva-partition-path <n>  Partition the space of reachable states according to
+                    the path taken to reach a control point. Take into
+                    account only the last <n> junction points. A value of 0
+                    (the default) deactivates this feature. See
+                    -eva-auto-partition-path for a more selective and smarter
+                    version of this option.
+-eva-partition-path-function <f:n>  Override -eva-partition-path with <n>
+                    when analyzing <f>. (preferably use
+                    -eva-partition-path-function="f:n")
 -eva-partition-value <V>  Partition the space of reachable states according
-                    to the possible values of the global(s) variable(s) V.
+                    to the possible values of the global variable(s) V.
                     (preferably use -eva-partition-value="V")
 -eva-plevel <n>     Use <n> as the precision level for arrays accesses. Array
                     accesses are precise as long as the interval for the

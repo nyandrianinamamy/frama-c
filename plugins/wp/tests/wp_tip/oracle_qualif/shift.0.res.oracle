@@ -1,0 +1,22 @@
+# frama-c -wp [...]
+[kernel] Parsing shift.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] 1 goal scheduled
+[wp] [Unsuccess] typed_lemma_shift_tactic_false_ko (Alt-Ergo) (Cached)
+[wp] Proved goals:    0 / 1
+  Unsuccess:       1
+------------------------------------------------------------
+  Global
+------------------------------------------------------------
+
+Goal Lemma 'shift_tactic_false_ko':
+Assume { Have: P_observe(0). }
+Prove: P_observe(lsl(a, 63)).
+Prover Alt-Ergo returns Unsuccess
+Prover Script returns Unsuccess
+
+------------------------------------------------------------
+------------------------------------------------------------
+ Axiomatics                WP     Alt-Ergo  Total   Success
+  Lemma                     -        -        1       0.0%
+------------------------------------------------------------

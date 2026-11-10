@@ -2,9 +2,9 @@
 
    STDOPT: #"-eva-default-loop-unroll 10"
    STDOPT: +"-main test_split -eva-partition-value k"
-   STDOPT: #"-main test_loop_split -eva-partition-history 1"
-   STDOPT: #"-main test_history -eva-partition-history 0"
-   STDOPT: #"-main test_history -eva-partition-history 1"
+   STDOPT: #"-main test_loop_split -eva-partition-path 1"
+   STDOPT: #"-main test_history -eva-partition-path 0"
+   STDOPT: #"-main test_history -eva-partition-path 1"
    */
 
 #include "__fc_builtin.h"

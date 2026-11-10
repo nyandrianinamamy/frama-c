@@ -1490,7 +1490,9 @@ and eval_known_logic_function ~alarm_mode env li labels args =
     _, _, [arg1; arg2] ->
     eval_float_builtin_arity2 ~alarm_mode env lvi.lv_name arg1 arg2
 
-  | ( "sqrt" | "sqrtf" | "\\neg_float" | "\\neg_double" ),_,_, [arg] ->
+  | ( "sqrt" | "sqrtf"
+    | "\\neg_float" | "\\neg_float32" | "\\neg_float64" | "\\neg_double" ),
+    _, _, [arg] ->
     eval_float_builtin_arity1 ~alarm_mode env lvi.lv_name arg
 
   | "\\sign", _, _, [arg] ->

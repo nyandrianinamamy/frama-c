@@ -3988,7 +3988,7 @@ approximated together as soon as the analyzer leaves the block. However, \Eva{}
 can delay this approximation until after the statement where the case-based
 reasoning is needed.
 
-The global command-line parameter \lstinline|-eva-partition-history <n>|
+The global command-line parameter \lstinline|-eva-partition-path <n>|
 delays the approximation for all conditional structures of the whole
 program. The parameter \lstinline|<n>| controls the delay:
 it represents the number of junction points for which the incoming
@@ -4003,7 +4003,7 @@ analysis time for each increment of its parameter $n$.
 The cost can even be higher on \lstinline|switch| statements.
 However, it can remove false alarms in a fully automatic way. Thus,
 the trade off might often be worth trying.
-In practice, \lstinline|-eva-partition-history 1| seems to be sufficient in
+In practice, \lstinline|-eva-partition-path 1| seems to be sufficient in
 most cases, and a greater value is rarely needed.
 
 Locally, annotation \lstinline|//@  split \cases;| can be used to separate the

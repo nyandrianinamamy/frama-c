@@ -8,7 +8,7 @@ Everything in a commands file
       option -eva-min-loop-unroll set to 0 (default value).
       option -eva-auto-loop-unroll set to 128.
       option -eva-widening-delay set to 3 (default value).
-      option -eva-partition-history set to 0 (default value).
+      option -eva-partition-path set to 0 (default value).
       option -eva-slevel already set to 200 (not modified).
       option -eva-ilevel set to 48.
       option -eva-plevel set to 150.
@@ -99,7 +99,7 @@ Commands split around -then
       option -eva-min-loop-unroll set to 0 (default value).
       option -eva-auto-loop-unroll set to 128.
       option -eva-widening-delay set to 3 (default value).
-      option -eva-partition-history set to 0 (default value).
+      option -eva-partition-path set to 0 (default value).
       option -eva-slevel already set to 200 (not modified).
       option -eva-ilevel set to 48.
       option -eva-plevel set to 150.
@@ -188,7 +188,7 @@ Mix of commands file and command line
       option -eva-min-loop-unroll set to 0 (default value).
       option -eva-auto-loop-unroll set to 128.
       option -eva-widening-delay set to 3 (default value).
-      option -eva-partition-history set to 0 (default value).
+      option -eva-partition-path set to 0 (default value).
       option -eva-slevel already set to 200 (not modified).
       option -eva-ilevel set to 48.
       option -eva-plevel set to 150.
@@ -312,7 +312,7 @@ Config file with \ and comments
       option -eva-min-loop-unroll set to 0 (default value).
       option -eva-auto-loop-unroll set to 128.
       option -eva-widening-delay set to 3 (default value).
-      option -eva-partition-history already set to 2 (not modified).
+      option -eva-partition-path already set to 2 (not modified).
       option -eva-slevel already set to 200 (not modified).
       option -eva-ilevel already set to 32 (not modified).
       option -eva-plevel already set to 100 (not modified).

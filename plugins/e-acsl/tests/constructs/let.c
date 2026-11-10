@@ -15,4 +15,7 @@ logic ℤ f(ℤ x) =
 
 int main() {
   /*@ assert f(1) == 0; */
+
+  /* From Frama-C issue #1800: */
+  /*@ assert \let x = 2.5; (x < 3 ? x : 0.0) == 2.5; */
 }
