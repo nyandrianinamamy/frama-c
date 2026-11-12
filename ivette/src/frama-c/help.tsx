@@ -49,6 +49,7 @@ Thanks to this approach, Frama-C provides sophisticated tools, including:\n\
 plug-ins From, Impact, Metrics, Occurrence, Scope, etc.';
 
 const authors = [
+    'Romain Aissat',
     'Michele Alberti',
     'Thibaud Antignac',
     'Gergö Barany',
@@ -70,7 +71,7 @@ const authors = [
     'Zaynah Dargaye',
     'Basile Desloges',
     'Jean-Christophe Filliâtre',
-    'Philippe Herrmann',
+    'Philippe Herrman',
     'Jordan Ischard',
     'Maxime Jacquemin',
     'Benjamin Jorge',
@@ -94,7 +95,9 @@ const authors = [
     'Pierre Nigron',
     'Anne Pacalet',
     'Valentin Perrelle',
+    'Augustin Perrin',
     'Guillaume Petiot',
+    'Quentin Petitjean',
     'Dario Pinto',
     'Virgile Prevosto',
     'Armand Puccetti',
