@@ -62,7 +62,9 @@ let lift_arith_binop f i1 i2 = match i1, i2 with
   | Nan, (Ival _ | Float _ | Rational | Real) ->
     Nan
 
-let join i1 i2 = match i1, i2 with
+let join i1 i2 =
+  let exception Join_float of fkind in
+  match i1, i2 with
   | Ival iv, i when Ival.is_bottom iv -> i
   | i, Ival iv when Ival.is_bottom iv -> i
   | Ival i1, Ival i2 ->
@@ -78,19 +80,27 @@ let join i1 i2 = match i1, i2 with
         (* (semi-)unbounded integers *)
         Rational
       | Some min, Some max ->
-        (* if the interval of integers fits into the float types, then return
+        (* if the interval of integers fits into a float type, then return
            this float type; otherwise return Rational *)
-        (try
-           let to_float n = Int64.to_float (Z.to_int64 n) in
-           let mini, maxi = to_float min, to_float max in
-           let minf, maxf = match k with
-             | FFloat  | FFloat32 -> Floating_point.finite_range_of Single
-             | FDouble | FFloat64 -> Floating_point.finite_range_of Double
-             | FLongDouble -> raise Exit
-           in
-           if mini >= minf && maxi <= maxf then Float(k, None) else Rational
-         with Z.Overflow | Exit ->
-           Rational)
+        let check (k, significand) =
+          let power = Z.two_power_of_int (significand + 1) in
+          if Z.geq min (Z.neg power) && Z.leq max power
+          then raise (Join_float k)
+        in
+        try
+          begin match k with
+            | FFloat | FFloat32 ->
+              (* try float, then double *)
+              List.iter check [ k, 23; FDouble, 52 ]
+            | FDouble | FFloat64 ->
+              check (FDouble, 52)
+            | FLongDouble ->
+              ()
+          end;
+          Rational
+        with
+        | Join_float k -> Float(k, None)
+        | Z.Overflow -> Rational
     end
   | (Ival _ | Float _ | Rational), (Float _ | Rational)
   | Rational, Ival _ ->

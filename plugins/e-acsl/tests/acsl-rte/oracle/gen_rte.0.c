@@ -1704,9 +1704,9 @@ void dtests(void)
     __e_acsl_assert_data_t __gen_e_acsl_assert_data_36 =
       {.values = (void *)0};
     __e_acsl_assert_register_float(& __gen_e_acsl_assert_data_36,"fx",fx);
-    if (-2147483648.f <= fx) {
+    if (-2147483648. <= (double)fx) {
       __e_acsl_assert_register_float(& __gen_e_acsl_assert_data_36,"fx",fx);
-      __gen_e_acsl_and_7 = fx <= 2147483648.f;
+      __gen_e_acsl_and_7 = (double)fx <= 2147483647.;
     }
     else __gen_e_acsl_and_7 = 0;
     /*@ assert E_ACSL: "float to int": -2147483648 <= fx <= 2147483647; */
