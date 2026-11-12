@@ -35,9 +35,11 @@ FRAMAC_WP_CACHE_GIT=git@git.frama-c.com:frama-c/wp-cache.git
 
 TEST_DIRS="tests plugins/*"
 
-# The first target runs all inline tests in kernel and fclib and the second a
-# specific test in src/kernel/internals/parsing
-KERNEL_TEST_ALIASES="@runtest-frama_c_kernel @runtest-parsing"
+# The first target runs all inline tests in kernel and fclib, the second
+# a specific test in src/kernel/internals/parsing and the third is for
+# running non-ptests tests in tests/ like regular dune tests or
+# cramtests.
+KERNEL_TEST_ALIASES="@runtest-frama_c_kernel @runtest-parsing @tests/runtest"
 # --------------------------------------------------------------------------
 # ---  Help Message
 # --------------------------------------------------------------------------
