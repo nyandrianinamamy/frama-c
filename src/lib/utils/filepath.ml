@@ -54,7 +54,7 @@ let normalize ?base s =
   else
     let norm_path_name = Hpath.(of_string ?base s |> to_string) in
     if norm_path_name = ""
-    then "/"
+    then Hpath.dir_sep
     else norm_path_name
 
 let check_existence ~existence p =
@@ -129,7 +129,8 @@ let to_string p =
     match to_base_uri p with
     | Absolute, uri -> uri
     | (Cwd | Name (".",_)), uri -> if uri = "" then "." else uri
-    | Name (name,_), uri -> if uri = "" then name else name ^ "/" ^ uri
+    | Name (name,_), uri ->
+      if uri = "" then name else name ^ Hpath.dir_sep ^ uri
 
 let pretty fmt p =
   Format.pp_print_string fmt (to_string p)
@@ -166,12 +167,12 @@ let extension p = Filename.extension p
 
 let extend ?existence t ext = of_string ?existence (t ^ ext)
 
-let concat ?existence t s = of_string ?existence (t ^ "/" ^ s)
+let concat ?existence t s = of_string ?existence (t ^ Hpath.dir_sep ^ s)
 
 let (/) = concat ~existence:Indifferent
 
 let concats ?existence t sl =
-  let s' = List.fold_left (fun acc s -> acc ^ "/" ^ s) "" sl in
+  let s' = List.fold_left (fun acc s -> acc ^ Hpath.dir_sep ^ s) "" sl in
   of_string ?existence (t ^ s')
 
 let has_suffix p suffix = Filename.check_suffix p suffix
@@ -187,7 +188,7 @@ let to_string_rel ?(quoted=false) ?(base=Hpath.(cwd |> to_string)) p =
   let r =
     if base = p then "."
     else
-      let base = base ^ Filename.dir_sep in
+      let base = base ^ Hpath.dir_sep in
       if String.starts_with ~prefix:base p then
         let n = String.length base in
         let p = String.sub p n (String.length p - n) in
@@ -200,7 +201,7 @@ let pretty_rel fmt p =
   Format.pp_print_string fmt (to_string_rel p)
 
 let is_relative ?(base=Hpath.(cwd |> to_string)) p =
-  String.equal base p || String.starts_with ~prefix:(base ^ Filename.dir_sep) p
+  String.equal base p || String.starts_with ~prefix:(base ^ Hpath.dir_sep) p
 
 (* -------------------------------------------------------------------------- *)
 (* --- Symboling Names                                                    --- *)
@@ -224,18 +225,43 @@ let all_symbolic_dirs () =
 (* --- Tests                                                              --- *)
 (* -------------------------------------------------------------------------- *)
 
-let%test _ = of_string "/" = "/"
-let%test _ = of_string "/.." = "/"
-let%test _ = of_string "/../../." = "/"
-let%test _ = of_string "///" = "/"
-let%test _ = of_string "//tmp//" = "//tmp/"
-let%test _ = of_string "/../tmp/../.." = "/"
-let%test _ = of_string "/tmp/inexistent_directory/.." = "/tmp"
-let%test _ = of_string "" = ""
-let%test _ = to_string_rel (of_string ".") = "."
-let%test _ = to_string_rel (of_string "./tests/..") = "."
-let%test _ =
-  to_string_rel ~base:(of_string "/a/b/") (of_string "/a/bc/d") = "/a/bc/d"
-let%test _ =
-  add_symbolic_dir "SYMB" (of_string "/tmp/symb/");
-  to_string (of_string "/tmp/symb/file.c") = "SYMB/file.c"
+let%test_module _ = (module struct
+  let () = Hpath.testing_mode ()
+
+  let test actual expected =
+    let res = expected = actual in
+    if not res then begin
+      Format.eprintf "@[<v 2>expected: %s@ actual: %s@]@\n"
+        expected actual
+    end;
+    res
+
+  let%test _ = test (of_string "/") "/"
+  let%test _ = test (of_string "c:\\") "c:/"
+  let%test _ = test (of_string "/..") "/"
+  let%test _ = test (of_string "c:\\..") "c:/"
+  let%test _ = test (of_string "/../../.") "/"
+  let%test _ = test (of_string "c:/../../.") "c:/"
+  let%test _ = test (of_string "///") "/"
+  let%test _ = test (of_string "c:\\\\\\") "c:/"
+  let%test _ = test (of_string "//tmp//") "//tmp/"
+  let%test _ = test (of_string "/../tmp/../..") "/"
+  let%test _ = test (of_string "c:/../tmp/../..") "c:/"
+  let%test _ = test (of_string "/tmp/inexistent_directory/..") "/tmp"
+  let%test _ = test (of_string "c:\\tmp\\inexistent_directory\\..") "c:/tmp"
+  let%test _ = test (of_string "c:\\mixed/folder\\separators") "c:/mixed/folder/separators"
+  let%test _ = test (of_string "") ""
+  let%test _ = test (to_string_rel (of_string ".")) "."
+  let%test _ = test (to_string_rel (of_string "./tests/..")) "."
+  let%test _ = test (to_string_rel (of_string ".\\tests\\..")) "."
+  let%test _ =
+    test (to_string_rel ~base:(of_string "/a/b/") (of_string "/a/bc/d")) "/a/bc/d"
+  let%test _ =
+    test (to_string_rel ~base:(of_string "c:\\a\\b\\") (of_string "c:\\a\\bc\\d")) "c:/a/bc/d"
+  let%test _ =
+    add_symbolic_dir "SYMB" (of_string "/tmp/symb/");
+    test (to_string (of_string "/tmp/symb/file.c")) "SYMB/file.c"
+  let%test _ =
+    add_symbolic_dir "SYMB" (of_string "c:\\tmp\\symb\\");
+    test (to_string (of_string "c:\\tmp\\symb\\file.c")) "SYMB/file.c"
+end)

@@ -521,6 +521,11 @@ struct
     try
       Filepath.of_string ~existence s
     with
+    | Invalid_argument msg ->
+      P.L.abort "Unable to parse %s%sfile '%s': %s"
+        file_kind
+        (if file_kind = "" then "" else " ")
+        s msg
     | Filepath.No_file ->
       P.L.abort "%s%sfile '%s' does not exist"
         file_kind
@@ -531,6 +536,9 @@ struct
         file_kind
         (if file_kind = "" then "" else " ")
         (Filepath.(to_string (of_string s)))
+
+  let filepath_to_string = Filepath.to_string_rel
+  let pp_filepath = Filepath.pretty_rel
 
   module Filepath
       (X: sig
@@ -546,11 +554,12 @@ struct
           include X
           let default () = Filepath.empty
           let functor_name = "Filepath"
+          let pretty = pp_filepath
         end)
 
     let convert f oldstr newstr =
-      let oldfp = Filepath.to_string oldstr in
-      let newfp = Filepath.to_string newstr in
+      let oldfp = filepath_to_string oldstr in
+      let newfp = filepath_to_string newstr in
       f oldfp newfp
 
     let set_str s =
@@ -569,7 +578,7 @@ struct
         stage
         (Cmdline.String set_str)
 
-    let parameter_get fp = Filepath.to_string (get fp)
+    let parameter_get fp = filepath_to_string (get fp)
     let parameter_add_set_hook f = add_set_hook (convert f)
     let parameter_add_update_hook f = add_update_hook (convert f)
 
@@ -719,6 +728,212 @@ struct
 
   let cannot_build format =
     Format.kasprintf (fun msg -> raise (Cannot_build msg)) format
+
+  (** [split_on_colon s] splits the string [s] on the first unquoted single
+      colon character. Unquoted because the string ["\"abc:def\":ghi"] will
+      split into ["\"abc:def\""] and ["ghi"]. Single because the string
+      ["abc::def:ghi"] will split into ["abc::def"] and ["ghi"].
+      @raises Not_found if no colon character can be found. *)
+  let split_on_colon =
+    let re =
+      Str.regexp
+        ({|^\(|} (* Start of the match, start first group *)
+         ^ {|"\([^"\\]\|\\.\)*"|} (* Double-quoted string *)
+         ^ {|\|'\([^'\\]\|\\.\)*'|} (* Single-quoted string *)
+         ^ {|\|\([^:]\|::\)*|} (* Unquoted string *)
+         ^ {|\):\(.*\)$|}) (* End of the first group and end of the match *)
+    in
+    fun s ->
+      if Str.string_match re s 0 then
+        let key = Str.matched_group 1 s in
+        let value = Str.matched_group 5 s in
+        key, value
+      else
+        raise Not_found
+
+  (** [unquote_split s] removes surrounding quotes (single or double) from
+      the string [s] retrieved from [split_on_colon], and unescape the
+      surrounding quotes in the content. *)
+  let unquote_split =
+    let re_double_quotes = Str.regexp {|^"\(.*\)"$|} in
+    let re_single_quotes = Str.regexp {|^'\(.*\)'$|} in
+    let re_escaped_char = Str.regexp {|\\\(.\)|} in
+    fun s ->
+      if Str.string_match re_double_quotes s 0
+      || Str.string_match re_single_quotes s 0 then
+        let s = Str.matched_group 1 s in
+        Str.global_replace re_escaped_char "\\1" s
+      else
+        s
+
+  (** [quote_split s] is the inverse operation of [unquote_split]. It adds
+      surrounding double-quotes to [s] if necessary so that it can be put in a
+      key/value map or multi-map where keys and values are separated with a
+      colon. *)
+  let quote_split raw =
+    let needs_quote = function
+      (* Contains the map separator *)
+      | ':'
+      (* Already contains some quotes that we want to preserve *)
+      | '"' | '\''
+      (* Just in case *)
+      | '\\' | ' ' ->
+        true
+      | _ -> false
+    in
+    if Stdlib.String.exists needs_quote raw then begin
+      let b = Buffer.create 17 in
+      Buffer.add_char b '"';
+      Stdlib.String.iter
+        (fun c ->
+           if c = '\"' || c = '\\' then Buffer.add_char b '\\';
+           Buffer.add_char b c)
+        raw;
+      Buffer.add_char b '"';
+      Buffer.contents b
+    end else
+      raw
+
+  (** [split_key_value s] splits the string [s] of the form ["key:value"] into a
+      string ["key"] and a string ["value"]. *)
+  let split_key_value s =
+    let key, value =
+      try split_on_colon s
+      with Not_found ->
+        cannot_build "no value bound to '%s'" s
+    in
+    unquote_split key, unquote_split value
+
+  (** [split_key_value_list s] splits the string [s] of the form ["key:v1:v2"]
+      into a string ["key"] and a list with the values [["v1";"v2"]]. *)
+  let split_key_value_list s =
+    let key, values =
+      try split_on_colon s
+      with Not_found ->
+        cannot_build "no value bound to %S" s
+    in
+    let rec parse_values acc values =
+      try
+        let value, rest_values = split_on_colon values in
+        parse_values (value :: acc) rest_values
+      with Not_found ->
+        values :: acc
+    in
+    let values = parse_values [] values in
+    unquote_split key, List.rev_map unquote_split values
+
+  let%test_module _ = (module struct
+    (** Test that calling [f] with [s] returns [expected]. *)
+    let test pp_key pp_val fname f s expected =
+      let pp fmt (k, v) = Format.fprintf fmt "(%a, %a)" pp_key k pp_val v in
+      try
+        let actual = f s in
+        let res = expected = actual in
+        if not res then begin
+          Format.eprintf "@[<hv 2>%s %S =>@ expected: %a@ actual: %a@]@\n"
+            fname s pp expected pp actual
+        end;
+        res
+      with Cannot_build msg ->
+        Format.eprintf
+          "@[<hv 2>%s %S =>@ \
+           expected: %a@ \
+           actual: exception Cannot_build %S@]@\n"
+          fname s pp expected msg;
+        false
+    (** Test that calling [f] with [s] raises a [Cannot_build] exception. *)
+    let test_cannot_build pp_key pp_val fname f s =
+      try
+        let k, v = f s in
+        Format.eprintf
+          "@[<hv 2>%s %S =>@ \
+           expected raising Cannot_build@ \
+           actual: (%a, %a)@]@\n"
+          fname s pp_key k pp_val v;
+        false
+      with Cannot_build _ -> true
+
+    (* Test quote/unquote *)
+    let%test _ =
+      let res = ref true in
+      let test_str_equal name actual expected =
+        let res' = actual = expected in
+        if not res' then
+          Format.eprintf "@[<v 2>%s:@ expected: %s@ actual: %s@]@\n"
+            name expected actual;
+        res := !res && res'
+      in
+      let orig = {|"abc\"def\'ghi\\jkl\\'mno"|} in
+      let unq = unquote_split in
+      let q = quote_split in
+      test_str_equal "unquote" (unq orig) {|abc"def'ghi\jkl\'mno|};
+      test_str_equal "quote unquote" (q (unq orig)) {|"abc\"def'ghi\\jkl\\'mno"|};
+      let a = unq orig in
+      test_str_equal "unquote quote a = a" (unq (q a)) a;
+      !res
+
+
+    (* Test [split_key_value] *)
+
+    let test_skv, cannot_build_skv =
+      let pp_str fmt k = Format.fprintf fmt "%S" k in
+      let fname = "split_key_value" in
+      let f = split_key_value in
+      test pp_str pp_str fname f,
+      test_cannot_build pp_str pp_str fname f
+
+    let%test _ = test_skv ":" ("", "")
+    let%test _ = test_skv ":::" ("::", "")
+    let%test _ = test_skv "abc:" ("abc", "")
+    let%test _ = test_skv ":abc" ("", "abc")
+    let%test _ = test_skv "abc:def" ("abc", "def")
+    let%test _ = test_skv "abc:def:ghi" ("abc", "def:ghi")
+    let%test _ = test_skv "abc::def:ghi" ("abc::def", "ghi")
+    let%test _ = test_skv "abc:def::ghi" ("abc", "def::ghi")
+    let%test _ = test_skv "\"abc:def\":ghi" ("abc:def", "ghi")
+    let%test _ = test_skv "'abc:def':ghi" ("abc:def", "ghi")
+    let%test _ = test_skv {|a\"b\'c\\d:value|} ({|a\"b\'c\\d|}, "value")
+    let%test _ = test_skv {|"a\"b\'c\\d":value|} ({|a"b'c\d|}, "value")
+    let%test _ = test_skv {|'a\"b\'c\\d':value|} ({|a"b'c\d|}, "value")
+    let%test _ =
+      test_skv "\"abc:'def\\\":ghi\":jkl" ("abc:'def\":ghi", "jkl")
+    let%test _ =
+      test_skv "'abc:\\'def\":ghi':jkl" ("abc:'def\":ghi", "jkl")
+    let%test _ = cannot_build_skv ""
+    let%test _ = cannot_build_skv "abc"
+
+    (* Test [split_key_value_list] *)
+
+    let test_skvl, cannot_build_skvl =
+      let pp_key fmt k = Format.fprintf fmt "%S" k in
+      let pp_val fmt v =
+        let pp_elem fmt s = Format.fprintf fmt "%S" s in
+        (List.pretty ~sep:"; " pp_elem) fmt v
+      in
+      let fname = "split_key_value_list" in
+      let f = split_key_value_list in
+      test pp_key pp_val fname f,
+      test_cannot_build pp_key pp_val fname f
+
+    let%test _ = test_skvl ":" ("", [""])
+    let%test _ = test_skvl "abc:" ("abc", [""])
+    let%test _ = test_skvl ":abc" ("", ["abc"])
+    let%test _ = test_skvl "abc:def"  ("abc", ["def"])
+    let%test _ = test_skvl ":abc:def:"  ("", ["abc"; "def"; ""])
+    let%test _ = test_skvl "abc:def:ghi"  ("abc", ["def"; "ghi"])
+    let%test _ = test_skvl "abc::def:ghi"  ("abc::def", ["ghi"])
+    let%test _ = test_skvl "\"abc:def\":ghi"  ("abc:def", ["ghi"])
+    let%test _ = test_skvl "'abc:def':ghi"  ("abc:def", ["ghi"])
+    let%test _ = test_skvl "abc:'def:ghi':jkl"  ("abc", ["def:ghi"; "jkl"])
+    let%test _ =
+      test_skvl "\"abc:def\":ghi::jkl:\"mno':\\\"pqr\":stu"
+        ("abc:def", ["ghi::jkl"; "mno':\"pqr"; "stu"])
+    let%test _ =
+      test_skvl "\"abc:def\":ghi::jkl:'mno\\':\"pqr':stu"
+        ("abc:def", ["ghi::jkl"; "mno':\"pqr"; "stu"])
+    let%test _ = cannot_build_skvl ""
+    let%test _ = cannot_build_skvl "abc"
+  end)
 
   module Custom
       (V: Parameter_sig.Value_datatype)
@@ -1537,7 +1752,8 @@ struct
     Make_list
       (struct
         include Fclib.Filepath
-        let to_string s = Fclib.Filepath.to_string_abs s
+        let to_string s = filepath_to_string s
+        let pretty = pp_filepath
 
         let of_string s =
           [ normalize_filepath ~existence:X.existence ~file_kind:X.file_kind s ]
@@ -1585,7 +1801,9 @@ struct
       include Datatype.Pair(K)(V)
 
       let to_string (key, v) =
-        Format.asprintf "%s:%s" (K.to_string key) (V.to_string v)
+        Format.asprintf "%s:%s"
+          (K.to_string key |> quote_split)
+          (V.to_string v |> quote_split)
     end
 
     module C = struct
@@ -1613,47 +1831,11 @@ struct
       let fold f m acc = K.Map.fold (fun k v -> f (k, v)) m acc
       let reorder = Fun.id
 
-      let of_string =
-        let r = Str.regexp "\\([^:]\\|^\\):\\([^:]\\|$\\)" in
-        (* delimiter is no more than 3 characters long, the first belonging to
-           the element before it, the third belonging to the element after it.
-           Treats :: as part of a word to be able to handle C++ function names
-           in a non too awkward manner.
-        *)
-        let split_delim d = (* handle different possible length of the delimiter *)
-          let rbis = Str.regexp ":" in
-          match Str.bounded_full_split rbis d 2 with
-          | [ Str.Delim _] -> (empty_string, empty_string)
-          | [ Str.Delim _; Str.Text t2 ] -> (empty_string, t2)
-          | [ Str.Text t1; Str.Delim _; ] -> (t1, empty_string)
-          | [ Str.Text t1; Str.Delim _; Str.Text t2 ] -> (t1, t2)
-          | _ -> (* impossible case *)
-            cannot_build "delimiter=%s" d
-        in
-        fun s ->
-          let (keys, value) =
-            let get_pairing k v_opt =
-              K.Set.of_list (K.of_string k), of_val k v_opt
-            in
-            match Str.bounded_full_split r s 2 with
-            | [] -> cannot_build "cannot interpret '%s'" s
-            | [ Str.Text k ] -> cannot_build "no value bound to '%s'" k
-            | [ Str.Delim d ] ->
-              let (f,s) = split_delim d in
-              get_pairing f s
-            | [ Str.Delim d; Str.Text t ] ->
-              let (f,s) = split_delim d in
-              get_pairing f (s ^ t)
-            | [ Str.Text t1; Str.Delim d; Str.Text t2 ] ->
-              let (f,s) = split_delim d in
-              get_pairing (t1 ^ f) (s ^ t2)
-            | [ Str.Text t; Str.Delim d] ->
-              let (f,s) = split_delim d in
-              get_pairing (t ^ f) s
-            | _ -> (* by definition of [Str.bounded_full_split]: *)
-              assert false
-          in
-          K.Set.fold (fun key map -> add (key, value) map) keys K.Map.empty
+      let of_string s =
+        let str_key, str_value = split_key_value s in
+        let keys = K.Set.of_list (K.of_string str_key) in
+        let value = of_val str_key str_value in
+        K.Set.fold (fun key map -> add (key, value) map) keys K.Map.empty
     end
 
     module S = struct
@@ -1704,15 +1886,11 @@ struct
       (struct
         include Fclib.Filepath
         let of_string s =
-          try
-            [ Fclib.Filepath.of_string ~existence:X.existence s ]
-          with
-          | Fclib.Filepath.No_file ->
-            P.L.abort "file '%s' not found" s
-          | Fclib.Filepath.File_exists ->
-            P.L.abort "file '%s' already exists" s
-        let to_string p = Fclib.Filepath.to_string_rel p
-        let pretty = Fclib.Filepath.pretty_rel
+          if s = "" then
+            cannot_build "empty file path";
+          [ normalize_filepath ~existence:X.existence ~file_kind:"" s ]
+        let to_string p = filepath_to_string p
+        let pretty = pp_filepath
       end)
       (V)
       (struct include X let dependencies = [] end)
@@ -1770,12 +1948,12 @@ struct
 
       let to_string (key, l) =
         Format.asprintf "%s%t"
-          (K.to_string key)
+          (K.to_string key |> quote_split)
           (fun fmt ->
              let rec pp_custom_list = function
                | [] -> ()
                | v :: l ->
-                 Format.fprintf fmt ":%s" (V.to_string v);
+                 Format.fprintf fmt ":%s" (V.to_string v |> quote_split);
                  pp_custom_list l
              in
              pp_custom_list l)
@@ -1798,44 +1976,13 @@ struct
       let fold f m acc = K.Map.fold (fun k v -> f (k, v)) m acc
       let reorder = Fun.id
 
-      let of_string =
-        let r = Str.regexp "[^:]:[^:]" in
-        let split_delim d =
-          (Stdlib.String.sub d 0 1, Stdlib.String.sub d 2 1)
+      let of_string s =
+        let str_key, str_values = split_key_value_list s in
+        let keys = K.Set.of_list (K.of_string str_key) in
+        let values =
+          List.map (fun str_val -> of_val str_key str_val) str_values
         in
-        let rec parse_values k acc s = function
-          | [] -> List.rev (of_val k s :: acc)
-          | [Str.Text t] -> List.rev (of_val k (s ^ t) :: acc)
-          | Str.Text t :: Str.Delim d :: l ->
-            let (suf, pre) = split_delim d in
-            let v = of_val k (s ^ t ^ suf) in
-            parse_values k (v :: acc) pre l
-          | Str.Delim d :: l ->
-            let (suf,pre) = split_delim d in
-            let v = of_val k (s ^ suf) in
-            parse_values k (v :: acc) pre l
-          | Str.Text _ :: Str.Text _ :: _ ->
-            (* By construction, there must be a Delim between two consecutive
-               Text in the value returned by full_split *)
-            assert false
-        in
-        let get_pairing k v l =
-          K.Set.of_list (K.of_string k), parse_values k [] v l
-        in
-        fun s ->
-          let (keys, values) =
-            match Str.full_split r s with
-            | [] -> cannot_build "cannot interpret '%s'" s
-            | [Str.Text k] -> cannot_build "no value bound to '%s'" k
-            | Str.Delim d :: l ->
-              let (f,s) = split_delim d in
-              get_pairing f s l
-            | Str.Text t :: Str.Delim d :: l ->
-              let (f,s) = split_delim d in
-              get_pairing (t ^ f) s l
-            | Str.Text _ :: Str.Text _ :: _ -> (* see above *) assert false
-          in
-          K.Set.fold (fun key map -> K.Map.add key values map) keys K.Map.empty
+        K.Set.fold (fun key map -> K.Map.add key values map) keys K.Map.empty
     end
 
     module S = struct

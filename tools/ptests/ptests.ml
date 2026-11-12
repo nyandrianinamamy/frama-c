@@ -678,7 +678,16 @@ end = struct
     let ptest_file = Filename.sanitize file in
     let ptest_name = Filename.remove_extension file in
     let ptest_session = Filename.dirname env.dir in
-    let ptest_session = env.absolute_cwd ^ "/_build/default" ^ (if ptest_session = "." then "" else "/" ^ ptest_session) in
+    let ptest_session =
+      (* Build path to the session *)
+      env.absolute_cwd ^ "/_build/default"
+      ^ (if ptest_session = "." then "" else "/" ^ ptest_session)
+      (* Quote the path as it will be used in a command line *)
+      |> Filename.quote
+      (* Escape the quoted path as it will be used surrounded by double quotes
+         in an ocaml string *)
+      |> String.escaped
+    in
     let ptest_vars =
       [ "PTEST_SESSION", ptest_session ;
         "PTEST_CONFIG", ptest_config;
