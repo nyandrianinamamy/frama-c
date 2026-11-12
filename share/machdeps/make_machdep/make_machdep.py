@@ -304,8 +304,7 @@ def find_value(name, typ, output):
         res = re.search(msg, output)
         if res:
             value = conversion(res.group(1))
-            if args.verbose:
-                print(f"[INFO] setting {name} to {value}")
+            logger.info(f"setting {name} to {value}")
             machdep[name] = value
         else:
             logger.warning(
@@ -336,18 +335,15 @@ def find_macros_value(output, is_list=False, entry=None):
             machdep[entry][name] = value
         else:
             if name in machdep:
-                if args.verbose:
-                    print(f"[INFO] setting {name} to {value}")
+                logger.info(f"setting {name} to {value}")
                 machdep[name] = value
             else:
                 logger.warning(f"unexpected symbol '{name}', ignoring")
-    if args.verbose:
-        print(f"compiler output is:{output}")
+    logger.info(f"compiler output is:{output}")
 
 
 with tempfile.TemporaryDirectory() as tmpdirname:
-    if args.verbose:
-        print(f"[INFO] created temporary directory {tmpdirname}")
+    logger.info(f"created temporary directory {tmpdirname}")
 
     for f, typ in source_files:
         p = my_path / f
@@ -356,8 +352,7 @@ with tempfile.TemporaryDirectory() as tmpdirname:
             # We're just interested in expanding a macro,
             # treatment is a bit different than the rest.
             cmd = cmd + ["-E"]
-        if args.verbose:
-            print(f"[INFO] running command: {' '.join(cmd)}")
+        logger.info(f"running command: {' '.join(cmd)}")
         proc = subprocess.run(cmd, capture_output=True, cwd=tmpdirname, check=False)
         if typ == "none":
             if proc.returncode != 0:
@@ -420,8 +415,7 @@ with tempfile.TemporaryDirectory() as tmpdirname:
     def test_possible_alignas(align_test):
         f = my_path / "max_extended_alignment.c"
         cmd = compilation_command + [f"-DALIGN_TEST={align_test}", str(f.resolve())]
-        if args.verbose:
-            print(f"[INFO] running command: {' '.join(cmd)}")
+        logger.info(f"running command: {' '.join(cmd)}")
         proc = subprocess.run(cmd, capture_output=True, cwd=tmpdirname, check=False)
         return proc.returncode == 0
 
@@ -445,8 +439,7 @@ with tempfile.TemporaryDirectory() as tmpdirname:
     # Leave custom_defs empty if this fails.
 
     cmd = compilation_command + ["-dM", "-E", "-"]
-    if args.verbose:
-        print(f"[INFO] running command: {' '.join(cmd)}")
+    logger.info(f"running command: {' '.join(cmd)}")
     proc = subprocess.run(
         cmd, stdin=subprocess.DEVNULL, capture_output=True, text=True, cwd=tmpdirname, check=False
     )
