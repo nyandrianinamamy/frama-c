@@ -108,21 +108,6 @@ int __fc_v_wscanf(const wchar_t * restrict format, va_list arg) {
       if (*p == L'%') {
         break;
       }
-      // skip any flags
-      while (1) {
-        switch (*p) {
-        case L'-':
-        case L'+':
-        case L' ':
-        case L'#':
-        case L'0':
-          break;
-        default:
-          goto post_flags;
-        }
-        p++;
-      }
-    post_flags:
       // skip field width
       while (*p >= L'0' && *p <= L'9') {
         p++;
@@ -131,18 +116,6 @@ int __fc_v_wscanf(const wchar_t * restrict format, va_list arg) {
       if (*p == L'*') {
         asterisks++;
         p++;
-      }
-      if (*p == L'.') {
-        // skip precision
-        p++;
-        while (*p >= L'0' && *p <= L'9') {
-          p++;
-        }
-        // special precision
-        if (*p == L'*') {
-          asterisks++;
-          p++;
-        }
       }
       // length modifier
       switch (*p) {
@@ -295,6 +268,7 @@ int __fc_v_wscanf(const wchar_t * restrict format, va_list arg) {
           break;
         case L:
           *va_arg(arg, wint_t*) = Frama_C_wint_t_interval(WINT_MIN, WINT_MAX);
+          break;
         default:
           // Undefined behavior
           //@ assert invalid_scanf_specifier: \false;
@@ -312,6 +286,7 @@ int __fc_v_wscanf(const wchar_t * restrict format, va_list arg) {
           // TODO: take into account field width
           Frama_C_make_unknown_wchar(va_arg(arg, wchar_t*),
                                      Frama_C_size_t_interval(0, SIZE_MAX/sizeof(wchar_t)));
+          break;
         default:
           // Undefined behavior
           //@ assert invalid_scanf_specifier: \false;
@@ -321,31 +296,32 @@ int __fc_v_wscanf(const wchar_t * restrict format, va_list arg) {
       case L'n':
         switch (lm) {
         case NONE:
-          *va_arg(arg, int*) = conversion_counter;
+          *va_arg(arg, int*) = Frama_C_interval(INT_MIN, INT_MAX);
           break;
         case HH:
-          *va_arg(arg, char*) = conversion_counter;
+          *va_arg(arg, char*) = Frama_C_char_interval(CHAR_MIN, CHAR_MAX);
           break;
         case H:
-          *va_arg(arg, short*) = conversion_counter;
+          *va_arg(arg, short*) = Frama_C_short_interval(SHRT_MIN, SHRT_MAX);
           break;
         case L:
-          *va_arg(arg, long*) = conversion_counter;
+          *va_arg(arg, long*) = Frama_C_long_interval(LONG_MIN, LONG_MAX);
           break;
         case LL:
         case UPPER_L: // 'Ld' is not in ISO C, but GCC/Clang treat it like 'lld'
-          *va_arg(arg, long long*) = conversion_counter;
+          *va_arg(arg, long long*) = Frama_C_long_long_interval(LLONG_MIN, LLONG_MAX);
           break;
         case J:
-          *va_arg(arg, intmax_t*) = conversion_counter;
+          *va_arg(arg, intmax_t*) = Frama_C_intmax_t_interval(INTMAX_MIN, INTMAX_MAX);
           break;
         case Z:
-          *va_arg(arg, size_t*) = conversion_counter;
+          *va_arg(arg, size_t*) = Frama_C_size_t_interval(0, SIZE_MAX);
           break;
         case T:
-          *va_arg(arg, ptrdiff_t*) = conversion_counter;
+          *va_arg(arg, ptrdiff_t*) = Frama_C_ptrdiff_t_interval(PTRDIFF_MIN, PTRDIFF_MAX);
           break;
         }
+        conversion_counter--; // to compensate for the 'mandatory' increment below
         break;
         //TODO
       }
