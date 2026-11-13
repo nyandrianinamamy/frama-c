@@ -268,12 +268,6 @@ fuzzing-tests-weekly:
   allow_failure: true
   <<: *when_weekly
 
-fuzzing-tests-release:
-  stage: tests
-  script:
-    - ./nix/build-proxy.sh fuzzing-tests
-  <<: *when_release
-
 plugins-tests:
   stage: tests
   script:
