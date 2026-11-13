@@ -1,4 +1,8 @@
 [kernel] Parsing getopt_h.c (with preprocessing)
+[eva:alarm] getopt_h.c:50: Warning: 
+  function getopt_long: precondition 'longopts_end_with_zeros' got status unknown.
+[eva:alarm] getopt_h.c:53: Warning: 
+  function getopt_long: precondition 'longopts_end_with_zeros' got status unknown.
 [eva:alarm] getopt_h.c:71: Warning: 
   function printf_va_3: precondition valid_read_string(param0) got status unknown.
 [eva:alarm] getopt_h.c:89: Warning: 

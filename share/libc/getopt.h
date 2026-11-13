@@ -30,7 +30,13 @@ struct option
 
 /*@
   requires longind_valid_or_null:
-    longind == \null ? \true : \valid(longind);
+    \valid(longind) || longind == \null;
+  requires longopts_end_with_zeros:
+    \exists unsigned int longopts_end;
+    longopts[longopts_end].name == 0 &&
+    longopts[longopts_end].has_arg == 0 &&
+    longopts[longopts_end].flag == 0 &&
+    longopts[longopts_end].val == 0;
   assigns \result, optopt \from
     argv[0 .. argc-1][0..],
     indirect:argc,
@@ -48,12 +54,15 @@ struct option
     indirect:argc,
     indirect:shortopts[0..], indirect:longopts[0..];
   ensures initialization:result_parsing_done_or_found_option:
-          \result == -1 ||
-          (\result == 0 &&
-           longind == \null ? \true :
-           (\initialized(longind) && *longind >= 0 &&
-            \valid(longopts + *longind))) ||
-          (\result > 0 && (\result == ':' || \result == '?' || \subset(\result, longopts[0..].val)));
+   \result == -1 || // No more options
+   0 < \result < 256 || // Short option or error ('?', ':')
+   (longind != \null ==>
+     \initialized(longind) &&
+     *longind >= 0 &&
+     \valid(longopts + *longind) &&
+     (longopts[*longind].flag == \null ?
+        \result == longopts[*longind].val :
+        \result == 0 && *longopts[*longind].flag == longopts[*longind].val));
  */
 extern int getopt_long (int argc, char *const argv[],
                         const char *shortopts,
