@@ -757,6 +757,7 @@ module AutoPathPartitioning =
          A value of 0 (the default) deactivates this feature."
     end)
 let () = add_precision_dep AutoPathPartitioning.parameter
+let () = AutoPathPartitioning.set_range ~min:0 ~max:max_int
 
 let () = Parameter_customize.set_group precision_tuning
 let () = Parameter_customize.argument_may_be_fundecl ()
