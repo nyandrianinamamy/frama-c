@@ -517,7 +517,7 @@ module type Map = sig
   val find_opt: key -> value option
   (** Search a given key in the map. Returns [None] if there is no such key in
       the map.
-      @since Frama-C+dev *)
+      @since 34.0-Selenium *)
 
   val mem: key -> bool
 

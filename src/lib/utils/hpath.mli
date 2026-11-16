@@ -12,6 +12,7 @@
 type t
 
 val cwd : t
+val dir_sep : string
 
 val of_string : ?base:string -> string -> t
 val to_string : t -> string
@@ -25,3 +26,5 @@ module Names  : sig
   val remove : t -> unit
   val all : unit -> (t * string) list
 end
+
+val testing_mode : unit -> unit

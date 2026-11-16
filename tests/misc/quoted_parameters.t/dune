@@ -1,0 +1,11 @@
+(library
+ (name quoted_parameters)
+ (public_name frama-c-quoted-parameters.core)
+ (flags -open Frama_c_kernel :standard)
+ (libraries frama-c.kernel))
+
+(plugin
+ (optional)
+ (name quoted_parameters)
+ (libraries frama-c-quoted-parameters.core)
+ (site (frama-c plugins)))

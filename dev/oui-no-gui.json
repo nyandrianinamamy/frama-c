@@ -7,6 +7,10 @@
     "bin/frama-c-script",
     "bin/e-acsl-gcc"
   ],
+  "plugin_dirs": {
+    "plugins_dir": "lib/frama-c/plugins",
+    "lib_dir": "lib"
+  },
   "manpages": {
     "man1": [
       "man/man1/frama-c.1",
@@ -19,5 +23,5 @@
   "wix_icon_file": "./share/frama-c.ico",
   "wix_banner_bmp_file": "./share/frama-c.png",
   "wix_license_file": "LICENSE",
-  "macos_symlink_dirs": [ "lib" ]
+  "macos_symlink_dirs": [ "lib", "share" ]
 }

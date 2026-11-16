@@ -57,9 +57,14 @@ myattr:default,myattr:name <==> myattr:name,myattr:default <==> myattr:name
     Class: AttrName false, Ignored: false, Printed: true
 
 Each key needs to be bound to at least one element, which is why default exists.
+  $ frama-c -no-autoload-plugins -kernel-msg-key attrs -register-attributes myattr
+  [kernel] User Error: incorrect argument for option -register-attributes
+    (no value bound to "myattr").
+  [kernel] Frama-C aborted: invalid user input.
+  [1]
   $ frama-c -no-autoload-plugins -kernel-msg-key attrs -register-attributes myattr:
   [kernel] User Error: incorrect argument for option -register-attributes
-    (no value bound to 'myattr:').
+    (value bound to 'myattr': unknown attribute info "").
   [kernel] Frama-C aborted: invalid user input.
   [1]
 

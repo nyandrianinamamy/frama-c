@@ -330,6 +330,51 @@ int main(void)
     __gmpq_clear(__gen_e_acsl_sub_2);
   }
   /*@ assert a + b > 2. - 1.; */ ;
+  int i = 16777217;
+  float g = 16777216.0f;
+  {
+    __e_acsl_assert_data_t __gen_e_acsl_assert_data_11 =
+      {.values = (void *)0};
+    __e_acsl_assert_register_int(& __gen_e_acsl_assert_data_11,"i",0,i);
+    __e_acsl_assert_register_float(& __gen_e_acsl_assert_data_11,"g",g);
+    __gen_e_acsl_assert_data_11.blocking = 1;
+    __gen_e_acsl_assert_data_11.kind = "Assertion";
+    __gen_e_acsl_assert_data_11.pred_txt = "i > g";
+    __gen_e_acsl_assert_data_11.file = "rationals.c";
+    __gen_e_acsl_assert_data_11.fct = "main";
+    __gen_e_acsl_assert_data_11.line = 36;
+    __e_acsl_assert((double)i > (double)g,& __gen_e_acsl_assert_data_11);
+    __e_acsl_assert_clean(& __gen_e_acsl_assert_data_11);
+  }
+  /*@ assert i > g; */ ;
+  long vl = 9007199254740993L;
+  double vd = 9007199254740992.0;
+  {
+    __e_acsl_mpq_t __gen_e_acsl_vl;
+    __e_acsl_mpq_t __gen_e_acsl_vd;
+    int __gen_e_acsl_gt_2;
+    __e_acsl_assert_data_t __gen_e_acsl_assert_data_12 =
+      {.values = (void *)0};
+    __gmpq_init(__gen_e_acsl_vl);
+    __gmpq_set_si(__gen_e_acsl_vl,vl,1UL);
+    __gmpq_init(__gen_e_acsl_vd);
+    __gmpq_set_d(__gen_e_acsl_vd,vd);
+    __gen_e_acsl_gt_2 = __gmpq_cmp((__e_acsl_mpq_struct const *)(__gen_e_acsl_vl),
+                                   (__e_acsl_mpq_struct const *)(__gen_e_acsl_vd));
+    __e_acsl_assert_register_long(& __gen_e_acsl_assert_data_12,"vl",0,vl);
+    __e_acsl_assert_register_double(& __gen_e_acsl_assert_data_12,"vd",vd);
+    __gen_e_acsl_assert_data_12.blocking = 1;
+    __gen_e_acsl_assert_data_12.kind = "Assertion";
+    __gen_e_acsl_assert_data_12.pred_txt = "vl > vd";
+    __gen_e_acsl_assert_data_12.file = "rationals.c";
+    __gen_e_acsl_assert_data_12.fct = "main";
+    __gen_e_acsl_assert_data_12.line = 41;
+    __e_acsl_assert(__gen_e_acsl_gt_2 > 0,& __gen_e_acsl_assert_data_12);
+    __e_acsl_assert_clean(& __gen_e_acsl_assert_data_12);
+    __gmpq_clear(__gen_e_acsl_vl);
+    __gmpq_clear(__gen_e_acsl_vd);
+  }
+  /*@ assert vl > vd; */ ;
   __retres = 0;
   __e_acsl_memory_clean();
   return __retres;
