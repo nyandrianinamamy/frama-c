@@ -103,6 +103,20 @@ _Avoid_: Counterpart, match
 Said of an entity of the producing program that has no image.
 _Avoid_: Unmatched, missing
 
+**Import condition**:
+What a cache entry must satisfy, when it is loaded, to be kept.
+_Avoid_: Validity condition (validity is a property of a block), invalidation
+rule
+
+**Dropped**:
+Said of a cache entry or a part that is not kept at import.
+_Avoid_: Invalidated, stale
+
+**Configuration**:
+The settings that must be equal between the producing analysis and the using
+analysis.
+_Avoid_: Options, parameters
+
 ### Dependencies
 
 **Side table**:
@@ -115,12 +129,22 @@ A block or a side table whose content at the entry of a statement is read
 while analysing it.
 _Avoid_: Input (names a zone of the Inout plug-in)
 
+**Call mode**:
+How a call is analysed: by the body of the function, by its specification or
+by a builtin.
+_Avoid_: Analysis target, kind
+
+**Used functions**:
+The functions called while analysing the statement of a cache entry, each
+with its call mode.
+_Avoid_: Function record, callees (reads as the calls written in the text)
+
 **Keyed side table**:
 A side table whose content at entry is compared by the match, as a block is.
 
 **Fixed side table**:
 A side table that does not change during one analysis. It is outside the
-match and is compared by the validity condition across versions.
+match and is compared by the import condition across versions.
 
 **Recorded side table**:
 A side table that a statement only writes, by a join.
