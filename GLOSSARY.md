@@ -117,6 +117,23 @@ The settings that must be equal between the producing analysis and the using
 analysis.
 _Avoid_: Options, parameters
 
+### Domain laws
+
+**Exact**:
+Said of an operation of a domain whose result contains no concrete state
+beyond those its specification asks for.
+_Avoid_: Precise; exact as a name for from-scratch equality
+
+**Closed**:
+Said of a set of blocks in an abstract state when the state relates no block
+of the set to a block outside it.
+_Avoid_: Saturated, stable
+
+**From-scratch equality**:
+The property that an analysis using the cache gives the same result as the
+analysis without it under the same configuration. It is tested, not proved.
+_Avoid_: Exactness, parity
+
 ### Dependencies
 
 **Side table**:
