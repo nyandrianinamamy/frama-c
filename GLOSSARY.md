@@ -94,6 +94,15 @@ the program that uses them. It has three components: a renaming of blocks, a
 map of statements and a map of functions.
 _Avoid_: Diff, matching (as a noun)
 
+**Image**:
+The entity of the using program that the version map gives for an entity of
+the producing program.
+_Avoid_: Counterpart, match
+
+**Unmapped**:
+Said of an entity of the producing program that has no image.
+_Avoid_: Unmatched, missing
+
 ### Dependencies
 
 **Side table**:
