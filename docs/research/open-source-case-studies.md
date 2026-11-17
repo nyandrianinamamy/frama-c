@@ -150,7 +150,9 @@ Yes.
 - The parameter is read in one place, `plugins/eva/src/engine/compute_functions.ml` line 197, and no code sets it [R, grep].
 - For the two `-mthread` case studies (c-thread-pool, matrixmult), the cache is cleared before each thread analysis (`plugins/eva/src/engine/analysis.ml`, line 195) [R].
 
-So every OSCS Eva run uses the in-run memexec cache, and its hit and miss counts per function are written to `eva-stats.csv` (section 3) [I].
+So the option is on in every OSCS Eva run, and the hit and miss counts per function are written to `eva-stats.csv` (section 3) [I].
+
+How much the cache is used also depends on the abstract domains. A domain whose `relate` function returns top disables the cache (`plugins/eva/src/domains/abstract_domain.ml`, lines 332-345) [R]. `-eva-precision n` enables symbolic-locations from 1, equality from 2, gauges from 3 and octagon from 5, and sets `-eva-octagon-through-calls` from 7 (`plugins/eva/src/parameters.ml`, lines 1404-1433) [R], so most case studies run with relational domains. For the four domains OSCS enables, `relate` does not return top in the configuration read: symbolic-locations returns empty (`plugins/eva/src/domains/symbolic_locs.ml`, line 576); gauges returns empty with its compiled-in `IntraproceduralNonReferenced` mode (`plugins/eva/src/domains/gauges/gauges_domain.ml`, lines 30 and 1257-1260); octagon returns empty unless `-eva-octagon-through-calls` is set, and related bases otherwise (`plugins/eva/src/domains/octagons.ml`, lines 1851-1864); equality returns the related bases (`plugins/eva/src/domains/equality/equality_domain.ml`, lines 534-545) [R]. The effect of these domains on the hit rate was not measured.
 
 ### Per-program Eva options
 
@@ -274,7 +276,14 @@ Phase times read from log timestamps of three jobs [R; wall clock]:
 | debie1 (job 2116739) | 2.3 s | 4 min 1 s | 3 s |
 | monocypher (job 2116760) | 15.7 s | 7 min 39 s | 8.5 s |
 
-No single-program analysis in this run exceeded about 8 minutes; the long jobs after monocypher, chrony and debie1 are suites of many short targets [I from the two tables].
+Job duration against number of targets, for the jobs above 150 s [R, both tables]:
+
+- one target: monocypher 514 s, polarssl 281 s, debie1 279 s, gzip124 225 s, libspng 196 s, safestringlib 171 s, matrixmult 168 s;
+- two targets: chrony 377 s, libmodbus 183 s, grayskull 154 s;
+- six targets: miniz 236 s;
+- many targets: bench-moerman2018 365 s (400), verisec 288 s (275), c-testsuite 198 s (215), snprintf 185 s (66), cerberus 162 s (192).
+
+No job, hence no single analysis, exceeded 9 minutes in this run [R]. The six directories with many small targets (section 1) sum to 1234 s for 1165 targets, about 1.1 s per target with job overhead included [R, computed].
 
 ## 5. Upstream histories and how sources are pinned
 
@@ -312,7 +321,10 @@ Not queried, but the URL in `summary.md` is a GitHub repository, so a commit his
 
 `summary.md` gives a web page, an archive or a paper, not a repository, for: basic-cwe-examples, cerberus, chrony, debie1, gnugo, gzip124, icpc, mini-gmp, monocypher, qlz, solitaire, tsvc, tweetnacl-usable, verisec [R]. Whether chrony, gzip, GMP or gnugo publish a version-control history elsewhere was not checked; monocypher does (table above).
 
-Candidates for cross-version pairs, by this evidence [I]: mbedtls and polarssl (same lineage, many tags, but mbedtls is outside the CI set and needs clang), libmodbus, monocypher, libyaml, miniz, hiredis, libspng. All have a multi-file code base, an identifiable vendored version and many upstream tags.
+Candidates for cross-version pairs, by this evidence [I]:
+
+- vendored version matched to an upstream tag, more than 20 tags: mbedtls and polarssl (same lineage, but mbedtls is outside the CI set and needs clang), libmodbus, monocypher, libyaml, miniz;
+- many upstream tags but the vendored version was not matched (only one tag-name pattern was tried): hiredis, libspng.
 
 ## 6. Running one case study with a Frama-C built from this repository
 
@@ -343,14 +355,14 @@ External dependencies:
 ## 7. Limits for benchmarking
 
 - **A run overwrites tracked files.** The outputs are written next to the tracked oracles, so any run with a Frama-C that differs from the one used for the oracles leaves the OSCS working tree modified [I]. Copy the tree or reset it between configurations.
-- **The oracles at this commit do not match the public dev image.** In pipeline 117849, 34 of 43 jobs failed and 9 passed (debie1, x509-parser, gnugo, icpc, khash, line-follower-robot, powerwindow, tweetnacl-usable, solitaire) [R, API]. In the two failed logs that were read, the analysis completed and the failure was `git diff --exit-code`: shifted libc line numbers in `alarms.csv` and statement counts differing by one in `metrics.log` [R, jobs 2116731 and 2116760]. That the other 32 failures have the same cause is assumed [I]. The five most recent `master` pipelines, back to 2026-09-11, all have status failed [R, API]. Alarm rows and coverage counts are thus tied to an exact Frama-C revision, including its libc.
+- **The oracles at this commit do not match the `framac/frama-c:dev` image cached on the CI runner.** The log shows pull policy `if-not-present` and a locally found image, so the image may be older than the current tag [R, job 2116731]. In pipeline 117849, 34 of 43 jobs failed and 9 passed (debie1, x509-parser, gnugo, icpc, khash, line-follower-robot, powerwindow, tweetnacl-usable, solitaire) [R, API]. In the two failed logs that were read, the analysis completed and the failure was `git diff --exit-code`: shifted libc line numbers in `alarms.csv` and statement counts differing by one in `metrics.log` [R, jobs 2116731 and 2116760]. That the other 32 failures have the same cause is assumed [I]. The five most recent `master` pipelines, back to 2026-09-11, all have status failed [R, API]. Alarm rows and coverage counts are thus tied to an exact Frama-C revision, including its libc.
 - **The Frama-C pin differs from this repository.** The submodule points to `6221dd5f` of `https://git.frama-c.com/pub/frama-c.git`; it is not an ancestor of this repository's `HEAD` [R, `git merge-base --is-ancestor` on objects already present locally]. Results obtained with a build of this repository should not be expected to equal the tracked oracles [I]. The GitLab web interface of git.frama-c.com refuses commit and raw-file pages ("accessing to commit details from the GitLab web interface is now denied") [R], so that commit can only be inspected through a clone.
 - **Time and memory fields vary between runs.** `stats.txt` (timestamp, user time, peak memory), `eva-stats.csv` (analysis time, memory usage) and `flamegraph.txt` are measurements [R]. The tracked files are meant to be reproducible for a fixed Frama-C, since CI diffs them [I]; nine jobs passed that diff in the run read. No repeated-run data exists to quantify timing variance.
 - **Parallelism.** `OSCS:Makefile` lets `make -j` run targets concurrently, and `summary.py` without `-b` adds `-j <cpu count>` [R]; timings from parallel runs are not comparable [I]. `.NOTPARALLEL` is not set anywhere.
 - **Staleness is not tracked.** Targets do not depend on the Frama-C binary (`OSCS:Makefile`), and header changes do not trigger a reparse (`doc/userman/user-analysis-scripts.tex`, "Technical Notes") [R].
 - **Parsing is a separate step with its own saved session.** On the smallest target read (2048) it takes about as long as Eva (section 4) [R]. A reuse experiment must decide whether it starts from `<t>.parse/framac.sav` or from sources [I].
-- **Programs that do not finish quickly.** By the CI run, the long single analyses are monocypher (about 8 min), debie1 (about 4 min) and the two chrony targets (job of 377 s) [R/I]. Raising precision can prevent termination in practical time: see the x509-parser, monocypher and c-testsuite comments in section 4 [R]. mbedtls (179 targets, 138 kLoC) has no recorded run at all [R].
-- **Most targets are tiny.** 1165 of 1256 targets belong to six test suites and finish within seconds each [I from job durations and target counts]. They measure start-up, loading and saving more than fixpoint computation.
+- **Programs that do not finish quickly.** By the CI run, the analyses that take minutes are the single-target jobs monocypher, polarssl, debie1, gzip124, libspng, safestringlib and matrixmult (168 s to 514 s per job) and the two-target jobs chrony, libmodbus and grayskull (section 4) [R]. Per-target times inside multi-target jobs were not read. Raising precision can prevent termination in practical time: see the x509-parser, monocypher and c-testsuite comments in section 4 [R]. mbedtls (179 targets, 138 kLoC) has no recorded run at all [R].
+- **Most targets are tiny.** 1165 of 1256 targets belong to six directories and average about 1.1 s each in the CI run [R, computed]. They measure start-up, loading and saving more than fixpoint computation [I].
 - **Suboptimal settings by design.** The README says some case studies are deliberately parametrised with suboptimal parameters, and only a few are "finalized" (it recommends debie1) [R].
 - **Generated or environment-dependent inputs.** mbedtls regenerates `machdep_leon4.yaml` with clang; chrony and libmodbus ship a committed `config.h` produced by `configure` with the recorded options; snprintf and hiredis add files from `$(frama-c -print-share-path)/libc/` (`string.c`, `netdb.c`) to their sources, so their input depends on the Frama-C installation [R].
 - **Network.** Running a parse or Eva target needs no network: no analysis makefile contains a download command or URL [R, grep]. The network is needed for `make submodules` and `make framac` (clone of Frama-C), for the Docker image `framac/frama-c:dev`, and for `summary.py REVISION`, which clones Frama-C through `clone.sh` [R].
@@ -362,7 +374,9 @@ External dependencies:
 - Whether all Eva and kernel options used by the 44 `GNUmakefile`s exist in this repository's Frama-C.
 - The Frama-C revision inside the `framac/frama-c:dev` image used by CI, and whether the tracked oracles match the submodule pin `6221dd5f`.
 - The cause of failure of 32 of the 34 failed CI jobs (only the 2048 and monocypher logs were read; debie1's passing log was read).
-- Per-target CPU time, peak memory and the size of any `framac.sav`. None is published; CI job durations are the only public numbers.
+- Per-target CPU time, peak memory and the size of any `framac.sav`. None is published in the repository; CI job durations are the only public numbers found.
+- Publications outside the repository (Frama-C blog, papers, other manuals under `doc/`) were not searched for OSCS timings.
+- The memexec hit rate of any case study, and the effect of the relational domains on it.
 - The OSCS commit history (import dates and upstream versions of each directory), because the clone was shallow.
 - Upstream histories of the projects not listed in the tag table; the exact upstream commit of any vendored copy; whether the vendored sources equal the tagged upstream release.
 - The licence texts in full. Licences are as stated by `OSCS:README.md` plus the first lines of the files named there; the debie1 terms-of-use PDF was not read.
