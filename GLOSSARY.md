@@ -117,6 +117,27 @@ The settings that must be equal between the producing analysis and the using
 analysis.
 _Avoid_: Options, parameters
 
+### Delivery
+
+**Stage**:
+One of the three relations between the analysis that produces the cache
+entries and the analysis that uses them: the same analysis, another process on
+an unchanged program, another process on an edited program.
+_Avoid_: Phase, step
+
+**Unchanged program**:
+A program in which every entity of the producing program has an image and
+every function body is reported unchanged by the version map. Its text may
+differ.
+_Avoid_: Same program, same version
+
+**Edited program**:
+A program that is not unchanged.
+
+**Milestone**:
+A unit of delivery with its acceptance evidence. A stage contains several
+milestones.
+
 ### Domain laws
 
 **Exact**:
