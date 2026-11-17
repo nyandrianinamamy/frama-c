@@ -47,8 +47,8 @@ statement.
 The statements reached while analysing the statement.
 
 **Inner part**:
-The abstract state before each statement inside the body, on the variables of
-the inner key.
+The abstract state before each statement inside the body, on its locals and on
+the variables whose value at entry is checked by the match.
 _Avoid_: Intermediate states, per-statement states
 
 ### Variables
