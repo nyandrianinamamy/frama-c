@@ -53,6 +53,22 @@ _Avoid_: Intermediate states, per-statement states
 
 ### Blocks
 
+**Block**:
+A unit of memory that the abstract state names as a whole: a variable, a
+string literal, a function, a heap allocation, the null block or a range of
+absolute addresses.
+_Avoid_: Base (the name of its implementation in Eva), variable, name
+
+**Existing block**:
+A block that exists in the input of a statement.
+_Avoid_: Entry block (reads as a block of a cache entry), live block, input
+block
+
+**Created block**:
+A block that the analysis of a statement brings into existence: one of its
+locals, its return value, or a heap allocation it performs.
+_Avoid_: Fresh block, local block
+
 **Matching key**:
 The blocks whose values in the input are compared by the match. They decide
 the Exit part.
@@ -64,6 +80,19 @@ _Avoid_: Inner key
 
 **Frame**:
 The blocks the statement neither reads nor writes.
+
+### Versions
+
+**Renaming**:
+An injective map from the blocks a cache entry mentions to blocks of the
+analysis that uses the entry.
+_Avoid_: Substitution (names Eva's treatment of recursive calls), translation
+
+**Version map**:
+The correspondence between the program that produced the cache entries and
+the program that uses them. It has three components: a renaming of blocks, a
+map of statements and a map of functions.
+_Avoid_: Diff, matching (as a noun)
 
 ### Dependencies
 
