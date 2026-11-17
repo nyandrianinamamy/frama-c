@@ -23,8 +23,9 @@ Research note for issue 5 of `nyandrianinamamy/frama-c`.
    statuses are saved. The memexec cache, the initial-state cache and the
    states of unmarshallable domains are not.
 4. After `-load`, Eva does not run again unless one of its dependencies
-   changes. When one does, all of Eva's states are cleared. No code path
-   keeps part of the Eva states across an AST change.
+   changes. When one does, the Eva result tables are cleared as a whole.
+   No code path was found that keeps part of the result tables across an AST
+   change (inferred).
 5. The only global check is a string made of the version and codename. Then
    each state is checked by name and by type digest.
 6. Outside the session file, the repository has write-only exports
@@ -83,9 +84,10 @@ Research note for issue 5 of `nyandrianinamamy/frama-c`.
   `state_builder.ml:312-320`).
 - **[inferred]** So the graph used after `-load` is the one of the loading
   binary, not the one of the saving binary.
-- **[read]** The graph is used on load in one place: when a state on disk has
-  an incompatible type, the states that depend on it are cleared
-  (`project.ml:275-292`).
+- **[read]** The graph is used on load at least here: when a state on disk
+  has an incompatible type, the states that depend on it are cleared
+  (`project.ml:275-292`). Other project operations also follow dependencies
+  (`project.ml:168-174`, `project.ml:187-200`).
 
 ### How a state opts out of marshalling
 
@@ -238,12 +240,15 @@ Research note for issue 5 of `nyandrianinamamy/frama-c`.
 
 ### Saved (datatype marshallable, registered state)
 
-All are **[read]** unless tagged otherwise.
+The state registrations in this table are **[read]**. That a state is
+written to disk is **[read]** for the `Domain_store` rows, where the code
+tests marshallability, and **[inferred]** for the other rows from the rule of
+section 1.
 
 | Content | State | Evidence |
 |---|---|---|
 | Cvalue state per control point, joined and per callstack | `Cvalue_results` = `Domain_store.Make(Cvalue.Model)`: `Table`, `TableByCallstack`, `Save` | `plugins/eva/src/domains/cvalue/cvalue_results.ml:9-12`, `plugins/eva/src/domains/domain_store.ml:55-86` |
-| States of other domains built with `Domain_builder`, when their datatype is marshallable | `Domain_store.Make(Domain)` | `plugins/eva/src/domains/domain_builder.ml:89`, `domain_store.ml:66-76` |
+| States of other domains built with `Domain_builder.Complete`, when their datatype is marshallable | `Domain_store.Make(Domain)` | `plugins/eva/src/domains/domain_builder.ml:56-89`, `domain_store.ml:66-76` |
 | Callers and callsites of each function | `Function_calls.CallersTable` | `plugins/eva/src/engine/function_calls.ml:22-24` |
 | Analysis status of each function (unreachable, spec, builtin, analyzed) | `Function_calls.StatusTable` | `function_calls.ml:69-90` |
 | Analysis state (not computed, computing, computed, aborted) | `Self.ComputationState` | `plugins/eva/src/self.ml:39-63` |
@@ -256,11 +261,8 @@ All are **[read]** unless tagged otherwise.
 | Per-function summary, statistics, timing | `Summary.FunctionStats`, `Statistics.IntState`, `Statistics.FloatState`, `Eva_perf.StatByCallstack` | `plugins/eva/src/utils/summary.ml:204-212`, `plugins/eva/src/utils/statistics.ml:173-191`, `plugins/eva/src/utils/eva_perf.ml:74-81` |
 | Eva parameters | parameter states | `parameter_state.ml:103-107` |
 
-- **[inferred]** For the rows other than `Domain_store` and
-  `Do_Not_Marshal`, "saved" follows from the rule of section 1 and from the
-  datatypes named in the registration. The marshallability of each element
-  datatype (for instance `Alarms`, `Property`, `Callstack`) was not checked
-  one by one.
+- The marshallability of each element datatype of the inferred rows (for
+  instance `Alarms`, `Property`, `Callstack`) was not checked one by one.
 - **[read]** Cvalue states are recorded only when `-eva-results` is on and
   the function is not listed in `-eva-no-results-function`
   (`function_calls.ml:12-13`, `domain_store.ml:83-93`,
@@ -281,8 +283,9 @@ All are **[read]** unless tagged otherwise.
   on disk" (`domain_store.ml:66-76`). Domains read to be in this case: Apron,
   with an explicit `t_unknown`
   (`plugins/eva/src/domains/apron/apron_domain.ml:356-362`), and domains
-  built by the simple-domain functor, which uses `Datatype.Undefined`
-  (`domain_builder.ml:185-197`). Other domains were not classified.
+  built by `Domain_builder.Complete_Minimal`, which gives them a datatype
+  based on `Datatype.Undefined` (`domain_builder.ml:175-197`). Other domains
+  were not classified.
 - **[read]** Per-statement slevel tables: `Per_stmt_slevel.ForKf` holds
   closures and uses `Datatype.Undefined`
   (`plugins/eva/src/partitioning/per_stmt_slevel.ml:33-50`,
@@ -521,8 +524,18 @@ Not found:
 
 ## Facts that bear on the later decision
 
-- **[read]** A saved session is an all-or-nothing image tied to one AST. Its
-  granularity is the state: a state is loaded whole or reset whole.
+- **[read]** The `-save` and `-load` options save and load all projects with
+  the full state selection (`special_hooks.ml:94`, `special_hooks.ml:151`,
+  `project.ml:549-552`, `project.ml:738-743`). The granularity on load is the
+  state: a state is loaded whole or reset whole (`state_builder.ml:265-288`).
+- **[read]** The OCaml API is finer. `Project.save`, `save_all`, `load` and
+  `load_all` take an optional state selection, and `load` "loads the
+  (specified) states" into a new project
+  (`src/lib/project/project.mli:277-310`). `create_by_copy` uses the same
+  save and load path with a selection (`project.mli:223-235`).
+- **[inferred]** A session restricted to a selection is still tied to the
+  AST nodes its values point to (section 2). Loading a selection without the
+  AST state was not explored.
 - **[inferred]** Reusing Eva results of version N on version N+1 through
   `-load` requires both ASTs in one process (`-ast-diff` gives that, in two
   projects) and a translation of every `stmt`, `varinfo`, `kernel_function`
@@ -531,8 +544,9 @@ Not found:
 - **[inferred]** A separate store would need its own keys independent of
   `vid` and `sid`, and its own serialization of Cvalue states, since their
   descriptors embed `Base` and `varinfo` by pointer.
-- **[read]** The memexec cache, the natural unit of per-call reuse, is
-  deliberately unmarshallable and is emptied after each analysis.
+- **[read]** The memexec cache, which stores call results per function and
+  per argument values (`mem_exec.ml:59-64`), is not marshalled and is emptied
+  after each analysis (`mem_exec.ml:71-72`, `analysis.ml:117`).
 
 ## Not checked
 
@@ -543,8 +557,8 @@ Not found:
 - Marshallability of each element datatype of the Eva tables (`Alarms`,
   `Property`, `Callstack`, `Locals_scoping`, red-status keys) was not checked
   one by one.
-- Eva domains other than cvalue, Apron and the simple-domain functor were
-  not classified as saved or not saved (octagons, equality, gauges, symbolic
+- Eva domains other than cvalue, Apron and those built by
+  `Domain_builder.Complete_Minimal` were not classified as saved or not saved (octagons, equality, gauges, symbolic
   locations, multidim, taint, traces, inout, numerors, mthread).
 - `plugins/eva/src/mthread` states and the server plug-in's
   `Project.load` and `Project.save` requests were not read beyond the cited
