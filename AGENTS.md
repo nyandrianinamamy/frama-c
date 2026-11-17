@@ -246,6 +246,29 @@ Separate compiler/dependency failures, oracle mismatches, disabled tests,
 timeouts and process kills; preserve diagnostics before retrying. Never turn
 an unexplained failure into a pass by promoting outputs or disabling tests.
 
+### Definition of done
+
+For a feature or bug fix, confirm the observable acceptance criteria in the
+ticket before implementation. Deliver a small, replayable acceptance demo:
+the reviewer should be able to verify the behavior without reading the diff.
+
+- For each criterion, report expected behavior, observed behavior, and
+  `PASS`, `FAIL`, or `NOT RUN`. Include the tested revision, inputs and
+  configuration, a single reproduction command or entry point, and the
+  relevant output or log. Explain failures and skipped or blocked checks.
+- Show that the changed path actually ran. For example, matching Eva outputs
+  with caching on and off do not establish reuse unless the run records a
+  cache hit. For a bug fix, show the reproducer failing before and passing
+  after, when feasible.
+- For work with a Lean proof, show the exact checked theorem statement, its
+  hypotheses, and the `#print axioms` output. Flag any reliance on
+  `sorryAx` or custom axioms. Report the OCaml obligations and their evidence
+  separately; checking the Lean theorem does not establish that Eva meets
+  its hypotheses.
+
+Do not mark the ticket done if a required criterion failed or was not run.
+Have the reviewer replay the demo or check the recorded CI evidence.
+
 Setup verification (2026-11-17, source commit `0372456831`): local OCaml 5.2.1,
 Dune 3.21.1, Why3 1.8.2, Alt-Ergo 2.6.4, Apron v0.9.15, Mopsa 1.2.
 The Ubuntu 24.04 recipe above consolidates the installation steps (some base
