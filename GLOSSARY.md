@@ -48,21 +48,65 @@ The statements reached while analysing the statement.
 
 **Inner part**:
 The abstract state before each statement inside the body, on its locals and on
-the variables whose value at entry is checked by the match.
+the blocks whose value at entry is checked by the match.
 _Avoid_: Intermediate states, per-statement states
 
-### Variables
+### Blocks
 
-**Exit key**:
-The variables whose values in the input decide the Exit part.
+**Matching key**:
+The blocks whose values in the input are compared by the match. They decide
+the Exit part.
+_Avoid_: Exit key
 
-**Inner key**:
-The variables the statement reads or writes.
+**Footprint**:
+The blocks the statement reads or writes. It contains no side table.
+_Avoid_: Inner key
 
 **Frame**:
-The variables the statement neither reads nor writes.
+The blocks the statement neither reads nor writes.
+
+### Dependencies
+
+**Side table**:
+A table outside the abstract state that the analysis of a statement reads or
+writes.
+_Avoid_: Component, resource, global state
+
+**Dependency**:
+A block or a side table whose content at the entry of a statement is read
+while analysing it.
+_Avoid_: Input (names a zone of the Inout plug-in)
+
+**Keyed side table**:
+A side table whose content at entry is compared by the match, as a block is.
+
+**Fixed side table**:
+A side table that does not change during one analysis. It is outside the
+match and is compared by the validity condition across versions.
+
+**Recorded side table**:
+A side table that a statement only writes, by a join.
+
+**Refusing side table**:
+A side table such that a statement reading or writing it gets no cache entry.
+A side table with no other class is refusing.
 
 ### Effects
+
+**Effect**:
+A write made while analysing a statement: a designated write, a table write
+or a sweep.
+
+**Designated write**:
+A write to a block that the statement designates through an lvalue or a
+contract.
+
+**Table write**:
+A write to a side table.
+
+**Sweep**:
+A rewrite of every block whose content satisfies a condition, wherever the
+block is.
 
 **Recorded effect**:
 An emission made while analysing a statement that is a join into a table, so
