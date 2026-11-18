@@ -83,7 +83,7 @@ let observe_annotations stack (r : Access.t) =
   | "valid_pointer" ->
     assert (names r.reads = ["allocated_ptr"]);
     assert (Base.SetLattice.exists allocated r.designated);
-    assert (r.refusals = [Access.Allocated_block]);
+    assert (r.refusals = [Access.Allocated_block; Access.Allocation_metadata]);
     Format.printf "valid_pointer designates an allocated block@."
   | "alarm_assertion" ->
     assert (names r.writes = []);

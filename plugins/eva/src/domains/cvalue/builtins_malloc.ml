@@ -322,6 +322,7 @@ let pp_validity fmt (v1, v2) =
    Note that [_state] is not used, but it is present to ensure a compatible
    signature with [alloc_by_stack]. *)
 let alloc_fresh weak deallocation prefix sizev _state =
+  Body_access.refuse Allocation;
   let stack = call_stack_no_wrappers () in
   let tsize = guess_intended_malloc_type stack sizev (weak = Strong) in
   let type_base = type_from_nb_elems tsize in
@@ -393,7 +394,10 @@ let alloca_weakest_base = memo_weakest_base "SingleAlloca" Base.Alloca
 
 (* Returns the single base representing the given region, its size and the
    suitable cache status. *)
-let alloc_weakest_base = function
+let alloc_weakest_base region =
+  (* An allocation even when the base exists: the state gains its block. *)
+  Body_access.refuse Allocation;
+  match region with
   | Base.Malloc -> malloc_weakest_base ()
   | Base.VLA -> vla_weakest_base ()
   | Base.Alloca -> alloca_weakest_base ()
@@ -441,6 +445,7 @@ let update_variable_validity ?(make_weak=false) base sizev =
   | _ -> Self.fatal "base is not Allocated: %a" Base.pretty base
 
 let alloc_by_stack region prefix sizev state =
+  Body_access.refuse Allocation;
   let stack = call_stack_no_wrappers () in
   let max_level = Parameters.MallocLevel.get () in
   let all_vars =
@@ -625,6 +630,7 @@ let resolve_bases_to_free arg =
   Cvalue.V.fold_topset_ok f arg (Base.Hptset.empty, 0, false)
 
 let free_aux state ~strong bases_to_remove  =
+  Body_access.refuse Deallocation;
   Body_access.unknown_access Sweep;
   (* TODO: reduce on arg if it is an lval *)
   if strong then begin
@@ -677,17 +683,23 @@ let () =
     ~replace:"__fc_vla_free" "Frama_C_vla_free" frama_c_vla_free
     ~typ:(fun () -> (Cil_const.voidType, [Cil_const.voidPtrType]))
 
+(* The automatic bases allocated by the call at [stack], freed at its
+   return. *)
+let automatic_bases stack =
+  Base_hptmap.fold (fun base stack' acc ->
+      if is_automatically_deallocated base &&
+         Callstack.equal stack stack'
+      then Base.Hptset.add base acc
+      else acc
+    ) (Dynamic_Alloc_Bases.get ()) Base.Hptset.empty
+
+let deallocates_at_return stack =
+  not (Base.Hptset.is_empty (automatic_bases stack))
+
 let free_automatic_bases stack state =
   Body_access.refuse Side_table;
   (* free automatic bases that were allocated in the current function *)
-  let bases_to_free =
-    Base_hptmap.fold (fun base stack' acc ->
-        if is_automatically_deallocated base &&
-           Callstack.equal stack stack'
-        then Base.Hptset.add base acc
-        else acc
-      ) (Dynamic_Alloc_Bases.get ()) Base.Hptset.empty
-  in
+  let bases_to_free = automatic_bases stack in
   if Base.Hptset.is_empty bases_to_free then state
   else begin
     Self.result ~mkey:key_auto_free ~current:true ~once:true
@@ -821,6 +833,7 @@ let choose_bases_reallocation () =
 let realloc_builtin_aux state ptr size =
   let bases, card_ok, null = resolve_bases_to_free ptr in
   if card_ok > 0 then
+    let () = Body_access.refuse Reallocation in
     let realloc = choose_bases_reallocation () in
     let ret, new_state, cacheable = realloc bases null size state in
     (* Maybe the calls above made [ret] weak, and it

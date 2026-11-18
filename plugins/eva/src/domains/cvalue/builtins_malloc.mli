@@ -25,6 +25,10 @@ val free_automatic_bases: Callstack.t -> Cvalue.Model.t -> Cvalue.Model.t
     [alloca()] in the current function (as per [Eva_utils.call_stack ()]).
     This function must be called during finalization of a function call. *)
 
+val deallocates_at_return: Callstack.t -> bool
+(** Whether {!free_automatic_bases} frees a base at the return of the call
+    at the given callstack, as registered so far. *)
+
 val freeable: Cvalue.V.t -> Abstract_interp.truth
 (** Evaluates the ACSL predicate \freeable(value): holds if and only if the
     value points to an allocated memory block that can be safely released using

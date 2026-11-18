@@ -1,0 +1,84 @@
+Storage is refused for a body that reads, writes or designates an allocated
+block, that reads its validity or type, or whose analysis allocates, frees or
+changes the validity of a block.
+
+  $ dune build -j 8 --cache=disabled --root . test_allocation_refusals.cmxs
+
+A copy of a pointer to an allocated block is refused, though no pointer is
+dereferenced. An assertion alone designates the block. Each allocation effect
+gives its own reason. The second call to scratch_once does not allocate: the
+block of the first call is freed at the return.
+
+  $ EVA_TEST_ALLOCATION=effects frama-c -no-autoload-plugins -load-module eva,test_allocation_refusals.cmxs -eva -eva-no-memexec -eva-slevel 4 -eva-msg-key cache -eva-statistics-file effects.tsv effects.c > effects.log 2>&1
+  $ grep -E '^(copy|logic_only|allocate|resize|release|scratch|scratch_once|vla|main)[ :]' effects.log
+  allocate allocation
+  copy allocated-block
+  logic_only: allocated-block allocation-metadata
+  resize reallocation
+  release deallocation
+  scratch allocation
+  scratch_once call 1 allocation
+  scratch_once call 2 deallocation
+  vla allocation
+  main reallocation
+  $ grep -E '; collector:' effects.log
+    call to allocate: lookup: no-candidate; execution: analysed; storage: refused (disabled); collector: refused (allocation)
+    call to copy: lookup: no-candidate; execution: analysed; storage: refused (disabled); collector: refused (allocated-block)
+    call to logic_only: lookup: no-candidate; execution: analysed; storage: refused (disabled); collector: refused (allocated-block)
+    call to resize: lookup: no-candidate; execution: analysed; storage: refused (disabled); collector: refused (reallocation)
+    call to release: lookup: no-candidate; execution: analysed; storage: refused (disabled); collector: refused (deallocation)
+    call to scratch: lookup: no-candidate; execution: analysed; storage: refused (disabled); collector: refused (allocation)
+    call to scratch_once: lookup: no-candidate; execution: analysed; storage: refused (disabled); collector: refused (allocation)
+    call to scratch_once: lookup: no-candidate; execution: analysed; storage: refused (disabled); collector: refused (deallocation)
+    call to vla: lookup: no-candidate; execution: analysed; storage: refused (disabled); collector: refused (allocation)
+    call to main: lookup: no-candidate; execution: analysed; storage: refused (disabled); collector: refused (reallocation)
+  $ awk -F '\t' '/^collector-/ { print $1, $2, $4 }' effects.tsv
+  collector-refused-allocated-block copy 1
+  collector-refused-allocated-block logic_only 1
+  collector-refused-allocation allocate 1
+  collector-refused-allocation scratch 1
+  collector-refused-allocation scratch_once 1
+  collector-refused-allocation vla 1
+  collector-refused-deallocation release 1
+  collector-refused-deallocation scratch_once 1
+  collector-refused-reallocation resize 1
+  collector-refused-reallocation main 1
+
+An integer loop whose widening visits an allocated binding is refused, and the
+block is an owner although the loop does not access it. The same loop is not
+refused before the allocation, and a loop that converges without widening is
+not refused. A loop that writes to a weak block is refused for the update of
+its validity by the widening, without any allocation.
+
+  $ EVA_TEST_ALLOCATION=widening frama-c -no-autoload-plugins -load-module eva,test_allocation_refusals.cmxs -eva -eva-no-memexec -eva-mlevel 0 -eva-msg-key cache widening.c > widening.log 2>&1
+  $ grep -E '^(shift|quiet|fill) ' widening.log
+  shift before the allocation: no owner
+  shift after the allocation: owners __malloc_main_l43
+  quiet would-store
+  fill validity-mutation
+  $ grep -E 'call to (shift|quiet|fill):' widening.log
+    call to shift: lookup: no-candidate; execution: analysed; storage: refused (disabled); collector: refused (side-table)
+    call to shift: lookup: no-candidate; execution: analysed; storage: refused (disabled); collector: refused (allocation-metadata)
+    call to quiet: lookup: no-candidate; execution: analysed; storage: refused (disabled); collector: would-store
+    call to fill: lookup: no-candidate; execution: analysed; storage: refused (disabled); collector: refused (validity-mutation)
+
+The comparing function of the validity replay is refused.
+
+  $ EVA_TEST_ALLOCATION=equality frama-c -no-autoload-plugins -load-module eva,test_allocation_refusals.cmxs -eva -eva-no-memexec -eva-slevel 20 -eva-no-alloc-returns-null -eva-msg-key cache equality.c > equality.log 2>&1
+  $ grep -E '^equal_live |Frama_C_show_each_equal' equality.log
+  equal_live allocated-block
+  [eva:show] equality.c:21: Frama_C_show_each_equal: {0}, {1}
+  equal_live allocated-block
+  [eva:show] equality.c:21: Frama_C_show_each_equal: {1}, {0; 1}
+
+Memexec stores the call to release and answers the second call by a hit; the
+collector refuses each analysis of release, and the enclosing body inherits
+the reason.
+
+  $ EVA_TEST_ALLOCATION=release frama-c -no-autoload-plugins -load-module eva,inout,test_allocation_refusals.cmxs -eva -eva-memexec -eva-slevel 20 -eva-msg-key cache release.c > release.log 2>&1
+  $ grep -E '^(release|main) |call to (release|main):' release.log
+  release deallocation
+    call to release: lookup: no-candidate; execution: analysed; storage: stored (entry 1); collector: refused (deallocation)
+    call to release: lookup: hit (entry 1); execution: not-analysed; storage: none
+  main allocation
+    call to main: lookup: no-candidate; execution: analysed; storage: refused (not-cacheable); collector: refused (allocation)

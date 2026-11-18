@@ -83,11 +83,17 @@ let display_evaluation_error ~loc = function
 let alarm_reduce_mode () =
   if Parameters.ReduceOnLogicAlarms.get () then Ignore else Fail
 
+(* The collector checks the blocks designated by the values read by the
+   logic, as those read by C expressions. *)
+let designate v = Body_access.designate (V_Or_Uninitialized.get_v v)
+
 let find_indeterminate ~alarm_mode state loc =
   Logic_access.load state loc;
   let is_invalid = not Locations.(is_valid Read loc) in
   track_alarms is_invalid alarm_mode;
-  Model.find_indeterminate ~conflate_bottom:true state loc
+  let v = Model.find_indeterminate ~conflate_bottom:true state loc in
+  designate v;
+  v
 
 let find_or_alarm ~alarm_mode state loc =
   let v = find_indeterminate ~alarm_mode state loc in
@@ -314,7 +320,9 @@ let find_logic_var env lvar =
     let loc = Locations.of_base base in
     let state = env_current_state env in
     Logic_access.load state loc;
-    Model.find state loc
+    let v = Model.find state loc in
+    Body_access.designate v;
+    v
   | _ -> unsupported_lvar lvar
 
 let copy_logic_vars ~src ~dst lvars =
@@ -936,6 +944,7 @@ let eval_valid_str ~wide env v =
    stored in [loc] in [state].  *)
 let forall_in_over_location state loc test =
   let v = Model.find_indeterminate state loc in
+  designate v;
   test v
 
 (* Do all the possible values of a location in [state] satisfy [test]?  [loc] is
@@ -945,6 +954,7 @@ let forall_in_over_location state loc test =
 let forall_in_under_location state loc test =
   let exception EFalse in
   let inspect_value (_, _) (value, _, _) acc =
+    designate value;
     match test value with
     | True | Unknown -> acc
     | False -> raise EFalse

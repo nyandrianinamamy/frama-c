@@ -9,9 +9,23 @@
 (** Observations made while Eva analyses a call by its body. *)
 
 module Result : sig
+  (** Reasons to refuse storage, in the order used to select the reason of
+      the storage disposition. [Reallocation], [Allocation] and
+      [Deallocation] are performed by the allocation builtins, including
+      the deallocation of the automatic blocks of a call at its return.
+      [Validity_mutation] is an update of the validity record of an
+      allocated block, also by the widening of a memory map.
+      [Allocated_block] is an allocated block among the blocks accessed, the
+      locations computed or the blocks designated by a value.
+      [Allocation_metadata] is a read of the validity or of the type of an
+      allocated block, also by an operation of the analyzer that the
+      program does not select. A body inherits these six reasons from the
+      bodies analysed during its own analysis. *)
   type refusal =
-    | Indirect_call | Builtin | Sweep | Contract | Annotation | Nested_call
-    | Allocated_block | Footprint_top | Side_table
+    | Indirect_call
+    | Reallocation | Allocation | Deallocation | Validity_mutation
+    | Builtin | Sweep | Contract | Annotation | Nested_call
+    | Allocated_block | Allocation_metadata | Footprint_top | Side_table
 
   val refusal_id : refusal -> string
 
@@ -24,11 +38,14 @@ module Result : sig
     exit_writes : Base.SetLattice.t;
     sure_writes : Base.Hptset.t;
     designated : Base.SetLattice.t;
+    owners : Base.Hptset.t;
     recorded : recorded list;
     refusals : refusal list;
   }
   (** May sets can be [Top] when an unsupported operation has unknown
-      accesses. The sure set contains only fully overwritten blocks. *)
+      accesses. The sure set contains only fully overwritten blocks.
+      [owners] holds the allocated blocks whose validity or type was read,
+      including by the bodies analysed during the analysis of this one. *)
 
   (** Observe an immutable result after a completed analysis of a body and
       before the storage verdict. Requires [-eva-cache-collect].

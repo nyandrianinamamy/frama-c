@@ -49,7 +49,9 @@ module Make (Engine: Engine_sig.S) = struct
   (* Interprets a [call] in the state [init_state] by [compute], which analyzes
      the body of the called function, unless the cache has a matching entry. *)
   let compute_and_cache_call ~recursive ~save_results compute call init_state =
-    match Cache.lookup call init_state with
+    (* The operations of the cache are outside the caller's analysis. *)
+    let lookup () = Cache.lookup call init_state in
+    match Body_access.without_recording lookup with
     | Cache.No_candidate pending ->
       let call_result, footprint =
         try
@@ -65,13 +67,20 @@ module Make (Engine: Engine_sig.S) = struct
                    || call.callstack.thread <> Thread.main_id
                 then Body_access.unknown_access Side_table
               end;
-              compute call init_state)
+              let result = compute call init_state in
+              (* The caller frees the automatic blocks of the call. *)
+              if Body_access.is_recording ()
+              && Builtins_malloc.deallocates_at_return call.callstack
+              then Body_access.refuse Deallocation;
+              result)
         with exn ->
           let backtrace = Printexc.get_raw_backtrace () in
           Cache.interrupted call pending;
           Printexc.raise_with_backtrace exn backtrace
       in
-      Cache.store ~save_results call init_state pending call_result footprint;
+      Body_access.without_recording (fun () ->
+          Cache.store ~save_results call init_state pending call_result
+            footprint);
       call_result
     | Cache.Hit (i, states) ->
       apply_call_hooks call init_state `Reuse;

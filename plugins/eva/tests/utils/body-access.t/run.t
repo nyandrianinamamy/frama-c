@@ -54,11 +54,11 @@ and the bodies reached through those sites.
   indirect_target indirect-call
   indirect_caller indirect-call
   builtin builtin
-  main builtin
+  main allocation
   $ awk -F '\t' '/^collector-/ { print $1, $2, $4 }' refused.tsv
   collector-refused-allocated-block copy 1
+  collector-refused-allocation main 1
   collector-refused-builtin builtin 1
-  collector-refused-builtin main 1
   collector-refused-indirect-call indirect_target 1
   collector-refused-indirect-call indirect_caller 1
   collector-refused-nested-call nested 1

@@ -1,0 +1,8 @@
+(executable
+  (name "test_allocation_refusals")
+  (modules "test_allocation_refusals")
+  (modes plugin)
+  (libraries frama-c.kernel "frama-c-eva.core")
+  (flags :standard -open Frama_c_kernel)
+  (promote (until-clean))
+)

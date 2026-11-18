@@ -12,17 +12,24 @@ module Zone = Memory_zone
 module Result = struct
   (* Order used to select one reason for the storage disposition. *)
   type refusal =
-    | Indirect_call | Builtin | Sweep | Contract | Annotation | Nested_call
-    | Allocated_block | Footprint_top | Side_table
+    | Indirect_call
+    | Reallocation | Allocation | Deallocation | Validity_mutation
+    | Builtin | Sweep | Contract | Annotation | Nested_call
+    | Allocated_block | Allocation_metadata | Footprint_top | Side_table
 
   let refusal_id = function
     | Indirect_call -> "indirect-call"
+    | Reallocation -> "reallocation"
+    | Allocation -> "allocation"
+    | Deallocation -> "deallocation"
+    | Validity_mutation -> "validity-mutation"
     | Builtin -> "builtin"
     | Sweep -> "sweep"
     | Contract -> "contract"
     | Annotation -> "annotation"
     | Nested_call -> "nested-call"
     | Allocated_block -> "allocated-block"
+    | Allocation_metadata -> "allocation-metadata"
     | Footprint_top -> "footprint-top"
     | Side_table -> "side-table"
 
@@ -35,6 +42,7 @@ module Result = struct
     exit_writes : Bases.t;
     sure_writes : Base.Hptset.t;
     designated : Bases.t;
+    owners : Base.Hptset.t;
     recorded : recorded list;
     refusals : refusal list;
   }
@@ -56,6 +64,7 @@ type recording = {
   mutable reads : Bases.t;
   mutable writes : Bases.t;
   mutable designated : Bases.t;
+  mutable owners : Base.Hptset.t;
   mutable recorded : recorded list;
   mutable refusals : refusal list;
   mutable transition : writes option;
@@ -200,6 +209,27 @@ let unknown_write () =
 
 let () = Origin.on_history_access (fun () -> refuse Side_table)
 
+(* The kernel reports each read of the validity or of the type of an
+   allocated block, and each update of a validity record. *)
+let () =
+  Base.on_metadata_read
+    (fun base ->
+       match !current with
+       | None -> ()
+       | Some r ->
+         add_refusal r Allocation_metadata;
+         r.owners <- Base.Hptset.add base r.owners)
+
+let () = Base.on_validity_update (fun () -> refuse Validity_mutation)
+
+(* Refusals that an enclosing body inherits from a body analysed during its
+   own analysis. *)
+let inherited = function
+  | Reallocation | Allocation | Deallocation | Validity_mutation
+  | Allocated_block | Allocation_metadata -> true
+  | Indirect_call | Builtin | Sweep | Contract | Annotation | Nested_call
+  | Footprint_top | Side_table -> false
+
 let write location =
   match !current with
   | None -> ()
@@ -325,6 +355,7 @@ let capture stack compute =
       reads = Bases.bottom;
       writes = Bases.bottom;
       designated = Bases.bottom;
+      owners = Base.Hptset.empty;
       recorded = [];
       refusals = [];
       transition = None;
@@ -334,7 +365,9 @@ let capture stack compute =
     } in
     current := Some r;
     let output = Fun.protect compute ~finally:(fun () -> current := previous) in
+    (* The size of a written block is read outside the body's analysis. *)
     let exit_writes, sure_writes =
+      without_recording @@ fun () ->
       match r.paths with
       | None -> Bases.bottom, Base.Hptset.empty
       | Some _ when r.unlocated_write -> r.writes, Base.Hptset.empty
@@ -347,9 +380,17 @@ let capture stack compute =
       exit_writes;
       sure_writes;
       designated = r.designated;
+      owners = r.owners;
       recorded = List.sort compare r.recorded;
       refusals = List.sort compare r.refusals;
     } in
+    let pass_on parent =
+      List.iter
+        (fun reason -> if inherited reason then add_refusal parent reason)
+        result.refusals;
+      parent.owners <- Base.Hptset.union parent.owners result.owners
+    in
+    Option.iter pass_on previous;
     without_recording (fun () -> Hooks.apply (stack, result));
     output, Some result
 

@@ -23,11 +23,11 @@
 [eva:progress] Recording results for alloc
 [eva:progress] Done for function alloc
 [eva:cache] cache_dispositions.c:34: 
-  call to alloc: lookup: no-candidate; execution: analysed; storage: refused (not-cacheable); collector: refused (builtin)
+  call to alloc: lookup: no-candidate; execution: analysed; storage: refused (not-cacheable); collector: refused (allocation)
 [eva:progress] Recording results for main
 [eva:progress] Done for function main
 [eva:cache] 
-  call to main: lookup: no-candidate; execution: analysed; storage: refused (not-cacheable); collector: refused (sweep)
+  call to main: lookup: no-candidate; execution: analysed; storage: refused (not-cacheable); collector: refused (allocation)
 [eva] ====== VALUES COMPUTED ======
 [eva:final-states] Values at end of function leaf:
   __retres ∈ {2}
