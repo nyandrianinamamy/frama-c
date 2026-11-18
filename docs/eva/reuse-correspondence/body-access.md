@@ -35,8 +35,8 @@ report possibly written blocks. An exact write contributes sure bits within
 its transfer. A changed valuation binding, scope binding installation
 (including `-eva-initialized-locals`, the return slot and the uninitialized
 binding of a volatile local) or scope binding removal only contributes a
-possible write. Changed ACSL predicate bindings
-contribute Top to the possible writes, in addition to the clause's refusal.
+possible write. Predicate reductions contribute possible writes as described
+in [Annotation and contract reads](#annotation-and-contract-reads).
 
 The cvalue audit covers the following state updates.
 
@@ -118,8 +118,10 @@ Indirect targets refuse both at the call transfer and at entry of a body
 reached through an indirect call. A nested call refuses its enclosing body
 whether resolved to a fresh body, a hit, a specification or a builtin.
 The collector does not compose child observations in this slice. An
-unsupported contract or annotation read has a Top bound. Used builtins and
-sweeps mark their active recorder. Allocation targets and unknown sets are
+unsupported contract or annotation read has a Top bound.
+[Annotation and contract reads](#annotation-and-contract-reads) lists the
+supported observation paths. Used builtins and sweeps mark their active
+recorder. Allocation targets and unknown sets are
 checked independently of which accesses appear in the matching sets. The
 collector also refuses recursive invocations, concurrent analysis and any
 domain structure other than a single unrestricted cvalue domain.
@@ -158,8 +160,7 @@ would-store. The mthread case checks that
 cumulative statistics snapshot per analysis, across repeated `Computed`
 notifications, and matches the verdict log and the final statistics.
 
-**Open.** Contract and annotation read coverage, child composition and
-replay are pending. A would-store verdict does not establish that a body can
+**Open.** Child composition and replay are pending. A would-store verdict does not establish that a body can
 be reused in another context.
 
 ## Side tables and recorded joins
@@ -182,8 +183,8 @@ their existing protocols outside the body observations.
 
 **Argument.** Program and AST-derived information, effective contracts,
 configuration, builtin selection, static widening hints, return slots and
-initial-state blocks are fixed for the observed run. Evaluating a contract is
-a separate refusal involving reads of program memory.
+initial-state blocks are fixed for the observed run. ACSL evaluation observes
+reads of program memory and can also refuse on a side-table access.
 
 Reached statements, states, caller sites, guard outcomes, alarms, statuses,
 read and write zones, and holder sets are reported as recorded when observed.
@@ -218,3 +219,86 @@ accesses at instrumented paths and at unclassified callback boundaries.
 The side-table audit still needs to cover transitive accesses in helpers and
 persistent memos, and to account for changes between a producer and a future
 lookup.
+
+## Annotation and contract reads
+
+**Claim.** On the admitted cvalue domain, the collector includes reads of
+evaluated assertions, loop invariants and function-contract predicates in R.
+This includes alarms represented as assertions and predicates used to select
+active behaviors. Evaluation without a finite read bound gives R = Top and a
+clause-specific refusal.
+
+**Kind.** OCaml obligation.
+
+**Depends on.** [Whole-block observations and exits](#whole-block-observations-and-exits),
+[Refusal and reporting](#refusal-and-reporting) and
+[Side tables and recorded joins](#side-tables-and-recorded-joins).
+
+**Symbols.** `Transfer_logic.Make.create_from_spec`,
+`Transfer_logic.Make.eval_and_reduce`, `Transfer_logic.Make.interp_annot`,
+`Partition.Make.split_by_predicate`, `Cvalue_domain.State.evaluate_predicate`,
+`Cvalue_domain.State.reduce_by_predicate`, `Logic_access`,
+`Eval_terms.find_indeterminate`, `Eval_terms.find_logic_var`,
+`Eval_terms.eval_forall_predicate`, `Eval_terms.apply_logic_builtin`,
+`Eval_op.find_under_approximation`, `Eval_op.reduce_by_valid_loc`,
+`Eval_op.reduce_by_initialized_defined`, `Builtins_string.read_char`.
+
+**Argument.** The engine scopes recording around behavior selection,
+evaluation and reduction of clauses, and ACSL predicate splits. The same
+evaluator serves assertions and loop invariants, including alarm assertions
+that Eva evaluates. Contract predicates use the existing label environments,
+so a read in an available labeled state records the block of that state.
+The global initial state used for the Init label is fixed for the analysis.
+Function preconditions retain their call-site scope, including inactive
+`requires` status emission.
+
+The cvalue evaluator reports actual locations before validity narrowing.
+This covers scalar loads, the under-approximation query, reads of the
+initializedness and dangling flags, logic-variable bindings fetched from
+cvalue, and loads used while reducing a predicate. String primitives use the
+existing builtin search on offsetmaps of the bases of their pointer argument.
+All those bases are recorded at the wrapper boundary, even if the search
+visits only a prefix of a string. Locations, raw values and computed terms
+also report designations, including a pointer whose target is tested for
+validity without loading that target. Logic-variable reads can conservatively
+add their synthetic blocks to the footprint.
+
+Unsupported evaluation and unbounded locations or targets refuse as
+`annotation` or `contract`. This covers an opaque predicate that cannot be
+inlined, an unavailable label and unavailable logic operations. A finite
+location can still fault during evaluation. The locations evaluated before
+such a failure are reported and Eva's existing error handling determines the
+predicate status. The logic predicate `\freeable` reads the mutable allocation
+table and refuses as `side-table`; the evaluator's ordered logic warning also
+refuses. Opaque ACSL extensions and assembly assigns retain their
+existing conservative refusals.
+
+After a reduction, the cvalue offsetmap trees of the incoming and outgoing
+states are compared. Each changed, added or removed binding contributes
+a possible write to the transfer. The difference bounds writes that survive
+the evaluation, including changes made by reductions of initializedness and
+dangling flags. Temporary logic environments and infeasible successors have
+no propagated bindings. Differences involving a whole-memory Top state
+have no finite write bound and refuse. These observations supply no sure
+overwrites.
+
+**Evidence.** The evaluator, reduction helpers and string-search wrapper
+were inspected in source. The executable
+[`body-access.t`](../../../plugins/eva/tests/utils/body-access.t/run.t) uses
+[`annotations.c`](../../../plugins/eva/tests/utils/body-access.t/annotations.c)
+and its OCaml observer to assert that behavior selection and ensures read
+their own globals, and that the call-site requires global is absent. It
+asserts the reads of an assertion, a loop invariant, an initializedness
+predicate, a string primitive and a postcondition with Old. It checks the
+valid status of an RteGen assertion and the corresponding body verdict.
+The narrowing case asserts its read and possible exit write, with no sure
+overwrite. Opaque predicates exercise both refusal families and the delivery
+of R = Top to the observer. The freeability case exercises the side-table
+refusal on a static address, and the validity case exercises allocation
+designation without a load of the allocation.
+
+**Open.** Statement contracts are filtered from ordinary statement transfer.
+Eva's assembly interpretation can use their assigns clauses and continues to
+refuse. This entry covers the clause evaluations that Eva actually performs.
+The ordered logic warning path and the audit of transitive side-table accesses
+have source evidence. Safety and Reach replay are pending.

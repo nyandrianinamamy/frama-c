@@ -324,9 +324,8 @@ module Make (Domain: LogicDomain) = struct
 
   let create_from_spec pre funspec =
     let eval_predicate pred =
-      if not (Logic_utils.is_trivially_true pred) then
-        Body_access.unknown_read Contract;
-      Domain.evaluate_predicate (pre_env ~pre) pre pred
+      Logic_access.with_clause Contract (fun () ->
+          Domain.evaluate_predicate (pre_env ~pre) pre pred)
     in
     Active_behaviors.create eval_predicate funspec
 
@@ -364,7 +363,6 @@ module Make (Domain: LogicDomain) = struct
 
   let eval_split_and_reduce ~reduce pred build_env state =
     let env = build_env state in
-    Body_access.unknown_read Contract;
     let status = Domain.evaluate_predicate env state pred in
     let reduced_states =
       if reduce then
@@ -440,7 +438,8 @@ module Make (Domain: LogicDomain) = struct
         let is_false = ref true in
         let do_one_state state =
           let status, reduced_states =
-            eval_split_and_reduce ~reduce pr build_env state
+            Logic_access.with_clause Contract (fun () ->
+                eval_split_and_reduce ~reduce pr build_env state)
           in
           if record then emit ~empty:false ip pr status;
           if status <> Alarmset.False then is_false := false;
@@ -564,7 +563,8 @@ module Make (Domain: LogicDomain) = struct
     let pre_env = pre_env ~pre:state in
     fun behavior ->
       let assumes = create_conjunction behavior.b_assumes in
-      Domain.evaluate_predicate pre_env state assumes
+      Logic_access.with_clause Contract (fun () ->
+          Domain.evaluate_predicate pre_env state assumes)
 
 
   (* Reduce the given states according to the given code annotations.
@@ -602,7 +602,6 @@ module Make (Domain: LogicDomain) = struct
         in
         let eval state =
           let env = here_env ~pre:initial_state ~here:state in
-          Body_access.unknown_read Annotation;
           let res = Domain.evaluate_predicate env state p in
           (* if [record] holds, emit kernel status and print a message *)
           if record then emit code_annot res;
@@ -626,7 +625,8 @@ module Make (Domain: LogicDomain) = struct
     | AInvariant (behav, true, p) ->
       let record = record && p.tp_kind <> Admit in
       let reduce = p.tp_kind <> Check in
-      aux ~record ~reduce code_annot behav p.tp_statement
+      Logic_access.with_clause Annotation (fun () ->
+          aux ~record ~reduce code_annot behav p.tp_statement)
     | AInvariant (_, false, _)
     | AVariant _ | AAssigns _ | AAllocation _
     | AStmtSpec _ (*TODO*) -> states

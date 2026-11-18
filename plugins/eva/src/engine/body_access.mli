@@ -50,6 +50,9 @@ val may_write_base : Base.t -> unit
 val unknown_write : unit -> unit
 val check_location : Cvalue.V.t -> unit
 val designate : Cvalue.V.t -> unit
+
+(** Records targets of a bit address without converting or trimming it. *)
+val designate_bits : Addresses.Bits.t -> unit
 val record : Result.recorded -> unit
 val refuse : Result.refusal -> unit
 val unknown_read : Result.refusal -> unit

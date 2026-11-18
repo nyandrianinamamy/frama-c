@@ -22,6 +22,7 @@
 (cram
   (applies_to body-access)
   (deps
+    (package frama-c-rtegen)
     call-cache.t/call-cache.c
     ../mthread/mutex.c
     ../../../../dev/collector_statistics.ml

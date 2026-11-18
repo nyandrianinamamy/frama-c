@@ -28,7 +28,9 @@ let observe_refusals stack (r : Access.t) =
      assert (names r.reads = ["p"]);
      assert_writes r ~may:["q"] ~exit:["q"] ~sure:["q"];
      assert (r.refusals = [])
-   | "annotation" ->
+   | "contract" | "annotation" ->
+     assert (names r.reads = ["x"]);
+     assert (r.refusals = []);
      assert (List.mem Access.Statuses r.recorded)
    | "swept" ->
      assert (List.mem Access.Holders r.recorded)
@@ -36,6 +38,50 @@ let observe_refusals stack (r : Access.t) =
      assert (List.mem Access.Callers r.recorded)
    | _ -> ());
   Format.printf "%s %s@." name (first_reason r)
+
+let observe_annotations stack (r : Access.t) =
+  let name = Kernel_function.get_name (Eva.Callstack.top_kf stack) in
+  let read expected =
+    assert (names r.reads = expected);
+    assert (r.refusals = []);
+    assert (List.mem Access.Statuses r.recorded);
+    Format.printf "%s reads %s@." name (String.concat ", " expected)
+  in
+  match name with
+  | "selected" -> read ["post_only"; "selector"]
+  | "select_behavior" | "use_allocated" -> ()
+  | "read_assertion" -> read ["assertion_only"]
+  | "read_invariant" ->
+    assert (List.mem "invariant_only" (names r.reads));
+    assert (r.refusals = []);
+    assert (List.mem Access.Statuses r.recorded);
+    Format.printf "read_invariant reads invariant_only@."
+  | "read_pointer" -> read ["checked"]
+  | "read_string" -> read ["message"; "text"]
+  | "read_old" -> read ["before_only"; "post_input"]
+  | "narrowing" ->
+    assert_writes r ~may:["narrowed"] ~exit:["narrowed"] ~sure:[];
+    read ["narrowed"]
+  | "opaque_assertion" | "opaque_contract" ->
+    assert (r.reads = Base.SetLattice.top);
+    let reason = if name = "opaque_assertion" then Access.Annotation
+      else Access.Contract
+    in
+    assert (r.refusals = [reason]);
+    assert (List.mem Access.Statuses r.recorded);
+    Format.printf "%s reads Top and refuses %s@." name (first_reason r)
+  | "allocation_table" ->
+    assert (names r.reads = []);
+    assert (r.refusals = [Access.Side_table]);
+    Format.printf "%s refuses side-table@." name
+  | "valid_pointer" ->
+    assert (names r.reads = ["allocated_ptr"]);
+    let allocated = function Base.Allocated _ -> true | _ -> false in
+    assert (Base.SetLattice.exists allocated r.designated);
+    assert (r.refusals = [Access.Allocated_block]);
+    Format.printf "valid_pointer designates an allocated block@."
+  | "alarm_assertion" -> read ["divisor"]
+  | name -> failwith ("unexpected body: " ^ name)
 
 let observe_blocks stack (result : Access.t) =
   match Kernel_function.get_name (Eva.Callstack.top_kf stack) with
@@ -81,7 +127,8 @@ let observe_blocks stack (result : Access.t) =
     Format.printf "volatile local scope entry is a possible write only@."
   | "inactive" ->
     assert (not (List.mem Access.Statuses result.recorded));
-    assert (first_reason result = "contract");
+    assert (names result.reads = ["g"]);
+    assert (result.refusals = []);
     Format.printf "inactive behavior: requires status outside the body@."
   | "inactive_caller" -> ()
   | "temporary_mix" ->
@@ -92,6 +139,7 @@ let observe_blocks stack (result : Access.t) =
 let () =
   let observe stack result =
     match Sys.getenv_opt "EVA_TEST_BODY_ACCESS" with
+    | Some "annotations" -> observe_annotations stack result
     | Some ("refusals" | "inout") -> observe_refusals stack result
     | Some "restricted" ->
       assert (List.mem Access.Side_table result.refusals);

@@ -46,8 +46,8 @@ and the bodies reached through those sites.
   $ EVA_TEST_BODY_ACCESS=refusals frama-c -no-autoload-plugins -load-module eva,inout,test_body_access.cmxs -eva -eva-no-memexec -eva-msg-key cache -eva-statistics-file refused.tsv refusals.c > refused.log 2>&1
   $ grep -E '^(precondition|contract|annotation|swept|copy|nested|indirect_target|indirect_caller|builtin|main) ' refused.log
   precondition would-store
-  contract contract
-  annotation annotation
+  contract would-store
+  annotation would-store
   swept sweep
   copy allocated-block
   nested nested-call
@@ -57,15 +57,15 @@ and the bodies reached through those sites.
   main builtin
   $ awk -F '\t' '/^collector-/ { print $1, $2, $4 }' refused.tsv
   collector-refused-allocated-block copy 1
-  collector-refused-annotation annotation 1
   collector-refused-builtin builtin 1
   collector-refused-builtin main 1
-  collector-refused-contract contract 1
   collector-refused-indirect-call indirect_target 1
   collector-refused-indirect-call indirect_caller 1
   collector-refused-nested-call nested 1
   collector-refused-sweep swept 1
   collector-would-store precondition 1
+  collector-would-store contract 1
+  collector-would-store annotation 1
 
 The uninitialized binding installed for a volatile local at scope entry is a
 possible write, not a sure overwrite. The status of a requires clause of an
@@ -176,3 +176,68 @@ snapshot per analysis, with the same builtin total as the log and final TSV.
   $ awk -F '\t' '$1 == "collector-refused-builtin" { sum[FILENAME] += $4 } END { for (i = 1; i < ARGC; i++) print sum[ARGV[i]] }' snapshots/*.tsv mutex.tsv
   42
   42
+
+Behavior selection and ensures read globals absent from the C body. The
+requires clause belongs to the call site.
+
+  $ EVA_TEST_BODY_ACCESS=annotations frama-c -no-autoload-plugins -load-module eva,test_body_access.cmxs -eva -eva-no-memexec -main select_behavior -eva-msg-key cache annotations.c > behavior.log 2>&1
+  $ grep -E '^selected reads|call to selected.*collector:' behavior.log
+  selected reads post_only, selector
+    call to selected: lookup: no-candidate; execution: analysed; storage: refused (disabled); collector: would-store
+
+Assertions, loop invariants, logic memory primitives and postconditions are
+observed through the same collector result. A reduction can narrow a binding
+on a returning path without fully overwriting the block.
+
+  $ clause () { name="$1"; shift; EVA_TEST_BODY_ACCESS=annotations frama-c -no-autoload-plugins -load-module eva,test_body_access.cmxs -eva -eva-no-memexec -eva-msg-key cache -main "$name" annotations.c "$@" > "$name.log" 2>&1; }
+  $ clause read_assertion
+  $ grep '^read_assertion reads' read_assertion.log
+  read_assertion reads assertion_only
+  $ clause read_invariant -eva-slevel 20
+  $ grep '^read_invariant reads' read_invariant.log
+  read_invariant reads invariant_only
+  $ clause read_pointer
+  $ grep '^read_pointer reads' read_pointer.log
+  read_pointer reads checked
+  $ clause read_string
+  $ grep '^read_string reads' read_string.log
+  read_string reads message, text
+  $ clause read_old
+  $ grep '^read_old reads' read_old.log
+  read_old reads before_only, post_input
+  $ clause narrowing -lib-entry
+  $ grep '^narrowing reads' narrowing.log
+  narrowing reads narrowed
+
+An opaque predicate has no finite read bound. The observer still sees the
+body, and the verdict identifies the clause family.
+
+  $ clause opaque_assertion
+  $ grep -E '^opaque_assertion reads|call to opaque_assertion:.*collector:' opaque_assertion.log
+  opaque_assertion reads Top and refuses annotation
+    call to opaque_assertion: lookup: no-candidate; execution: analysed; storage: refused (disabled); collector: refused (annotation)
+  $ clause opaque_contract
+  $ grep -E '^opaque_contract reads|call to opaque_contract:.*collector:' opaque_contract.log
+  opaque_contract reads Top and refuses contract
+    call to opaque_contract: lookup: no-candidate; execution: analysed; storage: refused (disabled); collector: refused (contract)
+
+A logic predicate that checks dynamic allocation metadata refuses even on
+a static address.
+
+  $ clause allocation_table
+  $ grep '^allocation_table refuses' allocation_table.log
+  allocation_table refuses side-table
+
+An alarm installed as an assertion by RteGen is evaluated by the body.
+
+  $ EVA_TEST_BODY_ACCESS=annotations frama-c -no-autoload-plugins -load-module eva,rtegen,test_body_access.cmxs -main alarm_assertion -rte -rte-select alarm_assertion annotations.c -then -eva -eva-no-memexec > alarm_assertion.log 2>&1
+  $ grep -o "assertion 'rte,division_by_zero' got final status valid." alarm_assertion.log
+  assertion 'rte,division_by_zero' got final status valid.
+  $ grep '^alarm_assertion reads' alarm_assertion.log
+  alarm_assertion reads divisor
+
+A validity predicate designates an allocated block without reading it.
+
+  $ clause use_allocated
+  $ grep '^valid_pointer designates' use_allocated.log
+  valid_pointer designates an allocated block

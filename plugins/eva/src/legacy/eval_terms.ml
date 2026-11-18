@@ -45,11 +45,15 @@ let pretty_logic_evaluation_error fmt = function
 
 exception LogicEvalError of logic_evaluation_error
 
-let unsupported s = raise (LogicEvalError (Unsupported s))
-let unsupported_lvar v = raise (LogicEvalError (UnsupportedLogicVar v))
-let ast_error s = raise (LogicEvalError (AstError s))
-let no_env lbl = raise (LogicEvalError (NoEnv lbl))
-let no_result () = raise (LogicEvalError NoResult)
+let unavailable error =
+  Logic_access.unknown_read ();
+  raise (LogicEvalError error)
+
+let unsupported s = unavailable (Unsupported s)
+let unsupported_lvar v = unavailable (UnsupportedLogicVar v)
+let ast_error s = unavailable (AstError s)
+let no_env lbl = unavailable (NoEnv lbl)
+let no_result () = unavailable NoResult
 let c_alarm () = raise (LogicEvalError CAlarm)
 
 (** Three modes to handle the alarms when evaluating a logical term. *)
@@ -79,9 +83,12 @@ let alarm_reduce_mode () =
   if Parameters.ReduceOnLogicAlarms.get () then Ignore else Fail
 
 let find_indeterminate ~alarm_mode state loc =
+  Logic_access.read loc;
   let is_invalid = not Locations.(is_valid Read loc) in
   track_alarms is_invalid alarm_mode;
-  Model.find_indeterminate ~conflate_bottom:true state loc
+  let value = Model.find_indeterminate ~conflate_bottom:true state loc in
+  Logic_access.designate_raw value;
+  value
 
 let find_or_alarm ~alarm_mode state loc =
   let v = find_indeterminate ~alarm_mode state loc in
@@ -306,7 +313,10 @@ let find_logic_var env lvar =
   | Ctype _ ->
     let base = Base.of_c_logic_var lvar in
     let loc = Locations.of_base base in
-    Model.find (env_current_state env) loc
+    Logic_access.read loc;
+    let value = Model.find (env_current_state env) loc in
+    Logic_access.designate value;
+    value
   | _ -> unsupported_lvar lvar
 
 let copy_logic_vars ~src ~dst lvars =
@@ -809,19 +819,20 @@ let cast_to_bool r =
 
 (* Note: "charlen" stands for either strlen or wcslen *)
 
-(* Applies a cvalue [builtin] to the list of arguments [args_list] in the
-   current state of [env]. Returns [v, alarms], where [v] is the resulting
-   cvalue, which can be bottom. *)
-let apply_logic_builtin builtin env args_list =
+(* Applies a cvalue string builtin in the state at the logic label. It
+   may inspect any bits of the blocks designated by [pointer]. *)
+let apply_logic_builtin builtin env pointer args =
   (* the call below could in theory return Builtins.Invalid_nb_of_args,
      but logic typing constraints prevent that. *)
-  builtin (env_current_state env) args_list
+  if Logic_access.is_recording () then
+    Logic_access.read (Locations.make (Addresses.Bits.of_bytes pointer) `Top);
+  builtin (env_current_state env) (pointer :: args)
 
 (* Never raises exceptions; instead, returns [-1,+oo] in case of alarms
    (most imprecise result possible for the logic strlen/wcslen predicates). *)
 let eval_logic_charlen wrapper env v ldeps =
   let eover =
-    let v, alarms = apply_logic_builtin wrapper env [v] in
+    let v, alarms = apply_logic_builtin wrapper env v [] in
     if alarms && not (Cvalue.V.is_bottom v)
     then Cvalue.V.inject_ival (Ival.inject_range (Some Z.minus_one) None)
     else v
@@ -835,7 +846,7 @@ let eval_logic_charlen wrapper env v ldeps =
 (* Evaluates the logical predicates strchr/wcschr. *)
 let eval_logic_charchr builtin env s c ldeps_s ldeps_c =
   let eover =
-    let v, alarms = apply_logic_builtin builtin env [s; c] in
+    let v, alarms = apply_logic_builtin builtin env s [c] in
     if Cvalue.V.is_bottom v then v else
     if alarms then Cvalue.V.zero_or_one else
       let ctrue = Cvalue.V.contains_non_zero v
@@ -861,8 +872,7 @@ let eval_logic_memchr_off builtin env s c n =
   let n_pos = Cvalue.V.narrow positive pred_n in
   let eover =
     if Cvalue.V.is_bottom n_pos then minus_one else
-      let args = [s.eover; c.eover; n_pos] in
-      let v, alarms = apply_logic_builtin builtin env args in
+      let v, alarms = apply_logic_builtin builtin env s.eover [c.eover; n_pos] in
       if Cvalue.V.is_bottom v then pred_n else
       if alarms then Cvalue.V.join pred_n v else
       if Cvalue.V.equal n_pos pred_n then v else
@@ -894,7 +904,7 @@ let eval_valid_read_str ~wide env v =
     if wide then Builtins_string.frama_c_wcslen_wrapper
     else Builtins_string.frama_c_strlen_wrapper
   in
-  let v, alarms = apply_logic_builtin wrapper env [v] in
+  let v, alarms = apply_logic_builtin wrapper env v [] in
   if Cvalue.V.is_bottom v
   then False (* bottom state => string always invalid *)
   else if alarms
@@ -924,6 +934,7 @@ let eval_valid_str ~wide env v =
    stored in [loc] in [state].  *)
 let forall_in_over_location state loc test =
   let v = Model.find_indeterminate state loc in
+  Logic_access.designate_raw v;
   test v
 
 (* Do all the possible values of a location in [state] satisfy [test]?  [loc] is
@@ -933,6 +944,7 @@ let forall_in_over_location state loc test =
 let forall_in_under_location state loc test =
   let exception EFalse in
   let inspect_value (_, _) (value, _, _) acc =
+    Logic_access.designate_raw value;
     match test value with
     | True | Unknown -> acc
     | False -> raise EFalse
@@ -958,6 +970,7 @@ let eval_forall_predicate state r test =
   let size_bits = Eval_typ.sizeof_lval_typ r.etype in
   let make_loc addr = Locations.make addr size_bits in
   let over_loc = make_loc r.eover in
+  Logic_access.read over_loc;
   if not Locations.(is_valid Read over_loc) then c_alarm ();
   match forall_in_over_location state over_loc test with
   | Unknown ->
@@ -1018,6 +1031,11 @@ let forward_binop typ v1 op v2 =
   | _ -> forward_binop_by_type typ v1 op v2
 
 let rec eval_term ~alarm_mode env t =
+  let result = eval_term_node ~alarm_mode env t in
+  Logic_access.designate result.eover;
+  result
+
+and eval_term_node ~alarm_mode env t =
   match t.term_node with
   | Tat (t, lab) ->
     ignore (env_state env lab);
@@ -1551,7 +1569,9 @@ and eval_known_logic_function ~alarm_mode env li labels args =
     end
 
   (* Not supported by cvalue, evaluated by the taint domain. *)
-  | "security_status", _, _, [_t] -> einteger Cvalue.V.top_int
+  | "security_status", _, _, [_t] ->
+    Logic_access.unknown_read ();
+    einteger Cvalue.V.top_int
 
   | _ -> assert false
 
@@ -1810,10 +1830,12 @@ and eval_toffset ~alarm_mode env typ toffset =
 and eval_tlval ~alarm_mode env (thost, toffs) =
   let rhost = eval_tlhost ~alarm_mode env thost in
   let roffset = eval_toffset ~alarm_mode env rhost.etype toffs in
+  let eover = Addresses.Bits.shift roffset.eover rhost.eover in
+  Logic_access.designate_bits eover;
   { etype = roffset.etype;
     ldeps = join_logic_deps rhost.ldeps roffset.ldeps;
     eunder = Addresses.Bits.shift_under roffset.eunder rhost.eunder;
-    eover = Addresses.Bits.shift roffset.eover rhost.eover;
+    eover;
     empty = rhost.empty || roffset.empty;
   }
 
@@ -2099,7 +2121,7 @@ and reduce_by_valid_string ~alarm_mode env positive ~wide ~access arg =
     in
     let aux base offset acc =
       let value = Cvalue.V.inject base offset in
-      let v, alarms = apply_logic_builtin wrapper env [value] in
+      let v, alarms = apply_logic_builtin wrapper env value [] in
       (* Beware of not removing const strings on the negation of \valid_string. *)
       let alarms = alarms || (access = Write && Base.is_read_only base) in
       if (positive && Cvalue.V.is_bottom v)
@@ -2413,7 +2435,7 @@ and reduce_by_predicate ~alarm_mode env positive p =
           | LogicEvalError _ | Not_an_exact_loc -> env
         else
           match Inline.inline_predicate ~inline ~current:env.e_cur p with
-          | None -> env
+          | None -> Logic_access.unknown_read (); env
           | Some p' -> reduce_by_predicate_content env positive p'.pred_content
       end
     | _,Pif (pcond, ptrue, pfalse) ->
@@ -2699,7 +2721,7 @@ and eval_predicate env pred =
           eval_known_papp env li labels args
         else
           match Inline.inline_predicate ~inline ~current:env.e_cur p with
-          | None -> Unknown
+          | None -> Logic_access.unknown_read (); Unknown
           | Some p' -> do_eval env p'
       end
 
@@ -2715,8 +2737,11 @@ and eval_predicate env pred =
       end
     | Pfreeable (BuiltinLabel Here, t) ->
       let r = eval_term ~alarm_mode env t in
+      Logic_access.refuse_side_table ();
       Builtins_malloc.freeable r.eover
-    | Pfresh _ | Pallocable _ | Pfreeable _ -> Unknown
+    | Pfresh _ | Pallocable _ | Pfreeable _ ->
+      Logic_access.unknown_read ();
+      Unknown
 
   (* Logic predicates. Update the list known_predicates above if you
      add something here. *)
@@ -2762,6 +2787,7 @@ and eval_predicate env pred =
     | ("\\ge_float" | "\\ge_float32" | "\\ge_float64" | "\\ge_double"),
       [arg1;arg2] -> fval_cmp Rge arg1 arg2
     | "\\warning", _ -> begin
+        Logic_access.refuse_side_table ();
         match args with
         | [{ term_node = TConst(LStr(str))}] ->
           Self.warning "reached \\warning(\"%s\")" str; Unknown
@@ -2787,6 +2813,7 @@ and eval_predicate env pred =
                     as [V.is_included bottom r.eunder] holds. *)
       else Unknown
     | ("\\tainted" | "\\tainted_directly" | "\\tainted_indirectly"), [_] ->
+      Logic_access.unknown_read ();
       Unknown
     | "valid_read_string", [arg] ->
       let r = eval_term ~alarm_mode env arg in

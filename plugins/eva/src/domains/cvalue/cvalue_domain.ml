@@ -250,8 +250,7 @@ module State = struct
     let eval_env = Eval_terms.make_env (lift_env logic_env) state in
     let eval_env = Eval_terms.reduce_by_predicate eval_env b pred in
     let reduced = Eval_terms.env_current_state eval_env in
-    if Body_access.is_recording () && not (Cvalue.Model.equal state reduced) then
-      Body_access.unknown_write ();
+    Logic_access.record_reduction ~before:state ~after:reduced;
     let state = reduced in
     if Cvalue.Model.is_reachable state
     then `Value (state, clob)

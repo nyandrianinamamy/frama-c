@@ -645,7 +645,8 @@ struct
         | Expression exp ->
           split_by_value ~monitor state exp
         | Predicate pred ->
-          split_by_predicate state pred
+          Logic_access.with_clause Annotation (fun () ->
+              split_by_predicate state pred)
       in
       List.map update_key states
     with Operation_failed -> [(key,state)]

@@ -113,9 +113,9 @@ let check_location value =
   | None -> ()
   | Some r -> check_bases r (Cvalue.V.get_bases value)
 
-let add_designated r value =
+let add_designated r bases =
   let bases =
-    match Cvalue.V.get_bases value with
+    match bases with
     | Bases.Top -> Bases.top
     | Bases.Set bases -> Bases.inject (Base.Hptset.remove Base.null bases)
   in
@@ -125,7 +125,12 @@ let add_designated r value =
 let[@inline always] designate value =
   match !current with
   | None -> ()
-  | Some r -> add_designated r value
+  | Some r -> add_designated r (Cvalue.V.get_bases value)
+
+let designate_bits addr =
+  match !current with
+  | None -> ()
+  | Some r -> add_designated r (Addresses.Bits.get_bases addr)
 
 let add_write r may sure =
   r.writes <- Bases.join r.writes may;
