@@ -320,6 +320,10 @@ let memexec_hits =
   register_function_stat "memexec-hits" Int
 let memexec_misses =
   register_function_stat "memexec-misses" Int
+let memexec_stored =
+  register_function_stat "memexec-stored" Int
+let memexec_refused reason =
+  register_function_stat ("memexec-refused-" ^ reason) Int
 let max_widenings =
   register_statement_stat "max-widenings" Int
 let max_unrolling =

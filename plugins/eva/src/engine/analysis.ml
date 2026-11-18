@@ -114,7 +114,7 @@ let post_analysis (type t) (engine: t engine) mthread_analysis final_state =
   (* Try to refine the 'Unknown' statuses that have been emitted during
      this analysis. *)
   Eval_annots.mark_green_and_red ();
-  Mem_exec.cleanup_results ();
+  Call_cache.cleanup_results ();
   (* Remove redundant alarms *)
   if Parameters.RmAssert.get () then Eva_dynamic.Scope.rm_asserts ();
   (* The above functions may have changed the status of alarms. *)
@@ -192,8 +192,8 @@ let compute_thread (type t) (engine: t engine) ?cvalue_state thread =
     then None (* use generated main arguments *)
     else Some (List.map snd arguments)
   in
-  (* In multi thread analyses, Memexec cache must be invalidated *)
-  Mem_exec.cleanup_results ();
+  (* In multi thread analyses, the cache of calls must be invalidated *)
+  Call_cache.cleanup_results ();
   compute_from_entry_point engine
     ~thread ?cvalue_state ?arguments entry_point
 

@@ -1,0 +1,43 @@
+[kernel] Parsing cache_dispositions.c (with preprocessing)
+[eva] Analyzing a complete application starting at main
+[eva:progress] Computing initial state
+[eva:progress] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  
+[eva:progress] 
+  computing for function leaf <- main.
+  Called from cache_dispositions.c:32.
+[eva:show] cache_dispositions.c:23: Frama_C_show_each_leaf: {1}
+[eva:progress] Recording results for leaf
+[eva:progress] Done for function leaf
+[eva:cache] cache_dispositions.c:32: 
+  call to leaf: lookup: no-candidate; execution: analysed; storage: stored (entry 1)
+[eva:cache] cache_dispositions.c:33: 
+  call to leaf: lookup: hit (entry 1); execution: not-analysed; storage: none
+[eva:progress] cache_dispositions.c:33: Reusing old results for call to leaf
+[eva:progress] 
+  computing for function alloc <- main.
+  Called from cache_dispositions.c:34.
+[eva:progress] cache_dispositions.c:28: Call to builtin malloc
+[eva:malloc:new] cache_dispositions.c:28: allocating variable __malloc_alloc_l28
+[eva:progress] Recording results for alloc
+[eva:progress] Done for function alloc
+[eva:cache] cache_dispositions.c:34: 
+  call to alloc: lookup: no-candidate; execution: analysed; storage: refused (not-cacheable)
+[eva:progress] Recording results for main
+[eva:progress] Done for function main
+[eva:cache] 
+  call to main: lookup: no-candidate; execution: analysed; storage: refused (not-cacheable)
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function leaf:
+  __retres ∈ {2}
+[eva:final-states] Values at end of function alloc:
+  __fc_heap_status ∈ [--..--]
+  errno ∈ [--..--]
+[eva:final-states] Values at end of function main:
+  __fc_heap_status ∈ [--..--]
+  errno ∈ [--..--]
+  a ∈ {2}
+  b ∈ {2}
+  p ∈ {{ NULL ; &__malloc_alloc_l28 }}
+  __retres ∈ {4; 5}

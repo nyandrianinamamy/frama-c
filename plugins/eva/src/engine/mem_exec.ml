@@ -20,11 +20,20 @@ let cleanup_ref = ref (fun () -> ())
    self and add dependencies *)
 let cleanup_results () = !cleanup_ref ()
 
-exception TooImprecise
+type refusal = [
+  | `Not_cacheable
+  | `No_inout
+  | `Footprint_top
+  | `Relate_top
+  | `Relate_unclosed
+  | `Exception
+]
+
+exception Refused of refusal
 
 (* Extract all the bases from a zone *)
 let bases = function
-  | Memory_zone.Top (Base.SetLattice.Top, _) -> raise TooImprecise
+  | Memory_zone.Top (Base.SetLattice.Top, _) -> raise (Refused `Footprint_top)
   | Memory_zone.Top (Base.SetLattice.Set s, _) -> s
   | Memory_zone.Map m -> Base.Hptset.from_map (Memory_zone.shape m)
 
@@ -114,22 +123,24 @@ module Make
      applying the memexec cache, as their values may impact the analysis of [kf]
      starting from state [state].
      As a full fixpoint computation could be costly, we stop after [count] calls
-     to [Domain.relate] and we disable memexec if a fixpoint is not reached. *)
+     to [Domain.relate] and we disable memexec if a fixpoint is not reached.
+     Raises [Refused] when [relate] returns [Top] or when no fixpoint is
+     reached. *)
   let rec expand_inputs_with_relations count kf bases state =
     let related_bases = Domain.relate bases state in
     match related_bases with
-    | Base.SetLattice.Top -> related_bases
+    | Base.SetLattice.Top -> raise (Refused `Relate_top)
     | Base.SetLattice.Set new_bases ->
       let expanded_bases = Base.Hptset.union new_bases bases in
       if Base.Hptset.equal expanded_bases bases
-      then Base.SetLattice.inject expanded_bases
-      else if count <= 0 then Base.SetLattice.top
+      then expanded_bases
+      else if count <= 0 then raise (Refused `Relate_unclosed)
       else expand_inputs_with_relations (count - 1) kf expanded_bases state
 
-  let store_computed_call kf input_state args
+  let store_cacheable_call kf input_state args
       (call_result: (Partition.key * Domain.t) list) =
     match Transfer_stmt.current_kf_inout () with
-    | None -> ()
+    | None -> Error `No_inout
     | Some inout ->
       try
         let output_bases = bases inout.Inout_type.over_outputs_if_termination in
@@ -158,10 +169,6 @@ module Make
         in
         let input_bases =
           expand_inputs_with_relations 2 kf input_bases input_state
-        in
-        let input_bases = match input_bases with
-          | Base.SetLattice.Top -> raise TooImprecise
-          | Base.SetLattice.Set bases -> bases
         in
         let state_input = Domain.filter input_bases input_state in
         (* Outputs bases, that is bases that are copy-pasted, also include
@@ -207,11 +214,17 @@ module Make
         in
         Domain.Hashtbl.add hkb state_input
           (all_output_bases, outputs, call_number);
+        Ok call_number
       with
-      | TooImprecise
+      | Refused reason -> Error reason
       | Kernel_function.No_Statement
-      | Not_found -> ()
+      | Not_found -> Error `Exception
 
+  let store_computed_call kf input_state args
+      (call_result: Domain.t Engine_sig.call_result) =
+    if call_result.cacheable <> Eval.Cacheable
+    then Error `Not_cacheable
+    else store_cacheable_call kf input_state args call_result.states
 
   exception Result_found of CallOutput.t * int
 
@@ -245,14 +258,10 @@ module Make
       let args = List.map (function `Bottom -> None | `Value v -> Some v) args in
       let previous = ActualArgs.Map.find args previous_kf in
       find_match_in_previous previous state;
-      Statistics.(incr memexec_misses kf);
       None
     with
-    | Not_found ->
-      Statistics.(incr memexec_misses) kf;
-      None
+    | Not_found -> None
     | Result_found (outputs, i) ->
-      Statistics.(incr memexec_hits) kf;
       let call_result = outputs in
       Some (call_result, i)
 

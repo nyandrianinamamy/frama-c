@@ -1,0 +1,7 @@
+memexec-hits	leaf		1
+memexec-misses	leaf		1
+memexec-misses	alloc		1
+memexec-misses	main		1
+memexec-refused-not-cacheable	alloc		1
+memexec-refused-not-cacheable	main		1
+memexec-stored	leaf		1

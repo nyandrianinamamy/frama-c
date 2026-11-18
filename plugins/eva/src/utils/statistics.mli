@@ -45,6 +45,14 @@ val memexec_hits : (Cil_types.kernel_function, int) t
 (** Count of memexec cache misses. *)
 val memexec_misses : (Cil_types.kernel_function, int) t
 
+(** Count of results stored in the cache of calls. *)
+val memexec_stored : (Cil_types.kernel_function, int) t
+
+(** [memexec_refused reason] is the count of results whose storage in the cache
+    of calls was refused for [reason], the stable identifier of a reason given
+    by [Call_cache.refusal_id]. Its name is [memexec-refused-REASON]. *)
+val memexec_refused : string -> (Cil_types.kernel_function, int) t
+
 (** Maximum number of successive widening computed at each widening
     statement. *)
 val max_widenings : (Cil_types.stmt, int) t

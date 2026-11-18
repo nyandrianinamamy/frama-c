@@ -36,25 +36,19 @@ module Make (Engine: Engine_sig.S) = struct
     let cvalue_state = Engine.Dom.get_cvalue_or_top state in
     Cvalue_callbacks.apply_call_results_hooks call.callstack call.kf cvalue_state
 
-  (* ----- Mem Exec cache --------------------------------------------------- *)
+  (* ----- Cache of calls --------------------------------------------------- *)
 
-  module MemExec = Mem_exec.Make (Engine.Val) (Engine.Dom)
+  module Cache = Call_cache.Make (Engine.Val) (Engine.Dom)
 
+  (* Interprets a [call] in the state [init_state] by [compute], which analyzes
+     the body of the called function, unless the cache has a matching entry. *)
   let compute_and_cache_call compute call init_state =
-    let args =
-      List.map (fun {avalue} -> Eval.value_assigned avalue) call.arguments
-    in
-    match MemExec.reuse_previous_call call.kf init_state args with
-    | None ->
+    match Cache.lookup call init_state with
+    | Cache.No_candidate ->
       let call_result = compute call init_state in
-      let () =
-        if call_result.Engine_sig.cacheable = Eval.Cacheable
-        then
-          let final_states = call_result.states in
-          MemExec.store_computed_call call.kf init_state args final_states
-      in
+      Cache.store call init_state call_result;
       call_result
-    | Some (states, i) ->
+    | Cache.Hit (i, states) ->
       apply_call_hooks call init_state `Reuse;
       (* Evaluate the preconditions of kf, to update the statuses
          at this call. *)
@@ -194,9 +188,7 @@ module Make (Engine: Engine_sig.S) = struct
     | `Spec _ as spec -> compute_using_spec_or_body spec call state
     | `Body _ as def ->
       let compute = compute_using_spec_or_body def in
-      if Parameters.Memexec.get ()
-      then compute_and_cache_call compute call state
-      else compute call state
+      compute_and_cache_call compute call state
 
   (* Defines the target of the analysis of a call, and analyze it.
      Exported in [Engine_sig.Compute] and used by [Transfer_stmt] when
