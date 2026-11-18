@@ -28,6 +28,7 @@ let register_call call =
   match Callstack.top_caller call.callstack with
   | None -> CallersTable.add kf Kernel_function.Map.empty
   | Some (callsite, caller) ->
+    Body_access.record Callers;
     let callsite = StmtSet.singleton callsite in
     let change calls =
       let prev_stmts = Kernel_function.Map.find_opt caller calls in

@@ -70,12 +70,20 @@ let pretty_storage fmt : storage_disposition -> unit = function
   | `Refused reason -> Format.fprintf fmt "refused (%s)" (refusal_id reason)
 
 (* Prints the dispositions of the call [call] under the message category. *)
-let report call ~lookup ~execution ~storage =
+let report ?collector call ~lookup ~execution ~storage =
   if Self.is_message_category_enabled mkey then
     let pretty_call fmt =
-      Format.fprintf fmt "call to %a: lookup: %a; execution: %a; storage: %a"
+      let pretty_collector fmt = function
+        | None -> ()
+        | Some (Ok ()) -> Format.pp_print_string fmt "; collector: would-store"
+        | Some (Error reason) ->
+          Format.fprintf fmt "; collector: refused (%s)"
+            (Body_access.Result.refusal_id reason)
+      in
+      Format.fprintf fmt "call to %a: lookup: %a; execution: %a; storage: %a%a"
         Kernel_function.pretty call.kf
         pretty_lookup lookup pretty_execution execution pretty_storage storage
+        pretty_collector collector
     in
     match Callstack.top_callsite call.callstack with
     | Kstmt stmt ->
@@ -120,7 +128,7 @@ module Make
           ~lookup:(`Hit id) ~execution:`Not_analysed ~storage:`None;
         Hit (id, states)
 
-  let store call state pending call_result =
+  let store call state pending call_result footprint =
     let kf = call.kf in
     let storage =
       match pending with
@@ -135,7 +143,15 @@ module Make
           Statistics.(incr (memexec_refused (refusal_id reason)) kf);
           `Refused reason
     in
-    report call ~lookup:`No_candidate ~execution:`Analysed ~storage
+    let collector = Option.map Body_access.verdict footprint in
+    Option.iter
+      (function
+        | Ok () -> Statistics.(incr collector_would_store kf)
+        | Error reason ->
+          let reason = Body_access.Result.refusal_id reason in
+          Statistics.(incr (collector_refused reason) kf))
+      collector;
+    report ?collector call ~lookup:`No_candidate ~execution:`Analysed ~storage
 
   (* Called while an exception leaves the analysis of a body. A failure of
      the report, for instance in a listener of the log, must not replace this

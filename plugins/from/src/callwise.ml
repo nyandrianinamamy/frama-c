@@ -148,8 +148,8 @@ let record_for_individual_froms callstack kf pre_state value_res =
 (* Register our callbacks inside the value analysis *)
 let () =
   Eva.Cvalue_callbacks.register_at_start_hook reset;
-  Eva.Cvalue_callbacks.register_call_hook call_for_individual_froms;
-  Eva.Cvalue_callbacks.register_call_results_hook record_for_individual_froms
+  Eva.Cvalue_callbacks.register_call_hook ~cache_protocol:true call_for_individual_froms;
+  Eva.Cvalue_callbacks.register_call_results_hook ~cache_protocol:true record_for_individual_froms
 
 let iter = Tbl.iter
 let find = Tbl.find

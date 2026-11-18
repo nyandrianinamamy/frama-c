@@ -37,6 +37,7 @@ let condition_truth_value s =
 let record_fireable edge =
   match edge.edge_transition with
   | Guard (_exp, kind, stmt) ->
+    Body_access.record Guards;
     let b_then, b_else = condition_truth_value stmt in
     let new_status =
       match kind with
@@ -228,7 +229,10 @@ module Make_Dataflow
     (* There should be only one statement contract, if any. *)
     | (_, spec) :: _ ->
       let assigns = Ast_info.merge_assigns_from_spec ~warn:false spec in
-      lift (Engine.Transfer_specification.treat_statement_assigns ~pos assigns)
+      fun input ->
+        Body_access.unknown_access Contract;
+        lift (Engine.Transfer_specification.treat_statement_assigns ~pos assigns)
+          input
 
   let transfer_call ~pos (dest : lval option) (callee : lhost)
       (args : exp list) (key, state : key * state) : (key * state) list =
@@ -267,7 +271,9 @@ module Make_Dataflow
     | Call (dest, callee, args, stmt) ->
       transfer_call ~pos:(local stmt) dest callee args
     | Asm (_,_,_,stmt) ->
-      transfer_asm ~pos:(local stmt)
+      fun input ->
+        Body_access.unknown_access Side_table;
+        transfer_asm ~pos:(local stmt) input
     | Enter (block) | Leave (block) when block.blocals = [] ->
       id
     | Leave (block) when blocks_share_locals fundec.sbody block ->
@@ -359,15 +365,20 @@ module Make_Dataflow
     let {edge_transition=transition; edge_kinstr=kinstr} = e in
     let tank = get_edge_data e in
     let flow = Partitioning.drain tank in
-    Async.yield ();
+    Body_access.without_recording Async.yield;
     Signal.check ();
     current_ki := kinstr;
     let open Current_loc.Operators in
     let<> UpdatedCurrentLoc = e.edge_loc in
     let pos = Position.of_kinstr e.edge_kinstr callstack in
-    let flow =
-      Partitioning.transfer (transfer_transition ~pos transition) flow
+    let transfer = transfer_transition ~pos transition in
+    let transfer =
+      if Body_access.is_recording () then
+        Body_access.transfer ~id:e.edge_key
+          ~src:v1.vertex_key ~dst:v2.vertex_key transfer
+      else transfer
     in
+    let flow = Partitioning.transfer transfer flow in
     let flow = process_partitioning_transitions v1 v2 flow in
     if not (Partitioning.is_empty_flow flow) then
       record_fireable e;
@@ -378,6 +389,7 @@ module Make_Dataflow
     | None -> []
 
   let call_statement_callbacks (stmt : stmt) (f : flow) : unit =
+    if not (Partitioning.is_empty_flow f) then Body_access.record Reached;
     (* TODO: apply on all domains. *)
     let states = List.map snd (Partitioning.contents f) in
     let cvalue_states = gather_cvalues states in
@@ -537,7 +549,10 @@ module Make_Dataflow
     else
       iterate_list automaton.wto;
     let final_store = get_vertex_store automaton.return_point in
-    Partitioning.expanded final_store
+    let results = Partitioning.expanded final_store in
+    Body_access.finish_paths ~entry:automaton.entry_point.vertex_key
+      ~exit:automaton.return_point.vertex_key ~returns:(results <> []);
+    results
 
 
   (* --- Results conversion --- *)
@@ -597,8 +612,14 @@ module Make_Dataflow
     and merged_post_cvalues = lazy (lift_to_cvalues merged_post_states) in
     if save_results then begin
       let register = Domain.Store.register_state callstack in
-      let register_pre stmt = register (Before stmt)
-      and register_post stmt = register (After stmt) in
+      let register_pre stmt state =
+        Body_access.record States;
+        register (Before stmt) state
+      in
+      let register_post stmt state =
+        Body_access.record States;
+        register (After stmt) state
+      in
       StmtTable.iter register_pre (Lazy.force merged_pre_states);
       StmtTable.iter register_post (Lazy.force merged_post_states);
     end;

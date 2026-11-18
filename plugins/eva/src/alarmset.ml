@@ -230,6 +230,7 @@ module Alarm_cache =
    For now, alarms emitted at Kglobal are bound to the first statement of the
    main function by the kernel, so we also need to check this case. *)
 let already_emitted stmt alarm =
+  Body_access.refuse Side_table;
   Alarm_cache.mem (Kstmt stmt, alarm)
   || Kernel_function.is_first_stmt (fst (Globals.entry_point ())) stmt
      && Alarm_cache.mem (Kglobal, alarm)
@@ -251,6 +252,10 @@ let string_fkind fk = Format.asprintf "%a" Printer.pp_fkind fk
 (** Emitting alarms *)
 
 let register_alarm ~pos alarm status str =
+  Body_access.record Alarms;
+  Body_access.record Statuses;
+  if Parameters.StopAtNthAlarm.get () < max_int then
+    Body_access.refuse Side_table;
   let ki = Position.kinstr pos in
   let status = match status with
     | True -> Property_status.True

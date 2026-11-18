@@ -1,0 +1,8 @@
+(executable
+  (name "test_body_access")
+  (modules "test_body_access")
+  (modes plugin)
+  (libraries frama-c.kernel "frama-c-eva.core")
+  (flags :standard -open Frama_c_kernel)
+  (promote (until-clean))
+)

@@ -42,17 +42,30 @@ module Make (Engine: Engine_sig.S) = struct
 
   (* Interprets a [call] in the state [init_state] by [compute], which analyzes
      the body of the called function, unless the cache has a matching entry. *)
-  let compute_and_cache_call compute call init_state =
+  let compute_and_cache_call ~recursive compute call init_state =
     match Cache.lookup call init_state with
     | Cache.No_candidate pending ->
-      let call_result =
-        try compute call init_state
+      let call_result, footprint =
+        try
+          Body_access.capture call.callstack (fun () ->
+              if Body_access.is_recording () then begin
+                begin match Callstack.top_callsite call.callstack with
+                  | Kstmt { skind = Instr (Call (_, Mem _, _, _)); _ } ->
+                    Body_access.refuse Indirect_call
+                  | _ -> ()
+                end;
+                if recursive || Engine.Dom.name <> "cvalue"
+                   || Mt_options.Enabled.get ()
+                   || call.callstack.thread <> Thread.main_id
+                then Body_access.unknown_access Side_table
+              end;
+              compute call init_state)
         with exn ->
           let backtrace = Printexc.get_raw_backtrace () in
           Cache.interrupted call;
           Printexc.raise_with_backtrace exn backtrace
       in
-      Cache.store call init_state pending call_result;
+      Cache.store call init_state pending call_result footprint;
       call_result
     | Cache.Hit (i, states) ->
       apply_call_hooks call init_state `Reuse;
@@ -187,14 +200,18 @@ module Make (Engine: Engine_sig.S) = struct
 
   (* Interprets a [call] in the state [state], using a builtin, specification or
      the body of the called function according to [target]. *)
-  let compute_call_with_target call target state =
+  let compute_call_with_target ~recursive call target state =
     Function_calls.register_analysis_target call target;
     match target with
-    | `Builtin builtin_info -> compute_builtin builtin_info call state
-    | `Spec _ as spec -> compute_using_spec_or_body spec call state
+    | `Builtin builtin_info ->
+      Body_access.unknown_access Builtin;
+      compute_builtin builtin_info call state
+    | `Spec _ as spec ->
+      Body_access.unknown_access Contract;
+      compute_using_spec_or_body spec call state
     | `Body _ as def ->
       let compute = compute_using_spec_or_body def in
-      compute_and_cache_call compute call state
+      compute_and_cache_call ~recursive compute call state
 
   (* Defines the target of the analysis of a call, and analyze it.
      Exported in [Engine_sig.Compute] and used by [Transfer_stmt] when
@@ -205,7 +222,8 @@ module Make (Engine: Engine_sig.S) = struct
     let callsite = Callstack.top_callsite call.callstack in
     let recursion_depth = Option.map (fun r -> r.depth) recursion in
     let target = Function_calls.analysis_target ?recursion_depth kf callsite in
-    compute_call_with_target call target state
+    compute_call_with_target ~recursive:(Option.is_some recursion)
+      call target state
 
   (* ----- Main call -------------------------------------------------------- *)
 

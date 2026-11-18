@@ -100,6 +100,7 @@ module NoResultsFunction: Parameter_sig.Fundec_set
 module ResultsAll: Parameter_sig.Bool
 module JoinResults: Parameter_sig.Bool
 
+module CacheCollect: Parameter_sig.Bool
 module Memexec: Parameter_sig.Bool
 
 (** {2 Initial context of the analysis} *)

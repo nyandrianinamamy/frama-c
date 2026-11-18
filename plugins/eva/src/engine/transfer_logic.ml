@@ -78,6 +78,7 @@ let emit_status ppt status =
   in
   if status = Property_status.False_if_reachable then
     Red_statuses.add_red_property (Property.get_kinstr ppt) ppt;
+  Body_access.record Statuses;
   Property_status.emit ~distinct:true Eva_utils.emitter ~hyps:[] ppt status
 
 (* Display the message as result/warning depending on [status] *)
@@ -319,7 +320,11 @@ module Make (Domain: LogicDomain) = struct
     Abstract_domain.{ states; result = None }
 
   let create_from_spec pre funspec =
-    let eval_predicate = Domain.evaluate_predicate (pre_env ~pre) pre in
+    let eval_predicate pred =
+      if not (Logic_utils.is_trivially_true pred) then
+        Body_access.unknown_read Contract;
+      Domain.evaluate_predicate (pre_env ~pre) pre pred
+    in
     Active_behaviors.create eval_predicate funspec
 
   let create init_state kf =
@@ -356,6 +361,7 @@ module Make (Domain: LogicDomain) = struct
 
   let eval_split_and_reduce ~reduce pred build_env state =
     let env = build_env state in
+    Body_access.unknown_read Contract;
     let status = Domain.evaluate_predicate env state pred in
     let reduced_states =
       if reduce then
@@ -464,6 +470,7 @@ module Make (Domain: LogicDomain) = struct
             eval_and_reduce kf b active k posts states build_prop build_env
           in
           let interpret_extension extension state =
+            Body_access.unknown_access Contract;
             Domain.interpret_acsl_extension extension (build_env state) state
           in
           List.fold_left
@@ -582,6 +589,7 @@ module Make (Domain: LogicDomain) = struct
         in
         let eval state =
           let env = here_env ~pre:initial_state ~here:state in
+          Body_access.unknown_read Annotation;
           let res = Domain.evaluate_predicate env state p in
           (* if [record] holds, emit kernel status and print a message *)
           if record then emit code_annot res;
@@ -612,6 +620,7 @@ module Make (Domain: LogicDomain) = struct
     | AExtended (_, _, extension) ->
       let interpret_extension extension state =
         let env = here_env ~pre:initial_state ~here:state in
+        Body_access.unknown_access Annotation;
         Domain.interpret_acsl_extension extension env state
       in
       List.map (interpret_extension extension) states

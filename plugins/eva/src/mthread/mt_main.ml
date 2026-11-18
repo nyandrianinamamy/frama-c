@@ -18,10 +18,10 @@ let no_hook = fun _ _ _ _ -> ()
 let ref_hook_call_function = ref no_hook
 let ref_hook_end_function = ref no_hook
 
-let () = Cvalue_callbacks.register_call_hook
+let () = Cvalue_callbacks.register_call_hook ~cache_protocol:true
     (fun args -> !ref_hook_call_function args)
 
-let () = Cvalue_callbacks.register_call_results_hook
+let () = Cvalue_callbacks.register_call_results_hook ~cache_protocol:true
     (fun args -> !ref_hook_end_function args)
 
 (* Conversion from the simplified type of an mthread function into one suitable

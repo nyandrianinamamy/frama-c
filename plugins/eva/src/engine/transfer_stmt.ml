@@ -707,6 +707,10 @@ module Make (Engine: Engine_Subset) = struct
   let call ~pos lval_option func args state =
     let stmt = fst pos in
     let subdivnb = subdivide_stmt stmt in
+    Body_access.unknown_access Nested_call;
+    (match func with
+     | Eva_ast.Mem _ -> Body_access.refuse Indirect_call
+     | Eva_ast.Var _ -> ());
     (* Resolve [func] into the called kernel functions. *)
     let functions, alarms =
       Eval.eval_function ~subdivnb func ~args state
@@ -728,6 +732,7 @@ module Make (Engine: Engine_Subset) = struct
       (* The special Frama_C_ functions to print states are handled here. *)
       if apply_special_directives ~pos ~subdivnb kf args state
       then
+        let () = Body_access.refuse Builtin in
         let () = apply_cvalue_callback ~pos kf state in
         let states = [(Partition.Key.empty, state)] in
         Engine_sig.{ states; cacheable = Cacheable; kind = `Internal }

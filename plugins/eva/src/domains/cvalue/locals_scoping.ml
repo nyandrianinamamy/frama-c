@@ -20,6 +20,7 @@ let bottom () = { clob = Base.SetLattice.bottom }
 let top () = { clob = Base.SetLattice.top }
 
 let remember_bases_with_locals clob new_clob =
+  Body_access.record Holders;
   clob.clob <- Base.SetLattice.join new_clob clob.clob
 
 let remember_if_locals_in_value clob (left_loc : Locations.t) v =
@@ -113,6 +114,7 @@ let make_escaping_fundec fundec clob vars state =
       let b = Base.Hptset.choose vars in
       not (Base.is_formal b fundec || Base.is_block_local b fundec.sbody)
     in
+    Body_access.unknown_access Sweep;
     let escaping = vars in
     let on_escaping ~b ~itv:_ ~v =
       let bases = match Cvalue.V.get_bases v with

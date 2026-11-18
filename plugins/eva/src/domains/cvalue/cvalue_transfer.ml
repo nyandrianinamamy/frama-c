@@ -24,6 +24,7 @@ let unbottomize = function
 let warn_imprecise_value ?prefix lval value =
   match value with
   | Addresses.Bytes.Top (bases, origin) ->
+    Body_access.refuse Side_table;
     if Origin.register_write bases origin then
       let prefix = Option.fold ~none:"A" ~some:(fun s -> s ^ ": a") prefix in
       Self.warning ~wkey:Log_key.warn_garbled_mix_write ~once:true ~current:true
@@ -123,10 +124,15 @@ let copy_one_loc state left_lv right_lv =
      the imprecise copy mode is used. *)
   let size = Z_or_top.project right_loc.Locations.size in
   let right_addr_bits = right_loc.Locations.addr in
+  Body_access.read right_loc;
   let offsetmap = Cvalue.Model.copy_offsetmap right_addr_bits size state in
   match offsetmap with
   | `Bottom -> `Bottom
   | `Value offsm ->
+    if Body_access.is_recording () then
+      Cvalue.V_Offsetmap.iter_on_values
+        (fun v -> Body_access.designate (Cvalue.V_Or_Uninitialized.get_v v))
+        offsm;
     (* TODO: this is the good place to handle partially volatile
        struct, whether as source or destination *)
     let offsetmap =

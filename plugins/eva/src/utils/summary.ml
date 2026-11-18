@@ -218,7 +218,7 @@ module FunctionStats = struct
       | `Body _ -> replace kf (compute_fun_stats kf)
       | `Builtin _ | `Spec _ | `Reuse _ -> ()
     in
-    Cvalue_callbacks.register_call_results_hook aux
+    Cvalue_callbacks.register_call_results_hook ~cache_protocol:true aux
 
   let recompute kf = replace kf (compute_fun_stats kf)
   let recompute_all () = iter (fun kf _ -> recompute kf)

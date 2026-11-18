@@ -114,12 +114,15 @@ end = struct
 end
 
 let register_read pos zone =
+  Body_access.record Zones;
   Cache.change pos (Access.add_read zone)
 
 let register_write pos zone =
+  Body_access.record Zones;
   Cache.change pos (Access.add_write zone)
 
 let register pos access =
+  Body_access.record Zones;
   Cache.change pos (Access.join access)
 
 let mk_filter ~filter_base =

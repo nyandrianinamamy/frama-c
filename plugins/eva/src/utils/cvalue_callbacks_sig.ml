@@ -34,8 +34,11 @@ module type API = sig
     Callstack.t -> Cil_types.kernel_function -> state -> analysis_kind -> unit
 
   (** Registers a function to be applied at the start of the analysis of each
-      function call. *)
-  val register_call_hook: call_hook -> unit
+      function call. Unless [cache_protocol] is set, a body that runs the hook
+      is refused by the collector. Set it for the existing callwise analysis
+      protocols and derived reporting only. The collector does not observe the
+      hook's own evaluation. *)
+  val register_call_hook: ?cache_protocol:bool -> call_hook -> unit
 
 
   type state_by_stmt = (state Cil_datatype.Stmt.Hashtbl.t) Lazy.t
@@ -62,7 +65,9 @@ module type API = sig
     Callstack.t -> Cil_types.kernel_function -> state -> call_results -> unit
 
   (** Registers a function to be applied at the end of the analysis of each
-      function call. *)
-  val register_call_results_hook: call_results_hook -> unit
+      function call. [cache_protocol] has the same meaning as in
+      {!register_call_hook}. *)
+  val register_call_results_hook:
+    ?cache_protocol:bool -> call_results_hook -> unit
 
 end

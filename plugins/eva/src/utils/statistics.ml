@@ -324,6 +324,10 @@ let memexec_stored =
   register_function_stat "memexec-stored" Int
 let memexec_refused reason =
   register_function_stat ("memexec-refused-" ^ reason) Int
+let collector_would_store =
+  register_function_stat "collector-would-store" Int
+let collector_refused reason =
+  register_function_stat ("collector-refused-" ^ reason) Int
 let max_widenings =
   register_statement_stat "max-widenings" Int
 let max_unrolling =

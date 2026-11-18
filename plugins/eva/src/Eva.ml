@@ -131,3 +131,5 @@ module Eva_results = Eva_results
 
 (** Unit testing. *)
 module Unit_tests = Unit_tests
+
+module Body_access = Body_access.Result

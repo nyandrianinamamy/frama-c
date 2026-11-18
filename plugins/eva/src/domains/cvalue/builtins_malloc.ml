@@ -624,6 +624,7 @@ let resolve_bases_to_free arg =
   Cvalue.V.fold_topset_ok f arg (Base.Hptset.empty, 0, false)
 
 let free_aux state ~strong bases_to_remove  =
+  Body_access.unknown_access Sweep;
   (* TODO: reduce on arg if it is an lval *)
   if strong then begin
     Self.debug ~current:true ~dkey "strong free on bases: %a"
@@ -676,6 +677,7 @@ let () =
     ~typ:(fun () -> (Cil_const.voidType, [Cil_const.voidPtrType]))
 
 let free_automatic_bases stack state =
+  Body_access.refuse Side_table;
   (* free automatic bases that were allocated in the current function *)
   let bases_to_free =
     Base_hptmap.fold (fun base stack' acc ->

@@ -15,8 +15,10 @@
 (** Interface exported via Eva.ml. *)
 include Cvalue_callbacks_sig.API
 
+(** [classified] is set only for hooks that report their unsupported
+    accesses to the collector themselves. *)
 val register_statement_hook:
-  (Callstack.t -> Cil_types.stmt -> state list -> unit) -> unit
+  ?classified:bool -> (Callstack.t -> Cil_types.stmt -> state list -> unit) -> unit
 
 val apply_at_start_hooks:
   unit -> unit

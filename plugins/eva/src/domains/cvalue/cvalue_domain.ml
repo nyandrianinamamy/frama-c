@@ -138,6 +138,8 @@ module State = struct
 
   let assign ~pos lv expr assigned valuation (s, clob) =
     Cvalue_transfer.assign ~pos lv expr assigned valuation s >>-: fun s ->
+    if Body_access.is_recording () then
+      Body_access.write (Precise_locs.imprecise_location lv.lloc);
     (* TODO: use the value in assignment *)
     let _ =
       Eval.value_assigned assigned >>-: fun value ->
@@ -300,7 +302,9 @@ module State = struct
       else Cvalue.V_Or_Uninitialized.C_uninit_noesc value
     in
     let loc = Precise_locs.imprecise_location loc in
-    Cvalue.Model.add_indeterminate_binding ~exact:true state loc cvalue, clob
+    let state = Cvalue.Model.add_indeterminate_binding ~exact:true state loc cvalue in
+    if Cvalue.Model.is_reachable state then Body_access.write loc;
+    state, clob
 
   let empty () =
     let open Cvalue in

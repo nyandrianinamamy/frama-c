@@ -44,6 +44,10 @@
 
     REASON is the stable identifier of a {!refusal}, given by {!refusal_id}.
 
+    With [-eva-cache-collect], a completed body also reports [collector:
+    would-store] or [collector: refused (REASON)] on the same line. This
+    verdict describes the observed body and does not control memexec.
+
     {2 Statistics}
 
     Per function, the statistics count the hits ([memexec-hits]), the lookups
@@ -51,7 +55,10 @@
     ([memexec-stored]) and the refused storages by reason
     ([memexec-refused-REASON]). They count what a cache did: with
     [-eva-no-memexec] no cache is consulted and nothing is counted, although
-    each message reads [refused (disabled)]. *)
+    each message reads [refused (disabled)].
+
+    The collector counts [collector-would-store] and [collector-refused-REASON]
+    even with [-eva-no-memexec]. It counts completed body computations only. *)
 
 (** Why the result of a call is not stored. *)
 type refusal = [
@@ -122,15 +129,16 @@ module Make
         lookup with no candidate. *)
     val lookup : ('loc, Value.t) Eval.call -> Domain.t -> lookup
 
-    (** [store call state pending result] offers the result [result] of the
+    (** [store call state pending result footprint] offers [result] of the
         analysis of the body of the called function to the cache, after a
         lookup that found no candidate for the call [call] in the state
         [state] and returned [pending]. It prints the message of the call
         and, if a cache was consulted, counts the stored entry or the refused
-        storage. *)
+        storage. If [footprint] is present, it also reports and counts the
+        collector verdict computed from it. *)
     val store :
       ('loc, Value.t) Eval.call -> Domain.t -> pending ->
-      Domain.t Engine_sig.call_result -> unit
+      Domain.t Engine_sig.call_result -> Body_access.Result.t option -> unit
 
     (** [interrupted call] prints the message of the call [call] when an
         exception stops the analysis of the body of the called function,

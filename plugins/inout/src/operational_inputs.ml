@@ -674,8 +674,8 @@ module Callwise = struct
 
   let () =
     Eva.Cvalue_callbacks.register_at_start_hook reset;
-    Eva.Cvalue_callbacks.register_call_results_hook record_for_callwise_inout;
-    Eva.Cvalue_callbacks.register_call_hook call_for_callwise_inout
+    Eva.Cvalue_callbacks.register_call_results_hook ~cache_protocol:true record_for_callwise_inout;
+    Eva.Cvalue_callbacks.register_call_hook ~cache_protocol:true call_for_callwise_inout
 
   let _register_call_hook =
     Dynamic.register

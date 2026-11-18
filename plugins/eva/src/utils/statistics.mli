@@ -53,6 +53,12 @@ val memexec_stored : (Cil_types.kernel_function, int) t
     by [Call_cache.refusal_id]. Its name is [memexec-refused-REASON]. *)
 val memexec_refused : string -> (Cil_types.kernel_function, int) t
 
+(** Count of bodies for which the collector returned a would-store verdict. *)
+val collector_would_store : (Cil_types.kernel_function, int) t
+
+(** Counts refused bodies by [Body_access.Result.refusal_id]. *)
+val collector_refused : string -> (Cil_types.kernel_function, int) t
+
 (** Maximum number of successive widening computed at each widening
     statement. *)
 val max_widenings : (Cil_types.stmt, int) t

@@ -27,8 +27,13 @@ module Call =
   Hook.Build
     (struct type t = Callstack.t * kernel_function * state * analysis_kind end)
 
-let register_call_hook f =
-  Call.extend (fun (callstack, kf, kind, state) -> f callstack kf kind state)
+let run_hook ~cache_protocol f =
+  if not cache_protocol then Body_access.unknown_access Side_table;
+  Body_access.without_recording f
+
+let register_call_hook ?(cache_protocol=false) f =
+  Call.extend (fun (callstack, kf, kind, state) ->
+      run_hook ~cache_protocol (fun () -> f callstack kf kind state))
 
 let apply_call_hooks callstack kf state kind =
   Call.apply (callstack, kf, state, kind)
@@ -52,9 +57,9 @@ module Call_Results =
   Hook.Build
     (struct type t = Callstack.t * kernel_function * state * call_results end)
 
-let register_call_results_hook f =
-  Call_Results.extend
-    (fun (callstack, kf, state, results) -> f callstack kf state results)
+let register_call_results_hook ?(cache_protocol=false) f =
+  Call_Results.extend (fun (callstack, kf, state, results) ->
+      run_hook ~cache_protocol (fun () -> f callstack kf state results))
 
 let apply_call_results_hooks callstack kf state call_results =
   Call_Results.apply (callstack, kf, state, call_results)
@@ -63,8 +68,10 @@ let apply_call_results_hooks callstack kf state call_results =
 module Statement =
   Hook.Build (struct type t = Callstack.t * stmt * state list end)
 
-let register_statement_hook f =
-  Statement.extend (fun (callstack, stmt, states) -> f callstack stmt states)
+let register_statement_hook ?(classified=false) f =
+  Statement.extend (fun (callstack, stmt, states) ->
+      if classified then f callstack stmt states
+      else run_hook ~cache_protocol:false (fun () -> f callstack stmt states))
 
 let apply_statement_hooks callstack stmt states =
   Statement.apply (callstack, stmt, states)

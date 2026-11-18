@@ -83,6 +83,8 @@ let () =
     (add_watch make_watch_cardinal)
 
 let watch_hook _callstack stmt states =
+  if !watch_table <> [] && states <> [] then
+    Body_access.unknown_read Side_table;
   let treat ({name_lv = name; loc=loc; v=wa; remaining_count=current; stmts=set} as w) =
     List.iter
       (fun state ->
@@ -118,4 +120,4 @@ let watch_hook _callstack stmt states =
   in
   List.iter treat !watch_table
 
-let () = Cvalue_callbacks.register_statement_hook watch_hook
+let () = Cvalue_callbacks.register_statement_hook ~classified:true watch_hook

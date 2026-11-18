@@ -45,7 +45,9 @@ module Queries = struct
   let eval_one_loc state lval =
     let eval_one_loc single_loc =
       let v = Cvalue.Model.find_indeterminate state single_loc in
-      Cvalue.V_Or_Uninitialized.get_v v, indeterminate_alarms lval v
+      let value = Cvalue.V_Or_Uninitialized.get_v v in
+      Body_access.designate value;
+      value, indeterminate_alarms lval v
     in
     (* We have no good neutral element for "no alarm emitted yet", so we use
        [None] instead. *)
@@ -64,7 +66,9 @@ module Queries = struct
     Cvalue.V.(is_included v top_float) && Cvalue.V.contains_non_zero v
 
   let read_garbled_mix = function
-    | Cvalue.V.Top (bases, origin) -> Origin.register_read bases origin
+    | Cvalue.V.Top (bases, origin) ->
+      Body_access.refuse Side_table;
+      Origin.register_read bases origin
     | _ -> ()
 
   let extract_scalar_lval state lval loc =
@@ -91,12 +95,18 @@ module Queries = struct
   let extract_aggregate_lval state lval ploc =
     let loc = Precise_locs.imprecise_location ploc in
     match loc.Locations.size with
-    | `Top -> `Value (Cvalue.V.top, None), Alarmset.all
+    | `Top ->
+      Body_access.designate Cvalue.V.top;
+      `Value (Cvalue.V.top, None), Alarmset.all
     | `Value size ->
       let offsm = Cvalue.Model.copy_offsetmap loc.Locations.addr size state in
       match offsm with
       | `Bottom -> `Bottom, Alarmset.none
       | `Value offsm ->
+        if Body_access.is_recording () then
+          Cvalue.V_Offsetmap.iter_on_values
+            (fun v -> Body_access.designate (Cvalue.V_Or_Uninitialized.get_v v))
+            offsm;
         let open Eval.Evaluated.Operators in
         let* value =
           Cvalue.V_Offsetmap.find_imprecise_everywhere offsm, Alarmset.none
@@ -108,6 +118,8 @@ module Queries = struct
         v, alarms
 
   let extract_lval ~oracle:_ _context state lval loc =
+    if Body_access.is_recording () then
+      Body_access.read (Precise_locs.imprecise_location loc);
     if Ast_types.C.is_scalar lval.Eva_ast.typ
     then extract_scalar_lval state lval loc
     else extract_aggregate_lval state lval loc
@@ -117,7 +129,9 @@ module Queries = struct
     let upto = succ (Int_set.get_small_cardinal()) in
     let loc = Precise_locs.imprecise_location precise_loc in
     let eval_one_loc single_loc =
+      Body_access.read single_loc;
       let v = Cvalue.Model.find state single_loc in
+      Body_access.designate v;
       Cvalue_forward.reinterpret lval.Eva_ast.typ v
     in
     let process_ival base ival (acc_loc, acc_val as acc) =
