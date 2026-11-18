@@ -89,8 +89,9 @@ fails: the script starts `frama-c` through
 `_build/install/default/.packages/<hash>/bin/frama-c`, which exits at startup
 with `Failure("hd")` because it does not find its share directory. If the
 switch has another version, run
-`DUNE_ROOT=. opam install --switch=. dune.3.21.1 -y --jobs=8`; this recompiles
-the packages that depend on Dune.
+`DUNE_ROOT=. opam install --switch=. dune.3.21.1 -y --jobs=8`, which
+recompiles the packages that depend on Dune, then pin the version with
+`opam pin add --switch=. dune 3.21.1 --no-action -y`.
 `DUNE_ROOT=.` keeps Mopsa's nested `make install` in its own package directory:
 without it, an earlier attempt with Mopsa 1.1 selected the enclosing
 Frama-C workspace and failed. Keep this variable scoped to that opam command.
