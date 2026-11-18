@@ -42,7 +42,11 @@
     {v [eva:cache] FILE:LINE: call to F: lookup: L; execution: E; storage: S v}
     The location is the call site; the message for the entry point of the
     analysis has none. When the message does not fit on the line of its
-    header, the log prints it on the next line. The message of a hit is
+    header, the log prints it on the next line. When the message category
+    [callstacks] is also enabled, the message ends with the callstack of the
+    call, as other Eva messages print it: a line [stack:] followed by the
+    called function and its call site, then each caller up to the entry
+    point. The message of a hit is
     printed by the lookup. The message of an analysed call is printed after
     the storage, and the message of an interrupted call when the exception
     leaves it, so both follow the messages of the calls made by the body.

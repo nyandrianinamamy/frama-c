@@ -94,7 +94,9 @@ let pretty_storage fmt : storage_disposition -> unit = function
   | `Stored id -> Format.fprintf fmt "stored (entry %d)" id
   | `Refused reason -> Format.fprintf fmt "refused (%s)" (refusal_id reason)
 
-(* Prints the dispositions of the call [call] under the message category. *)
+(* Prints the dispositions of the call [call] under the message category.
+   It is called while [call.callstack] is the current callstack, which the
+   message ends with when the category [callstacks] is enabled. *)
 let report ?collector ?produced call ~lookup ~execution ~storage =
   let show_produced =
     Option.is_some produced && Self.is_message_category_enabled producer_mkey
@@ -128,8 +130,8 @@ let report ?collector ?produced call ~lookup ~execution ~storage =
     match Callstack.top_callsite call.callstack with
     | Kstmt stmt ->
       let loc = Cil_datatype.Stmt.loc stmt in
-      Self.feedback ~mkey ~loc "%t" pretty_call
-    | Kglobal -> Self.feedback ~mkey "%t" pretty_call
+      Self.feedback ~mkey ~loc ~stacktrace:true "%t" pretty_call
+    | Kglobal -> Self.feedback ~mkey ~stacktrace:true "%t" pretty_call
 
 (* ----- Seam -------------------------------------------------------------- *)
 
