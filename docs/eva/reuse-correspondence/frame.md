@@ -8,8 +8,8 @@ sense of [`GLOSSARY.md`](../../../GLOSSARY.md).
 **Kind.** Proved in Lean.
 
 **Claim.** Let `s` be a statement of a program `p`, started from a state `σ`
-(a local environment and a memory), and let `b` be a block that is live in the
-memory of `σ`. If no finite prefix of the execution of `s` from `σ` reads or
+(a local environment and a memory), and let `b` be an existing block: it has a
+value in the memory of `σ`. If no finite prefix of the execution of `s` from `σ` reads or
 writes `b`, then at every visit inside `s`, the visits inside the calls that `s`
 makes included, `b` has the value it had at entry.
 
@@ -25,7 +25,8 @@ need the program to be nonrecursive.
 **Declaration.** `ReuseModel.frame_lemma`, in
 [`lean/ReuseModel/Frame.lean`](../../../lean/ReuseModel/Frame.lean).
 
-**Statement**, as Lean prints it (`#check @ReuseModel.frame_lemma`):
+**Statement**, as Lean prints it for `open ReuseModel` followed by
+`#check @frame_lemma`:
 
 ```lean
 @frame_lemma : ∀ {M : Type} [inst : Memory M] {p : Program} {s : Stmt} {σ : State M} {b : Block},
@@ -64,8 +65,8 @@ at every configuration of that prefix, final ones included.
 
 **Evidence.**
 
-- Checked revision: commit `04cebc882a4006de0823171ac5a674a3ba1a3744`. Tree of
-  `lean/` at that commit: `958b3150e95eab1a6a4c1dacc082f30da665ffcf`.
+- Checked revision: commit `9c18e0fc4f395271fb5bbde351fdb4e3a16cb488`. Tree of
+  `lean/` at that commit: `813bae6592c8069dee09a2f3080c47d8476b4edf`.
   Toolchain: `leanprover/lean4:v4.28.0` (Lean 4.28.0, commit `7e01a1bf5c70`).
 - Command: `cd lean && lake build --wfail`, run on 2026-11-18 in a fresh
   shallow clone of that commit. Exit status 0.
