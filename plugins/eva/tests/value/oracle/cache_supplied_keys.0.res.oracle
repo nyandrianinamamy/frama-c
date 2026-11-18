@@ -1,0 +1,31 @@
+[kernel] Parsing cache_supplied_keys.c (with preprocessing)
+[eva] Warning: The inout plugin is missing: some features are disabled, and the analysis may have degraded precision and performance.
+[eva] Analyzing a complete application starting at main
+[eva:progress] Computing initial state
+[eva:progress] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  choice ∈ [--..--]
+  out ∈ {0}
+[eva:cache] cache_supplied_keys.c:33: 
+  call to choose: lookup: hit (entry 1); execution: not-analysed; storage: none
+[eva:progress] cache_supplied_keys.c:33: Reusing old results for call to choose
+[eva:show] cache_supplied_keys.c:34: Frama_C_show_each_after_choose: {1; 2}
+[eva:progress] Recording results for main
+[eva:progress] Done for function main
+[eva:cache] 
+  call to main: lookup: no-candidate; execution: analysed; storage: refused (supplied-only); collector: refused (builtin)
+[eva] Warning: The scope plugin is missing: cannot remove redundant alarms.
+[kernel] entry 1, body of choose:
+    key: {choice}
+    input:
+      choice ∈ [--..--]
+    read: {choice}
+    written: {out}
+    written on a path to an exit: {out}
+    surely overwritten: {out}
+    exit state, partition key [[@11#0]]:
+      choice ∈ [--..--]
+      out ∈ {1}
+    exit state, partition key [[@11#1]]:
+      choice ∈ [--..--]
+      out ∈ {2}
