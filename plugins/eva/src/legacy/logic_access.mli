@@ -11,7 +11,10 @@
 type kind = Annotation | Contract
 
 (** Classifies observations during the evaluation or reduction of a clause.
-    The collector is inactive here when there is no active body recorder. *)
+    The collector is inactive here when there is no active body recorder.
+    During {!Body_access.at_call_site}, the clause is a requires clause of
+    the body: its observations go to the allocation family of the body
+    ({!Body_access.at_call_site}). *)
 val with_clause : kind -> (unit -> 'a) -> 'a
 val is_recording : unit -> bool
 
@@ -21,7 +24,8 @@ val refuse_side_table : unit -> unit
 (** Sets the read bound to Top and records its clause's refusal reason. *)
 val unknown_read : unit -> unit
 
-(** Reports a location before validity narrowing. *)
+(** Reports a location before validity narrowing. An unknown location sets
+    the read bound to Top, or refuses as [footprint-top] at a call site. *)
 val read : Locations.t -> unit
 
 (** Reports pointer targets. Unknown targets refuse as [footprint-top] and

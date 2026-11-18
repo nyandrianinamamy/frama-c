@@ -60,12 +60,17 @@ val without_recording : (unit -> 'a) -> 'a
 val at_call_site : (unit -> 'a) -> 'a
 (** Runs a function that belongs to the call site of the current body, as
     the check of its [requires] clauses. Only the reasons of the allocation
-    family are recorded: the allocated blocks designated by the values read,
-    the reads of allocation metadata with their owners, and the allocation
-    effects. A set of designated blocks that is [Top] refuses with
-    [Footprint_top]. *)
+    family are recorded, with [Footprint_top]: the allocated blocks among
+    the blocks read and designated, including through {!read_bases},
+    {!designate_bases} and {!designate_cells}, the reads of allocation
+    metadata with their owners, and the allocation effects. A set of blocks
+    that is [Top] refuses with [Footprint_top]. The blocks are not added to
+    the sets of the body. *)
 
 val is_recording : unit -> bool
+
+(** Whether a body or the call site of a body is observed. *)
+val is_observing : unit -> bool
 val verdict : Result.t -> (unit, Result.refusal) result
 
 val read : Locations.t -> unit

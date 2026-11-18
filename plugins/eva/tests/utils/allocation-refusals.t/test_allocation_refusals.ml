@@ -135,6 +135,45 @@ let observe_requires name (r : Access.t) =
   | "main" -> ()
   | name -> failwith ("unexpected body: " ^ name)
 
+(* Prints all the reasons of the [n]th observation of a body, and its
+   owners. *)
+let calls = Hashtbl.create 17
+
+let print_all name (r : Access.t) =
+  let n = 1 + Option.value ~default:0 (Hashtbl.find_opt calls name) in
+  Hashtbl.replace calls name n;
+  let shown = if r.refusals = [] then "would-store"
+    else String.concat " " (reasons r)
+  in
+  let owners =
+    match owners r with
+    | [] -> ""
+    | owners -> ", owners " ^ String.concat " " owners
+  in
+  Format.printf "%s call %d: %s%s@." name n shown owners
+
+(* Bodies whose requires clauses load or scan a block at the call site: the
+   clauses add nothing to R. *)
+let observe_call_site name (r : Access.t) =
+  match name with
+  | "c_word" ->
+    assert (names r.reads = ["u"; "w"]);
+    print_all name r
+  | "req_word" | "req_initialized" | "req_plain" ->
+    assert (names r.reads = []);
+    assert (names r.writes = ["result"]);
+    print_all name r
+  | "scan" | "length" | "scan_unknown" | "initialized_unknown" ->
+    assert (names r.reads = []);
+    assert (names r.writes = ["x"]);
+    print_all name r
+  | "main" -> ()
+  | name -> failwith ("unexpected body: " ^ name)
+
+let () =
+  Eva.Builtins.register_builtin "Frama_C_unknown_target"
+    (fun _ _ -> Eva.Builtins.Result [Cvalue.V.top])
+
 let () =
   let observe stack result =
     let name = Kernel_function.get_name (Eva.Callstack.top_kf stack) in
@@ -144,6 +183,7 @@ let () =
     | Some "equality" -> observe_equality name result
     | Some "release" -> observe_release name result
     | Some "requires" -> observe_requires name result
+    | Some "call-site" -> observe_call_site name result
     | _ -> failwith "EVA_TEST_ALLOCATION is not set"
   in
   Access.on_result observe

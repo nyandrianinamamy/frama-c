@@ -10,15 +10,16 @@ type kind = Annotation | Contract
 
 let current = ref None
 
+(* A clause of a body, or a requires clause of a body at its call site. *)
 let with_clause kind f =
-  if not (Body_access.is_recording ()) then f ()
+  if not (Body_access.is_observing ()) then f ()
   else
     let previous = !current in
     current := Some kind;
     Fun.protect f ~finally:(fun () -> current := previous)
 
 let is_recording () =
-  Option.is_some !current && Body_access.is_recording ()
+  Option.is_some !current && Body_access.is_observing ()
 
 let unknown_read () =
   match !current with
@@ -29,11 +30,12 @@ let unknown_read () =
 let refuse_side_table () =
   if is_recording () then Body_access.refuse Side_table
 
+(* At a call site, an unknown location refuses as footprint-top. *)
 let read loc =
   if is_recording () then
     match Addresses.Bits.get_bases loc.Locations.addr with
-    | Base.SetLattice.Top -> unknown_read ()
-    | Base.SetLattice.Set _ as bases -> Body_access.read_bases bases
+    | Base.SetLattice.Top when Body_access.is_recording () -> unknown_read ()
+    | bases -> Body_access.read_bases bases
 
 (* Each load reports its own location through [read]. A designation does
    not load its targets, so unknown targets leave the read bound finite. *)
@@ -61,6 +63,7 @@ let record_reduction ~before ~after =
   if is_recording () && not (equal before after) then
     match before, after with
     | _, Bottom -> ()
+    | Map _, Map _ when not (Body_access.is_recording ()) -> ()
     | Map before, Map after ->
       (* The trees are hash-consed: the traversal skips the subtrees shared
          by both states. Every decision is false, so it visits all others. *)

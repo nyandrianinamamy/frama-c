@@ -95,3 +95,30 @@ refuse the body.
     call to initialized_only: lookup: no-candidate; execution: analysed; storage: refused (disabled); collector: refused (allocated-block)
   length_only allocated-block, owners __malloc_main_l18
     call to length_only: lookup: no-candidate; execution: analysed; storage: refused (disabled); collector: refused (allocated-block)
+
+A load that combines a cell holding part of a pointer to an allocated block
+with an uninitialized cell designates the block, in C and in a requires
+clause checked at the call site. With an initialized padding, the combined
+value designates it. A clause over a word without pointer is not refused.
+The clauses add nothing to the reads of the body.
+
+  $ EVA_TEST_ALLOCATION=call-site frama-c -no-autoload-plugins -load-module eva,test_allocation_refusals.cmxs -eva -eva-no-memexec -eva-no-alloc-returns-null -machdep x86_32 -eva-msg-key cache call-site.c > call-site.log 2>&1
+  $ grep -E '^(c_word|req_word|req_initialized|req_plain) call' call-site.log
+  req_word call 1: allocated-block
+  req_initialized call 1: allocated-block allocation-metadata, owners __malloc_main_l32
+  req_plain call 1: would-store
+  c_word call 1: allocated-block
+
+The string scans of requires clauses designate every cell of the blocks
+they scan, at the call site as in a body. An unknown value refuses with
+footprint-top, through a string scan or an initialization test. The scan
+before the allocation is not refused.
+
+  $ EVA_TEST_ALLOCATION=call-site frama-c -no-autoload-plugins -load-module eva,test_allocation_refusals.cmxs -eva -eva-no-memexec -eva-no-alloc-returns-null -eva-msg-key cache strings.c > strings.log 2>&1
+  $ grep -E '^(scan|length|scan_unknown|initialized_unknown) call' strings.log
+  scan call 1: would-store
+  scan call 2: allocated-block
+  length call 1: allocated-block
+  scan_unknown call 1: footprint-top
+  initialized_unknown call 1: footprint-top
+

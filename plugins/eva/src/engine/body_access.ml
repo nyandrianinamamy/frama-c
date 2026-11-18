@@ -81,14 +81,18 @@ let call_site : recording option ref = ref None
 
 let[@inline always] is_recording () = Option.is_some !current
 
+let is_observing () = Option.is_some !current || Option.is_some !call_site
+
 (* Refusals of the allocation family. A body inherits them from the bodies
-   analysed during its own analysis, and they are recorded at a call
-   site. *)
+   analysed during its own analysis. They are recorded at a call site, with
+   [Footprint_top]. *)
 let inherited = function
   | Reallocation | Allocation | Deallocation | Validity_mutation
   | Allocated_block | Allocation_metadata -> true
   | Indirect_call | Builtin | Sweep | Contract | Annotation | Nested_call
   | Footprint_top | Side_table -> false
+
+let at_site reason = inherited reason || reason = Footprint_top
 
 let add_refusal r reason =
   if not (List.mem reason r.refusals) then r.refusals <- reason :: r.refusals
@@ -141,7 +145,7 @@ let at_call_site f =
 let[@inline always] refuse reason =
   match !current, !call_site with
   | Some r, _ -> add_refusal r reason
-  | None, Some r when inherited reason -> add_refusal r reason
+  | None, Some r when at_site reason -> add_refusal r reason
   | None, _ -> ()
 
 let record_table r table =
@@ -168,10 +172,13 @@ let[@inline always] read location =
   | None -> ()
   | Some r -> add_read r (Addresses.Bits.get_bases location.Locations.addr)
 
+(* At a call site, the blocks read, written or designated are checked and
+   not added to the sets of the body. *)
 let read_bases bases =
-  match !current with
-  | None -> ()
-  | Some r -> add_read r bases
+  match !current, !call_site with
+  | Some r, _ -> add_read r bases
+  | None, Some r -> check_bases r bases
+  | None, None -> ()
 
 let check_location value =
   match !current, !call_site with
@@ -194,22 +201,23 @@ let[@inline always] designate value =
   | None, None -> ()
 
 let designate_bases bases =
-  match !current with
-  | None -> ()
-  | Some r -> add_designated r bases
+  match !current, !call_site with
+  | Some r, _ -> add_designated r bases
+  | None, Some r -> check_bases r bases
+  | None, None -> ()
 
 (* A load combines the cells of its range. The combination can drop a
    pointer, for instance beside an uninitialized cell, so the targets of
    every cell that intersects the range are recorded first. *)
-let add_cells r state (location : Locations.t) =
+let add_cells add_designated state (location : Locations.t) =
   let designate value =
     let value = Cvalue.V_Or_Uninitialized.get_v value in
-    add_designated r (Cvalue.V.get_bases value)
+    add_designated (Cvalue.V.get_bases value)
   in
   let cells base range =
     match Cvalue.Model.find_base_or_default base state, range with
     | `Bottom, _ -> ()
-    | `Top, _ -> add_designated r Bases.top
+    | `Top, _ -> add_designated Bases.top
     | `Value offsm, None -> Cvalue.V_Offsetmap.iter_on_values designate offsm
     | `Value offsm, Some range ->
       let cell _ (value, _, _) () = designate value in
@@ -221,16 +229,17 @@ let add_cells r state (location : Locations.t) =
     | _ -> None
   in
   match location.addr with
-  | Addresses.Bits.Top (Bases.Top, _) -> add_designated r Bases.top
+  | Addresses.Bits.Top (Bases.Top, _) -> add_designated Bases.top
   | Addresses.Bits.Top (Bases.Set bases, _) ->
     Base.Hptset.iter (fun base -> cells base None) bases
   | Addresses.Bits.Map map ->
     Addresses.Bits.M.iter (fun base offsets -> cells base (range offsets)) map
 
 let designate_cells state location =
-  match !current with
-  | None -> ()
-  | Some r -> add_cells r state location
+  match !current, !call_site with
+  | Some r, _ -> add_cells (add_designated r) state location
+  | None, Some r -> add_cells (check_bases r) state location
+  | None, None -> ()
 
 let add_write r may sure =
   r.writes <- Bases.join r.writes may;
