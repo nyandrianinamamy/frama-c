@@ -122,8 +122,9 @@ module Make
      All bases related to the input [bases] should be taken into account when
      applying the memexec cache, as their values may impact the analysis of [kf]
      starting from state [state].
-     As a full fixpoint computation could be costly, we stop after [count] calls
-     to [Domain.relate] and we disable memexec if a fixpoint is not reached.
+     As a full fixpoint computation could be costly, we stop after at most
+     [count + 1] calls to [Domain.relate] and we disable memexec if a fixpoint
+     is not reached.
      Raises [Refused] when [relate] returns [Top] or when no fixpoint is
      reached. *)
   let rec expand_inputs_with_relations count kf bases state =

@@ -137,6 +137,11 @@ module Make
     in
     report call ~lookup:`No_candidate ~execution:`Analysed ~storage
 
+  (* Called while an exception leaves the analysis of a body. A failure of
+     the report, for instance in a listener of the log, must not replace this
+     exception. *)
   let interrupted call =
-    report call ~lookup:`No_candidate ~execution:`Interrupted ~storage:`None
+    try
+      report call ~lookup:`No_candidate ~execution:`Interrupted ~storage:`None
+    with _ -> ()
 end

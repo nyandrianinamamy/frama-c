@@ -135,6 +135,8 @@ module Make
     (** [interrupted call] prints the message of the call [call] when an
         exception stops the analysis of the body of the called function,
         after a lookup that found no candidate. Nothing is stored or
-        counted. *)
+        counted. It never raises: an exception raised while the message is
+        printed is dropped, so that the caller can raise the first exception
+        again. *)
     val interrupted : ('loc, Value.t) Eval.call -> unit
   end

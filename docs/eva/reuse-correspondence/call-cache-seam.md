@@ -39,17 +39,22 @@ no entry matches, the values are returned in the `pending` value, and `store`
 passes them to memexec: the option is not read again and the values are not
 recomputed after the body. When the option is not set, `lookup` answers that
 no entry matches without calling memexec, the body is analysed, and `store`
-does not call memexec. `store` calls memexec under the same conditions as
-before: `-eva-memexec` was set at the lookup and the result is marked
-`Cacheable`. The test on `Cacheable` moved from `compute_and_cache_call` into
-`store_computed_call`. `store_computed_call` performs the same operations in
+does not call memexec. When `-eva-memexec` was set at the lookup, `store`
+calls `store_computed_call` for every result. The test on `Cacheable` moved
+from `compute_and_cache_call` into that function, which refuses a result not
+marked `Cacheable` before it builds anything. So an entry is inserted under
+the same condition as before: the option is set and the result is marked
+`Cacheable`. For such a result, `store_computed_call` performs the same operations in
 the same order as before, and returns the call number or a reason instead of
 `unit`. The statistics updates of memexec moved into the seam, and the
 category messages are new; neither is read by the analysis. With
 `-eva-no-memexec`, the seam counts nothing, as before. When an exception
-leaves the analysis of a body, `compute_and_cache_call` calls `interrupted`,
-which only prints a message under the category, and raises the same exception
-again with its backtrace. The iteration order of the lookup is unchanged. `new_counter` and `cleanup_results` are the
+leaves the analysis of a body, `compute_and_cache_call` saves its backtrace
+and calls `interrupted`, which prints a message under the category and drops
+any exception raised while printing, for instance by a listener of the log.
+`compute_and_cache_call` then raises the first exception again with its
+backtrace. An interruption received while the message is printed is dropped
+in the same way; the first exception still stops the analysis. The iteration order of the lookup is unchanged. `new_counter` and `cleanup_results` are the
 memexec functions, called at the same points of `Iterator` and `Analysis`.
 
 **Evidence.** Source inspection of the change. Executed: the default Eva
@@ -100,7 +105,9 @@ declares the six that memexec produces, and the seam adds `disabled`.
 
 **Kind.** OCaml obligation.
 
-**Depends on.** None.
+**Depends on.** [Closure of the memexec key under
+relate](#closure-of-the-memexec-key-under-relate), for the refusals
+`relate-top` and `relate-unclosed`.
 
 **Symbols.** `Mem_exec.Make.store_computed_call`,
 `Mem_exec.Make.store_cacheable_call`, `Mem_exec.bases`,
@@ -118,7 +125,8 @@ first call to `leaf`, and `not-cacheable` on the call to `alloc`, which
 allocates, and on `main`, which calls it. Executed by `call-cache.t`:
 `refused (disabled)` for every call under `-eva-no-memexec`, with both calls
 to `leaf` analysed; and `interrupted` for the call stopped by
-`-eva-stop-at-nth-alarm 1` and for its caller.
+`-eva-stop-at-nth-alarm 1` and for its caller, with the same exit status and
+final message as the run without the category.
 
 **Open.** No regression enables the category on a path that ends in
 `no-inout`, `footprint-top`, `relate-top`, `relate-unclosed` or `exception`.
@@ -198,9 +206,7 @@ claim, not covered here.
 
 **Kind.** OCaml obligation.
 
-**Depends on.** None. [Each refused storage has one stable
-reason](#each-refused-storage-has-one-stable-reason) uses the two refusals of
-this closure.
+**Depends on.** None.
 
 **Symbols.** `Mem_exec.Make.expand_inputs_with_relations`,
 `Mem_exec.Make.store_cacheable_call`.
