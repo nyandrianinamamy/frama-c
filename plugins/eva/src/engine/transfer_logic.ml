@@ -507,7 +507,7 @@ module Make (Domain: LogicDomain) = struct
 
 
   let check_fct_preconditions_of_behaviors call_ki kf ~per_behavior behaviors
-      is_active states =
+      ~check_requires is_active states =
     if behaviors = [] then states
     else
       let build_env pre = pre_env ~pre in
@@ -522,7 +522,9 @@ module Make (Domain: LogicDomain) = struct
           in
           let build_prop = ip_from_precondition kf call_ki b in
           let states =
-            eval_and_reduce kf b active k b.b_requires states build_prop build_env
+            check_requires (fun () ->
+                eval_and_reduce kf b active k b.b_requires states
+                  build_prop build_env)
           in
           if states = []
           then process_inactive_postconds kf [b];
@@ -536,16 +538,21 @@ module Make (Domain: LogicDomain) = struct
   let check_fct_preconditions_for_behaviors call_ki kf behaviors status states =
     let is_active _ = status in
     check_fct_preconditions_of_behaviors call_ki kf ~per_behavior:true
-      behaviors is_active states
+      behaviors ~check_requires:(fun f -> f ()) is_active states
 
   (*  Check the precondition of [kf]. This may result in splitting [init_state]
       into multiple states if the precondition contains disjunctions. *)
-  let check_fct_preconditions call_ki kf ab init_state =
+  let check_fct_preconditions ?(body=false) call_ki kf ab init_state =
+    (* Keep the original order of behavior selection and precondition checks.
+       Each requires clause belongs to the call site, outside the body. *)
+    let check_requires = if body then Body_access.without_recording
+      else fun f -> f ()
+    in
     let init_states = [init_state] in
     let behaviors = Annotations.behaviors kf in
     let is_active = Active_behaviors.is_active ab in
     check_fct_preconditions_of_behaviors call_ki kf ~per_behavior:false
-      behaviors is_active init_states
+      behaviors ~check_requires is_active init_states
 
   let evaluate_assumes_of_behavior state =
     let pre_env = pre_env ~pre:state in

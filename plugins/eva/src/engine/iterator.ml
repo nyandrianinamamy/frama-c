@@ -116,7 +116,7 @@ module Make_Dataflow
     and ab = active_behaviors in
     if Eva_utils.skip_specifications kf
     then [state]
-    else Transfer_logic.check_fct_preconditions call_kinstr kf ab state
+    else Transfer_logic.check_fct_preconditions ~body:true call_kinstr kf ab state
 
   let initial_state =
     match Bottom.List.join Domain.join initial_states with

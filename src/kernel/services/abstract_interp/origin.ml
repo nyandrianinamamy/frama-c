@@ -109,6 +109,9 @@ let is_unknown t = t = Unknown
 
    These info are printed at the end of an Eva analysis. *)
 
+module History_access = Hook.Build (struct type t = unit end)
+let on_history_access f = History_access.extend f
+
 module LocSet = Fileloc.Set
 
 module History = struct
@@ -132,24 +135,33 @@ module History = struct
     id, (LocSet.empty, LocSet.empty, Base.SetLattice.bottom)
 
   let register origin =
+    History_access.apply ();
     if not (Table.mem origin)
     then Table.replace origin (create ())
 
   let apply ~change origin =
+    History_access.apply ();
     let id, data = try Table.find origin with Not_found -> create () in
     Table.replace origin (id, change data)
 
   let cardinal_writes origin =
+    History_access.apply ();
     try let (_, (w, _r, _b)) = Table.find origin in LocSet.cardinal w
     with Not_found -> 0
 
   let id origin =
+    History_access.apply ();
     try fst (Table.find origin)
     with Not_found -> Stdlib.max_int
 
-  let to_list () = List.of_seq (Table.to_seq ())
+  let to_list () =
+    History_access.apply ();
+    List.of_seq (Table.to_seq ())
 
-  let clear () = Counter.reset (); Table.clear ()
+  let clear () =
+    History_access.apply ();
+    Counter.reset ();
+    Table.clear ()
 end
 
 let clear () = History.clear ()

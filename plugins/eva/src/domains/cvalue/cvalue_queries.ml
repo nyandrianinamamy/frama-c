@@ -66,9 +66,7 @@ module Queries = struct
     Cvalue.V.(is_included v top_float) && Cvalue.V.contains_non_zero v
 
   let read_garbled_mix = function
-    | Cvalue.V.Top (bases, origin) ->
-      Body_access.refuse Side_table;
-      Origin.register_read bases origin
+    | Cvalue.V.Top (bases, origin) -> Origin.register_read bases origin
     | _ -> ()
 
   let extract_scalar_lval state lval loc =

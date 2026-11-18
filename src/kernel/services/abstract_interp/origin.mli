@@ -40,6 +40,9 @@ val descr: t -> string
 
 val join: t -> t -> t
 
+(** Register an observer run just before reading or changing origin history. *)
+val on_history_access: (unit -> unit) -> unit
+
 (** Records the creation of an imprecise value of the given bases. *)
 val register: Base.SetLattice.t -> t -> unit
 

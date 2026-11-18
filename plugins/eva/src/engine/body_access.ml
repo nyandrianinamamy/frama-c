@@ -128,6 +128,27 @@ let add_write r may sure =
     let sure = Zone.link w.sure sure in
     r.transition <- Some {may; sure}
 
+let add_possible_write r bases =
+  check_bases r bases;
+  add_write r bases Zone.bottom
+
+let may_write location =
+  match !current with
+  | None -> ()
+  | Some r ->
+    add_possible_write r (Addresses.Bits.get_bases location.Locations.addr)
+
+let may_write_base base =
+  match !current with
+  | None -> ()
+  | Some r ->
+    add_possible_write r (Bases.inject (Base.Hptset.singleton base))
+
+let unknown_write () =
+  Option.iter (fun r -> add_write r Bases.top Zone.bottom) !current
+
+let () = Origin.on_history_access (fun () -> refuse Side_table)
+
 let write location =
   match !current with
   | None -> ()

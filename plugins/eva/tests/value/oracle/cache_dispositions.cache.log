@@ -11,7 +11,7 @@
 [eva:progress] Recording results for leaf
 [eva:progress] Done for function leaf
 [eva:cache] cache_dispositions.c:32: 
-  call to leaf: lookup: no-candidate; execution: analysed; storage: stored (entry 1)
+  call to leaf: lookup: no-candidate; execution: analysed; storage: stored (entry 1); collector: refused (builtin)
 [eva:cache] cache_dispositions.c:33: 
   call to leaf: lookup: hit (entry 1); execution: not-analysed; storage: none
 [eva:progress] cache_dispositions.c:33: Reusing old results for call to leaf
@@ -23,11 +23,11 @@
 [eva:progress] Recording results for alloc
 [eva:progress] Done for function alloc
 [eva:cache] cache_dispositions.c:34: 
-  call to alloc: lookup: no-candidate; execution: analysed; storage: refused (not-cacheable)
+  call to alloc: lookup: no-candidate; execution: analysed; storage: refused (not-cacheable); collector: refused (builtin)
 [eva:progress] Recording results for main
 [eva:progress] Done for function main
 [eva:cache] 
-  call to main: lookup: no-candidate; execution: analysed; storage: refused (not-cacheable)
+  call to main: lookup: no-candidate; execution: analysed; storage: refused (not-cacheable); collector: refused (sweep)
 [eva] ====== VALUES COMPUTED ======
 [eva:final-states] Values at end of function leaf:
   __retres ∈ {2}

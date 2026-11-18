@@ -254,8 +254,6 @@ let string_fkind fk = Format.asprintf "%a" Printer.pp_fkind fk
 let register_alarm ~pos alarm status str =
   Body_access.record Alarms;
   Body_access.record Statuses;
-  if Parameters.StopAtNthAlarm.get () < max_int then
-    Body_access.refuse Side_table;
   let ki = Position.kinstr pos in
   let status = match status with
     | True -> Property_status.True
@@ -399,7 +397,9 @@ let emit_alarms ~pos map =
   let list = M.bindings map in
   let sorted_list = List.sort cmp list in
   List.iter (fun (alarm, status) -> emit_alarm ~pos alarm status) sorted_list;
-  if Alarm_cache.length () >= Parameters.StopAtNthAlarm.get ()
+  let stop_at = Parameters.StopAtNthAlarm.get () in
+  if stop_at < max_int then Body_access.refuse Side_table;
+  if Alarm_cache.length () >= stop_at
   then Self.abort "Stopping at nth alarm"
 
 let emit ~pos = function

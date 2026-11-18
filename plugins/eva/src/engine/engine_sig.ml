@@ -117,7 +117,7 @@ module type Transfer_logic = sig
     state list -> state list
 
   val check_fct_preconditions:
-    kinstr -> kernel_function -> Active_behaviors.t ->
+    ?body:bool -> kinstr -> kernel_function -> Active_behaviors.t ->
     state -> state list
 
   val check_fct_postconditions_for_behaviors:

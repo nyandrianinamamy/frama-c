@@ -43,6 +43,11 @@ val verdict : Result.t -> (unit, Result.refusal) result
 
 val read : Locations.t -> unit
 val write : Locations.t -> unit
+
+(** Abstract binding updates provide possible writes without sure bits. *)
+val may_write : Locations.t -> unit
+val may_write_base : Base.t -> unit
+val unknown_write : unit -> unit
 val check_location : Cvalue.V.t -> unit
 val designate : Cvalue.V.t -> unit
 val record : Result.recorded -> unit

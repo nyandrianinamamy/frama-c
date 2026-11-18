@@ -37,6 +37,10 @@ Print statistics file.
   $ cat stats.csv
   alarm-count			1
   analysis-time			<TIME>
+  collector-refused-nested-call	f		2
+  collector-refused-sweep	h		1
+  collector-refused-sweep	main		1
+  collector-would-store	g		5
   fun-coverage			1.
   iterations	f	statistics.i:4-6	8
   iterations	h	statistics.i:12-17	5

@@ -1015,12 +1015,12 @@ let () = add_precision_dep RmAssert.parameter
 
 let () = Parameter_customize.is_invisible ()
 module CacheCollect =
-  False
+  True
     (struct
       let option_name = "-eva-cache-collect"
       let help = "Record whole-block accesses and report the storage verdict \
                   for each body analysed after this option is set. This \
-                  recording is independent of memexec and is off by default."
+                  recording is independent of memexec and is on by default."
     end)
 
 let () = Parameter_customize.set_group precision_tuning

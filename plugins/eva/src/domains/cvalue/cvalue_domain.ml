@@ -246,7 +246,10 @@ module State = struct
   let reduce_by_predicate logic_env (state, clob) pred b =
     let eval_env = Eval_terms.make_env (lift_env logic_env) state in
     let eval_env = Eval_terms.reduce_by_predicate eval_env b pred in
-    let state = Eval_terms.env_current_state eval_env in
+    let reduced = Eval_terms.env_current_state eval_env in
+    if Body_access.is_recording () && not (Cvalue.Model.equal state reduced) then
+      Body_access.unknown_write ();
+    let state = reduced in
     if Cvalue.Model.is_reachable state
     then `Value (state, clob)
     else `Bottom
@@ -361,10 +364,15 @@ module State = struct
       | Abstract_domain.Global -> bind_global
       | Abstract_domain.(Local _ | Formal _ | Result _)  -> bind_local
     in
-    List.fold_left bind state vars, clob
+    let state = List.fold_left bind state vars in
+    if Body_access.is_recording () then
+      List.iter (fun vi -> Body_access.may_write_base (Base.of_varinfo vi)) vars;
+    state, clob
 
   let leave_scope kf vars (state, clob) =
     let state = Cvalue.Model.remove_variables vars state in
+    if Body_access.is_recording () then
+      List.iter (fun vi -> Body_access.may_write_base (Base.of_varinfo vi)) vars;
     try
       let fdec = Kernel_function.get_definition kf in
       Locals_scoping.make_escaping_fundec fdec clob vars state, clob

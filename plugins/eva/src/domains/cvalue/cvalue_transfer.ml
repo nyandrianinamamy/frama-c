@@ -24,7 +24,6 @@ let unbottomize = function
 let warn_imprecise_value ?prefix lval value =
   match value with
   | Addresses.Bytes.Top (bases, origin) ->
-    Body_access.refuse Side_table;
     if Origin.register_write bases origin then
       let prefix = Option.fold ~none:"A" ~some:(fun s -> s ^ ": a") prefix in
       Self.warning ~wkey:Log_key.warn_garbled_mix_write ~once:true ~current:true
@@ -61,7 +60,12 @@ let reduce valuation lval value t =
   | `Value record ->
     let loc = Precise_locs.imprecise_location record.loc in
     if Locations.cardinal_zero_or_one loc
-    then Cvalue.Model.reduce_indeterminate_binding t loc value
+    then begin
+      let state = Cvalue.Model.reduce_indeterminate_binding t loc value in
+      if Body_access.is_recording () && not (Cvalue.Model.equal t state) then
+        Body_access.may_write loc;
+      state
+    end
     else t
   | `Top -> t (* Cannot reduce without the location of the lvalue. *)
 
