@@ -22,8 +22,9 @@ The product of two domains has the union of the two `relate` as its `relate`,
 so that a set closed in the product is closed in both components.
 
 The match lemma (`match_lemma`) puts each current concrete memory in the
-filtered stored input, and gives a memory of the stored input that agrees
-with it on the key. The product lemma (`product_lemma`) derives exactness on
+filtered stored input (`match_filtered`, without exactness), and gives a
+memory of the stored input that agrees with it on the key. The product lemma
+(`product_lemma`) derives exactness on
 a closed product key from the decomposition of each component, with
 non-emptiness of the stored concretisation as a hypothesis.
 `projected_match` composes the two. Neither lemma takes a hypothesis on the
@@ -381,17 +382,28 @@ theorem product_lemma {d₁ d₂ : Domain M} {K : BlockSet}
     (hne : ∃ w, (d₁.prod d₂).γ S w) : (d₁.prod d₂).ExactOn K S :=
   exactOn_of_decomposes hc ((relateSound_prod h₁ h₂).decomposes K S hK) hne
 
+omit [Memory M] in
+/-- The first half of the match. Weak `filter` soundness on the current input
+`C` and the inclusion of the filtered current input in the filtered stored
+input put each memory of `γ C` in the filtered stored input. Neither
+exactness nor closure is used. -/
+theorem match_filtered {d : Domain M} {K : BlockSet} {C S : d.State}
+    (hsound : ∀ m, d.γ C m → d.γ (d.filter K C) m)
+    (hincl : ∀ m, d.γ (d.filter K C) m → d.γ (d.filter K S) m)
+    {m : M} (hm : d.γ C m) : d.γ (d.filter K S) m :=
+  hincl m (hsound m hm)
+
 /-- The match lemma. Weak `filter` soundness on the current input `C` and the
 inclusion of the filtered current input in the filtered stored input put each
-memory of `γ C` in the filtered stored input. Exactness of `filter` on the
-stored input `S` then gives a memory of `γ S` that agrees with it on the
-key. -/
+memory of `γ C` in the filtered stored input (`match_filtered`). Exactness of
+`filter` on the stored input `S` then gives a memory of `γ S` that agrees with
+it on the key. -/
 theorem match_lemma {d : Domain M} {K : BlockSet} {C S : d.State}
     (hsound : ∀ m, d.γ C m → d.γ (d.filter K C) m)
     (hincl : ∀ m, d.γ (d.filter K C) m → d.γ (d.filter K S) m)
     (hexact : d.ExactOn K S) {m : M} (hm : d.γ C m) :
     d.γ (d.filter K S) m ∧ ∃ m', d.γ S m' ∧ AgreeOn K m m' :=
-  have hf := hincl m (hsound m hm)
+  have hf := match_filtered hsound hincl hm
   ⟨hf, hexact m hf⟩
 
 /-- The match on a product, from the laws of its components: the match lemma
