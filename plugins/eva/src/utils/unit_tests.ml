@@ -115,10 +115,115 @@ module Sign = struct
   let test () = List.iter test_typ [IInt; IUInt]
 end
 
+(* Tests consequences of the laws of the reuse operation on the cvalue domain
+   that need no concretization, on a few states and on every set of blocks
+   among four variables:
+   - [filter B S] binds exactly the blocks of [B] bound in [S], each to its
+     offsetmap in [S]: it only forgets;
+   - [filter] is idempotent: [filter B (filter B S) = filter B S];
+   - [reuse W ~current_input:S ~previous_output:(filter (K ∪ W) S) = S]. *)
+module Cache_laws = struct
+
+  module State = Cvalue_domain.State
+
+  let var name typ = Cil.makeGlobalVar name typ
+
+  let a = var "a" Cil_const.intType
+  let b = var "b" Cil_const.intType
+  let c = var "c" Cil_const.intType
+  let p = var "p" Cil_const.voidPtrType
+
+  let bind vi v state =
+    let size = Z.of_int (Cil.bitsSizeOf vi.vtype) in
+    Cvalue.Model.add_base_value (Base.of_varinfo vi) ~size v ~size_v:size state
+
+  let initialized = Cvalue.V_Or_Uninitialized.initialized
+  let uninitialized = Cvalue.V_Or_Uninitialized.uninitialized
+
+  let int n = initialized (Cvalue.V.inject_int (Z.of_int n))
+
+  let address_of vi =
+    initialized (Cvalue.V.inject (Base.of_varinfo vi) Ival.zero)
+
+  let models =
+    let range = Ival.inject_range (Some Z.zero) (Some (Z.of_int 10)) in
+    let range = initialized (Cvalue.V.inject_ival range) in
+    Cvalue.Model.[
+      empty_map;
+      empty_map |> bind a (int 1) |> bind b range |> bind c uninitialized
+      |> bind p (address_of a);
+      empty_map |> bind a (int 2) |> bind p (address_of b);
+      top;
+      bottom ]
+
+  let states = List.map (fun s -> s, Locals_scoping.bottom ()) models
+
+  (* All sets of blocks among the four variables. *)
+  let sets =
+    let add_or_not sets vi =
+      let b = Base.of_varinfo vi in
+      sets @ List.map (Base.Hptset.add b) sets
+    in
+    List.fold_left add_or_not [ Base.Hptset.empty ] [ a; b; c; p ]
+
+  let bindings = function
+    | Cvalue.Model.Map m ->
+      Cvalue.Model.fold (fun b o acc -> (b, o) :: acc) m []
+    | Top | Bottom -> []
+
+  let same_binding (b, o) (b', o') =
+    Base.equal b b' && Cvalue.V_Offsetmap.equal o o'
+
+  let same_bindings l l' =
+    List.length l = List.length l'
+    && List.for_all (fun x -> List.exists (same_binding x) l') l
+
+  (* [filter bases state] binds exactly the bases of [bases] bound in
+     [state], to the same offsetmaps. On Top and Bottom, it is the identity. *)
+  let only_forgets bases (model, _) (filtered, _) =
+    match model with
+    | Cvalue.Model.Top | Bottom -> Cvalue.Model.equal model filtered
+    | Map _ ->
+      let kept (b, _) = Base.Hptset.mem b bases in
+      same_bindings (List.filter kept (bindings model)) (bindings filtered)
+
+  let test_filter state bases =
+    let filtered = State.filter bases state in
+    report (not (only_forgets bases state filtered))
+      "filter %a %a = %a  forgets nothing or changes a binding"
+      Base.Hptset.pretty bases State.pretty state State.pretty filtered;
+    let again = State.filter bases filtered in
+    report (not (State.equal again filtered))
+      "filter %a (filter %a %a) = %a  is not filter %a %a = %a"
+      Base.Hptset.pretty bases Base.Hptset.pretty bases State.pretty state
+      State.pretty again Base.Hptset.pretty bases State.pretty state
+      State.pretty filtered
+
+  let test_reuse state key written =
+    let output = State.filter (Base.Hptset.union key written) state in
+    let result =
+      State.reuse written ~current_input:state ~previous_output:output
+    in
+    report (not (State.equal result state))
+      "reuse %a %a (filter (%a ∪ %a) %a) = %a"
+      Base.Hptset.pretty written State.pretty state
+      Base.Hptset.pretty key Base.Hptset.pretty written State.pretty state
+      State.pretty result
+
+  let test () =
+    let for_all l f = List.iter f l in
+    for_all states @@ fun state ->
+    for_all sets @@ fun bases ->
+    test_filter state bases;
+    for_all sets @@ fun written ->
+    test_reuse state bases written
+end
+
 (** Runs all tests. *)
 let run () =
   Self.result "Runs unit tests: %s."
     (if print
      then "all operations will be printed"
      else  "only faulty operations will be printed");
-  Sign.test ()
+  Sign.test ();
+  Cache_laws.test ()
