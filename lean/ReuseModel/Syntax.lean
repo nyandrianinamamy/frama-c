@@ -2,7 +2,7 @@
 # Syntax
 
 The language of the model: whole-block loads and stores, sequencing,
-conditionals, `while`, direct calls and return, and labelled assertions.
+conditionals, `while`, lexical scopes, direct calls, return and assertions.
 
 A value is an integer or a pointer to a whole block. There are no offsets into
 a block, no arrays or structures, no pointer arithmetic and no casts between
@@ -29,7 +29,13 @@ the null pointer: it compares unequal to every pointer to a block. -/
 inductive Value where
   | int (n : Int)
   | ptr (b : Block)
+  /-- A pointer marked when the lifetime of its lexical local ends. -/
+  | escaped (b : Block)
   deriving DecidableEq, Repr
+
+/-- Mark a pointer to the local whose scope ended. -/
+def Value.escape (target : Block) (v : Value) : Value :=
+  if v = .ptr target then .escaped target else v
 
 /-- A variable name. -/
 abbrev Var := String
@@ -88,6 +94,8 @@ inductive Stmt where
   | loop (l : Label) (c : Expr) (body : Stmt)
   /-- `x = f(args);` or `f(args);`: a direct call. -/
   | call (l : Label) (dst : Option Var) (f : FunName) (args : List Expr)
+  /-- An inner lexical block, with integer initial values for its locals. -/
+  | scope (l : Label) (locals : List (Var × Int)) (body : Stmt)
   /-- `return e;` or `return;` -/
   | ret (l : Label) (e : Option Expr)
   /-- `/*@ assert e; */`: an assertion, named by its label. It has no effect
@@ -104,6 +112,7 @@ def Stmt.label : Stmt → Label
   | .ite l _ _ _ => l
   | .loop l _ _ => l
   | .call l _ _ _ => l
+  | .scope l _ _ => l
   | .ret l _ => l
   | .assert l _ => l
 
@@ -114,7 +123,7 @@ def Stmt.labels : Stmt → List Label
   | .assign l _ _ => [l]
   | .seq l s₁ s₂ => l :: (s₁.labels ++ s₂.labels)
   | .ite l _ s₁ s₂ => l :: (s₁.labels ++ s₂.labels)
-  | .loop l _ body => l :: body.labels
+  | .loop l _ body | .scope l _ body => l :: body.labels
   | .call l _ _ _ => [l]
   | .ret l _ => [l]
   | .assert l _ => [l]
@@ -124,14 +133,14 @@ lists their labels in the same order. -/
 def Stmt.subs : Stmt → List Stmt
   | s@(.seq _ s₁ s₂) => s :: (s₁.subs ++ s₂.subs)
   | s@(.ite _ _ s₁ s₂) => s :: (s₁.subs ++ s₂.subs)
-  | s@(.loop _ _ body) => s :: body.subs
+  | s@(.loop _ _ body) | s@(.scope _ _ body) => s :: body.subs
   | s => [s]
 
 /-- The functions that a statement calls directly. -/
 def Stmt.callees : Stmt → List FunName
   | .seq _ s₁ s₂ => s₁.callees ++ s₂.callees
   | .ite _ _ s₁ s₂ => s₁.callees ++ s₂.callees
-  | .loop _ _ body => body.callees
+  | .loop _ _ body | .scope _ _ body => body.callees
   | .call _ _ f _ => [f]
   | _ => []
 
@@ -230,7 +239,7 @@ theorem Stmt.mem_subs_trans {s₁ s₂ s₃ : Stmt} (h₁ : s₁ ∈ s₂.subs)
     · simpa [Stmt.subs] using h₁
     · exact Or.inr (Or.inl (iha h₂))
     · exact Or.inr (Or.inr (ihb h₂))
-  | loop l c body ih =>
+  | loop l c body ih | scope l c body ih =>
     simp only [Stmt.subs, List.mem_cons] at h₂ ⊢
     rcases h₂ with rfl | h₂
     · simpa [Stmt.subs] using h₁
@@ -257,7 +266,7 @@ theorem Stmt.labels_sublist {s s' : Stmt} (h : s' ∈ s.subs) :
     · exact List.Sublist.refl _
     · exact (iha h).trans ((List.sublist_append_left _ _).cons l)
     · exact (ihb h).trans ((List.sublist_append_right _ _).cons l)
-  | loop l c body ih =>
+  | loop l c body ih | scope l c body ih =>
     simp only [Stmt.subs, List.mem_cons] at h
     rcases h with rfl | h
     · exact List.Sublist.refl _

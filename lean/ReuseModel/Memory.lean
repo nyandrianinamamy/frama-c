@@ -11,8 +11,8 @@ met.
 
 A block is live from its creation until it is released. Identifiers are never
 reused: a pointer to a released block stays dangling, and an access through it
-faults. Releasing a block rewrites nothing else; in particular, blocks that
-hold a pointer to it keep that pointer. The model has no sweep.
+faults. Ordinary release preserves the contents of surviving blocks. At an
+inner lexical scope exit, a sweep also marks pointers to the released local.
 -/
 
 namespace ReuseModel
@@ -28,6 +28,9 @@ class Memory (M : Type) where
   create : M → Value → Block × M
   /-- End the lifetime of a block. -/
   release : M → Block → M
+  /-- End a lexical local's lifetime and mark pointers to it in surviving
+  blocks. -/
+  sweep : M → Block → M
   /-- The block has been created at some time, and may have been released
   since. -/
   Issued : M → Block → Prop
@@ -45,6 +48,10 @@ class Memory (M : Type) where
   load_release_same : ∀ m b, load (release m b) b = none
   load_release_other : ∀ m b b', b' ≠ b → load (release m b) b' = load m b'
   issued_release : ∀ m b b', Issued m b' → Issued (release m b) b'
+  load_sweep_same : ∀ m b, load (sweep m b) b = none
+  load_sweep_other : ∀ m b b', b' ≠ b →
+    load (sweep m b) b' = (load m b').map (Value.escape b)
+  issued_sweep : ∀ m b b', Issued m b' → Issued (sweep m b) b'
 
 open Memory
 
@@ -72,6 +79,13 @@ def createAll (m : M) : List Value → List Block × M
 def releaseAll (m : M) : List Block → M
   | [] => m
   | b :: bs => releaseAll (release m b) bs
+
+/-- Sweep the local blocks in the same order as the scope-exit events. -/
+def sweepAll (m : M) (bs : List Block) : M := bs.foldl sweep m
+
+/-- Apply the effects of a sequence of sweeps to a surviving value. -/
+def applySweeps (targets : List Block) (value : Option Value) : Option Value :=
+  targets.foldl (fun v b => v.map (Value.escape b)) value
 
 /-- Creating blocks leaves an issued block unchanged, keeps it issued, and
 never returns it. -/
@@ -161,11 +175,20 @@ def release (m : FunMem) (b : Block) : FunMem where
     · simp [updateCell, hne]
     · simp [updateCell, hne, m.fresh b' hb']
 
+def sweep (m : FunMem) (b : Block) : FunMem where
+  cells := fun c => ((m.release b).cells c).map (Value.escape b)
+  next := m.next
+  fresh := by
+    intro c hc
+    rw [(m.release b).fresh c hc]
+    rfl
+
 instance : Memory FunMem where
   load m b := m.cells b
   store := FunMem.store
   create := FunMem.create
   release := FunMem.release
+  sweep := FunMem.sweep
   Issued m b := b < m.next
   issued_of_load := by
     intro m b v h
@@ -216,6 +239,13 @@ instance : Memory FunMem where
   issued_release := by
     intro m b b' hb
     exact hb
+  load_sweep_same := by
+    intro m b
+    simp [FunMem.sweep, FunMem.release, updateCell]
+  load_sweep_other := by
+    intro m b c hc
+    simp [FunMem.sweep, FunMem.release, updateCell, hc]
+  issued_sweep _ _ _ h := h
 
 end FunMem
 

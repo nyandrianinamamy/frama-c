@@ -28,6 +28,8 @@ structure AllocatorAgreement (M : Type) [Memory M] where
     rel (Memory.create m v).2 (Memory.create n v).2
   release : ∀ {m n : M} b, rel m n →
     rel (Memory.release m b) (Memory.release n b)
+  sweep : ∀ {m n : M} b, rel m n →
+    rel (Memory.sweep m b) (Memory.sweep n b)
 
 /-- Two function memories agree on allocation when their next identifiers
 are equal. -/
@@ -43,13 +45,14 @@ def FunMem.allocatorAgreement : AllocatorAgreement FunMem where
     exact h
   create v h := ⟨h, congrArg Nat.succ h⟩
   release _ h := h
+  sweep _ h := h
 
 /-- The blocks whose contents are established by the events. At a failed
 write, both blocks are dead. -/
 def updatedBlocks : List Event → BlockSet :=
   List.filterMap fun
     | .read _ => none
-    | .write b | .scopeEnter b | .scopeExit b => some b
+    | .write b | .scopeEnter b | .scopeExit b | .sweep b => some b
 
 /-- All reads are keyed and all writes are recorded, including attempted
 accesses that fault. -/
@@ -112,7 +115,11 @@ private theorem evalExpr_agree (p : Program) (env : Env) (m n : M) (e : Expr)
       have he' := (ih (by rw [he]; exact h.left)).trans he
       rw [he']
       simp [loadValue, h b (by simp)]
-    · next es v he => rw [(ih (by rw [he]; exact h)).trans he]
+    · next v hptr he =>
+      rw [(ih (by rw [he]; exact h)).trans he]
+      cases v with
+      | ptr b => exact (hptr b rfl).elim
+      | int | escaped => rfl
     · next es a he => rw [(ih (by rw [he]; exact h)).trans he]
   | binop op e₁ e₂ ih₁ ih₂ =>
     simp only [evalExpr] at h ⊢
@@ -225,6 +232,28 @@ private theorem releaseAll_agree {a : AllocatorAgreement M}
     intro c hc
     simpa only [List.mem_cons, List.mem_append, or_comm, or_left_comm, or_assoc] using hc
 
+private theorem sweepAll_agree {a : AllocatorAgreement M}
+    {K W : BlockSet} {m n : M} (bs : List Block)
+    (h : ReplayAgreement a K W m n) :
+    ReplayAgreement a (bs ++ K) W (sweepAll m bs) (sweepAll n bs) := by
+  induction bs generalizing K m n with
+  | nil => exact h
+  | cons b bs ih =>
+    have hr : ReplayAgreement a (b :: K) W (sweep m b) (sweep n b) := by
+      refine ⟨?_, ?_, a.sweep b h.allocator⟩
+      · intro c hc
+        by_cases he : c = b
+        · subst c; simp only [load_sweep_same]
+        · rw [load_sweep_other m b c he, load_sweep_other n b c he,
+            h.contents c ((List.mem_cons.mp hc).resolve_left he)]
+      · intro c hc
+        by_cases he : c = b
+        · subst c; simp only [load_sweep_same]
+        · simpa [load_sweep_other m b c he, load_sweep_other n b c he] using h.live c hc
+    refine (ih hr).restrict ?_
+    intro c hc
+    simpa only [List.mem_cons, List.mem_append, or_comm, or_left_comm, or_assoc] using hc
+
 @[simp] private theorem updated_append (es fs : List Event) :
     updatedBlocks (es ++ fs) = updatedBlocks es ++ updatedBlocks fs :=
   List.filterMap_append
@@ -235,6 +264,10 @@ private theorem releaseAll_agree {a : AllocatorAgreement M}
 
 @[simp] private theorem updated_exit (bs : List Block) :
     updatedBlocks (bs.map Event.scopeExit) = bs := by
+  induction bs <;> simp_all [updatedBlocks]
+
+@[simp] private theorem updated_sweep (bs : List Block) :
+    updatedBlocks (bs.map Event.sweep) = bs := by
   induction bs <;> simp_all [updatedBlocks]
 
 @[simp] private theorem updated_read (b : Block) :
@@ -409,6 +442,8 @@ private theorem stepRet_agree {a : AllocatorAgreement M} {K W : BlockSet}
     ∃ n', stepRet v k n = (evs, c.withMem n') ∧
       ReplayAgreement a (updatedBlocks evs ++ K) W c.mem n' := by
   cases k with
+  | scope bs env k =>
+    exact ⟨_, rfl, by simpa [stepRet, Config.mem] using sweepAll_agree bs h⟩
   | call site dst env bs k =>
     have ha := releaseAll_agree bs h
     cases dst with
@@ -487,6 +522,10 @@ private theorem stepStmt_agree {a : AllocatorAgreement M} {K W : BlockSet}
     · rename_i he
       rw [he] at hu
       exact ⟨n, rfl, by simpa [Config.mem, hu] using h⟩
+  | scope l locals body =>
+    obtain ⟨he, ha⟩ := createAll_agree (locals.map fun x => Value.int x.2) h
+    refine ⟨_, ?_, by simpa [stepStmt, Config.mem] using ha⟩
+    simp only [stepStmt, he, Config.withMem]
   | ret l e =>
     cases e with
     | none => exact ⟨n, rfl, h⟩
@@ -522,7 +561,10 @@ private theorem step_agree {a : AllocatorAgreement M} {K W : BlockSet}
   | next k env m =>
     simp only [step, Option.some.injEq] at hs
     obtain ⟨rfl, rfl⟩ := Prod.mk.inj hs
-    cases k <;> exact ⟨n, rfl, h⟩
+    cases k with
+    | scope bs env k =>
+      exact ⟨_, rfl, by simpa [stepNext, Config.mem] using sweepAll_agree bs h⟩
+    | _ => exact ⟨n, rfl, h⟩
   | ret v k m =>
     simp only [step, Option.some.injEq] at hs
     have he : _ = evs := congrArg Prod.fst hs
@@ -596,7 +638,7 @@ theorem run_agree_on_writes {a : AllocatorAgreement M} {K : BlockSet}
     cases e with
     | read b => exact hc b he
     | write b => exact List.mem_filterMap.mpr ⟨.write b, he, rfl⟩
-    | scopeEnter | scopeExit => trivial
+    | scopeEnter | scopeExit | sweep => trivial
   cases hr : run p fuel c with
   | mk evs c' => simpa only [hr] using run_agree_of_accesses h fuel hcover
 

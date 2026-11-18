@@ -1,30 +1,52 @@
 import ReuseModel.Observations
 
 /-!
-# Frame lemma without sweeps
+# Frame lemma with lexical scope sweeps
 
-A block that a statement neither reads nor writes has, at every visit inside
-the statement, the value it had at entry. The model has no sweep: the end of
-the lifetime of a callee's locals rewrites no other block.
-
-`frame_of_not_written` is the general form: it holds at every configuration of
-a finite sequence of steps from the entry of a statement, for any program, for a
-block issued before entry, and needs only that these steps do not write the
-block. `frame_lemma` is the form used by the correspondence record: it is
-stated for a `Subject`, so for programs of the fragment. Its proof does not use
-the fragment conditions.
+An entry block untouched by ordinary writes changes only as recorded lexical
+sweeps mark its pointers. Each sweep targets a local allocated inside the
+execution. If the entry value's pointer target was already issued at entry,
+the sweep cannot change that value.
 -/
 
 namespace ReuseModel
 
 open Memory
 
-/-- The blocks held as locals by the call frames of a continuation. -/
+/-- The blocks held as locals by the call and scope frames of a continuation. -/
 def Cont.frameBlocks : Cont → List Block
   | .stop => []
   | .seq _ k => k.frameBlocks
   | .loop _ _ _ k => k.frameBlocks
-  | .call _ _ _ locals k => locals ++ k.frameBlocks
+  | .call _ _ _ locals k | .scope locals _ k => locals ++ k.frameBlocks
+
+/-- The targets of the lexical sweeps in a prefix, in execution order. -/
+def sweepTargets (evs : List Event) : List Block :=
+  evs.filterMap fun e => match e with
+    | .sweep b => some b
+    | _ => none
+
+@[simp] private theorem sweepTargets_append (es fs : List Event) :
+    sweepTargets (es ++ fs) = sweepTargets es ++ sweepTargets fs :=
+  List.filterMap_append
+
+@[simp] private theorem sweepTargets_read (b : Block) :
+    sweepTargets [.read b] = [] := rfl
+
+@[simp] private theorem sweepTargets_write (b : Block) :
+    sweepTargets [.write b] = [] := rfl
+
+@[simp] private theorem sweepTargets_enter (bs : List Block) :
+    sweepTargets (bs.map Event.scopeEnter) = [] := by
+  induction bs <;> simp_all [sweepTargets]
+
+@[simp] private theorem sweepTargets_exit (bs : List Block) :
+    sweepTargets (bs.map Event.scopeExit) = [] := by
+  induction bs <;> simp_all [sweepTargets]
+
+@[simp] private theorem sweepTargets_sweep (bs : List Block) :
+    sweepTargets (bs.map Event.sweep) = bs := by
+  induction bs <;> simp_all [sweepTargets]
 
 section
 variable {M : Type} [Memory M]
@@ -38,6 +60,84 @@ def InFrame (t : Subject) (σ : State M) (b : Block) : Prop :=
 configuration holds `b` as a local. -/
 def FrameInv (b : Block) (c : Config M) : Prop :=
   Issued c.mem b ∧ b ∉ c.cont.frameBlocks
+
+@[simp] private theorem sweepTargets_expr (p : Program) (env : Env) (m : M)
+    (e : Expr) : sweepTargets (evalExpr p env m e).1 = [] := by
+  induction e with
+  | const => rfl
+  | addr | var => simp only [evalExpr]; split <;> rfl
+  | deref e ih =>
+    simp only [evalExpr]
+    split <;> rename_i he <;> rw [he] at ih
+    · change sweepTargets _ = [] at ih
+      simp [ih]
+    · exact ih
+    · exact ih
+  | binop op e₁ e₂ ih₁ ih₂ =>
+    simp only [evalExpr]
+    split <;> rename_i he <;> rw [he] at ih₁
+    · exact ih₁
+    · split <;> rename_i he' <;> rw [he'] at ih₂ <;> simp [ih₁, ih₂]
+
+@[simp] private theorem sweepTargets_lexpr (p : Program) (env : Env) (m : M)
+    (e : LExpr) : sweepTargets (evalLExpr p env m e).1 = [] := by
+  cases e with
+  | var => simp only [evalLExpr]; split <;> rfl
+  | deref e =>
+    simp only [evalLExpr]
+    split <;> rename_i he <;> simpa only [he] using sweepTargets_expr p env m e
+
+@[simp] private theorem sweepTargets_args (p : Program) (env : Env) (m : M)
+    (es : List Expr) : sweepTargets (evalArgs p env m es).1 = [] := by
+  induction es with
+  | nil => rfl
+  | cons e es ih =>
+    have he := sweepTargets_expr p env m e
+    simp only [evalArgs]
+    split <;> rename_i h <;> rw [h] at he
+    · exact he
+    · split <;> rename_i ht <;> rw [ht] at ih <;> simp [he, ih]
+
+@[simp] private theorem sweepTargets_assign (p : Program) (env : Env) (m : M)
+    (lv : LExpr) (e : Expr) : sweepTargets (execAssign p env m lv e).1 = [] := by
+  have he := sweepTargets_expr p env m e
+  have hl := sweepTargets_lexpr p env m lv
+  simp only [execAssign]
+  split <;> rename_i h <;> rw [h] at he
+  · exact he
+  · split <;> rename_i h' <;> rw [h'] at hl
+    · simp [he, hl]
+    · split <;> simp [he, hl]
+
+@[simp] private theorem sweepTargets_call (p : Program) (env : Env) (m : M)
+    (dst : Option Var) (f : FunName) (args : List Expr) :
+    sweepTargets (execCall p env m dst f args).1 = [] := by
+  have he := sweepTargets_args p env m args
+  simp only [execCall]
+  split <;> rename_i h <;> rw [h] at he
+  · exact he
+  · split
+    · split <;> simp [he]
+    · exact he
+
+private theorem sweepAll_other {m : M} {b : Block} (bs : List Block)
+    (hb : b ∉ bs) (hi : Issued m b) :
+    Issued (sweepAll m bs) b ∧
+      load (sweepAll m bs) b = applySweeps bs (load m b) := by
+  induction bs generalizing m with
+  | nil => exact ⟨hi, rfl⟩
+  | cons a bs ih =>
+    simp only [List.mem_cons, not_or] at hb
+    obtain ⟨hne, hmem⟩ := hb
+    obtain ⟨hi', hv⟩ := ih hmem (issued_sweep m a b hi)
+    exact ⟨hi', by simpa [sweepAll, applySweeps, load_sweep_other m a b hne] using hv⟩
+
+/-- The invariant and single-block effect of a step, with the freshness of
+its sweep targets relative to any block tracked by the invariant. -/
+private def FrameStep (b : Block) (m : M) (evs : List Event) (c : Config M) : Prop :=
+  FrameInv b c ∧ b ∉ sweepTargets evs ∧
+    ((∀ e ∈ evs, ¬ e.Writes b) →
+      load c.mem b = applySweeps (sweepTargets evs) (load m b))
 
 theorem execAssign_ok {p : Program} {env : Env} {m m' : M} {lv : LExpr} {e : Expr}
     {evs : List Event} (h : execAssign p env m lv e = (evs, .ok m')) :
@@ -69,204 +169,212 @@ theorem execCall_ok {p : Program} {env : Env} {m : M} {dst : Option Var} {f : Fu
       · cases h
     · cases h
 
-/-- A fault keeps the memory and has no call frame. -/
-theorem frameInv_fault {b : Block} {m : M} {l : Label} {a : Alarm} (h : Issued m b) :
-    FrameInv b (Config.fault l a m) ∧ load (Config.fault l a m).mem b = load m b :=
-  ⟨⟨h, by simp [Config.cont, Cont.frameBlocks]⟩, rfl⟩
+private theorem frameStep_plain {b : Block} {m : M} {evs : List Event}
+    {c : Config M} (hi : FrameInv b c) (hs : sweepTargets evs = [])
+    (hv : (∀ e ∈ evs, ¬ e.Writes b) → load c.mem b = load m b) :
+    FrameStep b m evs c := by
+  exact ⟨hi, by simp [hs], by simpa [hs, applySweeps] using hv⟩
 
-theorem stepStmt_preserves {p : Program} {s : Stmt} {k : Cont} {env : Env} {m : M}
-    {evs : List Event} {c' : Config M} {b : Block}
-    (h : stepStmt p s k env m = (evs, c')) (hiss : Issued m b) (hfr : b ∉ k.frameBlocks)
-    (hw : ∀ e ∈ evs, ¬ e.Writes b) :
-    FrameInv b c' ∧ load c'.mem b = load m b := by
+private theorem frameInv_fault {b : Block} {m : M} {l : Label} {a : Alarm}
+    (h : Issued m b) : FrameInv b (Config.fault l a m) :=
+  ⟨h, by simp [Config.cont, Cont.frameBlocks]⟩
+
+private theorem stepStmt_preserves {p : Program} {s : Stmt} {k : Cont}
+    {env : Env} {m : M} {b : Block}
+    (hi : Issued m b) (hf : b ∉ k.frameBlocks) :
+    FrameStep b m (stepStmt p s k env m).1 (stepStmt p s k env m).2 := by
   cases s with
-  | skip l =>
-    simp only [stepStmt, Prod.mk.injEq] at h
-    obtain ⟨-, rfl⟩ := h
-    exact ⟨⟨hiss, hfr⟩, rfl⟩
+  | skip => exact frameStep_plain ⟨hi, hf⟩ rfl (fun _ => rfl)
+  | seq =>
+    exact frameStep_plain ⟨hi, by simpa [stepStmt, Config.cont, Cont.frameBlocks] using hf⟩
+      rfl (fun _ => rfl)
   | assign l lv e =>
-    simp only [stepStmt] at h
-    split at h
-    · next evs' m' hexec =>
-      simp only [Prod.mk.injEq] at h
-      obtain ⟨rfl, rfl⟩ := h
-      obtain ⟨b', v, hs, hmem⟩ := execAssign_ok hexec
-      have hne : b ≠ b' := by
-        intro heq
-        exact hw _ hmem (by simp [Event.Writes, heq])
-      exact ⟨⟨issued_store hs hiss, hfr⟩, load_store_other hs hne⟩
-    · simp only [Prod.mk.injEq] at h
-      obtain ⟨-, rfl⟩ := h
-      exact frameInv_fault hiss
-  | seq l s₁ s₂ =>
-    simp only [stepStmt, Prod.mk.injEq] at h
-    obtain ⟨-, rfl⟩ := h
-    exact ⟨⟨hiss, by simpa [Config.cont, Cont.frameBlocks] using hfr⟩, rfl⟩
-  | ite l c s₁ s₂ =>
-    simp only [stepStmt] at h
-    split at h
-    · simp only [Prod.mk.injEq] at h
-      obtain ⟨-, rfl⟩ := h
-      exact ⟨⟨hiss, hfr⟩, rfl⟩
-    · simp only [Prod.mk.injEq] at h
-      obtain ⟨-, rfl⟩ := h
-      exact frameInv_fault hiss
-  | loop l c body =>
-    simp only [stepStmt] at h
-    split at h
-    · split at h
-      · simp only [Prod.mk.injEq] at h
-        obtain ⟨-, rfl⟩ := h
-        exact ⟨⟨hiss, by simpa [Config.cont, Cont.frameBlocks] using hfr⟩, rfl⟩
-      · simp only [Prod.mk.injEq] at h
-        obtain ⟨-, rfl⟩ := h
-        exact ⟨⟨hiss, hfr⟩, rfl⟩
-    · simp only [Prod.mk.injEq] at h
-      obtain ⟨-, rfl⟩ := h
-      exact frameInv_fault hiss
+    have hsw := sweepTargets_assign p env m lv e
+    simp only [stepStmt]
+    split <;> rename_i h <;> rw [h] at hsw
+    · obtain ⟨b', v, hs, he⟩ := execAssign_ok h
+      refine frameStep_plain ⟨issued_store hs hi, hf⟩ hsw (fun hw => ?_)
+      apply load_store_other hs
+      rintro rfl
+      exact hw _ he rfl
+    · exact frameStep_plain (frameInv_fault hi) hsw (fun _ => rfl)
+  | ite l e s₁ s₂ =>
+    have hsw := sweepTargets_expr p env m e
+    simp only [stepStmt]
+    split <;> rename_i h <;> rw [h] at hsw
+    · exact frameStep_plain ⟨hi, hf⟩ hsw (fun _ => rfl)
+    · exact frameStep_plain (frameInv_fault hi) hsw (fun _ => rfl)
+  | loop l e body =>
+    have hsw := sweepTargets_expr p env m e
+    simp only [stepStmt]
+    split <;> rename_i h <;> rw [h] at hsw
+    · split
+      · exact frameStep_plain
+          ⟨hi, by simpa [Config.cont, Cont.frameBlocks] using hf⟩ hsw (fun _ => rfl)
+      · exact frameStep_plain ⟨hi, hf⟩ hsw (fun _ => rfl)
+    · exact frameStep_plain (frameInv_fault hi) hsw (fun _ => rfl)
   | call l dst f args =>
-    simp only [stepStmt] at h
-    split at h
-    · next evs' ce hexec =>
-      simp only [Prod.mk.injEq] at h
-      obtain ⟨-, rfl⟩ := h
-      obtain ⟨vs, hc⟩ := execCall_ok hexec
-      obtain ⟨h₁, h₂, h₃⟩ := createAll_issued (m := m) vs hiss
-      rw [hc] at h₁ h₂ h₃
-      refine ⟨⟨h₂, ?_⟩, h₁⟩
-      simp only [Config.cont, Cont.frameBlocks, List.mem_append, not_or]
-      exact ⟨h₃, hfr⟩
-    · simp only [Prod.mk.injEq] at h
-      obtain ⟨-, rfl⟩ := h
-      exact frameInv_fault hiss
+    have hsw := sweepTargets_call p env m dst f args
+    simp only [stepStmt]
+    split <;> rename_i h <;> rw [h] at hsw
+    · obtain ⟨vs, hc⟩ := execCall_ok h
+      obtain ⟨hv, hi', hloc⟩ := createAll_issued (m := m) vs hi
+      rw [hc] at hv hi' hloc
+      exact frameStep_plain
+        ⟨hi', by simp [Config.cont, Cont.frameBlocks, hloc, hf]⟩ hsw (fun _ => hv)
+    · exact frameStep_plain (frameInv_fault hi) hsw (fun _ => rfl)
+  | scope l locals body =>
+    obtain ⟨hv, hi', hloc⟩ := createAll_issued (locals.map fun x => Value.int x.2) hi
+    exact frameStep_plain
+      ⟨hi', by simp [stepStmt, Config.cont, Cont.frameBlocks, hloc, hf]⟩
+      (sweepTargets_enter _) (fun _ => hv)
   | ret l e =>
     cases e with
-    | none =>
-      simp only [stepStmt, Prod.mk.injEq] at h
-      obtain ⟨-, rfl⟩ := h
-      exact ⟨⟨hiss, hfr⟩, rfl⟩
+    | none => exact frameStep_plain ⟨hi, hf⟩ rfl (fun _ => rfl)
     | some e =>
-      simp only [stepStmt] at h
-      split at h
-      · simp only [Prod.mk.injEq] at h
-        obtain ⟨-, rfl⟩ := h
-        exact ⟨⟨hiss, hfr⟩, rfl⟩
-      · simp only [Prod.mk.injEq] at h
-        obtain ⟨-, rfl⟩ := h
-        exact frameInv_fault hiss
-  | assert l e =>
-    simp only [stepStmt, Prod.mk.injEq] at h
-    obtain ⟨-, rfl⟩ := h
-    exact ⟨⟨hiss, hfr⟩, rfl⟩
+      have hsw := sweepTargets_expr p env m e
+      simp only [stepStmt]
+      split <;> rename_i h <;> rw [h] at hsw
+      · exact frameStep_plain ⟨hi, hf⟩ hsw (fun _ => rfl)
+      · exact frameStep_plain (frameInv_fault hi) hsw (fun _ => rfl)
+  | assert l e => exact frameStep_plain ⟨hi, hf⟩ (sweepTargets_expr p env m e) (fun _ => rfl)
 
-theorem stepNext_preserves {k : Cont} {env : Env} {m : M} {b : Block}
-    (hiss : Issued m b) (hfr : b ∉ k.frameBlocks) :
-    FrameInv b (stepNext k env m) ∧ load (stepNext k env m).mem b = load m b := by
-  cases k with
-  | stop => exact ⟨⟨hiss, by simp [stepNext, Config.cont, Cont.frameBlocks]⟩, rfl⟩
-  | seq s k => exact ⟨⟨hiss, by simpa [Config.cont, Cont.frameBlocks] using hfr⟩, rfl⟩
-  | loop l c body k => exact ⟨⟨hiss, by simpa [Config.cont, Cont.frameBlocks] using hfr⟩, rfl⟩
-  | call site dst env' locals k => exact ⟨⟨hiss, hfr⟩, rfl⟩
+private theorem frameStep_sweep {b : Block} {m : M} {bs : List Block} {c : Config M}
+    (hi : Issued m b) (hloc : b ∉ bs) (hf : b ∉ c.cont.frameBlocks)
+    (hc : c.mem = sweepAll m bs) : FrameStep b m (bs.map Event.sweep) c := by
+  obtain ⟨hi', hv⟩ := sweepAll_other bs hloc hi
+  exact ⟨⟨hc ▸ hi', hf⟩, by simpa using hloc, fun _ => by simpa [hc] using hv⟩
 
-theorem stepRet_preserves {v : Option Value} {k : Cont} {m : M} {evs : List Event}
-    {c' : Config M} {b : Block}
-    (h : stepRet v k m = (evs, c')) (hiss : Issued m b) (hfr : b ∉ k.frameBlocks)
-    (hw : ∀ e ∈ evs, ¬ e.Writes b) :
-    FrameInv b c' ∧ load c'.mem b = load m b := by
+private theorem stepNext_preserves {k : Cont} {env : Env} {m : M} {b : Block}
+    (hi : Issued m b) (hf : b ∉ k.frameBlocks) :
+    FrameStep b m (stepNext k env m).1 (stepNext k env m).2 := by
   cases k with
-  | stop =>
-    simp only [stepRet, Prod.mk.injEq] at h
-    obtain ⟨-, rfl⟩ := h
-    exact ⟨⟨hiss, by simp [Config.cont, Cont.frameBlocks]⟩, rfl⟩
-  | seq s k =>
-    simp only [stepRet, Prod.mk.injEq] at h
-    obtain ⟨-, rfl⟩ := h
-    exact ⟨⟨hiss, by simpa [Config.cont, Cont.frameBlocks] using hfr⟩, rfl⟩
-  | loop l c body k =>
-    simp only [stepRet, Prod.mk.injEq] at h
-    obtain ⟨-, rfl⟩ := h
-    exact ⟨⟨hiss, by simpa [Config.cont, Cont.frameBlocks] using hfr⟩, rfl⟩
-  | call site dst env' locals k =>
-    simp only [Cont.frameBlocks, List.mem_append, not_or] at hfr
-    obtain ⟨hloc, hk⟩ := hfr
-    obtain ⟨hl₁, hi₁⟩ := releaseAll_other (m := m) locals hloc hiss
-    simp only [stepRet] at h
-    split at h
-    · simp only [Prod.mk.injEq] at h
-      obtain ⟨-, rfl⟩ := h
-      exact ⟨⟨hi₁, hk⟩, hl₁⟩
-    · simp only [Prod.mk.injEq] at h
-      obtain ⟨-, rfl⟩ := h
-      exact ⟨⟨hi₁, by simp [Config.cont, Cont.frameBlocks]⟩, hl₁⟩
+  | scope bs env k =>
+    simp only [Cont.frameBlocks, List.mem_append, not_or] at hf
+    obtain ⟨hloc, hk⟩ := hf
+    exact frameStep_sweep hi hloc hk rfl
+  | _ =>
+    exact frameStep_plain ⟨hi, hf⟩
+      rfl (fun _ => rfl)
+
+private theorem stepRet_preserves {v : Option Value} {k : Cont} {m : M} {b : Block}
+    (hi : Issued m b) (hf : b ∉ k.frameBlocks) :
+    FrameStep b m (stepRet v k m).1 (stepRet v k m).2 := by
+  cases k with
+  | scope bs env k =>
+    simp only [Cont.frameBlocks, List.mem_append, not_or] at hf
+    obtain ⟨hloc, hk⟩ := hf
+    exact frameStep_sweep hi hloc hk rfl
+  | call site dst env bs k =>
+    simp only [Cont.frameBlocks, List.mem_append, not_or] at hf
+    obtain ⟨hloc, hk⟩ := hf
+    obtain ⟨hv, hi'⟩ := releaseAll_other (m := m) bs hloc hi
+    simp only [stepRet]
+    split
+    · exact frameStep_plain ⟨hi', hk⟩ (sweepTargets_exit bs) (fun _ => hv)
+    · exact frameStep_plain (frameInv_fault hi') (sweepTargets_exit bs) (fun _ => hv)
     · next b' v' =>
-      split at h
-      · next m₂ hs =>
-        simp only [Prod.mk.injEq] at h
-        obtain ⟨rfl, rfl⟩ := h
-        have hne : b ≠ b' := by
-          intro heq
-          exact hw (.write b') (by simp) (by simp [Event.Writes, heq])
-        exact ⟨⟨issued_store hs hi₁, hk⟩, (load_store_other hs hne).trans hl₁⟩
-      · simp only [Prod.mk.injEq] at h
-        obtain ⟨-, rfl⟩ := h
-        exact ⟨⟨hi₁, by simp [Config.cont, Cont.frameBlocks]⟩, hl₁⟩
+      split
+      · next m' hs =>
+        refine frameStep_plain ⟨issued_store hs hi', hk⟩ (by simp)
+          (fun hw => (load_store_other hs ?_).trans hv)
+        rintro rfl
+        exact hw (.write b) (by simp) rfl
+      · exact frameStep_plain (frameInv_fault hi') (by simp) (fun _ => hv)
+  | _ =>
+    exact frameStep_plain ⟨hi, hf⟩
+      rfl (fun _ => rfl)
 
-/-- One step that does not write `b` keeps the invariant and the value of
-`b`. -/
-theorem step_preserves {p : Program} {c c' : Config M} {evs : List Event} {b : Block}
-    (h : step p c = some (evs, c')) (hinv : FrameInv b c)
-    (hw : ∀ e ∈ evs, ¬ e.Writes b) :
-    FrameInv b c' ∧ load c'.mem b = load c.mem b := by
-  obtain ⟨hiss, hfr⟩ := hinv
+private theorem step_preserves {p : Program} {c c' : Config M} {evs : List Event}
+    {b : Block} (h : step p c = some (evs, c')) (hi : FrameInv b c) :
+    FrameStep b c.mem evs c' := by
+  obtain ⟨hiss, hf⟩ := hi
   cases c with
   | run s k env m =>
-    simp only [step, Option.some.injEq] at h
-    exact stepStmt_preserves h hiss hfr hw
+    obtain ⟨rfl, rfl⟩ := Prod.mk.inj (Option.some.inj h)
+    exact stepStmt_preserves hiss hf
   | next k env m =>
-    simp only [step, Option.some.injEq, Prod.mk.injEq] at h
-    obtain ⟨-, rfl⟩ := h
-    exact stepNext_preserves hiss hfr
+    obtain ⟨rfl, rfl⟩ := Prod.mk.inj (Option.some.inj h)
+    exact stepNext_preserves hiss hf
   | ret v k m =>
-    simp only [step, Option.some.injEq] at h
-    exact stepRet_preserves h hiss hfr hw
-  | done o m => simp [step] at h
-  | fault l a m => simp [step] at h
+    obtain ⟨rfl, rfl⟩ := Prod.mk.inj (Option.some.inj h)
+    exact stepRet_preserves hiss hf
+  | done | fault => contradiction
 
-/-- A finite sequence of steps that does not write `b` keeps the value of
-`b`. -/
-theorem steps_preserves {p : Program} {c c' : Config M} {evs : List Event} {b : Block}
-    (h : Steps p c evs c') (hinv : FrameInv b c) (hw : ∀ e ∈ evs, ¬ e.Writes b) :
-    load c'.mem b = load c.mem b := by
+private theorem steps_preserves {p : Program} {c c' : Config M} {evs : List Event}
+    {b : Block} (h : Steps p c evs c') (hi : FrameInv b c) :
+    b ∉ sweepTargets evs ∧
+      ((∀ e ∈ evs, ¬ e.Writes b) →
+        load c'.mem b = applySweeps (sweepTargets evs) (load c.mem b)) := by
   induction h with
-  | refl c => rfl
-  | @head c₁ c₂ c₃ evs₁ evs₂ hstep _ ih =>
-    have hw₁ : ∀ e ∈ evs₁, ¬ e.Writes b := fun e he => hw e (List.mem_append_left _ he)
-    have hw₂ : ∀ e ∈ evs₂, ¬ e.Writes b := fun e he => hw e (List.mem_append_right _ he)
-    obtain ⟨hinv', hval⟩ := step_preserves hstep hinv hw₁
-    exact (ih hinv' hw₂).trans hval
+  | refl => exact ⟨by simp [sweepTargets], fun _ => rfl⟩
+  | @head c₁ c₂ c₃ es fs hs _ ih =>
+    obtain ⟨hi', hbs, hv⟩ := step_preserves hs hi
+    obtain ⟨hbf, hv'⟩ := ih hi'
+    refine ⟨by simp [hbs, hbf], fun hw => ?_⟩
+    rw [hv' (fun e he => hw e (List.mem_append_right _ he)),
+      hv (fun e he => hw e (List.mem_append_left _ he))]
+    simp only [sweepTargets_append, applySweeps, List.foldl_append]
 
-/-- General form of the frame lemma, for any program. Let `b` be a block issued
-before the execution of `s` from `σ`. At every configuration reached from the
-entry of `s` by a finite sequence of steps that does not write `b`, `b` has the
-value it had at entry. -/
+/-- At every prefix, an entry block untouched by writes has its entry value
+transformed by the recorded lexical sweeps. -/
 theorem frame_of_not_written {p : Program} {s : Stmt} {σ : State M} {b : Block}
     (hb : Issued σ.mem b) {evs : List Event} {c : Config M}
     (hpre : Steps p (Config.entry s σ) evs c) (hw : ∀ e ∈ evs, ¬ e.Writes b) :
-    load c.mem b = load σ.mem b :=
-  steps_preserves hpre ⟨hb, by simp [Config.entry, Config.cont, Cont.frameBlocks]⟩ hw
+    load c.mem b = applySweeps (sweepTargets evs) (load σ.mem b) :=
+  (steps_preserves hpre ⟨hb, by simp [Config.entry, Config.cont, Cont.frameBlocks]⟩).2 hw
 
-/-- **Frame lemma without sweeps.** Let `t` be a subject: a statement of the
-fragment with its program. Let `b` be a block that exists when the statement
-starts from `σ`, and that no finite prefix of its execution from `σ` reads or
-writes. At every visit inside the statement, `b` has the value it had at
-entry. -/
+/-- Each recorded sweep targets a local allocated during execution of the
+statement. Issued block identities are never used again. -/
+theorem sweep_target_fresh {t : Subject} {σ : State M} {evs : List Event} {c : Config M}
+    (hpre : Prefix t σ evs c) {target : Block} (ht : target ∈ sweepTargets evs) :
+    ¬ Issued σ.mem target :=
+  fun hi => (steps_preserves hpre ⟨hi, by simp [Config.entry, Config.cont, Cont.frameBlocks]⟩).1 ht
+
+/-- At any finite prefix of a subject, a live frame block keeps its entry
+value up to the recorded lexical sweeps. This includes visits and exits. -/
 theorem frame_lemma {t : Subject} {σ : State M} {b : Block}
     (hlive : Live σ.mem b) (hframe : InFrame t σ b)
-    {l : Label} {env : Env} {m : M} (hvisit : Visit t σ l env m) :
-    load m b = load σ.mem b := by
-  obtain ⟨evs, st, k, hpre, -⟩ := hvisit
-  exact frame_of_not_written hlive.issued hpre
-    fun e he hwr => hframe evs _ hpre e he (Event.accesses_of_writes hwr)
+    {evs : List Event} {c : Config M} (hpre : Prefix t σ evs c) :
+    load c.mem b = applySweeps (sweepTargets evs) (load σ.mem b) :=
+  frame_of_not_written hlive.issued hpre
+    fun e he hw => hframe evs c hpre e he (Event.accesses_of_writes hw)
+
+/-- A sweep changes a surviving value exactly when it is an unmarked pointer
+to one of the recorded targets. -/
+theorem applySweeps_eq_iff (targets : List Block) (v : Option Value) :
+    applySweeps targets v = v ↔ ∀ target ∈ targets, v ≠ some (.ptr target) := by
+  have escaped (bs : List Block) (b : Block) :
+      applySweeps bs (some (.escaped b)) = some (.escaped b) := by
+    induction bs with
+    | nil => rfl
+    | cons a bs ih =>
+      change applySweeps bs (some (Value.escape a (.escaped b))) = _
+      simpa [Value.escape] using ih
+  induction targets with
+  | nil => simp [applySweeps]
+  | cons b bs ih =>
+    by_cases h : v = some (.ptr b)
+    · subst v
+      change applySweeps bs (some (Value.escape b (.ptr b))) = _ ↔ _
+      simp [Value.escape, escaped]
+    · have he : v.map (Value.escape b) = v := by
+        cases v <;> simp_all [Value.escape]
+      change applySweeps bs (v.map (Value.escape b)) = v ↔ _
+      simp [he, ih, h]
+
+/-- No frame rewrite is needed if the current entry holder cannot point
+unmarked to an unissued block. The prefix need only exclude ordinary writes
+to the holder. -/
+theorem frame_no_sweep_rewrite {t : Subject} {σ : State M} {b : Block}
+    (hb : Issued σ.mem b)
+    (hptr : ∀ target, load σ.mem b = some (.ptr target) → Issued σ.mem target)
+    {evs : List Event} {c : Config M} (hpre : Prefix t σ evs c)
+    (hw : ∀ e ∈ evs, ¬ e.Writes b) :
+    load c.mem b = load σ.mem b := by
+  rw [frame_of_not_written hb hpre hw]
+  exact (applySweeps_eq_iff _ _).2 fun target ht hload =>
+    sweep_target_fresh hpre ht (hptr target hload)
 
 end
 

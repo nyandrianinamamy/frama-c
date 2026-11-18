@@ -303,7 +303,7 @@ theorem spin_incr_events (m : FunMem) :
   | error a => simp [execAssign, evalExpr, spin_resolve_n, h]
   | ok v =>
     cases v with
-    | ptr b => simp [execAssign, evalExpr, spin_resolve_n, h, BinOp.eval]
+    | ptr | escaped => simp [execAssign, evalExpr, spin_resolve_n, h, BinOp.eval]
     | int n =>
       cases hs : store m 2 (.int (n + 1)) <;>
         simp [execAssign, evalExpr, evalLExpr, spin_resolve_n, h, BinOp.eval, hs]
@@ -376,9 +376,12 @@ theorem spin_inFrame : InFrame spinSubj spinState 1 :=
 /-- The frame lemma, applied: at every visit, the visits inside `spin`
 included, `h` holds 9, its value at entry. -/
 theorem spin_frame {l : Label} {env : Env} {m : FunMem}
-    (hv : Visit spinSubj spinState l env m) : load m 1 = some (.int 9) :=
-  (frame_lemma (σ := spinState) (b := 1)
-    (show (load spinState.mem 1).isSome = true from rfl) spin_inFrame hv).trans rfl
+    (hv : Visit spinSubj spinState l env m) : load m 1 = some (.int 9) := by
+  obtain ⟨evs, st, k, hpre, _⟩ := hv
+  have hlive : Live spinState.mem 1 := rfl
+  have hload : load spinState.mem 1 = some (.int 9) := rfl
+  exact frame_no_sweep_rewrite hlive.issued (by simp [hload]) hpre fun e he hw =>
+    spin_inFrame evs _ hpre e he (Event.accesses_of_writes hw)
 
 #check_axioms Checks.spin_frame
 

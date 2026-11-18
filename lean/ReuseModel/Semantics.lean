@@ -5,7 +5,7 @@ import ReuseModel.Memory
 
 A small-step semantics with an explicit continuation, which holds the call
 stack. Each step reports the events it performs: reads and writes of blocks,
-and the start and end of the lifetime of a block. A read or a write is reported
+the start and end of local lifetimes, and lexical sweeps. A read or a write is reported
 when the block is designated, also when the access then faults.
 
 The step function is deterministic. A configuration is final when the
@@ -45,10 +45,13 @@ inductive Alarm where
 inductive Event where
   | read (b : Block)
   | write (b : Block)
-  /-- The block is created as a local of a call. -/
+  /-- A block is created as a local. -/
   | scopeEnter (b : Block)
   /-- The block, a local of a call, goes out of scope at its return. -/
   | scopeExit (b : Block)
+  /-- The local of an inner lexical block goes out of scope and its holders
+  are marked. -/
+  | sweep (b : Block)
   deriving DecidableEq, Repr
 
 /-- The event reads or writes the block. Scope entry and exit are not
@@ -93,7 +96,7 @@ def loadValue (m : M) (b : Block) : Except Alarm Value :=
 /-- Truth of a condition: a nonzero integer or a pointer. -/
 def Value.truth : Value → Bool
   | .int n => n != 0
-  | .ptr _ => true
+  | .ptr _ | .escaped _ => true
 
 /-- Binary operators. Division truncates toward zero, as in C. The integer `0`
 is the null pointer: a pointer to a block is never equal to it. Comparing a
@@ -104,9 +107,10 @@ def BinOp.eval : BinOp → Value → Value → Except Alarm Value
   | .mul, .int a, .int b => .ok (.int (a * b))
   | .div, .int a, .int b => if b = 0 then .error .divByZero else .ok (.int (a.tdiv b))
   | .eq, .int a, .int b => .ok (.int (if a = b then 1 else 0))
-  | .eq, .ptr a, .ptr b => .ok (.int (if a = b then 1 else 0))
-  | .eq, .ptr _, .int n => if n = 0 then .ok (.int 0) else .error .illFormed
-  | .eq, .int n, .ptr _ => if n = 0 then .ok (.int 0) else .error .illFormed
+  | .eq, .ptr a, .ptr b | .eq, .escaped a, .escaped b
+  | .eq, .escaped a, .ptr b | .eq, .ptr a, .escaped b => .ok (.int (if a = b then 1 else 0))
+  | .eq, .ptr _, .int n | .eq, .escaped _, .int n => if n = 0 then .ok (.int 0) else .error .illFormed
+  | .eq, .int n, .ptr _ | .eq, .int n, .escaped _ => if n = 0 then .ok (.int 0) else .error .illFormed
   | .lt, .int a, .int b => .ok (.int (if a < b then 1 else 0))
   | _, _, _ => .error .illFormed
 
@@ -124,7 +128,7 @@ def evalExpr (p : Program) (env : Env) (m : M) : Expr → List Event × Except A
   | .deref e =>
     match evalExpr p env m e with
     | (evs, .ok (.ptr b)) => (evs ++ [.read b], loadValue m b)
-    | (evs, .ok (.int _)) => (evs, .error .invalidAccess)
+    | (evs, .ok _) => (evs, .error .invalidAccess)
     | (evs, .error a) => (evs, .error a)
   | .binop op e₁ e₂ =>
     match evalExpr p env m e₁ with
@@ -143,7 +147,7 @@ def evalLExpr (p : Program) (env : Env) (m : M) : LExpr → List Event × Except
   | .deref e =>
     match evalExpr p env m e with
     | (evs, .ok (.ptr b)) => (evs, .ok b)
-    | (evs, .ok (.int _)) => (evs, .error .invalidAccess)
+    | (evs, .ok _) => (evs, .error .invalidAccess)
     | (evs, .error a) => (evs, .error a)
 
 /-- Evaluate arguments from left to right. -/
@@ -222,6 +226,8 @@ inductive Cont where
   | seq (s : Stmt) (k : Cont)
   /-- Then test the loop `while (c) body` labelled `l` again. -/
   | loop (l : Label) (c : Expr) (body : Stmt) (k : Cont)
+  /-- Then sweep the lexical locals and restore the enclosing environment. -/
+  | scope (locals : List Block) (env : Env) (k : Cont)
   /-- Then return to the caller: release the callee's locals, store the
   returned value into `dst`, and continue in the caller's environment. `site`
   is the label of the call. -/
@@ -290,6 +296,11 @@ def stepStmt (p : Program) : Stmt → Cont → Env → M → List Event × Confi
     match execCall p env m dst f args with
     | (evs, .ok ce) => (evs, .run ce.body (.call l ce.dst env ce.locals k) ce.env ce.mem)
     | (evs, .error a) => (evs, .fault l a m)
+  | .scope _ locals body, k, env, m =>
+    let r := createAll m (locals.map fun x => Value.int x.2)
+    let bindings := Env.bind (locals.map Prod.fst) r.1
+    (r.1.map Event.scopeEnter, .run body (.scope r.1 env k)
+      (fun x => (bindings x).orElse fun () => env x) r.2)
   | .ret _ none, k, _, m => ([], .ret none k m)
   | .ret l (some e), k, env, m =>
     match evalExpr p env m e with
@@ -299,11 +310,12 @@ def stepStmt (p : Program) : Stmt → Cont → Env → M → List Event × Confi
 
 /-- One step after a statement has completed. Reaching the end of a function
 body returns no value. -/
-def stepNext : Cont → Env → M → Config M
-  | .stop, _, m => .done .completed m
-  | .seq s k, env, m => .run s k env m
-  | .loop l c body k, env, m => .run (.loop l c body) k env m
-  | k@(.call ..), _, m => .ret none k m
+def stepNext : Cont → Env → M → List Event × Config M
+  | .stop, _, m => ([], .done .completed m)
+  | .seq s k, env, m => ([], .run s k env m)
+  | .loop l c body k, env, m => ([], .run (.loop l c body) k env m)
+  | .scope bs env k, _, m => (bs.map Event.sweep, .next k env (sweepAll m bs))
+  | k@(.call ..), _, m => ([], .ret none k m)
 
 /-- One step of a `return`. At the nearest call, the callee's locals go out of
 scope, then the returned value is stored into the caller's block. -/
@@ -311,6 +323,9 @@ def stepRet : Option Value → Cont → M → List Event × Config M
   | v, .stop, m => ([], .done (.returned v) m)
   | v, .seq _ k, m => ([], .ret v k m)
   | v, .loop _ _ _ k, m => ([], .ret v k m)
+  | v, .scope bs _ k, m =>
+    (bs.map Event.sweep, .ret (applySweeps bs v) k
+      (sweepAll m bs))
   | v, .call site dst env locals k, m =>
     let m₁ := releaseAll m locals
     let evs := locals.map Event.scopeExit
@@ -325,7 +340,7 @@ def stepRet : Option Value → Cont → M → List Event × Config M
 /-- The step function; `none` on a final configuration. -/
 def step (p : Program) : Config M → Option (List Event × Config M)
   | .run s k env m => some (stepStmt p s k env m)
-  | .next k env m => some ([], stepNext k env m)
+  | .next k env m => some (stepNext k env m)
   | .ret v k m => some (stepRet v k m)
   | .done _ _ => none
   | .fault _ _ _ => none

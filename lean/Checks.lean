@@ -3,6 +3,7 @@ import Checks.Examples
 import Checks.Fragment
 import Checks.Domains
 import Checks.Entries
+import Checks.Sweeps
 
 /-!
 # Checks on the model
