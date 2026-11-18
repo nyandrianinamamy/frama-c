@@ -49,6 +49,10 @@ Print statistics file.
   memexec-misses	f		2
   memexec-misses	h		1
   memexec-misses	main		1
+  memexec-stored	g		5
+  memexec-stored	f		2
+  memexec-stored	h		1
+  memexec-stored	main		1
   memory-usage			<MEMORY>
   partitioning-index-misses			171
   stmt-coverage			1.

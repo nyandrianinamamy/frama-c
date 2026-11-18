@@ -20,9 +20,11 @@
     Each call analysed through the body of the called function has three
     dispositions:
     - lookup: [no-candidate] (no entry matches the call), or [hit (entry N)];
-    - execution: [analysed] (the body is analysed), or [not-analysed];
+    - execution: [analysed] (the body is analysed), [not-analysed], or
+      [interrupted] (an exception stopped the analysis of the body, for
+      instance when the analysis is aborted);
     - storage: [stored (entry N)], [refused (REASON)], or [none] when the
-      body was not analysed.
+      analysis of the body did not complete.
 
     They are printed in one message per call under the message category
     [cache], which is off by default:
@@ -31,7 +33,8 @@
     analysis has none. When the message does not fit on the line of its
     header, the log prints it on the next line. The message of a hit is
     printed by the lookup. The message of an analysed call is printed after
-    the storage, so it follows the messages of the calls made by the body.
+    the storage, and the message of an interrupted call when the exception
+    leaves it, so both follow the messages of the calls made by the body.
 
     [N] identifies an entry within one run: a hit names the entry stored by
     an earlier call whose message reads [stored (entry N)]. With memexec, [N] is
@@ -46,13 +49,30 @@
     Per function, the statistics count the hits ([memexec-hits]), the lookups
     with no candidate ([memexec-misses]), the stored entries
     ([memexec-stored]) and the refused storages by reason
-    ([memexec-refused-REASON]). *)
+    ([memexec-refused-REASON]). They count what a cache did: with
+    [-eva-no-memexec] no cache is consulted and nothing is counted, although
+    each message reads [refused (disabled)]. *)
 
 (** Why the result of a call is not stored. *)
 type refusal = [
   | `Disabled
   (** Caching is disabled by option [-eva-no-memexec]. *)
-  | Mem_exec.refusal
+  | `Not_cacheable
+  (** The result of the call is marked as not cacheable (see
+      {!Eval.cacheable}), for instance because the body created a new
+      allocated block. *)
+  | `No_inout
+  (** No Inout result is available for the call. *)
+  | `Footprint_top
+  (** The inputs or the outputs of the call computed by Inout are not a
+      finite set of bases. *)
+  | `Relate_top
+  (** A domain relates the bases of the key to an unknown set of bases. *)
+  | `Relate_unclosed
+  (** The closure of the bases of the key under the relations of the domains
+      is not reached within the bound of the cache. *)
+  | `Exception
+  (** An exception was raised while building the entry. *)
 ]
 
 (** All reasons, in the order of their documentation. *)
@@ -83,9 +103,13 @@ module Make
     (Domain : Engine_abstractions_sig.Domain)
   : sig
 
+    (** What a lookup with no candidate leaves for the storage of the result
+        of the same call. *)
+    type pending
+
     (** Result of a lookup. *)
     type lookup =
-      | No_candidate
+      | No_candidate of pending
       (** No entry matches the call: its body must be analysed. *)
       | Hit of int * (Partition.key * Domain.t) list
       (** An entry matches the call: its identifier, and the states at the
@@ -93,16 +117,24 @@ module Make
 
     (** [lookup call state] looks up the cache for an entry that matches the
         call [call] in the state [state], before the body of the called
-        function is analysed. On a hit, it prints the line of the call and
-        counts the hit; otherwise, it counts a lookup with no candidate. *)
+        function is analysed. On a hit, it prints the message of the call and
+        counts the hit; otherwise, if a cache was consulted, it counts a
+        lookup with no candidate. *)
     val lookup : ('loc, Value.t) Eval.call -> Domain.t -> lookup
 
-    (** [store call state result] offers the result [result] of the analysis
-        of the body of the called function to the cache, after a lookup that
-        found no candidate for the call [call] in the state [state]. It prints
-        the line of the call and counts the stored entry or the refused
+    (** [store call state pending result] offers the result [result] of the
+        analysis of the body of the called function to the cache, after a
+        lookup that found no candidate for the call [call] in the state
+        [state] and returned [pending]. It prints the message of the call
+        and, if a cache was consulted, counts the stored entry or the refused
         storage. *)
     val store :
-      ('loc, Value.t) Eval.call -> Domain.t ->
+      ('loc, Value.t) Eval.call -> Domain.t -> pending ->
       Domain.t Engine_sig.call_result -> unit
+
+    (** [interrupted call] prints the message of the call [call] when an
+        exception stops the analysis of the body of the called function,
+        after a lookup that found no candidate. Nothing is stored or
+        counted. *)
+    val interrupted : ('loc, Value.t) Eval.call -> unit
   end

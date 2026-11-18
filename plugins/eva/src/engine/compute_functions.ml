@@ -44,9 +44,15 @@ module Make (Engine: Engine_sig.S) = struct
      the body of the called function, unless the cache has a matching entry. *)
   let compute_and_cache_call compute call init_state =
     match Cache.lookup call init_state with
-    | Cache.No_candidate ->
-      let call_result = compute call init_state in
-      Cache.store call init_state call_result;
+    | Cache.No_candidate pending ->
+      let call_result =
+        try compute call init_state
+        with exn ->
+          let backtrace = Printexc.get_raw_backtrace () in
+          Cache.interrupted call;
+          Printexc.raise_with_backtrace exn backtrace
+      in
+      Cache.store call init_state pending call_result;
       call_result
     | Cache.Hit (i, states) ->
       apply_call_hooks call init_state `Reuse;

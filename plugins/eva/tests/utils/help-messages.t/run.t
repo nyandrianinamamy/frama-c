@@ -154,6 +154,15 @@ Help message about message categories.
   [eva] List of message categories.
   
   # Standard Eva message categories:
+    cache                 : print the dispositions of each call analysed
+                            through the body of the called function or answered
+                            by the cache of calls: lookup in the cache
+                            (no-candidate or hit), execution of the body
+                            (analysed, not-analysed or interrupted) and storage
+                            of the result (stored, none, or refused with one of
+                            the reasons: disabled, not-cacheable, no-inout,
+                            footprint-top, relate-top, relate-unclosed,
+                            exception)
     callstack-hash        : additionally print the current callstack hash in
                             some messages
     callstacks            : print the current callstack alongside some messages

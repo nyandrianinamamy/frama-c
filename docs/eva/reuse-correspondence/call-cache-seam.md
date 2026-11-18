@@ -8,7 +8,9 @@ regression named in several entries is the ptests fixture
 `plugins/eva/tests/value/cache_dispositions.c`, run in the default
 configuration with the message category `cache` enabled; its oracles are
 `plugins/eva/tests/value/oracle/cache_dispositions.cache.log` and
-`plugins/eva/tests/value/oracle/cache_dispositions.stats.log`.
+`plugins/eva/tests/value/oracle/cache_dispositions.stats.log`. The cram test
+`plugins/eva/tests/utils/call-cache.t` covers the runs with caching disabled
+and with an interrupted analysis.
 
 ## The seam does not change the results of an analysis
 
@@ -21,24 +23,31 @@ level, so its lines are printed only when `-eva-msg-key` enables it.
 **Kind.** OCaml obligation.
 
 **Symbols.** `Call_cache.Make.lookup`, `Call_cache.Make.store`,
+`Call_cache.Make.interrupted`,
 `Compute_functions.Make.compute_and_cache_call`,
 `Compute_functions.Make.compute_call_with_target`,
 `Mem_exec.Make.reuse_previous_call`, `Mem_exec.Make.store_computed_call`,
 `Call_cache.new_counter`, `Call_cache.cleanup_results`.
 
-**Argument.** `lookup` calls `reuse_previous_call` with the function, the
-state and the argument values that `compute_and_cache_call` used before, and
-only when `-eva-memexec` is set. Otherwise it answers that no entry matches,
-and the body is analysed as before. `store` calls memexec under the same
-conditions as before: `-eva-memexec` is set and the result is marked
+**Argument.** `lookup` reads `-eva-memexec` once per call, as
+`compute_call_with_target` did. When it is set, `lookup` computes the argument
+values before the body is analysed and calls `reuse_previous_call` with the
+function, the state and these values, as `compute_and_cache_call` did. When
+no entry matches, the values are returned in the `pending` value, and `store`
+passes them to memexec: the option is not read again and the values are not
+recomputed after the body. When the option is not set, `lookup` answers that
+no entry matches without calling memexec, the body is analysed, and `store`
+does not call memexec. `store` calls memexec under the same conditions as
+before: `-eva-memexec` was set at the lookup and the result is marked
 `Cacheable`. The test on `Cacheable` moved from `compute_and_cache_call` into
 `store_computed_call`. `store_computed_call` performs the same operations in
 the same order as before, and returns the call number or a reason instead of
 `unit`. The statistics updates of memexec moved into the seam, and the
 category messages are new; neither is read by the analysis. With
-`-eva-no-memexec`, the seam counts each lookup as a miss and each storage as
-refused for `disabled`, where memexec counted nothing. The iteration
-order of the lookup is unchanged. `new_counter` and `cleanup_results` are the
+`-eva-no-memexec`, the seam counts nothing, as before. When an exception
+leaves the analysis of a body, `compute_and_cache_call` calls `interrupted`,
+which only prints a message under the category, and raises the same exception
+again with its backtrace. The iteration order of the lookup is unchanged. `new_counter` and `cleanup_results` are the
 memexec functions, called at the same points of `Iterator` and `Analysis`.
 
 **Evidence.** Source inspection of the change. Executed: the default Eva
@@ -51,22 +60,25 @@ example `plugins/eva/tests/value/oracle/memexec.0.res.oracle`. The test
 `plugins/eva/tests/value/split_return.i` passes `-eva-no-memexec` in each of
 its runs, so its unchanged oracles cover the path where the seam answers with
 no cache. A run of the fixture with `-eva-verbose 11` and without
-`-eva-msg-key cache` printed no message of the category. Two cram
-tests print what the change adds, and their expected outputs differ: the list
-of message categories (`plugins/eva/tests/utils/help-messages.t`) gains the
-category `cache`, and the statistics file
-(`plugins/eva/tests/utils/statistics.t`) gains `memexec-stored` rows. No
-analysis output differs in either test.
+`-eva-msg-key cache` printed no message of the category. The cram test
+`call-cache.t` runs with `-eva-no-memexec` and finds no `memexec-` row in the
+statistics file. Two existing cram tests print what the change adds, and
+their expected outputs are updated with it: the list of message categories
+(`plugins/eva/tests/utils/help-messages.t`) gains the category `cache`, and
+the statistics file (`plugins/eva/tests/utils/statistics.t`) gains
+`memexec-stored` rows. No analysis output differs in either test.
 
-**Open.** The two cram expectations above are not updated by the change that
-added the seam, so these two tests fail until they are. Equality with the
+**Open.** No test compares the callbacks and their order with those of the
+engine before the seam; this rests on source inspection. Equality with the
 previous engine is a regression expectation on the Eva test suite, not a
 proved property.
 
 ## Each refused storage has one stable reason
 
-**Claim.** For each call analysed by its body, `store` ends in exactly one of:
-an entry stored, named by its call number; or a refusal with one reason. With
+**Claim.** For each call whose body is analysed to completion, `store` ends in
+exactly one of: an entry stored, named by its call number; or a refusal with
+one reason. A call whose analysis is stopped by an exception has no storage:
+its message reads `execution: interrupted; storage: none`. With
 memexec, the reasons are the paths of `store_computed_call` that did not store
 an entry before the seam:
 
@@ -77,11 +89,12 @@ an entry before the seam:
 | `no-inout` | `Transfer_stmt.current_kf_inout` returns `None`. |
 | `footprint-top` | an input or output zone given by Inout is `Top` over its blocks. |
 | `relate-top` | `Domain.relate` returns `Top` during the closure of the key. |
-| `relate-unclosed` | the closure of the key is not reached within two iterations. |
+| `relate-unclosed` | the key still grows at the third call to `Domain.relate`. |
 | `exception` | `Not_found` or `Kernel_function.No_Statement` is raised while building the entry. |
 
 The identifiers are listed by `-eva-msg-key help` and documented in
-`call_cache.mli` and `mem_exec.mli`.
+`call_cache.mli`. The seam owns the type of the reasons; `mem_exec.mli`
+declares the six that memexec produces, and the seam adds `disabled`.
 
 **Kind.** OCaml obligation.
 
@@ -98,13 +111,14 @@ call in its scope can raise them.
 
 **Evidence.** Source inspection. Executed by the fixture: `stored` on the
 first call to `leaf`, and `not-cacheable` on the call to `alloc`, which
-allocates, and on `main`, which calls it. A run of the fixture by hand with
-`-eva-no-memexec` printed `refused (disabled)` for every call, and `leaf`
-printed its argument twice; this run is not a regression.
+allocates, and on `main`, which calls it. Executed by `call-cache.t`:
+`refused (disabled)` for every call under `-eva-no-memexec`, with both calls
+to `leaf` analysed; and `interrupted` for the call stopped by
+`-eva-stop-at-nth-alarm 1` and for its caller.
 
 **Open.** No regression enables the category on a path that ends in
-`disabled`, `no-inout`, `footprint-top`, `relate-top`, `relate-unclosed` or
-`exception`. A regression for each of the first five is pending.
+`no-inout`, `footprint-top`, `relate-top`, `relate-unclosed` or `exception`.
+A regression for each of the first four is pending.
 
 ## A hit names the entry stored earlier
 
@@ -145,13 +159,19 @@ REASON.
 `Statistics.memexec_hits`, `Statistics.memexec_misses`,
 `Statistics.memexec_stored`, `Statistics.memexec_refused`.
 
+Scope: analyses with `-eva-memexec` set. With
+`-eva-no-memexec` no cache is consulted and none of these is counted, although
+each message reads `refused (disabled)`.
+
 **Argument.** `lookup` increments the hit or miss count of the called function
 where it decides the lookup. `store` increments the stored or refused count
-from the same value that it prints.
+from the same value that it prints. Neither counts anything when the lookup
+did not consult memexec.
 
 **Evidence.** Executed by the fixture, from one run: one hit, one stored entry
 and one miss for `leaf`; one miss and one `not-cacheable` refusal for `alloc`
-and for `main`. These are the counts of its four `cache` messages.
+and for `main`. These are the counts of its four `cache` messages. Executed
+by `call-cache.t`: no `memexec-` row with `-eva-no-memexec`.
 
 **Open.** None for this claim.
 
@@ -173,9 +193,11 @@ claim, not covered here.
 checked at revision `90a4b4cc53`. The seam changed the function: it now raises
 `Refused` with `relate-top` or `relate-unclosed` where it returned `Top`, and
 returns the set itself on a fixpoint. The storage catches the exception and
-stores nothing, as it did for `Top`. The fixpoint test, the bound of two
-iterations and the use of the closed set to filter and index the entry are
-unchanged.
+stores nothing, as it did for `Top`. The fixpoint test, the bound and the use
+of the closed set to filter and index the entry are unchanged. The bound
+starts at 2 and allows three calls to `relate`: an entry is stored when the
+set stops growing at the first, second or third call, and refused with
+`relate-unclosed` when the third call still adds a block.
 
 **Evidence.** Source inspection of the changed function.
 
