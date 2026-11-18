@@ -189,7 +189,12 @@ ptests_config header_spec=.ignore
 
 /.gitlab-ci.yml header_spec=.ignore
 /.github/workflows/lean-model.yml header_spec=.ignore
-/lean/** header_spec=.ignore
+/lean/**/*.lean header_spec=.ignore
+/lean/.gitignore header_spec=.ignore
+/lean/README.md header_spec=.ignore
+/lean/lake-manifest.json header_spec=.ignore
+/lean/lakefile.toml header_spec=.ignore
+/lean/lean-toolchain header_spec=.ignore
 /.mailmap header_spec=.ignore
 /.ocp-indent header_spec=.ignore
 /LICENSE header_spec=.ignore

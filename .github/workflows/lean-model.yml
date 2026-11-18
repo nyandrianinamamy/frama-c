@@ -6,6 +6,9 @@ name: Lean model
 
 on:
   push:
+    # Without a branch filter, a pushed tag starts the job whatever it changes.
+    branches:
+      - "**"
     paths:
       - "lean/**"
       - ".github/workflows/lean-model.yml"
