@@ -300,6 +300,9 @@ if [ "$FORCE" = "yes" ]; then
     DUNE_OPT+=("--force")
 fi
 
+# Stop early on a compiler or Dune version this checkout is not tested with.
+"$(dirname "$THIS_SCRIPT")/check-env.sh" || exit 2
+
 if [ "$FORCE" = "yes" ] && [ "$BENCH" != "yes" ]; then
     # The --force flag does not work as expected in dune and in
     # particular cannot re-run ptests tests that declare targets. This
