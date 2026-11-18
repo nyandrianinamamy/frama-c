@@ -12,11 +12,12 @@ lemmas that use the laws at the match are in [Matching](matching.md).
 A domain `d : Domain M` has states `d.State`, a concretisation
 `d.γ : d.State → M → Prop` to the memories `M` of the semantics, and the
 operations `filter`, `relate` and `reuse` on finite sets of blocks
-(`BlockSet`, a list). `relate` returns `none` for `Top`. Two memories agree on
-a set of blocks (`AgreeOn`) when each block of the set has the same content
-(`Memory.load`) in both, and agree outside it (`AgreeOff`) when each other
-block does. The laws, in the source form of
-`lean/ReuseModel/Domain.lean`, with the binder types left out:
+(`BlockSet`, a list that stands for the set of its members). `relate`
+returns `none` for `Top`. Two memories agree on a set of blocks (`AgreeOn`)
+when each block of the set has the same content (`Memory.load`) in both, and
+agree outside it (`AgreeOff`) when each other block does. The laws, in the
+source form of `lean/ReuseModel/Domain.lean`, with the binder types left
+out:
 
 - `FilterSound d`: `∀ B S m, d.γ S m → d.γ (d.filter B S) m`. This is the weak
   form: `filter` only forgets. The identity is an instance.
@@ -39,6 +40,16 @@ block does. The laws, in the source form of
   memory that combines the written blocks of an output memory with the other
   blocks of a current memory, whether or not that whole memory is covered by
   the output.
+- `Extensional d`, three clauses, for two lists with the same members
+  (`SameBlocks B B'`, that is `∀ b, b ∈ B ↔ b ∈ B'`): `relate`,
+  `∀ B B' S R, SameBlocks B B' → d.relate B S = some R → ∃ R', d.relate B' S
+  = some R' ∧ SameBlocks R R'`; `filter`, `∀ B B' S m, SameBlocks B B' →
+  d.γ (d.filter B S) m → d.γ (d.filter B' S) m`; and `reuse`,
+  `∀ W W' cur out m, SameBlocks W W' → d.γ (d.reuse W cur out) m →
+  d.γ (d.reuse W' cur out) m`. Exchanging the two lists gives the converse
+  of each clause. The operations receive the list itself, and the other laws
+  do not prevent them from reading its order or its repetitions; this law
+  does. `AgreeOn` and `AgreeOff` use membership only.
 
 The product `d₁.prod d₂` covers a memory when both components do; `filter`
 and `reuse` work componentwise, and `relate` is the union of the two results,
@@ -50,8 +61,8 @@ These are definitions. The claims below are about them.
 
 ## Evidence common to the entries
 
-- Checked revision: tree of `lean/` `fcb327481aa376191a1d9a4365b7486dd9c26cc3`,
-  at commit `fa2e36b953afe9f2d943a8630b7de465160c5ba6`. Toolchain
+- Checked revision: tree of `lean/` `b78430d8f2ab40bfcef35add9359884bbf8f3719`,
+  at commit `af3f0613ff165117641115fe158fbe743d459099`. Toolchain
   `leanprover/lean4:v4.28.0` (Lean 4.28.0, commit `7e01a1bf5c70`).
 - Command: `cd lean && lake build --wfail`, run on 2026-11-18 on an
   extraction of that commit (`git archive`) with no build directory. Exit
@@ -70,9 +81,9 @@ These are definitions. The claims below are about them.
 **Kind.** Proved in Lean.
 
 **Claim.** A non-relational domain meets `filter` sound, `relate` sound,
-`filter` exact and `reuse` sound, and so does its product with itself, with
-the memory `FunMem`, which meets `Combinable`. The projected match applies to
-that product on a concrete stored and current input.
+`filter` exact, `reuse` sound and `Extensional`, and so does its product with
+itself, with the memory `FunMem`, which meets `Combinable`. The projected
+match applies to that product on a concrete stored and current input.
 
 **Scope.** The model. `Checks.valueDom` lists, for some blocks, the values
 each may hold; `filter B` keeps the blocks of `B`, `relate` returns no block,
@@ -91,10 +102,12 @@ valueDom_laws : Combinable FunMem ∧
     (valueDom FunMem).RelateSound ∧
       (valueDom FunMem).FilterExact ∧
         (valueDom FunMem).ReuseSound ∧
-          ((valueDom FunMem).prod (valueDom FunMem)).FilterSound ∧
-            ((valueDom FunMem).prod (valueDom FunMem)).RelateSound ∧
-              ((valueDom FunMem).prod (valueDom FunMem)).FilterExact ∧
-                ((valueDom FunMem).prod (valueDom FunMem)).ReuseSound
+          (valueDom FunMem).Extensional ∧
+            ((valueDom FunMem).prod (valueDom FunMem)).FilterSound ∧
+              ((valueDom FunMem).prod (valueDom FunMem)).RelateSound ∧
+                ((valueDom FunMem).prod (valueDom FunMem)).FilterExact ∧
+                  ((valueDom FunMem).prod (valueDom FunMem)).ReuseSound ∧
+                    ((valueDom FunMem).prod (valueDom FunMem)).Extensional
 valueProd_match : ∃ m', valueProd.γ matchS m' ∧ AgreeOn [0] (memOf [Value.int 1, Value.int 4, Value.int 4]) m'
 ```
 
@@ -130,8 +143,8 @@ argument is recorded yet.
 
 **Claim.** A set of blocks is closed in a product exactly when it is closed
 in both components. The product decomposes on a set where both components
-decompose. The product meets `filter` sound, `relate` sound and `reuse` sound
-when both components do.
+decompose. The product meets `filter` sound, `relate` sound, `reuse` sound
+and `Extensional` when both components do.
 
 **Scope.** The model, for any memory type with the laws of `Memory`. Closure
 under the union of the two `relate` is what makes the closure of a key
@@ -139,8 +152,9 @@ iterate across components.
 
 **Declarations.** `ReuseModel.Domain.closed_prod_iff`,
 `ReuseModel.Domain.decomposes_prod`, `ReuseModel.Domain.filterSound_prod`,
-`ReuseModel.Domain.relateSound_prod` and `ReuseModel.Domain.reuseSound_prod`,
-in [`lean/ReuseModel/Domain.lean`](../../../lean/ReuseModel/Domain.lean).
+`ReuseModel.Domain.relateSound_prod`, `ReuseModel.Domain.reuseSound_prod` and
+`ReuseModel.Domain.extensional_prod`, in
+[`lean/ReuseModel/Domain.lean`](../../../lean/ReuseModel/Domain.lean).
 
 **Statements.**
 
@@ -154,6 +168,7 @@ in [`lean/ReuseModel/Domain.lean`](../../../lean/ReuseModel/Domain.lean).
   d₁.RelateSound → d₂.RelateSound → (d₁.prod d₂).RelateSound
 @reuseSound_prod : ∀ {M : Type} [inst : Memory M] {d₁ d₂ : Domain M},
   d₁.ReuseSound → d₂.ReuseSound → (d₁.prod d₂).ReuseSound
+@extensional_prod : ∀ {M : Type} {d₁ d₂ : Domain M}, d₁.Extensional → d₂.Extensional → (d₁.prod d₂).Extensional
 ```
 
 **Hypotheses.** The laws of the components, each an OCaml obligation per
@@ -174,6 +189,7 @@ hypothesis 1).
 'ReuseModel.Domain.filterSound_prod' depends on axioms: [propext]
 'ReuseModel.Domain.relateSound_prod' depends on axioms: [propext]
 'ReuseModel.Domain.reuseSound_prod' depends on axioms: [propext]
+'ReuseModel.Domain.extensional_prod' depends on axioms: [propext]
 ```
 
 `propext` enters through the definition of `Domain.prod`, whose `relate` is a
@@ -181,6 +197,94 @@ hypothesis 1).
 `[propext]`.
 
 **Open.** None in the model.
+
+## Closure depends on the members of the key only
+
+**Kind.** Proved in Lean.
+
+**Claim.** For a domain that meets `Extensional`, two lists with the same
+members are the same key: one is closed in a state exactly when the other
+is, `filter` decomposes the state on one exactly when it does on the other,
+and `filter` is exact on one exactly when it is on the other. The other four
+laws do not give this. A domain with one state, an identity `filter`, and a
+`relate` that gives `Top` on lists of two blocks or more (`lenDom`) meets
+`filter` sound, `relate` sound, `filter` exact and `reuse` sound; `[0]` is
+closed in it and `[0, 0]` is not, so it does not meet `Extensional`. The
+equality domain meets `Extensional`, and `{x}` written `[0, 0]` is closed in
+`y == z` as `[0]` is.
+
+**Scope.** The model. The match and product lemmas hold for every list and
+do not take `Extensional`. Under it, their hypotheses and conclusions are the
+same for every list with the members of the key: closure, decomposition and
+exactness by the three equivalences below, the inclusion of the filtered
+inputs by the clause `filter`, and `AgreeOn` because it uses membership only.
+
+**Declarations.** `ReuseModel.Domain.closed_congr`,
+`ReuseModel.Domain.decomposes_congr` and `ReuseModel.Domain.exactOn_congr`,
+in [`lean/ReuseModel/Domain.lean`](../../../lean/ReuseModel/Domain.lean);
+`Checks.closed_needs_extensional`, `Checks.eqDom_extensional` and
+`Checks.eqDom_closed_x_dup`, in
+[`lean/Checks/Domains.lean`](../../../lean/Checks/Domains.lean).
+`valueDom_laws` and `extensional_prod`, in the two entries above, give the
+law for `valueDom` and for products.
+
+**Statements.** `lenDom` is `unitDom FunMem fun B => decide (2 ≤ B.length)`,
+whose single state is `()`; `yz` is the state `[(1, 2)]` of the equality
+domain.
+
+```lean
+@closed_congr : ∀ {M : Type} {d : Domain M},
+  d.Extensional → ∀ {B B' : BlockSet}, SameBlocks B B' → ∀ {S : d.State}, d.Closed B S ↔ d.Closed B' S
+@decomposes_congr : ∀ {M : Type} [inst : Memory M] {d : Domain M},
+  d.Extensional → ∀ {B B' : BlockSet}, SameBlocks B B' → ∀ {S : d.State}, d.Decomposes B S ↔ d.Decomposes B' S
+@exactOn_congr : ∀ {M : Type} [inst : Memory M] {d : Domain M},
+  d.Extensional → ∀ {K K' : BlockSet}, SameBlocks K K' → ∀ {S : d.State}, d.ExactOn K S ↔ d.ExactOn K' S
+closed_needs_extensional : lenDom.FilterSound ∧
+  lenDom.RelateSound ∧
+    lenDom.FilterExact ∧
+      lenDom.ReuseSound ∧ SameBlocks [0] [0, 0] ∧ lenDom.Closed [0] () ∧ ¬lenDom.Closed [0, 0] () ∧ ¬lenDom.Extensional
+@eqDom_extensional : ∀ {M : Type} [inst : Memory M], (eqDom M).Extensional
+eqDom_closed_x_dup : (eqDom FunMem).Closed [0, 0] yz
+```
+
+**Hypotheses.**
+
+1. `[Memory M]`, for `decomposes_congr` and `exactOn_congr`. Proved in Lean
+   for `FunMem`.
+2. `d.Extensional`. Relied on from Eva, through Frama-C's sets of bases.
+   Eva passes a set of bases to `filter`, `relate` and `reuse` as a
+   `Base.Hptset.t`, not as a list (`Abstract_domain.Caching`, in
+   `plugins/eva/src/domains/abstract_domain.ml`). `Base.Hptset` is
+   `Hptset.Make (Base)` with the AST as the only dependency of its
+   hash-consing table (`src/kernel/services/abstract_interp/base.ml`,
+   `dependencies = [ Ast.self ]`); by `src/lib/utils/hptset.mli`, the table
+   is cleared when a dependency is. `Hptset.Make` includes `Hptmap.Make`
+   (`src/lib/utils/hptset.ml`), which defines `equal` as physical equality
+   (`src/lib/utils/hptmap.ml`, module `D`), and whose `wrap_Leaf` and
+   `wrap_Branch` build each new node through the hash-consing table
+   `PatriciaHashconsTbl`. The contract relied on: while the AST is
+   unchanged, two sets of bases with the same members are one value. An
+   operation that is a function of its arguments then meets the law, for
+   every domain, with no argument per domain. Not checked: that every set is
+   built through `wrap_Leaf` and `wrap_Branch`, and that a Patricia tree has
+   one shape per set of keys, on which physical equality as `equal`
+   relies.
+
+**Depends on.** None.
+
+**Evidence.**
+
+```
+'ReuseModel.Domain.closed_congr' does not depend on any axioms
+'ReuseModel.Domain.decomposes_congr' depends on axioms: [propext]
+'ReuseModel.Domain.exactOn_congr' does not depend on any axioms
+'Checks.closed_needs_extensional' depends on axioms: [propext, Quot.sound]
+'Checks.eqDom_extensional' depends on axioms: [propext, Quot.sound]
+'Checks.eqDom_closed_x_dup' depends on axioms: [propext, Quot.sound]
+```
+
+**Open.** None in the model. For Eva, the check of the contract of
+hypothesis 2 on the implementation of `Hptmap`.
 
 ## An identity filter does not decompose the state on a closed key
 

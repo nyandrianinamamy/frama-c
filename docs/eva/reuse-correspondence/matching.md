@@ -9,8 +9,8 @@ computes today is in [Call-cache
 seam](call-cache-seam.md#closure-of-the-memexec-key-under-relate).
 
 The evidence is that of [Domain laws](domain-laws.md#evidence-common-to-the-entries):
-tree of `lean/` `fcb327481aa376191a1d9a4365b7486dd9c26cc3`, at commit
-`fa2e36b953afe9f2d943a8630b7de465160c5ba6`, `cd lean && lake build --wfail`
+tree of `lean/` `b78430d8f2ab40bfcef35add9359884bbf8f3719`, at commit
+`af3f0613ff165117641115fe158fbe743d459099`, `cd lean && lake build --wfail`
 run on 2026-11-18 on an extraction of that commit, exit status 0. CI on this
 tree is pending.
 
@@ -30,7 +30,10 @@ The hypotheses of the lemmas below, with their kind, are:
 | `ExactOn K S`: `filter` exact on the stored input | Proved in Lean from the hypotheses above | Done (product lemma) |
 | `γ C m`: the current input covers the current memory | Relied on from Eva | The soundness of the analysis of the caller up to the call; not checked here |
 
-Each row is discussed in the entry that uses it.
+Each row is discussed in the entry that uses it. No lemma below takes the
+law `Extensional`; under it, the hypotheses and conclusions are the same for
+every list with the members of the key ([domain
+laws](domain-laws.md#closure-depends-on-the-members-of-the-key-only)).
 
 ## Match lemma
 
