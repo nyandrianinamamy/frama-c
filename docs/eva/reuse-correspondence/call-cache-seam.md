@@ -47,7 +47,11 @@ configuration (`@plugins/eva/tests/ptests`) and the native Eva tests
 (`dune runtest plugins/eva`), all rerun on the changed engine. No existing
 ptests oracle changed. Among the oracles that passed, those containing
 `Reusing old results for call to` record hits answered through `lookup`, for
-example `plugins/eva/tests/value/oracle/memexec.0.res.oracle`. Two cram
+example `plugins/eva/tests/value/oracle/memexec.0.res.oracle`. The test
+`plugins/eva/tests/value/split_return.i` passes `-eva-no-memexec` in each of
+its runs, so its unchanged oracles cover the path where the seam answers with
+no cache. A run of the fixture with `-eva-verbose 11` and without
+`-eva-msg-key cache` printed no message of the category. Two cram
 tests print what the change adds, and their expected outputs differ: the list
 of message categories (`plugins/eva/tests/utils/help-messages.t`) gains the
 category `cache`, and the statistics file
@@ -71,7 +75,7 @@ an entry before the seam:
 | `disabled` | `-eva-memexec` is not set; memexec is not called. |
 | `not-cacheable` | the result is not marked `Cacheable`. |
 | `no-inout` | `Transfer_stmt.current_kf_inout` returns `None`. |
-| `footprint-top` | an input or output zone given by Inout is `Top` over its bases. |
+| `footprint-top` | an input or output zone given by Inout is `Top` over its blocks. |
 | `relate-top` | `Domain.relate` returns `Top` during the closure of the key. |
 | `relate-unclosed` | the closure of the key is not reached within two iterations. |
 | `exception` | `Not_found` or `Kernel_function.No_Statement` is raised while building the entry. |
@@ -94,7 +98,9 @@ call in its scope can raise them.
 
 **Evidence.** Source inspection. Executed by the fixture: `stored` on the
 first call to `leaf`, and `not-cacheable` on the call to `alloc`, which
-allocates, and on `main`, which calls it.
+allocates, and on `main`, which calls it. A run of the fixture by hand with
+`-eva-no-memexec` printed `refused (disabled)` for every call, and `leaf`
+printed its argument twice; this run is not a regression.
 
 **Open.** No regression enables the category on a path that ends in
 `disabled`, `no-inout`, `footprint-top`, `relate-top`, `relate-unclosed` or
@@ -151,9 +157,9 @@ and for `main`. These are the counts of its four `cache` messages.
 
 ## Closure of the memexec key under relate
 
-**Claim.** The set of bases that memexec uses to filter and index an entry is
+**Claim.** The set of blocks that memexec uses to filter and index an entry is
 closed under `Domain.relate` in the input state: `expand_inputs_with_relations`
-returns a set only when one more call to `relate` adds no base. When `relate`
+returns a set only when one more call to `relate` adds no block. When `relate`
 returns `Top`, or when no fixpoint is reached within the bound, no entry is
 stored. Whether each domain reports all the relations it needs is a separate
 claim, not covered here.
