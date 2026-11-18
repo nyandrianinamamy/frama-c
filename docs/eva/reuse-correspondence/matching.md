@@ -43,8 +43,9 @@ laws](domain-laws.md#closure-depends-on-the-members-of-the-key-only)).
 and `K` a key. If `filter` is sound in the weak form on `C`, and the filtered
 current input `filter K C` is included in the filtered stored input
 `filter K S` (on their concretisations), then each memory `m` that `C` covers
-is covered by `filter K S`. If moreover `filter` is exact on `S` for `K`,
-then some memory `m'` covered by `S` agrees with `m` on `K`.
+is covered by `filter K S`; `match_filtered` states this part alone, and it
+needs neither exactness nor closure. If moreover `filter` is exact on `S`
+for `K`, then some memory `m'` covered by `S` agrees with `m` on `K`.
 
 **Scope.** The model. Any domain on any memory type with the laws of
 `Memory`. The lemma needs no hypothesis that the current input is not
@@ -52,19 +53,25 @@ bottom: a memory covered by `C` is given. It needs no hypothesis on the
 closure of `K` in `C` or in `S`; closure enters through exactness (see
 [Product lemma](#product-lemma)).
 
-**Declaration.** `ReuseModel.Domain.match_lemma`, in
+**Declarations.** `ReuseModel.Domain.match_filtered` and
+`ReuseModel.Domain.match_lemma`, in
 [`lean/ReuseModel/Domain.lean`](../../../lean/ReuseModel/Domain.lean).
+`match_lemma` takes its first conclusion from `match_filtered`.
 
-**Statement.**
+**Statements.**
 
 ```lean
+@match_filtered : ∀ {M : Type} {d : Domain M} {K : BlockSet} {C S : d.State},
+  (∀ (m : M), d.γ C m → d.γ (d.filter K C) m) →
+    (∀ (m : M), d.γ (d.filter K C) m → d.γ (d.filter K S) m) → ∀ {m : M}, d.γ C m → d.γ (d.filter K S) m
 @match_lemma : ∀ {M : Type} [inst : Memory M] {d : Domain M} {K : BlockSet} {C S : d.State},
   (∀ (m : M), d.γ C m → d.γ (d.filter K C) m) →
     (∀ (m : M), d.γ (d.filter K C) m → d.γ (d.filter K S) m) →
       d.ExactOn K S → ∀ {m : M}, d.γ C m → d.γ (d.filter K S) m ∧ ∃ m', d.γ S m' ∧ AgreeOn K m m'
 ```
 
-**Hypotheses.**
+**Hypotheses.** `match_filtered` takes 2, 3 and 5 only; `match_lemma` takes
+all five.
 
 1. `[Memory M]`. Proved in Lean for `FunMem`.
 2. `∀ m, d.γ C m → d.γ (d.filter K C) m`: weak `filter` soundness on the
@@ -91,6 +98,7 @@ closure of `K` in `C` or in `S`; closure enters through exactness (see
 **Evidence.**
 
 ```
+'ReuseModel.Domain.match_filtered' does not depend on any axioms
 'ReuseModel.Domain.match_lemma' does not depend on any axioms
 ```
 
