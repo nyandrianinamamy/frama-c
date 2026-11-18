@@ -1,0 +1,25 @@
+DETAIL entry=615 keyhash=3792 inputs={window, outcnt, bytes_out, bb, bk, t,
+                                      p, q, tl, nb, nl, nd, ll, b, k, t, b,
+                                      k, e, updcrc_crc,
+                                      __malloc_w_huft_build_l403,
+                                      __malloc_w_huft_build_l403_0,
+                                      __malloc_w_huft_build_l403_1,
+                                      __malloc_w_huft_build_l403_2,
+                                      __malloc_w_huft_build_l403_3} outputs=
+{window, outcnt, bytes_out, bb, bk, t, p, q, tl, nb, nl, nd, ll, b, k, t, b,
+ k, e, updcrc_crc, __retres, __malloc_w_huft_build_l403, \result<huft_free>,
+ __malloc_w_huft_build_l403_0, __malloc_w_huft_build_l403_1,
+ __malloc_w_huft_build_l403_2, __malloc_w_huft_build_l403_3}
+
+DETAIL entry=935 keyhash=5132 inputs={window, t, p, q, tl,
+                                      __malloc_w_huft_build_l403,
+                                      __malloc_w_huft_build_l403_0,
+                                      __malloc_w_huft_build_l403_1,
+                                      __malloc_w_huft_build_l403_2,
+                                      __malloc_w_huft_build_l403_3} outputs=
+{window, t, p, q, tl, __retres, __malloc_w_huft_build_l403,
+ \result<huft_free>, __malloc_w_huft_build_l403_0,
+ __malloc_w_huft_build_l403_1, __malloc_w_huft_build_l403_2,
+ __malloc_w_huft_build_l403_3}
+
+RESULT entries=615,935 equal=false

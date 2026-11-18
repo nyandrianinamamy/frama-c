@@ -1,0 +1,81 @@
+--- a/plugins/eva/src/Eva.ml
++++ b/plugins/eva/src/Eva.ml
+@@ -131,3 +131,19 @@
+
+ (** Unit testing. *)
+ module Unit_tests = Unit_tests
++
++let () = Boot.Main.extend (fun () ->
++    Option.iter (fun path ->
++        let oc = open_out path in
++        let fmt = Format.formatter_of_out_channel oc in
++        Globals.Functions.iter (fun kf ->
++            if Kernel_function.is_definition kf then begin
++              List.iter (fun s ->
++                  if Results.is_reachable s then
++                    Format.fprintf fmt "reach %d@." s.Cil_types.sid)
++                (Kernel_function.get_definition kf).sallstmts;
++              let req = Results.at_end_of kf in
++              Format.fprintf fmt "exit %s@.%a@." (Kernel_function.get_name kf)
++                Cvalue.Model.pretty (Results.get_cvalue_model req)
++            end);
++        close_out oc) (Sys.getenv_opt "DUMP_OBS"))
+--- a/plugins/eva/src/engine/mem_exec.ml
++++ b/plugins/eva/src/engine/mem_exec.ml
+@@ -227,7 +227,11 @@
+
+   (** Find a previous execution in [map_inputs] that matches [st].
+       raise [Result_found] when this execution exists, or do nothing. *)
+-  let find_match_in_previous (map_inputs: InputBasesToCallEffect.t) state =
++  let order = Sys.getenv_opt "MATCH_ORDER"
++  let seq = ref 0
++  let find_match_in_previous kf (map_inputs: InputBasesToCallEffect.t) state =
++    let first = ref None in
++    let matches = ref [] in
+     let aux_previous_call binputs hstates =
+       let brelated = Domain.relate binputs state in
+       if not Base.SetLattice.(is_included brelated (inject binputs))
+@@ -244,17 +248,40 @@
+             Domain.reuse bases ~current_input:state ~previous_output:output
+           in
+           let outputs = List.map process outputs in
+-          raise (Result_found (outputs, i))
++          if !seq = 5276 then begin
++            Format.eprintf "DETAIL entry=%d keyhash=%d inputs=%a outputs=%a@."
++              i (Base.Hptset.hash binputs) Base.Hptset.pretty binputs Base.Hptset.pretty bases;
++            Format.eprintf "BEGIN-CANDIDATE %d@.%a@.END-CANDIDATE@."
++              i CallOutput.pretty outputs;
++            Option.iter (fun (other, n) ->
++                Format.eprintf "RESULT entries=%d,%d equal=%b@."
++                  n i (CallOutput.equal other outputs)) !first
++          end;
++          if !first = None then first := Some (outputs, i);
++          matches := (outputs, i) :: !matches
+         with Not_found -> ()
+     in
+-    Base.Hptset.Hashtbl.iter aux_previous_call map_inputs
++    Base.Hptset.Hashtbl.iter aux_previous_call map_inputs;
++    let result = match order, !matches with
++      | Some "oldest", x :: xs ->
++        Some (List.fold_left (fun ((_, n) as a) ((_, m) as b) -> if n <= m then a else b) x xs)
++      | Some "newest", x :: xs ->
++        Some (List.fold_left (fun ((_, n) as a) ((_, m) as b) -> if n >= m then a else b) x xs)
++      | _ -> !first
++    in
++    if Kernel_function.get_name kf = "huft_free" || List.length !matches > 1 then
++      Format.eprintf "TRACE %d %s %s choose %d@." !seq (Kernel_function.get_name kf)
++        (String.concat "," (List.map (fun (_, i) -> string_of_int i) !matches))
++        (Option.fold ~none:(-1) ~some:snd result);
++    Option.iter (fun (outputs,i) -> raise (Result_found (outputs,i))) result
+
+   let reuse_previous_call kf state args =
+     try
++      incr seq;
+       let previous_kf = PreviousCalls.find kf in
+       let args = List.map (function `Bottom -> None | `Value v -> Some v) args in
+       let previous = ActualArgs.Map.find args previous_kf in
+-      find_match_in_previous previous state;
++      find_match_in_previous kf previous state;
+       Statistics.(incr memexec_misses kf);
+       None
+     with

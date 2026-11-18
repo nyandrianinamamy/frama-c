@@ -1,0 +1,128 @@
+--- entry-615
++++ entry-935
+@@ -217,22 +217,22 @@
+      tmp_3 ∈ UNINITIALIZED
+      bb ∈
+        {{ garbled mix of &{__malloc_w_huft_build_l403;
+                            __malloc_w_huft_build_l403_0;
+                            __malloc_w_huft_build_l403_1;
+                            __malloc_w_huft_build_l403_2;
+                            __malloc_w_huft_build_l403_3}
+-        (origin: Merge {inflate.c:446}) }} or ESCAPINGADDR
++        (origin: Merge {inflate.c:446}) }}
+      bk ∈
+        {{ garbled mix of &{__malloc_w_huft_build_l403;
+                            __malloc_w_huft_build_l403_0;
+                            __malloc_w_huft_build_l403_1;
+                            __malloc_w_huft_build_l403_2;
+                            __malloc_w_huft_build_l403_3}
+-        (origin: Merge {inflate.c:446}) }} or ESCAPINGADDR
++        (origin: Merge {inflate.c:446}) }}
+      mask_bits[0] ∈ {0}
+               [1] ∈ {1}
+               [2] ∈ {3}
+               [3] ∈ {7}
+               [4] ∈ {15}
+               [5] ∈ {31}
+               [6] ∈ {63}
+@@ -269,89 +269,89 @@
+      bd ∈ UNINITIALIZED
+      nb ∈
+        {{ garbled mix of &{__malloc_w_huft_build_l403;
+                            __malloc_w_huft_build_l403_0;
+                            __malloc_w_huft_build_l403_1;
+                            __malloc_w_huft_build_l403_2;
+                            __malloc_w_huft_build_l403_3}
+-        (origin: Merge {inflate.c:446}) }} or ESCAPINGADDR
++        (origin: Merge {inflate.c:446}) }}
+      nl ∈
+        {{ garbled mix of &{__malloc_w_huft_build_l403;
+                            __malloc_w_huft_build_l403_0;
+                            __malloc_w_huft_build_l403_1;
+                            __malloc_w_huft_build_l403_2;
+                            __malloc_w_huft_build_l403_3}
+-        (origin: Merge {inflate.c:446}) }} or ESCAPINGADDR
++        (origin: Merge {inflate.c:446}) }}
+      nd ∈
+        {{ garbled mix of &{__malloc_w_huft_build_l403;
+                            __malloc_w_huft_build_l403_0;
+                            __malloc_w_huft_build_l403_1;
+                            __malloc_w_huft_build_l403_2;
+                            __malloc_w_huft_build_l403_3}
+-        (origin: Merge {inflate.c:446}) }} or ESCAPINGADDR
++        (origin: Merge {inflate.c:446}) }}
+      ll[0..1] ∈
+        {{ garbled mix of &{__malloc_w_huft_build_l403;
+                            __malloc_w_huft_build_l403_0;
+                            __malloc_w_huft_build_l403_1;
+                            __malloc_w_huft_build_l403_2;
+                            __malloc_w_huft_build_l403_3}
+-        (origin: Merge {inflate.c:446}) }} or ESCAPINGADDR
++        (origin: Merge {inflate.c:446}) }}
+        [2..18] ∈
+        {{ garbled mix of &{__malloc_w_huft_build_l403;
+                            __malloc_w_huft_build_l403_0;
+                            __malloc_w_huft_build_l403_1;
+                            __malloc_w_huft_build_l403_2;
+                            __malloc_w_huft_build_l403_3}
+-        (origin: Merge {inflate.c:446}) }} or UNINITIALIZED or ESCAPINGADDR
++        (origin: Merge {inflate.c:446}) }} or UNINITIALIZED
+        [19..315] ∈ UNINITIALIZED
+      b ∈
+       {{ garbled mix of &{__malloc_w_huft_build_l403;
+                           __malloc_w_huft_build_l403_0;
+                           __malloc_w_huft_build_l403_1;
+                           __malloc_w_huft_build_l403_2;
+                           __malloc_w_huft_build_l403_3}
+-       (origin: Merge {inflate.c:446}) }} or ESCAPINGADDR
++       (origin: Merge {inflate.c:446}) }}
+      k ∈
+       {{ garbled mix of &{__malloc_w_huft_build_l403;
+                           __malloc_w_huft_build_l403_0;
+                           __malloc_w_huft_build_l403_1;
+                           __malloc_w_huft_build_l403_2;
+                           __malloc_w_huft_build_l403_3}
+-       (origin: Merge {inflate.c:446}) }} or ESCAPINGADDR
++       (origin: Merge {inflate.c:446}) }}
+      tmp_30 ∈ UNINITIALIZED
+      e ∈ {{ &e }}
+      t ∈
+       {{ garbled mix of &{__malloc_w_huft_build_l403;
+                           __malloc_w_huft_build_l403_0;
+                           __malloc_w_huft_build_l403_1;
+                           __malloc_w_huft_build_l403_2;
+                           __malloc_w_huft_build_l403_3}
+-       (origin: Merge {inflate.c:446}) }} or ESCAPINGADDR
++       (origin: Merge {inflate.c:446}) }}
+      b ∈
+       {{ garbled mix of &{__malloc_w_huft_build_l403;
+                           __malloc_w_huft_build_l403_0;
+                           __malloc_w_huft_build_l403_1;
+                           __malloc_w_huft_build_l403_2;
+                           __malloc_w_huft_build_l403_3}
+-       (origin: Merge {inflate.c:446}) }} or ESCAPINGADDR
++       (origin: Merge {inflate.c:446}) }}
+      k ∈
+       {{ garbled mix of &{__malloc_w_huft_build_l403;
+                           __malloc_w_huft_build_l403_0;
+                           __malloc_w_huft_build_l403_1;
+                           __malloc_w_huft_build_l403_2;
+                           __malloc_w_huft_build_l403_3}
+-       (origin: Merge {inflate.c:446}) }} or ESCAPINGADDR
++       (origin: Merge {inflate.c:446}) }}
+      tmp_5 ∈ UNINITIALIZED
+      e ∈
+       {{ garbled mix of &{__malloc_w_huft_build_l403;
+                           __malloc_w_huft_build_l403_0;
+                           __malloc_w_huft_build_l403_1;
+                           __malloc_w_huft_build_l403_2;
+                           __malloc_w_huft_build_l403_3}
+-       (origin: Merge {inflate.c:446}) }} or ESCAPINGADDR
++       (origin: Merge {inflate.c:446}) }}
+      r ∈ {0}
+      h ∈ [--..--]
+      file_type ∈ {0} or ESCAPINGADDR
+      file_method ∈ {{ NULL ; &method }}
+      key ∈ {0}
+      pkzip ∈ {0; 1}
+      ext_header ∈ {0; 1}
