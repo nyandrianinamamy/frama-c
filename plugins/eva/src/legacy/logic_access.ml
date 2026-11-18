@@ -33,7 +33,7 @@ let read loc =
   if is_recording () then
     match Addresses.Bits.get_bases loc.Locations.addr with
     | Base.SetLattice.Top -> unknown_read ()
-    | Base.SetLattice.Set _ -> Body_access.read loc
+    | Base.SetLattice.Set _ as bases -> Body_access.read_bases bases
 
 (* Each load reports its own location through [read]. A designation does
    not load its targets, so unknown targets leave the read bound finite. *)
@@ -62,17 +62,21 @@ let record_reduction ~before ~after =
     match before, after with
     | _, Bottom -> ()
     | Map before, Map after ->
-      let only_one map =
-        Shape.iter (fun base _ -> Body_access.may_write_base base) map
+      (* The trees are hash-consed: the traversal skips the subtrees shared
+         by both states. Every decision is false, so it visits all others. *)
+      let decide_fast before after =
+        if before == after then Shape.PFalse else Shape.PUnknown
       in
-      let both base before after =
+      let decide_one base _ = Body_access.may_write_base base; false in
+      let decide_both base before after =
         if not (Cvalue.V_Offsetmap.equal before after) then
-          Body_access.may_write_base base
+          Body_access.may_write_base base;
+        false
       in
-      Shape.fold2_join_heterogeneous
-        ~cache:Hptmap_sig.NoCache ~empty_left:only_one ~empty_right:only_one
-        ~both ~join:(fun () () -> ()) ~empty:()
-        (shape before) (shape after)
+      ignore
+        (Shape.symmetric_binary_predicate Hptmap_sig.NoCache
+           Shape.ExistentialPredicate ~decide_fast ~decide_one ~decide_both
+           (shape before) (shape after))
     | _ ->
       Body_access.unknown_write ();
       Body_access.refuse Footprint_top

@@ -42,6 +42,9 @@ val is_recording : unit -> bool
 val verdict : Result.t -> (unit, Result.refusal) result
 
 val read : Locations.t -> unit
+
+(** Same as [read], with the bases of the location computed by the caller. *)
+val read_bases : Base.SetLattice.t -> unit
 val write : Locations.t -> unit
 
 (** Abstract binding updates provide possible writes without sure bits. *)

@@ -98,15 +98,19 @@ let check_bases r = function
     let allocated = function Base.Allocated _ -> true | _ -> false in
     if Base.Hptset.exists allocated bases then add_refusal r Allocated_block
 
-let add_read r location =
-  let bases = Addresses.Bits.get_bases location.Locations.addr in
+let add_read r bases =
   check_bases r bases;
   r.reads <- Bases.join r.reads bases
 
 let[@inline always] read location =
   match !current with
   | None -> ()
-  | Some r -> add_read r location
+  | Some r -> add_read r (Addresses.Bits.get_bases location.Locations.addr)
+
+let read_bases bases =
+  match !current with
+  | None -> ()
+  | Some r -> add_read r bases
 
 let check_location value =
   match !current with
