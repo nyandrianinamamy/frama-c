@@ -16,7 +16,8 @@ visits before a fault and the visits inside a call that does not return.
 
 Each observation takes a `Subject`, so it is only defined for programs of the
 fragment (`WellFormed`). Labels are pairwise distinct there, so a label passed
-to Reach or Safety names at most one statement of the program text.
+to Reach or Safety names at most one statement of the observed statement and
+of the function bodies.
 -/
 
 namespace ReuseModel

@@ -12,10 +12,16 @@ axiom other than Lean's standard ones.
 #print axioms ReuseModel.frame_lemma
 #print axioms ReuseModel.frame_of_not_written
 #print axioms ReuseModel.steps_iff_run
+#print axioms ReuseModel.WellFormed.stmt_labels_nodup
+#print axioms ReuseModel.WellFormed.sub
+#print axioms ReuseModel.WellFormed.body
 
 #check_axioms ReuseModel.frame_lemma
 #check_axioms ReuseModel.frame_of_not_written
 #check_axioms ReuseModel.steps_iff_run
+#check_axioms ReuseModel.WellFormed.stmt_labels_nodup
+#check_axioms ReuseModel.WellFormed.sub
+#check_axioms ReuseModel.WellFormed.body
 
 /-! The check rejects a theorem that depends on another axiom. `native_decide`
 makes the proof depend on the axioms that trust the compiler. `#guard_msgs`

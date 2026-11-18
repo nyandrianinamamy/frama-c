@@ -56,15 +56,15 @@ directories that Dune reads, and `lean` is not among them.
 
 | File | Content |
 |---|---|
-| `ReuseModel/Syntax.lean` | Blocks, values, expressions, statements, programs; the fragment conditions `WellFormed` and the `Subject` of the observations |
+| `ReuseModel/Syntax.lean` | Blocks, values, expressions, statements, programs; the fragment conditions `WellFormed` and the `Subject` of the observations; the lemmas that a function body and a statement inside the observed statement are in the fragment |
 | `ReuseModel/Memory.lean` | The memory interface `Memory` with its laws; the memory `FunMem`, which meets them |
 | `ReuseModel/Semantics.lean` | Events, evaluation, configurations, the step function, executions (`run`) and finite sequences of steps (`Steps`), for any program; finite prefixes (`Prefix`) of a subject |
 | `ReuseModel/Observations.lean` | Exit, Reach, Safety and visits, of a subject |
 | `ReuseModel/Frame.lean` | `InFrame`, `frame_of_not_written`, `frame_lemma` |
 | `Checks/AxiomCheck.lean` | The `#check_axioms` command |
 | `Checks/Axioms.lean` | `#print axioms` and `#check_axioms` for each theorem |
-| `Checks/Examples.lean` | Aliasing, a dangling pointer after a return, and a call that does not return, on which `frame_lemma` is applied; comparisons with the null pointer |
-| `Checks/Fragment.lean` | A program that meets the fragment conditions, and three that do not: duplicate labels, direct recursion, mutual recursion |
+| `Checks/Examples.lean` | Aliasing, a dangling pointer after a return, and a call that does not return, on which `frame_lemma` is applied; the body of a function as the subject; comparisons with the null pointer |
+| `Checks/Fragment.lean` | Statements that meet the fragment conditions: one outside the function bodies, a function body, and a statement inside one. Programs and statements that do not: duplicate labels in the observed statement, a label of a body reused outside, duplicate labels across two bodies, direct recursion, mutual recursion |
 
 ## What the model contains
 
@@ -80,10 +80,18 @@ directories that Dune reads, and `lean` is not among them.
   - `namesUnique`: each function is defined once;
   - `nonRecursive`: some rank on function names decreases along every direct
     call;
-  - `labelsUnique`: the labels of `s` and of the function bodies of `p` are
-    pairwise distinct, so that a label names one statement of the program
-    text. The observed statement is therefore not part of a function body: it
-    is the code that calls into the functions, as in the examples.
+  - `labelsUnique`: the labels of the function bodies of `p` are pairwise
+    distinct, so that a label names one statement of the program text;
+  - `stmtLabels`: `s` is a statement of a function body of `p` (the body
+    itself or a statement inside it), or else the labels of `s` are pairwise
+    distinct and distinct from those of the function bodies.
+
+  The observed statement can thus be the body of a function, a statement
+  inside a body, or code outside the functions that calls into them, as in
+  most examples. In each case a label names one statement of `s` and of the
+  function bodies. `WellFormed.body` and `WellFormed.sub` show that the body of
+  a function that a call reaches, and a statement inside the observed
+  statement, are in the fragment with the same program.
 
   A `Subject` bundles a program, the observed statement and a proof of
   `WellFormed` for them. `Prefix`, the observations, `InFrame` and
@@ -122,11 +130,30 @@ directories that Dune reads, and `lean` is not among them.
 - **A finite list of functions.** With functions given as a map from names,
   uniqueness of labels across all functions cannot be checked by computation.
   With a list, the label and name conditions are `List.Nodup` of concrete
-  lists and `decide` checks them for a given program.
+  lists, and membership in the concrete list `Program.stmts`; statements have
+  decidable equality, so `decide` checks the conditions for a given program.
 - **Unique names.** A call takes the first definition with its name
   (`Program.lookup`). With distinct names, the entries of the list are
-  exactly the definitions that calls reach, so the other two conditions,
-  stated on the entries, are about these functions.
+  exactly the definitions that calls reach, so the other conditions, stated
+  on the entries, are about these functions.
+- **Program labels apart from the observed statement.** The cache contract
+  that the model serves is stated for any single-entry statement, with the
+  function body as its first unit, so the observed statement must be allowed
+  inside the program. The condition on the labels of the program is therefore
+  stated without the observed statement (`labelsUnique`), and the observed
+  statement is placed by a separate condition (`stmtLabels`) with two cases.
+  In the first, `s` is a member of `Program.stmts`, the list of each body and
+  the statements it contains. Its labels are then labels of the program and
+  need no further condition. Membership compares statements, not labels, so a
+  statement that only reuses a label of the program falls in the second case
+  and is rejected there (`Checks/Fragment.lean`). In the second case, the
+  labels of `s` and of the bodies are pairwise distinct. Both cases give that
+  the labels of `s` are pairwise distinct (`WellFormed.stmt_labels_nodup`),
+  and both are kept when passing to a statement inside `s`
+  (`WellFormed.sub`). A proof that passes from a call to the body of its
+  callee forms the new subject with `WellFormed.body`. Requiring instead that
+  `s` be the body of a function would leave out the statements inside a body
+  and the code outside the functions, which the examples use.
 - **A rank for nonrecursion.** An existential rank gives later proofs a
   measure that decreases at each call. For a concrete program, the rank is
   given and `decide` checks it (`Checks/Fragment.lean`).

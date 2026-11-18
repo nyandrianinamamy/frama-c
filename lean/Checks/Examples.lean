@@ -16,6 +16,8 @@ and turned into an observation by the lemmas of the first section.
   still holds it.
 * A call that does not return: Reach and Safety observe visits inside it, and
   the frame lemma applies to a global that the call does not access.
+* The body of the function of the previous program as the subject: Reach and
+  Safety observe the statements of the body.
 
 The last section evaluates comparisons with the null pointer.
 -/
@@ -135,7 +137,7 @@ def aliasStmt : Stmt :=
 def aliasSubj : Subject where
   prog := aliasProg
   stmt := aliasStmt
-  wf := ⟨by decide, ⟨fun _ => 0, by decide⟩, by decide⟩
+  wf := ⟨by decide, ⟨fun _ => 0, by decide⟩, by decide, by decide⟩
 
 def aliasState : State FunMem := topState [.int 0, .ptr 0, .ptr 0]
 
@@ -172,7 +174,7 @@ def leakStmt : Stmt :=
 def leakSubj : Subject where
   prog := leakProg
   stmt := leakStmt
-  wf := ⟨by decide, ⟨fun _ => 0, by decide⟩, by decide⟩
+  wf := ⟨by decide, ⟨fun _ => 0, by decide⟩, by decide, by decide⟩
 
 def leakState : State FunMem := topState [.int 0, .int 0]
 
@@ -220,7 +222,7 @@ def spinStmt : Stmt := .seq 1 (.call 2 none "spin" []) (.assign 3 (.var "g") (.c
 def spinSubj : Subject where
   prog := spinProg
   stmt := spinStmt
-  wf := ⟨by decide, ⟨fun _ => 0, by decide⟩, by decide⟩
+  wf := ⟨by decide, ⟨fun _ => 0, by decide⟩, by decide, by decide⟩
 
 def spinState : State FunMem := topState [.int 3, .int 9]
 
@@ -378,6 +380,32 @@ theorem spin_frame {l : Label} {env : Env} {m : FunMem}
     (show (load spinState.mem 1).isSome = true from rfl) spin_inFrame hv).trans rfl
 
 #check_axioms Checks.spin_frame
+
+/-! ## The body of a function as the subject
+
+The body of `spin` is a statement of `spinProg`, so it forms a subject with
+that program. It starts in the environment of `spin`, whose local `n` is block
+2, with `g = 3`, `h = 9` and `n = 0`. -/
+
+/-- The labels 10 to 13 are labels of the program; the body is a statement of
+it. -/
+def spinBodySubj : Subject where
+  prog := spinProg
+  stmt := spinDef.body
+  wf := ⟨by decide, ⟨fun _ => 0, by decide⟩, by decide, by decide⟩
+
+def spinBodyState : State FunMem := ⟨spinEnv, memOf [.int 3, .int 9, .int 0]⟩
+
+/-- Safety: the assertion `L12` fails at a visit. -/
+example : AssertionFails spinBodySubj spinBodyState 12 :=
+  assertionFails_of_run (n := 2) (by decide)
+
+/-- Reach: `L13` is visited, with `n` still `0`. -/
+example : ∃ env m, Visit spinBodySubj spinBodyState 13 env m ∧
+    load m 2 = some (.int 0) := by
+  obtain ⟨env, hv⟩ := visit_of_run (n := 4) (t := spinBodySubj)
+    (σ := spinBodyState) (l := 13) (by decide)
+  exact ⟨env, _, hv, by decide⟩
 
 /-! ## Comparison with the null pointer
 
