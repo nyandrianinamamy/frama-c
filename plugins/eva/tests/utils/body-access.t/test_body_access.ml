@@ -11,6 +11,11 @@ let first_reason (r : Access.t) =
   | [] -> "would-store"
   | reason :: _ -> Access.refusal_id reason
 
+let assert_writes (result : Access.t) ~may ~exit ~sure =
+  assert (names result.writes = may);
+  assert (names result.exit_writes = exit);
+  assert (names (Base.SetLattice.inject result.sure_writes) = sure)
+
 let observe_refusals stack (r : Access.t) =
   let name = Kernel_function.get_name (Eva.Callstack.top_kf stack) in
   (match name with
@@ -19,6 +24,10 @@ let observe_refusals stack (r : Access.t) =
      assert (names r.writes = ["q"]);
      let allocated = function Base.Allocated _ -> true | _ -> false in
      assert (Base.SetLattice.exists allocated r.designated)
+   | "precondition" ->
+     assert (names r.reads = ["p"]);
+     assert_writes r ~may:["q"] ~exit:["q"] ~sure:["q"];
+     assert (r.refusals = [])
    | "annotation" ->
      assert (List.mem Access.Statuses r.recorded)
    | "swept" ->
@@ -45,20 +54,61 @@ let observe_blocks stack (result : Access.t) =
     assert (names (Base.SetLattice.inject result.sure_writes) = ["both"; "q"]);
     Format.printf
       "W = both, dead, pair, q; W_exit = both, pair, q; W_sure = both, q@."
+  | "guard" ->
+    assert (names result.reads = ["g"]);
+    assert_writes result ~may:["g"; "out"] ~exit:["g"; "out"] ~sure:["out"];
+    assert (List.mem Access.Guards result.recorded);
+    assert (result.refusals = []);
+    Format.printf "guard reduction contributes possible writes only@."
+  | "locals" ->
+    assert (names result.reads = ["x"]);
+    assert_writes result ~may:["out"; "x"] ~exit:["out"; "x"] ~sure:["out"];
+    assert (result.refusals = []);
+    Format.printf "initialized local scope binding contributes a possible write@."
+  | "correlated" ->
+    assert (names result.reads = ["b"]);
+    assert_writes result ~may:["b"; "dead"; "marker"]
+      ~exit:["b"; "dead"; "marker"] ~sure:["marker"];
+    Format.printf "exit graph retains dead across correlated guards@."
+  | "alarm" ->
+    assert (List.mem Access.Alarms result.recorded);
+    assert (List.mem Access.Statuses result.recorded);
+    assert (result.refusals = []);
+    Format.printf "alarm and status joins recorded@."
+  | "temporary_mix" ->
+    assert (first_reason result = "side-table");
+    Format.printf "temporary origin history access refused@."
   | name -> failwith ("unexpected body: " ^ name)
 
 let () =
   let observe stack result =
     match Sys.getenv_opt "EVA_TEST_BODY_ACCESS" with
-    | Some "refusals" -> observe_refusals stack result
+    | Some ("refusals" | "inout") -> observe_refusals stack result
     | Some "restricted" ->
       assert (List.mem Access.Side_table result.refusals);
       Format.printf "restricted cvalue refused@."
     | Some "unknown" ->
       assert (first_reason result = "side-table");
       Format.printf "unclassified callback refused@."
+    | Some "hit" ->
+      if Kernel_function.get_name (Eva.Callstack.top_kf stack) = "copy" then begin
+        assert (names result.reads = ["p"]);
+        assert_writes result ~may:["q"] ~exit:["q"] ~sure:["q"];
+        Format.printf "copy %s@." (first_reason result)
+      end
+    | Some "interrupted" ->
+      let name = Kernel_function.get_name (Eva.Callstack.top_kf stack) in
+      assert (name = "leaf");
+      assert (first_reason result = "would-store");
+      Format.printf "completed body: %s@." name
     | _ -> observe_blocks stack result
   in
   Access.on_result observe;
+  if Sys.getenv_opt "EVA_TEST_BODY_ACCESS" = Some "interrupted" then
+    Eva.Analysis.register_computation_hook ~on:Aborted (fun _ ->
+        assert (not (Eva__Body_access.is_recording ()));
+        Eva.Statistics.export_as_csv
+          ~filename:(Filepath.of_string "interrupted.tsv") ();
+        Format.printf "interrupted body recorder unwound@.");
   if Sys.getenv_opt "EVA_TEST_BODY_ACCESS" = Some "unknown" then
     Eva.Cvalue_callbacks.register_call_hook (fun _ _ _ _ -> ())

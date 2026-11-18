@@ -48,7 +48,7 @@ the same condition as before: the option is set and the result is marked
 the same order as before, and returns the call number or a reason instead of
 `unit`. The statistics updates of memexec moved into the seam, and the
 category messages are new; neither is read by the analysis. With
-`-eva-no-memexec`, the seam counts nothing, as before. When an exception
+`-eva-no-memexec`, the seam does not increment `memexec-*` counters. When an exception
 leaves the analysis of a body, `compute_and_cache_call` saves its backtrace
 and calls `interrupted`, which prints a message under the category and drops
 any exception raised while printing, for instance by a listener of the log.
@@ -78,8 +78,9 @@ the statistics file (`plugins/eva/tests/utils/statistics.t`) gains
 The [body access collector](body-access.md) can now observe a fresh body and
 report its own verdict beside memexec's disposition. It leaves the order of
 the memexec operations and their inputs intact. Its statistics are separate
-and inactive by default. The collector's recorder is unwound before the
-interrupted body is reported.
+and enabled by default, including with memexec disabled. The recorder
+is unwound before the interrupted body is reported, and the collector
+counts completed bodies only.
 
 **Open.** No test compares the callbacks and their order with those of the
 engine before the seam; this rests on source inspection. Equality with the

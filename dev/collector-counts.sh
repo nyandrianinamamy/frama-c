@@ -18,13 +18,14 @@ bash dev/check-env.sh
 export TERM=xterm
 export FC_FORCE_PTESTS=$(date +%s)
 dir=$(mktemp -d)
+export EVA_COLLECTOR_STATS_DIR="$dir"
 echo "statistics and run log in $dir"
 
 timeout 35m dune build -j 8 @install > "$dir/build.log" 2>&1
 trap 'dune exec -j 8 -- frama-c-ptests plugins/eva/tests > "$dir/restore.log" 2>&1' EXIT
 
-# Export one file per computation, preserving the tests' own statistics files.
-# Use the existing statistics, including completed bodies in aborted analyses.
+# Keep the last cumulative snapshot of each analysis, including aborted
+# analyses. Mthread also reports Computed for intermediate thread results.
 cat > "$dir/dune-project" <<'DUNE'
 (lang dune 3.15)
 (name collector_statistics)
@@ -36,15 +37,7 @@ cat > "$dir/dune" <<'DUNE'
  (libraries frama-c.kernel frama-c-eva.core)
  (flags :standard -open Frama_c_kernel))
 DUNE
-cat > "$dir/collector_statistics.ml" <<ML
-let () =
-  Eva.Analysis.register_computation_hook (function
-      | Computed | Aborted as status ->
-        let prefix = if status = Computed then "computed" else "aborted" in
-        let csv = Filename.temp_file ~temp_dir:"$dir" prefix ".tsv" in
-        Eva.Statistics.export_as_csv ~filename:(Filepath.of_string csv) ()
-      | NotComputed | Computing -> ())
-ML
+cp dev/collector_statistics.ml "$dir/"
 OCAMLPATH="$PWD/_build/install/default/lib" \
   dune build -j 8 --root "$dir" collector_statistics.cmxs
 collector="$dir/_build/default/collector_statistics.cmxs"
@@ -58,14 +51,27 @@ timeout 45m dune build -j 8 --cache=disabled "${1:-@plugins/eva/tests/ptests}" \
 echo "dune exit $code"
 
 shopt -s nullglob
-completed=("$dir"/computed*.tsv)
-aborted=("$dir"/aborted*.tsv)
-echo "analyses-completed ${#completed[@]}"
-echo "analyses-aborted ${#aborted[@]}"
-if (( ${#completed[@]} + ${#aborted[@]} > 0 )); then
+started=("$dir"/analysis*.tsv)
+statuses=("$dir"/analysis*.status)
+echo "analyses-started ${#started[@]}"
+for status in completed aborted; do
+  count=0
+  if (( ${#statuses[@]} )); then
+    count=$(awk -v status="$status" '$0 == status { count++ }
+      END { print count+0 }' "${statuses[@]}")
+  fi
+  echo "analyses-$status $count"
+done
+if (( ${#started[@]} )); then
   awk -F '\t' '
+    BEGIN {
+      reasons = "indirect-call builtin sweep contract annotation nested-call allocated-block footprint-top side-table"
+      split(reasons, reason, " ")
+      for (i in reason) counts["collector-refused-" reason[i]] = 0
+      counts["collector-would-store"] = 0
+    }
     /^collector-/ { counts[$1] += $4 }
     END { for (reason in counts) print reason, counts[reason] }
-  ' "${completed[@]}" "${aborted[@]}" | sort
+  ' "${started[@]}" | sort
 fi
 exit "$code"

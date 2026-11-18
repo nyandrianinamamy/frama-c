@@ -6,3 +6,12 @@
   (flags :standard -open Frama_c_kernel)
   (promote (until-clean))
 )
+
+(executable
+  (name "collector_statistics")
+  (modules "collector_statistics")
+  (modes plugin)
+  (libraries frama-c.kernel "frama-c-eva.core")
+  (flags :standard -open Frama_c_kernel)
+  (promote (until-clean))
+)

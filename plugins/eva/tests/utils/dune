@@ -18,3 +18,11 @@
   (applies_to server-requests)
   (deps (package frama-c-server))
 )
+
+(cram
+  (applies_to body-access)
+  (deps
+    call-cache.t/call-cache.c
+    ../mthread/mutex.c
+    ../../../../dev/collector_statistics.ml
+  ))

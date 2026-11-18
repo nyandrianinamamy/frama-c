@@ -1,12 +1,17 @@
 #include <stdlib.h>
 
-int x, *p, *q;
+int x, *p, *q, g = 1;
 
 void copy(void) {
   q = p;
 }
 
-/*@ requires x >= 0; */
+/*@ requires g > 0; */
+void precondition(void) {
+  q = p;
+}
+
+/*@ ensures x == 1; */
 void contract(void) {
   x = 1;
 }
@@ -42,6 +47,7 @@ void builtin(void) {
 }
 
 void main(void) {
+  precondition();
   contract();
   annotation();
   swept();

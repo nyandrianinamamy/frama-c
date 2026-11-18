@@ -2,12 +2,13 @@
 
 ## Whole-block observations and exits
 
-**Claim.** The collector observes each analysed body with
-`-eva-cache-collect`. For supported C accesses, its may sets bound the
-blocks read and written, and its sure set contains blocks fully overwritten
-on every path to an exit. The OCaml observer receives the result of each
-completed body before the storage verdict. A memexec hit has no new body
-observation.
+**Claim.** The collector observes each fresh body by default. For the
+supported transfers, R bounds the blocks read, W bounds possible C writes
+and updates of cvalue bindings throughout the body, and W_exit bounds the
+same writes and updates on paths that reach an exit. W_sure contains only
+blocks fully overwritten by C assignments or initializers on every path to
+an exit. The OCaml observer receives each completed observation before the
+storage verdict. A memexec hit has no new body observation.
 
 **Kind.** OCaml obligation.
 
@@ -17,9 +18,11 @@ of lookup, body execution and storage.
 **Symbols.** `Compute_functions.Make.compute_and_cache_call`,
 `Body_access.capture`, `Evaluation.Make.reduced_lval_to_loc`,
 `Cvalue_queries.extract_lval`, `Cvalue_queries.backward_location`,
-`Cvalue_transfer.copy_one_loc`, `Cvalue_domain.State.assign`,
-`Cvalue_domain.State.initialize_variable`, `Iterator.Make_Dataflow.process_edge`,
-`Body_access.transfer`, `Body_access.finish_paths`.
+`Cvalue_transfer.copy_one_loc`, `Cvalue_transfer.reduce`,
+`Cvalue_domain.State.assign`, `Cvalue_domain.State.initialize_variable`,
+`Cvalue_domain.State.enter_scope`, `Cvalue_domain.State.leave_scope`,
+`Iterator.Make_Dataflow.process_edge`, `Body_access.transfer`,
+`Body_access.finish_paths`.
 
 **Argument.** Each body has a scoped recorder. Normal return and exceptions
 restore the enclosing recorder. The observer receives the completed record
@@ -28,9 +31,35 @@ queries, copies and backward-location queries. The evaluator checks locations
 before validity narrowing and reports values that can designate blocks. Raw
 values are also checked at scalar reads and in copied offsetmaps, including a
 pointer copied without dereferencing it. The cvalue assignment and initializer
-report possibly written blocks. State narrowing and scope binding creation
-are part of the transfer or scope protocol. They are outside the designated
-write set.
+report possibly written blocks. An exact write contributes sure bits within
+its transfer. A changed valuation binding, scope binding installation
+(including `-eva-initialized-locals` and the return slot) or scope binding
+removal only contributes a possible write. Changed ACSL predicate bindings
+contribute Top to the possible writes, in addition to the clause's refusal.
+
+The cvalue audit covers the following state updates.
+
+- `backward_location` computes possible locations and `reduce_further`
+  returns no further cvalue reductions. Valuation updates during `assume`,
+  assignment, call setup and post-call actual reduction all use
+  `Cvalue_transfer.reduce`.
+- C initializers and the assignment to the return slot use the instrumented
+  initialization and assignment paths. Global initialization and the main
+  entry formals precede the body. The callee's formals are bound before its
+  recorder, and the callee's outer locals, formals and return slot are
+  removed by the caller according to the call protocol. These changes fall
+  within the caller's unsupported nested-call footprint, when applicable.
+  Inner scope removal is scoped to the body. Its escape sweep and automatic
+  allocation cleanup are refused.
+- `logic_assign`, including initialization by type for specification
+  results, is covered by the refusal and Top bounds for specification,
+  builtin and statement-contract effects. Recursive removal, substitution
+  and merge are outside the supported collector domain. Normal cvalue call
+  finalization returns the post-state. Memexec merge is a lookup operation
+  and contributes no fresh body.
+- Domain joins, widening and narrowing compute abstract control-flow
+  states. The write bounds describe transfers on the graph. They do not
+  count each change of abstract representation as a program write.
 
 The iterator records the writes of each transfer that produced a successor.
 It joins possible blocks and intersects sure bits across observations of the
@@ -47,13 +76,14 @@ provide no sure blocks.
 [`body-access.t`](../../../plugins/eva/tests/utils/body-access.t/run.t)
 asserts the sets for `q = p`, a write followed by an infinite loop, full
 overwrites on both returning branches, and partial writes that cover one
-element or both elements of an array. It also checks a copied allocation
-address and a refusal on the body that read it.
+element or both elements of an array. The fixture checks a copied
+allocation address, a guard reduction on a returning path, an initialized
+local binding and the loss of correlation between two guards.
 
 **Open.** The graph merges observations at the automaton vertices. It may
-connect edges that fired on different abstract paths, including after
-partitioning or widening. W_exit may therefore include extra blocks and
-W_sure may omit blocks that would be justified by a path-sensitive argument.
+connect edges that fired on different abstract paths, including at loops,
+widening and late joins. Thus W_exit is an upper bound and W_sure a lower
+bound even when Eva partitions the states.
 The collector does not implement a reusable Exit part.
 
 ## Refusal and reporting
@@ -87,10 +117,15 @@ checked independently of which accesses appear in the matching sets. The
 collector also refuses recursive invocations, concurrent analysis and any
 domain structure other than a single unrestricted cvalue domain.
 
-The collector is off by default. The internal option `-eva-cache-collect`
-enables observations for bodies analysed after it is set.
-`-eva-no-cache-collect` disables them. Keeping these options out of the
-ordinary help preserves its oracle. The `cache` message reports the
+The call-site `requires` checks execute outside the fresh callee body's
+observations. Eva interleaves them with behavior selection and the handling
+of `assumes` clauses. The recorder is suspended during the `requires`
+checks to preserve that order and still observe behavior selection,
+`assumes`, and the body's postconditions and statement contracts.
+
+Recording is on by default. The internal option `-eva-no-cache-collect`
+disables it for subsequent bodies. Keeping the switch out of the ordinary
+help preserves its oracle. The `cache` message reports the
 collector verdict beside the memexec storage disposition.
 `collector-would-store` and `collector-refused-REASON` count these verdicts.
 The collector does not count an interrupted body or a body skipped on a hit.
@@ -101,6 +136,13 @@ fixture exercises both option settings, the OCaml observation before the
 verdict, and the diagnostic and count of the relevant refusal families.
 [`cache_dispositions.c`](../../../plugins/eva/tests/value/cache_dispositions.c)
 continues to exercise memexec storage and a matching hit through the seam.
+The cram fixture also asserts one observation and one memexec hit for two
+calls to a leaf, checks that two recorders unwind after an alarm stops the
+analysis, and checks that a leaf's `requires` alone leaves its verdict
+would-store. The mthread case checks that
+[`dev/collector-counts.sh`](../../../dev/collector-counts.sh) uses one
+cumulative statistics snapshot per analysis, across repeated `Computed`
+notifications, and matches the verdict log and the final statistics.
 
 **Open.** Contract and annotation read coverage, child composition and
 replay are pending. A would-store verdict does not establish that a body can
@@ -137,21 +179,28 @@ refuses because it includes the mutable dynamic hints. A statement that
 evaluates a dynamic hint and an active watchpoint also refuse. Call hooks
 without a classification refuse by default. The existing callwise protocols
 and derived reporting hooks are declared at registration. This keeps their
-own queries out of the collector without changing their computation.
-Mthread uses the same dispatch protocol and refuses while enabled.
+own queries out of the collector without changing their computation. For a
+given sequence of executed transfers, the observation is independent of
+callwise Inout. A callwise output can let Eva reduce an actual after a call
+and hence change which transfers run in the caller.
+
+`Origin.History` reports access at the table operations, including when
+pointer arithmetic registers a garbled temporary and when a join consults
+origin IDs. An observed access refuses as `side-table`. Mthread uses
+the same dispatch protocol and refuses while enabled.
 
 **Evidence.** Source inspection. The
 [`body-access.t`](../../../plugins/eva/tests/utils/body-access.t/run.t)
 fixture compares asserted observation fields on the same input with Inout
-loaded and unloaded. It asserts classifications for a subset of the recorded
-joins and exercises the default refusal of an unclassified callback.
-It also checks the refusal of cvalue restricted by function.
+loaded and unloaded, and checks an input that Inout produces. Paired caller
+runs show a builtin reached without Inout and pruned with Inout. The fixture
+asserts the recorded join classes, including guards and alarms, and exercises
+refusals for a temporary origin, an unclassified callback and cvalue
+restricted by function.
 
 **Open.** The classes in the observation do not carry replay payloads.
 Their Safety and Reach replay is pending. The collector reports unsupported
 accesses at instrumented paths and at unclassified callback boundaries.
 The side-table audit still needs to cover transitive accesses in helpers and
 persistent memos, and to account for changes between a producer and a future
-lookup. Equality of a collector result with and without Inout is tested on
-the same body and transfer path. The engine can choose different transfer
-paths after a nested call when a callwise Inout result is available.
+lookup.
