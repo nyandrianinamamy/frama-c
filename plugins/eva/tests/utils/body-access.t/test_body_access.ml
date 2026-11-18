@@ -51,11 +51,7 @@ let observe_annotations stack (r : Access.t) =
   | "selected" -> read ["post_only"; "selector"]
   | "select_behavior" | "use_allocated" -> ()
   | "read_assertion" -> read ["assertion_only"]
-  | "read_invariant" ->
-    assert (List.mem "invariant_only" (names r.reads));
-    assert (r.refusals = []);
-    assert (List.mem Access.Statuses r.recorded);
-    Format.printf "read_invariant reads invariant_only@."
+  | "read_invariant" -> read ["i"; "invariant_only"]
   | "read_pointer" -> read ["checked"]
   | "read_string" -> read ["message"; "text"]
   | "read_old" -> read ["before_only"; "post_input"]
@@ -80,7 +76,9 @@ let observe_annotations stack (r : Access.t) =
     assert (Base.SetLattice.exists allocated r.designated);
     assert (r.refusals = [Access.Allocated_block]);
     Format.printf "valid_pointer designates an allocated block@."
-  | "alarm_assertion" -> read ["divisor"]
+  | "alarm_assertion" ->
+    assert (names r.writes = []);
+    read ["zero_divisor"]
   | name -> failwith ("unexpected body: " ^ name)
 
 let observe_blocks stack (result : Access.t) =

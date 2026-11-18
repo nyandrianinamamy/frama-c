@@ -65,10 +65,10 @@ void allocation_table(void) {
   //@ check \freeable(&checked);
 }
 
-int divisor = 1;
+int zero_divisor = 0, quotient;
 
 void alarm_assertion(void) {
-  divisor = 42 / divisor;
+  quotient = 42 / zero_divisor;
 }
 
 int *allocated_ptr;

@@ -178,24 +178,35 @@ snapshot per analysis, with the same builtin total as the log and final TSV.
   42
 
 Behavior selection and ensures read globals absent from the C body. The
-requires clause belongs to the call site.
+requires clause belongs to the call site. Each run below prints the lines of
+the OCaml observer, then the collector verdict of the observed body.
 
-  $ EVA_TEST_BODY_ACCESS=annotations frama-c -no-autoload-plugins -load-module eva,test_body_access.cmxs -eva -eva-no-memexec -main select_behavior -eva-msg-key cache annotations.c > behavior.log 2>&1
-  $ grep -E '^selected reads|call to selected.*collector:' behavior.log
+  $ clause () {
+  >   name="$1"; shift
+  >   EVA_TEST_BODY_ACCESS=annotations frama-c -no-autoload-plugins \
+  >     -load-module eva,test_body_access.cmxs -eva -eva-no-memexec \
+  >     -eva-msg-key cache -main "$name" annotations.c "$@" \
+  >     > "$name.log" 2>&1
+  > }
+  $ verdict () {
+  >   sed -n "s/.*call to $1: .*; collector: \(.*\)/$1 \1/p" "$2"
+  > }
+  $ clause select_behavior
+  $ grep '^selected reads' select_behavior.log
   selected reads post_only, selector
-    call to selected: lookup: no-candidate; execution: analysed; storage: refused (disabled); collector: would-store
+  $ verdict selected select_behavior.log
+  selected would-store
 
 Assertions, loop invariants, logic memory primitives and postconditions are
 observed through the same collector result. A reduction can narrow a binding
 on a returning path without fully overwriting the block.
 
-  $ clause () { name="$1"; shift; EVA_TEST_BODY_ACCESS=annotations frama-c -no-autoload-plugins -load-module eva,test_body_access.cmxs -eva -eva-no-memexec -eva-msg-key cache -main "$name" annotations.c "$@" > "$name.log" 2>&1; }
   $ clause read_assertion
   $ grep '^read_assertion reads' read_assertion.log
   read_assertion reads assertion_only
   $ clause read_invariant -eva-slevel 20
   $ grep '^read_invariant reads' read_invariant.log
-  read_invariant reads invariant_only
+  read_invariant reads i, invariant_only
   $ clause read_pointer
   $ grep '^read_pointer reads' read_pointer.log
   read_pointer reads checked
@@ -210,16 +221,22 @@ on a returning path without fully overwriting the block.
   narrowing reads narrowed
 
 An opaque predicate has no finite read bound. The observer still sees the
-body, and the verdict identifies the clause family.
+body, and the verdict and the statistics identify the clause family.
 
-  $ clause opaque_assertion
-  $ grep -E '^opaque_assertion reads|call to opaque_assertion:.*collector:' opaque_assertion.log
+  $ clause opaque_assertion -eva-statistics-file opaque_assertion.tsv
+  $ grep '^opaque_assertion reads' opaque_assertion.log
   opaque_assertion reads Top and refuses annotation
-    call to opaque_assertion: lookup: no-candidate; execution: analysed; storage: refused (disabled); collector: refused (annotation)
-  $ clause opaque_contract
-  $ grep -E '^opaque_contract reads|call to opaque_contract:.*collector:' opaque_contract.log
+  $ verdict opaque_assertion opaque_assertion.log
+  opaque_assertion refused (annotation)
+  $ awk -F '\t' '/^collector-/ { print $1, $2, $4 }' opaque_assertion.tsv
+  collector-refused-annotation opaque_assertion 1
+  $ clause opaque_contract -eva-statistics-file opaque_contract.tsv
+  $ grep '^opaque_contract reads' opaque_contract.log
   opaque_contract reads Top and refuses contract
-    call to opaque_contract: lookup: no-candidate; execution: analysed; storage: refused (disabled); collector: refused (contract)
+  $ verdict opaque_contract opaque_contract.log
+  opaque_contract refused (contract)
+  $ awk -F '\t' '/^collector-/ { print $1, $2, $4 }' opaque_contract.tsv
+  collector-refused-contract opaque_contract 1
 
 A logic predicate that checks dynamic allocation metadata refuses even on
 a static address.
@@ -228,13 +245,19 @@ a static address.
   $ grep '^allocation_table refuses' allocation_table.log
   allocation_table refuses side-table
 
-An alarm installed as an assertion by RteGen is evaluated by the body.
+An alarm installed as an assertion by RteGen is evaluated by the body. The
+divisor is zero: the assertion is invalid and stops the propagation before
+the division, so only the assertion reads the divisor.
 
-  $ EVA_TEST_BODY_ACCESS=annotations frama-c -no-autoload-plugins -load-module eva,rtegen,test_body_access.cmxs -main alarm_assertion -rte -rte-select alarm_assertion annotations.c -then -eva -eva-no-memexec > alarm_assertion.log 2>&1
-  $ grep -o "assertion 'rte,division_by_zero' got final status valid." alarm_assertion.log
-  assertion 'rte,division_by_zero' got final status valid.
+  $ EVA_TEST_BODY_ACCESS=annotations frama-c -no-autoload-plugins \
+  >   -load-module eva,rtegen,test_body_access.cmxs -main alarm_assertion \
+  >   -rte -rte-select alarm_assertion annotations.c \
+  >   -then -eva -eva-no-memexec > alarm_assertion.log 2>&1
+  $ grep -o "assertion 'rte,division_by_zero' got status invalid.*" \
+  >   alarm_assertion.log
+  assertion 'rte,division_by_zero' got status invalid (stopping propagation).
   $ grep '^alarm_assertion reads' alarm_assertion.log
-  alarm_assertion reads divisor
+  alarm_assertion reads zero_divisor
 
 A validity predicate designates an allocated block without reading it.
 
