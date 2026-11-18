@@ -154,18 +154,21 @@ FunMem.combinable : Combinable FunMem
    hypothesis. Proved in Lean for `FunMem` (`FunMem.combinable`: the cells of
    `m` on `B`, those of `w` elsewhere). For Eva, open. That a concrete
    memory gives each base its own content does not show that the combined
-   memory is a concrete memory. Eva's sources do not define the concrete
-   memories: `plugins/eva/src/domains/abstract_domain.ml` describes states
-   as abstractions of "the set of possible concrete states" without
-   defining that set. The missing premise: the concrete memories over which
-   the concretisations of Eva's states range are closed under the splice on
-   a set of bases. For concrete memories `m` and `w` and a set `B` of bases,
+   memory is a concrete memory. A search of `plugins/eva/src` and
+   `src/kernel/services/abstract_interp` for concrete memories, states,
+   stores or values finds them in comments only, with no definition:
+   `plugins/eva/src/domains/abstract_domain.ml` describes states as
+   abstractions of "the set of possible concrete states" without defining
+   that set. The missing premise: the concrete memories over which the
+   concretisations of Eva's states range are closed under the splice on a
+   set of bases. For concrete memories `m` and `w` and a set `B` of bases,
    the memory that takes from `m` the liveness and the content of each base
    of `B`, and from `w` those of every other base, must be a concrete
    memory. No invariant of the concrete memories may then relate a base of
-   `B` to a base outside `B`, such as the liveness of the locals of one call
-   frame, or the validity and size of a base. The model has whole blocks
-   only; sub-block access is a known difference of the model
+   `B` to a base outside `B`, such as the joint lifetime of the locals of one
+   call frame, or a pointer, held in a base of `B`, to a base outside `B`
+   that is not live in `w`. The model has whole blocks only; sub-block
+   access is a known difference of the model
    ([`lean/README.md`](../../../lean/README.md), "What the model leaves
    out").
 3. `d₁.RelateSound`, `d₂.RelateSound`: OCaml obligation per domain. Only the

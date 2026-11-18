@@ -5,7 +5,10 @@ entry: `filter` sound, `relate` sound, `filter` exact and `reuse` sound, as
 decided in the parent specification,
 [issue #32](https://github.com/nyandrianinamamy/frama-c/issues/32), and stated
 in [`lean/ReuseModel/Domain.lean`](../../../lean/ReuseModel/Domain.lean). The
-lemmas that use the laws at the match are in [Matching](matching.md).
+model adds a fifth law, `Extensional`, which the specification does not list:
+the operations depend on the members of a set of blocks only, not on the list
+that gives it. The lemmas that use the laws at the match are in
+[Matching](matching.md).
 
 ## The laws in the model
 
@@ -135,7 +138,10 @@ for `valueProd_match`.
 
 **Open.** None in the model. Whether a domain of Eva meets the laws is an
 OCaml obligation per domain and per law, owed by the reuse feature; no such
-argument is recorded yet.
+argument is recorded yet. `Extensional` is the exception: it is relied on
+from Frama-C's sets of bases for every domain at once ([Closure depends on
+the members of the key
+only](#closure-depends-on-the-members-of-the-key-only), hypothesis 2).
 
 ## The product keeps the laws
 
@@ -173,8 +179,11 @@ iterate across components.
 
 **Hypotheses.** The laws of the components, each an OCaml obligation per
 domain of Eva (see the Open item of [The laws can be met
-together](#the-laws-can-be-met-together)). `decomposes_prod` uses neither closure nor non-emptiness: the witness
-of `split` for the product is the same memory for both components.
+together](#the-laws-can-be-met-together)), except `Extensional`, which is
+relied on from Frama-C's sets of bases ([Closure depends on the members of
+the key only](#closure-depends-on-the-members-of-the-key-only), hypothesis
+2). `decomposes_prod` uses neither closure nor non-emptiness: the witness of
+`split` for the product is the same memory for both components.
 `[Memory M]`: the memory meets the laws of the interface `Memory`; proved in
 Lean for `FunMem` (see [the frame entry](frame.md#frame-lemma-without-sweeps),
 hypothesis 1).
@@ -282,6 +291,9 @@ eqDom_closed_x_dup : (eqDom FunMem).Closed [0, 0] yz
 'Checks.eqDom_extensional' depends on axioms: [propext, Quot.sound]
 'Checks.eqDom_closed_x_dup' depends on axioms: [propext, Quot.sound]
 ```
+
+`propext` in `decomposes_congr` comes from rewriting with the equivalence
+`split` (`rw`).
 
 **Open.** None in the model. For Eva, the check of the contract of
 hypothesis 2 on the implementation of `Hptmap`.
