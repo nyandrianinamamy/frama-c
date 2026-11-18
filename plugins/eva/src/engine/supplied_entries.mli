@@ -40,10 +40,10 @@ type footprint = Cache_entry.footprint = {
     of the address of a local variable the blocks it binds to a value that
     may contain such an address.
     Raises [Invalid_argument] if [input] is [Top] or [Bottom], if [key] is
-    not closed in [input], or if an exit state does not bind a written block that exists at the exit of the
-    body: every written block but the locals of its inner blocks. The
-    written blocks include the block of the value returned by [kf], if
-    any. *)
+    not closed in [input], or if an exit state does not bind a written block
+    that exists at the exit of the body: every written block but the locals
+    of its inner blocks. The written blocks include the block of the value
+    returned by [kf], if any. *)
 val supply :
   kernel_function -> key:Base.Hptset.t -> input:Cvalue.Model.t ->
   footprint:footprint -> exit:Cvalue.Model.t list -> entry
