@@ -20,6 +20,7 @@ open Memory
 and gives the same identifier from two creations with the same value. -/
 structure AllocatorAgreement (M : Type) [Memory M] where
   rel : M → M → Prop
+  refl : ∀ m, rel m m
   store : ∀ {m n m' n' : M} {b v}, rel m n →
     Memory.store m b v = some m' → Memory.store n b v = some n' → rel m' n'
   create : ∀ {m n : M} v, rel m n →
@@ -32,6 +33,7 @@ structure AllocatorAgreement (M : Type) [Memory M] where
 are equal. -/
 def FunMem.allocatorAgreement : AllocatorAgreement FunMem where
   rel m n := m.next = n.next
+  refl _ := rfl
   store := by
     intro m n m' n' b v h hm hn
     change FunMem.store m b v = some m' at hm
@@ -68,6 +70,11 @@ structure ReplayAgreement (a : AllocatorAgreement M) (K W : BlockSet)
   contents : AgreeOn K m n
   live : ∀ b ∈ W, (load m b).isSome = (load n b).isSome
   allocator : a.rel m n
+
+/-- A memory agrees with itself on every key and write set. -/
+theorem ReplayAgreement.refl (a : AllocatorAgreement M) (K W : BlockSet) (m : M) :
+    ReplayAgreement a K W m m :=
+  ⟨fun _ _ => rfl, fun _ _ => rfl, a.refl m⟩
 
 private theorem ReplayAgreement.restrict {a : AllocatorAgreement M}
     {K K' W : BlockSet} {m n : M}
@@ -525,13 +532,10 @@ private theorem step_agree {a : AllocatorAgreement M} {K W : BlockSet}
     exact ⟨n', congrArg some hn, ha⟩
   | done | fault => contradiction
 
-/-- Under coverage of producing prefixes, the matched run has the same
-events and control at each finite step count. Its memory agrees on the key
-and on every block updated along the prefix. -/
-theorem run_agree {a : AllocatorAgreement M} {K W : BlockSet}
+private theorem run_agree_of_accesses {a : AllocatorAgreement M} {K W : BlockSet}
     {p : Program} {c : Config M} {m : M}
     (h : ReplayAgreement a K W c.mem m)
-    (hc : ∀ evs c', Steps p c evs c' → AccessesCovered K W evs) (fuel : Nat) :
+    (fuel : Nat) (hc : AccessesCovered K W (run p fuel c).1) :
     let (evs, c') := run p fuel c
     ∃ m', run p fuel (c.withMem m) = (evs, c'.withMem m') ∧
       ReplayAgreement a (updatedBlocks evs ++ K) W c'.mem m' := by
@@ -542,13 +546,13 @@ theorem run_agree {a : AllocatorAgreement M} {K W : BlockSet}
     cases hs : step p c with
     | some r =>
       obtain ⟨es, c₁⟩ := r
-      obtain ⟨m₁, hm₁, ha⟩ := step_agree hs h
-        (by simpa using hc _ _ (Steps.head hs (.refl _)))
+      simp only [run, hs] at hc
+      obtain ⟨m₁, hm₁, ha⟩ :=
+        step_agree hs h (fun e he => hc e (List.mem_append_left _ he))
       rw [hm₁]
-      have htail (fs : List Event) (c₂ : Config M) (ht : Steps p c₁ fs c₂) :
-          AccessesCovered (updatedBlocks es ++ K) W fs := by
+      have htail : AccessesCovered (updatedBlocks es ++ K) W (run p fuel c₁).1 := by
         intro e he
-        have hmem := hc _ _ (.head hs ht) e (List.mem_append_right _ he)
+        have hmem := hc e (List.mem_append_right _ he)
         cases e with
         | read b => exact List.mem_append_right _ hmem
         | _ => exact hmem
@@ -559,6 +563,42 @@ theorem run_agree {a : AllocatorAgreement M} {K W : BlockSet}
         using hb
     | none =>
       cases c <;> first | contradiction | exact ⟨m, rfl, h⟩
+
+/-- Under coverage of producing prefixes, the matched run has the same
+events and control at each finite step count. Its memory agrees on the key
+and on every block updated along the prefix. -/
+theorem run_agree {a : AllocatorAgreement M} {K W : BlockSet}
+    {p : Program} {c : Config M} {m : M}
+    (h : ReplayAgreement a K W c.mem m)
+    (hc : ∀ evs c', Steps p c evs c' → AccessesCovered K W evs) (fuel : Nat) :
+    let (evs, c') := run p fuel c
+    ∃ m', run p fuel (c.withMem m) = (evs, c'.withMem m') ∧
+      ReplayAgreement a (updatedBlocks evs ++ K) W c'.mem m' :=
+  run_agree_of_accesses h fuel (hc _ _ (run_steps p fuel c))
+
+/-- Targets of attempted stores in a prefix. Scope events are separate. -/
+def writeTargets (evs : List Event) : BlockSet :=
+  evs.filterMap fun
+    | .write b => some b
+    | _ => none
+
+/-- For a particular prefix, liveness agreement is needed only on targets
+of its attempted stores. The allocator clause still applies. -/
+theorem run_agree_on_writes {a : AllocatorAgreement M} {K : BlockSet}
+    {p : Program} {c : Config M} {m : M} (fuel : Nat)
+    (h : ReplayAgreement a K (writeTargets (run p fuel c).1) c.mem m)
+    (hc : ∀ b, Event.read b ∈ (run p fuel c).1 → b ∈ K) :
+    let (evs, c') := run p fuel c
+    ∃ m', run p fuel (c.withMem m) = (evs, c'.withMem m') ∧
+      ReplayAgreement a (updatedBlocks evs ++ K) (writeTargets evs) c'.mem m' := by
+  have hcover : AccessesCovered K (writeTargets (run p fuel c).1) (run p fuel c).1 := by
+    intro e he
+    cases e with
+    | read b => exact hc b he
+    | write b => exact List.mem_filterMap.mpr ⟨.write b, he, rfl⟩
+    | scopeEnter | scopeExit => trivial
+  cases hr : run p fuel c with
+  | mk evs c' => simpa only [hr] using run_agree_of_accesses h fuel hcover
 
 /-- Agreement on the reads of an assertion makes its observation equal. -/
 theorem assertionHolds_agree {p : Program} {env : Env} {m n : M}

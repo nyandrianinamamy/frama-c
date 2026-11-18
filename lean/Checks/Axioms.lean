@@ -95,6 +95,17 @@ axiom other than Lean's standard ones.
 section
 open ReuseModel Checks
 
+#check @ReuseModel.AllocatorAgreement.refl
+#check @ReuseModel.FunMem.allocatorAgreement
+#check @ReuseModel.ReplayAgreement.refl
+#check @ReuseModel.CacheEntry.matches_of_input
+#check @ReuseModel.writeTargets
+#check @ReuseModel.run_agree_on_writes
+#check @Checks.shorterInput
+#check @Checks.projected_match_no_replay_witness
+#check @Checks.deadDestination
+#check @Checks.dead_destination_no_match
+#check @Checks.nonpointer_load_reads_only_pointer
 #check @ReuseModel.CacheEntry.sound_of_producer
 #check @ReuseModel.run_agree
 #check @ReuseModel.assertionHolds_agree
@@ -106,6 +117,17 @@ open ReuseModel Checks
 
 end
 
+#print axioms ReuseModel.AllocatorAgreement.refl
+#print axioms ReuseModel.FunMem.allocatorAgreement
+#print axioms ReuseModel.ReplayAgreement.refl
+#print axioms ReuseModel.CacheEntry.matches_of_input
+#print axioms ReuseModel.writeTargets
+#print axioms ReuseModel.run_agree_on_writes
+#print axioms Checks.shorterInput
+#print axioms Checks.projected_match_no_replay_witness
+#print axioms Checks.deadDestination
+#print axioms Checks.dead_destination_no_match
+#print axioms Checks.nonpointer_load_reads_only_pointer
 #print axioms ReuseModel.CacheEntry.sound_of_producer
 #print axioms ReuseModel.run_agree
 #print axioms ReuseModel.assertionHolds_agree
@@ -115,6 +137,17 @@ end
 #print axioms Checks.allocator_needed
 #print axioms Checks.prefix_writes_can_exceed_exit_writes
 
+#check_axioms ReuseModel.AllocatorAgreement.refl
+#check_axioms ReuseModel.FunMem.allocatorAgreement
+#check_axioms ReuseModel.ReplayAgreement.refl
+#check_axioms ReuseModel.CacheEntry.matches_of_input
+#check_axioms ReuseModel.writeTargets
+#check_axioms ReuseModel.run_agree_on_writes
+#check_axioms Checks.shorterInput
+#check_axioms Checks.projected_match_no_replay_witness
+#check_axioms Checks.deadDestination
+#check_axioms Checks.dead_destination_no_match
+#check_axioms Checks.nonpointer_load_reads_only_pointer
 #check_axioms ReuseModel.CacheEntry.sound_of_producer
 #check_axioms ReuseModel.run_agree
 #check_axioms ReuseModel.assertionHolds_agree

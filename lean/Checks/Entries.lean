@@ -1,5 +1,6 @@
 import ReuseModel.Entry
 import Checks.Examples
+import Checks.Domains
 
 /-!
 # Entries with an overwrite and with a read before it
@@ -173,8 +174,9 @@ theorem load_overwrite_entry :
   exact ⟨rfl, by decide, hfault, obs.safety _ ⟨_, _, hfault⟩, obs.reach _ hreach,
     (hs.matched _ (assign_matches true)).2.exit _ _ hout⟩
 
-def testFirst : Stmt :=
-  .seq 3 (.assert 2 (.binop .eq (.var "x") (.const 0))) assignLoad
+private def assertZero : Stmt := .assert 2 (.binop .eq (.var "x") (.const 0))
+
+def testFirst : Stmt := .seq 3 assertZero assignLoad
 
 def assertSubject : Subject :=
   ⟨loadProg, testFirst, ⟨by decide, ⟨fun _ => 0, by decide⟩, by decide, by decide⟩⟩
@@ -183,22 +185,115 @@ def assertEntry : CacheEntry predicates :=
   { assignEntry with
     subject := assertSubject
     footprint := ⟨[0, 1, 2], [0], [0], [0]⟩
-    key := [0, 1, 2] }
+    key := [0, 1, 2]
+    reached := (· ∈ [1, 2, 3]) }
 
 def assertEntryWithoutX : CacheEntry predicates := { assertEntry with key := [1, 2] }
+
+private theorem assert_prefixes {live : Bool} {evs : List Event}
+    {c : Config FunMem} (h : Prefix assertSubject ⟨noLocals, loadInput 0 live⟩ evs c) :
+    (evs = [] ∧ c = .run testFirst .stop noLocals (loadInput 0 live)) ∨
+    (evs = [] ∧ c = .run assertZero (.seq assignLoad .stop) noLocals (loadInput 0 live)) ∨
+    (evs = [.read 0] ∧ c = .next (.seq assignLoad .stop) noLocals (loadInput 0 live)) ∨
+    ∃ es, evs = .read 0 :: es ∧ Prefix assignSubject ⟨noLocals, loadInput 0 live⟩ es c := by
+  obtain ⟨n, hn⟩ := steps_run h
+  rcases n with _ | _ | _ | n
+  · obtain ⟨rfl, rfl⟩ := Prod.mk.inj hn
+    exact Or.inl ⟨rfl, rfl⟩
+  · obtain ⟨rfl, rfl⟩ := Prod.mk.inj hn
+    exact Or.inr (Or.inl ⟨rfl, rfl⟩)
+  · cases live <;> obtain ⟨rfl, rfl⟩ := Prod.mk.inj hn <;>
+      exact Or.inr (Or.inr (Or.inl ⟨rfl, rfl⟩))
+  · let start := Config.entry assignSubject.stmt ⟨noLocals, loadInput 0 live⟩
+    have heq : run loadProg (n + 3) (Config.entry testFirst ⟨noLocals, loadInput 0 live⟩) =
+        (.read 0 :: (run loadProg n start).1, (run loadProg n start).2) := by
+      cases live <;> rfl
+    change run loadProg (n + 3) (Config.entry testFirst ⟨noLocals, loadInput 0 live⟩) =
+      (evs, c) at hn
+    rw [heq] at hn
+    obtain ⟨rfl, rfl⟩ := Prod.mk.inj hn
+    exact Or.inr (Or.inr (Or.inr ⟨_, rfl, run_steps _ _ _⟩))
+
+private theorem assert_coverage : assertEntry.Coverage := by
+  intro m hm
+  change ∃ live, m = loadInput 0 live at hm
+  obtain ⟨live, rfl⟩ := hm
+  have cov := assign_coverage _ ⟨live, rfl⟩
+  constructor
+  · intro evs c hp
+    rcases assert_prefixes hp with ⟨rfl, -⟩ | ⟨rfl, -⟩ | ⟨rfl, -⟩ | ⟨es, rfl, h⟩
+    all_goals try simp [assertEntry, AccessesCovered]
+    intro e he
+    have ha := cov.accesses _ _ h e he
+    cases e <;> simp_all [assignEntry, assertEntry]
+  · intro evs o out hp b hb
+    rcases assert_prefixes hp with ⟨-, h⟩ | ⟨-, h⟩ | ⟨-, h⟩ | ⟨es, rfl, h⟩
+    all_goals try contradiction
+    exact cov.exitWrites _ _ _ h b (by simpa using hb)
+  · intro evs o out hp b hb
+    rcases assert_prefixes hp with ⟨-, h⟩ | ⟨-, h⟩ | ⟨-, h⟩ | ⟨es, rfl, h⟩
+    all_goals try contradiction
+    exact List.mem_cons_of_mem _ (cov.sure _ _ _ h b hb)
+
+private theorem assert_producer : assertEntry.ProducerSound := by
+  constructor
+  · intro m hm o out ⟨evs, hp⟩
+    change ∃ live, m = loadInput 0 live at hm
+    obtain ⟨live, rfl⟩ := hm
+    rcases assert_prefixes hp with ⟨-, h⟩ | ⟨-, h⟩ | ⟨-, h⟩ | ⟨es, -, h⟩
+    all_goals try contradiction
+    exact assign_producer.exit _ ⟨live, rfl⟩ _ _ ⟨es, h⟩
+  · intro m hm v hv
+    change ∃ live, m = loadInput 0 live at hm
+    obtain ⟨live, rfl⟩ := hm
+    cases v with
+    | alarm l a =>
+      obtain ⟨evs, out, hp⟩ := hv
+      rcases assert_prefixes hp with ⟨-, h⟩ | ⟨-, h⟩ | ⟨-, h⟩ | ⟨es, -, h⟩
+      all_goals try contradiction
+      exact assign_producer.safety _ ⟨live, rfl⟩ _ ⟨es, _, h⟩
+    | assertion l =>
+      obtain ⟨evs, e, k, env, out, hp, hf⟩ := hv
+      rcases assert_prefixes hp with ⟨-, h⟩ | ⟨-, h⟩ | ⟨-, h⟩ | ⟨es, -, h⟩
+      · simp [testFirst] at h
+      · cases h
+        cases live <;> contradiction
+      · contradiction
+      · exact assign_producer.safety _ ⟨live, rfl⟩ _ ⟨es, _, _, _, _, h, hf⟩
+  · intro m hm l ⟨env, out, evs, st, k, hp, hl⟩
+    change ∃ live, m = loadInput 0 live at hm
+    obtain ⟨live, rfl⟩ := hm
+    rcases assert_prefixes hp with ⟨-, h⟩ | ⟨-, h⟩ | ⟨-, h⟩ | ⟨es, -, h⟩
+    · cases h
+      simp [testFirst, Stmt.label] at hl
+      simp [assertEntry, ← hl]
+    · cases h
+      simp [assertZero, Stmt.label] at hl
+      simp [assertEntry, ← hl]
+    · contradiction
+    · have he : l = 1 := assign_producer.reach _ ⟨live, rfl⟩ l ⟨_, _, es, _, _, h, hl⟩
+      simp [assertEntry, he]
 
 /-- Testing the old destination before a full overwrite requires keeping
 its value in the key. Agreement on the load alone can miss a failure. -/
 theorem assert_before_overwrite :
-    assertEntry.KeyCovers ∧ 0 ∈ assertEntry.key ∧
-      ¬ assertEntryWithoutX.KeyCovers ∧
+    assertEntry.key = [0, 1, 2] ∧ assertEntry.ProducerSound ∧ assertEntry.Coverage ∧
+      assertEntry.KeyCovers ∧ assertEntry.Sound FunMem.allocatorAgreement ∧
+      assertEntry.Matches FunMem.allocatorAgreement (loadInput 0 true) ∧
+      0 ∈ assertEntry.key ∧ ¬ assertEntryWithoutX.KeyCovers ∧
       AgreeOn [1, 2] (loadInput 0 true) (loadInput 9 true) ∧
       assertionOf? loadProg (run loadProg 1
         (Config.entry testFirst ⟨noLocals, loadInput 0 true⟩)).2 = some (2, true) ∧
       AssertionFails assertSubject ⟨noLocals, loadInput 9 true⟩ 2 ∧
       Exit assertSubject ⟨noLocals, loadInput 9 true⟩ .completed (loadOut 9) := by
-  refine ⟨⟨fun _ h => h, fun _ h hn => False.elim (hn h)⟩, by decide, ?_, ?_,
-    by decide, assertionFails_of_run (n := 1) (by decide), ?_⟩
+  have hinput : predicates.γ assertEntry.input (loadInput 0 true) := ⟨true, rfl⟩
+  have hkey : assertEntry.KeyCovers :=
+    ⟨fun _ h => h, fun _ h hn => False.elim (hn h)⟩
+  have hsound := assertEntry.sound_of_producer (a := FunMem.allocatorAgreement)
+    ⟨_, hinput⟩ assert_producer assert_coverage hkey
+  refine ⟨rfl, assert_producer, assert_coverage, hkey, hsound,
+    assertEntry.matches_of_input hinput, by decide, ?_, ?_, by decide,
+    assertionFails_of_run (n := 1) (by decide), ?_⟩
   · intro h
     have h0 : 0 ∈ [1, 2] := h.1 (show 0 ∈ assertEntry.footprint.reads by decide)
     exact (by decide : 0 ∉ [1, 2]) h0
@@ -268,6 +363,57 @@ theorem allocator_needed :
   intro b hb
   simp at hb
   rcases hb with rfl | rfl <;> rfl
+
+def deadDestination : FunMem := release (loadInput 9 true) 0
+
+/-- The same keyed loads with a dead destination can fault at the store.
+No producing witness has the needed liveness on the omitted destination. -/
+theorem dead_destination_no_match :
+    AgreeOn [1, 2] (loadInput 0 true) deadDestination ∧
+      (¬ assignEntry.Matches FunMem.allocatorAgreement deadDestination) ∧
+      AlarmRaised assignSubject ⟨noLocals, deadDestination⟩ 1 .invalidAccess := by
+  refine ⟨?_, ?_, ⟨loadWrites, _, steps_iff_run.mpr ⟨1, rfl⟩⟩⟩
+  · intro b hb
+    simp at hb
+    rcases hb with rfl | rfl <;> rfl
+  · rintro ⟨w, ⟨live, rfl⟩, h⟩
+    have hl := h.live 0 (by decide : 0 ∈ [0])
+    cases live <;> contradiction
+
+/-- When p holds an integer, evaluation faults without reading a target. -/
+theorem nonpointer_load_reads_only_pointer :
+    Prefix assignSubject ⟨noLocals, memOf [.int 9, .int 0]⟩ [.read 1]
+      (.fault 1 .invalidAccess (memOf [.int 9, .int 0])) :=
+  steps_iff_run.mpr ⟨1, rfl⟩
+
+def shorterInput := memOf [.int 1, .int 4]
+
+/-- The product's projected match succeeds on block 0. Every stored witness
+has block 2 live, so none shares the current allocator's next identifier. -/
+theorem projected_match_no_replay_witness :
+    valueProd.filter [0] matchC = valueProd.filter [0] matchS ∧
+      valueProd.γ matchC shorterInput ∧
+      (∃ w, valueProd.γ matchS w ∧ AgreeOn [0] shorterInput w) ∧
+      ∀ K W, ¬ ∃ w, valueProd.γ matchS w ∧
+        ReplayAgreement FunMem.allocatorAgreement K W w shorterInput := by
+  have hfilter : valueProd.filter [0] matchC = valueProd.filter [0] matchS := rfl
+  have hC : valueProd.γ matchC shorterInput := by
+    constructor <;> intro p hp <;> simp [matchC] at hp
+    rcases hp with rfl | rfl <;> exact ⟨_, List.mem_singleton_self _, rfl⟩
+  refine ⟨hfilter, hC, ?_, ?_⟩
+  · have hS : valueProd.γ matchS (memOf [.int 1, .int 0, .int 7]) := by
+      refine ⟨?_, ?_⟩ <;> intro p hp <;> simp [matchS] at hp <;>
+        rcases hp with rfl | rfl <;> exact ⟨_, List.mem_singleton_self _, rfl⟩
+    refine Domain.projected_match (K := [0]) (C := matchC) FunMem.combinable
+      valueDom_filterSound valueDom_filterSound valueDom_relateSound valueDom_relateSound
+      (Domain.closed_prod_iff.mpr ⟨valueDom_closed _ _, valueDom_closed _ _⟩)
+      ⟨_, hS⟩ (fun _ h => hfilter ▸ h) hC
+  · rintro K W ⟨w, hw, ha⟩
+    obtain ⟨v, _, hv⟩ := hw.2 (2, [.int 7]) (List.mem_singleton_self _)
+    have hnext : w.next = 2 := ha.allocator
+    change w.cells 2 = some v at hv
+    rw [w.fresh 2 (hnext ▸ Nat.le_refl 2)] at hv
+    contradiction
 
 def faultOnlyWrite : Stmt := .ite 1 (.var "p")
   (.seq 2 (.assign 3 (.var "x") (.const 7)) (.ret 4 (some (.deref (.const 0)))))

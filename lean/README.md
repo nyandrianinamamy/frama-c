@@ -225,7 +225,10 @@ reads for assertions and attempted accesses that fault. The key contains the
 reads and the possible exit writes other than certain full overwrites. A
 matching memory and its producing witness must also agree on the liveness of
 write targets and on allocation state. They use the same entry bindings.
-For `FunMem`, allocation agreement is equality of the next fresh identifier.
+Allocation agreement is reflexive, so each producing memory matches its own
+entry. For `FunMem`, the agreement is equality of the next fresh identifier.
+The projected match only supplies key agreement. The witness for write
+liveness and allocation agreement is an additional obligation.
 
 The construction transports Safety and Reach on all finite prefixes. On a
 normal exit it gives a producing output covered by the Exit part, agreeing

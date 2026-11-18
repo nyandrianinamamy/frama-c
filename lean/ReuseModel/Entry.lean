@@ -75,6 +75,11 @@ The current execution uses the same entry bindings. -/
 def Matches (entry : CacheEntry d) (a : AllocatorAgreement M) (m : M) : Prop :=
   ∃ w, d.γ entry.input w ∧ ReplayAgreement a entry.key entry.footprint.writes w m
 
+/-- Each producing memory is a match witnessed by itself. -/
+theorem matches_of_input {entry : CacheEntry d} {a : AllocatorAgreement M}
+    {m : M} (hm : d.γ entry.input m) : entry.Matches a m :=
+  ⟨m, hm, ReplayAgreement.refl a _ _ m⟩
+
 /-- The claims supplied to a matching execution. Exit gives a witness
 covered by the stored output and in agreement on possible exit writes. -/
 structure Observations (entry : CacheEntry d) (m : M) : Prop where
