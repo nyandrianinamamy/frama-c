@@ -246,6 +246,17 @@ Separate compiler/dependency failures, oracle mismatches, disabled tests,
 timeouts and process kills; preserve diagnostics before retrying. Never turn
 an unexplained failure into a pass by promoting outputs or disabling tests.
 
+### Reviewing Lean–Eva correspondence
+
+When reviewing a change to the Lean model or to Eva, check whether it affects
+any claim in the correspondence record, including assumptions the claim relies
+on. For each affected claim, the author identifies it in the PR, revisits its
+argument, and reruns the proofs or regressions whose evidence the change
+affects. Report the checked revision, results, and any checks still pending.
+Update the record in the same change if the claim, argument, assumptions, or
+source and test references have changed. The reviewer checks that assessment
+and the cited evidence before signing off.
+
 ### Definition of done
 
 For a feature or bug fix, confirm the observable acceptance criteria in the
