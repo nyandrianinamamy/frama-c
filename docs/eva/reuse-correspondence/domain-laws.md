@@ -138,8 +138,9 @@ for `valueProd_match`.
 ```
 
 **Open.** None in the model. Whether a domain of Eva meets the laws is an
-OCaml obligation per domain and per law, owed by the reuse feature; no such
-argument is recorded yet. `Extensional` is the exception: it is relied on
+OCaml obligation per domain and per law, owed by the reuse feature. For
+cvalue, the arguments in prose are in [Reuse operation](reuse-operation.md);
+no other domain has one yet. `Extensional` is the exception: it is relied on
 from Frama-C's sets of bases for every domain at once ([Closure depends on
 the members of the key
 only](#closure-depends-on-the-members-of-the-key-only), hypothesis 3).
@@ -479,4 +480,6 @@ The statements in [Matching](matching.md) show where `FilterSound` is taken:
 take it, and `projected_match` takes it for the two components.
 
 **Open.** The argument per domain that its `filter` only forgets is owed by
-the reuse feature and not recorded.
+the reuse feature. For cvalue it is in [Reuse
+operation](reuse-operation.md#filter-sound-for-cvalue); for the other domains
+it is not recorded.

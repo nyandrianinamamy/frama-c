@@ -157,7 +157,7 @@ final message as the run without the category. Also executed by
 loaded, and `relate-top` for every call with the `printer` domain, whose
 `relate` returns `Top`; in both runs the statistics count one refusal per
 analysed call. Executed by `cache_supplied.c`: `supplied-only` for every
-analysed call of runs 0, 1 and 3.
+analysed call of runs 0, 1, 3, 4 and 5.
 
 **Open.** No regression reaches `footprint-top`, `relate-unclosed` or
 `exception`. For `relate-unclosed`, chains of assignments `b = a + 1;

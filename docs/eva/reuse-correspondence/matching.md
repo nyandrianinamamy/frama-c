@@ -22,11 +22,11 @@ The hypotheses of the lemmas below, with their kind, are:
 |---|---|---|
 | `[Memory M]`: the memory meets the laws of `Memory` | Proved in Lean for `FunMem` | Done ([frame entry](frame.md#frame-lemma-without-sweeps), hypothesis 1) |
 | `Combinable M`: two memories combine on any set of blocks | Proved in Lean for `FunMem`; for Eva's concrete memories, an argument in prose is owed | Done in Lean; open for Eva, with the missing premise under the product lemma |
-| `FilterSound`, weak form, of each domain | OCaml obligation, per domain | Pending: argument per domain owed by the reuse feature |
-| `RelateSound` of each domain (clause `decomposes`) | OCaml obligation, per domain | Pending; fails for the equality domain on `y == z` with the key `{x}` ([domain laws](domain-laws.md#the-equality-domain-fails-relate-sound-on-a-closed-key)), not for every identity `filter` |
-| `Closed K S`: the key is closed in the stored input | OCaml obligation | Memexec: [source inspection](call-cache-seam.md#closure-of-the-memexec-key-under-relate); new cache pending |
-| `∃ w, γ S w`: the stored concretisation is not empty | OCaml obligation | Open: no argument recorded |
-| Inclusion of the filtered current input in the filtered stored input, on concretisations | OCaml obligation | Memexec: equality of filtered states, source inspection; new cache pending |
+| `FilterSound`, weak form, of each domain | OCaml obligation, per domain | cvalue: argued in prose ([reuse operation](reuse-operation.md#filter-sound-for-cvalue)); other domains pending |
+| `RelateSound` of each domain (clause `decomposes`) | OCaml obligation, per domain | cvalue: argued in prose ([reuse operation](reuse-operation.md#relate-empty-for-cvalue)); other domains pending; fails for the equality domain on `y == z` with the key `{x}` ([domain laws](domain-laws.md#the-equality-domain-fails-relate-sound-on-a-closed-key)), not for every identity `filter` |
+| `Closed K S`: the key is closed in the stored input | OCaml obligation | Memexec: [source inspection](call-cache-seam.md#closure-of-the-memexec-key-under-relate); supplied entries: checked by `Cache_entry.Make.make`, source inspection ([reuse operation](reuse-operation.md#the-match-by-equality)) |
+| `∃ w, γ S w`: the stored concretisation is not empty | OCaml obligation | Open: no argument recorded; supplied entries refuse a `Bottom` input only ([reuse operation](reuse-operation.md#filter-exact-on-the-stored-input-for-cvalue)) |
+| Inclusion of the filtered current input in the filtered stored input, on concretisations | OCaml obligation | Memexec: equality of filtered states, source inspection; supplied entries: equality of two projections on the key, source inspection ([reuse operation](reuse-operation.md#the-match-by-equality)) |
 | `ExactOn K S`: `filter` exact on the stored input | Proved in Lean from the hypotheses above | Done (product lemma) |
 | `γ C m`: the current input covers the current memory | Relied on from Eva | The soundness of the analysis of the caller up to the call; not checked here |
 
@@ -85,8 +85,12 @@ all five.
    (`Mem_exec.Make.find_match_in_previous`, `Domain.Hashtbl.find` on
    `Domain.filter binputs state`), so the two filtered states are equal for
    `Domain.equal`; equal states have equal concretisations, which gives the
-   inclusion. Source inspection only; the lookup of the new cache is not
-   written yet.
+   inclusion. The reuse operation on supplied entries compares
+   `Domain.filter K state` with the stored input by `Domain.equal`
+   (`Cache_entry.Make.check`); for cvalue, two equal projections on K cover
+   the same memories when each is read through its support
+   ([reuse operation](reuse-operation.md#interpretation-of-cvalue-states-and-of-their-projections),
+   P2). Source inspection only.
 4. `d.ExactOn K S`: `filter` exact on the stored input for `K`. Proved in
    Lean from the hypotheses of the [product lemma](#product-lemma).
 5. `d.γ C m`: the current input covers the current memory. Relied on from
@@ -188,7 +192,10 @@ FunMem.combinable : Combinable FunMem
    Memexec iterates `relate` on the stored input
    ([Closure of the memexec key under
    relate](call-cache-seam.md#closure-of-the-memexec-key-under-relate),
-   source inspection); the closure of the new cache is pending.
+   source inspection); the reuse operation on supplied entries checks it in
+   `Cache_entry.Make.make`, and also checks closure in the current input
+   ([reuse operation](reuse-operation.md#the-match-by-equality), source
+   inspection).
 5. `∃ w, (d₁.prod d₂).γ S w`: the concretisation of the stored input is not
    empty. OCaml obligation, open
    ([Non-emptiness](#non-emptiness-of-the-stored-concretisation-stays-a-hypothesis)).

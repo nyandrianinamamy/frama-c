@@ -67,6 +67,7 @@ that a checkout has the model sources of an entry, compare
   counts, and the closure of the memexec key under `relate`.
 - [Body access collector](body-access.md) covers the block sets, observational
   storage verdict and side-table classes.
-- [Reuse operation](reuse-operation.md): the cache entry, the match by
-  equality on entries supplied by a test module, the choice of one cache per
+- [Reuse operation](reuse-operation.md): the cache entry and its four
+  written sets, the match by equality on entries supplied by a test module,
+  the blocks a hit takes from an exit state, the choice of one cache per
   analysis, and the laws of `filter`, `relate` and `reuse` for cvalue.
