@@ -257,6 +257,11 @@ Update the record in the same change if the claim, argument, assumptions, or
 source and test references have changed. The reviewer checks that assessment
 and the cited evidence before signing off.
 
+The Lean model is in `lean/`. Build and check it with
+`cd lean && lake build --wfail`; [lean/README.md](lean/README.md) gives its
+scope and pins. The Frama-C build does not need Lean. The correspondence record
+is in [docs/eva/reuse-correspondence/](docs/eva/reuse-correspondence/README.md).
+
 ### Definition of done
 
 For a feature or bug fix, confirm the observable acceptance criteria in the

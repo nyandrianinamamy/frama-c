@@ -1,36 +1,55 @@
-# Correspondence record for reuse in Eva
+# Correspondence between the Lean model and Eva
 
-This record relates the claims made about the reuse of cache entries in Eva
-to their evidence: theorems of the Lean model, arguments in prose, and
-obligations on the OCaml code of Eva with the regressions that exercise them.
-Its form is fixed by the
-[resolution of issue #19](https://github.com/nyandrianinamamy/frama-c/issues/19),
-and the review rule is in the root `AGENTS.md`, under "Reviewing Lean–Eva
-correspondence". Terms are those of `GLOSSARY.md`.
+This record relates the Lean reference model in [`lean/`](../../../lean/README.md)
+to Eva's OCaml implementation of statement reuse. Each claim has one home, under
+its own heading in one of the topic files listed below, so that it can be
+linked.
 
-Each topic file below holds one entry per claim, under its own heading, so
-that a claim can be linked. An entry gives the claim and its scope, its kind,
-its dependencies, its evidence and the checks still open. The kinds are:
+A theorem of the model holds for the model. Whether Eva meets its hypotheses is
+a separate claim, with its own evidence in this record. An entry of kind "proved
+in Lean" says nothing about the OCaml code.
 
-- **Proved in Lean**: the declaration, its statement and hypotheses, the
-  checked revision and the `#print axioms` output, with any custom axiom or
-  `sorryAx` flagged.
-- **Argued in prose**: the reasoning, its premises, and pointers that let a
+## Entries
+
+Each entry states the claim and its scope, its kind, the claims it depends on,
+its evidence and any open obligation. The kinds, and the evidence each one
+needs:
+
+- **Proved in Lean.** The declaration, its statement and hypotheses, the checked
+  revision and the `#print axioms` output. Any custom axiom or `sorryAx` is
+  flagged.
+- **Argued in prose.** The reasoning, its premises, and pointers that let a
   reviewer check each step.
-- **OCaml obligation**: the Eva symbols responsible, why their paths establish
-  the claim, and the regression that exercises it. Source inspection is kept
-  apart from execution, and checks still pending are listed.
-- **Relied on from Eva**: the contract cited, the claim that depends on it,
-  and whether its implementation has been checked.
-- **Known difference**: the difference, the claim that the model covers, and
-  the evidence needed to extend the coverage.
+- **OCaml obligation.** The Eva symbols responsible, why the relevant paths
+  establish the claim, and the regression that exercises it. Source inspection
+  and execution are told apart, and checks still pending are listed.
+- **Relied on from Eva.** The contract cited, the reuse claim that depends on
+  it, and whether the implementation of that contract has been checked.
+- **Known difference.** The difference, the claim that the model covers, and
+  the evidence needed to extend coverage.
 
 A topic file holds the current argument. The test suite holds the runnable
-cases. The results for a checked revision are recorded by the change or the
-CI run that produced them.
+cases. A pull request or a CI run records the results at the checked revision.
+On a change to the model or to Eva, follow the review rule in
+[`AGENTS.md`](../../../AGENTS.md#reviewing-leaneva-correspondence).
 
-## Topics
+## Replaying an entry proved in Lean
 
+From the root of a checkout of the checked revision:
+
+```sh
+cd lean && lake build --wfail
+```
+
+The build prints the axioms of each theorem named in
+`lean/Checks/Axioms.lean`. It fails if one of them depends on `sorryAx` or on an
+axiom other than `propext`, `Classical.choice` and `Quot.sound`. To check that a
+checkout has the model sources of an entry, compare `git rev-parse HEAD:lean`
+with the tree given in the entry.
+
+## Topic files
+
+- [Frame](frame.md): the blocks that a statement does not access.
 - [Call-cache seam](call-cache-seam.md): the seam through which memexec
   answers calls, the dispositions of each call, their reasons and their
   counts, and the closure of the memexec key under `relate`.
