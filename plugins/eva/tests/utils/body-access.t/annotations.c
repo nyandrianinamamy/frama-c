@@ -125,3 +125,7 @@ void use_logic_or_null(void) {
 void empty_max(void) {
   //@ check \max(1, 0, \lambda integer i; i) >= 0;
 }
+
+void top_freeable(void) {
+  //@ check \freeable((void *)(unsigned long)\max(1, 0, \lambda integer i; i));
+}

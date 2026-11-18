@@ -29,4 +29,5 @@ val freeable: Cvalue.V.t -> Abstract_interp.truth
 (** Evaluates the ACSL predicate \freeable(value): holds if and only if the
     value points to an allocated memory block that can be safely released using
     the C function free. Note that \freeable(\null) does not hold, despite NULL
-    being a valid argument to the C function free. *)
+    being a valid argument to the C function free. It is [Unknown] when the
+    value may point to any block. *)

@@ -96,6 +96,9 @@ let observe_annotations stack (r : Access.t) =
     assert (names r.reads = []);
     assert (r.designated = Base.SetLattice.top);
     refuses [Access.Footprint_top]
+  | "top_freeable" ->
+    assert (names r.reads = []);
+    refuses [Access.Footprint_top; Access.Side_table]
   | name -> failwith ("unexpected body: " ^ name)
 
 let observe_blocks stack (result : Access.t) =

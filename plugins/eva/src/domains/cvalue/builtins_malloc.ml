@@ -597,6 +597,7 @@ let freeable arg =
   | false, false -> False
   | true, false ->
     assert (V.is_bottom arg); True
+  | exception Abstract_interp.Error_Top -> Unknown (* unknown bases *)
 
 
 let resolve_bases_to_free arg =

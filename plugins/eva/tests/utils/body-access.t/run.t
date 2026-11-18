@@ -286,3 +286,17 @@ range is unspecified: the body reads nothing and designates any block.
   $ clause empty_max
   $ grep '^empty_max refuses' empty_max.log
   empty_max refuses footprint-top
+
+The freeability of an unknown address is unknown. The analysis completes,
+with or without the collector, and the allocation table refuses the body.
+
+  $ clause top_freeable -eva-no-cache-collect
+  $ grep -o 'check got status unknown' top_freeable.log
+  check got status unknown
+  $ clause top_freeable
+  $ grep -o 'check got status unknown' top_freeable.log
+  check got status unknown
+  $ grep '^top_freeable refuses' top_freeable.log
+  top_freeable refuses footprint-top, side-table
+  $ verdict top_freeable top_freeable.log
+  top_freeable refused (footprint-top)
