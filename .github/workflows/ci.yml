@@ -26,7 +26,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.ref }}
+  group: analyzer-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
@@ -41,7 +41,11 @@ env:
 jobs:
   test:
     name: ${{ matrix.name }}
-    runs-on: ubuntu-24.04
+    # Only a push in the owning repository can use the persistent VM.
+    runs-on: >-
+      ${{ matrix.scope == 'kernel' && github.event_name == 'push' &&
+          github.repository == 'nyandrianinamamy/frama-c' &&
+          'frama-c-vm' || 'ubuntu-24.04' }}
     timeout-minutes: 150
     strategy:
       fail-fast: false
@@ -49,24 +53,46 @@ jobs:
         include:
           - name: Checks and Eva tests
             scope: eva
+          - name: Eva domain tests
+            scope: eva-domains
           - name: Kernel tests and default ptests
             scope: kernel
     steps:
       - name: Check out the repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Activate the VM toolchain
+        if: runner.environment == 'self-hosted'
+        run: |
+          echo "/opt/frama-c-ci/venv/bin" >> "$GITHUB_PATH"
+          {
+            echo "OPAMROOT=/opt/frama-c-ci/opam-root"
+            echo "OPAMSAFE=true"
+            echo "XDG_CACHE_HOME=$HOME/.cache/frama-c-ci"
+            echo "JOBS=6"
+          } >> "$GITHUB_ENV"
 
       - name: Install system packages
+        if: runner.environment == 'github-hosted'
         run: |
-          sudo apt-get update
+          # Some hosted images prefer an EC2 mirror that took over 13 minutes
+          # to serve 43 MB. Use the primary Ubuntu archive for these images.
+          mirrors=/etc/apt/apt-mirrors.txt
+          if [[ -f "$mirrors" ]]; then
+            printf '%s\n' 'https://archive.ubuntu.com/ubuntu/' | sudo tee "$mirrors"
+          fi
+          sudo apt-get -o Acquire::Languages=none update
           sudo apt-get install -y --no-install-recommends build-essential \
             autoconf m4 pkg-config git curl unzip patch libgmp-dev \
             libmpfr-dev zlib1g-dev graphviz time clang yq socat dos2unix \
             libzmq3-dev python3-venv jq opam gcc-multilib
 
-      # The switch takes about half an hour to build. It is saved as soon as
-      # it is complete, so that a failing test does not lose it, and reused
-      # until the opam file or OPAM_CACHE_VERSION changes.
+      # Save the switch before testing so a test failure still leaves it
+      # available to the next run.
       - name: Restore the opam switch
+        if: runner.environment == 'github-hosted'
         id: opam-cache
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
@@ -74,7 +100,7 @@ jobs:
           key: opam-${{ runner.os }}-${{ env.OPAM_CACHE_VERSION }}-${{ hashFiles('opam') }}
 
       - name: Create the opam switch
-        if: steps.opam-cache.outputs.cache-hit != 'true'
+        if: runner.environment == 'github-hosted' && steps.opam-cache.outputs.cache-hit != 'true'
         run: |
           opam init --bare --disable-sandboxing --no-setup -y
           opam switch create ci ocaml-base-compiler.5.2.1 -y --jobs=$JOBS
@@ -86,13 +112,16 @@ jobs:
           opam clean --download-cache --logs --repo-cache --switch-cleanup -y
 
       - name: Save the opam switch
-        if: steps.opam-cache.outputs.cache-hit != 'true'
+        if: >-
+          runner.environment == 'github-hosted' && steps.opam-cache.outputs.cache-hit != 'true' &&
+          github.event_name == 'push' && matrix.scope == 'eva'
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.opam
           key: ${{ steps.opam-cache.outputs.cache-primary-key }}
 
       - name: Install Python tools
+        if: runner.environment == 'github-hosted'
         run: |
           python3 -m venv "$RUNNER_TEMP/venv"
           "$RUNNER_TEMP/venv/bin/pip" install check-jsonschema==0.39.0 \
@@ -105,10 +134,12 @@ jobs:
       # Dune's shared cache is used for the build only. The tests run without
       # it, so that each result comes from an execution in this run.
       - name: Restore the build cache
+        if: runner.environment == 'github-hosted'
+        id: dune-cache
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/dune
-          key: dune-${{ runner.os }}-${{ env.OPAM_CACHE_VERSION }}-${{ github.sha }}
+          key: dune-${{ runner.os }}-${{ env.OPAM_CACHE_VERSION }}-${{ hashFiles('opam') }}
           restore-keys: |
             dune-${{ runner.os }}-${{ env.OPAM_CACHE_VERSION }}-
 
@@ -117,16 +148,20 @@ jobs:
           DUNE_CACHE: enabled
         run: opam exec -- dune build -j $JOBS @install
 
+      - name: Trim the VM build cache
+        if: runner.environment == 'self-hosted'
+        run: opam exec -- dune cache trim --size=2GiB
+
       - name: Save the build cache
-        if: matrix.scope == 'eva' && github.event_name == 'push'
+        if: github.event_name == 'push' && matrix.scope == 'eva' && steps.dune-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/dune
-          key: dune-${{ runner.os }}-${{ env.OPAM_CACHE_VERSION }}-${{ github.sha }}
+          key: dune-${{ runner.os }}-${{ env.OPAM_CACHE_VERSION }}-${{ hashFiles('opam') }}
 
       - name: Check that Eva and its Apron domains are built
         run: |
-          opam exec -- dune exec -- frama-c -plugins | tee plugins.txt
+          opam exec -- dune exec --no-build -- frama-c -plugins > plugins.txt
           grep -q '^Eva ' plugins.txt
           test -d _build/install/default/lib/frama-c-eva/apron
 
@@ -138,11 +173,26 @@ jobs:
         if: matrix.scope == 'eva'
         run: opam exec -- make check-headers
 
-      - name: Eva ptests, all configurations
-        if: matrix.scope == 'eva'
+      - name: Eva ptests
+        if: matrix.scope != 'kernel'
         run: |
           opam exec -- dune exec -- frama-c-ptests -never-disabled plugins/eva/tests
-          opam exec -- dune build -j $JOBS @plugins/eva/tests/ptests
+          # Divide the generated aliases between runners. New domain
+          # configurations automatically join the first group.
+          targets=()
+          for rules in plugins/eva/tests/*/result*/dune; do
+            group=eva
+            case "$rules" in
+              */result_apron/*|*/result_gauges/*|*/result_octagon/*|*/result_symblocs/*)
+                group=eva-domains ;;
+            esac
+            if [[ "$group" == "${{ matrix.scope }}" ]]; then
+              targets+=("@${rules%/dune}/ptests")
+            fi
+          done
+          (( ${#targets[@]} > 0 ))
+          printf '%s\n' "${targets[@]}"
+          opam exec -- dune build -j $JOBS "${targets[@]}"
 
       - name: Eva native tests
         if: matrix.scope == 'eva'
@@ -151,7 +201,7 @@ jobs:
       - name: Default ptests of the kernel and the plug-ins
         if: matrix.scope == 'kernel'
         run: |
-          opam exec -- make run-ptests
+          opam exec -- make run-ptests PTEST_OPTS="-config DEFAULT"
           opam exec -- dune build -j $JOBS @ptests_config
 
       - name: Kernel native tests

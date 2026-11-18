@@ -77,3 +77,39 @@ accepts `dot -V` where the probe runs `dot --version`, and GCC 13.3 lacks
 `dune exec -- frama-c-ptests -never-disabled tests plugins/*/tests` and judge
 by the test outcomes, not by the configuration summary. This does not enable
 native Dune or cram tests that are disabled by a condition.
+
+## GitHub Actions runner
+
+On pushes to `nyandrianinamamy/frama-c`, the Ubuntu 24.04 runner labelled
+`frama-c-vm` runs the kernel native tests and default ptests. Two GitHub-hosted
+jobs run the Eva configurations in parallel. Pull requests and manual
+dispatches run all three jobs on GitHub-hosted runners. The VM checkout
+starts clean for every job. Only the build of `@install` uses its persistent
+Dune cache. CI trims this cache to a 2 GiB target after compilation.
+
+Hosted jobs key the opam switch and Dune build cache by the toolchain and
+the opam manifest. A push can seed both caches once per branch and key.
+Manual dispatches and pull requests restore eligible caches without writing
+a copy for each ticket. Bump `OPAM_CACHE_VERSION` to refresh the baseline.
+
+The VM uses an administrator-owned `/opt/frama-c-ci` toolchain. To provision
+another runner with that label, install the system packages listed in the
+[CI workflow](../../.github/workflows/ci.yml), create the directory for the
+provisioning user, then run the following from a Frama-C checkout as that
+user. The runner account needs read and execute access to the toolchain.
+
+```sh
+export OPAMROOT=/opt/frama-c-ci/opam-root OPAMSWITCH=ci OPAMJOBS=6 OPAMYES=true
+opam init --bare --disable-sandboxing --no-setup
+opam switch create ci ocaml-base-compiler.5.2.1
+opam install dune.3.21.1
+opam pin add dune 3.21.1 --no-action
+opam install --deps-only --with-test .
+opam install apron zmq ocp-indent.1.10.0 headache camomile
+python3 -m venv /opt/frama-c-ci/venv
+/opt/frama-c-ci/venv/bin/pip install check-jsonschema==0.39.0 PyYAML==6.0.3 \
+  black==26.10.1 clang-format==21.1.8
+```
+
+When dependencies change, apply the corresponding install commands to this
+switch and venv and update the hosted setup in the same workflow.
