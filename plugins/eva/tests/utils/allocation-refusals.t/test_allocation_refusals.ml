@@ -170,6 +170,17 @@ let observe_call_site name (r : Access.t) =
   | "main" -> ()
   | name -> failwith ("unexpected body: " ^ name)
 
+(* Bodies that neither read nor designate the allocated block. *)
+let observe_unread name (r : Access.t) =
+  match name with
+  | "main" -> ()
+  | "alloc" -> print_all name r
+  | name ->
+    assert (not (Base.SetLattice.exists is_allocated r.reads));
+    assert (not (Base.SetLattice.exists is_allocated r.writes));
+    assert (not (Base.SetLattice.exists is_allocated r.designated));
+    print_all name r
+
 let () =
   Eva.Builtins.register_builtin "Frama_C_unknown_target"
     (fun _ _ -> Eva.Builtins.Result [Cvalue.V.top])
@@ -184,6 +195,7 @@ let () =
     | Some "release" -> observe_release name result
     | Some "requires" -> observe_requires name result
     | Some "call-site" -> observe_call_site name result
+    | Some "contents" -> observe_unread name result
     | _ -> failwith "EVA_TEST_ALLOCATION is not set"
   in
   Access.on_result observe

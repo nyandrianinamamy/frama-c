@@ -68,6 +68,13 @@ module Make (Engine: Engine_sig.S) = struct
                 then Body_access.unknown_access Side_table
               end;
               let result = compute call init_state in
+              if Body_access.is_recording () && collector_domain_supported
+              then begin
+                let cvalue (_, state) = Engine.Dom.get_cvalue_or_top state in
+                let exits = List.map cvalue result.Engine_sig.states in
+                let entry = Engine.Dom.get_cvalue_or_top init_state in
+                Body_access.check_written ~entry ~exits
+              end;
               (* The caller frees the automatic blocks of the call. *)
               if Body_access.is_recording ()
               && Builtins_malloc.deallocates_at_return call.callstack

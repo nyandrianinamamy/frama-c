@@ -385,6 +385,46 @@ let must_reach_exit edges entry exit =
   | None -> Base.Hptset.empty
   | Some bits -> Zone.fold_i full_block bits Base.Hptset.empty
 
+(* A value that designates an allocated block refuses, with the block as an
+   owner; an unknown set of blocks refuses as footprint-top. *)
+let check_contents r value =
+  match Cvalue.V.get_bases (Cvalue.V_Or_Uninitialized.get_v value) with
+  | Bases.Top -> add_refusal r Footprint_top
+  | Bases.Set bases ->
+    let check = function
+      | Base.Allocated _ as base ->
+        add_refusal r Allocated_block;
+        r.owners <- Base.Hptset.add base r.owners
+      | Base.Var _ | Base.CLogic_Var _ | Base.Null | Base.Absolute _ -> ()
+    in
+    Base.Hptset.iter check bases
+
+let check_state r written state =
+  match state with
+  | Cvalue.Model.Bottom -> ()
+  | Cvalue.Model.Top -> add_refusal r Footprint_top
+  | Cvalue.Model.Map _ ->
+    let check_block base =
+      match Cvalue.Model.find_base base state with
+      | exception Not_found -> ()
+      | `Bottom -> ()
+      | `Top -> add_refusal r Footprint_top
+      | `Value offsm ->
+        Cvalue.V_Offsetmap.iter_on_values (check_contents r) offsm
+    in
+    Base.Hptset.iter check_block written
+
+let check_written ~entry ~exits =
+  match !current with
+  | None -> ()
+  | Some r ->
+    match r.writes with
+    | Bases.Top -> () (* Each unknown write comes with its refusal. *)
+    | Bases.Set written ->
+      (* The check reads no metadata of the body: its refusals are explicit. *)
+      without_recording @@ fun () ->
+      List.iter (check_state r written) (entry :: exits)
+
 let finish_paths ~entry ~exit ~returns =
   if returns then Option.iter (fun r -> r.paths <- Some (entry, exit)) !current
 

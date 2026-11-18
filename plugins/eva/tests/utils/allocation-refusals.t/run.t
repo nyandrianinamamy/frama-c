@@ -122,3 +122,13 @@ before the allocation is not refused.
   scan_unknown call 1: footprint-top
   initialized_unknown call 1: footprint-top
 
+A body that writes a part of a block whose other part holds part of a
+pointer to an allocated block is refused, though it does not read the
+pointer. The same writes to a block without pointer are not refused.
+
+  $ EVA_TEST_ALLOCATION=contents frama-c -no-autoload-plugins -load-module eva,test_allocation_refusals.cmxs -eva -eva-no-memexec -eva-no-alloc-returns-null -eva-msg-key cache contents.c > contents.log 2>&1
+  $ grep -E '^(partial|partial_once|control) call' contents.log
+  partial call 1: allocated-block, owners __malloc_main_l34
+  partial_once call 1: allocated-block, owners __malloc_main_l34
+  control call 1: would-store
+

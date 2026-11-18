@@ -105,4 +105,16 @@ val read_message_history : unit -> unit
 val transfer :
   id:int -> src:int -> dst:int -> ('a -> 'b list) -> 'a -> 'b list
 
+(** [check_written ~entry ~exits] checks the contents, in the entry state
+    and in each exit state of the current body, of every block that the
+    body may write. A value that designates an allocated block refuses with
+    [Allocated_block] and adds the block to the owners; an unknown set of
+    blocks refuses with [Footprint_top]. An unknown set of written blocks
+    is not checked: each unknown write comes with its own refusal. The
+    analysis of the body builds,
+    joins, narrows and widens the offsetmaps of these blocks, and the
+    kernel can use a memoised result there without reading the metadata of
+    the blocks that their values designate. *)
+val check_written : entry:Cvalue.Model.t -> exits:Cvalue.Model.t list -> unit
+
 val finish_paths : entry:int -> exit:int -> returns:bool -> unit
