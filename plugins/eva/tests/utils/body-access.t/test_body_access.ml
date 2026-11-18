@@ -75,6 +75,15 @@ let observe_blocks stack (result : Access.t) =
     assert (List.mem Access.Statuses result.recorded);
     assert (result.refusals = []);
     Format.printf "alarm and status joins recorded@."
+  | "volatile_local" ->
+    assert (names result.writes = ["vp"; "x"]);
+    assert (names (Base.SetLattice.inject result.sure_writes) = ["vp"]);
+    Format.printf "volatile local scope entry is a possible write only@."
+  | "inactive" ->
+    assert (not (List.mem Access.Statuses result.recorded));
+    assert (first_reason result = "contract");
+    Format.printf "inactive behavior: requires status outside the body@."
+  | "inactive_caller" -> ()
   | "temporary_mix" ->
     assert (first_reason result = "side-table");
     Format.printf "temporary origin history access refused@."

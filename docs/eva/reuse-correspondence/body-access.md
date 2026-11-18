@@ -33,8 +33,9 @@ values are also checked at scalar reads and in copied offsetmaps, including a
 pointer copied without dereferencing it. The cvalue assignment and initializer
 report possibly written blocks. An exact write contributes sure bits within
 its transfer. A changed valuation binding, scope binding installation
-(including `-eva-initialized-locals` and the return slot) or scope binding
-removal only contributes a possible write. Changed ACSL predicate bindings
+(including `-eva-initialized-locals`, the return slot and the uninitialized
+binding of a volatile local) or scope binding removal only contributes a
+possible write. Changed ACSL predicate bindings
 contribute Top to the possible writes, in addition to the clause's refusal.
 
 The cvalue audit covers the following state updates.
@@ -85,6 +86,10 @@ connect edges that fired on different abstract paths, including at loops,
 widening and late joins. Thus W_exit is an upper bound and W_sure a lower
 bound even when Eva partitions the states.
 The collector does not implement a reusable Exit part.
+The cost of recording is measured on three tests only: with recording on,
+the median wall time of `matrix` rose by about a quarter over the base
+binary. The update of an edge record at every successful transfer is a
+candidate cause and has no fast path when its writes are unchanged.
 
 ## Refusal and reporting
 
@@ -121,7 +126,10 @@ The call-site `requires` checks execute outside the fresh callee body's
 observations. Eva interleaves them with behavior selection and the handling
 of `assumes` clauses. The recorder is suspended during the `requires`
 checks to preserve that order and still observe behavior selection,
-`assumes`, and the body's postconditions and statement contracts.
+`assumes`, and the body's postconditions and statement contracts. It is
+also suspended while the statuses of the `requires` clauses of an inactive
+behavior are emitted; the statuses of its `ensures` clauses stay in the
+observation.
 
 Recording is on by default. The internal option `-eva-no-cache-collect`
 disables it for subsequent bodies. The iterator selects recording and

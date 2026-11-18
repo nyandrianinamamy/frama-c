@@ -178,7 +178,7 @@ let emit_code_annot_status ~reduce ~empty kf stmt code_annot status =
 
 (* Emits informative messages about inactive behaviors, and emits a valid
    status for requires and ensures that have not been evaluated. *)
-let process_inactive_behavior kf call_ki behavior =
+let process_inactive_behavior ?(requires = fun f -> f ()) kf call_ki behavior =
   let emitted = ref false in
   (* We emit a valid status for every requires and ensures of the behavior. *)
   List.iter (fun (tk, pred as post) ->
@@ -189,13 +189,16 @@ let process_inactive_behavior kf call_ki behavior =
           emit_status ip Alarmset.True;
       end
     ) behavior.b_post_cond;
-  List.iter (fun pre ->
-      if pre.ip_content.tp_kind <> Admit then begin
-        emitted := true;
-        let ip = ip_from_precondition kf call_ki behavior pre in
-        emit_status ip Alarmset.True;
-      end
-    ) behavior.b_requires;
+  (* The statuses of the requires belong to the call site: [requires] lets
+     the caller emit them outside the observation of a body. *)
+  requires (fun () ->
+      List.iter (fun pre ->
+          if pre.ip_content.tp_kind <> Admit then begin
+            emitted := true;
+            let ip = ip_from_precondition kf call_ki behavior pre in
+            emit_status ip Alarmset.True;
+          end
+        ) behavior.b_requires);
   if !emitted then
     Self.result ~once:true ~current:true ~level:6 ~stacktrace:true
       "%a: assumes got status invalid; behavior not evaluated."
@@ -514,7 +517,10 @@ module Make (Domain: LogicDomain) = struct
       let k = Precondition in
       let check_one_behavior states b =
         match refine_active ~per_behavior b (is_active b) with
-        | None -> process_inactive_behavior kf call_ki b; states
+        | None ->
+          let requires f = ignore (check_requires (fun () -> f (); states)) in
+          process_inactive_behavior ~requires kf call_ki b;
+          states
         | Some active ->
           let build_prop assume = Property.ip_of_assumes kf Kglobal b assume in
           let states =

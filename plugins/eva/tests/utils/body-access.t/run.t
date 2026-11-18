@@ -67,6 +67,17 @@ and the bodies reached through those sites.
   collector-refused-sweep swept 1
   collector-would-store precondition 1
 
+The uninitialized binding installed for a volatile local at scope entry is a
+possible write, not a sure overwrite. The status of a requires clause of an
+inactive behavior is emitted for the call site, outside the body.
+
+  $ frama-c -no-autoload-plugins -load-module eva,test_body_access.cmxs -eva -eva-no-memexec -main volatile_local paths.c > volatile.log 2>&1
+  $ grep '^volatile local' volatile.log
+  volatile local scope entry is a possible write only
+  $ frama-c -no-autoload-plugins -load-module eva,test_body_access.cmxs -eva -eva-no-memexec -main inactive_caller paths.c > inactive.log 2>&1
+  $ grep '^inactive behavior' inactive.log
+  inactive behavior: requires status outside the body
+
 A call hook with no classification causes a side-table refusal.
 
   $ EVA_TEST_BODY_ACCESS=unknown frama-c -no-autoload-plugins -load-module eva,inout,test_body_access.cmxs -eva -eva-no-memexec -eva-msg-key cache assignment.c > unknown.log 2>&1

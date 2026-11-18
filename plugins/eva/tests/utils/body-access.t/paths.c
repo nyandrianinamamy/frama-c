@@ -40,3 +40,22 @@ void correlated(int b) {
 void alarm(void) {
   out = 10 / g;
 }
+
+volatile int *vp;
+
+void volatile_local(void) {
+  volatile int x;
+  vp = &x;
+}
+
+/*@ behavior never:
+      assumes g == 42;
+      requires g < 0;
+*/
+void inactive(void) {
+  out = 1;
+}
+
+void inactive_caller(void) {
+  inactive();
+}

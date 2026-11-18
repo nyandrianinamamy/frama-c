@@ -306,7 +306,10 @@ module State = struct
     in
     let loc = Precise_locs.imprecise_location loc in
     let state = Cvalue.Model.add_indeterminate_binding ~exact:true state loc cvalue in
-    if Cvalue.Model.is_reachable state then Body_access.write loc;
+    (* An uninitialized installation, as for a volatile local at scope entry,
+       is no overwrite by the program: it is a possible write only. *)
+    if Cvalue.Model.is_reachable state then
+      if initialized then Body_access.write loc else Body_access.may_write loc;
     state, clob
 
   let empty () =

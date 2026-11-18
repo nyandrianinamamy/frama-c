@@ -40,7 +40,9 @@ val descr: t -> string
 
 val join: t -> t -> t
 
-(** Register an observer run just before reading or changing origin history. *)
+(** Register an observer run just before reading or changing origin history.
+    An observer must not read or change the history itself: doing so runs
+    the observers again before the first run returns. *)
 val on_history_access: (unit -> unit) -> unit
 
 (** Records the creation of an imprecise value of the given bases. *)
