@@ -421,15 +421,25 @@ statements of `match_lemma`, `product_lemma` and `projected_match`
   d.FilterSound → d.Decomposes B S → ∀ {m w : M}, d.γ S w → AgreeOn B w m → d.γ (d.filter B S) m
 ```
 
-**Hypotheses.** `d.FilterSound`, the weak form: an OCaml obligation per
-domain. `d.Decomposes B S`: given on a closed set by `relate` sound, an OCaml
-obligation per domain. Eva's contract for `filter`
-(`Abstract_domain.Caching.filter`, in
-`plugins/eva/src/domains/abstract_domain.ml`) says that properties about
-other bases can be removed, and that `filter` keeps the projection of the
-concretisation on the bases; it does not state the clause `onKey`. The
-default `filter` of `Domain_builder.Complete` is the identity
-(`plugins/eva/src/domains/domain_builder.ml`).
+**Hypotheses.**
+
+1. `[Memory M]`. Proved in Lean for `FunMem`.
+2. `d.FilterSound`, the weak form. OCaml obligation per domain. Eva's
+   contract for `filter` (`Abstract_domain.Caching.filter`, in
+   `plugins/eva/src/domains/abstract_domain.ml`) says that properties about
+   other bases can be removed, and that `filter` keeps the projection of the
+   concretisation on the bases; it does not state the clause `onKey`. The
+   default `filter` of `Domain_builder.Complete` is the identity
+   (`plugins/eva/src/domains/domain_builder.ml`).
+3. `d.Decomposes B S`. Given on a closed set by `relate` sound: OCaml
+   obligation per domain.
+4. `d.γ S w`: the state `S` covers the memory `w`. Local premise, supplied
+   by the caller: it selects the memory `w` that the conclusion is about,
+   and creates no obligation on Eva. A theorem that applies the lemma
+   establishes it for its own memory. No theorem of the model applies the
+   lemma yet.
+5. `AgreeOn B w m`: `m` agrees with `w` on `B`. Local premise, supplied by
+   the caller, as 4: it selects the memory `m`.
 
 **Depends on.** [The equality domain fails relate sound on a closed
 key](#the-equality-domain-fails-relate-sound-on-a-closed-key), and

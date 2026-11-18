@@ -21,7 +21,7 @@ The hypotheses of the lemmas below, with their kind, are:
 | Hypothesis | Kind | Status |
 |---|---|---|
 | `[Memory M]`: the memory meets the laws of `Memory` | Proved in Lean for `FunMem` | Done ([frame entry](frame.md#frame-lemma-without-sweeps), hypothesis 1) |
-| `Combinable M`: two memories combine on any set of blocks | Proved in Lean for `FunMem`; argued in prose for Eva's concrete memories, whole blocks only | Done in Lean; prose below, under the product lemma |
+| `Combinable M`: two memories combine on any set of blocks | Proved in Lean for `FunMem`; for Eva's concrete memories, an argument in prose is owed | Done in Lean; open for Eva, with the missing premise under the product lemma |
 | `FilterSound`, weak form, of each domain | OCaml obligation, per domain | Pending: argument per domain owed by the reuse feature |
 | `RelateSound` of each domain (clause `decomposes`) | OCaml obligation, per domain | Pending; fails for the equality domain on `y == z` with the key `{x}` ([domain laws](domain-laws.md#the-equality-domain-fails-relate-sound-on-a-closed-key)), not for every identity `filter` |
 | `Closed K S`: the key is closed in the stored input | OCaml obligation | Memexec: [source inspection](call-cache-seam.md#closure-of-the-memexec-key-under-relate); new cache pending |
@@ -152,11 +152,22 @@ FunMem.combinable : Combinable FunMem
    memory agrees with `m` on `B` and with `w` outside `B`. The interface
    `Memory` has no operation that builds such a memory, so this is a
    hypothesis. Proved in Lean for `FunMem` (`FunMem.combinable`: the cells of
-   `m` on `B`, those of `w` elsewhere). For Eva, argued in prose: a concrete
-   memory of the concretisation gives each base its own content, so two
-   memories combine base by base. The model has whole blocks only;
-   sub-block access is a known difference of the model
-   ([`lean/README.md`](../../../lean/README.md), "What the model leaves out").
+   `m` on `B`, those of `w` elsewhere). For Eva, open. That a concrete
+   memory gives each base its own content does not show that the combined
+   memory is a concrete memory. Eva's sources do not define the concrete
+   memories: `plugins/eva/src/domains/abstract_domain.ml` describes states
+   as abstractions of "the set of possible concrete states" without
+   defining that set. The missing premise: the concrete memories over which
+   the concretisations of Eva's states range are closed under the splice on
+   a set of bases. For concrete memories `m` and `w` and a set `B` of bases,
+   the memory that takes from `m` the liveness and the content of each base
+   of `B`, and from `w` those of every other base, must be a concrete
+   memory. No invariant of the concrete memories may then relate a base of
+   `B` to a base outside `B`, such as the liveness of the locals of one call
+   frame, or the validity and size of a base. The model has whole blocks
+   only; sub-block access is a known difference of the model
+   ([`lean/README.md`](../../../lean/README.md), "What the model leaves
+   out").
 3. `d₁.RelateSound`, `d₂.RelateSound`: OCaml obligation per domain. Only the
    clause `decomposes` is used, on `K`. Eva's contract for `relate`
    (`Abstract_domain.Caching.relate`, in
@@ -196,7 +207,8 @@ laws](domain-laws.md#the-product-keeps-the-laws), for `closed_prod_iff` and
 `FunMem.combinable` decides membership in a list of blocks and uses no
 classical choice.
 
-**Open.** The OCaml obligations of hypotheses 3, 4 and 5.
+**Open.** The OCaml obligations of hypotheses 3, 4 and 5, and the premise
+of hypothesis 2 for Eva's concrete memories.
 
 ## Closure in the stored input suffices for the match
 
