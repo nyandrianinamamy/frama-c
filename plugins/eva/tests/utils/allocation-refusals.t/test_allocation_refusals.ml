@@ -198,7 +198,7 @@ let () =
     | Some "requires" -> observe_requires name result
     | Some "call-site" -> observe_call_site name result
     | Some "contents" -> observe_unread name result
-    | Some "finalisation" -> observe_all name result
+    | Some ("finalisation" | "hit") -> observe_all name result
     | _ -> failwith "EVA_TEST_ALLOCATION is not set"
   in
   Access.on_result observe

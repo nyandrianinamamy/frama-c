@@ -145,3 +145,17 @@ returns. A call that never returns and the entry point free nothing.
   $ grep -E '^entry call' entry.log
   entry call 1: allocation builtin contract nested-call allocated-block allocation-metadata, owners __alloca_entry_l26
 
+On a memexec hit, the caller checks the requires clauses of the callee
+again, with its own recording: hit_only is refused for the allocated block
+and its metadata, though no body of leaf runs during its analysis.
+
+  $ EVA_TEST_ALLOCATION=hit frama-c -no-autoload-plugins -load-module eva,inout,test_allocation_refusals.cmxs -eva -eva-memexec -eva-no-alloc-returns-null -eva-msg-key cache hit.c > hit.log 2>&1
+  $ grep -E '^(leaf|warm|hit_only) call|call to (leaf|warm|hit_only):' hit.log
+  leaf call 1: allocated-block allocation-metadata, owners __malloc_main_l16
+    call to leaf: lookup: no-candidate; execution: analysed; storage: stored (entry 1); collector: refused (allocated-block)
+  warm call 1: nested-call allocated-block allocation-metadata side-table, owners __malloc_main_l16
+    call to warm: lookup: no-candidate; execution: analysed; storage: stored (entry 2); collector: refused (nested-call)
+    call to leaf: lookup: hit (entry 1); execution: not-analysed; storage: none
+  hit_only call 1: nested-call allocated-block allocation-metadata side-table, owners __malloc_main_l16
+    call to hit_only: lookup: no-candidate; execution: analysed; storage: stored (entry 3); collector: refused (nested-call)
+
