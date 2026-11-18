@@ -169,3 +169,50 @@ void false_leaf(void);
 void call_false_leaf(void) {
   false_leaf();
 }
+
+int block[3] = {1, 2, 3}, member = 4, *first = block, *second = &member;
+float finite = 1;
+
+void memory_builtins(void) {
+  /*@ check \separated(first, second)
+        && \base_addr(first) == \base_addr(&block[1])
+        && \offset(first) == 0 && \block_length(first) > 0
+        && \valid_read(first) && \object_pointer(first)
+        && \initialized(first) && !\dangling(&second) && \is_finite(finite);
+  */
+}
+
+void membership(void) {
+  //@ check member \in {1, 4};
+}
+
+void allocable(void) {
+  //@ check \allocable(first);
+}
+
+/*@ ensures \fresh{Old, Here}(\result, 4); */
+int *fresh(void) {
+  return first;
+}
+
+int variant_only = 2;
+
+void variant(void) {
+  //@ loop variant variant_only - i;
+  for (int i = 0; i < 2; ++i) {}
+}
+
+/*@ requires depth >= 0;
+    decreases depth; */
+void decreases_clause(int depth) {}
+
+int global_only = 1;
+//@ global invariant positive: global_only >= 0;
+
+struct pair { int left, right; };
+//@ type invariant ordered(struct pair p) = p.left <= p.right;
+struct pair typed = {1, 2};
+
+void invariants(void) {
+  typed.left = 0;
+}

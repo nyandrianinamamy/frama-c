@@ -107,6 +107,22 @@ let observe_annotations stack (r : Access.t) =
     refuses [Access.Annotation; Access.Side_table]
   | "call_false_leaf" ->
     refuses [Access.Contract; Access.Nested_call; Access.Side_table]
+  | "memory_builtins" -> read ["block"; "finite"; "first"; "second"]
+  | "membership" -> read ["member"]
+  | "allocable" ->
+    assert (r.reads = Base.SetLattice.top);
+    refuses [Access.Annotation]
+  | "fresh" ->
+    assert (r.reads = Base.SetLattice.top);
+    refuses [Access.Contract]
+  | "variant" | "decreases_clause" | "invariants" ->
+    let expected = if name = "variant" then ["i"] else [] in
+    assert (names r.reads = expected);
+    assert (r.refusals = []);
+    let shown =
+      if expected = [] then "nothing" else String.concat ", " expected
+    in
+    Format.printf "%s reads %s@." name shown
   | name -> failwith ("unexpected body: " ^ name)
 
 let observe_blocks stack (result : Access.t) =

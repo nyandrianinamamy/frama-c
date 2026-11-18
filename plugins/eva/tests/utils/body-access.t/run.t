@@ -343,3 +343,33 @@ The message on an inactive behavior is emitted at level 6 only.
   1
   $ grep '^inactive behavior message' verbose.log
   inactive behavior message refused at level 6
+
+The memory primitives, membership in a set and the comparison of block
+addresses read their pointers and the blocks they load. Eva has no read
+bound for allocability and freshness.
+
+  $ clause memory_builtins
+  $ grep '^memory_builtins reads' memory_builtins.log
+  memory_builtins reads block, finite, first, second
+  $ clause membership
+  $ grep '^membership reads' membership.log
+  membership reads member
+  $ clause allocable
+  $ grep '^allocable refuses' allocable.log
+  allocable refuses annotation
+  $ clause fresh
+  $ grep '^fresh refuses' fresh.log
+  fresh refuses contract
+
+Eva does not evaluate loop variants, decreases clauses, or global and type
+invariants: they add no read.
+
+  $ clause variant
+  $ grep '^variant reads' variant.log
+  variant reads i
+  $ clause decreases_clause
+  $ grep '^decreases_clause reads' decreases_clause.log
+  decreases_clause reads nothing
+  $ clause invariants
+  $ grep '^invariants reads' invariants.log
+  invariants reads nothing
