@@ -188,6 +188,7 @@ test_config header_spec=.ignore
 ptests_config header_spec=.ignore
 
 /.gitlab-ci.yml header_spec=.ignore
+/.github/workflows/ci.yml header_spec=.ignore
 /.mailmap header_spec=.ignore
 /.ocp-indent header_spec=.ignore
 /LICENSE header_spec=.ignore

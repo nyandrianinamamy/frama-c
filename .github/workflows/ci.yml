@@ -1,0 +1,121 @@
+# Build, checks and tests of the OCaml analyzer.
+# The Lean model has its own workflow (lean-model.yml).
+# The switch follows docs/agents/setup.md: OCaml 5.2.1 and Dune 3.21.1.
+
+name: CI
+
+on:
+  push:
+    branches:
+      - dev
+      - master
+      - "spec/**"
+      - "ci/**"
+    paths-ignore:
+      - "lean/**"
+      - "docs/**"
+      - "**.md"
+  pull_request:
+    paths-ignore:
+      - "lean/**"
+      - "docs/**"
+      - "**.md"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  TERM: xterm
+  JOBS: 4
+
+jobs:
+  test:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 150
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Checks and Eva tests
+            scope: eva
+          - name: Kernel tests and default ptests
+            scope: kernel
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install system packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends build-essential \
+            autoconf m4 pkg-config git curl unzip patch libgmp-dev \
+            libmpfr-dev zlib1g-dev graphviz time clang yq socat dos2unix \
+            libzmq3-dev python3-venv jq
+
+      - name: Set up OCaml 5.2.1
+        uses: ocaml/setup-ocaml@ff66428f72b64472e749b22e0ad4dded4b2ddca6 # v3.9.1
+        with:
+          ocaml-compiler: 5.2.1
+          opam-pin: false
+          dune-cache: true
+
+      - name: Install opam dependencies
+        run: |
+          opam install dune.3.21.1 -y --jobs=$JOBS
+          opam pin add dune 3.21.1 --no-action -y
+          opam install --deps-only --with-test . -y --jobs=$JOBS
+          opam install -y --jobs=$JOBS apron zmq ocp-indent.1.10.0 headache \
+            camomile
+
+      - name: Install Python tools
+        run: |
+          python3 -m venv "$RUNNER_TEMP/venv"
+          "$RUNNER_TEMP/venv/bin/pip" install check-jsonschema==0.39.0 \
+            PyYAML==6.0.3 black==26.10.1 clang-format==21.1.8
+          echo "$RUNNER_TEMP/venv/bin" >> "$GITHUB_PATH"
+
+      - name: Check the toolchain versions
+        run: opam exec -- bash dev/check-env.sh
+
+      - name: Build
+        run: opam exec -- dune build -j $JOBS @install
+
+      - name: Check that Eva and its Apron domains are built
+        run: |
+          opam exec -- dune exec -- frama-c -plugins | tee plugins.txt
+          grep -q '^Eva ' plugins.txt
+          test -d _build/install/default/lib/frama-c-eva/apron
+
+      - name: Lint
+        if: matrix.scope == 'eva'
+        run: opam exec -- make check-lint LINTCK_EXTRA=-s
+
+      - name: License headers
+        if: matrix.scope == 'eva'
+        run: opam exec -- make check-headers
+
+      - name: Eva ptests, all configurations
+        if: matrix.scope == 'eva'
+        run: |
+          opam exec -- dune exec -- frama-c-ptests -never-disabled plugins/eva/tests
+          opam exec -- dune build -j $JOBS @plugins/eva/tests/ptests
+
+      - name: Eva native tests
+        if: matrix.scope == 'eva'
+        run: opam exec -- dune runtest -j $JOBS plugins/eva
+
+      - name: Default ptests of the kernel and the plug-ins
+        if: matrix.scope == 'kernel'
+        run: |
+          opam exec -- make run-ptests
+          opam exec -- dune build -j $JOBS @ptests_config
+
+      - name: Kernel native tests
+        if: matrix.scope == 'kernel'
+        run: opam exec -- dune runtest -j $JOBS tests
