@@ -1013,7 +1013,7 @@ module RmAssert =
     end)
 let () = add_precision_dep RmAssert.parameter
 
-let () = Parameter_customize.set_group precision_tuning
+let () = Parameter_customize.is_invisible ()
 module CacheCollect =
   False
     (struct

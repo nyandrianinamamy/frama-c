@@ -87,8 +87,10 @@ checked independently of which accesses appear in the matching sets. The
 collector also refuses recursive invocations, concurrent analysis and any
 domain structure other than a single unrestricted cvalue domain.
 
-The collector is off by default. `-eva-cache-collect` enables observations
-for bodies analysed after it is set. The `cache` message reports the
+The collector is off by default. The internal option `-eva-cache-collect`
+enables observations for bodies analysed after it is set.
+`-eva-no-cache-collect` disables them. Keeping these options out of the
+ordinary help preserves its oracle. The `cache` message reports the
 collector verdict beside the memexec storage disposition.
 `collector-would-store` and `collector-refused-REASON` count these verdicts.
 The collector does not count an interrupted body or a body skipped on a hit.
