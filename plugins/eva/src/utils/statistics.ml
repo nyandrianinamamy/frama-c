@@ -338,6 +338,8 @@ let cache_rejected reason =
   register_function_stat ("cache-rejected-" ^ reason) Int
 let cache_refused reason =
   register_function_stat ("cache-refused-" ^ reason) Int
+let builtin_applied name =
+  register_function_stat ("builtin-applied-" ^ name) Int
 let max_widenings =
   register_statement_stat "max-widenings" Int
 let max_unrolling =

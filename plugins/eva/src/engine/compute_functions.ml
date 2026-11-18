@@ -174,6 +174,7 @@ module Make (Engine: Engine_sig.S) = struct
       let cvalue_call = get_cvalue_call call in
       let post = Engine.Dom.get_cvalue_or_top final_state in
       let pre = Engine.Dom.get_cvalue_or_top state in
+      Statistics.(incr (builtin_applied name) call.kf);
       let cvalue_states, cacheable =
         Builtins.apply_builtin builtin cvalue_call ~pre ~post
       in

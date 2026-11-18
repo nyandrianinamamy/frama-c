@@ -79,6 +79,15 @@ val cache_rejected : string -> (Cil_types.kernel_function, int) t
     module. Its name is [cache-refused-REASON]. *)
 val cache_refused : string -> (Cil_types.kernel_function, int) t
 
+(** [builtin_applied name] is the count of applications of a cvalue builtin
+    to calls of a function. [name] is the name under which the builtin is
+    selected for the called function: the name of the function it replaces,
+    such as [malloc], or its own name, such as [Frama_C_malloc]. A call is
+    counted when the builtin is applied, which does not happen when the
+    specification of the function leaves no state. Its name is
+    [builtin-applied-NAME]. *)
+val builtin_applied : string -> (Cil_types.kernel_function, int) t
+
 (** Maximum number of successive widening computed at each widening
     statement. *)
 val max_widenings : (Cil_types.stmt, int) t
