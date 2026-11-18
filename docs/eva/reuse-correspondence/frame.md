@@ -8,12 +8,15 @@ sense of [`GLOSSARY.md`](../../../GLOSSARY.md).
 **Kind.** Proved in Lean.
 
 **Claim.** Let `s` be a statement of a program `p` in the fragment of the
-model: each function is defined once, no call is recursive, and the labels of
-`s` and of the function bodies are pairwise distinct. Let `s` start from a
-state `σ` (a local environment and a memory), and let `b` be an existing block:
-it has a value in the memory of `σ`. If no finite prefix of the execution of
-`s` from `σ` reads or writes `b`, then at every visit inside `s`, the visits
-inside the calls that `s` makes included, `b` has the value it had at entry.
+model: each function is defined once, no call is recursive, the labels of the
+function bodies are pairwise distinct, and `s` is either a statement of a
+function body (the body itself or a statement inside it) or a statement whose
+labels are pairwise distinct and distinct from those of the function bodies.
+Let `s` start from a state `σ` (a local environment and a memory), and let `b`
+be an existing block: it has a value in the memory of `σ`. If no finite prefix
+of the execution of `s` from `σ` reads or writes `b`, then at every visit
+inside `s`, the visits inside the calls that `s` makes included, `b` has the
+value it had at entry.
 
 **Scope.** The model only. Its language, memory and observations are described
 in [`lean/README.md`](../../../lean/README.md): whole blocks, no offsets, no
@@ -23,8 +26,9 @@ frame is defined from the reads and writes of the execution itself, not from an
 analysis. A visit is a configuration of a finite prefix, so the visits before a
 fault and inside a call that does not return are covered. The claim is stated
 for programs of the fragment, as the observations are; its proof does not use
-the fragment conditions. Since the labels of `s` are distinct from those of the
-function bodies, `s` is not a statement of a function body of `p`.
+the fragment conditions. The statement `s` can be the body of a function of
+`p`, a statement inside such a body, or a statement outside the function
+bodies.
 
 **Declaration.** `ReuseModel.frame_lemma`, in
 [`lean/ReuseModel/Frame.lean`](../../../lean/ReuseModel/Frame.lean).
@@ -48,11 +52,14 @@ function bodies, `s` is not a statement of a function body of `p`.
 2. `t : Subject`: a program `t.prog`, the observed statement `t.stmt`, and a
    proof `t.wf : WellFormed t.prog t.stmt`
    ([`lean/ReuseModel/Syntax.lean`](../../../lean/ReuseModel/Syntax.lean)).
-   `WellFormed` has three fields: `namesUnique`, each function is defined once;
+   `WellFormed` has four fields: `namesUnique`, each function is defined once;
    `nonRecursive`, some rank on function names decreases along every direct
-   call; `labelsUnique`, the labels of `t.stmt` and of the function bodies are
-   pairwise distinct. The statement `s` of the claim is `t.stmt` and the
-   program `p` is `t.prog`.
+   call; `labelsUnique`, the labels of the function bodies are pairwise
+   distinct; `stmtLabels`, `t.stmt ∈ t.prog.stmts` or the labels of `t.stmt`
+   and of the function bodies are pairwise distinct together.
+   `Program.stmts` lists each function body and the statements it contains,
+   and membership compares statements, not labels. The statement `s` of the
+   claim is `t.stmt` and the program `p` is `t.prog`.
 3. `Live σ.mem b`, that is `(Memory.load σ.mem b).isSome = true`: `b` exists at
    entry.
 4. `InFrame t σ b`, that is
@@ -79,8 +86,8 @@ included.
 
 **Evidence.**
 
-- Checked revision: commit `4ab854874a84ffe054b84073224e9ebefdc913bf`. Tree of
-  `lean/` at that commit: `872501c201d262fca7c6229086ecaf0f744ba840`.
+- Checked revision: commit `71652418dffd8243e7e104de2e7b95524acacc4e`. Tree of
+  `lean/` at that commit: `b2a118482b4fa39476ad648dc3d19762014d1c68`.
   Toolchain: `leanprover/lean4:v4.28.0` (Lean 4.28.0, commit `7e01a1bf5c70`).
 - Command: `cd lean && lake build --wfail`, run on 2026-11-18 in a fresh
   shallow clone of that commit. Exit status 0.
@@ -98,10 +105,22 @@ included.
   whose fragment conditions are checked by `decide`, and whose statement calls
   a function that never returns. `InFrame` is proved there for a global that
   the statement does not access.
-- Programs outside the fragment have no subject: `lean/Checks/Fragment.lean`
-  proves `¬ WellFormed` for a program in which one
-  label names two statements, for a directly recursive program and for a
-  mutually recursive program, each failing one condition only.
+- A function body and a statement inside one form subjects:
+  `Checks.nestBodySubj` and `Checks.nestCallSubj`, in
+  `lean/Checks/Fragment.lean`, and `Checks.spinBodySubj`, in
+  `lean/Checks/Examples.lean`, on which Reach and Safety are observed inside
+  the body. In `lean/ReuseModel/Syntax.lean`, `ReuseModel.WellFormed.body`
+  proves that, for any subject, the body of a function that a call reaches is
+  in the fragment with the same program, and `ReuseModel.WellFormed.sub` proves
+  the same for a statement inside the observed statement. Their axioms are
+  `propext` and `Quot.sound`.
+- Programs and statements outside the fragment have no subject:
+  `lean/Checks/Fragment.lean` proves `¬ WellFormed` for a statement in which
+  one label names two statements, for a statement outside the function bodies
+  that reuses one of their labels, for every statement of a program whose two
+  function bodies share a label, and for a directly recursive and a mutually
+  recursive program, each failing one condition only. The bodies of the
+  recursive programs are rejected too.
 - CI: the workflow `.github/workflows/lean-model.yml` runs the same command. It
   had not run on the checked revision when this entry was written.
 
