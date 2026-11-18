@@ -1,15 +1,15 @@
 # Call-cache seam
 
 Claims about the seam between the analysis of calls and the cache of calls,
-`plugins/eva/src/engine/call_cache.ml`, added by
+[`plugins/eva/src/engine/call_cache.ml`](../../../plugins/eva/src/engine/call_cache.ml), added by
 [issue #33](https://github.com/nyandrianinamamy/frama-c/issues/33). Memexec
-(`plugins/eva/src/engine/mem_exec.ml`) is the only cache behind the seam. The
+([`plugins/eva/src/engine/mem_exec.ml`](../../../plugins/eva/src/engine/mem_exec.ml)) is the only cache behind the seam. The
 regression named in several entries is the ptests fixture
-`plugins/eva/tests/value/cache_dispositions.c`, run in the default
+[`plugins/eva/tests/value/cache_dispositions.c`](../../../plugins/eva/tests/value/cache_dispositions.c), run in the default
 configuration with the message category `cache` enabled; its oracles are
 `plugins/eva/tests/value/oracle/cache_dispositions.cache.log` and
 `plugins/eva/tests/value/oracle/cache_dispositions.stats.log`. The cram test
-`plugins/eva/tests/utils/call-cache.t` covers the runs with caching disabled
+[`plugins/eva/tests/utils/call-cache.t`](../../../plugins/eva/tests/utils/call-cache.t/run.t) covers the runs with caching disabled
 and with an interrupted analysis.
 
 ## The seam does not change the results of an analysis
@@ -21,6 +21,8 @@ with `-eva-memexec` set or not. The message category `cache` has no verbosity
 level, so its lines are printed only when `-eva-msg-key` enables it.
 
 **Kind.** OCaml obligation.
+
+**Depends on.** None.
 
 **Symbols.** `Call_cache.Make.lookup`, `Call_cache.Make.store`,
 `Call_cache.Make.interrupted`,
@@ -98,6 +100,8 @@ declares the six that memexec produces, and the seam adds `disabled`.
 
 **Kind.** OCaml obligation.
 
+**Depends on.** None.
+
 **Symbols.** `Mem_exec.Make.store_computed_call`,
 `Mem_exec.Make.store_cacheable_call`, `Mem_exec.bases`,
 `Mem_exec.Make.expand_inputs_with_relations`, `Call_cache.refusal_id`,
@@ -127,6 +131,8 @@ the earlier call whose message reads `stored (entry N)`.
 
 **Kind.** OCaml obligation.
 
+**Depends on.** None.
+
 **Symbols.** `Mem_exec.Make.store_cacheable_call`,
 `Mem_exec.Make.find_match_in_previous`, `Call_cache.new_counter`,
 `Iterator.Make_Dataflow.merge_results`, `Call_cache.Make.lookup`,
@@ -154,6 +160,12 @@ the stored entries, and `memexec-refused-REASON` the storages refused for
 REASON.
 
 **Kind.** OCaml obligation.
+
+**Depends on.** [Each refused storage has one stable
+reason](#each-refused-storage-has-one-stable-reason), for the reasons counted,
+and [A hit names the entry stored
+earlier](#a-hit-names-the-entry-stored-earlier), for the pairing of hits and
+stored entries.
 
 **Symbols.** `Call_cache.Make.lookup`, `Call_cache.Make.store`,
 `Statistics.memexec_hits`, `Statistics.memexec_misses`,
@@ -185,6 +197,10 @@ stored. Whether each domain reports all the relations it needs is a separate
 claim, not covered here.
 
 **Kind.** OCaml obligation.
+
+**Depends on.** None. [Each refused storage has one stable
+reason](#each-refused-storage-has-one-stable-reason) uses the two refusals of
+this closure.
 
 **Symbols.** `Mem_exec.Make.expand_inputs_with_relations`,
 `Mem_exec.Make.store_cacheable_call`.
