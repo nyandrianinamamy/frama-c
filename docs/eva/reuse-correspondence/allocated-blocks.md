@@ -51,7 +51,7 @@ blocks these clauses read, write or designate are not added to the sets.
 **Evidence.** Execution. `copy` (`q = p`, where `p` points to an allocated
 block) reads `copy allocated-block`; the module asserts R = {p}, W = {q}, an
 allocated block among the designated blocks and no allocation effect.
-`logic_only` reads an allocated block only through `//@ assert \initialized(p)`
+`logic_only` reads an allocated block only through `/*@ assert p != \null; */`
 and reads `logic_only: allocated-block among [annotation allocated-block
 allocation-metadata]`. On the validity replay of the inventory ticket
 (`equality.c`, a comparison of two pointers to allocated blocks), `equal_live`
@@ -334,7 +334,10 @@ on a written allocated block.
 **Open.** The tags of the nodes that a body does not build are not
 reported and do not refuse: this differs from the ticket, which asks for a
 refusal where the audit is not conclusive. Their dependency is on changes of
-weakness made before the body. Between a producer and a lookup, the cache
+weakness made before the body. `Partitioning_index.add` drops a new state
+only after `Domain.is_included` holds for a stored state, so a stale tag can
+only keep a state included in another one: the result stays sound, but can
+differ from that of a fresh analysis. Between a producer and a lookup, the cache
 must account for these changes, or the argument must show that the choices
 of `Partitioning_index.add` do not change the result. `Partitioning_index`
 also consults the tags of all the bindings, including blocks outside R;
