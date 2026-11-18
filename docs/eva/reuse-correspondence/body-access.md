@@ -123,9 +123,12 @@ and [the call-cache seam](call-cache-seam.md).
 `Transfer_logic.Make.create_from_spec`, `Transfer_logic.Make.interp_annot`,
 `Locals_scoping.make_escaping_fundec`, `Builtins_malloc.free_aux`.
 
-**Argument.** The priority order is `indirect-call`, `builtin`, `sweep`,
+**Argument.** The priority order is `indirect-call`, `reallocation`,
+`allocation`, `deallocation`, `validity-mutation`, `builtin`, `sweep`,
 `contract`, `annotation`, `nested-call`, `allocated-block`,
-`footprint-top`, then `side-table`. The observer receives all reasons.
+`allocation-metadata`, `footprint-top`, then `side-table`. The observer
+receives all reasons. The reasons of the allocation family are described in
+[Allocated blocks](allocated-blocks.md).
 Indirect targets refuse both at the call transfer and at entry of a body
 reached through an indirect call. A nested call refuses its enclosing body
 whether resolved to a fresh body, a hit, a specification or a builtin.
@@ -232,9 +235,11 @@ restricted by function.
 **Open.** The classes in the observation do not carry replay payloads.
 Their Safety and Reach replay is pending. The collector reports unsupported
 accesses at instrumented paths and at unclassified callback boundaries.
-The side-table audit still needs to cover transitive accesses in helpers and
-persistent memos, and to account for changes between a producer and a future
-lookup.
+For the validity records and the types of allocated blocks, the audit of
+transitive accesses in helpers and persistent memos is in
+[Read paths of the validity record](allocated-blocks.md#read-paths-of-the-validity-record).
+For the other tables, the audit still needs to cover them, and to account
+for changes between a producer and a future lookup.
 
 ## Annotation and contract reads
 

@@ -845,3 +845,5 @@ state](#a-hit-takes-the-blocks-of-w_exit-from-the-exit-state).
 - Produced entries check all overlay bindings. See the
   [producer obligation record](cache-producer.md#producer-obligations-for-exit-reuse)
   for the condition on the four footprint sets, frees and sweeps.
+- The collector refuses a body that allocates or frees a block
+  ([Allocation effects](allocated-blocks.md#allocation-effects)).
