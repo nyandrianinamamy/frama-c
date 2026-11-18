@@ -2,7 +2,7 @@ import ReuseModel
 import Checks.Examples
 
 /-!
-# Domains that meet the laws, and two negative cases
+# Domains that meet the laws, and negative cases
 
 * A non-relational domain, `valueDom`, meets every law of a domain, and so
   does its product with itself: the hypotheses of the match and product
@@ -20,6 +20,11 @@ import Checks.Examples
   product lemma. Two components of a product meet `relate` sound and each
   has a non-empty concretisation; the key is closed; the product has an empty
   concretisation and `filter` is not exact on it.
+* The laws `filter` sound, `relate` sound, `filter` exact and `reuse` sound
+  do not make closure depend on the members of a key only: in `lenDom`,
+  which meets them, `[0]` is closed and `[0, 0]` is not. `lenDom` does not
+  meet `Extensional`, which `valueDom`, `eqDom` and the product of
+  `valueDom` with itself meet.
 
 Blocks `0`, `1` and `2` stand for the variables `x`, `y` and `z`. The
 memories are built with `memOf`, from `Checks/Examples.lean`.
@@ -92,6 +97,19 @@ theorem valueDom_reuseSound : (valueDom M).ReuseSound := by
   · obtain ⟨v, hv, hl⟩ := hc p hp
     exact ⟨v, hv, (hoff p.1 hW).trans hl⟩
 
+/-- `filter B` and `reuse W` test membership in `B` and `W` only. -/
+theorem valueDom_extensional : (valueDom M).Extensional where
+  relate _ _ _ R _ hR := ⟨R, hR, SameBlocks.refl R⟩
+  filter B B' S m hB hm p hp := by
+    have hB' : ∀ b, b ∈ B ↔ b ∈ B' := hB
+    exact hm p (by
+      simpa only [valueDom, List.mem_filter, decide_eq_true_eq, hB'] using hp)
+  reuse W W' cur out m hW hm p hp := by
+    have hW' : ∀ b, b ∈ W ↔ b ∈ W' := hW
+    exact hm p (by
+      simpa only [valueDom, List.mem_append, List.mem_filter,
+        decide_eq_true_eq, hW'] using hp)
+
 end
 
 /-- The laws hold together, for `valueDom` on `FunMem` and for its product
@@ -100,17 +118,20 @@ theorem valueDom_laws :
     Combinable FunMem ∧
     (valueDom FunMem).FilterSound ∧ (valueDom FunMem).RelateSound ∧
     (valueDom FunMem).FilterExact ∧ (valueDom FunMem).ReuseSound ∧
+    (valueDom FunMem).Extensional ∧
     ((valueDom FunMem).prod (valueDom FunMem)).FilterSound ∧
     ((valueDom FunMem).prod (valueDom FunMem)).RelateSound ∧
     ((valueDom FunMem).prod (valueDom FunMem)).FilterExact ∧
-    ((valueDom FunMem).prod (valueDom FunMem)).ReuseSound :=
+    ((valueDom FunMem).prod (valueDom FunMem)).ReuseSound ∧
+    ((valueDom FunMem).prod (valueDom FunMem)).Extensional :=
   have hr := relateSound_prod valueDom_relateSound valueDom_relateSound
   ⟨FunMem.combinable, valueDom_filterSound, valueDom_relateSound,
     filterExact_of_relateSound FunMem.combinable valueDom_relateSound,
-    valueDom_reuseSound,
+    valueDom_reuseSound, valueDom_extensional,
     filterSound_prod valueDom_filterSound valueDom_filterSound, hr,
     filterExact_of_relateSound FunMem.combinable hr,
-    reuseSound_prod valueDom_reuseSound valueDom_reuseSound⟩
+    reuseSound_prod valueDom_reuseSound valueDom_reuseSound,
+    extensional_prod valueDom_extensional valueDom_extensional⟩
 
 /-- The product of `valueDom` with itself, on `FunMem`. -/
 abbrev valueProd : Domain FunMem := (valueDom FunMem).prod (valueDom FunMem)
@@ -206,6 +227,22 @@ theorem eqDom_reuseSound : (eqDom M).ReuseSound := by
   · obtain ⟨v, h₁, h₂⟩ := hc p hp
     exact ⟨v, (hoff p.1 hW₁).trans h₁, (hoff p.2 hW₂).trans h₂⟩
 
+/-- `relate B` and `reuse W` test membership in `B` and `W` only, and
+`filter` is the identity. -/
+theorem eqDom_extensional : (eqDom M).Extensional where
+  relate B B' S R hB hR := by
+    have hB' : ∀ b, b ∈ B ↔ b ∈ B' := hB
+    simp only [eqDom, Option.some.injEq] at hR
+    subst hR
+    refine ⟨_, rfl, fun b => ?_⟩
+    simp only [List.mem_flatMap, List.mem_filter, decide_eq_true_eq, hB']
+  filter _ _ _ _ _ hm := hm
+  reuse W W' cur out m hW hm p hp := by
+    have hW' : ∀ b, b ∈ W ↔ b ∈ W' := hW
+    exact hm p (by
+      simpa only [eqDom, List.mem_append, List.mem_filter,
+        decide_eq_true_eq, hW'] using hp)
+
 end
 
 /-- The stored input: the single fact `y == z`. -/
@@ -243,6 +280,11 @@ theorem agree_x : AgreeOn [0] memYZ memYnZ := by
 theorem eqDom_closed_x : (eqDom FunMem).Closed [0] yz :=
   ⟨[], rfl, by simp⟩
 
+/-- `eqDom` meets `Extensional`, so closure depends on the members of the key
+only: `{x}`, written `[0, 0]`, is closed in `yz` as `[0]` is. -/
+theorem eqDom_closed_x_dup : (eqDom FunMem).Closed [0, 0] yz :=
+  (closed_congr eqDom_extensional (fun b => by simp)).mp eqDom_closed_x
+
 /-- `relate` is not empty: `{y}` is not closed in `yz`, since `relate`
 returns `z` with it. -/
 theorem eqDom_not_closed_y : ¬ (eqDom FunMem).Closed [1] yz := by
@@ -274,7 +316,8 @@ theorem identity_filter_negative :
     fun hd => memYnZ_not_mem (hd.onKey memYZ memYnZ agree_x memYZ_mem)⟩
 
 /-- `eqDom` does not meet `relate` sound, although it meets `filter` sound,
-`filter` exact, `reuse` sound and the clause `existing` of `relate` sound. -/
+`filter` exact, `reuse` sound, `Extensional` and the clause `existing` of
+`relate` sound. -/
 theorem eqDom_not_relateSound : ¬ (eqDom FunMem).RelateSound :=
   fun h =>
     identity_filter_negative.2.2.2.2.2.2 (h.decomposes _ _ eqDom_closed_x)
@@ -341,5 +384,65 @@ theorem nonempty_needed :
       refine ⟨?_, ?_⟩ <;> intro p hp <;> simp [prod, valueDom, emptyS] at hp
     obtain ⟨w, hw, -⟩ := hex _ hf
     exact hempty ⟨w, hw⟩
+
+/-! ## Domains with one state -/
+
+section
+variable {M : Type} [Memory M]
+
+/-- A domain with one state, which covers every memory, and an identity
+`filter`. `relate B` gives `Top` when `top B` is true, and no block
+otherwise. -/
+def unitDom (M : Type) [Memory M] (top : BlockSet → Bool) : Domain M where
+  State := Unit
+  γ _ _ := True
+  filter _ S := S
+  relate B _ := if top B then none else some []
+  reuse _ _ _ := ()
+
+theorem unitDom_filterSound (top : BlockSet → Bool) :
+    (unitDom M top).FilterSound :=
+  fun _ _ _ hm => hm
+
+theorem unitDom_relateSound (top : BlockSet → Bool) :
+    (unitDom M top).RelateSound where
+  decomposes _ _ _ :=
+    ⟨fun _ _ _ _ => trivial, fun m =>
+      ⟨fun _ => ⟨trivial, m, trivial, fun _ _ => rfl⟩, fun _ => trivial⟩⟩
+  existing B _ R hR b hb _ _ := by
+    simp only [unitDom] at hR
+    split at hR
+    · cases hR
+    · cases hR
+      cases hb
+
+theorem unitDom_reuseSound (top : BlockSet → Bool) :
+    (unitDom M top).ReuseSound :=
+  fun _ _ _ _ _ _ _ _ _ _ => trivial
+
+end
+
+/-- The one-state domain whose `relate` gives `Top` on a list of two blocks or
+more, repetitions counted. -/
+abbrev lenDom : Domain FunMem := unitDom FunMem fun B => decide (2 ≤ B.length)
+
+/-- Without `Extensional`, closure can depend on the list that gives a key.
+`lenDom` meets `filter` sound, `relate` sound, `filter` exact and `reuse`
+sound; the lists `[0]` and `[0, 0]` have the same members; `[0]` is closed
+and `[0, 0]` is not. By `closed_congr`, `lenDom` does not meet
+`Extensional`. -/
+theorem closed_needs_extensional :
+    lenDom.FilterSound ∧ lenDom.RelateSound ∧ lenDom.FilterExact ∧
+    lenDom.ReuseSound ∧ SameBlocks [0] [0, 0] ∧ lenDom.Closed [0] () ∧
+    ¬ lenDom.Closed [0, 0] () ∧ ¬ lenDom.Extensional := by
+  have hsame : SameBlocks [0] [0, 0] := fun b => by simp
+  have hc : lenDom.Closed [0] () := ⟨[], rfl, by simp⟩
+  have hnc : ¬ lenDom.Closed [0, 0] () := by
+    rintro ⟨R, hR, -⟩
+    simp [unitDom] at hR
+  exact ⟨unitDom_filterSound _, unitDom_relateSound _,
+    filterExact_of_relateSound FunMem.combinable (unitDom_relateSound _),
+    unitDom_reuseSound _, hsame, hc, hnc,
+    fun he => hnc ((closed_congr he hsame).mp hc)⟩
 
 end Checks

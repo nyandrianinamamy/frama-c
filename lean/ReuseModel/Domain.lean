@@ -12,7 +12,11 @@ memories, and the three operations of the cache: `filter`, `relate` and
   `relate` returns only blocks that exist in the state (`RelateSound`);
 * `filter` exact on the stored input for a closed key (`FilterExact`);
 * `reuse` sound: the result covers every memory that combines the written
-  part of an output memory with the rest of a current memory (`ReuseSound`).
+  part of an output memory with the rest of a current memory (`ReuseSound`);
+* the operations depend on the members of a set of blocks only, not on the
+  list that gives it (`Extensional`). Closure, the decomposition and
+  exactness then depend on the members only (`closed_congr`,
+  `decomposes_congr`, `exactOn_congr`).
 
 The product of two domains has the union of the two `relate` as its `relate`,
 so that a set closed in the product is closed in both components.
@@ -36,9 +40,27 @@ namespace ReuseModel
 
 open Memory
 
-/-- A finite set of blocks, given by a list. Only membership is used: the
-order and the repetitions of the list do not matter. -/
+/-- A finite set of blocks, given by a list. The list stands for the set of
+its members. `AgreeOn` and `AgreeOff` use membership only. The operations of a
+domain receive the list itself; the law `Extensional` requires them to depend
+on its members only, not on the order or the repetitions of the list. -/
 abbrev BlockSet := List Block
+
+/-- `B` and `B'` have the same members. -/
+def SameBlocks (B B' : BlockSet) : Prop :=
+  ∀ b, b ∈ B ↔ b ∈ B'
+
+theorem SameBlocks.refl (B : BlockSet) : SameBlocks B B :=
+  fun _ => Iff.rfl
+
+theorem SameBlocks.symm {B B' : BlockSet} (h : SameBlocks B B') :
+    SameBlocks B' B :=
+  fun b => (h b).symm
+
+theorem SameBlocks.append {B₁ B₂ B₁' B₂' : BlockSet} (h₁ : SameBlocks B₁ B₁')
+    (h₂ : SameBlocks B₂ B₂') : SameBlocks (B₁ ++ B₂) (B₁' ++ B₂') := by
+  intro b
+  simp only [List.mem_append, h₁ b, h₂ b]
 
 section
 variable {M : Type} [Memory M]
@@ -60,6 +82,14 @@ theorem AgreeOn.symm {B : BlockSet} {m m' : M} (h : AgreeOn B m m') :
 theorem AgreeOn.trans {B : BlockSet} {m₁ m₂ m₃ : M}
     (h₁ : AgreeOn B m₁ m₂) (h₂ : AgreeOn B m₂ m₃) : AgreeOn B m₁ m₃ :=
   fun b hb => (h₁ b hb).trans (h₂ b hb)
+
+theorem AgreeOn.congr {B B' : BlockSet} (hB : SameBlocks B B') {m m' : M}
+    (h : AgreeOn B m m') : AgreeOn B' m m' :=
+  fun b hb => h b ((hB b).mpr hb)
+
+theorem AgreeOff.congr {B B' : BlockSet} (hB : SameBlocks B B') {m m' : M}
+    (h : AgreeOff B m m') : AgreeOff B' m m' :=
+  fun b hb => h b (fun hb' => hb ((hB b).mp hb'))
 
 end
 
@@ -155,6 +185,64 @@ def ReuseSound (d : Domain M) : Prop :=
   ∀ W cur out (mc mo c : M), d.γ cur mc → d.γ out mo →
     AgreeOn W c mo → AgreeOff W c mc → d.γ (d.reuse W cur out) c
 
+/-- The operations depend on a set of blocks through its members only. For
+two sets with the same members, `relate` gives two sets with the same members
+or `Top` for both, and `filter` and `reuse` give states with the same
+concretisation. Each clause states one direction; exchanging the two sets
+gives the other. -/
+structure Extensional (d : Domain M) : Prop where
+  /-- `relate` gives two sets with the same members, or `Top` for both. -/
+  relate : ∀ B B' S R, SameBlocks B B' → d.relate B S = some R →
+    ∃ R', d.relate B' S = some R' ∧ SameBlocks R R'
+  /-- `filter` gives states with the same concretisation. -/
+  filter : ∀ B B' S m, SameBlocks B B' → d.γ (d.filter B S) m →
+    d.γ (d.filter B' S) m
+  /-- `reuse` gives states with the same concretisation. -/
+  reuse : ∀ W W' cur out m, SameBlocks W W' → d.γ (d.reuse W cur out) m →
+    d.γ (d.reuse W' cur out) m
+
+/-! ## Sets with the same members -/
+
+omit [Memory M] in
+/-- For a domain that meets `Extensional`, closure depends on the members of
+the set only. -/
+theorem closed_congr {d : Domain M} (he : d.Extensional) {B B' : BlockSet}
+    (hB : SameBlocks B B') {S : d.State} : d.Closed B S ↔ d.Closed B' S := by
+  have h : ∀ {B B'}, SameBlocks B B' → d.Closed B S → d.Closed B' S := by
+    intro B B' hB ⟨R, hR, hsub⟩
+    obtain ⟨R', hR', hRR'⟩ := he.relate B B' S R hB hR
+    exact ⟨R', hR', fun b hb => (hB b).mp (hsub b ((hRR' b).mpr hb))⟩
+  exact ⟨h hB, h hB.symm⟩
+
+/-- For a domain that meets `Extensional`, the decomposition depends on the
+members of the set only. -/
+theorem decomposes_congr {d : Domain M} (he : d.Extensional)
+    {B B' : BlockSet} (hB : SameBlocks B B') {S : d.State} :
+    d.Decomposes B S ↔ d.Decomposes B' S := by
+  have h : ∀ {B B'}, SameBlocks B B' → d.Decomposes B S →
+      d.Decomposes B' S := by
+    intro B B' hB hd
+    refine ⟨fun m m' hag hm => ?_, fun m => ?_⟩
+    · exact he.filter B B' S m' hB
+        (hd.onKey m m' (hag.congr hB.symm) (he.filter B' B S m hB.symm hm))
+    · rw [hd.split m]
+      constructor
+      · rintro ⟨hf, w, hw, hoff⟩
+        exact ⟨he.filter B B' S m hB hf, w, hw, hoff.congr hB⟩
+      · rintro ⟨hf, w, hw, hoff⟩
+        exact ⟨he.filter B' B S m hB.symm hf, w, hw, hoff.congr hB.symm⟩
+  exact ⟨h hB, h hB.symm⟩
+
+/-- For a domain that meets `Extensional`, exactness depends on the members of
+the key only. -/
+theorem exactOn_congr {d : Domain M} (he : d.Extensional) {K K' : BlockSet}
+    (hK : SameBlocks K K') {S : d.State} : d.ExactOn K S ↔ d.ExactOn K' S := by
+  have h : ∀ {K K'}, SameBlocks K K' → d.ExactOn K S → d.ExactOn K' S := by
+    intro K K' hK hex m hm
+    obtain ⟨m', hm', hag⟩ := hex m (he.filter K' K S m hK.symm hm)
+    exact ⟨m', hm', hag.congr hK⟩
+  exact ⟨h hK, h hK.symm⟩
+
 /-! ## Product -/
 
 /-- The product of two domains. A memory is covered by a pair of states when
@@ -234,6 +322,24 @@ theorem reuseSound_prod {d₁ d₂ : Domain M} (h₁ : d₁.ReuseSound)
   fun W cur out mc mo c hc ho hon hoff =>
     ⟨h₁ W cur.1 out.1 mc mo c hc.1 ho.1 hon hoff,
       h₂ W cur.2 out.2 mc mo c hc.2 ho.2 hon hoff⟩
+
+omit [Memory M] in
+/-- The product meets `Extensional` when both components do. -/
+theorem extensional_prod {d₁ d₂ : Domain M} (h₁ : d₁.Extensional)
+    (h₂ : d₂.Extensional) : (d₁.prod d₂).Extensional where
+  relate B B' S R hB hR := by
+    simp only [prod] at hR ⊢
+    split at hR
+    · next R₁ R₂ e₁ e₂ =>
+      cases hR
+      obtain ⟨R₁', e₁', s₁⟩ := h₁.relate B B' S.1 R₁ hB e₁
+      obtain ⟨R₂', e₂', s₂⟩ := h₂.relate B B' S.2 R₂ hB e₂
+      exact ⟨R₁' ++ R₂', by simp [e₁', e₂'], s₁.append s₂⟩
+    · cases hR
+  filter B B' S m hB hm :=
+    ⟨h₁.filter B B' S.1 m hB hm.1, h₂.filter B B' S.2 m hB hm.2⟩
+  reuse W W' cur out m hW hm :=
+    ⟨h₁.reuse W W' cur.1 out.1 m hW hm.1, h₂.reuse W W' cur.2 out.2 m hW hm.2⟩
 
 /-! ## Consequences of the decomposition -/
 

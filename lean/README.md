@@ -62,11 +62,11 @@ directories that Dune reads, and `lean` is not among them.
 | `ReuseModel/Semantics.lean` | Events, evaluation, configurations, the step function, executions (`run`) and finite sequences of steps (`Steps`), for any program; finite prefixes (`Prefix`) of a subject |
 | `ReuseModel/Observations.lean` | Exit, Reach, Safety and visits, of a subject |
 | `ReuseModel/Frame.lean` | `InFrame`, `frame_of_not_written`, `frame_lemma` |
-| `ReuseModel/Domain.lean` | Agreement of memories on a set of blocks, `Combinable`; abstract domains (`Domain`) with their laws `FilterSound`, `RelateSound`, `FilterExact` and `ReuseSound`; closed sets, the product of two domains and the laws it keeps; the strong form of `filter` sound and exactness, derived from the decomposition; `match_lemma`, `product_lemma`, `projected_match` |
+| `ReuseModel/Domain.lean` | Agreement of memories on a set of blocks, `Combinable`; abstract domains (`Domain`) with their laws `FilterSound`, `RelateSound`, `FilterExact`, `ReuseSound` and `Extensional`; closed sets, the product of two domains and the laws it keeps; closure, decomposition and exactness on two sets with the same members; the strong form of `filter` sound and exactness, derived from the decomposition; `match_lemma`, `product_lemma`, `projected_match` |
 | `Checks/AxiomCheck.lean` | The `#check_axioms` command |
 | `Checks/Axioms.lean` | `#print axioms` and `#check_axioms` for each theorem |
 | `Checks/Examples.lean` | Aliasing, a dangling pointer after a return, and a call that does not return, on which `frame_lemma` is applied; the body of a function as the subject; comparisons with the null pointer |
-| `Checks/Domains.lean` | A non-relational domain that meets every law, alone and in a product with itself, and a match it admits; a domain of equalities with an identity `filter`, which fails `relate` sound on the fact `y == z` and the closed key `{x}`; a product with an empty concretisation on which `filter` is not exact |
+| `Checks/Domains.lean` | A non-relational domain that meets every law, alone and in a product with itself, and a match it admits; a domain of equalities with an identity `filter`, which fails `relate` sound on the fact `y == z` and the closed key `{x}`; a product with an empty concretisation on which `filter` is not exact; a domain that meets the other laws, not `Extensional`, in which `[0]` is closed and `[0, 0]` is not |
 | `Checks/Fragment.lean` | Statements that meet the fragment conditions: one outside the function bodies, a function body, and a statement inside one. Programs and statements that do not: duplicate labels in the observed statement, a label of a body reused outside, duplicate labels across two bodies, direct recursion, mutual recursion |
 
 ## What the model contains
@@ -126,7 +126,9 @@ directories that Dune reads, and `lean` is not among them.
   `filter` exact on a closed key of a state with a non-empty
   concretisation; `reuse` sound (the result covers every memory that agrees
   with an output memory on the written blocks and with a current memory
-  elsewhere). The product of two domains has the union of the two `relate`.
+  elsewhere); `Extensional` (the operations depend on the members of a set
+  of blocks only, so that closure, the decomposition and exactness do too).
+  The product of two domains has the union of the two `relate`.
   No analysis is modelled: the laws are what an analysis is assumed to meet.
 
 ## Why the fragment is formulated this way
@@ -189,7 +191,18 @@ the programs that the lemma, as stated for the record, is about.
   whose laws the frame lemma relies on.
 - **Finite sets as lists.** A set of blocks is a list, as Eva's sets of bases
   are finite. Membership is decidable, so combining two memories needs no
-  classical choice.
+  classical choice. A domain receives the list itself, and the other laws
+  do not prevent it from reading the order or the repetitions:
+  `Checks.closed_needs_extensional` gives a domain that meets them in which
+  `[0]` is closed and `[0, 0]` is not. The law `Extensional` excludes such
+  domains. A type of sets with one representation per set would make the law
+  unnecessary, but Lean's core library has none, and keeping a list sorted
+  and without repetitions would add a proof obligation to each union, such
+  as the `relate` of a product. The match and product lemmas hold for every
+  list and do not take the law. Under it, their hypotheses and conclusions
+  are the same for every list with the members of the key: `closed_congr`,
+  `decomposes_congr` and `exactOn_congr`, and `AgreeOn` uses membership
+  only.
 - **Exactness derived.** `FilterExact` is listed as a law, but the lemmas take
   `ExactOn`, exactness for one key and one state, and
   `filterExact_of_relateSound` derives the law from `relate` sound. The

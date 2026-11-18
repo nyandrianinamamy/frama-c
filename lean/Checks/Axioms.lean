@@ -22,6 +22,10 @@ axiom other than Lean's standard ones.
 #print axioms ReuseModel.Domain.filterSound_prod
 #print axioms ReuseModel.Domain.relateSound_prod
 #print axioms ReuseModel.Domain.reuseSound_prod
+#print axioms ReuseModel.Domain.extensional_prod
+#print axioms ReuseModel.Domain.closed_congr
+#print axioms ReuseModel.Domain.decomposes_congr
+#print axioms ReuseModel.Domain.exactOn_congr
 #print axioms ReuseModel.Domain.filterStrong_of_decomposes
 #print axioms ReuseModel.Domain.exactOn_of_decomposes
 #print axioms ReuseModel.Domain.filterExact_of_relateSound
@@ -41,6 +45,10 @@ axiom other than Lean's standard ones.
 #check_axioms ReuseModel.Domain.filterSound_prod
 #check_axioms ReuseModel.Domain.relateSound_prod
 #check_axioms ReuseModel.Domain.reuseSound_prod
+#check_axioms ReuseModel.Domain.extensional_prod
+#check_axioms ReuseModel.Domain.closed_congr
+#check_axioms ReuseModel.Domain.decomposes_congr
+#check_axioms ReuseModel.Domain.exactOn_congr
 #check_axioms ReuseModel.Domain.filterStrong_of_decomposes
 #check_axioms ReuseModel.Domain.exactOn_of_decomposes
 #check_axioms ReuseModel.Domain.filterExact_of_relateSound
@@ -57,9 +65,12 @@ axiom other than Lean's standard ones.
 #print axioms Checks.eqDom_not_relateSound
 #print axioms Checks.eqDom_existing
 #print axioms Checks.eqDom_reuseSound
+#print axioms Checks.eqDom_extensional
 #print axioms Checks.eqDom_not_closed_y
+#print axioms Checks.eqDom_closed_x_dup
 #print axioms Checks.identity_filter_no_inclusion
 #print axioms Checks.nonempty_needed
+#print axioms Checks.closed_needs_extensional
 
 #check_axioms Checks.valueDom_laws
 #check_axioms Checks.valueProd_match
@@ -67,9 +78,12 @@ axiom other than Lean's standard ones.
 #check_axioms Checks.eqDom_not_relateSound
 #check_axioms Checks.eqDom_existing
 #check_axioms Checks.eqDom_reuseSound
+#check_axioms Checks.eqDom_extensional
 #check_axioms Checks.eqDom_not_closed_y
+#check_axioms Checks.eqDom_closed_x_dup
 #check_axioms Checks.identity_filter_no_inclusion
 #check_axioms Checks.nonempty_needed
+#check_axioms Checks.closed_needs_extensional
 
 /-! The check rejects a theorem that depends on another axiom. `native_decide`
 makes the proof depend on the axioms that trust the compiler. `#guard_msgs`
