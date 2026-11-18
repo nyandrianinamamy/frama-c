@@ -129,3 +129,43 @@ void empty_max(void) {
 void top_freeable(void) {
   //@ check \freeable((void *)(unsigned long)\max(1, 0, \lambda integer i; i));
 }
+
+/*@ axiomatic Bound {
+      logic integer bound(integer x);
+    }
+*/
+
+int range[3] = {1, 2, 3};
+
+void let_bottom(void) {
+  int uninit;
+  //@ assert \let v = uninit; v == v;
+}
+
+void let_function(void) {
+  //@ check \let f = \lambda integer x; x; f(1) == 1;
+}
+
+void range_bound(void) {
+  //@ check \subset(range[0 .. bound(1)], {1, 2, 3});
+}
+
+void split_expression(int x) {
+  //@ split x != 5;
+  quotient = x;
+}
+
+void split_predicate(int x) {
+  //@ split \initialized(&x) && x != 5;
+  quotient = x;
+}
+
+int leaf_output;
+
+/*@ assigns \nothing;
+    ensures leaf_output == 1; */
+void false_leaf(void);
+
+void call_false_leaf(void) {
+  false_leaf();
+}

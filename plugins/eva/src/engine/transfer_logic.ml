@@ -199,10 +199,13 @@ let process_inactive_behavior ?(requires = fun f -> f ()) kf call_ki behavior =
             emit_status ip Alarmset.True;
           end
         ) behavior.b_requires);
-  if !emitted then
+  (* The message reads the emission history only when its level is shown. *)
+  if !emitted && Self.verbose_atleast 6 then begin
+    Body_access.read_message_history ();
     Self.result ~once:true ~current:true ~level:6 ~stacktrace:true
       "%a: assumes got status invalid; behavior not evaluated."
       (pp_header kf) behavior
+  end
 
 let process_inactive_behaviors call_ki kf behaviors =
   List.iter (process_inactive_behavior kf call_ki) behaviors
@@ -221,10 +224,12 @@ let process_inactive_postconds kf inactive_bhvs =
                emit_status ip Alarmset.True;
            end
          ) b.b_post_cond;
-       if !emitted then
+       if !emitted && Self.verbose_atleast 6 then begin
+         Body_access.read_message_history ();
          Self.result ~once:true ~current:true ~level:6 ~stacktrace:true
            "%a: requires got status invalid; postconditions not evaluated."
-           (pp_header kf) b;
+           (pp_header kf) b
+       end
     ) inactive_bhvs
 
 
@@ -255,6 +260,7 @@ let get_calls_annotations stmt =
 let check_calls_annotation stmt called_functions code_annot =
   match get_calls_kf code_annot with
   | exception Not_found ->
+    Body_access.read_message_history ();
     Self.warning ~current:true ~once:true
       "Ignoring invalid calls annotation: %a"
       Printer.pp_code_annotation code_annot;
@@ -390,6 +396,7 @@ module Make (Domain: LogicDomain) = struct
       let pp_behavior_inactive fmt =
         Format.fprintf fmt ",@ the behavior@ was@ inactive"
       in
+      Body_access.read_message_history ();
       Self.warning ~once:true ~loc ~wkey:Log_key.warn_ensures_false
         ~stacktrace:true
         "@[%a:@ this postcondition@ evaluates to@ false@ in this@ context.\

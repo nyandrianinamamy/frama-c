@@ -72,6 +72,7 @@ let track_alarms b = function
 let display_evaluation_error ~loc = function
   | CAlarm -> ()
   | pa ->
+    Body_access.read_message_history ();
     Self.warning
       ~wkey:Log_key.warn_acsl_unsupported ~loc ~once:true
       "cannot evaluate ACSL term, %a" pretty_logic_evaluation_error pa
@@ -1168,11 +1169,13 @@ and eval_term_node ~alarm_mode env t =
         with
         | Cvalue.V.Not_based_on_null -> None, None
         | LogicEvalError e ->
-          if e <> CAlarm then
+          if e <> CAlarm then begin
+            Body_access.read_message_history ();
             Self.warning ~wkey:Log_key.warn_acsl_unsupported
               ~loc:t.term_loc ~once:true
               "Cannot evaluate range bound %a (%a). Approximating."
-              Printer.pp_term term pretty_logic_evaluation_error e;
+              Printer.pp_term term pretty_logic_evaluation_error e
+          end;
           None, None
     in
     let min_over, min_under = min_max opt_low
@@ -1718,6 +1721,7 @@ and eval_let_binding ~alarm_mode env logic_info =
       let var_term = Logic_const.tvar var in
       try reduce_left_by_relation ~alarm_mode env true var_term Req term
       with Reduce_to_bottom ->
+        Body_access.read_message_history ();
         Self.warning ~current:true ~once:true
           "ignoring \\let binding of logic variable %a evaluating to bottom"
           Printer.pp_logic_var var;

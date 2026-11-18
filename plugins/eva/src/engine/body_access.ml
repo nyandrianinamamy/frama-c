@@ -222,6 +222,8 @@ let unknown_access reason =
        add_write r Bases.top Zone.bottom)
     !current
 
+let read_message_history () = refuse Side_table
+
 let transfer ~id ~src ~dst f input =
   match !current with
   | None -> f input

@@ -99,6 +99,14 @@ let observe_annotations stack (r : Access.t) =
   | "top_freeable" ->
     assert (names r.reads = []);
     refuses [Access.Footprint_top; Access.Side_table]
+  | "let_bottom" -> refuses [Access.Side_table]
+  | "let_function" | "range_bound" ->
+    assert (r.reads = Base.SetLattice.top);
+    refuses [Access.Annotation; Access.Side_table]
+  | "split_expression" | "split_predicate" ->
+    refuses [Access.Annotation; Access.Side_table]
+  | "call_false_leaf" ->
+    refuses [Access.Contract; Access.Nested_call; Access.Side_table]
   | name -> failwith ("unexpected body: " ^ name)
 
 let observe_blocks stack (result : Access.t) =
@@ -162,6 +170,13 @@ let () =
     | Some "restricted" ->
       assert (List.mem Access.Side_table result.refusals);
       Format.printf "restricted cvalue refused@."
+    | Some "verbose" ->
+      if Kernel_function.get_name (Eva.Callstack.top_kf stack) = "inactive"
+      then begin
+        assert (names result.reads = ["g"]);
+        assert (result.refusals = [Access.Side_table]);
+        Format.printf "inactive behavior message refused at level 6@."
+      end
     | Some "unknown" ->
       assert (first_reason result = "side-table");
       Format.printf "unclassified callback refused@."

@@ -63,6 +63,10 @@ val refuse : Result.refusal -> unit
 val unknown_read : Result.refusal -> unit
 val unknown_access : Result.refusal -> unit
 
+(** Refuses as side-table before a message emitted once: emitting it reads
+    the logger's history of emitted messages. *)
+val read_message_history : unit -> unit
+
 val transfer :
   id:int -> src:int -> dst:int -> ('a -> 'b list) -> 'a -> 'b list
 

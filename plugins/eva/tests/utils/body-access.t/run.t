@@ -300,3 +300,46 @@ with or without the collector, and the allocation table refuses the body.
   top_freeable refuses footprint-top, side-table
   $ verdict top_freeable top_freeable.log
   top_freeable refused (footprint-top)
+
+A message that Eva emits once reads the history of emitted messages. The
+body refuses as side-table when evaluating a clause emits such a message:
+a binding to bottom, an unsupported term, a range bound that cannot be
+evaluated, a split on an expression or a predicate that does not separate
+the states, and a false postcondition of a specification.
+
+  $ clause let_bottom -eva-reduce-on-logic-alarms
+  $ grep -c 'evaluating to bottom' let_bottom.log
+  1
+  $ grep '^let_bottom refuses' let_bottom.log
+  let_bottom refuses side-table
+  $ clause let_function
+  $ grep '^let_function refuses' let_function.log
+  let_function refuses annotation, side-table
+  $ clause range_bound
+  $ grep '^range_bound refuses' range_bound.log
+  range_bound refuses annotation, side-table
+  $ clause split_expression
+  $ grep -c 'failing to learn perfectly from split' split_expression.log
+  1
+  $ grep '^split_expression refuses' split_expression.log
+  split_expression refuses annotation, side-table
+  $ clause split_predicate
+  $ grep -c 'failing to learn perfectly from split' split_predicate.log
+  1
+  $ grep '^split_predicate refuses' split_predicate.log
+  split_predicate refuses annotation, side-table
+  $ clause call_false_leaf
+  $ grep -c 'this postcondition evaluates to false' call_false_leaf.log
+  1
+  $ grep '^call_false_leaf refuses' call_false_leaf.log
+  call_false_leaf refuses contract, nested-call, side-table
+
+The message on an inactive behavior is emitted at level 6 only.
+
+  $ EVA_TEST_BODY_ACCESS=verbose frama-c -no-autoload-plugins \
+  >   -load-module eva,test_body_access.cmxs -eva -eva-no-memexec \
+  >   -eva-verbose 6 -main inactive_caller paths.c > verbose.log 2>&1
+  $ grep -c 'assumes got status invalid; behavior not evaluated' verbose.log
+  1
+  $ grep '^inactive behavior message' verbose.log
+  inactive behavior message refused at level 6

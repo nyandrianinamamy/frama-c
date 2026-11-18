@@ -494,6 +494,7 @@ struct
 
   let fail ~loc message =
     let warn_and_raise message =
+      Body_access.read_message_history ();
       Self.warning ~loc ~once:true "%s" message;
       raise Operation_failed
     in
@@ -602,9 +603,11 @@ struct
           Abstract.Dom.reduce_by_predicate env state predicate positive in
         let x = Abstract.Dom.evaluate_predicate env state' predicate in
         if x == Unknown
-        then
+        then begin
+          Body_access.read_message_history ();
           Self.warning ~loc ~once:true
-            "failing to learn perfectly from split predicate";
+            "failing to learn perfectly from split predicate"
+        end;
         if Abstract.Dom.equal state' state then raise Operation_failed;
         let value = if positive then Z.one else Z.zero in
         value, state'
