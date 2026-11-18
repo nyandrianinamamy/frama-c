@@ -62,7 +62,7 @@ directories that Dune reads, and `lean` is not among them.
 | `ReuseModel/Semantics.lean` | Events, evaluation, configurations, the step function, executions (`run`) and finite sequences of steps (`Steps`), for any program; finite prefixes (`Prefix`) of a subject |
 | `ReuseModel/Observations.lean` | Exit, Reach, Safety and visits, of a subject |
 | `ReuseModel/Frame.lean` | `InFrame`, `frame_of_not_written`, `frame_lemma` |
-| `ReuseModel/Domain.lean` | Agreement of memories on a set of blocks, `Combinable`; abstract domains (`Domain`) with their laws `FilterSound`, `RelateSound`, `FilterExact` and `ReuseSound`; closed sets, the product of two domains and the laws it keeps; `match_lemma`, `product_lemma`, `projected_match` |
+| `ReuseModel/Domain.lean` | Agreement of memories on a set of blocks, `Combinable`; abstract domains (`Domain`) with their laws `FilterSound`, `RelateSound`, `FilterExact` and `ReuseSound`; closed sets, the product of two domains and the laws it keeps; the strong form of `filter` sound and exactness, derived from the decomposition; `match_lemma`, `product_lemma`, `projected_match` |
 | `Checks/AxiomCheck.lean` | The `#check_axioms` command |
 | `Checks/Axioms.lean` | `#print axioms` and `#check_axioms` for each theorem |
 | `Checks/Examples.lean` | Aliasing, a dangling pointer after a return, and a call that does not return, on which `frame_lemma` is applied; the body of a function as the subject; comparisons with the null pointer |

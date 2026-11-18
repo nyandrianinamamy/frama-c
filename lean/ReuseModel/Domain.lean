@@ -235,7 +235,15 @@ theorem reuseSound_prod {d₁ d₂ : Domain M} (h₁ : d₁.ReuseSound)
     ⟨h₁ W cur.1 out.1 mc mo c hc.1 ho.1 hon hoff,
       h₂ W cur.2 out.2 mc mo c hc.2 ho.2 hon hoff⟩
 
-/-! ## Exactness from decomposition -/
+/-! ## Consequences of the decomposition -/
+
+/-- Where `filter` decomposes the state, the weak form of `filter` sound gives
+the strong form: `γ (filter B S)` contains every memory that agrees on `B`
+with a memory of `γ S`. -/
+theorem filterStrong_of_decomposes {d : Domain M} {B : BlockSet}
+    {S : d.State} (hf : d.FilterSound) (hd : d.Decomposes B S) {m w : M}
+    (hw : d.γ S w) (hag : AgreeOn B w m) : d.γ (d.filter B S) m :=
+  hd.onKey w m hag (hf B S w hw)
 
 /-- Decomposition and a non-empty concretisation give exactness on the key:
 a memory of `γ (filter K S)`, combined on `K` with a memory of `γ S`, is in

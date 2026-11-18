@@ -22,6 +22,7 @@ axiom other than Lean's standard ones.
 #print axioms ReuseModel.Domain.filterSound_prod
 #print axioms ReuseModel.Domain.relateSound_prod
 #print axioms ReuseModel.Domain.reuseSound_prod
+#print axioms ReuseModel.Domain.filterStrong_of_decomposes
 #print axioms ReuseModel.Domain.exactOn_of_decomposes
 #print axioms ReuseModel.Domain.filterExact_of_relateSound
 #print axioms ReuseModel.Domain.match_lemma
@@ -40,6 +41,7 @@ axiom other than Lean's standard ones.
 #check_axioms ReuseModel.Domain.filterSound_prod
 #check_axioms ReuseModel.Domain.relateSound_prod
 #check_axioms ReuseModel.Domain.reuseSound_prod
+#check_axioms ReuseModel.Domain.filterStrong_of_decomposes
 #check_axioms ReuseModel.Domain.exactOn_of_decomposes
 #check_axioms ReuseModel.Domain.filterExact_of_relateSound
 #check_axioms ReuseModel.Domain.match_lemma
