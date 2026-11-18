@@ -25,8 +25,9 @@ val cache_entry : entry -> Cache_entry.Cvalue.t
 (** Classes of recorded joins seen while analysing the body. *)
 val recorded : entry -> Body_access.Result.recorded list
 
-(** The callstack in the current Eva results that holds the Inner part,
-    when statement states were saved for this body. *)
+(** The callstack to query in the current Eva results when cvalue
+    statement states were saved for this body. Queries join repeated visits
+    to that callstack, so they can include states from other calls. *)
 val inner : entry -> Callstack.t option
 
 (** Functions used by the analysis, with their call modes. Currently the

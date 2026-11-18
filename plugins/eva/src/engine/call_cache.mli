@@ -163,7 +163,8 @@ module Make
         and, if a cache was consulted, counts the stored entry or the refused
         storage. If [footprint] is present, it also reports and counts the
         collector verdict and the storage of an entry produced from it.
-        [save_results] says whether an Inner reference is available. *)
+        [save_results] enables statement recording for this body. An Inner
+        reference also requires recording in the cvalue store. *)
     val store :
       save_results:bool -> ('loc, Value.t) Eval.call -> Domain.t -> pending ->
       Domain.t Engine_sig.call_result -> Body_access.Result.t option -> unit

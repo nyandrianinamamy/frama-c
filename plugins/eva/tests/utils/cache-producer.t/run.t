@@ -50,3 +50,30 @@ The precondition check runs outside the collector and may narrow a state.
   $ frama-c -no-autoload-plugins -load-module eva -eva -main precondition -eva-msg-key cache-producer producer.c > precondition.log 2>&1
   $ grep -o 'collector: would-store; producer: refused (preconditions)' precondition.log
   collector: would-store; producer: refused (preconditions)
+
+Two fresh visits to one callstack have different inputs. The Inner reference
+queries the joined cvalue results. Disabling recording for either the callee
+or cvalue leaves both entries without an Inner reference.
+
+  $ export EVA_TEST_CACHE_PRODUCER=inner-joined
+  $ frama-c -no-autoload-plugins -load-module eva,test_cache_producer.cmxs -eva -eva-no-memexec -eva-slevel 40 -main repeated producer.c > inner-joined.log 2>&1
+  $ grep '^first input' inner-joined.log
+  first input g={1}; Inner at the shared callstack g={1; 2}
+  $ export EVA_TEST_CACHE_PRODUCER=inner-disabled
+  $ frama-c -no-autoload-plugins -load-module eva,test_cache_producer.cmxs -eva -eva-no-memexec -eva-slevel 40 -main repeated -eva-no-results-function read_g producer.c > inner-function.log 2>&1
+  $ grep '^Inner absent' inner-function.log
+  Inner absent for both entries
+  $ frama-c -no-autoload-plugins -load-module eva,test_cache_producer.cmxs -eva -eva-no-memexec -eva-slevel 40 -main repeated -eva-no-results-domain cvalue producer.c > inner-domain.log 2>&1
+  $ grep '^Inner absent' inner-domain.log
+  Inner absent for both entries
+
+The admission boundary refuses malformed observations and results before
+construction. The fixture constructs these inputs directly.
+
+  $ EVA_TEST_CACHE_PRODUCER=admission frama-c -no-autoload-plugins -load-module eva,test_cache_producer.cmxs producer.c > admission.log 2>&1
+  $ grep '^admission refused' admission.log
+  admission refused footprint-top
+  admission refused invalid-footprint
+  admission refused not-cacheable
+  admission refused input-state
+  admission refused exit-state

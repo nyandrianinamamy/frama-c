@@ -93,6 +93,7 @@ let close_key input =
     if Blocks.cardinal key > limit then Error Key_limit
     else
       match Cvalue_domain.State.relate key input with
+      (* Defensive: cvalue's relation currently returns the empty set. *)
       | Top -> Error Relate_top
       | Set related when Blocks.subset related key -> Ok key
       | Set related -> close (Blocks.union related key)
@@ -142,7 +143,11 @@ let produce ~save_results callstack input states r =
     let cache_entry = Entry.make ~id statement ~key ~input:(copy input)
         ~footprint ~exit
     in
-    let inner = if save_results then Some callstack else None in
+    let inner =
+      if save_results && Cvalue_domain.State.Store.is_computed ()
+      then Some callstack
+      else None
+    in
     let entry = {
       cache_entry; recorded = r.recorded; inner; used_functions = [kf, `Body];
     } in

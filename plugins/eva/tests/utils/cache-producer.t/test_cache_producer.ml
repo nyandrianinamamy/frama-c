@@ -18,6 +18,10 @@ let check_value model vi n =
   let value = Results.eval_var vi request |> Results.as_integer in
   assert (value = Ok (Z.of_int n))
 
+let inner_request kf produced =
+  let callstack = Option.get (Producer.inner produced) in
+  Results.before (Kernel_function.find_return kf) |> Results.in_callstack callstack
+
 let inspect produced =
   let entry = Producer.cache_entry produced in
   let footprint = Entry.footprint entry in
@@ -30,7 +34,9 @@ let inspect produced =
   assert (names footprint.written_exit = writes);
   assert (names footprint.written_sure = writes);
   assert (List.mem Eva.Body_access.States (Producer.recorded produced));
-  assert (Option.is_some (Producer.inner produced));
+  let inner = inner_request (leaf ()) produced in
+  let model = Result.get_ok (Results.get_cvalue_model_result inner) in
+  check_value model (global "out") 7;
   begin match Producer.used_functions produced with
     | [used, `Body] -> assert (Kernel_function.equal used (leaf ()))
     | _ -> assert false
@@ -91,10 +97,80 @@ let partial () =
   assert (names footprint.written_sure = []);
   Format.printf "partial: pair is in the key and is not a sure write@."
 
+let repeated ~recorded () =
+  let callee = kf "read_g" in
+  let first, second =
+    match Producer.entries callee with
+    | [first; second] -> first, second
+    | _ -> assert false
+  in
+  let g = global "g" in
+  check_value (fst (Entry.input (Producer.cache_entry first))) g 1;
+  check_value (fst (Entry.input (Producer.cache_entry second))) g 2;
+  if recorded then begin
+    let stack = Option.get (Producer.inner first) in
+    assert (Option.equal Eva.Callstack.equal (Some stack) (Producer.inner second));
+    let inner = inner_request callee first in
+    ignore (Result.get_ok (Results.get_cvalue_model_result inner));
+    let values = Results.eval_var g inner |> Results.as_ival |> Result.get_ok in
+    assert (Ival.equal values (Ival.inject_range (Some Z.one) (Some (Z.of_int 2))));
+    Format.printf "first input g={1}; Inner at the shared callstack g={1; 2}@."
+  end else begin
+    assert (Producer.inner first = None && Producer.inner second = None);
+    Format.printf "Inner absent for both entries@."
+  end
+
+module State = Eva__Cvalue_domain.State
+module Admission = Producer.Make (struct
+    type t = State.t
+    let structure = Eva__Abstract.Domain.Leaf (State.key, (module State))
+  end)
+
+let admission () =
+  Ast.compute ();
+  let stack = Eva.Callstack.init ~thread:Eva.Thread.main_id
+      ~entry_point:(kf "read_g")
+  in
+  let empty = Base.SetLattice.empty in
+  let observation = Eva__Body_access.Result.{
+      reads = empty; writes = empty; exit_writes = empty;
+      sure_writes = Base.Hptset.empty; designated = empty;
+      recorded = []; refusals = [];
+    }
+  in
+  let state = Cvalue.Model.empty_map, snd State.top in
+  let exit = Eva__Partition.Key.empty, state in
+  let result = Eva__Engine_sig.{
+      states = [exit]; cacheable = Cacheable; kind = `Body
+    }
+  in
+  let check expected input result observation =
+    let reason = Admission.store ~save_results:false stack input result
+        observation (Ok ())
+    in
+    assert (reason = Error expected);
+    Format.printf "admission refused %s@." (Producer.refusal_id expected)
+  in
+  check Producer.Footprint_top state result
+    { observation with reads = Base.SetLattice.top };
+  let out = Base.Hptset.singleton (Base.of_varinfo (global "out")) in
+  check Producer.Invalid_footprint state result
+    { observation with sure_writes = out };
+  check Producer.Not_cacheable state { result with cacheable = NoCacheCallers }
+    observation;
+  check Producer.Input_state State.top result observation;
+  let bottom = Cvalue.Model.bottom, snd state in
+  check Producer.Exit_state state
+    { result with states = [fst exit, bottom] } observation;
+  assert (Producer.entries (kf "read_g") = [])
+
 let () =
   match Sys.getenv_opt "EVA_TEST_CACHE_PRODUCER" with
   | Some "replay" -> Boot.Main.extend replay
   | Some "partial" -> Boot.Main.extend partial
+  | Some "inner-joined" -> Boot.Main.extend (repeated ~recorded:true)
+  | Some "inner-disabled" -> Boot.Main.extend (repeated ~recorded:false)
+  | Some "admission" -> Boot.Main.extend admission
   | _ -> Boot.Main.extend (fun () ->
       assert (Eva.Statistics.get Eva.Statistics.memexec_hits (leaf ()) = 1);
       assert (Eva.Statistics.get Eva.Statistics.cache_hits (leaf ()) = 0);

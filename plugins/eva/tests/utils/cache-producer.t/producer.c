@@ -47,3 +47,18 @@ void precondition(void)
 {
   out = q;
 }
+
+int g;
+
+void read_g(void)
+{
+  out = g;
+}
+
+void repeated(void)
+{
+  for (int i = 1; i <= 2; ++i) {
+    g = i;
+    read_g();
+  }
+}
