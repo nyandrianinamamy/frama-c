@@ -86,8 +86,8 @@ included.
 
 **Evidence.**
 
-- Checked revision: commit `ef89548104e2e83a4b285bb6e4faf0bc5e2d6ed3`. Tree of
-  `lean/` at that commit: `a87723bde6d2f69d08574a959f9ee0e1ba611424`.
+- Checked revision: commit `0e3b43669587f1c9c2cbc1e5ae8ad6c681f12f2a`. Tree of
+  `lean/` at that commit: `a95aed2447ff8818235d38c22ffa02ebd72ba43c`.
   Toolchain: `leanprover/lean4:v4.28.0` (Lean 4.28.0, commit `7e01a1bf5c70`).
 - Command: `cd lean && lake build --wfail`, run on 2026-11-18 in a fresh
   shallow clone of that commit. Exit status 0.
