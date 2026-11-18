@@ -3,6 +3,7 @@ import ReuseModel.Memory
 import ReuseModel.Semantics
 import ReuseModel.Observations
 import ReuseModel.Frame
+import ReuseModel.Domain
 
 /-!
 # Reference model for statement reuse in Eva

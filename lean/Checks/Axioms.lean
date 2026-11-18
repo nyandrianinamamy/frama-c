@@ -15,6 +15,17 @@ axiom other than Lean's standard ones.
 #print axioms ReuseModel.WellFormed.stmt_labels_nodup
 #print axioms ReuseModel.WellFormed.sub
 #print axioms ReuseModel.WellFormed.body
+#print axioms ReuseModel.FunMem.combinable
+#print axioms ReuseModel.Domain.closed_prod_iff
+#print axioms ReuseModel.Domain.decomposes_prod
+#print axioms ReuseModel.Domain.filterSound_prod
+#print axioms ReuseModel.Domain.relateSound_prod
+#print axioms ReuseModel.Domain.reuseSound_prod
+#print axioms ReuseModel.Domain.exactOn_of_decomposes
+#print axioms ReuseModel.Domain.filterExact_of_relateSound
+#print axioms ReuseModel.Domain.match_lemma
+#print axioms ReuseModel.Domain.product_lemma
+#print axioms ReuseModel.Domain.projected_match
 
 #check_axioms ReuseModel.frame_lemma
 #check_axioms ReuseModel.frame_of_not_written
@@ -22,6 +33,17 @@ axiom other than Lean's standard ones.
 #check_axioms ReuseModel.WellFormed.stmt_labels_nodup
 #check_axioms ReuseModel.WellFormed.sub
 #check_axioms ReuseModel.WellFormed.body
+#check_axioms ReuseModel.FunMem.combinable
+#check_axioms ReuseModel.Domain.closed_prod_iff
+#check_axioms ReuseModel.Domain.decomposes_prod
+#check_axioms ReuseModel.Domain.filterSound_prod
+#check_axioms ReuseModel.Domain.relateSound_prod
+#check_axioms ReuseModel.Domain.reuseSound_prod
+#check_axioms ReuseModel.Domain.exactOn_of_decomposes
+#check_axioms ReuseModel.Domain.filterExact_of_relateSound
+#check_axioms ReuseModel.Domain.match_lemma
+#check_axioms ReuseModel.Domain.product_lemma
+#check_axioms ReuseModel.Domain.projected_match
 
 /-! The check rejects a theorem that depends on another axiom. `native_decide`
 makes the proof depend on the axioms that trust the compiler. `#guard_msgs`

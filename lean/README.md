@@ -3,7 +3,8 @@
 This directory holds the Lean reference model for the reuse of cache entries in
 Eva. It defines a small language, a concrete memory, executions and the
 observations that a cache entry makes claims about, and it proves theorems
-about them. The first theorem is the frame lemma without sweeps.
+about them: the frame lemma without sweeps, and the match and product lemmas
+on abstract domains.
 
 The theorems are about the model. They do not verify the OCaml code of Eva.
 Whether Eva meets the hypotheses of a theorem is a separate question, answered
@@ -61,6 +62,7 @@ directories that Dune reads, and `lean` is not among them.
 | `ReuseModel/Semantics.lean` | Events, evaluation, configurations, the step function, executions (`run`) and finite sequences of steps (`Steps`), for any program; finite prefixes (`Prefix`) of a subject |
 | `ReuseModel/Observations.lean` | Exit, Reach, Safety and visits, of a subject |
 | `ReuseModel/Frame.lean` | `InFrame`, `frame_of_not_written`, `frame_lemma` |
+| `ReuseModel/Domain.lean` | Agreement of memories on a set of blocks, `Combinable`; abstract domains (`Domain`) with their laws `FilterSound`, `RelateSound`, `FilterExact` and `ReuseSound`; closed sets, the product of two domains and the laws it keeps; `match_lemma`, `product_lemma`, `projected_match` |
 | `Checks/AxiomCheck.lean` | The `#check_axioms` command |
 | `Checks/Axioms.lean` | `#print axioms` and `#check_axioms` for each theorem |
 | `Checks/Examples.lean` | Aliasing, a dangling pointer after a return, and a call that does not return, on which `frame_lemma` is applied; the body of a function as the subject; comparisons with the null pointer |
@@ -114,6 +116,17 @@ directories that Dune reads, and `lean` is not among them.
   every finite prefix, so they include the visits before a fault and inside a
   call that does not return. Safety covers run-time alarms and labelled
   assertions.
+- **Abstract domains.** A `Domain` has states, a concretisation `γ` from a
+  state to a set of memories, and the operations `filter`, `relate` and
+  `reuse` on finite sets of blocks. `relate` may return `Top`. The laws are
+  predicates on a domain: `filter` sound in its weak form (`filter` only
+  forgets); `relate` sound (on a closed set, `filter` decomposes the state,
+  and `relate` returns only blocks live in every memory the state covers);
+  `filter` exact on a closed key of a state with a non-empty
+  concretisation; `reuse` sound (the result covers every memory that agrees
+  with an output memory on the written blocks and with a current memory
+  elsewhere). The product of two domains has the union of the two `relate`.
+  No analysis is modelled: the laws are what an analysis is assumed to meet.
 
 ## Why the fragment is formulated this way
 
@@ -161,14 +174,43 @@ directories that Dune reads, and `lean` is not among them.
 The proof of `frame_lemma` does not use the fragment conditions; they restrict
 the programs that the lemma, as stated for the record, is about.
 
+## Why the domain laws are formulated this way
+
+- **Memories of the semantics.** `γ` maps a state to memories of the type `M`
+  of the semantics, not to maps from blocks to values. A memory that
+  exactness provides can then start an execution in the later theorems.
+  Agreement on a set of blocks compares `Memory.load`.
+- **Combination as a hypothesis.** The product lemma builds a memory that
+  agrees with the current memory on the key and with a memory of the stored
+  input elsewhere. The interface `Memory` has no operation that builds it, so
+  the lemma takes `Combinable M` as a hypothesis, and
+  `FunMem.combinable` proves it for `FunMem`. It is not added to `Memory`,
+  whose laws the frame lemma relies on.
+- **Finite sets as lists.** A set of blocks is a list, as Eva's sets of bases
+  are finite. Membership is decidable, so combining two memories needs no
+  classical choice.
+- **Exactness derived.** `FilterExact` is listed as a law, but the lemmas take
+  `ExactOn`, exactness for one key and one state, and
+  `filterExact_of_relateSound` derives the law from `relate` sound. The
+  product lemma derives exactness of a product from the decomposition of each
+  component, not from the exactness of each component: the two witnesses that
+  component exactness gives need not be one memory.
+- **Inclusion on concretisations.** The domains have no order. The inclusion
+  of the filtered current input in the filtered stored input is stated on
+  their concretisations; equality of the filtered states, which Eva tests,
+  implies it.
+
 ## What the model leaves out
 
 - Offsets into a block, arrays and structures, pointer arithmetic, and casts
   between pointers and integers.
 - Recursion: the step function runs recursive programs, but the observations
   and `frame_lemma` take a `Subject`, whose program is nonrecursive.
-- Eva's iteration strategy, and any abstract domain: there is no analyzer in
-  the model.
+- Eva's iteration strategy: there is no analyzer in the model. Abstract
+  domains enter through their concretisation and their laws only; no domain
+  of Eva is modelled.
+- An order on abstract states. The inclusion of the filtered inputs at the
+  match is stated on their concretisations.
 - Creation and release of heap allocations during a statement. Existing heap
   allocations are covered.
 - Reads of uninitialized values (every local is declared with an initial
