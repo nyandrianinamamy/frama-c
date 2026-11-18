@@ -75,6 +75,12 @@ their expected outputs are updated with it: the list of message categories
 the statistics file (`plugins/eva/tests/utils/statistics.t`) gains
 `memexec-stored` rows. No analysis output differs in either test.
 
+The [body access collector](body-access.md) can now observe a fresh body and
+report its own verdict beside memexec's disposition. It leaves the order of
+the memexec operations and their inputs intact. Its statistics are separate
+and inactive by default. The collector's recorder is unwound before the
+interrupted body is reported.
+
 **Open.** No test compares the callbacks and their order with those of the
 engine before the seam; this rests on source inspection. Equality with the
 previous engine is a regression expectation on the Eva test suite, not a

@@ -65,3 +65,5 @@ that a checkout has the model sources of an entry, compare
 - [Call-cache seam](call-cache-seam.md): the seam through which memexec
   answers calls, the dispositions of each call, their reasons and their
   counts, and the closure of the memexec key under `relate`.
+- [Body access collector](body-access.md) covers the block sets, observational
+  storage verdict and side-table classes.
