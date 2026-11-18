@@ -352,6 +352,12 @@ the pending replay of that class. `Logic_inout` runs in the callwise
 hooks of From and Inout, with recording suspended, or after the analysis;
 Mthread, which also calls it, refuses while enabled.
 
+The `\warning` predicate (`Eval_terms.eval_predicate`) prints a message at
+each evaluation, without `once`. A replay would not print it, so the clause
+refuses as `side-table` through `Logic_access.refuse_side_table` before the
+message. Frama-C declares no logic builtin of that name, so no ACSL source
+reaches this case: its evidence is source inspection.
+
 *Reductions.* After a reduction, the cvalue offsetmap trees of the incoming
 and outgoing states are compared, skipping the subtrees that the
 hash-consed trees share. Each changed, added or removed binding contributes
@@ -412,7 +418,9 @@ outside the audited files, such as the pointer comparison messages of
 `Cvalue_forward` and `Cvalue_backward`, are not classified; neither is the
 change of a warning category set to `once` by `-eva-warn-key`, which the
 logger records when the warning is emitted. A designated range covers the
-whole block when the offsets are unbounded, which can refuse a body that
-loads only part of a block holding an allocation address. The cost of
+whole block when the offsets are unbounded, and every cell from the least
+to the greatest offset when they are strided, such as a field read across
+the elements of an array. Either can refuse a body that loads only part of
+a block holding an allocation address. The cost of
 `designate_cells` at each C scalar load is not measured. Safety and Reach
 replay are pending.
