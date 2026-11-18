@@ -9,47 +9,52 @@
   g ∈ {0}
   out ∈ {0}
   keep ∈ {0}
-[eva:cache] cache_supplied.c:66: 
+[eva:cache] cache_supplied.c:68: 
   call to step: lookup: hit (entry 1); execution: not-analysed; storage: none
-[eva:progress] cache_supplied.c:66: Reusing old results for call to step
-[eva:show] cache_supplied.c:67: Frama_C_show_each_after_hit: {4}
+[eva:progress] cache_supplied.c:68: Reusing old results for call to step
+[eva:show] cache_supplied.c:69: Frama_C_show_each_after_hit: {4}
+[eva:progress] cache_supplied.c:70: assertion 'hit' got status valid.
 [eva:progress] 
   computing for function step <- main.
-  Called from cache_supplied.c:69.
-[eva:show] cache_supplied.c:40: Frama_C_show_each_step: {1}, {5}
+  Called from cache_supplied.c:72.
+[eva:show] cache_supplied.c:42: Frama_C_show_each_step: {1}, {5}
 [eva:progress] Recording results for step
 [eva:progress] Done for function step
-[eva:cache] cache_supplied.c:69: 
-  call to step: lookup: rejected (entry 1: key-differs); execution: analysed; storage: refused (supplied-only)
-[eva:show] cache_supplied.c:70: Frama_C_show_each_after_miss: {6}
 [eva:cache] cache_supplied.c:72: 
-  call to set_out: lookup: hit (entry 2); execution: not-analysed; storage: none
-[eva:progress] cache_supplied.c:72: Reusing old results for call to set_out
-[eva:show] cache_supplied.c:73: Frama_C_show_each_after_frame: {7}, {42}
-[eva:cache] cache_supplied.c:74: 
-  call to precise_first: lookup: hit (entry 3); execution: not-analysed; storage: none
-[eva:progress] cache_supplied.c:74: 
-  Reusing old results for call to precise_first
-[eva:show] cache_supplied.c:75: Frama_C_show_each_after_precise_first: {7}
+  call to step: lookup: rejected (entry 1: key-differs); execution: analysed; storage: refused (supplied-only)
+[eva:show] cache_supplied.c:73: Frama_C_show_each_after_miss: {6}
+[eva:progress] cache_supplied.c:74: assertion 'miss' got status valid.
 [eva:cache] cache_supplied.c:76: 
+  call to set_out: lookup: hit (entry 2); execution: not-analysed; storage: none
+[eva:progress] cache_supplied.c:76: Reusing old results for call to set_out
+[eva:show] cache_supplied.c:77: Frama_C_show_each_after_frame: {7}, {42}
+[eva:progress] cache_supplied.c:78: assertion 'written' got status valid.
+[eva:progress] cache_supplied.c:79: assertion 'kept' got status valid.
+[eva:cache] cache_supplied.c:80: 
+  call to precise_first: lookup: hit (entry 3); execution: not-analysed; storage: none
+[eva:progress] cache_supplied.c:80: 
+  Reusing old results for call to precise_first
+[eva:show] cache_supplied.c:81: Frama_C_show_each_after_precise_first: {7}
+[eva:progress] cache_supplied.c:82: assertion 'older' got status valid.
+[eva:cache] cache_supplied.c:83: 
   call to wide_first: lookup: hit (entry 5); execution: not-analysed; storage: none
-[eva:progress] cache_supplied.c:76: Reusing old results for call to wide_first
-[eva:show] cache_supplied.c:77: Frama_C_show_each_after_wide_first: {7; 8}
+[eva:progress] cache_supplied.c:83: Reusing old results for call to wide_first
+[eva:show] cache_supplied.c:84: Frama_C_show_each_after_wide_first: {7; 8}
 [eva:progress] 
   computing for function plain <- main.
-  Called from cache_supplied.c:78.
-[eva:show] cache_supplied.c:60: Frama_C_show_each_plain: {1}
+  Called from cache_supplied.c:85.
+[eva:show] cache_supplied.c:62: Frama_C_show_each_plain: {1}
 [eva:progress] Recording results for plain
 [eva:progress] Done for function plain
-[eva:cache] cache_supplied.c:78: 
+[eva:cache] cache_supplied.c:85: 
   call to plain: lookup: no-candidate; execution: analysed; storage: refused (supplied-only)
 [eva:progress] 
   computing for function plain <- main.
-  Called from cache_supplied.c:79.
-[eva:show] cache_supplied.c:60: Frama_C_show_each_plain: {1}
+  Called from cache_supplied.c:86.
+[eva:show] cache_supplied.c:62: Frama_C_show_each_plain: {1}
 [eva:progress] Recording results for plain
 [eva:progress] Done for function plain
-[eva:cache] cache_supplied.c:79: 
+[eva:cache] cache_supplied.c:86: 
   call to plain: lookup: no-candidate; execution: analysed; storage: refused (supplied-only)
 [eva:progress] Recording results for main
 [eva:progress] Done for function main

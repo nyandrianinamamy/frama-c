@@ -154,14 +154,15 @@ written by hand in the comment of the test file and in its module:
 - The first call to `step`, with x = 1 and g = 3, reads
   `lookup: hit (entry 1); execution: not-analysed`, `step` prints nothing for
   it, and `Frama_C_show_each_after_hit` prints `{4}`, the value of out in the
-  supplied exit state.
+  supplied exit state; the assertion `hit: out == 4` gets status valid.
 - After `g = 5`, the second call reads
   `lookup: rejected (entry 1: key-differs); execution: analysed`; `step` prints
-  `{1}, {5}`; out is `{6}`.
+  `{1}, {5}`; out is `{6}` and the assertion `miss: out == 6` is valid.
 - `precise_first` has entry 3 (out = 7) supplied before entry 4 (out in
   [7..8]); `wide_first` has entry 5 (out in [7..8]) supplied before entry 6
   (out = 7). Both entries of each function match. The calls read
-  `hit (entry 3)` and `hit (entry 5)`, and out is `{7}` and `{7; 8}`. The two
+  `hit (entry 3)` and `hit (entry 5)`, and out is `{7}` and `{7; 8}`; the
+  assertion `older: out == 7` after `precise_first` is valid. The two
   functions have the same body, so the order of supply alone decides.
 - The module prints the content of each entry from OCaml: its key, stored
   input, read and written blocks and exit states with their partition keys.
@@ -421,7 +422,8 @@ stored output made them print 287 failures, and was reverted. Executed by run
 supplied exit state binds keep to 0; the stored exit state no longer binds
 keep, as the module prints (`exit of set_out binds keep: false`), and after
 the hit `Frama_C_show_each_after_frame` prints `{7}, {42}`: out from the exit
-state, keep = 42 from the caller. The module also supplies an entry whose
+state, keep = 42 from the caller. The assertions `written: out == 7` and
+`kept: keep == 42` after the hit are valid. The module also supplies an entry whose
 exit state does not bind out, and one whose input is `Top`, and prints their
 refusals. The refusal of a `Bottom` input is not executed.
 

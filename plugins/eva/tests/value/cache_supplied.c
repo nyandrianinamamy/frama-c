@@ -32,7 +32,9 @@
    - precise_first hits entry 3, supplied before entry 4: out is 7;
    - wide_first hits entry 5, supplied before entry 6: out is [7..8];
    - no entry is supplied for plain: both calls find no candidate and are
-     analysed, and memexec stores nothing. */
+     analysed, and memexec stores nothing.
+   The assertions check the values of out and keep after the calls; each one
+   is valid in every run. */
 
 int g, out, keep;
 
@@ -65,14 +67,19 @@ int main(void) {
   g = 3;
   step(1);
   Frama_C_show_each_after_hit(out);
+  //@ assert hit: out == 4;
   g = 5;
   step(1);
   Frama_C_show_each_after_miss(out);
+  //@ assert miss: out == 6;
   keep = 42;
   set_out();
   Frama_C_show_each_after_frame(out, keep);
+  //@ assert written: out == 7;
+  //@ assert kept: keep == 42;
   precise_first(1);
   Frama_C_show_each_after_precise_first(out);
+  //@ assert older: out == 7;
   wide_first(1);
   Frama_C_show_each_after_wide_first(out);
   plain(1);
