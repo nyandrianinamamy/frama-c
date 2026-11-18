@@ -127,21 +127,27 @@ val update_variable_validity:
     The validity and the type of the variable of an [Allocated] base can
     change during an analysis. *)
 
-val on_metadata_read: (t -> unit) -> unit
-(** Registers an observer run with the base when {!validity}, {!is_weak},
-    {!typeof}, {!bits_sizeof} or {!alignof} is applied to an [Allocated]
-    base, and by {!metadata_read}. A function given an already extracted
-    validity is not observed. An observer must not apply these functions to
-    an [Allocated] base: doing so runs the observers again. *)
+val observe_metadata_reads: (t -> unit) option -> unit
+(** [observe_metadata_reads (Some f)] makes [f] the observer run with the
+    base when {!validity}, {!is_weak}, {!typeof}, {!bits_sizeof} or
+    {!alignof} is applied to an [Allocated] base, and by {!metadata_read}.
+    [observe_metadata_reads None] removes it. There is at most one observer:
+    a new one replaces the previous one. Without observer, these functions
+    test one reference and call no function. A function given an already
+    extracted validity is not observed. The observer must not apply these
+    functions to an [Allocated] base: doing so runs it again. *)
 
 val metadata_read: t -> unit
-(** Runs the observers of {!on_metadata_read} on an [Allocated] base, and
-    does nothing on another base. For code that reads the validity of an
+(** Runs the observer of {!observe_metadata_reads} on an [Allocated] base,
+    and does nothing on another base. For code that reads the validity of an
     allocated base by matching its constructor. *)
 
-val on_validity_update: (unit -> unit) -> unit
-(** Registers an observer run at each call of {!update_variable_validity},
-    before the update. *)
+val observe_validity_updates:
+  (variable_validity -> weak:bool -> unit) option -> unit
+(** [observe_validity_updates (Some f)] makes [f] the observer run at each
+    call of {!update_variable_validity}, before the update, with the record
+    and the [weak] argument; [None] removes it. There is at most one
+    observer. *)
 
 
 (** {2 Finding bases} *)

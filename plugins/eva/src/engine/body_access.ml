@@ -81,23 +81,6 @@ let call_site : recording option ref = ref None
 
 let[@inline always] is_recording () = Option.is_some !current
 
-let suspend site f =
-  let previous = !current and previous_site = !call_site in
-  current := None;
-  call_site := site;
-  Fun.protect f ~finally:(fun () ->
-      current := previous;
-      call_site := previous_site)
-
-let without_recording f =
-  if Option.is_none !current && Option.is_none !call_site then f ()
-  else suspend None f
-
-let at_call_site f =
-  match !current with
-  | None -> f ()
-  | previous -> suspend previous f
-
 (* Refusals of the allocation family. A body inherits them from the bodies
    analysed during its own analysis, and they are recorded at a call
    site. *)
@@ -109,6 +92,51 @@ let inherited = function
 
 let add_refusal r reason =
   if not (List.mem reason r.refusals) then r.refusals <- reason :: r.refusals
+
+(* The recorder of the allocation family: the body's, or at a call site the
+   recorder of the body. *)
+let observer () =
+  match !current with
+  | Some _ as r -> r
+  | None -> !call_site
+
+(* The kernel reports each read of the validity or of the type of an
+   allocated block, and each update of a validity record, while a recorder
+   is set. *)
+let metadata_read base =
+  match observer () with
+  | None -> ()
+  | Some r ->
+    add_refusal r Allocation_metadata;
+    r.owners <- Base.Hptset.add base r.owners
+
+let validity_update _ ~weak:_ =
+  Option.iter (fun r -> add_refusal r Validity_mutation) (observer ())
+
+let read_observer = Some metadata_read
+let update_observer = Some validity_update
+
+(* Sets the recorders. Without recorder, the kernel has no observer. *)
+let set_recorders body site =
+  current := body;
+  call_site := site;
+  let observed = Option.is_some body || Option.is_some site in
+  Base.observe_metadata_reads (if observed then read_observer else None);
+  Base.observe_validity_updates (if observed then update_observer else None)
+
+let suspend site f =
+  let previous = !current and previous_site = !call_site in
+  set_recorders None site;
+  Fun.protect f ~finally:(fun () -> set_recorders previous previous_site)
+
+let without_recording f =
+  if Option.is_none !current && Option.is_none !call_site then f ()
+  else suspend None f
+
+let at_call_site f =
+  match !current with
+  | None -> f ()
+  | previous -> suspend previous f
 
 let[@inline always] refuse reason =
   match !current, !call_site with
@@ -233,19 +261,6 @@ let unknown_write () =
   Option.iter (fun r -> add_write r Bases.top Zone.bottom) !current
 
 let () = Origin.on_history_access (fun () -> refuse Side_table)
-
-(* The kernel reports each read of the validity or of the type of an
-   allocated block, and each update of a validity record. *)
-let () =
-  Base.on_metadata_read
-    (fun base ->
-       match !current, !call_site with
-       | Some r, _ | None, Some r ->
-         add_refusal r Allocation_metadata;
-         r.owners <- Base.Hptset.add base r.owners
-       | None, None -> ())
-
-let () = Base.on_validity_update (fun () -> refuse Validity_mutation)
 
 let write location =
   match !current with
@@ -380,12 +395,10 @@ let capture stack compute =
       paths = None;
       unlocated_write = false;
     } in
-    current := Some r;
-    call_site := None;
+    set_recorders (Some r) None;
     let output =
       Fun.protect compute ~finally:(fun () ->
-          current := previous;
-          call_site := previous_site)
+          set_recorders previous previous_site)
     in
     (* The size of a written block is read outside the body's analysis. *)
     let exit_writes, sure_writes =

@@ -112,16 +112,23 @@ let id = function
 
 let hash = id
 
-(* Observers of the reads and updates of the metadata of allocated bases. *)
-module Metadata_read = Hook.Build (struct type t = base end)
-module Validity_update = Hook.Build (struct type t = unit end)
+(* The observers of the reads and updates of the metadata of allocated
+   bases. Without observer, an accessor tests one reference and calls no
+   function. *)
+let metadata_observer : (base -> unit) option ref = ref None
+let validity_observer : (variable_validity -> weak:bool -> unit) option ref =
+  ref None
 
-let on_metadata_read f = Metadata_read.extend f
-let on_validity_update f = Validity_update.extend f
+let observe_metadata_reads f = metadata_observer := f
+let observe_validity_updates f = validity_observer := f
 
-let metadata_read = function
-  | Allocated _ as b -> Metadata_read.apply b
-  | Var _ | CLogic_Var _ | Null | Absolute _ -> ()
+let[@inline] metadata_read b =
+  match !metadata_observer with
+  | None -> ()
+  | Some f ->
+    match b with
+    | Allocated _ -> f b
+    | Var _ | CLogic_Var _ | Null | Absolute _ -> ()
 
 let null = Null
 
@@ -300,7 +307,7 @@ let validity_from_known_size size =
 let validity b =
   match b with
   | Var (_,v) | CLogic_Var (_, _, v) -> v
-  | Allocated (_,_,v) -> Metadata_read.apply b; v
+  | Allocated (_,_,v) -> metadata_read b; v
   | Null -> Invalid
   | Absolute { size } -> validity_from_size size
 
@@ -313,7 +320,7 @@ let is_read_only base =
 (* Minor optimization compared to [is_weak (validity b)] *)
 let is_weak = function
   | Allocated (_, _, validity) as b ->
-    Metadata_read.apply b;
+    metadata_read b;
     (match validity with Variable { weak } -> weak | _ -> false)
   | Var _ | CLogic_Var _ | Null | Absolute _ -> false
 
@@ -492,7 +499,7 @@ let create_variable_validity ~weak ~min_alloc ~max_alloc =
   { weak; min_alloc; max_alloc; max_allocable }
 
 let update_variable_validity v ~weak ~min_alloc ~max_alloc =
-  Validity_update.apply ();
+  (match !validity_observer with None -> () | Some f -> f v ~weak);
   v.min_alloc <- Z.min min_alloc v.min_alloc;
   v.max_alloc <- Z.max max_alloc v.max_alloc;
   if weak then v.weak <- true
