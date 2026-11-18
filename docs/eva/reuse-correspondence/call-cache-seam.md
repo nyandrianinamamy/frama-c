@@ -19,6 +19,15 @@ and with an interrupted analysis. The cram test
 with their callstacks and the counts of builtin applications, which the
 case-study campaign reads.
 
+The messages of the category `cache` form the per-call record of the
+campaign. Its scope is the calls that reach the seam: the calls analysed
+through the body of the called function and those answered by a cache. A
+call resolved by a cvalue builtin or by the specification of the called
+function does not reach the seam and prints no message; the statistic
+`builtin-applied-NAME` counts the applications of each builtin, and no
+message or statistic of the seam counts the calls resolved by a
+specification.
+
 ## The seam does not change the results of an analysis
 
 **Claim.** Routing memexec through the seam changes no result of an analysis:
@@ -28,7 +37,8 @@ with `-eva-memexec` set or not, in an analysis that starts with no supplied
 entry, as every analysis outside a test module does. The message category `cache` has no verbosity
 level, so its lines are printed only when `-eva-msg-key` enables it. When the
 category `callstacks` is enabled too, each line ends with the callstack of
-the call. The count of builtin applications in the statistics is not read
+the call, in which each call site is followed by the number of its call
+statement. The count of builtin applications in the statistics is not read
 by the analysis either.
 
 **Kind.** OCaml obligation.
@@ -64,10 +74,12 @@ the same condition as before: the option is set and the result is marked
 `Cacheable`. For such a result, `store_computed_call` performs the same operations in
 the same order as before, and returns the call number or a reason instead of
 `unit`. The statistics updates of memexec moved into the seam, and the
-category messages are new; neither is read by the analysis. The message is
-printed while the callstack of the call is the current callstack, set by
-`compute_call` around the whole call, so the callstack that ends it with
-the category `callstacks` is that of the call. `compute_builtin` increments
+category messages are new; neither is read by the analysis. With the
+category `callstacks`, the message ends with `call.callstack`, the callstack
+of the call, which is also the current callstack while the message is
+printed, since `compute_call` sets it around the whole call. It is printed
+as Eva prints callstacks in its messages, with `(stmt ID)` after each call
+site, and only when both categories are enabled. `compute_builtin` increments
 `builtin-applied-NAME` right before `Builtins.apply_builtin`; no part of the
 analysis reads it. With
 `-eva-no-memexec`, the seam does not increment `memexec-*` counters. When an exception
@@ -90,8 +102,10 @@ ptests oracle changed. Among the oracles that passed, those containing
 `Reusing old results for call to` record hits answered through `lookup`, for
 example `plugins/eva/tests/value/oracle/memexec.0.res.oracle`. The cram test
 `call-records.t` shows the callstack at the end of each message, the called
-function first, and two applications each of `malloc` and `free` with
-caching enabled and disabled. The test
+function first, with different statement numbers for the two calls to
+`leaf` on one line, no message for the calls answered by the builtins of
+`malloc` and `free`, and two applications of each builtin with caching
+enabled and disabled. The test
 `plugins/eva/tests/value/split_return.i` passes `-eva-no-memexec` in each of
 its runs, so its unchanged oracles cover the path where the seam answers with
 no cache. A run of the fixture with `-eva-verbose 11` and without
