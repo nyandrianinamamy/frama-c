@@ -50,6 +50,7 @@ opam update
 opam switch create . ocaml-base-compiler.5.2.1 --no-install -y --jobs=8
 eval "$(opam env --switch=. --set-switch)"
 opam install --switch=. dune.3.21.1 -y --jobs=8
+opam pin add --switch=. dune 3.21.1 --no-action -y
 opam install --switch=. --deps-only --with-test . -y --jobs=8
 DUNE_ROOT=. opam install --switch=. -y --jobs=8 apron zmq ocp-indent.1.10.0 \
   headache camomile alt-ergo.2.6.4 mopsa.1.2
@@ -82,6 +83,14 @@ integration-test tools and needs the LLVM development packages above.
 `headache`, `camomile` and `ocp-indent` support developer checks; Alt-Ergo
 2.6.4 matches the development dependency in `opam`. Mopsa 1.2 constrains Dune
 to < 3.22; installing Dune 3.21.1 first avoids rebuilding its dependents.
+Use Dune 3.21.1 and keep it pinned in the switch; check `dune --version`
+before running tests. With Dune 3.25.0, `tests/fc_script/estimate-difficulty.t`
+fails: the script starts `frama-c` through
+`_build/install/default/.packages/<hash>/bin/frama-c`, which exits at startup
+with `Failure("hd")` because it does not find its share directory. If the
+switch has another version, run
+`DUNE_ROOT=. opam install --switch=. dune.3.21.1 -y --jobs=8`; this recompiles
+the packages that depend on Dune.
 `DUNE_ROOT=.` keeps Mopsa's nested `make install` in its own package directory:
 without it, an earlier attempt with Mopsa 1.1 selected the enclosing
 Frama-C workspace and failed. Keep this variable scoped to that opam command.
