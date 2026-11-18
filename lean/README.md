@@ -133,9 +133,9 @@ directories that Dune reads, and `lean` is not among them.
   lists, and membership in the concrete list `Program.stmts`; statements have
   decidable equality, so `decide` checks the conditions for a given program.
 - **Unique names.** A call takes the first definition with its name
-  (`Program.lookup`). With distinct names, the entries of the list are
-  exactly the definitions that calls reach, so the other conditions, stated
-  on the entries, are about these functions.
+  (`Program.lookup`). With distinct names, lookup by the name of an
+  entry of the list returns that entry, so the other conditions, stated on
+  the entries, are about the definitions that lookup returns.
 - **Program labels apart from the observed statement.** The cache contract
   that the model serves is stated for any single-entry statement, with the
   function body as its first unit, so the observed statement must be allowed
