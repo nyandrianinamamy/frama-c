@@ -80,12 +80,12 @@ native Dune or cram tests that are disabled by a condition.
 
 ## GitHub Actions runner
 
-Push CI on `nyandrianinamamy/frama-c` uses the Ubuntu 24.04 runner labelled
-`frama-c-vm`. Pull requests and manual dispatches use GitHub-hosted runners.
-The VM runs the default ptests and every Eva configuration in one Dune build,
-so configurations that compare against default results share that computation.
-Checkout starts clean for every job. Only the build of `@install` uses the
-persistent Dune cache.
+On pushes to `nyandrianinamamy/frama-c`, the Ubuntu 24.04 runner labelled
+`frama-c-vm` runs the kernel native tests and default ptests. Two GitHub-hosted
+jobs run the Eva configurations in parallel. Pull requests and manual
+dispatches run all three jobs on GitHub-hosted runners. The VM checkout
+starts clean for every job. Only the build of `@install` uses its persistent
+Dune cache.
 
 The VM uses an administrator-owned `/opt/frama-c-ci` toolchain. To provision
 another runner with that label, install the system packages listed in the

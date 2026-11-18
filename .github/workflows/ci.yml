@@ -39,49 +39,13 @@ env:
   OPAM_CACHE_VERSION: ocaml5.2.1-dune3.21.1-v1
 
 jobs:
-  vm:
-    name: Analyzer checks and tests (VM)
-    if: github.repository == 'nyandrianinamamy/frama-c' && github.event_name == 'push'
-    runs-on: [self-hosted, Linux, X64, frama-c-vm]
-    timeout-minutes: 150
-    env:
-      OPAMROOT: /opt/frama-c-ci/opam-root
-      XDG_CACHE_HOME: /home/ci-runner/.cache/frama-c-ci
-      JOBS: 6
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Activate the VM toolchain
-        run: |
-          env_file="$RUNNER_TEMP/frama-c-env"
-          opam env --readonly --shell=bash --set-switch > "$env_file"
-          echo 'export PATH="/opt/frama-c-ci/venv/bin:$PATH"' >> "$env_file"
-          echo "BASH_ENV=$env_file" >> "$GITHUB_ENV"
-
-      - name: Build and check the analyzer
-        run: |
-          bash dev/check-env.sh
-          DUNE_CACHE=enabled dune build -j "$JOBS" @install
-          dune exec --no-build -- frama-c -plugins > "$RUNNER_TEMP/plugins.txt"
-          grep -q '^Eva ' "$RUNNER_TEMP/plugins.txt"
-          test -d _build/install/default/lib/frama-c-eva/apron
-          make check-lint LINTCK_EXTRA=-s
-          make check-headers
-
-      - name: Run default ptests, all Eva configurations, and native tests
-        run: |
-          make run-ptests PTEST_OPTS="-config DEFAULT"
-          dune exec -- frama-c-ptests -never-disabled plugins/eva/tests
-          dune build -j "$JOBS" @ptests_config @plugins/eva/tests/ptests \
-            @plugins/eva/runtest @tests/runtest
-
   test:
-    # PRs, forks and manual dispatches use isolated GitHub-hosted runners.
-    if: github.repository != 'nyandrianinamamy/frama-c' || github.event_name != 'push'
     name: ${{ matrix.name }}
-    runs-on: ubuntu-24.04
+    # Only a push in the owning repository can use the persistent VM.
+    runs-on: >-
+      ${{ matrix.scope == 'kernel' && github.event_name == 'push' &&
+          github.repository == 'nyandrianinamamy/frama-c' &&
+          'frama-c-vm' || 'ubuntu-24.04' }}
     timeout-minutes: 150
     strategy:
       fail-fast: false
@@ -96,8 +60,22 @@ jobs:
     steps:
       - name: Check out the repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Activate the VM toolchain
+        if: runner.environment == 'self-hosted'
+        run: |
+          echo "/opt/frama-c-ci/venv/bin" >> "$GITHUB_PATH"
+          {
+            echo "OPAMROOT=/opt/frama-c-ci/opam-root"
+            echo "OPAMSAFE=true"
+            echo "XDG_CACHE_HOME=$HOME/.cache/frama-c-ci"
+            echo "JOBS=6"
+          } >> "$GITHUB_ENV"
 
       - name: Install system packages
+        if: runner.environment == 'github-hosted'
         run: |
           # Some hosted images prefer an EC2 mirror that took over 13 minutes
           # to serve 43 MB. Use the primary Ubuntu archive for these images.
@@ -111,10 +89,10 @@ jobs:
             libmpfr-dev zlib1g-dev graphviz time clang yq socat dos2unix \
             libzmq3-dev python3-venv jq opam gcc-multilib
 
-      # The switch takes about half an hour to build. It is saved as soon as
-      # it is complete, so that a failing test does not lose it, and reused
-      # until the opam file or OPAM_CACHE_VERSION changes.
+      # Save the switch before testing so a test failure still leaves it
+      # available to the next run.
       - name: Restore the opam switch
+        if: runner.environment == 'github-hosted'
         id: opam-cache
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
@@ -122,7 +100,7 @@ jobs:
           key: opam-${{ runner.os }}-${{ env.OPAM_CACHE_VERSION }}-${{ hashFiles('opam') }}
 
       - name: Create the opam switch
-        if: steps.opam-cache.outputs.cache-hit != 'true'
+        if: runner.environment == 'github-hosted' && steps.opam-cache.outputs.cache-hit != 'true'
         run: |
           opam init --bare --disable-sandboxing --no-setup -y
           opam switch create ci ocaml-base-compiler.5.2.1 -y --jobs=$JOBS
@@ -134,13 +112,14 @@ jobs:
           opam clean --download-cache --logs --repo-cache --switch-cleanup -y
 
       - name: Save the opam switch
-        if: steps.opam-cache.outputs.cache-hit != 'true'
+        if: runner.environment == 'github-hosted' && steps.opam-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.opam
           key: ${{ steps.opam-cache.outputs.cache-primary-key }}
 
       - name: Install Python tools
+        if: runner.environment == 'github-hosted'
         run: |
           python3 -m venv "$RUNNER_TEMP/venv"
           "$RUNNER_TEMP/venv/bin/pip" install check-jsonschema==0.39.0 \
@@ -153,6 +132,7 @@ jobs:
       # Dune's shared cache is used for the build only. The tests run without
       # it, so that each result comes from an execution in this run.
       - name: Restore the build cache
+        if: runner.environment == 'github-hosted'
         id: dune-cache
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
