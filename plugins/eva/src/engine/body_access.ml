@@ -127,10 +127,44 @@ let[@inline always] designate value =
   | None -> ()
   | Some r -> add_designated r (Cvalue.V.get_bases value)
 
-let designate_bits addr =
+let designate_bases bases =
   match !current with
   | None -> ()
-  | Some r -> add_designated r (Addresses.Bits.get_bases addr)
+  | Some r -> add_designated r bases
+
+(* A load combines the cells of its range. The combination can drop a
+   pointer, for instance beside an uninitialized cell, so the targets of
+   every cell that intersects the range are recorded first. *)
+let add_cells r state (location : Locations.t) =
+  let designate value =
+    let value = Cvalue.V_Or_Uninitialized.get_v value in
+    add_designated r (Cvalue.V.get_bases value)
+  in
+  let cells base range =
+    match Cvalue.Model.find_base_or_default base state, range with
+    | `Bottom, _ -> ()
+    | `Top, _ -> add_designated r Bases.top
+    | `Value offsm, None -> Cvalue.V_Offsetmap.iter_on_values designate offsm
+    | `Value offsm, Some range ->
+      let cell _ (value, _, _) () = designate value in
+      Cvalue.V_Offsetmap.fold_between ~entire:true range cell offsm ()
+  in
+  let range offsets =
+    match location.size, Ival.min_and_max offsets with
+    | `Value size, (Some min, Some max) -> Some (min, Z.pred (Z.add max size))
+    | _ -> None
+  in
+  match location.addr with
+  | Addresses.Bits.Top (Bases.Top, _) -> add_designated r Bases.top
+  | Addresses.Bits.Top (Bases.Set bases, _) ->
+    Base.Hptset.iter (fun base -> cells base None) bases
+  | Addresses.Bits.Map map ->
+    Addresses.Bits.M.iter (fun base offsets -> cells base (range offsets)) map
+
+let designate_cells state location =
+  match !current with
+  | None -> ()
+  | Some r -> add_cells r state location
 
 let add_write r may sure =
   r.writes <- Bases.join r.writes may;

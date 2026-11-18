@@ -119,10 +119,9 @@ let reduce_by_initialized_defined f loc state =
     state
 
 let reduce_by_valid_loc ~positive access loc typ state =
-  Logic_access.read loc;
+  Logic_access.load state loc;
   let value = Cvalue.Model.find_indeterminate state loc in
   let addr_bytes = Cvalue.V_Or_Uninitialized.get_v value in
-  Logic_access.designate addr_bytes;
   let addr_bits = Addresses.Bits.of_bytes addr_bytes in
   let size = Bit_utils.sizeof_pointed typ in
   let location = Locations.make addr_bits size in
@@ -210,7 +209,6 @@ let pretty_offsetmap typ fmt offsm =
 (* ------------------------- Under-approximation ---------------------------- *)
 
 let add_if_singleton value acc =
-  Logic_access.designate_raw value;
   if Cvalue.V_Or_Uninitialized.cardinal_zero_or_one value
   then Cvalue.V_Or_Uninitialized.link value acc
   else acc
@@ -258,6 +256,6 @@ let find_lmap_under state location =
       Addresses.Bits.M.fold process map acc
 
 let find_under_approximation state location =
-  Logic_access.read location;
+  Logic_access.load state location;
   try Some (find_lmap_under state location)
   with CannotComputeUnder -> None

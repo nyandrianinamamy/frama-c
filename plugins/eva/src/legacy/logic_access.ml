@@ -47,13 +47,20 @@ let designate value =
 
 let designate_bits addr =
   if is_recording () then begin
-    Body_access.designate_bits addr;
-    check_bound (Addresses.Bits.get_bases addr)
+    let bases = Addresses.Bits.get_bases addr in
+    Body_access.designate_bases bases;
+    check_bound bases
   end
 
 let designate_raw value =
   if is_recording () then
     designate (Cvalue.V_Or_Uninitialized.get_v value)
+
+let load state loc =
+  if is_recording () then begin
+    read loc;
+    Body_access.designate_cells state loc
+  end
 
 module Shape = Hptmap.Shape (Base.Base)
 

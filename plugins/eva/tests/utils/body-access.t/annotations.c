@@ -82,3 +82,42 @@ void use_allocated(void) {
   if (allocated_ptr)
     valid_pointer();
 }
+
+/* With -machdep x86_32, the word of [all] covers the pointer [s.p] and the
+   uninitialized [s.pad]. */
+union parts {
+  struct { int *p; unsigned pad; } s;
+  unsigned long long all;
+};
+
+void logic_word(union parts *u) {
+  //@ check u->all == 0;
+}
+
+void c_word(union parts *u) {
+  unsigned long long word = u->all;
+}
+
+void logic_or_null(union parts *u) {
+  //@ check u->s.p == 0;
+}
+
+volatile int nondet;
+
+void use_logic_word(void) {
+  union parts u;
+  u.s.p = malloc(sizeof(int));
+  logic_word(&u);
+}
+
+void use_c_word(void) {
+  union parts u;
+  u.s.p = malloc(sizeof(int));
+  c_word(&u);
+}
+
+void use_logic_or_null(void) {
+  union parts u;
+  u.s.p = malloc(sizeof(int));
+  logic_or_null(nondet ? &u : (union parts *)0);
+}

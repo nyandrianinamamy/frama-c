@@ -29,6 +29,10 @@ val designate : Cvalue.V.t -> unit
 val designate_bits : Addresses.Bits.t -> unit
 val designate_raw : Cvalue.V_Or_Uninitialized.t -> unit
 
+(** Reports a load from a state: the location, as [read], and the targets of
+    the values in each cell that the load may combine. *)
+val load : Cvalue.Model.t -> Locations.t -> unit
+
 (** Reports changed cvalue bindings as possible writes of a reduction.
     An infeasible successor has no bindings to propagate. *)
 val record_reduction : before:Cvalue.Model.t -> after:Cvalue.Model.t -> unit

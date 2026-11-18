@@ -39,6 +39,8 @@ let observe_refusals stack (r : Access.t) =
    | _ -> ());
   Format.printf "%s %s@." name (first_reason r)
 
+let allocated = function Base.Allocated _ -> true | _ -> false
+
 let observe_annotations stack (r : Access.t) =
   let name = Kernel_function.get_name (Eva.Callstack.top_kf stack) in
   let read expected =
@@ -49,7 +51,8 @@ let observe_annotations stack (r : Access.t) =
   in
   match name with
   | "selected" -> read ["post_only"; "selector"]
-  | "select_behavior" | "use_allocated" -> ()
+  | "select_behavior" | "use_allocated" | "use_logic_word" | "use_c_word"
+  | "use_logic_or_null" -> ()
   | "read_assertion" -> read ["assertion_only"]
   | "read_invariant" -> read ["i"; "invariant_only"]
   | "read_pointer" -> read ["checked"]
@@ -72,13 +75,16 @@ let observe_annotations stack (r : Access.t) =
     Format.printf "%s refuses side-table@." name
   | "valid_pointer" ->
     assert (names r.reads = ["allocated_ptr"]);
-    let allocated = function Base.Allocated _ -> true | _ -> false in
     assert (Base.SetLattice.exists allocated r.designated);
     assert (r.refusals = [Access.Allocated_block]);
     Format.printf "valid_pointer designates an allocated block@."
   | "alarm_assertion" ->
     assert (names r.writes = []);
     read ["zero_divisor"]
+  | "logic_word" | "c_word" | "logic_or_null" ->
+    assert (Base.SetLattice.exists allocated r.designated);
+    assert (r.refusals = [Access.Allocated_block]);
+    Format.printf "%s designates an allocated block@." name
   | name -> failwith ("unexpected body: " ^ name)
 
 let observe_blocks stack (result : Access.t) =

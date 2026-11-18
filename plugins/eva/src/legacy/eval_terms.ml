@@ -83,12 +83,10 @@ let alarm_reduce_mode () =
   if Parameters.ReduceOnLogicAlarms.get () then Ignore else Fail
 
 let find_indeterminate ~alarm_mode state loc =
-  Logic_access.read loc;
+  Logic_access.load state loc;
   let is_invalid = not Locations.(is_valid Read loc) in
   track_alarms is_invalid alarm_mode;
-  let value = Model.find_indeterminate ~conflate_bottom:true state loc in
-  Logic_access.designate_raw value;
-  value
+  Model.find_indeterminate ~conflate_bottom:true state loc
 
 let find_or_alarm ~alarm_mode state loc =
   let v = find_indeterminate ~alarm_mode state loc in
@@ -313,10 +311,9 @@ let find_logic_var env lvar =
   | Ctype _ ->
     let base = Base.of_c_logic_var lvar in
     let loc = Locations.of_base base in
-    Logic_access.read loc;
-    let value = Model.find (env_current_state env) loc in
-    Logic_access.designate value;
-    value
+    let state = env_current_state env in
+    Logic_access.load state loc;
+    Model.find state loc
   | _ -> unsupported_lvar lvar
 
 let copy_logic_vars ~src ~dst lvars =
@@ -822,11 +819,14 @@ let cast_to_bool r =
 (* Applies a cvalue string builtin in the state at the logic label. It
    may inspect any bits of the blocks designated by [pointer]. *)
 let apply_logic_builtin builtin env pointer args =
+  let state = env_current_state env in
+  if Logic_access.is_recording () then begin
+    let blocks = Locations.make (Addresses.Bits.of_bytes pointer) `Top in
+    Logic_access.load state blocks
+  end;
   (* the call below could in theory return Builtins.Invalid_nb_of_args,
      but logic typing constraints prevent that. *)
-  if Logic_access.is_recording () then
-    Logic_access.read (Locations.make (Addresses.Bits.of_bytes pointer) `Top);
-  builtin (env_current_state env) (pointer :: args)
+  builtin state (pointer :: args)
 
 (* Never raises exceptions; instead, returns [-1,+oo] in case of alarms
    (most imprecise result possible for the logic strlen/wcslen predicates). *)
@@ -872,7 +872,8 @@ let eval_logic_memchr_off builtin env s c n =
   let n_pos = Cvalue.V.narrow positive pred_n in
   let eover =
     if Cvalue.V.is_bottom n_pos then minus_one else
-      let v, alarms = apply_logic_builtin builtin env s.eover [c.eover; n_pos] in
+      let args = [c.eover; n_pos] in
+      let v, alarms = apply_logic_builtin builtin env s.eover args in
       if Cvalue.V.is_bottom v then pred_n else
       if alarms then Cvalue.V.join pred_n v else
       if Cvalue.V.equal n_pos pred_n then v else
@@ -934,7 +935,6 @@ let eval_valid_str ~wide env v =
    stored in [loc] in [state].  *)
 let forall_in_over_location state loc test =
   let v = Model.find_indeterminate state loc in
-  Logic_access.designate_raw v;
   test v
 
 (* Do all the possible values of a location in [state] satisfy [test]?  [loc] is
@@ -944,7 +944,6 @@ let forall_in_over_location state loc test =
 let forall_in_under_location state loc test =
   let exception EFalse in
   let inspect_value (_, _) (value, _, _) acc =
-    Logic_access.designate_raw value;
     match test value with
     | True | Unknown -> acc
     | False -> raise EFalse
@@ -970,7 +969,7 @@ let eval_forall_predicate state r test =
   let size_bits = Eval_typ.sizeof_lval_typ r.etype in
   let make_loc addr = Locations.make addr size_bits in
   let over_loc = make_loc r.eover in
-  Logic_access.read over_loc;
+  Logic_access.load state over_loc;
   if not Locations.(is_valid Read over_loc) then c_alarm ();
   match forall_in_over_location state over_loc test with
   | Unknown ->

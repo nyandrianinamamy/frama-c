@@ -264,3 +264,18 @@ A validity predicate designates an allocated block without reading it.
   $ clause use_allocated
   $ grep '^valid_pointer designates' use_allocated.log
   valid_pointer designates an allocated block
+
+A load designates the targets of each cell it reads, before Eva combines the
+cells. Here a word covers a pointer to an allocated block and an
+uninitialized word, so the combined value is uninitialized. The same holds
+for a C load, and for a logic load whose location may be invalid.
+
+  $ clause use_logic_word -machdep x86_32
+  $ grep '^logic_word designates' use_logic_word.log
+  logic_word designates an allocated block
+  $ clause use_c_word -machdep x86_32
+  $ grep '^c_word designates' use_c_word.log
+  c_word designates an allocated block
+  $ clause use_logic_or_null -machdep x86_32
+  $ grep '^logic_or_null designates' use_logic_or_null.log
+  logic_or_null designates an allocated block

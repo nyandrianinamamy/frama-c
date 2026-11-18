@@ -44,9 +44,9 @@ module Queries = struct
 
   let eval_one_loc state lval =
     let eval_one_loc single_loc =
+      Body_access.designate_cells state single_loc;
       let v = Cvalue.Model.find_indeterminate state single_loc in
       let value = Cvalue.V_Or_Uninitialized.get_v v in
-      Body_access.designate value;
       value, indeterminate_alarms lval v
     in
     (* We have no good neutral element for "no alarm emitted yet", so we use
@@ -128,8 +128,8 @@ module Queries = struct
     let loc = Precise_locs.imprecise_location precise_loc in
     let eval_one_loc single_loc =
       Body_access.read single_loc;
+      Body_access.designate_cells state single_loc;
       let v = Cvalue.Model.find state single_loc in
-      Body_access.designate v;
       Cvalue_forward.reinterpret lval.Eva_ast.typ v
     in
     let process_ival base ival (acc_loc, acc_val as acc) =

@@ -129,7 +129,6 @@ let read_one_char kind ~offset ~from cvalue =
 
 (* Reads the character [cvalue] at [offset], and updates [acc] accordingly.  *)
 let read_char kind offset cvalue acc =
-  Logic_access.designate_raw cvalue;
   let new_acc = read_one_char kind ~offset ~from:acc.from cvalue in
   { new_acc with read = join acc.read new_acc.read }
 

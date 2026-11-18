@@ -51,8 +51,13 @@ val unknown_write : unit -> unit
 val check_location : Cvalue.V.t -> unit
 val designate : Cvalue.V.t -> unit
 
-(** Records targets of a bit address without converting or trimming it. *)
-val designate_bits : Addresses.Bits.t -> unit
+(** Records designated bases computed by the caller. *)
+val designate_bases : Base.SetLattice.t -> unit
+
+(** [designate_cells state loc] records the targets of the values stored in
+    every cell of [state] that a load of [loc] may combine, before the
+    combination. A location or state without known cells designates Top. *)
+val designate_cells : Cvalue.Model.t -> Locations.t -> unit
 val record : Result.recorded -> unit
 val refuse : Result.refusal -> unit
 val unknown_read : Result.refusal -> unit
