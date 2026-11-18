@@ -156,15 +156,16 @@ module Make
         lookup with no candidate. *)
     val lookup : ('loc, Value.t) Eval.call -> Domain.t -> lookup
 
-    (** [store call state pending result footprint] offers [result] of the
-        analysis of the body of the called function to the cache, after a
+    (** [store ~save_results call state pending result footprint] offers the
+        [result] of analysing the body of the called function, after a
         lookup that found no candidate for the call [call] in the state
         [state] and returned [pending]. It prints the message of the call
         and, if a cache was consulted, counts the stored entry or the refused
         storage. If [footprint] is present, it also reports and counts the
-        collector verdict computed from it. *)
+        collector verdict and the storage of an entry produced from it.
+        [save_results] says whether an Inner reference is available. *)
     val store :
-      ('loc, Value.t) Eval.call -> Domain.t -> pending ->
+      save_results:bool -> ('loc, Value.t) Eval.call -> Domain.t -> pending ->
       Domain.t Engine_sig.call_result -> Body_access.Result.t option -> unit
 
     (** [interrupted call pending] prints the message of the call [call]

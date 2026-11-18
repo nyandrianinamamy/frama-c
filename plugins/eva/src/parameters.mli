@@ -101,6 +101,7 @@ module ResultsAll: Parameter_sig.Bool
 module JoinResults: Parameter_sig.Bool
 
 module CacheCollect: Parameter_sig.Bool
+module CacheKeyLimit: Parameter_sig.Int
 module Memexec: Parameter_sig.Bool
 
 (** {2 Initial context of the analysis} *)

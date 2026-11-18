@@ -49,6 +49,10 @@ let mkey =
              (ids Supplied_entries.rejection_id Supplied_entries.rejections)
              (ids refusal_id refusals))
 
+let producer_mkey =
+  Self.register_message_category "cache-producer"
+    ~help:"show storage of entries produced from fresh bodies"
+
 let new_counter = Mem_exec.new_counter
 
 let cleanup_results = Mem_exec.cleanup_results
@@ -91,8 +95,12 @@ let pretty_storage fmt : storage_disposition -> unit = function
   | `Refused reason -> Format.fprintf fmt "refused (%s)" (refusal_id reason)
 
 (* Prints the dispositions of the call [call] under the message category. *)
-let report ?collector call ~lookup ~execution ~storage =
-  if Self.is_message_category_enabled mkey then
+let report ?collector ?produced call ~lookup ~execution ~storage =
+  let show_produced =
+    Option.is_some produced && Self.is_message_category_enabled producer_mkey
+  in
+  let mkey = if show_produced then producer_mkey else mkey in
+  if show_produced || Self.is_message_category_enabled mkey then
     let pretty_call fmt =
       let pretty_collector fmt = function
         | None -> ()
@@ -101,10 +109,21 @@ let report ?collector call ~lookup ~execution ~storage =
           Format.fprintf fmt "; collector: refused (%s)"
             (Body_access.Result.refusal_id reason)
       in
-      Format.fprintf fmt "call to %a: lookup: %a; execution: %a; storage: %a%a"
+      let pretty_produced fmt = function
+        | None -> ()
+        | Some (Ok id) ->
+          Format.fprintf fmt "; producer: stored (entry %d)" id
+        | Some (Error reason) ->
+          Format.fprintf fmt "; producer: refused (%s)"
+            (Cache_producer.refusal_id reason)
+      in
+      Format.fprintf fmt
+        "call to %a: lookup: %a; execution: %a; storage: %a%a%a"
         Kernel_function.pretty call.kf
         pretty_lookup lookup pretty_execution execution pretty_storage storage
         pretty_collector collector
+        pretty_produced
+        (if show_produced then produced else None)
     in
     match Callstack.top_callsite call.callstack with
     | Kstmt stmt ->
@@ -121,6 +140,7 @@ module Make
 
   module Memexec = Mem_exec.Make (Value) (Domain)
   module Supplied = Supplied_entries.Lookup (Domain)
+  module Producer = Cache_producer.Make (Domain)
 
   (* What a lookup with no candidate leaves for the storage: the cache
      consulted, with the argument values of the key of memexec, or the
@@ -176,7 +196,7 @@ module Make
     | No_cache | Memexec _ -> no_candidate
     | Supplied rejected -> { rejected; hit = None }
 
-  let store call state pending call_result footprint =
+  let store ~save_results call state pending call_result footprint =
     let kf = call.kf in
     let storage =
       match pending with
@@ -194,15 +214,29 @@ module Make
           Statistics.(incr (memexec_refused (refusal_id reason)) kf);
           `Refused reason
     in
-    let collector = Option.map Body_access.verdict footprint in
-    Option.iter
-      (function
-        | Ok () -> Statistics.(incr collector_would_store kf)
-        | Error reason ->
-          let reason = Body_access.Result.refusal_id reason in
-          Statistics.(incr (collector_refused reason) kf))
-      collector;
-    report ?collector call ~lookup:(lookup_disposition pending)
+    let collector, produced =
+      match footprint with
+      | None -> None, None
+      | Some footprint ->
+        let verdict = Body_access.verdict footprint in
+        (match verdict with
+         | Ok () -> Statistics.(incr collector_would_store kf)
+         | Error reason ->
+           let reason = Body_access.Result.refusal_id reason in
+           Statistics.(incr (collector_refused reason) kf));
+        let result =
+          Body_access.without_recording (fun () ->
+              Producer.store ~save_results call.callstack state call_result
+                footprint verdict)
+        in
+        (match result with
+         | Ok _ -> Statistics.(incr (cache_produced ()) kf)
+         | Error reason ->
+           let reason = Cache_producer.refusal_id reason in
+           Statistics.(incr (cache_production_refused reason) kf));
+        Some verdict, Some result
+    in
+    report ?collector ?produced call ~lookup:(lookup_disposition pending)
       ~execution:`Analysed ~storage
 
   (* Called while an exception leaves the analysis of a body. A failure of

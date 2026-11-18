@@ -59,6 +59,12 @@ val collector_would_store : (Cil_types.kernel_function, int) t
 (** Counts refused bodies by [Body_access.Result.refusal_id]. *)
 val collector_refused : string -> (Cil_types.kernel_function, int) t
 
+(** Count of entries stored from fresh body observations. *)
+val cache_produced : unit -> (Cil_types.kernel_function, int) t
+
+(** Count of refused productions with the given reason. *)
+val cache_production_refused : string -> (Cil_types.kernel_function, int) t
+
 (** Count of the calls answered by an entry supplied by a test module (see
     [Supplied_entries]). *)
 val cache_hits : (Cil_types.kernel_function, int) t

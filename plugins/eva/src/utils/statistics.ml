@@ -328,6 +328,10 @@ let collector_would_store =
   register_function_stat "collector-would-store" Int
 let collector_refused reason =
   register_function_stat ("collector-refused-" ^ reason) Int
+let cache_produced () =
+  register_function_stat "cache-produced" Int
+let cache_production_refused reason =
+  register_function_stat ("cache-production-refused-" ^ reason) Int
 let cache_hits =
   register_function_stat "cache-hits" Int
 let cache_rejected reason =

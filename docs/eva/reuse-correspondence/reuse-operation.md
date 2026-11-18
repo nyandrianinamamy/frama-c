@@ -317,11 +317,10 @@ of `twice` prints `\result<twice>` in its three written sets, and its exit
 state binds it; the hit returns 6. The entry of `set_out` has R = ∅: its
 marker prints a constant and reads nothing, so the empty key contains R.
 
-**Open.** The obligations of the supplier are not checked. The producer of
-entries ([issue #46](https://github.com/nyandrianinamamy/frama-c/issues/46))
-takes them over from the collector
-([Body access collector](body-access.md#whole-block-observations-and-exits)),
-whose W_exit is an upper bound and W_sure a lower bound.
+**Open.** Hand-supplied entries still rely on the supplier. The
+[producer obligation record](cache-producer.md#producer-obligations-for-exit-reuse)
+lists which premises fresh body observations establish and which
+premises remain open.
 
 ## A hit takes the blocks of W_exit from the exit state
 
@@ -585,8 +584,9 @@ and no `collector-` count. A body analysed in an analysis that uses supplied
 entries, after a lookup that found no candidate or rejected every candidate,
 is observed as any analysed body when recording is enabled (the default;
 `-eva-no-cache-collect` disables it): its verdict is counted and, under the
-message category `cache`, printed beside `refused (supplied-only)`. The
-body stores nothing.
+message category `cache`, printed beside `refused (supplied-only)`. Production can store
+an entry for inspection in this case. Supplying it to later lookups
+still takes an explicit fixture action.
 
 **Kind.** OCaml obligation.
 
@@ -599,8 +599,8 @@ body stores nothing.
 `Body_access.capture` only in the branch `No_candidate`, and passes the
 footprint to `store`, which prints and counts the verdict whatever the
 cache. The branch `Hit` neither captures nor calls `store`; `lookup` prints
-the message of the hit without a verdict. The verdict is not read by the
-supplied entries, which store nothing.
+the message of the hit without a verdict. The verdict also gates [production](cache-producer.md#provenance-storage-and-lookup).
+The supplied lookup table is only filled by the fixture.
 
 **Evidence.** Run 0 of `cache_supplied.c`: the hit of `twice(3)` has no
 verdict; the analysed call `twice(4)`, after `rejected (entry 10:
@@ -802,8 +802,6 @@ state](#a-hit-takes-the-blocks-of-w_exit-from-the-exit-state).
   ([issue #36](https://github.com/nyandrianinamamy/frama-c/issues/36)) are
   not in this tree: the argument on the hit above is in prose, and its step
   from the key to the agreement on W_exit is not checked.
-- When entries are stored from the analysis of a body
-  ([issue #46](https://github.com/nyandrianinamamy/frama-c/issues/46)), the
-  producer owes the condition on its exit states and the four sets of the
-  footprint, and the arguments on frees and sweeps move to the collector
-  tickets.
+- Produced entries check all overlay bindings. See the
+  [producer obligation record](cache-producer.md#producer-obligations-for-exit-reuse)
+  for the condition on the four footprint sets, frees and sweeps.

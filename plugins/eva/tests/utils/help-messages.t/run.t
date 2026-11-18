@@ -165,6 +165,7 @@ Help message about message categories.
                             none, or refused with one of the reasons: disabled,
                             not-cacheable, no-inout, footprint-top, relate-top,
                             relate-unclosed, exception, supplied-only)
+    cache-producer        : show storage of entries produced from fresh bodies
     callstack-hash        : additionally print the current callstack hash in
                             some messages
     callstacks            : print the current callstack alongside some messages

@@ -258,6 +258,8 @@ Options taking a string as argument should preferably be written
 -eva-builtins-auto  When set, builtins will be used automatically to replace
                     known C functions (set by default, opposite option is
                     -eva-no-builtins-auto)
+-eva-cache-key-limit <n>  Refuse to store a collected call-cache entry if its
+                    key exceeds n blocks.
 -eva-default-loop-unroll <n>  Define the default limit for loop unroll
                     annotations that do not explicitly provide a limit.
 -eva-enumerate-cond  Activate reduce_by_cond_enumerate. (set by default,

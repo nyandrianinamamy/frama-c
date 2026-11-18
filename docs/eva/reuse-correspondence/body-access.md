@@ -85,7 +85,9 @@ local binding and the loss of correlation between two guards.
 connect edges that fired on different abstract paths, including at loops,
 widening and late joins. Thus W_exit is an upper bound and W_sure a lower
 bound even when Eva partitions the states.
-The collector does not implement a reusable Exit part.
+The [entry producer](cache-producer.md#producer-obligations-for-exit-reuse)
+takes its Exit part from the body iterator and its footprint from the
+collector.
 The cost of recording is measured on three tests only: with recording on,
 the median wall time of `matrix` rose by about a quarter over the base
 binary. The update of an edge record at every successful transfer is a
@@ -139,6 +141,8 @@ out of the ordinary help preserves its oracle. The `cache` message reports the
 collector verdict beside the memexec storage disposition.
 `collector-would-store` and `collector-refused-REASON` count these verdicts.
 The collector does not count an interrupted body or a body skipped on a hit.
+The separate [production disposition](cache-producer.md#provenance-storage-and-lookup)
+takes this verdict as a prerequisite and has its own counters.
 
 **Evidence.** Source inspection. The
 [`body-access.t`](../../../plugins/eva/tests/utils/body-access.t/run.t)

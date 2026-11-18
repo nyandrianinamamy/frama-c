@@ -37,6 +37,10 @@ Print statistics file.
   $ cat stats.csv
   alarm-count			1
   analysis-time			<TIME>
+  cache-produced	g		5
+  cache-production-refused-nested-call	f		2
+  cache-production-refused-sweep	h		1
+  cache-production-refused-sweep	main		1
   collector-refused-nested-call	f		2
   collector-refused-sweep	h		1
   collector-refused-sweep	main		1

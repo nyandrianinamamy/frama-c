@@ -77,6 +77,12 @@ val supply :
   kernel_function -> key:Base.Hptset.t -> input:Cvalue.Model.t ->
   footprint:footprint -> exit:(Partition.key * Cvalue.Model.t) list -> entry
 
+(** Supply the key and states of an entry captured by the producer, with
+    the next supplied entry identifier. The fixture must use the same AST
+    and ensure the calls meet the replay premises described on [supply].
+    Supplying entries remains a test-only operation. *)
+val supply_produced : Cache_producer.entry -> entry
+
 (** The partition key of a state that no partitioning distinguishes. *)
 val empty_key : Partition.key
 

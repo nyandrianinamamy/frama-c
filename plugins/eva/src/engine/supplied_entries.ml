@@ -6,7 +6,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-module Entry = Cache_entry.Make (Cvalue_domain.State)
+module Entry = Cache_entry.Cvalue
 
 type entry = Entry.t
 
@@ -96,6 +96,11 @@ let check_exit_state (_, model) =
       "Supplied_entries.supply: an exit state is Bottom; a body that never \
        returns has no exit state"
 
+let add kf entry =
+  ignore (Counter.next ());
+  Table.replace kf (entries kf @ [ entry ]);
+  entry
+
 let supply kf ~key ~input ~footprint ~exit =
   (* A call whose input is [Top] would match an entry whose input is [Top],
      and [reuse] would then return the exit state alone, without the blocks
@@ -110,9 +115,12 @@ let supply kf ~key ~input ~footprint ~exit =
   let id = Counter.get () + 1 in
   let entry = Entry.make ~id (Body kf) ~key ~input ~footprint ~exit in
   check_exit kf entry;
-  ignore (Counter.next ());
-  Table.replace kf (entries kf @ [ entry ]);
-  entry
+  add kf entry
+
+let supply_produced produced =
+  let entry = Cache_producer.cache_entry produced in
+  let Cache_entry.Body kf = Entry.statement entry in
+  add kf (Entry.with_id (Counter.get () + 1) entry)
 
 let empty_key = Partition.Key.empty
 

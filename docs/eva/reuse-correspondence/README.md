@@ -69,6 +69,8 @@ that a checkout has the model sources of an entry, compare
   counts, and the closure of the memexec key under `relate`.
 - [Body access collector](body-access.md) covers the block sets, observational
   storage verdict and side-table classes.
+- [Entries from fresh bodies](cache-producer.md) covers production, the
+  key and footprint, and the producer obligations for supplying an entry.
 - [Reuse operation](reuse-operation.md): the cache entry and its four
   written sets, the match by equality on entries supplied by a test module,
   the blocks a hit takes from an exit state, the choice of one cache per

@@ -230,6 +230,9 @@ where it decides the lookup. `store` increments the stored or refused count
 from the same value that it prints. Neither counts anything when the lookup
 did not consult memexec.
 
+The [entry producer](cache-producer.md#provenance-storage-and-lookup)
+counts storage from observations separately, even with memexec disabled.
+
 **Evidence.** Executed by the fixture, from one run: one hit, one stored entry
 and one miss for `leaf`; one miss and one `not-cacheable` refusal for `alloc`
 and for `main`. These are the counts of its four `cache` messages. Executed

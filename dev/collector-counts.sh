@@ -7,7 +7,7 @@
 #                                                                        #
 ##########################################################################
 
-# Run the Eva ptests with the collector enabled and aggregate its statistics.
+# Run the Eva ptests with collection enabled and aggregate its storage counts.
 # Invoke from the worktree with its opam environment active. The optional
 # argument selects one Dune test alias. Restore the ordinary rules on exit.
 
@@ -67,10 +67,21 @@ if (( ${#started[@]} )); then
     BEGIN {
       reasons = "indirect-call builtin sweep contract annotation nested-call allocated-block footprint-top side-table"
       split(reasons, reason, " ")
-      for (i in reason) counts["collector-refused-" reason[i]] = 0
+      for (i in reason) {
+        counts["collector-refused-" reason[i]] = 0
+        counts["cache-production-refused-" reason[i]] = 0
+      }
+      producer_reasons = "product invalid-footprint relate-top key-limit preconditions not-cacheable input-state exit-state exit-binding"
+      split(producer_reasons, producer_reason, " ")
+      for (i in producer_reason) {
+        counts["cache-production-refused-" producer_reason[i]] = 0
+      }
       counts["collector-would-store"] = 0
+      counts["cache-produced"] = 0
     }
-    /^collector-/ { counts[$1] += $4 }
+    /^(collector-|cache-produced\t|cache-production-refused-)/ {
+      counts[$1] += $4
+    }
     END { for (key in counts) print key, counts[key] }
   ' "${started[@]}" | sort
 fi

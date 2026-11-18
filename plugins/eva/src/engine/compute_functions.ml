@@ -48,7 +48,7 @@ module Make (Engine: Engine_sig.S) = struct
 
   (* Interprets a [call] in the state [init_state] by [compute], which analyzes
      the body of the called function, unless the cache has a matching entry. *)
-  let compute_and_cache_call ~recursive compute call init_state =
+  let compute_and_cache_call ~recursive ~save_results compute call init_state =
     match Cache.lookup call init_state with
     | Cache.No_candidate pending ->
       let call_result, footprint =
@@ -71,7 +71,7 @@ module Make (Engine: Engine_sig.S) = struct
           Cache.interrupted call pending;
           Printexc.raise_with_backtrace exn backtrace
       in
-      Cache.store call init_state pending call_result footprint;
+      Cache.store ~save_results call init_state pending call_result footprint;
       call_result
     | Cache.Hit (i, states) ->
       apply_call_hooks call init_state `Reuse;
@@ -215,9 +215,9 @@ module Make (Engine: Engine_sig.S) = struct
     | `Spec _ as spec ->
       Body_access.unknown_access Contract;
       compute_using_spec_or_body spec call state
-    | `Body _ as def ->
+    | `Body (_, save_results) as def ->
       let compute = compute_using_spec_or_body def in
-      compute_and_cache_call ~recursive compute call state
+      compute_and_cache_call ~recursive ~save_results compute call state
 
   (* Defines the target of the analysis of a call, and analyze it.
      Exported in [Engine_sig.Compute] and used by [Transfer_stmt] when

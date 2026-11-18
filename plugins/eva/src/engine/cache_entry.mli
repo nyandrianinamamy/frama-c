@@ -49,6 +49,15 @@ type footprint = {
   written_sure : Base.Hptset.t;
 }
 
+(** Add the return block, if any, to the three written sets. *)
+val with_return_block : statement -> footprint -> footprint
+
+(** Whether W_sure ⊆ W_exit ⊆ W. *)
+val valid_footprint : footprint -> bool
+
+(** The minimum set for the key, R ∪ (W_exit \ W_sure). *)
+val required_key : footprint -> Base.Hptset.t
+
 (** Why a candidate entry is not used for a call. *)
 type rejection = [
   | `Key_differs
@@ -100,6 +109,9 @@ module Make (Domain : Domain) : sig
   (** The identifier given to {!make}. *)
   val id : t -> int
 
+  (** Give an entry a new identifier without changing its contents. *)
+  val with_id : int -> t -> t
+
   val statement : t -> statement
 
   (** The blocks of the matching key. *)
@@ -135,3 +147,5 @@ module Make (Domain : Domain) : sig
       the key and those of W \ W_exit included, keeps its value in [state]. *)
   val find : t list -> Domain.t -> result
 end
+
+module Cvalue : module type of Make (Cvalue_domain.State)

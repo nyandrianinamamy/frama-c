@@ -1024,6 +1024,19 @@ module CacheCollect =
     end)
 
 let () = Parameter_customize.set_group precision_tuning
+module CacheKeyLimit =
+  Int
+    (struct
+      let option_name = "-eva-cache-key-limit"
+      let default = 256
+      let arg_name = "n"
+      let help = "Refuse to store a collected call-cache entry if its key \
+                  exceeds n blocks."
+    end)
+let () = CacheKeyLimit.set_range ~min:0 ~max:max_int
+let () = add_precision_dep CacheKeyLimit.parameter
+
+let () = Parameter_customize.set_group precision_tuning
 module Memexec =
   True
     (struct

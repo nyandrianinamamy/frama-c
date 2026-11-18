@@ -23,6 +23,26 @@ let rejection_id : rejection -> string = function
   | `Key_differs -> "key-differs"
   | `Key_unclosed -> "key-unclosed"
 
+let return_block = function
+  | Body kf -> Option.map Base.of_varinfo (Library_functions.get_retres_vi kf)
+
+let with_return_block statement footprint =
+  match return_block statement with
+  | None -> footprint
+  | Some b ->
+    let add = Base.Hptset.add b in
+    { footprint with written = add footprint.written;
+                     written_exit = add footprint.written_exit;
+                     written_sure = add footprint.written_sure }
+
+let valid_footprint footprint =
+  Base.Hptset.subset footprint.written_sure footprint.written_exit
+  && Base.Hptset.subset footprint.written_exit footprint.written
+
+let required_key footprint =
+  Base.Hptset.union footprint.read
+    (Base.Hptset.diff footprint.written_exit footprint.written_sure)
+
 module type Domain = sig
   type t
   val equal : t -> t -> bool
@@ -48,32 +68,9 @@ module Make (Domain : Domain) = struct
     Base.SetLattice.is_included
       (Domain.relate bases state) (Base.SetLattice.inject bases)
 
-  let return_block = function
-    | Body kf -> Option.map Base.of_varinfo (Library_functions.get_retres_vi kf)
-
-  (* The return block is fully overwritten on every path that reaches an
-     exit: it belongs to the three written sets. *)
-  let add_return_block statement footprint =
-    match return_block statement with
-    | None -> footprint
-    | Some b ->
-      let add = Base.Hptset.add b in
-      { footprint with written = add footprint.written;
-                       written_exit = add footprint.written_exit;
-                       written_sure = add footprint.written_sure }
-
-  (* The blocks that the key must contain: R ∪ (W_exit \ W_sure). A block of
-     W_exit that is not surely overwritten may keep its input value at an
-     exit, so its value in the input of a call must be the stored one. *)
-  let required_key footprint =
-    Base.Hptset.union footprint.read
-      (Base.Hptset.diff footprint.written_exit footprint.written_sure)
-
   let make ~id statement ~key ~input ~footprint ~exit =
-    let footprint = add_return_block statement footprint in
-    if not (Base.Hptset.subset footprint.written_sure footprint.written_exit
-            && Base.Hptset.subset footprint.written_exit footprint.written)
-    then
+    let footprint = with_return_block statement footprint in
+    if not (valid_footprint footprint) then
       invalid_arg
         "Cache_entry.make: the written sets are not nested: \
          W_sure ⊆ W_exit ⊆ W fails";
@@ -89,6 +86,7 @@ module Make (Domain : Domain) = struct
     { id; statement; key; input = Domain.filter key input; footprint; exit }
 
   let id e = e.id
+  let with_id id e = { e with id }
   let statement e = e.statement
   let key e = e.key
   let input e = e.input
@@ -154,3 +152,5 @@ module Make (Domain : Domain) = struct
     in
     examine [] candidates
 end
+
+module Cvalue = Make (Cvalue_domain.State)

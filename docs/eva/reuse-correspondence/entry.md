@@ -91,9 +91,9 @@ old value. Composition with frame and lifetime replay remains open.
 7. `entry.KeyCovers`. OCaml obligation. The key contains `reads` and
    `exitWrites \ sureWrites`. Closing their union under `relate` can
    enlarge the key. The construction uses membership and the later
-   projected match uses closure. The future entry storage path must
-   establish this inclusion from the collected sets. Its argument and
-   regression are pending.
+   projected match uses closure. The [entry producer](cache-producer.md#key-and-footprint-from-the-collector)
+   establishes the inclusion and closure on the collected sets. The
+   argument and regression are recorded there.
 
 **Source evidence for R.** Each executed read hook adds its possible
 bases with `Bases.join` in `Body_access.add_read`. The sure-write
