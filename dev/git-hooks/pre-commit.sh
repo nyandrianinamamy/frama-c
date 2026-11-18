@@ -22,4 +22,5 @@ then
   exit 0
 fi
 
+"$ROOT/dev/check-cram-pipes.sh" --cached || exit 1
 "$ROOT/dev/check-files.sh" -c || exit 1

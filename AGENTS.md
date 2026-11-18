@@ -32,69 +32,24 @@ above overrides the upstream GitLab workflow in `CONTRIBUTING.md`.
 
 ## Build and prerequisites
 
-Run commands from the repository root. Once the local switch exists, activate
-it with `eval "$(opam env --switch=. --set-switch)"` before building, then check
-`ocamlc -version` and `dune --version`. The current [opam](opam) requires
-OCaml >= 5.2.0 and Dune > 3.15.0; use its dependency constraints rather than
-assuming the system compiler or another checkout's switch is suitable.
-For initial setup, see [INSTALL.md](INSTALL.md#full-compilation-guide).
-On Ubuntu 24.04, use a **local** switch so other checkouts keep their compilers:
-
-```sh
-# System dependencies (requires sudo; installs packages, not a system upgrade).
-sudo apt-get install -y --no-install-recommends build-essential autoconf m4 \
-  pkg-config git curl unzip patch libgmp-dev libmpfr-dev zlib1g-dev \
-  graphviz time clang yq socat dos2unix libzmq3-dev \
-  python3-venv jq cmake libclang-cpp-dev libclang-dev llvm-dev
-opam update
-opam switch create . ocaml-base-compiler.5.2.1 --no-install -y --jobs=8
-eval "$(opam env --switch=. --set-switch)"
-opam install --switch=. dune.3.21.1 -y --jobs=8
-opam pin add --switch=. dune 3.21.1 --no-action -y
-opam install --switch=. --deps-only --with-test . -y --jobs=8
-DUNE_ROOT=. opam install --switch=. -y --jobs=8 apron zmq ocp-indent.1.10.0 \
-  headache camomile alt-ergo.2.6.4 mopsa.1.2
-```
-
-`--no-install` defers the repository packages, not the compiler. Setup fetches
-and builds packages. Do not rely on an inherited `OPAM_SWITCH_PREFIX` from
-another checkout. Python test tools can be isolated inside the ignored switch
-directory:
-
-```sh
-python3 -m venv _opam/setup-venv
-_opam/setup-venv/bin/pip install check-jsonschema==0.39.0 PyYAML==6.0.3 \
-  black==26.10.1 clang-format==21.1.8
-```
-
-Some agent harnesses start a fresh shell for every command. In each such call,
-run both lines below in the same shell as the build, lint, or test command:
+Run commands from the repository root. Some agent harnesses start a fresh
+shell for every command. In each such call, run both lines below in the same
+shell as the build, lint, test or `git commit` command:
 
 ```sh
 eval "$(opam env --switch=. --set-switch)"
 export PATH="$PWD/_opam/setup-venv/bin:$PATH"
 ```
 
-Keep this Python-tool path when running configuration and tests. PyYAML is
-required by `share/machdeps/make_machdep/make_machdep.py`; adding a venv to
-PATH means its Python also needs this dependency. Apron enables
-additional Eva domains; ZeroMQ enables server support. `mopsa` supplies the
-integration-test tools and needs the LLVM development packages above.
-`headache`, `camomile` and `ocp-indent` support developer checks; Alt-Ergo
-2.6.4 matches the development dependency in `opam`. Mopsa 1.2 constrains Dune
-to < 3.22; installing Dune 3.21.1 first avoids rebuilding its dependents.
-Use Dune 3.21.1 and keep it pinned in the switch; check `dune --version`
-before running tests. With Dune 3.25.0, `tests/fc_script/estimate-difficulty.t`
-fails: the script starts `frama-c` through
-`_build/install/default/.packages/<hash>/bin/frama-c`, which exits at startup
-with `Failure("hd")` because it does not find its share directory. If the
-switch has another version, run
-`DUNE_ROOT=. opam install --switch=. dune.3.21.1 -y --jobs=8`, which
-recompiles the packages that depend on Dune, then pin the version with
-`opam pin add --switch=. dune 3.21.1 --no-action -y`.
-`DUNE_ROOT=.` keeps Mopsa's nested `make install` in its own package directory:
-without it, an earlier attempt with Mopsa 1.1 selected the enclosing
-Frama-C workspace and failed. Keep this variable scoped to that opam command.
+In a git worktree, which has no switch of its own, replace `.` and `$PWD` with
+the path of the main checkout. Create worktrees under `~/.t3/worktrees` or
+beside the main checkout.
+
+`bash dev/check-env.sh` checks that the active OCaml and Dune are the versions
+this checkout is tested with; `dev/test.sh` runs it first. Run it before the
+first build or test of a session. To create the switch, or to repair it when
+the check fails, follow [docs/agents/setup.md](docs/agents/setup.md).
+
 
 ```sh
 dune build -j 8 @frama-c-configure   # inspect available plugins/test prerequisites
@@ -138,6 +93,16 @@ whitespace, and aim for 80 columns (contributor guide). This checkout uses
 - `make check-headers`: license checks; requires the header checker dependencies,
   including `headache` ([share/Makefile.headers](share/Makefile.headers)).
 
+The git hooks in `dev/git-hooks/` run the lint and header checks on the files
+of each commit and push, and `dev/check-cram-pipes.sh` on each commit. Install
+them once per clone with `bash dev/git.sh hooks`. They need the two activation
+lines above in the shell that runs `git commit` or `git push`.
+
+In a cram test, redirect the output of `frama-c` to a file and inspect the
+file in the next command, so that the test records the exit status. A pipe
+such as `frama-c ... | grep` keeps the status of `grep` only;
+`dev/check-cram-pipes.sh` rejects it in added lines.
+
 `make lint` and `make headers` rewrite files across the selected scope; inspect
 the diff and avoid unrelated rewrites. Follow existing Dune warning flags
 rather than suppressing warnings to get a build through.
@@ -172,6 +137,14 @@ all, `-l` displays a file's output, and `-f` forces reruns (also purging and
 regenerating rules). `-u` and `-g` **auto-promote oracles**; omit them during
 investigation.
 
+`bash dev/verify.sh` runs the checks of an Eva change in one command and prints
+one line per step with its exit status: build, default ptests of all plug-ins,
+all Eva configurations, native tests of Eva and of the kernel, headers, and
+lint on the files changed since a base revision (`-b REV`, default
+`origin/dev`). It forces ptests to rerun. `-q` limits it to the build, the
+default Eva ptests and the Eva native tests. Logs go to the directory it
+prints.
+
 Broader checks ([share/Makefile.testing](share/Makefile.testing)):
 
 - `make default-tests`: regenerate all ptests, run `@ptests_config` and
@@ -185,6 +158,12 @@ The Makefile test targets above do not pass `-j`; Dune chooses its own job
 count. To enforce the eight-job default, prepare with `make run-ptests` and
 use explicit Dune commands. For the `make default-tests` test scope, run
 `dune build -j 8 @ptests_config` followed by `dune runtest -j 8 tests`.
+
+Fuzzing, WP `qualif` and GUI checks are separate workflows: see
+[tests/fuzzing/README.md](tests/fuzzing/README.md),
+[plugins/wp/tests/README.md](plugins/wp/tests/README.md) and the Ivette links
+above. If the configuration reports Eva or syntax tests as disabled, see
+"Limits of this platform" in [docs/agents/setup.md](docs/agents/setup.md).
 
 CI evidence: [.gitlab-ci.yml](.gitlab-ci.yml), [nix/eva-tests.nix](nix/eva-tests.nix),
 [nix/kernel-tests.nix](nix/kernel-tests.nix), and [nix/full-tests.nix](nix/full-tests.nix).
@@ -231,12 +210,15 @@ and directives where older manual examples differ.
   command and `dune build @plugins/eva/tests/value/result/abs.diff` for diffs.
   Reproduce with the same options, dependencies and working directory.
 - Update expectations only after explaining why the behavioral change is
-  correct. For a new test, use `frama-c-ptests -create-missing-oracles` through
-  `dune exec --`, scoped to its test root, then run and inspect the test.
-  Use `dune promote path/to/the/reviewed.oracle` for selected results; bare
-  `dune promote` can accept unrelated pending differences. Rerun the focused
-  tests and inspect `git diff` afterward. The generator's
-  `-remove-empty-oracles` option cleans empty oracles in the selected scope.
+  correct. For a new test, run
+  `dune exec -- frama-c-ptests -create-missing-oracles plugins/eva/tests`
+  (the argument is a test root, the directory that holds `ptests_config`).
+  This writes an empty oracle for every missing one under that root, about
+  10,000 files for Eva. Run the test, inspect it, promote its reviewed
+  results with `dune promote path/to/the/reviewed.oracle`, then run
+  `dune exec -- frama-c-ptests -remove-empty-oracles plugins/eva/tests`
+  to delete the empty files. `git status` then lists the new oracles only.
+  Bare `dune promote` can accept unrelated pending differences.
 
 ## Verification and reporting
 
@@ -294,38 +276,3 @@ the reviewer should be able to verify the behavior without reading the diff.
 
 Do not mark the ticket done if a required criterion failed or was not run.
 Have the reviewer replay the demo or check the recorded CI evidence.
-
-Setup verification (2026-11-17, source commit `0372456831`): local OCaml 5.2.1,
-Dune 3.21.1, Why3 1.8.2, Alt-Ergo 2.6.4, Apron v0.9.15, Mopsa 1.2.
-The Ubuntu 24.04 recipe above consolidates the installation steps (some base
-packages were already present); the Dune pin avoids the dependency rebuild
-encountered during setup. Full `@install`, plugin listing, strict lint across
-11,583 files, header checks, and the focused `abs.diff` regression passed.
-The following checks also passed (historical runs used two jobs; the current
-default is eight jobs):
-
-- `timeout 900 dune build -j 2 @plugins/eva/tests/ptests_config`.
-- `timeout 300 dune runtest -j 2 plugins/eva`.
-- `TERM=xterm timeout 900 dune build -j 2 @plugins/eva/tests/ptests` (all Eva
-  configurations, including Apron).
-- `TERM=xterm timeout 1200 dune build -j 2 @runtest @ptests_config`.
-
-The first broad run failed on missing PyYAML and `TERM=dumb`; the two affected
-native suites passed a fresh cache-disabled rerun after setup corrections.
-The successful broad recheck reused the other results from the first run.
-
-The configuration probe reports two platform limitations: Ubuntu's Graphviz
-2.43 supports `dot -V`, but the probe uses `dot --version`; GCC 13.3 lacks
-`-std=c2y`. Thus configuration summaries alone report disabled Eva/syntax
-coverage even with executables present. Generate regression rules with
-the Nix CI command
-`dune exec -- frama-c-ptests -never-disabled tests plugins/*/tests`,
-and inspect actual test outcomes. This does not enable conditionally disabled
-native Dune/cram tests. Fuzzing, WP `qualif`, and GUI/browser checks were not
-run. For those separate workflows, see [tests/fuzzing/README.md](tests/fuzzing/README.md)
-(Crowbar and `FC_FUZZING`), [plugins/wp/tests/README.md](plugins/wp/tests/README.md)
-(provers/cache; use the current `dev/test.sh` options), and the Ivette links above.
-
-No oracles were promoted. Setup/build/check logs and the installed opam package
-manifest/export are retained locally in `/tmp/frama-c-setup-2026-11-17/`
-(ephemeral, not repository inputs).

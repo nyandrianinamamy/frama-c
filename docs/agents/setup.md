@@ -1,0 +1,75 @@
+# Setting up or repairing the local switch
+
+Read this when the checkout has no `_opam/` directory, or when
+`bash dev/check-env.sh` fails. The versions it expects are OCaml 5.2.1 and
+Dune 3.21.1.
+
+## Creating the switch
+
+The [opam](../../opam) file requires OCaml >= 5.2.0 and Dune > 3.15.0.
+[INSTALL.md](../../INSTALL.md#full-compilation-guide) is the general guide.
+On Ubuntu 24.04, use a **local** switch so other checkouts keep their compilers:
+
+```sh
+# System dependencies (requires sudo; installs packages, not a system upgrade).
+sudo apt-get install -y --no-install-recommends build-essential autoconf m4 \
+  pkg-config git curl unzip patch libgmp-dev libmpfr-dev zlib1g-dev \
+  graphviz time clang yq socat dos2unix libzmq3-dev \
+  python3-venv jq cmake libclang-cpp-dev libclang-dev llvm-dev
+opam update
+opam switch create . ocaml-base-compiler.5.2.1 --no-install -y --jobs=8
+eval "$(opam env --switch=. --set-switch)"
+opam install --switch=. dune.3.21.1 -y --jobs=8
+opam pin add --switch=. dune 3.21.1 --no-action -y
+opam install --switch=. --deps-only --with-test . -y --jobs=8
+DUNE_ROOT=. opam install --switch=. -y --jobs=8 apron zmq ocp-indent.1.10.0 \
+  headache camomile alt-ergo.2.6.4 mopsa.1.2
+```
+
+`--no-install` defers the repository packages, not the compiler. Setup fetches
+and builds packages. Do not rely on an inherited `OPAM_SWITCH_PREFIX` from
+another checkout. Python test tools can be isolated inside the ignored switch
+directory:
+
+```sh
+python3 -m venv _opam/setup-venv
+_opam/setup-venv/bin/pip install check-jsonschema==0.39.0 PyYAML==6.0.3 \
+  black==26.10.1 clang-format==21.1.8
+```
+
+## Why each piece is there
+
+- **Dune 3.21.1, pinned.** With Dune 3.25.0,
+  `tests/fc_script/estimate-difficulty.t` fails: the script starts `frama-c`
+  through `_build/install/default/.packages/<hash>/bin/frama-c`, which exits
+  at startup with `Failure("hd")` because it does not find its share
+  directory. Mopsa 1.2 also constrains Dune to < 3.22, and installing Dune
+  first avoids rebuilding its dependents.
+- **`DUNE_ROOT=.`** keeps Mopsa's nested `make install` in its own package
+  directory; without it, an attempt with Mopsa 1.1 selected the enclosing
+  Frama-C workspace and failed. Scope the variable to that opam command.
+- **PyYAML** is required by `share/machdeps/make_machdep/make_machdep.py`. With
+  the venv on `PATH`, its Python is the one the tests use.
+- **Apron** enables additional Eva domains, **ZeroMQ** the server, **Mopsa**
+  the integration-test tools (it needs the LLVM development packages).
+  `headache`, `camomile` and `ocp-indent` support the developer checks.
+  Alt-Ergo 2.6.4 matches the development dependency in `opam`.
+
+## Repairing the Dune version
+
+```sh
+DUNE_ROOT=. opam install --switch=. dune.3.21.1 -y --jobs=8
+opam pin add --switch=. dune 3.21.1 --no-action -y
+```
+
+The first command recompiles the packages that depend on Dune.
+
+## Limits of this platform
+
+On Ubuntu 24.04 the configuration probe reports Eva and syntax test
+prerequisites as missing although the executables are present: Graphviz 2.43
+accepts `dot -V` where the probe runs `dot --version`, and GCC 13.3 lacks
+`-std=c2y`. Generate the regression rules with
+`dune exec -- frama-c-ptests -never-disabled tests plugins/*/tests` and judge
+by the test outcomes, not by the configuration summary. This does not enable
+native Dune or cram tests that are disabled by a condition.
