@@ -36,3 +36,47 @@ and so is its caller. The analysis ends as it does without the category.
     call to divide: lookup: no-candidate; execution: interrupted; storage: none
   [eva:cache] 
     call to main: lookup: no-candidate; execution: interrupted; storage: none
+
+Without the Inout plug-in, memexec has no footprint for a call and refuses
+each storage; the second call to leaf finds no entry and is analysed.
+  $ frama-c -no-autoload-plugins -load-module eva -eva call-cache.c -eva-msg-key cache -eva-statistics-file no-inout.csv > no-inout.log 2>&1
+  $ grep -A1 'eva:cache' no-inout.log
+  [eva:cache] call-cache.c:14: 
+    call to leaf: lookup: no-candidate; execution: analysed; storage: refused (no-inout)
+  [eva:cache] call-cache.c:15: 
+    call to leaf: lookup: no-candidate; execution: analysed; storage: refused (no-inout)
+  --
+  [eva:cache] call-cache.c:16: 
+    call to divide: lookup: no-candidate; execution: analysed; storage: refused (no-inout)
+  [eva:cache] 
+    call to main: lookup: no-candidate; execution: analysed; storage: refused (no-inout)
+  $ grep '^memexec-' no-inout.csv
+  memexec-misses	leaf		2
+  memexec-misses	divide		1
+  memexec-misses	main		1
+  memexec-refused-no-inout	leaf		2
+  memexec-refused-no-inout	divide		1
+  memexec-refused-no-inout	main		1
+
+The printer domain relates every block to an unknown set of blocks, so each
+storage is refused.
+  $ frama-c -no-autoload-plugins -load-module eva,inout,scope -eva call-cache.c -eva-domains printer -eva-msg-key cache -eva-statistics-file relate-top.csv > relate-top.log 2>&1
+  $ grep -A1 'eva:cache' relate-top.log
+  [eva:cache] call-cache.c:14: 
+    call to leaf: lookup: no-candidate; execution: analysed; storage: refused (relate-top)
+  --
+  [eva:cache] call-cache.c:15: 
+    call to leaf: lookup: no-candidate; execution: analysed; storage: refused (relate-top)
+  --
+  [eva:cache] call-cache.c:16: 
+    call to divide: lookup: no-candidate; execution: analysed; storage: refused (relate-top)
+  --
+  [eva:cache] 
+    call to main: lookup: no-candidate; execution: analysed; storage: refused (relate-top)
+  $ grep '^memexec-' relate-top.csv
+  memexec-misses	leaf		2
+  memexec-misses	divide		1
+  memexec-misses	main		1
+  memexec-refused-relate-top	leaf		2
+  memexec-refused-relate-top	divide		1
+  memexec-refused-relate-top	main		1

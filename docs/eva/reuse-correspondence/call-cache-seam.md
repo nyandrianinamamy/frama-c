@@ -126,11 +126,18 @@ allocates, and on `main`, which calls it. Executed by `call-cache.t`:
 `refused (disabled)` for every call under `-eva-no-memexec`, with both calls
 to `leaf` analysed; and `interrupted` for the call stopped by
 `-eva-stop-at-nth-alarm 1` and for its caller, with the same exit status and
-final message as the run without the category.
+final message as the run without the category. Also executed by
+`call-cache.t`: `no-inout` for every call when the Inout plug-in is not
+loaded, and `relate-top` for every call with the `printer` domain, whose
+`relate` returns `Top`; in both runs the statistics count one refusal per
+analysed call.
 
-**Open.** No regression enables the category on a path that ends in
-`no-inout`, `footprint-top`, `relate-top`, `relate-unclosed` or `exception`.
-A regression for each of the first four is pending.
+**Open.** No regression reaches `footprint-top`, `relate-unclosed` or
+`exception`. For `relate-unclosed`, chains of assignments `b = a + 1;
+c = b + 1; ...` analysed with the equality and octagon domains, with their
+relations kept through calls, did not make the key grow for three rounds. For
+`footprint-top`, writes through a pointer of unknown value did not give Inout
+an unbounded set of blocks.
 
 ## A hit names the entry stored earlier
 
