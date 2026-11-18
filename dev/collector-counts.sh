@@ -71,7 +71,7 @@ if (( ${#started[@]} )); then
       counts["collector-would-store"] = 0
     }
     /^collector-/ { counts[$1] += $4 }
-    END { for (reason in counts) print reason, counts[reason] }
+    END { for (key in counts) print key, counts[key] }
   ' "${started[@]}" | sort
 fi
 exit "$code"
