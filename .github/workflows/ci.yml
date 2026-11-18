@@ -26,7 +26,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  group: analyzer-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
@@ -97,49 +97,19 @@ jobs:
       - name: Check out the repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      # APT resolves and authenticates the packages on the first run for each
-      # runner image. Keep the archives so subsequent jobs can install locally.
-      - name: Identify system packages
-        id: packages
-        run: |
-          cat > "$RUNNER_TEMP/ci-packages" <<'PACKAGES'
-          build-essential autoconf m4 pkg-config git curl unzip patch libgmp-dev
-          libmpfr-dev zlib1g-dev graphviz time clang yq socat dos2unix libzmq3-dev
-          python3-venv jq opam gcc-multilib
-          PACKAGES
-          digest=$(sha256sum "$RUNNER_TEMP/ci-packages" | cut -d' ' -f1)
-          echo "key=apt-v1-$ImageOS-$ImageVersion-$RUNNER_ARCH-$digest" >> "$GITHUB_OUTPUT"
-
-      - name: Restore system packages
-        id: apt-cache
-        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ${{ runner.temp }}/ci-debs/*.deb
-          key: ${{ steps.packages.outputs.key }}
-
       - name: Install system packages
         run: |
-          if [[ "${{ steps.apt-cache.outputs.cache-hit }}" != true ]]; then
-            sudo apt-get update
-            mkdir -p "$RUNNER_TEMP/ci-debs"
-            xargs -a "$RUNNER_TEMP/ci-packages" sudo apt-get install \
-              -o Dir::Cache::archives="$RUNNER_TEMP/ci-debs" \
-              --download-only -y --no-install-recommends
+          # Some hosted images prefer an EC2 mirror that took over 13 minutes
+          # to serve 43 MB. Use the primary Ubuntu archive for these images.
+          mirrors=/etc/apt/apt-mirrors.txt
+          if [[ -f "$mirrors" ]]; then
+            printf '%s\n' 'https://archive.ubuntu.com/ubuntu/' | sudo tee "$mirrors"
           fi
-          shopt -s nullglob
-          archives=("$RUNNER_TEMP"/ci-debs/*.deb)
-          # With online sources enabled APT can prefer the mirror even when
-          # given a local .deb of the very same version.
-          xargs -a "$RUNNER_TEMP/ci-packages" sudo apt-get install \
-            -o Dir::Etc::sourcelist=/dev/null -o Dir::Etc::sourceparts=- \
-            --no-install-recommends -y "${archives[@]}"
-
-      - name: Save system packages
-        if: steps.apt-cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ${{ runner.temp }}/ci-debs/*.deb
-          key: ${{ steps.packages.outputs.key }}
+          sudo apt-get -o Acquire::Languages=none update
+          sudo apt-get install -y --no-install-recommends build-essential \
+            autoconf m4 pkg-config git curl unzip patch libgmp-dev \
+            libmpfr-dev zlib1g-dev graphviz time clang yq socat dos2unix \
+            libzmq3-dev python3-venv jq opam gcc-multilib
 
       # The switch takes about half an hour to build. It is saved as soon as
       # it is complete, so that a failing test does not lose it, and reused
