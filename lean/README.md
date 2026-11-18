@@ -72,7 +72,7 @@ directories that Dune reads, and `lean` is not among them.
   carries a label, which identifies it in the observations.
 - **Memory.** Generic blocks, one value per block. A block can stand for a
   global, a caller's local or an existing heap allocation. Two pointers to the
-  same live block alias. A call creates a block for each parameter and local of
+  same existing block alias. A call creates a block for each parameter and local of
   the callee; at the return these blocks go out of scope. An access to a block
   that is not live faults. Identifiers are not reused, so a pointer to a block
   that went out of scope stays dangling. Going out of scope rewrites no other
@@ -96,7 +96,7 @@ directories that Dune reads, and `lean` is not among them.
   does not need this hypothesis.
 - Eva's iteration strategy, and any abstract domain: there is no analyzer in
   the model.
-- Creation and release of heap allocations during a statement. Heap blocks that
-  exist at entry are covered.
+- Creation and release of heap allocations during a statement. Existing heap
+  allocations are covered.
 - Reads of uninitialized values (every local is declared with an initial
   value) and integer overflow (integers are unbounded).
