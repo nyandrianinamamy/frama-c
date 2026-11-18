@@ -61,7 +61,11 @@
 
     With [-eva-cache-collect], a completed body also reports [collector:
     would-store] or [collector: refused (REASON)] on the same line. This
-    verdict describes the observed body and does not control memexec.
+    verdict describes the observed body and does not control memexec. With
+    supplied entries, a body analysed after a lookup that found no candidate
+    or rejected every candidate reports its verdict beside [refused
+    (supplied-only)]; the verdict stores nothing. A hit analyses no body, and
+    its message has no verdict.
 
     {2 Statistics}
 
