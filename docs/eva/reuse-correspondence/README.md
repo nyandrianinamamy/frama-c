@@ -62,6 +62,8 @@ that a checkout has the model sources of an entry, compare
   match.
 - [Matching](matching.md): the match and product lemmas, closure of the key
   in the stored input, and the non-emptiness of the stored concretisation.
+- [Entry construction](entry.md): producer soundness, coverage, the matching
+  key, and the Exit, Safety and Reach claims.
 - [Call-cache seam](call-cache-seam.md): the seam through which memexec
   answers calls, the dispositions of each call, their reasons and their
   counts, and the closure of the memexec key under `relate`.

@@ -134,6 +134,11 @@ included.
   checked tree. Same command, run on 2026-11-18 on an extraction of that
   commit, exit status 0; `#print axioms ReuseModel.frame_lemma` gives
   `[propext, Quot.sound]`, as above. CI on that tree is pending.
+- Rebuilt at tree `a84123b158f292d1debae406ac75950ee89cb87a` (commit
+  `d93780ab6119321dfa7aba74f571d6bced95fe4a`), which adds [entry
+  construction](entry.md). The files listed in the preceding rebuild are
+  identical. Same command on an extraction of that commit on 2026-11-18,
+  exit status 0. The axiom output is unchanged. CI on this tree is pending.
 
 **Open obligations.** None for the claim in the model. To use the lemma for a
 cache entry of Eva, Eva's footprint must cover the blocks that the statement

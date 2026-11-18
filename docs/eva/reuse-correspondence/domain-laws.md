@@ -79,6 +79,12 @@ These are definitions. The claims below are about them.
 - CI: the workflow `.github/workflows/lean-model.yml` ran on this tree, at
   commit `10650b9502722d34a424e83c3ca380b611fc2031`, and succeeded
   ([run 44383251659](https://github.com/nyandrianinamamy/frama-c/actions/runs/44383251659)).
+- Rebuilt at tree `a84123b158f292d1debae406ac75950ee89cb87a` (commit
+  `d93780ab6119321dfa7aba74f571d6bced95fe4a`), which adds [entry
+  construction](entry.md). `ReuseModel/Domain.lean`, its imported
+  definitions, and `Checks/Domains.lean` are identical. Same command on
+  an extraction of that commit on 2026-11-18, exit status 0. The axiom
+  output is unchanged. CI on this tree is pending.
 
 ## The laws can be met together
 
@@ -425,9 +431,10 @@ it from the projected match. Other domains with an identity `filter` can meet
 `relate` sound (`Checks.trivDom`).
 
 **Scope.** The match lemma, the product lemma and their composition
-`projected_match`. Whether the weak form suffices for the construction of a
-sound entry and for the hit is decided by those later proof targets. The
-consequence that criterion 2 of issue #35 asks to report on the
+`projected_match`. [Entry construction](entry.md) uses the concretisation
+and the producing witness. It takes no `filter` law itself. Composition
+with the hit is still open. The consequence that criterion 2 of issue #35
+asks to report on the
 specification, for the case where the weak form does not suffice, does not
 arise for these lemmas.
 

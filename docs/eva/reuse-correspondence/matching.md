@@ -12,7 +12,9 @@ The evidence is that of [Domain laws](domain-laws.md#evidence-common-to-the-entr
 tree of `lean/` `8fb8b87666889ddca7376bdd0555803062ab973a`, at commit
 `fb938739594412912b0bc9de1e8a28d9454b32af`, `cd lean && lake build --wfail`
 run on 2026-11-18 on an extraction of that commit, exit status 0. CI on this
-tree is pending.
+tree is pending. The
+[rebuild for entry construction](domain-laws.md#evidence-common-to-the-entries)
+also checks these lemmas, with the same axiom output.
 
 ## Kinds of the hypotheses
 
@@ -238,8 +240,12 @@ check that the key is closed in the current input
 (`Mem_exec.Make.find_match_in_previous` tests that `Domain.relate binputs
 state` is included in `binputs` on the current state) can be removed: the
 specification keeps that check for from-scratch equality and removes it only
-if the from-scratch tests show no difference. The construction of a sound
-entry and the hit are later proof targets.
+if the from-scratch tests show no difference. [Entry construction](entry.md)
+also needs write-target liveness and allocation agreement for the same
+producing witness. A [checked case](entry.md#checked-cases) gives a
+successful projection with no allocator agreement for any stored
+witness. Deriving the full witness is an open obligation for the
+within-analysis hit.
 
 **Declaration.** `ReuseModel.Domain.projected_match`, in
 [`lean/ReuseModel/Domain.lean`](../../../lean/ReuseModel/Domain.lean).
