@@ -176,6 +176,18 @@ A card that produces evidence and changes no behaviour.
 **Bug-fix card**:
 A card opened by a review of features of the same milestone.
 
+**Synthetic edit**:
+One scripted change at one site of a program, of a fixed edit kind.
+_Avoid_: Mutation, patch (the patch is its file)
+
+**Edit kind**:
+The syntactic class of a synthetic edit.
+
+**Control edit**:
+A synthetic edit whose expected set of dropped cache entries, computed for
+its site, is empty. Being a control is a property of the case, not of the
+edit kind.
+
 ### Domain laws
 
 **Exact**:
