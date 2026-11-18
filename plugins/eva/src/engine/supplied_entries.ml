@@ -89,6 +89,11 @@ let check_exit kf entry =
   List.iter (fun s -> Base.Hptset.iter (check s) written) (Entry.exit entry)
 
 let supply kf ~key ~input ~footprint ~exit =
+  (* A call whose input is [Top] would match an entry whose input is [Top],
+     and [reuse] would then return the exit state alone, without the blocks
+     of the caller. No call is analysed from [Bottom]. *)
+  if not (Cvalue.Model.is_reachable input) || Cvalue.Model.is_top input then
+    invalid_arg "Supplied_entries.supply: the input is Top or Bottom";
   let exit = List.map (fun s -> Partition.Key.empty, (s, holders s)) exit in
   let input = input, Locals_scoping.bottom () in
   let id = Counter.get () + 1 in
