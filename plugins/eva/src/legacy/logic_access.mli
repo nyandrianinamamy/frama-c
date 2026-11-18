@@ -24,7 +24,8 @@ val unknown_read : unit -> unit
 (** Reports a location before validity narrowing. *)
 val read : Locations.t -> unit
 
-(** Reports pointer targets, keeping the clause's reason for unknown targets. *)
+(** Reports pointer targets. Unknown targets refuse as [footprint-top] and
+    leave the read bound unchanged: a load reports its location itself. *)
 val designate : Cvalue.V.t -> unit
 val designate_bits : Addresses.Bits.t -> unit
 val designate_raw : Cvalue.V_Or_Uninitialized.t -> unit

@@ -35,22 +35,14 @@ let read loc =
     | Base.SetLattice.Top -> unknown_read ()
     | Base.SetLattice.Set _ -> Body_access.read loc
 
-let check_bound = function
-  | Base.SetLattice.Top -> unknown_read ()
-  | Base.SetLattice.Set _ -> ()
-
+(* Each load reports its own location through [read]. A designation does
+   not load its targets, so unknown targets leave the read bound finite. *)
 let designate value =
-  if is_recording () then begin
-    Body_access.designate value;
-    check_bound (Cvalue.V.get_bases value)
-  end
+  if is_recording () then Body_access.designate value
 
 let designate_bits addr =
-  if is_recording () then begin
-    let bases = Addresses.Bits.get_bases addr in
-    Body_access.designate_bases bases;
-    check_bound bases
-  end
+  if is_recording () then
+    Body_access.designate_bases (Addresses.Bits.get_bases addr)
 
 let designate_raw value =
   if is_recording () then

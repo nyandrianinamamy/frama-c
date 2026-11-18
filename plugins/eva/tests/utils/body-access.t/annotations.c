@@ -121,3 +121,7 @@ void use_logic_or_null(void) {
   u.s.p = malloc(sizeof(int));
   logic_or_null(nondet ? &u : (union parts *)0);
 }
+
+void empty_max(void) {
+  //@ check \max(1, 0, \lambda integer i; i) >= 0;
+}

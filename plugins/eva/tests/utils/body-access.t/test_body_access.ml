@@ -41,6 +41,9 @@ let observe_refusals stack (r : Access.t) =
 
 let allocated = function Base.Allocated _ -> true | _ -> false
 
+let reasons (r : Access.t) =
+  String.concat ", " (List.map Access.refusal_id r.refusals)
+
 let observe_annotations stack (r : Access.t) =
   let name = Kernel_function.get_name (Eva.Callstack.top_kf stack) in
   let read expected =
@@ -48,6 +51,10 @@ let observe_annotations stack (r : Access.t) =
     assert (r.refusals = []);
     assert (List.mem Access.Statuses r.recorded);
     Format.printf "%s reads %s@." name (String.concat ", " expected)
+  in
+  let refuses expected =
+    assert (r.refusals = expected);
+    Format.printf "%s refuses %s@." name (reasons r)
   in
   match name with
   | "selected" -> read ["post_only"; "selector"]
@@ -85,6 +92,10 @@ let observe_annotations stack (r : Access.t) =
     assert (Base.SetLattice.exists allocated r.designated);
     assert (r.refusals = [Access.Allocated_block]);
     Format.printf "%s designates an allocated block@." name
+  | "empty_max" ->
+    assert (names r.reads = []);
+    assert (r.designated = Base.SetLattice.top);
+    refuses [Access.Footprint_top]
   | name -> failwith ("unexpected body: " ^ name)
 
 let observe_blocks stack (result : Access.t) =

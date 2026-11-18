@@ -279,3 +279,10 @@ for a C load, and for a logic load whose location may be invalid.
   $ clause use_logic_or_null -machdep x86_32
   $ grep '^logic_or_null designates' use_logic_or_null.log
   logic_or_null designates an allocated block
+
+A logic value with unknown targets is not a read. The maximum of an empty
+range is unspecified: the body reads nothing and designates any block.
+
+  $ clause empty_max
+  $ grep '^empty_max refuses' empty_max.log
+  empty_max refuses footprint-top
