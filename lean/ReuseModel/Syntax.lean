@@ -181,8 +181,8 @@ language can express programs outside it; the observations and the frame lemma
 are stated for subjects, which carry this proof.
 
 * `namesUnique`: each function is defined once, so the entries of `p.funs` are
-  exactly the definitions that calls reach. The other two conditions are
-  stated on these entries.
+  exactly the definitions that calls reach. The other conditions are stated
+  on these entries.
 * `nonRecursive`: no call is recursive.
 * `labelsUnique`: the labels of the bodies of the functions of `p` are pairwise
   distinct, so that a label names one statement of the program text.

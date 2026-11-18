@@ -4,7 +4,8 @@ import Checks.AxiomCheck
 /-!
 # Worked examples
 
-Three small programs, run with the memory `FunMem`. Each program and its
+Three small programs, run with the memory `FunMem`, and the body of a
+function of the third as a fourth observed statement. Each program and its
 observed statement form a `Subject`, whose fragment conditions are checked by
 `decide`. Each fact is computed by the Lean kernel from the execution (`run`)
 and turned into an observation by the lemmas of the first section.
