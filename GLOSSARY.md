@@ -131,11 +131,14 @@ _Avoid_: Options, parameters
 
 ### Delivery
 
-**Stage**:
-One of the three relations between the analysis that produces the cache
-entries and the analysis that uses them: the same analysis, another process on
-an unchanged program, another process on an edited program.
-_Avoid_: Phase, step
+**Milestone**:
+A set of cards delivered together. It is done when every one of its cards is
+done, including the cards added by a review. The first three milestones are
+named by the relation between the analysis that produces the cache entries and
+the analysis that uses them: reuse within one analysis, reload on an unchanged
+program, reuse on an edited program. Earlier tickets call these three "stage
+1", "stage 2" and "stage 3".
+_Avoid_: Stage, phase, step
 
 **Unchanged program**:
 A program in which every entity of the producing program has an image and
@@ -146,9 +149,32 @@ _Avoid_: Same program, same version
 **Edited program**:
 A program that is not unchanged.
 
-**Milestone**:
-A unit of delivery with its acceptance evidence. A stage contains several
-milestones.
+**Card**:
+One unit of work of a milestone. A card is a feature, a test card or a
+bug-fix card.
+
+**Feature**:
+A card that delivers something demonstrable on its own, with its acceptance
+evidence. It is a model feature, a mechanism feature or a reuse feature. A
+milestone has at most one of each kind.
+
+**Model feature**:
+The feature of a milestone made of definitions in the reference model with
+their theorems checked.
+
+**Mechanism feature**:
+The feature of a milestone made of a part of the analyzer that reuse depends
+on and that is evaluated alone.
+
+**Reuse feature**:
+The feature of a milestone that makes the analyzer use cache entries in the
+setting the milestone names.
+
+**Test card**:
+A card that produces evidence and changes no behaviour.
+
+**Bug-fix card**:
+A card opened by a review of features of the same milestone.
 
 ### Domain laws
 
