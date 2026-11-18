@@ -33,6 +33,16 @@ has an empty relation, so it reaches the fixpoint on the seed.
 `Cache_entry.Make.make` checks the inclusion and closure and projects the
 producing input to the closed key.
 
+A callee's block can occur in R and therefore in the key. For example,
+the CIL return temporary is in the test's key because the body reads it.
+This qualifies the parent spec's wording on body locals.
+[`Transfer_stmt`](../../../plugins/eva/src/engine/transfer_stmt.ml)
+binds the arguments in `Domain.start_call` before the lookup runs.
+[`Cache_entry.Make.check`](../../../plugins/eva/src/engine/cache_entry.ml)
+compares the projected maps. A formal in the key matches on its entry
+value. A body local that is absent until the body starts matches by its
+absence from both maps.
+
 **Evidence (executed).** [`cache-producer.t`](../../../plugins/eva/tests/utils/cache-producer.t/run.t)
 asserts the sets of the entry for `leaf`, including the CIL temporary read
 by the return, checks the filtered input values, and checks that a full
@@ -41,8 +51,8 @@ overwrite of `out` leaves it out of the key. The partial array write needs
 refuses at limit one and stores at limit two. Cvalue with sign refuses as
 `product`.
 
-**Open.** The closure growth and Top cases cannot be observed with the
-current relation. The existing refusal on allocated blocks normally
+**Open.** Cvalue's relation allows no closure growth. The existing
+refusal on allocated blocks normally
 prevents any variable-validity block from reaching key construction.
 The key inclusion is checked on the collected sets. Establishing the
 concrete coverage hypotheses is a separate obligation below.
@@ -109,12 +119,28 @@ outside the key. Cvalue map checks also do not prove nonempty
 concretisation. Links and checked counterexamples are in
 [entry construction](entry.md#sound-entry-from-producer-soundness-and-coverage).
 
+## Refusals at admission
+
+[`cache-producer.t`](../../../plugins/eva/tests/utils/cache-producer.t/run.t)
+calls `Cache_producer.Make.store` on constructed observations and call
+results. It checks the specific refusal and verifies that no entry was
+stored.
+
+| Refusal | Input or invariant |
+| --- | --- |
+| `footprint-top` | A Top read set with an accepting verdict. The test isolates the producer from collector refusals. A predicate split that narrows a binding, for example, can make the write set Top and is refused by the collector as `annotation`. |
+| `invalid-footprint` | A sure-written block missing from the exit-write set. |
+| `not-cacheable` | A result marked `NoCacheCallers` with an accepting verdict. The iterator propagates this flag from a call, which also records a collector refusal through `Transfer_stmt.call`. |
+| `input-state` | A Top input and a map exit. |
+| `exit-state` | A map input and an explicit Bottom exit state. The empty exit list is allowed. |
+| `relate-top` | Defensive. [`Cvalue_domain.State.relate`](../../../plugins/eva/src/domains/cvalue/cvalue_domain.ml) returns `Base.SetLattice.empty` for every input, and the producer admits only cvalue. |
+
 ## Provenance, storage and lookup
 
 **Claim.** Each completed body observation leads to one production
 disposition and count. The stored entry carries the Exit part, the
 collector's recorded join classes, the used function with its body call
-mode, and an Inner reference if statement states were recorded. Memexec
+mode, and an Inner reference if cvalue statement states were recorded. Memexec
 still serves ordinary calls. Only explicit fixture supply can make a
 produced entry a lookup candidate.
 
@@ -143,21 +169,33 @@ observation extends the call's disposition with the producer result.
 
 The admitted collector family contains no nested call, so the only used
 function is the subject and the only mode in a produced entry is body.
-The Inner reference names the saved statement states by the producing
-callstack. The collector supplies the classes of the observed joins. The
+The producer gives an Inner reference when the body saves statement
+states and the cvalue store records them. The reference names the producing
+callstack. [`Engine.Store.register_state`](../../../plugins/eva/src/engine/engine.ml)
+joins repeated visits at the same control point and callstack, so the
+query can include states from other calls. The collector supplies the
+classes of the observed joins. The
 data for per-position Safety and Reach joins belongs to their producer and
 replay work, in [#47](https://github.com/nyandrianinamamy/frama-c/issues/47)
 and [#48](https://github.com/nyandrianinamamy/frama-c/issues/48).
 
 **Evidence (executed).** [`cache-producer.t`](../../../plugins/eva/tests/utils/cache-producer.t/run.t)
-asserts the used function and its mode, the Inner reference, and the States
-join class. The ordinary run uses a memexec hit on the second call.
+asserts the used function and its mode and the States join class. It
+queries the cvalue state at the Inner callstack, checks that disabling
+recording for the callee or cvalue omits the reference, and shows two
+visits to one callstack where the first entry has input `g = {1}` and the
+Inner query returns `g = {1; 2}`. The ordinary run uses a memexec hit on
+the second call.
 In the replay run, the fixture supplies the first fresh entry and records
 two hits, with zero fresh entries for that body in the replay analysis.
 [`statistics.t`](../../../plugins/eva/tests/utils/statistics.t/run.t)
 checks the new storage counts alongside the existing counts.
 [`dev/collector-counts.sh`](../../../dev/collector-counts.sh) aggregates
-both sets of counts over the Eva test configurations.
+both sets of counts over the Eva test configurations. These are counts
+of the first disposition per observed body under each test's own memexec
+setting. A memexec hit skips the body and produces no observation. The
+producer checks `product` before the collector verdict, so that refusal
+masks collector causes for an unsupported product.
 
 **Open.** The stored join classes do not establish the Safety and Reach
 coverage or replay claims. Inner reconstruction and serialization remain

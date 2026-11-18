@@ -365,12 +365,10 @@ Why W_exit and not W: a block b of W \ W_exit is written only on paths that
 reach no exit. An execution that returns does not write it, so its value at
 the exit is its value in the input of the call, which can differ from the
 producer's when b is not in the key; the stored exit state holds the
-producer's. The model of [issue #36](https://github.com/nyandrianinamamy/frama-c/issues/36),
-in review and not in this tree, states the agreement of the exit on W_exit,
-with a key that contains R ∪ (W_exit \ W_sure). The specification says that
-`reuse` takes the written set from the footprint of the entry, R ∪ W; this
-operation applies the law `reuse` sound with W_exit instead, which is the
-sound choice. The specification is not changed here.
+producer's. [Entry soundness](entry.md#sound-entry-from-producer-soundness-and-coverage)
+establishes agreement on W_exit under the full `Matches` witness and the
+construction hypotheses. The reuse operation applies the domain law with
+W_exit, the set that the entry's Exit claim supplies.
 
 A domain other than cvalue would need a `reuse` that takes nothing outside
 its set from the output; the signature `Cache_entry.Domain` states it. Only
@@ -740,22 +738,27 @@ are maps, since `supply` refuses `Top` and `Bottom`; cur is a map, since no
 call is analysed from `Bottom` and a call whose input is `Top` matches no
 entry (`filter K Top` is `Top`, and the stored input of an entry is a map).
 
-The hit, as an argument in prose: let σ be a memory covered by the input s
-of the call, and τ the memory at the exit of an execution of the body from
-σ. By the match ([The match by equality](#the-match-by-equality)), some σ'
-covered by the stored input agrees with σ on K. The execution from σ' reads
-only blocks of R ⊆ K, so it takes the same path and reaches an exit in τ',
-which agrees with τ on W_sure; a block of W_exit \ W_sure is in the key, so
-it starts with the same value and ends with the same value: τ and τ' agree
-on W_exit. A block outside W_exit is not written by an execution that
-reaches an exit: τ agrees with σ outside W_exit. The model's statement of
-this step is `ReuseModel.frame_of_not_written`, for a block issued at entry
-that no event of the trace writes; the block may be read. Its hypothesis
-that the block is issued at entry is not discharged here. τ' is covered by
-an exit state as supplied, by the Exit claim of the entry, which the
-supplier owes, and so by its projection o_i on K ∪ W (`filter` sound). So τ
-agrees on W_exit with a memory covered by o_i and outside W_exit with a
-memory covered by s, and the law above puts it in `reuse W_exit s o_i`.
+For the conditional hit argument, let σ be a memory covered by the input s
+of the call and τ the memory at the exit of a body execution from σ.
+Assume the full [`entry.Matches a σ`](entry.md#sound-entry-from-producer-soundness-and-coverage)
+witness, with common program, subject and entry bindings. One stored
+witness agrees with σ on key contents, on the liveness of every written
+block and on allocation. Under non-emptiness of the stored input, producer
+soundness, coverage and key coverage, `CacheEntry.sound_of_producer`
+supplies an exit at the same outcome that is covered by the entry's Exit
+part and agrees with τ on W_exit. The
+[finite-prefix correspondence](entry.md#finite-prefix-correspondence)
+also gives `run_agree_on_writes`, which needs write-target liveness
+agreement only on the targets of the chosen prefix. The checked
+[`projected_match_no_replay_witness`](entry.md#checked-cases) shows why
+agreement on key contents alone cannot supply the full witness.
+
+Project that exit state to K ∪ W using `filter` sound, yielding o_i.
+Outside W_exit, the frame argument gives agreement with σ where an
+unchanged block was issued at entry. This uses
+`ReuseModel.frame_of_not_written` and needs the issued-at-entry premise.
+Under that premise, τ agrees on W_exit with a memory covered by o_i and
+outside W_exit with σ. The law above puts τ in `reuse W_exit s o_i`.
 
 The clobbered set of the result is that of out. `supply` sets it to the
 blocks of the exit state bound to a value that may contain the address of a
@@ -767,7 +770,12 @@ only the caller's state describes is not found by this scan of the exit
 state; it is in the clobbered set of the caller's state only if the caller
 recorded it, and the argument that the result keeps it is not written.
 
-**Evidence.** Unit tests of `Cache_laws`:
+**Evidence.** `CacheEntry.sound_of_producer`, `run_agree_on_writes`
+and `projected_match_no_replay_witness` were checked on the tree of
+`lean/` `a84123b158f292d1debae406ac75950ee89cb87a`. See
+[the entry record](entry.md) for their statements and axiom reports.
+
+Unit tests of `Cache_laws`:
 
 - for the five states S, the 16 sets K and the 16 sets W,
   `reuse W S (filter (K ∪ W) S)` is equal to S;
@@ -796,12 +804,16 @@ state](#a-hit-takes-the-blocks-of-w_exit-from-the-exit-state).
   must still be in the key (`make` refuses the entry otherwise). The key is
   then larger than the incoming values the body depends on. Sound; a finer
   rule needs reads that depend on the incoming value to be told apart.
-- The hit theorem of the model
-  ([issue #38](https://github.com/nyandrianinamamy/frama-c/issues/38)) and
-  the agreement of the exit on W_exit
-  ([issue #36](https://github.com/nyandrianinamamy/frama-c/issues/36)) are
-  not in this tree: the argument on the hit above is in prose, and its step
-  from the key to the agreement on W_exit is not checked.
+- Derive the full witness for each current memory `m` covered by an
+  admitted Eva lookup, with common program, subject and entry bindings.
+
+  ```lean
+  ∃ w, d.γ entry.input w ∧ ReplayAgreement a entry.key entry.footprint.writes w m
+  ```
+
+- The model's hit theorem
+  ([issue #38](https://github.com/nyandrianinamamy/frama-c/issues/38))
+  remains pending.
 - Produced entries check all overlay bindings. See the
   [producer obligation record](cache-producer.md#producer-obligations-for-exit-reuse)
   for the condition on the four footprint sets, frees and sweeps.
