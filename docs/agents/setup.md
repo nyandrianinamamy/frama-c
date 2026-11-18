@@ -12,7 +12,8 @@ On Ubuntu 24.04, use a **local** switch so other checkouts keep their compilers:
 
 ```sh
 # System dependencies (requires sudo; installs packages, not a system upgrade).
-sudo apt-get install -y --no-install-recommends build-essential autoconf m4 \
+sudo apt-get install -y --no-install-recommends build-essential gcc-multilib \
+  autoconf m4 \
   pkg-config git curl unzip patch libgmp-dev libmpfr-dev zlib1g-dev \
   graphviz time clang yq socat dos2unix libzmq3-dev \
   python3-venv jq cmake libclang-cpp-dev libclang-dev llvm-dev
@@ -48,6 +49,9 @@ _opam/setup-venv/bin/pip install check-jsonschema==0.39.0 PyYAML==6.0.3 \
 - **`DUNE_ROOT=.`** keeps Mopsa's nested `make install` in its own package
   directory; without it, an attempt with Mopsa 1.1 selected the enclosing
   Frama-C workspace and failed. Scope the variable to that opam command.
+- **`gcc-multilib`** provides the libc headers outside the multiarch
+  directory. Without it, `tests/fc_script/make-machdep.t` fails: `clang
+  --target=x86_64` does not find `sys/types.h`.
 - **PyYAML** is required by `share/machdeps/make_machdep/make_machdep.py`. With
   the venv on `PATH`, its Python is the one the tests use.
 - **Apron** enables additional Eva domains, **ZeroMQ** the server, **Mopsa**
