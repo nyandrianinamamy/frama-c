@@ -69,16 +69,19 @@ let supply () =
   two "precise_first" ~first:(int 7) ~second:(range 7 8);
   two "wide_first" ~first:(range 7 8) ~second:(int 7);
   (* An exit state that does not bind the written block out is refused, and
-     no entry is added. *)
-  match
-    Supplied.supply (kf "set_out")
-      ~key:Base.Hptset.empty
-      ~input:Cvalue.Model.empty_map
-      ~footprint:{ read = Base.Hptset.empty; written = bases [out] }
-      ~exit:[ state [keep, int 0] ]
-  with
-  | _ -> Kernel.result "entry supplied with an exit state that misses out"
-  | exception Invalid_argument msg -> Kernel.result "refused: %s" msg
+     so is a Top input. No entry is added. *)
+  let refused ~input ~exit =
+    match
+      Supplied.supply (kf "set_out")
+        ~key:Base.Hptset.empty ~input
+        ~footprint:{ read = Base.Hptset.empty; written = bases [out] }
+        ~exit
+    with
+    | _ -> Kernel.result "entry supplied, not refused"
+    | exception Invalid_argument msg -> Kernel.result "refused: %s" msg
+  in
+  refused ~input:Cvalue.Model.empty_map ~exit:[ state [keep, int 0] ];
+  refused ~input:Cvalue.Model.top ~exit:[ state [out, int 7] ]
 
 let print_entries name =
   List.iter
