@@ -1,4 +1,5 @@
 [kernel] Parsing cache_supplied.c (with preprocessing)
+[kernel] refused: Supplied_entries.supply: an exit state does not bind the written block out
 [eva] Analyzing a complete application starting at main
 [eva:progress] Computing initial state
 [eva:progress] Initial state computed

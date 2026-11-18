@@ -40,13 +40,61 @@ module Counter =
 
 let entries kf = Option.value ~default:[] (Table.find_opt kf)
 
-let supply kf ~key ~input ~footprint ~exit =
-  let cvalue_state s = s, Locals_scoping.bottom () in
-  let exit = List.map (fun s -> Partition.Key.empty, cvalue_state s) exit in
-  let entry =
-    Entry.make ~id:(Counter.next ()) (Body kf)
-      ~key ~input:(cvalue_state input) ~footprint ~exit
+(* The clobbered set of a state: the blocks bound in [model] that may hold
+   the address of a local or formal variable. *)
+let holders model =
+  match model with
+  | Cvalue.Model.Top -> Locals_scoping.top ()
+  | Bottom -> Locals_scoping.bottom ()
+  | Map m ->
+    let add b offsetmap acc =
+      if Locals_scoping.offsetmap_contains_local offsetmap
+      then Base.Hptset.add b acc
+      else acc
+    in
+    let clob = Locals_scoping.bottom () in
+    let bases = Cvalue.Model.fold add m Base.Hptset.empty in
+    Locals_scoping.remember_bases_with_locals clob
+      (Base.SetLattice.inject bases);
+    clob
+
+(* Whether block [b] exists at the exit of the body of [kf]: all blocks do
+   but the locals of its inner blocks, which leave their scope before. *)
+let exists_at_exit kf b =
+  match b with
+  | Base.Var (vi, _) when Kernel_function.is_local vi kf ->
+    let fundec = Kernel_function.get_definition kf in
+    List.exists (Cil_datatype.Varinfo.equal vi) fundec.sbody.blocals
+  | _ -> true
+
+let binds model b =
+  match model with
+  | Cvalue.Model.Top | Bottom -> true
+  | Map _ ->
+    match Cvalue.Model.find_base b model with
+    | _ -> true
+    | exception Not_found -> false
+
+(* [reuse] on cvalue keeps the value of the input for a block that the exit
+   state does not bind: each exit state must bind every written block that
+   exists at the exit. *)
+let check_exit kf entry =
+  let check (_, (model, _)) b =
+    if exists_at_exit kf b && not (binds model b) then
+      Format.kasprintf invalid_arg
+        "Supplied_entries.supply: an exit state does not bind the written \
+         block %a" Base.pretty b
   in
+  let written = (Entry.footprint entry).written in
+  List.iter (fun s -> Base.Hptset.iter (check s) written) (Entry.exit entry)
+
+let supply kf ~key ~input ~footprint ~exit =
+  let exit = List.map (fun s -> Partition.Key.empty, (s, holders s)) exit in
+  let input = input, Locals_scoping.bottom () in
+  let id = Counter.get () + 1 in
+  let entry = Entry.make ~id (Body kf) ~key ~input ~footprint ~exit in
+  check_exit kf entry;
+  ignore (Counter.next ());
   Table.replace kf (entries kf @ [ entry ]);
   entry
 

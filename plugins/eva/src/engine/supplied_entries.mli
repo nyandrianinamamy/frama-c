@@ -36,10 +36,14 @@ type footprint = Cache_entry.footprint = {
     of [kf], built by {!Cache_entry.Make.make} from these arguments, and
     returns it. Entries are identified by 1, 2, ... in the order in which
     they are supplied, and the oldest matching entry is used at a call. Each
-    exit state gets the empty partition key. The states supplied record no
-    block that may hold the address of a local variable: an entry whose
-    statement writes such an address must not be supplied.
-    Raises [Invalid_argument] if [key] is not closed in [input]. *)
+    exit state gets the empty partition key, and records as possible holders
+    of the address of a local variable the blocks it binds to a value that
+    may contain such an address.
+    Raises [Invalid_argument] if [key] is not closed in [input], or if an
+    exit state does not bind a written block that exists at the exit of the
+    body: every written block but the locals of its inner blocks. The
+    written blocks include the block of the value returned by [kf], if
+    any. *)
 val supply :
   kernel_function -> key:Base.Hptset.t -> input:Cvalue.Model.t ->
   footprint:footprint -> exit:Cvalue.Model.t list -> entry
