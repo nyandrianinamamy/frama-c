@@ -94,6 +94,26 @@ let pretty_storage fmt : storage_disposition -> unit = function
   | `Stored id -> Format.fprintf fmt "stored (entry %d)" id
   | `Refused reason -> Format.fprintf fmt "refused (%s)" (refusal_id reason)
 
+(* The callstack of a call, as Eva prints it in its messages, with the number
+   of each call statement after its location: two calls on one line differ. *)
+let pretty_callstack fmt (cs : Callstack.t) =
+  let pretty_call fmt (kf, stmt) =
+    Format.fprintf fmt "%a :: %a (stmt %d) <-@ "
+      Kernel_function.pretty kf
+      Fileloc.pretty (Cil_datatype.Stmt.loc stmt) stmt.sid
+  in
+  if Self.is_message_category_enabled Log_key.callstack_hash then
+    Format.fprintf fmt "<%a> " Callstack.pretty_hash cs;
+  Format.fprintf fmt "@[<hv>";
+  List.iter (pretty_call fmt) cs.stack;
+  Format.fprintf fmt "%a@]" Kernel_function.pretty cs.entry_point
+
+(* Ends a message with the callstack [cs] when the category [callstacks] is
+   enabled, in place of the callstack of [~stacktrace:true]. *)
+let append_callstack cs fmt =
+  if Self.is_message_category_enabled Log_key.callstacks then
+    Format.fprintf fmt "@\nstack: @[<hv>%a@]" pretty_callstack cs
+
 (* Prints the dispositions of the call [call] under the message category.
    It is called while [call.callstack] is the current callstack, which the
    message ends with when the category [callstacks] is enabled. *)
@@ -127,11 +147,12 @@ let report ?collector ?produced call ~lookup ~execution ~storage =
         pretty_produced
         (if show_produced then produced else None)
     in
+    let append = append_callstack call.callstack in
     match Callstack.top_callsite call.callstack with
     | Kstmt stmt ->
       let loc = Cil_datatype.Stmt.loc stmt in
-      Self.feedback ~mkey ~loc ~stacktrace:true "%t" pretty_call
-    | Kglobal -> Self.feedback ~mkey ~stacktrace:true "%t" pretty_call
+      Self.feedback ~mkey ~loc ~append "%t" pretty_call
+    | Kglobal -> Self.feedback ~mkey ~append "%t" pretty_call
 
 (* ----- Seam -------------------------------------------------------------- *)
 

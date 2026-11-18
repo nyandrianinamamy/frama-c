@@ -23,6 +23,7 @@ open Self
 *)
 
 let callstacks = Self.key_callstacks
+let callstack_hash = Self.key_callstack_hash
 
 let cvalue_domain =
   register_message_category "d-cvalue" ~group:Domain ~level:0

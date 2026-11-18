@@ -19,6 +19,7 @@ val split_return : message_category
 val precision_settings : message_category
 val progress : message_category
 val callstacks : message_category
+val callstack_hash : message_category
 
 val thread_fixpoint : message_category
 val thread : message_category

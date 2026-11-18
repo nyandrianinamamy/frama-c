@@ -47,6 +47,9 @@ val is_message_category_enabled: message_category -> bool
 (** Use [Log_key.callstacks] instead. *)
 val key_callstacks : message_category
 
+(** Use [Log_key.callstack_hash] instead. *)
+val key_callstack_hash : message_category
+
 (** {2 Debug categories.} *)
 
 (** Category for debug messages. *)
