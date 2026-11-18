@@ -1,0 +1,492 @@
+--- a/plugins/eva/src/domains/cvalue/builtins_malloc.ml
++++ b/plugins/eva/src/domains/cvalue/builtins_malloc.ml
+@@ -342,6 +342,7 @@
+   let validity = Base.Variable variable_v in
+   let new_base = Base.register_allocated_var var deallocation validity in
+   register_malloced_base ~stack new_base;
++  Wayfinder_heap.created deallocation;
+   new_base, max_alloc, Builtins.NoCacheCallers
+ 
+ 
+@@ -366,6 +367,7 @@
+   let validity = Base.Variable variable_v in
+   let new_base = Base.register_allocated_var var region validity in
+   register_malloced_base ~stack new_base;
++  Wayfinder_heap.created region;
+   new_base, max_alloc
+ 
+ module Base_with_Size = Datatype.Pair (Base.Base) (Z)
+--- a/plugins/eva/src/engine/analysis.ml
++++ b/plugins/eva/src/engine/analysis.ml
+@@ -255,6 +255,8 @@
+     Kernel_function.pretty entry_point;
+   try
+     Self.ComputationState.set Computing;
++    Wayfinder_heap.begin_analysis ();
++    Wayfinder_entry.begin_analysis ();
+     (* Run the analysis. *)
+     let final_state =
+       match mt_analysis with
+@@ -263,10 +265,14 @@
+         compute_from_entry_point (module Engine)
+           ?cvalue_state ?arguments entry_point
+     in
++    Wayfinder_heap.finish true;
++    Wayfinder_entry.finish true;
+     Self.(ComputationState.set Computed);
+     post_analysis (module Engine) mt_analysis final_state
+   with exn ->
+     let backtrace = Printexc.get_raw_backtrace () in
++    Wayfinder_heap.finish false;
++    Wayfinder_entry.finish false;
+     Self.(ComputationState.set Aborted);
+     match exn with
+     | Error | Self.Abort -> () (* do not re-raise  *)
+--- a/plugins/eva/src/engine/compute_functions.ml
++++ b/plugins/eva/src/engine/compute_functions.ml
+@@ -46,7 +46,11 @@
+     in
+     match MemExec.reuse_previous_call call.kf init_state args with
+     | None ->
+-      let call_result = compute call init_state in
++      Wayfinder_entry.with_body @@ fun () ->
++      let callsite = Callstack.top_callsite call.callstack in
++      let call_result = Wayfinder_heap.compute callsite
++        ~is_refused:(fun result -> result.Engine_sig.cacheable = Eval.NoCacheCallers)
++        (fun () -> compute call init_state) in
+       let () =
+         if call_result.Engine_sig.cacheable = Eval.Cacheable
+         then
+@@ -55,6 +59,7 @@
+       in
+       call_result
+     | Some (states, i) ->
++      Wayfinder_entry.reuse i;
+       apply_call_hooks call init_state `Reuse;
+       (* Evaluate the preconditions of kf, to update the statuses
+          at this call. *)
+@@ -189,6 +194,14 @@
+      the body of the called function according to [target]. *)
+   let compute_call_with_target call target state =
+     Function_calls.register_analysis_target call target;
++    if Wayfinder_entry.enabled then begin
++      let mode = match target with
++        | `Builtin (name, _, _) -> "builtin:" ^ name
++        | `Spec _ -> "specification"
++        | `Body _ -> "body"
++      in
++      Wayfinder_entry.note_call call.kf mode
++    end;
+     match target with
+     | `Builtin builtin_info -> compute_builtin builtin_info call state
+     | `Spec _ as spec -> compute_using_spec_or_body spec call state
+@@ -207,7 +220,7 @@
+     let callsite = Callstack.top_callsite call.callstack in
+     let recursion_depth = Option.map (fun r -> r.depth) recursion in
+     let target = Function_calls.analysis_target ?recursion_depth kf callsite in
+-    compute_call_with_target call target state
++    Wayfinder_heap.dispatch kf (fun () -> compute_call_with_target call target state)
+ 
+   (* ----- Main call -------------------------------------------------------- *)
+ 
+--- a/plugins/eva/src/engine/iterator.ml
++++ b/plugins/eva/src/engine/iterator.ml
+@@ -602,6 +602,24 @@
+       StmtTable.iter register_pre (Lazy.force merged_pre_states);
+       StmtTable.iter register_post (Lazy.force merged_post_states);
+     end;
++    if Wayfinder_entry.enabled then begin
++      let local_bases =
++        List.fold_left (fun acc vi -> Base.Hptset.add (Base.of_varinfo vi) acc)
++          Base.Hptset.empty fundec.slocals
++      in
++      let before = Lazy.force merged_pre_states in
++      let after = Lazy.force merged_post_states in
++      let collect map f =
++        StmtTable.fold (fun stmt state acc -> f stmt state :: acc) map []
++      in
++      let reached = collect before (fun stmt _ -> fundec.svar.vid, stmt.sid) in
++      let project ~include_locals bases =
++        let bases = if include_locals then Base.Hptset.union local_bases bases else bases in
++        let project stmt state = stmt.sid, Domain.filter bases state in
++        Wayfinder_entry.measure (collect before project, collect after project)
++      in
++      Wayfinder_entry.capture reached project
++    end;
+     let states =
+       Cvalue_callbacks.{ before_stmts = merged_pre_cvalues;
+                          after_stmts = merged_post_cvalues }
+--- a/plugins/eva/src/engine/mem_exec.ml
++++ b/plugins/eva/src/engine/mem_exec.ml
+@@ -207,6 +207,16 @@
+         in
+         Domain.Hashtbl.add hkb state_input
+           (all_output_bases, outputs, call_number);
++        if Wayfinder_entry.enabled then begin
++          let footprint =
++            try
++              Some (List.fold_left (fun acc zone -> Base.Hptset.union acc (bases zone))
++                      Base.Hptset.empty Inout_type.[inout.over_inputs;
++                        inout.over_logic_inputs; inout.over_outputs])
++            with TooImprecise -> None
++          in
++          Wayfinder_entry.record kf call_number outputs input_bases footprint
++        end;
+       with
+       | TooImprecise
+       | Kernel_function.No_Statement
+--- /dev/null
++++ b/plugins/eva/src/utils/wayfinder_entry.ml
+@@ -0,0 +1,172 @@
++module Used = Set.Make (struct
++    type t = string * string
++    let compare = Stdlib.compare
++  end)
++
++type status =
++  Property.t * Property.t list * Property_status.emitted_status * bool
++
++type alarm = int * Alarms.t * Property_status.emitted_status option
++
++type measure =
++  | Measured of int * float * float
++  | Missing of string
++
++type frame =
++  { mutable projection : (include_locals:bool -> Base.Hptset.t -> measure) option;
++    mutable reached : (int * int) list;
++    mutable statuses : status list;
++    mutable alarms : alarm list;
++    mutable used : Used.t;
++    mutable children : int list;
++    mutable saved : int option }
++
++let path = Sys.getenv_opt "EVA_WAYFINDER_ENTRY_LOG"
++let enabled = Option.is_some path
++let frames = ref []
++let entries = Hashtbl.create 17
++let output = ref None
++let row_count = ref 0
++
++let measure value =
++  let repetitions = 16 in
++  try
++    let encoded = Marshal.to_bytes value [] in
++    let wall_start = Unix.gettimeofday () in
++    let cpu_start = Sys.time () in
++    for _ = 1 to repetitions do
++      ignore (Sys.opaque_identity (Marshal.from_bytes encoded 0))
++    done;
++    let cpu = max 0. (Sys.time () -. cpu_start) in
++    let wall = max 0. (Unix.gettimeofday () -. wall_start) in
++    let n = float repetitions in
++    Measured (Bytes.length encoded, cpu /. n, wall /. n)
++  with Invalid_argument reason | Failure reason -> Missing reason
++
++let current f =
++  match !frames with [] -> () | head :: _ -> f head
++
++let begin_analysis () =
++  Option.iter (fun path ->
++      let channel = open_out path in
++      output := Some channel;
++      row_count := 0;
++      Hashtbl.clear entries;
++      output_string channel
++        "entry\tfunction\texits\treached\talarms\tstatuses\tchildren\tused\tmandatory_bytes\tmandatory_cpu_s\tmandatory_wall_s\tmandatory_error\tkey_inner_bytes\tkey_inner_cpu_s\tkey_inner_wall_s\tkey_inner_error\tfootprint_inner_bytes\tfootprint_inner_cpu_s\tfootprint_inner_wall_s\tfootprint_inner_error\tused_bytes\tused_cpu_s\tused_wall_s\tused_error\n";
++      flush channel)
++    path
++
++let finish complete =
++  Option.iter (fun channel ->
++      Printf.fprintf channel "complete\t%b\ncount\t%d\n" complete !row_count;
++      close_out channel)
++    !output;
++  output := None
++
++let with_body f =
++  if not enabled then f ()
++  else
++    let frame =
++      { projection = None; reached = []; statuses = []; alarms = [];
++        used = Used.empty; children = []; saved = None }
++    in
++    let old = !frames in
++    frames := frame :: old;
++    let finally () =
++      frames := old;
++      current (fun parent ->
++          parent.used <- Used.union parent.used frame.used;
++          match frame.saved with
++          | Some id -> parent.children <- id :: parent.children
++          | None ->
++            parent.children <- List.rev_append frame.children parent.children;
++            parent.reached <- List.rev_append frame.reached parent.reached;
++            parent.statuses <- List.rev_append frame.statuses parent.statuses;
++            parent.alarms <- List.rev_append frame.alarms parent.alarms)
++    in
++    Fun.protect ~finally f
++
++let note_call kf mode =
++  if enabled then current (fun frame ->
++      frame.used <- Used.add (Kernel_function.get_name kf, mode) frame.used)
++
++let reuse id =
++  if enabled then current (fun frame ->
++      frame.children <- id :: frame.children;
++      match Hashtbl.find_opt entries id with
++      | Some used -> frame.used <- Used.union used frame.used
++      | None -> ())
++
++let observe_status emitter hyps property distinct status =
++  if String.equal (Emitter.get_name emitter) "Eva" then
++    current (fun frame ->
++        frame.statuses <- (property, hyps, status, distinct) :: frame.statuses)
++
++let observe_alarm emitter kinstr status alarm =
++  if String.equal (Emitter.get_name emitter) "Eva" then
++    current (fun frame ->
++        let sid = match kinstr with
++          | Cil_types.Kglobal -> -1
++          | Cil_types.Kstmt stmt -> stmt.sid
++        in
++        frame.alarms <- (sid, alarm, status) :: frame.alarms)
++
++let () =
++  if enabled then begin
++    Property_status.register_measure_emit observe_status;
++    Alarms.register_measure_register observe_alarm
++  end
++
++let capture reached projection =
++  current (fun frame ->
++      frame.reached <- List.rev_append reached frame.reached;
++      frame.projection <- Some projection)
++
++let compare_status (prop, hyps, status, distinct)
++    (prop', hyps', status', distinct') =
++  let c = Property.compare prop prop' in
++  if c <> 0 then c else
++    let c = List.compare Property.compare hyps hyps' in
++    if c <> 0 then c else Stdlib.compare (status, distinct) (status', distinct')
++
++let compare_alarm (sid, alarm, status) (sid', alarm', status') =
++  let c = Int.compare sid sid' in
++  if c <> 0 then c else
++    let c = Alarms.compare alarm alarm' in
++    if c <> 0 then c else Stdlib.compare status status'
++
++let write_measure channel = function
++  | Measured (bytes, cpu, wall) ->
++    Printf.fprintf channel "\t%d\t%.12f\t%.12f\t" bytes cpu wall
++  | Missing reason -> Printf.fprintf channel "\t\t\t\t%S" reason
++
++let record kf id exits key footprint =
++  if enabled then current (fun frame ->
++      let reached = List.sort_uniq Stdlib.compare frame.reached in
++      let statuses = List.sort_uniq compare_status frame.statuses in
++      let alarms = List.sort_uniq compare_alarm frame.alarms in
++      let children = List.sort_uniq Int.compare frame.children in
++      let used = Used.elements frame.used in
++      let project = match frame.projection with
++        | None -> fun ~include_locals:_ _ -> Missing "per-call statement states unavailable"
++        | Some f -> f
++      in
++      let footprint_inner = match footprint with
++        | None -> Missing "read/write footprint is Top or unavailable"
++        | Some footprint -> project ~include_locals:false footprint
++      in
++      frame.saved <- Some id;
++      Hashtbl.replace entries id frame.used;
++      incr row_count;
++      Option.iter (fun channel ->
++          Printf.fprintf channel "%d\t%s\t%d\t%d\t%d\t%d\t%d\t%d"
++            id (Kernel_function.get_name kf) (List.length exits)
++            (List.length reached) (List.length alarms) (List.length statuses)
++            (List.length children) (List.length used);
++          write_measure channel (measure (exits, alarms, statuses, reached, children));
++          write_measure channel (project ~include_locals:true key);
++          write_measure channel footprint_inner;
++          write_measure channel (measure used);
++          output_char channel '\n')
++        !output)
+--- /dev/null
++++ b/plugins/eva/src/utils/wayfinder_heap.ml
+@@ -0,0 +1,125 @@
++open Cil_types
++
++type frame =
++  { mutable covered : float;
++    mutable covered_ordinary : float }
++
++type dispatch_frame =
++  { function_name : string;
++    mutable children_cpu : float }
++
++type function_stats =
++  { mutable calls : int;
++    mutable affected : int;
++    mutable body_cpu : float;
++    mutable affected_body_cpu : float }
++
++let dispatches = ref []
++let functions = Hashtbl.create 101
++
++let path = Sys.getenv_opt "EVA_WAYFINDER_HEAP_LOG"
++let enabled = Option.is_some path
++let heap_created = ref 0
++let other_created = ref 0
++let stack = ref []
++let all_covered = ref 0.
++let ordinary_covered = ref 0.
++let analysed = ref 0
++let init_analysed = ref 0
++let refused = ref 0
++let heap_refused = ref 0
++let init_heap_refused = ref 0
++let other_refused = ref 0
++let init_clock = ref 0.
++
++let begin_analysis () =
++  if enabled then init_clock := Sys.time ()
++
++let created region =
++  if enabled then
++    match region with
++    | Base.Malloc -> incr heap_created
++    | Base.VLA | Base.Alloca -> incr other_created
++
++let dispatch kf f =
++  if not enabled then f ()
++  else
++    let frame = { function_name = Kernel_function.get_name kf; children_cpu = 0. } in
++    let parents = !dispatches in
++    let start = Sys.time () in
++    dispatches := frame :: parents;
++    let finally () =
++      dispatches := parents;
++      match parents with
++      | [] -> ()
++      | parent :: _ ->
++        parent.children_cpu <- parent.children_cpu +. max 0. (Sys.time () -. start)
++    in
++    Fun.protect ~finally f
++
++let compute callsite ~is_refused f =
++  if not enabled then f ()
++  else
++    let frame = { covered = 0.; covered_ordinary = 0. } in
++    let before_heap = !heap_created and before_other = !other_created in
++    let start = Sys.time () in
++    let parents = !stack in
++    stack := frame :: parents;
++    let result = Fun.protect f ~finally:(fun () -> stack := parents) in
++    let elapsed = max 0. (Sys.time () -. start) in
++    let initial = callsite = Kglobal in
++    let refusal = is_refused result in
++    let heap = refusal && !heap_created > before_heap in
++    let other = refusal && !other_created > before_other in
++    (match !dispatches with
++     | [] -> assert false
++     | dispatch :: _ ->
++       let exclusive = max 0. (elapsed -. dispatch.children_cpu) in
++       let stat = match Hashtbl.find_opt functions dispatch.function_name with
++         | Some stat -> stat
++         | None ->
++           let stat = { calls = 0; affected = 0; body_cpu = 0.; affected_body_cpu = 0. } in
++           Hashtbl.add functions dispatch.function_name stat;
++           stat
++       in
++       stat.calls <- stat.calls + 1;
++       stat.body_cpu <- stat.body_cpu +. exclusive;
++       if heap then begin
++         stat.affected <- stat.affected + 1;
++         stat.affected_body_cpu <- stat.affected_body_cpu +. exclusive
++       end);
++    incr analysed;
++    if initial then incr init_analysed;
++    if refusal then incr refused;
++    if heap then incr heap_refused;
++    if initial && heap then incr init_heap_refused;
++    if other then incr other_refused;
++    let covered = if heap then elapsed else frame.covered in
++    let ordinary = if heap && not initial then elapsed else frame.covered_ordinary in
++    (match parents with
++     | [] ->
++       all_covered := !all_covered +. covered;
++       ordinary_covered := !ordinary_covered +. ordinary
++     | parent :: _ ->
++       parent.covered <- parent.covered +. covered;
++       parent.covered_ordinary <- parent.covered_ordinary +. ordinary);
++    result
++
++let finish complete =
++  Option.iter
++    (fun file ->
++       let elapsed = max 0. (Sys.time () -. !init_clock) in
++       Out_channel.with_open_text file (fun oc ->
++           Printf.fprintf oc
++             "complete	%b\nbody_analysed	%d\nentry_analysed	%d\nbody_refused	%d\nheap_refused	%d\nentry_heap_refused	%d\nstack_alloc_refused	%d\nheap_created	%d\nstack_alloc_created	%d\nanalysis_cpu_s	%.9f\nheap_body_union_cpu_s	%.9f\nheap_ordinary_union_cpu_s	%.9f\n"
++             complete !analysed !init_analysed !refused !heap_refused
++             !init_heap_refused !other_refused !heap_created !other_created
++             elapsed !all_covered !ordinary_covered);
++       Out_channel.with_open_text (file ^ ".functions.tsv") (fun oc ->
++           output_string oc "function\tanalysed\theap_refused\texclusive_body_cpu_s\theap_refused_exclusive_body_cpu_s\n";
++           Hashtbl.fold (fun name stat rows -> (name, stat) :: rows) functions []
++           |> List.sort (fun (name, _) (name', _) -> String.compare name name')
++           |> List.iter (fun (name, stat) ->
++               Printf.fprintf oc "%s\t%d\t%d\t%.9f\t%.9f\n"
++                 name stat.calls stat.affected stat.body_cpu stat.affected_body_cpu)))
++    path
+--- a/src/kernel/services/ast_data/alarms.ml
++++ b/src/kernel/services/ast_data/alarms.ml
+@@ -713,7 +713,11 @@
+   let ca, fresh, _ = to_annot_aux kinstr ?loc alarm in
+   ca, fresh
+ 
++let measure_register = ref (fun _ _ _ _ -> ())
++let register_measure_register f = measure_register := f
++
+ let register emitter ?kf kinstr ?loc ?status alarm =
++  !measure_register emitter kinstr status alarm;
+   let annot, fresh, by_emitter = to_annot_aux kinstr ?loc alarm in
+   if fresh then begin
+     let e = Emitter.get emitter in
+--- a/src/kernel/services/ast_data/alarms.mli
++++ b/src/kernel/services/ast_data/alarms.mli
+@@ -57,6 +57,9 @@
+ include Datatype.S_with_collections with type t = alarm
+ 
+ val self: State.t
++
++val register_measure_register:
++  (Emitter.t -> kinstr -> Property_status.emitted_status option -> alarm -> unit) -> unit
+ 
+ val register:
+   Emitter.t -> ?kf:kernel_function -> kinstr -> ?loc:Fileloc.t ->
+--- a/src/kernel/services/ast_data/property_status.ml
++++ b/src/kernel/services/ast_data/property_status.ml
+@@ -528,7 +528,11 @@
+   register_as_kernel_logical_consequence_ref :=
+     register_as_kernel_logical_consequence
+ 
++let measure_emit = ref (fun _ _ _ _ _ -> ())
++let register_measure_emit f = measure_emit := f
++
+ let emit_and_get e ~hyps ppt ?distinct s =
++  !measure_emit e hyps ppt (Option.value distinct ~default:false) s;
+   match property_kind ppt with
+   | Admitted | Consequence _ | Ignored ->
+     Kernel.fatal
+--- a/src/kernel/services/ast_data/property_status.mli
++++ b/src/kernel/services/ast_data/property_status.mli
+@@ -39,6 +39,9 @@
+   | Dont_know (** any other case *)
+ 
+ module Emitted_status: Datatype.S with type t = emitted_status
++
++val register_measure_emit:
++  (Emitter.t -> Property.t list -> Property.t -> bool -> emitted_status -> unit) -> unit
+ 
+ exception Inconsistent_emitted_status of emitted_status * emitted_status
+ 
