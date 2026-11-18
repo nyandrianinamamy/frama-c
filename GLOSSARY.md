@@ -69,6 +69,18 @@ A block that the analysis of a statement brings into existence: one of its
 locals, its return value, or a heap allocation it performs.
 _Avoid_: Fresh block, local block
 
+**Allocated block**:
+A block created by an allocation builtin: a heap allocation, an `alloca` or a
+variable-length array.
+_Avoid_: Heap block (leaves out `alloca` and variable-length arrays), dynamic
+base
+
+**Validity record**:
+What the analyzer holds about the extent of a block: its size, and whether it
+stands for one concrete block or for several. It is a side table. Only the
+validity record of an allocated block can change during an analysis.
+_Avoid_: Validity (names the property, not the table)
+
 **Matching key**:
 The blocks whose values in the input are compared by the match. They decide
 the Exit part.
