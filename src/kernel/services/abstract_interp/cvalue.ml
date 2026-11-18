@@ -978,6 +978,7 @@ module Default_offsetmap = struct
     in
     match base with
     | Base.Allocated (_, _, validity) ->
+      Base.metadata_read base;
       aux validity V_Or_Uninitialized.bottom
     | Base.Var (_, validity) | Base.CLogic_Var (_, _, validity) ->
       aux validity V_Or_Uninitialized.uninitialized

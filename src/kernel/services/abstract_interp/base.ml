@@ -112,6 +112,17 @@ let id = function
 
 let hash = id
 
+(* Observers of the reads and updates of the metadata of allocated bases. *)
+module Metadata_read = Hook.Build (struct type t = base end)
+module Validity_update = Hook.Build (struct type t = unit end)
+
+let on_metadata_read f = Metadata_read.extend f
+let on_validity_update f = Validity_update.extend f
+
+let metadata_read = function
+  | Allocated _ as b -> Metadata_read.apply b
+  | Var _ | CLogic_Var _ | Null | Absolute _ -> ()
+
 let null = Null
 
 let is_null x = match x with Null -> true | _ -> false
@@ -143,13 +154,16 @@ let pretty_addr fmt t =
 
 let compare v1 v2 = Datatype.Int.compare (id v1) (id v2)
 
+(* The allocation builtins change the type of an allocated variable. *)
 let typeof v =
+  metadata_read v;
   match v with
   | CLogic_Var (_, ty, _) -> Some ty
   | Null | Absolute _ -> None
   | Var (v,_) | Allocated(v,_,_) -> Some (Ast_types.C.unroll v.vtype)
 
 let bits_sizeof v =
+  metadata_read v;
   match v with
   | Null -> Z_or_top.top
   | Absolute { size } -> Z_or_top.inject size
@@ -158,6 +172,7 @@ let bits_sizeof v =
   | CLogic_Var (_, ty, _) -> Bit_utils.sizeof ty
 
 let alignof base =
+  metadata_read base;
   try
     match base with
     | Null -> 0 (* Address of null is 0. *)
@@ -284,7 +299,8 @@ let validity_from_known_size size =
 
 let validity b =
   match b with
-  | Var (_,v) | CLogic_Var (_, _, v) | Allocated (_,_,v) -> v
+  | Var (_,v) | CLogic_Var (_, _, v) -> v
+  | Allocated (_,_,v) -> Metadata_read.apply b; v
   | Null -> Invalid
   | Absolute { size } -> validity_from_size size
 
@@ -296,8 +312,10 @@ let is_read_only base =
 
 (* Minor optimization compared to [is_weak (validity b)] *)
 let is_weak = function
-  | Allocated (_, _, Variable { weak }) -> weak
-  | _ -> false
+  | Allocated (_, _, validity) as b ->
+    Metadata_read.apply b;
+    (match validity with Variable { weak } -> weak | _ -> false)
+  | Var _ | CLogic_Var _ | Null | Absolute _ -> false
 
 (* Does a C type end by an empty struct? *)
 let rec final_empty_struct t =
@@ -474,6 +492,7 @@ let create_variable_validity ~weak ~min_alloc ~max_alloc =
   { weak; min_alloc; max_alloc; max_allocable }
 
 let update_variable_validity v ~weak ~min_alloc ~max_alloc =
+  Validity_update.apply ();
   v.min_alloc <- Z.min min_alloc v.min_alloc;
   v.max_alloc <- Z.max max_alloc v.max_alloc;
   if weak then v.weak <- true

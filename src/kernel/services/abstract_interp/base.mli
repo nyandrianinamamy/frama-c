@@ -123,6 +123,27 @@ val update_variable_validity:
     validity bounds can only grow. *)
 
 
+(** {2 Observing the metadata of allocated bases}
+    The validity and the type of the variable of an [Allocated] base can
+    change during an analysis. *)
+
+val on_metadata_read: (t -> unit) -> unit
+(** Registers an observer run with the base when {!validity}, {!is_weak},
+    {!typeof}, {!bits_sizeof} or {!alignof} is applied to an [Allocated]
+    base, and by {!metadata_read}. A function given an already extracted
+    validity is not observed. An observer must not apply these functions to
+    an [Allocated] base: doing so runs the observers again. *)
+
+val metadata_read: t -> unit
+(** Runs the observers of {!on_metadata_read} on an [Allocated] base, and
+    does nothing on another base. For code that reads the validity of an
+    allocated base by matching its constructor. *)
+
+val on_validity_update: (unit -> unit) -> unit
+(** Registers an observer run at each call of {!update_variable_validity},
+    before the update. *)
+
+
 (** {2 Finding bases} *)
 
 val of_varinfo: Cil_types.varinfo -> t
