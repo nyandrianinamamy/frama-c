@@ -26,7 +26,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ${{ github.workflow }}-tests-${{ github.ref }}
   cancel-in-progress: true
 
 env:
@@ -49,6 +49,8 @@ jobs:
         include:
           - name: Checks and Eva tests
             scope: eva
+          - name: Eva domain tests
+            scope: eva-domains
           - name: Kernel tests and default ptests
             scope: kernel
     steps:
@@ -77,16 +79,17 @@ jobs:
 
       - name: Install system packages
         run: |
-          if [[ "${{ steps.apt-cache.outputs.cache-hit }}" == true ]]; then
-            sudo apt-get install -y --no-install-recommends "$RUNNER_TEMP"/ci-debs/*.deb
-          else
+          if [[ "${{ steps.apt-cache.outputs.cache-hit }}" != true ]]; then
             sudo apt-get update
             mkdir -p "$RUNNER_TEMP/ci-debs"
             xargs -a "$RUNNER_TEMP/ci-packages" sudo apt-get install \
               -o Dir::Cache::archives="$RUNNER_TEMP/ci-debs" \
               --download-only -y --no-install-recommends
-            sudo apt-get install -y --no-install-recommends "$RUNNER_TEMP"/ci-debs/*.deb
           fi
+          shopt -s nullglob
+          archives=("$RUNNER_TEMP"/ci-debs/*.deb)
+          xargs -a "$RUNNER_TEMP/ci-packages" sudo apt-get install \
+            --no-install-recommends -y "${archives[@]}"
 
       - name: Save system packages
         if: steps.apt-cache.outputs.cache-hit != 'true'
@@ -170,11 +173,26 @@ jobs:
         if: matrix.scope == 'eva'
         run: opam exec -- make check-headers
 
-      - name: Eva ptests, all configurations
-        if: matrix.scope == 'eva'
+      - name: Eva ptests
+        if: matrix.scope != 'kernel'
         run: |
           opam exec -- dune exec -- frama-c-ptests -never-disabled plugins/eva/tests
-          opam exec -- dune build -j $JOBS @plugins/eva/tests/ptests
+          # Divide the generated aliases between runners. New domain
+          # configurations automatically join the first group.
+          targets=()
+          for rules in plugins/eva/tests/*/result*/dune; do
+            group=eva
+            case "$rules" in
+              */result_apron/*|*/result_gauges/*|*/result_octagon/*|*/result_symblocs/*)
+                group=eva-domains ;;
+            esac
+            if [[ "$group" == "${{ matrix.scope }}" ]]; then
+              targets+=("@${rules%/dune}/ptests")
+            fi
+          done
+          (( ${#targets[@]} > 0 ))
+          printf '%s\n' "${targets[@]}"
+          opam exec -- dune build -j $JOBS "${targets[@]}"
 
       - name: Eva native tests
         if: matrix.scope == 'eva'
@@ -183,7 +201,7 @@ jobs:
       - name: Default ptests of the kernel and the plug-ins
         if: matrix.scope == 'kernel'
         run: |
-          opam exec -- make run-ptests
+          opam exec -- make run-ptests PTEST_OPTS="-config DEFAULT"
           opam exec -- dune build -j $JOBS @ptests_config
 
       - name: Kernel native tests
