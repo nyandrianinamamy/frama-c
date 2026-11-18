@@ -13,6 +13,8 @@ type statement = Body of kernel_function
 type footprint = {
   read : Base.Hptset.t;
   written : Base.Hptset.t;
+  written_exit : Base.Hptset.t;
+  written_sure : Base.Hptset.t;
 }
 
 type rejection = [ `Key_differs | `Key_unclosed ]
@@ -49,16 +51,40 @@ module Make (Domain : Domain) = struct
   let return_block = function
     | Body kf -> Option.map Base.of_varinfo (Library_functions.get_retres_vi kf)
 
+  (* The return block is fully overwritten on every path that reaches an
+     exit: it belongs to the three written sets. *)
+  let add_return_block statement footprint =
+    match return_block statement with
+    | None -> footprint
+    | Some b ->
+      let add = Base.Hptset.add b in
+      { footprint with written = add footprint.written;
+                       written_exit = add footprint.written_exit;
+                       written_sure = add footprint.written_sure }
+
+  (* The blocks that the key must contain: R ∪ (W_exit \ W_sure). A block of
+     W_exit that is not surely overwritten may keep its input value at an
+     exit, so its value in the input of a call must be the stored one. *)
+  let required_key footprint =
+    Base.Hptset.union footprint.read
+      (Base.Hptset.diff footprint.written_exit footprint.written_sure)
+
   let make ~id statement ~key ~input ~footprint ~exit =
+    let footprint = add_return_block statement footprint in
+    if not (Base.Hptset.subset footprint.written_sure footprint.written_exit
+            && Base.Hptset.subset footprint.written_exit footprint.written)
+    then
+      invalid_arg
+        "Cache_entry.make: the written sets are not nested: \
+         W_sure ⊆ W_exit ⊆ W fails";
+    let missing = Base.Hptset.diff (required_key footprint) key in
+    if not (Base.Hptset.is_empty missing) then
+      Format.kasprintf invalid_arg
+        "Cache_entry.make: the key does not contain %a, of R ∪ (W_exit \\ \
+         W_sure)" Base.Hptset.pretty missing;
     if not (is_closed key input) then
       invalid_arg "Cache_entry.make: the key is not closed in the input";
-    let written =
-      match return_block statement with
-      | None -> footprint.written
-      | Some b -> Base.Hptset.add b footprint.written
-    in
-    let footprint = { footprint with written } in
-    let kept = Base.Hptset.union key written in
+    let kept = Base.Hptset.union key footprint.written in
     let exit = List.map (fun (k, s) -> k, Domain.filter kept s) exit in
     { id; statement; key; input = Domain.filter key input; footprint; exit }
 
@@ -83,11 +109,14 @@ module Make (Domain : Domain) = struct
       else Format.fprintf fmt "@[<v 2>input:@ %a@]" Domain.pretty input
     in
     Format.fprintf fmt
-      "@[<v 2>entry %d, %a:@ key: %a@ %a@ read: %a@ written: %a@ %a@]"
+      "@[<v 2>entry %d, %a:@ key: %a@ %a@ read: %a@ written: %a@ \
+       written on a path to an exit: %a@ surely overwritten: %a@ %a@]"
       e.id pretty_statement e.statement
       Base.Hptset.pretty e.key pretty_input e.input
       Base.Hptset.pretty e.footprint.read
       Base.Hptset.pretty e.footprint.written
+      Base.Hptset.pretty e.footprint.written_exit
+      Base.Hptset.pretty e.footprint.written_sure
       (Pretty_utils.pp_list ~sep:"@ " pretty_exit) e.exit
 
   type result = {
@@ -102,8 +131,12 @@ module Make (Domain : Domain) = struct
     then Error `Key_unclosed
     else Ok ()
 
+  (* Only the blocks of W_exit are taken from an exit state. A block of
+     W \ W_exit is written only on paths that reach no exit: at an exit it
+     holds its input value, which is that of the call, not the one that the
+     stored exit state holds. *)
   let apply entry state =
-    let written = entry.footprint.written in
+    let written = entry.footprint.written_exit in
     let reuse (k, output) =
       k, Domain.reuse written ~current_input:state ~previous_output:output
     in

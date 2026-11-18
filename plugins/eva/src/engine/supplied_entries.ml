@@ -13,6 +13,8 @@ type entry = Entry.t
 type footprint = Cache_entry.footprint = {
   read : Base.Hptset.t;
   written : Base.Hptset.t;
+  written_exit : Base.Hptset.t;
+  written_sure : Base.Hptset.t;
 }
 
 module Entries =
@@ -67,26 +69,32 @@ let exists_at_exit kf b =
     List.exists (Cil_datatype.Varinfo.equal vi) fundec.sbody.blocals
   | _ -> true
 
+(* [model] is a map: [supply] refuses Top and Bottom exit states. *)
 let binds model b =
-  match model with
-  | Cvalue.Model.Top | Bottom -> true
-  | Map _ ->
-    match Cvalue.Model.find_base b model with
-    | _ -> true
-    | exception Not_found -> false
+  match Cvalue.Model.find_base b model with
+  | _ -> true
+  | exception Not_found -> false
 
-(* [reuse] on cvalue keeps the value of the input for a block that the exit
-   state does not bind: each exit state must bind every written block that
-   exists at the exit. *)
+(* [reuse] on cvalue keeps the value of the input for a block of W_exit that
+   the exit state does not bind: each exit state must bind every block of
+   W_exit that exists at the exit. *)
 let check_exit kf entry =
   let check (_, (model, _)) b =
     if exists_at_exit kf b && not (binds model b) then
       Format.kasprintf invalid_arg
-        "Supplied_entries.supply: an exit state does not bind the written \
-         block %a" Base.pretty b
+        "Supplied_entries.supply: an exit state does not bind the block %a, \
+         written on a path to an exit" Base.pretty b
   in
-  let written = (Entry.footprint entry).written in
+  let written = (Entry.footprint entry).written_exit in
   List.iter (fun s -> Base.Hptset.iter (check s) written) (Entry.exit entry)
+
+let check_exit_state (_, model) =
+  if Cvalue.Model.is_top model then
+    invalid_arg "Supplied_entries.supply: an exit state is Top";
+  if not (Cvalue.Model.is_reachable model) then
+    invalid_arg
+      "Supplied_entries.supply: an exit state is Bottom; a body that never \
+       returns has no exit state"
 
 let supply kf ~key ~input ~footprint ~exit =
   (* A call whose input is [Top] would match an entry whose input is [Top],
@@ -94,7 +102,10 @@ let supply kf ~key ~input ~footprint ~exit =
      of the caller. No call is analysed from [Bottom]. *)
   if not (Cvalue.Model.is_reachable input) || Cvalue.Model.is_top input then
     invalid_arg "Supplied_entries.supply: the input is Top or Bottom";
-  let exit = List.map (fun s -> Partition.Key.empty, (s, holders s)) exit in
+  (* [reuse] of a Top exit state is Top, which loses the blocks of the
+     caller. An exit state that is Bottom describes no execution. *)
+  List.iter check_exit_state exit;
+  let exit = List.map (fun (k, s) -> k, (s, holders s)) exit in
   let input = input, Locals_scoping.bottom () in
   let id = Counter.get () + 1 in
   let entry = Entry.make ~id (Body kf) ~key ~input ~footprint ~exit in
@@ -102,6 +113,14 @@ let supply kf ~key ~input ~footprint ~exit =
   ignore (Counter.next ());
   Table.replace kf (entries kf @ [ entry ]);
   entry
+
+let empty_key = Partition.Key.empty
+
+let case_key kf rank =
+  let stmt = Kernel_function.find_return kf in
+  Partition.(Key.add_branch (Disjunction_case { stmt; rank }) Key.empty)
+
+let return_variable = Library_functions.get_retres_vi
 
 let clear () = Table.clear ()
 
