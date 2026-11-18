@@ -1,0 +1,295 @@
+# Matching
+
+Claims about the match of a current input with the stored input of a cache
+entry: which current memories the match puts in the stored input, and which
+memory of the stored input agrees with each of them on the matching key. The
+laws of a domain and the product of two domains are defined in
+[Domain laws](domain-laws.md#the-laws-in-the-model). The closure that memexec
+computes today is in [Call-cache
+seam](call-cache-seam.md#closure-of-the-memexec-key-under-relate).
+
+The evidence is that of [Domain laws](domain-laws.md#evidence-common-to-the-entries):
+tree of `lean/` `fcb327481aa376191a1d9a4365b7486dd9c26cc3`, at commit
+`fa2e36b953afe9f2d943a8630b7de465160c5ba6`, `cd lean && lake build --wfail`
+run on 2026-11-18 on an extraction of that commit, exit status 0. CI on this
+tree is pending.
+
+## Kinds of the hypotheses
+
+The hypotheses of the lemmas below, with their kind, are:
+
+| Hypothesis | Kind | Status |
+|---|---|---|
+| `[Memory M]`: the memory meets the laws of `Memory` | Proved in Lean for `FunMem` | Done ([frame entry](frame.md#frame-lemma-without-sweeps), hypothesis 1) |
+| `Combinable M`: two memories combine on any set of blocks | Proved in Lean for `FunMem`; argued in prose for Eva's concrete memories, whole blocks only | Done in Lean; prose below, under the product lemma |
+| `FilterSound`, weak form, of each domain | OCaml obligation, per domain | Pending: argument per domain owed by the reuse feature |
+| `RelateSound` of each domain (clause `decomposes`) | OCaml obligation, per domain | Pending; fails for an identity `filter` ([domain laws](domain-laws.md#an-identity-filter-does-not-decompose-the-state-on-a-closed-key)) |
+| `Closed K S`: the key is closed in the stored input | OCaml obligation | Memexec: [source inspection](call-cache-seam.md#closure-of-the-memexec-key-under-relate); new cache pending |
+| `∃ w, γ S w`: the stored concretisation is not empty | OCaml obligation | Open: no argument recorded |
+| Inclusion of the filtered current input in the filtered stored input, on concretisations | OCaml obligation | Memexec: equality of filtered states, source inspection; new cache pending |
+| `ExactOn K S`: `filter` exact on the stored input | Proved in Lean from the hypotheses above | Done (product lemma) |
+| `γ C m`: the current input covers the current memory | Relied on from Eva | The soundness of the analysis of the caller up to the call; not checked here |
+
+Each row is discussed in the entry that uses it.
+
+## Match lemma
+
+**Kind.** Proved in Lean.
+
+**Claim.** Let `C` be the current input and `S` the stored input of a domain,
+and `K` a key. If `filter` is sound in the weak form on `C`, and the filtered
+current input `filter K C` is included in the filtered stored input
+`filter K S` (on their concretisations), then each memory `m` that `C` covers
+is covered by `filter K S`. If moreover `filter` is exact on `S` for `K`,
+then some memory `m'` covered by `S` agrees with `m` on `K`.
+
+**Scope.** The model. Any domain on any memory type with the laws of
+`Memory`. The lemma needs no hypothesis that the current input is not
+bottom: a memory covered by `C` is given. It needs no hypothesis on the
+closure of `K` in `C` or in `S`; closure enters through exactness (see
+[Product lemma](#product-lemma)).
+
+**Declaration.** `ReuseModel.Domain.match_lemma`, in
+[`lean/ReuseModel/Domain.lean`](../../../lean/ReuseModel/Domain.lean).
+
+**Statement.**
+
+```lean
+@match_lemma : ∀ {M : Type} [inst : Memory M] {d : Domain M} {K : BlockSet} {C S : d.State},
+  (∀ (m : M), d.γ C m → d.γ (d.filter K C) m) →
+    (∀ (m : M), d.γ (d.filter K C) m → d.γ (d.filter K S) m) →
+      d.ExactOn K S → ∀ {m : M}, d.γ C m → d.γ (d.filter K S) m ∧ ∃ m', d.γ S m' ∧ AgreeOn K m m'
+```
+
+**Hypotheses.**
+
+1. `[Memory M]`. Proved in Lean for `FunMem`.
+2. `∀ m, d.γ C m → d.γ (d.filter K C) m`: weak `filter` soundness on the
+   current input; `d.FilterSound` gives it for every input. OCaml
+   obligation per domain, pending
+   ([domain laws](domain-laws.md#the-weak-form-of-filter-sound-suffices-for-the-match-and-product-lemmas)).
+3. `∀ m, d.γ (d.filter K C) m → d.γ (d.filter K S) m`: inclusion of the
+   filtered inputs, stated on concretisations because the model has no order
+   on states. OCaml obligation. Memexec accepts an entry when the filtered
+   current state is found in a table keyed by the filtered stored states
+   (`Mem_exec.Make.find_match_in_previous`, `Domain.Hashtbl.find` on
+   `Domain.filter binputs state`), so the two filtered states are equal for
+   `Domain.equal`; equal states have equal concretisations, which gives the
+   inclusion. Source inspection only; the lookup of the new cache is not
+   written yet.
+4. `d.ExactOn K S`: `filter` exact on the stored input for `K`. Proved in
+   Lean from the hypotheses of the [product lemma](#product-lemma).
+5. `d.γ C m`: the current input covers the current memory. Relied on from
+   Eva: it is the soundness of the analysis of the caller up to the call,
+   under which the claim is stated.
+
+**Depends on.** [Product lemma](#product-lemma), for hypothesis 4.
+
+**Evidence.**
+
+```
+'ReuseModel.Domain.match_lemma' does not depend on any axioms
+```
+
+**Open.** The OCaml obligations of hypotheses 2 and 3.
+
+## Product lemma
+
+**Kind.** Proved in Lean.
+
+**Claim.** Let `S` be the stored input of the product of two domains, and `K`
+a key closed in `S` under the union of the two `relate`. If both components
+meet `relate` sound, the concretisation of `S` is not empty, and memories
+can be combined, then `filter` is exact on `S` for `K`: each memory covered by
+`filter K S` agrees on `K` with a memory covered by `S`. Closure is required
+in the stored input only. The components need not meet `filter` exact:
+exactness of the product is derived from the decomposition of each
+component. Taking one witness per component from their own exactness would
+not do, since the two witnesses need not be one memory.
+
+**Scope.** The model. The proof takes a memory `w` covered by `S`, combines
+the given memory on `K` with `w` outside `K`, and shows with the clauses
+`onKey` and `split` of each component that the combination is covered by
+`S`. The same argument for one domain is `exactOn_of_decomposes`, and
+`filterExact_of_relateSound` derives the law `filter` exact from `relate`
+sound. A product of more than two domains is a nested product:
+`relateSound_prod` gives `relate` sound for the inner product.
+
+**Declarations.** `ReuseModel.Domain.product_lemma`, with
+`ReuseModel.Domain.exactOn_of_decomposes` and
+`ReuseModel.Domain.filterExact_of_relateSound`, in
+[`lean/ReuseModel/Domain.lean`](../../../lean/ReuseModel/Domain.lean); and
+`ReuseModel.FunMem.combinable`, in the same file.
+
+**Statements.**
+
+```lean
+@product_lemma : ∀ {M : Type} [inst : Memory M] {d₁ d₂ : Domain M} {K : BlockSet} {S : (d₁.prod d₂).State},
+  Combinable M →
+    d₁.RelateSound → d₂.RelateSound → (d₁.prod d₂).Closed K S → (∃ w, (d₁.prod d₂).γ S w) → (d₁.prod d₂).ExactOn K S
+@exactOn_of_decomposes : ∀ {M : Type} [inst : Memory M] {d : Domain M} {K : BlockSet} {S : d.State},
+  Combinable M → d.Decomposes K S → (∃ w, d.γ S w) → d.ExactOn K S
+@filterExact_of_relateSound : ∀ {M : Type} [inst : Memory M] {d : Domain M},
+  Combinable M → d.RelateSound → d.FilterExact
+FunMem.combinable : Combinable FunMem
+```
+
+**Hypotheses.**
+
+1. `[Memory M]`. Proved in Lean for `FunMem`.
+2. `Combinable M`: for every set of blocks `B` and memories `m`, `w`, some
+   memory agrees with `m` on `B` and with `w` outside `B`. The interface
+   `Memory` has no operation that builds such a memory, so this is a
+   hypothesis. Proved in Lean for `FunMem` (`FunMem.combinable`: the cells of
+   `m` on `B`, those of `w` elsewhere). For Eva, argued in prose: a concrete
+   memory of the concretisation gives each base its own content, so two
+   memories combine base by base. The model has whole blocks only;
+   sub-block access is a known difference of the model
+   ([`lean/README.md`](../../../lean/README.md), "What the model leaves out").
+3. `d₁.RelateSound`, `d₂.RelateSound`: OCaml obligation per domain. Only the
+   clause `decomposes` is used, on `K`. Eva's contract for `relate`
+   (`Abstract_domain.Caching.relate`, in
+   `plugins/eva/src/domains/abstract_domain.ml`) asks for the bases whose
+   value may affect the properties inferred on the given bases; it does not
+   state the decomposition. A domain with an identity `filter` fails the
+   clause ([domain laws](domain-laws.md#an-identity-filter-does-not-decompose-the-state-on-a-closed-key)).
+   Arguments per domain pending.
+4. `(d₁.prod d₂).Closed K S`: the key is closed in the stored input under the
+   union of the two `relate`. OCaml obligation. Eva's product computes
+   `relate` as the join of the two results
+   (`plugins/eva/src/domains/domain_product.ml`), as `Domain.prod` does.
+   Memexec iterates `relate` on the stored input
+   ([Closure of the memexec key under
+   relate](call-cache-seam.md#closure-of-the-memexec-key-under-relate),
+   source inspection); the closure of the new cache is pending.
+5. `∃ w, (d₁.prod d₂).γ S w`: the concretisation of the stored input is not
+   empty. OCaml obligation, open
+   ([Non-emptiness](#non-emptiness-of-the-stored-concretisation-stays-a-hypothesis)).
+
+**Depends on.** [The product keeps the
+laws](domain-laws.md#the-product-keeps-the-laws), for `closed_prod_iff` and
+`decomposes_prod`.
+
+**Evidence.**
+
+```
+'ReuseModel.Domain.product_lemma' depends on axioms: [propext]
+'ReuseModel.Domain.exactOn_of_decomposes' does not depend on any axioms
+'ReuseModel.Domain.filterExact_of_relateSound' does not depend on any axioms
+'ReuseModel.FunMem.combinable' depends on axioms: [propext, Quot.sound]
+```
+
+`propext` in `product_lemma` comes from the definition of `Domain.prod`.
+`FunMem.combinable` decides membership in a list of blocks and uses no
+classical choice.
+
+**Open.** The OCaml obligations of hypotheses 3, 4 and 5.
+
+## Closure in the stored input suffices for the match
+
+**Kind.** Proved in Lean.
+
+**Claim.** For a product of two domains, the match lemma with the exactness
+given by the product lemma needs the key to be closed in the stored input
+only. Under `filter` sound and `relate` sound for both components, closure of
+`K` in the stored input `S`, a non-empty concretisation of `S`, combinable
+memories, and the inclusion of `filter K C` in `filter K S`, each memory
+covered by the current input `C` agrees on `K` with a memory covered by `S`.
+Nothing is required of the closure of `K` in `C`.
+
+**Scope.** The model. The claim answers whether closure in the stored input
+alone suffices for the match: it does. It does not decide whether Eva's
+check that the key is closed in the current input
+(`Mem_exec.Make.find_match_in_previous` tests that `Domain.relate binputs
+state` is included in `binputs` on the current state) can be removed: the
+specification keeps that check for from-scratch equality and removes it only
+if the from-scratch tests show no difference. The construction of a sound
+entry and the hit are later proof targets.
+
+**Declaration.** `ReuseModel.Domain.projected_match`, in
+[`lean/ReuseModel/Domain.lean`](../../../lean/ReuseModel/Domain.lean).
+
+**Statement.**
+
+```lean
+@projected_match : ∀ {M : Type} [inst : Memory M] {d₁ d₂ : Domain M} {K : BlockSet} {C S : (d₁.prod d₂).State},
+  Combinable M →
+    d₁.FilterSound →
+      d₂.FilterSound →
+        d₁.RelateSound →
+          d₂.RelateSound →
+            (d₁.prod d₂).Closed K S →
+              (∃ w, (d₁.prod d₂).γ S w) →
+                (∀ (m : M), (d₁.prod d₂).γ ((d₁.prod d₂).filter K C) m → (d₁.prod d₂).γ ((d₁.prod d₂).filter K S) m) →
+                  ∀ {m : M}, (d₁.prod d₂).γ C m → ∃ m', (d₁.prod d₂).γ S m' ∧ AgreeOn K m m'
+```
+
+**Hypotheses.** Those of the [match lemma](#match-lemma) and of the
+[product lemma](#product-lemma), with their kinds, except `ExactOn`, which
+the product lemma supplies. `d₁.FilterSound` and `d₂.FilterSound` are used on
+the current input only.
+
+**Depends on.** [Match lemma](#match-lemma), [Product
+lemma](#product-lemma).
+
+**Evidence.**
+
+```
+'ReuseModel.Domain.projected_match' depends on axioms: [propext]
+```
+
+`Checks.valueProd_match` applies the lemma to a concrete product whose
+current input is not covered by the stored input
+([domain laws](domain-laws.md#the-laws-can-be-met-together)).
+
+**Open.** The OCaml obligations listed under the two lemmas.
+
+## Non-emptiness of the stored concretisation stays a hypothesis
+
+**Kind.** Proved in Lean.
+
+**Claim.** The product lemma does not hold without its non-emptiness
+hypothesis. Take the product of a non-relational domain with itself, whose
+first component holds `y ∈ {0}` and whose second holds `y ∈ {1}`, and the key
+`{x}`. Both components meet `relate` sound and each covers some memory; the
+key is closed and the product decomposes on it. The product covers no
+memory, and `filter` is not exact on it for `{x}`: the filtered state covers
+every memory, and no memory of the stored input agrees with it on `{x}`.
+Non-emptiness of the stored concretisation therefore stays an explicit
+hypothesis.
+
+**Scope.** The model. A product can have an empty concretisation while
+neither component is bottom; this is such a case. The counterexample is about
+the product lemma with its other hypotheses; it does not show a hit in Eva.
+Whether Eva can store an input with an empty concretisation is not
+established, and nothing in this record argues that it cannot.
+
+**Declaration.** `Checks.nonempty_needed`, in
+[`lean/Checks/Domains.lean`](../../../lean/Checks/Domains.lean).
+
+**Statement.** `valueProd` is the product of `valueDom FunMem` with itself,
+`emptyS` the state `([(1, [.int 0])], [(1, [.int 1])])`.
+
+```lean
+nonempty_needed : (valueDom FunMem).RelateSound ∧
+  (∃ w, (valueDom FunMem).γ emptyS.fst w) ∧
+    (∃ w, (valueDom FunMem).γ emptyS.snd w) ∧
+      valueProd.Closed [0] emptyS ∧
+        valueProd.Decomposes [0] emptyS ∧ (¬∃ w, valueProd.γ emptyS w) ∧ ¬valueProd.ExactOn [0] emptyS
+```
+
+**Hypotheses.** None: a closed statement.
+
+**Depends on.** [The product keeps the
+laws](domain-laws.md#the-product-keeps-the-laws), for `closed_prod_iff` and
+`decomposes_prod`.
+
+**Evidence.**
+
+```
+'Checks.nonempty_needed' depends on axioms: [propext, Quot.sound]
+```
+
+**Open.** The OCaml obligation that the stored input of every entry has a
+non-empty concretisation, or another argument that removes the hypothesis
+from the hit theorem, is open.
