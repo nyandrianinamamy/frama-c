@@ -1,5 +1,6 @@
 import ReuseModel
 import Checks.AxiomCheck
+import Checks.Domains
 
 /-!
 # Axioms of the theorems
@@ -44,6 +45,29 @@ axiom other than Lean's standard ones.
 #check_axioms ReuseModel.Domain.match_lemma
 #check_axioms ReuseModel.Domain.product_lemma
 #check_axioms ReuseModel.Domain.projected_match
+
+/-! The domains that meet the laws and the negative cases, in
+`Checks/Domains.lean`. -/
+
+#print axioms Checks.valueDom_laws
+#print axioms Checks.valueProd_match
+#print axioms Checks.identity_filter_negative
+#print axioms Checks.eqDom_not_relateSound
+#print axioms Checks.eqDom_existing
+#print axioms Checks.eqDom_reuseSound
+#print axioms Checks.eqDom_not_closed_y
+#print axioms Checks.identity_filter_no_inclusion
+#print axioms Checks.nonempty_needed
+
+#check_axioms Checks.valueDom_laws
+#check_axioms Checks.valueProd_match
+#check_axioms Checks.identity_filter_negative
+#check_axioms Checks.eqDom_not_relateSound
+#check_axioms Checks.eqDom_existing
+#check_axioms Checks.eqDom_reuseSound
+#check_axioms Checks.eqDom_not_closed_y
+#check_axioms Checks.identity_filter_no_inclusion
+#check_axioms Checks.nonempty_needed
 
 /-! The check rejects a theorem that depends on another axiom. `native_decide`
 makes the proof depend on the axioms that trust the compiler. `#guard_msgs`

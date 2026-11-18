@@ -1,6 +1,7 @@
 import Checks.Axioms
 import Checks.Examples
 import Checks.Fragment
+import Checks.Domains
 
 /-!
 # Checks on the model
