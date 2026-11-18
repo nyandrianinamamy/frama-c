@@ -286,7 +286,7 @@ eqDom_closed_x_dup : (eqDom FunMem).Closed [0, 0] yz
 **Open.** None in the model. For Eva, the check of the contract of
 hypothesis 2 on the implementation of `Hptmap`.
 
-## An identity filter does not decompose the state on a closed key
+## The equality domain fails relate sound on a closed key
 
 **Kind.** Proved in Lean.
 
@@ -295,14 +295,19 @@ equalities between blocks with an identity `filter` holds the single fact
 `y == z`. The key `{x}` is closed in that state (while `{y}` is not), the
 concretisation of the state is not empty, `filter` is sound in the weak form
 and exact on `{x}`, and the clause `split` of the decomposition holds. The
-clause `onKey` fails: the memories `x = 0, y = z = 5` and `x = 0, y = 5,
-z = 6` agree on `{x}`, and only the first is in `γ (filter {x} S)`. So
-`filter` does not decompose the state on `{x}`, and the domain does not meet
-`relate` sound, although it meets `filter` sound, `filter` exact, `reuse`
-sound and the clause `existing`. At the match, a current input with no fact
-is not included in the stored input after filtering on `{x}`, although each
-of its memories agrees on `{x}` with a memory of the stored input: the
-identity `filter` compares facts outside the key.
+clause `onKey` fails: the fact `y == z` distinguishes the memories
+`x = 0, y = z = 5` and `x = 0, y = 5, z = 6`, which agree on `{x}`, and only
+the first is in `γ (filter {x} S)`. So `filter` does not decompose the state
+on `{x}`, and the domain does not meet `relate` sound, although it meets
+`filter` sound, `filter` exact, `reuse` sound, `Extensional` and the clause
+`existing`. At the match, a current input with no fact is not included in
+the stored input after filtering on `{x}`, although each of its memories
+agrees on `{x}` with a memory of the stored input: the identity `filter` of
+this domain keeps the fact outside the key.
+
+An identity `filter` does not by itself make a domain fail `relate` sound. A
+domain with one state, which covers every memory, an identity `filter` and a
+`relate` that returns no block (`Checks.trivDom`) meets every law.
 
 **Scope.** The model. `Checks.eqDom` covers a memory when both blocks of
 each pair are live and equal; its `relate B` returns the blocks of the pairs
@@ -310,20 +315,29 @@ that have a block in `B`. Eva's equality domain has the same shape: its
 `relate` returns the bases of the expressions in the equality classes of the
 expressions that depend on `B`
 (`plugins/eva/src/domains/equality/equality_domain.ml`, `relate`), and its
-`filter` is the default identity. The case shows that a
-domain with an identity `filter` is excluded from the projected match by
-`relate` sound, not by `filter` sound. It does not show a hit that is
-unsound: the conclusion of the match is not claimed to fail.
+`filter` is the default identity. The case shows that the equality domain,
+on `y == z` with the key `{x}`, is excluded from the projected match by
+`relate` sound, not by `filter` sound. It is not a statement about every
+domain with an identity `filter`: `trivDom` has one and meets `relate` sound.
+It does not show a hit that is unsound: the conclusion of the match is not
+claimed to fail. The specification gives products with an identity-`filter`
+component the whole-product match. That is a design decision of the
+specification for the class of identity-`filter` domains, not a consequence
+of this case.
 
 **Declarations.** `Checks.identity_filter_negative`,
 `Checks.eqDom_not_relateSound`, `Checks.eqDom_not_closed_y`,
-`Checks.identity_filter_no_inclusion`, `Checks.eqDom_existing` and
-`Checks.eqDom_reuseSound`, in
+`Checks.identity_filter_no_inclusion`, `Checks.eqDom_existing`,
+`Checks.eqDom_reuseSound` and `Checks.identity_filter_laws`, in
 [`lean/Checks/Domains.lean`](../../../lean/Checks/Domains.lean).
+`Checks.eqDom_extensional` is in [Closure depends on the members of the key
+only](#closure-depends-on-the-members-of-the-key-only).
 
 **Statements.** `yz` is the state `[(1, 2)]`, `memYZ` the memory
 `x = 0, y = z = 5`, `memYnZ` the memory `x = 0, y = 5, z = 6`, `noFact` the
-state `[]`.
+state `[]`. `trivDom` is `unitDom FunMem fun _ => false`: its single state
+covers every memory, `filter` returns the state, and `relate` returns `some
+[]`.
 
 ```lean
 identity_filter_negative : (eqDom FunMem).FilterSound ∧
@@ -345,6 +359,8 @@ identity_filter_no_inclusion : (eqDom FunMem).γ ((eqDom FunMem).filter [0] noFa
 @eqDom_existing : ∀ {M : Type} [inst : Memory M] (B : BlockSet) (S : (eqDom M).State) (R : BlockSet),
   (eqDom M).relate B S = some R → ∀ (b : Block), b ∈ R → ∀ (m : M), (eqDom M).γ S m → Live m b
 @eqDom_reuseSound : ∀ {M : Type} [inst : Memory M], (eqDom M).ReuseSound
+identity_filter_laws : (∀ (B : BlockSet) (S : trivDom.State), trivDom.filter B S = S) ∧
+  trivDom.FilterSound ∧ trivDom.RelateSound ∧ trivDom.FilterExact ∧ trivDom.ReuseSound ∧ trivDom.Extensional
 ```
 
 **Hypotheses.** None for the closed statements. `eqDom_existing` and
@@ -361,11 +377,13 @@ identity_filter_no_inclusion : (eqDom FunMem).γ ((eqDom FunMem).filter [0] noFa
 'Checks.eqDom_reuseSound' depends on axioms: [propext, Quot.sound]
 'Checks.eqDom_not_closed_y' depends on axioms: [propext, Quot.sound]
 'Checks.identity_filter_no_inclusion' depends on axioms: [propext, Quot.sound]
+'Checks.identity_filter_laws' depends on axioms: [propext, Quot.sound]
 ```
 
-**Open.** None in the model. The whole-product match, the rule the
-specification gives to products with an identity-`filter` component, is a
-later proof target.
+**Open.** None in the model. The whole-product match, which the
+specification chooses for products with an identity-`filter` component, is a
+later proof target. Nothing here shows that the projected match fails for
+that whole class.
 
 ## The weak form of filter sound suffices for the match and product lemmas
 
@@ -376,10 +394,12 @@ only: `γ S ⊆ γ (filter B S)`. The match lemma uses it on the current input
 only; the product lemma does not use it. The strong form, which asks that
 `γ (filter B S)` contain every memory that agrees on `B` with a memory of
 `γ S`, is a hypothesis of neither lemma. Where `filter` decomposes the state,
-the weak form gives the strong form. The domains with an identity `filter`
-meet the weak form; on `y == z` with the key `{x}` they do not meet the
-strong form, and they fail `relate` sound. They are excluded from the
-projected match by `relate` sound.
+the weak form gives the strong form. A domain with an identity `filter` meets
+the weak form. The equality domain, which has one, does not meet the strong
+form on `y == z` with the key `{x}`, because `y == z` distinguishes two
+memories that agree on `x`; it fails `relate` sound there, and that excludes
+it from the projected match. Other domains with an identity `filter` can meet
+`relate` sound (`Checks.trivDom`).
 
 **Scope.** The match lemma, the product lemma and their composition
 `projected_match`. Whether the weak form suffices for the construction of a
@@ -391,7 +411,8 @@ arise for these lemmas.
 **Declarations.** `ReuseModel.Domain.filterStrong_of_decomposes`, in
 [`lean/ReuseModel/Domain.lean`](../../../lean/ReuseModel/Domain.lean); the
 statements of `match_lemma`, `product_lemma` and `projected_match`
-([Matching](matching.md)); and `Checks.identity_filter_negative`.
+([Matching](matching.md)); and `Checks.identity_filter_negative` and
+`Checks.identity_filter_laws`.
 
 **Statement.**
 
@@ -410,8 +431,8 @@ concretisation on the bases; it does not state the clause `onKey`. The
 default `filter` of `Domain_builder.Complete` is the identity
 (`plugins/eva/src/domains/domain_builder.ml`).
 
-**Depends on.** [An identity filter does not decompose the state on a closed
-key](#an-identity-filter-does-not-decompose-the-state-on-a-closed-key), and
+**Depends on.** [The equality domain fails relate sound on a closed
+key](#the-equality-domain-fails-relate-sound-on-a-closed-key), and
 the entries of [Matching](matching.md) for the statements of the three
 lemmas.
 

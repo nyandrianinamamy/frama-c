@@ -56,8 +56,10 @@ that a checkout has the model sources of an entry, compare
 
 - [Frame](frame.md): the blocks that a statement does not access.
 - [Domain laws](domain-laws.md): the laws of `filter`, `relate` and `reuse`,
-  the product of two domains, and the identity `filter` as the negative case
-  of the projected match.
+  and the law that they depend on the members of a set of blocks only; the
+  product of two domains; and the equality domain, with an identity
+  `filter`, on the fact `y == z` as the negative case of the projected
+  match.
 - [Matching](matching.md): the match and product lemmas, closure of the key
   in the stored input, and the non-emptiness of the stored concretisation.
 - [Call-cache seam](call-cache-seam.md): the seam through which memexec

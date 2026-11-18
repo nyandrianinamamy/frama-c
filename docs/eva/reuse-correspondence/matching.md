@@ -23,7 +23,7 @@ The hypotheses of the lemmas below, with their kind, are:
 | `[Memory M]`: the memory meets the laws of `Memory` | Proved in Lean for `FunMem` | Done ([frame entry](frame.md#frame-lemma-without-sweeps), hypothesis 1) |
 | `Combinable M`: two memories combine on any set of blocks | Proved in Lean for `FunMem`; argued in prose for Eva's concrete memories, whole blocks only | Done in Lean; prose below, under the product lemma |
 | `FilterSound`, weak form, of each domain | OCaml obligation, per domain | Pending: argument per domain owed by the reuse feature |
-| `RelateSound` of each domain (clause `decomposes`) | OCaml obligation, per domain | Pending; fails for an identity `filter` ([domain laws](domain-laws.md#an-identity-filter-does-not-decompose-the-state-on-a-closed-key)) |
+| `RelateSound` of each domain (clause `decomposes`) | OCaml obligation, per domain | Pending; fails for the equality domain on `y == z` with the key `{x}` ([domain laws](domain-laws.md#the-equality-domain-fails-relate-sound-on-a-closed-key)), not for every identity `filter` |
 | `Closed K S`: the key is closed in the stored input | OCaml obligation | Memexec: [source inspection](call-cache-seam.md#closure-of-the-memexec-key-under-relate); new cache pending |
 | `∃ w, γ S w`: the stored concretisation is not empty | OCaml obligation | Open: no argument recorded |
 | Inclusion of the filtered current input in the filtered stored input, on concretisations | OCaml obligation | Memexec: equality of filtered states, source inspection; new cache pending |
@@ -162,9 +162,11 @@ FunMem.combinable : Combinable FunMem
    (`Abstract_domain.Caching.relate`, in
    `plugins/eva/src/domains/abstract_domain.ml`) asks for the bases whose
    value may affect the properties inferred on the given bases; it does not
-   state the decomposition. A domain with an identity `filter` fails the
-   clause ([domain laws](domain-laws.md#an-identity-filter-does-not-decompose-the-state-on-a-closed-key)).
-   Arguments per domain pending.
+   state the decomposition. The equality domain fails the clause on
+   `y == z` with the key `{x}`
+   ([domain laws](domain-laws.md#the-equality-domain-fails-relate-sound-on-a-closed-key));
+   an identity `filter` alone does not make a domain fail it. Arguments per
+   domain pending.
 4. `(d₁.prod d₂).Closed K S`: the key is closed in the stored input under the
    union of the two `relate`. OCaml obligation. Eva's product computes
    `relate` as the join of the two results
