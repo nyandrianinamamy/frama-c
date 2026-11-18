@@ -7,15 +7,19 @@ import Checks.Examples
 * A non-relational domain, `valueDom`, meets every law of a domain, and so
   does its product with itself: the hypotheses of the match and product
   lemmas can be met together.
-* An identity `filter` does not qualify for the projected match. The domain
-  `eqDom` holds equalities between blocks and has an identity `filter`. With
-  the single fact `y == z`, the key `{x}` is closed and the concretisation is
-  not empty; `filter` is sound in the weak form and exact on the key. Yet
-  membership in the filtered state depends on `y` and `z`, which are outside
-  the key: `filter` does not decompose the state, and `eqDom` does not meet
-  `relate` sound. A current input with no fact then fails the inclusion of
-  the filtered inputs, although each of its memories agrees on `{x}` with a
-  memory of the stored input.
+* The equality domain `eqDom` does not qualify for the projected match on
+  the fact `y == z` and the key `{x}`. `eqDom` holds equalities between
+  blocks and has an identity `filter`. With the single fact `y == z`, the
+  key `{x}` is closed and the concretisation is not empty; `filter` is sound
+  in the weak form and exact on the key. Yet the fact `y == z` distinguishes
+  two memories that agree on `x`, so membership in the filtered state depends
+  on `y` and `z`, which are outside the key: `filter` does not decompose the
+  state, and `eqDom` does not meet `relate` sound. A current input with no
+  fact then fails the inclusion of the filtered inputs, although each of its
+  memories agrees on `{x}` with a memory of the stored input.
+* An identity `filter` does not by itself fail `relate` sound. `trivDom` has
+  one state, which covers every memory, an identity `filter`, and a `relate`
+  that returns no block; it meets every law.
 * Non-emptiness of the stored concretisation cannot be dropped from the
   product lemma. Two components of a product meet `relate` sound and each
   has a non-empty concretisation; the key is closed; the product has an empty
@@ -23,8 +27,8 @@ import Checks.Examples
 * The laws `filter` sound, `relate` sound, `filter` exact and `reuse` sound
   do not make closure depend on the members of a key only: in `lenDom`,
   which meets them, `[0]` is closed and `[0, 0]` is not. `lenDom` does not
-  meet `Extensional`, which `valueDom`, `eqDom` and the product of
-  `valueDom` with itself meet.
+  meet `Extensional`, which `valueDom`, `eqDom`, `trivDom` and the product
+  of `valueDom` with itself meet.
 
 Blocks `0`, `1` and `2` stand for the variables `x`, `y` and `z`. The
 memories are built with `memOf`, from `Checks/Examples.lean`.
@@ -317,7 +321,8 @@ theorem identity_filter_negative :
 
 /-- `eqDom` does not meet `relate` sound, although it meets `filter` sound,
 `filter` exact, `reuse` sound, `Extensional` and the clause `existing` of
-`relate` sound. -/
+`relate` sound. The cause is the fact `y == z`, not the identity `filter`
+alone: `trivDom` has an identity `filter` and meets `relate` sound. -/
 theorem eqDom_not_relateSound : ¬ (eqDom FunMem).RelateSound :=
   fun h =>
     identity_filter_negative.2.2.2.2.2.2 (h.decomposes _ _ eqDom_closed_x)
@@ -421,6 +426,22 @@ theorem unitDom_reuseSound (top : BlockSet → Bool) :
   fun _ _ _ _ _ _ _ _ _ _ => trivial
 
 end
+
+/-- The one-state domain whose `relate` returns no block. -/
+abbrev trivDom : Domain FunMem := unitDom FunMem fun _ => false
+
+/-- An identity `filter` does not by itself fail `relate` sound: `trivDom` has
+an identity `filter` and meets every law. -/
+theorem identity_filter_laws :
+    (∀ B S, trivDom.filter B S = S) ∧
+    trivDom.FilterSound ∧ trivDom.RelateSound ∧ trivDom.FilterExact ∧
+    trivDom.ReuseSound ∧ trivDom.Extensional :=
+  ⟨fun _ _ => rfl, unitDom_filterSound _, unitDom_relateSound _,
+    filterExact_of_relateSound FunMem.combinable (unitDom_relateSound _),
+    unitDom_reuseSound _,
+    { relate := fun _ _ _ R _ hR => ⟨R, hR, SameBlocks.refl R⟩
+      filter := fun _ _ _ _ _ hm => hm
+      reuse := fun _ _ _ _ _ _ _ => trivial }⟩
 
 /-- The one-state domain whose `relate` gives `Top` on a list of two blocks or
 more, repetitions counted. -/
