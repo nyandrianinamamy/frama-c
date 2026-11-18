@@ -133,12 +133,12 @@ included.
   `Semantics.lean`, `Observations.lean` and `Frame.lean` are those of the
   checked tree. Same command, run on 2026-11-18 on an extraction of that
   commit, exit status 0; `#print axioms ReuseModel.frame_lemma` gives
-  `[propext, Quot.sound]`, as above. CI on that tree is pending.
+  `[propext, Quot.sound]`, as above. CI: [run 44383251659](https://github.com/nyandrianinamamy/frama-c/actions/runs/44383251659) succeeded on that tree.
 - Rebuilt at tree `a84123b158f292d1debae406ac75950ee89cb87a` (commit
   `b1fa74dbca1ca91aff261a5f268583c35d6c740f`), which adds [entry
   construction](entry.md). The files listed in the preceding rebuild are
   identical. Same command on an extraction of that commit on 2026-11-18,
-  exit status 0. The axiom output is unchanged. CI on this tree is pending.
+  exit status 0. The axiom output is unchanged. CI: [run 44402277212](https://github.com/nyandrianinamamy/frama-c/actions/runs/44402277212) succeeded on this tree.
 
 **Open obligations.** None for the claim in the model. To use the lemma for a
 cache entry of Eva, Eva's footprint must cover the blocks that the statement

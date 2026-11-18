@@ -84,7 +84,7 @@ These are definitions. The claims below are about them.
   construction](entry.md). `ReuseModel/Domain.lean`, its imported
   definitions, and `Checks/Domains.lean` are identical. Same command on
   an extraction of that commit on 2026-11-18, exit status 0. The axiom
-  output is unchanged. CI on this tree is pending.
+  output is unchanged. CI: [run 44402277212](https://github.com/nyandrianinamamy/frama-c/actions/runs/44402277212) succeeded on this tree.
 
 ## The laws can be met together
 

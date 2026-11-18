@@ -147,7 +147,7 @@ at commit `b1fa74dbca1ca91aff261a5f268583c35d6c740f`. The command
 `cd lean && lake build --wfail` exited 0 on 2026-11-18 on a `git archive`
 extraction with no build directory, using Lean 4.28.0, commit
 `7e01a1bf5c70`. The checked statements and axiom reports are printed by
-`lean/Checks/Axioms.lean`. CI on this tree is pending.
+`lean/Checks/Axioms.lean`. CI: [run 44402277212](https://github.com/nyandrianinamamy/frama-c/actions/runs/44402277212) succeeded on this tree.
 
 ```
 'ReuseModel.CacheEntry.sound_of_producer' depends on axioms: [propext, Quot.sound]

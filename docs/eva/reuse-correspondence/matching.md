@@ -11,8 +11,7 @@ seam](call-cache-seam.md#closure-of-the-memexec-key-under-relate).
 The evidence is that of [Domain laws](domain-laws.md#evidence-common-to-the-entries):
 tree of `lean/` `8fb8b87666889ddca7376bdd0555803062ab973a`, at commit
 `fb938739594412912b0bc9de1e8a28d9454b32af`, `cd lean && lake build --wfail`
-run on 2026-11-18 on an extraction of that commit, exit status 0. CI on this
-tree is pending. The
+run on 2026-11-18 on an extraction of that commit, exit status 0. CI: [run 44383251659](https://github.com/nyandrianinamamy/frama-c/actions/runs/44383251659) succeeded on this tree. The
 [rebuild for entry construction](domain-laws.md#evidence-common-to-the-entries)
 also checks these lemmas, with the same axiom output.
 
