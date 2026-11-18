@@ -124,8 +124,10 @@ checks to preserve that order and still observe behavior selection,
 `assumes`, and the body's postconditions and statement contracts.
 
 Recording is on by default. The internal option `-eva-no-cache-collect`
-disables it for subsequent bodies. Keeping the switch out of the ordinary
-help preserves its oracle. The `cache` message reports the
+disables it for subsequent bodies. The iterator selects recording and
+yield behavior once per body. The read and designation hooks return
+before computing a footprint when recording is off. Keeping the switch
+out of the ordinary help preserves its oracle. The `cache` message reports the
 collector verdict beside the memexec storage disposition.
 `collector-would-store` and `collector-refused-REASON` count these verdicts.
 The collector does not count an interrupted body or a body skipped on a hit.

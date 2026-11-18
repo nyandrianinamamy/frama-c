@@ -828,14 +828,11 @@ module Make
     match Value.get Main_values.CVal.key with
     | None -> ignore, ignore
     | Some get ->
-      let value v =
-        if Body_access.is_recording () then Body_access.designate (get v)
-      in
+      let value v = Body_access.designate (get v) in
       let location loc =
-        if Body_access.is_recording () then
-          match Loc.to_value loc with
-          | `Value v -> Body_access.check_location (get v)
-          | `Bottom -> ()
+        match Loc.to_value loc with
+        | `Value v -> Body_access.check_location (get v)
+        | `Bottom -> ()
       in
       value, location
 
@@ -872,7 +869,7 @@ module Make
         let report = { fuel; reduction } in
         Cache.add_val env.cache expr (record, report);
         let+ v = record.value.v in
-        observe_value v;
+        if Body_access.is_recording () then observe_value v;
         v, record.volatile_expr
       in
       (* Reset the flag fuel_consumed. *)
@@ -1066,7 +1063,7 @@ module Make
     let open Evaluated.Operators in
     let lval_to_loc = internal_lval_to_loc ~env ~for_writing ~reduction in
     let* loc, volatile = lval_to_loc lval in
-    observe_location loc;
+    if Body_access.is_recording () then observe_location loc;
     if reduction then
       let bitfield = Eva_ast.is_bitfield lval in
       let truth = Loc.assume_valid_location ~for_writing ~bitfield loc in

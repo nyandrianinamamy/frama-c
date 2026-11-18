@@ -34,10 +34,10 @@ let condition_truth_value s =
   try Conditions_table.find s
   with Not_found -> false, false
 
-let record_fireable edge =
+let record_fireable ~collecting edge =
   match edge.edge_transition with
   | Guard (_exp, kind, stmt) ->
-    Body_access.record Guards;
+    if collecting then Body_access.record Guards;
     let b_then, b_else = condition_truth_value stmt in
     let new_status =
       match kind with
@@ -78,6 +78,10 @@ module Make_Dataflow
   let callstack = AnalysisParam.callstack
   let fundec = Kernel_function.get_definition kf
   let cacheable = ref Eval.Cacheable
+  let collecting = Body_access.is_recording ()
+  let yield =
+    if collecting then fun () -> Body_access.without_recording Async.yield
+    else Async.yield
 
 
   (* --- Plugin parameters --- *)
@@ -365,7 +369,7 @@ module Make_Dataflow
     let {edge_transition=transition; edge_kinstr=kinstr} = e in
     let tank = get_edge_data e in
     let flow = Partitioning.drain tank in
-    Body_access.without_recording Async.yield;
+    yield ();
     Signal.check ();
     current_ki := kinstr;
     let open Current_loc.Operators in
@@ -373,7 +377,7 @@ module Make_Dataflow
     let pos = Position.of_kinstr e.edge_kinstr callstack in
     let transfer = transfer_transition ~pos transition in
     let transfer =
-      if Body_access.is_recording () then
+      if collecting then
         Body_access.transfer ~id:e.edge_key
           ~src:v1.vertex_key ~dst:v2.vertex_key transfer
       else transfer
@@ -381,7 +385,7 @@ module Make_Dataflow
     let flow = Partitioning.transfer transfer flow in
     let flow = process_partitioning_transitions v1 v2 flow in
     if not (Partitioning.is_empty_flow flow) then
-      record_fireable e;
+      record_fireable ~collecting e;
     flow
 
   let gather_cvalues states = match Engine.Dom.get_cvalue with
@@ -389,7 +393,8 @@ module Make_Dataflow
     | None -> []
 
   let call_statement_callbacks (stmt : stmt) (f : flow) : unit =
-    if not (Partitioning.is_empty_flow f) then Body_access.record Reached;
+    if collecting && not (Partitioning.is_empty_flow f) then
+      Body_access.record Reached;
     (* TODO: apply on all domains. *)
     let states = List.map snd (Partitioning.contents f) in
     let cvalue_states = gather_cvalues states in
@@ -612,14 +617,14 @@ module Make_Dataflow
     and merged_post_cvalues = lazy (lift_to_cvalues merged_post_states) in
     if save_results then begin
       let register = Domain.Store.register_state callstack in
-      let register_pre stmt state =
-        Body_access.record States;
-        register (Before stmt) state
+      let register =
+        if collecting then fun pos state ->
+          Body_access.record States;
+          register pos state
+        else register
       in
-      let register_post stmt state =
-        Body_access.record States;
-        register (After stmt) state
-      in
+      let register_pre stmt = register (Before stmt)
+      and register_post stmt = register (After stmt) in
       StmtTable.iter register_pre (Lazy.force merged_pre_states);
       StmtTable.iter register_post (Lazy.force merged_post_states);
     end;

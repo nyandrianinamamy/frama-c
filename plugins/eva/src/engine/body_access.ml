@@ -66,7 +66,7 @@ type recording = {
 
 let current : recording option ref = ref None
 
-let is_recording () = Option.is_some !current
+let[@inline always] is_recording () = Option.is_some !current
 
 let without_recording f =
   match !current with
@@ -78,14 +78,19 @@ let without_recording f =
 let add_refusal r reason =
   if not (List.mem reason r.refusals) then r.refusals <- reason :: r.refusals
 
-let refuse reason = Option.iter (fun r -> add_refusal r reason) !current
+let[@inline always] refuse reason =
+  match !current with
+  | None -> ()
+  | Some r -> add_refusal r reason
 
-let record table =
-  Option.iter
-    (fun r ->
-       if not (List.mem table r.recorded) then
-         r.recorded <- table :: r.recorded)
-    !current
+let record_table r table =
+  if not (List.mem table r.recorded) then
+    r.recorded <- table :: r.recorded
+
+let[@inline always] record table =
+  match !current with
+  | None -> ()
+  | Some r -> record_table r table
 
 let check_bases r = function
   | Bases.Top -> add_refusal r Footprint_top
@@ -93,31 +98,34 @@ let check_bases r = function
     let allocated = function Base.Allocated _ -> true | _ -> false in
     if Base.Hptset.exists allocated bases then add_refusal r Allocated_block
 
-let read location =
+let add_read r location =
+  let bases = Addresses.Bits.get_bases location.Locations.addr in
+  check_bases r bases;
+  r.reads <- Bases.join r.reads bases
+
+let[@inline always] read location =
   match !current with
   | None -> ()
-  | Some r ->
-    let bases = Addresses.Bits.get_bases location.Locations.addr in
-    check_bases r bases;
-    r.reads <- Bases.join r.reads bases
+  | Some r -> add_read r location
 
 let check_location value =
   match !current with
   | None -> ()
   | Some r -> check_bases r (Cvalue.V.get_bases value)
 
-let designate value =
+let add_designated r value =
+  let bases =
+    match Cvalue.V.get_bases value with
+    | Bases.Top -> Bases.top
+    | Bases.Set bases -> Bases.inject (Base.Hptset.remove Base.null bases)
+  in
+  check_bases r bases;
+  r.designated <- Bases.join r.designated bases
+
+let[@inline always] designate value =
   match !current with
   | None -> ()
-  | Some r ->
-    let bases = Cvalue.V.get_bases value in
-    let bases =
-      match bases with
-      | Bases.Top -> Bases.top
-      | Bases.Set bases -> Bases.inject (Base.Hptset.remove Base.null bases)
-    in
-    check_bases r bases;
-    r.designated <- Bases.join r.designated bases
+  | Some r -> add_designated r value
 
 let add_write r may sure =
   r.writes <- Bases.join r.writes may;
