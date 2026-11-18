@@ -17,11 +17,12 @@ type refusal = [
   | `Relate_top
   | `Relate_unclosed
   | `Exception
+  | `Supplied_only
 ]
 
 let refusals : refusal list =
   [ `Disabled; `Not_cacheable; `No_inout; `Footprint_top; `Relate_top;
-    `Relate_unclosed; `Exception ]
+    `Relate_unclosed; `Exception; `Supplied_only ]
 
 let refusal_id : refusal -> string = function
   | `Disabled -> "disabled"
@@ -31,17 +32,22 @@ let refusal_id : refusal -> string = function
   | `Relate_top -> "relate-top"
   | `Relate_unclosed -> "relate-unclosed"
   | `Exception -> "exception"
+  | `Supplied_only -> "supplied-only"
 
 (* No verbosity level: the category is enabled only by -eva-msg-key. *)
 let mkey =
-  let reasons = String.concat ", " (List.map refusal_id refusals) in
+  let ids f l = String.concat ", " (List.map f l) in
   Self.register_message_category "cache"
-    ~help:("print the dispositions of each call analysed through the body \
-            of the called function or answered by the cache of calls: \
-            lookup in the cache (no-candidate or hit), execution of the body \
-            (analysed, not-analysed or interrupted) and storage of the \
-            result (stored, none, or refused with one of the reasons: "
-           ^ reasons ^ ")")
+    ~help:(Printf.sprintf
+             "print the dispositions of each call analysed through the body \
+              of the called function or answered by the cache of calls: \
+              lookup in the cache (no-candidate, hit, or entries supplied by \
+              a test module and rejected with one of the reasons: %s), \
+              execution of the body (analysed, not-analysed or interrupted) \
+              and storage of the result (stored, none, or refused with one of \
+              the reasons: %s)"
+             (ids Supplied_entries.rejection_id Supplied_entries.rejections)
+             (ids refusal_id refusals))
 
 let new_counter = Mem_exec.new_counter
 
@@ -49,13 +55,28 @@ let cleanup_results = Mem_exec.cleanup_results
 
 (* ----- Report of the dispositions of a call ------------------------------ *)
 
-type lookup_disposition = [ `No_candidate | `Hit of int ]
+(* The candidates rejected, oldest first, then the entry used, if any. *)
+type lookup_disposition = {
+  rejected : (int * Supplied_entries.rejection) list;
+  hit : int option;
+}
+
+let no_candidate = { rejected = []; hit = None }
 type execution_disposition = [ `Analysed | `Not_analysed | `Interrupted ]
 type storage_disposition = [ `None | `Stored of int | `Refused of refusal ]
 
-let pretty_lookup fmt : lookup_disposition -> unit = function
-  | `No_candidate -> Format.pp_print_string fmt "no-candidate"
-  | `Hit id -> Format.fprintf fmt "hit (entry %d)" id
+let pretty_lookup fmt = function
+  | { rejected = []; hit = None } ->
+    Format.pp_print_string fmt "no-candidate"
+  | { rejected; hit } ->
+    let pretty_rejected fmt (id, reason) =
+      Format.fprintf fmt "rejected (entry %d: %s)"
+        id (Supplied_entries.rejection_id reason)
+    in
+    let pretty_hit fmt id = Format.fprintf fmt "hit (entry %d)" id in
+    Pretty_utils.pp_list ~sep:", " pretty_rejected fmt rejected;
+    if rejected <> [] && hit <> None then Format.pp_print_string fmt ", ";
+    Pretty_utils.pp_opt pretty_hit fmt hit
 
 let pretty_execution fmt (execution : execution_disposition) =
   Format.pp_print_string fmt
@@ -99,21 +120,43 @@ module Make
 = struct
 
   module Memexec = Mem_exec.Make (Value) (Domain)
+  module Supplied = Supplied_entries.Lookup (Domain)
 
-  (* What a lookup with no candidate leaves for the storage: whether a cache
-     was consulted, and the argument values of its key. *)
+  (* What a lookup with no candidate leaves for the storage: the cache
+     consulted, with the argument values of the key of memexec, or the
+     supplied entries rejected. *)
   type pending =
     | No_cache
     | Memexec of Value.t or_bottom list
+    | Supplied of (int * Supplied_entries.rejection) list
 
   type lookup =
     | No_candidate of pending
     | Hit of int * (Partition.key * Domain.t) list
 
+  (* Lookup in the entries supplied by a test module. *)
+  let lookup_supplied call state =
+    let kf = call.kf in
+    let Supplied_entries.{ rejected; hit } = Supplied.find kf state in
+    let count_rejection (_, reason) =
+      let id = Supplied_entries.rejection_id reason in
+      Statistics.(incr (cache_rejected id) kf)
+    in
+    List.iter count_rejection rejected;
+    match hit with
+    | None -> No_candidate (Supplied rejected)
+    | Some (id, states) ->
+      Statistics.(incr cache_hits kf);
+      report call ~lookup:{ rejected; hit = Some id }
+        ~execution:`Not_analysed ~storage:`None;
+      Hit (id, states)
+
   let lookup call state =
     let kf = call.kf in
     if not (Parameters.Memexec.get ())
     then No_candidate No_cache
+    else if Supplied_entries.active ()
+    then lookup_supplied call state
     else
       let args =
         List.map (fun {avalue} -> Eval.value_assigned avalue) call.arguments
@@ -124,15 +167,23 @@ module Make
         No_candidate (Memexec args)
       | Some (states, id) ->
         Statistics.(incr memexec_hits kf);
-        report call
-          ~lookup:(`Hit id) ~execution:`Not_analysed ~storage:`None;
+        report call ~lookup:{ no_candidate with hit = Some id }
+          ~execution:`Not_analysed ~storage:`None;
         Hit (id, states)
+
+  (* The lookup disposition of a call that found no candidate. *)
+  let lookup_disposition = function
+    | No_cache | Memexec _ -> no_candidate
+    | Supplied rejected -> { rejected; hit = None }
 
   let store call state pending call_result footprint =
     let kf = call.kf in
     let storage =
       match pending with
       | No_cache -> `Refused `Disabled
+      | Supplied _ ->
+        Statistics.(incr (cache_refused (refusal_id `Supplied_only)) kf);
+        `Refused `Supplied_only
       | Memexec args ->
         match Memexec.store_computed_call kf state args call_result with
         | Ok id ->
@@ -151,13 +202,15 @@ module Make
           let reason = Body_access.Result.refusal_id reason in
           Statistics.(incr (collector_refused reason) kf))
       collector;
-    report ?collector call ~lookup:`No_candidate ~execution:`Analysed ~storage
+    report ?collector call ~lookup:(lookup_disposition pending)
+      ~execution:`Analysed ~storage
 
   (* Called while an exception leaves the analysis of a body. A failure of
      the report, for instance in a listener of the log, must not replace this
      exception. *)
-  let interrupted call =
+  let interrupted call pending =
     try
-      report call ~lookup:`No_candidate ~execution:`Interrupted ~storage:`None
+      report call ~lookup:(lookup_disposition pending)
+        ~execution:`Interrupted ~storage:`None
     with _ -> ()
 end

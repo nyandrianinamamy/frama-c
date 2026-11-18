@@ -328,6 +328,12 @@ let collector_would_store =
   register_function_stat "collector-would-store" Int
 let collector_refused reason =
   register_function_stat ("collector-refused-" ^ reason) Int
+let cache_hits =
+  register_function_stat "cache-hits" Int
+let cache_rejected reason =
+  register_function_stat ("cache-rejected-" ^ reason) Int
+let cache_refused reason =
+  register_function_stat ("cache-refused-" ^ reason) Int
 let max_widenings =
   register_statement_stat "max-widenings" Int
 let max_unrolling =

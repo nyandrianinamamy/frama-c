@@ -133,3 +133,7 @@ module Eva_results = Eva_results
 module Unit_tests = Unit_tests
 
 module Body_access = Body_access.Result
+
+(** Cache entries supplied by test modules to the reuse operation. For tests
+    only. *)
+module Supplied_entries = Supplied_entries

@@ -59,6 +59,20 @@ val collector_would_store : (Cil_types.kernel_function, int) t
 (** Counts refused bodies by [Body_access.Result.refusal_id]. *)
 val collector_refused : string -> (Cil_types.kernel_function, int) t
 
+(** Count of the calls answered by an entry supplied by a test module (see
+    [Supplied_entries]). *)
+val cache_hits : (Cil_types.kernel_function, int) t
+
+(** [cache_rejected reason] is the count of the entries supplied by a test
+    module and rejected at a call for [reason], the stable identifier given by
+    [Supplied_entries.rejection_id]. Its name is [cache-rejected-REASON]. *)
+val cache_rejected : string -> (Cil_types.kernel_function, int) t
+
+(** [cache_refused reason] is the count of results whose storage was refused
+    for [reason] in an analysis whose cache holds entries supplied by a test
+    module. Its name is [cache-refused-REASON]. *)
+val cache_refused : string -> (Cil_types.kernel_function, int) t
+
 (** Maximum number of successive widening computed at each widening
     statement. *)
 val max_widenings : (Cil_types.stmt, int) t

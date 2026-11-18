@@ -1,0 +1,149 @@
+[kernel] Parsing cache_supplied.c (with preprocessing)
+[eva] Analyzing a complete application starting at main
+[eva:progress] Computing initial state
+[eva:progress] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  g ∈ {0}
+  out ∈ {0}
+  keep ∈ {0}
+[eva:progress] 
+  computing for function step <- main.
+  Called from cache_supplied.c:66.
+[eva:show] cache_supplied.c:40: Frama_C_show_each_step: {1}, {3}
+[eva:progress] Recording results for step
+[eva:progress] Done for function step
+[eva:cache] cache_supplied.c:66: 
+  call to step: lookup: rejected (entry 1: consumer); execution: analysed; storage: refused (supplied-only)
+[eva:show] cache_supplied.c:67: Frama_C_show_each_after_hit: {4}
+[eva:progress] 
+  computing for function step <- main.
+  Called from cache_supplied.c:69.
+[eva:show] cache_supplied.c:40: Frama_C_show_each_step: {1}, {5}
+[eva:progress] Recording results for step
+[eva:progress] Done for function step
+[eva:cache] cache_supplied.c:69: 
+  call to step: lookup: rejected (entry 1: consumer); execution: analysed; storage: refused (supplied-only)
+[eva:show] cache_supplied.c:70: Frama_C_show_each_after_miss: {6}
+[eva:progress] 
+  computing for function set_out <- main.
+  Called from cache_supplied.c:72.
+[eva:show] cache_supplied.c:45: Frama_C_show_each_set_out: {42}
+[eva:progress] Recording results for set_out
+[eva:progress] Done for function set_out
+[eva:cache] cache_supplied.c:72: 
+  call to set_out: lookup: rejected (entry 2: consumer); execution: analysed; storage: refused (supplied-only)
+[eva:show] cache_supplied.c:73: Frama_C_show_each_after_frame: {7}, {42}
+[eva:progress] 
+  computing for function precise_first <- main.
+  Called from cache_supplied.c:74.
+[eva:show] cache_supplied.c:50: Frama_C_show_each_precise_first: {1}
+[eva:progress] Recording results for precise_first
+[eva:progress] Done for function precise_first
+[eva:cache] cache_supplied.c:74: 
+  call to precise_first: lookup: rejected (entry 3: consumer), rejected (entry 4: consumer); execution: analysed; storage: refused (supplied-only)
+[eva:show] cache_supplied.c:75: Frama_C_show_each_after_precise_first: {7}
+[eva:progress] 
+  computing for function wide_first <- main.
+  Called from cache_supplied.c:76.
+[eva:show] cache_supplied.c:55: Frama_C_show_each_wide_first: {1}
+[eva:progress] Recording results for wide_first
+[eva:progress] Done for function wide_first
+[eva:cache] cache_supplied.c:76: 
+  call to wide_first: lookup: rejected (entry 5: consumer), rejected (entry 6: consumer); execution: analysed; storage: refused (supplied-only)
+[eva:show] cache_supplied.c:77: Frama_C_show_each_after_wide_first: {7}
+[eva:progress] 
+  computing for function plain <- main.
+  Called from cache_supplied.c:78.
+[eva:show] cache_supplied.c:60: Frama_C_show_each_plain: {1}
+[eva:progress] Recording results for plain
+[eva:progress] Done for function plain
+[eva:cache] cache_supplied.c:78: 
+  call to plain: lookup: no-candidate; execution: analysed; storage: refused (supplied-only)
+[eva:progress] 
+  computing for function plain <- main.
+  Called from cache_supplied.c:79.
+[eva:show] cache_supplied.c:60: Frama_C_show_each_plain: {1}
+[eva:progress] Recording results for plain
+[eva:progress] Done for function plain
+[eva:cache] cache_supplied.c:79: 
+  call to plain: lookup: no-candidate; execution: analysed; storage: refused (supplied-only)
+[eva:progress] Recording results for main
+[eva:progress] Done for function main
+[eva:cache] 
+  call to main: lookup: no-candidate; execution: analysed; storage: refused (supplied-only)
+[eva] Warning: The scope plugin is missing: cannot remove redundant alarms.
+[kernel] entry of step: entry 1, body of step:
+                   key: {g, x}
+                   input:
+                     g ∈ {3}
+                     x ∈ {1}
+                   read: {g, x}
+                   written: {out}
+                   exit state, partition key []:
+                     g ∈ {3}
+                     out ∈ {4}
+                     x ∈ {1}
+[kernel] entry of set_out: entry 2, body of set_out:
+                      key: {}
+                      input: none, the key is empty
+                      read: {keep}
+                      written: {out}
+                      exit state, partition key []:
+                        out ∈ {7}
+[kernel] entry of precise_first: entry 3, body of precise_first:
+                            key: {x}
+                            input:
+                              x ∈ {1}
+                            read: {x}
+                            written: {out}
+                            exit state, partition key []:
+                              out ∈ {7}
+                              x ∈ {1}
+[kernel] entry of precise_first: entry 4, body of precise_first:
+                            key: {x}
+                            input:
+                              x ∈ {1}
+                            read: {x}
+                            written: {out}
+                            exit state, partition key []:
+                              out ∈ {7; 8}
+                              x ∈ {1}
+[kernel] entry of wide_first: entry 5, body of wide_first:
+                         key: {x}
+                         input:
+                           x ∈ {1}
+                         read: {x}
+                         written: {out}
+                         exit state, partition key []:
+                           out ∈ {7; 8}
+                           x ∈ {1}
+[kernel] entry of wide_first: entry 6, body of wide_first:
+                         key: {x}
+                         input:
+                           x ∈ {1}
+                         read: {x}
+                         written: {out}
+                         exit state, partition key []:
+                           out ∈ {7}
+                           x ∈ {1}
+[kernel] exit of set_out binds keep: false
+[kernel] counts of step:
+    cache-hits 0, cache-rejected-key-differs 0, cache-rejected-key-unclosed 0,
+    cache-rejected-product 0, cache-rejected-consumer 2,
+    cache-refused-supplied-only 2, memexec-hits 0, memexec-stored 0
+[kernel] counts of set_out:
+    cache-hits 0, cache-rejected-key-differs 0, cache-rejected-key-unclosed 0,
+    cache-rejected-product 0, cache-rejected-consumer 1,
+    cache-refused-supplied-only 1, memexec-hits 0, memexec-stored 0
+[kernel] counts of precise_first:
+    cache-hits 0, cache-rejected-key-differs 0, cache-rejected-key-unclosed 0,
+    cache-rejected-product 0, cache-rejected-consumer 2,
+    cache-refused-supplied-only 1, memexec-hits 0, memexec-stored 0
+[kernel] counts of wide_first:
+    cache-hits 0, cache-rejected-key-differs 0, cache-rejected-key-unclosed 0,
+    cache-rejected-product 0, cache-rejected-consumer 2,
+    cache-refused-supplied-only 1, memexec-hits 0, memexec-stored 0
+[kernel] counts of plain:
+    cache-hits 0, cache-rejected-key-differs 0, cache-rejected-key-unclosed 0,
+    cache-rejected-product 0, cache-rejected-consumer 0,
+    cache-refused-supplied-only 2, memexec-hits 0, memexec-stored 0

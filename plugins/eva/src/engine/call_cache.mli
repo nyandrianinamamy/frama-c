@@ -11,15 +11,26 @@
     Before the body of a called function is analysed, the engine looks the
     call up in the cache ({!Make.lookup}). When no entry matches, the body is
     analysed and its result is offered to the cache ({!Make.store}). This
-    module chooses the mechanism behind these two operations: memexec
-    ({!Mem_exec}) when option [-eva-memexec] is set, and no cache otherwise.
+    module chooses the mechanism behind these two operations:
+    - no cache when option [-eva-memexec] is not set;
+    - otherwise, the reuse operation on the entries supplied by a test module
+      ({!Supplied_entries}) when the current project had such entries when
+      the analysis started; this cache stores no result;
+    - otherwise, memexec ({!Mem_exec}).
+
+    No analysis has both caches: memexec answers the calls of an analysis
+    only when no entry was supplied before it started, and only test modules
+    supply entries.
     The rest of the engine uses this module only.
 
     {2 Dispositions}
 
     Each call analysed through the body of the called function has three
     dispositions:
-    - lookup: [no-candidate] (no entry matches the call), or [hit (entry N)];
+    - lookup: [no-candidate] (no entry matches the call), [hit (entry N)],
+      or, with supplied entries, the candidates rejected, oldest first, each
+      as [rejected (entry N: REASON)], followed by [hit (entry N)] when a
+      younger candidate is used;
     - execution: [analysed] (the body is analysed), [not-analysed], or
       [interrupted] (an exception stopped the analysis of the body, for
       instance when the analysis is aborted);
@@ -36,13 +47,17 @@
     the storage, and the message of an interrupted call when the exception
     leaves it, so both follow the messages of the calls made by the body.
 
-    [N] identifies an entry within one run: a hit names the entry stored by
-    an earlier call whose message reads [stored (entry N)]. With memexec, [N] is
-    the number given to the analysis of the body that produced the entry,
-    which is also the number sent to the callbacks registered through
-    {!Cvalue_callbacks} with [`Body] and [`Reuse].
+    [N] identifies an entry within one run. With memexec, a hit names the
+    entry stored by an earlier call whose message reads [stored (entry N)],
+    and [N] is the number given to the analysis of the body that produced the
+    entry, which is also the number sent to the callbacks registered through
+    {!Cvalue_callbacks} with [`Body] and [`Reuse]. With supplied entries, [N]
+    is the identifier of a supplied entry ({!Supplied_entries.id}), also sent
+    with [`Reuse].
 
-    REASON is the stable identifier of a {!refusal}, given by {!refusal_id}.
+    REASON is the stable identifier of a {!refusal}, given by {!refusal_id},
+    for a storage, and of a {!Supplied_entries.rejection}, given by
+    {!Supplied_entries.rejection_id}, for a rejected candidate.
 
     With [-eva-cache-collect], a completed body also reports [collector:
     would-store] or [collector: refused (REASON)] on the same line. This
@@ -55,7 +70,10 @@
     ([memexec-stored]) and the refused storages by reason
     ([memexec-refused-REASON]). They count what a cache did: with
     [-eva-no-memexec] no cache is consulted and nothing is counted, although
-    each message reads [refused (disabled)].
+    each message reads [refused (disabled)]. With supplied entries, memexec
+    counts nothing; the statistics count the hits ([cache-hits]), the
+    rejected candidates by reason ([cache-rejected-REASON]) and the refused
+    storages ([cache-refused-supplied-only]).
 
     The collector counts [collector-would-store] and [collector-refused-REASON]
     even with [-eva-no-memexec]. It counts completed body computations only. *)
@@ -80,6 +98,9 @@ type refusal = [
       is not reached within the bound of the cache. *)
   | `Exception
   (** An exception was raised while building the entry. *)
+  | `Supplied_only
+  (** The cache of the analysis holds entries supplied by a test module, and
+      stores no result. *)
 ]
 
 (** All reasons, in the order of their documentation. *)
@@ -93,7 +114,8 @@ val refusals : refusal list
     - [footprint-top] for [`Footprint_top];
     - [relate-top] for [`Relate_top];
     - [relate-unclosed] for [`Relate_unclosed];
-    - [exception] for [`Exception]. *)
+    - [exception] for [`Exception];
+    - [supplied-only] for [`Supplied_only]. *)
 val refusal_id : refusal -> string
 
 (** Number given to each analysis of a function body. It must be called once
@@ -111,13 +133,14 @@ module Make
   : sig
 
     (** What a lookup with no candidate leaves for the storage of the result
-        of the same call. *)
+        of the same call, or for the message of its interruption. *)
     type pending
 
     (** Result of a lookup. *)
     type lookup =
       | No_candidate of pending
-      (** No entry matches the call: its body must be analysed. *)
+      (** No entry matches the call, or every candidate is rejected: its body
+          must be analysed. *)
       | Hit of int * (Partition.key * Domain.t) list
       (** An entry matches the call: its identifier, and the states at the
           end of the call computed from the entry. *)
@@ -140,11 +163,11 @@ module Make
       ('loc, Value.t) Eval.call -> Domain.t -> pending ->
       Domain.t Engine_sig.call_result -> Body_access.Result.t option -> unit
 
-    (** [interrupted call] prints the message of the call [call] when an
-        exception stops the analysis of the body of the called function,
-        after a lookup that found no candidate. Nothing is stored or
-        counted. It never raises: an exception raised while the message is
-        printed is dropped, so that the caller can raise the first exception
-        again. *)
-    val interrupted : ('loc, Value.t) Eval.call -> unit
+    (** [interrupted call pending] prints the message of the call [call]
+        when an exception stops the analysis of the body of the called
+        function, after a lookup that found no candidate and returned
+        [pending]. Nothing is stored or counted. It never raises: an
+        exception raised while the message is printed is dropped, so that
+        the caller can raise the first exception again. *)
+    val interrupted : ('loc, Value.t) Eval.call -> pending -> unit
   end

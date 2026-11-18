@@ -68,7 +68,7 @@ module Make (Engine: Engine_sig.S) = struct
               compute call init_state)
         with exn ->
           let backtrace = Printexc.get_raw_backtrace () in
-          Cache.interrupted call;
+          Cache.interrupted call pending;
           Printexc.raise_with_backtrace exn backtrace
       in
       Cache.store call init_state pending call_result footprint;
