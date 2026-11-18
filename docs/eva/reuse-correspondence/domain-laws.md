@@ -64,8 +64,8 @@ These are definitions. The claims below are about them.
 
 ## Evidence common to the entries
 
-- Checked revision: tree of `lean/` `b78430d8f2ab40bfcef35add9359884bbf8f3719`,
-  at commit `af3f0613ff165117641115fe158fbe743d459099`. Toolchain
+- Checked revision: tree of `lean/` `8fb8b87666889ddca7376bdd0555803062ab973a`,
+  at commit `fb938739594412912b0bc9de1e8a28d9454b32af`. Toolchain
   `leanprover/lean4:v4.28.0` (Lean 4.28.0, commit `7e01a1bf5c70`).
 - Command: `cd lean && lake build --wfail`, run on 2026-11-18 on an
   extraction of that commit (`git archive`) with no build directory. Exit
@@ -258,9 +258,12 @@ eqDom_closed_x_dup : (eqDom FunMem).Closed [0, 0] yz
 
 **Hypotheses.**
 
-1. `[Memory M]`, for `decomposes_congr` and `exactOn_congr`. Proved in Lean
-   for `FunMem`.
-2. `d.Extensional`. Relied on from Eva, through Frama-C's sets of bases.
+1. `[Memory M]`, for `decomposes_congr`, `exactOn_congr` and
+   `eqDom_extensional`. Proved in Lean for `FunMem`.
+2. `SameBlocks B B'` (`SameBlocks K K'` in `exactOn_congr`). Local premise,
+   supplied by the caller that exchanges the two representations of a set;
+   no obligation on Eva.
+3. `d.Extensional`. Relied on from Eva, through Frama-C's sets of bases.
    Eva passes a set of bases to `filter`, `relate` and `reuse` as a
    `Base.Hptset.t`, not as a list (`Abstract_domain.Caching`, in
    `plugins/eva/src/domains/abstract_domain.ml`). `Base.Hptset` is
@@ -271,13 +274,18 @@ eqDom_closed_x_dup : (eqDom FunMem).Closed [0, 0] yz
    (`src/lib/utils/hptset.ml`), which defines `equal` as physical equality
    (`src/lib/utils/hptmap.ml`, module `D`), and whose `wrap_Leaf` and
    `wrap_Branch` build each new node through the hash-consing table
-   `PatriciaHashconsTbl`. The contract relied on: while the AST is
-   unchanged, two sets of bases with the same members are one value. An
+   `PatriciaHashconsTbl`. The contract relied on: within one
+   project and one lifetime of the hash-consing table, two sets of bases
+   with the same members are one value. Clearing the table reinstates its
+   initial values only, so a set kept across a clear can coexist with a
+   new set of the same members; the reliance covers keys built in the same
+   project between two clears. An
    operation that is a function of its arguments then meets the law, for
    every domain, with no argument per domain. Not checked: that every set is
-   built through `wrap_Leaf` and `wrap_Branch`, and that a Patricia tree has
+   built through `wrap_Leaf` and `wrap_Branch`, that a Patricia tree has
    one shape per set of keys, on which physical equality as `equal`
-   relies.
+   relies, and that no key compared at a lookup was built before a clear
+   of the table.
 
 **Depends on.** None.
 
@@ -296,7 +304,8 @@ eqDom_closed_x_dup : (eqDom FunMem).Closed [0, 0] yz
 `split` (`rw`).
 
 **Open.** None in the model. For Eva, the check of the contract of
-hypothesis 2 on the implementation of `Hptmap`.
+hypothesis 3 on the implementation of `Hptmap`, and the provenance of
+the keys compared at a lookup.
 
 ## The equality domain fails relate sound on a closed key
 

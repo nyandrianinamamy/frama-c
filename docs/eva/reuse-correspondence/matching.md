@@ -9,8 +9,8 @@ computes today is in [Call-cache
 seam](call-cache-seam.md#closure-of-the-memexec-key-under-relate).
 
 The evidence is that of [Domain laws](domain-laws.md#evidence-common-to-the-entries):
-tree of `lean/` `b78430d8f2ab40bfcef35add9359884bbf8f3719`, at commit
-`af3f0613ff165117641115fe158fbe743d459099`, `cd lean && lake build --wfail`
+tree of `lean/` `8fb8b87666889ddca7376bdd0555803062ab973a`, at commit
+`fb938739594412912b0bc9de1e8a28d9454b32af`, `cd lean && lake build --wfail`
 run on 2026-11-18 on an extraction of that commit, exit status 0. CI on this
 tree is pending.
 

@@ -126,8 +126,8 @@ included.
   ([run 44354462356](https://github.com/nyandrianinamamy/frama-c/actions/runs/44354462356)).
   A later push of two commits that change no file under `lean/` started no
   run.
-- Rebuilt at tree `b78430d8f2ab40bfcef35add9359884bbf8f3719` (commit
-  `af3f0613ff165117641115fe158fbe743d459099`), which adds the domain laws
+- Rebuilt at tree `8fb8b87666889ddca7376bdd0555803062ab973a` (commit
+  `fb938739594412912b0bc9de1e8a28d9454b32af`), which adds the domain laws
   ([Domain laws](domain-laws.md), [Matching](matching.md)) and changes no
   file that the lemma depends on: `ReuseModel/Syntax.lean`, `Memory.lean`,
   `Semantics.lean`, `Observations.lean` and `Frame.lean` are those of the
