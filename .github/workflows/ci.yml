@@ -112,7 +112,9 @@ jobs:
           opam clean --download-cache --logs --repo-cache --switch-cleanup -y
 
       - name: Save the opam switch
-        if: runner.environment == 'github-hosted' && steps.opam-cache.outputs.cache-hit != 'true'
+        if: >-
+          runner.environment == 'github-hosted' && steps.opam-cache.outputs.cache-hit != 'true' &&
+          github.event_name == 'push' && matrix.scope == 'eva'
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.opam
@@ -137,7 +139,7 @@ jobs:
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/dune
-          key: dune-${{ runner.os }}-${{ env.OPAM_CACHE_VERSION }}-${{ github.sha }}
+          key: dune-${{ runner.os }}-${{ env.OPAM_CACHE_VERSION }}-${{ hashFiles('opam') }}
           restore-keys: |
             dune-${{ runner.os }}-${{ env.OPAM_CACHE_VERSION }}-
 
@@ -146,12 +148,16 @@ jobs:
           DUNE_CACHE: enabled
         run: opam exec -- dune build -j $JOBS @install
 
+      - name: Trim the VM build cache
+        if: runner.environment == 'self-hosted'
+        run: opam exec -- dune cache trim --size=2GiB
+
       - name: Save the build cache
-        if: matrix.scope == 'eva' && steps.dune-cache.outputs.cache-hit != 'true'
+        if: github.event_name == 'push' && matrix.scope == 'eva' && steps.dune-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/dune
-          key: dune-${{ runner.os }}-${{ env.OPAM_CACHE_VERSION }}-${{ github.sha }}
+          key: dune-${{ runner.os }}-${{ env.OPAM_CACHE_VERSION }}-${{ hashFiles('opam') }}
 
       - name: Check that Eva and its Apron domains are built
         run: |

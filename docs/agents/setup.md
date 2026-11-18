@@ -85,7 +85,12 @@ On pushes to `nyandrianinamamy/frama-c`, the Ubuntu 24.04 runner labelled
 jobs run the Eva configurations in parallel. Pull requests and manual
 dispatches run all three jobs on GitHub-hosted runners. The VM checkout
 starts clean for every job. Only the build of `@install` uses its persistent
-Dune cache.
+Dune cache. CI trims this cache to a 2 GiB target after compilation.
+
+Hosted jobs key the opam switch and Dune build cache by the toolchain and
+the opam manifest. A push can seed both caches once per branch and key.
+Manual dispatches and pull requests restore eligible caches without writing
+a copy for each ticket. Bump `OPAM_CACHE_VERSION` to refresh the baseline.
 
 The VM uses an administrator-owned `/opt/frama-c-ci` toolchain. To provision
 another runner with that label, install the system packages listed in the
