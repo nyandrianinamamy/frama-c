@@ -75,22 +75,46 @@ type recording = {
 
 let current : recording option ref = ref None
 
+(* The recorder of the body during {!at_call_site}. It records the
+   allocation family only. *)
+let call_site : recording option ref = ref None
+
 let[@inline always] is_recording () = Option.is_some !current
 
+let suspend site f =
+  let previous = !current and previous_site = !call_site in
+  current := None;
+  call_site := site;
+  Fun.protect f ~finally:(fun () ->
+      current := previous;
+      call_site := previous_site)
+
 let without_recording f =
+  if Option.is_none !current && Option.is_none !call_site then f ()
+  else suspend None f
+
+let at_call_site f =
   match !current with
   | None -> f ()
-  | previous ->
-    current := None;
-    Fun.protect f ~finally:(fun () -> current := previous)
+  | previous -> suspend previous f
+
+(* Refusals of the allocation family. A body inherits them from the bodies
+   analysed during its own analysis, and they are recorded at a call
+   site. *)
+let inherited = function
+  | Reallocation | Allocation | Deallocation | Validity_mutation
+  | Allocated_block | Allocation_metadata -> true
+  | Indirect_call | Builtin | Sweep | Contract | Annotation | Nested_call
+  | Footprint_top | Side_table -> false
 
 let add_refusal r reason =
   if not (List.mem reason r.refusals) then r.refusals <- reason :: r.refusals
 
 let[@inline always] refuse reason =
-  match !current with
-  | None -> ()
-  | Some r -> add_refusal r reason
+  match !current, !call_site with
+  | Some r, _ -> add_refusal r reason
+  | None, Some r when inherited reason -> add_refusal r reason
+  | None, _ -> ()
 
 let record_table r table =
   if not (List.mem table r.recorded) then
@@ -122,9 +146,9 @@ let read_bases bases =
   | Some r -> add_read r bases
 
 let check_location value =
-  match !current with
-  | None -> ()
-  | Some r -> check_bases r (Cvalue.V.get_bases value)
+  match !current, !call_site with
+  | Some r, _ | None, Some r -> check_bases r (Cvalue.V.get_bases value)
+  | None, None -> ()
 
 let add_designated r bases =
   let bases =
@@ -136,9 +160,10 @@ let add_designated r bases =
   r.designated <- Bases.join r.designated bases
 
 let[@inline always] designate value =
-  match !current with
-  | None -> ()
-  | Some r -> add_designated r (Cvalue.V.get_bases value)
+  match !current, !call_site with
+  | Some r, _ -> add_designated r (Cvalue.V.get_bases value)
+  | None, Some r -> check_bases r (Cvalue.V.get_bases value)
+  | None, None -> ()
 
 let designate_bases bases =
   match !current with
@@ -214,21 +239,13 @@ let () = Origin.on_history_access (fun () -> refuse Side_table)
 let () =
   Base.on_metadata_read
     (fun base ->
-       match !current with
-       | None -> ()
-       | Some r ->
+       match !current, !call_site with
+       | Some r, _ | None, Some r ->
          add_refusal r Allocation_metadata;
-         r.owners <- Base.Hptset.add base r.owners)
+         r.owners <- Base.Hptset.add base r.owners
+       | None, None -> ())
 
 let () = Base.on_validity_update (fun () -> refuse Validity_mutation)
-
-(* Refusals that an enclosing body inherits from a body analysed during its
-   own analysis. *)
-let inherited = function
-  | Reallocation | Allocation | Deallocation | Validity_mutation
-  | Allocated_block | Allocation_metadata -> true
-  | Indirect_call | Builtin | Sweep | Contract | Annotation | Nested_call
-  | Footprint_top | Side_table -> false
 
 let write location =
   match !current with
@@ -350,7 +367,7 @@ let finish_paths ~entry ~exit ~returns =
 let capture stack compute =
   if not (Parameters.CacheCollect.get ()) then compute (), None
   else
-    let previous = !current in
+    let previous = !current and previous_site = !call_site in
     let r = {
       reads = Bases.bottom;
       writes = Bases.bottom;
@@ -364,7 +381,12 @@ let capture stack compute =
       unlocated_write = false;
     } in
     current := Some r;
-    let output = Fun.protect compute ~finally:(fun () -> current := previous) in
+    call_site := None;
+    let output =
+      Fun.protect compute ~finally:(fun () ->
+          current := previous;
+          call_site := previous_site)
+    in
     (* The size of a written block is read outside the body's analysis. *)
     let exit_writes, sure_writes =
       without_recording @@ fun () ->
@@ -390,7 +412,8 @@ let capture stack compute =
         result.refusals;
       parent.owners <- Base.Hptset.union parent.owners result.owners
     in
-    Option.iter pass_on previous;
+    Option.iter pass_on (if Option.is_some previous then previous
+                         else previous_site);
     without_recording (fun () -> Hooks.apply (stack, result));
     output, Some result
 

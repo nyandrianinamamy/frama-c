@@ -55,6 +55,16 @@ end
 
 val capture : Callstack.t -> (unit -> 'a) -> 'a * Result.t option
 val without_recording : (unit -> 'a) -> 'a
+(** Runs a function outside the observation of the current body. *)
+
+val at_call_site : (unit -> 'a) -> 'a
+(** Runs a function that belongs to the call site of the current body, as
+    the check of its [requires] clauses. Only the reasons of the allocation
+    family are recorded: the allocated blocks designated by the values read,
+    the reads of allocation metadata with their owners, and the allocation
+    effects. A set of designated blocks that is [Top] refuses with
+    [Footprint_top]. *)
+
 val is_recording : unit -> bool
 val verdict : Result.t -> (unit, Result.refusal) result
 

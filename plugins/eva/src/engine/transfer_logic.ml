@@ -557,7 +557,7 @@ module Make (Domain: LogicDomain) = struct
   let check_fct_preconditions ?(body=false) call_ki kf ab init_state =
     (* Keep the original order of behavior selection and precondition checks.
        Each requires clause belongs to the call site, outside the body. *)
-    let check_requires = if body then Body_access.without_recording
+    let check_requires = if body then Body_access.at_call_site
       else fun f -> f ()
     in
     let init_states = [init_state] in

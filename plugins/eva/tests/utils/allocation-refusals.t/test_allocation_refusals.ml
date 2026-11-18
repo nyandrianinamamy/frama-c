@@ -104,6 +104,8 @@ let observe_equality name (r : Access.t) =
   match name with
   | "equal_live" ->
     assert (refused_for Allocated_block r);
+    assert (refused_for Allocation_metadata r);
+    assert (owners r <> []);
     assert (names r.reads = ["__retres"; "a"; "b"]);
     print name r
   | "main" -> ()
@@ -119,6 +121,20 @@ let observe_release name (r : Access.t) =
     print name r
   | name -> failwith ("unexpected body: " ^ name)
 
+(* Bodies that do not access the block that their requires clauses read. *)
+let observe_requires name (r : Access.t) =
+  match name with
+  | "valid_only" | "initialized_only" | "length_only" ->
+    assert (names r.reads = []);
+    assert (names r.writes = ["x"]);
+    assert (not (Base.SetLattice.exists is_allocated r.designated));
+    assert (refused_for Allocated_block r);
+    assert (refused_for Allocation_metadata r);
+    Format.printf "%s %s, owners %s@." name (first_reason r)
+      (String.concat ", " (owners r))
+  | "main" -> ()
+  | name -> failwith ("unexpected body: " ^ name)
+
 let () =
   let observe stack result =
     let name = Kernel_function.get_name (Eva.Callstack.top_kf stack) in
@@ -127,6 +143,7 @@ let () =
     | Some "widening" -> observe_widening name result
     | Some "equality" -> observe_equality name result
     | Some "release" -> observe_release name result
+    | Some "requires" -> observe_requires name result
     | _ -> failwith "EVA_TEST_ALLOCATION is not set"
   in
   Access.on_result observe

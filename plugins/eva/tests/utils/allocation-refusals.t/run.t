@@ -45,8 +45,8 @@ block of the first call is freed at the return.
   collector-refused-reallocation main 1
 
 An integer loop whose widening visits an allocated binding is refused, and the
-block is an owner although the loop does not access it. The same loop is not
-refused before the allocation, and a loop that converges without widening is
+block is an owner although the loop does not access it. The same loop has no
+owner before the allocation, and a loop that converges without widening is
 not refused. A loop that writes to a weak block is refused for the update of
 its validity by the widening, without any allocation.
 
@@ -82,3 +82,16 @@ the reason.
     call to release: lookup: hit (entry 1); execution: not-analysed; storage: none
   main allocation
     call to main: lookup: no-candidate; execution: analysed; storage: refused (not-cacheable); collector: refused (allocation)
+
+The requires clauses of a body are checked at the call site, outside its
+observation, but the allocated blocks and the allocation metadata they read
+refuse the body.
+
+  $ EVA_TEST_ALLOCATION=requires frama-c -no-autoload-plugins -load-module eva,test_allocation_refusals.cmxs -eva -eva-no-memexec -eva-msg-key cache requires.c > requires.log 2>&1
+  $ grep -E '^(valid_only|initialized_only|length_only) |call to (valid_only|initialized_only|length_only):' requires.log
+  valid_only allocated-block, owners __malloc_main_l18
+    call to valid_only: lookup: no-candidate; execution: analysed; storage: refused (disabled); collector: refused (allocated-block)
+  initialized_only allocated-block, owners __malloc_main_l18
+    call to initialized_only: lookup: no-candidate; execution: analysed; storage: refused (disabled); collector: refused (allocated-block)
+  length_only allocated-block, owners __malloc_main_l18
+    call to length_only: lookup: no-candidate; execution: analysed; storage: refused (disabled); collector: refused (allocated-block)
