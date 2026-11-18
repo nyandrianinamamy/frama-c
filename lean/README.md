@@ -3,8 +3,8 @@
 This directory holds the Lean reference model for the reuse of cache entries in
 Eva. It defines a small language, a concrete memory, executions and the
 observations that a cache entry makes claims about, and it proves theorems
-about them: the frame lemma without sweeps, and the match and product lemmas
-on abstract domains.
+about them: the frame lemma without sweeps, the match and product lemmas
+on abstract domains, and the construction of sound cache entries.
 
 The theorems are about the model. They do not verify the OCaml code of Eva.
 Whether Eva meets the hypotheses of a theorem is a separate question, answered
@@ -63,10 +63,13 @@ directories that Dune reads, and `lean` is not among them.
 | `ReuseModel/Observations.lean` | Exit, Reach, Safety and visits, of a subject |
 | `ReuseModel/Frame.lean` | `InFrame`, `frame_of_not_written`, `frame_lemma` |
 | `ReuseModel/Domain.lean` | Agreement of memories on a set of blocks, `Combinable`; abstract domains (`Domain`) with their laws `FilterSound`, `RelateSound`, `FilterExact`, `ReuseSound` and `Extensional`; closed sets, the product of two domains and the laws it keeps; closure, decomposition and exactness on two sets with the same members; the strong form of `filter` sound and exactness, derived from the decomposition; `match_filtered`, `match_lemma`, `product_lemma`, `projected_match` |
+| `ReuseModel/Replay.lean` | Allocation agreement and agreement of matching executions on every finite prefix |
+| `ReuseModel/Entry.lean` | Footprints, cache entries, producer soundness, and `CacheEntry.sound_of_producer` |
 | `Checks/AxiomCheck.lean` | The `#check_axioms` command |
 | `Checks/Axioms.lean` | `#print axioms` and `#check_axioms` for each theorem |
 | `Checks/Examples.lean` | Aliasing, a dangling pointer after a return, and a call that does not return, on which `frame_lemma` is applied; the body of a function as the subject; comparisons with the null pointer |
 | `Checks/Domains.lean` | A non-relational domain that meets every law, alone and in a product with itself, and a match it admits; a domain of equalities with an identity `filter`, which fails `relate` sound on the fact `y == z` and the closed key `{x}`; a one-state domain with an identity `filter` that meets every law; a product with an empty concretisation on which `filter` is not exact; a domain that meets the other laws, not `Extensional`, in which `[0]` is closed and `[0, 0]` is not |
+| `Checks/Entries.lean` | A load that faults before an overwrite, an assertion before an overwrite, a return with an incomplete footprint, and the need to distinguish allocation state and writes at normal exits |
 | `Checks/Fragment.lean` | Statements that meet the fragment conditions: one outside the function bodies, a function body, and a statement inside one. Programs and statements that do not: duplicate labels in the observed statement, a label of a body reused outside, duplicate labels across two bodies, direct recursion, mutual recursion |
 
 ## What the model contains
@@ -214,6 +217,20 @@ the programs that the lemma, as stated for the record, is about.
   of the filtered current input in the filtered stored input is stated on
   their concretisations; equality of the filtered states, which Eva tests,
   implies it.
+
+## Entry construction
+
+The footprint covers all reads and writes on finite prefixes, including
+reads for assertions and attempted accesses that fault. The key contains the
+reads and the possible exit writes other than certain full overwrites. A
+matching memory and its producing witness must also agree on the liveness of
+write targets and on allocation state. They use the same entry bindings.
+For `FunMem`, allocation agreement is equality of the next fresh identifier.
+
+The construction transports Safety and Reach on all finite prefixes. On a
+normal exit it gives a producing output covered by the Exit part, agreeing
+with the current output on the possible exit writes. Replay on the caller's
+frame is a separate proof target.
 
 ## What the model leaves out
 

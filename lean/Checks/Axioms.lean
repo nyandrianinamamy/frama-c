@@ -1,6 +1,7 @@
 import ReuseModel
 import Checks.AxiomCheck
 import Checks.Domains
+import Checks.Entries
 
 /-!
 # Axioms of the theorems
@@ -88,6 +89,40 @@ axiom other than Lean's standard ones.
 #check_axioms Checks.nonempty_needed
 #check_axioms Checks.identity_filter_laws
 #check_axioms Checks.closed_needs_extensional
+
+/-! Entry construction and its examples, in `Checks/Entries.lean`. -/
+
+section
+open ReuseModel Checks
+
+#check @ReuseModel.CacheEntry.sound_of_producer
+#check @ReuseModel.run_agree
+#check @ReuseModel.assertionHolds_agree
+#check @Checks.load_overwrite_entry
+#check @Checks.assert_before_overwrite
+#check @Checks.missing_pointee_rejected
+#check @Checks.allocator_needed
+#check @Checks.prefix_writes_can_exceed_exit_writes
+
+end
+
+#print axioms ReuseModel.CacheEntry.sound_of_producer
+#print axioms ReuseModel.run_agree
+#print axioms ReuseModel.assertionHolds_agree
+#print axioms Checks.load_overwrite_entry
+#print axioms Checks.assert_before_overwrite
+#print axioms Checks.missing_pointee_rejected
+#print axioms Checks.allocator_needed
+#print axioms Checks.prefix_writes_can_exceed_exit_writes
+
+#check_axioms ReuseModel.CacheEntry.sound_of_producer
+#check_axioms ReuseModel.run_agree
+#check_axioms ReuseModel.assertionHolds_agree
+#check_axioms Checks.load_overwrite_entry
+#check_axioms Checks.assert_before_overwrite
+#check_axioms Checks.missing_pointee_rejected
+#check_axioms Checks.allocator_needed
+#check_axioms Checks.prefix_writes_can_exceed_exit_writes
 
 /-! The check rejects a theorem that depends on another axiom. `native_decide`
 makes the proof depend on the axioms that trust the compiler. `#guard_msgs`

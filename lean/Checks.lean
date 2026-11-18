@@ -2,6 +2,7 @@ import Checks.Axioms
 import Checks.Examples
 import Checks.Fragment
 import Checks.Domains
+import Checks.Entries
 
 /-!
 # Checks on the model
