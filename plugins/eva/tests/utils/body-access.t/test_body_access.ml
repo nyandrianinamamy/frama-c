@@ -51,6 +51,9 @@ let () =
   let observe stack result =
     match Sys.getenv_opt "EVA_TEST_BODY_ACCESS" with
     | Some "refusals" -> observe_refusals stack result
+    | Some "restricted" ->
+      assert (List.mem Access.Side_table result.refusals);
+      Format.printf "restricted cvalue refused@."
     | Some "unknown" ->
       assert (first_reason result = "side-table");
       Format.printf "unclassified callback refused@."

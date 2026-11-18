@@ -68,3 +68,10 @@ A call hook with no classification causes a side-table refusal.
   unclassified callback refused
   $ grep -o 'collector: refused (side-table)' unknown.log
   collector: refused (side-table)
+
+A cvalue domain restricted by function is outside the collector's admitted
+domain, even when the restriction leaves cvalue as the only domain.
+
+  $ EVA_TEST_BODY_ACCESS=restricted frama-c -no-autoload-plugins -load-module eva,inout,test_body_access.cmxs -eva -eva-cache-collect -eva-no-memexec -eva-domains-function cvalue:main- assignment.c > restricted.log 2>&1
+  $ grep 'restricted cvalue refused' restricted.log
+  restricted cvalue refused

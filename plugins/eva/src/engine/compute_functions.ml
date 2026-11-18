@@ -40,6 +40,12 @@ module Make (Engine: Engine_sig.S) = struct
 
   module Cache = Call_cache.Make (Engine.Val) (Engine.Dom)
 
+  let collector_domain_supported =
+    match Engine.Dom.structure with
+    | Abstract.Domain.Leaf (key, _) ->
+      Structure.Key_Domain.equal key Cvalue_domain.State.key
+    | _ -> false
+
   (* Interprets a [call] in the state [init_state] by [compute], which analyzes
      the body of the called function, unless the cache has a matching entry. *)
   let compute_and_cache_call ~recursive compute call init_state =
@@ -54,7 +60,7 @@ module Make (Engine: Engine_sig.S) = struct
                     Body_access.refuse Indirect_call
                   | _ -> ()
                 end;
-                if recursive || Engine.Dom.name <> "cvalue"
+                if recursive || not collector_domain_supported
                    || Mt_options.Enabled.get ()
                    || call.callstack.thread <> Thread.main_id
                 then Body_access.unknown_access Side_table

@@ -84,8 +84,8 @@ The collector does not compose child observations in this slice. An
 unsupported contract or annotation read has a Top bound. Used builtins and
 sweeps mark their active recorder. Allocation targets and unknown sets are
 checked independently of which accesses appear in the matching sets. The
-collector also refuses recursive invocations, non-cvalue products and
-concurrent analysis.
+collector also refuses recursive invocations, concurrent analysis and any
+domain structure other than a single unrestricted cvalue domain.
 
 The collector is off by default. `-eva-cache-collect` enables observations
 for bodies analysed after it is set. The `cache` message reports the
@@ -143,6 +143,7 @@ Mthread uses the same dispatch protocol and refuses while enabled.
 fixture compares asserted observation fields on the same input with Inout
 loaded and unloaded. It asserts classifications for a subset of the recorded
 joins and exercises the default refusal of an unclassified callback.
+It also checks the refusal of cvalue restricted by function.
 
 **Open.** The classes in the observation do not carry replay payloads.
 Their Safety and Reach replay is pending. The collector reports unsupported
