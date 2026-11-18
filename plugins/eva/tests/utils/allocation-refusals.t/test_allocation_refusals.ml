@@ -181,6 +181,8 @@ let observe_unread name (r : Access.t) =
     assert (not (Base.SetLattice.exists is_allocated r.designated));
     print_all name r
 
+let observe_all name (r : Access.t) = print_all name r
+
 let () =
   Eva.Builtins.register_builtin "Frama_C_unknown_target"
     (fun _ _ -> Eva.Builtins.Result [Cvalue.V.top])
@@ -196,6 +198,7 @@ let () =
     | Some "requires" -> observe_requires name result
     | Some "call-site" -> observe_call_site name result
     | Some "contents" -> observe_unread name result
+    | Some "finalisation" -> observe_all name result
     | _ -> failwith "EVA_TEST_ALLOCATION is not set"
   in
   Access.on_result observe

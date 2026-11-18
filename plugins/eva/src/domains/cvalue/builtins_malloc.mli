@@ -27,7 +27,8 @@ val free_automatic_bases: Callstack.t -> Cvalue.Model.t -> Cvalue.Model.t
 
 val deallocates_at_return: Callstack.t -> bool
 (** Whether {!free_automatic_bases} frees a base at the return of the call
-    at the given callstack, as registered so far. *)
+    at the given callstack, as registered so far, if the caller finalizes
+    the call with a returned state. *)
 
 val freeable: Cvalue.V.t -> Abstract_interp.truth
 (** Evaluates the ACSL predicate \freeable(value): holds if and only if the

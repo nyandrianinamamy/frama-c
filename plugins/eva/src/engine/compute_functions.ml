@@ -75,8 +75,17 @@ module Make (Engine: Engine_sig.S) = struct
                 let entry = Engine.Dom.get_cvalue_or_top init_state in
                 Body_access.check_written ~entry ~exits
               end;
-              (* The caller frees the automatic blocks of the call. *)
+              (* The caller frees the automatic blocks of the call when the
+                 call returns. The release runs after the observation of the
+                 body: the refusal is a prediction of it. The entry point
+                 has no caller. *)
+              let has_caller =
+                match Callstack.top_callsite call.callstack with
+                | Kstmt _ -> true
+                | Kglobal -> false
+              in
               if Body_access.is_recording ()
+              && result.Engine_sig.states <> [] && has_caller
               && Builtins_malloc.deallocates_at_return call.callstack
               then Body_access.refuse Deallocation;
               result)

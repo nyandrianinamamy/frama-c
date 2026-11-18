@@ -132,3 +132,16 @@ pointer. The same writes to a block without pointer are not refused.
   partial_once call 1: allocated-block, owners __malloc_main_l34
   control call 1: would-store
 
+The automatic blocks of a call are freed by its caller when the call
+returns. A call that never returns and the entry point free nothing.
+
+  $ EVA_TEST_ALLOCATION=finalisation frama-c -no-autoload-plugins -load-module eva,test_allocation_refusals.cmxs -eva -eva-no-memexec -eva-slevel 4 -main no_return -eva-msg-key cache,malloc:automatic-free finalisation.c > no_return.log 2>&1
+  $ grep -E '^(scratch|no_return) call|automatic bases' no_return.log
+  scratch call 1: allocation deallocation builtin sweep contract nested-call allocated-block allocation-metadata, owners __alloca_scratch_l10
+    freeing automatic bases: {__alloca_scratch_l10}
+  scratch call 2: would-store
+  no_return call 1: allocation deallocation sweep nested-call allocated-block allocation-metadata side-table, owners __alloca_scratch_l10
+  $ EVA_TEST_ALLOCATION=finalisation frama-c -no-autoload-plugins -load-module eva,test_allocation_refusals.cmxs -eva -eva-no-memexec -main entry -eva-msg-key cache finalisation.c > entry.log 2>&1
+  $ grep -E '^entry call' entry.log
+  entry call 1: allocation builtin contract nested-call allocated-block allocation-metadata, owners __alloca_entry_l26
+
