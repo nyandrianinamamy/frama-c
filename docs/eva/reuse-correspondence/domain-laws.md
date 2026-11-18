@@ -76,8 +76,9 @@ These are definitions. The claims below are about them.
   `Classical.choice`.
 - Statements are as Lean prints them after `open ReuseModel
   ReuseModel.Domain Checks` with `#check @name`.
-- CI: the workflow `.github/workflows/lean-model.yml` has not run on this
-  tree. Pending until the branch is pushed.
+- CI: the workflow `.github/workflows/lean-model.yml` ran on this tree, at
+  commit `10650b9502722d34a424e83c3ca380b611fc2031`, and succeeded
+  ([run 44383251659](https://github.com/nyandrianinamamy/frama-c/actions/runs/44383251659)).
 
 ## The laws can be met together
 
