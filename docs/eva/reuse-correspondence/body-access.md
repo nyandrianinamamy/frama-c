@@ -22,21 +22,29 @@ of lookup, body execution and storage.
 `Cvalue_domain.State.assign`, `Cvalue_domain.State.initialize_variable`,
 `Cvalue_domain.State.enter_scope`, `Cvalue_domain.State.leave_scope`,
 `Iterator.Make_Dataflow.process_edge`, `Body_access.transfer`,
-`Body_access.finish_paths`.
+`Body_access.finish_paths`, `Body_access.designate_cells`.
 
 **Argument.** Each body has a scoped recorder. Normal return and exceptions
 restore the enclosing recorder. The observer receives the completed record
 with recording suspended. Cvalue reports reads at scalar and aggregate
 queries, copies and backward-location queries. The evaluator checks locations
-before validity narrowing and reports values that can designate blocks. Raw
-values are also checked at scalar reads and in copied offsetmaps, including a
-pointer copied without dereferencing it. The cvalue assignment and initializer
-report possibly written blocks. An exact write contributes sure bits within
-its transfer. A changed valuation binding, scope binding installation
-(including `-eva-initialized-locals`, the return slot and the uninitialized
-binding of a volatile local) or scope binding removal only contributes a
-possible write. Predicate reductions contribute possible writes as described
-in [Annotation and contract reads](#annotation-and-contract-reads).
+before validity narrowing and reports values that can designate blocks. A
+scalar or backward-location load joins the offsetmap cells of its range into
+one value, and the join can drop a pointer: beside an uninitialized cell, the
+combined value is uninitialized and designates nothing. Before the join,
+`Body_access.designate_cells` records the targets of every cell that
+intersects the range, from the least offset to the greatest offset plus the
+size, or of the whole block when the offsets or the size are unbounded. A
+block or state without known cells designates Top. Copied offsetmaps are
+checked cell by cell, including a pointer copied without dereferencing it.
+The value of each evaluated expression is also designated. The cvalue
+assignment and initializer report possibly written blocks. An exact write
+contributes sure bits within its transfer. A changed valuation binding, scope
+binding installation (including `-eva-initialized-locals`, the return slot
+and the uninitialized binding of a volatile local) or scope binding removal
+only contributes a possible write. Predicate reductions contribute possible
+writes as described in
+[Annotation and contract reads](#annotation-and-contract-reads).
 
 The cvalue audit covers the following state updates.
 
@@ -79,7 +87,10 @@ asserts the sets for `q = p`, a write followed by an infinite loop, full
 overwrites on both returning branches, and partial writes that cover one
 element or both elements of an array. The fixture checks a copied
 allocation address, a guard reduction on a returning path, an initialized
-local binding and the loss of correlation between two guards.
+local binding and the loss of correlation between two guards. With
+`-machdep x86_32`, a C load of a union word that covers a pointer to an
+allocated block and an uninitialized word refuses as `allocated-block`;
+before `designate_cells`, the same body was would-store.
 
 **Open.** The graph merges observations at the automaton vertices. It may
 connect edges that fired on different abstract paths, including at loops,
@@ -160,8 +171,8 @@ would-store. The mthread case checks that
 cumulative statistics snapshot per analysis, across repeated `Computed`
 notifications, and matches the verdict log and the final statistics.
 
-**Open.** Child composition and replay are pending. A would-store verdict does not establish that a body can
-be reused in another context.
+**Open.** Child composition and replay are pending. A would-store verdict
+does not establish that a body can be reused in another context.
 
 ## Side tables and recorded joins
 
@@ -179,7 +190,8 @@ their existing protocols outside the body observations.
 `Transfer_logic.emit_status`, `Inout_access.register`,
 `Locals_scoping.remember_bases_with_locals`,
 `Cvalue_callbacks.register_call_hook`, `Cvalue_callbacks.register_call_results_hook`,
-`Widen.getWidenHints`, `Builtins_watchpoint.watch_hook`.
+`Widen.getWidenHints`, `Builtins_watchpoint.watch_hook`,
+`Body_access.read_message_history`.
 
 **Argument.** Program and AST-derived information, effective contracts,
 configuration, builtin selection, static widening hints, return slots and
@@ -202,7 +214,10 @@ and hence change which transfers run in the caller.
 `Origin.History` reports access at the table operations, including when
 pointer arithmetic registers a garbled temporary and when a join consults
 origin IDs. An observed access refuses as `side-table`. Mthread uses
-the same dispatch protocol and refuses while enabled.
+the same dispatch protocol and refuses while enabled. A message emitted once
+reads the logger's history of emitted messages;
+[Annotation and contract reads](#annotation-and-contract-reads) lists the
+messages of ACSL clauses that refuse for that reason.
 
 **Evidence.** Source inspection. The
 [`body-access.t`](../../../plugins/eva/tests/utils/body-access.t/run.t)
@@ -223,14 +238,18 @@ lookup.
 ## Annotation and contract reads
 
 **Claim.** On the admitted cvalue domain, the collector includes reads of
-evaluated assertions, loop invariants and function-contract predicates in R.
-This includes alarms represented as assertions and predicates used to select
+evaluated assertions, loop invariants and function-contract predicates in R,
+and the targets of the values these clauses load in the designated set. This
+includes alarms represented as assertions and predicates used to select
 active behaviors. Evaluation without a finite read bound gives R = Top and a
-clause-specific refusal.
+clause-specific refusal. A value with unknown targets that is not loaded
+refuses as `footprint-top` and leaves R unchanged. A clause whose evaluation
+or transfer emits a message once refuses as `side-table` before the message.
 
 **Kind.** OCaml obligation.
 
-**Depends on.** [Whole-block observations and exits](#whole-block-observations-and-exits),
+**Depends on.**
+[Whole-block observations and exits](#whole-block-observations-and-exits),
 [Refusal and reporting](#refusal-and-reporting) and
 [Side tables and recorded joins](#side-tables-and-recorded-joins).
 
@@ -238,10 +257,14 @@ clause-specific refusal.
 `Transfer_logic.Make.eval_and_reduce`, `Transfer_logic.Make.interp_annot`,
 `Partition.Make.split_by_predicate`, `Cvalue_domain.State.evaluate_predicate`,
 `Cvalue_domain.State.reduce_by_predicate`, `Logic_access`,
-`Eval_terms.find_indeterminate`, `Eval_terms.find_logic_var`,
-`Eval_terms.eval_forall_predicate`, `Eval_terms.apply_logic_builtin`,
-`Eval_op.find_under_approximation`, `Eval_op.reduce_by_valid_loc`,
-`Eval_op.reduce_by_initialized_defined`, `Builtins_string.read_char`.
+`Logic_access.load`, `Logic_access.designate`,
+`Logic_access.record_reduction`, `Body_access.designate_cells`,
+`Body_access.read_message_history`, `Eval_terms.find_indeterminate`,
+`Eval_terms.find_logic_var`, `Eval_terms.eval_forall_predicate`,
+`Eval_terms.apply_logic_builtin`, `Eval_terms.display_evaluation_error`,
+`Eval_terms.eval_let_binding`, `Eval_op.find_under_approximation`,
+`Eval_op.reduce_by_valid_loc`, `Eval_op.reduce_by_initialized_defined`,
+`Builtins_malloc.freeable`.
 
 **Argument.** The engine scopes recording around behavior selection,
 evaluation and reduction of clauses, and ACSL predicate splits. The same
@@ -250,55 +273,146 @@ that Eva evaluates. Contract predicates use the existing label environments,
 so a read in an available labeled state records the block of that state.
 The global initial state used for the Init label is fixed for the analysis.
 Function preconditions retain their call-site scope, including inactive
-`requires` status emission.
+`requires` status emission. Eva does not evaluate loop variants, `decreases`
+clauses, or global and type invariants; they add no read.
 
-The cvalue evaluator reports actual locations before validity narrowing.
-This covers scalar loads, the under-approximation query, reads of the
-initializedness and dangling flags, logic-variable bindings fetched from
+*Reads.* The cvalue evaluator reports actual locations before validity
+narrowing. This covers scalar loads, the under-approximation query, reads of
+the initializedness and dangling flags, logic-variable bindings fetched from
 cvalue, and loads used while reducing a predicate. String primitives use the
 existing builtin search on offsetmaps of the bases of their pointer argument.
 All those bases are recorded at the wrapper boundary, even if the search
-visits only a prefix of a string. Locations, raw values and computed terms
-also report designations, including a pointer whose target is tested for
-validity without loading that target. Logic-variable reads can conservatively
-add their synthetic blocks to the footprint.
-
-Unsupported evaluation and unbounded locations or targets refuse as
-`annotation` or `contract`. This covers an opaque predicate that cannot be
-inlined, an unavailable label and unavailable logic operations. A finite
+visits only a prefix of a string. Logic-variable reads can conservatively
+add their synthetic blocks to the footprint. Unsupported evaluation and
+unbounded load locations refuse as `annotation` or `contract`. This covers
+an opaque predicate that cannot be inlined, an unavailable label and
+unavailable logic operations, including `\fresh` and `\allocable`. A finite
 location can still fault during evaluation. The locations evaluated before
 such a failure are reported and Eva's existing error handling determines the
-predicate status. The logic predicate `\freeable` reads the mutable allocation
-table and refuses as `side-table`; the evaluator's ordered logic warning also
-refuses. Opaque ACSL extensions and assembly assigns retain their
-existing conservative refusals.
+predicate status.
 
-After a reduction, the cvalue offsetmap trees of the incoming and outgoing
-states are compared. Each changed, added or removed binding contributes
+*Designations of loads.* A logic load joins the offsetmap cells of its
+range into one value, with `conflate_bottom`: a pointer beside an
+uninitialized cell gives an uninitialized value that designates nothing. A
+location that may be invalid can also stop the evaluation at its alarm,
+before the value is read: always when a predicate is evaluated, and in a
+reduction without `-eva-reduce-on-logic-alarms`. `Logic_access.load`
+therefore reports, before the validity test and before the join, the
+location and the targets of every cell that intersects the range, as
+`Body_access.designate_cells` does for C loads (see
+[Whole-block observations and exits](#whole-block-observations-and-exits)).
+Scalar loads of terms, logic-variable bindings, quantified tests over a
+location, the under-approximation query and validity reductions use it.
+String primitives report all cells of the blocks of their pointer argument.
+The reduction of initializedness and dangling flags visits the raw cells
+itself. The value of each evaluated term is designated as well, so the
+designated set covers both the cells and the joined value.
+
+*Unknown targets.* A designation does not load its targets: each load
+reports its own location, and a load with unknown bases gives R = Top with
+the clause reason. Values with unknown targets therefore refuse through the
+designated set as `footprint-top`, and R stays finite. For instance, Eva
+evaluates the maximum of an empty range to Top: a check on it reads nothing
+and refuses as `footprint-top`.
+
+*Allocation table.* The logic predicate `\freeable` reads the mutable
+allocation table and refuses as `side-table`. On a value with unknown bases,
+`Builtins_malloc.freeable` raised `Error_Top` and interrupted the analysis,
+with or without the collector. It now answers Unknown. This is the only
+change of analysis results in this entry: a crash becomes a completed
+analysis with an unknown status.
+
+*Emission history.* A message emitted with `~once:true` reads the logger's
+history of emitted messages. `Body_access.read_message_history` refuses as
+`side-table` before each such message reachable from the evaluation of terms
+and predicates or from the transfer of annotations and contracts. The audit
+covers every use of `once` in `plugins/eva/src/legacy/` and
+`plugins/eva/src/engine/transfer_logic.ml`, and the messages of split
+annotations in `Partition`.
+
+| Message | Reachable from a body | Treatment | Evidence |
+| --- | --- | --- | --- |
+| `\let` binding to bottom (`Eval_terms.eval_let_binding`) | yes | side-table | execution: `let_bottom` |
+| unsupported term (`Eval_terms.display_evaluation_error`) | yes, after the clause refusal | side-table | execution: `let_function` |
+| range bound that cannot be evaluated (`Eval_terms.eval_term_node`) | yes, after the clause refusal | side-table | execution: `range_bound` |
+| split on a predicate (`Partition.Make.split_by_predicate`) | yes | side-table | execution: `split_predicate` |
+| split on an expression and partitioning parameters (`Partition.Make.fail`) | yes | side-table | execution: `split_expression` |
+| false postcondition of a specification (`Transfer_logic.Make.warn_ensures_false`) | yes, at a call by the body | side-table | execution: `call_false_leaf` |
+| inactive behavior at level 6 (`Transfer_logic.process_inactive_behavior`) | yes, if level 6 is shown | side-table if shown | execution: `inactive` at `-eva-verbose 6` |
+| postconditions not evaluated at level 6 (`Transfer_logic.process_inactive_postconds`) | yes, if level 6 is shown | side-table if shown | source inspection |
+| invalid `calls` annotation (`Transfer_logic.check_calls_annotation`) | yes, at an indirect call | side-table | source inspection |
+| status of a clause (`Transfer_logic.emit_contract_status`, `Transfer_logic.emit_code_annot_status`) | yes | status join, admitted | execution: every fixture with a status |
+| final status (`Eval_annots.mark_green_and_red`) | no, after the analysis | none | source inspection |
+| assigns and from clauses (`Logic_inout.eval_tlval_as_zone`, `Logic_inout.check_fct_assigns`) | no | none | source inspection |
+
+A level-6 result reads the history only when that level is shown, so the
+refusal is conditional on it. A status message accompanies a status
+emission that the observation records as `Statuses`. Its replay belongs to
+the pending replay of that class. `Logic_inout` runs in the callwise
+hooks of From and Inout, with recording suspended, or after the analysis;
+Mthread, which also calls it, refuses while enabled.
+
+*Reductions.* After a reduction, the cvalue offsetmap trees of the incoming
+and outgoing states are compared, skipping the subtrees that the
+hash-consed trees share. Each changed, added or removed binding contributes
 a possible write to the transfer. The difference bounds writes that survive
 the evaluation, including changes made by reductions of initializedness and
 dangling flags. Temporary logic environments and infeasible successors have
 no propagated bindings. Differences involving a whole-memory Top state
 have no finite write bound and refuse. These observations supply no sure
-overwrites.
+overwrites. Opaque ACSL extensions and assembly assigns retain their
+existing conservative refusals.
 
-**Evidence.** The evaluator, reduction helpers and string-search wrapper
-were inspected in source. The executable
+**Evidence.** The evaluator, reduction helpers, string-search wrapper and the
+uses of `once` listed above were inspected in source. The executable
 [`body-access.t`](../../../plugins/eva/tests/utils/body-access.t/run.t) uses
 [`annotations.c`](../../../plugins/eva/tests/utils/body-access.t/annotations.c)
-and its OCaml observer to assert that behavior selection and ensures read
-their own globals, and that the call-site requires global is absent. It
-asserts the reads of an assertion, a loop invariant, an initializedness
-predicate, a string primitive and a postcondition with Old. It checks the
-valid status of an RteGen assertion and the corresponding body verdict.
-The narrowing case asserts its read and possible exit write, with no sure
-overwrite. Opaque predicates exercise both refusal families and the delivery
-of R = Top to the observer. The freeability case exercises the side-table
-refusal on a static address, and the validity case exercises allocation
-designation without a load of the allocation.
+and its OCaml observer.
+
+- Reads: behavior selection and ensures read their own globals, and the
+  call-site requires global is absent. The fixture asserts the exact reads
+  of an assertion, a loop invariant, an initializedness predicate, a string
+  primitive, a postcondition with Old, a conjunction of `\separated`,
+  `\base_addr`, `\offset`, `\block_length`, `\valid_read`,
+  `\object_pointer`, `\initialized`, `\dangling` and `\is_finite`, and a set
+  membership. A loop variant, a `decreases` clause, and global and type
+  invariants add no read.
+- RteGen: a division by zero makes the generated assertion invalid; it
+  stops the propagation before the division, and the body reads only the
+  divisor, through the assertion.
+- Reductions: the narrowing case asserts its read and possible exit write,
+  with no sure overwrite.
+- Refusals: opaque predicates exercise both clause families, the delivery
+  of R = Top and the statistics. `\allocable` and `\fresh` refuse with
+  R = Top. The freeability case refuses as `side-table` on a static
+  address; on an unknown address the analysis completes with and without
+  the collector, the check is unknown and the body refuses.
+- Designations: the validity case designates an allocation without loading
+  it. With `-machdep x86_32`, a check on a union word that covers a pointer
+  to an allocated block and an uninitialized word, and a check on the
+  pointer through an address that may be null, both refuse as
+  `allocated-block`. The maximum of an empty range reads nothing and
+  refuses as `footprint-top`.
+- Emission history: each row with execution evidence in the table above.
+
+Each regression added for a change of this entry fails with the change
+reverted: the load cases are would-store, the empty maximum gives R = Top,
+the freeability case stops on `Error_Top`, and the emission cases lack the
+`side-table` refusal.
 
 **Open.** Statement contracts are filtered from ordinary statement transfer.
 Eva's assembly interpretation can use their assigns clauses and continues to
 refuse. This entry covers the clause evaluations that Eva actually performs.
-The ordered logic warning path and the audit of transitive side-table accesses
-have source evidence. Safety and Reach replay are pending.
+No regression executes `\valid_function`, `\aligned`, the string primitives
+other than `strlen` (`strchr`, `memchr`, `\valid_string`,
+`\valid_read_string` and their wide forms), `\freeable` at a label other
+than Here, `\tainted` and the taint status, or a `calls` annotation. The
+messages emitted once by the evaluation of C expressions and by helpers
+outside the audited files, such as the pointer comparison messages of
+`Cvalue_forward` and `Cvalue_backward`, are not classified; neither is the
+change of a warning category set to `once` by `-eva-warn-key`, which the
+logger records when the warning is emitted. A designated range covers the
+whole block when the offsets are unbounded, which can refuse a body that
+loads only part of a block holding an allocation address. The cost of
+`designate_cells` at each C scalar load is not measured. Safety and Reach
+replay are pending.

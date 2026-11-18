@@ -67,8 +67,9 @@ that a checkout has the model sources of an entry, compare
 - [Call-cache seam](call-cache-seam.md): the seam through which memexec
   answers calls, the dispositions of each call, their reasons and their
   counts, and the closure of the memexec key under `relate`.
-- [Body access collector](body-access.md) covers the block sets, observational
-  storage verdict and side-table classes.
+- [Body access collector](body-access.md) covers the block sets, the reads
+  and designations of ACSL clauses, the observational storage verdict and
+  side-table classes.
 - [Entries from fresh bodies](cache-producer.md) covers production, the
   key and footprint, and the producer obligations for supplying an entry.
 - [Reuse operation](reuse-operation.md): the cache entry and its four
