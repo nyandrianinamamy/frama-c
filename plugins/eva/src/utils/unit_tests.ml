@@ -126,13 +126,6 @@ module Cache_laws = struct
 
   module State = Cvalue_domain.State
 
-  let var name typ = Cil.makeGlobalVar name typ
-
-  let a = var "a" Cil_const.intType
-  let b = var "b" Cil_const.intType
-  let c = var "c" Cil_const.intType
-  let p = var "p" Cil_const.voidPtrType
-
   let bind vi v state =
     let size = Z.of_int (Cil.bitsSizeOf vi.vtype) in
     Cvalue.Model.add_base_value (Base.of_varinfo vi) ~size v ~size_v:size state
@@ -145,26 +138,28 @@ module Cache_laws = struct
   let address_of vi =
     initialized (Cvalue.V.inject (Base.of_varinfo vi) Ival.zero)
 
-  let models =
+  (* The five states, over the variables [a], [b], [c] and [p]. *)
+  let states (a, b, c, p) =
     let range = Ival.inject_range (Some Z.zero) (Some (Z.of_int 10)) in
     let range = initialized (Cvalue.V.inject_ival range) in
-    Cvalue.Model.[
-      empty_map;
-      empty_map |> bind a (int 1) |> bind b range |> bind c uninitialized
-      |> bind p (address_of a);
-      empty_map |> bind a (int 2) |> bind p (address_of b);
-      top;
-      bottom ]
+    let models =
+      Cvalue.Model.[
+        empty_map;
+        empty_map |> bind a (int 1) |> bind b range |> bind c uninitialized
+        |> bind p (address_of a);
+        empty_map |> bind a (int 2) |> bind p (address_of b);
+        top;
+        bottom ]
+    in
+    List.map (fun s -> s, Locals_scoping.bottom ()) models
 
-  let states = List.map (fun s -> s, Locals_scoping.bottom ()) models
-
-  (* All sets of blocks among the four variables. *)
-  let sets =
+  (* All sets of blocks among the variables [vars]. *)
+  let sets vars =
     let add_or_not sets vi =
       let b = Base.of_varinfo vi in
       sets @ List.map (Base.Hptset.add b) sets
     in
-    List.fold_left add_or_not [ Base.Hptset.empty ] [ a; b; c; p ]
+    List.fold_left add_or_not [ Base.Hptset.empty ] vars
 
   let bindings = function
     | Cvalue.Model.Map m ->
@@ -210,7 +205,14 @@ module Cache_laws = struct
       Base.Hptset.pretty key Base.Hptset.pretty written State.pretty state
       State.pretty result
 
+  (* The variables are created here, not when the module is initialized:
+     each one takes a new identifier of variable, which would change the
+     identifiers printed by other plug-ins in every run. *)
   let test () =
+    let var name typ = Cil.makeGlobalVar name typ in
+    let a = var "a" Cil_const.intType and b = var "b" Cil_const.intType
+    and c = var "c" Cil_const.intType and p = var "p" Cil_const.voidPtrType in
+    let states = states (a, b, c, p) and sets = sets [ a; b; c; p ] in
     let for_all l f = List.iter f l in
     for_all states @@ fun state ->
     for_all sets @@ fun bases ->
