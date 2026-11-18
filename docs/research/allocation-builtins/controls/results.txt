@@ -1,0 +1,74 @@
+## alloca
+complete	true
+body_analysed	1
+heap_created	0
+stack_alloc_created	1
+apply	alloca	-	1
+dispatch	alloca	builtin:alloca	1
+dispatch	main	body	1
+## calloc
+complete	true
+body_analysed	1
+heap_created	1
+stack_alloc_created	0
+apply	calloc	-	1
+dispatch	calloc	builtin:calloc	1
+dispatch	main	body	1
+## free-null
+complete	true
+body_analysed	1
+heap_created	0
+stack_alloc_created	0
+apply	free	-	1
+dispatch	free	builtin:free	1
+dispatch	main	body	1
+## hit2
+complete	true
+body_analysed	9
+heap_created	1
+stack_alloc_created	0
+apply	malloc	-	4
+dispatch	h	body	4
+dispatch	main	body	1
+dispatch	malloc	builtin:malloc	4
+dispatch	w	body	4
+## malloc
+complete	true
+body_analysed	1
+heap_created	1
+stack_alloc_created	0
+apply	malloc	-	1
+dispatch	main	body	1
+dispatch	malloc	builtin:malloc	1
+## none
+complete	true
+body_analysed	2
+heap_created	0
+stack_alloc_created	0
+dispatch	f	body	2
+dispatch	main	body	1
+## realloc
+complete	true
+body_analysed	1
+heap_created	1
+stack_alloc_created	0
+apply	realloc	-	1
+dispatch	main	body	1
+dispatch	realloc	builtin:realloc	1
+## strdup
+complete	true
+body_analysed	1
+heap_created	0
+stack_alloc_created	0
+dispatch	main	body	1
+dispatch	strdup	specification	1
+## vla
+complete	true
+body_analysed	1
+heap_created	0
+stack_alloc_created	1
+apply	__fc_vla_alloc	-	1
+apply	__fc_vla_free	-	1
+dispatch	__fc_vla_alloc	builtin:__fc_vla_alloc	1
+dispatch	__fc_vla_free	builtin:__fc_vla_free	1
+dispatch	main	body	1
