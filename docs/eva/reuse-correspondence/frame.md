@@ -122,7 +122,10 @@ included.
   recursive program, each failing one condition only. The bodies of the
   recursive programs are rejected too.
 - CI: the workflow `.github/workflows/lean-model.yml` runs the same command. It
-  had not run on the checked revision when this entry was written.
+  ran on the checked revision and succeeded
+  ([run 44354462356](https://github.com/nyandrianinamamy/frama-c/actions/runs/44354462356)).
+  A later push of two commits that change no file under `lean/` started no
+  run.
 
 **Open obligations.** None for the claim in the model. To use the lemma for a
 cache entry of Eva, Eva's footprint must cover the blocks that the statement
