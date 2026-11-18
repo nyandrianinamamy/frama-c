@@ -26,7 +26,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-tests-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
@@ -39,7 +39,47 @@ env:
   OPAM_CACHE_VERSION: ocaml5.2.1-dune3.21.1-v1
 
 jobs:
+  vm:
+    name: Analyzer checks and tests (VM)
+    if: github.repository == 'nyandrianinamamy/frama-c' && github.event_name == 'push'
+    runs-on: [self-hosted, Linux, X64, frama-c-vm]
+    timeout-minutes: 150
+    env:
+      OPAMROOT: /opt/frama-c-ci/opam-root
+      XDG_CACHE_HOME: /home/ci-runner/.cache/frama-c-ci
+      JOBS: 6
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Activate the VM toolchain
+        run: |
+          env_file="$RUNNER_TEMP/frama-c-env"
+          opam env --readonly --shell=bash --set-switch > "$env_file"
+          echo 'export PATH="/opt/frama-c-ci/venv/bin:$PATH"' >> "$env_file"
+          echo "BASH_ENV=$env_file" >> "$GITHUB_ENV"
+
+      - name: Build and check the analyzer
+        run: |
+          bash dev/check-env.sh
+          DUNE_CACHE=enabled dune build -j "$JOBS" @install
+          dune exec --no-build -- frama-c -plugins > "$RUNNER_TEMP/plugins.txt"
+          grep -q '^Eva ' "$RUNNER_TEMP/plugins.txt"
+          test -d _build/install/default/lib/frama-c-eva/apron
+          make check-lint LINTCK_EXTRA=-s
+          make check-headers
+
+      - name: Run default ptests, all Eva configurations, and native tests
+        run: |
+          make run-ptests PTEST_OPTS="-config DEFAULT"
+          dune exec -- frama-c-ptests -never-disabled plugins/eva/tests
+          dune build -j "$JOBS" @ptests_config @plugins/eva/tests/ptests \
+            @plugins/eva/runtest @tests/runtest
+
   test:
+    # PRs, forks and manual dispatches use isolated GitHub-hosted runners.
+    if: github.repository != 'nyandrianinamamy/frama-c' || github.event_name != 'push'
     name: ${{ matrix.name }}
     runs-on: ubuntu-24.04
     timeout-minutes: 150
@@ -88,7 +128,10 @@ jobs:
           fi
           shopt -s nullglob
           archives=("$RUNNER_TEMP"/ci-debs/*.deb)
+          # With online sources enabled APT can prefer the mirror even when
+          # given a local .deb of the very same version.
           xargs -a "$RUNNER_TEMP/ci-packages" sudo apt-get install \
+            -o Dir::Etc::sourcelist=/dev/null -o Dir::Etc::sourceparts=- \
             --no-install-recommends -y "${archives[@]}"
 
       - name: Save system packages
@@ -140,6 +183,7 @@ jobs:
       # Dune's shared cache is used for the build only. The tests run without
       # it, so that each result comes from an execution in this run.
       - name: Restore the build cache
+        id: dune-cache
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/dune
@@ -153,7 +197,7 @@ jobs:
         run: opam exec -- dune build -j $JOBS @install
 
       - name: Save the build cache
-        if: matrix.scope == 'eva' && github.event_name == 'push'
+        if: matrix.scope == 'eva' && steps.dune-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/dune
