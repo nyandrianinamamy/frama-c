@@ -238,9 +238,11 @@ lemma](#product-lemma).
 'ReuseModel.Domain.projected_match' depends on axioms: [propext]
 ```
 
-`Checks.valueProd_match` applies the lemma to a concrete product whose
-current input is not covered by the stored input
-([domain laws](domain-laws.md#the-laws-can-be-met-together)).
+`Checks.valueProd_match` applies the lemma to a concrete product
+([domain laws](domain-laws.md#the-laws-can-be-met-together)). Its proof
+gives the inclusion by the equality of the filtered inputs; that the stored
+input does not cover the current memory is by inspection, not part of the
+statement.
 
 **Open.** The OCaml obligations listed under the two lemmas.
 

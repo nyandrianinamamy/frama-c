@@ -126,6 +126,14 @@ included.
   ([run 44354462356](https://github.com/nyandrianinamamy/frama-c/actions/runs/44354462356)).
   A later push of two commits that change no file under `lean/` started no
   run.
+- Rebuilt at tree `fcb327481aa376191a1d9a4365b7486dd9c26cc3` (commit
+  `fa2e36b953afe9f2d943a8630b7de465160c5ba6`), which adds the domain laws
+  ([Domain laws](domain-laws.md), [Matching](matching.md)) and changes no
+  file that the lemma depends on: `ReuseModel/Syntax.lean`, `Memory.lean`,
+  `Semantics.lean`, `Observations.lean` and `Frame.lean` are those of the
+  checked tree. Same command, run on 2026-11-18 on an extraction of that
+  commit, exit status 0; `#print axioms ReuseModel.frame_lemma` gives
+  `[propext, Quot.sound]`, as above. CI on that tree is pending.
 
 **Open obligations.** None for the claim in the model. To use the lemma for a
 cache entry of Eva, Eva's footprint must cover the blocks that the statement

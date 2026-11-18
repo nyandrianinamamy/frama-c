@@ -15,7 +15,8 @@ operations `filter`, `relate` and `reuse` on finite sets of blocks
 (`BlockSet`, a list). `relate` returns `none` for `Top`. Two memories agree on
 a set of blocks (`AgreeOn`) when each block of the set has the same content
 (`Memory.load`) in both, and agree outside it (`AgreeOff`) when each other
-block does. The laws, as Lean prints them with `#print`:
+block does. The laws, in the source form of
+`lean/ReuseModel/Domain.lean`, with the binder types left out:
 
 - `FilterSound d`: `∀ B S m, d.γ S m → d.γ (d.filter B S) m`. This is the weak
   form: `filter` only forgets. The identity is an instance.
@@ -100,10 +101,12 @@ valueProd_match : ∃ m', valueProd.γ matchS m' ∧ AgreeOn [0] (memOf [Value.i
 **Hypotheses.** None: both are closed statements. In `valueProd_match`, the
 stored input `matchS` holds `x ∈ {1}` and `y ∈ {0}` in the first component and
 `z ∈ {7}` in the second, the current input `matchC` holds `x ∈ {1}` and
-`y ∈ {4}`, and blocks `0`, `1`, `2` stand for `x`, `y`, `z`. The two inputs
-are equal after filtering on `{x}`, and the current memory `x = 1, y = 4,
-z = 4`, which `matchS` does not cover, agrees on `{x}` with a memory of
-`matchS`. The proof applies `ReuseModel.Domain.projected_match`.
+`y ∈ {4}`, and blocks `0`, `1`, `2` stand for `x`, `y`, `z`. The statement
+says that the current memory `x = 1, y = 4, z = 4` agrees on `{x}` with a
+memory of `matchS`. The proof applies `ReuseModel.Domain.projected_match`,
+with the inclusion of the filtered inputs given by their equality, proved by
+`rfl`. That `matchS` does not cover the current memory (it allows `y = 0`
+only) is by inspection; it is not part of the statement.
 
 **Depends on.** [The product keeps the
 laws](#the-product-keeps-the-laws), and [Closure in the stored input
@@ -199,8 +202,11 @@ identity `filter` compares facts outside the key.
 
 **Scope.** The model. `Checks.eqDom` covers a memory when both blocks of
 each pair are live and equal; its `relate B` returns the blocks of the pairs
-that have a block in `B`, as Eva's equality domain returns the bases of the
-expressions equal to an expression that depends on `B`. The case shows that a
+that have a block in `B`. Eva's equality domain has the same shape: its
+`relate` returns the bases of the expressions in the equality classes of the
+expressions that depend on `B`
+(`plugins/eva/src/domains/equality/equality_domain.ml`, `relate`), and its
+`filter` is the default identity. The case shows that a
 domain with an identity `filter` is excluded from the projected match by
 `relate` sound, not by `filter` sound. It does not show a hit that is
 unsound: the conclusion of the match is not claimed to fail.
