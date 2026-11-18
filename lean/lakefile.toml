@@ -1,0 +1,14 @@
+name = "reuse-model"
+defaultTargets = ["ReuseModel", "Checks"]
+
+[leanOptions]
+autoImplicit = false
+relaxedAutoImplicit = false
+
+# The model: syntax, memory, semantics, observations and theorems.
+[[lean_lib]]
+name = "ReuseModel"
+
+# Checks on the model: the axioms of each theorem and worked examples.
+[[lean_lib]]
+name = "Checks"
