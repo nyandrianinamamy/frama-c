@@ -2,6 +2,8 @@ import ReuseModel
 import Checks.AxiomCheck
 import Checks.Domains
 import Checks.Entries
+import Checks.Sweeps
+import Checks.Inner
 
 /-!
 # Axioms of the theorems
@@ -11,8 +13,6 @@ import Checks.Entries
 axiom other than Lean's standard ones.
 -/
 
-#print axioms ReuseModel.frame_lemma
-#print axioms ReuseModel.frame_of_not_written
 #print axioms ReuseModel.steps_iff_run
 #print axioms ReuseModel.WellFormed.stmt_labels_nodup
 #print axioms ReuseModel.WellFormed.sub
@@ -35,8 +35,6 @@ axiom other than Lean's standard ones.
 #print axioms ReuseModel.Domain.product_lemma
 #print axioms ReuseModel.Domain.projected_match
 
-#check_axioms ReuseModel.frame_lemma
-#check_axioms ReuseModel.frame_of_not_written
 #check_axioms ReuseModel.steps_iff_run
 #check_axioms ReuseModel.WellFormed.stmt_labels_nodup
 #check_axioms ReuseModel.WellFormed.sub
@@ -156,6 +154,124 @@ end
 #check_axioms Checks.missing_pointee_rejected
 #check_axioms Checks.allocator_needed
 #check_axioms Checks.prefix_writes_can_exceed_exit_writes
+
+/-! Lexical sweeps and the frame. -/
+
+section
+open ReuseModel
+
+#check @ReuseModel.Value.escape
+#print axioms ReuseModel.Value.escape
+#check_axioms ReuseModel.Value.escape
+
+#check @ReuseModel.Memory.sweep
+#print axioms ReuseModel.Memory.sweep
+#check_axioms ReuseModel.Memory.sweep
+
+#check @ReuseModel.Memory.load_sweep_same
+#print axioms ReuseModel.Memory.load_sweep_same
+#check_axioms ReuseModel.Memory.load_sweep_same
+
+#check @ReuseModel.Memory.load_sweep_other
+#print axioms ReuseModel.Memory.load_sweep_other
+#check_axioms ReuseModel.Memory.load_sweep_other
+
+#check @ReuseModel.Memory.issued_sweep
+#print axioms ReuseModel.Memory.issued_sweep
+#check_axioms ReuseModel.Memory.issued_sweep
+
+#check @ReuseModel.sweepAll
+#print axioms ReuseModel.sweepAll
+#check_axioms ReuseModel.sweepAll
+
+#check @ReuseModel.applySweeps
+#print axioms ReuseModel.applySweeps
+#check_axioms ReuseModel.applySweeps
+
+#check @ReuseModel.sweepTargets
+#print axioms ReuseModel.sweepTargets
+#check_axioms ReuseModel.sweepTargets
+
+#check @ReuseModel.stepNext
+#print axioms ReuseModel.stepNext
+#check_axioms ReuseModel.stepNext
+
+#check @ReuseModel.AllocatorAgreement.sweep
+#print axioms ReuseModel.AllocatorAgreement.sweep
+#check_axioms ReuseModel.AllocatorAgreement.sweep
+
+#check @ReuseModel.frame_of_not_written
+#print axioms ReuseModel.frame_of_not_written
+#check_axioms ReuseModel.frame_of_not_written
+
+#check @ReuseModel.frame_lemma
+#print axioms ReuseModel.frame_lemma
+#check_axioms ReuseModel.frame_lemma
+
+#check @ReuseModel.sweep_target_fresh
+#print axioms ReuseModel.sweep_target_fresh
+#check_axioms ReuseModel.sweep_target_fresh
+
+#check @ReuseModel.applySweeps_eq_iff
+#print axioms ReuseModel.applySweeps_eq_iff
+#check_axioms ReuseModel.applySweeps_eq_iff
+
+#check @ReuseModel.frame_no_sweep_rewrite
+#print axioms ReuseModel.frame_no_sweep_rewrite
+#check_axioms ReuseModel.frame_no_sweep_rewrite
+
+#check @Checks.own_local_sweep
+#print axioms Checks.own_local_sweep
+#check_axioms Checks.own_local_sweep
+
+#check @Checks.own_local_frame_unchanged
+#print axioms Checks.own_local_frame_unchanged
+#check_axioms Checks.own_local_frame_unchanged
+
+#check @Checks.future_pointer_needs_rewrite
+#print axioms Checks.future_pointer_needs_rewrite
+#check_axioms Checks.future_pointer_needs_rewrite
+
+#check @Checks.return_sweeps_local
+#print axioms Checks.return_sweeps_local
+#check_axioms Checks.return_sweeps_local
+
+end
+
+/-! Shared Inner. -/
+
+section
+open ReuseModel
+
+#check @ReuseModel.CacheEntry.InnerSound
+#print axioms ReuseModel.CacheEntry.InnerSound
+#check_axioms ReuseModel.CacheEntry.InnerSound
+
+#check @ReuseModel.CacheEntry.shared_inner
+#print axioms ReuseModel.CacheEntry.shared_inner
+#check_axioms ReuseModel.CacheEntry.shared_inner
+
+#check @Checks.loop_entry_premises
+#print axioms Checks.loop_entry_premises
+#check_axioms Checks.loop_entry_premises
+
+#check @Checks.loop_member_matches
+#print axioms Checks.loop_member_matches
+#check_axioms Checks.loop_member_matches
+
+#check @Checks.loop_shared_inner
+#print axioms Checks.loop_shared_inner
+#check_axioms Checks.loop_shared_inner
+
+#check @Checks.loop_inner_outside_key
+#print axioms Checks.loop_inner_outside_key
+#check_axioms Checks.loop_inner_outside_key
+
+#check @Checks.loop_first_visit_insufficient
+#print axioms Checks.loop_first_visit_insufficient
+#check_axioms Checks.loop_first_visit_insufficient
+
+end
 
 /-! The check rejects a theorem that depends on another axiom. `native_decide`
 makes the proof depend on the axioms that trust the compiler. `#guard_msgs`

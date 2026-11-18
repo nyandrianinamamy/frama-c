@@ -3,8 +3,9 @@
 This directory holds the Lean reference model for the reuse of cache entries in
 Eva. It defines a small language, a concrete memory, executions and the
 observations that a cache entry makes claims about, and it proves theorems
-about them: the frame lemma without sweeps, the match and product lemmas
-on abstract domains, and the construction of sound cache entries.
+about them: frame preservation up to recorded lexical sweeps, the match and
+product lemmas, the construction of sound cache entries, and shared Inner
+coverage on the matching key.
 
 The theorems are about the model. They do not verify the OCaml code of Eva.
 Whether Eva meets the hypotheses of a theorem is a separate question, answered
@@ -61,21 +62,23 @@ directories that Dune reads, and `lean` is not among them.
 | `ReuseModel/Memory.lean` | The memory interface `Memory` with its laws; the memory `FunMem`, which meets them |
 | `ReuseModel/Semantics.lean` | Events, evaluation, configurations, the step function, executions (`run`) and finite sequences of steps (`Steps`), for any program; finite prefixes (`Prefix`) of a subject |
 | `ReuseModel/Observations.lean` | Exit, Reach, Safety and visits, of a subject |
-| `ReuseModel/Frame.lean` | `InFrame`, `frame_of_not_written`, `frame_lemma` |
+| `ReuseModel/Frame.lean` | `InFrame`, `frame_of_not_written`, `frame_lemma`, and the exact and sufficient conditions for no frame rewrite |
 | `ReuseModel/Domain.lean` | Agreement of memories on a set of blocks, `Combinable`; abstract domains (`Domain`) with their laws `FilterSound`, `RelateSound`, `FilterExact`, `ReuseSound` and `Extensional`; closed sets, the product of two domains and the laws it keeps; closure, decomposition and exactness on two sets with the same members; the strong form of `filter` sound and exactness, derived from the decomposition; `match_filtered`, `match_lemma`, `product_lemma`, `projected_match` |
 | `ReuseModel/Replay.lean` | Allocation agreement and agreement of matching executions on every finite prefix |
-| `ReuseModel/Entry.lean` | Footprints, cache entries, producer soundness, and `CacheEntry.sound_of_producer` |
+| `ReuseModel/Entry.lean` | Footprints, cache entries, producer soundness, `CacheEntry.sound_of_producer`, and `CacheEntry.shared_inner` |
 | `Checks/AxiomCheck.lean` | The `#check_axioms` command |
 | `Checks/Axioms.lean` | `#print axioms` and `#check_axioms` for each theorem |
 | `Checks/Examples.lean` | Aliasing, a dangling pointer after a return, and a call that does not return, on which `frame_lemma` is applied; the body of a function as the subject; comparisons with the null pointer |
 | `Checks/Domains.lean` | A non-relational domain that meets every law, alone and in a product with itself, and a match it admits; a domain of equalities with an identity `filter`, which fails `relate` sound on the fact `y == z` and the closed key `{x}`; a one-state domain with an identity `filter` that meets every law; a product with an empty concretisation on which `filter` is not exact; a domain that meets the other laws, not `Extensional`, in which `[0]` is closed and `[0, 0]` is not |
 | `Checks/Entries.lean` | A load that faults before an overwrite, an assertion before an overwrite, a return with an incomplete footprint, and the need to distinguish allocation state and writes at normal exits |
+| `Checks/Sweeps.lean` | A lexical local whose address escapes into a written holder, an untouched block preserved across the sweep, a future pointer that needs a rewrite, and a return from a lexical scope |
+| `Checks/Inner.lean` | A two-visit loop, the producer premises, a distinct matching memory, and negative cases for the first visit alone and for coverage outside the key |
 | `Checks/Fragment.lean` | Statements that meet the fragment conditions: one outside the function bodies, a function body, and a statement inside one. Programs and statements that do not: duplicate labels in the observed statement, a label of a body reused outside, duplicate labels across two bodies, direct recursion, mutual recursion |
 
 ## What the model contains
 
 - **Language.** Whole-block loads and stores, sequencing, conditionals,
-  `while`, direct calls, return and labelled assertions. Every statement
+  `while`, lexical scopes, direct calls, return and labelled assertions. Every statement
   carries a label, by which the observations name it. A program is a finite
   list of named function definitions, with the blocks of its globals. The
   integer `0` is the null pointer: `==` between a pointer and `0` gives `0`,
@@ -109,8 +112,11 @@ directories that Dune reads, and `lean` is not among them.
   same existing block alias. A call creates a block for each parameter and local of
   the callee; at the return these blocks go out of scope. An access to a block
   that is not live faults. Identifiers are not reused, so a pointer to a block
-  that went out of scope stays dangling. Going out of scope rewrites no other
-  block: the model has no sweep.
+  that went out of scope stays dangling. A lexical block creates its own
+  locals with integer initializers and sweeps them when the block ends,
+  including during return. The sweep releases the local and marks pointers
+  to it in surviving values, including a pending return value. Function
+  call cleanup still uses ordinary release.
 - **Executions.** A deterministic small-step semantics whose continuation holds
   the call stack. Each step reports the reads and writes it performs, and the
   start and end of the lifetime of the callee's locals. An execution iterates
@@ -232,8 +238,17 @@ liveness and allocation agreement is an additional obligation.
 
 The construction transports Safety and Reach on all finite prefixes. On a
 normal exit it gives a producing output covered by the Exit part, agreeing
-with the current output on the possible exit writes. Replay on the caller's
-frame is a separate proof target.
+with the current output on the possible exit writes. The frame theorem computes the effect of prior sweeps
+on an issued block that the prefix did not write. It needs no rewrite if an
+unmarked pointer held there targets an already-issued block. Admission of
+lexical sweeps in Eva and composition with the public hit theorem are
+separate obligations.
+
+If the producer's saved state covers every visit to a label on the key,
+`CacheEntry.shared_inner` transports that coverage to each matching
+memory. A single concretisation witness agrees on all blocks of the key at
+that visit. The witness may vary across visits. The fixture checks both
+visits to the increment in `i = 0; while (i < 2) { L: i++; }`.
 
 ## What the model leaves out
 
