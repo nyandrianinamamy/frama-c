@@ -142,8 +142,9 @@ one line per step with its exit status: build, default ptests of all plug-ins,
 all Eva configurations, native tests of Eva and of the kernel, headers, and
 lint on the files changed since a base revision (`-b REV`, default
 `origin/dev`). It forces ptests to rerun. `-q` limits it to the build, the
-default Eva ptests and the Eva native tests. Logs go to the directory it
-prints.
+default Eva ptests and the Eva native tests. Its last step,
+`bash dev/check-record.sh`, checks that each revision cited by the
+correspondence record is in the history. Logs go to the directory it prints.
 
 Broader checks ([share/Makefile.testing](share/Makefile.testing)):
 
@@ -253,6 +254,9 @@ The Lean model is in `lean/`. Build and check it with
 `cd lean && lake build --wfail`; [lean/README.md](lean/README.md) gives its
 scope and pins. The Frama-C build does not need Lean. The correspondence record
 is in [docs/eva/reuse-correspondence/](docs/eva/reuse-correspondence/README.md).
+
+Before implementing or reviewing a ticket of the summary-reuse effort, read
+[docs/agents/reuse-tickets.md](docs/agents/reuse-tickets.md).
 
 ### Definition of done
 

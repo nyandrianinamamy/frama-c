@@ -9,6 +9,7 @@
 
 # Runs the checks of an Eva change and prints one line per step with its exit
 # status. Ptests are forced to rerun. Logs are kept in a temporary directory.
+# The last step checks the revisions cited by the correspondence record.
 #
 # Usage: verify.sh [-q] [-b REV]
 #   -q      quick: build, default Eva ptests and Eva native tests only
@@ -69,5 +70,6 @@ else
   step headers make check-headers
   step lint-changed lint_changed
 fi
+step record bash dev/check-record.sh
 
 exit $failed
