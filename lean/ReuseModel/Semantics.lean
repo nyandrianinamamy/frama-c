@@ -18,6 +18,10 @@ function (`run`). A finite prefix is a finite sequence of steps (`Steps`).
 the iterates of its execution. Observations are defined on finite prefixes, so
 that they cover the configurations before a fault and inside a call that does
 not return.
+
+The step function, executions and `Steps` are defined for every program.
+`Prefix`, on which the observations are built, takes a `Subject`, so it only
+describes programs of the fragment.
 -/
 
 namespace ReuseModel
@@ -30,9 +34,10 @@ inductive Alarm where
   | invalidAccess
   /-- Division by zero. -/
   | divByZero
-  /-- The program leaves the fragment: an unbound variable or function, a
-  wrong number of arguments, an operator applied to a pointer, or a caller
-  that uses the value of a call that returned none. -/
+  /-- The execution is not defined by the language: an unbound variable or
+  function, a wrong number of arguments, an arithmetic operator or `<` applied
+  to a pointer, `==` between a pointer and a nonzero integer, or a caller that
+  uses the value of a call that returned none. -/
   | illFormed
   deriving DecidableEq, Repr
 
@@ -90,7 +95,9 @@ def Value.truth : Value → Bool
   | .int n => n != 0
   | .ptr _ => true
 
-/-- Binary operators. Division truncates toward zero, as in C. -/
+/-- Binary operators. Division truncates toward zero, as in C. The integer `0`
+is the null pointer: a pointer to a block is never equal to it. Comparing a
+pointer with a nonzero integer is ill-formed. -/
 def BinOp.eval : BinOp → Value → Value → Except Alarm Value
   | .add, .int a, .int b => .ok (.int (a + b))
   | .sub, .int a, .int b => .ok (.int (a - b))
@@ -98,6 +105,8 @@ def BinOp.eval : BinOp → Value → Value → Except Alarm Value
   | .div, .int a, .int b => if b = 0 then .error .divByZero else .ok (.int (a.tdiv b))
   | .eq, .int a, .int b => .ok (.int (if a = b then 1 else 0))
   | .eq, .ptr a, .ptr b => .ok (.int (if a = b then 1 else 0))
+  | .eq, .ptr _, .int n => if n = 0 then .ok (.int 0) else .error .illFormed
+  | .eq, .int n, .ptr _ => if n = 0 then .ok (.int 0) else .error .illFormed
   | .lt, .int a, .int b => .ok (.int (if a < b then 1 else 0))
   | _, _, _ => .error .illFormed
 
@@ -190,7 +199,7 @@ def execCall (p : Program) (env : Env) (m : M) (dst : Option Var) (f : FunName)
   match evalArgs p env m args with
   | (evs, .error a) => (evs, .error a)
   | (evs, .ok vs) =>
-    match resolveDst p env dst, p.funs f with
+    match resolveDst p env dst, p.lookup f with
     | .ok d, some fd =>
       if vs.length = fd.params.length then
         let r := createAll m (vs ++ fd.locals.map fun x => Value.int x.2)
@@ -377,10 +386,9 @@ structure State (M : Type) where
 /-- The entry configuration of a statement. -/
 def Config.entry (s : Stmt) (σ : State M) : Config M := .run s .stop σ.env σ.mem
 
-/-- A finite prefix of the execution of `s` from `σ`. -/
-def Prefix (p : Program) (s : Stmt) (σ : State M) (evs : List Event) (c : Config M) :
-    Prop :=
-  Steps p (Config.entry s σ) evs c
+/-- A finite prefix of the execution of the statement of `t` from `σ`. -/
+def Prefix (t : Subject) (σ : State M) (evs : List Event) (c : Config M) : Prop :=
+  Steps t.prog (Config.entry t.stmt σ) evs c
 
 end
 

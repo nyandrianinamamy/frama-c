@@ -4,9 +4,10 @@ import Checks.AxiomCheck
 /-!
 # Worked examples
 
-Three small programs, run with the memory `FunMem`. Each fact is computed by
-the Lean kernel from the execution (`run`) and turned into an observation by
-the lemmas of the first section.
+Three small programs, run with the memory `FunMem`. Each program and its
+observed statement form a `Subject`, whose fragment conditions are checked by
+`decide`. Each fact is computed by the Lean kernel from the execution (`run`)
+and turned into an observation by the lemmas of the first section.
 
 * Aliasing: two pointers to the same existing block; a write through one is
   read through the other.
@@ -15,6 +16,8 @@ the lemmas of the first section.
   still holds it.
 * A call that does not return: Reach and Safety observe visits inside it, and
   the frame lemma applies to a global that the call does not access.
+
+The last section evaluates comparisons with the null pointer.
 -/
 
 namespace Checks
@@ -46,24 +49,24 @@ def assertionOf? (p : Program) : Config M → Option (Label × Bool)
   | .run (.assert l e) _ env m => some (l, assertionHolds p env m e)
   | _ => none
 
-theorem visit_of_run {p : Program} {s : Stmt} {σ : State M} {n : Nat} {l : Label}
-    (h : labelOf? (run p n (Config.entry s σ)).2 = some l) :
-    ∃ env, Visit p s σ l env (run p n (Config.entry s σ)).2.mem := by
-  have hs := run_steps p n (Config.entry s σ)
+theorem visit_of_run {t : Subject} {σ : State M} {n : Nat} {l : Label}
+    (h : labelOf? (run t.prog n (Config.entry t.stmt σ)).2 = some l) :
+    ∃ env, Visit t σ l env (run t.prog n (Config.entry t.stmt σ)).2.mem := by
+  have hs := run_steps t.prog n (Config.entry t.stmt σ)
   revert h hs
-  cases (run p n (Config.entry s σ)).2 with
+  cases (run t.prog n (Config.entry t.stmt σ)).2 with
   | run st k env m =>
     intro h hs
     simp only [labelOf?, Option.some.injEq] at h
     exact ⟨env, _, st, k, hs, h⟩
   | _ => intro h; simp [labelOf?] at h
 
-theorem alarm_of_run {p : Program} {s : Stmt} {σ : State M} {n : Nat} {l : Label}
-    {a : Alarm} (h : faultOf? (run p n (Config.entry s σ)).2 = some (l, a)) :
-    AlarmRaised p s σ l a := by
-  have hs := run_steps p n (Config.entry s σ)
+theorem alarm_of_run {t : Subject} {σ : State M} {n : Nat} {l : Label}
+    {a : Alarm} (h : faultOf? (run t.prog n (Config.entry t.stmt σ)).2 = some (l, a)) :
+    AlarmRaised t σ l a := by
+  have hs := run_steps t.prog n (Config.entry t.stmt σ)
   revert h hs
-  cases (run p n (Config.entry s σ)).2 with
+  cases (run t.prog n (Config.entry t.stmt σ)).2 with
   | fault l' a' m =>
     intro h hs
     simp only [faultOf?, Option.some.injEq, Prod.mk.injEq] at h
@@ -71,12 +74,12 @@ theorem alarm_of_run {p : Program} {s : Stmt} {σ : State M} {n : Nat} {l : Labe
     exact ⟨_, m, hs⟩
   | _ => intro h; simp [faultOf?] at h
 
-theorem exit_of_run {p : Program} {s : Stmt} {σ : State M} {n : Nat} {o : Outcome}
-    (h : outcomeOf? (run p n (Config.entry s σ)).2 = some o) :
-    Exit p s σ o (run p n (Config.entry s σ)).2.mem := by
-  have hs := run_steps p n (Config.entry s σ)
+theorem exit_of_run {t : Subject} {σ : State M} {n : Nat} {o : Outcome}
+    (h : outcomeOf? (run t.prog n (Config.entry t.stmt σ)).2 = some o) :
+    Exit t σ o (run t.prog n (Config.entry t.stmt σ)).2.mem := by
+  have hs := run_steps t.prog n (Config.entry t.stmt σ)
   revert h hs
-  cases (run p n (Config.entry s σ)).2 with
+  cases (run t.prog n (Config.entry t.stmt σ)).2 with
   | done o' m =>
     intro h hs
     simp only [outcomeOf?, Option.some.injEq] at h
@@ -84,12 +87,13 @@ theorem exit_of_run {p : Program} {s : Stmt} {σ : State M} {n : Nat} {o : Outco
     exact ⟨_, hs⟩
   | _ => intro h; simp [outcomeOf?] at h
 
-theorem assertionFails_of_run {p : Program} {s : Stmt} {σ : State M} {n : Nat}
-    {l : Label} (h : assertionOf? p (run p n (Config.entry s σ)).2 = some (l, false)) :
-    AssertionFails p s σ l := by
-  have hs := run_steps p n (Config.entry s σ)
+theorem assertionFails_of_run {t : Subject} {σ : State M} {n : Nat} {l : Label}
+    (h : assertionOf? t.prog (run t.prog n (Config.entry t.stmt σ)).2 =
+      some (l, false)) :
+    AssertionFails t σ l := by
+  have hs := run_steps t.prog n (Config.entry t.stmt σ)
   revert h hs
-  cases (run p n (Config.entry s σ)).2 with
+  cases (run t.prog n (Config.entry t.stmt σ)).2 with
   | run st k env m =>
     cases st with
     | assert l' e =>
@@ -118,7 +122,7 @@ L1: { L2: *p = 7;  L3: assert (*q == 7); }
 -/
 
 def aliasProg : Program where
-  funs := fun _ => none
+  funs := []
   globals := fun x =>
     if x = "g" then some 0 else if x = "p" then some 1 else if x = "q" then some 2
     else none
@@ -127,6 +131,12 @@ def aliasStmt : Stmt :=
   .seq 1 (.assign 2 (.deref (.var "p")) (.const 7))
     (.assert 3 (.binop .eq (.deref (.var "q")) (.const 7)))
 
+/-- The program has no function; the labels 1, 2, 3 are distinct. -/
+def aliasSubj : Subject where
+  prog := aliasProg
+  stmt := aliasStmt
+  wf := ⟨by decide, ⟨fun _ => 0, by decide⟩, by decide⟩
+
 def aliasState : State FunMem := topState [.int 0, .ptr 0, .ptr 0]
 
 /-- The assertion is visited and holds there. -/
@@ -134,7 +144,7 @@ example : assertionOf? aliasProg (run aliasProg 3 (Config.entry aliasStmt aliasS
     some (3, true) := by decide
 
 /-- The statement completes, with `g` equal to 7. -/
-example : Exit aliasProg aliasStmt aliasState .completed
+example : Exit aliasSubj aliasState .completed
     (run aliasProg 5 (Config.entry aliasStmt aliasState)).2.mem ∧
     load (run aliasProg 5 (Config.entry aliasStmt aliasState)).2.mem 0 = some (.int 7) :=
   ⟨exit_of_run (by decide), by decide⟩
@@ -151,18 +161,23 @@ L1: { L2: p = leak();  L3: y = *p; }
 -/
 
 def leakProg : Program where
-  funs := fun f =>
-    if f = "leak" then some { params := [], locals := [("x", 5)], body := .ret 10 (some (.addr "x")) }
-    else none
+  funs := [("leak",
+    { params := [], locals := [("x", 5)], body := .ret 10 (some (.addr "x")) })]
   globals := fun x => if x = "p" then some 0 else if x = "y" then some 1 else none
 
 def leakStmt : Stmt :=
   .seq 1 (.call 2 (some "p") "leak" []) (.assign 3 (.var "y") (.deref (.var "p")))
 
+/-- `leak` calls nothing; the labels 1, 2, 3 and 10 are distinct. -/
+def leakSubj : Subject where
+  prog := leakProg
+  stmt := leakStmt
+  wf := ⟨by decide, ⟨fun _ => 0, by decide⟩, by decide⟩
+
 def leakState : State FunMem := topState [.int 0, .int 0]
 
 /-- The dereference at `L3` faults: the local of `leak` is out of scope. -/
-example : AlarmRaised leakProg leakStmt leakState 3 .invalidAccess :=
+example : AlarmRaised leakSubj leakState 3 .invalidAccess :=
   alarm_of_run (n := 7) (by decide)
 
 /-- When the fault is raised, `p` still points to the released block 2: going
@@ -196,21 +211,27 @@ def spinDef : FunDef where
   body := .loop 10 (.const 1) spinBody
 
 def spinProg : Program where
-  funs := fun f => if f = "spin" then some spinDef else none
+  funs := [("spin", spinDef)]
   globals := fun x => if x = "g" then some 0 else if x = "h" then some 1 else none
 
 def spinStmt : Stmt := .seq 1 (.call 2 none "spin" []) (.assign 3 (.var "g") (.const 0))
 
+/-- `spin` calls nothing; the labels 1, 2, 3 and 10 to 13 are distinct. -/
+def spinSubj : Subject where
+  prog := spinProg
+  stmt := spinStmt
+  wf := ⟨by decide, ⟨fun _ => 0, by decide⟩, by decide⟩
+
 def spinState : State FunMem := topState [.int 3, .int 9]
 
 /-- Reach: `L13`, inside the call, is visited. -/
-example : Reach spinProg spinStmt spinState 13 := by
-  obtain ⟨env, hv⟩ := visit_of_run (n := 6) (p := spinProg) (s := spinStmt)
-    (σ := spinState) (l := 13) (by decide)
+example : Reach spinSubj spinState 13 := by
+  obtain ⟨env, hv⟩ :=
+    visit_of_run (n := 6) (t := spinSubj) (σ := spinState) (l := 13) (by decide)
   exact ⟨env, _, hv⟩
 
 /-- Safety: the assertion `L12`, inside the call, fails at a visit. -/
-example : AssertionFails spinProg spinStmt spinState 12 :=
+example : AssertionFails spinSubj spinState 12 :=
   assertionFails_of_run (n := 4) (by decide)
 
 /-! ### The frame lemma inside the call
@@ -221,13 +242,14 @@ the loop of `spin` forever; `SpinConf` lists them. -/
 
 /-- `InFrame` holds when an invariant of the configurations ensures that no
 step reads or writes the block. -/
-theorem inFrame_of_invariant {M : Type} [Memory M] {p : Program} {s : Stmt}
-    {σ : State M} {b : Block} (P : Config M → Prop) (h₀ : P (Config.entry s σ))
-    (hstep : ∀ c evs c', P c → step p c = some (evs, c') →
+theorem inFrame_of_invariant {M : Type} [Memory M] {t : Subject} {σ : State M}
+    {b : Block} (P : Config M → Prop) (h₀ : P (Config.entry t.stmt σ))
+    (hstep : ∀ c evs c', P c → step t.prog c = some (evs, c') →
       P c' ∧ ∀ e ∈ evs, ¬ e.Accesses b) :
-    InFrame p s σ b := by
+    InFrame t σ b := by
   intro evs c hpre
-  suffices H : ∀ c₁ evs c₂, Steps p c₁ evs c₂ → P c₁ → ∀ e ∈ evs, ¬ e.Accesses b from
+  suffices H : ∀ c₁ evs c₂, Steps t.prog c₁ evs c₂ → P c₁ →
+      ∀ e ∈ evs, ¬ e.Accesses b from
     H _ _ _ hpre h₀
   intro c₁ evs c₂ hs
   induction hs with
@@ -345,16 +367,35 @@ theorem spin_step {c c' : Config FunMem} {evs : List Event} (hc : SpinConf c)
   | fault l a m => simp [step] at hs
 
 /-- `h` is in the frame of `spinStmt` from `spinState`. -/
-theorem spin_inFrame : InFrame spinProg spinStmt spinState 1 :=
+theorem spin_inFrame : InFrame spinSubj spinState 1 :=
   inFrame_of_invariant SpinConf .entry fun _ _ _ hc hs => spin_step hc hs
 
 /-- The frame lemma, applied: at every visit, the visits inside `spin`
 included, `h` holds 9, its value at entry. -/
 theorem spin_frame {l : Label} {env : Env} {m : FunMem}
-    (hv : Visit spinProg spinStmt spinState l env m) : load m 1 = some (.int 9) :=
+    (hv : Visit spinSubj spinState l env m) : load m 1 = some (.int 9) :=
   (frame_lemma (σ := spinState) (b := 1)
     (show (load spinState.mem 1).isSome = true from rfl) spin_inFrame hv).trans rfl
 
 #check_axioms Checks.spin_frame
+
+/-! ## Comparison with the null pointer
+
+The integer `0` is the null pointer. A pointer to a block compares unequal to
+it, in both operand orders; null compares equal to null. Comparing a pointer
+with a nonzero integer stays ill-formed. -/
+
+example : BinOp.eval .eq (.ptr 3) (.int 0) = .ok (.int 0) := rfl
+example : BinOp.eval .eq (.int 0) (.ptr 3) = .ok (.int 0) := rfl
+example : BinOp.eval .eq (.int 0) (.int 0) = .ok (.int 1) := rfl
+example : BinOp.eval .eq (.ptr 3) (.int 5) = .error .illFormed := rfl
+example : BinOp.eval .eq (.int 5) (.ptr 3) = .error .illFormed := rfl
+
+/-- In the aliasing program, `p` points to `g`: `p == 0` and `0 == p` evaluate
+to `0` and read `p` only. -/
+example : evalExpr aliasProg aliasState.env aliasState.mem
+    (.binop .eq (.var "p") (.const 0)) = ([.read 1], .ok (.int 0)) := rfl
+example : evalExpr aliasProg aliasState.env aliasState.mem
+    (.binop .eq (.const 0) (.var "p")) = ([.read 1], .ok (.int 0)) := rfl
 
 end Checks

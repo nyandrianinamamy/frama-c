@@ -8,9 +8,11 @@ the statement, the value it had at entry. The model has no sweep: the end of
 the lifetime of a callee's locals rewrites no other block.
 
 `frame_of_not_written` is the general form: it holds at every configuration of
-a finite prefix, for a block issued before entry, and needs only that the
-prefix does not write the block. `frame_lemma` is the form used by the
-correspondence record.
+a finite sequence of steps from the entry of a statement, for any program, for a
+block issued before entry, and needs only that these steps do not write the
+block. `frame_lemma` is the form used by the correspondence record: it is
+stated for a `Subject`, so for programs of the fragment. Its proof does not use
+the fragment conditions.
 -/
 
 namespace ReuseModel
@@ -27,10 +29,10 @@ def Cont.frameBlocks : Cont → List Block
 section
 variable {M : Type} [Memory M]
 
-/-- `b` is in the frame of `s` from `σ`: no finite prefix of the execution of
-`s` from `σ` reads or writes `b`. -/
-def InFrame (p : Program) (s : Stmt) (σ : State M) (b : Block) : Prop :=
-  ∀ evs c, Prefix p s σ evs c → ∀ e ∈ evs, ¬ e.Accesses b
+/-- `b` is in the frame of the statement of `t` from `σ`: no finite prefix of
+its execution from `σ` reads or writes `b`. -/
+def InFrame (t : Subject) (σ : State M) (b : Block) : Prop :=
+  ∀ evs c, Prefix t σ evs c → ∀ e ∈ evs, ¬ e.Accesses b
 
 /-- Invariant of the proof: `b` has been issued, and no call frame of the
 configuration holds `b` as a local. -/
@@ -243,22 +245,24 @@ theorem steps_preserves {p : Program} {c c' : Config M} {evs : List Event} {b : 
     obtain ⟨hinv', hval⟩ := step_preserves hstep hinv hw₁
     exact (ih hinv' hw₂).trans hval
 
-/-- General form of the frame lemma. Let `b` be a block issued before the
-execution of `s` from `σ`. At every configuration of a finite prefix that does
-not write `b`, `b` has the value it had at entry. -/
+/-- General form of the frame lemma, for any program. Let `b` be a block issued
+before the execution of `s` from `σ`. At every configuration reached from the
+entry of `s` by a finite sequence of steps that does not write `b`, `b` has the
+value it had at entry. -/
 theorem frame_of_not_written {p : Program} {s : Stmt} {σ : State M} {b : Block}
     (hb : Issued σ.mem b) {evs : List Event} {c : Config M}
-    (hpre : Prefix p s σ evs c) (hw : ∀ e ∈ evs, ¬ e.Writes b) :
+    (hpre : Steps p (Config.entry s σ) evs c) (hw : ∀ e ∈ evs, ¬ e.Writes b) :
     load c.mem b = load σ.mem b :=
   steps_preserves hpre ⟨hb, by simp [Config.entry, Config.cont, Cont.frameBlocks]⟩ hw
 
-/-- **Frame lemma without sweeps.** Let `b` be a block that exists when `s`
-starts from `σ`, and that no finite prefix of the execution of `s` from `σ`
-reads or writes. At every visit inside `s`, `b` has the value it had at
+/-- **Frame lemma without sweeps.** Let `t` be a subject: a statement of the
+fragment with its program. Let `b` be a block that exists when the statement
+starts from `σ`, and that no finite prefix of its execution from `σ` reads or
+writes. At every visit inside the statement, `b` has the value it had at
 entry. -/
-theorem frame_lemma {p : Program} {s : Stmt} {σ : State M} {b : Block}
-    (hlive : Live σ.mem b) (hframe : InFrame p s σ b)
-    {l : Label} {env : Env} {m : M} (hvisit : Visit p s σ l env m) :
+theorem frame_lemma {t : Subject} {σ : State M} {b : Block}
+    (hlive : Live σ.mem b) (hframe : InFrame t σ b)
+    {l : Label} {env : Env} {m : M} (hvisit : Visit t σ l env m) :
     load m b = load σ.mem b := by
   obtain ⟨evs, st, k, hpre, -⟩ := hvisit
   exact frame_of_not_written hlive.issued hpre

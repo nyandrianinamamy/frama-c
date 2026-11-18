@@ -56,20 +56,40 @@ directories that Dune reads, and `lean` is not among them.
 
 | File | Content |
 |---|---|
-| `ReuseModel/Syntax.lean` | Blocks, values, expressions, statements, programs; `Program.NonRecursive` |
+| `ReuseModel/Syntax.lean` | Blocks, values, expressions, statements, programs; the fragment conditions `WellFormed` and the `Subject` of the observations |
 | `ReuseModel/Memory.lean` | The memory interface `Memory` with its laws; the memory `FunMem`, which meets them |
-| `ReuseModel/Semantics.lean` | Events, evaluation, configurations, the step function, executions (`run`) and finite prefixes (`Steps`, `Prefix`) |
-| `ReuseModel/Observations.lean` | Exit, Reach, Safety and visits |
+| `ReuseModel/Semantics.lean` | Events, evaluation, configurations, the step function, executions (`run`) and finite sequences of steps (`Steps`), for any program; finite prefixes (`Prefix`) of a subject |
+| `ReuseModel/Observations.lean` | Exit, Reach, Safety and visits, of a subject |
 | `ReuseModel/Frame.lean` | `InFrame`, `frame_of_not_written`, `frame_lemma` |
 | `Checks/AxiomCheck.lean` | The `#check_axioms` command |
 | `Checks/Axioms.lean` | `#print axioms` and `#check_axioms` for each theorem |
-| `Checks/Examples.lean` | Aliasing, a dangling pointer after a return, and a call that does not return, on which `frame_lemma` is applied |
+| `Checks/Examples.lean` | Aliasing, a dangling pointer after a return, and a call that does not return, on which `frame_lemma` is applied; comparisons with the null pointer |
+| `Checks/Fragment.lean` | A program that meets the fragment conditions, and three that do not: duplicate labels, direct recursion, mutual recursion |
 
 ## What the model contains
 
 - **Language.** Whole-block loads and stores, sequencing, conditionals,
   `while`, direct calls, return and labelled assertions. Every statement
-  carries a label, which identifies it in the observations.
+  carries a label, by which the observations name it. A program is a finite
+  list of named function definitions, with the blocks of its globals. The
+  integer `0` is the null pointer: `==` between a pointer and `0` gives `0`,
+  in either order of the operands, and `==` between a pointer and a nonzero
+  integer is ill-formed.
+- **Fragment.** `WellFormed p s` states that the statement `s` of the program
+  `p` is in the fragment of the model:
+  - `namesUnique`: each function is defined once;
+  - `nonRecursive`: some rank on function names decreases along every direct
+    call;
+  - `labelsUnique`: the labels of `s` and of the function bodies of `p` are
+    pairwise distinct, so that a label names one statement of the program
+    text. The observed statement is therefore not part of a function body: it
+    is the code that calls into the functions, as in the examples.
+
+  A `Subject` bundles a program, the observed statement and a proof of
+  `WellFormed` for them. `Prefix`, the observations, `InFrame` and
+  `frame_lemma` take a subject, so they only describe programs of the
+  fragment. The step function, `run`, `Steps` and the general lemma
+  `frame_of_not_written` are defined for every program.
 - **Memory.** Generic blocks, one value per block. A block can stand for a
   global, a caller's local or an existing heap allocation. Two pointers to the
   same existing block alias. A call creates a block for each parameter and local of
@@ -87,13 +107,39 @@ directories that Dune reads, and `lean` is not among them.
   call that does not return. Safety covers run-time alarms and labelled
   assertions.
 
+## Why the fragment is formulated this way
+
+- **A bundle, not a hypothesis on each definition.** The observations take a
+  `Subject` rather than a program, a statement and a separate proof. The
+  fragment is then part of the type of every observation and of every theorem
+  stated with them, so a later theorem cannot leave it out, and proofs read
+  the conditions from `t.wf` when they need them. Definitions on raw programs
+  would have to carry a proof argument that they do not use.
+- **Execution stays on raw programs.** The step function, `run` and `Steps`
+  do not depend on the fragment. Lemmas about executions, such as
+  `steps_iff_run` and `frame_of_not_written`, need no fragment hypothesis, and
+  the examples compute with `run` on the program itself.
+- **A finite list of functions.** With functions given as a map from names,
+  uniqueness of labels across all functions cannot be checked by computation.
+  With a list, the label and name conditions are `List.Nodup` of concrete
+  lists and `decide` checks them for a given program.
+- **Unique names.** A call takes the first definition with its name
+  (`Program.lookup`). With distinct names, the entries of the list are
+  exactly the definitions that calls reach, so the other two conditions,
+  stated on the entries, are about these functions.
+- **A rank for nonrecursion.** An existential rank gives later proofs a
+  measure that decreases at each call. For a concrete program, the rank is
+  given and `decide` checks it (`Checks/Fragment.lean`).
+
+The proof of `frame_lemma` does not use the fragment conditions; they restrict
+the programs that the lemma, as stated for the record, is about.
+
 ## What the model leaves out
 
 - Offsets into a block, arrays and structures, pointer arithmetic, and casts
   between pointers and integers.
-- Recursion: the semantics runs recursive programs, but the fragment of the
-  model is the programs that satisfy `Program.NonRecursive`. The frame lemma
-  does not need this hypothesis.
+- Recursion: the step function runs recursive programs, but the observations
+  and `frame_lemma` take a `Subject`, whose program is nonrecursive.
 - Eva's iteration strategy, and any abstract domain: there is no analyzer in
   the model.
 - Creation and release of heap allocations during a statement. Existing heap
