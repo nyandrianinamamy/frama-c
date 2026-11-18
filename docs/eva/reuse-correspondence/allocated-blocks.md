@@ -17,7 +17,8 @@ observation; the cram file records the first reason of each body.
 allocated block is among the blocks read or written, the locations computed
 before invalid offsets are trimmed, or the blocks designated by a value the
 body reads without dereferencing it. The designated values include those read
-by the evaluation of ACSL terms and predicates and the finite sets of a
+by the evaluation of ACSL terms and predicates, including the `requires`
+clauses of the body checked at the call site, and the finite sets of a
 garbled value. A set of targets that is Top refuses with `footprint-top`.
 
 **Kind.** OCaml obligation.
@@ -27,7 +28,8 @@ garbled value. A set of targets that is Top refuses with `footprint-top`.
 **Symbols.** `Body_access.check_bases`, `Body_access.check_location`,
 `Body_access.designate`, `Eval_terms.find_indeterminate`,
 `Eval_terms.find_logic_var`, `Eval_terms.forall_in_over_location`,
-`Eval_terms.forall_in_under_location`.
+`Eval_terms.forall_in_under_location`, `Body_access.at_call_site`,
+`Transfer_logic.Make.check_fct_preconditions`.
 
 **Argument.** The slice of issue #41 checks every set the observation reports:
 `check_bases` refuses an allocated base and a Top set. `Cvalue.V.get_bases`
@@ -37,6 +39,14 @@ the state: the value of an lvalue of a term (`find_indeterminate`), the
 value of a C-typed logic variable, and the values of the location tested by
 `\initialized` or `\dangling`. The slice builds no key of an entry; a key
 drawn from the observation would hold only blocks of these sets.
+
+The `requires` clauses of a body are checked with its recording suspended
+([Refusal and reporting](body-access.md#refusal-and-reporting)), but a hit
+skips them with the body. `check_fct_preconditions` therefore runs them
+under `at_call_site`, which keeps the allocation family: a designated
+allocated block or Top set refuses, a read of allocation metadata refuses
+and adds its owner, and the reasons of the allocation effects are kept. The
+blocks these clauses read, write or designate are not added to the sets.
 
 **Evidence.** Execution. `copy` (`q = p`, where `p` points to an allocated
 block) reads `copy allocated-block`; the module asserts R = {p}, W = {q}, an
@@ -48,7 +58,13 @@ allocation-metadata]`. On the validity replay of the inventory ticket
 reads `equal_live allocated-block` twice. A probe module that prints all
 the reasons, run on the same programs at the base revision `5151231fd4`, gave
 `allocated-block` for `copy` and `equal_live` already, and only
-`annotation` for `logic_only`.
+`annotation` for `logic_only`; the module now also asserts that
+`equal_live` reads allocation metadata and has an owner. In `requires.c`,
+three bodies that do not access the block that their clause `\valid(p)`,
+`\initialized(p)` or `\block_length(p) >= sizeof(int)` reads are refused
+with `allocated-block` and the owner `__malloc_main_l18`; the module asserts
+that R is empty and W = {x}. Before `at_call_site`, at revision
+`99a0c401f2`, the probe module gave no reason for these bodies.
 
 **Open.** None for this claim.
 
@@ -120,7 +136,8 @@ program does not: a binding visited by a widening, a default binding, or the
 bound of a target read by the widening of a pointer offset. The blocks read
 are the owners of the observation. A memoised result that can depend on this
 metadata either reports its owners on a hit as on a miss, or depends only on
-data that does not change.
+data that does not change, except the tags of the nodes of offsetmaps (see
+[Read paths of the validity record](#read-paths-of-the-validity-record)).
 
 **Kind.** OCaml obligation.
 
@@ -188,7 +205,8 @@ non-empty set of owners. In `release.c`, `main` reads `main allocation`.
 **Claim.** The table lists every transitive read of the validity record or of
 the type of an allocated block reachable from the analysis of a body by the
 cvalue domain and the kernel memory maps, with its treatment. Where the audit
-is not conclusive, the treatment is a refusal.
+is not conclusive, the treatment is a refusal, except for the tags of the
+nodes of offsetmaps that the body does not build (see Open).
 
 **Kind.** OCaml obligation.
 
@@ -256,25 +274,48 @@ Eva:
 | `Cvalue_init` | validity of globals | before any body | inspected |
 | Other domains, `Concurrency`, Mthread | various | the body is refused at admission | inspected |
 
+Windows where recording is suspended:
+
+| Site | Runs | Treatment | Evidence |
+| --- | --- | --- | --- |
+| `Transfer_logic.Make.check_fct_preconditions` | `requires` clauses of the body | `at_call_site`: allocation family recorded | exercised (`requires.c`) |
+| `Compute_functions.Make.compute_and_cache_call` | memexec lookup and storage, including `Mem_exec` reads of `Base.validity` | outside the body | inspected |
+| `Body_access.capture` | computation of W_exit and W_sure; observers of the result | the collector's own work; observers must not change the analysis | inspected |
+| `Cvalue_callbacks.run_hook` | call hooks | an unclassified hook refuses with `side-table`; the classified protocols do not change the analysis of the body | inspected |
+| `Iterator` | `Async.yield` | no analysis | inspected |
+
 Persistent memos:
 
 | Memo | Depends on | Treatment | Evidence |
 | --- | --- | --- | --- |
-| `Offsetmap` node tag (hash-consing) | `V.cardinal_zero_or_one`, hence `Base.is_weak`, of the node's value | read before the merge with the table: reported on a hit as on a miss | exercised |
-| tags of the subtrees of a new node, `Lmap` compositional bool | the tags of existing nodes | a function of the nodes of the states | inspected |
+| `Offsetmap` node tag of a node the body builds (hash-consing) | `V.cardinal_zero_or_one`, hence `Base.is_weak`, of the node's value | read before the merge with the table: reported on a hit as on a miss | exercised |
+| tags of nodes the body does not build, `Lmap` compositional bool | weakness of the bases when the content was first built | not refused; see below | inspected |
 | `Lmap` inclusion and narrowing caches, over default bindings | default offsetmap of the base | size `max_allocable + 1`, which is immutable; the join of cvalue does not read default bindings | inspected |
 | `lmap.widen` cache, without hints | thresholds of `Addresses.widen` | not used by the cvalue domain, which always passes hints; Mthread is refused | inspected |
 | `Lmap_bitwise` join, inclusion and `fold_on_zone` caches | default bindings | size from `max_allocable` | inspected |
 | `Addresses.contains_addresses_of_any_locals` cache | constructor of the base | immutable | inspected |
-| `Map_lattice`, `Offsetmap`, `Int_Intervals` and `Addresses` binary caches | values and intervals only | no metadata | inspected |
+| `Offsetmap` join, inclusion, narrowing and `map2` caches | values; a hit returns nodes with their tags | values carry no metadata; tags as above | inspected |
+| `Map_lattice`, `Int_Intervals` and `Addresses` binary caches | values and intervals only | no metadata | inspected |
 | `Widen` hints per function, valuation of a transfer | no metadata; scope of one transfer | none needed | inspected |
 
-The node tag of an offsetmap is computed when the node is built, from the
-weakness of the bases in its value at that time. A node that the body does not
-rebuild keeps the tag it had in the input state. A lookup that matches the
-input state by equality finds the same nodes, so the same tags. The tags feed
-`Lmap.comp_prefixes` and `Lmap.find_prefix`, which `Partitioning_index`
-uses to select the stored states compared by inclusion.
+The node tag of an offsetmap is computed in `nNode` from the weakness of the
+bases of the node's value, before the node is merged with the hash-consing
+table. The table ignores the tag when it compares nodes: a node built again
+with the same content keeps the tag of its first construction. The read is
+reported whenever the body builds a node, on a hit of the table as on a miss.
+It is not reported for a node that the body takes from its input state or
+from a hit of a binary cache of `Offsetmap` or `Lmap`. The tags feed
+`Offsetmap.cardinal_zero_or_one`, the compositional bool of `Lmap`,
+`Lmap.comp_prefixes` and `Lmap.find_prefix`, which `Partitioning_index.add`
+uses to select the stored states that it compares by inclusion with a new
+state. A new state whose subpart is indexed is compared only with the states
+of the same subpart, so whether the state is kept can depend on the tags. A
+base becomes weak only through `Base.update_variable_validity`, which
+refuses a body that runs it: a tag that disagrees with the current weakness
+of a base comes from a change made before the body. The audit is not
+conclusive for these nodes, and the collector does not refuse them: a
+refusal would cover every body whose states hold a pointer to an allocated
+block.
 
 For the default bindings: the two functions that create an allocated base
 give it a `Variable` validity, and `Offsetmap.size_from_validity` sizes it
@@ -290,8 +331,13 @@ chains of six frames; the table names the function of each, and the two
 chains that start in `Body_access` are the collector's own location queries
 on a written allocated block.
 
-**Open.** The tracing module is not committed, and the rows marked
-"inspected" have no regression. `Partitioning_index` consults the tags of
-all the bindings, including blocks outside R; whether a match on a
-projection of the input preserves its choices belongs to the frame claim and
-is not argued here.
+**Open.** The tags of the nodes that a body does not build are not
+reported and do not refuse: this differs from the ticket, which asks for a
+refusal where the audit is not conclusive. Their dependency is on changes of
+weakness made before the body. Between a producer and a lookup, the cache
+must account for these changes, or the argument must show that the choices
+of `Partitioning_index.add` do not change the result. `Partitioning_index`
+also consults the tags of all the bindings, including blocks outside R;
+whether a match on a projection of the input preserves its choices belongs to
+the frame claim and is not argued here. The tracing module is not committed,
+and the rows marked "inspected" have no regression.
