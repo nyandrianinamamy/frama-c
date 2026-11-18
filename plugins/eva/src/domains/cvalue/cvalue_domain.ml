@@ -221,7 +221,10 @@ module State = struct
 
   let project = filter
 
-  let reuse _bases ~current_input:(state, _) ~previous_output:(output, clob) =
+  (* Takes from [output] the blocks of [bases] only. Memexec gives an output
+     already filtered to [bases], on which the filter changes nothing. *)
+  let reuse bases ~current_input:(state, _) ~previous_output:(output, clob) =
+    let output = Cvalue.Model.filter_by_shape bases output in
     Cvalue.Model.merge ~into:state output, clob
 
   let overwrite bases ~on:(state, clob) ~by =

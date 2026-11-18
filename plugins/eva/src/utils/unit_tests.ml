@@ -121,7 +121,12 @@ end
    - [filter B S] binds exactly the blocks of [B] bound in [S], each to its
      offsetmap in [S]: it only forgets;
    - [filter] is idempotent: [filter B (filter B S) = filter B S];
-   - [reuse W ~current_input:S ~previous_output:(filter (K ∪ W) S) = S]. *)
+   - [reuse W ~current_input:S ~previous_output:(filter (K ∪ W) S) = S];
+   - on two maps C and O, [reuse W ~current_input:C ~previous_output:O]
+     binds each block of [W] bound in O to its offsetmap in O, each other
+     block bound in C to its offsetmap in C, and no other block: it takes
+     the blocks of W from O and the others from C, even where O and C differ
+     outside W. *)
 module Cache_laws = struct
 
   module State = Cvalue_domain.State
@@ -174,11 +179,14 @@ module Cache_laws = struct
     && List.for_all (fun x -> List.exists (same_binding x) l') l
 
   (* [filter bases state] binds exactly the bases of [bases] bound in
-     [state], to the same offsetmaps. On Top and Bottom, it is the identity. *)
+     [state], to the same offsetmaps. On Top and Bottom, it is the identity.
+     The filter of a map is a map: [bindings] gives no binding for Top and
+     Bottom, which an empty map would not tell apart. *)
   let only_forgets bases (model, _) (filtered, _) =
-    match model with
-    | Cvalue.Model.Top | Bottom -> Cvalue.Model.equal model filtered
-    | Map _ ->
+    match model, filtered with
+    | (Cvalue.Model.Top | Bottom), _ -> Cvalue.Model.equal model filtered
+    | Map _, (Cvalue.Model.Top | Bottom) -> false
+    | Map _, Map _ ->
       let kept (b, _) = Base.Hptset.mem b bases in
       same_bindings (List.filter kept (bindings model)) (bindings filtered)
 
@@ -205,6 +213,37 @@ module Cache_laws = struct
       Base.Hptset.pretty key Base.Hptset.pretty written State.pretty state
       State.pretty result
 
+  (* The bindings expected from [reuse written ~current_input:current
+     ~previous_output:output] on two maps. *)
+  let combined written current output =
+    let from_output (b, _) = Base.Hptset.mem b written in
+    let taken = List.filter from_output (bindings output) in
+    let is_taken b = List.exists (fun (b', _) -> Base.equal b b') taken in
+    let kept (b, _) = not (is_taken b) in
+    taken @ List.filter kept (bindings current)
+
+  (* Top and Bottom are left out: a supplied entry has no exit state that is
+     Top or Bottom, and no call whose input is Top or Bottom reaches
+     [reuse]. *)
+  let test_reuse_frame current output written =
+    match current, output with
+    | (Cvalue.Model.Map _, _), (Cvalue.Model.Map _, _) ->
+      let result =
+        State.reuse written ~current_input:current ~previous_output:output
+      in
+      let expected = combined written (fst current) (fst output) in
+      let ok =
+        match fst result with
+        | Map _ -> same_bindings expected (bindings (fst result))
+        | Top | Bottom -> false
+      in
+      report (not ok)
+        "reuse %a %a %a = %a  does not take W from the output and the rest \
+         from the input"
+        Base.Hptset.pretty written State.pretty current State.pretty output
+        State.pretty result
+    | _ -> ()
+
   (* The variables are created here, not when the module is initialized:
      each one takes a new identifier of variable, which would change the
      identifiers printed by other plug-ins in every run. *)
@@ -214,11 +253,15 @@ module Cache_laws = struct
     and c = var "c" Cil_const.intType and p = var "p" Cil_const.voidPtrType in
     let states = states (a, b, c, p) and sets = sets [ a; b; c; p ] in
     let for_all l f = List.iter f l in
-    for_all states @@ fun state ->
-    for_all sets @@ fun bases ->
-    test_filter state bases;
+    for_all states (fun state ->
+        for_all sets @@ fun bases ->
+        test_filter state bases;
+        for_all sets @@ fun written ->
+        test_reuse state bases written);
+    for_all states @@ fun current ->
+    for_all states @@ fun output ->
     for_all sets @@ fun written ->
-    test_reuse state bases written
+    test_reuse_frame current output written
 end
 
 (** Runs all tests. *)

@@ -10,7 +10,8 @@
     - semantics of sign values;
     - consequences of the laws of the reuse operation on the cvalue domain
       that need no concretization: [filter] is idempotent and only forgets,
-      and [reuse W S (filter (K ∪ W) S) = S]. *)
+      [reuse W S (filter (K ∪ W) S) = S], and [reuse W C O] takes the blocks
+      of W from O and every other block from C. *)
 
 (** Runs some programmatic tests on Eva. *)
 val run: unit -> unit
