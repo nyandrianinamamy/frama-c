@@ -141,7 +141,7 @@ OCaml obligation per domain and per law, owed by the reuse feature; no such
 argument is recorded yet. `Extensional` is the exception: it is relied on
 from Frama-C's sets of bases for every domain at once ([Closure depends on
 the members of the key
-only](#closure-depends-on-the-members-of-the-key-only), hypothesis 2).
+only](#closure-depends-on-the-members-of-the-key-only), hypothesis 3).
 
 ## The product keeps the laws
 
