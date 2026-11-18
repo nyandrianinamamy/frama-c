@@ -122,6 +122,7 @@ int main(void) {
   //@ assert hit_out: out == 4;
   //@ assert hit_g: g == 3;
   //@ assert hit_keep: keep == 0;
+  //@ assert hit_rest: b == 0 && r == 0 && p == \null;
   g = 5;
   step(1);
   Frama_C_show_each_after_miss(out);

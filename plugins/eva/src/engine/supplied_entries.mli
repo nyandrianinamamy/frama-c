@@ -53,7 +53,8 @@ type footprint = Cache_entry.footprint = {
       included; a block designated by a pointer of the key is not in the key
       unless it is listed in it;
     - W covers every block that the body may write; W_exit covers every
-      block whose value at an exit may differ from its value in the input;
+      block that the body may write on a path that reaches an exit, even
+      when the write leaves the value of the input;
       W_sure holds only blocks certainly and fully overwritten on every path
       that reaches an exit;
     - the key contains R ∪ (W_exit \ W_sure), and the body neither frees nor

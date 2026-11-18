@@ -59,12 +59,12 @@ let supply () =
        ~footprint:(footprint [x; g] [out])
        ~exit:(one_exit [x, int 1; g, int 3; out, int 4]));
   (* Entry 2, for set_out: empty key; reads nothing and writes out = 7. The
-     supplied exit state also binds keep to 0, a block outside the key and
-     the written set. *)
+     producer starts with keep = 0 and its exit state keeps it: keep is
+     outside the key and the written set. *)
   ignore
     (Supplied.supply (kf "set_out")
        ~key:Base.Hptset.empty
-       ~input:Cvalue.Model.empty_map
+       ~input:(state [keep, int 0])
        ~footprint:(footprint [] [out])
        ~exit:(one_exit [out, int 7; keep, int 0]));
   (* Entries 3 and 4, for precise_first, then entries 5 and 6, for
@@ -101,7 +101,7 @@ let supply () =
   ignore
     (Supplied.supply (kf "write_then_spin")
        ~key:(bases [choice])
-       ~input:(state [choice, Cvalue.V.top_int])
+       ~input:(state [choice, Cvalue.V.top_int; b, int 0])
        ~footprint:(footprint [choice] [b; out] ~written_exit:[out])
        ~exit:(one_exit [choice, Cvalue.V.top_int; b, int 0; out, int 5]));
   (* Entry 9, for never_returns: no exit state. *)

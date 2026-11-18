@@ -297,8 +297,8 @@ state (next entry).
 The obligations of the supplier, stated in `supplied_entries.mli`: R covers
 every block that the body may read, through a pointer included, and a block
 designated by a pointer of the key is not in the key unless listed; W covers
-every block the body may write, W_exit every block whose value at an exit
-may differ from its input value, and W_sure only blocks fully overwritten on
+every block the body may write, W_exit every block the body may write on a path
+that reaches an exit, even when the write leaves the input value, and W_sure only blocks fully overwritten on
 every path to an exit; the body neither frees nor allocates a block nor ends
 the lifetime of a block other than its own locals; each exit state already
 holds the effect of leaving the scope of the locals of the body on the
@@ -583,8 +583,10 @@ and From be served by an entry is
 observation to the collector of block accesses, no verdict on its message
 and no `collector-` count. A body analysed in an analysis that uses supplied
 entries, after a lookup that found no candidate or rejected every candidate,
-is observed as any analysed body: its verdict is printed beside `refused
-(supplied-only)` and counted, and stores nothing.
+is observed as any analysed body when recording is enabled (the default;
+`-eva-no-cache-collect` disables it): its verdict is counted and, under the
+message category `cache`, printed beside `refused (supplied-only)`. The
+body stores nothing.
 
 **Kind.** OCaml obligation.
 
@@ -713,8 +715,11 @@ a block outside B, σ(b) = σ₁(b) is described by m. So σ is covered by m
 with a support U that contains W, and W a set of blocks such that out binds
 every block of W that cur binds. Then `reuse W cur out` covers every memory
 that agrees on W with a memory covered by out and outside W with a memory
-covered by cur. This is `ReuseSound` of the model, under the condition on
-bindings. At a hit, W is W_exit, out an exit state of the entry, with
+covered by cur. This is `ReuseSound` of the model restricted by the
+condition on bindings: without it the law fails for cvalue, since a block
+of W that out does not bind keeps its value of cur, while Eva reads it in
+out as uninitialized. The law as the model states it, for every W, cur and
+out, is therefore not claimed for cvalue. At a hit, W is W_exit, out an exit state of the entry, with
 support K ∪ W, and cur the input of the call: the condition holds.
 
 **Kind.** Argued in prose.
@@ -743,8 +748,10 @@ only blocks of R ⊆ K, so it takes the same path and reaches an exit in τ',
 which agrees with τ on W_sure; a block of W_exit \ W_sure is in the key, so
 it starts with the same value and ends with the same value: τ and τ' agree
 on W_exit. A block outside W_exit is not written by an execution that
-reaches an exit: τ agrees with σ outside W_exit; for a block outside W, this
-is the [frame lemma](frame.md#frame-lemma-without-sweeps). τ' is covered by
+reaches an exit: τ agrees with σ outside W_exit. The model's statement of
+this step is `ReuseModel.frame_of_not_written`, for a block issued at entry
+that no event of the trace writes; the block may be read. Its hypothesis
+that the block is issued at entry is not discharged here. τ' is covered by
 an exit state as supplied, by the Exit claim of the entry, which the
 supplier owes, and so by its projection o_i on K ∪ W (`filter` sound). So τ
 agrees on W_exit with a memory covered by o_i and outside W_exit with a
@@ -755,7 +762,10 @@ blocks of the exit state bound to a value that may contain the address of a
 local or formal variable (`Locals_scoping.offsetmap_contains_local`), so it
 covers every holder of such an address that the exit state describes; a
 holder outside W_exit keeps the value of s but stays in the set, which only
-widens the blocks that `leave_scope` examines after the call.
+widens the blocks that `leave_scope` examines after the call. A holder that
+only the caller's state describes is not found by this scan of the exit
+state; it is in the clobbered set of the caller's state only if the caller
+recorded it, and the argument that the result keeps it is not written.
 
 **Evidence.** Unit tests of `Cache_laws`:
 
@@ -774,6 +784,18 @@ state](#a-hit-takes-the-blocks-of-w_exit-from-the-exit-state).
 
 **Open.**
 
+- The law holds for cvalue only under the condition on bindings; the hit
+  supplies it through the check of the exit states by `supply`.
+- The step outside W_exit needs the block issued at entry, and the holders
+  described only by the caller's state need an argument that the result
+  keeps them in the clobbered set.
+- An unrolled recursive call reaches the lookup before the check that
+  refuses recursion on a miss. No fixture has a recursive function with a
+  supplied entry, and the argument above assumes one activation of the body.
+- R holds every read, so a block read only after it is surely overwritten
+  must still be in the key (`make` refuses the entry otherwise). The key is
+  then larger than the incoming values the body depends on. Sound; a finer
+  rule needs reads that depend on the incoming value to be told apart.
 - The hit theorem of the model
   ([issue #38](https://github.com/nyandrianinamamy/frama-c/issues/38)) and
   the agreement of the exit on W_exit

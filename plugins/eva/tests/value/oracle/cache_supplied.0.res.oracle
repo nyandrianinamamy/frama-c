@@ -25,40 +25,33 @@
 [eva:progress] cache_supplied.c:122: assertion 'hit_out' got status valid.
 [eva:progress] cache_supplied.c:123: assertion 'hit_g' got status valid.
 [eva:progress] cache_supplied.c:124: assertion 'hit_keep' got status valid.
+[eva:progress] cache_supplied.c:125: assertion 'hit_rest' got status valid.
 [eva:progress] 
   computing for function step <- main.
-  Called from cache_supplied.c:126.
+  Called from cache_supplied.c:127.
 [eva:show] cache_supplied.c:62: Frama_C_show_each_step: {1}, {5}
 [eva:progress] Recording results for step
 [eva:progress] Done for function step
-[eva:cache] cache_supplied.c:126: 
+[eva:cache] cache_supplied.c:127: 
   call to step: lookup: rejected (entry 1: key-differs); execution: analysed; storage: refused (supplied-only); collector: refused (builtin)
-[eva:show] cache_supplied.c:127: Frama_C_show_each_after_miss: {6}
-[eva:progress] cache_supplied.c:128: assertion 'miss' got status valid.
-[eva:cache] cache_supplied.c:130: 
+[eva:show] cache_supplied.c:128: Frama_C_show_each_after_miss: {6}
+[eva:progress] cache_supplied.c:129: assertion 'miss' got status valid.
+[eva:cache] cache_supplied.c:131: 
   call to set_out: lookup: hit (entry 2); execution: not-analysed; storage: none
-[eva:progress] cache_supplied.c:130: Reusing old results for call to set_out
-[eva:show] cache_supplied.c:131: Frama_C_show_each_after_frame: {7}, {42}
-[eva:progress] cache_supplied.c:132: assertion 'written' got status valid.
-[eva:progress] cache_supplied.c:133: assertion 'kept' got status valid.
-[eva:cache] cache_supplied.c:134: 
+[eva:progress] cache_supplied.c:131: Reusing old results for call to set_out
+[eva:show] cache_supplied.c:132: Frama_C_show_each_after_frame: {7}, {42}
+[eva:progress] cache_supplied.c:133: assertion 'written' got status valid.
+[eva:progress] cache_supplied.c:134: assertion 'kept' got status valid.
+[eva:cache] cache_supplied.c:135: 
   call to precise_first: lookup: hit (entry 3); execution: not-analysed; storage: none
-[eva:progress] cache_supplied.c:134: 
+[eva:progress] cache_supplied.c:135: 
   Reusing old results for call to precise_first
-[eva:show] cache_supplied.c:135: Frama_C_show_each_after_precise_first: {7}
-[eva:progress] cache_supplied.c:136: assertion 'older' got status valid.
-[eva:cache] cache_supplied.c:137: 
+[eva:show] cache_supplied.c:136: Frama_C_show_each_after_precise_first: {7}
+[eva:progress] cache_supplied.c:137: assertion 'older' got status valid.
+[eva:cache] cache_supplied.c:138: 
   call to wide_first: lookup: hit (entry 5); execution: not-analysed; storage: none
-[eva:progress] cache_supplied.c:137: Reusing old results for call to wide_first
-[eva:show] cache_supplied.c:138: Frama_C_show_each_after_wide_first: {7; 8}
-[eva:progress] 
-  computing for function plain <- main.
-  Called from cache_supplied.c:139.
-[eva:show] cache_supplied.c:82: Frama_C_show_each_plain: {1}
-[eva:progress] Recording results for plain
-[eva:progress] Done for function plain
-[eva:cache] cache_supplied.c:139: 
-  call to plain: lookup: no-candidate; execution: analysed; storage: refused (supplied-only); collector: refused (builtin)
+[eva:progress] cache_supplied.c:138: Reusing old results for call to wide_first
+[eva:show] cache_supplied.c:139: Frama_C_show_each_after_wide_first: {7; 8}
 [eva:progress] 
   computing for function plain <- main.
   Called from cache_supplied.c:140.
@@ -67,42 +60,50 @@
 [eva:progress] Done for function plain
 [eva:cache] cache_supplied.c:140: 
   call to plain: lookup: no-candidate; execution: analysed; storage: refused (supplied-only); collector: refused (builtin)
-[eva:cache] cache_supplied.c:142: 
+[eva:progress] 
+  computing for function plain <- main.
+  Called from cache_supplied.c:141.
+[eva:show] cache_supplied.c:82: Frama_C_show_each_plain: {1}
+[eva:progress] Recording results for plain
+[eva:progress] Done for function plain
+[eva:cache] cache_supplied.c:141: 
+  call to plain: lookup: no-candidate; execution: analysed; storage: refused (supplied-only); collector: refused (builtin)
+[eva:cache] cache_supplied.c:143: 
   call to loop_on_4: lookup: hit (entry 7); execution: not-analysed; storage: none
-[eva:progress] cache_supplied.c:142: Reusing old results for call to loop_on_4
-[eva:show] cache_supplied.c:143: Frama_C_show_each_after_loop_on_4: {4}, {3; 4}
-[eva:progress] cache_supplied.c:144: assertion 'loop_out' got status valid.
-[eva:cache] cache_supplied.c:146: 
+[eva:progress] cache_supplied.c:143: Reusing old results for call to loop_on_4
+[eva:show] cache_supplied.c:144: Frama_C_show_each_after_loop_on_4: {4}, {3; 4}
+[eva:progress] cache_supplied.c:145: assertion 'loop_out' got status valid.
+[eva:cache] cache_supplied.c:147: 
   call to write_then_spin: lookup: hit (entry 8); execution: not-analysed; storage: none
-[eva:progress] cache_supplied.c:146: 
+[eva:progress] cache_supplied.c:147: 
   Reusing old results for call to write_then_spin
-[eva:show] cache_supplied.c:147: 
+[eva:show] cache_supplied.c:148: 
   Frama_C_show_each_after_write_then_spin: {5}, {1}
-[eva:progress] cache_supplied.c:148: assertion 'spin_out' got status valid.
-[eva:progress] cache_supplied.c:149: assertion 'spin_b' got status valid.
-[eva:cache] cache_supplied.c:151: 
+[eva:progress] cache_supplied.c:149: assertion 'spin_out' got status valid.
+[eva:progress] cache_supplied.c:150: assertion 'spin_b' got status valid.
+[eva:cache] cache_supplied.c:152: 
   call to never_returns: lookup: hit (entry 9); execution: not-analysed; storage: none
-[eva:progress] cache_supplied.c:151: 
+[eva:progress] cache_supplied.c:152: 
   Reusing old results for call to never_returns
-[eva:cache] cache_supplied.c:154: 
+[eva:cache] cache_supplied.c:155: 
   call to twice: lookup: hit (entry 10); execution: not-analysed; storage: none
-[eva:progress] cache_supplied.c:154: Reusing old results for call to twice
-[eva:progress] cache_supplied.c:155: assertion 'returned' got status valid.
+[eva:progress] cache_supplied.c:155: Reusing old results for call to twice
+[eva:progress] cache_supplied.c:156: assertion 'returned' got status valid.
 [eva:progress] 
   computing for function twice <- main.
-  Called from cache_supplied.c:156.
+  Called from cache_supplied.c:157.
 [eva:progress] Recording results for twice
 [eva:progress] Done for function twice
-[eva:cache] cache_supplied.c:156: 
+[eva:cache] cache_supplied.c:157: 
   call to twice: lookup: rejected (entry 10: key-differs); execution: analysed; storage: refused (supplied-only); collector: would-store
-[eva:progress] cache_supplied.c:157: assertion 'analysed' got status valid.
-[eva:cache] cache_supplied.c:158: 
+[eva:progress] cache_supplied.c:158: assertion 'analysed' got status valid.
+[eva:cache] cache_supplied.c:159: 
   call to leak_address: lookup: hit (entry 11); execution: not-analysed; storage: none
-[eva:progress] cache_supplied.c:158: 
+[eva:progress] cache_supplied.c:159: 
   Reusing old results for call to leak_address
-[eva:locals-escaping] cache_supplied.c:158: Warning: 
+[eva:locals-escaping] cache_supplied.c:159: Warning: 
   locals {x} escaping the scope of leak_address through p
-[eva:progress] cache_supplied.c:159: assertion 'escaping' got status valid.
+[eva:progress] cache_supplied.c:160: assertion 'escaping' got status valid.
 [eva:progress] Recording results for main
 [eva:progress] Done for function main
 [eva:cache] 

@@ -73,7 +73,9 @@ module type Domain = sig
 
   (** [reuse w ~current_input ~previous_output] is [current_input] in which
       the blocks of [w] are taken from [previous_output]: it takes nothing
-      else from [previous_output]. *)
+      else from [previous_output]. [previous_output] must bind every block
+      of [w] that [current_input] binds: a block of [w] that it does not
+      bind keeps its value of [current_input]. *)
   val reuse : Base.Hptset.t -> current_input:t -> previous_output:t -> t
 end
 
