@@ -16,7 +16,7 @@
 [eva:progress] Recording results for step
 [eva:progress] Done for function step
 [eva:cache] cache_supplied.c:68: 
-  call to step: lookup: no-candidate; execution: analysed; storage: refused (disabled)
+  call to step: lookup: no-candidate; execution: analysed; storage: refused (disabled); collector: refused (builtin)
 [eva:show] cache_supplied.c:69: Frama_C_show_each_after_hit: {4}
 [eva:progress] cache_supplied.c:70: assertion 'hit' got status valid.
 [eva:progress] 
@@ -26,7 +26,7 @@
 [eva:progress] Recording results for step
 [eva:progress] Done for function step
 [eva:cache] cache_supplied.c:72: 
-  call to step: lookup: no-candidate; execution: analysed; storage: refused (disabled)
+  call to step: lookup: no-candidate; execution: analysed; storage: refused (disabled); collector: refused (builtin)
 [eva:show] cache_supplied.c:73: Frama_C_show_each_after_miss: {6}
 [eva:progress] cache_supplied.c:74: assertion 'miss' got status valid.
 [eva:progress] 
@@ -36,7 +36,7 @@
 [eva:progress] Recording results for set_out
 [eva:progress] Done for function set_out
 [eva:cache] cache_supplied.c:76: 
-  call to set_out: lookup: no-candidate; execution: analysed; storage: refused (disabled)
+  call to set_out: lookup: no-candidate; execution: analysed; storage: refused (disabled); collector: refused (builtin)
 [eva:show] cache_supplied.c:77: Frama_C_show_each_after_frame: {7}, {42}
 [eva:progress] cache_supplied.c:78: assertion 'written' got status valid.
 [eva:progress] cache_supplied.c:79: assertion 'kept' got status valid.
@@ -47,7 +47,7 @@
 [eva:progress] Recording results for precise_first
 [eva:progress] Done for function precise_first
 [eva:cache] cache_supplied.c:80: 
-  call to precise_first: lookup: no-candidate; execution: analysed; storage: refused (disabled)
+  call to precise_first: lookup: no-candidate; execution: analysed; storage: refused (disabled); collector: refused (builtin)
 [eva:show] cache_supplied.c:81: Frama_C_show_each_after_precise_first: {7}
 [eva:progress] cache_supplied.c:82: assertion 'older' got status valid.
 [eva:progress] 
@@ -57,7 +57,7 @@
 [eva:progress] Recording results for wide_first
 [eva:progress] Done for function wide_first
 [eva:cache] cache_supplied.c:83: 
-  call to wide_first: lookup: no-candidate; execution: analysed; storage: refused (disabled)
+  call to wide_first: lookup: no-candidate; execution: analysed; storage: refused (disabled); collector: refused (builtin)
 [eva:show] cache_supplied.c:84: Frama_C_show_each_after_wide_first: {7}
 [eva:progress] 
   computing for function plain <- main.
@@ -66,7 +66,7 @@
 [eva:progress] Recording results for plain
 [eva:progress] Done for function plain
 [eva:cache] cache_supplied.c:85: 
-  call to plain: lookup: no-candidate; execution: analysed; storage: refused (disabled)
+  call to plain: lookup: no-candidate; execution: analysed; storage: refused (disabled); collector: refused (builtin)
 [eva:progress] 
   computing for function plain <- main.
   Called from cache_supplied.c:86.
@@ -74,11 +74,11 @@
 [eva:progress] Recording results for plain
 [eva:progress] Done for function plain
 [eva:cache] cache_supplied.c:86: 
-  call to plain: lookup: no-candidate; execution: analysed; storage: refused (disabled)
+  call to plain: lookup: no-candidate; execution: analysed; storage: refused (disabled); collector: refused (builtin)
 [eva:progress] Recording results for main
 [eva:progress] Done for function main
 [eva:cache] 
-  call to main: lookup: no-candidate; execution: analysed; storage: refused (disabled)
+  call to main: lookup: no-candidate; execution: analysed; storage: refused (disabled); collector: refused (builtin)
 [eva] Warning: The scope plugin is missing: cannot remove redundant alarms.
 [kernel] entry of step: entry 1, body of step:
                    key: {g, x}

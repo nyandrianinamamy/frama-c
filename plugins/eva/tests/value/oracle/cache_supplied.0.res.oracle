@@ -21,7 +21,7 @@
 [eva:progress] Recording results for step
 [eva:progress] Done for function step
 [eva:cache] cache_supplied.c:72: 
-  call to step: lookup: rejected (entry 1: key-differs); execution: analysed; storage: refused (supplied-only)
+  call to step: lookup: rejected (entry 1: key-differs); execution: analysed; storage: refused (supplied-only); collector: refused (builtin)
 [eva:show] cache_supplied.c:73: Frama_C_show_each_after_miss: {6}
 [eva:progress] cache_supplied.c:74: assertion 'miss' got status valid.
 [eva:cache] cache_supplied.c:76: 
@@ -47,7 +47,7 @@
 [eva:progress] Recording results for plain
 [eva:progress] Done for function plain
 [eva:cache] cache_supplied.c:85: 
-  call to plain: lookup: no-candidate; execution: analysed; storage: refused (supplied-only)
+  call to plain: lookup: no-candidate; execution: analysed; storage: refused (supplied-only); collector: refused (builtin)
 [eva:progress] 
   computing for function plain <- main.
   Called from cache_supplied.c:86.
@@ -55,11 +55,11 @@
 [eva:progress] Recording results for plain
 [eva:progress] Done for function plain
 [eva:cache] cache_supplied.c:86: 
-  call to plain: lookup: no-candidate; execution: analysed; storage: refused (supplied-only)
+  call to plain: lookup: no-candidate; execution: analysed; storage: refused (supplied-only); collector: refused (builtin)
 [eva:progress] Recording results for main
 [eva:progress] Done for function main
 [eva:cache] 
-  call to main: lookup: no-candidate; execution: analysed; storage: refused (supplied-only)
+  call to main: lookup: no-candidate; execution: analysed; storage: refused (supplied-only); collector: refused (builtin)
 [eva] Warning: The scope plugin is missing: cannot remove redundant alarms.
 [kernel] entry of step: entry 1, body of step:
                    key: {g, x}
