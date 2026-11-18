@@ -135,7 +135,7 @@ included.
   commit, exit status 0; `#print axioms ReuseModel.frame_lemma` gives
   `[propext, Quot.sound]`, as above. CI on that tree is pending.
 - Rebuilt at tree `a84123b158f292d1debae406ac75950ee89cb87a` (commit
-  `d93780ab6119321dfa7aba74f571d6bced95fe4a`), which adds [entry
+  `b1fa74dbca1ca91aff261a5f268583c35d6c740f`), which adds [entry
   construction](entry.md). The files listed in the preceding rebuild are
   identical. Same command on an extraction of that commit on 2026-11-18,
   exit status 0. The axiom output is unchanged. CI on this tree is pending.

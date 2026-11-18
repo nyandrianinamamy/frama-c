@@ -143,7 +143,7 @@ and write set in this example. Enlarging the key to
 `R ∪ W_exit`, the parent spec's fallback, supplies no allocator agreement.
 
 **Evidence.** Tree of `lean/` `a84123b158f292d1debae406ac75950ee89cb87a`
-at commit `d93780ab6119321dfa7aba74f571d6bced95fe4a`. The command
+at commit `b1fa74dbca1ca91aff261a5f268583c35d6c740f`. The command
 `cd lean && lake build --wfail` exited 0 on 2026-11-18 on a `git archive`
 extraction with no build directory, using Lean 4.28.0, commit
 `7e01a1bf5c70`. The checked statements and axiom reports are printed by
@@ -305,7 +305,7 @@ of `p` in the pointer load and assertion fixtures.
 | `Checks.dead_destination_no_match` | The keyed contents agree, but the dead destination faults at the write. No stored witness agrees on its liveness. |
 | `Checks.nonpointer_load_reads_only_pointer` | An integer zero in the pointer slot causes a fault with a single read of block 1. |
 | `Checks.allocator_needed` | With the same key contents, a nested call can return different pointers. The fresh identifiers are 2 and 3. |
-| `Checks.prefix_writes_can_exceed_exit_writes` | The taken branch for `p = 1` writes `x` and faults. The normal exits for `p = 0` preserve the distinct initial values of `x` in the two memories. The producing exit cannot supply the current value on this footprint write. |
+| `Checks.prefix_writes_can_exceed_exit_writes` | The taken branch for `p = 1` writes `x` and has no normal exit. The normal exits for `p = 0` preserve the distinct initial values of `x` in the two memories. The producing exit cannot supply the current value on this footprint write. |
 
 **Declarations and statements.** The declarations are in
 [`lean/Checks/Entries.lean`](../../../lean/Checks/Entries.lean).

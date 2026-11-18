@@ -80,7 +80,7 @@ These are definitions. The claims below are about them.
   commit `10650b9502722d34a424e83c3ca380b611fc2031`, and succeeded
   ([run 44383251659](https://github.com/nyandrianinamamy/frama-c/actions/runs/44383251659)).
 - Rebuilt at tree `a84123b158f292d1debae406ac75950ee89cb87a` (commit
-  `d93780ab6119321dfa7aba74f571d6bced95fe4a`), which adds [entry
+  `b1fa74dbca1ca91aff261a5f268583c35d6c740f`), which adds [entry
   construction](entry.md). `ReuseModel/Domain.lean`, its imported
   definitions, and `Checks/Domains.lean` are identical. Same command on
   an extraction of that commit on 2026-11-18, exit status 0. The axiom
