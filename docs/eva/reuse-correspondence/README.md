@@ -15,8 +15,8 @@ Each entry states the claim and its scope, its kind, the claims it depends on,
 its evidence and any open obligation. The kinds, and the evidence each one
 needs:
 
-- **Proved in Lean.** The declaration, its statement and hypotheses, the checked
-  revision and the `#print axioms` output. Any custom axiom or `sorryAx` is
+- **Proved in Lean.** The declaration, its statement and hypotheses, the tree of
+  `lean/` that was checked and the `#print axioms` output. Any custom axiom or `sorryAx` is
   flagged.
 - **Argued in prose.** The reasoning, its premises, and pointers that let a
   reviewer check each step.
@@ -43,9 +43,14 @@ cd lean && lake build --wfail
 
 The build prints the axioms of each theorem named in
 `lean/Checks/Axioms.lean`. It fails if one of them depends on `sorryAx` or on an
-axiom other than `propext`, `Classical.choice` and `Quot.sound`. To check that a
-checkout has the model sources of an entry, compare `git rev-parse HEAD:lean`
-with the tree given in the entry.
+axiom other than `propext`, `Classical.choice` and `Quot.sound`.
+
+An entry identifies the checked model sources by the tree of `lean/`, the
+output of `git rev-parse HEAD:lean`. The tree is the citation of record: it
+stays the same when the history is rewritten or when a later commit changes no
+file of the model. A commit may be cited beside it for convenience. To check
+that a checkout has the model sources of an entry, compare
+`git rev-parse HEAD:lean` with the tree given in the entry.
 
 ## Topic files
 
