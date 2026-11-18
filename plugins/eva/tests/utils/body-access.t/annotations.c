@@ -216,3 +216,18 @@ struct pair typed = {1, 2};
 void invariants(void) {
   typed.left = 0;
 }
+
+int once_x, once_y, once_z;
+
+void once_category(void) {
+  //@ check once_x == 1;
+}
+
+void pointer_comparison(void) {
+  once_z = &once_x < &once_y;
+}
+
+void partial_unroll(void) {
+  for (once_x = 0; once_x < 3; ++once_x)
+    once_y = once_x;
+}

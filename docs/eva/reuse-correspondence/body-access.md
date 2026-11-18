@@ -244,7 +244,10 @@ includes alarms represented as assertions and predicates used to select
 active behaviors. Evaluation without a finite read bound gives R = Top and a
 clause-specific refusal. A value with unknown targets that is not loaded
 refuses as `footprint-top` and leaves R unchanged. A clause whose evaluation
-or transfer emits a message once refuses as `side-table` before the message.
+or transfer emits one of the messages printed with `~once:true` that the
+table below lists refuses as `side-table` before the message. A status
+message is not among them: it is admitted, also when its warning category
+has a `once` status.
 
 **Kind.** OCaml obligation.
 
@@ -412,12 +415,24 @@ refuse. This entry covers the clause evaluations that Eva actually performs.
 No regression executes `\valid_function`, `\aligned`, the string primitives
 other than `strlen` (`strchr`, `memchr`, `\valid_string`,
 `\valid_read_string` and their wide forms), `\freeable` at a label other
-than Here, `\tainted` and the taint status, or a `calls` annotation. The
-messages emitted once by the evaluation of C expressions and by helpers
-outside the audited files, such as the pointer comparison messages of
-`Cvalue_forward` and `Cvalue_backward`, are not classified; neither is the
-change of a warning category set to `once` by `-eva-warn-key`, which the
-logger records when the warning is emitted. A designated range covers the
+than Here, `\tainted` and the taint status, or a `calls` annotation. Logic
+`memchr` is unsupported by the evaluator and refuses through the
+unsupported-term message; `memchr_off` reaches the search primitive.
+
+The read of the emission history outside the listed clause messages is not
+refused. Three bodies of the fixture are stored while they emit such a
+message, and the fixture records it: `once_category` (a status message
+under `-eva-warn-key alarm=once`, which makes the category inactive for the
+later messages), `pointer_comparison` (the message of `Cvalue_forward`) and
+`partial_unroll` (the message of `Partition` on a loop not completely
+unrolled). The backward pointer comparison of `Cvalue_backward` and the
+message of a split on the returned value are in the same class, by source
+inspection. One observer in the logger, run before every message printed
+once or under a `once` category, was tried and withdrawn: the feedback
+"starting to merge loop iterations" is printed once, so every body with a
+merged loop refused. Refusing these reads, or showing them invariant
+within one analysis, belongs to the classification of ordered effects.
+A designated range covers the
 whole block when the offsets are unbounded, and every cell from the least
 to the greatest offset when they are strided, such as a field read across
 the elements of an array. Either can refuse a body that loads only part of

@@ -334,6 +334,29 @@ the states, and a false postcondition of a specification.
   $ grep '^call_false_leaf refuses' call_false_leaf.log
   call_false_leaf refuses contract, nested-call, side-table
 
+Not refused yet. A status message is not emitted once, but under a warning
+category set to `once` it decides whether the later messages of the category
+are printed. The evaluation of C expressions and partitioning also emit
+messages once. These bodies are still stored: the read of the emission
+history outside clause evaluation is left to the ticket on ordered effects.
+
+  $ clause once_category -eva-warn-key alarm=once
+  $ grep -c 'no further messages from category' once_category.log
+  1
+  $ grep '^once_category refuses' once_category.log
+  once_category refuses nothing
+  $ clause pointer_comparison -eva-msg-key pointer-comparison
+  $ grep -c 'invalid pointer comparison' pointer_comparison.log
+  1
+  $ grep '^pointer_comparison refuses' pointer_comparison.log
+  pointer_comparison refuses nothing
+  $ clause partial_unroll -eva-min-loop-unroll 1 \
+  >   -eva-warn-key loop-unroll:partial=active
+  $ grep -c 'loop not completely unrolled' partial_unroll.log
+  1
+  $ grep '^partial_unroll refuses' partial_unroll.log
+  partial_unroll refuses nothing
+
 The message on an inactive behavior is emitted at level 6 only.
 
   $ EVA_TEST_BODY_ACCESS=verbose frama-c -no-autoload-plugins \

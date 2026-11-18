@@ -123,6 +123,9 @@ let observe_annotations stack (r : Access.t) =
       if expected = [] then "nothing" else String.concat ", " expected
     in
     Format.printf "%s reads %s@." name shown
+  | "once_category" | "pointer_comparison" | "partial_unroll" ->
+    let shown = if r.refusals = [] then "nothing" else reasons r in
+    Format.printf "%s refuses %s@." name shown
   | name -> failwith ("unexpected body: " ^ name)
 
 let observe_blocks stack (result : Access.t) =
