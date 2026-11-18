@@ -195,10 +195,11 @@ the programs that the lemma, as stated for the record, is about.
   do not prevent it from reading the order or the repetitions:
   `Checks.closed_needs_extensional` gives a domain that meets them in which
   `[0]` is closed and `[0, 0]` is not. The law `Extensional` excludes such
-  domains. A type of sets with one representation per set would make the law
-  unnecessary, but Lean's core library has none, and keeping a list sorted
-  and without repetitions would add a proof obligation to each union, such
-  as the `relate` of a product. The match and product lemmas hold for every
+  domains. A type of sets with one representation per set, such as
+  `Std.ExtTreeSet`, would make the law unnecessary. The model keeps lists:
+  the existing files state membership, agreement and the frame lemma on
+  lists, and Eva's obligation is then visible as a law, not hidden in a
+  type. The match and product lemmas hold for every
   list and do not take the law. Under it, their hypotheses and conclusions
   are the same for every list with the members of the key: `closed_congr`,
   `decomposes_congr` and `exactOn_congr`, and `AgreeOn` uses membership
