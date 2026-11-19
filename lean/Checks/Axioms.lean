@@ -723,6 +723,18 @@ open ReuseModel ReuseModel.CacheEntry in
 #print axioms Checks.three_lines_join
 #check_axioms Checks.three_lines_join
 
+#check Checks.key_only_needs_states
+#print axioms Checks.key_only_needs_states
+#check_axioms Checks.key_only_needs_states
+
+#check Checks.key_inner_sound
+#print axioms Checks.key_inner_sound
+#check_axioms Checks.key_inner_sound
+
+#check Checks.key_only_answers
+#print axioms Checks.key_only_answers
+#check_axioms Checks.key_only_answers
+
 #check Checks.local_premises
 #print axioms Checks.local_premises
 #check_axioms Checks.local_premises

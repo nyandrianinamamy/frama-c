@@ -31,7 +31,9 @@ premise proved for every line of the log. A second program calls `f` at
 site 11 and then in a loop at site 16; its logs have three lines. Two lines
 on one callstack, and two lines whose callstacks end the callstack of the
 query with different lengths, are joined. A second entry, for the body of
-`h`, has an inner part with states on the key only. A second
+`h`, has an inner part with states on the key only. Checks on that kind of
+inner part for `f` show that its states must cover the producing visits,
+and that the rule for updated blocks reads the recorded list. A second
 statement, with a lexical local, has the case of a local of the body, which
 answers top. Two further checks pin definitions: the marks of the sweeps in
 the frame rule, and the end of a statement's execution in the visit after
@@ -914,6 +916,81 @@ theorem three_lines_join :
     (query_at_line threeLog_premises 16 7 5 .before hl₃).2 true 1 _ hq⟩
   rw [swept_int (valueOf_call 9 5).1, swept_int (valueOf_call 4 0).1,
     swept_int (valueOf_call 7 5).1]
+
+/-! ## Inner parts with states on the key only
+
+`CacheEntry.innerPartSound_of_key` has two premises: the states cover the
+producing visits on the key, and the footprint covers the writes. Coverage
+alone is not enough. The rule for updated blocks reads the recorded list:
+a block updated on every execution but not listed answers top. -/
+
+/-- The inner part with the state `state` at every point, the writes of the
+footprint of `queryEntry` as possible writes and no updated block. -/
+def keyOnlyInner (state : QueryPoint → predicates.State) : InnerPart predicates :=
+  ⟨state, fun _ => queryEntry.footprint.writes, fun _ => []⟩
+
+/-- Coverage without states that cover the producing visits: with a state
+recording only `x = 2` at every point, `queryEntry` meets `Coverage` and the
+key-only inner part does not meet `InnerPartSound`, since the producer
+visits `r = 0;` with `x = 1`. -/
+theorem key_only_needs_states :
+    queryEntry.Coverage ∧
+      ¬ queryEntry.InnerPartSound (keyOnlyInner fun _ m => load m 0 = some (.int 2)) := by
+  refine ⟨query_entry_premises.2.1, fun h => ?_⟩
+  obtain ⟨r, hr, hag⟩ := h.state (queryMem 4 3) (callState_queryMem 4 3) beforeWrite 5
+    (query_member_visits 4 3).1
+  have h0 := hag 0 (List.mem_append_right _ List.mem_cons_self)
+  change load r 0 = some (.int 2) at hr
+  rw [hr] at h0
+  exact absurd h0 (by decide)
+
+/-- The projection of `queryInner` on the key: at each point, the memories
+that agree on the key with a memory of the stored state. -/
+def keyInner : InnerPart predicates :=
+  keyOnlyInner fun q m => ∃ r, queryInner.state q r ∧ AgreeOn queryEntry.key r m
+
+/-- `CacheEntry.innerPartSound_of_key` with both premises: the states of
+`keyInner` cover the producing visits on the key, by `query_inner_sound`,
+and the footprint covers the writes. -/
+theorem key_inner_sound : queryEntry.InnerPartSound keyInner :=
+  CacheEntry.innerPartSound_of_key _ query_entry_premises.2.1 fun w hw q n hv => by
+    obtain ⟨r, hr, hag⟩ := query_inner_sound.state w hw q n hv
+    exact ⟨r, ⟨r, hr, fun _ _ => rfl⟩, fun b hb => hag b (List.mem_append_right _ hb)⟩
+
+/-- The line of a hit of `f` at `site` with the inner part `keyInner`. -/
+def keyLine (site : Label) (g r : Int) : HitLine predicates :=
+  ⟨[site], queryEntry, keyInner, callState g r, [0, 1, 2]⟩
+
+/-- The rule for updated blocks reads the list. At every producing visit
+after `r = 0;`, `r` has been updated, and `keyInner` does not list it: the
+query on `r` with the line `keyLine 16 9 5` answers top there, and also
+before the write, where the line of `queryInner` answers 5. The line meets
+the premises, and the key block `x` answers exactly 1. -/
+theorem key_only_answers :
+    (∀ w, queryEntry.input w → ∀ n,
+      AtPoint queryEntry.subject ⟨queryEntry.env, w⟩ afterWrite n →
+        2 ∈ updatedBlocks (trace queryEntry.subject ⟨queryEntry.env, w⟩ n).1) ∧
+    keyInner.updated afterWrite = [] ∧
+    LinePremises (keyLine 16 9 5) ∧
+    query true [keyLine 16 9 5] ⟨21, [3, 16], .after⟩ 2 = some ValueSet.top ∧
+    query true [keyLine 16 9 5] ⟨21, [3, 16], .before⟩ 2 = some ValueSet.top ∧
+    ∃ vs, query true [keyLine 16 9 5] ⟨21, [3, 16], .before⟩ 0 = some vs ∧
+      ∀ u, vs u ↔ u = some (.int 1) := by
+  refine ⟨fun w hw n hv => query_inner_sound.updated w hw afterWrite n hv 2 List.mem_cons_self,
+    rfl, ⟨query_entry_premises.1, query_entry_premises.2.1, query_entry_premises.2.2,
+      key_inner_sound, callState_issued 9 5⟩, rfl, rfl, ?_⟩
+  obtain ⟨vs, hq, -⟩ := query_some (enabled := true) (q := ⟨21, [3, 16], .before⟩)
+    (b := 0) (line := keyLine 16 9 5) List.mem_cons_self rfl rfl
+  refine ⟨vs, hq, fun u => ?_⟩
+  have hvs : some vs = some (predicates.valueOf (keyInner.state beforeWrite) 0) :=
+    hq.symm.trans rfl
+  cases hvs
+  constructor
+  · rintro ⟨m, ⟨r, hr, hag⟩, rfl⟩
+    rw [← hag 0 List.mem_cons_self]
+    exact (valueOf_inner.1 _).1 ⟨r, hr, rfl⟩
+  · rintro rfl
+    exact ⟨queryMem 4 3, ⟨queryMem 4 3, ⟨rfl, rfl, rfl⟩, fun _ _ => rfl⟩, rfl⟩
 
 /-! ## A local of the body
 
