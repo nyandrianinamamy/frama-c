@@ -81,7 +81,7 @@ let lexicographic comparisons =
     comparisons
 
 (* The count of a red context is not compared: the recorder adds up the
-   counts of equal red contexts. *)
+   counts of equal red contexts recorded in a row. *)
 let compare_write w1 w2 =
   match w1, w2 with
   | Emitted_alarm a1, Emitted_alarm a2 ->
@@ -111,7 +111,7 @@ let compare_write w1 w2 =
         (fun () -> compare_frames r1.frames r2.frames) ]
   | _ -> Int.compare (rank w1) (rank w2)
 
-module Writes = Map.Make (struct type t = write let compare = compare_write end)
+module Writes = Set.Make (struct type t = write let compare = compare_write end)
 
 (* ----- Printing ---------------------------------------------------------- *)
 
@@ -175,15 +175,14 @@ let pretty fmt = function
 
 (* The writes of a body called with [base], in the project [project],
    newest first. [changes] is the count of the changes of the current
-   project at the start of the recording. [seen] binds each write recorded
-   to the number of times it was made, which counts for red contexts
-   only. *)
+   project at the start of the recording. [seen] holds the alarms, statuses
+   and messages recorded. *)
 type recorder = {
   base : Callstack.t;
   project : Project.t;
   changes : int;
   mutable writes : write list;
-  mutable seen : int Writes.t;
+  mutable seen : Writes.t;
 }
 
 let current : recorder option ref = ref None
@@ -202,12 +201,7 @@ let capture base analyse =
   let output =
     Fun.protect analyse ~finally:(fun () -> current := previous)
   in
-  let with_count = function
-    | Red_context red as write ->
-      Red_context { red with count = Writes.find write r.seen }
-    | write -> write
-  in
-  let writes = List.rev_map with_count r.writes in
+  let writes = List.rev r.writes in
   Body_access.without_recording (fun () -> Hooks.apply (base, writes));
   output, writes
 
@@ -231,10 +225,14 @@ let relative (base : Callstack.t) (callstack : Callstack.t) =
       Some frames
     | _ -> None
 
-(* Records the write [make frames] made [count] times. A write made after a
-   change of the current project, in another project or back in the first
-   one, refuses the recording instead. *)
-let record ?(count = 1) make =
+(* Records the write [make frames]. An alarm, a status or a message equal to
+   one already recorded changes no table and prints nothing again: it is not
+   recorded. A red context runs the hooks of red statuses each time it is
+   set, so each one is recorded in its place in the sequence; it adds its
+   count to the previous write when that write is the same red context. A
+   write made after a change of the current project, in another project or
+   back in the first one, refuses the recording instead. *)
+let record make =
   match !current with
   | Some r when Body_access.is_recording () ->
     if Project.current_changes () <> r.changes
@@ -249,12 +247,17 @@ let record ?(count = 1) make =
       match frames with
       | None -> Body_access.refuse Side_table
       | Some frames ->
-        let write = make frames in
-        match Writes.find_opt write r.seen with
-        | None ->
-          r.seen <- Writes.add write count r.seen;
-          r.writes <- write :: r.writes
-        | Some n -> r.seen <- Writes.add write (n + count) r.seen
+        match make frames, r.writes with
+        | Red_context red as write, (Red_context last as previous) :: older
+          when compare_write write previous = 0 ->
+          let count = last.count + red.count in
+          r.writes <- Red_context { last with count } :: older
+        | (Red_context _ as write), _ -> r.writes <- write :: r.writes
+        | write, _ ->
+          if not (Writes.mem write r.seen) then begin
+            r.seen <- Writes.add write r.seen;
+            r.writes <- write :: r.writes
+          end
     end
   | _ -> ()
 
@@ -263,7 +266,7 @@ let record_alarm kinstr alarm status emitter =
       Emitted_alarm { kinstr; alarm; status; emitter; frames })
 
 let record_red_context ?(count = 1) kinstr target =
-  record ~count (fun frames -> Red_context { kinstr; target; count; frames })
+  record (fun frames -> Red_context { kinstr; target; count; frames })
 
 let emit_status emitter property status =
   record (fun frames ->

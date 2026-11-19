@@ -74,12 +74,17 @@ type write =
   (** The callstack of the write is among those in which [target] got a red
       status at [kinstr] (see {!Red_statuses}): at least one visit of the
       body in this callstack violates [target]. [count] is the number of
-      times the body set this red status in this callstack; the hooks of
-      {!Red_statuses} run once for each. *)
+      times the body set this red status in a row, with no other write
+      recorded between them; the hooks of {!Red_statuses} run once for
+      each. *)
 
-(** The writes of a body, each once, in the order of their first
-    emission. Two red contexts that differ only by their count are the same
-    write, whose count is the sum of theirs. *)
+(** The writes of a body, in the order of their emission. An alarm, a
+    status or a message is kept at its first emission only: a later equal
+    one changes no table, runs no hook and prints nothing. A red context is
+    kept at each emission, in its place among the other writes, since the
+    hooks of red statuses run each time: the hooks then run in the same
+    order relative to the messages as in the analysis of the body. The
+    table of red contexts keeps each callstack once. *)
 type t = write list
 
 val empty : t

@@ -25,7 +25,8 @@ type alarm_or_property = Safety_part.red_target =
     by {!register_hook} run [count] times. The two functions above call it
     with a count of 1, [add_red_property] twice for an instance of a
     precondition. A hit delivers the red contexts of its entry through it,
-    with the number of times the body set each one (see {!Safety_part}). *)
+    in the order in which the body set them, with the number of times the
+    body set each one in a row (see {!Safety_part}). *)
 val add_red_context: ?count:int -> kinstr -> alarm_or_property -> unit
 
 (** Folds over the alarms and properties that got a red status, with the

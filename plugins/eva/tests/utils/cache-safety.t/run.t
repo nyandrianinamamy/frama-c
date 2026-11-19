@@ -336,14 +336,15 @@ stops after it has emitted both, as with caching disabled.
 The hooks of red statuses run each time a red status is set. In loop.c,
 with -eva-slevel 10, the check mixed fails at two iterations of the loop of
 body(1, 0), and holds at the third. A red context is a callstack where at
-least one visit violates the property; the Safety part keeps one red
-context of mixed with a count of 2, and the hit runs the hooks twice. A
-hook that counts its calls is called as many times as with caching
-disabled.
+least one visit violates the property. The Safety part keeps the red
+context of mixed at each of the two failures, in its place among the
+other writes, and the hit runs the hooks twice. A hook that counts its
+calls is called as many times as with caching disabled.
 
   $ EVA_TEST_CACHE_SAFETY=replay-out EVA_TEST_CACHE_SAFETY_COUNT=red frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -main producer -eva-slevel 10 -eva-msg-key cache loop.c > loop.log 2>&1
   $ grep -E '^safety: red context|lookup: hit|^red hook calls' loop.log
-  safety: red context of property mixed at loop.c:9 (stmt 7), set 2 times, in the body
+  safety: red context of property mixed at loop.c:9 (stmt 7), in the body
+  safety: red context of property mixed at loop.c:9 (stmt 7), in the body
   safety: red context of alarm division_by_zero at loop.c:11 (stmt 11), in the body
     call to body: lookup: hit (entry 1); execution: not-analysed; storage: none
   red hook calls: 5
@@ -353,6 +354,57 @@ disabled.
   red hook calls: 5
   $ grep '^| ' loop-reference.log > loop-reference.summary
   $ diff loop.summary loop-reference.summary
+
+The hit runs the hooks of red statuses and prints the messages in the order
+of the analysis of the body. In abort-count.c, with -eva-slevel 10, the
+check mixed fails at the first two iterations of the loop of body(1, 0),
+and holds at the third. The first red context of mixed comes before the
+message of its invalid status, the second after it. With the category alarm
+set to abort, the analysis with caching disabled runs the hook once, then
+stops at that message; the hit at line 25 does the same. Before the red
+contexts were kept in order, the hit ran the hook twice before it stopped.
+
+  $ EVA_TEST_CACHE_SAFETY=replay-out EVA_TEST_CACHE_SAFETY_ALARM=abort EVA_TEST_CACHE_SAFETY_COUNT=red frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -main producer -eva-warn-key alarm=inactive -eva-slevel 10 -eva-msg-key cache abort-count.c > abort-count.log 2>&1
+  $ grep '^safety:' abort-count.log
+  safety: red context of property mixed at abort-count.c:10 (stmt 7), in the body
+  safety: status invalid of mixed, by Eva, in the body
+  safety: message "check 'mixed' got status invalid." at abort-count.c:10, for a status invalid, in the body
+  safety: red context of property mixed at abort-count.c:10 (stmt 7), in the body
+  safety: status valid of mixed, by Eva, in the body
+  safety: message "check 'mixed' got status valid." at abort-count.c:10, for a status valid, in the body
+  safety: red context of alarm division_by_zero at abort-count.c:12 (stmt 11), in the body
+  safety: alarm division_by_zero at abort-count.c:12 (stmt 11), status unknown by Eva, in the body
+  $ grep -E 'lookup: hit|^analysis aborted|^red hook calls' abort-count.log
+    call to body: lookup: hit (entry 1); execution: not-analysed; storage: none
+  analysis aborted
+  red hook calls: 1
+  $ grep '^| ' abort-count.log > abort-count.summary
+  $ EVA_TEST_CACHE_SAFETY=reference-out EVA_TEST_CACHE_SAFETY_ALARM=abort EVA_TEST_CACHE_SAFETY_COUNT=red frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -eva-slevel 10 abort-count.c > abort-count-reference.log 2>&1
+  $ grep -E '^analysis aborted|^red hook calls' abort-count-reference.log
+  analysis aborted
+  red hook calls: 1
+  $ grep '^| ' abort-count-reference.log > abort-count-reference.summary
+  $ diff abort-count.summary abort-count-reference.summary
+
+An alarm, a status or a message equal to one already recorded changes no
+table and prints nothing again, and is not recorded again. Red contexts set
+in a row, with no other write recorded between them, form one write with
+their number. In repeat.c, the check never fails at the three iterations of
+the loop: after the first, the status and the message are those already
+recorded, and the next two red contexts form one write. The hook runs three
+times, as with caching disabled.
+
+  $ EVA_TEST_CACHE_SAFETY=replay-out EVA_TEST_CACHE_SAFETY_COUNT=red frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -main producer -eva-slevel 10 -eva-msg-key cache repeat.c > repeat.log 2>&1
+  $ grep -E '^safety:|lookup: hit|^red hook calls' repeat.log
+  safety: red context of property never at repeat.c:8 (stmt 7), in the body
+  safety: status invalid of never, by Eva, in the body
+  safety: message "check 'never' got status invalid." at repeat.c:8, for a status invalid, in the body
+  safety: red context of property never at repeat.c:8 (stmt 7), set 2 times, in the body
+    call to body: lookup: hit (entry 1); execution: not-analysed; storage: none
+  red hook calls: 3
+  $ EVA_TEST_CACHE_SAFETY=reference-out EVA_TEST_CACHE_SAFETY_COUNT=red frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -eva-slevel 10 repeat.c > repeat-reference.log 2>&1
+  $ grep '^red hook calls' repeat-reference.log
+  red hook calls: 3
 
 An alarm already registered by another emitter keeps that emitter as its
 owner. Eva emits its status on the alarm and registers nothing of its own,
