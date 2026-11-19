@@ -590,9 +590,11 @@ audited at the lookup.
 `Alarmset.stop_at_nth_alarm`.
 
 **Argument.** `find` tests `cvalue_alone` first; it then takes the answers
-of the predicates of the parts once (`Cache_part.decide`), which is not a
-test, then tests `consumer_enabled`, then `stop_at_nth_alarm`, then
-`unaudited_clients`, then, while an analysis is in progress, whether its
+of the predicates of the readers of the statement states and of the parts
+once (`Cache_part.decide`, in two passes: the readers and `needed`, then
+`audited` for the parts whose consumer is enabled), which is not a test,
+then tests `consumer_enabled` by these answers, then `stop_at_nth_alarm`,
+then `unaudited_clients`, then, while an analysis is in progress, whether its
 computation state is `Computing`, then calls `Cache_entry.Make.find` with
 the check of the parts by the same answers; the first test that rejects
 gives its reason to every candidate. `Analysis.compute_from` runs

@@ -244,8 +244,24 @@ logging event would otherwise be admitted.
 - The collector's `Hook.Opaque.on_call` observer records `callback`
   before every wrapped invocation. Extra observers run only on those
   already refused invocations during a body.
+- The collector registers its observers of the kernel with `audited`:
+  those of `Hook.Opaque.on_call`, of `Origin.on_history_access`, of
+  `Log.on_history_access`, and of the reads of the metadata and the
+  updates of the validity of allocated blocks
+  (`Base.observe_metadata_reads`, `Base.observe_validity_updates`). The flag
+  concerns the lookup only. Outside a recording these observers refuse
+  nothing and write only in the counters of the collector; the observers of
+  `Base` are installed while a body is recorded and run the observer that
+  they replaced. A hit can run two of them: the observer of `Hook.Opaque`,
+  through the client of the server on the annotations, and the observer of
+  the metadata, through the check of the preconditions. No other client of
+  the tree uses the flag; at the lookup, any client registered without it
+  rejects every supplied candidate with `callback`
+  ([Safety at a hit](safety.md#a-hit-runs-no-client-that-is-not-audited)).
 - `Body_access.on_result` runs with recording suspended, after the
-  observed body finishes.
+  observed body finishes. A hit runs none of its observers; one registered
+  without `audited` rejects every supplied candidate with `callback`, as
+  does an observer of `Safety_part.on_result` registered without it.
 
 These refusals concern the clients invoked during a body. At the lookup,
 a client that is not audited, registered at any time before the lookup on
@@ -253,8 +269,10 @@ one of the hooks a hit runs, rejects every supplied entry with `callback`,
 so that no such client runs during a hit. The hooks on the removal of a
 property are not among them: the lookup tests the hooks on a new property
 and on a new status only, the kernel itself registers a removal hook, and
-such a client refuses only when it is invoked during a recording. Whether
-a delivery can remove a property is not examined here (open)
+such a client refuses only when it is invoked during a recording. Neither
+a hit nor the analysis of a body removes a property: the removals of the
+tree run when Eva exports its results and when the table of alarms of an
+emitter is cleared, outside a call
 ([Safety at a hit](safety.md#a-hit-runs-no-client-that-is-not-audited)).
 
 `Traces_domain.Node.next` refuses whenever a trace node identity is

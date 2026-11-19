@@ -247,8 +247,9 @@ results hooks with `` `Reuse N `` as before and restores no part.
 **Depends on.** [A candidate that lacks a needed part is
 rejected](#a-candidate-that-lacks-a-needed-part-is-rejected).
 
-**Symbols.** `Call_cache.Make.lookup` (`Hit` with `Some parts` for a
-supplied entry, `None` for memexec), `Supplied_entries.Lookup.find`,
+**Symbols.** `Call_cache.Make.lookup` (`Hit` with the source
+`Supplied_entry (entry, restoration)` for a supplied entry, `Legacy_trace`
+for memexec), `Supplied_entries.Lookup.find`,
 `Compute_functions.Make.compute_and_cache_call`, `Cache_part.restore`,
 `Safety_delivery.deliver`, `Safety_delivery.delivered`,
 `Body_access.without_recording`.
@@ -315,18 +316,26 @@ functions `register_call_hook` and `register_audited_call_hook`; in Eva,
 **Argument (source inspection).** The predicates `needed` and `audited` of
 the parts are client code. Each lookup with candidates evaluates them once,
 with `Cache_part.decide`, before its tests of `consumer` and of the
-clients: `needed` for every registered part, `audited` for those whose
-`needed` holds. `Cache_part.unaudited_clients` holds, by these answers,
+clients, in two passes: first the predicates of the readers of the
+statement states and `needed` for every registered part, then `audited`
+for the parts whose `needed` holds. A lookup that rejects its candidates
+with `product` evaluates none. `Cache_part.unaudited_clients` holds, by
+these answers,
 when a part is needed and not audited, or when a part was registered since
 the answers were taken; `audited` defaults to never.
 `Supplied_entries.unaudited_clients` includes it, and `find` tests it with
 the other hooks, before it examines the candidates. The check of the parts
 of each candidate (`missing-part`) and the selection of the parts that the
 hit restores use the same answers: no predicate runs between the test and
-the end of the delivery, and a client that a predicate registers on a hook
-that the lookup tests is seen by the test of the same lookup.
-`cache_part.mli` states the contract of a predicate: it returns a result,
-registers nothing and writes in no table of the analysis or of the kernel.
+the end of the delivery. A client that a predicate of the first pass
+registers on a hook that the lookup tests, or on the hook of Inout, whose
+clients the predicate `audited` of the part of Inout tests, is seen by the
+audits and by the test of the same lookup; a part that it registers makes
+this lookup reject its candidates with `callback`. A function `audited`
+that registers a client is outside the contract: the audits asked before
+it do not see the client. `cache_part.mli` states the contract of a
+predicate: it returns a result, registers nothing and writes in no table of
+the analysis or of the kernel.
 The predicates of From and Inout read an option and a flag of Inout. The
 restoration of From checks the assigns clauses under
 `-from-verify-assigns`, which emits statuses and messages whose hooks the
@@ -366,6 +375,28 @@ with candidates. Before the answers were taken once, both gave `hits 1,
 rejected for callback 6`, one call with `` `Reuse `` and 3 evaluations: the
 predicate ran in the test, in the check of the parts and in the
 restoration of the first hit.
+
+The same scenario with `EVA_TEST_CACHE_PARTS_CLIENT=inout`: the predicate
+`needed` of the part of the test, registered after those of From and Inout,
+registers a client of the hook of Inout through `register_call_hook` at its
+first evaluation. The three calls to `copy` read `callback` for each
+candidate (`copy: hits 0, rejected for callback 9`), and the client is
+called 0 times after a hit. With `EVA_TEST_CACHE_PARTS_CARRIER=reader`, the
+predicate of a reader of the statement states registers the client, with
+the same results. At `3f54601636`, where `decide` asked `audited` of each
+part right after its `needed`, and the readers after the parts, both gave
+`copy: hits 1, rejected for callback 6`, and the client was called 10 times
+after the hit. With `EVA_TEST_CACHE_PARTS_CLIENT=part`, the predicate
+registers a part, never needed, at its first evaluation: the first call to
+`copy` rejects its three candidates with `callback` and the next two hit
+(`copy: hits 2, rejected for callback 3`). Mutations, each applied alone to
+`b37d163154` and reverted: with `decide` in one pass, the scenario with the
+client of Inout registered by `needed` gives `hits 1, rejected for callback
+6` and 10 calls of the client; with the readers evaluated after the audits,
+the scenario with the reader gives the same; with the count of the parts in
+`Cache_part.unaudited_clients` compared with itself (the field stays used,
+as warning 69 requires), the scenario with a registered part gives `copy:
+hits 3, rejected for callback 0`.
 
 ## A candidate that lacks a needed part is rejected
 
@@ -717,7 +748,7 @@ candidates to the examination of each one.
 
 **Depends on.** None.
 
-**Symbols.** `Cache_part.register_state_reader`,
+**Symbols.** `Cache_part.register_state_reader`, `Cache_part.decide`,
 `Cache_part.reads_statement_states`, `Cache_part.requesting_plugins`,
 `Supplied_entries.consumer_enabled`, `From_register` (reader `from`),
 `Functionwise.To_Use`,
@@ -730,7 +761,9 @@ and, at a call, from the results by function of the called function. A hit
 saves no state at the statements of the called function: the function looks
 unreachable, and the results of its callers inherit this at their calls.
 `consumer_enabled` tests the readers declared by the options and the
-presence of the plug-ins by name, before any candidate is examined. Pdg,
+presence of the plug-ins by name, before any candidate is examined: the
+lookup evaluates the predicates of the readers once, in the first pass of
+`Cache_part.decide`, with the predicates `needed` of the parts. Pdg,
 Reduc and Studia depend on Inout and request these results or read the
 saved states. The rule is by dependency: Impact, Scope, Security-slicing,
 Slicing and Sparecode link the library of Pdg, and loading any of them

@@ -90,10 +90,14 @@ type footprint = Cache_entry.footprint = {
     of the body with the settings in force at each hit on the entry. The
     caller owes that these settings are equal in the analysis that produced
     the entry and in the analysis that uses it, at the call that produced
-    the entry and at each hit. The caller also owes that the formatter and
-    the history test of the logger are those of the kernel, or replacements
-    that do not act on the analysis: they are not registrations, and the
-    lookup does not see them. The settings are:
+    the entry and at each hit. The caller also owes that the formatter, the
+    history test and the output sinks of the logger, and the printers of
+    the AST ([Printer.update_printer], the printing references of [Cil] and
+    [Cil_datatype], the printers of [Acsl_extension]) are those of the
+    kernel and of the plug-ins of the tree, or replacements that do not act
+    on the analysis: they are not registrations, and the lookup does not
+    see them. A hit and an analysis of the body print other lines with
+    them. The settings are:
     - the options of the kernel and of Eva that decide which alarms and
       statuses are emitted, such as the [-warn-*] options of the kernel
       ([-warn-signed-overflow] for instance) and the [-eva-warn-*] options

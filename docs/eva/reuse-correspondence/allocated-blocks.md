@@ -359,7 +359,11 @@ one is kept. Without recorder and without other client, and with
 `-eva-no-cache-collect`, an accessor tests one reference and calls no
 function. A client that restores an observer of the collector it had
 replaced leaves it installed while no recorder is set: it then forwards
-and records nothing.
+and records nothing. The collector installs its observers with `audited`;
+an observer installed by another client without it makes every later
+lookup reject the supplied candidates with `callback`
+(`Base.has_unaudited_observers`,
+[Safety at a hit](safety.md#a-hit-runs-no-client-that-is-not-audited)).
 
 A change of the observers by another client while a recorder is set may
 hide an event from the collector, whether or not the client forwards or
@@ -641,7 +645,7 @@ Eva:
 | `Body_access.capture` | computation of W_exit and W_sure; observers of the result | the collector's own work; observers must not change the analysis | inspected |
 | `Body_access.check_written` | contents of the written blocks | refusals and owners added explicitly | regression: `contents.c` |
 | `Cvalue_callbacks.run_hook` | call hooks | an unclassified hook refuses with `callback`; the classified protocols do not change the analysis of the body | inspected; executed in [`body-access.t`](../../../plugins/eva/tests/utils/body-access.t/run.t) |
-| `Iterator` | `Async.yield` | no analysis | inspected |
+| `Iterator` | `Async.yield` | no analysis; a hit does not yield, and while a daemon is registered the lookup rejects every supplied candidate with `callback` | inspected; executed in [`cache-safety.t`](../../../plugins/eva/tests/utils/cache-safety.t/run.t) (client `daemon`) |
 
 The operations of the cache run outside the observation of the caller
 because memexec is not the cache of this effort. The matching, the

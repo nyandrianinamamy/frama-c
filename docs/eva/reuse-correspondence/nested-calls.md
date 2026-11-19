@@ -100,11 +100,14 @@ sweep, hint and watchpoint checks and the comparison of the warning
 categories (`warn-categories`), after the rejections of every candidate
 (`product`, `consumer`, `stop-at-nth-alarm`, `callback`) of
 [Safety at a hit](safety.md#a-hit-runs-no-client-that-is-not-audited).
-For matching entries that pass those checks, lookup inspects the subject's
-AST for direct and indirect call instructions, including calls in local
-initializers. `supply_produced` takes any produced entry; `supply` refuses
-an entry for a body that may call a function with a body before any lookup,
-and supplies the others. The presence of a call gives `nested-delivery`
+A matching entry that lacks a part whose consumer is enabled is rejected
+before the admission, with `missing-part`: this is the case of an entry of
+a body that executed a call while From or Inout is enabled, since they give
+no part for such a call. For matching entries that pass those checks,
+lookup inspects the subject's AST for direct and indirect call
+instructions, including calls in local initializers. `supply_produced`
+takes any produced entry; `supply` refuses an entry for a body that may
+call a function with a body before any lookup, and supplies the others. The presence of a call gives `nested-delivery`
 regardless of child references or the observed call trace. Direct
 `Frama_C_show_each*` and `Frama_C_domain_show_each*` calls are leaf
 displays, which hand-supplied fixtures use to show whether the body ran.
