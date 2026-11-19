@@ -371,11 +371,12 @@ annotations in `Partition`.
 A level-6 result reads the history only when that level is shown, so the
 refusal is conditional on it. A status message accompanies a status
 emission that the observation records as `Statuses`. The message is part of
-the Safety part of the body: a hit prints it again through the logger, at
-its position and with the callstack of the hit, so that the action of its
-category applies. The logger removes it as a duplicate when it has printed
-the same text, of the same kind, at the same position before, as it does
-for an analysed call
+the Safety part of the body, at each of its emissions: a hit prints each
+occurrence again through the logger, at its position and with the
+callstack of the hit, so that the action of its category applies. The
+logger removes an occurrence as a duplicate when it has printed the same
+text, of the same kind, at the same position before, as it does for an
+analysed call
 ([Safety at a hit](safety.md#a-hit-delivers-the-safety-part-as-recorded-joins)).
 Since the hit makes this read of the history again, the collector admits
 it (`Body_access.replayed_message`), unless the category prints its
@@ -463,11 +464,13 @@ notification. The admitted per-event accesses are Eva's `partition` and
 `locals-escaping` warning (a stable event already in the once history on
 a matching sweep hit). See [ordered effects](collector-effects.md#ordered-and-opaque-effects)
 for the conditions, callback rules and remaining obligations.
-A hit prints the message of a status again, and none of the other
+A hit prints the messages of the statuses again, and none of the other
 messages of the body: neither the admitted ones nor those of a category
-inactive at the producing call. The lookup rejects an entry when the
-status of a warning category differs from its status when the analysis of
-the body started
+inactive at the producing call. A listener of the logger would see the
+difference, and rejects every entry while it is registered
+([A hit runs no client that is not audited](safety.md#a-hit-runs-no-client-that-is-not-audited)).
+The lookup rejects an entry when the status of a warning category differs
+from its status when the analysis of the body started
 ([The settings that decide the alarms and messages are those of each hit](safety.md#the-settings-that-decide-the-alarms-and-messages-are-those-of-each-hit)).
 
 A designated range covers the

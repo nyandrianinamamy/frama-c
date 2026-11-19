@@ -195,9 +195,10 @@ an escaping local is identified by scope, target, holder and source
 position. It has no callstack text. For the admitting sweep path the
 holder binding is recorded, and re-emission of the same event within the
 analysis is suppressed by the same logger history. The message of a
-status of the body is also admitted: the Safety part records it, and a hit
-prints it again through the logger, which makes the per-message test
-again at the hit ([Safety at a hit](safety.md#a-hit-delivers-the-safety-part-as-recorded-joins)).
+status of the body is also admitted: the Safety part records it at each
+emission, and a hit prints each occurrence again through the logger,
+which makes the per-message test again at the hit
+([Safety at a hit](safety.md#a-hit-delivers-the-safety-part-as-recorded-joins)).
 These exceptions apply to the per-message history only. A warning promoted
 to an error or using a once category is outside that exception.
 
@@ -210,22 +211,26 @@ logging event would otherwise be admitted.
   `Log.on_history_access`. Ordinary subscribers invoke `Hook.Opaque` and
   refuse with `callback`.
 - The standard kernel message collector is the only audited listener
-  registered with `Log.add_listener`. Other listeners refuse with
-  `callback`.
+  registered with `Log.add_listener`. The error flag of the parser
+  (`Errorloc.set_error`) is the only audited listener registered with the
+  `register` function of a plug-in's logger: each reader of the flag
+  clears it before the phase whose errors it tests. Other listeners, of
+  either function, refuse with `callback`.
 - Any client of the kernel message-list hook `Messages.add_hook` refuses
   with `callback`, including a client of the audited message collector.
 - Any client of `Annotations.add_hook_on_change` refuses with `callback`.
   The server's listener is a no-op without a server. Auditing it is
   deferred. The reviewed suite comparison attributed 160 lost would-store
   verdicts and 153 lost produced entries to callback refusals, measured
-  before the admission of the clients of red status hooks and of the
-  messages of statuses.
+  before the admission of the messages of statuses; the clients of red
+  status hooks were refused then, as they are again.
 - Any client of the `Property_status` add, remove and status-update hooks
   refuses with `callback`.
-- A client of `Red_statuses.register_hook` is not refused: a hit delivers
-  the red contexts of its entry, which runs the hook as many times as the
-  analysis of the body did
-  ([Safety at a hit](safety.md#a-hit-delivers-the-safety-part-as-recorded-joins)).
+- Any client of `Red_statuses.register_hook` refuses with `callback`.
+  An earlier version of the Safety part admitted these clients, since a
+  hit runs the hook again. A client that adds a red status of its own, or
+  that does so only in the analysis that produced an entry, still tells a
+  hit from an analysis of the body, and the refusal was restored.
 - The `Cvalue_callbacks` call, call-result and statement hooks admit
   audited clients only through the existing cache protocols and classified
   callbacks that account for their effects. Each unclassified client
@@ -236,6 +241,12 @@ logging event would otherwise be admitted.
 - `Body_access.on_result` runs with recording suspended, after the
   observed body finishes.
 
+These refusals concern the clients invoked during a body. At the lookup,
+a client of any of these hooks that is not audited, registered at any
+time before the lookup, rejects every supplied entry with `callback`, so
+that no such client runs during a hit
+([Safety at a hit](safety.md#a-hit-runs-no-client-that-is-not-audited)).
+
 `Traces_domain.Node.next` refuses whenever a trace node identity is
 allocated in a recording.
 
@@ -244,20 +255,19 @@ before statement transfer, an active watch during transfer and two
 lookup refusals after a watch is installed in another project. It also
 checks a state dump, a file dump and its first numbered file, trace-node
 allocation, an unclassified logger listener, and red and history
-clients that run once each: the body of the red client would store, and
-the history client causes production to refuse. With
+clients that run once each: each body is refused with `callback`, and no
+entry is produced. With
 collection disabled, the threshold-raising listener lets Eva finish
 with memexec enabled or disabled. `body-access.t` checks a registered
 call callback, an interrupted alarm checkpoint, an isolated once-category
 notification, pointer comparisons, partial unrolling and the previously
 instrumented ACSL messages.
 
-**Open.** The refusal is based on instrumented accesses. Later cache
-consumption must account for hook configuration changes between
-production and use and for extensions outside these hook interfaces. The
+**Open.** The refusal is based on instrumented accesses. A client
+registered between the production and the use of an entry rejects it at
+the lookup; extensions outside these hook interfaces are not covered. The
 lookup rejects an entry when the status of a warning category changed
-before it; when a hook that a hit runs changes one after the lookup, the
-analysis stops after the delivery
+before it
 ([Safety at a hit](safety.md#the-settings-that-decide-the-alarms-and-messages-are-those-of-each-hit)).
 Effects whose normal replay belongs to Safety or Reach remain the
 responsibility of those parts. An interrupted body has no

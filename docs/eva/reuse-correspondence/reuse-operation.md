@@ -545,10 +545,12 @@ Inout, From, Nonterm, Metrics, Markdown report (`mdr`), WP or constant
 propagation (`scf`) plug-in is loaded, or the analysis of threads is
 enabled, every supplied candidate is rejected with `consumer`. Otherwise,
 when `-eva-stop-at-nth-alarm` is set, every supplied candidate is rejected
-with `stop-at-nth-alarm`. In each case the body is analysed. `product` takes
-precedence over `consumer`, `consumer` over `stop-at-nth-alarm`, and all
-three over the examination of each candidate (`key-differs`,
-`key-unclosed`).
+with `stop-at-nth-alarm`. Otherwise, when a client that is not audited is
+registered on a hook that a hit runs, every supplied candidate is rejected
+with `callback`. In each case the body is analysed. `product` takes
+precedence over `consumer`, `consumer` over `stop-at-nth-alarm`, that over
+`callback`, and all four over the examination of each candidate
+(`key-differs`, `key-unclosed`).
 
 **Kind.** OCaml obligation.
 
@@ -556,11 +558,13 @@ three over the examination of each candidate (`key-differs`,
 
 **Symbols.** `Supplied_entries.Lookup.cvalue_alone`,
 `Supplied_entries.consumer_enabled`, `Supplied_entries.state_readers`,
-`Supplied_entries.stop_at_nth_alarm`, `Supplied_entries.Lookup.find`,
+`Supplied_entries.stop_at_nth_alarm`, `Supplied_entries.unaudited_clients`,
+`Supplied_entries.Lookup.find`,
 `Alarmset.deliver`, `Alarmset.stop_at_nth_alarm`.
 
 **Argument.** `find` tests `cvalue_alone` first, then `consumer_enabled`,
-then `stop_at_nth_alarm`, then calls `Cache_entry.Make.find`; the first test
+then `stop_at_nth_alarm`, then `unaudited_clients`, then calls
+`Cache_entry.Make.find`; the first test
 that rejects gives its reason to every candidate. `cvalue_alone` is defined
 only when the structure of the product is a single leaf whose key is the key
 of `Cvalue_domain.State`; the key comparison gives an equality between the
@@ -585,7 +589,8 @@ The third test is needed because a fresh evaluation registers every alarm of
 an evaluation before `Alarmset.stop_at_nth_alarm` tests the threshold,
 whereas a hit delivers its alarms one by one and does not know the
 evaluations they came from; `Alarmset.deliver` no longer tests the
-threshold.
+threshold. The fourth test is argued in
+[A hit runs no client that is not audited](safety.md#a-hit-runs-no-client-that-is-not-audited).
 
 **Evidence.** Executed by run 0: the default product is a single cvalue leaf,
 and the calls hit. Run 1, with `-eva-domains cvalue,sign`: every call to a
@@ -602,14 +607,17 @@ with Nonterm or with Metrics loaded, the calls read
 `cache-rejected-stop-at-nth-alarm` is 1, and the analysis stops after the two
 alarms of the division at line 7, as with caching disabled; before the
 rejection, the hit delivered the division alarm and the analysis stopped
-before the overflow alarm. The rejection when the Markdown report, WP or the
-constant propagation is loaded, and the precedences, rest on source
-inspection: no run enables two reasons.
+before the overflow alarm. The rejection with `callback` is executed in
+`cache-safety.t`, one client of each hook at a time. The rejection when the
+Markdown report, WP or the constant propagation is loaded, and the
+precedences, rest on source inspection: no run enables two reasons.
 
-**Open.** A plug-in outside the tree that registers a results hook and reads
-`` `Reuse N ``, or that reads the states saved at statements, is not
-detected; the list of plug-ins that read these states comes from a sweep of
-the tree at this revision. The registration of parts that will let Inout
+**Open.** A plug-in outside the tree that registers a results hook with
+`cache_protocol` and reads `` `Reuse N ``, or that reads the states saved
+at statements, is not detected; a results hook registered without
+`cache_protocol` rejects every candidate with `callback`. The list of
+plug-ins that read these states comes from a sweep of the tree at this
+revision. The registration of parts that will let Inout
 and From be served by an entry is
 [issue #53](https://github.com/nyandrianinamamy/frama-c/issues/53).
 
