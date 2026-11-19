@@ -361,7 +361,10 @@ Studia are named, and a plug-in that loads one of them is covered by it.
 Impact, Scope, Security-slicing, Slicing and Sparecode all load Pdg, and
 Dive loads Studia; Slicing and Dive are tested here. Occurrence reads the
 states saved at the statements, and drops an access whose address is not
-precise: loaded, it rejects every candidate too.
+precise: loaded, it rejects every candidate too. So do the other plug-ins
+that read these states and are not shown to conclude soundly from the top
+state: Nonterm, Metrics, the constant propagation, WP and the Markdown
+report.
 
   $ EVA_TEST_CACHE_PARTS=readers frama-c -no-autoload-plugins -load-module eva,from,inout,pdg,test_cache_parts.cmxs parts.c > pdg.log 2>&1
   $ EVA_TEST_CACHE_PARTS=readers frama-c -no-autoload-plugins -load-module eva,from,inout,reduc,test_cache_parts.cmxs parts.c > reduc.log 2>&1
@@ -376,6 +379,12 @@ precise: loaded, it rejects every candidate too.
   slicing.log:hits 0, rejected for consumer 15
   dive.log:hits 0, rejected for consumer 15
   occurrence.log:hits 0, rejected for consumer 15
+  $ for m in nonterm metrics constant_propagation wp markdown-report,markdown-report.eva-info; do EVA_TEST_CACHE_PARTS=readers frama-c -no-autoload-plugins -load-module eva,from,inout,$m,test_cache_parts.cmxs parts.c > reader.log 2>&1; echo "$m: $(grep '^hits' reader.log)"; done
+  nonterm: hits 0, rejected for consumer 15
+  metrics: hits 0, rejected for consumer 15
+  constant_propagation: hits 0, rejected for consumer 15
+  wp: hits 0, rejected for consumer 15
+  markdown-report,markdown-report.eva-info: hits 0, rejected for consumer 15
 
 The name of a part is its key: registering a second part named as a
 registered one is refused.
