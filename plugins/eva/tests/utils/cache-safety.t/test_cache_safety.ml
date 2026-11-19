@@ -371,7 +371,9 @@ let crossing_reference () =
 (* Runs [analyse] in a hook of the change of the current project, to a copy
    of the first project. The kernel runs no hook of the change of project
    for a change made during such a hook. The first time it runs, a hook of
-   red statuses enters the first project with Project.on, and leaves it. *)
+   red statuses enters the first project with Project.on, and leaves it.
+   Then prints the number of statuses and red contexts of the first
+   project. *)
 let reentrant analyse () =
   let first = Project.current () in
   let other = Project.create_by_copy ~last:false "other" in
@@ -389,7 +391,10 @@ let reentrant analyse () =
             end);
         analyse ()
       end);
-  Project.set_current other
+  Project.set_current other;
+  Project.on first (fun () ->
+      Format.printf "| first project: %d statuses, %d red contexts@."
+        (List.length (statuses ())) (List.length (red_contexts ()))) ()
 
 (* In the copy, an analysis from producer, then an analysis from main with
    the entries of [body] that the first one stored. *)
