@@ -118,6 +118,14 @@ of `child` as frame. With the recording of the points removed from
 `register_state` (a mutation, reverted), the part has no point, and the
 comparison of the hit with caching disabled fails.
 
+Over the Eva ptests with collection (`dev/collector-counts.sh`), the
+collector would store 890 bodies and the producer produces 877 entries, as
+before the Reach part. With the recorder disabled (a mutation of
+`Reach_part.with_recorder`, reverted), every count of refusals by reason is
+the same: no body is refused for its Reach part alone. On the analysis of
+`tests/mopsa/cjson.t` with `-eva-slevel 4`, five runs take a median of
+4.14 s and 177 MB with the recorder, and 4.06 s and 175.6 MB without it.
+
 **Open.**
 
 - The Reach part of a body with a call is incomplete, and no hit delivers
