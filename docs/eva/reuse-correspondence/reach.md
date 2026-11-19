@@ -382,19 +382,22 @@ Each of these checks fails with one change, reverted after the run:
 - A hit delivers no analysis status for the functions called below the
   body ([issue #51](https://github.com/nyandrianinamamy/frama-c/issues/51)).
 - The frames of the delivered writes are not checked: with
-  `Reach_part.reroot` changed to drop them, no fixture fails, since no hit
-  delivers a write with frames while the lookup rejects every body with a
-  call (`nested-delivery`,
-  [issue #50](https://github.com/nyandrianinamamy/frama-c/issues/50)). The
-  check is not run; it is left to issue #51, with the delivery of the writes
+  `Reach_part.reroot` changed to drop them (a mutation run on the cram tests
+  of `plugins/eva/tests/utils`), no test fails, since no hit delivers a
+  write with frames while the lookup rejects every body with a call
+  (`nested-delivery`,
+  [issue #50](https://github.com/nyandrianinamamy/frama-c/issues/50)). A
+  check that fails is left to issue #51, with the delivery of the writes
   below the body.
 - An entry supplied by hand without a Reach part is admitted where the
   states of the function are saved: the passes draw no conclusion in its
   function (`reach_unknown`), but the guard outcomes, the zones, the call
   sites and the callstacks of the statements of the function lack those of
-  the hit. Only test modules supply such entries (the ptests `cache_supplied`
-  and the fixtures of `cache-safety.t`); rejecting them would turn their
-  hits into analyses.
+  the hit. Only test modules supply such entries. With the rule
+  `missing-points` applied to them (a mutation, reverted), their hits
+  become rejections in the oracles `cache_supplied.0`, `cache_supplied_keys.0`
+  and `cache_supplied_keys.1` and in `cache-safety.t`, `nested-access.t` and
+  `cache-reach.t`.
 
 ## The queries see the points reached by a hit, with the state top
 
@@ -489,8 +492,9 @@ fails with one change, reverted after the run:
 
 The results taken and installed again, in `reach.c`: after
 `get_results` and `set_results` in the same project, the callstacks of the
-statements of `body`, the dead code, the values of `x` and the annotations
-that Export generates are those before the installation, and the lines
+statements of `body`, the dead code, the values of `x`, the annotations
+that Export generates and the record that the hit skipped the visits of
+`body` are those before the installation, and the lines
 equal those of the installation with caching disabled. The guard outcomes,
 the zones and the reachability status of line 15 are lost in both. Export
 generates `\false` at line 15 only, before and after the installation; with
@@ -509,7 +513,8 @@ answer no callstack in `body`, `getDeadCode` lists every statement of
 `body` as unreachable, and Export generates `\false` before the statements
 of lines 14 and 18, although `body` is called. After the hit, `body` is of
 unknown reachability: `getDeadCode` lists no statement of `body`, and
-Export generates no annotation in it.
+Export generates no annotation in it. The guard outcomes, the zones and the
+call sites equal those of caching disabled.
 
 Each of these checks fails with one change, reverted after the run:
 
@@ -525,11 +530,11 @@ Each of these checks fails with one change, reverted after the run:
 - the record of unknown reachability removed from the delivery under
   `-eva-no-results-domain cvalue`: `getDeadCode` lists every statement of
   `body` as unreachable, and Export generates `\false` before the
-  statements of lines 14 and 18, as with caching disabled.
-
-The records without the functions whose visits a hit skipped make no check
-fail: this record serves the statistics of a function
-(`Summary.FunctionStats`), which the results do not hold.
+  statements of lines 14 and 18, as with caching disabled;
+- the records without the functions whose visits a hit skipped: after the
+  installation, the visits of `body` are not recorded as skipped. This
+  record serves the statistics of a function (`Summary.FunctionStats`),
+  which the results do not hold, and no other reader is known.
 
 **Open.**
 

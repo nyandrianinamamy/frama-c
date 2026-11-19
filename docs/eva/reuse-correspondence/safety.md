@@ -604,10 +604,12 @@ valid, among them `\false` at lines 10 and 14 and `x == 2`. With
 differ only in the record itself: no fixture shows its effect on the
 statistics of a function.
 
-The request `getDeadCode`, the warning of `Export.main` (option
-`-eva-annot`; the test calls `Export.generator`) and the rejection when the
-Markdown report, WP or the constant propagation is loaded rest on source
-inspection; the rejection when Nonterm or Metrics is loaded is executed.
+The warning of `Export.main` (option `-eva-annot`; the test calls
+`Export.generator`) and the rejection when the Markdown report, WP or the
+constant propagation is loaded rest on source inspection. The request
+`getDeadCode` is executed in `cache-reach.t`, on the session saved after a
+hit on the entry of `reach.c` without a Reach part, and the rejection when
+Nonterm or Metrics is loaded is executed.
 
 **What remains.** Issue #48 lifts the restriction for the entries with a
 Reach part. It remains for a hand-written entry supplied without one, and
