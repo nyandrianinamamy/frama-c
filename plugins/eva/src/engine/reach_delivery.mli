@@ -20,13 +20,13 @@
       position of their statement in that callstack;
     - a call site through {!Function_calls.register_caller}.
 
-    When [save_results] holds, the function is recorded as of unknown
-    reachability ({!reach_unknown}) if [part] has no points, which the
-    lookup rejects before ([`Missing_points]), and if the store of the
-    states of the cvalue domain, the only domain at a hit, saves no state
-    ([-eva-no-results-domain cvalue]): the queries then answer no callstack
-    at any point, and do not see the points of the hit, which are delivered
-    all the same.
+    [part] must have points when [save_results] holds: the lookup rejects
+    it otherwise ([`Missing_points]). When [save_results] holds and the
+    store of the states of the cvalue domain, the only domain at a hit,
+    saves no state ([-eva-no-results-domain cvalue]), the function is also
+    recorded as of unknown reachability ({!reach_unknown}): the queries
+    then answer no callstack at any point, and do not see the points of the
+    hit, which are delivered all the same.
 
     Each write is also recorded in the Reach part of the body being
     analysed, if any. The tables written are not in the interface of their
@@ -52,11 +52,10 @@ val callstacks : Domain_store.control_point -> Callstack.t list
 
 (** {2 Functions of unknown reachability}
 
-    A hit on an entry without a Reach part, an entry supplied by a test
-    without one, delivers no reached statement, and the points that a hit
-    delivers are not seen by the queries when the store saves no state: the
-    passes run at the end of the analysis must not conclude from the
-    absence of a state at a statement of the called function. *)
+    The queries do not see the points that a hit delivers when the store of
+    the states saves none: the passes run at the end of the analysis must
+    not conclude from the absence of a callstack at a statement of the
+    called function. *)
 
 (** [reach_unknown kf] records that a hit whose reached points are not
     known to the queries has answered a call of [kf] in the current

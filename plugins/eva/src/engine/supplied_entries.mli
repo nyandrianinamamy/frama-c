@@ -36,9 +36,8 @@ type footprint = Cache_entry.footprint = {
 }
 
 (** [supply ~safety ~reach kf ~key ~input ~footprint ~exit] supplies an
-    entry for
-    the body of [kf], built by {!Cache_entry.Make.make} from these
-    arguments, and returns it. [exit] lists the exit states of the body
+    entry for the body of [kf], built by {!Cache_entry.Make.make} from
+    these arguments, and returns it. [exit] lists the exit states of the body
     with their partition keys: a body that never returns has no exit state,
     and its entry has the empty list. Entries are identified by 1, 2, ... in
     the order in which they are supplied, and the oldest matching entry is
@@ -73,19 +72,19 @@ type footprint = Cache_entry.footprint = {
       this status says. A hit delivers them for its own callstack. The
       checks of the [requires] clauses of [kf] are not part of the body:
       they are evaluated at each call;
-    - [reach], if given, holds the Reach part of an analysis of the body
-      from [input] (see {!Reach_part.part}): its joins hold every guard
-      outcome that an execution takes and, at each statement, zones that
-      cover those that an analysis registers there; its points, if given,
-      hold every statement that an execution reaches, before it and, if the
-      execution goes past it, after it. A hit delivers them for its own
-      callstack. An entry whose part has no points is rejected with
-      [`Missing_points] at a call whose function saves its states. Without
-      [reach], a hit delivers no write of the Reach part: the passes at the
-      end of the analysis draw no conclusion from the absence of a state at
-      a statement of [kf] (see {!Reach_delivery.reach_unknown}), but the
-      guard outcomes, the zones, the call sites and the callstacks of the
-      statements of [kf] lack those of the hit.
+    - [reach] holds the Reach part of an analysis of the body from
+      [input] (see {!Reach_part.part}), and a hit requires it: its joins
+      hold every guard outcome that an execution takes and, at each
+      statement, zones that cover those that an analysis registers there;
+      its points, if given, hold every statement that an execution
+      reaches, before it and, if the execution goes past it, after it. A
+      hit delivers them for its own callstack. The lookup rejects with
+      [`Missing_points] an entry without [reach], at every call, and an
+      entry whose part has no points, at a call whose function saves its
+      states. The joins of a part that a hit delivers hold no call site: no
+      hit is admitted on a body with a call (see below), and the call site
+      of the call answered by the hit is registered by its caller before
+      the lookup, as for an analysis of the body.
 
     The alarms, statuses and messages of [safety] are those of an analysis
     of the body with the settings in force at each hit on the entry. The
@@ -259,8 +258,8 @@ type 'state lookup = {
       reasons. *)
   hit : (entry * (Partition.key * 'state) list) option;
   (** The winning entry, if any, and the states reconstructed from it. The
-      engine delivers the Safety part of the entry ({!safety}) at the
-      call. *)
+      engine delivers the Safety part ({!safety}) and the Reach part
+      ({!reach}) of the entry at the call. *)
 }
 
 module Lookup (Domain : sig
@@ -275,12 +274,13 @@ module Lookup (Domain : sig
       component listed under [`Consumer] is enabled, when
       [-eva-stop-at-nth-alarm] is set, or when a client listed under
       [`Callback] is registered, every entry is rejected for this
-      reason. A matching entry whose Reach part has no points is rejected
-      with [`Missing_points] when [save_results] holds for the top function
-      of [stack] ({!Function_calls.save_results}), if it passes the other
-      admission checks; this check comes before the next one. With either
-      constructor, a matching body with a call other than a direct show
-      directive is rejected with [`Nested_delivery] if it passes the other
-      admission checks. *)
+      reason. A matching entry without a Reach part, or whose Reach part
+      has no points when [save_results] holds for the top function of
+      [stack] ({!Function_calls.save_results}), is rejected with
+      [`Missing_points] if it passes the other admission checks; the lookup
+      then examines the next candidate. This check comes before the
+      following one: with either constructor, a matching body with a call
+      other than a direct show directive is rejected with
+      [`Nested_delivery] if it passes the other admission checks. *)
   val find : Callstack.t -> Domain.t -> Domain.t lookup
 end

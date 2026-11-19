@@ -249,8 +249,8 @@ let generator () : visitor =
       | None -> Cil.SkipChildren
       | Some kf when Reach_delivery.reach_unknown_of kf ->
         (* A hit whose points the queries do not see answered a call of
-           [kf]: the states saved in [kf] are those of the analysed calls
-           only, and do not bound the values at its statements. *)
+           [kf]: a statement without a callstack in [kf] may be reached by
+           the hit. *)
         Cil.SkipChildren
       | Some kf ->
         if not @@ List.for_all (fun s -> Stmts.mem s dead) stmt.preds then

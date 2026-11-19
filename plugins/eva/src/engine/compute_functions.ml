@@ -123,7 +123,11 @@ module Make (Engine: Engine_sig.S) = struct
         | Cache.Supplied_entry entry ->
           Call_cache.include_supplied call.callstack entry
             ~returns:(states <> []);
-          Some (Supplied_entries.safety entry, Supplied_entries.reach entry)
+          (* The lookup admits no entry without a Reach part
+             ([`Missing_points]). *)
+          match Supplied_entries.reach entry with
+          | Some reach -> Some (Supplied_entries.safety entry, reach)
+          | None -> assert false
       in
       apply_call_hooks call init_state `Reuse;
       (* Evaluate the preconditions of kf, to update the statuses
@@ -147,11 +151,8 @@ module Make (Engine: Engine_sig.S) = struct
          preconditions: an analysis of the body would then analyse nothing,
          and the call has no state at its end. A delivering hit saves no
          state at the statements of the body: the points it reaches are
-         recorded for its callstack, where the state is top. An entry
-         without a Reach part reaches no point: its function is recorded as
-         of unknown reachability, and the passes at the end of the analysis
-         draw no conclusion from the states saved there. The function is
-         also recorded among those whose visits a hit skipped, for its
+         recorded for its callstack, where the state is top. The function
+         is also recorded among those whose visits a hit skipped, for its
          statistics. Memexec gives no Safety part, and its states are
          kept. *)
       let states =
@@ -161,11 +162,7 @@ module Make (Engine: Engine_sig.S) = struct
         | Some (safety, reach) ->
           Safety_delivery.skip_visits call.kf;
           Safety_delivery.deliver call.callstack safety;
-          begin match reach with
-            | Some reach ->
-              Reach_delivery.deliver call.callstack ~save_results reach
-            | None -> Reach_delivery.reach_unknown call.kf
-          end;
+          Reach_delivery.deliver call.callstack ~save_results reach;
           states
       in
       Self.feedback ~current:true ~mkey:Log_key.progress

@@ -1,6 +1,6 @@
 (* Test module of cache_supplied_keys.c: supplies an entry with two exit
-   states of different partition keys, runs the analysis, then prints the
-   entry. *)
+   states of different partition keys, and the Reach part of an analysis of
+   the body, runs the analysis, then prints the entry. *)
 
 open Cil_types
 
@@ -14,6 +14,39 @@ let state bindings =
   in
   List.fold_left bind Cvalue.Model.empty_map bindings
 
+module Reach = Eva.Reach_part
+
+(* The Reach part of an analysis of choose from the input of the entry,
+   written by hand: the four statements of choose are reached, and both
+   branches of the condition at line 28 are taken. *)
+let reach kf ~choice ~out =
+  let line s = Filepos.line (Fileloc.start_pos (Cil_datatype.Stmt.loc s)) in
+  let stmt is_kind l =
+    List.find (fun s -> line s = l && is_kind s.skind)
+      (Kernel_function.get_definition kf).sallstmts
+  in
+  let cond = stmt (function If _ -> true | _ -> false) 28 in
+  let set l = stmt (function Instr (Set _) -> true | _ -> false) l in
+  let return = stmt (function Return _ -> true | _ -> false) 30 in
+  let point p = Reach.Reached { point = p; frames = [] } in
+  let reached s =
+    [ point (Eva__Domain_store.Before s); point (Eva__Domain_store.After s) ]
+  in
+  let zones stmt ~read ~write =
+    let zone = function
+      | None -> Memory_zone.bottom
+      | Some vi -> Locations.zone_of_varinfo vi
+    in
+    Reach.Zones { stmt; frames = []; read = zone read; write = zone write }
+  in
+  Reach.part ~points:true
+    (List.concat_map reached [ cond; set 28; set 29; return ]
+     @ [ Reach.Guard { stmt = cond; outcome = true };
+         Reach.Guard { stmt = cond; outcome = false };
+         zones cond ~read:(Some choice) ~write:None;
+         zones (set 28) ~read:None ~write:(Some out);
+         zones (set 29) ~read:None ~write:(Some out) ])
+
 let run () =
   let kf = Globals.Functions.find_by_name "choose" in
   let global name = Globals.Vars.find_from_astinfo name Global in
@@ -24,7 +57,7 @@ let run () =
     Supplied.case_key kf rank, state [choice, Cvalue.V.top_int; out, int n]
   in
   let entry =
-    Supplied.supply kf
+    Supplied.supply ~reach:(reach kf ~choice ~out) kf
       ~key:(bases [choice])
       ~input:(state [choice, Cvalue.V.top_int])
       ~footprint:{ read = bases [choice]; written = bases [out];

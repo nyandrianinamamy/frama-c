@@ -289,17 +289,17 @@ module Lookup (Domain : sig
       Structure.Key_Domain.eq_type key Cvalue_domain.State.key
     | _ -> None
 
-  (* An analysis of the body saves its states, and reaches points, when
-     [save_results] holds for the function: a hit must then deliver the
-     points reached. An entry without a Reach part is a fixture without
-     one: the hit records the function as of unknown reachability (see
-     {!Reach_delivery.reach_unknown}). *)
+  (* A hit delivers the Reach part of its entry: an entry without one is
+     rejected at every call. An analysis of the body saves its states, and
+     reaches points, when [save_results] holds for the function: a hit must
+     then deliver the points reached. *)
   let missing_points stack entry =
     match Entry.reach entry with
+    | None -> true
     | Some { points = None; _ } ->
       let kf = Callstack.top_kf stack in
       Function_calls.save_results (Kernel_function.get_definition kf)
-    | Some { points = Some _; _ } | None -> false
+    | Some { points = Some _; _ } -> false
 
   let admit stack nested_call entry (model, _) =
     let dependencies = Entry.dependencies entry in

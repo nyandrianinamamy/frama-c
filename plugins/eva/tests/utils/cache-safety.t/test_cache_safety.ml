@@ -333,7 +333,7 @@ let skipped_after_reset () =
   Format.printf "visits skipped in body after the reset: %b@." (skipped ())
 
 (* Supplies the [produced] entry of [body]; with PART=drop, by hand, with
-   its Safety part and without its Reach part. *)
+   its Safety part and without its Reach part, which the lookup rejects. *)
 let supply produced =
   if env "PART" = Some "drop" then
     let e = Producer.cache_entry produced in
@@ -592,6 +592,35 @@ let observe_one () =
         Format.printf "before the passes: one is %a@." pretty_status
           (Property_status.get one))
 
+(* The Reach part of an analysis of [pre] from x = 1, written by hand: the
+   four statements of the body are reached, the then branch of the
+   condition is taken, and x is read at lines 8 and 9, where out is
+   written. *)
+let precondition_reach ~x ~out =
+  let module Reach = Eva.Reach_part in
+  let line s = Filepos.line (Fileloc.start_pos (Cil_datatype.Stmt.loc s)) in
+  let stmt is_kind l =
+    List.find (fun s -> line s = l && is_kind s.skind)
+      (Kernel_function.get_definition (kf "pre")).sallstmts
+  in
+  let set = stmt (function Instr (Set _) -> true | _ -> false) 8 in
+  let cond = stmt (function If _ -> true | _ -> false) 9 in
+  let skip = stmt (function Instr (Skip _) -> true | _ -> false) 10 in
+  let return = stmt (function Return _ -> true | _ -> false) 12 in
+  let point p = Reach.Reached { point = p; frames = [] } in
+  let reached s =
+    [ point (Eva__Domain_store.Before s); point (Eva__Domain_store.After s) ]
+  in
+  let zones stmt read write =
+    Reach.Zones { stmt; frames = []; read; write }
+  in
+  let x = Locations.zone_of_varinfo x in
+  let out = Locations.zone_of_varinfo out in
+  Reach.part ~points:true
+    (List.concat_map reached [ set; cond; skip; return ]
+     @ [ Reach.Guard { stmt = cond; outcome = true };
+         zones set x out; zones cond x Memory_zone.bottom ])
+
 (* A hand-written entry of [pre] for x = 1. The requires clause belongs to
    the call site: the entry neither reads g nor carries its status. Its
    Safety part gives the check [one] a valid status, as an analysis of the
@@ -605,8 +634,9 @@ let precondition () =
         { property = annotation "pre" "one"; status = True;
           emitter = Eva.Analysis.emitter; frames = [] } ]
   in
+  let reach = precondition_reach ~x ~out in
   ignore
-    (Supplied.supply ~safety (kf "pre")
+    (Supplied.supply ~safety ~reach (kf "pre")
        ~key:(bases [x])
        ~input:(state [x, 1])
        ~footprint:Supplied.{ read = bases [x]; written;
@@ -625,13 +655,13 @@ let precondition_reference () =
    analysis use supplied entries. Once, when the check trigger of other is
    evaluated, a client supplies the entries that the analysis stored for
    the first call of body, with SUPPLY=on only, and with NEXT=1 a copy of
-   each, written by hand, which carries no status of the warning
-   categories. Then it sets the category signed-overflow to abort, or with
-   TRIGGER=red applies the settings of [setup]. The client is a hook on the
-   statuses of properties by default, a hook of red statuses with
-   TRIGGER=red, and with TRIGGER=observer an observer of the Safety part of
-   the analysed calls, which runs at the end of the analysis of other and
-   which no hit runs. *)
+   each, written by hand with its Safety and Reach parts, which carries no
+   status of the warning categories. Then it sets the category
+   signed-overflow to abort, or with TRIGGER=red applies the settings of
+   [setup]. The client is a hook on the statuses of properties by default,
+   a hook of red statuses with TRIGGER=red, and with TRIGGER=observer an
+   observer of the Safety part of the analysed calls, which runs at the end
+   of the analysis of other and which no hit runs. *)
 let same_analysis () =
   let x = formal "body" "x" and out = global "out" in
   let written = bases [out] in
@@ -645,7 +675,8 @@ let same_analysis () =
   let copy produced =
     let e = Producer.cache_entry produced in
     ignore
-      (Supplied.supply ~safety:(Entry.safety e) (kf "body") ~key:(Entry.key e)
+      (Supplied.supply ~safety:(Entry.safety e) ?reach:(Entry.reach e)
+         (kf "body") ~key:(Entry.key e)
          ~input:(fst (Entry.input e)) ~footprint:(Entry.footprint e)
          ~exit:(List.map (fun (k, (s, _)) -> k, s) (Entry.exit e)))
   in

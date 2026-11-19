@@ -93,8 +93,9 @@ type rejection = [
       analysis of the body that produced the entry started
       ({!Body_access.warn_categories}). *)
   | `Missing_points
-  (** The Reach part of the entry has no points, while the states of the
-      called function are saved in the analysis of the call. *)
+  (** The entry has no Reach part, or its Reach part has no points while
+      the states of the called function are saved in the analysis of the
+      call. *)
 ]
 
 (** Stable identifier of a rejection reason. *)

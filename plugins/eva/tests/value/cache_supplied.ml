@@ -47,13 +47,60 @@ let range a b =
 
 let address_of vi = Cvalue.V.inject (Base.of_varinfo vi) Ival.zero
 
+(* ----- Reach parts written by hand ---------------------------------------- *)
+
+module Reach = Eva.Reach_part
+
+let line_of stmt =
+  Filepos.line (Fileloc.start_pos (Cil_datatype.Stmt.loc stmt))
+
+(* The statement of the body of [f] at [line], of kind [kind]. *)
+let stmt f kind line =
+  let is_kind s =
+    match kind, s.skind with
+    | `Call, Instr (Call _) | `Set, Instr (Set _) | `If, If _
+    | `Loop, Loop _ | `Return, Return _ -> true
+    | _ -> false
+  in
+  List.find (fun s -> line_of s = line && is_kind s)
+    (Kernel_function.get_definition (kf f)).sallstmts
+
+let zone vis =
+  let add z vi = Memory_zone.join z (Locations.zone_of_varinfo vi) in
+  List.fold_left add Memory_zone.bottom vis
+
+(* The Reach part of an analysis of a body from the input of its entry, as
+   the analysis records it: [stmts] are the statements reached, each before
+   and after it, [guards] the branches taken, and [zones] the variables
+   read and written at a statement. The body calls no function: no write
+   has frames. *)
+let by_hand ?(guards = []) ~zones stmts =
+  let reached s =
+    [ Reach.Reached { point = Eva__Domain_store.Before s; frames = [] };
+      Reach.Reached { point = Eva__Domain_store.After s; frames = [] } ]
+  in
+  let guard (stmt, outcome) = Reach.Guard { stmt; outcome } in
+  let access (stmt, read, write) =
+    Reach.Zones { stmt; frames = []; read = zone read; write = zone write }
+  in
+  Reach.part ~points:true
+    (List.concat_map reached stmts @ List.map guard guards
+     @ List.map access zones)
+
 let supply () =
   let g = global "g" and out = global "out" and keep = global "keep"
   and b = global "b" and choice = global "choice" and p = global "p" in
-  (* Entry 1, for step: key {x, g} with x = 1 and g = 3; writes out = 4. *)
+  (* Entry 1, for step: key {x, g} with x = 1 and g = 3; writes out = 4.
+     Each entry carries the Reach part of an analysis of its body from its
+     input, written by hand. *)
   let x = formal "step" "x" in
+  let call = stmt "step" `Call 62 and set = stmt "step" `Set 63 in
+  let reach =
+    by_hand [ call; set; stmt "step" `Return 64 ]
+      ~zones:[ call, [x; g], []; set, [x; g], [out] ]
+  in
   ignore
-    (Supplied.supply (kf "step")
+    (Supplied.supply ~reach (kf "step")
        ~key:(bases [x; g])
        ~input:(state [x, int 1; g, int 3])
        ~footprint:(footprint [x; g] [out])
@@ -61,8 +108,13 @@ let supply () =
   (* Entry 2, for set_out: empty key; reads nothing and writes out = 7. The
      producer starts with keep = 0 and its exit state keeps it: keep is
      outside the key and the written set. *)
+  let call = stmt "set_out" `Call 67 and set = stmt "set_out" `Set 68 in
+  let reach =
+    by_hand [ call; set; stmt "set_out" `Return 69 ]
+      ~zones:[ call, [], []; set, [], [out] ]
+  in
   ignore
-    (Supplied.supply (kf "set_out")
+    (Supplied.supply ~reach (kf "set_out")
        ~key:Base.Hptset.empty
        ~input:(state [keep, int 0])
        ~footprint:(footprint [] [out])
@@ -70,11 +122,16 @@ let supply () =
   (* Entries 3 and 4, for precise_first, then entries 5 and 6, for
      wide_first: two candidates with the same key, x = 1, one exit out = 7
      and the other out in [7..8]. They are supplied in opposite orders. *)
-  let two name ~first ~second =
+  let two name ~line ~first ~second =
     let x = formal name "x" in
+    let call = stmt name `Call line and set = stmt name `Set (line + 1) in
+    let reach =
+      by_hand [ call; set; stmt name `Return (line + 2) ]
+        ~zones:[ call, [x], []; set, [x], [out] ]
+    in
     let entry v =
       ignore
-        (Supplied.supply (kf name)
+        (Supplied.supply ~reach (kf name)
            ~key:(bases [x])
            ~input:(state [x, int 1])
            ~footprint:(footprint [x] [out])
@@ -83,14 +140,22 @@ let supply () =
     entry first;
     entry second
   in
-  two "precise_first" ~first:(int 7) ~second:(range 7 8);
-  two "wide_first" ~first:(range 7 8) ~second:(int 7);
+  two "precise_first" ~line:72 ~first:(int 7) ~second:(range 7 8);
+  two "wide_first" ~line:77 ~first:(range 7 8) ~second:(int 7);
   (* Entry 7, for loop_on_4: key {x, g} with x = 1 and g in {3; 4}. The body
      returns only when g is 3: the exit state has g = 3, reduced, and
-     out = 4. g is read, not written. *)
+     out = 4. g is read, not written. Both branches of the condition are
+     taken. *)
   let x = formal "loop_on_4" "x" in
+  let s = stmt "loop_on_4" in
+  let call = s `Call 88 and cond = s `If 89 and set = s `Set 90 in
+  let reach =
+    by_hand [ call; cond; s `Loop 89; set; s `Return 91 ]
+      ~guards:[ cond, true; cond, false ]
+      ~zones:[ call, [x; g], []; cond, [g], []; set, [x; g], [out] ]
+  in
   ignore
-    (Supplied.supply (kf "loop_on_4")
+    (Supplied.supply ~reach (kf "loop_on_4")
        ~key:(bases [x; g])
        ~input:(state [x, int 1; g, range 3 4])
        ~footprint:(footprint [x; g] [out])
@@ -98,15 +163,29 @@ let supply () =
   (* Entry 8, for write_then_spin: key {choice}. b is written only on the
      path that loops forever: it is in W, not in W_exit, and not in the key.
      The exit state holds the value 0 of b in the input of the producer. *)
+  let s = stmt "write_then_spin" in
+  let call = s `Call 96 and cond = s `If 97 and set_b = s `Set 98
+  and set_out = s `Set 101 in
+  let reach =
+    by_hand [ call; cond; set_b; s `Loop 99; set_out; s `Return 102 ]
+      ~guards:[ cond, true; cond, false ]
+      ~zones:[ call, [], []; cond, [choice], []; set_b, [], [b];
+               set_out, [], [out] ]
+  in
   ignore
-    (Supplied.supply (kf "write_then_spin")
+    (Supplied.supply ~reach (kf "write_then_spin")
        ~key:(bases [choice])
        ~input:(state [choice, Cvalue.V.top_int; b, int 0])
        ~footprint:(footprint [choice] [b; out] ~written_exit:[out])
        ~exit:(one_exit [choice, Cvalue.V.top_int; b, int 0; out, int 5]));
-  (* Entry 9, for never_returns: no exit state. *)
+  (* Entry 9, for never_returns: no exit state. The return statement is
+     not reached. *)
+  let call = stmt "never_returns" `Call 105 in
+  let reach =
+    by_hand [ call; stmt "never_returns" `Loop 106 ] ~zones:[ call, [], [] ]
+  in
   ignore
-    (Supplied.supply (kf "never_returns")
+    (Supplied.supply ~reach (kf "never_returns")
        ~key:Base.Hptset.empty
        ~input:Cvalue.Model.empty_map
        ~footprint:(footprint [] [])
@@ -115,8 +194,17 @@ let supply () =
      returned value is added to the written sets by the entry. *)
   let x = formal "twice" "x" in
   let result = Option.get (Supplied.return_variable (kf "twice")) in
+  let retres =
+    List.find (fun vi -> vi.vname = "__retres")
+      (Kernel_function.get_definition (kf "twice")).slocals
+  in
+  let set = stmt "twice" `Set 110 and return = stmt "twice" `Return 110 in
+  let reach =
+    by_hand [ set; return ]
+      ~zones:[ set, [x], [retres]; return, [retres], [result] ]
+  in
   ignore
-    (Supplied.supply (kf "twice")
+    (Supplied.supply ~reach (kf "twice")
        ~key:(bases [x])
        ~input:(state [x, int 3])
        ~footprint:(footprint [x] [])
@@ -124,8 +212,14 @@ let supply () =
   (* Entry 11, for leak_address: key {x} with x = 1; stores the address of
      the formal x in p. *)
   let x = formal "leak_address" "x" in
+  let call = stmt "leak_address" `Call 114
+  and set = stmt "leak_address" `Set 115 in
+  let reach =
+    by_hand [ call; set; stmt "leak_address" `Return 116 ]
+      ~zones:[ call, [x], []; set, [], [p] ]
+  in
   ignore
-    (Supplied.supply (kf "leak_address")
+    (Supplied.supply ~reach (kf "leak_address")
        ~key:(bases [x])
        ~input:(state [x, int 1])
        ~footprint:(footprint [x] [p])

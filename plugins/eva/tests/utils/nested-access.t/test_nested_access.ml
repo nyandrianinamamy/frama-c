@@ -251,7 +251,8 @@ let delivery_replay () =
   if mode = Some "delivery-hand" then begin
     let exit = List.map (fun (key, (state, _)) -> key, state)
         (Entry.exit entry) in
-    ignore (Supply.supply (kf "f") ~key:(Entry.key entry)
+    ignore (Supply.supply ?reach:(Entry.reach entry) (kf "f")
+              ~key:(Entry.key entry)
               ~input:(fst (Entry.input entry)) ~footprint:(Entry.footprint entry)
               ~exit)
   end else

@@ -314,8 +314,10 @@ let print_part produced =
 
 (* The entry of body is supplied to a second analysis, from main. With
    PART=drop, the entry is supplied by hand without its Reach part; with
-   PART=nopoints, with its Reach part without the points. With CONSUMER
-   set, the second analysis saves no state of body (see [no_results]). *)
+   PART=nopoints, with its Reach part without the points. With SECOND=on,
+   the produced entry is supplied after the entry written by hand, as a
+   second candidate. With CONSUMER set, the second analysis saves no state
+   of body (see [no_results]). *)
 let replay () =
   let produced = produce_and_reset () in
   print_part produced;
@@ -325,7 +327,8 @@ let replay () =
     ignore
       (Supplied.supply ~safety:(Entry.safety entry) ?reach (kf "body")
          ~key:(Entry.key entry) ~input:(fst (Entry.input entry))
-         ~footprint:(Entry.footprint entry) ~exit)
+         ~footprint:(Entry.footprint entry) ~exit);
+    if env "SECOND" = Some "on" then ignore (Supplied.supply_produced produced)
   in
   begin match env "PART" with
     | Some "drop" -> by_hand None

@@ -69,20 +69,21 @@ let reach_unknown_at stmt =
 
 (* ----- Delivery ---------------------------------------------------------- *)
 
-(* A hit requires the cvalue domain alone: its store is the store of the
+(* The lookup rejects a part without points where the states of the
+   function are saved ([`Missing_points]), with the same [save_results].
+   A hit requires the cvalue domain alone: its store is the store of the
    states that the queries read. When it saves no state, as under
    [-eva-no-results-domain cvalue], the queries answer no callstack at any
    point, and the points of the hit are not seen. *)
 let deliver callstack ~save_results (part : Reach_part.part) =
-  let kf = Callstack.top_kf callstack in
   List.iter (deliver_write callstack) part.joins;
   if save_results then begin
     match part.points with
     | Some points -> List.iter (deliver_write callstack) points
-    | None -> reach_unknown kf
+    | None -> assert false
   end;
   if save_results && not (Cvalue_domain.State.Store.is_computed ())
-  then reach_unknown kf
+  then reach_unknown (Callstack.top_kf callstack)
 
 (* ----- Saved results ----------------------------------------------------- *)
 

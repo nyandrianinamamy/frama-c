@@ -253,73 +253,30 @@ alarm stays unknown, as with caching disabled.
   $ diff refine.summary refine-reference.summary
 
 An entry without a Reach part: the same entry supplied by hand without it.
-A hit on it delivers no statement, guard, zone or call site, and the
-reachability of the statements of body is unknown. The marking of dead code
-then marks nothing unreachable in body, the summary gives the coverage as a
-range, and the server request of dead code returns no statement for body.
-The lines that differ from caching disabled are those of the hit. The
-record of unknown reachability is kept when the results are taken and
-installed again (RESTORE=same), and in the session saved after that.
+A hit delivers the Reach part of its entry, and the lookup rejects an entry
+without one (missing-points), whatever the states that the analysis saves:
+body is analysed. The lines of the readers, the values of x, the
+annotations that Export generates, the lines after the results are taken
+and installed again (RESTORE=same) and the response of the server request
+of dead code on the session saved after that equal those of caching
+disabled.
 
-  $ EVA_TEST_CACHE_REACH=replay EVA_TEST_CACHE_REACH_PART=drop EVA_TEST_CACHE_REACH_RESTORE=same frama-c -no-autoload-plugins -load-module eva,test_cache_reach.cmxs -main producer -eva-msg-key cache reach.c -save drop.sav > drop.log 2>&1
-  $ grep '^restored reachability' drop.log
-  restored reachability of body unknown: true
-  $ frama-c -no-autoload-plugins -load-module server,eva,eva.server_api,test_dead_code.cmxs -load drop.sav > drop.server 2>&1
-  $ cat drop.server
-  getDeadCode body:
-    { unreachable: [], reached: [], nonTerminating: [] }
-  $ grep -E '^(hits|reachability)|lookup: hit|statements reached|answered by the cache' drop.log
+  $ EVA_TEST_CACHE_REACH=replay EVA_TEST_CACHE_REACH_PART=drop EVA_TEST_CACHE_REACH_VALUES=on EVA_TEST_CACHE_REACH_RESTORE=same EVA_TEST_CACHE_REACH_EXPORT=on frama-c -no-autoload-plugins -load-module eva,test_cache_reach.cmxs -main producer -eva-msg-key cache reach.c -save drop.sav > drop.log 2>&1
+  $ grep -E 'call to body|statements reached' drop.log
+    call to body: lookup: no-candidate; execution: analysed; storage: refused (no-inout); collector: would-store
     In these functions, 9 statements reached (out of 12): 75% coverage.
-    call to body: lookup: hit (entry 1); execution: not-analysed; storage: none
-    In these functions, 10 statements reached (out of 14): 71% coverage,
-    and up to 4 more through calls answered by the cache (100% coverage).
-  hits on body: 1
-  reachability of body unknown: true
-  $ grep '^| ' drop.log > drop.summary
-  $ diff drop.summary reference.summary
-  7,8c7,8
-  < | dead code: stmt 4 (line 9): unreachable
-  < | dead code: stmt 5 (line 10): unreachable
-  ---
-  > | dead code: stmt 4 (line 9): reached
-  > | dead code: stmt 5 (line 10): reached
-  12c12
-  < | guard: stmt 3 (line 8): then false, else true
-  ---
-  > | guard: stmt 3 (line 8): then true, else true
-  13a14,15
-  > | reach.c:15: status of reachability of stmt reach.c:15 in body: invalid and reachable
-  > | reach.c:15: status of three: valid
-  15c17
-  < | reach: stmt 1 (line 7): before in body :: line 29 <- main; after in body :: line 29 <- main
-  ---
-  > | reach: stmt 1 (line 7): before in body :: line 29 <- main, body :: line 30 <- main; after in body :: line 29 <- main, body :: line 30 <- main
-  17,21c19,23
-  < | reach: stmt 12 (line 18): before in body :: line 29 <- main; after in body :: line 29 <- main
-  < | reach: stmt 22 (line 19): before in body :: line 29 <- main; after in body :: line 29 <- main
-  < | reach: stmt 3 (line 8): before in body :: line 29 <- main; after in body :: line 29 <- main
-  < | reach: stmt 4 (line 9): before in none; after in none
-  < | reach: stmt 5 (line 10): before in none; after in none
-  ---
-  > | reach: stmt 12 (line 18): before in body :: line 29 <- main, body :: line 30 <- main; after in body :: line 29 <- main, body :: line 30 <- main
-  > | reach: stmt 22 (line 19): before in body :: line 29 <- main, body :: line 30 <- main; after in body :: line 29 <- main, body :: line 30 <- main
-  > | reach: stmt 3 (line 8): before in body :: line 29 <- main, body :: line 30 <- main; after in body :: line 29 <- main, body :: line 30 <- main
-  > | reach: stmt 4 (line 9): before in body :: line 30 <- main; after in body :: line 30 <- main
-  > | reach: stmt 5 (line 10): before in body :: line 30 <- main; after in body :: line 30 <- main
-  23c25
-  < | reach: stmt 8 (line 14): before in body :: line 29 <- main; after in body :: line 29 <- main
-  ---
-  > | reach: stmt 8 (line 14): before in body :: line 29 <- main, body :: line 30 <- main; after in body :: line 29 <- main, body :: line 30 <- main
-  25a28
-  > | zones: stmt 1 (line 7) in body :: line 30 <- main: read \nothing; write l
-  26a30
-  > | zones: stmt 12 (line 18) in body :: line 30 <- main: read x; l; write g
-  27a32,33
-  > | zones: stmt 3 (line 8) in body :: line 30 <- main: read x; write \nothing
-  > | zones: stmt 5 (line 10) in body :: line 30 <- main: read \nothing; write out
-  29a36
-  > | zones: stmt 8 (line 14) in body :: line 30 <- main: read x; write \nothing
-  [1]
+    call to body: lookup: rejected (entry 1: key-differs); execution: analysed; storage: refused (supplied-only); collector: would-store
+    call to body: lookup: rejected (entry 1: missing-points); execution: analysed; storage: refused (supplied-only); collector: would-store
+    In these functions, 12 statements reached (out of 14): 86% coverage.
+  $ EVA_TEST_CACHE_REACH=reference EVA_TEST_CACHE_REACH_VALUES=on EVA_TEST_CACHE_REACH_RESTORE=same EVA_TEST_CACHE_REACH_EXPORT=on frama-c -no-autoload-plugins -load-module eva,test_cache_reach.cmxs -eva-msg-key cache reach.c -save drop-reference.sav > drop-reference.log 2>&1
+  $ grep 'statements reached' drop-reference.log
+    In these functions, 12 statements reached (out of 14): 86% coverage.
+  $ grep -E '^(restored )?(results|hits|reachability|visits|points|value|exported|\| )' drop.log > drop.observed
+  $ grep -E '^(restored )?(results|hits|reachability|visits|points|value|exported|\| )' drop-reference.log > drop-reference.observed
+  $ diff drop.observed drop-reference.observed
+  $ frama-c -no-autoload-plugins -load-module server,eva,eva.server_api,test_dead_code.cmxs -load drop.sav > drop.server 2>&1
+  $ frama-c -no-autoload-plugins -load-module server,eva,eva.server_api,test_dead_code.cmxs -load drop-reference.sav > drop-reference.server 2>&1
+  $ diff drop.server drop-reference.server
 
 The analysis of a body makes the guard outcomes, the zones and the call
 sites whether or not it saves the states of the body, and reaches points
@@ -364,6 +321,23 @@ supplied by hand with its Reach part without the points.
     call to body: lookup: rejected (entry 1: missing-points); execution: analysed; storage: refused (supplied-only); collector: would-store
   $ grep '^| ' nopoints.log > nopoints.summary
   $ diff nopoints.summary reference.summary
+
+A rejection for missing-points does not end the lookup: the next candidate
+is examined. With SECOND=on, the produced entry is supplied after the entry
+written by hand, with its Reach part without the points (PART=nopoints) or
+without it (PART=drop), and answers the call at line 30. The lines equal
+those of caching disabled.
+
+  $ EVA_TEST_CACHE_REACH=replay EVA_TEST_CACHE_REACH_PART=nopoints EVA_TEST_CACHE_REACH_SECOND=on frama-c -no-autoload-plugins -load-module eva,test_cache_reach.cmxs -main producer -eva-msg-key cache reach.c > second-nopoints.log 2>&1
+  $ grep 'missing-points' second-nopoints.log
+    call to body: lookup: rejected (entry 1: missing-points), hit (entry 2); execution: not-analysed; storage: none
+  $ grep '^| ' second-nopoints.log > second-nopoints.summary
+  $ diff second-nopoints.summary reference.summary
+  $ EVA_TEST_CACHE_REACH=replay EVA_TEST_CACHE_REACH_PART=drop EVA_TEST_CACHE_REACH_SECOND=on frama-c -no-autoload-plugins -load-module eva,test_cache_reach.cmxs -main producer -eva-msg-key cache reach.c > second-drop.log 2>&1
+  $ grep 'missing-points' second-drop.log
+    call to body: lookup: rejected (entry 1: missing-points), hit (entry 2); execution: not-analysed; storage: none
+  $ grep '^| ' second-drop.log > second-drop.summary
+  $ diff second-drop.summary reference.summary
 
 When neither analysis saves the states of body, as with
 -eva-no-results-function body on the command line, the entry is a hit. It
@@ -452,6 +426,27 @@ the results equal those of caching disabled under the same option.
   points of body reached by hits: 0
   $ grep '^| ' consumer-global.log > consumer-global.summary
   $ diff consumer-global.summary global-reference.summary
+
+The entry without a Reach part is rejected as well where the analysis that
+uses it saves no state of body (CONSUMER=body) or none at all
+(CONSUMER=global), and the lines equal those of caching disabled under the
+same option: the guard of line 8 has its then outcome, and the callstack of
+line 30 its zones.
+
+  $ EVA_TEST_CACHE_REACH=replay EVA_TEST_CACHE_REACH_PART=drop EVA_TEST_CACHE_REACH_CONSUMER=body frama-c -no-autoload-plugins -load-module eva,test_cache_reach.cmxs -main producer -eva-msg-key cache reach.c > drop-body.log 2>&1
+  $ grep -E 'missing-points|^(hits|reachability)' drop-body.log
+    call to body: lookup: rejected (entry 1: missing-points); execution: analysed; storage: refused (supplied-only); collector: would-store
+  hits on body: 0
+  reachability of body unknown: false
+  $ grep '^| ' drop-body.log > drop-body.summary
+  $ diff drop-body.summary both-reference.summary
+  $ EVA_TEST_CACHE_REACH=replay EVA_TEST_CACHE_REACH_PART=drop EVA_TEST_CACHE_REACH_CONSUMER=global frama-c -no-autoload-plugins -load-module eva,test_cache_reach.cmxs -main producer -eva-msg-key cache reach.c > drop-global.log 2>&1
+  $ grep -E 'missing-points|^(hits|reachability)' drop-global.log
+    call to body: lookup: rejected (entry 1: missing-points); execution: analysed; storage: refused (supplied-only); collector: would-store
+  hits on body: 0
+  reachability of body unknown: false
+  $ grep '^| ' drop-global.log > drop-global.summary
+  $ diff drop-global.summary global-reference.summary
 
 With -eva-no-results-domain cvalue, the store of the states of the cvalue
 domain saves no state, and the queries answer no callstack at any

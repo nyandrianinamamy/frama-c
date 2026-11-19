@@ -37,10 +37,10 @@ val emitter : Emitter.t
    {!emitter}. They are all assigned a valid status by {!Analysis.emitter}.
    No annotation is generated in a function of unknown reachability, a call
    of which was answered by a hit of the cache whose points the queries do
-   not see: the states saved there do not cover that call (see
-   {!Reach_delivery.reach_unknown_of}). A hit
-   that delivers its Reach part leaves the state [top] at the points it
-   reaches.
+   not see, as the store of states saves none: a statement without a
+   callstack there may be reached by the hit (see
+   {!Reach_delivery.reach_unknown_of}). A hit that delivers its Reach part
+   leaves the state [top] at the points it reaches.
 *)
 val generator : unit -> Visitor.frama_c_inplace
 
