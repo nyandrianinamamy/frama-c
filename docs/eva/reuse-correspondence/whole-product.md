@@ -249,8 +249,8 @@ and [skipped-effect obligations](hit.md#side-table-obligations-for-skipped-work)
 
 ## Evidence for these entries
 
-Tree of `lean/` `3cbd3b80e1e52e70d5b9b47662ac3568f1e150db` at
-`69cf3c1e5449d48ad048f230c80d5d8b2f5325ca`. On a clean archive of that
+Tree of `lean/` `109d98b868affdfac0c238621976caf06b588b04` at
+`7f212d160d63fe7c04cba3a40e5a1c5eaa14198e`. On a clean archive of that
 tree, `cd lean && lake build --wfail` exited 0 with Lean 4.28.0.
 The axiom guard accepted all printed declarations. CI is pending.
 
@@ -269,3 +269,5 @@ below made `lake build --wfail` exit 1.
 | Use the identity equality filter | The proof of equal projections in `projected_copy_loses_relation` fails. |
 | Omit the current equality | The lookup rejection and current nonclosure checks fail. |
 | Omit `w = z` from the fresh exit | `projected_copy_loses_relation` cannot obtain the equality from the fresh summary. |
+| Bind `z` to the block of `w` in the program of the example | The check that `x`, `w` and `z` evaluate to the three arguments of `copyMem` fails. |
+| Make `copyMem x w z` store `x` in the block of `z` | The same check fails. |
