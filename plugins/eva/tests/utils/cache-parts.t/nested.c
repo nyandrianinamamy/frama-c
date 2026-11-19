@@ -1,5 +1,5 @@
-/* A body with a call: From and Inout give no part for it, and its entries
-   lack both. The function unused is never called. */
+/* Each call of outer makes a call: From and Inout give no part for it, and
+   the entries of outer lack both. The function unused is never called. */
 
 int x = 1, y, z;
 

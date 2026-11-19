@@ -617,6 +617,25 @@ let nested () =
     (List.length fresh) (same_froms fresh (callwise_froms ()));
   refused "after the hits: Inout.get_precise_inout of unused" unused
 
+(* On dead-call.c, with -calldeps. The body of leaf has a call under a
+   condition that the call of leaf does not meet. From and Inout give their
+   parts for the calls of the body that the analysis recorded, none here:
+   the entry of leaf has both parts. The lookup rejects it
+   (nested-delivery), since the body has a call, and the body is
+   analysed. *)
+let dead_call () =
+  clear ();
+  Eva.Parameters.Memexec.off ();
+  Eva.Analysis.compute ();
+  let produced = Producer.entries (kf "leaf") in
+  print_parts produced;
+  let fresh = callwise_froms () in
+  second_analysis produced;
+  Format.printf "leaf: hits %d, rejected for nested-delivery %d@."
+    (hits "leaf") (rejected "nested-delivery" "leaf");
+  Format.printf "callwise dependencies equal at %d call sites: %b@."
+    (List.length fresh) (same_froms fresh (callwise_froms ()))
+
 (* ----- Names of the parts ------------------------------------------------- *)
 
 (* A second part named as a registered one: the name is the key of a
@@ -648,6 +667,7 @@ let () =
   | Some "logic" -> Boot.Main.extend logic
   | Some "history" -> Boot.Main.extend history
   | Some "nested" -> Boot.Main.extend nested
+  | Some "dead-call" -> Boot.Main.extend dead_call
   | Some "lazy-from" -> Boot.Main.extend lazy_from
   | Some "warm" -> Boot.Main.extend warm
   | Some "snapshot" -> Boot.Main.extend snapshot

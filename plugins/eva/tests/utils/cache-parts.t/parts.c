@@ -1,6 +1,6 @@
 /* Callees whose entries are produced by a first analysis with caching
    disabled, then supplied to a second analysis. Each callee makes no call:
-   From and Inout give their parts only for such bodies. */
+   From and Inout give their parts only for a call that made no call. */
 
 volatile int any;
 int a, b = 1, c, d = 2, g, h, out, vin = 3, vout;

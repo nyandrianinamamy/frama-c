@@ -179,6 +179,20 @@ entry whose key matches is rejected for missing-part.
   call to outer: lookup: rejected (entry 3: missing-part), rejected (entry 4: key-differs); execution: analysed
   call to outer: lookup: rejected (entry 3: key-differs), rejected (entry 4: missing-part); execution: analysed
 
+A body whose only call is under a condition that the producing call did not
+meet. In dead-call.c, leaf(0) does not call other: From and Inout give
+their parts, which concern the calls recorded, and the entry of leaf has
+both. The lookup rejects it (nested-delivery), since the body has a call,
+and the body is analysed.
+
+  $ EVA_TEST_CACHE_PARTS=dead-call frama-c -no-autoload-plugins -load-module eva,from,inout,test_cache_parts.cmxs -calldeps -eva-msg-key cache dead-call.c > dead-call.log 2>&1
+  $ grep -E '^(entry of|leaf:|callwise)' dead-call.log
+  entry of leaf: parts [from, inout]
+  leaf: hits 0, rejected for nested-delivery 1
+  callwise dependencies equal at 2 call sites: true
+  $ grep -o 'call to leaf: lookup: [^;]*; execution: [a-z-]*' dead-call.log | tail -1
+  call to leaf: lookup: rejected (entry 1: nested-delivery); execution: analysed
+
 With -from-verify-assigns, the clauses of checked are checked in the first
 analysis. Their statuses are then removed. Both calls to checked hit in the
 second analysis, and the hits check the clauses again.
