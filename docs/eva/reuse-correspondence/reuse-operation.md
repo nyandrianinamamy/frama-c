@@ -158,14 +158,18 @@ entries below).
 **Claim.** At a call analysed through the body of a function, in an analysis
 that uses supplied entries (see [No analysis has both
 caches](#no-analysis-has-both-caches)), with cvalue as the only domain, no
-consumer enabled and no threshold of alarms (see [A supplied entry is used
-only where a hit is
+consumer that an entry cannot serve enabled and no threshold of alarms (see
+[A supplied entry is used only where a hit is
 supported](#a-supplied-entry-is-used-only-where-a-hit-is-supported)):
 the candidates are the entries supplied for the function, oldest first. Let s
 be the input of the call. A candidate E with key K, stored input I, and exit
 states (k_i, o_i) matches when `filter` K s = I and `relate` K s ⊆ K. The
-oldest matching candidate that passes effect and dependency admission is
-used. Its states at the end of the call are given by [A hit takes the blocks of W_exit from
+oldest matching candidate that has the parts of the enabled consumers (see
+[A candidate that lacks a needed part is
+rejected](cache-parts.md#a-candidate-that-lacks-a-needed-part-is-rejected))
+and passes effect and dependency admission is used and the body is not
+analysed; the states at the end of the call are given by [A hit takes the
+blocks of W_exit from
 the exit state](#a-hit-takes-the-blocks-of-w_exit-from-the-exit-state). The
 candidates examined before it are rejected with `key-differs` when the first
 test fails and `key-unclosed` when the second fails. Memory matching uses
@@ -202,11 +206,13 @@ take part in the key as blocks. For cvalue, `Cvalue_domain.State.equal`
 compares the maps and ignores the clobbered set. The engine never analyses a
 call from `Bottom`. On a hit, `compute_and_cache_call` evaluates the
 preconditions of the callee at the call, runs the call hooks with
-`` `Reuse `` and the results hooks with `` `Reuse N ``, N being the
-identifier of the entry, delivers the Safety part of the entry and returns
-the states as the result of the call. When no state satisfies the
-preconditions, it delivers nothing and returns no state
-([Safety at a hit](safety.md)).
+`` `Reuse ``, delivers the Safety part of the entry, then restores the parts
+of the entry in place of the results hooks ([A hit restores the parts of the
+enabled
+consumers](cache-parts.md#a-hit-restores-the-parts-of-the-enabled-consumers)),
+and returns the states as the result of the call. When no state satisfies
+the preconditions, it delivers nothing, restores no part and returns no
+state ([Safety at a hit](safety.md)).
 The caller then finalizes the call as after an analysed body.
 
 The match lemma of the model (`ReuseModel.Domain.match_lemma`, [Match
@@ -546,16 +552,22 @@ an analysis that started with memexec rests on source inspection.
 
 **Claim.** When the domains of the analysis are not the cvalue domain alone,
 every supplied candidate is rejected with `product`. Otherwise, when the
-Inout, From, Nonterm, Metrics, Markdown report (`mdr`), WP or constant
-propagation (`scf`) plug-in is loaded, or the analysis of threads is
-enabled, every supplied candidate is rejected with `consumer`. Otherwise,
-when `-eva-stop-at-nth-alarm` is set, every supplied candidate is rejected
-with `stop-at-nth-alarm`. Otherwise, when a client that is not audited is
-registered on a hook that a hit runs, every supplied candidate is rejected
-with `callback`. In each case the body is analysed. `product` takes
-precedence over `consumer`, `consumer` over `stop-at-nth-alarm`, that over
-`callback`, and all four over the examination of each candidate
-(`key-differs`, `key-unclosed`).
+Nonterm, Metrics, Markdown report (`mdr`), WP or constant propagation
+(`scf`) plug-in is loaded, when a reader of the states saved at the
+statements of each function is enabled (see [Readers of the states saved at
+statements reject every
+candidate](cache-parts.md#readers-of-the-states-saved-at-statements-reject-every-candidate)),
+or when the analysis of threads is enabled, every supplied candidate is
+rejected with `consumer`. Otherwise, when `-eva-stop-at-nth-alarm` is set,
+every supplied candidate is rejected with `stop-at-nth-alarm`. Otherwise,
+when a client that is not audited is registered on a hook that a hit runs,
+every supplied candidate is rejected with `callback`. In each case the body
+is analysed. `product` takes precedence over `consumer`, `consumer` over
+`stop-at-nth-alarm`, that over `callback`, and all four over the
+examination of each candidate (`key-differs`, `key-unclosed`,
+`missing-part`). Loading From or Inout does not reject the candidates: their
+callwise results are parts of the entries ([Parts owned by other
+plug-ins](cache-parts.md)).
 
 **Kind.** OCaml obligation.
 
@@ -563,47 +575,47 @@ precedence over `consumer`, `consumer` over `stop-at-nth-alarm`, that over
 
 **Symbols.** `Supplied_entries.Lookup.cvalue_alone`,
 `Supplied_entries.consumer_enabled`, `Supplied_entries.state_readers`,
-`Supplied_entries.stop_at_nth_alarm`, `Supplied_entries.unaudited_clients`,
-`Supplied_entries.Lookup.find`,
+`Cache_part.reads_statement_states`, `Supplied_entries.stop_at_nth_alarm`,
+`Supplied_entries.unaudited_clients`, `Supplied_entries.Lookup.find`,
 `Alarmset.deliver`, `Alarmset.stop_at_nth_alarm`.
 
 **Argument.** `find` tests `cvalue_alone` first, then `consumer_enabled`,
 then `stop_at_nth_alarm`, then `unaudited_clients`, then calls
-`Cache_entry.Make.find`; the first test
-that rejects gives its reason to every candidate. `cvalue_alone` is defined
-only when the structure of the product is a single leaf whose key is the key
-of `Cvalue_domain.State`; the key comparison gives an equality between the
-type of the states of the engine and that of cvalue states, through which the
-input of the call and the states returned are converted, with no change of
-value. Any other structure, a product of several domains included, rejects
-every candidate. The second
-test is needed because a hit sends its identifier to the results hooks with
-`` `Reuse N ``: Inout (`Operational_inputs.record_for_callwise_inout`) and
-From (`Callwise.record_for_individual_froms`) look it up in their tables of
-memexec results with `MemExec.find`, and the analysis of threads
-(`Mt_analysis_hooks.catch_functions_record`) in its own table; the
-identifier of a supplied entry is in none of them. The test is on the
-presence of the plug-ins (`Plugin.is_present`), so it also rejects when From
-is loaded without `-calldeps`, where its hook records nothing. `-mthread`
-does not add a domain, so the product stays cvalue alone and the thread test
-is reached. The other plug-ins of `Supplied_entries.state_readers` conclude
-from the states saved at the statements of a function, which a hit does not
-save for its own call
+`Cache_entry.Make.find`; the first test that rejects gives its reason to
+every candidate. `cvalue_alone` is defined only when the structure of the
+product is a single leaf whose key is the key of `Cvalue_domain.State`; the
+key comparison gives an equality between the type of the states of the
+engine and that of cvalue states, through which the input of the call and
+the states returned are converted, with no change of value. Any other
+structure, a product of several domains included, rejects every candidate.
+The thread test is needed because the analysis of threads
+(`Mt_analysis_hooks.catch_functions_record`) looks up the identifier of a
+hit in its own table, and no part restores its result. `-mthread` does not
+add a domain, so the product stays cvalue alone and the thread test is
+reached. The plug-ins of `Supplied_entries.state_readers` conclude from the
+states saved at the statements of a function, which a hit does not save for
+its own call
 ([The passes after the analysis draw no conclusion where the queries do not see the points of a hit](safety.md#the-passes-after-the-analysis-draw-no-conclusion-where-the-queries-do-not-see-the-points-of-a-hit)).
-The third test is needed because a fresh evaluation registers every alarm of
-an evaluation before `Alarmset.stop_at_nth_alarm` tests the threshold,
-whereas a hit delivers its alarms one by one and does not know the
-evaluations they came from; `Alarmset.deliver` no longer tests the
-threshold. The fourth test is argued in
+The readers of the results by function of From and Inout are tested by
+`Cache_part.reads_statement_states`. The third test is needed because a
+fresh evaluation registers every alarm of an evaluation before
+`Alarmset.stop_at_nth_alarm` tests the threshold, whereas a hit delivers its
+alarms one by one and does not know the evaluations they came from;
+`Alarmset.deliver` no longer tests the threshold. The fourth test is argued
+in
 [A hit runs no client that is not audited](safety.md#a-hit-runs-no-client-that-is-not-audited).
 
 **Evidence.** Executed by run 0: the default product is a single cvalue leaf,
 and the calls hit. Run 1, with `-eva-domains cvalue,sign`: every call to a
 function with supplied entries reads `rejected (entry N: product)` for each of
-its entries and is analysed. Runs 3, 4 and 5, with Inout loaded, with From
-loaded without Inout, and with `-mthread`: every such call reads
+its entries and is analysed. Run 5, with `-mthread`: every such call reads
 `rejected (entry N: consumer)` and is analysed, and the same assertions are
-valid. In
+valid. Run 3, with Inout loaded: the entries supplied by `supply` have no
+Inout part, and every candidate whose key matches reads `missing-part`. Run
+4, with From loaded without Inout and without `-calldeps`: the run is
+identical to run 0. The readers of the results by function of From and
+Inout are exercised by
+[`cache-parts.t`](../../../plugins/eva/tests/utils/cache-parts.t/run.t). In
 [`cache-safety.t`](../../../plugins/eva/tests/utils/cache-safety.t/run.t),
 with Nonterm or with Metrics loaded, the calls read
 `rejected (entry 1: consumer)` and no call hits. With
@@ -618,13 +630,14 @@ Markdown report, WP or the constant propagation is loaded, and the
 precedences, rest on source inspection: no run enables two reasons.
 
 **Open.** A plug-in outside the tree that registers a results hook with
-`cache_protocol` and reads `` `Reuse N ``, or that reads the states saved
-at statements, is not detected; a results hook registered without
-`cache_protocol` rejects every candidate with `callback`. The list of
-plug-ins that read these states comes from a sweep of the tree at this
-revision. The registration of parts that will let Inout
-and From be served by an entry is
-[issue #53](https://github.com/nyandrianinamamy/frama-c/issues/53).
+`cache_protocol` and reads `` `Reuse N `` is not detected; it gets no
+results at a hit of a supplied entry ([A hit restores the parts of the
+enabled
+consumers](cache-parts.md#a-hit-restores-the-parts-of-the-enabled-consumers)).
+A results hook registered without `cache_protocol` rejects every candidate
+with `callback`. A plug-in outside the tree that reads the states saved at
+statements is not detected; the list of plug-ins that read these states
+comes from a sweep of the tree at this revision.
 
 ## The collector with supplied entries
 

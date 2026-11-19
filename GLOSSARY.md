@@ -54,6 +54,14 @@ The abstract state before each statement inside the body, on its locals and on
 the blocks whose value at entry is checked by the match.
 _Avoid_: Intermediate states, per-statement states
 
+**From part**:
+The dependencies of the locations written by the statement on the locations
+it reads, as the From plug-in records them for each call.
+
+**Inout part**:
+The locations read and written by the statement, as the Inout plug-in records
+them for each call.
+
 ### Blocks
 
 **Block**:

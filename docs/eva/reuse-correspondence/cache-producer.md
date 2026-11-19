@@ -155,10 +155,11 @@ stored.
 **Claim.** Each completed body observation leads to one production
 disposition and count. The stored entry carries the Exit part, the Safety
 part, the collector's recorded join classes, used functions with their call
-modes, sweep targets, the stamp of a widening read, and an Inner reference
-if cvalue statement states were recorded. Memexec still serves ordinary
-calls. Only explicit fixture supply can make a produced entry a lookup
-candidate.
+modes, sweep targets, the stamp of a widening read, an Inner reference if
+cvalue statement states were recorded, and the parts that other plug-ins
+gave during the analysis ([Parts owned by other
+plug-ins](cache-parts.md)). Memexec still serves ordinary calls. Only
+explicit fixture supply can make a produced entry a lookup candidate.
 
 **Kind.** OCaml obligation.
 
@@ -168,7 +169,8 @@ and [No analysis has both caches](reuse-operation.md#no-analysis-has-both-caches
 **Symbols.** `Call_cache.Make.store`, `Call_cache.Make.lookup`,
 `Cache_producer.entries`, `Cache_producer.Table`, `Cache_producer.recorded`,
 `Cache_producer.inner`, `Cache_producer.used_functions`,
-`Supplied_entries.supply_produced`, and the `Statistics.cache_produced`
+`Supplied_entries.supply_produced`, `Cache_part.capture`, and the
+`Statistics.cache_produced`
 and `Statistics.cache_production_refused` counters.
 
 **Argument (source inspection).** Only a fresh, completed body with an
