@@ -921,7 +921,11 @@ loaded session, in a copy of the project and for installed results.
 statements. The classes:
 
 - `top`: answered after a hit, with the state top at the points of the
-  hit. The row says why the answer is sound.
+  hit. The row says why the answer is sound. The class holds with no
+  listed plug-in loaded (item 4): while one is loaded, a reader that asks
+  after the analysis is refused by row 2, and rows 6, 7, 8, 31 and 35 say
+  so. The passes of row 5 run at the end of the analysis, in which a listed
+  plug-in that is loaded rejects every candidate.
 - `refused`: stops with a user error after a hit.
 - `consumer`: its presence, or its option, rejects every supplied entry at
   lookup, so that no hit occurs in an analysis run while it is enabled.
@@ -948,7 +952,7 @@ Readers inside Eva:
 | 3 | The final values of a function, printed with `-eva` (`Cvalue_domain.display_final_state`); reads the store of the cvalue domain, without the engine (*new*) | `refused` for a function with a hit: prints the number of its hits | `cvalue_domain.ml:459` | `inout` with `-eva`; `saved-states`; `cache-reach.t`, `loop.c` | not enough: the printer reads the store, which #49 does not fill |
 | 4 | The filter of the final values by the outputs of Inout (`Eva_dynamic.Inout.kf_outputs`) | `top`: answers `Top`, and the values are printed unfiltered | `eva_dynamic.ml:26` | `inout` with `-eva`, lines `Cannot filter` | follows row 16 |
 | 5 | The marking of dead code (`Eval_annots.mark_unreachable`) and the coverage of the summary (`Summary`) | `top`: read whether a statement is reached, and the points of the hits are reached | `eval_annots.ml:56`, `:67`, `:107`; `summary.ml:179`, `:276` | `cache-reach.t`, `reach.c`; `cache-safety.t`, `passes.c` | no change |
-| 6 | The refinement of the statuses of the alarms (`Eval_annots.mark_green_and_red`) and `Export` | `top`: conclude at a statement only when every callstack agrees, and the state is top on the callstacks of the hits ([The passes after the analysis read the points reached by hits](reach.md#the-passes-after-the-analysis-read-the-points-reached-by-hits)) | `eval_annots.ml:124`, `:141`; `export.ml:219` to `:231` | `cache-safety.t`, `passes.c`; `cache-reach.t`, `reach.c` | more statuses refined |
+| 6 | The refinement of the statuses of the alarms (`Eval_annots.mark_green_and_red`) and `Export` | `top`: conclude at a statement only when every callstack agrees, and the state is top on the callstacks of the hits ([The passes after the analysis read the points reached by hits](reach.md#the-passes-after-the-analysis-read-the-points-reached-by-hits)); `Export` run with `-eva-annot` after the analysis is `refused` while a listed plug-in is loaded (row 2, *new*) | `eval_annots.ml:124`, `:141`; `export.ml:219` to `:231`; `engine.ml:177` | `cache-safety.t`, `passes.c`; `cache-reach.t`, `reach.c`; `-eva-annot` on the session with hits, without and with Occurrence | more statuses refined |
 | 7 | The server request `getDeadCode` | `top`, as row 5; `refused` while a listed plug-in is loaded (row 2, *new*) | `ast_requests.ml:137`; `engine.ml:177` | `server`, before and after Studia is loaded | no change; row 2 |
 | 8 | The other requests of Eva's server, which the graphical interface sends: the values at a statement and by callstack (`value_requests.ml:360` to `:362`, `:461`), the states before and after a statement (`analysis_requests.ml:132`) | `top`: display the state top; `refused` while a listed plug-in is loaded (row 2, *new*) | `engine.ml:68`; `engine.ml:172`, `:177` | `server`, lines `getValues`, for the values at a statement; source inspection for the states before and after | the values of the visit |
 | 9 | The requests of the taint (`taint_requests.ml:164`, `:240`, `:295`) | no hit: the taint domain is a second domain, and the lookup rejects every candidate with `product` | `supplied_entries.ml:489` | [A supplied entry is used only where a hit is supported](reuse-operation.md#a-supplied-entry-is-used-only-where-a-hit-is-supported) | not concerned |
@@ -967,7 +971,7 @@ below (From and Inout in rows 14 to 19).
 | 14 | From, dependencies by function: `From.get`, `From.compute`, `-deps`, the printers of From | `consumer` with `-deps`; `refused`, after running the analysis, before computing and before its table | `from_register.ml:159`; `functionwise.ml:33` | `readers` with `-deps`; `api`, `lazy-from`, `then`, `save`, `snapshot`, `copy` | `candidate` |
 | 15 | From, callwise dependencies: `From.Callwise`, `-calldeps` | `none` for the computation: reads the states of the call being finalised; a hit restores its part. The display of `-calldeps` asks the callee of each call site (`from_register.ml:90`), in the analysed callers, whose states are saved: answered, and `refused` while a listed plug-in is loaded (row 2, *new*) | `callwise.ml` (`restore_froms`); `engine.ml:177` | `from`, `visits`; for the display, the session saved with `-calldeps` and loaded with no reader, then with Occurrence | not concerned |
 | 16 | Inout by function and by statement: `kf_inputs`, `kf_outputs`, `kf_external_inputs`, `kf_external_outputs`, the inputs with formals, the dereferenced zones, `stmt_inputs`, `stmt_outputs`, `expr_inputs`; options `-input`, `-out`, `-out-external`, `-input-with-formals`, `-deref` | `consumer` with one of the options; `refused`, before computing and before its tables | `inout/src/register.ml:47`; `cumulative_analysis.ml:24`, called at `:148`, `:155`, `:163`, `inputs.ml:146`, `outputs.ml:143`, `derefs.ml:73` | `readers` with each option; `api`, `warm`, `then`, `save`, `external` | `candidate` |
-| 17 | Inout, operational inputs and outputs of a function computed from its statements (`get_precise_inout` without statement, `-inout`) | `refused`, before computing and before reading the tables of a result computed from the statements | `operational_inputs.ml:208`, called at `:838`, `:852`, `:872`, `:886` | `nested`, `fallback`, `external` | `candidate` |
+| 17 | Inout, operational inputs and outputs of a function computed from its statements (`get_precise_inout` without statement, `-inout`) | `refused`, before computing and before reading the tables of a result computed from the statements | `operational_inputs.ml:208`, called at `:838`, `:872`, `:886`; the same test at `:852`, before the computation from the statements | `nested`, `fallback`, `external` | `candidate` |
 | 18 | Inout, operational inputs and outputs joined from the results of the calls, and callwise at a statement | `none`: a hit restores the result of its call | `operational_inputs.ml:208` (a function not computed from its statements passes) | `inout`, `fallback`, `visits` | not concerned |
 | 19 | The filters `read` and `written` of Inout on the variables of the server (`Inout_requests`) | `refused`, through row 16; the server answers with an error | `cumulative_analysis.ml:24` | source inspection, no scenario | `candidate` |
 | 20 | Pdg, the graph of a function: `Pdg_tbl.get`, `-fct-pdg`, `-pdg` | `consumer` by name; `refused` by its own test, after running the analysis, before computing and before its table | `cache_part.ml:143`; `pdg_tbl.ml:45` | `readers` with Pdg; `save`, then `-load` with Pdg | `candidate` |
@@ -981,7 +985,7 @@ below (From and Inout in rows 14 to 19).
 | 28 | WP, memory model based on Eva (`wp_eva.enabled.ml:10`) (*new refusal*) | the same | the same | `readers` with WP; `late-wp` | `candidate` |
 | 29 | The constant propagation (`constant_propagation/src/api.ml:122`) (*new refusal*) | the same | the same | `readers` with it; `late-scf` | `candidate` |
 | 30 | Occurrence (`occurrence/src/register.ml:95`) (*new*, at lookup and after a hit) | the same | the same | `readers` with Occurrence; `late-occurrence`; `late-reader` | `candidate` |
-| 31 | Loop analysis, the bounds of a variable (`loop_analysis.ml:333`) | `top`: the value of a variable in the top state is not an integer set, `as_ival` answers an error and the plug-in gets no bound, as when Eva has no result | `loop_analysis.ml:336` to `:339`; `results.ml:624` | source inspection, no scenario | the bounds of the visit |
+| 31 | Loop analysis, the bounds of a variable (`loop_analysis.ml:333`) | `top`: the value of a variable in the top state is not an integer set, `as_ival` answers an error and the plug-in gets no bound, as when Eva has not run; `refused` while a listed plug-in is loaded (row 2, *new*) | `loop_analysis.ml:336` to `:339`; `results.ml:624`; `engine.ml:177` | `bound.c`: `-loop` on the session with hits, without and with Occurrence | the bounds of the visit |
 | 32 | Callgraph, the callers of a function (`cg.ml:196`, `Eva.Results.callsites`) | `none`: reads the table of the callers, where a hit registers the calls of the skipped body | `reach_delivery.ml:51` | `cache-reach.t`, lines `call sites` | not concerned |
 | 33 | Aorai (`aorai_eva_analysis.enabled.ml:42`) | `none`: evaluates in the state that the analysis passes to its builtin | source inspection | none | not concerned |
 | 34 | RTE (`rte/src/eva_analysis.enabled.ml:13`) | `none`: reads whether Eva analysed the function, and then relies on the alarms of Eva, which a hit delivers ([A hit delivers the Safety part as recorded joins](safety.md#a-hit-delivers-the-safety-part-as-recorded-joins)) | source inspection | none | not concerned |
@@ -1088,8 +1092,10 @@ read whether a statement is reached, which the points of the hits answer
 (`Reach_delivery.reached`). Loop analysis asks the integer set of a
 variable before a statement: in the top state the value of a variable is
 not based on the null base, `Results.as_ival` answers `Error Top`, and the
-plug-in takes no bound from Eva. No other plug-in of the tree is in this
-class: each of the others either is refused, or reads no state.
+plug-in takes no bound from Eva: it prints no bound for the loop, as when
+Eva has not run, where an analysis of the body gives one. No other plug-in
+of the tree is in this class: each of the others either is refused, or
+reads no state.
 
 While an analysis runs, `Eva.Analysis.compute` starts a whole analysis
 again: its start clears the results (`Self.clear_results`), and with them
@@ -1206,11 +1212,19 @@ call, which locates its lvalue with the results of Eva, are refused by
 Eva, and
 `getReadsLval` and `getWritesLval` on the declaration of `b`, which need
 no state for the location, are refused by the test of Studia.
+On the session with hits loaded with Occurrence, `-eva-annot copy` (row 6)
+stops with the refusal of Eva, exit status 1, where it runs to its end
+without Occurrence; and on the session of `bound.c`, saved after 2 hits on
+`copy`, `-loop` (row 31) stops with the same refusal.
 
 *Item 4.* Scenario `raw`: the first statement of
 `copy` is reachable after caching disabled and after the hits; the value
 of `src` there is `{{ &b ; &d }}` with caching disabled and
-`{{ ANYTHING }}` after the hits.
+`{{ ANYTHING }}` after the hits. In `bound.c`, `copy` has a loop bounded
+by a global, analysed with `-eva-slevel 20`: on the session of an analysis
+with caching disabled, the loop analysis prints the bound 8 for it; on the
+session saved after the 2 hits on `copy`, it prints no bound, as it does
+when Eva has not run.
 
 *Before this version.* At `695285889b`, on `parts.c`, Occurrence loaded
 after three hits on `copy` answered the empty list for `b`, `d`, `a` and
@@ -1257,7 +1271,8 @@ returned.
   without hits: with Studia loaded, `getDeadCode` is refused, where it
   answers with Studia absent; a session saved with `-calldeps` and loaded
   with Occurrence stops in the display of the callwise dependencies, which
-  asks the callee of each call site, before Occurrence asks anything.
+  asks the callee of each call site, before Occurrence asks anything;
+  `-eva-annot` and the loop analysis stop in the same way.
   Refusing only the queries that the listed plug-in sends would need the
   identity of the caller, which the queries do not have.
 - A reader that is not in the tree, and a plug-in of the tree added later,
@@ -1265,11 +1280,15 @@ returned.
   such a reader concludes soundly from the state top is not checked: the
   claim is for the readers of the table. Nothing in the build detects a
   reader missing from the lists.
-- Rows 19, 31, 33 and 34 rest on source inspection, without a scenario,
-  and so do the states before and after a statement of row 8. Loop
-  analysis (`-loop`), Callgraph (`-cg`) and RTE (`-rte`), loaded on the
-  session with hits, ran to their end with exit status 0; these runs are
-  not in the test suite and compare no result.
+- Rows 19, 33 and 34 rest on source inspection, without a scenario, and
+  so do the states before and after a statement of row 8. Callgraph
+  (`-cg`) and RTE (`-rte`), loaded on the session with hits, without and
+  with Occurrence, ran to their end with exit status 0, and the graph of
+  Callgraph was the same in the two runs; these runs are not in the test
+  suite. Aorai was not run.
+- After hits, the loop analysis gives no bound for a loop of a skipped
+  body, where it gives one after an analysis of the body (row 31): the
+  answer claims nothing, and is less precise.
 - Lifting the refusals marked `candidate` needs the states at the
   statements of a skipped body (the state queries of #49, and the public
   Inner query of
