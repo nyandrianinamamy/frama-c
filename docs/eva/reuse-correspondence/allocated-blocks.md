@@ -431,15 +431,15 @@ consults the tags, refuses the body when the set is not empty, and adds the
 recorded blocks to its owners. `Base.update_variable_validity` is public: the
 kernel counts the calls that make a strong record weak (`Base.weakenings`),
 whoever the caller is, and `read_node_tags` also refuses when the count is
-not zero. There are two counts, and either refuses. One belongs to the
-process: it is not cleared, copied or left out with a selection of states.
-The other is a state of each project, saved with a session, as the
-hash-consing table of the offsetmaps: a node loaded by another process
-with the tag of its first construction finds a count that refuses it. Each
-carries the other. A weakening is counted in every project of the process,
-whichever is current; a state created, or cleared alone, starts from the
-count of the process; after a load, a positive loaded count is added to the
-count of the process. A second call of `Base.register_allocated_var`
+not zero. The count belongs to the process: no operation on the states of
+a project clears, copies or omits it, and it covers a node or a validity
+record used from another project. A session carries no count. When a node
+is loaded, `Offsetmap.rehash_node` computes its singleton bit again from
+the loaded value and subtrees, which are rehashed first, and keeps the rest
+of the tag; `Hptmap.rehash_node` rebuilds the leaves and branches of a
+loaded map, and with them the compositional bool of `Lmap`. A loaded node
+therefore has the tag of the weakness that its targets have in the session,
+and a weakening made after the load is counted in the loading process. A second call of `Base.register_allocated_var`
 on a variable replaces the validity of a base that existing nodes may
 designate: it is counted as a weakening. A weakening counted without a call to
 `Body_access.weakened` adds no owner. This is the plain form of the rule: it does
@@ -462,10 +462,14 @@ The same count is 998 at revision
 is part of the rule, and `allocation-metadata` is the first reason of no
 body. The last cases of `run.t` do not use the allocation builtins.
 `kernel-save` makes a record weak through `Base.update_variable_validity`
-alone: `read_node_tags` reads `would-store` before and
-`allocation-metadata` after, with no owner. It saves a node built while
-the target was strong; `kernel-load`, in another process, finds the node
-with its tag (`loaded node tag: true`) and reads `allocation-metadata`.
+alone, while another project is current: `read_node_tags` reads
+`would-store` before and `allocation-metadata` after, with no owner, and a
+node and a state built while the target was strong keep their tags (`node
+tag true, state tag true`). `kernel-load`, in another process, finds them
+with the tags of the loaded value (`node tag false, state tag false`); a
+node and a state built again there are the loaded ones, the join of both
+states is the loaded state, and `read_node_tags` reads `would-store`. With
+the saved tag kept at load, the loaded node read `node tag true`.
 `kernel` registers a variable a second time with a weak record and reads
 `allocation-metadata`. It also sets an observer of metadata reads before a
 recording, which runs before, during and after it, and one during a
@@ -473,19 +477,7 @@ recording, which is kept after it while the collector records the read of
 the next recording. An observer that does not forward, set during a
 recording, hides the read: the recording reads `allocation-metadata` with
 no owner, also when the observer is removed before the recording ends, and
-the next recording reads `would-store`. `kernel-save` clears the state of
-the count alone, still reads `allocation-metadata`, and saves the session
-after the clearing; `kernel-load` reads `allocation-metadata` from it,
-and again after clearing the loaded state alone. `kernel-save-foreign`
-makes the record weak while another project is current and saves; the
-load reads `allocation-metadata`.
-
-**Assumption on sessions.** A session written without the state
-`Base.Weakenings` (a selection of states that leaves it out, or a session
-written before the state existed) loads with the tags of its nodes and
-contributes no count: a body analysed after such a load in a new process is
-not refused by this rule. The claim holds for sessions saved whole by this
-version.
+the next recording reads `would-store`.
 
 **Open.** The rule applies to the
 bodies analysed after a weakening: an entry stored before a weakening and
