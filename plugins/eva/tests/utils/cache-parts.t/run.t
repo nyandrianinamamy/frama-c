@@ -85,10 +85,12 @@ history.c, the first and third calls to leaf do not reach the branch that
 the second call reaches. At the end of each call, the results of the
 analysis answer that the statements this call does not reach are
 reachable, and give Top as the state at the start of leaf, which the
-assertion reads: the answers do not depend on the other calls. In the
-second analysis, the first and third calls hit the entry of the first
-call, and the results of From and Inout at each call are those of caching
-disabled.
+assertion reads at the label Pre: the answers do not depend on the other
+calls. The assertion also reads the initial state at the label Init: the
+entries keep their Inout part, which a label without a state would
+withhold. In the second analysis, the first and third calls hit the entry
+of the first call, and the results of From and Inout at each call are
+those of caching disabled.
 
   $ EVA_TEST_CACHE_PARTS=history frama-c -no-autoload-plugins -load-module eva,from,inout,test_cache_parts.cmxs -calldeps history.c > history.log 2>&1
   $ grep -E '^(call of leaf|entry of|hits|leaf at)' history.log
@@ -99,9 +101,9 @@ disabled.
   entry of leaf: parts [from, inout]
   entry of leaf: parts [from, inout]
   hits: leaf 2
-  leaf at line 22: z FROM \nothing; \result FROM \nothing; equal to caching disabled: dependencies true, inputs and outputs true
-  leaf at line 23: x FROM indirect: c; direct: a; y FROM indirect: c; z FROM \nothing; \result FROM \nothing; equal to caching disabled: dependencies true, inputs and outputs true
-  leaf at line 24: z FROM \nothing; \result FROM \nothing; equal to caching disabled: dependencies true, inputs and outputs true
+  leaf at line 23: z FROM \nothing; \result FROM \nothing; equal to caching disabled: dependencies true, inputs and outputs true
+  leaf at line 24: x FROM indirect: c; direct: a; y FROM indirect: c; z FROM \nothing; \result FROM \nothing; equal to caching disabled: dependencies true, inputs and outputs true
+  leaf at line 25: z FROM \nothing; \result FROM \nothing; equal to caching disabled: dependencies true, inputs and outputs true
 
 With -eva, Eva also analyses the program before the test module does, and
 prints the final states after each of the three analyses, filtered by the
