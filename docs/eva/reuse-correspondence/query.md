@@ -276,14 +276,17 @@ the [checked tree](#evidence-for-these-entries).
 | Block of the key | Shared inner state | Proved | `InnerPartSound.state` covers the producing visit on the key. The member and its witness agree on the key at every step (`replay_trace`). |
 | Frame block | Value at the call with the marks of the sweeps | Proved | Coverage puts every write of the producing prefix in the writes of the footprint. The member has the same events. By `frame_of_not_written`, a block issued at the call and not written on the prefix holds its value at the call with the marks of the sweeps of the prefix. The premise on bound blocks gives the issuance. |
 | Bound block absent from the recorded possible writes | Same | Proved | As for a frame block, with `InnerPartSound.mayWrite`, which puts every write of the producing prefix in the possible writes recorded for the point, in place of coverage. |
-| Block listed as updated at the point | Shared inner state | Proved, for whole-block writes | The rule reads the recorded list. `InnerPartSound.updated` is the obligation on that list: each listed block is updated on every producing execution before the point, so it is among the blocks updated by the producing prefix, on which the member and its witness agree (`replay_trace`). `InnerPartSound.state` covers the producing visit on that block. A block updated on every execution but not listed answers top (`Checks.key_only_answers`). See the [known difference](#partial-write-of-one-byte). |
+| Block listed as updated at the point | Shared inner state | Proved, for whole-block writes | The rule reads the recorded list. `InnerPartSound.updated` is the obligation on that list: each listed block is updated on every producing execution before the point, so it is among the blocks updated by the producing prefix, on which the member and its witness agree (`replay_trace`). `InnerPartSound.state` covers the producing visit on that block. A block updated on every execution but not listed, to which none of the rules above applies, answers top (`r` in `Checks.key_only_answers`); an unlisted block of the key still answers by the rule of the key (`x` in the same check). See the [known difference](#partial-write-of-one-byte). |
 | Any other block, including a local of the body | Top | Answers top | Top contains every content. |
 | Join of the lines that apply | Union of their answers | Proved | `mem_query`: the answer of each line that applies is contained in the joined answer. `query_sound` applies `answer_sound` to the line of the visit. |
 
-The stored inner value of a block outside the key is not an answer, and
-neither is its join with the value at the call: the two-call and
-overwritten-block checks below show that the stored value misses the
-content of the member.
+Outside the key, the stored inner value is an answer only through the
+rule for blocks listed as updated: `r` after the write in the
+overwritten-block check answers from the stored state. For any other block
+outside the key, neither the stored value nor its join with the value at
+the call is an answer: the two-call check and the overwritten-block check
+before the write show that the stored value misses the content of the
+member.
 
 ## Checked instances
 
@@ -444,13 +447,15 @@ listed as left out in [`lean/README.md`](../../../lean/README.md#what-the-model-
   hit callstack is the join over the hit lines of that callstack, each line
   answering at the point below its hit (`Checks.same_callstack_join`,
   `Checks.nested_suffix_join`). The rules of one line in the order above,
-  with no other source of answers: neither the stored value of a block
-  outside the key nor its join with the value at the call. The premises
+  with no other source of answers: outside the key, the stored value of a
+  block is used only by the rule for listed updated blocks, and its join
+  with the value at the call is never an answer. The premises
   `InnerPartSound` and the issuance of bound blocks for Eva's stored
   states, for every hit line. The rule for updated blocks answers from the
   recorded list: Eva may list a block only if every execution before the
   point updates it, restricted to full overwrites and creations, and a
-  block it does not list answers top. The rule for blocks with no write
+  block it does not list answers top when none of the preceding rules
+  applies to it. The rule for blocks with no write
   before the point reads the recorded possible writes, which must contain
   every block written before the point. A minimal implementation stores
   states on the key only, takes the writes of the footprint as the
@@ -685,8 +690,8 @@ support the public checks.
 
 ## Evidence for these entries
 
-Tree of `lean/` `3380facecc96fb5ed308e77912bd162db667a9f2` at
-`6f9f50ce9fd98294bbb4307ce173e570fd4a9c26`. On a clean archive of that
+Tree of `lean/` `cbb602472b8e2f73ea1560c4f265039aea5e44c9` at
+`ae53c88c7f0772637e8babd6cb8596b20c33f25c`. On a clean archive of that
 tree, `cd lean && lake build --wfail` exited 0 with Lean 4.28.0. The axiom
 guard accepted all printed declarations; every new declaration depends on
 `propext` and `Quot.sound` at most. Each Lean commit of this branch since
