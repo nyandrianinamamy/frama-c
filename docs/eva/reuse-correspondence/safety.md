@@ -672,9 +672,10 @@ the project and of the count removed from `Body_access.capture` and
 red context set in the second project, and the hit delivers it in the
 first: the tables of `main` have a red context of the reachability of the
 statement at line 8 of `body`, which caching disabled does not have. With
-the comparison of the count removed alone, `body` is still refused, by the comparison of the
-project at its write in the second project, and `producer` is refused for
-another reason (`sweep`).
+the comparison of the count removed alone, `body` is still refused, by the
+comparison of the project at its write in the second project, and
+`producer` takes that refusal from the call of `body`: a recording takes
+the refusals of the calls analysed within it (`Body_access.include_fresh`).
 
 A change made in a hook of another change, in `cache-safety.t`: the
 analysis from `producer` runs in a hook of the change of project to a copy
