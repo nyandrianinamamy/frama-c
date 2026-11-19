@@ -36,8 +36,6 @@ let requests () =
           (String.concat ", " (List.map field fields))
       | _ -> Format.printf "%s: answered@." name
       | exception Log.AbortError _ -> Format.printf "%s: refused@." name
-      | exception Server.Data.InputError msg ->
-        Format.printf "%s: refused: %s@." name msg
   in
   let dead_code f =
     let decl = Server.Printer_tag.SFunction (kf f) in
