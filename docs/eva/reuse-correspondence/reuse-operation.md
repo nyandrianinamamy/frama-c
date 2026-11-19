@@ -264,13 +264,15 @@ analysed bodies.
 - `key-unclosed` is not exercised: the `relate` of cvalue returns the empty
   set, so every key is closed (see [`relate` empty for
   cvalue](#relate-empty-for-cvalue)).
-- A hit delivers the Exit part and the Safety part
-  ([Safety at a hit](safety.md)); the entries supplied by these fixtures
-  have no Safety part and no Reach part. The statements of a body reached
-  only through hits are not marked as reached; in run 0 several bodies are
-  never analysed. A function answered by a hit on such an entry is of
-  unknown reachability
-  ([Reach at a hit](reach.md#the-passes-after-the-analysis-read-the-points-reached-by-hits)).
+- A hit delivers the Exit part, the Safety part and the Reach part
+  ([Safety at a hit](safety.md), [Reach at a hit](reach.md)); the entries
+  supplied by these fixtures have no Safety part, and a Reach part written
+  by hand, without which the lookup rejects them (`missing-points`). The
+  statements of a body reached only through hits are reached in the
+  callstacks of the hits; the oracles print no classification of dead
+  code, and the part is compared with that of an analysis of the body
+  outside the test suite only
+  ([A hit delivers the Reach part as recorded joins](reach.md#a-hit-delivers-the-reach-part-as-recorded-joins)).
 - The hypotheses of the match lemma that stay open for cvalue are listed
   under [`filter` exact on the stored input for
   cvalue](#filter-exact-on-the-stored-input-for-cvalue).
@@ -585,7 +587,7 @@ does not add a domain, so the product stays cvalue alone and the thread test
 is reached. The other plug-ins of `Supplied_entries.state_readers` conclude
 from the states saved at the statements of a function, which a hit does not
 save for its own call
-([The passes after the analysis draw no conclusion where a hit reached no point](safety.md#the-passes-after-the-analysis-draw-no-conclusion-where-a-hit-reached-no-point)).
+([The passes after the analysis draw no conclusion where the queries do not see the points of a hit](safety.md#the-passes-after-the-analysis-draw-no-conclusion-where-the-queries-do-not-see-the-points-of-a-hit)).
 The third test is needed because a fresh evaluation registers every alarm of
 an evaluation before `Alarmset.stop_at_nth_alarm` tests the threshold,
 whereas a hit delivers its alarms one by one and does not know the

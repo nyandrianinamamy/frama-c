@@ -128,7 +128,7 @@ inline body with a precondition and an inline specification, and the
 hand constructor for the inline specification:
 `Supplied_entries.supply` refuses, before any lookup, a hand entry for a
 body that may call a function with a body
-([The passes after the analysis](safety.md#the-passes-after-the-analysis-draw-no-conclusion-where-a-hit-reached-no-point)).
+([The passes after the analysis](safety.md#the-passes-after-the-analysis-draw-no-conclusion-where-the-queries-do-not-see-the-points-of-a-hit)).
 Each candidate tried gives `nested-delivery`. The assertion status matches
 caching disabled in all three cases. The supplied-child criterion is
 exercised by the child's confirmed hit and the enclosing observation. No
