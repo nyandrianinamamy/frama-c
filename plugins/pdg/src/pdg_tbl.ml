@@ -27,7 +27,8 @@ let self = Tbl.self
 
 (* A graph is built from the states that Eva saves at the statements of the
    function. A hit of the cache of Eva saves none at the statements of the
-   called function, which then looks unreachable: the graph would be false.
+   called function, where the results give the top state: the graph would
+   not be the one of an analysis of the body.
    The analysis runs first, since its hits make these states incomplete; the
    test then comes before the table, which may hold a graph built before a
    hit of the current analysis. *)
