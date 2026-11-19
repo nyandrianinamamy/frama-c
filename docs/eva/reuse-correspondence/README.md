@@ -102,8 +102,8 @@ that a checkout has the model sources of an entry, compare
   answered by a hit, the refusal of a recording across a change of
   project, the settings that decide the alarms and messages, the
   rejection of every entry while a client that is not audited is
-  registered on a hook that a hit runs, and the preconditions of the
-  called function at a hit.
+  registered on a hook that a hit runs, and the rejection of the entries
+  of a function whose call checks a precondition.
 - [Reach at a hit](reach.md): the points reached, the guard outcomes, the
   zones and the call sites recorded in an entry, their delivery at a hit as
   recorded joins, the state top that the queries see at the points a hit
@@ -114,8 +114,10 @@ that a checkout has the model sources of an entry, compare
   withholding of a part whose reads the key misses, their restoration at a
   hit and the audit of the clients it runs, the rejection of a candidate
   that lacks a needed part, the readers
-  of saved states that reject every candidate, and the refusal of the
-  results computed from statement states after a hit.
+  of saved states that reject every candidate, the refusal of the
+  results computed from statement states after a hit, with the table of
+  the readers of these states in the tree and the class of each, and the
+  final values of a function with a call answered by a hit.
 - [Reuse operation](reuse-operation.md): the cache entry and its four
   written sets, the match by equality on entries supplied by a test module,
   the blocks a hit takes from an exit state, the choice of one cache per

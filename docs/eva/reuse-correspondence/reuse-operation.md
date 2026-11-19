@@ -205,15 +205,16 @@ examined. The state given to the lookup is the input of the call: the caller's s
 take part in the key as blocks. For cvalue, `Cvalue_domain.State.equal`
 compares the maps and ignores the clobbered set. The engine never analyses a
 call from `Bottom`. On a hit, `compute_and_cache_call` runs the call hooks
-with `` `Reuse ``, evaluates the preconditions of the callee at the call,
+with `` `Reuse ``,
 records the function as answered by a hit, delivers the Safety part and
 the Reach part of the entry, prints the line of the reuse, then restores
 the parts of the entry in place of the results hooks
 ([A hit restores the parts of the enabled
 consumers](cache-parts.md#a-hit-restores-the-parts-of-the-enabled-consumers)),
-and returns the states as the result of the call. When no state satisfies
-the preconditions, it delivers nothing, restores no part and returns no
-state ([Safety at a hit](safety.md)).
+and returns the states as the result of the call. It evaluates no
+precondition: the lookup rejects the entries of a function whose call
+checks a `requires` clause
+([Preconditions at a hit](safety.md#preconditions-at-a-hit)).
 The caller then finalizes the call as after an analysed body.
 
 The match lemma of the model (`ReuseModel.Domain.match_lemma`, [Match
@@ -552,10 +553,11 @@ an analysis that started with memexec rests on source inspection.
 ## A supplied entry is used only where a hit is supported
 
 **Claim.** When the domains of the analysis are not the cvalue domain alone,
-every supplied candidate is rejected with `product`. Otherwise, when the
-Nonterm, Metrics, Markdown report (`mdr`), WP or constant propagation
-(`scf`) plug-in is loaded, when a reader of the states saved at the
-statements of each function is enabled (see [Readers of the states saved at
+every supplied candidate is rejected with `product`. Otherwise, when a
+plug-in that reads the states saved at the statements of each function is
+loaded (Nonterm, Metrics, the Markdown report, WP, the constant
+propagation, Occurrence, Pdg, Reduc or Studia), when a reader of these
+states is enabled by an option (see [Readers of the states saved at
 statements reject every
 candidate](cache-parts.md#readers-of-the-states-saved-at-statements-reject-every-candidate)),
 or when the analysis of threads is enabled, every supplied candidate is
@@ -582,7 +584,7 @@ Callgraph is audited at the lookup.
 **Depends on.** None.
 
 **Symbols.** `Supplied_entries.Lookup.cvalue_alone`,
-`Supplied_entries.consumer_enabled`, `Supplied_entries.state_readers`,
+`Supplied_entries.consumer_enabled`, `Cache_part.loaded_reader`,
 `Cache_part.reads_statement_states`, `Supplied_entries.stop_at_nth_alarm`,
 `Supplied_entries.unaudited_clients`, `Cache_part.decide`,
 `Self.ComputationState`,
@@ -624,7 +626,7 @@ The thread test is needed because the analysis of threads
 (`Mt_analysis_hooks.catch_functions_record`) looks up the identifier of a
 hit in its own table, and no part restores its result. `-mthread` does not
 add a domain, so the product stays cvalue alone and the thread test is
-reached. The plug-ins of `Supplied_entries.state_readers` conclude from the
+reached. The plug-ins of `Cache_part.loaded_reader` conclude from the
 states saved at the statements of a function, which a hit does not save for
 its own call
 ([The passes after the analysis draw no conclusion where the queries do not see the points of a hit](safety.md#the-passes-after-the-analysis-draw-no-conclusion-where-the-queries-do-not-see-the-points-of-a-hit)).
@@ -656,7 +658,8 @@ Inout are exercised by
 [`cache-parts.t`](../../../plugins/eva/tests/utils/cache-parts.t/run.t). In
 [`cache-safety.t`](../../../plugins/eva/tests/utils/cache-safety.t/run.t),
 with Nonterm or with Metrics loaded, the calls read
-`rejected (entry 1: consumer)` and no call hits. With
+`rejected (entry 1: consumer)` and no call hits; in `cache-parts.t`, the
+rejection is executed with each of the nine plug-ins loaded. With
 `-eva-stop-at-nth-alarm 1`, the call of `body` in `threshold.c` reads
 `rejected (entry 1: stop-at-nth-alarm)`, the statistic
 `cache-rejected-stop-at-nth-alarm` is 1, and the analysis stops after the two

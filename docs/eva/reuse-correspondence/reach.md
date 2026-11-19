@@ -164,9 +164,8 @@ the same: no body is refused for its Reach part alone. On the analysis of
 ## A hit delivers the Reach part as recorded joins
 
 **Claim.** Every hit is on a supplied entry with a Reach part. At such a
-hit, when a state satisfies the preconditions of the called function, each
-write of the Reach part is made again for the callstack of the hit extended
-by its frames: the guard outcomes and the zones are joined with those at
+hit, each write of the Reach part is made again for the callstack of the
+hit extended by its frames: the guard outcomes and the zones are joined with those at
 their positions and the call sites are added, whatever the options that
 decide which states are saved, and the points are recorded as reached in
 that callstack when the states of the called function are saved in the
@@ -599,7 +598,9 @@ Each of these checks fails with one change, reverted after the run:
   record serves the statistics of a function (`Summary.FunctionStats`),
   which the results do not hold, and the test of complete results
   (`Results.statement_results_complete`), through which From, Inout, Pdg
-  and Studia refuse their results computed from statement states
+  and Studia refuse their results computed from statement states, and the
+  results of Eva refuse the states at statements while a plug-in listed as
+  a reader is loaded
   ([Results computed from statement states are refused after a hit](cache-parts.md#results-computed-from-statement-states-are-refused-after-a-hit)).
   The results hold this record once.
 
@@ -735,6 +736,8 @@ client of the hooks on the changes of annotations is audited at the lookup
 and the hits occur in the process of the request: in `cache-parts.t`,
 `getDeadCode` after the hits on `copy` and `narrow`, in that process and
 on the saved session, gives the reached statements of caching disabled
+while no plug-in listed as a reader is loaded; once Studia is loaded, the
+request is refused
 ([Results computed from statement states are refused after a hit](cache-parts.md#results-computed-from-statement-states-are-refused-after-a-hit)).
 
 **Open.**
