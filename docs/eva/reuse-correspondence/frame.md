@@ -125,7 +125,7 @@ all designated writes.
 **Evidence.** Tree of `lean/` `baaacef349ee92e373475ca88b596619282b3ed2` at
 commit `fa1175a44de40098071cb2ada6674a2fa875876f`. `cd lean && lake build --wfail`
 completed with exit status 0 using the pinned Lean 4.28.0 toolchain.
-CI is pending.
+CI: [run 44428598174](https://github.com/nyandrianinamamy/frama-c/actions/runs/44428598174) succeeded on this tree.
 
 **Checked cases.** The fixture allocates block 2 in an inner scope, stores
 its address in block 0 and leaves the scope. Block 0 becomes escaped and
