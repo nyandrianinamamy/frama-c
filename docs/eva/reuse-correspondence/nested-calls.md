@@ -96,10 +96,15 @@ to have no automatic blocks. This conservative check makes each skipped
 cleanup empty even when the callstack or registry has changed since
 production. Admission also rejects if the cached body or one of its used
 functions is already active in the caller. The same lookup uses #44's
-sweep, hint and watchpoint checks. For matching entries that pass those
-checks, lookup inspects the subject's AST for direct and indirect call
-instructions, including calls in local initializers. Either constructor
-can supply the entry. The presence of a call gives `nested-delivery`
+sweep, hint and watchpoint checks and the comparison of the warning
+categories (`warn-categories`), after the rejections of every candidate
+(`product`, `consumer`, `stop-at-nth-alarm`, `callback`) of
+[Safety at a hit](safety.md#a-hit-runs-no-client-that-is-not-audited).
+For matching entries that pass those checks, lookup inspects the subject's
+AST for direct and indirect call instructions, including calls in local
+initializers. `supply_produced` takes any produced entry; `supply` refuses
+an entry for a body that may call a function with a body before any lookup,
+and supplies the others. The presence of a call gives `nested-delivery`
 regardless of child references or the observed call trace. Direct
 `Frama_C_show_each*` and `Frama_C_domain_show_each*` calls are leaf
 displays, which hand-supplied fixtures use to show whether the body ran.
@@ -118,11 +123,16 @@ callstack. The split-return fixtures assert the key and sure writes with
 fresh and supplied children and with two calls in one main. They compare
 the result and a division alarm with caching disabled. The delivery fixture
 supplies the same key, footprint, input and exits through each
-constructor. For a referenced child, an inline body with a precondition
-and an inline specification, both candidates give `nested-delivery`.
-The assertion status matches caching disabled in all three cases. The
-supplied-child criterion is exercised by the child's confirmed hit and
-the enclosing observation. Enclosing hits await #47.
+constructor. The produced constructor is tried for a referenced child, an
+inline body with a precondition and an inline specification, and the
+hand constructor for the inline specification:
+`Supplied_entries.supply` refuses, before any lookup, a hand entry for a
+body that may call a function with a body
+([The passes after the analysis](safety.md#the-passes-after-the-analysis-draw-no-conclusion-where-a-hit-skipped-visits)).
+Each candidate tried gives `nested-delivery`. The assertion status matches
+caching disabled in all three cases. The supplied-child criterion is
+exercised by the child's confirmed hit and the enclosing observation. No
+enclosing hit is admitted.
 The transitive test exercises a produced middle entry at the same
 composition function used by a supplied hit, then performs three real
 analyses. The temporary guard rejects that middle entry in the second
@@ -135,12 +145,16 @@ entry whose footprint covers the skipped execution under its call context.
 The argument for the Eva match witness and full correspondence with the
 whole-block model remains open. See [Hit soundness](hit.md#hit-soundness).
 Recorded classes alone cannot deliver per-position contributions.
-Before enabling an enclosing hit, #47 must collect and deliver Safety at
-each child's relative call site, including inline work, and mark every
-function whose body visits the hit skips, transitively. End-of-analysis
-processing must suppress conclusions requiring complete visit information
-for those functions. #48 and #51 owe Reach and the remaining position-
-specific contributions for that same nested work.
+Before enabling an enclosing hit, the Safety part of the enclosing body
+must hold the writes of each child at its relative call site, including
+those of children analysed afresh and of inline work, and a hit must mark
+every function whose body visits it skips, transitively. The part recorded
+today holds only the writes that the hits of its calls deliver, and
+`Safety_delivery.skip_visits` marks the called function alone
+([Safety at a hit](safety.md#the-safety-part-records-the-writes-of-the-body)).
+End-of-analysis processing must suppress conclusions requiring complete
+visit information for those functions. #48 and #51 owe Reach and the
+remaining position-specific contributions for that same nested work.
 
 ## Dependencies on entry values
 

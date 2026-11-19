@@ -7,7 +7,8 @@ cache scans the subject's body at lookup. Call instructions, including
 indirect calls and calls in local initializers, give `nested-delivery` for
 a matching entry that passes the other admission checks. This applies to
 both `supply` and `supply_produced`, including inline bodies and
-specifications. Direct `Frama_C_show_each*` and
+specifications; `supply` refuses beforehand an entry for a body that may
+call a function that has a body. Direct `Frama_C_show_each*` and
 `Frama_C_domain_show_each*` directives are leaf displays used as visit
 markers by the hand-supplied fixtures. A hit on such a body skips, for
 each display, its printed line and the call and call-result hooks that a

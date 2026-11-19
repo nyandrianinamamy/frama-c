@@ -89,16 +89,32 @@ contexts through four functions, each of which records the write:
   red statuses.
 
 The other writers of statuses in Eva do not run in a body that the producer
-stores. `Recursion.mark_unknown_requires` runs at a call made by the body,
-and `Transfer_stmt` refuses such a body as `nested-call`.
+stores. `Recursion.mark_unknown_requires` runs at a recursive call made by
+the body, which the collector refuses (`recursion`): the called function is
+active.
 `Logic_inout.check_fct_assigns` runs in the callwise hooks of From and Inout,
 outside the observation; a supplied entry is rejected as `consumer` when
 either plug-in is loaded
 ([A supplied entry is used only where a hit is supported](reuse-operation.md#a-supplied-entry-is-used-only-where-a-hit-is-supported)).
 `Eval_annots` runs after the analysis, and `Eva_results` and `Export` do not
-run during one. Since a body with a call refuses, and the producer refuses a
-callee with `requires` clauses (`preconditions`), every write of a produced
-entry has empty frames.
+run during one. The checks of the `requires` clauses of a body belong to its
+call site: `Safety_part.record` records no write while
+`Body_access.at_call_site` runs one (`Body_access.checking_call_site`).
+Since the producer also refuses a callee with `requires` clauses
+(`preconditions`), every write of a produced entry of a body without a call
+has empty frames.
+
+Since [issue #50](https://github.com/nyandrianinamamy/frama-c/issues/50),
+the producer also stores bodies with calls. The Safety part of such a body
+is incomplete. It holds the writes that the hits of its calls deliver, with
+the call as frame, and the checks of the preconditions at these hits, which
+run in the body. It holds none of the writes made in the bodies analysed
+afresh during its analysis, nor the checks of their `requires` clauses:
+`Safety_part.record` records a write in the innermost recording only, and
+the part of each such body holds its own writes. The lookup rejects every
+entry whose body contains a call (`nested-delivery`), and no hit delivers
+such a part
+([Composition along the observed path](nested-calls.md#composition-along-the-observed-path)).
 
 **Evidence (executed).** In `cache-safety.t`, the entry of `body` produced by
 the analysis from `producer`, at x = 1 and y = 0, has seven writes, all with
@@ -112,7 +128,15 @@ at the three iterations: after the first, its status is the one already
 recorded, and its red context and its message are recorded at each
 iteration. With caching disabled, the Safety
 part observed for each call of `pre` is empty, although the evaluation of its
-`requires` clause emits an invalid status at the second call.
+`requires` clause emits an invalid status at the second call. This check
+runs while the recording of `main` is current (`Body_access.at_call_site`);
+with the test of `checking_call_site` removed from `Safety_part.record` (a
+mutation, reverted), the part of `pre` holds the valid status of the
+precondition at the first call and its red context at the second. In
+`enclosing.c`, the part of `parent` is empty when
+the analysis of `parent` analyses `child`, and holds the red context, the
+invalid status and the message of the check `big` of `child`, with the call
+of `child` as frame, when a hit answers that call.
 
 **Open.**
 
@@ -121,10 +145,12 @@ part observed for each call of `pre` is empty, although the evaluation of its
   ([Side tables and recorded joins](body-access.md#side-tables-and-recorded-joins)).
   A body analysed after one of its own alarms was emitted gives no entry; the
   reference run of `cache-safety.t` shows it for the second call of `body`.
-- A produced entry has no write with frames. The fixture delivers writes
-  with a frame added by hand only. The composition with nested calls is
-  [issue #50](https://github.com/nyandrianinamamy/frama-c/issues/50) and
-  [issue #51](https://github.com/nyandrianinamamy/frama-c/issues/51).
+- The Safety part of a body with a call is incomplete, and no hit delivers
+  it. Delivery at a hit on such a body needs the writes of every child at
+  its call site, those of the children analysed afresh included, and the
+  marking of every function whose visits the hit skips
+  ([Composition along the observed path](nested-calls.md#composition-along-the-observed-path)).
+  The fixture delivers writes with a frame added by hand only.
 - That the four functions above are the only writers reached from a stored
   body is shown by source inspection only.
 
@@ -242,8 +268,10 @@ kernel. Each message and each red context is kept in the sequence at each
 emission, so that the logger makes its test at each occurrence, as in the
 analysis of the body. A hit
 inside a body under analysis records its delivered writes in that body
-through the same functions, with the frames of the hit, but a body with a
-call refuses as `nested-call`.
+through the same functions, with the frames of the hit. The entry of a body
+with a call is rejected at lookup (`nested-delivery`): its part is
+incomplete
+([The Safety part records the writes of the body](#the-safety-part-records-the-writes-of-the-body)).
 
 **Evidence (executed).** `cache-safety.t`, in one process: a first analysis
 from `producer` stores the entry of `body(1, 0)`. Changing the entry point
@@ -408,8 +436,7 @@ state, and gives the count with the statements of the function that have
 none as an upper bound, and the server request `getDeadCode` lists none of
 its statements. The statuses delivered by
 the hit stay as delivered. The called function is the only one whose visits
-a hit skips: an entry is refused for a body that may call a function that
-has a body.
+a hit skips: no hit is admitted on a body with a call.
 
 **Kind.** OCaml obligation.
 
@@ -425,7 +452,8 @@ and [Preconditions at a hit](#preconditions-at-a-hit).
 `Summary.unknown_reachability`, `Summary.print_coverage`,
 `Summary.FunctionStats`, `Summary.compute_statuses`, `dead_code` in
 [`ast_requests.ml`](../../../plugins/eva/src/server_api/ast_requests.ml),
-`Supplied_entries.calls_a_body`, `Supplied_entries.add`,
+`Supplied_entries.calls_a_body`, `Supplied_entries.supply`,
+`Supplied_entries.has_nested_call`, `Supplied_entries.Lookup.admit`,
 `Supplied_entries.consumer_enabled`.
 
 **Argument (source inspection).** `mark_unreachable` concludes that a
@@ -457,13 +485,18 @@ function. `Skipped` is a `State_builder.Set_ref` that depends on
 `Self.state`: it is cleared with the results of Eva, at the start of each
 analysis and on any change that resets them.
 
-A hit skips the analysis of the functions that the body calls as well. A
-stored body has no call: the producer refuses a body with a call
-(`nested-call`), and `Supplied_entries.add`, used by `supply` and
-`supply_produced`, raises `Invalid_argument` for a body that calls a
-function that has a body, directly, through a pointer, or as the
-constructor of a local initialisation. A call to a function without a body
-has no statement to skip.
+A hit skips the analysis of the functions that the body calls as well. No
+hit is admitted on a body with a call, by two checks.
+`Supplied_entries.supply` raises `Invalid_argument`, before any lookup, for
+a body that may call a function that has a body, directly, through a
+pointer, or as the constructor of a local initialisation. The lookup
+rejects every entry whose body contains a call other than a direct display
+directive (`nested-delivery`), produced entries included: since issue #50
+the producer stores bodies with calls, and `supply_produced` does not check
+the calls. `nested-delivery` is the last check of a candidate. The check of
+`supply` comes first: an entry that it refuses is never a candidate. A call
+to a function without a body has no statement to skip, and its entry is
+rejected all the same.
 
 The restriction costs precision, for every call of a recorded function,
 analysed or answered by a hit. An alarm or annotation there keeps the status
@@ -532,7 +565,12 @@ of unknown reachability (a mutation, reverted), the same run prints 15
 statements of 15 as reached, the upper bound as a measure. The
 analysis from `producer`, without a hit, prints the usual line. After a
 change of the entry point, `body` is no
-longer recorded. `supply` refuses an entry for `outer`, which calls `body`.
+longer recorded. `supply` refuses an entry for `outer`, which calls `body`;
+with this check removed (a mutation, reverted), the entry of `outer` is
+supplied. In `nested-access.t`, the produced entries of bodies with a call,
+and the hand entry of a body that calls a specification, are rejected with
+`nested-delivery`; at `cde85ebb5f`, before the check of `supply`, the hand
+entries of bodies that call a function with a body were rejected so too.
 
 With `Safety_delivery.skip_visits` changed to record nothing (a mutation,
 reverted), the same programs and modes differ from caching disabled: from
