@@ -135,11 +135,11 @@ work cannot be delivered yet. The second f has a different key.
 Check the logger consultation for explicit empty allocation clauses,
 including the clause of an inactive behavior.
 
-  $ EVA_TEST_NESTED_ACCESS=history fc -eva-no-memexec history.c > history.log 2>&1
+  $ EVA_TEST_NESTED_ACCESS=history fc -eva-no-memexec -eva-verbose 2 history.c > history.log 2>&1
   $ grep -oE 'ignoring unsupported allocates clause|allocation clause: side-table before storage' history.log
   ignoring unsupported allocates clause
   allocation clause: side-table before storage
-  $ EVA_TEST_NESTED_ACCESS=history fc -eva-no-memexec -main inactive_main history.c > inactive.log 2>&1
+  $ EVA_TEST_NESTED_ACCESS=history fc -eva-no-memexec -eva-verbose 2 -main inactive_main history.c > inactive.log 2>&1
   $ grep -oE 'ignoring unsupported allocates clause|allocation clause: side-table before storage' inactive.log
   ignoring unsupported allocates clause
   allocation clause: side-table before storage
