@@ -121,18 +121,30 @@ prints the final states after each of the three analyses, filtered by the
 outputs that Inout computes by function. After the analysis with hits,
 Inout refuses these outputs: Eva prints the final states without filtering
 them, as when Inout is not loaded. An analysed caller of a hit has the same
-values as with caching disabled. A function answered by hits only has no
-state saved, and its final state is not printed.
+values as with caching disabled. The states saved at the statements of a
+function do not cover its calls answered by hits: in place of its final
+state, Eva prints that the values are incomplete, with the number of these
+calls.
 
   $ EVA_TEST_CACHE_PARTS=inout frama-c -no-autoload-plugins -load-module eva,from,inout,test_cache_parts.cmxs -eva parts.c > display.log 2>&1
   $ grep -o 'Values at end of function [a-z_]*' display.log | sort | uniq -c
-        2 Values at end of function checked
-        2 Values at end of function copy
+        3 Values at end of function checked
+        3 Values at end of function copy
         3 Values at end of function deps_main
         3 Values at end of function inout_main
         3 Values at end of function main
-        2 Values at end of function narrow
-        2 Values at end of function narrow_and_write
+        3 Values at end of function narrow
+        3 Values at end of function narrow_and_write
+  $ grep -A1 'Values at end of function' display.log | grep -B1 incomplete | sed 's/^\[eva:final-states\] //'
+  Values at end of function checked:
+    incomplete: 2 calls answered by the cache, without a state at the statements of the function
+  Values at end of function copy:
+    incomplete: 3 calls answered by the cache, without a state at the statements of the function
+  --
+  Values at end of function narrow:
+    incomplete: 1 call answered by the cache, without a state at the statements of the function
+  Values at end of function narrow_and_write:
+    incomplete: 1 call answered by the cache, without a state at the statements of the function
   $ grep -B1 'Cannot filter' display.log | grep -o 'Values at end of function [a-z_]*'
   Values at end of function deps_main
   Values at end of function inout_main

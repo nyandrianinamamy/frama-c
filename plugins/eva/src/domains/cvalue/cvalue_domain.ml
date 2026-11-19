@@ -25,6 +25,19 @@ let filter_generated_and_locals kf =
     if vi.vtemp then vi.vname = "__retres" else not (is_innerblock_local vi)
   | _ -> true
 
+(* Prints, in place of the final state of function [kf], the number of its
+   calls that hits of the cache answered: no state was saved for them. *)
+let print_incomplete_final_state kf =
+  let hits = Statistics.(get cache_hits kf) in
+  let header fmt =
+    Format.fprintf fmt "Values at end of function %a:"
+      Kernel_function.pretty kf
+  in
+  Self.printf ~mkey:Log_key.final_states ~header
+    "@[  incomplete: %d call%s answered by the cache, without a state at \
+     the statements of the function@]"
+    hits (if hits = 1 then "" else "s")
+
 (* Prints the final state [values] of function [kf] with outputs [outs]. *)
 let print_final_state kf values =
   let outs = Eva_dynamic.Inout.kf_outputs kf in
@@ -428,13 +441,29 @@ module State = struct
     | `Top -> Cvalue.Model.top
     | `Value v -> v
 
+  (* Whether the analysis saves the states at the statements of [kf]. *)
+  let saves_states kf =
+    Parameters.ResultsAll.get ()
+    && Kernel_function.is_definition kf
+    && not (Parameters.NoResultsFunction.mem (Kernel_function.get_definition kf))
+
+  (* The states read below are those that the analysed calls of a function
+     saved. A hit of the cache saves none for the call that it answers: the
+     values at the end of a function with such a call are not those of the
+     saved states, and are not printed. *)
   let display_final_state kf =
-    try
-      let values = get_state_before (Kernel_function.find_return kf) in
-      let fst_values = get_state_before (Kernel_function.find_first_stmt kf) in
-      if Cvalue.Model.(is_reachable fst_values && not (is_top fst_values))
-      then print_final_state kf values
-    with Kernel_function.No_Statement -> ()
+    if Safety_delivery.visits_skipped kf then begin
+      if saves_states kf then print_incomplete_final_state kf
+    end
+    else
+      try
+        let values = get_state_before (Kernel_function.find_return kf) in
+        let fst_values =
+          get_state_before (Kernel_function.find_first_stmt kf)
+        in
+        if Cvalue.Model.(is_reachable fst_values && not (is_top fst_values))
+        then print_final_state kf values
+      with Kernel_function.No_Statement -> ()
 
   let display_results () =
     Self.result "====== VALUES COMPUTED ======";

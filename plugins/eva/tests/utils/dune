@@ -40,10 +40,11 @@
     ../../../../dev/collector_statistics.ml
   ))
 
-; The server request of dead code in a process that loads a session
+; The server request of dead code in a process that loads a session, and
+; the final states that Eva prints when Inout is loaded
 (cram
   (applies_to cache-reach)
-  (deps (package frama-c-server)))
+  (deps (package frama-c-from) (package frama-c-server)))
 
 ; Supplied entries rejected when a reader of the states is loaded, and
 ; when the server registers its hooks

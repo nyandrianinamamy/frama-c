@@ -569,6 +569,28 @@ hit.
   | zones: stmt 4 (line 11) in body :: line 23 <- main: read \nothing; write out
   | zones: stmt 5 (line 13) in body :: line 23 <- main: read x; write g
 
+With -eva and Inout loaded, Eva prints the values at the end of each
+function, from the states saved at its statements. Those of body hold the
+analysed call, body(2), and not the hit, body(1): Eva prints that they are
+incomplete, where caching disabled prints the values of both calls. The
+first block is that of the analysis from producer, which produces the
+entry.
+
+  $ EVA_TEST_CACHE_REACH=replay frama-c -no-autoload-plugins -load-module eva,from,inout,test_cache_reach.cmxs -calldeps -eva -main producer -eva-slevel 10 loop.c > final.log 2>&1
+  $ grep -A2 'Values at end of function body' final.log
+  [eva:final-states] Values at end of function body:
+    g ∈ {1}
+    out ∈ {1}
+  --
+  [eva:final-states] Values at end of function body:
+    incomplete: 1 call answered by the cache, without a state at the statements of the function
+  [eva:final-states] Values at end of function main:
+  $ EVA_TEST_CACHE_REACH=reference frama-c -no-autoload-plugins -load-module eva,from,inout,test_cache_reach.cmxs -calldeps -eva -eva-slevel 10 loop.c > final-reference.log 2>&1
+  $ grep -A2 'Values at end of function body' final-reference.log
+  [eva:final-states] Values at end of function body:
+    g ∈ {1; 2}
+    out ∈ {1; 2}
+
 In escape.c, body stores its argument, the address of the local of mid,
 into gp. The caller of body adds the holders of the entry to those of mid,
 and when mid returns, gp holds an escaping address.
