@@ -148,7 +148,7 @@ which no call reaches, is not counted. The first line is that of the
 analysis from producer. The same count follows the rejection of the entry
 without a Reach part.
 
-  $ grep -E 'statements reached|answered by the cache' passes.log
+  $ grep 'statements reached' passes.log
     In these functions, 11 statements reached (out of 12): 92% coverage.
     In these functions, 14 statements reached (out of 15): 93% coverage.
   $ grep 'statements reached' passes-reference.log

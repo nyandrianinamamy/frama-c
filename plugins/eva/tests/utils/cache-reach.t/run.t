@@ -203,10 +203,12 @@ the hit.
   visits of body skipped: true
   restored visits of body skipped: true
 
-The installed results with the hit give the same lines as those with
-caching disabled. Export generates fewer annotations with the hit, as
-before the installation: the states of the hit callstack are top. Each
-annotation it generates is also generated with caching disabled.
+The lines of the readers in the installed results with the hit (prefixed
+"restored | ") equal those with caching disabled. As before the
+installation, the values of x and the record of skipped visits differ, and
+Export generates fewer annotations with the hit: the states of the hit
+callstack are top. Each annotation it generates is also generated with
+caching disabled.
 
   $ EVA_TEST_CACHE_REACH=reference EVA_TEST_CACHE_REACH_RESTORE=same EVA_TEST_CACHE_REACH_EXPORT=on frama-c -no-autoload-plugins -load-module eva,test_cache_reach.cmxs -eva-msg-key cache reach.c > restore-reference.log 2>&1
   $ grep '^restored | ' restore.log > restore.summary
@@ -459,7 +461,7 @@ server request lists no statement of body, and Export generates no
 annotation in body.
 
   $ EVA_TEST_CACHE_REACH=replay EVA_TEST_CACHE_REACH_EXPORT=on frama-c -no-autoload-plugins -load-module eva,test_cache_reach.cmxs -main producer -eva-no-results-domain cvalue -eva-msg-key cache reach.c -save domain.sav > domain.log 2>&1
-  $ grep -E '^(hits|reachability|points of body|exported)|lookup: hit|statements reached|answered by the cache' domain.log
+  $ grep -E '^(hits|reachability|points of body|exported)|lookup: hit|statements reached' domain.log
     In these functions, 12 statements reached (out of 12): 100% coverage.
     call to body: lookup: hit (entry 1); execution: not-analysed; storage: none
     In these functions, 14 statements reached (out of 14): 100% coverage.
