@@ -713,6 +713,7 @@ is always given.
   after the hits: state at the start of a function: computed
   after the hits: states by callstack: computed
   after the hits: callstacks of a statement: computed
+  after the hits: callstacks of a statement, from the engine: computed
   after the hits: reachability of a statement: computed
   after the hits: initial state: computed
   with a reader loaded: state before a statement: refused
@@ -720,6 +721,7 @@ is always given.
   with a reader loaded: state at the start of a function: refused
   with a reader loaded: states by callstack: refused
   with a reader loaded: callstacks of a statement: refused
+  with a reader loaded: callstacks of a statement, from the engine: refused
   with a reader loaded: reachability of a statement: refused
   with a reader loaded: initial state: computed
   in a copy: state before a statement: refused
@@ -727,6 +729,7 @@ is always given.
   in a copy: state at the start of a function: refused
   in a copy: states by callstack: refused
   in a copy: callstacks of a statement: refused
+  in a copy: callstacks of a statement, from the engine: refused
   in a copy: reachability of a statement: refused
   in a copy: initial state: computed
   results of caching disabled installed: state before a statement: computed
@@ -734,6 +737,7 @@ is always given.
   results of caching disabled installed: state at the start of a function: computed
   results of caching disabled installed: states by callstack: computed
   results of caching disabled installed: callstacks of a statement: computed
+  results of caching disabled installed: callstacks of a statement, from the engine: computed
   results of caching disabled installed: reachability of a statement: computed
   results of caching disabled installed: initial state: computed
   results with hits installed: state before a statement: refused
@@ -741,6 +745,7 @@ is always given.
   results with hits installed: state at the start of a function: refused
   results with hits installed: states by callstack: refused
   results with hits installed: callstacks of a statement: refused
+  results with hits installed: callstacks of a statement, from the engine: refused
   results with hits installed: reachability of a statement: refused
   results with hits installed: initial state: computed
   in a copy of the installed results: state before a statement: refused
@@ -748,6 +753,7 @@ is always given.
   in a copy of the installed results: state at the start of a function: refused
   in a copy of the installed results: states by callstack: refused
   in a copy of the installed results: callstacks of a statement: refused
+  in a copy of the installed results: callstacks of a statement, from the engine: refused
   in a copy of the installed results: reachability of a statement: refused
   in a copy of the installed results: initial state: computed
 
@@ -763,22 +769,24 @@ in the same process and in the session saved above, the requests of Eva
 made before Studia is loaded give the statements of caching disabled, since
 the hits deliver the points that they reach. Once Studia is loaded, the
 results of Eva refuse the states at the statements: the dead code of copy
-is refused, and so is the request of the reads, which locates its lvalue
-with these results. The request of the writes names b by its declaration,
-and Studia refuses it by its own test.
+is refused, and so is the request of the reads of an lvalue, which locates
+it with these results. The requests of the reads and of the writes of b
+named by its declaration need no state for the location, and Studia refuses
+each by its own test.
 
   $ EVA_TEST_CACHE_PARTS_SERVER=fresh frama-c -no-autoload-plugins -load-module eva,eva.server_api,from,inout,test_cache_parts_server.cmxs parts.c > server-fresh.log 2>&1
-  $ grep -E '^(statement|plugins|copy:|narrow:|Studia)' server-fresh.log
+  $ grep -E '^(statement|plugins|copy:|narrow:|declaration:|Studia)' server-fresh.log
   statement results complete: true
   copy: plugins.eva.ast.getDeadCode: unreachable 0, reached 2, nonTerminating 0
   narrow: plugins.eva.ast.getDeadCode: unreachable 0, reached 4, nonTerminating 0
   Studia loaded
   copy: plugins.eva.ast.getDeadCode: unreachable 0, reached 2, nonTerminating 0
   plugins.studia.studia.getReadsLval: indirect 4, direct 1
+  declaration: plugins.studia.studia.getReadsLval: indirect 4, direct 1
   plugins.studia.studia.getWritesLval: indirect 0, direct 1
   $ EVA_TEST_CACHE_PARTS_SERVER=hits frama-c -no-autoload-plugins -load-module eva,eva.server_api,from,inout,test_cache_parts_server.cmxs parts.c > server-hits.log 2>&1
   $ sed -n '/^hits/,$p' server-hits.log > server-hits.txt
-  $ grep -E '^(hits|statement|plugins|copy:|narrow:|Studia)|User Error|Error when' server-hits.txt | sed 's/: in the current analysis.*statements//'
+  $ grep -E '^(hits|statement|plugins|copy:|narrow:|declaration:|Studia)|User Error|Error when' server-hits.txt | sed 's/: in the current analysis.*statements//'
   hits: copy 3, narrow 1
   statement results complete: false
   copy: plugins.eva.ast.getDeadCode: unreachable 0, reached 2, nonTerminating 0
@@ -789,9 +797,11 @@ and Studia refuses it by its own test.
   [eva] User Error: cannot give the state at a statement; plug-in studia, which reads these states, is loaded
   plugins.studia.studia.getReadsLval: refused
   [studia] User Error: cannot find the statements that access a location
+  declaration: plugins.studia.studia.getReadsLval: refused
+  [studia] User Error: cannot find the statements that access a location
   plugins.studia.studia.getWritesLval: refused
   $ EVA_TEST_CACHE_PARTS_SERVER=loaded frama-c -no-autoload-plugins -load-module eva,eva.server_api,from,inout,test_cache_parts_server.cmxs -load hits.sav > server.log 2>&1
-  $ grep -E '^(statement|plugins|copy:|narrow:|Studia)|User Error|Error when' server.log | sed 's/: in the current analysis.*statements//'
+  $ grep -E '^(statement|plugins|copy:|narrow:|declaration:|Studia)|User Error|Error when' server.log | sed 's/: in the current analysis.*statements//'
   statement results complete: false
   copy: plugins.eva.ast.getDeadCode: unreachable 0, reached 2, nonTerminating 0
   narrow: plugins.eva.ast.getDeadCode: unreachable 0, reached 4, nonTerminating 0
@@ -800,6 +810,8 @@ and Studia refuses it by its own test.
   copy: plugins.eva.ast.getDeadCode: refused
   [eva] User Error: cannot give the state at a statement; plug-in studia, which reads these states, is loaded
   plugins.studia.studia.getReadsLval: refused
+  [studia] User Error: cannot find the statements that access a location
+  declaration: plugins.studia.studia.getReadsLval: refused
   [studia] User Error: cannot find the statements that access a location
   plugins.studia.studia.getWritesLval: refused
 

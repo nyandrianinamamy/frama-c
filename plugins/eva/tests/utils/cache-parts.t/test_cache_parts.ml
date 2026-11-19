@@ -832,6 +832,11 @@ let late_reader () =
       (fun () -> ignore Results.(before first |> by_callstack));
     request "callstacks of a statement"
       (fun () -> ignore Results.(before first |> callstacks));
+    (* The request of the engine, which no code of the tree calls. *)
+    request "callstacks of a statement, from the engine"
+      (fun () ->
+         let module Engine = (val Eva__Private.Engine.current ()) in
+         ignore (Engine.callstacks (Before first)));
     request "reachability of a statement"
       (fun () -> ignore (Results.is_reachable first));
     request "initial state"

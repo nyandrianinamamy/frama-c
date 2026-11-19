@@ -56,7 +56,12 @@ let requests () =
   let lvalue = Server.Printer_tag.PLval (Some (kf "deps_main"), call, b) in
   ask "plugins.studia.studia.getReadsLval"
     (Server.Kernel_ast.Marker.to_json lvalue);
+  (* The marker of a declaration needs no state: the checks of Studia
+     decide. *)
   let declaration = Server.Printer_tag.PVDecl (None, Kglobal, global "b") in
+  Format.printf "declaration: ";
+  ask "plugins.studia.studia.getReadsLval"
+    (Server.Kernel_ast.Marker.to_json declaration);
   ask "plugins.studia.studia.getWritesLval"
     (Server.Kernel_ast.Marker.to_json declaration)
 
