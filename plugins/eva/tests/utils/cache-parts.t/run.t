@@ -474,6 +474,16 @@ d.
    {n8}: In(b)
    {n9}: In(d)
 
+The results of Eva at the statements of a function answered by hits are
+not delivered, and only the readers above refuse them: the first statement
+of copy is reachable with caching disabled, and not after the hits. This is
+the work of the issue of the reachable statements.
+
+  $ EVA_TEST_CACHE_PARTS=raw frama-c -no-autoload-plugins -load-module eva,from,inout,test_cache_parts.cmxs parts.c > raw.log 2>&1
+  $ grep -E 'reachable' raw.log
+  caching disabled: first statement of copy reachable: true
+  after the hits: first statement of copy reachable: false
+
 A value of a part is kept with the entry only when it is given for the body
 being analysed, in the project current when its analysis started. The test
 module registers three parts and gives a value of each during the analysis

@@ -672,6 +672,18 @@ let fallback () =
   Format.printf "after the hits: Inout.get_precise_inout of inner equal to \
                  caching disabled: %b@." (Inout_type.equal fresh (inner ()))
 
+(* The results of Eva at the statements of copy, which a hit does not
+   deliver and which no reader of this test refuses: the issue of the
+   reachable statements (#48). *)
+let raw () =
+  let first = List.hd (Kernel_function.get_definition (kf "copy")).sallstmts in
+  let produced = first_analysis () in
+  Format.printf "caching disabled: first statement of copy reachable: %b@."
+    (Eva.Results.is_reachable first);
+  second_analysis produced;
+  Format.printf "after the hits: first statement of copy reachable: %b@."
+    (Eva.Results.is_reachable first)
+
 (* ----- Names of the parts ------------------------------------------------- *)
 
 (* A second part named as a registered one: the name is the key of a
@@ -705,6 +717,7 @@ let () =
   | Some "nested" -> Boot.Main.extend nested
   | Some "dead-call" -> Boot.Main.extend dead_call
   | Some "fallback" -> Boot.Main.extend fallback
+  | Some "raw" -> Boot.Main.extend raw
   | Some "lazy-from" -> Boot.Main.extend lazy_from
   | Some "warm" -> Boot.Main.extend warm
   | Some "snapshot" -> Boot.Main.extend snapshot
