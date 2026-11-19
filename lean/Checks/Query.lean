@@ -710,6 +710,15 @@ theorem same_callstack_join :
     exact ⟨_, hq, swept_int (valueOf_call 4 3).1,
       (query_at_line loopLog_premises 11 4 3 .before hl₁).2 true 1 _ hq⟩
 
+/-- With reconstruction disabled, the query on `[3, 16]`, where two lines of
+`loopLog` apply, reports no state for every block. A query on the callstack
+`[3, 12]`, which no line ends, is not on the callstack of a hit and reports
+no state. -/
+theorem no_state_queries :
+    (∀ b, query false loopLog ⟨21, [3, 16], .before⟩ b = none) ∧
+    ∀ enabled b, query enabled loopLog ⟨21, [3, 12], .before⟩ b = none :=
+  ⟨fun _ => rfl, fun _ _ => rfl⟩
+
 /-! ### An entry for the body of `h`
 
 The call of `h` at site 3 of the call of `f` at site 11 stores an entry for

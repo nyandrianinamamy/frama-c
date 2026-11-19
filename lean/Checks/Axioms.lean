@@ -703,6 +703,10 @@ open ReuseModel ReuseModel.CacheEntry in
 #print axioms Checks.same_callstack_join
 #check_axioms Checks.same_callstack_join
 
+#check Checks.no_state_queries
+#print axioms Checks.no_state_queries
+#check_axioms Checks.no_state_queries
+
 #check Checks.callee_entry_premises
 #print axioms Checks.callee_entry_premises
 #check_axioms Checks.callee_entry_premises
