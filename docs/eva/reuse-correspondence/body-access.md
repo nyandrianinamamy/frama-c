@@ -148,7 +148,8 @@ checks to preserve that order and still observe behavior selection,
 `assumes`, and the body's postconditions and statement contracts. It is
 also suspended while the statuses of the `requires` clauses of an inactive
 behavior are emitted; the statuses of its `ensures` clauses stay in the
-observation. The allocation family stays observed during these checks
+observation. The allocation family and the unknown sets of blocks stay
+observed during these checks, as observations of the body
 ([Allocated blocks](allocated-blocks.md#allocated-blocks-among-the-observed-blocks)).
 
 Recording is on by default. The internal option `-eva-no-cache-collect`

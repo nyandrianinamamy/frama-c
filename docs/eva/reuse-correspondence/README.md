@@ -78,8 +78,9 @@ that a checkout has the model sources of an entry, compare
 - [Entries from fresh bodies](cache-producer.md) covers production, the
   key and footprint, and the producer obligations for supplying an entry.
 - [Allocated blocks](allocated-blocks.md): the refusals on allocated blocks,
-  allocation effects and reads of allocation metadata, and the read paths of
-  the validity record.
+  including the contents of the written blocks, allocation effects, reads of
+  allocation metadata and of the tags of weakened blocks, and the read paths
+  of the validity record.
 - [Reuse operation](reuse-operation.md): the cache entry and its four
   written sets, the match by equality on entries supplied by a test module,
   the blocks a hit takes from an exit state, the choice of one cache per
