@@ -14,6 +14,10 @@ ROOT=$(git rev-parse --show-toplevel)
 
 echo "Pre-push Hook..."
 
+# The lint tools come from the local switch: without it the checks fail on a
+# missing library.
+bash "$ROOT/dev/check-env.sh" || exit 1
+
 empty=$(git hash-object --stdin </dev/null | tr '[0-9a-f]' '0')
 
 remote=$1

@@ -14,6 +14,10 @@ ROOT=$(git rev-parse --show-toplevel)
 
 echo "Pre-commit Hook..."
 
+# The lint tools come from the local switch: without it the checks fail on a
+# missing library.
+bash "$ROOT/dev/check-env.sh" || exit 1
+
 STAGED=$(git diff --diff-filter ACMR --name-only --cached | sort)
 
 if [ "$STAGED" = "" ];
