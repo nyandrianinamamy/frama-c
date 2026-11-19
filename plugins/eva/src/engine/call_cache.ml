@@ -187,7 +187,9 @@ module Make
   (* Lookup in the entries supplied by a test module. *)
   let lookup_supplied call state =
     let kf = call.kf in
-    let Supplied_entries.{ rejected; hit } = Supplied.find call.callstack state in
+    let Supplied_entries.{ rejected; hit } =
+      Supplied.find call.callstack state
+    in
     let count_rejection (_, reason) =
       let id = Supplied_entries.rejection_id reason in
       Statistics.(incr (cache_rejected id) kf)

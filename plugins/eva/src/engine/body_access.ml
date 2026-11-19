@@ -441,15 +441,16 @@ let read_message_history () = refuse Side_table
 let () = Hook.Opaque.on_call (fun () -> refuse Callback)
 
 let () =
-  Log.on_history_access ~audited:true (fun ~plugin ~kind ~category ~once_category ->
-      let audited =
-        plugin = "eva" && not once_category &&
-        match kind, category with
-        | Log.Feedback, Some ("partition" | "widening") -> true
-        | Log.Warning, Some "locals-escaping" -> true
-        | _ -> false
-      in
-      if not audited then read_message_history ())
+  Log.on_history_access ~audited:true
+    (fun ~plugin ~kind ~category ~once_category ->
+       let audited =
+         plugin = "eva" && not once_category &&
+         match kind, category with
+         | Log.Feedback, Some ("partition" | "widening") -> true
+         | Log.Warning, Some "locals-escaping" -> true
+         | _ -> false
+       in
+       if not audited then read_message_history ())
 
 (* The blocks made weak in the analyses of the current program. A node of
    an offsetmap keeps the tag computed at its first construction, and the
