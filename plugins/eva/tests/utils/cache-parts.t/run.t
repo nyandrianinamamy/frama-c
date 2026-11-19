@@ -350,6 +350,20 @@ three calls to copy hit: it is refused, as the second one.
   second request: refused
   after an analysis with caching disabled: equal to the first analysis: true
 
+Results requested at the start of the analysis with the supplied entries,
+before any hit, are computed and memoised from the states then available,
+as with caching disabled. After the hits, each request is refused, those
+memoised included.
+
+  $ EVA_TEST_CACHE_PARTS=warm frama-c -no-autoload-plugins -load-module eva,from,inout,test_cache_parts.cmxs parts.c > warm.log 2>&1
+  $ grep -E '^(at the start|after the hits|hits|after an analysis)' warm.log
+  at the start: Inout.kf_external_inputs: computed
+  at the start: Inout.kf_external_outputs: computed
+  hits: copy 3; statement results complete: false
+  after the hits: Inout.kf_external_inputs: refused
+  after the hits: Inout.kf_external_outputs: refused
+  after an analysis with caching disabled: equal to the first analysis: true
+
 Three requests of the server, after an analysis with caching disabled and
 after the analysis with hits: the dead code of copy, and the statements
 that read and that write b at the first call to copy, which Studia, loaded

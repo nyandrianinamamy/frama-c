@@ -65,10 +65,14 @@ module Externals =
       let size = 17
     end)
 
-let get_external =
+(* The analysis runs first, since its hits make the states saved at the
+   statements incomplete; the test then comes before the table, which may
+   hold a result computed before a hit of the current analysis. *)
+let get_external kf =
+  Eva.Analysis.compute ();
+  Cumulative_analysis.check_statement_results ();
   Externals.memo
     (fun kf ->
-       Eva.Analysis.compute ();
        if Kernel_function.is_definition kf then
          try
            externalize
@@ -80,6 +84,7 @@ let get_external =
        else
          (* assume there is no deref for leaf functions *)
          Memory_zone.bottom)
+    kf
 
 let compute_external kf = ignore (get_external kf)
 

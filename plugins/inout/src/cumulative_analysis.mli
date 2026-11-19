@@ -26,8 +26,10 @@ val fold_implicit_initializer: typ -> bool
 (** Stops with a user error when the states that Eva saves at the statements
     do not cover every call of the current analysis
     ({!Eva.Results.statement_results_complete}): a result computed from
-    them would be false. Each computation of a result by function or by
-    statement from these states calls it before computing or memoising. *)
+    them would be false. Each request of a result by function or by
+    statement computed from these states calls it before reading its table
+    and before computing: a result memoised before a hit of the current
+    analysis is refused after it. *)
 val check_statement_results : unit -> unit
 
 val specialize_state_on_call: ?stmt:stmt -> kernel_function -> Cvalue.Model.t

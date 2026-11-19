@@ -137,8 +137,11 @@ module Externals =
       let size = 17
     end)
 
-let get_external =
-  Externals.memo (fun kf -> externalize kf (get_internal kf))
+(* The table may hold a result computed before a hit of the current
+   analysis: the test comes first. *)
+let get_external kf =
+  Cumulative_analysis.check_statement_results ();
+  Externals.memo (fun kf -> externalize kf (get_internal kf)) kf
 
 let pretty_internal fmt kf =
   try

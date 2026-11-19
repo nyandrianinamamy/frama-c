@@ -140,12 +140,16 @@ module Externals =
       let size = 17
     end)
 
-let get_external =
+(* The table may hold a result computed before a hit of the current
+   analysis: the test comes first. *)
+let get_external kf =
+  Cumulative_analysis.check_statement_results ();
   Externals.memo
     (fun kf ->
        Memory_zone.filter_base
          (Eva.Logic_inout.accept_base ~formals:false ~locals:false kf)
          (get_internal kf))
+    kf
 
 let get_with_formals kf =
   Memory_zone.filter_base

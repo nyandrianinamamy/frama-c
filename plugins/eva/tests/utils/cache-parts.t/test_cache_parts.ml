@@ -404,6 +404,39 @@ let lazy_from () =
                  first analysis: %b@."
     (Eva.Assigns.equal fresh (From.get copy))
 
+(* The outputs and inputs by function of copy requested at the start of the
+   analysis with the supplied entries, before any hit. Inout does not start
+   the analysis: the results of the analysis are not available yet, and each
+   request computes its result from them and memoises it, as with caching
+   disabled. After the hits, every request is refused, those memoised
+   included. A later analysis with caching disabled gives the results of the
+   first analysis again. *)
+let warm () =
+  let copy = kf "copy" in
+  let requests =
+    [ "Inout.kf_external_inputs", Inout.kf_external_inputs;
+      "Inout.kf_external_outputs", Inout.kf_external_outputs ]
+  in
+  let ask moment =
+    List.iter
+      (fun (name, f) -> refused (moment ^ ": " ^ name) (fun () -> f copy))
+      requests
+  in
+  let results () = List.map (fun (_, f) -> f copy) requests in
+  let produced = first_analysis () in
+  let fresh = results () in
+  let early = ref true in
+  Eva.Cvalue_callbacks.register_at_start_hook
+    (fun () -> if !early then begin early := false; ask "at the start" end);
+  second_analysis produced;
+  Format.printf "hits: copy %d; statement results complete: %b@."
+    (hits "copy") (Eva.Results.statement_results_complete ());
+  ask "after the hits";
+  ignore (first_analysis ());
+  Format.printf "after an analysis with caching disabled: equal to the \
+                 first analysis: %b@."
+    (List.equal Memory_zone.equal fresh (results ()))
+
 (* ----- Values given in another project or for another callstack --------- *)
 
 (* Three parts of this test, which no consumer needs. During each analysis of
@@ -570,5 +603,6 @@ let () =
   | Some "history" -> Boot.Main.extend history
   | Some "nested" -> Boot.Main.extend nested
   | Some "lazy-from" -> Boot.Main.extend lazy_from
+  | Some "warm" -> Boot.Main.extend warm
   | Some "duplicate" -> Boot.Main.extend duplicate
   | _ -> ()
