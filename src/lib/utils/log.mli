@@ -489,6 +489,11 @@ val on_history_access :
   (plugin:string -> kind:kind -> category:string option -> once_category:bool ->
    unit) -> unit
 
+(** Whether a listener ({!add_listener}) or an observer of the history
+    ({!on_history_access}) was registered without [audited], for any
+    plug-in and kind of message. A client cannot be removed. *)
+val unaudited_clients : unit -> bool
+
 val echo : event -> unit
 (** Display an event of the terminal, unless echo has been turned off.
     @since Beryllium-20090601-beta1 *)

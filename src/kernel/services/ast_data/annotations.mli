@@ -20,6 +20,10 @@ val add_hook_on_change: (unit -> unit) -> unit
 (** Emitted whenever any of the annotation tables is modified.
     @since 27.0-Cobalt *)
 
+val has_hooks_on_change: unit -> bool
+(** Whether a hook was registered by {!add_hook_on_change}. A hook cannot be
+    removed. *)
+
 (**************************************************************************)
 (** {3 Code annotations} *)
 (**************************************************************************)

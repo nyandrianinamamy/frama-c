@@ -389,6 +389,9 @@ let register_status_update_hook f =
     (Hook.Opaque.wrap
        (fun (emitter, property, status) -> f emitter property status))
 
+let has_add_or_update_hooks () =
+  not (Register_hook.is_empty () && Status_hook.is_empty ())
+
 let rec register ppt =
   Kernel.debug ~dkey:Kernel.dkey_prop_status_reg
     "REGISTERING %a in %a"

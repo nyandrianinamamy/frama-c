@@ -260,6 +260,10 @@ val register_property_remove_hook: (Property.t -> unit) -> unit
 (** Add an hook that will be called each time a property is removed.
     @since Neon-20140301 *)
 
+val has_add_or_update_hooks: unit -> bool
+(** Whether a hook was registered by {!register_property_add_hook} or by
+    {!register_status_update_hook}. A hook cannot be removed. *)
+
 val merge: old:Property.t list  -> Property.t list -> unit
 (** [merge old new] registers properties in [new] which are not in [old] and
     removes properties in [old] which are not in [new]. *)

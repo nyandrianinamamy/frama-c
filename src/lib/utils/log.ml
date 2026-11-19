@@ -403,10 +403,15 @@ module History_access = Hook.Build (struct
     type t = string * kind * string option * bool
   end)
 
+(* Whether a client was registered without [audited]. *)
+let unaudited = ref false
+let unaudited_clients () = !unaudited
+
 let on_history_access ?(audited=false) f =
   let notify (plugin, kind, category, once_category) =
     f ~plugin ~kind ~category ~once_category
   in
+  if not audited then unaudited := true;
   History_access.extend (if audited then notify else Hook.Opaque.wrap notify)
 
 (* -------------------------------------------------------------------------- *)
@@ -434,6 +439,7 @@ let iter_plugin ?plugin ?kind f =
     iter_kind ?kind f (get_emitters p)
 
 let add_listener ?plugin ?kind ?(audited=false) demon =
+  if not audited then unaudited := true;
   let demon = if audited then demon else Hook.Opaque.wrap demon in
   iter_plugin ?plugin ?kind (fun em -> em.listeners <- em.listeners @ [demon])
 

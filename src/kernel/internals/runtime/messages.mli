@@ -34,3 +34,7 @@ val nb_messages: unit -> int
 val add_hook: (Log.event * int -> unit) -> unit
 (** Register a global hook (not projectified) called on each message addition,
     with the new event and its index (counting from 0). *)
+
+val has_hooks: unit -> bool
+(** Whether a hook was registered by {!add_hook}. A hook cannot be
+    removed. *)

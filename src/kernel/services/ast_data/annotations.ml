@@ -55,6 +55,7 @@ let find_englobing_kf ?kf stmt =
 
 module Changed = Hook.Make()
 let add_hook_on_change f = Changed.extend (Hook.Opaque.wrap f)
+let has_hooks_on_change () = not (Changed.is_empty ())
 
 module Usable_emitter = struct
   include Emitter.Usable_emitter

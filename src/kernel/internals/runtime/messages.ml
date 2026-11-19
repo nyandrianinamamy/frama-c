@@ -87,3 +87,4 @@ let () = Log.check_not_yet := check_not_yet
 let reset_once_flag () = OnceTable.clear ()
 
 let add_hook fn = hooks := !hooks @ [Hook.Opaque.wrap fn]
+let has_hooks () = !hooks <> []
