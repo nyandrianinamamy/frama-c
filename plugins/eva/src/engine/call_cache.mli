@@ -154,9 +154,11 @@ module Make
 
     (** Result of a lookup. *)
     type hit_source =
-      | Supplied_entry of Supplied_entries.entry
+      | Supplied_entry of Supplied_entries.entry * Cache_part.restoration
       | Legacy_trace of Body_access.call_trace option
-      (** The winning supplied entry, or the trace of a legacy memexec hit. *)
+      (** The winning supplied entry with the parts that the hit restores,
+          selected by the lookup (see {!Supplied_entries.lookup}), or the
+          trace of a legacy memexec hit. *)
 
     type lookup =
       | No_candidate of pending

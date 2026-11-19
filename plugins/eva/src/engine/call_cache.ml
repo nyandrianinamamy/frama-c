@@ -196,7 +196,7 @@ module Make
     | Supplied of (int * Supplied_entries.rejection) list
 
   type hit_source =
-    | Supplied_entry of Supplied_entries.entry
+    | Supplied_entry of Supplied_entries.entry * Cache_part.restoration
     | Legacy_trace of Body_access.call_trace option
 
   type lookup =
@@ -206,7 +206,7 @@ module Make
   (* Lookup in the entries supplied by a test module. *)
   let lookup_supplied call state =
     let kf = call.kf in
-    let Supplied_entries.{ rejected; hit } =
+    let Supplied_entries.{ rejected; hit; restoration } =
       Supplied.find call.callstack state
     in
     let count_rejection (_, reason) =
@@ -221,7 +221,7 @@ module Make
       Statistics.(incr cache_hits kf);
       report call ~lookup:{ rejected; hit = Some id }
         ~execution:`Not_analysed ~storage:`None;
-      Hit (id, states, Supplied_entry entry)
+      Hit (id, states, Supplied_entry (entry, restoration))
 
   let lookup call state =
     let kf = call.kf in

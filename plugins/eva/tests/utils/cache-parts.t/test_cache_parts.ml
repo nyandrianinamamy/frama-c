@@ -723,6 +723,39 @@ let inout_client () =
   Format.printf "copy: hits %d, rejected for callback %d@."
     (hits "copy") (rejected "callback" "copy")
 
+(* A part whose consumer is never enabled, registered without an audit. Its
+   predicate is client code: at its n-th evaluation in the second analysis,
+   n given by EVA_TEST_CACHE_PARTS_ARM, it registers a call hook of Eva that
+   is not audited. The hook counts the calls it receives with [`Reuse]. *)
+let predicate () =
+  let arm =
+    Option.fold ~none:1 ~some:int_of_string
+      (Sys.getenv_opt "EVA_TEST_CACHE_PARTS_ARM")
+  in
+  let armed = ref false and evaluations = ref 0 and reused = ref 0 in
+  let count_reuse _callstack _kf _state = function
+    | `Reuse -> incr reused
+    | _ -> ()
+  in
+  let needed () =
+    if !armed then begin
+      incr evaluations;
+      if !evaluations = arm then
+        Eva.Cvalue_callbacks.register_call_hook count_reuse
+    end;
+    false
+  in
+  ignore
+    (Eva.Cache_part.register ~name:"predicate" ~needed
+       ~restore:(fun _ _ _ () -> ()) ());
+  let produced = first_analysis () in
+  armed := true;
+  second_analysis produced;
+  Format.printf "copy: hits %d, rejected for callback %d@."
+    (hits "copy") (rejected "callback" "copy");
+  Format.printf "hook: %d calls with Reuse; predicate evaluated %d times@."
+    !reused !evaluations
+
 (* ----- Names of the parts ------------------------------------------------- *)
 
 (* A second part named as a registered one: the name is the key of a
@@ -763,4 +796,5 @@ let () =
   | Some "duplicate" -> Boot.Main.extend duplicate
   | Some "unaudited-part" -> Boot.Main.extend unaudited_part
   | Some "inout-client" -> Boot.Main.extend inout_client
+  | Some "predicate" -> Boot.Main.extend predicate
   | _ -> ()

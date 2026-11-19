@@ -130,11 +130,6 @@ let cover kf ~key parts =
 
 (* ----- Consumers --------------------------------------------------------- *)
 
-let supplies parts =
-  List.for_all
-    (fun p -> not (p.packed_needed ()) || List.mem_assoc p.packed_id parts)
-    !registered
-
 let state_readers : (string * (unit -> bool)) list ref = ref []
 
 let register_state_reader ~name reads =
@@ -151,18 +146,56 @@ let reads_statement_states () =
   List.exists Plugin.is_present requesting_plugins
   || List.exists (fun (_, reads) -> reads ()) !state_readers
 
-let unaudited_clients () =
-  List.exists
-    (fun p -> p.packed_needed () && not (p.packed_audited ()))
-    !registered
+(* ----- Decisions of one lookup ------------------------------------------- *)
 
-let restore callstack kf pre parts =
-  let restore_one p =
-    if p.packed_needed () then
-      match List.assoc_opt p.packed_id parts with
-      | Some { value } -> p.packed_restore callstack kf pre value
+(* The answers of the predicates of a part, taken once by a lookup. *)
+type decision = {
+  part : packed;
+  needed : bool;
+  audited : bool; (* Not asked, and false, when the part is not needed. *)
+}
+
+type decisions = {
+  decided : decision list; (* In the order of registration. *)
+  count : int; (* The number of parts registered before the decisions. *)
+}
+
+let decide () =
+  let parts = !registered in
+  let decide part =
+    let needed = part.packed_needed () in
+    let audited = needed && part.packed_audited () in
+    { part; needed; audited }
+  in
+  { decided = List.map decide parts; count = List.length parts }
+
+(* A part registered since the decisions, by a predicate for instance, has
+   no decision: it counts as a client that is not audited. *)
+let unaudited_clients decisions =
+  decisions.count <> List.length !registered
+  || List.exists (fun d -> d.needed && not d.audited) decisions.decided
+
+let supplies decisions parts =
+  List.for_all
+    (fun d -> not d.needed || List.mem_assoc d.part.packed_id parts)
+    decisions.decided
+
+type restoration = (packed * exn) list
+
+let no_restoration = []
+
+let restoration decisions parts =
+  let select d =
+    if not d.needed then None
+    else
+      match List.assoc_opt d.part.packed_id parts with
+      | Some { value } -> Some (d.part, value)
       | None ->
         Format.kasprintf invalid_arg
-          "Cache_part.restore: the part %s is missing" p.packed_name
+          "Cache_part.restoration: the part %s is missing" d.part.packed_name
   in
-  Body_access.without_recording (fun () -> List.iter restore_one !registered)
+  List.filter_map select decisions.decided
+
+let restore callstack kf pre restoration =
+  let restore_one (part, value) = part.packed_restore callstack kf pre value in
+  Body_access.without_recording (fun () -> List.iter restore_one restoration)

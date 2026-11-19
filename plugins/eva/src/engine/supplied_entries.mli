@@ -268,7 +268,12 @@ type rejection = [
       kernel ({!Messages.has_hooks}), and the restoration of the parts whose
       consumer is enabled, with the clients that it runs
       ({!Cache_part.unaudited_clients}). A client registered since the
-      production of the entry counts. *)
+      production of the entry counts. The predicates of the parts are
+      evaluated once by each lookup, before this test
+      ({!Cache_part.decide}), and the check of the parts and the restoration
+      use their answers: a hook that a predicate registers is seen by the
+      test, and no predicate runs between the test and the end of the
+      delivery. *)
   | `Analysis_reset
   (** While an analysis runs, its computation state is no longer
       [Computing]: its results were cleared, which a change of an option of
@@ -296,6 +301,12 @@ type 'state lookup = {
   (** The winning entry, if any, and the states reconstructed from it. The
       engine delivers the Safety part ({!safety}) and the Reach part
       ({!reach}) of the entry at the call. *)
+  restoration : Cache_part.restoration;
+  (** The parts of the winning entry that the hit restores, selected with
+      the answers of the predicates of the parts taken once by the lookup,
+      before its test of the clients ({!Cache_part.decide}); none without a
+      hit. The engine restores them after the delivery of the Safety part
+      and of the Reach part. *)
 }
 
 module Lookup (Domain : sig

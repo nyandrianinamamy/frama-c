@@ -175,12 +175,12 @@ module Make (Domain : Domain) = struct
     hit : (t * (Partition.key * Domain.t) list) option;
   }
 
-  let check entry state =
+  let check ~supplies entry state =
     if not (Domain.equal (Domain.filter entry.key state) entry.input)
     then Error `Key_differs
     else if not (is_closed entry.key state)
     then Error `Key_unclosed
-    else if not (Cache_part.supplies entry.parts)
+    else if not (supplies entry.parts)
     then Error `Missing_part
     else Ok ()
 
@@ -195,11 +195,12 @@ module Make (Domain : Domain) = struct
     in
     List.map reuse entry.exit
 
-  let find ~admit candidates state =
+  let find ~supplies ~admit candidates state =
     let rec examine rejected = function
       | [] -> { rejected = List.rev rejected; hit = None }
       | entry :: younger ->
-        match Result.bind (check entry state) (fun () -> admit entry state) with
+        let checked = check ~supplies entry state in
+        match Result.bind checked (fun () -> admit entry state) with
         | Ok () ->
           let hit = Some (entry, apply entry state) in
           { rejected = List.rev rejected; hit }

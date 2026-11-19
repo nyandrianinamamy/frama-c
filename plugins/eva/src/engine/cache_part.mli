@@ -59,6 +59,17 @@ type 'a t
       rejects every supplied entry (see {!Supplied_entries}). Default:
       never.
 
+    [needed] and [audited] are predicates: each lookup with candidates
+    evaluates them once, before its test of the clients that are not
+    audited ({!decide}), and the check of the parts and the restoration use
+    these answers. A predicate must return a result, without an exception;
+    it must not register anything, a client of a hook or a part included,
+    and must not write in the tables of the analysis or of the kernel. A
+    client that it registers all the same on a hook listed under
+    [`Callback] in {!Supplied_entries} is seen by the test of the lookup
+    that evaluates it, and a part that it registers makes this lookup
+    reject its candidates with [`Callback].
+
     Parts are registered when their owner is loaded, before any analysis. *)
 val register :
   name:string -> needed:(unit -> bool) -> ?audited:(unit -> bool) ->
@@ -98,7 +109,9 @@ val provide : 'a t -> Callstack.t -> reads:Base.SetLattice.t -> 'a -> unit
     statements of the called function, and no part restores them: while a
     declared reader reads, every candidate entry is rejected. A reader that
     is not declared, or that reads later than the analysis without having
-    declared it, is not detected. *)
+    declared it, is not detected. [reads] is a predicate under the rules
+    given at {!register}: a lookup evaluates it before its test of the
+    clients that are not audited. *)
 val register_state_reader : name:string -> (unit -> bool) -> unit
 
 (** {2 For the cache} *)
@@ -133,9 +146,6 @@ val cover : kernel_function -> key:Base.Hptset.t -> parts -> parts
 (** [uncovered-read], the reason why {!cover} withholds a part. *)
 val uncovered_read : string
 
-(** Whether [parts] has every part whose consumer is enabled. *)
-val supplies : parts -> bool
-
 (** Whether a reader declared by {!register_state_reader} reads in the
     current analysis, or a plug-in that requests the results by function of
     From or Inout is loaded. These results are computed from the states
@@ -147,13 +157,42 @@ val supplies : parts -> bool
     {!Eva.Results.statement_results_complete} is false. *)
 val reads_statement_states : unit -> bool
 
-(** Whether a part whose consumer is enabled is not audited (see
-    {!register}). *)
-val unaudited_clients : unit -> bool
+(** The answers of the predicates [needed] and [audited] of the registered
+    parts (see {!register}), taken once for one lookup. *)
+type decisions
 
-(** [restore callstack kf pre parts] restores each part of [parts] whose
-    consumer is enabled, in the order of registration, with the function
-    given to {!register}, outside the observation of the collector of block
-    accesses. Raises [Invalid_argument] if a part whose consumer is enabled
-    is missing: the lookup rejects such an entry. *)
-val restore : Callstack.t -> kernel_function -> Cvalue.Model.t -> parts -> unit
+(** [decide ()] evaluates [needed] for every registered part, in the order
+    of registration, and [audited] for those whose consumer is enabled.
+    The lookup calls it once, before its test of the clients that are not
+    audited, and passes the result to {!unaudited_clients}, {!supplies}
+    and {!restoration}: no predicate runs between the test and the end of
+    the delivery of a hit. *)
+val decide : unit -> decisions
+
+(** Whether, by [decisions], a part whose consumer is enabled is not
+    audited (see {!register}), or a part was registered since the
+    decisions were taken. *)
+val unaudited_clients : decisions -> bool
+
+(** Whether [parts] has every part whose consumer is enabled, by
+    [decisions]. *)
+val supplies : decisions -> parts -> bool
+
+(** The parts that a hit restores, with their values. *)
+type restoration
+
+(** Nothing to restore. *)
+val no_restoration : restoration
+
+(** [restoration decisions parts] selects the parts of [parts] whose
+    consumer is enabled by [decisions], in the order of registration.
+    Raises [Invalid_argument] if one is missing: the lookup rejects such an
+    entry ({!supplies}). *)
+val restoration : decisions -> parts -> restoration
+
+(** [restore callstack kf pre restoration] restores each part of
+    [restoration] with the function given to {!register}, outside the
+    observation of the collector of block accesses. It evaluates no
+    predicate. *)
+val restore :
+  Callstack.t -> kernel_function -> Cvalue.Model.t -> restoration -> unit

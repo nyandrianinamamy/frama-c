@@ -346,6 +346,26 @@ entry.
   $ grep '^copy' inout-client.log
   copy: hits 0, rejected for callback 9
 
+The predicate of a part that tells whether its consumer is enabled is client
+code. The lookup evaluates the predicates of all parts once, before its test
+of the clients that are not audited, and the check of the parts and the
+restoration use these decisions: no predicate runs between the test and the
+end of the delivery. The test module registers a part, not audited and never
+needed, whose predicate registers a call hook of Eva at its first, then at
+its second evaluation in the second analysis. At its first, the hook is
+registered by the first lookup of copy, whose test rejects the three
+candidates with callback. At its second, the first call to copy hits and the
+two others are rejected. The hook never receives a call with Reuse, and the
+predicate runs once for each of the seven lookups with candidates.
+
+  $ EVA_TEST_CACHE_PARTS=predicate frama-c -no-autoload-plugins -load-module eva,from,inout,test_cache_parts.cmxs parts.c > predicate.log 2>&1
+  $ EVA_TEST_CACHE_PARTS=predicate EVA_TEST_CACHE_PARTS_ARM=2 frama-c -no-autoload-plugins -load-module eva,from,inout,test_cache_parts.cmxs parts.c > predicate-second.log 2>&1
+  $ grep -E '^(copy|hook)' predicate.log predicate-second.log
+  predicate.log:copy: hits 0, rejected for callback 9
+  predicate.log:hook: 0 calls with Reuse; predicate evaluated 7 times
+  predicate-second.log:copy: hits 1, rejected for callback 6
+  predicate-second.log:hook: 0 calls with Reuse; predicate evaluated 7 times
+
 After an analysis in which hits answered calls, the results by function of
 From and Inout, and the results by statement of Inout, are computed from
 states that do not cover these calls. Every request is refused with a user

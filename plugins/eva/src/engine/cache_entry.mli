@@ -204,17 +204,22 @@ module Make (Domain : Domain) : sig
     (** The candidate used, if any, and the states at the end of the call. *)
   }
 
-  (** [find ~admit candidates state] applies the reuse operation to a call whose
-      input is [state]. The [candidates] are given oldest first. They are
-      examined in this order until one matches, has every part whose
-      consumer is enabled and passes [admit], and that one is used. The
-      caller must check the entry's collector dependencies in [admit]. The
+  (** [find ~supplies ~admit candidates state] applies the reuse operation
+      to a call whose input is [state]. The [candidates] are given oldest
+      first. They are examined in this order until one matches, has the
+      parts that [supplies] asks for and passes [admit], and that one is
+      used. [supplies] tells whether the parts of a candidate include every
+      part whose consumer is enabled, by the decisions that the lookup took
+      once ({!Cache_part.supplies}); a candidate that fails it is rejected
+      with [`Missing_part], after the checks of the key and before [admit].
+      The caller must check the entry's collector dependencies in [admit]. The
       states at the end of the call are
       [reuse written_exit ~current_input:state ~previous_output:s] for each
       exit state [s] of the entry, with its partition key, where
       [written_exit] is W_exit of its footprint. Every other block, those of
       the key and those of W \ W_exit included, keeps its value in [state]. *)
   val find :
+    supplies:(Cache_part.parts -> bool) ->
     admit:(t -> Domain.t -> (unit, rejection) Stdlib.result) ->
     t list -> Domain.t -> result
 end

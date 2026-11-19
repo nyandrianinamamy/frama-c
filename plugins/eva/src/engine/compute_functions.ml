@@ -121,15 +121,14 @@ module Make (Engine: Engine_sig.S) = struct
           Option.iter (Body_access.include_trace call.callstack) trace;
           Body_access.unknown_access Nested_call;
           None
-        | Cache.Supplied_entry entry ->
+        | Cache.Supplied_entry (entry, restoration) ->
           Call_cache.include_supplied call.callstack entry
             ~returns:(states <> []);
           (* The lookup admits no entry without a Reach part
              ([`Missing_points]). *)
           match Supplied_entries.reach entry with
           | Some reach ->
-            Some (Supplied_entries.safety entry, reach,
-                  Supplied_entries.parts entry)
+            Some (Supplied_entries.safety entry, reach, restoration)
           | None -> assert false
       in
       apply_call_hooks call init_state `Reuse;
@@ -186,9 +185,9 @@ module Make (Engine: Engine_sig.S) = struct
       begin match delivery with
         | None -> apply_call_results_hooks call init_state (`Reuse i)
         | Some _ when not satisfiable -> ()
-        | Some (_, _, parts) ->
+        | Some (_, _, restoration) ->
           let cvalue_state = Engine.Dom.get_cvalue_or_top init_state in
-          Cache_part.restore call.callstack call.kf cvalue_state parts;
+          Cache_part.restore call.callstack call.kf cvalue_state restoration;
           Safety_delivery.delivered call.kf
       end;
       (* call can be cached since it was cached once *)
