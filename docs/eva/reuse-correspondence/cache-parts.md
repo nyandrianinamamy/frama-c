@@ -20,7 +20,10 @@ In each scenario, a first analysis with caching disabled produces the
 entries of the callees, which are supplied to a second analysis
 (`Supplied_entries.supply_produced`). The callees of `parts.c` make no call;
 in [`nested.c`](../../../plugins/eva/tests/utils/cache-parts.t/nested.c), a
-callee calls another. The programs
+callee calls another; in
+[`dead-call.c`](../../../plugins/eva/tests/utils/cache-parts.t/dead-call.c),
+the only call of a callee is on a path that its call does not take. The
+programs
 [`logic.c`](../../../plugins/eva/tests/utils/cache-parts.t/logic.c),
 [`logic_loop.c`](../../../plugins/eva/tests/utils/cache-parts.t/logic_loop.c)
 and
@@ -89,24 +92,35 @@ succeeds, and an analysis in the copy then stops with the internal error
 `duplicate`, the test module registers a second part named `from`:
 `Cache_part.register: a part named from is already registered`.
 
-**Open.** From and Inout give their parts only for a body that made no call
-(`Callwise.provide_froms` in From,
+**Open.** From and Inout give their parts only for a call of a body that
+made no call (`Callwise.provide_froms` in From,
 `Operational_inputs.Callwise.provide_inout` in Inout): a hit restores the
 result of the call at its own call site, not the results that the calls of
-the body record at theirs. An entry of a body with a call can be produced
-([Nested call collection](nested-calls.md)) and lacks both parts: while
-the consumer of a part is enabled, the lookup rejects it with
-`missing-part`, before the test that gives `nested-delivery`
-([A hit within one analysis](hit.md)). Scenario `nested`, on `nested.c`,
-with `-calldeps`: the entries of `inner` have `[from, inout]` and those of
-`outer`, which calls `inner`, have `[]`. In the second analysis, the two
-calls to `inner` hit; each call to `outer` reads `rejected (entry N:
-missing-part)` for the entry whose key matches and is analysed; the
-callwise dependencies of the 4 call sites are those of caching disabled.
-With the tests of a body without calls removed from `provide_froms` and
-`provide_inout`, the entries of `outer` have `[inout]` and the fixture
-fails; the From part is still withheld, since its reads are `Top` for a
-body with a call.
+the body record at theirs. Both test the calls that the analysis of this
+call recorded, not the syntax of the body. An entry of a call that made a
+call can be produced ([Nested call collection](nested-calls.md)) and lacks
+both parts: while the consumer of a part is enabled, the lookup rejects it
+with `missing-part`, before the test that gives `nested-delivery`
+([A hit within one analysis](hit.md)). An entry of a body whose calls are
+all on paths that the producing call did not take has both parts; the
+lookup rejects it with `nested-delivery`, the test of
+[#50](https://github.com/nyandrianinamamy/frama-c/issues/50) on the syntax
+of the body. Scenario `nested`, on `nested.c`, with `-calldeps`: the entries
+of `inner` have `[from, inout]` and those of `outer`, which calls `inner`,
+have `[]`. In the second analysis, the two calls to `inner` hit; each call
+to `outer` reads `rejected (entry N: missing-part)` for the entry whose key
+matches and is analysed; the callwise dependencies of the 4 call sites are
+those of caching disabled. With the tests of a call without calls removed
+from `provide_froms` and `provide_inout`, the entries of `outer` have
+`[inout]` and the fixture fails; the From part is still withheld, since its
+reads are `Top` for a call that made a call. Scenario `dead-call`, on
+`dead-call.c`, with `-calldeps`: `leaf(0)` does not call `other`; the entry
+of `leaf` has `[from, inout]`, its call reads `rejected (entry 1:
+nested-delivery)` and is analysed, and the callwise dependencies at the 2
+call sites are those of caching disabled. When #50 lifts its test on the
+syntax, an entry whose body has a call that the producing call did not make
+needs, for a hit, the parts of that call site or a refusal: the owners give
+the result of the producing call only.
 
 ## A part whose reads the key misses is withheld
 
@@ -143,6 +157,17 @@ to the key (producer obligations). A computation that reads only such
 blocks gives the same value for both calls. A formal is not counted as a
 local: its value is that of the actual, which the key must hold.
 
+The check relies on the reads that the owner gives and on the actual key of
+the entry, not on the reads that the collector recorded. The key of an
+entry whose call made no call contains every block that the collector
+recorded as read. The key of an entry whose call made calls is reduced to
+the dependencies on entry values ([Dependencies on entry
+values](nested-calls.md#dependencies-on-entry-values)) and can omit a block
+that a callee reads after the body overwrote it; the premise that the
+values at the statements then depend only on the input restricted to the
+key is open there. From and Inout give no part for a call that made a call,
+so the parts kept are checked against keys of the first kind.
+
 What the callwise computations evaluate in a body, from the source of
 `From_compute` and of `Operational_inputs.Computer`, and whether Eva's
 analysis of the same body reads the same blocks:
@@ -153,7 +178,7 @@ analysis of the same body reads the same blocks:
 | From | address of the assigned left value (`lval_to_zone_with_deps`) | yes | `address_deps` of the left value |
 | From | condition of `if` and `switch`, its dependencies and its value (`transfer_guard`) | yes | `expr_deps` of the condition |
 | From | returned left value (`externalize`) | yes | `expr_deps` of the returned expression |
-| From | call: dependencies of the callee at the call site | no state read | `Top`; no part is given for a body with a call |
+| From | call: dependencies of the callee at the call site | no state read | `Top` at a call statement that the call reaches, nothing at one it does not reach; no part is given for a call that made a call |
 | From | reachability of a statement (`Eva.Results.is_reachable`) | no state read: while the analysis runs, its results are not available and every statement is reachable | none; see [The kept part covers the skipped computation](#the-kept-part-covers-the-skipped-computation) |
 | From | callbacks `Record_From_Callbacks` at the end of the call | not part of the value | none: no module of the tree registers one, and a hit does not run them |
 | From, Inout | whether the results of the body are saved (`Eva.Analysis.save_results`, option `-eva-no-results-function`) | no state read: an option, the same for every call of an analysis | none; when they are not saved, the part is `Top` and reads nothing |
@@ -162,13 +187,13 @@ analysis of the same body reads the same blocks:
 | Inout | assertion and loop invariant (`predicate_deps` with the state at the statement) | no when tagged `no_eva`, which Eva skips; otherwise Eva reads its own locations, not checked to be the same | the logic inputs; `Top` when `predicate_deps` gives none |
 | Inout | label `Pre` of an assertion (`kf_pre_state`, from `Eva.Results.at_start_of`) | no state read: while the analysis runs, the results give `Top` | the logic inputs computed in `Top`; see [The kept part covers the skipped computation](#the-kept-part-covers-the-skipped-computation) |
 | Inout | label `Init` of an assertion (`Eval_terms.add_init`) | the initial state of the analysis, the same for every call | the logic inputs; see [The kept part covers the skipped computation](#the-kept-part-covers-the-skipped-computation) |
-| Inout | call: result of the callee | no state read | no part is given for a body with a call |
+| Inout | call: result of the callee | no state read | no part is given for a call that made a call |
 | Inout | reachability of a statement | the state of the call at the statement | none |
 
 The inputs of Inout omit the blocks that the body surely wrote before
 reading them; their values at the read are computed by the body from blocks
 that are in the inputs. Inline assembly, `Code_annot` instructions and
-`Skip` evaluate nothing. The bodies with a call give no part, so the
+`Skip` evaluate nothing. A call that made a call gives no part, so the
 specifications of callees are not evaluated for a part.
 
 The reads are not compared with the reads recorded by the collector: the
