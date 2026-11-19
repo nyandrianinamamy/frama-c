@@ -252,7 +252,9 @@ and [skipped-effect obligations](hit.md#side-table-obligations-for-skipped-work)
 Tree of `lean/` `109d98b868affdfac0c238621976caf06b588b04` at
 `7f212d160d63fe7c04cba3a40e5a1c5eaa14198e`. On a clean archive of that
 tree, `cd lean && lake build --wfail` exited 0 with Lean 4.28.0.
-The axiom guard accepted all printed declarations. CI is pending.
+The axiom guard accepted all printed declarations. CI:
+[run 44445873919](https://github.com/nyandrianinamamy/frama-c/actions/runs/44445873919)
+succeeded on this tree.
 
 Each scratch archive started from the same Lean commit. Each change
 below made `lake build --wfail` exit 1.
