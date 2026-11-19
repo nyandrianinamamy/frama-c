@@ -167,6 +167,24 @@ let inout () =
   Format.printf "inputs and outputs equal for %d functions: %b@."
     (List.length (snd fresh)) (same_inout (snd fresh) (snd reused))
 
+(* A premise of the supplier violated on purpose: the options of Eva differ
+   between the analysis that produces the entries and the one that uses
+   them. With -eva-no-results-function narrow in the using analysis only,
+   the analysis of narrow with caching disabled saves no state at its
+   statements, Inout gives Top as the result of its call, and the caller
+   does not reduce g. The hit restores the Inout part of the producing
+   analysis, and the caller reduces g. Nothing detects the difference. *)
+let options () =
+  let narrow = List.hd (calls "narrow") in
+  let produced = first_analysis () in
+  Eva.Parameters.NoResultsFunction.add
+    (Kernel_function.get_definition (kf "narrow"));
+  ignore (first_analysis ());
+  let g = value_after narrow "g" in
+  second_analysis produced;
+  Format.printf "options differ: g after narrow: caching disabled %s; \
+                 after %d hit %s@." g (hits "narrow") (value_after narrow "g")
+
 (* ----- Checks of the assigns clauses -------------------------------------- *)
 
 (* The assigns and from clauses of the contract of checked. *)
@@ -701,6 +719,7 @@ let () =
   | Some "from" -> Boot.Main.extend from
   | Some "missing" -> Boot.Main.extend missing
   | Some "inout" -> Boot.Main.extend inout
+  | Some "options" -> Boot.Main.extend options
   | Some "verify" -> Boot.Main.extend verify
   | Some "readers" -> Boot.Main.extend readers
   | Some "project" -> Boot.Main.extend project

@@ -55,6 +55,17 @@ every function joined over its calls, are those of the first analysis.
   callwise inputs and outputs equal at 9 call sites: true
   inputs and outputs equal for 7 functions: true
 
+A premise of the supplier, violated here on purpose: the options of Eva are
+the same in the analysis that produces the entries and in the one that uses
+them. With -eva-no-results-function narrow in the using analysis only, the
+caller does not reduce g with caching disabled, and reduces it after the
+hit, which restores the Inout part of the producing analysis. Nothing
+detects the difference.
+
+  $ EVA_TEST_CACHE_PARTS=options frama-c -no-autoload-plugins -load-module eva,from,inout,test_cache_parts.cmxs parts.c > options.log 2>&1
+  $ grep -E '^options differ' options.log
+  options differ: g after narrow: caching disabled {-5; 5}; after 1 hit {5}
+
 A body visited several times in one analysis. In visits.c, the third call
 to choose hits the entry produced by the first call, before the second call
 reached the other branch; with caching disabled, it is analysed after both
