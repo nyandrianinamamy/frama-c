@@ -44,15 +44,20 @@ namespace Checks
 
 open ReuseModel Memory
 
+/-- The body of `f`. -/
 def queryBody : Stmt := .seq 1 (.assert 2 (.var "x")) (.call 3 none "h" [])
 
+/-- The body of `h`. -/
 def queryCallee : Stmt := .seq 20 (.assign 21 (.var "r") (.const 0)) (.skip 22)
 
+/-- The functions `f` and `h`, and the globals `x`, `g` and `r` in blocks 0,
+1 and 2. -/
 def queryProg : Program where
   funs := [("f", ⟨[], [], queryBody⟩), ("h", ⟨[], [], queryCallee⟩)]
   globals := fun x => if x = "x" then some 0 else if x = "g" then some 1
     else if x = "r" then some 2 else none
 
+/-- The body of `f` as the cached statement. -/
 def querySubj : Subject := ⟨queryProg, queryBody,
   ⟨by decide, ⟨fun f => if f = "f" then 1 else 0, by decide⟩, by decide,
     Or.inl (by decide)⟩⟩
@@ -65,6 +70,7 @@ def callState (g r : Int) (m : FunMem) : Prop :=
   load m 0 = some (.int 1) ∧ load m 1 = some (.int g) ∧
     load m 2 = some (.int r) ∧ m.next = 3
 
+/-- The state at a call is decidable. -/
 instance (g r : Int) (m : FunMem) : Decidable (callState g r m) := by
   unfold callState; infer_instance
 
@@ -100,6 +106,7 @@ theorem callState_eq {g r : Int} {m : FunMem} (h : callState g r m) : m = queryM
   · have h3 : 3 ≤ b := Nat.le_of_not_lt hb
     rw [m.fresh b (by rw [hn]; exact h3), (queryMem g r).fresh b h3]
 
+/-- The memory at a call is in the state at the call. -/
 theorem callState_queryMem (g r : Int) : callState g r (queryMem g r) :=
   ⟨rfl, rfl, rfl, rfl⟩
 
@@ -149,9 +156,11 @@ def innerBefore (m : FunMem) : Prop :=
 def innerAfter (m : FunMem) : Prop :=
   load m 0 = some (.int 1) ∧ load m 1 = some (.int 4) ∧ load m 2 = some (.int 0)
 
+/-- The stored inner state before the write is decidable. -/
 instance (m : FunMem) : Decidable (innerBefore m) := by
   unfold innerBefore; infer_instance
 
+/-- The stored inner state after the write is decidable. -/
 instance (m : FunMem) : Decidable (innerAfter m) := by
   unfold innerAfter; infer_instance
 
@@ -168,6 +177,7 @@ def queryInner : InnerPart predicates where
 def queryLine (site : Label) (g r : Int) : HitLine predicates :=
   ⟨[site], queryEntry, queryInner, callState g r, [0, 1, 2]⟩
 
+/-- The hit log of `main`: a line for each call of `f`. -/
 def queryLog : List (HitLine predicates) := [queryLine 11 4 3, queryLine 16 9 5]
 
 /-! ## The producing execution -/
@@ -231,6 +241,8 @@ private theorem producer_prefix {w : FunMem} (hw : queryEntry.input w)
   rw [hn] at ht
   exact ht
 
+/-- Producer soundness, coverage and key coverage of the entry, proved on
+the producing execution. -/
 theorem query_entry_premises :
     queryEntry.ProducerSound ∧ queryEntry.Coverage ∧ queryEntry.KeyCovers := by
   refine ⟨⟨?_, ?_, ?_⟩, ?_, ?_⟩
@@ -299,6 +311,7 @@ private theorem fin12 (n₀ n : Nat) (hlt : n₀ < n) (hn : n < 12) :
     ∃ i j : Fin 12, i.val = n₀ ∧ j.val = n ∧ i < j :=
   ⟨⟨n₀, by omega⟩, ⟨n, hn⟩, rfl, rfl, hlt⟩
 
+/-- The inner part stored by the producing call is sound. -/
 theorem query_inner_sound : queryEntry.InnerPartSound queryInner := by
   -- A configuration after a visit to `r = 0;` comes after the write.
   have written {w : FunMem} (hw : queryEntry.input w) {n₀ n : Nat}
@@ -1001,10 +1014,13 @@ empty key and footprint. The producing call has `y = 1`; the member has
 binds block 0 only. Before `L41`, the query on `t` answers top; the value of
 block 1 at the call is no value, which misses the 7 of the visit. -/
 
+/-- No function, and the global `y` in block 0. -/
 def localProg : Program := ⟨[], fun x => if x = "y" then some 0 else none⟩
 
+/-- `L40: { int t = 7;  L41: ; }`. -/
 def localStmt : Stmt := .scope 40 [("t", 7)] (.skip 41)
 
+/-- `localStmt` as the cached statement. -/
 def localSubj : Subject := ⟨localProg, localStmt,
   ⟨by decide, ⟨fun _ => 0, by decide⟩, by decide, by decide⟩⟩
 
@@ -1064,6 +1080,8 @@ private theorem local_prefix {w : FunMem} (hw : localEntry.input w)
   rw [hn] at h
   exact h
 
+/-- The premises of `CacheEntry.query_sound` for the entry of the local
+example, proved on its producing execution. -/
 theorem local_premises :
     localEntry.ProducerSound ∧ localEntry.Coverage ∧ localEntry.KeyCovers ∧
       localEntry.InnerPartSound localInner := by
@@ -1142,6 +1160,9 @@ A block that no prefix accesses can still change: a sweep marks a pointer it
 holds to the swept local. The value at the call misses the visit; the same
 value with the marks of the sweeps contains it. -/
 
+/-- At the visit before label 4 of the fixture of `Checks/Sweeps.lean`, a
+frame block holds `escaped 2`, where it held `ptr 2` at entry; the value at
+entry with the marks of the sweeps contains it. -/
 theorem frame_needs_sweeps :
     AtPoint sweepSubj futurePointerInput ⟨4, [], .before⟩ 5 ∧
     InFrame sweepSubj futurePointerInput 1 ∧
@@ -1158,18 +1179,25 @@ In `while (i < 2) { if (i == 0) A: i = 1; else B: i = 2; }`, A and B run on
 the same continuation. The completion of B is not a visit after A: the
 completion of A ends the execution of A. -/
 
+/-- No function, and the global `i` in block 0. -/
 def branchProg : Program := ⟨[], fun x => if x = "i" then some 0 else none⟩
 
+/-- `while (i < 2) { if (i == 0) A: i = 1; else B: i = 2; }`, with A and B
+at labels 32 and 33. -/
 def branchStmt : Stmt :=
   .loop 30 (.binop .lt (.var "i") (.const 2))
     (.ite 31 (.binop .eq (.var "i") (.const 0))
       (.assign 32 (.var "i") (.const 1)) (.assign 33 (.var "i") (.const 2)))
 
+/-- `branchStmt` as the cached statement. -/
 def branchSubj : Subject := ⟨branchProg, branchStmt,
   ⟨by decide, ⟨fun _ => 0, by decide⟩, by decide, by decide⟩⟩
 
+/-- No local, and `i = 0`. -/
 def branchInput : State FunMem := topState [.int 0]
 
+/-- There is a visit after A at step 3 and after B at step 7, and no visit
+after A at step 7. -/
 theorem after_ends_at_completion :
     AtPoint branchSubj branchInput ⟨32, [], .after⟩ 3 ∧
     AtPoint branchSubj branchInput ⟨33, [], .after⟩ 7 ∧
