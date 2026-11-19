@@ -501,6 +501,15 @@ them, equal those of caching disabled.
   $ grep '^| ' domain-reference.log > domain-reference.summary
   $ diff domain.summary domain-reference.summary
 
+The record of unknown reachability is kept when the results are taken and
+installed again (RESTORE=same), and in the session saved after that.
+
+  $ EVA_TEST_CACHE_REACH=replay EVA_TEST_CACHE_REACH_RESTORE=same frama-c -no-autoload-plugins -load-module eva,test_cache_reach.cmxs -main producer -eva-no-results-domain cvalue -eva-msg-key cache reach.c -save domain-restore.sav > domain-restore.log 2>&1
+  $ grep '^restored reachability' domain-restore.log
+  restored reachability of body unknown: true
+  $ frama-c -no-autoload-plugins -load-module server,eva,eva.server_api,test_dead_code.cmxs -load domain-restore.sav > domain-restore.server 2>&1
+  $ diff domain-restore.server domain.server
+
 In holder.c, body stores the address of its formal x into gp. After the
 call, the caller ends the lifetime of x, and gp holds an escaping address.
 The entry holds, with its result, the variables to which the body wrote the
@@ -638,6 +647,19 @@ caching disabled.
   $ EVA_TEST_CACHE_REACH=reference frama-c -no-autoload-plugins -load-module eva,test_cache_reach.cmxs -eva-msg-key cache -eva-slevel 10 zones.c > zones-reference.log 2>&1
   $ grep '^| ' zones-reference.log > zones-reference.summary
   $ diff zones.summary zones-reference.summary
+
+With the collector of block accesses enabled, the body of main is under
+observation when the hit delivers its zones. With COLLECT=off, the collector
+is disabled after the entry is produced and before the analysis from main,
+and no body is under observation at the hit: the zones written at line 4
+are still first and second, as with caching disabled.
+
+  $ EVA_TEST_CACHE_REACH=replay EVA_TEST_CACHE_REACH_COLLECT=off frama-c -no-autoload-plugins -load-module eva,test_cache_reach.cmxs -main producer -eva-msg-key cache -eva-slevel 10 zones.c > zones-off.log 2>&1
+  $ grep -E 'lookup: hit|^\| zones: stmt 8 ' zones-off.log
+    call to body: lookup: hit (entry 1); execution: not-analysed; storage: none
+  | zones: stmt 8 (line 4) in body :: line 8 <- main: read x; p; write first; second
+  $ grep '^| ' zones-off.log > zones-off.summary
+  $ diff zones-off.summary zones-reference.summary
   $ EVA_TEST_CACHE_REACH=replay frama-c -no-autoload-plugins -load-module eva,test_cache_reach.cmxs -main producer -eva-msg-key cache -eva-slevel 10 loopread.c > loopread.log 2>&1
   $ grep -E 'lookup: hit|^part: zones at loopread.c:7|^\| zones: stmt 12 ' loopread.log
   part: zones at loopread.c:7 (stmt 12), read first; second; p, write sink, in the body

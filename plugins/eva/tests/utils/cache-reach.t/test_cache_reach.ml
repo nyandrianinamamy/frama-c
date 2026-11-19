@@ -317,7 +317,8 @@ let print_part produced =
    PART=nopoints, with its Reach part without the points. With SECOND=on,
    the produced entry is supplied after the entry written by hand, as a
    second candidate. With CONSUMER set, the second analysis saves no state
-   of body (see [no_results]). *)
+   of body (see [no_results]). With COLLECT=off, the collector of block
+   accesses is disabled for the second analysis. *)
 let replay () =
   let produced = produce_and_reset () in
   print_part produced;
@@ -337,6 +338,7 @@ let replay () =
       by_hand (Option.map without_points (Entry.reach entry))
     | _ -> ignore (Supplied.supply_produced produced)
   end;
+  if env "COLLECT" = Some "off" then Eva.Parameters.CacheCollect.off ();
   no_results (env "CONSUMER") true;
   Format.printf "second analysis@.";
   Eva.Analysis.compute ();
