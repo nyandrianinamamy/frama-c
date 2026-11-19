@@ -590,6 +590,11 @@ open ReuseModel ReuseModel.CacheEntry in
 #check_axioms ReuseModel.CacheEntry.InnerPartSound
 
 open ReuseModel ReuseModel.CacheEntry in
+#check @innerPartSound_of_key
+#print axioms ReuseModel.CacheEntry.innerPartSound_of_key
+#check_axioms ReuseModel.CacheEntry.innerPartSound_of_key
+
+open ReuseModel ReuseModel.CacheEntry in
 #check @replay_trace
 #print axioms ReuseModel.CacheEntry.replay_trace
 #check_axioms ReuseModel.CacheEntry.replay_trace

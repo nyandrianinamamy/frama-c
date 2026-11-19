@@ -197,6 +197,20 @@ structure InnerPartSound (entry : CacheEntry d) (inner : InnerPart d) : Prop whe
     AtPoint entry.subject ⟨entry.env, w⟩ q n →
     ∀ b ∈ inner.updated q, b ∈ updatedBlocks (trace entry.subject ⟨entry.env, w⟩ n).1
 
+/-- The inner part whose possible writes are the writes of the footprint at
+every point, with no updated block, is sound when its states cover the
+producing visits on the key. With it, every block outside the key and the
+frame answers top. -/
+theorem innerPartSound_of_key {entry : CacheEntry d} (state : QueryPoint → d.State)
+    (hc : entry.Coverage)
+    (hs : ∀ w, d.γ entry.input w → ∀ q n, AtPoint entry.subject ⟨entry.env, w⟩ q n →
+      ∃ r, d.γ (state q) r ∧ AgreeOn entry.key r (trace entry.subject ⟨entry.env, w⟩ n).2.mem) :
+    entry.InnerPartSound ⟨state, fun _ => entry.footprint.writes, fun _ => []⟩ := by
+  refine ⟨fun w hw q n hv => hs w hw q n hv, fun w hw q n _ b hb => ?_, fun _ _ _ _ _ b hb => ?_⟩
+  · exact (hc w hw).accesses _ _
+      (run_steps entry.subject.prog n (Config.entry entry.subject.stmt ⟨entry.env, w⟩)) _ hb
+  · exact absurd hb List.not_mem_nil
+
 omit [Memory M] in
 private theorem Config.mem_withMem (c : Config M) (m : M) : (c.withMem m).mem = m := by
   cases c <;> rfl
