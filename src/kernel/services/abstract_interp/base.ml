@@ -119,13 +119,18 @@ let metadata_observer : (base -> unit) option ref = ref None
 let validity_observer : (variable_validity -> weak:bool -> unit) option ref =
   ref None
 
+let observer_change_count = ref 0
+let observer_changes () = !observer_change_count
+
 let observe_metadata_reads f =
   let previous = !metadata_observer in
+  incr observer_change_count;
   metadata_observer := f;
   previous
 
 let observe_validity_updates f =
   let previous = !validity_observer in
+  incr observer_change_count;
   validity_observer := f;
   previous
 
@@ -224,9 +229,11 @@ module AbsoluteList =
       let dependencies = [ Kernel.AbsoluteValidRange.self ]
     end)
 
-(* The count is a state of the project, saved with it, as the hash-consing
-   tables of the values that designate the bases. It has no dependency: only
-   a clearing of the whole project resets it. *)
+(* Two counts. The state of the project is saved with a session, as the
+   hash-consing tables of the values that designate the bases. The count of
+   the process cannot be cleared, copied or left out by a selection of
+   states, and covers a node or a validity record used from another
+   project. *)
 module Weakenings =
   State_builder.Zero_ref
     (struct
@@ -234,8 +241,12 @@ module Weakenings =
       let dependencies = []
     end)
 
-let weakenings = Weakenings.get
-let count_weakening () = Weakenings.set (Weakenings.get () + 1)
+let process_weakenings = ref 0
+
+let weakenings () = Weakenings.get () + !process_weakenings
+let count_weakening () =
+  incr process_weakenings;
+  Weakenings.set (Weakenings.get () + 1)
 
 type qualifiers = { read_only: bool; volatile:bool }
 let default_qualifiers = { read_only = false; volatile = false }

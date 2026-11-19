@@ -124,31 +124,44 @@ let validity_update _ ~weak:_ =
    is entered again from its own call. *)
 let previous_read = ref None
 let previous_update = ref None
-let forwarding = ref false
 
-let forward f =
+let forward forwarding f =
   if not !forwarding then begin
     forwarding := true;
     Fun.protect f ~finally:(fun () -> forwarding := false)
   end
 
 let read_observer =
+  let forwarding = ref false in
   Some (fun base ->
-      forward (fun () ->
+      forward forwarding (fun () ->
           metadata_read base;
           Option.iter (fun f -> f base) !previous_read))
 
 let update_observer =
+  let forwarding = ref false in
   Some (fun validity ~weak ->
-      forward (fun () ->
+      forward forwarding (fun () ->
           validity_update validity ~weak;
           Option.iter (fun f -> f validity ~weak) !previous_update))
+
+(* The observers of the kernel changed by another client while a recorder
+   was set: the collector may have missed an event. [displacements] counts
+   these changes; a recording that sees the count move is refused. *)
+let own_changes = ref 0
+let displacements = ref 0
+
+let check_displaced () =
+  if (Option.is_some !current || Option.is_some !call_site)
+  && Base.observer_changes () <> !own_changes
+  then incr displacements
 
 (* Sets the recorders. With a recorder, the observers of the collector are
    the observers of the kernel. Without recorder, the kernel has the
    observers it had before, unless another client installed one during the
    recording: that one is kept, with the collector's behind it. *)
 let set_recorders body site =
+  check_displaced ();
   current := body;
   call_site := site;
   if Option.is_some body || Option.is_some site then begin
@@ -165,6 +178,8 @@ let set_recorders body site =
     if top == update_observer then previous_update := None
     else ignore (Base.observe_validity_updates top)
   end
+  ;
+  own_changes := Base.observer_changes ()
 
 let suspend site f =
   let previous = !current and previous_site = !call_site in
@@ -511,10 +526,14 @@ let capture stack compute =
       unlocated_write = false;
     } in
     set_recorders (Some r) None;
+    let displaced = !displacements in
     let output =
       Fun.protect compute ~finally:(fun () ->
           set_recorders previous previous_site)
     in
+    (* Another client changed the observers of the kernel during the
+       recording: a read of allocation metadata may be missing. *)
+    if !displacements <> displaced then add_refusal r Allocation_metadata;
     (* The size of a written block is read outside the body's analysis. *)
     let exit_writes, sure_writes =
       without_recording @@ fun () ->
