@@ -90,14 +90,21 @@ exit witness with the frame under the stated runtime premises.
    returns them through
    [`Body_access.Result.t`](../../../plugins/eva/src/engine/body_access.mli).
    Establishing these bounds for every producing memory of an admitted
-   entry is open. The collector record leaves contract and annotation
-   read coverage, child composition, and replay open.
-7. `entry.KeyCovers`. OCaml obligation. The key contains `reads` and
-   `exitWrites \ sureWrites`. Closing their union under `relate` can
-   enlarge the key. The construction uses membership and the later
-   projected match uses closure. The [entry producer](cache-producer.md#key-and-footprint-from-the-collector)
-   establishes the inclusion and closure on the collected sets. The
-   argument and regression are recorded there.
+   entry is open. The child-lifetime distinction between model write
+   events and the Eva overlay is stated in the nested collector record.
+   [Nested call collection](nested-calls.md#composition-along-the-observed-path).
+7. `entry.KeyCovers`. OCaml obligation for this theorem. It requires
+   inclusion of `reads` and `exitWrites \ sureWrites` in the key. The
+   hand-supplied constructor checks this set inclusion on the sets it
+   receives and checks closure in the supplied input. The producer starts
+   from observed entry dependencies, which can omit a read after a
+   preceding full overwrite. It checks inclusion of those dependencies
+   and the required exit writes in its closed key. This does not
+   establish `KeyCovers` on the collected R. Agreement at each omitted
+   read via replay of a preceding full overwrite is argued, not
+   modelled. The required prefix premise is open for a Lean ticket.
+   [Producer key](cache-producer.md#key-and-footprint-from-the-collector).
+   [Entry dependencies](nested-calls.md#dependencies-on-entry-values).
 
 **Source evidence for R.** Each executed read hook adds its possible
 bases with `Bases.join` in `Body_access.add_read`. The sure-write

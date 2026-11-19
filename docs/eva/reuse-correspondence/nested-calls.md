@@ -31,9 +31,9 @@ callee retains its usual allocation checks during its requires clauses.
 For other observations those clauses use the caller's recorder.
 
 On a supplied hit, R and W come from the winning entry, including work
-before a fault or on a nonreturning path. The entry's producing observation
-supplies the recorded join classes, designations and transitive used
-functions. The actual call transfer provides the context, including the
+before a fault or on a nonreturning path. The entry's observation supplies
+the recorded join classes and designations. Its collector dependencies
+supply the transitive used functions. The actual call transfer provides the context, including the
 current call site, its arguments, scope cleanup and return assignment. The
 key of the winning entry bounds the values consumed by lookup and replay.
 Lookup and reconstruction run with recording suspended. No rejected
@@ -41,23 +41,39 @@ candidate contributes accesses, effects, dependencies, refusals or a child
 reference. A hand-supplied entry with no producing observation and a
 memexec hit each refuse the enclosing body as `nested-call`. For a
 memexec hit, the bound is Top since the collector has no required footprint
-from that cache. Tests can still use either kind of hit at the call seam.
+from that cache. Its producing trace still contributes used functions and
+recursion information.
 
-W is the union of prefix writes, even when the call has no successor. On a
-returning call the current edge gets the child's W_exit and the full bit
-ranges of known-validity blocks in its W_sure. The edge keeps contributions
-from the actual call transfer too. The caller's normal backward walk and
-forward must analysis account for branching and repeated executions of
-the edge. The call-local formals, automatic locals and return slot remain
-in R and W when accessed. They are removed from the enclosing body's
-transfer of exit writes and sure writes because the call ends their
-lifetimes. This exit bound is on surviving writes. Lean's
-`Coverage.exitWrites` ranges over every write event on a returning
+W is the union of prefix writes, including paths with no successor. A
+returning child contributes its W_exit and the full bit ranges of known
+validity blocks in its W_sure. The caller independently records each
+resolved call target and then each returned state during cleanup, actual
+reduction and result assignment. A branch starts with an empty local
+write summary. Continuing branches join possible writes and intersect
+sure bits. The writes before the split are then composed with that
+result. Prefix coverage also retains the writes of stopped branches.
+The same join applies across input partitions and later visits of an
+automaton edge. The backward walk from the exit bounds the possible
+returning writes. In the forward analysis, the zero-iteration path and
+all observed back edges participate in the must-write intersections.
+
+**Lifetime obligation (source inspection).** The caller must retain
+surviving holder updates even though it omits expired child blocks from
+its overlay. Formals are installed by the actual bindings. The child's
+return slot lasts through the caller's result assignment. Child formals,
+automatic locals and the return slot contribute to R and W when
+accessed. They have left scope by the end of the call transfer. Their
+bindings are never restored by an enclosing overlay. This omits only
+the ephemeral blocks themselves. Any rewrite of a surviving
+holder is a separate effect. A child's lexical sweep is foreign to
+the enclosing unit, even when admitted for the child. Both fresh and
+supplied children with that sweep refuse the enclosing body. The fresh
+and supplied call paths both execute outer cleanup. Escaped child
+addresses remain subject to the sweep and allocation refusals.
+
+Lean's `Coverage.exitWrites` counts every write event on a returning
 execution, including writes to blocks that later leave scope. Applying
-that premise to the raw Eva exit set would need a separate account of
-call-local lifetimes. The fresh and supplied call paths both execute the
-outer cleanup. A scope sweep still refuses if Eva's existing sweep path
-runs, including when it is the cleanup of a nested body.
+it to Eva's surviving exit writes needs a lifetime-aware statement.
 
 A completed nested fresh body contributes its observation even if its
 producer does not create an entry. The produced enclosing entry has a
@@ -66,7 +82,11 @@ and each supplied entry selected. The referenced entry owns its child
 references. A body with no entry of its own contributes inline along with
 its child references. Those references retain the path of statements
 through the inlined body. The enclosing record carries the transitive
-used functions and modes on both paths.
+used functions and modes on both paths. A fresh child or a supplied
+child that consults widening hints makes the enclosing observation
+depend on its own entry-time generation. A change during that enclosing
+analysis refuses the observation. A supplied child with a stale stamp
+fails admission before its effects can be included.
 
 The empty automatic-allocation lookup during call finalization makes no
 memory change. A nonempty result executes the deallocation and retains
@@ -75,7 +95,11 @@ definition requires the current project's automatic-allocation registry
 to have no automatic blocks. This conservative check makes each skipped
 cleanup empty even when the callstack or registry has changed since
 production. Admission also rejects if the cached body or one of its used
-functions is already active in the caller.
+functions is already active in the caller. The same lookup uses #44's
+sweep, hint and watchpoint checks. A matching entry with a child reference
+or a nested invocation in the used-function trace is rejected as
+`nested-delivery` until delivery exists. Entries with inline specifications
+also take this refusal, since skipping them can lose statuses.
 
 **Evidence (executed).**
 [`nested-access.t`](../../../plugins/eva/tests/utils/nested-access.t/run.t)
@@ -85,19 +109,30 @@ checks deallocation refusal propagation from a fresh child. It checks
 prefix coverage for a child with no exit, preserves a reference through an
 intermediate body with preconditions, and exercises matching enclosing
 entries rejected for automatic cleanup and for a child on the active
-callstack.
+callstack. The split-return fixtures assert the key and sure writes with
+fresh and supplied children and with two calls in one main. They compare
+the result and a division alarm with caching disabled. The status fixture
+checks that the guard keeps an invalid child assertion from being
+marked dead. The supplied-child criterion is exercised by the child's
+confirmed hit and the enclosing observation. Enclosing hits await #47.
+The transitive test exercises a produced middle entry at the same
+composition function used by a supplied hit, then performs three real
+analyses. The temporary guard rejects that middle entry in the second
+analysis. The third finds the grandchild active and rejects the enclosing
+entry as `recursion`.
 
 **Open.** The fresh collector bounds are conditional on coverage of the
 child, including before faults. The hit bounds also require an admitted
 entry whose footprint covers the skipped execution under its call context.
 The argument for the Eva match witness and full correspondence with the
 whole-block model remains open. See [Hit soundness](hit.md#hit-soundness).
-Recorded classes alone do not replay per-position contributions. After
-Safety and Reach delivery, a hit of an enclosing entry must mark every
-function whose visits it skips, including transitive children and body
-work recorded inline, before end-of-analysis processing. That processing
-must suppress conclusions requiring complete visit information for all
-such functions.
+Recorded classes alone cannot deliver per-position contributions.
+Before enabling an enclosing hit, #47 must collect and deliver Safety at
+each child's relative call site, including inline work, and mark every
+function whose body visits the hit skips, transitively. End-of-analysis
+processing must suppress conclusions requiring complete visit information
+for those functions. #48 and #51 owe Reach and the remaining position-
+specific contributions for that same nested work.
 
 ## Dependencies on entry values
 
@@ -106,7 +141,8 @@ footprint independently of the entry dependencies. If every path to the
 call entry overwrites an entire block, a dependency reported by the child
 on that block need not be a dependency on its value at the caller's entry.
 
-**Kind.** Argued in prose, conditional on the transfer observations.
+**Kind.** Argued, not modelled. The argument is conditional on the
+transfer observations.
 
 **Argument (source inspection).** For each call edge the recorder adds the
 child's input dependencies at the source vertex. A fresh call uses the
@@ -143,13 +179,18 @@ optional preceding overwrite keeps `x` in the dependencies. A contract
 that reads a callee formal keeps its read in the footprint while the
 dependency on its value comes from the actual argument.
 
-**Open.** The Lean proof currently uses `KeyCovers` with R ⊆ K. It does
-not directly establish the reduced-key claim for an implementation that
-keeps R and the entry dependencies separately. The prose argument gives
-the change required of the replay premise. It uses agreement on reads
-at their program points, derived from agreement at entry and replay of
-preceding writes. Relational closure of a child's dependencies is open
-beyond cvalue.
+**Open for a Lean ticket.** Neither `CacheEntry.sound_of_producer`
+nor `CacheEntry.shared_inner` has a premise for the reduced key.
+Both use the prefix replay argument of `Entry.lean` with `KeyCovers`,
+which requires R ⊆ K. A replacement premise would require that every
+read outside K, on every covered finite prefix, follows a full overwrite
+of that block on the same prefix. It must also account for entry agreement,
+liveness, allocation, scope and any intervening effects that can change
+the value. An inductive replay argument would derive agreement at the
+read from the earlier matched transitions, even when the execution
+never reaches an exit. It would still need the key condition for
+possible surviving writes outside W_sure. Relational closure of a
+child's dependencies is open beyond cvalue.
 
 ## Inline specifications and builtins
 
@@ -173,13 +214,26 @@ default assigns and ordered warning histories still refuse, including the
 specification announcement when its verbosity is enabled. Explicit
 allocation and frees clauses refuse as allocation or deallocation when
 selected. Eva's unbounded allocation clause performs no transfer.
+An explicit allocation clause, including an empty clause or one on an
+inactive behavior, can consult the message history. The logger reports
+the consultation at the diagnostic under #44's per-event and category
+policies. Behavior effects begin from alternatives of the same input.
+Shared assigns and predicate reductions report possible writes only.
+The memoized interpretation of a behavior contributes its possible
+writes on its first execution, including writes discarded by a later
+postcondition or narrowing. Specification result initialization affects
+only the private return slot.
 
-Builtins likewise run inline. Their specification evaluation and any
-instrumented operations contribute at the call site. An unaudited builtin
-still refuses with unknown accesses. The actual allocation builtins
-supply the refusal reasons for their effects, independently of assigns.
+Registered cvalue builtins run inline with a Top memory bound and a
+builtin refusal. Their executed specification and instrumented effects
+can add more specific reasons. Allocation builtins report their effects
+independently of assigns. Special show and dump directives report Top
+reads and dependencies because state printers may inspect bindings
+directly. Their refusal is `builtin` or `dump`, respectively.
 
 **Evidence (executed).** The bounded specification fixture asserts the
 selector, from and post-assigns reads, the destination write and the
 status join under `-eva-verbose 2`. The live deallocation fixture
-exercises the actual free builtin and its enclosing refusal.
+exercises the actual free builtin and its enclosing refusal. The explicit
+empty-allocation and full state dump fixtures check the pre-verdict
+`side-table` refusal and Top read bound, respectively.

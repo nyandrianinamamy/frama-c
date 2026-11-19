@@ -28,13 +28,18 @@ supplied entries. The matching seed uses the collector dependencies.
 Direct reads remain dependencies even after a full overwrite. Some reads
 from nested calls depend on the result of an earlier write in the caller.
 See [Dependencies on entry values](nested-calls.md#dependencies-on-entry-values).
-The seed also includes exit writes absent from W_sure and exit writes whose
-base has variable validity. Each closure step checks the current size, refuses a
+The seed also includes exit writes absent from W_sure, exit writes whose
+base has variable validity, and recorded own-local sweep targets. Each closure step checks the current size, refuses a
 Top result of `relate`, or adds the related blocks and iterates until there
 is no addition. Every recursive step strictly increases the key. Cvalue
 has an empty relation, so it reaches the fixpoint on the seed.
-`Cache_entry.Make.make` checks the inclusion and closure and projects the
-producing input to the closed key.
+`Cache_entry.Make.make` checks inclusion and closure and projects the
+producing input to the closed key. The hand-supplied path checks inclusion
+of all of R with W_exit ∖ W_sure on its supplied footprint. The producer
+passes the observed dependencies for the inclusion check in place of R.
+Neither check proves that the provided access sets cover executions.
+The reduced key needs the program-point premise in the nested call
+record. [Dependencies on entry values](nested-calls.md#dependencies-on-entry-values).
 
 A callee's block can occur in R and therefore in the key. For example,
 the CIL return temporary is in the test's key because the body reads it.
@@ -64,8 +69,8 @@ concrete coverage hypotheses is a separate obligation below.
 
 **Claim.** A produced entry holds the fresh body's exit states, projected
 to the key and W, with each original partition key. Its input and exits are
-maps. Every stored exit binds every block of the overlay W_exit, including
-the return block. An observed body can supply an empty exit list.
+maps. Each exit binds each block of the overlay W_exit, including
+the return block, except an admitted absent sweep target. An observed body can supply an empty exit list.
 
 **Kind.** OCaml obligation.
 
@@ -107,8 +112,7 @@ the post-state's holders into the caller's holder set. This preserves the
 caller's holder information after that step. The earlier sweep still
 owes a separate argument for a holder known only to the current caller.
 The later accumulation comes after the sweep and cannot establish that
-the earlier step saw that holder. Skipped inner scopes have their own
-open admission condition. [Admission condition for sweeps of own locals](frame.md#admission-condition-for-sweeps-of-own-locals).
+the earlier step saw that holder. A recorded own-local lexical sweep has its own admission check. [Admission condition for sweeps of own locals](frame.md#admission-condition-for-sweeps-of-own-locals).
 
 **Evidence (executed).** [`cache-producer.t`](../../../plugins/eva/tests/utils/cache-producer.t/run.t)
 supplies the first fresh `leaf` entry explicitly to a fixture analysis.

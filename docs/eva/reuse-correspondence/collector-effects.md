@@ -89,8 +89,9 @@ the directive transfer report the resolved callee and its mode. A fresh
 child's observed calls are unioned into the parent, even if the child
 refuses. `Cache_call_trace` keeps the producing call trace of an observed
 memexec entry for the current run. A hit on that entry reports its trace
-to the enclosing recorder. The same reporting path uses the stored
-dependencies of a supplied produced entry. A hit reports recursion when
+to the enclosing recorder. A supplied hit contributes the used functions
+from the winning entry's stored dependencies. A legacy trace reports
+recursion when
 its producing trace was refused as recursive or when its used functions
 conflict with the current enclosing stack.
 `Compute_functions.compute_call` reports recursive dispatch to
@@ -109,10 +110,11 @@ by a supplied hit, rejection of both candidates on a recursive stack,
 and refusal when a formerly nonrecursive hit trace is included in a
 conflicting caller's recording. It also checks a call-free body in Mthread.
 
-**Open.** An entry produced without observations has only the directly
-resolved call. The enclosing body refuses nested calls. Admission of
-nested calls needs composition of their memory footprints and side-table
-effects in addition to the call trace.
+**Open.** An entry supplied without a producing observation contributes
+its directly resolved call and makes the enclosing observation refuse as
+`nested-call`. Enclosing entries with recorded nested work are produced.
+Admission of a hit on such an entry requires delivery of the effects
+of that work. [Nested call collection](nested-calls.md#composition-along-the-observed-path).
 
 ## Dynamic widening hints
 
@@ -174,7 +176,7 @@ also causes this conservative refusal and can cost hits in the original
 project.
 `Transfer_stmt.apply_special_directives` reports dumps before state
 output or file numbering. The show directives keep their builtin
-refusal. `Alarmset.emit_alarms` reports each stopping checkpoint under a
+refusal. Both kinds of directive report Top reads and dependencies. `Alarmset.emit_alarms` reports each stopping checkpoint under a
 finite threshold, sampled on either side of emission. Even when the
 producing run completes, a new call can arrive with more alarms
 accumulated. A body that never executes a checkpoint does not refuse

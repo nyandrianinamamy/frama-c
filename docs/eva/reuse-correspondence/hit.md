@@ -2,8 +2,10 @@
 
 [Nested call collection](nested-calls.md) records the contributions of
 skipped children using the winning entry, conditional on its coverage and
-the admission checks. The replay premises of the theorem below also apply
-to those children.
+the admission checks. Before #47, the lookup rejects enclosing hits that
+would skip those children or inline work, as `nested-delivery`. The
+theorem below relies on a sound model entry, whose replay premises remain
+open for Eva's reduced key and surviving overlay.
 
 ## Hit soundness
 
