@@ -213,6 +213,43 @@ let options () =
   Format.printf "options differ: g after narrow: caching disabled %s; \
                  after %d hit %s@." g (hits "narrow") (value_after narrow "g")
 
+(* The values at the end of copy that Eva prints with -eva, when an option
+   that decides which states are saved is set in the analysis that produces
+   the entries, in the one that uses them, or in both. The option is named
+   by EVA_TEST_CACHE_PARTS_OPTION: results for -eva-no-results, function for
+   -eva-no-results-function copy, domain for -eva-no-results-domain cvalue;
+   the analyses by EVA_TEST_CACHE_PARTS_WHERE: producer, consumer or both.
+   An analysis with caching disabled and the options of the using analysis
+   runs first, for the comparison. The same option in the two analyses is the
+   premise of the supplier; the other two cases violate it on purpose. *)
+let saved_states () =
+  let copy = Kernel_function.get_definition (kf "copy") in
+  let set on =
+    match Sys.getenv_opt "EVA_TEST_CACHE_PARTS_OPTION" with
+    | Some "results" -> Eva.Parameters.ResultsAll.set (not on)
+    | Some "function" ->
+      Eva.Parameters.NoResultsFunction.clear ();
+      if on then Eva.Parameters.NoResultsFunction.add copy
+    | Some "domain" ->
+      Eva.Parameters.NoResultsDomain.clear ();
+      if on then Eva.Parameters.NoResultsDomain.add "cvalue"
+    | _ -> ()
+  in
+  let where = Sys.getenv_opt "EVA_TEST_CACHE_PARTS_WHERE" in
+  let producer = where = Some "producer" || where = Some "both" in
+  let consumer = where = Some "consumer" || where = Some "both" in
+  set consumer;
+  Format.printf "caching disabled, with the options of the using analysis@.";
+  ignore (first_analysis ());
+  set producer;
+  Format.printf "producing analysis@.";
+  let produced = first_analysis () in
+  set consumer;
+  Format.printf "using analysis@.";
+  second_analysis produced;
+  Format.printf "hits: copy %d, rejected for missing-points %d@."
+    (hits "copy") (rejected "missing-points" "copy")
+
 (* ----- Checks of the assigns clauses -------------------------------------- *)
 
 (* The assigns and from clauses of the contract of checked. *)
@@ -810,7 +847,9 @@ let late_reader () =
   Eva.Eva_results.set_results disabled;
   requests "results of caching disabled installed";
   Eva.Eva_results.set_results with_hits;
-  requests "results with hits installed"
+  requests "results with hits installed";
+  let project = Project.create_by_copy ~last:false "installed" in
+  Project.on project requests "in a copy of the installed results"
 
 (* ----- Clients that a hit runs ------------------------------------------- *)
 
@@ -1003,6 +1042,7 @@ let () =
   | Some "both" -> Boot.Main.extend both
   | Some "inout" -> Boot.Main.extend inout
   | Some "options" -> Boot.Main.extend options
+  | Some "saved-states" -> Boot.Main.extend saved_states
   | Some "verify" -> Boot.Main.extend verify
   | Some "readers" -> Boot.Main.extend readers
   | Some "project" -> Boot.Main.extend project

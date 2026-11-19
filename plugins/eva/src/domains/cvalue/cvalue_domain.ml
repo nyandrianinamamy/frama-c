@@ -441,9 +441,13 @@ module State = struct
     | `Top -> Cvalue.Model.top
     | `Value v -> v
 
-  (* Whether the analysis saves the states at the statements of [kf]. *)
+  (* Whether the analysis saves the cvalue states at the statements of
+     [kf]: the options [-eva-no-results], [-eva-no-results-domain cvalue] and
+     [-eva-no-results-function] say that it does not, and the printer below
+     then prints nothing for [kf]. *)
   let saves_states kf =
     Parameters.ResultsAll.get ()
+    && not (Parameters.NoResultsDomain.mem "cvalue")
     && Kernel_function.is_definition kf
     && not (Parameters.NoResultsFunction.mem (Kernel_function.get_definition kf))
 

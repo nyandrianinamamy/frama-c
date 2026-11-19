@@ -160,6 +160,34 @@ calls.
     h ∈ {7}
     out ∈ {5}
 
+The same printer under the options that decide which states are saved, set
+in the analysis that produces the entries (producer), in the one that uses
+them (consumer) or in both: -eva-no-results (results),
+-eva-no-results-function copy (function) and -eva-no-results-domain cvalue
+(domain). Each line gives the hits on copy, then what Eva prints for copy
+after an analysis with caching disabled and the options of the using
+analysis, and after the using analysis. With the option in both analyses or
+in the using one alone, the states of copy are not saved: copy hits, and
+Eva prints nothing for it in either analysis. With the option in the
+producing analysis alone, under results and function the entries of copy
+have no points, the using analysis needs them, and every candidate is
+rejected (missing-points): copy is analysed and its values are those of
+caching disabled. Under domain, the producing analysis records the points,
+copy hits, and Eva prints that its values are incomplete. No line prints a
+value of copy that caching disabled does not print.
+
+  $ copy_values() { awk '/Values at end of function/ { f = /function copy/ } f && /^ +(a|c) |incomplete/' | tr -s ' \n' ' '; }
+  $ for o in results function domain; do for w in producer consumer both; do EVA_TEST_CACHE_PARTS=saved-states EVA_TEST_CACHE_PARTS_OPTION=$o EVA_TEST_CACHE_PARTS_WHERE=$w frama-c -no-autoload-plugins -load-module eva,from,inout,test_cache_parts.cmxs -eva parts.c > saved-$o-$w.log 2>&1; sed -n '/^caching disabled/,/^producing analysis/p' saved-$o-$w.log > disabled.txt; sed -n '/^using analysis/,$p' saved-$o-$w.log > using.txt; echo "$o, $w: $(grep '^hits' saved-$o-$w.log); caching disabled: [$(copy_values < disabled.txt)]; using: [$(copy_values < using.txt)]"; done; done
+  results, producer: hits: copy 0, rejected for missing-points 5; caching disabled: [ a ∈ {1} c ∈ {0; 2} ]; using: [ a ∈ {1} c ∈ {0; 2} ]
+  results, consumer: hits: copy 3, rejected for missing-points 0; caching disabled: []; using: []
+  results, both: hits: copy 3, rejected for missing-points 0; caching disabled: []; using: []
+  function, producer: hits: copy 0, rejected for missing-points 5; caching disabled: [ a ∈ {1} c ∈ {0; 2} ]; using: [ a ∈ {1} c ∈ {0; 2} ]
+  function, consumer: hits: copy 3, rejected for missing-points 0; caching disabled: []; using: []
+  function, both: hits: copy 3, rejected for missing-points 0; caching disabled: []; using: []
+  domain, producer: hits: copy 3, rejected for missing-points 0; caching disabled: [ a ∈ {1} c ∈ {0; 2} ]; using: [ incomplete: 3 calls answered by the cache, without a state at the statements of the function ]
+  domain, consumer: hits: copy 3, rejected for missing-points 0; caching disabled: []; using: []
+  domain, both: hits: copy 3, rejected for missing-points 0; caching disabled: []; using: []
+
 -calldeps is set only after the first analysis: the entries have no From
 part. In the second analysis, every candidate whose key matches is rejected
 (missing-part) and the bodies are analysed, which records their callwise
@@ -715,6 +743,13 @@ is always given.
   results with hits installed: callstacks of a statement: refused
   results with hits installed: reachability of a statement: refused
   results with hits installed: initial state: computed
+  in a copy of the installed results: state before a statement: refused
+  in a copy of the installed results: state after a statement: refused
+  in a copy of the installed results: state at the start of a function: refused
+  in a copy of the installed results: states by callstack: refused
+  in a copy of the installed results: callstacks of a statement: refused
+  in a copy of the installed results: reachability of a statement: refused
+  in a copy of the installed results: initial state: computed
 
 Requests of the server: the dead code of copy and of narrow, whose two
 branches are reached, asked before and after Studia is loaded, and the
