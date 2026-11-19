@@ -220,25 +220,20 @@ requested, every candidate is rejected (consumer). The callwise results of
   inout-option.log:hits 7, rejected for consumer 0
 
 The plug-ins that request these results by function reject every
-candidate when they are loaded.
+candidate when they are loaded. The rule is by dependency: Pdg, Reduc and
+Studia are named, and a plug-in that loads one of them is covered by it.
+Impact, Scope, Security-slicing, Slicing and Sparecode all load Pdg;
+Slicing is tested here.
 
   $ EVA_TEST_CACHE_PARTS=readers frama-c -no-autoload-plugins -load-module eva,from,inout,pdg,test_cache_parts.cmxs parts.c > pdg.log 2>&1
-  $ EVA_TEST_CACHE_PARTS=readers frama-c -no-autoload-plugins -load-module eva,from,inout,impact,test_cache_parts.cmxs parts.c > impact.log 2>&1
   $ EVA_TEST_CACHE_PARTS=readers frama-c -no-autoload-plugins -load-module eva,from,inout,reduc,test_cache_parts.cmxs parts.c > reduc.log 2>&1
-  $ EVA_TEST_CACHE_PARTS=readers frama-c -no-autoload-plugins -load-module eva,from,inout,scope,test_cache_parts.cmxs parts.c > scope.log 2>&1
-  $ EVA_TEST_CACHE_PARTS=readers frama-c -no-autoload-plugins -load-module eva,from,inout,security_slicing,test_cache_parts.cmxs parts.c > security_slicing.log 2>&1
-  $ EVA_TEST_CACHE_PARTS=readers frama-c -no-autoload-plugins -load-module eva,from,inout,slicing,test_cache_parts.cmxs parts.c > slicing.log 2>&1
-  $ EVA_TEST_CACHE_PARTS=readers frama-c -no-autoload-plugins -load-module eva,from,inout,sparecode,test_cache_parts.cmxs parts.c > sparecode.log 2>&1
   $ EVA_TEST_CACHE_PARTS=readers frama-c -no-autoload-plugins -load-module eva,from,inout,studia,test_cache_parts.cmxs parts.c > studia.log 2>&1
-  $ grep '^hits' pdg.log impact.log reduc.log scope.log security_slicing.log slicing.log sparecode.log studia.log
+  $ EVA_TEST_CACHE_PARTS=readers frama-c -no-autoload-plugins -load-module eva,from,inout,slicing,test_cache_parts.cmxs parts.c > slicing.log 2>&1
+  $ grep '^hits' pdg.log reduc.log studia.log slicing.log
   pdg.log:hits 0, rejected for consumer 15
-  impact.log:hits 0, rejected for consumer 15
   reduc.log:hits 0, rejected for consumer 15
-  scope.log:hits 0, rejected for consumer 15
-  security_slicing.log:hits 0, rejected for consumer 15
-  slicing.log:hits 0, rejected for consumer 15
-  sparecode.log:hits 0, rejected for consumer 15
   studia.log:hits 0, rejected for consumer 15
+  slicing.log:hits 0, rejected for consumer 15
 
 After an analysis in which hits answered calls, the results by function of
 From and Inout, and the results by statement of Inout, are computed from

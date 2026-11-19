@@ -137,10 +137,10 @@ let register_state_reader ~name reads =
 
 (* The plug-ins that request the results by function of From or Inout,
    each of which depends on From or Inout. They are known by name: Eva does
-   not depend on them. *)
-let requesting_plugins =
-  [ "pdg"; "impact"; "reduc"; "scope"; "security-slicing"; "slicing";
-    "sparecode"; "studia" ]
+   not depend on them. The rule is by dependency: a plug-in that loads one of
+   them is covered by it. Impact, Scope, Security-slicing, Slicing and
+   Sparecode load Pdg. *)
+let requesting_plugins = [ "pdg"; "reduc"; "studia" ]
 
 let reads_statement_states () =
   List.exists Plugin.is_present requesting_plugins
