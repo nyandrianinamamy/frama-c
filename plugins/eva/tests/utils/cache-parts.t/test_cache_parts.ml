@@ -433,7 +433,9 @@ let warm () =
   let copy = kf "copy" in
   let requests =
     [ "Inout.kf_external_inputs", Inout.kf_external_inputs;
-      "Inout.kf_external_outputs", Inout.kf_external_outputs ]
+      "Inout.kf_external_outputs", Inout.kf_external_outputs;
+      "Inout.kf_inputs", Inout.kf_inputs;
+      "Inout.kf_outputs", Inout.kf_outputs ]
   in
   let ask moment =
     List.iter

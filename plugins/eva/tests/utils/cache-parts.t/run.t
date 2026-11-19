@@ -391,12 +391,20 @@ as with caching disabled. After the hits, each request is refused, those
 memoised included.
 
   $ EVA_TEST_CACHE_PARTS=warm frama-c -no-autoload-plugins -load-module eva,from,inout,test_cache_parts.cmxs parts.c > warm.log 2>&1
-  $ grep -E '^(at the start|after the hits|hits|after an analysis)' warm.log
+  $ grep -E '^(at the start|after the hits|hits|after an analysis)|User Error' warm.log
   at the start: Inout.kf_external_inputs: computed
   at the start: Inout.kf_external_outputs: computed
+  at the start: Inout.kf_inputs: computed
+  at the start: Inout.kf_outputs: computed
   hits: copy 3; statement results complete: false
+  [inout] User Error: cannot compute the inputs and outputs by function or by statement: in the current analysis of Eva, a hit of the cache answered a call without analysing the body of the called function, and saved no state at its statements
   after the hits: Inout.kf_external_inputs: refused
+  [inout] User Error: cannot compute the inputs and outputs by function or by statement: in the current analysis of Eva, a hit of the cache answered a call without analysing the body of the called function, and saved no state at its statements
   after the hits: Inout.kf_external_outputs: refused
+  [inout] User Error: cannot compute the inputs and outputs by function or by statement: in the current analysis of Eva, a hit of the cache answered a call without analysing the body of the called function, and saved no state at its statements
+  after the hits: Inout.kf_inputs: refused
+  [inout] User Error: cannot compute the inputs and outputs by function or by statement: in the current analysis of Eva, a hit of the cache answered a call without analysing the body of the called function, and saved no state at its statements
+  after the hits: Inout.kf_outputs: refused
   after an analysis with caching disabled: equal to the first analysis: true
 
 The inputs and outputs of unused in nested.c, which no call reaches,
