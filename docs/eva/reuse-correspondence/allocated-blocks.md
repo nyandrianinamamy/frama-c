@@ -431,13 +431,15 @@ consults the tags, refuses the body when the set is not empty, and adds the
 recorded blocks to its owners. `Base.update_variable_validity` is public: the
 kernel counts the calls that make a strong record weak (`Base.weakenings`),
 whoever the caller is, and `read_node_tags` also refuses when the count is
-not zero. There are two counts, and either refuses. One is a state of the
-project, as the hash-consing table of the offsetmaps: it is saved with a
-session, so that a node loaded by another process with the tag of its
-first construction finds a count that refuses it. The other belongs to
-the process: it is not cleared, copied or left out with a selection of
-states, and it covers a node or a validity record used from another
-project of the same process. A second call of `Base.register_allocated_var`
+not zero. There are two counts, and either refuses. One belongs to the
+process: it is not cleared, copied or left out with a selection of states.
+The other is a state of each project, saved with a session, as the
+hash-consing table of the offsetmaps: a node loaded by another process
+with the tag of its first construction finds a count that refuses it. Each
+carries the other. A weakening is counted in every project of the process,
+whichever is current; a state created, or cleared alone, starts from the
+count of the process; after a load, a positive loaded count is added to the
+count of the process. A second call of `Base.register_allocated_var`
 on a variable replaces the validity of a base that existing nodes may
 designate: it is counted as a weakening. A weakening counted without a call to
 `Body_access.weakened` adds no owner. This is the plain form of the rule: it does
@@ -472,14 +474,18 @@ the next recording. An observer that does not forward, set during a
 recording, hides the read: the recording reads `allocation-metadata` with
 no owner, also when the observer is removed before the recording ends, and
 the next recording reads `would-store`. `kernel-save` clears the state of
-the count alone and still reads `allocation-metadata`.
+the count alone, still reads `allocation-metadata`, and saves the session
+after the clearing; `kernel-load` reads `allocation-metadata` from it,
+and again after clearing the loaded state alone. `kernel-save-foreign`
+makes the record weak while another project is current and saves; the
+load reads `allocation-metadata`.
 
 **Assumption on sessions.** A session written without the state
 `Base.Weakenings` (a selection of states that leaves it out, or a session
-written before the state existed) loads with a count of zero and with the
-tags of its nodes: a body analysed after such a load in a new process is
-not refused by this rule. The claim holds for sessions saved and loaded
-whole by this version.
+written before the state existed) loads with the tags of its nodes and
+contributes no count: a body analysed after such a load in a new process is
+not refused by this rule. The claim holds for sessions saved whole by this
+version.
 
 **Open.** The rule applies to the
 bodies analysed after a weakening: an entry stored before a weakening and
