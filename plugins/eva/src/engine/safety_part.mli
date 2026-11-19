@@ -27,7 +27,8 @@
     A recording belongs to the project that is current when it starts. A
     write made after a change of the current project
     ({!Project.current_changes}) is not recorded, and refuses the body as
-    [Project_switch] (see {!Body_access}). *)
+    [Project_switch] (see {!Body_access}): the writes given to the
+    observers of {!on_result} are those made in that project. *)
 
 open Cil_types
 
@@ -68,23 +69,19 @@ type write =
   | Red_context of {
       kinstr : kinstr;
       target : red_target;
-      count : int;
       frames : frames;
     }
   (** The callstack of the write is among those in which [target] got a red
       status at [kinstr] (see {!Red_statuses}): at least one visit of the
-      body in this callstack violates [target]. [count] is the number of
-      times the body set this red status in a row, with no other write
-      recorded between them; the hooks of {!Red_statuses} run once for
-      each. *)
+      body in this callstack violates [target]. *)
 
-(** The writes of a body, in the order of their emission. An alarm, a
-    status or a message is kept at its first emission only: a later equal
-    one changes no table, runs no hook and prints nothing. A red context is
-    kept at each emission, in its place among the other writes, since the
-    hooks of red statuses run each time: the hooks then run in the same
-    order relative to the messages as in the analysis of the body. The
-    table of red contexts keeps each callstack once. *)
+(** The writes of a body, in the order of their emission. An alarm or a
+    status is kept at its first emission only: a later equal one changes no
+    table and runs no hook. A message and a red context are kept at each
+    emission, in their place among the other writes: the logger decides at
+    each emission of a message whether to print it, and the hooks of red
+    statuses run at each emission of a red context. The table of red
+    contexts keeps each callstack once. *)
 type t = write list
 
 val empty : t
@@ -121,9 +118,9 @@ val on_result : (Callstack.t -> t -> unit) -> unit
 val record_alarm :
   kinstr -> Alarms.t -> Property_status.emitted_status -> Emitter.t -> unit
 
-(** [record_red_context ~count kinstr target] records that the red status
-    of [target] at [kinstr] was set [count] times, 1 by default. *)
-val record_red_context : ?count:int -> kinstr -> red_target -> unit
+(** [record_red_context kinstr target] records that the red status of
+    [target] at [kinstr] was set. *)
+val record_red_context : kinstr -> red_target -> unit
 
 (** [emit_status emitter property status] records the write and emits
     [status] on [property], as {!Emitted_status} describes. *)
@@ -136,8 +133,9 @@ val emit_status :
     [alarm] otherwise. With [stacktrace] and the message category
     [callstacks], the current callstack follows the text. Eva prints the
     messages of the statuses that a body establishes through it, and a hit
-    prints those of its entry through it again, so that the action of the
-    category and the rule of printing a text once apply to both. *)
+    prints those of its entry through it again, each occurrence in its
+    place, so that the action of the category and the rule of printing a
+    text once apply to both at each occurrence. *)
 val status_message :
   Property_status.emitted_status -> loc:Fileloc.t -> stacktrace:bool ->
   string -> unit

@@ -62,7 +62,7 @@ module Hook = Hook.Build (AlarmOrProp)
    opaque effect of the body. *)
 let register_hook f = Hook.extend f
 
-let add_red_context ?(count = 1) kinstr ap =
+let add_red_context kinstr ap =
   let current_map =
     try RedStatusesTable.find kinstr
     with Not_found -> AlarmOrProp.Map.empty
@@ -74,8 +74,8 @@ let add_red_context ?(count = 1) kinstr ap =
   let new_callstacks = Callstacks.add (Current_callstack.get ()) callstacks in
   let new_map = AlarmOrProp.Map.add ap new_callstacks current_map in
   RedStatusesTable.replace kinstr new_map;
-  Safety_part.record_red_context ~count kinstr ap;
-  for _ = 1 to count do Hook.apply ap done
+  Safety_part.record_red_context kinstr ap;
+  Hook.apply ap
 
 let add_red_alarm ki a = add_red_context ki (Alarm a)
 

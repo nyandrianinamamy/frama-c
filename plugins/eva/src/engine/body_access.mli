@@ -154,6 +154,13 @@ val read_message_history : unit -> unit
     category whose messages are printed once still refuses. *)
 val replayed_message : (unit -> 'a) -> 'a
 
+(** The number of consultations of the history of the logger, by any
+    plug-in, that the observer of the collector has seen in this process
+    ({!Log.on_history_access}). A message printed once consults it at each
+    emission, whether the logger prints it or not; so does each occurrence
+    of the message of a status that a hit delivers. *)
+val history_consultations : unit -> int
+
 (** Registers an exact lexical sweep of the current body's own inner locals.
     Returns whether to report the holders rewritten by that sweep. *)
 val sweep :

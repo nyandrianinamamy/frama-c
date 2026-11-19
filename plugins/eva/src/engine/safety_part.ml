@@ -36,7 +36,6 @@ type write =
   | Red_context of {
       kinstr : kinstr;
       target : red_target;
-      count : int;
       frames : frames;
     }
 
@@ -80,8 +79,6 @@ let lexicographic comparisons =
   List.fold_left (fun c compare -> if c <> 0 then c else compare ()) 0
     comparisons
 
-(* The count of a red context is not compared: the recorder adds up the
-   counts of equal red contexts recorded in a row. *)
 let compare_write w1 w2 =
   match w1, w2 with
   | Emitted_alarm a1, Emitted_alarm a2 ->
@@ -152,19 +149,14 @@ let pretty_write fmt = function
       text Fileloc.pretty loc pretty_status status
       (if stacktrace then ", with the callstack" else "")
       pretty_frames frames
-  | Red_context { kinstr; target; count; frames } ->
+  | Red_context { kinstr; target; frames } ->
     let pretty_target fmt = function
       | Alarm alarm -> Format.fprintf fmt "alarm %s" (Alarms.get_name alarm)
       | Prop property ->
         Format.fprintf fmt "property %a" Property.short_pretty property
     in
-    let pretty_count fmt = function
-      | 1 -> ()
-      | n -> Format.fprintf fmt ",@ set %d times" n
-    in
-    Format.fprintf fmt "@[<hov 2>red context of %a at %a%a,@ in %a@]"
-      pretty_target target pretty_kinstr kinstr pretty_count count
-      pretty_frames frames
+    Format.fprintf fmt "@[<hov 2>red context of %a at %a,@ in %a@]"
+      pretty_target target pretty_kinstr kinstr pretty_frames frames
 
 let pretty fmt = function
   | [] -> Format.pp_print_string fmt "none"
@@ -175,8 +167,8 @@ let pretty fmt = function
 
 (* The writes of a body called with [base], in the project [project],
    newest first. [changes] is the count of the changes of the current
-   project at the start of the recording. [seen] holds the alarms, statuses
-   and messages recorded. *)
+   project at the start of the recording. [seen] holds the alarms and
+   statuses recorded. *)
 type recorder = {
   base : Callstack.t;
   project : Project.t;
@@ -225,13 +217,15 @@ let relative (base : Callstack.t) (callstack : Callstack.t) =
       Some frames
     | _ -> None
 
-(* Records the write [make frames]. An alarm, a status or a message equal to
-   one already recorded changes no table and prints nothing again: it is not
-   recorded. A red context runs the hooks of red statuses each time it is
-   set, so each one is recorded in its place in the sequence; it adds its
-   count to the previous write when that write is the same red context. A
-   write made after a change of the current project, in another project or
-   back in the first one, refuses the recording instead. *)
+(* Records the write [make frames]. An alarm or a status equal to one
+   already recorded changes no table and runs no hook again: it is not
+   recorded. A message is recorded at each emission, since the logger
+   decides at each one whether to print it, and a red context at each
+   emission, since it runs the hooks of red statuses each time: each one
+   takes its place in the sequence. A write made after a change of the
+   current project, in another project or back in the first one, refuses
+   the recording instead; the writes passed to the observers of
+   {!on_result} are thus all made in the project of the recording. *)
 let record make =
   match !current with
   | Some r when Body_access.is_recording () ->
@@ -247,13 +241,10 @@ let record make =
       match frames with
       | None -> Body_access.refuse Side_table
       | Some frames ->
-        match make frames, r.writes with
-        | Red_context red as write, (Red_context last as previous) :: older
-          when compare_write write previous = 0 ->
-          let count = last.count + red.count in
-          r.writes <- Red_context { last with count } :: older
-        | (Red_context _ as write), _ -> r.writes <- write :: r.writes
-        | write, _ ->
+        match make frames with
+        | (Red_context _ | Status_message _) as write ->
+          r.writes <- write :: r.writes
+        | (Emitted_alarm _ | Emitted_status _) as write ->
           if not (Writes.mem write r.seen) then begin
             r.seen <- Writes.add write r.seen;
             r.writes <- write :: r.writes
@@ -265,8 +256,8 @@ let record_alarm kinstr alarm status emitter =
   record (fun frames ->
       Emitted_alarm { kinstr; alarm; status; emitter; frames })
 
-let record_red_context ?(count = 1) kinstr target =
-  record (fun frames -> Red_context { kinstr; target; count; frames })
+let record_red_context kinstr target =
+  record (fun frames -> Red_context { kinstr; target; frames })
 
 let emit_status emitter property status =
   record (fun frames ->

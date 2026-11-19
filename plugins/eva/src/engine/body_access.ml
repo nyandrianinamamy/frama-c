@@ -454,9 +454,15 @@ let replayed_message f =
   replayed := true;
   Fun.protect ~finally:(fun () -> replayed := previous) f
 
+(* The consultations of the history of the logger that the observer below
+   has seen. *)
+let consultations = ref 0
+let history_consultations () = !consultations
+
 let () =
   Log.on_history_access ~audited:true
     (fun ~plugin ~kind ~category ~once_category ->
+       incr consultations;
        let audited =
          plugin = "eva" && not once_category &&
          (!replayed ||

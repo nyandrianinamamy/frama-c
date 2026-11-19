@@ -16,8 +16,8 @@ let deliver_write (write : Safety_part.write) () =
     Safety_part.emit_status emitter property status
   | Status_message { status; loc; stacktrace; text } ->
     Safety_part.status_message status ~loc ~stacktrace text
-  | Red_context { kinstr; target; count } ->
-    Red_statuses.add_red_context ~count kinstr target
+  | Red_context { kinstr; target } ->
+    Red_statuses.add_red_context kinstr target
 
 let deliver callstack part =
   let deliver write =
