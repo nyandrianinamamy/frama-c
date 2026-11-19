@@ -134,6 +134,9 @@ val observe_metadata_reads: (t -> unit) option -> (t -> unit) option
     [observe_metadata_reads None] removes it. There is one observer at a
     time: the call returns the observer it replaces, which the caller
     restores, and runs from its own observer if it must keep running.
+    Clients remove their observers in the reverse order of their
+    installation: a client that restores the observer it replaced discards
+    any observer installed after its own.
     Without observer, these functions test one reference and call no
     function. A function given an already extracted validity is not
     observed. The observer must not apply these functions to an [Allocated]
@@ -154,8 +157,10 @@ val observe_validity_updates:
 
 val weakenings: unit -> int
 (** The number of calls of {!update_variable_validity} that made a strong
-    validity record weak, since the start of the process. It is counted
-    with or without observer. *)
+    validity record weak in the current project, plus the number of calls of
+    {!register_allocated_var} on a variable already registered. It is
+    counted with or without observer, saved with the project, and reset
+    only when the whole project is cleared. *)
 
 
 (** {2 Finding bases} *)
@@ -255,7 +260,9 @@ val id : t -> int
 val register_allocated_var: Cil_types.varinfo -> deallocation -> validity -> t
 (** Allocated variables are variables not present in the source of the
     program, but instead created through dynamic allocation. Their field
-    [vsource] is set to false. *)
+    [vsource] is set to false. Each variable is registered once: a second
+    registration replaces the validity of the base, and is counted by
+    {!weakenings}. *)
 
 val register_memory_var : Cil_types.varinfo -> validity -> t
 (** Memory variables are variables not present in the source of the program.

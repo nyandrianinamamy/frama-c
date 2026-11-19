@@ -130,8 +130,6 @@ let observe_validity_updates f =
   previous
 
 (* The number of validity records made weak since the start of the process. *)
-let weakening_count = ref 0
-let weakenings () = !weakening_count
 
 let[@inline] metadata_read b =
   match !metadata_observer with
@@ -225,6 +223,19 @@ module AbsoluteList =
       let name = "Base.AbsoluteList"
       let dependencies = [ Kernel.AbsoluteValidRange.self ]
     end)
+
+(* The count is a state of the project, saved with it, as the hash-consing
+   tables of the values that designate the bases. It has no dependency: only
+   a clearing of the whole project resets it. *)
+module Weakenings =
+  State_builder.Zero_ref
+    (struct
+      let name = "Base.Weakenings"
+      let dependencies = []
+    end)
+
+let weakenings = Weakenings.get
+let count_weakening () = Weakenings.set (Weakenings.get () + 1)
 
 type qualifiers = { read_only: bool; volatile:bool }
 let default_qualifiers = { read_only = false; volatile = false }
@@ -514,7 +525,7 @@ let update_variable_validity v ~weak ~min_alloc ~max_alloc =
   v.min_alloc <- Z.min min_alloc v.min_alloc;
   v.max_alloc <- Z.max max_alloc v.max_alloc;
   if weak && not v.weak then begin
-    incr weakening_count;
+    count_weakening ();
     v.weak <- true
   end
 
@@ -590,6 +601,9 @@ let register_memory_var varinfo validity =
 let register_allocated_var varinfo deallocation validity =
   assert (not varinfo.vsource);
   let base = Allocated (varinfo,deallocation,validity) in
+  (* A second registration replaces the validity of a base that existing
+     values may designate: it is counted as a weakening. *)
+  if VarinfoNotSource.mem varinfo then count_weakening ();
   VarinfoNotSource.add varinfo base;
   base
 

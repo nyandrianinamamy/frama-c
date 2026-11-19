@@ -117,39 +117,53 @@ let metadata_read base =
 let validity_update _ ~weak:_ =
   Option.iter (fun r -> add_refusal r Validity_mutation) (observer ())
 
-(* The observers that the kernel had when the recorders were set: they keep
-   running while a recorder is set, and are restored afterwards. *)
+(* The observers that the kernel had when the collector installed its own:
+   they keep running behind them, and are restored when no recorder is set.
+   Another client may install an observer during a recording and forward to
+   the one it replaced: an observer of the collector does nothing when it
+   is entered again from its own call. *)
 let previous_read = ref None
 let previous_update = ref None
-let installed = ref false
+let forwarding = ref false
+
+let forward f =
+  if not !forwarding then begin
+    forwarding := true;
+    Fun.protect f ~finally:(fun () -> forwarding := false)
+  end
 
 let read_observer =
   Some (fun base ->
-      metadata_read base;
-      Option.iter (fun f -> f base) !previous_read)
+      forward (fun () ->
+          metadata_read base;
+          Option.iter (fun f -> f base) !previous_read))
 
 let update_observer =
   Some (fun validity ~weak ->
-      validity_update validity ~weak;
-      Option.iter (fun f -> f validity ~weak) !previous_update)
+      forward (fun () ->
+          validity_update validity ~weak;
+          Option.iter (fun f -> f validity ~weak) !previous_update))
 
-(* Sets the recorders. Without recorder, the kernel has the observers it had
-   before. *)
+(* Sets the recorders. With a recorder, the observers of the collector are
+   the observers of the kernel. Without recorder, the kernel has the
+   observers it had before, unless another client installed one during the
+   recording: that one is kept, with the collector's behind it. *)
 let set_recorders body site =
   current := body;
   call_site := site;
-  let observed = Option.is_some body || Option.is_some site in
-  if observed && not !installed then begin
-    previous_read := Base.observe_metadata_reads read_observer;
-    previous_update := Base.observe_validity_updates update_observer;
-    installed := true
+  if Option.is_some body || Option.is_some site then begin
+    let top = Base.observe_metadata_reads read_observer in
+    if top != read_observer then previous_read := top;
+    let top = Base.observe_validity_updates update_observer in
+    if top != update_observer then previous_update := top
   end
-  else if not observed && !installed then begin
-    ignore (Base.observe_metadata_reads !previous_read);
-    ignore (Base.observe_validity_updates !previous_update);
-    previous_read := None;
-    previous_update := None;
-    installed := false
+  else begin
+    let top = Base.observe_metadata_reads !previous_read in
+    if top == read_observer then previous_read := None
+    else ignore (Base.observe_metadata_reads top);
+    let top = Base.observe_validity_updates !previous_update in
+    if top == update_observer then previous_update := None
+    else ignore (Base.observe_validity_updates top)
   end
 
 let suspend site f =
