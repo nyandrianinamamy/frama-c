@@ -225,10 +225,14 @@ let relative (base : Callstack.t) (callstack : Callstack.t) =
    takes its place in the sequence. A write made after a change of the
    current project, in another project or back in the first one, refuses
    the recording instead; the writes passed to the observers of
-   {!on_result} are thus all made in the project of the recording. *)
+   {!on_result} are thus all made in the project of the recording. The
+   checks of the [requires] clauses of a body belong to its call site
+   ({!Body_access.at_call_site}), and are not recorded. *)
 let record make =
   match !current with
-  | Some r when Body_access.is_recording () ->
+  | Some r
+    when Body_access.is_recording ()
+      && not (Body_access.checking_call_site ()) ->
     if Project.current_changes () <> r.changes
     || not (Project.is_current r.project)
     then Body_access.refuse Project_switch

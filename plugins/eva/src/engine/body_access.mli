@@ -112,6 +112,9 @@ val at_call_site : (unit -> 'a) -> 'a
     that is [Top] refuses with [Footprint_top]. The blocks are not added to
     the sets of the body. *)
 
+(** Whether a function given to {!at_call_site} is running. *)
+val checking_call_site : unit -> bool
+
 val is_recording : unit -> bool
 
 (** Whether a body or the call site of a body is observed. *)

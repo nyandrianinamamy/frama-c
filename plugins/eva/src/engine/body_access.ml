@@ -233,6 +233,8 @@ let at_call_site f =
   | None -> f ()
   | Some r as site -> with_recorders r.enclosing site f
 
+let checking_call_site () = Option.is_some !call_site
+
 let[@inline always] refuse reason =
   Option.iter (fun r -> add_refusal r reason) !current;
   if at_site reason then
