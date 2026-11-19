@@ -22,3 +22,6 @@ let visits_skipped_at stmt =
   && Skipped.mem (Kernel_function.find_englobing_kf stmt)
 
 let complete = Skipped.is_empty
+
+let get = Skipped.get
+let set = Skipped.set

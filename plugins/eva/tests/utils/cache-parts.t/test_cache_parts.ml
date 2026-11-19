@@ -437,6 +437,31 @@ let warm () =
                  first analysis: %b@."
     (List.equal Memory_zone.equal fresh (results ()))
 
+(* The results of an analysis, taken by Eva_results.get_results and installed
+   by Eva_results.set_results, keep the record of the functions answered by
+   hits. The results of the analysis with caching disabled and those of the
+   analysis with hits are installed in turn. *)
+let snapshot () =
+  let copy = kf "copy" in
+  let produced = first_analysis () in
+  let fresh = From.get copy in
+  let disabled = Eva.Eva_results.get_results () in
+  second_analysis produced;
+  let with_hits = Eva.Eva_results.get_results () in
+  let install name results =
+    Eva.Eva_results.set_results results;
+    Format.printf "installed the results %s: statement results complete: \
+                   %b@." name (Eva.Results.statement_results_complete ());
+    match From.get copy with
+    | deps ->
+      Format.printf "From.get: equal to the first analysis: %b@."
+        (Eva.Assigns.equal fresh deps)
+    | exception Log.AbortError _ -> Format.printf "From.get: refused@."
+  in
+  install "with hits" with_hits;
+  install "of caching disabled" disabled;
+  install "with hits" with_hits
+
 (* ----- Values given in another project or for another callstack --------- *)
 
 (* Three parts of this test, which no consumer needs. During each analysis of
@@ -604,5 +629,6 @@ let () =
   | Some "nested" -> Boot.Main.extend nested
   | Some "lazy-from" -> Boot.Main.extend lazy_from
   | Some "warm" -> Boot.Main.extend warm
+  | Some "snapshot" -> Boot.Main.extend snapshot
   | Some "duplicate" -> Boot.Main.extend duplicate
   | _ -> ()

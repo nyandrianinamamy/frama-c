@@ -37,3 +37,12 @@ val visits_skipped_at : Cil_types.stmt -> bool
 (** Whether no hit has answered a call in the current analysis: the states
     saved at the statements cover every call of the analysis. *)
 val complete : unit -> bool
+
+(** The functions of which a hit has answered a call in the current
+    analysis. *)
+val get : unit -> Kernel_function.Set.t
+
+(** [set s] records [s] as the functions of which a hit has answered a call
+    in the current analysis. For the installation of saved results only
+    ({!Eva_results.set_results}). *)
+val set : Kernel_function.Set.t -> unit

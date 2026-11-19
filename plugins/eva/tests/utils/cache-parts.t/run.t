@@ -364,6 +364,19 @@ memoised included.
   after the hits: Inout.kf_external_outputs: refused
   after an analysis with caching disabled: equal to the first analysis: true
 
+The results of an analysis taken and installed again keep the record of the
+hits: installed in turn, the results with hits refuse the dependencies by
+function, and those of caching disabled give them.
+
+  $ EVA_TEST_CACHE_PARTS=snapshot frama-c -no-autoload-plugins -load-module eva,from,inout,test_cache_parts.cmxs parts.c > snapshot.log 2>&1
+  $ grep -E '^(installed|From.get)' snapshot.log
+  installed the results with hits: statement results complete: false
+  From.get: refused
+  installed the results of caching disabled: statement results complete: true
+  From.get: equal to the first analysis: true
+  installed the results with hits: statement results complete: false
+  From.get: refused
+
 Three requests of the server, after an analysis with caching disabled and
 after the analysis with hits: the dead code of copy, and the statements
 that read and that write b at the first call to copy, which Studia, loaded
