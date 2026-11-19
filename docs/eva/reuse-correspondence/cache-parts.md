@@ -649,7 +649,8 @@ memoised before a hit of the current analysis is refused after it. The
 record of the functions answered by hits is saved with the session, cleared
 with the results of the analysis, and kept in the results taken by
 `Eva_results.get_results` and installed by `set_results`. The other readers
-of these states are listed for the issue of the reachable statements.
+of these states, of which the table lists those that a search of the
+sources finds, are left to the issue of the reachable statements.
 
 The readers, by class:
 
@@ -666,7 +667,7 @@ The readers, by class:
 | Request `getDeadCode` of Eva | tests the record of the function: an error of the server for a function answered by hits; the other functions are classified from their own states, which no hit removes, since a body answered by a hit has no call statement (`nested-delivery` rejects the others) | scenario `server` |
 | Filters `read` and `written` of Inout on the variables of the server (`Inout_requests`) | test through `Cumulative_analysis`; the server answers with an error | source inspection, no scenario |
 | Eva's dynamic access to `Inout.kf_outputs`, used to print the final states | does not ask Inout after a hit: `Top`, as when Inout is not loaded | scenario `inout` with `-eva` |
-| `Eva.Results` at the statements of a function answered by hits: the other requests of Eva's server, such as the values at a statement; the direct reads of the plug-ins on Pdg (`Eva.Results.is_reachable`, `before` and `callee` in Scope, Sparecode and Impact) and of Studia's `Reads.compute` and `Writes.compute` (`Eva.Results.callee`, `callsites`); the plug-ins of #47 loaded after the analysis; the graphical interface | listed for [#48](https://github.com/nyandrianinamamy/frama-c/issues/48) | scenario `raw` |
+| `Eva.Results` at the statements of a function answered by hits, read directly: the other requests of Eva's server, such as the values at a statement; the direct reads of the plug-ins on Pdg (`Eva.Results.is_reachable`, `before`, `callee`, `condition_truth_value` and others, in Scope, Sparecode, Impact, Slicing and Security slicing) and of Studia's `Reads.compute` and `Writes.compute` (`Eva.Results.callee`, `callsites`); the other plug-ins of the tree whose sources call `Eva.Results` (Aorai, Callgraph, Constant propagation, Dive, Loop analysis, Markdown report, Metrics, Nonterm, Occurrence, Reduc, Wp); the plug-ins of #47 loaded after the analysis; the graphical interface. The list comes from a search of the sources for `Eva.Results.`, not from an argument that no other reader exists | listed for [#48](https://github.com/nyandrianinamamy/frama-c/issues/48) | scenario `raw` |
 
 **Kind.** OCaml obligation.
 
@@ -696,7 +697,9 @@ the hooks of this state. A copy of the project made with a selection that
 includes the dependencies of Eva's state carries it; a selection that takes
 the tables of Eva's results without it would not, and no part of the tree
 makes one. `Eva.Analysis.compute` is the only entry point of `Analysis`
-that installs results; it starts a new analysis, which clears the set.
+that installs results; it starts a new analysis, which clears the set. The
+tree has no function that merges the results of two analyses: one that
+does must take the union of their sets.
 
 From's `memo` runs `Eva.Analysis.compute`, tests the set, then reads its
 table; the computation of a callee's dependencies goes through the same
@@ -746,10 +749,11 @@ analysis with caching disabled gives the results by function again, equal
 to those of the first analysis. Scenario `lazy-from`: the first `From.get`
 after the entries are supplied starts the analysis with the three hits and
 is refused, as the second; before the change, it returned `FROMUNREACHABLE`
-for `copy` and memoised it. Scenario `warm`: `Inout.kf_external_inputs` and
-`kf_external_outputs` of `copy`, requested at the start of the analysis
-with the supplied entries, are computed; after the hits they are refused;
-before the change, both returned their memoised result. Scenario
+for `copy` and memoised it. Scenario `warm`: `Inout.kf_external_inputs`,
+`kf_external_outputs`, `kf_inputs` and `kf_outputs` of `copy`, requested
+at the start of the analysis with the supplied entries, are computed; after
+the hits they are refused with the error; before the change, the first two
+returned their memoised result. Scenario
 `fallback`, on `nested.c`: the result of `unused`, computed at the start of
 the analysis with the supplied entries in a nested analysis without hits
 (`-deps` set while it runs), is refused after the hits, and that of

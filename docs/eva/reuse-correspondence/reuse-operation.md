@@ -561,10 +561,11 @@ or when the analysis of threads is enabled, every supplied candidate is
 rejected with `consumer`. Otherwise, when `-eva-stop-at-nth-alarm` is set,
 every supplied candidate is rejected with `stop-at-nth-alarm`. Otherwise,
 when a client that is not audited is registered on a hook that a hit runs,
-every supplied candidate is rejected with `callback`. Otherwise, when the
-results of the analysis were cleared while it ran, as a change of an option
-of Eva or an analysis started by a callback does, every supplied candidate
-is rejected with `analysis-reset`. In each case the body is analysed.
+every supplied candidate is rejected with `callback`. Otherwise, when, while
+an analysis runs, its results were cleared, as a change of an option of Eva
+does, or another analysis, started by a callback after the analysis set its
+computation state to `Computing`, ended, every supplied candidate is
+rejected with `analysis-reset`. In each case the body is analysed.
 `product` takes precedence over `consumer`, `consumer` over
 `stop-at-nth-alarm`, that over `callback`, that over `analysis-reset`, and
 all five over the examination of each candidate (`key-differs`,
@@ -580,24 +581,33 @@ by other plug-ins](cache-parts.md)).
 `Supplied_entries.consumer_enabled`, `Supplied_entries.state_readers`,
 `Cache_part.reads_statement_states`, `Supplied_entries.stop_at_nth_alarm`,
 `Supplied_entries.unaudited_clients`, `Self.ComputationState`,
+`Self.in_analysis`, `Self.analysis_in_progress`, `Analysis.compute_from`,
 `Supplied_entries.Lookup.find`, `Alarmset.deliver`,
 `Alarmset.stop_at_nth_alarm`.
 
 **Argument.** `find` tests `cvalue_alone` first, then `consumer_enabled`,
-then `stop_at_nth_alarm`, then `unaudited_clients`, then whether the
-computation state of the analysis is `Computing`, then calls
+then `stop_at_nth_alarm`, then `unaudited_clients`, then, while an analysis
+is in progress, whether its computation state is `Computing`, then calls
 `Cache_entry.Make.find`; the first test that rejects gives its reason to
-every candidate. The analysis sets `Computing` when it starts, after
-clearing the results. Clearing them sets the state back to `NotComputed`,
-and an analysis started while the analysis runs sets `Computed` when it
-ends: in both cases, the rest of the analysis may run under other options
-than those under which the entries were produced, or after a hit whose
-record was cleared. Each option of Eva that decides how bodies are analysed
+every candidate. `Analysis.compute_from` runs
+inside `Self.in_analysis`, which counts the analyses in progress, those
+started by a callback of another included. The analysis clears the results
+and applies its start hooks (`pre_analysis`), then sets `Computing`.
+Clearing the results sets the state back to `NotComputed`, and an analysis
+started while the analysis runs sets `Computed` or `Aborted` when it ends:
+in both cases, the rest of the analysis may run under other options than
+those under which the entries were produced, or after a hit whose record
+was cleared. An analysis started by a start hook ends before the state is
+set to `Computing`, and the analysis with the entries then runs as one: its
+options are those of its calls. A lookup made outside any analysis, as the
+fixture of `collector-effects.t` makes after the analysis, is not
+concerned. Each option of Eva that decides how bodies are analysed
 or which states are saved is a dependency of the state of the results, and
 changing it clears them ([The kept part covers the skipped
 computation](cache-parts.md#the-kept-part-covers-the-skipped-computation)).
-`cvalue_alone` is defined only when the structure of the product is a single leaf whose key is the key of `Cvalue_domain.State`; the
-key comparison gives an equality between the type of the states of the
+`cvalue_alone` is defined only when the structure of the product is a
+single leaf whose key is the key of `Cvalue_domain.State`; the key
+comparison gives an equality between the type of the states of the
 engine and that of cvalue states, through which the input of the call and
 the states returned are converted, with no change of value. Any other
 structure, a product of several domains included, rejects every candidate.
@@ -645,7 +655,15 @@ precedences, rest on source inspection: no run enables two reasons. Scenario `re
 the first call to `copy`, which hits, a call hook of the test module adds
 `copy` to `-eva-no-results-function`; each of the two later calls reads
 `rejected (entry N: analysis-reset)` for its three candidates and is
-analysed. Before the change, both hit.
+analysed. Before the change, both hit. Scenario `fallback` of the same file
+starts an analysis from a start hook, and the analysis with the entries
+then takes its hits. The case of an analysis started by a callback after
+the state is set to `Computing` rests on source inspection: with Inout
+loaded, which `cache-parts.t` needs, the analysis that goes on after it
+stops with an internal error of the callwise results of Inout (`callwise:
+internal stack is inconsistent with Eva callstack`), and it also stops
+when no entry is supplied (`callwise: internal stack is empty`), a limit of
+an analysis started inside another, unrelated to the cache.
 
 **Open.** A plug-in outside the tree that registers a results hook with
 `cache_protocol` and reads `` `Reuse N `` is not detected; it gets no
