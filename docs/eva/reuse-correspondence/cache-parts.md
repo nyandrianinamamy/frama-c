@@ -458,9 +458,15 @@ the same for every call. Two computations ask the results of the analysis:
 From tests `Eva.Results.is_reachable` at each statement (`From_compute`),
 and Inout evaluates the label `Pre` of an assertion in
 `Eva.Results.at_start_of` for the callstack of the call (`kf_pre_state`).
-The results are not available while the analysis runs: `Self.is_computed`
-holds only once the analysis has ended or aborted, and until then
-`Engine.find` answers `Top` for every control point (source inspection).
+The results are not available while the analysis runs: the analysis sets
+its state to `Computing` when it starts and to `Computed` or `Aborted` when
+it ends, and while `Self.is_computed` does not hold, `Engine.find` answers
+`Top` for every control point (source inspection). The analysis of threads
+also sets `Computed` between the analyses of two threads, outside the
+results hook of any call; the collector refuses these analyses (`threaded`)
+and every supplied candidate is rejected in them (`consumer`), so no part
+is captured or restored there. `Eva_results` sets `Computed` when it
+installs saved results, not during an analysis.
 `is_reachable` then holds for every statement, and `kf_pre_state` is `Top`,
 for every call of the analysis that produced the entry and of the current
 one. The dataflow of From goes past the statements that the call does not
@@ -503,7 +509,13 @@ withholds.
 the analysis runs, which the scenario `history` checks for the queries of
 From and Inout; a later change that makes them available must revisit
 premise 2. An entry produced in an analysis with another initial state is
-not detected (the supplier's premise).
+not detected (the supplier's premise). The option `-eva-no-results-function`
+is read in each analysis: when the analysis that produced the entry saved
+the results of the body and the current one does not, the restored part is
+the one computed from the states of the call, narrower than the `Top` that
+the current analysis would compute; it is sound, but does not cover `Top`
+as the claim states. The fixture does not change this option between the
+two analyses.
 
 ## Readers of the states saved at statements reject every candidate
 
