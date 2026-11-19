@@ -225,6 +225,31 @@ the same hook.
   $ grep '^| ' crossing-reference.log > crossing-reference.summary
   $ diff crossing.summary crossing-reference.summary
 
+The kernel runs no hook of the change of project for a change made during
+such a hook, but it counts every change. Here the analysis from producer
+runs in a hook of the change to a copy of the project. The first time it
+runs, a hook of red statuses enters the first project with Project.on and
+leaves it, without writing there. Each recording in progress is refused for
+project-switch, and no entry is stored. The analysis from main, in the copy,
+has no candidate, and its tables are those of the run with caching disabled
+in the same setting.
+
+  $ EVA_TEST_CACHE_SAFETY=reentrant frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -main producer -eva-msg-key cache safety.c > reentrant.log 2>&1
+  $ grep -E 'entered|call to|entries produced|collector-refused' reentrant.log
+  entered the first project: true
+    call to body: lookup: no-candidate; execution: analysed; storage: refused (no-inout); collector: refused (project-switch)
+    call to producer: lookup: no-candidate; execution: analysed; storage: refused (no-inout); collector: refused (project-switch)
+  collector-refused-project-switch of body: 1
+  collector-refused-project-switch of producer: 1
+  entries produced for body: 0
+    call to body: lookup: no-candidate; execution: analysed; storage: refused (no-inout); collector: would-store
+    call to body: lookup: no-candidate; execution: analysed; storage: refused (no-inout); collector: refused (side-table)
+    call to main: lookup: no-candidate; execution: analysed; storage: refused (no-inout); collector: refused (sweep)
+  $ grep '^| ' reentrant.log > reentrant.summary
+  $ EVA_TEST_CACHE_SAFETY=reentrant-reference frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -eva-msg-key cache safety.c > reentrant-reference.log 2>&1
+  $ grep '^| ' reentrant-reference.log > reentrant-reference.summary
+  $ diff reentrant.summary reentrant-reference.summary
+
 The alarms of an entry are those of the options of the analysis that
 produced it. An entry used by another analysis must come from an analysis
 with the same options that decide which alarms and statuses are emitted;

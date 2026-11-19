@@ -32,7 +32,9 @@ module Result : sig
       recording, by a callback for instance, even if the project changes
       back before its end: the recording belongs to the project current
       when it started, and the observations made in another project are not
-      sorted out. Each recording in progress at the change is refused, the
+      sorted out. The changes are those that {!Project.current_changes}
+      counts, a change made in a hook of another change of project
+      included. Each recording in progress at the change is refused, the
       bodies whose analysis contains that of the current one included. *)
   type refusal =
     | Project_switch

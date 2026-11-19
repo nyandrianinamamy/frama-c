@@ -25,8 +25,9 @@
     recorded in the inner body only.
 
     A recording belongs to the project that is current when it starts. A
-    write made while another project is current is not recorded, and
-    refuses the body as [Project_switch] (see {!Body_access}). *)
+    write made after a change of the current project
+    ({!Project.current_changes}) is not recorded, and refuses the body as
+    [Project_switch] (see {!Body_access}). *)
 
 open Cil_types
 

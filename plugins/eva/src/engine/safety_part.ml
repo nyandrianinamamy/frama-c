@@ -174,11 +174,14 @@ let pretty fmt = function
 (* ----- Recording --------------------------------------------------------- *)
 
 (* The writes of a body called with [base], in the project [project],
-   newest first. [seen] binds each write recorded to the number of times it
-   was made, which counts for red contexts only. *)
+   newest first. [changes] is the count of the changes of the current
+   project at the start of the recording. [seen] binds each write recorded
+   to the number of times it was made, which counts for red contexts
+   only. *)
 type recorder = {
   base : Callstack.t;
   project : Project.t;
+  changes : int;
   mutable writes : write list;
   mutable seen : int Writes.t;
 }
@@ -192,7 +195,8 @@ let on_result f = Hooks.extend (fun (stack, writes) -> f stack writes)
 let capture base analyse =
   let previous = !current in
   let r =
-    { base; project = Project.current (); writes = []; seen = Writes.empty }
+    { base; project = Project.current ();
+      changes = Project.current_changes (); writes = []; seen = Writes.empty }
   in
   current := Some r;
   let output =
@@ -227,13 +231,14 @@ let relative (base : Callstack.t) (callstack : Callstack.t) =
       Some frames
     | _ -> None
 
-(* Records the write [make frames] made [count] times. A write made while
-   another project is current belongs to that project: it refuses the
-   recording instead. *)
+(* Records the write [make frames] made [count] times. A write made after a
+   change of the current project, in another project or back in the first
+   one, refuses the recording instead. *)
 let record ?(count = 1) make =
   match !current with
   | Some r when Body_access.is_recording () ->
-    if not (Project.is_current r.project)
+    if Project.current_changes () <> r.changes
+    || not (Project.is_current r.project)
     then Body_access.refuse Project_switch
     else begin
       let frames =

@@ -127,10 +127,12 @@ let red_hook_calls = ref 0
      after a first analysis with the category inactive, which prints no
      message of the category and so leaves none for the rule that prints a
      text once;
+   - CATEGORY=K=S: option -eva-warn-key K=S;
    - STOP=N: option -eva-stop-at-nth-alarm N;
    - OVERFLOW=on: option -warn-signed-overflow;
    - COUNT=red: counts the calls of the hook of red statuses. *)
 let setup () =
+  Option.iter (Dynamic.Parameter.String.set "-eva-warn-key") (env "CATEGORY");
   Option.iter
     (fun s -> Dynamic.Parameter.String.set "-eva-warn-key" ("alarm=" ^ s))
     (env "ALARM");
@@ -278,8 +280,10 @@ let deliver () =
 
 (* Another emitter registers the alarms of the entry of [body] first. Then
    the entry is delivered at the call at line 26 (OWNER=deliver), or main is
-   analysed with caching disabled (OWNER=analyse). Prints the emitter that
-   owns each alarm and the status of each emitter on it. *)
+   analysed with caching disabled (OWNER=analyse). With OWNER=late, the
+   entry is delivered first, and the other emitter registers the alarms
+   after it. Prints the emitter that owns each alarm and the status of each
+   emitter on it. *)
 let owner () =
   let produced = produce_and_reset "main" in
   let safety = Entry.safety (Producer.cache_entry produced) in
@@ -287,17 +291,21 @@ let owner () =
     Emitter.create "Other" [ Emitter.Alarm; Emitter.Property_status ]
       ~correctness:[] ~tuning:[]
   in
-  List.iter (function
-      | Eva.Safety_part.Emitted_alarm { kinstr; alarm; _ } ->
-        ignore (Alarms.register other kinstr alarm)
-      | _ -> ())
-    safety;
-  if env "OWNER" = Some "deliver"
+  let register_other () =
+    List.iter (function
+        | Eva.Safety_part.Emitted_alarm { kinstr; alarm; _ } ->
+          ignore (Alarms.register other kinstr alarm)
+        | _ -> ())
+      safety
+  in
+  if env "OWNER" <> Some "late" then register_other ();
+  if List.mem (env "OWNER") [ Some "deliver"; Some "late" ]
   then Eva__Safety_delivery.deliver (at_hit ()) safety
   else begin
     Eva.Parameters.Memexec.off ();
     Eva.Analysis.compute ()
   end;
+  if env "OWNER" = Some "late" then register_other ();
   Alarms.iter (fun emitter kf stmt ~rank:_ alarm ca ->
       let ip = Property.ip_of_code_annot_single kf stmt ca in
       let by_emitter (e : Property_status.emitter_with_properties) status acc =
@@ -349,6 +357,45 @@ let crossing () =
 let crossing_reference () =
   enter_other_project ();
   reference ["r1"; "r2"] ()
+
+(* Runs [analyse] in a hook of the change of the current project, to a copy
+   of the first project. The kernel runs no hook of the change of project
+   for a change made during such a hook. The first time it runs, a hook of
+   red statuses enters the first project with Project.on, and leaves it. *)
+let reentrant analyse () =
+  let first = Project.current () in
+  let other = Project.create_by_copy ~last:false "other" in
+  let started = ref false in
+  Project.register_after_set_current_hook ~user_only:false (fun _ ->
+      if not !started then begin
+        started := true;
+        let entered = ref false in
+        Eva__Red_statuses.register_hook (fun _ ->
+            if not !entered then begin
+              entered := true;
+              Project.on first (fun () ->
+                  Format.printf "entered the first project: %b@."
+                    (Project.is_current first)) ()
+            end);
+        analyse ()
+      end);
+  Project.set_current other
+
+(* In the copy, an analysis from producer, then an analysis from main with
+   the entries of [body] that the first one stored. *)
+let reentrant_replay () =
+  Eva.Analysis.compute ();
+  List.iter (fun name ->
+      Format.printf "collector-refused-project-switch of %s: %d@." name
+        (Eva.Statistics.get
+           (Eva.Statistics.collector_refused "project-switch") (kf name)))
+    [ "body"; "producer" ];
+  let produced = Producer.entries (kf "body") in
+  Format.printf "entries produced for body: %d@." (List.length produced);
+  Kernel.MainFunction.set "main";
+  List.iter (fun p -> ignore (Supplied.supply_produced p)) produced;
+  Eva.Analysis.compute ();
+  summary ["r1"; "r2"]
 
 (* An entry for [outer], whose body calls [body]. *)
 let nested () =
@@ -429,5 +476,8 @@ let () =
   | Some "crossing" -> Boot.Main.extend crossing
   | Some "crossing-reference" -> Boot.Main.extend crossing_reference
   | Some "owner" -> Boot.Main.extend owner
+  | Some "reentrant" -> Boot.Main.extend (reentrant reentrant_replay)
+  | Some "reentrant-reference" ->
+    Boot.Main.extend (reentrant (reference ["r1"; "r2"]))
   | Some "nested" -> Boot.Main.extend nested
   | _ -> ()
