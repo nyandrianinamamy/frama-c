@@ -617,9 +617,11 @@ module Callwise = struct
           end_record callstack kf inout)
       ()
 
-  (* The result of a call is kept with the entry of its body only when the
-     body made no call: a hit records it for the call of the hit, not the
-     results that the calls of the body record for their own call sites. *)
+  (* The result of a call is kept with the entry of its body only when this
+     call of the body made no call: a hit records it for the call of the
+     hit, not the results that the calls of the body record for their own
+     call sites. The test is on the calls recorded: a body whose calls are
+     on paths that this call does not take gives its part. *)
   let provide_inout callstack kf ~reads inout =
     match !call_inout_stack with
     | (kf', table) :: _
