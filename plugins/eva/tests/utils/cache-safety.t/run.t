@@ -392,6 +392,17 @@ safety.c; both calls of body in the analysis from main reject the entry.
   client history: hits on body: 0, rejected for callback: 2
   client messages: hits on body: 0, rejected for callback: 2
 
+The server plug-in registers a client of the hooks on the changes of
+annotations when it loads. With it, the registration of the alarm of body
+runs that client, and the collector refuses the body for callback: no entry
+is stored, and the analysis from main has no candidate.
+
+  $ EVA_TEST_CACHE_SAFETY=replay frama-c -no-autoload-plugins -load-module eva,server,test_cache_safety.cmxs -main producer -eva-msg-key cache safety.c > server.log 2>&1
+  $ grep 'call to body' server.log
+    call to body: lookup: no-candidate; execution: analysed; storage: refused (no-inout); collector: refused (callback)
+    call to body: lookup: no-candidate; execution: analysed; storage: refused (no-inout); collector: refused (callback)
+    call to body: lookup: no-candidate; execution: analysed; storage: refused (no-inout); collector: refused (side-table)
+
 A client can change a setting during a hit, after the lookup. The entry is
 produced with the category inactive; in the analysis that uses it, a client
 of the hook on calls sets the category to abort at the call of body. The

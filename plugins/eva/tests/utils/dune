@@ -28,7 +28,9 @@
     ../../../../dev/collector_statistics.ml
   ))
 
-; Supplied entries rejected when a reader of the states is loaded
+; Supplied entries rejected when a reader of the states is loaded, and
+; when the server registers its hooks
 (cram
   (applies_to cache-safety)
-  (deps (package frama-c-nonterm) (package frama-c-metrics)))
+  (deps (package frama-c-nonterm) (package frama-c-metrics)
+        (package frama-c-server)))
