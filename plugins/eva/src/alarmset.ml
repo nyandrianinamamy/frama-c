@@ -251,7 +251,91 @@ let string_fkind fk = Format.asprintf "%a" Printer.pp_fkind fk
 
 (** Emitting alarms *)
 
-let register_alarm ~pos alarm status str =
+let alarm_message = function
+  | Alarms.Pointer_comparison (_, _) -> "pointer comparison"
+
+  | Alarms.Division_by_zero _ -> "division by zero"
+
+  | Alarms.Overflow (kind, _, _, _) ->
+    begin match kind with
+      | Alarms.Signed -> "signed overflow"
+      | Alarms.Unsigned -> "unsigned overflow"
+      | Alarms.Signed_downcast -> "signed downcast"
+      | Alarms.Unsigned_downcast -> "unsigned downcast"
+      | Alarms.Pointer_downcast -> "pointer downcast"
+    end
+
+  | Alarms.Float_to_int _ ->
+    "overflow in conversion from floating-point to integer"
+
+  | Alarms.Invalid_shift (_, Some _) ->
+    "invalid RHS operand for shift"
+
+  | Alarms.Invalid_shift (_, None) ->
+    "invalid LHS operand for left shift"
+
+  | Alarms.Memory_access (_, access_kind) ->
+    let access = match access_kind with
+      | Alarms.For_reading -> "read"
+      | Alarms.For_writing -> "write"
+    in
+    Format.sprintf "out of bounds %s" access
+
+  | Alarms.Index_out_of_bound _ ->
+    "accessing out of bounds index"
+
+  | Alarms.Unaligned_pointer _ ->
+    "unaligned pointer creation"
+
+  | Alarms.Invalid_pointer _ ->
+    "invalid pointer creation"
+
+  | Alarms.Differing_blocks _ ->
+    "pointer subtraction"
+
+  | Alarms.Is_nan_or_infinite (_, fkind) ->
+    let sfkind = string_fkind fkind in
+    Format.sprintf "non-finite %s value" sfkind
+
+  | Alarms.Is_nan (_, fkind) ->
+    let sfkind = string_fkind fkind in
+    Format.sprintf "NaN %s value" sfkind
+
+  | Alarms.Uninitialized _ ->
+    "accessing uninitialized left-value"
+
+  | Alarms.Dangling _ ->
+    "accessing left-value that contains escaping addresses"
+
+  | Alarms.Not_separated _ ->
+    "undefined multiple accesses in expression"
+
+  | Alarms.Overlap _ ->
+    "partially overlapping lvalue assignment"
+
+  | Alarms.Function_pointer _ ->
+    "pointer to function with incompatible type"
+
+  | Alarms.Invalid_bool _ ->
+    "trap representation of a _Bool lvalue"
+
+(* Registers [alarm] at the position [pos] with the status [status] of the
+   kernel, and reports it once per analysis. The write is part of the Safety
+   part of the body being analysed. *)
+let register ~pos ~emitter alarm status =
+  let ki = Position.kinstr pos in
+  Safety_part.record_alarm ki alarm status emitter;
+  let annot, _is_new =
+    Alarms.register ~loc:(loc ki) ~status emitter ki alarm
+  in
+  (* Report each alarm only once per analysis. The boolean [is_new] returned
+     by {{Alarms.register}} is inadequate, as an alarm emitted by another
+     plugin or by a previous run of Eva would be considered as not new. *)
+  Alarm_cache.memo
+    (fun (_ki,_alarm) -> report_alarm ~pos annot (alarm_message alarm))
+    (ki, alarm)
+
+let emit_alarm ~pos alarm status =
   Body_access.record Alarms;
   Body_access.record Statuses;
   let ki = Position.kinstr pos in
@@ -265,84 +349,23 @@ let register_alarm ~pos alarm status str =
       Property_status.Dont_know
     | Unknown -> Property_status.Dont_know
   in
-  let annot, _is_new =
-    Alarms.register ~loc:(loc ki) ~status emitter ki alarm
-  in
-  (* Report each alarm only once per analysis. The boolean [is_new] returned
-     by {{Alarms.register}} is inadequate, as an alarm emitted by another
-     plugin or by a previous run of Eva would be considered as not new. *)
-  Alarm_cache.memo (fun (_ki,_alarm) -> report_alarm ~pos annot str) (ki, alarm)
+  register ~pos ~emitter alarm status
 
-let emit_alarm ~pos alarm (status:status) =
-  let register_alarm = register_alarm ~pos alarm status in
-  match alarm with
-  | Alarms.Pointer_comparison (_, _) -> register_alarm "pointer comparison"
+(* Stops the analysis when the number of alarms reaches the limit of
+   -eva-stop-at-nth-alarm. A capture during which the limit is finite, before
+   or after the emission, is refused. *)
+let stop_at_nth_alarm ~finite_at_entry =
+  let stop_at = Parameters.StopAtNthAlarm.get () in
+  if finite_at_entry || stop_at < max_int then Body_access.refuse Stop_at_alarm;
+  if Alarm_cache.length () >= stop_at
+  then Self.abort "Stopping at nth alarm"
 
-  | Alarms.Division_by_zero _ -> register_alarm "division by zero"
-
-  | Alarms.Overflow (kind, _, _, _) ->
-    let str = match kind with
-      | Alarms.Signed -> "signed overflow"
-      | Alarms.Unsigned -> "unsigned overflow"
-      | Alarms.Signed_downcast -> "signed downcast"
-      | Alarms.Unsigned_downcast -> "unsigned downcast"
-      | Alarms.Pointer_downcast -> "pointer downcast"
-    in
-    register_alarm str
-
-  | Alarms.Float_to_int _ ->
-    register_alarm "overflow in conversion from floating-point to integer"
-
-  | Alarms.Invalid_shift (_, Some _) ->
-    register_alarm "invalid RHS operand for shift"
-
-  | Alarms.Invalid_shift (_, None) ->
-    register_alarm "invalid LHS operand for left shift"
-
-  | Alarms.Memory_access (_, access_kind) ->
-    let access = match access_kind with
-      | Alarms.For_reading -> "read"
-      | Alarms.For_writing -> "write"
-    in
-    register_alarm (Format.sprintf "out of bounds %s" access)
-
-  | Alarms.Index_out_of_bound _ ->
-    register_alarm "accessing out of bounds index"
-
-  | Alarms.Unaligned_pointer _ ->
-    register_alarm "unaligned pointer creation"
-
-  | Alarms.Invalid_pointer _ ->
-    register_alarm "invalid pointer creation"
-
-  | Alarms.Differing_blocks _ ->
-    register_alarm "pointer subtraction"
-
-  | Alarms.Is_nan_or_infinite (_, fkind) ->
-    let sfkind = string_fkind fkind in
-    register_alarm (Format.sprintf "non-finite %s value" sfkind)
-
-  | Alarms.Is_nan (_, fkind) ->
-    let sfkind = string_fkind fkind in
-    register_alarm (Format.sprintf "NaN %s value" sfkind)
-
-  | Alarms.Uninitialized _ ->
-    register_alarm "accessing uninitialized left-value"
-
-  | Alarms.Dangling _ ->
-    register_alarm "accessing left-value that contains escaping addresses"
-
-  | Alarms.Not_separated _ ->
-    register_alarm "undefined multiple accesses in expression"
-
-  | Alarms.Overlap _ ->
-    register_alarm "partially overlapping lvalue assignment"
-
-  | Alarms.Function_pointer _ ->
-    register_alarm  "pointer to function with incompatible type"
-
-  | Alarms.Invalid_bool _ ->
-    register_alarm "trap representation of a _Bool lvalue"
+let deliver ~pos ~emitter alarm status =
+  Body_access.record Alarms;
+  Body_access.record Statuses;
+  let finite_at_entry = Parameters.StopAtNthAlarm.get () < max_int in
+  register ~pos ~emitter alarm status;
+  stop_at_nth_alarm ~finite_at_entry
 
 let height_alarm = let open Eva_utils in function
     | Alarms.Division_by_zero e
@@ -398,10 +421,7 @@ let emit_alarms ~pos map =
   let sorted_list = List.sort cmp list in
   let finite_at_entry = Parameters.StopAtNthAlarm.get () < max_int in
   List.iter (fun (alarm, status) -> emit_alarm ~pos alarm status) sorted_list;
-  let stop_at = Parameters.StopAtNthAlarm.get () in
-  if finite_at_entry || stop_at < max_int then Body_access.refuse Stop_at_alarm;
-  if Alarm_cache.length () >= stop_at
-  then Self.abort "Stopping at nth alarm"
+  stop_at_nth_alarm ~finite_at_entry
 
 let emit ~pos = function
   | Just map -> if not (M.is_empty map) then emit_alarms ~pos map

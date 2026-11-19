@@ -245,7 +245,7 @@ module Make
     | No_cache | Memexec _ -> no_candidate
     | Supplied rejected -> { rejected; hit = None }
 
-  let store ~save_results call state pending call_result footprint =
+  let store ~save_results ~safety call state pending call_result footprint =
     let kf = call.kf in
     let storage =
       match pending with
@@ -278,8 +278,8 @@ module Make
            Statistics.(incr (collector_refused reason) kf));
         let result =
           Body_access.without_recording (fun () ->
-              Producer.store ~save_results call.callstack state call_result
-                footprint verdict)
+              Producer.store ~save_results ~safety call.callstack state
+                call_result footprint verdict)
         in
         (match result with
          | Ok _ -> Statistics.(incr (cache_produced ()) kf)

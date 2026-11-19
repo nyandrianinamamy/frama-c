@@ -8,7 +8,8 @@
 
 open Cil_types
 
-type alarm_or_property = Alarm of Alarms.t | Prop of Property.t
+type alarm_or_property = Safety_part.red_target =
+  | Alarm of Alarms.t | Prop of Property.t
 
 (* Datatype for [alarm_or_property]. *)
 module AlarmOrProp = Datatype.Make_with_collections(struct
@@ -71,7 +72,10 @@ let add_red_ap kinstr ap =
   let new_callstacks = Callstacks.add (Current_callstack.get ()) callstacks in
   let new_map = AlarmOrProp.Map.add ap new_callstacks current_map in
   RedStatusesTable.replace kinstr new_map;
+  Safety_part.record_red_context kinstr ap;
   Hook.apply ap
+
+let add_red_context = add_red_ap
 
 let add_red_alarm ki a = add_red_ap ki (Alarm a)
 
@@ -100,6 +104,15 @@ let is_red ip =
     let callstacks = AlarmOrProp.Map.find ap map in
     not (Callstacks.is_empty callstacks)
   with Not_found -> false
+
+let fold_contexts f acc =
+  RedStatusesTable.fold
+    (fun kinstr map acc ->
+       AlarmOrProp.Map.fold
+         (fun ap callstacks acc ->
+            f kinstr ap (Callstacks.elements callstacks) acc)
+         map acc)
+    acc
 
 let get_all () =
   let gather kinstr map acc =

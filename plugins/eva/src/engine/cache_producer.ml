@@ -119,7 +119,7 @@ let has_preconditions kf =
   && List.exists (fun b -> b.b_requires <> [])
     (Annotations.funspec kf).spec_behavior
 
-let produce ~save_results callstack input states r =
+let produce ~save_results ~safety callstack input states r =
   let open Result in
   let ( let* ) = bind in
   let kf = Callstack.top_kf callstack in
@@ -161,7 +161,7 @@ let produce ~save_results callstack input states r =
     in
     let cache_entry =
       Entry.make ~id ~reads ~dependencies ~observation ~children:r.children
-        statement ~key ~input:(copy input) ~footprint ~exit
+        ~safety statement ~key ~input:(copy input) ~footprint ~exit
     in
     let inner =
       if save_results && Cvalue_domain.State.Store.is_computed ()
@@ -187,7 +187,7 @@ module Make (Domain : sig
       Structure.Key_Domain.eq_type key Cvalue_domain.State.key
     | _ -> None
 
-  let store ~save_results callstack (input : Domain.t)
+  let store ~save_results ~safety callstack (input : Domain.t)
       (result : Domain.t Engine_sig.call_result) observation verdict =
     match cvalue_alone with
     | None -> Error Product
@@ -198,5 +198,7 @@ module Make (Domain : sig
         if result.cacheable <> Eval.Cacheable then Error Not_cacheable
         else if has_preconditions (Callstack.top_kf callstack) then
           Error Preconditions
-        else produce ~save_results callstack input result.states observation
+        else
+          produce ~save_results ~safety callstack input result.states
+            observation
 end

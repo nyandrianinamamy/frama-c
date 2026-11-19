@@ -16,7 +16,9 @@
     - its footprint: the blocks the statement may read, and three sets of
       blocks it may write (see {!footprint});
     - its Exit part: the abstract states at the exits of the statement, each
-      with its partition key.
+      with its partition key;
+    - its Safety part: the alarms, statuses and red contexts that the
+      analysis of the statement emitted (see {!Safety_part}).
 
     The reuse operation ({!Make.find}) takes the candidate entries of a call,
     oldest first, and the input of the call. A candidate matches when the
@@ -114,14 +116,15 @@ module Make (Domain : Domain) : sig
       and to the written blocks. [reads] replaces R in the key check when
       the producer has established which values the body depends on at entry.
       [observation] describes the effects of its analysis, including nested
-      calls. [children] retains the entries used at those call sites.
+      calls. [children] retains the entries used at those call sites. The
+      Safety part is [safety], empty by default.
       Raises [Invalid_argument] if W_sure ⊆ W_exit ⊆ W fails, if [key] omits
       any block of {!required_key}, or if [key] is not closed under
       [Domain.relate] in [input]. *)
   val make :
     id:int -> ?reads:Base.Hptset.t -> ?dependencies:dependencies ->
     ?observation:observation -> ?children:Cache_observation.child list ->
-    statement -> key:Base.Hptset.t ->
+    ?safety:Safety_part.t -> statement -> key:Base.Hptset.t ->
     input:Domain.t ->
     footprint:footprint -> exit:(Partition.key * Domain.t) list -> t
 
@@ -154,6 +157,9 @@ module Make (Domain : Domain) : sig
   (** Entries used at nested call sites, with their paths through bodies
       that contributed inline, in analysis order. *)
   val children : t -> Cache_observation.child list
+
+  (** The Safety part: the writes that a hit on the entry delivers. *)
+  val safety : t -> Safety_part.t
 
   val pretty : Format.formatter -> t -> unit
 

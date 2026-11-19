@@ -18,8 +18,8 @@ type entry
     cleared at the start of the next analysis and are not marshalled. *)
 val entries : kernel_function -> entry list
 
-(** Statement, closed key, filtered input, footprint and partitioned Exit
-    part. *)
+(** Statement, closed key, filtered input, footprint, partitioned Exit
+    part and Safety part. *)
 val cache_entry : entry -> Cache_entry.Cvalue.t
 
 (** Classes of recorded joins seen while analysing the body. *)
@@ -52,11 +52,11 @@ module Make (Domain : sig
     type t
     val structure : t Abstract.Domain.structure
   end) : sig
-  (** Offer a completed body, with the collector result and verdict that
-      belong to this analysis of the body. Returns the stored entry or
-      the reason for refusing storage. *)
+  (** Offer a completed body, with the Safety part, the collector result
+      and the verdict that belong to this analysis of the body. Returns the
+      stored entry or the reason for refusing storage. *)
   val store :
-    save_results:bool -> Callstack.t -> Domain.t ->
+    save_results:bool -> safety:Safety_part.t -> Callstack.t -> Domain.t ->
     Domain.t Engine_sig.call_result -> Body_access.Result.t ->
     (unit, Body_access.Result.refusal) result ->
     (Cache_entry.Cvalue.t, refusal) result

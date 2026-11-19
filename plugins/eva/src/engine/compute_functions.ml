@@ -53,8 +53,9 @@ module Make (Engine: Engine_sig.S) = struct
     let lookup () = Cache.lookup call init_state in
     match Body_access.without_recording lookup with
     | Cache.No_candidate pending ->
-      let call_result, footprint =
+      let (call_result, footprint), safety =
         try
+          Safety_part.capture call.callstack @@ fun () ->
           Body_access.capture call.callstack (fun () ->
               if Body_access.is_recording () then begin
                 begin match Callstack.top_callsite call.callstack with
@@ -98,8 +99,8 @@ module Make (Engine: Engine_sig.S) = struct
       in
       let entry =
         Body_access.without_recording (fun () ->
-            Cache.store ~save_results call init_state pending call_result
-              footprint)
+            Cache.store ~save_results ~safety call init_state pending
+              call_result footprint)
       in
       Option.iter
         (fun r ->
@@ -108,25 +109,48 @@ module Make (Engine: Engine_sig.S) = struct
         footprint;
       call_result
     | Cache.Hit (i, states, source) ->
-      (match source with
-       | Cache.Legacy_trace trace ->
-         Option.iter (Body_access.include_trace call.callstack) trace;
-         Body_access.unknown_access Nested_call
-       | Cache.Supplied_entry entry ->
-         Call_cache.include_supplied call.callstack entry
-           ~returns:(states <> []));
+      (* [returns] is taken before the check of the preconditions below,
+         which can leave the call without a state. No composed entry has
+         preconditions: the producer refuses such bodies, and an entry given
+         to [supply] has no observation, which refuses the enclosing body. *)
+      let safety =
+        match source with
+        | Cache.Legacy_trace trace ->
+          Option.iter (Body_access.include_trace call.callstack) trace;
+          Body_access.unknown_access Nested_call;
+          None
+        | Cache.Supplied_entry entry ->
+          Call_cache.include_supplied call.callstack entry
+            ~returns:(states <> []);
+          Some (Supplied_entries.safety entry)
+      in
       apply_call_hooks call init_state `Reuse;
       (* Evaluate the preconditions of kf, to update the statuses
-         at this call. *)
+         at this call. They are not part of the entry. *)
       Populate_spec.populate_funspec call.kf [`Assigns];
       let spec = Annotations.funspec call.kf in
-      if not (Eva_utils.skip_specifications call.kf) &&
-         List.exists (fun b -> b.b_requires <> []) spec.spec_behavior
-      then begin
-        let ab = Logic.create init_state call.kf in
-        let kinstr = Callstack.top_callsite call.callstack in
-        ignore (Logic.check_fct_preconditions kinstr call.kf ab init_state);
-      end;
+      let satisfiable =
+        if not (Eva_utils.skip_specifications call.kf) &&
+           List.exists (fun b -> b.b_requires <> []) spec.spec_behavior
+        then begin
+          let ab = Logic.create init_state call.kf in
+          let kinstr = Callstack.top_callsite call.callstack in
+          match Logic.check_fct_preconditions kinstr call.kf ab init_state with
+          | [] -> false
+          | _ :: _ -> true
+        end
+        else true
+      in
+      (* A hit of the reuse operation delivers the Safety part of its entry,
+         unless no state satisfies the preconditions: an analysis of the body
+         would then analyse nothing, and the call has no state at its end.
+         Memexec gives no Safety part, and its states are kept. *)
+      let states =
+        match safety with
+        | None -> states
+        | Some _ when not satisfiable -> []
+        | Some safety -> Safety_delivery.deliver call.callstack safety; states
+      in
       Self.feedback ~current:true ~mkey:Log_key.progress
         "Reusing old results for call to %a" Kernel_function.pretty call.kf;
       apply_call_results_hooks call init_state (`Reuse i);

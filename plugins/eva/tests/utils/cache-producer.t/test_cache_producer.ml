@@ -147,8 +147,9 @@ let admission () =
     }
   in
   let check expected input result observation =
-    let reason = Admission.store ~save_results:false stack input result
-        observation (Ok ())
+    let reason =
+      Admission.store ~save_results:false ~safety:Eva.Safety_part.empty stack
+        input result observation (Ok ())
     in
     assert (reason = Error expected);
     Format.printf "admission refused %s@." (Producer.refusal_id expected)

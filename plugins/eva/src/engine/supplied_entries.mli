@@ -35,15 +35,15 @@ type footprint = Cache_entry.footprint = {
   written_sure : Base.Hptset.t;
 }
 
-(** [supply kf ~key ~input ~footprint ~exit] supplies an entry for the body
-    of [kf], built by {!Cache_entry.Make.make} from these arguments, and
-    returns it. [exit] lists the exit states of the body with their
-    partition keys: a body that never returns has no exit state, and its
-    entry has the empty list. Entries are identified by 1, 2, ... in the
-    order in which they are supplied, and the oldest matching entry is used
-    at a call. Each exit state records as possible holders of the address of
-    a local variable the blocks it binds to a value that may contain such an
-    address.
+(** [supply ~safety kf ~key ~input ~footprint ~exit] supplies an entry for
+    the body of [kf], built by {!Cache_entry.Make.make} from these
+    arguments, and returns it. [exit] lists the exit states of the body
+    with their partition keys: a body that never returns has no exit state,
+    and its entry has the empty list. Entries are identified by 1, 2, ... in
+    the order in which they are supplied, and the oldest matching entry is
+    used at a call. Each exit state records as possible holders of the
+    address of a local variable the blocks it binds to a value that may
+    contain such an address.
 
     The entry is used as given: nothing checks that it describes the body of
     [kf], and a false entry gives a false result at a hit. The caller of
@@ -64,7 +64,14 @@ type footprint = Cache_entry.footprint = {
       exit states; this includes the effect of leaving the scope of the
       locals of the body on the blocks that may hold their addresses, which
       the end of the call does not sweep again for the locals of inner
-      blocks.
+      blocks;
+    - [safety], empty by default, holds the alarms, statuses and red
+      contexts that an analysis of the body from [input] emits (see
+      {!Safety_part}): every undefined behaviour of an execution occurs
+      where one of its alarms is, and a property given a status holds as
+      this status says. A hit delivers them for its own callstack. The
+      checks of the [requires] clauses of [kf] are not part of the body:
+      they are evaluated at each call.
 
     An entry whose body contains a call is rejected at lookup
     ([nested-delivery]), except for direct calls of the display directives
@@ -81,15 +88,16 @@ type footprint = Cache_entry.footprint = {
     inner blocks. The three written sets include the block of the value
     returned by [kf], if any (see {!return_variable}). *)
 val supply :
-  kernel_function -> key:Base.Hptset.t -> input:Cvalue.Model.t ->
-  footprint:footprint -> exit:(Partition.key * Cvalue.Model.t) list -> entry
+  ?safety:Safety_part.t -> kernel_function -> key:Base.Hptset.t ->
+  input:Cvalue.Model.t -> footprint:footprint ->
+  exit:(Partition.key * Cvalue.Model.t) list -> entry
 
-(** Supply the key and states of an entry captured by the producer, with
-    the next supplied entry identifier. The lookup checks the recorded
-    sweep targets, used functions and widening generation. The fixture
-    must use the same AST
-    and ensure the calls meet the replay premises described on [supply].
-    Supplying entries remains a test-only operation. *)
+(** Supply the key, states and Safety part of an entry captured by the
+    producer, with the next supplied entry identifier. The lookup checks the
+    recorded sweep targets, used functions and widening generation. The
+    fixture must use the same AST and ensure the calls meet the replay
+    premises described on [supply]. Supplying entries remains a test-only
+    operation. *)
 val supply_produced : Cache_producer.entry -> entry
 
 (** The partition key of a state that no partitioning distinguishes. *)
@@ -118,6 +126,7 @@ val key : entry -> Base.Hptset.t
 val input : entry -> Cvalue.Model.t
 val footprint : entry -> footprint
 val exit : entry -> (Partition.key * Cvalue.Model.t) list
+val safety : entry -> Safety_part.t
 val pretty : Format.formatter -> entry -> unit
 
 (** {2 Lookup} *)
@@ -159,7 +168,9 @@ type 'state lookup = {
   (** The identifiers of the candidates rejected, oldest first, with their
       reasons. *)
   hit : (entry * (Partition.key * 'state) list) option;
-  (** The winning entry, if any, and the states reconstructed from it. *)
+  (** The winning entry, if any, and the states reconstructed from it. The
+      engine delivers the Safety part of the entry ({!safety}) at the
+      call. *)
 }
 
 module Lookup (Domain : sig

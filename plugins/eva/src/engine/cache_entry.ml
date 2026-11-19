@@ -82,6 +82,7 @@ module Make (Domain : Domain) = struct
     dependencies : dependencies option;
     observation : observation option;
     children : Cache_observation.child list;
+    safety : Safety_part.t;
   }
 
   (* Whether [relate] relates [bases] only to blocks of [bases] in [state]. *)
@@ -89,8 +90,8 @@ module Make (Domain : Domain) = struct
     Base.SetLattice.is_included
       (Domain.relate bases state) (Base.SetLattice.inject bases)
 
-  let make ~id ?reads ?dependencies ?observation ?(children = []) statement
-      ~key ~input ~footprint ~exit =
+  let make ~id ?reads ?dependencies ?observation ?(children = [])
+      ?(safety = Safety_part.empty) statement ~key ~input ~footprint ~exit =
     let footprint = with_return_block statement footprint in
     if not (valid_footprint footprint) then
       invalid_arg
@@ -106,7 +107,7 @@ module Make (Domain : Domain) = struct
     let kept = Base.Hptset.union key footprint.written in
     let exit = List.map (fun (k, s) -> k, Domain.filter kept s) exit in
     { id; statement; key; input = Domain.filter key input; footprint; exit;
-      dependencies; observation; children }
+      dependencies; observation; children; safety }
 
   let id e = e.id
   let with_id id e = { e with id }
@@ -116,6 +117,7 @@ module Make (Domain : Domain) = struct
   let footprint e = e.footprint
   let exit e = e.exit
   let dependencies e = e.dependencies
+  let safety e = e.safety
   let observation e = e.observation
   let children e = e.children
 
@@ -132,9 +134,15 @@ module Make (Domain : Domain) = struct
       then Format.pp_print_string fmt "input: none, the key is empty"
       else Format.fprintf fmt "@[<v 2>input:@ %a@]" Domain.pretty input
     in
+    (* An entry without Safety writes prints as before the Safety part. *)
+    let pretty_safety fmt = function
+      | [] -> ()
+      | safety ->
+        Format.fprintf fmt "@ @[<v 2>safety:@ %a@]" Safety_part.pretty safety
+    in
     Format.fprintf fmt
       "@[<v 2>entry %d, %a:@ key: %a@ %a@ read: %a@ written: %a@ \
-       written on a path to an exit: %a@ surely overwritten: %a@ %a@]"
+       written on a path to an exit: %a@ surely overwritten: %a@ %a%a@]"
       e.id pretty_statement e.statement
       Base.Hptset.pretty e.key pretty_input e.input
       Base.Hptset.pretty e.footprint.read
@@ -142,6 +150,7 @@ module Make (Domain : Domain) = struct
       Base.Hptset.pretty e.footprint.written_exit
       Base.Hptset.pretty e.footprint.written_sure
       (Pretty_utils.pp_list ~sep:"@ " pretty_exit) e.exit
+      pretty_safety e.safety
 
   type result = {
     rejected : (t * rejection) list;

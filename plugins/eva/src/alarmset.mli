@@ -89,6 +89,16 @@ val fold : (alarm -> status -> 'a -> 'a) -> 'a -> t -> 'a
     instruction. *)
 val emit: pos:Position.t -> t -> unit
 
+(** [deliver ~pos ~emitter alarm status] registers [alarm] at [pos] with the
+    kernel status [status] by [emitter], as the emission of [alarm] by a
+    body does: the kernel combines [status] with the status of the alarm,
+    the alarm is reported once per analysis, and the stop at the n-th alarm
+    applies. It does not record a red context. A hit delivers the alarms of
+    its entry through it (see {!Safety_part}). *)
+val deliver:
+  pos:Position.t -> emitter:Emitter.t -> alarm ->
+  Property_status.emitted_status -> unit
+
 (** Has the given alarm already been emitted at the given statement
     by the current analysis? *)
 val already_emitted: Cil_types.stmt -> alarm -> bool

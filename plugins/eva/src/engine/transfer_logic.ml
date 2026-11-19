@@ -79,7 +79,7 @@ let emit_status ppt status =
   if status = Property_status.False_if_reachable then
     Red_statuses.add_red_property (Property.get_kinstr ppt) ppt;
   Body_access.record Statuses;
-  Property_status.emit ~distinct:true Eva_utils.emitter ~hyps:[] ppt status
+  Safety_part.emit_status Eva_utils.emitter ppt status
 
 (* Display the message as result/warning depending on [status] *)
 let msg_status status =

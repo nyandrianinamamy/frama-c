@@ -16,7 +16,21 @@ open Cil_types
 val add_red_alarm:    kinstr -> Alarms.t -> unit
 val add_red_property: kinstr -> Property.t -> unit
 
-type alarm_or_property = Alarm of Alarms.t | Prop of Property.t
+type alarm_or_property = Safety_part.red_target =
+  | Alarm of Alarms.t | Prop of Property.t
+
+(** [add_red_context kinstr target] records that [target] got a red status
+    at [kinstr] in the current callstack. The two functions above call it,
+    [add_red_property] twice for an instance of a precondition. A hit
+    delivers the red contexts of its entry through it (see
+    {!Safety_part}). *)
+val add_red_context: kinstr -> alarm_or_property -> unit
+
+(** Folds over the alarms and properties that got a red status, with the
+    callstacks in which they got it, [None] standing for no callstack. *)
+val fold_contexts:
+  (kinstr -> alarm_or_property -> Callstack.t option list -> 'a -> 'a) ->
+  'a -> 'a
 
 (* Whether a red status has been emitted for a property in any callstack. *)
 val is_red: Property.t -> bool
