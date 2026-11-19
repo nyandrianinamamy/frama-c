@@ -266,8 +266,8 @@ clause-specific refusal. A value with unknown targets that is not loaded
 refuses as `footprint-top` and leaves R unchanged. A clause whose evaluation
 or transfer emits one of the messages printed with `~once:true` that the
 table below lists refuses as `side-table` before the message. A status
-message is not among them: it is admitted, also when its warning category
-has a `once` status.
+message is not among them: it is admitted, unless its warning category has
+a `once` status, whose policy refuses as `side-table`.
 
 **Kind.** OCaml obligation.
 
@@ -463,9 +463,11 @@ notification. The admitted per-event accesses are Eva's `partition` and
 `locals-escaping` warning (a stable event already in the once history on
 a matching sweep hit). See [ordered effects](collector-effects.md#ordered-and-opaque-effects)
 for the conditions, callback rules and remaining obligations.
-A hit prints the message of a status again and none of the admitted
-messages. With the category of an admitted message set to abort at the hit
-and not at the producing call, the state at the end of the call differs
+A hit prints the message of a status again, and none of the other
+messages of the body: neither the admitted ones nor those of a category
+inactive at the producing call. The lookup rejects an entry when the
+status of a warning category differs from its status when the analysis of
+the body started
 ([The settings that decide the alarms and messages are those of each hit](safety.md#the-settings-that-decide-the-alarms-and-messages-are-those-of-each-hit)).
 
 A designated range covers the

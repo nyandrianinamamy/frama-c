@@ -607,31 +607,37 @@ and its entry was stored and hit.
 
 **Claim.** An entry holds the alarms, statuses and messages that an
 analysis of the body would emit at a hit only if the settings that decide
-them, in force at the call that produced the entry, are in force at the hit:
+them, in force when the analysis of the body that produced the entry
+started, are in force at the hit:
 - the options of the kernel and of Eva that decide which alarms and
   statuses are emitted: the `-warn-*` options of the kernel, such as
   `-warn-signed-overflow`, and the `-eva-warn-*` options of Eva, such as
   `-eva-warn-copy-indeterminate`;
-- the action and the activation of every message and warning category of
-  Eva and of the kernel (`-eva-warn-key`, `-eva-msg-key` and those of the
-  kernel), apart from the change of a `-once` category to inactive after
-  its first message, which the logger makes itself.
+- the status of every warning category of Eva and of the kernel
+  (`-eva-warn-key`, `-kernel-warn-key`), which decides the action of its
+  messages (none, a feedback, a warning, an error or an abort), apart from
+  the category `alarm` of Eva.
 
-They must be equal in the analysis that produced the entry and in the one
-that uses it, and changed during neither, by a hook or otherwise. A
-violation can hide an alarm or a message, and with a category set to abort,
-change the state at the end of the call. The supplier of the entry owes
-this premise; nothing in Eva checks it.
+The lookup of a produced entry checks the second: it rejects the entry
+(`warn-categories`) when the status of a category differs from its status
+when the analysis of the body started. The options, the categories of an
+entry given to `Supplied_entries.supply`, and a change made by a hook on
+calls at the call of the hit, after its lookup, are owed by the supplier.
+A violation can hide an alarm or a message, and with a category set to
+abort, change the state at the end of the call.
 
-**Kind.** OCaml obligation, owed by the supplier of an entry
-(`Supplied_entries.supply` and `supply_produced`); nothing in Eva enforces it.
+**Kind.** OCaml obligation: the check of the lookup for the categories of
+a produced entry; for the rest, owed by the supplier of an entry
+(`Supplied_entries.supply` and `supply_produced`).
 
 **Depends on.**
 [A hit delivers the Safety part as recorded joins](#a-hit-delivers-the-safety-part-as-recorded-joins).
 
-**Symbols.** `Supplied_entries.supply`, `Supplied_entries.supply_produced`,
+**Symbols.** `Body_access.warn_categories`, `Body_access.capture`,
+`Cache_entry.dependencies`, `Supplied_entries.Lookup.find`,
+`Supplied_entries.supply`, `Supplied_entries.supply_produced`,
 `Kernel.SignedOverflow`, `Evaluation.Make.handle_integer_overflow`,
-`set_warn_status` and `logwith` in
+`set_warn_status`, `get_all_warn_categories_status` and `logwith` in
 [`log.ml`](../../../src/lib/utils/log.ml),
 `Cvalue_callbacks.apply_call_hooks`,
 `Compute_functions.Make.compute_and_cache_call`.
@@ -644,56 +650,76 @@ The delivery makes the recorded writes only, so an entry produced with
 fewer alarms hides those that the analysis that uses it would emit.
 
 A hit prints, through the logger, the messages of the statuses and the
-reports of the alarms of its entry: the action of their categories in
-force at the hit applies, as for an analysed call. The other messages that
-a stored body prints without a refusal, such as the assumption of 2's
-complement for an overflow (category `signed-overflow`), are not recorded
-and not printed by a hit. When the category of such a message is set to
-abort at the hit, an analysis of the body stops at the message, and the
-call has no state at its end, where the hit returns the exit states of the
-entry. The action can differ between the producing call and the hit in
-three ways: the two analyses are run with different settings; a hook
-changes a category during the analysis that uses the entry, by
-`set_warn_status` or by setting `-eva-warn-key`; or a later stage of the
-command line (`-then`) changes it before an analysis that uses entries
-supplied before, since the supplied entries depend on the AST only. In this
-version, every hit is on an entry that a test module supplied, so each case
-is under the control of the supplier. The lookup cannot see the second:
-the call hooks of the call, which can set the category, run after the
-lookup, and a hook of the call that sets the category to abort is not
-detected. A `-once` category becomes inactive after its first message; the
-logger applies this rule to the messages that a hit prints as to those of
-an analysed call.
+reports of the alarms of its entry, all of the category `alarm` of Eva: the
+action of this category in force at the hit applies, as for an analysed
+call. The other messages of the body are not recorded and not printed by a
+hit; for instance, the assumption of 2's complement for an overflow
+(category `signed-overflow`) in a body analysed with the category inactive.
+When the category of such a message is set to abort at the hit, an
+analysis of the body stops at the message, and the call has no state at
+its end, where the hit returns the exit states of the entry. Only the
+status of a warning category decides an action; a message category
+(`-eva-msg-key`) decides whether a message is printed, and a hit prints
+none of these messages of the body.
 
-**Evidence (executed, premise violated on purpose).** `cache-safety.t`,
-`overflow.c`. The entry of `body(1)` is produced with
-`-no-warn-signed-overflow` and used by an analysis with
-`-warn-signed-overflow`: the hit at line 19 delivers no alarm, where the
-analysis with caching disabled emits the overflow alarm at line 8 with an
-invalid status and a red context. The entry is produced with
-`-no-warn-signed-overflow` and the category `signed-overflow` inactive, and
-used with the category set to abort: with caching disabled, the analysis
-stops at the overflow and no state reaches the end of `main`; the hit
-prints nothing and gives `out = 8`. Both analyses start with the category
-active, and a call hook sets it to abort at the call of `body` in the
-analysis that uses the entry: the same difference. The tests document the
-current behaviour, not a guarantee.
+The status of a category can change between the producing call and the
+hit: the two analyses are run with different settings; a hook changes a
+category during the analysis, by `set_warn_status` or by setting
+`-eva-warn-key`; or a later stage of the command line (`-then`) changes it.
+`Body_access.capture` reads the status of every category of the kernel and
+of Eva, but `alarm`, when the analysis of the body starts; the producer
+stores it with the entry, and the lookup of the supplied entries reads it
+again and compares. A change made before the lookup, by any of these means,
+is seen. The status is read at the start of the body: if a client of the
+red status hooks, which a body admits, changes a category during the body,
+the earlier messages of the body ran under the status read. A change made
+at the call of the hit, after the lookup, is not seen: the hooks on calls
+run after it. Within one analysis, such a hook also runs at the producing
+call, inside the recording, where an unclassified client refuses the body
+(`callback`); a hook registered between the two calls is not covered. A
+`-once` category becomes inactive after its first message; the lookup then
+rejects the entries produced before, which is conservative.
+
+**Evidence (executed).** `cache-safety.t`.
+
+- `overflow.c`, premise violated on purpose. The entry of `body(1)` is
+  produced with `-no-warn-signed-overflow` and used by an analysis with
+  `-warn-signed-overflow`, both with the category `signed-overflow`
+  inactive: the hit at line 19 delivers no alarm, where the analysis with
+  caching disabled emits the overflow alarm at line 8 with an invalid
+  status and a red context. With the category active, the assumption of 2's
+  complement is printed once, and the collector refuses the body
+  (`side-table`).
+- `overflow.c`, across analyses. The entry is produced with the category
+  inactive, and looked up with the category set to abort: the call reads
+  `lookup: rejected (entry 1: warn-categories); execution: interrupted`,
+  the analysis stops at the overflow, and the tables equal those of the
+  analysis with caching disabled.
+- `same.c`, within one analysis. The first call of `body` is analysed with
+  the category inactive, and its entry is stored; a hook on the status of
+  the assertion in `other` supplies it and sets the category to abort. The
+  second call reads `lookup: rejected (entry 1: key-differs), rejected
+  (entry 2: warn-categories)`, and stops at the overflow, as with caching
+  disabled. With the comparison of `Supplied_entries.Lookup.admit` removed
+  alone, both runs hit and give `out = 8`.
+- `overflow.c`, premise violated on purpose. The entry is produced with the
+  category inactive, and a hook on calls sets it to abort at the call of
+  `body` in the analysis that uses the entry: the hit prints nothing and
+  gives `out = 8`, where the analysis with caching disabled stops at the
+  overflow.
 
 **Open.**
 
-- The entries saved with a session
+- The options that decide the alarms are not checked. The entries saved
+  with a session
   ([issue #59](https://github.com/nyandrianinamamy/frama-c/issues/59))
-  cross analyses, and must enforce this premise, for instance by storing the
-  settings with the entry and rejecting it when they differ, the actions of
-  the categories included.
-- Once a produced entry reaches a hit within the analysis that produced it,
-  a hook can still change a category between the producing call and the
-  hit. A check at the lookup misses a change made by the call hooks of the
-  hit, which run after it. Two routes are open: refuse to store a body that
-  reaches a message that a hit does not print, whatever the action of its
-  category, so that every message of a stored body is replayed through the
-  logger; or compare the actions of the categories after the call hooks of
-  the hit, and analyse the body when they changed.
+  cross analyses: they must store these options and the status of the
+  categories with the entry, and compare them at the lookup in the
+  analysis that loads them.
+- A change of a category by a hook on calls, at the call of the hit and
+  after its lookup, is not seen. One route: compare the status of the
+  categories again after the hooks of the call, and analyse the body when
+  it changed.
 
 ## Preconditions at a hit
 
