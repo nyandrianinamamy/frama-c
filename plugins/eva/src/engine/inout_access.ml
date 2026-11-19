@@ -113,17 +113,16 @@ end = struct
              Access.pretty access)
 end
 
-let register_read pos zone =
-  Body_access.record Zones;
-  Cache.change pos (Access.add_read zone)
-
-let register_write pos zone =
-  Body_access.record Zones;
-  Cache.change pos (Access.add_write zone)
-
+(* Each registration is a join, also recorded in the Reach part of the body
+   being analysed, if any. *)
 let register pos access =
   Body_access.record Zones;
+  Reach_part.record_zones pos ~read:access.read ~write:access.write;
   Cache.change pos (Access.join access)
+
+let register_read pos zone = register pos (Access.make ~read:zone ())
+
+let register_write pos zone = register pos (Access.make ~write:zone ())
 
 let mk_filter ~filter_base =
   let filter_zone = Memory_zone.filter_base filter_base in

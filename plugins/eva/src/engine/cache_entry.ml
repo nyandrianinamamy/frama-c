@@ -85,6 +85,7 @@ module Make (Domain : Domain) = struct
     observation : observation option;
     children : Cache_observation.child list;
     safety : Safety_part.t;
+    reach : Reach_part.t option;
   }
 
   (* Whether [relate] relates [bases] only to blocks of [bases] in [state]. *)
@@ -93,7 +94,8 @@ module Make (Domain : Domain) = struct
       (Domain.relate bases state) (Base.SetLattice.inject bases)
 
   let make ~id ?reads ?dependencies ?observation ?(children = [])
-      ?(safety = Safety_part.empty) statement ~key ~input ~footprint ~exit =
+      ?(safety = Safety_part.empty) ?reach statement ~key ~input ~footprint
+      ~exit =
     let footprint = with_return_block statement footprint in
     if not (valid_footprint footprint) then
       invalid_arg
@@ -109,7 +111,7 @@ module Make (Domain : Domain) = struct
     let kept = Base.Hptset.union key footprint.written in
     let exit = List.map (fun (k, s) -> k, Domain.filter kept s) exit in
     { id; statement; key; input = Domain.filter key input; footprint; exit;
-      dependencies; observation; children; safety }
+      dependencies; observation; children; safety; reach }
 
   let id e = e.id
   let with_id id e = { e with id }
@@ -120,6 +122,7 @@ module Make (Domain : Domain) = struct
   let exit e = e.exit
   let dependencies e = e.dependencies
   let safety e = e.safety
+  let reach e = e.reach
   let observation e = e.observation
   let children e = e.children
 

@@ -163,10 +163,11 @@ module Make
           must be analysed. *)
       | Hit of int * (Partition.key * Domain.t) list * hit_source
       (** Identifier, reconstructed states and the winning entry or trace.
-          The engine delivers the Safety part of a winning supplied entry at
-          the call ({!Safety_delivery}). Memexec gives no Safety part: its
-          entry was stored after an analysis of the body in the same
-          analysis, which emitted its alarms and statuses. *)
+          The engine delivers the Safety part and the Reach part of a winning
+          supplied entry at the call ({!Safety_delivery},
+          {!Reach_delivery}). Memexec gives neither: its entry was stored
+          after an analysis of the body in the same analysis, which emitted
+          its alarms and statuses. *)
 
     (** [lookup call state] looks up the cache for an entry that matches the
         call [call] in the state [state], before the body of the called
@@ -183,12 +184,15 @@ module Make
         refused storage. If [footprint] is present, it also reports and
         counts the collector verdict and the storage of an entry produced
         from it, with [safety], the writes recorded during the analysis of
-        the body ({!Safety_part.capture}), as its Safety part.
+        the body ({!Safety_part.capture}), as its Safety part, and [reach]
+        ({!Reach_part.capture}) as its Reach part.
         [save_results] enables statement recording for this body. An Inner
-        reference also requires recording in the cvalue store.
+        reference also requires recording in the cvalue store, and a Reach
+        part requires [save_results].
         Returns the produced entry, if any. *)
     val store :
-      save_results:bool -> safety:Safety_part.t -> ('loc, Value.t) Eval.call ->
+      save_results:bool -> safety:Safety_part.t -> reach:Reach_part.t ->
+      ('loc, Value.t) Eval.call ->
       Domain.t -> pending -> Domain.t Engine_sig.call_result ->
       Body_access.Result.t option -> Cache_entry.Cvalue.t option
 

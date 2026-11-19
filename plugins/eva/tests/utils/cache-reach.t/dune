@@ -1,0 +1,8 @@
+(executable
+  (name "test_cache_reach")
+  (modules "test_cache_reach")
+  (modes plugin)
+  (libraries frama-c.kernel "frama-c-eva.core")
+  (flags :standard -open Frama_c_kernel)
+  (promote (until-clean))
+)

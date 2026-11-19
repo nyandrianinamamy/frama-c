@@ -19,7 +19,10 @@
       with its partition key;
     - its Safety part: the alarms, statuses, messages of statuses and red
       contexts that the analysis of the statement emitted (see
-      {!Safety_part}).
+      {!Safety_part});
+    - its Reach part, if known: the control points that the analysis of the
+      statement reached, its guard outcomes, its read and written zones and
+      the call sites it registered (see {!Reach_part}).
 
     The reuse operation ({!Make.find}) takes the candidate entries of a call,
     oldest first, and the input of the call. A candidate matches when the
@@ -123,15 +126,16 @@ module Make (Domain : Domain) : sig
       the producer has established which values the body depends on at entry.
       [observation] describes the effects of its analysis, including nested
       calls. [children] retains the entries used at those call sites. The
-      Safety part is [safety], empty by default.
+      Safety part is [safety], empty by default. The Reach part is [reach],
+      unknown by default.
       Raises [Invalid_argument] if W_sure ⊆ W_exit ⊆ W fails, if [key] omits
       any block of {!required_key}, or if [key] is not closed under
       [Domain.relate] in [input]. *)
   val make :
     id:int -> ?reads:Base.Hptset.t -> ?dependencies:dependencies ->
     ?observation:observation -> ?children:Cache_observation.child list ->
-    ?safety:Safety_part.t -> statement -> key:Base.Hptset.t ->
-    input:Domain.t ->
+    ?safety:Safety_part.t -> ?reach:Reach_part.t -> statement ->
+    key:Base.Hptset.t -> input:Domain.t ->
     footprint:footprint -> exit:(Partition.key * Domain.t) list -> t
 
   (** The identifier given to {!make}. *)
@@ -166,6 +170,10 @@ module Make (Domain : Domain) : sig
 
   (** The Safety part: the writes that a hit on the entry delivers. *)
   val safety : t -> Safety_part.t
+
+  (** The Reach part, if known: the writes that a hit on the entry delivers
+      with its Safety part. *)
+  val reach : t -> Reach_part.t option
 
   val pretty : Format.formatter -> t -> unit
 

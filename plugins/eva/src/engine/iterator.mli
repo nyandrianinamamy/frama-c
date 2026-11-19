@@ -13,6 +13,12 @@ open Cil_types
     evaluated to true (resp. false) at least once during the analysis. *)
 val condition_truth_value: stmt -> bool * bool
 
+(** [add_condition stmt outcome] records that the condition of [stmt] has
+    been evaluated to [outcome]. The record is a join: a branch once taken
+    stays taken. It is also recorded in the Reach part of the body being
+    analysed, if any ({!Reach_part}). *)
+val add_condition: stmt -> bool -> unit
+
 
 (** Subset of [Engine_sig.S] required by this functor. *)
 module type Engine_Subset = sig

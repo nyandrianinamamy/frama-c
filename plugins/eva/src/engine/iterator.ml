@@ -34,17 +34,17 @@ let condition_truth_value s =
   try Conditions_table.find s
   with Not_found -> false, false
 
-let record_fireable ~collecting edge =
+let add_condition stmt outcome =
+  Body_access.record Guards;
+  Reach_part.record_guard stmt outcome;
+  let b_then, b_else = condition_truth_value stmt in
+  let new_status = if outcome then true, b_else else b_then, true in
+  Conditions_table.replace stmt new_status
+
+let record_fireable edge =
   match edge.edge_transition with
-  | Guard (_exp, kind, stmt) ->
-    if collecting then Body_access.record Guards;
-    let b_then, b_else = condition_truth_value stmt in
-    let new_status =
-      match kind with
-      | Then -> true, b_else
-      | Else -> b_then, true
-    in
-    Conditions_table.replace stmt new_status
+  | Guard (_exp, Then, stmt) -> add_condition stmt true
+  | Guard (_exp, Else, stmt) -> add_condition stmt false
   | _ -> ()
 
 
@@ -385,7 +385,7 @@ module Make_Dataflow
     let flow = Partitioning.transfer transfer flow in
     let flow = process_partitioning_transitions v1 v2 flow in
     if not (Partitioning.is_empty_flow flow) then
-      record_fireable ~collecting e;
+      record_fireable e;
     flow
 
   let gather_cvalues states = match Engine.Dom.get_cvalue with

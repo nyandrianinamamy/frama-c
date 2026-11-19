@@ -53,8 +53,9 @@ module Make (Engine: Engine_sig.S) = struct
     let lookup () = Cache.lookup call init_state in
     match Body_access.without_recording lookup with
     | Cache.No_candidate pending ->
-      let (call_result, footprint), safety =
+      let ((call_result, footprint), safety), reach =
         try
+          Reach_part.capture call.callstack @@ fun () ->
           Safety_part.capture call.callstack @@ fun () ->
           Body_access.capture call.callstack (fun () ->
               if Body_access.is_recording () then begin
@@ -99,7 +100,7 @@ module Make (Engine: Engine_sig.S) = struct
       in
       let entry =
         Body_access.without_recording (fun () ->
-            Cache.store ~save_results ~safety call init_state pending
+            Cache.store ~save_results ~safety ~reach call init_state pending
               call_result footprint)
       in
       Option.iter
@@ -122,7 +123,7 @@ module Make (Engine: Engine_sig.S) = struct
         | Cache.Supplied_entry entry ->
           Call_cache.include_supplied call.callstack entry
             ~returns:(states <> []);
-          Some (Supplied_entries.safety entry)
+          Some (Supplied_entries.safety entry, Supplied_entries.reach entry)
       in
       apply_call_hooks call init_state `Reuse;
       (* Evaluate the preconditions of kf, to update the statuses
@@ -141,20 +142,28 @@ module Make (Engine: Engine_sig.S) = struct
         end
         else true
       in
-      (* A hit of the reuse operation delivers the Safety part of its entry,
-         unless no state satisfies the preconditions: an analysis of the body
-         would then analyse nothing, and the call has no state at its end.
-         A delivering hit saves no state at the statements of the body: the
-         function is recorded, so that the passes at the end of the analysis
-         draw no conclusion from the absence of these states. Memexec gives
-         no Safety part, and its states are kept. *)
+      (* A hit of the reuse operation delivers the Safety part and the
+         Reach part of its entry, unless no state satisfies the
+         preconditions: an analysis of the body would then analyse nothing,
+         and the call has no state at its end. A delivering hit saves no
+         state at the statements of the body: the function is recorded, so
+         that the passes at the end of the analysis draw no conclusion from
+         the states saved there, and the points it reaches are recorded for
+         its callstack. An entry without a Reach part reaches no point: its
+         function is recorded as of unknown reachability. Memexec gives no
+         Safety part, and its states are kept. *)
       let states =
         match delivery with
         | None -> states
         | Some _ when not satisfiable -> []
-        | Some safety ->
+        | Some (safety, reach) ->
           Safety_delivery.skip_visits call.kf;
           Safety_delivery.deliver call.callstack safety;
+          begin match reach with
+            | Some reach ->
+              Reach_delivery.deliver call.callstack ~save_results reach
+            | None -> Reach_delivery.reach_unknown call.kf
+          end;
           states
       in
       Self.feedback ~current:true ~mkey:Log_key.progress

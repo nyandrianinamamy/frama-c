@@ -29,6 +29,7 @@ module Make_Domain (Abstract: Abstractions.S) = struct
   module Store = struct
 
     let register_state callstack control_point state =
+      Reach_part.record_state callstack control_point;
       match control_point with
       | Domain_store.Initial ->
         (* Only one possible initial state, which is also the consolidated state.
@@ -56,17 +57,32 @@ module Make_Domain (Abstract: Abstractions.S) = struct
       joined_state
 
     (* Consolidated states are not registered during the analysis, so computes
-       it if no callstack. *)
+       it if no callstack.
+       A hit of the cache saves no state at the points its body reaches, and
+       the states saved by analysed calls do not cover its visits:
+       [Reach_delivery] records these points for the callstack of the hit,
+       where the state is [top], and so is the state over all callstacks. *)
     let get_state ?callstack control_point =
       match callstack, Store.get_state ?callstack control_point with
+      | _, `Top -> `Top
+      | _, _ when Reach_delivery.reached ?callstack control_point -> `Value top
       | None, `Bottom -> compute_consolidated_state control_point
       | _, result -> result
 
+    (* The callstacks of the analysed calls, then those of the hits only. *)
+    let callstacks control_point =
+      let hits = Reach_delivery.callstacks control_point in
+      match Store.callstacks control_point with
+      | `Value analysed when hits <> [] ->
+        let fresh cs = not (List.exists (Callstack.equal cs) analysed) in
+        `Value (analysed @ List.filter fresh hits)
+      | result -> result
+
     let get_state_by_callstack control_point =
       let open Lattice_bounds.TopBottom.Operators in
-      let* callstacks = Store.callstacks control_point in
+      let* callstacks = callstacks control_point in
       let get_state callstack =
-        match Store.get_state ~callstack control_point with
+        match get_state ~callstack control_point with
         | `Bottom -> None
         | `Top -> Some (callstack, Abstract.Dom.top)
         | `Value state -> Some (callstack, state)
@@ -170,7 +186,7 @@ module Make (Abstract: Abstractions.S) = struct
     let get_state_by_callstack control_point =
       find (Dom.Store.get_state_by_callstack) control_point
 
-    let callstacks = Abstract.Dom.Store.callstacks
+    let callstacks = Dom.Store.callstacks
 
     let eval_expr state expr = Eval.evaluate state expr >>=: snd
 

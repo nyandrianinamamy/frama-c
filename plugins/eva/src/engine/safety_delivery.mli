@@ -38,13 +38,15 @@ val deliver : Callstack.t -> Safety_part.t -> unit
 
     A hit delivers the Safety part of its entry, but saves no state for the
     statements of the called function: the visits of these statements by
-    the call are skipped. Until a hit delivers the statements it reaches
-    (issue #48), the passes run at the end of the analysis must not
-    conclude from the absence of a state at a statement of such a function:
-    it is not dead, and the states saved there are those of the analysed
-    calls only. The functions called by the body of an entry are skipped as
-    well; there are none, since an entry is refused for a body that may
-    call a function that has a body (see {!Supplied_entries.supply}). *)
+    the call are skipped. The hit delivers the points it reaches
+    ({!Reach_delivery}), where the state of its callstack is [top]; an entry
+    without a Reach part reaches none. The passes run at the end of the
+    analysis that conclude from the values in the states saved at a
+    statement of such a function must not conclude there: the states saved
+    are those of the analysed calls only. The functions called by the body
+    of an entry are skipped as well; there are none, since an entry is
+    refused for a body that may call a function that has a body (see
+    {!Supplied_entries.supply}). *)
 
 (** [skip_visits kf] records that a hit has answered a call of [kf] in the
     current analysis. The record is a state of the analysis, and is reset

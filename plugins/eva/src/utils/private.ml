@@ -55,6 +55,7 @@ module Mt_thread = Mt_thread
 module Mutex = Mutex
 module Parameters = Parameters
 module Position = Position
+module Reach_delivery = Reach_delivery
 module Red_statuses = Red_statuses
 module Results = Results
 module Safety_delivery = Safety_delivery

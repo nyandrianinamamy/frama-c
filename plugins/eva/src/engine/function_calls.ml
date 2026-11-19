@@ -23,12 +23,13 @@ module StmtSet = Cil_datatype.Stmt.Set
 module Callers = Kernel_function.Map.Make (StmtSet)
 module CallersTable = Kernel_function.Make_Table (Callers) (val info "Callers")
 
-let register_call call =
-  let kf = Callstack.top_kf call.callstack in
-  match Callstack.top_caller call.callstack with
+let register_caller callstack =
+  let kf = Callstack.top_kf callstack in
+  match Callstack.top_caller callstack with
   | None -> CallersTable.add kf Kernel_function.Map.empty
   | Some (callsite, caller) ->
     Body_access.record Callers;
+    Reach_part.record_caller callstack;
     let callsite = StmtSet.singleton callsite in
     let change calls =
       let prev_stmts = Kernel_function.Map.find_opt caller calls in
@@ -163,7 +164,7 @@ let analysis_target ?(recursion_depth = -1) kf callsite =
         else `Body (def, save_results def)
 
 let register_analysis_target call analysis_target  =
-  register_call call;
+  register_caller call.callstack;
   register_status call.kf analysis_target
 
 

@@ -38,11 +38,12 @@ let iter_normal_ensures f kf =
   Annotations.iter_behaviors
     (fun bhv -> Annotations.iter_ensures (f bhv) kf bhv.b_name) kf
 
-(* A statement is unreached if no state is saved there, unless a hit of the
-   cache answered a call of its function: the visits of that call are skipped,
-   and save no state. See {!Safety_delivery.skip_visits}. *)
+(* A statement is unreached if no state is saved there and no hit of the
+   cache reached it, unless a hit on an entry without a Reach part answered a
+   call of its function: that hit reaches no statement. See
+   {!Reach_delivery}. *)
 let unreached stmt =
-  not (Results.is_reachable stmt || Safety_delivery.visits_skipped_at stmt)
+  not (Results.is_reachable stmt || Reach_delivery.reach_unknown_at stmt)
 
 let mark_unreachable () =
   let mark ppt =

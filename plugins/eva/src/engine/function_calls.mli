@@ -34,6 +34,12 @@ val use_spec_instead_of_definition:
 (** Registers the analysis of a call with a given target for functions below. *)
 val register_analysis_target: ('l, 'v) Eval.call -> analysis_target -> unit
 
+(** [register_caller callstack] adds the call site of the top function of
+    [callstack] to its callers, a union. It is also recorded in the Reach
+    part of the body being analysed, if any ({!Reach_part}). The analysis
+    status is not changed. *)
+val register_caller: Callstack.t -> unit
+
 
 (** Returns true if the function has been analyzed. *)
 val is_called: kernel_function -> bool

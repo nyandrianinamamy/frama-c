@@ -92,12 +92,12 @@ gets a context in body called from outer at line 33.
   | safety.c:9: status of two: invalid
 
 The passes run at the end of the analysis read the states saved at the
-statements, and a hit saves none in the body of the called function. Until
-a hit delivers the statements it reaches, the passes draw no conclusion in a
-function a call of which was answered by a hit in the analysis: the
-refinement of the statuses of alarms gives no status there, and the marking
-of dead code marks nothing unreachable. The statuses delivered by the hit
-stay as delivered.
+statements, and a hit saves none in the body of the called function. The
+refinement of the statuses of alarms reads the values in these states: it
+gives no status in a function a call of which was answered by a hit in the
+analysis, and the statuses delivered by the hit stay as delivered. The
+marking of dead code reads only which statements are reached, and the hit
+delivers the statements its body reaches (see cache-reach.t).
 
 In passes.c, the entry of body(1, 0) comes from an analysis from producer,
 and answers the call at line 35 of main; body(2, 1) is analysed. Executed
@@ -105,10 +105,10 @@ from main, the second call divides 100 by y = 0 at line 13 when v reads a
 non-zero value, and reaches the assertion one when v reads a non-zero value
 at line 10. The analysed call alone never divides by zero, and never reaches
 one. Without the restriction, the refinement gave the division alarm the
-final status valid, and one was marked unreachable. The final status below
-is that of the analysis from producer, where body(1, 0) is analysed. The
-record of the functions answered by a hit is reset with the analysis, here
-by a change of the entry point.
+final status valid; without the statements delivered by the hit, one was
+marked unreachable. The final status below is that of the analysis from
+producer, where body(1, 0) is analysed. The record of the functions answered
+by a hit is reset with the analysis, here by a change of the entry point.
 
   $ EVA_TEST_CACHE_SAFETY=replay-out frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -main producer -eva-msg-key cache passes.c > passes.log 2>&1
   $ grep -B 1 'lookup: hit' passes.log | sed 's/ *$//'
@@ -130,18 +130,14 @@ by a change of the entry point.
   $ grep '^| ' passes-reference.log > passes-reference.summary
   $ diff passes.summary passes-reference.summary
 
-The summary of the analysis cannot tell which statements of body the hit
-reaches. It counts as reached the statements with a state, then gives as an
-upper bound the count with the statements of body that have none. Here 12
-statements have a state, and 3 have none. With caching disabled, 14 are
-reached: the loop at line 14, which no call reaches, is among the 3. The
-first line is that of the analysis from producer, which has no hit: its
-line has the usual form.
+The summary of the analysis counts the statements reached by the analysed
+call and by the hit: 14, as with caching disabled. The loop at line 14,
+which no call reaches, is not counted. The first line is that of the
+analysis from producer.
 
   $ grep -E 'statements reached|answered by the cache' passes.log
     In these functions, 11 statements reached (out of 12): 92% coverage.
-    In these functions, 12 statements reached (out of 15): 80% coverage,
-    and up to 3 more through calls answered by the cache (100% coverage).
+    In these functions, 14 statements reached (out of 15): 93% coverage.
   $ grep 'statements reached' passes-reference.log
     In these functions, 14 statements reached (out of 15): 93% coverage.
 

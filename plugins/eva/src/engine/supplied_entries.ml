@@ -128,7 +128,7 @@ let add kf entry =
   Table.replace kf (entries kf @ [ entry ]);
   entry
 
-let supply ?safety kf ~key ~input ~footprint ~exit =
+let supply ?safety ?reach kf ~key ~input ~footprint ~exit =
   check_no_call kf;
   (* A call whose input is [Top] would match an entry whose input is [Top],
      and [reuse] would then return the exit state alone, without the blocks
@@ -141,7 +141,9 @@ let supply ?safety kf ~key ~input ~footprint ~exit =
   let exit = List.map (fun (k, s) -> k, (s, holders s)) exit in
   let input = input, Locals_scoping.bottom () in
   let id = Counter.get () + 1 in
-  let entry = Entry.make ~id ?safety (Body kf) ~key ~input ~footprint ~exit in
+  let entry =
+    Entry.make ~id ?safety ?reach (Body kf) ~key ~input ~footprint ~exit
+  in
   check_exit kf entry;
   add kf entry
 
@@ -183,6 +185,7 @@ let input e = fst (Entry.input e)
 let footprint = Entry.footprint
 let exit e = List.map (fun (k, (s, _)) -> k, s) (Entry.exit e)
 let safety = Entry.safety
+let reach = Entry.reach
 let pretty = Entry.pretty
 
 type rejection =

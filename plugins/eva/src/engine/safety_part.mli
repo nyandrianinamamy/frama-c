@@ -92,6 +92,13 @@ val frames : write -> frames
     by a body called with [callstack]. *)
 val reroot : Callstack.t -> frames -> Callstack.t
 
+(** [relative base callstack] is the list of frames [f] such that
+    [reroot base f] is [callstack], if [callstack] extends [base]. *)
+val relative : Callstack.t -> Callstack.t -> frames option
+
+(** Prints "the body" for no frame. *)
+val pretty_frames : Format.formatter -> frames -> unit
+
 val pretty_write : Format.formatter -> write -> unit
 val pretty : Format.formatter -> t -> unit
 

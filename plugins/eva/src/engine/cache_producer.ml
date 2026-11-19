@@ -119,7 +119,7 @@ let has_preconditions kf =
   && List.exists (fun b -> b.b_requires <> [])
     (Annotations.funspec kf).spec_behavior
 
-let produce ~save_results ~safety callstack input states r =
+let produce ~save_results ~safety ~reach callstack input states r =
   let open Result in
   let ( let* ) = bind in
   let kf = Callstack.top_kf callstack in
@@ -160,9 +160,12 @@ let produce ~save_results ~safety callstack input states r =
     let observation =
       Cache_observation.{ designated = r.designated; recorded = r.recorded }
     in
+    (* Without saved states, the writes of the Reach part do not show
+       which statements the body reaches. *)
+    let reach = if save_results then Some reach else None in
     let cache_entry =
       Entry.make ~id ~reads ~dependencies ~observation ~children:r.children
-        ~safety statement ~key ~input:(copy input) ~footprint ~exit
+        ~safety ?reach statement ~key ~input:(copy input) ~footprint ~exit
     in
     let inner =
       if save_results && Cvalue_domain.State.Store.is_computed ()
@@ -188,7 +191,7 @@ module Make (Domain : sig
       Structure.Key_Domain.eq_type key Cvalue_domain.State.key
     | _ -> None
 
-  let store ~save_results ~safety callstack (input : Domain.t)
+  let store ~save_results ~safety ~reach callstack (input : Domain.t)
       (result : Domain.t Engine_sig.call_result) observation verdict =
     match cvalue_alone with
     | None -> Error Product
@@ -200,6 +203,6 @@ module Make (Domain : sig
         else if has_preconditions (Callstack.top_kf callstack) then
           Error Preconditions
         else
-          produce ~save_results ~safety callstack input result.states
+          produce ~save_results ~safety ~reach callstack input result.states
             observation
 end

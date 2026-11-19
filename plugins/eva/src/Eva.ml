@@ -142,6 +142,11 @@ module Cache_entry = Cache_entry
     recorded while a body is analysed, and delivered at a hit. *)
 module Safety_part = Safety_part
 
+(** The Reach part of cache entries: the statements reached, the guard
+    outcomes, the zones and the call sites recorded while a body is
+    analysed, and delivered at a hit. *)
+module Reach_part = Reach_part
+
 (** Cache entries supplied by test modules to the reuse operation. For tests
     only. *)
 module Supplied_entries = Supplied_entries

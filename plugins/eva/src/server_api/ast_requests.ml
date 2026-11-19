@@ -127,9 +127,10 @@ let dead_code = function
         let body = all_statements kf in
         match Analysis.status kf with
         | Unreachable | SpecUsed | Builtin _ -> { empty with unreachable = body }
-        | Analyzed _ when Safety_delivery.visits_skipped kf ->
-          (* A hit of the cache answered a call of [kf], and saved no state
-             at its statements: the absence of a state proves nothing. *)
+        | Analyzed _ when Reach_delivery.reach_unknown_of kf ->
+          (* A hit on an entry without a Reach part answered a call of [kf],
+             and reached no statement: the absence of a state proves
+             nothing. *)
           empty
         | Analyzed NoResults -> empty
         | Analyzed (Partial | Complete) ->

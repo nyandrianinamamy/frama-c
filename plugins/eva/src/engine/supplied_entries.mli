@@ -35,7 +35,8 @@ type footprint = Cache_entry.footprint = {
   written_sure : Base.Hptset.t;
 }
 
-(** [supply ~safety kf ~key ~input ~footprint ~exit] supplies an entry for
+(** [supply ~safety ~reach kf ~key ~input ~footprint ~exit] supplies an
+    entry for
     the body of [kf], built by {!Cache_entry.Make.make} from these
     arguments, and returns it. [exit] lists the exit states of the body
     with their partition keys: a body that never returns has no exit state,
@@ -71,7 +72,16 @@ type footprint = Cache_entry.footprint = {
       where one of its alarms is, and a property given a status holds as
       this status says. A hit delivers them for its own callstack. The
       checks of the [requires] clauses of [kf] are not part of the body:
-      they are evaluated at each call.
+      they are evaluated at each call;
+    - [reach], if given, holds the writes of the Reach part that an analysis
+      of the body from [input] makes (see {!Reach_part}): every statement
+      that an execution reaches is reached in [reach], before it and, if the
+      execution goes past it, after it, and so is every guard outcome; the
+      zones of a statement cover the zones that an analysis registers there.
+      A hit delivers them for its own callstack. Without [reach], the hit
+      delivers no reached statement, and the passes at the end of the
+      analysis draw no conclusion from the absence of a state at a
+      statement of [kf] (see {!Reach_delivery.reach_unknown}).
 
     The alarms, statuses and messages of [safety] are those of an analysis
     of the body with the settings in force at each hit on the entry. The
@@ -131,14 +141,14 @@ type footprint = Cache_entry.footprint = {
     include the block of the value returned by [kf], if any (see
     {!return_variable}). *)
 val supply :
-  ?safety:Safety_part.t -> kernel_function -> key:Base.Hptset.t ->
-  input:Cvalue.Model.t -> footprint:footprint ->
+  ?safety:Safety_part.t -> ?reach:Reach_part.t -> kernel_function ->
+  key:Base.Hptset.t -> input:Cvalue.Model.t -> footprint:footprint ->
   exit:(Partition.key * Cvalue.Model.t) list -> entry
 
-(** Supply the key, states and Safety part of an entry captured by the
-    producer, with the next supplied entry identifier. The lookup checks the
-    recorded sweep targets, used functions, widening generation and status
-    of the warning categories. The fixture must use the same AST and ensure
+(** Supply the key, states, Safety part and Reach part of an entry captured
+    by the producer, with the next supplied entry identifier. The lookup
+    checks the recorded sweep targets, used functions, widening generation
+    and status of the warning categories. The fixture must use the same AST and ensure
     the calls meet the replay premises described on [supply], the settings
     that decide the alarms, statuses and messages included: the options and
     the activation of the message categories are not checked. Supplying
@@ -175,6 +185,7 @@ val input : entry -> Cvalue.Model.t
 val footprint : entry -> footprint
 val exit : entry -> (Partition.key * Cvalue.Model.t) list
 val safety : entry -> Safety_part.t
+val reach : entry -> Reach_part.t option
 val pretty : Format.formatter -> entry -> unit
 
 (** {2 Lookup} *)

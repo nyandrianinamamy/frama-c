@@ -154,13 +154,14 @@ let get_status ip =
   in
   Property_status.fold_on_statuses aux_status ip None
 
-(* A statement of a function a call of which was answered by a hit of the cache
-   is counted as reached: the visits of that call save no state, and the
-   absence of a state there does not prove the statement unreachable. The
-   coverage is then an upper bound, and its line says so (see
-   [unknown_reachability]). *)
+(* A statement is reached if a state is saved there or a hit of the cache
+   reached it (see {!Reach_delivery}). A statement of a function a call of
+   which was answered by a hit on an entry without a Reach part is counted as
+   reached: that hit reaches no statement, and the absence of a state there
+   does not prove the statement unreachable. The coverage is then an upper
+   bound, and its line says so (see [unknown_reachability]). *)
 let reached stmt =
-  Results.is_reachable stmt || Safety_delivery.visits_skipped_at stmt
+  Results.is_reachable stmt || Reach_delivery.reach_unknown_at stmt
 
 let compute_fun_stats kf =
   let alarms = AlarmsStats.create 13
@@ -337,15 +338,16 @@ let compute_stats () =
 
 let plural count = if count = 1 then "" else "s"
 
-(* The statements counted as reached without a state: those of the functions
-   counted in the coverage that a hit of the cache answered, at which no
-   analysed call saves a state. A hit may reach them or not. *)
+(* The statements counted as reached without being reached: those of the
+   functions counted in the coverage that a hit on an entry without a Reach
+   part answered, at which no analysed call saves a state and no other hit
+   reached. That hit may reach them or not. *)
 let unknown_reachability () =
   let count = ref 0 in
   let do_stmt stmt = if not (Results.is_reachable stmt) then incr count in
   FunctionStats.iter (fun kf _ ->
       if consider_function (Kernel_function.get_vi kf)
-      && Safety_delivery.visits_skipped kf
+      && Reach_delivery.reach_unknown_of kf
       then
         match Kernel_function.get_definition kf with
         | fundec -> List.iter do_stmt fundec.Cil_types.sallstmts
