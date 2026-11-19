@@ -385,14 +385,14 @@ first evaluation. The three calls to `copy` read `callback` for each
 candidate (`copy: hits 0, rejected for callback 9`), and the client is
 called 0 times after a hit. With `EVA_TEST_CACHE_PARTS_CARRIER=reader`, the
 predicate of a reader of the statement states registers the client, with
-the same results. At the commit now `cbf089bcb4` (before the rebase onto #48),
+the same results. At the commit now `07d362ab46` (before the rebase onto #48),
 where `decide` asked `audited` of each part right after its `needed`, and the
 readers after the parts, both gave `copy: hits 1, rejected for callback 6`, and
 the client was called 10 times after the hit. With
 `EVA_TEST_CACHE_PARTS_CLIENT=part`, the predicate registers a part, never
 needed, at its first evaluation: the first call to `copy` rejects its three
 candidates with `callback` and the next two hit (`copy: hits 2, rejected for
-callback 3`). Mutations, each applied alone to the commit now `dc06f33291`
+callback 3`). Mutations, each applied alone to the commit now `480b89511f`
 (before the rebase onto #48) and reverted: with `decide` in one pass, the
 scenario with the client of Inout registered by `needed` gives `hits 1,
 rejected for callback 6` and 10 calls of the client; with the readers evaluated
@@ -463,7 +463,7 @@ missing-part), rejected (entry 2: key-differs), rejected (entry 3:
 missing-part)` and the same with the keys exchanged, and are analysed:
 `copy: hits 0, rejected for missing-part 5, for missing-points 0`. With the
 test of `supplies` removed from `check` (a mutation applied to
-`4f20abfe60` and reverted), the same candidates read `missing-points`
+`00b94478e9` and reverted), the same candidates read `missing-points`
 (`rejected for missing-part 0, for missing-points 5`).
 
 **Open.** None for this claim.
@@ -944,49 +944,48 @@ Readers inside Eva:
 | # | Reader | Class | Decided at | Test | With #49 |
 |---|---|---|---|---|---|
 | 1 | The queries at a statement or at the start of a function, with no listed plug-in loaded: `Eva.Results` (`before`, `after`, `at_start_of`, `in_callstack`, `callstacks`, `is_reachable`, and the evaluations on their answers), and the requests `get_state`, `get_state_by_callstack` and `callstacks` of the engine | `top`: the state is top on the callstack of a hit and over all callstacks at a point that a hit reaches; an evaluation in the top state covers every state of the visit | `engine.ml:68` and `:73` | `raw`; `late-reader`, lines `after the hits`; `cache-reach.t`, `loop.c` | the states of the visit in place of top |
-| 2 | The same queries while a plug-in of `loaded_reader` is loaded (*new*) | `refused` | `engine.ml:172`, `:177`, `:192`; `safety_delivery.ml:44` | `late-reader`, lines `with a reader loaded`, `in a copy`, `results with hits installed`, `in a copy of the installed results` | `candidate`, plug-in by plug-in (rows 22 to 31) |
+| 2 | The same queries while a plug-in of `loaded_reader` is loaded (*new*) | `refused` | `engine.ml:172`, `:177`, `:192`; `safety_delivery.ml:44` | `late-reader`, lines `with a reader loaded`, `in a copy`, `results with hits installed`, `in a copy of the installed results`, and the same under the three options on saved states | `candidate`, plug-in by plug-in (rows 21 to 30) |
 | 3 | The final values of a function, printed with `-eva` (`Cvalue_domain.display_final_state`); reads the store of the cvalue domain, without the engine (*new*) | `refused` for a function with a hit: prints the number of its hits | `cvalue_domain.ml:459` | `inout` with `-eva`; `saved-states`; `cache-reach.t`, `loop.c` | not enough: the printer reads the store, which #49 does not fill |
-| 4 | The filter of the final values by the outputs of Inout (`Eva_dynamic.Inout.kf_outputs`) | `top`: answers `Top`, and the values are printed unfiltered | `eva_dynamic.ml:26` | `inout` with `-eva`, lines `Cannot filter` | follows row 17 |
+| 4 | The filter of the final values by the outputs of Inout (`Eva_dynamic.Inout.kf_outputs`) | `top`: answers `Top`, and the values are printed unfiltered | `eva_dynamic.ml:26` | `inout` with `-eva`, lines `Cannot filter` | follows row 16 |
 | 5 | The marking of dead code (`Eval_annots.mark_unreachable`) and the coverage of the summary (`Summary`) | `top`: read whether a statement is reached, and the points of the hits are reached | `eval_annots.ml:56`, `:67`, `:107`; `summary.ml:179`, `:276` | `cache-reach.t`, `reach.c`; `cache-safety.t`, `passes.c` | no change |
 | 6 | The refinement of the statuses of the alarms (`Eval_annots.mark_green_and_red`) and `Export` | `top`: conclude at a statement only when every callstack agrees, and the state is top on the callstacks of the hits ([The passes after the analysis read the points reached by hits](reach.md#the-passes-after-the-analysis-read-the-points-reached-by-hits)) | `eval_annots.ml:124`, `:141`; `export.ml:219` to `:231` | `cache-safety.t`, `passes.c`; `cache-reach.t`, `reach.c` | more statuses refined |
 | 7 | The server request `getDeadCode` | `top`, as row 5; `refused` while a listed plug-in is loaded (row 2, *new*) | `ast_requests.ml:137`; `engine.ml:177` | `server`, before and after Studia is loaded | no change; row 2 |
-| 8 | The other requests of Eva's server, which the graphical interface sends: the values at a statement and by callstack (`value_requests.ml:360` to `:362`, `:461`), the states before and after a statement (`analysis_requests.ml:132`) | `top`: display the state top; `refused` while a listed plug-in is loaded (row 2, *new*) | `engine.ml:68`; `engine.ml:172`, `:177` | source inspection; `raw` and `late-reader` for the queries they send | the values of the visit |
+| 8 | The other requests of Eva's server, which the graphical interface sends: the values at a statement and by callstack (`value_requests.ml:360` to `:362`, `:461`), the states before and after a statement (`analysis_requests.ml:132`) | `top`: display the state top; `refused` while a listed plug-in is loaded (row 2, *new*) | `engine.ml:68`; `engine.ml:172`, `:177` | `server`, lines `getValues`, for the values at a statement; source inspection for the states before and after | the values of the visit |
 | 9 | The requests of the taint (`taint_requests.ml:164`, `:240`, `:295`) | no hit: the taint domain is a second domain, and the lookup rejects every candidate with `product` | `supplied_entries.ml:489` | [A supplied entry is used only where a hit is supported](reuse-operation.md#a-supplied-entry-is-used-only-where-a-hit-is-supported) | not concerned |
-| 10 | The dependencies of a term at a statement (`Logic_inout`, installed as `Logic_deps.compute_term_deps`); its callers are Pdg, Scope, Slicing and Sparecode | `consumer` and `refused`, as row 22 | `logic_inout.ml:29`; `engine.ml:177` | as row 22 | as row 22 |
-| 11 | The analysis of threads (`mt_interferences.ml:31`, `mt_shared_vars.ml:247`, `:293`) | `consumer`: enabled, it rejects every candidate | `supplied_entries.ml:238` | [A supplied entry is used only where a hit is supported](reuse-operation.md#a-supplied-entry-is-used-only-where-a-hit-is-supported) | not enough: its tables identify the calls by their analyses, not by the states |
-| 12 | `Interferences.add_last_analysis` of the engine (`concurrency/interferences.ml:224`) | no caller in the tree; it asks the engine, as rows 1 and 2 | `engine.ml:172` to `:192` | none | as row 1 |
-| 13 | `Eva_results.get_results` and `set_results` (`eva_results.ml:86`, `:162`): copy the states of the cvalue store | `none`: draw no conclusion; the copy carries the record of the hits | `eva_results.ml:145`, `:190` | `snapshot`; `late-reader`, lines `results with hits installed` | not concerned |
-| 14 | The initial state (`Eva_results.get_initial_state`, `eval_terms.ml:209`, the request of the engine on `Initial`) | `none`: not a state at a statement | `engine.ml:170` | `late-reader`, lines `initial state` | not concerned |
+| 10 | The dependencies of a term at a statement (`Logic_inout`, installed as `Logic_deps.compute_term_deps`); its callers are Pdg, Scope, Slicing and Sparecode | `consumer` and `refused`, as row 21 | `logic_inout.ml:29`; `engine.ml:177` | as row 21 | as row 21 |
+| 11 | The analysis of threads: `mt_interferences.ml:31`, `mt_shared_vars.ml:247`, `:293`, and `Interferences.add_last_analysis` of the engine (`concurrency/interferences.ml:224`), which only `Mt_interferences.add_last_analysis` calls | `consumer`: enabled, it rejects every candidate | `supplied_entries.ml:238` | [A supplied entry is used only where a hit is supported](reuse-operation.md#a-supplied-entry-is-used-only-where-a-hit-is-supported) | not enough: its tables identify the calls by their analyses, not by the states |
+| 12 | `Eva_results.get_results` and `set_results` (`eva_results.ml:86`, `:162`): copy the states of the cvalue store | `none`: draw no conclusion; the copy carries the record of the hits | `eva_results.ml:145`, `:190` | `snapshot`; `late-reader`, lines `results with hits installed` | not concerned |
+| 13 | The initial state (`Eva_results.get_initial_state`, `eval_terms.ml:209`, the request of the engine on `Initial`) | `none`: not a state at a statement | `engine.ml:170` | `late-reader`, lines `initial state` | not concerned |
 
 Readers in the other plug-ins. The list is that of the plug-ins whose
 sources name Eva: `git grep -l 'Eva\.\|open Eva\b' -- 'plugins/*.ml'
 'plugins/*.mli' ':!plugins/eva'` gives files in 21 of them, all in a row
-below (From and Inout in rows 15 to 20).
+below (From and Inout in rows 14 to 19).
 
 | # | Reader | Class | Decided at | Test | With #49 |
 |---|---|---|---|---|---|
-| 15 | From, dependencies by function: `From.get`, `From.compute`, `-deps`, the printers of From | `consumer` with `-deps`; `refused`, after running the analysis, before computing and before its table | `from_register.ml:159`; `functionwise.ml:33` | `readers` with `-deps`; `api`, `lazy-from`, `then`, `save`, `snapshot`, `copy` | `candidate` |
-| 16 | From, callwise dependencies: `From.Callwise`, `-calldeps` | `none` for the computation: reads the states of the call being finalised; a hit restores its part. The display of `-calldeps` asks the callee of each call site (`from_register.ml:90`), in the analysed callers, whose states are saved: answered, and `refused` while a listed plug-in is loaded (row 2, *new*) | `callwise.ml` (`restore_froms`); `engine.ml:177` | `from`, `visits`; the refusal of the display was observed on a session saved with `-calldeps` and loaded with Occurrence, outside the test suite | not concerned |
-| 17 | Inout by function and by statement: `kf_inputs`, `kf_outputs`, `kf_external_inputs`, `kf_external_outputs`, the inputs with formals, the dereferenced zones, `stmt_inputs`, `stmt_outputs`, `expr_inputs`; options `-input`, `-out`, `-out-external`, `-input-with-formals`, `-deref` | `consumer` with one of the options; `refused`, before computing and before its tables | `inout/src/register.ml:47`; `cumulative_analysis.ml:24`, called at `:148`, `:155`, `:163`, `inputs.ml:146`, `outputs.ml:143`, `derefs.ml:73` | `readers` with each option; `api`, `warm`, `then`, `save`, `external` | `candidate` |
-| 18 | Inout, operational inputs and outputs of a function computed from its statements (`get_precise_inout` without statement, `-inout`) | `refused`, before computing and before reading the tables of a result computed from the statements | `operational_inputs.ml:208`, called at `:838`, `:852`, `:872`, `:886` | `nested`, `fallback`, `external` | `candidate` |
-| 19 | Inout, operational inputs and outputs joined from the results of the calls, and callwise at a statement | `none`: a hit restores the result of its call | `operational_inputs.ml:208` (a function not computed from its statements passes) | `inout`, `fallback`, `visits` | not concerned |
-| 20 | The filters `read` and `written` of Inout on the variables of the server (`Inout_requests`) | `refused`, through row 17; the server answers with an error | `cumulative_analysis.ml:24` | source inspection, no scenario | `candidate` |
-| 21 | Pdg, the graph of a function: `Pdg_tbl.get`, `-fct-pdg`, `-pdg` | `consumer` by name; `refused` by its own test, after running the analysis, before computing and before its table | `cache_part.ml:143`; `pdg_tbl.ml:45` | `readers` with Pdg; `save`, then `-load` with Pdg | `candidate` |
-| 22 | The reads of `Eva.Results` at statements by Pdg and by the plug-ins that load it: Impact, Scope, Security slicing, Slicing, Sparecode (*new refusal*) | `consumer` by dependency on Pdg; `refused` by row 2, since Pdg is loaded with them | `cache_part.ml:143`, `:157`; `engine.ml:172` to `:192` | `readers` with Slicing; `late-slicing`. The four others have no scenario: the rule is by dependency | `candidate` |
-| 23 | Studia, the requests `getReadsLval` and `getWritesLval` | `consumer` by name; `refused` by its own test, before computing | `cache_part.ml:143`; `studia_request.ml:63`, `:84` | `readers` with Studia; `server`, lines `declaration` and `getWritesLval` | `candidate` |
-| 24 | `Reads.compute` and `Writes.compute` of Studia called without its requests, as Dive does, and the reads of Dive (*new refusal*) | `consumer` by dependency on Studia; `refused` by row 17 at each statement that they examine (`Inout.stmt_inputs`, `stmt_outputs`) and by row 2 | `cache_part.ml:143`; `cumulative_analysis.ml:148` to `:163`; `engine.ml:177` | `readers` with Dive; `late-dive` | `candidate` |
-| 25 | Reduc (`value2acsl.ml:149`, `:154`; `collect.ml:111`) (*new refusal*) | `consumer` by name; `refused` by row 2 and row 17 | `cache_part.ml:143`; `engine.ml:177` | `readers` with Reduc. No scenario after a hit: Reduc reads at the statements of the alarms, and the session of the test has none | `candidate` |
-| 26 | Nonterm (`nonterm_run.ml:170`, `:188`, `:235`, `:276`, `:285`, `:291`) (*new refusal*) | `consumer` by name; `refused` by row 2 | `cache_part.ml:154`; `engine.ml:172` to `:192` | `readers` with Nonterm; `late-nonterm` | `candidate` |
-| 27 | Metrics, coverage by Eva (`metrics_coverage.ml:205`, `:239`, `:259`) (*new refusal*) | the same | the same | `readers` with Metrics; `late-metrics` | `candidate` |
-| 28 | The Markdown report, `eva-info` (`eva_info.ml:85`, `:103`) (*new refusal*) | the same | the same | `readers` with the report; `late-mdr` | `candidate` |
-| 29 | WP, memory model based on Eva (`wp_eva.enabled.ml:10`) (*new refusal*) | the same | the same | `readers` with WP; `late-wp` | `candidate` |
-| 30 | The constant propagation (`constant_propagation/src/api.ml:122`) (*new refusal*) | the same | the same | `readers` with it; `late-scf` | `candidate` |
-| 31 | Occurrence (`occurrence/src/register.ml:95`) (*new*, at lookup and after a hit) | the same | the same | `readers` with Occurrence; `late-occurrence`; `late-reader` | `candidate` |
-| 32 | Loop analysis, the bounds of a variable (`loop_analysis.ml:333`) | `top`: the value of a variable in the top state is not an integer set, `as_ival` answers an error and the plug-in gets no bound, as when Eva has no result | `loop_analysis.ml:336` to `:339`; `results.ml:624` | source inspection, no scenario | the bounds of the visit |
-| 33 | Callgraph, the callers of a function (`cg.ml:196`, `Eva.Results.callsites`) | `none`: reads the table of the callers, where a hit registers the calls of the skipped body | `reach_delivery.ml:51` | `cache-reach.t`, lines `call sites` | not concerned |
-| 34 | Aorai (`aorai_eva_analysis.enabled.ml:42`) | `none`: evaluates in the state that the analysis passes to its builtin | source inspection | none | not concerned |
-| 35 | RTE (`rte/src/eva_analysis.enabled.ml:13`) | `none`: reads whether Eva analysed the function, and then relies on the alarms of Eva, which a hit delivers ([A hit delivers the Safety part as recorded joins](safety.md#a-hit-delivers-the-safety-part-as-recorded-joins)) | source inspection | none | not concerned |
-| 36 | A reader outside the tree that asks `Eva.Results` | `top` (row 1); `refused` while a listed plug-in is loaded (row 2) | rows 1 and 2 | rows 1 and 2 | row 1 |
+| 14 | From, dependencies by function: `From.get`, `From.compute`, `-deps`, the printers of From | `consumer` with `-deps`; `refused`, after running the analysis, before computing and before its table | `from_register.ml:159`; `functionwise.ml:33` | `readers` with `-deps`; `api`, `lazy-from`, `then`, `save`, `snapshot`, `copy` | `candidate` |
+| 15 | From, callwise dependencies: `From.Callwise`, `-calldeps` | `none` for the computation: reads the states of the call being finalised; a hit restores its part. The display of `-calldeps` asks the callee of each call site (`from_register.ml:90`), in the analysed callers, whose states are saved: answered, and `refused` while a listed plug-in is loaded (row 2, *new*) | `callwise.ml` (`restore_froms`); `engine.ml:177` | `from`, `visits`; for the display, the session saved with `-calldeps` and loaded with no reader, then with Occurrence | not concerned |
+| 16 | Inout by function and by statement: `kf_inputs`, `kf_outputs`, `kf_external_inputs`, `kf_external_outputs`, the inputs with formals, the dereferenced zones, `stmt_inputs`, `stmt_outputs`, `expr_inputs`; options `-input`, `-out`, `-out-external`, `-input-with-formals`, `-deref` | `consumer` with one of the options; `refused`, before computing and before its tables | `inout/src/register.ml:47`; `cumulative_analysis.ml:24`, called at `:148`, `:155`, `:163`, `inputs.ml:146`, `outputs.ml:143`, `derefs.ml:73` | `readers` with each option; `api`, `warm`, `then`, `save`, `external` | `candidate` |
+| 17 | Inout, operational inputs and outputs of a function computed from its statements (`get_precise_inout` without statement, `-inout`) | `refused`, before computing and before reading the tables of a result computed from the statements | `operational_inputs.ml:208`, called at `:838`, `:852`, `:872`, `:886` | `nested`, `fallback`, `external` | `candidate` |
+| 18 | Inout, operational inputs and outputs joined from the results of the calls, and callwise at a statement | `none`: a hit restores the result of its call | `operational_inputs.ml:208` (a function not computed from its statements passes) | `inout`, `fallback`, `visits` | not concerned |
+| 19 | The filters `read` and `written` of Inout on the variables of the server (`Inout_requests`) | `refused`, through row 16; the server answers with an error | `cumulative_analysis.ml:24` | source inspection, no scenario | `candidate` |
+| 20 | Pdg, the graph of a function: `Pdg_tbl.get`, `-fct-pdg`, `-pdg` | `consumer` by name; `refused` by its own test, after running the analysis, before computing and before its table | `cache_part.ml:143`; `pdg_tbl.ml:45` | `readers` with Pdg; `save`, then `-load` with Pdg | `candidate` |
+| 21 | The reads of `Eva.Results` at statements by Pdg and by the plug-ins that load it: Impact, Scope, Security slicing, Slicing, Sparecode (*new refusal*) | `consumer` by dependency on Pdg; `refused` by row 2, since Pdg is loaded with them | `cache_part.ml:143`, `:157`; `engine.ml:172` to `:192` | `readers` with Slicing; `late-slicing`; `late-sparecode`, refused by row 20; one request of Scope, of Impact and of Security slicing through their interfaces (`test_cache_parts_readers.ml`), refused by Eva for Scope and by row 20 for the two others | `candidate` |
+| 22 | Studia, the requests `getReadsLval` and `getWritesLval` | `consumer` by name; `refused` by its own test, before computing | `cache_part.ml:143`; `studia_request.ml:63`, `:84` | `readers` with Studia; `server`, lines `declaration` and `getWritesLval` | `candidate` |
+| 23 | `Reads.compute` and `Writes.compute` of Studia called without its requests, as Dive does, and the reads of Dive (*new refusal*) | `consumer` by dependency on Studia; `refused` by row 16 at each statement that they examine (`Inout.stmt_inputs`, `stmt_outputs`) and by row 2 | `cache_part.ml:143`; `cumulative_analysis.ml:148` to `:163`; `engine.ml:177` | `readers` with Dive; `late-dive` | `candidate` |
+| 24 | Reduc (`value2acsl.ml:149`, `:154`; `collect.ml:111`) (*new refusal*) | `consumer` by name; `refused` by row 16, which it asks first at the statement of an alarm, and by row 2 | `cache_part.ml:143`; `cumulative_analysis.ml:148`; `engine.ml:177` | `readers` with Reduc; `alarm.c`, Reduc loaded on the session with hits | `candidate` |
+| 25 | Nonterm (`nonterm_run.ml:170`, `:188`, `:235`, `:276`, `:285`, `:291`) (*new refusal*) | `consumer` by name; `refused` by row 2 | `cache_part.ml:154`; `engine.ml:172` to `:192` | `readers` with Nonterm; `late-nonterm` | `candidate` |
+| 26 | Metrics, coverage by Eva (`metrics_coverage.ml:205`, `:239`, `:259`) (*new refusal*) | the same | the same | `readers` with Metrics; `late-metrics` | `candidate` |
+| 27 | The Markdown report, `eva-info` (`eva_info.ml:85`, `:103`) (*new refusal*) | the same | the same | `readers` with the report; `late-mdr` | `candidate` |
+| 28 | WP, memory model based on Eva (`wp_eva.enabled.ml:10`) (*new refusal*) | the same | the same | `readers` with WP; `late-wp` | `candidate` |
+| 29 | The constant propagation (`constant_propagation/src/api.ml:122`) (*new refusal*) | the same | the same | `readers` with it; `late-scf` | `candidate` |
+| 30 | Occurrence (`occurrence/src/register.ml:95`) (*new*, at lookup and after a hit) | the same | the same | `readers` with Occurrence; `late-occurrence`; `late-reader` | `candidate` |
+| 31 | Loop analysis, the bounds of a variable (`loop_analysis.ml:333`) | `top`: the value of a variable in the top state is not an integer set, `as_ival` answers an error and the plug-in gets no bound, as when Eva has no result | `loop_analysis.ml:336` to `:339`; `results.ml:624` | source inspection, no scenario | the bounds of the visit |
+| 32 | Callgraph, the callers of a function (`cg.ml:196`, `Eva.Results.callsites`) | `none`: reads the table of the callers, where a hit registers the calls of the skipped body | `reach_delivery.ml:51` | `cache-reach.t`, lines `call sites` | not concerned |
+| 33 | Aorai (`aorai_eva_analysis.enabled.ml:42`) | `none`: evaluates in the state that the analysis passes to its builtin | source inspection | none | not concerned |
+| 34 | RTE (`rte/src/eva_analysis.enabled.ml:13`) | `none`: reads whether Eva analysed the function, and then relies on the alarms of Eva, which a hit delivers ([A hit delivers the Safety part as recorded joins](safety.md#a-hit-delivers-the-safety-part-as-recorded-joins)) | source inspection | none | not concerned |
+| 35 | A reader outside the tree that asks `Eva.Results` | `top` (row 1); `refused` while a listed plug-in is loaded (row 2) | rows 1 and 2 | rows 1 and 2 | row 1 |
 
 **Kind.** OCaml obligation.
 
@@ -1038,11 +1037,14 @@ current engine: `get_state` and `get_state_by_callstack`, both defined by
 does not depend on the options that decide which states are saved;
 `callstacks` calls it first. `check_readers` stops with a user error when
 the set is not empty and `Cache_part.loaded_reader` names a plug-in. The
-stores are read without the engine in three places, found with `git grep
--n 'Cvalue_results\.\|Store\.get_state\|Store\.callstacks' --
-'plugins/eva/src/*.ml'`: the engine itself and the stores of the domains
-that it calls; `Eva_results`, which copies the states (row 13) and reads
-the initial state; and the printer of the final values (row 3). A reader
+stores are read without the engine in three places beside the engine
+itself and the stores of the domains that it calls
+(`cvalue_domain.ml:427` to `:435`, `domain_builder.ml`,
+`domain_product.ml`), found with `git grep -n
+'Cvalue_results\.\|Store\.get_state\|Store\.callstacks' --
+'plugins/eva/src/*.ml'`: `Eva_results`, which copies the states (row 12); `Eval_terms`, which
+reads the initial state (row 13); and the printer of the final values
+(row 3). A reader
 loaded after the analysis is thus refused at its first query whatever the
 plug-in that asks, and the refusal needs no test in the plug-ins listed by
 name.
@@ -1158,7 +1160,34 @@ plug-in, exit status 1: Occurrence (`-occurrence`), Nonterm (`-nonterm`),
 Metrics (`-metrics-eva-cover`), the constant propagation (`-scf`), WP
 (`-wp -wp-model eva`), the Markdown report (`-mdr-gen md`), Slicing
 (`-slice-return main`, error naming `pdg`) and Dive
-(`-dive-from-variables narrow::x`, error naming `studia`).
+(`-dive-from-variables narrow::x`, error naming `studia`). Sparecode
+(`-sparecode`) stops with the refusal of Pdg. One request of each of
+Scope, Impact and Security slicing, made through their interfaces by
+`test_cache_parts_readers.ml` about `b` before the last call to `copy`,
+is computed on a session saved after an analysis with caching disabled;
+on the session with hits, `Scope.Datascope.get_data_scope_at_stmt`,
+`Scope.Defs.get_defs` and `Scope.Zones.build_zones` are refused by Eva,
+and `Impact.Register.from_stmt` and
+`Security_slicing.Components.get_direct_component` by Pdg. On `alarm.c`,
+which calls the main function of `parts.c` and then divides by a volatile
+value, the session saved after the three hits on `copy` holds the alarm
+of the division; Reduc loaded on it stops with the refusal of Inout, exit
+status 1, and runs to its end on an analysis with caching disabled.
+
+A session saved with `-calldeps` after the three hits, loaded with From
+and Inout alone: From displays the callwise dependencies of the 9 calls,
+equal to the display of an analysis with caching disabled (`cmp`). Loaded
+with Occurrence, the display stops with the refusal of Eva, exit status
+1, before Occurrence asks anything.
+
+The scenario `late-reader` under `-eva-no-results`,
+`-eva-no-results-function copy` and `-eva-no-results-domain cvalue`, set
+in the producing analysis, in the using one or in both: in the eight
+cases where a call hits, the seven requests are refused with a reader
+loaded, in a copy, with the results with hits installed and in a copy of
+these, and none is refused before the reader is loaded or with the
+results of caching disabled installed; with `-eva-no-results` in the
+producing analysis alone, no call hits and nothing is refused.
 
 The server requests, in their
 own test module (`test_cache_parts_server.ml`), since the main one does not
@@ -1169,9 +1198,12 @@ and `getWritesLval` 1 direct statement. After the analysis with hits in
 the same process (3 hits on `copy`, 1 on `narrow`), and in the session
 saved by the scenario `save` and loaded with `-load`: before Studia is
 loaded, `getDeadCode` gives 2 reached statements on `copy` and 4 on
-`narrow`, no unreachable one, as with caching disabled; once Studia is
-loaded, `getDeadCode` on `copy` and `getReadsLval` at the call, which
-locates its lvalue with the results of Eva, are refused by Eva, and
+`narrow`, no unreachable one, as with caching disabled, and `getValues`
+gives `{{ ANYTHING }} or UNINITIALIZED or ESCAPINGADDR` for `*src` in
+`copy`, where caching disabled gives `{1; 2}`; once Studia is
+loaded, `getDeadCode` on `copy`, `getValues` and `getReadsLval` at the
+call, which locates its lvalue with the results of Eva, are refused by
+Eva, and
 `getReadsLval` and `getWritesLval` on the declaration of `b`, which need
 no state for the location, are refused by the test of Studia.
 
@@ -1212,7 +1244,7 @@ warning, exit status 0; with the test of Studia removed from
 
 Earlier mutations, not run again for this version: with
 `Safety_delivery.skip_visits` changed to record nothing (applied to
-`4f20abfe60` and reverted), the results after the hits read as complete,
+`00b94478e9` and reverted), the results after the hits read as complete,
 and every request refused in item 1 is computed; with the test of
 `From_statements` removed, the result of `unused` in `fallback` is
 returned.
@@ -1229,12 +1261,15 @@ returned.
   Refusing only the queries that the listed plug-in sends would need the
   identity of the caller, which the queries do not have.
 - A reader that is not in the tree, and a plug-in of the tree added later,
-  get the state top (row 36) unless a listed plug-in is loaded. Whether
+  get the state top (row 35) unless a listed plug-in is loaded. Whether
   such a reader concludes soundly from the state top is not checked: the
   claim is for the readers of the table. Nothing in the build detects a
   reader missing from the lists.
-- Rows 8, 20, 32, 34 and 35 rest on source inspection, without a scenario.
-  Row 25 has no scenario after a hit, and row 22 has one for Slicing only.
+- Rows 19, 31, 33 and 34 rest on source inspection, without a scenario,
+  and so do the states before and after a statement of row 8. Loop
+  analysis (`-loop`), Callgraph (`-cg`) and RTE (`-rte`), loaded on the
+  session with hits, ran to their end with exit status 0; these runs are
+  not in the test suite and compare no result.
 - Lifting the refusals marked `candidate` needs the states at the
   statements of a skipped body (the state queries of #49, and the public
   Inner query of

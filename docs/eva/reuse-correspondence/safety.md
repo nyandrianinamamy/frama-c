@@ -476,7 +476,11 @@ after a hit whose points the queries see are the subject of
 The hit also records the function among those whose visits a hit
 skipped, in a state of the analysis, reset with it, saved with the
 session and kept with the results that `Eva_results` takes and installs
-again; From, Inout, Pdg and Studia read this record
+again; From, Inout, Pdg and Studia read this record, and so do the
+results of Eva: while a plug-in listed as a reader of the states at
+statements is loaded, they refuse the states at a statement after a hit,
+and the requests above, `getDeadCode` included, stop with a user error
+instead of answering
 ([Results computed from statement states are refused after a hit](cache-parts.md#results-computed-from-statement-states-are-refused-after-a-hit)).
 
 **Kind.** OCaml obligation.
@@ -647,7 +651,7 @@ reverted after the run: with the test of `reach_unknown_of` removed from
 lines 14 and 18 after the hit; removed from `dead_code`, `getDeadCode`
 lists every statement of `body` as unreachable. With
 `Safety_delivery.skip_visits` changed to record nothing (applied to
-`4f20abfe60` and reverted), the fixtures of `cache-reach.t` differ only in
+`00b94478e9` and reverted), the fixtures of `cache-reach.t` differ only in
 the record itself, and no fixture shows its effect on the statistics of a
 function; the readers that test the record are those of
 [Results computed from statement states are refused after a hit](cache-parts.md#results-computed-from-statement-states-are-refused-after-a-hit),
@@ -1353,7 +1357,7 @@ seen by the audits and by the test of the same lookup. A function
 `cache_part.mli`: the audits asked before it do not see the client.
 `cache_part.mli` states what a predicate may do: return a result, register
 nothing and write in no table. Before the two passes (at the commit now
-`cbf089bcb4` (before the rebase onto #48)), a predicate `needed` or of a reader
+`07d362ab46` (before the rebase onto #48)), a predicate `needed` or of a reader
 of the statement states that registered a client of Inout after the audit of
 the part of Inout let the first call hit, and the client ran at its
 restoration.
@@ -1679,12 +1683,12 @@ hits, the rejections and the calls of the observers only:
   audit makes the call reject the entry (`hits on body: 0, rejected for
   callback: 1`) and is not called during a delivery; registered as
   audited, the call hits and the observer is called once during the
-  delivery. Before the test of `Hook.Opaque` (at the commit now `cbf089bcb4`
+  delivery. Before the test of `Hook.Opaque` (at the commit now `07d362ab46`
   (before the rebase onto #48)), a review observed the observer without an
   audit running at the hit after the visits were skipped. On `alone.c`, the
   status of the division alarm at the end is unknown after the hit, where the
   run with caching disabled gives it the final status invalid (executed at
-  `95016e62ee` with the audited observer, outside the test suite): `body` is
+  `5e0a73e133` with the audited observer, outside the test suite): `body` is
   called from `main` only through the hit, and the refinement of the statuses
   after the analysis evaluates the alarm in the state top of the callstack of
   the hit, from which it concludes nothing
@@ -1697,7 +1701,7 @@ hits, the rejections and the calls of the observers only:
   registered as audited, it rejects none: the entry is rejected for
   `preconditions` at the second call, and the observer is called during
   no delivery. When a hit checked the preconditions (at the commit now
-  `cbf089bcb4` (before the rebase onto #48), before the test of `Base`), a
+  `07d362ab46` (before the rebase onto #48), before the test of `Base`), a
   review observed the observer without an audit running in the admitted
   hit, before the visits were skipped. On `alone.c`, where `body` has no
   precondition, the call hits with the audited observer, which is called
@@ -1719,7 +1723,7 @@ In `cache-parts.t`:
   three calls to `copy` read `callback` for their three candidates; at the
   second, the first call hits and the two others read `callback`. The hook
   receives no call with `` `Reuse ``, and the predicate runs 7 times, once
-  for each lookup with candidates. At the commit now `7dfdd31b87` (before the
+  for each lookup with candidates. At the commit now `31fa7b9804` (before the
   rebase onto #48), before the answers were taken once, both gave `hits 1`, one
   call with `` `Reuse `` and 3 evaluations.
 - Scenario `predicate` with `EVA_TEST_CACHE_PARTS_CLIENT=inout`: the
@@ -1729,7 +1733,7 @@ In `cache-parts.t`:
   and the client is called 0 times after a hit on `copy`. With
   `EVA_TEST_CACHE_PARTS_CARRIER=reader`, the predicate of a reader of the
   statement states registers it, with the same results. At the commit now
-  `cbf089bcb4` (before the rebase onto #48), when the audit of the part of
+  `07d362ab46` (before the rebase onto #48), when the audit of the part of
   Inout ran before these predicates, both gave `copy: hits 1, rejected for
   callback 6`, and the client was called 10 times after the hit.
 - Scenario `predicate` with `EVA_TEST_CACHE_PARTS_CLIENT=part`: the
@@ -1742,12 +1746,12 @@ In `cache-parts.t`:
   without an audit gives `copy: hits 0, rejected for callback 9`; registered
   as audited, the three calls hit, and its four updates of `copy` read
   `complete false, reached 2` where those of the analysis with caching
-  disabled read `complete true, reached 2`. At the commit now `7dfdd31b87`
+  disabled read `complete true, reached 2`. At the commit now `31fa7b9804`
   (before the rebase onto #48), the subscriber without an audit let the three
   calls hit.
 - Scenario `replace-summary`: a second installation through
   `Eva__Private.Safety_delivery.on_delivered` is refused, and the three
-  calls to `copy` hit. At the commit now `7dfdd31b87` (before the rebase onto
+  calls to `copy` hit. At the commit now `31fa7b9804` (before the rebase onto
   #48), a module outside the tree replaced it, and its function ran at the
   seven hits of `parts.c`.
 - The scenarios with the server loaded and not started keep their hits
@@ -1835,7 +1839,7 @@ the parts registered since the decisions compared with itself in
 `Cache_part.unaudited_clients` (the field kept used, as warning 69
 requires), the scenario with a registered part gives `copy: hits 3,
 rejected for callback 0`. These were applied to the commit now
-`dc06f33291` (before the rebase onto #48).
+`480b89511f` (before the rebase onto #48).
 
 Of the hit scenarios of `cache-safety.t` before the rule of the audited
 clients, one rejects since: `overflow.c` with the client of the hooks on

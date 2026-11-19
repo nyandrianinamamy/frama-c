@@ -469,7 +469,12 @@ function are not saved, the hit delivers no point
 When the store of the cvalue domain saves no state
 (`-eva-no-results-domain cvalue`), the queries answer no callstack at any
 point and do not see the points of the hit: the hit records its function
-as of unknown reachability.
+as of unknown reachability. The claim is for a process in which no plug-in
+listed as a reader of the states at statements
+(`Cache_part.loaded_reader`) is loaded: while one is loaded, the queries
+at a statement or at the start of a function stop with a user error after
+a hit, and answer nothing
+([Results computed from statement states are refused after a hit](cache-parts.md#results-computed-from-statement-states-are-refused-after-a-hit)).
 
 **Kind.** OCaml obligation.
 
@@ -648,7 +653,14 @@ are saved (`missing-points`). When the store of the cvalue domain saves no
 state, the queries see no point, of a hit or of an analysed call: Export
 and `getDeadCode` draw no conclusion in the function of a hit
 ([The passes after the analysis draw no conclusion where the queries do not see the points of a hit](safety.md#the-passes-after-the-analysis-draw-no-conclusion-where-the-queries-do-not-see-the-points-of-a-hit)),
-and the other passes conclude nothing, with or without a hit.
+and the other passes conclude nothing, with or without a hit. The passes
+of the analysis run in a process where no plug-in listed as a reader of
+the states at statements is loaded, since one that is loaded rejects every
+candidate; were one loaded between a hit and the end of the analysis, the
+passes would stop with the refusal of the queries. The request
+`getDeadCode`, sent after the analysis, is refused while such a plug-in is
+loaded
+([Results computed from statement states are refused after a hit](cache-parts.md#results-computed-from-statement-states-are-refused-after-a-hit)).
 
 **Kind.** OCaml obligation.
 
