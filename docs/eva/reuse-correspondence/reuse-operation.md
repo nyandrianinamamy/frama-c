@@ -563,10 +563,11 @@ three over the examination of each candidate (`key-differs`,
 then `stop_at_nth_alarm`, then calls `Cache_entry.Make.find`; the first test
 that rejects gives its reason to every candidate. `cvalue_alone` is defined
 only when the structure of the product is a single leaf whose key is the key
-of `Cvalue_domain.State`; the key comparison gives an equality between the type of the states of the
-engine and that of cvalue states, through which the input of the call and the
-states returned are converted, with no change of value. Any other structure,
-a product of several domains included, rejects every candidate. The second
+of `Cvalue_domain.State`; the key comparison gives an equality between the
+type of the states of the engine and that of cvalue states, through which the
+input of the call and the states returned are converted, with no change of
+value. Any other structure, a product of several domains included, rejects
+every candidate. The second
 test is needed because a hit sends its identifier to the results hooks with
 `` `Reuse N ``: Inout (`Operational_inputs.record_for_callwise_inout`) and
 From (`Callwise.record_for_individual_froms`) look it up in their tables of

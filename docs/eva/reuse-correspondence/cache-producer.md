@@ -155,9 +155,10 @@ stored.
 **Claim.** Each completed body observation leads to one production
 disposition and count. The stored entry carries the Exit part, the Safety
 part, the collector's recorded join classes, used functions with their call
-modes, sweep targets, the stamp of a widening read, and an Inner reference if cvalue statement states were recorded. Memexec
-still serves ordinary calls. Only explicit fixture supply can make a
-produced entry a lookup candidate.
+modes, sweep targets, the stamp of a widening read, and an Inner reference
+if cvalue statement states were recorded. Memexec still serves ordinary
+calls. Only explicit fixture supply can make a produced entry a lookup
+candidate.
 
 **Kind.** OCaml obligation.
 

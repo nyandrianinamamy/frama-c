@@ -573,21 +573,21 @@ and `create` when there is no project. `load_projects` rebuilds the stack
 after unmarshalling, which moves its top without a count, then calls
 `force_set_current`; no hook runs in between. The kernel does not run the
 hooks of the change of project for a change made during one of these
-hooks, but it counts it. Each capture of the collector keeps the project and the count at
-its start, and adds `Project_switch` to its refusals when the count or the
-current project differs at its end. Every capture in progress compares its
-own start, so the bodies whose analysis contains that of the current one
-are refused as well. The producer stores no body with a refusal.
+hooks, but it counts it. Each capture of the collector keeps the project and
+the count at its start, and adds `Project_switch` to its refusals when the
+count or the current project differs at its end. Every capture in progress
+compares its own start, so the bodies whose analysis contains that of the
+current one are refused as well. The producer stores no body with a refusal.
 `Safety_part.record` compares the project and the count at the start of the
 recording with the current ones at each write, and refuses instead of
 recording when either differs. The count is a value of the process, not a
 state of a project: it is neither saved nor loaded with a session. Since
-every change of the current project increments the count, the comparison
-of the count at the end of `Body_access.capture` decides the refusal; the
+every change of the current project increments the count, the comparison of
+the count at the end of `Body_access.capture` decides the refusal; the
 comparisons of the project, and the comparison at each write of the Safety
-part, refuse no body that it does not refuse. No test tells them apart
-from it; only the removal of the comparison of the count alone, and of all
-the comparisons together, were run.
+part, refuse no body that it does not refuse. No test tells them apart from
+it; only the removal of the comparison of the count alone, and of all the
+comparisons together, were run.
 
 **Evidence (executed).** `cache-safety.t`: a hook of red statuses enters a
 second project with `Project.on` the first time it runs, during the analysis
