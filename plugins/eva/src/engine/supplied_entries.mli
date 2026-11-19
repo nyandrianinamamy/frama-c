@@ -161,6 +161,7 @@ val supply :
     of another module. The producer stores bodies that call other functions,
     and the lookup rejects their entries with [`Nested_delivery]: the check
     of [supply] on the calls of the body does not apply here.
+
     Raises [Invalid_argument] if the function of the entry is not a function
     of the current project: an entry made in a project is not supplied to a
     copy of it made by [Project.create_by_copy], whose functions are other
@@ -216,9 +217,11 @@ val active : unit -> bool
     no entry can serve is enabled, with [`Consumer]; otherwise, when
     [-eva-stop-at-nth-alarm] is set, with [`Stop_at_nth_alarm]; otherwise,
     when a client that is not audited is registered on a hook that a hit
-    runs, with [`Callback]; otherwise each candidate is examined by
-    {!Cache_entry.Make.find}, which rejects a candidate that lacks a part
-    whose consumer is enabled with [`Missing_part]. *)
+    runs, with [`Callback]; otherwise, when, while an analysis runs, its
+    results were cleared or another analysis ended, with [`Analysis_reset];
+    otherwise each candidate is examined by {!Cache_entry.Make.find}, which
+    rejects a candidate that lacks a part whose consumer is enabled with
+    [`Missing_part]. *)
 type rejection = [
   | Cache_entry.rejection
   | `Product
@@ -251,6 +254,13 @@ type rejection = [
       the hooks of the message collector of the kernel
       ({!Messages.has_hooks}). A client registered since the production of
       the entry counts. *)
+  | `Analysis_reset
+  (** While an analysis runs, its computation state is no longer
+      [Computing]: its results were cleared, which a change of an option of
+      Eva does, or another analysis, started by a callback after this one
+      set its state to [Computing], ended. The options of the rest of the
+      analysis may differ from those under which the entries were produced.
+      A lookup made outside any analysis, by a test, is not concerned. *)
 ]
 
 (** All reasons, in the order of their documentation. *)
@@ -258,8 +268,8 @@ val rejections : rejection list
 
 (** Stable identifier of a reason: those of {!Cache_entry.rejection_id},
     [product] for [`Product], [consumer] for [`Consumer],
-    [stop-at-nth-alarm] for [`Stop_at_nth_alarm] and [callback] for
-    [`Callback]. *)
+    [stop-at-nth-alarm] for [`Stop_at_nth_alarm], [callback] for
+    [`Callback] and [analysis-reset] for [`Analysis_reset]. *)
 val rejection_id : rejection -> string
 
 (** Result of a lookup. *)
@@ -283,11 +293,12 @@ module Lookup (Domain : sig
       whose input is [state].
       When the active domains are not the cvalue domain alone, when a
       component listed under [`Consumer] is enabled, when
-      [-eva-stop-at-nth-alarm] is set, or when a client listed under
-      [`Callback] is registered, every entry is rejected for this
-      reason. A matching entry without a Reach part, or whose Reach part
-      has no points when [save_results] holds for the top function of
-      [stack] ({!Function_calls.save_results}), is rejected with
+      [-eva-stop-at-nth-alarm] is set, when a client listed under
+      [`Callback] is registered, or when, while an analysis runs, its
+      results were cleared or another analysis ended, every entry is
+      rejected for this reason. A matching entry without a Reach part, or
+      whose Reach part has no points when [save_results] holds for the top
+      function of [stack] ({!Function_calls.save_results}), is rejected with
       [`Missing_points] if it passes the other admission checks; the lookup
       then examines the next candidate. This check comes before the
       following one: with either constructor, a matching body with a call

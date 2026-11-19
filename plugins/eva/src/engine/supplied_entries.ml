@@ -205,13 +205,13 @@ let pretty = Entry.pretty
 
 type rejection =
   [ Cache_entry.rejection | `Product | `Consumer | `Stop_at_nth_alarm
-  | `Callback ]
+  | `Callback | `Analysis_reset ]
 
 let rejections : rejection list =
   [ `Key_differs; `Key_unclosed; `Missing_part; `Sweep; `Recursion;
     `Hint_generation; `Watchpoint; `Automatic_cleanup; `Nested_delivery;
     `Warn_categories; `Missing_points; `Product; `Consumer;
-    `Stop_at_nth_alarm; `Callback ]
+    `Stop_at_nth_alarm; `Callback; `Analysis_reset ]
 
 let rejection_id : rejection -> string = function
   | #Cache_entry.rejection as r -> Cache_entry.rejection_id r
@@ -219,6 +219,7 @@ let rejection_id : rejection -> string = function
   | `Consumer -> "consumer"
   | `Stop_at_nth_alarm -> "stop-at-nth-alarm"
   | `Callback -> "callback"
+  | `Analysis_reset -> "analysis-reset"
 
 type 'state lookup = {
   rejected : (int * rejection) list;
@@ -365,6 +366,14 @@ module Lookup (Domain : sig
         reject_all `Consumer
       | Some _ when stop_at_nth_alarm () -> reject_all `Stop_at_nth_alarm
       | Some _ when unaudited_clients () -> reject_all `Callback
+      | Some _ when Self.analysis_in_progress ()
+                 && Self.ComputationState.get () <> Self.Computing ->
+        (* While an analysis runs, its results were cleared, as a change of
+           an option of Eva does, or another analysis, started by a callback,
+           ended: the options of the rest of the analysis may differ from
+           those under which the entries were produced. A test that calls
+           the lookup outside any analysis is not concerned. *)
+        reject_all `Analysis_reset
       | Some eq ->
         let nested_call = lazy (has_nested_call (Callstack.top_kf stack)) in
         let result =

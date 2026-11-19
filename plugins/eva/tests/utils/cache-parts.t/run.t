@@ -377,6 +377,19 @@ function, and those of caching disabled give them.
   installed the results with hits: statement results complete: false
   From.get: refused
 
+A change of an option of Eva while the analysis runs clears its results.
+The test module adds copy to -eva-no-results-function at the first call to
+copy, which hits: the entries were produced while the results of copy were
+saved, and the later calls to copy are not answered by them.
+
+  $ EVA_TEST_CACHE_PARTS=reset frama-c -no-autoload-plugins -load-module eva,from,inout,test_cache_parts.cmxs -eva-msg-key cache parts.c > reset.log 2>&1
+  $ grep -E '^copy after' reset.log
+  copy after the change: hits 0, rejected for analysis-reset 6
+  $ grep -o 'call to copy: lookup: [^;]*; execution: [a-z-]*' reset.log | tail -3
+  call to copy: lookup: hit (entry 1); execution: not-analysed
+  call to copy: lookup: rejected (entry 1: analysis-reset), rejected (entry 2: analysis-reset), rejected (entry 3: analysis-reset); execution: analysed
+  call to copy: lookup: rejected (entry 1: analysis-reset), rejected (entry 2: analysis-reset), rejected (entry 3: analysis-reset); execution: analysed
+
 Three requests of the server, after an analysis with caching disabled and
 after the analysis with hits: the dead code of copy, and the statements
 that read and that write b at the first call to copy, which Studia, loaded

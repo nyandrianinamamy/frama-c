@@ -24,6 +24,14 @@ type computation_state = NotComputed | Computing | Computed | Aborted
     [force_compute] and states updates. *)
 module ComputationState : State_builder.Ref with type data = computation_state
 
+(** [in_analysis f] runs [f], an analysis of a project: while it runs,
+    {!analysis_in_progress} holds. An analysis started by a callback of
+    another one runs inside it. *)
+val in_analysis: (unit -> 'a) -> 'a
+
+(** Whether an analysis is in progress, in any project. *)
+val analysis_in_progress: unit -> bool
+
 (** Exception used to cleanly abort the analysis (without killing Frama-C). *)
 exception Abort
 

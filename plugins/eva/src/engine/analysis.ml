@@ -244,6 +244,7 @@ let mthread_fixpoint engine analysis =
 
 (* Perform an entire mthread execution on the current project *)
 let compute_from ?cvalue_state ?arguments entry_point =
+  Self.in_analysis @@ fun () ->
   (* Setup signals *)
   let restore_signals = Signal.setup () in
   Fun.protect ~finally:restore_signals @@ fun () ->

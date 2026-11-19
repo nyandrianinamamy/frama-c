@@ -163,12 +163,12 @@ Help message about message categories.
                             recursion, hint-generation, watchpoint,
                             automatic-cleanup, nested-delivery,
                             warn-categories, missing-points, product, consumer,
-                            stop-at-nth-alarm, callback), execution of the body
-                            (analysed, not-analysed or interrupted) and storage
-                            of the result (stored, none, or refused with one of
-                            the reasons: disabled, not-cacheable, no-inout,
-                            footprint-top, relate-top, relate-unclosed,
-                            exception, supplied-only)
+                            stop-at-nth-alarm, callback, analysis-reset),
+                            execution of the body (analysed, not-analysed or
+                            interrupted) and storage of the result (stored,
+                            none, or refused with one of the reasons: disabled,
+                            not-cacheable, no-inout, footprint-top, relate-top,
+                            relate-unclosed, exception, supplied-only)
     cache-producer        : show storage of entries produced from fresh bodies
     callstack-hash        : additionally print the current callstack hash in
                             some messages

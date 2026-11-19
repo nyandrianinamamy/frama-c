@@ -74,6 +74,14 @@ let clear_results () =
   (* Explicit clear to apply hooks on changes. *)
   ComputationState.clear ()
 
+let analyses_in_progress = ref 0
+
+let in_analysis f =
+  incr analyses_in_progress;
+  Fun.protect ~finally:(fun () -> decr analyses_in_progress) f
+
+let analysis_in_progress () = !analyses_in_progress > 0
+
 
 (* ----- Verbosity configuration -------------------------------------------- *)
 

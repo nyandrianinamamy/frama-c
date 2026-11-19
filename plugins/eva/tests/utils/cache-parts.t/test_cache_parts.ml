@@ -462,6 +462,27 @@ let snapshot () =
   install "of caching disabled" disabled;
   install "with hits" with_hits
 
+(* During the analysis with the supplied entries, after the first call to
+   copy, which hits, a call hook of the test module adds copy to the option
+   -eva-no-results-function. A change of an option of Eva clears the results
+   of the analysis while it runs: the later calls to copy are not answered by
+   entries produced with the former value. *)
+let reset () =
+  let copy = kf "copy" in
+  let produced = first_analysis () in
+  let changed = ref false in
+  Eva.Cvalue_callbacks.register_call_hook
+    (fun _callstack f _state _kind ->
+       if not !changed && Kernel_function.equal f copy then begin
+         changed := true;
+         Eva.Parameters.NoResultsFunction.add
+           (Kernel_function.get_definition copy)
+       end);
+  second_analysis produced;
+  Format.printf "copy after the change: hits %d, rejected for \
+                 analysis-reset %d@."
+    (hits "copy") (rejected "analysis-reset" "copy")
+
 (* ----- Values given in another project or for another callstack --------- *)
 
 (* Three parts of this test, which no consumer needs. During each analysis of
@@ -630,5 +651,6 @@ let () =
   | Some "lazy-from" -> Boot.Main.extend lazy_from
   | Some "warm" -> Boot.Main.extend warm
   | Some "snapshot" -> Boot.Main.extend snapshot
+  | Some "reset" -> Boot.Main.extend reset
   | Some "duplicate" -> Boot.Main.extend duplicate
   | _ -> ()
