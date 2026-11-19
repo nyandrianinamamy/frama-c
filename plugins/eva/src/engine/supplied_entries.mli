@@ -299,8 +299,9 @@ type rejection = [
       daemons of [Async] ({!Async.has_daemons}), the hooks on a change of
       the current location ({!Current_loc.has_hooks_on_change}) and of the
       statistics by callstack of Eva ({!Eva_perf.has_hooks_on_change}), and
-      the observers of the Safety part and of the results of the collector
-      ({!Safety_part.has_unaudited_observers},
+      the observers of the Safety part, of the Reach part and of the results
+      of the collector ({!Safety_part.has_unaudited_observers},
+      {!Reach_part.has_unaudited_observers},
       {!Body_access.Result.has_unaudited_observers}). A hit can run the
       observers of the clients of the kernel hooks and of the metadata of
       the allocated bases; an analysis of the body runs these interfaces at

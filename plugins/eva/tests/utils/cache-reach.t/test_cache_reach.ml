@@ -352,9 +352,11 @@ let loaded () =
 
 (* The entry of child is produced by an analysis from main, then supplied
    to an analysis from parent. The Reach part of parent is printed after
-   each of its analyses. *)
+   each of its analyses, by an observer registered as audited: it prints
+   what it receives, and an observer that is not audited rejects every
+   supplied entry (callback). *)
 let enclosing () =
-  Reach.on_result (fun callstack part ->
+  Reach.on_result ~audited:true (fun callstack part ->
       if Kernel_function.equal (Eva.Callstack.top_kf callstack) (kf "parent")
       then
         let lines = List.map (one_line Reach.pretty_write) part in

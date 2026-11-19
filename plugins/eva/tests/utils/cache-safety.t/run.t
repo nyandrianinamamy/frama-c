@@ -428,13 +428,13 @@ the hooks on messages, the observers of Hook.Opaque, of the reads of the
 metadata of allocated blocks, of the updates of their validity and of the
 history of origins, the daemons of Async, the hooks on the changes of the
 current location, the hooks on the statistics of performance by
-callstack, and the observers of the Safety part and of the result of the
-collector of each analysed body. Otherwise, every supplied
+callstack, and the observers of the Safety part, of the Reach part and of
+the result of the collector of each analysed body. Otherwise, every supplied
 candidate is rejected for callback, and the body is analysed. Below, one
 client of each hook is registered after the analysis from producer of
 safety.c; both calls of body in the analysis from main reject the entry.
 
-  $ for c in call call-results statement red status property annotations listener register history messages opaque metadata validity origin daemon location perf safety-result collector-result; do EVA_TEST_CACHE_SAFETY=replay EVA_TEST_CACHE_SAFETY_CLIENT=$c frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -main producer -eva-msg-key cache safety.c > client-$c.log 2>&1; echo "$c: exit $?"; done
+  $ for c in call call-results statement red status property annotations listener register history messages opaque metadata validity origin daemon location perf safety-result reach-result collector-result; do EVA_TEST_CACHE_SAFETY=replay EVA_TEST_CACHE_SAFETY_CLIENT=$c frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -main producer -eva-msg-key cache safety.c > client-$c.log 2>&1; echo "$c: exit $?"; done
   call: exit 0
   call-results: exit 0
   statement: exit 0
@@ -454,8 +454,9 @@ safety.c; both calls of body in the analysis from main reject the entry.
   location: exit 0
   perf: exit 0
   safety-result: exit 0
+  reach-result: exit 0
   collector-result: exit 0
-  $ for c in call call-results statement red status property annotations listener register history messages opaque metadata validity origin daemon location perf safety-result collector-result; do grep '^client' client-$c.log; done
+  $ for c in call call-results statement red status property annotations listener register history messages opaque metadata validity origin daemon location perf safety-result reach-result collector-result; do grep '^client' client-$c.log; done
   client call: hits on body: 0, rejected for callback: 2
   client call-results: hits on body: 0, rejected for callback: 2
   client statement: hits on body: 0, rejected for callback: 2
@@ -475,6 +476,7 @@ safety.c; both calls of body in the analysis from main reject the entry.
   client location: hits on body: 0, rejected for callback: 2
   client perf: hits on body: 0, rejected for callback: 2
   client safety-result: hits on body: 0, rejected for callback: 2
+  client reach-result: hits on body: 0, rejected for callback: 2
   client collector-result: hits on body: 0, rejected for callback: 2
 
 The observers of the kernel through which the collector of block accesses

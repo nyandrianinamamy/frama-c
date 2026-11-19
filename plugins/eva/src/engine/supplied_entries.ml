@@ -287,9 +287,10 @@ let stop_at_nth_alarm () = Parameters.StopAtNthAlarm.get () < max_int
      analysis of a body changes at each statement, and of the statistics by
      callstack of Eva ([Eva_perf]), which record the duration of each call
      and of the calls that it makes;
-   - the observers of the Safety part ({!Safety_part.on_result}) and of the
-     results of the collector ({!Body_access.Result.on_result}), which run
-     after the analysis of a body, apart from those registered as audited.
+   - the observers of the Safety part ({!Safety_part.on_result}), of the
+     Reach part ({!Reach_part.on_result}) and of the results of the
+     collector ({!Body_access.Result.on_result}), which run after the
+     analysis of a body, apart from those registered as audited.
 
    Registration is the test: a client cannot be removed, apart from a daemon
    of [Async], and one registered after the production of an entry counts.
@@ -312,6 +313,7 @@ let unaudited_clients parts =
   || Current_loc.has_hooks_on_change ()
   || Eva_perf.has_hooks_on_change ()
   || Safety_part.has_unaudited_observers ()
+  || Reach_part.has_unaudited_observers ()
   || Body_access.Result.has_unaudited_observers ()
 
 let cast : type a b. (a, b) Structure.eq -> a -> b = fun Structure.Eq x -> x

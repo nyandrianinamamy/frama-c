@@ -98,8 +98,15 @@ val capture : Callstack.t -> (unit -> 'a) -> 'a * t
 
 (** Observe the writes of each body after its analysis, before the
     storage decision, for a body whose storage is refused as for one that
-    is stored. Observers must not change the analysis. *)
-val on_result : (Callstack.t -> t -> unit) -> unit
+    is stored. Observers must not change the analysis. A hit runs no
+    observer: set [audited] only for an observer whose effects do not depend
+    on whether a hit answered a call, such as a test device that prints what
+    it receives. {!has_unaudited_observers} does not count it. *)
+val on_result : ?audited:bool -> (Callstack.t -> t -> unit) -> unit
+
+(** Whether an observer was registered by {!on_result} without [audited]. An
+    observer cannot be removed. *)
+val has_unaudited_observers : unit -> bool
 
 (** {2 Recording}
 

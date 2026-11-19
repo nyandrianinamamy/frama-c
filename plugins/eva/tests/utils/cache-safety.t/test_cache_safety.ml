@@ -182,6 +182,7 @@ let register_client = function
   | "location" -> Current_loc.add_hook_on_change ignore
   | "perf" -> Eva.Eva_perf.StatByCallstack.add_hook_on_change ignore
   | "safety-result" -> Eva.Safety_part.on_result (fun _ _ -> ())
+  | "reach-result" -> Eva.Reach_part.on_result (fun _ _ -> ())
   | "collector-result" -> Eva.Body_access.on_result (fun _ _ -> ())
   | client -> failwith ("unknown client " ^ client)
 

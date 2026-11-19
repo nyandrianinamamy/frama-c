@@ -107,7 +107,12 @@ let current : recorder option ref = ref None
 
 module Hooks = Hook.Build (struct type nonrec t = Callstack.t * t end)
 
-let on_result f = Hooks.extend (fun (stack, writes) -> f stack writes)
+let unaudited = ref false
+let has_unaudited_observers () = !unaudited
+
+let on_result ?(audited = false) f =
+  if not audited then unaudited := true;
+  Hooks.extend (fun (stack, writes) -> f stack writes)
 
 let capture base analyse =
   let previous = !current in
