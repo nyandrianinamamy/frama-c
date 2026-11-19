@@ -151,9 +151,10 @@ type 'state lookup = {
   rejected : (int * rejection) list;
   (** The identifiers of the candidates rejected, oldest first, with their
       reasons. *)
-  hit : (int * (Partition.key * 'state) list) option;
-  (** The identifier of the entry used, if any, and the states at the end of
-      the call. *)
+  hit : (int * (Partition.key * 'state) list * Body_access.call_trace option)
+      option;
+  (** The identifier of the entry used, if any, the end states and the
+      producing call trace when available. *)
 }
 
 module Lookup (Domain : sig

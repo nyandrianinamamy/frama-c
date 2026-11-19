@@ -153,8 +153,9 @@ module Make
       (** No entry matches the call, or every candidate is rejected: its body
           must be analysed. *)
       | Hit of int * (Partition.key * Domain.t) list
-      (** An entry matches the call: its identifier, and the states at the
-          end of the call computed from the entry. *)
+               * Body_access.call_trace option
+      (** An entry matches the call. The result carries its identifier,
+          the end states and the producing call trace when available. *)
 
     (** [lookup call state] looks up the cache for an entry that matches the
         call [call] in the state [state], before the body of the called

@@ -82,3 +82,14 @@ void outer(void)
 {
   middle();
 }
+
+void outer_after_hit(void)
+{
+  middle();
+}
+
+void start_hit(void)
+{
+  outer();
+  outer_after_hit();
+}

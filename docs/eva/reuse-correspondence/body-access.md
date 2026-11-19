@@ -134,7 +134,8 @@ Indirect targets refuse both at the call transfer and at entry of a body
 reached through an indirect call. A nested call refuses its enclosing body
 whether resolved to a fresh body, a hit, a specification or a builtin.
 The collector composes used functions, hint dependencies and the specified
-refusals of fresh children. Nested memory footprints are still unsupported. An
+refusals of fresh children. A hit contributes its producing call trace
+when available. Nested memory footprints are still unsupported. An
 unsupported contract or annotation read has a Top bound.
 [Annotation and contract reads](#annotation-and-contract-reads) lists the
 supported observation paths. Used builtins and sweeps mark their active

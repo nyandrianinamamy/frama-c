@@ -91,8 +91,11 @@ backtrace. Since issue #45, the lookup disposition printed by the seam also
 lists rejected candidates, and `interrupted` takes the `pending` value of the
 lookup to print them; memexec rejects no candidate, so the text of its
 messages is unchanged. An interruption received while the message is printed is dropped
-in the same way; the first exception still stops the analysis. The iteration order of the lookup is unchanged. `new_counter` and `cleanup_results` are the
-memexec functions, called at the same points of `Iterator` and `Analysis`.
+in the same way. The first exception still stops the analysis. The lookup
+uses the memexec iteration order. The `new_counter` and `cleanup_results`
+calls still run the corresponding memexec operations at the same points
+of `Iterator` and `Analysis`. Cleanup also clears the separate observational
+call-trace table. [Calls and recursion](collector-effects.md#calls-and-recursion).
 
 **Evidence.** Source inspection of the change. Executed: the default Eva
 ptests (`@plugins/eva/tests/ptests_config`), the ptests of every Eva

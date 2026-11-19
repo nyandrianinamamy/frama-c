@@ -169,7 +169,8 @@ let rejection_id : rejection -> string = function
 
 type 'state lookup = {
   rejected : (int * rejection) list;
-  hit : (int * (Partition.key * 'state) list) option;
+  hit : (int * (Partition.key * 'state) list * Body_access.call_trace option)
+      option;
 }
 
 (* Inout and From resolve the identifier given with [`Reuse] to the callbacks
@@ -231,7 +232,12 @@ module Lookup (Domain : sig
         let result = Entry.find ~admit:(admit stack) candidates (cast eq state) in
         let reject (e, reason) = Entry.id e, (reason :> rejection) in
         let hit (e, states) =
-          Entry.id e, List.map (fun (k, s) -> k, cast_back eq s) states
+          let trace d = Body_access.{
+              functions = d.Cache_entry.used_functions; recursive = false;
+            }
+          in
+          let states = List.map (fun (k, s) -> k, cast_back eq s) states in
+          Entry.id e, states, Option.map trace (Entry.dependencies e)
         in
         { rejected = List.map reject result.rejected;
           hit = Option.map hit result.hit }

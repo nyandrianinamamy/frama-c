@@ -55,7 +55,9 @@ let producer_mkey =
 
 let new_counter = Mem_exec.new_counter
 
-let cleanup_results = Mem_exec.cleanup_results
+let cleanup_results () =
+  Mem_exec.cleanup_results ();
+  Cache_call_trace.clear ()
 
 (* ----- Report of the dispositions of a call ------------------------------ *)
 
@@ -179,7 +181,7 @@ module Make
 
   type lookup =
     | No_candidate of pending
-    | Hit of int * (Partition.key * Domain.t) list
+    | Hit of int * (Partition.key * Domain.t) list * Body_access.call_trace option
 
   (* Lookup in the entries supplied by a test module. *)
   let lookup_supplied call state =
@@ -192,11 +194,11 @@ module Make
     List.iter count_rejection rejected;
     match hit with
     | None -> No_candidate (Supplied rejected)
-    | Some (id, states) ->
+    | Some (id, states, trace) ->
       Statistics.(incr cache_hits kf);
       report call ~lookup:{ rejected; hit = Some id }
         ~execution:`Not_analysed ~storage:`None;
-      Hit (id, states)
+      Hit (id, states, trace)
 
   let lookup call state =
     let kf = call.kf in
@@ -216,7 +218,7 @@ module Make
         Statistics.(incr memexec_hits kf);
         report call ~lookup:{ no_candidate with hit = Some id }
           ~execution:`Not_analysed ~storage:`None;
-        Hit (id, states)
+        Hit (id, states, Cache_call_trace.find id)
 
   (* The lookup disposition of a call that found no candidate. *)
   let lookup_disposition = function
@@ -241,6 +243,9 @@ module Make
           Statistics.(incr (memexec_refused (refusal_id reason)) kf);
           `Refused reason
     in
+    (match storage, footprint with
+     | `Stored id, Some observation -> Cache_call_trace.remember id observation
+     | _ -> ());
     let collector, produced =
       match footprint with
       | None -> None, None

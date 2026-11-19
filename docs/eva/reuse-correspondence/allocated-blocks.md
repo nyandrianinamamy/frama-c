@@ -76,8 +76,10 @@ observed (`is_observing`), and `read_bases`, `designate_bases`,
 `check_bases` without adding them to R or to the designated set. An unknown
 load location at the call site refuses as `footprint-top`, where it sets
 R = Top with the clause reason in a body. The reads of allocation metadata
-add their owners. The other refusals of a clause (`contract`, `side-table`)
-are not recorded at the call site.
+add their owners. The footprint refusal `contract` is omitted at the
+call site. The logger and ordered-effect observers can add separate
+refusals during a call-site check.
+[Ordered and opaque effects](collector-effects.md#ordered-and-opaque-effects).
 
 **Evidence.** Execution. `copy` (`q = p`, where `p` points to an allocated
 block) reads `copy allocated-block`; the module asserts R = {p}, W = {q}, an
@@ -164,8 +166,9 @@ the observation, and adds the refusal and the owners explicitly. The may
 set W is used, not W_exit, and the entry state is checked even when no
 state returns.
 
-The operations of a state that rebuild bindings outside W are refused for
-another reason: the escape sweep at the exit of a scope (`sweep`), the
+An admitted inner lexical sweep records the holder bindings it rebuilds
+in W. The operations that rebuild bindings outside W are refused for
+another reason. They include other lexical sweeps (`sweep`), the
 release of automatic blocks at a return (`deallocation`, in the caller), the
 states of a nested call (`nested-call`), builtins and specifications
 (`builtin`, `contract`). The reductions by `requires` clauses happen at the
@@ -529,7 +532,9 @@ reasons and the owners to the recorder of the enclosing body, before the
 observers run. An enclosing body is already refused for `nested-call`; the
 inherited reasons make the cause visible and keep the owners with the body
 that will be stored when child observations are composed. A call answered by
-a memexec hit runs no body and passes nothing on. The caller then checks the
+a memexec hit runs no body and does not pass on the allocation owners of
+its producer. Its observed used functions travel separately through
+[the call trace](collector-effects.md#calls-and-recursion). The caller then checks the
 `requires` clauses of the callee again, to update their statuses at this
 call: `compute_and_cache_call` runs `check_fct_preconditions` in the caller,
 with the caller's full recording. The reads, designations and metadata

@@ -30,6 +30,11 @@ let observe stack (result : Access.Result.t) =
     assert (List.sort compare functions =
             ["recur", `Body; "start_recursion", `Body]);
     Format.printf "trace includes recur and start_recursion@."
+  | "outer_after_hit" ->
+    let functions = List.map (fun (f, _) -> name f) result.used_functions in
+    assert (List.sort compare functions =
+            ["middle"; "outer_after_hit"; "threaded"]);
+    Format.printf "trace through memexec hit includes threaded@."
   | "outer" ->
     let functions = List.map (fun (f, mode) -> name f, mode)
         result.used_functions in
@@ -69,7 +74,7 @@ let sweep_check () =
   let initial = Entry.input entry in
   ignore (Eva.Supplied_entries.supply_produced produced);
   let result = Lookup.find stack initial in
-  let _, states = Option.get result.hit in
+  let _, states, _ = Option.get result.hit in
   List.iter (fun (_, (exit, _)) -> check_escape exit holder) states;
   let untouched = Base.of_varinfo (Globals.Vars.find_from_astinfo
                                      "untouched" Cil_types.Global) in

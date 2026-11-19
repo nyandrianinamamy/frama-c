@@ -102,3 +102,12 @@ callback refusal.
   $ EVA_TEST_COLLECTOR_EFFECTS=logger frama-c -no-autoload-plugins -load-module eva,test_collector_effects.cmxs -eva -eva-no-memexec -main alarm -eva-msg-key cache effects.c > logger.log 2>&1
   $ grep -o 'collector: refused (callback)' logger.log
   collector: refused (callback)
+
+The producing trace of an observed memexec hit carries the transitive call
+to the fresh enclosing recording.
+
+  $ frama-c -no-autoload-plugins -load-module eva,inout,test_collector_effects.cmxs -eva -main start_hit -eva-msg-key cache effects.c > hit.log 2>&1
+  $ grep -o 'call to middle: lookup: hit (entry [0-9]*)' hit.log
+  call to middle: lookup: hit (entry 2)
+  $ grep '^trace through memexec hit' hit.log
+  trace through memexec hit includes threaded

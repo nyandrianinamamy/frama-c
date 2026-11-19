@@ -11,6 +11,11 @@ module Zone = Memory_zone
 
 type call_mode = [ `Body | `Spec | `Builtin ]
 
+type call_trace = {
+  functions : (Cil_types.kernel_function * call_mode) list;
+  recursive : bool;
+}
+
 module Result = struct
   (* Order used to select one reason for the storage disposition. *)
   type refusal =
@@ -247,6 +252,15 @@ let recursion_conflict stack used =
       (fun kf -> Kernel_function.equal kf top ||
                  List.exists (fun (f, _) -> Kernel_function.equal kf f) used)
       (Callstack.to_kf_list enclosing)
+
+let include_trace stack trace =
+  Option.iter
+    (fun r ->
+       let add used call = Calls.add call used in
+       r.used_functions <- List.fold_left add r.used_functions trace.functions;
+       if trace.recursive || recursion_conflict stack trace.functions
+       then add_refusal r Recursion)
+    !current
 
 let read_widening_hints () =
   Option.iter (fun r -> r.reads_widening_hints <- true) !current

@@ -10,6 +10,11 @@
 
 type call_mode = [ `Body | `Spec | `Builtin ]
 
+type call_trace = {
+  functions : (Cil_types.kernel_function * call_mode) list;
+  recursive : bool;
+}
+
 module Result : sig
   (** Reasons to refuse storage, in the order used to select the reason of
       the storage disposition. [Reallocation], [Allocation] and
@@ -55,7 +60,8 @@ module Result : sig
       including by the bodies analysed during the analysis of this one.
       [sweeps] contains the targets of observed own-local sweeps.
       [used_functions] includes the body and the functions seen during
-      fresh nested work, with their modes.
+      nested work, with their modes, including a hit's producing trace
+      when available.
       [hint_generation] is the entry-time stamp when a widening read ran. *)
 
   (** Numeric generation within the analysis, starting at zero. *)
@@ -158,6 +164,10 @@ val finish_paths : entry:int -> exit:int -> returns:bool -> unit
 (** Records a resolved nested invocation, including one answered by memexec.
     A fresh child additionally contributes its own observed callees. *)
 val call : Cil_types.kernel_function -> call_mode -> unit
+
+(** Includes the producing trace of a hit in the enclosing recording.
+    [stack] is the stack of the call that hit. *)
+val include_trace : Callstack.t -> call_trace -> unit
 
 (** Whether the current function or any recorded used function occurs below
     the current call in [stack]. *)

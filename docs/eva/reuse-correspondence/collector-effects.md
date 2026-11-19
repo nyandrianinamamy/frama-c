@@ -79,7 +79,13 @@ modes. It refuses recursion and threaded mode.
 **Source inspection.** `Compute_functions.compute_call_with_target` and
 the directive transfer report the resolved callee and its mode. A fresh
 child's observed calls are unioned into the parent, even if the child
-refuses. `Compute_functions.compute_call` reports recursive dispatch to
+refuses. `Cache_call_trace` keeps the producing call trace of an observed
+memexec entry for the current run. A hit on that entry reports its trace
+to the enclosing recorder. The same reporting path uses the stored
+dependencies of a supplied produced entry. A hit reports recursion when
+its producing trace was refused as recursive or when its used functions
+conflict with the current enclosing stack.
+`Compute_functions.compute_call` reports recursive dispatch to
 the parent, including dispatch to a specification. `Body_access.capture`
 checks each recorded callee and the entry function against the enclosing
 stack and propagates a recursive trace to the parent. The supplied lookup
@@ -88,14 +94,14 @@ thread identifier, records `threaded`. Other refusals can have higher
 priority in the verdict.
 
 **Executed evidence.** `collector-effects.t` checks a transitive fresh
-call and recursion at several stack depths. It also checks a call-free
-body in Mthread.
+call and recursion at several stack depths. It confirms a memexec hit
+on `middle` and checks that the new enclosing body still records the
+transitive call to `threaded`. It also checks a call-free body in Mthread.
 
-**Open.** Legacy memexec hits identify their direct callee. The skipped
-trace behind a legacy hit is unavailable to this collector. The enclosing
-body refuses nested calls, so such an observation cannot produce an
-entry. Replacement-cache child dependency propagation must carry the
-transitive trace across hits before nested calls are admitted.
+**Open.** An entry produced without observations has only the directly
+resolved call. The enclosing body refuses nested calls. Admission of
+nested calls needs composition of their memory footprints and side-table
+effects in addition to the call trace.
 
 ## Dynamic widening hints
 

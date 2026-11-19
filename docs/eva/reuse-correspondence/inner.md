@@ -14,7 +14,10 @@ label.
 A body local read after its creation can belong to the lookup key, where
 it matches by absence at entry. The model issues a fresh identifier on
 each entry into the scope. Eva uses one base per variable. Identity
-across lifetimes is open for sweeps in #44. A consumer of shared Inner
+across lifetimes remains open. The sweep guard checks potential pointers
+to the recorded targets in the current input.
+[Lexical sweep in cvalue](collector-effects.md#lexical-sweep-in-cvalue).
+A consumer of shared Inner
 must exclude key blocks created after entry from this guarantee and
 justify those answers separately. [Spec note from #46](https://github.com/nyandrianinamamy/frama-c/issues/32).
 

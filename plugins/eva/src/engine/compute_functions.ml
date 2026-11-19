@@ -100,7 +100,8 @@ module Make (Engine: Engine_sig.S) = struct
           Cache.store ~save_results call init_state pending call_result
             footprint);
       call_result
-    | Cache.Hit (i, states) ->
+    | Cache.Hit (i, states, trace) ->
+      Option.iter (Body_access.include_trace call.callstack) trace;
       apply_call_hooks call init_state `Reuse;
       (* Evaluate the preconditions of kf, to update the statuses
          at this call. *)
