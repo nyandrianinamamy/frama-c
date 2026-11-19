@@ -68,11 +68,11 @@ directories that Dune reads, and `lean` is not among them.
 | `ReuseModel/Entry.lean` | Footprints, cache entries, producer soundness, `CacheEntry.sound_of_producer`, and `CacheEntry.shared_inner` |
 | `Checks/AxiomCheck.lean` | The `#check_axioms` command |
 | `Checks/Axioms.lean` | `#print axioms` and `#check_axioms` for each theorem |
-| `Checks/Examples.lean` | Aliasing, a dangling pointer after a return, and a call that does not return, on which `frame_lemma` is applied; the body of a function as the subject; comparisons with the null pointer |
+| `Checks/Examples.lean` | Aliasing, a dangling pointer after a return, and a call that does not return, using `frame_no_sweep_rewrite` for that case; the body of a function as the subject; comparisons with the null pointer |
 | `Checks/Domains.lean` | A non-relational domain that meets every law, alone and in a product with itself, and a match it admits; a domain of equalities with an identity `filter`, which fails `relate` sound on the fact `y == z` and the closed key `{x}`; a one-state domain with an identity `filter` that meets every law; a product with an empty concretisation on which `filter` is not exact; a domain that meets the other laws, not `Extensional`, in which `[0]` is closed and `[0, 0]` is not |
 | `Checks/Entries.lean` | A load that faults before an overwrite, an assertion before an overwrite, a return with an incomplete footprint, and the need to distinguish allocation state and writes at normal exits |
-| `Checks/Sweeps.lean` | A lexical local whose address escapes into a written holder, an untouched block preserved across the sweep, a future pointer that needs a rewrite, and a return from a lexical scope |
-| `Checks/Inner.lean` | A two-visit loop, the producer premises, a distinct matching memory, and negative cases for the first visit alone and for coverage outside the key |
+| `Checks/Sweeps.lean` | A lexical local whose address escapes into a written holder, an untouched block preserved across the sweep, a future pointer that needs a rewrite, a return from a lexical scope, a matching exit whose frame is rewritten, a comparison of a marked holder, and a sweep in a callee's scope |
+| `Checks/Inner.lean` | A two-visit loop, the producer premises, a distinct matching memory, and negative cases for the first visit alone and for coverage outside the key, plus a fresh local forced into the lookup key |
 | `Checks/Fragment.lean` | Statements that meet the fragment conditions: one outside the function bodies, a function body, and a statement inside one. Programs and statements that do not: duplicate labels in the observed statement, a label of a body reused outside, duplicate labels across two bodies, direct recursion, mutual recursion |
 
 ## What the model contains
@@ -246,8 +246,9 @@ separate obligations.
 
 If the producer's saved state covers every visit to a label on the key,
 `CacheEntry.shared_inner` transports that coverage to each matching
-memory. A single concretisation witness agrees on all blocks of the key at
-that visit. The witness may vary across visits. The fixture checks both
+memory. A single concretisation witness agrees at that visit on the key
+blocks issued in the matching memory at entry. A fresh local read by the
+body may still belong to the lookup key. The witness may vary across visits. The fixture checks both
 visits to the increment in `i = 0; while (i < 2) { L: i++; }`.
 
 ## What the model leaves out

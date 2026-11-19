@@ -147,21 +147,22 @@ def InnerSound (entry : CacheEntry d) (inner : Label → d.State) : Prop :=
     Visit entry.subject ⟨entry.env, w⟩ l env atVisit →
     ∃ represented, d.γ (inner l) represented ∧ AgreeOn entry.key represented atVisit
 
-/-- Each matching member's visit is covered by the shared state on the key.
-Replay aligns the control point and preserves key agreement after writes
-and lexical sweeps. -/
+/-- Each matching member's visit is covered by the shared state on the
+key blocks issued in that member's entry memory. Replay aligns the control
+point and preserves key agreement after writes and lexical sweeps. -/
 theorem shared_inner {entry : CacheEntry d} {a : AllocatorAgreement M}
     {inner : Label → d.State}
     (hi : entry.InnerSound inner) (hc : entry.Coverage) (hk : entry.KeyCovers)
     {m : M} (hm : entry.Matches a m) {l : Label} {env : Env} {atVisit : M}
     (hv : Visit entry.subject ⟨entry.env, m⟩ l env atVisit) :
-    ∃ represented, d.γ (inner l) represented ∧ AgreeOn entry.key represented atVisit := by
+    ∃ represented, d.γ (inner l) represented ∧
+      ∀ b ∈ entry.key, Memory.Issued m b → Memory.load represented b = Memory.load atVisit b := by
   obtain ⟨w, hw, ha⟩ := hm
   obtain ⟨evs, st, k, hpre, hl⟩ := hv
   obtain ⟨c, hpre', hs, hr⟩ := replay_prefix ha (hc w hw) hk hpre
   cases c <;> cases hs
   obtain ⟨represented, hγ, hkey⟩ := hi w hw l env _ ⟨evs, st, k, hpre', hl⟩
-  exact ⟨represented, hγ, fun b hb =>
+  exact ⟨represented, hγ, fun b hb _ =>
     (hkey b hb).trans (hr.contents b (List.mem_append_right _ hb))⟩
 
 private theorem Steps.snoc {p : Program} {c c' c'' : Config M}

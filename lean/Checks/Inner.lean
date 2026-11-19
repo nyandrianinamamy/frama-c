@@ -134,7 +134,11 @@ theorem loop_shared_inner :
     obtain ⟨env, hvisit⟩ := visit_of_run (t := innerSubj) (n := n) hl
     obtain ⟨w, hγ, hagree⟩ := CacheEntry.shared_inner loop_entry_premises.2.2.2
       loop_entry_premises.2.1 loop_entry_premises.2.2.1 loop_member_matches hvisit
-    exact ⟨_, w, env, hvisit, hv, hγ, hagree⟩
+    refine ⟨_, w, env, hvisit, hv, hγ, ?_⟩
+    intro b hb
+    simp only [innerEntry, List.mem_singleton] at hb
+    subst b
+    exact hagree 0 List.mem_cons_self (Live.issued (show Live innerMember 0 from rfl))
   intro i hi
   simp only [List.mem_cons, List.not_mem_nil, or_false] at hi
   rcases hi with rfl | rfl
@@ -155,10 +159,18 @@ theorem loop_inner_outside_key :
   rw [hγ.2] at h
   contradiction
 
-/-- A state that records just the first value at L fails the producing
-all-visits premise on the second visit. -/
+def loopFirstVisitState (l : Label) (m : FunMem) : Prop :=
+  if l = 4 then load m 0 = some (.int 0) else innerStates l m
+
+/-- Keep the validated state elsewhere. At L, the mutant covers the first
+visit but fails the all-visits premise at the second. -/
 theorem loop_first_visit_insufficient :
-    ¬ innerEntry.InnerSound (fun _ m => load m 0 = some (.int 0)) := by
+    (∃ env m, Visit innerSubj ⟨noLocals, innerProducer⟩ 4 env m ∧
+      loopFirstVisitState 4 m) ∧ ¬ innerEntry.InnerSound loopFirstVisitState := by
+  constructor
+  · obtain ⟨env, hv⟩ := visit_of_run (t := innerSubj)
+      (σ := ⟨noLocals, innerProducer⟩) (n := 4) (l := 4) (by decide)
+    exact ⟨env, _, hv, rfl⟩
   intro hs
   obtain ⟨env, hv⟩ := visit_of_run (t := innerSubj)
     (σ := ⟨noLocals, innerProducer⟩) (n := 7) (l := 4) (by decide)
@@ -168,5 +180,40 @@ theorem loop_first_visit_insufficient :
   change load w 0 = some (.int 0) at hγ
   rw [hγ] at h
   contradiction
+
+def freshLocalSubject : Subject :=
+  ⟨⟨[], noLocals⟩, .scope 10 [("t", 9)] (.ret 11 (some (.var "t"))),
+    ⟨by decide, ⟨fun _ => 0, by decide⟩, by decide, by decide⟩⟩
+
+def freshLocalEntry (key : BlockSet) (footprint : Footprint) : CacheEntry predicates where
+  subject := freshLocalSubject
+  env := noLocals
+  input := (· = FunMem.empty)
+  key := key
+  footprint := footprint
+  exit := fun _ _ => True
+  violations := fun _ => True
+  reached := fun _ => True
+
+def freshLocalRun (n : Nat) : List Event × Config FunMem :=
+  run freshLocalSubject.prog n (Config.entry freshLocalSubject.stmt ⟨noLocals, FunMem.empty⟩)
+
+/-- Reading a fresh local forces it into the lookup key. Agreement on the
+whole key at the return visit would require the saved witness to represent
+that local's value, even though its block was absent at entry. -/
+theorem fresh_local_must_be_keyed (key : BlockSet) (footprint : Footprint)
+    (hc : (freshLocalEntry key footprint).Coverage)
+    (hk : (freshLocalEntry key footprint).KeyCovers) :
+    ¬Issued FunMem.empty 0 ∧ (freshLocalRun 2).1 = [.scopeEnter 0, .read 0] ∧
+      0 ∈ key ∧
+      ∃ env m, Visit freshLocalSubject ⟨noLocals, FunMem.empty⟩ 11 env m ∧
+        load m 0 = some (.int 9) ∧
+        ∀ w, AgreeOn key w m → load w 0 = some (.int 9) := by
+  have hp := run_steps freshLocalSubject.prog 2
+    (Config.entry freshLocalSubject.stmt ⟨noLocals, FunMem.empty⟩)
+  have hkey := hk.1 ((hc FunMem.empty rfl).accesses _ _ hp (.read 0) (by decide))
+  obtain ⟨env, hv⟩ := visit_of_run (t := freshLocalSubject)
+    (σ := ⟨noLocals, FunMem.empty⟩) (n := 1) (l := 11) (by decide)
+  exact ⟨Nat.lt_irrefl 0, rfl, hkey, env, _, hv, rfl, fun w ha => ha 0 hkey⟩
 
 end Checks

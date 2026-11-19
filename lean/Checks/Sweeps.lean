@@ -1,5 +1,5 @@
 import ReuseModel
-import Checks.Examples
+import Checks.Entries
 
 namespace Checks
 
@@ -29,20 +29,24 @@ def sweepRun (σ : State FunMem) (n : Nat) : List Event × Config FunMem :=
 
 def futurePointerInput : State FunMem := topState [.int 0, .ptr 2]
 
+private theorem sweep_fixture_prefix {σ : State FunMem}
+    (hs : ∀ n : Nat, sweepRun σ (n + 7) = sweepRun σ 7)
+    {evs : List Event} {c : Config FunMem} (hp : Prefix sweepSubj σ evs c) :
+    ∃ n : Fin 8, sweepRun σ n = (evs, c) := by
+  obtain ⟨fuel, hrun⟩ := steps_run hp
+  change sweepRun σ fuel = (evs, c) at hrun
+  by_cases hlt : fuel < 8
+  · exact ⟨⟨fuel, hlt⟩, hrun⟩
+  · have h : fuel = (fuel - 7) + 7 := by omega
+    rw [h, hs] at hrun
+    exact ⟨7, hrun⟩
+
 private theorem sweep_fixture_frame (σ : State FunMem)
     (hs : ∀ n : Nat, sweepRun σ (n + 7) = sweepRun σ 7)
     (hf : ∀ n : Fin 8, ∀ e ∈ (sweepRun σ n).1, e ≠ .read 1 ∧ e ≠ .write 1) :
     InFrame sweepSubj σ 1 := by
   intro evs c hp e he ha
-  obtain ⟨fuel, hrun⟩ := steps_run hp
-  change sweepRun σ fuel = (evs, c) at hrun
-  have h : ∃ n : Fin 8, sweepRun σ n = (evs, c) := by
-    by_cases hlt : fuel < 8
-    · exact ⟨⟨fuel, hlt⟩, hrun⟩
-    · have h : fuel = (fuel - 7) + 7 := by omega
-      rw [h, hs] at hrun
-      exact ⟨7, hrun⟩
-  obtain ⟨n, hn⟩ := h
+  obtain ⟨n, hn⟩ := sweep_fixture_prefix hs hp
   have hne := hf n e (hn.symm ▸ he)
   cases e <;> simp_all [Event.Accesses]
 
@@ -96,5 +100,91 @@ theorem return_sweeps_local :
       (.scope 10 [("local", 9)] (.ret 11 (some (.addr "local")))) sweepInput)).2 =
       some (.returned (some (.escaped 2))) := by
   decide
+
+def sweepEntry : CacheEntry predicates where
+  subject := sweepSubj
+  env := noLocals
+  input := (· = sweepInput.mem)
+  key := [0]
+  footprint := ⟨[], [0], [0], []⟩
+  exit := fun _ _ => True
+  violations := fun _ => True
+  reached := fun _ => True
+
+private theorem sweep_entry_coverage : sweepEntry.Coverage := by
+  rintro m (rfl : m = sweepInput.mem)
+  have traces : ∀ n : Fin 8, ∀ e ∈ (sweepRun sweepInput n).1,
+      e = .scopeEnter 2 ∨ e = .write 0 ∨ e = .sweep 2 := by decide
+  have events {evs : List Event} {c : Config FunMem}
+      (hp : Prefix sweepSubj sweepInput evs c) :
+      ∀ e ∈ evs, e = .scopeEnter 2 ∨ e = .write 0 ∨ e = .sweep 2 := by
+    obtain ⟨n, hn⟩ := sweep_fixture_prefix (by intro k; cases k <;> rfl) hp
+    simpa only [hn] using traces n
+  constructor
+  · intro evs c hp e he
+    rcases events hp e he with rfl | rfl | rfl <;> decide
+  · intro evs o out hp b hb
+    rcases events hp (.write b) hb with h | h | h
+    · contradiction
+    · cases h; exact List.mem_cons_self
+    · contradiction
+  · intro evs o out hp b hb
+    contradiction
+
+/-- A sound entry can match a distinct input whose untouched frame holder
+changes on a normal exit even though it is outside the exit overlay. -/
+theorem matching_frame_holder_rewritten :
+    sweepEntry.Sound FunMem.allocatorAgreement ∧
+      sweepEntry.Matches FunMem.allocatorAgreement futurePointerInput.mem ∧
+      futurePointerInput.mem ≠ sweepInput.mem ∧
+      sweepEntry.footprint.exitWrites = [0] ∧
+      InFrame sweepSubj futurePointerInput 1 ∧ Issued futurePointerInput.mem 1 ∧
+      Exit sweepSubj futurePointerInput .completed (sweepRun futurePointerInput 7).2.mem ∧
+      (sweepRun futurePointerInput 7).1 = [.scopeEnter 2, .write 0, .sweep 2] ∧
+      load futurePointerInput.mem 1 = some (.ptr 2) ∧
+      load (sweepRun futurePointerInput 7).2.mem 1 = some (.escaped 2) := by
+  have hs := sweepEntry.sound_of_producer (a := FunMem.allocatorAgreement)
+    ⟨sweepInput.mem, rfl⟩ ⟨by intros; trivial, by intros; trivial, by intros; trivial⟩
+    sweep_entry_coverage ⟨by intro b hb; contradiction, by intro b hb _; exact hb⟩
+  have hm : sweepEntry.Matches FunMem.allocatorAgreement futurePointerInput.mem := by
+    refine ⟨sweepInput.mem, rfl, ⟨?_, ?_, rfl⟩⟩ <;>
+      intro b hb <;> change b ∈ [0] at hb <;>
+      simp only [List.mem_singleton] at hb <;> subst b <;> rfl
+  have hne : futurePointerInput.mem ≠ sweepInput.mem := by
+    intro h
+    have hload := congrArg (fun m => load m 1) h
+    contradiction
+  exact ⟨hs, hm, hne, rfl, future_pointer_needs_rewrite.1,
+    Live.issued future_pointer_needs_rewrite.2.1, ⟨_, run_steps _ 7 _⟩, rfl, rfl, rfl⟩
+
+def sweptHolderComparison : Stmt :=
+  .seq 1 (.scope 2 [("t", 9)] (.assign 3 (.var "holder") (.addr "t")))
+    (.ret 4 (some (.binop .eq (.var "holder") (.const 0))))
+
+/-- Reading the marked value itself succeeds in the model. -/
+theorem swept_holder_comparison_returns :
+    (run sweepProg 9 (Config.entry sweptHolderComparison sweepInput)).1 =
+      [.scopeEnter 2, .write 0, .sweep 2, .read 0] ∧
+    outcomeOf? (run sweepProg 9 (Config.entry sweptHolderComparison sweepInput)).2 =
+      some (.returned (some (.int 0))) := by decide
+
+def nestedSweepBody : Stmt :=
+  .scope 10 [("t", 9)] (.assign 11 (.var "holder") (.addr "t"))
+
+def nestedSweepCall : Stmt := .call 1 none "callee" []
+
+def nestedSweepProgram : Program :=
+  ⟨[("callee", ⟨[], [], nestedSweepBody⟩)], sweepProg.globals⟩
+
+/-- The caller's trace includes the callee's sweep as well. A lexical
+sweep event alone does not establish ownership by the cached unit. -/
+theorem nested_scope_sweep_in_caller :
+    nestedSweepBody ∉ nestedSweepCall.subs ∧
+    (run nestedSweepProgram 10 (Config.entry nestedSweepBody sweepInput)).1 =
+      [.scopeEnter 2, .write 0, .sweep 2] ∧
+    (run nestedSweepProgram 10 (Config.entry nestedSweepCall sweepInput)).1 =
+      (run nestedSweepProgram 10 (Config.entry nestedSweepBody sweepInput)).1 ∧
+    load (run nestedSweepProgram 10 (Config.entry nestedSweepCall sweepInput)).2.mem 0 =
+      some (.escaped 2) := by decide
 
 end Checks

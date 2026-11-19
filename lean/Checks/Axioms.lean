@@ -236,6 +236,18 @@ open ReuseModel
 #print axioms Checks.return_sweeps_local
 #check_axioms Checks.return_sweeps_local
 
+#check @Checks.matching_frame_holder_rewritten
+#print axioms Checks.matching_frame_holder_rewritten
+#check_axioms Checks.matching_frame_holder_rewritten
+
+#check @Checks.swept_holder_comparison_returns
+#print axioms Checks.swept_holder_comparison_returns
+#check_axioms Checks.swept_holder_comparison_returns
+
+#check @Checks.nested_scope_sweep_in_caller
+#print axioms Checks.nested_scope_sweep_in_caller
+#check_axioms Checks.nested_scope_sweep_in_caller
+
 end
 
 /-! Shared Inner. -/
@@ -270,6 +282,10 @@ open ReuseModel
 #check @Checks.loop_first_visit_insufficient
 #print axioms Checks.loop_first_visit_insufficient
 #check_axioms Checks.loop_first_visit_insufficient
+
+#check @Checks.fresh_local_must_be_keyed
+#print axioms Checks.fresh_local_must_be_keyed
+#check_axioms Checks.fresh_local_must_be_keyed
 
 end
 
