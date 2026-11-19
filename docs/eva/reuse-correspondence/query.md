@@ -697,7 +697,9 @@ guard accepted all printed declarations; every new declaration depends on
 `propext` and `Quot.sound` at most. Each Lean commit of this branch since
 `e01f7a2e78` also built on a clean archive. The output of `#check`,
 `#print axioms` and `#check_axioms` for the declarations of the earlier
-entries is the same as on `e01f7a2e78`. CI for this tree is pending.
+entries is the same as on `e01f7a2e78`. The Lean
+model job of CI passed on this tree at `ee06896d15`:
+[run 44483660704](https://github.com/nyandrianinamamy/frama-c/actions/runs/44483660704).
 
 The 94 build mutations and the 34 runs with the generic proofs replaced by
 `sorry` above were run on copies of the tree
