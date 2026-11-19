@@ -288,11 +288,10 @@ is called three times, as with caching disabled. Order of the hooks and the
 messages, in `abort-count.c` with `-eva-slevel 10` and the category `alarm`
 set to abort: the check `mixed` fails at the first two iterations of the
 loop. With caching disabled, the hook is called once, and the analysis
-stops at the message of the invalid status; with the hit, the same. At
-revision `84110fde822ed8ac29305840e66af3d30dfdd092`, where a red context was
-recorded once with its count, the same program and modes, run with the
-fixture of this revision, called the hook twice at the hit before it
-stopped.
+stops at the message of the invalid status; with the hit, the same. With
+`Safety_part.record` changed to record each red context once, with its
+count, at its first emission, as before this order was kept (a mutation,
+reverted), the hit calls the hook twice before it stops.
 
 **Open.**
 
@@ -499,24 +498,22 @@ never returns, the statuses are again those of caching disabled. Export
 generates no annotation in `body`. The summary prints 12 statements of 15
 reached, and up to 3 more through calls answered by the cache (100%);
 caching disabled counts 14, and the loop at line 14, reached by no call, is
-among the 3. At revision `84110fde822ed8ac29305840e66af3d30dfdd092`, the
-same run printed 15 statements of 15 as reached, the upper bound as a
-measure. The
+among the 3. With `Summary.print_coverage` changed to count no statement
+of unknown reachability (a mutation, reverted), the same run prints 15
+statements of 15 as reached, the upper bound as a measure. The
 analysis from `producer`, without a hit, prints the usual line. After a
 change of the entry point, `body` is no
 longer recorded. `supply` refuses an entry for `outer`, which calls `body`.
 
-Before the restriction, at revision
-`5c7f2e1fc56b761945636dc6b86fcacd56cbdb83`, the same programs and modes,
-run with a copy of the fixture that does not observe the record of skipped
-functions (absent at that revision), differed from caching disabled: from
-`main`, the alarm got the final status valid and `one` was marked
-unreachable; in the reverse order, the alarm got the final status invalid;
-from `no_return`, the alarm was valid, and `one` and the postcondition were
-marked unreachable.
-Export generated seven annotations in `body`, all valid, among them
-`\false` at lines 10 and 14. The summary counted 12 statements of 15.
-`supply` accepted the entry for `outer`.
+With `Safety_delivery.skip_visits` changed to record nothing (a mutation,
+reverted), the same programs and modes differ from caching disabled: from
+`main`, the alarm gets the final status valid, and the statement at line 11
+is marked unreachable; in the reverse order, the alarm gets the final
+status invalid; from `no_return`, the alarm is valid, and the statement at
+line 11 and the function `body` are marked unreachable. Export generates
+seven annotations in `body`, all valid, among them `\false` at lines 10
+and 14. The summary prints 12 statements of 15 as reached, without the
+upper bound.
 
 The request `getDeadCode`, the warning of `Export.main` (option
 `-eva-annot`; the test calls `Export.generator`) and the rejection when the
@@ -573,7 +570,12 @@ are refused as well. The producer stores no body with a refusal.
 `Safety_part.record` compares the project and the count at the start of the
 recording with the current ones at each write, and refuses instead of
 recording when either differs. The count is a value of the process, not a
-state of a project: it is neither saved nor loaded with a session.
+state of a project: it is neither saved nor loaded with a session. Since
+every change of the current project increments the count, the comparison
+of the count at the end of `Body_access.capture` decides the refusal; the
+comparisons of the project, and the comparison at each write of the Safety
+part, refuse no body that it does not refuse, and no test fails when one
+of them alone is removed.
 
 **Evidence (executed).** `cache-safety.t`: a hook of red statuses enters a
 second project with `Project.on` the first time it runs, during the analysis
@@ -581,13 +583,15 @@ of `body` from `producer`, and sets a red status there. The calls of `body`
 and of `producer` read `collector: refused (project-switch)`, the statistic
 `collector-refused-project-switch` is 1 for each, and no entry is produced.
 The analysis from `main` then has no candidate, and its tables are those of
-the run with caching disabled and the same hook. Before the refusal, at
-revision `5c7f2e1fc56b761945636dc6b86fcacd56cbdb83`, with the same
-program and a copy of the fixture that does not observe the record of
-skipped functions, the entry was stored with the red context set in the
-second project, and the hit delivered it in the first: the tables of
-`main` had a red context of the reachability of the first statement of
-`body`, which caching disabled does not have.
+the run with caching disabled and the same hook. With the comparisons of
+the project removed from `Body_access.capture` and `Safety_part.record` (a
+mutation, reverted), the entry is stored with the red context set in the
+second project, and the hit delivers it in the first: the tables of `main`
+have a red context of the reachability of the statement at line 8 of
+`body`, which caching disabled does not have. With the comparison of the
+count removed alone, `body` is still refused, by the comparison of the
+project at its write in the second project, and `producer` is refused for
+another reason (`sweep`).
 
 A change made in a hook of another change, in `cache-safety.t`: the
 analysis from `producer` runs in a hook of the change of project to a copy
@@ -597,11 +601,12 @@ The calls of `body` and of `producer` read
 `collector: refused (project-switch)`, and no entry is produced. The
 analysis from `main`, in the copy, has no candidate, and its tables are
 those of the run with caching disabled in the same setting, as are those
-of the first project, where Eva wrote nothing. At revision
-`84110fde822ed8ac29305840e66af3d30dfdd092`, where the collector counted
-the changes with a hook of the kernel, the same program and modes, run with
-the fixture of this revision, gave `collector: would-store` for `body`,
-and its entry was stored and hit.
+of the first project, where Eva wrote nothing. With the comparison of the
+count removed alone from `Body_access.capture` and `Safety_part.record` (a
+mutation, reverted), the call of `body` reads `collector: would-store`, its
+entry is produced, and the second call of `body` in the copy is a hit. The
+tables are then still equal to those of the run with caching disabled:
+the test shows the refusal by the verdict and the count of entries.
 
 ## The settings that decide the alarms and messages are those of each hit
 
