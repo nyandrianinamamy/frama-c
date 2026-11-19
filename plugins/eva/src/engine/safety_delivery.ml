@@ -8,9 +8,9 @@
 
 let deliver_write (write : Safety_part.write) () =
   match write with
-  | Emitted_alarm { kinstr; alarm; status; emitter } ->
+  | Emitted_alarm { kinstr; alarm; status; emitter; predicate } ->
     let pos = Position.of_kinstr kinstr (Current_callstack.get_exn ()) in
-    Alarmset.deliver ~pos ~emitter alarm status
+    Alarmset.deliver ~pos ~emitter ~predicate alarm status
   | Emitted_status { property; status; emitter } ->
     Body_access.record Statuses;
     Safety_part.emit_status emitter property status

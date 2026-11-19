@@ -45,10 +45,16 @@ type write =
       alarm : Alarms.t;
       status : Property_status.emitted_status;
       emitter : Emitter.t;
+      predicate : predicate;
       frames : frames;
     }
-  (** [Alarms.register ~status emitter kinstr alarm]: the alarm is added as
-      an assertion at [kinstr], if new, and [status] is emitted on it. *)
+  (** [Alarms.register ~status ~predicate emitter kinstr alarm]: the alarm
+      is added as an assertion at [kinstr], if new, and [status] is emitted
+      on it. [predicate] is the predicate of the alarm, taken when the write
+      is recorded ([Alarms.predicate]): the delivery of the write makes the
+      assertion from it and builds no predicate. A write made by hand gives
+      [Alarms.create_predicate ~loc alarm], with the location of
+      [kinstr]. *)
   | Emitted_status of {
       property : Property.t;
       status : Property_status.emitted_status;
@@ -130,7 +136,8 @@ val has_unaudited_observers : unit -> bool
     at another callstack: it refuses the body as [Side_table]. *)
 
 val record_alarm :
-  kinstr -> Alarms.t -> Property_status.emitted_status -> Emitter.t -> unit
+  kinstr -> Alarms.t -> Property_status.emitted_status -> Emitter.t ->
+  predicate -> unit
 
 (** [record_red_context kinstr target] records that the red status of
     [target] at [kinstr] was set. *)

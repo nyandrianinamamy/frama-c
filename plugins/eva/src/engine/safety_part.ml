@@ -18,6 +18,7 @@ type write =
       alarm : Alarms.t;
       status : Property_status.emitted_status;
       emitter : Emitter.t;
+      predicate : predicate;
       frames : frames;
     }
   | Emitted_status of {
@@ -136,7 +137,7 @@ let pretty_frames fmt = function
     Pretty_utils.pp_list ~sep:" <- " pretty_call fmt frames
 
 let pretty_write fmt = function
-  | Emitted_alarm { kinstr; alarm; status; emitter; frames } ->
+  | Emitted_alarm { kinstr; alarm; status; emitter; frames; predicate = _ } ->
     Format.fprintf fmt "@[<hov 2>alarm %s at %a,@ status %a by %a,@ in %a@]"
       (Alarms.get_name alarm) pretty_kinstr kinstr pretty_status status
       Emitter.pretty emitter pretty_frames frames
@@ -261,9 +262,9 @@ let record make =
     end
   | _ -> ()
 
-let record_alarm kinstr alarm status emitter =
+let record_alarm kinstr alarm status emitter predicate =
   record (fun frames ->
-      Emitted_alarm { kinstr; alarm; status; emitter; frames })
+      Emitted_alarm { kinstr; alarm; status; emitter; predicate; frames })
 
 let record_red_context kinstr target =
   record (fun frames -> Red_context { kinstr; target; frames })

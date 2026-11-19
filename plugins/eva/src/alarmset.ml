@@ -321,12 +321,22 @@ let alarm_message = function
 
 (* Registers [alarm] at the position [pos] with the status [status] of the
    kernel, and reports it once per analysis. The write is part of the Safety
-   part of the body being analysed. *)
-let register ~pos ~emitter alarm status =
+   part of the body being analysed, with the predicate of the alarm: the one
+   of its annotation, if it has one, or the one that the kernel builds for
+   it, here, when a body emits the alarm. The delivery of a hit gives the
+   predicate of its entry instead, and builds none. In both cases the
+   registration receives the predicate, and makes the annotation from it
+   when the alarm has none. *)
+let register ~pos ~emitter ?predicate alarm status =
   let ki = Position.kinstr pos in
-  Safety_part.record_alarm ki alarm status emitter;
+  let predicate =
+    match predicate with
+    | Some predicate -> predicate
+    | None -> Alarms.predicate ki ~loc:(loc ki) alarm
+  in
+  Safety_part.record_alarm ki alarm status emitter predicate;
   let annot, _is_new =
-    Alarms.register ~loc:(loc ki) ~status emitter ki alarm
+    Alarms.register ~loc:(loc ki) ~status ~predicate emitter ki alarm
   in
   (* Report each alarm only once per analysis. The boolean [is_new] returned
      by {{Alarms.register}} is inadequate, as an alarm emitted by another
@@ -351,10 +361,10 @@ let emit_alarm ~pos alarm status =
   in
   register ~pos ~emitter alarm status
 
-let deliver ~pos ~emitter alarm status =
+let deliver ~pos ~emitter ~predicate alarm status =
   Body_access.record Alarms;
   Body_access.record Statuses;
-  register ~pos ~emitter alarm status
+  register ~pos ~emitter ~predicate alarm status
 
 let height_alarm = let open Eva_utils in function
     | Alarms.Division_by_zero e

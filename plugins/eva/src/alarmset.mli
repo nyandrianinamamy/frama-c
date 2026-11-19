@@ -89,16 +89,19 @@ val fold : (alarm -> status -> 'a -> 'a) -> 'a -> t -> 'a
     instruction. *)
 val emit: pos:Position.t -> t -> unit
 
-(** [deliver ~pos ~emitter alarm status] registers [alarm] at [pos] with the
-    kernel status [status] by [emitter], as the emission of [alarm] by a
-    body does: the kernel combines [status] with the status of the alarm,
-    and the alarm is reported once per analysis. It does not record a red
+(** [deliver ~pos ~emitter ~predicate alarm status] registers [alarm] at
+    [pos] with the kernel status [status] by [emitter], as the emission of
+    [alarm] by a body does: the kernel combines [status] with the status of
+    the alarm, and the alarm is reported once per analysis. The annotation of
+    an alarm that has none is made from [predicate], the predicate recorded
+    with the alarm: the delivery builds no predicate, where the emission by
+    a body builds one ([Alarms.create_predicate]). It does not record a red
     context, and does not apply option [-eva-stop-at-nth-alarm]: no hit
     delivers alarms when the option is set (see {!Supplied_entries}). A hit
     delivers the alarms of its entry through it (see {!Safety_part}). *)
 val deliver:
-  pos:Position.t -> emitter:Emitter.t -> alarm ->
-  Property_status.emitted_status -> unit
+  pos:Position.t -> emitter:Emitter.t -> predicate:Cil_types.predicate ->
+  alarm -> Property_status.emitted_status -> unit
 
 (** Has the given alarm already been emitted at the given statement
     by the current analysis? *)
