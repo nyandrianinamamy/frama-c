@@ -63,6 +63,55 @@ collector refuses that body as side-table.
     call to body: lookup: no-candidate; execution: analysed; storage: refused (disabled); collector: would-store
     call to body: lookup: no-candidate; execution: analysed; storage: refused (disabled); collector: refused (side-table)
 
+The delivery alone, outside any analysis, after the same reset: the Safety
+part is delivered for the callstack of the call at line 26. The alarm is
+registered again with its warning, its unknown status and its red context,
+and two is invalid. The warning is printed once by the first analysis and
+once by the first delivery. A second delivery at the same callstack changes
+no status and no red context. The red contexts are then delivered with the
+call of body in outer as frame, for a callstack that starts in outer: each
+gets a context in body called from outer at line 44.
+
+  $ EVA_TEST_CACHE_SAFETY=deliver frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -main producer safety.c > deliver.log 2>&1
+  $ grep -c 'Warning: division by zero' deliver.log
+  2
+  $ grep -E '^(after the reset|a second delivery|\| )' deliver.log
+  after the reset: 0 statuses, 0 red contexts
+  a second delivery changes nothing: true
+  | safety.c:11: red context of alarm division_by_zero in body :: safety.c:26 <- main
+  | safety.c:11: red context of alarm division_by_zero in body :: safety.c:44 <- outer
+  | safety.c:11: status of alarm division_by_zero: unknown
+  | safety.c:13: status of ok: valid
+  | safety.c:9: red context of two in body :: safety.c:26 <- main
+  | safety.c:9: red context of two in body :: safety.c:44 <- outer
+  | safety.c:9: status of two: invalid
+
+Known difference. With an entry taken from another analysis, the
+refinement of the statuses of alarms after the analysis reads the states of
+the analysed calls only, and a hit saves none. From main2, the analysed call
+body(2, 1) never divides by zero: the refinement gives the alarm a valid
+final status, although the hit at line 37 makes it a sure alarm. With
+caching disabled, the alarm is unknown. The refinement at a hit is issue
+#49. The first final status below is that of the analysis from producer,
+the second that of the analysis from main2.
+
+  $ EVA_TEST_CACHE_SAFETY=replay EVA_TEST_CACHE_SAFETY_MAIN=main2 frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -main producer -eva-msg-key cache safety.c > main2.log 2>&1
+  $ grep -B 1 'lookup: hit' main2.log | sed 's/ *$//'
+  [eva:cache] safety.c:37:
+    call to body: lookup: hit (entry 1); execution: not-analysed; storage: none
+  $ grep 'final status' main2.log
+  [eva] safety.c:11: assertion 'Eva,division_by_zero' got final status invalid.
+  [eva] safety.c:11: assertion 'Eva,division_by_zero' got final status valid.
+  $ grep '^| ' main2.log > main2.summary
+  $ EVA_TEST_CACHE_SAFETY=reference frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -main main2 safety.c > main2-reference.log 2>&1
+  $ grep '^| ' main2-reference.log > main2-reference.summary
+  $ diff main2.summary main2-reference.summary
+  4c4
+  < | safety.c:11: status of alarm division_by_zero: valid
+  ---
+  > | safety.c:11: status of alarm division_by_zero: unknown
+  [1]
+
 The preconditions of the callee belong to the call site and are evaluated at
 each call, a hit included. A hand-written entry of pre answers the call
 pre(1) at line 15, where g = 0: the precondition is reported invalid at that

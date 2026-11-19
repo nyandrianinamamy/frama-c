@@ -27,3 +27,19 @@ int main(void) {
   r2 = out;
   return 0;
 }
+
+/* As main, but the analysed call of body never divides by zero. */
+int main2(void) {
+  g = 7;
+  body(2, 1);
+  r1 = out;
+  out = 0;
+  body(1, 0);
+  r2 = out;
+  return 0;
+}
+
+/* Not called: its call of body is the frame of a delivered write. */
+void outer(void) {
+  body(1, 0);
+}

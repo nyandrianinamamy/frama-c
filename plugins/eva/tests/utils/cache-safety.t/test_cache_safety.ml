@@ -82,12 +82,15 @@ let red_contexts () =
   in
   Eva__Red_statuses.fold_contexts add []
 
-(* The value of [name] at the end of main. *)
+(* The value of [name] at the end of the entry point. *)
 let value name =
-  let request = Results.at_end_of (kf "main") in
+  let main = fst (Globals.entry_point ()) in
+  let request = Results.at_end_of main in
+  let main = Kernel_function.get_name main in
   match Results.(eval_var (global name) request |> as_integer) with
-  | Ok n -> Format.asprintf "end of main: %s = %a" name Z.pp_print n
-  | Error e -> Format.asprintf "end of main: %s: %a" name Results.pretty_error e
+  | Ok n -> Format.asprintf "end of %s: %s = %a" main name Z.pp_print n
+  | Error e ->
+    Format.asprintf "end of %s: %s: %a" main name Results.pretty_error e
 
 let summary names =
   let lines = statuses () @ red_contexts () @ List.map value names in
@@ -113,10 +116,10 @@ let reference ?observed names () =
   Eva.Analysis.compute ();
   summary names
 
-(* A first analysis from [producer] stores the entry of [body]. Changing the
-   entry point resets the analysis with its alarms and statuses; the entry is
-   then supplied to a second analysis from [main]. *)
-let replay () =
+(* A first analysis from [producer] stores the entry of [body], whose
+   Safety part is printed. Changing the entry point to [main] then resets the
+   analysis with its alarms and statuses. *)
+let produce_and_reset main =
   Eva.Analysis.compute ();
   let produced =
     match Producer.entries (kf "body") with
@@ -132,14 +135,58 @@ let replay () =
     Buffer.contents buffer
   in
   List.iter (fun w -> Format.printf "safety: %s@." (one_line w)) safety;
-  Kernel.MainFunction.set "main";
+  Kernel.MainFunction.set main;
   assert (not (Eva.Analysis.is_computed ()));
   Format.printf "after the reset: %d statuses, %d red contexts@."
     (List.length (statuses ())) (List.length (red_contexts ()));
+  produced
+
+(* The entry of [body] is supplied to a second analysis, from the function
+   named by EVA_TEST_CACHE_SAFETY_MAIN, main by default. *)
+let replay () =
+  let main =
+    Option.value ~default:"main" (Sys.getenv_opt "EVA_TEST_CACHE_SAFETY_MAIN")
+  in
+  let produced = produce_and_reset main in
   ignore (Supplied.supply_produced produced);
   Eva.Analysis.compute ();
   hits "body";
   summary ["r1"; "r2"]
+
+(* The last call of [body] in [caller]. *)
+let call_of_body caller =
+  let calls = Kernel_function.find_syntactic_callsites (kf "body") in
+  let in_caller (k, _) = Kernel_function.equal k (kf caller) in
+  match List.rev (List.sort compare (List.filter in_caller calls)) with
+  | (_, stmt) :: _ -> stmt
+  | [] -> assert false
+
+(* The Safety part of the entry of [body] is delivered outside any analysis:
+   twice for the call of [body] at line 26 of main, then its red contexts,
+   with the call of [body] in [outer] as frame, for a callstack of
+   [outer]. *)
+let deliver () =
+  let produced = produce_and_reset "main" in
+  let safety = Entry.safety (Producer.cache_entry produced) in
+  let thread = Eva.Thread.main_id in
+  let at_hit =
+    Eva.Callstack.init ~thread ~entry_point:(kf "main")
+    |> Eva.Callstack.push (kf "body") (call_of_body "main")
+  in
+  let tables () = List.sort compare (statuses () @ red_contexts ()) in
+  Eva__Safety_delivery.deliver at_hit safety;
+  let once = tables () in
+  Eva__Safety_delivery.deliver at_hit safety;
+  Format.printf "a second delivery changes nothing: %b@." (once = tables ());
+  let with_frame : Eva.Safety_part.write -> _ = function
+    | Red_context r ->
+      Some (Eva.Safety_part.Red_context
+              { r with frames = [kf "body", call_of_body "outer"] })
+    | Emitted_alarm _ | Emitted_status _ -> None
+  in
+  let from_outer = Eva.Callstack.init ~thread ~entry_point:(kf "outer") in
+  Eva__Safety_delivery.deliver from_outer (List.filter_map with_frame safety);
+  summary []
 
 let bases vis =
   List.fold_left
@@ -174,6 +221,7 @@ let precondition () =
 let () =
   match Sys.getenv_opt "EVA_TEST_CACHE_SAFETY" with
   | Some "replay" -> Boot.Main.extend replay
+  | Some "deliver" -> Boot.Main.extend deliver
   | Some "reference" -> Boot.Main.extend (reference ["r1"; "r2"])
   | Some "precondition" -> Boot.Main.extend precondition
   | Some "precondition-reference" ->
