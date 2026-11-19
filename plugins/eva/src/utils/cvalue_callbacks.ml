@@ -31,7 +31,12 @@ let run_hook ~cache_protocol f =
   if not cache_protocol then Body_access.unknown_access Callback;
   Body_access.without_recording f
 
+(* Whether a hook was registered without [cache_protocol] or [classified]. *)
+let unaudited = ref false
+let unaudited_hooks () = !unaudited
+
 let register_call_hook ?(cache_protocol=false) f =
+  if not cache_protocol then unaudited := true;
   Call.extend (fun (callstack, kf, kind, state) ->
       run_hook ~cache_protocol (fun () -> f callstack kf kind state))
 
@@ -58,6 +63,7 @@ module Call_Results =
     (struct type t = Callstack.t * kernel_function * state * call_results end)
 
 let register_call_results_hook ?(cache_protocol=false) f =
+  if not cache_protocol then unaudited := true;
   Call_Results.extend (fun (callstack, kf, state, results) ->
       run_hook ~cache_protocol (fun () -> f callstack kf state results))
 
@@ -69,6 +75,7 @@ module Statement =
   Hook.Build (struct type t = Callstack.t * stmt * state list end)
 
 let register_statement_hook ?(classified=false) f =
+  if not classified then unaudited := true;
   Statement.extend (fun (callstack, stmt, states) ->
       if classified then f callstack stmt states
       else run_hook ~cache_protocol:false (fun () -> f callstack stmt states))

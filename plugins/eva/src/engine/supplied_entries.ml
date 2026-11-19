@@ -183,18 +183,20 @@ let safety = Entry.safety
 let pretty = Entry.pretty
 
 type rejection =
-  [ Cache_entry.rejection | `Product | `Consumer | `Stop_at_nth_alarm ]
+  [ Cache_entry.rejection | `Product | `Consumer | `Stop_at_nth_alarm
+  | `Callback ]
 
 let rejections : rejection list =
   [ `Key_differs; `Key_unclosed; `Sweep; `Recursion; `Hint_generation;
     `Watchpoint; `Automatic_cleanup; `Nested_delivery; `Warn_categories;
-    `Product; `Consumer; `Stop_at_nth_alarm ]
+    `Product; `Consumer; `Stop_at_nth_alarm; `Callback ]
 
 let rejection_id : rejection -> string = function
   | #Cache_entry.rejection as r -> Cache_entry.rejection_id r
   | `Product -> "product"
   | `Consumer -> "consumer"
   | `Stop_at_nth_alarm -> "stop-at-nth-alarm"
+  | `Callback -> "callback"
 
 type 'state lookup = {
   rejected : (int * rejection) list;
@@ -220,6 +222,33 @@ let consumer_enabled () =
    the threshold of [-eva-stop-at-nth-alarm]; a hit delivers the alarms one
    by one, and does not know the evaluations they came from. *)
 let stop_at_nth_alarm () = Parameters.StopAtNthAlarm.get () < max_int
+
+(* Whether a client that is not audited is registered on a hook that a hit
+   runs between its lookup and the end of its delivery, or that an analysis
+   of the body runs and a hit does not. Such a client can tell a hit from an
+   analysis of the body, and change what follows. The hooks are:
+   - the call, call results and statement hooks of Eva, apart from those
+     registered with [cache_protocol] or [classified];
+   - the hooks of red statuses, which have no audited client;
+   - the hooks of the kernel on a new property and on a new status, which
+     the evaluation of the preconditions and the delivery of alarms and
+     statuses run, and on a change of the annotations, which the
+     registration of an alarm runs;
+   - the listeners and the observers of the history of the logger, apart
+     from the message collector of the kernel and the observer of the
+     collector of block accesses, and the hooks of the message collector:
+     the line of the call, the messages of the statuses and the reports of
+     the alarms reach them.
+
+   Registration is the test: a client cannot be removed, and one registered
+   after the production of an entry counts. *)
+let unaudited_clients () =
+  Cvalue_callbacks.unaudited_hooks ()
+  || Red_statuses.has_hooks ()
+  || Property_status.has_add_or_update_hooks ()
+  || Annotations.has_hooks_on_change ()
+  || Log.unaudited_clients ()
+  || Messages.has_hooks ()
 
 let cast : type a b. (a, b) Structure.eq -> a -> b = fun Structure.Eq x -> x
 let cast_back : type a b. (a, b) Structure.eq -> b -> a =
@@ -299,6 +328,7 @@ module Lookup (Domain : sig
       | Some _ when consumer_enabled () || stack.thread <> Thread.main_id ->
         reject_all `Consumer
       | Some _ when stop_at_nth_alarm () -> reject_all `Stop_at_nth_alarm
+      | Some _ when unaudited_clients () -> reject_all `Callback
       | Some eq ->
         let nested_call = lazy (has_nested_call (Callstack.top_kf stack)) in
         let result =

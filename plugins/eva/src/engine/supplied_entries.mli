@@ -74,33 +74,38 @@ type footprint = Cache_entry.footprint = {
       they are evaluated at each call.
 
     The alarms, statuses and messages of [safety] are those of an analysis
-    of the body with the settings in force at each hit on the entry. These
-    settings are in force at the call that produced the entry and at each
-    hit: equal in the analysis that produced it and in the analysis that
-    uses it, and changed during neither, by a hook for instance. They are:
+    of the body with the settings in force at each hit on the entry. The
+    caller owes that these settings are equal in the analysis that produced
+    the entry and in the analysis that uses it, at the call that produced
+    the entry and at each hit. They are:
     - the options of the kernel and of Eva that decide which alarms and
       statuses are emitted, such as the [-warn-*] options of the kernel
       ([-warn-signed-overflow] for instance) and the [-eva-warn-*] options
       of Eva ([-eva-warn-copy-indeterminate] for instance);
     - the status of every warning category of Eva and of the kernel
       ([-eva-warn-key] and [-kernel-warn-key]), which decides the action of
-      its messages, apart from the category [alarm] of Eva.
+      its messages, apart from the category [alarm] of Eva, whose messages
+      a hit prints;
+    - the activation of every message category of Eva and of the kernel
+      ([-eva-msg-key] and [-kernel-msg-key]), which decides whether a
+      message is printed.
 
-    Nothing checks the options. An entry produced without the alarms of
-    signed overflows hides them in an analysis that emits them. A hit
-    prints the messages of the statuses and alarms of its entry, of the
-    category [alarm], through the logger, but no other message of the body,
-    such as the assumption of 2's complement for an overflow: when the
-    category of such a message is set to abort at the hit, an analysis of
-    the body stops where the hit goes on, and the state at the end of the
-    call differs. The lookup compares the status of the warning categories
-    with their status when the analysis of the body that produced the entry
-    started ({!Body_access.warn_categories}), and rejects the entry with
-    [`Warn_categories] when one differs; an entry given to [supply] carries
-    no status of the categories, so that the caller owes them. After the
-    delivery, a hit compares the status of the categories with their status
-    at the lookup, and the analysis stops when a hook that the hit ran
-    changed one ({!Call_cache.delivery}).
+    A violation can hide an alarm or a message, and change the state at the
+    end of the call: a hit prints the messages of the statuses and alarms of
+    its entry through the logger, but no other message of the body, such as
+    the assumption of 2's complement for an overflow, and when the category
+    of such a message is set to abort, an analysis of the body stops where
+    the hit goes on. Two checks of the lookup cover a part of these
+    settings. For an entry produced by an analysis, the lookup compares the
+    status of the warning categories of the kernel and of Eva, but [alarm],
+    with their status when the analysis of the body started
+    ({!Body_access.warn_categories}), and rejects the entry with
+    [`Warn_categories] when one differs. Within the analysis that uses the
+    entry, a setting changes only through a client of a hook, and the
+    lookup rejects every entry with [`Callback] while a client that is not
+    audited is registered on a hook that a hit runs. Nothing checks the
+    options and the activation of the message categories, and an entry
+    given to [supply] carries no status of the warning categories.
 
     The body of [kf] does not call a function that has a body: a hit skips
     the analysis of [kf] and records [kf] alone among the functions whose
@@ -130,10 +135,12 @@ val supply :
     producer, with the next supplied entry identifier. The lookup checks the
     recorded sweep targets, used functions, widening generation and status
     of the warning categories. The fixture must use the same AST and ensure
-    the calls meet the replay premises described on [supply], the options
-    that decide the alarms and statuses included. Supplying entries remains
-    a test-only operation. Raises [Invalid_argument] if the body may call a
-    function that has a body; the producer stores no such body. *)
+    the calls meet the replay premises described on [supply], the settings
+    that decide the alarms, statuses and messages included: the options and
+    the activation of the message categories are not checked. Supplying
+    entries remains a test-only operation. Raises [Invalid_argument] if the
+    body may call a function that has a body; the producer stores no such
+    body. *)
 val supply_produced : Cache_producer.entry -> entry
 
 (** The partition key of a state that no partitioning distinguishes. *)
@@ -180,8 +187,9 @@ val active : unit -> bool
     are not the cvalue domain alone, every candidate is rejected with
     [`Product], whatever the other reasons; otherwise, when a consumer is
     enabled, with [`Consumer]; otherwise, when [-eva-stop-at-nth-alarm] is
-    set, with [`Stop_at_nth_alarm]; otherwise each candidate is examined by
-    {!Cache_entry.Make.find}. *)
+    set, with [`Stop_at_nth_alarm]; otherwise, when a client that is not
+    audited is registered on a hook that a hit runs, with [`Callback];
+    otherwise each candidate is examined by {!Cache_entry.Make.find}. *)
 type rejection = [
   | Cache_entry.rejection
   | `Product
@@ -198,14 +206,29 @@ type rejection = [
   (** Option [-eva-stop-at-nth-alarm] is set. A fresh evaluation emits all
       its alarms before it tests the threshold; a hit does not deliver its
       alarms by evaluation. *)
+  | `Callback
+  (** A client that is not audited is registered on a hook that a hit runs
+      between its lookup and the end of its delivery, or that an analysis of
+      the body runs and a hit does not: such a client can tell a hit from an
+      analysis of the body. The hooks are the call, call results and
+      statement hooks of Eva ({!Cvalue_callbacks.unaudited_hooks}), the
+      hooks of red statuses ({!Red_statuses.has_hooks}), the hooks of the
+      kernel on a new property or status
+      ({!Property_status.has_add_or_update_hooks}) and on a change of the
+      annotations ({!Annotations.has_hooks_on_change}), the listeners and
+      observers of the history of the logger ({!Log.unaudited_clients}), and
+      the hooks of the message collector of the kernel
+      ({!Messages.has_hooks}). A client registered since the production of
+      the entry counts. *)
 ]
 
 (** All reasons, in the order of their documentation. *)
 val rejections : rejection list
 
 (** Stable identifier of a reason: those of {!Cache_entry.rejection_id},
-    [product] for [`Product], [consumer] for [`Consumer] and
-    [stop-at-nth-alarm] for [`Stop_at_nth_alarm]. *)
+    [product] for [`Product], [consumer] for [`Consumer],
+    [stop-at-nth-alarm] for [`Stop_at_nth_alarm] and [callback] for
+    [`Callback]. *)
 val rejection_id : rejection -> string
 
 (** Result of a lookup. *)
@@ -228,8 +251,9 @@ module Lookup (Domain : sig
       to the entries supplied for the top function of [stack], at a call
       whose input is [state].
       When the active domains are not the cvalue domain alone, when a
-      component listed under [`Consumer] is enabled, or when
-      [-eva-stop-at-nth-alarm] is set, every entry is rejected for this
+      component listed under [`Consumer] is enabled, when
+      [-eva-stop-at-nth-alarm] is set, or when a client listed under
+      [`Callback] is registered, every entry is rejected for this
       reason. With either constructor, a matching body with a call other
       than a direct show directive is rejected with [`Nested_delivery] if it
       passes the other admission checks. *)

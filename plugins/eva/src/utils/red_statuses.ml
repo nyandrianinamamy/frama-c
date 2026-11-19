@@ -58,9 +58,12 @@ module RedStatusesTable =
 module Hook = Hook.Build (AlarmOrProp)
 
 (* A client of the hook is not audited: its invocation during the analysis
-   of a body refuses the body ([Hook.Opaque]). *)
+   of a body refuses the body ([Hook.Opaque]), and a registered client
+   rejects every supplied entry at the lookup (see {!has_hooks}). *)
 let register_hook f =
   Hook.extend (Frama_c_kernel.Hook.Opaque.wrap f)
+
+let has_hooks () = not (Hook.is_empty ())
 
 let add_red_context kinstr ap =
   let current_map =

@@ -19,15 +19,19 @@
     - a status through {!Safety_part.emit_status}, so that the kernel
       combines it with the statuses that the same emitter emitted before on
       the same property;
-    - the message of a status through {!Safety_part.status_message}, so
-      that the action of its message category applies, and a text printed
-      before at the same position is not printed again;
-    - a red context through {!Red_statuses.add_red_context}, which adds the
-      callstack of the write to the contexts of its alarm or property, and
-      runs the hooks of red statuses as many times as the body set it in a
-      row. The writes are delivered in the order of the Safety part, so the
-      hooks of red statuses and the messages run in the order of the
-      analysis of the body. *)
+    - the message of a status through {!Safety_part.status_message}, at
+      each of its occurrences, so that the action of its message category
+      applies, and the logger decides at each one whether the text was
+      printed before at the same position;
+    - a red context through {!Red_statuses.add_red_context}, at each of its
+      occurrences, which adds the callstack of the write to the contexts of
+      its alarm or property, and runs the hooks of red statuses.
+
+    The writes are delivered in the order of the Safety part, which is the
+    order of the analysis of the body. A hit is admitted only when no
+    client that is not audited is registered on the hooks that it runs
+    (see {!Supplied_entries}): the delivery then makes the recorded
+    sequence of writes, and nothing else runs between them. *)
 val deliver : Callstack.t -> Safety_part.t -> unit
 
 (** {2 Functions with skipped visits}

@@ -20,6 +20,12 @@ include Cvalue_callbacks_sig.API
 val register_statement_hook:
   ?classified:bool -> (Callstack.t -> Cil_types.stmt -> state list -> unit) -> unit
 
+(** Whether a call, call results or statement hook was registered without
+    [cache_protocol] or [classified]. A hook cannot be removed. While one
+    is, every supplied entry is rejected at the lookup (see
+    {!Supplied_entries}). *)
+val unaudited_hooks: unit -> bool
+
 val apply_at_start_hooks:
   unit -> unit
 val apply_call_hooks:

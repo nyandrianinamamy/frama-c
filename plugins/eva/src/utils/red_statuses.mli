@@ -45,3 +45,8 @@ val report: unit -> unit
    collector of block accesses refuses a body during which the hook is
    called ([Hook.Opaque]): the client is not audited. *)
 val register_hook: (alarm_or_property -> unit) -> unit
+
+(* Whether a hook was registered by [register_hook]. A hook cannot be
+   removed. While one is, every supplied entry is rejected at the lookup
+   (see [Supplied_entries]). *)
+val has_hooks: unit -> bool
