@@ -19,12 +19,14 @@ val add_red_property: kinstr -> Property.t -> unit
 type alarm_or_property = Safety_part.red_target =
   | Alarm of Alarms.t | Prop of Property.t
 
-(** [add_red_context kinstr target] records that [target] got a red status
-    at [kinstr] in the current callstack. The two functions above call it,
-    [add_red_property] twice for an instance of a precondition. A hit
-    delivers the red contexts of its entry through it (see
-    {!Safety_part}). *)
-val add_red_context: kinstr -> alarm_or_property -> unit
+(** [add_red_context ~count kinstr target] records that [target] got a
+    red status at [kinstr] in the current callstack, [count] times (1 by
+    default): the table keeps the callstack once, and the hooks registered
+    by {!register_hook} run [count] times. The two functions above call it
+    with a count of 1, [add_red_property] twice for an instance of a
+    precondition. A hit delivers the red contexts of its entry through it,
+    with the number of times the body set each one (see {!Safety_part}). *)
+val add_red_context: ?count:int -> kinstr -> alarm_or_property -> unit
 
 (** Folds over the alarms and properties that got a red status, with the
     callstacks in which they got it, [None] standing for no callstack. *)
@@ -39,5 +41,6 @@ val is_red: Property.t -> bool
    a csv file. *)
 val report: unit -> unit
 
-(* Register a hook that is called each time a red status is set *)
+(* Register a hook that is called each time a red status is set, a hit
+   included: a hit runs it as many times as the analysis of the body did. *)
 val register_hook: (alarm_or_property -> unit) -> unit

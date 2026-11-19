@@ -22,7 +22,11 @@
     [requires] clauses of the called function, which belong to the call
     site, and the callbacks run without recording are not part of the body.
     A write of a body analysed during the analysis of another one is
-    recorded in the inner body only. *)
+    recorded in the inner body only.
+
+    A recording belongs to the project that is current when it starts. A
+    write made while another project is current is not recorded, and
+    refuses the body as [Project_switch] (see {!Body_access}). *)
 
 open Cil_types
 
@@ -51,16 +55,30 @@ type write =
     }
   (** [Property_status.emit ~distinct:true emitter ~hyps:[] property
       status]. *)
+  | Status_message of {
+      status : Property_status.emitted_status;
+      loc : Fileloc.t;
+      stacktrace : bool;
+      text : string;
+      frames : frames;
+    }
+  (** The message that reports a status of a property evaluated by the
+      body, printed by {!status_message}. *)
   | Red_context of {
       kinstr : kinstr;
       target : red_target;
+      count : int;
       frames : frames;
     }
   (** The callstack of the write is among those in which [target] got a red
-      status at [kinstr] (see {!Red_statuses}). *)
+      status at [kinstr] (see {!Red_statuses}): at least one visit of the
+      body in this callstack violates [target]. [count] is the number of
+      times the body set this red status in this callstack; the hooks of
+      {!Red_statuses} run once for each. *)
 
 (** The writes of a body, each once, in the order of their first
-    emission. *)
+    emission. Two red contexts that differ only by their count are the same
+    write, whose count is the sum of theirs. *)
 type t = write list
 
 val empty : t
@@ -97,9 +115,23 @@ val on_result : (Callstack.t -> t -> unit) -> unit
 val record_alarm :
   kinstr -> Alarms.t -> Property_status.emitted_status -> Emitter.t -> unit
 
-val record_red_context : kinstr -> red_target -> unit
+(** [record_red_context ~count kinstr target] records that the red status
+    of [target] at [kinstr] was set [count] times, 1 by default. *)
+val record_red_context : ?count:int -> kinstr -> red_target -> unit
 
 (** [emit_status emitter property status] records the write and emits
     [status] on [property], as {!Emitted_status} describes. *)
 val emit_status :
   Emitter.t -> Property.t -> Property_status.emitted_status -> unit
+
+(** [status_message status ~loc ~stacktrace text] records the write and
+    prints [text] once at [loc]: as a result of the message category
+    [progress] when [status] is [True], as a warning of the category
+    [alarm] otherwise. With [stacktrace] and the message category
+    [callstacks], the current callstack follows the text. Eva prints the
+    messages of the statuses that a body establishes through it, and a hit
+    prints those of its entry through it again, so that the action of the
+    category and the rule of printing a text once apply to both. *)
+val status_message :
+  Property_status.emitted_status -> loc:Fileloc.t -> stacktrace:bool ->
+  string -> unit

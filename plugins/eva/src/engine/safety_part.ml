@@ -26,9 +26,17 @@ type write =
       emitter : Emitter.t;
       frames : frames;
     }
+  | Status_message of {
+      status : Property_status.emitted_status;
+      loc : Fileloc.t;
+      stacktrace : bool;
+      text : string;
+      frames : frames;
+    }
   | Red_context of {
       kinstr : kinstr;
       target : red_target;
+      count : int;
       frames : frames;
     }
 
@@ -38,7 +46,7 @@ let empty = []
 
 let frames = function
   | Emitted_alarm { frames } | Emitted_status { frames }
-  | Red_context { frames } -> frames
+  | Status_message { frames } | Red_context { frames } -> frames
 
 let reroot (callstack : Callstack.t) frames =
   { callstack with stack = frames @ callstack.stack }
@@ -61,7 +69,8 @@ let compare_target t1 t2 =
 let rank = function
   | Emitted_alarm _ -> 0
   | Emitted_status _ -> 1
-  | Red_context _ -> 2
+  | Status_message _ -> 2
+  | Red_context _ -> 3
 
 (* [emitted_status] has constant constructors only. *)
 let compare_status (s1 : Property_status.emitted_status) s2 = compare s1 s2
@@ -71,6 +80,8 @@ let lexicographic comparisons =
   List.fold_left (fun c compare -> if c <> 0 then c else compare ()) 0
     comparisons
 
+(* The count of a red context is not compared: the recorder adds up the
+   counts of equal red contexts. *)
 let compare_write w1 w2 =
   match w1, w2 with
   | Emitted_alarm a1, Emitted_alarm a2 ->
@@ -86,6 +97,13 @@ let compare_write w1 w2 =
         (fun () -> compare_status s1.status s2.status);
         (fun () -> Emitter.compare s1.emitter s2.emitter);
         (fun () -> compare_frames s1.frames s2.frames) ]
+  | Status_message m1, Status_message m2 ->
+    lexicographic
+      [ (fun () -> Fileloc.compare m1.loc m2.loc);
+        (fun () -> String.compare m1.text m2.text);
+        (fun () -> compare_status m1.status m2.status);
+        (fun () -> Bool.compare m1.stacktrace m2.stacktrace);
+        (fun () -> compare_frames m1.frames m2.frames) ]
   | Red_context r1, Red_context r2 ->
     lexicographic
       [ (fun () -> Cil_datatype.Kinstr.compare r1.kinstr r2.kinstr);
@@ -93,7 +111,7 @@ let compare_write w1 w2 =
         (fun () -> compare_frames r1.frames r2.frames) ]
   | _ -> Int.compare (rank w1) (rank w2)
 
-module Writes = Set.Make (struct type t = write let compare = compare_write end)
+module Writes = Map.Make (struct type t = write let compare = compare_write end)
 
 (* ----- Printing ---------------------------------------------------------- *)
 
@@ -129,14 +147,24 @@ let pretty_write fmt = function
     Format.fprintf fmt "@[<hov 2>status %a of %a,@ by %a,@ in %a@]"
       pretty_status status Property.short_pretty property
       Emitter.pretty emitter pretty_frames frames
-  | Red_context { kinstr; target; frames } ->
+  | Status_message { status; loc; stacktrace; text; frames } ->
+    Format.fprintf fmt "@[<hov 2>message %S at %a,@ for a status %a%s,@ in %a@]"
+      text Fileloc.pretty loc pretty_status status
+      (if stacktrace then ", with the callstack" else "")
+      pretty_frames frames
+  | Red_context { kinstr; target; count; frames } ->
     let pretty_target fmt = function
       | Alarm alarm -> Format.fprintf fmt "alarm %s" (Alarms.get_name alarm)
       | Prop property ->
         Format.fprintf fmt "property %a" Property.short_pretty property
     in
-    Format.fprintf fmt "@[<hov 2>red context of %a at %a,@ in %a@]"
-      pretty_target target pretty_kinstr kinstr pretty_frames frames
+    let pretty_count fmt = function
+      | 1 -> ()
+      | n -> Format.fprintf fmt ",@ set %d times" n
+    in
+    Format.fprintf fmt "@[<hov 2>red context of %a at %a%a,@ in %a@]"
+      pretty_target target pretty_kinstr kinstr pretty_count count
+      pretty_frames frames
 
 let pretty fmt = function
   | [] -> Format.pp_print_string fmt "none"
@@ -145,11 +173,14 @@ let pretty fmt = function
 
 (* ----- Recording --------------------------------------------------------- *)
 
-(* The writes of a body called with [base], newest first. *)
+(* The writes of a body called with [base], in the project [project],
+   newest first. [seen] binds each write recorded to the number of times it
+   was made, which counts for red contexts only. *)
 type recorder = {
   base : Callstack.t;
+  project : Project.t;
   mutable writes : write list;
-  mutable seen : Writes.t;
+  mutable seen : int Writes.t;
 }
 
 let current : recorder option ref = ref None
@@ -160,12 +191,19 @@ let on_result f = Hooks.extend (fun (stack, writes) -> f stack writes)
 
 let capture base analyse =
   let previous = !current in
-  let r = { base; writes = []; seen = Writes.empty } in
+  let r =
+    { base; project = Project.current (); writes = []; seen = Writes.empty }
+  in
   current := Some r;
   let output =
     Fun.protect analyse ~finally:(fun () -> current := previous)
   in
-  let writes = List.rev r.writes in
+  let with_count = function
+    | Red_context red as write ->
+      Red_context { red with count = Writes.find write r.seen }
+    | write -> write
+  in
+  let writes = List.rev_map with_count r.writes in
   Body_access.without_recording (fun () -> Hooks.apply (base, writes));
   output, writes
 
@@ -189,10 +227,15 @@ let relative (base : Callstack.t) (callstack : Callstack.t) =
       Some frames
     | _ -> None
 
-let record make =
+(* Records the write [make frames] made [count] times. A write made while
+   another project is current belongs to that project: it refuses the
+   recording instead. *)
+let record ?(count = 1) make =
   match !current with
   | Some r when Body_access.is_recording () ->
-    begin
+    if not (Project.is_current r.project)
+    then Body_access.refuse Project_switch
+    else begin
       let frames =
         match Current_callstack.get () with
         | None -> None
@@ -202,10 +245,11 @@ let record make =
       | None -> Body_access.refuse Side_table
       | Some frames ->
         let write = make frames in
-        if not (Writes.mem write r.seen) then begin
-          r.seen <- Writes.add write r.seen;
+        match Writes.find_opt write r.seen with
+        | None ->
+          r.seen <- Writes.add write count r.seen;
           r.writes <- write :: r.writes
-        end
+        | Some n -> r.seen <- Writes.add write (n + count) r.seen
     end
   | _ -> ()
 
@@ -213,10 +257,20 @@ let record_alarm kinstr alarm status emitter =
   record (fun frames ->
       Emitted_alarm { kinstr; alarm; status; emitter; frames })
 
-let record_red_context kinstr target =
-  record (fun frames -> Red_context { kinstr; target; frames })
+let record_red_context ?(count = 1) kinstr target =
+  record ~count (fun frames -> Red_context { kinstr; target; count; frames })
 
 let emit_status emitter property status =
   record (fun frames ->
       Emitted_status { property; status; emitter; frames });
   Property_status.emit ~distinct:true emitter ~hyps:[] property status
+
+let status_message status ~loc ~stacktrace text =
+  record (fun frames ->
+      Status_message { status; loc; stacktrace; text; frames });
+  match (status : Property_status.emitted_status) with
+  | True ->
+    Self.result ~mkey:Log_key.progress ~once:true ~loc ~stacktrace "%s" text
+  | False_if_reachable | False_and_reachable | Dont_know ->
+    Self.warning ~wkey:Log_key.warn_alarm ~once:true ~loc ~stacktrace "%s"
+      text

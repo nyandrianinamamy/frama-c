@@ -69,13 +69,13 @@ let post_kind kf =
     else PostLeaf
   else PostBody
 
+let kernel_status = function
+  | Alarmset.False -> Property_status.False_if_reachable
+  | Alarmset.True -> Property_status.True
+  | Alarmset.Unknown -> Property_status.Dont_know
+
 let emit_status ppt status =
-  let status =
-    match status with
-    | Alarmset.False -> Property_status.False_if_reachable;
-    | Alarmset.True -> Property_status.True;
-    | Alarmset.Unknown -> Property_status.Dont_know
-  in
+  let status = kernel_status status in
   if status = Property_status.False_if_reachable then
     Red_statuses.add_red_property (Property.get_kinstr ppt) ppt;
   Body_access.record Statuses;
@@ -86,6 +86,13 @@ let msg_status status =
   if status = Alarmset.True
   then Self.result ?level:None ~mkey:Log_key.progress
   else Self.warning ~wkey:Log_key.warn_alarm
+
+(* The same message, for a status that the analysed body establishes: the
+   message is part of the Safety part of the body, and a hit prints it
+   again through the same function. *)
+let body_msg_status status ~loc ~stacktrace =
+  Format.kasprintf
+    (Safety_part.status_message (kernel_status status) ~loc ~stacktrace)
 
 let behavior_inactive fmt =
   Format.fprintf fmt " (Behavior may be inactive, no reduction performed.)"
@@ -123,8 +130,14 @@ let emit_contract_status kind kf behavior ~active ~empty property named_pred sta
   let loc = Property.location property in
   match kind with
   | Precondition | Postcondition PostBody ->
-    msg_status status ~once:true ~loc ~stacktrace:true
-      "%a: %s%a got status %a.%t"
+    (* The preconditions belong to the call site, the postconditions to
+       the body. *)
+    let print fmt =
+      if kind = Precondition
+      then msg_status status ~once:true ~loc ~stacktrace:true fmt
+      else body_msg_status status ~loc ~stacktrace:true fmt
+    in
+    print "%a: %s%a got status %a.%t"
       (pp_header kf) behavior
       (if empty then "no state left, " else "")
       pp_predicate named_pred
@@ -171,7 +184,7 @@ let emit_code_annot_status ~reduce ~empty kf stmt code_annot status =
       "invalid" ^ (if reduce then " (stopping propagation)" else "")
   in
   let prefix = if empty then "no state left, " else "" in
-  msg_status status ~once:true ~loc
+  body_msg_status status ~loc ~stacktrace:false
     "%s%a got status %s." prefix pp_code_annot code_annot message
 
 (* --------------------- Process inactive behaviors ------------------------- *)

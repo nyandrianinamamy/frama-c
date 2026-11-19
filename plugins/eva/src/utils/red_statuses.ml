@@ -60,7 +60,7 @@ module Hook = Hook.Build (AlarmOrProp)
 let register_hook f =
   Hook.extend (Frama_c_kernel.Hook.Opaque.wrap f)
 
-let add_red_ap kinstr ap =
+let add_red_context ?(count = 1) kinstr ap =
   let current_map =
     try RedStatusesTable.find kinstr
     with Not_found -> AlarmOrProp.Map.empty
@@ -72,19 +72,17 @@ let add_red_ap kinstr ap =
   let new_callstacks = Callstacks.add (Current_callstack.get ()) callstacks in
   let new_map = AlarmOrProp.Map.add ap new_callstacks current_map in
   RedStatusesTable.replace kinstr new_map;
-  Safety_part.record_red_context kinstr ap;
-  Hook.apply ap
+  Safety_part.record_red_context ~count kinstr ap;
+  for _ = 1 to count do Hook.apply ap done
 
-let add_red_context = add_red_ap
-
-let add_red_alarm ki a = add_red_ap ki (Alarm a)
+let add_red_alarm ki a = add_red_context ki (Alarm a)
 
 let add_red_property ki (ip: Property.identified_property) =
-  add_red_ap ki (Prop ip);
+  add_red_context ki (Prop ip);
   (* If [ip] is an instance of a precondition [ip'], also add [ip'] itself. *)
   match ip with
   | IPPropertyInstance {ii_ip = IPPredicate {ip_kind = PKRequires _} as ip'} ->
-    add_red_ap Kglobal (Prop ip')
+    add_red_context Kglobal (Prop ip')
   | _ -> ()
 
 let is_red ip =

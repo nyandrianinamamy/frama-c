@@ -14,8 +14,10 @@ let deliver_write (write : Safety_part.write) () =
   | Emitted_status { property; status; emitter } ->
     Body_access.record Statuses;
     Safety_part.emit_status emitter property status
-  | Red_context { kinstr; target } ->
-    Red_statuses.add_red_context kinstr target
+  | Status_message { status; loc; stacktrace; text } ->
+    Safety_part.status_message status ~loc ~stacktrace text
+  | Red_context { kinstr; target; count } ->
+    Red_statuses.add_red_context ~count kinstr target
 
 let deliver callstack part =
   let deliver write =
@@ -23,3 +25,4 @@ let deliver callstack part =
     Current_callstack.with_callstack callstack (deliver_write write) ()
   in
   List.iter deliver part
+

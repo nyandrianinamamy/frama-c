@@ -19,6 +19,11 @@
     - a status through {!Safety_part.emit_status}, so that the kernel
       combines it with the statuses that the same emitter emitted before on
       the same property;
+    - the message of a status through {!Safety_part.status_message}, so
+      that the action of its message category applies, and a text printed
+      before at the same position is not printed again;
     - a red context through {!Red_statuses.add_red_context}, which adds the
-      callstack of the write to the contexts of its alarm or property. *)
+      callstack of the write to the contexts of its alarm or property, and
+      runs the hooks of red statuses as many times as the body set it. *)
 val deliver : Callstack.t -> Safety_part.t -> unit
+
