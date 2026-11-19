@@ -100,8 +100,10 @@ that a checkout has the model sources of an entry, compare
   contexts recorded in an entry, their delivery at a hit as recorded joins,
   the owner of an alarm, the passes after the analysis in a function
   answered by a hit, the refusal of a recording across a change of
-  project, the settings that decide the alarms and messages, and the
-  preconditions of the called function at a hit.
+  project, the settings that decide the alarms and messages, the
+  rejection of every entry while a client that is not audited is
+  registered on a hook that a hit runs, and the preconditions of the
+  called function at a hit.
 - [Reuse operation](reuse-operation.md): the cache entry and its four
   written sets, the match by equality on entries supplied by a test module,
   the blocks a hit takes from an exit state, the choice of one cache per

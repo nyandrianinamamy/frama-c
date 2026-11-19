@@ -27,11 +27,10 @@ analysed with caching disabled, and gives the expected values by hand.
 that Eva registers, each status that it emits on a property with its own
 emitter, the message printed with the status of a code annotation or of a
 postcondition, and each red context that it adds are recorded in one
-sequence, in the order of emission. An alarm, a status or a message is
-recorded at its first emission only. A red context is recorded at each
-emission, in its place among the other writes; red contexts set in a row,
-with no other write recorded between them, form one write that keeps their
-number. Each write keeps its statement or property, its status, its emitter
+sequence, in the order of emission. An alarm or a status is recorded at its
+first emission only. A message and a red context are recorded at each
+emission, in their place among the other writes. Each write keeps its
+statement or property, its status, its emitter
 or its text, and the calls between the body and the point of emission (its
 frames). The checks of the `requires` clauses of the called function
 belong to the call site and are not recorded. The producer stores these
@@ -64,15 +63,14 @@ recorded when a capture is active and the collector observes the body
 which suspends that observation, as does `Body_access.without_recording`.
 The frames of a write are the calls of the current callstack above the
 callstack of the capture. A write whose callstack does not extend it
-refuses the body as `side-table`. An alarm, a status or a message equal to
-one already recorded is not added again: the tables below join a value with
-itself into the same value, `Property_status.emit ~distinct:true` emits
-nothing and runs no hook for a status equal to the previous one
-(`merge_distinct_emitted`), and the logger prints nothing and applies no
-action for a text printed before with `~once:true`. A red context runs the
-hooks of red statuses each time it is set, so it is added at each emission;
-when the last write recorded is the same red context, its count is
-incremented instead.
+refuses the body as `side-table`. An alarm or a status equal to one already
+recorded is not added again: the tables below join a value with itself into
+the same value, and `Property_status.emit ~distinct:true` emits nothing and
+runs no hook for a status equal to the previous one
+(`merge_distinct_emitted`). A message is added at each emission: the logger
+consults its history at each one, which its observers see, before it
+decides whether to print the text. A red context runs the hooks of red
+statuses each time it is set, so it is added at each emission.
 
 During an analysis, Eva writes alarms, statuses, their messages and red
 contexts through four functions, each of which records the write:
@@ -110,9 +108,9 @@ unknown status, and the valid status and the message of `ok`. In `loop.c`,
 the red context of the check `mixed`, which fails at two iterations of the
 loop, is recorded at each failure: the first before the invalid status and
 its message, the second after them. In `repeat.c`, the check `never` fails
-at the three iterations: after the first, its status and message are those
-already recorded, and the next two red contexts form one write with the
-count 2. With caching disabled, the Safety
+at the three iterations: after the first, its status is the one already
+recorded, and its red context and its message are recorded at each
+iteration. With caching disabled, the Safety
 part observed for each call of `pre` is empty, although the evaluation of its
 `requires` clause emits an invalid status at the second call.
 
@@ -195,11 +193,12 @@ registrations, and is the subject of
 [The owner of an alarm is that of an analysis of the body](#the-owner-of-an-alarm-is-that-of-an-analysis-of-the-body).
 `Alarm_cache.memo` adds the alarm and reports it if it is absent,
 as for a fresh emission. `Safety_part.status_message` prints the text with
-`~once:true`, as the body does: the logger prints it only if it has not
+`~once:true`, as the body does, at each occurrence recorded: the logger
+consults its history at each one, prints the text only if it has not
 printed the same text, of the same kind, at the same position before, and
 applies the action of the category `alarm` (abort, error) when it prints it.
 `Red_statuses.add_red_context` adds the current callstack to the set and runs
-the hooks of red statuses as many times as the count of the write. The
+the hooks of red statuses. The
 tables of statuses, alarms and messages have no callstack in their
 positions, except for a message printed with the category `callstacks`,
 whose text holds the callstack: a write has the same position at every hit,
@@ -224,20 +223,24 @@ concrete executions under its own premises; whether Eva's statuses meet them
 is the open premise of the Exit claim as well.
 
 *Other positions.* `deliver` writes at the positions of the saved writes
-only. The hooks that a write triggers, the updates of the kernel on a new
-status and the hooks of `Red_statuses`, are those of a fresh emission. The
-writes are delivered in the order of the sequence, so the hooks of red
-statuses run once for each time the body set a red context, as
-`Red_statuses.register_hook` promises, and in the same order relative to the
-messages and to the other writes as in the analysis of the body: an action
-of a category that stops the analysis at a message finds the same number of
-calls of the hooks before it.
+only. The hooks that a write triggers are those of a fresh emission: the
+hooks of the kernel on a new property, on a new status and on a change of
+the annotations, the hooks of red statuses, and the listeners and the
+observers of the history of the logger. A hit is admitted only when no
+client that is not audited is registered on these hooks
+([A hit runs no client that is not audited](#a-hit-runs-no-client-that-is-not-audited)),
+and the audited clients write nothing at these positions. The hooks of red
+statuses have no audited client, so no client of them runs at an admitted
+hit. The writes are delivered in the order of the sequence, which is the
+order of the analysis of the body: an action of a category that stops the
+analysis at a message finds the same writes made before it.
 
-*Repeated and nested work.* A body that emits the same alarm, status or
-message at several visits records it once, which the idempotence of the
-joins makes equivalent: a later equal write changes no value, runs no hook
-of the kernel and prints nothing. Each red context is kept in the sequence,
-those set in a row as one write with their number. A hit
+*Repeated and nested work.* A body that emits the same alarm or status at
+several visits records it once, which the idempotence of the joins makes
+equivalent: a later equal write changes no value and runs no hook of the
+kernel. Each message and each red context is kept in the sequence at each
+emission, so that the logger makes its test at each occurrence, as in the
+analysis of the body. A hit
 inside a body under analysis records its delivered writes in that body
 through the same functions, with the frames of the hit, but a body with a
 call refuses as `nested-call`.
@@ -280,18 +283,21 @@ removed (a mutant of `Safety_delivery.deliver_write`), both comparisons
 fail: the analysis with the hit completes, with `out = 8` at the end of
 `main`, and the two messages of the hit are missing.
 
-Hooks of red statuses, in `loop.c` with `-eva-slevel 10`: a hook that counts
-its calls is called five times, as with caching disabled. Before the counts
-were recorded, it was called four times: the hit ran it once for `mixed`
-instead of twice. In `repeat.c`, where two red contexts form one write, it
-is called three times, as with caching disabled. Order of the hooks and the
-messages, in `abort-count.c` with `-eva-slevel 10` and the category `alarm`
-set to abort: the check `mixed` fails at the first two iterations of the
-loop. With caching disabled, the hook is called once, and the analysis
-stops at the message of the invalid status; with the hit, the same. With
-`Safety_part.record` changed to record each red context once, with its
-count, at its first emission, as before this order was kept (a mutation,
-reverted), the hit calls the hook twice before it stops.
+Repeated writes. In `loop.c` with `-eva-slevel 10`, the hit sets both red
+contexts of `mixed`, and the tables are those of caching disabled. In
+`repeat.c`, the message of `never` is recorded at each of the three
+iterations; the observer of the history of the collector, an audited client,
+counts 3 consultations of the history at the hit, as with caching disabled.
+With `Safety_part.record` changed to record a message at its first emission
+only (a mutation, reverted), it counts 1 at the hit. Order of the red
+contexts and the messages, in `abort-count.c` with `-eva-slevel 10` and the
+category `alarm` set to abort: the check `mixed` fails at the first two
+iterations of the loop. With caching disabled, the analysis sets the first
+red context and stops at the first message of the invalid status; with the
+hit, the same, with the same tables. The order of the red contexts relative
+to the messages is seen by a client of the hooks of red statuses only, and
+none runs at an admitted hit: earlier versions of this test counted the
+calls of such a client, which now rejects the entry.
 
 **Open.**
 
@@ -321,16 +327,19 @@ reverted), the hit calls the hook twice before it stops.
   scope, printed once per position without a refusal
   ([ordered effects](collector-effects.md#ordered-and-opaque-effects)),
   and the messages of an inactive category, which are not printed. A hit
-  prints none of them; with caching disabled, the call prints the former
-  only where the same text was not printed at the same position before, by
-  the analysed call that produced the entry among others. A message printed
-  at each occurrence reads no history: it neither refuses the body nor is
-  printed by a hit. The report of an evaluation that leads to bottom
-  without alarms, a sign of a defect of Eva, is one; so are the messages of
-  progress and of debugging. When the status of the
-  category of such a message differs between the producing call and the
-  lookup of the hit, the entry is rejected; when a hook that the hit runs
-  changes it after the lookup, the analysis stops after the delivery
+  prints none of these other diagnostics of the body, only the recorded
+  messages of its statuses and the reports of its alarms; with caching
+  disabled, the call prints the former only where the same text was not
+  printed at the same position before, by the analysed call that produced
+  the entry among others. A message printed at each occurrence reads no
+  history: it neither refuses the body nor is printed by a hit. The report
+  of an evaluation that leads to bottom without alarms, a sign of a defect
+  of Eva, is one; so are the messages of progress and of debugging. A
+  listener of the logger would see the difference, and rejects every entry
+  ([A hit runs no client that is not audited](#a-hit-runs-no-client-that-is-not-audited));
+  the table of messages of the kernel, an audited client, keeps it. When
+  the status of the category of such a message differs between the
+  producing call and the lookup of the hit, the entry is rejected
   ([The settings that decide the alarms and messages are those of each hit](#the-settings-that-decide-the-alarms-and-messages-are-those-of-each-hit)).
 
 ## The owner of an alarm is that of an analysis of the body
@@ -360,12 +369,14 @@ emitter of the first registration: another emitter, then Eva, gives the
 other emitter; Eva, then the other emitter, gives Eva. A hit takes the place
 of the analysis of the body in the analysis: the call hooks run before both,
 and the delivery registers the alarms of the entry in the order in which
-the body emitted them, the red contexts and the statuses in between. The
-hooks that a delivered write runs, those of red statuses and of the kernel
-on a new status, run at the same place in the sequence as for the analysed
-body. A registration by another emitter, made before the call, after it, or
-by one of these hooks, therefore comes at the same place relative to Eva's
-in both.
+the body emitted them, the red contexts and the statuses in between. A
+registration by another emitter, made before the call or after it,
+therefore comes at the same place relative to Eva's in both. A hit is
+admitted only when no client that is not audited is registered on the hooks
+that a delivered write runs or that the analysis of the body runs
+([A hit runs no client that is not audited](#a-hit-runs-no-client-that-is-not-audited)),
+and no audited client registers an alarm: no registration is made between
+Eva's during the delivery.
 
 **Evidence (executed).** `cache-safety.t`, `safety.c`. When another emitter
 registers the division alarm first, the alarm has that emitter as owner and
@@ -374,12 +385,13 @@ analysis of `body`. When the other emitter registers it after the delivery,
 Eva owns it.
 
 **Open.** A registration made by a hook that the analysis of the body runs
-and the delivery does not can come before Eva's in one and after it in the
-other. The listeners of the logger and the clients of the hooks of
-annotations and of property statuses refuse the body (`callback`,
-[ordered effects](collector-effects.md#ordered-and-opaque-effects)); the
-clients of the red status hooks run in both. No other such hook is known
-in Frama-C.
+and the delivery does not could come before Eva's in one and after it in
+the other. The clients of the hooks listed in
+[A hit runs no client that is not audited](#a-hit-runs-no-client-that-is-not-audited)
+refuse the body during which they run (`callback`,
+[ordered effects](collector-effects.md#ordered-and-opaque-effects)), and
+reject every supplied entry while they are registered. No other such hook
+is known in Frama-C.
 
 ## The passes after the analysis draw no conclusion where a hit skipped visits
 
@@ -459,6 +471,14 @@ emitted during the analysis: unknown where `mark_green_and_red`, with caching
 disabled, would emit valid or invalid from the final states of every
 callstack. An annotation that no call reaches gets no unreachability status.
 The fixture below shows no such difference; it follows from the argument.
+The server requests pay the same cost, until issue #48: with a hit, the
+request of dead code returns empty lists for the function, and the request
+of statistics gives the coverage of statements as an upper bound. In this
+version they do not meet a hit: the server plug-in registers a client of
+the hooks on the changes of annotations when it loads (`Kernel_ast`), so
+that a body that registers an alarm is refused, and the lookup rejects
+every supplied entry
+([A hit runs no client that is not audited](#a-hit-runs-no-client-that-is-not-audited)).
 
 **Readers inspected.** The readers of Eva's results at the end of or after
 the analysis, at this revision:
@@ -570,8 +590,16 @@ the change before they run any hook: `force_set_current`, reached from
 `set_current`, from `Project.on` on entry and on exit, and from the loading
 of projects; `remove` when it removes the current project; `remove_all`;
 and `create` when there is no project. `load_projects` rebuilds the stack
-after unmarshalling, which moves its top without a count, then calls
-`force_set_current`; no hook runs in between. The kernel does not run the
+after unmarshalling and puts back on top the project that was current
+before, with no hook in between: the current project is unchanged. It then
+calls `force_set_current`, which counts its change, removes that project
+from the stack, and counts again: a hook run by `force_set_current` may
+have made it current again, and the removal then changes the top. These are
+all the
+changes of the stack, which `project.ml` does not export: `Q.add_at_end` in
+`create`, `Q.move_at_top` in `force_set_current`, `Q.remove` in `remove`
+and in `load_projects`, `Q.clear` in `remove_all` and in `load_projects`,
+and `Q.add` in `load_projects`. The kernel does not run the
 hooks of the change of project for a change made during one of these
 hooks, but it counts it. Each capture of the collector keeps the project and
 the count at its start, and adds `Project_switch` to its refusals when the
@@ -585,30 +613,36 @@ state of a project: it is neither saved nor loaded with a session. Since
 every change of the current project increments the count, the comparison of
 the count at the end of `Body_access.capture` decides the refusal; the
 comparisons of the project, and the comparison at each write of the Safety
-part, refuse no body that it does not refuse. No test tells them apart from
-it; only the removal of the comparison of the count alone, and of all the
-comparisons together, were run.
+part, refuse no body that it does not refuse. The comparison at each write
+serves the payload shown to the observers of `Safety_part.on_result`: the
+writes it passes them, for a body refused or not, are all made in the
+project of the recording. No test tells these comparisons apart from that
+of the count.
 
-**Evidence (executed).** `cache-safety.t`: a hook of red statuses enters a
-second project with `Project.on` the first time it runs, during the analysis
-of `body` from `producer`, and sets a red status there. The calls of `body`
+**Evidence (executed).** `cache-safety.t`: a client of the statement hooks,
+registered as classified so that the collector admits it, enters a second
+project with `Project.on` the first time it runs in `body`, during the
+analysis from `producer`, and sets a red status there. A client of the
+hooks of red statuses, which an earlier version of the test used, now
+refuses the body by itself (`callback`). The calls of `body`
 and of `producer` read `collector: refused (project-switch)`, the statistic
 `collector-refused-project-switch` is 1 for each, and no entry is produced.
 The analysis from `main` then has no candidate, and its tables are those of
-the run with caching disabled and the same hook. With the comparisons of
-the project removed from `Body_access.capture` and `Safety_part.record` (a
-mutation, reverted), the entry is stored with the red context set in the
-second project, and the hit delivers it in the first: the tables of `main`
-have a red context of the reachability of the statement at line 8 of
-`body`, which caching disabled does not have. With the comparison of the
-count removed alone, `body` is still refused, by the comparison of the
+the run with caching disabled and the same client. With the comparisons of
+the project and of the count removed from `Body_access.capture` and
+`Safety_part.record` (a mutation, reverted), the entry is stored with the
+red context set in the second project, and the hit delivers it in the
+first: the tables of `main` have a red context of the reachability of the
+statement at line 8 of `body`, which caching disabled does not have. With
+the comparison of the count removed alone, `body` is still refused, by the comparison of the
 project at its write in the second project, and `producer` is refused for
 another reason (`sweep`).
 
 A change made in a hook of another change, in `cache-safety.t`: the
 analysis from `producer` runs in a hook of the change of project to a copy
-of the first project. The first time it runs, a hook of red statuses enters
-the first project with `Project.on` and leaves it, without writing there.
+of the first project. The first time it runs in `body`, the client of the
+statement hooks enters the first project with `Project.on` and leaves it,
+without writing there.
 The calls of `body` and of `producer` read
 `collector: refused (project-switch)`, and no entry is produced. The
 analysis from `main`, in the copy, has no candidate, and its tables are
@@ -619,6 +653,17 @@ mutation, reverted), the call of `body` reads `collector: would-store`, its
 entry is produced, and the second call of `body` in the copy is a hit. The
 tables are then still equal to those of the run with caching disabled:
 the test shows the refusal by the verdict and the count of entries.
+
+The loading of two projects, in `cache-safety.t`: a hook of the change of
+project makes current again, during the loading, the project that was
+current before the last change. The loading then removes that project from
+the top of the stack, and another one is current; the count differs from
+the one that the hook saw. With the count at that removal taken out of
+`load_projects` (a mutation, reverted), another project is current at the
+same count. The test also prints the changes counted by some operations:
+none for `set_current` of the current project and for `copy`, 2 for
+`Project.on` left by an exception, 1 for `remove` of the current project,
+and 5 for `load_all` of a session of two projects.
 
 ## The settings that decide the alarms and messages are those of each hit
 
@@ -633,30 +678,39 @@ started, are in force at the hit:
 - the status of every warning category of Eva and of the kernel
   (`-eva-warn-key`, `-kernel-warn-key`), which decides the action of its
   messages (none, a feedback, a warning, an error or an abort), apart from
-  the category `alarm` of Eva.
+  the category `alarm` of Eva;
+- the activation of every message category of Eva and of the kernel
+  (`-eva-msg-key`, `-kernel-msg-key`), which decides whether a message is
+  printed.
 
 The lookup of a produced entry checks the second: it rejects the entry
 (`warn-categories`) when the status of a category differs from its status
-when the analysis of the body started. The options, the categories of an
-entry given to `Supplied_entries.supply`, and a change made by a hook on
-calls at the call of the hit, after its lookup, are owed by the supplier.
-A violation can hide an alarm or a message, and with a category set to
+when the analysis of the body started. Within the analysis that uses an
+entry, these settings change after the lookup only through a client of a
+hook that the hit runs, and the lookup rejects every entry (`callback`)
+while a client that is not audited is registered on such a hook. The
+options, the activation of the message categories, and the categories of
+an entry given to `Supplied_entries.supply` are owed by the supplier. A
+violation can hide an alarm or a message, and with a category set to
 abort, change the state at the end of the call.
 
 **Kind.** OCaml obligation: the check of the lookup for the categories of
-a produced entry; for the rest, owed by the supplier of an entry
-(`Supplied_entries.supply` and `supply_produced`).
+a produced entry, and the rejection of
+[A hit runs no client that is not audited](#a-hit-runs-no-client-that-is-not-audited);
+for the rest, owed by the supplier of an entry (`Supplied_entries.supply`
+and `supply_produced`).
 
 **Depends on.**
-[A hit delivers the Safety part as recorded joins](#a-hit-delivers-the-safety-part-as-recorded-joins).
+[A hit delivers the Safety part as recorded joins](#a-hit-delivers-the-safety-part-as-recorded-joins)
+and [A hit runs no client that is not audited](#a-hit-runs-no-client-that-is-not-audited).
 
 **Symbols.** `Body_access.warn_categories`, `Body_access.capture`,
 `Cache_entry.dependencies`, `Supplied_entries.Lookup.find`,
-`Supplied_entries.supply`, `Supplied_entries.supply_produced`,
-`Kernel.SignedOverflow`, `Evaluation.Make.handle_integer_overflow`,
-`set_warn_status`, `get_all_warn_categories_status` and `logwith` in
+`Supplied_entries.Lookup.admit`, `Supplied_entries.supply`,
+`Supplied_entries.supply_produced`, `Kernel.SignedOverflow`,
+`Evaluation.Make.handle_integer_overflow`, `set_warn_status`,
+`get_all_warn_categories_status` and `logwith` in
 [`log.ml`](../../../src/lib/utils/log.ml),
-`Cvalue_callbacks.apply_call_hooks`,
 `Compute_functions.Make.compute_and_cache_call`.
 
 **Argument (source inspection).** The Safety part records the writes of an
@@ -666,18 +720,21 @@ the same body emits an alarm under one setting and none under the other.
 The delivery makes the recorded writes only, so an entry produced with
 fewer alarms hides those that the analysis that uses it would emit.
 
-A hit prints, through the logger, the messages of the statuses and the
-reports of the alarms of its entry, all of the category `alarm` of Eva: the
-action of this category in force at the hit applies, as for an analysed
-call. The other messages of the body are not recorded and not printed by a
-hit; for instance, the assumption of 2's complement for an overflow
-(category `signed-overflow`) in a body analysed with the category inactive.
-When the category of such a message is set to abort at the hit, an
-analysis of the body stops at the message, and the call has no state at
-its end, where the hit returns the exit states of the entry. Only the
-status of a warning category decides an action; a message category
-(`-eva-msg-key`) decides whether a message is printed, and a hit prints
-none of these messages of the body.
+The diagnostics of a body are of two kinds. The recorded messages, those
+of the statuses and the reports of the alarms, all of the category `alarm`
+of Eva, are printed again by a hit through the logger, at each occurrence:
+the action of this category, and the activation of the message categories
+that they use (`callstacks`, which adds the callstack to the text), are
+those in force at the hit, as for an analysed call. The other diagnostics
+of the body are not recorded and not printed by a hit; for instance, the
+assumption of 2's complement for an overflow (category `signed-overflow`)
+in a body analysed with the category inactive, or a message of a message
+category such as `-eva-msg-key nonlin`. When the warning category of such
+a diagnostic is set to abort at the hit, an analysis of the body stops at
+the message, and the call has no state at its end, where the hit returns
+the exit states of the entry. A message category decides only whether such
+a diagnostic is printed: an activation that differs changes the printed
+output, not the tables.
 
 The status of a category can change between the producing call and the
 hit: the two analyses are run with different settings; a hook changes a
@@ -687,22 +744,21 @@ category during the analysis, by `set_warn_status` or by setting
 of Eva, but `alarm`, when the analysis of the body starts; the producer
 stores it with the entry, and the lookup of the supplied entries reads it
 again and compares. A change made before the lookup, by any of these means,
-is seen. The status is read at the start of the body: if a client of the
-red status hooks, which a body admits, changes a category during the body,
-the earlier messages of the body ran under the status read. A hit runs
-hooks after its lookup: the hooks on calls; the hooks on statuses, the red
-status hooks and the listeners of the logger, when it prints the line of
-the call and evaluates the preconditions; and the red status hooks during
-the delivery. `Call_cache` reads the status of the categories when the
-lookup of the supplied entries starts, and after the delivery, the hit
-compares it with the current status (`check_warn_categories` in
-`Compute_functions`): when one differs, the analysis stops with an error,
-since the hit cannot tell what an analysis of the body would do under the
-new status. The tables then hold the whole Safety part of the entry, where
-an analysis of the body that stops at a message holds the writes made
-before it. A change undone before the end of the delivery is not seen. A
-`-once` category becomes inactive after its first message; the lookup then
-rejects the entries produced before, which is conservative.
+is seen. A change made during the analysis of a body is made by a client of
+a hook, which refuses the body (`callback`): the status read at its start
+is that of the whole body. A hit runs hooks after its lookup: the hooks on
+calls; the hooks of the kernel on properties and statuses, the hooks of red
+statuses and the listeners of the logger, when it prints the line of the
+call and evaluates the preconditions; and the same hooks during the
+delivery. The lookup rejects every candidate while a client that is not
+audited is registered on one of them, and no audited client changes a
+setting: no category changes between the lookup and the end of the
+delivery. An earlier version compared the categories after the delivery,
+and stopped the analysis when one had changed; it published the whole
+Safety part first, where an analysis of the body stops at the message, and
+missed a change undone before the comparison. The comparison was removed.
+A `-once` category becomes inactive after its first message; the lookup
+then rejects the entries produced before, which is conservative.
 
 **Evidence (executed).** `cache-safety.t`.
 
@@ -720,38 +776,230 @@ rejects the entries produced before, which is conservative.
   the analysis stops at the overflow, and the tables equal those of the
   analysis with caching disabled.
 - `same.c`, within one analysis. The first call of `body` is analysed with
-  the category inactive, and its entry is stored; a hook on the status of
-  the assertion in `other` supplies it and sets the category to abort. The
-  second call reads `lookup: rejected (entry 1: key-differs), rejected
+  the category inactive, and its entry is stored. At the end of the
+  analysis of `other`, an observer of the Safety part supplies that entry
+  and sets the category to abort; no hit runs such an observer
+  ([A hit runs no client that is not audited](#a-hit-runs-no-client-that-is-not-audited)).
+  The second call reads `lookup: rejected (entry 1: key-differs), rejected
   (entry 2: warn-categories)`, and stops at the overflow, as with caching
   disabled. With the comparison of `Supplied_entries.Lookup.admit` removed
-  alone, both runs hit and give `out = 8`.
+  alone (a mutation, reverted), the second call hits and gives `out = 8`.
+- `next.c`, the candidate after a rejection. The observer supplies the
+  stored entry of `body`, then a copy written by hand, which carries no
+  status of the categories. The second call reads `rejected (entry 1:
+  key-differs), rejected (entry 2: warn-categories), hit (entry 3)`, and the
+  tables are those of caching disabled.
 - `overflow.c`, after the lookup. The entry is produced with the category
-  inactive, and in the analysis that uses it, a hook on calls sets the
-  category to abort at the call of `body`, after the lookup. The call reads
-  `lookup: hit (entry 1)`, then the analysis stops with `the status of the
-  warning categories signed-overflow changed during the hit on body`. The
-  analysis with caching disabled stops at the overflow, and the tables are
-  equal: the entry holds no alarm. With the call of `check_warn_categories`
-  removed alone (a mutation run), the hit prints nothing and gives
-  `out = 8`, and only this section of the test fails. The other hooks that
-  the hit runs after its lookup reach the same comparison; no test runs
-  them.
+  inactive, and in the analysis that uses it, a client of the hooks on
+  calls sets the category to abort at the call of `body`. The call reads
+  `lookup: rejected (entry 1: callback); execution: interrupted`, the
+  analysis stops at the overflow, as with caching disabled, and the tables
+  are equal. With the flag of the hooks on calls removed from
+  `Cvalue_callbacks` (a mutation, reverted), the hit prints nothing and
+  gives `out = 8`, where caching disabled leaves `main` without a state.
+  The other routes after the lookup, through the hooks on statuses, the
+  hooks of red statuses and the listeners of the logger, are in
+  [A hit runs no client that is not audited](#a-hit-runs-no-client-that-is-not-audited).
 
 **Open.**
 
-- The options that decide the alarms are not checked. The entries saved
-  with a session
+- The options and the activation of the message categories are not
+  checked, and an entry given to `supply` carries no status of the
+  categories. The entries saved with a session
   ([issue #59](https://github.com/nyandrianinamamy/frama-c/issues/59))
-  cross analyses: they must store these options and the status of the
-  categories with the entry, and compare them at the lookup in the
-  analysis that loads them.
-- A hit stops the analysis when a hook that it runs changes a category,
-  where an analysis of the body goes on unless the body prints a message of
-  that category under an action that stops. Analysing the body instead
-  would announce the call to the hooks on calls a second time, as `Body`
-  after `Reuse`: the callwise clients of From and Inout push a frame for
-  `Body` only, and every client would see two calls.
+  cross analyses: they must store the options, the status of the warning
+  categories and the activation of the message categories with the entry,
+  and compare them at the lookup in the analysis that loads them.
+
+## A hit runs no client that is not audited
+
+**Claim.** A supplied entry is used at a call only when no client that is
+not audited is registered on a hook that a hit runs between its lookup and
+the end of its delivery, or that an analysis of the body runs and a hit
+does not. Otherwise every candidate is rejected with `callback`, before any
+candidate is examined and before any effect of the hit. Registration is
+the test: a client registered after the production of an entry counts. The
+audited clients are those listed below, and none of them tells a hit from
+an analysis of the body in a way that changes the analysis. A client that
+is not audited and runs during the analysis of a body refuses the body
+(`callback`,
+[ordered effects](collector-effects.md#ordered-and-opaque-effects)).
+
+**Kind.** OCaml obligation, of Eva and of the kernel: each registration
+function records a client registered without the flag of an audited one,
+and the list of audited clients below is that of the tree at this revision.
+
+**Depends on.**
+[Ordered and opaque effects](collector-effects.md#ordered-and-opaque-effects)
+and
+[A hit delivers the Safety part as recorded joins](#a-hit-delivers-the-safety-part-as-recorded-joins).
+
+**Symbols.** `Supplied_entries.unaudited_clients`,
+`Supplied_entries.Lookup.find`, `Cvalue_callbacks.unaudited_hooks`,
+`Red_statuses.has_hooks`, `Property_status.has_add_or_update_hooks`,
+`Annotations.has_hooks_on_change`, `Log.unaudited_clients`,
+`Messages.has_hooks`, `Log.add_listener`, `Log.on_history_access`,
+`register` in the signature `Log.Messages`,
+`Compute_functions.Make.compute_and_cache_call`, `Safety_delivery.deliver`,
+`Call_cache.report`.
+
+**Argument (source inspection).**
+
+*The hooks of a hit.* After the lookup, the hit branch of
+`compute_and_cache_call` runs the call hooks of Eva (`` `Reuse ``),
+completes the specification of the function (`Populate_spec`), evaluates
+its preconditions, which emits statuses, red contexts and messages,
+delivers the Safety part, which registers alarms, emits statuses, prints
+messages and sets red contexts, prints the line of the reuse and the
+disposition line of the category `cache`, and runs the call results hooks.
+The hooks reached are: the call and call results hooks of Eva; the hooks of
+the kernel on a new property, on a new status and on a change of the
+annotations; the hooks of red statuses; the listeners of the logger, for
+all plug-ins (`Log.add_listener`) or for one (`register`), the observers of
+its history (`Log.on_history_access`), which a message printed once
+consults, and the hooks of the message collector of the kernel
+(`Messages.add_hook`), which runs for each message. An analysis of the
+body runs the same hooks, and the statement hooks of Eva at each
+statement.
+
+*The test.* Each of these registration functions records whether it
+registered a client without the flag of an audited client
+(`cache_protocol` or `classified` for the hooks of Eva, `audited` for the
+logger); the hooks of red statuses, of the kernel on properties, statuses
+and annotations, and of the message collector have no audited client, and
+any registration counts. A client cannot be removed. `unaudited_clients`
+is the disjunction of the six accessors, and `find` tests it after
+`product`, `consumer` and `stop-at-nth-alarm` and before it examines the
+candidates: no hook has run, nothing has been delivered and no line has
+been printed for the hit when the candidates are rejected.
+
+*The audited clients of the tree.*
+- The message collector of the kernel (`Messages`, a listener registered
+  with `audited`) appends each message to the table of messages. A hit
+  appends its own lines and the messages of its Safety part, where an
+  analysis of the body appends the diagnostics of the body: the table
+  differs as the printed output does. It is read by the hooks of the
+  collector, which are checked, and after the analysis, by the server and
+  the graphical interface.
+- The observer of the history of the collector of block accesses
+  (`Body_access`, registered with `audited`) is part of the collector. It
+  counts the consultations it sees (`Body_access.history_consultations`)
+  and refuses nothing outside a recording.
+- The error flag of the parser (`Errorloc.set_error`, registered with
+  `register` and `audited`) is set by an error or a failure of the kernel.
+  Each reader of the flag (`Frontc`, `Cabs2cil`, `Mergecil`, `File`)
+  clears it before the phase whose errors it tests.
+- The call and call results hooks registered with `cache_protocol`: those
+  of Inout and From (callwise) and of the analysis of threads, whose
+  presence rejects every candidate with `consumer` first; and that of the
+  summary (`Summary.FunctionStats`), which computes again the statistics of
+  a function after a hit that skipped its visits, from the tables that the
+  delivery has updated.
+- The statement hooks registered as classified: the watchpoints
+  (`Builtins_watchpoint`), whose activity rejects every candidate with
+  `watchpoint`, and the dynamic widening hints (`Widen`), whose change
+  rejects an entry with `hint-generation`. A hit runs no statement hook.
+
+The other clients of the tree are not audited, and reject every candidate
+once registered: the server registers a hook on the changes of annotations
+when it loads (`Kernel_ast`), so that no hit is admitted while it is
+loaded, and hooks on statuses, red statuses and messages when a client of
+its protocol listens; the Report plug-in, the logging of a plug-in to a file
+(`-<plug-in>-log`) and the monitoring of the server register a listener;
+the inlining of statement contracts registers hooks on statuses.
+
+*Routes that the test does not close.* A client outside the tree
+registered with the flag of an audited client is trusted. The observers of
+the collector and of the Safety part (`Body_access.on_result`,
+`Safety_part.on_result`) run after the analysis of a body and never at a
+hit: they are test devices of the cache, through which a test reads the
+dispositions, and no plug-in of the tree registers one; `same.c` uses one
+to change a setting between two calls. The hooks of the internal tables
+of Eva that a hit changes (`State_builder` hooks of the table of red
+contexts, of the functions with skipped visits) are not part of the
+interface of Eva. The statistics of performance (`Eva_perf`) see the start
+and the end of each call, at a hit as for a body without calls, with other
+durations. A builtin registered by a plug-in (`Eva.Builtins`) runs at a
+call made by the body: the producer refuses such a body (`builtin`), and
+for an entry given to `supply`, the supplier owes it.
+
+**Evidence (executed).** `cache-safety.t`, each scenario compared with the
+run with caching disabled and the same clients, on the tables of statuses,
+alarms and red contexts and on the state at the end of `main`:
+
+- One client of each hook, registered after the analysis from `producer`
+  of `safety.c` (call, call results, statement, red statuses, statuses,
+  properties, annotations, `Log.add_listener`, `Kernel.register`,
+  history, messages): both calls of `body` reject the entry with
+  `callback`. With only the audited clients registered, the call at line
+  26 is a hit. With the server plug-in loaded, its client of the hooks on
+  annotations runs when `body` registers its alarm: the body is refused
+  (`callback`), no entry is stored, and the analysis from `main` has no
+  candidate.
+- `inside.c`: a client of the hooks on calls sets `signed-overflow` to
+  abort at the call of `body`, and a client of the hooks of red statuses
+  sets it back at each red status. Both calls reject the entries with
+  `callback`, and the analysis stops at the overflow, as with caching
+  disabled. When red clients were admitted, the red status restored the
+  category before the comparison after the delivery, and the hit gave
+  `out = 8`.
+- `interleave.c`: a client of the hooks of red statuses counts its calls;
+  the call is rejected, and the client is called once before the analysis
+  stops, as with caching disabled; the hit called it three times and set
+  the red status of `last` before the comparison stopped the analysis.
+- `pre-route.c`: a client of the hooks on statuses sets `signed-overflow`
+  to abort when the precondition of `pre` is evaluated. The entry is
+  rejected and the analysis ends with `out = 5`, as with caching disabled;
+  the comparison after the delivery stopped the hit.
+- `later.c`: a listener of the logger sets the category when it reads the
+  line of a hit on `body`. The entry is rejected and the analysis ends
+  with `out = 8`, as with caching disabled; the comparison stopped the hit.
+- `repeat.c`: a client of the hooks of red statuses adds a red status of
+  its own. Registered after the production, it rejects the entry, and the
+  hook is called 6 times, as with caching disabled, where the hit called it
+  12 times. Registered before the production, it refuses the body
+  (`callback`), no entry is stored, and the tables are those of caching
+  disabled; the hit set a global red context of `never` that the analysis
+  from `main` does not set.
+- `second.c`: a client of the hooks of red statuses sets `alarm` to abort
+  at its second call. Both calls reject the entries, and the analysis stops
+  at the second message of `later`, as with caching disabled; when the
+  Safety part kept one message per text, the hit gave `out = 8`.
+
+Mutations, each run alone and reverted. With the rejection removed from
+`find`, every client of the first scenario lets the call at line 26 hit;
+`overflow.c` after the lookup hits and gives `out = 8`, where caching
+disabled leaves `main` without a state; `interleave.c` hits and calls the
+client of red statuses three times, against once. With one of the six
+accessors removed from `unaudited_clients`, the line of its clients in the
+first scenario reads `hits on body: 1`, and the scenario on its route hits:
+`overflow.c` after the lookup for the hooks of Eva, with `out = 8`;
+`repeat.c` with the client registered after the production for the hooks
+of red statuses; `pre-route.c` for the hooks on statuses; `later.c` for
+the logger. Each flag of the hooks of Eva (call, call results, statement)
+and of the logger (`add_listener`, `register`, `on_history_access`), and
+each half of `has_add_or_update_hooks`, removed alone, makes the line of
+its own client hit. With the hooks of red statuses no longer opaque, the
+body with the client of `repeat.c` registered before the production is
+stored, and the red client of `collector-effects.t` reads `would-store`.
+`inside.c`, `interleave.c`, `second.c`, `pre-route.c` and `later.c` are
+the programs of a review of the previous version, where red clients were
+admitted and the categories were compared after the delivery; that review
+observed the results quoted above for that version.
+
+Of the hit scenarios of `cache-safety.t` before this rule, one now
+rejects: `overflow.c` with the client of the hooks on calls. Three tests
+that counted the calls of a client of the hooks of red statuses at a hit
+(`loop.c`, `abort-count.c`, `repeat.c`) now run without it: with it, they
+reject. The hit scenarios of `collector-effects.t` and of the `cache_supplied`
+tests register no client and are unchanged.
+
+**Open.**
+
+- The lists of hooks and of audited clients come from a sweep of the tree
+  at this revision; a new hook that a hit runs must get an accessor here.
+- The rejection costs every hit while a client is registered, for instance
+  with the server loaded or with the log of a plug-in written to a file.
 
 ## Preconditions at a hit
 
