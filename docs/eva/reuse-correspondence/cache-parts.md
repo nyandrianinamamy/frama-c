@@ -329,7 +329,10 @@ registers a part, needed in both analyses, and gives its value for every
 body. Not audited, the three calls to `copy` read `callback` for each of
 their three candidates (`copy: hits 0, rejected for callback 9`); audited,
 the three calls hit. Scenario `inout-client`: a client registered through
-`register_call_hook` gives `copy: hits 0, rejected for callback 9`. The
+`register_call_hook` gives `copy: hits 0, rejected for callback 9`. With
+`Cache_part.unaudited_clients` removed from the test of the lookup (a
+mutation, reverted), both scenarios give `copy: hits 3, rejected for
+callback 0`. The
 scenarios `from`, `inout` and `visits` hit with the parts of From and Inout
 and Eva's client.
 
@@ -833,7 +836,10 @@ the analysis with the supplied entries in a nested analysis without hits
 `inner`, joined from its calls, equals that of caching disabled; with the
 test of `From_statements` removed, the result of `unused` is returned.
 Scenario `nested`: `Inout.get_precise_inout` of `unused` is computed after
-caching disabled and refused after the hits. Scenario `snapshot`: the
+caching disabled and refused after the hits. Scenario `copy`: in a copy of
+the project made by `Project.create_by_copy` after the hits,
+`statement_results_complete` is false and `From.get` is refused. Scenario
+`snapshot`: the
 results with hits, installed after those of caching disabled and again
 after them, refuse `From.get`; those of caching disabled give the
 dependencies of the first analysis; before the change, the results with

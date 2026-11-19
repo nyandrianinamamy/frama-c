@@ -1113,12 +1113,15 @@ Mutations, each run alone and reverted. With the rejection removed from
 `overflow.c` after the lookup hits and gives `out = 8`, where caching
 disabled leaves `main` without a state; `interleave.c` hits and calls the
 client of red statuses three times, against once. With one of the six
-accessors removed from `unaudited_clients`, the line of its clients in the
-first scenario reads `hits on body: 1`, and the scenario on its route hits:
-`overflow.c` after the lookup for the hooks of Eva, with `out = 8`;
+accessors of #47 removed from `unaudited_clients`, the line of its clients
+in the first scenario reads `hits on body: 1`, and the scenario on its route
+hits: `overflow.c` after the lookup for the hooks of Eva, with `out = 8`;
 `repeat.c` with the client registered after the production for the hooks
 of red statuses; `pre-route.c` for the hooks on statuses; `later.c` for
-the logger. Each flag of the hooks of Eva (call, call results, statement)
+the logger. With the seventh, `Cache_part.unaudited_clients`, removed, the
+scenarios `unaudited-part` and `inout-client` of `cache-parts.t` give
+`copy: hits 3, rejected for callback 0` where they give `hits 0, rejected
+for callback 9`. Each flag of the hooks of Eva (call, call results, statement)
 and of the logger (`add_listener`, `register`, `on_history_access`), and
 each half of `has_add_or_update_hooks`, removed alone, makes the line of
 its own client hit. With the hooks of red statuses no longer opaque, the
