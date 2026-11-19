@@ -423,20 +423,31 @@ let owner () =
         Emitter.pretty emitter
         (String.concat ", " (List.sort compare emitted)))
 
-(* A hook of red statuses enters another project at its first call, and
-   adds a red context there. *)
+(* Runs [f] the first time the statement hooks run for a statement of
+   body. The client is registered as classified, as the collector admits
+   it: a change of project that it makes is seen by the comparisons of the
+   project alone, and not by the refusal of opaque clients. *)
+let at_first_statement_of_body f =
+  let entered = ref false in
+  Eva__Cvalue_callbacks.register_statement_hook ~classified:true
+    (fun callstack _stmt _states ->
+       if not !entered
+       && Kernel_function.equal (Eva.Callstack.top_kf callstack) (kf "body")
+       then begin
+         entered := true;
+         f ()
+       end)
+
+(* A client of the statement hooks enters another project the first time it
+   runs in body, and adds a red context there. *)
 let enter_other_project () =
   let other = Project.create_by_copy ~last:false "other" in
-  let entered = ref false in
-  Eva__Red_statuses.register_hook (fun _ ->
-      if not !entered then begin
-        entered := true;
-        Project.on other (fun () ->
-            let body = kf "body" in
-            let first = Kernel_function.find_first_stmt body in
-            Eva__Red_statuses.add_red_property Kglobal
-              (Property.ip_reachable_stmt body first)) ()
-      end)
+  at_first_statement_of_body (fun () ->
+      Project.on other (fun () ->
+          let body = kf "body" in
+          let first = Kernel_function.find_first_stmt body in
+          Eva__Red_statuses.add_red_property Kglobal
+            (Property.ip_reachable_stmt body first)) ())
 
 (* An analysis from producer, with the hook above. The entries of [body] it
    stores, if any, are supplied to an analysis from main. *)
@@ -465,8 +476,9 @@ let crossing_reference () =
 
 (* Runs [analyse] in a hook of the change of the current project, to a copy
    of the first project. The kernel runs no hook of the change of project
-   for a change made during such a hook. The first time it runs, a hook of
-   red statuses enters the first project with Project.on, and leaves it.
+   for a change made during such a hook. The first time it runs in body, a
+   client of the statement hooks enters the first project with Project.on,
+   and leaves it.
    Then prints the number of statuses and red contexts of the first
    project. *)
 let reentrant analyse () =
@@ -476,14 +488,10 @@ let reentrant analyse () =
   Project.register_after_set_current_hook ~user_only:false (fun _ ->
       if not !started then begin
         started := true;
-        let entered = ref false in
-        Eva__Red_statuses.register_hook (fun _ ->
-            if not !entered then begin
-              entered := true;
-              Project.on first (fun () ->
-                  Format.printf "entered the first project: %b@."
-                    (Project.is_current first)) ()
-            end);
+        at_first_statement_of_body (fun () ->
+            Project.on first (fun () ->
+                Format.printf "entered the first project: %b@."
+                  (Project.is_current first)) ());
         analyse ()
       end);
   Project.set_current other;
