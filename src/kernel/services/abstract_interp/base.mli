@@ -156,13 +156,14 @@ val observe_validity_updates:
     replaces, as {!observe_metadata_reads} does. *)
 
 val weakenings: unit -> int
-(** Zero when no validity record is known to have been made weak: the sum
-    of two counts of the calls of {!update_variable_validity} that made a
-    strong record weak and of the calls of {!register_allocated_var} on a
-    variable already registered. One count is a state of the current
-    project, saved with a session; the other belongs to the process. They
-    are counted with or without observer. A session saved without the
-    state, or before it existed, loads with a count of zero. *)
+(** Positive after a call of {!update_variable_validity} that made a
+    strong record weak, or a call of {!register_allocated_var} on a
+    variable already registered, with or without observer. It is the sum of
+    a count of the process and of a state of the current project, saved
+    with a session. A count is added in every project; a state created or
+    cleared starts from the count of the process; a loaded count is added
+    to the count of the process. A session written without the state, or
+    before it existed, contributes nothing when loaded. *)
 
 val observer_changes: unit -> int
 (** The number of calls of {!observe_metadata_reads} and
