@@ -96,10 +96,12 @@ that a checkout has the model sources of an entry, compare
   including the contents of the written blocks, allocation effects, reads of
   allocation metadata and of the tags of weakened blocks, and the read paths
   of the validity record.
-- [Safety at a hit](safety.md): the alarms, statuses and red contexts
-  recorded in an entry, their delivery at a hit as recorded joins, the
-  preconditions of the called function at a hit, and a known difference
-  of the statuses emitted after the analysis.
+- [Safety at a hit](safety.md): the alarms, statuses, messages and red
+  contexts recorded in an entry, their delivery at a hit as recorded joins,
+  the passes after the analysis in a function answered by a hit, the
+  refusal of a recording across a change of project, the equality of the
+  options that decide the alarms, and the preconditions of the called
+  function at a hit.
 - [Reuse operation](reuse-operation.md): the cache entry and its four
   written sets, the match by equality on entries supplied by a test module,
   the blocks a hit takes from an exit state, the choice of one cache per
