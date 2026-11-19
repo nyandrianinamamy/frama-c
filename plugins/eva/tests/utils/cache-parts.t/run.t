@@ -253,6 +253,10 @@ those of the first analysis.
   [inout] User Error: cannot compute the inputs and outputs by function or by statement: in the current analysis of Eva, a hit of the cache answered a call without analysing the body of the called function, and saved no state at its statements
   Inout.stmt_inputs: refused
   [inout] User Error: cannot compute the inputs and outputs by function or by statement: in the current analysis of Eva, a hit of the cache answered a call without analysing the body of the called function, and saved no state at its statements
+  Inout.stmt_outputs: refused
+  [inout] User Error: cannot compute the inputs and outputs by function or by statement: in the current analysis of Eva, a hit of the cache answered a call without analysing the body of the called function, and saved no state at its statements
+  Inout.expr_inputs: refused
+  [inout] User Error: cannot compute the inputs and outputs by function or by statement: in the current analysis of Eva, a hit of the cache answered a call without analysing the body of the called function, and saved no state at its statements
   Inout.kf_outputs, by the dynamic access: refused
   after an analysis with caching disabled: statement results complete: true; results by function equal: true
 
@@ -270,22 +274,26 @@ hits, stop with the same error, without printing a result.
   hits: copy 3; statement results complete: false
   [inout] User Error: cannot compute the inputs and outputs by function or by statement: in the current analysis of Eva, a hit of the cache answered a call without analysing the body of the called function, and saved no state at its statements
 
-Two requests of the server, after an analysis with caching disabled and
+Three requests of the server, after an analysis with caching disabled and
 after the analysis with hits: the dead code of copy, and the statements
-that read b at the first call to copy, which Studia, loaded after the
-analysis, computes with Inout. After the hits, no statement of copy is
-reported as reached or unreachable, and Studia's request is refused.
+that read and that write b at the first call to copy, which Studia, loaded
+after the analysis, computes with Inout. After the hits, no statement of
+copy is reported as reached or unreachable, and Studia's requests are
+refused.
 
   $ EVA_TEST_CACHE_PARTS=server-fresh frama-c -no-autoload-plugins -load-module eva,eva.server_api,from,inout,test_cache_parts.cmxs parts.c > server-fresh.log 2>&1
   $ grep -E '^plugins' server-fresh.log
   plugins.eva.ast.getDeadCode: unreachable 0, reached 2, nonTerminating 0
   plugins.studia.studia.getReadsLval: indirect 4, direct 1
+  plugins.studia.studia.getWritesLval: indirect 0, direct 1
   $ EVA_TEST_CACHE_PARTS=server frama-c -no-autoload-plugins -load-module eva,eva.server_api,from,inout,test_cache_parts.cmxs parts.c > server.log 2>&1
   $ grep -E '^(hits|plugins)|User Error|Error when' server.log
   hits: copy 3; statement results complete: false
   plugins.eva.ast.getDeadCode: unreachable 0, reached 0, nonTerminating 0
   [studia] User Error: cannot find the statements that access a location: in the current analysis of Eva, a hit of the cache answered a call without analysing the body of the called function, and saved no state at its statements
   plugins.studia.studia.getReadsLval: refused
+  [studia] User Error: cannot find the statements that access a location: in the current analysis of Eva, a hit of the cache answered a call without analysing the body of the called function, and saved no state at its statements
+  plugins.studia.studia.getWritesLval: refused
 
 The record of the hits is saved with the session: another process that
 loads it refuses the same requests.

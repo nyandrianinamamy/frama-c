@@ -331,8 +331,14 @@ let api () =
   in
   refused "From.get" (fun () -> From.get (kf "deps_main"));
   refused "Inout.kf_inputs" (fun () -> Inout.kf_inputs (kf "deps_main"));
-  refused "Inout.stmt_inputs"
-    (fun () -> Inout.stmt_inputs (List.hd (calls "copy")));
+  let call = List.hd (calls "copy") in
+  refused "Inout.stmt_inputs" (fun () -> Inout.stmt_inputs call);
+  refused "Inout.stmt_outputs" (fun () -> Inout.stmt_outputs call);
+  refused "Inout.expr_inputs"
+    (fun () ->
+       match call.skind with
+       | Instr (Call (_, _, arg :: _, _)) -> Inout.expr_inputs call arg
+       | _ -> assert false);
   refused "Inout.kf_outputs, by the dynamic access"
     (fun () -> kf_outputs (kf "copy"));
   ignore (first_analysis ());
@@ -346,9 +352,10 @@ let api () =
 let save () =
   Project.save (Filepath.of_string (Sys.getenv "EVA_TEST_CACHE_PARTS_SESSION"))
 
-(* Two requests of the server: the dead code of copy, which hits answer in
-   the analysis with hits, and the statements that read b at the first call
-   to copy, which Studia, loaded after the analysis, computes with Inout. *)
+(* Three requests of the server: the dead code of copy, which hits answer in
+   the analysis with hits, and the statements that read and that write b at
+   the first call to copy, which Studia, loaded after the analysis, computes
+   with Inout. *)
 let server () =
   Dynamic.load_plugin "studia";
   let size = function `List l -> string_of_int (List.length l) | _ -> "?" in
@@ -369,6 +376,8 @@ let server () =
   let call = Kstmt (List.hd (calls "copy")) in
   let marker = Server.Printer_tag.PLval (Some (kf "deps_main"), call, b) in
   ask "plugins.studia.studia.getReadsLval"
+    (Server.Kernel_ast.Marker.to_json marker);
+  ask "plugins.studia.studia.getWritesLval"
     (Server.Kernel_ast.Marker.to_json marker)
 
 (* ----- Values given in another project or for another callstack --------- *)
