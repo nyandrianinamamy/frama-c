@@ -403,10 +403,11 @@ module History_access = Hook.Build (struct
     type t = string * kind * string option * bool
   end)
 
-let on_history_access f =
-  History_access.extend
-    (fun (plugin, kind, category, once_category) ->
-       f ~plugin ~kind ~category ~once_category)
+let on_history_access ?(audited=false) f =
+  let notify (plugin, kind, category, once_category) =
+    f ~plugin ~kind ~category ~once_category
+  in
+  History_access.extend (if audited then notify else Hook.Opaque.wrap notify)
 
 (* -------------------------------------------------------------------------- *)
 (* --- Listeners                                                          --- *)

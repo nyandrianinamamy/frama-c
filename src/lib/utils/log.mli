@@ -482,8 +482,10 @@ val add_listener :
 
 (** Observe a consultation of the per-event once history, or an active
     warning-category policy that consumes the category after one emission.
-    The hook must not emit messages or change the logger. *)
+    The hook must not emit messages or change the logger. The collector's
+    observer sets [audited]. Other invocations report to {!Hook.Opaque}. *)
 val on_history_access :
+  ?audited:bool ->
   (plugin:string -> kind:kind -> category:string option -> once_category:bool ->
    unit) -> unit
 
