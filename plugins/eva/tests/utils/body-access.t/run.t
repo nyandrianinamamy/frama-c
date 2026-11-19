@@ -285,7 +285,7 @@ range is unspecified: the body reads nothing and designates any block.
 
   $ clause empty_max
   $ grep '^empty_max refuses' empty_max.log
-  empty_max refuses footprint-top, side-table
+  empty_max refuses footprint-top
 
 The freeability of an unknown address is unknown. The analysis completes,
 with or without the collector, and the allocation table refuses the body.
@@ -382,10 +382,10 @@ bound for allocability and freshness.
   membership reads member
   $ clause allocable
   $ grep '^allocable refuses' allocable.log
-  allocable refuses annotation, side-table
+  allocable refuses annotation
   $ clause fresh
   $ grep '^fresh refuses' fresh.log
-  fresh refuses contract, side-table
+  fresh refuses contract
 
 Eva does not evaluate loop variants, decreases clauses, or global and type
 invariants: they add no read.

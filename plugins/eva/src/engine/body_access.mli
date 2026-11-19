@@ -138,6 +138,13 @@ val unknown_access : Result.refusal -> unit
     the logger's history of emitted messages. *)
 val read_message_history : unit -> unit
 
+(** [replayed_message f] runs [f], which prints a message that the Safety
+    part of the body records, and that a hit prints again through the
+    logger ({!Safety_part}). The test of the logger for an earlier emission
+    of the same message is made again at the hit, and is not refused. A
+    category whose messages are printed once still refuses. *)
+val replayed_message : (unit -> 'a) -> 'a
+
 (** Registers an exact lexical sweep of the current body's own inner locals.
     Returns whether to report the holders rewritten by that sweep. *)
 val sweep :

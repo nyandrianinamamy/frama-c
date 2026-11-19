@@ -444,15 +444,25 @@ let read_message_history () = refuse Side_table
 
 let () = Hook.Opaque.on_call (fun () -> refuse Callback)
 
+(* Whether the message being printed is recorded by the Safety part, which a
+   hit prints again through the logger. *)
+let replayed = ref false
+
+let replayed_message f =
+  let previous = !replayed in
+  replayed := true;
+  Fun.protect ~finally:(fun () -> replayed := previous) f
+
 let () =
   Log.on_history_access ~audited:true
     (fun ~plugin ~kind ~category ~once_category ->
        let audited =
          plugin = "eva" && not once_category &&
-         match kind, category with
-         | Log.Feedback, Some ("partition" | "widening") -> true
-         | Log.Warning, Some "locals-escaping" -> true
-         | _ -> false
+         (!replayed ||
+          match kind, category with
+          | Log.Feedback, Some ("partition" | "widening") -> true
+          | Log.Warning, Some "locals-escaping" -> true
+          | _ -> false)
        in
        if not audited then read_message_history ())
 

@@ -276,6 +276,7 @@ let emit_status emitter property status =
 let status_message status ~loc ~stacktrace text =
   record (fun frames ->
       Status_message { status; loc; stacktrace; text; frames });
+  Body_access.replayed_message @@ fun () ->
   match (status : Property_status.emitted_status) with
   | True ->
     Self.result ~mkey:Log_key.progress ~once:true ~loc ~stacktrace "%s" text
