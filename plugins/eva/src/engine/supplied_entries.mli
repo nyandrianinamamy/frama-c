@@ -162,6 +162,19 @@ val supply :
     and the lookup rejects their entries with [`Nested_delivery]: the check
     of [supply] on the calls of the body does not apply here.
 
+    The fixture also owes that the options of Eva that decide which states
+    are saved at the statements ([-eva-results],
+    [-eva-no-results-function]) and how precisely bodies are analysed (the
+    options of precision, of the domains and of the alarms) are equal in the
+    analysis that produced the entry and in the analysis that uses it.
+    Nothing checks it: a difference can change the parts restored at a hit,
+    the states at the end of the call, and, through the reduction of the
+    actuals with the Inout part, the state of the caller. Within one
+    analysis, these options change only by clearing its results, after
+    which every candidate is rejected ([`Analysis_reset]); an entry
+    supplied to a later analysis is not checked. Issue #59, which saves the
+    options of the producing analysis with its entries, must enforce this
+    equality.
     Raises [Invalid_argument] if the function of the entry is not a function
     of the current project: an entry made in a project is not supplied to a
     copy of it made by [Project.create_by_copy], whose functions are other
