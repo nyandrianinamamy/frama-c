@@ -647,19 +647,24 @@ let observe_one () =
 
 (* The Reach part of an analysis of [pre] from x = 1, written by hand: the
    four statements of the body are reached, the then branch of the
-   condition is taken, and x is read at lines 8 and 9, where out is
-   written. *)
+   condition is taken, and x is read at the assignment and at the
+   condition, where out is written. The body of [pre] is the same in
+   precondition.c, pre-route.c and metadata.c, at other lines: the
+   statements are found by their kind and by their line relative to the
+   assignment. *)
 let precondition_reach ~x ~out =
   let module Reach = Eva.Reach_part in
   let line s = Filepos.line (Fileloc.start_pos (Cil_datatype.Stmt.loc s)) in
+  let stmts = (Kernel_function.get_definition (kf "pre")).sallstmts in
+  let is_set = function Instr (Set _) -> true | _ -> false in
+  let first = line (List.find (fun s -> is_set s.skind) stmts) in
   let stmt is_kind l =
-    List.find (fun s -> line s = l && is_kind s.skind)
-      (Kernel_function.get_definition (kf "pre")).sallstmts
+    List.find (fun s -> line s = first + l && is_kind s.skind) stmts
   in
-  let set = stmt (function Instr (Set _) -> true | _ -> false) 8 in
-  let cond = stmt (function If _ -> true | _ -> false) 9 in
-  let skip = stmt (function Instr (Skip _) -> true | _ -> false) 10 in
-  let return = stmt (function Return _ -> true | _ -> false) 12 in
+  let set = stmt is_set 0 in
+  let cond = stmt (function If _ -> true | _ -> false) 1 in
+  let skip = stmt (function Instr (Skip _) -> true | _ -> false) 2 in
+  let return = stmt (function Return _ -> true | _ -> false) 4 in
   let point p = Reach.Reached { point = p; frames = [] } in
   let reached s =
     [ point (Eva__Domain_store.Before s); point (Eva__Domain_store.After s) ]
