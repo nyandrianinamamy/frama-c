@@ -159,11 +159,13 @@ with common program, subject and entry bindings. Exit composition and the
 four contracts for skipped effects are recorded with the hit proof.
 [Hit soundness](hit.md#hit-soundness).
 
-**Open for public Inner reconstruction.** Establish the connection between
-saved states and `InnerSound`. Use the lemma on entry-issued key blocks
-where a reference is available. Justify the other blocks, including
-fresh locals in the lookup key, with per-member data, the prefix's sweep
-and write effects, or top. #40 must address the statement, hit callstack and before or
-after point, using the current member and the effects of that prefix.
-Coverage and the argument for offsets remain OCaml obligations.
+**Public Inner reconstruction.** The model of a query on the callstack of
+a hit is in [State queries on the callstack of a hit](query.md#query-answers-on-the-callstack-of-a-hit).
+It names the statement, the callstack and the before or after point, and
+answers from the member's call state, the effects of the prefix recorded
+with the entry, or top. It uses `Matches` directly rather than the lemma
+above, and takes `InnerPartSound`, a premise on the inner part stored for
+each point. Establishing that premise and the issuance of bound blocks for
+Eva's saved states is open for #49, with the restriction for partial
+writes. Coverage and the argument for offsets remain OCaml obligations.
 [Public Inner reconstruction](https://github.com/nyandrianinamamy/frama-c/issues/40).

@@ -641,16 +641,14 @@ Checks.sweepCur : projectedPredicates.State
 
 ## Follow-on Lean work
 
-- #40 can use the [whole-product self-witness](whole-product.md#whole-product-equality-supplies-the-input-witness)
-  via `Matches` with `shared_inner` for key blocks issued at entry.
-  The public query still needs the statement, callstack and
-  before or after point. Frame values depend on that prefix's writes
-  and sweeps. Overwritten blocks outside the key and new locals need
-  per-member coverage or top, including the two distinct-member
-  examples required by that ticket. Publishing a per-position Inner
-  contribution through a recorded join also requires coverage of fresh
-  visits and of existing observations there, with other positions
-  preserved. A successful query example alone does not validate admission.
+- #40: [State queries on the callstack of a hit](query.md) proves the
+  answers of the hit log sound at each visit of a matching member, with
+  the joint witness as a premise that a projected or whole-product hit
+  supplies. Publishing a per-position Inner contribution through a
+  recorded join, rather than answering at query time, is not modelled:
+  it also requires coverage of fresh visits and of existing observations
+  there, with other positions preserved. A successful query example alone
+  does not validate admission.
   [Public Inner reconstruction](https://github.com/nyandrianinamamy/frama-c/issues/40).
 
 ## Follow-on Eva work
