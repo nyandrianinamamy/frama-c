@@ -46,28 +46,6 @@ module Make (Engine: Engine_sig.S) = struct
       Structure.Key_Domain.equal key Cvalue_domain.State.key
     | _ -> false
 
-  (* A hit prints the messages of the statuses and alarms of its entry, but
-     not the other messages of the body, whose action is decided by the
-     status of their warning category. The lookup compared these statuses
-     with those of the analysis that produced the entry. A hook that the hit
-     runs after the lookup (on calls, on statuses, of the logger) can change
-     them: the analysis then stops, as it cannot tell what an analysis of
-     the body would do. *)
-  let check_warn_categories kf categories =
-    let current = Body_access.warn_categories () in
-    if current <> categories then begin
-      let missing l l' = List.filter (fun c -> not (List.mem c l')) l in
-      let changed =
-        missing current categories @ missing categories current
-        |> List.map fst |> List.sort_uniq String.compare
-      in
-      Self.abort ~current:true
-        "@[the status of the warning categories %a changed@ \
-         during the hit on %a@]"
-        (Pretty_utils.pp_list ~sep:",@ " Format.pp_print_string) changed
-        Kernel_function.pretty kf
-    end
-
   (* Interprets a [call] in the state [init_state] by [compute], which analyzes
      the body of the called function, unless the cache has a matching entry. *)
   let compute_and_cache_call ~recursive ~save_results compute call init_state =
@@ -141,10 +119,10 @@ module Make (Engine: Engine_sig.S) = struct
           Option.iter (Body_access.include_trace call.callstack) trace;
           Body_access.unknown_access Nested_call;
           None
-        | Cache.Supplied_entry (entry, categories) ->
+        | Cache.Supplied_entry entry ->
           Call_cache.include_supplied call.callstack entry
             ~returns:(states <> []);
-          Some Call_cache.{ safety = Supplied_entries.safety entry; categories }
+          Some (Supplied_entries.safety entry)
       in
       apply_call_hooks call init_state `Reuse;
       (* Evaluate the preconditions of kf, to update the statuses
@@ -168,17 +146,15 @@ module Make (Engine: Engine_sig.S) = struct
          would then analyse nothing, and the call has no state at its end.
          A delivering hit saves no state at the statements of the body: the
          function is recorded, so that the passes at the end of the analysis
-         draw no conclusion from the absence of these states. The status of
-         the warning categories is then compared with that at the lookup.
-         Memexec gives no Safety part, and its states are kept. *)
+         draw no conclusion from the absence of these states. Memexec gives
+         no Safety part, and its states are kept. *)
       let states =
         match delivery with
         | None -> states
         | Some _ when not satisfiable -> []
-        | Some { safety; categories } ->
+        | Some safety ->
           Safety_delivery.skip_visits call.kf;
           Safety_delivery.deliver call.callstack safety;
-          check_warn_categories call.kf categories;
           states
       in
       Self.feedback ~current:true ~mkey:Log_key.progress

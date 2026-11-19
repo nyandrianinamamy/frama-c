@@ -142,16 +142,6 @@ val cleanup_results : unit -> unit
 val include_supplied :
   Callstack.t -> Supplied_entries.entry -> returns:bool -> unit
 
-(** What a hit of the reuse operation delivers at the call. *)
-type delivery = {
-  safety : Safety_part.t;
-  (** The Safety part of the entry. *)
-  categories : (string * Log.warn_status) list;
-  (** The status of the warning categories when the lookup started
-      ({!Body_access.warn_categories}). A hook that the hit runs, on calls,
-      on statuses or of the logger, can change them after the lookup. *)
-}
-
 module Make
     (Value : Datatype.S)
     (Domain : Engine_abstractions_sig.Domain)
@@ -163,12 +153,9 @@ module Make
 
     (** Result of a lookup. *)
     type hit_source =
-      | Supplied_entry of
-          Supplied_entries.entry * (string * Log.warn_status) list
+      | Supplied_entry of Supplied_entries.entry
       | Legacy_trace of Body_access.call_trace option
-      (** The winning supplied entry, with the status of the warning
-          categories when the lookup started, or the trace of a legacy
-          memexec hit. *)
+      (** The winning supplied entry, or the trace of a legacy memexec hit. *)
 
     type lookup =
       | No_candidate of pending
