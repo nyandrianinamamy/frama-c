@@ -346,6 +346,31 @@ let api () =
 let save () =
   Project.save (Filepath.of_string (Sys.getenv "EVA_TEST_CACHE_PARTS_SESSION"))
 
+(* Two requests of the server: the dead code of copy, which hits answer in
+   the analysis with hits, and the statements that read b at the first call
+   to copy, which Studia, loaded after the analysis, computes with Inout. *)
+let server () =
+  Dynamic.load_plugin "studia";
+  let size = function `List l -> string_of_int (List.length l) | _ -> "?" in
+  let ask name arg =
+    match Server.Main.find name with
+    | None -> Format.printf "%s: missing@." name
+    | Some (_, handler) ->
+      match handler arg with
+      | `Assoc fields ->
+        Format.printf "%s: %s@." name
+          (String.concat ", " (List.map (fun (k, v) -> k ^ " " ^ size v) fields))
+      | _ -> Format.printf "%s: answered@." name
+      | exception Log.AbortError _ -> Format.printf "%s: refused@." name
+  in
+  let copy = Server.Printer_tag.SFunction (kf "copy") in
+  ask "plugins.eva.ast.getDeadCode" (Server.Kernel_ast.Decl.to_json copy);
+  let b = Var (global "b"), NoOffset in
+  let call = Kstmt (List.hd (calls "copy")) in
+  let marker = Server.Printer_tag.PLval (Some (kf "deps_main"), call, b) in
+  ask "plugins.studia.studia.getReadsLval"
+    (Server.Kernel_ast.Marker.to_json marker)
+
 (* ----- Values given in another project or for another callstack --------- *)
 
 (* Three parts of this test, which no consumer needs. During each analysis of
@@ -403,6 +428,9 @@ let () =
   | Some "api" -> Boot.Main.extend api
   | Some "then" -> Boot.Main.extend (after_hits ignore)
   | Some "save" -> Boot.Main.extend (after_hits save)
+  | Some "server" -> Boot.Main.extend (after_hits server)
+  | Some "server-fresh" ->
+    Boot.Main.extend (fun () -> ignore (first_analysis ()); server ())
   | Some "visits" -> Boot.Main.extend visits
   | Some "logic" -> Boot.Main.extend logic
   | _ -> ()

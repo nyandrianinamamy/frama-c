@@ -48,7 +48,19 @@ end
 let stmt_marker = Printer_tag.localizable_of_stmt
 let global_marker vi = Printer_tag.localizable_of_declaration (SGlobal vi)
 
+(* After a hit of the cache of Eva, the results of Inout by statement are
+   refused: the handlers below would turn the error into an empty answer,
+   which says that no statement accesses the zone. *)
+let check_statement_results () =
+  if not (Eva.Results.statement_results_complete ()) then
+    Options.abort
+      "cannot find the statements that access a location: in the current \
+       analysis of Eva, a hit of the cache answered a call without analysing \
+       the body of the called function, and saved no state at its \
+       statements"
+
 let compute_writes zone =
+  check_statement_results ();
   try
     let reads = Writes.compute zone in
     let add acc = function
@@ -69,6 +81,7 @@ let compute_writes zone =
     empty
 
 let compute_reads zone =
+  check_statement_results ();
   try
     let reads = Reads.compute zone in
     let add acc = function

@@ -3,7 +3,7 @@
   (modules "test_cache_parts")
   (modes plugin)
   (libraries frama-c.kernel "frama-c-eva.core" "frama-c-from.core"
-             "frama-c-inout.core")
+             "frama-c-inout.core" "frama-c-server.core")
   (flags :standard -open Frama_c_kernel)
   (promote (until-clean))
 )
