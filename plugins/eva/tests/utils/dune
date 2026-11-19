@@ -21,7 +21,16 @@
 
 (cram
   (applies_to cache-parts)
-  (deps (package frama-c-from)))
+  (deps
+    (package frama-c-from)
+    (package frama-c-impact)
+    (package frama-c-pdg)
+    (package frama-c-reduc)
+    (package frama-c-security_slicing)
+    (package frama-c-slicing)
+    (package frama-c-sparecode)
+    (package frama-c-studia)
+  ))
 
 (cram
   (applies_to body-access)

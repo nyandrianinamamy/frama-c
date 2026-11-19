@@ -107,8 +107,16 @@ let state_readers : (string * (unit -> bool)) list ref = ref []
 let register_state_reader ~name reads =
   state_readers := !state_readers @ [ name, reads ]
 
+(* The plug-ins that request the results by function of From or Inout,
+   each of which depends on From or Inout. They are known by name: Eva does
+   not depend on them. *)
+let requesting_plugins =
+  [ "pdg"; "impact"; "reduc"; "scope"; "security-slicing"; "slicing";
+    "sparecode"; "studia" ]
+
 let reads_statement_states () =
-  List.exists (fun (_, reads) -> reads ()) !state_readers
+  List.exists Plugin.is_present requesting_plugins
+  || List.exists (fun (_, reads) -> reads ()) !state_readers
 
 let restore callstack kf pre parts =
   let restore_one p =

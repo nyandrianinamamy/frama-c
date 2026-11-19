@@ -29,11 +29,11 @@ the hits restore, and at that of deps_main, which joins them.
 With Inout alone, each entry has an Inout part. After the hits on narrow and
 narrow_and_write, the caller reduces its actual g, which the callee does not
 write, and does not reduce h, which the callee writes, as with caching
-disabled. The callwise inputs and outputs of both calls are those of the
-first analysis.
+disabled. The callwise inputs and outputs of every call site, and those of
+every function joined over its calls, are those of the first analysis.
 
   $ EVA_TEST_CACHE_PARTS=inout frama-c -no-autoload-plugins -load-module eva,from,inout,test_cache_parts.cmxs parts.c > inout.log 2>&1
-  $ grep -E '^(entry of|hits|caching disabled|after the hits|callwise)' inout.log
+  $ grep -E '^(entry of|hits|caching disabled|after the hits|callwise|inputs)' inout.log
   entry of copy: parts [inout]
   entry of copy: parts [inout]
   entry of copy: parts [inout]
@@ -44,7 +44,8 @@ first analysis.
   caching disabled: g after narrow {5}, h after narrow_and_write {7}
   hits: narrow 1, narrow_and_write 1
   after the hits: g after narrow {5}, h after narrow_and_write {7}
-  callwise inputs and outputs equal: true
+  callwise inputs and outputs equal at 9 call sites: true
+  inputs and outputs equal for 7 functions: true
 
 With -eva, Eva also analyses the program before the test module does, and
 prints the final states after each of the three analyses, filtered by the
@@ -130,6 +131,39 @@ requested, every candidate is rejected (consumer). The callwise results of
   input-with-formals.log:hits 0, rejected for consumer 15
   deref.log:hits 0, rejected for consumer 15
   inout-option.log:hits 7, rejected for consumer 0
+
+The plug-ins that request these results by function reject every
+candidate when they are loaded.
+
+  $ EVA_TEST_CACHE_PARTS=readers frama-c -no-autoload-plugins -load-module eva,from,inout,pdg,test_cache_parts.cmxs parts.c > pdg.log 2>&1
+  $ EVA_TEST_CACHE_PARTS=readers frama-c -no-autoload-plugins -load-module eva,from,inout,impact,test_cache_parts.cmxs parts.c > impact.log 2>&1
+  $ EVA_TEST_CACHE_PARTS=readers frama-c -no-autoload-plugins -load-module eva,from,inout,reduc,test_cache_parts.cmxs parts.c > reduc.log 2>&1
+  $ EVA_TEST_CACHE_PARTS=readers frama-c -no-autoload-plugins -load-module eva,from,inout,scope,test_cache_parts.cmxs parts.c > scope.log 2>&1
+  $ EVA_TEST_CACHE_PARTS=readers frama-c -no-autoload-plugins -load-module eva,from,inout,security_slicing,test_cache_parts.cmxs parts.c > security_slicing.log 2>&1
+  $ EVA_TEST_CACHE_PARTS=readers frama-c -no-autoload-plugins -load-module eva,from,inout,slicing,test_cache_parts.cmxs parts.c > slicing.log 2>&1
+  $ EVA_TEST_CACHE_PARTS=readers frama-c -no-autoload-plugins -load-module eva,from,inout,sparecode,test_cache_parts.cmxs parts.c > sparecode.log 2>&1
+  $ EVA_TEST_CACHE_PARTS=readers frama-c -no-autoload-plugins -load-module eva,from,inout,studia,test_cache_parts.cmxs parts.c > studia.log 2>&1
+  $ grep '^hits' pdg.log impact.log reduc.log scope.log security_slicing.log slicing.log sparecode.log studia.log
+  pdg.log:hits 0, rejected for consumer 15
+  impact.log:hits 0, rejected for consumer 15
+  reduc.log:hits 0, rejected for consumer 15
+  scope.log:hits 0, rejected for consumer 15
+  security_slicing.log:hits 0, rejected for consumer 15
+  slicing.log:hits 0, rejected for consumer 15
+  sparecode.log:hits 0, rejected for consumer 15
+  studia.log:hits 0, rejected for consumer 15
+
+A request that the module supplying the entries makes itself, after the
+analysis, is not detected. The results by function of copy, answered by
+hits only, and of its caller deps_main miss the effects of copy.
+
+  $ EVA_TEST_CACHE_PARTS=api frama-c -no-autoload-plugins -load-module eva,from,inout,test_cache_parts.cmxs parts.c > api.log 2>&1
+  $ grep -E '^(hits|caching disabled|after the hits)' api.log
+  hits: copy 3
+  caching disabled: copy: from [a FROM indirect: dst; src; direct: b; d (or UNASSIGNED); c FROM indirect: dst; src; direct: b; d (or UNASSIGNED); \result FROM \nothing]; inputs [b; d; dst; src]
+  caching disabled: deps_main: from [a FROM direct: b; d (or UNASSIGNED); c FROM direct: b; d (or UNASSIGNED); \result FROM \nothing]; inputs [b; d; dst; src]
+  after the hits: copy: from [FROMUNREACHABLE; \result FROM \nothing]; inputs [\nothing]
+  after the hits: deps_main: from [FROMUNREACHABLE; \result FROM \nothing]; inputs [\nothing]
 
 A value of a part is kept with the entry only when it is given for the body
 being analysed, in the project current when its analysis started. The test

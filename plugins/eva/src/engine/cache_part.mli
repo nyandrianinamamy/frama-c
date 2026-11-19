@@ -99,7 +99,12 @@ val capture : Callstack.t -> (unit -> 'a) -> 'a * parts
 val supplies : parts -> bool
 
 (** Whether a reader declared by {!register_state_reader} reads in the
-    current analysis. *)
+    current analysis, or a plug-in that requests the results by function of
+    From or Inout is loaded: Pdg, Impact, Reduc, Scope, Security-slicing,
+    Slicing, Sparecode or Studia. These results are computed from the
+    states saved at the statements of each function, those of the called
+    functions included. A request that a module makes directly, after the
+    analysis, is not detected. *)
 val reads_statement_states : unit -> bool
 
 (** [restore callstack kf pre parts] restores each part of [parts] whose

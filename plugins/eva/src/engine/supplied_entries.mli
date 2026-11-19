@@ -223,13 +223,13 @@ type rejection = [
   | `Consumer
   (** A consumer that no entry can serve is enabled: the analysis of
       threads, which resolves the identifier of a hit against the entries of
-      memexec; a reader of the states saved at statements declared to
-      {!Cache_part.register_state_reader}, such as the analyses by function
-      of From ([-deps]) and Inout ([-out], [-input], [-deref] and their
-      variants); or a plug-in that concludes from the states saved at the
-      statements of a function, which do not cover the calls answered by a
-      hit: Nonterm, Metrics, the Markdown report, WP and the constant
-      propagation. *)
+      memexec; a reader of the states saved at statements (see
+      {!Cache_part.reads_statement_states}): the analyses by function of
+      From ([-deps]) and Inout ([-out], [-input], [-deref] and their
+      variants), or a loaded plug-in that requests them; or a plug-in that
+      concludes from the states saved at the statements of a function,
+      which do not cover the calls answered by a hit: Nonterm, Metrics, the
+      Markdown report, WP and the constant propagation. *)
   | `Stop_at_nth_alarm
   (** Option [-eva-stop-at-nth-alarm] is set. A fresh evaluation emits all
       its alarms before it tests the threshold; a hit does not deliver its

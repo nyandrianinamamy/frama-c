@@ -26,8 +26,14 @@ let one_line pp x =
   let fmt = Format.formatter_of_buffer buffer in
   Format.pp_set_margin fmt 1000;
   Format.fprintf fmt "%a@?" pp x;
+  let join acc line =
+    if acc = "" then line
+    else if String.ends_with ~suffix:";" acc then acc ^ " " ^ line
+    else acc ^ "; " ^ line
+  in
   String.split_on_char '\n' (Buffer.contents buffer)
-  |> List.map String.trim |> List.filter (( <> ) "") |> String.concat "; "
+  |> List.map String.trim |> List.filter (( <> ) "")
+  |> List.fold_left join ""
 
 let clear () =
   Project.clear
@@ -123,17 +129,26 @@ let value_after stmt name =
   Results.(after stmt |> eval_var (global name) |> as_cvalue)
   |> one_line Cvalue.V.pretty
 
-let callwise_inout callee =
-  List.map
-    (fun stmt -> Inout.get_precise_inout ~stmt (kf callee)) (calls callee)
+let functions = callees @ [ "deps_main"; "inout_main"; "main" ]
+
+(* The callwise inputs and outputs at every call site, and those of every
+   function, joined over its calls, as -inout prints them. *)
+let inout_tables () =
+  let at_calls f =
+    List.map (fun stmt -> Inout.get_precise_inout ~stmt (kf f)) (calls f)
+  in
+  List.concat_map at_calls functions,
+  List.map (fun f -> Inout.get_precise_inout (kf f)) functions
 
 (* The actuals after the calls to narrow and narrow_and_write, and the
-   callwise inputs and outputs of these calls. *)
+   tables of Inout. *)
 let observe () =
   let narrow = List.hd (calls "narrow")
   and write = List.hd (calls "narrow_and_write") in
-  (value_after narrow "g", value_after write "h"),
-  callwise_inout "narrow" @ callwise_inout "narrow_and_write"
+  (value_after narrow "g", value_after write "h"), inout_tables ()
+
+let same_inout l l' =
+  List.length l = List.length l' && List.for_all2 Inout_type.equal l l'
 
 let inout () =
   let produced = first_analysis () in
@@ -147,8 +162,10 @@ let inout () =
   let (g', h'), reused = observe () in
   Format.printf "after the hits: g after narrow %s, h after \
                  narrow_and_write %s@." g' h';
-  Format.printf "callwise inputs and outputs equal: %b@."
-    (List.for_all2 Inout_type.equal fresh reused)
+  Format.printf "callwise inputs and outputs equal at %d call sites: %b@."
+    (List.length (fst fresh)) (same_inout (fst fresh) (fst reused));
+  Format.printf "inputs and outputs equal for %d functions: %b@."
+    (List.length (snd fresh)) (same_inout (snd fresh) (snd reused))
 
 (* ----- Checks of the assigns clauses -------------------------------------- *)
 
@@ -195,6 +212,31 @@ let readers () =
   Format.printf "hits %d, rejected for consumer %d@."
     (sum hits) (sum (rejected "consumer"))
 
+(* ----- Results by function requested by the module ---------------------- *)
+
+(* The results by function of From and Inout are computed from the states
+   saved at the statements of each function, and a hit saves none for the
+   called function. When this module requests them after the analysis, with
+   no option or plug-in that rejects the candidates, they miss the effects
+   of the calls answered by hits, in the called function and in its
+   callers. *)
+let by_function () =
+  List.map
+    (fun f ->
+       let kf = kf f in
+       Format.asprintf "%s: from [%s]; inputs [%s]" f
+         (one_line Eva.Assigns.pretty (From.get kf))
+         (one_line Memory_zone.pretty (Inout.kf_inputs kf)))
+    [ "copy"; "deps_main" ]
+
+let api () =
+  let produced = first_analysis () in
+  let fresh = by_function () in
+  second_analysis produced;
+  Format.printf "hits: copy %d@." (hits "copy");
+  List.iter (Format.printf "caching disabled: %s@.") fresh;
+  List.iter (Format.printf "after the hits: %s@.") (by_function ())
+
 (* ----- Values given in another project or for another callstack --------- *)
 
 (* Three parts of this test, which no consumer needs. During each analysis of
@@ -232,4 +274,5 @@ let () =
   | Some "verify" -> Boot.Main.extend verify
   | Some "readers" -> Boot.Main.extend readers
   | Some "project" -> Boot.Main.extend project
+  | Some "api" -> Boot.Main.extend api
   | _ -> ()
