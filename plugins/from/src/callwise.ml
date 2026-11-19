@@ -124,7 +124,15 @@ let provide_froms callstack ~reads froms =
    conditions of the statements that the call reaches, the blocks read to
    compute an address included (see [From_compute]). The evaluations at a
    statement that the call does not reach read nothing. A call, which the
-   computation reads in the table of the call site, gives [Top]. *)
+   computation reads in the table of the call site, gives [Top].
+
+   The computation also asks whether a statement is reachable in the results
+   of the analysis ([Eva.Results.is_reachable] in [From_compute]). While the
+   analysis runs, these results are not available and every statement is
+   reachable ([Engine.find] answers [Top]), whatever the other calls: the
+   dataflow goes past the statements that this call does not reach, where
+   the evaluations read nothing. The result depends on the states of the
+   call alone. *)
 let reads_of_body kf states =
   let open Cil_types in
   let module Zone = Memory_zone in
@@ -140,7 +148,8 @@ let reads_of_body kf states =
       let rec init = function
         | SingleInit e -> exp e
         | CompoundInit (_, l) ->
-          List.fold_left (fun acc (_, i) -> Zone.join acc (init i)) Zone.bottom l
+          let join acc (_, i) = Zone.join acc (init i) in
+          List.fold_left join Zone.bottom l
       in
       match stmt.skind with
       | Instr (Set (lv, e, _)) ->
