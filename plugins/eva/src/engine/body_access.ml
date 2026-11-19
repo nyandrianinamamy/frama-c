@@ -713,7 +713,8 @@ let with_callee kf return f =
     r.private_blocks <- Base.Hptset.union previous blocks;
     Fun.protect f ~finally:(fun () -> r.private_blocks <- previous)
 
-let include_call r stack entry ~reads ~deps ~writes ~exit_writes ~sure_writes =
+let include_call r stack entry ~children ~reads ~deps ~writes ~exit_writes
+    ~sure_writes =
   r.reads <- Bases.join r.reads reads;
   r.writes <- Bases.join r.writes writes;
   let deps = Nested_access.remove r.private_blocks deps in
@@ -728,9 +729,15 @@ let include_call r stack entry ~reads ~deps ~writes ~exit_writes ~sure_writes =
     without_recording (fun () -> Nested_access.sure_zone sure_writes)
   in
   add_exit_write r exit_writes sure;
-  match Callstack.top_callsite stack, entry with
-  | Cil_types.Kstmt stmt, Some entry -> r.children <- (stmt, entry) :: r.children
-  | _ -> ()
+  match Callstack.top_callsite stack with
+  | Cil_types.Kglobal -> ()
+  | Cil_types.Kstmt stmt ->
+    let children =
+      match entry with
+      | Some entry -> [[stmt], entry]
+      | None -> List.map (fun (path, child) -> stmt :: path, child) children
+    in
+    r.children <- List.rev_append children r.children
 
 let include_effects r ~designated ~recorded ~functions =
   r.designated <- Bases.join r.designated designated;
@@ -745,8 +752,8 @@ let include_fresh stack (body : Result.t) entry =
       r.owners <- Base.Hptset.union r.owners body.owners;
       include_effects r ~designated:body.designated ~recorded:body.recorded
         ~functions:body.used_functions;
-      include_call r stack entry ~reads:body.reads ~deps:body.dependencies
-        ~writes:body.writes ~exit_writes:body.exit_writes
+      include_call r stack entry ~children:body.children ~reads:body.reads
+        ~deps:body.dependencies ~writes:body.writes ~exit_writes:body.exit_writes
         ~sure_writes:body.sure_writes)
     !current
 
@@ -768,7 +775,8 @@ let include_hit stack entry ~(footprint : Cache_observation.footprint)
        | Some Cache_observation.{ designated; recorded; functions } ->
          check_bases r designated;
          include_effects r ~designated ~recorded ~functions);
-      include_call r stack (Some entry) ~reads ~writes ~deps ~exit_writes
+      include_call r stack (Some entry) ~children:[] ~reads ~writes ~deps
+        ~exit_writes
         ~sure_writes:(if returns then footprint.written_sure
                       else Base.Hptset.empty))
     !current

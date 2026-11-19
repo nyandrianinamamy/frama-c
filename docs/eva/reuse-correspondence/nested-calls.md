@@ -63,8 +63,10 @@ A completed nested fresh body contributes its observation even if its
 producer does not create an entry. The produced enclosing entry has a
 strong reference at the current statement to each fresh entry produced
 and each supplied entry selected. The referenced entry owns its child
-references. Calls with no child entry contribute inline, and the enclosing
-record carries the transitive used functions and modes on both paths.
+references. A body with no entry of its own contributes inline along with
+its child references. Those references retain the path of statements
+through the inlined body. The enclosing record carries the transitive
+used functions and modes on both paths.
 
 The empty automatic-allocation lookup during call finalization makes no
 memory change. A nonempty result executes the deallocation and retains
@@ -80,9 +82,10 @@ functions is already active in the caller.
 asserts the enclosing observation before its verdict, checks the referenced
 entry by identity, exercises a rejected candidate followed by a hit, and
 checks deallocation refusal propagation from a fresh child. It checks
-prefix coverage for a child with no exit and also
-exercises a matching enclosing entry rejected for automatic cleanup and
-one rejected for a child on the active callstack.
+prefix coverage for a child with no exit, preserves a reference through an
+intermediate body with preconditions, and exercises matching enclosing
+entries rejected for automatic cleanup and for a child on the active
+callstack.
 
 **Open.** The fresh collector bounds are conditional on coverage of the
 child, including before faults. The hit bounds also require an admitted

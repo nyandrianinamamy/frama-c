@@ -42,4 +42,6 @@ type footprint = {
     supplies the constructor and can recover the entry from the reference. *)
 type reference = ..
 
-type child = stmt * reference
+(** The call-site path from the entry's body to a referenced child.
+    Intermediate call sites belong to fresh bodies with no entry. *)
+type child = stmt list * reference

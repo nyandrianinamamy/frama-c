@@ -28,7 +28,7 @@ let outer_observations = ref 0
 let check_child_reference stack (r : Access.t) =
   let stmt, entry =
     match r.children with
-    | [stmt, reference] -> stmt, Option.get (Entry.of_reference reference)
+    | [[stmt], reference] -> stmt, Option.get (Entry.of_reference reference)
     | _ -> assert false
   in
   let fundec = Kernel_function.get_definition (Eva.Callstack.top_kf stack) in
@@ -78,6 +78,21 @@ let observe stack (r : Access.t) =
   | "maybe_overwrite" ->
     assert (member "x" r.reads && member "x" r.dependencies);
     Format.printf "maybe_overwrite: x is still an entry dependency@."
+  | "inline_parent" ->
+    assert (r.refusals = []);
+    assert (Producer.entries (kf "requires_middle") = []);
+    begin match r.children with
+      | [[first; second], reference] ->
+        assert (same (Kernel_function.find_englobing_kf first) "inline_parent");
+        assert (same (Kernel_function.find_englobing_kf second) "requires_middle");
+        let entry = Option.get (Entry.of_reference reference) in
+        assert (match Entry.statement entry with Body f -> same f "child");
+        assert (List.exists
+                  (fun e -> entry == Producer.cache_entry e)
+                  (Producer.entries (kf "child")))
+      | _ -> assert false
+    end;
+    Format.printf "inline_parent: retained child at the two-statement call path@."
   | "prefix_parent" ->
     assert (member "prefix_input" r.reads);
     assert (member "prefix_input" r.dependencies);

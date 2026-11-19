@@ -88,3 +88,10 @@ void spin(void) {
   while (spinning) {}
 }
 void prefix_parent(void) { spin(); }
+
+/*@ requires payload >= 0; */
+void requires_middle(void) { child(); }
+void inline_parent(void) {
+  x = 0;
+  requires_middle();
+}

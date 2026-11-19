@@ -30,4 +30,4 @@ type footprint = {
     supplies the constructor and can recover the entry from the reference. *)
 type reference = ..
 
-type child = stmt * reference
+type child = stmt list * reference

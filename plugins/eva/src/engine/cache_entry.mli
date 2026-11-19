@@ -150,7 +150,8 @@ module Make (Domain : Domain) : sig
   (** The producing observation, when supplied by the producer. *)
   val observation : t -> observation option
 
-  (** Entries used at nested call sites, in analysis order. *)
+  (** Entries used at nested call sites, with their paths through bodies
+      that contributed inline, in analysis order. *)
   val children : t -> Cache_observation.child list
 
   val pretty : Format.formatter -> t -> unit

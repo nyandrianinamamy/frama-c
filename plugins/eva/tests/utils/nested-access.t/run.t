@@ -21,6 +21,13 @@ checks the same sets on the hit and the identity of the selected child.
   stored outer key: payload
   confirmed two child hits, one after a rejected candidate
 
+A fresh intermediate body has no entry because of its requires clause.
+Its child's reference survives in the enclosing entry.
+
+  $ frama-c -no-autoload-plugins -load-module eva,test_nested_access.cmxs -eva -eva-no-memexec -main inline_parent nested.c > inline.log 2>&1
+  $ grep '^inline_parent:' inline.log
+  inline_parent: retained child at the two-statement call path
+
 A child analysed by specification contributes its behavior-selection reads,
 assigns and from dependencies, and the read of the result of the weak
 update during the garbled-mix check.
