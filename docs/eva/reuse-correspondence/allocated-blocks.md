@@ -346,13 +346,19 @@ validity extracted by one of these accessors. The paths are listed in
 
 The kernel holds one observer of each kind. `Base.observe_metadata_reads`
 and `Base.observe_validity_updates` return the observer they replace. The
-collector sets its observers when a recorder becomes active; each calls the
-observer it replaced after its own work. When no recorder is active, the
-collector puts the replaced observers back: without recorder, and with
-`-eva-no-cache-collect`, an accessor tests one reference and calls no
-function of the collector. An observer set by another client while the
-collector's are installed replaces them until it is removed; the collector
-does not detect this.
+collector makes its observers the observers of the kernel each time a
+recorder becomes active; each calls the observer it replaced after its own
+work. When no recorder is active, the collector puts the replaced observers
+back: without recorder, and with `-eva-no-cache-collect`, an accessor tests
+one reference and calls no function of the collector. If another client
+installed an observer during the recording, that observer is kept, with the
+collector's behind it when the client forwards; the collector's observer
+does nothing but forward while no recorder is set, and does nothing when it
+is entered from its own call. The interface asks clients to remove their
+observers in the reverse order of their installation. A client that
+installs an observer during a recording and does not forward hides the
+reads from the collector until the next recorder becomes active: this is
+not detected.
 
 The observation is conservative. A write to an allocated block reads its
 metadata in the collector's own location queries, and the body is already
@@ -420,8 +426,13 @@ consults the tags, refuses the body when the set is not empty, and adds the
 recorded blocks to its owners. `Base.update_variable_validity` is public: the
 kernel counts the calls that make a strong record weak (`Base.weakenings`),
 whoever the caller is, and `read_node_tags` also refuses when the count is
-not zero. The count is not reset with the project: the hash-consing table is
-shared by the projects. A weakening counted without a call to
+not zero. The count is a state of the project, as the hash-consing table of
+the offsetmaps: it is saved with the session, so that a node loaded by
+another process with the tag of its first construction finds the count that
+refuses it, and it has no dependency, so that only a clearing of the whole
+project resets it. A second call of `Base.register_allocated_var` on a
+variable replaces the validity of a base that existing nodes may designate:
+it is counted as a weakening. A weakening counted without a call to
 `Body_access.weakened` adds no owner. This is the plain form of the rule: it does
 not check whether a compared state holds a pointer to a weakened block. The
 first state that reaches a point is stored without reading a tag.
@@ -437,12 +448,20 @@ rule it read `would-store`. Called before the weakening, it reads
 `b6a0e9c2a443bb8b19c039008f3e2e9f5072321d`, before the rule, and with the
 rule: 998 bodies would be stored in both runs, and every count of a first
 reason is unchanged.
-The last case of `run.t` (`EVA_TEST_ALLOCATION=kernel`) makes a record weak
-through `Base.update_variable_validity` alone: `read_node_tags` reads
-`would-store` before and `allocation-metadata` after. The same case sets an
-observer of metadata reads before a recording: it runs before, during and
-after the recording (`observer runs: 3`), and the collector records the
-owner of the read made during it.
+The same count is 998 at revision
+`9bc5c9a4c974218e8ed9963c6e8440539b992e13`, where the count of the kernel
+is part of the rule, and `allocation-metadata` is the first reason of no
+body. The last cases of `run.t` do not use the allocation builtins.
+`kernel-save` makes a record weak through `Base.update_variable_validity`
+alone: `read_node_tags` reads `would-store` before and
+`allocation-metadata` after, with no owner. It saves a node built while
+the target was strong; `kernel-load`, in another process, finds the node
+with its tag (`loaded node tag: true`) and reads `allocation-metadata`.
+`kernel` registers a variable a second time with a weak record and reads
+`allocation-metadata`. It also sets an observer of metadata reads before a
+recording, which runs before, during and after it, and one during a
+recording, which is kept after it while the collector records the read of
+the next recording.
 
 **Open.** The rule applies to the
 bodies analysed after a weakening: an entry stored before a weakening and
