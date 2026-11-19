@@ -73,16 +73,27 @@ type footprint = Cache_entry.footprint = {
       checks of the [requires] clauses of [kf] are not part of the body:
       they are evaluated at each call.
 
-    The alarms and statuses of [safety] are those of an analysis with the
-    parameters of the analysis that uses the entry: the options of the
-    kernel and of Eva that decide which alarms and statuses are emitted,
-    such as the [-warn-*] options of the kernel ([-warn-signed-overflow]
-    for instance) and the [-eva-warn-*] options of Eva
-    ([-eva-warn-copy-indeterminate] for instance), are equal in the analysis
-    that produced the entry and in the analysis that uses it. Nothing checks
-    it: an entry produced without the alarms of signed overflows hides them
-    in an analysis that emits them. Within one analysis these options do not
-    change.
+    The alarms, statuses and messages of [safety] are those of an analysis
+    of the body with the settings in force at each hit on the entry. These
+    settings are in force at the call that produced the entry and at each
+    hit: equal in the analysis that produced it and in the analysis that
+    uses it, and changed during neither, by a hook for instance. They are:
+    - the options of the kernel and of Eva that decide which alarms and
+      statuses are emitted, such as the [-warn-*] options of the kernel
+      ([-warn-signed-overflow] for instance) and the [-eva-warn-*] options
+      of Eva ([-eva-warn-copy-indeterminate] for instance);
+    - the action and the activation of every message and warning category
+      of Eva and of the kernel ([-eva-warn-key], [-eva-msg-key] and those
+      of the kernel), apart from the change of a [-once] category to
+      inactive after its first message, which the logger makes itself.
+
+    Nothing checks it. An entry produced without the alarms of signed
+    overflows hides them in an analysis that emits them. A hit prints the
+    messages of the statuses and alarms of its entry, through the logger,
+    but no other message of the body, such as the assumption of 2's
+    complement for an overflow: when the category of such a message is set
+    to abort at the hit, an analysis of the body stops where the hit goes
+    on, and the state at the end of the call differs.
 
     The body of [kf] does not call a function that has a body: a hit skips
     the analysis of [kf] and records [kf] alone among the functions whose
@@ -112,11 +123,10 @@ val supply :
     producer, with the next supplied entry identifier. The lookup checks the
     recorded sweep targets, used functions and widening generation. The
     fixture must use the same AST and ensure the calls meet the replay
-    premises described on [supply], the equality of the options that decide
-    the alarms and statuses included when the entry crosses analyses.
-    Supplying entries remains a test-only operation. Raises
-    [Invalid_argument] if the body may call a function that has a body; the
-    producer stores no such body. *)
+    premises described on [supply], the settings that decide the alarms,
+    statuses and messages included. Supplying entries remains a test-only
+    operation. Raises [Invalid_argument] if the body may call a function that
+    has a body; the producer stores no such body. *)
 val supply_produced : Cache_producer.entry -> entry
 
 (** The partition key of a state that no partitioning distinguishes. *)

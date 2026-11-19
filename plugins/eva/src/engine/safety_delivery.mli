@@ -24,7 +24,10 @@
       before at the same position is not printed again;
     - a red context through {!Red_statuses.add_red_context}, which adds the
       callstack of the write to the contexts of its alarm or property, and
-      runs the hooks of red statuses as many times as the body set it. *)
+      runs the hooks of red statuses as many times as the body set it in a
+      row. The writes are delivered in the order of the Safety part, so the
+      hooks of red statuses and the messages run in the order of the
+      analysis of the body. *)
 val deliver : Callstack.t -> Safety_part.t -> unit
 
 (** {2 Functions with skipped visits}

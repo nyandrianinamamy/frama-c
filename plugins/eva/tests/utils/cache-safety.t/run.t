@@ -275,6 +275,54 @@ the overflow alarm that the analysis of body emits with caching disabled.
   > | overflow.c:8: status of alarm signed_overflow: invalid
   [1]
 
+The actions of the message and warning categories belong to the same
+premise: those in force at the call that produced an entry must be in force
+at each hit on it. A hit prints the messages of the statuses and the alarms
+of its entry, but not others, such as the assumption of 2's complement for
+an overflow. These runs break the premise on purpose, to show the current
+behaviour: the category can change the end state, not only hide a message.
+The entry of body is produced with the category signed-overflow inactive,
+and used with the category set to abort. With caching disabled, the
+analysis stops at the overflow, and no state reaches the end of main; the
+hit prints nothing and gives out = 8.
+
+  $ EVA_TEST_CACHE_SAFETY=replay-out EVA_TEST_CACHE_SAFETY_CATEGORY=signed-overflow=abort frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -main producer -no-warn-signed-overflow -eva-warn-key signed-overflow=inactive -eva-msg-key cache overflow.c > fatal.log 2>&1
+  $ grep -E "lookup: hit|2's complement|^analysis aborted" fatal.log
+    call to body: lookup: hit (entry 1); execution: not-analysed; storage: none
+  $ grep '^| ' fatal.log > fatal.summary
+  $ EVA_TEST_CACHE_SAFETY=reference-out EVA_TEST_CACHE_SAFETY_CATEGORY=signed-overflow=abort frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -no-warn-signed-overflow -eva-msg-key cache overflow.c > fatal-reference.log 2>&1
+  $ grep -E "2's complement|^analysis aborted" fatal-reference.log
+  [eva:signed-overflow] overflow.c:8: Failure: 2's complement assumed for overflow
+  analysis aborted
+  $ grep '^| ' fatal-reference.log > fatal-reference.summary
+  $ diff fatal.summary fatal-reference.summary
+  1c1
+  < | end of main: out = 8
+  ---
+  > | end of main: out: The computed state is bottom
+  [1]
+
+The same happens when both analyses start with the category active, and a
+hook sets it to abort during the analysis that uses the entry, at the call
+of body. Nothing in Eva sees the change: the hook runs after the lookup.
+
+  $ EVA_TEST_CACHE_SAFETY=replay-out EVA_TEST_CACHE_SAFETY_HOOK=signed-overflow=abort frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -main producer -no-warn-signed-overflow -eva-msg-key cache overflow.c > hook.log 2>&1
+  $ sed -n '/^second analysis/,$p' hook.log > hook.second
+  $ grep -E "lookup: hit|2's complement|^analysis aborted" hook.second
+    call to body: lookup: hit (entry 1); execution: not-analysed; storage: none
+  $ grep '^| ' hook.log > hook.summary
+  $ EVA_TEST_CACHE_SAFETY=reference-out EVA_TEST_CACHE_SAFETY_HOOK=signed-overflow=abort frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -no-warn-signed-overflow -eva-msg-key cache overflow.c > hook-reference.log 2>&1
+  $ grep -E "2's complement|^analysis aborted" hook-reference.log
+  [eva:signed-overflow] overflow.c:8: Failure: 2's complement assumed for overflow
+  analysis aborted
+  $ grep '^| ' hook-reference.log > hook-reference.summary
+  $ diff hook.summary hook-reference.summary
+  1c1
+  < | end of main: out = 8
+  ---
+  > | end of main: out: The computed state is bottom
+  [1]
+
 The message of a status is part of the Safety part. A hit prints it again
 through the function that the body uses, at its position, with the
 callstack of the hit: the action of the category applies, and a text

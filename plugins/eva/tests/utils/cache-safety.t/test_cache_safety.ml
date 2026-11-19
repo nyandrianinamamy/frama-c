@@ -128,11 +128,21 @@ let red_hook_calls = ref 0
      message of the category and so leaves none for the rule that prints a
      text once;
    - CATEGORY=K=S: option -eva-warn-key K=S;
+   - HOOK=K=S: option -eva-warn-key K=S, set by a hook at the first call of
+     body, after the lookup of a candidate entry for that call;
    - STOP=N: option -eva-stop-at-nth-alarm N;
    - OVERFLOW=on: option -warn-signed-overflow;
    - COUNT=red: counts the calls of the hook of red statuses. *)
 let setup () =
   Option.iter (Dynamic.Parameter.String.set "-eva-warn-key") (env "CATEGORY");
+  Option.iter (fun directive ->
+      let set = ref false in
+      Eva.Cvalue_callbacks.register_call_hook (fun _ called _ _ ->
+          if not !set && Kernel_function.equal called (kf "body") then begin
+            set := true;
+            Dynamic.Parameter.String.set "-eva-warn-key" directive
+          end))
+    (env "HOOK");
   Option.iter
     (fun s -> Dynamic.Parameter.String.set "-eva-warn-key" ("alarm=" ^ s))
     (env "ALARM");
