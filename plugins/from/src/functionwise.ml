@@ -23,7 +23,15 @@ let force_compute = ref (fun _ -> assert false)
 module To_Use = struct
   let stmt_request stmt = Eva.Results.before stmt
 
+  (* The dependencies by function are computed from the states that Eva
+     saves at the statements of the function and of its callees. *)
   let memo kf =
+    if not (Eva.Results.statement_results_complete ()) then
+      From_parameters.abort
+        "cannot compute the dependencies by function: in the current \
+         analysis of Eva, a hit of the cache answered a call without \
+         analysing the body of the called function, and saved no state at \
+         its statements";
     Tbl.memo
       (fun kf ->
          !force_compute kf;

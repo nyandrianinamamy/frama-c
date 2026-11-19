@@ -175,14 +175,18 @@ module Make (Engine: Engine_sig.S) = struct
          number is not one of memexec, restores the parts of its entry
          instead, after the delivery of its Safety part and of its Reach
          part: the individual Inout result of the call, for instance, before
-         the caller reduces its actuals. A hit whose preconditions leave no state restores no part:
-         only the producer gives parts, and it refuses a body with
-         preconditions; an entry given to [supply] has none, and a candidate
-         without a part that a consumer needs is rejected. *)
+         the caller reduces its actuals. It saves no state at the statements
+         of the called function: the function is recorded, so that the
+         results computed from these states are refused. A hit whose
+         preconditions leave no state restores no part: only the producer
+         gives parts, and it refuses a body with preconditions; an entry
+         given to [supply] has none, and a candidate without a part that a
+         consumer needs is rejected. *)
       begin match delivery with
         | None -> apply_call_results_hooks call init_state (`Reuse i)
         | Some _ when not satisfiable -> ()
         | Some (_, _, parts) ->
+          Skipped_visits.skip_visits call.kf;
           let cvalue_state = Engine.Dom.get_cvalue_or_top init_state in
           Cache_part.restore call.callstack call.kf cvalue_state parts;
           Safety_delivery.delivered call.kf

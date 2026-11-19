@@ -18,10 +18,15 @@ module Inout = struct
     let typ = Datatype.(func (func Inout_type.ty unit) unit) in
     get ~plugin "register_call_hook" typ ~fallback f
 
+  (* Inout computes the outputs by function from the states saved at the
+     statements, and refuses to compute them when they do not cover every
+     call (see [Skipped_visits]). *)
   let kf_outputs kf =
     let fallback _ = Memory_zone.top in
-    let typ arg = Datatype.func arg Memory_zone.ty in
-    get ~plugin "kf_outputs" (typ Kernel_function.ty) ~fallback kf
+    if not (Skipped_visits.complete ()) then fallback kf
+    else
+      let typ arg = Datatype.func arg Memory_zone.ty in
+      get ~plugin "kf_outputs" (typ Kernel_function.ty) ~fallback kf
 end
 
 module Callgraph = struct

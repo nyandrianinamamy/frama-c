@@ -74,9 +74,11 @@ supplied entries.
 
 With -eva, Eva also analyses the program before the test module does, and
 prints the final states after each of the three analyses, filtered by the
-outputs that Inout computes by function. An analysed caller of a hit has
-the same final state as with caching disabled. A function answered by hits
-only has no state saved, and its final state is not printed.
+outputs that Inout computes by function. After the analysis with hits,
+Inout refuses these outputs: Eva prints the final states without filtering
+them, as when Inout is not loaded. An analysed caller of a hit has the same
+values as with caching disabled. A function answered by hits only has no
+state saved, and its final state is not printed.
 
   $ EVA_TEST_CACHE_PARTS=inout frama-c -no-autoload-plugins -load-module eva,from,inout,test_cache_parts.cmxs -eva parts.c > display.log 2>&1
   $ grep -o 'Values at end of function [a-z_]*' display.log | sort | uniq -c
@@ -87,18 +89,17 @@ only has no state saved, and its final state is not printed.
         3 Values at end of function main
         2 Values at end of function narrow
         2 Values at end of function narrow_and_write
-  $ grep -A3 'Values at end of function inout_main' display.log
-  [eva:final-states] Values at end of function inout_main:
+  $ grep -B1 'Cannot filter' display.log | grep -o 'Values at end of function [a-z_]*'
+  Values at end of function deps_main
+  Values at end of function inout_main
+  Values at end of function main
+  $ awk '/Values at end of function/ { f = /inout_main/ } f && /^ +(g|h|out) /' display.log
     g ∈ {5}
     h ∈ {7}
     out ∈ {5}
-  --
-  [eva:final-states] Values at end of function inout_main:
     g ∈ {5}
     h ∈ {7}
     out ∈ {5}
-  --
-  [eva:final-states] Values at end of function inout_main:
     g ∈ {5}
     h ∈ {7}
     out ∈ {5}
@@ -239,17 +240,55 @@ candidate when they are loaded.
   sparecode.log:hits 0, rejected for consumer 15
   studia.log:hits 0, rejected for consumer 15
 
-A request that the module supplying the entries makes itself, after the
-analysis, is not detected. The results by function of copy, answered by
-hits only, and of its caller deps_main miss the effects of copy.
+After an analysis in which hits answered calls, the results by function of
+From and Inout, and the results by statement of Inout, are computed from
+states that do not cover these calls. Every request is refused with a user
+error, whoever makes it: the module supplying the entries, through the API
+of From and Inout or through the dynamic access to Inout that Eva also
+uses. A later analysis with caching disabled computes them again, equal to
+those of the first analysis.
 
   $ EVA_TEST_CACHE_PARTS=api frama-c -no-autoload-plugins -load-module eva,from,inout,test_cache_parts.cmxs parts.c > api.log 2>&1
-  $ grep -E '^(hits|caching disabled|after the hits)' api.log
-  hits: copy 3
-  caching disabled: copy: from [a FROM indirect: dst; src; direct: b; d (or UNASSIGNED); c FROM indirect: dst; src; direct: b; d (or UNASSIGNED); \result FROM \nothing]; inputs [b; d; dst; src]
-  caching disabled: deps_main: from [a FROM direct: b; d (or UNASSIGNED); c FROM direct: b; d (or UNASSIGNED); \result FROM \nothing]; inputs [b; d; dst; src]
-  after the hits: copy: from [FROMUNREACHABLE; \result FROM \nothing]; inputs [\nothing]
-  after the hits: deps_main: from [FROMUNREACHABLE; \result FROM \nothing]; inputs [\nothing]
+  $ grep -E '^(hits|From|Inout|after an analysis)|User Error' api.log
+  hits: copy 3; statement results complete: false
+  [from] User Error: cannot compute the dependencies by function: in the current analysis of Eva, a hit of the cache answered a call without analysing the body of the called function, and saved no state at its statements
+  From.get: refused
+  [inout] User Error: cannot compute the inputs and outputs by function or by statement: in the current analysis of Eva, a hit of the cache answered a call without analysing the body of the called function, and saved no state at its statements
+  Inout.kf_inputs: refused
+  [inout] User Error: cannot compute the inputs and outputs by function or by statement: in the current analysis of Eva, a hit of the cache answered a call without analysing the body of the called function, and saved no state at its statements
+  Inout.stmt_inputs: refused
+  [inout] User Error: cannot compute the inputs and outputs by function or by statement: in the current analysis of Eva, a hit of the cache answered a call without analysing the body of the called function, and saved no state at its statements
+  Inout.kf_outputs, by the dynamic access: refused
+  after an analysis with caching disabled: statement results complete: true; results by function equal: true
+
+The options that print these results, set by -then after the analysis with
+hits, stop with the same error, without printing a result.
+
+  $ EVA_TEST_CACHE_PARTS=then frama-c -no-autoload-plugins -load-module eva,from,inout,test_cache_parts.cmxs parts.c -then -deps -input > then.log 2>&1
+  [1]
+  $ grep -E '^hits|User Error|Function|Inputs' then.log
+  hits: copy 3; statement results complete: false
+  [from] User Error: cannot compute the dependencies by function: in the current analysis of Eva, a hit of the cache answered a call without analysing the body of the called function, and saved no state at its statements
+  $ EVA_TEST_CACHE_PARTS=then frama-c -no-autoload-plugins -load-module eva,from,inout,test_cache_parts.cmxs parts.c -then -input > then-input.log 2>&1
+  [1]
+  $ grep -E '^hits|User Error|Function|Inputs' then-input.log
+  hits: copy 3; statement results complete: false
+  [inout] User Error: cannot compute the inputs and outputs by function or by statement: in the current analysis of Eva, a hit of the cache answered a call without analysing the body of the called function, and saved no state at its statements
+
+The record of the hits is saved with the session: another process that
+loads it refuses the same requests.
+
+  $ EVA_TEST_CACHE_PARTS=save EVA_TEST_CACHE_PARTS_SESSION=hits.sav frama-c -no-autoload-plugins -load-module eva,from,inout,test_cache_parts.cmxs parts.c > save.log 2>&1
+  $ grep -E '^hits' save.log
+  hits: copy 3; statement results complete: false
+  $ frama-c -no-autoload-plugins -load-module eva,from,inout -load hits.sav -deps > load-deps.log 2>&1
+  [1]
+  $ grep -E 'User Error|Function' load-deps.log
+  [from] User Error: cannot compute the dependencies by function: in the current analysis of Eva, a hit of the cache answered a call without analysing the body of the called function, and saved no state at its statements
+  $ frama-c -no-autoload-plugins -load-module eva,from,inout -load hits.sav -out > load-out.log 2>&1
+  [1]
+  $ grep -E 'User Error|Function|Out' load-out.log
+  [inout] User Error: cannot compute the inputs and outputs by function or by statement: in the current analysis of Eva, a hit of the cache answered a call without analysing the body of the called function, and saved no state at its statements
 
 A value of a part is kept with the entry only when it is given for the body
 being analysed, in the project current when its analysis started. The test

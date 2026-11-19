@@ -14,6 +14,8 @@ let are_available kf =
   | Analyzed (Complete | Partial) -> true
   | SpecUsed | Builtin _ | Unreachable | Analyzed NoResults -> false
 
+let statement_results_complete = Skipped_visits.complete
+
 type 'a by_callstack = (Callstack.t * 'a) list
 
 type context = {

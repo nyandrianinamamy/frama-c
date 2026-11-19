@@ -283,14 +283,12 @@ let logic () =
   Format.printf "logic inputs equal to caching disabled: %b@."
     (List.for_all2 (fun (_, z) (_, z') -> Memory_zone.equal z z') fresh reused)
 
-(* ----- Results by function requested by the module ---------------------- *)
+(* ----- Results by function after the hits -------------------------------- *)
 
 (* The results by function of From and Inout are computed from the states
    saved at the statements of each function, and a hit saves none for the
-   called function. When this module requests them after the analysis, with
-   no option or plug-in that rejects the candidates, they miss the effects
-   of the calls answered by hits, in the called function and in its
-   callers. *)
+   called function. After an analysis with hits, they are refused with a
+   user error, whoever requests them. *)
 let by_function () =
   List.map
     (fun f ->
@@ -300,13 +298,53 @@ let by_function () =
          (one_line Memory_zone.pretty (Inout.kf_inputs kf)))
     [ "copy"; "deps_main" ]
 
+(* Runs [f] after the analysis with the supplied entries, once: the
+   extensions of the main function also run after each -then. *)
+let after_hits f =
+  let ran = ref false in
+  fun () ->
+    if not !ran then begin
+      ran := true;
+      second_analysis (first_analysis ());
+      Format.printf "hits: copy %d; statement results complete: %b@."
+        (hits "copy") (Eva.Results.statement_results_complete ());
+      f ()
+    end
+
+let refused name f =
+  match f () with
+  | _ -> Format.printf "%s: computed@." name
+  | exception Log.AbortError _ -> Format.printf "%s: refused@." name
+
+(* The requests of the module, through the API of From and Inout and through
+   the dynamic access to Inout that Eva also uses. A later analysis with
+   caching disabled gives the results by function again. *)
 let api () =
   let produced = first_analysis () in
   let fresh = by_function () in
   second_analysis produced;
-  Format.printf "hits: copy %d@." (hits "copy");
-  List.iter (Format.printf "caching disabled: %s@.") fresh;
-  List.iter (Format.printf "after the hits: %s@.") (by_function ())
+  Format.printf "hits: copy %d; statement results complete: %b@."
+    (hits "copy") (Eva.Results.statement_results_complete ());
+  let kf_outputs =
+    Dynamic.get ~plugin:"Inout" "kf_outputs"
+      Datatype.(func Kernel_function.ty Memory_zone.ty)
+  in
+  refused "From.get" (fun () -> From.get (kf "deps_main"));
+  refused "Inout.kf_inputs" (fun () -> Inout.kf_inputs (kf "deps_main"));
+  refused "Inout.stmt_inputs"
+    (fun () -> Inout.stmt_inputs (List.hd (calls "copy")));
+  refused "Inout.kf_outputs, by the dynamic access"
+    (fun () -> kf_outputs (kf "copy"));
+  ignore (first_analysis ());
+  Format.printf "after an analysis with caching disabled: statement results \
+                 complete: %b; results by function equal: %b@."
+    (Eva.Results.statement_results_complete ())
+    (List.equal String.equal fresh (by_function ()))
+
+(* The session after the hits is saved in the file named by
+   EVA_TEST_CACHE_PARTS_SESSION, for another process to load. *)
+let save () =
+  Project.save (Filepath.of_string (Sys.getenv "EVA_TEST_CACHE_PARTS_SESSION"))
 
 (* ----- Values given in another project or for another callstack --------- *)
 
@@ -348,6 +386,8 @@ let () =
   | Some "readers" -> Boot.Main.extend readers
   | Some "project" -> Boot.Main.extend project
   | Some "api" -> Boot.Main.extend api
+  | Some "then" -> Boot.Main.extend (after_hits ignore)
+  | Some "save" -> Boot.Main.extend (after_hits save)
   | Some "visits" -> Boot.Main.extend visits
   | Some "logic" -> Boot.Main.extend logic
   | _ -> ()

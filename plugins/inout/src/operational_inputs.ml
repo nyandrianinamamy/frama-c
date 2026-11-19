@@ -798,8 +798,13 @@ let get_internal =
        | Not_found ->
          if Eva.Analysis.use_spec_instead_of_definition kf then
            compute_using_prototype kf
-         else
+         else begin
+           (* The table holds the callwise results of every call analysed
+              or answered by a hit: a function absent from it is computed
+              from the states saved at its statements. *)
+           Cumulative_analysis.check_statement_results ();
            FunctionWise.compute_internal_using_cfg kf
+         end
     )
 
 let raw_externals ~with_formals kf =

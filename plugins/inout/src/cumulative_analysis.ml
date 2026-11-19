@@ -21,6 +21,14 @@ let fold_implicit_initializer typ =
      (Ast_types.C.(is_scalar (direct_array_element typ))
       || Ast_info.array_size typ > 100z))
 
+let check_statement_results () =
+  if not (Eva.Results.statement_results_complete ()) then
+    Inout_parameters.abort
+      "cannot compute the inputs and outputs by function or by statement: \
+       in the current analysis of Eva, a hit of the cache answered a call \
+       without analysing the body of the called function, and saved no \
+       state at its statements"
+
 let specialize_state_on_call ?stmt kf =
   match stmt with
   | None -> Eva.Results.(at_start_of kf |> get_cvalue_model)
@@ -137,12 +145,14 @@ struct
   end
 
   let statement stmt =
+    check_statement_results ();
     let computer = new do_it_cached [] in
     ignore (visitFramacStmt (computer:>frama_c_visitor) stmt);
     assert (Kernel_function.Hptset.is_empty computer#cycle);
     computer#result
 
   let expr stmt e =
+    check_statement_results ();
     let computer = new do_it_cached [] in
     computer#push_stmt stmt;
     ignore (visitFramacExpr (computer:>frama_c_visitor) e);
@@ -150,6 +160,7 @@ struct
     computer#result
 
   let kernel_function kf =
+    check_statement_results ();
     let computer = new do_it_cached [] in
     computer#join (computer#compute_kf kf);
     assert (Kernel_function.Hptset.is_empty computer#cycle);

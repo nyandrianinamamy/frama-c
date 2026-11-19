@@ -40,6 +40,17 @@
       all requests in the function will lead to a Top error. *)
 val are_available : Cil_types.kernel_function -> bool
 
+(** Whether the states saved at the statements cover every call of the
+    current analysis. They do not when a hit of the cache answered a call
+    without analysing the body of the called function: the statements of
+    this function have no state for this call, and may look unreachable.
+    The results by statement, and the results by function computed from
+    them, such as the dependencies of From and the inputs and outputs of
+    Inout by function, are then incomplete and must not be computed. Only
+    the reuse operation on entries supplied by a test module gives such
+    hits; memexec does not. *)
+val statement_results_complete : unit -> bool
+
 type request
 
 type value
