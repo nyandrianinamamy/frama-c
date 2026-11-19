@@ -435,7 +435,7 @@ module Make (Engine: Engine_Subset) = struct
       if Body_access.is_recording () then
         let continues result = not (Bottom.is_bottom result) in
         Body_access.map_alternatives ~continues process call_result.states
-        |> Bottom.List.values
+        |> Bottom.List.filter_map Fun.id
       else Bottom.List.filter_map process call_result.states
     in
     { call_result with states }

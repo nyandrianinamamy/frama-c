@@ -194,3 +194,11 @@ at the marker after the fresh child has run in that analysis.
   hint_parent: hint generation 0
     call to hint_reader: lookup: hit (entry 2); execution: not-analysed; storage: none
   hint_parent: hint generation 0
+
+
+An inline specification has no child entry of its own. Its recorded
+invocation still requires delivery before the enclosing body can hit.
+
+  $ EVA_TEST_NESTED_ACCESS=inline fc -main spec_parent -eva-verbose 2 -eva-msg-key cache nested.c > inline-spec.log 2>&1
+  $ grep -o 'call to spec_parent: lookup: rejected (entry 1: nested-delivery); execution: analysed' inline-spec.log
+  call to spec_parent: lookup: rejected (entry 1: nested-delivery); execution: analysed

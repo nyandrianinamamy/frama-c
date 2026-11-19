@@ -266,6 +266,15 @@ let guard_replay () =
   start_consumer ~main:"second" ();
   assert (Eva.Statistics.get Eva.Statistics.cache_hits f = 0)
 
+let inline_replay () =
+  Eva.Parameters.Memexec.off ();
+  Eva.Analysis.compute ();
+  let entry = first_entry "spec_parent" in
+  assert (Entry.children (Producer.cache_entry entry) = []);
+  ignore (Supply.supply_produced entry);
+  start_consumer ();
+  assert (Eva.Statistics.get Eva.Statistics.cache_hits (kf "spec_parent") = 0)
+
 let sweep_replay () =
   Eva.Parameters.Memexec.off ();
   Eva.Analysis.compute ();
@@ -291,6 +300,7 @@ let () =
   | Some "fresh" -> Boot.Main.extend (fun () -> ignore (only_outer ()))
   | Some "status" -> Boot.Main.extend status_replay
   | Some "guard" -> Boot.Main.extend guard_replay
+  | Some "inline" -> Boot.Main.extend inline_replay
   | Some "sweep" -> Boot.Main.extend sweep_replay
   | Some "hints" -> Boot.Main.extend hint_replay
   | mode when split_mode mode -> Boot.Main.extend split_replay
