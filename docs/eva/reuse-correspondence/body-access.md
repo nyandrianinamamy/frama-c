@@ -437,10 +437,14 @@ unsupported-term message; `memchr_off` reaches the search primitive.
 
 Three bodies in `body-access.t` refuse with `side-table` on emission
 history. `once_category` consults the active `locals-escaping=once` policy.
-`pointer_comparison` and `partial_unroll` consult per-event warning history
-in `Cvalue_forward` and `Partition`, respectively. Source
-inspection puts the backward pointer comparison and failed split on the
-returned value in the latter class. The sweep warning in `once_category`
+`pointer_comparison` consults per-event history for a result message
+(`Log.Result`, message key `pointer-comparison`) in `Cvalue_forward`.
+`partial_unroll` consults it for a warning (`Log.Warning`, warning key
+`loop-unroll:partial`) in `Partition`. The logger audit depends on the
+event kind as well as on the category, hence the distinction. Source
+inspection puts the backward pointer comparison (a result message in
+`Cvalue_backward`) and the failed split on the returned value in the
+per-event class. The sweep warning in `once_category`
 is admitted without the category policy, which isolates that policy's
 notification. The admitted per-event accesses are Eva's `partition` and
 `widening` feedback (reports of work performed) and the ordinary
