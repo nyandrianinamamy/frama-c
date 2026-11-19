@@ -89,8 +89,11 @@ succeeds, and an analysis in the copy then stops with the internal error
 (`Callwise.provide_froms` in From,
 `Operational_inputs.Callwise.provide_inout` in Inout): a hit restores the
 result of the call at its own call site, not the results that the calls of
-the body record at theirs. No entry is produced today for a body with a
-call: the collector refuses it. This restriction has no regression.
+the body record at theirs. An entry of a body with a call can be produced
+([Nested call collection](nested-calls.md)) and lacks both parts: while
+the consumer of a part is enabled, the lookup rejects it with
+`missing-part`, before the test that gives `nested-delivery`
+([A hit within one analysis](hit.md)). This restriction has no regression.
 
 ## A part whose reads the key misses is withheld
 
@@ -114,6 +117,7 @@ give are argued by source inspection below.
 
 **Symbols.** `Cache_part.provide`, `Cache_part.cover`,
 `Cache_part.uncovered_read`, `Cache_producer.Make.store`,
+`Call_cache.Make.store` (which names the parts given and not kept),
 `Call_cache.report`; in From, `Callwise.reads_of_body`; in Inout,
 `Operational_inputs.Callwise.reads_of` and
 `Operational_inputs.Computer.unknown_logic_inputs`.
@@ -544,26 +548,29 @@ new analysis clears it. `statement_results_complete` holds when it is
 empty. From checks it before computing or memoising a result by function;
 Inout before the computations of `Cumulative_analysis` (by statement, by
 expression, by function) and before the computation by function from the
-statements in `get_internal`, used when no callwise result exists. Each
+statements in `get_internal`, used when no callwise result exists; no
+scenario reaches this last check, which rests on source inspection. Each
 aborts with a user error. The callwise results that a hit restores are not
 refused. Eva's dynamic access to `kf_outputs` returns `Top` when the set is
 not empty, as when Inout is not loaded, and Eva prints the final states
-unfiltered. Studia catches every exception in its requests and answers with
-no statement: it checks before computing. `getDeadCode` answers empty for a
+unfiltered. Studia catches every exception in its requests `getReadsLval`
+and `getWritesLval` and answers with no statement: it checks before
+computing, so that each request is refused as a whole. `getDeadCode` answers empty for a
 recorded function. Memexec is not concerned: its hits run the results hooks.
 
 **Evidence (executed).** Scenario `api`: after the analysis in which the
 three calls to `copy` hit, `From.get`, `Inout.kf_inputs`,
-`Inout.stmt_inputs` and the dynamic access to `kf_outputs` are refused
-with the error; a later analysis with caching disabled gives the results by
+`Inout.stmt_inputs`, `Inout.stmt_outputs`, `Inout.expr_inputs` and the
+dynamic access to `kf_outputs` are refused with the error; a later analysis with caching disabled gives the results by
 function again, equal to those of the first analysis. Scenario `then` with
 `-then -deps -input` and `-then -input`: the error, exit status 1, no
 result printed. Scenario `save`, then `-load` in another process with
 `-deps` and with `-out`: the same errors. Scenarios `server-fresh` and
 `server`: after caching disabled, `getDeadCode` on `copy` gives 2 reached
-statements and `getReadsLval` on `b` at the first call to `copy` gives 4
-indirect and 1 direct statements; after the hits, `getDeadCode` gives none
-and `getReadsLval` is refused. Before the change, as recorded in review,
+statements, `getReadsLval` on `b` at the first call to `copy` gives 4
+indirect and 1 direct statements and `getWritesLval` 1 direct statement;
+after the hits, `getDeadCode` gives none and both requests of Studia are
+refused. Before the change, as recorded in review,
 `-deps` printed `FROMUNREACHABLE` for `copy` and `deps_main`,
 `Inout.kf_inputs` gave `\nothing` for both, and a loaded session gave the
 same. With the record of the function removed from the hit, every request
@@ -576,10 +583,12 @@ no statement.
 function without going through From or Inout are not refused, and are
 listed for the Reach ticket
 ([#48](https://github.com/nyandrianinamamy/frama-c/issues/48)): the other
-requests of Eva's server, such as the values at a statement; the parts of
-Studia's `getWritesLval` that read `Eva.Results.callsites` and the callwise
-results; the plug-ins of #47 loaded after the analysis; the graphical
-interface. None of them is checked here. Lifting the refusal needs the
+requests of Eva's server, such as the values at a statement; the functions
+`Reads.compute` and `Writes.compute` of Studia called directly rather than
+through its requests, whose results by statement come from Inout and are
+refused, but which also read `Eva.Results.callee` and
+`Eva.Results.callsites`; the plug-ins of #47 loaded after the analysis; the
+graphical interface. None of them is checked here. Lifting the refusal needs the
 states at the statements of a skipped body, which is the public Inner query
 of [#40](https://github.com/nyandrianinamamy/frama-c/issues/40).
 
