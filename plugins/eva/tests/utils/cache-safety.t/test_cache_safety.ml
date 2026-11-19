@@ -332,13 +332,24 @@ let skipped_after_reset () =
   assert (not (Eva.Analysis.is_computed ()));
   Format.printf "visits skipped in body after the reset: %b@." (skipped ())
 
+(* Supplies the [produced] entry of [body]; with PART=drop, by hand, with
+   its Safety part and without its Reach part. *)
+let supply produced =
+  if env "PART" = Some "drop" then
+    let e = Producer.cache_entry produced in
+    ignore
+      (Supplied.supply ~safety:(Entry.safety e) (kf "body") ~key:(Entry.key e)
+         ~input:(fst (Entry.input e)) ~footprint:(Entry.footprint e)
+         ~exit:(List.map (fun (k, (s, _)) -> k, s) (Entry.exit e)))
+  else ignore (Supplied.supply_produced produced)
+
 (* The entry of [body] is supplied to a second analysis, from the function
    named by MAIN, main by default. *)
 let replay names () =
   let main = Option.value ~default:"main" (env "MAIN") in
   let produced = produce_and_reset main in
   setup ();
-  Option.iter (fun p -> ignore (Supplied.supply_produced p)) produced;
+  Option.iter supply produced;
   Format.printf "second analysis@.";
   analyse ();
   hits "body";

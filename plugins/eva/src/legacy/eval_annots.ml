@@ -184,11 +184,13 @@ let mark_green_and_red () =
     let is_alarm = Alarms.find ca <> None in
     (* We reevaluate only alarms, in the hope that we can emit an 'invalid'
        status, or user assertions that mention a C label. The latter are
-       currently skipped during evaluation. The states saved at a statement
-       of a function answered by a hit of the cache are those of the analysed
-       calls only: no status is concluded from them. *)
+       currently skipped during evaluation. A hit of the cache saves no
+       state: its callstacks answer top at the statements it reaches. In a
+       function answered by a hit on an entry without a Reach part, the
+       states are those of the analysed calls only: no status is concluded
+       from them. *)
     if (is_alarm || contains_c_at ca) && Results.is_reachable stmt
-       && not (Safety_delivery.visits_skipped_at stmt) then
+       && not (Reach_delivery.reach_unknown_at stmt) then
       match ca.annot_content with
       | AAssert (_, p) | AInvariant (_, true, p) ->
         let p = p.tp_statement in

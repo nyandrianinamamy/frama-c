@@ -200,10 +200,13 @@ uses). The lines that differ from caching disabled are those of the hit.
   [1]
 
 An entry produced while the states of body are not saved
-(-eva-no-results-function) has no Reach part: its states would not tell
-which statements the body reaches. A hit on it behaves as above.
+(-eva-no-results-function) has no Reach part: the analysis saves no state
+in body, and the part would hold no point. A hit on it behaves as above,
+and no statement of body gets a reachability status.
 
   $ EVA_TEST_CACHE_REACH=replay EVA_TEST_CACHE_REACH_NORESULTS=on frama-c -no-autoload-plugins -load-module eva,test_cache_reach.cmxs -main producer -eva-msg-key cache reach.c > noresults.log 2>&1
+  $ grep -E '^\| reach.c' noresults.log
+  | reach.c:9: status of one: valid
   $ grep -E '^(Reach part|hits|reachability)|lookup: hit|answered by the cache' noresults.log
   Reach part of the entry: unknown
     call to body: lookup: hit (entry 1); execution: not-analysed; storage: none

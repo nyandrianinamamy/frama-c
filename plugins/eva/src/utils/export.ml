@@ -247,10 +247,10 @@ let generator () : visitor =
     method !vstmt_aux stmt =
       match self#current_kf with
       | None -> Cil.SkipChildren
-      | Some kf when Safety_delivery.visits_skipped kf ->
-        (* A hit of the cache answered a call of [kf]: the states saved in
-           [kf] are those of the analysed calls only, and do not bound the
-           values at its statements. *)
+      | Some kf when Reach_delivery.reach_unknown_of kf ->
+        (* A hit on an entry without a Reach part answered a call of [kf]:
+           the states saved in [kf] are those of the analysed calls only, and
+           do not bound the values at its statements. *)
         Cil.SkipChildren
       | Some kf ->
         if not @@ List.for_all (fun s -> Stmts.mem s dead) stmt.preds then
@@ -315,7 +315,7 @@ let main () =
     begin fun kf ->
       let generator = Lazy.force generator in
       if Kernel_function.has_definition kf then
-        if Safety_delivery.visits_skipped kf then
+        if Reach_delivery.reach_unknown_of kf then
           Self.warning "Can not annotate %a (calls answered by a cache entry)"
             Kernel_function.pretty kf
         else if Results.are_available kf then

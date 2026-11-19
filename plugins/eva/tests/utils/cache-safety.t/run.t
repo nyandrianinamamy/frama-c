@@ -93,21 +93,24 @@ gets a context in body called from outer at line 33.
 
 The passes run at the end of the analysis read the states saved at the
 statements, and a hit saves none in the body of the called function. The
-refinement of the statuses of alarms reads the values in these states: it
-gives no status in a function a call of which was answered by a hit in the
-analysis, and the statuses delivered by the hit stay as delivered. The
-marking of dead code reads only which statements are reached, and the hit
-delivers the statements its body reaches (see cache-reach.t).
+hit delivers the statements its body reaches, where its callstack answers
+the state top (see cache-reach.t): the marking of dead code finds them
+reached, and the refinement of the statuses of alarms concludes nothing
+there from the states of the analysed calls alone. The statuses delivered
+by the hit stay as delivered. A hit on an entry without a Reach part
+reaches no statement: the passes then draw no conclusion in the function,
+the refinement gives no status there, and the marking of dead code marks
+nothing unreachable.
 
 In passes.c, the entry of body(1, 0) comes from an analysis from producer,
 and answers the call at line 35 of main; body(2, 1) is analysed. Executed
 from main, the second call divides 100 by y = 0 at line 13 when v reads a
 non-zero value, and reaches the assertion one when v reads a non-zero value
 at line 10. The analysed call alone never divides by zero, and never reaches
-one. Without the restriction, the refinement gave the division alarm the
-final status valid; without the statements delivered by the hit, one was
-marked unreachable. The final status below is that of the analysis from
-producer, where body(1, 0) is analysed. The record of the functions answered
+one. Reading the states of the analysed call alone, the refinement gave
+the division alarm the final status valid, and one was marked unreachable.
+The final status below is that of the analysis from producer, where
+body(1, 0) is analysed. The record of the functions answered
 by a hit is reset with the analysis, here by a change of the entry point.
 
   $ EVA_TEST_CACHE_SAFETY=replay-out frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -main producer -eva-msg-key cache passes.c > passes.log 2>&1
@@ -130,21 +133,37 @@ by a hit is reset with the analysis, here by a change of the entry point.
   $ grep '^| ' passes-reference.log > passes-reference.summary
   $ diff passes.summary passes-reference.summary
 
+The same entry supplied by hand without its Reach part (PART=drop) gives
+the same statuses: the refinement gives no status in body, and the marking
+of dead code marks nothing there.
+
+  $ EVA_TEST_CACHE_SAFETY=replay-out EVA_TEST_CACHE_SAFETY_PART=drop frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -main producer -eva-msg-key cache passes.c > passes-drop.log 2>&1
+  $ grep -B 1 'lookup: hit' passes-drop.log | sed 's/ *$//'
+  [eva:cache] passes.c:35:
+    call to body: lookup: hit (entry 1); execution: not-analysed; storage: none
+  $ grep '^| ' passes-drop.log > passes-drop.summary
+  $ diff passes-drop.summary passes-reference.summary
+
 The summary of the analysis counts the statements reached by the analysed
 call and by the hit: 14, as with caching disabled. The loop at line 14,
 which no call reaches, is not counted. The first line is that of the
-analysis from producer.
+analysis from producer. Without the Reach part, the summary counts the
+statements with a state, 12, and gives as an upper bound the count with the
+3 statements of body that have none.
 
   $ grep -E 'statements reached|answered by the cache' passes.log
     In these functions, 11 statements reached (out of 12): 92% coverage.
     In these functions, 14 statements reached (out of 15): 93% coverage.
   $ grep 'statements reached' passes-reference.log
     In these functions, 14 statements reached (out of 15): 93% coverage.
+  $ grep -A 1 'statements reached (out of 15)' passes-drop.log
+    In these functions, 12 statements reached (out of 15): 80% coverage,
+    and up to 3 more through calls answered by the cache (100% coverage).
 
 In the reverse order, body(1, 0) is analysed, and the entry of body(2, 1),
-produced from producer_safe, answers the call at line 44. Without the
-restriction, the refinement read the states of the analysed call, where
-y = 0, and made the alarm invalid; with caching disabled it is unknown.
+produced from producer_safe, answers the call at line 44. Reading the
+states of the analysed call alone, where y = 0, the refinement made the
+alarm invalid; with caching disabled it is unknown.
 
   $ EVA_TEST_CACHE_SAFETY=replay-out EVA_TEST_CACHE_SAFETY_MAIN=reverse frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -main producer_safe -eva-msg-key cache passes.c > reverse.log 2>&1
   $ grep -B 1 'lookup: hit' reverse.log | sed 's/ *$//'
@@ -169,12 +188,20 @@ not marked unreachable.
   $ diff no-return.summary no-return-reference.summary
 
 Eva.Export generates assertions from the states saved at the statements of
-a function, and gives them a valid status. It generates none in a function
-a call of which was answered by a hit: without the restriction, it asserted
-\false at lines 10 and 14 of body, reached through the hit, and x == 2.
+a function, and gives them a valid status. In body, it asserts \false at
+line 14, which no call reaches, and nothing at the statements that the hit
+reaches, where its callstack answers top. Without the Reach part, it
+generates none in body: reading the states of the analysed call alone, it
+asserted \false at lines 10 and 14 of body, reached through the hit, and
+x == 2.
 
   $ EVA_TEST_CACHE_SAFETY=replay-out EVA_TEST_CACHE_SAFETY_EXPORT=on frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -main producer passes.c > export.log 2>&1
   $ grep 'export' export.log
+  exported at passes.c:14: assert Eva_export: \false;
+  annotations exported in body: 1
+  | <generated by Frama-C kernel>: status of Eva_export: valid
+  $ EVA_TEST_CACHE_SAFETY=replay-out EVA_TEST_CACHE_SAFETY_EXPORT=on EVA_TEST_CACHE_SAFETY_PART=drop frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -main producer passes.c > export-drop.log 2>&1
+  $ grep 'export' export-drop.log
   annotations exported in body: 0
 
 Other plug-ins read the states saved at the statements after the analysis:
