@@ -194,9 +194,12 @@ once-messages do not affect the analysis. The ordinary once warning for
 an escaping local is identified by scope, target, holder and source
 position. It has no callstack text. For the admitting sweep path the
 holder binding is recorded, and re-emission of the same event within the
-analysis is suppressed by the same logger history. These exceptions
-apply to the per-message history only. A warning promoted to an error
-or using a once category is outside that exception.
+analysis is suppressed by the same logger history. The message of a
+status of the body is also admitted: the Safety part records it, and a hit
+prints it again through the logger, which makes the per-message test
+again at the hit ([Safety at a hit](safety.md#a-hit-delivers-the-safety-part-as-recorded-joins)).
+These exceptions apply to the per-message history only. A warning promoted
+to an error or using a once category is outside that exception.
 
 The audit of callbacks and hook registrations in this change is below.
 A refusal is recorded on invocation during a body, including a
@@ -217,9 +220,10 @@ logging event would otherwise be admitted.
   verdicts and 153 lost produced entries to callback refusals.
 - Any client of the `Property_status` add, remove and status-update hooks
   refuses with `callback`.
-- Any client of `Red_statuses.register_hook` refuses with `callback` on
-  this branch. #47 lifts this refusal when its audited Safety delivery
-  replays the red hook with the recorded multiplicity.
+- A client of `Red_statuses.register_hook` is not refused: a hit delivers
+  the red contexts of its entry, which runs the hook as many times as the
+  analysis of the body did
+  ([Safety at a hit](safety.md#a-hit-delivers-the-safety-part-as-recorded-joins)).
 - The `Cvalue_callbacks` call, call-result and statement hooks admit
   audited clients only through the existing cache protocols and classified
   callbacks that account for their effects. Each unclassified client
@@ -238,7 +242,8 @@ before statement transfer, an active watch during transfer and two
 lookup refusals after a watch is installed in another project. It also
 checks a state dump, a file dump and its first numbered file, trace-node
 allocation, an unclassified logger listener, and red and history
-clients that run once each and cause production to refuse. With
+clients that run once each: the body of the red client would store, and
+the history client causes production to refuse. With
 collection disabled, the threshold-raising listener lets Eva finish
 with memexec enabled or disabled. `body-access.t` checks a registered
 call callback, an interrupted alarm checkpoint, an isolated once-category

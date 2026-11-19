@@ -364,7 +364,7 @@ annotations in `Partition`.
 | inactive behavior at level 6 (`Transfer_logic.process_inactive_behavior`) | yes, if level 6 is shown | side-table if shown | execution: `inactive` at `-eva-verbose 6` |
 | postconditions not evaluated at level 6 (`Transfer_logic.process_inactive_postconds`) | yes, if level 6 is shown | side-table if shown | source inspection |
 | invalid `calls` annotation (`Transfer_logic.check_calls_annotation`) | yes, at an indirect call | side-table | source inspection |
-| status of a clause (`Transfer_logic.emit_contract_status`, `Transfer_logic.emit_code_annot_status`) | yes | status join, admitted; the message is in the Safety part, printed again at a hit | execution: every fixture with a status; `cache-safety.t` for the message |
+| status of a clause (`Transfer_logic.emit_contract_status`, `Transfer_logic.emit_code_annot_status`) | yes | status join, admitted; the message is in the Safety part, printed again at a hit, and its read of the history is admitted | execution: every fixture with a status; `cache-safety.t` for the message; `empty_max`, `allocable` and `fresh` for the admitted read |
 | final status (`Eval_annots.mark_green_and_red`) | no, after the analysis | none | source inspection |
 | assigns and from clauses (`Logic_inout.eval_tlval_as_zone`, `Logic_inout.check_fct_assigns`) | no | none | source inspection |
 
@@ -376,7 +376,10 @@ its position and with the callstack of the hit, so that the action of its
 category applies. The logger removes it as a duplicate when it has printed
 the same text, of the same kind, at the same position before, as it does
 for an analysed call
-([Safety at a hit](safety.md#a-hit-delivers-the-safety-part-as-recorded-joins)). `Logic_inout` runs in the callwise
+([Safety at a hit](safety.md#a-hit-delivers-the-safety-part-as-recorded-joins)).
+Since the hit makes this read of the history again, the collector admits
+it (`Body_access.replayed_message`), unless the category prints its
+messages once. `Logic_inout` runs in the callwise
 hooks of From and Inout, with recording suspended, or after the analysis;
 Mthread, which also calls it, refuses while enabled.
 
