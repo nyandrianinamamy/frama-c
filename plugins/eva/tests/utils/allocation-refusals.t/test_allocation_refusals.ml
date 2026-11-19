@@ -187,52 +187,130 @@ let () =
   Eva.Builtins.register_builtin "Frama_C_unknown_target"
     (fun _ _ -> Eva.Builtins.Result [Cvalue.V.top])
 
-(* An observer of the kernel set before a recording keeps running during
-   it and after it. A validity record made weak through the kernel, without
-   the allocation builtins, refuses the bodies that consult the node tags. *)
-let kernel_paths () =
-  let allocated name =
-    let size = Z.of_int 31 in
-    let validity =
-      Base.create_variable_validity ~weak:false ~min_alloc:size ~max_alloc:size
-    in
-    let vi = Cil.makeGlobalVar ~source:false name Cil_const.intType in
-    Base.register_allocated_var vi Base.Malloc (Base.Variable validity),
-    validity
+(* The paths of the kernel that do not go through the allocation builtins. *)
+let allocated ~weak name =
+  let size = Z.of_int 31 in
+  let validity =
+    Base.create_variable_validity ~weak ~min_alloc:size ~max_alloc:size
   in
+  let vi = Cil.makeGlobalVar ~source:false name Cil_const.intType in
+  Base.register_allocated_var vi Base.Malloc (Base.Variable validity),
+  validity
+
+let weaken validity =
+  let size = Z.of_int 31 in
+  Base.update_variable_validity validity ~weak:true
+    ~min_alloc:size ~max_alloc:size
+
+let capture f =
   let stack =
     let entry_point = Globals.Functions.find_by_name "main" in
     Eva.Callstack.init ~thread:0 ~entry_point
   in
-  let capture f =
-    match Eva__Body_access.capture stack f with
-    | (), Some r -> r
-    | (), None -> failwith "no observation"
-  in
-  let observed, _ = allocated "observed" in
+  match Eva__Body_access.capture stack f with
+  | (), Some r -> r
+  | (), None -> failwith "no observation"
+
+let tags () =
+  let r = capture Eva__Body_access.read_node_tags in
+  Format.printf "tags: %s%s@." (first_reason r)
+    (if owners r = [] then ", no owner" else "")
+
+(* An observer set before a recording runs before, during and after it. *)
+let observer_before () =
+  let observed, _ = allocated ~weak:false "observed" in
   let calls = ref 0 in
   let read () = ignore (Base.validity observed) in
   let previous = Base.observe_metadata_reads (Some (fun _ -> incr calls)) in
   read ();
+  assert (!calls = 1);
   let r = capture read in
+  assert (!calls = 2);
   read ();
+  assert (!calls = 3);
   ignore (Base.observe_metadata_reads previous);
-  Format.printf "observer runs: %d, collector owners: %s@."
-    !calls (String.concat " " (owners r));
-  let tags () =
-    let r = capture Eva__Body_access.read_node_tags in
-    Format.printf "tags: %s@." (first_reason r)
+  Format.printf "observer set before: runs %d, collector owners: %s@."
+    !calls (String.concat " " (owners r))
+
+(* An observer set during a recording, which forwards to the one it
+   replaced, is kept when the recording ends; the collector records the
+   reads of a later recording, once each, and is gone when the client
+   restores what it replaced. *)
+let observer_during () =
+  let observed, _ = allocated ~weak:false "late" in
+  let calls = ref 0 in
+  let read () = ignore (Base.validity observed) in
+  let displaced = ref None in
+  let late =
+    Some (fun base -> incr calls; Option.iter (fun f -> f base) !displaced)
   in
+  let first =
+    capture (fun () -> displaced := Base.observe_metadata_reads late; read ())
+  in
+  assert (!calls = 1);
+  read ();
+  assert (!calls = 2);
+  let second = capture read in
+  assert (!calls = 3);
+  let top = Base.observe_metadata_reads None in
+  ignore (Base.observe_metadata_reads top);
+  let kept = top == late in
+  ignore (Base.observe_metadata_reads !displaced);
+  ignore (capture (fun () -> ()));
+  let idle = Base.observe_metadata_reads None in
+  Format.printf
+    "observer set during: runs %d, kept %b, owners: %s; %s, idle after: %b@."
+    !calls kept (String.concat " " (owners first))
+    (String.concat " " (owners second)) (idle = None)
+
+(* A validity record made weak through the kernel alone refuses the bodies
+   that consult the node tags, and so does a second registration of a
+   variable. *)
+let kernel_paths () =
+  observer_before ();
+  observer_during ();
   tags ();
-  let _, validity = allocated "weakened" in
-  let size = Z.of_int 31 in
-  Base.update_variable_validity validity ~weak:true
-    ~min_alloc:size ~max_alloc:size;
+  let base, _ = allocated ~weak:false "registered" in
+  let validity =
+    Base.create_variable_validity ~weak:true ~min_alloc:Z.zero ~max_alloc:Z.one
+  in
+  ignore (Base.register_allocated_var (Base.to_varinfo base) Base.Malloc
+            (Base.Variable validity));
+  tags ()
+
+module Saved =
+  State_builder.Option_ref
+    (Cvalue.V_Offsetmap)
+    (struct
+      let name = "Test_allocation_refusals.Saved"
+      let dependencies = [ Ast.self ]
+    end)
+
+(* A node built while its target is strong keeps its tag in a saved session:
+   the weakening is saved with it. *)
+let kernel_save () =
+  let base, validity = allocated ~weak:false "saved" in
+  let value =
+    Cvalue.V_Or_Uninitialized.initialized (Cvalue.V.inject base Ival.zero)
+  in
+  let size = Z.of_int 64 in
+  Saved.set (Cvalue.V_Offsetmap.create ~size value ~size_v:size);
+  tags ();
+  weaken validity;
+  tags ()
+
+let kernel_load () =
+  let map = Saved.get () in
+  Format.printf "loaded node tag: %b@."
+    (Cvalue.V_Offsetmap.cardinal_zero_or_one map);
   tags ()
 
 let () =
-  if Sys.getenv_opt "EVA_TEST_ALLOCATION" = Some "kernel" then
-    Boot.Main.extend kernel_paths
+  match Sys.getenv_opt "EVA_TEST_ALLOCATION" with
+  | Some "kernel" -> Boot.Main.extend kernel_paths
+  | Some "kernel-save" -> Boot.Main.extend kernel_save
+  | Some "kernel-load" -> Boot.Main.extend kernel_load
+  | _ -> ()
 
 let () =
   let observe stack result =
@@ -246,7 +324,7 @@ let () =
     | Some "call-site" -> observe_call_site name result
     | Some ("contents" | "weakening") -> observe_unread name result
     | Some ("finalisation" | "hit") -> observe_all name result
-    | Some "kernel" -> ()
+    | Some ("kernel" | "kernel-save" | "kernel-load") -> ()
     | _ -> failwith "EVA_TEST_ALLOCATION is not set"
   in
   Access.on_result observe

@@ -178,13 +178,30 @@ the weakening, and for a body with one state at each point, it is not.
   branch call 2: allocation-metadata, owners __malloc_w_alloc_l10
   straight call 2: would-store
 
-An observer set in the kernel before a recording runs during it and after
-it: three reads, one of them recorded by the collector. A validity record
-made weak through the kernel, without the allocation builtins, refuses a
-body that consults the node tags; its owner is not known.
+An observer set in the kernel before a recording runs before, during and
+after it; the collector records the read made during it. An observer set
+during a recording is kept when the recording ends, and the collector
+records the reads of the next recording. A second registration of an
+allocated variable refuses a body that consults the node tags; its owner
+is not known.
 
   $ EVA_TEST_ALLOCATION=kernel frama-c -no-autoload-plugins -load-module eva,test_allocation_refusals.cmxs -eva-msg-key cache contents.c > kernel.log 2>&1
   $ grep -E '^(observer|tags)' kernel.log
-  observer runs: 3, collector owners: observed
-  tags: would-store
-  tags: allocation-metadata
+  observer set before: runs 3, collector owners: observed
+  observer set during: runs 3, kept true, owners: late; late, idle after: true
+  tags: would-store, no owner
+  tags: allocation-metadata, no owner
+
+A validity record made weak through the kernel, without the allocation
+builtins, refuses a body that consults the node tags. The weakening is
+saved with the session: a node loaded by another process keeps the tag
+computed while its target was strong, and the body is still refused.
+
+  $ EVA_TEST_ALLOCATION=kernel-save frama-c -no-autoload-plugins -load-module eva,test_allocation_refusals.cmxs -eva-msg-key cache contents.c -save kernel.sav > save.log 2>&1
+  $ grep -E '^(loaded|tags)' save.log
+  tags: would-store, no owner
+  tags: allocation-metadata, no owner
+  $ EVA_TEST_ALLOCATION=kernel-load frama-c -no-autoload-plugins -load-module eva,test_allocation_refusals.cmxs -eva-msg-key cache -load kernel.sav > load.log 2>&1
+  $ grep -E '^(loaded|tags)' load.log
+  loaded node tag: true
+  tags: allocation-metadata, no owner
