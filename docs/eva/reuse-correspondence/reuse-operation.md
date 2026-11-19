@@ -206,8 +206,9 @@ take part in the key as blocks. For cvalue, `Cvalue_domain.State.equal`
 compares the maps and ignores the clobbered set. The engine never analyses a
 call from `Bottom`. On a hit, `compute_and_cache_call` runs the call hooks
 with `` `Reuse ``, evaluates the preconditions of the callee at the call,
-records the function as answered by a hit, delivers the Safety part of the
-entry, then restores the parts of the entry in place of the results hooks
+records the function as answered by a hit, delivers the Safety part and
+the Reach part of the entry, prints the line of the reuse, then restores
+the parts of the entry in place of the results hooks
 ([A hit restores the parts of the enabled
 consumers](cache-parts.md#a-hit-restores-the-parts-of-the-enabled-consumers)),
 and returns the states as the result of the call. When no state satisfies
@@ -570,11 +571,11 @@ rejected with `analysis-reset`. In each case the body is analysed.
 `stop-at-nth-alarm`, that over `callback`, that over `analysis-reset`, and
 all five over the examination of each candidate (`key-differs`,
 `key-unclosed`, `missing-part`, then the checks of `admit`, among them
-`warn-categories` and, last, `nested-delivery`). Loading From or Inout does
-not reject the candidates: their callwise results are parts of the entries
-([Parts owned by other plug-ins](cache-parts.md)), whose restoration is
-audited, and the client of the server that they load through Callgraph is
-audited at the lookup.
+`warn-categories`, `missing-points` and, last, `nested-delivery`). Loading From
+or Inout does not reject the candidates: their callwise results are parts of
+the entries ([Parts owned by other plug-ins](cache-parts.md)), whose
+restoration is audited, and the client of the server that they load through
+Callgraph is audited at the lookup.
 
 **Kind.** OCaml obligation.
 

@@ -252,12 +252,16 @@ callstack where an analysis would save one. The four cases:
 An entry without any Reach part, which only a test module supplies
 (`Supplied_entries.supply` takes the part as an optional argument), is
 rejected with `missing-points` in the four cases: a hit on it would deliver
-no guard outcome, zone, call site or point. As for every rejection, the
-lookup (`Cache_entry.Make.find`) then examines the next candidate, and the
-function is analysed only when no candidate is left. The hit branch of
-`compute_and_cache_call` thus always has a Reach part to deliver, and
-`deliver` always has points when `save_results` holds. Each write made at
-a hit is also recorded in the Reach part of an enclosing body under
+no guard outcome, zone, call site or point. The tests of the key and of the
+parts of From and Inout come before (`Cache_entry.Make.check`): a candidate
+that lacks both its Reach part and a part whose consumer is enabled reads
+`missing-part`
+([A candidate that lacks a needed part is rejected](cache-parts.md#a-candidate-that-lacks-a-needed-part-is-rejected)).
+As for every rejection, the lookup (`Cache_entry.Make.find`) then examines the
+next candidate, and the function is analysed only when no candidate is left.
+The hit branch of `compute_and_cache_call` thus always has a Reach part to
+deliver, and `deliver` always has points when `save_results` holds. Each write
+made at a hit is also recorded in the Reach part of an enclosing body under
 analysis.
 
 *Fresh contribution.* As for the Safety part: the match by equality gives a
@@ -281,10 +285,14 @@ these modules, and no client outside their compilation units can make one.
 `State.add_hook_on_update`, which takes a state found by its name,
 registers a hook that the project library runs when it changes the value
 of the state (clear, load, copy), not at a write. No client therefore runs
-at a delivery, and the delivery adds none to those of
+at a delivery; the hooks of change of the five tables are rows "outside"
+of the table of
 [A hit runs no client that is not audited](safety.md#a-hit-runs-no-client-that-is-not-audited).
 The observers of `Reach_part.on_result` run when a recording of a Reach
-part ends, after the analysis of a body, and never at a hit.
+part ends, after the analysis of a body, and never at a hit. As for the
+observers of the Safety part, the lookup rejects every candidate with
+`callback` while one is registered without `audited`
+(`Reach_part.has_unaudited_observers`).
 
 *The holders and the end of the call.* The holders of the addresses of
 locals and formals that the body writes travel with the exit states of the
@@ -589,7 +597,11 @@ Each of these checks fails with one change, reverted after the run:
 - the records without the functions whose visits a hit skipped: after the
   installation, the visits of `body` are not recorded as skipped. This
   record serves the statistics of a function (`Summary.FunctionStats`),
-  which the results do not hold, and no other reader is known.
+  which the results do not hold, and the test of complete results
+  (`Results.statement_results_complete`), through which From, Inout, Pdg
+  and Studia refuse their results computed from statement states
+  ([Results computed from statement states are refused after a hit](cache-parts.md#results-computed-from-statement-states-are-refused-after-a-hit)).
+  The results hold this record once.
 
 **Open.**
 
@@ -716,11 +728,14 @@ under `-eva-no-results-domain cvalue`, it lists no statement of `body`,
 also after the results are taken and installed again. With the
 queries blind to the points of hits (`Reach_delivery.reached` false, a
 mutation reverted after the run), the response after the hit lists the
-statements of lines 9 and 10 as unreachable. A hit does not occur in a
-process where the server plug-in is loaded: the plug-in registers a client
-of the hooks on the changes of annotations when it loads, and every
-supplied entry is then rejected
-([A hit runs no client that is not audited](safety.md#a-hit-runs-no-client-that-is-not-audited)).
+statements of lines 9 and 10 as unreachable. The analysis of this test
+does not load the server. With the server loaded and not started, its
+client of the hooks on the changes of annotations is audited at the lookup
+([A hit runs no client that is not audited](safety.md#a-hit-runs-no-client-that-is-not-audited)),
+and the hits occur in the process of the request: in `cache-parts.t`,
+`getDeadCode` after the hits on `copy` and `narrow`, in that process and
+on the saved session, gives the reached statements of caching disabled
+([Results computed from statement states are refused after a hit](cache-parts.md#results-computed-from-statement-states-are-refused-after-a-hit)).
 
 **Open.**
 

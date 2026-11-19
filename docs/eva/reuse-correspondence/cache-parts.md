@@ -383,20 +383,21 @@ first evaluation. The three calls to `copy` read `callback` for each
 candidate (`copy: hits 0, rejected for callback 9`), and the client is
 called 0 times after a hit. With `EVA_TEST_CACHE_PARTS_CARRIER=reader`, the
 predicate of a reader of the statement states registers the client, with
-the same results. At `3f54601636`, where `decide` asked `audited` of each
-part right after its `needed`, and the readers after the parts, both gave
-`copy: hits 1, rejected for callback 6`, and the client was called 10 times
-after the hit. With `EVA_TEST_CACHE_PARTS_CLIENT=part`, the predicate
-registers a part, never needed, at its first evaluation: the first call to
-`copy` rejects its three candidates with `callback` and the next two hit
-(`copy: hits 2, rejected for callback 3`). Mutations, each applied alone to
-`b37d163154` and reverted: with `decide` in one pass, the scenario with the
-client of Inout registered by `needed` gives `hits 1, rejected for callback
-6` and 10 calls of the client; with the readers evaluated after the audits,
-the scenario with the reader gives the same; with the count of the parts in
-`Cache_part.unaudited_clients` compared with itself (the field stays used,
-as warning 69 requires), the scenario with a registered part gives `copy:
-hits 3, rejected for callback 0`.
+the same results. At `cbf089bcb4` (`3f54601636` before the rebase onto #48),
+where `decide` asked `audited` of each part right after its `needed`, and the
+readers after the parts, both gave `copy: hits 1, rejected for callback 6`, and
+the client was called 10 times after the hit. With
+`EVA_TEST_CACHE_PARTS_CLIENT=part`, the predicate registers a part, never
+needed, at its first evaluation: the first call to `copy` rejects its three
+candidates with `callback` and the next two hit (`copy: hits 2, rejected for
+callback 3`). Mutations, each applied alone to `dc06f33291` (`b37d163154`
+before the rebase onto #48) and reverted: with `decide` in one pass, the
+scenario with the client of Inout registered by `needed` gives `hits 1,
+rejected for callback 6` and 10 calls of the client; with the readers evaluated
+after the audits, the scenario with the reader gives the same; with the count
+of the parts in `Cache_part.unaudited_clients` compared with itself (the field
+stays used, as warning 69 requires), the scenario with a registered part gives
+`copy: hits 3, rejected for callback 0`.
 
 ## A candidate that lacks a needed part is rejected
 
@@ -406,19 +407,32 @@ that lacks a part whose consumer is enabled is rejected with
 body is analysed. The From part is needed when `-calldeps` is set (also by
 `-from-verify-assigns`), the Inout part whenever Inout is loaded. The tests
 of the key come first: a candidate whose key differs reads `key-differs`.
+The test of the parts comes before the checks of
+`Supplied_entries.Lookup.admit`, among them `missing-points`, which rejects
+an entry without a Reach part
+([Reach at a hit](reach.md#a-hit-delivers-the-reach-part-as-recorded-joins)):
+a candidate that lacks both a needed part and its Reach part reads
+`missing-part`. The tests of a candidate run in this order: `key-differs`,
+`key-unclosed` and `missing-part` in `Cache_entry.Make.check`, then
+`recursion`, `automatic-cleanup`, `watchpoint`, `hint-generation`,
+`warn-categories`, `sweep`, `missing-points` and `nested-delivery` in
+`admit`.
 
 **Kind.** OCaml obligation.
 
 **Depends on.** None.
 
 **Symbols.** `Cache_entry.Make.check`, `Cache_part.supplies`,
+`Supplied_entries.Lookup.find`, `Supplied_entries.Lookup.admit`,
 `From_parameters.ForceCallDeps`, `Statistics.cache_rejected`.
 
 **Argument (source inspection).** `check` tests the key, then its closure,
 then `Cache_part.supplies`, which holds when every registered part whose
 `needed` function holds is among the parts of the entry. A rejection adds
 the candidate to the rejected list with its reason, as for the other two
-reasons.
+reasons. `Lookup.find` calls `admit` only for a candidate that `check`
+accepts, and `admit` tests `missing-points` after the checks of the
+dependent effects and before `nested-delivery`.
 
 **Evidence (executed).** Scenario `missing`: `-calldeps` is set after the
 first analysis, whose entries have no From part. In the second analysis,
@@ -439,6 +453,16 @@ and the comment of the test expects; the results are not those of caching
 disabled. With the test of `supplies`
 removed, the second analysis of the scenario `missing` reaches `restore`
 with a missing part and stops with exit status 125.
+
+Scenario `both`: each entry of `copy` produced by the first analysis is
+supplied again with `supply`, without its Reach part and without parts,
+and Inout is loaded. The three calls to `copy` read `rejected (entry 1:
+missing-part), rejected (entry 2: key-differs), rejected (entry 3:
+missing-part)` and the same with the keys exchanged, and are analysed:
+`copy: hits 0, rejected for missing-part 5, for missing-points 0`. With the
+test of `supplies` removed from `check` (a mutation applied to
+`4f20abfe60` and reverted), the same candidates read `missing-points`
+(`rejected for missing-part 0, for missing-points 5`).
 
 **Open.** None for this claim.
 
@@ -758,8 +782,11 @@ candidates to the examination of each one.
 **Argument (source inspection).** The results by function of From and Inout
 are computed from `Eva.Results.before` at the statements of each function,
 and, at a call, from the results by function of the called function. A hit
-saves no state at the statements of the called function: the function looks
-unreachable, and the results of its callers inherit this at their calls.
+saves no state at the statements of the called function: the queries
+answer the state top at the points that its body reaches
+([Reach at a hit](reach.md#the-queries-see-the-points-reached-by-a-hit-with-the-state-top)),
+from which these results are not those of an analysis of the body, and the
+results of its callers inherit this at their calls.
 `consumer_enabled` tests the readers declared by the options and the
 presence of the plug-ins by name, before any candidate is examined: the
 lookup evaluates the predicates of the readers once, in the first pass of
@@ -799,40 +826,53 @@ analysis is refused (next claim).
 call, the results that From, Inout, Pdg and Studia compute from the states
 that Eva saves at statements are refused with a user error, whoever
 requests them and whenever they were computed, until an analysis without
-such a hit; the request `getDeadCode` of Eva's server answers with an error
-for a function answered by hits. A request that can start the analysis
+such a hit. A request that can start the analysis
 starts it first; each request then tests whether these states are
 complete, before it computes and before it reads its table: a result
 memoised before a hit of the current analysis is refused after it. The
 record of the functions answered by hits is saved with the session, cleared
 with the results of the analysis, and kept in the results taken by
-`Eva_results.get_results` and installed by `set_results`. The other readers
-of these states, of which the table lists those that a search of the
-sources finds, are left to the issue of the reachable statements.
+`Eva_results.get_results` and installed by `set_results`, among the
+records of the hits (`Reach_delivery.records`). Every hit delivers the
+points that the body reaches, where the state is top
+([Reach at a hit](reach.md#the-queries-see-the-points-reached-by-a-hit-with-the-state-top)).
+A reader that needs only whether a statement is reached, such as the
+request `getDeadCode` of Eva's server, is not refused
+([The passes after the analysis read the points reached by
+hits](reach.md#the-passes-after-the-analysis-read-the-points-reached-by-hits)).
+A reader of the table that needs the values at the statements stays
+refused: none is shown to compute a sound result from the state top. The
+readers that ask `Eva.Results` directly are not refused, and get the state
+top at the points of a hit; their precision there is left to
+[#49](https://github.com/nyandrianinamamy/frama-c/issues/49).
 
-The readers, by class:
+The readers, by class. The last column gives the decision for each reader
+since the hits deliver the points that they reach, with the state top
+([#48](https://github.com/nyandrianinamamy/frama-c/issues/48)): a reader
+that computes from the values at the statements stays refused.
 
-| Reader | Class | Witness |
-|---|---|---|
-| Dependencies by function of From: `From.get`, `From.compute`, `-deps`, the printers of From | tests before computing and before its table, after running the analysis | scenarios `api`, `lazy-from`, `then`, `save` |
-| Inputs and outputs of Inout by function: `Inout.kf_inputs`, `kf_outputs`, `kf_external_inputs`, `kf_external_outputs`, the inputs with formals, the dereferenced zones; options `-input`, `-out`, `-out-external`, `-input-with-formals`, `-deref` | tests before computing and before its tables; `-deref` runs the analysis first | scenarios `api`, `warm`, `then`, `save` |
-| Inputs and outputs of Inout by statement: `stmt_inputs`, `stmt_outputs`, `expr_inputs` | tests before computing; no table | scenario `api` |
-| Operational inputs and outputs of Inout by function (`get_precise_inout` without statement, `-inout`), for a function computed from its statements | runs the analysis, then tests before computing; tests before reading its tables a result computed from the statements | scenarios `nested`, `fallback` |
-| The same, for a function whose result is joined from the results of its calls | does not read statement states: a hit restores the result of its call | scenarios `inout`, `fallback` |
-| Callwise results of From and Inout: `From.Callwise`, `-calldeps`, `get_precise_inout` at a statement | does not read statement states | scenarios `from`, `inout`, `visits` |
-| Graphs of Pdg: `Pdg_tbl.get`, `-fct-pdg`, `-pdg`, and the plug-ins that get their graphs from Pdg | runs the analysis, then tests before computing and before its table | scenario `save`, then `-load` with Pdg |
-| Requests `getReadsLval` and `getWritesLval` of Studia | tests before computing; no table | scenario `server` |
-| Request `getDeadCode` of Eva | tests the record of the function: an error of the server for a function answered by hits; the other functions are classified from their own states, which no hit removes, since a body answered by a hit has no call statement (`nested-delivery` rejects the others) | scenario `server` |
-| Filters `read` and `written` of Inout on the variables of the server (`Inout_requests`) | test through `Cumulative_analysis`; the server answers with an error | source inspection, no scenario |
-| Eva's dynamic access to `Inout.kf_outputs`, used to print the final states | does not ask Inout after a hit: `Top`, as when Inout is not loaded | scenario `inout` with `-eva` |
-| `Eva.Results` at the statements of a function answered by hits, read directly: the other requests of Eva's server, such as the values at a statement; the direct reads of the plug-ins on Pdg (`Eva.Results.is_reachable`, `before`, `callee`, `condition_truth_value` and others, in Scope, Sparecode, Impact, Slicing and Security slicing) and of Studia's `Reads.compute` and `Writes.compute` (`Eva.Results.callee`, `callsites`); the other plug-ins of the tree whose sources call `Eva.Results` (Aorai, Callgraph, Constant propagation, Dive, Loop analysis, Markdown report, Metrics, Nonterm, Occurrence, Reduc, Wp); the plug-ins of #47 loaded after the analysis; the graphical interface. The list comes from a search of the sources for `Eva.Results.`, not from an argument that no other reader exists | listed for [#48](https://github.com/nyandrianinamamy/frama-c/issues/48) | scenario `raw` |
+| Reader | Class | Witness | With the points of the hits |
+|---|---|---|---|
+| Dependencies by function of From: `From.get`, `From.compute`, `-deps`, the printers of From | tests before computing and before its table, after running the analysis | scenarios `api`, `lazy-from`, `then`, `save` | refused: evaluates the left and right values of each statement in the state there; computed after hits, it differs from the result of caching disabled (scenario `snapshot` under the mutation of `skip_visits` below) |
+| Inputs and outputs of Inout by function: `Inout.kf_inputs`, `kf_outputs`, `kf_external_inputs`, `kf_external_outputs`, the inputs with formals, the dereferenced zones; options `-input`, `-out`, `-out-external`, `-input-with-formals`, `-deref` | tests before computing and before its tables; `-deref` runs the analysis first | scenarios `api`, `warm`, `then`, `save` | refused: evaluates the locations of each statement in the state there |
+| Inputs and outputs of Inout by statement: `stmt_inputs`, `stmt_outputs`, `expr_inputs` | tests before computing; no table | scenario `api` | refused: the same, at one statement |
+| Operational inputs and outputs of Inout by function (`get_precise_inout` without statement, `-inout`), for a function computed from its statements | runs the analysis, then tests before computing; tests before reading its tables a result computed from the statements | scenarios `nested`, `fallback` | refused: the same |
+| The same, for a function whose result is joined from the results of its calls | does not read statement states: a hit restores the result of its call | scenarios `inout`, `fallback` | not a reader |
+| Callwise results of From and Inout: `From.Callwise`, `-calldeps`, `get_precise_inout` at a statement | does not read statement states | scenarios `from`, `inout`, `visits` | not a reader |
+| Graphs of Pdg: `Pdg_tbl.get`, `-fct-pdg`, `-pdg`, and the plug-ins that get their graphs from Pdg | runs the analysis, then tests before computing and before its table | scenario `save`, then `-load` with Pdg | refused: builds the graph from the values at each statement and from the results of From |
+| Requests `getReadsLval` and `getWritesLval` of Studia | tests before computing; no table | scenario `server` | refused: evaluates the zones accessed by each statement in the state there |
+| Request `getDeadCode` of Eva | classifies each statement as reached or unreachable from the callstacks that reach it, those of the hits included, and skips a function of unknown reachability (`-eva-no-results-domain cvalue` only) | scenario `server` | not refused: reads whether a statement is reached; after the hits on `copy` and `narrow`, the answers equal those of caching disabled |
+| Filters `read` and `written` of Inout on the variables of the server (`Inout_requests`) | test through `Cumulative_analysis`; the server answers with an error | source inspection, no scenario | refused: computes the inputs and outputs by function |
+| Eva's dynamic access to `Inout.kf_outputs`, used to print the final states | does not ask Inout after a hit: `Top`, as when Inout is not loaded | scenario `inout` with `-eva` | `Top`, as before |
+| `Eva.Results` at the statements of a function answered by hits, read directly: the other requests of Eva's server, such as the values at a statement; the direct reads of the plug-ins on Pdg (`Eva.Results.is_reachable`, `before`, `callee`, `condition_truth_value` and others, in Scope, Sparecode, Impact, Slicing and Security slicing) and of Studia's `Reads.compute` and `Writes.compute` (`Eva.Results.callee`, `callsites`), called directly as Dive does; the other plug-ins of the tree whose sources call `Eva.Results` (Aorai, Callgraph, Constant propagation, Dive, Loop analysis, Markdown report, Metrics, Nonterm, Occurrence, Reduc, Wp); the plug-ins of #47 loaded after the analysis; the graphical interface. The list comes from a search of the sources for `Eva.Results.`, not from an argument that no other reader exists | not refused | scenario `raw` | the points of the hits are reachable, with the state top; the precision of each reader there is left to [#49](https://github.com/nyandrianinamamy/frama-c/issues/49) |
 
 **Kind.** OCaml obligation.
 
 **Depends on.** None.
 
 **Symbols.** `Safety_delivery` (state `Eva.Safety_delivery.Skipped`, with
-dependency `Self.state`; `skip_visits`, `complete`, `get`, `set`),
+dependency `Self.state`; `skip_visits`, `visits_skipped`, `complete`),
+`Reach_delivery.records`, `Reach_delivery.restore`,
 `Compute_functions.Make.compute_and_cache_call`,
 `Eva.Results.statement_results_complete`, `Eva_results.get_results`,
 `Eva_results.set_results`; `Functionwise.To_Use.memo` in From;
@@ -841,19 +881,21 @@ dependency `Self.state`; `skip_visits`, `complete`, `get`, `set`),
 `Operational_inputs.get_internal`, `get_external`,
 `get_external_with_formals`, `From_statements` and `check_from_statements`
 in Inout; `Pdg_tbl.get` in Pdg; `Eva_dynamic.Inout.kf_outputs`,
-`Ast_requests.dead_code`, `Server.Data.failure`;
+`Ast_requests.dead_code`, `Reach_delivery.reached`;
 `Studia_request.check_statement_results`.
 
 **Argument (source inspection).** The branch of a hit of a supplied entry
 adds the called function to the set before it delivers the Safety part and
-restores the parts; the record of #47 and this one are the same set. The
-set is a project state that
+the Reach part and restores the parts; the record of #47 and this one are
+the same set. The set is a project state that
 depends on the state of Eva's results: it is saved with the session, and a
 new analysis clears it. `statement_results_complete` holds when it is
-empty. `get_results` copies it with the states, and `set_results`, after
-clearing the results and setting the initial arguments, restores it before
-it sets the computation state to `Computed`, which publishes the results to
-the hooks of this state. A copy of the project made with a selection that
+empty. `get_results` copies it with the other records of the hits
+(`Reach_delivery.records`), and `set_results`, after clearing the results
+and installing the states, alarms and statuses, restores it with them
+(`Reach_delivery.restore`) before it sets the computation state to
+`Computed`, which publishes the results to the hooks of this state. The
+results hold this record once. A copy of the project made with a selection that
 includes the dependencies of Eva's state carries it; a selection that takes
 the tables of Eva's results without it would not, and no part of the tree
 makes one. `Eva.Analysis.compute` is the only entry point of `Analysis`
@@ -881,9 +923,9 @@ turns a user error into a `Top` graph that the table would keep, so the
 test is outside it. Every user of a graph in the tree goes through
 `Pdg_tbl.get` (`Pdg.Api.get` and the marks of Pdg). Each refusal is a user error naming the cause; Studia
 catches every exception in its requests and checks before computing, so
-that each request is refused as a whole. `getDeadCode` raises
-`Data.InputError` through `Data.failure`, which the server turns into an
-error answer to the request.
+that each request is refused as a whole. `getDeadCode` does not test the
+set: it reads whether a statement is reached, which the points of the hits
+answer (`Reach_delivery.reached`).
 
 While an analysis runs, `Eva.Analysis.compute` starts a whole analysis
 again: its start clears the results (`Self.clear_results`), and with them
@@ -939,26 +981,39 @@ after the load, the analysis runs again with caching disabled and the
 graph of `copy`, with the inputs `b` and `d`, is the one of an analysis of
 the program with the same options. The server requests, in their own test
 module (`test_cache_parts_server.ml`), since the main one does not load the
-server: after caching disabled, `getDeadCode` on `copy` gives 2 reached
-statements, `getReadsLval` on `b` at the first call to `copy` gives 4
-indirect and 1 direct statements and `getWritesLval` 1 direct statement;
-after the analysis with hits in the same process (3 hits on `copy`), and in
-the session saved by the scenario `save` and loaded with `-load`, the three
-requests are refused, `getDeadCode` with the error of the server naming
-`copy`; before the change, `getDeadCode` answered with three empty
-lists. Scenario `raw`: the first statement of `copy` is reachable after
-caching disabled and not after the hits, for any reader that asks
-`Eva.Results` directly. With the record of the function removed from the
-hit, every request is computed and the fixture fails; with the check of
+server: after caching disabled, `getDeadCode` gives 2 reached statements
+on `copy` and 4 on `narrow`, `getReadsLval` on `b` at the first call to
+`copy` gives 4 indirect and 1 direct statements and `getWritesLval` 1
+direct statement; after the analysis with hits in the same process (3 hits
+on `copy`, 1 on `narrow`), and in the session saved by the scenario `save`
+and loaded with `-load`, the two requests of Studia are refused, and
+`getDeadCode` gives 2 reached statements on `copy` and 4 on `narrow`, no
+unreachable one, as with caching disabled. Before the rebase onto #48,
+`getDeadCode` answered after hits with an error naming `copy`, and before
+that error with three empty lists. Scenario `raw`: the first statement of
+`copy` is reachable after caching disabled and after the hits, for any
+reader that asks `Eva.Results` directly; the value of `src` there is `{{ &b
+; &d }}` with caching disabled and `{{ ANYTHING }}` after the hits. With
+`Safety_delivery.skip_visits` changed to record nothing (a mutation applied
+to `4f20abfe60` and reverted), the results after the hits read as
+complete, and every request refused above is computed: `From.get`, the
+results of Inout by function and by statement, the two requests of Studia,
+the options of the scenarios `then` and `save`, and the graph of `copy` on
+the loaded session; the results with hits installed by `set_results` give
+`From.get` a result that differs from that of the first analysis. With the
+check of
 Studia removed, Studia warns `Error when computing reads` and answers with
 no statement.
 
-**Open.** The readers listed for
-[#48](https://github.com/nyandrianinamamy/frama-c/issues/48) in the table
-are not refused; none of them is checked here beyond the scenario `raw`.
-Lifting the refusal needs the states at the statements of a skipped body,
-which is the public Inner query of
-[#40](https://github.com/nyandrianinamamy/frama-c/issues/40). The test of
+**Open.** The readers of the last row of the table are not refused: they
+get the state top at the points of a hit, and none of them is checked
+here beyond the scenario `raw`; their precision there is left to
+[#49](https://github.com/nyandrianinamamy/frama-c/issues/49). Lifting the
+refusals of the other rows needs the states at the statements of a skipped
+body (the state queries of #49, and the public Inner query of
+[#40](https://github.com/nyandrianinamamy/frama-c/issues/40)), or an
+argument, per reader, that its result computed from the state top covers
+the result of an analysis of the body. The test of
 the dereferenced zones before their table, and Pdg's start of the analysis
 before its test, have no scenario that fails without them: the zones are
 computed only for `-deref`, which rejects every candidate during the
@@ -982,8 +1037,11 @@ states are refused after a
 hit](#results-computed-from-statement-states-are-refused-after-a-hit)); the
 printer then reads `Cannot filter: dumping raw memory`.
 `display_final_state` prints a function only when the state before its first
-statement is reachable; no state is saved for a function answered by hits
-only.
+statement is reachable and not top. It reads the store of the cvalue
+domain (`Cvalue_results.get_state`), where no state is saved for a
+function answered by hits only; the queries of Eva answer top at the points
+that the hits reach (`Engine.Make_Domain.Store.get_state`), and the
+printer would skip that state too.
 
 **Evidence (executed).** Scenario `inout` with `-eva`: Eva's own analysis
 and the two analyses of the test module print the final states of
