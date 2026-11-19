@@ -689,7 +689,8 @@ Checks.sweepCur : projectedPredicates.State
   table value covers. Show that the kernel's combination covers both
   operands, that actual hit replay covers the fresh and prior contributions
   at the current position, and that other positions retain coverage.
-  Preconditions of the callee still run outside the entry.
+  No hit is on a callee whose call checks a precondition: the lookup
+  rejects its entries.
   [Safety replay](https://github.com/nyandrianinamamy/frama-c/issues/47).
   [Safety at a hit](safety.md) gives this argument and lists what stays
   open.

@@ -252,9 +252,11 @@ logging event would otherwise be admitted.
   concerns the lookup only. Outside a recording these observers refuse
   nothing and write only in the counters of the collector; the observers of
   `Base` are installed while a body is recorded and run the observer that
-  they replaced. A hit can run two of them: the observer of `Hook.Opaque`,
-  through the client of the server on the annotations, and the observer of
-  the metadata, through the check of the preconditions. No other client of
+  they replaced. A hit can run one of them: the observer of `Hook.Opaque`,
+  through the client of the server on the annotations. A hit evaluates
+  nothing, and no regression makes it run the observer of the metadata,
+  which ran in the check of the preconditions when a hit made one. No
+  other client of
   the tree uses the flag; at the lookup, any client registered without it
   rejects every supplied candidate with `callback`
   ([Safety at a hit](safety.md#a-hit-runs-no-client-that-is-not-audited)).
