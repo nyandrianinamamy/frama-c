@@ -234,8 +234,10 @@ normal-exit overlay `W_exit`. [Hit soundness](hit.md#hit-soundness). The produci
 for that overlay must include the effect of the sweep on the holder.
 A public Inner answer may use the frame rule only for a prefix where the
 holder is untouched, with the sweeps already performed at that visit.
-The outer call's finalization runs in the caller. A nested call is
-currently refused by the collector.
+The outer call's finalization runs in the caller. A sweep performed by
+a child is foreign to the enclosing body and makes that body refuse with
+`sweep`. This includes an inner-scope lexical sweep admitted for the child,
+whether its observation comes from fresh analysis or a supplied hit.
 
 **Eva symbols and source evidence.**
 `Transfer_stmt.leave_scope` calls `Cvalue_domain.State.leave_scope`.

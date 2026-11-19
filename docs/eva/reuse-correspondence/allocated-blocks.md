@@ -637,7 +637,7 @@ Eva:
 | `Compute_functions.Make.compute_and_cache_call`, hit | `requires` checked again in the caller | caller's full recording | regression: `hit.c` |
 | `Body_access.capture` | computation of W_exit and W_sure; observers of the result | the collector's own work; observers must not change the analysis | inspected |
 | `Body_access.check_written` | contents of the written blocks | refusals and owners added explicitly | regression: `contents.c` |
-| `Cvalue_callbacks.run_hook` | call hooks | an unclassified hook refuses with `side-table`; the classified protocols do not change the analysis of the body | inspected |
+| `Cvalue_callbacks.run_hook` | call hooks | an unclassified hook refuses with `callback`; the classified protocols do not change the analysis of the body | inspected; executed in [`body-access.t`](../../../plugins/eva/tests/utils/body-access.t/run.t) |
 | `Iterator` | `Async.yield` | no analysis | inspected |
 
 The operations of the cache run outside the observation of the caller
@@ -666,9 +666,9 @@ For the default bindings: the two functions that create an allocated base
 give it a `Variable` validity, and `Offsetmap.size_from_validity` sizes it
 by `max_allocable`, which is immutable. Moreover, the inclusion of two
 states reads the default binding only for a base bound in one state and not
-the other. Within a body, every state comes from one entry state, and only an
-allocation, a release or a nested call adds or removes an allocated binding;
-each refuses.
+the other. Within a body, every state comes from one entry state. Adding
+or removing an allocated binding requires an allocation or release, which
+refuses for the effect itself, including when it occurs in a nested call.
 
 **Evidence.** As in each row.
 

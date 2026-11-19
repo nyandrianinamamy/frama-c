@@ -2,10 +2,19 @@
 
 [Nested call collection](nested-calls.md) records the contributions of
 skipped children using the winning entry, conditional on its coverage and
-the admission checks. Before #47, the lookup rejects enclosing hits that
-would skip those children or inline work, as `nested-delivery`. The
-theorem below relies on a sound model entry, whose replay premises remain
-open for Eva's reduced key and surviving overlay.
+the admission checks. Until nested delivery is implemented, the supplied
+cache scans the subject's body at lookup. Call instructions, including
+indirect calls and calls in local initializers, give `nested-delivery` for
+a matching entry that passes the other admission checks. This applies to
+both `supply` and `supply_produced`, including inline bodies and
+specifications. Direct `Frama_C_show_each*` and
+`Frama_C_domain_show_each*` directives are leaf displays used as visit
+markers by the hand-supplied fixtures. Their output can be skipped there.
+Memexec keeps its own hits. An available producing call trace contributes
+used functions and recursion information to the caller's recording, where
+the collector refuses the enclosing body with `nested-call`.
+The theorem below relies on a sound model entry, whose replay premises
+remain open for Eva's reduced key and surviving overlay.
 
 ## Hit soundness
 

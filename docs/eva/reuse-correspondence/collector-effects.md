@@ -112,9 +112,10 @@ conflicting caller's recording. It also checks a call-free body in Mthread.
 
 **Open.** An entry supplied without a producing observation contributes
 its directly resolved call and makes the enclosing observation refuse as
-`nested-call`. Enclosing entries with recorded nested work are produced.
-Admission of a hit on such an entry requires delivery of the effects
-of that work. [Nested call collection](nested-calls.md#composition-along-the-observed-path).
+`nested-call`. The collector can produce enclosing entries with nested
+work. Until delivery exists, the supplied lookup guards both constructors
+by inspecting the subject's body for calls.
+[Nested call collection](nested-calls.md#composition-along-the-observed-path).
 
 ## Dynamic widening hints
 

@@ -96,10 +96,15 @@ to have no automatic blocks. This conservative check makes each skipped
 cleanup empty even when the callstack or registry has changed since
 production. Admission also rejects if the cached body or one of its used
 functions is already active in the caller. The same lookup uses #44's
-sweep, hint and watchpoint checks. A matching entry with a child reference
-or a nested invocation in the used-function trace is rejected as
-`nested-delivery` until delivery exists. Entries with inline specifications
-also take this refusal, since skipping them can lose statuses.
+sweep, hint and watchpoint checks. For matching entries that pass those
+checks, lookup inspects the subject's AST for direct and indirect call
+instructions, including calls in local initializers. Either constructor
+can supply the entry. The presence of a call gives `nested-delivery`
+regardless of child references or the observed call trace. Direct
+`Frama_C_show_each*` and `Frama_C_domain_show_each*` calls are leaf
+displays, which hand-supplied fixtures use to show whether the body ran.
+Eva's collector still refuses to produce entries that execute those
+directives, and dump directives remain subject to the call check.
 
 **Evidence (executed).**
 [`nested-access.t`](../../../plugins/eva/tests/utils/nested-access.t/run.t)
@@ -111,10 +116,13 @@ intermediate body with preconditions, and exercises matching enclosing
 entries rejected for automatic cleanup and for a child on the active
 callstack. The split-return fixtures assert the key and sure writes with
 fresh and supplied children and with two calls in one main. They compare
-the result and a division alarm with caching disabled. The status fixture
-checks that the guard keeps an invalid child assertion from being
-marked dead. The supplied-child criterion is exercised by the child's
-confirmed hit and the enclosing observation. Enclosing hits await #47.
+the result and a division alarm with caching disabled. The delivery fixture
+supplies the same key, footprint, input and exits through each
+constructor. For a referenced child, an inline body with a precondition
+and an inline specification, both candidates give `nested-delivery`.
+The assertion status matches caching disabled in all three cases. The
+supplied-child criterion is exercised by the child's confirmed hit and
+the enclosing observation. Enclosing hits await #47.
 The transitive test exercises a produced middle entry at the same
 composition function used by a supplied hit, then performs three real
 analyses. The temporary guard rejects that middle entry in the second
