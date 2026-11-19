@@ -577,17 +577,55 @@ open ReuseModel in
 open ReuseModel in
 #check @HitLine.answer
 open ReuseModel in
+#check @joinAnswer
+open ReuseModel in
+#check @joinAnswers
+open ReuseModel in
 #check @query
 open ReuseModel ReuseModel.CacheEntry in
 #check @InnerPartSound
 #print axioms ReuseModel.HitLine.answer
+#print axioms ReuseModel.joinAnswer
+#print axioms ReuseModel.joinAnswers
 #print axioms ReuseModel.query
 #print axioms ReuseModel.AtPoint
 #print axioms ReuseModel.CacheEntry.InnerPartSound
 #check_axioms ReuseModel.HitLine.answer
+#check_axioms ReuseModel.joinAnswer
+#check_axioms ReuseModel.joinAnswers
 #check_axioms ReuseModel.query
 #check_axioms ReuseModel.AtPoint
 #check_axioms ReuseModel.CacheEntry.InnerPartSound
+
+open ReuseModel in
+#check @joinAnswers_eq_none
+#print axioms ReuseModel.joinAnswers_eq_none
+#check_axioms ReuseModel.joinAnswers_eq_none
+
+open ReuseModel in
+#check @mem_joinAnswers
+#print axioms ReuseModel.mem_joinAnswers
+#check_axioms ReuseModel.mem_joinAnswers
+
+open ReuseModel in
+#check @joinAnswers_isSome
+#print axioms ReuseModel.joinAnswers_isSome
+#check_axioms ReuseModel.joinAnswers_isSome
+
+open ReuseModel in
+#check @mem_query
+#print axioms ReuseModel.mem_query
+#check_axioms ReuseModel.mem_query
+
+open ReuseModel in
+#check @query_some
+#print axioms ReuseModel.query_some
+#check_axioms ReuseModel.query_some
+
+open ReuseModel in
+#check @HitLine.answer_isSome
+#print axioms ReuseModel.HitLine.answer_isSome
+#check_axioms ReuseModel.HitLine.answer_isSome
 
 open ReuseModel ReuseModel.CacheEntry in
 #check @innerPartSound_of_key
@@ -598,6 +636,11 @@ open ReuseModel ReuseModel.CacheEntry in
 #check @replay_trace
 #print axioms ReuseModel.CacheEntry.replay_trace
 #check_axioms ReuseModel.CacheEntry.replay_trace
+
+open ReuseModel ReuseModel.CacheEntry in
+#check @answer_sound
+#print axioms ReuseModel.CacheEntry.answer_sound
+#check_axioms ReuseModel.CacheEntry.answer_sound
 
 open ReuseModel ReuseModel.CacheEntry in
 #check @query_sound
@@ -628,6 +671,10 @@ open ReuseModel ReuseModel.CacheEntry in
 #print axioms Checks.query_member_visits
 #check_axioms Checks.query_member_visits
 
+#check Checks.queryLine_premises
+#print axioms Checks.queryLine_premises
+#check_axioms Checks.queryLine_premises
+
 #check Checks.query_at_line
 #print axioms Checks.query_at_line
 #check_axioms Checks.query_at_line
@@ -648,9 +695,33 @@ open ReuseModel ReuseModel.CacheEntry in
 #print axioms Checks.query_point_callstack
 #check_axioms Checks.query_point_callstack
 
-#check Checks.same_callstack_first_line
-#print axioms Checks.same_callstack_first_line
-#check_axioms Checks.same_callstack_first_line
+#check Checks.loop_visits
+#print axioms Checks.loop_visits
+#check_axioms Checks.loop_visits
+
+#check Checks.same_callstack_join
+#print axioms Checks.same_callstack_join
+#check_axioms Checks.same_callstack_join
+
+#check Checks.callee_entry_premises
+#print axioms Checks.callee_entry_premises
+#check_axioms Checks.callee_entry_premises
+
+#check Checks.calleeLine_premises
+#print axioms Checks.calleeLine_premises
+#check_axioms Checks.calleeLine_premises
+
+#check Checks.callee_member
+#print axioms Checks.callee_member
+#check_axioms Checks.callee_member
+
+#check Checks.nested_suffix_join
+#print axioms Checks.nested_suffix_join
+#check_axioms Checks.nested_suffix_join
+
+#check Checks.three_lines_join
+#print axioms Checks.three_lines_join
+#check_axioms Checks.three_lines_join
 
 #check Checks.local_premises
 #print axioms Checks.local_premises

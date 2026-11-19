@@ -26,12 +26,16 @@ line for each call.
   on the callstack `[3, 16]` the query on `r` answers 5. After `r = 0;` the
   query answers 0, and the value 5 at the call is wrong.
 
-Each answer is the conclusion of `CacheEntry.query_sound` for that line.
-A log with two lines on one callstack answers from the first, which misses
-the member of the second. A second statement, with a lexical local, has the
-case of a local of the body, which answers top. Two further checks pin
-definitions: the marks of the sweeps in the frame
-rule, and the end of a statement's execution in the visit after it.
+Each answer is the conclusion of `CacheEntry.query_sound`, with every
+premise proved for every line of the log. A second program calls `f` at
+site 11 and then in a loop at site 16; its logs have three lines. Two lines
+on one callstack, and two lines whose callstacks end the callstack of the
+query with different lengths, are joined. A second entry, for the body of
+`h`, has an inner part with states on the key only. A second
+statement, with a lexical local, has the case of a local of the body, which
+answers top. Two further checks pin definitions: the marks of the sweeps in
+the frame rule, and the end of a statement's execution in the visit after
+it.
 -/
 
 namespace Checks
@@ -395,36 +399,69 @@ theorem query_member_visits (g r : Int) :
     ⟨5, _, _, _, _, _, _, by decide, rfl, rfl, rfl, rfl, by intro i hi hi'; omega⟩,
     rfl, rfl, rfl⟩
 
-private theorem query_line_premises (site : Label) (g r : Int) :
-    (∀ m, (queryLine site g r).state m → ∀ b ∈ (queryLine site g r).blocks, Issued m b) := by
+/-- Every block that a line binds is issued in each memory of the call
+state. -/
+private theorem callState_issued (g r : Int) :
+    ∀ m, callState g r m → ∀ b ∈ ([0, 1, 2] : BlockSet), Issued m b := by
   intro m hm b hb
   have hn : m.next = 3 := hm.2.2.2
   change b < m.next
   rw [hn]
-  change b ∈ [0, 1, 2] at hb
   simp only [List.mem_cons, List.not_mem_nil, or_false] at hb
   rcases hb with h | h | h <;> subst h <;> decide
 
-/-- `CacheEntry.query_sound` at the line of the call at `site`, for a query
-on the callstack `[3, site]` before or after `r = 0;`. -/
-theorem query_at_line (site : Label) (g r : Int) (pos : Pos)
-    (hsel : queryLog.find? (fun l => l.callstack.isSuffixOf [3, site]) =
-      some (queryLine site g r)) :
+/-- The premises of `CacheEntry.query_sound` on one line of a log: the
+premises on its entry and its inner part, and the issuance of the blocks it
+binds. -/
+def LinePremises (line : HitLine predicates) : Prop :=
+  line.entry.ProducerSound ∧ line.entry.Coverage ∧ line.entry.KeyCovers ∧
+    line.entry.InnerPartSound line.inner ∧
+    ∀ m, predicates.γ line.state m → ∀ b ∈ line.blocks, Issued m b
+
+/-- Each line of a call of `f` meets the premises. -/
+theorem queryLine_premises (site : Label) (g r : Int) : LinePremises (queryLine site g r) :=
+  ⟨query_entry_premises.1, query_entry_premises.2.1, query_entry_premises.2.2,
+    query_inner_sound, callState_issued g r⟩
+
+/-- `CacheEntry.query_sound` for a log whose lines all meet the premises. -/
+private theorem log_sound {log : List (HitLine predicates)}
+    (hlog : ∀ line ∈ log, LinePremises line) {q : QueryPoint} {line : HitLine predicates}
+    (hl : line ∈ log) (hs : line.callstack.isSuffixOf q.callstack)
+    {m : FunMem} (hm : predicates.γ line.state m)
+    (hmatch : line.entry.Matches FunMem.allocatorAgreement m) {n : Nat}
+    (hv : AtPoint line.entry.subject ⟨line.entry.env, m⟩ (q.below line.callstack) n) :
+    line.entry.reached q.stmt ∧ ∀ enabled b vs, query enabled log q b = some vs →
+      vs (load (trace line.entry.subject ⟨line.entry.env, m⟩ n).2.mem b) :=
+  CacheEntry.query_sound (fun l hl _ => (hlog l hl).1) (fun l hl _ => (hlog l hl).2.1)
+    (fun l hl _ => (hlog l hl).2.2.1) (fun l hl _ => (hlog l hl).2.2.2.1)
+    (fun l hl _ => (hlog l hl).2.2.2.2) hl hs hm hmatch hv
+
+/-- `CacheEntry.query_sound` at the line of the call of `f` at `site`, for a
+query on the callstack `[3, site]` before or after `r = 0;`, in a log whose
+lines all meet the premises. -/
+theorem query_at_line {log : List (HitLine predicates)}
+    (hlog : ∀ line ∈ log, LinePremises line) (site : Label) (g r : Int) (pos : Pos)
+    (hl : queryLine site g r ∈ log) :
     queryEntry.reached 21 ∧ ∀ enabled b vs,
-      query enabled queryLog ⟨21, [3, site], pos⟩ b = some vs →
+      query enabled log ⟨21, [3, site], pos⟩ b = some vs →
         vs (load (trace querySubj ⟨noLocals, queryMem g r⟩
           (if pos = .before then 5 else 6)).2.mem b) := by
-  obtain ⟨hp, hc, hk⟩ := query_entry_premises
+  have hs : [site].isSuffixOf [3, site] = true := by
+    simp [List.isSuffixOf, List.isPrefixOf]
   have hv := query_member_visits g r
   cases pos with
   | before =>
-    exact CacheEntry.query_sound (q := ⟨21, [3, site], .before⟩) hsel hp hc hk
-      query_inner_sound (query_line_premises site g r) (callState_queryMem g r)
+    exact log_sound (q := ⟨21, [3, site], .before⟩) hlog hl hs (callState_queryMem g r)
       (query_member_matches g r) hv.1
   | after =>
-    exact CacheEntry.query_sound (q := ⟨21, [3, site], .after⟩) hsel hp hc hk
-      query_inner_sound (query_line_premises site g r) (callState_queryMem g r)
+    exact log_sound (q := ⟨21, [3, site], .after⟩) hlog hl hs (callState_queryMem g r)
       (query_member_matches g r) hv.2.1
+
+/-- Both lines of `queryLog` meet the premises. -/
+private theorem queryLog_premises : ∀ line ∈ queryLog, LinePremises line := by
+  intro line hl
+  simp only [queryLog, List.mem_cons, List.not_mem_nil, or_false] at hl
+  rcases hl with rfl | rfl <;> exact queryLine_premises _ _ _
 
 /-! ## The answers -/
 
@@ -489,8 +526,8 @@ theorem two_call_query :
     (∀ v, predicates.valueOf (queryInner.state beforeWrite) 1 v ↔ v = some (.int 4)) ∧
     ¬ predicates.valueOf (queryInner.state beforeWrite) 1
       (load (trace querySubj ⟨noLocals, queryMem 9 5⟩ 5).2.mem 1) := by
-  have h₁ := (query_at_line 11 4 3 .before rfl).2 true 1 _ rfl
-  have h₂ := (query_at_line 16 9 5 .before rfl).2 true 1 _ rfl
+  have h₁ := (query_at_line queryLog_premises 11 4 3 .before List.mem_cons_self).2 true 1 _ rfl
+  have h₂ := (query_at_line queryLog_premises 16 9 5 .before (List.mem_cons_of_mem _ List.mem_cons_self)).2 true 1 _ rfl
   refine ⟨⟨rfl, swept_int (valueOf_call 4 3).1, rfl, h₁⟩,
     ⟨rfl, swept_int (valueOf_call 9 5).1, rfl, h₂⟩, valueOf_inner.2.1, ?_⟩
   rw [(query_member_visits 9 5).2.2.1, valueOf_inner.2.1]
@@ -520,8 +557,8 @@ theorem overwritten_query :
       (load (trace querySubj ⟨noLocals, queryMem 9 5⟩ 5).2.mem 2) ∧
     ¬ (predicates.valueOf (callState 9 5) 2).swept
       (load (trace querySubj ⟨noLocals, queryMem 9 5⟩ 6).2.mem 2) := by
-  have hb := (query_at_line 16 9 5 .before rfl).2 true 2 _ rfl
-  have ha := (query_at_line 16 9 5 .after rfl).2 true 2 _ rfl
+  have hb := (query_at_line queryLog_premises 16 9 5 .before (List.mem_cons_of_mem _ List.mem_cons_self)).2 true 2 _ rfl
+  have ha := (query_at_line queryLog_premises 16 9 5 .after (List.mem_cons_of_mem _ List.mem_cons_self)).2 true 2 _ rfl
   refine ⟨valueOf_inner.2.2.1, ⟨rfl, swept_int (valueOf_call 9 5).2, rfl, hb⟩,
     ⟨rfl, valueOf_inner.2.2.2, rfl, ha⟩, ?_, ?_⟩
   · rw [(query_member_visits 9 5).2.2.2.1, valueOf_inner.2.2.1]
@@ -538,7 +575,7 @@ theorem key_and_disabled_query :
       (∀ u, predicates.valueOf (queryInner.state beforeWrite) 0 u ↔ u = some (.int 1)) ∧
     (∀ b, query false queryLog ⟨21, [3, 16], .before⟩ b = none) ∧
     queryEntry.reached 21 :=
-  ⟨rfl, valueOf_inner.1, fun _ => rfl, (query_at_line 16 9 5 .before rfl).1⟩
+  ⟨rfl, valueOf_inner.1, fun _ => rfl, (query_at_line queryLog_premises 16 9 5 .before (List.mem_cons_of_mem _ List.mem_cons_self)).1⟩
 
 /-- A point whose callstack is not that of a call of `h` has no visit, before
 or after `r = 0;`. -/
@@ -566,18 +603,317 @@ theorem query_point_callstack :
     rw [hcs] at h
     exact absurd h (by decide)
 
-/-- Two hits on one callstack, as for a call in a loop: the first line of the
-log answers, and its answer misses the content of `g` in the member of the
-second line, which visits the same point. -/
-theorem same_callstack_first_line :
-    query true [queryLine 16 4 3, queryLine 16 9 5] ⟨21, [3, 16], .before⟩ 1 =
-        some (predicates.valueOf (callState 4 3) 1).swept ∧
-      AtPoint querySubj ⟨noLocals, queryMem 9 5⟩ beforeWrite 5 ∧
-      ¬ (predicates.valueOf (callState 4 3) 1).swept
-        (load (trace querySubj ⟨noLocals, queryMem 9 5⟩ 5).2.mem 1) := by
-  refine ⟨rfl, (query_member_visits 9 5).1, ?_⟩
-  rw [(query_member_visits 9 5).2.2.1, swept_int (valueOf_call 4 3).1]
+/-! ## Several lines on the callstack of a query
+
+`loopMain` calls `f` at site 11, then calls it in a loop at site 16 and sets
+`g = 9` and `r = 5` after each call. The first call at site 16 enters with
+`g = 4` and `r = 0`, the second with `g = 9` and `r = 5`. When every call
+after the first is a hit, the log has three lines, two of them on the
+callstack `[16]`. When the first call at site 16 is analysed and its call of
+`h` hits an entry stored for `h`, the log has a line on `[3, 16]` for that
+call of `h` and a line on `[16]` for the second call of `f`: both end the
+callstack `[3, 16]` of a query in `h`. -/
+
+/-- `f()` at site 11, then `while (x) { f() at 16; g = 9; r = 5; }`. -/
+def loopMain : Stmt :=
+  .seq 10 (.call 11 none "f" [])
+    (.loop 12 (.var "x")
+      (.seq 13 (.call 16 none "f" [])
+        (.seq 14 (.assign 15 (.var "g") (.const 9)) (.assign 17 (.var "r") (.const 5)))))
+
+/-- The run of `loopMain` from `x, g, r = 1, 4, 3`. Its first three visits
+before `r = 0;` are at steps 7, 23 and 44, on the callstacks `[3, 11]`,
+`[3, 16]` and `[3, 16]`, with `g = 4`, 4 and 9. It enters `f` at steps 2,
+18 and 39, and `h` at steps 6, 22 and 43, in the states `callState 4 3`,
+`callState 4 0` and `callState 9 5`. -/
+theorem loop_visits :
+    let r := fun n => run queryProg n (Config.entry loopMain ⟨noLocals, queryMem 4 3⟩)
+    (∀ n : Fin 45, labelOf? (r n).2 = some 21 → n.val = 7 ∨ n.val = 23 ∨ n.val = 44) ∧
+    (labelOf? (r 7).2 = some 21 ∧ callstackOf? (r 7).2 = some [3, 11] ∧
+      load (r 7).2.mem 1 = some (.int 4)) ∧
+    (labelOf? (r 23).2 = some 21 ∧ callstackOf? (r 23).2 = some [3, 16] ∧
+      load (r 23).2.mem 1 = some (.int 4)) ∧
+    (labelOf? (r 44).2 = some 21 ∧ callstackOf? (r 44).2 = some [3, 16] ∧
+      load (r 44).2.mem 1 = some (.int 9)) ∧
+    (labelOf? (r 2).2 = some 1 ∧ callstackOf? (r 2).2 = some [11] ∧
+      callState 4 3 (r 2).2.mem) ∧
+    (labelOf? (r 18).2 = some 1 ∧ callstackOf? (r 18).2 = some [16] ∧
+      callState 4 0 (r 18).2.mem) ∧
+    (labelOf? (r 39).2 = some 1 ∧ callstackOf? (r 39).2 = some [16] ∧
+      callState 9 5 (r 39).2.mem) ∧
+    (labelOf? (r 6).2 = some 20 ∧ callstackOf? (r 6).2 = some [3, 11] ∧
+      callState 4 3 (r 6).2.mem) ∧
+    (labelOf? (r 22).2 = some 20 ∧ callstackOf? (r 22).2 = some [3, 16] ∧
+      callState 4 0 (r 22).2.mem) ∧
+    (labelOf? (r 43).2 = some 20 ∧ callstackOf? (r 43).2 = some [3, 16] ∧
+      callState 9 5 (r 43).2.mem) := by
   decide
+
+/-- The log of `loopMain` when both calls at site 16 hit the entry. -/
+def loopLog : List (HitLine predicates) :=
+  [queryLine 11 4 3, queryLine 16 4 0, queryLine 16 9 5]
+
+/-- The lines of `loopLog` meet the premises. -/
+private theorem loopLog_premises : ∀ line ∈ loopLog, LinePremises line := by
+  intro line hl
+  simp only [loopLog, List.mem_cons, List.not_mem_nil, or_false] at hl
+  rcases hl with rfl | rfl | rfl <;> exact queryLine_premises _ _ _
+
+/-- Two hits on one callstack, as in the loop. The log has three lines. The
+query on `g` before `r = 0;` on `[3, 16]` joins the answers of the two lines
+on `[16]` and answers exactly 4 and 9: it contains the content of `g` at the
+visit of each member, 4 and 9. On `[3, 11]` the query answers exactly 4. -/
+theorem same_callstack_join :
+    (∃ vs, query true loopLog ⟨21, [3, 16], .before⟩ 1 = some vs ∧
+      (∀ u, vs u ↔ u = some (.int 4) ∨ u = some (.int 9)) ∧
+      load (trace querySubj ⟨noLocals, queryMem 4 0⟩ 5).2.mem 1 = some (.int 4) ∧
+      vs (load (trace querySubj ⟨noLocals, queryMem 4 0⟩ 5).2.mem 1) ∧
+      load (trace querySubj ⟨noLocals, queryMem 9 5⟩ 5).2.mem 1 = some (.int 9) ∧
+      vs (load (trace querySubj ⟨noLocals, queryMem 9 5⟩ 5).2.mem 1)) ∧
+    (∃ vs, query true loopLog ⟨21, [3, 11], .before⟩ 1 = some vs ∧
+      (∀ u, vs u ↔ u = some (.int 4)) ∧
+      vs (load (trace querySubj ⟨noLocals, queryMem 4 3⟩ 5).2.mem 1)) := by
+  have hl₁ : queryLine 11 4 3 ∈ loopLog := List.mem_cons_self
+  have hl₂ : queryLine 16 4 0 ∈ loopLog := List.mem_cons_of_mem _ List.mem_cons_self
+  have hl₃ : queryLine 16 9 5 ∈ loopLog :=
+    List.mem_cons_of_mem _ (List.mem_cons_of_mem _ List.mem_cons_self)
+  constructor
+  · obtain ⟨vs, hq, -⟩ := query_some (enabled := true) (q := ⟨21, [3, 16], .before⟩)
+      (b := 1) hl₂ rfl rfl
+    have hvs : some vs = some fun v => (predicates.valueOf (callState 4 0) 1).swept v ∨
+        (predicates.valueOf (callState 9 5) 1).swept v := hq.symm.trans rfl
+    cases hvs
+    refine ⟨_, hq, fun u => ?_, rfl,
+      (query_at_line loopLog_premises 16 4 0 .before hl₂).2 true 1 _ hq, rfl,
+      (query_at_line loopLog_premises 16 9 5 .before hl₃).2 true 1 _ hq⟩
+    rw [swept_int (valueOf_call 4 0).1, swept_int (valueOf_call 9 5).1]
+  · obtain ⟨vs, hq, -⟩ := query_some (enabled := true) (q := ⟨21, [3, 11], .before⟩)
+      (b := 1) hl₁ rfl rfl
+    have hvs : some vs = some (predicates.valueOf (callState 4 3) 1).swept :=
+      hq.symm.trans rfl
+    cases hvs
+    exact ⟨_, hq, swept_int (valueOf_call 4 3).1,
+      (query_at_line loopLog_premises 11 4 3 .before hl₁).2 true 1 _ hq⟩
+
+/-! ### An entry for the body of `h`
+
+The call of `h` at site 3 of the call of `f` at site 11 stores an entry for
+the body of `h`. It reads nothing, so its key is empty; it writes `r`. Its
+inner part has the states on the key only: top at every point, the writes of
+the footprint as possible writes, and no updated block. -/
+
+/-- The body of `h` as the cached statement. -/
+def calleeSubj : Subject := ⟨queryProg, queryCallee,
+  ⟨by decide, ⟨fun f => if f = "f" then 1 else 0, by decide⟩, by decide,
+    Or.inl (by decide)⟩⟩
+
+/-- The entry stored by the call of `h` with `x, g, r = 1, 4, 3`. -/
+def calleeEntry : CacheEntry predicates where
+  subject := calleeSubj
+  env := noLocals
+  input := callState 4 3
+  key := []
+  footprint := ⟨[], [2], [2], [2]⟩
+  exit := fun o m => o = .completed ∧ load m 2 = some (.int 0)
+  violations := fun _ => False
+  reached := (· ∈ [20, 21, 22])
+
+/-- The inner part of `calleeEntry`, with the states on the (empty) key
+only. -/
+def calleeInner : InnerPart predicates :=
+  ⟨fun _ _ => True, fun _ => calleeEntry.footprint.writes, fun _ => []⟩
+
+/-- The line of a hit of `h` on the callstack `cs`, with `x = 1` and `g`, `r`
+as given at the call. -/
+def calleeLine (cs : List Label) (g r : Int) : HitLine predicates :=
+  ⟨cs, calleeEntry, calleeInner, callState g r, [0, 1, 2]⟩
+
+private def calleeRun (n : Nat) : List Event × Config FunMem :=
+  trace calleeSubj ⟨noLocals, queryMem 4 3⟩ n
+
+private def CalleeTrace (evs : List Event) (c : Config FunMem) : Prop :=
+  (∀ e ∈ evs, e = .write 2) ∧
+  match c with
+  | .run s _ _ _ => s = queryCallee ∨ s = .assign 21 (.var "r") (.const 0) ∨ s = .skip 22
+  | .done o m => o = .completed ∧ load m 2 = some (.int 0) ∧ Event.write 2 ∈ evs
+  | .fault .. => False
+  | _ => True
+
+private instance (evs : List Event) (c : Config FunMem) :
+    Decidable (CalleeTrace evs c) := by
+  unfold CalleeTrace
+  refine @instDecidableAnd _ _ inferInstance ?_
+  split <;> infer_instance
+
+private theorem callee_trace : ∀ n : Fin 6, CalleeTrace (calleeRun n).1 (calleeRun n).2 := by
+  decide
+
+private theorem callee_at (n : Nat) : CalleeTrace (calleeRun n).1 (calleeRun n).2 := by
+  have hs (extra : Nat) : calleeRun (extra + 5) = calleeRun 5 := by
+    cases extra <;> rfl
+  by_cases hlt : n < 6
+  · exact callee_trace ⟨n, hlt⟩
+  · have he : n = (n - 5) + 5 := by omega
+    rw [he, hs]
+    exact callee_trace 5
+
+private theorem callee_prefix {w : FunMem} (hw : calleeEntry.input w)
+    {evs : List Event} {c : Config FunMem}
+    (h : Prefix calleeSubj ⟨calleeEntry.env, w⟩ evs c) : CalleeTrace evs c := by
+  rw [show (⟨calleeEntry.env, w⟩ : State FunMem) = ⟨noLocals, queryMem 4 3⟩ by
+    rw [callState_eq hw]; rfl] at h
+  obtain ⟨n, hn⟩ := steps_run h
+  have ht := callee_at n
+  change calleeRun n = (evs, c) at hn
+  rw [hn] at ht
+  exact ht
+
+/-- The premises of `CacheEntry.query_sound` on the entry of `h`, proved on
+its producing execution. The inner part is sound by
+`CacheEntry.innerPartSound_of_key`. -/
+theorem callee_entry_premises :
+    calleeEntry.ProducerSound ∧ calleeEntry.Coverage ∧ calleeEntry.KeyCovers ∧
+      calleeEntry.InnerPartSound calleeInner := by
+  have hc : calleeEntry.Coverage := by
+    intro m hm
+    constructor
+    · intro evs c he e hmem
+      rw [(callee_prefix hm he).1 e hmem]
+      exact List.mem_cons_self
+    · intro evs o out he b hb
+      cases (callee_prefix hm he).1 _ hb
+      exact List.mem_cons_self
+    · intro evs o out he b hb
+      simp only [calleeEntry, List.mem_singleton] at hb
+      subst b
+      exact (callee_prefix hm he).2.2.2
+  refine ⟨⟨?_, ?_, ?_⟩, hc, ⟨fun _ h => h, fun _ hb h => absurd hb h⟩, ?_⟩
+  · rintro m hm o out ⟨evs, he⟩
+    obtain ⟨-, ho, hval, -⟩ := callee_prefix hm he
+    exact ⟨ho, hval⟩
+  · intro m hm v hv
+    cases v with
+    | alarm l a =>
+      obtain ⟨evs, out, he⟩ := hv
+      exact (callee_prefix hm he).2
+    | assertion l =>
+      obtain ⟨evs, e, k, env, out, he, -⟩ := hv
+      have ht := (callee_prefix hm he).2
+      simp only [queryCallee] at ht
+      rcases ht with h | h | h <;> cases h
+  · rintro m hm l ⟨env, out, evs, s, k, he, rfl⟩
+    have ht := (callee_prefix hm he).2
+    change s = queryCallee ∨ s = .assign 21 (.var "r") (.const 0) ∨ s = .skip 22 at ht
+    change s.label ∈ [20, 21, 22]
+    rcases ht with rfl | rfl | rfl <;> decide
+  · exact CacheEntry.innerPartSound_of_key _ hc fun w _ q n _ =>
+      ⟨(trace calleeEntry.subject ⟨calleeEntry.env, w⟩ n).2.mem, trivial, fun _ _ => rfl⟩
+
+/-- Each line of a call of `h` meets the premises. -/
+theorem calleeLine_premises (cs : List Label) (g r : Int) : LinePremises (calleeLine cs g r) :=
+  ⟨callee_entry_premises.1, callee_entry_premises.2.1, callee_entry_premises.2.2.1,
+    callee_entry_premises.2.2.2, callState_issued g r⟩
+
+/-- Every call state matches the entry of `h`: its key is empty. A member of
+the line is before `r = 0;` at step 1 of the body of `h`, with `g` at its
+call value. -/
+theorem callee_member (g r : Int) :
+    calleeEntry.Matches FunMem.allocatorAgreement (queryMem g r) ∧
+    AtPoint calleeSubj ⟨noLocals, queryMem g r⟩ ⟨21, [], .before⟩ 1 ∧
+    load (trace calleeSubj ⟨noLocals, queryMem g r⟩ 1).2.mem 1 = some (.int g) :=
+  ⟨⟨queryMem 4 3, callState_queryMem 4 3, ⟨fun _ hb => absurd hb List.not_mem_nil,
+      fun b hb => by simp only [calleeEntry, List.mem_singleton] at hb; subst hb; rfl, rfl⟩⟩,
+    ⟨_, _, _, _, rfl, rfl, rfl⟩, rfl⟩
+
+/-- The log of `loopMain` when the first call at site 16 is analysed and its
+call of `h` hits the entry of `h`, and the second call at site 16 hits the
+entry of `f`. -/
+def nestedLog : List (HitLine predicates) :=
+  [queryLine 11 4 3, calleeLine [3, 16] 4 0, queryLine 16 9 5]
+
+/-- The lines of `nestedLog` meet the premises. -/
+private theorem nestedLog_premises : ∀ line ∈ nestedLog, LinePremises line := by
+  intro line hl
+  simp only [nestedLog, List.mem_cons, List.not_mem_nil, or_false] at hl
+  rcases hl with rfl | rfl | rfl
+  · exact queryLine_premises _ _ _
+  · exact calleeLine_premises _ _ _
+  · exact queryLine_premises _ _ _
+
+/-- Two lines whose callstacks, `[3, 16]` and `[16]`, end the callstack of the
+query with different lengths. The line of `h` answers at the point below its
+hit, with the empty callstack, and gives 4; the line of `f` answers at the
+point with the callstack `[3]` and gives 9. The query on `g` before `r = 0;`
+on `[3, 16]` answers exactly 4 and 9, and contains the content of `g` at
+the visit of each member. -/
+theorem nested_suffix_join :
+    (calleeLine [3, 16] 4 0).answer true ⟨21, [], .before⟩ 1 =
+      some (predicates.valueOf (callState 4 0) 1).swept ∧
+    (queryLine 16 9 5).answer true ⟨21, [3], .before⟩ 1 =
+      some (predicates.valueOf (callState 9 5) 1).swept ∧
+    ∃ vs, query true nestedLog ⟨21, [3, 16], .before⟩ 1 = some vs ∧
+      (∀ u, vs u ↔ u = some (.int 4) ∨ u = some (.int 9)) ∧
+      load (trace calleeSubj ⟨noLocals, queryMem 4 0⟩ 1).2.mem 1 = some (.int 4) ∧
+      vs (load (trace calleeSubj ⟨noLocals, queryMem 4 0⟩ 1).2.mem 1) ∧
+      load (trace querySubj ⟨noLocals, queryMem 9 5⟩ 5).2.mem 1 = some (.int 9) ∧
+      vs (load (trace querySubj ⟨noLocals, queryMem 9 5⟩ 5).2.mem 1) := by
+  have hl₂ : calleeLine [3, 16] 4 0 ∈ nestedLog := List.mem_cons_of_mem _ List.mem_cons_self
+  have hl₃ : queryLine 16 9 5 ∈ nestedLog :=
+    List.mem_cons_of_mem _ (List.mem_cons_of_mem _ List.mem_cons_self)
+  obtain ⟨vs, hq, -⟩ := query_some (enabled := true) (q := ⟨21, [3, 16], .before⟩)
+    (b := 1) hl₂ rfl rfl
+  have hvs : some vs = some fun v => (predicates.valueOf (callState 4 0) 1).swept v ∨
+      (predicates.valueOf (callState 9 5) 1).swept v := hq.symm.trans rfl
+  cases hvs
+  refine ⟨rfl, rfl, _, hq, fun u => ?_, rfl, ?_, rfl,
+    (query_at_line nestedLog_premises 16 9 5 .before hl₃).2 true 1 _ hq⟩
+  · rw [swept_int (valueOf_call 4 0).1, swept_int (valueOf_call 9 5).1]
+  · obtain ⟨hmatch, hv, -⟩ := callee_member 4 0
+    exact (log_sound (q := ⟨21, [3, 16], .before⟩) nestedLog_premises hl₂ rfl
+      (callState_queryMem 4 0) hmatch hv).2 true 1 _ hq
+
+/-- A log of three lines that all apply to a query on `[3, 16]`: a hit of
+`f` with `g = 9`, a hit of `h` with `g = 4`, and a hit of `f` with `g = 7`.
+Each gives a value that the two others do not. -/
+def threeLog : List (HitLine predicates) :=
+  [queryLine 16 9 5, calleeLine [3, 16] 4 0, queryLine 16 7 5]
+
+/-- The lines of `threeLog` meet the premises. -/
+private theorem threeLog_premises : ∀ line ∈ threeLog, LinePremises line := by
+  intro line hl
+  simp only [threeLog, List.mem_cons, List.not_mem_nil, or_false] at hl
+  rcases hl with rfl | rfl | rfl
+  · exact queryLine_premises _ _ _
+  · exact calleeLine_premises _ _ _
+  · exact queryLine_premises _ _ _
+
+/-- The query on `g` before `r = 0;` on `[3, 16]` joins three answers: it
+answers exactly 9, 4 and 7, and contains the content of `g` at the visit of
+each member. -/
+theorem three_lines_join :
+    ∃ vs, query true threeLog ⟨21, [3, 16], .before⟩ 1 = some vs ∧
+      (∀ u, vs u ↔ u = some (.int 9) ∨ u = some (.int 4) ∨ u = some (.int 7)) ∧
+      vs (load (trace querySubj ⟨noLocals, queryMem 9 5⟩ 5).2.mem 1) ∧
+      vs (load (trace calleeSubj ⟨noLocals, queryMem 4 0⟩ 1).2.mem 1) ∧
+      vs (load (trace querySubj ⟨noLocals, queryMem 7 5⟩ 5).2.mem 1) := by
+  have hl₁ : queryLine 16 9 5 ∈ threeLog := List.mem_cons_self
+  have hl₂ : calleeLine [3, 16] 4 0 ∈ threeLog := List.mem_cons_of_mem _ List.mem_cons_self
+  have hl₃ : queryLine 16 7 5 ∈ threeLog :=
+    List.mem_cons_of_mem _ (List.mem_cons_of_mem _ List.mem_cons_self)
+  obtain ⟨vs, hq, -⟩ := query_some (enabled := true) (q := ⟨21, [3, 16], .before⟩)
+    (b := 1) hl₃ rfl rfl
+  have hvs : some vs = some fun v => (predicates.valueOf (callState 9 5) 1).swept v ∨
+      (predicates.valueOf (callState 4 0) 1).swept v ∨
+      (predicates.valueOf (callState 7 5) 1).swept v := hq.symm.trans rfl
+  cases hvs
+  obtain ⟨hmatch, hv, -⟩ := callee_member 4 0
+  refine ⟨_, hq, fun u => ?_,
+    (query_at_line threeLog_premises 16 9 5 .before hl₁).2 true 1 _ hq,
+    (log_sound (q := ⟨21, [3, 16], .before⟩) threeLog_premises hl₂ rfl
+      (callState_queryMem 4 0) hmatch hv).2 true 1 _ hq,
+    (query_at_line threeLog_premises 16 7 5 .before hl₃).2 true 1 _ hq⟩
+  rw [swept_int (valueOf_call 9 5).1, swept_int (valueOf_call 4 0).1,
+    swept_int (valueOf_call 7 5).1]
 
 /-! ## A local of the body
 
@@ -677,8 +1013,15 @@ theorem local_at_line :
       query enabled [localLine] ⟨41, [7], .before⟩ b = some vs →
         vs (load (trace localSubj ⟨noLocals, memOf [.int 2]⟩ 1).2.mem b) := by
   obtain ⟨hp, hc, hk, hi⟩ := local_premises
+  have one {P : HitLine predicates → Prop} (h : P localLine) :
+      ∀ l ∈ [localLine], l.callstack.isSuffixOf [7] → P l := by
+    intro l hl _
+    rw [List.mem_singleton] at hl
+    subst hl
+    exact h
   refine CacheEntry.query_sound (log := [localLine]) (line := localLine)
-    (q := ⟨41, [7], .before⟩) (a := FunMem.allocatorAgreement) rfl hp hc hk hi ?_ rfl
+    (q := ⟨41, [7], .before⟩) (a := FunMem.allocatorAgreement) (one hp) (one hc) (one hk)
+    (one hi) (one ?_) List.mem_cons_self rfl rfl
     ⟨memOf [.int 1], rfl, fun _ hb => absurd hb List.not_mem_nil,
       fun _ hb => absurd hb List.not_mem_nil, rfl⟩
     ⟨_, _, _, _, rfl, rfl, rfl⟩
