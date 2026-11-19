@@ -362,10 +362,12 @@ and `find_match_in_previous`), on which the filter changes nothing; the
 default and configuration ptests show no change of its results.
 
 Why W_exit and not W: a block b of W \ W_exit is written only on paths that
-reach no exit. An execution that returns does not write it, so its value at
-the exit is its value in the input of the call, which can differ from the
-producer's when b is not in the key; the stored exit state holds the
-producer's. [Entry soundness](entry.md#sound-entry-from-producer-soundness-and-coverage)
+reach no exit. An execution that returns makes no ordinary write to it, so
+its value at the exit comes from the input of the call, which can differ
+from the producer's when b is not in the key; the stored exit state holds
+the producer's. The value is the input's unchanged only when no sweep of the
+execution rewrites it: that is the condition on the current holders stated
+in the [hit argument](#reuse-sound-for-cvalue). [Entry soundness](entry.md#sound-entry-from-producer-soundness-and-coverage)
 establishes agreement on W_exit under the full `Matches` witness and the
 construction hypotheses. The reuse operation applies the domain law with
 W_exit, the set that the entry's Exit claim supplies.
