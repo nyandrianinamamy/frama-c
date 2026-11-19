@@ -350,6 +350,16 @@ hits, stop with the same error, without printing a result.
   $ grep -E '^hits|User Error|Function|Inputs' then-input.log
   hits: copy 3; statement results complete: false
   [inout] User Error: cannot compute the inputs and outputs by function or by statement: in the current analysis of Eva, a hit of the cache answered a call without analysing the body of the called function, and saved no state at its statements
+  $ EVA_TEST_CACHE_PARTS=then frama-c -no-autoload-plugins -load-module eva,from,inout,test_cache_parts.cmxs parts.c -then -out-external > then-out-external.log 2>&1
+  [1]
+  $ EVA_TEST_CACHE_PARTS=then frama-c -no-autoload-plugins -load-module eva,from,inout,test_cache_parts.cmxs parts.c -then -input-with-formals > then-input-with-formals.log 2>&1
+  [1]
+  $ EVA_TEST_CACHE_PARTS=then frama-c -no-autoload-plugins -load-module eva,from,inout,test_cache_parts.cmxs parts.c -then -deref > then-deref.log 2>&1
+  [1]
+  $ grep -c 'User Error: cannot compute the inputs and outputs' then-out-external.log then-input-with-formals.log then-deref.log
+  then-out-external.log:1
+  then-input-with-formals.log:1
+  then-deref.log:1
 
 From.get starts the analysis when its results are not computed. The first
 request after the entries are supplied starts the analysis in which the
