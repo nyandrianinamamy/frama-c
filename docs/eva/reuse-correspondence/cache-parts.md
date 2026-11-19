@@ -492,7 +492,15 @@ also sets `Computed` between the analyses of two threads, outside the
 results hook of any call; the collector refuses these analyses (`threaded`)
 and every supplied candidate is rejected in them (`consumer`), so no part
 is captured or restored there. `Eva_results` sets `Computed` when it
-installs saved results, not during an analysis.
+installs saved results, not during an analysis. An analysis started by a
+callback once the state is `Computing` sets `Computed` or `Aborted` when it
+ends, and the analysis that started it goes on with its results available:
+the parts captured in the rest of that analysis are not covered by this
+premise, and every supplied candidate is rejected there (`analysis-reset`,
+[A supplied entry is used with cvalue alone and no unserved
+consumer](reuse-operation.md#a-supplied-entry-is-used-with-cvalue-alone-and-no-unserved-consumer)).
+With Inout loaded, such an analysis stops with an internal error of Inout,
+with or without supplied entries.
 `is_reachable` then holds for every statement, and `kf_pre_state` is `Top`,
 for every call of the analysis that produced the entry and of the current
 one. The dataflow of From goes past the statements that the call does not
@@ -534,7 +542,9 @@ withholds.
 **Open.** The argument rests on the results of Eva being unavailable while
 the analysis runs, which the scenario `history` checks for the queries of
 From and Inout; a later change that makes them available must revisit
-premise 2. An entry produced in an analysis with another initial state is
+premise 2. Nothing refuses the production of an entry in the rest of an
+analysis after an analysis started by a callback ended in it; such an entry
+is not covered when supplied to another analysis (source inspection). An entry produced in an analysis with another initial state is
 not detected (the supplier's premise).
 
 The claim is stated for one configuration: the options of Eva that decide
@@ -730,8 +740,9 @@ again: its start clears the results (`Self.clear_results`), and with them
 the flag that makes the function run once. A request that starts the
 analysis from a callback of the analysis therefore runs a nested analysis
 of the program before its test, with or without the cache, and the test
-sees the hits of that analysis. The scenario `fallback` uses this to
-memoise a result before the hits of the analysis that goes on.
+sees the hits of that analysis. The scenario `fallback` uses this from a
+start hook, which runs before the analysis sets `Computing`, to memoise a
+result before the hits of the analysis that goes on.
 
 The filters `read` and `written` that Inout registers on the variables of
 the server compute the inputs and outputs by function through
