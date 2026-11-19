@@ -61,6 +61,7 @@ module Result : sig
     sweeps : Base.Hptset.t;
     used_functions : (Cil_types.kernel_function * call_mode) list;
     hint_generation : Widen_generation.t option;
+    warn_categories : (string * Log.warn_status) list;
     recorded : recorded list;
     refusals : refusal list;
     children : Cache_observation.child list;
@@ -77,7 +78,8 @@ module Result : sig
       [used_functions] includes the body and the functions seen during
       nested work, with their modes, including a hit's producing trace
       when available.
-      [hint_generation] is the entry-time stamp when a widening read ran. *)
+      [hint_generation] is the entry-time stamp when a widening read ran.
+      [warn_categories] is {!warn_categories} when the recording started. *)
 
   (** Numeric generation within the analysis, starting at zero. *)
   val hint_generation_number : Widen_generation.t -> int
@@ -87,6 +89,13 @@ module Result : sig
       Observers must not change the analysis. *)
   val on_result : (Callstack.t -> t -> unit) -> unit
 end
+
+(** The status of every warning category of the kernel, then of Eva, but
+    the category [alarm] of Eva. It decides the action of a message: none, a
+    feedback, a warning, an error or an abort. A hit prints none of the
+    messages of the body but those of its alarms and statuses, which are
+    those of the category [alarm]. *)
+val warn_categories : unit -> (string * Log.warn_status) list
 
 val capture : Callstack.t -> (unit -> 'a) -> 'a * Result.t option
 val without_recording : (unit -> 'a) -> 'a

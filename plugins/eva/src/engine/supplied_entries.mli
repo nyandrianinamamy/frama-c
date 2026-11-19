@@ -82,18 +82,24 @@ type footprint = Cache_entry.footprint = {
       statuses are emitted, such as the [-warn-*] options of the kernel
       ([-warn-signed-overflow] for instance) and the [-eva-warn-*] options
       of Eva ([-eva-warn-copy-indeterminate] for instance);
-    - the action and the activation of every message and warning category
-      of Eva and of the kernel ([-eva-warn-key], [-eva-msg-key] and those
-      of the kernel), apart from the change of a [-once] category to
-      inactive after its first message, which the logger makes itself.
+    - the status of every warning category of Eva and of the kernel
+      ([-eva-warn-key] and [-kernel-warn-key]), which decides the action of
+      its messages, apart from the category [alarm] of Eva.
 
-    Nothing checks it. An entry produced without the alarms of signed
-    overflows hides them in an analysis that emits them. A hit prints the
-    messages of the statuses and alarms of its entry, through the logger,
-    but no other message of the body, such as the assumption of 2's
-    complement for an overflow: when the category of such a message is set
-    to abort at the hit, an analysis of the body stops where the hit goes
-    on, and the state at the end of the call differs.
+    Nothing checks the options. An entry produced without the alarms of
+    signed overflows hides them in an analysis that emits them. A hit
+    prints the messages of the statuses and alarms of its entry, of the
+    category [alarm], through the logger, but no other message of the body,
+    such as the assumption of 2's complement for an overflow: when the
+    category of such a message is set to abort at the hit, an analysis of
+    the body stops where the hit goes on, and the state at the end of the
+    call differs. The lookup compares the status of the warning categories
+    with their status when the analysis of the body that produced the entry
+    started ({!Body_access.warn_categories}), and rejects the entry with
+    [`Warn_categories] when one differs. It does not see a change made at
+    the call of the hit, after the lookup, by a hook on calls; and an entry
+    given to [supply] carries no status of the categories, so that the
+    caller owes them.
 
     The body of [kf] does not call a function that has a body: a hit skips
     the analysis of [kf] and records [kf] alone among the functions whose
@@ -121,12 +127,12 @@ val supply :
 
 (** Supply the key, states and Safety part of an entry captured by the
     producer, with the next supplied entry identifier. The lookup checks the
-    recorded sweep targets, used functions and widening generation. The
-    fixture must use the same AST and ensure the calls meet the replay
-    premises described on [supply], the settings that decide the alarms,
-    statuses and messages included. Supplying entries remains a test-only
-    operation. Raises [Invalid_argument] if the body may call a function that
-    has a body; the producer stores no such body. *)
+    recorded sweep targets, used functions, widening generation and status
+    of the warning categories. The fixture must use the same AST and ensure
+    the calls meet the replay premises described on [supply], the options
+    that decide the alarms and statuses included. Supplying entries remains
+    a test-only operation. Raises [Invalid_argument] if the body may call a
+    function that has a body; the producer stores no such body. *)
 val supply_produced : Cache_producer.entry -> entry
 
 (** The partition key of a state that no partitioning distinguishes. *)

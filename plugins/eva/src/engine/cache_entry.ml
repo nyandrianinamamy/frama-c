@@ -23,11 +23,12 @@ type dependencies = {
   sweeps : Base.Hptset.t;
   used_functions : (kernel_function * Body_access.call_mode) list;
   hint_generation : Widen_generation.t option;
+  warn_categories : (string * Log.warn_status) list;
 }
 
 type rejection = [
   | `Key_differs | `Key_unclosed | `Sweep | `Recursion | `Hint_generation
-  | `Watchpoint | `Automatic_cleanup | `Nested_delivery
+  | `Watchpoint | `Automatic_cleanup | `Nested_delivery | `Warn_categories
 ]
 
 let rejection_id : rejection -> string = function
@@ -39,6 +40,7 @@ let rejection_id : rejection -> string = function
   | `Watchpoint -> "watchpoint"
   | `Automatic_cleanup -> "automatic-cleanup"
   | `Nested_delivery -> "nested-delivery"
+  | `Warn_categories -> "warn-categories"
 
 let return_block = function
   | Body kf -> Option.map Base.of_varinfo (Library_functions.get_retres_vi kf)

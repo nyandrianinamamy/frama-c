@@ -187,8 +187,8 @@ type rejection =
 
 let rejections : rejection list =
   [ `Key_differs; `Key_unclosed; `Sweep; `Recursion; `Hint_generation;
-    `Watchpoint; `Automatic_cleanup; `Nested_delivery; `Product; `Consumer;
-    `Stop_at_nth_alarm ]
+    `Watchpoint; `Automatic_cleanup; `Nested_delivery; `Warn_categories;
+    `Product; `Consumer; `Stop_at_nth_alarm ]
 
 let rejection_id : rejection -> string = function
   | #Cache_entry.rejection as r -> Cache_entry.rejection_id r
@@ -276,6 +276,8 @@ module Lookup (Domain : sig
         in
         if Option.fold ~none:false ~some:stale d.Cache_entry.hint_generation
         then Error `Hint_generation
+        else if d.warn_categories <> Body_access.warn_categories ()
+        then Error `Warn_categories
         else if not (Sweep_access.clear_input d.sweeps model) then Error `Sweep
         else Ok ()
       in

@@ -66,6 +66,7 @@ module Result = struct
     sweeps : Base.Hptset.t;
     used_functions : (Cil_types.kernel_function * call_mode) list;
     hint_generation : Widen_generation.t option;
+    warn_categories : (string * Log.warn_status) list;
     recorded : recorded list;
     refusals : refusal list;
     children : Cache_observation.child list;
@@ -658,9 +659,20 @@ let check_written ~entry ~exits =
 let finish_paths ~entry ~exit ~returns =
   Option.iter (fun r -> r.paths <- Some (entry, exit, returns)) !current
 
+let warn_categories () =
+  let kernel (c, status) = Kernel.wkey_name c, status in
+  let alarm = Self.wkey_name Log_key.warn_alarm in
+  let eva (c, status) =
+    let name = Self.wkey_name c in
+    if name = alarm then None else Some (name, status)
+  in
+  List.map kernel (Kernel.get_all_warn_categories_status ())
+  @ List.filter_map eva (Self.get_all_warn_categories_status ())
+
 let capture stack compute =
   if not (Parameters.CacheCollect.get ()) then compute (), None
   else
+    let warn_categories = warn_categories () in
     let previous = !current and previous_site = !call_site in
     let r = {
       stack;
@@ -741,6 +753,7 @@ let capture stack compute =
       used_functions;
       hint_generation =
         (if r.reads_widening_hints then Some r.entry_generation else None);
+      warn_categories;
       recorded = List.sort compare r.recorded;
       refusals = List.sort compare r.refusals;
       children = List.rev r.children;

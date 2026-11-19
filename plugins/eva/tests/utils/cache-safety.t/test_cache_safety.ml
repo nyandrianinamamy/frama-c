@@ -479,6 +479,37 @@ let precondition_reference () =
   observe_one ();
   reference ~observed:"pre" ["out"] ()
 
+(* Within one analysis: a hand-written entry of body for x = 5 makes the
+   analysis use supplied entries. At the call of other, a hook supplies the
+   entry that the analysis stored for the first call of body, and with
+   SUPPLY=on only, then sets the category signed-overflow to abort. *)
+let same_analysis () =
+  let x = formal "body" "x" and out = global "out" in
+  let written = bases [out] in
+  if env "SUPPLY" = Some "on" then
+    ignore
+      (Supplied.supply (kf "body") ~key:(bases [x]) ~input:(state [x, 5])
+         ~footprint:Supplied.{ read = bases [x]; written;
+                               written_exit = written; written_sure = written }
+         ~exit:[Supplied.empty_key, state [x, 5; out, 12]])
+  else Eva.Parameters.Memexec.off ();
+  let fired = ref false in
+  let trigger = annotation "other" "trigger" in
+  Property_status.register_status_update_hook (fun _ ip _ ->
+      if not !fired && Property.equal ip trigger then begin
+        fired := true;
+        if env "SUPPLY" = Some "on" then begin
+          let produced = Producer.entries (kf "body") in
+          Format.printf "supplied during the analysis: %d@."
+            (List.length produced);
+          List.iter (fun p -> ignore (Supplied.supply_produced p)) produced
+        end;
+        Dynamic.Parameter.String.set "-eva-warn-key" "signed-overflow=abort"
+      end);
+  analyse ();
+  hits "body";
+  summary ["out"]
+
 let () =
   match Sys.getenv_opt "EVA_TEST_CACHE_SAFETY" with
   | Some "replay" -> Boot.Main.extend (replay ["r1"; "r2"])
@@ -491,6 +522,7 @@ let () =
   | Some "crossing" -> Boot.Main.extend crossing
   | Some "crossing-reference" -> Boot.Main.extend crossing_reference
   | Some "owner" -> Boot.Main.extend owner
+  | Some "same" -> Boot.Main.extend same_analysis
   | Some "reentrant" -> Boot.Main.extend (reentrant reentrant_replay)
   | Some "reentrant-reference" ->
     Boot.Main.extend (reentrant (reference ["r1"; "r2"]))

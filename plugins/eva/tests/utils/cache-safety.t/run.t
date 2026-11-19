@@ -191,11 +191,17 @@ candidate is rejected for consumer, and the body is analysed.
     call to body: lookup: rejected (entry 1: consumer); execution: analysed; storage: refused (supplied-only); collector: would-store
     call to body: lookup: rejected (entry 1: consumer); execution: analysed; storage: refused (supplied-only); collector: would-store
   hits on body: 0
-  $ EVA_TEST_CACHE_SAFETY=replay-out frama-c -no-autoload-plugins -load-module eva,metrics,test_cache_safety.cmxs -main producer -eva-msg-key cache passes.c > metrics.log 2>&1
+
+Metrics loads the server, whose hook on the changes of annotations refuses
+with callback a body that registers an alarm. The entry is that of
+body(2, 1), which registers none, and the first call of main is the
+candidate. The second call, body(1, 0), registers the division alarm.
+
+  $ EVA_TEST_CACHE_SAFETY=replay-out frama-c -no-autoload-plugins -load-module eva,metrics,test_cache_safety.cmxs -main producer_safe -eva-msg-key cache passes.c > metrics.log 2>&1
   $ grep -E 'call to body|^hits on' metrics.log
     call to body: lookup: no-candidate; execution: analysed; storage: refused (no-inout); collector: would-store
     call to body: lookup: rejected (entry 1: consumer); execution: analysed; storage: refused (supplied-only); collector: would-store
-    call to body: lookup: rejected (entry 1: consumer); execution: analysed; storage: refused (supplied-only); collector: would-store
+    call to body: lookup: rejected (entry 1: consumer); execution: analysed; storage: refused (supplied-only); collector: refused (callback)
   hits on body: 0
 
 A hit records the called function alone among those whose statements have
@@ -264,13 +270,16 @@ nothing checks it yet. This run breaks that premise on purpose, to show the
 current behaviour: the entry of body is produced with
 -no-warn-signed-overflow and used with -warn-signed-overflow. The hit hides
 the overflow alarm that the analysis of body emits with caching disabled.
+Both analyses run with the category signed-overflow inactive: with the
+category active, the assumption of 2's complement is a message printed once,
+and the collector refuses the body (side-table).
 
-  $ EVA_TEST_CACHE_SAFETY=replay-out EVA_TEST_CACHE_SAFETY_OVERFLOW=on frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -main producer -no-warn-signed-overflow -eva-msg-key cache overflow.c > overflow.log 2>&1
+  $ EVA_TEST_CACHE_SAFETY=replay-out EVA_TEST_CACHE_SAFETY_OVERFLOW=on frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -main producer -no-warn-signed-overflow -eva-warn-key signed-overflow=inactive -eva-msg-key cache overflow.c > overflow.log 2>&1
   $ grep -B 1 'lookup: hit' overflow.log | sed 's/ *$//'
   [eva:cache] overflow.c:19:
     call to body: lookup: hit (entry 1); execution: not-analysed; storage: none
   $ grep '^| ' overflow.log > overflow.summary
-  $ EVA_TEST_CACHE_SAFETY=reference-out frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs overflow.c > overflow-reference.log 2>&1
+  $ EVA_TEST_CACHE_SAFETY=reference-out frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -eva-warn-key signed-overflow=inactive overflow.c > overflow-reference.log 2>&1
   $ grep '^| ' overflow-reference.log > overflow-reference.summary
   $ diff overflow.summary overflow-reference.summary
   1a2,3
@@ -278,20 +287,23 @@ the overflow alarm that the analysis of body emits with caching disabled.
   > | overflow.c:8: status of alarm signed_overflow: invalid
   [1]
 
-The actions of the message and warning categories belong to the same
-premise: those in force at the call that produced an entry must be in force
-at each hit on it. A hit prints the messages of the statuses and the alarms
+The actions of the message and warning categories decide the end state, not
+only the messages: a hit prints the messages of the statuses and the alarms
 of its entry, but not others, such as the assumption of 2's complement for
-an overflow. These runs break the premise on purpose, to show the current
-behaviour: the category can change the end state, not only hide a message.
-The entry of body is produced with the category signed-overflow inactive,
-and used with the category set to abort. With caching disabled, the
-analysis stops at the overflow, and no state reaches the end of main; the
-hit prints nothing and gives out = 8.
+an overflow. The lookup compares the status of every warning category of
+the kernel and of Eva with its status when the analysis of the body that
+produced the entry started, and rejects the entry when one differs
+(warn-categories). The entry of body is produced with the category
+signed-overflow inactive, and looked up with the category set to abort: body
+is analysed, and the analysis stops at the overflow, as with caching
+disabled.
 
   $ EVA_TEST_CACHE_SAFETY=replay-out EVA_TEST_CACHE_SAFETY_CATEGORY=signed-overflow=abort frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -main producer -no-warn-signed-overflow -eva-warn-key signed-overflow=inactive -eva-msg-key cache overflow.c > fatal.log 2>&1
-  $ grep -E "lookup: hit|2's complement|^analysis aborted" fatal.log
-    call to body: lookup: hit (entry 1); execution: not-analysed; storage: none
+  $ sed -n '/^second analysis/,$p' fatal.log > fatal.second
+  $ grep -E "call to body|2's complement|^analysis aborted" fatal.second
+  [eva:signed-overflow] overflow.c:8: Failure: 2's complement assumed for overflow
+    call to body: lookup: rejected (entry 1: warn-categories); execution: interrupted; storage: none
+  analysis aborted
   $ grep '^| ' fatal.log > fatal.summary
   $ EVA_TEST_CACHE_SAFETY=reference-out EVA_TEST_CACHE_SAFETY_CATEGORY=signed-overflow=abort frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -no-warn-signed-overflow -eva-msg-key cache overflow.c > fatal-reference.log 2>&1
   $ grep -E "2's complement|^analysis aborted" fatal-reference.log
@@ -299,22 +311,41 @@ hit prints nothing and gives out = 8.
   analysis aborted
   $ grep '^| ' fatal-reference.log > fatal-reference.summary
   $ diff fatal.summary fatal-reference.summary
-  1c1
-  < | end of main: out = 8
-  ---
-  > | end of main: out: The computed state is bottom
-  [1]
 
-The same happens when both analyses start with the category active, and a
-hook sets it to abort during the analysis that uses the entry, at the call
-of body. Nothing in Eva sees the change: the hook runs after the lookup.
+The same within one analysis. In same.c, the first call of body is analysed
+with the category inactive, and its entry is stored. A hook on the status
+of the assertion in other supplies that entry and sets the category to
+abort; nothing else in Eva sees the change. The second call of body rejects
+the entry and stops at the overflow, as with caching disabled.
 
-  $ EVA_TEST_CACHE_SAFETY=replay-out EVA_TEST_CACHE_SAFETY_HOOK=signed-overflow=abort frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -main producer -no-warn-signed-overflow -eva-msg-key cache overflow.c > hook.log 2>&1
+  $ EVA_TEST_CACHE_SAFETY=same EVA_TEST_CACHE_SAFETY_SUPPLY=on frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -no-warn-signed-overflow -eva-warn-key signed-overflow=inactive -eva-msg-key cache same.c > same.log 2>&1
+  $ grep -E "call to body|^supplied|2's complement|^analysis aborted|^hits on" same.log
+    call to body: lookup: rejected (entry 1: key-differs); execution: analysed; storage: refused (supplied-only); collector: would-store
+  supplied during the analysis: 1
+  [eva:signed-overflow] same.c:8: Failure: 2's complement assumed for overflow
+    call to body: lookup: rejected (entry 1: key-differs), rejected (entry 2: warn-categories); execution: interrupted; storage: none
+  analysis aborted
+  hits on body: 0
+  $ grep '^| ' same.log > same.summary
+  $ EVA_TEST_CACHE_SAFETY=same frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -no-warn-signed-overflow -eva-warn-key signed-overflow=inactive -eva-msg-key cache same.c > same-reference.log 2>&1
+  $ grep '^| ' same-reference.log > same-reference.summary
+  $ diff same.summary same-reference.summary
+
+A change made at the call of the hit itself, after the lookup, is not seen.
+This run breaks the premise on purpose: the entry is produced with the
+category inactive, and in the analysis that uses it, a hook sets the
+category to abort at the call of body. The hit prints nothing and gives
+out = 8, where the analysis with caching disabled stops at the overflow.
+Within one analysis, such a hook also runs at the call that produces the
+entry, whose body then refuses (callback); a hook registered between the
+two calls remains open.
+
+  $ EVA_TEST_CACHE_SAFETY=replay-out EVA_TEST_CACHE_SAFETY_HOOK=signed-overflow=abort frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -main producer -no-warn-signed-overflow -eva-warn-key signed-overflow=inactive -eva-msg-key cache overflow.c > hook.log 2>&1
   $ sed -n '/^second analysis/,$p' hook.log > hook.second
   $ grep -E "lookup: hit|2's complement|^analysis aborted" hook.second
     call to body: lookup: hit (entry 1); execution: not-analysed; storage: none
   $ grep '^| ' hook.log > hook.summary
-  $ EVA_TEST_CACHE_SAFETY=reference-out EVA_TEST_CACHE_SAFETY_HOOK=signed-overflow=abort frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -no-warn-signed-overflow -eva-msg-key cache overflow.c > hook-reference.log 2>&1
+  $ EVA_TEST_CACHE_SAFETY=reference-out EVA_TEST_CACHE_SAFETY_HOOK=signed-overflow=abort frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -no-warn-signed-overflow -eva-warn-key signed-overflow=inactive -eva-msg-key cache overflow.c > hook-reference.log 2>&1
   $ grep -E "2's complement|^analysis aborted" hook-reference.log
   [eva:signed-overflow] overflow.c:8: Failure: 2's complement assumed for overflow
   analysis aborted
@@ -325,6 +356,18 @@ of body. Nothing in Eva sees the change: the hook runs after the lookup.
   ---
   > | end of main: out: The computed state is bottom
   [1]
+
+Printing the message of a status reads the history of the logger, and a
+hit makes the same read when it prints the message again: a body whose
+statuses come with messages would store. With the category alarm printed
+once, the policy of the category refuses the body.
+
+  $ frama-c -no-autoload-plugins -load-module eva -eva -main producer -eva-cache-collect -eva-msg-key cache safety.c > status-message.log 2>&1
+  $ grep 'call to body' status-message.log
+    call to body: lookup: no-candidate; execution: analysed; storage: refused (no-inout); collector: would-store
+  $ frama-c -no-autoload-plugins -load-module eva -eva -main producer -eva-cache-collect -eva-msg-key cache -eva-warn-key alarm=once safety.c > status-once.log 2>&1
+  $ grep 'call to body' status-once.log
+    call to body: lookup: no-candidate; execution: analysed; storage: refused (no-inout); collector: refused (side-table)
 
 The message of a status is part of the Safety part. A hit prints it again
 through the function that the body uses, at its position, with the

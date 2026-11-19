@@ -69,6 +69,7 @@ type dependencies = {
   sweeps : Base.Hptset.t;
   used_functions : (kernel_function * Body_access.call_mode) list;
   hint_generation : Widen_generation.t option;
+  warn_categories : (string * Log.warn_status) list;
 }
 
 type rejection = [
@@ -83,6 +84,10 @@ type rejection = [
   (** The entry would skip a definition's automatic allocation cleanup. *)
   | `Nested_delivery
   (** The entry would skip nested work without replaying its results. *)
+  | `Warn_categories
+  (** The status of a warning category differs from its status when the
+      analysis of the body that produced the entry started
+      ({!Body_access.warn_categories}). *)
 ]
 
 (** Stable identifier of a rejection reason. *)

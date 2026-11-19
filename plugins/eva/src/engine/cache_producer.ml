@@ -154,6 +154,7 @@ let produce ~save_results ~safety callstack input states r =
     let dependencies = Cache_entry.{
         sweeps = r.sweeps; hint_generation = r.hint_generation;
         used_functions = r.used_functions;
+        warn_categories = r.warn_categories;
       }
     in
     let observation =

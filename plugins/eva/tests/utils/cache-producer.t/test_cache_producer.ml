@@ -136,7 +136,8 @@ let admission () =
       reads = empty; dependencies = empty; writes = empty; exit_writes = empty;
       sure_writes = Base.Hptset.empty; designated = empty;
       owners = Base.Hptset.empty; sweeps = Base.Hptset.empty;
-      used_functions = []; hint_generation = None; children = [];
+      used_functions = []; hint_generation = None; warn_categories = [];
+      children = [];
       recorded = []; refusals = [];
     }
   in

@@ -161,8 +161,8 @@ Help message about message categories.
                             module and rejected with one of the reasons:
                             key-differs, key-unclosed, sweep, recursion,
                             hint-generation, watchpoint, automatic-cleanup,
-                            nested-delivery, product, consumer,
-                            stop-at-nth-alarm), execution of the body
+                            nested-delivery, warn-categories, product,
+                            consumer, stop-at-nth-alarm), execution of the body
                             (analysed, not-analysed or interrupted) and storage
                             of the result (stored, none, or refused with one of
                             the reasons: disabled, not-cacheable, no-inout,
