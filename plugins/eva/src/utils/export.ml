@@ -248,9 +248,9 @@ let generator () : visitor =
       match self#current_kf with
       | None -> Cil.SkipChildren
       | Some kf when Reach_delivery.reach_unknown_of kf ->
-        (* A hit on an entry without a Reach part answered a call of [kf]:
-           the states saved in [kf] are those of the analysed calls only, and
-           do not bound the values at its statements. *)
+        (* A hit whose points the queries do not see answered a call of
+           [kf]: the states saved in [kf] are those of the analysed calls
+           only, and do not bound the values at its statements. *)
         Cil.SkipChildren
       | Some kf ->
         if not @@ List.for_all (fun s -> Stmts.mem s dead) stmt.preds then

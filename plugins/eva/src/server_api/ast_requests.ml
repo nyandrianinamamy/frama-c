@@ -128,9 +128,8 @@ let dead_code = function
         match Analysis.status kf with
         | Unreachable | SpecUsed | Builtin _ -> { empty with unreachable = body }
         | Analyzed _ when Reach_delivery.reach_unknown_of kf ->
-          (* A hit on an entry without a Reach part answered a call of [kf],
-             and reached no statement: the absence of a state proves
-             nothing. *)
+          (* A hit whose points the queries do not see answered a call of
+             [kf]: the absence of a state proves nothing. *)
           empty
         | Analyzed NoResults -> empty
         | Analyzed (Partial | Complete) ->

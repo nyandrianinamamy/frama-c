@@ -41,8 +41,8 @@ val deliver : Callstack.t -> Safety_part.t -> unit
     the call are skipped. The hit delivers the points it reaches
     ({!Reach_delivery}), where the state of its callstack is [top]; the
     passes run at the end of the analysis read these points, and skip the
-    functions answered by a hit on an entry without a Reach part
-    ({!Reach_delivery.reach_unknown_of}). The record below serves the
+    functions of unknown reachability ({!Reach_delivery.reach_unknown_of}).
+    The record below serves the
     statistics of a function, computed again after each such hit. The
     functions called by the body of an entry are skipped as well; there are
     none, since an entry is refused for a body that may call a function

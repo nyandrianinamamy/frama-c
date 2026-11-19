@@ -222,6 +222,8 @@ let observe () =
     (Eva.Statistics.get Eva.Statistics.cache_hits (kf "body"));
   printf "reachability of body unknown: %b@."
     (Eva__Reach_delivery.reach_unknown_of (kf "body"));
+  printf "visits of body skipped: %b@."
+    (Eva__Safety_delivery.visits_skipped (kf "body"));
   hit_points ();
   if env "VALUES" = Some "on" then values ();
   export ();

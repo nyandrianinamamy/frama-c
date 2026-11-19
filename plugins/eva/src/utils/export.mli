@@ -35,9 +35,10 @@ val emitter : Emitter.t
    Creates a visitor that can be used to generate new annotations for all
    visited instructions. The generated assertions are associated with the local
    {!emitter}. They are all assigned a valid status by {!Analysis.emitter}.
-   No annotation is generated in a function a call of which was answered by a
-   hit of the cache on an entry without a Reach part: the states saved there
-   do not cover that call (see {!Reach_delivery.reach_unknown_of}). A hit
+   No annotation is generated in a function of unknown reachability, a call
+   of which was answered by a hit of the cache whose points the queries do
+   not see: the states saved there do not cover that call (see
+   {!Reach_delivery.reach_unknown_of}). A hit
    that delivers its Reach part leaves the state [top] at the points it
    reaches.
 *)

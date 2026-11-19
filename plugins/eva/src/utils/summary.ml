@@ -155,9 +155,9 @@ let get_status ip =
   Property_status.fold_on_statuses aux_status ip None
 
 (* A statement is reached if a state is saved there or a hit of the cache
-   reached it (see {!Reach_delivery}). A statement of a function a call of
-   which was answered by a hit on an entry without a Reach part is counted as
-   reached: that hit reaches no statement, and the absence of a state there
+   reached it (see {!Reach_delivery}). A statement of a function of unknown
+   reachability, a call of which was answered by a hit whose points the
+   queries do not see, is counted as reached: the absence of a state there
    does not prove the statement unreachable. The coverage is then an upper
    bound, and its line says so (see [unknown_reachability]). *)
 let reached stmt =

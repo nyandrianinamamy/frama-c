@@ -39,8 +39,8 @@ let iter_normal_ensures f kf =
     (fun bhv -> Annotations.iter_ensures (f bhv) kf bhv.b_name) kf
 
 (* A statement is unreached if no state is saved there and no hit of the
-   cache reached it, unless a hit on an entry without a Reach part answered a
-   call of its function: that hit reaches no statement. See
+   cache reached it, unless its function is of unknown reachability: a hit
+   whose points the queries do not see answered a call of it. See
    {!Reach_delivery}. *)
 let unreached stmt =
   not (Results.is_reachable stmt || Reach_delivery.reach_unknown_at stmt)
@@ -186,9 +186,9 @@ let mark_green_and_red () =
        status, or user assertions that mention a C label. The latter are
        currently skipped during evaluation. A hit of the cache saves no
        state: its callstacks answer top at the statements it reaches. In a
-       function answered by a hit on an entry without a Reach part, the
-       states are those of the analysed calls only: no status is concluded
-       from them. *)
+       function of unknown reachability ({!Reach_delivery.reach_unknown_at}),
+       the states are those of the analysed calls only: no status is
+       concluded from them. *)
     if (is_alarm || contains_c_at ca) && Results.is_reachable stmt
        && not (Reach_delivery.reach_unknown_at stmt) then
       match ca.annot_content with

@@ -163,15 +163,16 @@ Eva_results.get_results takes the results of the current analysis, and
 Eva_results.set_results clears the results and installs those it is given.
 With RESTORE=same, the test module takes the results and installs them in
 the same project, then prints its lines again, prefixed by "restored ". The
-points reached by the hit are installed with the states: the callstacks, the
-dead code, the values and the annotations that Export generates in body are
-those before. The number of hits is a statistic, not a result, and is 0
+points reached by the hit, and the record that it skipped the visits of
+body, are installed with the states: the callstacks, the dead code, the
+values and the annotations that Export generates in body are those before.
+The number of hits is a statistic, not a result, and is 0
 after the installation. The results hold neither the guard outcomes, nor
 the zones, nor the statuses of reachability: they are lost, with or without
 the hit.
 
   $ EVA_TEST_CACHE_REACH=replay EVA_TEST_CACHE_REACH_RESTORE=same EVA_TEST_CACHE_REACH_VALUES=on EVA_TEST_CACHE_REACH_EXPORT=on frama-c -no-autoload-plugins -load-module eva,test_cache_reach.cmxs -main producer -eva-msg-key cache reach.c > restore.log 2>&1
-  $ grep -E '^(hits|reachability|points|value|exported|\| )' restore.log > restore.before
+  $ grep -E '^(hits|reachability|visits|points|value|exported|\| )' restore.log > restore.before
   $ sed -n 's/^restored //p' restore.log > restore.after
   $ diff restore.before restore.after
   1c1,2
@@ -179,14 +180,14 @@ the hit.
   ---
   > results computed: true
   > hits on body: 0
-  19,21c20,21
+  20,22c21,22
   < | guard: stmt 3 (line 8): then true, else true
   < | guard: stmt 8 (line 14): then false, else true
   < | reach.c:15: status of reachability of stmt reach.c:15 in body: invalid and reachable
   ---
   > | guard: stmt 3 (line 8): then false, else false
   > | guard: stmt 8 (line 14): then false, else false
-  34,43d33
+  35,44d34
   < | zones: stmt 1 (line 7) in body :: line 29 <- main: read \nothing; write l
   < | zones: stmt 1 (line 7) in body :: line 30 <- main: read \nothing; write l
   < | zones: stmt 12 (line 18) in body :: line 29 <- main: read x; l; write g
@@ -198,6 +199,9 @@ the hit.
   < | zones: stmt 8 (line 14) in body :: line 29 <- main: read x; write \nothing
   < | zones: stmt 8 (line 14) in body :: line 30 <- main: read x; write \nothing
   [1]
+  $ grep -E '^(restored )?visits' restore.log
+  visits of body skipped: true
+  restored visits of body skipped: true
 
 The installed results with the hit give the same lines as those with
 caching disabled. Export generates fewer annotations with the hit, as
@@ -494,6 +498,13 @@ annotation in body.
                      int l = 1; ],
       reached: [],
       nonTerminating: [] }
+
+The other lines, the guard outcomes, the zones and the call sites among
+them, equal those of caching disabled.
+
+  $ grep '^| ' domain.log > domain.summary
+  $ grep '^| ' domain-reference.log > domain-reference.summary
+  $ diff domain.summary domain-reference.summary
 
 In holder.c, body stores the address of its formal x into gp. After the
 call, the caller ends the lifetime of x, and gp holds an escaping address.
