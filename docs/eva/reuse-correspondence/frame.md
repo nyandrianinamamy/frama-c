@@ -123,7 +123,7 @@ A sweep can change an untouched holder even though the write bound covers
 all designated writes.
 
 **Evidence.** Tree of `lean/` `baaacef349ee92e373475ca88b596619282b3ed2` at
-commit `f66580ed1d6c5fc20771f2a8cff8fe8348e03024`. `cd lean && lake build --wfail`
+commit `fa1175a44de40098071cb2ada6674a2fa875876f`. `cd lean && lake build --wfail`
 completed with exit status 0 using the pinned Lean 4.28.0 toolchain.
 CI is pending.
 
