@@ -32,7 +32,6 @@ open Cil_types
 (** The statement of an entry. The only unit is the body of a function. *)
 type statement = Body of kernel_function
 
-type call_mode = Cache_observation.call_mode
 type observation = Cache_observation.observation
 
 (** The blocks that a statement analysed from one input may access. The
@@ -79,6 +78,8 @@ type rejection = [
   | `Sweep | `Recursion | `Hint_generation | `Watchpoint
   | `Automatic_cleanup
   (** The entry would skip a definition's automatic allocation cleanup. *)
+  | `Nested_delivery
+  (** The entry would skip nested work without replaying its results. *)
 ]
 
 (** Stable identifier of a rejection reason. *)

@@ -160,7 +160,7 @@ type rejection = [ Cache_entry.rejection | `Product | `Consumer ]
 
 let rejections : rejection list =
   [ `Key_differs; `Key_unclosed; `Sweep; `Recursion; `Hint_generation;
-    `Watchpoint; `Automatic_cleanup; `Product; `Consumer ]
+    `Watchpoint; `Automatic_cleanup; `Nested_delivery; `Product; `Consumer ]
 
 let rejection_id : rejection -> string = function
   | #Cache_entry.rejection as r -> Cache_entry.rejection_id r
@@ -205,22 +205,32 @@ module Lookup (Domain : sig
       not (Kernel_function.equal f (Callstack.top_kf stack))
       && Kernel_function.is_definition f
     in
+    let has_nested_work =
+      let own_body (f, mode) =
+        mode = `Body && Kernel_function.equal f (Callstack.top_kf stack)
+      in
+      Entry.children entry <> [] ||
+      List.exists (fun call -> not (own_body call)) used_functions
+    in
     if Body_access.recursion_conflict stack used_functions then Error `Recursion
     else if List.exists would_skip_cleanup used_functions
          && Builtins_malloc.has_automatic_bases ()
     then Error `Automatic_cleanup
     else if Builtins_watchpoint.active () then Error `Watchpoint
     else
-      match dependencies with
-      | None -> Ok ()
-      | Some d ->
+      let check_dependencies d =
         let stale g =
           not (Widen_generation.equal g (Widen_generation.current ()))
         in
-        if Option.fold ~none:false ~some:stale d.hint_generation
+        if Option.fold ~none:false ~some:stale d.Cache_entry.hint_generation
         then Error `Hint_generation
         else if not (Sweep_access.clear_input d.sweeps model) then Error `Sweep
         else Ok ()
+      in
+      match Option.fold ~none:(Ok ()) ~some:check_dependencies dependencies with
+      | Error _ as error -> error
+      | Ok () when has_nested_work -> Error `Nested_delivery
+      | Ok () -> Ok ()
 
   let find stack state =
     match entries (Callstack.top_kf stack) with
@@ -235,7 +245,9 @@ module Lookup (Domain : sig
       | Some _ when consumer_enabled () || stack.thread <> Thread.main_id ->
         reject_all `Consumer
       | Some eq ->
-        let result = Entry.find ~admit:(admit stack) candidates (cast eq state) in
+        let result =
+          Entry.find ~admit:(admit stack) candidates (cast eq state)
+        in
         let reject (e, reason) = Entry.id e, (reason :> rejection) in
         let hit (e, states) =
           e, List.map (fun (k, s) -> k, cast_back eq s) states

@@ -95,3 +95,25 @@ void inline_parent(void) {
   x = 0;
   requires_middle();
 }
+
+int *sweep_holder;
+void own_sweep(void) {
+  {
+    int local;
+    sweep_holder = &local;
+  }
+}
+void sweep_parent(void) { own_sweep(); }
+int sweep_main(void) { sweep_parent(); return 0; }
+
+int hint_value;
+void hint_reader(void) { while (hint_value < 13) ++hint_value; }
+void hint_parent(void) { hint_reader(); }
+void hint_marker(void) {}
+int hint_main(void) {
+  hint_parent();
+  hint_marker();
+  hint_value = 0;
+  hint_parent();
+  return hint_value;
+}

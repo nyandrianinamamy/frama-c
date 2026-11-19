@@ -58,5 +58,6 @@ module Make (Domain : sig
   val store :
     save_results:bool -> Callstack.t -> Domain.t ->
     Domain.t Engine_sig.call_result -> Body_access.Result.t ->
-    (unit, Body_access.Result.refusal) result -> (Cache_entry.Cvalue.t, refusal) result
+    (unit, Body_access.Result.refusal) result ->
+    (Cache_entry.Cvalue.t, refusal) result
 end

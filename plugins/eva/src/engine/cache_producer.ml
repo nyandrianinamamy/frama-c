@@ -157,8 +157,7 @@ let produce ~save_results callstack input states r =
       }
     in
     let observation =
-      Cache_observation.{ designated = r.designated; recorded = r.recorded;
-                          functions = r.used_functions }
+      Cache_observation.{ designated = r.designated; recorded = r.recorded }
     in
     let cache_entry =
       Entry.make ~id ~reads ~dependencies ~observation ~children:r.children

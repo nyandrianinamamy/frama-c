@@ -113,19 +113,8 @@ module Make (Engine: Engine_sig.S) = struct
          Option.iter (Body_access.include_trace call.callstack) trace;
          Body_access.unknown_access Nested_call
        | Cache.Supplied_entry entry ->
-         let module Entry = Cache_entry.Cvalue in
-         let dependencies = Entry.dependencies entry in
-         let sweeps =
-           Option.fold ~none:Base.Hptset.empty
-             ~some:(fun d -> d.Cache_entry.sweeps) dependencies
-         in
-         let hint_generation =
-           Option.bind dependencies (fun d -> d.Cache_entry.hint_generation)
-         in
-         Body_access.include_hit call.callstack (Entry.reference entry)
-           ~footprint:(Entry.footprint entry) ~key:(Entry.key entry)
-           ~returns:(states <> []) ~sweeps ~hint_generation
-           ~observation:(Entry.observation entry));
+         Call_cache.include_supplied call.callstack entry
+           ~returns:(states <> []));
       apply_call_hooks call init_state `Reuse;
       (* Evaluate the preconditions of kf, to update the statuses
          at this call. *)
@@ -158,7 +147,6 @@ module Make (Engine: Engine_sig.S) = struct
     then Self.abort "Library function call. Stopping.";
     let vi = Kernel_function.get_vi call.kf in
     (* Use vorig_name to avoid message duplication due to variadic renaming. *)
-    if Self.verbose_atleast 3 then Body_access.read_message_history ();
     Self.feedback ~level:3 ~once:true
       "@[using specification for function %a@]"
       Printer.pp_varname vi.vorig_name;

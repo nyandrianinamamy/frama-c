@@ -10,7 +10,6 @@ open Cil_types
 
 type statement = Body of kernel_function
 
-type call_mode = Cache_observation.call_mode
 type observation = Cache_observation.observation
 
 type footprint = Cache_observation.footprint = {
@@ -28,7 +27,7 @@ type dependencies = {
 
 type rejection = [
   | `Key_differs | `Key_unclosed | `Sweep | `Recursion | `Hint_generation
-  | `Watchpoint | `Automatic_cleanup
+  | `Watchpoint | `Automatic_cleanup | `Nested_delivery
 ]
 
 let rejection_id : rejection -> string = function
@@ -39,6 +38,7 @@ let rejection_id : rejection -> string = function
   | `Hint_generation -> "hint-generation"
   | `Watchpoint -> "watchpoint"
   | `Automatic_cleanup -> "automatic-cleanup"
+  | `Nested_delivery -> "nested-delivery"
 
 let return_block = function
   | Body kf -> Option.map Base.of_varinfo (Library_functions.get_retres_vi kf)

@@ -160,11 +160,12 @@ Help message about message categories.
                             (no-candidate, hit, or entries supplied by a test
                             module and rejected with one of the reasons:
                             key-differs, key-unclosed, sweep, recursion,
-                            hint-generation, watchpoint, product, consumer),
-                            execution of the body (analysed, not-analysed or
-                            interrupted) and storage of the result (stored,
-                            none, or refused with one of the reasons: disabled,
-                            not-cacheable, no-inout, footprint-top, relate-top,
+                            hint-generation, watchpoint, automatic-cleanup,
+                            nested-delivery, product, consumer), execution of
+                            the body (analysed, not-analysed or interrupted)
+                            and storage of the result (stored, none, or refused
+                            with one of the reasons: disabled, not-cacheable,
+                            no-inout, footprint-top, relate-top,
                             relate-unclosed, exception, supplied-only)
     cache-producer        : show storage of entries produced from fresh bodies
     callstack-hash        : additionally print the current callstack hash in

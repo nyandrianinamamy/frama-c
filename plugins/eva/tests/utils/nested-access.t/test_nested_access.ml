@@ -10,20 +10,22 @@ let same a b = Kernel_function.equal a (kf b)
 let names = function
   | Base.SetLattice.Top -> failwith "unexpected Top"
   | Base.SetLattice.Set bases ->
-    Base.Hptset.fold (fun b names -> (Base.to_varinfo b).vname :: names) bases []
-    |> List.sort String.compare
+    let add_name b names = (Base.to_varinfo b).vname :: names in
+    Base.Hptset.fold add_name bases [] |> List.sort String.compare
 
 let injected bases = names (Base.SetLattice.inject bases)
 
 let member name = function
   | Base.SetLattice.Top -> false
   | Base.SetLattice.Set bases ->
-    Base.Hptset.mem (Base.of_varinfo (Globals.Vars.find_from_astinfo name Global))
-      bases
+    let var = Globals.Vars.find_from_astinfo name Global in
+    Base.Hptset.mem (Base.of_varinfo var) bases
 
 let mode = Sys.getenv_opt "EVA_TEST_NESTED_ACCESS"
 let supplied_child = ref None
 let outer_observations = ref 0
+let supply_hint_at_marker = ref false
+let enclosing_hint_stamps = ref 0
 
 let check_child_reference stack (r : Access.t) =
   let stmt, entry =
@@ -41,6 +43,10 @@ let check_child_reference stack (r : Access.t) =
               (fun e -> entry == Producer.cache_entry e)
               (Producer.entries (kf "child")))
   | Some supplied -> assert (entry == supplied)
+
+let split_mode = function
+  | Some ("split-fresh" | "split-supplied" | "split-same") -> true
+  | _ -> false
 
 let observe stack (r : Access.t) =
   match kf_name (Eva.Callstack.top_kf stack) with
@@ -84,7 +90,8 @@ let observe stack (r : Access.t) =
     begin match r.children with
       | [[first; second], reference] ->
         assert (same (Kernel_function.find_englobing_kf first) "inline_parent");
-        assert (same (Kernel_function.find_englobing_kf second) "requires_middle");
+        let middle = Kernel_function.find_englobing_kf second in
+        assert (same middle "requires_middle");
         let entry = Option.get (Entry.of_reference reference) in
         assert (match Entry.statement entry with Body f -> same f "child");
         assert (List.exists
@@ -92,7 +99,8 @@ let observe stack (r : Access.t) =
                   (Producer.entries (kf "child")))
       | _ -> assert false
     end;
-    Format.printf "inline_parent: retained child at the two-statement call path@."
+    Format.printf "inline_parent: retained child at the two-statement \
+                   call path@."
   | "prefix_parent" ->
     assert (member "prefix_input" r.reads);
     assert (member "prefix_input" r.dependencies);
@@ -110,6 +118,33 @@ let observe stack (r : Access.t) =
     assert (Base.Hptset.is_empty r.sure_writes);
     Format.printf "formal_parent: local is in the prefix footprint; \
                    formal_in supplies its value@."
+  | "sweep_parent" ->
+    assert (Eva__Body_access.verdict r = Error Access.Sweep);
+    assert (Base.Hptset.is_empty r.sweeps);
+    Format.printf "sweep_parent: child's lexical sweep is foreign@."
+  | "hint_parent" ->
+    let generation = Access.hint_generation_number
+        (Option.get r.hint_generation) in
+    assert (generation = 0);
+    incr enclosing_hint_stamps;
+    Format.printf "hint_parent: hint generation %d@." generation
+  | "hint_marker" when !supply_hint_at_marker ->
+    let entry = List.hd (Producer.entries (kf "hint_reader")) in
+    ignore (Supply.supply_produced entry)
+  | "f" when split_mode mode ->
+    assert (member "x" r.dependencies && member "y" r.dependencies);
+    assert (member "x" r.exit_writes && member "y" r.exit_writes);
+    assert (injected r.sure_writes = ["out"]);
+    Format.printf "f: x,y are possible writes and entry dependencies; \
+                   only out is sure@."
+  | ("f" | "inactive_parent") when mode = Some "history" ->
+    assert (Eva__Body_access.verdict r = Error Access.Side_table);
+    Format.printf "allocation clause: side-table before storage@."
+  | "f" when mode = Some "dump" ->
+    assert (r.reads = Base.SetLattice.top);
+    assert (r.dependencies = Base.SetLattice.top);
+    assert (Eva__Body_access.verdict r = Error Access.Dump);
+    Format.printf "dump: Top reads and dependencies before storage@."
   | _ -> ()
 
 let only_outer () =
@@ -160,9 +195,103 @@ let replay () =
     assert (Eva.Statistics.get Eva.Statistics.cache_hits (kf "outer") = 0)
   | _ -> assert false
 
+let first_entry name =
+  match Producer.entries (kf name) with
+  | entry :: _ -> entry
+  | [] -> failwith ("no produced entry for " ^ name)
+
+let supply name = ignore (Supply.supply_produced (first_entry name))
+
+let start_consumer ?main () =
+  Option.iter Kernel.MainFunction.set main;
+  prepare_next_run ();
+  Eva.Analysis.compute ()
+
+let check_split_key () =
+  let key = Entry.key (Producer.cache_entry (first_entry "f")) in
+  assert (injected key = ["p"; "x"; "y"]);
+  Format.printf "stored f key: p,x,y@."
+
+let split_replay () =
+  Eva.Parameters.Memexec.off ();
+  Eva.Analysis.compute ();
+  check_split_key ();
+  match mode with
+  | Some "split-fresh" ->
+    supply "f";
+    start_consumer ~main:"second" ()
+  | Some "split-supplied" ->
+    supply "pick";
+    start_consumer ();
+    assert (Eva.Statistics.get Eva.Statistics.cache_hits (kf "pick") = 1);
+    assert (Producer.entries (kf "pick") = []);
+    check_split_key ();
+    Format.printf "confirmed supplied pick hit before observing f@.";
+    Supply.clear ();
+    supply "f";
+    start_consumer ~main:"second" ()
+  | Some "split-same" ->
+    supply "f";
+    start_consumer ()
+  | _ -> assert false
+
+let status_replay () =
+  Eva.Parameters.Memexec.off ();
+  Eva.Analysis.compute ();
+  supply "f";
+  start_consumer ~main:"second" ();
+  assert (Eva.Statistics.get Eva.Statistics.cache_hits (kf "f") = 0)
+
+let guard_replay () =
+  let module Recorder = Eva__Body_access in
+  Eva.Parameters.Memexec.off ();
+  Eva.Analysis.compute ();
+  let mid = Supply.supply_produced (first_entry "mid") in
+  (* Exercise the winning-entry composition with the actual produced
+     observation. Lookup below refuses mid until nested delivery exists. *)
+  let f = kf "f" in
+  let stack = Eva.Callstack.init ~thread:Eva.Thread.main_id ~entry_point:f in
+  let stmt = Kernel_function.find_first_stmt f in
+  let child_stack = Eva.Callstack.push (kf "mid") stmt stack in
+  let _, observed = Recorder.capture stack (fun () ->
+      Eva__Call_cache.include_supplied child_stack mid ~returns:true)
+  in
+  let observed = Option.get observed in
+  assert (List.exists (fun (f, mode) -> same f "g" && mode = `Body)
+            observed.used_functions);
+  Format.printf "supplied mid observation contributes transitive g@.";
+  start_consumer ();
+  Supply.clear ();
+  supply "f";
+  start_consumer ~main:"second" ();
+  assert (Eva.Statistics.get Eva.Statistics.cache_hits f = 0)
+
+let sweep_replay () =
+  Eva.Parameters.Memexec.off ();
+  Eva.Analysis.compute ();
+  assert (Producer.entries (kf "sweep_parent") = []);
+  supply "own_sweep";
+  start_consumer ();
+  assert (Eva.Statistics.get Eva.Statistics.cache_hits (kf "own_sweep") = 1);
+  assert (Producer.entries (kf "sweep_parent") = [])
+
+let hint_replay () =
+  Eva.Parameters.Memexec.off ();
+  Eva.Analysis.compute ();
+  supply "hint_parent";
+  supply_hint_at_marker := true;
+  start_consumer ();
+  assert (!enclosing_hint_stamps = 4);
+  assert (Eva.Statistics.get Eva.Statistics.cache_hits (kf "hint_reader") = 1)
+
 let () =
   Access.on_result observe;
   match mode with
   | Some ("replay" | "automatic" | "recursive") -> Boot.Main.extend replay
   | Some "fresh" -> Boot.Main.extend (fun () -> ignore (only_outer ()))
+  | Some "status" -> Boot.Main.extend status_replay
+  | Some "guard" -> Boot.Main.extend guard_replay
+  | Some "sweep" -> Boot.Main.extend sweep_replay
+  | Some "hints" -> Boot.Main.extend hint_replay
+  | mode when split_mode mode -> Boot.Main.extend split_replay
   | _ -> ()

@@ -66,7 +66,7 @@ let capture stack f =
 
 let check_lookup label stack input rejected hit =
   let result = Lookup.find stack input in
-  let hit_id = Option.map (fun (id, _, _) -> id) result.hit in
+  let hit_id = Option.map (fun (entry, _) -> Entry.id entry) result.hit in
   assert (result.rejected = rejected && hit_id = hit);
   let report (id, reason) =
     Format.sprintf "%d:%s" id (Eva__Supplied_entries.rejection_id reason)
@@ -106,7 +106,7 @@ let sweep_check () =
   supply produced;
   supply produced;
   let hit = check_lookup "clear" caller initial [] (Some 1) in
-  let _, states, _ = Option.get hit in
+  let _, states = Option.get hit in
   List.iter (fun (_, (exit, _)) -> check_escape exit holder) states;
   let untouched = global "untouched" in
   assert (not (Base.Hptset.mem untouched (Entry.key entry)));
@@ -195,9 +195,12 @@ let hint_lookup () =
       Entry.input (Producer.cache_entry b), push f (stack (kf "main"))
     | _ -> assert false
   in
-  let check_trace = function
-    | Some (_, _, Some { Access.functions = [callee, `Body]; recursive }) ->
-      assert (Kernel_function.equal callee f && not recursive);
+  let check_trace hit =
+    let entry, _ = Option.get hit in
+    let dependencies = Option.get (Entry.dependencies entry) in
+    match dependencies.used_functions with
+    | [callee, `Body] ->
+      assert (Kernel_function.equal callee f);
       Format.printf "supplied hit trace: %s (body), nonrecursive@."
         (name callee)
     | _ -> assert false

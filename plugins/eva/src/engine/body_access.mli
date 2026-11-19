@@ -8,7 +8,7 @@
 
 (** Observations made while Eva analyses a call by its body. *)
 
-type call_mode = [ `Body | `Spec | `Builtin ]
+type call_mode = Cache_observation.call_mode
 
 type call_trace = {
   functions : (Cil_types.kernel_function * call_mode) list;
@@ -54,7 +54,7 @@ module Result : sig
     hint_generation : Widen_generation.t option;
     recorded : recorded list;
     refusals : refusal list;
-      children : Cache_observation.child list;
+    children : Cache_observation.child list;
   }
   (** May sets can be [Top] when an unsupported operation has unknown
       accesses. [dependencies] bounds the values read from the body input.
@@ -168,6 +168,13 @@ val check_written : entry:Cvalue.Model.t -> exits:Cvalue.Model.t list -> unit
 val finish_paths : entry:int -> exit:int -> returns:bool -> unit
 
 
+(** Run alternative transfers from the same recorded prefix. Only results
+    accepted by [continues] contribute to the edge's exit writes. Their
+    possible writes are joined and their sure bits intersected. All reads
+    and prefix writes are recorded, including on stopped paths. *)
+val map_alternatives :
+  continues:('b -> bool) -> ('a -> 'b) -> 'a list -> 'b list
+
 (** Records a resolved nested invocation, including one answered by memexec.
     A fresh child additionally contributes its own observed callees. *)
 val call : Cil_types.kernel_function -> call_mode -> unit
@@ -197,4 +204,5 @@ val include_hit :
   Callstack.t -> Cache_observation.reference ->
   footprint:Cache_observation.footprint -> key:Base.Hptset.t -> returns:bool ->
   sweeps:Base.Hptset.t -> hint_generation:Widen_generation.t option ->
+  functions:(Cil_types.kernel_function * call_mode) list ->
   observation:Cache_observation.observation option -> unit

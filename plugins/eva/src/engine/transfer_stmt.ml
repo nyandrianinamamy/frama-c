@@ -431,7 +431,13 @@ module Make (Engine: Engine_Subset) = struct
       let+ state' = process_resulting_state state in
       key, state'
     in
-    let states = Bottom.List.filter_map process call_result.states in
+    let states =
+      if Body_access.is_recording () then
+        let continues result = not (Bottom.is_bottom result) in
+        Body_access.map_alternatives ~continues process call_result.states
+        |> Bottom.List.values
+      else Bottom.List.filter_map process call_result.states
+    in
     { call_result with states }
 
 
@@ -655,7 +661,8 @@ module Make (Engine: Engine_Subset) = struct
     let name = Kernel_function.get_name kf in
     let run reason f =
       Body_access.call kf `Builtin;
-      Body_access.refuse reason;
+      (* State and offsetmap printers can inspect bindings directly. *)
+      Body_access.unknown_read reason;
       f ();
       true
     in
@@ -768,11 +775,13 @@ module Make (Engine: Engine_Subset) = struct
       (* Check "calls" annotations, and reduce called functions accordingly. *)
       let functions = Transfer_logic.check_calls_annotations stmt functions in
       (* Process each possible function apart, and append the result list. *)
-      let process acc (kf, valuation) =
-        process_one_function kf valuation
-        |> join_call_results acc
-      in
-      List.fold_left process bottom functions
+      let process (kf, valuation) = process_one_function kf valuation in
+      if Body_access.is_recording () then
+        Body_access.map_alternatives
+          ~continues:(fun r -> r.Engine_sig.states <> []) process functions
+        |> List.fold_left join_call_results bottom
+      else List.fold_left (fun acc f -> join_call_results acc (process f))
+          bottom functions
 
 
   (* ------------------------------------------------------------------------ *)

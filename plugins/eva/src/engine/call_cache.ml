@@ -162,6 +162,19 @@ let report ?collector ?produced call ~lookup ~execution ~storage =
 
 (* ----- Seam -------------------------------------------------------------- *)
 
+let include_supplied stack entry ~returns =
+  if Body_access.is_recording () then begin
+    let module Entry = Cache_entry.Cvalue in
+    let sweeps, hint_generation, functions =
+      match Entry.dependencies entry with
+      | None -> Base.Hptset.empty, None, []
+      | Some d -> d.sweeps, d.hint_generation, d.used_functions
+    in
+    Body_access.include_hit stack (Entry.reference entry)
+      ~footprint:(Entry.footprint entry) ~key:(Entry.key entry) ~returns
+      ~sweeps ~hint_generation ~functions ~observation:(Entry.observation entry)
+  end
+
 module Make
     (Value : Datatype.S)
     (Domain : Engine_abstractions_sig.Domain)
@@ -277,8 +290,8 @@ module Make
     in
     let entry_id = Cache_entry.Cvalue.id in
     let reported = Option.map (Result.map entry_id) produced in
-    report ?collector ?produced:reported call ~lookup:(lookup_disposition pending)
-      ~execution:`Analysed ~storage;
+    report ?collector ?produced:reported call
+      ~lookup:(lookup_disposition pending) ~execution:`Analysed ~storage;
     Stdlib.Option.bind produced Result.to_option
 
   (* Called while an exception leaves the analysis of a body. A failure of

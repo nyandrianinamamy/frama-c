@@ -61,7 +61,7 @@ and the bodies reached through those sites.
   collector-refused-builtin builtin 1
   collector-refused-indirect-call indirect_target 1
   collector-refused-indirect-call indirect_caller 1
-  collector-refused-nested-call nested 1
+  collector-refused-indirect-call main 1
   collector-would-store precondition 1
   collector-would-store contract 1
   collector-would-store annotation 1

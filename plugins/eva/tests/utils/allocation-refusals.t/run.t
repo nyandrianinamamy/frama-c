@@ -141,13 +141,13 @@ returns. A call that never returns and the entry point free nothing.
 
   $ EVA_TEST_ALLOCATION=finalisation frama-c -no-autoload-plugins -load-module eva,test_allocation_refusals.cmxs -eva -eva-no-memexec -eva-slevel 4 -main no_return -eva-msg-key cache,malloc:automatic-free finalisation.c > no_return.log 2>&1
   $ grep -E '^(scratch|no_return) call|automatic bases' no_return.log
-  scratch call 1: allocation deallocation builtin contract nested-call allocated-block allocation-metadata side-table, owners __alloca_scratch_l10
+  scratch call 1: allocation deallocation builtin contract allocated-block allocation-metadata side-table, owners __alloca_scratch_l10
     freeing automatic bases: {__alloca_scratch_l10}
   scratch call 2: would-store
   no_return call 1: allocation deallocation builtin sweep contract allocated-block allocation-metadata side-table, owners __alloca_scratch_l10
   $ EVA_TEST_ALLOCATION=finalisation frama-c -no-autoload-plugins -load-module eva,test_allocation_refusals.cmxs -eva -eva-no-memexec -main entry -eva-msg-key cache finalisation.c > entry.log 2>&1
   $ grep -E '^entry call' entry.log
-  entry call 1: allocation builtin contract nested-call allocated-block allocation-metadata side-table, owners __alloca_entry_l26
+  entry call 1: allocation builtin contract allocated-block allocation-metadata side-table, owners __alloca_entry_l26
 
 On a memexec hit, the caller checks the requires clauses of the callee
 again, with its own recording: hit_only is refused for the allocated block
@@ -172,9 +172,9 @@ the weakening, and for a body with one state at each point, it is not.
   $ grep -E '^(branch|straight|alloc) call' weakening.log
   branch call 1: would-store
   straight call 1: would-store
-  alloc call 1: allocation builtin contract nested-call allocated-block allocation-metadata side-table, owners __malloc_alloc_l10
-  alloc call 2: allocation validity-mutation builtin contract nested-call allocated-block allocation-metadata, owners __malloc_w_alloc_l10
-  alloc call 3: allocation validity-mutation builtin contract nested-call allocated-block allocation-metadata, owners __malloc_w_alloc_l10
+  alloc call 1: allocation builtin contract allocated-block allocation-metadata side-table, owners __malloc_alloc_l10
+  alloc call 2: allocation validity-mutation builtin contract allocated-block allocation-metadata, owners __malloc_w_alloc_l10
+  alloc call 3: allocation validity-mutation builtin contract allocated-block allocation-metadata, owners __malloc_w_alloc_l10
   branch call 2: allocation-metadata, owners __malloc_w_alloc_l10
   straight call 2: would-store
 

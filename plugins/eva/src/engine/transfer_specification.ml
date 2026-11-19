@@ -130,9 +130,8 @@ let warn_on_missing_result_assigns kinstr kf spec =
   in
   if return_used && not (List.for_all assigns_result spec.spec_behavior)
   then begin
-    Body_access.read_message_history ();
     let loc = Kernel_function.get_location kf in
-    Self.warning ~wkey:Log_key.warn_missing_assigns_result  ~once:true ~loc
+    Self.warning ~wkey:Log_key.warn_missing_assigns_result ~once:true ~loc
       "@[no 'assigns \\result \\from ...' clause specified for function %a@]"
       Kernel_function.pretty kf
   end
@@ -152,7 +151,6 @@ let reduce_to_valid_location kind term loc =
     if Locations.is_bottom valid then
       begin
         if kind = Assign && not (Locations.is_bottom loc) then begin
-          Body_access.read_message_history ();
           Self.warning ~current:true ~once:true
             ~wkey:Log_key.warn_invalid_assigns
             "@[Completely invalid destination@ for %a.@ \
@@ -398,7 +396,10 @@ module Make (Engine: Engine_Subset) = struct
       and allocs = evaluate_free_alloc state retres_loc allocs in
       apply_assigns_and_allocations ~pos (assigns @ allocs) state
     in
-    let states = List.map compute states in
+    (* Per-state assigns are alternatives. They are weak updates. Keep
+       their possible writes even if a later ensures discards a state. *)
+    let states = Body_access.map_alternatives ~continues:(fun _ -> true)
+        compute states in
     let states =
       Logic.check_fct_postconditions_for_behaviors kf behaviors status
         ~result:call.return ~pre_state states
@@ -442,7 +443,13 @@ module Make (Engine: Engine_Subset) = struct
         HashBehaviors.add cache behavior states;
         states
     in
-    let compute_complete_set = List.concat_map compute_behavior in
+    (* A memoized behavior can contribute to more than one set.
+       All its shared writes are possible only, so its first execution
+       records them for every set that uses it. *)
+    let compute_complete_set behaviors =
+      List.concat (Body_access.map_alternatives
+                     ~continues:(fun _ -> true) compute_behavior behaviors)
+    in
     List.map compute_complete_set behaviors
 
   (* Interprets a list of behaviors as if they was merged into a single
@@ -534,15 +541,17 @@ module Make (Engine: Engine_Subset) = struct
   let warn_allocates kf behaviors =
     (* TODO: remove the special case 'FC_BUILTIN' when the new warning
        mechanism will be in place *)
-    List.iter (fun b ->
-        match b.b_allocation with
-        | FreeAllocAny -> ()
-        | _ ->
-          let vi = Kernel_function.get_vi kf in
-          if not (Ast_attributes.(contains fc_builtin vi.vattr)) then
+    let vi = Kernel_function.get_vi kf in
+    if not (Ast_attributes.(contains fc_builtin vi.vattr)) then
+      List.iter (fun b ->
+          match b.b_allocation with
+          | FreeAllocAny -> ()
+          | FreeAlloc _ ->
+            (* The logger reports the history lookup even when the clause
+               is empty, the behavior is inactive or the message was seen. *)
             Self.warning ~current:true ~once:true
               "ignoring unsupported allocates clause"
-      ) behaviors
+        ) behaviors
 
   (* Sound over-approximations of the effects of a function can be computed
      through its specification in three different ways:

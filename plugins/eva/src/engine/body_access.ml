@@ -9,7 +9,7 @@
 module Bases = Base.SetLattice
 module Zone = Memory_zone
 
-type call_mode = [ `Body | `Spec | `Builtin ]
+type call_mode = Cache_observation.call_mode
 
 type call_trace = {
   functions : (Cil_types.kernel_function * call_mode) list;
@@ -482,6 +482,37 @@ let read_node_tags () =
       r.owners <- Base.Hptset.union bases r.owners
     end
 
+let join_writes left right =
+  { may = Bases.join left.may right.may;
+    sure = Zone.meet left.sure right.sure }
+
+let map_alternatives ~continues f inputs =
+  match !current with
+  | Some ({ transition = Some prefix; _ } as r) ->
+    let continuing = ref None in
+    let run input =
+      r.transition <- Some no_writes;
+      let output = f input in
+      if continues output then begin
+        let writes = Option.get r.transition in
+        continuing := Some (match !continuing with
+            | None -> writes
+            | Some previous -> join_writes previous writes)
+      end;
+      output
+    in
+    let outputs =
+      Fun.protect ~finally:(fun () -> r.transition <- Some prefix)
+        (fun () -> List.map run inputs)
+    in
+    Option.iter (fun writes ->
+        r.transition <- Some {
+            may = Bases.join prefix.may writes.may;
+            sure = Zone.link prefix.sure writes.sure;
+          }) !continuing;
+    outputs
+  | _ -> List.map f inputs
+
 let transfer ~id ~src ~dst f input =
   match !current with
   | None -> f input
@@ -506,9 +537,7 @@ let transfer ~id ~src ~dst f input =
         let writes =
           match Hashtbl.find_opt r.edges id with
           | None -> writes
-          | Some edge ->
-            { may = Bases.join writes.may edge.writes.may;
-              sure = Zone.meet writes.sure edge.writes.sure }
+          | Some edge -> join_writes edge.writes writes
         in
         Hashtbl.replace r.edges id {src; dst; writes}
       end;
@@ -566,7 +595,8 @@ let dependencies r written =
     let reads =
       match Hashtbl.find_opt written src with
       | None -> reads
-      | Some bits -> Nested_access.remove (Nested_access.fully_written bits) reads
+      | Some bits ->
+        Nested_access.remove (Nested_access.fully_written bits) reads
     in
     Bases.join reads deps
   in
@@ -696,7 +726,7 @@ let capture stack compute =
       refusals = List.sort compare r.refusals;
       children = List.rev r.children;
     } in
-      without_recording (fun () -> Hooks.apply (stack, result));
+    without_recording (fun () -> Hooks.apply (stack, result));
     output, Some result
 
 let verdict (r : Result.t) =
@@ -739,26 +769,30 @@ let include_call r stack entry ~children ~reads ~deps ~writes ~exit_writes
     in
     r.children <- List.rev_append children r.children
 
-let include_effects r ~designated ~recorded ~functions =
+let include_effects r ~designated ~recorded =
   r.designated <- Bases.join r.designated designated;
-  List.iter (record_table r) recorded;
-  List.iter (fun call -> r.used_functions <- Calls.add call r.used_functions) functions
+  List.iter (record_table r) recorded
+
+let include_functions r functions =
+  r.used_functions <- List.fold_left (fun acc item -> Calls.add item acc)
+      r.used_functions functions
 
 let include_fresh stack (body : Result.t) entry =
   Option.iter (fun r ->
       List.iter (add_refusal r) body.refusals;
-      if Option.is_some body.hint_generation then r.reads_widening_hints <- true;
+      if Option.is_some body.hint_generation then
+        r.reads_widening_hints <- true;
       if not (Base.Hptset.is_empty body.sweeps) then add_refusal r Sweep;
       r.owners <- Base.Hptset.union r.owners body.owners;
-      include_effects r ~designated:body.designated ~recorded:body.recorded
-        ~functions:body.used_functions;
+      include_effects r ~designated:body.designated ~recorded:body.recorded;
+      include_functions r body.used_functions;
       include_call r stack entry ~children:body.children ~reads:body.reads
-        ~deps:body.dependencies ~writes:body.writes ~exit_writes:body.exit_writes
-        ~sure_writes:body.sure_writes)
+        ~deps:body.dependencies ~writes:body.writes
+        ~exit_writes:body.exit_writes ~sure_writes:body.sure_writes)
     !current
 
 let include_hit stack entry ~(footprint : Cache_observation.footprint)
-    ~key ~returns ~sweeps ~hint_generation ~observation =
+    ~key ~returns ~sweeps ~hint_generation ~functions ~observation =
   Option.iter (fun r ->
       let reads = Bases.inject footprint.read
       and writes = Bases.inject footprint.written
@@ -770,11 +804,12 @@ let include_hit stack entry ~(footprint : Cache_observation.footprint)
       List.iter (check_bases r) [reads; writes; deps];
       if Option.is_some hint_generation then r.reads_widening_hints <- true;
       if not (Base.Hptset.is_empty sweeps) then add_refusal r Sweep;
+      include_functions r functions;
       (match observation with
        | None -> add_refusal r Nested_call
-       | Some Cache_observation.{ designated; recorded; functions } ->
+       | Some Cache_observation.{ designated; recorded } ->
          check_bases r designated;
-         include_effects r ~designated ~recorded ~functions);
+         include_effects r ~designated ~recorded);
       include_call r stack (Some entry) ~children:[] ~reads ~writes ~deps
         ~exit_writes
         ~sure_writes:(if returns then footprint.written_sure

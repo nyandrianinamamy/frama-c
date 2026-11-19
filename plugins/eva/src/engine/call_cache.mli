@@ -138,6 +138,10 @@ val new_counter : unit -> int
 (** Clears all stored entries. *)
 val cleanup_results : unit -> unit
 
+(** Compose the winning supplied entry into the enclosing observation. *)
+val include_supplied :
+  Callstack.t -> Supplied_entries.entry -> returns:bool -> unit
+
 module Make
     (Value : Datatype.S)
     (Domain : Engine_abstractions_sig.Domain)
@@ -151,7 +155,7 @@ module Make
     type hit_source =
       | Supplied_entry of Supplied_entries.entry
       | Legacy_trace of Body_access.call_trace option
-    (** The winning supplied entry, or the trace of a legacy memexec hit. *)
+      (** The winning supplied entry, or the trace of a legacy memexec hit. *)
 
     type lookup =
       | No_candidate of pending

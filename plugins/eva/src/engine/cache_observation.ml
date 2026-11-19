@@ -16,7 +16,6 @@ type recorded =
 type observation = {
   designated : Base.SetLattice.t;
   recorded : recorded list;
-  functions : (kernel_function * call_mode) list;
 }
 
 type footprint = {

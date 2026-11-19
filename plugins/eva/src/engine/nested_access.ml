@@ -12,7 +12,9 @@ module Zone = Memory_zone
 
 let private_blocks kf return =
   let add blocks vi = Blocks.add (Base.of_varinfo vi) blocks in
-  let initial = Option.fold ~none:Blocks.empty ~some:(add Blocks.empty) return in
+  let initial =
+    Option.fold ~none:Blocks.empty ~some:(add Blocks.empty) return
+  in
   List.fold_left add initial
     (Kernel_function.get_formals kf @ Kernel_function.get_locals kf)
 

@@ -266,8 +266,8 @@ module State = struct
       let observe dep =
         match dep.location with
         | Address vi ->
-          Body_access.designate_bases
-            (Base.SetLattice.inject (Base.Hptset.singleton (Base.of_varinfo vi)))
+          let bases = Base.Hptset.singleton (Base.of_varinfo vi) in
+          Body_access.designate_bases (Base.SetLattice.inject bases)
         | Location location ->
           let loc = Precise_locs.imprecise_location location in
           Body_access.read loc;
