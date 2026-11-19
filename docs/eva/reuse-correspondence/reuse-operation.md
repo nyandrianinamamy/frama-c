@@ -157,10 +157,10 @@ entries below).
 
 **Claim.** At a call analysed through the body of a function, in an analysis
 that uses supplied entries (see [No analysis has both
-caches](#no-analysis-has-both-caches)), with cvalue as the only domain and no
-consumer of memexec identifiers enabled (see [A supplied entry is used with
-cvalue alone and no consumer of memexec
-identifiers](#a-supplied-entry-is-used-with-cvalue-alone-and-no-consumer-of-memexec-identifiers)):
+caches](#no-analysis-has-both-caches)), with cvalue as the only domain, no
+consumer enabled and no threshold of alarms (see [A supplied entry is used
+only where a hit is
+supported](#a-supplied-entry-is-used-only-where-a-hit-is-supported)):
 the candidates are the entries supplied for the function, oldest first. Let s
 be the input of the call. A candidate E with key K, stored input I, and exit
 states (k_i, o_i) matches when `filter` K s = I and `relate` K s ⊆ K. The
@@ -537,25 +537,31 @@ entry is not used by an analysis that started with memexec, and is a
 candidate for the later calls of an analysis that started with supplied
 entries, rests on source inspection.
 
-## A supplied entry is used with cvalue alone and no consumer of memexec identifiers
+## A supplied entry is used only where a hit is supported
 
 **Claim.** When the domains of the analysis are not the cvalue domain alone,
 every supplied candidate is rejected with `product`. Otherwise, when the
-Inout or From plug-in is loaded, or the analysis of threads is enabled, every
-supplied candidate is rejected with `consumer`. In both cases the body is
-analysed. `product` takes precedence over `consumer`, and both over the
-examination of each candidate (`key-differs`, `key-unclosed`).
+Inout, From, Nonterm, Metrics, Markdown report (`mdr`), WP or constant
+propagation (`scf`) plug-in is loaded, or the analysis of threads is
+enabled, every supplied candidate is rejected with `consumer`. Otherwise,
+when `-eva-stop-at-nth-alarm` is set, every supplied candidate is rejected
+with `stop-at-nth-alarm`. In each case the body is analysed. `product` takes
+precedence over `consumer`, `consumer` over `stop-at-nth-alarm`, and all
+three over the examination of each candidate (`key-differs`,
+`key-unclosed`).
 
 **Kind.** OCaml obligation.
 
 **Depends on.** None.
 
 **Symbols.** `Supplied_entries.Lookup.cvalue_alone`,
-`Supplied_entries.consumer_enabled`, `Supplied_entries.Lookup.find`.
+`Supplied_entries.consumer_enabled`, `Supplied_entries.state_readers`,
+`Supplied_entries.stop_at_nth_alarm`, `Supplied_entries.Lookup.find`,
+`Alarmset.deliver`, `Alarmset.stop_at_nth_alarm`.
 
 **Argument.** `find` tests `cvalue_alone` first, then `consumer_enabled`,
-then calls `Cache_entry.Make.find`; the first test that rejects gives its
-reason to every candidate. `cvalue_alone` is defined only when the structure
+then `stop_at_nth_alarm`, then calls `Cache_entry.Make.find`; the first test
+that rejects gives its reason to every candidate. `cvalue_alone` is defined only when the structure
 of the product is a single leaf whose key is the key of `Cvalue_domain.State`;
 the key comparison gives an equality between the type of the states of the
 engine and that of cvalue states, through which the input of the call and the
@@ -570,7 +576,15 @@ identifier of a supplied entry is in none of them. The test is on the
 presence of the plug-ins (`Plugin.is_present`), so it also rejects when From
 is loaded without `-calldeps`, where its hook records nothing. `-mthread`
 does not add a domain, so the product stays cvalue alone and the thread test
-is reached.
+is reached. The other plug-ins of `Supplied_entries.state_readers` conclude
+from the states saved at the statements of a function, which a hit does not
+save for its own call
+([The passes after the analysis draw no conclusion where a hit skipped visits](safety.md#the-passes-after-the-analysis-draw-no-conclusion-where-a-hit-skipped-visits)).
+The third test is needed because a fresh evaluation registers every alarm of
+an evaluation before `Alarmset.stop_at_nth_alarm` tests the threshold,
+whereas a hit delivers its alarms one by one and does not know the
+evaluations they came from; `Alarmset.deliver` no longer tests the
+threshold.
 
 **Evidence.** Executed by run 0: the default product is a single cvalue leaf,
 and the calls hit. Run 1, with `-eva-domains cvalue,sign`: every call to a
@@ -578,11 +592,23 @@ function with supplied entries reads `rejected (entry N: product)` for each of
 its entries and is analysed. Runs 3, 4 and 5, with Inout loaded, with From
 loaded without Inout, and with `-mthread`: every such call reads
 `rejected (entry N: consumer)` and is analysed, and the same assertions are
-valid. The precedence of `product` over `consumer` rests on source
-inspection: no run enables both.
+valid. In
+[`cache-safety.t`](../../../plugins/eva/tests/utils/cache-safety.t/run.t),
+with Nonterm or with Metrics loaded, the calls read
+`rejected (entry 1: consumer)` and no call hits. With
+`-eva-stop-at-nth-alarm 1`, the call of `body` in `threshold.c` reads
+`rejected (entry 1: stop-at-nth-alarm)`, the statistic
+`cache-rejected-stop-at-nth-alarm` is 1, and the analysis stops after the two
+alarms of the division at line 7, as with caching disabled; before the
+rejection, the hit delivered the division alarm and the analysis stopped
+before the overflow alarm. The rejection when the Markdown report, WP or the
+constant propagation is loaded, and the precedences, rest on source
+inspection: no run enables two reasons.
 
 **Open.** A plug-in outside the tree that registers a results hook and reads
-`` `Reuse N `` is not detected. The registration of parts that will let Inout
+`` `Reuse N ``, or that reads the states saved at statements, is not
+detected; the list of plug-ins that read these states comes from a sweep of
+the tree at this revision. The registration of parts that will let Inout
 and From be served by an entry is
 [issue #53](https://github.com/nyandrianinamamy/frama-c/issues/53).
 

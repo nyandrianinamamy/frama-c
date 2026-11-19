@@ -126,14 +126,16 @@ and [the call-cache seam](call-cache-seam.md).
 `Transfer_logic.Make.create_from_spec`, `Transfer_logic.Make.interp_annot`,
 `Locals_scoping.make_escaping_fundec`, `Builtins_malloc.free_aux`.
 
-**Argument.** The priority order is `indirect-call`, `reallocation`,
-`allocation`, `deallocation`, `validity-mutation`, `recursion`,
-`watchpoint`, `dump`, `builtin`, `threaded`, `sweep`, `widening-hint`,
-`stop-at-alarm`, `callback`, `trace-id`, `contract`, `annotation`,
-`nested-call`, `allocated-block`, `allocation-metadata`, `footprint-top`,
-then `side-table`. The observer
+**Argument.** The priority order is `project-switch`, `indirect-call`,
+`reallocation`, `allocation`, `deallocation`, `validity-mutation`,
+`recursion`, `watchpoint`, `dump`, `builtin`, `threaded`, `sweep`,
+`widening-hint`, `stop-at-alarm`, `callback`, `trace-id`, `contract`,
+`annotation`, `nested-call`, `allocated-block`, `allocation-metadata`,
+`footprint-top`, then `side-table`. The observer
 receives all reasons. The reasons of the allocation family are described in
-[Allocated blocks](allocated-blocks.md).
+[Allocated blocks](allocated-blocks.md). `project-switch` refuses every
+recording in progress when the current project changes during it
+([A change of the current project refuses the recordings in progress](safety.md#a-change-of-the-current-project-refuses-the-recordings-in-progress)).
 Indirect targets refuse both at the call transfer and at entry of a body
 reached through an indirect call. Fresh nested bodies propagate all
 observed refusals. The winning supplied child contributes its observation.
