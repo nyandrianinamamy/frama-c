@@ -76,7 +76,11 @@ val name : 'a t -> string
     states of the call of the hit, which agree with those of this call on
     the key of the entry only. The entry keeps the part only when every
     block of [reads] is in its key or is a local variable of the body (see
-    {!cover}). *)
+    {!cover}). Besides these states, the computation may read only what is
+    the same for every call: the options and the initial state of the
+    analysis, or the results of the analysis ({!Results}), which are not
+    available while it runs and answer [Top]. It must not read what the
+    other calls of the analysis have recorded. *)
 val provide : 'a t -> Callstack.t -> reads:Base.SetLattice.t -> 'a -> unit
 
 (** [register_state_reader ~name reads] declares a consumer that reads the
