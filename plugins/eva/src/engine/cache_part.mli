@@ -33,7 +33,8 @@ open Cil_types
 (** A part whose values have type ['a]. *)
 type 'a t
 
-(** [register ~name ~needed ~restore ()] declares a part named [name].
+(** [register ~name ~needed ?audited ~restore ()] declares a part named
+    [name].
     - [name] identifies the part in the messages and in {!names}. Raises
       [Invalid_argument] if a part of the same name is already registered.
     - [needed ()] tells whether a consumer of the part is enabled in the
@@ -43,16 +44,24 @@ type 'a t
       entry used by a hit at a call of [kf] with [callstack], whose cvalue
       state at the start of the call is [pre]. It is called at the place
       where the fresh analysis of the body sends its results to the hooks
-      of {!Cvalue_callbacks}, after the call hooks with [`Reuse] and the
-      check of the preconditions, and before the caller uses the states at
-      the end of the call. The collector of block accesses does not observe
+      of {!Cvalue_callbacks}, after the call hooks with [`Reuse], the check
+      of the preconditions and the delivery of the Safety part of the entry
+      ({!Safety_delivery}), and before the caller uses the states at the end
+      of the call. The collector of block accesses does not observe
       it. It must return normally: an exception that it raises stops the
       analysis, after the writes that this function and the restoration of
       the parts registered before it have made, which are not undone.
+    - [audited ()] holds when [restore] and every client that it runs have
+      been audited for the cache: given the value kept with the entry, they
+      write what the analysis of the body writes in the state of the call,
+      and nothing that follows depends on whether a hit answered the call.
+      While a part whose consumer is enabled is not audited, the lookup
+      rejects every supplied entry (see {!Supplied_entries}). Default:
+      never.
 
     Parts are registered when their owner is loaded, before any analysis. *)
 val register :
-  name:string -> needed:(unit -> bool) ->
+  name:string -> needed:(unit -> bool) -> ?audited:(unit -> bool) ->
   restore:(Callstack.t -> kernel_function -> Cvalue.Model.t -> 'a -> unit) ->
   unit -> 'a t
 
@@ -137,6 +146,10 @@ val supplies : parts -> bool
     after the analysis is not seen here: From and Inout refuse it when
     {!Eva.Results.statement_results_complete} is false. *)
 val reads_statement_states : unit -> bool
+
+(** Whether a part whose consumer is enabled is not audited (see
+    {!register}). *)
+val unaudited_clients : unit -> bool
 
 (** [restore callstack kf pre parts] restores each part of [parts] whose
     consumer is enabled, in the order of registration, with the function

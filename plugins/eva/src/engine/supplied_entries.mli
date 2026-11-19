@@ -265,7 +265,9 @@ type rejection = [
       annotations ({!Annotations.has_unaudited_hooks_on_change}), the
       listeners and observers of the history of the logger
       ({!Log.unaudited_clients}), the hooks of the message collector of the
-      kernel ({!Messages.has_hooks}). A client registered since the
+      kernel ({!Messages.has_hooks}), and the restoration of the parts whose
+      consumer is enabled, with the clients that it runs
+      ({!Cache_part.unaudited_clients}). A client registered since the
       production of the entry counts. *)
   | `Analysis_reset
   (** While an analysis runs, its computation state is no longer

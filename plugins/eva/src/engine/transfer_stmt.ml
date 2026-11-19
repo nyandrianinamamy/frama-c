@@ -9,7 +9,11 @@
 open Cil_types
 open Eval
 
-(* Reference filled in by the callwise-inout callback *)
+(* Reference filled in by the callwise-inout callback, read when the caller
+   reduces the actuals of the call, and cleared after the call. At a hit of
+   the cache, Inout restores the inputs/outputs kept with the entry, and the
+   callback receives them, as after an analysis of the body: the client is
+   registered as audited for the cache. *)
 module InOutCallback =
   State_builder.Option_ref (Inout_type)
     (struct

@@ -22,6 +22,7 @@ type packed = {
   packed_id : int;
   packed_name : string;
   packed_needed : unit -> bool;
+  packed_audited : unit -> bool;
   packed_restore :
     Callstack.t -> kernel_function -> Cvalue.Model.t -> exn -> unit;
 }
@@ -29,7 +30,8 @@ type packed = {
 (* The registered parts, in the order of registration. *)
 let registered : packed list ref = ref []
 
-let register (type a) ~name ~needed ~restore () : a t =
+let register (type a) ~name ~needed ?(audited = fun () -> false) ~restore ()
+  : a t =
   if List.exists (fun p -> p.packed_name = name) !registered then
     Format.kasprintf invalid_arg
       "Cache_part.register: a part named %s is already registered" name;
@@ -45,7 +47,7 @@ let register (type a) ~name ~needed ~restore () : a t =
   in
   let packed =
     { packed_id = id; packed_name = name; packed_needed = needed;
-      packed_restore }
+      packed_audited = audited; packed_restore }
   in
   registered := !registered @ [ packed ];
   part
@@ -148,6 +150,11 @@ let requesting_plugins = [ "pdg"; "reduc"; "studia" ]
 let reads_statement_states () =
   List.exists Plugin.is_present requesting_plugins
   || List.exists (fun (_, reads) -> reads ()) !state_readers
+
+let unaudited_clients () =
+  List.exists
+    (fun p -> p.packed_needed () && not (p.packed_audited ()))
+    !registered
 
 let restore callstack kf pre parts =
   let restore_one p =

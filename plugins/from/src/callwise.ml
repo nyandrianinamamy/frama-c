@@ -103,10 +103,16 @@ let restore_froms callstack kf pre_state froms =
     Eva.Logic_inout.verify_assigns kf ~pre:pre_state froms;
   end_record callstack froms
 
-(* The callwise dependencies of a call, as a part of the cache entries. *)
+(* The callwise dependencies of a call, as a part of the cache entries. The
+   restoration is audited for the cache: it checks the assigns clauses and
+   records the dependencies as the analysis of the body does, in the state of
+   the call. The check emits statuses and messages, whose hooks the lookup
+   tests. The table of dependencies is not exported, and no client can
+   register a hook on it. *)
 let part =
   Eva.Cache_part.register ~name:"from"
-    ~needed:From_parameters.ForceCallDeps.get ~restore:restore_froms ()
+    ~needed:From_parameters.ForceCallDeps.get ~audited:(fun () -> true)
+    ~restore:restore_froms ()
 
 (* The dependencies of a call are kept with the entry of its body only when
    this call of the body made no call: a hit restores them at the call site

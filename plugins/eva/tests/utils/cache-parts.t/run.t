@@ -323,6 +323,29 @@ registered one is refused.
   $ grep -E '^(refused|registered)' duplicate.log
   refused: Cache_part.register: a part named from is already registered
 
+A hit restores the parts through the functions that their owners register,
+and these functions run clients. The lookup rejects every supplied entry,
+with callback, while a part needed in the analysis is not registered as
+audited. The test module registers a part, needed in both analyses, and
+gives its value for every body: the entries carry it. Not audited, the part
+leaves copy without a hit; audited, the three calls hit.
+
+  $ EVA_TEST_CACHE_PARTS=unaudited-part frama-c -no-autoload-plugins -load-module eva,from,inout,test_cache_parts.cmxs parts.c > unaudited-part.log 2>&1
+  $ EVA_TEST_CACHE_PARTS=unaudited-part EVA_TEST_CACHE_PARTS_AUDITED=1 frama-c -no-autoload-plugins -load-module eva,from,inout,test_cache_parts.cmxs parts.c > audited-part.log 2>&1
+  $ grep '^copy' unaudited-part.log audited-part.log
+  unaudited-part.log:copy: hits 0, rejected for callback 9
+  audited-part.log:copy: hits 3, rejected for callback 0
+
+The part of Inout runs the clients of its hook on the inputs and outputs of
+each call. Eva registers its own client, which reduces the actuals of the
+call, as audited; a client registered through register_call_hook, the
+dynamic access of Inout, is not, and the lookup rejects every supplied
+entry.
+
+  $ EVA_TEST_CACHE_PARTS=inout-client frama-c -no-autoload-plugins -load-module eva,from,inout,test_cache_parts.cmxs parts.c > inout-client.log 2>&1
+  $ grep '^copy' inout-client.log
+  copy: hits 0, rejected for callback 9
+
 After an analysis in which hits answered calls, the results by function of
 From and Inout, and the results by statement of Inout, are computed from
 states that do not cover these calls. Every request is refused with a user

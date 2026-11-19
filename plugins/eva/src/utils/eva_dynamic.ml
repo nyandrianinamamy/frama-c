@@ -16,7 +16,7 @@ module Inout = struct
   let register_call_hook f =
     let fallback _ = () in
     let typ = Datatype.(func (func Inout_type.ty unit) unit) in
-    get ~plugin "register_call_hook" typ ~fallback f
+    get ~plugin "register_audited_call_hook" typ ~fallback f
 
   (* Inout computes the outputs by function from the states saved at the
      statements, and refuses to compute them when they do not cover every

@@ -553,6 +553,10 @@ module Callwise = struct
 
   module Record_Inout_Callbacks = Hook.Build (struct type t = Inout_type.t end)
 
+  (* Whether a client of [Record_Inout_Callbacks] was registered without an
+     audit for the cache of Eva (see [part]). *)
+  let unaudited_clients = ref false
+
   let merge_call_in_local_table call local_table v =
     let prev =
       try CallsiteHash.find local_table call
@@ -628,9 +632,12 @@ module Callwise = struct
      recorded for the call, as the analysis of the body records them: the
      callbacks receive them, which gives Eva the individual result of the
      call before the caller reduces its actuals, and they are merged into
-     the tables of the caller. *)
+     the tables of the caller. The restoration is audited for the cache while
+     every client of the callbacks is: the tables are not exported, and no
+     client can register a hook on them. *)
   let part =
     Eva.Cache_part.register ~name:"inout" ~needed:(fun () -> true)
+      ~audited:(fun () -> not !unaudited_clients)
       ~restore:(fun callstack kf _pre_state inout ->
           end_record callstack kf inout)
       ()
@@ -747,9 +754,23 @@ module Callwise = struct
   let _register_call_hook =
     Dynamic.register
       ~comment:"Registers a function to be applied on the inputs/outputs \
-                computed for each function call."
+                computed for each function call. While such a function is \
+                registered, Eva rejects the entries supplied to its cache."
       ~plugin:Inout_parameters.name
       "register_call_hook"
+      Datatype.(func (func Inout_type.ty unit) unit)
+      (fun f ->
+         unaudited_clients := true;
+         Record_Inout_Callbacks.extend_once f)
+
+  let _register_audited_call_hook =
+    Dynamic.register
+      ~comment:"Same as register_call_hook, for a function audited for the \
+                cache of Eva: at a hit of the cache, it receives the \
+                inputs/outputs kept with the entry, and does what it does \
+                after an analysis of the body."
+      ~plugin:Inout_parameters.name
+      "register_audited_call_hook"
       Datatype.(func (func Inout_type.ty unit) unit)
       Record_Inout_Callbacks.extend_once
 

@@ -679,6 +679,39 @@ let raw () =
   Format.printf "after the hits: first statement of copy reachable: %b@."
     (Eva.Results.is_reachable first)
 
+(* ----- Clients that a hit runs ------------------------------------------- *)
+
+(* A part of this test, needed in both analyses, whose value is given for
+   every body analysed: the entries carry it. With
+   EVA_TEST_CACHE_PARTS_AUDITED set, the part is registered as audited. *)
+let unaudited_part () =
+  let audited = Sys.getenv_opt "EVA_TEST_CACHE_PARTS_AUDITED" <> None in
+  let part =
+    Eva.Cache_part.register ~name:"test" ~needed:(fun () -> true)
+      ~audited:(fun () -> audited) ~restore:(fun _ _ _ () -> ()) ()
+  in
+  let give callstack _kf _state = function
+    | `Body _ ->
+      Eva.Cache_part.provide part callstack ~reads:Base.SetLattice.empty ()
+    | _ -> ()
+  in
+  Eva.Cvalue_callbacks.register_call_results_hook ~cache_protocol:true give;
+  second_analysis (first_analysis ());
+  Format.printf "copy: hits %d, rejected for callback %d@."
+    (hits "copy") (rejected "callback" "copy")
+
+(* A client of the hook of Inout on the inputs and outputs of each call,
+   registered through its dynamic access without an audit. *)
+let inout_client () =
+  let register =
+    Dynamic.get ~plugin:"Inout" "register_call_hook"
+      Datatype.(func (func Inout_type.ty unit) unit)
+  in
+  register (fun _ -> ());
+  second_analysis (first_analysis ());
+  Format.printf "copy: hits %d, rejected for callback %d@."
+    (hits "copy") (rejected "callback" "copy")
+
 (* ----- Names of the parts ------------------------------------------------- *)
 
 (* A second part named as a registered one: the name is the key of a
@@ -716,4 +749,6 @@ let () =
   | Some "snapshot" -> Boot.Main.extend snapshot
   | Some "reset" -> Boot.Main.extend reset
   | Some "duplicate" -> Boot.Main.extend duplicate
+  | Some "unaudited-part" -> Boot.Main.extend unaudited_part
+  | Some "inout-client" -> Boot.Main.extend inout_client
   | _ -> ()

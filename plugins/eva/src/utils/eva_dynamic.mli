@@ -10,7 +10,9 @@
 
 module Inout: sig
   (** Registers a hook to be called on the inputs/outputs computed by the Inout
-      plugin for each function call. *)
+      plugin for each function call, as a client audited for the cache: at a
+      hit, it receives the inputs/outputs kept with the entry. For Eva's own
+      client, which reduces the actuals of the call (see [Transfer_stmt]). *)
   val register_call_hook: (Inout_type.t -> unit) -> unit
 
   (** Returns the memory zone modified by the given function (including local

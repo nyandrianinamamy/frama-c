@@ -263,7 +263,10 @@ let stop_at_nth_alarm () = Parameters.StopAtNthAlarm.get () < max_int
      from the message collector of the kernel and the observer of the
      collector of block accesses, and the hooks of the message collector:
      the line of the call, the messages of the statuses and the reports of
-     the alarms reach them.
+     the alarms reach them;
+   - the restoration of the parts whose consumer is enabled, and the clients
+     that it runs, apart from those registered as audited (see
+     {!Cache_part.register}).
 
    Registration is the test: a client cannot be removed, and one registered
    after the production of an entry counts. *)
@@ -274,6 +277,7 @@ let unaudited_clients () =
   || Annotations.has_unaudited_hooks_on_change ()
   || Log.unaudited_clients ()
   || Messages.has_hooks ()
+  || Cache_part.unaudited_clients ()
 
 let cast : type a b. (a, b) Structure.eq -> a -> b = fun Structure.Eq x -> x
 let cast_back : type a b. (a, b) Structure.eq -> b -> a =
