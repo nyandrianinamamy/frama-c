@@ -428,7 +428,10 @@ statements of the called function. A hit that also delivers a Reach part
 records the points its body reaches, where its callstack answers the state
 top ([Reach at a hit](reach.md)). A hit on an entry without a Reach part
 reaches no point: it records the function as of unknown reachability, in a
-state of the analysis, reset with it. For a statement of such a function,
+state of the analysis, reset with it. So does a hit whose points the
+queries do not see, because the store of the cvalue domain saves no state
+(`-eva-no-results-domain cvalue`;
+[Reach at a hit](reach.md#the-queries-see-the-points-reached-by-a-hit-with-the-state-top)). For a statement of such a function,
 the passes run after the analysis draw no conclusion from the states saved
 there, which are those of the analysed calls only:
 `Eval_annots.mark_unreachable` marks no code annotation, no precondition of
@@ -518,10 +521,14 @@ reaches gets no unreachability status. The fixture below shows no such
 difference; it follows from the argument. The server requests pay the same
 cost: the request of dead code returns empty lists for such a function, and
 the request of statistics gives the coverage of statements as an upper
-bound. In this version they do not meet a hit: the server plug-in registers
-a client of the hooks on the changes of annotations when it loads
-(`Kernel_ast`), so that a body that registers an alarm is refused, and the
-lookup rejects every supplied entry
+bound. They meet the results of a hit only through a session: in
+`cache-reach.t`, a process that loads the server plug-in and the session
+saved after a hit on an entry without a Reach part gets no statement of
+`body` from the request of dead code. A hit does not occur in a process
+where the server plug-in is loaded: it registers a client of the hooks on
+the changes of annotations when it loads (`Kernel_ast`), so that a body
+that registers an alarm is refused, and the lookup rejects every supplied
+entry
 ([A hit runs no client that is not audited](#a-hit-runs-no-client-that-is-not-audited)).
 
 **Readers inspected.** The readers of Eva's results at the end of or after
@@ -603,8 +610,12 @@ Markdown report, WP or the constant propagation is loaded rest on source
 inspection; the rejection when Nonterm or Metrics is loaded is executed.
 
 **What remains.** Issue #48 lifts the restriction for the entries with a
-Reach part. It remains for a hand-written entry supplied without one and
-for an entry produced while the states of the body were not saved. The
+Reach part. It remains for a hand-written entry supplied without one, and
+for a hit whose points the queries do not see
+(`-eva-no-results-domain cvalue`). An entry produced while the states of
+the body were not saved has a Reach part without points: the lookup
+rejects it where the states of the function are saved (`missing-points`),
+and elsewhere no pass reads the points. The
 rejections of Nonterm, Metrics, the Markdown report, WP and the constant
 propagation can be lifted once the readers above are checked against the
 points reached by hits. Once a stored body may call other functions
@@ -903,7 +914,9 @@ and
 completes the specification of the function (`Populate_spec`), evaluates
 its preconditions, which emits statuses, red contexts and messages,
 delivers the Safety part, which registers alarms, emits statuses, prints
-messages and sets red contexts, delivers the Reach part, which runs no hook
+messages and sets red contexts, delivers the Reach part, whose writes run
+the hooks of change of tables internal to Eva, on which no client is
+registered
 ([A hit delivers the Reach part as recorded joins](reach.md#a-hit-delivers-the-reach-part-as-recorded-joins)),
 prints the line of the reuse and the disposition line of the category
 `cache`, and runs the call results hooks.
@@ -985,14 +998,18 @@ with caching disabled completes with `r1 = 9` and `r2 = 8`. No plug-in of
 the tree installs either replacement. The guarantee of this entry is for
 the logger of the tree with output sinks that do not act on the analysis;
 the supplier owes it. The observers of
-the collector and of the Safety part (`Body_access.on_result`,
-`Safety_part.on_result`) run after the analysis of a body and never at a
-hit: they are test devices of the cache, through which a test reads the
-dispositions, and no plug-in of the tree registers one; `same.c` uses one
-to change a setting between two calls. The hooks of the internal tables
-of Eva that a hit changes (`State_builder` hooks of the table of red
-contexts, of the functions with skipped visits) are not part of the
-interface of Eva. The statistics of performance (`Eva_perf`) see the start
+the collector, of the Safety part and of the Reach part
+(`Body_access.on_result`, `Safety_part.on_result`, `Reach_part.on_result`)
+run after the analysis of a body and never at a hit: they are test devices
+of the cache, through which a test reads the dispositions and the parts,
+and no plug-in of the tree registers one; `same.c` uses one to change a
+setting between two calls. The hooks of the internal tables of Eva that a
+hit changes (`State_builder` hooks of the table of red contexts, of the
+functions with skipped visits, and of the tables that the delivery of the
+Reach part writes) are not part of the interface of Eva: their modules are
+not in the interfaces of their compilation units, and no client is
+registered on them
+([A hit delivers the Reach part as recorded joins](reach.md#a-hit-delivers-the-reach-part-as-recorded-joins)). The statistics of performance (`Eva_perf`) see the start
 and the end of each call, at a hit as for a body without calls, with other
 durations. A builtin registered by a plug-in (`Eva.Builtins`) runs at a
 call made by the body: the producer refuses such a body (`builtin`), and

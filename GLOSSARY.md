@@ -44,9 +44,10 @@ The alarms and the annotation statuses established while analysing the
 statement.
 
 **Reach part**:
-The statements reached while analysing the statement, with the outcomes of
-its conditions, the zones read and written at each statement and the call
-sites of the calls it makes.
+The outcomes of the conditions met while analysing the statement, the
+zones read and written at each statement, the call sites of the calls it
+makes and, when the analysis saves the states of the statement, the
+statements it reaches.
 
 **Inner part**:
 The abstract state before each statement inside the body, on its locals and on

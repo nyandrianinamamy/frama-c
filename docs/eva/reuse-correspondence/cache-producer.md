@@ -197,10 +197,10 @@ classes of the observed joins. The
 [Shared Inner record](inner.md#saved-states-and-the-public-query) states the
 coverage premise for this reference. The Safety part holds the alarms,
 statuses and red contexts recorded during the analysis of the body
-([Safety at a hit](safety.md)). The Reach part holds the points reached,
-the guard outcomes, the zones and the call sites recorded during the
-analysis of the body; the entry has none when the states of the body are
-not saved ([Reach at a hit](reach.md)).
+([Safety at a hit](safety.md)). The Reach part holds the guard outcomes,
+the zones and the call sites recorded during the analysis of the body, and
+the points reached when the states of the body are saved
+([Reach at a hit](reach.md)).
 
 **Evidence (executed).** [`cache-producer.t`](../../../plugins/eva/tests/utils/cache-producer.t/run.t)
 asserts the used function and its mode and the States join class. It
