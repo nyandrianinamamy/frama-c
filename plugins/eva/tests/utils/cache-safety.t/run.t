@@ -26,7 +26,8 @@ Every write belongs to the body, with no frame above it.
 Changing the entry point to main resets the alarms and the statuses of the
 first analysis. The second analysis is given the entry. The call
 body(2, v & 1) has another key and is analysed; the call body(1, 0) at
-line 26 is a hit, and its body is not analysed.
+line 26 is a hit, and its body is not analysed. Only the clients that the
+collector audits are registered, and the hit is admitted.
 
   $ grep 'call to body' replay.log
     call to body: lookup: no-candidate; execution: analysed; storage: refused (no-inout); collector: would-store
@@ -217,8 +218,9 @@ statuses enters a second project with Project.on the first time it runs,
 during the analysis of body from producer, and sets a red status there.
 Each recording in progress, of body and of producer, is refused for
 project-switch, and no entry is stored. The analysis from main has no
-candidate, and its tables are those of the run with caching disabled and
-the same hook.
+candidate; the hook runs again during its second call of body, which the
+collector refuses for callback. Its tables are those of the run with
+caching disabled and the same hook.
 
   $ EVA_TEST_CACHE_SAFETY=crossing frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -main producer -eva-msg-key cache safety.c > crossing.log 2>&1
   $ grep -E 'call to|entries produced|collector-refused' crossing.log
@@ -228,7 +230,7 @@ the same hook.
   collector-refused-project-switch of producer: 1
   entries produced for body: 0
     call to body: lookup: no-candidate; execution: analysed; storage: refused (no-inout); collector: would-store
-    call to body: lookup: no-candidate; execution: analysed; storage: refused (no-inout); collector: refused (side-table)
+    call to body: lookup: no-candidate; execution: analysed; storage: refused (no-inout); collector: refused (callback)
     call to main: lookup: no-candidate; execution: analysed; storage: refused (no-inout); collector: refused (sweep)
   $ grep '^| ' crossing.log > crossing.summary
   $ EVA_TEST_CACHE_SAFETY=crossing-reference frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -eva-msg-key cache safety.c > crossing-reference.log 2>&1
@@ -254,7 +256,7 @@ same setting.
   collector-refused-project-switch of producer: 1
   entries produced for body: 0
     call to body: lookup: no-candidate; execution: analysed; storage: refused (no-inout); collector: would-store
-    call to body: lookup: no-candidate; execution: analysed; storage: refused (no-inout); collector: refused (side-table)
+    call to body: lookup: no-candidate; execution: analysed; storage: refused (no-inout); collector: refused (callback)
     call to main: lookup: no-candidate; execution: analysed; storage: refused (no-inout); collector: refused (sweep)
   $ grep '^| first' reentrant.log
   | first project: 0 statuses, 0 red contexts
@@ -313,12 +315,13 @@ disabled.
   $ diff fatal.summary fatal-reference.summary
 
 The same within one analysis. In same.c, the first call of body is analysed
-with the category inactive, and its entry is stored. A hook on the status
-of the assertion in other supplies that entry and sets the category to
-abort; nothing else in Eva sees the change. The second call of body rejects
-the entry and stops at the overflow, as with caching disabled.
+with the category inactive, and its entry is stored. At the end of the
+analysis of other, an observer of the Safety part supplies that entry and
+sets the category to abort; nothing else in Eva sees the change, and no hit
+runs such an observer. The second call of body rejects the entry and stops
+at the overflow, as with caching disabled.
 
-  $ EVA_TEST_CACHE_SAFETY=same EVA_TEST_CACHE_SAFETY_SUPPLY=on frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -no-warn-signed-overflow -eva-warn-key signed-overflow=inactive -eva-msg-key cache same.c > same.log 2>&1
+  $ EVA_TEST_CACHE_SAFETY=same EVA_TEST_CACHE_SAFETY_SUPPLY=on EVA_TEST_CACHE_SAFETY_TRIGGER=observer frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -no-warn-signed-overflow -eva-warn-key signed-overflow=inactive -eva-msg-key cache same.c > same.log 2>&1
   $ grep -E "call to body|^supplied|2's complement|^analysis aborted|^hits on" same.log
     call to body: lookup: rejected (entry 1: key-differs); execution: analysed; storage: refused (supplied-only); collector: would-store
   supplied during the analysis: 1
@@ -327,28 +330,78 @@ the entry and stops at the overflow, as with caching disabled.
   analysis aborted
   hits on body: 0
   $ grep '^| ' same.log > same.summary
-  $ EVA_TEST_CACHE_SAFETY=same frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -no-warn-signed-overflow -eva-warn-key signed-overflow=inactive -eva-msg-key cache same.c > same-reference.log 2>&1
+  $ EVA_TEST_CACHE_SAFETY=same EVA_TEST_CACHE_SAFETY_TRIGGER=observer frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -no-warn-signed-overflow -eva-warn-key signed-overflow=inactive -eva-msg-key cache same.c > same-reference.log 2>&1
   $ grep '^| ' same-reference.log > same-reference.summary
   $ diff same.summary same-reference.summary
 
-A change made after the lookup, by a hook that the hit runs, stops the
-analysis. The entry is produced with the category inactive; in the analysis
-that uses it, a hook on calls sets the category to abort at the call of
-body, after the lookup. After the delivery, the hit compares the status of
-the categories with their status at the lookup, and the analysis stops. The
-analysis with caching disabled stops at the overflow, with the same tables:
-the entry holds no alarm. Without the comparison, the hit printed nothing
-and gave out = 8.
+An entry rejected for warn-categories does not end the lookup: the next
+candidate is examined. In next.c, body has no alarm. The observer supplies
+the entry stored for the first call of body, then a copy of it written by
+hand, which carries no status of the warning categories. The second call of
+body rejects the hand-written entry for x = 5 (key-differs) and the stored
+one (warn-categories), and the copy answers it. The tables are those of the
+run with caching disabled.
+
+  $ EVA_TEST_CACHE_SAFETY=same EVA_TEST_CACHE_SAFETY_SUPPLY=on EVA_TEST_CACHE_SAFETY_TRIGGER=observer EVA_TEST_CACHE_SAFETY_NEXT=1 frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -no-warn-signed-overflow -eva-warn-key signed-overflow=inactive -eva-msg-key cache next.c > next.log 2>&1
+  $ grep -A 1 'entry 2: warn-categories' next.log | sed 's/ *$//'
+    call to body: lookup: rejected (entry 1: key-differs), rejected (entry 2: warn-categories),
+    hit (entry 3); execution: not-analysed; storage: none
+  $ grep '^| ' next.log > next.summary
+  $ EVA_TEST_CACHE_SAFETY=same EVA_TEST_CACHE_SAFETY_TRIGGER=observer frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -no-warn-signed-overflow -eva-warn-key signed-overflow=inactive -eva-msg-key cache next.c > next-reference.log 2>&1
+  $ grep '^| ' next-reference.log > next-reference.summary
+  $ diff next.summary next-reference.summary
+
+A hit skips the analysis of the body, and with it the calls that this
+analysis makes to the clients of Eva and of the kernel; the delivery of the
+Safety part calls some of them again. A client may count its calls, change
+a setting, or add statuses of its own, and the collector cannot tell what
+it does. A hit is admitted only when no client that the collector does not
+audit is registered on a hook that the analysis of the body or the hit
+would run: the hooks on calls and on statements of Eva, the hooks of red
+statuses, the hooks on the addition and the status of properties, the hooks
+on the changes of annotations, the listeners and the observers of the
+history of the logger, and the hooks on messages. Otherwise, every supplied
+candidate is rejected for callback, and the body is analysed. Below, one
+client of each hook is registered after the analysis from producer of
+safety.c; both calls of body in the analysis from main reject the entry.
+
+  $ for c in call call-results statement red status property annotations listener history messages; do EVA_TEST_CACHE_SAFETY=replay EVA_TEST_CACHE_SAFETY_CLIENT=$c frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -main producer -eva-msg-key cache safety.c > client-$c.log 2>&1; echo "$c: exit $?"; done
+  call: exit 0
+  call-results: exit 0
+  statement: exit 0
+  red: exit 0
+  status: exit 0
+  property: exit 0
+  annotations: exit 0
+  listener: exit 0
+  history: exit 0
+  messages: exit 0
+  $ for c in call call-results statement red status property annotations listener history messages; do grep '^client' client-$c.log; done
+  client call: hits on body: 0, rejected for callback: 2
+  client call-results: hits on body: 0, rejected for callback: 2
+  client statement: hits on body: 0, rejected for callback: 2
+  client red: hits on body: 0, rejected for callback: 2
+  client status: hits on body: 0, rejected for callback: 2
+  client property: hits on body: 0, rejected for callback: 2
+  client annotations: hits on body: 0, rejected for callback: 2
+  client listener: hits on body: 0, rejected for callback: 2
+  client history: hits on body: 0, rejected for callback: 2
+  client messages: hits on body: 0, rejected for callback: 2
+
+A client can change a setting during a hit, after the lookup. The entry is
+produced with the category inactive; in the analysis that uses it, a client
+of the hook on calls sets the category to abort at the call of body. The
+entry is rejected for callback, and the analysis stops at the overflow, as
+with caching disabled. The hit printed nothing and gave out = 8 before a
+comparison of the categories after the delivery was added; that comparison
+no longer exists.
 
   $ EVA_TEST_CACHE_SAFETY=replay-out EVA_TEST_CACHE_SAFETY_HOOK=signed-overflow=abort frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -main producer -no-warn-signed-overflow -eva-warn-key signed-overflow=inactive -eva-msg-key cache overflow.c > hook.log 2>&1
   $ sed -n '/^second analysis/,$p' hook.log > hook.second
-  $ grep -E "lookup: hit|2's complement|^analysis aborted" hook.second
-    call to body: lookup: hit (entry 1); execution: not-analysed; storage: none
+  $ grep -E "call to body|2's complement|^analysis aborted" hook.second
+  [eva:signed-overflow] overflow.c:8: Failure: 2's complement assumed for overflow
+    call to body: lookup: rejected (entry 1: callback); execution: interrupted; storage: none
   analysis aborted
-  $ grep -A 2 'User Error' hook.second | sed 's/ *$//'
-  [eva] overflow.c:19: User Error:
-    the status of the warning categories signed-overflow changed
-    during the hit on body
   $ grep '^| ' hook.log > hook.summary
   $ EVA_TEST_CACHE_SAFETY=reference-out EVA_TEST_CACHE_SAFETY_HOOK=signed-overflow=abort frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -no-warn-signed-overflow -eva-warn-key signed-overflow=inactive -eva-msg-key cache overflow.c > hook-reference.log 2>&1
   $ grep -E "2's complement|^analysis aborted" hook-reference.log
@@ -356,6 +409,133 @@ and gave out = 8.
   analysis aborted
   $ grep '^| ' hook-reference.log > hook-reference.summary
   $ diff hook.summary hook-reference.summary
+
+The change can also be undone before the hit ends. In inside.c, the check
+trigger of other makes a client supply the entries stored so far and
+register two more: one of the hook on calls sets signed-overflow to abort at
+the next call of body, one of the hooks of red statuses sets it back to
+inactive at each red status. With caching disabled, the second call of body
+stops at the overflow, before the red status of later. With caching, both
+calls of body reject the entries for callback, and the analysis stops at the
+same point. When red clients were admitted, the entry of the first call
+answered the second: the red status of later restored the category before
+the comparison after the delivery, and the hit gave out = 8.
+
+  $ EVA_TEST_CACHE_SAFETY=same EVA_TEST_CACHE_SAFETY_SUPPLY=on EVA_TEST_CACHE_SAFETY_TRIGGER=red EVA_TEST_CACHE_SAFETY_HOOK=signed-overflow=abort EVA_TEST_CACHE_SAFETY_UNDO=1 frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -no-warn-signed-overflow -eva-warn-key signed-overflow=inactive -eva-msg-key cache inside.c > inside.log 2>&1
+  $ grep -E "call to body|2's complement|^analysis aborted|^hits on" inside.log
+    call to body: lookup: rejected (entry 1: callback); execution: analysed; storage: refused (supplied-only); collector: refused (callback)
+  [eva:signed-overflow] inside.c:9: Failure: 2's complement assumed for overflow
+    call to body: lookup: rejected (entry 1: callback); execution: interrupted; storage: none
+  analysis aborted
+  hits on body: 0
+  $ grep '^| ' inside.log > inside.summary
+  $ EVA_TEST_CACHE_SAFETY=same EVA_TEST_CACHE_SAFETY_TRIGGER=red EVA_TEST_CACHE_SAFETY_HOOK=signed-overflow=abort EVA_TEST_CACHE_SAFETY_UNDO=1 frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -no-warn-signed-overflow -eva-warn-key signed-overflow=inactive -eva-msg-key cache inside.c > inside-reference.log 2>&1
+  $ grep '^| ' inside-reference.log > inside-reference.summary
+  $ diff inside.summary inside-reference.summary
+
+A hit stopped after its delivery has published its whole Safety part,
+which the analysis of the body does not. In interleave.c, the client of the
+hook on calls sets signed-overflow to abort at the call of body, and a
+client of the hooks of red statuses counts its calls. With caching
+disabled, the analysis of body sets the red status of first, calls the
+client once, and stops at the overflow, before last. The entry is rejected
+for callback, with the same result. When red clients were admitted, the
+hit called the client three times and set the red status of last before
+the comparison stopped the analysis.
+
+  $ EVA_TEST_CACHE_SAFETY=replay-out EVA_TEST_CACHE_SAFETY_HOOK=signed-overflow=abort EVA_TEST_CACHE_SAFETY_COUNT=red frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -main producer -no-warn-signed-overflow -eva-warn-key signed-overflow=inactive -eva-slevel 10 -eva-msg-key cache interleave.c > interleave.log 2>&1
+  $ sed -n '/^second analysis/,$p' interleave.log > interleave.second
+  $ grep -E "call to body|^analysis aborted|^red hook calls" interleave.second
+    call to body: lookup: rejected (entry 1: callback); execution: interrupted; storage: none
+  analysis aborted
+  red hook calls: 1
+  $ grep '^| ' interleave.log > interleave.summary
+  $ EVA_TEST_CACHE_SAFETY=reference-out EVA_TEST_CACHE_SAFETY_HOOK=signed-overflow=abort EVA_TEST_CACHE_SAFETY_COUNT=red frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -no-warn-signed-overflow -eva-warn-key signed-overflow=inactive -eva-slevel 10 -eva-msg-key cache interleave.c > interleave-reference.log 2>&1
+  $ grep -E "^analysis aborted|^red hook calls" interleave-reference.log
+  analysis aborted
+  red hook calls: 1
+  $ grep '^| ' interleave-reference.log > interleave-reference.summary
+  $ diff interleave.summary interleave-reference.summary
+
+A hit can also be stopped where the analysis of the body is not. In
+pre-route.c, a client of the hooks on statuses sets signed-overflow to
+abort when the precondition of pre is evaluated at line 18, where a
+hand-written entry is a candidate. pre has no overflow: with caching
+disabled, the analysis ends with out = 5. The entry is rejected for
+callback, with the same result. When the hit was admitted, the comparison
+after the delivery stopped the analysis.
+
+  $ EVA_TEST_CACHE_SAFETY=precondition EVA_TEST_CACHE_SAFETY_ROUTE=pre frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -eva-warn-key signed-overflow=inactive -eva-msg-key cache pre-route.c > pre-route.log 2>&1
+  $ grep -E "call to pre|^analysis aborted|^hits on" pre-route.log
+    call to pre: lookup: rejected (entry 1: callback); execution: analysed; storage: refused (supplied-only); collector: refused (callback)
+    call to pre: lookup: rejected (entry 1: callback); execution: analysed; storage: refused (supplied-only); collector: refused (callback)
+  hits on pre: 0
+  $ grep '^| ' pre-route.log > pre-route.summary
+  $ grep '^| end' pre-route.summary
+  | end of main: out = 5
+  $ EVA_TEST_CACHE_SAFETY=precondition-reference EVA_TEST_CACHE_SAFETY_ROUTE=pre frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -eva-warn-key signed-overflow=inactive -eva-msg-key cache pre-route.c > pre-route-reference.log 2>&1
+  $ grep '^| ' pre-route-reference.log > pre-route-reference.summary
+  $ diff pre-route.summary pre-route-reference.summary
+
+The same with a listener of the logger. In later.c, the listener sets
+signed-overflow to abort when it reads the line that reports a hit on body.
+With caching disabled, no hit is reported, and the analysis ends with
+out = 8. The entry is rejected for callback, with the same result. When the
+hit was admitted, the comparison after the delivery stopped the analysis.
+
+  $ EVA_TEST_CACHE_SAFETY=replay-out EVA_TEST_CACHE_SAFETY_ROUTE=log frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -main producer -no-warn-signed-overflow -eva-warn-key signed-overflow=inactive -eva-msg-key cache later.c > later.log 2>&1
+  $ sed -n '/^second analysis/,$p' later.log > later.second
+  $ grep -E "call to body|^analysis aborted|^hits on" later.second
+    call to body: lookup: rejected (entry 1: callback); execution: analysed; storage: refused (supplied-only); collector: would-store
+  hits on body: 0
+  $ grep '^| ' later.log > later.summary
+  $ EVA_TEST_CACHE_SAFETY=reference-out EVA_TEST_CACHE_SAFETY_ROUTE=log frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -no-warn-signed-overflow -eva-warn-key signed-overflow=inactive -eva-msg-key cache later.c > later-reference.log 2>&1
+  $ grep '^| ' later-reference.log > later-reference.summary
+  $ diff later.summary later-reference.summary
+
+A client of the hooks of red statuses can add a red status of its own. In
+repeat.c, the check never of body fails at the three iterations of its
+loop. Registered after the analysis from producer, the client adds a red
+status of never at no statement each time the hook runs for another red
+status; the hook runs again for the status that the client adds. The entry
+is rejected for callback: the hook is called 6 times, and a global red
+context of never is set, as with caching disabled. When red clients were
+admitted, the hit called the hook 12 times.
+
+  $ EVA_TEST_CACHE_SAFETY=replay-out EVA_TEST_CACHE_SAFETY_OWNRED=1 frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -main producer -eva-slevel 10 -eva-msg-key cache repeat.c > own-red.log 2>&1
+  $ sed -n '/^second analysis/,$p' own-red.log > own-red.second
+  $ grep -E "call to body|^red hook calls" own-red.second
+    call to body: lookup: rejected (entry 1: callback); execution: analysed; storage: refused (supplied-only); collector: refused (callback)
+  red hook calls: 6
+  $ grep '^| ' own-red.log > own-red.summary
+  $ cat own-red.summary
+  | end of main: out = 8
+  | global: red context of never in body :: repeat.c:20 <- main
+  | repeat.c:8: red context of never in body :: repeat.c:20 <- main
+  | repeat.c:8: status of never: invalid
+  $ EVA_TEST_CACHE_SAFETY=reference-out EVA_TEST_CACHE_SAFETY_OWNRED=1 frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -eva-slevel 10 -eva-msg-key cache repeat.c > own-red-reference.log 2>&1
+  $ grep '^red hook calls' own-red-reference.log
+  red hook calls: 6
+  $ grep '^| ' own-red-reference.log > own-red-reference.summary
+  $ diff own-red.summary own-red-reference.summary
+
+The same client, registered before any analysis, adds its red status only
+in the analysis from producer. The collector refuses the body for callback
+when the client runs during its analysis, and no entry is stored: the
+analysis from main has no candidate, and its tables are those of the run
+with caching disabled and no client. When red clients were admitted, the
+entry was stored, and the hit set the global red context of never in the
+analysis from main.
+
+  $ EVA_TEST_CACHE_SAFETY=replay-out EVA_TEST_CACHE_SAFETY_OWNRED=producer frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -main producer -eva-slevel 10 -eva-msg-key cache repeat.c > own-producer.log 2>&1
+  $ grep -E "call to body|^no entry" own-producer.log
+    call to body: lookup: no-candidate; execution: analysed; storage: refused (no-inout); collector: refused (callback)
+  no entry produced for body
+    call to body: lookup: no-candidate; execution: analysed; storage: refused (no-inout); collector: refused (callback)
+  $ grep '^| ' own-producer.log > own-producer.summary
+  $ EVA_TEST_CACHE_SAFETY=reference-out frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -eva-slevel 10 -eva-msg-key cache repeat.c > own-producer-reference.log 2>&1
+  $ grep '^| ' own-producer-reference.log > own-producer-reference.summary
+  $ diff own-producer.summary own-producer-reference.summary
 
 Printing the message of a status reads the history of the logger, and a
 hit makes the same read when it prints the message again: a body whose
@@ -431,78 +611,103 @@ stops after it has emitted both, as with caching disabled.
   $ grep '^| ' stop-reference.log > stop-reference.summary
   $ diff stop.summary stop-reference.summary
 
-The hooks of red statuses run each time a red status is set. In loop.c,
-with -eva-slevel 10, the check mixed fails at two iterations of the loop of
+The hit sets again each red status of the body. In loop.c, with
+-eva-slevel 10, the check mixed fails at two iterations of the loop of
 body(1, 0), and holds at the third. A red context is a callstack where at
 least one visit violates the property. The Safety part keeps the red
 context of mixed at each of the two failures, in its place among the
-other writes, and the hit runs the hooks twice. A hook that counts its
-calls is called as many times as with caching disabled.
+other writes, and the hit sets both. The tables are those of the run with
+caching disabled.
 
-  $ EVA_TEST_CACHE_SAFETY=replay-out EVA_TEST_CACHE_SAFETY_COUNT=red frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -main producer -eva-slevel 10 -eva-msg-key cache loop.c > loop.log 2>&1
-  $ grep -E '^safety: red context|lookup: hit|^red hook calls' loop.log
+  $ EVA_TEST_CACHE_SAFETY=replay-out frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -main producer -eva-slevel 10 -eva-msg-key cache loop.c > loop.log 2>&1
+  $ grep -E '^safety: red context|lookup: hit' loop.log
   safety: red context of property mixed at loop.c:9 (stmt 7), in the body
   safety: red context of property mixed at loop.c:9 (stmt 7), in the body
   safety: red context of alarm division_by_zero at loop.c:11 (stmt 11), in the body
     call to body: lookup: hit (entry 1); execution: not-analysed; storage: none
-  red hook calls: 5
   $ grep '^| ' loop.log > loop.summary
-  $ EVA_TEST_CACHE_SAFETY=reference-out EVA_TEST_CACHE_SAFETY_COUNT=red frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -eva-slevel 10 loop.c > loop-reference.log 2>&1
-  $ grep '^red hook calls' loop-reference.log
-  red hook calls: 5
+  $ EVA_TEST_CACHE_SAFETY=reference-out frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -eva-slevel 10 loop.c > loop-reference.log 2>&1
   $ grep '^| ' loop-reference.log > loop-reference.summary
   $ diff loop.summary loop-reference.summary
 
-The hit runs the hooks of red statuses and prints the messages in the order
-of the analysis of the body. In abort-count.c, with -eva-slevel 10, the
-check mixed fails at the first two iterations of the loop of body(1, 0),
-and holds at the third. The first red context of mixed comes before the
-message of its invalid status, the second after it. With the category alarm
-set to abort, the analysis with caching disabled runs the hook once, then
-stops at that message; the hit at line 25 does the same. Before the red
-contexts were kept in order, the hit ran the hook twice before it stopped.
+The hit sets the red statuses and prints the messages in the order of the
+analysis of the body. In abort-count.c, with -eva-slevel 10, the check mixed
+fails at the first two iterations of the loop of body(1, 0), and holds at
+the third. The first red context of mixed comes before the message of its
+invalid status, the second before its second message. With the category
+alarm set to abort, the analysis with caching disabled sets the first red
+context, then stops at the first message; the hit at line 25 does the same.
 
-  $ EVA_TEST_CACHE_SAFETY=replay-out EVA_TEST_CACHE_SAFETY_ALARM=abort EVA_TEST_CACHE_SAFETY_COUNT=red frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -main producer -eva-warn-key alarm=inactive -eva-slevel 10 -eva-msg-key cache abort-count.c > abort-count.log 2>&1
+  $ EVA_TEST_CACHE_SAFETY=replay-out EVA_TEST_CACHE_SAFETY_ALARM=abort frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -main producer -eva-warn-key alarm=inactive -eva-slevel 10 -eva-msg-key cache abort-count.c > abort-count.log 2>&1
   $ grep '^safety:' abort-count.log
   safety: red context of property mixed at abort-count.c:10 (stmt 7), in the body
   safety: status invalid of mixed, by Eva, in the body
   safety: message "check 'mixed' got status invalid." at abort-count.c:10, for a status invalid, in the body
   safety: red context of property mixed at abort-count.c:10 (stmt 7), in the body
+  safety: message "check 'mixed' got status invalid." at abort-count.c:10, for a status invalid, in the body
   safety: status valid of mixed, by Eva, in the body
   safety: message "check 'mixed' got status valid." at abort-count.c:10, for a status valid, in the body
   safety: red context of alarm division_by_zero at abort-count.c:12 (stmt 11), in the body
   safety: alarm division_by_zero at abort-count.c:12 (stmt 11), status unknown by Eva, in the body
-  $ grep -E 'lookup: hit|^analysis aborted|^red hook calls' abort-count.log
+  $ grep -E 'lookup: hit|^analysis aborted' abort-count.log
     call to body: lookup: hit (entry 1); execution: not-analysed; storage: none
   analysis aborted
-  red hook calls: 1
   $ grep '^| ' abort-count.log > abort-count.summary
-  $ EVA_TEST_CACHE_SAFETY=reference-out EVA_TEST_CACHE_SAFETY_ALARM=abort EVA_TEST_CACHE_SAFETY_COUNT=red frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -eva-slevel 10 abort-count.c > abort-count-reference.log 2>&1
-  $ grep -E '^analysis aborted|^red hook calls' abort-count-reference.log
+  $ EVA_TEST_CACHE_SAFETY=reference-out EVA_TEST_CACHE_SAFETY_ALARM=abort frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -eva-slevel 10 abort-count.c > abort-count-reference.log 2>&1
+  $ grep '^analysis aborted' abort-count-reference.log
   analysis aborted
-  red hook calls: 1
   $ grep '^| ' abort-count-reference.log > abort-count-reference.summary
   $ diff abort-count.summary abort-count-reference.summary
 
-An alarm, a status or a message equal to one already recorded changes no
-table and prints nothing again, and is not recorded again. Red contexts set
-in a row, with no other write recorded between them, form one write with
-their number. In repeat.c, the check never fails at the three iterations of
-the loop: after the first, the status and the message are those already
-recorded, and the next two red contexts form one write. The hook runs three
-times, as with caching disabled.
+An alarm or a status equal to one already recorded changes no table, and is
+not recorded again. Each message of a status and each red context is
+recorded, in order: the logger decides at each message whether to print it,
+as in the analysis of the body. In repeat.c, the check never fails at the
+three iterations of the loop. After the first, the status is the one
+already recorded, and the red context and the message are recorded again.
+Each message consults the history of the logger: the observer of the
+collector counts 3 consultations at the hit, as in the analysis with
+caching disabled. When the Safety part kept one message per text, it
+counted 1 at the hit.
 
-  $ EVA_TEST_CACHE_SAFETY=replay-out EVA_TEST_CACHE_SAFETY_COUNT=red frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -main producer -eva-slevel 10 -eva-msg-key cache repeat.c > repeat.log 2>&1
-  $ grep -E '^safety:|lookup: hit|^red hook calls' repeat.log
+  $ EVA_TEST_CACHE_SAFETY=replay-out EVA_TEST_CACHE_SAFETY_HISTORY=count frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -main producer -eva-slevel 10 -eva-msg-key cache repeat.c > repeat.log 2>&1
+  $ grep -E '^safety:|lookup: hit|^history consultations' repeat.log
   safety: red context of property never at repeat.c:8 (stmt 7), in the body
   safety: status invalid of never, by Eva, in the body
   safety: message "check 'never' got status invalid." at repeat.c:8, for a status invalid, in the body
-  safety: red context of property never at repeat.c:8 (stmt 7), set 2 times, in the body
+  safety: red context of property never at repeat.c:8 (stmt 7), in the body
+  safety: message "check 'never' got status invalid." at repeat.c:8, for a status invalid, in the body
+  safety: red context of property never at repeat.c:8 (stmt 7), in the body
+  safety: message "check 'never' got status invalid." at repeat.c:8, for a status invalid, in the body
     call to body: lookup: hit (entry 1); execution: not-analysed; storage: none
-  red hook calls: 3
-  $ EVA_TEST_CACHE_SAFETY=reference-out EVA_TEST_CACHE_SAFETY_COUNT=red frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -eva-slevel 10 repeat.c > repeat-reference.log 2>&1
-  $ grep '^red hook calls' repeat-reference.log
-  red hook calls: 3
+  history consultations: 3
+  $ grep '^| ' repeat.log > repeat.summary
+  $ EVA_TEST_CACHE_SAFETY=reference-out EVA_TEST_CACHE_SAFETY_HISTORY=count frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -eva-slevel 10 repeat.c > repeat-reference.log 2>&1
+  $ grep '^history consultations' repeat-reference.log
+  history consultations: 3
+  $ grep '^| ' repeat-reference.log > repeat-reference.summary
+  $ diff repeat.summary repeat-reference.summary
+
+A client can change a setting between two occurrences of a message. In
+second.c, the check later of body fails at the three iterations of its
+loop. From the check trigger of other on, a client of the hooks of red
+statuses sets the category alarm to abort at its second call. With caching
+disabled, the second call of body stops at the second message of later.
+The client is not audited: both calls of body reject the entries for
+callback, with the same result. When the Safety part kept one message per
+text and red clients were admitted, the hit gave out = 8.
+
+  $ EVA_TEST_CACHE_SAFETY=same EVA_TEST_CACHE_SAFETY_SUPPLY=on EVA_TEST_CACHE_SAFETY_TRIGGER=red EVA_TEST_CACHE_SAFETY_ALARM2=1 frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -eva-warn-key alarm=inactive -eva-slevel 10 -eva-msg-key cache second.c > second.log 2>&1
+  $ grep -E "call to body|Failure|^analysis aborted|^hits on" second.log
+    call to body: lookup: rejected (entry 1: callback); execution: analysed; storage: refused (supplied-only); collector: refused (callback)
+  [eva:alarm] second.c:9: Failure: check 'later' got status invalid.
+    call to body: lookup: rejected (entry 1: callback); execution: interrupted; storage: none
+  analysis aborted
+  hits on body: 0
+  $ grep '^| ' second.log > second.summary
+  $ EVA_TEST_CACHE_SAFETY=same EVA_TEST_CACHE_SAFETY_TRIGGER=red EVA_TEST_CACHE_SAFETY_ALARM2=1 frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -eva-warn-key alarm=inactive -eva-slevel 10 -eva-msg-key cache second.c > second-reference.log 2>&1
+  $ grep '^| ' second-reference.log > second-reference.summary
+  $ diff second.summary second-reference.summary
 
 An alarm already registered by another emitter keeps that emitter as its
 owner. Eva emits its status on the alarm and registers nothing of its own,
@@ -565,3 +770,28 @@ not part of the body.
   before the passes: one is never tried
   $ grep '^| ' precondition-reference.log > precondition-reference.summary
   $ diff precondition.summary precondition-reference.summary
+
+A recording belongs to the project current when it starts; the collector
+compares the count of the changes of the current project, kept by the
+kernel, at its start and at its end. Each operation that changes the top of
+the stack of projects counts the change when it makes it. Below, the
+changes counted by some operations; loading two projects counts each step
+that may change the current project.
+
+  $ EVA_TEST_CACHE_SAFETY=project-count frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs next.c > project-count.log 2>&1
+  $ grep ': [0-9]*$' project-count.log
+  set_current of the current project: 0
+  copy: 0
+  on, left by an exception: 2
+  remove of the current project: 1
+  load_all of two projects: 6
+
+During the loading of two projects, a hook of the change of project makes
+current again the project that was current before the last change. The
+loading then removes that project from the top of the stack, and another
+one is current: the count differs from the one the hook saw. When the
+removal was not counted, another project was current at the same count.
+
+  $ EVA_TEST_CACHE_SAFETY=load-hook frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs next.c > load-hook.log 2>&1
+  $ grep '^after the loading' load-hook.log
+  after the loading: same project false, same count false
