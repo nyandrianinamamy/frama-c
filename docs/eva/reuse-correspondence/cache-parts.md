@@ -67,11 +67,13 @@ and only when its callstack is the one given and its project is current.
 The parts of the frame go to `Call_cache.Make.store`, then to the producer,
 which gives them to `Cache_entry.Make.make`. The parts are values of an
 extensible type, one constructor per registered part, so a value is read
-back only at the type of its part (`Cache_part.find`). This rule is that of
-[#47](https://github.com/nyandrianinamamy/frama-c/issues/47) for its Safety
-recording, at a finer grain: there, a change of project during the
-recording refuses the whole recording; here, only the value given under the
-other project is dropped. The functions of a copy of a project are other
+back only at the type of its part (`Cache_part.find`). Since
+[#47](https://github.com/nyandrianinamamy/frama-c/issues/47), a change of
+the current project during the analysis of a body refuses the body itself
+(`project-switch` of the collector, [Safety at a hit](safety.md)): no entry
+is produced, and no entry carries a value given under another project. The
+test of the project in `provide` stays as a second guard, which a stored
+entry no longer reaches. The functions of a copy of a project are other
 values with the same identifiers: comparing one with a function of the
 original project is an internal error of the kernel. `check_project` finds
 the function of the entry in the current project by its variable and
@@ -80,11 +82,14 @@ requires the same value.
 **Evidence (executed).** In the scenarios `from` and `inout`, each entry
 prints the parts it has: `[from, inout]` with `-calldeps`, `[inout]`
 without. In the scenario `project`, the test module registers three parts
-and gives a value of each during each analysis of `copy`: for its callstack,
-for its callstack under another project (`Project.on`), and for the
-callstack of its caller. The entries of `copy` have `[inout, kept]`. With the
-project test removed from `provide`, they also have `other-project` and the
-fixture fails. In the scenario `copied`, the entries produced in the
+and gives values during each analysis of `copy`: one for its callstack and
+one for the callstack of its caller. The entries of `copy` have
+`[inout, kept]`. With `EVA_TEST_CACHE_PARTS_SWITCH`, it also gives a value
+for the callstack of `copy` under another project (`Project.on`): each call
+to `copy` reads `collector: refused (project-switch)`, and no entry of
+`copy` is produced. Before the rebase onto #47, with the project test
+removed from `provide`, the entries also had `other-project` and the
+fixture failed. In the scenario `copied`, the entries produced in the
 project are supplied while a copy of it is current: the supply raises
 `Invalid_argument` naming `copy`. Without `check_project`, the supply
 succeeds, and an analysis in the copy then stops with the internal error
@@ -230,12 +235,12 @@ source inspection.
 ## A hit restores the parts of the enabled consumers
 
 **Claim.** At a hit of a supplied entry, after the call hooks with
-`` `Reuse `` and the check of the preconditions of the callee, each
-registered part whose consumer is enabled is restored from the entry, in
-the order of registration, with the callstack of the call, the called
-function and the cvalue state at the start of the call. The results hooks
-are not run. A hit of memexec runs the results hooks with `` `Reuse N `` as
-before and restores no part.
+`` `Reuse ``, the check of the preconditions of the callee and the delivery
+of the Safety part of the entry, each registered part whose consumer is
+enabled is restored from the entry, in the order of registration, with the
+callstack of the call, the called function and the cvalue state at the
+start of the call. The results hooks are not run. A hit of memexec runs the
+results hooks with `` `Reuse N `` as before and restores no part.
 
 **Kind.** OCaml obligation.
 
@@ -245,6 +250,7 @@ rejected](#a-candidate-that-lacks-a-needed-part-is-rejected).
 **Symbols.** `Call_cache.Make.lookup` (`Hit` with `Some parts` for a
 supplied entry, `None` for memexec), `Supplied_entries.Lookup.find`,
 `Compute_functions.Make.compute_and_cache_call`, `Cache_part.restore`,
+`Safety_delivery.deliver`, `Safety_delivery.delivered`,
 `Body_access.without_recording`.
 
 **Argument (source inspection).** The identifier of a supplied entry is in
@@ -269,8 +275,63 @@ change.
 
 **Open.** A plug-in outside the tree that registers a results hook gets
 nothing at a hit of a supplied entry. In the tree, Eva's own hook
-(`Summary.FunctionStats`) ignores `` `Reuse ``, and the analysis of threads
-rejects every candidate.
+(`Summary.FunctionStats`) computes the statistics of a function at its
+`` `Body `` results; after the restoration of the parts, the engine calls
+`Safety_delivery.delivered`, through which the summary computes them again
+from the tables that the delivery updated. The analysis of threads rejects
+every candidate.
+
+## The restoration of a part runs audited clients only
+
+**Claim.** While a part whose consumer is enabled is not registered as
+audited, the lookup rejects every supplied candidate with `callback`. The
+parts of From and Inout are registered as audited. The part of Inout is
+audited while every client of its hook on the inputs and outputs of each
+call is: Eva's client, which reduces the actuals of the call, is registered
+as audited; any other client makes the part unaudited.
+
+**Kind.** OCaml obligation.
+
+**Depends on.** [A hit restores the parts of the enabled
+consumers](#a-hit-restores-the-parts-of-the-enabled-consumers), [A hit runs
+no client that is not
+audited](safety.md#a-hit-runs-no-client-that-is-not-audited).
+
+**Symbols.** `Cache_part.register` (`audited`),
+`Cache_part.unaudited_clients`, `Supplied_entries.unaudited_clients`; in
+From, `Callwise.part`, `Callwise.restore_froms`; in Inout,
+`Operational_inputs.Callwise.part`, `unaudited_clients`, the dynamic
+functions `register_call_hook` and `register_audited_call_hook`; in Eva,
+`Eva_dynamic.Inout.register_call_hook`, `Transfer_stmt.InOutCallback`.
+
+**Argument (source inspection).** `Cache_part.unaudited_clients` holds when
+a registered part whose `needed` function holds has an `audited` function
+that does not; `audited` defaults to never. `Supplied_entries.unaudited_clients`
+includes it, and `find` tests it with the other hooks, before it examines
+the candidates. The restoration of From checks the assigns clauses under
+`-from-verify-assigns`, which emits statuses and messages whose hooks the
+lookup tests, and records the dependencies in the table of the call site,
+which From does not export: no client can register a hook on it. These
+are the writes of the analysis of the body once the dependencies are
+computed, apart from its table of memexec results ([The From
+part](#the-from-part)). The restoration of Inout
+records the result in its tables, which Inout does not export, and applies
+the clients of `Record_Inout_Callbacks`. Inout registers a client given to
+its dynamic function `register_call_hook` as not audited, and one given to
+`register_audited_call_hook` as audited. Eva registers its cell
+`InOutCallback` through the second: the cell holds the result given for the
+call until the caller has reduced its actuals, and is cleared after the
+call ([The Inout part](#the-inout-part)). No other module of the tree
+registers a client.
+
+**Evidence (executed).** Scenario `unaudited-part`: the test module
+registers a part, needed in both analyses, and gives its value for every
+body. Not audited, the three calls to `copy` read `callback` for each of
+their three candidates (`copy: hits 0, rejected for callback 9`); audited,
+the three calls hit. Scenario `inout-client`: a client registered through
+`register_call_hook` gives `copy: hits 0, rejected for callback 9`. The
+scenarios `from`, `inout` and `visits` hit with the parts of From and Inout
+and Eva's client.
 
 ## A candidate that lacks a needed part is rejected
 
@@ -497,8 +558,8 @@ callback once the state is `Computing` sets `Computed` or `Aborted` when it
 ends, and the analysis that started it goes on with its results available:
 the parts captured in the rest of that analysis are not covered by this
 premise, and every supplied candidate is rejected there (`analysis-reset`,
-[A supplied entry is used with cvalue alone and no unserved
-consumer](reuse-operation.md#a-supplied-entry-is-used-with-cvalue-alone-and-no-unserved-consumer)).
+[A supplied entry is used only where a hit is
+supported](reuse-operation.md#a-supplied-entry-is-used-only-where-a-hit-is-supported)).
 With Inout loaded, such an analysis stops with an internal error of Inout,
 with or without supplied entries.
 `is_reachable` then holds for every statement, and `kf_pre_state` is `Top`,
@@ -561,9 +622,8 @@ enforce it. Within one analysis these options do not change unnoticed:
 each is registered as a dependency of the state of Eva's results
 (`Parameters.add_dep`, `add_precision_dep`, `add_correctness_dep`), and
 changing one clears the results; the lookup then rejects every candidate
-with `analysis-reset` ([A supplied entry is used with cvalue alone and no
-unserved
-consumer](reuse-operation.md#a-supplied-entry-is-used-with-cvalue-alone-and-no-unserved-consumer)).
+with `analysis-reset` ([A supplied entry is used only where a hit is
+supported](reuse-operation.md#a-supplied-entry-is-used-only-where-a-hit-is-supported)).
 The options of Eva outside this registration choose the cache
 (`-eva-memexec`, `-eva-cache-collect`), consolidate the results after the
 analysis (`-eva-join-results`), stop the analysis (`-eva-interpreter-mode`,
@@ -786,12 +846,15 @@ errors, exit status 1; before the change, Pdg warned `unreachable entry
 point` and printed a bottom graph for `copy`. With an option of Eva changed
 after the load, the analysis runs again with caching disabled and the
 graph of `copy`, with the inputs `b` and `d`, is the one of an analysis of
-the program with the same options. Scenarios `server-fresh` and `server`:
-after caching disabled, `getDeadCode` on `copy` gives 2 reached statements,
-`getReadsLval` on `b` at the first call to `copy` gives 4 indirect and 1
-direct statements and `getWritesLval` 1 direct statement; after the hits,
-the three requests are refused, `getDeadCode` with the error of the server
-naming `copy`; before the change, `getDeadCode` answered with three empty
+the program with the same options. The server requests, in their own test
+module (`test_cache_parts_server.ml`), since the main one does not load the
+server: after caching disabled, `getDeadCode` on `copy` gives 2 reached
+statements, `getReadsLval` on `b` at the first call to `copy` gives 4
+indirect and 1 direct statements and `getWritesLval` 1 direct statement;
+after the analysis with hits in the same process (3 hits on `copy`), and in
+the session saved by the scenario `save` and loaded with `-load`, the three
+requests are refused, `getDeadCode` with the error of the server naming
+`copy`; before the change, `getDeadCode` answered with three empty
 lists. Scenario `raw`: the first statement of `copy` is reachable after
 caching disabled and not after the hits, for any reader that asks
 `Eva.Results` directly. With the record of the function removed from the

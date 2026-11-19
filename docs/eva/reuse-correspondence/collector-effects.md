@@ -220,8 +220,12 @@ logging event would otherwise be admitted.
   either function, refuse with `callback`.
 - Any client of the kernel message-list hook `Messages.add_hook` refuses
   with `callback`, including a client of the audited message collector.
-- Any client of `Annotations.add_hook_on_change` refuses with `callback`.
-  The server's listener is a no-op without a server. Auditing it is
+- Any client of `Annotations.add_hook_on_change` refuses with `callback`,
+  the server's included: it is registered with `audited`, which concerns
+  the lookup only
+  ([Safety at a hit](safety.md#a-hit-runs-no-client-that-is-not-audited)),
+  and its invocation still reports to `Hook.Opaque`. The server's listener
+  is a no-op without a server. Admitting its invocation in a body is
   deferred. The reviewed suite comparison attributed 160 lost would-store
   verdicts and 153 lost produced entries to callback refusals, measured
   before the admission of the messages of statuses; the clients of red

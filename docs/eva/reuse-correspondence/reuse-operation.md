@@ -204,11 +204,11 @@ examined. The state given to the lookup is the input of the call: the caller's s
 `Domain.start_call`, which binds the formals (`Transfer_stmt`), so formals
 take part in the key as blocks. For cvalue, `Cvalue_domain.State.equal`
 compares the maps and ignores the clobbered set. The engine never analyses a
-call from `Bottom`. On a hit, `compute_and_cache_call` evaluates the
-preconditions of the callee at the call, runs the call hooks with
-`` `Reuse ``, delivers the Safety part of the entry, then restores the parts
-of the entry in place of the results hooks ([A hit restores the parts of the
-enabled
+call from `Bottom`. On a hit, `compute_and_cache_call` runs the call hooks
+with `` `Reuse ``, evaluates the preconditions of the callee at the call,
+records the function as answered by a hit, delivers the Safety part of the
+entry, then restores the parts of the entry in place of the results hooks
+([A hit restores the parts of the enabled
 consumers](cache-parts.md#a-hit-restores-the-parts-of-the-enabled-consumers)),
 and returns the states as the result of the call. When no state satisfies
 the preconditions, it delivers nothing, restores no part and returns no
@@ -569,9 +569,12 @@ rejected with `analysis-reset`. In each case the body is analysed.
 `product` takes precedence over `consumer`, `consumer` over
 `stop-at-nth-alarm`, that over `callback`, that over `analysis-reset`, and
 all five over the examination of each candidate (`key-differs`,
-`key-unclosed`, `missing-part`). Loading From or Inout does not reject the
-candidates: their callwise results are parts of the entries ([Parts owned
-by other plug-ins](cache-parts.md)).
+`key-unclosed`, `missing-part`, then the checks of `admit`, among them
+`warn-categories` and, last, `nested-delivery`). Loading From or Inout does
+not reject the candidates: their callwise results are parts of the entries
+([Parts owned by other plug-ins](cache-parts.md)), whose restoration is
+audited, and the client of the server that they load through Callgraph is
+audited at the lookup.
 
 **Kind.** OCaml obligation.
 
@@ -626,7 +629,9 @@ fresh evaluation registers every alarm of an evaluation before
 alarms one by one and does not know the evaluations they came from;
 `Alarmset.deliver` no longer tests the threshold. The fourth test is argued
 in
-[A hit runs no client that is not audited](safety.md#a-hit-runs-no-client-that-is-not-audited).
+[A hit runs no client that is not audited](safety.md#a-hit-runs-no-client-that-is-not-audited),
+and for the parts in [The restoration of a part runs audited clients
+only](cache-parts.md#the-restoration-of-a-part-runs-audited-clients-only).
 
 **Evidence.** Executed by run 0: the default product is a single cvalue leaf,
 and the calls hit. Run 1, with `-eva-domains cvalue,sign`: every call to a
@@ -648,12 +653,17 @@ with Nonterm or with Metrics loaded, the calls read
 alarms of the division at line 7, as with caching disabled; before the
 rejection, the hit delivered the division alarm and the analysis stopped
 before the overflow alarm. The rejection with `callback` is executed in
-`cache-safety.t`, one client of each hook at a time. The rejection when the
-Markdown report, WP or the constant propagation is loaded, and the
-precedences, rest on source inspection: no run enables two reasons. Scenario `reset` of
+`cache-safety.t`, one client of each hook at a time, and in
+[`cache-parts.t`](../../../plugins/eva/tests/utils/cache-parts.t/run.t) for
+a part that is not audited and for a client of the hook of Inout that is
+not audited (scenarios `unaudited-part` and `inout-client`). The rejection
+when the Markdown report, WP or the constant propagation is loaded, and the
+precedences, rest on source inspection: no run enables two reasons.
+Scenario `reset` of
 [`cache-parts.t`](../../../plugins/eva/tests/utils/cache-parts.t/run.t): at
-the first call to `copy`, which hits, a call hook of the test module adds
-`copy` to `-eva-no-results-function`; each of the two later calls reads
+the first call to `copy`, which hits, a call hook of the test module,
+registered with `cache_protocol` so that `callback` does not come first,
+adds `copy` to `-eva-no-results-function`; each of the two later calls reads
 `rejected (entry N: analysis-reset)` for its three candidates and is
 analysed. Before the change, both hit. Scenario `fallback` of the same file
 starts an analysis from a start hook, and the analysis with the entries
@@ -661,9 +671,18 @@ then takes its hits. The case of an analysis started by a callback after
 the state is set to `Computing` rests on source inspection: with Inout
 loaded, which `cache-parts.t` needs, the analysis that goes on after it
 stops with an internal error of the callwise results of Inout (`callwise:
-internal stack is inconsistent with Eva callstack`), and it also stops
-when no entry is supplied (`callwise: internal stack is empty`), a limit of
-an analysis started inside another, unrelated to the cache.
+internal stack is inconsistent with Eva callstack`, observed with entries
+supplied). The stop does not need the cache. At `fd5d60cb64`, with
+`-eva-no-memexec` and no entry supplied, a call hook loaded with
+`-load-module` that, at the first call to `copy` of `parts.c`, clears the
+results of Eva and runs `Eva.Analysis.compute`: with Eva alone, both
+analyses end; with Inout loaded and `-eva`, the outer analysis stops with
+`[inout] Failure: callwise: internal stack is empty`; with From loaded and
+`-calldeps`, with or without Inout, with `[from] Failure: calldeps:
+internal stack is empty` (exit status 125 in the three runs). The start
+hooks of From and Inout empty the stacks of their callwise computations,
+one per process, which the outer analysis still uses. The module is not
+part of the suite.
 
 **Open.** A plug-in outside the tree that registers a results hook with
 `cache_protocol` and reads `` `Reuse N `` is not detected; it gets no

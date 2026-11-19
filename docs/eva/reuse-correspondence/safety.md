@@ -92,10 +92,11 @@ The other writers of statuses in Eva do not run in a body that the producer
 stores. `Recursion.mark_unknown_requires` runs at a recursive call made by
 the body, which the collector refuses (`recursion`): the called function is
 active.
-`Logic_inout.check_fct_assigns` runs in the callwise hooks of From and Inout,
-outside the observation; a supplied entry is rejected as `consumer` when
-either plug-in is loaded
-([A supplied entry is used only where a hit is supported](reuse-operation.md#a-supplied-entry-is-used-only-where-a-hit-is-supported)).
+`Logic_inout.check_fct_assigns` runs in the callwise hook of From under
+`-from-verify-assigns`, outside the observation: its statuses are not part
+of the Safety part, and at a hit the restoration of the From part runs it
+again in the state of the call
+([The From part](cache-parts.md#the-from-part)).
 `Eval_annots` runs after the analysis, and `Eva_results` and `Export` do not
 run during one. The checks of the `requires` clauses of a body belong to its
 call site: `Safety_part.record` records no write while
@@ -447,6 +448,11 @@ the hit stay as delivered. The called function is the only one whose
 visits a hit skips: no hit is admitted on a body with a call. The passes
 after a hit whose points the queries see are the subject of
 [The passes after the analysis read the points reached by hits](reach.md#the-passes-after-the-analysis-read-the-points-reached-by-hits).
+The hit also records the function among those whose visits a hit
+skipped, in a state of the analysis, reset with it, saved with the
+session and kept with the results that `Eva_results` takes and installs
+again; From, Inout, Pdg and Studia read this record
+([Results computed from statement states are refused after a hit](cache-parts.md#results-computed-from-statement-states-are-refused-after-a-hit)).
 
 **Kind.** OCaml obligation.
 
@@ -497,7 +503,9 @@ In a function of unknown reachability, `Export.generator` skips the
 statements, `Export.main` warns instead of annotating it, and `dead_code`
 returns no list. `Skipped`, the functions answered by a hit that delivers
 its Safety part, serves the statistics of the function, computed again
-after such a hit (`Summary.FunctionStats`). `Unknown` and `Skipped` are
+after such a hit (`Summary.FunctionStats`, through
+`Safety_delivery.delivered`), and the readers of the results computed
+from statement states (`Safety_delivery.complete`). `Unknown` and `Skipped` are
 `State_builder.Set_ref` states that depend on `Self.state`: they are
 cleared with the results of Eva, at the start of each analysis and on any
 change that resets them.
@@ -517,15 +525,15 @@ rejected all the same.
 
 Export and the server requests meet a function of unknown reachability
 only under `-eva-no-results-domain cvalue`, where caching disabled reports
-the statements of every called function unreachable. They meet the
-results of a hit only through a session: in `cache-reach.t`, a process
-that loads the server plug-in and the session saved after a hit under that
-option gets no statement of `body` from the request of dead code. A hit
-does not occur in a process where the server plug-in is loaded: it
-registers a client of the hooks on the changes of annotations when it
-loads (`Kernel_ast`), so that a body that registers an alarm is refused,
-and the lookup rejects every supplied entry
-([A hit runs no client that is not audited](#a-hit-runs-no-client-that-is-not-audited)).
+the statements of every called function unreachable. In `cache-reach.t`,
+a process that loads the server plug-in and the session saved after a
+hit under that option gets no statement of `body` from the request of
+dead code. The server requests also meet hits in the process of the
+analysis: the client of the server on the changes of annotations
+(`Kernel_ast`) is audited at the lookup
+([A hit runs no client that is not audited](#a-hit-runs-no-client-that-is-not-audited)),
+and the collector still refuses a body during which it runs, one that
+registers an alarm.
 
 **Readers inspected.** The readers of Eva's results at the end of or after
 the analysis, at this revision:
@@ -544,11 +552,15 @@ the analysis, at this revision:
   the Markdown report (coverage, through `Eva.Results.is_reachable`), WP
   (states before a statement as hypotheses of its memory model based on Eva)
   and the constant propagation (values at statements);
-- already rejected as `consumer` because they load Inout or From: the
-  display of the final states (category `final-states`, which requires
-  Inout), `Logic_inout`, and the plug-ins whose library depends on Inout or
-  From, Reduc (assertions from the values at statements, given a valid
-  status) among them;
+- the results by function of From and Inout, computed from the states
+  saved at statements, and their readers: From, Inout and Pdg refuse them
+  after a hit, and every supplied candidate is rejected as `consumer` while
+  Pdg, Reduc (assertions from the values at statements, given a valid
+  status) or Studia, or a plug-in that loads one of them, is loaded
+  ([Results computed from statement states are refused after a
+  hit](cache-parts.md#results-computed-from-statement-states-are-refused-after-a-hit));
+  the display of the final states (category `final-states`) asks Inout for
+  the outputs of a function, which answer `Top` after a hit;
 - not restricted, and listed for issue #49: the values that `Eva.Results`
   returns at a statement of a function answered by a hit, which are top in
   the callstacks of the hits and over all callstacks
@@ -908,7 +920,8 @@ and
 **Symbols.** `Supplied_entries.unaudited_clients`,
 `Supplied_entries.Lookup.find`, `Cvalue_callbacks.unaudited_hooks`,
 `Red_statuses.has_hooks`, `Property_status.has_add_or_update_hooks`,
-`Annotations.has_hooks_on_change`, `Log.unaudited_clients`,
+`Annotations.has_unaudited_hooks_on_change`, `Log.unaudited_clients`,
+`Cache_part.unaudited_clients`, `Kernel_ast` in the server,
 `Messages.has_hooks`, `Log.add_listener`, `Log.on_history_access`,
 `register` in the signature `Log.Messages`,
 `Compute_functions.Make.compute_and_cache_call`, `Safety_delivery.deliver`,
@@ -926,8 +939,10 @@ the hooks of change of tables internal to Eva, on which no client is
 registered
 ([A hit delivers the Reach part as recorded joins](reach.md#a-hit-delivers-the-reach-part-as-recorded-joins)),
 prints the line of the reuse and the disposition line of the category
-`cache`, and runs the call results hooks.
-The hooks reached are: the call and call results hooks of Eva; the hooks of
+`cache`, and restores the parts of the entry in place of the call results
+hooks, which only a hit of memexec runs.
+The hooks reached are: the call and call results hooks of Eva; the
+restoration of the parts and the clients that it runs; the hooks of
 the kernel on a new property, on a new status and on a change of the
 annotations; the hooks of red statuses; the listeners of the logger, for
 all plug-ins (`Log.add_listener`) or for one (`register`), the observers of
@@ -940,10 +955,11 @@ statement.
 *The test.* Each of these registration functions records whether it
 registered a client without the flag of an audited client
 (`cache_protocol` or `classified` for the hooks of Eva, `audited` for the
-logger); the hooks of red statuses, of the kernel on properties, statuses
-and annotations, and of the message collector have no audited client, and
-any registration counts. A client cannot be removed. `unaudited_clients`
-is the disjunction of the six accessors, and `find` tests it after
+logger, for the hooks on the changes of annotations and for the parts);
+the hooks of red statuses, of the kernel on properties and statuses, and
+of the message collector have no audited client, and any registration
+counts. A client cannot be removed. `unaudited_clients` is the disjunction
+of the seven accessors, and `find` tests it after
 `product`, `consumer` and `stop-at-nth-alarm` and before it examines the
 candidates: no hook has run, nothing has been delivered and no line has
 been printed for the hit when the candidates are rejected.
@@ -975,23 +991,47 @@ been printed for the hit when the candidates are rejected.
   error event). The argument for this client is that a hit does not set
   the flag, not that the flag is local to a phase.
 - The call and call results hooks registered with `cache_protocol`: those
-  of Inout and From (callwise) and of the analysis of threads, whose
-  presence rejects every candidate with `consumer` first; and that of the
-  summary (`Summary.FunctionStats`), which computes again the statistics of
-  a function after a hit that skipped its visits, from the tables that the
-  delivery has updated.
+  of Inout and From (callwise), whose call hooks do nothing with
+  `` `Reuse `` and whose results hooks a hit of a supplied entry does not
+  run; that of the analysis of threads, whose activity rejects every
+  candidate with `consumer` first; and that of the summary
+  (`Summary.FunctionStats`), which computes the statistics of a function at
+  its `` `Body `` results. After a hit that skipped its visits, the engine
+  calls `Safety_delivery.delivered`, through which the summary computes them
+  again from the tables that the delivery has updated.
+- The parts of From and Inout (`Cache_part.register` with `audited`), and
+  Eva's client of the hook of Inout on the inputs and outputs of each call
+  (`Transfer_stmt.InOutCallback`, registered through
+  `register_audited_call_hook`): the restoration writes what the analysis
+  of the body writes once its result is computed, in tables that From and
+  Inout do not export, and gives Eva the result of the call before the
+  caller reduces its actuals. Argued in [The restoration of a part runs
+  audited clients
+  only](cache-parts.md#the-restoration-of-a-part-runs-audited-clients-only).
+- The client of the server on the changes of annotations (`Kernel_ast`,
+  registered with `audited`), loaded with the server, which Callgraph
+  links, and From and Inout link Callgraph. It emits the signal `changed`
+  of the server (`Main.emit`). With no server running, the emitter is
+  `nop`; with a server running, `Main.do_signal` adds the signal to the
+  sets of the server and to its queue of messages, and runs no hook
+  (`notify` runs only when the client of the server starts or stops
+  listening). No analysis reads these. What the client of the server does
+  when it receives the signal, between two steps of the analysis, is
+  outside this claim, as the output sinks of the logger are. The audit is
+  for the lookup only: the invocation still reports to `Hook.Opaque`, and
+  the collector refuses a body during which it runs
+  ([ordered effects](collector-effects.md#ordered-and-opaque-effects)).
 - The statement hooks registered as classified: the watchpoints
   (`Builtins_watchpoint`), whose activity rejects every candidate with
   `watchpoint`, and the dynamic widening hints (`Widen`), whose change
   rejects an entry with `hint-generation`. A hit runs no statement hook.
 
 The other clients of the tree are not audited, and reject every candidate
-once registered: the server registers a hook on the changes of annotations
-when it loads (`Kernel_ast`), so that no hit is admitted while it is
-loaded, and hooks on statuses, red statuses and messages when a client of
-its protocol listens; the Report plug-in, the logging of a plug-in to a file
-(`-<plug-in>-log`) and the monitoring of the server register a listener;
-the inlining of statement contracts registers hooks on statuses.
+once registered: the server registers hooks on statuses, red statuses and
+messages when a client of its protocol listens; the Report plug-in, the
+logging of a plug-in to a file (`-<plug-in>-log`) and the monitoring of the
+server register a listener; the inlining of statement contracts registers
+hooks on statuses.
 
 *Routes that the test does not close.* A client outside the tree
 registered with the flag of an audited client is trusted. The logger has
@@ -1034,7 +1074,10 @@ alarms and red contexts and on the state at the end of `main`:
   26 is a hit. With the server plug-in loaded, its client of the hooks on
   annotations runs when `body` registers its alarm: the body is refused
   (`callback`), no entry is stored, and the analysis from `main` has no
-  candidate.
+  candidate. In `cache-parts.t`, with the server loaded and the bodies
+  registering no alarm, the three calls to `copy` hit; before the audit of
+  this client, every candidate of the file read `callback`, the server
+  being loaded with From and Inout.
 - `inside.c`: a client of the hooks on calls sets `signed-overflow` to
   abort at the call of `body`, and a client of the hooks of red statuses
   sets it back at each red status. Both calls reject the entries with
@@ -1098,7 +1141,11 @@ tests register no client and are unchanged.
 - The lists of hooks and of audited clients come from a sweep of the tree
   at this revision; a new hook that a hit runs must get an accessor here.
 - The rejection costs every hit while a client is registered, for instance
-  with the server loaded or with the log of a plug-in written to a file.
+  with the log of a plug-in written to a file, or while a client of the
+  protocol of the server listens to statuses.
+- With the server loaded, which From and Inout load, the collector refuses
+  every body that registers an alarm: its client of the hooks on the
+  changes of annotations is audited at the lookup only.
 
 ## Preconditions at a hit
 
