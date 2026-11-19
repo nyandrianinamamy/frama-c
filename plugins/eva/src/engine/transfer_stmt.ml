@@ -27,6 +27,7 @@ let register_callback () =
 let () = Cmdline.run_after_configuring_stage register_callback
 
 let current_kf_inout = InOutCallback.get_option
+let clear_current_kf_inout = InOutCallback.clear
 
 (* Should we warn about indeterminate copies in the function [kf] ? *)
 let warn_indeterminate kf =

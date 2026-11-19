@@ -397,6 +397,18 @@ is refused, and the hits run what the summary installed.
   refused: Safety_delivery.on_delivered: the summary of the analysis is already installed
   copy: hits 3
 
+The hook of Inout leaves the inputs and outputs of each call in a cell,
+which the caller reads to reduce its actuals; the call statement empties it
+afterwards. The entry point has no caller: its call empties the cell too,
+whether its body is analysed or a hit answers it. In root.c, main makes no
+call: its entry, produced with caching disabled, answers it in the second
+analysis.
+
+  $ EVA_TEST_CACHE_PARTS=root frama-c -no-autoload-plugins -load-module eva,from,inout,test_cache_parts.cmxs root.c > root.log 2>&1
+  $ grep -E '^(caching disabled|second analysis)' root.log
+  caching disabled: entries of main 1, Inout cell empty
+  second analysis: hits of main 1, Inout cell empty
+
 After an analysis in which hits answered calls, the results by function of
 From and Inout, and the results by statement of Inout, are computed from
 states that do not cover these calls. Every request is refused with a user

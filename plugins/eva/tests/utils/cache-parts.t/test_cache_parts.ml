@@ -804,6 +804,28 @@ let replace_summary () =
   second_analysis (first_analysis ());
   Format.printf "copy: hits %d@." (hits "copy")
 
+(* ----- Call of the entry point ------------------------------------------ *)
+
+(* The cell in which the hook of Inout leaves the inputs and outputs of the
+   last call, for the caller to reduce its actuals. The entry point has no
+   caller: after its call, analysed or answered by a hit, the cell is
+   empty. *)
+let root () =
+  let cell () =
+    match Eva__Transfer_stmt.current_kf_inout () with
+    | None -> "empty"
+    | Some _ -> "filled"
+  in
+  clear ();
+  Eva.Parameters.Memexec.off ();
+  Eva.Analysis.compute ();
+  let produced = Producer.entries (kf "main") in
+  Format.printf "caching disabled: entries of main %d, Inout cell %s@."
+    (List.length produced) (cell ());
+  second_analysis produced;
+  Format.printf "second analysis: hits of main %d, Inout cell %s@."
+    (hits "main") (cell ())
+
 (* ----- Names of the parts ------------------------------------------------- *)
 
 (* A second part named as a registered one: the name is the key of a
@@ -847,4 +869,5 @@ let () =
   | Some "predicate" -> Boot.Main.extend predicate
   | Some "stats" -> Boot.Main.extend stats
   | Some "replace-summary" -> Boot.Main.extend replace_summary
+  | Some "root" -> Boot.Main.extend root
   | _ -> ()

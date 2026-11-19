@@ -361,7 +361,14 @@ module Make (Engine: Engine_sig.S) = struct
       in
       let call = { kf; callstack; arguments = []; rest = []; return = None; } in
       check_main_function_target kf (Function_calls.analysis_target kf Kglobal);
-      let final_result = compute_call call None init_state in
+      (* The hook of Inout leaves the inputs and outputs of the call in a
+         cell for its caller; the entry point has none. The cell is emptied
+         after the call is analysed or answered by the cache, and stored,
+         as a call statement does after its call. *)
+      let compute () = compute_call call None init_state in
+      let final_result =
+        Fun.protect ~finally:Transfer_stmt.clear_current_kf_inout compute
+      in
       let final_states = List.map snd (final_result.states) in
       let final_state = Bottom.List.join Engine.Dom.join final_states in
       final_state

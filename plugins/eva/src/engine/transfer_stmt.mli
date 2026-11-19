@@ -6,7 +6,14 @@
 (*                                                                        *)
 (**************************************************************************)
 
+(** The inputs and outputs of the last call, left by the hook of Inout for
+    the caller, which reads them to reduce its actuals. *)
 val current_kf_inout: unit -> Inout_type.t option
+
+(** Empties the cell of {!current_kf_inout}. A call statement does it after
+    the call; the call of the entry point, which has no caller, does it
+    after the call is analysed or answered by the cache, and stored. *)
+val clear_current_kf_inout: unit -> unit
 
 (** Subset of [Engine_sig.S] required for this functor. *)
 module type Engine_Subset = sig
