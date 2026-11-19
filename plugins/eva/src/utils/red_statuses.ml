@@ -57,10 +57,10 @@ module RedStatusesTable =
 
 module Hook = Hook.Build (AlarmOrProp)
 
-(* A hit delivers the red contexts of its entry through [add_red_context],
-   which runs the hooks as the analysis of the body did: a client is not an
-   opaque effect of the body. *)
-let register_hook f = Hook.extend f
+(* A client of the hook is not audited: its invocation during the analysis
+   of a body refuses the body ([Hook.Opaque]). *)
+let register_hook f =
+  Hook.extend (Frama_c_kernel.Hook.Opaque.wrap f)
 
 let add_red_context kinstr ap =
   let current_map =

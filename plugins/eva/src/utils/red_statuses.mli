@@ -41,6 +41,7 @@ val is_red: Property.t -> bool
    a csv file. *)
 val report: unit -> unit
 
-(* Register a hook that is called each time a red status is set, a hit
-   included: a hit runs it each time the analysis of the body did. *)
+(* Register a hook that is called each time a red status is set. The
+   collector of block accesses refuses a body during which the hook is
+   called ([Hook.Opaque]): the client is not audited. *)
 val register_hook: (alarm_or_property -> unit) -> unit

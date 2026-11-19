@@ -172,16 +172,14 @@ A file dump has its own reason and actually writes the first numbered file.
   $ grep -o 'DUMPING STATE' collector_0
   DUMPING STATE
 
-The red client and the extra history client each execute once during a
-fresh body. The red client is not a refusal: a hit runs the red hook again,
-and the body would store. The history client runs on the otherwise admitted
-locals-escaping per-event consultation, and its body refuses to produce an
-entry.
+The red client and the extra history client each execute during a fresh body.
+Each body refuses to produce an entry. The history client runs on the
+otherwise admitted locals-escaping per-event consultation.
 
   $ test_effects red-client -eva-no-memexec -main alarm effects.c > red.log 2>&1
   $ grep '^alarm' red.log
-  alarm: would-store
-  alarm client calls: 1
+  alarm: callback
+  alarm client calls: 1, entries: 0
   $ test_effects history-client -eva-no-memexec -main swept effects.c > history.log 2>&1
   $ grep '^swept' history.log
   swept: callback
