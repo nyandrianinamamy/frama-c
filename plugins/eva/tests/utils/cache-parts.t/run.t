@@ -599,37 +599,42 @@ loads it refuses the same requests.
   $ grep -E 'User Error|Function|Out' load-out.log
   [inout] User Error: cannot compute the inputs and outputs by function or by statement: in the current analysis of Eva, a hit of the cache answered a call without analysing the body of the called function, and saved no state at its statements
 
-Three requests of the server: the dead code of copy, and the statements
-that read and that write b at the first call to copy, which Studia, loaded
-after the analysis, computes with Inout. The server, which From and Inout
-load through Callgraph, registers a client of the hooks on the changes of
-annotations; the client emits a signal to the client of the server, and
-the lookup admits the entries while it is registered. After an analysis
-with caching disabled, the server answers the three requests. After the
+Four requests of the server: the dead code of copy and of narrow, whose
+two branches are reached, and the statements that read and that write b
+at the first call to copy, which Studia, loaded after the analysis,
+computes with Inout. The server, which From and Inout load through
+Callgraph, registers a client of the hooks on the changes of annotations;
+the client emits a signal to the client of the server, and the lookup
+admits the entries while it is registered. After an analysis
+with caching disabled, the server answers the four requests. After the
 analysis with hits, in the same process and in the session saved above,
-the three requests are refused: the request of Eva answers with an error
-of the server that names the cause.
+the requests of Eva give the statements of caching disabled, since the hits
+deliver the points that they reach, and the two requests of Studia are
+refused.
 
   $ EVA_TEST_CACHE_PARTS_SERVER=fresh frama-c -no-autoload-plugins -load-module eva,eva.server_api,from,inout,test_cache_parts_server.cmxs parts.c > server-fresh.log 2>&1
-  $ grep -E '^(statement|plugins)' server-fresh.log
+  $ grep -E '^(statement|plugins|copy:|narrow:)' server-fresh.log
   statement results complete: true
-  plugins.eva.ast.getDeadCode: unreachable 0, reached 2, nonTerminating 0
+  copy: plugins.eva.ast.getDeadCode: unreachable 0, reached 2, nonTerminating 0
+  narrow: plugins.eva.ast.getDeadCode: unreachable 0, reached 4, nonTerminating 0
   plugins.studia.studia.getReadsLval: indirect 4, direct 1
   plugins.studia.studia.getWritesLval: indirect 0, direct 1
   $ EVA_TEST_CACHE_PARTS_SERVER=hits frama-c -no-autoload-plugins -load-module eva,eva.server_api,from,inout,test_cache_parts_server.cmxs parts.c > server-hits.log 2>&1
   $ sed -n '/^hits/,$p' server-hits.log > server-hits.txt
-  $ grep -E '^(hits|statement|plugins)|User Error|Error when' server-hits.txt
-  hits: copy 3
+  $ grep -E '^(hits|statement|plugins|copy:|narrow:)|User Error|Error when' server-hits.txt
+  hits: copy 3, narrow 1
   statement results complete: false
-  plugins.eva.ast.getDeadCode: refused: cannot classify the statements of copy as reached or unreachable: in the current analysis of Eva, a hit of the cache answered a call of this function without analysing its body, and saved no state at its statements
+  copy: plugins.eva.ast.getDeadCode: unreachable 0, reached 2, nonTerminating 0
+  narrow: plugins.eva.ast.getDeadCode: unreachable 0, reached 4, nonTerminating 0
   [studia] User Error: cannot find the statements that access a location: in the current analysis of Eva, a hit of the cache answered a call without analysing the body of the called function, and saved no state at its statements
   plugins.studia.studia.getReadsLval: refused
   [studia] User Error: cannot find the statements that access a location: in the current analysis of Eva, a hit of the cache answered a call without analysing the body of the called function, and saved no state at its statements
   plugins.studia.studia.getWritesLval: refused
   $ EVA_TEST_CACHE_PARTS_SERVER=loaded frama-c -no-autoload-plugins -load-module eva,eva.server_api,from,inout,test_cache_parts_server.cmxs -load hits.sav > server.log 2>&1
-  $ grep -E '^(statement|plugins)|User Error|Error when' server.log
+  $ grep -E '^(statement|plugins|copy:|narrow:)|User Error|Error when' server.log
   statement results complete: false
-  plugins.eva.ast.getDeadCode: refused: cannot classify the statements of copy as reached or unreachable: in the current analysis of Eva, a hit of the cache answered a call of this function without analysing its body, and saved no state at its statements
+  copy: plugins.eva.ast.getDeadCode: unreachable 0, reached 2, nonTerminating 0
+  narrow: plugins.eva.ast.getDeadCode: unreachable 0, reached 4, nonTerminating 0
   [studia] User Error: cannot find the statements that access a location: in the current analysis of Eva, a hit of the cache answered a call without analysing the body of the called function, and saved no state at its statements
   plugins.studia.studia.getReadsLval: refused
   [studia] User Error: cannot find the statements that access a location: in the current analysis of Eva, a hit of the cache answered a call without analysing the body of the called function, and saved no state at its statements
@@ -654,15 +659,17 @@ d.
    {n8}: In(b)
    {n9}: In(d)
 
-The results of Eva at the statements of a function answered by hits are
-not delivered, and only the readers above refuse them: the first statement
-of copy is reachable with caching disabled, and not after the hits. This is
-the work of the issue of the reachable statements.
+The results of Eva at the statements of a function answered by hits, read
+directly: the hits deliver the points that they reach, and the first
+statement of copy is reachable, as with caching disabled. The state there is
+top for the callstacks of the hits, and over all callstacks: src is
+ANYTHING after the hits, where caching disabled gives &b or &d. The readers
+above, which compute from these values, refuse them.
 
   $ EVA_TEST_CACHE_PARTS=raw frama-c -no-autoload-plugins -load-module eva,from,inout,test_cache_parts.cmxs parts.c > raw.log 2>&1
   $ grep -E 'reachable' raw.log
-  caching disabled: first statement of copy reachable: true
-  after the hits: first statement of copy reachable: false
+  caching disabled: first statement of copy reachable: true; src: {{ &b ; &d }}
+  after the hits: first statement of copy reachable: true; src: {{ ANYTHING }}
 
 A value of a part is kept with the entry only when it is given for the body
 being analysed. The test module registers parts and gives a value of each

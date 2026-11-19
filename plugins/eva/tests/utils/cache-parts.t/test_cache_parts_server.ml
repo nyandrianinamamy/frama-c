@@ -1,6 +1,7 @@
-(* Three requests of the server on parts.c: the dead code of copy, and the
-   statements that read and that write b at the first call to copy, which
-   Studia, loaded after the analysis, computes with Inout.
+(* Four requests of the server on parts.c: the dead code of copy and of
+   narrow, whose two branches are reached, and the statements that read and
+   that write b at the first call to copy, which Studia, loaded after the
+   analysis, computes with Inout.
 
    The server registers a client of the hooks on the changes of annotations
    when it loads, which emits a signal to the client of the server.
@@ -38,8 +39,13 @@ let requests () =
       | exception Server.Data.InputError msg ->
         Format.printf "%s: refused: %s@." name msg
   in
-  let copy = Server.Printer_tag.SFunction (kf "copy") in
-  ask "plugins.eva.ast.getDeadCode" (Server.Kernel_ast.Decl.to_json copy);
+  let dead_code f =
+    let decl = Server.Printer_tag.SFunction (kf f) in
+    Format.printf "%s: " f;
+    ask "plugins.eva.ast.getDeadCode" (Server.Kernel_ast.Decl.to_json decl)
+  in
+  dead_code "copy";
+  dead_code "narrow";
   let b = Var (global "b"), NoOffset in
   let call = Kstmt (first_call_to_copy ()) in
   let marker = Server.Printer_tag.PLval (Some (kf "deps_main"), call, b) in
@@ -70,8 +76,8 @@ let hits () =
   clear ();
   Eva.Parameters.Memexec.on ();
   Eva.Analysis.compute ();
-  Format.printf "hits: copy %d@."
-    (Eva.Statistics.get Eva.Statistics.cache_hits (kf "copy"));
+  let hits f = Eva.Statistics.get Eva.Statistics.cache_hits (kf f) in
+  Format.printf "hits: copy %d, narrow %d@." (hits "copy") (hits "narrow");
   requests ()
 
 let () =

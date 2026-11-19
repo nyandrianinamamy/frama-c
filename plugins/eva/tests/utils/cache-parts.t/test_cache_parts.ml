@@ -706,17 +706,25 @@ let fallback () =
   Format.printf "after the hits: Inout.get_precise_inout of inner equal to \
                  caching disabled: %b@." (Inout_type.equal fresh (inner ()))
 
-(* The results of Eva at the statements of copy, which a hit does not
-   deliver and which no reader of this test refuses: the issue of the
-   reachable statements (#48). *)
+(* The results of Eva at the first statement of copy, read directly, which
+   no reader of this test refuses: whether it is reached, and the value of
+   the formal src there. *)
 let raw () =
   let first = List.hd (Kernel_function.get_definition (kf "copy")).sallstmts in
+  let src =
+    List.find (fun vi -> vi.vname = "src")
+      (Kernel_function.get_formals (kf "copy"))
+  in
+  let print name =
+    Format.printf "%s: first statement of copy reachable: %b; src: %s@." name
+      (Eva.Results.is_reachable first)
+      (Results.(before first |> eval_var src |> as_cvalue)
+       |> one_line Cvalue.V.pretty)
+  in
   let produced = first_analysis () in
-  Format.printf "caching disabled: first statement of copy reachable: %b@."
-    (Eva.Results.is_reachable first);
+  print "caching disabled";
   second_analysis produced;
-  Format.printf "after the hits: first statement of copy reachable: %b@."
-    (Eva.Results.is_reachable first)
+  print "after the hits"
 
 (* ----- Clients that a hit runs ------------------------------------------- *)
 
