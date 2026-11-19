@@ -96,7 +96,32 @@ let check_exit_state (_, model) =
       "Supplied_entries.supply: an exit state is Bottom; a body that never \
        returns has no exit state"
 
+(* Whether the body of [kf] may call a function that has a body: a call to a
+   function with a definition, or through a pointer. A hit skips the analysis
+   of the called functions as well as that of [kf], and only [kf] is recorded
+   among the functions with skipped visits (see {!Safety_delivery}). *)
+let calls_a_body kf =
+  let is_body f = Kernel_function.is_definition (Globals.Functions.get f) in
+  let calls stmt =
+    match stmt.Cil_types.skind with
+    | Instr (Call (_, f, _, _)) ->
+      begin match Kernel_function.get_called f with
+        | None -> true
+        | Some callee -> Kernel_function.is_definition callee
+      end
+    | Instr (Local_init (_, ConsInit (f, _, _), _)) -> is_body f
+    | _ -> false
+  in
+  List.exists calls (Kernel_function.get_definition kf).sallstmts
+
+let check_no_call kf =
+  if calls_a_body kf then
+    Format.kasprintf invalid_arg
+      "Supplied_entries.supply: the body of %a may call a function that has \
+       a body" Kernel_function.pretty kf
+
 let add kf entry =
+  check_no_call kf;
   ignore (Counter.next ());
   Table.replace kf (entries kf @ [ entry ]);
   entry
@@ -177,9 +202,18 @@ type 'state lookup = {
 }
 
 (* Inout and From resolve the identifier given with [`Reuse] to the callbacks
-   in their tables of memexec results, and so does the analysis of threads. *)
+   in their tables of memexec results, and so does the analysis of threads.
+   The other plug-ins read the states saved at the statements of a function,
+   and a hit saves none for its own visits: Nonterm reports the statements
+   without a state as unreachable or non-terminating, Metrics and the
+   Markdown report count them as unreached, WP takes the states as
+   hypotheses of its memory model based on Eva, and the constant propagation
+   replaces an expression by its value in these states. *)
+let state_readers = [ "nonterm"; "metrics"; "mdr"; "wp"; "scf" ]
+
 let consumer_enabled () =
   Plugin.is_present "inout" || Plugin.is_present "from"
+  || List.exists Plugin.is_present state_readers
   || Mt_options.Enabled.get ()
 
 (* A fresh evaluation emits all the alarms of an evaluation before it tests

@@ -35,6 +35,9 @@ val emitter : Emitter.t
    Creates a visitor that can be used to generate new annotations for all
    visited instructions. The generated assertions are associated with the local
    {!emitter}. They are all assigned a valid status by {!Analysis.emitter}.
+   No annotation is generated in a function a call of which was answered by a
+   hit of the cache: the states saved there do not cover that call (see
+   {!Safety_delivery.skip_visits}).
 *)
 val generator : unit -> Visitor.frama_c_inplace
 

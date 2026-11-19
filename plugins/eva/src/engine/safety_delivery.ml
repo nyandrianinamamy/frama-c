@@ -26,3 +26,19 @@ let deliver callstack part =
   in
   List.iter deliver part
 
+(* ----- Functions with skipped visits ------------------------------------- *)
+
+module Skipped =
+  State_builder.Set_ref (Kernel_function.Set)
+    (struct
+      let name = "Eva.Safety_delivery.Skipped"
+      let dependencies = [ Self.state ]
+    end)
+
+let skip_visits = Skipped.add
+
+let visits_skipped kf = not (Skipped.is_empty ()) && Skipped.mem kf
+
+let visits_skipped_at stmt =
+  not (Skipped.is_empty ())
+  && Skipped.mem (Kernel_function.find_englobing_kf stmt)

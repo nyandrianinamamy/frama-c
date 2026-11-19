@@ -61,6 +61,7 @@ module Parameters = Parameters
 module Position = Position
 module Red_statuses = Red_statuses
 module Results = Results
+module Safety_delivery = Safety_delivery
 module Self = Self
 module Simple_memory = Simple_memory
 module Structure = Structure

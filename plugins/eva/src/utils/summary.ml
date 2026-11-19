@@ -154,6 +154,12 @@ let get_status ip =
   in
   Property_status.fold_on_statuses aux_status ip None
 
+(* A statement of a function a call of which was answered by a hit of the cache
+   is counted as reached: the visits of that call save no state, and the
+   absence of a state there does not prove the statement unreachable. *)
+let reached stmt =
+  Results.is_reachable stmt || Safety_delivery.visits_skipped_at stmt
+
 let compute_fun_stats kf =
   let alarms = AlarmsStats.create 13
   and coverage = Coverage.make ()
@@ -176,7 +182,7 @@ let compute_fun_stats kf =
       List.iter (do_status alarm) l
   in
   let do_stmt stmt =
-    let reachable = Results.is_reachable stmt in
+    let reachable = reached stmt in
     Coverage.incr coverage ~reachable;
     Annotations.iter_code_annot (do_annot stmt) stmt
   in
@@ -211,11 +217,14 @@ module FunctionStats = struct
         let size = 17
       end)
 
-  (* Recompute statistics about a function after each analysis of its body. *)
+  (* Recompute statistics about a function after each analysis of its body,
+     and after each hit of the cache, which delivers alarms and statuses. *)
   let () =
     let aux _callstack kf _state results =
       match results with
       | `Body _ -> replace kf (compute_fun_stats kf)
+      | `Reuse _ when Safety_delivery.visits_skipped kf ->
+        replace kf (compute_fun_stats kf)
       | `Builtin _ | `Spec _ | `Reuse _ -> ()
     in
     Cvalue_callbacks.register_call_results_hook ~cache_protocol:true aux
@@ -261,7 +270,7 @@ let compute_statuses ()  =
   in
   let do_property ip =
     let incr stmt statuses =
-      if Results.is_reachable stmt then
+      if reached stmt then
         match get_status ip with
         | None -> ()
         | Some status -> Statuses.incr statuses status

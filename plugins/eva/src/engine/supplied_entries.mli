@@ -73,6 +73,21 @@ type footprint = Cache_entry.footprint = {
       checks of the [requires] clauses of [kf] are not part of the body:
       they are evaluated at each call.
 
+    The alarms and statuses of [safety] are those of an analysis with the
+    parameters of the analysis that uses the entry: the options of the
+    kernel and of Eva that decide which alarms and statuses are emitted,
+    such as the [-warn-*] options of the kernel ([-warn-signed-overflow]
+    for instance) and the [-eva-warn-*] options of Eva
+    ([-eva-warn-copy-indeterminate] for instance), are equal in the analysis
+    that produced the entry and in the analysis that uses it. Nothing checks
+    it: an entry produced without the alarms of signed overflows hides them
+    in an analysis that emits them. Within one analysis these options do not
+    change.
+
+    The body of [kf] does not call a function that has a body: a hit skips
+    the analysis of [kf] and records [kf] alone among the functions whose
+    statements have no state (see {!Safety_delivery.skip_visits}).
+
     An entry whose body contains a call is rejected at lookup
     ([nested-delivery]), except for direct calls of the display directives
     [Frama_C_show_each*] and [Frama_C_domain_show_each*]. A hit on a body
@@ -80,12 +95,13 @@ type footprint = Cache_entry.footprint = {
     call-result hooks that a fresh evaluation of the directive runs: the
     fixture must tolerate both omissions.
 
-    Raises [Invalid_argument] if [input] or an exit state is [Top] or
-    [Bottom]; if the written sets are not nested (W_sure ⊆ W_exit ⊆ W); if
-    [key] does not contain R ∪ (W_exit \ W_sure); if [key] is not closed in
-    [input]; or if an exit state does not bind a block of W_exit that exists
-    at the exit of the body: every block of W_exit but the locals of its
-    inner blocks. The three written sets include the block of the value
+    Raises [Invalid_argument] if the body of [kf] may call a function that
+    has a body, directly or through a pointer; if [input] or an exit state
+    is [Top] or [Bottom]; if the written sets are not nested
+    (W_sure ⊆ W_exit ⊆ W); if [key] does not contain R ∪ (W_exit \ W_sure);
+    if [key] is not closed in [input]; or if an exit state does not bind a
+    block of W_exit that exists at the exit of the body: every block of
+    W_exit but the locals of its inner blocks. The three written sets include the block of the value
     returned by [kf], if any (see {!return_variable}). *)
 val supply :
   ?safety:Safety_part.t -> kernel_function -> key:Base.Hptset.t ->
@@ -96,8 +112,11 @@ val supply :
     producer, with the next supplied entry identifier. The lookup checks the
     recorded sweep targets, used functions and widening generation. The
     fixture must use the same AST and ensure the calls meet the replay
-    premises described on [supply]. Supplying entries remains a test-only
-    operation. *)
+    premises described on [supply], the equality of the options that decide
+    the alarms and statuses included when the entry crosses analyses.
+    Supplying entries remains a test-only operation. Raises
+    [Invalid_argument] if the body may call a function that has a body; the
+    producer stores no such body. *)
 val supply_produced : Cache_producer.entry -> entry
 
 (** The partition key of a state that no partitioning distinguishes. *)
@@ -151,9 +170,13 @@ type rejection = [
   | `Product
   (** The active domains are not the cvalue domain alone. *)
   | `Consumer
-  (** A component that resolves the identifier of a hit against the entries
-      of memexec is enabled: the Inout or From plug-in, or the analysis of
-      threads. *)
+  (** A component that reads the results of the analysis in a way that a
+      hit does not support is enabled: the Inout or From plug-in, or the
+      analysis of threads, which resolve the identifier of a hit against the
+      entries of memexec; or a plug-in that concludes from the states saved
+      at the statements of a function, which do not cover the calls answered
+      by a hit: Nonterm, Metrics, the Markdown report, WP and the constant
+      propagation. *)
   | `Stop_at_nth_alarm
   (** Option [-eva-stop-at-nth-alarm] is set. A fresh evaluation emits all
       its alarms before it tests the threshold; a hit does not deliver its

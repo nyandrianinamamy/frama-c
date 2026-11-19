@@ -144,12 +144,18 @@ module Make (Engine: Engine_sig.S) = struct
       (* A hit of the reuse operation delivers the Safety part of its entry,
          unless no state satisfies the preconditions: an analysis of the body
          would then analyse nothing, and the call has no state at its end.
+         A delivering hit saves no state at the statements of the body: the
+         function is recorded, so that the passes at the end of the analysis
+         draw no conclusion from the absence of these states.
          Memexec gives no Safety part, and its states are kept. *)
       let states =
         match safety with
         | None -> states
         | Some _ when not satisfiable -> []
-        | Some safety -> Safety_delivery.deliver call.callstack safety; states
+        | Some safety ->
+          Safety_delivery.skip_visits call.kf;
+          Safety_delivery.deliver call.callstack safety;
+          states
       in
       Self.feedback ~current:true ~mkey:Log_key.progress
         "Reusing old results for call to %a" Kernel_function.pretty call.kf;

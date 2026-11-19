@@ -27,3 +27,27 @@
       runs the hooks of red statuses as many times as the body set it. *)
 val deliver : Callstack.t -> Safety_part.t -> unit
 
+(** {2 Functions with skipped visits}
+
+    A hit delivers the Safety part of its entry, but saves no state for the
+    statements of the called function: the visits of these statements by
+    the call are skipped. Until a hit delivers the statements it reaches
+    (issue #48), the passes run at the end of the analysis must not
+    conclude from the absence of a state at a statement of such a function:
+    it is not dead, and the states saved there are those of the analysed
+    calls only. The functions called by the body of an entry are skipped as
+    well; there are none, since an entry is refused for a body that may
+    call a function that has a body (see {!Supplied_entries.supply}). *)
+
+(** [skip_visits kf] records that a hit has answered a call of [kf] in the
+    current analysis. The record is a state of the analysis, and is reset
+    with it. *)
+val skip_visits : Cil_types.kernel_function -> unit
+
+(** Whether a hit has answered a call of the function in the current
+    analysis. *)
+val visits_skipped : Cil_types.kernel_function -> bool
+
+(** Whether a hit has answered a call of the function that contains the
+    statement, in the current analysis. *)
+val visits_skipped_at : Cil_types.stmt -> bool

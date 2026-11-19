@@ -38,6 +38,12 @@ let iter_normal_ensures f kf =
   Annotations.iter_behaviors
     (fun bhv -> Annotations.iter_ensures (f bhv) kf bhv.b_name) kf
 
+(* A statement is unreached if no state is saved there, unless a hit of the
+   cache answered a call of its function: the visits of that call are skipped,
+   and save no state. See {!Safety_delivery.skip_visits}. *)
+let unreached stmt =
+  not (Results.is_reachable stmt || Safety_delivery.visits_skipped_at stmt)
+
 let mark_unreachable () =
   let mark ppt =
     if not (Property_status.automatically_computed ppt) then begin
@@ -53,7 +59,7 @@ let mark_unreachable () =
   in
   (* Mark standard code annotations *)
   let mark_code_annot stmt _emit ca =
-    if not (Results.is_reachable stmt) then begin
+    if unreached stmt then begin
       let kf = Kernel_function.find_englobing_kf stmt in
       let ppts = Property.ip_of_code_annot kf stmt ca in
       List.iter mark ppts;
@@ -64,7 +70,7 @@ let mark_unreachable () =
     inherit Visitor.frama_c_inplace
 
     method! vstmt_aux stmt =
-      if not (Results.is_reachable stmt) then begin
+      if unreached stmt then begin
         let mark_status kf =
           (* Do not mark preconditions as dead if they are not analyzed in
              non-dead code. Otherwise, the consolidation does strange things. *)
@@ -104,7 +110,7 @@ let mark_unreachable () =
     match Function_calls.analysis_status kf with
     | Analyzed _ when not (Eva_utils.skip_specifications kf) ->
       let return_stmt = Kernel_function.find_return kf in
-      if not (Results.is_reachable return_stmt) then
+      if unreached return_stmt then
         iter_normal_ensures mark kf
     | _ -> ()
   in
@@ -177,8 +183,11 @@ let mark_green_and_red () =
     let is_alarm = Alarms.find ca <> None in
     (* We reevaluate only alarms, in the hope that we can emit an 'invalid'
        status, or user assertions that mention a C label. The latter are
-       currently skipped during evaluation. *)
-    if (is_alarm || contains_c_at ca) && Results.is_reachable stmt then
+       currently skipped during evaluation. The states saved at a statement
+       of a function answered by a hit of the cache are those of the analysed
+       calls only: no status is concluded from them. *)
+    if (is_alarm || contains_c_at ca) && Results.is_reachable stmt
+       && not (Safety_delivery.visits_skipped_at stmt) then
       match ca.annot_content with
       | AAssert (_, p) | AInvariant (_, true, p) ->
         let p = p.tp_statement in
