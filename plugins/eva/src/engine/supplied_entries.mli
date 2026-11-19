@@ -96,10 +96,11 @@ type footprint = Cache_entry.footprint = {
     call differs. The lookup compares the status of the warning categories
     with their status when the analysis of the body that produced the entry
     started ({!Body_access.warn_categories}), and rejects the entry with
-    [`Warn_categories] when one differs. It does not see a change made at
-    the call of the hit, after the lookup, by a hook on calls; and an entry
-    given to [supply] carries no status of the categories, so that the
-    caller owes them.
+    [`Warn_categories] when one differs; an entry given to [supply] carries
+    no status of the categories, so that the caller owes them. After the
+    delivery, a hit compares the status of the categories with their status
+    at the lookup, and the analysis stops when a hook that the hit ran
+    changed one ({!Call_cache.delivery}).
 
     The body of [kf] does not call a function that has a body: a hit skips
     the analysis of [kf] and records [kf] alone among the functions whose

@@ -160,6 +160,11 @@ let report ?collector ?produced call ~lookup ~execution ~storage =
       Self.feedback ~mkey ~loc ~append "%t" pretty_call
     | Kglobal -> Self.feedback ~mkey ~append "%t" pretty_call
 
+type delivery = {
+  safety : Safety_part.t;
+  categories : (string * Log.warn_status) list;
+}
+
 (* ----- Seam -------------------------------------------------------------- *)
 
 let include_supplied stack entry ~returns =
@@ -193,7 +198,7 @@ module Make
     | Supplied of (int * Supplied_entries.rejection) list
 
   type hit_source =
-    | Supplied_entry of Supplied_entries.entry
+    | Supplied_entry of Supplied_entries.entry * (string * Log.warn_status) list
     | Legacy_trace of Body_access.call_trace option
 
   type lookup =
@@ -203,6 +208,7 @@ module Make
   (* Lookup in the entries supplied by a test module. *)
   let lookup_supplied call state =
     let kf = call.kf in
+    let categories = Body_access.warn_categories () in
     let Supplied_entries.{ rejected; hit } =
       Supplied.find call.callstack state
     in
@@ -218,7 +224,7 @@ module Make
       Statistics.(incr cache_hits kf);
       report call ~lookup:{ rejected; hit = Some id }
         ~execution:`Not_analysed ~storage:`None;
-      Hit (id, states, Supplied_entry entry)
+      Hit (id, states, Supplied_entry (entry, categories))
 
   let lookup call state =
     let kf = call.kf in

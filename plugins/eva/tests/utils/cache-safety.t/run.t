@@ -331,19 +331,24 @@ the entry and stops at the overflow, as with caching disabled.
   $ grep '^| ' same-reference.log > same-reference.summary
   $ diff same.summary same-reference.summary
 
-A change made at the call of the hit itself, after the lookup, is not seen.
-This run breaks the premise on purpose: the entry is produced with the
-category inactive, and in the analysis that uses it, a hook sets the
-category to abort at the call of body. The hit prints nothing and gives
-out = 8, where the analysis with caching disabled stops at the overflow.
-Within one analysis, such a hook also runs at the call that produces the
-entry, whose body then refuses (callback); a hook registered between the
-two calls remains open.
+A change made after the lookup, by a hook that the hit runs, stops the
+analysis. The entry is produced with the category inactive; in the analysis
+that uses it, a hook on calls sets the category to abort at the call of
+body, after the lookup. After the delivery, the hit compares the status of
+the categories with their status at the lookup, and the analysis stops. The
+analysis with caching disabled stops at the overflow, with the same tables:
+the entry holds no alarm. Without the comparison, the hit printed nothing
+and gave out = 8.
 
   $ EVA_TEST_CACHE_SAFETY=replay-out EVA_TEST_CACHE_SAFETY_HOOK=signed-overflow=abort frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -main producer -no-warn-signed-overflow -eva-warn-key signed-overflow=inactive -eva-msg-key cache overflow.c > hook.log 2>&1
   $ sed -n '/^second analysis/,$p' hook.log > hook.second
   $ grep -E "lookup: hit|2's complement|^analysis aborted" hook.second
     call to body: lookup: hit (entry 1); execution: not-analysed; storage: none
+  analysis aborted
+  $ grep -A 2 'User Error' hook.second | sed 's/ *$//'
+  [eva] overflow.c:19: User Error:
+    the status of the warning categories signed-overflow changed
+    during the hit on body
   $ grep '^| ' hook.log > hook.summary
   $ EVA_TEST_CACHE_SAFETY=reference-out EVA_TEST_CACHE_SAFETY_HOOK=signed-overflow=abort frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -no-warn-signed-overflow -eva-warn-key signed-overflow=inactive -eva-msg-key cache overflow.c > hook-reference.log 2>&1
   $ grep -E "2's complement|^analysis aborted" hook-reference.log
@@ -351,11 +356,6 @@ two calls remains open.
   analysis aborted
   $ grep '^| ' hook-reference.log > hook-reference.summary
   $ diff hook.summary hook-reference.summary
-  1c1
-  < | end of main: out = 8
-  ---
-  > | end of main: out: The computed state is bottom
-  [1]
 
 Printing the message of a status reads the history of the logger, and a
 hit makes the same read when it prints the message again: a body whose
