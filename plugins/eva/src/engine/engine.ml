@@ -169,10 +169,12 @@ module Make (Abstract: Abstractions.S) = struct
         match control_point with
         | Initial -> get control_point
         | Start kf ->
+          Safety_delivery.check_readers ();
           if Function_calls.is_called kf
           then get control_point
           else `Bottom
         | Before stmt | After stmt ->
+          Safety_delivery.check_readers ();
           let kf = Kernel_function.find_englobing_kf stmt in
           match Function_calls.analysis_status kf with
           | Unreachable | SpecUsed | Builtin _ -> `Bottom
@@ -186,7 +188,9 @@ module Make (Abstract: Abstractions.S) = struct
     let get_state_by_callstack control_point =
       find (Dom.Store.get_state_by_callstack) control_point
 
-    let callstacks = Dom.Store.callstacks
+    let callstacks control_point =
+      Safety_delivery.check_readers ();
+      Dom.Store.callstacks control_point
 
     let eval_expr state expr = Eval.evaluate state expr >>=: snd
 

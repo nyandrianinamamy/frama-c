@@ -22,13 +22,20 @@
 (cram
   (applies_to cache-parts)
   (deps
+    (package frama-c-constant_propagation)
+    (package frama-c-dive)
     (package frama-c-from)
+    (package frama-c-markdown-report)
+    (package frama-c-metrics)
+    (package frama-c-nonterm)
+    (package frama-c-occurrence)
     (package frama-c-pdg)
     (package frama-c-reduc)
     (package frama-c-server)
     (package frama-c-slicing)
     (package frama-c-sparecode)
     (package frama-c-studia)
+    (package frama-c-wp)
   ))
 
 (cram

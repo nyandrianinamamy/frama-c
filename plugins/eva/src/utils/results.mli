@@ -48,9 +48,14 @@ val are_available : Cil_types.kernel_function -> bool
     over all callstacks.
     The results by statement, and the results by function computed from
     them, such as the dependencies of From and the inputs and outputs of
-    Inout by function, are then incomplete and must not be computed. Only
-    the reuse operation on entries supplied by a test module gives such
-    hits; memexec does not. *)
+    Inout by function, are then incomplete and must not be computed. A
+    reader concludes soundly from these results only if it takes the top
+    state as any state. While a plug-in of the tree that is not shown to do
+    so is loaded ([Cache_part.loaded_reader]), every request below at a
+    statement or at the start of a function, and the request of their
+    callstacks, then stops with a user error; the requests at the initial
+    state are answered. Only the reuse operation on entries supplied by a
+    test module gives such hits; memexec does not. *)
 val statement_results_complete : unit -> bool
 
 type request

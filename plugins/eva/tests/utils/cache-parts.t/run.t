@@ -328,18 +328,24 @@ requested, every candidate is rejected (consumer). The callwise results of
 The plug-ins that request these results by function reject every
 candidate when they are loaded. The rule is by dependency: Pdg, Reduc and
 Studia are named, and a plug-in that loads one of them is covered by it.
-Impact, Scope, Security-slicing, Slicing and Sparecode all load Pdg;
-Slicing is tested here.
+Impact, Scope, Security-slicing, Slicing and Sparecode all load Pdg, and
+Dive loads Studia; Slicing and Dive are tested here. Occurrence reads the
+states saved at the statements, and drops an access whose address is not
+precise: loaded, it rejects every candidate too.
 
   $ EVA_TEST_CACHE_PARTS=readers frama-c -no-autoload-plugins -load-module eva,from,inout,pdg,test_cache_parts.cmxs parts.c > pdg.log 2>&1
   $ EVA_TEST_CACHE_PARTS=readers frama-c -no-autoload-plugins -load-module eva,from,inout,reduc,test_cache_parts.cmxs parts.c > reduc.log 2>&1
   $ EVA_TEST_CACHE_PARTS=readers frama-c -no-autoload-plugins -load-module eva,from,inout,studia,test_cache_parts.cmxs parts.c > studia.log 2>&1
   $ EVA_TEST_CACHE_PARTS=readers frama-c -no-autoload-plugins -load-module eva,from,inout,slicing,test_cache_parts.cmxs parts.c > slicing.log 2>&1
-  $ grep '^hits' pdg.log reduc.log studia.log slicing.log
+  $ EVA_TEST_CACHE_PARTS=readers frama-c -no-autoload-plugins -load-module eva,from,inout,dive,test_cache_parts.cmxs parts.c > dive.log 2>&1
+  $ EVA_TEST_CACHE_PARTS=readers frama-c -no-autoload-plugins -load-module eva,from,inout,occurrence,test_cache_parts.cmxs parts.c > occurrence.log 2>&1
+  $ grep '^hits' pdg.log reduc.log studia.log slicing.log dive.log occurrence.log
   pdg.log:hits 0, rejected for consumer 15
   reduc.log:hits 0, rejected for consumer 15
   studia.log:hits 0, rejected for consumer 15
   slicing.log:hits 0, rejected for consumer 15
+  dive.log:hits 0, rejected for consumer 15
+  occurrence.log:hits 0, rejected for consumer 15
 
 The name of a part is its key: registering a second part named as a
 registered one is refused.
@@ -627,45 +633,139 @@ loads it refuses the same requests.
   $ grep -E 'User Error|Function|Out' load-out.log
   [inout] User Error: cannot compute the inputs and outputs by function or by statement: in the current analysis of Eva, a hit of the cache answered a call without analysing the body of the called function, and saved no state at its statements
 
-Four requests of the server: the dead code of copy and of narrow, whose
-two branches are reached, and the statements that read and that write b
-at the first call to copy, which Studia, loaded after the analysis,
-computes with Inout. The server, which From and Inout load through
+A plug-in that reads the states saved at the statements and is loaded
+after the hits was not seen by the lookups. While one is loaded, the
+results of Eva refuse to give a state at a statement after a hit. Each of
+the plug-ins below, loaded in the process that loads the session, stops
+with this error at its first request of a state: Occurrence, Nonterm,
+Metrics, after its count of the functions called, the constant propagation,
+WP with its memory model based on Eva, the Markdown report and Slicing,
+which reads the results of Eva beside the graphs of Pdg. The error names the
+first plug-in of the list that is loaded.
+
+  $ frama-c -no-autoload-plugins -load-module eva,from,inout,occurrence -load hits.sav -occurrence > late-occurrence.log 2>&1
+  [1]
+  $ frama-c -no-autoload-plugins -load-module eva,from,inout,nonterm -load hits.sav -nonterm > late-nonterm.log 2>&1
+  [1]
+  $ frama-c -no-autoload-plugins -load-module eva,from,inout,metrics -load hits.sav -metrics-eva-cover > late-metrics.log 2>&1
+  [1]
+  $ frama-c -no-autoload-plugins -load-module eva,from,inout,constant_propagation -load hits.sav -scf > late-scf.log 2>&1
+  [1]
+  $ frama-c -no-autoload-plugins -load-module eva,from,inout,wp -load hits.sav -wp -wp-model eva > late-wp.log 2>&1
+  [1]
+  $ frama-c -no-autoload-plugins -load-module eva,from,inout,markdown-report,markdown-report.eva-info -load hits.sav -mdr-gen md -mdr-out late.md > late-mdr.log 2>&1
+  [1]
+  $ frama-c -no-autoload-plugins -load-module eva,from,inout,slicing -load hits.sav -slice-return main > late-slicing.log 2>&1
+  [1]
+  $ grep -o 'User Error.*' late-occurrence.log late-nonterm.log late-metrics.log late-scf.log late-wp.log late-mdr.log late-slicing.log | sed 's/: in the current analysis.*statements//'
+  late-occurrence.log:User Error: cannot give the state at a statement; plug-in occurrence, which reads these states, is loaded
+  late-nonterm.log:User Error: cannot give the state at a statement; plug-in nonterm, which reads these states, is loaded
+  late-metrics.log:User Error: cannot give the state at a statement; plug-in metrics, which reads these states, is loaded
+  late-scf.log:User Error: cannot give the state at a statement; plug-in scf, which reads these states, is loaded
+  late-wp.log:User Error: cannot give the state at a statement; plug-in wp, which reads these states, is loaded
+  late-mdr.log:User Error: cannot give the state at a statement; plug-in mdr, which reads these states, is loaded
+  late-slicing.log:User Error: cannot give the state at a statement; plug-in pdg, which reads these states, is loaded
+  $ tail -q -n 1 late-occurrence.log late-nonterm.log late-metrics.log late-scf.log late-wp.log late-mdr.log late-slicing.log | sort | uniq -c
+        7 [kernel] Plug-in eva aborted: invalid user input.
+
+The same in one process, in the scenario late-reader: the requests of the
+results at the first statement of copy and at its start are answered after
+the hits, with the state top. Once Occurrence is loaded, they are refused,
+in the project, in a copy of it, and when the results with hits are
+installed again by Eva_results.set_results; the results of the analysis
+with caching disabled, installed in between, are given. The initial state
+is always given.
+
+  $ EVA_TEST_CACHE_PARTS=late-reader frama-c -no-autoload-plugins -load-module eva,from,inout,test_cache_parts.cmxs parts.c > late-reader.log 2>&1
+  $ sed -n '/^hits/,$p' late-reader.log > late-reader.txt
+  $ grep -vE 'User Error|^ ' late-reader.txt
+  hits: copy 3; statement results complete: false
+  after the hits: state before a statement: computed
+  after the hits: state after a statement: computed
+  after the hits: state at the start of a function: computed
+  after the hits: states by callstack: computed
+  after the hits: callstacks of a statement: computed
+  after the hits: reachability of a statement: computed
+  after the hits: initial state: computed
+  with a reader loaded: state before a statement: refused
+  with a reader loaded: state after a statement: refused
+  with a reader loaded: state at the start of a function: refused
+  with a reader loaded: states by callstack: refused
+  with a reader loaded: callstacks of a statement: refused
+  with a reader loaded: reachability of a statement: refused
+  with a reader loaded: initial state: computed
+  in a copy: state before a statement: refused
+  in a copy: state after a statement: refused
+  in a copy: state at the start of a function: refused
+  in a copy: states by callstack: refused
+  in a copy: callstacks of a statement: refused
+  in a copy: reachability of a statement: refused
+  in a copy: initial state: computed
+  results of caching disabled installed: state before a statement: computed
+  results of caching disabled installed: state after a statement: computed
+  results of caching disabled installed: state at the start of a function: computed
+  results of caching disabled installed: states by callstack: computed
+  results of caching disabled installed: callstacks of a statement: computed
+  results of caching disabled installed: reachability of a statement: computed
+  results of caching disabled installed: initial state: computed
+  results with hits installed: state before a statement: refused
+  results with hits installed: state after a statement: refused
+  results with hits installed: state at the start of a function: refused
+  results with hits installed: states by callstack: refused
+  results with hits installed: callstacks of a statement: refused
+  results with hits installed: reachability of a statement: refused
+  results with hits installed: initial state: computed
+
+Requests of the server: the dead code of copy and of narrow, whose two
+branches are reached, asked before and after Studia is loaded, and the
+statements that read and that write b, which Studia, loaded after the
+analysis, computes with Inout. The server, which From and Inout load through
 Callgraph, registers a client of the hooks on the changes of annotations;
 the client emits a signal to the client of the server, and the lookup
-admits the entries while it is registered. After an analysis
-with caching disabled, the server answers the four requests. After the
-analysis with hits, in the same process and in the session saved above,
-the requests of Eva give the statements of caching disabled, since the hits
-deliver the points that they reach, and the two requests of Studia are
-refused.
+admits the entries while it is registered. After an analysis with caching
+disabled, the server answers every request. After the analysis with hits,
+in the same process and in the session saved above, the requests of Eva
+made before Studia is loaded give the statements of caching disabled, since
+the hits deliver the points that they reach. Once Studia is loaded, the
+results of Eva refuse the states at the statements: the dead code of copy
+is refused, and so is the request of the reads, which locates its lvalue
+with these results. The request of the writes names b by its declaration,
+and Studia refuses it by its own test.
 
   $ EVA_TEST_CACHE_PARTS_SERVER=fresh frama-c -no-autoload-plugins -load-module eva,eva.server_api,from,inout,test_cache_parts_server.cmxs parts.c > server-fresh.log 2>&1
-  $ grep -E '^(statement|plugins|copy:|narrow:)' server-fresh.log
+  $ grep -E '^(statement|plugins|copy:|narrow:|Studia)' server-fresh.log
   statement results complete: true
   copy: plugins.eva.ast.getDeadCode: unreachable 0, reached 2, nonTerminating 0
   narrow: plugins.eva.ast.getDeadCode: unreachable 0, reached 4, nonTerminating 0
+  Studia loaded
+  copy: plugins.eva.ast.getDeadCode: unreachable 0, reached 2, nonTerminating 0
   plugins.studia.studia.getReadsLval: indirect 4, direct 1
   plugins.studia.studia.getWritesLval: indirect 0, direct 1
   $ EVA_TEST_CACHE_PARTS_SERVER=hits frama-c -no-autoload-plugins -load-module eva,eva.server_api,from,inout,test_cache_parts_server.cmxs parts.c > server-hits.log 2>&1
   $ sed -n '/^hits/,$p' server-hits.log > server-hits.txt
-  $ grep -E '^(hits|statement|plugins|copy:|narrow:)|User Error|Error when' server-hits.txt
+  $ grep -E '^(hits|statement|plugins|copy:|narrow:|Studia)|User Error|Error when' server-hits.txt | sed 's/: in the current analysis.*statements//'
   hits: copy 3, narrow 1
   statement results complete: false
   copy: plugins.eva.ast.getDeadCode: unreachable 0, reached 2, nonTerminating 0
   narrow: plugins.eva.ast.getDeadCode: unreachable 0, reached 4, nonTerminating 0
-  [studia] User Error: cannot find the statements that access a location: in the current analysis of Eva, a hit of the cache answered a call without analysing the body of the called function, and saved no state at its statements
+  Studia loaded
+  [eva] User Error: cannot give the state at a statement; plug-in studia, which reads these states, is loaded
+  copy: plugins.eva.ast.getDeadCode: refused
+  [eva] User Error: cannot give the state at a statement; plug-in studia, which reads these states, is loaded
   plugins.studia.studia.getReadsLval: refused
-  [studia] User Error: cannot find the statements that access a location: in the current analysis of Eva, a hit of the cache answered a call without analysing the body of the called function, and saved no state at its statements
+  [studia] User Error: cannot find the statements that access a location
   plugins.studia.studia.getWritesLval: refused
   $ EVA_TEST_CACHE_PARTS_SERVER=loaded frama-c -no-autoload-plugins -load-module eva,eva.server_api,from,inout,test_cache_parts_server.cmxs -load hits.sav > server.log 2>&1
-  $ grep -E '^(statement|plugins|copy:|narrow:)|User Error|Error when' server.log
+  $ grep -E '^(statement|plugins|copy:|narrow:|Studia)|User Error|Error when' server.log | sed 's/: in the current analysis.*statements//'
   statement results complete: false
   copy: plugins.eva.ast.getDeadCode: unreachable 0, reached 2, nonTerminating 0
   narrow: plugins.eva.ast.getDeadCode: unreachable 0, reached 4, nonTerminating 0
-  [studia] User Error: cannot find the statements that access a location: in the current analysis of Eva, a hit of the cache answered a call without analysing the body of the called function, and saved no state at its statements
+  Studia loaded
+  [eva] User Error: cannot give the state at a statement; plug-in studia, which reads these states, is loaded
+  copy: plugins.eva.ast.getDeadCode: refused
+  [eva] User Error: cannot give the state at a statement; plug-in studia, which reads these states, is loaded
   plugins.studia.studia.getReadsLval: refused
-  [studia] User Error: cannot find the statements that access a location: in the current analysis of Eva, a hit of the cache answered a call without analysing the body of the called function, and saved no state at its statements
+  [studia] User Error: cannot find the statements that access a location
   plugins.studia.studia.getWritesLval: refused
 
 Pdg, loaded in the process that loads the session, refuses to build the

@@ -178,10 +178,25 @@ val decide : unit -> decisions
     states saved at the statements of each function, those of the called
     functions included. The rule is by dependency: Pdg, Reduc and Studia are
     named, and a plug-in that loads one of them is covered by it, as Impact,
-    Scope, Security-slicing, Slicing and Sparecode, which load Pdg. A request
-    made after the analysis is not seen here: From and Inout refuse it when
+    Scope, Security-slicing, Slicing and Sparecode, which load Pdg, and
+    Dive, which loads Studia. A request made after the analysis is not seen
+    here: From and Inout refuse it when
     {!Eva.Results.statement_results_complete} is false. *)
 val reads_statement_states : decisions -> bool
+
+(** The short name of a loaded plug-in of the tree that reads the states
+    saved at the statements of a function and is not shown to conclude
+    soundly from the top state that the results give at the points reached
+    by a hit, if any: Nonterm, Metrics, the Markdown report, WP, the
+    constant propagation, Occurrence, and the plug-ins that request the
+    results by function of From or Inout: Pdg, Reduc and Studia, with the
+    plug-ins that load one of them (Impact, Scope, Security-slicing, Slicing
+    and Sparecode load Pdg; Dive loads Studia). While one is loaded, the
+    lookup rejects every supplied entry ([`Consumer]). One loaded after a
+    hit, in the same session or with a saved one, is not seen by the lookup:
+    the results then refuse to give a state at a statement
+    ({!Safety_delivery.check_readers}). *)
+val loaded_reader : unit -> string option
 
 (** Whether, by [decisions], a part whose consumer is enabled is not
     audited (see {!register}), or a part was registered since the

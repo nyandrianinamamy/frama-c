@@ -769,6 +769,49 @@ let raw () =
   second_analysis produced;
   print "after the hits"
 
+(* A plug-in that reads the states saved at the statements, loaded after the
+   hits: the lookup has not seen it. The requests of the results at a
+   statement or at the start of a function, answered before it is loaded,
+   are refused afterwards, in the project, in a copy of it and once the
+   results with hits are installed again; the results of the analysis with
+   caching disabled, installed in between, are given. Occurrence is the
+   plug-in loaded. *)
+let late_reader () =
+  let copy = kf "copy" in
+  let first = List.hd (Kernel_function.get_definition copy).sallstmts in
+  let produced = first_analysis () in
+  let disabled = Eva.Eva_results.get_results () in
+  second_analysis produced;
+  let with_hits = Eva.Eva_results.get_results () in
+  let requests moment =
+    let request name f = refused (moment ^ ": " ^ name) f in
+    request "state before a statement"
+      (fun () -> ignore Results.(before first |> get_cvalue_model));
+    request "state after a statement"
+      (fun () -> ignore Results.(after first |> get_cvalue_model));
+    request "state at the start of a function"
+      (fun () -> ignore Results.(at_start_of copy |> get_cvalue_model));
+    request "states by callstack"
+      (fun () -> ignore Results.(before first |> by_callstack));
+    request "callstacks of a statement"
+      (fun () -> ignore Results.(before first |> callstacks));
+    request "reachability of a statement"
+      (fun () -> ignore (Results.is_reachable first));
+    request "initial state"
+      (fun () -> ignore Results.(at_start |> get_cvalue_model))
+  in
+  Format.printf "hits: copy %d; statement results complete: %b@."
+    (hits "copy") (Eva.Results.statement_results_complete ());
+  requests "after the hits";
+  Dynamic.load_plugin "occurrence";
+  requests "with a reader loaded";
+  let project = Project.create_by_copy ~last:false "after hits" in
+  Project.on project requests "in a copy";
+  Eva.Eva_results.set_results disabled;
+  requests "results of caching disabled installed";
+  Eva.Eva_results.set_results with_hits;
+  requests "results with hits installed"
+
 (* ----- Clients that a hit runs ------------------------------------------- *)
 
 (* A part of this test, needed in both analyses, whose value is given for
@@ -976,6 +1019,7 @@ let () =
   | Some "fallback" -> Boot.Main.extend fallback
   | Some "external" -> Boot.Main.extend external_requests
   | Some "raw" -> Boot.Main.extend raw
+  | Some "late-reader" -> Boot.Main.extend late_reader
   | Some "lazy-from" -> Boot.Main.extend lazy_from
   | Some "warm" -> Boot.Main.extend warm
   | Some "snapshot" -> Boot.Main.extend snapshot

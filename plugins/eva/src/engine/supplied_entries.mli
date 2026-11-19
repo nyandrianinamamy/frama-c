@@ -282,10 +282,15 @@ type rejection = [
       memexec; a reader of the states saved at statements (see
       {!Cache_part.reads_statement_states}): the analyses by function of
       From ([-deps]) and Inout ([-out], [-input], [-deref] and their
-      variants), or a loaded plug-in that requests them; or a plug-in that
-      concludes from the states saved at the statements of a function,
-      which do not cover the calls answered by a hit: Nonterm, Metrics, the
-      Markdown report, WP and the constant propagation. *)
+      variants), or a loaded plug-in that requests them; or a loaded
+      plug-in of the tree that reads the states saved at the statements of
+      a function, which do not cover the calls answered by a hit, and is
+      not shown to conclude soundly from the top state that the results
+      give there ({!Cache_part.loaded_reader}): Nonterm, Metrics, the
+      Markdown report, WP, the constant propagation and Occurrence. A
+      plug-in of this list loaded after a hit is not seen here: the results
+      then refuse the states at the statements
+      ({!Safety_delivery.check_readers}). *)
   | `Stop_at_nth_alarm
   (** Option [-eva-stop-at-nth-alarm] is set. A fresh evaluation emits all
       its alarms before it tests the threshold; a hit does not deliver its

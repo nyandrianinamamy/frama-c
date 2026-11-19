@@ -73,6 +73,21 @@ val visits_skipped : Cil_types.kernel_function -> bool
 (** Whether no hit has answered a call in the current analysis: the states
     saved at the statements cover every call of the analysis. *)
 val complete : unit -> bool
+
+(** Stops with a user error when a hit has answered a call in the current
+    analysis and a plug-in of {!Cache_part.loaded_reader} is loaded. While
+    such a plug-in is loaded, the lookup admits no hit: both hold only when
+    the plug-in was loaded after the hit, in the same session or with a
+    saved one. The engine calls it before it gives the state at a statement
+    or at the start of a function, over all callstacks or for one, and
+    before it gives the callstacks of such a point ([Engine.get_state],
+    [get_state_by_callstack], [callstacks]): no request of {!Results} at
+    these points then returns. It does not concern the initial state, nor
+    the tables of the called functions and of their callers. A plug-in that
+    catches the error and goes on must not conclude from its absence of
+    result. *)
+val check_readers : unit -> unit
+
 (** {2 Statistics of the summary} *)
 
 (** [delivered kf] is called by the engine after a hit has delivered the

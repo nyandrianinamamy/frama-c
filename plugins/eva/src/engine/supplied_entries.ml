@@ -230,17 +230,11 @@ type 'state lookup = {
 (* The analysis of threads resolves the identifier given with [`Reuse] to the
    callbacks in its tables of memexec results, and owns no part. The callwise
    results of Inout and From are parts of the entries (see {!Cache_part});
-   their analyses by function read the states saved at statements. The other
-   plug-ins below read the states saved at the statements of a function,
-   and a hit saves none for its own visits: Nonterm reports the statements
-   without a state as unreachable or non-terminating, Metrics and the
-   Markdown report count them as unreached, WP takes the states as
-   hypotheses of its memory model based on Eva, and the constant propagation
-   replaces an expression by its value in these states. *)
-let state_readers = [ "nonterm"; "metrics"; "mdr"; "wp"; "scf" ]
-
+   their analyses by function read the states saved at statements. The
+   plug-ins of {!Cache_part.loaded_reader} read the states saved at the
+   statements of a function, and a hit saves none for its own visits. *)
 let consumer_enabled parts =
-  List.exists Plugin.is_present state_readers
+  Cache_part.loaded_reader () <> None
   || Mt_options.Enabled.get () || Cache_part.reads_statement_states parts
 
 (* A fresh evaluation emits all the alarms of an evaluation before it tests
@@ -255,7 +249,7 @@ let stop_at_nth_alarm () = Parameters.StopAtNthAlarm.get () < max_int
    statuses, which are computed again from the emitted ones at the next
    request; those of Report hold a flag that makes it print its report
    again, and count when Report is loaded. Metrics has another one, and
-   its presence rejects every entry ({!state_readers}). *)
+   its presence rejects every entry ({!Cache_part.loaded_reader}). *)
 let kernel_status_dependents =
   [ "Consolidation graph";
     "Property_status.Consolidated_status";

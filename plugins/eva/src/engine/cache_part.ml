@@ -139,8 +139,22 @@ let register_state_reader ~name reads =
    each of which depends on From or Inout. They are known by name: Eva does
    not depend on them. The rule is by dependency: a plug-in that loads one of
    them is covered by it. Impact, Scope, Security-slicing, Slicing and
-   Sparecode load Pdg. *)
+   Sparecode load Pdg, and Dive loads Studia. *)
 let requesting_plugins = [ "pdg"; "reduc"; "studia" ]
+
+(* The other plug-ins of the tree that read the states saved at the
+   statements of a function, and are not shown to conclude soundly from the
+   top state that the results give at the points reached by a hit: Nonterm
+   reports the statements without a state as unreachable or
+   non-terminating, Metrics and the Markdown report count them as
+   unreached, WP takes the states as hypotheses of its memory model based
+   on Eva, the constant propagation replaces an expression by its value in
+   these states, and Occurrence drops the accesses whose address is not
+   precise. *)
+let reader_plugins = [ "nonterm"; "metrics"; "mdr"; "wp"; "scf"; "occurrence" ]
+
+let loaded_reader () =
+  List.find_opt Plugin.is_present (reader_plugins @ requesting_plugins)
 
 (* ----- Decisions of one lookup ------------------------------------------- *)
 

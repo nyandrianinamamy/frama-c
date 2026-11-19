@@ -41,6 +41,18 @@ let visits_skipped kf = not (Skipped.is_empty ()) && Skipped.mem kf
 
 let complete = Skipped.is_empty
 
+let check_readers () =
+  if not (complete ()) then
+    match Cache_part.loaded_reader () with
+    | None -> ()
+    | Some plugin ->
+      Self.abort
+        "cannot give the state at a statement: in the current analysis of \
+         Eva, a hit of the cache answered a call without analysing the body \
+         of the called function, and saved no state at its statements; \
+         plug-in %s, which reads these states, is loaded"
+        plugin
+
 (* ----- Statistics of the summary ----------------------------------------- *)
 
 type summary = {
