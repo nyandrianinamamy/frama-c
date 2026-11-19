@@ -24,7 +24,7 @@
 [eva:progress] Recording results for step
 [eva:progress] Done for function step
 [eva:cache] cache_supplied.c:120: 
-  call to step: lookup: rejected (entry 1: consumer); execution: analysed; storage: refused (supplied-only); collector: refused (builtin)
+  call to step: lookup: rejected (entry 1: missing-part); execution: analysed; storage: refused (supplied-only); collector: refused (builtin)
 [eva:show] cache_supplied.c:121: Frama_C_show_each_after_hit: {4}, {3}, {0}
 [eva:progress] cache_supplied.c:122: assertion 'hit_out' got status valid.
 [eva:progress] cache_supplied.c:123: assertion 'hit_g' got status valid.
@@ -37,7 +37,7 @@
 [eva:progress] Recording results for step
 [eva:progress] Done for function step
 [eva:cache] cache_supplied.c:127: 
-  call to step: lookup: rejected (entry 1: consumer); execution: analysed; storage: refused (supplied-only); collector: refused (builtin)
+  call to step: lookup: rejected (entry 1: key-differs); execution: analysed; storage: refused (supplied-only); collector: refused (builtin)
 [eva:show] cache_supplied.c:128: Frama_C_show_each_after_miss: {6}
 [eva:progress] cache_supplied.c:129: assertion 'miss' got status valid.
 [eva:progress] 
@@ -47,7 +47,7 @@
 [eva:progress] Recording results for set_out
 [eva:progress] Done for function set_out
 [eva:cache] cache_supplied.c:131: 
-  call to set_out: lookup: rejected (entry 2: consumer); execution: analysed; storage: refused (supplied-only); collector: refused (builtin)
+  call to set_out: lookup: rejected (entry 2: missing-part); execution: analysed; storage: refused (supplied-only); collector: refused (builtin)
 [eva:show] cache_supplied.c:132: Frama_C_show_each_after_frame: {7}, {42}
 [eva:progress] cache_supplied.c:133: assertion 'written' got status valid.
 [eva:progress] cache_supplied.c:134: assertion 'kept' got status valid.
@@ -58,7 +58,7 @@
 [eva:progress] Recording results for precise_first
 [eva:progress] Done for function precise_first
 [eva:cache] cache_supplied.c:135: 
-  call to precise_first: lookup: rejected (entry 3: consumer), rejected (entry 4: consumer); execution: analysed; storage: refused (supplied-only); collector: refused (builtin)
+  call to precise_first: lookup: rejected (entry 3: missing-part), rejected (entry 4: missing-part); execution: analysed; storage: refused (supplied-only); collector: refused (builtin)
 [eva:show] cache_supplied.c:136: Frama_C_show_each_after_precise_first: {7}
 [eva:progress] cache_supplied.c:137: assertion 'older' got status valid.
 [eva:progress] 
@@ -68,7 +68,7 @@
 [eva:progress] Recording results for wide_first
 [eva:progress] Done for function wide_first
 [eva:cache] cache_supplied.c:138: 
-  call to wide_first: lookup: rejected (entry 5: consumer), rejected (entry 6: consumer); execution: analysed; storage: refused (supplied-only); collector: refused (builtin)
+  call to wide_first: lookup: rejected (entry 5: missing-part), rejected (entry 6: missing-part); execution: analysed; storage: refused (supplied-only); collector: refused (builtin)
 [eva:show] cache_supplied.c:139: Frama_C_show_each_after_wide_first: {7}
 [eva:progress] 
   computing for function plain <- main.
@@ -93,7 +93,7 @@
 [eva:progress] Recording results for loop_on_4
 [eva:progress] Done for function loop_on_4
 [eva:cache] cache_supplied.c:143: 
-  call to loop_on_4: lookup: rejected (entry 7: consumer); execution: analysed; storage: refused (supplied-only); collector: refused (builtin)
+  call to loop_on_4: lookup: rejected (entry 7: missing-part); execution: analysed; storage: refused (supplied-only); collector: refused (builtin)
 [eva:show] cache_supplied.c:144: Frama_C_show_each_after_loop_on_4: {4}, {3}
 [eva:progress] cache_supplied.c:145: assertion 'loop_out' got status valid.
 [eva:progress] 
@@ -103,7 +103,7 @@
 [eva:progress] Recording results for write_then_spin
 [eva:progress] Done for function write_then_spin
 [eva:cache] cache_supplied.c:147: 
-  call to write_then_spin: lookup: rejected (entry 8: consumer); execution: analysed; storage: refused (supplied-only); collector: refused (builtin)
+  call to write_then_spin: lookup: rejected (entry 8: missing-part); execution: analysed; storage: refused (supplied-only); collector: refused (builtin)
 [eva:show] cache_supplied.c:148: 
   Frama_C_show_each_after_write_then_spin: {5}, {1}
 [eva:progress] cache_supplied.c:149: assertion 'spin_out' got status valid.
@@ -115,14 +115,14 @@
 [eva:progress] Recording results for never_returns
 [eva:progress] Done for function never_returns
 [eva:cache] cache_supplied.c:152: 
-  call to never_returns: lookup: rejected (entry 9: consumer); execution: analysed; storage: refused (supplied-only); collector: refused (builtin)
+  call to never_returns: lookup: rejected (entry 9: missing-part); execution: analysed; storage: refused (supplied-only); collector: refused (builtin)
 [eva:progress] 
   computing for function twice <- main.
   Called from cache_supplied.c:155.
 [eva:progress] Recording results for twice
 [eva:progress] Done for function twice
 [eva:cache] cache_supplied.c:155: 
-  call to twice: lookup: rejected (entry 10: consumer); execution: analysed; storage: refused (supplied-only); collector: would-store
+  call to twice: lookup: rejected (entry 10: missing-part); execution: analysed; storage: refused (supplied-only); collector: would-store
 [eva:progress] cache_supplied.c:156: assertion 'returned' got status valid.
 [eva:progress] 
   computing for function twice <- main.
@@ -130,7 +130,7 @@
 [eva:progress] Recording results for twice
 [eva:progress] Done for function twice
 [eva:cache] cache_supplied.c:157: 
-  call to twice: lookup: rejected (entry 10: consumer); execution: analysed; storage: refused (supplied-only); collector: would-store
+  call to twice: lookup: rejected (entry 10: key-differs); execution: analysed; storage: refused (supplied-only); collector: would-store
 [eva:progress] cache_supplied.c:158: assertion 'analysed' got status valid.
 [eva:progress] 
   computing for function leak_address <- main.
@@ -139,7 +139,7 @@
 [eva:progress] Recording results for leak_address
 [eva:progress] Done for function leak_address
 [eva:cache] cache_supplied.c:159: 
-  call to leak_address: lookup: rejected (entry 11: consumer); execution: analysed; storage: refused (supplied-only); collector: refused (builtin)
+  call to leak_address: lookup: rejected (entry 11: missing-part); execution: analysed; storage: refused (supplied-only); collector: refused (builtin)
 [eva:locals-escaping] cache_supplied.c:159: Warning: 
   locals {x} escaping the scope of leak_address through p
 [eva:progress] cache_supplied.c:160: assertion 'escaping' got status valid.
@@ -270,52 +270,52 @@
                              x ∈ {1}
 [kernel] exit of set_out binds keep: false
 [kernel] counts of step:
-    cache-hits 0, cache-rejected-key-differs 0, cache-rejected-key-unclosed 0,
-    cache-rejected-product 0, cache-rejected-consumer 2,
-    cache-refused-supplied-only 2, memexec-hits 0, memexec-stored 0,
-    collector-would-store 0
+    cache-hits 0, cache-rejected-key-differs 1, cache-rejected-key-unclosed 0,
+    cache-rejected-missing-part 1, cache-rejected-product 0,
+    cache-rejected-consumer 0, cache-refused-supplied-only 2, memexec-hits 0,
+    memexec-stored 0, collector-would-store 0
 [kernel] counts of set_out:
     cache-hits 0, cache-rejected-key-differs 0, cache-rejected-key-unclosed 0,
-    cache-rejected-product 0, cache-rejected-consumer 1,
-    cache-refused-supplied-only 1, memexec-hits 0, memexec-stored 0,
-    collector-would-store 0
+    cache-rejected-missing-part 1, cache-rejected-product 0,
+    cache-rejected-consumer 0, cache-refused-supplied-only 1, memexec-hits 0,
+    memexec-stored 0, collector-would-store 0
 [kernel] counts of precise_first:
     cache-hits 0, cache-rejected-key-differs 0, cache-rejected-key-unclosed 0,
-    cache-rejected-product 0, cache-rejected-consumer 2,
-    cache-refused-supplied-only 1, memexec-hits 0, memexec-stored 0,
-    collector-would-store 0
+    cache-rejected-missing-part 2, cache-rejected-product 0,
+    cache-rejected-consumer 0, cache-refused-supplied-only 1, memexec-hits 0,
+    memexec-stored 0, collector-would-store 0
 [kernel] counts of wide_first:
     cache-hits 0, cache-rejected-key-differs 0, cache-rejected-key-unclosed 0,
-    cache-rejected-product 0, cache-rejected-consumer 2,
-    cache-refused-supplied-only 1, memexec-hits 0, memexec-stored 0,
-    collector-would-store 0
+    cache-rejected-missing-part 2, cache-rejected-product 0,
+    cache-rejected-consumer 0, cache-refused-supplied-only 1, memexec-hits 0,
+    memexec-stored 0, collector-would-store 0
 [kernel] counts of plain:
     cache-hits 0, cache-rejected-key-differs 0, cache-rejected-key-unclosed 0,
-    cache-rejected-product 0, cache-rejected-consumer 0,
-    cache-refused-supplied-only 2, memexec-hits 0, memexec-stored 0,
-    collector-would-store 0
+    cache-rejected-missing-part 0, cache-rejected-product 0,
+    cache-rejected-consumer 0, cache-refused-supplied-only 2, memexec-hits 0,
+    memexec-stored 0, collector-would-store 0
 [kernel] counts of loop_on_4:
     cache-hits 0, cache-rejected-key-differs 0, cache-rejected-key-unclosed 0,
-    cache-rejected-product 0, cache-rejected-consumer 1,
-    cache-refused-supplied-only 1, memexec-hits 0, memexec-stored 0,
-    collector-would-store 0
+    cache-rejected-missing-part 1, cache-rejected-product 0,
+    cache-rejected-consumer 0, cache-refused-supplied-only 1, memexec-hits 0,
+    memexec-stored 0, collector-would-store 0
 [kernel] counts of write_then_spin:
     cache-hits 0, cache-rejected-key-differs 0, cache-rejected-key-unclosed 0,
-    cache-rejected-product 0, cache-rejected-consumer 1,
-    cache-refused-supplied-only 1, memexec-hits 0, memexec-stored 0,
-    collector-would-store 0
+    cache-rejected-missing-part 1, cache-rejected-product 0,
+    cache-rejected-consumer 0, cache-refused-supplied-only 1, memexec-hits 0,
+    memexec-stored 0, collector-would-store 0
 [kernel] counts of never_returns:
     cache-hits 0, cache-rejected-key-differs 0, cache-rejected-key-unclosed 0,
-    cache-rejected-product 0, cache-rejected-consumer 1,
-    cache-refused-supplied-only 1, memexec-hits 0, memexec-stored 0,
-    collector-would-store 0
+    cache-rejected-missing-part 1, cache-rejected-product 0,
+    cache-rejected-consumer 0, cache-refused-supplied-only 1, memexec-hits 0,
+    memexec-stored 0, collector-would-store 0
 [kernel] counts of twice:
-    cache-hits 0, cache-rejected-key-differs 0, cache-rejected-key-unclosed 0,
-    cache-rejected-product 0, cache-rejected-consumer 2,
-    cache-refused-supplied-only 2, memexec-hits 0, memexec-stored 0,
-    collector-would-store 2
+    cache-hits 0, cache-rejected-key-differs 1, cache-rejected-key-unclosed 0,
+    cache-rejected-missing-part 1, cache-rejected-product 0,
+    cache-rejected-consumer 0, cache-refused-supplied-only 2, memexec-hits 0,
+    memexec-stored 0, collector-would-store 2
 [kernel] counts of leak_address:
     cache-hits 0, cache-rejected-key-differs 0, cache-rejected-key-unclosed 0,
-    cache-rejected-product 0, cache-rejected-consumer 1,
-    cache-refused-supplied-only 1, memexec-hits 0, memexec-stored 0,
-    collector-would-store 0
+    cache-rejected-missing-part 1, cache-rejected-product 0,
+    cache-rejected-consumer 0, cache-refused-supplied-only 1, memexec-hits 0,
+    memexec-stored 0, collector-would-store 0

@@ -36,6 +36,16 @@ let run () =
          end)
   end
 
+(* The computations of these options read the states that Eva saves at the
+   statements of each function, those of the called functions included. *)
+let () =
+  let open Inout_parameters in
+  let reads () =
+    ForceOut.get () || ForceExternalOut.get () || ForceInput.get ()
+    || ForceInputWithFormals.get () || ForceDeref.get ()
+  in
+  Eva.Cache_part.register_state_reader ~name:"inout" reads
+
 let param_deps = List.map (fun ((self, _), _) -> self) param_pretty
 let deps = Eva.Analysis.self :: param_deps
 

@@ -59,8 +59,9 @@
     and [N] is the number given to the analysis of the body that produced the
     entry, which is also the number sent to the callbacks registered through
     {!Cvalue_callbacks} with [`Body] and [`Reuse]. With supplied entries, [N]
-    is the identifier of a supplied entry ({!Supplied_entries.id}), also sent
-    with [`Reuse].
+    is the identifier of a supplied entry ({!Supplied_entries.id}); a hit
+    restores the parts of the entry ({!Cache_part}) and sends no [`Reuse]
+    results to the callbacks.
 
     REASON is the stable identifier of a {!refusal}, given by {!refusal_id},
     for a storage, and of a {!Supplied_entries.rejection}, given by
@@ -165,7 +166,8 @@ module Make
       (** Identifier, reconstructed states and the winning entry or trace.
           The engine delivers the Safety part and the Reach part of a winning
           supplied entry at the call ({!Safety_delivery},
-          {!Reach_delivery}). Memexec gives neither: its entry was stored
+          {!Reach_delivery}), then restores the parts of the entry
+          ({!Cache_part}). Memexec gives none of them: its entry was stored
           after an analysis of the body in the same analysis, which emitted
           its alarms and statuses. *)
 
@@ -176,24 +178,25 @@ module Make
         lookup with no candidate. *)
     val lookup : ('loc, Value.t) Eval.call -> Domain.t -> lookup
 
-    (** [store ~save_results ~safety call state pending result footprint]
-        offers the [result] of analysing the body of the called function,
-        after a lookup that found no candidate for the call [call] in the
-        state [state] and returned [pending]. It prints the message of the
+    (** [store ~save_results ~safety ~reach ~parts call state pending
+        result footprint] offers the [result] of analysing the body of the
+        called function, after a lookup that found no candidate for the call
+        [call] in the state [state] and returned [pending]. It prints the message of the
         call and, if a cache was consulted, counts the stored entry or the
         refused storage. If [footprint] is present, it also reports and
         counts the collector verdict and the storage of an entry produced
         from it, with [safety], the writes recorded during the analysis of
-        the body ({!Safety_part.capture}), as its Safety part, and [reach]
-        ({!Reach_part.capture}) as its Reach part.
+        the body ({!Safety_part.capture}), as its Safety part, [reach]
+        ({!Reach_part.capture}) as its Reach part, and [parts], the parts
+        given during this analysis of the body (see {!Cache_part.capture}).
         [save_results] enables statement recording for this body. An Inner
         reference also requires recording in the cvalue store, and the
         points of the Reach part require [save_results].
         Returns the produced entry, if any. *)
     val store :
       save_results:bool -> safety:Safety_part.t -> reach:Reach_part.t ->
-      ('loc, Value.t) Eval.call ->
-      Domain.t -> pending -> Domain.t Engine_sig.call_result ->
+      parts:Cache_part.parts -> ('loc, Value.t) Eval.call -> Domain.t ->
+      pending -> Domain.t Engine_sig.call_result ->
       Body_access.Result.t option -> Cache_entry.Cvalue.t option
 
     (** [interrupted call pending] prints the message of the call [call]

@@ -94,6 +94,30 @@ module MemExec =
       let name = "From.Callwise.MemExec"
     end)
 
+(* At a hit of the reuse operation, the dependencies of the call are those
+   kept with the entry. They are restored as the analysis of the body
+   records them: the assigns clauses are checked against them in the state
+   of this call, then they are recorded at its call site. *)
+let restore_froms callstack kf pre_state froms =
+  if From_parameters.VerifyAssigns.get () then
+    Eva.Logic_inout.verify_assigns kf ~pre:pre_state froms;
+  end_record callstack froms
+
+(* The callwise dependencies of a call, as a part of the cache entries. *)
+let part =
+  Eva.Cache_part.register ~name:"from"
+    ~needed:From_parameters.ForceCallDeps.get ~restore:restore_froms ()
+
+(* The dependencies of a call are kept with the entry of its body only when
+   the body made no call: a hit restores them at the call site of the hit,
+   not the dependencies that the calls of the body record at their own call
+   sites. *)
+let provide_froms callstack froms =
+  match !call_froms_stack with
+  | { table_for_calls } :: _ when Kinstr.Hashtbl.length table_for_calls = 0 ->
+    Eva.Cache_part.provide part callstack froms
+  | _ -> ()
+
 let compute_call_from_value_states current_function states =
   let module To_Use = struct
     let get_from_call _f callsite =
@@ -130,6 +154,7 @@ let record_for_individual_froms callstack kf pre_state value_res =
         if From_parameters.VerifyAssigns.get () then
           Eva.Logic_inout.verify_assigns kf ~pre:pre_state froms;
         MemExec.replace memexec_counter froms;
+        provide_froms callstack froms;
         pop_local_table kf;
         froms
       | `Reuse counter -> MemExec.find counter

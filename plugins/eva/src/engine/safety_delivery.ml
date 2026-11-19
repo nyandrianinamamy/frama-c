@@ -38,3 +38,11 @@ module Skipped =
 let skip_visits = Skipped.add
 
 let visits_skipped kf = not (Skipped.is_empty ()) && Skipped.mem kf
+
+(* ----- Statistics of the summary ----------------------------------------- *)
+
+let on_delivery = ref (fun (_ : Cil_types.kernel_function) -> ())
+
+let on_delivered f = on_delivery := f
+
+let delivered kf = !on_delivery kf

@@ -600,6 +600,29 @@ module Callwise = struct
         let name = "Operational_inputs.MemExec"
       end)
 
+  (* The callwise inputs and outputs of a call, as a part of the cache
+     entries. Inout computes them for every call analysed while it is
+     loaded. At a hit of the reuse operation, those kept with the entry are
+     recorded for the call, as the analysis of the body records them: the
+     callbacks receive them, which gives Eva the individual result of the
+     call before the caller reduces its actuals, and they are merged into
+     the tables of the caller. *)
+  let part =
+    Eva.Cache_part.register ~name:"inout" ~needed:(fun () -> true)
+      ~restore:(fun callstack kf _pre_state inout ->
+          end_record callstack kf inout)
+      ()
+
+  (* The result of a call is kept with the entry of its body only when the
+     body made no call: a hit records it for the call of the hit, not the
+     results that the calls of the body record for their own call sites. *)
+  let provide_inout callstack kf inout =
+    match !call_inout_stack with
+    | (kf', table) :: _
+      when Kernel_function.equal kf kf' && CallsiteHash.length table = 0 ->
+      Eva.Cache_part.provide part callstack inout
+    | _ -> ()
+
 
   let compute_call_from_value_states kf call_stack states =
     let module Fenv = (val Dataflows.function_env kf: Dataflows.FUNCTION_ENV) in
@@ -651,6 +674,7 @@ module Callwise = struct
           else top
         in
         MemExec.replace memexec_counter inout;
+        provide_inout callstack kf inout;
         pop_local_table kf;
         inout
       | `Reuse counter -> MemExec.find counter

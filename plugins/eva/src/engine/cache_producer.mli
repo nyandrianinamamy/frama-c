@@ -19,9 +19,10 @@ type entry
 val entries : kernel_function -> entry list
 
 (** Statement, closed key, filtered input, footprint, partitioned Exit
-    part, Safety part and Reach part. The Reach part holds the points
-    reached only when the states of the body were saved ([save_results]):
-    otherwise the analysis does not record them (see {!Reach_part.part}). *)
+    part, Safety part, Reach part and the parts of other modules (see
+    {!Cache_part}). The Reach part holds the points reached only when the
+    states of the body were saved ([save_results]): otherwise the analysis
+    does not record them (see {!Reach_part.part}). *)
 val cache_entry : entry -> Cache_entry.Cvalue.t
 
 (** Classes of recorded joins seen while analysing the body. *)
@@ -56,9 +57,12 @@ module Make (Domain : sig
   end) : sig
   (** Offer a completed body, with the Safety part, the Reach part, the
       collector result and the verdict that belong to this analysis of the
-      body. Returns the stored entry or the reason for refusing storage. *)
+      body, and the [parts] given by other modules during this analysis,
+      which a stored entry keeps. Returns the stored entry or the reason for
+      refusing storage. *)
   val store :
     save_results:bool -> safety:Safety_part.t -> reach:Reach_part.t ->
+    parts:Cache_part.parts ->
     Callstack.t -> Domain.t ->
     Domain.t Engine_sig.call_result -> Body_access.Result.t ->
     (unit, Body_access.Result.refusal) result ->

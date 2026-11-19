@@ -269,7 +269,7 @@ let print_counts name =
   let stats =
     [ Eva.Statistics.cache_hits, "cache-hits";
       rejected "key-differs"; rejected "key-unclosed";
-      rejected "product"; rejected "consumer";
+      rejected "missing-part"; rejected "product"; rejected "consumer";
       Eva.Statistics.cache_refused "supplied-only",
       "cache-refused-supplied-only";
       Eva.Statistics.memexec_hits, "memexec-hits";

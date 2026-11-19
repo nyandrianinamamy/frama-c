@@ -56,3 +56,20 @@ val skip_visits : Cil_types.kernel_function -> unit
 (** Whether a hit has answered a call of the function in the current
     analysis. *)
 val visits_skipped : Cil_types.kernel_function -> bool
+
+(** {2 Statistics of the summary} *)
+
+(** [delivered kf] is called by the engine after a hit has delivered the
+    Safety part and the Reach part of a call of [kf] and restored the parts
+    of its entry. It runs the function given to {!on_delivered}, which
+    computes again the statistics of [kf] in the summary of the analysis
+    from the tables that the delivery has updated. A hit sends no results
+    to the call results hooks of {!Cvalue_callbacks}: its number is not one
+    of memexec. *)
+val delivered : Cil_types.kernel_function -> unit
+
+(** [on_delivered f] makes {!delivered} run [f]. The summary of the analysis
+    calls it once, when Eva is loaded: it depends on the engine, which calls
+    {!delivered}. It replaces the function given before, and no other
+    module calls it. *)
+val on_delivered : (Cil_types.kernel_function -> unit) -> unit

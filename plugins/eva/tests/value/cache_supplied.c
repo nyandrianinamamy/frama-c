@@ -8,15 +8,15 @@
    OPT: @EVA_OPTIONS@ -eva-msg-key cache -eva-domains cvalue,sign
    COMMENT: With caching disabled, no cache is consulted.
    OPT: @EVA_OPTIONS@ -eva-msg-key cache -eva-no-memexec
-   COMMENT: With Inout loaded, which resolves the identifier of a hit in the
-   COMMENT: tables of memexec, every candidate is rejected. Memexec is not
-   COMMENT: consulted either: the second call to plain is analysed.
+   COMMENT: With Inout loaded, every candidate is rejected (missing-part): a
+   COMMENT: supplied entry has no Inout part. Memexec is not consulted
+   COMMENT: either: the second call to plain is analysed.
    PLUGIN: eva,inout
    OPT: @EVA_OPTIONS@ -eva-msg-key cache
-   COMMENT: So does From, loaded without Inout.
+   COMMENT: From alone, without -calldeps, needs no part: hits as in run 0.
    PLUGIN: eva,from
    OPT: @EVA_OPTIONS@ -eva-msg-key cache
-   COMMENT: So does the analysis of threads, which keeps cvalue alone.
+   COMMENT: The analysis of threads rejects every candidate (consumer).
    PLUGIN: eva
    OPT: @EVA_OPTIONS@ -eva-msg-key cache -mthread
 */

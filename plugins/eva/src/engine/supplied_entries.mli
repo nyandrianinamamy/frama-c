@@ -149,13 +149,16 @@ val supply :
   key:Base.Hptset.t -> input:Cvalue.Model.t -> footprint:footprint ->
   exit:(Partition.key * Cvalue.Model.t) list -> entry
 
-(** Supply the key, states, Safety part and Reach part of an entry captured
-    by the producer, with the next supplied entry identifier. The lookup
-    checks the recorded sweep targets, used functions, widening generation
-    and status of the warning categories. The fixture must use the same AST and ensure
+(** Supply the key, the states, the Safety part, the Reach part and the
+    parts of other modules (see {!Cache_part}) of an entry captured by the
+    producer, with the next supplied entry identifier. The lookup checks the
+    recorded sweep targets, used functions, widening generation and status
+    of the warning categories. The fixture must use the same AST and ensure
     the calls meet the replay premises described on [supply], the settings
     that decide the alarms, statuses and messages included: the options and
-    the activation of the message categories are not checked. Supplying
+    the activation of the message categories are not checked. The parts are
+    restored at a hit as given; an entry supplied by {!supply} has no part
+    of another module. Supplying
     entries remains a test-only operation. The producer stores bodies that
     call other functions, and the lookup rejects their entries with
     [`Nested_delivery]: the check of [supply] on the calls of the body does
@@ -190,6 +193,7 @@ val footprint : entry -> footprint
 val exit : entry -> (Partition.key * Cvalue.Model.t) list
 val safety : entry -> Safety_part.t
 val reach : entry -> Reach_part.part option
+val parts : entry -> Cache_part.parts
 val pretty : Format.formatter -> entry -> unit
 
 (** {2 Lookup} *)
@@ -205,22 +209,26 @@ val active : unit -> bool
 
 (** Why a supplied entry is not used for a call. When the active domains
     are not the cvalue domain alone, every candidate is rejected with
-    [`Product], whatever the other reasons; otherwise, when a consumer is
-    enabled, with [`Consumer]; otherwise, when [-eva-stop-at-nth-alarm] is
-    set, with [`Stop_at_nth_alarm]; otherwise, when a client that is not
-    audited is registered on a hook that a hit runs, with [`Callback];
-    otherwise each candidate is examined by {!Cache_entry.Make.find}. *)
+    [`Product], whatever the other reasons; otherwise, when a consumer that
+    no entry can serve is enabled, with [`Consumer]; otherwise, when
+    [-eva-stop-at-nth-alarm] is set, with [`Stop_at_nth_alarm]; otherwise,
+    when a client that is not audited is registered on a hook that a hit
+    runs, with [`Callback]; otherwise each candidate is examined by
+    {!Cache_entry.Make.find}, which rejects a candidate that lacks a part
+    whose consumer is enabled with [`Missing_part]. *)
 type rejection = [
   | Cache_entry.rejection
   | `Product
   (** The active domains are not the cvalue domain alone. *)
   | `Consumer
-  (** A component that reads the results of the analysis in a way that a
-      hit does not support is enabled: the Inout or From plug-in, or the
-      analysis of threads, which resolve the identifier of a hit against the
-      entries of memexec; or a plug-in that concludes from the states saved
-      at the statements of a function, which do not cover the calls answered
-      by a hit: Nonterm, Metrics, the Markdown report, WP and the constant
+  (** A consumer that no entry can serve is enabled: the analysis of
+      threads, which resolves the identifier of a hit against the entries of
+      memexec; a reader of the states saved at statements declared to
+      {!Cache_part.register_state_reader}, such as the analyses by function
+      of From ([-deps]) and Inout ([-out], [-input], [-deref] and their
+      variants); or a plug-in that concludes from the states saved at the
+      statements of a function, which do not cover the calls answered by a
+      hit: Nonterm, Metrics, the Markdown report, WP and the constant
       propagation. *)
   | `Stop_at_nth_alarm
   (** Option [-eva-stop-at-nth-alarm] is set. A fresh evaluation emits all

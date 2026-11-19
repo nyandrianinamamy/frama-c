@@ -217,11 +217,10 @@ module FunctionStats = struct
     let aux _callstack kf _state results =
       match results with
       | `Body _ -> replace kf (compute_fun_stats kf)
-      | `Reuse _ when Safety_delivery.visits_skipped kf ->
-        replace kf (compute_fun_stats kf)
       | `Builtin _ | `Spec _ | `Reuse _ -> ()
     in
-    Cvalue_callbacks.register_call_results_hook ~cache_protocol:true aux
+    Cvalue_callbacks.register_call_results_hook ~cache_protocol:true aux;
+    Safety_delivery.on_delivered (fun kf -> replace kf (compute_fun_stats kf))
 
   let recompute kf = replace kf (compute_fun_stats kf)
   let recompute_all () = iter (fun kf _ -> recompute kf)

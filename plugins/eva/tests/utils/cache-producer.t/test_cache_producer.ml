@@ -150,7 +150,7 @@ let admission () =
   let check expected input result observation =
     let reason =
       Admission.store ~save_results:false ~safety:Eva.Safety_part.empty
-        ~reach:Eva.Reach_part.empty stack
+        ~reach:Eva.Reach_part.empty ~parts:Eva.Cache_part.empty stack
         input result observation (Ok ())
     in
     assert (reason = Error expected);

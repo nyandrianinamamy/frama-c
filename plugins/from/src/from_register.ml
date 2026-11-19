@@ -151,3 +151,10 @@ let main () =
   if From_parameters.ForceCallDeps.get () then output_calldeps_once ()
 
 let () = Boot.Main.extend main
+
+(* -deps computes the dependencies by function from the states that Eva saves
+   at the statements of each function, those of the called functions
+   included. *)
+let () =
+  Eva.Cache_part.register_state_reader ~name:"from"
+    From_parameters.ForceDeps.get

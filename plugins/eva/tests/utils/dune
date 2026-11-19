@@ -20,6 +20,10 @@
 )
 
 (cram
+  (applies_to cache-parts)
+  (deps (package frama-c-from)))
+
+(cram
   (applies_to body-access)
   (deps
     (package frama-c-rtegen)

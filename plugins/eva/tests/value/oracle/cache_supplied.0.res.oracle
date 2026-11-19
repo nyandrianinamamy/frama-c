@@ -232,51 +232,51 @@
 [kernel] exit of set_out binds keep: false
 [kernel] counts of step:
     cache-hits 1, cache-rejected-key-differs 1, cache-rejected-key-unclosed 0,
-    cache-rejected-product 0, cache-rejected-consumer 0,
-    cache-refused-supplied-only 1, memexec-hits 0, memexec-stored 0,
-    collector-would-store 0
+    cache-rejected-missing-part 0, cache-rejected-product 0,
+    cache-rejected-consumer 0, cache-refused-supplied-only 1, memexec-hits 0,
+    memexec-stored 0, collector-would-store 0
 [kernel] counts of set_out:
     cache-hits 1, cache-rejected-key-differs 0, cache-rejected-key-unclosed 0,
-    cache-rejected-product 0, cache-rejected-consumer 0,
-    cache-refused-supplied-only 0, memexec-hits 0, memexec-stored 0,
-    collector-would-store 0
+    cache-rejected-missing-part 0, cache-rejected-product 0,
+    cache-rejected-consumer 0, cache-refused-supplied-only 0, memexec-hits 0,
+    memexec-stored 0, collector-would-store 0
 [kernel] counts of precise_first:
     cache-hits 1, cache-rejected-key-differs 0, cache-rejected-key-unclosed 0,
-    cache-rejected-product 0, cache-rejected-consumer 0,
-    cache-refused-supplied-only 0, memexec-hits 0, memexec-stored 0,
-    collector-would-store 0
+    cache-rejected-missing-part 0, cache-rejected-product 0,
+    cache-rejected-consumer 0, cache-refused-supplied-only 0, memexec-hits 0,
+    memexec-stored 0, collector-would-store 0
 [kernel] counts of wide_first:
     cache-hits 1, cache-rejected-key-differs 0, cache-rejected-key-unclosed 0,
-    cache-rejected-product 0, cache-rejected-consumer 0,
-    cache-refused-supplied-only 0, memexec-hits 0, memexec-stored 0,
-    collector-would-store 0
+    cache-rejected-missing-part 0, cache-rejected-product 0,
+    cache-rejected-consumer 0, cache-refused-supplied-only 0, memexec-hits 0,
+    memexec-stored 0, collector-would-store 0
 [kernel] counts of plain:
     cache-hits 0, cache-rejected-key-differs 0, cache-rejected-key-unclosed 0,
-    cache-rejected-product 0, cache-rejected-consumer 0,
-    cache-refused-supplied-only 2, memexec-hits 0, memexec-stored 0,
-    collector-would-store 0
+    cache-rejected-missing-part 0, cache-rejected-product 0,
+    cache-rejected-consumer 0, cache-refused-supplied-only 2, memexec-hits 0,
+    memexec-stored 0, collector-would-store 0
 [kernel] counts of loop_on_4:
     cache-hits 1, cache-rejected-key-differs 0, cache-rejected-key-unclosed 0,
-    cache-rejected-product 0, cache-rejected-consumer 0,
-    cache-refused-supplied-only 0, memexec-hits 0, memexec-stored 0,
-    collector-would-store 0
+    cache-rejected-missing-part 0, cache-rejected-product 0,
+    cache-rejected-consumer 0, cache-refused-supplied-only 0, memexec-hits 0,
+    memexec-stored 0, collector-would-store 0
 [kernel] counts of write_then_spin:
     cache-hits 1, cache-rejected-key-differs 0, cache-rejected-key-unclosed 0,
-    cache-rejected-product 0, cache-rejected-consumer 0,
-    cache-refused-supplied-only 0, memexec-hits 0, memexec-stored 0,
-    collector-would-store 0
+    cache-rejected-missing-part 0, cache-rejected-product 0,
+    cache-rejected-consumer 0, cache-refused-supplied-only 0, memexec-hits 0,
+    memexec-stored 0, collector-would-store 0
 [kernel] counts of never_returns:
     cache-hits 1, cache-rejected-key-differs 0, cache-rejected-key-unclosed 0,
-    cache-rejected-product 0, cache-rejected-consumer 0,
-    cache-refused-supplied-only 0, memexec-hits 0, memexec-stored 0,
-    collector-would-store 0
+    cache-rejected-missing-part 0, cache-rejected-product 0,
+    cache-rejected-consumer 0, cache-refused-supplied-only 0, memexec-hits 0,
+    memexec-stored 0, collector-would-store 0
 [kernel] counts of twice:
     cache-hits 1, cache-rejected-key-differs 1, cache-rejected-key-unclosed 0,
-    cache-rejected-product 0, cache-rejected-consumer 0,
-    cache-refused-supplied-only 1, memexec-hits 0, memexec-stored 0,
-    collector-would-store 1
+    cache-rejected-missing-part 0, cache-rejected-product 0,
+    cache-rejected-consumer 0, cache-refused-supplied-only 1, memexec-hits 0,
+    memexec-stored 0, collector-would-store 1
 [kernel] counts of leak_address:
     cache-hits 1, cache-rejected-key-differs 0, cache-rejected-key-unclosed 0,
-    cache-rejected-product 0, cache-rejected-consumer 0,
-    cache-refused-supplied-only 0, memexec-hits 0, memexec-stored 0,
-    collector-would-store 0
+    cache-rejected-missing-part 0, cache-rejected-product 0,
+    cache-rejected-consumer 0, cache-refused-supplied-only 0, memexec-hits 0,
+    memexec-stored 0, collector-would-store 0

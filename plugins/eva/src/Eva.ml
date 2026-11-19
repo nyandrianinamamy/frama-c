@@ -150,3 +150,7 @@ module Reach_part = Reach_part
 (** Cache entries supplied by test modules to the reuse operation. For tests
     only. *)
 module Supplied_entries = Supplied_entries
+
+(** Parts of cache entries owned by other modules: registration by their
+    owners, such as From and Inout, and restoration at a hit. *)
+module Cache_part = Cache_part

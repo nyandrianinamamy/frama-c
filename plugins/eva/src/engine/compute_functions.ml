@@ -53,10 +53,11 @@ module Make (Engine: Engine_sig.S) = struct
     let lookup () = Cache.lookup call init_state in
     match Body_access.without_recording lookup with
     | Cache.No_candidate pending ->
-      let ((call_result, footprint), safety), reach =
+      let (((call_result, footprint), parts), safety), reach =
         try
           Reach_part.capture call.callstack @@ fun () ->
           Safety_part.capture call.callstack @@ fun () ->
+          Cache_part.capture call.callstack @@ fun () ->
           Body_access.capture call.callstack (fun () ->
               if Body_access.is_recording () then begin
                 begin match Callstack.top_callsite call.callstack with
@@ -100,8 +101,8 @@ module Make (Engine: Engine_sig.S) = struct
       in
       let entry =
         Body_access.without_recording (fun () ->
-            Cache.store ~save_results ~safety ~reach call init_state pending
-              call_result footprint)
+            Cache.store ~save_results ~safety ~reach ~parts call init_state
+              pending call_result footprint)
       in
       Option.iter
         (fun r ->
@@ -126,7 +127,9 @@ module Make (Engine: Engine_sig.S) = struct
           (* The lookup admits no entry without a Reach part
              ([`Missing_points]). *)
           match Supplied_entries.reach entry with
-          | Some reach -> Some (Supplied_entries.safety entry, reach)
+          | Some reach ->
+            Some (Supplied_entries.safety entry, reach,
+                  Supplied_entries.parts entry)
           | None -> assert false
       in
       apply_call_hooks call init_state `Reuse;
@@ -159,7 +162,7 @@ module Make (Engine: Engine_sig.S) = struct
         match delivery with
         | None -> states
         | Some _ when not satisfiable -> []
-        | Some (safety, reach) ->
+        | Some (safety, reach, _) ->
           Safety_delivery.skip_visits call.kf;
           Safety_delivery.deliver call.callstack safety;
           Reach_delivery.deliver call.callstack ~save_results reach;
@@ -167,7 +170,23 @@ module Make (Engine: Engine_sig.S) = struct
       in
       Self.feedback ~current:true ~mkey:Log_key.progress
         "Reusing old results for call to %a" Kernel_function.pretty call.kf;
-      apply_call_results_hooks call init_state (`Reuse i);
+      (* A hit of memexec sends its number to the consumers, which resolve it
+         in their own tables. A delivering hit of the reuse operation, whose
+         number is not one of memexec, restores the parts of its entry
+         instead, after the delivery of its Safety part and of its Reach
+         part: the individual Inout result of the call, for instance, before
+         the caller reduces its actuals. A hit whose preconditions leave no state restores no part:
+         only the producer gives parts, and it refuses a body with
+         preconditions; an entry given to [supply] has none, and a candidate
+         without a part that a consumer needs is rejected. *)
+      begin match delivery with
+        | None -> apply_call_results_hooks call init_state (`Reuse i)
+        | Some _ when not satisfiable -> ()
+        | Some (_, _, parts) ->
+          let cvalue_state = Engine.Dom.get_cvalue_or_top init_state in
+          Cache_part.restore call.callstack call.kf cvalue_state parts;
+          Safety_delivery.delivered call.kf
+      end;
       (* call can be cached since it was cached once *)
       Engine_sig.{ states; cacheable = Cacheable; kind = `Body }
 

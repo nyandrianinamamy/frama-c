@@ -186,6 +186,7 @@ let footprint = Entry.footprint
 let exit e = List.map (fun (k, (s, _)) -> k, s) (Entry.exit e)
 let safety = Entry.safety
 let reach = Entry.reach
+let parts = Entry.parts
 let pretty = Entry.pretty
 
 type rejection =
@@ -193,9 +194,10 @@ type rejection =
   | `Callback ]
 
 let rejections : rejection list =
-  [ `Key_differs; `Key_unclosed; `Sweep; `Recursion; `Hint_generation;
-    `Watchpoint; `Automatic_cleanup; `Nested_delivery; `Warn_categories;
-    `Missing_points; `Product; `Consumer; `Stop_at_nth_alarm; `Callback ]
+  [ `Key_differs; `Key_unclosed; `Missing_part; `Sweep; `Recursion;
+    `Hint_generation; `Watchpoint; `Automatic_cleanup; `Nested_delivery;
+    `Warn_categories; `Missing_points; `Product; `Consumer;
+    `Stop_at_nth_alarm; `Callback ]
 
 let rejection_id : rejection -> string = function
   | #Cache_entry.rejection as r -> Cache_entry.rejection_id r
@@ -209,9 +211,11 @@ type 'state lookup = {
   hit : (entry * (Partition.key * 'state) list) option;
 }
 
-(* Inout and From resolve the identifier given with [`Reuse] to the callbacks
-   in their tables of memexec results, and so does the analysis of threads.
-   The other plug-ins read the states saved at the statements of a function,
+(* The analysis of threads resolves the identifier given with [`Reuse] to the
+   callbacks in its tables of memexec results, and owns no part. The callwise
+   results of Inout and From are parts of the entries (see {!Cache_part});
+   their analyses by function read the states saved at statements. The other
+   plug-ins below read the states saved at the statements of a function,
    and a hit saves none for its own visits: Nonterm reports the statements
    without a state as unreachable or non-terminating, Metrics and the
    Markdown report count them as unreached, WP takes the states as
@@ -220,9 +224,8 @@ type 'state lookup = {
 let state_readers = [ "nonterm"; "metrics"; "mdr"; "wp"; "scf" ]
 
 let consumer_enabled () =
-  Plugin.is_present "inout" || Plugin.is_present "from"
-  || List.exists Plugin.is_present state_readers
-  || Mt_options.Enabled.get ()
+  List.exists Plugin.is_present state_readers
+  || Mt_options.Enabled.get () || Cache_part.reads_statement_states ()
 
 (* A fresh evaluation emits all the alarms of an evaluation before it tests
    the threshold of [-eva-stop-at-nth-alarm]; a hit delivers the alarms one

@@ -23,12 +23,16 @@
     - its Reach part, if known: the guard outcomes, the read and written
       zones and the call sites that the analysis of the statement
       registered, and the control points it reached if it saved the states
-      of the statement (see {!Reach_part.part}).
+      of the statement (see {!Reach_part.part});
+    - the parts owned by other modules, given during the analysis that
+      produced it (see {!Cache_part}).
 
     The reuse operation ({!Make.find}) takes the candidate entries of a call,
     oldest first, and the input of the call. A candidate matches when the
     input filtered to its key is equal to its stored input and when its key is
-    closed under [relate] in the input. The oldest matching candidate is used:
+    closed under [relate] in the input. A matching candidate that lacks a
+    part whose consumer is enabled is rejected. The oldest matching candidate
+    that is not rejected is used:
     each state at the end of the call is the input of the call in which the
     blocks written on a path that reaches an exit are taken from an exit
     state, through [reuse]. The key has no argument, call-site or callstack
@@ -83,6 +87,9 @@ type rejection = [
   | `Key_unclosed
   (** [relate] relates the key of the entry to blocks outside the key in the
       input of the call. *)
+  | `Missing_part
+  (** The entry lacks a part whose consumer is enabled (see
+      {!Cache_part.supplies}). *)
   | `Sweep | `Recursion | `Hint_generation | `Watchpoint
   | `Automatic_cleanup
   (** The entry would skip a definition's automatic allocation cleanup. *)
@@ -98,7 +105,8 @@ type rejection = [
       call. *)
 ]
 
-(** Stable identifier of a rejection reason. *)
+(** Stable identifier of a rejection reason, such as [missing-part] for
+    [`Missing_part]. *)
 val rejection_id : rejection -> string
 
 (** The operations of an abstract domain used by the reuse operation. *)
@@ -122,8 +130,9 @@ module Make (Domain : Domain) : sig
   (** A cache entry whose states belong to [Domain]. *)
   type t
 
-  (** [make ~id statement ~key ~input ~footprint ~exit] builds an entry
-      identified by [id]. The stored input is [input] filtered to [key]. The
+  (** [make ~parts ~id statement ~key ~input ~footprint ~exit] builds an
+      entry identified by [id], with the [parts] of other modules, none by
+      default. The stored input is [input] filtered to [key]. The
       block that holds the value returned by the function, if any, is added
       to the three written sets of [footprint]: it is fully overwritten on
       every path that reaches an exit. Each exit state is filtered to [key]
@@ -132,15 +141,17 @@ module Make (Domain : Domain) : sig
       [observation] describes the effects of its analysis, including nested
       calls. [children] retains the entries used at those call sites. The
       Safety part is [safety], empty by default. The Reach part is [reach],
-      unknown by default.
+      unknown by default. [parts] are the parts of other modules kept with
+      the entry.
       Raises [Invalid_argument] if W_sure ⊆ W_exit ⊆ W fails, if [key] omits
       any block of {!required_key}, or if [key] is not closed under
       [Domain.relate] in [input]. *)
   val make :
     id:int -> ?reads:Base.Hptset.t -> ?dependencies:dependencies ->
     ?observation:observation -> ?children:Cache_observation.child list ->
-    ?safety:Safety_part.t -> ?reach:Reach_part.part -> statement ->
-    key:Base.Hptset.t -> input:Domain.t ->
+    ?safety:Safety_part.t -> ?reach:Reach_part.part ->
+    ?parts:Cache_part.parts -> statement -> key:Base.Hptset.t ->
+    input:Domain.t ->
     footprint:footprint -> exit:(Partition.key * Domain.t) list -> t
 
   (** The identifier given to {!make}. *)
@@ -180,6 +191,9 @@ module Make (Domain : Domain) : sig
       with its Safety part. *)
   val reach : t -> Reach_part.part option
 
+  (** The parts of other modules. *)
+  val parts : t -> Cache_part.parts
+
   val pretty : Format.formatter -> t -> unit
 
   (** Result of the reuse operation for one call. *)
@@ -192,7 +206,8 @@ module Make (Domain : Domain) : sig
 
   (** [find ~admit candidates state] applies the reuse operation to a call whose
       input is [state]. The [candidates] are given oldest first. They are
-      examined in this order until one matches and passes [admit]. The
+      examined in this order until one matches, has every part whose
+      consumer is enabled and passes [admit], and that one is used. The
       caller must check the entry's collector dependencies in [admit]. The
       states at the end of the call are
       [reuse written_exit ~current_input:state ~previous_output:s] for each
