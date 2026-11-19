@@ -68,7 +68,8 @@ the return block. An observed body can supply an empty exit list.
 
 **Depends on.** [The written sets of a supplied entry and its key](reuse-operation.md#the-written-sets-of-a-supplied-entry-and-its-key),
 [the cvalue reuse law](reuse-operation.md#reuse-sound-for-cvalue) and
-[entry construction](entry.md#sound-entry-from-producer-soundness-and-coverage).
+[entry construction](entry.md#sound-entry-from-producer-soundness-and-coverage)
+and [hit soundness](hit.md#hit-soundness).
 
 **Symbols.** `Compute_functions.Make.compute_and_cache_call`,
 `Iterator.Make.compute`, `Cache_producer.produce`,
@@ -114,13 +115,14 @@ removal that the collector accepts refuses as `exit-binding`. A scope
 with a collector sweep retains the `sweep` refusal. An otherwise accepted
 body with a callee precondition refuses as `preconditions`.
 
-**Open.** A projected match only gives agreement on key contents. The
-same stored witness must agree on the liveness of written blocks and
-allocator state, with common program and entry bindings. The producer
-does not supply this witness, including for contexts that may differ
-outside the key. Cvalue map checks also do not prove nonempty
-concretisation. Links and checked counterexamples are in
-[entry construction](entry.md#sound-entry-from-producer-soundness-and-coverage).
+**Open.** The projected theorem takes `ReplayCompatible` as a lookup
+premise. For every current memory covered by an admitted match, Eva must
+justify a single stored witness agreeing on key contents, liveness of
+written blocks, and allocator state, with common program and entry
+bindings. The generic proof composes this witness, which the value-domain
+instance constructs. The cvalue lookup owes the construction. The
+producer's map checks leave nonemptiness of the stored concretisation open. The proof and checked counterexamples are in
+[hit soundness](hit.md#hit-soundness).
 
 ## Refusals at admission
 

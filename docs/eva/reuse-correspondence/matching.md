@@ -332,6 +332,8 @@ laws](domain-laws.md#the-product-keeps-the-laws), for `closed_prod_iff` and
 'Checks.nonempty_needed' depends on axioms: [propext, Quot.sound]
 ```
 
-**Open.** The OCaml obligation that the stored input of every entry has a
-non-empty concretisation, or another argument that removes the hypothesis
-from the hit theorem, is open.
+**Open.** Eva must establish nonemptiness of the stored concretisation
+for entry construction and the product exactness derivation. For a
+projected hit, the proof uses stored-side exactness and a joint
+key, write-liveness and allocator witness.
+[Hit soundness](hit.md#hit-soundness).

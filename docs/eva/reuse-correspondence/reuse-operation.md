@@ -367,7 +367,7 @@ its value at the exit comes from the input of the call, which can differ
 from the producer's when b is not in the key; the stored exit state holds
 the producer's. The value is the input's unchanged only when no sweep of the
 execution rewrites it: that is the condition on the current holders stated
-in the [hit argument](#reuse-sound-for-cvalue). [Entry soundness](entry.md#sound-entry-from-producer-soundness-and-coverage)
+in the [hit soundness](hit.md#hit-soundness). [Entry soundness](entry.md#sound-entry-from-producer-soundness-and-coverage)
 establishes agreement on W_exit under the full `Matches` witness and the
 construction hypotheses. The reuse operation applies the domain law with
 W_exit, the set that the entry's Exit claim supplies.
@@ -719,8 +719,9 @@ covered by cur. This is `ReuseSound` of the model restricted by the
 condition on bindings: without it the law fails for cvalue, since a block
 of W that out does not bind keeps its value of cur, while Eva reads it in
 out as uninitialized. The law as the model states it, for every W, cur and
-out, is therefore not claimed for cvalue. At a hit, W is W_exit, out an exit state of the entry, with
-support K ∪ W, and cur the input of the call: the condition holds.
+out, is therefore not claimed for cvalue. At a fixture hit that passes the binding check, the law applies with
+W_exit, an exit state supported on K ∪ W and the input of the call.
+The Lean hit uses this local form, `ReuseSoundAt`.
 
 **Kind.** Argued in prose.
 
@@ -740,45 +741,18 @@ are maps, since `supply` refuses `Top` and `Bottom`; cur is a map, since no
 call is analysed from `Bottom` and a call whose input is `Top` matches no
 entry (`filter K Top` is `Top`, and the stored input of an entry is a map).
 
-For the conditional hit argument, let σ be a memory covered by the input s
-of the call and τ the memory at the exit of a body execution from σ.
-Assume the full [`entry.Matches a σ`](entry.md#sound-entry-from-producer-soundness-and-coverage)
-witness, with common program, subject and entry bindings. One stored
-witness agrees with σ on key contents, on the liveness of every written
-block and on allocation. Under non-emptiness of the stored input, producer
-soundness, coverage and key coverage, `CacheEntry.sound_of_producer`
-supplies an exit at the same outcome that is covered by the entry's Exit
-part and agrees with τ on W_exit. The
-[finite-prefix correspondence](entry.md#finite-prefix-correspondence)
-also gives `run_agree_on_writes`, which needs write-target liveness
-agreement only on the targets of the chosen prefix. The checked
-[`projected_match_no_replay_witness`](entry.md#checked-cases) shows why
-agreement on key contents alone cannot supply the full witness.
-
-Project that exit state to K ∪ W using `filter` sound, yielding o_i.
-Let `evs` be the events of the execution from σ to τ. Outside W_exit,
-exit-write coverage rules out an ordinary write of a block `b` in those
-events. If `b` was issued at entry, `frame_of_not_written` gives its
-entry value with the recorded sweeps applied in order. By
-`applySweeps_eq_iff`, the value agrees with σ exactly when
-
-```lean
-∀ target ∈ sweepTargets evs, Memory.load σ b ≠ some (Value.ptr target)
-```
-
-The sufficient condition of `frame_no_sweep_rewrite` is that every
-target of an unmarked pointer held by `b` was already issued at entry.
-Check either condition on the current input σ. A producing witness can
-hold a different pointer outside the key. If the condition fails, an
-overlay must apply the recorded sweeps to those current frame holders.
-The checked matching exit with W_exit = {0} changes block 1 from
-`ptr 2` to `escaped 2` without an ordinary write.
-[Frame checks](frame.md#frame-lemma-with-lexical-sweeps).
-
-When every block off the overlay agrees with σ, the law above puts τ
-in `reuse W_exit s o_i`. The frame argument supplies this equality for
-issued off-overlay blocks under the current-input condition. The status
-of other off-overlay bindings is part of the open composition.
+The model's hit proof gives the conditional composition on whole blocks.
+Under projection, `ReplayCompatible` amounts to one stored witness
+per current member that aligns key contents, write-target liveness and
+allocation. The value-domain instance constructs it. An admitted
+projected cvalue lookup still owes that witness. Entry soundness gives an output witness agreeing
+on W_exit at the same normal outcome. Weak `filter` soundness preserves
+coverage when the stored output is projected to K ∪ W. The frame equality
+used by `ReuseSoundAt` includes released or initially unissued blocks.
+The model establishes it when the current frame holders avoid the
+normal-exit trace's sweep targets. Eva's binding, sweep and lifetime
+conditions still need their own correspondence argument.
+[Hit soundness](hit.md#hit-soundness).
 
 The clobbered set of the result is that of out. `supply` sets it to the
 blocks of the exit state bound to a value that may contain the address of a
@@ -814,16 +788,12 @@ state](#a-hit-takes-the-blocks-of-w_exit-from-the-exit-state).
 
 - The law holds for cvalue only under the condition on bindings; the hit
   supplies it through the check of the exit states by `supply`.
-- For #38, compose the exit witness with the current frame. For each
-  covered current memory σ, normal-exit trace `evs`, and issued block
-  `b` outside W_exit whose value is taken unchanged from σ, establish
-  `∀ target ∈ sweepTargets evs, Memory.load σ b ≠ some (Value.ptr target)`.
-  If this condition fails, an overlay that supports the case must apply
-  the recorded sweeps to that current holder. The milestone admits the
-  unchanged overlay only with its no-rewrite argument. Justify agreement
-  for the remaining off-overlay bindings, including absent or released
-  bindings, and show that the result keeps holders known only to the
-  caller in the clobbered set.
+- At lookup with sweeps, justify `NoFrameRewrite` for each covered
+  current memory and each normal exit outside W_exit. The model proves
+  the absent-binding case at normal exit. Eva must justify its lifetime
+  and offsetmap behavior there and that outer cleanup sees holders
+  known only to the current caller. If an exit requires a current
+  holder rewrite, the unchanged overlay refuses that case.
   [Sweep admission](frame.md#admission-condition-for-sweeps-of-own-locals).
 - An unrolled recursive call reaches the lookup before the check that
   refuses recursion on a miss. No fixture has a recursive function with a
@@ -832,16 +802,15 @@ state](#a-hit-takes-the-blocks-of-w_exit-from-the-exit-state).
   must still be in the key (`make` refuses the entry otherwise). The key is
   then larger than the incoming values the body depends on. Sound; a finer
   rule needs reads that depend on the incoming value to be told apart.
-- Derive the full witness for each current memory `m` covered by an
-  admitted Eva lookup, with common program, subject and entry bindings.
-
-  ```lean
-  ∃ w, d.γ entry.input w ∧ ReplayAgreement a entry.key entry.footprint.writes w m
-  ```
-
-- The model's hit theorem
-  ([issue #38](https://github.com/nyandrianinamamy/frama-c/issues/38))
-  remains pending.
+- `Cache_entry.Make.check` checks filtered equality and current closure.
+  `Call_cache.Make.lookup` and `Compute_functions.Make.compute_and_cache_call`
+  owe the correspondence from an admitted lookup to compatible program,
+  subject, entry bindings and a joint witness for each current memory.
+  The generic model theorem takes that joint witness through
+  `ReplayCompatible` under the projection premises. Required evidence includes a positive hit and controls for
+  incompatible write-target liveness, allocation identity and current
+  frame holders. These are open lookup obligations.
+  [Hit premises and counterexamples](hit.md#hit-soundness).
 - Produced entries check all overlay bindings. See the
   [producer obligation record](cache-producer.md#producer-obligations-for-exit-reuse)
   for the condition on the four footprint sets, frees and sweeps.

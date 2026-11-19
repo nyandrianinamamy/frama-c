@@ -65,6 +65,8 @@ that a checkout has the model sources of an entry, compare
   product of two domains; and the equality domain, with an identity
   `filter`, on the fact `y == z` as the negative case of the projected
   match.
+- [Within-analysis hit](hit.md): conditional hit composition, the
+  value-domain replay witness, and the four side-table obligations.
 - [Matching](matching.md): the match and product lemmas, closure of the key
   in the stored input, and the non-emptiness of the stored concretisation.
 - [Entry construction](entry.md): producer soundness, coverage, the matching

@@ -133,7 +133,12 @@ contains these premises of execution correspondence:
 
 **Depends on.** [Finite-prefix correspondence](#finite-prefix-correspondence)
 and the definitions of [observations](../../../lean/ReuseModel/Observations.lean).
-[Matching](matching.md) gives key agreement only. Its `Combinable` mixes
+[Matching](matching.md) gives key agreement only.
+[Hit soundness](hit.md#hit-soundness) takes all three replay agreements
+for a single stored witness through its `ReplayCompatible` premise.
+The value-domain instance constructs this witness. Eva's cvalue lookup
+still owes it.
+The matching lemma's `Combinable` mixes
 contents, and the `FunMem.combinable` implementation may raise the next
 identifier to the maximum of the two memories. Its exactness witness
 therefore needs additional justification before it can supply the
@@ -156,17 +161,19 @@ extraction with no build directory, using Lean 4.28.0, commit
 'ReuseModel.CacheEntry.sound_of_producer' depends on axioms: [propext, Quot.sound]
 ```
 
-**Open.** For each current memory `m` covered by an admitted match,
-the within-analysis hit proof must derive the following, with common
-program, subject and entry bindings (both runs start with `entry.env`).
+**Open.** Eva must establish `ReplayCompatible` at an admitted
+projected lookup and justify the common program, subject and concrete
+entry bindings. Under that premise, `matches_of_projected` supplies
+the following for each covered current memory `m`.
 
 ```lean
 ∃ w, d.γ entry.input w ∧ ReplayAgreement a entry.key entry.footprint.writes w m
 ```
 
-The coverage obligations above and composition with frame and reuse
-also remain open. Sub-block writes and the argument for offsets are
-outside this model.
+The model composes the witness with frame and reuse under the
+[hit premises](hit.md#hit-soundness). Eva still owes the coverage
+and lookup obligations. The proof is for whole blocks. The argument for
+offsets remains open.
 
 ## A producing memory matches its own entry
 
@@ -180,8 +187,9 @@ memory to which `Sound.matched` applies.
 **Hypotheses and scope.** `[Memory M]`, the domain, entry and lawful
 allocator agreement are model parameters as above. At this match, the
 sole local premise is that the producing memory belongs to the stored
-concretisation. The end-to-end hit obligation for a different current
-memory is the one above.
+concretisation. The
+[value-domain hit](hit.md#value-domain-instance-and-checked-cases)
+checks an admitted current member outside the stored input.
 
 **Statements.**
 

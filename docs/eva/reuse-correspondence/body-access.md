@@ -242,6 +242,9 @@ transitive accesses in helpers and persistent memos is in
 [Read paths of the validity record](allocated-blocks.md#read-paths-of-the-validity-record).
 For the other tables, the audit still needs to cover them, and to account
 for changes between a producer and a future lookup.
+Four Lean predicates state the obligations for skipped work. Coverage of
+the inventory by these obligations is assumed.
+[Side-table obligations](hit.md#side-table-obligations-for-skipped-work).
 
 ## Annotation and contract reads
 

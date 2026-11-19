@@ -148,20 +148,19 @@ observed a query returning `{1; 2}` at one producing callstack whose first
 entry had input `{1}`. This checks the join. Coverage of every producing visit under
 `InnerSound` remains open. See [Provenance, storage and lookup](cache-producer.md#provenance-storage-and-lookup).
 
-**Open for #38.** Derive `entry.Matches a m` for each covered current memory
-from an admitted match. In particular, establish
-`∃ w, d.γ entry.input w ∧ ReplayAgreement a entry.key entry.footprint.writes w m`
-with common program, subject and entry bindings. Compose Exit with the
-`W_exit` overlay and the frame proof using the current-input sweep
-condition, including agreement off the overlay for initially absent or
-released bindings. The hit proof also owes the four side-table obligations
-and composition with the entry's Safety and Reach guarantees.
-[Hit composition](reuse-operation.md#reuse-sound-for-cvalue).
+**Lookup premise.** Under the projection premises, `ReplayCompatible`
+is equivalent to `entry.Matches a m` for every covered member. The generic
+hit composes this witness with the replay argument. The value-domain
+instance constructs the witness. Eva's cvalue lookup must establish it
+with common program, subject and entry bindings. Exit composition and the
+four contracts for skipped effects are recorded with the hit proof.
+[Hit soundness](hit.md#hit-soundness).
 
 **Open for public Inner reconstruction.** Establish the connection between
 saved states and `InnerSound`. Use the lemma on entry-issued key blocks
 where a reference is available. Justify the other blocks, including
 fresh locals in the lookup key, with per-member data, the prefix's sweep
-and write effects, or top. The query proof must address after-statement
-observations separately. Coverage and the argument for offsets remain
-OCaml obligations.
+and write effects, or top. #40 must address the statement, hit callstack and before or
+after point, using the current member and the effects of that prefix.
+Coverage and the argument for offsets remain OCaml obligations.
+[Public Inner reconstruction](https://github.com/nyandrianinamamy/frama-c/issues/40).

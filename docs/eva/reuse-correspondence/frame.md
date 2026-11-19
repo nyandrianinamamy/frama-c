@@ -223,8 +223,11 @@ would be needed. That case is refused here. A producer-only holder list
 cannot establish this condition. The condition does not require pointer
 closure of the matching key in the model.
 
-On a normal exit, an existing holder changed by a designated write is
-covered by the normal-exit overlay `W_exit`. The producing Exit state used
+On a normal exit, `exit_frame_iff` gives the unchanged-frame condition
+on all blocks outside `W_exit`. Initially absent blocks are still
+absent because the model releases every local created during a normal
+execution. A holder changed by a designated write is covered by the
+normal-exit overlay `W_exit`. [Hit soundness](hit.md#hit-soundness). The producing Exit state used
 for that overlay must include the effect of the sweep on the holder.
 A public Inner answer may use the frame rule only for a prefix where the
 holder is untouched, with the sweeps already performed at that visit.

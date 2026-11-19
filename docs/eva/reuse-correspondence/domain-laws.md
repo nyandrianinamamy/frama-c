@@ -62,6 +62,10 @@ the two results and `filter` and `reuse` componentwise
 
 These are definitions. The claims below are about them.
 
+The hit proof uses the soundness law at the actual overlay and exit
+state, `ReuseSoundAt`. An exactness law for `reuse` is unnecessary for
+this coverage claim. [Hit soundness](hit.md#hit-soundness).
+
 ## Evidence common to the entries
 
 - Checked revision: tree of `lean/` `8fb8b87666889ddca7376bdd0555803062ab973a`,
