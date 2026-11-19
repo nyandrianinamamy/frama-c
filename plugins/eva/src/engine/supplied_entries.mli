@@ -66,6 +66,13 @@ type footprint = Cache_entry.footprint = {
       the end of the call does not sweep again for the locals of inner
       blocks.
 
+    An entry whose body contains a call is rejected at lookup
+    ([nested-delivery]), except for direct calls of the display directives
+    [Frama_C_show_each*] and [Frama_C_domain_show_each*]. A hit on a body
+    with such a directive skips its printed line and the call and
+    call-result hooks that a fresh evaluation of the directive runs: the
+    fixture must tolerate both omissions.
+
     Raises [Invalid_argument] if [input] or an exit state is [Top] or
     [Bottom]; if the written sets are not nested (W_sure ⊆ W_exit ⊆ W); if
     [key] does not contain R ∪ (W_exit \ W_sure); if [key] is not closed in

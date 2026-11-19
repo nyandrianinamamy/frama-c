@@ -9,7 +9,14 @@ a matching entry that passes the other admission checks. This applies to
 both `supply` and `supply_produced`, including inline bodies and
 specifications. Direct `Frama_C_show_each*` and
 `Frama_C_domain_show_each*` directives are leaf displays used as visit
-markers by the hand-supplied fixtures. Their output can be skipped there.
+markers by the hand-supplied fixtures. A hit on such a body skips, for
+each display, its printed line and the call and call-result hooks that a
+fresh evaluation of the directive runs: on `cache_supplied.c` the run with
+caching disabled prints two lines and notifies each hook twice, and the
+run with one hit prints one line and notifies each hook once. The
+exception is for fixtures that tolerate both omissions; a client that
+counts those calls observes the difference. The collector refuses to
+produce an entry for a body that executes a display.
 Memexec keeps its own hits. An available producing call trace contributes
 used functions and recursion information to the caller's recording, where
 the collector refuses the enclosing body with `nested-call`.
