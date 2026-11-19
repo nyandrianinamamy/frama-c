@@ -129,7 +129,8 @@ type footprint = Cache_entry.footprint = {
     call-result hooks that a fresh evaluation of the directive runs: the
     fixture must tolerate both omissions. A hit thus skips the analysis of
     [kf] alone, which it records among the functions whose statements have
-    no state (see {!Safety_delivery.skip_visits}).
+    no state (see {!Safety_delivery.skip_visits}), and whose reached points
+    it delivers (see {!Reach_delivery}).
 
     Raises [Invalid_argument] if the body of [kf] may call a function that
     has a body, directly or through a pointer; if [input] or an exit state

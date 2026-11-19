@@ -38,7 +38,3 @@ module Skipped =
 let skip_visits = Skipped.add
 
 let visits_skipped kf = not (Skipped.is_empty ()) && Skipped.mem kf
-
-let visits_skipped_at stmt =
-  not (Skipped.is_empty ())
-  && Skipped.mem (Kernel_function.find_englobing_kf stmt)

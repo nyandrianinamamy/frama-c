@@ -233,6 +233,60 @@ of caching disabled.
   | end of main: gp = ESCAPINGADDR
   | call sites of body: main at line 20, main at line 21
 
+In loop.c, with -eva-slevel 10, main calls body(2), then body(1), at the
+same call site: the hit delivers its writes on the callstack of the
+analysed call. The statements and the zone of the branch of x == 1 come
+from the hit alone; the other zones and the outcomes of the condition are
+joined with those of the analysed call. The results equal those of caching
+disabled. In that callstack, the state of a statement that both calls
+reach is top: it covers x = 2 from the analysed call and x = 1 from the
+hit.
+
+  $ EVA_TEST_CACHE_REACH=replay EVA_TEST_CACHE_REACH_VALUES=on frama-c -no-autoload-plugins -load-module eva,test_cache_reach.cmxs -main producer -eva-msg-key cache -eva-slevel 10 loop.c > loop.log 2>&1
+  $ grep -E 'call to body|^value' loop.log
+    call to body: lookup: no-candidate; execution: analysed; storage: refused (no-inout); collector: would-store
+    call to body: lookup: rejected (entry 1: key-differs); execution: analysed; storage: refused (supplied-only); collector: would-store
+    call to body: lookup: hit (entry 1); execution: not-analysed; storage: none
+  value of x before stmt 5 (line 13): {{ ANYTHING }}
+  value of x before stmt 5 (line 13) in body :: line 23 <- main: {{ ANYTHING }}
+  $ grep '^| ' loop.log > loop.summary
+  $ EVA_TEST_CACHE_REACH=reference frama-c -no-autoload-plugins -load-module eva,test_cache_reach.cmxs -eva-msg-key cache -eva-slevel 10 loop.c > loop-reference.log 2>&1
+  $ grep '^| ' loop-reference.log > loop-reference.summary
+  $ diff loop.summary loop-reference.summary
+  $ cat loop.summary
+  | call sites of body: main at line 23
+  | dead code: stmt 2 (line 8): reached
+  | dead code: stmt 22 (line 14): reached
+  | dead code: stmt 3 (line 9): reached
+  | dead code: stmt 4 (line 11): reached
+  | dead code: stmt 5 (line 13): reached
+  | guard: stmt 2 (line 8): then true, else true
+  | reach: stmt 2 (line 8): before in body :: line 23 <- main; after in body :: line 23 <- main
+  | reach: stmt 22 (line 14): before in body :: line 23 <- main; after in body :: line 23 <- main
+  | reach: stmt 3 (line 9): before in body :: line 23 <- main; after in body :: line 23 <- main
+  | reach: stmt 4 (line 11): before in body :: line 23 <- main; after in body :: line 23 <- main
+  | reach: stmt 5 (line 13): before in body :: line 23 <- main; after in body :: line 23 <- main
+  | zones: stmt 2 (line 8) in body :: line 23 <- main: read x; write \nothing
+  | zones: stmt 3 (line 9) in body :: line 23 <- main: read \nothing; write out
+  | zones: stmt 4 (line 11) in body :: line 23 <- main: read \nothing; write out
+  | zones: stmt 5 (line 13) in body :: line 23 <- main: read x; write g
+
+In escape.c, body stores its argument, the address of the local of mid,
+into gp. The caller of body adds the holders of the entry to those of mid,
+and when mid returns, gp holds an escaping address.
+
+  $ EVA_TEST_CACHE_REACH=replay frama-c -no-autoload-plugins -load-module eva,test_cache_reach.cmxs -main producer -eva-msg-key cache escape.c > escape.log 2>&1
+  $ grep -B 1 'lookup: hit' escape.log | sed 's/ *$//'
+  [eva:cache] escape.c:13:
+    call to body: lookup: hit (entry 1); execution: not-analysed; storage: none
+  $ grep '^| ' escape.log > escape.summary
+  $ EVA_TEST_CACHE_REACH=reference frama-c -no-autoload-plugins -load-module eva,test_cache_reach.cmxs -eva-msg-key cache escape.c > escape-reference.log 2>&1
+  $ grep '^| ' escape-reference.log > escape-reference.summary
+  $ diff escape.summary escape-reference.summary
+  $ grep -E 'end of main|call sites' escape.summary
+  | end of main: gp = ESCAPINGADDR
+  | call sites of body: mid at line 13
+
 In enclosing.c, parent calls child. In the analysis from main, the entry of
 child is stored. The Reach part of parent holds its own statements, the
 start of child and the call site of child, with the call of child as frame;

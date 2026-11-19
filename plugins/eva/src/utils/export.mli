@@ -36,8 +36,10 @@ val emitter : Emitter.t
    visited instructions. The generated assertions are associated with the local
    {!emitter}. They are all assigned a valid status by {!Analysis.emitter}.
    No annotation is generated in a function a call of which was answered by a
-   hit of the cache: the states saved there do not cover that call (see
-   {!Safety_delivery.skip_visits}).
+   hit of the cache on an entry without a Reach part: the states saved there
+   do not cover that call (see {!Reach_delivery.reach_unknown_of}). A hit
+   that delivers its Reach part leaves the state [top] at the points it
+   reaches.
 *)
 val generator : unit -> Visitor.frama_c_inplace
 

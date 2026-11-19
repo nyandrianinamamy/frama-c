@@ -146,12 +146,14 @@ module Make (Engine: Engine_sig.S) = struct
          Reach part of its entry, unless no state satisfies the
          preconditions: an analysis of the body would then analyse nothing,
          and the call has no state at its end. A delivering hit saves no
-         state at the statements of the body: the function is recorded, so
-         that the passes at the end of the analysis draw no conclusion from
-         the states saved there, and the points it reaches are recorded for
-         its callstack. An entry without a Reach part reaches no point: its
-         function is recorded as of unknown reachability. Memexec gives no
-         Safety part, and its states are kept. *)
+         state at the statements of the body: the points it reaches are
+         recorded for its callstack, where the state is top. An entry
+         without a Reach part reaches no point: its function is recorded as
+         of unknown reachability, and the passes at the end of the analysis
+         draw no conclusion from the states saved there. The function is
+         also recorded among those whose visits a hit skipped, for its
+         statistics. Memexec gives no Safety part, and its states are
+         kept. *)
       let states =
         match delivery with
         | None -> states

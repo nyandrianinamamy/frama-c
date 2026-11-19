@@ -39,14 +39,14 @@ val deliver : Callstack.t -> Safety_part.t -> unit
     A hit delivers the Safety part of its entry, but saves no state for the
     statements of the called function: the visits of these statements by
     the call are skipped. The hit delivers the points it reaches
-    ({!Reach_delivery}), where the state of its callstack is [top]; an entry
-    without a Reach part reaches none. The passes run at the end of the
-    analysis that conclude from the values in the states saved at a
-    statement of such a function must not conclude there: the states saved
-    are those of the analysed calls only. The functions called by the body
-    of an entry are skipped as well; there are none, since an entry is
-    refused for a body that may call a function that has a body (see
-    {!Supplied_entries.supply}). *)
+    ({!Reach_delivery}), where the state of its callstack is [top]; the
+    passes run at the end of the analysis read these points, and skip the
+    functions answered by a hit on an entry without a Reach part
+    ({!Reach_delivery.reach_unknown_of}). The record below serves the
+    statistics of a function, computed again after each such hit. The
+    functions called by the body of an entry are skipped as well; there are
+    none, since an entry is refused for a body that may call a function
+    that has a body (see {!Supplied_entries.supply}). *)
 
 (** [skip_visits kf] records that a hit has answered a call of [kf] in the
     current analysis. The record is a state of the analysis, and is reset
@@ -56,7 +56,3 @@ val skip_visits : Cil_types.kernel_function -> unit
 (** Whether a hit has answered a call of the function in the current
     analysis. *)
 val visits_skipped : Cil_types.kernel_function -> bool
-
-(** Whether a hit has answered a call of the function that contains the
-    statement, in the current analysis. *)
-val visits_skipped_at : Cil_types.stmt -> bool
