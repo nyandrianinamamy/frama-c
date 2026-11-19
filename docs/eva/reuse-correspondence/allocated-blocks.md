@@ -345,20 +345,25 @@ validity extracted by one of these accessors. The paths are listed in
 [Read paths of the validity record](#read-paths-of-the-validity-record).
 
 The kernel holds one observer of each kind. `Base.observe_metadata_reads`
-and `Base.observe_validity_updates` return the observer they replace. The
-collector makes its observers the observers of the kernel each time a
-recorder becomes active; each calls the observer it replaced after its own
-work. When no recorder is active, the collector puts the replaced observers
-back: without recorder, and with `-eva-no-cache-collect`, an accessor tests
-one reference and calls no function of the collector. If another client
-installed an observer during the recording, that observer is kept, with the
-collector's behind it when the client forwards; the collector's observer
-does nothing but forward while no recorder is set, and does nothing when it
-is entered from its own call. The interface asks clients to remove their
-observers in the reverse order of their installation. A client that
-installs an observer during a recording and does not forward hides the
-reads from the collector until the next recorder becomes active: this is
-not detected.
+and `Base.observe_validity_updates` return the observer they replace, and
+the kernel counts their calls (`Base.observer_changes`). The collector makes
+its observers the observers of the kernel each time a recorder becomes
+active; each calls the observer it replaced after its own work, and does
+nothing when entered again from its own call, separately for reads and for
+updates. When no recorder is active, the collector puts the replaced
+observers back, unless another client installed one in the meantime: that
+one is kept. Without recorder and without other client, and with
+`-eva-no-cache-collect`, an accessor tests one reference and calls no
+function. A client that restores an observer of the collector it had
+replaced leaves it installed while no recorder is set: it then forwards
+and records nothing.
+
+A change of the observers by another client while a recorder is set may
+hide an event from the collector, whether or not the client forwards or
+restores. The collector compares the count of the kernel with the value
+after its own last call at each change of recorder: when it moved, every
+recording in progress is refused with `allocation-metadata`, with no owner
+for the hidden event.
 
 The observation is conservative. A write to an allocated block reads its
 metadata in the collector's own location queries, and the body is already
@@ -426,13 +431,15 @@ consults the tags, refuses the body when the set is not empty, and adds the
 recorded blocks to its owners. `Base.update_variable_validity` is public: the
 kernel counts the calls that make a strong record weak (`Base.weakenings`),
 whoever the caller is, and `read_node_tags` also refuses when the count is
-not zero. The count is a state of the project, as the hash-consing table of
-the offsetmaps: it is saved with the session, so that a node loaded by
-another process with the tag of its first construction finds the count that
-refuses it, and it has no dependency, so that only a clearing of the whole
-project resets it. A second call of `Base.register_allocated_var` on a
-variable replaces the validity of a base that existing nodes may designate:
-it is counted as a weakening. A weakening counted without a call to
+not zero. There are two counts, and either refuses. One is a state of the
+project, as the hash-consing table of the offsetmaps: it is saved with a
+session, so that a node loaded by another process with the tag of its
+first construction finds a count that refuses it. The other belongs to
+the process: it is not cleared, copied or left out with a selection of
+states, and it covers a node or a validity record used from another
+project of the same process. A second call of `Base.register_allocated_var`
+on a variable replaces the validity of a base that existing nodes may
+designate: it is counted as a weakening. A weakening counted without a call to
 `Body_access.weakened` adds no owner. This is the plain form of the rule: it does
 not check whether a compared state holds a pointer to a weakened block. The
 first state that reaches a point is stored without reading a tag.
@@ -461,7 +468,18 @@ with its tag (`loaded node tag: true`) and reads `allocation-metadata`.
 `allocation-metadata`. It also sets an observer of metadata reads before a
 recording, which runs before, during and after it, and one during a
 recording, which is kept after it while the collector records the read of
-the next recording.
+the next recording. An observer that does not forward, set during a
+recording, hides the read: the recording reads `allocation-metadata` with
+no owner, also when the observer is removed before the recording ends, and
+the next recording reads `would-store`. `kernel-save` clears the state of
+the count alone and still reads `allocation-metadata`.
+
+**Assumption on sessions.** A session written without the state
+`Base.Weakenings` (a selection of states that leaves it out, or a session
+written before the state existed) loads with a count of zero and with the
+tags of its nodes: a body analysed after such a load in a new process is
+not refused by this rule. The claim holds for sessions saved and loaded
+whole by this version.
 
 **Open.** The rule applies to the
 bodies analysed after a weakening: an entry stored before a weakening and
