@@ -443,8 +443,8 @@ of the tag; `Hptmap.rehash_node` rebuilds the leaves and branches of a
 loaded map, and with them the compositional bool of `Lmap`. A node loaded
 through its datatype therefore has the tag of the weakness that its targets
 have in the session, and a weakening made after the load is counted in the
-loading process. This does not hold for every loaded node: see the open
-items. A second call of `Base.register_allocated_var`
+loading process. This does not hold for every loaded node: see the
+assumption below. A second call of `Base.register_allocated_var`
 on a variable replaces the validity of a base that existing nodes may
 designate: it is counted as a weakening. A weakening counted without a call to
 `Body_access.weakened` adds no owner. This is the plain form of the rule: it does
@@ -484,8 +484,8 @@ recording, hides the read: the recording reads `allocation-metadata` with
 no owner, also when the observer is removed before the recording ends, and
 the next recording reads `would-store`.
 
-**Open: nodes loaded without their datatype.** A session may hold a state
-that the loading process does not know (a plug-in that is not loaded): the
+**Assumption: every state of a loaded session is known.** A session may
+hold a state that the loading process does not know (a plug-in that is not loaded): the
 project library reads it without the transforms of its datatypes. A node
 whose first occurrence in the session is inside such a state is not
 rehashed, and a known state that shares it receives it as decoded, with the
@@ -493,9 +493,12 @@ saved tag, in a process whose count is zero. A body analysed there after
 consulting that tag is not refused. An independent check reproduced it with
 a node and a `Cvalue.Model` state saved in two states, one of them unknown
 at load (`loaded: node tag true, state tag true`, then `would-store`). The
-claim above is limited to sessions whose states are all known to the
-loading process. Removing the limit is not decided: issue #43 lists the
-options.
+claim above assumes that every state of a loaded session is known to the
+loading process; the rule is not sound for a session loaded with an unknown
+state, and no code checks the assumption. This was decided on issue #43,
+among the options listed there, with no code change: a later allocation
+semantics may remove the dependence on the tags, and the assumption with
+it.
 
 **Open: identifiers of loaded nodes.** A loaded node keeps the numeric
 identifier given by the process that saved it, and the loading process
