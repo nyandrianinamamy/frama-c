@@ -217,7 +217,9 @@ logging event would otherwise be admitted.
 - Any client of `Annotations.add_hook_on_change` refuses with `callback`.
   The server's listener is a no-op without a server. Auditing it is
   deferred. The reviewed suite comparison attributed 160 lost would-store
-  verdicts and 153 lost produced entries to callback refusals.
+  verdicts and 153 lost produced entries to callback refusals, measured
+  before the admission of the clients of red status hooks and of the
+  messages of statuses.
 - Any client of the `Property_status` add, remove and status-update hooks
   refuses with `callback`.
 - A client of `Red_statuses.register_hook` is not refused: a hit delivers
@@ -251,8 +253,12 @@ notification, pointer comparisons, partial unrolling and the previously
 instrumented ACSL messages.
 
 **Open.** The refusal is based on instrumented accesses. Later cache
-consumption must account for hook or warning configuration changes
-between production and use and for extensions outside these hook
-interfaces. Effects whose normal replay belongs to Safety or Reach
-remain the responsibility of those parts. An interrupted body has no
+consumption must account for hook configuration changes between
+production and use and for extensions outside these hook interfaces. The
+lookup rejects an entry when the status of a warning category changed
+before it; a change made by a hook on calls after the lookup of a hit is
+not seen
+([Safety at a hit](safety.md#the-settings-that-decide-the-alarms-and-messages-are-those-of-each-hit)).
+Effects whose normal replay belongs to Safety or Reach remain the
+responsibility of those parts. An interrupted body has no
 completed storage verdict.

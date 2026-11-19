@@ -311,20 +311,24 @@ reverted), the hit calls the hook twice before it stops.
   candidate is rejected
   ([A supplied entry is used only where a hit is supported](reuse-operation.md#a-supplied-entry-is-used-only-where-a-hit-is-supported)).
 - Only the messages of statuses and the reports of alarms are replayed.
-  Other messages printed during
-  the analysis of a body either refuse it (the special functions such as
-  `Frama_C_show_each`, as `builtin`; `\warning` in an annotation and the
-  messages preceded by `Body_access.read_message_history`, as `side-table`)
-  or are printed once per position without a refusal: the assumption of
-  2's complement for an overflow, locals escaping their scope, pointer
-  comparisons. A hit prints none of the latter; with caching disabled, the
-  call prints them only where the same text was not printed at the same
-  position before, by the analysed call that produced the entry among
-  others. The report of an evaluation that leads to bottom without alarms,
-  a sign of a defect of Eva, is printed at each visit and is not replayed.
-  When the action of the category of such a message differs between the
-  producing call and the hit, the hit can hide the message, and with the
-  action abort, change the state at the end of the call
+  Other messages printed during the analysis of a body refuse it: the
+  special functions such as `Frama_C_show_each`, as `builtin`; `\warning`
+  in an annotation, the messages preceded by
+  `Body_access.read_message_history`, and the other messages printed once,
+  such as the assumption of 2's complement for an overflow or a pointer
+  comparison, as `side-table`. The exceptions are the feedback of
+  partitioning and widening and the warning of locals escaping their
+  scope, printed once per position without a refusal
+  ([ordered effects](collector-effects.md#ordered-and-opaque-effects)),
+  and the messages of an inactive category, which are not printed. A hit
+  prints none of them; with caching disabled, the call prints the former
+  only where the same text was not printed at the same position before, by
+  the analysed call that produced the entry among others. The report of an
+  evaluation that leads to bottom without alarms, a sign of a defect of
+  Eva, is printed at each visit and is not replayed. When the status of the
+  category of such a message differs between the producing call and the
+  lookup of the hit, the entry is rejected; a change made after the lookup
+  by a hook on calls is not seen
   ([The settings that decide the alarms and messages are those of each hit](#the-settings-that-decide-the-alarms-and-messages-are-those-of-each-hit)).
 
 ## The owner of an alarm is that of an analysis of the body
@@ -368,9 +372,12 @@ analysis of `body`. When the other emitter registers it after the delivery,
 Eva owns it.
 
 **Open.** A registration made by a hook that the analysis of the body runs
-and the delivery does not, such as a listener of the logger on a message
-that the hit does not print, can come before Eva's in one and after it in
-the other. No such hook is known in Frama-C.
+and the delivery does not can come before Eva's in one and after it in the
+other. The listeners of the logger and the clients of the hooks of
+annotations and of property statuses refuse the body (`callback`,
+[ordered effects](collector-effects.md#ordered-and-opaque-effects)); the
+clients of the red status hooks run in both. No other such hook is known
+in Frama-C.
 
 ## The passes after the analysis draw no conclusion where a hit skipped visits
 
@@ -574,8 +581,9 @@ state of a project: it is neither saved nor loaded with a session. Since
 every change of the current project increments the count, the comparison
 of the count at the end of `Body_access.capture` decides the refusal; the
 comparisons of the project, and the comparison at each write of the Safety
-part, refuse no body that it does not refuse, and no test fails when one
-of them alone is removed.
+part, refuse no body that it does not refuse. No test tells them apart
+from it; only the removal of the comparison of the count alone, and of all
+the comparisons together, were run.
 
 **Evidence (executed).** `cache-safety.t`: a hook of red statuses enters a
 second project with `Project.on` the first time it runs, during the analysis
