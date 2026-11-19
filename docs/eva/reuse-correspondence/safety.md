@@ -290,7 +290,8 @@ set to abort: the check `mixed` fails at the first two iterations of the
 loop. With caching disabled, the hook is called once, and the analysis
 stops at the message of the invalid status; with the hit, the same. At
 revision `84110fde822ed8ac29305840e66af3d30dfdd092`, where a red context was
-recorded once with its count, the hit called the hook twice before it
+recorded once with its count, the same program and modes, run with the
+fixture of this revision, called the hook twice at the hit before it
 stopped.
 
 **Open.**
@@ -498,8 +499,9 @@ never returns, the statuses are again those of caching disabled. Export
 generates no annotation in `body`. The summary prints 12 statements of 15
 reached, and up to 3 more through calls answered by the cache (100%);
 caching disabled counts 14, and the loop at line 14, reached by no call, is
-among the 3. At revision `84110fde822ed8ac29305840e66af3d30dfdd092`, it
-printed 15 statements of 15 as reached, the upper bound as a measure. The
+among the 3. At revision `84110fde822ed8ac29305840e66af3d30dfdd092`, the
+same run printed 15 statements of 15 as reached, the upper bound as a
+measure. The
 analysis from `producer`, without a hit, prints the usual line. After a
 change of the entry point, `body` is no
 longer recorded. `supply` refuses an entry for `outer`, which calls `body`.
@@ -594,10 +596,12 @@ the first project with `Project.on` and leaves it, without writing there.
 The calls of `body` and of `producer` read
 `collector: refused (project-switch)`, and no entry is produced. The
 analysis from `main`, in the copy, has no candidate, and its tables are
-those of the run with caching disabled in the same setting. At revision
+those of the run with caching disabled in the same setting, as are those
+of the first project, where Eva wrote nothing. At revision
 `84110fde822ed8ac29305840e66af3d30dfdd092`, where the collector counted
-the changes with a hook of the kernel, the call of `body` read
-`collector: would-store`, and its entry was stored and hit.
+the changes with a hook of the kernel, the same program and modes, run with
+the fixture of this revision, gave `collector: would-store` for `body`,
+and its entry was stored and hit.
 
 ## The settings that decide the alarms and messages are those of each hit
 
