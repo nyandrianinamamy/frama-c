@@ -5,6 +5,8 @@ import Checks.Domains
 import Checks.Entries
 import Checks.Sweeps
 import Checks.Inner
+import Checks.Hit
+import Checks.SideTables
 
 /-!
 # Checks on the model

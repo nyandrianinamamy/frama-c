@@ -4,8 +4,8 @@ This directory holds the Lean reference model for the reuse of cache entries in
 Eva. It defines a small language, a concrete memory, executions and the
 observations that a cache entry makes claims about, and it proves theorems
 about them: frame preservation up to recorded lexical sweeps, the match and
-product lemmas, the construction of sound cache entries, and shared Inner
-coverage on the matching key.
+product lemmas, sound cache-entry construction, shared Inner coverage
+on the matching key, and a hit within one analysis.
 
 The theorems are about the model. They do not verify the OCaml code of Eva.
 Whether Eva meets the hypotheses of a theorem is a separate question, answered
@@ -66,6 +66,8 @@ directories that Dune reads, and `lean` is not among them.
 | `ReuseModel/Domain.lean` | Agreement of memories on a set of blocks, `Combinable`; abstract domains (`Domain`) with their laws `FilterSound`, `RelateSound`, `FilterExact`, `ReuseSound` and `Extensional`; closed sets, the product of two domains and the laws it keeps; closure, decomposition and exactness on two sets with the same members; the strong form of `filter` sound and exactness, derived from the decomposition; `match_filtered`, `match_lemma`, `product_lemma`, `projected_match` |
 | `ReuseModel/Replay.lean` | Allocation agreement and agreement of matching executions on every finite prefix |
 | `ReuseModel/Entry.lean` | Footprints, cache entries, producer soundness, `CacheEntry.sound_of_producer`, and `CacheEntry.shared_inner` |
+| `ReuseModel/Hit.lean` | Replay admission, the unchanged exit frame, and the within-analysis hit theorem |
+| `ReuseModel/SideTables.lean` | The four obligations for side-table accesses in skipped work |
 | `Checks/AxiomCheck.lean` | The `#check_axioms` command |
 | `Checks/Axioms.lean` | `#print axioms` and `#check_axioms` for each theorem |
 | `Checks/Examples.lean` | Aliasing, a dangling pointer after a return, and a call that does not return, using `frame_no_sweep_rewrite` for that case; the body of a function as the subject; comparisons with the null pointer |
@@ -73,6 +75,8 @@ directories that Dune reads, and `lean` is not among them.
 | `Checks/Entries.lean` | A load that faults before an overwrite, an assertion before an overwrite, a return with an incomplete footprint, and the need to distinguish allocation state and writes at normal exits |
 | `Checks/Sweeps.lean` | A lexical local whose address escapes into a written holder, an untouched block preserved across the sweep, a future pointer that needs a rewrite, a return from a lexical scope, a matching exit whose frame is rewritten, a comparison of a marked holder, and a sweep in a callee's scope |
 | `Checks/Inner.lean` | A two-visit loop, the producer premises, a distinct matching memory, and negative cases for the first visit alone and for coverage outside the key, plus a fresh local forced into the lookup key |
+| `Checks/Hit.lean` | The value-domain hit instance and checked failures of liveness, allocator agreement and the unchanged frame |
+| `Checks/SideTables.lean` | Positive and negative cases of the four obligations |
 | `Checks/Fragment.lean` | Statements that meet the fragment conditions: one outside the function bodies, a function body, and a statement inside one. Programs and statements that do not: duplicate labels in the observed statement, a label of a body reused outside, duplicate labels across two bodies, direct recursion, mutual recursion |
 
 ## What the model contains
@@ -238,11 +242,13 @@ liveness and allocation agreement is an additional obligation.
 
 The construction transports Safety and Reach on all finite prefixes. On a
 normal exit it gives a producing output covered by the Exit part, agreeing
-with the current output on the possible exit writes. The frame theorem computes the effect of prior sweeps
-on an issued block that the prefix did not write. It needs no rewrite if an
-unmarked pointer held there targets an already-issued block. Admission of
-lexical sweeps in Eva and composition with the public hit theorem are
-separate obligations.
+with the current output on the possible exit writes. The frame theorem
+computes the effect of prior sweeps on an issued block that the prefix
+did not write. An unmarked pointer to an already-issued target needs no
+rewrite. The hit theorem uses the current memory on all other blocks,
+including absent bindings. Its no-rewrite premise rules out an
+unmarked pointer to a recorded sweep target in the current frame on a
+normal exit. Eva's admission and replay obligations remain open.
 
 If the producer's saved state covers every visit to a label on the key,
 `CacheEntry.shared_inner` transports that coverage to each matching
@@ -250,6 +256,24 @@ memory. A single concretisation witness agrees at that visit on the key
 blocks issued in the matching memory at entry. A fresh local read by the
 body may still belong to the lookup key. The witness may vary across visits. The fixture checks both
 visits to the increment in `i = 0; while (i < 2) { L: i++; }`.
+
+## A hit within one analysis
+
+`CacheEntry.hit` combines weak filter soundness on the current input,
+filtered inclusion, and stored-side exactness to obtain key agreement.
+`ReplayCompatible` supplies a single stored witness preserving key
+contents, write-target liveness and allocator state. The two runs use
+the same subject and entry bindings. At each normal exit the hit uses
+`ReuseSoundAt` on the stored witness over `W_exit` and the unchanged
+current frame. `HitObservations` also covers Reach and Safety on all
+finite prefixes, with a valid assertion holding at every visit.
+`Checks.value_hit_distinct_member` exercises the value-domain instance,
+with distinct current and stored frame values.
+
+The four contracts in `SideTables.lean` state the conditions on keyed
+reads, fixed reads, recorded joins at the current hit position, and
+unsupported accesses in skipped work, including nested work. Their
+applicability to the Eva inventory is an assumption of the correspondence.
 
 ## What the model leaves out
 

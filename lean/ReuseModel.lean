@@ -5,6 +5,8 @@ import ReuseModel.Observations
 import ReuseModel.Frame
 import ReuseModel.Domain
 import ReuseModel.Entry
+import ReuseModel.Hit
+import ReuseModel.SideTables
 
 /-!
 # Reference model for statement reuse in Eva

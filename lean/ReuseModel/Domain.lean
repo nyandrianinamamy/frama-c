@@ -182,9 +182,13 @@ def FilterExact (d : Domain M) : Prop :=
 /-- `reuse` sound: `γ (reuse W cur out)` contains every memory that agrees on
 `W` with a memory of `γ out` and outside `W` with a memory of `γ cur`, whether
 or not that whole memory is in `γ out`. -/
-def ReuseSound (d : Domain M) : Prop :=
-  ∀ W cur out (mc mo c : M), d.γ cur mc → d.γ out mo →
+def ReuseSoundAt (d : Domain M) (W : BlockSet) (cur out : d.State) : Prop :=
+  ∀ (mc mo c : M), d.γ cur mc → d.γ out mo →
     AgreeOn W c mo → AgreeOff W c mc → d.γ (d.reuse W cur out) c
+
+/-- The overlay law holds for every write set and pair of states. -/
+def ReuseSound (d : Domain M) : Prop :=
+  ∀ W cur out, d.ReuseSoundAt W cur out
 
 /-- The operations depend on a set of blocks through its members only. For
 two sets with the same members, `relate` gives two sets with the same members

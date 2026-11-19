@@ -7,7 +7,7 @@ Ordinary producer soundness covers the executions from its own input. The
 footprint and key extend the claims to a matching memory. Safety and Reach
 use every finite prefix, and Exit uses only normal exits. The Exit part
 supplies a producing output on the blocks possibly written at a normal
-exit. The later hit theorem must account for the caller's frame.
+exit. The hit theorem in `ReuseModel.Hit` accounts for the caller's frame.
 -/
 
 namespace ReuseModel

@@ -4,6 +4,8 @@ import Checks.Domains
 import Checks.Entries
 import Checks.Sweeps
 import Checks.Inner
+import Checks.Hit
+import Checks.SideTables
 
 /-!
 # Axioms of the theorems
@@ -304,3 +306,164 @@ error: Checks.viaCompiler depends on axioms outside the standard ones: [Lean.ofR
 -/
 #guard_msgs in
 #check_axioms Checks.viaCompiler
+
+-- Within-analysis hit, its instance, and the side-table contracts.
+section
+open ReuseModel ReuseModel.SideTables Checks
+
+#check @Domain.ReuseSoundAt
+#print axioms ReuseModel.Domain.ReuseSoundAt
+#check_axioms ReuseModel.Domain.ReuseSoundAt
+
+#check @Domain.ReuseSound
+#print axioms ReuseModel.Domain.ReuseSound
+#check_axioms ReuseModel.Domain.ReuseSound
+#check @exit_preserves_absence
+#print axioms ReuseModel.exit_preserves_absence
+#check_axioms ReuseModel.exit_preserves_absence
+
+#check @CacheEntry.ReplayCompatible
+#print axioms ReuseModel.CacheEntry.ReplayCompatible
+#check_axioms ReuseModel.CacheEntry.ReplayCompatible
+
+#check @CacheEntry.matches_of_projected
+#print axioms ReuseModel.CacheEntry.matches_of_projected
+#check_axioms ReuseModel.CacheEntry.matches_of_projected
+
+#check @CacheEntry.NoFrameRewrite
+#print axioms ReuseModel.CacheEntry.NoFrameRewrite
+#check_axioms ReuseModel.CacheEntry.NoFrameRewrite
+
+#check @CacheEntry.exit_frame_iff
+#print axioms ReuseModel.CacheEntry.exit_frame_iff
+#check_axioms ReuseModel.CacheEntry.exit_frame_iff
+
+#check @CacheEntry.HitObservations
+#print axioms ReuseModel.CacheEntry.HitObservations
+#check_axioms ReuseModel.CacheEntry.HitObservations
+
+#check @CacheEntry.HitObservations.exit
+#print axioms ReuseModel.CacheEntry.HitObservations.exit
+#check_axioms ReuseModel.CacheEntry.HitObservations.exit
+
+#check @CacheEntry.HitObservations.reach
+#print axioms ReuseModel.CacheEntry.HitObservations.reach
+#check_axioms ReuseModel.CacheEntry.HitObservations.reach
+
+#check @CacheEntry.HitObservations.safety
+#print axioms ReuseModel.CacheEntry.HitObservations.safety
+#check_axioms ReuseModel.CacheEntry.HitObservations.safety
+
+#check @CacheEntry.HitObservations.valid
+#print axioms ReuseModel.CacheEntry.HitObservations.valid
+#check_axioms ReuseModel.CacheEntry.HitObservations.valid
+
+#check @CacheEntry.hit_of_matches
+#print axioms ReuseModel.CacheEntry.hit_of_matches
+#check_axioms ReuseModel.CacheEntry.hit_of_matches
+
+#check @CacheEntry.hit
+#print axioms ReuseModel.CacheEntry.hit
+#check_axioms ReuseModel.CacheEntry.hit
+
+#check @KeyedRead
+#print axioms ReuseModel.SideTables.KeyedRead
+#check_axioms ReuseModel.SideTables.KeyedRead
+
+#check @FixedRead
+#print axioms ReuseModel.SideTables.FixedRead
+#check_axioms ReuseModel.SideTables.FixedRead
+
+#check @RecordedWrite
+#print axioms ReuseModel.SideTables.RecordedWrite
+#check_axioms ReuseModel.SideTables.RecordedWrite
+
+#check @UnsupportedAccess
+#print axioms ReuseModel.SideTables.UnsupportedAccess
+#check_axioms ReuseModel.SideTables.UnsupportedAccess
+
+#check @valueDom_hit
+#print axioms Checks.valueDom_hit
+#check_axioms Checks.valueDom_hit
+
+#check hitStmt
+#print axioms Checks.hitStmt
+#check_axioms Checks.hitStmt
+
+#check hitSubject
+#print axioms Checks.hitSubject
+#check_axioms Checks.hitSubject
+
+#check hitEntry
+#print axioms Checks.hitEntry
+#check_axioms Checks.hitEntry
+
+#check hitCurrent
+#print axioms Checks.hitCurrent
+#check_axioms Checks.hitCurrent
+
+#check hitProducer
+#print axioms Checks.hitProducer
+#check_axioms Checks.hitProducer
+
+#check hitMember
+#print axioms Checks.hitMember
+#check_axioms Checks.hitMember
+
+#check hitOutput
+#print axioms Checks.hitOutput
+#check_axioms Checks.hitOutput
+
+#check value_hit_distinct_member
+#print axioms Checks.value_hit_distinct_member
+#check_axioms Checks.value_hit_distinct_member
+
+#check hit_needs_write_liveness
+#print axioms Checks.hit_needs_write_liveness
+#check_axioms Checks.hit_needs_write_liveness
+
+#check hit_needs_allocator_agreement
+#print axioms Checks.hit_needs_allocator_agreement
+#check_axioms Checks.hit_needs_allocator_agreement
+
+#check allocator_mismatch_loses_exit
+#print axioms Checks.allocator_mismatch_loses_exit
+#check_axioms Checks.allocator_mismatch_loses_exit
+
+#check hit_needs_no_frame_rewrite
+#print axioms Checks.hit_needs_no_frame_rewrite
+#check_axioms Checks.hit_needs_no_frame_rewrite
+
+#check hit_frame_absent_bindings
+#print axioms Checks.hit_frame_absent_bindings
+#check_axioms Checks.hit_frame_absent_bindings
+
+#check side_table_contracts
+#print axioms Checks.side_table_contracts
+#check_axioms Checks.side_table_contracts
+
+#check projectedPredicates
+#print axioms Checks.projectedPredicates
+#check_axioms Checks.projectedPredicates
+
+#check allocatorEntry
+#print axioms Checks.allocatorEntry
+#check_axioms Checks.allocatorEntry
+
+#check shortState
+#print axioms Checks.shortState
+#check_axioms Checks.shortState
+
+#check allocCur
+#print axioms Checks.allocCur
+#check_axioms Checks.allocCur
+
+#check projectedSweep
+#print axioms Checks.projectedSweep
+#check_axioms Checks.projectedSweep
+
+#check sweepCur
+#print axioms Checks.sweepCur
+#check_axioms Checks.sweepCur
+
+end
