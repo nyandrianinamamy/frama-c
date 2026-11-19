@@ -229,37 +229,13 @@ module AbsoluteList =
       let dependencies = [ Kernel.AbsoluteValidRange.self ]
     end)
 
-(* Two counts. The count of the process cannot be cleared, copied or left
-   out by a selection of states. The state of each project is saved with a
-   session, as the hash-consing tables of the values that designate the
-   bases. Each carries the other: a weakening is counted in every project,
-   a state created or cleared starts from the count of the process, and a
-   loaded count is added to the count of the process. *)
-let process_weakenings = ref 0
-
-module Weakenings =
-  State_builder.Int_ref
-    (struct
-      let name = "Base.Weakenings"
-      let dependencies = []
-      let default () = !process_weakenings
-    end)
-
-let weakenings () = Weakenings.get () + !process_weakenings
-
-let count_weakening () =
-  incr process_weakenings;
-  let selection = State_selection.singleton Weakenings.self in
-  let count () = Weakenings.set (Weakenings.get () + 1) in
-  Project.iter_on_projects (fun p -> Project.on ~selection p count ())
-
-let () =
-  Project.register_after_global_load_hook
-    (fun () ->
-       let selection = State_selection.singleton Weakenings.self in
-       let loaded p = Project.on ~selection p Weakenings.get () in
-       Project.iter_on_projects
-         (fun p -> if loaded p > 0 then incr process_weakenings))
+(* The count belongs to the process: no operation on the states of a
+   project clears, copies or omits it. A loaded session needs no count: the
+   values that designate the bases compute again, when they are loaded, what
+   they keep from the weakness of their targets. *)
+let weakening_count = ref 0
+let weakenings () = !weakening_count
+let count_weakening () = incr weakening_count
 
 type qualifiers = { read_only: bool; volatile:bool }
 let default_qualifiers = { read_only = false; volatile = false }

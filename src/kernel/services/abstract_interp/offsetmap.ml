@@ -306,10 +306,22 @@ module Make
         end;
         hashed_node
 
+      (* The singleton bit of a saved tag was computed from the weakness
+         that the targets of the value had when the node was first built.
+         It is computed again from the loaded value and subtrees, which are
+         rehashed before the node. The rest of the tag is kept. *)
       let rehash_node x = match x with
         | Empty -> Empty
-        | Node _ ->
-          NewoHashconsTbl.merge x
+        | Node (cur, offl, subl, offr, subr, f, g, v, tag) ->
+          let singleton =
+            if V.cardinal_zero_or_one v
+            then (singleton_tag subl) land (singleton_tag subr)
+            else 0
+          in
+          let fresh = (tag land max_int) lor singleton in
+          NewoHashconsTbl.merge
+            (if fresh = tag then x
+             else Node (cur, offl, subl, offr, subr, f, g, v, fresh))
 
       let () = rehash_ref := rehash_node
 
