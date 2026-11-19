@@ -7,30 +7,43 @@
 **Claim.** A state query names a statement, a full callstack, a position
 (before or after the statement) and a block. The hit log has one line per
 hit: its callstack, the entry used, the inner part of that entry, the
-abstract state at the call and the blocks that this state binds. The first
-line whose callstack ends the callstack of the query answers it, at the
-point below the hit, by the first of these rules that applies:
+abstract state at the call and the blocks that this state binds. A line
+applies to the query when its callstack ends the callstack of the query;
+lines whose callstacks have different lengths can all apply. Each line that
+applies answers at the point below its hit, by the first of these rules that
+applies:
 
 1. reconstruction disabled: no state;
 2. a block of the matching key: the shared inner state at the point;
 3. a block bound at the call and outside the writes of the footprint (a
    frame block): its value in the call state, with the marks of any
    sequence of lexical sweeps;
-4. a block bound at the call and outside the set of blocks possibly written
-   before the point: the same;
-5. a block written, created, released or swept on every execution before
-   the point: the shared inner state at the point;
+4. a block bound at the call and absent from the possible writes recorded
+   for the point, an over-approximation of the blocks written before it:
+   the same;
+5. a block listed as updated at the point: the shared inner state at the
+   point;
 6. any other block, including a local of the body: top.
 
-Let `m` be a member of the call state of the line that matches the entry.
-At each visit of the point in `m`'s execution of the cached statement,
-every answer contains the content of the block, and the entry reports the
-statement as reached. An answer that contains a content is not bottom.
+The query joins the answers of the lines that apply: a content is in the
+joined answer exactly when it is in the answer of one of them (`mem_query`).
+With no line that applies, or when every line that applies answers no
+state, the query reports no state. A set joined with an answer of no state
+gives top; the model cannot produce that case, since the flag that disables
+reconstruction is common to all lines.
+
+Let `line` be a line that applies and `m` a member of its call state that
+matches its entry. At each visit of the point below the hit in `m`'s
+execution of the cached statement, every answer of the query contains the
+content of the block, and the entry of the line reports the statement as
+reached. An answer that contains a content is not bottom. With
+reconstruction enabled, a query where a line applies returns a set
+(`query_some` and `HitLine.answer_isSome`).
 
 **Scope.** The model, with the same subject and entry bindings for the
 member and its stored witness, whole-block writes, and the members of the
-call state of the line. A visit is identified by a step count of the
-member's execution of the cached statement:
+call states of the lines that apply. A visit is identified by a step count
+of the member's execution of the cached statement:
 
 - before a statement: the statement is about to execute, with the
   callstack of the point below the hit;
@@ -41,47 +54,76 @@ member's execution of the cached statement:
 The callstack of the query is the full callstack: the call sites inside the
 body, innermost first, followed by the callstack of the line. The model runs
 the body from its entry and not under the continuation of the caller;
-`Checks.two_call_sites` ties the two lines of the example to the run of
-`main` that makes both calls. The theorem makes no claim on an answer of no
-state: with reconstruction disabled, or with no line for the callstack,
-`query` returns `none`, and a client that needs a value takes top; that
-last step is not a Lean definition. The theorem covers the members of the
-line that answers, the first line whose callstack ends the callstack of the
-query. When two lines have the same callstack, as for two hits of a call in
-a loop, the members of the second are not covered, and
-`Checks.same_callstack_first_line` shows an answer that misses one. Queries
-on analysed callstacks, the join over callstacks and the publication of an
-answer through a recorded join are not modelled.
+`Checks.two_call_sites` and `Checks.loop_visits` tie the lines of the
+examples to the runs that make the calls. The theorem makes no claim on an
+answer of no state: with reconstruction disabled, or with no line that
+applies, `query` returns `none`, and a client that needs a value takes top;
+that last step is not a Lean definition. The theorem covers the members of
+every line that applies, and takes the premises below for every such line;
+its proof uses those of the line of the visit only. Queries on analysed
+callstacks, the join over callstacks for a query that selects no callstack,
+and the publication of an answer through a recorded join are not modelled.
 
 **Declarations.** In [`Query.lean`](../../../lean/ReuseModel/Query.lean):
 `QueryPoint`, `QueryPoint.below`, `trace`, `Config.Inside`, `AtPoint`,
 `ValueSet.swept`, `Domain.valueOf`, `InnerPart`, `HitLine`,
-`HitLine.answer`, `query`, `CacheEntry.InnerPartSound`,
-`CacheEntry.innerPartSound_of_key`, `CacheEntry.replay_trace` and
+`HitLine.answer`, `joinAnswer`, `joinAnswers`, `query`,
+`joinAnswers_eq_none`, `mem_joinAnswers`, `joinAnswers_isSome`,
+`mem_query`, `query_some`, `HitLine.answer_isSome`,
+`CacheEntry.InnerPartSound`, `CacheEntry.innerPartSound_of_key`,
+`CacheEntry.replay_trace`, `CacheEntry.answer_sound` and
 `CacheEntry.query_sound`.
 
 ```text
-@query_sound : ∀ {M : Type} [inst : Memory M] {d : Domain M} {log : List (HitLine d)} {line : HitLine d}
-  {q : QueryPoint},
-  List.find? (fun l => l.callstack.isSuffixOf q.callstack) log = some line →
-    ∀ {a : AllocatorAgreement M},
-      line.entry.ProducerSound →
-        line.entry.Coverage →
-          line.entry.KeyCovers →
-            line.entry.InnerPartSound line.inner →
-              (∀ (m : M), d.γ line.state m → ∀ (b : Block), b ∈ line.blocks → Memory.Issued m b) →
-                ∀ {m : M},
-                  d.γ line.state m →
-                    line.entry.Matches a m →
-                      ∀ {n : Nat},
-                        AtPoint line.entry.subject { env := line.entry.env, mem := m } (q.below line.callstack) n →
-                          line.entry.reached q.stmt ∧
-                            ∀ (enabled : Bool) (b : Block) (vs : ValueSet),
-                              query enabled log q b = some vs →
-                                vs
-                                  (Memory.load (trace line.entry.subject { env := line.entry.env, mem := m } n).snd.mem
-                                    b)
+@query_sound : ∀ {M : Type} [inst : Memory M] {d : Domain M} {log : List (HitLine d)} {q : QueryPoint}
+  {a : AllocatorAgreement M},
+  (∀ (line : HitLine d), line ∈ log → line.callstack.isSuffixOf q.callstack = true → line.entry.ProducerSound) →
+    (∀ (line : HitLine d), line ∈ log → line.callstack.isSuffixOf q.callstack = true → line.entry.Coverage) →
+      (∀ (line : HitLine d), line ∈ log → line.callstack.isSuffixOf q.callstack = true → line.entry.KeyCovers) →
+        (∀ (line : HitLine d),
+            line ∈ log → line.callstack.isSuffixOf q.callstack = true → line.entry.InnerPartSound line.inner) →
+          (∀ (line : HitLine d),
+              line ∈ log →
+                line.callstack.isSuffixOf q.callstack = true →
+                  ∀ (m : M), d.γ line.state m → ∀ (b : Block), b ∈ line.blocks → Memory.Issued m b) →
+            ∀ {line : HitLine d},
+              line ∈ log →
+                line.callstack.isSuffixOf q.callstack = true →
+                  ∀ {m : M},
+                    d.γ line.state m →
+                      line.entry.Matches a m →
+                        ∀ {n : Nat},
+                          AtPoint line.entry.subject { env := line.entry.env, mem := m } (q.below line.callstack) n →
+                            line.entry.reached q.stmt ∧
+                              ∀ (enabled : Bool) (b : Block) (vs : ValueSet),
+                                query enabled log q b = some vs →
+                                  vs
+                                    (Memory.load
+                                      (trace line.entry.subject { env := line.entry.env, mem := m } n).snd.mem b)
 'ReuseModel.CacheEntry.query_sound' depends on axioms: [propext, Quot.sound]
+```
+
+The statement for one line, which `query_sound` applies to the line of the
+visit:
+
+```text
+@answer_sound : ∀ {M : Type} [inst : Memory M] {d : Domain M} {line : HitLine d} {p : QueryPoint}
+  {a : AllocatorAgreement M},
+  line.entry.ProducerSound →
+    line.entry.Coverage →
+      line.entry.KeyCovers →
+        line.entry.InnerPartSound line.inner →
+          (∀ (m : M), d.γ line.state m → ∀ (b : Block), b ∈ line.blocks → Memory.Issued m b) →
+            ∀ {m : M},
+              d.γ line.state m →
+                line.entry.Matches a m →
+                  ∀ {n : Nat},
+                    AtPoint line.entry.subject { env := line.entry.env, mem := m } p n →
+                      line.entry.reached p.stmt ∧
+                        ∀ (enabled : Bool) (b : Block) (vs : ValueSet),
+                          line.answer enabled p b = some vs →
+                            vs (Memory.load (trace line.entry.subject { env := line.entry.env, mem := m } n).snd.mem b)
+'ReuseModel.CacheEntry.answer_sound' depends on axioms: [propext, Quot.sound]
 ```
 
 The definitions it uses:
@@ -96,16 +138,66 @@ ValueSet.swept : ValueSet → ValueSet
 @InnerPart : {M : Type} → Domain M → Type
 @HitLine : {M : Type} → Domain M → Type
 @HitLine.answer : {M : Type} → [Memory M] → {d : Domain M} → HitLine d → Bool → QueryPoint → Block → Option ValueSet
+joinAnswer : Option ValueSet → Option ValueSet → Option ValueSet
+joinAnswers : List (Option ValueSet) → Option ValueSet
 @query : {M : Type} → [Memory M] → {d : Domain M} → Bool → List (HitLine d) → QueryPoint → Block → Option ValueSet
 @InnerPartSound : {M : Type} → [Memory M] → {d : Domain M} → CacheEntry d → InnerPart d → Prop
 'ReuseModel.HitLine.answer' depends on axioms: [propext, Quot.sound]
+'ReuseModel.joinAnswer' depends on axioms: [propext]
+'ReuseModel.joinAnswers' depends on axioms: [propext]
 'ReuseModel.query' depends on axioms: [propext, Quot.sound]
 'ReuseModel.AtPoint' depends on axioms: [propext]
 'ReuseModel.CacheEntry.InnerPartSound' depends on axioms: [propext]
 ```
 
+The members of a joined answer, and the existence of an answer:
+
+```text
+@mem_query : ∀ {M : Type} [inst : Memory M] {d : Domain M} {enabled : Bool} {log : List (HitLine d)} {q : QueryPoint}
+  {b : Block} {vs : ValueSet},
+  query enabled log q b = some vs →
+    ∀ (v : Option Value),
+      vs v ↔
+        ∃ line,
+          line ∈ log ∧
+            line.callstack.isSuffixOf q.callstack = true ∧
+              (line.answer enabled (q.below line.callstack) b).getD ValueSet.top v
+'ReuseModel.mem_query' depends on axioms: [propext, Quot.sound]
+@query_some : ∀ {M : Type} [inst : Memory M] {d : Domain M} {enabled : Bool} {log : List (HitLine d)} {q : QueryPoint}
+  {b : Block} {line : HitLine d},
+  line ∈ log →
+    line.callstack.isSuffixOf q.callstack = true →
+      ∀ {x : ValueSet},
+        line.answer enabled (q.below line.callstack) b = some x →
+          ∃ vs, query enabled log q b = some vs ∧ ∀ (v : Option Value), x v → vs v
+'ReuseModel.query_some' depends on axioms: [propext, Quot.sound]
+@HitLine.answer_isSome : ∀ {M : Type} [inst : Memory M] {d : Domain M} (line : HitLine d) (q : QueryPoint) (b : Block),
+  ∃ x, line.answer true q b = some x
+'ReuseModel.HitLine.answer_isSome' depends on axioms: [propext, Quot.sound]
+```
+
+The lemmas on `joinAnswers` that these use:
+
+```text
+@joinAnswers_eq_none : ∀ {answers : List (Option ValueSet)},
+  joinAnswers answers = none → ∀ (a : Option ValueSet), a ∈ answers → a = none
+'ReuseModel.joinAnswers_eq_none' depends on axioms: [propext]
+@mem_joinAnswers : ∀ {answers : List (Option ValueSet)} {vs : ValueSet},
+  joinAnswers answers = some vs → ∀ (v : Option Value), vs v ↔ ∃ a, a ∈ answers ∧ a.getD ValueSet.top v
+'ReuseModel.mem_joinAnswers' depends on axioms: [propext, Quot.sound]
+@joinAnswers_isSome : ∀ {answers : List (Option ValueSet)} {x : ValueSet},
+  some x ∈ answers → ∃ vs, joinAnswers answers = some vs
+'ReuseModel.joinAnswers_isSome' depends on axioms: [propext]
+```
+
 An inner part with states on the key only, the writes of the footprint as
-possible writes and no updated block meets `InnerPartSound` by coverage:
+possible writes and no updated block meets `InnerPartSound` under two
+premises: the states saved at each point cover the producing visits on the
+key (the saved-state premise), and the footprint covers the writes of the
+producing executions (coverage, for the possible-write field). Coverage
+alone is not enough: `Checks.key_only_needs_states` gives an entry that
+meets `Coverage` and a key-only inner part, with a state recording `x = 2`,
+that fails `InnerPartSound`.
 
 ```text
 @innerPartSound_of_key : ∀ {M : Type} [inst : Memory M] {d : Domain M} {entry : CacheEntry d}
@@ -139,19 +231,30 @@ The replay lemma that the proof uses at each step count:
 'ReuseModel.CacheEntry.replay_trace' depends on axioms: [propext, Quot.sound]
 ```
 
-**Hypotheses.**
+**Hypotheses.** Of `query_sound`:
 
 | Premise | Kind and status |
 |---|---|
-| `M`, `d`, `log`, `line`, `q`, `a`, `m`, `n` | Model parameters. `m` is a member of the call state and `n` the step count of a visit. |
+| `M`, `d`, `log`, `q`, `a`, `line`, `m`, `n` | Model parameters. `line` is a line of the log, `m` a member of its call state and `n` the step count of a visit. |
 | `[Memory M]` | Model interface. Its laws are proved for `FunMem`. |
-| `List.find? (fun l => l.callstack.isSuffixOf q.callstack) log = some line` | The selection that `query` makes, stated so that the line can be named. In Eva, the selection of the hit log line by callstack is an open OCaml obligation of #49. |
-| `line.entry.ProducerSound`, `line.entry.Coverage`, `line.entry.KeyCovers` | Premises handed by [entry construction](entry.md#sound-entry-from-producer-soundness-and-coverage). Proved for both fixtures. For Eva, the [producer obligations](cache-producer.md#producer-obligations-for-exit-reuse) remain open. The proof uses `ProducerSound.reach`, `Covers.accesses` and the first half of `KeyCovers` (the reads are in the key). It does not use `ProducerSound.exit`, `ProducerSound.safety`, `Covers.exitWrites`, `Covers.sure` or the second half of `KeyCovers`. The bundles are kept because they are the premises recorded for entry construction, which a caller with a sound entry already has. The unused fields restrict the entry only, not the members, the visits or the answers. |
-| `line.entry.InnerPartSound line.inner` | Premise on the producer, introduced here. For each memory of the stored input and each visit at a point: the state at the point covers the visit on the key and on the blocks listed as updated; each block written so far is in the may-write set of the point; each block listed as updated has been written, created, released or swept so far. Proved for both fixtures. For Eva, an open OCaml obligation of #49. It extends the open coverage of producing visits in [Saved states and the public query](inner.md#saved-states-and-the-public-query). |
-| `∀ m, d.γ line.state m → ∀ b ∈ line.blocks, Issued m b` | Every block that the line lists as bound is issued in every memory of the call state. Proved for both fixtures. For Eva, an open OCaml obligation of #49: the bound blocks of a line are bases bound in the state at the call. |
+| `∀ line ∈ log, line.callstack.isSuffixOf q.callstack → line.entry.ProducerSound`, and the same for `line.entry.Coverage` and `line.entry.KeyCovers` | Premises handed by [entry construction](entry.md#sound-entry-from-producer-soundness-and-coverage), for every line that applies. Proved for every line of every log of the fixtures. For Eva, the [producer obligations](cache-producer.md#producer-obligations-for-exit-reuse) remain open. The proof uses them for the line of the visit only, and there it uses `ProducerSound.reach`, `Covers.accesses` and the first half of `KeyCovers` (the reads are in the key). It does not use `ProducerSound.exit`, `ProducerSound.safety`, `Covers.exitWrites`, `Covers.sure` or the second half of `KeyCovers`. The bundles are kept because they are the premises recorded for entry construction, which a caller with a sound entry already has. The unused fields restrict the entries only, not the members, the visits or the answers. |
+| `∀ line ∈ log, line.callstack.isSuffixOf q.callstack → line.entry.InnerPartSound line.inner` | Premise on the producer, introduced here, for every line that applies. For each memory of the stored input and each visit at a point: the state at the point covers the visit on the key and on the blocks listed as updated; each block written so far is in the possible writes recorded for the point; each block listed as updated has been written, created, released or swept so far. Proved for every line of every log of the fixtures. For Eva, an open OCaml obligation of #49. It extends the open coverage of producing visits in [Saved states and the public query](inner.md#saved-states-and-the-public-query). |
+| `∀ line ∈ log, line.callstack.isSuffixOf q.callstack → ∀ m, d.γ line.state m → ∀ b ∈ line.blocks, Issued m b` | Every block that a line that applies lists as bound is issued in every memory of its call state. Proved for every line of every log of the fixtures. For Eva, an open OCaml obligation of #49: the bound blocks of a line are bases bound in the state at the call. |
+| `line ∈ log`, `line.callstack.isSuffixOf q.callstack = true` | Local premises selecting a line that applies. |
 | `d.γ line.state m` | Local premise selecting the member. |
-| `line.entry.Matches a m` | Premise handed by the hit: the joint matching witness. `CacheEntry.matches_of_projected` gives it from a projected match with `ReplayCompatible` ([Hit soundness](hit.md#hit-soundness)). `CacheEntry.whole_product_witness` gives it from equality of the whole product ([whole-product witness](whole-product.md#whole-product-equality-supplies-the-input-witness)). Constructed for both fixtures. For Eva, the lookup obligations of those entries remain open. |
+| `line.entry.Matches a m` | Premise handed by the hit: the joint matching witness. `CacheEntry.matches_of_projected` gives it from a projected match with `ReplayCompatible` ([Hit soundness](hit.md#hit-soundness)). `CacheEntry.whole_product_witness` gives it from equality of the whole product ([whole-product witness](whole-product.md#whole-product-equality-supplies-the-input-witness)). Constructed for every member of the fixtures. For Eva, the lookup obligations of those entries remain open. |
 | `AtPoint line.entry.subject ⟨line.entry.env, m⟩ (q.below line.callstack) n` | Local premise selecting the visit. |
+
+`answer_sound` takes the premises of one line, of the same kinds:
+`line.entry.ProducerSound`, `line.entry.Coverage`, `line.entry.KeyCovers`,
+`line.entry.InnerPartSound line.inner` and the issuance of the bound blocks
+(premises on the entry and its producer, as above), and the local premises
+`d.γ line.state m`, `line.entry.Matches a m` (handed by the hit, as above)
+and a visit at the point `p`. `mem_query`, `query_some`,
+`HitLine.answer_isSome` and the lemmas on `joinAnswers` have local premises
+only: an equation on the result of `query` or `joinAnswers`, the membership
+of a line or an answer, the suffix condition, and an equation on the answer
+of a line.
 
 **Depends on.** [Finite-prefix correspondence](entry.md#finite-prefix-correspondence)
 for `run_agree` and `steps_iff_run`, and
@@ -165,12 +268,13 @@ the [checked tree](#evidence-for-these-entries).
 
 | Rule | Answer | Status | Argument |
 |---|---|---|---|
-| Reconstruction disabled | No state | No claim | `query false` returns `none` for every block (`Checks.key_and_disabled_query`). |
+| Reconstruction disabled | No state | No claim | `query false` returns `none` for every block, on a callstack where one line applies (`Checks.key_and_disabled_query`) and where two apply (`Checks.no_state_queries`). |
 | Block of the key | Shared inner state | Proved | `InnerPartSound.state` covers the producing visit on the key. The member and its witness agree on the key at every step (`replay_trace`). |
 | Frame block | Value at the call with the marks of the sweeps | Proved | Coverage puts every write of the producing prefix in the writes of the footprint. The member has the same events. By `frame_of_not_written`, a block issued at the call and not written on the prefix holds its value at the call with the marks of the sweeps of the prefix. The premise on bound blocks gives the issuance. |
-| Bound block, no write before the point | Same | Proved | As for a frame block, with `InnerPartSound.mayWrite` in place of coverage. |
-| Updated on every execution before the point | Shared inner state | Proved, for whole-block writes | `InnerPartSound.updated` puts the block among the blocks updated by the producing prefix, on which the member and its witness agree (`replay_trace`). `InnerPartSound.state` covers the producing visit on that block. See the [known difference](#partial-write-of-one-byte). |
+| Bound block absent from the recorded possible writes | Same | Proved | As for a frame block, with `InnerPartSound.mayWrite`, which puts every write of the producing prefix in the possible writes recorded for the point, in place of coverage. |
+| Block listed as updated at the point | Shared inner state | Proved, for whole-block writes | The rule reads the recorded list. `InnerPartSound.updated` is the obligation on that list: each listed block is updated on every producing execution before the point, so it is among the blocks updated by the producing prefix, on which the member and its witness agree (`replay_trace`). `InnerPartSound.state` covers the producing visit on that block. A block updated on every execution but not listed answers top (`Checks.key_only_answers`). See the [known difference](#partial-write-of-one-byte). |
 | Any other block, including a local of the body | Top | Answers top | Top contains every content. |
+| Join of the lines that apply | Union of their answers | Proved | `mem_query`: the answer of each line that applies is contained in the joined answer. `query_sound` applies `answer_sound` to the line of the visit. |
 
 The stored inner value of a block outside the key is not an answer, and
 neither is its join with the value at the call: the two-call and
@@ -180,9 +284,11 @@ content of the member.
 ## Checked instances
 
 The fixtures are in [`Query.lean`](../../../lean/Checks/Query.lean). Each
-instance is the conclusion of `CacheEntry.query_sound` for its line, with
-every premise proved or constructed in the file. Each answer is computed by
-`rfl` and characterised exactly.
+instance is the conclusion of `CacheEntry.query_sound` at a line of its log,
+with every premise proved or constructed in the file for every line of that
+log (`LinePremises`). Each answer is computed by `rfl` and characterised
+exactly; each joined answer of several lines is obtained through
+`query_some`.
 
 **Program.** Globals `x`, `g` and `r` are blocks 0, 1 and 2. The cached
 statement is the body of `f`:
@@ -209,10 +315,11 @@ lines `[11]` with call state `x, g, r = 1, 4, 3` and `[16]` with call state
 | `callState_eq` | The call state determines the memory: each line has one member. |
 | An `example` on names | `x`, `g` and `r` evaluate to the cells of the member memory, and `f` runs with no binding of its own. |
 | A second `example` on names | `y` evaluates to 1 in the producing memory and to 2 in the member of the local example; before `L41`, `t` is bound to block 1 and evaluates to 7. |
-| `query_entry_premises`, `query_inner_sound` | Producer soundness, coverage, key coverage and soundness of the inner part, proved on the producing execution. |
+| `query_entry_premises`, `query_inner_sound` | Producer soundness, coverage and key coverage of the entry, and soundness of its inner part, proved on the producing execution. |
+| `queryLine_premises` | Every line of a call of `f` meets the premises of `query_sound`. |
 | `query_member_matches` | Every member matches, with the producing memory as the witness. |
 | `query_member_visits` | Each member is before `r = 0;` at step 5 and after it at step 6, with `g` and `r` at their call values at step 5 and `r = 0` at step 6. |
-| `query_at_line` | `query_sound` at the line of a call site, before or after `r = 0;`. |
+| `query_at_line` | `query_sound` at the line of a call site of `f`, before or after `r = 0;`, in any log whose lines meet the premises. |
 
 **Two-call example** (`two_call_query`). Before `r = 0;`, the query on `g`
 answers exactly `{4}` on the callstack `[3, 11]` and exactly `{9}` on
@@ -222,16 +329,40 @@ for `g` at that point, which misses the 9 of the second call.
 
 **Overwritten block** (`overwritten_query`). The stored inner state holds
 `{3}` for `r` before `r = 0;`. On `[3, 16]` the query on `r` answers
-exactly `{5}` before the write, by the rule for a block with no write
-before the point, and exactly `{0}` after it, by the rule for updated
-blocks. Each answer contains the content of `r` at the visit. Negative
-checks: the stored `{3}` misses the 5 before the write, and the value at
-the call, `{5}` with any sweep marks, misses the 0 after it.
+exactly `{5}` before the write, by the rule for a block absent from the
+recorded possible writes, and exactly `{0}` after it, by the rule for
+listed updated blocks. Each answer contains the content of `r` at the
+visit. Negative checks: the stored `{3}` misses the 5 before the write, and
+the value at the call, `{5}` with any sweep marks, misses the 0 after it.
 
 **Key block and disabled reconstruction** (`key_and_disabled_query`). On
 `[3, 16]` the query on `x` answers exactly `{1}`, the shared inner state.
 With reconstruction disabled, every block answers no state. The entry
 reports `L21` as reached.
+
+**Several lines on the callstack of a query.** A second program calls `f`
+at site 11 and then in a loop at site 16:
+
+```c
+loopMain: L10: f() at 11;  L12: while (x) { f() at 16;  g = 9;  r = 5; }
+```
+
+| Declaration | Checked statement |
+|---|---|
+| `loop_visits` | From `x, g, r = 1, 4, 3`, the first three visits before `r = 0;` are at steps 7, 23 and 44 (no other step below 45 is one), on the callstacks `[3, 11]`, `[3, 16]` and `[3, 16]`, with `g = 4`, 4 and 9. The run enters `f` at steps 2, 18 and 39 and `h` at steps 6, 22 and 43, in the states `x, g, r = 1, 4, 3`, `1, 4, 0` and `1, 9, 5`. |
+| `same_callstack_join` | The log when both calls at site 16 hit the entry of `f`: lines `[11]` with `g, r = 4, 3`, `[16]` with `4, 0` and `[16]` with `9, 5`. Before `r = 0;` on `[3, 16]`, the query on `g` joins the two lines on `[16]` and answers exactly `{4, 9}`; it contains 4 and 9, the content of `g` at the visit of each member. On `[3, 11]` it answers exactly `{4}`. |
+| `no_state_queries` | On that log, with reconstruction disabled, the query on `[3, 16]`, where two lines apply, reports no state for every block; a query on `[3, 12]`, which no line ends, reports no state. |
+| `callee_entry_premises`, `calleeLine_premises`, `callee_member` | An entry for the body of `h`, stored by its call with `x, g, r = 1, 4, 3`: no read, so an empty key, and `r` written. Its inner part has states on the key only, sound by `innerPartSound_of_key`. Every line of a call of `h` meets the premises; every call state matches the entry, and a member is before `r = 0;` at step 1 of the body of `h`, with `g` at its call value. |
+| `nested_suffix_join` | The log when the first call at site 16 is analysed and its call of `h` hits the entry of `h`, and the second call at site 16 hits the entry of `f`: lines `[11]`, `[3, 16]` (for `h`, with `g = 4`) and `[16]` (with `g = 9`). Both `[3, 16]` and `[16]` end the callstack `[3, 16]`. The line of `h` answers `{4}` at the point below its hit, with the empty callstack; the line of `f` answers `{9}` at the point with the callstack `[3]`. The query on `g` answers exactly `{4, 9}` and contains the content of `g` at the visit of each member. |
+| `three_lines_join` | A log of three lines that all apply to `[3, 16]`: `f` with `g = 9`, `h` with `g = 4`, `f` with `g = 7`. The query on `g` before `r = 0;` answers exactly `{9, 4, 7}` and contains the content of `g` at the visit of each member. Each line gives a value that the others do not. The log is not that of one run. |
+
+**Inner parts with states on the key only.**
+
+| Declaration | Checked statement |
+|---|---|
+| `key_only_needs_states` | The entry of `f` meets `Coverage`, and the inner part with the state `x = 2` at every point, the writes of the footprint as possible writes and no updated block does not meet `InnerPartSound`: the producer visits `r = 0;` with `x = 1`. |
+| `key_inner_sound` | The projection of the inner part of `f` on the key meets `InnerPartSound` by `innerPartSound_of_key`, with both premises: its states cover the producing visits on the key, by `query_inner_sound`, and coverage. |
+| `key_only_answers` | At every producing visit after `r = 0;`, `r` has been updated; the projection does not list it. With a line of that inner part on `[16]` and `g, r = 9, 5`, the query on `r` answers top after the write and before it, where the line of the stored inner part answers `{0}` and `{5}`. The line meets the premises, and `x` answers exactly `{1}`. |
 
 **Local of the body** (`local_premises`, `local_at_line`, `local_query`).
 A second statement, `L40: { int t = 7;  L41: ; }`, with a global `y` in
@@ -253,10 +384,6 @@ is no value, which misses 7.
   The value at entry misses the content; the swept value contains it. This
   check uses `ValueSet.swept` directly: no instance through `query` has a
   sweep before the point.
-- `same_callstack_first_line`: with the log `[16 with g = 4, 16 with g = 9]`,
-  the query on `g` before `r = 0;` on `[3, 16]` answers `{4}` from the first
-  line. The member of the second line visits that point with `g = 9`, which
-  the answer misses.
 - `after_ends_at_completion`: in
   `while (i < 2) { if (i == 0) A: i = 1; else B: i = 2; }`, there is a
   visit after A at step 3 and after B at step 7, and no visit after A at
@@ -277,11 +404,12 @@ with `0x0200`, a write of 1 to the low byte, then a full overwrite before
 the return. Before the statement that follows the low-byte write, the
 stored inner state holds 257 and the member holds 513. Applied to that
 block, the rule for updated blocks would answer `{257}` and miss 513. The
-block is written, so the frame rule and the rule for blocks with no write
-before the point do not apply.
+block is written, so the frame rule and the rule for blocks absent from the
+recorded possible writes do not apply.
 
-**Claim the model covers.** Blocks written as a whole, created, released
-or swept on every execution before the point.
+**Claim the model covers.** Blocks listed as updated at the point, each
+written as a whole, created, released or swept on every execution before
+the point.
 
 **Consequence for Eva.** The rule for updated blocks may list a block only
 if every execution before the point fully overwrites or creates it after
@@ -300,27 +428,36 @@ listed as left out in [`lean/README.md`](../../../lean/README.md#what-the-model-
   queries and no statement of the body is reported dead on it.
 - **#49 (hit log and state queries).** The hit log line: callstack, entry,
   inner part, state at the call and its bound blocks, and the point below
-  the hit. The answer must cover every line whose callstack ends the
-  callstack of the query, not only the first: the join of the answers of
-  those lines, or one line per callstack whose state and entry cover all its
-  hits (`Checks.same_callstack_first_line`). The rules in the order above,
+  the hit. The Lean query joins the answers of the lines whose callstack
+  ends the callstack of the query. Eva's obligation is that its answer on a
+  hit callstack is the join over the hit lines of that callstack, each line
+  answering at the point below its hit (`Checks.same_callstack_join`,
+  `Checks.nested_suffix_join`). The rules of one line in the order above,
   with no other source of answers: neither the stored value of a block
   outside the key nor its join with the value at the call. The premises
-  `InnerPartSound` and the issuance of bound blocks for Eva's stored states,
-  including the restriction of the updated rule to full overwrites and
-  creations. A minimal implementation stores states on the key only, takes
-  the writes of the footprint as the possible writes of every point and
-  lists no updated block; `innerPartSound_of_key` shows that this inner part
-  meets `InnerPartSound` by coverage. Every block outside the key and the
+  `InnerPartSound` and the issuance of bound blocks for Eva's stored
+  states, for every hit line. The rule for updated blocks answers from the
+  recorded list: Eva may list a block only if every execution before the
+  point updates it, restricted to full overwrites and creations, and a
+  block it does not list answers top. The rule for blocks with no write
+  before the point reads the recorded possible writes, which must contain
+  every block written before the point. A minimal implementation stores
+  states on the key only, takes the writes of the footprint as the
+  possible writes of every point and lists no updated block.
+  `innerPartSound_of_key` shows that this inner part meets `InnerPartSound`
+  under two premises: the states saved at each point cover the producing
+  visits on the key, and the footprint covers the writes, for the
+  possible-write field. Coverage alone is not enough
+  (`Checks.key_only_needs_states`). Every block outside the key and the
   frame then answers top. In the overwritten-block example this inner part
   answers top for `r` before and after the write, where the per-point data
-  of the fixture gives `{5}` and `{0}`. The frame answer must apply the
-  escaping of the sweeps performed before the point (`Locals_scoping`). With
-  reconstruction disabled, or with state recording disabled for the function
-  or the domain, no state, or top where a value is required. If an answer is
-  published through a recorded join rather than computed at query time, the
-  join must also meet the [side-table
-  obligations](hit.md#side-table-obligations-for-skipped-work).
+  of the fixture gives `{5}` and `{0}` (`Checks.key_only_answers`). The
+  frame answer must apply the escaping of the sweeps performed before the
+  point (`Locals_scoping`). With reconstruction disabled, or with state
+  recording disabled for the function or the domain, no state, or top
+  where a value is required. If an answer is published through a recorded
+  join rather than computed at query time, the join must also meet the
+  [side-table obligations](hit.md#side-table-obligations-for-skipped-work).
 - **#50 (nested calls in the collector).** In the model, the callstack of a
   point inside the body includes the call sites in the body, and coverage
   and `InnerPartSound` range over the whole execution, nested calls
@@ -328,13 +465,14 @@ listed as left out in [`lean/README.md`](../../../lean/README.md#what-the-model-
   the writes of the footprint and the possible-write and updated sets of
   each point must account for the effects of the child.
 - **#51 (nested work under a hit).** A query on the callstack of a nested
-  call below a hit is the case `[3, site]` of the fixture: the line of the
-  hit is selected by suffix, and the point below it carries the sites of the
-  nested calls. Several lines can match such a callstack: a hit of the
-  nested call and a hit of an enclosing call. The answer must cover all of
-  them, as for #49. The inner part must have points for the statements of
-  the nested callees with those relative callstacks. A local of a nested
-  callee answers top unless a rule above justifies another answer.
+  call below a hit is the case `[3, site]` of the fixture: the lines of the
+  hits are selected by suffix, and the point below each carries the sites
+  of the nested calls. Several lines can match such a callstack: a hit of
+  the nested call and a hit of an enclosing call. The Lean query joins them
+  (`Checks.nested_suffix_join`), and #51 must keep that join. The inner
+  part must have points for the statements of the nested callees with
+  those relative callstacks. A local of a nested callee answers top unless
+  a rule above justifies another answer.
 
 ## Decisions that differ from the ticket text
 
@@ -348,17 +486,27 @@ listed as left out in [`lean/README.md`](../../../lean/README.md#what-the-model-
   `shared_inner` uses for blocks issued at entry is not needed here. The
   theorem uses `Matches` directly rather than `shared_inner`.
 - **Two justified rules for blocks outside the key.** "A justified answer"
-  is two rules on data stored with the entry: no possible write before the
-  point, and an update on every execution before the point. Other
-  per-member data is not modelled; every other block answers top.
+  is two rules on data stored with the entry: absence from the possible
+  writes recorded for the point, and membership in the list of blocks
+  updated at the point. `InnerPartSound` is the obligation on the recorded
+  sets. Other per-member data is not modelled; every other block answers
+  top.
 - **Premises of the entry.** The theorem takes `ProducerSound`, `Coverage`
   and `KeyCovers` rather than `Sound`, which also holds the reuse law of
   each outcome. It uses only some fields of these bundles, listed in the
   hypotheses table.
-- **Lines on one callstack.** `query` answers from the first line whose
-  callstack ends the callstack of the query. The ticket names no rule for
-  several hits on one callstack; the theorem covers the members of the
-  first line only (`Checks.same_callstack_first_line`).
+- **Join of the lines that apply.** The ticket names no rule for several
+  hits whose callstacks end the callstack of a query. `query` joins the
+  answers of all of them, lines on one callstack and lines whose callstacks
+  have different lengths included. The join of answers that are all no
+  state is no state, so that disabled reconstruction reports no state on
+  any log; a set joined with no state gives top, a case the model cannot
+  produce.
+- **Premises for every line that applies.** `query_sound` takes the
+  premises on the entry, the inner part and the bound blocks of every line
+  that applies, so that one statement covers every visit of the query. Its
+  proof uses those of the line of the visit only. `answer_sound` is the
+  statement for one line.
 - **Matching witness.** As in #38, `Matches` is a premise. The fixtures
   construct it; for a generic hit it comes from the entries cited in the
   hypotheses table.

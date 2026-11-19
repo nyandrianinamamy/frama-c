@@ -642,7 +642,8 @@ Checks.sweepCur : projectedPredicates.State
 ## Follow-on Lean work
 
 - #40: [State queries on the callstack of a hit](query.md) proves the
-  answers of the hit log sound at each visit of a matching member, with
+  joined answers of the hit log sound at each visit of a matching member
+  of any line that applies, with
   the joint witness as a premise that a projected or whole-product hit
   supplies. Publishing a per-position Inner contribution through a
   recorded join, rather than answering at query time, is not modelled:

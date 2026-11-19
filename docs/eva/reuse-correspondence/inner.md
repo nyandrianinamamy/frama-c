@@ -163,7 +163,7 @@ four contracts for skipped effects are recorded with the hit proof.
 a hit is in [State queries on the callstack of a hit](query.md#query-answers-on-the-callstack-of-a-hit).
 It names the statement, the callstack and the before or after point, and
 answers from the member's call state, the effects of the prefix recorded
-with the entry, or top. It uses `Matches` directly rather than the lemma
+with the entry, or top, joined over the hit lines that apply. It uses `Matches` directly rather than the lemma
 above, and takes `InnerPartSound`, a premise on the inner part stored for
 each point. Establishing that premise and the issuance of bound blocks for
 Eva's saved states is open for #49, with the restriction for partial

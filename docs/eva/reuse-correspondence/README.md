@@ -68,8 +68,9 @@ that a checkout has the model sources of an entry, compare
 - [Within-analysis hit](hit.md): conditional hit composition, the
   value-domain replay witness, and the four side-table obligations.
 - [State queries on the callstack of a hit](query.md): the rules that
-  answer a query from the hit log, the soundness of their answers at each
-  visit of a matching member, the two-call, overwritten-block and local
+  answer a query from one line of the hit log, the join of the lines that
+  apply, the soundness of the joined answer at each visit of a matching
+  member of any of them, the two-call, overwritten-block, loop and local
   checks, and the partial write of one byte as a known difference.
 - [Matching](matching.md): the match and product lemmas, closure of the key
   in the stored input, and the non-emptiness of the stored concretisation.
