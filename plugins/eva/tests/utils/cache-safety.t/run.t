@@ -681,7 +681,8 @@ abort when the precondition of pre is evaluated at line 18, where a
 hand-written entry is a candidate. pre has no overflow: with caching
 disabled, the analysis ends with out = 5. The entry is rejected for
 callback, with the same result. When the hit was admitted, the comparison
-after the delivery stopped the analysis.
+after the delivery stopped the analysis. Without the client, the entry is
+rejected as well, for preconditions, since pre has one.
 
   $ EVA_TEST_CACHE_SAFETY=precondition EVA_TEST_CACHE_SAFETY_ROUTE=pre frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -eva-warn-key signed-overflow=inactive -eva-msg-key cache pre-route.c > pre-route.log 2>&1
   $ grep -E "call to pre|^analysis aborted|^hits on" pre-route.log
