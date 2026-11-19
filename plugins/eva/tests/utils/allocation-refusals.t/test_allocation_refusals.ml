@@ -320,57 +320,76 @@ let kernel_paths () =
 
 module Saved =
   State_builder.Option_ref
-    (Cvalue.V_Offsetmap)
+    (Datatype.Pair (Cvalue.V_Offsetmap) (Cvalue.Model))
     (struct
       let name = "Test_allocation_refusals.Saved"
       let dependencies = [ Ast.self ]
     end)
 
-(* A node built while its target is strong keeps its tag in a saved session:
-   the weakening is saved with it. *)
+let pointer_map base =
+  let value =
+    Cvalue.V_Or_Uninitialized.initialized (Cvalue.V.inject base Ival.zero)
+  in
+  let size = Z.of_int 64 in
+  Cvalue.V_Offsetmap.create ~size value ~size_v:size
+
+let state_of base map = Cvalue.Model.add_base base map Cvalue.Model.empty_map
+
+(* The tag of a state is seen through the index of the partitioning: two
+   states tagged as singletons with distinct contents have a distinct
+   subpart. *)
+let state_tag base state =
+  let size = Z.of_int 64 in
+  let one = Cvalue.V_Or_Uninitialized.initialized Cvalue.V.singleton_one in
+  let other = state_of base (Cvalue.V_Offsetmap.create ~size one ~size_v:size) in
+  try Cvalue.Model.comp_prefixes state other; false
+  with Cvalue.Model.Found_prefix _ -> true
+
+let show name base map state =
+  Format.printf "%s: node tag %b, state tag %b@." name
+    (Cvalue.V_Offsetmap.cardinal_zero_or_one map) (state_tag base state)
+
+(* A node built while its target is strong keeps its tag in the process,
+   alone and in a state: the count of the process refuses the bodies that
+   consult the tags, also when the record is made weak while another
+   project is current. *)
 let kernel_save () =
   let base, validity = allocated ~weak:false "saved" in
-  let value =
-    Cvalue.V_Or_Uninitialized.initialized (Cvalue.V.inject base Ival.zero)
-  in
-  let size = Z.of_int 64 in
-  Saved.set (Cvalue.V_Offsetmap.create ~size value ~size_v:size);
+  let map = pointer_map base in
+  let state = state_of base map in
+  Saved.set (map, state);
   tags ();
-  weaken validity;
-  tags ();
-  (* The count of the process remains when the state alone is cleared. *)
-  let state = State.get "Base.Weakenings" in
-  Project.clear ~selection:(State_selection.singleton state) ();
-  tags ()
-
-(* The record is made weak while another project is current. *)
-let kernel_save_foreign () =
-  let base, validity = allocated ~weak:false "foreign" in
-  let value =
-    Cvalue.V_Or_Uninitialized.initialized (Cvalue.V.inject base Ival.zero)
-  in
-  let size = Z.of_int 64 in
-  Saved.set (Cvalue.V_Offsetmap.create ~size value ~size_v:size);
   let other = Project.create "other" in
   Project.on other (fun () -> weaken validity) ();
+  Project.remove ~project:other ();
+  show "saved" base map state;
   tags ()
 
+(* A loaded node has the tag of its loaded value, alone and in a state; a
+   node and a state built again in the loading process are the loaded
+   ones. No body is refused in a process where nothing became weak. *)
 let kernel_load () =
-  let map = Saved.get () in
-  Format.printf "loaded node tag: %b@."
-    (Cvalue.V_Offsetmap.cardinal_zero_or_one map);
-  tags ()
-  ;
-  (* The loaded count remains when the state alone is cleared. *)
-  let state = State.get "Base.Weakenings" in
-  Project.clear ~selection:(State_selection.singleton state) ();
+  let map, state = Option.get (Saved.get_option ()) in
+  let base = ref None in
+  Cvalue.V_Offsetmap.iter_on_values
+    (fun value ->
+       let bases = Cvalue.V.get_bases (Cvalue.V_Or_Uninitialized.get_v value) in
+       Base.SetLattice.iter (fun b -> base := Some b) bases)
+    map;
+  let base = Option.get !base in
+  show "loaded" base map state;
+  let rebuilt = pointer_map base in
+  let rebuilt_state = state_of base rebuilt in
+  Format.printf "rebuilt: same node %b, same state %b, join %b, weak %b@."
+    (rebuilt == map) (Cvalue.Model.equal rebuilt_state state)
+    (Cvalue.Model.equal (Cvalue.Model.join rebuilt_state state) state)
+    (Base.is_weak base);
   tags ()
 
 let () =
   match Sys.getenv_opt "EVA_TEST_ALLOCATION" with
   | Some "kernel" -> Boot.Main.extend kernel_paths
   | Some "kernel-save" -> Boot.Main.extend kernel_save
-  | Some "kernel-save-foreign" -> Boot.Main.extend kernel_save_foreign
   | Some "kernel-load" -> Boot.Main.extend kernel_load
   | _ -> ()
 
@@ -386,7 +405,7 @@ let () =
     | Some "call-site" -> observe_call_site name result
     | Some ("contents" | "weakening") -> observe_unread name result
     | Some ("finalisation" | "hit") -> observe_all name result
-    | Some ("kernel" | "kernel-save" | "kernel-save-foreign" | "kernel-load") -> ()
+    | Some ("kernel" | "kernel-save" | "kernel-load") -> ()
     | _ -> failwith "EVA_TEST_ALLOCATION is not set"
   in
   Access.on_result observe
