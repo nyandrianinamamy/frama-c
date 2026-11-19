@@ -102,6 +102,17 @@ val unknown_access : Result.refusal -> unit
     the logger's history of emitted messages. *)
 val read_message_history : unit -> unit
 
+(** [weakened base] records that [base], strong until now, becomes weak.
+    The record lasts as long as the bases of the program. *)
+val weakened : Base.t -> unit
+
+(** Refuses with [Allocation_metadata] before the tags of the nodes of
+    offsetmaps are consulted, when a block has been made weak: a node keeps
+    the tag computed at its first construction, which depends on the
+    weakness of the blocks its value designates. The weakened blocks become
+    owners. *)
+val read_node_tags : unit -> unit
+
 val transfer :
   id:int -> src:int -> dst:int -> ('a -> 'b list) -> 'a -> 'b list
 

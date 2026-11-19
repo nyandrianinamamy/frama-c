@@ -22,17 +22,22 @@ module Make (Domain : Engine_abstractions_sig.Domain)
   let sentinel = Index.create 1
   let empty () = { states = sentinel ; prefix = None ; others = [] }
 
-  (* Optimizations relying on specific features of the cvalue domain. *)
+  (* Optimizations relying on specific features of the cvalue domain. They
+     read the tags of the nodes of the cvalue states. *)
 
   let distinct_subpart = match Domain.get Cvalue_domain.State.key with
     | None -> fun _ _ -> None
     | Some get ->
-      fun s1 s2 -> Cvalue_domain.distinct_subpart (get s1) (get s2)
+      fun s1 s2 ->
+        Body_access.read_node_tags ();
+        Cvalue_domain.distinct_subpart (get s1) (get s2)
 
   let find_subpart = match Domain.get Cvalue_domain.State.key with
     | None -> fun _ _ -> None
     | Some get ->
-      fun state prefix -> Cvalue_domain.find_subpart (get state) prefix
+      fun state prefix ->
+        Body_access.read_node_tags ();
+        Cvalue_domain.find_subpart (get state) prefix
 
   let add state partition =
     let {states; prefix; others} = partition in

@@ -299,6 +299,32 @@ let unknown_access reason =
 
 let read_message_history () = refuse Side_table
 
+(* The blocks made weak in the analyses of the current program. A node of
+   an offsetmap keeps the tag computed at its first construction, and the
+   hash-consing table can return a node built in an earlier analysis: the
+   set lasts as long as the bases. *)
+module Weakened =
+  State_builder.Ref
+    (Base.Hptset)
+    (struct
+      let name = "Eva.Body_access.Weakened"
+      let dependencies = [ Ast.self ]
+      let default () = Base.Hptset.empty
+    end)
+let () = Ast.add_monotonic_state Weakened.self
+
+let weakened base = Weakened.set (Base.Hptset.add base (Weakened.get ()))
+
+let read_node_tags () =
+  match !current with
+  | None -> ()
+  | Some r ->
+    let bases = Weakened.get () in
+    if not (Base.Hptset.is_empty bases) then begin
+      add_refusal r Allocation_metadata;
+      r.owners <- Base.Hptset.union bases r.owners
+    end
+
 let transfer ~id ~src ~dst f input =
   match !current with
   | None -> f input

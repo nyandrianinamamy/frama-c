@@ -422,8 +422,10 @@ let update_variable_validity ?(make_weak=false) base sizev =
   let size_min, size_max = extract_size sizev in
   match base with
   | Base.Allocated (vi, _deallocation, (Base.Variable variable_v)) ->
-    if make_weak && (variable_v.Base.weak = false) then
-      mutate_name_to_weak vi;
+    if make_weak && (variable_v.Base.weak = false) then begin
+      Body_access.weakened base;
+      mutate_name_to_weak vi
+    end;
     let min_sure_bits = Z.(pred (mul (of_int 8) size_min)) in
     let max_valid_bits = Z.(pred (mul (of_int 8) size_max)) in
     if not (Z.equal variable_v.Base.min_alloc min_sure_bits) ||

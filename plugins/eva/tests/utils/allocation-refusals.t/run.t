@@ -159,3 +159,17 @@ and its metadata, though no body of leaf runs during its analysis.
   hit_only call 1: nested-call allocated-block allocation-metadata side-table, owners __malloc_main_l16
     call to hit_only: lookup: no-candidate; execution: analysed; storage: stored (entry 3); collector: refused (nested-call)
 
+
+After a block becomes weak, a body whose analysis compares states through
+the partitioning index is refused, with the weakened block as owner. Before
+the weakening, and for a body with one state at each point, it is not.
+
+  $ EVA_TEST_ALLOCATION=weakening frama-c -no-autoload-plugins -load-module eva,test_allocation_refusals.cmxs -eva -eva-no-memexec -eva-mlevel 0 -eva-slevel 4 -eva-msg-key cache weakening.c > weakening.log 2>&1
+  $ grep -E '^(branch|straight|alloc) call' weakening.log
+  branch call 1: would-store
+  straight call 1: would-store
+  alloc call 1: allocation builtin contract nested-call allocated-block allocation-metadata, owners __malloc_alloc_l10
+  alloc call 2: allocation validity-mutation builtin contract nested-call allocated-block allocation-metadata, owners __malloc_w_alloc_l10
+  alloc call 3: allocation validity-mutation builtin contract nested-call allocated-block allocation-metadata, owners __malloc_w_alloc_l10
+  branch call 2: allocation-metadata, owners __malloc_w_alloc_l10
+  straight call 2: would-store
