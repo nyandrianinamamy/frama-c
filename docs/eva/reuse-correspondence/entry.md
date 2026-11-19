@@ -37,7 +37,8 @@ with `W`. The entry result narrows that set to `W_exit`.
 The [checked prefix case](#checked-cases) shows why. A precise producer
 output may constrain a block written on a faulting branch to its old
 value at a normal exit, where the matching execution keeps a different
-old value. Composition with frame and lifetime replay remains open.
+old value. The [common hit argument](hit.md#hit-soundness) composes the
+exit witness with the frame under the stated runtime premises.
 
 [spec]: https://github.com/nyandrianinamamy/frama-c/issues/32
 
@@ -133,11 +134,14 @@ contains these premises of execution correspondence:
 
 **Depends on.** [Finite-prefix correspondence](#finite-prefix-correspondence)
 and the definitions of [observations](../../../lean/ReuseModel/Observations.lean).
-[Matching](matching.md) gives key agreement only.
+[Projected matching](matching.md) gives key agreement only.
 [Hit soundness](hit.md#hit-soundness) takes all three replay agreements
 for a single stored witness through its `ReplayCompatible` premise.
 The value-domain instance constructs this witness. Eva's cvalue lookup
 still owes it.
+With [whole-product equality](whole-product.md#whole-product-equality-supplies-the-input-witness)
+the same memory supplies all three agreements. Eva still owes the
+common-namespace lookup argument.
 The matching lemma's `Combinable` mixes
 contents, and the `FunMem.combinable` implementation may raise the next
 identifier to the maximum of the two memories. Its exactness witness

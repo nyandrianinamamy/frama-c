@@ -412,10 +412,11 @@ identity_filter_laws : (∀ (B : BlockSet) (S : trivDom.State), trivDom.filter B
 'Checks.identity_filter_laws' depends on axioms: [propext, Quot.sound]
 ```
 
-**Open.** None in the model. The whole-product match, which the
-specification chooses for products with an identity-`filter` component, is a
-later proof target. Nothing here shows that the projected match fails for
-that whole class.
+**Open.** The specification chooses the
+[whole-product match](whole-product.md#whole-product-equality-supplies-the-input-witness)
+for admitted products with an identity-`filter` component. The Eva
+admission and per-domain reuse arguments remain open. The negative
+case above concerns the stated equality domain.
 
 ## The weak form of filter sound suffices for the match and product lemmas
 
@@ -435,8 +436,9 @@ it from the projected match. Other domains with an identity `filter` can meet
 
 **Scope.** The match lemma, the product lemma and their composition
 `projected_match`. [Entry construction](entry.md) uses the concretisation
-and the producing witness. It takes no `filter` law itself. Composition
-with the hit is still open. The consequence that criterion 2 of issue #35
+and the producing witness. It takes no `filter` law itself. The
+[projected hit](hit.md#hit-soundness) uses the weak form in its match step
+and also requires replay compatibility. The consequence that criterion 2 of issue #35
 asks to report on the
 specification, for the case where the weak form does not suffice, does not
 arise for these lemmas.

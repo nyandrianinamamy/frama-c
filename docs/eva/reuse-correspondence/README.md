@@ -69,6 +69,9 @@ that a checkout has the model sources of an entry, compare
   value-domain replay witness, and the four side-table obligations.
 - [Matching](matching.md): the match and product lemmas, closure of the key
   in the stored input, and the non-emptiness of the stored concretisation.
+- [Whole-product matching and relational precision](whole-product.md):
+  the self-witness and conditional hit, the precision cost of dropping
+  current-side closure, and the open Eva admission obligations.
 - [Entry construction](entry.md): producer soundness, coverage, the matching
   key, and the Exit, Safety and Reach claims.
 - [Call-cache seam](call-cache-seam.md): the seam through which memexec

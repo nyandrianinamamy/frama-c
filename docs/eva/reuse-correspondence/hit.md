@@ -636,16 +636,9 @@ Checks.sweepCur : projectedPredicates.State
 
 ## Follow-on Lean work
 
-- #39 can use `hit_of_matches` for whole-product equality. A covered
-  current memory then serves as its own stored witness with the
-  reflexive allocator relation. The common subject and bindings, the
-  frame condition, exit reuse soundness and the skipped-effect
-  obligations still apply. Whole-product equality leaves the coverage and
-  fixed-read contracts as premises on skipped work. The relational precision example without
-  current-side closure is a separate claim.
-  [Whole-product match and relational precision](https://github.com/nyandrianinamamy/frama-c/issues/39).
-- #40 can use the same witness with `shared_inner` for key blocks issued
-  at entry. The public query still needs the statement, callstack and
+- #40 can use the [whole-product self-witness](whole-product.md#whole-product-equality-supplies-the-input-witness)
+  via `Matches` with `shared_inner` for key blocks issued at entry.
+  The public query still needs the statement, callstack and
   before or after point. Frame values depend on that prefix's writes
   and sweeps. Overwritten blocks outside the key and new locals need
   per-member coverage or top, including the two distinct-member
@@ -657,6 +650,13 @@ Checks.sweepCur : projectedPredicates.State
 
 ## Follow-on Eva work
 
+- #57 owes the [whole-product admission argument and checks](whole-product.md#whole-product-admission-in-eva),
+  including the common namespace, the comparison of every active
+  component, and per-domain replay and refusal evidence.
+- #66 must audit those open checks alongside the existing producer,
+  frame, reuse and side-table obligations. The
+  [relational precision example](whole-product.md#projection-without-current-side-closure-can-lose-a-relation)
+  is evidence about the Lean model.
 - #47 must define which alarm, status and red-context observations each
   table value covers. Show that the kernel's combination covers both
   operands, that actual hit replay covers the fresh and prior contributions

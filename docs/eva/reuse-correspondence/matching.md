@@ -239,7 +239,10 @@ check that the key is closed in the current input
 (`Mem_exec.Make.find_match_in_previous` tests that `Domain.relate binputs
 state` is included in `binputs` on the current state) can be removed: the
 specification keeps that check for from-scratch equality and removes it only
-if the from-scratch tests show no difference. [Entry construction](entry.md)
+if the from-scratch tests show no difference. The
+[checked relational example](whole-product.md#projection-without-current-side-closure-can-lose-a-relation)
+shows that dropping the check can lose precision even with a sound hit.
+[Entry construction](entry.md)
 also needs write-target liveness and allocation agreement for the same
 producing witness. A [checked case](entry.md#checked-cases) gives a
 successful projection with no allocator agreement for any stored
