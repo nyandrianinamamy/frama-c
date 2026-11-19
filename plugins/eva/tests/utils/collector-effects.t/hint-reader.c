@@ -1,12 +1,15 @@
 extern void Frama_C_show_each_before(int);
 extern void Frama_C_show_each_after(int);
+#ifndef HINT_THRESHOLD
+#define HINT_THRESHOLD 13
+#endif
 int x;
 static int count(int n) {
   while (x < n) ++x;
   return x;
 }
 static void discover(int *p) {
-  /*@ loop widen_hints *p, 13; */
+  /*@ loop widen_hints *p, HINT_THRESHOLD; */
   while (*p < 0) ++*p;
 }
 int main(void) {

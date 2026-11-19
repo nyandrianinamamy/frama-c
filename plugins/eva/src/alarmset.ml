@@ -396,9 +396,10 @@ let emit_alarms ~pos map =
   let map = remove_redundant_alarms map in
   let list = M.bindings map in
   let sorted_list = List.sort cmp list in
-  let stop_at = Parameters.StopAtNthAlarm.get () in
-  if stop_at < max_int then Body_access.refuse Stop_at_alarm;
+  let finite_at_entry = Parameters.StopAtNthAlarm.get () < max_int in
   List.iter (fun (alarm, status) -> emit_alarm ~pos alarm status) sorted_list;
+  let stop_at = Parameters.StopAtNthAlarm.get () in
+  if finite_at_entry || stop_at < max_int then Body_access.refuse Stop_at_alarm;
   if Alarm_cache.length () >= stop_at
   then Self.abort "Stopping at nth alarm"
 

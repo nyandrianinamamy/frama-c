@@ -163,7 +163,8 @@ module Lookup (Domain : sig
   end) : sig
 
   (** [find stack state] applies the reuse operation ({!Cache_entry.Make.find})
-      to the entries supplied for [kf], at a call whose input is [state].
+      to the entries supplied for the top function of [stack], at a call
+      whose input is [state].
       When the active domains are not the cvalue domain alone, or when a
       component listed under [`Consumer] is enabled, every entry is rejected
       for this reason. *)

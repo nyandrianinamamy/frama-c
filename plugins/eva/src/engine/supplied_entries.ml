@@ -229,7 +229,9 @@ module Lookup (Domain : sig
       | Some _ when consumer_enabled () || stack.thread <> Thread.main_id ->
         reject_all `Consumer
       | Some eq ->
-        let result = Entry.find ~admit:(admit stack) candidates (cast eq state) in
+        let result =
+          Entry.find ~admit:(admit stack) candidates (cast eq state)
+        in
         let reject (e, reason) = Entry.id e, (reason :> rejection) in
         let hit (e, states) =
           let trace d = Body_access.{

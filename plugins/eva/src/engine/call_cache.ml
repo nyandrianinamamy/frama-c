@@ -181,7 +181,8 @@ module Make
 
   type lookup =
     | No_candidate of pending
-    | Hit of int * (Partition.key * Domain.t) list * Body_access.call_trace option
+    | Hit of
+        int * (Partition.key * Domain.t) list * Body_access.call_trace option
 
   (* Lookup in the entries supplied by a test module. *)
   let lookup_supplied call state =

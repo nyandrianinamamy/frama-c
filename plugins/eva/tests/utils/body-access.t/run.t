@@ -335,10 +335,15 @@ the states, and a false postcondition of a specification.
   call_false_leaf refuses contract, nested-call, side-table
 
 A warning category set to `once` disables later messages in that category.
+The sweep warning's per-event history is admitted, so the control isolates
+the extra category-policy access.
 The evaluation of C expressions and partial unrolling also consult the
 history for individual events. These accesses refuse as side-table.
 
-  $ clause once_category -eva-warn-key alarm=once
+  $ clause once_category
+  $ grep '^once_category refuses' once_category.log
+  once_category refuses nothing
+  $ clause once_category -eva-warn-key locals-escaping=once
   $ grep -c 'no further messages from category' once_category.log
   1
   $ grep '^once_category refuses' once_category.log

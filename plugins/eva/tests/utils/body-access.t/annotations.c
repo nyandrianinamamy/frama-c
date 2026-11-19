@@ -219,8 +219,13 @@ void invariants(void) {
 
 int once_x, once_y, once_z;
 
+int *once_holder;
+
 void once_category(void) {
-  //@ check once_x == 1;
+  if (once_x == 0) {
+    int local;
+    once_holder = &local;
+  }
 }
 
 void pointer_comparison(void) {

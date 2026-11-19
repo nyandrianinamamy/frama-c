@@ -51,9 +51,21 @@ same projected key refuses when the current input has an additional holder.
 
   $ dune build -j 8 --cache=disabled --root . test_collector_effects.cmxs
   $ EVA_TEST_COLLECTOR_EFFECTS=sweep frama-c -no-autoload-plugins -load-module eva,test_collector_effects.cmxs -eva-no-memexec -main swept effects.c > replay.log 2>&1
-  $ grep -E '^swept records|^exit holder' replay.log
+  $ grep -E '^swept records|^unknown-base sweep|rejected=|^producing input|^own outer scope' replay.log
   swept records local and the holder written by its scope exit
-  exit holder escaping; matching input with a new holder rejected
+  clear rejected=[] hit=1
+  offset-range rejected=[1:sweep,2:sweep] hit=none
+  garbled rejected=[1:sweep,2:sweep] hit=none
+  unknown-bases rejected=[1:sweep,2:sweep] hit=none
+  unknown-base sweep keeps all bases and marks escaping
+  escaping-plus-pointer rejected=[1:sweep,2:sweep] hit=none
+  escaping-marker-alone rejected=[] hit=1
+  prebound rejected=[1:key-differs,2:key-differs] hit=none
+  producing input clear: clear
+  producing input holder: sweep
+  producing input prebound: sweep
+  own outer scope: sweep
+  watch in another project rejected=[1:watchpoint,2:watchpoint] hit=none
 
 A fresh nested call contributes its callees to the enclosing recording.
 
@@ -84,7 +96,7 @@ and both discoverers. In the reader control there is no discovery.
   count generation 0, would-store
   discover widening-hint
   count generation 1, would-store
-  [eva:show] hint-reader.c:21: Frama_C_show_each_after: {13}
+  [eva:show] hint-reader.c:24: Frama_C_show_each_after: {13}
   $ hints -cpp-extra-args=-DWITHOUT_DISCOVERY hint-reader.c > control.log 2>&1
   $ grep '^count generation' control.log
   count generation 0, would-store
@@ -111,3 +123,80 @@ to the fresh enclosing recording.
   call to middle: lookup: hit (entry 2)
   $ grep '^trace through memexec hit' hit.log
   trace through memexec hit includes threaded
+
+A discovery of a default threshold refuses without changing the generation.
+
+  $ hints -cpp-extra-args=-DHINT_THRESHOLD=1 hint-reader.c > masked.log 2>&1
+  $ grep -E '^count generation|^discover ' masked.log
+  count generation 0, would-store
+  discover widening-hint
+  count generation 0, would-store
+
+Candidate order and exact reasons for a changed generation, a recursive
+stack and the same generation number from a different run.
+
+  $ test_effects () {
+  >   mode="$1"; shift
+  >   EVA_TEST_COLLECTOR_EFFECTS="$mode" frama-c -no-autoload-plugins \
+  >     -load-module eva,test_collector_effects.cmxs "$@"
+  > }
+  $ test_effects hint-lookup -eva-no-memexec -eva-slevel 0 \
+  >   -eva-auto-loop-unroll 0 hint-reader.c > lookup.log 2>&1
+  $ grep -E 'rejected=|^supplied hit trace|^generation changed' lookup.log
+  newer generation rejected=[1:hint-generation] hit=2
+  supplied hit trace: count (body), nonrecursive
+  recursive stack rejected=[1:recursion,2:recursion] hit=none
+  newer run rejected=[1:hint-generation,2:hint-generation,3:hint-generation] hit=4
+  supplied hit trace: count (body), nonrecursive
+  generation changed in reader: widening-hint
+
+A trace that was nonrecursive when produced can conflict with the caller
+that now consumes it.
+
+  $ test_effects trace-stack effects.c > trace-stack.log 2>&1
+  $ grep '^included hit trace' trace-stack.log
+  included hit trace conflicts with caller: recursion
+
+The watch installation reports its effect before any statement transfer.
+
+  $ test_effects watch-install -eva-no-memexec -main swept effects.c > install.log 2>&1
+  $ grep '^watch installation' install.log
+  watch installation without statement transfer: watchpoint
+
+A file dump has its own reason and actually writes the first numbered file.
+
+  $ test_effects none -eva -eva-no-memexec -main show_file \
+  >   -eva-msg-key cache effects.c > file-dump.log 2>&1
+  $ grep -o 'collector: refused (dump)' file-dump.log
+  collector: refused (dump)
+  $ grep -o 'DUMPING STATE' collector_0
+  DUMPING STATE
+
+The red client and the extra history client each execute during a fresh body.
+Each body refuses to produce an entry. The history client runs on the
+otherwise admitted locals-escaping per-event consultation.
+
+  $ test_effects red-client -eva-no-memexec -main alarm effects.c > red.log 2>&1
+  $ grep '^alarm' red.log
+  alarm: callback
+  alarm client calls: 1, entries: 0
+  $ test_effects history-client -eva-no-memexec -main swept effects.c > history.log 2>&1
+  $ grep '^swept' history.log
+  swept: callback
+  swept client calls: 1, entries: 0
+
+Alarm stopping observes changes made by an emission listener with
+collection disabled, under both legacy memexec settings.
+
+  $ threshold () {
+  >   test_effects raise-threshold -eva -eva-no-cache-collect "$1" \
+  >     -main alarm -eva-stop-at-nth-alarm 1 effects.c > threshold.log 2>&1
+  > }
+  $ threshold -eva-memexec
+  $ grep -oE 'listener raised stop threshold|ANALYSIS SUMMARY' threshold.log
+  listener raised stop threshold
+  ANALYSIS SUMMARY
+  $ threshold -eva-no-memexec
+  $ grep -oE 'listener raised stop threshold|ANALYSIS SUMMARY' threshold.log
+  listener raised stop threshold
+  ANALYSIS SUMMARY

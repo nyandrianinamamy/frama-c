@@ -240,7 +240,8 @@ let[@inline always] refuse reason =
   | None, _ -> ()
 
 let call kf mode =
-  Option.iter (fun r -> r.used_functions <- Calls.add (kf, mode) r.used_functions)
+  Option.iter
+    (fun r -> r.used_functions <- Calls.add (kf, mode) r.used_functions)
     !current
 
 let recursion_conflict stack used =
@@ -440,7 +441,7 @@ let read_message_history () = refuse Side_table
 let () = Hook.Opaque.on_call (fun () -> refuse Callback)
 
 let () =
-  Log.on_history_access (fun ~plugin ~kind ~category ~once_category ->
+  Log.on_history_access ~audited:true (fun ~plugin ~kind ~category ~once_category ->
       let audited =
         plugin = "eva" && not once_category &&
         match kind, category with
@@ -652,7 +653,8 @@ let capture stack compute =
     (* The entry stamp is a valid key only if the hint table remained fixed
        during the body. This also catches a change from nested work. *)
     if r.reads_widening_hints &&
-       not (Widen_generation.equal r.entry_generation (Widen_generation.current ()))
+       not (Widen_generation.equal r.entry_generation
+              (Widen_generation.current ()))
     then add_refusal r Widening_hint;
     let result = {
       reads = r.reads;
@@ -673,7 +675,8 @@ let capture stack compute =
         (fun reason -> if inherited reason then add_refusal parent reason)
         result.refusals;
       parent.owners <- Base.Hptset.union parent.owners result.owners;
-      parent.used_functions <- Calls.union parent.used_functions r.used_functions;
+      parent.used_functions <-
+        Calls.union parent.used_functions r.used_functions;
       if r.reads_widening_hints then parent.reads_widening_hints <- true;
       (* Even a sweep admitted for the child is a foreign sweep here. *)
       if not (Base.Hptset.is_empty r.sweeps) then add_refusal parent Sweep

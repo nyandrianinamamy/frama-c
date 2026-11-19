@@ -662,9 +662,11 @@ module Make (Engine: Engine_Subset) = struct
       if Ast_info.is_show_each_builtin name
       then run Builtin (fun () -> show_each ~pos ~subdivnb name arguments state)
       else if Ast_info.is_domain_show_each_builtin name
-      then run Builtin (fun () -> domain_show_each ~pos ~subdivnb name arguments state)
+      then run Builtin
+          (fun () -> domain_show_each ~pos ~subdivnb name arguments state)
       else if Ast_info.is_dump_file_builtin name
-      then run Dump (fun () -> dump_state_file ~pos ~subdivnb name arguments state)
+      then run Dump
+          (fun () -> dump_state_file ~pos ~subdivnb name arguments state)
       else if Ast_info.is_dump_each_builtin name
       then run Dump (fun () -> dump_state ~pos name state)
       else false

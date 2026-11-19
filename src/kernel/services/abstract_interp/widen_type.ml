@@ -113,7 +113,9 @@ let adds_dynamic_hints ~previous:old hints =
   let same bindings other defaults union equal empty =
     Base.Map.for_all
       (fun base hints ->
-         let prev = Option.value ~default:empty (Base.Map.find_opt base other) in
+         let prev =
+           Option.value ~default:empty (Base.Map.find_opt base other)
+         in
          let prev = union defaults prev in
          equal (union prev hints) prev)
       bindings

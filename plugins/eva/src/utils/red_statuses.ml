@@ -57,7 +57,7 @@ module RedStatusesTable =
 module Hook = Hook.Build (AlarmOrProp)
 
 let register_hook f =
-  Hook.extend f
+  Hook.extend (Frama_c_kernel.Hook.Opaque.wrap f)
 
 let add_red_ap kinstr ap =
   let current_map =

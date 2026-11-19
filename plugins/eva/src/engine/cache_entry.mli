@@ -109,7 +109,8 @@ module Make (Domain : Domain) : sig
       [key] does not contain R ∪ (W_exit \ W_sure), or if [key] is not closed
       under [Domain.relate] in [input]. *)
   val make :
-    ?dependencies:dependencies -> id:int -> statement -> key:Base.Hptset.t -> input:Domain.t ->
+    ?dependencies:dependencies -> id:int -> statement -> key:Base.Hptset.t ->
+    input:Domain.t ->
     footprint:footprint -> exit:(Partition.key * Domain.t) list -> t
 
   (** The identifier given to {!make}. *)

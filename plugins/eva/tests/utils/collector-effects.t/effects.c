@@ -93,3 +93,10 @@ void start_hit(void)
   outer();
   outer_after_hit();
 }
+
+void Frama_C_dump_each_file_collector(void);
+
+void show_file(void)
+{
+  Frama_C_dump_each_file_collector();
+}
