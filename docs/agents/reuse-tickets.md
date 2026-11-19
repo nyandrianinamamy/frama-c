@@ -25,6 +25,17 @@ file adds what is specific to these tickets.
   binding installed at scope entry, a table of the kernel read by pointer
   arithmetic. Each supported case needs a regression that fails without the
   change; each refusal reason a regression that reaches it.
+- **One test per check, removed alone.** Each check, at storage and at
+  lookup, has a test that fails when that check alone is removed. A test
+  where another check rejects the candidate first does not count: assert
+  the exact reason and which candidate is examined next.
+- **A hit skips visits.** The statements of a body answered by a hit have
+  no saved state and no visit, for the body and for every function it
+  called. Before admitting a hit, list who reads them afterwards: the
+  passes at the end of the analysis, `-then` options, server requests, a
+  plug-in loaded later, a saved session. Each reader gets a delivery, a
+  refusal or a line in the record, with a test compared against caching
+  disabled.
 - **A fixture entry must be one a producer could build.** Its key contains
   its read set, its producer input binds every block its exit keeps, and its
   exit sets are nested.
@@ -36,6 +47,10 @@ file adds what is specific to these tickets.
   items. A claim about a class needs an argument for the class, not one
   example. Every premise of a printed statement has a kind, local premises
   included.
+- **A change of behaviour makes sentences stale outside the entry of the
+  ticket.** After a fix or a rebase, search the whole record for what it
+  said of the old behaviour, and check each sentence handed to a later
+  ticket against a committed check, as any other claim.
 - **Lean first, then the record.** Make the Lean commits, then the record
   commits that cite `git rev-parse HEAD:lean`. A rebase keeps the tree and
   changes the commit beside it: `bash dev/check-record.sh` finds a cited
@@ -79,8 +94,16 @@ These checks found defects in earlier tickets and are owed on each one:
    callers of a public kernel function, a session saved and loaded in
    another process, a second project, and another client of the hook.
 
+8. **Read the results after a hit.** With a confirmed hit, run the
+   readers of the skipped body (end-of-analysis statuses and dead code,
+   `-then` printers, a server request, a session loaded in another
+   process) and compare with caching disabled.
+
 Report findings by severity with file, line, a failing input and a proposed
-fix, and state for each acceptance criterion whether it is met.
+fix, and state for each acceptance criterion whether it is met. The
+implementer's table of criteria is in its final report and reaches the
+ticket at closing: when the commits hold none, judge the criteria from the
+replay, not from the absence of the table.
 
 ## Landing
 
@@ -93,8 +116,10 @@ evidence of the previous ticket.
 
 A fix written after the last review in the kernel, the collector or a Lean
 statement gets a narrow re-check of those commits before the ticket closes;
-the two re-checks of this kind so far each found a defect. Fixes to prose,
-expectations or fixtures alone do not need one.
+every re-check of this kind so far found a defect or a wrong record
+sentence. A rebase that resolves a conflict in those files counts as such
+a fix: rerun the regressions of both tickets and list what was reconciled.
+Fixes to prose, expectations or fixtures alone do not need one.
 
 `git commit` and `git push` run the hooks, which need the activation lines
 of [AGENTS.md](../../AGENTS.md) in the same shell. In a script that waits
