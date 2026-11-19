@@ -65,8 +65,8 @@ project test removed from `provide`, they also have `other-project` and the
 fixture fails.
 
 **Open.** From and Inout give their parts only for a body that made no call
-(`Callwise.provide_froms` in From, `Operational_inputs.Callwise.provide_inout`
-in Inout): a hit restores the
+(`Callwise.provide_froms` in From,
+`Operational_inputs.Callwise.provide_inout` in Inout): a hit restores the
 result of the call at its own call site, not the results that the calls of
 the body record at theirs. No entry is produced today for a body with a
 call: the collector refuses it. This restriction has no regression.
@@ -204,15 +204,20 @@ whole table of callwise dependencies, 10 call sites, is equal to that of the
 first analysis; at line 38 it is `a FROM indirect: dst; src; direct: b`, at
 line 39 `c FROM indirect: dst; src; direct: d`, and the call to `deps_main`,
 whose body contains the three calls, has `a FROM direct: b; c FROM direct:
-d`. With `restore_froms` reduced to nothing, the dependencies differ and the
-fixture fails. Scenario `verify`: the statuses of the two clauses of
+d`. Scenario `visits`, on
+[`visits.c`](../../../plugins/eva/tests/utils/cache-parts.t/visits.c): the
+third call to `choose` hits the entry of the first call, produced before the
+second call reached the other branch; its dependencies, `a FROM indirect: c;
+direct: b`, are those of caching disabled and of memexec. With
+`restore_froms` reduced to nothing, the dependencies differ and the fixture
+fails. Scenario `verify`: the statuses of the two clauses of
 `checked` are `VALID` after the first analysis, are removed by a change of a
 correctness parameter of Eva, and are `VALID` again after the second
 analysis, in which both calls to `checked` hit. Without the call to
 `verify_assigns` in `restore_froms`, they stay `no verification attempted`
 and the fixture fails.
 
-**Open.** The premise below. The fixture has one visit of each callstack.
+**Open.** The premise below.
 
 ## The Inout part
 
@@ -307,14 +312,20 @@ checked. Two reads go beyond the states of the call:
 
 When another visit adds states, the result of a fresh analysis can differ
 from the kept one. Premise 2: such a difference only adds observations that
-do not belong to this call. It is not established.
+do not belong to this call. It is not established in general. For Inout,
+the joined pre-state contains only states of visits of the same callstack,
+whose results are joined at the same call site of `CallwiseResults`, and it
+adds logic inputs only, which the reduction of the actuals does not read
+(source inspection).
 
-**Evidence.** Execution, in the cases of the fixture only: equality of the
-tables of From and Inout with and without hits, with one visit of each
-callstack.
+**Evidence.** Execution, in the cases of the fixture: equality of the
+tables of From and Inout with and without hits. In the scenario `visits`,
+the body of `choose` is visited from three call sites and the third hit
+uses an entry produced before the second visit reached the other branch:
+the dependencies equal those of caching disabled and of memexec.
 
-**Open.** Premises 1 and 2; a regression with several visits of a callstack
-or an assertion that reads the pre-state.
+**Open.** Premises 1 and 2 in general; a regression with several visits of
+one callstack, and with an assertion that reads the pre-state.
 
 ## Readers of the states saved at statements reject every candidate
 
