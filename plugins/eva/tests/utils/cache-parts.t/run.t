@@ -26,6 +26,14 @@ the hits restore, and at that of deps_main, which joins them.
   copy at line 40: a FROM indirect: dst; src; direct: b; \result FROM \nothing
   deps_main at line 53: a FROM direct: b; c FROM direct: d; \result FROM \nothing
 
+From prints no feedback for a call answered by a hit, as at a hit of
+memexec: 2 lines from the analysis that -calldeps starts, whose third call
+to copy is a hit of memexec, 3 from the analysis with caching disabled, and
+none from the analysis with the three hits.
+
+  $ grep -c 'Computing for function copy' from.log
+  5
+
 With Inout alone, each entry has an Inout part. After the hits on narrow and
 narrow_and_write, the caller reduces its actual g, which the callee does not
 write, and does not reduce h, which the callee writes, as with caching
@@ -71,6 +79,29 @@ supplied entries.
   call to choose: lookup: hit (entry 1); execution: not-analysed
   call to choose: lookup: rejected (entry 1: key-differs), hit (entry 2); execution: not-analysed
   call to choose: lookup: hit (entry 1); execution: not-analysed
+
+The results of the analysis that From and Inout ask while it runs. In
+history.c, the first and third calls to leaf do not reach the branch that
+the second call reaches. At the end of each call, the results of the
+analysis answer that the statements this call does not reach are
+reachable, and give Top as the state at the start of leaf, which the
+assertion reads: the answers do not depend on the other calls. In the
+second analysis, the first and third calls hit the entry of the first
+call, and the results of From and Inout at each call are those of caching
+disabled.
+
+  $ EVA_TEST_CACHE_PARTS=history frama-c -no-autoload-plugins -load-module eva,from,inout,test_cache_parts.cmxs -calldeps history.c > history.log 2>&1
+  $ grep -E '^(call of leaf|entry of|hits|leaf at)' history.log
+  call of leaf: statements not reached 2, reachable in the results 2; state at the start: top true
+  call of leaf: statements not reached 0, reachable in the results 0; state at the start: top true
+  call of leaf: statements not reached 2, reachable in the results 2; state at the start: top true
+  entry of leaf: parts [from, inout]
+  entry of leaf: parts [from, inout]
+  entry of leaf: parts [from, inout]
+  hits: leaf 2
+  leaf at line 22: z FROM \nothing; \result FROM \nothing; equal to caching disabled: dependencies true, inputs and outputs true
+  leaf at line 23: x FROM indirect: c; direct: a; y FROM indirect: c; z FROM \nothing; \result FROM \nothing; equal to caching disabled: dependencies true, inputs and outputs true
+  leaf at line 24: z FROM \nothing; \result FROM \nothing; equal to caching disabled: dependencies true, inputs and outputs true
 
 With -eva, Eva also analyses the program before the test module does, and
 prints the final states after each of the three analyses, filtered by the
@@ -122,6 +153,29 @@ dependencies.
   call to copy: lookup: rejected (entry 1: missing-part), rejected (entry 2: key-differs), rejected (entry 3: missing-part); execution: analysed
   call to copy: lookup: rejected (entry 1: key-differs), rejected (entry 2: missing-part), rejected (entry 3: key-differs); execution: analysed
   call to copy: lookup: rejected (entry 1: missing-part), rejected (entry 2: key-differs), rejected (entry 3: missing-part); execution: analysed
+
+A body with a call. In nested.c, outer calls inner: the entries of inner
+have both parts, those of outer have none. In the second analysis, the
+calls to inner hit, every candidate of outer is rejected for missing-part,
+and the callwise dependencies are those of caching disabled. The function
+unused is never called: Inout computes its inputs and outputs from the
+states saved at its statements, which it refuses after the hits. The last
+two dispositions are those of the analysis with the supplied entries: the
+entry whose key matches is rejected for missing-part.
+
+  $ EVA_TEST_CACHE_PARTS=nested frama-c -no-autoload-plugins -load-module eva,from,inout,test_cache_parts.cmxs -calldeps -eva-msg-key cache nested.c > nested.log 2>&1
+  $ grep -E '^(entry of|inner:|callwise|caching disabled:|after the hits:)' nested.log
+  entry of inner: parts [from, inout]
+  entry of inner: parts [from, inout]
+  entry of outer: parts []
+  entry of outer: parts []
+  caching disabled: Inout.get_precise_inout of unused: computed
+  inner: hits 2; outer: hits 0, rejected for missing-part 2
+  callwise dependencies equal at 4 call sites: true
+  after the hits: Inout.get_precise_inout of unused: refused
+  $ grep -o 'call to outer: lookup: [^;]*; execution: [a-z-]*' nested.log | tail -2
+  call to outer: lookup: rejected (entry 3: missing-part), rejected (entry 4: key-differs); execution: analysed
+  call to outer: lookup: rejected (entry 3: key-differs), rejected (entry 4: missing-part); execution: analysed
 
 With -from-verify-assigns, the clauses of checked are checked in the first
 analysis. Their statuses are then removed. Both calls to checked hit in the
@@ -234,6 +288,13 @@ Slicing is tested here.
   reduc.log:hits 0, rejected for consumer 15
   studia.log:hits 0, rejected for consumer 15
   slicing.log:hits 0, rejected for consumer 15
+
+The name of a part is its key: registering a second part named as a
+registered one is refused.
+
+  $ EVA_TEST_CACHE_PARTS=duplicate frama-c -no-autoload-plugins -load-module eva,from,inout,test_cache_parts.cmxs parts.c > duplicate.log 2>&1
+  $ grep -E '^(refused|registered)' duplicate.log
+  refused: Cache_part.register: a part named from is already registered
 
 After an analysis in which hits answered calls, the results by function of
 From and Inout, and the results by statement of Inout, are computed from

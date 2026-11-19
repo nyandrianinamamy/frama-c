@@ -365,8 +365,9 @@ let server () =
     | Some (_, handler) ->
       match handler arg with
       | `Assoc fields ->
+        let field (k, v) = k ^ " " ^ size v in
         Format.printf "%s: %s@." name
-          (String.concat ", " (List.map (fun (k, v) -> k ^ " " ^ size v) fields))
+          (String.concat ", " (List.map field fields))
       | _ -> Format.printf "%s: answered@." name
       | exception Log.AbortError _ -> Format.printf "%s: refused@." name
   in
@@ -425,6 +426,107 @@ let copied () =
   in
   Project.on copy supply ()
 
+(* ----- Results of the analysis asked while it runs ---------------------- *)
+
+(* On history.c, with -calldeps. During an analysis with caching disabled,
+   at the end of each call of leaf, the test module asks the results of the
+   analysis what From and Inout ask them: whether each statement is
+   reachable, and the state at the start of leaf for the callstack of the
+   call. Both answers are the same for every call. The analysis produces the
+   entries of leaf; the first one is supplied to a second analysis, in which
+   the first and third calls hit. The results of From and Inout at each call
+   are compared with caching disabled. *)
+let history () =
+  let asking = ref true in
+  Eva.Cvalue_callbacks.register_call_results_hook ~cache_protocol:true
+    (fun callstack f _ results ->
+       match results with
+       | `Body ({ Eva.Cvalue_callbacks.before_stmts; _ }, _)
+         when !asking && Kernel_function.get_name f = "leaf" ->
+         let states = Lazy.force before_stmts in
+         let reached s =
+           match Cil_datatype.Stmt.Hashtbl.find_opt states s with
+           | Some state -> Cvalue.Model.is_reachable state
+           | None -> false
+         in
+         let unreached =
+           List.filter (fun s -> not (reached s))
+             (Kernel_function.get_definition f).sallstmts
+         in
+         let pre =
+           Results.(at_start_of f |> in_callstack callstack |>
+                    get_cvalue_model)
+         in
+         Format.printf "call of leaf: statements not reached %d, reachable \
+                        in the results %d; state at the start: top %b@."
+           (List.length unreached)
+           (List.length (List.filter Results.is_reachable unreached))
+           (Cvalue.Model.is_top pre)
+       | _ -> ());
+  let sites = calls "leaf" in
+  let observe () =
+    let froms = callwise_froms () in
+    List.map
+      (fun stmt ->
+         List.assoc (Kstmt stmt) froms,
+         Inout.get_precise_inout ~stmt (kf "leaf"))
+      sites
+  in
+  clear ();
+  Eva.Parameters.Memexec.off ();
+  Eva.Analysis.compute ();
+  asking := false;
+  let produced = Producer.entries (kf "leaf") in
+  print_parts produced;
+  let fresh = observe () in
+  second_analysis [ List.hd produced ];
+  Format.printf "hits: leaf %d@." (hits "leaf");
+  List.iter2
+    (fun (stmt, (d, io)) (d', io') ->
+       Format.printf "leaf at line %d: %s; equal to caching disabled: \
+                      dependencies %b, inputs and outputs %b@."
+         (line stmt) (one_line Eva.Assigns.pretty d)
+         (Eva.Assigns.equal d d') (Inout_type.equal io io'))
+    (List.combine sites (observe ())) fresh
+
+(* ----- A body with a call ------------------------------------------------- *)
+
+(* On nested.c, with -calldeps. The entries of outer, whose body calls
+   inner, have no part: every candidate of outer is rejected and its calls
+   are analysed, in which the calls to inner hit. unused is never called:
+   its inputs are computed from the states saved at its statements, which
+   is refused after the hits. *)
+let nested () =
+  let unused () = Inout.get_precise_inout (kf "unused") in
+  clear ();
+  Eva.Parameters.Memexec.off ();
+  Eva.Analysis.compute ();
+  let produced =
+    List.concat_map (fun f -> Producer.entries (kf f)) [ "inner"; "outer" ]
+  in
+  print_parts produced;
+  refused "caching disabled: Inout.get_precise_inout of unused" unused;
+  let fresh = callwise_froms () in
+  second_analysis produced;
+  Format.printf "inner: hits %d; outer: hits %d, rejected for missing-part \
+                 %d@." (hits "inner") (hits "outer")
+    (rejected "missing-part" "outer");
+  Format.printf "callwise dependencies equal at %d call sites: %b@."
+    (List.length fresh) (same_froms fresh (callwise_froms ()));
+  refused "after the hits: Inout.get_precise_inout of unused" unused
+
+(* ----- Names of the parts ------------------------------------------------- *)
+
+(* A second part named as a registered one: the name is the key of a
+   part. *)
+let duplicate () =
+  match
+    Eva.Cache_part.register ~name:"from" ~needed:(fun () -> false)
+      ~restore:(fun _ _ _ () -> ()) ()
+  with
+  | _ -> Format.printf "registered a second part named from@."
+  | exception Invalid_argument msg -> Format.printf "refused: %s@." msg
+
 let () =
   match Sys.getenv_opt "EVA_TEST_CACHE_PARTS" with
   | Some "from" -> Boot.Main.extend from
@@ -442,4 +544,7 @@ let () =
     Boot.Main.extend (fun () -> ignore (first_analysis ()); server ())
   | Some "visits" -> Boot.Main.extend visits
   | Some "logic" -> Boot.Main.extend logic
+  | Some "history" -> Boot.Main.extend history
+  | Some "nested" -> Boot.Main.extend nested
+  | Some "duplicate" -> Boot.Main.extend duplicate
   | _ -> ()
