@@ -30,6 +30,9 @@ type packed = {
 let registered : packed list ref = ref []
 
 let register (type a) ~name ~needed ~restore () : a t =
+  if List.exists (fun p -> p.packed_name = name) !registered then
+    Format.kasprintf invalid_arg
+      "Cache_part.register: a part named %s is already registered" name;
   let module M = struct exception Value of a end in
   let inject v = M.Value v in
   let project = function M.Value v -> Some v | _ -> None in

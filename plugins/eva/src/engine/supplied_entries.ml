@@ -122,8 +122,22 @@ let check_no_call kf =
     Format.kasprintf invalid_arg
       "Supplied_entries.supply: the body of %a may call a function that has \
        a body" Kernel_function.pretty kf
+(* A function of another project, for instance the project from which the
+   current one was copied, is a distinct value with the same identifier:
+   comparing it with the functions of the current project is an internal
+   error. *)
+let check_project kf =
+  match Globals.Functions.get (Kernel_function.get_vi kf) with
+  | current when current == kf -> ()
+  | _ | exception Not_found ->
+    Format.kasprintf invalid_arg
+      "Supplied_entries: the function %s of the entry is not a function of \
+       the current project; entries are supplied to the project whose AST \
+       they were made on"
+      (Kernel_function.get_name kf)
 
 let add kf entry =
+  check_project kf;
   ignore (Counter.next ());
   Table.replace kf (entries kf @ [ entry ]);
   entry

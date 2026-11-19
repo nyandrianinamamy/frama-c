@@ -139,11 +139,11 @@ type footprint = Cache_entry.footprint = {
     has a body, directly or through a pointer; if [input] or an exit state
     is [Top] or [Bottom]; if the written sets are not nested
     (W_sure ⊆ W_exit ⊆ W); if [key] does not contain R ∪ (W_exit \ W_sure);
-    if [key] is not closed in [input]; or if an exit state does not bind a
+    if [key] is not closed in [input]; if an exit state does not bind a
     block of W_exit that exists at the exit of the body: every block of
-    W_exit but the locals of its inner blocks. The three written sets
-    include the block of the value returned by [kf], if any (see
-    {!return_variable}). *)
+    W_exit but the locals of its inner blocks; or if [kf] is not a function
+    of the current project. The three written sets include the block of the
+    value returned by [kf], if any (see {!return_variable}). *)
 val supply :
   ?safety:Safety_part.t -> ?reach:Reach_part.part -> kernel_function ->
   key:Base.Hptset.t -> input:Cvalue.Model.t -> footprint:footprint ->
@@ -158,11 +158,14 @@ val supply :
     that decide the alarms, statuses and messages included: the options and
     the activation of the message categories are not checked. The parts are
     restored at a hit as given; an entry supplied by {!supply} has no part
-    of another module. Supplying
-    entries remains a test-only operation. The producer stores bodies that
-    call other functions, and the lookup rejects their entries with
-    [`Nested_delivery]: the check of [supply] on the calls of the body does
-    not apply here. *)
+    of another module. The producer stores bodies that call other functions,
+    and the lookup rejects their entries with [`Nested_delivery]: the check
+    of [supply] on the calls of the body does not apply here.
+    Raises [Invalid_argument] if the function of the entry is not a function
+    of the current project: an entry made in a project is not supplied to a
+    copy of it made by [Project.create_by_copy], whose functions are other
+    values.
+    Supplying entries remains a test-only operation. *)
 val supply_produced : Cache_producer.entry -> entry
 
 (** The partition key of a state that no partitioning distinguishes. *)

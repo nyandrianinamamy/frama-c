@@ -34,6 +34,8 @@ open Cil_types
 type 'a t
 
 (** [register ~name ~needed ~restore ()] declares a part named [name].
+    - [name] identifies the part in the messages and in {!names}. Raises
+      [Invalid_argument] if a part of the same name is already registered.
     - [needed ()] tells whether a consumer of the part is enabled in the
       current analysis. While it holds, a hit needs the part. It must not
       change during an analysis.
@@ -44,7 +46,9 @@ type 'a t
       of {!Cvalue_callbacks}, after the call hooks with [`Reuse] and the
       check of the preconditions, and before the caller uses the states at
       the end of the call. The collector of block accesses does not observe
-      it.
+      it. It must return normally: an exception that it raises stops the
+      analysis, after the writes that this function and the restoration of
+      the parts registered before it have made, which are not undone.
 
     Parts are registered when their owner is loaded, before any analysis. *)
 val register :

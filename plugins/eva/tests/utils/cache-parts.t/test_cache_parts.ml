@@ -377,6 +377,20 @@ let project () =
   Eva.Cvalue_callbacks.register_call_results_hook ~cache_protocol:true give;
   print_parts (first_analysis ())
 
+(* The entries produced in the current project, supplied to a copy of it:
+   the functions of the copy are other values, and the supply refuses the
+   entries. *)
+let copied () =
+  let produced = first_analysis () in
+  let copy = Project.create_by_copy ~last:false "copied" in
+  let supply () =
+    match List.iter (fun p -> ignore (Supplied.supply_produced p)) produced
+    with
+    | () -> Format.printf "supplied to the copy@."
+    | exception Invalid_argument msg -> Format.printf "refused: %s@." msg
+  in
+  Project.on copy supply ()
+
 let () =
   match Sys.getenv_opt "EVA_TEST_CACHE_PARTS" with
   | Some "from" -> Boot.Main.extend from
@@ -385,6 +399,7 @@ let () =
   | Some "verify" -> Boot.Main.extend verify
   | Some "readers" -> Boot.Main.extend readers
   | Some "project" -> Boot.Main.extend project
+  | Some "copied" -> Boot.Main.extend copied
   | Some "api" -> Boot.Main.extend api
   | Some "then" -> Boot.Main.extend (after_hits ignore)
   | Some "save" -> Boot.Main.extend (after_hits save)

@@ -300,3 +300,11 @@ current, and for the callstack of its caller.
   entry of narrow_and_write: parts [inout]
   entry of checked: parts [inout]
   entry of checked: parts [inout]
+
+Entries are supplied to the project in which they were produced. A copy of
+this project, made by Project.create_by_copy, has other values for its
+functions, and the supply refuses the entries.
+
+  $ EVA_TEST_CACHE_PARTS=copied frama-c -no-autoload-plugins -load-module eva,from,inout,test_cache_parts.cmxs parts.c > copied.log 2>&1
+  $ grep -E 'supplied|refused|internal error' copied.log
+  refused: Supplied_entries: the function copy of the entry is not a function of the current project; entries are supplied to the project whose AST they were made on
