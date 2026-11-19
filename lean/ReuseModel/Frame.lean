@@ -376,6 +376,153 @@ theorem frame_no_sweep_rewrite {t : Subject} {σ : State M} {b : Block}
   exact (applySweeps_eq_iff _ _).2 fun target ht hload =>
     sweep_target_fresh hpre ht (hptr target hload)
 
+
+-- While an initially absent block is live, it must belong to an active
+-- lexical or call frame. A fault has no continuation to unwind.
+private def AbsentOutsideLocals (b : Block) (c : Config M) : Prop :=
+  match c with
+  | .fault .. => True
+  | _ => b ∉ c.cont.frameBlocks → load c.mem b = none
+
+private theorem createAll_other {m : M} {b : Block} (vs : List Value)
+    (hb : b ∉ (createAll m vs).1) : load (createAll m vs).2 b = load m b := by
+  induction vs generalizing m with
+  | nil => rfl
+  | cons v vs ih =>
+    simp only [createAll, List.mem_cons, not_or] at hb
+    exact (ih hb.2).trans (load_create_other m v b hb.1)
+
+private theorem store_preserves_absence {m m' : M} {b dst : Block} {v : Value}
+    (hs : store m dst v = some m') (h : load m b = none) : load m' b = none := by
+  by_cases he : b = dst
+  · subst dst
+    have hok := store_ok_iff (m := m) (b := b) (v := v)
+    rw [hs, h] at hok
+    contradiction
+  · rw [load_store_other hs he, h]
+
+private theorem releaseAll_absence {m : M} {b : Block} (bs : List Block)
+    (h : b ∈ bs ∨ load m b = none) : load (releaseAll m bs) b = none := by
+  induction bs generalizing m with
+  | nil => simpa [releaseAll] using h
+  | cons a bs ih =>
+    change load (releaseAll (release m a) bs) b = none
+    by_cases he : b = a
+    · subst a
+      exact ih (Or.inr (load_release_same _ _))
+    · apply ih
+      simpa [he, Ne.symm he, load_release_other m a b he] using h
+
+private theorem sweepAll_absence {m : M} {b : Block} (bs : List Block)
+    (h : b ∈ bs ∨ load m b = none) : load (sweepAll m bs) b = none := by
+  induction bs generalizing m with
+  | nil => simpa [sweepAll] using h
+  | cons a bs ih =>
+    change load (sweepAll (sweep m a) bs) b = none
+    by_cases he : b = a
+    · subst a
+      exact ih (Or.inr (load_sweep_same _ _))
+    · apply ih
+      simpa [he, Ne.symm he, load_sweep_other m a b he] using h
+
+private theorem absence_at_pop {m : M} {b : Block} {bs : List Block} {k : Cont}
+    (h : b ∉ bs ++ k.frameBlocks → load m b = none)
+    (hk : b ∉ k.frameBlocks) : b ∈ bs ∨ load m b = none := by
+  by_cases hb : b ∈ bs
+  · exact Or.inl hb
+  · exact Or.inr (h (by simp [hb, hk]))
+
+private theorem stmt_preserves_absence {p : Program} {s : Stmt} {k : Cont}
+    {env : Env} {m : M} {b : Block} (h : b ∉ k.frameBlocks → load m b = none) :
+    AbsentOutsideLocals b (stepStmt p s k env m).2 := by
+  cases s with
+  | skip | seq | assert => exact h
+  | assign l lv e =>
+    simp only [stepStmt]
+    split
+    · next evs m' hs =>
+      obtain ⟨dst, v, hstore, -⟩ := execAssign_ok hs
+      exact fun hb => store_preserves_absence hstore (h hb)
+    · trivial
+  | ite =>
+    simp only [stepStmt]
+    split
+    · exact h
+    · trivial
+  | loop =>
+    simp only [stepStmt]
+    split
+    · split <;> exact h
+    · trivial
+  | ret l e =>
+    cases e with
+    | none => exact h
+    | some e =>
+      simp only [stepStmt]
+      split
+      · exact h
+      · trivial
+  | scope l locals body =>
+    intro hb
+    simp only [stepStmt, Config.cont, Cont.frameBlocks, List.mem_append, not_or] at hb
+    exact (createAll_other _ hb.1).trans (h hb.2)
+  | call l dst f args =>
+    simp only [stepStmt]
+    split
+    · next evs ce hc =>
+      obtain ⟨vs, hcreate⟩ := execCall_ok hc
+      intro hb
+      simp only [Config.cont, Cont.frameBlocks, List.mem_append, not_or] at hb
+      have he : ∀ r : List Block × M, createAll m vs = r →
+          b ∉ r.1 → load r.2 b = load m b := by
+        rintro _ rfl
+        exact createAll_other vs
+      exact (he _ hcreate hb.1).trans (h hb.2)
+    · trivial
+
+private theorem step_preserves_absence {p : Program} {c c' : Config M}
+    {evs : List Event} {b : Block} (hs : step p c = some (evs, c'))
+    (h : AbsentOutsideLocals b c) : AbsentOutsideLocals b c' := by
+  cases c with
+  | run s k env m =>
+    obtain ⟨rfl, rfl⟩ := Prod.mk.inj (Option.some.inj hs)
+    exact stmt_preserves_absence h
+  | next k env m =>
+    obtain ⟨rfl, rfl⟩ := Prod.mk.inj (Option.some.inj hs)
+    cases k with
+    | stop => exact fun _ => h (by simp [Config.cont, Cont.frameBlocks])
+    | scope bs _ k => exact fun hk => sweepAll_absence bs (absence_at_pop h hk)
+    | _ => exact h
+  | ret v k m =>
+    obtain ⟨rfl, rfl⟩ := Prod.mk.inj (Option.some.inj hs)
+    cases k with
+    | stop => exact fun _ => h (by simp [Config.cont, Cont.frameBlocks])
+    | scope bs _ k => exact fun hk => sweepAll_absence bs (absence_at_pop h hk)
+    | call site dst env bs k =>
+      dsimp only [stepRet]
+      split
+      · exact fun hk => releaseAll_absence bs (absence_at_pop h hk)
+      · trivial
+      · split
+        · next m' hstore =>
+          exact fun hk => store_preserves_absence hstore
+            (releaseAll_absence bs (absence_at_pop h hk))
+        · trivial
+    | _ => exact h
+  | done | fault => contradiction
+
+/-- A block absent at entry is absent on normal exit. Stores cannot create
+bindings and every local created inside the statement has been released. -/
+theorem exit_preserves_absence {t : Subject} {σ : State M} {b : Block}
+    (hb : load σ.mem b = none) {evs : List Event} {o : Outcome} {out : M}
+    (hp : Prefix t σ evs (.done o out)) : load out b = none := by
+  have preserve {c c' : Config M} {evs : List Event} (h : Steps t.prog c evs c') :
+      AbsentOutsideLocals b c → AbsentOutsideLocals b c' := by
+    induction h with
+    | refl => exact id
+    | head hs _ ih => exact fun h => ih (step_preserves_absence hs h)
+  exact preserve hp (fun _ => hb) (by simp [Config.cont, Cont.frameBlocks])
+
 end
 
 end ReuseModel
