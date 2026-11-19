@@ -159,8 +159,15 @@ val supply :
     the activation of the message categories are not checked. The parts are
     restored at a hit as given; an entry supplied by {!supply} has no part
     of another module. The producer stores bodies that call other functions,
-    and the lookup rejects their entries with [`Nested_delivery]: the check
-    of [supply] on the calls of the body does not apply here.
+    and the lookup rejects their entries, whose key matches, with
+    [`Missing_part] when a part whose consumer is enabled is missing, which
+    is the case of the parts of From and Inout for a call that made a call;
+    otherwise with [`Missing_points] when the call needs the points of the
+    Reach part and the entry has none; otherwise with [`Nested_delivery],
+    the parts of a call whose calls were on paths that it did not take
+    included. Direct calls to the display directives [Frama_C_show_each*]
+    and [Frama_C_domain_show_each*] are not calls there. The check of
+    [supply] on the calls of the body does not apply here.
 
     The fixture also owes that the options of Eva that decide which states
     are saved at the statements ([-eva-results],
@@ -175,6 +182,17 @@ val supply :
     supplied to a later analysis is not checked. Issue #59, which saves the
     options of the producing analysis with its entries, must enforce this
     equality.
+
+    For the parts, the fixture owes two more premises, which nothing
+    checks. The analysis that produced the entry and the analysis that
+    uses it start from the same initial state: the inputs that Inout
+    computes for the label [Init] of an annotation are those of the initial
+    state of the producing analysis. And the entry was not produced in the
+    rest of an analysis after an analysis started by a callback during it
+    ended: the results of the analysis are then available, and a part
+    computed from them is not covered for another call. In the rest of
+    that analysis, every candidate is rejected ([`Analysis_reset]).
+
     Raises [Invalid_argument] if the function of the entry is not a function
     of the current project: an entry made in a project is not supplied to a
     copy of it made by [Project.create_by_copy], whose functions are other
