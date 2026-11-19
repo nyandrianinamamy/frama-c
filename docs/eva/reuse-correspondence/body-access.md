@@ -364,14 +364,18 @@ annotations in `Partition`.
 | inactive behavior at level 6 (`Transfer_logic.process_inactive_behavior`) | yes, if level 6 is shown | side-table if shown | execution: `inactive` at `-eva-verbose 6` |
 | postconditions not evaluated at level 6 (`Transfer_logic.process_inactive_postconds`) | yes, if level 6 is shown | side-table if shown | source inspection |
 | invalid `calls` annotation (`Transfer_logic.check_calls_annotation`) | yes, at an indirect call | side-table | source inspection |
-| status of a clause (`Transfer_logic.emit_contract_status`, `Transfer_logic.emit_code_annot_status`) | yes | status join, admitted | execution: every fixture with a status |
+| status of a clause (`Transfer_logic.emit_contract_status`, `Transfer_logic.emit_code_annot_status`) | yes | status join, admitted; the message is in the Safety part, printed again at a hit | execution: every fixture with a status; `cache-safety.t` for the message |
 | final status (`Eval_annots.mark_green_and_red`) | no, after the analysis | none | source inspection |
 | assigns and from clauses (`Logic_inout.eval_tlval_as_zone`, `Logic_inout.check_fct_assigns`) | no | none | source inspection |
 
 A level-6 result reads the history only when that level is shown, so the
 refusal is conditional on it. A status message accompanies a status
-emission that the observation records as `Statuses`. A hit delivers the
-status but does not print the message again
+emission that the observation records as `Statuses`. The message is part of
+the Safety part of the body: a hit prints it again through the logger, at
+its position and with the callstack of the hit, so that the action of its
+category applies. The logger removes it as a duplicate when it has printed
+the same text, of the same kind, at the same position before, as it does
+for an analysed call
 ([Safety at a hit](safety.md#a-hit-delivers-the-safety-part-as-recorded-joins)). `Logic_inout` runs in the callwise
 hooks of From and Inout, with recording suspended, or after the analysis;
 Mthread, which also calls it, refuses while enabled.
@@ -456,6 +460,10 @@ notification. The admitted per-event accesses are Eva's `partition` and
 `locals-escaping` warning (a stable event already in the once history on
 a matching sweep hit). See [ordered effects](collector-effects.md#ordered-and-opaque-effects)
 for the conditions, callback rules and remaining obligations.
+A hit prints the message of a status again and none of the admitted
+messages. With the category of an admitted message set to abort at the hit
+and not at the producing call, the state at the end of the call differs
+([The settings that decide the alarms and messages are those of each hit](safety.md#the-settings-that-decide-the-alarms-and-messages-are-those-of-each-hit)).
 
 A designated range covers the
 whole block when the offsets are unbounded, and every cell from the least
