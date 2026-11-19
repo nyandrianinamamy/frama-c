@@ -109,7 +109,8 @@ let pretty_callstack fmt (cs : Callstack.t) =
   Format.fprintf fmt "%a@]" Kernel_function.pretty cs.entry_point
 
 (* Ends a message with the callstack [cs] when the category [callstacks] is
-   enabled, in place of the callstack of [~stacktrace:true]. *)
+   enabled, in place of the callstack of [~stacktrace:true]. [report] calls
+   it only when the category [cache] is enabled too. *)
 let append_callstack cs fmt =
   if Self.is_message_category_enabled Log_key.callstacks then
     Format.fprintf fmt "@\nstack: @[<hv>%a@]" pretty_callstack cs
@@ -118,6 +119,7 @@ let append_callstack cs fmt =
    It is called while [call.callstack] is the current callstack, which the
    message ends with when the category [callstacks] is enabled. *)
 let report ?collector ?produced call ~lookup ~execution ~storage =
+  let with_callstack = Self.is_message_category_enabled mkey in
   let show_produced =
     Option.is_some produced && Self.is_message_category_enabled producer_mkey
   in
@@ -147,7 +149,9 @@ let report ?collector ?produced call ~lookup ~execution ~storage =
         pretty_produced
         (if show_produced then produced else None)
     in
-    let append = append_callstack call.callstack in
+    let append =
+      if with_callstack then append_callstack call.callstack else ignore
+    in
     match Callstack.top_callsite call.callstack with
     | Kstmt stmt ->
       let loc = Cil_datatype.Stmt.loc stmt in

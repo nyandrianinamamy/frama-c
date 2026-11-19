@@ -51,3 +51,13 @@ statement number. With caching disabled, the builtins are applied as often.
   $ grep '^builtin-applied-' off.csv
   builtin-applied-free	free		2
   builtin-applied-malloc	malloc		2
+
+The callstack ends the messages of the entry producer only when the category
+cache is enabled too.
+  $ frama-c -no-autoload-plugins -load-module eva,inout,scope -eva call-records.c -eva-no-memexec -eva-msg-key=-cache,callstacks,cache-producer > producer.log 2>&1
+  $ grep -c 'eva:cache-producer' producer.log
+  9
+  $ awk '/^\[/ { p = /^\[eva:cache-producer\]/ } p' producer.log > producer.txt
+  $ grep -c 'stack:\|(stmt' producer.txt
+  0
+  [1]
