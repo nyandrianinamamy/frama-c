@@ -152,6 +152,7 @@ analysis of the same body reads the same blocks:
 | From | call: dependencies of the callee at the call site | no state read | `Top`; no part is given for a body with a call |
 | From | reachability of a statement (`Eva.Results.is_reachable`) | no state read: while the analysis runs, its results are not available and every statement is reachable | none; see [The kept part covers the skipped computation](#the-kept-part-covers-the-skipped-computation) |
 | From | callbacks `Record_From_Callbacks` at the end of the call | not part of the value | none: no module of the tree registers one, and a hit does not run them |
+| From, Inout | whether the results of the body are saved (`Eva.Analysis.save_results`, option `-eva-no-results-function`) | no state read: an option, the same for every call of an analysis | none; when they are not saved, the part is `Top` and reads nothing |
 | From | assigns and from clauses under `-from-verify-assigns` | not part of the value | none: the restoration checks them again in the state at the start of the call of the hit |
 | Inout | assignment, initializer, condition, returned expression (`expr_deps`, `add_out`) | yes | the inputs |
 | Inout | assertion and loop invariant (`predicate_deps` with the state at the statement) | no when tagged `no_eva`, which Eva skips; otherwise Eva reads its own locations, not checked to be the same | the logic inputs; `Top` when `predicate_deps` gives none |
@@ -469,17 +470,19 @@ in the body takes this state as fixed for the analysis
 
 **Evidence (executed).** Scenario `history`, on
 [`history.c`](../../../plugins/eva/tests/utils/cache-parts.t/history.c),
-with `-calldeps`: `leaf(c)` asserts `\at(a, Pre) >= 0` and assigns `x` and
-`y` under `if (c)`; it is called with 0, 1 and 0. At the end of each call
-of the analysis with caching disabled, the test module asks the results
-what From and Inout ask: for the first and third calls, the 2 statements
-that the call does not reach are reachable in the results; for every call,
-the state at the start of `leaf` is `Top`. The first entry is supplied to a
-second analysis, in which the first and third calls hit: the third call
-restores the parts computed before the second call reached the branch. The
-dependencies and the inputs and outputs at the three call sites are those
-of caching disabled. If the results became available during the analysis,
-the scenario would fail on the answers. In the scenario `visits`, the body
+with `-calldeps`: `leaf(c)` asserts `\at(a, Pre) >= 0 && \at(a, Init) >=
+0` and assigns `x` and `y` under `if (c)`; it is called with 0, 1 and 0. At
+the end of each call of the analysis with caching disabled, the test module
+asks the results what From and Inout ask: for the first and third calls,
+the 2 statements that the call does not reach are reachable in the
+results; for every call, the state at the start of `leaf` is `Top`. The
+entries of `leaf` have `[from, inout]`: the label `Init` has a state
+during the analysis, since a label without one gives no logic inputs
+(`Eval_terms.predicate_deps`) and withholds the part. The first entry is
+supplied to a second analysis, in which the first and third calls hit: the
+third call restores the parts computed before the second call reached the
+branch. The dependencies and the inputs and outputs at the three call
+sites are those of caching disabled. In the scenario `visits`, the body
 of `choose` is visited from three call sites and the third hit uses an
 entry produced before the second visit reached the other branch: the
 dependencies equal those of caching disabled and of memexec. The scenario
