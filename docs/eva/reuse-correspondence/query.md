@@ -518,123 +518,170 @@ listed as left out in [`lean/README.md`](../../../lean/README.md#what-the-model-
 
 ## Mutation evidence
 
-Each change below was applied alone to a copy of the
-[checked tree](#evidence-for-these-entries), then `lake build --wfail` was
-run. Each run exited 1. The column "Fails in" names the first declaration
-whose check failed.
+Each change below was applied alone, as a text substitution, to a copy of
+the [checked tree](#evidence-for-these-entries), then `lake build --wfail`
+was run. Each run exited 1; a control run with no change exited 0. The
+column "Fails in" names the declarations with errors in the first module
+that failed.
 
-**Hypotheses of `query_sound` and `innerPartSound_of_key`.** Removing a
-premise from the statement makes the proof fail where it refers to the
-premise. These runs show that the proof uses each premise, not that the
-premise is necessary. The fixture changes in the last table show
+**Hypotheses of `query_sound`, `answer_sound` and `innerPartSound_of_key`.**
+Removing a premise from the statement makes the proof fail where it refers
+to the premise. These runs show that the proof uses each premise, not that
+the premise is necessary. The fixture changes in the last tables show
 necessity where they make a premise false.
 
 | Scratch change | Fails in |
 |---|---|
-| Drop the selection premise | `query_sound` (selection of the line) |
-| Drop `ProducerSound` | `query_sound` (reached statement) |
-| Drop `Coverage` | `query_sound` (replay and frame rule) |
-| Drop `KeyCovers` | `query_sound` (replay) |
-| Drop `InnerPartSound` | `query_sound` (key, updated and no-write rules) |
-| Drop the issuance of bound blocks | `query_sound` (frame and no-write rules) |
-| Drop membership of the member in the call state | `query_sound` (frame and no-write rules) |
-| Drop `Matches` | `query_sound` (replay) |
-| Drop the visit | `query_sound` |
-| Drop the `state` field of `InnerPartSound` | `innerPartSound_of_key`, `query_sound` (key and updated rules) |
-| Drop the `mayWrite` field | `innerPartSound_of_key`, `query_sound` (no-write rule) |
-| Drop the `updated` field | `innerPartSound_of_key`, `query_sound` (updated rule) |
-| Drop `Coverage` from `innerPartSound_of_key` | `innerPartSound_of_key` (possible writes) |
-| Drop the states on the key from `innerPartSound_of_key` | `innerPartSound_of_key` (the `state` field) |
-| `innerPartSound_of_key` with no possible write | `innerPartSound_of_key` (a write of the prefix is outside the empty set) |
+| `query_sound` without `ProducerSound` | `query_sound` |
+| `query_sound` without `Coverage` | `query_sound` |
+| `query_sound` without `KeyCovers` | `query_sound` |
+| `query_sound` without `InnerPartSound` | `query_sound` |
+| `query_sound` without the issuance of bound blocks | `query_sound` |
+| `query_sound` without the membership of the line in the log | `query_sound` |
+| `query_sound` without the suffix premise | `query_sound` |
+| `query_sound` without the membership of the member in the call state | `query_sound` |
+| `query_sound` without `Matches` | `query_sound` |
+| `query_sound` without the visit | `query_sound` |
+| `answer_sound` without `ProducerSound` | `answer_sound`, `query_sound` |
+| `answer_sound` without `Coverage` | `answer_sound`, `query_sound` |
+| `answer_sound` without `KeyCovers` | `answer_sound`, `query_sound` |
+| `answer_sound` without `InnerPartSound` | `answer_sound`, `query_sound` |
+| `answer_sound` without the issuance of bound blocks | `answer_sound`, `query_sound` |
+| `answer_sound` without the membership of the member in the call state | `answer_sound`, `query_sound` |
+| `answer_sound` without `Matches` | `answer_sound`, `query_sound` |
+| `answer_sound` without the visit | `answer_sound`, `query_sound` |
+| `InnerPartSound` without its `state` field | `innerPartSound_of_key`, `answer_sound` |
+| `InnerPartSound` without its `mayWrite` field | `innerPartSound_of_key`, `answer_sound` |
+| `InnerPartSound` without its `updated` field | `innerPartSound_of_key`, `answer_sound` |
+| `innerPartSound_of_key` without `Coverage` | `innerPartSound_of_key` |
+| `innerPartSound_of_key` without the states on the key | `innerPartSound_of_key` |
+| `innerPartSound_of_key` with no possible write | `innerPartSound_of_key` |
 
-Some fixture changes in the last table make a premise false for the
+Some fixture changes in the last tables make a premise false for the
 fixture, and the proof of that premise fails: the issuance of bound blocks
-(the line binds block 3), coverage (no writes in the footprint), key
-coverage (empty key), producer soundness (`L21` not reached), and each
-field of `InnerPartSound`: `state` (inner state before the write with
-`r = 5`), `mayWrite` (no possible write after the write) and `updated`
-(`r` updated before the write).
+(the line binds block 3), coverage (no writes in the footprint, for `f` and
+for `h`), key coverage (empty key), producer soundness (`L21` not reached,
+for `f` and for `h`), and each field of `InnerPartSound`: `state` (inner
+state before the write with `r = 5`), `mayWrite` (no possible write after
+the write) and `updated` (`r` updated before the write). For the key-only
+inner part, a state that does not cover the producing visits on the key
+makes `key_inner_sound` fail, and a state recording `x = 1` makes the
+counter-example `key_only_needs_states` fail.
 
-**Rules and definitions.** For these changes there are two runs. The first
-builds the tree with the change. The second also replaces the proofs of
-`query_sound`, `atPoint_transfer` and `reach_of_atPoint` with `sorry`, builds
-`ReuseModel`, then checks `Checks/Query.lean`. In the second run the
-generic theorem no longer constrains the rules, so a failure there comes
-from the fixtures: an exact answer that changed, or a negative check that
-the changed answer would contradict.
+**Rules, join and definitions.** For these changes there are two runs. The
+first builds the tree with the change. The second also replaces the proofs
+of `answer_sound`, `query_sound`, `atPoint_transfer`, `reach_of_atPoint`,
+`mem_query`, `query_some`, `HitLine.answer_isSome` and the three lemmas on
+`joinAnswers` with `sorry`, builds `ReuseModel` with `Checks.Entries` and
+`Checks.Sweeps`, then checks `Checks/Query.lean`. A control run of the
+second kind with no change succeeded. In the second run the generic
+theorems no longer constrain the rules or the join, so a failure there
+comes from the fixtures: an exact answer that changed, or a negative check
+that the changed answer would contradict.
 
 | Scratch change | Build with the change | Fixture checks with generic proofs replaced by `sorry` |
 |---|---|---|
-| Key rule for every block | `query_sound` | `two_call_query`, `overwritten_query`, `same_callstack_first_line`, `local_query`: a block outside the key takes the stored value, which the negative checks show misses the member's content |
-| Key rule answers the value at the call | `query_sound` | `key_and_disabled_query` |
-| Key rule answers top | `query_sound` | `key_and_disabled_query` |
-| Frame rule without the condition on writes | `query_sound` | `overwritten_query`: `r` after the write answers `{5}`, which misses 0 |
-| Frame rule without the condition that the block is bound | `query_sound` | `local_query`: `t` answers no value, which misses 7 |
-| Frame rule without the marks of the sweeps | `query_sound` | `two_call_query`, `same_callstack_first_line`; `frame_needs_sweeps` shows that the value at entry misses the content |
-| Frame rule answers the stored inner value | `query_sound` | `two_call_query`, `same_callstack_first_line`: `g` on `[3, 16]` answers `{4}`, which misses 9 |
-| Frame rule answers top | `query_sound` | `two_call_query`, `same_callstack_first_line` |
-| No-write rule without the may-write condition | `query_sound` | `overwritten_query`: `r` after the write answers `{5}`, which misses 0 |
-| No-write rule without the condition that the block is bound | `query_sound` | `local_query`: `t` answers no value, which misses 7 |
-| No-write rule answers the stored inner value | `query_sound` | `overwritten_query`: `r` before the write answers `{3}`, which misses 5 |
-| No-write rule answers top | `query_sound` | `overwritten_query` |
-| Updated rule for every block | `query_sound` | `local_query` |
-| Updated rule answers the value at the call | `query_sound` | `overwritten_query`: `r` after the write answers `{5}`, which misses 0 |
-| Updated rule answers top | `query_sound` | `overwritten_query` |
-| Last rule answers bottom instead of top | `query_sound` | `local_query`: `t` answers bottom at a visit holding 7 |
-| Disabled reconstruction answers the stored inner value | `query_sound` | `key_and_disabled_query` |
-| Select the line by prefix instead of suffix of the callstack | `query_sound` | `two_call_query`, `overwritten_query`, `key_and_disabled_query`, `same_callstack_first_line` |
-| Keep the full callstack instead of the point below the hit | `query_at_line` | `query_at_line`, `overwritten_query`, `key_and_disabled_query`, `local_at_line` |
-| Drop the condition that the configurations between a statement and its completion are part of its execution | `atPoint_transfer` | `after_ends_at_completion`: the completion of B becomes a visit after A |
-| Drop the callstack from a visit after a statement | `query_member_visits` (its proof term) | `query_point_callstack`: the point after `r = 0;` with an empty callstack now has a visit; `query_member_visits` and `after_ends_at_completion` fail by their proof terms |
-| Drop the callstack from a visit before a statement | `query_member_visits` (its proof term) | `query_point_callstack`: the point with an empty callstack now has a visit; `query_member_visits`, `local_at_line` and `frame_needs_sweeps` fail by their proof terms |
+| Key rule for every block | `answer_sound` | `two_call_query`, `overwritten_query`, `same_callstack_join`, `nested_suffix_join`, `three_lines_join`, `key_only_answers`, `local_query`: a block outside the key takes the stored value, which the negative checks show misses the content of the member |
+| Key rule answers the value at the call | `answer_sound` | `key_and_disabled_query`, `key_only_answers` |
+| Key rule answers top | `answer_sound` | `key_and_disabled_query`, `key_only_answers` |
+| Frame rule without the condition on writes | `answer_sound` | `overwritten_query`, `key_only_answers`: `r` after the write answers `{5}`, which misses 0 |
+| Frame rule without the condition that the block is bound | `answer_sound` | `local_query`: `t` answers no value, which misses 7 |
+| Frame rule without the marks of the sweeps | `answer_sound` | `two_call_query`, `same_callstack_join`, `nested_suffix_join`, `three_lines_join`; `frame_needs_sweeps` shows that the value at entry misses the content |
+| Frame rule answers the stored inner value | `answer_sound` | `two_call_query`, `same_callstack_join`, `nested_suffix_join`, `three_lines_join`: `g` on `[3, 16]` answers `{4}`, which misses 9 |
+| Frame rule answers top | `answer_sound` | `two_call_query`, `same_callstack_join`, `nested_suffix_join`, `three_lines_join` |
+| No-write rule without the may-write condition | `answer_sound` | `overwritten_query`, `key_only_answers`: `r` after the write answers `{5}`, which misses 0 |
+| No-write rule without the condition that the block is bound | `answer_sound` | `local_query`: `t` answers no value, which misses 7 |
+| No-write rule answers the stored inner value | `answer_sound` | `overwritten_query`: `r` before the write answers `{3}`, which misses 5 |
+| No-write rule answers top | `answer_sound` | `overwritten_query` |
+| Updated rule for every block | `answer_sound` | `key_only_answers`, `local_query` |
+| Updated rule answers the value at the call | `answer_sound` | `overwritten_query`: `r` after the write answers `{5}`, which misses 0 |
+| Updated rule answers top | `answer_sound` | `overwritten_query` |
+| Last rule answers bottom instead of top | `answer_sound` | `key_only_answers`, `local_query`: `t` answers bottom at a visit holding 7 |
+| Disabled reconstruction answers the stored inner value | `answer_sound` | `key_and_disabled_query`, `no_state_queries` |
+| Select the lines by prefix instead of suffix of the callstack | `mem_query`, `query_some` | `two_call_query`, `overwritten_query`, `key_and_disabled_query`, `same_callstack_join`, `nested_suffix_join`, `three_lines_join`, `key_only_answers` |
+| Keep the full callstack instead of the point below the hit | `mem_query`, `query_some` | `overwritten_query`, `key_and_disabled_query`, `key_only_answers` |
+| Drop the condition that the configurations between a statement and its completion are part of its execution | `atPoint_transfer` | `producer_point`, `query_member_visits`, `query_point_callstack`, `after_ends_at_completion`: the completion of B becomes a visit after A |
+| Drop the callstack from a visit after a statement | `atPoint_transfer` | `producer_point`, `query_member_visits`, `query_point_callstack`, `after_ends_at_completion`: the point after `r = 0;` with an empty callstack now has a visit |
+| Drop the callstack from a visit before a statement | `atPoint_transfer`, `reach_of_atPoint` | `producer_point`, `query_member_visits`, `query_point_callstack`, `callee_member`, `local_at_line`, `frame_needs_sweeps`: the point before `r = 0;` with an empty callstack now has a visit |
+| Join: the first line that applies only | `joinAnswers_eq_none`, `mem_joinAnswers`, `joinAnswers_isSome` | `same_callstack_join`, `nested_suffix_join`, `three_lines_join`: on `[3, 16]`, `g` answers `{4}`, which misses 9 |
+| Join: the last line that applies only | `joinAnswers_eq_none`, `mem_joinAnswers`, `joinAnswers_isSome` | `same_callstack_join`, `nested_suffix_join`, `three_lines_join`: on `[3, 16]`, `g` answers `{9}`, which misses 4 |
+| Join: the first two lines that apply only | `joinAnswers_eq_none`, `mem_joinAnswers`, `joinAnswers_isSome` | `three_lines_join`: the third line, with `g = 7`, is left out |
+| No state when the log has more than two lines | `mem_query`, `query_some` | `same_callstack_join`, `nested_suffix_join`, `three_lines_join`: no state on the logs of three lines |
+| No state when three or more lines apply | `mem_query`, `query_some` | `three_lines_join`: no state where three lines apply |
+| The lines with the longest callstack only | `mem_query`, `query_some` | `nested_suffix_join`, `three_lines_join`: only the line of `h` answers, and 9 is missed |
+| The lines with the shortest callstack only | `mem_query`, `query_some` | `nested_suffix_join`, `three_lines_join`: only the lines of `f` answer, and 4 is missed |
+| Join of two sets answers top | `mem_joinAnswers` | `same_callstack_join`, `nested_suffix_join`, `three_lines_join` |
+| Join of two sets is their intersection | `mem_joinAnswers` | `same_callstack_join`, `nested_suffix_join`, `three_lines_join`: the intersection of `{4}` and `{9}` is empty and misses both |
+| A set and no state join to no state | `joinAnswers_eq_none`, `mem_joinAnswers`, `joinAnswers_isSome` | none: no fixture joins a set with no state, which the model cannot produce |
+| Two answers of no state join to top | `mem_joinAnswers` | `no_state_queries`: a disabled query where two lines apply answers top |
+| The empty list joins to top | `mem_joinAnswers` | `no_state_queries`: a query where no line applies answers top |
 
 Two unsound changes are detected by the fixtures through their exact
 answers only, not by a contradiction: the key rule with the value at the
 call, and the updated rule for every block. The first fails when a key
 block is written before the point, as an exit write outside the sure
 writes can be; the second when a block is written on some executions only.
-Neither fixture has such a block. The changes that answer top are sound
-and lose precision; the fixtures detect them by their exact answers.
+No fixture has such a block. The changes that answer top, the join of two
+sets among them, are sound and lose precision; the fixtures detect them by
+their exact answers. The join of a set with no state is not reached by any fixture:
+the model cannot produce it, since the flag that disables reconstruction is
+common to the lines; the lemmas on `joinAnswers` fail with that change.
 
 **Fixture.** Each change below made `lake build --wfail` exit 1, with
 errors in the listed declarations of `Checks/Query.lean`. The private
-lemmas `producer_trace`, `producer_after_write`, `query_line_premises`,
-`valueOf_call` and `valueOf_inner` support the public checks.
+lemmas `producer_trace`, `producer_after_write`, `producer_point`,
+`callState_issued`, `callee_trace`, `valueOf_call` and `valueOf_inner`
+support the public checks.
 
 | Scratch change | Fails in |
 |---|---|
-| `x` holds 2 in the member memory | the `example` on names, `callState_eq`, `callState_queryMem`, `two_call_sites`, `producer_trace`, `valueOf_inner` |
-| Swap the cells of `g` and `r` in the member memory | the `example` on names, `callState_eq`, `callState_queryMem`, `two_call_sites`, `producer_trace`, `query_member_visits`, `valueOf_call`, `valueOf_inner`, `two_call_query`, `overwritten_query` |
-| Bind `g` to block 2 | the `example` on names, `two_call_sites` |
-| Bind `r` to block 1 | the `example` on names, `two_call_sites`, `producer_trace`, `producer_after_write`, `query_member_visits`, `overwritten_query` |
+| `x` holds 2 in the member memory | the `example` on names, `callState_eq`, `callState_queryMem`, `two_call_sites`, `producer_trace`, `valueOf_inner`, `loop_visits`, `key_only_needs_states`, `key_only_answers` |
+| Swap the cells of `g` and `r` in the member memory | the `example` on names, `callState_eq`, `callState_queryMem`, `two_call_sites`, `producer_trace`, `query_member_visits`, `valueOf_call`, `valueOf_inner`, `two_call_query`, `overwritten_query`, `loop_visits`, `same_callstack_join`, `callee_member`, `nested_suffix_join`, `key_only_answers` |
+| Bind `g` to block 2 | the `example` on names, `two_call_sites`, `loop_visits` |
+| Bind `r` to block 1 | the `example` on names, `two_call_sites`, `producer_trace`, `producer_after_write`, `query_member_visits`, `overwritten_query`, `loop_visits`, `callee_trace` |
 | `main` sets `g = 8` | `two_call_sites` |
 | `main` sets `r = 6` | `two_call_sites` |
 | Swap the call states of the two lines | `two_call_query`, `overwritten_query`, `key_and_disabled_query` |
 | Second line with `g = 4` | `two_call_query`, `overwritten_query`, `key_and_disabled_query` |
-| Call state with next fresh block 4 | `callState_eq`, `callState_queryMem`, `two_call_sites`, `query_line_premises` |
-| Line binds block 3 | `query_line_premises` |
-| Empty key | `query_entry_premises`, `query_member_matches`, `key_and_disabled_query` |
-| No writes in the footprint | `query_entry_premises`, `query_member_matches`, `overwritten_query` |
+| Call state with next fresh block 4 | `callState_eq`, `callState_queryMem`, `two_call_sites`, `callState_issued`, `loop_visits` |
+| Line of `f` binds block 3 | `queryLine_premises` |
+| Empty key | `query_entry_premises`, `query_member_matches`, `key_and_disabled_query`, `key_only_needs_states`, `key_only_answers` |
+| No writes in the footprint | `query_entry_premises`, `query_member_matches`, `overwritten_query`, `key_only_answers` |
 | `L21` not reached | `query_entry_premises` |
-| Inner state before the write with `r = 5` | `producer_trace`, `valueOf_inner` |
+| Inner state before the write with `r = 5` | `producer_trace`, `valueOf_inner`, `key_only_answers` |
 | Inner state after the write with `r = 5` | `producer_trace`, `valueOf_inner` |
 | `r` possibly written before the write | `overwritten_query` |
 | No possible write after the write | `query_inner_sound`, `overwritten_query` |
-| `r` not updated after the write | `query_inner_sound`, `overwritten_query` |
+| `r` not updated after the write | `query_inner_sound`, `overwritten_query`, `key_only_answers` |
 | `r` updated before the write | `query_inner_sound` |
 | Line of the local binds block 1 | `local_at_line`, `local_query` |
 | `t` initialised to 8 | the second `example` on names, `local_query` |
 | Member of the local with two cells | `local_at_line`, `local_query` |
 | Bind `y` to block 5 | the second `example` on names |
+| `loopMain` sets `g = 8` | `loop_visits` |
+| Loop condition false | `loop_visits` |
+| `loopLog`: first line on `[16]` with `g = 9` | `same_callstack_join` |
+| `loopLog`: first line on `[16]` moved to `[11]` | `same_callstack_join` |
+| `nestedLog`: line of `h` with `g = 9` | `nested_suffix_join` |
+| `nestedLog`: line of `h` on `[3, 11]` | `nested_suffix_join` |
+| `threeLog`: third line with `g = 4` | `three_lines_join` |
+| Entry of `h` with key `{r}` | `callee_entry_premises`, `callee_member` |
+| Entry of `h` with no writes | `callee_entry_premises`, `callee_member` |
+| Entry of `h` without `L21` reached | `callee_entry_premises` |
+| Counter-example with a state recording `x = 1` | `key_only_needs_states` |
+| Key-only inner part lists `r` as updated after the write | `key_inner_sound`, `key_only_answers` |
+| `keyInner` with the state `x = 2` in place of the projection | `key_inner_sound`, `key_only_answers` |
 
 ## Evidence for these entries
 
-Tree of `lean/` `737f08643c484f08fa3b282bfb76e9d2d024b9bd` at
-`b27792cd32c8ab261e396a650ede7bf2cfe934d2`. On a clean archive of that
+Tree of `lean/` `3380facecc96fb5ed308e77912bd162db667a9f2` at
+`6f9f50ce9fd98294bbb4307ce173e570fd4a9c26`. On a clean archive of that
 tree, `cd lean && lake build --wfail` exited 0 with Lean 4.28.0. The axiom
 guard accepted all printed declarations; every new declaration depends on
-`propext` and `Quot.sound` at most. Each of the four Lean commits before it
-on this branch also built on a clean archive. CI for this tree is pending.
+`propext` and `Quot.sound` at most. Each Lean commit of this branch since
+`e01f7a2e78` also built on a clean archive. The output of `#check`,
+`#print axioms` and `#check_axioms` for the declarations of the earlier
+entries is the same as on `e01f7a2e78`. CI for this tree is pending.
 
-The 60 build mutations and the 22 runs with the generic proofs replaced by
+The 94 build mutations and the 34 runs with the generic proofs replaced by
 `sorry` above were run on copies of the same tree.
