@@ -421,22 +421,27 @@ refuse the body during which they run (`callback`,
 reject every supplied entry while they are registered. No other such hook
 is known in Frama-C.
 
-## The passes after the analysis draw no conclusion where a hit skipped visits
+## The passes after the analysis draw no conclusion where a hit reached no point
 
 **Claim.** A hit that delivers its Safety part saves no state at the
-statements of the called function. It records the function in a state of the
-analysis, reset with it. For a statement of a recorded function, the passes
-run after the analysis draw no conclusion from the states saved there, which
-are those of the analysed calls only: `Eval_annots.mark_unreachable` marks no
-code annotation, no precondition of a call and no postcondition as
-unreachable, and `Eval_annots.mark_green_and_red` gives no alarm and no
-annotation a final status. `Export` generates no annotation in the function,
-the summary of the analysis prints as reached only the statements with a
-state, and gives the count with the statements of the function that have
-none as an upper bound, and the server request `getDeadCode` lists none of
-its statements. The statuses delivered by
-the hit stay as delivered. The called function is the only one whose visits
-a hit skips: no hit is admitted on a body with a call.
+statements of the called function. A hit that also delivers a Reach part
+records the points its body reaches, where its callstack answers the state
+top ([Reach at a hit](reach.md)). A hit on an entry without a Reach part
+reaches no point: it records the function as of unknown reachability, in a
+state of the analysis, reset with it. For a statement of such a function,
+the passes run after the analysis draw no conclusion from the states saved
+there, which are those of the analysed calls only:
+`Eval_annots.mark_unreachable` marks no code annotation, no precondition of
+a call and no postcondition as unreachable, and
+`Eval_annots.mark_green_and_red` gives no alarm and no annotation a final
+status. `Export` generates no annotation in the function, the summary of
+the analysis prints as reached only the statements with a state, and gives
+the count with the statements of the function that have none as an upper
+bound, and the server request `getDeadCode` lists none of its statements.
+The statuses delivered by the hit stay as delivered. The called function is
+the only one whose visits a hit skips: no hit is admitted on a body with a
+call. The passes after a hit that delivers a Reach part are the subject of
+[The passes after the analysis read the points reached by hits](reach.md#the-passes-after-the-analysis-read-the-points-reached-by-hits).
 
 **Kind.** OCaml obligation.
 
@@ -444,12 +449,13 @@ a hit skips: no hit is admitted on a body with a call.
 [A hit delivers the Safety part as recorded joins](#a-hit-delivers-the-safety-part-as-recorded-joins)
 and [Preconditions at a hit](#preconditions-at-a-hit).
 
-**Symbols.** `Safety_delivery.skip_visits`, `Safety_delivery.visits_skipped`,
-`Safety_delivery.visits_skipped_at`, `Safety_delivery.Skipped`,
-`Compute_functions.Make.compute_and_cache_call`, `Eval_annots.unreached`,
-`Eval_annots.mark_unreachable`, `Eval_annots.mark_green_and_red`,
-`Export.generator`, `Export.main`, `Summary.reached`,
-`Summary.unknown_reachability`, `Summary.print_coverage`,
+**Symbols.** `Reach_delivery.reach_unknown`, `Reach_delivery.reach_unknown_of`,
+`Reach_delivery.reach_unknown_at`, `Reach_delivery.Unknown`,
+`Safety_delivery.skip_visits`, `Safety_delivery.visits_skipped`,
+`Safety_delivery.Skipped`, `Compute_functions.Make.compute_and_cache_call`,
+`Eval_annots.unreached`, `Eval_annots.mark_unreachable`,
+`Eval_annots.mark_green_and_red`, `Export.generator`, `Export.main`,
+`Summary.reached`, `Summary.unknown_reachability`, `Summary.print_coverage`,
 `Summary.FunctionStats`, `Summary.compute_statuses`, `dead_code` in
 [`ast_requests.ml`](../../../plugins/eva/src/server_api/ast_requests.ml),
 `Supplied_entries.calls_a_body`, `Supplied_entries.supply`,
@@ -460,30 +466,35 @@ and [Preconditions at a hit](#preconditions-at-a-hit).
 statement is unreachable when no state is saved before it, and
 `mark_green_and_red` evaluates an alarm again on the states saved before its
 statement, one per callstack, and emits valid or invalid when every one
-agrees. At a hit, no state is saved for the call in the body of the called
-function, so the states there do not cover the visits of the hit: a
-statement reached through the hit only has no state, and the evaluation sees
-the analysed calls only. The hit branch of `compute_and_cache_call` calls
-`skip_visits` before the delivery; a hit whose preconditions leave no state
-delivers nothing and is not recorded, since an analysis of the body would
-then save no state either. `Eval_annots.unreached` is false at a statement of
-a recorded function, and `mark_green_and_red` skips such a statement; the
-statuses delivered by the hit are not touched. `Export.generator` skips the
-statements of a recorded function, and `Export.main` warns instead of
-annotating it. `Summary.reached` counts such a statement as reached, for the
-coverage and for the counts of statuses; the statistics of the function are
-computed again after a hit. The coverage so counted is an upper bound.
-`Summary.print_coverage` prints it only when no statement is of unknown
-reachability: otherwise, it prints the statements with a state as reached,
-and adds, as an upper bound, the count with those that
-`Summary.unknown_reachability` finds, the statements without a state of
-the functions answered by a hit. Without a hit, the line is unchanged. The
-statistic `stmt_coverage` (`Statistics`) and the coverage returned by the
-server request of statistics (`progStmtCoverage`) keep the upper bound,
-without a label. `dead_code` returns no list for a recorded
-function. `Skipped` is a `State_builder.Set_ref` that depends on
-`Self.state`: it is cleared with the results of Eva, at the start of each
-analysis and on any change that resets them.
+agrees. At a hit on an entry without a Reach part, no state is saved for
+the call in the body of the called function, and no point is recorded, so
+the states there do not cover the visits of the hit: a statement reached
+through the hit only has no state, and the evaluation sees the analysed
+calls only. The hit branch of `compute_and_cache_call` calls `skip_visits`,
+then delivers the Safety part, then, for an entry without a Reach part,
+calls `reach_unknown` in place of the delivery of the Reach part. A hit
+whose preconditions leave no state delivers nothing and records nothing,
+since an analysis of the body would then save no state either.
+`Eval_annots.unreached` is false at a statement of a function of unknown
+reachability, and `mark_green_and_red` skips such a statement; the statuses
+delivered by the hit are not touched. `Export.generator` skips the
+statements of such a function, and `Export.main` warns instead of
+annotating it. `Summary.reached` counts such a statement as reached, for
+the coverage and for the counts of statuses. The coverage so counted is an
+upper bound. `Summary.print_coverage` prints it only when no statement is
+of unknown reachability: otherwise, it prints the statements with a state
+as reached, and adds, as an upper bound, the count with those that
+`Summary.unknown_reachability` finds, the statements without a state of the
+functions of unknown reachability. Without such a function, the line is
+unchanged. The statistic `stmt_coverage` (`Statistics`) and the coverage
+returned by the server request of statistics (`progStmtCoverage`) keep the
+upper bound, without a label. `dead_code` returns no list for such a
+function. `Skipped`, the functions answered by a hit that delivers its
+Safety part, serves the statistics of the function, computed again after
+such a hit (`Summary.FunctionStats`). `Unknown` and `Skipped` are
+`State_builder.Set_ref` states that depend on `Self.state`: they are
+cleared with the results of Eva, at the start of each analysis and on any
+change that resets them.
 
 A hit skips the analysis of the functions that the body calls as well. No
 hit is admitted on a body with a call, by two checks.
@@ -498,27 +509,30 @@ the calls. `nested-delivery` is the last check of a candidate. The check of
 to a function without a body has no statement to skip, and its entry is
 rejected all the same.
 
-The restriction costs precision, for every call of a recorded function,
-analysed or answered by a hit. An alarm or annotation there keeps the status
-emitted during the analysis: unknown where `mark_green_and_red`, with caching
-disabled, would emit valid or invalid from the final states of every
-callstack. An annotation that no call reaches gets no unreachability status.
-The fixture below shows no such difference; it follows from the argument.
-The server requests pay the same cost, until issue #48: with a hit, the
-request of dead code returns empty lists for the function, and the request
-of statistics gives the coverage of statements as an upper bound. In this
-version they do not meet a hit: the server plug-in registers a client of
-the hooks on the changes of annotations when it loads (`Kernel_ast`), so
-that a body that registers an alarm is refused, and the lookup rejects
-every supplied entry
+The restriction costs precision, for every call of a function of unknown
+reachability, analysed or answered by a hit. An alarm or annotation there
+keeps the status emitted during the analysis: unknown where
+`mark_green_and_red`, with caching disabled, would emit valid or invalid
+from the final states of every callstack. An annotation that no call
+reaches gets no unreachability status. The fixture below shows no such
+difference; it follows from the argument. The server requests pay the same
+cost: the request of dead code returns empty lists for such a function, and
+the request of statistics gives the coverage of statements as an upper
+bound. In this version they do not meet a hit: the server plug-in registers
+a client of the hooks on the changes of annotations when it loads
+(`Kernel_ast`), so that a body that registers an alarm is refused, and the
+lookup rejects every supplied entry
 ([A hit runs no client that is not audited](#a-hit-runs-no-client-that-is-not-audited)).
 
 **Readers inspected.** The readers of Eva's results at the end of or after
 the analysis, at this revision:
 
-- restricted as above: `Eval_annots.mark_unreachable`,
-  `Eval_annots.mark_green_and_red`, `Export` (with option `-eva-annot`), the
-  summary, the request `getDeadCode`;
+- restricted as above for a function of unknown reachability, and reading
+  the points reached by hits otherwise
+  ([Reach at a hit](reach.md#the-passes-after-the-analysis-read-the-points-reached-by-hits)):
+  `Eval_annots.mark_unreachable`, `Eval_annots.mark_green_and_red`,
+  `Export` (with option `-eva-annot`), the summary, the request
+  `getDeadCode`;
 - `Eval_annots.mark_invalid_initializers` reads the first statement of the
   entry point, which no hit answers;
 - every supplied candidate is rejected as `consumer` when one of these
@@ -532,13 +546,16 @@ the analysis, at this revision:
   Inout), `Logic_inout`, and the plug-ins whose library depends on Inout or
   From, Reduc (assertions from the values at statements, given a valid
   status) among them;
-- not restricted, and listed for issues #48 and #49: the values that
-  `Eva.Results` returns at a statement of a recorded function, which cover
-  the analysed calls only, and the readers built on them that report no
-  status and no unreachability: the server requests of values
-  (`getProbeInfo` reports a statement without a state as not evaluable),
-  Studia, Dive, Aorai, the loop analysis, the callgraph and RTE (which reads
-  the analysis status of a function);
+- not restricted, and listed for issue #49: the values that `Eva.Results`
+  returns at a statement of a function answered by a hit, which cover the
+  analysed calls only for a function of unknown reachability, and are top
+  in the callstacks of the hits and over all callstacks otherwise
+  ([Reach at a hit](reach.md#the-queries-see-the-points-reached-by-a-hit-with-the-state-top));
+  and the readers built on them that report no status and no
+  unreachability: the server requests of values (`getProbeInfo` reports a
+  statement without a state as not evaluable), Studia, Dive, Aorai, the
+  loop analysis, the callgraph and RTE (which reads the analysis status of
+  a function);
 - the table of red contexts and the report of red statuses
   (`-eva-report-red-statuses`) read the contexts delivered by the hit; the
   plug-ins that read property statuses, such as the SARIF output of the
@@ -550,54 +567,49 @@ the analysis, at this revision:
 of `main`; `body(2, 1)` is analysed. Executed from `main`, the second call
 divides 100 by y = 0 at line 13 when `v` reads a non-zero value, and reaches
 the assertion `one` when `v` reads a non-zero value at line 10; the analysed
-call never divides by zero and never reaches `one`. The statuses after the
+call never divides by zero and never reaches `one`. With the entry supplied
+by hand without its Reach part (`PART=drop`), the statuses after the
 analysis are those of caching disabled: the alarm is unknown, with its red
 context in `body :: passes.c:35 <- main`, and `one` is valid with no
-reachability status. In the reverse order (`reverse`, entry of `body(2, 1)`
-from `producer_safe`, hit at line 44), the alarm is unknown, as with caching
-disabled. From `no_return`, where `body(1, 0)` is a hit and `body(3, 1)`
-never returns, the statuses are again those of caching disabled. Export
-generates no annotation in `body`. The summary prints 12 statements of 15
-reached, and up to 3 more through calls answered by the cache (100%);
-caching disabled counts 14, and the loop at line 14, reached by no call, is
-among the 3. With `Summary.print_coverage` changed to count no statement
-of unknown reachability (a mutation, reverted), the same run prints 15
-statements of 15 as reached, the upper bound as a measure. The
-analysis from `producer`, without a hit, prints the usual line. After a
-change of the entry point, `body` is no
-longer recorded. `supply` refuses an entry for `outer`, which calls `body`;
-with this check removed (a mutation, reverted), the entry of `outer` is
-supplied. In `nested-access.t`, the produced entries of bodies with a call,
-and the hand entry of a body that calls a specification, are rejected with
-`nested-delivery`; at `cde85ebb5f`, before the check of `supply`, the hand
-entries of bodies that call a function with a body were rejected so too.
+reachability status. Export generates no annotation in `body`. The summary
+prints 12 statements of 15 reached, and up to 3 more through calls answered
+by the cache (100%); caching disabled counts 14, and the loop at line 14,
+reached by no call, is among the 3. After a change of the entry point,
+`body` is no longer recorded. `supply` refuses an entry for `outer`, which
+calls `body`; with this check removed (a mutation, reverted), the entry of
+`outer` is supplied. In `nested-access.t`, the produced entries of bodies
+with a call, and the hand entry of a body that calls a specification, are
+rejected with `nested-delivery`; at `cde85ebb5f`, before the check of
+`supply`, the hand entries of bodies that call a function with a body were
+rejected so too. The same runs with the produced entry, which has a Reach
+part, are the evidence of
+[The passes after the analysis read the points reached by hits](reach.md#the-passes-after-the-analysis-read-the-points-reached-by-hits).
 
-With `Safety_delivery.skip_visits` changed to record nothing (a mutation,
-reverted), the same programs and modes differ from caching disabled: from
-`main`, the alarm gets the final status valid, and the statement at line 11
-is marked unreachable; in the reverse order, the alarm gets the final
-status invalid; from `no_return`, the alarm is valid, and the statement at
-line 11 and the function `body` are marked unreachable. Export generates
-seven annotations in `body`, all valid, among them `\false` at lines 10
-and 14. The summary prints 12 statements of 15 as reached, without the
-upper bound.
+Each check fails with one change, reverted after the run, in the runs
+without the Reach part: with the test of `reach_unknown_at` removed from
+`mark_green_and_red`, the alarm gets the final status valid; with it
+removed from `Eval_annots.unreached`, the statement at line 11 is marked
+unreachable, as is the statement at line 9 of `reach.c` in
+`cache-reach.t`; with the test of `reach_unknown_of` removed from
+`Export.generator`, Export generates seven annotations in `body`, all
+valid, among them `\false` at lines 10 and 14 and `x == 2`. With
+`Safety_delivery.skip_visits` changed to record nothing, the fixtures
+differ only in the record itself: no fixture shows its effect on the
+statistics of a function.
 
 The request `getDeadCode`, the warning of `Export.main` (option
 `-eva-annot`; the test calls `Export.generator`) and the rejection when the
 Markdown report, WP or the constant propagation is loaded rest on source
 inspection; the rejection when Nonterm or Metrics is loaded is executed.
 
-**To lift the restriction.** Issue #48 must make a hit deliver, for its
-callstack, the statements its call reaches, so that `mark_unreachable` can
-mark the others, and the states of these statements, or the outcome of the
-refinement recorded in the entry (issue #49), so that `mark_green_and_red`
-can evaluate an alarm on the visits of every call. The record of skipped
-functions can then be removed for the passes that the delivered data serve,
-and the rejections of Nonterm, Metrics, the Markdown report, WP and the
-constant propagation lifted once the readers above see the delivered states.
-Once a stored body may call other functions (issues #50 and #51), the entry
-must carry the functions whose visits its hit skips, so that a hit records
-them all.
+**What remains.** Issue #48 lifts the restriction for the entries with a
+Reach part. It remains for a hand-written entry supplied without one and
+for an entry produced while the states of the body were not saved. The
+rejections of Nonterm, Metrics, the Markdown report, WP and the constant
+propagation can be lifted once the readers above are checked against the
+points reached by hits. Once a stored body may call other functions
+(issues #50 and #51), the entry must carry the functions whose visits its
+hit skips, so that a hit records them all.
 
 ## A change of the current project refuses the recordings in progress
 
@@ -655,7 +667,9 @@ part, refuse no body that it does not refuse. The comparison at each write
 serves the payload shown to the observers of `Safety_part.on_result`: the
 writes it passes them, for a body refused or not, are all made in the
 project of the recording. No test tells these comparisons apart from that
-of the count.
+of the count. `Reach_part` makes the same comparisons at each write of the
+Reach part, for the observers of `Reach_part.on_result`
+([Reach at a hit](reach.md#the-reach-part-records-the-reach-of-the-body)).
 
 **Evidence (executed).** `cache-safety.t`: a client of the statement hooks,
 registered as classified so that the collector admits it, enters a second
@@ -889,8 +903,10 @@ and
 completes the specification of the function (`Populate_spec`), evaluates
 its preconditions, which emits statuses, red contexts and messages,
 delivers the Safety part, which registers alarms, emits statuses, prints
-messages and sets red contexts, prints the line of the reuse and the
-disposition line of the category `cache`, and runs the call results hooks.
+messages and sets red contexts, delivers the Reach part, which runs no hook
+([A hit delivers the Reach part as recorded joins](reach.md#a-hit-delivers-the-reach-part-as-recorded-joins)),
+prints the line of the reuse and the disposition line of the category
+`cache`, and runs the call results hooks.
 The hooks reached are: the call and call results hooks of Eva; the hooks of
 the kernel on a new property, on a new status and on a change of the
 annotations; the hooks of red statuses; the listeners of the logger, for

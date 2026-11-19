@@ -104,6 +104,10 @@ that a checkout has the model sources of an entry, compare
   rejection of every entry while a client that is not audited is
   registered on a hook that a hit runs, and the preconditions of the
   called function at a hit.
+- [Reach at a hit](reach.md): the points reached, the guard outcomes, the
+  zones and the call sites recorded in an entry, their delivery at a hit as
+  recorded joins, the state top that the queries see at the points a hit
+  reaches, and the passes after the analysis that read these points.
 - [Reuse operation](reuse-operation.md): the cache entry and its four
   written sets, the match by equality on entries supplied by a test module,
   the blocks a hit takes from an exit state, the choice of one cache per

@@ -266,10 +266,11 @@ analysed bodies.
   cvalue](#relate-empty-for-cvalue)).
 - A hit delivers the Exit part and the Safety part
   ([Safety at a hit](safety.md)); the entries supplied by these fixtures
-  have no Safety part. The statements of a body reached only through hits
-  are not marked as reached; in run 0 several bodies are never analysed.
-  This is the ticket on Reach at a hit
-  ([issue #48](https://github.com/nyandrianinamamy/frama-c/issues/48)).
+  have no Safety part and no Reach part. The statements of a body reached
+  only through hits are not marked as reached; in run 0 several bodies are
+  never analysed. A function answered by a hit on such an entry is of
+  unknown reachability
+  ([Reach at a hit](reach.md#the-passes-after-the-analysis-read-the-points-reached-by-hits)).
 - The hypotheses of the match lemma that stay open for cvalue are listed
   under [`filter` exact on the stored input for
   cvalue](#filter-exact-on-the-stored-input-for-cvalue).
@@ -584,7 +585,7 @@ does not add a domain, so the product stays cvalue alone and the thread test
 is reached. The other plug-ins of `Supplied_entries.state_readers` conclude
 from the states saved at the statements of a function, which a hit does not
 save for its own call
-([The passes after the analysis draw no conclusion where a hit skipped visits](safety.md#the-passes-after-the-analysis-draw-no-conclusion-where-a-hit-skipped-visits)).
+([The passes after the analysis draw no conclusion where a hit reached no point](safety.md#the-passes-after-the-analysis-draw-no-conclusion-where-a-hit-reached-no-point)).
 The third test is needed because a fresh evaluation registers every alarm of
 an evaluation before `Alarmset.stop_at_nth_alarm` tests the threshold,
 whereas a hit delivers its alarms one by one and does not know the

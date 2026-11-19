@@ -128,7 +128,7 @@ inline body with a precondition and an inline specification, and the
 hand constructor for the inline specification:
 `Supplied_entries.supply` refuses, before any lookup, a hand entry for a
 body that may call a function with a body
-([The passes after the analysis](safety.md#the-passes-after-the-analysis-draw-no-conclusion-where-a-hit-skipped-visits)).
+([The passes after the analysis](safety.md#the-passes-after-the-analysis-draw-no-conclusion-where-a-hit-reached-no-point)).
 Each candidate tried gives `nested-delivery`. The assertion status matches
 caching disabled in all three cases. The supplied-child criterion is
 exercised by the child's confirmed hit and the enclosing observation. No
@@ -153,8 +153,11 @@ today holds only the writes that the hits of its calls deliver, and
 `Safety_delivery.skip_visits` marks the called function alone
 ([Safety at a hit](safety.md#the-safety-part-records-the-writes-of-the-body)).
 End-of-analysis processing must suppress conclusions requiring complete
-visit information for those functions. #48 and #51 owe Reach and the
-remaining position-specific contributions for that same nested work.
+visit information for those functions. The Reach part recorded today has
+the same limit
+([Reach at a hit](reach.md#the-reach-part-records-the-reach-of-the-body)),
+and #51 owes the remaining position-specific contributions for that same
+nested work.
 
 ## Dependencies on entry values
 

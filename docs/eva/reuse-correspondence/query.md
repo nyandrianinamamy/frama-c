@@ -440,6 +440,9 @@ listed as left out in [`lean/README.md`](../../../lean/README.md#what-the-model-
   every visited point, from the Reach part of the entry. #48 must deliver
   that part on the callstack of the hit, so that the callstack exists for
   queries and no statement of the body is reported dead on it.
+  [Reach at a hit](reach.md) records this delivery: the queries see the
+  callstack of the hit at the points it reaches, with the state top, until
+  #49 answers them.
 - **#49 (hit log and state queries).** The hit log line: callstack, entry,
   inner part, state at the call and its bound blocks, and the point below
   the hit. The Lean query joins the answers of the lines whose callstack

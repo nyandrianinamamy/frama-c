@@ -196,7 +196,7 @@ their existing protocols outside the body observations.
 **Depends on.** [Refusal and reporting](#refusal-and-reporting).
 
 **Symbols.** `Body_access.record`, `Iterator.record_fireable`,
-`Iterator.Make_Dataflow.merge_results`, `Function_calls.register_call`,
+`Iterator.Make_Dataflow.merge_results`, `Function_calls.register_caller`,
 `Alarmset.emit_alarm`, `Alarmset.already_emitted`,
 `Transfer_logic.emit_status`, `Inout_access.register`,
 `Locals_scoping.remember_bases_with_locals`,
@@ -243,8 +243,9 @@ restricted by function.
 
 **Open.** The classes in the observation do not carry replay payloads.
 The alarms, statuses and red contexts of a body are recorded apart and
-delivered at a hit: [Safety at a hit](safety.md). The Reach replay is
-pending ([issue #48](https://github.com/nyandrianinamamy/frama-c/issues/48)). The collector reports unsupported
+delivered at a hit: [Safety at a hit](safety.md). The points reached, the
+guard outcomes, the zones and the call sites are recorded apart as well,
+and delivered at a hit: [Reach at a hit](reach.md). The collector reports unsupported
 accesses at instrumented paths and at unclassified callback boundaries.
 For the validity records and the types of allocated blocks, the audit of
 transitive accesses in helpers and persistent memos is in
@@ -480,5 +481,6 @@ whole block when the offsets are unbounded, and every cell from the least
 to the greatest offset when they are strided, such as a field read across
 the elements of an array. Either can refuse a body that loads only part of
 a block holding an allocation address. The cost of
-`designate_cells` at each C scalar load is not measured. Safety and Reach
-replay are pending.
+`designate_cells` at each C scalar load is not measured. A hit delivers
+the Safety part and the Reach part of its entry
+([Safety at a hit](safety.md), [Reach at a hit](reach.md)).
