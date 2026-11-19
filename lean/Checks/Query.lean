@@ -622,9 +622,11 @@ theorem query_point_callstack :
 
 `loopMain` calls `f` at site 11, then calls it in a loop at site 16 and sets
 `g = 9` and `r = 5` after each call. The first call at site 16 enters with
-`g = 4` and `r = 0`, the second with `g = 9` and `r = 5`. When every call
-after the first is a hit, the log has three lines, two of them on the
-callstack `[16]`. When the first call at site 16 is analysed and its call of
+`g = 4` and `r = 0`, the second with `g = 9` and `r = 5`. The checks cover a
+finite prefix of this run, which does not terminate. `loopLog` is the
+fixture log of that prefix: a line on `[11]` whose member is the producing
+memory, and a line on `[16]` for each of the first two iterations of the
+loop. When the first call at site 16 is analysed and its call of
 `h` hits an entry stored for `h`, the log has a line on `[3, 16]` for that
 call of `h` and a line on `[16]` for the second call of `f`: both end the
 callstack `[3, 16]` of a query in `h`. -/
@@ -944,7 +946,9 @@ theorem three_lines_join :
 `CacheEntry.innerPartSound_of_key` has two premises: the states cover the
 producing visits on the key, and the footprint covers the writes. Coverage
 alone is not enough. The rule for updated blocks reads the recorded list:
-a block updated on every execution but not listed answers top. -/
+a block updated on every execution but not listed answers top when no
+earlier rule applies to it; an unlisted block of the key answers by the
+rule of the key. -/
 
 /-- The inner part with the state `state` at every point, the writes of the
 footprint of `queryEntry` as possible writes and no updated block. -/
