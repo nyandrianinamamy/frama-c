@@ -1,13 +1,14 @@
-The Reach part of a cache entry holds the statements its body reaches, the
-guard outcomes, the zones read and written at each statement, and the call
-sites of the calls it makes. A hit delivers them at its own callstack. The
-test module prints, for the statements of body, what the readers of the
-results see: the callstacks with a state before and after each statement,
-the classification of the server request of dead code computed from the same
-queries, the statuses, the guard outcomes, the call sites of body and the
-zones. These lines start with "| " and are sorted, to compare two runs.
+The Reach part of a cache entry holds the guard outcomes, the zones read and
+written at each statement, the call sites of the calls its body makes and,
+if the analysis saved the states of the body, the statements it reaches. A
+hit delivers them at its own callstack. The test module prints, for the
+statements of body, what the readers of the results see: the callstacks
+with a state before and after each statement, the classification of the
+server request of dead code computed from the same queries, the statuses,
+the guard outcomes, the call sites of body and the zones. These lines start
+with "| " and are sorted, to compare two runs.
 
-  $ dune build -j 8 --cache=disabled --root . test_cache_reach.cmxs
+  $ dune build -j 8 --cache=disabled --root . test_cache_reach.cmxs test_dead_code.cmxs
 
 A first analysis from producer analyses body(1) and stores its entry. At
 x = 1, the branch of x == 1 is taken and the branch of x == 3 is not: the
@@ -103,7 +104,7 @@ line 10 from it alone.
 The same program with caching disabled gives the same lines, and the same
 coverage in the summary of the analysis.
 
-  $ EVA_TEST_CACHE_REACH=reference EVA_TEST_CACHE_REACH_VALUES=on frama-c -no-autoload-plugins -load-module eva,test_cache_reach.cmxs -eva-msg-key cache reach.c > reference.log 2>&1
+  $ EVA_TEST_CACHE_REACH=reference EVA_TEST_CACHE_REACH_VALUES=on frama-c -no-autoload-plugins -load-module eva,test_cache_reach.cmxs -eva-msg-key cache reach.c -save reference.sav > reference.log 2>&1
   $ grep '^| ' reference.log > reference.summary
   $ diff replay.summary reference.summary
   $ grep 'statements reached' reference.log
@@ -137,15 +138,132 @@ again after -load without a new analysis.
   $ grep '^| ' loaded.log > loaded.summary
   $ diff replay.summary loaded.summary
 
+The server request of dead code, sent by a second process that loads the
+session, gives the same response after the analysis with the hit as with
+caching disabled. The test module test_dead_code prints the statements of
+the response in the source syntax.
+
+  $ frama-c -no-autoload-plugins -load-module server,eva,eva.server_api,test_dead_code.cmxs -load replay.sav > replay.server 2>&1
+  $ frama-c -no-autoload-plugins -load-module server,eva,eva.server_api,test_dead_code.cmxs -load reference.sav > reference.server 2>&1
+  $ diff replay.server reference.server
+  $ cat replay.server
+  getDeadCode body:
+    { unreachable: [ out = 3;, ; ],
+      reached: [ return;,
+                 g = x + l;,
+                 if (x == 3) {   ;   out = 3; },
+                 out = 2;,
+                 out = 1;,
+                 ;,
+                 if (x == 1) {   ;   out = 1; } else out = 2;,
+                 int l = 1; ],
+      nonTerminating: [] }
+
+Eva_results.get_results takes the results of the current analysis, and
+Eva_results.set_results clears the results and installs those it is given.
+With RESTORE=same, the test module takes the results and installs them in
+the same project, then prints its lines again, prefixed by "restored ". The
+points reached by the hit are installed with the states: the callstacks, the
+dead code, the values and the annotations that Export generates in body are
+those before. The number of hits is a statistic, not a result, and is 0
+after the installation. The results hold neither the guard outcomes, nor
+the zones, nor the statuses of reachability: they are lost, with or without
+the hit.
+
+  $ EVA_TEST_CACHE_REACH=replay EVA_TEST_CACHE_REACH_RESTORE=same EVA_TEST_CACHE_REACH_VALUES=on EVA_TEST_CACHE_REACH_EXPORT=on frama-c -no-autoload-plugins -load-module eva,test_cache_reach.cmxs -main producer -eva-msg-key cache reach.c > restore.log 2>&1
+  $ grep -E '^(hits|reachability|points|value|exported|\| )' restore.log > restore.before
+  $ sed -n 's/^restored //p' restore.log > restore.after
+  $ diff restore.before restore.after
+  1c1,2
+  < hits on body: 1
+  ---
+  > results computed: true
+  > hits on body: 0
+  19,21c20,21
+  < | guard: stmt 3 (line 8): then true, else true
+  < | guard: stmt 8 (line 14): then false, else true
+  < | reach.c:15: status of reachability of stmt reach.c:15 in body: invalid and reachable
+  ---
+  > | guard: stmt 3 (line 8): then false, else false
+  > | guard: stmt 8 (line 14): then false, else false
+  34,43d33
+  < | zones: stmt 1 (line 7) in body :: line 29 <- main: read \nothing; write l
+  < | zones: stmt 1 (line 7) in body :: line 30 <- main: read \nothing; write l
+  < | zones: stmt 12 (line 18) in body :: line 29 <- main: read x; l; write g
+  < | zones: stmt 12 (line 18) in body :: line 30 <- main: read x; l; write g
+  < | zones: stmt 3 (line 8) in body :: line 29 <- main: read x; write \nothing
+  < | zones: stmt 3 (line 8) in body :: line 30 <- main: read x; write \nothing
+  < | zones: stmt 5 (line 10) in body :: line 30 <- main: read \nothing; write out
+  < | zones: stmt 6 (line 12) in body :: line 29 <- main: read \nothing; write out
+  < | zones: stmt 8 (line 14) in body :: line 29 <- main: read x; write \nothing
+  < | zones: stmt 8 (line 14) in body :: line 30 <- main: read x; write \nothing
+  [1]
+
+The installed results with the hit give the same lines as those with
+caching disabled. Export generates fewer annotations with the hit, as
+before the installation: the states of the hit callstack are top. Each
+annotation it generates is also generated with caching disabled.
+
+  $ EVA_TEST_CACHE_REACH=reference EVA_TEST_CACHE_REACH_RESTORE=same EVA_TEST_CACHE_REACH_EXPORT=on frama-c -no-autoload-plugins -load-module eva,test_cache_reach.cmxs -eva-msg-key cache reach.c > restore-reference.log 2>&1
+  $ grep '^restored | ' restore.log > restore.summary
+  $ grep '^restored | ' restore-reference.log > restore-reference.summary
+  $ diff restore.summary restore-reference.summary
+  $ grep '^restored exported' restore.log
+  restored exported before line 15: assert Eva_export: \false;
+  $ grep '^restored exported' restore-reference.log
+  restored exported before line 8: assert Eva_export: 1 ≤ x ≤ 2;
+  restored exported before line 14: assert Eva_export: 1 ≤ x ≤ 2;
+  restored exported before line 15: assert Eva_export: \false;
+  restored exported before line 18: assert Eva_export: l ≡ 1;
+  restored exported before line 18: assert Eva_export: 1 ≤ x ≤ 2;
+
+With RESTORE=copy, the test module takes the results in a copy of the
+project and installs them there, then prints its lines in the original
+project, prefixed by "original ". The installation in the copy gives the
+lines of the installation in the same project, and leaves the original
+project as it was.
+
+  $ EVA_TEST_CACHE_REACH=replay EVA_TEST_CACHE_REACH_RESTORE=copy EVA_TEST_CACHE_REACH_VALUES=on EVA_TEST_CACHE_REACH_EXPORT=on frama-c -no-autoload-plugins -load-module eva,test_cache_reach.cmxs -main producer -eva-msg-key cache reach.c > restore-copy.log 2>&1
+  $ sed -n 's/^restored //p' restore-copy.log > copy.after
+  $ diff restore.after copy.after
+  $ sed -n 's/^original //p' restore-copy.log > copy.original
+  $ diff restore.before copy.original
+
+In passes.c, main calls body(2, 1), which is analysed, then body(1, 0), a
+hit. The division of line 13 is by 0 in the call of the hit. With
+REFINE=on, the refinement of the statuses of alarms runs on the installed
+results: the statement of line 13 is reached in the hit callstack, and the
+alarm stays unknown, as with caching disabled.
+
+  $ EVA_TEST_CACHE_REACH=replay EVA_TEST_CACHE_REACH_RESTORE=same EVA_TEST_CACHE_REACH_REFINE=on frama-c -no-autoload-plugins -load-module eva,test_cache_reach.cmxs -main producer -eva-msg-key cache passes.c > refine.log 2>&1
+  $ grep -E 'call to body' refine.log
+    call to body: lookup: no-candidate; execution: analysed; storage: refused (no-inout); collector: would-store
+    call to body: lookup: rejected (entry 1: key-differs); execution: analysed; storage: refused (supplied-only); collector: would-store
+    call to body: lookup: hit (entry 1); execution: not-analysed; storage: none
+  $ grep -E '^(restored )?\| passes.c:13' refine.log
+  | passes.c:13: status of Eva: unknown
+  restored | passes.c:13: status of Eva: unknown
+  $ EVA_TEST_CACHE_REACH=reference EVA_TEST_CACHE_REACH_RESTORE=same EVA_TEST_CACHE_REACH_REFINE=on frama-c -no-autoload-plugins -load-module eva,test_cache_reach.cmxs -eva-msg-key cache passes.c > refine-reference.log 2>&1
+  $ grep '^restored | ' refine.log > refine.summary
+  $ grep '^restored | ' refine-reference.log > refine-reference.summary
+  $ diff refine.summary refine-reference.summary
+
 An entry without a Reach part: the same entry supplied by hand without it.
 A hit on it delivers no statement, guard, zone or call site, and the
 reachability of the statements of body is unknown. The marking of dead code
 then marks nothing unreachable in body, the summary gives the coverage as a
-range, and the server request of dead code returns no statement for body
-(not shown: the lines below are computed from the queries the request
-uses). The lines that differ from caching disabled are those of the hit.
+range, and the server request of dead code returns no statement for body.
+The lines that differ from caching disabled are those of the hit. The
+record of unknown reachability is kept when the results are taken and
+installed again (RESTORE=same), and in the session saved after that.
 
-  $ EVA_TEST_CACHE_REACH=replay EVA_TEST_CACHE_REACH_PART=drop frama-c -no-autoload-plugins -load-module eva,test_cache_reach.cmxs -main producer -eva-msg-key cache reach.c > drop.log 2>&1
+  $ EVA_TEST_CACHE_REACH=replay EVA_TEST_CACHE_REACH_PART=drop EVA_TEST_CACHE_REACH_RESTORE=same frama-c -no-autoload-plugins -load-module eva,test_cache_reach.cmxs -main producer -eva-msg-key cache reach.c -save drop.sav > drop.log 2>&1
+  $ grep '^restored reachability' drop.log
+  restored reachability of body unknown: true
+  $ frama-c -no-autoload-plugins -load-module server,eva,eva.server_api,test_dead_code.cmxs -load drop.sav > drop.server 2>&1
+  $ cat drop.server
+  getDeadCode body:
+    { unreachable: [], reached: [], nonTerminating: [] }
   $ grep -E '^(hits|reachability)|lookup: hit|statements reached|answered by the cache' drop.log
     In these functions, 9 statements reached (out of 12): 75% coverage.
     call to body: lookup: hit (entry 1); execution: not-analysed; storage: none
@@ -199,20 +317,183 @@ uses). The lines that differ from caching disabled are those of the hit.
   > | zones: stmt 8 (line 14) in body :: line 30 <- main: read x; write \nothing
   [1]
 
-An entry produced while the states of body are not saved
-(-eva-no-results-function) has no Reach part: the analysis saves no state
-in body, and the part would hold no point. A hit on it behaves as above,
-and no statement of body gets a reachability status.
+The analysis of a body makes the guard outcomes, the zones and the call
+sites whether or not it saves the states of the body, and reaches points
+only when it saves them. With PRODUCER=body, the first analysis saves no
+state of body (as -eva-no-results-function body): the Reach part of the
+entry has no points. The second analysis saves the states of body, and a
+hit would leave the statements of body without a state in its callstack:
+the lookup rejects the entry (missing-points), and body is analysed. The
+results equal those of caching disabled.
 
-  $ EVA_TEST_CACHE_REACH=replay EVA_TEST_CACHE_REACH_NORESULTS=on frama-c -no-autoload-plugins -load-module eva,test_cache_reach.cmxs -main producer -eva-msg-key cache reach.c > noresults.log 2>&1
-  $ grep -E '^\| reach.c' noresults.log
-  | reach.c:9: status of one: valid
-  $ grep -E '^(Reach part|hits|reachability)|lookup: hit|answered by the cache' noresults.log
-  Reach part of the entry: unknown
+  $ EVA_TEST_CACHE_REACH=replay EVA_TEST_CACHE_REACH_PRODUCER=body frama-c -no-autoload-plugins -load-module eva,test_cache_reach.cmxs -main producer -eva-msg-key cache reach.c > producer-body.log 2>&1
+  $ grep -E '^(part|points of the part)' producer-body.log
+  part: guard reach.c:14 (stmt 8): else
+  part: guard reach.c:8 (stmt 3): then
+  part: zones at reach.c:10 (stmt 5), read \nothing, write out, in the body
+  part: zones at reach.c:14 (stmt 8), read x, write \nothing, in the body
+  part: zones at reach.c:18 (stmt 12), read x; l, write g, in the body
+  part: zones at reach.c:7 (stmt 1), read \nothing, write l, in the body
+  part: zones at reach.c:8 (stmt 3), read x, write \nothing, in the body
+  points of the part: not recorded
+  $ grep -E 'call to body' producer-body.log
+    call to body: lookup: no-candidate; execution: analysed; storage: refused (no-inout); collector: would-store
+    call to body: lookup: rejected (entry 1: key-differs); execution: analysed; storage: refused (supplied-only); collector: would-store
+    call to body: lookup: rejected (entry 1: missing-points); execution: analysed; storage: refused (supplied-only); collector: would-store
+  $ grep '^| ' producer-body.log > producer-body.summary
+  $ diff producer-body.summary reference.summary
+
+The same with PRODUCER=global, where the first analysis saves no state at
+all (as -eva-no-results), and with PART=nopoints, where the entry is
+supplied by hand with its Reach part without the points.
+
+  $ EVA_TEST_CACHE_REACH=replay EVA_TEST_CACHE_REACH_PRODUCER=global frama-c -no-autoload-plugins -load-module eva,test_cache_reach.cmxs -main producer -eva-msg-key cache reach.c > producer-global.log 2>&1
+  $ grep -E '^points of the part|lookup: rejected' producer-global.log
+  points of the part: not recorded
+    call to body: lookup: rejected (entry 1: key-differs); execution: analysed; storage: refused (supplied-only); collector: would-store
+    call to body: lookup: rejected (entry 1: missing-points); execution: analysed; storage: refused (supplied-only); collector: would-store
+  $ grep '^| ' producer-global.log > producer-global.summary
+  $ diff producer-global.summary reference.summary
+  $ EVA_TEST_CACHE_REACH=replay EVA_TEST_CACHE_REACH_PART=nopoints frama-c -no-autoload-plugins -load-module eva,test_cache_reach.cmxs -main producer -eva-msg-key cache reach.c > nopoints.log 2>&1
+  $ grep -E 'lookup: rejected' nopoints.log
+    call to body: lookup: rejected (entry 1: key-differs); execution: analysed; storage: refused (supplied-only); collector: would-store
+    call to body: lookup: rejected (entry 1: missing-points); execution: analysed; storage: refused (supplied-only); collector: would-store
+  $ grep '^| ' nopoints.log > nopoints.summary
+  $ diff nopoints.summary reference.summary
+
+When neither analysis saves the states of body, as with
+-eva-no-results-function body on the command line, the entry is a hit. It
+delivers its guard outcomes, zones and call sites, and no point. The
+results equal those of caching disabled under the same option.
+
+  $ EVA_TEST_CACHE_REACH=replay frama-c -no-autoload-plugins -load-module eva,test_cache_reach.cmxs -main producer -eva-no-results-function body -eva-msg-key cache reach.c > both.log 2>&1
+  $ grep -E '^(points of the part|hits|reachability|points of body)|lookup: hit' both.log
+  points of the part: not recorded
     call to body: lookup: hit (entry 1); execution: not-analysed; storage: none
-    and up to 4 more through calls answered by the cache (100% coverage).
+  hits on body: 1
+  reachability of body unknown: false
+  points of body reached by hits: 0
+  $ grep '^| ' both.log > both.summary
+  $ EVA_TEST_CACHE_REACH=reference frama-c -no-autoload-plugins -load-module eva,test_cache_reach.cmxs -eva-no-results-function body -eva-msg-key cache reach.c > both-reference.log 2>&1
+  $ grep '^| ' both-reference.log > both-reference.summary
+  $ diff both.summary both-reference.summary
+  $ cat both.summary
+  | call sites of body: main at line 29, main at line 30
+  | dead code: stmt 1 (line 7): unreachable
+  | dead code: stmt 10 (line 16): unreachable
+  | dead code: stmt 12 (line 18): unreachable
+  | dead code: stmt 22 (line 19): unreachable
+  | dead code: stmt 3 (line 8): unreachable
+  | dead code: stmt 4 (line 9): unreachable
+  | dead code: stmt 5 (line 10): unreachable
+  | dead code: stmt 6 (line 12): unreachable
+  | dead code: stmt 8 (line 14): unreachable
+  | dead code: stmt 9 (line 15): unreachable
+  | guard: stmt 3 (line 8): then true, else true
+  | guard: stmt 8 (line 14): then false, else true
+  | reach.c:9: status of one: valid
+  | reach: stmt 1 (line 7): before in none; after in none
+  | reach: stmt 10 (line 16): before in none; after in none
+  | reach: stmt 12 (line 18): before in none; after in none
+  | reach: stmt 22 (line 19): before in none; after in none
+  | reach: stmt 3 (line 8): before in none; after in none
+  | reach: stmt 4 (line 9): before in none; after in none
+  | reach: stmt 5 (line 10): before in none; after in none
+  | reach: stmt 6 (line 12): before in none; after in none
+  | reach: stmt 8 (line 14): before in none; after in none
+  | reach: stmt 9 (line 15): before in none; after in none
+  | zones: stmt 1 (line 7) in body :: line 29 <- main: read \nothing; write l
+  | zones: stmt 1 (line 7) in body :: line 30 <- main: read \nothing; write l
+  | zones: stmt 12 (line 18) in body :: line 29 <- main: read x; l; write g
+  | zones: stmt 12 (line 18) in body :: line 30 <- main: read x; l; write g
+  | zones: stmt 3 (line 8) in body :: line 29 <- main: read x; write \nothing
+  | zones: stmt 3 (line 8) in body :: line 30 <- main: read x; write \nothing
+  | zones: stmt 5 (line 10) in body :: line 30 <- main: read \nothing; write out
+  | zones: stmt 6 (line 12) in body :: line 29 <- main: read \nothing; write out
+  | zones: stmt 8 (line 14) in body :: line 29 <- main: read x; write \nothing
+  | zones: stmt 8 (line 14) in body :: line 30 <- main: read x; write \nothing
+
+The same with -eva-no-results.
+
+  $ EVA_TEST_CACHE_REACH=replay frama-c -no-autoload-plugins -load-module eva,test_cache_reach.cmxs -main producer -eva-no-results -eva-msg-key cache reach.c > global.log 2>&1
+  $ grep -E '^(points of the part|hits|reachability|points of body)|lookup: hit' global.log
+  points of the part: not recorded
+    call to body: lookup: hit (entry 1); execution: not-analysed; storage: none
+  hits on body: 1
+  reachability of body unknown: false
+  points of body reached by hits: 0
+  $ grep '^| ' global.log > global.summary
+  $ EVA_TEST_CACHE_REACH=reference frama-c -no-autoload-plugins -load-module eva,test_cache_reach.cmxs -eva-no-results -eva-msg-key cache reach.c > global-reference.log 2>&1
+  $ grep '^| ' global-reference.log > global-reference.summary
+  $ diff global.summary global-reference.summary
+
+With CONSUMER=body or CONSUMER=global, the first analysis saves the states
+of body, and the second does not (as -eva-no-results-function body, or as
+-eva-no-results). The entry is a hit, and its points are not delivered:
+the results equal those of caching disabled under the same option.
+
+  $ EVA_TEST_CACHE_REACH=replay EVA_TEST_CACHE_REACH_CONSUMER=body frama-c -no-autoload-plugins -load-module eva,test_cache_reach.cmxs -main producer -eva-msg-key cache reach.c > consumer-body.log 2>&1
+  $ grep -E '^(hits|reachability|points of body)|lookup: hit' consumer-body.log
+    call to body: lookup: hit (entry 1); execution: not-analysed; storage: none
+  hits on body: 1
+  reachability of body unknown: false
+  points of body reached by hits: 0
+  $ grep '^| ' consumer-body.log > consumer-body.summary
+  $ diff consumer-body.summary both-reference.summary
+  $ EVA_TEST_CACHE_REACH=replay EVA_TEST_CACHE_REACH_CONSUMER=global frama-c -no-autoload-plugins -load-module eva,test_cache_reach.cmxs -main producer -eva-msg-key cache reach.c > consumer-global.log 2>&1
+  $ grep -E '^(hits|reachability|points of body)|lookup: hit' consumer-global.log
+    call to body: lookup: hit (entry 1); execution: not-analysed; storage: none
+  hits on body: 1
+  reachability of body unknown: false
+  points of body reached by hits: 0
+  $ grep '^| ' consumer-global.log > consumer-global.summary
+  $ diff consumer-global.summary global-reference.summary
+
+With -eva-no-results-domain cvalue, the store of the states of the cvalue
+domain saves no state, and the queries answer no callstack at any
+statement. With caching disabled, every statement of body then reads as
+unreachable, although body is called: the server request of dead code
+lists them all, and Export generates the annotation \false before the
+statements of lines 14 and 18. A hit delivers its points, which the
+queries do not see: body is recorded as of unknown reachability, the
+server request lists no statement of body, and Export generates no
+annotation in body.
+
+  $ EVA_TEST_CACHE_REACH=replay EVA_TEST_CACHE_REACH_EXPORT=on frama-c -no-autoload-plugins -load-module eva,test_cache_reach.cmxs -main producer -eva-no-results-domain cvalue -eva-msg-key cache reach.c -save domain.sav > domain.log 2>&1
+  $ grep -E '^(hits|reachability|points of body|exported)|lookup: hit|statements reached|answered by the cache' domain.log
+    In these functions, 12 statements reached (out of 12): 100% coverage.
+    call to body: lookup: hit (entry 1); execution: not-analysed; storage: none
+    In these functions, 14 statements reached (out of 14): 100% coverage.
   hits on body: 1
   reachability of body unknown: true
+  points of body reached by hits: 14
+  $ frama-c -no-autoload-plugins -load-module server,eva,eva.server_api,test_dead_code.cmxs -load domain.sav > domain.server 2>&1
+  $ cat domain.server
+  getDeadCode body:
+    { unreachable: [], reached: [], nonTerminating: [] }
+  $ EVA_TEST_CACHE_REACH=reference EVA_TEST_CACHE_REACH_EXPORT=on frama-c -no-autoload-plugins -load-module eva,test_cache_reach.cmxs -eva-no-results-domain cvalue -eva-msg-key cache reach.c -save domain-reference.sav > domain-reference.log 2>&1
+  $ grep -E '^(hits|reachability|points of body|exported)|statements reached' domain-reference.log
+    In these functions, 14 statements reached (out of 14): 100% coverage.
+  hits on body: 0
+  reachability of body unknown: false
+  points of body reached by hits: 0
+  exported before line 14: assert Eva_export: \false;
+  exported before line 18: assert Eva_export: \false;
+  $ frama-c -no-autoload-plugins -load-module server,eva,eva.server_api,test_dead_code.cmxs -load domain-reference.sav > domain-reference.server 2>&1
+  $ cat domain-reference.server
+  getDeadCode body:
+    { unreachable: [ return;,
+                     g = x + l;,
+                     out = 3;,
+                     ;,
+                     if (x == 3) {   ;   out = 3; },
+                     out = 2;,
+                     out = 1;,
+                     ;,
+                     if (x == 1) {   ;   out = 1; } else out = 2;,
+                     int l = 1; ],
+      reached: [],
+      nonTerminating: [] }
 
 In holder.c, body stores the address of its formal x into gp. After the
 call, the caller ends the lifetime of x, and gp holds an escaping address.
@@ -324,3 +605,39 @@ call (nested-delivery).
   part of parent: zones at enclosing.c:8 (stmt 2), read x, write \nothing, in child :: enclosing.c:12 (stmt 7)
   part of parent: zones at enclosing.c:8 (stmt 3), read x, write out, in child :: enclosing.c:12 (stmt 7)
   hits on child: 1
+
+Three programs in which a hit joins what it delivers with what is already
+recorded, with -eva-slevel 10. In twohits.c, two hits answer the calls of
+lines 5 and 6: the statement of body is reached in both callstacks. In
+zones.c, main calls body(2), which is analysed, then body(1), a hit, at the
+same call site: the zone written at line 4 is second from the analysed call
+and first from the hit. In loopread.c, the loop of body reads second, then
+first, at line 7: the Reach part holds both. The results equal those of
+caching disabled.
+
+  $ EVA_TEST_CACHE_REACH=replay frama-c -no-autoload-plugins -load-module eva,test_cache_reach.cmxs -main producer -eva-msg-key cache -eva-slevel 10 twohits.c > twohits.log 2>&1
+  $ grep -E 'lookup: hit|^\| reach: stmt 1 ' twohits.log
+    call to body: lookup: hit (entry 1); execution: not-analysed; storage: none
+    call to body: lookup: hit (entry 1); execution: not-analysed; storage: none
+  | reach: stmt 1 (line 2): before in body :: line 5 <- main, body :: line 6 <- main; after in body :: line 5 <- main, body :: line 6 <- main
+  $ grep '^| ' twohits.log > twohits.summary
+  $ EVA_TEST_CACHE_REACH=reference frama-c -no-autoload-plugins -load-module eva,test_cache_reach.cmxs -eva-msg-key cache -eva-slevel 10 twohits.c > twohits-reference.log 2>&1
+  $ grep '^| ' twohits-reference.log > twohits-reference.summary
+  $ diff twohits.summary twohits-reference.summary
+  $ EVA_TEST_CACHE_REACH=replay frama-c -no-autoload-plugins -load-module eva,test_cache_reach.cmxs -main producer -eva-msg-key cache -eva-slevel 10 zones.c > zones.log 2>&1
+  $ grep -E 'lookup: hit|^\| zones: stmt 8 ' zones.log
+    call to body: lookup: hit (entry 1); execution: not-analysed; storage: none
+  | zones: stmt 8 (line 4) in body :: line 8 <- main: read x; p; write first; second
+  $ grep '^| ' zones.log > zones.summary
+  $ EVA_TEST_CACHE_REACH=reference frama-c -no-autoload-plugins -load-module eva,test_cache_reach.cmxs -eva-msg-key cache -eva-slevel 10 zones.c > zones-reference.log 2>&1
+  $ grep '^| ' zones-reference.log > zones-reference.summary
+  $ diff zones.summary zones-reference.summary
+  $ EVA_TEST_CACHE_REACH=replay frama-c -no-autoload-plugins -load-module eva,test_cache_reach.cmxs -main producer -eva-msg-key cache -eva-slevel 10 loopread.c > loopread.log 2>&1
+  $ grep -E 'lookup: hit|^part: zones at loopread.c:7|^\| zones: stmt 12 ' loopread.log
+  part: zones at loopread.c:7 (stmt 12), read first; second; p, write sink, in the body
+    call to body: lookup: hit (entry 1); execution: not-analysed; storage: none
+  | zones: stmt 12 (line 7) in body :: line 12 <- main: read first; second; p; write sink
+  $ grep '^| ' loopread.log > loopread.summary
+  $ EVA_TEST_CACHE_REACH=reference frama-c -no-autoload-plugins -load-module eva,test_cache_reach.cmxs -eva-msg-key cache -eva-slevel 10 loopread.c > loopread-reference.log 2>&1
+  $ grep '^| ' loopread-reference.log > loopread-reference.summary
+  $ diff loopread.summary loopread-reference.summary

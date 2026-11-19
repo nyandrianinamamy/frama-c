@@ -9,19 +9,29 @@
 (** Delivery of the Reach part of a cache entry at a hit. *)
 
 (** [deliver callstack ~save_results part] performs again the writes of
-    [part] for a call with [callstack]. Each write is made for the
-    callstack obtained by putting its frames on top of [callstack]:
+    [part] for a call with [callstack]: those of [part.joins] in any case,
+    and those of [part.points] when [save_results] holds, as an analysis of
+    the body saves states only then. Each write is made for the callstack
+    obtained by putting its frames on top of [callstack]:
     - a reached control point is recorded for that callstack (see
-      {!reached}), when [save_results] holds: an analysis of the body saves
-      no state otherwise;
+      {!reached});
     - a guard outcome through {!Iterator.add_condition};
     - read and written zones through {!Inout_access.register}, at the
       position of their statement in that callstack;
     - a call site through {!Function_calls.register_caller}.
 
+    When [save_results] holds, the function is recorded as of unknown
+    reachability ({!reach_unknown}) if [part] has no points, which the
+    lookup rejects before ([`Missing_points]), and if the store of the
+    states of the cvalue domain, the only domain at a hit, saves no state
+    ([-eva-no-results-domain cvalue]): the queries then answer no callstack
+    at any point, and do not see the points of the hit, which are delivered
+    all the same.
+
     Each write is also recorded in the Reach part of the body being
-    analysed, if any. The tables written have no listener and no hook. *)
-val deliver : Callstack.t -> save_results:bool -> Reach_part.t -> unit
+    analysed, if any. The tables written are not in the interface of their
+    modules, and no client is registered on their hooks of change. *)
+val deliver : Callstack.t -> save_results:bool -> Reach_part.part -> unit
 
 (** {2 Points reached by a hit}
 
@@ -42,22 +52,24 @@ val callstacks : Domain_store.control_point -> Callstack.t list
 
 (** {2 Functions of unknown reachability}
 
-    A hit on an entry without a Reach part, such as an entry supplied by a
-    test without one, delivers no reached statement: the passes run at the
-    end of the analysis must not conclude from the absence of a state at a
-    statement of the called function. *)
+    A hit on an entry without a Reach part, an entry supplied by a test
+    without one, delivers no reached statement, and the points that a hit
+    delivers are not seen by the queries when the store saves no state: the
+    passes run at the end of the analysis must not conclude from the
+    absence of a state at a statement of the called function. *)
 
-(** [reach_unknown kf] records that a hit on an entry without a Reach part
-    has answered a call of [kf] in the current analysis. The record is a
-    state of the analysis, and is reset with it. *)
+(** [reach_unknown kf] records that a hit whose reached points are not
+    known to the queries has answered a call of [kf] in the current
+    analysis. The record is a state of the analysis, and is reset with
+    it. *)
 val reach_unknown : Cil_types.kernel_function -> unit
 
-(** Whether a hit on an entry without a Reach part has answered a call of
-    the function in the current analysis. *)
+(** Whether the function is of unknown reachability in the current
+    analysis ({!reach_unknown}). *)
 val reach_unknown_of : Cil_types.kernel_function -> bool
 
-(** Whether a hit on an entry without a Reach part has answered a call of
-    the function that contains the statement, in the current analysis. *)
+(** Whether the function that contains the statement is of unknown
+    reachability in the current analysis ({!reach_unknown}). *)
 val reach_unknown_at : Cil_types.stmt -> bool
 
 (** {2 Saved results}

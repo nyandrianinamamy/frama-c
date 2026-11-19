@@ -6,3 +6,12 @@
   (flags :standard -open Frama_c_kernel)
   (promote (until-clean))
 )
+
+(executable
+  (name "test_dead_code")
+  (modules "test_dead_code")
+  (modes plugin)
+  (libraries frama-c.kernel "frama-c-server.core")
+  (flags :standard -open Frama_c_kernel)
+  (promote (until-clean))
+)

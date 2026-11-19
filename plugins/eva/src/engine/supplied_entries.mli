@@ -73,15 +73,19 @@ type footprint = Cache_entry.footprint = {
       this status says. A hit delivers them for its own callstack. The
       checks of the [requires] clauses of [kf] are not part of the body:
       they are evaluated at each call;
-    - [reach], if given, holds the writes of the Reach part that an analysis
-      of the body from [input] makes (see {!Reach_part}): every statement
-      that an execution reaches is reached in [reach], before it and, if the
-      execution goes past it, after it, and so is every guard outcome; the
-      zones of a statement cover the zones that an analysis registers there.
-      A hit delivers them for its own callstack. Without [reach], the hit
-      delivers no reached statement, and the passes at the end of the
-      analysis draw no conclusion from the absence of a state at a
-      statement of [kf] (see {!Reach_delivery.reach_unknown}).
+    - [reach], if given, holds the Reach part of an analysis of the body
+      from [input] (see {!Reach_part.part}): its joins hold every guard
+      outcome that an execution takes and, at each statement, zones that
+      cover those that an analysis registers there; its points, if given,
+      hold every statement that an execution reaches, before it and, if the
+      execution goes past it, after it. A hit delivers them for its own
+      callstack. An entry whose part has no points is rejected with
+      [`Missing_points] at a call whose function saves its states. Without
+      [reach], a hit delivers no write of the Reach part: the passes at the
+      end of the analysis draw no conclusion from the absence of a state at
+      a statement of [kf] (see {!Reach_delivery.reach_unknown}), but the
+      guard outcomes, the zones, the call sites and the callstacks of the
+      statements of [kf] lack those of the hit.
 
     The alarms, statuses and messages of [safety] are those of an analysis
     of the body with the settings in force at each hit on the entry. The
@@ -142,7 +146,7 @@ type footprint = Cache_entry.footprint = {
     include the block of the value returned by [kf], if any (see
     {!return_variable}). *)
 val supply :
-  ?safety:Safety_part.t -> ?reach:Reach_part.t -> kernel_function ->
+  ?safety:Safety_part.t -> ?reach:Reach_part.part -> kernel_function ->
   key:Base.Hptset.t -> input:Cvalue.Model.t -> footprint:footprint ->
   exit:(Partition.key * Cvalue.Model.t) list -> entry
 
@@ -186,7 +190,7 @@ val input : entry -> Cvalue.Model.t
 val footprint : entry -> footprint
 val exit : entry -> (Partition.key * Cvalue.Model.t) list
 val safety : entry -> Safety_part.t
-val reach : entry -> Reach_part.t option
+val reach : entry -> Reach_part.part option
 val pretty : Format.formatter -> entry -> unit
 
 (** {2 Lookup} *)
@@ -271,8 +275,12 @@ module Lookup (Domain : sig
       component listed under [`Consumer] is enabled, when
       [-eva-stop-at-nth-alarm] is set, or when a client listed under
       [`Callback] is registered, every entry is rejected for this
-      reason. With either constructor, a matching body with a call other
-      than a direct show directive is rejected with [`Nested_delivery] if it
-      passes the other admission checks. *)
+      reason. A matching entry whose Reach part has no points is rejected
+      with [`Missing_points] when [save_results] holds for the top function
+      of [stack] ({!Function_calls.save_results}), if it passes the other
+      admission checks; this check comes before the next one. With either
+      constructor, a matching body with a call other than a direct show
+      directive is rejected with [`Nested_delivery] if it passes the other
+      admission checks. *)
   val find : Callstack.t -> Domain.t -> Domain.t lookup
 end

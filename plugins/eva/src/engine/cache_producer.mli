@@ -19,9 +19,9 @@ type entry
 val entries : kernel_function -> entry list
 
 (** Statement, closed key, filtered input, footprint, partitioned Exit
-    part, Safety part and Reach part. The Reach part is given when the
-    states of the body were saved ([save_results]); otherwise its
-    statements are not recorded as reached, and the entry has none. *)
+    part, Safety part and Reach part. The Reach part holds the points
+    reached only when the states of the body were saved ([save_results]):
+    otherwise the analysis does not record them (see {!Reach_part.part}). *)
 val cache_entry : entry -> Cache_entry.Cvalue.t
 
 (** Classes of recorded joins seen while analysing the body. *)

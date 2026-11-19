@@ -37,23 +37,18 @@ let callstacks point =
   | None -> []
   | Some set -> Callstack.Set.elements set
 
-let deliver callstack ~save_results part =
-  let deliver_write (write : Reach_part.write) =
-    match write with
-    | Reached { point; frames } ->
-      if save_results then begin
-        let callstack = Reach_part.reroot callstack frames in
-        Reach_part.record_state callstack point;
-        add_point point callstack
-      end
-    | Guard { stmt; outcome } -> Iterator.add_condition stmt outcome
-    | Zones { stmt; frames; read; write } ->
-      let position = Position.local stmt (Reach_part.reroot callstack frames) in
-      Inout_access.register position (Inout_access.Access.make ~read ~write ())
-    | Caller { frames } ->
-      Function_calls.register_caller (Reach_part.reroot callstack frames)
-  in
-  List.iter deliver_write part
+let deliver_write callstack (write : Reach_part.write) =
+  match write with
+  | Reached { point; frames } ->
+    let callstack = Reach_part.reroot callstack frames in
+    Reach_part.record_state callstack point;
+    add_point point callstack
+  | Guard { stmt; outcome } -> Iterator.add_condition stmt outcome
+  | Zones { stmt; frames; read; write } ->
+    let position = Position.local stmt (Reach_part.reroot callstack frames) in
+    Inout_access.register position (Inout_access.Access.make ~read ~write ())
+  | Caller { frames } ->
+    Function_calls.register_caller (Reach_part.reroot callstack frames)
 
 (* ----- Functions of unknown reachability --------------------------------- *)
 
@@ -71,6 +66,23 @@ let reach_unknown_of kf = not (Unknown.is_empty ()) && Unknown.mem kf
 let reach_unknown_at stmt =
   not (Unknown.is_empty ())
   && Unknown.mem (Kernel_function.find_englobing_kf stmt)
+
+(* ----- Delivery ---------------------------------------------------------- *)
+
+(* A hit requires the cvalue domain alone: its store is the store of the
+   states that the queries read. When it saves no state, as under
+   [-eva-no-results-domain cvalue], the queries answer no callstack at any
+   point, and the points of the hit are not seen. *)
+let deliver callstack ~save_results (part : Reach_part.part) =
+  let kf = Callstack.top_kf callstack in
+  List.iter (deliver_write callstack) part.joins;
+  if save_results then begin
+    match part.points with
+    | Some points -> List.iter (deliver_write callstack) points
+    | None -> reach_unknown kf
+  end;
+  if save_results && not (Cvalue_domain.State.Store.is_computed ())
+  then reach_unknown kf
 
 (* ----- Saved results ----------------------------------------------------- *)
 

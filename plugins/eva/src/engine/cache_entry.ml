@@ -29,6 +29,7 @@ type dependencies = {
 type rejection = [
   | `Key_differs | `Key_unclosed | `Sweep | `Recursion | `Hint_generation
   | `Watchpoint | `Automatic_cleanup | `Nested_delivery | `Warn_categories
+  | `Missing_points
 ]
 
 let rejection_id : rejection -> string = function
@@ -41,6 +42,7 @@ let rejection_id : rejection -> string = function
   | `Automatic_cleanup -> "automatic-cleanup"
   | `Nested_delivery -> "nested-delivery"
   | `Warn_categories -> "warn-categories"
+  | `Missing_points -> "missing-points"
 
 let return_block = function
   | Body kf -> Option.map Base.of_varinfo (Library_functions.get_retres_vi kf)
@@ -85,7 +87,7 @@ module Make (Domain : Domain) = struct
     observation : observation option;
     children : Cache_observation.child list;
     safety : Safety_part.t;
-    reach : Reach_part.t option;
+    reach : Reach_part.part option;
   }
 
   (* Whether [relate] relates [bases] only to blocks of [bases] in [state]. *)

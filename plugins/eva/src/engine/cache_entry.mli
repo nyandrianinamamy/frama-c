@@ -20,9 +20,10 @@
     - its Safety part: the alarms, statuses, messages of statuses and red
       contexts that the analysis of the statement emitted (see
       {!Safety_part});
-    - its Reach part, if known: the control points that the analysis of the
-      statement reached, its guard outcomes, its read and written zones and
-      the call sites it registered (see {!Reach_part}).
+    - its Reach part, if known: the guard outcomes, the read and written
+      zones and the call sites that the analysis of the statement
+      registered, and the control points it reached if it saved the states
+      of the statement (see {!Reach_part.part}).
 
     The reuse operation ({!Make.find}) takes the candidate entries of a call,
     oldest first, and the input of the call. A candidate matches when the
@@ -91,6 +92,9 @@ type rejection = [
   (** The status of a warning category differs from its status when the
       analysis of the body that produced the entry started
       ({!Body_access.warn_categories}). *)
+  | `Missing_points
+  (** The Reach part of the entry has no points, while the states of the
+      called function are saved in the analysis of the call. *)
 ]
 
 (** Stable identifier of a rejection reason. *)
@@ -134,7 +138,7 @@ module Make (Domain : Domain) : sig
   val make :
     id:int -> ?reads:Base.Hptset.t -> ?dependencies:dependencies ->
     ?observation:observation -> ?children:Cache_observation.child list ->
-    ?safety:Safety_part.t -> ?reach:Reach_part.t -> statement ->
+    ?safety:Safety_part.t -> ?reach:Reach_part.part -> statement ->
     key:Base.Hptset.t -> input:Domain.t ->
     footprint:footprint -> exit:(Partition.key * Domain.t) list -> t
 
@@ -173,7 +177,7 @@ module Make (Domain : Domain) : sig
 
   (** The Reach part, if known: the writes that a hit on the entry delivers
       with its Safety part. *)
-  val reach : t -> Reach_part.t option
+  val reach : t -> Reach_part.part option
 
   val pretty : Format.formatter -> t -> unit
 

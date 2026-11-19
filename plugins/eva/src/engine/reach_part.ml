@@ -25,6 +25,14 @@ type t = write list
 
 let empty = []
 
+type part = { joins : t; points : t option }
+
+let part ~points writes =
+  let reached, joins =
+    List.partition (function Reached _ -> true | _ -> false) writes
+  in
+  { joins; points = if points then Some reached else None }
+
 let reroot = Safety_part.reroot
 
 (* ----- Printing ---------------------------------------------------------- *)

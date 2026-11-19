@@ -53,6 +53,14 @@ let body_stmts () = (Kernel_function.get_definition (kf "body")).sallstmts
 let in_body stmt =
   Kernel_function.equal (Kernel_function.find_englobing_kf stmt) (kf "body")
 
+(* The prefix of the lines printed by the readers below: empty after the
+   analysis, "restored " after an installation of saved results, and
+   "original " in the original project after an installation in a copy. *)
+let tag = ref ""
+
+let printf format =
+  Format.kasprintf (fun text -> Format.printf "%s%s%!" !tag text) format
+
 (* ----- Readers ----------------------------------------------------------- *)
 
 (* The callstacks in which a state is saved, or reached by a hit, before and
@@ -147,7 +155,7 @@ let summary () =
     reached () @ dead_code () @ statuses () @ guards () @ callsites ()
     @ zones ()
   in
-  List.iter (Format.printf "| %s@.") (List.sort_uniq String.compare lines)
+  List.iter (printf "| %s@.") (List.sort_uniq String.compare lines)
 
 (* The value of x before the last statement of body, over all callstacks
    and in each one. A hit callstack answers top: its states are not
@@ -162,10 +170,10 @@ let values () =
       | Ok v -> Cvalue.V.pretty fmt v
       | Error e -> Results.pretty_error fmt e
     in
-    Format.printf "value of x before %a: %a@." pretty_stmt last
+    printf "value of x before %a: %a@." pretty_stmt last
       pretty_value Results.(before last);
     List.iter (fun callstack ->
-        Format.printf "value of x before %a in %a: %a@." pretty_stmt last
+        printf "value of x before %a in %a: %a@." pretty_stmt last
           pretty_callstack callstack pretty_value
           Results.(before last |> in_callstack callstack))
       (List.sort Eva.Callstack.compare Results.(before last |> callstacks))
@@ -178,34 +186,108 @@ let holder () =
   | gp ->
     let request = Results.at_end_of (kf "main") in
     let v = Results.(eval_var gp request |> as_cvalue_or_uninitialized) in
-    Format.printf "| end of main: gp = %a@."
-      Cvalue.V_Or_Uninitialized.pretty v
+    printf "| end of main: gp = %a@." Cvalue.V_Or_Uninitialized.pretty v
+
+(* The number of control points of body reached by hits, counted once per
+   callstack, read from the delivery itself: under -eva-no-results, the
+   queries answer no callstack. *)
+let hit_points () =
+  let count point = List.length (Eva__Reach_delivery.callstacks point) in
+  let count_stmt n stmt =
+    n + count (Eva__Domain_store.Before stmt)
+    + count (Eva__Domain_store.After stmt)
+  in
+  printf "points of body reached by hits: %d@."
+    (List.fold_left count_stmt 0 (body_stmts ()))
+
+(* With EXPORT=on, the annotations that Export generates in body. They are
+   removed after printing, so that Export can run again. *)
+let export () =
+  if env "EXPORT" = Some "on" then begin
+    let fundec = Kernel_function.get_definition (kf "body") in
+    ignore (Visitor.visitFramacFunction (Eva.Export.generator ()) fundec);
+    let exported stmt ca =
+      printf "exported before line %d: %a@." (line stmt)
+        Printer.pp_code_annotation ca;
+      Annotations.remove_code_annot Eva.Export.emitter stmt ca
+    in
+    List.iter (fun stmt ->
+        List.iter (exported stmt)
+          (Annotations.code_annot ~emitter:Eva.Export.emitter stmt))
+      fundec.sallstmts
+  end
 
 let observe () =
-  Format.printf "hits on body: %d@."
+  printf "hits on body: %d@."
     (Eva.Statistics.get Eva.Statistics.cache_hits (kf "body"));
-  Format.printf "reachability of body unknown: %b@."
+  printf "reachability of body unknown: %b@."
     (Eva__Reach_delivery.reach_unknown_of (kf "body"));
+  hit_points ();
   if env "VALUES" = Some "on" then values ();
+  export ();
   holder ();
   summary ()
 
+(* ----- Saved results ----------------------------------------------------- *)
+
+(* With RESTORE set, the results of the analysis are taken by
+   [Eva_results.get_results] and installed by [Eva_results.set_results], in
+   the current project (RESTORE=same) or in a copy of the project, from the
+   results taken in the copy (RESTORE=copy). The readers run again on the
+   installed results, their lines prefixed by "restored "; with REFINE=on,
+   the refinement of the statuses of alarms runs first. After an
+   installation in a copy, the readers run again in the original project,
+   their lines prefixed by "original ". The results taken in a project
+   cannot be installed in another one: they name its functions. *)
+let restore () =
+  let install results =
+    Eva.Eva_results.set_results results;
+    tag := "restored ";
+    printf "results computed: %b@." (Eva.Analysis.is_computed ());
+    if env "REFINE" = Some "on" then Eva__Eval_annots.mark_green_and_red ();
+    observe ();
+    tag := ""
+  in
+  match env "RESTORE" with
+  | None -> ()
+  | Some "same" -> install (Eva.Eva_results.get_results ())
+  | Some "copy" ->
+    let copy = Project.create_by_copy ~last:false "copy" in
+    Project.on copy (fun () -> install (Eva.Eva_results.get_results ())) ();
+    tag := "original ";
+    observe ();
+    tag := ""
+  | Some mode -> failwith ("RESTORE=" ^ mode)
+
 (* ----- Modes ------------------------------------------------------------- *)
+
+(* [no_results setting on] sets, if [on], or clears the options under which
+   an analysis saves no state: of body with "body"
+   (-eva-no-results-function body), of every function with "global"
+   (-eva-no-results). *)
+let no_results setting on =
+  match setting with
+  | None -> ()
+  | Some "body" ->
+    if on then Eva.Parameters.NoResultsFunction.add
+        (Kernel_function.get_definition (kf "body"))
+    else Eva.Parameters.NoResultsFunction.clear ()
+  | Some "global" -> Eva.Parameters.ResultsAll.set (not on)
+  | Some setting -> failwith ("no results: " ^ setting)
 
 (* Caching disabled: neither memexec nor supplied entries. *)
 let reference () =
   Eva.Parameters.Memexec.off ();
   Eva.Analysis.compute ();
-  observe ()
+  observe ();
+  restore ()
 
 (* A first analysis, from the entry point of the command line, stores the
    entry of body, if any. Changing the entry point to main then resets the
-   analysis. With NORESULTS=on, the states of body are not saved in the
-   first analysis. *)
+   analysis. With PRODUCER set, the first analysis saves no state of body
+   (see [no_results]). *)
 let produce_and_reset () =
-  let no_results = env "NORESULTS" = Some "on" in
-  if no_results then Eva.Parameters.NoResultsFunction.add
-      (Kernel_function.get_definition (kf "body"));
+  no_results (env "PRODUCER") true;
   Eva.Analysis.compute ();
   let produced =
     match Producer.entries (kf "body") with
@@ -214,34 +296,47 @@ let produce_and_reset () =
   in
   Kernel.MainFunction.set "main";
   assert (not (Eva.Analysis.is_computed ()));
-  if no_results then Eva.Parameters.NoResultsFunction.clear ();
+  no_results (env "PRODUCER") false;
   produced
 
-(* Prints the Reach part of the entry of body, one write per line, sorted. *)
+(* Prints the Reach part of the entry of body, one write per line, sorted,
+   then whether its points are recorded. *)
 let print_part produced =
   match Entry.reach (Producer.cache_entry produced) with
   | None -> Format.printf "Reach part of the entry: unknown@."
-  | Some part ->
-    let lines = List.map (one_line Reach.pretty_write) part in
-    List.iter (Format.printf "part: %s@.") (List.sort compare lines)
+  | Some { joins; points } ->
+    let writes = joins @ Option.value ~default:[] points in
+    let lines = List.map (one_line Reach.pretty_write) writes in
+    List.iter (Format.printf "part: %s@.") (List.sort compare lines);
+    if points = None then Format.printf "points of the part: not recorded@."
 
 (* The entry of body is supplied to a second analysis, from main. With
-   PART=drop, the entry is supplied by hand without its Reach part. *)
+   PART=drop, the entry is supplied by hand without its Reach part; with
+   PART=nopoints, with its Reach part without the points. With CONSUMER
+   set, the second analysis saves no state of body (see [no_results]). *)
 let replay () =
   let produced = produce_and_reset () in
   print_part produced;
-  if env "PART" = Some "drop" then begin
-    let entry = Producer.cache_entry produced in
+  let entry = Producer.cache_entry produced in
+  let by_hand reach =
     let exit = List.map (fun (k, (s, _)) -> k, s) (Entry.exit entry) in
     ignore
-      (Supplied.supply ~safety:(Entry.safety entry) (kf "body")
+      (Supplied.supply ~safety:(Entry.safety entry) ?reach (kf "body")
          ~key:(Entry.key entry) ~input:(fst (Entry.input entry))
          ~footprint:(Entry.footprint entry) ~exit)
-  end
-  else ignore (Supplied.supply_produced produced);
+  in
+  begin match env "PART" with
+    | Some "drop" -> by_hand None
+    | Some "nopoints" ->
+      let without_points (part : Reach.part) = { part with points = None } in
+      by_hand (Option.map without_points (Entry.reach entry))
+    | _ -> ignore (Supplied.supply_produced produced)
+  end;
+  no_results (env "CONSUMER") true;
   Format.printf "second analysis@.";
   Eva.Analysis.compute ();
-  observe ()
+  observe ();
+  restore ()
 
 (* After -load, without a new analysis. *)
 let loaded () =

@@ -65,6 +65,23 @@ type t = write list
 
 val empty : t
 
+(** The Reach part of a cache entry. An analysis of a body makes the guard
+    outcomes, the zones and the call sites whether or not it saves the
+    states of the body; it saves states, and so reaches points, only when
+    [save_results] holds for the body ({!Function_calls.save_results}). The
+    points are therefore a separate component. *)
+type part = {
+  joins : t;
+  (** The writes but the points: [Guard], [Zones] and [Caller]. *)
+  points : t option;
+  (** The [Reached] writes, if the analysis that recorded the part saved
+      the states of the body; [None] otherwise. *)
+}
+
+(** [part ~points writes] splits [writes] into a part, whose points are
+    [None] unless [points] holds. *)
+val part : points:bool -> t -> part
+
 (** [reroot callstack frames] is the callstack of a write with [frames]
     made by a body called with [callstack]. *)
 val reroot : Callstack.t -> frames -> Callstack.t

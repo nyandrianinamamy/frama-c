@@ -28,6 +28,11 @@
     ../../../../dev/collector_statistics.ml
   ))
 
+; The server request of dead code in a process that loads a session
+(cram
+  (applies_to cache-reach)
+  (deps (package frama-c-server)))
+
 ; Supplied entries rejected when a reader of the states is loaded, and
 ; when the server registers its hooks
 (cram

@@ -195,7 +195,7 @@ type rejection =
 let rejections : rejection list =
   [ `Key_differs; `Key_unclosed; `Sweep; `Recursion; `Hint_generation;
     `Watchpoint; `Automatic_cleanup; `Nested_delivery; `Warn_categories;
-    `Product; `Consumer; `Stop_at_nth_alarm; `Callback ]
+    `Missing_points; `Product; `Consumer; `Stop_at_nth_alarm; `Callback ]
 
 let rejection_id : rejection -> string = function
   | #Cache_entry.rejection as r -> Cache_entry.rejection_id r
@@ -289,6 +289,18 @@ module Lookup (Domain : sig
       Structure.Key_Domain.eq_type key Cvalue_domain.State.key
     | _ -> None
 
+  (* An analysis of the body saves its states, and reaches points, when
+     [save_results] holds for the function: a hit must then deliver the
+     points reached. An entry without a Reach part is a fixture without
+     one: the hit records the function as of unknown reachability (see
+     {!Reach_delivery.reach_unknown}). *)
+  let missing_points stack entry =
+    match Entry.reach entry with
+    | Some { points = None; _ } ->
+      let kf = Callstack.top_kf stack in
+      Function_calls.save_results (Kernel_function.get_definition kf)
+    | Some { points = Some _; _ } | None -> false
+
   let admit stack nested_call entry (model, _) =
     let dependencies = Entry.dependencies entry in
     let used_functions =
@@ -318,6 +330,7 @@ module Lookup (Domain : sig
       in
       match Option.fold ~none:(Ok ()) ~some:check_dependencies dependencies with
       | Error _ as error -> error
+      | Ok () when missing_points stack entry -> Error `Missing_points
       | Ok () when Lazy.force nested_call -> Error `Nested_delivery
       | Ok () -> Ok ()
 

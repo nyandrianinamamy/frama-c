@@ -160,12 +160,13 @@ let produce ~save_results ~safety ~reach callstack input states r =
     let observation =
       Cache_observation.{ designated = r.designated; recorded = r.recorded }
     in
-    (* Without saved states, the writes of the Reach part do not show
-       which statements the body reaches. *)
-    let reach = if save_results then Some reach else None in
+    (* The analysis of the body records the points it reaches only when
+       it saves its states; the other writes of the Reach part are made in
+       any case. *)
+    let reach = Reach_part.part ~points:save_results reach in
     let cache_entry =
       Entry.make ~id ~reads ~dependencies ~observation ~children:r.children
-        ~safety ?reach statement ~key ~input:(copy input) ~footprint ~exit
+        ~safety ~reach statement ~key ~input:(copy input) ~footprint ~exit
     in
     let inner =
       if save_results && Cvalue_domain.State.Store.is_computed ()

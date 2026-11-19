@@ -187,8 +187,8 @@ module Make
         the body ({!Safety_part.capture}), as its Safety part, and [reach]
         ({!Reach_part.capture}) as its Reach part.
         [save_results] enables statement recording for this body. An Inner
-        reference also requires recording in the cvalue store, and a Reach
-        part requires [save_results].
+        reference also requires recording in the cvalue store, and the
+        points of the Reach part require [save_results].
         Returns the produced entry, if any. *)
     val store :
       save_results:bool -> safety:Safety_part.t -> reach:Reach_part.t ->
