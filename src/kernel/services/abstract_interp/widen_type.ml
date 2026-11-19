@@ -107,6 +107,22 @@ let join wh1 wh2 =
         wh1.float_hints_by_addr_by_stmt wh2.float_hints_by_addr_by_stmt;
   }
 
+(* Dynamic hints add per-base thresholds. The defaults are present for
+   every base, including bases without a table entry. *)
+let adds_dynamic_hints ~previous:old hints =
+  let same bindings other defaults union equal empty =
+    Base.Map.for_all
+      (fun base hints ->
+         let prev = Option.value ~default:empty (Base.Map.find_opt base other) in
+         let prev = union defaults prev in
+         equal (union prev hints) prev)
+      bindings
+  in
+  not (same hints.hints_by_addr old.hints_by_addr old.default_hints
+         IntSet.union IntSet.equal IntSet.empty
+       && same hints.float_hints_by_addr old.float_hints_by_addr
+         old.default_float_hints FloatSet.union FloatSet.equal FloatSet.empty)
+
 let pretty fmt wh =
   let pp_bindings pp_key pp_elt fmt l =
     Format.fprintf fmt "%a"

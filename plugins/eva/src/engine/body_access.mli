@@ -8,6 +8,8 @@
 
 (** Observations made while Eva analyses a call by its body. *)
 
+type call_mode = [ `Body | `Spec | `Builtin ]
+
 module Result : sig
   (** Reasons to refuse storage, in the order used to select the reason of
       the storage disposition. [Reallocation], [Allocation] and
@@ -24,7 +26,9 @@ module Result : sig
   type refusal =
     | Indirect_call
     | Reallocation | Allocation | Deallocation | Validity_mutation
-    | Builtin | Sweep | Contract | Annotation | Nested_call
+    | Recursion | Watchpoint | Dump
+    | Builtin | Threaded | Sweep | Widening_hint | Stop_at_alarm
+    | Callback | Trace_id | Contract | Annotation | Nested_call
     | Allocated_block | Allocation_metadata | Footprint_top | Side_table
 
   val refusal_id : refusal -> string
@@ -39,13 +43,23 @@ module Result : sig
     sure_writes : Base.Hptset.t;
     designated : Base.SetLattice.t;
     owners : Base.Hptset.t;
+    sweeps : Base.Hptset.t;
+    used_functions : (Cil_types.kernel_function * call_mode) list;
+    hint_generation : Widen_generation.t option;
     recorded : recorded list;
     refusals : refusal list;
   }
   (** May sets can be [Top] when an unsupported operation has unknown
       accesses. The sure set contains only fully overwritten blocks.
       [owners] holds the allocated blocks whose validity or type was read,
-      including by the bodies analysed during the analysis of this one. *)
+      including by the bodies analysed during the analysis of this one.
+      [sweeps] contains the targets of observed own-local sweeps.
+      [used_functions] includes the body and the functions seen during
+      fresh nested work, with their modes.
+      [hint_generation] is the entry-time stamp when a widening read ran. *)
+
+  (** Numeric generation within the analysis, starting at zero. *)
+  val hint_generation_number : Widen_generation.t -> int
 
   (** Observe an immutable result after a completed analysis of a body and
       before the storage verdict. Requires [-eva-cache-collect].
@@ -59,8 +73,8 @@ val without_recording : (unit -> 'a) -> 'a
 
 val at_call_site : (unit -> 'a) -> 'a
 (** Runs a function that belongs to the call site of the current body, as
-    the check of its [requires] clauses. Only the reasons of the allocation
-    family are recorded, with [Footprint_top]: the allocated blocks among
+    the check of its [requires] clauses. Footprint checks there record
+    the allocation family and [Footprint_top]. They cover allocated blocks among
     the blocks read and designated, including through {!read_bases},
     {!designate_bases} and {!designate_cells}, the reads of allocation
     metadata with their owners, and the allocation effects. A set of blocks
@@ -102,6 +116,15 @@ val unknown_access : Result.refusal -> unit
     the logger's history of emitted messages. *)
 val read_message_history : unit -> unit
 
+(** Registers an exact lexical sweep of the current body's own inner locals.
+    Returns whether to report the holders rewritten by that sweep. *)
+val sweep :
+  owner:Cil_types.kernel_function -> inner:bool -> Base.Hptset.t ->
+  Cvalue.Model.t -> bool
+
+(** Records the read and possible write of a cell rewritten by a sweep. *)
+val swept_holder : Base.t -> Cvalue.V.t -> unit
+
 (** [weakened base] records that [base], strong until now, becomes weak.
     The record lasts as long as the bases of the program. *)
 val weakened : Base.t -> unit
@@ -130,3 +153,16 @@ val transfer :
 val check_written : entry:Cvalue.Model.t -> exits:Cvalue.Model.t list -> unit
 
 val finish_paths : entry:int -> exit:int -> returns:bool -> unit
+
+
+(** Records a resolved nested invocation, including one answered by memexec.
+    A fresh child additionally contributes its own observed callees. *)
+val call : Cil_types.kernel_function -> call_mode -> unit
+
+(** Whether the current function or any recorded used function occurs below
+    the current call in [stack]. *)
+val recursion_conflict :
+  Callstack.t -> (Cil_types.kernel_function * call_mode) list -> bool
+
+(** Records that the current body consulted the dynamic hint table. *)
+val read_widening_hints : unit -> unit

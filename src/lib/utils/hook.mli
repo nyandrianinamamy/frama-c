@@ -78,6 +78,13 @@ module Build(P:sig type t end) : Iter_hook with type param = P.t
 (** Make a new empty hook from [unit]. *)
 module Make() : S with type param = unit and type result = unit
 
+(** Notification for externally registered callbacks whose effects are
+    unspecified. Wrapping preserves application order and exceptions. *)
+module Opaque : sig
+  val on_call : (unit -> unit) -> unit
+  val wrap : ('a -> 'b) -> 'a -> 'b
+end
+
 module Fold(P: sig type t end): S with type param = P.t and type result = P.t
 
 (** @since Neon-20140301 *)

@@ -38,11 +38,11 @@ Print statistics file.
   alarm-count			1
   analysis-time			<TIME>
   cache-produced	g		5
+  cache-production-refused-annotation	h		1
   cache-production-refused-nested-call	f		2
-  cache-production-refused-sweep	h		1
   cache-production-refused-sweep	main		1
+  collector-refused-annotation	h		1
   collector-refused-nested-call	f		2
-  collector-refused-sweep	h		1
   collector-refused-sweep	main		1
   collector-would-store	g		5
   fun-coverage			1.

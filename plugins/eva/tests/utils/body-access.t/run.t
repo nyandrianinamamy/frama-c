@@ -48,7 +48,7 @@ and the bodies reached through those sites.
   precondition would-store
   contract would-store
   annotation would-store
-  swept sweep
+  swept would-store
   copy allocated-block
   nested nested-call
   indirect_target indirect-call
@@ -62,10 +62,10 @@ and the bodies reached through those sites.
   collector-refused-indirect-call indirect_target 1
   collector-refused-indirect-call indirect_caller 1
   collector-refused-nested-call nested 1
-  collector-refused-sweep swept 1
   collector-would-store precondition 1
   collector-would-store contract 1
   collector-would-store annotation 1
+  collector-would-store swept 1
 
 The uninitialized binding installed for a volatile local at scope entry is a
 possible write, not a sure overwrite. The status of a requires clause of an
@@ -78,13 +78,13 @@ inactive behavior is emitted for the call site, outside the body.
   $ grep '^inactive behavior' inactive.log
   inactive behavior: requires status outside the body
 
-A call hook with no classification causes a side-table refusal.
+A call hook with no classification causes a callback refusal.
 
   $ EVA_TEST_BODY_ACCESS=unknown frama-c -no-autoload-plugins -load-module eva,inout,test_body_access.cmxs -eva -eva-no-memexec -eva-msg-key cache assignment.c > unknown.log 2>&1
   $ grep 'unclassified callback refused' unknown.log
   unclassified callback refused
-  $ grep -o 'collector: refused (side-table)' unknown.log
-  collector: refused (side-table)
+  $ grep -o 'collector: refused (callback)' unknown.log
+  collector: refused (callback)
 
 A cvalue domain restricted by function is outside the collector's admitted
 domain, even when the restriction leaves cvalue as the only domain.
@@ -285,7 +285,7 @@ range is unspecified: the body reads nothing and designates any block.
 
   $ clause empty_max
   $ grep '^empty_max refuses' empty_max.log
-  empty_max refuses footprint-top
+  empty_max refuses footprint-top, side-table
 
 The freeability of an unknown address is unknown. The analysis completes,
 with or without the collector, and the allocation table refuses the body.
@@ -334,28 +334,26 @@ the states, and a false postcondition of a specification.
   $ grep '^call_false_leaf refuses' call_false_leaf.log
   call_false_leaf refuses contract, nested-call, side-table
 
-Not refused yet. A status message is not emitted once, but under a warning
-category set to `once` it decides whether the later messages of the category
-are printed. The evaluation of C expressions and partitioning also emit
-messages once. These bodies are still stored: the read of the emission
-history outside clause evaluation is left to the ticket on ordered effects.
+A warning category set to `once` disables later messages in that category.
+The evaluation of C expressions and partial unrolling also consult the
+history for individual events. These accesses refuse as side-table.
 
   $ clause once_category -eva-warn-key alarm=once
   $ grep -c 'no further messages from category' once_category.log
   1
   $ grep '^once_category refuses' once_category.log
-  once_category refuses nothing
+  once_category refuses side-table
   $ clause pointer_comparison -eva-msg-key pointer-comparison
   $ grep -c 'invalid pointer comparison' pointer_comparison.log
   1
   $ grep '^pointer_comparison refuses' pointer_comparison.log
-  pointer_comparison refuses nothing
+  pointer_comparison refuses side-table
   $ clause partial_unroll -eva-min-loop-unroll 1 \
   >   -eva-warn-key loop-unroll:partial=active
   $ grep -c 'loop not completely unrolled' partial_unroll.log
   1
   $ grep '^partial_unroll refuses' partial_unroll.log
-  partial_unroll refuses nothing
+  partial_unroll refuses side-table
 
 The message on an inactive behavior is emitted at level 6 only.
 
@@ -379,10 +377,10 @@ bound for allocability and freshness.
   membership reads member
   $ clause allocable
   $ grep '^allocable refuses' allocable.log
-  allocable refuses annotation
+  allocable refuses annotation, side-table
   $ clause fresh
   $ grep '^fresh refuses' fresh.log
-  fresh refuses contract
+  fresh refuses contract, side-table
 
 Eva does not evaluate loop variants, decreases clauses, or global and type
 invariants: they add no read.

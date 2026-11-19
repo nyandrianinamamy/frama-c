@@ -48,9 +48,10 @@ val make_escaping:
     a week update is executed. *)
 
 val make_escaping_fundec:
-  Cil_types.fundec -> clobbered_set -> Cil_types.varinfo list ->
+  Cil_types.kernel_function -> Cil_types.fundec -> clobbered_set ->
+  Cil_types.varinfo list ->
   Cvalue.Model.t -> Cvalue.Model.t
-(** [make_escaping_fundec fdec clob l state] changes all references to the
+(** [make_escaping_fundec kf fdec clob l state] changes all references to the
     local or formal variables in [l] to "escaping". All pointers to [l] should
     be in the offsetmap bound to the variables contained in [clob].
     [fdec] is used to detect whether we are deallocating the outer scope of a

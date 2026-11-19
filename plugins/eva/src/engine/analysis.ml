@@ -76,6 +76,7 @@ let pre_analysis () =
   plugins_ok ();
   Split_return.pretty_strategies ();
   generate_specs ();
+  Widen_generation.start_run ();
   Widen.precompute_widen_hints ();
   Builtins.prepare_builtins ();
   Statistics.reset_all ();

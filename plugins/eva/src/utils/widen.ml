@@ -489,7 +489,7 @@ let dynamic_widen_hints_hook _callstack stmt states =
   if Annotations.has_code_annot stmt then
     let hs = parsed_dynamic_hints stmt in
     if hs <> [] then
-      let () = Body_access.unknown_read Side_table in
+      let () = Body_access.unknown_read Widening_hint in
       let loc = Stmt.loc stmt in
       let modified, new_hints =
         List.fold_right (fun dhint (_acc_modified, acc_hints as acc) ->
@@ -527,18 +527,21 @@ let dynamic_widen_hints_hook _callstack stmt states =
       in
       if modified then begin
         Per_Function_Hints.clear ();
-        let hints = Widen_type.join (Dynamic_Hints.get ()) new_hints in
+        let previous = Dynamic_Hints.get () in
+        let hints = Widen_type.join previous new_hints in
         Dynamic_Hints.set hints;
+        if Widen_type.adds_dynamic_hints ~previous new_hints then
+          Widen_generation.advance ();
       end
 
 let () = Cvalue_callbacks.register_statement_hook ~classified:true dynamic_widen_hints_hook
 
 let getWidenHints (kf:kernel_function) (stmt:stmt) =
-  (* The combined lookup includes the mutable dynamic widening hints. *)
-  Body_access.refuse Side_table;
   let hints =
     match kf.fundec with
     | Declaration _ -> Widen_type.empty
-    | Definition (fdec, _) -> per_function_hints fdec
+    | Definition (fdec, _) ->
+      Body_access.read_widening_hints ();
+      per_function_hints fdec
   in
   Widen_type.hints_from_keys stmt hints

@@ -6,5 +6,5 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* Empty interface.
-   Builtins are registered directly in the implementation. *)
+(** Whether a statement hook can observe installed watchpoints. *)
+val active : unit -> bool

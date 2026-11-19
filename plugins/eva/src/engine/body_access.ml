@@ -9,12 +9,16 @@
 module Bases = Base.SetLattice
 module Zone = Memory_zone
 
+type call_mode = [ `Body | `Spec | `Builtin ]
+
 module Result = struct
   (* Order used to select one reason for the storage disposition. *)
   type refusal =
     | Indirect_call
     | Reallocation | Allocation | Deallocation | Validity_mutation
-    | Builtin | Sweep | Contract | Annotation | Nested_call
+    | Recursion | Watchpoint | Dump
+    | Builtin | Threaded | Sweep | Widening_hint | Stop_at_alarm
+    | Callback | Trace_id | Contract | Annotation | Nested_call
     | Allocated_block | Allocation_metadata | Footprint_top | Side_table
 
   let refusal_id = function
@@ -23,6 +27,14 @@ module Result = struct
     | Allocation -> "allocation"
     | Deallocation -> "deallocation"
     | Validity_mutation -> "validity-mutation"
+    | Recursion -> "recursion"
+    | Watchpoint -> "watchpoint"
+    | Dump -> "dump"
+    | Threaded -> "threaded"
+    | Widening_hint -> "widening-hint"
+    | Stop_at_alarm -> "stop-at-alarm"
+    | Callback -> "callback"
+    | Trace_id -> "trace-id"
     | Builtin -> "builtin"
     | Sweep -> "sweep"
     | Contract -> "contract"
@@ -43,11 +55,16 @@ module Result = struct
     sure_writes : Base.Hptset.t;
     designated : Bases.t;
     owners : Base.Hptset.t;
+    sweeps : Base.Hptset.t;
+    used_functions : (Cil_types.kernel_function * call_mode) list;
+    hint_generation : Widen_generation.t option;
     recorded : recorded list;
     refusals : refusal list;
   }
 
   module Hooks = Hook.Build (struct type nonrec t = Callstack.t * t end)
+
+  let hint_generation_number = Widen_generation.number
 
   let on_result f = Hooks.extend (fun (stack, result) -> f stack result)
 end
@@ -60,7 +77,19 @@ let no_writes = { may = Bases.bottom; sure = Zone.bottom }
 
 type edge = { src : int; dst : int; writes : writes }
 
+module Calls = Set.Make (struct
+    type t = Cil_types.kernel_function * call_mode
+    let compare (f1, mode1) (f2, mode2) =
+      let c = Kernel_function.compare f1 f2 in
+      if c <> 0 then c else compare mode1 mode2
+  end)
+
 type recording = {
+  stack : Callstack.t;
+  mutable used_functions : Calls.t;
+  entry_generation : Widen_generation.t;
+  mutable reads_widening_hints : bool;
+  mutable sweeps : Base.Hptset.t;
   mutable reads : Bases.t;
   mutable writes : Bases.t;
   mutable designated : Bases.t;
@@ -75,24 +104,28 @@ type recording = {
 
 let current : recording option ref = ref None
 
-(* The recorder of the body during {!at_call_site}. It records the
-   allocation family only. *)
+(* The recorder of the body during {!at_call_site}. Footprint operations
+   are limited to allocation dependencies there. *)
 let call_site : recording option ref = ref None
 
 let[@inline always] is_recording () = Option.is_some !current
 
 let is_observing () = Option.is_some !current || Option.is_some !call_site
 
-(* Refusals of the allocation family. A body inherits them from the bodies
-   analysed during its own analysis. They are recorded at a call site, with
-   [Footprint_top]. *)
+(* A body inherits these refusals from the fresh bodies it analyses. *)
 let inherited = function
   | Reallocation | Allocation | Deallocation | Validity_mutation
   | Allocated_block | Allocation_metadata -> true
-  | Indirect_call | Builtin | Sweep | Contract | Annotation | Nested_call
+  | Recursion | Watchpoint | Dump | Threaded | Sweep | Widening_hint
+  | Stop_at_alarm | Callback | Trace_id -> true
+  | Indirect_call | Builtin | Contract | Annotation | Nested_call
   | Footprint_top | Side_table -> false
 
-let at_site reason = inherited reason || reason = Footprint_top
+let at_site = function
+  | Reallocation | Allocation | Deallocation | Validity_mutation
+  | Allocated_block | Allocation_metadata | Footprint_top | Watchpoint
+  | Stop_at_alarm | Callback | Side_table -> true
+  | _ -> false
 
 let add_refusal r reason =
   if not (List.mem reason r.refusals) then r.refusals <- reason :: r.refusals
@@ -200,6 +233,23 @@ let[@inline always] refuse reason =
   | Some r, _ -> add_refusal r reason
   | None, Some r when at_site reason -> add_refusal r reason
   | None, _ -> ()
+
+let call kf mode =
+  Option.iter (fun r -> r.used_functions <- Calls.add (kf, mode) r.used_functions)
+    !current
+
+let recursion_conflict stack used =
+  match Callstack.pop stack with
+  | None -> false
+  | Some enclosing ->
+    let top = Callstack.top_kf stack in
+    List.exists
+      (fun kf -> Kernel_function.equal kf top ||
+                 List.exists (fun (f, _) -> Kernel_function.equal kf f) used)
+      (Callstack.to_kf_list enclosing)
+
+let read_widening_hints () =
+  Option.iter (fun r -> r.reads_widening_hints <- true) !current
 
 let record_table r table =
   if not (List.mem table r.recorded) then
@@ -350,7 +400,41 @@ let unknown_access reason =
        add_write r Bases.top Zone.bottom)
     !current
 
+let sweep ~owner ~inner targets state =
+  match !current with
+  | None -> false
+  | Some r ->
+    if Kernel_function.equal owner (Callstack.top_kf r.stack)
+    && inner && not (Cvalue.Model.is_top state)
+    then begin
+      r.sweeps <- Base.Hptset.union targets r.sweeps;
+      true
+    end
+    else begin
+      unknown_access Sweep;
+      false
+    end
+
+let swept_holder base value =
+  let bases = Bases.inject (Base.Hptset.singleton base) in
+  read_bases bases;
+  may_write_base base;
+  designate value
+
 let read_message_history () = refuse Side_table
+
+let () = Hook.Opaque.on_call (fun () -> refuse Callback)
+
+let () =
+  Log.on_history_access (fun ~plugin ~kind ~category ~once_category ->
+      let audited =
+        plugin = "eva" && not once_category &&
+        match kind, category with
+        | Log.Feedback, Some ("partition" | "widening") -> true
+        | Log.Warning, Some "locals-escaping" -> true
+        | _ -> false
+      in
+      if not audited then read_message_history ())
 
 (* The blocks made weak in the analyses of the current program. A node of
    an offsetmap keeps the tag computed at its first construction, and the
@@ -504,6 +588,7 @@ let check_written ~entry ~exits =
     | Bases.Set written ->
       (* The check reads no metadata of the body: its refusals are explicit. *)
       without_recording @@ fun () ->
+      if not (Sweep_access.clear_input r.sweeps entry) then add_refusal r Sweep;
       List.iter (check_state r written) (entry :: exits)
 
 let finish_paths ~entry ~exit ~returns =
@@ -514,6 +599,11 @@ let capture stack compute =
   else
     let previous = !current and previous_site = !call_site in
     let r = {
+      stack;
+      used_functions = Calls.singleton (Callstack.top_kf stack, `Body);
+      entry_generation = Widen_generation.current ();
+      reads_widening_hints = false;
+      sweeps = Base.Hptset.empty;
       reads = Bases.bottom;
       writes = Bases.bottom;
       designated = Bases.bottom;
@@ -543,6 +633,13 @@ let capture stack compute =
       | Some (entry, exit) ->
         may_reach_exit r.edges exit, must_reach_exit r.edges entry exit
     in
+    let used_functions = Calls.elements r.used_functions in
+    if recursion_conflict stack used_functions then add_refusal r Recursion;
+    (* The entry stamp is a valid key only if the hint table remained fixed
+       during the body. This also catches a change from nested work. *)
+    if r.reads_widening_hints &&
+       not (Widen_generation.equal r.entry_generation (Widen_generation.current ()))
+    then add_refusal r Widening_hint;
     let result = {
       reads = r.reads;
       writes = r.writes;
@@ -550,6 +647,10 @@ let capture stack compute =
       sure_writes;
       designated = r.designated;
       owners = r.owners;
+      sweeps = r.sweeps;
+      used_functions;
+      hint_generation =
+        (if r.reads_widening_hints then Some r.entry_generation else None);
       recorded = List.sort compare r.recorded;
       refusals = List.sort compare r.refusals;
     } in
@@ -557,7 +658,11 @@ let capture stack compute =
       List.iter
         (fun reason -> if inherited reason then add_refusal parent reason)
         result.refusals;
-      parent.owners <- Base.Hptset.union parent.owners result.owners
+      parent.owners <- Base.Hptset.union parent.owners result.owners;
+      parent.used_functions <- Calls.union parent.used_functions r.used_functions;
+      if r.reads_widening_hints then parent.reads_widening_hints <- true;
+      (* Even a sweep admitted for the child is a foreign sweep here. *)
+      if not (Base.Hptset.is_empty r.sweeps) then add_refusal parent Sweep
     in
     Option.iter pass_on (if Option.is_some previous then previous
                          else previous_site);

@@ -63,7 +63,7 @@ let iter = Messages.iter
 let fold = Messages.fold
 let dump_messages () = iter Log.echo
 
-let () = Log.add_listener add_message
+let () = Log.add_listener ~audited:true add_message
 
 module OnceTable =
   State_builder.Hashtbl
@@ -86,4 +86,4 @@ let () = Log.check_not_yet := check_not_yet
 
 let reset_once_flag () = OnceTable.clear ()
 
-let add_hook fn = hooks := !hooks @ [fn]
+let add_hook fn = hooks := !hooks @ [Hook.Opaque.wrap fn]

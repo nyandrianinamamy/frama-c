@@ -373,7 +373,8 @@ let property_kind = function
 
 module Register_hook = Hook.Build (struct type t = Property.t end)
 
-let register_property_add_hook = Register_hook.extend
+let register_property_add_hook f =
+  Register_hook.extend (Hook.Opaque.wrap f)
 
 module Status_hook = Hook.Build
     (struct type t = emitter_with_properties * Property.t * emitted_status end)
@@ -385,7 +386,8 @@ let () = Status.add_hook_on_remove (fun e ip s -> Status_hook.apply (e, ip, s))
 
 let register_status_update_hook f =
   Status_hook.extend
-    (fun (emitter, property, status) -> f emitter property status)
+    (Hook.Opaque.wrap
+       (fun (emitter, property, status) -> f emitter property status))
 
 let rec register ppt =
   Kernel.debug ~dkey:Kernel.dkey_prop_status_reg
@@ -567,7 +569,8 @@ let remove_hyps_from_hypotheses ppt =
 
 module Remove_hook = Hook.Build(struct type t = Property.t end)
 
-let register_property_remove_hook = Remove_hook.extend
+let register_property_remove_hook f =
+  Remove_hook.extend (Hook.Opaque.wrap f)
 
 let remove ppt =
   Kernel.debug ~dkey:Kernel.dkey_prop_status_reg "REMOVING %a in %a"

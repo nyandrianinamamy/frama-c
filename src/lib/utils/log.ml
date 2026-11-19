@@ -399,6 +399,15 @@ let new_channel plugin =
 
 let check_not_yet = ref (fun _evt -> false)
 
+module History_access = Hook.Build (struct
+    type t = string * kind * string option * bool
+  end)
+
+let on_history_access f =
+  History_access.extend
+    (fun (plugin, kind, category, once_category) ->
+       f ~plugin ~kind ~category ~once_category)
+
 (* -------------------------------------------------------------------------- *)
 (* --- Listeners                                                          --- *)
 (* -------------------------------------------------------------------------- *)
@@ -423,7 +432,8 @@ let iter_plugin ?plugin ?kind f =
   | Some p ->
     iter_kind ?kind f (get_emitters p)
 
-let add_listener ?plugin ?kind demon =
+let add_listener ?plugin ?kind ?(audited=false) demon =
+  let demon = if audited then demon else Hook.Opaque.wrap demon in
   iter_plugin ?plugin ?kind (fun em -> em.listeners <- em.listeners @ [demon])
 
 let set_echo ?plugin ?kind echo =
@@ -495,6 +505,8 @@ let logwithfinal finally channel
                evt_message = message ;
                evt_position = pos ;
              } in
+             if once then
+               History_access.apply (channel.plugin, kind, category, false);
              if not once || !check_not_yet event then
                begin
                  let e = channel.emitters.(nth_kind kind) in
@@ -1200,6 +1212,8 @@ struct
           | Some e1, Some e2 -> Some (fun evt -> e1 evt; e2 evt)
         in
         let category = if wkey = "" then None else Some wkey in
+        if once_suffix <> "" then
+          History_access.apply (std.plugin, kind, category, true);
         let append_once_suffix = (fun fmt ->
             Format.fprintf fmt
               "@.(%s: no further messages from category '%s' will be emitted)"

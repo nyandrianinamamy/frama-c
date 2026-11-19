@@ -11,7 +11,7 @@
 
 open Cil_types
 
-type call_mode = [ `Body | `Spec | `Builtin ]
+type call_mode = Body_access.call_mode
 type entry
 
 (** The current analysis's entries for a body, oldest first. They are
@@ -24,6 +24,12 @@ val cache_entry : entry -> Cache_entry.Cvalue.t
 
 (** Classes of recorded joins seen while analysing the body. *)
 val recorded : entry -> Body_access.Result.recorded list
+
+(** Targets of the admitted lexical sweeps. *)
+val sweeps : entry -> Base.Hptset.t
+
+(** The entry-time stamp when the body consulted dynamic widening hints. *)
+val hint_generation : entry -> Widen_generation.t option
 
 (** The callstack to query in the current Eva results when cvalue
     statement states were saved for this body. Queries join repeated visits

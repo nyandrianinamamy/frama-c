@@ -37,7 +37,9 @@ end = struct
   module Counter =
     State_builder.Counter
       (struct let name = "Value.Traces_domain.Node.Counter" end)
-  let next () = Counter.next ()
+  let next () =
+    Body_access.refuse Trace_id;
+    Counter.next ()
 end
 
 (** Can't use Graph.t it needs an impossible recursive module *)

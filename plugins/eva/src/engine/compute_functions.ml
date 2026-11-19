@@ -62,9 +62,11 @@ module Make (Engine: Engine_sig.S) = struct
                     Body_access.refuse Indirect_call
                   | _ -> ()
                 end;
-                if recursive || not collector_domain_supported
-                   || Mt_options.Enabled.get ()
-                   || call.callstack.thread <> Thread.main_id
+                if recursive then Body_access.unknown_access Recursion;
+                if Mt_options.Enabled.get ()
+                || call.callstack.thread <> Thread.main_id
+                then Body_access.unknown_access Threaded;
+                if not collector_domain_supported
                 then Body_access.unknown_access Side_table
               end;
               let result = compute call init_state in
@@ -236,12 +238,15 @@ module Make (Engine: Engine_sig.S) = struct
     Function_calls.register_analysis_target call target;
     match target with
     | `Builtin builtin_info ->
+      Body_access.call call.kf `Builtin;
       Body_access.unknown_access Builtin;
       compute_builtin builtin_info call state
     | `Spec _ as spec ->
+      Body_access.call call.kf `Spec;
       Body_access.unknown_access Contract;
       compute_using_spec_or_body spec call state
     | `Body (_, save_results) as def ->
+      Body_access.call call.kf `Body;
       let compute = compute_using_spec_or_body def in
       compute_and_cache_call ~recursive ~save_results compute call state
 
@@ -252,6 +257,7 @@ module Make (Engine: Engine_sig.S) = struct
     with_callstack call.callstack @@ fun state ->
     let kf = call.kf in
     let callsite = Callstack.top_callsite call.callstack in
+    if Option.is_some recursion then Body_access.refuse Recursion;
     let recursion_depth = Option.map (fun r -> r.depth) recursion in
     let target = Function_calls.analysis_target ?recursion_depth kf callsite in
     compute_call_with_target ~recursive:(Option.is_some recursion)

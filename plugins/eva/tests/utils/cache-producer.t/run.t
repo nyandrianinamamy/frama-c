@@ -38,15 +38,16 @@ cannot store with both cvalue and sign active.
   $ grep -o 'producer: refused (product)' product.log
   producer: refused (product)
 
-The cvalue overlay cannot restore the absence of a block that left scope.
-The precondition check runs outside the collector and may narrow a state.
+The cvalue overlay admits absence for a recorded sweep target that is
+absent on entry. An unrecorded scope removal still fails the binding check.
+A precondition check may narrow the input outside the collector.
 
   $ frama-c -no-autoload-plugins -load-module eva -eva -main inner_scope -eva-msg-key cache-producer producer.c > scope.log 2>&1
   $ grep -o 'collector: would-store; producer: refused (exit-binding)' scope.log
   collector: would-store; producer: refused (exit-binding)
   $ frama-c -no-autoload-plugins -load-module eva -eva -main swept -eva-msg-key cache-producer producer.c > swept.log 2>&1
-  $ grep -o 'collector: refused (sweep); producer: refused (sweep)' swept.log
-  collector: refused (sweep); producer: refused (sweep)
+  $ grep -o 'collector: would-store; producer: stored (entry 1)' swept.log
+  collector: would-store; producer: stored (entry 1)
   $ frama-c -no-autoload-plugins -load-module eva -eva -main precondition -eva-msg-key cache-producer producer.c > precondition.log 2>&1
   $ grep -o 'collector: would-store; producer: refused (preconditions)' precondition.log
   collector: would-store; producer: refused (preconditions)

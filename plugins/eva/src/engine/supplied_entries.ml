@@ -159,7 +159,8 @@ let pretty = Entry.pretty
 type rejection = [ Cache_entry.rejection | `Product | `Consumer ]
 
 let rejections : rejection list =
-  [ `Key_differs; `Key_unclosed; `Product; `Consumer ]
+  [ `Key_differs; `Key_unclosed; `Sweep; `Recursion; `Hint_generation;
+    `Watchpoint; `Product; `Consumer ]
 
 let rejection_id : rejection -> string = function
   | #Cache_entry.rejection as r -> Cache_entry.rejection_id r
@@ -194,8 +195,28 @@ module Lookup (Domain : sig
       Structure.Key_Domain.eq_type key Cvalue_domain.State.key
     | _ -> None
 
-  let find kf state =
-    match entries kf with
+  let admit stack entry (model, _) =
+    let dependencies = Entry.dependencies entry in
+    let used_functions =
+      Option.fold ~none:[] ~some:(fun d -> d.Cache_entry.used_functions)
+        dependencies
+    in
+    if Body_access.recursion_conflict stack used_functions then Error `Recursion
+    else if Builtins_watchpoint.active () then Error `Watchpoint
+    else
+      match dependencies with
+      | None -> Ok ()
+      | Some d ->
+        let stale g =
+          not (Widen_generation.equal g (Widen_generation.current ()))
+        in
+        if Option.fold ~none:false ~some:stale d.hint_generation
+        then Error `Hint_generation
+        else if not (Sweep_access.clear_input d.sweeps model) then Error `Sweep
+        else Ok ()
+
+  let find stack state =
+    match entries (Callstack.top_kf stack) with
     | [] -> { rejected = []; hit = None }
     | candidates ->
       let reject_all reason =
@@ -204,9 +225,10 @@ module Lookup (Domain : sig
       in
       match cvalue_alone with
       | None -> reject_all `Product
-      | Some _ when consumer_enabled () -> reject_all `Consumer
+      | Some _ when consumer_enabled () || stack.thread <> Thread.main_id ->
+        reject_all `Consumer
       | Some eq ->
-        let result = Entry.find candidates (cast eq state) in
+        let result = Entry.find ~admit:(admit stack) candidates (cast eq state) in
         let reject (e, reason) = Entry.id e, (reason :> rejection) in
         let hit (e, states) =
           Entry.id e, List.map (fun (k, s) -> k, cast_back eq s) states

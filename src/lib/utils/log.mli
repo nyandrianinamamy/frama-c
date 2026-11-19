@@ -465,7 +465,8 @@ val set_echo : ?plugin:string -> ?kind:kind list -> bool -> unit
     @since Beryllium-20090601-beta1
     @see <https://frama-c.com/download/frama-c-plugin-development-guide.pdf> *)
 
-val add_listener : ?plugin:string -> ?kind:kind list -> (event -> unit) -> unit
+val add_listener :
+  ?plugin:string -> ?kind:kind list -> ?audited:bool -> (event -> unit) -> unit
 (** Register a hook that is called each time an event is
     emitted. Applies to all channel unless specified,
     and all kind of messages unless specified.
@@ -473,8 +474,18 @@ val add_listener : ?plugin:string -> ?kind:kind list -> (event -> unit) -> unit
     Warning: when executing the listener, all listeners will be
     temporarily deactivated in order to avoid infinite recursion.
 
+    Set [audited] only for a listener whose effects are accounted for by the
+    clients of {!Hook.Opaque}. By default its invocation is reported there.
+
     @since Beryllium-20090601-beta1
     @see <https://frama-c.com/download/frama-c-plugin-development-guide.pdf> *)
+
+(** Observe a consultation of the per-event once history, or an active
+    warning-category policy that consumes the category after one emission.
+    The hook must not emit messages or change the logger. *)
+val on_history_access :
+  (plugin:string -> kind:kind -> category:string option -> once_category:bool ->
+   unit) -> unit
 
 val echo : event -> unit
 (** Display an event of the terminal, unless echo has been turned off.

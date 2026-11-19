@@ -159,7 +159,8 @@ Help message about message categories.
                             by the cache of calls: lookup in the cache
                             (no-candidate, hit, or entries supplied by a test
                             module and rejected with one of the reasons:
-                            key-differs, key-unclosed, product, consumer),
+                            key-differs, key-unclosed, sweep, recursion,
+                            hint-generation, watchpoint, product, consumer),
                             execution of the body (analysed, not-analysed or
                             interrupted) and storage of the result (stored,
                             none, or refused with one of the reasons: disabled,

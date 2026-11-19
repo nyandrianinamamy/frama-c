@@ -18,6 +18,11 @@ val default : unit -> t
 
 val join: t -> t -> t
 
+(** [adds_dynamic_hints ~previous:old hints] tests whether joining the per-base
+    dynamic contributions in [hints] to [old] changes the effective dynamic
+    hints. A threshold already in the global defaults changes nothing. *)
+val adds_dynamic_hints : previous:t -> t -> bool
+
 (**  Pretty-prints a set of hints (for debug purposes only).
      @since Silicon-20161101 *)
 val pretty : Format.formatter -> t -> unit

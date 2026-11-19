@@ -80,6 +80,8 @@ that a checkout has the model sources of an entry, compare
 - [Body access collector](body-access.md) covers the block sets, the reads
   and designations of ACSL clauses, the observational storage verdict and
   side-table classes.
+- [Sweeps and collector dependencies](collector-effects.md) covers own-local
+  sweeps, recursion, threaded mode, widening hints and ordered effects.
 - [Entries from fresh bodies](cache-producer.md) covers production, the
   key and footprint, and the producer obligations for supplying an entry.
 - [Allocated blocks](allocated-blocks.md): the refusals on allocated blocks,

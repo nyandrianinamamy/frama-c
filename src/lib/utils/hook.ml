@@ -60,6 +60,16 @@ module Build(P:sig type t end): Iter_hook with type param = P.t = struct
   let length () = Queue.length hooks
 end
 
+module Opaque = struct
+  module Observers = Build (struct type t = unit end)
+
+  let on_call = Observers.extend
+
+  let wrap f x =
+    Observers.apply ();
+    f x
+end
+
 module Fold(P:sig type t end): S with type param=P.t and type result = P.t =
 struct
   type param = P.t

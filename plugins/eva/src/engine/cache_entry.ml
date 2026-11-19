@@ -17,11 +17,24 @@ type footprint = {
   written_sure : Base.Hptset.t;
 }
 
-type rejection = [ `Key_differs | `Key_unclosed ]
+type dependencies = {
+  sweeps : Base.Hptset.t;
+  used_functions : (kernel_function * Body_access.call_mode) list;
+  hint_generation : Widen_generation.t option;
+}
+
+type rejection = [
+  | `Key_differs | `Key_unclosed | `Sweep | `Recursion | `Hint_generation
+  | `Watchpoint
+]
 
 let rejection_id : rejection -> string = function
   | `Key_differs -> "key-differs"
   | `Key_unclosed -> "key-unclosed"
+  | `Sweep -> "sweep"
+  | `Recursion -> "recursion"
+  | `Hint_generation -> "hint-generation"
+  | `Watchpoint -> "watchpoint"
 
 let return_block = function
   | Body kf -> Option.map Base.of_varinfo (Library_functions.get_retres_vi kf)
@@ -61,6 +74,7 @@ module Make (Domain : Domain) = struct
     input : Domain.t;
     footprint : footprint;
     exit : (Partition.key * Domain.t) list;
+    dependencies : dependencies option;
   }
 
   (* Whether [relate] relates [bases] only to blocks of [bases] in [state]. *)
@@ -68,7 +82,7 @@ module Make (Domain : Domain) = struct
     Base.SetLattice.is_included
       (Domain.relate bases state) (Base.SetLattice.inject bases)
 
-  let make ~id statement ~key ~input ~footprint ~exit =
+  let make ?dependencies ~id statement ~key ~input ~footprint ~exit =
     let footprint = with_return_block statement footprint in
     if not (valid_footprint footprint) then
       invalid_arg
@@ -83,7 +97,8 @@ module Make (Domain : Domain) = struct
       invalid_arg "Cache_entry.make: the key is not closed in the input";
     let kept = Base.Hptset.union key footprint.written in
     let exit = List.map (fun (k, s) -> k, Domain.filter kept s) exit in
-    { id; statement; key; input = Domain.filter key input; footprint; exit }
+    { id; statement; key; input = Domain.filter key input; footprint; exit;
+      dependencies }
 
   let id e = e.id
   let with_id id e = { e with id }
@@ -92,6 +107,7 @@ module Make (Domain : Domain) = struct
   let input e = e.input
   let footprint e = e.footprint
   let exit e = e.exit
+  let dependencies e = e.dependencies
 
   let pretty_statement fmt = function
     | Body kf -> Format.fprintf fmt "body of %a" Kernel_function.pretty kf
@@ -140,11 +156,11 @@ module Make (Domain : Domain) = struct
     in
     List.map reuse entry.exit
 
-  let find candidates state =
+  let find ~admit candidates state =
     let rec examine rejected = function
       | [] -> { rejected = List.rev rejected; hit = None }
       | entry :: younger ->
-        match check entry state with
+        match Result.bind (check entry state) (fun () -> admit entry state) with
         | Ok () ->
           let hit = Some (entry, apply entry state) in
           { rejected = List.rev rejected; hit }

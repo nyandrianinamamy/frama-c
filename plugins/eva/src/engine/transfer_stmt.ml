@@ -651,16 +651,22 @@ module Make (Engine: Engine_Subset) = struct
   let apply_special_directives ~pos ~subdivnb kf arguments state =
     let pos = Position.of_local pos in
     let name = Kernel_function.get_name kf in
+    let run reason f =
+      Body_access.call kf `Builtin;
+      Body_access.refuse reason;
+      f ();
+      true
+    in
     if Ast_info.start_with_frama_c name
     then
       if Ast_info.is_show_each_builtin name
-      then (show_each ~pos ~subdivnb name arguments state; true)
+      then run Builtin (fun () -> show_each ~pos ~subdivnb name arguments state)
       else if Ast_info.is_domain_show_each_builtin name
-      then (domain_show_each ~pos ~subdivnb name arguments state; true)
+      then run Builtin (fun () -> domain_show_each ~pos ~subdivnb name arguments state)
       else if Ast_info.is_dump_file_builtin name
-      then (dump_state_file ~pos ~subdivnb name arguments state; true)
+      then run Dump (fun () -> dump_state_file ~pos ~subdivnb name arguments state)
       else if Ast_info.is_dump_each_builtin name
-      then (dump_state ~pos name state; true)
+      then run Dump (fun () -> dump_state ~pos name state)
       else false
     else false
 
@@ -732,7 +738,6 @@ module Make (Engine: Engine_Subset) = struct
       (* The special Frama_C_ functions to print states are handled here. *)
       if apply_special_directives ~pos ~subdivnb kf args state
       then
-        let () = Body_access.refuse Builtin in
         let () = apply_cvalue_callback ~pos kf state in
         let states = [(Partition.Key.empty, state)] in
         Engine_sig.{ states; cacheable = Cacheable; kind = `Internal }

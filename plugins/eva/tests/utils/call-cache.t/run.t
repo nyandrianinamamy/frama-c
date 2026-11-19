@@ -7,7 +7,7 @@ With caching disabled, each call is analysed and its storage is refused.
     call to leaf: lookup: no-candidate; execution: analysed; storage: refused (disabled); collector: would-store
   --
   [eva:cache] call-cache.c:16: 
-    call to divide: lookup: no-candidate; execution: analysed; storage: refused (disabled); collector: would-store
+    call to divide: lookup: no-candidate; execution: analysed; storage: refused (disabled); collector: refused (callback)
   [eva:cache] 
     call to main: lookup: no-candidate; execution: analysed; storage: refused (disabled); collector: refused (sweep)
 
@@ -69,7 +69,7 @@ storage is refused.
     call to leaf: lookup: no-candidate; execution: analysed; storage: refused (relate-top); collector: refused (side-table)
   --
   [eva:cache] call-cache.c:16: 
-    call to divide: lookup: no-candidate; execution: analysed; storage: refused (relate-top); collector: refused (side-table)
+    call to divide: lookup: no-candidate; execution: analysed; storage: refused (relate-top); collector: refused (callback)
   --
   [eva:cache] 
     call to main: lookup: no-candidate; execution: analysed; storage: refused (relate-top); collector: refused (sweep)

@@ -46,9 +46,9 @@ let reasons (r : Access.t) =
 
 let observe_annotations stack (r : Access.t) =
   let name = Kernel_function.get_name (Eva.Callstack.top_kf stack) in
-  let read expected =
+  let read ?(refusals=[]) expected =
     assert (names r.reads = expected);
-    assert (r.refusals = []);
+    assert (r.refusals = refusals);
     assert (List.mem Access.Statuses r.recorded);
     Format.printf "%s reads %s@." name (String.concat ", " expected)
   in
@@ -67,13 +67,13 @@ let observe_annotations stack (r : Access.t) =
   | "read_old" -> read ["before_only"; "post_input"]
   | "narrowing" ->
     assert_writes r ~may:["narrowed"] ~exit:["narrowed"] ~sure:[];
-    read ["narrowed"]
+    read ~refusals:[Access.Side_table] ["narrowed"]
   | "opaque_assertion" | "opaque_contract" ->
     assert (r.reads = Base.SetLattice.top);
     let reason = if name = "opaque_assertion" then Access.Annotation
       else Access.Contract
     in
-    assert (r.refusals = [reason]);
+    assert (r.refusals = [reason; Access.Side_table]);
     assert (List.mem Access.Statuses r.recorded);
     Format.printf "%s reads Top and refuses %s@." name (first_reason r)
   | "allocation_table" ->
@@ -87,15 +87,19 @@ let observe_annotations stack (r : Access.t) =
     Format.printf "valid_pointer designates an allocated block@."
   | "alarm_assertion" ->
     assert (names r.writes = []);
-    read ["zero_divisor"]
+    read ~refusals:[Access.Side_table] ["zero_divisor"]
   | "logic_word" | "c_word" | "logic_or_null" ->
     assert (Base.SetLattice.exists allocated r.designated);
-    assert (r.refusals = [Access.Allocated_block]);
+    let expected =
+      if name = "c_word" then [Access.Allocated_block]
+      else [Access.Allocated_block; Access.Side_table]
+    in
+    assert (r.refusals = expected);
     Format.printf "%s designates an allocated block@." name
   | "empty_max" ->
     assert (names r.reads = []);
     assert (r.designated = Base.SetLattice.top);
-    refuses [Access.Footprint_top]
+    refuses [Access.Footprint_top; Access.Side_table]
   | "top_freeable" ->
     assert (names r.reads = []);
     refuses [Access.Footprint_top; Access.Side_table]
@@ -111,21 +115,23 @@ let observe_annotations stack (r : Access.t) =
   | "membership" -> read ["member"]
   | "allocable" ->
     assert (r.reads = Base.SetLattice.top);
-    refuses [Access.Annotation]
+    refuses [Access.Annotation; Access.Side_table]
   | "fresh" ->
     assert (r.reads = Base.SetLattice.top);
-    refuses [Access.Contract]
+    refuses [Access.Contract; Access.Side_table]
   | "variant" | "decreases_clause" | "invariants" ->
     let expected = if name = "variant" then ["i"] else [] in
     assert (names r.reads = expected);
-    assert (r.refusals = []);
+    let refusals = if name = "decreases_clause" then [Access.Side_table]
+      else []
+    in
+    assert (r.refusals = refusals);
     let shown =
       if expected = [] then "nothing" else String.concat ", " expected
     in
     Format.printf "%s reads %s@." name shown
   | "once_category" | "pointer_comparison" | "partial_unroll" ->
-    let shown = if r.refusals = [] then "nothing" else reasons r in
-    Format.printf "%s refuses %s@." name shown
+    refuses [Access.Side_table]
   | name -> failwith ("unexpected body: " ^ name)
 
 let observe_blocks stack (result : Access.t) =
@@ -197,7 +203,7 @@ let () =
         Format.printf "inactive behavior message refused at level 6@."
       end
     | Some "unknown" ->
-      assert (first_reason result = "side-table");
+      assert (first_reason result = "callback");
       Format.printf "unclassified callback refused@."
     | Some "hit" ->
       if Kernel_function.get_name (Eva.Callstack.top_kf stack) = "copy" then begin

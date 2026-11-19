@@ -195,9 +195,12 @@ Checks.nested_scope_sweep_in_caller : ¬Checks.nestedSweepBody ∈ Checks.nested
 
 ## Admission condition for sweeps of own locals
 
-**Kind.** OCaml obligation, open.
+**Kind.** OCaml obligation. The whole-block premise below is implemented
+by a stronger guard for produced cvalue entries in the supplied lookup.
+The link to all skipped traces still relies on the entry coverage
+obligation. [Lexical sweep in cvalue](collector-effects.md#lexical-sweep-in-cvalue).
 
-**Condition for #44.** Admit a sweep only at the exit of an inner lexical
+**Condition.** Admit a sweep only at the exit of an inner lexical
 scope of the cached body, targeting the body's own departing locals.
 The collector must establish this ownership, including when a trace
 could contain events from a nested call.

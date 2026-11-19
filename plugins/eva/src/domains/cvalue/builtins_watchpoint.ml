@@ -26,6 +26,8 @@ type watchpoint =
 
 let watch_table : watchpoint list ref = ref []
 
+let active () = !watch_table <> []
+
 let new_watchpoint name_lv loc v n =
   { name_lv = name_lv;
     loc = loc;
@@ -34,6 +36,7 @@ let new_watchpoint name_lv loc v n =
     stmts = Cil_datatype.Stmt.Set.empty }
 
 let add_watch make_watch state actuals =
+  Body_access.refuse Watchpoint;
   match actuals with
   | [(dst_e, dst); (_, size); (_, target_value); (_, number)] ->
     let size =
@@ -83,8 +86,8 @@ let () =
     (add_watch make_watch_cardinal)
 
 let watch_hook _callstack stmt states =
-  if !watch_table <> [] && states <> [] then
-    Body_access.unknown_read Side_table;
+  if active () && states <> [] then
+    Body_access.unknown_read Watchpoint;
   let treat ({name_lv = name; loc=loc; v=wa; remaining_count=current; stmts=set} as w) =
     List.iter
       (fun state ->

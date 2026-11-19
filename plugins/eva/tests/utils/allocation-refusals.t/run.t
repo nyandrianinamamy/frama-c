@@ -57,7 +57,7 @@ its validity by the widening, without any allocation.
   quiet would-store
   fill validity-mutation
   $ grep -E 'call to (shift|quiet|fill):' widening.log
-    call to shift: lookup: no-candidate; execution: analysed; storage: refused (disabled); collector: refused (side-table)
+    call to shift: lookup: no-candidate; execution: analysed; storage: refused (disabled); collector: would-store
     call to shift: lookup: no-candidate; execution: analysed; storage: refused (disabled); collector: refused (allocation-metadata)
     call to quiet: lookup: no-candidate; execution: analysed; storage: refused (disabled); collector: would-store
     call to fill: lookup: no-candidate; execution: analysed; storage: refused (disabled); collector: refused (validity-mutation)
@@ -104,8 +104,8 @@ The clauses add nothing to the reads of the body.
 
   $ EVA_TEST_ALLOCATION=call-site frama-c -no-autoload-plugins -load-module eva,test_allocation_refusals.cmxs -eva -eva-no-memexec -eva-no-alloc-returns-null -machdep x86_32 -eva-msg-key cache call-site.c > call-site.log 2>&1
   $ grep -E '^(c_word|req_word|req_initialized|req_plain) call' call-site.log
-  req_word call 1: allocated-block
-  req_initialized call 1: allocated-block allocation-metadata, owners __malloc_main_l32
+  req_word call 1: allocated-block side-table
+  req_initialized call 1: allocated-block allocation-metadata side-table, owners __malloc_main_l32
   req_plain call 1: would-store
   c_word call 1: allocated-block
 
@@ -117,9 +117,9 @@ before the allocation is not refused.
   $ EVA_TEST_ALLOCATION=call-site frama-c -no-autoload-plugins -load-module eva,test_allocation_refusals.cmxs -eva -eva-no-memexec -eva-no-alloc-returns-null -eva-msg-key cache strings.c > strings.log 2>&1
   $ grep -E '^(scan|length|scan_unknown|initialized_unknown) call' strings.log
   scan call 1: would-store
-  scan call 2: allocated-block
-  length call 1: allocated-block
-  scan_unknown call 1: footprint-top
+  scan call 2: allocated-block side-table
+  length call 1: allocated-block side-table
+  scan_unknown call 1: footprint-top side-table
   initialized_unknown call 1: footprint-top
 
 A body that writes a part of a block whose other part holds part of a
@@ -141,13 +141,13 @@ returns. A call that never returns and the entry point free nothing.
 
   $ EVA_TEST_ALLOCATION=finalisation frama-c -no-autoload-plugins -load-module eva,test_allocation_refusals.cmxs -eva -eva-no-memexec -eva-slevel 4 -main no_return -eva-msg-key cache,malloc:automatic-free finalisation.c > no_return.log 2>&1
   $ grep -E '^(scratch|no_return) call|automatic bases' no_return.log
-  scratch call 1: allocation deallocation builtin sweep contract nested-call allocated-block allocation-metadata, owners __alloca_scratch_l10
+  scratch call 1: allocation deallocation builtin contract nested-call allocated-block allocation-metadata side-table, owners __alloca_scratch_l10
     freeing automatic bases: {__alloca_scratch_l10}
   scratch call 2: would-store
   no_return call 1: allocation deallocation sweep nested-call allocated-block allocation-metadata side-table, owners __alloca_scratch_l10
   $ EVA_TEST_ALLOCATION=finalisation frama-c -no-autoload-plugins -load-module eva,test_allocation_refusals.cmxs -eva -eva-no-memexec -main entry -eva-msg-key cache finalisation.c > entry.log 2>&1
   $ grep -E '^entry call' entry.log
-  entry call 1: allocation builtin contract nested-call allocated-block allocation-metadata, owners __alloca_entry_l26
+  entry call 1: allocation builtin contract nested-call allocated-block allocation-metadata side-table, owners __alloca_entry_l26
 
 On a memexec hit, the caller checks the requires clauses of the callee
 again, with its own recording: hit_only is refused for the allocated block
@@ -172,7 +172,7 @@ the weakening, and for a body with one state at each point, it is not.
   $ grep -E '^(branch|straight|alloc) call' weakening.log
   branch call 1: would-store
   straight call 1: would-store
-  alloc call 1: allocation builtin contract nested-call allocated-block allocation-metadata, owners __malloc_alloc_l10
+  alloc call 1: allocation builtin contract nested-call allocated-block allocation-metadata side-table, owners __malloc_alloc_l10
   alloc call 2: allocation validity-mutation builtin contract nested-call allocated-block allocation-metadata, owners __malloc_w_alloc_l10
   alloc call 3: allocation validity-mutation builtin contract nested-call allocated-block allocation-metadata, owners __malloc_w_alloc_l10
   branch call 2: allocation-metadata, owners __malloc_w_alloc_l10

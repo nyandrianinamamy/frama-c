@@ -99,7 +99,7 @@ let make_escaping ~exact ~escaping ~on_escaping ~within state =
   | Cvalue.Model.Top | Cvalue.Model.Bottom -> state
   | Cvalue.Model.Map m -> Cvalue.Model.fold aux m state
 
-let make_escaping_fundec fundec clob vars state =
+let make_escaping_fundec kf fundec clob vars state =
   let filter acc v =
     if v.vtemp || not v.vreferenced
     then acc else Base.Hptset.add (Base.of_varinfo v) acc
@@ -114,9 +114,19 @@ let make_escaping_fundec fundec clob vars state =
       let b = Base.Hptset.choose vars in
       not (Base.is_formal b fundec || Base.is_block_local b fundec.sbody)
     in
-    Body_access.unknown_access Sweep;
+    let collecting =
+      Body_access.is_recording () &&
+      let inner =
+        Base.Hptset.for_all
+          (fun b -> Base.is_local b fundec
+                    && not (Base.is_block_local b fundec.sbody))
+          vars
+      in
+      Body_access.sweep ~owner:kf ~inner vars state
+    in
     let escaping = vars in
     let on_escaping ~b ~itv:_ ~v =
+      if collecting then Body_access.swept_holder b v;
       let bases = match Cvalue.V.get_bases v with
         | Base.SetLattice.Top -> escaping
         | Base.SetLattice.Set bases -> Base.Hptset.inter bases escaping

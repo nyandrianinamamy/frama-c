@@ -380,7 +380,7 @@ module State = struct
       List.iter (fun vi -> Body_access.may_write_base (Base.of_varinfo vi)) vars;
     try
       let fdec = Kernel_function.get_definition kf in
-      Locals_scoping.make_escaping_fundec fdec clob vars state, clob
+      Locals_scoping.make_escaping_fundec kf fdec clob vars state, clob
     with Kernel_function.No_Definition -> state, clob
 
   let enter_loop _stmt (s, clob) = s, clob

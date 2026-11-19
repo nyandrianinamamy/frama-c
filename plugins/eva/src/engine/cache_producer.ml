@@ -11,19 +11,21 @@ open Cil_types
 module Entry = Cache_entry.Cvalue
 module Blocks = Base.Hptset
 
-type call_mode = [ `Body | `Spec | `Builtin ]
+type call_mode = Body_access.call_mode
 
 type entry = {
   cache_entry : Entry.t;
   recorded : Body_access.Result.recorded list;
   inner : Callstack.t option;
-  used_functions : (kernel_function * call_mode) list;
+  dependencies : Cache_entry.dependencies;
 }
 
 let cache_entry e = e.cache_entry
 let recorded e = e.recorded
 let inner e = e.inner
-let used_functions e = e.used_functions
+let sweeps e = e.dependencies.sweeps
+let hint_generation e = e.dependencies.hint_generation
+let used_functions e = e.dependencies.used_functions
 
 module Entries = Datatype.Make (struct
     include Datatype.Undefined
@@ -124,13 +126,17 @@ let produce ~save_results callstack input states r =
   let statement = Cache_entry.Body kf in
   let* footprint = footprint r in
   let footprint = Cache_entry.with_return_block statement footprint in
-  let* key = close_key input (key_seed footprint) in
+  let key = Blocks.union r.Body_access.Result.sweeps (key_seed footprint) in
+  let* key = close_key input key in
+  let replayable model b =
+    binds model b || (Blocks.mem b r.sweeps && not (binds (fst input) b))
+  in
   if not (is_map (fst input)) then Error Input_state
   else if not (List.for_all (fun (_, (m, _)) -> is_map m) states) then
     Error Exit_state
   else if not (List.for_all
                  (fun (_, (m, _)) ->
-                    Blocks.for_all (binds m) footprint.written_exit)
+                    Blocks.for_all (replayable m) footprint.written_exit)
                  states)
   then Error Exit_binding
   else begin
@@ -140,7 +146,13 @@ let produce ~save_results callstack input states r =
     in
     let exit = List.map (fun (k, state) -> k, copy state) states in
     let id = Counter.get () + 1 in
-    let cache_entry = Entry.make ~id statement ~key ~input:(copy input)
+    let dependencies = Cache_entry.{
+        sweeps = r.sweeps; hint_generation = r.hint_generation;
+        used_functions = r.used_functions;
+      }
+    in
+    let cache_entry =
+      Entry.make ~dependencies ~id statement ~key ~input:(copy input)
         ~footprint ~exit
     in
     let inner =
@@ -149,7 +161,7 @@ let produce ~save_results callstack input states r =
       else None
     in
     let entry = {
-      cache_entry; recorded = r.recorded; inner; used_functions = [kf, `Body];
+      cache_entry; recorded = r.recorded; inner; dependencies;
     } in
     ignore (Counter.next ());
     Table.replace kf (entry :: newest_first kf);

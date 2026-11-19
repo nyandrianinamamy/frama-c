@@ -59,7 +59,7 @@ stored output witness to the law for this overlay.
 | Inclusion of the filtered current input in the filtered stored input | OCaml obligation. Equality implies inclusion for a common interpretation of filtered states. The equality check is exercised in the [operation record](reuse-operation.md#the-match-by-equality). The argument that those interpreted input states and environments apply to each admitted lookup is open. |
 | `entry.ReplayCompatible a cur` | OCaml obligation, open. The matched lookup must supply the joint witness above. Equal contents on `K` give liveness there. For other write targets, justify liveness with the same witness. Justify matching the allocation state that determines the identities of new concrete locals. Refusing allocated bases and enlarging the key are separate checks. |
 | `∀ o, d.ReuseSoundAt entry.footprint.exitWrites cur (entry.exit o)` | Local domain-law premise. Proved for `valueDom` by its global law. [The restricted cvalue argument](reuse-operation.md#reuse-sound-for-cvalue) requires the exit binding condition. Its applicability to actual admitted exits, including lifetime changes and domain products where applicable, is an OCaml obligation. |
-| `∀ m, d.γ cur m → entry.NoFrameRewrite m` | OCaml obligation, open. For each normal exit and each block outside the overlay, unmarked pointers in the current entry memory must avoid the actual sweep targets. See [sweep admission](frame.md#admission-condition-for-sweeps-of-own-locals). |
+| `∀ m, d.γ cur m → entry.NoFrameRewrite m` | OCaml obligation. For the recorded targets, the produced-entry supplied lookup checks a stronger condition on the input map. Coverage of actual sweeps remains a premise. See [sweep admission](frame.md#admission-condition-for-sweeps-of-own-locals). |
 | `d.γ cur m`, `entry.Matches a m`, `entry.NoFrameRewrite m` in the common hit lemma | Local member premises. The projected theorem obtains `Matches` via the match lemma and replay compatibility. The frame premise comes from admission for this memory. The pointwise theorem needs only membership in the current concretisation. That membership supplies nonemptiness whenever the theorem is applied. |
 
 In `exit_preserves_absence`, the subject, state, block, event list,
@@ -147,10 +147,10 @@ these contracts for shared observations and contributions.
 
 | Contract | Eva symbols and open evidence |
 |---|---|
-| `KeyedRead` | `Widen.getWidenHints` includes dynamic hints. The collector currently refuses the combined lookup. #44 owes the run-local generation and its updates, comparison at `Call_cache.Make.lookup` before acceptance, and the hint reader controls with and without discovery. Equality must reflect what the skipped read would observe. |
+| `KeyedRead` | `Widen.getWidenHints` records the entry generation. A produced entry's supplied lookup compares it before acceptance. The reader replays check the generation with and without discovery. The replacement cache must retain the check. [Dynamic widening hints](collector-effects.md#dynamic-widening-hints). |
 | `FixedRead` | `Cil` AST queries, effective contracts in `Annotations.funspec`, selected builtin and static configuration must be invariant at every time in the run for each fixed observation. The classification is supported by source inspection of the inventory and [body-access record](body-access.md#side-tables-and-recorded-joins). The invariant for every admitted observation and the audit of helpers and memos remain open. |
 | `RecordedWrite` | `Iterator.record_fireable`, `Iterator.Make_Dataflow.merge_results`, `Function_calls.register_call`, `Alarmset.register_alarm`, `Transfer_logic.emit_status` and `Engine.Store.register_state` are relevant writers. The collector fixture asserts recorded classes. Each table owes an interpretation of its values, operand coverage for the join, and a replay argument at the hit's table index. The result must cover the fresh and existing observations there and preserve coverage at the other positions. These OCaml obligations remain open. #47 and #48 owe confirmed hit checks for Safety and Reach. A position-independent join can be replayed once when repetition adds nothing. A callstack-indexed effect must be delivered for each current position. |
-| `UnsupportedAccess` | `Body_access.unknown_access`, `Body_access.read_message_history`, and `Cache_producer.produce` report or enforce refusals at instrumented storage paths. The body fixture exercises temporary origins and unclassified callbacks. #44 owes remaining ordered effects, scope and lookup checks. Nested refusal propagation, actual lookup admission, opaque accesses and inventory coverage remain open. |
+| `UnsupportedAccess` | `Body_access.unknown_access`, `Body_access.read_message_history`, and `Cache_producer.produce` report or enforce refusals at instrumented storage paths. The fixtures exercise temporary origins, ordered effects and unclassified callbacks. The collector propagates the named effects from fresh nested work. Coverage of the whole inventory and lookup in the replacement cache remain open. [Ordered and opaque effects](collector-effects.md#ordered-and-opaque-effects). |
 
 In `RecordedWrite`, `represents` gives the observations accounted for
 by a table value. `Covers represents value contribution` is inclusion of
@@ -210,6 +210,11 @@ unrelated populated position, and storage after an unsupported producer
 access. Each of the four mutations compiled the weakened definition
 and made its corresponding check fail to compile. The unmodified
 definition and checks compiled in the scratch control.
+
+Eva's [dynamic widening generation](collector-effects.md#dynamic-widening-hints)
+is a `KeyedRead`. Discovery, ordered and opaque effects and unclassified
+emission-history reads are `UnsupportedAccess` in
+[the collector](collector-effects.md#ordered-and-opaque-effects).
 
 ## Evidence and printed declarations
 

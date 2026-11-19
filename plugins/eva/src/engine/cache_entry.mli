@@ -59,6 +59,12 @@ val valid_footprint : footprint -> bool
 val required_key : footprint -> Base.Hptset.t
 
 (** Why a candidate entry is not used for a call. *)
+type dependencies = {
+  sweeps : Base.Hptset.t;
+  used_functions : (kernel_function * Body_access.call_mode) list;
+  hint_generation : Widen_generation.t option;
+}
+
 type rejection = [
   | `Key_differs
   (** The input of the call filtered to the key of the entry differs from the
@@ -66,10 +72,10 @@ type rejection = [
   | `Key_unclosed
   (** [relate] relates the key of the entry to blocks outside the key in the
       input of the call. *)
+  | `Sweep | `Recursion | `Hint_generation | `Watchpoint
 ]
 
-(** Stable identifier of a reason: [key-differs] for [`Key_differs] and
-    [key-unclosed] for [`Key_unclosed]. *)
+(** Stable identifier of a reason. *)
 val rejection_id : rejection -> string
 
 (** The operations of an abstract domain used by the reuse operation. *)
@@ -103,7 +109,7 @@ module Make (Domain : Domain) : sig
       [key] does not contain R ∪ (W_exit \ W_sure), or if [key] is not closed
       under [Domain.relate] in [input]. *)
   val make :
-    id:int -> statement -> key:Base.Hptset.t -> input:Domain.t ->
+    ?dependencies:dependencies -> id:int -> statement -> key:Base.Hptset.t -> input:Domain.t ->
     footprint:footprint -> exit:(Partition.key * Domain.t) list -> t
 
   (** The identifier given to {!make}. *)
@@ -127,6 +133,9 @@ module Make (Domain : Domain) : sig
       blocks, with their partition keys. *)
   val exit : t -> (Partition.key * Domain.t) list
 
+  (** Collector dependencies of a produced entry, if supplied at creation. *)
+  val dependencies : t -> dependencies option
+
   val pretty : Format.formatter -> t -> unit
 
   (** Result of the reuse operation for one call. *)
@@ -137,15 +146,18 @@ module Make (Domain : Domain) : sig
     (** The candidate used, if any, and the states at the end of the call. *)
   }
 
-  (** [find candidates state] applies the reuse operation to a call whose
+  (** [find ~admit candidates state] applies the reuse operation to a call whose
       input is [state]. The [candidates] are given oldest first. They are
-      examined in this order until one matches, and that one is used: the
+      examined in this order until one matches and passes [admit]. The
+      caller must check the entry's collector dependencies in [admit]. The
       states at the end of the call are
       [reuse written_exit ~current_input:state ~previous_output:s] for each
       exit state [s] of the entry, with its partition key, where
       [written_exit] is W_exit of its footprint. Every other block, those of
       the key and those of W \ W_exit included, keeps its value in [state]. *)
-  val find : t list -> Domain.t -> result
+  val find :
+    admit:(t -> Domain.t -> (unit, rejection) Stdlib.result) ->
+    t list -> Domain.t -> result
 end
 
 module Cvalue : module type of Make (Cvalue_domain.State)

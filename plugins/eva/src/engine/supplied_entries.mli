@@ -78,7 +78,9 @@ val supply :
   footprint:footprint -> exit:(Partition.key * Cvalue.Model.t) list -> entry
 
 (** Supply the key and states of an entry captured by the producer, with
-    the next supplied entry identifier. The fixture must use the same AST
+    the next supplied entry identifier. The lookup checks the recorded
+    sweep targets, used functions and widening generation. The fixture
+    must use the same AST
     and ensure the calls meet the replay premises described on [supply].
     Supplying entries remains a test-only operation. *)
 val supply_produced : Cache_producer.entry -> entry
@@ -159,10 +161,10 @@ module Lookup (Domain : sig
     val structure : t Abstract.Domain.structure
   end) : sig
 
-  (** [find kf state] applies the reuse operation ({!Cache_entry.Make.find})
+  (** [find stack state] applies the reuse operation ({!Cache_entry.Make.find})
       to the entries supplied for [kf], at a call whose input is [state].
       When the active domains are not the cvalue domain alone, or when a
       component listed under [`Consumer] is enabled, every entry is rejected
       for this reason. *)
-  val find : kernel_function -> Domain.t -> Domain.t lookup
+  val find : Callstack.t -> Domain.t -> Domain.t lookup
 end

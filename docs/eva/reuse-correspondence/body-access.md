@@ -58,9 +58,10 @@ The cvalue audit covers the following state updates.
   recorder, and the callee's outer locals, formals and return slot are
   removed by the caller according to the call protocol. These changes fall
   within the caller's unsupported nested-call footprint, when applicable.
-  Inner scope removal is scoped to the body. Its escape sweep and automatic
-  allocation cleanup are refused. [The frame record](frame.md#admission-condition-for-sweeps-of-own-locals)
-  gives the condition for admitting a sweep of the body's own locals.
+  Inner scope removal and its holder rewrites are recorded when the sweep
+  targets the body's own inner locals and passes the input guard.
+  [Lexical sweep in cvalue](collector-effects.md#lexical-sweep-in-cvalue).
+  Automatic allocation cleanup continues to refuse.
 - `logic_assign`, including initialization by type for specification
   results, is covered by the refusal and Top bounds for specification,
   builtin and statement-contract effects. Recursive removal, substitution
@@ -132,7 +133,8 @@ receives all reasons. The reasons of the allocation family are described in
 Indirect targets refuse both at the call transfer and at entry of a body
 reached through an indirect call. A nested call refuses its enclosing body
 whether resolved to a fresh body, a hit, a specification or a builtin.
-The collector does not compose child observations in this slice. An
+The collector composes used functions, hint dependencies and the specified
+refusals of fresh children. Nested memory footprints are still unsupported. An
 unsupported contract or annotation read has a Top bound.
 [Annotation and contract reads](#annotation-and-contract-reads) lists the
 supported observation paths. Used builtins and sweeps mark their active
@@ -207,11 +209,12 @@ reads of program memory and can also refuse on a side-table access.
 Reached statements, states, caller sites, guard outcomes, alarms, statuses,
 read and write zones, and holder sets are reported as recorded when observed.
 The ordered alarm-stop check with a finite threshold and the iterator's
-consultation of alarm emission history refuse. The combined widening lookup
-refuses because it includes the mutable dynamic hints. A statement that
-evaluates a dynamic hint and an active watchpoint also refuse. Call hooks
-without a classification refuse by default. The existing callwise protocols
-and derived reporting hooks are declared at registration. This keeps their
+consultation of alarm emission history refuse. A widening read records its
+entry generation. A statement that evaluates a dynamic hint and an active
+watchpoint refuse. Call hooks without a classification refuse by default.
+[Collector dependencies](collector-effects.md) gives the rules and evidence.
+The existing callwise protocols and derived reporting hooks are declared
+at registration. This keeps their
 own queries out of the collector without changing their computation. For a
 given sequence of executed transfers, the observation is independent of
 callwise Inout. A callwise output can let Eva reduce an actual after a call
@@ -220,10 +223,11 @@ and hence change which transfers run in the caller.
 `Origin.History` reports access at the table operations, including when
 pointer arithmetic registers a garbled temporary and when a join consults
 origin IDs. An observed access refuses as `side-table`. Mthread uses
-the same dispatch protocol and refuses while enabled. A message emitted once
-reads the logger's history of emitted messages;
-[Annotation and contract reads](#annotation-and-contract-reads) lists the
-messages of ACSL clauses that refuse for that reason.
+the same dispatch protocol and refuses while enabled. The logger reports
+reads of once history and once-category policies. The exceptions and the
+previously instrumented ACSL cases are described in
+[Ordered and opaque effects](collector-effects.md#ordered-and-opaque-effects)
+and [Annotation and contract reads](#annotation-and-contract-reads).
 
 **Evidence.** Source inspection. The
 [`body-access.t`](../../../plugins/eva/tests/utils/body-access.t/run.t)

@@ -28,7 +28,7 @@ module Call =
     (struct type t = Callstack.t * kernel_function * state * analysis_kind end)
 
 let run_hook ~cache_protocol f =
-  if not cache_protocol then Body_access.unknown_access Side_table;
+  if not cache_protocol then Body_access.unknown_access Callback;
   Body_access.without_recording f
 
 let register_call_hook ?(cache_protocol=false) f =

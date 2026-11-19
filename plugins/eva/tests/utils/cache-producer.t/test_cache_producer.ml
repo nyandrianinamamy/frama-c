@@ -135,7 +135,9 @@ let admission () =
   let observation = Eva__Body_access.Result.{
       reads = empty; writes = empty; exit_writes = empty;
       sure_writes = Base.Hptset.empty; designated = empty;
-      owners = Base.Hptset.empty; recorded = []; refusals = [];
+      owners = Base.Hptset.empty; sweeps = Base.Hptset.empty;
+      used_functions = []; hint_generation = None;
+      recorded = []; refusals = [];
     }
   in
   let state = Cvalue.Model.empty_map, snd State.top in

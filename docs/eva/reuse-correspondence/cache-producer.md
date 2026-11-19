@@ -80,11 +80,11 @@ and [hit soundness](hit.md#hit-soundness).
 store at the return vertex. Its caller offers the input captured before
 the body and the resulting states before the call's outer cleanup. The
 producer checks each exit map for every block it would overlay. Projection
-to K ∪ W preserves those bindings by W_exit ⊆ W. An absent binding cannot
-be replayed through cvalue's merge, even if the absence comes from leaving
-an inner scope. This check is stricter than the hand-supplied API's check:
-that API allows a known inner local to be absent because the caller should
-have no binding for it. The producer snapshots each holder cell, which
+to K ∪ W preserves those bindings by W_exit ⊆ W. Cvalue merge cannot replay a deletion. A recorded lexical sweep target may
+be absent if it was absent at entry. The producer adds the target to the
+key and the supplied lookup checks the current input for absent sweep
+targets and potential holders of their addresses.
+[Lexical sweep in cvalue](collector-effects.md#lexical-sweep-in-cvalue). The producer snapshots each holder cell, which
 Eva otherwise mutates as it goes on analysing the caller. The reuse
 fixture changes only the identifier when it supplies an entry.
 
@@ -95,7 +95,8 @@ fixture changes only the identifier when it supplies an entry.
 | W_sure is a lower bound on full overwrites on all paths to an exit. | The collector intersects sure bits at joins and retains a base only when the bits cover its full known range at the return. Scope updates and narrowing do not count as sure writes. The return slot follows the existing entry convention and must be present in every stored exit. The connection from the graph lower bound to concrete overwrites, including at offsets, remains open. |
 | The key includes R ∪ (W_exit ∖ W_sure) and is closed. | Established by key construction and the constructor checks described above. |
 | The body does not allocate, free, or end the lifetime of a block outside its locals. | The producer refuses every refusal issued by the collector. Allocation, release, builtins, sweeps, allocated bases, recursive bodies and nested calls are among the paths refused by the collector. This uses the collector's instrumented effect coverage. The transitive side-table and allocation audit remains open. |
-| Every returning execution is covered by an exit, including changes to holders caused by leaving an inner scope. | The iterator supplies the producing Exit states, and the producer refuses an observed sweep or any missing overlay binding. Callee preconditions are excluded from the collector, and the current fixture hit checks their statuses without consuming their reduced states. The producer therefore refuses when requires clauses would be checked. Exit soundness relative to the concrete semantics and replay of inner-scope sweeps remain open. |
+| Every returning execution is covered by an exit, including changes to holders caused by leaving an inner scope. | The iterator supplies the producing Exit states, and the producer permits only the checked lexical sweeps and refuses missing
+overlay bindings except for their absent targets. Callee preconditions are excluded from the collector, and the current fixture hit checks their statuses without consuming their reduced states. The producer therefore refuses when requires clauses would be checked. Exit soundness relative to the concrete semantics and replay of inner-scope sweeps remain open. |
 
 On a hit, Eva still runs the outer cleanup in `Transfer_stmt.do_one_call`.
 `Cvalue_domain.State.leave_scope` uses the post-state holder set to sweep
@@ -110,10 +111,10 @@ open admission condition. [Admission condition for sweeps of own locals](frame.m
 **Evidence (executed).** [`cache-producer.t`](../../../plugins/eva/tests/utils/cache-producer.t/run.t)
 supplies the first fresh `leaf` entry explicitly to a fixture analysis.
 The second call uses that entry with a different value of `keep`, confirms
-the hit, and compares the whole caller model with the fresh result. A scope
-removal that the collector accepts refuses as `exit-binding`. A scope
-with a collector sweep retains the `sweep` refusal. An otherwise accepted
-body with a callee precondition refuses as `preconditions`.
+the hit, and compares the whole caller model with the fresh result.
+A scope removal without a recorded sweep still refuses as `exit-binding`.
+The own-local sweep fixture records and admits a lexical sweep. An otherwise
+accepted body with a callee precondition refuses as `preconditions`.
 
 **Open.** The projected theorem takes `ReplayCompatible` as a lookup
 premise. For every current memory covered by an admitted match, Eva must
@@ -144,8 +145,8 @@ stored.
 
 **Claim.** Each completed body observation leads to one production
 disposition and count. The stored entry carries the Exit part, the
-collector's recorded join classes, the used function with its body call
-mode, and an Inner reference if cvalue statement states were recorded. Memexec
+collector's recorded join classes, used functions with their call modes,
+sweep targets, the stamp of a widening read, and an Inner reference if cvalue statement states were recorded. Memexec
 still serves ordinary calls. Only explicit fixture supply can make a
 produced entry a lookup candidate.
 

@@ -1,0 +1,8 @@
+(executable
+  (name "test_collector_effects")
+  (modules "test_collector_effects")
+  (modes plugin)
+  (libraries frama-c.kernel "frama-c-eva.core")
+  (flags :standard -open Frama_c_kernel)
+  (promote (until-clean))
+)
