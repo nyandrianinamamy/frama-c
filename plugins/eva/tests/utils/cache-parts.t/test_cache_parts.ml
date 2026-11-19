@@ -381,6 +381,29 @@ let server () =
   ask "plugins.studia.studia.getWritesLval"
     (Server.Kernel_ast.Marker.to_json marker)
 
+(* ----- Requests that start the analysis or read a memo ------------------ *)
+
+(* From.get starts the analysis of Eva when its results are not computed.
+   After the entries are supplied, the first request starts the analysis, in
+   which the three calls to copy hit: this request is refused, as the second
+   one. A later analysis with caching disabled gives the dependencies of the
+   first analysis again. *)
+let lazy_from () =
+  let copy = kf "copy" in
+  let produced = first_analysis () in
+  let fresh = From.get copy in
+  List.iter (fun p -> ignore (Supplied.supply_produced p)) produced;
+  clear ();
+  Eva.Parameters.Memexec.on ();
+  refused "first request" (fun () -> From.get copy);
+  Format.printf "hits: copy %d; statement results complete: %b@."
+    (hits "copy") (Eva.Results.statement_results_complete ());
+  refused "second request" (fun () -> From.get copy);
+  ignore (first_analysis ());
+  Format.printf "after an analysis with caching disabled: equal to the \
+                 first analysis: %b@."
+    (Eva.Assigns.equal fresh (From.get copy))
+
 (* ----- Values given in another project or for another callstack --------- *)
 
 (* Three parts of this test, which no consumer needs. During each analysis of
@@ -546,5 +569,6 @@ let () =
   | Some "logic" -> Boot.Main.extend logic
   | Some "history" -> Boot.Main.extend history
   | Some "nested" -> Boot.Main.extend nested
+  | Some "lazy-from" -> Boot.Main.extend lazy_from
   | Some "duplicate" -> Boot.Main.extend duplicate
   | _ -> ()

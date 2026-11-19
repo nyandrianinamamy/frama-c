@@ -24,8 +24,12 @@ module To_Use = struct
   let stmt_request stmt = Eva.Results.before stmt
 
   (* The dependencies by function are computed from the states that Eva
-     saves at the statements of the function and of its callees. *)
+     saves at the statements of the function and of its callees. The
+     analysis runs first, since its hits make these states incomplete; the
+     test then comes before the table, which may hold a result computed
+     before a hit of the current analysis. *)
   let memo kf =
+    Eva.Analysis.compute ();
     if not (Eva.Results.statement_results_complete ()) then
       From_parameters.abort
         "cannot compute the dependencies by function: in the current \

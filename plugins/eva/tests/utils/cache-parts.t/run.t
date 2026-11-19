@@ -337,6 +337,19 @@ hits, stop with the same error, without printing a result.
   hits: copy 3; statement results complete: false
   [inout] User Error: cannot compute the inputs and outputs by function or by statement: in the current analysis of Eva, a hit of the cache answered a call without analysing the body of the called function, and saved no state at its statements
 
+From.get starts the analysis when its results are not computed. The first
+request after the entries are supplied starts the analysis in which the
+three calls to copy hit: it is refused, as the second one.
+
+  $ EVA_TEST_CACHE_PARTS=lazy-from frama-c -no-autoload-plugins -load-module eva,from,inout,test_cache_parts.cmxs parts.c > lazy-from.log 2>&1
+  $ grep -E '^(first|second|hits|after)|User Error' lazy-from.log
+  [from] User Error: cannot compute the dependencies by function: in the current analysis of Eva, a hit of the cache answered a call without analysing the body of the called function, and saved no state at its statements
+  first request: refused
+  hits: copy 3; statement results complete: false
+  [from] User Error: cannot compute the dependencies by function: in the current analysis of Eva, a hit of the cache answered a call without analysing the body of the called function, and saved no state at its statements
+  second request: refused
+  after an analysis with caching disabled: equal to the first analysis: true
+
 Three requests of the server, after an analysis with caching disabled and
 after the analysis with hits: the dead code of copy, and the statements
 that read and that write b at the first call to copy, which Studia, loaded
