@@ -400,6 +400,25 @@ loads it refuses the same requests.
   $ grep -E 'User Error|Function|Out' load-out.log
   [inout] User Error: cannot compute the inputs and outputs by function or by statement: in the current analysis of Eva, a hit of the cache answered a call without analysing the body of the called function, and saved no state at its statements
 
+Pdg, loaded in the process that loads the session, refuses to build the
+graph of a function, and stops. With an option of Eva changed, the analysis
+runs again, with caching disabled: the graph of copy is the one that an
+analysis of the program with the same options builds, with the inputs b and
+d.
+
+  $ frama-c -no-autoload-plugins -load-module eva,from,inout,pdg -load hits.sav -fct-pdg copy > load-pdg.log 2>&1
+  [1]
+  $ grep -E 'User Error|Warning|PDG' load-pdg.log
+  [pdg] User Error: cannot compute the dependence graph of a function: in the current analysis of Eva, a hit of the cache answered a call without analysing the body of the called function, and saved no state at its statements
+  $ frama-c -no-autoload-plugins -load-module eva,from,inout,pdg -load hits.sav -eva-no-memexec -eva-slevel 1 -fct-pdg copy > load-pdg-again.log 2>&1
+  $ frama-c -no-autoload-plugins -load-module eva,from,inout,pdg -eva-no-memexec -eva-slevel 1 -fct-pdg copy parts.c > pdg-disabled.log 2>&1
+  $ sed -n '/PDG for copy/,$p' load-pdg-again.log > pdg-again.txt
+  $ sed -n '/PDG for copy/,$p' pdg-disabled.log > pdg-disabled.txt
+  $ cmp pdg-again.txt pdg-disabled.txt
+  $ grep -E 'In\(' pdg-again.txt
+   {n8}: In(b)
+   {n9}: In(d)
+
 A value of a part is kept with the entry only when it is given for the body
 being analysed, in the project current when its analysis started. The test
 module registers three parts and gives a value of each during the analysis

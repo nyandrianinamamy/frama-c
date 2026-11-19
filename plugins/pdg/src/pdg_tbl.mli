@@ -13,7 +13,10 @@ type t = PdgTypes.Pdg.t
 val self : State.t
 
 val get : Cil_types.kernel_function -> t
-(** Get the PDG of a function. Build it if it doesn't exist yet. *)
+(** Get the PDG of a function. Build it if it doesn't exist yet.
+    Stops with a user error when a hit of the cache of Eva answered a call
+    in the current analysis without saving the states at the statements of
+    the called function (see {!Eva.Results.statement_results_complete}). *)
 
 (** {3 Pretty printing} *)
 

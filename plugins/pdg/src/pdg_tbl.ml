@@ -24,7 +24,25 @@ module Tbl =
     end)
 
 let self = Tbl.self
-let get = Tbl.memo compute
+
+(* A graph is built from the states that Eva saves at the statements of the
+   function. A hit of the cache of Eva saves none at the statements of the
+   called function, which then looks unreachable: the graph would be false.
+   The analysis runs first, since its hits make these states incomplete; the
+   test then comes before the table, which may hold a graph built before a
+   hit of the current analysis. *)
+let check_statement_results () =
+  if not (Eva.Analysis.is_computed ()) then Eva.Analysis.compute ();
+  if not (Eva.Results.statement_results_complete ()) then
+    Pdg_parameters.abort
+      "cannot compute the dependence graph of a function: in the current \
+       analysis of Eva, a hit of the cache answered a call without analysing \
+       the body of the called function, and saved no state at its \
+       statements"
+
+let get kf =
+  check_statement_results ();
+  Tbl.memo compute kf
 
 (**************************************************************************)
 
