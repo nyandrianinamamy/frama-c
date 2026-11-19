@@ -288,6 +288,20 @@ alarm first. After a delivery of the Safety part, as after an analysis of
 - `-eva-stop-at-nth-alarm` is not replayed: when it is set, every supplied
   candidate is rejected
   ([A supplied entry is used only where a hit is supported](reuse-operation.md#a-supplied-entry-is-used-only-where-a-hit-is-supported)).
+- Only the messages of statuses are replayed. Other messages printed during
+  the analysis of a body either refuse it (the special functions such as
+  `Frama_C_show_each`, as `builtin`; `\warning` in an annotation and the
+  messages preceded by `Body_access.read_message_history`, as `side-table`)
+  or are printed once per position without a refusal: the assumption of
+  2's complement for an overflow, locals escaping their scope, pointer
+  comparisons. A hit prints none of the latter; with caching disabled, the
+  call prints them only where the same text was not printed at the same
+  position before, by the analysed call that produced the entry among
+  others. The report of an evaluation that leads to bottom without alarms,
+  a sign of a defect of Eva, is printed at each visit and is not replayed.
+  An entry taken from another analysis, or saved with a session
+  ([issue #59](https://github.com/nyandrianinamamy/frama-c/issues/59)), can
+  hide these messages.
 
 ## The passes after the analysis draw no conclusion where a hit skipped visits
 
@@ -350,6 +364,13 @@ function that has a body, directly, through a pointer, or as the
 constructor of a local initialisation. A call to a function without a body
 has no statement to skip.
 
+The restriction costs precision, for every call of a recorded function,
+analysed or answered by a hit. An alarm or annotation there keeps the status
+emitted during the analysis: unknown where `mark_green_and_red`, with caching
+disabled, would emit valid or invalid from the final states of every
+callstack. An annotation that no call reaches gets no unreachability status.
+The fixture below shows no such difference; it follows from the argument.
+
 **Readers inspected.** The readers of Eva's results at the end of or after
 the analysis, at this revision:
 
@@ -399,18 +420,22 @@ as reached, where caching disabled counts 14: the loop at line 14, reached
 by no call, is counted. After a change of the entry point, `body` is no
 longer recorded. `supply` refuses an entry for `outer`, which calls `body`.
 
-Before the restriction, with the analyzer at revision `5c7f2e1fc5` and the
-same fixture, the runs differed from caching disabled: from `main`, the
-alarm got the final status valid and `one` was marked unreachable; in the
-reverse order, the alarm got the final status invalid; from `no_return`, the
-alarm was valid, and `one` and the postcondition were marked unreachable.
+Before the restriction, at revision
+`5c7f2e1fc56b761945636dc6b86fcacd56cbdb83`, the same programs and modes,
+run with a copy of the fixture that does not observe the record of skipped
+functions (absent at that revision), differed from caching disabled: from
+`main`, the alarm got the final status valid and `one` was marked
+unreachable; in the reverse order, the alarm got the final status invalid;
+from `no_return`, the alarm was valid, and `one` and the postcondition were
+marked unreachable.
 Export generated seven annotations in `body`, all valid, among them
 `\false` at lines 10 and 14. The summary counted 12 statements of 15.
 `supply` accepted the entry for `outer`.
 
-The request `getDeadCode` and the rejection when the Markdown report, WP or
-the constant propagation is loaded rest on source inspection; the rejection
-when Nonterm or Metrics is loaded is executed.
+The request `getDeadCode`, the warning of `Export.main` (option
+`-eva-annot`; the test calls `Export.generator`) and the rejection when the
+Markdown report, WP or the constant propagation is loaded rest on source
+inspection; the rejection when Nonterm or Metrics is loaded is executed.
 
 **To lift the restriction.** Issue #48 must make a hit deliver, for its
 callstack, the statements its call reaches, so that `mark_unreachable` can
@@ -463,12 +488,13 @@ of `body` from `producer`, and sets a red status there. The calls of `body`
 and of `producer` read `collector: refused (project-switch)`, the statistic
 `collector-refused-project-switch` is 1 for each, and no entry is produced.
 The analysis from `main` then has no candidate, and its tables are those of
-the run with caching disabled and the same hook. Before the refusal, with
-the analyzer at revision `5c7f2e1fc5` and the same fixture, the entry was
-stored with the red context set in the second project, and the hit
-delivered it in the first: the tables of `main` had a red context of the
-reachability of the first statement of `body`, which caching disabled does
-not have.
+the run with caching disabled and the same hook. Before the refusal, at
+revision `5c7f2e1fc56b761945636dc6b86fcacd56cbdb83`, with the same
+program and a copy of the fixture that does not observe the record of
+skipped functions, the entry was stored with the red context set in the
+second project, and the hit delivered it in the first: the tables of
+`main` had a red context of the reachability of the first statement of
+`body`, which caching disabled does not have.
 
 ## The options that decide the alarms are those of the analysis that uses the entry
 
@@ -501,7 +527,7 @@ that the analysis that uses it would emit.
 `overflow.c`: the entry of `body(1)` is produced with
 `-no-warn-signed-overflow` and used by an analysis with
 `-warn-signed-overflow`. The hit at line 19 delivers no alarm, where the
-analysis with caching disabled emits the overflow alarm at line 28 with an
+analysis with caching disabled emits the overflow alarm at line 8 with an
 invalid status and a red context. The test documents the current behaviour,
 not a guarantee.
 
