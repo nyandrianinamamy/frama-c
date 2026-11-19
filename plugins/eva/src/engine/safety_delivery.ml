@@ -43,8 +43,25 @@ let complete = Skipped.is_empty
 
 (* ----- Statistics of the summary ----------------------------------------- *)
 
-let on_delivery = ref (fun (_ : Cil_types.kernel_function) -> ())
+type summary = {
+  recompute : Cil_types.kernel_function -> unit;
+  unaudited : unit -> bool;
+}
 
-let on_delivered f = on_delivery := f
+(* Installed once, by the summary, when Eva is loaded. *)
+let summary : summary option ref = ref None
 
-let delivered kf = !on_delivery kf
+let on_delivered ~unaudited_subscribers recompute =
+  match !summary with
+  | Some _ ->
+    invalid_arg
+      "Safety_delivery.on_delivered: the summary of the analysis is \
+       already installed"
+  | None -> summary := Some { recompute; unaudited = unaudited_subscribers }
+
+let delivered kf = Option.iter (fun s -> s.recompute kf) !summary
+
+let unaudited_subscribers () =
+  match !summary with
+  | None -> false
+  | Some s -> s.unaudited ()

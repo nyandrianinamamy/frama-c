@@ -229,7 +229,14 @@ let _functionStats =
               "Statistics about the last Eva analysis for each function")
     ~key:(fun kf -> Kernel_ast.Decl.index (SFunction kf))
     ~keyType:(Kernel_ast.Decl.jtype)
-    model (module FunctionStats)
+    model
+    (module struct
+      include FunctionStats
+      (* The array subscribes to the statistics when a client of the server
+         listens to its signal. It is not audited for the cache of calls: a
+         hit is rejected while it is subscribed. *)
+      let add_hook_on_change f = FunctionStats.add_hook_on_change f
+    end)
 
 
 (* ----- Flamegraph and execution times ------------------------------------- *)

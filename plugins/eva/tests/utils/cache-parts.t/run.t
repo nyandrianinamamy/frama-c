@@ -366,6 +366,37 @@ predicate runs once for each of the seven lookups with candidates.
   predicate-second.log:copy: hits 1, rejected for callback 6
   predicate-second.log:hook: 0 calls with Reuse; predicate evaluated 7 times
 
+A hit updates the statistics by function of the summary after its delivery,
+as the end of an analysis of the body does, and the update runs the
+subscribers of these statistics. A subscriber registered without an audit
+makes the lookup reject every supplied entry with callback. The test module
+registers one, which records at each update of the statistics of copy
+whether the results at the statements are complete and how many statements
+of copy are reached: three updates by the calls and one by the end of each
+analysis. Registered as audited, it lets the three calls hit, and sees the
+same updates as after the analysis with caching disabled, but with results
+at the statements that are not complete: the statistics of a function
+answered by hits count its statements as reached.
+
+  $ EVA_TEST_CACHE_PARTS=stats frama-c -no-autoload-plugins -load-module eva,from,inout,test_cache_parts.cmxs parts.c > stats.log 2>&1
+  $ EVA_TEST_CACHE_PARTS=stats EVA_TEST_CACHE_PARTS_AUDITED=1 frama-c -no-autoload-plugins -load-module eva,from,inout,test_cache_parts.cmxs parts.c > stats-audited.log 2>&1
+  $ grep -E '^(copy|updates)' stats.log stats-audited.log
+  stats.log:updates of copy, caching disabled: complete true, reached 2; complete true, reached 2; complete true, reached 2; complete true, reached 2
+  stats.log:updates of copy, second analysis: complete true, reached 2; complete true, reached 2; complete true, reached 2; complete true, reached 2
+  stats.log:copy: hits 0, rejected for callback 9
+  stats-audited.log:updates of copy, caching disabled: complete true, reached 2; complete true, reached 2; complete true, reached 2; complete true, reached 2
+  stats-audited.log:updates of copy, second analysis: complete false, reached 2; complete false, reached 2; complete false, reached 2; complete false, reached 2
+  stats-audited.log:copy: hits 3, rejected for callback 0
+
+The summary installs, once and when Eva is loaded, what a hit runs after
+its delivery. A second installation, through the internal modules of Eva,
+is refused, and the hits run what the summary installed.
+
+  $ EVA_TEST_CACHE_PARTS=replace-summary frama-c -no-autoload-plugins -load-module eva,from,inout,test_cache_parts.cmxs parts.c > replace-summary.log 2>&1
+  $ grep -E '^(refused|installed|replaced|copy)' replace-summary.log
+  refused: Safety_delivery.on_delivered: the summary of the analysis is already installed
+  copy: hits 3
+
 After an analysis in which hits answered calls, the results by function of
 From and Inout, and the results by statement of Inout, are computed from
 states that do not cover these calls. Every request is refused with a user

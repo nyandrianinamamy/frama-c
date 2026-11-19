@@ -756,6 +756,54 @@ let predicate () =
   Format.printf "hook: %d calls with Reuse; predicate evaluated %d times@."
     !reused !evaluations
 
+(* A subscriber of the statistics by function of the summary, which a hit
+   updates after its delivery, as the end of an analysis of the body does.
+   For each update of the statistics of copy, it records whether the
+   results at the statements are complete and the number of statements of
+   copy reached. With EVA_TEST_CACHE_PARTS_AUDITED set, it is registered as
+   audited. *)
+let stats () =
+  let audited = Sys.getenv_opt "EVA_TEST_CACHE_PARTS_AUDITED" <> None in
+  let updates = ref [] in
+  let observe = function
+    | State_builder.Update (f, (stats : Eva__Private.Summary.fun_stats))
+      when Kernel_function.get_name f = "copy" ->
+      let complete = Eva.Results.statement_results_complete () in
+      updates := (complete, stats.fun_coverage.reachable) :: !updates
+    | _ -> ()
+  in
+  Eva__Private.Summary.FunctionStats.add_hook_on_change ~audited observe;
+  let print analysis =
+    let pretty (complete, reached) =
+      Printf.sprintf "complete %b, reached %d" complete reached
+    in
+    Format.printf "updates of copy, %s: %s@." analysis
+      (String.concat "; " (List.rev_map pretty !updates));
+    updates := []
+  in
+  let produced = first_analysis () in
+  print "caching disabled";
+  second_analysis produced;
+  print "second analysis";
+  Format.printf "copy: hits %d, rejected for callback %d@."
+    (hits "copy") (rejected "callback" "copy")
+
+(* The summary installs once what a hit runs after its delivery. Another
+   installation, through the internal modules of Eva, is refused, and the
+   hits run what the summary installed. *)
+let replace_summary () =
+  let replaced _kf = Format.printf "replaced function run@." in
+  begin
+    match
+      Eva__Private.Safety_delivery.on_delivered
+        ~unaudited_subscribers:(fun () -> false) replaced
+    with
+    | () -> Format.printf "installed a second function@."
+    | exception Invalid_argument msg -> Format.printf "refused: %s@." msg
+  end;
+  second_analysis (first_analysis ());
+  Format.printf "copy: hits %d@." (hits "copy")
+
 (* ----- Names of the parts ------------------------------------------------- *)
 
 (* A second part named as a registered one: the name is the key of a
@@ -797,4 +845,6 @@ let () =
   | Some "unaudited-part" -> Boot.Main.extend unaudited_part
   | Some "inout-client" -> Boot.Main.extend inout_client
   | Some "predicate" -> Boot.Main.extend predicate
+  | Some "stats" -> Boot.Main.extend stats
+  | Some "replace-summary" -> Boot.Main.extend replace_summary
   | _ -> ()

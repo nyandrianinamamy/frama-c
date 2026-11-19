@@ -65,8 +65,18 @@ sig
   (* Trigger the recomputation of all function stats. *)
   val recompute_all: unit -> unit
 
-  (** Set a hook on function statistics computation *)
+  (** Set a hook on function statistics computation. The statistics of a
+      function are computed after each analysis of its body, and after each
+      hit of the cache of calls on it (see {!Safety_delivery.delivered}).
+      Set [audited] only for a hook whose effects cannot change the results
+      of an analysis, whether it runs after an analysis of the body or after
+      a hit, whose results at the statements are incomplete
+      ({!Results.statement_results_complete}): the lookup of the supplied
+      entries rejects every entry while a hook that is not audited is set
+      (see {!Supplied_entries}). Default: false. A hook cannot be
+      removed. *)
   val add_hook_on_change:
+    ?audited:bool ->
     ((key, data) State_builder.hashtbl_event -> unit) -> unit
 
   module Datatype: Datatype.S

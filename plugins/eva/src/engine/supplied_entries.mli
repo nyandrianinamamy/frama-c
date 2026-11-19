@@ -265,9 +265,12 @@ type rejection = [
       annotations ({!Annotations.has_unaudited_hooks_on_change}), the
       listeners and observers of the history of the logger
       ({!Log.unaudited_clients}), the hooks of the message collector of the
-      kernel ({!Messages.has_hooks}), and the restoration of the parts whose
+      kernel ({!Messages.has_hooks}), the restoration of the parts whose
       consumer is enabled, with the clients that it runs
-      ({!Cache_part.unaudited_clients}). A client registered since the
+      ({!Cache_part.unaudited_clients}), and the subscribers of the
+      statistics by function of the summary, which the end of the delivery
+      updates ({!Safety_delivery.unaudited_subscribers}). A client
+      registered since the
       production of the entry counts. The predicates of the parts are
       evaluated once by each lookup, before this test
       ({!Cache_part.decide}), and the check of the parts and the restoration

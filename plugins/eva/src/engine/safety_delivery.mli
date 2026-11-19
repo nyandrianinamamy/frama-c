@@ -77,15 +77,25 @@ val complete : unit -> bool
 
 (** [delivered kf] is called by the engine after a hit has delivered the
     Safety part and the Reach part of a call of [kf] and restored the parts
-    of its entry. It runs the function given to {!on_delivered}, which
+    of its entry. It runs the function installed by {!on_delivered}, which
     computes again the statistics of [kf] in the summary of the analysis
-    from the tables that the delivery has updated. A hit sends no results
-    to the call results hooks of {!Cvalue_callbacks}: its number is not one
-    of memexec. *)
+    from the tables that the delivery has updated, and runs the subscribers
+    of these statistics. A hit sends no results to the call results hooks
+    of {!Cvalue_callbacks}: its number is not one of memexec. *)
 val delivered : Cil_types.kernel_function -> unit
 
-(** [on_delivered f] makes {!delivered} run [f]. The summary of the analysis
-    calls it once, when Eva is loaded: it depends on the engine, which calls
-    {!delivered}. It replaces the function given before, and no other
-    module calls it. *)
-val on_delivered : (Cil_types.kernel_function -> unit) -> unit
+(** Whether a subscriber of the statistics by function of the summary is
+    registered without an audit: the predicate installed by
+    {!on_delivered}. {!delivered} runs the subscribers, and the lookup
+    rejects every supplied entry while one is not audited (see
+    {!Supplied_entries}). False until the summary is installed. *)
+val unaudited_subscribers : unit -> bool
+
+(** [on_delivered ~unaudited_subscribers f] makes {!delivered} run [f] and
+    {!unaudited_subscribers} run the predicate given. The summary of the
+    analysis calls it once, when Eva is loaded: it depends on the engine,
+    which calls {!delivered}. Raises [Invalid_argument] at any later call,
+    so that no other module replaces what the summary installed. *)
+val on_delivered :
+  unaudited_subscribers:(unit -> bool) ->
+  (Cil_types.kernel_function -> unit) -> unit

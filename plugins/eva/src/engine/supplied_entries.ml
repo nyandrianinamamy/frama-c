@@ -268,7 +268,9 @@ let stop_at_nth_alarm () = Parameters.StopAtNthAlarm.get () < max_int
    - the restoration of the parts whose consumer is enabled, and the clients
      that it runs, apart from those registered as audited (see
      {!Cache_part.register}), by the decisions [parts] that the lookup took
-     before this test.
+     before this test;
+   - the subscribers of the statistics by function of the summary, which the
+     end of a delivery updates, apart from those registered as audited.
 
    Registration is the test: a client cannot be removed, and one registered
    after the production of an entry counts. The predicates of the parts are
@@ -282,6 +284,7 @@ let unaudited_clients parts =
   || Annotations.has_unaudited_hooks_on_change ()
   || Log.unaudited_clients ()
   || Messages.has_hooks ()
+  || Safety_delivery.unaudited_subscribers ()
 
 let cast : type a b. (a, b) Structure.eq -> a -> b = fun Structure.Eq x -> x
 let cast_back : type a b. (a, b) Structure.eq -> b -> a =

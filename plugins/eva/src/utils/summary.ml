@@ -211,6 +211,14 @@ module FunctionStats = struct
         let size = 17
       end)
 
+  (* A hit of the cache runs the subscribers, after its delivery: while one
+     is not audited, the lookup rejects every supplied entry. *)
+  let unaudited_subscribers = ref false
+
+  let add_hook_on_change ?(audited = false) f =
+    if not audited then unaudited_subscribers := true;
+    add_hook_on_change f
+
   (* Recompute statistics about a function after each analysis of its body,
      and after each hit of the cache, which delivers alarms and statuses. *)
   let () =
@@ -220,7 +228,9 @@ module FunctionStats = struct
       | `Builtin _ | `Spec _ | `Reuse _ -> ()
     in
     Cvalue_callbacks.register_call_results_hook ~cache_protocol:true aux;
-    Safety_delivery.on_delivered (fun kf -> replace kf (compute_fun_stats kf))
+    Safety_delivery.on_delivered
+      ~unaudited_subscribers:(fun () -> !unaudited_subscribers)
+      (fun kf -> replace kf (compute_fun_stats kf))
 
   let recompute kf = replace kf (compute_fun_stats kf)
   let recompute_all () = iter (fun kf _ -> recompute kf)
