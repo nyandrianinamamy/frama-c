@@ -5273,9 +5273,15 @@ let rec is_boolean_result e =
 (** A hook into the code that creates casts.  By default this
     returns the new type.
     Casts in the source code are exempt from this hook. *)
+let default_type_for_inserted_cast
+    (_: Cil_types.exp) (_: Cil_types.typ) (t: Cil_types.typ) = t
+
 let typeForInsertedCast:
   (Cil_types.exp -> Cil_types.typ -> Cil_types.typ -> Cil_types.typ) ref =
-  ref (fun _ _ t -> t)
+  ref default_type_for_inserted_cast
+
+let has_inserted_cast_hook () =
+  !typeForInsertedCast != default_type_for_inserted_cast
 
 
 exception Cannot_combine of string

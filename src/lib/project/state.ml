@@ -28,6 +28,7 @@ type private_ops =
     commit: t -> unit;
     update: t -> unit;
     on_update: (unit -> unit) -> unit;
+    has_update_hooks: unit -> bool;
     clean: unit -> unit;
     serialize: t -> state_on_disk;
     unserialize: t -> state_on_disk -> unit }
@@ -61,6 +62,7 @@ let dummy_private_ops () =
     commit = never_called;
     update = never_called;
     on_update = never_called;
+    has_update_hooks = never_called;
     serialize = never_called;
     unserialize = never_called;
     clean = never_called }
@@ -107,6 +109,7 @@ let get_descr s = s.private_ops.descr
 
 let set_name s n = s.name <- n
 let add_hook_on_update s f = s.private_ops.on_update f
+let has_hooks_on_update s = s.private_ops.has_update_hooks ()
 
 (* ************************************************************************** *)
 (** {2 States are comparable values} *)
@@ -152,8 +155,8 @@ let unique_name_from_name name =
 
 let create
     ~descr ~create ~remove ~clear ~clear_some_projects ~copy
-    ~commit ~update ~on_update ~clean ~serialize ~unserialize
-    ~unique_name ~name =
+    ~commit ~update ~on_update ~has_update_hooks ~clean ~serialize
+    ~unserialize ~unique_name ~name =
   let ops =
     { descr = descr;
       create = create;
@@ -164,6 +167,7 @@ let create
       commit = commit;
       update = update;
       on_update = on_update;
+      has_update_hooks = has_update_hooks;
       clean = clean;
       serialize = serialize;
       unserialize = unserialize }

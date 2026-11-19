@@ -200,7 +200,10 @@ let synchronize array =
     let cleanup p =
       Hashtbl.remove array.projects (Project.get_pid p) in
     Project.register_before_remove_hook cleanup ;
-    Project.register_todo_before_clear cleanup ;
+    (* Audited for the cache of Eva: [cleanup] removes the content that the
+       server keeps for one of its arrays in the project, which only the
+       requests of the server read. *)
+    Project.register_todo_before_clear ~audited:true cleanup ;
     Request.on_signal array.signal
       (fun _ ->
          array.current <- None ;

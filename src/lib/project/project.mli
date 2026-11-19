@@ -257,13 +257,26 @@ val clear: ?selection:State_selection.t -> ?project:t -> unit -> unit
     registered with {!register_todo_before_clear}).
     @see <https://frama-c.com/download/frama-c-plugin-development-guide.pdf> *)
 
-val register_todo_before_clear: (t -> unit) -> unit
-(** Register an action performed just before clearing a project.
+val register_todo_before_clear: ?audited:bool -> (t -> unit) -> unit
+(** Register an action performed just before clearing a project, or a
+    selection of its states: the emission of the status of a property clears
+    the states that depend on the statuses, and so runs it.
+
+    Set [audited] only for an action that runs no other hook, reads nothing
+    that an analysis writes, and writes nothing that an analysis reads.
+    {!has_unaudited_clear_hooks} does not count it.
     @since Boron-20100401 *)
 
-val register_todo_after_clear: (t -> unit) -> unit
-(** Register an action performed just after clearing a project.
+val register_todo_after_clear: ?audited:bool -> (t -> unit) -> unit
+(** Register an action performed just after clearing a project, or a
+    selection of its states. [audited] is as for
+    {!register_todo_before_clear}.
     @since Boron-20100401 *)
+
+val has_unaudited_clear_hooks: unit -> bool
+(** Whether an action was registered by {!register_todo_before_clear} or
+    {!register_todo_after_clear} without [audited]. An action cannot be
+    removed. *)
 
 exception Cannot_remove of string
 (** Raised by [remove] *)

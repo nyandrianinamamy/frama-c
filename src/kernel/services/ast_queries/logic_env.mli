@@ -84,6 +84,12 @@ val importer_from : ?plugin:string -> string -> string
 module Logic_info: State_builder.Hashtbl
   with type key = string and type data = Cil_types.logic_info list
 
+(** Whether a hook was registered by [Logic_info.add_hook_on_change]. The
+    table changes when a logic function is declared, and when the first use
+    of a built-in function adds it ({!find_all_logic_functions}). A hook
+    cannot be removed. *)
+val has_hooks_on_logic_functions: unit -> bool
+
 module Logic_type_info: State_builder.Hashtbl
   with type key = string and type data = Cil_types.logic_type_info
 

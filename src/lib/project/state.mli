@@ -106,6 +106,12 @@ val add_hook_on_update: t -> (unit -> unit) -> unit
     value of the state.
     @since Nitrogen-20111001 *)
 
+val has_hooks_on_update: t -> bool
+(** Whether a hook was added to the state, by {!add_hook_on_update} or by
+    the function [add_hook_on_update] of the module that built the state.
+    The clearing of the state in the current project applies these hooks: a
+    hook cannot be removed. *)
+
 (* ************************************************************************** *)
 (** {2 Internals}
 
@@ -130,6 +136,7 @@ type private_ops = private
     commit: project -> unit;
     update: project -> unit;
     on_update: (unit -> unit) -> unit;
+    has_update_hooks: unit -> bool;
     clean: unit -> unit;
     serialize: project -> state_on_disk;
     unserialize: project -> state_on_disk -> unit
@@ -158,6 +165,7 @@ val create:
   commit:(project -> unit) ->
   update:(project -> unit) ->
   on_update:((unit -> unit) -> unit) ->
+  has_update_hooks:(unit -> bool) ->
   clean:(unit -> unit) ->
   serialize:(project -> state_on_disk) ->
   unserialize:(project -> state_on_disk -> unit) ->

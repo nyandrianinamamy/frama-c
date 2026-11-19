@@ -489,11 +489,18 @@ let copy ?(selection=State_selection.full) ?(src=current()) dst =
   States_operations.commit ~selection src;
   States_operations.copy ~selection src dst
 
+let unaudited_clear_hooks = ref false
+let has_unaudited_clear_hooks () = !unaudited_clear_hooks
+
 module Before_Clear_Hook = Hook.Build(struct type t = project end)
-let register_todo_before_clear = Before_Clear_Hook.extend
+let register_todo_before_clear ?(audited = false) f =
+  if not audited then unaudited_clear_hooks := true;
+  Before_Clear_Hook.extend f
 
 module After_Clear_Hook = Hook.Build(struct type t = project end)
-let register_todo_after_clear = After_Clear_Hook.extend
+let register_todo_after_clear ?(audited = false) f =
+  if not audited then unaudited_clear_hooks := true;
+  After_Clear_Hook.extend f
 
 let clear ?(selection=State_selection.full) ?(project=current()) () =
   guarded_feedback selection "clearing project %S" project.name;

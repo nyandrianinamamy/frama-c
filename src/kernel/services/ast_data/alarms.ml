@@ -681,7 +681,7 @@ let find_alarm_in_emitters tbl alarm =
 (** Converts an alarm to a code annotation. Returns the code annotation,
     whether said code annotation is new, and the table in which the code annot
     is/should be inserted. *)
-let to_annot_aux kinstr ?loc alarm =
+let to_annot_aux kinstr ?loc ?predicate alarm =
   (*  Kernel.debug "registering alarm %a" D.pretty alarm;*)
   let loc = match loc, kinstr with
     | Some l, _ -> l
@@ -689,7 +689,11 @@ let to_annot_aux kinstr ?loc alarm =
     | None, Kglobal -> Kernel.gen_loc
   in
   let add alarm =
-    let pred = create_predicate ~loc alarm in
+    let pred =
+      match predicate with
+      | Some pred -> pred
+      | None -> create_predicate ~loc alarm
+    in
     let pred = Logic_const.toplevel_predicate pred in
     Logic_const.new_code_annotation (AAssert([], pred))
   in
@@ -713,8 +717,18 @@ let to_annot kinstr ?loc alarm =
   let ca, fresh, _ = to_annot_aux kinstr ?loc alarm in
   ca, fresh
 
-let register emitter ?kf kinstr ?loc ?status alarm =
-  let annot, fresh, by_emitter = to_annot_aux kinstr ?loc alarm in
+let predicate kinstr ?(loc=Kernel.gen_loc) alarm =
+  let registered =
+    match State.find kinstr with
+    | by_emitter -> find_alarm_in_emitters by_emitter alarm
+    | exception Not_found -> None
+  in
+  match registered with
+  | Some ({ annot_content = AAssert (_, p) }, _, _, _) -> p.tp_statement
+  | Some _ | None -> create_predicate ~loc alarm
+
+let register emitter ?kf kinstr ?loc ?status ?predicate alarm =
+  let annot, fresh, by_emitter = to_annot_aux kinstr ?loc ?predicate alarm in
   if fresh then begin
     let e = Emitter.get emitter in
     let tbl =

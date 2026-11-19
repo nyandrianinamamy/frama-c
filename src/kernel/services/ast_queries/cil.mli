@@ -902,6 +902,11 @@ val need_cast: ?force:bool -> typ -> typ -> bool
 *)
 val typeForInsertedCast: (exp -> typ -> typ -> typ) ref
 
+(** Whether {!typeForInsertedCast} holds a function other than the default
+    one. A function installed and replaced by the default one since does
+    not count. *)
+val has_inserted_cast_hook: unit -> bool
+
 (** [checkCast context fromsource nullptr_cast oldt newt] emits a warning
     or an error if the cast from [oldt] to [newt] is invalid (does nothing
     otherwise).

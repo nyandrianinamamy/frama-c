@@ -81,6 +81,7 @@ module Proxy = struct
         ~commit:do_nothing
         ~update:do_nothing
         ~on_update:do_nothing
+        ~has_update_hooks:(fun () -> false)
         ~serialize:
           (fun _ ->
              { on_disk_value = Obj.repr ();
@@ -304,6 +305,7 @@ struct
       (* we will marshal the value [()] if the state is unmarshable *)
       ~descr ~create ~remove ~clear ~clear_some_projects ~copy
       ~commit ~update ~on_update:(fun f -> Update_hook.extend (fun _ -> f ()))
+      ~has_update_hooks:(fun () -> not (Update_hook.is_empty ()))
       ~serialize ~unserialize ~clean
       ~unique_name ~name:Info.name
 

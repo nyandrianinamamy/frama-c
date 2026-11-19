@@ -67,15 +67,26 @@ module Logic_builtin =
       let size = 17
     end)
 
-module Logic_info =
-  State_builder.Hashtbl
-    (Datatype.String.Hashtbl)
-    (Datatype.List(Cil_datatype.Logic_info))
-    (struct
-      let name = "Logic_env.Logic_info"
-      let dependencies = [ Logic_builtin.self ]
-      let size = 17
-    end)
+module Logic_info = struct
+  include
+    State_builder.Hashtbl
+      (Datatype.String.Hashtbl)
+      (Datatype.List(Cil_datatype.Logic_info))
+      (struct
+        let name = "Logic_env.Logic_info"
+        let dependencies = [ Logic_builtin.self ]
+        let size = 17
+      end)
+
+  (* Whether a hook was registered on the changes of the bindings. *)
+  let hooked = ref false
+
+  let add_hook_on_change f =
+    hooked := true;
+    add_hook_on_change f
+end
+
+let has_hooks_on_logic_functions () = !Logic_info.hooked
 
 module Logic_builtin_used =
   State_builder.Hashtbl

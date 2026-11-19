@@ -60,15 +60,27 @@ val self: State.t
 
 val register:
   Emitter.t -> ?kf:kernel_function -> kinstr -> ?loc:Fileloc.t ->
-  ?status:Property_status.emitted_status -> alarm ->
+  ?status:Property_status.emitted_status -> ?predicate:predicate -> alarm ->
   code_annotation * bool
 (** Register the given alarm on the given statement. By default, no status is
     emitted. [kf] must be given only if the [kinstr] is a statement, and
     must be the function enclosing this statement.
+
+    [predicate] is the predicate of the alarm, as {!predicate} gives it.
+    With it, the annotation of an alarm that has none at [kinstr] is made
+    from it, and the registration builds no predicate, term or cast: it does
+    not call {!create_predicate}. An alarm that has an annotation at
+    [kinstr] keeps it, with or without [predicate].
     @return true if the given alarm has never been emitted before on the
     same kinstr (without taking into consideration the status or
     the emitter).
 *)
+
+val predicate: kinstr -> ?loc:Fileloc.t -> alarm -> predicate
+(** The predicate of the annotation of the alarm at the given [kinstr], if
+    one is registered, by any emitter; otherwise the predicate that
+    {!create_predicate} builds for it. Registers nothing and makes no
+    annotation. *)
 
 val to_annot: kinstr -> ?loc:Fileloc.t -> alarm -> code_annotation * bool
 (** Conversion of an alarm to a [code_annotation], without any registration.
