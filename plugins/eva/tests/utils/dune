@@ -26,6 +26,7 @@
     (package frama-c-dive)
     (package frama-c-from)
     (package frama-c-impact)
+    (package frama-c-loop-analysis)
     (package frama-c-markdown-report)
     (package frama-c-metrics)
     (package frama-c-nonterm)

@@ -785,6 +785,46 @@ reader of the process.
   [from] ====== DISPLAYING CALLWISE DEPENDENCIES ======
   [eva] User Error: cannot give the state at a statement; plug-in occurrence, which reads these states, is loaded
 
+The loop analysis asks Eva the values of the variable that bounds a loop.
+In bound.c the loop is in copy, and -eva-slevel 20 unrolls it. On a session
+saved after an analysis with caching disabled, the loop analysis gives the
+bound of the loop. On the session saved after the hits, it reads the state
+top at the loop and gives no bound, as when Eva has not run. Loaded with
+Occurrence on that session, it stops with the refusal of Eva.
+
+  $ EVA_TEST_CACHE_PARTS=save EVA_TEST_CACHE_PARTS_SESSION=bound.sav frama-c -no-autoload-plugins -load-module eva,from,inout,test_cache_parts.cmxs -eva-slevel 20 bound.c > save-bound.log 2>&1
+  $ grep '^hits' save-bound.log
+  hits: copy 2; statement results complete: false
+  $ frama-c -no-autoload-plugins -load-module eva,from,inout -eva -eva-no-memexec -eva-slevel 20 -save bound-fresh.sav bound.c > save-bound-fresh.log 2>&1
+  $ frama-c -no-autoload-plugins -load-module eva,from,inout,loop-analysis -load bound-fresh.sav -loop > loop-fresh.log 2>&1
+  $ sed -n '/Maximum number/,$p' loop-fresh.log
+  [loop] Maximum number of iterations by loop:
+    bound.c:9-10: 8
+  $ frama-c -no-autoload-plugins -load-module eva,from,inout,loop-analysis -load bound.sav -loop > loop-hits.log 2>&1
+  $ sed -n '/Maximum number/,$p' loop-hits.log
+  [loop] Maximum number of iterations by loop:
+  $ frama-c -no-autoload-plugins -load-module loop-analysis -loop bound.c > loop-no-eva.log 2>&1
+  $ sed -n '/Maximum number/,$p' loop-no-eva.log
+  [loop] Maximum number of iterations by loop:
+  $ frama-c -no-autoload-plugins -load-module eva,from,inout,loop-analysis,occurrence -load bound.sav -loop > loop-reader.log 2>&1
+  [1]
+  $ grep -E 'Maximum number|User Error' loop-reader.log | sed 's/: in the current analysis.*statements//'
+  [eva] User Error: cannot give the state at a statement; plug-in occurrence, which reads these states, is loaded
+
+Export, with -eva-annot, generates annotations from the states at the
+statements of a function. On the session with hits, it runs to its end for
+copy, whose statements have the state top. Loaded with Occurrence on that
+session, it stops with the refusal of Eva.
+
+  $ frama-c -no-autoload-plugins -load-module eva,from,inout -load hits.sav -eva-annot copy > annot-hits.log 2>&1
+  $ grep -c 'User Error' annot-hits.log
+  0
+  [1]
+  $ frama-c -no-autoload-plugins -load-module eva,from,inout,occurrence -load hits.sav -eva-annot copy > annot-reader.log 2>&1
+  [1]
+  $ grep -o 'User Error.*' annot-reader.log | sed 's/: in the current analysis.*statements//'
+  User Error: cannot give the state at a statement; plug-in occurrence, which reads these states, is loaded
+
 The same in one process, in the scenario late-reader: the requests of the
 results at the first statement of copy and at its start are answered after
 the hits, with the state top. Once Occurrence is loaded, they are refused,
