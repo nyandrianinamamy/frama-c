@@ -275,16 +275,19 @@ let remove_eva_statuses () =
   Dynamic.Parameter.Bool.set name value
 
 (* -from-verify-assigns is set: the clauses of checked are checked in the
-   first analysis. Their statuses are removed, and both calls to checked hit
-   in the second analysis: the clauses are checked again at the hits. *)
+   first analysis. Their statuses are removed. A hit evaluates no clause:
+   the part of From is not audited under this option, both calls to checked
+   reject their candidates in the second analysis, and the analysis of the
+   body checks the clauses again. *)
 let verify () =
   let produced = first_analysis () in
   print_statuses "caching disabled";
   remove_eva_statuses ();
   print_statuses "statuses removed";
   second_analysis produced;
-  Format.printf "hits: checked %d@." (hits "checked");
-  print_statuses "after the hits"
+  Format.printf "checked: hits %d, rejected for callback %d@."
+    (hits "checked") (rejected "callback" "checked");
+  print_statuses "second analysis"
 
 (* ----- Readers of the states saved at statements -------------------------- *)
 

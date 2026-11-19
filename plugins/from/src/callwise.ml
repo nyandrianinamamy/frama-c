@@ -95,23 +95,25 @@ module MemExec =
     end)
 
 (* At a hit of the reuse operation, the dependencies of the call are those
-   kept with the entry. They are restored as the analysis of the body
-   records them: the assigns clauses are checked against them in the state
-   of this call, then they are recorded at its call site. *)
-let restore_froms callstack kf pre_state froms =
-  if From_parameters.VerifyAssigns.get () then
-    Eva.Logic_inout.verify_assigns kf ~pre:pre_state froms;
-  end_record callstack froms
+   kept with the entry. They are recorded at its call site, as the analysis
+   of the body records its own. *)
+let restore_froms callstack _kf _pre_state froms = end_record callstack froms
 
 (* The callwise dependencies of a call, as a part of the cache entries. The
-   restoration is audited for the cache: it checks the assigns clauses and
-   records the dependencies as the analysis of the body does, in the state of
-   the call. The check emits statuses and messages, whose hooks the lookup
-   tests. The table of dependencies is not exported, and no client can
-   register a hook on it. *)
+   restoration is audited for the cache: it records the dependencies as the
+   analysis of the body does. The table of dependencies is not exported, and
+   no client can register a hook on it.
+   Under -from-verify-assigns, the analysis of a body also checks the
+   assigns clauses of the function against its dependencies, in the state of
+   the call: the check evaluates terms and predicates of the specification,
+   emits statuses and prints messages. A hit evaluates nothing, and the
+   dependencies kept do not give the statuses of the call. The part is then
+   not audited: the lookup rejects every supplied entry while its consumer
+   is enabled, and the bodies are analysed. *)
 let part =
   Eva.Cache_part.register ~name:"from"
-    ~needed:From_parameters.ForceCallDeps.get ~audited:(fun () -> true)
+    ~needed:From_parameters.ForceCallDeps.get
+    ~audited:(fun () -> not (From_parameters.VerifyAssigns.get ()))
     ~restore:restore_froms ()
 
 (* The dependencies of a call are kept with the entry of its body only when

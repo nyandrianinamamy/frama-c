@@ -258,18 +258,20 @@ and the body is analysed.
   call to leaf: lookup: rejected (entry 1: nested-delivery); execution: analysed
 
 With -from-verify-assigns, the clauses of checked are checked in the first
-analysis. Their statuses are then removed. Both calls to checked hit in the
-second analysis, and the hits check the clauses again.
+analysis. Their statuses are then removed. A hit evaluates no clause: under
+this option the part of From is not audited, both calls to checked reject
+their candidates in the second analysis (callback), and the analysis of the
+body checks the clauses again.
 
   $ EVA_TEST_CACHE_PARTS=verify frama-c -no-autoload-plugins -load-module eva,from,inout,test_cache_parts.cmxs -from-verify-assigns parts.c > verify.log 2>&1
-  $ grep -E '^(caching disabled|statuses removed|hits|after the hits)' verify.log
+  $ grep -E '^(caching disabled|statuses removed|checked|second analysis)' verify.log
   caching disabled: assigns clause in function checked: VALID according to Eva
   caching disabled: from clause of term vout in function checked: VALID according to Eva
   statuses removed: assigns clause in function checked: no verification attempted
   statuses removed: from clause of term vout in function checked: no verification attempted
-  hits: checked 2
-  after the hits: assigns clause in function checked: VALID according to Eva
-  after the hits: from clause of term vout in function checked: VALID according to Eva
+  checked: hits 0, rejected for callback 4
+  second analysis: assigns clause in function checked: VALID according to Eva
+  second analysis: from clause of term vout in function checked: VALID according to Eva
 
 An assertion that Eva does not evaluate, tagged no_eva, whose logic inputs
 Inout computes from the address in p. Eva does not read p: an entry
