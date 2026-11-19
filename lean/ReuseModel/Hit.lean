@@ -40,6 +40,19 @@ theorem replayCompatible_iff_matches {entry : CacheEntry d} {a : AllocatorAgreem
   ⟨fun hcompat _ hm => matches_of_projected hf hex hsub hcompat hm,
     fun h m hm _ => h m hm⟩
 
+/-- Equality in the entire domain state, including all components if the
+domain is a product. Both inputs use the entry's namespace. -/
+def WholeProductMatch (entry : CacheEntry d) (cur : d.State) : Prop :=
+  cur = entry.input
+
+/-- Whole-product equality supplies the current memory itself as a stored
+witness, with reflexive key, write-liveness and allocator agreement. -/
+theorem whole_product_witness {entry : CacheEntry d} {a : AllocatorAgreement M}
+    {cur : d.State} (heq : entry.WholeProductMatch cur) {m : M}
+    (hm : d.γ cur m) :
+    d.γ entry.input m ∧ ReplayAgreement a entry.key entry.footprint.writes m m :=
+  ⟨(show cur = entry.input from heq) ▸ hm, ReplayAgreement.refl a _ _ m⟩
+
 /-- Every frame holder in the current memory avoids the targets of the
 sweeps performed on a normal exit. The condition uses that exit's trace. -/
 def NoFrameRewrite (entry : CacheEntry d) (m : M) : Prop :=
@@ -115,5 +128,14 @@ theorem hit {entry : CacheEntry d} {a : AllocatorAgreement M}
     ∀ m, d.γ cur m → entry.HitObservations cur m :=
   fun m hm => hit_of_matches hs hr hm (matches_of_projected hf hex hsub hcompat hm)
     (hframe m hm)
+
+/-- The whole-product hit uses the same replay obligations as the common
+hit argument. The subject and entry bindings are common to both inputs. -/
+theorem hit_of_whole_product {entry : CacheEntry d} {a : AllocatorAgreement M}
+    {cur : d.State} (hs : entry.Sound a) (heq : entry.WholeProductMatch cur)
+    (hr : ∀ o, d.ReuseSoundAt entry.footprint.exitWrites cur (entry.exit o))
+    (hframe : ∀ m, d.γ cur m → entry.NoFrameRewrite m) :
+    ∀ m, d.γ cur m → entry.HitObservations cur m :=
+  fun m hm => hit_of_matches hs hr hm ⟨m, whole_product_witness heq hm⟩ (hframe m hm)
 
 end ReuseModel.CacheEntry

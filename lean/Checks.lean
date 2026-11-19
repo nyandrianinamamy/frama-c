@@ -7,6 +7,7 @@ import Checks.Sweeps
 import Checks.Inner
 import Checks.Hit
 import Checks.SideTables
+import Checks.WholeProduct
 
 /-!
 # Checks on the model

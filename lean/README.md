@@ -5,7 +5,7 @@ Eva. It defines a small language, a concrete memory, executions and the
 observations that a cache entry makes claims about, and it proves theorems
 about them: frame preservation up to recorded lexical sweeps, the match and
 product lemmas, sound cache-entry construction, shared Inner coverage
-on the matching key, and a hit within one analysis.
+on the matching key, and projected and whole-product hits within one analysis.
 
 The theorems are about the model. They do not verify the OCaml code of Eva.
 Whether Eva meets the hypotheses of a theorem is a separate question, answered
@@ -66,7 +66,7 @@ directories that Dune reads, and `lean` is not among them.
 | `ReuseModel/Domain.lean` | Agreement of memories on a set of blocks, `Combinable`; abstract domains (`Domain`) with their laws `FilterSound`, `RelateSound`, `FilterExact`, `ReuseSound` and `Extensional`; closed sets, the product of two domains and the laws it keeps; closure, decomposition and exactness on two sets with the same members; the strong form of `filter` sound and exactness, derived from the decomposition; `match_filtered`, `match_lemma`, `product_lemma`, `projected_match` |
 | `ReuseModel/Replay.lean` | Allocation agreement and agreement of matching executions on every finite prefix |
 | `ReuseModel/Entry.lean` | Footprints, cache entries, producer soundness, `CacheEntry.sound_of_producer`, and `CacheEntry.shared_inner` |
-| `ReuseModel/Hit.lean` | Replay admission, the unchanged exit frame, and the within-analysis hit theorem |
+| `ReuseModel/Hit.lean` | Replay admission, the unchanged exit frame, and the projected and whole-product hit theorems |
 | `ReuseModel/SideTables.lean` | The four obligations for side-table accesses in skipped work |
 | `Checks/AxiomCheck.lean` | The `#check_axioms` command |
 | `Checks/Axioms.lean` | `#print axioms` and `#check_axioms` for each theorem |
@@ -76,6 +76,7 @@ directories that Dune reads, and `lean` is not among them.
 | `Checks/Sweeps.lean` | A lexical local whose address escapes into a written holder, an untouched block preserved across the sweep, a future pointer that needs a rewrite, a return from a lexical scope, a matching exit whose frame is rewritten, a comparison of a marked holder, and a sweep in a callee's scope |
 | `Checks/Inner.lean` | A two-visit loop, the producer premises, a distinct matching memory, and negative cases for the first visit alone and for coverage outside the key, plus a fresh local forced into the lookup key |
 | `Checks/Hit.lean` | The value-domain hit instance and checked failures of liveness, allocator agreement and the unchanged frame |
+| `Checks/WholeProduct.lean` | A whole-product hit, rejections for differences in either component, and loss of a relation on a projected hit without current-side closure |
 | `Checks/SideTables.lean` | Positive and negative cases of the four obligations |
 | `Checks/Fragment.lean` | Statements that meet the fragment conditions: one outside the function bodies, a function body, and a statement inside one. Programs and statements that do not: duplicate labels in the observed statement, a label of a body reused outside, duplicate labels across two bodies, direct recursion, mutual recursion |
 
@@ -275,6 +276,17 @@ unchanged current frame. `HitObservations` covers Reach and Safety on all
 finite prefixes, with a valid assertion holding at every visit. The
 checks include a hit on a member with a distinct frame and a larger key
 that rejects that member even though its observations are covered.
+
+With equality of the whole product, `whole_product_witness` gives the
+current memory itself as a stored witness. The program and entry bindings
+are common to both inputs. `hit_of_whole_product` still requires a sound
+entry, no frame rewrite and `ReuseSoundAt` for each outcome.
+
+For `w = x`, a projected match can succeed without closure in the current
+input. A checked case has a stored input allowing either 0 or 1 for `x`,
+and a current input also requiring `x = z`. The sound hit admits
+`x = z = 0, w = 1`. A sound fresh exit on that current input entails
+`w = z`.
 
 The four contracts in `SideTables.lean` require equality at reported keyed
 reads, run-wide invariance for each fixed observation, and a join at the

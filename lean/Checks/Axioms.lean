@@ -6,6 +6,7 @@ import Checks.Sweeps
 import Checks.Inner
 import Checks.Hit
 import Checks.SideTables
+import Checks.WholeProduct
 
 /-!
 # Axioms of the theorems
@@ -507,3 +508,46 @@ open ReuseModel ReuseModel.SideTables Checks
 #check_axioms Checks.sweepCur
 
 end
+
+open ReuseModel ReuseModel.CacheEntry Checks in
+#check @WholeProductMatch
+#print axioms ReuseModel.CacheEntry.WholeProductMatch
+#check_axioms ReuseModel.CacheEntry.WholeProductMatch
+
+open ReuseModel ReuseModel.CacheEntry Checks in
+#check @whole_product_witness
+#print axioms ReuseModel.CacheEntry.whole_product_witness
+#check_axioms ReuseModel.CacheEntry.whole_product_witness
+
+open ReuseModel ReuseModel.CacheEntry Checks in
+#check @hit_of_whole_product
+#print axioms ReuseModel.CacheEntry.hit_of_whole_product
+#check_axioms ReuseModel.CacheEntry.hit_of_whole_product
+
+#check Checks.copyProduct
+#print axioms Checks.copyProduct
+#check_axioms Checks.copyProduct
+
+#check Checks.copyEntry
+#print axioms Checks.copyEntry
+#check_axioms Checks.copyEntry
+
+#check Checks.copyCurrent
+#print axioms Checks.copyCurrent
+#check_axioms Checks.copyCurrent
+
+#check Checks.copyFresh
+#print axioms Checks.copyFresh
+#check_axioms Checks.copyFresh
+
+#check Checks.copyMem
+#print axioms Checks.copyMem
+#check_axioms Checks.copyMem
+
+#check Checks.whole_product_copy_hit
+#print axioms Checks.whole_product_copy_hit
+#check_axioms Checks.whole_product_copy_hit
+
+#check Checks.projected_copy_loses_relation
+#print axioms Checks.projected_copy_loses_relation
+#check_axioms Checks.projected_copy_loses_relation
