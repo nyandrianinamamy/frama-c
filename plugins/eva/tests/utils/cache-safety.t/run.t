@@ -787,7 +787,7 @@ that may change the current project.
   copy: 0
   on, left by an exception: 2
   remove of the current project: 1
-  load_all of two projects: 6
+  load_all of two projects: 5
 
 During the loading of two projects, a hook of the change of project makes
 current again the project that was current before the last change. The

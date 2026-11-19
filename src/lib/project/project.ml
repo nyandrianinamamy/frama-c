@@ -730,8 +730,8 @@ let load_projects ~project_under_copy selection ?name (filename : Filepath.t) =
      temporarily. *)
   let true_current = current () in
   Q.add last projects;
-  (* The rebuilt stack, then [last], change its top. *)
-  current_changed ();
+  (* [last] was current before the stack was rebuilt, and no hook ran in
+     between: the current project is unchanged. *)
   force_set_current true selection true_current;
   Q.remove last projects;
   (* A hook run by [force_set_current] may have made [last] current again:
