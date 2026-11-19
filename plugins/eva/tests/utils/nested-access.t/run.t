@@ -162,8 +162,10 @@ An entry of f cannot bypass the delivery guard by omitting the producing
 observation. Copy the key, input, footprint and exits with the hand
 constructor, and try the produced constructor separately. A requires
 clause keeps the inline body from producing its own entry. The inline
-specification has no body. Compare the consumer's assertion status with
-caching disabled in all three cases.
+specification has no body. The hand constructor refuses a body that may
+call a function with a body before any lookup (see cache-safety.t), so it
+is tried on the inline specification alone. Compare the consumer's
+assertion status with caching disabled in all three cases.
 
   $ delivery() {
   >   variant=$1; shift
@@ -176,7 +178,9 @@ caching disabled in all three cases.
   >   delivery "$shape" -eva-no-memexec > "$shape-off.log" 2>&1 || exit 1
   >   assertion "$shape-off.log" > expected || exit 1
   >   cat expected
-  >   for constructor in hand produced; do
+  >   constructors=produced
+  >   if [ "$shape" = INLINE_SPEC ]; then constructors="hand produced"; fi
+  >   for constructor in $constructors; do
   >     echo "$constructor"
   >     EVA_TEST_NESTED_ACCESS="delivery-$constructor" \
   >       delivery "$shape" -eva-msg-key cache > "$shape-$constructor.log" 2>&1 || exit 1
@@ -191,20 +195,12 @@ caching disabled in all three cases.
   > done
   REFERENCED
       Assertions        0 valid     0 unknown     1 invalid      1 total
-  hand
-  f: 1 child references
-  call to f: lookup: rejected (entry 1: nested-delivery); execution: analysed
-  0
   produced
   f: 1 child references
   call to f: lookup: rejected (entry 1: nested-delivery); execution: analysed
   0
   INLINE_BODY
       Assertions        0 valid     0 unknown     1 invalid      1 total
-  hand
-  f: 0 child references
-  call to f: lookup: rejected (entry 1: nested-delivery); execution: analysed
-  0
   produced
   f: 0 child references
   call to f: lookup: rejected (entry 1: nested-delivery); execution: analysed

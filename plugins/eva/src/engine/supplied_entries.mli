@@ -107,16 +107,16 @@ type footprint = Cache_entry.footprint = {
     options and the activation of the message categories, and an entry
     given to [supply] carries no status of the warning categories.
 
-    The body of [kf] does not call a function that has a body: a hit skips
-    the analysis of [kf] and records [kf] alone among the functions whose
-    statements have no state (see {!Safety_delivery.skip_visits}).
-
-    An entry whose body contains a call is rejected at lookup
+    The body of [kf] does not call a function that has a body, directly or
+    through a pointer: [supply] raises otherwise, before any lookup. An entry
+    whose body contains another call is rejected at lookup
     ([nested-delivery]), except for direct calls of the display directives
     [Frama_C_show_each*] and [Frama_C_domain_show_each*]. A hit on a body
     with such a directive skips its printed line and the call and
     call-result hooks that a fresh evaluation of the directive runs: the
-    fixture must tolerate both omissions.
+    fixture must tolerate both omissions. A hit thus skips the analysis of
+    [kf] alone, which it records among the functions whose statements have
+    no state (see {!Safety_delivery.skip_visits}).
 
     Raises [Invalid_argument] if the body of [kf] may call a function that
     has a body, directly or through a pointer; if [input] or an exit state
@@ -124,8 +124,9 @@ type footprint = Cache_entry.footprint = {
     (W_sure ⊆ W_exit ⊆ W); if [key] does not contain R ∪ (W_exit \ W_sure);
     if [key] is not closed in [input]; or if an exit state does not bind a
     block of W_exit that exists at the exit of the body: every block of
-    W_exit but the locals of its inner blocks. The three written sets include the block of the value
-    returned by [kf], if any (see {!return_variable}). *)
+    W_exit but the locals of its inner blocks. The three written sets
+    include the block of the value returned by [kf], if any (see
+    {!return_variable}). *)
 val supply :
   ?safety:Safety_part.t -> kernel_function -> key:Base.Hptset.t ->
   input:Cvalue.Model.t -> footprint:footprint ->
@@ -138,9 +139,10 @@ val supply :
     the calls meet the replay premises described on [supply], the settings
     that decide the alarms, statuses and messages included: the options and
     the activation of the message categories are not checked. Supplying
-    entries remains a test-only operation. Raises [Invalid_argument] if the
-    body may call a function that has a body; the producer stores no such
-    body. *)
+    entries remains a test-only operation. The producer stores bodies that
+    call other functions, and the lookup rejects their entries with
+    [`Nested_delivery]: the check of [supply] on the calls of the body does
+    not apply here. *)
 val supply_produced : Cache_producer.entry -> entry
 
 (** The partition key of a state that no partitioning distinguishes. *)

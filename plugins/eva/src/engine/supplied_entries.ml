@@ -99,7 +99,10 @@ let check_exit_state (_, model) =
 (* Whether the body of [kf] may call a function that has a body: a call to a
    function with a definition, or through a pointer. A hit skips the analysis
    of the called functions as well as that of [kf], and only [kf] is recorded
-   among the functions with skipped visits (see {!Safety_delivery}). *)
+   among the functions with skipped visits (see {!Safety_delivery}). [supply]
+   refuses such a body before any lookup; the lookup rejects the entries of
+   the bodies with another call ({!has_nested_call}), produced entries
+   included. *)
 let calls_a_body kf =
   let is_body f = Kernel_function.is_definition (Globals.Functions.get f) in
   let calls stmt =
@@ -121,12 +124,12 @@ let check_no_call kf =
        a body" Kernel_function.pretty kf
 
 let add kf entry =
-  check_no_call kf;
   ignore (Counter.next ());
   Table.replace kf (entries kf @ [ entry ]);
   entry
 
 let supply ?safety kf ~key ~input ~footprint ~exit =
+  check_no_call kf;
   (* A call whose input is [Top] would match an entry whose input is [Top],
      and [reuse] would then return the exit state alone, without the blocks
      of the caller. No call is analysed from [Bottom]. *)
