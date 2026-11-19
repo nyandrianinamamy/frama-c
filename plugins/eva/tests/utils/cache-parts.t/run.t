@@ -678,9 +678,9 @@ results of Eva refuse to give a state at a statement after a hit. Each of
 the plug-ins below, loaded in the process that loads the session, stops
 with this error at its first request of a state: Occurrence, Nonterm,
 Metrics, after its count of the functions called, the constant propagation,
-WP with its memory model based on Eva, the Markdown report and Slicing,
-which reads the results of Eva beside the graphs of Pdg. The error names the
-first plug-in of the list that is loaded.
+WP with its memory model based on Eva, the Markdown report, Slicing, which
+reads the results of Eva beside the graphs of Pdg, and Dive, which loads
+Studia. The error names the first plug-in of the list that is loaded.
 
   $ frama-c -no-autoload-plugins -load-module eva,from,inout,occurrence -load hits.sav -occurrence > late-occurrence.log 2>&1
   [1]
@@ -696,7 +696,9 @@ first plug-in of the list that is loaded.
   [1]
   $ frama-c -no-autoload-plugins -load-module eva,from,inout,slicing -load hits.sav -slice-return main > late-slicing.log 2>&1
   [1]
-  $ grep -o 'User Error.*' late-occurrence.log late-nonterm.log late-metrics.log late-scf.log late-wp.log late-mdr.log late-slicing.log | sed 's/: in the current analysis.*statements//'
+  $ frama-c -no-autoload-plugins -load-module eva,from,inout,dive -load hits.sav -dive-from-variables narrow::x -dive-output-dot late.dot > late-dive.log 2>&1
+  [1]
+  $ grep -o 'User Error.*' late-occurrence.log late-nonterm.log late-metrics.log late-scf.log late-wp.log late-mdr.log late-slicing.log late-dive.log | sed 's/: in the current analysis.*statements//'
   late-occurrence.log:User Error: cannot give the state at a statement; plug-in occurrence, which reads these states, is loaded
   late-nonterm.log:User Error: cannot give the state at a statement; plug-in nonterm, which reads these states, is loaded
   late-metrics.log:User Error: cannot give the state at a statement; plug-in metrics, which reads these states, is loaded
@@ -704,8 +706,9 @@ first plug-in of the list that is loaded.
   late-wp.log:User Error: cannot give the state at a statement; plug-in wp, which reads these states, is loaded
   late-mdr.log:User Error: cannot give the state at a statement; plug-in mdr, which reads these states, is loaded
   late-slicing.log:User Error: cannot give the state at a statement; plug-in pdg, which reads these states, is loaded
-  $ tail -q -n 1 late-occurrence.log late-nonterm.log late-metrics.log late-scf.log late-wp.log late-mdr.log late-slicing.log | sort | uniq -c
-        7 [kernel] Plug-in eva aborted: invalid user input.
+  late-dive.log:User Error: cannot give the state at a statement; plug-in studia, which reads these states, is loaded
+  $ tail -q -n 1 late-occurrence.log late-nonterm.log late-metrics.log late-scf.log late-wp.log late-mdr.log late-slicing.log late-dive.log | sort | uniq -c
+        8 [kernel] Plug-in eva aborted: invalid user input.
 
 The same in one process, in the scenario late-reader: the requests of the
 results at the first statement of copy and at its start are answered after
