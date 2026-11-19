@@ -152,7 +152,11 @@ cvalue states by the producing callstack when recording is enabled for both
 the function and cvalue. `Engine.Store.register_state` joins registrations
 for the same control point and callstack. The prior producer regression
 observed a query returning `{1; 2}` at one producing callstack whose first
-entry had input `{1}`. This checks the join. Coverage of every producing visit under
+entry had input `{1}`. This checks the join. Since issue #48, the query
+answers top at a point and callstack that a hit has reached
+([Reach at a hit](reach.md#the-queries-see-the-points-reached-by-a-hit-with-the-state-top)):
+an Inner reference to a callstack that a hit also reached reads top at
+those points. Coverage of every producing visit under
 `InnerSound` remains open. See [Provenance, storage and lookup](cache-producer.md#provenance-storage-and-lookup).
 
 **Lookup premise.** Under the projection premises, `ReplayCompatible`
@@ -167,7 +171,9 @@ four contracts for skipped effects are recorded with the hit proof.
 a hit is in [State queries on the callstack of a hit](query.md#query-answers-on-the-callstack-of-a-hit).
 It names the statement, the callstack and the before or after point, and
 answers from the member's call state, the effects of the prefix recorded
-with the entry, or top, joined over the hit lines that apply. It uses `Matches` directly rather than the lemma
+with the entry, or top, joined over the hit lines that apply. Eva answers
+top at every point that a hit reaches, until #49
+([Reach at a hit](reach.md#the-queries-see-the-points-reached-by-a-hit-with-the-state-top)). It uses `Matches` directly rather than the lemma
 above, and takes `InnerPartSound`, a premise on the inner part stored for
 each point. Establishing that premise and the issuance of bound blocks for
 Eva's saved states is open for #49, with the restriction for partial

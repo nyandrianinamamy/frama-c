@@ -173,12 +173,16 @@ laws.
 *Replay at the position.* The hit branch of `compute_and_cache_call` calls
 `Reach_delivery.deliver` after the delivery of the Safety part, with the
 callstack of the call. For each write, `deliver` builds the callstack of the
-hit extended by its frames (`Reach_part.reroot`) and writes through the
-function that the body uses: `Points.replace` with the union of the
-callstacks of the point, `Iterator.add_condition`, which sets the component
-of the outcome and keeps the other, `Inout_access.register`, which joins the
-zones at the position, and `Function_calls.register_caller`, which adds the
-call statement to those of the caller. The guard outcomes have no callstack
+hit extended by its frames (`Reach_part.reroot`). A point is added to
+`Points`, a table apart from the store of states, with the union of the
+callstacks of the point; the body writes the store instead, and the queries
+read both
+([The queries see the points reached by a hit, with the state top](#the-queries-see-the-points-reached-by-a-hit-with-the-state-top)).
+The other writes go through the function that the body uses:
+`Iterator.add_condition`, which sets the component of the outcome and keeps
+the other, `Inout_access.register`, which joins the zones at the position,
+and `Function_calls.register_caller`, which adds the call statement to those
+of the caller. The guard outcomes have no callstack
 in their positions, and a second delivery leaves them unchanged by
 idempotence. The points, the zones and the call sites are written at the
 callstack of the hit, so that each hit adds its own. The points are written
@@ -227,10 +231,23 @@ only through the hit. After the analysis, for each statement of `body`:
 - the call sites of `body` are lines 29 and 30.
 
 The same program analysed with caching disabled gives the same lines, and
-the same lines are read after `-save` and `-load` in another process. In
-`holder.c`, `body` stores the address of its formal into `gp`; after the hit
-at line 21, `gp` holds an escaping address at the end of `main`, as with
+the same lines are read after `-save` and `-load` in another process.
+
+Prior contributions on the callstack of the hit, in `loop.c` with
+`-eva-slevel 10`: `main` calls `body(2)`, analysed, then `body(1)`, a hit,
+at the same call site. The hit delivers its writes on the callstack of the
+analysed call: the statements and the zone of the branch of `x == 1` come
+from the hit alone, the other zones and the outcomes of the condition are
+joined with those of the analysed call, and the lines equal those of
 caching disabled.
+
+Holders. In `holder.c`, `body` stores the address of its formal into `gp`;
+after the hit at line 21, `gp` holds an escaping address at the end of
+`main`, as with caching disabled. In `escape.c`, `body` stores its argument,
+the address of the local of its caller `mid`, into `gp`; the call of `body`
+in `mid` is a hit, and after `mid` returns, `gp` holds an escaping address,
+as with caching disabled: `Cvalue_domain.finalize_call` adds the holders of
+the entry to those of `mid`, which `leave_scope` reads when `mid` returns.
 
 Each of these checks fails with one change, reverted after the run:
 
@@ -243,7 +260,8 @@ Each of these checks fails with one change, reverted after the run:
 - the call site registered in the branch `No_candidate` only instead of
   before the lookup: the call site of line 30 is missing;
 - the set of holders of the produced entry left empty: `gp` holds the
-  address of `x` at the end of `main`.
+  address of `x` at the end of `main` in `holder.c`, and the address of
+  `local` in `escape.c`.
 
 **Open.**
 
@@ -289,16 +307,26 @@ so it is cleared with the results of Eva and saved with the session.
 **Evidence (executed).** In `cache-reach.t`, the value of `x` before the
 statement at line 18 is `{2}` in the callstack of line 29, top in the
 callstack of line 30 and over all callstacks; with caching disabled, it is
-`{1}` in the callstack of line 30 and `{1; 2}` over all callstacks. The
-lines of the replay are read again after `-load` of the session saved after
-the analysis. Each check fails with one change, reverted after the run:
-without the answer top in a callstack of a hit, the callstack of line 30 is
-missing from all statements, and the statement at line 9 is marked
-unreachable; without the callstacks of the hits, the callstack of line 30
-is missing from all statements, and the statements of lines 9 and 10 are
-classified as unreachable; without the answer top over all callstacks, the
-value of `x` over all callstacks is `{2}`, and the statement at line 9 is
-marked unreachable.
+`{1}` in the callstack of line 30 and `{1; 2}` over all callstacks. In
+`loop.c`, where the analysed call and the hit share a callstack, the value
+of `x` at line 13 is top in that callstack. The lines of the replay are read
+again after `-load` of the session saved after the analysis. Each check
+fails with one change, reverted after the run:
+
+- without the answer top in a callstack of a hit: the callstack of line 30
+  is missing from all statements, and the statement at line 9 is marked
+  unreachable; in `cache-safety.t`, the refinement gives the division alarm
+  of `passes.c` the final status valid, and invalid in the reverse order,
+  and Export asserts `\false` at line 10 and `x == 2`;
+- without the callstacks of the hits: the callstack of line 30 is missing
+  from all statements, and the statements of lines 9 and 10 are classified
+  as unreachable; the refinement gives the same statuses as above, and
+  Export asserts `\false` at line 10;
+- without the answer top over all callstacks: the value of `x` over all
+  callstacks is `{2}`, and the statement at line 9 is marked unreachable;
+- with the state saved by the analysed call answered before the points of
+  the hits: the value of `x` at line 13 of `loop.c` is `{2}` in the shared
+  callstack, where the hit runs with x = 1.
 
 **Open.**
 
@@ -310,8 +338,9 @@ marked unreachable.
   ([issue #49](https://github.com/nyandrianinamamy/frama-c/issues/49)).
 - A callstack that is analysed and answered by a hit at the same call site,
   in two iterations of a loop for instance, answers top at the points the
-  hit reaches, also for an Inner reference that names that callstack. No
-  fixture exercises it.
+  hit reaches (`loop.c`), also for an Inner reference that names that
+  callstack: the states of the analysed call there are not seen by the
+  queries.
 - `Eva_results.get_results` and `Eva_results.set_results` read and write
   the states of the store: they do not carry the points reached by hits,
   nor the functions of unknown reachability and those whose visits a hit
@@ -374,7 +403,13 @@ is unknown, and `one`, reached through the hit only, is valid with no
 reachability status. The summary counts 14 statements reached of 15, as
 with caching disabled, where it counted 12, and up to 3 more, before.
 Export asserts `\false` at line 14, which no call reaches, and nothing at
-the statements that the hit reaches. When the entry is supplied without
+the statements that the hit reaches; with caching disabled, it asserts the
+same `\false`, and the values at the other statements. Without the answer
+top in the callstacks of the hits, or without these callstacks
+([The queries see the points reached by a hit, with the state top](#the-queries-see-the-points-reached-by-a-hit-with-the-state-top)),
+the refinement gives the alarm the final status valid, and invalid in the
+reverse order, and Export asserts `\false` at line 10, reached by the hit.
+When the entry is supplied without
 its Reach part, or produced with `-eva-no-results-function body`, `body` is
 of unknown reachability: no statement of `body` gets a reachability
 status, and the summary counts 10 statements reached of 14, and up to 4

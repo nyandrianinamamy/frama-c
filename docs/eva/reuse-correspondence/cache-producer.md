@@ -190,7 +190,9 @@ The producer gives an Inner reference when the body saves statement
 states and the cvalue store records them. The reference names the producing
 callstack. [`Engine.Store.register_state`](../../../plugins/eva/src/engine/engine.ml)
 joins repeated visits at the same control point and callstack, so the
-query can include states from other calls. The collector supplies the
+query can include states from other calls, and the query answers top at
+the points that a hit also reached in that callstack
+([Reach at a hit](reach.md#the-queries-see-the-points-reached-by-a-hit-with-the-state-top)). The collector supplies the
 classes of the observed joins. The
 [Shared Inner record](inner.md#saved-states-and-the-public-query) states the
 coverage premise for this reference. The Safety part holds the alarms,
