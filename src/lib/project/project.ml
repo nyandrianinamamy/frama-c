@@ -301,6 +301,12 @@ let projects = Q.create ()
 let current () = Q.top projects
 let is_current p = equal p (current ())
 
+(* The changes of the current project, counted by the operations that make
+   them, whether or not the hooks of the change run. *)
+let current_changes_ref = ref 0
+let current_changed () = incr current_changes_ref
+let current_changes () = !current_changes_ref
+
 let last_created_by_copy_ref: t option ref = ref None
 let last_project_created_by_copy  () =
   Option.map (fun p -> p.pid) !last_created_by_copy_ref
@@ -343,6 +349,7 @@ let create name =
   print_feedback "creating project %S" name;
   let p = Setter.make name in
   print_feedback "its unique name is %S" (get_project_debug_name p);
+  if Q.is_empty projects then current_changed ();
   Q.add_at_end p projects;
   States_operations.create p;
   Create_Hook.apply p;
@@ -385,6 +392,7 @@ let force_set_current =
     let old = current () in
     States_operations.commit ~selection old;
     (try Q.move_at_top p projects with Invalid_argument _ -> assert false);
+    current_changed ();
     guarded_feedback selection "%S is now the current project" p.name;
     assert (equal p (current ()));
     States_operations.update ~selection p;
@@ -451,6 +459,7 @@ let remove ?(project=current()) () =
   if equal project old_current then begin
     (* we removed the current project. So there is a new current project
        and we have to update the local states according to it. *)
+    current_changed ();
     let c = current () in
     States_operations.update c;
     Set_Current_Hook_User.apply c
@@ -468,6 +477,7 @@ let remove_all () =
     iter_on_projects Before_remove.apply;
     States_operations.clean ();
     Q.clear projects;
+    current_changed ();
     last_created_by_copy_ref := None;
     Gc.full_major ()
   with NoProject ->
