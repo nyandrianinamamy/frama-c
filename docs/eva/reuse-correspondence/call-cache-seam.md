@@ -74,7 +74,10 @@ the same condition as before: the option is set and the result is marked
 `Cacheable`. For such a result, `store_computed_call` performs the same operations in
 the same order as before, and returns the call number or a reason instead of
 `unit`. The statistics updates of memexec moved into the seam, and the
-category messages are new; neither is read by the analysis. With the
+category messages are new; neither is read by the analysis. The Safety part
+recorded around the analysis of a body only collects the writes of the
+body, and a memexec hit has no Safety part to deliver, so the states it
+returns are unchanged ([Safety at a hit](safety.md)). With the
 category `callstacks`, the message ends with `call.callstack`, the callstack
 of the call, which is also the current callstack while the message is
 printed, since `compute_call` sets it around the whole call. It is printed

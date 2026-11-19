@@ -96,8 +96,8 @@ emits an invalid status at the second call.
   ([Side tables and recorded joins](body-access.md#side-tables-and-recorded-joins)).
   A body analysed after one of its own alarms was emitted gives no entry; the
   reference run of `cache-safety.t` shows it for the second call of `body`.
-- No fixture has a write with frames: a produced entry cannot have one, and
-  no hand-written entry has one. The composition with nested calls is
+- A produced entry has no write with frames. The fixture delivers writes
+  with a frame added by hand only. The composition with nested calls is
   [issue #50](https://github.com/nyandrianinamamy/frama-c/issues/50) and
   [issue #51](https://github.com/nyandrianinamamy/frama-c/issues/51).
 - That the three functions above are the only writers reached from a stored
@@ -203,26 +203,29 @@ same program analysed with caching disabled gives the same lines. With the
 delivery removed from the hit branch, the test fails: `two` is valid and
 neither red context is present.
 
+The alarm is also emitted by the analysed call, so the comparison above
+does not see its delivery. The fixture therefore delivers the Safety part
+outside any analysis, after the same reset, for the callstack of the call
+at line 26: the alarm is registered with its warning, its unknown status and
+its red context, and `two` is invalid. A second delivery at that callstack
+changes no status and no red context, and prints no warning. The red
+contexts, delivered again with the call of `body` in `outer` as frame for a
+callstack that starts in `outer`, get the context
+`body :: safety.c:44 <- outer`. With the delivery of alarms removed, this
+part of the test fails: the alarm, its status and its warning are missing.
+
 **Open.**
 
-- `Eval_annots.mark_unreachable` and `Eval_annots.mark_green_and_red` run
-  after the analysis on the states saved for each callstack, and a hit saves
-  none for its callstack. A statement reached through a hit only is marked
-  dead, which overwrites its statuses; an alarm evaluated again on the states
-  of the analysed calls only can receive a final status that the hit
-  contradicts. The fixture keeps each statement with a delivered write
-  reached by the analysed call, where the alarm is unknown. Reached
-  statements at a hit are
-  [issue #48](https://github.com/nyandrianinamamy/frama-c/issues/48), and
-  the refinement of unknown statuses per key group, recorded in the Safety
-  part, is [issue #49](https://github.com/nyandrianinamamy/frama-c/issues/49).
+- The statuses that the passes after the analysis emit can differ from
+  those of caching disabled: see
+  [Statuses after the analysis with an entry from another analysis](#statuses-after-the-analysis-with-an-entry-from-another-analysis).
 - The messages that accompany a status (`Transfer_logic.msg_status`) are not
-  recorded and a hit does not print them. They are printed with `~once:true`,
-  which prints a message once per project for a given text and position.
-  Within one analysis, the call that produced the entry printed the same
-  message, so a replay would print nothing more. With the message category
-  `callstack` of Eva, the text includes the callstack and the message of the
-  hit's callstack is missing.
+  recorded and a hit does not print them. They are printed with `~once:true`:
+  the logger prints a message only if it has not printed the same text at
+  the same position before. Within one analysis, the call that produced the
+  entry printed the same message, so a replay would print nothing more. With
+  the message category `callstacks` of Eva, the text includes the callstack
+  and the message of the hit's callstack is missing.
 - `Alarmset.deliver` applies `-eva-stop-at-nth-alarm` after each delivered
   alarm, as after the alarms of an evaluation; no fixture exercises it.
 - The entries are not saved with a session: the tables of supplied and
@@ -232,6 +235,37 @@ neither red context is present.
   Eva removes its alarms, and the delivery creates them again as a fresh
   emission would; the statuses of the annotations of the program are those
   of the second analysis only.
+
+## Statuses after the analysis with an entry from another analysis
+
+**Kind.** Known difference.
+
+**Claim.** `Eval_annots.mark_green_and_red` and
+`Eval_annots.mark_unreachable` run after the analysis on the states saved
+for each callstack, and a hit saves none for its own. With an entry taken
+from another analysis, the first evaluates an alarm again on the states of
+the analysed calls only, and can give it a final status that the hit
+contradicts; the second marks dead a statement reached through hits only,
+which overwrites its statuses. The statuses then differ from those of
+caching disabled.
+
+**Model coverage.** The hit theorem covers the statuses delivered at the
+hit. The passes after the analysis are not in the model.
+
+**Evidence (executed for the refinement, source inspection for dead-code
+marking).** In `cache-safety.t`, from `main2`, the analysed call
+`body(2, 1)` never divides by zero, and the call `body(1, 0)` at line 37 is
+a hit on the entry from the analysis from `producer`. The refinement gives
+the division alarm the final status valid, although the hit makes it a sure
+alarm; with caching disabled, the alarm is unknown. The main fixture avoids
+both passes: each statement with a delivered write is reached by the
+analysed call, where the alarm is unknown.
+
+**To extend coverage.** Reached statements at a hit are
+[issue #48](https://github.com/nyandrianinamamy/frama-c/issues/48). The
+refinement of unknown statuses per key group, with its outcome recorded in
+the Safety part, is
+[issue #49](https://github.com/nyandrianinamamy/frama-c/issues/49).
 
 ## Preconditions at a hit
 
