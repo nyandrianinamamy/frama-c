@@ -383,15 +383,15 @@ first evaluation. The three calls to `copy` read `callback` for each
 candidate (`copy: hits 0, rejected for callback 9`), and the client is
 called 0 times after a hit. With `EVA_TEST_CACHE_PARTS_CARRIER=reader`, the
 predicate of a reader of the statement states registers the client, with
-the same results. At `cbf089bcb4` (`3f54601636` before the rebase onto #48),
+the same results. At the commit now `cbf089bcb4` (before the rebase onto #48),
 where `decide` asked `audited` of each part right after its `needed`, and the
 readers after the parts, both gave `copy: hits 1, rejected for callback 6`, and
 the client was called 10 times after the hit. With
 `EVA_TEST_CACHE_PARTS_CLIENT=part`, the predicate registers a part, never
 needed, at its first evaluation: the first call to `copy` rejects its three
 candidates with `callback` and the next two hit (`copy: hits 2, rejected for
-callback 3`). Mutations, each applied alone to `dc06f33291` (`b37d163154`
-before the rebase onto #48) and reverted: with `decide` in one pass, the
+callback 3`). Mutations, each applied alone to the commit now `dc06f33291`
+(before the rebase onto #48) and reverted: with `decide` in one pass, the
 scenario with the client of Inout registered by `needed` gives `hits 1,
 rejected for callback 6` and 10 calls of the client; with the readers evaluated
 after the audits, the scenario with the reader gives the same; with the count
@@ -951,12 +951,12 @@ dynamic access to `kf_outputs` are refused with the error; a later
 analysis with caching disabled gives the results by function again, equal
 to those of the first analysis. Scenario `lazy-from`: the first `From.get`
 after the entries are supplied starts the analysis with the three hits and
-is refused, as the second; before the change, it returned `FROMUNREACHABLE`
-for `copy` and memoised it. Scenario `warm`: `Inout.kf_external_inputs`,
-`kf_external_outputs`, `kf_inputs` and `kf_outputs` of `copy`, requested
-at the start of the analysis with the supplied entries, are computed; after
-the hits they are refused with the error; before the change, the first two
-returned their memoised result. Scenario
+is refused, as the second; before the change, at a revision before #48,
+it returned `FROMUNREACHABLE` for `copy` and memoised it. Scenario `warm`:
+`Inout.kf_external_inputs`, `kf_external_outputs`, `kf_inputs` and `kf_outputs`
+of `copy`, requested at the start of the analysis with the supplied entries,
+are computed; after the hits they are refused with the error; before the
+change, the first two returned their memoised result. Scenario
 `fallback`, on `nested.c`: the result of `unused`, computed at the start of
 the analysis with the supplied entries in a nested analysis without hits
 (`-deps` set while it runs), is refused after the hits, and that of
@@ -969,21 +969,24 @@ the project made by `Project.create_by_copy` after the hits,
 `snapshot`: the
 results with hits, installed after those of caching disabled and again
 after them, refuse `From.get`; those of caching disabled give the
-dependencies of the first analysis; before the change, the results with
-hits were installed as complete and `From.get` gave `FROMUNREACHABLE`.
+dependencies of the first analysis; before the change, at a revision
+before #48, the results with hits were installed as complete and
+`From.get` gave `FROMUNREACHABLE` (since #48, under the mutation of
+`skip_visits` below, a result that differs from that of the first
+analysis).
 Scenario `then` with `-then -deps -input`, `-then -input`, `-then
 -out-external`, `-then -input-with-formals` and `-then -deref`: the error,
 exit status 1, no result printed. Scenario `save`, then `-load` in another
 process with `-deps`, with `-out` and with Pdg and `-fct-pdg copy`: the same
-errors, exit status 1; before the change, Pdg warned `unreachable entry
-point` and printed a bottom graph for `copy`. With an option of Eva changed
-after the load, the analysis runs again with caching disabled and the
-graph of `copy`, with the inputs `b` and `d`, is the one of an analysis of
-the program with the same options. The server requests, in their own test
-module (`test_cache_parts_server.ml`), since the main one does not load the
-server: after caching disabled, `getDeadCode` gives 2 reached statements
-on `copy` and 4 on `narrow`, `getReadsLval` on `b` at the first call to
-`copy` gives 4 indirect and 1 direct statements and `getWritesLval` 1
+errors, exit status 1; before the change, at a revision before #48, Pdg
+warned `unreachable entry point` and printed a bottom graph for `copy`. With an
+option of Eva changed after the load, the analysis runs again with caching
+disabled and the graph of `copy`, with the inputs `b` and `d`, is the one of an
+analysis of the program with the same options. The server requests, in their
+own test module (`test_cache_parts_server.ml`), since the main one does not
+load the server: after caching disabled, `getDeadCode` gives 2 reached
+statements on `copy` and 4 on `narrow`, `getReadsLval` on `b` at the first call
+to `copy` gives 4 indirect and 1 direct statements and `getWritesLval` 1
 direct statement; after the analysis with hits in the same process (3 hits
 on `copy`, 1 on `narrow`), and in the session saved by the scenario `save`
 and loaded with `-load`, the two requests of Studia are refused, and

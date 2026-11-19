@@ -629,7 +629,10 @@ lists every statement of `body` as unreachable. With
 the record itself, and no fixture shows its effect on the statistics of a
 function; the readers that test the record are those of
 [Results computed from statement states are refused after a hit](cache-parts.md#results-computed-from-statement-states-are-refused-after-a-hit),
-whose refusals in `cache-parts.t` all disappear under this change. At
+whose refusals in `cache-parts.t` all disappear under this change. In
+`cache-safety.t`, the record and the count of the observer calls during a
+delivery on `alone.c` change: the test module detects a delivery through
+this record. At
 `d9fbc62be5`, `mark_unreachable`, `mark_green_and_red` and the coverage of the
 summary tested unknown reachability, for a hit on an entry without a Reach
 part, which the lookup now rejects. Runs of `reach.c` and `passes.c` under
@@ -1132,8 +1135,8 @@ seen by the audits and by the test of the same lookup. A function
 `audited` that registers a client is outside the contract of
 `cache_part.mli`: the audits asked before it do not see the client.
 `cache_part.mli` states what a predicate may do: return a result, register
-nothing and write in no table. Before the two passes (at `cbf089bcb4`
-(`3f54601636` before the rebase onto #48)), a predicate `needed` or of a reader
+nothing and write in no table. Before the two passes (at the commit now
+`cbf089bcb4` (before the rebase onto #48)), a predicate `needed` or of a reader
 of the statement states that registered a client of Inout after the audit of
 the part of Inout let the first call hit, and the client ran at its
 restoration.
@@ -1200,9 +1203,12 @@ follows.
   subscriber sees one update of a function after each analysis of its body
   and one after each hit on it, then one for each function at the end of
   the analysis. After a hit, `Eva.Results.statement_results_complete` is
-  false, and the statistics count the statements of a function answered by
-  a hit as reached, as an upper bound; during the analysis, the results
-  answer that every statement is reachable, with or without hits. On
+  false, and the statistics count as reached the statements that an
+  analysed call or a hit reaches, from the points that the hits deliver,
+  as with caching disabled
+  ([The passes after the analysis read the points reached by hits](reach.md#the-passes-after-the-analysis-read-the-points-reached-by-hits));
+  during the analysis, the results answer that every statement is
+  reachable, with or without hits. On
   `parts.c`, the statistics of `copy` are the same at each update of the
   two analyses, and only the completeness of the results differs. A
   subscriber registered as audited owes that its effects do not depend on
@@ -1365,12 +1371,16 @@ hits, the rejections and the calls of the observers only:
   audit makes the call reject the entry (`hits on body: 0, rejected for
   callback: 1`) and is not called during a delivery; registered as
   audited, the call hits and the observer is called once during the
-  delivery. Before the test of `Hook.Opaque` (at `cbf089bcb4` (`3f54601636`
-  before the rebase onto #48)), a review observed the observer without an audit
-  running at the hit after the visits were skipped. On `alone.c`, the status of
-  the alarm at the end differs from the run with caching disabled (unknown
-  against invalid): the passes after the analysis draw no conclusion in a
-  function whose visits a hit skipped, as stated in the entry on these passes.
+  delivery. Before the test of `Hook.Opaque` (at the commit now `cbf089bcb4`
+  (before the rebase onto #48)), a review observed the observer without an
+  audit running at the hit after the visits were skipped. On `alone.c`, the
+  status of the division alarm at the end is unknown after the hit, where the
+  run with caching disabled gives it the final status invalid (executed at
+  `95016e62ee` with the audited observer, outside the test suite): `body` is
+  called from `main` only through the hit, and the refinement of the statuses
+  after the analysis evaluates the alarm in the state top of the callstack of
+  the hit, from which it concludes nothing
+  ([The passes after the analysis read the points reached by hits](reach.md#the-passes-after-the-analysis-read-the-points-reached-by-hits)).
 - `metadata.c`, with `-eva-alloc-returns-null`: the precondition of `pre`
   reads the validity of an allocated block, and a hand-written entry
   answers the second call. An observer of the reads of the metadata
@@ -1379,7 +1389,7 @@ hits, the rejections and the calls of the observers only:
   registered as audited, the second call hits and the observer is called
   once during the check of its preconditions, through the observer of the
   collector that records `main`. Before the test of `Base` (at
-  `cbf089bcb4` (`3f54601636` before the rebase onto #48)), a review observed
+  the commit now `cbf089bcb4` (before the rebase onto #48)), a review observed
   the observer without an audit running in the admitted hit, before the visits
   were skipped.
 
@@ -1391,7 +1401,7 @@ In `cache-parts.t`:
   three calls to `copy` read `callback` for their three candidates; at the
   second, the first call hits and the two others read `callback`. The hook
   receives no call with `` `Reuse ``, and the predicate runs 7 times, once
-  for each lookup with candidates. At `7dfdd31b87` (`2bfc8508ce` before the
+  for each lookup with candidates. At the commit now `7dfdd31b87` (before the
   rebase onto #48), before the answers were taken once, both gave `hits 1`, one
   call with `` `Reuse `` and 3 evaluations.
 - Scenario `predicate` with `EVA_TEST_CACHE_PARTS_CLIENT=inout`: the
@@ -1400,8 +1410,8 @@ In `cache-parts.t`:
   The three calls to `copy` read `callback` for their three candidates,
   and the client is called 0 times after a hit on `copy`. With
   `EVA_TEST_CACHE_PARTS_CARRIER=reader`, the predicate of a reader of the
-  statement states registers it, with the same results. At `cbf089bcb4`
-  (`3f54601636` before the rebase onto #48), when the audit of the part of
+  statement states registers it, with the same results. At the commit now
+  `cbf089bcb4` (before the rebase onto #48), when the audit of the part of
   Inout ran before these predicates, both gave `copy: hits 1, rejected for
   callback 6`, and the client was called 10 times after the hit.
 - Scenario `predicate` with `EVA_TEST_CACHE_PARTS_CLIENT=part`: the
@@ -1414,12 +1424,12 @@ In `cache-parts.t`:
   without an audit gives `copy: hits 0, rejected for callback 9`; registered
   as audited, the three calls hit, and its four updates of `copy` read
   `complete false, reached 2` where those of the analysis with caching
-  disabled read `complete true, reached 2`. At `7dfdd31b87` (`2bfc8508ce`
-  before the rebase onto #48), the subscriber without an audit let the three
+  disabled read `complete true, reached 2`. At the commit now `7dfdd31b87`
+  (before the rebase onto #48), the subscriber without an audit let the three
   calls hit.
 - Scenario `replace-summary`: a second installation through
   `Eva__Private.Safety_delivery.on_delivered` is refused, and the three
-  calls to `copy` hit. At `7dfdd31b87` (`2bfc8508ce` before the rebase onto
+  calls to `copy` hit. At the commit now `7dfdd31b87` (before the rebase onto
   #48), a module outside the tree replaced it, and its function ran at the
   seven hits of `parts.c`.
 - The scenarios with the server loaded and not started keep their hits
@@ -1476,8 +1486,8 @@ with `EVA_TEST_CACHE_PARTS_CARRIER=reader` gives the same. With the count of
 the parts registered since the decisions compared with itself in
 `Cache_part.unaudited_clients` (the field kept used, as warning 69 requires),
 the scenario with a registered part gives `copy: hits 3, rejected for
-callback 0`. Each mutation was applied alone to `dc06f33291` (`b37d163154`
-before the rebase onto #48) and reverted.
+callback 0`. Each mutation was applied alone to the commit now `dc06f33291`
+(before the rebase onto #48) and reverted.
 
 Of the hit scenarios of `cache-safety.t` before this rule, one now
 rejects: `overflow.c` with the client of the hooks on calls. Three tests
