@@ -18,7 +18,9 @@ test module
 [`test_cache_parts.ml`](../../../plugins/eva/tests/utils/cache-parts.t/test_cache_parts.ml).
 In each scenario, a first analysis with caching disabled produces the
 entries of the callees, which are supplied to a second analysis
-(`Supplied_entries.supply_produced`). The callees make no call. The programs
+(`Supplied_entries.supply_produced`). The callees of `parts.c` make no call;
+in [`nested.c`](../../../plugins/eva/tests/utils/cache-parts.t/nested.c), a
+callee calls another. The programs
 [`logic.c`](../../../plugins/eva/tests/utils/cache-parts.t/logic.c),
 [`logic_loop.c`](../../../plugins/eva/tests/utils/cache-parts.t/logic_loop.c)
 and
@@ -83,7 +85,9 @@ fixture fails. In the scenario `copied`, the entries produced in the
 project are supplied while a copy of it is current: the supply raises
 `Invalid_argument` naming `copy`. Without `check_project`, the supply
 succeeds, and an analysis in the copy then stops with the internal error
-`Two kf for copy (...) and copy (...)` (observed in review).
+`Two kf for copy (...) and copy (...)` (observed in review). In the scenario
+`duplicate`, the test module registers a second part named `from`:
+`Cache_part.register: a part named from is already registered`.
 
 **Open.** From and Inout give their parts only for a body that made no call
 (`Callwise.provide_froms` in From,
@@ -93,7 +97,12 @@ the body record at theirs. An entry of a body with a call can be produced
 ([Nested call collection](nested-calls.md)) and lacks both parts: while
 the consumer of a part is enabled, the lookup rejects it with
 `missing-part`, before the test that gives `nested-delivery`
-([A hit within one analysis](hit.md)). This restriction has no regression.
+([A hit within one analysis](hit.md)). Scenario `nested`, on `nested.c`,
+with `-calldeps`: the entries of `inner` have `[from, inout]` and those of
+`outer`, which calls `inner`, have `[]`. In the second analysis, the two
+calls to `inner` hit; each call to `outer` reads `rejected (entry N:
+missing-part)` for the entry whose key matches and is analysed; the
+callwise dependencies of the 4 call sites are those of caching disabled.
 
 ## A part whose reads the key misses is withheld
 
@@ -141,10 +150,13 @@ analysis of the same body reads the same blocks:
 | From | condition of `if` and `switch`, its dependencies and its value (`transfer_guard`) | yes | `expr_deps` of the condition |
 | From | returned left value (`externalize`) | yes | `expr_deps` of the returned expression |
 | From | call: dependencies of the callee at the call site | no state read | `Top`; no part is given for a body with a call |
-| From | reachability of a statement (`Eva.Results.is_reachable`) | no: all the states of the current analysis | none; see [The kept part covers the skipped computation](#the-kept-part-covers-the-skipped-computation) |
+| From | reachability of a statement (`Eva.Results.is_reachable`) | no state read: while the analysis runs, its results are not available and every statement is reachable | none; see [The kept part covers the skipped computation](#the-kept-part-covers-the-skipped-computation) |
+| From | callbacks `Record_From_Callbacks` at the end of the call | not part of the value | none: no module of the tree registers one, and a hit does not run them |
 | From | assigns and from clauses under `-from-verify-assigns` | not part of the value | none: the restoration checks them again in the state at the start of the call of the hit |
 | Inout | assignment, initializer, condition, returned expression (`expr_deps`, `add_out`) | yes | the inputs |
-| Inout | assertion and loop invariant (`predicate_deps` with the state at the statement and the state at the start of the function) | no when tagged `no_eva`, which Eva skips; otherwise Eva reads its own locations, not checked to be the same | the logic inputs; `Top` when `predicate_deps` gives none |
+| Inout | assertion and loop invariant (`predicate_deps` with the state at the statement) | no when tagged `no_eva`, which Eva skips; otherwise Eva reads its own locations, not checked to be the same | the logic inputs; `Top` when `predicate_deps` gives none |
+| Inout | label `Pre` of an assertion (`kf_pre_state`, from `Eva.Results.at_start_of`) | no state read: while the analysis runs, the results give `Top` | the logic inputs computed in `Top`; see [The kept part covers the skipped computation](#the-kept-part-covers-the-skipped-computation) |
+| Inout | label `Init` of an assertion (`Eval_terms.add_init`) | the initial state of the analysis, the same for every call | the logic inputs; see [The kept part covers the skipped computation](#the-kept-part-covers-the-skipped-computation) |
 | Inout | call: result of the callee | no state read | no part is given for a body with a call |
 | Inout | reachability of a statement | the state of the call at the statement | none |
 
@@ -183,8 +195,7 @@ On `parts.c`, whose callees read only blocks of their key, every entry keeps
 its parts and the calls hit.
 
 **Open.** The reads given by From and Inout rest on the table above, by
-source inspection. A part kept by the check still depends on the history of
-the analysis (premise 2 below).
+source inspection.
 
 ## A hit restores the parts of the enabled consumers
 
@@ -337,7 +348,15 @@ analysis, in which both calls to `checked` hit. Without the call to
 `verify_assigns` in `restore_froms`, they stay `no verification attempted`
 and the fixture fails.
 
-**Open.** The premise below.
+At a hit, From prints neither `Computing for function` nor `Done for
+function` for the called function, as at a hit of memexec: these messages
+come from the computation that the hit skips (known difference). In the
+scenario `from`, the log holds 5 lines `Computing for function copy`: 2 from
+the analysis that `-calldeps` starts, in which the third call is a hit of
+memexec; 3 from the analysis with caching disabled; none from the analysis
+with the three hits.
+
+**Open.** None beyond the premise below.
 
 ## The Inout part
 
@@ -396,7 +415,7 @@ depends on the premise. With `-eva`, the values in the final states of the
 analysed callers are those of caching disabled; see [A function answered by
 hits only has no final state](#a-function-answered-by-hits-only-has-no-final-state).
 
-**Open.** The premise below. The fixture has one visit of each callstack.
+**Open.** None beyond the premise below.
 
 ## The kept part covers the skipped computation
 
@@ -406,12 +425,18 @@ From, the dependencies; for Inout, the inputs and outputs. This is the
 conjunct `Covers after fresh` of `RecordedWrite` for both tables, and the
 soundness premise of the reduction of the actuals.
 
-**Kind.** Argued in prose; premise 2 open.
+**Kind.** Argued in prose; the answers of the results of the analysis while
+it runs are checked by execution.
 
 **Depends on.** [A part whose reads the key misses is
 withheld](#a-part-whose-reads-the-key-misses-is-withheld), the producer
 obligations of
 [Entries from fresh bodies](cache-producer.md#producer-obligations-for-exit-reuse).
+
+**Symbols.** `Callwise.reads_of_body` in From;
+`Operational_inputs.Callwise.compute_call_from_value_states` in Inout;
+`Eva.Results.is_reachable`, `Eva.Results.at_start_of`, `Engine.find`,
+`Self.is_computed`, `Eval_terms.add_init`.
 
 **Argument.** From and Inout compute their parts in results hooks, from the
 states of this call at the statements of the body (`before_stmts`). Premise
@@ -420,41 +445,52 @@ reads in these states. It is argued for From and Inout by the table of [A
 part whose reads the key misses is
 withheld](#a-part-whose-reads-the-key-misses-is-withheld); with it, a kept
 part reads only blocks of the key and locals of the body, whose values at
-the statements depend only on the input restricted to the key. Two
-computations read more than the states of the call:
+the statements depend only on the input restricted to the key.
 
-- From tests `Eva.Results.is_reachable` (`From_compute`), which reads the
-  states saved for every visit of the body in the current analysis, not
-  only this call;
-- Inout evaluates the logic inputs of an assertion with `kf_pre_state`, the
-  state at the start of the function joined over the visits of the
-  callstack.
+Premise 2: what the computations read besides the states of the call is
+the same for every call. Two computations ask the results of the analysis:
+From tests `Eva.Results.is_reachable` at each statement (`From_compute`),
+and Inout evaluates the label `Pre` of an assertion in
+`Eva.Results.at_start_of` for the callstack of the call (`kf_pre_state`).
+The results are not available while the analysis runs: `Self.is_computed`
+holds only once the analysis has ended or aborted, and until then
+`Engine.find` answers `Top` for every control point (source inspection).
+`is_reachable` then holds for every statement, and `kf_pre_state` is `Top`,
+for every call of the analysis that produced the entry and of the current
+one. The dataflow of From goes past the statements that the call does not
+reach, where the evaluations, in the state `Bottom` of this call, read
+nothing. Neither answer depends on the other calls or on their number.
+The label `Init` is evaluated in the initial state of the analysis
+(`Eval_terms.add_init`), the same for every call of one analysis. Between
+the analysis that produced the entry and the current one, it is the same
+when both start from the same initial state. Eva's own evaluation of `Init`
+in the body takes this state as fixed for the analysis
+([Body access](body-access.md)).
 
-The kept value is computed with the history of the analysis that produced
-the entry; caching disabled computes, at the call of the hit, with the
-history of the current analysis. The two can differ in both directions: the
-kept value is wider when the producing analysis had more visits, for
-instance a pre-state joined over more calls; it is narrower when the
-current analysis has visits that caching disabled would add. Premise 2:
-such a difference only adds or removes observations that do not belong to
-this call, so that the kept value covers the call of the hit. It is not
-established in general. For Inout, the joined pre-state contains only
-states of visits of the same callstack, whose results are joined at the
-same call site of `CallwiseResults`, and it adds logic inputs only, which
-the reduction of the actuals does not read (source inspection).
+**Evidence (executed).** Scenario `history`, on
+[`history.c`](../../../plugins/eva/tests/utils/cache-parts.t/history.c),
+with `-calldeps`: `leaf(c)` asserts `\at(a, Pre) >= 0` and assigns `x` and
+`y` under `if (c)`; it is called with 0, 1 and 0. At the end of each call
+of the analysis with caching disabled, the test module asks the results
+what From and Inout ask: for the first and third calls, the 2 statements
+that the call does not reach are reachable in the results; for every call,
+the state at the start of `leaf` is `Top`. The first entry is supplied to a
+second analysis, in which the first and third calls hit: the third call
+restores the parts computed before the second call reached the branch. The
+dependencies and the inputs and outputs at the three call sites are those
+of caching disabled. If the results became available during the analysis,
+the scenario would fail on the answers. In the scenario `visits`, the body
+of `choose` is visited from three call sites and the third hit uses an
+entry produced before the second visit reached the other branch: the
+dependencies equal those of caching disabled and of memexec. The scenario
+`logic` shows the two directions for an uncovered read, which the check
+withholds.
 
-**Evidence.** Execution, in the cases of the fixture: equality of the
-tables of From and Inout with and without hits. In the scenario `visits`,
-the body of `choose` is visited from three call sites and the third hit
-uses an entry produced before the second visit reached the other branch:
-the dependencies equal those of caching disabled and of memexec. The
-scenario `logic` shows the two directions for an uncovered read, which the
-check now withholds.
-
-**Open.** Premise 2 in general; a regression with an assertion that reads
-the pre-state through blocks of the key. The probe of the review that used
-the label `Pre` gave `Top` with and without hits and cannot detect a
-difference.
+**Open.** The argument rests on the results of Eva being unavailable while
+the analysis runs, which the scenario `history` checks for the queries of
+From and Inout; a later change that makes them available must revisit
+premise 2. An entry produced in an analysis with another initial state is
+not detected (the supplier's premise).
 
 ## Readers of the states saved at statements reject every candidate
 
@@ -548,21 +584,29 @@ new analysis clears it. `statement_results_complete` holds when it is
 empty. From checks it before computing or memoising a result by function;
 Inout before the computations of `Cumulative_analysis` (by statement, by
 expression, by function) and before the computation by function from the
-statements in `get_internal`, used when no callwise result exists; no
-scenario reaches this last check, which rests on source inspection. Each
-aborts with a user error. The callwise results that a hit restores are not
+statements in `get_internal`, used when no callwise result exists. Each
+aborts with a user error. The filters `read` and `written` that Inout
+registers on the variables of the server (`Inout_requests`) compute the
+inputs and outputs by function through `Cumulative_analysis`: after hits, a
+request that computes them is refused, and the server answers it with an
+error; no scenario sends it. The callwise results that a hit restores are not
 refused. Eva's dynamic access to `kf_outputs` returns `Top` when the set is
 not empty, as when Inout is not loaded, and Eva prints the final states
 unfiltered. Studia catches every exception in its requests `getReadsLval`
 and `getWritesLval` and answers with no statement: it checks before
-computing, so that each request is refused as a whole. `getDeadCode` answers empty for a
-recorded function. Memexec is not concerned: its hits run the results hooks.
+computing, so that each request is refused as a whole. `getDeadCode`
+answers empty for a recorded function. Memexec is not concerned: its hits
+run the results hooks.
 
 **Evidence (executed).** Scenario `api`: after the analysis in which the
 three calls to `copy` hit, `From.get`, `Inout.kf_inputs`,
 `Inout.stmt_inputs`, `Inout.stmt_outputs`, `Inout.expr_inputs` and the
-dynamic access to `kf_outputs` are refused with the error; a later analysis with caching disabled gives the results by
-function again, equal to those of the first analysis. Scenario `then` with
+dynamic access to `kf_outputs` are refused with the error; a later
+analysis with caching disabled gives the results by function again, equal
+to those of the first analysis. Scenario `nested`:
+`Inout.get_precise_inout` of `unused`, which is never called and has no
+callwise result, is computed after caching disabled and refused after the
+hits (`get_internal`). Scenario `then` with
 `-then -deps -input` and `-then -input`: the error, exit status 1, no
 result printed. Scenario `save`, then `-load` in another process with
 `-deps` and with `-out`: the same errors. Scenarios `server-fresh` and
