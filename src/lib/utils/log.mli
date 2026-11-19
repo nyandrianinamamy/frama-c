@@ -280,8 +280,11 @@ sig
       @see <https://frama-c.com/download/frama-c-plugin-development-guide.pdf>
   *)
 
-  val register : kind -> (event -> unit) -> unit
-  (** Local registry for listeners. *)
+  val register : ?audited:bool -> kind -> (event -> unit) -> unit
+  (** Local registry for listeners. As for {!add_listener}, set [audited]
+      only for a listener whose effects are accounted for by the clients of
+      {!Hook.Opaque}; by default its invocation is reported there, and
+      {!unaudited_clients} holds. *)
 
   val register_tag_handlers : (string -> string) * (string -> string) -> unit
 
@@ -489,9 +492,10 @@ val on_history_access :
   (plugin:string -> kind:kind -> category:string option -> once_category:bool ->
    unit) -> unit
 
-(** Whether a listener ({!add_listener}) or an observer of the history
-    ({!on_history_access}) was registered without [audited], for any
-    plug-in and kind of message. A client cannot be removed. *)
+(** Whether a listener ({!add_listener} or [register] of a plug-in) or an
+    observer of the history ({!on_history_access}) was registered without
+    [audited], for any plug-in and kind of message. A client cannot be
+    removed. *)
 val unaudited_clients : unit -> bool
 
 val echo : event -> unit

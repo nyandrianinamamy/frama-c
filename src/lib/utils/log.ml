@@ -878,7 +878,8 @@ sig
   val logwith : (event option -> 'b) -> ?wkey:warn_category ->
     ?emitwith:(event -> unit) -> ?once:bool -> ('a,'b) pretty_aborter
 
-  val register : kind -> (event -> unit) -> unit (** Very local listener. *)
+  val register : ?audited:bool -> kind -> (event -> unit) -> unit
+  (** Very local listener. *)
 
   val register_tag_handlers : (string -> string) * (string -> string) -> unit
 
@@ -1257,7 +1258,9 @@ struct
     logwithfinal finally std ~kind:Failure ?current ?loc ?echo ?append
       text
 
-  let register kd f =
+  let register ?(audited=false) kd f =
+    if not audited then unaudited := true;
+    let f = if audited then f else Hook.Opaque.wrap f in
     let em = std.emitters.(nth_kind kd) in
     em.listeners <- em.listeners @ [f]
 

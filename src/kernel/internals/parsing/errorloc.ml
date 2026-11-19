@@ -419,6 +419,8 @@ let clear_errors () = hadErrors := false
 
 let set_error (_:Log.event) = hadErrors := true
 
+(* Audited: each reader of the flag clears it before the phase whose errors
+   it tests. *)
 let () =
-  Kernel.register Log.Error set_error;
-  Kernel.register Log.Failure set_error
+  Kernel.register ~audited:true Log.Error set_error;
+  Kernel.register ~audited:true Log.Failure set_error
