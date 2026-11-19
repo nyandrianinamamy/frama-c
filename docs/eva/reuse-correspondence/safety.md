@@ -1005,24 +1005,27 @@ revision; each had no treatment before.
 | Reads of the metadata and updates of the validity of allocated blocks (`Base.observe_metadata_reads`, `Base.observe_validity_updates`) | yes for the reads, in the check of the preconditions; no update | yes | new; test, flag `audited` kept by the physical identity of the function (`Base.has_unaudited_observers`) |
 | Accesses to the history of the origins (`Origin.on_history_access`) | when an evaluation of the preconditions creates an imprecise value | yes | new; test, flag `audited` (`Origin.has_unaudited_observers`) |
 | Daemons (`Async.on_progress`, `while_progress`, `with_progress`) | no: a hit does not call `Async.yield` | yes, at each statement | new; test, no flag (`Async.has_daemons`) |
-| Current location (`Current_loc.add_hook_on_change`) | no: Eva changes it in the iterator, the initialization and the passes after the analysis | yes, at each statement | new; test, no flag (`Current_loc.has_hooks_on_change`) |
+| Current location (`Current_loc.add_hook_on_change`) | not established: Eva changes it in the iterator, the initialization and the passes after the analysis, and the visitors of `Cil` around each term, expression, instruction and statement that they visit, which the hit path was not checked for | yes, at each statement | new; test, no flag (`Current_loc.has_hooks_on_change`) |
 | Statistics of performance by callstack (`Eva.Eva_perf.StatByCallstack.add_hook_on_change`) | no; the start and end of the call run outside this interval, with another duration | yes, at each call that the body makes | new; test, no flag (`Eva_perf.has_hooks_on_change`) |
 | Observers of the Safety part (`Eva.Safety_part.on_result`) | no | yes | new; test, flag `audited` (`Safety_part.has_unaudited_observers`) |
 | Observers of the results of the collector (`Eva.Body_access.on_result`) | no | yes, with `-eva-cache-collect` | new; test, flag `audited` (`Body_access.Result.has_unaudited_observers`) |
 | Generation modes of specifications (`Populate_spec.register`) | no | no | argued: `populate_funspec` without `do_body` generates nothing for a function that has a body |
+| Logic builtins (`Logic_builtin.register`, `Logic_builtin.add`) | no | no | argued: they declare logic symbols for the typing of ACSL; the evaluation of terms in the check of the preconditions interprets the logic functions that it knows by name, with fixed functions of Eva (`Eval_terms`, `Builtins_string`) |
+| ACSL extensions (`Acsl_extension.register_behavior`, `register_code_annot*`, `register_global*`) | their printers, when a message prints an extended clause | the same | argued for the typers, run when the AST is typed, and the visitors, run when a visitor of `Cil` visits an extended clause, which a `requires` clause does not hold; premise for the printers. Eva's own extensions (`Eva_annotations`) are read by the iterator, during an analysis of the body only, with fixed interpretations |
 | Builtins (`Eva.Builtins.register_builtin`) | no | at a call that the body makes | argued: the producer refuses such a body (`builtin`); the supplier owes it for an entry given to `supply` |
 | Domains (`Eva.Domain.register`) | no | no | argued: a registered domain runs only when it is enabled, and an enabled domain other than cvalue rejects every candidate with `product`; the hooks that transform the abstractions (`Abstractions.Hooks.register`, `Engine.register_hook`) are internal to Eva (outside), and those of the tree return the abstractions unchanged unless their own domain or value is enabled |
 | Analysis hooks (`Cvalue_callbacks.register_at_start_hook`, `Analysis.register_computation_hook`) | no | no | argued: they run at the start, the end or the reset of an analysis; a reset during an analysis rejects with `analysis-reset` |
 | Compute hooks of the statistics (`Eva.Statistics.add_compute_hook`) | no | no | argued: they run when the statistics are exported; `Statistics.incr` writes in tables that Eva does not export |
-| Hooks on the options (`add_set_hook`, `add_update_hook` of a parameter) | no | no | argued: neither sets an option; the analysis of threads, which does, rejects with `consumer` |
+| Hooks on the options (`add_set_hook`, `add_update_hook` of a parameter) | no | no | argued: no option is set by Eva, From, Inout or the services of the kernel during a call (search below); Eva sets one in the outputs of the analysis of threads, which rejects with `consumer` |
 | AST and projects (`Ast.add_hook_on_update`, `Ast.apply_after_computed`, the hooks of `Cabs2cil` and `Frontc`, `Project.register_create_hook` and the other hooks of `Project`) | no | no | argued: no AST is built or changed and no project operation runs; a change of the current project refuses the recordings |
 | Removals (`Property_status.register_property_remove_hook`, the removal hooks of `Emitter.Make_table`) | no | no | argued: nothing is removed during a call |
 | Stages of the command line (`Cmdline.run_after_*`, `Boot.Main`), `Task.on_idle` | no | no | argued: outside an analysis |
 | Dynamic registrations (`Dynamic.register`, read by `Eva_dynamic` with `Dynamic.get`) | no | no | argued: Eva reads Scope, Callgraph and the outputs of Inout after the analysis, and registers its client of Inout once, as audited |
 | State hooks of Callgraph (`StateHook` of `Cg` and `Services`) | no | no | argued: the call graph is not computed during a call |
-| State hooks of the other exported states of the kernel (`Logic_env`, `Ast_diff`, `Parameter_state.Is_set`, `Cil_builtins`) | no | no | argued: none is written during a call |
+| State hooks of the other exported states of the kernel (`Logic_env`, `Ast_diff`, `Parameter_state.Is_set`, `Cil_builtins`), and the hooks on a whole update (`add_hook_on_update`) of the exported states, `Summary.FunctionStats` and `StatByCallstack` included | no | no | argued: none of these states is written during a call, and a whole update is a project operation (copy, load, clear) |
+| Hooks of the server interface of Eva (`Update.add_computation_hook`, `add_callstack_hook`, `add_hook`; `Taint_requests.register_hook`) | no | no | argued: they run at a change of the computation state and of the callstacks selected through the server; the taint hook needs the taint domain, which rejects with `product` |
 | Printers: `Printer.update_printer`, the printing references of `Cil` and `Cil_datatype`, the printers of `Acsl_extension`; the formatter (`Log.set_formatter`), the history test (`Log.check_not_yet`) and the output sinks of the logger | yes | yes, other lines | premise |
-| Forward references of the kernel (`ref` values of an interface, set by other kernel modules: `Log.set_current_loc`, those of `Globals`, `Cil_datatype` and `Parameter_builder`) | yes | yes | outside: a replacement replaces part of the kernel |
+| Forward references of the kernel (`ref` values of an interface, set by other kernel modules: `Log.set_current_loc`, those of `Globals`, `Cil_datatype`, `Kernel_log` and `Parameter_builder`) | some, such as `Globals.find_englobing_kf` and `Cil_datatype.punrollType` | yes | outside: each is documented as internal ("do not use outside of this module", "Internal API", an alert); a replacement replaces part of the kernel, as one of an `Eva__*` unit does in Eva |
 | Internal modules of Eva (`Eva__Private`, the other `Eva__*` units: the tables of red contexts and of skipped visits, the computation state, `Safety_delivery.on_delivered`) | yes | yes | outside; `on_delivered` is one-shot |
 
 *How the search was done.* The table was built from the hit path traced in
@@ -1031,23 +1034,45 @@ the source, from the test in `Supplied_entries.Lookup.find` to the return of
 excluding the tests. A reviewer can repeat them:
 
 ```sh
+# registration functions, observers, listeners and daemons
+git grep -nE '\badd_hook\w*|\bregister\w*\s*:|^\s*val (register|add)\w*|\bextend\b|observe|on_call|add_listener|on_progress' -- 'src/*.mli' 'plugins/*.mli' 'plugins/*_sig.ml' ':!*/tests/*'
+# instances of hooks
 git grep -nE 'Hook\.(Build|Make|Fold|Build_ordered|Make_ordered|Fold_ordered)\b|Hook\.Opaque' -- 'src/*.ml' 'plugins/*.ml' ':!*/tests/*'
-git grep -nE 'add_hook_on_change|add_hook_on_update' -- 'src/*.ml' 'plugins/*.ml' ':!*/tests/*'
-git grep -nE ':.*->.*\) ref\b|: *\(.*->.*\) option ref' -- 'src/*.mli' 'plugins/*.mli'
+# hooks on states, and the exported states
+git grep -nE 'add_hook_on_(change|update|remove)' -- 'src/*.ml' 'plugins/*.ml' ':!*/tests/*'
 git grep -nE 'State_builder\.(Ref|Hashtbl|Option_ref|List_ref|Counter|Proxy|Set_ref)' -- 'src/*.mli' 'plugins/*.mli'
+# forward references and assignments of functions
+git grep -nE ':.*->.*\) ref\b|: *\(.*->.*\) option ref|_ref *:' -- 'src/*.mli' 'plugins/*.mli'
+git grep -nE ':= *fun\b' -- 'src/*.ml' 'plugins/*.ml' ':!*/tests/*'
+# yields and dynamic registrations
 git grep -nE 'Async\.(yield|on_progress|while_progress|with_progress)' -- 'src/*.ml' 'plugins/*.ml'
-git grep -nE 'observe|on_call|add_listener|register_.*hook|extend\b' -- 'src/*.mli' 'plugins/*.mli'
 git grep -nE 'Dynamic\.(get|register)|Eva_dynamic\.' -- 'src/*.ml' 'plugins/*.ml'
-git grep -nE '(Parameters|Kernel)\.[A-Za-z_]+\.(set|on|off|add)\b' -- plugins/eva/src
+# writes of options and of the current location, removals of properties
+git grep -nE '\b(Kernel|Parameters|Self|From_parameters|Inout_parameters)\.[A-Z][A-Za-z_]*\.(set|on|off|unsafe_set|clear)\b' -- 'src/*.ml' 'plugins/eva/*.ml' 'plugins/from/*.ml' 'plugins/inout/*.ml' ':!*/tests/*'
 git grep -nE 'Current_loc\.(set|with_loc)|UpdatedCurrentLoc' -- 'src/*.ml' 'plugins/*.ml'
+git grep -nE 'Property_status\.remove|Annotations\.remove|remove_code_annot|remove_alarm' -- 'src/*.ml' 'plugins/*.ml'
 ```
 
 with the list of the modules that `Eva.ml` exports. Each hit of these
 searches was classified by whether it is exported and whether code on the
-hit path or on the path of an analysis of the body calls it. Instances that
-are not exported (the hook of From on its callwise results, the hooks of
-`Statistics` other than `add_compute_hook`, the tables of `Mt_summary` and
-of `Self`) are not rows. Functions run when a process exits are excluded.
+hit path or on the path of an analysis of the body calls it. Not rows:
+instances that are not exported (the hook of From on its callwise results,
+the hooks of `Statistics` other than `add_compute_hook`, the tables of
+`Mt_summary` and of `Self`, the four assignments `:= fun`); functions that
+add data rather than code (the `add` functions of data structures, of
+annotations and of the logic environment); the registration functions of
+the plug-ins that neither the kernel nor Eva, From and Inout call during an
+analysis (WP, E-ACSL, Region, Slicing, Pdg, Dive, Aorai and the others),
+which a hit or an analysis of a body reaches only through an interface
+listed here; and functions run when a process exits. The writes of options
+found are those of the outputs of the analysis of threads, of the
+processing of the command line and of the boot, of the typing, of the entry
+point (`Globals`), of the compilation database and of the saving of a
+session, and the writes of the computation state of Eva at the start and
+the end of an analysis; the removals of
+properties are in the copy visitors, the inlining, the typing, the removal
+of the alarms of an emitter and the export of the results of Eva, none
+during a call.
 
 *The test.* Each registration function marked "test" records whether it
 registered a client without the flag of an audited client (`cache_protocol`
@@ -1242,9 +1267,12 @@ interfaces of their compilation units, and no client is registered on
 them
 ([A hit delivers the Reach part as recorded joins](reach.md#a-hit-delivers-the-reach-part-as-recorded-joins)).
 
-**Evidence (executed).** `cache-safety.t`, each scenario compared with the
-run with caching disabled and the same clients, on the tables of statuses,
-alarms and red contexts and on the state at the end of `main`:
+**Evidence (executed).** `cache-safety.t`. The scenarios on `inside.c`,
+`interleave.c`, `pre-route.c`, `later.c`, `repeat.c` and `second.c` are
+compared with the run with caching disabled and the same clients, on the
+tables of statuses, alarms and red contexts and on the state at the end of
+`main`; the loops over the clients, `alone.c` and `metadata.c` count the
+hits, the rejections and the calls of the observers only:
 
 - One client of each hook, registered after the analysis from `producer`
   of `safety.c` (call, call results, statement, red statuses, statuses,
@@ -1425,7 +1453,10 @@ tests register no client and are unchanged.
   daemon of `Async` and its listener of the logger are not audited.
 - The row of the accesses to the history of the origins at a hit is from
   source inspection; no regression makes the check of the preconditions of
-  a hit create an imprecise value.
+  a hit create an imprecise value. Whether a hit changes the current
+  location, through a visitor of `Cil`, is not established. Both
+  interfaces are tested at the lookup, so neither question changes what a
+  hit admits.
 - With the server loaded, which From and Inout load, the collector refuses
   every body that registers an alarm: its client of the hooks on the
   changes of annotations is audited at the lookup only.

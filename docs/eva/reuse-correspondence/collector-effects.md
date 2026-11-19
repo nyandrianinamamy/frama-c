@@ -270,9 +270,10 @@ so that no such client runs during a hit. The hooks on the removal of a
 property are not among them: the lookup tests the hooks on a new property
 and on a new status only, the kernel itself registers a removal hook, and
 such a client refuses only when it is invoked during a recording. Neither
-a hit nor the analysis of a body removes a property: the removals of the
-tree run when Eva exports its results and when the table of alarms of an
-emitter is cleared, outside a call
+a hit nor the analysis of a body removes a property: by a search of the
+tree, the removals run in the copy visitors, the inlining, the typing, the
+removal of the alarms of an emitter and the export of the results of Eva,
+outside a call
 ([Safety at a hit](safety.md#a-hit-runs-no-client-that-is-not-audited)).
 
 `Traces_domain.Node.next` refuses whenever a trace node identity is
