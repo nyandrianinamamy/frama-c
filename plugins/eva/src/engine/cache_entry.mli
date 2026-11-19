@@ -17,8 +17,9 @@
       blocks it may write (see {!footprint});
     - its Exit part: the abstract states at the exits of the statement, each
       with its partition key;
-    - its Safety part: the alarms, statuses and red contexts that the
-      analysis of the statement emitted (see {!Safety_part}).
+    - its Safety part: the alarms, statuses, messages of statuses and red
+      contexts that the analysis of the statement emitted (see
+      {!Safety_part}).
 
     The reuse operation ({!Make.find}) takes the candidate entries of a call,
     oldest first, and the input of the call. A candidate matches when the
