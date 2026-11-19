@@ -366,6 +366,34 @@ predicate runs once for each of the seven lookups with candidates.
   predicate-second.log:copy: hits 1, rejected for callback 6
   predicate-second.log:hook: 0 calls with Reuse; predicate evaluated 7 times
 
+The lookup evaluates every predicate needed of the parts and every
+predicate of the readers of the statement states before it asks the parts
+whose consumer is enabled whether they are audited: a client that one of
+these predicates registers is seen by the audit of the same lookup. Below,
+the predicate registers a client of the hook of Inout through its dynamic
+access at its first evaluation, as the predicate of a part, then as that
+of a reader. The audit of the part of Inout, asked afterwards, answers that
+it is not audited: the three calls to copy reject their candidates with
+callback, and the client receives no call after a hit on copy.
+
+  $ EVA_TEST_CACHE_PARTS=predicate EVA_TEST_CACHE_PARTS_CLIENT=inout frama-c -no-autoload-plugins -load-module eva,from,inout,test_cache_parts.cmxs parts.c > predicate-inout.log 2>&1
+  $ EVA_TEST_CACHE_PARTS=predicate EVA_TEST_CACHE_PARTS_CLIENT=inout EVA_TEST_CACHE_PARTS_CARRIER=reader frama-c -no-autoload-plugins -load-module eva,from,inout,test_cache_parts.cmxs parts.c > reader-inout.log 2>&1
+  $ grep -E '^(copy|inout client)' predicate-inout.log reader-inout.log
+  predicate-inout.log:copy: hits 0, rejected for callback 9
+  predicate-inout.log:inout client: 0 calls after a hit on copy
+  reader-inout.log:copy: hits 0, rejected for callback 9
+  reader-inout.log:inout client: 0 calls after a hit on copy
+
+A part registered since the lookup took the answers of the predicates has
+no answer, and counts as a part that is not audited. Here the predicate
+registers a part never needed at its first evaluation: the first lookup of
+copy rejects its three candidates with callback; the next lookups take the
+answers of the new part as well, and the two other calls to copy hit.
+
+  $ EVA_TEST_CACHE_PARTS=predicate EVA_TEST_CACHE_PARTS_CLIENT=part frama-c -no-autoload-plugins -load-module eva,from,inout,test_cache_parts.cmxs parts.c > predicate-part.log 2>&1
+  $ grep -E '^copy' predicate-part.log
+  copy: hits 2, rejected for callback 3
+
 A hit updates the statistics by function of the summary after its delivery,
 as the end of an analysis of the body does, and the update runs the
 subscribers of these statistics. A subscriber registered without an audit

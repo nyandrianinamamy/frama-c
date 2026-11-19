@@ -59,16 +59,21 @@ type 'a t
       rejects every supplied entry (see {!Supplied_entries}). Default:
       never.
 
-    [needed] and [audited] are predicates: each lookup with candidates
-    evaluates them once, before its test of the clients that are not
-    audited ({!decide}), and the check of the parts and the restoration use
-    these answers. A predicate must return a result, without an exception;
+    [needed] and [audited] are predicates: a lookup that examines its
+    candidates evaluates [needed] once for each part, and [audited] once for
+    each part whose consumer is enabled, before its test of the clients that
+    are not audited ({!decide}); the check of the parts and the restoration
+    use these answers. A lookup that rejects its candidates with [`Product]
+    evaluates none. A predicate must return a result, without an exception;
     it must not register anything, a client of a hook or a part included,
-    and must not write in the tables of the analysis or of the kernel. A
-    client that it registers all the same on a hook listed under
-    [`Callback] in {!Supplied_entries} is seen by the test of the lookup
-    that evaluates it, and a part that it registers makes this lookup
-    reject its candidates with [`Callback].
+    and must not write in the tables of the analysis or of the kernel. The
+    lookup evaluates every [needed] before any [audited]: a client that a
+    predicate [needed] registers all the same is seen by the audits and by
+    the test of that lookup, when it is on a hook listed under [`Callback]
+    in {!Supplied_entries} or on a hook whose clients a part audits, and a
+    part that it registers makes this lookup reject its candidates with
+    [`Callback]. A function [audited] that registers a client is outside
+    this contract: the audits asked before it do not see the client.
 
     Parts are registered when their owner is loaded, before any analysis. *)
 val register :
@@ -110,8 +115,9 @@ val provide : 'a t -> Callstack.t -> reads:Base.SetLattice.t -> 'a -> unit
     declared reader reads, every candidate entry is rejected. A reader that
     is not declared, or that reads later than the analysis without having
     declared it, is not detected. [reads] is a predicate under the rules
-    given at {!register}: a lookup evaluates it before its test of the
-    clients that are not audited. *)
+    given at {!register}: a lookup evaluates it with the predicates
+    [needed] of the parts, before the audits of the parts and its test of
+    the clients that are not audited. *)
 val register_state_reader : name:string -> (unit -> bool) -> unit
 
 (** {2 For the cache} *)
@@ -146,28 +152,35 @@ val cover : kernel_function -> key:Base.Hptset.t -> parts -> parts
 (** [uncovered-read], the reason why {!cover} withholds a part. *)
 val uncovered_read : string
 
-(** Whether a reader declared by {!register_state_reader} reads in the
-    current analysis, or a plug-in that requests the results by function of
-    From or Inout is loaded. These results are computed from the states
-    saved at the statements of each function, those of the called functions
-    included. The rule is by dependency: Pdg, Reduc and Studia are named,
-    and a plug-in that loads one of them is covered by it, as Impact, Scope,
-    Security-slicing, Slicing and Sparecode, which load Pdg. A request made
-    after the analysis is not seen here: From and Inout refuse it when
-    {!Eva.Results.statement_results_complete} is false. *)
-val reads_statement_states : unit -> bool
-
-(** The answers of the predicates [needed] and [audited] of the registered
-    parts (see {!register}), taken once for one lookup. *)
+(** The answers of the predicates of the readers of the statement states
+    (see {!register_state_reader}), and of the predicates [needed] and
+    [audited] of the registered parts (see {!register}), taken once for one
+    lookup. *)
 type decisions
 
-(** [decide ()] evaluates [needed] for every registered part, in the order
-    of registration, and [audited] for those whose consumer is enabled.
-    The lookup calls it once, before its test of the clients that are not
-    audited, and passes the result to {!unaudited_clients}, {!supplies}
-    and {!restoration}: no predicate runs between the test and the end of
-    the delivery of a hit. *)
+(** [decide ()] takes the answers in two passes. The first evaluates the
+    predicates of the readers of the statement states, in the order of
+    their declaration, unless a plug-in named by {!reads_statement_states}
+    is loaded, then [needed] for every registered part, in the order of
+    registration. The second evaluates [audited] for the parts whose
+    consumer is enabled, in the same order: a client that a predicate of
+    the first pass registers is seen by these audits. The lookup calls it
+    once, before its test of the clients that are not audited, and passes
+    the result to {!reads_statement_states}, {!unaudited_clients},
+    {!supplies} and {!restoration}: no predicate runs between the test and
+    the end of the delivery of a hit. *)
 val decide : unit -> decisions
+
+(** Whether, by [decisions], a reader declared by {!register_state_reader}
+    reads in the current analysis, or a plug-in that requests the results by
+    function of From or Inout is loaded. These results are computed from the
+    states saved at the statements of each function, those of the called
+    functions included. The rule is by dependency: Pdg, Reduc and Studia are
+    named, and a plug-in that loads one of them is covered by it, as Impact,
+    Scope, Security-slicing, Slicing and Sparecode, which load Pdg. A request
+    made after the analysis is not seen here: From and Inout refuse it when
+    {!Eva.Results.statement_results_complete} is false. *)
+val reads_statement_states : decisions -> bool
 
 (** Whether, by [decisions], a part whose consumer is enabled is not
     audited (see {!register}), or a part was registered since the

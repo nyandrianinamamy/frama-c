@@ -142,10 +142,6 @@ let register_state_reader ~name reads =
    Sparecode load Pdg. *)
 let requesting_plugins = [ "pdg"; "reduc"; "studia" ]
 
-let reads_statement_states () =
-  List.exists Plugin.is_present requesting_plugins
-  || List.exists (fun (_, reads) -> reads ()) !state_readers
-
 (* ----- Decisions of one lookup ------------------------------------------- *)
 
 (* The answers of the predicates of a part, taken once by a lookup. *)
@@ -158,16 +154,26 @@ type decision = {
 type decisions = {
   decided : decision list; (* In the order of registration. *)
   count : int; (* The number of parts registered before the decisions. *)
+  reads_states : bool; (* The answer of the readers of statement states. *)
 }
 
+(* Two passes: the predicates that tell whether a consumer is enabled, those
+   of the readers of the statement states and [needed], then [audited] for
+   the parts whose consumer is enabled. A client that a predicate of the
+   first pass registers is thus seen by the audits of the second. *)
 let decide () =
   let parts = !registered in
-  let decide part =
-    let needed = part.packed_needed () in
-    let audited = needed && part.packed_audited () in
-    { part; needed; audited }
+  let reads_states =
+    List.exists Plugin.is_present requesting_plugins
+    || List.exists (fun (_, reads) -> reads ()) !state_readers
   in
-  { decided = List.map decide parts; count = List.length parts }
+  let needed = List.map (fun part -> part, part.packed_needed ()) parts in
+  let audit (part, needed) =
+    { part; needed; audited = needed && part.packed_audited () }
+  in
+  { decided = List.map audit needed; count = List.length parts; reads_states }
+
+let reads_statement_states decisions = decisions.reads_states
 
 (* A part registered since the decisions, by a predicate for instance, has
    no decision: it counts as a client that is not audited. *)

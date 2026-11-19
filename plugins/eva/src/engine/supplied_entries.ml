@@ -239,9 +239,9 @@ type 'state lookup = {
    replaces an expression by its value in these states. *)
 let state_readers = [ "nonterm"; "metrics"; "mdr"; "wp"; "scf" ]
 
-let consumer_enabled () =
+let consumer_enabled parts =
   List.exists Plugin.is_present state_readers
-  || Mt_options.Enabled.get () || Cache_part.reads_statement_states ()
+  || Mt_options.Enabled.get () || Cache_part.reads_statement_states parts
 
 (* A fresh evaluation emits all the alarms of an evaluation before it tests
    the threshold of [-eva-stop-at-nth-alarm]; a hit delivers the alarms one
@@ -374,7 +374,7 @@ module Lookup (Domain : sig
     let reject_all reason =
       no_hit (List.map (fun e -> Entry.id e, reason) candidates)
     in
-    if consumer_enabled () || stack.Callstack.thread <> Thread.main_id
+    if consumer_enabled parts || stack.Callstack.thread <> Thread.main_id
     then reject_all `Consumer
     else if stop_at_nth_alarm () then reject_all `Stop_at_nth_alarm
     else if unaudited_clients parts then reject_all `Callback

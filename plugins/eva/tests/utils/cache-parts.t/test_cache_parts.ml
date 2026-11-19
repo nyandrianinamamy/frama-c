@@ -723,38 +723,74 @@ let inout_client () =
   Format.printf "copy: hits %d, rejected for callback %d@."
     (hits "copy") (rejected "callback" "copy")
 
-(* A part whose consumer is never enabled, registered without an audit. Its
-   predicate is client code: at its n-th evaluation in the second analysis,
-   n given by EVA_TEST_CACHE_PARTS_ARM, it registers a call hook of Eva that
-   is not audited. The hook counts the calls it receives with [`Reuse]. *)
+(* A predicate that the lookup evaluates is client code. The predicate is
+   the predicate [needed] of a part never needed and not audited, or with
+   EVA_TEST_CACHE_PARTS_CARRIER=reader the predicate of a reader of the
+   statement states, which never reads. At its n-th evaluation in the second
+   analysis, n given by EVA_TEST_CACHE_PARTS_ARM, it registers a client that
+   is not audited, given by EVA_TEST_CACHE_PARTS_CLIENT:
+   - eva (default): a call hook of Eva, which counts the calls it receives
+     with [`Reuse];
+   - inout: a client of the hook of Inout on the inputs and outputs of each
+     call, through its dynamic access, which counts the calls it receives
+     after a hit on copy;
+   - part: a part never needed. *)
 let predicate () =
   let arm =
     Option.fold ~none:1 ~some:int_of_string
       (Sys.getenv_opt "EVA_TEST_CACHE_PARTS_ARM")
   in
-  let armed = ref false and evaluations = ref 0 and reused = ref 0 in
+  let client =
+    Option.value ~default:"eva" (Sys.getenv_opt "EVA_TEST_CACHE_PARTS_CLIENT")
+  in
+  let armed = ref false and evaluations = ref 0 in
+  let reused = ref 0 and after_hit = ref 0 in
   let count_reuse _callstack _kf _state = function
     | `Reuse -> incr reused
     | _ -> ()
   in
-  let needed () =
+  let register_client () =
+    match client with
+    | "eva" -> Eva.Cvalue_callbacks.register_call_hook count_reuse
+    | "inout" ->
+      let register =
+        Dynamic.get ~plugin:"Inout" "register_call_hook"
+          Datatype.(func (func Inout_type.ty unit) unit)
+      in
+      register (fun _ -> if hits "copy" > 0 then incr after_hit)
+    | "part" ->
+      ignore
+        (Eva.Cache_part.register ~name:"late" ~needed:(fun () -> false)
+           ~restore:(fun _ _ _ () -> ()) ())
+    | _ -> failwith ("unknown client " ^ client)
+  in
+  let predicate () =
     if !armed then begin
       incr evaluations;
-      if !evaluations = arm then
-        Eva.Cvalue_callbacks.register_call_hook count_reuse
+      if !evaluations = arm then register_client ()
     end;
     false
   in
-  ignore
-    (Eva.Cache_part.register ~name:"predicate" ~needed
-       ~restore:(fun _ _ _ () -> ()) ());
+  begin match Sys.getenv_opt "EVA_TEST_CACHE_PARTS_CARRIER" with
+    | Some "reader" ->
+      Eva.Cache_part.register_state_reader ~name:"predicate" predicate
+    | _ ->
+      ignore
+        (Eva.Cache_part.register ~name:"predicate" ~needed:predicate
+           ~restore:(fun _ _ _ () -> ()) ())
+  end;
   let produced = first_analysis () in
   armed := true;
   second_analysis produced;
   Format.printf "copy: hits %d, rejected for callback %d@."
     (hits "copy") (rejected "callback" "copy");
-  Format.printf "hook: %d calls with Reuse; predicate evaluated %d times@."
-    !reused !evaluations
+  match client with
+  | "eva" ->
+    Format.printf "hook: %d calls with Reuse; predicate evaluated %d times@."
+      !reused !evaluations
+  | "inout" ->
+    Format.printf "inout client: %d calls after a hit on copy@." !after_hit
+  | _ -> ()
 
 (* A subscriber of the statistics by function of the summary, which a hit
    updates after its delivery, as the end of an analysis of the body does.
