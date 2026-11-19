@@ -636,6 +636,42 @@ let dead_call () =
   Format.printf "callwise dependencies equal at %d call sites: %b@."
     (List.length fresh) (same_froms fresh (callwise_froms ()))
 
+(* On nested.c. The inputs and outputs of unused, which no call reaches,
+   requested at the start of the analysis with the supplied entries. Inout
+   then starts an analysis of the program, here with -deps set: every
+   candidate is rejected (consumer), the results are complete, and the
+   request computes the result of unused from the states saved at its
+   statements and memoises it. -deps is unset before the analysis goes on
+   and takes hits. After the hits, the request is refused, the memoised
+   result included; the results of inner, joined from those of its calls,
+   are not. *)
+let fallback () =
+  let unused () = Inout.get_precise_inout (kf "unused") in
+  let inner () = Inout.get_precise_inout (kf "inner") in
+  clear ();
+  Eva.Parameters.Memexec.off ();
+  Eva.Analysis.compute ();
+  let produced =
+    List.concat_map (fun f -> Producer.entries (kf f)) [ "inner"; "outer" ]
+  in
+  let fresh = inner () in
+  let early = ref true in
+  Eva.Cvalue_callbacks.register_at_start_hook
+    (fun () ->
+       if !early then begin
+         early := false;
+         Dynamic.Parameter.Bool.on "-deps" ();
+         refused "at the start, with -deps: Inout.get_precise_inout of unused"
+           unused;
+         Dynamic.Parameter.Bool.off "-deps" ()
+       end);
+  second_analysis produced;
+  Format.printf "inner: hits %d; statement results complete: %b@."
+    (hits "inner") (Eva.Results.statement_results_complete ());
+  refused "after the hits: Inout.get_precise_inout of unused" unused;
+  Format.printf "after the hits: Inout.get_precise_inout of inner equal to \
+                 caching disabled: %b@." (Inout_type.equal fresh (inner ()))
+
 (* ----- Names of the parts ------------------------------------------------- *)
 
 (* A second part named as a registered one: the name is the key of a
@@ -668,6 +704,7 @@ let () =
   | Some "history" -> Boot.Main.extend history
   | Some "nested" -> Boot.Main.extend nested
   | Some "dead-call" -> Boot.Main.extend dead_call
+  | Some "fallback" -> Boot.Main.extend fallback
   | Some "lazy-from" -> Boot.Main.extend lazy_from
   | Some "warm" -> Boot.Main.extend warm
   | Some "snapshot" -> Boot.Main.extend snapshot

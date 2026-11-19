@@ -191,6 +191,24 @@ module Internals =
       let size = 17
     end)
 
+(* The functions whose result in [Internals] was computed from the states
+   saved at their statements, rather than joined from the results of their
+   calls. *)
+module From_statements =
+  State_builder.Set_ref (Kernel_function.Set)
+    (struct
+      let name = "Inout.Operational_inputs.From_statements"
+      let dependencies = [ Internals.self ]
+    end)
+
+(* A result computed from the states saved at the statements of [kf] is
+   refused after a hit of the current analysis, also when it was memoised
+   before the hit. The results joined from those of the calls are not: a hit
+   restores the result of its call. *)
+let check_from_statements kf =
+  if From_statements.mem kf then
+    Cumulative_analysis.check_statement_results ()
+
 module Callsite =
   Datatype.Pair_with_collections (Kernel_function) (Cil_datatype.Kinstr)
 module CallsiteHash = Callsite.Hashtbl
@@ -795,7 +813,8 @@ module FunctionWise = struct
 end
 
 
-let get_internal =
+let get_internal kf =
+  check_from_statements kf;
   Internals.memo
     (fun kf ->
        Eva.Analysis.compute ();
@@ -810,9 +829,12 @@ let get_internal =
               or answered by a hit: a function absent from it is computed
               from the states saved at its statements. *)
            Cumulative_analysis.check_statement_results ();
-           FunctionWise.compute_internal_using_cfg kf
+           let result = FunctionWise.compute_internal_using_cfg kf in
+           From_statements.add kf;
+           result
          end
     )
+    kf
 
 let raw_externals ~with_formals kf =
   let filter = externalize ~with_formals kf in
@@ -825,7 +847,9 @@ module Externals =
       let dependencies = [ Internals.self ]
       let size = 17
     end)
-let get_external = Externals.memo (raw_externals ~with_formals:false)
+let get_external kf =
+  check_from_statements kf;
+  Externals.memo (raw_externals ~with_formals:false) kf
 let compute kf = ignore (get_external kf)
 
 
@@ -837,8 +861,9 @@ module Externals_With_Formals =
       let dependencies = [ Internals.self ]
       let size = 17
     end)
-let get_external_with_formals =
-  Externals_With_Formals.memo (raw_externals ~with_formals:true)
+let get_external_with_formals kf =
+  check_from_statements kf;
+  Externals_With_Formals.memo (raw_externals ~with_formals:true) kf
 
 
 let pretty_operational_inputs_internal fmt kf =
