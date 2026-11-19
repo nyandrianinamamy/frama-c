@@ -260,9 +260,14 @@ restores the parts in place of sending it when the lookup gives parts. The
 restoration runs outside the observation of the collector, as the hooks of
 From and Inout do in a fresh analysis (`cache_protocol:true`). It runs
 before the caller finalises the call, so the result that Inout restores is
-the one that the caller reads to reduce its actuals. `restore` raises
-`Invalid_argument` when a part of an enabled consumer is missing; the
-lookup has rejected such a candidate. A restore function must return
+the one that the caller reads to reduce its actuals. The parts restored are
+those that the lookup selected (`Cache_part.restoration`), with the answers
+of the predicates of the parts that it took once, before its test of the
+clients ([The restoration of a part runs audited clients
+only](#the-restoration-of-a-part-runs-audited-clients-only)): the
+restoration evaluates no predicate. The selection raises `Invalid_argument`
+when a part of an enabled consumer is missing; the lookup has rejected such
+a candidate. A restore function must return
 normally: an exception stops the analysis after the writes already made by
 it and by the parts restored before it, which are not undone
 (`cache_part.mli`). The called function is recorded as answered by a hit
@@ -278,8 +283,10 @@ nothing at a hit of a supplied entry. In the tree, Eva's own hook
 (`Summary.FunctionStats`) computes the statistics of a function at its
 `` `Body `` results; after the restoration of the parts, the engine calls
 `Safety_delivery.delivered`, through which the summary computes them again
-from the tables that the delivery updated. The analysis of threads rejects
-every candidate.
+from the tables that the delivery updated. The subscribers of these
+statistics are clients of the lookup ([A hit runs no client that is not
+audited](safety.md#a-hit-runs-no-client-that-is-not-audited)). The analysis
+of threads rejects every candidate.
 
 ## The restoration of a part runs audited clients only
 
@@ -298,17 +305,30 @@ no client that is not
 audited](safety.md#a-hit-runs-no-client-that-is-not-audited).
 
 **Symbols.** `Cache_part.register` (`audited`),
-`Cache_part.unaudited_clients`, `Supplied_entries.unaudited_clients`; in
+`Cache_part.decide`, `Cache_part.unaudited_clients`,
+`Cache_part.restoration`, `Supplied_entries.unaudited_clients`; in
 From, `Callwise.part`, `Callwise.restore_froms`; in Inout,
 `Operational_inputs.Callwise.part`, `unaudited_clients`, the dynamic
 functions `register_call_hook` and `register_audited_call_hook`; in Eva,
 `Eva_dynamic.Inout.register_call_hook`, `Transfer_stmt.InOutCallback`.
 
-**Argument (source inspection).** `Cache_part.unaudited_clients` holds when
-a registered part whose `needed` function holds has an `audited` function
-that does not; `audited` defaults to never. `Supplied_entries.unaudited_clients`
-includes it, and `find` tests it with the other hooks, before it examines
-the candidates. The restoration of From checks the assigns clauses under
+**Argument (source inspection).** The predicates `needed` and `audited` of
+the parts are client code. Each lookup with candidates evaluates them once,
+with `Cache_part.decide`, before its tests of `consumer` and of the
+clients: `needed` for every registered part, `audited` for those whose
+`needed` holds. `Cache_part.unaudited_clients` holds, by these answers,
+when a part is needed and not audited, or when a part was registered since
+the answers were taken; `audited` defaults to never.
+`Supplied_entries.unaudited_clients` includes it, and `find` tests it with
+the other hooks, before it examines the candidates. The check of the parts
+of each candidate (`missing-part`) and the selection of the parts that the
+hit restores use the same answers: no predicate runs between the test and
+the end of the delivery, and a client that a predicate registers on a hook
+that the lookup tests is seen by the test of the same lookup.
+`cache_part.mli` states the contract of a predicate: it returns a result,
+registers nothing and writes in no table of the analysis or of the kernel.
+The predicates of From and Inout read an option and a flag of Inout. The
+restoration of From checks the assigns clauses under
 `-from-verify-assigns`, which emits statuses and messages whose hooks the
 lookup tests, and records the dependencies in the table of the call site,
 which From does not export: no client can register a hook on it. These
@@ -321,7 +341,8 @@ its dynamic function `register_call_hook` as not audited, and one given to
 `register_audited_call_hook` as audited. Eva registers its cell
 `InOutCallback` through the second: the cell holds the result given for the
 call until the caller has reduced its actuals, and is cleared after the
-call ([The Inout part](#the-inout-part)). No other module of the tree
+call ([The Inout part](#the-inout-part)); after the call of the entry
+point, which has no caller, it is cleared too. No other module of the tree
 registers a client.
 
 **Evidence (executed).** Scenario `unaudited-part`: the test module
@@ -334,7 +355,17 @@ the three calls hit. Scenario `inout-client`: a client registered through
 mutation, reverted), both scenarios give `copy: hits 3, rejected for
 callback 0`. The
 scenarios `from`, `inout` and `visits` hit with the parts of From and Inout
-and Eva's client.
+and Eva's client. Scenario `predicate`: a part never needed and not
+audited, whose predicate registers a call hook of Eva at its first, then at
+its second evaluation in the second analysis. At the first, the three calls
+to `copy` read `callback` for each candidate (`hits 0, rejected for
+callback 9`); at the second, the first call hits and the two others are
+rejected (`hits 1, rejected for callback 6`). In both, the hook receives no
+call with `` `Reuse ``, and the predicate runs 7 times, once for each lookup
+with candidates. Before the answers were taken once, both gave `hits 1,
+rejected for callback 6`, one call with `` `Reuse `` and 3 evaluations: the
+predicate ran in the test, in the check of the parts and in the
+restoration of the first hit.
 
 ## A candidate that lacks a needed part is rejected
 
@@ -368,7 +399,13 @@ three calls to `copy` are recorded. Run 3 of
 [`cache_supplied.c`](../../../plugins/eva/tests/value/cache_supplied.c)
 loads Inout with entries supplied by `supply`: every candidate whose key
 matches reads `missing-part`. Run 4 loads From without `-calldeps`: it needs
-no part, and the run is identical to run 0. With the test of `supplies`
+no part, and the run is identical to run 0. Compared with the same run with
+caching disabled (`-eva-no-memexec`, From loaded), the 14 statuses of the
+assertions are equal, and two values are wider: `{7; 8}` against `{7}`
+after `wide_first`, and `g` in `{3; 4}` against `{3}` after `loop_on_4`. This
+is the precision of the entries written by hand, which run 0 shows as well
+and the comment of the test expects; the results are not those of caching
+disabled. With the test of `supplies`
 removed, the second analysis of the scenario `missing` reaches `restore`
 with a missing part and stops with exit status 125.
 
@@ -489,7 +526,15 @@ cover: `end_record` applies the callbacks, which set the cell
 `InOutCallback` of Eva. Its separate argument (source inspection): the cell
 is set at the end of each call, read during the finalisation of the same
 call by `is_safe_argument`, and cleared when the transfer of the call ends.
-At the read, the cell holds the result given for this call: the one of the
+The call of the entry point has no caller and no finalisation: the cell is
+cleared once this call is analysed or answered by a hit, and stored
+(`Compute_functions.Make.compute_main_call`), on every exit. The cell is a
+state of the analysis, saved with a session: a session saved after an
+analysis holds an empty cell. Before, the cell stayed filled after the call
+of the entry point, analysed or answered by a hit (scenario `root`); by
+source inspection, each reader of the tree reads the cell during the call
+that set it, and none read the stale value. At the read, the cell holds the result
+given for this call: the one of the
 analysed body, or the one restored at the hit. An actual is reduced only
 when the zone it depends on does not meet `over_outputs_if_termination` of
 that result. The reduction is sound when this zone contains the locations
@@ -508,6 +553,10 @@ kept one, `h` is reduced to bottom: the fixture fails, and the reduction
 depends on the premise. With `-eva`, the values in the final states of the
 analysed callers are those of caching disabled; see [A function answered by
 hits only has no final state](#a-function-answered-by-hits-only-has-no-final-state).
+Scenario `root`, on `root.c`, whose `main` makes no call: the cell is empty
+after the call of `main` analysed with caching disabled, and after the hit
+of its entry in the second analysis; before the clearing, it was filled
+after both.
 
 **Open.** None beyond the premise below.
 
@@ -608,8 +657,11 @@ the analysis runs, which the scenario `history` checks for the queries of
 From and Inout; a later change that makes them available must revisit
 premise 2. Nothing refuses the production of an entry in the rest of an
 analysis after an analysis started by a callback ended in it; such an entry
-is not covered when supplied to another analysis (source inspection). An entry produced in an analysis with another initial state is
-not detected (the supplier's premise).
+is not covered when supplied to another analysis (source inspection). An
+entry produced in an analysis with another initial state is not detected.
+Both are premises of the supplier, stated on
+`Supplied_entries.supply_produced` and in the obligations of [Entries from
+fresh bodies](cache-producer.md#producer-obligations-for-exit-reuse).
 
 The claim is stated for one configuration: the options of Eva that decide
 which states are saved at the statements (`-eva-results`,

@@ -583,16 +583,19 @@ audited at the lookup.
 **Symbols.** `Supplied_entries.Lookup.cvalue_alone`,
 `Supplied_entries.consumer_enabled`, `Supplied_entries.state_readers`,
 `Cache_part.reads_statement_states`, `Supplied_entries.stop_at_nth_alarm`,
-`Supplied_entries.unaudited_clients`, `Self.ComputationState`,
+`Supplied_entries.unaudited_clients`, `Cache_part.decide`,
+`Self.ComputationState`,
 `Self.in_analysis`, `Self.analysis_in_progress`, `Analysis.compute_from`,
 `Supplied_entries.Lookup.find`, `Alarmset.deliver`,
 `Alarmset.stop_at_nth_alarm`.
 
-**Argument.** `find` tests `cvalue_alone` first, then `consumer_enabled`,
-then `stop_at_nth_alarm`, then `unaudited_clients`, then, while an analysis
-is in progress, whether its computation state is `Computing`, then calls
-`Cache_entry.Make.find`; the first test that rejects gives its reason to
-every candidate. `Analysis.compute_from` runs
+**Argument.** `find` tests `cvalue_alone` first; it then takes the answers
+of the predicates of the parts once (`Cache_part.decide`), which is not a
+test, then tests `consumer_enabled`, then `stop_at_nth_alarm`, then
+`unaudited_clients`, then, while an analysis is in progress, whether its
+computation state is `Computing`, then calls `Cache_entry.Make.find` with
+the check of the parts by the same answers; the first test that rejects
+gives its reason to every candidate. `Analysis.compute_from` runs
 inside `Self.in_analysis`, which counts the analyses in progress, those
 started by a callback of another included. The analysis clears the results
 and applies its start hooks (`pre_analysis`), then sets `Computing`.
@@ -641,7 +644,11 @@ its entries and is analysed. Run 5, with `-mthread`: every such call reads
 valid. Run 3, with Inout loaded: the entries supplied by `supply` have no
 Inout part, and every candidate whose key matches reads `missing-part`. Run
 4, with From loaded without Inout and without `-calldeps`: the run is
-identical to run 0. The readers of the results by function of From and
+identical to run 0. Against the same run with caching disabled, the 14
+statuses of the assertions are equal and two values are wider (`{7; 8}`
+against `{7}` after `wide_first`, `g` in `{3; 4}` against `{3}` after
+`loop_on_4`): the precision of the entries written by hand, as in run 0.
+The readers of the results by function of From and
 Inout are exercised by
 [`cache-parts.t`](../../../plugins/eva/tests/utils/cache-parts.t/run.t). In
 [`cache-safety.t`](../../../plugins/eva/tests/utils/cache-safety.t/run.t),

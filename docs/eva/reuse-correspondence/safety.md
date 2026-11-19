@@ -113,9 +113,16 @@ run in the body. It holds none of the writes made in the bodies analysed
 afresh during its analysis, nor the checks of their `requires` clauses:
 `Safety_part.record` records a write in the innermost recording only, and
 the part of each such body holds its own writes. The lookup rejects every
-entry whose body contains a call (`nested-delivery`), and no hit delivers
-such a part
+entry whose body contains a call other than a direct call to a display
+directive (`Frama_C_show_each*`, `Frama_C_domain_show_each*`), and no hit
+delivers such a part
 ([Composition along the observed path](nested-calls.md#composition-along-the-observed-path)).
+A candidate whose key matches reads `missing-part` when it lacks a part
+whose consumer is enabled, which From and Inout do not give for a call that
+made a call: the entries of `outer` in `nested.c` of `cache-parts.t` read
+`missing-part` under `-calldeps`. Otherwise it reads `nested-delivery`: the
+entry of `leaf` in `dead-call.c`, whose producing call did not make its
+call and which has both parts, reads `nested-delivery`.
 
 **Evidence (executed).** In `cache-safety.t`, the entry of `body` produced by
 the analysis from `producer`, at x = 1 and y = 0, has seven writes, all with
@@ -270,7 +277,8 @@ emission, so that the logger makes its test at each occurrence, as in the
 analysis of the body. A hit
 inside a body under analysis records its delivered writes in that body
 through the same functions, with the frames of the hit. The entry of a body
-with a call is rejected at lookup (`nested-delivery`): its part is
+with a call is rejected at lookup, with `nested-delivery`, or before with
+`missing-part` when it lacks a part whose consumer is enabled: its part is
 incomplete
 ([The Safety part records the writes of the body](#the-safety-part-records-the-writes-of-the-body)).
 
@@ -518,7 +526,9 @@ pointer, or as the constructor of a local initialisation. The lookup
 rejects every entry whose body contains a call other than a direct display
 directive (`nested-delivery`), produced entries included: since issue #50
 the producer stores bodies with calls, and `supply_produced` does not check
-the calls. `nested-delivery` is the last check of a candidate. The check of
+the calls. `nested-delivery` is the last check of a candidate: an entry
+that lacks a part whose consumer is enabled reads `missing-part` before, as
+the entries of `outer` in `nested.c` of `cache-parts.t` do. The check of
 `supply` comes first: an entry that it refuses is never a candidate. A call
 to a function without a body has no statement to skip, and its entry is
 rejected all the same.
@@ -559,8 +569,10 @@ the analysis, at this revision:
   status) or Studia, or a plug-in that loads one of them, is loaded
   ([Results computed from statement states are refused after a
   hit](cache-parts.md#results-computed-from-statement-states-are-refused-after-a-hit));
-  the display of the final states (category `final-states`) asks Inout for
-  the outputs of a function, which answer `Top` after a hit;
+  the display of the final states (category `final-states`) asks for the
+  outputs of a function through Eva's access to Inout
+  (`Eva_dynamic.Inout.kf_outputs`), which answers `Top` after a hit without
+  calling Inout;
 - not restricted, and listed for issue #49: the values that `Eva.Results`
   returns at a statement of a function answered by a hit, which are top in
   the callstacks of the hits and over all callstacks
@@ -902,6 +914,9 @@ the end of its delivery, or that an analysis of the body runs and a hit
 does not. Otherwise every candidate is rejected with `callback`, before any
 candidate is examined and before any effect of the hit. Registration is
 the test: a client registered after the production of an entry counts. The
+client code that the lookup runs itself, the predicates of the parts and of
+the readers of the statement states, runs before the test, and no
+predicate runs between the test and the end of the delivery. The
 audited clients are those listed below, and none of them tells a hit from
 an analysis of the body in a way that changes the analysis. A client that
 is not audited and runs during the analysis of a body refuses the body
@@ -921,7 +936,10 @@ and
 `Supplied_entries.Lookup.find`, `Cvalue_callbacks.unaudited_hooks`,
 `Red_statuses.has_hooks`, `Property_status.has_add_or_update_hooks`,
 `Annotations.has_unaudited_hooks_on_change`, `Log.unaudited_clients`,
-`Cache_part.unaudited_clients`, `Kernel_ast` in the server,
+`Cache_part.decide`, `Cache_part.unaudited_clients`,
+`Safety_delivery.unaudited_subscribers`, `Safety_delivery.on_delivered`,
+`Summary.FunctionStats.add_hook_on_change` (`audited`), `Kernel_ast` and
+`States.install_hook` in the server,
 `Messages.has_hooks`, `Log.add_listener`, `Log.on_history_access`,
 `register` in the signature `Log.Messages`,
 `Compute_functions.Make.compute_and_cache_call`, `Safety_delivery.deliver`,
@@ -939,10 +957,14 @@ the hooks of change of tables internal to Eva, on which no client is
 registered
 ([A hit delivers the Reach part as recorded joins](reach.md#a-hit-delivers-the-reach-part-as-recorded-joins)),
 prints the line of the reuse and the disposition line of the category
-`cache`, and restores the parts of the entry in place of the call results
-hooks, which only a hit of memexec runs.
-The hooks reached are: the call and call results hooks of Eva; the
-restoration of the parts and the clients that it runs; the hooks of
+`cache`, restores the parts of the entry in place of the call results
+hooks, which only a hit of memexec runs, and updates the statistics of
+the function in the summary (`Safety_delivery.delivered`). The hooks
+reached are: the call and call results hooks of Eva; the restoration of
+the parts and the clients that it runs; the subscribers of the
+statistics by function of the summary
+(`Summary.FunctionStats.add_hook_on_change`), which the update runs; the
+hooks of
 the kernel on a new property, on a new status and on a change of the
 annotations; the hooks of red statuses; the listeners of the logger, for
 all plug-ins (`Log.add_listener`) or for one (`register`), the observers of
@@ -955,14 +977,54 @@ statement.
 *The test.* Each of these registration functions records whether it
 registered a client without the flag of an audited client
 (`cache_protocol` or `classified` for the hooks of Eva, `audited` for the
-logger, for the hooks on the changes of annotations and for the parts);
-the hooks of red statuses, of the kernel on properties and statuses, and
-of the message collector have no audited client, and any registration
-counts. A client cannot be removed. `unaudited_clients` is the disjunction
-of the seven accessors, and `find` tests it after
-`product`, `consumer` and `stop-at-nth-alarm` and before it examines the
-candidates: no hook has run, nothing has been delivered and no line has
-been printed for the hit when the candidates are rejected.
+logger, for the hooks on the changes of annotations, for the subscribers of
+the statistics and for the parts); the hooks of red statuses, of the
+kernel on properties and statuses, and of the message collector have no
+audited client, and any registration counts. A client cannot be removed.
+`unaudited_clients` is the disjunction of the eight accessors, and `find`
+tests it after `product`, `consumer` and `stop-at-nth-alarm` and before it
+examines the candidates: no hook has run, nothing has been delivered and no
+line has been printed for the hit when the candidates are rejected.
+
+*The client code of the lookup.* The predicates of the readers of the
+statement states (`Cache_part.register_state_reader`) run in the test of
+`consumer`. The predicates `needed` and `audited` of the parts are
+evaluated once by each lookup with candidates, by `Cache_part.decide`,
+before the test of `consumer`; the test of the parts in
+`unaudited_clients`, the check of the parts of each candidate
+(`missing-part`) and the restoration at the hit use these answers, and a
+part registered since they were taken counts as not audited. A client that
+a predicate registers on one of the hooks above is thus seen by the test
+of the same lookup. `cache_part.mli` states what a predicate may do: return
+a result, register nothing and write in no table. Before this order, the
+predicates ran in the test after the accessors of the hooks of Eva, then
+again in the check of the parts and in the restoration: a predicate that
+registered a call hook of Eva in any of them made the hook receive
+`` `Reuse `` at the first hit.
+
+*From the test to the end of the delivery.* The client code that runs
+between the test and the end of `Safety_delivery.delivered` is covered as
+follows.
+- The restore functions of the parts run only for the parts whose answers
+  say that their consumer is enabled and that they are audited: they
+  belong to audited registrations. `Cache_part.provide` runs in the
+  analysis of a body, never at a hit. The parts have no printer, and the
+  reasons of rejection and refusal are printed by Eva's own functions. The
+  check that the function of an entry belongs to the current project runs
+  when the entry is supplied, not at the lookup.
+- `Populate_spec.populate_funspec` is called at a hit without `do_body`,
+  and generates nothing for a function that has a body: the generation
+  modes registered by plug-ins do not run (source inspection of
+  `Populate_spec`).
+- The statistics of Eva (`Statistics.incr`) are in tables that Eva does not
+  export; the compute hooks of `Statistics` run when the statistics are
+  exported, not when they change.
+- The call hooks, the hooks of statuses, red statuses and annotations, the
+  logger and the message collector, the restoration of the parts and the
+  subscribers of the statistics are the hooks tested above.
+- The printers of the kernel that a plug-in can replace or extend
+  (`Printer.update_printer`) format the elements of the AST that the
+  messages of a hit name, and are not tested; see the routes below.
 
 *The audited clients of the tree.*
 - The message collector of the kernel (`Messages`, a listener registered
@@ -998,7 +1060,20 @@ been printed for the hit when the candidates are rejected.
   (`Summary.FunctionStats`), which computes the statistics of a function at
   its `` `Body `` results. After a hit that skipped its visits, the engine
   calls `Safety_delivery.delivered`, through which the summary computes them
-  again from the tables that the delivery has updated.
+  again from the tables that the delivery has updated. The summary installs
+  this function once, when Eva is loaded (`Safety_delivery.on_delivered`);
+  another installation raises `Invalid_argument`. Both updates run the
+  subscribers of the statistics: none of the tree is audited (below). A
+  subscriber sees one update of a function after each analysis of its body
+  and one after each hit on it, then one for each function at the end of
+  the analysis. After a hit, `Eva.Results.statement_results_complete` is
+  false, and the statistics count the statements of a function answered by
+  a hit as reached, as an upper bound; during the analysis, the results
+  answer that every statement is reachable, with or without hits. On
+  `parts.c`, the statistics of `copy` are the same at each update of the
+  two analyses, and only the completeness of the results differs. A
+  subscriber registered as audited owes that its effects do not depend on
+  this difference (`summary.mli`).
 - The parts of From and Inout (`Cache_part.register` with `audited`), and
   Eva's client of the hook of Inout on the inputs and outputs of each call
   (`Transfer_stmt.InOutCallback`, registered through
@@ -1021,6 +1096,15 @@ been printed for the hit when the candidates are rejected.
   for the lookup only: the invocation still reports to `Hook.Opaque`, and
   the collector refuses a body during which it runs
   ([ordered effects](collector-effects.md#ordered-and-opaque-effects)).
+  Its premise is a server that is linked and not started, the
+  configuration in which the hits of `cache-parts.t` with the server
+  loaded are executed. A review replayed `parts.c` with a
+  server started and a client connected: no call hit, and the nine
+  candidates of `copy` read `callback`, since the server installs a
+  listener of the logger when it starts, which is not audited. The timing
+  and the number of the signals under a configuration of the server that
+  admits a hit are not established; no such configuration exists in the
+  tree at this revision.
 - The statement hooks registered as classified: the watchpoints
   (`Builtins_watchpoint`), whose activity rejects every candidate with
   `watchpoint`, and the dynamic widening hints (`Widen`), whose change
@@ -1028,7 +1112,13 @@ been printed for the hit when the candidates are rejected.
 
 The other clients of the tree are not audited, and reject every candidate
 once registered: the server registers hooks on statuses, red statuses and
-messages when a client of its protocol listens; the Report plug-in, the
+messages when a client of its protocol listens, and subscribes to the
+statistics by function of the summary when a client listens to the signal
+of the array `functionStats` (`States.install_hook` registers the
+subscription at the `SigOn` of the signal). With no server running, or no
+client listening, this subscription is not registered; with a server
+running, its listener of the logger already rejects every candidate. It
+therefore changes no hit at this revision. The Report plug-in, the
 logging of a plug-in to a file (`-<plug-in>-log`) and the monitoring of the
 server register a listener; the inlining of statement contracts registers
 hooks on statuses.
@@ -1037,14 +1127,22 @@ hooks on statuses.
 registered with the flag of an audited client is trusted. The logger has
 two replaceable parts that are not registrations and that the test does
 not see: the formatter installed with `Log.set_formatter` and the history
-test `Log.check_not_yet`. A replacement that acts on what it prints or
+test `Log.check_not_yet`. Nor does it see the printers of the kernel that
+a plug-in replaces or extends (`Printer.update_printer`), which format the
+elements of the AST named in the messages, at a hit as in an analysis of
+the body, in other lines. A replacement that acts on what it prints or
 tests can tell a hit from a fresh call without declaring itself audited:
 with a formatter that sets `alarm` to `abort` when it sees the disposition
 of a hit, the delivery stops at the first status message where the run
 with caching disabled completes with `r1 = 9` and `r2 = 8`. No plug-in of
 the tree installs either replacement. The guarantee of this entry is for
-the logger of the tree with output sinks that do not act on the analysis;
-the supplier owes it. The observers of
+the logger and the printers of the tree with output sinks that do not act
+on the analysis; the supplier owes it. The internal modules of Eva
+(`Eva__Private` and the other `Eva__*` units, which the build exposes) are
+outside the guarantee: a module that reaches them can call or replace what
+the engine relies on. The installation of the update of the summary is
+one-shot, so that such a module cannot replace it silently: a second
+installation raises. The observers of
 the collector, of the Safety part and of the Reach part
 (`Body_access.on_result`, `Safety_part.on_result`, `Reach_part.on_result`)
 run after the analysis of a body and never at a hit: they are test devices
@@ -1108,6 +1206,30 @@ alarms and red contexts and on the state at the end of `main`:
   at the second message of `later`, as with caching disabled; when the
   Safety part kept one message per text, the hit gave `out = 8`.
 
+In `cache-parts.t`:
+
+- Scenario `predicate`: a part never needed and not audited, whose
+  predicate registers a call hook of Eva at its first or at its second
+  evaluation in the analysis with the supplied entries. At the first, the
+  three calls to `copy` read `callback` for their three candidates; at the
+  second, the first call hits and the two others read `callback`. The hook
+  receives no call with `` `Reuse ``, and the predicate runs 7 times, once
+  for each lookup with candidates. At `2bfc8508ce`, before the answers were
+  taken once, both gave `hits 1`, one call with `` `Reuse `` and 3
+  evaluations.
+- Scenario `stats`: a subscriber of the statistics by function registered
+  without an audit gives `copy: hits 0, rejected for callback 9`; registered
+  as audited, the three calls hit, and its four updates of `copy` read
+  `complete false, reached 2` where those of the analysis with caching
+  disabled read `complete true, reached 2`. At `2bfc8508ce`, the subscriber
+  without an audit let the three calls hit.
+- Scenario `replace-summary`: a second installation through
+  `Eva__Private.Safety_delivery.on_delivered` is refused, and the three
+  calls to `copy` hit. At `2bfc8508ce`, a module outside the tree replaced
+  it, and its function ran at the seven hits of `parts.c`.
+- The scenarios with the server loaded and not started keep their hits
+  (`copy 3`): the server registers no subscription to the statistics.
+
 Mutations, each run alone and reverted. With the rejection removed from
 `find`, every client of the first scenario lets the call at line 26 hit;
 `overflow.c` after the lookup hits and gives `out = 8`, where caching
@@ -1121,7 +1243,15 @@ of red statuses; `pre-route.c` for the hooks on statuses; `later.c` for
 the logger. With the seventh, `Cache_part.unaudited_clients`, removed, the
 scenarios `unaudited-part` and `inout-client` of `cache-parts.t` give
 `copy: hits 3, rejected for callback 0` where they give `hits 0, rejected
-for callback 9`. Each flag of the hooks of Eva (call, call results, statement)
+for callback 9`. With the eighth, `Safety_delivery.unaudited_subscribers`,
+removed, the subscriber of the scenario `stats` registered without an audit
+lets the three calls hit. With the check of the parts evaluating the
+predicate again instead of using the answers of the lookup, the scenario
+`predicate` with the hook registered at the second evaluation gives one
+call with `` `Reuse `` and 8 evaluations. With the installation of the
+update of the summary no longer one-shot, the scenario `replace-summary`
+installs a second function, which runs at the seven hits. Each flag of
+the hooks of Eva (call, call results, statement)
 and of the logger (`add_listener`, `register`, `on_history_access`), and
 each half of `has_add_or_update_hooks`, removed alone, makes the line of
 its own client hit. With the hooks of red statuses no longer opaque, the
@@ -1149,6 +1279,12 @@ tests register no client and are unchanged.
 - With the server loaded, which From and Inout load, the collector refuses
   every body that registers an alarm: its client of the hooks on the
   changes of annotations is audited at the lookup only.
+- The printers of the kernel that a plug-in replaces or extends are not
+  tested; a hit and an analysis of the body print other lines with them.
+- The subscription of the server to the statistics by function is not
+  audited. It changes no hit at this revision; a configuration of the
+  server that admits hits would reject every candidate while a client
+  listens to the array `functionStats`.
 
 ## Preconditions at a hit
 
