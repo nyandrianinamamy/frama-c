@@ -925,9 +925,19 @@ been printed for the hit when the candidates are rejected.
   counts the consultations it sees (`Body_access.history_consultations`)
   and refuses nothing outside a recording.
 - The error flag of the parser (`Errorloc.set_error`, registered with
-  `register` and `audited`) is set by an error or a failure of the kernel.
-  Each reader of the flag (`Frontc`, `Cabs2cil`, `Mergecil`, `File`)
-  clears it before the phase whose errors it tests.
+  `register` and `audited`) is set by an event of kind error or failure
+  on the channel of the kernel. A hit emits on the channel of Eva only:
+  its dispositions and the messages of its Safety part. It therefore does
+  not run this listener, and a fresh analysis of the body runs it only if
+  the body makes the kernel emit an error or a failure, which no
+  regression does (open: such a body is neither refused nor recorded for
+  that reason). The flag is not cleared by every reader: `Frontc` and
+  `Mergecil` clear it before the phase whose errors they test, and
+  `File.to_cil_cabs` reads it after an external parser without clearing
+  it, so a flag set earlier reaches that reader (shown with the `.cc`
+  test parser: an empty file is accepted, and rejected after a kernel
+  error event). The argument for this client is that a hit does not set
+  the flag, not that the flag is local to a phase.
 - The call and call results hooks registered with `cache_protocol`: those
   of Inout and From (callwise) and of the analysis of threads, whose
   presence rejects every candidate with `consumer` first; and that of the
@@ -948,7 +958,17 @@ its protocol listens; the Report plug-in, the logging of a plug-in to a file
 the inlining of statement contracts registers hooks on statuses.
 
 *Routes that the test does not close.* A client outside the tree
-registered with the flag of an audited client is trusted. The observers of
+registered with the flag of an audited client is trusted. The logger has
+two replaceable parts that are not registrations and that the test does
+not see: the formatter installed with `Log.set_formatter` and the history
+test `Log.check_not_yet`. A replacement that acts on what it prints or
+tests can tell a hit from a fresh call without declaring itself audited:
+with a formatter that sets `alarm` to `abort` when it sees the disposition
+of a hit, the delivery stops at the first status message where the run
+with caching disabled completes with `r1 = 9` and `r2 = 8`. No plug-in of
+the tree installs either replacement. The guarantee of this entry is for
+the logger of the tree with output sinks that do not act on the analysis;
+the supplier owes it. The observers of
 the collector and of the Safety part (`Body_access.on_result`,
 `Safety_part.on_result`) run after the analysis of a body and never at a
 hit: they are test devices of the cache, through which a test reads the

@@ -213,8 +213,10 @@ logging event would otherwise be admitted.
 - The standard kernel message collector is the only audited listener
   registered with `Log.add_listener`. The error flag of the parser
   (`Errorloc.set_error`) is the only audited listener registered with the
-  `register` function of a plug-in's logger: each reader of the flag
-  clears it before the phase whose errors it tests. Other listeners, of
+  `register` function of a plug-in's logger: it listens to the errors
+  and failures of the kernel's channel, which a hit does not emit
+  ([Safety at a hit](safety.md#a-hit-runs-no-client-that-is-not-audited)).
+  Other listeners, of
   either function, refuse with `callback`.
 - Any client of the kernel message-list hook `Messages.add_hook` refuses
   with `callback`, including a client of the audited message collector.
@@ -242,9 +244,13 @@ logging event would otherwise be admitted.
   observed body finishes.
 
 These refusals concern the clients invoked during a body. At the lookup,
-a client of any of these hooks that is not audited, registered at any
-time before the lookup, rejects every supplied entry with `callback`, so
-that no such client runs during a hit
+a client that is not audited, registered at any time before the lookup on
+one of the hooks a hit runs, rejects every supplied entry with `callback`,
+so that no such client runs during a hit. The hooks on the removal of a
+property are not among them: the lookup tests the hooks on a new property
+and on a new status only, the kernel itself registers a removal hook, and
+such a client refuses only when it is invoked during a recording. Whether
+a delivery can remove a property is not examined here (open)
 ([Safety at a hit](safety.md#a-hit-runs-no-client-that-is-not-audited)).
 
 `Traces_domain.Node.next` refuses whenever a trace node identity is

@@ -419,8 +419,10 @@ let clear_errors () = hadErrors := false
 
 let set_error (_:Log.event) = hadErrors := true
 
-(* Audited: each reader of the flag clears it before the phase whose errors
-   it tests. *)
+(* Audited: these listeners see the errors and failures of the kernel's
+   channel only, which a hit of Eva's cache does not emit. Not every reader
+   clears the flag first: [File.to_cil_cabs] reads it after an external
+   parser. *)
 let () =
   Kernel.register ~audited:true Log.Error set_error;
   Kernel.register ~audited:true Log.Failure set_error

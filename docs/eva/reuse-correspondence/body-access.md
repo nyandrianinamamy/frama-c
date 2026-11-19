@@ -464,10 +464,12 @@ notification. The admitted per-event accesses are Eva's `partition` and
 `locals-escaping` warning (a stable event already in the once history on
 a matching sweep hit). See [ordered effects](collector-effects.md#ordered-and-opaque-effects)
 for the conditions, callback rules and remaining obligations.
-A hit prints the messages of the statuses again, and none of the other
-messages of the body: neither the admitted ones nor those of a category
-inactive at the producing call. A listener of the logger would see the
-difference, and rejects every entry while it is registered
+A hit prints again the messages of its Safety part, the reports of
+alarms and of statuses, and none of the other messages of the body:
+neither the admitted ones nor those of a category inactive at the
+producing call. A listener of the logger that is not audited would see
+the difference, and rejects every entry while it is registered; the
+audited message collector of the kernel stays registered at a hit
 ([A hit runs no client that is not audited](safety.md#a-hit-runs-no-client-that-is-not-audited)).
 The lookup rejects an entry when the status of a warning category differs
 from its status when the analysis of the body started
