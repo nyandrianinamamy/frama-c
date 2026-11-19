@@ -399,13 +399,14 @@ as reached, where caching disabled counts 14: the loop at line 14, reached
 by no call, is counted. After a change of the entry point, `body` is no
 longer recorded. `supply` refuses an entry for `outer`, which calls `body`.
 
-Before the restriction, with the analyzer at revision `1514bc018b` and the
-same fixture, the runs differed from caching disabled: from `main`, the alarm got the final status valid and
-`one` was marked unreachable; in the reverse order, the alarm got the final
-status invalid; from `no_return`, the alarm was valid, and `one` and the
-postcondition were marked unreachable. Export generated seven annotations in
-`body`, all valid, among them `\false` at lines 10 and 14. The summary
-counted 12 statements of 15. `supply` accepted the entry for `outer`.
+Before the restriction, with the analyzer at revision `5c7f2e1fc5` and the
+same fixture, the runs differed from caching disabled: from `main`, the
+alarm got the final status valid and `one` was marked unreachable; in the
+reverse order, the alarm got the final status invalid; from `no_return`, the
+alarm was valid, and `one` and the postcondition were marked unreachable.
+Export generated seven annotations in `body`, all valid, among them
+`\false` at lines 10 and 14. The summary counted 12 statements of 15.
+`supply` accepted the entry for `outer`.
 
 The request `getDeadCode` and the rejection when the Markdown report, WP or
 the constant propagation is loaded rest on source inspection; the rejection
@@ -462,11 +463,12 @@ of `body` from `producer`, and sets a red status there. The calls of `body`
 and of `producer` read `collector: refused (project-switch)`, the statistic
 `collector-refused-project-switch` is 1 for each, and no entry is produced.
 The analysis from `main` then has no candidate, and its tables are those of
-the run with caching disabled and the same hook. Before the refusal, with the analyzer
-at revision `1514bc018b` and the same fixture, the entry was stored with the red context set in the
-second project, and the hit delivered it in the first: the tables of `main`
-had a red context of the reachability of the first statement of `body`, which
-caching disabled does not have.
+the run with caching disabled and the same hook. Before the refusal, with
+the analyzer at revision `5c7f2e1fc5` and the same fixture, the entry was
+stored with the red context set in the second project, and the hit
+delivered it in the first: the tables of `main` had a red context of the
+reachability of the first statement of `body`, which caching disabled does
+not have.
 
 ## The options that decide the alarms are those of the analysis that uses the entry
 

@@ -561,9 +561,9 @@ three over the examination of each candidate (`key-differs`,
 
 **Argument.** `find` tests `cvalue_alone` first, then `consumer_enabled`,
 then `stop_at_nth_alarm`, then calls `Cache_entry.Make.find`; the first test
-that rejects gives its reason to every candidate. `cvalue_alone` is defined only when the structure
-of the product is a single leaf whose key is the key of `Cvalue_domain.State`;
-the key comparison gives an equality between the type of the states of the
+that rejects gives its reason to every candidate. `cvalue_alone` is defined
+only when the structure of the product is a single leaf whose key is the key
+of `Cvalue_domain.State`; the key comparison gives an equality between the type of the states of the
 engine and that of cvalue states, through which the input of the call and the
 states returned are converted, with no change of value. Any other structure,
 a product of several domains included, rejects every candidate. The second
