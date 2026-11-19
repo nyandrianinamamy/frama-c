@@ -161,8 +161,9 @@ val weakenings: unit -> int
     {!register_allocated_var} on a variable already registered. It is
     counted with or without observer and belongs to the process, not to a
     project. A value built before such a call may keep what it computed
-    from the strength of its targets; a value loaded from a session does
-    not ({!Offsetmap} computes it again). *)
+    from the strength of its targets; an offsetmap loaded from a session
+    through its datatype does not ({!Offsetmap} computes it again when the
+    node is rehashed). *)
 
 val observer_changes: unit -> int
 (** The number of calls of {!observe_metadata_reads} and

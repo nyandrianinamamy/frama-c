@@ -437,9 +437,11 @@ record used from another project. A session carries no count. When a node
 is loaded, `Offsetmap.rehash_node` computes its singleton bit again from
 the loaded value and subtrees, which are rehashed first, and keeps the rest
 of the tag; `Hptmap.rehash_node` rebuilds the leaves and branches of a
-loaded map, and with them the compositional bool of `Lmap`. A loaded node
-therefore has the tag of the weakness that its targets have in the session,
-and a weakening made after the load is counted in the loading process. A second call of `Base.register_allocated_var`
+loaded map, and with them the compositional bool of `Lmap`. A node loaded
+through its datatype therefore has the tag of the weakness that its targets
+have in the session, and a weakening made after the load is counted in the
+loading process. This does not hold for every loaded node: see the open
+items. A second call of `Base.register_allocated_var`
 on a variable replaces the validity of a base that existing nodes may
 designate: it is counted as a weakening. A weakening counted without a call to
 `Body_access.weakened` adds no owner. This is the plain form of the rule: it does
@@ -478,6 +480,26 @@ the next recording. An observer that does not forward, set during a
 recording, hides the read: the recording reads `allocation-metadata` with
 no owner, also when the observer is removed before the recording ends, and
 the next recording reads `would-store`.
+
+**Open: nodes loaded without their datatype.** A session may hold a state
+that the loading process does not know (a plug-in that is not loaded): the
+project library reads it without the transforms of its datatypes. A node
+whose first occurrence in the session is inside such a state is not
+rehashed, and a known state that shares it receives it as decoded, with the
+saved tag, in a process whose count is zero. A body analysed there after
+consulting that tag is not refused. An independent check reproduced it with
+a node and a `Cvalue.Model` state saved in two states, one of them unknown
+at load (`loaded: node tag true, state tag true`, then `would-store`). The
+claim above is limited to sessions whose states are all known to the
+loading process. Removing the limit is not decided: issue #43 lists the
+options.
+
+**Open: identifiers of loaded nodes.** A loaded node keeps the numeric
+identifier given by the process that saved it, and the loading process
+allocates identifiers from its own counter: an unrelated node can receive
+the same one, and `compare`, which reads the tag only, then returns zero
+for two distinct nodes. This holds at the base revision and is not changed
+here (issue #68).
 
 **Open.** The rule applies to the
 bodies analysed after a weakening: an entry stored before a weakening and
