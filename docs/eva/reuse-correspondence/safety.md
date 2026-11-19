@@ -311,21 +311,23 @@ reverted), the hit calls the hook twice before it stops.
   candidate is rejected
   ([A supplied entry is used only where a hit is supported](reuse-operation.md#a-supplied-entry-is-used-only-where-a-hit-is-supported)).
 - Only the messages of statuses and the reports of alarms are replayed.
-  Other messages printed during the analysis of a body refuse it: the
-  special functions such as `Frama_C_show_each`, as `builtin`; `\warning`
-  in an annotation, the messages preceded by
-  `Body_access.read_message_history`, and the other messages printed once,
-  such as the assumption of 2's complement for an overflow or a pointer
-  comparison, as `side-table`. The exceptions are the feedback of
+  The special functions such as `Frama_C_show_each` refuse the body as
+  `builtin`, and `\warning` in an annotation as `side-table`. A message
+  printed once reads the history of the logger, and refuses the body as
+  `side-table`: the messages preceded by
+  `Body_access.read_message_history`, the assumption of 2's complement for
+  an overflow, a pointer comparison. The exceptions are the feedback of
   partitioning and widening and the warning of locals escaping their
   scope, printed once per position without a refusal
   ([ordered effects](collector-effects.md#ordered-and-opaque-effects)),
   and the messages of an inactive category, which are not printed. A hit
   prints none of them; with caching disabled, the call prints the former
   only where the same text was not printed at the same position before, by
-  the analysed call that produced the entry among others. The report of an
-  evaluation that leads to bottom without alarms, a sign of a defect of
-  Eva, is printed at each visit and is not replayed. When the status of the
+  the analysed call that produced the entry among others. A message printed
+  at each occurrence reads no history: it neither refuses the body nor is
+  printed by a hit. The report of an evaluation that leads to bottom
+  without alarms, a sign of a defect of Eva, is one; so are the messages of
+  progress and of debugging. When the status of the
   category of such a message differs between the producing call and the
   lookup of the hit, the entry is rejected; when a hook that the hit runs
   changes it after the lookup, the analysis stops after the delivery
@@ -567,9 +569,11 @@ stack of projects of the kernel. The operations that change the top count
 the change before they run any hook: `force_set_current`, reached from
 `set_current`, from `Project.on` on entry and on exit, and from the loading
 of projects; `remove` when it removes the current project; `remove_all`;
-and `create` when there is no project. The kernel does not run the hooks of
-the change of project for a change made during one of these hooks, but it
-counts it. Each capture of the collector keeps the project and the count at
+and `create` when there is no project. `load_projects` rebuilds the stack
+after unmarshalling, which moves its top without a count, then calls
+`force_set_current`; no hook runs in between. The kernel does not run the
+hooks of the change of project for a change made during one of these
+hooks, but it counts it. Each capture of the collector keeps the project and the count at
 its start, and adds `Project_switch` to its refusals when the count or the
 current project differs at its end. Every capture in progress compares its
 own start, so the bodies whose analysis contains that of the current one
