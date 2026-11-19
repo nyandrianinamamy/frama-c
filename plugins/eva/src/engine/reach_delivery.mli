@@ -24,7 +24,7 @@
     it otherwise ([`Missing_points]). When [save_results] holds and the
     store of the states of the cvalue domain, the only domain at a hit,
     saves no state ([-eva-no-results-domain cvalue]), the function is also
-    recorded as of unknown reachability ({!reach_unknown}): the queries
+    recorded as of unknown reachability ({!reach_unknown_of}): the queries
     then answer no callstack at any point, and do not see the points of the
     hit, which are delivered all the same.
 
@@ -53,23 +53,15 @@ val callstacks : Domain_store.control_point -> Callstack.t list
 (** {2 Functions of unknown reachability}
 
     The queries do not see the points that a hit delivers when the store of
-    the states saves none: the passes run at the end of the analysis must
-    not conclude from the absence of a callstack at a statement of the
-    called function. *)
+    the states saves none: a client that reads the absence of a callstack
+    at a statement of the called function as unreachable code, as Export
+    and the server request of dead code do, must skip that function. *)
 
-(** [reach_unknown kf] records that a hit whose reached points are not
-    known to the queries has answered a call of [kf] in the current
-    analysis. The record is a state of the analysis, and is reset with
+(** Whether a hit whose reached points are not seen by the queries has
+    answered a call of the function in the current analysis (see
+    {!deliver}). The record is a state of the analysis, and is reset with
     it. *)
-val reach_unknown : Cil_types.kernel_function -> unit
-
-(** Whether the function is of unknown reachability in the current
-    analysis ({!reach_unknown}). *)
 val reach_unknown_of : Cil_types.kernel_function -> bool
-
-(** Whether the function that contains the statement is of unknown
-    reachability in the current analysis ({!reach_unknown}). *)
-val reach_unknown_at : Cil_types.stmt -> bool
 
 (** {2 Saved results}
 

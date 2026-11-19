@@ -63,10 +63,6 @@ let reach_unknown = Unknown.add
 
 let reach_unknown_of kf = not (Unknown.is_empty ()) && Unknown.mem kf
 
-let reach_unknown_at stmt =
-  not (Unknown.is_empty ())
-  && Unknown.mem (Kernel_function.find_englobing_kf stmt)
-
 (* ----- Delivery ---------------------------------------------------------- *)
 
 (* The lookup rejects a part without points where the states of the

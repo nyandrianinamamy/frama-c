@@ -40,13 +40,13 @@ val deliver : Callstack.t -> Safety_part.t -> unit
     statements of the called function: the visits of these statements by
     the call are skipped. The hit delivers the points it reaches
     ({!Reach_delivery}), where the state of its callstack is [top]; the
-    passes run at the end of the analysis read these points, and skip the
-    functions of unknown reachability ({!Reach_delivery.reach_unknown_of}).
-    The record below serves the
-    statistics of a function, computed again after each such hit. The
-    functions called by the body of an entry are skipped as well; there are
-    none, since an entry is refused for a body that may call a function
-    that has a body (see {!Supplied_entries.supply}). *)
+    passes run at the end of the analysis read these points, and Export and
+    the server request of dead code skip the functions of unknown
+    reachability ({!Reach_delivery.reach_unknown_of}). The record below
+    serves the statistics of a function, computed again after each such
+    hit. The functions called by the body of an entry are skipped as well;
+    there are none, since an entry is refused for a body that may call a
+    function that has a body (see {!Supplied_entries.supply}). *)
 
 (** [skip_visits kf] records that a hit has answered a call of [kf] in the
     current analysis. The record is a state of the analysis, and is reset

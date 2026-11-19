@@ -154,15 +154,6 @@ let get_status ip =
   in
   Property_status.fold_on_statuses aux_status ip None
 
-(* A statement is reached if a state is saved there or a hit of the cache
-   reached it (see {!Reach_delivery}). A statement of a function of unknown
-   reachability, a call of which was answered by a hit whose points the
-   queries do not see, is counted as reached: the absence of a state there
-   does not prove the statement unreachable. The coverage is then an upper
-   bound, and its line says so (see [unknown_reachability]). *)
-let reached stmt =
-  Results.is_reachable stmt || Reach_delivery.reach_unknown_at stmt
-
 let compute_fun_stats kf =
   let alarms = AlarmsStats.create 13
   and coverage = Coverage.make ()
@@ -185,7 +176,7 @@ let compute_fun_stats kf =
       List.iter (do_status alarm) l
   in
   let do_stmt stmt =
-    let reachable = reached stmt in
+    let reachable = Results.is_reachable stmt in
     Coverage.incr coverage ~reachable;
     Annotations.iter_code_annot (do_annot stmt) stmt
   in
@@ -273,7 +264,7 @@ let compute_statuses ()  =
   in
   let do_property ip =
     let incr stmt statuses =
-      if reached stmt then
+      if Results.is_reachable stmt then
         match get_status ip with
         | None -> ()
         | Some status -> Statuses.incr statuses status
@@ -338,26 +329,9 @@ let compute_stats () =
 
 let plural count = if count = 1 then "" else "s"
 
-(* The statements counted as reached without being reached: those of the
-   functions counted in the coverage that a hit on an entry without a Reach
-   part answered, at which no analysed call saves a state and no other hit
-   reached. That hit may reach them or not. *)
-let unknown_reachability () =
-  let count = ref 0 in
-  let do_stmt stmt = if not (Results.is_reachable stmt) then incr count in
-  FunctionStats.iter (fun kf _ ->
-      if consider_function (Kernel_function.get_vi kf)
-      && Reach_delivery.reach_unknown_of kf
-      then
-        match Kernel_function.get_definition kf with
-        | fundec -> List.iter do_stmt fundec.Cil_types.sallstmts
-        | exception Kernel_function.No_Definition -> ());
-  !count
-
 let print_coverage fmt {prog_fun_coverage=funs; prog_stmt_coverage=stmts} =
   let funs_total = Coverage.total funs
   and stmts_total = Coverage.total stmts in
-  let unknown = unknown_reachability () in
   if funs_total = 0
   then Format.fprintf fmt "No function to be analyzed.@;"
   else
@@ -366,27 +340,13 @@ let print_coverage fmt {prog_fun_coverage=funs; prog_stmt_coverage=stmts} =
        @{<bold>%.0f%%@} coverage.@;"
       funs.reachable (plural funs.reachable) funs_total
       (Coverage.ratio funs *. 100.0);
-  let in_functions =
-    if funs.reachable > 1 then "these functions" else "this function"
-  in
   if funs_total > 0 && stmts_total > 0 then
-    if unknown = 0 then
-      Format.fprintf fmt
-        "In %s, @{<bold>%i@} statements reached (out of @{<bold>%i@}): \
-         @{<bold>%.0f%%@} coverage.@;"
-        in_functions stmts.reachable stmts_total
-        (Coverage.ratio stmts *. 100.0)
-    else
-      (* [stmts] counts the statements of unknown reachability as reached. *)
-      let reached = stmts.reachable - unknown in
-      Format.fprintf fmt
-        "In %s, @{<bold>%i@} statements reached (out of @{<bold>%i@}): \
-         @{<bold>%.0f%%@} coverage,@;\
-         and up to @{<bold>%i@} more through calls answered by the cache \
-         (@{<bold>%.0f%%@} coverage).@;"
-        in_functions reached stmts_total
-        (float_of_int reached /. float_of_int stmts_total *. 100.0)
-        unknown (Coverage.ratio stmts *. 100.0)
+    Format.fprintf fmt
+      "In %s, @{<bold>%i@} statements reached (out of @{<bold>%i@}): \
+       @{<bold>%.0f%%@} coverage.@;"
+      (if funs.reachable > 1 then "these functions" else "this function")
+      stmts.reachable stmts_total
+      (Coverage.ratio stmts *. 100.0)
 
 let print_events fmt stats =
   if Events.total stats.eva_events + Events.total stats.kernel_events = 0

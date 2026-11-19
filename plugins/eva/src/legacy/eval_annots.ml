@@ -38,13 +38,6 @@ let iter_normal_ensures f kf =
   Annotations.iter_behaviors
     (fun bhv -> Annotations.iter_ensures (f bhv) kf bhv.b_name) kf
 
-(* A statement is unreached if no state is saved there and no hit of the
-   cache reached it, unless its function is of unknown reachability: a hit
-   whose points the queries do not see answered a call of it. See
-   {!Reach_delivery}. *)
-let unreached stmt =
-  not (Results.is_reachable stmt || Reach_delivery.reach_unknown_at stmt)
-
 let mark_unreachable () =
   let mark ppt =
     if not (Property_status.automatically_computed ppt) then begin
@@ -60,7 +53,7 @@ let mark_unreachable () =
   in
   (* Mark standard code annotations *)
   let mark_code_annot stmt _emit ca =
-    if unreached stmt then begin
+    if not (Results.is_reachable stmt) then begin
       let kf = Kernel_function.find_englobing_kf stmt in
       let ppts = Property.ip_of_code_annot kf stmt ca in
       List.iter mark ppts;
@@ -71,7 +64,7 @@ let mark_unreachable () =
     inherit Visitor.frama_c_inplace
 
     method! vstmt_aux stmt =
-      if unreached stmt then begin
+      if not (Results.is_reachable stmt) then begin
         let mark_status kf =
           (* Do not mark preconditions as dead if they are not analyzed in
              non-dead code. Otherwise, the consolidation does strange things. *)
@@ -111,7 +104,7 @@ let mark_unreachable () =
     match Function_calls.analysis_status kf with
     | Analyzed _ when not (Eva_utils.skip_specifications kf) ->
       let return_stmt = Kernel_function.find_return kf in
-      if unreached return_stmt then
+      if not (Results.is_reachable return_stmt) then
         iter_normal_ensures mark kf
     | _ -> ()
   in
@@ -184,13 +177,8 @@ let mark_green_and_red () =
     let is_alarm = Alarms.find ca <> None in
     (* We reevaluate only alarms, in the hope that we can emit an 'invalid'
        status, or user assertions that mention a C label. The latter are
-       currently skipped during evaluation. A hit of the cache saves no
-       state: its callstacks answer top at the statements it reaches. In a
-       function of unknown reachability ({!Reach_delivery.reach_unknown_at}),
-       the states are those of the analysed calls only: no status is
-       concluded from them. *)
-    if (is_alarm || contains_c_at ca) && Results.is_reachable stmt
-       && not (Reach_delivery.reach_unknown_at stmt) then
+       currently skipped during evaluation. *)
+    if (is_alarm || contains_c_at ca) && Results.is_reachable stmt then
       match ca.annot_content with
       | AAssert (_, p) | AInvariant (_, true, p) ->
         let p = p.tp_statement in
