@@ -197,7 +197,11 @@ key (the saved-state premise), and the footprint covers the writes of the
 producing executions (coverage, for the possible-write field). Coverage
 alone is not enough: `Checks.key_only_needs_states` gives an entry that
 meets `Coverage` and a key-only inner part, with a state recording `x = 2`,
-that fails `InnerPartSound`.
+that fails `InnerPartSound`. Coverage is a premise handed by entry
+construction, as in the hypotheses table below. The saved-state premise is
+on the producer; for Eva it is an open OCaml obligation of #49. Both are
+proved for the key-only inner parts of the fixtures, `keyInner` and
+`calleeInner`.
 
 ```text
 @innerPartSound_of_key : ∀ {M : Type} [inst : Memory M] {d : Domain M} {entry : CacheEntry d}
@@ -284,11 +288,18 @@ content of the member.
 ## Checked instances
 
 The fixtures are in [`Query.lean`](../../../lean/Checks/Query.lean). Each
-instance is the conclusion of `CacheEntry.query_sound` at a line of its log,
-with every premise proved or constructed in the file for every line of that
-log (`LinePremises`). Each answer is computed by `rfl` and characterised
-exactly; each joined answer of several lines is obtained through
-`query_some`.
+check that states that an answer contains the content of a member at a
+visit takes it from the conclusion of `CacheEntry.query_sound` at a line
+of its log (`query_at_line`, `local_at_line`, and through them
+`two_call_query`, `overwritten_query`, `same_callstack_join`,
+`nested_suffix_join` and `three_lines_join`), with every premise proved or
+constructed in the file for every line of that log (`LinePremises`).
+`local_query` and `key_only_answers` state exact answers without applying
+the theorem; `key_only_answers` also proves the premises of its line.
+`no_state_queries` concerns answers of no state, on which the theorem makes
+no claim. Each
+answer is computed by `rfl` and characterised exactly; each joined answer
+of several lines is obtained through `query_some`.
 
 **Program.** Globals `x`, `g` and `r` are blocks 0, 1 and 2. The cached
 statement is the body of `f`:
