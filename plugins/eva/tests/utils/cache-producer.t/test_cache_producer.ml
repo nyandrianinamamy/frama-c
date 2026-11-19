@@ -133,10 +133,10 @@ let admission () =
   in
   let empty = Base.SetLattice.empty in
   let observation = Eva__Body_access.Result.{
-      reads = empty; writes = empty; exit_writes = empty;
+      reads = empty; dependencies = empty; writes = empty; exit_writes = empty;
       sure_writes = Base.Hptset.empty; designated = empty;
       owners = Base.Hptset.empty; sweeps = Base.Hptset.empty;
-      used_functions = []; hint_generation = None;
+      used_functions = []; hint_generation = None; children = [];
       recorded = []; refusals = [];
     }
   in

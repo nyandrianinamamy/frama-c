@@ -1,5 +1,10 @@
 # A hit within one analysis
 
+[Nested call collection](nested-calls.md) records the contributions of
+skipped children using the winning entry, conditional on its coverage and
+the admission checks. The replay premises of the theorem below also apply
+to those children.
+
 ## Hit soundness
 
 **Kind.** Proved in Lean.

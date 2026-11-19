@@ -148,14 +148,17 @@ module Make
     type pending
 
     (** Result of a lookup. *)
+    type hit_source =
+      | Supplied_entry of Supplied_entries.entry
+      | Legacy_trace of Body_access.call_trace option
+    (** The winning supplied entry, or the trace of a legacy memexec hit. *)
+
     type lookup =
       | No_candidate of pending
       (** No entry matches the call, or every candidate is rejected: its body
           must be analysed. *)
-      | Hit of int * (Partition.key * Domain.t) list
-               * Body_access.call_trace option
-      (** An entry matches the call. The result carries its identifier,
-          the end states and the producing call trace when available. *)
+      | Hit of int * (Partition.key * Domain.t) list * hit_source
+      (** Identifier, reconstructed states and the winning entry or trace. *)
 
     (** [lookup call state] looks up the cache for an entry that matches the
         call [call] in the state [state], before the body of the called
@@ -172,10 +175,12 @@ module Make
         storage. If [footprint] is present, it also reports and counts the
         collector verdict and the storage of an entry produced from it.
         [save_results] enables statement recording for this body. An Inner
-        reference also requires recording in the cvalue store. *)
+        reference also requires recording in the cvalue store.
+        Returns the produced entry, if any. *)
     val store :
       save_results:bool -> ('loc, Value.t) Eval.call -> Domain.t -> pending ->
-      Domain.t Engine_sig.call_result -> Body_access.Result.t option -> unit
+      Domain.t Engine_sig.call_result -> Body_access.Result.t option ->
+      Cache_entry.Cvalue.t option
 
     (** [interrupted call pending] prints the message of the call [call]
         when an exception stops the analysis of the body of the called

@@ -160,7 +160,7 @@ type rejection = [ Cache_entry.rejection | `Product | `Consumer ]
 
 let rejections : rejection list =
   [ `Key_differs; `Key_unclosed; `Sweep; `Recursion; `Hint_generation;
-    `Watchpoint; `Product; `Consumer ]
+    `Watchpoint; `Automatic_cleanup; `Product; `Consumer ]
 
 let rejection_id : rejection -> string = function
   | #Cache_entry.rejection as r -> Cache_entry.rejection_id r
@@ -169,8 +169,7 @@ let rejection_id : rejection -> string = function
 
 type 'state lookup = {
   rejected : (int * rejection) list;
-  hit : (int * (Partition.key * 'state) list * Body_access.call_trace option)
-      option;
+  hit : (entry * (Partition.key * 'state) list) option;
 }
 
 (* Inout and From resolve the identifier given with [`Reuse] to the callbacks
@@ -202,7 +201,14 @@ module Lookup (Domain : sig
       Option.fold ~none:[] ~some:(fun d -> d.Cache_entry.used_functions)
         dependencies
     in
+    let would_skip_cleanup (f, _) =
+      not (Kernel_function.equal f (Callstack.top_kf stack))
+      && Kernel_function.is_definition f
+    in
     if Body_access.recursion_conflict stack used_functions then Error `Recursion
+    else if List.exists would_skip_cleanup used_functions
+         && Builtins_malloc.has_automatic_bases ()
+    then Error `Automatic_cleanup
     else if Builtins_watchpoint.active () then Error `Watchpoint
     else
       match dependencies with
@@ -229,17 +235,10 @@ module Lookup (Domain : sig
       | Some _ when consumer_enabled () || stack.thread <> Thread.main_id ->
         reject_all `Consumer
       | Some eq ->
-        let result =
-          Entry.find ~admit:(admit stack) candidates (cast eq state)
-        in
+        let result = Entry.find ~admit:(admit stack) candidates (cast eq state) in
         let reject (e, reason) = Entry.id e, (reason :> rejection) in
         let hit (e, states) =
-          let trace d = Body_access.{
-              functions = d.Cache_entry.used_functions; recursive = false;
-            }
-          in
-          let states = List.map (fun (k, s) -> k, cast_back eq s) states in
-          Entry.id e, states, Option.map trace (Entry.dependencies e)
+          e, List.map (fun (k, s) -> k, cast_back eq s) states
         in
         { rejected = List.map reject result.rejected;
           hit = Option.map hit result.hit }

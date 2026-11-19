@@ -208,7 +208,9 @@ let actualize_formals state arguments =
       Cvalue_offsetmap.offsetmap_of_assignment state arg.concrete arg.avalue
     in
     warn_imprecise_offsm_write (Eva_ast.Build.var arg.formal) offsm;
-    Cvalue.Model.add_base (Base.of_varinfo arg.formal) offsm state
+    let base = Base.of_varinfo arg.formal in
+    Body_access.may_write_base base;
+    Cvalue.Model.add_base base offsm state
   in
   List.fold_left treat_one_formal state arguments
 

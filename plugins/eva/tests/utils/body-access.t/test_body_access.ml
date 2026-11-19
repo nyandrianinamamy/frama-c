@@ -110,7 +110,7 @@ let observe_annotations stack (r : Access.t) =
   | "split_expression" | "split_predicate" ->
     refuses [Access.Annotation; Access.Side_table]
   | "call_false_leaf" ->
-    refuses [Access.Contract; Access.Nested_call; Access.Side_table]
+    refuses [Access.Side_table]
   | "memory_builtins" -> read ["block"; "finite"; "first"; "second"]
   | "membership" -> read ["member"]
   | "allocable" ->

@@ -698,12 +698,17 @@ let automatic_bases stack =
 let deallocates_at_return stack =
   not (Base.Hptset.is_empty (automatic_bases stack))
 
+let has_automatic_bases () =
+  Base_hptmap.fold
+    (fun base _ found -> found || is_automatically_deallocated base)
+    (Dynamic_Alloc_Bases.get ()) false
+
 let free_automatic_bases stack state =
-  Body_access.refuse Side_table;
   (* free automatic bases that were allocated in the current function *)
   let bases_to_free = automatic_bases stack in
   if Base.Hptset.is_empty bases_to_free then state
   else begin
+    Body_access.refuse Side_table;
     Self.result ~mkey:key_auto_free ~current:true ~once:true
       "freeing automatic bases: %a" Base.Hptset.pretty bases_to_free;
     let state', _changed = free_aux state ~strong:true bases_to_free in

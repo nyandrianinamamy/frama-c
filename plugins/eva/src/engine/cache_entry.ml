@@ -10,7 +10,10 @@ open Cil_types
 
 type statement = Body of kernel_function
 
-type footprint = {
+type call_mode = Cache_observation.call_mode
+type observation = Cache_observation.observation
+
+type footprint = Cache_observation.footprint = {
   read : Base.Hptset.t;
   written : Base.Hptset.t;
   written_exit : Base.Hptset.t;
@@ -25,7 +28,7 @@ type dependencies = {
 
 type rejection = [
   | `Key_differs | `Key_unclosed | `Sweep | `Recursion | `Hint_generation
-  | `Watchpoint
+  | `Watchpoint | `Automatic_cleanup
 ]
 
 let rejection_id : rejection -> string = function
@@ -35,6 +38,7 @@ let rejection_id : rejection -> string = function
   | `Recursion -> "recursion"
   | `Hint_generation -> "hint-generation"
   | `Watchpoint -> "watchpoint"
+  | `Automatic_cleanup -> "automatic-cleanup"
 
 let return_block = function
   | Body kf -> Option.map Base.of_varinfo (Library_functions.get_retres_vi kf)
@@ -52,8 +56,9 @@ let valid_footprint footprint =
   Base.Hptset.subset footprint.written_sure footprint.written_exit
   && Base.Hptset.subset footprint.written_exit footprint.written
 
-let required_key footprint =
-  Base.Hptset.union footprint.read
+let required_key ?reads footprint =
+  let reads = Option.value ~default:footprint.read reads in
+  Base.Hptset.union reads
     (Base.Hptset.diff footprint.written_exit footprint.written_sure)
 
 module type Domain = sig
@@ -75,6 +80,8 @@ module Make (Domain : Domain) = struct
     footprint : footprint;
     exit : (Partition.key * Domain.t) list;
     dependencies : dependencies option;
+    observation : observation option;
+    children : Cache_observation.child list;
   }
 
   (* Whether [relate] relates [bases] only to blocks of [bases] in [state]. *)
@@ -82,13 +89,14 @@ module Make (Domain : Domain) = struct
     Base.SetLattice.is_included
       (Domain.relate bases state) (Base.SetLattice.inject bases)
 
-  let make ?dependencies ~id statement ~key ~input ~footprint ~exit =
+  let make ~id ?reads ?dependencies ?observation ?(children = []) statement
+      ~key ~input ~footprint ~exit =
     let footprint = with_return_block statement footprint in
     if not (valid_footprint footprint) then
       invalid_arg
         "Cache_entry.make: the written sets are not nested: \
          W_sure ⊆ W_exit ⊆ W fails";
-    let missing = Base.Hptset.diff (required_key footprint) key in
+    let missing = Base.Hptset.diff (required_key ?reads footprint) key in
     if not (Base.Hptset.is_empty missing) then
       Format.kasprintf invalid_arg
         "Cache_entry.make: the key does not contain %a, of R ∪ (W_exit \\ \
@@ -98,7 +106,7 @@ module Make (Domain : Domain) = struct
     let kept = Base.Hptset.union key footprint.written in
     let exit = List.map (fun (k, s) -> k, Domain.filter kept s) exit in
     { id; statement; key; input = Domain.filter key input; footprint; exit;
-      dependencies }
+      dependencies; observation; children }
 
   let id e = e.id
   let with_id id e = { e with id }
@@ -108,6 +116,8 @@ module Make (Domain : Domain) = struct
   let footprint e = e.footprint
   let exit e = e.exit
   let dependencies e = e.dependencies
+  let observation e = e.observation
+  let children e = e.children
 
   let pretty_statement fmt = function
     | Body kf -> Format.fprintf fmt "body of %a" Kernel_function.pretty kf
@@ -169,4 +179,14 @@ module Make (Domain : Domain) = struct
     examine [] candidates
 end
 
-module Cvalue = Make (Cvalue_domain.State)
+module Cvalue = struct
+  include Make (Cvalue_domain.State)
+
+  type Cache_observation.reference += Entry of t
+
+  let reference t = Entry t
+
+  let of_reference = function
+    | Entry t -> Some t
+    | _ -> None
+end

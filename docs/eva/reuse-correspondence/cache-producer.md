@@ -4,8 +4,9 @@
 
 **Claim.** A completed body observation yields a candidate only for a
 product consisting of cvalue alone. An accepted observation provides the
-four sets of the candidate's footprint. The key contains
-R ∪ (W_exit ∖ W_sure), with variable-validity blocks of W_exit retained.
+four sets of the candidate's footprint. The key contains the dependencies
+on the values at entry and W_exit ∖ W_sure. It retains variable-validity
+blocks of W_exit.
 It is closed under `relate` in the producing input and is at most
 `-eva-cache-key-limit` blocks. The option defaults to 256 and permits zero.
 
@@ -23,10 +24,12 @@ and [`relate` empty for cvalue](reuse-operation.md#relate-empty-for-cvalue).
 structure permits the single cvalue leaf. The producer consumes the
 collector verdict unchanged. It copies the finite collector sets and
 checks W_sure ⊆ W_exit ⊆ W. It uses the same return-slot convention as
-supplied entries. The matching seed includes every reported read, even a
-read after a full overwrite. Of the other blocks it includes the possible
-exit writes that are absent from W_sure and the exit writes whose base has
-variable validity. Each closure step checks the current size, refuses a
+supplied entries. The matching seed uses the collector dependencies.
+Direct reads remain dependencies even after a full overwrite. Some reads
+from nested calls depend on the result of an earlier write in the caller.
+See [Dependencies on entry values](nested-calls.md#dependencies-on-entry-values).
+The seed also includes exit writes absent from W_sure and exit writes whose
+base has variable validity. Each closure step checks the current size, refuses a
 Top result of `relate`, or adds the related blocks and iterates until there
 is no addition. Every recursive step strictly increases the key. Cvalue
 has an empty relation, so it reaches the fixpoint on the seed.
@@ -93,10 +96,9 @@ fixture changes only the identifier when it supplies an entry.
 | R covers every read, including a load through a pointer. | The collector's evaluator, scalar and aggregate read hooks report the accessed bases. Designation of a pointer target alone checks for an allocated block and does not add a read. See [body access](body-access.md#whole-block-observations-and-exits). Coverage for every concrete execution of an admitted Eva body is open. |
 | W and W_exit cover writes, including writes that leave their input value. | The collector observes transfers, so a write does not depend on comparing input and output maps. Scope updates and narrowing count as possible writes. Its backward graph traversal includes all observed returning paths and can include extra writes. The argument from observed transfers to coverage of all concrete executions remains open. |
 | W_sure is a lower bound on full overwrites on all paths to an exit. | The collector intersects sure bits at joins and retains a base only when the bits cover its full known range at the return. Scope updates and narrowing do not count as sure writes. The return slot follows the existing entry convention and must be present in every stored exit. The connection from the graph lower bound to concrete overwrites, including at offsets, remains open. |
-| The key includes R ∪ (W_exit ∖ W_sure) and is closed. | Established by key construction and the constructor checks described above. |
-| The body does not allocate, free, or end the lifetime of a block outside its locals. | The producer refuses every refusal issued by the collector. Allocation, release, builtins, sweeps, allocated bases, recursive bodies and nested calls are among the paths refused by the collector. This uses the collector's instrumented effect coverage. The transitive side-table and allocation audit remains open. |
-| Every returning execution is covered by an exit, including changes to holders caused by leaving an inner scope. | The iterator supplies the producing Exit states, and the producer permits only the checked lexical sweeps and refuses missing
-overlay bindings except for their absent targets. Callee preconditions are excluded from the collector, and the current fixture hit checks their statuses without consuming their reduced states. The producer therefore refuses when requires clauses would be checked. Exit soundness relative to the concrete semantics and replay of inner-scope sweeps remain open. |
+| The key includes the entry dependencies, sweeps and W_exit ∖ W_sure and is closed. | Established by key construction and the constructor checks described above. |
+| The body does not allocate, free, or end the lifetime of a block outside its locals. | The producer refuses every refusal issued by the collector. Allocation, release, unsupported builtins, foreign sweeps, allocated bases and recursive bodies are refused, including on nested paths. This uses the collector's instrumented effect coverage. The transitive side-table and allocation audit remains open. |
+| Every returning execution is covered by an exit, including changes to holders caused by leaving an inner scope. | The iterator supplies the producing Exit states. The producer permits only checked lexical sweeps and refuses missing overlay bindings except for their absent targets. Callee preconditions are excluded from the collector, and the current fixture hit checks their statuses without consuming their reduced states. The producer therefore refuses when requires clauses would be checked. Exit soundness relative to the concrete semantics and replay of inner-scope sweeps remain open. |
 
 On a hit, Eva still runs the outer cleanup in `Transfer_stmt.do_one_call`.
 `Cvalue_domain.State.leave_scope` uses the post-state holder set to sweep
@@ -173,8 +175,9 @@ production step. The statistics count production even when its message
 category is off. With `-eva-msg-key cache,cache-producer`, a completed
 observation extends the call's disposition with the producer result.
 
-The admitted collector family contains no nested call, so the only used
-function is the subject and the only mode in a produced entry is body.
+The entry carries transitive used functions and modes, references to
+entries at the call sites that used them, and classes of recorded joins.
+See [Nested call composition](nested-calls.md#composition-along-the-observed-path).
 The producer gives an Inner reference when the body saves statement
 states and the cvalue store records them. The reference names the producing
 callstack. [`Engine.Store.register_state`](../../../plugins/eva/src/engine/engine.ml)

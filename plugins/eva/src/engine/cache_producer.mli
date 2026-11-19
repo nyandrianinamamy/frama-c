@@ -36,8 +36,8 @@ val hint_generation : entry -> Widen_generation.t option
     to that callstack, so they can include states from other calls. *)
 val inner : entry -> Callstack.t option
 
-(** Functions used by the analysis, with their call modes. Currently the
-    collector admits only bodies that have no nested call. *)
+(** Functions used by the analysis, including transitive calls, with their
+    call modes. *)
 val used_functions : entry -> (kernel_function * call_mode) list
 
 type refusal =
@@ -53,10 +53,10 @@ module Make (Domain : sig
     val structure : t Abstract.Domain.structure
   end) : sig
   (** Offer a completed body, with the collector result and verdict that
-      belong to this analysis of the body. Returns the stored identifier or
+      belong to this analysis of the body. Returns the stored entry or
       the reason for refusing storage. *)
   val store :
     save_results:bool -> Callstack.t -> Domain.t ->
     Domain.t Engine_sig.call_result -> Body_access.Result.t ->
-    (unit, Body_access.Result.refusal) result -> (int, refusal) result
+    (unit, Body_access.Result.refusal) result -> (Cache_entry.Cvalue.t, refusal) result
 end

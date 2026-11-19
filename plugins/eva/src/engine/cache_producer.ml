@@ -80,14 +80,14 @@ let footprint (r : Body_access.Result.t) =
     else Error Invalid_footprint
   | _ -> Error Footprint_top
 
-let key_seed (footprint : Cache_entry.footprint) =
+let key_seed reads (footprint : Cache_entry.footprint) =
   let add_variable b key =
     match Base.validity b with
     | Base.Variable _ -> Blocks.add b key
     | _ -> key
   in
   Blocks.fold add_variable footprint.written_exit
-    (Cache_entry.required_key footprint)
+    (Cache_entry.required_key ~reads footprint)
 
 let close_key input =
   let limit = Parameters.CacheKeyLimit.get () in
@@ -126,7 +126,12 @@ let produce ~save_results callstack input states r =
   let statement = Cache_entry.Body kf in
   let* footprint = footprint r in
   let footprint = Cache_entry.with_return_block statement footprint in
-  let key = Blocks.union r.Body_access.Result.sweeps (key_seed footprint) in
+  let* reads =
+    match r.Body_access.Result.dependencies with
+    | Set blocks -> Ok blocks
+    | Top -> Error Footprint_top
+  in
+  let key = Blocks.union r.sweeps (key_seed reads footprint) in
   let* key = close_key input key in
   let replayable model b =
     binds model b || (Blocks.mem b r.sweeps && not (binds (fst input) b))
@@ -151,9 +156,13 @@ let produce ~save_results callstack input states r =
         used_functions = r.used_functions;
       }
     in
+    let observation =
+      Cache_observation.{ designated = r.designated; recorded = r.recorded;
+                          functions = r.used_functions }
+    in
     let cache_entry =
-      Entry.make ~dependencies ~id statement ~key ~input:(copy input)
-        ~footprint ~exit
+      Entry.make ~id ~reads ~dependencies ~observation ~children:r.children
+        statement ~key ~input:(copy input) ~footprint ~exit
     in
     let inner =
       if save_results && Cvalue_domain.State.Store.is_computed ()
@@ -165,7 +174,7 @@ let produce ~save_results callstack input states r =
     } in
     ignore (Counter.next ());
     Table.replace kf (entry :: newest_first kf);
-    Ok id
+    Ok cache_entry
   end
 
 module Make (Domain : sig

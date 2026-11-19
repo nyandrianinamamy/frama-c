@@ -60,6 +60,12 @@ argument instantiates. None of them is a proof: the model has no cvalue
 domain, and no theorem relates the cvalue states of Eva to the states of the
 model.
 
+The [nested call collector](nested-calls.md) uses the winning supplied
+entry at the current call site. It preserves the full prefix footprint
+and uses the entry key as the bound on the child's input dependencies.
+The constructor's default key check uses all reads. The producer can pass
+the entry dependencies as the read term of this check.
+
 ## Interpretation of cvalue states and of their projections
 
 **Claim.** The arguments of this file read a cvalue state through its

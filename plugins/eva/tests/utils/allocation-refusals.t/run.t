@@ -144,7 +144,7 @@ returns. A call that never returns and the entry point free nothing.
   scratch call 1: allocation deallocation builtin contract nested-call allocated-block allocation-metadata side-table, owners __alloca_scratch_l10
     freeing automatic bases: {__alloca_scratch_l10}
   scratch call 2: would-store
-  no_return call 1: allocation deallocation sweep nested-call allocated-block allocation-metadata side-table, owners __alloca_scratch_l10
+  no_return call 1: allocation deallocation builtin sweep contract allocated-block allocation-metadata side-table, owners __alloca_scratch_l10
   $ EVA_TEST_ALLOCATION=finalisation frama-c -no-autoload-plugins -load-module eva,test_allocation_refusals.cmxs -eva -eva-no-memexec -main entry -eva-msg-key cache finalisation.c > entry.log 2>&1
   $ grep -E '^entry call' entry.log
   entry call 1: allocation builtin contract nested-call allocated-block allocation-metadata side-table, owners __alloca_entry_l26
@@ -157,10 +157,10 @@ and its metadata, though no body of leaf runs during its analysis.
   $ grep -E '^(leaf|warm|hit_only) call|call to (leaf|warm|hit_only):' hit.log
   leaf call 1: allocated-block allocation-metadata, owners __malloc_main_l16
     call to leaf: lookup: no-candidate; execution: analysed; storage: stored (entry 1); collector: refused (allocated-block)
-  warm call 1: nested-call allocated-block allocation-metadata side-table, owners __malloc_main_l16
-    call to warm: lookup: no-candidate; execution: analysed; storage: stored (entry 2); collector: refused (nested-call)
+  warm call 1: allocated-block allocation-metadata, owners __malloc_main_l16
+    call to warm: lookup: no-candidate; execution: analysed; storage: stored (entry 2); collector: refused (allocated-block)
     call to leaf: lookup: hit (entry 1); execution: not-analysed; storage: none
-  hit_only call 1: nested-call allocated-block allocation-metadata side-table, owners __malloc_main_l16
+  hit_only call 1: nested-call allocated-block allocation-metadata, owners __malloc_main_l16
     call to hit_only: lookup: no-candidate; execution: analysed; storage: stored (entry 3); collector: refused (nested-call)
 
 

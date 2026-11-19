@@ -50,13 +50,17 @@ let warn_empty_from list =
   | [] -> ()
   | (out, _) :: _ ->
     let loc = out.it_content.term_loc in
+    Body_access.unknown_access Contract;
     Self.warning ~loc ~once:true ~wkey:Log_key.warn_missing_assigns
       "@[no \\from part for clause@ '%a'.@ Assuming \\from \\nothing so that \
        the analysis can continue, but be aware this is probably incorrect.@]"
       Printer.pp_assigns (Writes no_from)
 
 let get_assigns = function
-  | WritesAny -> warn_empty_assigns (); []
+  | WritesAny ->
+    Body_access.unknown_access Contract;
+    warn_empty_assigns ();
+    []
   | Writes list ->
     warn_empty_from list;
     let get_froms = function
@@ -85,7 +89,10 @@ let get_allocation_for_behavior spec b =
   in
   match allocations with
   | FreeAllocAny -> [], [] (* TODO: warning. *)
-  | FreeAlloc (free, alloc) -> free, alloc
+  | FreeAlloc (free, alloc) ->
+    if free <> [] then Body_access.refuse Deallocation;
+    if alloc <> [] then Body_access.refuse Allocation;
+    free, alloc
 
 let pp_eval_error fmt e =
   if e <> Eval_terms.CAlarm then
@@ -122,15 +129,18 @@ let warn_on_missing_result_assigns kinstr kf spec =
     | Writes l -> List.exists for_result l
   in
   if return_used && not (List.for_all assigns_result spec.spec_behavior)
-  then
+  then begin
+    Body_access.read_message_history ();
     let loc = Kernel_function.get_location kf in
     Self.warning ~wkey:Log_key.warn_missing_assigns_result  ~once:true ~loc
       "@[no 'assigns \\result \\from ...' clause specified for function %a@]"
       Kernel_function.pretty kf
+  end
 
 let reduce_to_valid_location kind term loc =
   if Locations.(Addresses.Bits.(equal top loc.addr)) then
     begin
+      Body_access.unknown_access Contract;
       Self.error ~once:true ~current:true
         "@[Cannot handle@ %a,@ location is too imprecise@ (%a).@ \
          Assuming it is not assigned,@ but be aware@ this is incorrect.@]"
@@ -141,11 +151,13 @@ let reduce_to_valid_location kind term loc =
     let valid = Locations.(valid_part Write loc) in
     if Locations.is_bottom valid then
       begin
-        if kind = Assign && not (Locations.is_bottom loc) then
+        if kind = Assign && not (Locations.is_bottom loc) then begin
+          Body_access.read_message_history ();
           Self.warning ~current:true ~once:true
             ~wkey:Log_key.warn_invalid_assigns
             "@[Completely invalid destination@ for %a.@ \
-             Ignoring.@]" pp_clause (kind, term);
+             Ignoring.@]" pp_clause (kind, term)
+        end;
         None
       end
     else Some loc
@@ -163,16 +175,19 @@ let precise_loc_of_assign env kind term =
   try
     (* TODO: warn about errors during evaluation. *)
     let alarm_mode = Eval_terms.Ignore in
-    let loc = match kind with
-      | Assign | From ->
-        Eval_terms.eval_tlval_as_location ~alarm_mode env term
-      | Free | Allocate ->
-        let result = Eval_terms.eval_term ~alarm_mode env term in
-        let addr_bits = Addresses.Bits.of_bytes result.eover in
-        Locations.make addr_bits Z_or_top.top
+    let loc =
+      Logic_access.with_clause Contract (fun () ->
+          match kind with
+          | Assign | From ->
+            Eval_terms.eval_tlval_as_location ~alarm_mode env term
+          | Free | Allocate ->
+            let result = Eval_terms.eval_term ~alarm_mode env term in
+            let addr_bits = Addresses.Bits.of_bytes result.eover in
+            Locations.make addr_bits Z_or_top.top)
     in
     if kind <> From then reduce_to_valid_location kind term loc else Some loc
   with Eval_terms.LogicEvalError e ->
+    Body_access.unknown_access Contract;
     Self.warning ~current:true ~once:true
       "@[<hov 0>@[<hov 2>cannot interpret %a@]%a;@ effects will be ignored@]"
       pp_clause (kind, term) pp_eval_error e;
@@ -342,7 +357,9 @@ module Make (Engine: Engine_Subset) = struct
       let loc = Option.map Precise_locs.imprecise_location precise_loc in
       match loc with
       | None | Some Locations.{ size = `Top } -> ()
-      | Some Locations.{ addr; size = `Value size } ->
+      | Some (Locations.{ addr; size = `Value size } as loc) ->
+        Body_access.read loc;
+        Body_access.designate_cells cvalue_state loc;
         let offsm = Cvalue.Model.copy_offsetmap addr size cvalue_state in
         let warn v =
           match Cvalue.V_Or_Uninitialized.get_v v with

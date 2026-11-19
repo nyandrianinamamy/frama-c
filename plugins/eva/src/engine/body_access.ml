@@ -50,11 +50,12 @@ module Result = struct
     | Footprint_top -> "footprint-top"
     | Side_table -> "side-table"
 
-  type recorded =
+  type recorded = Cache_observation.recorded =
     | Reached | States | Callers | Guards | Alarms | Statuses | Zones | Holders
 
   type t = {
     reads : Bases.t;
+    dependencies : Bases.t;
     writes : Bases.t;
     exit_writes : Bases.t;
     sure_writes : Base.Hptset.t;
@@ -65,6 +66,7 @@ module Result = struct
     hint_generation : Widen_generation.t option;
     recorded : recorded list;
     refusals : refusal list;
+    children : Cache_observation.child list;
   }
 
   module Hooks = Hook.Build (struct type nonrec t = Callstack.t * t end)
@@ -96,6 +98,12 @@ type recording = {
   mutable reads_widening_hints : bool;
   mutable sweeps : Base.Hptset.t;
   mutable reads : Bases.t;
+  mutable dependencies : Bases.t;
+  call_dependencies : (int, Bases.t) Hashtbl.t;
+  mutable transition_src : int option;
+  mutable private_blocks : Base.Hptset.t;
+  mutable children : Cache_observation.child list;
+  enclosing : recording option;
   mutable writes : Bases.t;
   mutable designated : Bases.t;
   mutable owners : Base.Hptset.t;
@@ -103,8 +111,9 @@ type recording = {
   mutable refusals : refusal list;
   mutable transition : writes option;
   edges : (int, edge) Hashtbl.t;
-  mutable paths : (int * int) option;
+  mutable paths : (int * int * bool) option;
   mutable unlocated_write : bool;
+  mutable exit_possible : Bases.t;
 }
 
 let current : recording option ref = ref None
@@ -117,15 +126,6 @@ let[@inline always] is_recording () = Option.is_some !current
 
 let is_observing () = Option.is_some !current || Option.is_some !call_site
 
-(* A body inherits these refusals from the fresh bodies it analyses. *)
-let inherited = function
-  | Reallocation | Allocation | Deallocation | Validity_mutation
-  | Allocated_block | Allocation_metadata -> true
-  | Recursion | Watchpoint | Dump | Threaded | Sweep | Widening_hint
-  | Stop_at_alarm | Callback | Trace_id -> true
-  | Indirect_call | Builtin | Contract | Annotation | Nested_call
-  | Footprint_top | Side_table -> false
-
 let at_site = function
   | Reallocation | Allocation | Deallocation | Validity_mutation
   | Allocated_block | Allocation_metadata | Footprint_top | Watchpoint
@@ -135,25 +135,22 @@ let at_site = function
 let add_refusal r reason =
   if not (List.mem reason r.refusals) then r.refusals <- reason :: r.refusals
 
-(* The recorder of the allocation family: the body's, or at a call site the
-   recorder of the body. *)
-let observer () =
-  match !current with
-  | Some _ as r -> r
-  | None -> !call_site
+(* During a requires check, the callee and enclosing body both need
+   allocation metadata. *)
+let iter_observers f =
+  Option.iter f !current;
+  Option.iter f !call_site
 
 (* The kernel reports each read of the validity or of the type of an
    allocated block, and each update of a validity record, while a recorder
    is set. *)
 let metadata_read base =
-  match observer () with
-  | None -> ()
-  | Some r ->
-    add_refusal r Allocation_metadata;
-    r.owners <- Base.Hptset.add base r.owners
+  iter_observers (fun r ->
+      add_refusal r Allocation_metadata;
+      r.owners <- Base.Hptset.add base r.owners)
 
 let validity_update _ ~weak:_ =
-  Option.iter (fun r -> add_refusal r Validity_mutation) (observer ())
+  iter_observers (fun r -> add_refusal r Validity_mutation)
 
 (* The observers that the kernel had when the collector installed its own:
    they keep running behind them, and are restored when no recorder is set.
@@ -219,25 +216,24 @@ let set_recorders body site =
   ;
   own_changes := Base.observer_changes ()
 
-let suspend site f =
+let with_recorders body site f =
   let previous = !current and previous_site = !call_site in
-  set_recorders None site;
+  set_recorders body site;
   Fun.protect f ~finally:(fun () -> set_recorders previous previous_site)
 
 let without_recording f =
   if Option.is_none !current && Option.is_none !call_site then f ()
-  else suspend None f
+  else with_recorders None None f
 
 let at_call_site f =
   match !current with
   | None -> f ()
-  | previous -> suspend previous f
+  | Some r as site -> with_recorders r.enclosing site f
 
 let[@inline always] refuse reason =
-  match !current, !call_site with
-  | Some r, _ -> add_refusal r reason
-  | None, Some r when at_site reason -> add_refusal r reason
-  | None, _ -> ()
+  Option.iter (fun r -> add_refusal r reason) !current;
+  if at_site reason then
+    Option.iter (fun r -> add_refusal r reason) !call_site
 
 let call kf mode =
   Option.iter
@@ -283,25 +279,25 @@ let check_bases r = function
 
 let add_read r bases =
   check_bases r bases;
-  r.reads <- Bases.join r.reads bases
+  r.reads <- Bases.join r.reads bases;
+  let dependencies = Nested_access.remove r.private_blocks bases in
+  r.dependencies <- Bases.join r.dependencies dependencies
 
 let[@inline always] read location =
   match !current with
   | None -> ()
   | Some r -> add_read r (Addresses.Bits.get_bases location.Locations.addr)
 
-(* At a call site, the blocks read, written or designated are checked and
-   not added to the sets of the body. *)
+(* At a requires check, the callee checks blocks without recording the
+   accesses as part of its own body. *)
 let read_bases bases =
-  match !current, !call_site with
-  | Some r, _ -> add_read r bases
-  | None, Some r -> check_bases r bases
-  | None, None -> ()
+  Option.iter (fun r -> add_read r bases) !current;
+  Option.iter (fun r -> check_bases r bases) !call_site
 
 let check_location value =
-  match !current, !call_site with
-  | Some r, _ | None, Some r -> check_bases r (Cvalue.V.get_bases value)
-  | None, None -> ()
+  if is_observing () then
+    let bases = Cvalue.V.get_bases value in
+    iter_observers (fun r -> check_bases r bases)
 
 let add_designated r bases =
   let bases =
@@ -312,17 +308,12 @@ let add_designated r bases =
   check_bases r bases;
   r.designated <- Bases.join r.designated bases
 
-let[@inline always] designate value =
-  match !current, !call_site with
-  | Some r, _ -> add_designated r (Cvalue.V.get_bases value)
-  | None, Some r -> check_bases r (Cvalue.V.get_bases value)
-  | None, None -> ()
-
 let designate_bases bases =
-  match !current, !call_site with
-  | Some r, _ -> add_designated r bases
-  | None, Some r -> check_bases r bases
-  | None, None -> ()
+  Option.iter (fun r -> add_designated r bases) !current;
+  Option.iter (fun r -> check_bases r bases) !call_site
+
+let[@inline always] designate value =
+  if is_observing () then designate_bases (Cvalue.V.get_bases value)
 
 (* A load combines the cells of its range. The combination can drop a
    pointer, for instance beside an uninitialized cell, so the targets of
@@ -354,19 +345,26 @@ let add_cells add_designated state (location : Locations.t) =
     Addresses.Bits.M.iter (fun base offsets -> cells base (range offsets)) map
 
 let designate_cells state location =
-  match !current, !call_site with
-  | Some r, _ -> add_cells (add_designated r) state location
-  | None, Some r -> add_cells (check_bases r) state location
-  | None, None -> ()
+  if is_observing () then add_cells designate_bases state location
 
-let add_write r may sure =
-  r.writes <- Bases.join r.writes may;
+let add_exit_write r may sure =
+  let may = Nested_access.remove r.private_blocks may in
+  r.exit_possible <- Bases.join r.exit_possible may;
+  let sure =
+    if Base.Hptset.is_empty r.private_blocks then sure
+    else Zone.filter_base
+        (fun b -> not (Base.Hptset.mem b r.private_blocks)) sure
+  in
   match r.transition with
   | None -> r.unlocated_write <- true
   | Some w ->
     let may = Bases.join w.may may in
     let sure = Zone.link w.sure sure in
     r.transition <- Some {may; sure}
+
+let add_write r may sure =
+  r.writes <- Bases.join r.writes may;
+  add_exit_write r may sure
 
 let add_possible_write r bases =
   check_bases r bases;
@@ -404,7 +402,10 @@ let write location =
 
 let unknown_read reason =
   Option.iter
-    (fun r -> add_refusal r reason; r.reads <- Bases.top)
+    (fun r ->
+       add_refusal r reason;
+       r.reads <- Bases.top;
+       r.dependencies <- Bases.top)
     !current
 
 let unknown_access reason =
@@ -412,6 +413,7 @@ let unknown_access reason =
     (fun r ->
        add_refusal r reason;
        r.reads <- Bases.top;
+       r.dependencies <- Bases.top;
        add_write r Bases.top Zone.bottom)
     !current
 
@@ -484,11 +486,13 @@ let transfer ~id ~src ~dst f input =
   match !current with
   | None -> f input
   | Some r ->
-    let previous = r.transition in
+    let previous = r.transition and previous_src = r.transition_src in
     r.transition <- Some no_writes;
+    r.transition_src <- Some src;
     let finish () =
       let writes = Option.get r.transition in
       r.transition <- previous;
+      r.transition_src <- previous_src;
       writes
     in
     match f input with
@@ -532,7 +536,7 @@ let may_reach_exit edges exit =
 
 (* Propagate definitely written bits from the entry. Their intersection at
    a join retains only the bits written on every incoming path. *)
-let must_reach_exit edges entry exit =
+let must_writes edges entry =
   let outgoing = Hashtbl.create 17 in
   Hashtbl.iter (fun _ e -> Hashtbl.add outgoing e.src e) edges;
   let written = Hashtbl.create 17 in
@@ -555,16 +559,18 @@ let must_reach_exit edges entry exit =
     in
     List.iter propagate (Hashtbl.find_all outgoing src)
   done;
-  let full_block base bits acc =
-    match Base.validity base with
-    | Base.Known (lo, hi)
-      when Int_Intervals.is_included (Int_Intervals.inject_bounds lo hi) bits ->
-      Base.Hptset.add base acc
-    | _ -> acc
+  written
+
+let dependencies r written =
+  let at_prefix src reads deps =
+    let reads =
+      match Hashtbl.find_opt written src with
+      | None -> reads
+      | Some bits -> Nested_access.remove (Nested_access.fully_written bits) reads
+    in
+    Bases.join reads deps
   in
-  match Hashtbl.find_opt written exit with
-  | None -> Base.Hptset.empty
-  | Some bits -> Zone.fold_i full_block bits Base.Hptset.empty
+  Hashtbl.fold at_prefix r.call_dependencies r.dependencies
 
 (* A value that designates an allocated block refuses, with the block as an
    owner; an unknown set of blocks refuses as footprint-top. *)
@@ -608,7 +614,7 @@ let check_written ~entry ~exits =
       List.iter (check_state r written) (entry :: exits)
 
 let finish_paths ~entry ~exit ~returns =
-  if returns then Option.iter (fun r -> r.paths <- Some (entry, exit)) !current
+  Option.iter (fun r -> r.paths <- Some (entry, exit, returns)) !current
 
 let capture stack compute =
   if not (Parameters.CacheCollect.get ()) then compute (), None
@@ -621,6 +627,12 @@ let capture stack compute =
       reads_widening_hints = false;
       sweeps = Base.Hptset.empty;
       reads = Bases.bottom;
+      dependencies = Bases.bottom;
+      call_dependencies = Hashtbl.create 0;
+      transition_src = None;
+      private_blocks = Base.Hptset.empty;
+      children = [];
+      enclosing = previous;
       writes = Bases.bottom;
       designated = Bases.bottom;
       owners = Base.Hptset.empty;
@@ -630,6 +642,7 @@ let capture stack compute =
       edges = Hashtbl.create 17;
       paths = None;
       unlocated_write = false;
+      exit_possible = Bases.bottom;
     } in
     set_recorders (Some r) None;
     let displaced = !displacements in
@@ -641,13 +654,23 @@ let capture stack compute =
        recording: a read of allocation metadata may be missing. *)
     if !displacements <> displaced then add_refusal r Allocation_metadata;
     (* The size of a written block is read outside the body's analysis. *)
-    let exit_writes, sure_writes =
+    let exit_writes, sure_writes, dependencies =
       without_recording @@ fun () ->
+      let no_sure = Base.Hptset.empty in
       match r.paths with
-      | None -> Bases.bottom, Base.Hptset.empty
-      | Some _ when r.unlocated_write -> r.writes, Base.Hptset.empty
-      | Some (entry, exit) ->
-        may_reach_exit r.edges exit, must_reach_exit r.edges entry exit
+      | None -> Bases.bottom, no_sure, dependencies r (Hashtbl.create 0)
+      | Some (entry, exit, returns) ->
+        let written = must_writes r.edges entry in
+        let deps = dependencies r written in
+        if not returns then Bases.bottom, no_sure, deps
+        else if r.unlocated_write then r.exit_possible, no_sure, deps
+        else
+          let sure =
+            match Hashtbl.find_opt written exit with
+            | None -> no_sure
+            | Some bits -> Nested_access.fully_written bits
+          in
+          may_reach_exit r.edges exit, sure, deps
     in
     let used_functions = Calls.elements r.used_functions in
     if recursion_conflict stack used_functions then add_refusal r Recursion;
@@ -659,6 +682,7 @@ let capture stack compute =
     then add_refusal r Widening_hint;
     let result = {
       reads = r.reads;
+      dependencies;
       writes = r.writes;
       exit_writes;
       sure_writes;
@@ -670,24 +694,81 @@ let capture stack compute =
         (if r.reads_widening_hints then Some r.entry_generation else None);
       recorded = List.sort compare r.recorded;
       refusals = List.sort compare r.refusals;
+      children = List.rev r.children;
     } in
-    let pass_on parent =
-      List.iter
-        (fun reason -> if inherited reason then add_refusal parent reason)
-        result.refusals;
-      parent.owners <- Base.Hptset.union parent.owners result.owners;
-      parent.used_functions <-
-        Calls.union parent.used_functions r.used_functions;
-      if r.reads_widening_hints then parent.reads_widening_hints <- true;
-      (* Even a sweep admitted for the child is a foreign sweep here. *)
-      if not (Base.Hptset.is_empty r.sweeps) then add_refusal parent Sweep
-    in
-    Option.iter pass_on (if Option.is_some previous then previous
-                         else previous_site);
-    without_recording (fun () -> Hooks.apply (stack, result));
+      without_recording (fun () -> Hooks.apply (stack, result));
     output, Some result
 
 let verdict (r : Result.t) =
   match r.refusals with
   | [] -> Ok ()
   | reason :: _ -> Error reason
+
+let with_callee kf return f =
+  match !current with
+  | None -> f ()
+  | Some r ->
+    let previous = r.private_blocks in
+    let blocks = Nested_access.private_blocks kf return in
+    r.private_blocks <- Base.Hptset.union previous blocks;
+    Fun.protect f ~finally:(fun () -> r.private_blocks <- previous)
+
+let include_call r stack entry ~reads ~deps ~writes ~exit_writes ~sure_writes =
+  r.reads <- Bases.join r.reads reads;
+  r.writes <- Bases.join r.writes writes;
+  let deps = Nested_access.remove r.private_blocks deps in
+  (match r.transition_src with
+   | None -> r.dependencies <- Bases.join r.dependencies deps
+   | Some src ->
+     let old = Hashtbl.find_opt r.call_dependencies src in
+     let old = Option.value ~default:Bases.bottom old in
+     Hashtbl.replace r.call_dependencies src (Bases.join old deps));
+  let sure =
+    (* The bounds here administer the collector, not the analyzed body. *)
+    without_recording (fun () -> Nested_access.sure_zone sure_writes)
+  in
+  add_exit_write r exit_writes sure;
+  match Callstack.top_callsite stack, entry with
+  | Cil_types.Kstmt stmt, Some entry -> r.children <- (stmt, entry) :: r.children
+  | _ -> ()
+
+let include_effects r ~designated ~recorded ~functions =
+  r.designated <- Bases.join r.designated designated;
+  List.iter (record_table r) recorded;
+  List.iter (fun call -> r.used_functions <- Calls.add call r.used_functions) functions
+
+let include_fresh stack (body : Result.t) entry =
+  Option.iter (fun r ->
+      List.iter (add_refusal r) body.refusals;
+      if Option.is_some body.hint_generation then r.reads_widening_hints <- true;
+      if not (Base.Hptset.is_empty body.sweeps) then add_refusal r Sweep;
+      r.owners <- Base.Hptset.union r.owners body.owners;
+      include_effects r ~designated:body.designated ~recorded:body.recorded
+        ~functions:body.used_functions;
+      include_call r stack entry ~reads:body.reads ~deps:body.dependencies
+        ~writes:body.writes ~exit_writes:body.exit_writes
+        ~sure_writes:body.sure_writes)
+    !current
+
+let include_hit stack entry ~(footprint : Cache_observation.footprint)
+    ~key ~returns ~sweeps ~hint_generation ~observation =
+  Option.iter (fun r ->
+      let reads = Bases.inject footprint.read
+      and writes = Bases.inject footprint.written
+      and deps = Bases.inject key
+      and exit_writes =
+        if not returns then Bases.bottom
+        else Bases.inject footprint.written_exit
+      in
+      List.iter (check_bases r) [reads; writes; deps];
+      if Option.is_some hint_generation then r.reads_widening_hints <- true;
+      if not (Base.Hptset.is_empty sweeps) then add_refusal r Sweep;
+      (match observation with
+       | None -> add_refusal r Nested_call
+       | Some Cache_observation.{ designated; recorded; functions } ->
+         check_bases r designated;
+         include_effects r ~designated ~recorded ~functions);
+      include_call r stack (Some entry) ~reads ~writes ~deps ~exit_writes
+        ~sure_writes:(if returns then footprint.written_sure
+                      else Base.Hptset.empty))
+    !current

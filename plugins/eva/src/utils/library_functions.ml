@@ -94,6 +94,7 @@ let unsupported_specs_tbl =
 let warn_unsupported_spec name =
   try
     let header = Hashtbl.find unsupported_specs_tbl name in
+    Body_access.read_message_history ();
     Self.warning ~once:true ~current:true
       ~wkey:Log_key.warn_libc_unsupported_spec
       "@[The specification of function '%a' is currently not supported by Eva.@ \

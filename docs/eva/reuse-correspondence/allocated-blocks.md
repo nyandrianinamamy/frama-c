@@ -170,8 +170,8 @@ An admitted inner lexical sweep records the holder bindings it rebuilds
 in W. The operations that rebuild bindings outside W are refused for
 another reason. They include other lexical sweeps (`sweep`), the
 release of automatic blocks at a return (`deallocation`, in the caller), the
-states of a nested call (`nested-call`), builtins and specifications
-(`builtin`, `contract`). The reductions by `requires` clauses happen at the
+states from a memexec hit (`nested-call`), unsupported builtins
+and specifications (`builtin`, `contract`). The reductions by `requires` clauses happen at the
 call site, before the body; the values they keep are designated by the loads
 of the clauses. When W is Top, the body is already refused by the operation
 that wrote an unknown set, and the contents are not checked.
@@ -524,17 +524,16 @@ analysis.
 
 **Depends on.** [Refusal and reporting](body-access.md#refusal-and-reporting).
 
-**Symbols.** `Body_access.capture`, `Body_access.inherited`,
+**Symbols.** `Body_access.at_call_site`, `Body_access.include_fresh`,
 `Compute_functions.Make.compute_and_cache_call`.
 
-**Argument.** When a body's observation completes, `capture` adds these
-reasons and the owners to the recorder of the enclosing body, before the
-observers run. An enclosing body is already refused for `nested-call`; the
-inherited reasons make the cause visible and keep the owners with the body
-that will be stored when child observations are composed. A call answered by
-a memexec hit runs no body and does not pass on the allocation owners of
-its producer. Its observed used functions travel separately through
-[the call trace](collector-effects.md#calls-and-recursion). The caller then checks the
+**Argument.** When a fresh child's observation completes, the call seam
+includes all the child's reasons and owners in the enclosing observation.
+The caller observes the requires checks, while the callee retains the
+allocation checks. With a memexec hit there is no child memory observation,
+so the enclosing body refuses as `nested-call`. Its used functions travel
+separately through [the call trace](collector-effects.md#calls-and-recursion).
+The caller then checks the
 `requires` clauses of the callee again, to update their statuses at this
 call: `compute_and_cache_call` runs `check_fct_preconditions` in the caller,
 with the caller's full recording. The reads, designations and metadata
@@ -546,8 +545,8 @@ non-empty set of owners. In `release.c`, `main` reads `main allocation`. In
 `hit.c`, run with memexec, `warm` calls `leaf`, whose clause `\valid(p)`
 reads a pointer to an allocated block, and `hit_only` calls it again. The
 second call is a memexec hit and no body of `leaf` runs during the analysis
-of `hit_only`; `hit_only` reads `nested-call allocated-block
-allocation-metadata side-table, owners __malloc_main_l16`. The check in the
+of `hit_only`. Its reasons include `nested-call allocated-block
+allocation-metadata` and its owner is `__malloc_main_l16`. The check in the
 caller is not new: at the base revision, the probe module gave `nested-call
 allocated-block side-table` for `hit_only`.
 

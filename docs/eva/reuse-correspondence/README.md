@@ -87,6 +87,9 @@ that a checkout has the model sources of an entry, compare
   side-table classes.
 - [Sweeps and collector dependencies](collector-effects.md) covers own-local
   sweeps, recursion, threaded mode, widening hints and ordered effects.
+- [Nested call collection](nested-calls.md) covers fresh bodies, winning
+  child entries, inline specifications, path-dependent entry dependencies
+  and propagated effects.
 - [Entries from fresh bodies](cache-producer.md) covers production, the
   key and footprint, and the producer obligations for supplying an entry.
 - [Allocated blocks](allocated-blocks.md): the refusals on allocated blocks,

@@ -27,7 +27,11 @@ visits on a finite prefix before a fault or in a nonreturning call.
 of the concretisation. A full saved state covering a producing visit can
 use that visit's memory as the representative. This covers a saved state
 joined over all visits at one label. The model assumes the coverage of
-that state and does not prescribe a join operation.
+that state and does not prescribe a join operation. The enclosing
+observation retains the prefix reads and writes of a nested child on
+either path. See [Nested call composition](nested-calls.md#composition-along-the-observed-path)
+for the separate argument for a caller key that omits a read dominated by
+a full overwrite. The theorem here still takes `KeyCovers` as stated.
 
 **Declarations.** [Entry](../../../lean/ReuseModel/Entry.lean).
 `AgreeOn K w m` compares `Memory.load` for each member of `K`.

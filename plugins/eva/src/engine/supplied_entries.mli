@@ -24,7 +24,7 @@
 open Cil_types
 
 (** A cache entry with states of the cvalue domain. *)
-type entry
+type entry = Cache_entry.Cvalue.t
 
 (** The footprint of an entry: R, W, W_exit and W_sure (see
     {!Cache_entry.footprint}). *)
@@ -151,10 +151,8 @@ type 'state lookup = {
   rejected : (int * rejection) list;
   (** The identifiers of the candidates rejected, oldest first, with their
       reasons. *)
-  hit : (int * (Partition.key * 'state) list * Body_access.call_trace option)
-      option;
-  (** The identifier of the entry used, if any, the end states and the
-      producing call trace when available. *)
+  hit : (entry * (Partition.key * 'state) list) option;
+  (** The winning entry, if any, and the states reconstructed from it. *)
 }
 
 module Lookup (Domain : sig

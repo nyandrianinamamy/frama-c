@@ -20,6 +20,9 @@ val alloc_size_ok: Cvalue.V.t -> Alarmset.status
    small enough, [False] that the allocation is guaranteed to fail (because
    the size is always greater than SIZE_MAX). *)
 
+(** Whether an automatic allocation is registered at any callstack. *)
+val has_automatic_bases : unit -> bool
+
 val free_automatic_bases: Callstack.t -> Cvalue.Model.t -> Cvalue.Model.t
 (** Performs the equivalent of [free] for each location that was allocated via
     [alloca()] in the current function (as per [Eva_utils.call_stack ()]).

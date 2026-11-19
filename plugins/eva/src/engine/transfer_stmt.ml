@@ -404,6 +404,8 @@ module Make (Engine: Engine_Subset) = struct
   (* Do the call to one function. *)
   let do_one_call ~pos valuation lv call recursion access state =
     let kf_callee = call.kf in
+    if Option.is_some recursion then Body_access.refuse Side_table;
+    Body_access.with_callee kf_callee call.return @@ fun () ->
     let pre = state in
     (* Process the call according to the domain decision. *)
     let call_result = process_call ~pos call recursion valuation access state in
@@ -715,9 +717,8 @@ module Make (Engine: Engine_Subset) = struct
   let call ~pos lval_option func args state =
     let stmt = fst pos in
     let subdivnb = subdivide_stmt stmt in
-    Body_access.unknown_access Nested_call;
     (match func with
-     | Eva_ast.Mem _ -> Body_access.refuse Indirect_call
+     | Eva_ast.Mem _ -> Body_access.unknown_access Indirect_call
      | Eva_ast.Var _ -> ());
     (* Resolve [func] into the called kernel functions. *)
     let functions, alarms =

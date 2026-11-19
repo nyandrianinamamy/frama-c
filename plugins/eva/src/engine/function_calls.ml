@@ -135,6 +135,12 @@ let get_funspec callsite kf =
     | Kglobal -> None
     | Kstmt stmt -> Some (Cil_datatype.Stmt.loc stmt)
   in
+  if Body_access.is_recording () then begin
+    let spec = Annotations.funspec kf in
+    match Cil.find_default_behavior spec with
+    | Some { b_assigns = Writes _; _ } -> ()
+    | _ -> Body_access.refuse Side_table
+  end;
   Populate_spec.populate_funspec ?loc ~do_body:true kf [`Assigns];
   Annotations.funspec kf
 

@@ -96,12 +96,36 @@ module Make (Engine: Engine_sig.S) = struct
           Cache.interrupted call pending;
           Printexc.raise_with_backtrace exn backtrace
       in
-      Body_access.without_recording (fun () ->
-          Cache.store ~save_results call init_state pending call_result
-            footprint);
+      let entry =
+        Body_access.without_recording (fun () ->
+            Cache.store ~save_results call init_state pending call_result
+              footprint)
+      in
+      Option.iter
+        (fun r ->
+           let reference = Option.map Cache_entry.Cvalue.reference entry in
+           Body_access.include_fresh call.callstack r reference)
+        footprint;
       call_result
-    | Cache.Hit (i, states, trace) ->
-      Option.iter (Body_access.include_trace call.callstack) trace;
+    | Cache.Hit (i, states, source) ->
+      (match source with
+       | Cache.Legacy_trace trace ->
+         Option.iter (Body_access.include_trace call.callstack) trace;
+         Body_access.unknown_access Nested_call
+       | Cache.Supplied_entry entry ->
+         let module Entry = Cache_entry.Cvalue in
+         let dependencies = Entry.dependencies entry in
+         let sweeps =
+           Option.fold ~none:Base.Hptset.empty
+             ~some:(fun d -> d.Cache_entry.sweeps) dependencies
+         in
+         let hint_generation =
+           Option.bind dependencies (fun d -> d.Cache_entry.hint_generation)
+         in
+         Body_access.include_hit call.callstack (Entry.reference entry)
+           ~footprint:(Entry.footprint entry) ~key:(Entry.key entry)
+           ~returns:(states <> []) ~sweeps ~hint_generation
+           ~observation:(Entry.observation entry));
       apply_call_hooks call init_state `Reuse;
       (* Evaluate the preconditions of kf, to update the statuses
          at this call. *)
@@ -134,6 +158,7 @@ module Make (Engine: Engine_sig.S) = struct
     then Self.abort "Library function call. Stopping.";
     let vi = Kernel_function.get_vi call.kf in
     (* Use vorig_name to avoid message duplication due to variadic renaming. *)
+    if Self.verbose_atleast 3 then Body_access.read_message_history ();
     Self.feedback ~level:3 ~once:true
       "@[using specification for function %a@]"
       Printer.pp_varname vi.vorig_name;
@@ -244,7 +269,6 @@ module Make (Engine: Engine_sig.S) = struct
       compute_builtin builtin_info call state
     | `Spec _ as spec ->
       Body_access.call call.kf `Spec;
-      Body_access.unknown_access Contract;
       compute_using_spec_or_body spec call state
     | `Body (_, save_results) as def ->
       Body_access.call call.kf `Body;

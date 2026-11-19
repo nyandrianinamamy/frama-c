@@ -38,11 +38,12 @@ module Result : sig
 
   val refusal_id : refusal -> string
 
-  type recorded =
+  type recorded = Cache_observation.recorded =
     | Reached | States | Callers | Guards | Alarms | Statuses | Zones | Holders
 
   type t = {
     reads : Base.SetLattice.t;
+    dependencies : Base.SetLattice.t;
     writes : Base.SetLattice.t;
     exit_writes : Base.SetLattice.t;
     sure_writes : Base.Hptset.t;
@@ -53,9 +54,14 @@ module Result : sig
     hint_generation : Widen_generation.t option;
     recorded : recorded list;
     refusals : refusal list;
+      children : Cache_observation.child list;
   }
   (** May sets can be [Top] when an unsupported operation has unknown
-      accesses. The sure set contains only fully overwritten blocks.
+      accesses. [dependencies] bounds the values read from the body input.
+      The sure set contains only fully overwritten blocks.
+      [children] records the fresh entries produced or the supplied entries
+      used at the call sites of this body. The referenced entries own their
+      own children.
       [owners] holds the allocated blocks whose validity or type was read,
       including by the bodies analysed during the analysis of this one.
       [sweeps] contains the targets of observed own-local sweeps.
@@ -79,8 +85,9 @@ val without_recording : (unit -> 'a) -> 'a
 
 val at_call_site : (unit -> 'a) -> 'a
 (** Runs a function that belongs to the call site of the current body, as
-    the check of its [requires] clauses. Footprint checks there record
-    the allocation family and [Footprint_top]. They cover allocated blocks among
+    the check of its [requires] clauses. A nested check is recorded in the
+    caller. In the callee's result, only the reasons of the allocation
+    family are recorded, with [Footprint_top]: the allocated blocks among
     the blocks read and designated, including through {!read_bases},
     {!designate_bases} and {!designate_cells}, the reads of allocation
     metadata with their owners, and the allocation effects. A set of blocks
@@ -176,3 +183,18 @@ val recursion_conflict :
 
 (** Records that the current body consulted the dynamic hint table. *)
 val read_widening_hints : unit -> unit
+(** Scope the callee's ephemeral blocks while evaluating a call. They can
+    appear in prefix reads and writes but cannot survive the call. *)
+val with_callee :
+  Cil_types.kernel_function -> Cil_types.varinfo option -> (unit -> 'a) -> 'a
+
+(** Compose a fresh body result and retain its entry if one was produced. *)
+val include_fresh :
+  Callstack.t -> Result.t -> Cache_observation.reference option -> unit
+
+(** Compose the winning supplied entry at the current call site. *)
+val include_hit :
+  Callstack.t -> Cache_observation.reference ->
+  footprint:Cache_observation.footprint -> key:Base.Hptset.t -> returns:bool ->
+  sweeps:Base.Hptset.t -> hint_generation:Widen_generation.t option ->
+  observation:Cache_observation.observation option -> unit

@@ -179,10 +179,13 @@ module Make
     | Memexec of Value.t or_bottom list
     | Supplied of (int * Supplied_entries.rejection) list
 
+  type hit_source =
+    | Supplied_entry of Supplied_entries.entry
+    | Legacy_trace of Body_access.call_trace option
+
   type lookup =
     | No_candidate of pending
-    | Hit of
-        int * (Partition.key * Domain.t) list * Body_access.call_trace option
+    | Hit of int * (Partition.key * Domain.t) list * hit_source
 
   (* Lookup in the entries supplied by a test module. *)
   let lookup_supplied call state =
@@ -197,11 +200,12 @@ module Make
     List.iter count_rejection rejected;
     match hit with
     | None -> No_candidate (Supplied rejected)
-    | Some (id, states, trace) ->
+    | Some (entry, states) ->
+      let id = Supplied_entries.id entry in
       Statistics.(incr cache_hits kf);
       report call ~lookup:{ rejected; hit = Some id }
         ~execution:`Not_analysed ~storage:`None;
-      Hit (id, states, trace)
+      Hit (id, states, Supplied_entry entry)
 
   let lookup call state =
     let kf = call.kf in
@@ -221,7 +225,7 @@ module Make
         Statistics.(incr memexec_hits kf);
         report call ~lookup:{ no_candidate with hit = Some id }
           ~execution:`Not_analysed ~storage:`None;
-        Hit (id, states, Cache_call_trace.find id)
+        Hit (id, states, Legacy_trace (Cache_call_trace.find id))
 
   (* The lookup disposition of a call that found no candidate. *)
   let lookup_disposition = function
@@ -271,8 +275,11 @@ module Make
            Statistics.(incr (cache_production_refused reason) kf));
         Some verdict, Some result
     in
-    report ?collector ?produced call ~lookup:(lookup_disposition pending)
-      ~execution:`Analysed ~storage
+    let entry_id = Cache_entry.Cvalue.id in
+    let reported = Option.map (Result.map entry_id) produced in
+    report ?collector ?produced:reported call ~lookup:(lookup_disposition pending)
+      ~execution:`Analysed ~storage;
+    Stdlib.Option.bind produced Result.to_option
 
   (* Called while an exception leaves the analysis of a body. A failure of
      the report, for instance in a listener of the log, must not replace this

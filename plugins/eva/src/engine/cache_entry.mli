@@ -32,17 +32,20 @@ open Cil_types
 (** The statement of an entry. The only unit is the body of a function. *)
 type statement = Body of kernel_function
 
+type call_mode = Cache_observation.call_mode
+type observation = Cache_observation.observation
+
 (** The blocks that a statement analysed from one input may access. The
     footprint is R ∪ W, and W_sure ⊆ W_exit ⊆ W. A block written only on
     paths that reach no exit is in W and not in W_exit: at an exit it holds
     the value it had in the input.
     - [read], R: the blocks it may read;
     - [written], W: the blocks it may write;
-    - [written_exit], W_exit: the blocks it may write on a path that reaches
-      an exit of the statement;
-    - [written_sure], W_sure: the blocks it certainly and fully overwrites on
-      every path that reaches an exit. *)
-type footprint = {
+    - [written_exit], W_exit: the possible writes that may affect the
+      statement's exit state;
+    - [written_sure], W_sure: the blocks of W_exit that it certainly and
+      fully overwrites on every path that reaches an exit. *)
+type footprint = Cache_observation.footprint = {
   read : Base.Hptset.t;
   written : Base.Hptset.t;
   written_exit : Base.Hptset.t;
@@ -55,8 +58,9 @@ val with_return_block : statement -> footprint -> footprint
 (** Whether W_sure ⊆ W_exit ⊆ W. *)
 val valid_footprint : footprint -> bool
 
-(** The minimum set for the key, R ∪ (W_exit \ W_sure). *)
-val required_key : footprint -> Base.Hptset.t
+(** The minimum set for the key. [reads] defaults to all footprint reads.
+    A producer can pass its dependencies on the entry values instead. *)
+val required_key : ?reads:Base.Hptset.t -> footprint -> Base.Hptset.t
 
 (** Why a candidate entry is not used for a call. *)
 type dependencies = {
@@ -73,9 +77,11 @@ type rejection = [
   (** [relate] relates the key of the entry to blocks outside the key in the
       input of the call. *)
   | `Sweep | `Recursion | `Hint_generation | `Watchpoint
+  | `Automatic_cleanup
+  (** The entry would skip a definition's automatic allocation cleanup. *)
 ]
 
-(** Stable identifier of a reason. *)
+(** Stable identifier of a rejection reason. *)
 val rejection_id : rejection -> string
 
 (** The operations of an abstract domain used by the reuse operation. *)
@@ -104,12 +110,17 @@ module Make (Domain : Domain) : sig
       block that holds the value returned by the function, if any, is added
       to the three written sets of [footprint]: it is fully overwritten on
       every path that reaches an exit. Each exit state is filtered to [key]
-      and to the written blocks.
-      Raises [Invalid_argument] if W_sure ⊆ W_exit ⊆ W does not hold, if
-      [key] does not contain R ∪ (W_exit \ W_sure), or if [key] is not closed
-      under [Domain.relate] in [input]. *)
+      and to the written blocks. [reads] replaces R in the key check when
+      the producer has established which values the body depends on at entry.
+      [observation] describes the effects of its analysis, including nested
+      calls. [children] retains the entries used at those call sites.
+      Raises [Invalid_argument] if W_sure ⊆ W_exit ⊆ W fails, if [key] omits
+      any block of {!required_key}, or if [key] is not closed under
+      [Domain.relate] in [input]. *)
   val make :
-    ?dependencies:dependencies -> id:int -> statement -> key:Base.Hptset.t ->
+    id:int -> ?reads:Base.Hptset.t -> ?dependencies:dependencies ->
+    ?observation:observation -> ?children:Cache_observation.child list ->
+    statement -> key:Base.Hptset.t ->
     input:Domain.t ->
     footprint:footprint -> exit:(Partition.key * Domain.t) list -> t
 
@@ -136,6 +147,11 @@ module Make (Domain : Domain) : sig
 
   (** Collector dependencies of a produced entry, if supplied at creation. *)
   val dependencies : t -> dependencies option
+  (** The producing observation, when supplied by the producer. *)
+  val observation : t -> observation option
+
+  (** Entries used at nested call sites, in analysis order. *)
+  val children : t -> Cache_observation.child list
 
   val pretty : Format.formatter -> t -> unit
 
@@ -161,4 +177,10 @@ module Make (Domain : Domain) : sig
     t list -> Domain.t -> result
 end
 
-module Cvalue : module type of Make (Cvalue_domain.State)
+module Cvalue : sig
+  include module type of Make (Cvalue_domain.State)
+
+  (** Keep this entry across layers that are independent of the domain. *)
+  val reference : t -> Cache_observation.reference
+  val of_reference : Cache_observation.reference -> t option
+end

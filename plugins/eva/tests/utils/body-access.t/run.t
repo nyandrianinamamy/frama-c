@@ -50,14 +50,14 @@ and the bodies reached through those sites.
   annotation would-store
   swept would-store
   copy allocated-block
-  nested nested-call
+  nested allocated-block
   indirect_target indirect-call
   indirect_caller indirect-call
   builtin builtin
-  main allocation
+  main indirect-call
   $ awk -F '\t' '/^collector-/ { print $1, $2, $4 }' refused.tsv
   collector-refused-allocated-block copy 1
-  collector-refused-allocation main 1
+  collector-refused-allocated-block nested 1
   collector-refused-builtin builtin 1
   collector-refused-indirect-call indirect_target 1
   collector-refused-indirect-call indirect_caller 1
@@ -168,14 +168,14 @@ snapshot per analysis, with the same builtin total as the log and final TSV.
   $ EVA_COLLECTOR_STATS_DIR="$PWD/snapshots" frama-c -no-autoload-plugins -load-module eva,inout,scope,collector_statistics.cmxs -eva -eva-no-memexec -mthread -mt-threads-lib pthreads -eva-slevel 15 -machdep x86_64 -eva-msg-key cache -eva-statistics-file mutex.tsv mutex.c > mutex.log 2>&1
   $ test -s mutex.tsv || cat mutex.log
   $ grep -c 'collector: refused (builtin)' mutex.log
-  42
+  52
   $ find snapshots -name '*.tsv' | wc -l
   1
   $ cat snapshots/*.status
   completed
   $ awk -F '\t' '$1 == "collector-refused-builtin" { sum[FILENAME] += $4 } END { for (i = 1; i < ARGC; i++) print sum[ARGV[i]] }' snapshots/*.tsv mutex.tsv
-  42
-  42
+  52
+  52
 
 Behavior selection and ensures read globals absent from the C body. The
 requires clause belongs to the call site. Each run below prints the lines of
@@ -332,7 +332,7 @@ the states, and a false postcondition of a specification.
   $ grep -c 'this postcondition evaluates to false' call_false_leaf.log
   1
   $ grep '^call_false_leaf refuses' call_false_leaf.log
-  call_false_leaf refuses contract, nested-call, side-table
+  call_false_leaf refuses side-table
 
 A warning category set to `once` disables later messages in that category.
 The sweep warning's per-event history is admitted, so the control isolates

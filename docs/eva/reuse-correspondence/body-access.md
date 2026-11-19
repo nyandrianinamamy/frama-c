@@ -5,7 +5,7 @@
 **Claim.** The collector observes each fresh body by default. For the
 supported transfers, R bounds the blocks read, W bounds possible C writes
 and updates of cvalue bindings throughout the body, and W_exit bounds the
-same writes and updates on paths that reach an exit. W_sure contains only
+surviving writes and updates on paths that reach an exit. W_sure contains only
 blocks fully overwritten by C assignments or initializers on every path to
 an exit. The OCaml observer receives each completed observation before the
 storage verdict. A memexec hit has no new body observation.
@@ -56,15 +56,17 @@ The cvalue audit covers the following state updates.
   initialization and assignment paths. Global initialization and the main
   entry formals precede the body. The callee's formals are bound before its
   recorder, and the callee's outer locals, formals and return slot are
-  removed by the caller according to the call protocol. These changes fall
-  within the caller's unsupported nested-call footprint, when applicable.
-  Inner scope removal and its holder rewrites are recorded when the sweep
-  targets the body's own inner locals and passes the input guard.
+  removed by the caller according to the call protocol. The caller records
+  these accesses in its prefix footprint. See
+  [Nested call composition](nested-calls.md#composition-along-the-observed-path).
+  A lexical sweep of the body's own inner locals can pass the input guard.
   [Lexical sweep in cvalue](collector-effects.md#lexical-sweep-in-cvalue).
-  Automatic allocation cleanup continues to refuse.
-- `logic_assign`, including initialization by type for specification
-  results, is covered by the refusal and Top bounds for specification,
-  builtin and statement-contract effects. Recursive removal, substitution
+  A child's admitted sweep is foreign to its caller, and nonempty automatic
+  allocation cleanup continues to refuse.
+- `logic_assign` for a nested specification records its possible write
+  and from dependencies. This and the initialization of the specification
+  result are recorded inline. Unsupported builtin and statement-contract
+  effects keep their Top bounds. Recursive removal, substitution
   and merge are outside the supported collector domain. Normal cvalue call
   finalization returns the post-state. Memexec merge is a lookup operation
   and contributes no fresh body.
@@ -131,11 +133,9 @@ and [the call-cache seam](call-cache-seam.md).
 receives all reasons. The reasons of the allocation family are described in
 [Allocated blocks](allocated-blocks.md).
 Indirect targets refuse both at the call transfer and at entry of a body
-reached through an indirect call. A nested call refuses its enclosing body
-whether resolved to a fresh body, a hit, a specification or a builtin.
-The collector composes used functions, hint dependencies and the specified
-refusals of fresh children. A hit contributes its producing call trace
-when available. Nested memory footprints are still unsupported. An
+reached through an indirect call. Fresh nested bodies propagate all
+observed refusals. The winning supplied child contributes its observation.
+Hits without a producing observation refuse as `nested-call`. An
 unsupported contract or annotation read has a Top bound.
 [Annotation and contract reads](#annotation-and-contract-reads) lists the
 supported observation paths. Used builtins and sweeps mark their active
@@ -146,12 +146,10 @@ domain structure other than a single unrestricted cvalue domain.
 
 The call-site `requires` checks execute outside the fresh callee body's
 observations. Eva interleaves them with behavior selection and the handling
-of `assumes` clauses. The recorder is suspended during the `requires`
-checks to preserve that order and still observe behavior selection,
-`assumes`, and the body's postconditions and statement contracts. It is
-also suspended while the statuses of the `requires` clauses of an inactive
-behavior are emitted; the statuses of its `ensures` clauses stay in the
-observation. The allocation family and the unknown sets of blocks stay
+of `assumes` clauses. During the `requires` checks, the enclosing recorder observes the checks
+and any `requires` statuses emitted for an inactive behavior. The
+callee keeps behavior selection, `assumes`, postconditions and statement
+contracts in its own observation. The allocation family and the unknown sets of blocks stay
 observed during these checks, as observations of the body
 ([Allocated blocks](allocated-blocks.md#allocated-blocks-among-the-observed-blocks)).
 
@@ -180,8 +178,8 @@ would-store. The mthread case checks that
 cumulative statistics snapshot per analysis, across repeated `Computed`
 notifications, and matches the verdict log and the final statistics.
 
-**Open.** Child composition and replay are pending. A would-store verdict
-does not establish that a body can be reused in another context.
+**Open.** See [Nested call composition](nested-calls.md) for the
+coverage and replay obligations beyond the collector verdict.
 
 ## Side tables and recorded joins
 

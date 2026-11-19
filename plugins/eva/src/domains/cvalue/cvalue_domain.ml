@@ -262,6 +262,19 @@ module State = struct
      according to the list of dependencies stated by its \from part. *)
   let evaluate_from_clause state deps =
     (* Only direct dependencies  to the written value. *)
+    if Body_access.is_recording () then begin
+      let observe dep =
+        match dep.location with
+        | Address vi ->
+          Body_access.designate_bases
+            (Base.SetLattice.inject (Base.Hptset.singleton (Base.of_varinfo vi)))
+        | Location location ->
+          let loc = Precise_locs.imprecise_location location in
+          Body_access.read loc;
+          Body_access.designate_cells state loc
+      in
+      List.iter observe deps
+    end;
     let direct_deps = List.filter (fun dep -> dep.direct) deps in
     (* Evaluates the content of one dependency. *)
     let content dep =
@@ -287,6 +300,7 @@ module State = struct
       Cvalue.Model.add_binding ~exact:false state location value, sclob
     | Some (Assigns (_assign, deps), (pre_state, _)) ->
       let location = Precise_locs.imprecise_location location in
+      Body_access.may_write location;
       let value = evaluate_from_clause pre_state deps in
       Locals_scoping.remember_if_locals_in_value sclob location value;
       Cvalue.Model.add_binding ~exact:false state location value, sclob
