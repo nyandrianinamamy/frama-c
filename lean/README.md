@@ -5,7 +5,8 @@ Eva. It defines a small language, a concrete memory, executions and the
 observations that a cache entry makes claims about, and it proves theorems
 about them: frame preservation up to recorded lexical sweeps, the match and
 product lemmas, sound cache-entry construction, shared Inner coverage
-on the matching key, and projected and whole-product hits within one analysis.
+on the matching key, projected and whole-product hits within one analysis, and
+the answers of state queries on the callstack of a hit.
 
 The theorems are about the model. They do not verify the OCaml code of Eva.
 Whether Eva meets the hypotheses of a theorem is a separate question, answered
@@ -68,6 +69,7 @@ directories that Dune reads, and `lean` is not among them.
 | `ReuseModel/Entry.lean` | Footprints, cache entries, producer soundness, `CacheEntry.sound_of_producer`, and `CacheEntry.shared_inner` |
 | `ReuseModel/Hit.lean` | Replay admission, the unchanged exit frame, and the projected and whole-product hit theorems |
 | `ReuseModel/SideTables.lean` | The four obligations for side-table accesses in skipped work |
+| `ReuseModel/Query.lean` | Query points (statement, callstack, before or after), visits at a point, the hit log, the reconstruction rules (`HitLine.answer`, `query`), the soundness of the inner part (`InnerPartSound`), `replay_trace` and `CacheEntry.query_sound` |
 | `Checks/AxiomCheck.lean` | The `#check_axioms` command |
 | `Checks/Axioms.lean` | `#print axioms` and `#check_axioms` for each theorem |
 | `Checks/Examples.lean` | Aliasing, a dangling pointer after a return, and a call that does not return, using `frame_no_sweep_rewrite` for that case; the body of a function as the subject; comparisons with the null pointer |
@@ -78,6 +80,7 @@ directories that Dune reads, and `lean` is not among them.
 | `Checks/Hit.lean` | The value-domain hit instance and checked failures of liveness, allocator agreement and the unchanged frame |
 | `Checks/WholeProduct.lean` | A whole-product hit, rejections for differences in either component, and loss of a relation on a projected hit without current-side closure |
 | `Checks/SideTables.lean` | Positive and negative cases of the four obligations |
+| `Checks/Query.lean` | Two calls of one body in one run with a hit log line each: an untouched block answering 4 and 9, an overwritten block answering 5 before the write and 0 after it, the key block, disabled reconstruction, a local of the body answering top, and the negative checks of the naive answers; the callstack of a point, the marks of the sweeps in the frame rule, and the end of a statement's execution |
 | `Checks/Fragment.lean` | Statements that meet the fragment conditions: one outside the function bodies, a function body, and a statement inside one. Programs and statements that do not: duplicate labels in the observed statement, a label of a body reused outside, duplicate labels across two bodies, direct recursion, mutual recursion |
 
 ## What the model contains
@@ -296,6 +299,34 @@ accesses in producers or skipped work prevent storage or admission.
 Completeness of the access relations, including nested work, is an open
 Eva obligation. Coverage of the table inventory by the four contracts
 is assumed.
+
+## State queries on the callstack of a hit
+
+A query names a statement, a full callstack and a position, before or after
+the statement. The hit log has a line per hit: its callstack, the entry and
+its inner part, and the state at the call with the blocks it binds. The
+first line whose callstack ends the callstack of the query answers it, at
+the point below the hit. The rules, in order:
+
+- reconstruction disabled: no state;
+- a block of the key: the shared inner state at the point;
+- a block bound at the call and not in the footprint's writes: its value at
+  the call, with the marks of any lexical sweeps;
+- a block bound at the call that no write reaches before the point: the
+  same;
+- a block updated on every execution before the point: the shared inner
+  state;
+- any other block, including a local of the body: top.
+
+`CacheEntry.query_sound` shows that each answer contains the content of the
+block at each visit of the member at the point, and that the entry reports
+the statement as reached. It takes the producer premises, the soundness of
+the inner part for the producing input, the issuance of the bound blocks,
+and the matching witness of the member as hypotheses. A visit before a
+statement is a configuration about to execute it; a visit after it is the
+first normal completion of that execution. Every write overwrites a whole
+block, so the rule for updated blocks holds in the model; Eva must restrict
+it to full overwrites and creations.
 
 ## What the model leaves out
 
