@@ -26,11 +26,14 @@ analysed with caching disabled, and gives the expected values by hand.
 **Claim.** While a body is analysed after a lookup without a hit, each alarm
 that Eva registers, each status that it emits on a property with its own
 emitter, the message printed with the status of a code annotation or of a
-postcondition, and each red context that it adds are recorded once, in the
-order of their first emission. Each write keeps its statement or property,
-its status, its emitter or its text, and the calls between the body and the
-point of emission (its frames). A red context also keeps the number of times
-the body set it. The checks of the `requires` clauses of the called function
+postcondition, and each red context that it adds are recorded in one
+sequence, in the order of emission. An alarm, a status or a message is
+recorded at its first emission only. A red context is recorded at each
+emission, in its place among the other writes; red contexts set in a row,
+with no other write recorded between them, form one write that keeps their
+number. Each write keeps its statement or property, its status, its emitter
+or its text, and the calls between the body and the point of emission (its
+frames). The checks of the `requires` clauses of the called function
 belong to the call site and are not recorded. The producer stores these
 writes in the entry as its Safety part. A recording belongs to the project
 that is current when it starts (see
@@ -61,10 +64,15 @@ recorded when a capture is active and the collector observes the body
 which suspends that observation, as does `Body_access.without_recording`.
 The frames of a write are the calls of the current callstack above the
 callstack of the capture. A write whose callstack does not extend it
-refuses the body as `side-table`. A write equal to one already recorded is
-not added again: the tables below join a value with itself into the same
-value. Two red contexts that differ only by their count are the same write,
-whose count is the sum.
+refuses the body as `side-table`. An alarm, a status or a message equal to
+one already recorded is not added again: the tables below join a value with
+itself into the same value, `Property_status.emit ~distinct:true` emits
+nothing and runs no hook for a status equal to the previous one
+(`merge_distinct_emitted`), and the logger prints nothing and applies no
+action for a text printed before with `~once:true`. A red context runs the
+hooks of red statuses each time it is set, so it is added at each emission;
+when the last write recorded is the same red context, its count is
+incremented instead.
 
 During an analysis, Eva writes alarms, statuses, their messages and red
 contexts through four functions, each of which records the write:
@@ -100,7 +108,11 @@ empty frames: the red context, the invalid status and the message of the
 assertion `two`, the red context of the division alarm, the alarm with an
 unknown status, and the valid status and the message of `ok`. In `loop.c`,
 the red context of the check `mixed`, which fails at two iterations of the
-loop, is recorded once with the count 2. With caching disabled, the Safety
+loop, is recorded at each failure: the first before the invalid status and
+its message, the second after them. In `repeat.c`, the check `never` fails
+at the three iterations: after the first, its status and message are those
+already recorded, and the next two red contexts form one write with the
+count 2. With caching disabled, the Safety
 part observed for each call of `pre` is empty, although the evaluation of its
 `requires` clause emits an invalid status at the second call.
 
@@ -157,7 +169,7 @@ table:
 | Table | Position | Value | Observations represented | Join |
 | --- | --- | --- | --- | --- |
 | statuses (`Property_status`) | property, emitter | none, valid, invalid or unknown | the visits of the property, with the outcomes the status allows: holds for valid, fails for invalid, both for unknown | none is the unit; valid and invalid give unknown; unknown absorbs both |
-| annotations of alarms (`Alarms`) | statement, alarm | absent, or present with its owner, the emitter that registered it first | the existence of the annotation that states the alarm; its statuses are those of the first row, one per emitter | presence by or; a later registration keeps the owner |
+| annotations of alarms (`Alarms`) | statement, alarm | present or absent | the existence of the annotation that states the alarm; its statuses are those of the first row, one per emitter, and its owner is outside the law (see below) | or |
 | alarms reported by the analysis (`Alarmset.Alarm_cache`) | statement, alarm | reported or not | the report of the alarm | or |
 | messages of statuses (the table of `Log` for messages printed once) | position, text and kind of the message | printed or not | the report of the status, and the action of its message category when it is printed | or |
 | red contexts (`Red_statuses`) | statement, alarm or property | set of callstacks | the callstacks in which at least one visit of the statement violates the property | union |
@@ -176,11 +188,12 @@ new status of the emitter from its previous status with
 above, so the value after the write is the join of the value before and the
 saved status. `Alarms.register` creates the annotation of the alarm when it
 is absent, with the emitter of the call as owner, and in every case emits the
-status of that emitter on the annotation. The existence and the owner of the
-annotation are thus separate from the statuses: an alarm that another
-emitter registered first keeps that emitter as owner, and Eva emits its
-status on it and registers nothing of its own, in a delivery as in a fresh
-emission. `Alarm_cache.memo` adds the alarm and reports it if it is absent,
+status of that emitter on the annotation. The existence of the annotation is
+thus separate from its statuses, and joins by or. Its owner, the emitter
+that registered it first, is not a join: it depends on the order of the
+registrations, and is the subject of
+[The owner of an alarm is that of an analysis of the body](#the-owner-of-an-alarm-is-that-of-an-analysis-of-the-body).
+`Alarm_cache.memo` adds the alarm and reports it if it is absent,
 as for a fresh emission. `Safety_part.status_message` prints the text with
 `~once:true`, as the body does: the logger prints it only if it has not
 printed the same text, of the same kind, at the same position before, and
@@ -204,22 +217,27 @@ Under the same premise, the writes that an analysis of the body at the hit
 would make are the saved writes, at the callstack of the hit. The value
 after the delivery is the join of the value before with these writes, which
 covers both. For a hand-written entry, the supplier owes the Safety part
-(`Supplied_entries.supply`); for an entry used by another analysis than the
-one that produced it, the supplier also owes the premise of
-[The options that decide the alarms are those of the analysis that uses the entry](#the-options-that-decide-the-alarms-are-those-of-the-analysis-that-uses-the-entry).
+(`Supplied_entries.supply`), and for every entry the premise of
+[The settings that decide the alarms and messages are those of each hit](#the-settings-that-decide-the-alarms-and-messages-are-those-of-each-hit).
 The [hit theorem](hit.md#hit-soundness) states the coverage of Safety for
 concrete executions under its own premises; whether Eva's statuses meet them
 is the open premise of the Exit claim as well.
 
 *Other positions.* `deliver` writes at the positions of the saved writes
 only. The hooks that a write triggers, the updates of the kernel on a new
-status and the hooks of `Red_statuses`, are those of a fresh emission; the
-hooks of red statuses run once for each time the body set the red context,
-as `Red_statuses.register_hook` promises.
+status and the hooks of `Red_statuses`, are those of a fresh emission. The
+writes are delivered in the order of the sequence, so the hooks of red
+statuses run once for each time the body set a red context, as
+`Red_statuses.register_hook` promises, and in the same order relative to the
+messages and to the other writes as in the analysis of the body: an action
+of a category that stops the analysis at a message finds the same number of
+calls of the hooks before it.
 
-*Repeated and nested work.* A body that emits the same write at several
-visits records it once, which the idempotence of the joins makes equivalent;
-the count of a red context keeps the number of calls of the hooks. A hit
+*Repeated and nested work.* A body that emits the same alarm, status or
+message at several visits records it once, which the idempotence of the
+joins makes equivalent: a later equal write changes no value, runs no hook
+of the kernel and prints nothing. Each red context is kept in the sequence,
+those set in a row as one write with their number. A hit
 inside a body under analysis records its delivered writes in that body
 through the same functions, with the frames of the hit, but a body with a
 call refuses as `nested-call`.
@@ -265,11 +283,15 @@ fail: the analysis with the hit completes, with `out = 8` at the end of
 Hooks of red statuses, in `loop.c` with `-eva-slevel 10`: a hook that counts
 its calls is called five times, as with caching disabled. Before the counts
 were recorded, it was called four times: the hit ran it once for `mixed`
-instead of twice.
-
-Owner of an alarm, in `safety.c`: another emitter registers the division
-alarm first. After a delivery of the Safety part, as after an analysis of
-`body`, the alarm has that emitter as owner and Eva's status unknown on it.
+instead of twice. In `repeat.c`, where two red contexts form one write, it
+is called three times, as with caching disabled. Order of the hooks and the
+messages, in `abort-count.c` with `-eva-slevel 10` and the category `alarm`
+set to abort: the check `mixed` fails at the first two iterations of the
+loop. With caching disabled, the hook is called once, and the analysis
+stops at the message of the invalid status; with the hit, the same. At
+revision `84110fde822ed8ac29305840e66af3d30dfdd092`, where a red context was
+recorded once with its count, the hit called the hook twice before it
+stopped.
 
 **Open.**
 
@@ -288,7 +310,8 @@ alarm first. After a delivery of the Safety part, as after an analysis of
 - `-eva-stop-at-nth-alarm` is not replayed: when it is set, every supplied
   candidate is rejected
   ([A supplied entry is used only where a hit is supported](reuse-operation.md#a-supplied-entry-is-used-only-where-a-hit-is-supported)).
-- Only the messages of statuses are replayed. Other messages printed during
+- Only the messages of statuses and the reports of alarms are replayed.
+  Other messages printed during
   the analysis of a body either refuse it (the special functions such as
   `Frama_C_show_each`, as `builtin`; `\warning` in an annotation and the
   messages preceded by `Body_access.read_message_history`, as `side-table`)
@@ -299,9 +322,55 @@ alarm first. After a delivery of the Safety part, as after an analysis of
   position before, by the analysed call that produced the entry among
   others. The report of an evaluation that leads to bottom without alarms,
   a sign of a defect of Eva, is printed at each visit and is not replayed.
-  An entry taken from another analysis, or saved with a session
-  ([issue #59](https://github.com/nyandrianinamamy/frama-c/issues/59)), can
-  hide these messages.
+  When the action of the category of such a message differs between the
+  producing call and the hit, the hit can hide the message, and with the
+  action abort, change the state at the end of the call
+  ([The settings that decide the alarms and messages are those of each hit](#the-settings-that-decide-the-alarms-and-messages-are-those-of-each-hit)).
+
+## The owner of an alarm is that of an analysis of the body
+
+**Claim.** The annotation of an alarm delivered at a hit has the owner that
+an analysis of the body at the hit would give it: the emitter whose
+registration of the alarm at that statement comes first. Eva registers the
+alarms of a hit at the place in the sequence of registrations where the
+analysis of the body would register them.
+
+**Kind.** OCaml obligation, on the order of the registrations; it is not a
+join, and lies outside the `RecordedWrite` law of
+[A hit delivers the Safety part as recorded joins](#a-hit-delivers-the-safety-part-as-recorded-joins).
+
+**Depends on.**
+[The Safety part records the writes of the body](#the-safety-part-records-the-writes-of-the-body).
+
+**Symbols.** `Alarms.register` in
+[`alarms.ml`](../../../src/kernel/services/ast_data/alarms.ml),
+`Alarmset.register`, `Alarmset.deliver`, `Safety_delivery.deliver`,
+`Compute_functions.Make.compute_and_cache_call`.
+
+**Argument (source inspection).** `Alarms.register` adds the annotation of
+an alarm at a statement when it is absent, with the emitter of the call as
+owner, and keeps the owner of an existing annotation. The owner is thus the
+emitter of the first registration: another emitter, then Eva, gives the
+other emitter; Eva, then the other emitter, gives Eva. A hit takes the place
+of the analysis of the body in the analysis: the call hooks run before both,
+and the delivery registers the alarms of the entry in the order in which
+the body emitted them, the red contexts and the statuses in between. The
+hooks that a delivered write runs, those of red statuses and of the kernel
+on a new status, run at the same place in the sequence as for the analysed
+body. A registration by another emitter, made before the call, after it, or
+by one of these hooks, therefore comes at the same place relative to Eva's
+in both.
+
+**Evidence (executed).** `cache-safety.t`, `safety.c`. When another emitter
+registers the division alarm first, the alarm has that emitter as owner and
+Eva's status unknown on it, after a delivery of the Safety part as after an
+analysis of `body`. When the other emitter registers it after the delivery,
+Eva owns it.
+
+**Open.** A registration made by a hook that the analysis of the body runs
+and the delivery does not, such as a listener of the logger on a message
+that the hit does not print, can come before Eva's in one and after it in
+the other. No such hook is known in Frama-C.
 
 ## The passes after the analysis draw no conclusion where a hit skipped visits
 
@@ -313,8 +382,10 @@ are those of the analysed calls only: `Eval_annots.mark_unreachable` marks no
 code annotation, no precondition of a call and no postcondition as
 unreachable, and `Eval_annots.mark_green_and_red` gives no alarm and no
 annotation a final status. `Export` generates no annotation in the function,
-the summary of the analysis counts its statements as reached, and the server
-request `getDeadCode` lists none of its statements. The statuses delivered by
+the summary of the analysis prints as reached only the statements with a
+state, and gives the count with the statements of the function that have
+none as an upper bound, and the server request `getDeadCode` lists none of
+its statements. The statuses delivered by
 the hit stay as delivered. The called function is the only one whose visits
 a hit skips: an entry is refused for a body that may call a function that
 has a body.
@@ -330,6 +401,7 @@ and [Preconditions at a hit](#preconditions-at-a-hit).
 `Compute_functions.Make.compute_and_cache_call`, `Eval_annots.unreached`,
 `Eval_annots.mark_unreachable`, `Eval_annots.mark_green_and_red`,
 `Export.generator`, `Export.main`, `Summary.reached`,
+`Summary.unknown_reachability`, `Summary.print_coverage`,
 `Summary.FunctionStats`, `Summary.compute_statuses`, `dead_code` in
 [`ast_requests.ml`](../../../plugins/eva/src/server_api/ast_requests.ml),
 `Supplied_entries.calls_a_body`, `Supplied_entries.add`,
@@ -351,7 +423,15 @@ statuses delivered by the hit are not touched. `Export.generator` skips the
 statements of a recorded function, and `Export.main` warns instead of
 annotating it. `Summary.reached` counts such a statement as reached, for the
 coverage and for the counts of statuses; the statistics of the function are
-computed again after a hit. `dead_code` returns no list for a recorded
+computed again after a hit. The coverage so counted is an upper bound.
+`Summary.print_coverage` prints it only when no statement is of unknown
+reachability: otherwise, it prints the statements with a state as reached,
+and adds, as an upper bound, the count with those that
+`Summary.unknown_reachability` finds, the statements without a state of
+the functions answered by a hit. Without a hit, the line is unchanged. The
+statistic `stmt_coverage` (`Statistics`) and the coverage returned by the
+server request of statistics (`progStmtCoverage`) keep the upper bound,
+without a label. `dead_code` returns no list for a recorded
 function. `Skipped` is a `State_builder.Set_ref` that depends on
 `Self.state`: it is cleared with the results of Eva, at the start of each
 analysis and on any change that resets them.
@@ -415,9 +495,13 @@ reachability status. In the reverse order (`reverse`, entry of `body(2, 1)`
 from `producer_safe`, hit at line 44), the alarm is unknown, as with caching
 disabled. From `no_return`, where `body(1, 0)` is a hit and `body(3, 1)`
 never returns, the statuses are again those of caching disabled. Export
-generates no annotation in `body`. The summary counts 15 statements of 15
-as reached, where caching disabled counts 14: the loop at line 14, reached
-by no call, is counted. After a change of the entry point, `body` is no
+generates no annotation in `body`. The summary prints 12 statements of 15
+reached, and up to 3 more through calls answered by the cache (100%);
+caching disabled counts 14, and the loop at line 14, reached by no call, is
+among the 3. At revision `84110fde822ed8ac29305840e66af3d30dfdd092`, it
+printed 15 statements of 15 as reached, the upper bound as a measure. The
+analysis from `producer`, without a hit, prints the usual line. After a
+change of the entry point, `body` is no
 longer recorded. `supply` refuses an entry for `outer`, which calls `body`.
 
 Before the restriction, at revision
@@ -455,32 +539,39 @@ them all.
 A change of the current project while a recording is in progress, of the
 Safety part or of the collector, refuses every recording in progress with
 the reason `project-switch`, even if the project changes back before the end
-of the recording: no entry is stored for these bodies. A write of the Safety
-part made while another project is current is not recorded.
+of the recording, and even if the change is made in a hook of another
+change of project: no entry is stored for these bodies. A write of the
+Safety part made after such a change is not recorded.
 
-**Kind.** OCaml obligation.
+**Kind.** OCaml obligation, of Eva and of the kernel: the count of
+`Project.current_changes` is incremented by every operation that changes
+the current project.
 
 **Depends on.**
 [Refusal and reporting](body-access.md#refusal-and-reporting).
 
-**Symbols.** `Body_access.capture`, `Body_access.observe_project_changes`,
-`Body_access.project_changes`, `Project.register_after_set_current_hook`,
+**Symbols.** `Project.current_changes`, `Project.force_set_current`,
+`Project.remove`, `Project.remove_all`, `Project.create`,
+`Project.load_projects` in
+[`project.ml`](../../../src/lib/project/project.ml), `Body_access.capture`,
 `Safety_part.capture`, `Safety_part.record`, `Body_access.Result.refusal`.
 
-**Argument (source inspection).** At its first recording, the collector
-registers a hook of the kernel that counts the changes of the current
-project; `Project.on` changes it twice, on entry and on exit, and the hook,
-registered with `~user_only:false`, runs for both. Each capture keeps the
-project and the count at its start, and adds `Project_switch` to its
-refusals when the count or the current project differs at its end. Every
-capture in progress compares its own start, so the bodies whose analysis
-contains that of the current one are refused as well. The producer stores
-no body with a refusal. `Safety_part.record` compares the project of the
-recording with the current one at each write, and refuses instead of
-recording when they differ. The kernel does not run the hooks for a change
-made by another hook of the change of project: a change made and undone
-within such a hook is not counted, but a write of the Safety part in that
-window is still caught by the comparison at the write.
+**Argument (source inspection).** The current project is the top of the
+stack of projects of the kernel. The operations that change the top count
+the change before they run any hook: `force_set_current`, reached from
+`set_current`, from `Project.on` on entry and on exit, and from the loading
+of projects; `remove` when it removes the current project; `remove_all`;
+and `create` when there is no project. The kernel does not run the hooks of
+the change of project for a change made during one of these hooks, but it
+counts it. Each capture of the collector keeps the project and the count at
+its start, and adds `Project_switch` to its refusals when the count or the
+current project differs at its end. Every capture in progress compares its
+own start, so the bodies whose analysis contains that of the current one
+are refused as well. The producer stores no body with a refusal.
+`Safety_part.record` compares the project and the count at the start of the
+recording with the current ones at each write, and refuses instead of
+recording when either differs. The count is a value of the process, not a
+state of a project: it is neither saved nor loaded with a session.
 
 **Evidence (executed).** `cache-safety.t`: a hook of red statuses enters a
 second project with `Project.on` the first time it runs, during the analysis
@@ -496,16 +587,37 @@ second project, and the hit delivered it in the first: the tables of
 `main` had a red context of the reachability of the first statement of
 `body`, which caching disabled does not have.
 
-## The options that decide the alarms are those of the analysis that uses the entry
+A change made in a hook of another change, in `cache-safety.t`: the
+analysis from `producer` runs in a hook of the change of project to a copy
+of the first project. The first time it runs, a hook of red statuses enters
+the first project with `Project.on` and leaves it, without writing there.
+The calls of `body` and of `producer` read
+`collector: refused (project-switch)`, and no entry is produced. The
+analysis from `main`, in the copy, has no candidate, and its tables are
+those of the run with caching disabled in the same setting. At revision
+`84110fde822ed8ac29305840e66af3d30dfdd092`, where the collector counted
+the changes with a hook of the kernel, the call of `body` read
+`collector: would-store`, and its entry was stored and hit.
 
-**Claim.** An entry used by an analysis other than the one that produced it
-holds the alarms and statuses of that analysis only if the options of the
-kernel and of Eva that decide which alarms and statuses are emitted are
-equal in both: the `-warn-*` options of the kernel, such as
-`-warn-signed-overflow`, and the `-eva-warn-*` options of Eva, such as
-`-eva-warn-copy-indeterminate`. The supplier of the entry owes this
-equality. Within one analysis the options do not change, and the lookup
-checks nothing.
+## The settings that decide the alarms and messages are those of each hit
+
+**Claim.** An entry holds the alarms, statuses and messages that an
+analysis of the body would emit at a hit only if the settings that decide
+them, in force at the call that produced the entry, are in force at the hit:
+- the options of the kernel and of Eva that decide which alarms and
+  statuses are emitted: the `-warn-*` options of the kernel, such as
+  `-warn-signed-overflow`, and the `-eva-warn-*` options of Eva, such as
+  `-eva-warn-copy-indeterminate`;
+- the action and the activation of every message and warning category of
+  Eva and of the kernel (`-eva-warn-key`, `-eva-msg-key` and those of the
+  kernel), apart from the change of a `-once` category to inactive after
+  its first message, which the logger makes itself.
+
+They must be equal in the analysis that produced the entry and in the one
+that uses it, and changed during neither, by a hook or otherwise. A
+violation can hide an alarm or a message, and with a category set to abort,
+change the state at the end of the call. The supplier of the entry owes
+this premise; nothing in Eva checks it.
 
 **Kind.** OCaml obligation, owed by the supplier of an entry
 (`Supplied_entries.supply` and `supply_produced`); nothing in Eva enforces it.
@@ -514,27 +626,70 @@ checks nothing.
 [A hit delivers the Safety part as recorded joins](#a-hit-delivers-the-safety-part-as-recorded-joins).
 
 **Symbols.** `Supplied_entries.supply`, `Supplied_entries.supply_produced`,
-`Kernel.SignedOverflow`.
+`Kernel.SignedOverflow`, `Evaluation.Make.handle_integer_overflow`,
+`set_warn_status` and `logwith` in
+[`log.ml`](../../../src/lib/utils/log.ml),
+`Cvalue_callbacks.apply_call_hooks`,
+`Compute_functions.Make.compute_and_cache_call`.
 
-**Argument.** The Safety part records the writes of an analysis of the body
-with the options of the producing analysis. An option that turns a class of
-undefined behaviour into alarms changes these writes: the same body emits an
-alarm under one setting and none under the other. The delivery makes the
-recorded writes only, so an entry produced with fewer alarms hides those
-that the analysis that uses it would emit.
+**Argument (source inspection).** The Safety part records the writes of an
+analysis of the body with the options of the producing analysis. An option
+that turns a class of undefined behaviour into alarms changes these writes:
+the same body emits an alarm under one setting and none under the other.
+The delivery makes the recorded writes only, so an entry produced with
+fewer alarms hides those that the analysis that uses it would emit.
+
+A hit prints, through the logger, the messages of the statuses and the
+reports of the alarms of its entry: the action of their categories in
+force at the hit applies, as for an analysed call. The other messages that
+a stored body prints without a refusal, such as the assumption of 2's
+complement for an overflow (category `signed-overflow`), are not recorded
+and not printed by a hit. When the category of such a message is set to
+abort at the hit, an analysis of the body stops at the message, and the
+call has no state at its end, where the hit returns the exit states of the
+entry. The action can differ between the producing call and the hit in
+three ways: the two analyses are run with different settings; a hook
+changes a category during the analysis that uses the entry, by
+`set_warn_status` or by setting `-eva-warn-key`; or a later stage of the
+command line (`-then`) changes it before an analysis that uses entries
+supplied before, since the supplied entries depend on the AST only. In this
+version, every hit is on an entry that a test module supplied, so each case
+is under the control of the supplier. The lookup cannot see the second:
+the call hooks of the call, which can set the category, run after the
+lookup, and a hook of the call that sets the category to abort is not
+detected. A `-once` category becomes inactive after its first message; the
+logger applies this rule to the messages that a hit prints as to those of
+an analysed call.
 
 **Evidence (executed, premise violated on purpose).** `cache-safety.t`,
-`overflow.c`: the entry of `body(1)` is produced with
+`overflow.c`. The entry of `body(1)` is produced with
 `-no-warn-signed-overflow` and used by an analysis with
-`-warn-signed-overflow`. The hit at line 19 delivers no alarm, where the
+`-warn-signed-overflow`: the hit at line 19 delivers no alarm, where the
 analysis with caching disabled emits the overflow alarm at line 8 with an
-invalid status and a red context. The test documents the current behaviour,
-not a guarantee.
+invalid status and a red context. The entry is produced with
+`-no-warn-signed-overflow` and the category `signed-overflow` inactive, and
+used with the category set to abort: with caching disabled, the analysis
+stops at the overflow and no state reaches the end of `main`; the hit
+prints nothing and gives `out = 8`. Both analyses start with the category
+active, and a call hook sets it to abort at the call of `body` in the
+analysis that uses the entry: the same difference. The tests document the
+current behaviour, not a guarantee.
 
-**Open.** The entries saved with a session
-([issue #59](https://github.com/nyandrianinamamy/frama-c/issues/59)) cross
-analyses, and must enforce this premise, for instance by storing the
-options with the entry and rejecting it when they differ.
+**Open.**
+
+- The entries saved with a session
+  ([issue #59](https://github.com/nyandrianinamamy/frama-c/issues/59))
+  cross analyses, and must enforce this premise, for instance by storing the
+  settings with the entry and rejecting it when they differ, the actions of
+  the categories included.
+- Once a produced entry reaches a hit within the analysis that produced it,
+  a hook can still change a category between the producing call and the
+  hit. A check at the lookup misses a change made by the call hooks of the
+  hit, which run after it. Two routes are open: refuse to store a body that
+  reaches a message that a hit does not print, whatever the action of its
+  category, so that every message of a stored body is replayed through the
+  logger; or compare the actions of the categories after the call hooks of
+  the hit, and analyse the body when they changed.
 
 ## Preconditions at a hit
 
