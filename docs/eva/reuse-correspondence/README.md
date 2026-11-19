@@ -110,9 +110,11 @@ that a checkout has the model sources of an entry, compare
   reaches, the records of the hits in the results taken and installed
   again, and the passes after the analysis that read these points.
 - [Parts owned by other plug-ins](cache-parts.md): the registration of
-  the callwise results of From and Inout as parts of the entries, their
-  restoration at a hit, the rejection of a candidate that lacks a needed
-  part, and the readers of saved states that reject every candidate.
+  the callwise results of From and Inout as parts of the entries, the
+  withholding of a part whose reads the key misses, their restoration at a
+  hit, the rejection of a candidate that lacks a needed part, the readers
+  of saved states that reject every candidate, and the refusal of the
+  results computed from statement states after a hit.
 - [Reuse operation](reuse-operation.md): the cache entry and its four
   written sets, the match by equality on entries supplied by a test module,
   the blocks a hit takes from an exit state, the choice of one cache per

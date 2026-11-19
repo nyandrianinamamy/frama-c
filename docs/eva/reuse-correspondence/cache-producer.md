@@ -157,9 +157,11 @@ disposition and count. The stored entry carries the Exit part, the Safety
 part, the collector's recorded join classes, used functions with their call
 modes, sweep targets, the stamp of a widening read, an Inner reference if
 cvalue statement states were recorded, and the parts that other plug-ins
-gave during the analysis ([Parts owned by other
-plug-ins](cache-parts.md)). Memexec still serves ordinary calls. Only
-explicit fixture supply can make a produced entry a lookup candidate.
+gave during the analysis whose reads its key covers ([A part whose reads the
+key misses is
+withheld](cache-parts.md#a-part-whose-reads-the-key-misses-is-withheld)).
+Memexec still serves ordinary calls. Only explicit fixture supply can make a
+produced entry a lookup candidate.
 
 **Kind.** OCaml obligation.
 

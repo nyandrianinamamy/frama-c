@@ -135,6 +135,12 @@ rule
 Said of a cache entry or a part that is not kept at import.
 _Avoid_: Invalidated, stale
 
+**Withheld**:
+Said of a part that the producer does not keep with an entry, because the
+key of the entry does not cover the blocks that the computation of the part
+read. A candidate that lacks a needed part is rejected.
+_Avoid_: Dropped (said at import)
+
 **Configuration**:
 The settings that must be equal between the producing analysis and the using
 analysis.

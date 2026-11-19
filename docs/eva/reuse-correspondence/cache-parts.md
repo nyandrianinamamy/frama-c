@@ -18,7 +18,12 @@ test module
 [`test_cache_parts.ml`](../../../plugins/eva/tests/utils/cache-parts.t/test_cache_parts.ml).
 In each scenario, a first analysis with caching disabled produces the
 entries of the callees, which are supplied to a second analysis
-(`Supplied_entries.supply_produced`). The callees make no call.
+(`Supplied_entries.supply_produced`). The callees make no call. The programs
+[`logic.c`](../../../plugins/eva/tests/utils/cache-parts.t/logic.c),
+[`logic_loop.c`](../../../plugins/eva/tests/utils/cache-parts.t/logic_loop.c)
+and
+[`logic_wider.c`](../../../plugins/eva/tests/utils/cache-parts.t/logic_wider.c)
+call a function whose assertion Eva does not evaluate.
 
 ## A part is kept with the entry of the body that gave it
 
@@ -27,9 +32,16 @@ of a body called through the cache is kept with the entry produced from this
 analysis when it is given for the callstack of this body, while the project
 in which its analysis started is current. A value given for another
 callstack or while another project is current is dropped, and the entry
-lacks the part. A second value of a part replaces the first. An entry
+lacks the part. A second value of a part replaces the first. The value is
+then kept only when the key of the entry covers its reads (see [A part whose
+reads the key misses is
+withheld](#a-part-whose-reads-the-key-misses-is-withheld)). An entry
 supplied with `Supplied_entries.supply` has no part; one supplied with
-`supply_produced` has the parts of the produced entry.
+`supply_produced` has the parts of the produced entry. Both raise
+`Invalid_argument` when the function of the entry is not a function of the
+current project, for instance in a copy made by `Project.create_by_copy`. A
+name identifies one part: registering a second part of the same name raises
+`Invalid_argument`.
 
 **Kind.** OCaml obligation.
 
@@ -38,7 +50,8 @@ supplied with `Supplied_entries.supply` has no part; one supplied with
 **Symbols.** `Cache_part.register`, `Cache_part.capture`,
 `Cache_part.provide`, `Compute_functions.Make.compute_and_cache_call`,
 `Call_cache.Make.store`, `Cache_producer.Make.store`,
-`Cache_entry.Make.make`, `Supplied_entries.supply_produced`.
+`Cache_entry.Make.make`, `Supplied_entries.supply_produced`,
+`Supplied_entries.check_project`.
 
 **Argument (source inspection).** In the branch of a call with no candidate,
 `compute_and_cache_call` runs the analysis of the body inside
@@ -53,7 +66,11 @@ back only at the type of its part (`Cache_part.find`). This rule is that of
 [#47](https://github.com/nyandrianinamamy/frama-c/issues/47) for its Safety
 recording, at a finer grain: there, a change of project during the
 recording refuses the whole recording; here, only the value given under the
-other project is dropped.
+other project is dropped. The functions of a copy of a project are other
+values with the same identifiers: comparing one with a function of the
+original project is an internal error of the kernel. `check_project` finds
+the function of the entry in the current project by its variable and
+requires the same value.
 
 **Evidence (executed).** In the scenarios `from` and `inout`, each entry
 prints the parts it has: `[from, inout]` with `-calldeps`, `[inout]`
@@ -62,7 +79,11 @@ and gives a value of each during each analysis of `copy`: for its callstack,
 for its callstack under another project (`Project.on`), and for the
 callstack of its caller. The entries of `copy` have `[inout, kept]`. With the
 project test removed from `provide`, they also have `other-project` and the
-fixture fails.
+fixture fails. In the scenario `copied`, the entries produced in the
+project are supplied while a copy of it is current: the supply raises
+`Invalid_argument` naming `copy`. Without `check_project`, the supply
+succeeds, and an analysis in the copy then stops with the internal error
+`Two kf for copy (...) and copy (...)` (observed in review).
 
 **Open.** From and Inout give their parts only for a body that made no call
 (`Callwise.provide_froms` in From,
@@ -70,6 +91,96 @@ fixture fails.
 result of the call at its own call site, not the results that the calls of
 the body record at theirs. No entry is produced today for a body with a
 call: the collector refuses it. This restriction has no regression.
+
+## A part whose reads the key misses is withheld
+
+**Claim.** With the value of its part, an owner gives the blocks whose
+values its computation read in the states of the call, the blocks read to
+compute an address included, or `Top` when they are not known
+(`Cache_part.provide ~reads`). The producer keeps a part with the entry
+only when each of these blocks is in the key of the entry or is a local
+variable of the body other than a formal. Otherwise the entry is stored
+without the part, the trace of the category `cache-producer` reads
+`stored (entry N; withheld: NAME (uncovered-read))`, and a later candidate
+that lacks the part while it is needed is rejected with `missing-part`
+([A candidate that lacks a needed part is
+rejected](#a-candidate-that-lacks-a-needed-part-is-rejected)).
+
+**Kind.** OCaml obligation for the check; the reads that From and Inout
+give are argued by source inspection below.
+
+**Depends on.** The producer obligations of
+[Entries from fresh bodies](cache-producer.md#producer-obligations-for-exit-reuse).
+
+**Symbols.** `Cache_part.provide`, `Cache_part.cover`,
+`Cache_part.uncovered_read`, `Cache_producer.Make.store`,
+`Call_cache.report`; in From, `Callwise.reads_of_body`; in Inout,
+`Operational_inputs.Callwise.reads_of` and
+`Operational_inputs.Computer.unknown_logic_inputs`.
+
+**Argument.** A hit restores the value of a part computed from the states
+of the call that produced the entry. The call of the hit agrees with it on
+the key only. At each statement of the body, the values of the blocks of
+the key and of the locals of the body depend only on the input restricted
+to the key (producer obligations). A computation that reads only such
+blocks gives the same value for both calls. A formal is not counted as a
+local: its value is that of the actual, which the key must hold.
+
+What the callwise computations evaluate in a body, from the source of
+`From_compute` and of `Operational_inputs.Computer`, and whether Eva's
+analysis of the same body reads the same blocks:
+
+| Owner | Evaluation | Read by Eva at the statement | Reads given |
+|---|---|---|---|
+| From | right-hand side of an assignment and of an initializer (`find`) | yes | `expr_deps` of the expression |
+| From | address of the assigned left value (`lval_to_zone_with_deps`) | yes | `address_deps` of the left value |
+| From | condition of `if` and `switch`, its dependencies and its value (`transfer_guard`) | yes | `expr_deps` of the condition |
+| From | returned left value (`externalize`) | yes | `expr_deps` of the returned expression |
+| From | call: dependencies of the callee at the call site | no state read | `Top`; no part is given for a body with a call |
+| From | reachability of a statement (`Eva.Results.is_reachable`) | no: all the states of the current analysis | none; see [The kept part covers the skipped computation](#the-kept-part-covers-the-skipped-computation) |
+| From | assigns and from clauses under `-from-verify-assigns` | not part of the value | none: the restoration checks them again in the state at the start of the call of the hit |
+| Inout | assignment, initializer, condition, returned expression (`expr_deps`, `add_out`) | yes | the inputs |
+| Inout | assertion and loop invariant (`predicate_deps` with the state at the statement and the state at the start of the function) | no when tagged `no_eva`, which Eva skips; otherwise Eva reads its own locations, not checked to be the same | the logic inputs; `Top` when `predicate_deps` gives none |
+| Inout | call: result of the callee | no state read | no part is given for a body with a call |
+| Inout | reachability of a statement | the state of the call at the statement | none |
+
+The inputs of Inout omit the blocks that the body surely wrote before
+reading them; their values at the read are computed by the body from blocks
+that are in the inputs. Inline assembly, `Code_annot` instructions and
+`Skip` evaluate nothing. The bodies with a call give no part, so the
+specifications of callees are not evaluated for a part.
+
+The reads are not compared with the reads recorded by the collector: the
+check holds when the reads of the part are in the key, whether or not Eva
+read them. It replaces premise 1 of the previous version of [The kept part
+covers the skipped computation](#the-kept-part-covers-the-skipped-computation),
+which said that From and Inout read only blocks that Eva read. That premise
+was false: Inout evaluates the assertions tagged `no_eva`.
+
+**Evidence (executed).** Scenario `logic`, with `-calldeps` and
+`-eva-slevel 20`. In `logic.c`, `leaf(p)` asserts `*p >= 0` under the tag
+`no_eva` and is called with `&b`, with `&a` and through `wrap(&b)`: Eva does
+not read `p`, so an entry made at `&a` matches the call at `&b`. Each entry
+of `leaf` has `[from]`, the trace reads `withheld: inout (uncovered-read)`
+for each entry, the candidates are rejected 9 times with `missing-part`, and
+the logic inputs at the three call sites are those of caching disabled.
+`logic_loop.c`, one call site visited twice: 4 rejections, equal logic
+inputs. `logic_wider.c`, a call with `p` pointing to `a` or `b` then a call
+with `&a`: 16 rejections with `-eva-slevel 20`, 4 without, equal logic
+inputs. With `cover` keeping every part, the calls hit and the logic inputs
+differ: at the three sites of `logic.c`, `a; p` where caching disabled
+gives `b; p` at lines 14 and 20; in `logic_loop.c`, `a; p` where it gives
+`a; b; p`; in `logic_wider.c` with `-eva-slevel 20`, `b; p` where it gives
+`a; b; p` and `a; p`. These restored zones miss a block that the call
+reads. Without `-eva-slevel`, the first call of `logic_wider.c` is analysed
+with `p` pointing to `a` or `b`, and its entry matches the call with `&a`:
+the restored zone `a; b; p` is wider than `a; p`, sound but less precise.
+On `parts.c`, whose callees read only blocks of their key, every entry keeps
+its parts and the calls hit.
+
+**Open.** The reads given by From and Inout rest on the table above, by
+source inspection. A part kept by the check still depends on the history of
+the analysis (premise 2 below).
 
 ## A hit restores the parts of the enabled consumers
 
@@ -100,7 +211,12 @@ From and Inout do in a fresh analysis (`cache_protocol:true`). It runs
 before the caller finalises the call, so the result that Inout restores is
 the one that the caller reads to reduce its actuals. `restore` raises
 `Invalid_argument` when a part of an enabled consumer is missing; the
-lookup has rejected such a candidate.
+lookup has rejected such a candidate. A restore function must return
+normally: an exception stops the analysis after the writes already made by
+it and by the parts restored before it, which are not undone
+(`cache_part.mli`). The called function is recorded as answered by a hit
+([Results computed from statement states are refused after a
+hit](#results-computed-from-statement-states-are-refused-after-a-hit)).
 
 **Evidence (executed).** The scenarios `from`, `inout` and `verify` below.
 The memexec path is exercised by the default Eva tests, whose oracles do not
@@ -272,36 +388,36 @@ at the 9 call sites and for the 7 functions. With the restoration reduced to
 nothing, `g` is `{-5; 5}` (the empty cell falls back to the syntactic
 criterion) and the tables differ. With an empty part restored instead of the
 kept one, `h` is reduced to bottom: the fixture fails, and the reduction
-depends on the premise. With `-eva`, the final states of the analysed
-callers are those of caching disabled; see [A function answered by hits only
-has no final state](#a-function-answered-by-hits-only-has-no-final-state).
+depends on the premise. With `-eva`, the values in the final states of the
+analysed callers are those of caching disabled; see [A function answered by
+hits only has no final state](#a-function-answered-by-hits-only-has-no-final-state).
 
 **Open.** The premise below. The fixture has one visit of each callstack.
 
 ## The kept part covers the skipped computation
 
 **Claim.** The value of a part kept with an entry covers the value that the
-analysis of the body would compute at a hit: for From, the dependencies; for
-Inout, the inputs and outputs. This is the conjunct `Covers after fresh` of
-`RecordedWrite` for both tables, and the soundness premise of the reduction
-of the actuals.
+analysis of the body would compute at a hit, for the call of the hit: for
+From, the dependencies; for Inout, the inputs and outputs. This is the
+conjunct `Covers after fresh` of `RecordedWrite` for both tables, and the
+soundness premise of the reduction of the actuals.
 
-**Kind.** Argued in prose; premises open.
+**Kind.** Argued in prose; premise 2 open.
 
-**Depends on.** The producer obligations of
+**Depends on.** [A part whose reads the key misses is
+withheld](#a-part-whose-reads-the-key-misses-is-withheld), the producer
+obligations of
 [Entries from fresh bodies](cache-producer.md#producer-obligations-for-exit-reuse).
 
 **Argument.** From and Inout compute their parts in results hooks, from the
-states of this call at the statements of the body (`before_stmts`). They
-evaluate expressions and left values of the body in these states. The input
-of a hit agrees with the input of the producer on the key, which contains
-the blocks read by the body. Premise 1: the evaluations of From and Inout at
-a statement read only blocks that Eva read at that statement, so their
-results depend only on the states restricted to the key. The collector does
-not observe these evaluations, since the hooks run outside recording, so
-this premise rests on the fact that both use the evaluation functions of
-`Eva.Results` on the same expressions as the transfer functions; it is not
-checked. Two reads go beyond the states of the call:
+states of this call at the statements of the body (`before_stmts`). Premise
+1: the reads that each owner gives contain every block that its computation
+reads in these states. It is argued for From and Inout by the table of [A
+part whose reads the key misses is
+withheld](#a-part-whose-reads-the-key-misses-is-withheld); with it, a kept
+part reads only blocks of the key and locals of the body, whose values at
+the statements depend only on the input restricted to the key. Two
+computations read more than the states of the call:
 
 - From tests `Eva.Results.is_reachable` (`From_compute`), which reads the
   states saved for every visit of the body in the current analysis, not
@@ -310,22 +426,31 @@ checked. Two reads go beyond the states of the call:
   state at the start of the function joined over the visits of the
   callstack.
 
-When another visit adds states, the result of a fresh analysis can differ
-from the kept one. Premise 2: such a difference only adds observations that
-do not belong to this call. It is not established in general. For Inout,
-the joined pre-state contains only states of visits of the same callstack,
-whose results are joined at the same call site of `CallwiseResults`, and it
-adds logic inputs only, which the reduction of the actuals does not read
-(source inspection).
+The kept value is computed with the history of the analysis that produced
+the entry; caching disabled computes, at the call of the hit, with the
+history of the current analysis. The two can differ in both directions: the
+kept value is wider when the producing analysis had more visits, for
+instance a pre-state joined over more calls; it is narrower when the
+current analysis has visits that caching disabled would add. Premise 2:
+such a difference only adds or removes observations that do not belong to
+this call, so that the kept value covers the call of the hit. It is not
+established in general. For Inout, the joined pre-state contains only
+states of visits of the same callstack, whose results are joined at the
+same call site of `CallwiseResults`, and it adds logic inputs only, which
+the reduction of the actuals does not read (source inspection).
 
 **Evidence.** Execution, in the cases of the fixture: equality of the
 tables of From and Inout with and without hits. In the scenario `visits`,
 the body of `choose` is visited from three call sites and the third hit
 uses an entry produced before the second visit reached the other branch:
-the dependencies equal those of caching disabled and of memexec.
+the dependencies equal those of caching disabled and of memexec. The
+scenario `logic` shows the two directions for an uncovered read, which the
+check now withholds.
 
-**Open.** Premises 1 and 2 in general; a regression with several visits of
-one callstack, and with an assertion that reads the pre-state.
+**Open.** Premise 2 in general; a regression with an assertion that reads
+the pre-state through blocks of the key. The probe of the review that used
+the label `Pre` gave `Top` with and without hits and cannot detect a
+difference.
 
 ## Readers of the states saved at statements reject every candidate
 
@@ -333,10 +458,10 @@ one callstack, and with an assertion that reads the pre-state.
 computed from the states that Eva saves at the statements of each function,
 every supplied candidate is rejected with `consumer` and the body is
 analysed: From with `-deps`; Inout with `-out`, `-out-external`, `-input`,
-`-input-with-formals` or `-deref`; the plug-ins Pdg, Impact, Reduc, Scope,
-Security-slicing, Slicing, Sparecode and Studia when loaded. The callwise
-results of From and Inout are not such readers: `-calldeps` and `-inout`
-leave the candidates to the examination of each one.
+`-input-with-formals` or `-deref`; the plug-ins Pdg, Reduc and Studia when
+loaded, and every plug-in that loads one of them. The callwise results of
+From and Inout are not such readers: `-calldeps` and `-inout` leave the
+candidates to the examination of each one.
 
 **Kind.** OCaml obligation.
 
@@ -355,9 +480,12 @@ and, at a call, from the results by function of the called function. A hit
 saves no state at the statements of the called function: the function looks
 unreachable, and the results of its callers inherit this at their calls.
 `consumer_enabled` tests the readers declared by the options and the
-presence of the plug-ins by name, before any candidate is examined. Each of
-the eight plug-ins depends on From or Inout, and requests these results or
-reads the saved states.
+presence of the plug-ins by name, before any candidate is examined. Pdg,
+Reduc and Studia depend on Inout and request these results or read the
+saved states. The rule is by dependency: Impact, Scope, Security-slicing,
+Slicing and Sparecode link the library of Pdg, and loading any of them
+with `-no-autoload-plugins` lists Pdg among the plug-ins (`-plugins`), so
+they are not named.
 
 This answers the rule of
 [#47](https://github.com/nyandrianinamamy/frama-c/issues/47): a supplied
@@ -371,53 +499,116 @@ every candidate whenever either is loaded.
 
 **Evidence (executed).** Scenario `readers`, run once for each of the six
 options: `hits 0, rejected for consumer 15`, the 15 candidates of the 7
-calls. With `-inout`: `hits 7`. With each of the eight plug-ins loaded and
-no option: `hits 0, rejected for consumer 15`. With the declared readers
-ignored, and with the list of plug-ins emptied, the calls hit and the
-fixture fails.
+calls. With `-inout`: `hits 7`. With Pdg, Reduc, Studia or Slicing loaded
+and no option: `hits 0, rejected for consumer 15`. With `pdg` removed from
+the names, the runs with Pdg and with Slicing hit 7 times and the fixture
+fails. With the declared readers ignored, and with the list of plug-ins
+emptied, the calls hit and the fixture fails.
 
 **Open.** The plug-ins are listed by name: a plug-in added later that
-requests these results must be added. Readers outside the tree are not
-detected.
+requests these results without loading a named one must be added. Readers
+outside the tree are not detected at lookup; a request made after the
+analysis is refused (next claim).
 
-## A request made by the supplying module is not detected
+## Results computed from statement states are refused after a hit
 
-**Claim.** When the module that supplies the entries requests the results by
-function of From or Inout after the analysis, with no option or plug-in of
-the previous claim, these results miss the effects of the calls answered by
-hits.
+**Claim.** After an analysis in which a hit of a supplied entry answered a
+call, the results computed from the states that Eva saves at statements are
+refused with a user error, whoever requests them, until an analysis without
+such a hit: the dependencies by function of From (`From.get`, `-deps` and
+the printers of From); the inputs and outputs of Inout by function and by
+statement (`Inout.kf_inputs`, `kf_outputs`, `stmt_inputs`, `stmt_outputs`,
+`expr_inputs`, the options of the previous claim); the dynamic access to
+`Inout.kf_outputs`; the requests `getReadsLval` and `getWritesLval` of
+Studia. The server request `getDeadCode` reports no statement as reached
+or unreachable in a function answered by a hit. Eva prints the final states
+without filtering them by the outputs of Inout. The record of the functions
+answered by hits is saved with the session and cleared with the results of
+the analysis.
 
-**Kind.** Known difference.
+**Kind.** OCaml obligation.
+
+**Depends on.** None.
+
+**Symbols.** `Skipped_visits` (state `Eva.Skipped_visits.Skipped`, with
+dependency `Self.state`), `Compute_functions.Make.compute_and_cache_call`,
+`Eva.Results.statement_results_complete`, `Functionwise.To_Use.memo` in
+From, `Cumulative_analysis.check_statement_results` and
+`Operational_inputs.get_internal` in Inout, `Eva_dynamic.Inout.kf_outputs`,
+`Ast_requests.dead_code`, `Studia_request.check_statement_results`.
+
+**Argument (source inspection).** The branch of a hit that restores parts
+adds the called function to the set. The set is a project state that
+depends on the state of Eva's results: it is saved with the session, and a
+new analysis clears it. `statement_results_complete` holds when it is
+empty. From checks it before computing or memoising a result by function;
+Inout before the computations of `Cumulative_analysis` (by statement, by
+expression, by function) and before the computation by function from the
+statements in `get_internal`, used when no callwise result exists. Each
+aborts with a user error. The callwise results that a hit restores are not
+refused. Eva's dynamic access to `kf_outputs` returns `Top` when the set is
+not empty, as when Inout is not loaded, and Eva prints the final states
+unfiltered. Studia catches every exception in its requests and answers with
+no statement: it checks before computing. `getDeadCode` answers empty for a
+recorded function. Memexec is not concerned: its hits run the results hooks.
 
 **Evidence (executed).** Scenario `api`: after the analysis in which the
-three calls to `copy` hit, `From.get` gives `FROMUNREACHABLE` for `copy` and
-for its caller `deps_main`, and `Inout.kf_inputs` gives `\nothing` for both,
-where caching disabled gives `a FROM ... b; d` and `b; d; dst; src`.
+three calls to `copy` hit, `From.get`, `Inout.kf_inputs`,
+`Inout.stmt_inputs` and the dynamic access to `kf_outputs` are refused
+with the error; a later analysis with caching disabled gives the results by
+function again, equal to those of the first analysis. Scenario `then` with
+`-then -deps -input` and `-then -input`: the error, exit status 1, no
+result printed. Scenario `save`, then `-load` in another process with
+`-deps` and with `-out`: the same errors. Scenarios `server-fresh` and
+`server`: after caching disabled, `getDeadCode` on `copy` gives 2 reached
+statements and `getReadsLval` on `b` at the first call to `copy` gives 4
+indirect and 1 direct statements; after the hits, `getDeadCode` gives none
+and `getReadsLval` is refused. Before the change, as recorded in review,
+`-deps` printed `FROMUNREACHABLE` for `copy` and `deps_main`,
+`Inout.kf_inputs` gave `\nothing` for both, and a loaded session gave the
+same. With the record of the function removed from the hit, every request
+is computed and the fixture fails; with the check of `getDeadCode` removed,
+it reports the 2 statements of `copy` as unreachable; with the check of
+Studia removed, Studia warns `Error when computing reads` and answers with
+no statement.
 
-**Open.** Only a test module supplies entries today. Lifting the rejection
-for these readers needs the states at the statements of a skipped body,
-which is the public Inner query of
-[#40](https://github.com/nyandrianinamamy/frama-c/issues/40).
+**Open.** Readers that read `Eva.Results` at the statements of a recorded
+function without going through From or Inout are not refused, and are
+listed for the Reach ticket
+([#48](https://github.com/nyandrianinamamy/frama-c/issues/48)): the other
+requests of Eva's server, such as the values at a statement; the parts of
+Studia's `getWritesLval` that read `Eva.Results.callsites` and the callwise
+results; the plug-ins of #47 loaded after the analysis; the graphical
+interface. None of them is checked here. Lifting the refusal needs the
+states at the statements of a skipped body, which is the public Inner query
+of [#40](https://github.com/nyandrianinamamy/frama-c/issues/40).
 
 ## A function answered by hits only has no final state
 
 **Claim.** With `-eva` and Inout loaded, Eva prints the final state of each
 analysed function, filtered by the outputs that Inout computes by function.
-After hits, an analysed caller has the final state of caching disabled. A
-function whose calls are all answered by hits is not printed.
+After hits, these outputs are refused, and Eva prints the final states
+unfiltered; the values of an analysed caller are those of caching disabled.
+A function whose calls are all answered by hits is not printed.
 
 **Kind.** Known difference.
 
-**Argument (source inspection).** The outputs by function of a caller use,
-at each call, the callwise result of the call (`get_external_aux ~stmt`),
-which the hit restores. `display_final_state` prints a function only when
-the state before its first statement is reachable; no state is saved for a
-function answered by hits only.
+**Argument (source inspection).** Eva reads the outputs by function through
+its dynamic access to Inout, which gives `Top` when
+`statement_results_complete` is false ([Results computed from statement
+states are refused after a
+hit](#results-computed-from-statement-states-are-refused-after-a-hit)); the
+printer then reads `Cannot filter: dumping raw memory`.
+`display_final_state` prints a function only when the state before its first
+statement is reachable; no state is saved for a function answered by hits
+only.
 
 **Evidence (executed).** Scenario `inout` with `-eva`: Eva's own analysis
 and the two analyses of the test module print the final states of
-`deps_main`, `inout_main` and `main` three times each, the same each time;
-those of `copy`, `narrow`, `narrow_and_write` and `checked`, answered by
-hits in the last analysis, twice.
+`deps_main`, `inout_main` and `main` three times each; after the analysis
+with hits, the three are unfiltered, and `g`, `h` and `out` at the end of
+`inout_main` are `{5}`, `{7}` and `{5}` each time. Those of `copy`,
+`narrow`, `narrow_and_write` and `checked`, answered by hits in the last
+analysis, are printed twice.
 
 **Open.** None for this claim.
