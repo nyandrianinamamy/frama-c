@@ -27,6 +27,14 @@ garbled value. The `requires` clauses of the body, checked at the call site,
 are observed in the same way for this refusal. A set of blocks that is Top
 refuses with `footprint-top`.
 
+The claim does not cover a pointer to an allocated block held in a cell that
+the body does not read, in a block that it reads elsewhere. `sibling` of
+`contents.c` reads `holder.n` while `holder.p` holds such a pointer: it is
+not refused, and the whole block `holder`, pointer included, is in R and in
+a key produced from it. The collector does not exclude such a key block: a
+consumer of the key must handle a key block that holds a pointer to an
+allocated block.
+
 **Kind.** OCaml obligation.
 
 **Depends on.** [Whole-block observations and exits](body-access.md#whole-block-observations-and-exits),
@@ -171,7 +179,7 @@ holds part of the pointer. `partial` writes the next field of the same
 structure on two paths, which the analysis joins, and `partial_once` writes
 it once. Neither reads the union; the module asserts that no allocated block
 is in R, in W or among the designated blocks. Both read `allocated-block,
-owners __malloc_main_l34`; before the fixes both read `would-store`.
+owners __malloc_main_l41`; before the fixes both read `would-store`.
 `control`, the same writes to a structure without pointer, reads
 `would-store`.
 
@@ -336,10 +344,15 @@ functions that match the `Allocated` constructor without an accessor call
 validity extracted by one of these accessors. The paths are listed in
 [Read paths of the validity record](#read-paths-of-the-validity-record).
 
-The kernel holds at most one observer of each kind. The collector sets them
-when a recorder becomes active and removes them when none is: without
-recorder, and with `-eva-no-cache-collect`, an accessor tests one reference
-and calls no function.
+The kernel holds one observer of each kind. `Base.observe_metadata_reads`
+and `Base.observe_validity_updates` return the observer they replace. The
+collector sets its observers when a recorder becomes active; each calls the
+observer it replaced after its own work. When no recorder is active, the
+collector puts the replaced observers back: without recorder, and with
+`-eva-no-cache-collect`, an accessor tests one reference and calls no
+function of the collector. An observer set by another client while the
+collector's are installed replaces them until it is removed; the collector
+does not detect this.
 
 The observation is conservative. A write to an allocated block reads its
 metadata in the collector's own location queries, and the body is already
@@ -375,6 +388,7 @@ are owners.
 **Depends on.** [Owners of allocation metadata](#owners-of-allocation-metadata).
 
 **Symbols.** `Body_access.weakened`, `Body_access.read_node_tags`,
+`Base.weakenings`, `Base.update_variable_validity`,
 `Builtins_malloc.update_variable_validity`,
 `Partitioning_index.Make.add`, `Cvalue_domain.distinct_subpart`,
 `Cvalue_domain.find_subpart`, `Lmap.comp_prefixes`, `Lmap.find_prefix`,
@@ -403,7 +417,12 @@ long as the bases (it depends on the AST, as the registry of allocated
 bases): a node built in an earlier analysis of the same program can be found
 again by the hash-consing table. `read_node_tags`, run before the index
 consults the tags, refuses the body when the set is not empty, and adds the
-recorded blocks to its owners. This is the plain form of the rule: it does
+recorded blocks to its owners. `Base.update_variable_validity` is public: the
+kernel counts the calls that make a strong record weak (`Base.weakenings`),
+whoever the caller is, and `read_node_tags` also refuses when the count is
+not zero. The count is not reset with the project: the hash-consing table is
+shared by the projects. A weakening counted without a call to
+`Body_access.weakened` adds no owner. This is the plain form of the rule: it does
 not check whether a compared state holds a pointer to a weakened block. The
 first state that reaches a point is stored without reading a tag.
 
@@ -418,9 +437,14 @@ rule it read `would-store`. Called before the weakening, it reads
 `b6a0e9c2a443bb8b19c039008f3e2e9f5072321d`, before the rule, and with the
 rule: 998 bodies would be stored in both runs, and every count of a first
 reason is unchanged.
+The last case of `run.t` (`EVA_TEST_ALLOCATION=kernel`) makes a record weak
+through `Base.update_variable_validity` alone: `read_node_tags` reads
+`would-store` before and `allocation-metadata` after. The same case sets an
+observer of metadata reads before a recording: it runs before, during and
+after the recording (`observer runs: 3`), and the collector records the
+owner of the read made during it.
 
-**Open.** A weakening made by another plug-in through
-`Base.update_variable_validity` is not recorded. The rule applies to the
+**Open.** The rule applies to the
 bodies analysed after a weakening: an entry stored before a weakening and
 matched after it is not covered, and the lookup must account for it. The
 rule refuses more than the stale tags require: a finer rule would check
