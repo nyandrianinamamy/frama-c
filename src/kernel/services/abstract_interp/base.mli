@@ -127,15 +127,17 @@ val update_variable_validity:
     The validity and the type of the variable of an [Allocated] base can
     change during an analysis. *)
 
-val observe_metadata_reads: (t -> unit) option -> unit
+val observe_metadata_reads: (t -> unit) option -> (t -> unit) option
 (** [observe_metadata_reads (Some f)] makes [f] the observer run with the
     base when {!validity}, {!is_weak}, {!typeof}, {!bits_sizeof} or
     {!alignof} is applied to an [Allocated] base, and by {!metadata_read}.
-    [observe_metadata_reads None] removes it. There is at most one observer:
-    a new one replaces the previous one. Without observer, these functions
-    test one reference and call no function. A function given an already
-    extracted validity is not observed. The observer must not apply these
-    functions to an [Allocated] base: doing so runs it again. *)
+    [observe_metadata_reads None] removes it. There is one observer at a
+    time: the call returns the observer it replaces, which the caller
+    restores, and runs from its own observer if it must keep running.
+    Without observer, these functions test one reference and call no
+    function. A function given an already extracted validity is not
+    observed. The observer must not apply these functions to an [Allocated]
+    base: doing so runs it again. *)
 
 val metadata_read: t -> unit
 (** Runs the observer of {!observe_metadata_reads} on an [Allocated] base,
@@ -143,11 +145,17 @@ val metadata_read: t -> unit
     allocated base by matching its constructor. *)
 
 val observe_validity_updates:
-  (variable_validity -> weak:bool -> unit) option -> unit
+  (variable_validity -> weak:bool -> unit) option ->
+  (variable_validity -> weak:bool -> unit) option
 (** [observe_validity_updates (Some f)] makes [f] the observer run at each
     call of {!update_variable_validity}, before the update, with the record
-    and the [weak] argument; [None] removes it. There is at most one
-    observer. *)
+    and the [weak] argument; [None] removes it. It returns the observer it
+    replaces, as {!observe_metadata_reads} does. *)
+
+val weakenings: unit -> int
+(** The number of calls of {!update_variable_validity} that made a strong
+    validity record weak, since the start of the process. It is counted
+    with or without observer. *)
 
 
 (** {2 Finding bases} *)

@@ -109,8 +109,9 @@ val weakened : Base.t -> unit
 (** Refuses with [Allocation_metadata] before the tags of the nodes of
     offsetmaps are consulted, when a block has been made weak: a node keeps
     the tag computed at its first construction, which depends on the
-    weakness of the blocks its value designates. The weakened blocks become
-    owners. *)
+    weakness of the blocks its value designates. The blocks recorded by
+    {!weakened} become owners. A validity record made weak without
+    {!weakened}, counted by [Base.weakenings], refuses with no owner. *)
 val read_node_tags : unit -> unit
 
 val transfer :

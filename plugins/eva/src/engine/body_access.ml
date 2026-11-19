@@ -117,16 +117,40 @@ let metadata_read base =
 let validity_update _ ~weak:_ =
   Option.iter (fun r -> add_refusal r Validity_mutation) (observer ())
 
-let read_observer = Some metadata_read
-let update_observer = Some validity_update
+(* The observers that the kernel had when the recorders were set: they keep
+   running while a recorder is set, and are restored afterwards. *)
+let previous_read = ref None
+let previous_update = ref None
+let installed = ref false
 
-(* Sets the recorders. Without recorder, the kernel has no observer. *)
+let read_observer =
+  Some (fun base ->
+      metadata_read base;
+      Option.iter (fun f -> f base) !previous_read)
+
+let update_observer =
+  Some (fun validity ~weak ->
+      validity_update validity ~weak;
+      Option.iter (fun f -> f validity ~weak) !previous_update)
+
+(* Sets the recorders. Without recorder, the kernel has the observers it had
+   before. *)
 let set_recorders body site =
   current := body;
   call_site := site;
   let observed = Option.is_some body || Option.is_some site in
-  Base.observe_metadata_reads (if observed then read_observer else None);
-  Base.observe_validity_updates (if observed then update_observer else None)
+  if observed && not !installed then begin
+    previous_read := Base.observe_metadata_reads read_observer;
+    previous_update := Base.observe_validity_updates update_observer;
+    installed := true
+  end
+  else if not observed && !installed then begin
+    ignore (Base.observe_metadata_reads !previous_read);
+    ignore (Base.observe_validity_updates !previous_update);
+    previous_read := None;
+    previous_update := None;
+    installed := false
+  end
 
 let suspend site f =
   let previous = !current and previous_site = !call_site in
@@ -320,7 +344,9 @@ let read_node_tags () =
   | None -> ()
   | Some r ->
     let bases = Weakened.get () in
-    if not (Base.Hptset.is_empty bases) then begin
+    (* The count of the kernel also covers a record made weak by another
+       caller than the allocation builtins; its owner is then unknown. *)
+    if not (Base.Hptset.is_empty bases) || Base.weakenings () > 0 then begin
       add_refusal r Allocation_metadata;
       r.owners <- Base.Hptset.union bases r.owners
     end

@@ -119,8 +119,19 @@ let metadata_observer : (base -> unit) option ref = ref None
 let validity_observer : (variable_validity -> weak:bool -> unit) option ref =
   ref None
 
-let observe_metadata_reads f = metadata_observer := f
-let observe_validity_updates f = validity_observer := f
+let observe_metadata_reads f =
+  let previous = !metadata_observer in
+  metadata_observer := f;
+  previous
+
+let observe_validity_updates f =
+  let previous = !validity_observer in
+  validity_observer := f;
+  previous
+
+(* The number of validity records made weak since the start of the process. *)
+let weakening_count = ref 0
+let weakenings () = !weakening_count
 
 let[@inline] metadata_read b =
   match !metadata_observer with
@@ -502,7 +513,10 @@ let update_variable_validity v ~weak ~min_alloc ~max_alloc =
   (match !validity_observer with None -> () | Some f -> f v ~weak);
   v.min_alloc <- Z.min min_alloc v.min_alloc;
   v.max_alloc <- Z.max max_alloc v.max_alloc;
-  if weak then v.weak <- true
+  if weak && not v.weak then begin
+    incr weakening_count;
+    v.weak <- true
+  end
 
 
 module Base = struct
