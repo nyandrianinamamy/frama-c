@@ -109,9 +109,10 @@ let part =
     ~needed:From_parameters.ForceCallDeps.get ~restore:restore_froms ()
 
 (* The dependencies of a call are kept with the entry of its body only when
-   the body made no call: a hit restores them at the call site of the hit,
-   not the dependencies that the calls of the body record at their own call
-   sites. *)
+   this call of the body made no call: a hit restores them at the call site
+   of the hit, not the dependencies that the calls of the body record at
+   their own call sites. The test is on the calls recorded: a body whose
+   calls are on paths that this call does not take gives its part. *)
 let provide_froms callstack ~reads froms =
   match !call_froms_stack with
   | { table_for_calls } :: _ when Kinstr.Hashtbl.length table_for_calls = 0 ->
