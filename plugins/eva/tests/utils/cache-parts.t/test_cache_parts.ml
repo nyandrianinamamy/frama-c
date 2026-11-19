@@ -370,6 +370,17 @@ let api () =
 let save () =
   Project.save (Filepath.of_string (Sys.getenv "EVA_TEST_CACHE_PARTS_SESSION"))
 
+(* A copy of the project after the hits, made by Project.create_by_copy,
+   carries the record of the functions answered by hits. *)
+let copy_after_hits () =
+  let copy = Project.create_by_copy ~last:false "after hits" in
+  Project.on copy
+    (fun () ->
+       Format.printf "in the copy: statement results complete: %b@."
+         (Eva.Results.statement_results_complete ());
+       refused "in the copy: From.get" (fun () -> From.get (kf "deps_main")))
+    ()
+
 (* ----- Requests that start the analysis or read a memo ------------------ *)
 
 (* From.get starts the analysis of Eva when its results are not computed.
@@ -737,6 +748,7 @@ let () =
   | Some "api" -> Boot.Main.extend api
   | Some "then" -> Boot.Main.extend (after_hits ignore)
   | Some "save" -> Boot.Main.extend (after_hits save)
+  | Some "copy" -> Boot.Main.extend (after_hits copy_after_hits)
   | Some "visits" -> Boot.Main.extend visits
   | Some "logic" -> Boot.Main.extend logic
   | Some "history" -> Boot.Main.extend history

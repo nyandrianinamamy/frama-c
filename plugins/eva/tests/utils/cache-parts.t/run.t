@@ -471,6 +471,15 @@ saved, and the later calls to copy are not answered by them.
   call to copy: lookup: rejected (entry 1: analysis-reset), rejected (entry 2: analysis-reset), rejected (entry 3: analysis-reset); execution: analysed
   call to copy: lookup: rejected (entry 1: analysis-reset), rejected (entry 2: analysis-reset), rejected (entry 3: analysis-reset); execution: analysed
 
+A copy of the project made after the hits carries the record of the hits:
+in the copy, the dependencies by function are refused.
+
+  $ EVA_TEST_CACHE_PARTS=copy frama-c -no-autoload-plugins -load-module eva,from,inout,test_cache_parts.cmxs parts.c > copy.log 2>&1
+  $ grep -E '^(hits|in the copy)' copy.log
+  hits: copy 3; statement results complete: false
+  in the copy: statement results complete: false
+  in the copy: From.get: refused
+
 The record of the hits is saved with the session: another process that
 loads it refuses the same requests.
 
