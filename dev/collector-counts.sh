@@ -65,11 +65,11 @@ done
 if (( ${#started[@]} )); then
   awk -F '\t' '
     BEGIN {
-      reasons = "indirect-call reallocation allocation deallocation" \
-        " validity-mutation builtin sweep contract annotation nested-call" \
-        " allocated-block allocation-metadata footprint-top side-table" \
-        " recursion threaded widening-hint watchpoint dump stop-at-alarm" \
-        " callback trace-id"
+      reasons = "project-switch indirect-call reallocation allocation" \
+        " deallocation validity-mutation builtin sweep contract annotation" \
+        " nested-call allocated-block allocation-metadata footprint-top" \
+        " side-table recursion threaded widening-hint watchpoint dump" \
+        " stop-at-alarm callback trace-id"
       split(reasons, reason, " ")
       for (i in reason) {
         counts["collector-refused-" reason[i]] = 0

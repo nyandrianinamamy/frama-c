@@ -19,6 +19,7 @@ type call_trace = {
 module Result = struct
   (* Order used to select one reason for the storage disposition. *)
   type refusal =
+    | Project_switch
     | Indirect_call
     | Reallocation | Allocation | Deallocation | Validity_mutation
     | Recursion | Watchpoint | Dump
@@ -27,6 +28,7 @@ module Result = struct
     | Allocated_block | Allocation_metadata | Footprint_top | Side_table
 
   let refusal_id = function
+    | Project_switch -> "project-switch"
     | Indirect_call -> "indirect-call"
     | Reallocation -> "reallocation"
     | Allocation -> "allocation"
@@ -643,6 +645,20 @@ let check_written ~entry ~exits =
       if not (Sweep_access.clear_input r.sweeps entry) then add_refusal r Sweep;
       List.iter (check_state r written) (entry :: exits)
 
+(* The changes of the current project. A recording during which the
+   current project changes is refused: it may hold observations made in
+   another project. The hook is installed at the first recording. *)
+let project_changes = ref 0
+
+let observe_project_changes =
+  let installed = ref false in
+  fun () ->
+    if not !installed then begin
+      installed := true;
+      Project.register_after_set_current_hook ~user_only:false
+        (fun _ -> incr project_changes)
+    end
+
 let finish_paths ~entry ~exit ~returns =
   Option.iter (fun r -> r.paths <- Some (entry, exit, returns)) !current
 
@@ -676,10 +692,14 @@ let capture stack compute =
     } in
     set_recorders (Some r) None;
     let displaced = !displacements in
+    observe_project_changes ();
+    let project = Project.current () and changes = !project_changes in
     let output =
       Fun.protect compute ~finally:(fun () ->
           set_recorders previous previous_site)
     in
+    if !project_changes <> changes || not (Project.is_current project)
+    then add_refusal r Project_switch;
     (* Another client changed the observers of the kernel during the
        recording: a read of allocation metadata may be missing. *)
     if !displacements <> displaced then add_refusal r Allocation_metadata;

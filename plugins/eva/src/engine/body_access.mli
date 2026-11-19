@@ -27,8 +27,15 @@ module Result : sig
       [Allocation_metadata] is a read of the validity or of the type of an
       allocated block, also by an operation of the analyzer that the
       program does not select. A body inherits these six reasons from the
-      bodies analysed during its own analysis. *)
+      bodies analysed during its own analysis.
+      [Project_switch] is a change of the current project during the
+      recording, by a callback for instance, even if the project changes
+      back before its end: the recording belongs to the project current
+      when it started, and the observations made in another project are not
+      sorted out. Each recording in progress at the change is refused, the
+      bodies whose analysis contains that of the current one included. *)
   type refusal =
+    | Project_switch
     | Indirect_call
     | Reallocation | Allocation | Deallocation | Validity_mutation
     | Recursion | Watchpoint | Dump
