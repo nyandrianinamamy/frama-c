@@ -156,7 +156,9 @@ let get_status ip =
 
 (* A statement of a function a call of which was answered by a hit of the cache
    is counted as reached: the visits of that call save no state, and the
-   absence of a state there does not prove the statement unreachable. *)
+   absence of a state there does not prove the statement unreachable. The
+   coverage is then an upper bound, and its line says so (see
+   [unknown_reachability]). *)
 let reached stmt =
   Results.is_reachable stmt || Safety_delivery.visits_skipped_at stmt
 
@@ -335,9 +337,25 @@ let compute_stats () =
 
 let plural count = if count = 1 then "" else "s"
 
+(* The statements counted as reached without a state: those of the functions
+   counted in the coverage that a hit of the cache answered, at which no
+   analysed call saves a state. A hit may reach them or not. *)
+let unknown_reachability () =
+  let count = ref 0 in
+  let do_stmt stmt = if not (Results.is_reachable stmt) then incr count in
+  FunctionStats.iter (fun kf _ ->
+      if consider_function (Kernel_function.get_vi kf)
+      && Safety_delivery.visits_skipped kf
+      then
+        match Kernel_function.get_definition kf with
+        | fundec -> List.iter do_stmt fundec.Cil_types.sallstmts
+        | exception Kernel_function.No_Definition -> ());
+  !count
+
 let print_coverage fmt {prog_fun_coverage=funs; prog_stmt_coverage=stmts} =
   let funs_total = Coverage.total funs
   and stmts_total = Coverage.total stmts in
+  let unknown = unknown_reachability () in
   if funs_total = 0
   then Format.fprintf fmt "No function to be analyzed.@;"
   else
@@ -346,13 +364,27 @@ let print_coverage fmt {prog_fun_coverage=funs; prog_stmt_coverage=stmts} =
        @{<bold>%.0f%%@} coverage.@;"
       funs.reachable (plural funs.reachable) funs_total
       (Coverage.ratio funs *. 100.0);
+  let in_functions =
+    if funs.reachable > 1 then "these functions" else "this function"
+  in
   if funs_total > 0 && stmts_total > 0 then
-    Format.fprintf fmt
-      "In %s, @{<bold>%i@} statements reached (out of @{<bold>%i@}): \
-       @{<bold>%.0f%%@} coverage.@;"
-      (if funs.reachable > 1 then "these functions" else "this function")
-      stmts.reachable stmts_total
-      (Coverage.ratio stmts *. 100.0)
+    if unknown = 0 then
+      Format.fprintf fmt
+        "In %s, @{<bold>%i@} statements reached (out of @{<bold>%i@}): \
+         @{<bold>%.0f%%@} coverage.@;"
+        in_functions stmts.reachable stmts_total
+        (Coverage.ratio stmts *. 100.0)
+    else
+      (* [stmts] counts the statements of unknown reachability as reached. *)
+      let reached = stmts.reachable - unknown in
+      Format.fprintf fmt
+        "In %s, @{<bold>%i@} statements reached (out of @{<bold>%i@}): \
+         @{<bold>%.0f%%@} coverage,@;\
+         and up to @{<bold>%i@} more through calls answered by the cache \
+         (@{<bold>%.0f%%@} coverage).@;"
+        in_functions reached stmts_total
+        (float_of_int reached /. float_of_int stmts_total *. 100.0)
+        unknown (Coverage.ratio stmts *. 100.0)
 
 let print_events fmt stats =
   if Events.total stats.eva_events + Events.total stats.kernel_events = 0

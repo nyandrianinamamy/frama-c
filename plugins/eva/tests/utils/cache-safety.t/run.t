@@ -129,14 +129,18 @@ by a change of the entry point.
   $ grep '^| ' passes-reference.log > passes-reference.summary
   $ diff passes.summary passes-reference.summary
 
-The summary of the analysis counts every statement of body as reached. It
-can count more than with caching disabled: here the loop at line 14, which
-no call reaches, is counted. The first line is that of the analysis from
-producer.
+The summary of the analysis cannot tell which statements of body the hit
+reaches. It counts as reached the statements with a state, then gives as an
+upper bound the count with the statements of body that have none. Here 12
+statements have a state, and 3 have none. With caching disabled, 14 are
+reached: the loop at line 14, which no call reaches, is among the 3. The
+first line is that of the analysis from producer, which has no hit: its
+line has the usual form.
 
-  $ grep 'statements reached' passes.log
+  $ grep -E 'statements reached|answered by the cache' passes.log
     In these functions, 11 statements reached (out of 12): 92% coverage.
-    In these functions, 15 statements reached (out of 15): 100% coverage.
+    In these functions, 12 statements reached (out of 15): 80% coverage,
+    and up to 3 more through calls answered by the cache (100% coverage).
   $ grep 'statements reached' passes-reference.log
     In these functions, 14 statements reached (out of 15): 93% coverage.
 
