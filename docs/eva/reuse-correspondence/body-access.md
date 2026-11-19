@@ -435,19 +435,19 @@ than Here, `\tainted` and the taint status, or a `calls` annotation. Logic
 `memchr` is unsupported by the evaluator and refuses through the
 unsupported-term message; `memchr_off` reaches the search primitive.
 
-The read of the emission history outside the listed clause messages is not
-refused. Three bodies of the fixture are stored while they emit such a
-message, and the fixture records it: `once_category` (a status message
-under `-eva-warn-key alarm=once`, which makes the category inactive for the
-later messages), `pointer_comparison` (the message of `Cvalue_forward`) and
-`partial_unroll` (the message of `Partition` on a loop not completely
-unrolled). The backward pointer comparison of `Cvalue_backward` and the
-message of a split on the returned value are in the same class, by source
-inspection. One observer in the logger, run before every message printed
-once or under a `once` category, was tried and withdrawn: the feedback
-"starting to merge loop iterations" is printed once, so every body with a
-merged loop refused. Refusing these reads, or showing them invariant
-within one analysis, belongs to the classification of ordered effects.
+Three bodies in `body-access.t` refuse with `side-table` on emission
+history. `once_category` consults the active `locals-escaping=once` policy.
+`pointer_comparison` and `partial_unroll` consult per-event warning history
+in `Cvalue_forward` and `Partition`, respectively. Source
+inspection puts the backward pointer comparison and failed split on the
+returned value in the latter class. The sweep warning in `once_category`
+is admitted without the category policy, which isolates that policy's
+notification. The admitted per-event accesses are Eva's `partition` and
+`widening` feedback (reports of work performed) and the ordinary
+`locals-escaping` warning (a stable event already in the once history on
+a matching sweep hit). See [ordered effects](collector-effects.md#ordered-and-opaque-effects)
+for the conditions, callback rules and remaining obligations.
+
 A designated range covers the
 whole block when the offsets are unbounded, and every cell from the least
 to the greatest offset when they are strided, such as a field read across

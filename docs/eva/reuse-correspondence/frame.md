@@ -240,11 +240,12 @@ currently refused by the collector.
 **Eva symbols and source evidence.**
 `Transfer_stmt.leave_scope` calls `Cvalue_domain.State.leave_scope`.
 `Locals_scoping.make_escaping_fundec` selects departing referenced
-non-temporaries, reports `Body_access.Sweep` through `unknown_access`,
-and applies `make_escaping` to the candidate holders and the null base,
-with a full map scan when the holder set is Top. `Transfer_stmt.do_one_call`
-performs the outer cleanup. The own-local path records the targets and
-the holder rewrites. The supplied lookup checks the caller's input for
+non-temporaries and applies `make_escaping` to the candidate holders
+and the null base, with a full map scan when the holder set is Top.
+During a recording, the admitting path records the own inner-local
+targets and holder rewrites. The refused branch reports
+`Body_access.Sweep` through `unknown_access`. `Transfer_stmt.do_one_call`
+performs the outer cleanup. The supplied lookup checks the caller's input for
 potential holders, with an Eva fixture that exercises both acceptance and
 refusal. [Lexical sweep in cvalue](collector-effects.md#lexical-sweep-in-cvalue).
 

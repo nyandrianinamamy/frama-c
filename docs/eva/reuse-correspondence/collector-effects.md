@@ -26,9 +26,12 @@ Free, reallocation, VLA and automatic allocation releases keep their
 [allocation-family refusals](allocated-blocks.md). They do not register
 lexical sweeps.
 
-At a change of a cell, the cvalue sweep sets the escaping flag and removes
-the targeted addresses. Its existing callback reports the holder before
-the updated offsetmap is installed. The read makes the holder part of
+On a cell with a finite set of bases, the exact cvalue sweep removes
+the swept bases and sets the escaping flag if it removes any. This
+applies both to address maps and to garbled values with known bases.
+For a value with unknown bases, the sweep sets the escaping flag and
+keeps the value with all bases. The sweep's callback reports the holder
+before the updated offsetmap is installed. The read makes the holder part of
 the matching key and the possible write participates in the edge's exit
 analysis. From a returning path the holder therefore belongs to the
 overlay, whose binding comes from the post-sweep exit. A removed target
@@ -40,7 +43,7 @@ also lacks them.
 `Sweep_access.clear_input` checks the producing input and, independently,
 each current input used by `Supplied_entries.Lookup`. It checks every
 explicit offsetmap cell and refuses if bases are unknown or intersect
-the target set. Defaults for absent cells have no pointer in cvalue.
+the target set. It also refuses an explicit binding for a target. Defaults for absent cells have no pointer in cvalue.
 This is stronger than checking just the unchanged frame, and covers all
 recorded targets even on nonreturning paths. At a prefix, a holder
 initially without the target can only acquire a pointer to it through
@@ -58,9 +61,14 @@ the address of its inner local to a global. The collector records the
 target and the holder write. The produced exit and the supplied overlay
 both contain the escaping marker. A synthetic current input extends that
 same key with a previously absent holder of the address. The candidate
-is rejected as `sweep`. The synthetic input exercises the guard without
-evaluating or dereferencing an out-of-scope address in C. The test also
-checks a callee's outer cleanup in its caller. `allocation-refusals.t`
+is rejected as `sweep`. Offset ranges, garbled pointers, unknown bases
+and an escaping flag with a remaining pointer also reject both
+candidates. An escaping marker alone admits the first. The synthetic
+inputs avoid dereferencing an out-of-scope address in C. A prebound
+target changes the key and also fails the independent producing-input
+guard. A matching key with a preexisting holder likewise fails that
+producer guard. The fixture also checks an own outer scope and a callee's
+outer cleanup in its caller. `allocation-refusals.t`
 covers free and automatic cleanup.
 
 **Open.** Lookup in the replacement cache must apply this check even
@@ -96,7 +104,10 @@ priority in the verdict.
 **Executed evidence.** `collector-effects.t` checks a transitive fresh
 call and recursion at several stack depths. It confirms a memexec hit
 on `middle` and checks that the new enclosing body still records the
-transitive call to `threaded`. It also checks a call-free body in Mthread.
+transitive call to `threaded`. It checks the producing trace returned
+by a supplied hit, rejection of both candidates on a recursive stack,
+and refusal when a formerly nonrecursive hit trace is included in a
+conflicting caller's recording. It also checks a call-free body in Mthread.
 
 **Open.** An entry produced without observations has only the directly
 resolved call. The enclosing body refuses nested calls. Admission of
@@ -121,21 +132,28 @@ thresholds into the dynamic table, it clears the same derived memo as
 before. `Widen_type.adds_dynamic_hints` tests the added contributions
 against previous per-base thresholds and the common defaults. A duplicate
 or default threshold alone has no effect. A change advances the
-project-local generation. The stamp also holds a fresh run identifier,
-so equal generation numbers in two analyses compare different. The
+project-local generation. The stamp also holds a fresh run identifier
+within the process, so equal generation numbers in two analyses in that
+process compare different. The
 generation recorded on a reader is an entry snapshot. If it differs at
 the end of the body, the reader is refused, even if code outside the
 reader caused the change. Nested observation propagates discovery refusal
 and the fact that the body consulted hints. The generation conservatively
-covers updates even when a particular function's static hints mask an
-update.
+covers updates even when static hints mask them for every function.
+A global static threshold annotated in an uncalled function is one
+example. Advancing the stamp in this case can lose reader hits without
+changing analysis results.
 
 **Executed evidence.** `collector-effects.t` runs both inventory
 programs with legacy memexec disabled. In the reader program the reader
 records generation 0 before discovery and generation 1 after it. The
 control without discovery records 0 twice. In the writer program both
 discoverers refuse and the later reader records generation 2. The
-fresh reader result with discovery is `{13}` in both tests.
+fresh reader result with discovery is `{13}` in both tests. Discovering
+a default threshold leaves both reader generations at zero. Lookup
+falls through a stale candidate to the newer one, and a second run
+refuses the first run's entries even at the same numeric generation.
+An update during a recording after a hint read refuses that reader.
 
 **Open.** The stamp is only for the current analysis. A persisted entry
 would need its own validation of the effective hint contents. The
@@ -151,14 +169,19 @@ effects and reads of emission history.
 **Source inspection.** `Builtins_watchpoint` reports installation and
 active checks. A watch installed after a candidate was produced can
 affect a later call, so supplied lookup refuses when the table is active.
+The watch table is process-global. A watch installed in another project
+also causes this conservative refusal and can cost hits in the original
+project.
 `Transfer_stmt.apply_special_directives` reports dumps before state
 output or file numbering. The show directives keep their builtin
 refusal. `Alarmset.emit_alarms` reports each stopping checkpoint under a
-finite threshold. Even when the producing run completes, a new call can
-arrive with more alarms accumulated. A body that never executes a
-checkpoint does not refuse for this option alone. This is a conservative
-test for whether stopping is possible. The existing iterator read of the
-alarm-emission cache still refuses.
+finite threshold, sampled on either side of emission. Even when the
+producing run completes, a new call can arrive with more alarms
+accumulated. A body that never executes a checkpoint does not refuse
+for this option alone. Refusing at any finite threshold is conservative.
+Eva makes the stopping decision with the threshold read after emission,
+so a listener can raise it before the decision. The existing iterator
+read of the alarm-emission cache still refuses.
 
 `Log.on_history_access` reports both the per-message once test and an
 active once policy on an entire warning category. The category case can
@@ -172,21 +195,52 @@ analysis is suppressed by the same logger history. These exceptions
 apply to the per-message history only. A warning promoted to an error
 or using a once category is outside that exception.
 
-`Cvalue_callbacks` refuses by default when invoking an unclassified
-call, call-result or statement callback. The existing explicit
-classifications are limited to the named protocols or hooks that report
-their own effects. `Hook.Opaque` also reports registered logger,
-message-list, annotation-change and property callbacks at invocation.
-The standard kernel message collector accounts for its own reporting.
+The audit of callbacks and hook registrations in this change is below.
+A refusal is recorded on invocation during a body, including a
+consultation that an ordinary history subscriber observes even when the
+logging event would otherwise be admitted.
+
+- The collector's policy observer is the only audited client of
+  `Log.on_history_access`. Ordinary subscribers invoke `Hook.Opaque` and
+  refuse with `callback`.
+- The standard kernel message collector is the only audited listener
+  registered with `Log.add_listener`. Other listeners refuse with
+  `callback`.
+- Any client of the kernel message-list hook `Messages.add_hook` refuses
+  with `callback`, including a client of the audited message collector.
+- Any client of `Annotations.add_hook_on_change` refuses with `callback`.
+  The server's listener is a no-op without a server. Auditing it is
+  deferred. The reviewed suite comparison attributed 160 lost would-store
+  verdicts and 153 lost produced entries to callback refusals.
+- Any client of the `Property_status` add, remove and status-update hooks
+  refuses with `callback`.
+- Any client of `Red_statuses.register_hook` refuses with `callback` on
+  this branch. #47 lifts this refusal when its audited Safety delivery
+  replays the red hook with the recorded multiplicity.
+- The `Cvalue_callbacks` call, call-result and statement hooks admit
+  audited clients only through the existing cache protocols and classified
+  callbacks that account for their effects. Each unclassified client
+  refuses with `callback`.
+- The collector's `Hook.Opaque.on_call` observer records `callback`
+  before every wrapped invocation. Extra observers run only on those
+  already refused invocations during a body.
+- `Body_access.on_result` runs with recording suspended, after the
+  observed body finishes.
+
 `Traces_domain.Node.next` refuses whenever a trace node identity is
 allocated in a recording.
 
 **Executed evidence.** `collector-effects.t` checks watch installation
-and a subsequent body with an active watch, a dump, a completed body
-with a finite threshold, an unclassified logger listener and trace-node
-allocation. `body-access.t` checks a registered call callback, an
-interrupted alarm checkpoint, once categories, pointer comparisons,
-partial unrolling and the previously instrumented ACSL messages.
+before statement transfer, an active watch during transfer and two
+lookup refusals after a watch is installed in another project. It also
+checks a state dump, a file dump and its first numbered file, trace-node
+allocation, an unclassified logger listener, and red and history
+clients that run once each and cause production to refuse. With
+collection disabled, the threshold-raising listener lets Eva finish
+with memexec enabled or disabled. `body-access.t` checks a registered
+call callback, an interrupted alarm checkpoint, an isolated once-category
+notification, pointer comparisons, partial unrolling and the previously
+instrumented ACSL messages.
 
 **Open.** The refusal is based on instrumented accesses. Later cache
 consumption must account for hook or warning configuration changes
