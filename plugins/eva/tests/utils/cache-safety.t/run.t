@@ -359,13 +359,14 @@ it does. A hit is admitted only when no client that the collector does not
 audit is registered on a hook that the analysis of the body or the hit
 would run: the hooks on calls and on statements of Eva, the hooks of red
 statuses, the hooks on the addition and the status of properties, the hooks
-on the changes of annotations, the listeners and the observers of the
-history of the logger, and the hooks on messages. Otherwise, every supplied
+on the changes of annotations, the listeners of the logger, for all
+plug-ins (listener) or for one (register), the observers of its history,
+and the hooks on messages. Otherwise, every supplied
 candidate is rejected for callback, and the body is analysed. Below, one
 client of each hook is registered after the analysis from producer of
 safety.c; both calls of body in the analysis from main reject the entry.
 
-  $ for c in call call-results statement red status property annotations listener history messages; do EVA_TEST_CACHE_SAFETY=replay EVA_TEST_CACHE_SAFETY_CLIENT=$c frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -main producer -eva-msg-key cache safety.c > client-$c.log 2>&1; echo "$c: exit $?"; done
+  $ for c in call call-results statement red status property annotations listener register history messages; do EVA_TEST_CACHE_SAFETY=replay EVA_TEST_CACHE_SAFETY_CLIENT=$c frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -main producer -eva-msg-key cache safety.c > client-$c.log 2>&1; echo "$c: exit $?"; done
   call: exit 0
   call-results: exit 0
   statement: exit 0
@@ -374,9 +375,10 @@ safety.c; both calls of body in the analysis from main reject the entry.
   property: exit 0
   annotations: exit 0
   listener: exit 0
+  register: exit 0
   history: exit 0
   messages: exit 0
-  $ for c in call call-results statement red status property annotations listener history messages; do grep '^client' client-$c.log; done
+  $ for c in call call-results statement red status property annotations listener register history messages; do grep '^client' client-$c.log; done
   client call: hits on body: 0, rejected for callback: 2
   client call-results: hits on body: 0, rejected for callback: 2
   client statement: hits on body: 0, rejected for callback: 2
@@ -385,6 +387,7 @@ safety.c; both calls of body in the analysis from main reject the entry.
   client property: hits on body: 0, rejected for callback: 2
   client annotations: hits on body: 0, rejected for callback: 2
   client listener: hits on body: 0, rejected for callback: 2
+  client register: hits on body: 0, rejected for callback: 2
   client history: hits on body: 0, rejected for callback: 2
   client messages: hits on body: 0, rejected for callback: 2
 

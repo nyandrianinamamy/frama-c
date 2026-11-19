@@ -134,6 +134,7 @@ let register_client = function
   | "property" -> Property_status.register_property_add_hook ignore
   | "annotations" -> Annotations.add_hook_on_change ignore
   | "listener" -> Log.add_listener ignore
+  | "register" -> Kernel.register Log.Warning ignore
   | "history" ->
     Log.on_history_access
       (fun ~plugin:_ ~kind:_ ~category:_ ~once_category:_ -> ())
