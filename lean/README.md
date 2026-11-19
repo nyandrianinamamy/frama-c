@@ -69,7 +69,7 @@ directories that Dune reads, and `lean` is not among them.
 | `ReuseModel/Entry.lean` | Footprints, cache entries, producer soundness, `CacheEntry.sound_of_producer`, and `CacheEntry.shared_inner` |
 | `ReuseModel/Hit.lean` | Replay admission, the unchanged exit frame, and the projected and whole-product hit theorems |
 | `ReuseModel/SideTables.lean` | The four obligations for side-table accesses in skipped work |
-| `ReuseModel/Query.lean` | Query points (statement, callstack, before or after), visits at a point, the hit log, the reconstruction rules (`HitLine.answer`, `query`), the soundness of the inner part (`InnerPartSound`) and of an inner part with states on the key only (`innerPartSound_of_key`), `replay_trace` and `CacheEntry.query_sound` |
+| `ReuseModel/Query.lean` | Query points (statement, callstack, before or after), visits at a point, the hit log, the reconstruction rules of one line (`HitLine.answer`), the join of the lines that apply (`joinAnswers`, `query`, `mem_query`, `query_some`), the soundness of the inner part (`InnerPartSound`) and of an inner part with states on the key only (`innerPartSound_of_key`), `replay_trace`, `CacheEntry.answer_sound` for one line and `CacheEntry.query_sound` for the joined answer |
 | `Checks/AxiomCheck.lean` | The `#check_axioms` command |
 | `Checks/Axioms.lean` | `#print axioms` and `#check_axioms` for each theorem |
 | `Checks/Examples.lean` | Aliasing, a dangling pointer after a return, and a call that does not return, using `frame_no_sweep_rewrite` for that case; the body of a function as the subject; comparisons with the null pointer |
@@ -80,7 +80,7 @@ directories that Dune reads, and `lean` is not among them.
 | `Checks/Hit.lean` | The value-domain hit instance and checked failures of liveness, allocator agreement and the unchanged frame |
 | `Checks/WholeProduct.lean` | A whole-product hit, rejections for differences in either component, and loss of a relation on a projected hit without current-side closure |
 | `Checks/SideTables.lean` | Positive and negative cases of the four obligations |
-| `Checks/Query.lean` | Two calls of one body in one run with a hit log line each: an untouched block answering 4 and 9, an overwritten block answering 5 before the write and 0 after it, the key block, disabled reconstruction, a local of the body answering top, and the negative checks of the naive answers; two lines on one callstack, where the first line's answer misses the member of the second; the callstack of a point, before and after a statement, the marks of the sweeps in the frame rule, and the end of a statement's execution |
+| `Checks/Query.lean` | Two calls of one body in one run with a hit log line each: an untouched block answering 4 and 9, an overwritten block answering 5 before the write and 0 after it, the key block, disabled reconstruction, a local of the body answering top, and the negative checks of the naive answers; a loop with three visits, and joined answers on logs of three lines: two lines on one callstack, two lines whose callstacks end the query's with different lengths, and three lines that apply; inner parts with states on the key only: a counter-example with coverage alone, a sound instance with both premises, and a block updated on every execution that answers top; the callstack of a point, before and after a statement, the marks of the sweeps in the frame rule, and the end of a statement's execution |
 | `Checks/Fragment.lean` | Statements that meet the fragment conditions: one outside the function bodies, a function body, and a statement inside one. Programs and statements that do not: duplicate labels in the observed statement, a label of a body reused outside, duplicate labels across two bodies, direct recursion, mutual recursion |
 
 ## What the model contains
@@ -304,33 +304,43 @@ is assumed.
 
 A query names a statement, a full callstack and a position, before or after
 the statement. The hit log has a line per hit: its callstack, the entry and
-its inner part, and the state at the call with the blocks it binds. The
-first line whose callstack ends the callstack of the query answers it, at
-the point below the hit. The rules, in order:
+its inner part, and the state at the call with the blocks it binds. Each
+line whose callstack ends the callstack of the query applies and answers at
+the point below its hit; `query` joins the answers of these lines. A line
+answers by the first rule that applies:
 
 - reconstruction disabled: no state;
 - a block of the key: the shared inner state at the point;
 - a block bound at the call and not in the footprint's writes: its value at
   the call, with the marks of any lexical sweeps;
-- a block bound at the call that no write reaches before the point: the
-  same;
-- a block updated on every execution before the point: the shared inner
-  state;
+- a block bound at the call and absent from the possible writes recorded
+  for the point: the same;
+- a block listed as updated at the point: the shared inner state;
 - any other block, including a local of the body: top.
 
-`CacheEntry.query_sound` shows that each answer contains the content of the
-block at each visit of the member at the point, and that the entry reports
-the statement as reached. It takes the producer premises, the soundness of
-the inner part for the producing input, the issuance of the bound blocks,
-and the matching witness of the member as hypotheses. A visit before a
-statement is a configuration about to execute it; a visit after it is the
-first normal completion of that execution. Every write overwrites a whole
-block, so the rule for updated blocks holds in the model; Eva must restrict
-it to full overwrites and creations. The theorem covers the members of the
-line that answers: with two lines on one callstack, the members of the
-second are not covered (`Checks.same_callstack_first_line`). An inner part
-with states on the key only, the writes of the footprint as possible writes
-and no updated block is sound by coverage (`innerPartSound_of_key`).
+The join of answers that are all no state is no state; with no line that
+applies, the query reports no state. `CacheEntry.answer_sound` shows that
+the answer of one line contains the content of the block at each visit of a
+member of that line, and that the entry reports the statement as reached.
+`CacheEntry.query_sound` shows the same for the joined answer at each visit
+represented by any line that applies, when every line that applies meets the
+premises: the producer premises, the soundness of the inner part for the
+producing input, and the issuance of the bound blocks. The matching witness
+of the member is a hypothesis. A visit before a statement is a configuration
+about to execute it; a visit after it is the first normal completion of that
+execution. `query_some` shows that a query where a line applies with an
+answer returns a set.
+
+The soundness of the inner part (`InnerPartSound`) requires that each block
+listed as updated be updated on every producing execution before the point,
+and that the possible writes recorded for the point contain each block
+written before it. Every write overwrites a whole block, so the rule for
+updated blocks holds in the model; Eva must restrict the list to full
+overwrites and creations. An inner part with states on the key only, the
+writes of the footprint as possible writes and no updated block meets
+`InnerPartSound` under two premises (`innerPartSound_of_key`): its states
+cover the producing visits on the key, and the footprint covers the writes.
+Coverage alone is not enough (`Checks.key_only_needs_states`).
 
 ## What the model leaves out
 
