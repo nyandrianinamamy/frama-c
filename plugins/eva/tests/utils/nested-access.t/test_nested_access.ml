@@ -242,6 +242,23 @@ let status_replay () =
   start_consumer ~main:"second" ();
   assert (Eva.Statistics.get Eva.Statistics.cache_hits (kf "f") = 0)
 
+let delivery_replay () =
+  Eva.Parameters.Memexec.off ();
+  Eva.Analysis.compute ();
+  let produced = first_entry "f" in
+  let entry = Producer.cache_entry produced in
+  Format.printf "f: %d child references@." (List.length (Entry.children entry));
+  if mode = Some "delivery-hand" then begin
+    let exit = List.map (fun (key, (state, _)) -> key, state)
+        (Entry.exit entry) in
+    ignore (Supply.supply (kf "f") ~key:(Entry.key entry)
+              ~input:(fst (Entry.input entry)) ~footprint:(Entry.footprint entry)
+              ~exit)
+  end else
+    ignore (Supply.supply_produced produced);
+  Format.printf "consumer analysis@.";
+  start_consumer ()
+
 let guard_replay () =
   let module Recorder = Eva__Body_access in
   Eva.Parameters.Memexec.off ();
@@ -299,6 +316,8 @@ let () =
   | Some ("replay" | "automatic" | "recursive") -> Boot.Main.extend replay
   | Some "fresh" -> Boot.Main.extend (fun () -> ignore (only_outer ()))
   | Some "status" -> Boot.Main.extend status_replay
+  | Some ("delivery-hand" | "delivery-produced") ->
+    Boot.Main.extend delivery_replay
   | Some "guard" -> Boot.Main.extend guard_replay
   | Some "inline" -> Boot.Main.extend inline_replay
   | Some "sweep" -> Boot.Main.extend sweep_replay

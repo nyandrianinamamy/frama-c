@@ -12,8 +12,10 @@ void child(void) {
     out = payload;
   else if (x == 1)
     rejected_only = 42;
+#ifdef RECURSIVE_CALLER
   else
     outer();
+#endif
 }
 
 void outer(void) {

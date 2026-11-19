@@ -70,10 +70,11 @@ enclosing candidate is rejected.
   $ grep 'call to outer: lookup: rejected' automatic.log
     call to outer: lookup: rejected (entry 1: automatic-cleanup); execution: analysed; storage: refused (supplied-only); collector: would-store
 
-A child of the enclosing entry is on the current callstack. The entry
-would skip a recursive call from the enclosing body, so it is rejected.
+A child of the enclosing entry is on the current callstack. Enable the
+child's call back to outer for this run. The entry would skip a recursive
+call from the enclosing body, so it is rejected.
 
-  $ EVA_TEST_NESTED_ACCESS=recursive frama-c -no-autoload-plugins -load-module eva,test_nested_access.cmxs -eva-msg-key cache nested.c > recursive.log 2>&1
+  $ EVA_TEST_NESTED_ACCESS=recursive frama-c -no-autoload-plugins -load-module eva,test_nested_access.cmxs -cpp-extra-args=-DRECURSIVE_CALLER -eva-msg-key cache nested.c > recursive.log 2>&1
   $ grep -o 'call to outer: lookup: rejected (entry 1: recursion); execution: analysed' recursive.log
   call to outer: lookup: rejected (entry 1: recursion); execution: analysed
 
@@ -155,6 +156,68 @@ check that Eva gives the same invalid assertion status as caching off.
   $ grep -E 'Assertions +0 valid +0 unknown +1 invalid +1 total' status.log | tail -1 > actual
   $ diff expected actual
   $ grep -c 'Marking property Assertion .* as dead' status.log || true
+  0
+
+An entry of f cannot bypass the delivery guard by omitting the producing
+observation. Copy the key, input, footprint and exits with the hand
+constructor, and try the produced constructor separately. A requires
+clause keeps the inline body from producing its own entry. The inline
+specification has no body. Compare the consumer's assertion status with
+caching disabled in all three cases.
+
+  $ delivery() {
+  >   variant=$1; shift
+  >   fc -cpp-extra-args="-D$variant" -eva-verbose 2 -eva-debug 1 \
+  >      -eva-warn-key alarm=inactive "$@" delivery.c
+  > }
+  $ assertion() { grep -E '^ +Assertions +[01] valid +0 unknown +[01] invalid +1 total$' "$1"; }
+  $ for shape in REFERENCED INLINE_BODY INLINE_SPEC; do
+  >   echo "$shape"
+  >   delivery "$shape" -eva-no-memexec > "$shape-off.log" 2>&1 || exit 1
+  >   assertion "$shape-off.log" > expected || exit 1
+  >   cat expected
+  >   for constructor in hand produced; do
+  >     echo "$constructor"
+  >     EVA_TEST_NESTED_ACCESS="delivery-$constructor" \
+  >       delivery "$shape" -eva-msg-key cache > "$shape-$constructor.log" 2>&1 || exit 1
+  >     log="$shape-$constructor.log"
+  >     grep '^f: [01] child references$' "$log"
+  >     grep -o 'call to f: lookup: .*; execution: [^;]*' "$log" | grep -v no-candidate
+  >     sed -n '/^consumer analysis$/,$p' "$log" > consumer.log
+  >     assertion consumer.log > actual
+  >     diff expected actual
+  >     grep -c 'Marking property Assertion .* as dead' consumer.log || true
+  >   done
+  > done
+  REFERENCED
+      Assertions        0 valid     0 unknown     1 invalid      1 total
+  hand
+  f: 1 child references
+  call to f: lookup: rejected (entry 1: nested-delivery); execution: analysed
+  0
+  produced
+  f: 1 child references
+  call to f: lookup: rejected (entry 1: nested-delivery); execution: analysed
+  0
+  INLINE_BODY
+      Assertions        0 valid     0 unknown     1 invalid      1 total
+  hand
+  f: 0 child references
+  call to f: lookup: rejected (entry 1: nested-delivery); execution: analysed
+  0
+  produced
+  f: 0 child references
+  call to f: lookup: rejected (entry 1: nested-delivery); execution: analysed
+  0
+  INLINE_SPEC
+      Assertions        1 valid     0 unknown     0 invalid      1 total
+  hand
+  f: 0 child references
+  call to f: lookup: rejected (entry 1: nested-delivery); execution: analysed
+  0
+  produced
+  f: 0 child references
+  call to f: lookup: rejected (entry 1: nested-delivery); execution: analysed
   0
 
 A full state dump reports a conservative read bound before storage.

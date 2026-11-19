@@ -165,6 +165,8 @@ module Lookup (Domain : sig
       whose input is [state].
       When the active domains are not the cvalue domain alone, or when a
       component listed under [`Consumer] is enabled, every entry is rejected
-      for this reason. *)
+      for this reason. With either constructor, a matching body with a call
+      other than a direct show directive is rejected with [`Nested_delivery]
+      if it passes the other admission checks. *)
   val find : Callstack.t -> Domain.t -> Domain.t lookup
 end

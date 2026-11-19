@@ -182,6 +182,22 @@ let cast : type a b. (a, b) Structure.eq -> a -> b = fun Structure.Eq x -> x
 let cast_back : type a b. (a, b) Structure.eq -> b -> a =
   fun Structure.Eq x -> x
 
+(* A fixture can omit the producing trace. Inspect the body itself for
+   work that a hit would skip. The show directives are leaf displays
+   handled directly by Transfer_stmt, and fixtures use them as visit
+   markers. Dump directives can have ordered effects and are guarded. *)
+let has_nested_call kf =
+  let open Cil_types in
+  let is_nested stmt =
+    match stmt.skind with
+    | Instr (Call (_, Var callee, _, _)) ->
+      not (Ast_info.is_show_each_builtin callee.vname
+           || Ast_info.is_domain_show_each_builtin callee.vname)
+    | Instr (Call _ | Local_init (_, ConsInit _, _)) -> true
+    | _ -> false
+  in
+  List.exists is_nested (Kernel_function.get_definition kf).sallstmts
+
 module Lookup (Domain : sig
     type t
     val structure : t Abstract.Domain.structure
@@ -195,7 +211,7 @@ module Lookup (Domain : sig
       Structure.Key_Domain.eq_type key Cvalue_domain.State.key
     | _ -> None
 
-  let admit stack entry (model, _) =
+  let admit stack nested_call entry (model, _) =
     let dependencies = Entry.dependencies entry in
     let used_functions =
       Option.fold ~none:[] ~some:(fun d -> d.Cache_entry.used_functions)
@@ -204,13 +220,6 @@ module Lookup (Domain : sig
     let would_skip_cleanup (f, _) =
       not (Kernel_function.equal f (Callstack.top_kf stack))
       && Kernel_function.is_definition f
-    in
-    let has_nested_work =
-      let own_body (f, mode) =
-        mode = `Body && Kernel_function.equal f (Callstack.top_kf stack)
-      in
-      Entry.children entry <> [] ||
-      List.exists (fun call -> not (own_body call)) used_functions
     in
     if Body_access.recursion_conflict stack used_functions then Error `Recursion
     else if List.exists would_skip_cleanup used_functions
@@ -229,7 +238,7 @@ module Lookup (Domain : sig
       in
       match Option.fold ~none:(Ok ()) ~some:check_dependencies dependencies with
       | Error _ as error -> error
-      | Ok () when has_nested_work -> Error `Nested_delivery
+      | Ok () when Lazy.force nested_call -> Error `Nested_delivery
       | Ok () -> Ok ()
 
   let find stack state =
@@ -245,8 +254,9 @@ module Lookup (Domain : sig
       | Some _ when consumer_enabled () || stack.thread <> Thread.main_id ->
         reject_all `Consumer
       | Some eq ->
+        let nested_call = lazy (has_nested_call (Callstack.top_kf stack)) in
         let result =
-          Entry.find ~admit:(admit stack) candidates (cast eq state)
+          Entry.find ~admit:(admit stack nested_call) candidates (cast eq state)
         in
         let reject (e, reason) = Entry.id e, (reason :> rejection) in
         let hit (e, states) =
