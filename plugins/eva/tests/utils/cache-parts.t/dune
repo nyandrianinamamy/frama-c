@@ -16,3 +16,13 @@
   (flags :standard -open Frama_c_kernel)
   (promote (until-clean))
 )
+
+(executable
+  (name "test_cache_parts_readers")
+  (modules "test_cache_parts_readers")
+  (modes plugin)
+  (libraries frama-c.kernel "frama-c-eva.core" "frama-c-scope.core"
+             "frama-c-impact.core" "frama-c-security_slicing.core")
+  (flags :standard -open Frama_c_kernel)
+  (promote (until-clean))
+)

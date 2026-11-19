@@ -222,22 +222,28 @@ let options () =
    An analysis with caching disabled and the options of the using analysis
    runs first, for the comparison. The same option in the two analyses is the
    premise of the supplier; the other two cases violate it on purpose. *)
-let saved_states () =
+let set_saved_states_option on =
   let copy = Kernel_function.get_definition (kf "copy") in
-  let set on =
-    match Sys.getenv_opt "EVA_TEST_CACHE_PARTS_OPTION" with
-    | Some "results" -> Eva.Parameters.ResultsAll.set (not on)
-    | Some "function" ->
-      Eva.Parameters.NoResultsFunction.clear ();
-      if on then Eva.Parameters.NoResultsFunction.add copy
-    | Some "domain" ->
-      Eva.Parameters.NoResultsDomain.clear ();
-      if on then Eva.Parameters.NoResultsDomain.add "cvalue"
-    | _ -> ()
-  in
+  match Sys.getenv_opt "EVA_TEST_CACHE_PARTS_OPTION" with
+  | Some "results" -> Eva.Parameters.ResultsAll.set (not on)
+  | Some "function" ->
+    Eva.Parameters.NoResultsFunction.clear ();
+    if on then Eva.Parameters.NoResultsFunction.add copy
+  | Some "domain" ->
+    Eva.Parameters.NoResultsDomain.clear ();
+    if on then Eva.Parameters.NoResultsDomain.add "cvalue"
+  | _ -> ()
+
+(* Whether the option above is set in the producing analysis, and in the
+   using one. *)
+let saved_states_where () =
   let where = Sys.getenv_opt "EVA_TEST_CACHE_PARTS_WHERE" in
-  let producer = where = Some "producer" || where = Some "both" in
-  let consumer = where = Some "consumer" || where = Some "both" in
+  where = Some "producer" || where = Some "both",
+  where = Some "consumer" || where = Some "both"
+
+let saved_states () =
+  let set = set_saved_states_option in
+  let producer, consumer = saved_states_where () in
   set consumer;
   Format.printf "caching disabled, with the options of the using analysis@.";
   ignore (first_analysis ());
@@ -815,12 +821,18 @@ let raw () =
    are refused afterwards, in the project, in a copy of it and once the
    results with hits are installed again; the results of the analysis with
    caching disabled, installed in between, are given. Occurrence is the
-   plug-in loaded. *)
+   plug-in loaded. With EVA_TEST_CACHE_PARTS_OPTION and
+   EVA_TEST_CACHE_PARTS_WHERE, an option that decides which states are
+   saved is set in the producing analysis, in the using one or in both, as
+   in [saved_states]. *)
 let late_reader () =
   let copy = kf "copy" in
   let first = List.hd (Kernel_function.get_definition copy).sallstmts in
+  let producer, consumer = saved_states_where () in
+  set_saved_states_option producer;
   let produced = first_analysis () in
   let disabled = Eva.Eva_results.get_results () in
+  set_saved_states_option consumer;
   second_analysis produced;
   let with_hits = Eva.Eva_results.get_results () in
   let requests moment =

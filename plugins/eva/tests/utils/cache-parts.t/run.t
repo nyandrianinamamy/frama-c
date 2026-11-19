@@ -3,7 +3,7 @@ analysis with caching disabled produces the entries of the callees of
 parts.c, which are then supplied to a second analysis. The test module
 prints the parts of each entry and compares the two analyses.
 
-  $ dune build -j 8 --cache=disabled --root . test_cache_parts.cmxs test_cache_parts_server.cmxs
+  $ dune build -j 8 --cache=disabled --root . test_cache_parts.cmxs test_cache_parts_server.cmxs test_cache_parts_readers.cmxs
 
 With -calldeps, each entry has a From part and an Inout part. The three
 calls to copy hit in the second analysis. The callwise dependencies of every
@@ -710,6 +710,81 @@ Studia. The error names the first plug-in of the list that is loaded.
   $ tail -q -n 1 late-occurrence.log late-nonterm.log late-metrics.log late-scf.log late-wp.log late-mdr.log late-slicing.log late-dive.log | sort | uniq -c
         8 [kernel] Plug-in eva aborted: invalid user input.
 
+The other plug-ins that load Pdg. Sparecode asks the graph of a function
+first, and stops with the refusal of Pdg. Scope, Impact and Security
+slicing have no option that runs them on a program without annotations of
+their own: a test module asks one result of each through its interface,
+about b before the last call to copy in deps_main, on a session saved after
+an analysis with caching disabled, then on the session with hits. The
+requests of Scope read the results of Eva at statements and are refused by
+Eva; those of Impact and of Security slicing ask a graph and are refused by
+Pdg.
+
+  $ frama-c -no-autoload-plugins -load-module eva,from,inout,sparecode -load hits.sav -sparecode > late-sparecode.log 2>&1
+  [1]
+  $ grep -o 'User Error.*' late-sparecode.log | sed 's/: in the current analysis.*statements//'
+  User Error: cannot compute the dependence graph of a function
+  $ frama-c -no-autoload-plugins -load-module eva,from,inout -eva -eva-no-memexec -save fresh.sav parts.c > save-fresh.log 2>&1
+  $ frama-c -no-autoload-plugins -load-module eva,from,inout,scope,impact,security_slicing,test_cache_parts_readers.cmxs -load fresh.sav > api-fresh.log 2>&1
+  $ grep -E 'complete|computed|refused' api-fresh.log
+  statement results complete: true
+  Scope.Datascope.get_data_scope_at_stmt: computed
+  Scope.Defs.get_defs: computed
+  Scope.Zones.build_zones: computed
+  Impact.Register.from_stmt: computed
+  Security_slicing.Components.get_direct_component: computed
+  $ frama-c -no-autoload-plugins -load-module eva,from,inout,scope,impact,security_slicing,test_cache_parts_readers.cmxs -load hits.sav > api-hits.log 2>&1
+  $ grep -E 'complete|computed|refused' api-hits.log
+  statement results complete: false
+  Scope.Datascope.get_data_scope_at_stmt: refused by eva
+  Scope.Defs.get_defs: refused by eva
+  Scope.Zones.build_zones: refused by eva
+  Impact.Register.from_stmt: refused by pdg
+  Security_slicing.Components.get_direct_component: refused by pdg
+
+Reduc starts from the alarms, and parts.c has none. alarm.c calls the main
+function of parts.c, then divides by a volatile value. On the session saved
+after the analysis of alarm.c with hits, Reduc asks Inout the outputs of the
+statement of the alarm, and stops with the refusal of Inout; on an analysis
+with caching disabled, it runs to its end.
+
+  $ EVA_TEST_CACHE_PARTS=save EVA_TEST_CACHE_PARTS_SESSION=alarm.sav frama-c -no-autoload-plugins -load-module eva,from,inout,test_cache_parts.cmxs alarm.c > save-alarm.log 2>&1
+  $ grep -E '^hits|division by zero. assert' save-alarm.log | sort -u
+  [eva:alarm] alarm.c:12: Warning: division by zero. assert any ≢ 0;
+  hits: copy 3; statement results complete: false
+  $ frama-c -no-autoload-plugins -load-module eva,from,inout,reduc -load alarm.sav -reduc > late-reduc.log 2>&1
+  [1]
+  $ grep -o 'User Error.*' late-reduc.log | sed 's/: in the current analysis.*statements//'
+  User Error: cannot compute the inputs and outputs by function or by statement
+  $ frama-c -no-autoload-plugins -load-module eva,from,inout,reduc -eva -eva-no-memexec -reduc alarm.c > fresh-reduc.log 2>&1
+  $ grep -c 'User Error' fresh-reduc.log
+  0
+  [1]
+
+The display of the callwise dependencies of From asks the results of Eva
+the function called at each call site, in the analysed callers. A session
+is saved with -calldeps after the analysis with hits. Loaded with no reader
+of the statement states, From displays the dependencies of an analysis with
+caching disabled. Loaded with Occurrence, the display stops with the
+refusal of Eva, before Occurrence asks anything: the refusal is for every
+reader of the process.
+
+  $ EVA_TEST_CACHE_PARTS=save EVA_TEST_CACHE_PARTS_SESSION=calldeps.sav frama-c -no-autoload-plugins -load-module eva,from,inout,test_cache_parts.cmxs -calldeps parts.c > save-calldeps.log 2>&1
+  $ grep '^hits' save-calldeps.log
+  hits: copy 3; statement results complete: false
+  $ frama-c -no-autoload-plugins -load-module eva,from,inout -load calldeps.sav > load-calldeps.log 2>&1
+  $ frama-c -no-autoload-plugins -load-module eva,from,inout -calldeps -eva-no-memexec parts.c > calldeps-disabled.log 2>&1
+  $ sed -n '/DISPLAYING CALLWISE/,/END OF/p' load-calldeps.log > calldeps-loaded.txt
+  $ sed -n '/DISPLAYING CALLWISE/,/END OF/p' calldeps-disabled.log > calldeps-disabled.txt
+  $ cmp calldeps-loaded.txt calldeps-disabled.txt
+  $ grep -c 'call to' calldeps-loaded.txt
+  9
+  $ frama-c -no-autoload-plugins -load-module eva,from,inout,occurrence -load calldeps.sav > load-calldeps-reader.log 2>&1
+  [1]
+  $ grep -E 'DISPLAYING|call to|User Error|beginning analysis' load-calldeps-reader.log | sed 's/: in the current analysis.*statements//'
+  [from] ====== DISPLAYING CALLWISE DEPENDENCIES ======
+  [eva] User Error: cannot give the state at a statement; plug-in occurrence, which reads these states, is loaded
+
 The same in one process, in the scenario late-reader: the requests of the
 results at the first statement of copy and at its start are answered after
 the hits, with the state top. Once Occurrence is loaded, they are refused,
@@ -771,8 +846,33 @@ is always given.
   in a copy of the installed results: reachability of a statement: refused
   in a copy of the installed results: initial state: computed
 
+The same scenario under the options that decide which states are saved, set
+in the producing analysis, in the using one or in both, as for the final
+values above. Each line counts the requests refused among the seven at a
+statement or at the start of a function, at each moment of the scenario.
+The refusal does not depend on the option: where a call hit, the seven are
+refused once the reader is loaded, in a copy and with the results with hits
+installed, and none is refused before the reader is loaded or with the
+results of caching disabled installed. With -eva-no-results in the
+producing analysis alone, every candidate is rejected (missing-points), no
+call hits, and nothing is refused. With -eva-no-results-function copy in
+the producing analysis alone, copy does not hit and the other callees do.
+
+  $ refused() { grep -c "^$1: .*: refused\$" late-option.log; }
+  $ for o in results function domain; do for w in producer consumer both; do EVA_TEST_CACHE_PARTS=late-reader EVA_TEST_CACHE_PARTS_OPTION=$o EVA_TEST_CACHE_PARTS_WHERE=$w frama-c -no-autoload-plugins -load-module eva,from,inout,test_cache_parts.cmxs parts.c > late-option.log 2>&1; echo "$o, $w: $(grep '^hits' late-option.log); refused: after the hits $(refused 'after the hits'), with a reader loaded $(refused 'with a reader loaded'), in a copy $(refused 'in a copy'), caching disabled installed $(refused 'results of caching disabled installed'), hits installed $(refused 'results with hits installed'), copy of the installed $(refused 'in a copy of the installed results')"; done; done
+  results, producer: hits: copy 0; statement results complete: true; refused: after the hits 0, with a reader loaded 0, in a copy 0, caching disabled installed 0, hits installed 0, copy of the installed 0
+  results, consumer: hits: copy 3; statement results complete: false; refused: after the hits 0, with a reader loaded 7, in a copy 7, caching disabled installed 0, hits installed 7, copy of the installed 7
+  results, both: hits: copy 3; statement results complete: false; refused: after the hits 0, with a reader loaded 7, in a copy 7, caching disabled installed 0, hits installed 7, copy of the installed 7
+  function, producer: hits: copy 0; statement results complete: false; refused: after the hits 0, with a reader loaded 7, in a copy 7, caching disabled installed 0, hits installed 7, copy of the installed 7
+  function, consumer: hits: copy 3; statement results complete: false; refused: after the hits 0, with a reader loaded 7, in a copy 7, caching disabled installed 0, hits installed 7, copy of the installed 7
+  function, both: hits: copy 3; statement results complete: false; refused: after the hits 0, with a reader loaded 7, in a copy 7, caching disabled installed 0, hits installed 7, copy of the installed 7
+  domain, producer: hits: copy 3; statement results complete: false; refused: after the hits 0, with a reader loaded 7, in a copy 7, caching disabled installed 0, hits installed 7, copy of the installed 7
+  domain, consumer: hits: copy 3; statement results complete: false; refused: after the hits 0, with a reader loaded 7, in a copy 7, caching disabled installed 0, hits installed 7, copy of the installed 7
+  domain, both: hits: copy 3; statement results complete: false; refused: after the hits 0, with a reader loaded 7, in a copy 7, caching disabled installed 0, hits installed 7, copy of the installed 7
+
 Requests of the server: the dead code of copy and of narrow, whose two
-branches are reached, asked before and after Studia is loaded, and the
+branches are reached, and the values of *src in copy, as the graphical
+interface asks them, asked before and after Studia is loaded, and the
 statements that read and that write b, which Studia, loaded after the
 analysis, computes with Inout. The server, which From and Inout load through
 Callgraph, registers a client of the hooks on the changes of annotations;
@@ -781,10 +881,11 @@ admits the entries while it is registered. After an analysis with caching
 disabled, the server answers every request. After the analysis with hits,
 in the same process and in the session saved above, the requests of Eva
 made before Studia is loaded give the statements of caching disabled, since
-the hits deliver the points that they reach. Once Studia is loaded, the
-results of Eva refuse the states at the statements: the dead code of copy
-is refused, and so is the request of the reads of an lvalue, which locates
-it with these results. The requests of the reads and of the writes of b
+the hits deliver the points that they reach, and the values of *src in copy
+are those of the state top, where caching disabled gives 1 or 2. Once
+Studia is loaded, the results of Eva refuse the states at the statements:
+the dead code of copy and the values are refused, and so is the request of
+the reads of an lvalue, which locates it with these results. The requests of the reads and of the writes of b
 named by its declaration need no state for the location, and Studia refuses
 each by its own test.
 
@@ -793,8 +894,10 @@ each by its own test.
   statement results complete: true
   copy: plugins.eva.ast.getDeadCode: unreachable 0, reached 2, nonTerminating 0
   narrow: plugins.eva.ast.getDeadCode: unreachable 0, reached 4, nonTerminating 0
+  plugins.eva.values.getValues: *src in copy: {1; 2}
   Studia loaded
   copy: plugins.eva.ast.getDeadCode: unreachable 0, reached 2, nonTerminating 0
+  plugins.eva.values.getValues: *src in copy: {1; 2}
   plugins.studia.studia.getReadsLval: indirect 4, direct 1
   declaration: plugins.studia.studia.getReadsLval: indirect 4, direct 1
   plugins.studia.studia.getWritesLval: indirect 0, direct 1
@@ -805,9 +908,12 @@ each by its own test.
   statement results complete: false
   copy: plugins.eva.ast.getDeadCode: unreachable 0, reached 2, nonTerminating 0
   narrow: plugins.eva.ast.getDeadCode: unreachable 0, reached 4, nonTerminating 0
+  plugins.eva.values.getValues: *src in copy: {{ ANYTHING }} or UNINITIALIZED or ESCAPINGADDR
   Studia loaded
   [eva] User Error: cannot give the state at a statement; plug-in studia, which reads these states, is loaded
   copy: plugins.eva.ast.getDeadCode: refused
+  [eva] User Error: cannot give the state at a statement; plug-in studia, which reads these states, is loaded
+  plugins.eva.values.getValues: refused
   [eva] User Error: cannot give the state at a statement; plug-in studia, which reads these states, is loaded
   plugins.studia.studia.getReadsLval: refused
   [studia] User Error: cannot find the statements that access a location
@@ -819,9 +925,12 @@ each by its own test.
   statement results complete: false
   copy: plugins.eva.ast.getDeadCode: unreachable 0, reached 2, nonTerminating 0
   narrow: plugins.eva.ast.getDeadCode: unreachable 0, reached 4, nonTerminating 0
+  plugins.eva.values.getValues: *src in copy: {{ ANYTHING }} or UNINITIALIZED or ESCAPINGADDR
   Studia loaded
   [eva] User Error: cannot give the state at a statement; plug-in studia, which reads these states, is loaded
   copy: plugins.eva.ast.getDeadCode: refused
+  [eva] User Error: cannot give the state at a statement; plug-in studia, which reads these states, is loaded
+  plugins.eva.values.getValues: refused
   [eva] User Error: cannot give the state at a statement; plug-in studia, which reads these states, is loaded
   plugins.studia.studia.getReadsLval: refused
   [studia] User Error: cannot find the statements that access a location

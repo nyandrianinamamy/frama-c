@@ -1,7 +1,8 @@
 (* Requests of the server on parts.c: the dead code of copy and of narrow,
-   whose two branches are reached, asked before and after Studia is loaded,
-   and the statements that read and that write b, which Studia, loaded
-   after the analysis, computes with Inout. Studia reads the states saved at
+   whose two branches are reached, and the values of *src before the
+   statement of copy, asked before and after Studia is loaded, and the
+   statements that read and that write b, which Studia, loaded after the
+   analysis, computes with Inout. Studia reads the states saved at
    the statements: once it is loaded after hits, the results of Eva refuse
    to give a state at a statement. The request of the reads names b by an
    lvalue at the first call to copy, which Studia locates with the results of
@@ -46,11 +47,39 @@ let requests () =
     Format.printf "%s: " f;
     ask "plugins.eva.ast.getDeadCode" (Server.Kernel_ast.Decl.to_json decl)
   in
+  (* The request of the values that the graphical interface sends. *)
+  let values () =
+    let copy = kf "copy" in
+    let stmt = List.hd (Kernel_function.get_definition copy).sallstmts in
+    let src = List.nth (Kernel_function.get_formals copy) 1 in
+    let lval = Mem (Cil.evar src), NoOffset in
+    let target = Server.Printer_tag.PLval (Some copy, Kstmt stmt, lval) in
+    let name = "plugins.eva.values.getValues" in
+    match Server.Main.find name with
+    | None -> Format.printf "%s: missing@." name
+    | Some (_, handler) ->
+      let arg = `Assoc [ "target", Server.Kernel_ast.Marker.to_json target ] in
+      match handler arg with
+      | `Assoc fields ->
+        let value =
+          match List.assoc_opt "vBefore" fields with
+          | Some (`Assoc evaluation) ->
+            (match List.assoc_opt "value" evaluation with
+             | Some (`String v) -> v
+             | _ -> "not a text")
+          | _ -> "absent"
+        in
+        Format.printf "%s: *src in copy: %s@." name value
+      | _ -> Format.printf "%s: answered@." name
+      | exception Log.AbortError _ -> Format.printf "%s: refused@." name
+  in
   dead_code "copy";
   dead_code "narrow";
+  values ();
   Dynamic.load_plugin "studia";
   Format.printf "Studia loaded@.";
   dead_code "copy";
+  values ();
   let b = Var (global "b"), NoOffset in
   let call = Kstmt (first_call_to_copy ()) in
   let lvalue = Server.Printer_tag.PLval (Some (kf "deps_main"), call, b) in
