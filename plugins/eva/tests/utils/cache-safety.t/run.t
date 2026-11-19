@@ -206,12 +206,34 @@ candidate. The second call, body(1, 0), registers the division alarm.
   hits on body: 0
 
 A hit records the called function alone among those whose statements have
-no state: an entry is refused for a body that may call a function that has
-a body.
+no state. Supply refuses an entry for a body that may call a function that
+has a body, before any lookup; the lookup rejects the entries of the other
+bodies with a call, produced entries included, with nested-delivery (see
+nested-access.t).
 
   $ EVA_TEST_CACHE_SAFETY=nested frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs safety.c > nested.log 2>&1
   $ grep '^refused' nested.log
   refused: Supplied_entries.supply: the body of outer may call a function that has a body
+
+The Safety part of a body with a call is incomplete. When child is analysed
+in the analysis of parent, its writes are recorded in its own part, and the
+part of parent has none of them. When a hit answers the call of child, the
+writes it delivers are recorded in the part of parent, with the call of
+child as frame. Since the lookup rejects the entry of parent, no hit
+delivers this part.
+
+  $ EVA_TEST_CACHE_SAFETY=enclosing frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -eva-cache-collect -eva-msg-key cache enclosing.c > enclosing.log 2>&1
+  $ grep -E '^(Safety part of parent|second analysis|hits on)|call to (child|parent):' enclosing.log
+    call to child: lookup: no-candidate; execution: analysed; storage: refused (no-inout); collector: would-store
+  Safety part of parent: none
+    call to parent: lookup: no-candidate; execution: analysed; storage: refused (no-inout); collector: would-store
+  second analysis
+    call to child: lookup: hit (entry 1); execution: not-analysed; storage: none
+  Safety part of parent: red context of property big at enclosing.c:7 (stmt 1), in child :: enclosing.c:12 (stmt 5)
+  Safety part of parent: status invalid of big, by Eva, in child :: enclosing.c:12 (stmt 5)
+  Safety part of parent: message "check 'big' got status invalid." at enclosing.c:7, for a status invalid, in child :: enclosing.c:12 (stmt 5)
+    call to parent: lookup: no-candidate; execution: analysed; storage: refused (supplied-only); collector: would-store
+  hits on child: 1
 
 A recording belongs to the project current when it starts. A client of the
 statement hooks, registered as classified so that the collector admits it,

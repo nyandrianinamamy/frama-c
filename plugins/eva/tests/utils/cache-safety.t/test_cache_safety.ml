@@ -530,6 +530,33 @@ let nested () =
   | _ -> Format.printf "entry for outer supplied@."
   | exception Invalid_argument msg -> Format.printf "refused: %s@." msg
 
+(* The Safety part of each analysed call of [parent], which calls [child]:
+   in a first analysis, which analyses [child], then in a second one, where
+   a hit on the entry of [child] produced by the first analysis answers the
+   call. *)
+let enclosing () =
+  let parent = kf "parent" and child = kf "child" in
+  Eva.Safety_part.on_result (fun callstack safety ->
+      if Kernel_function.equal (Eva.Callstack.top_kf callstack) parent then
+        match safety with
+        | [] -> Format.printf "Safety part of parent: none@."
+        | writes ->
+          List.iter
+            (fun w -> Format.printf "Safety part of parent: %s@." (one_line w))
+            writes);
+  Eva.Analysis.compute ();
+  let produced =
+    match Producer.entries child with
+    | [produced] -> produced
+    | _ -> assert false
+  in
+  ignore (Supplied.supply_produced produced);
+  Project.clear
+    ~selection:(State_selection.with_dependencies Eva.Analysis.self) ();
+  Format.printf "second analysis@.";
+  Eva.Analysis.compute ();
+  hits "child"
+
 let bases vis =
   List.fold_left
     (fun acc vi -> Base.Hptset.add (Base.of_varinfo vi) acc)
@@ -721,6 +748,7 @@ let () =
   | Some "reentrant-reference" ->
     Boot.Main.extend (reentrant (reference ["r1"; "r2"]))
   | Some "nested" -> Boot.Main.extend nested
+  | Some "enclosing" -> Boot.Main.extend enclosing
   | Some "project-count" -> Boot.Main.extend project_count
   | Some "load-hook" -> Boot.Main.extend load_hook
   | _ -> ()
