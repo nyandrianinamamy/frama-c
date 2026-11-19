@@ -700,4 +700,6 @@ guard accepted all printed declarations; every new declaration depends on
 entries is the same as on `e01f7a2e78`. CI for this tree is pending.
 
 The 94 build mutations and the 34 runs with the generic proofs replaced by
-`sorry` above were run on copies of the same tree.
+`sorry` above were run on copies of the tree
+`3380facecc96fb5ed308e77912bd162db667a9f2`, from which the cited tree
+differs by two comments of `Checks/Query.lean` only.
