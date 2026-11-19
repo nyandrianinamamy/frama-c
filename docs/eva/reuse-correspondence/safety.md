@@ -436,10 +436,13 @@ the analysis, reset with it. For a statement of such a function, the
 passes that read the absence of a state as unreachable code draw no
 conclusion: `Export` generates no annotation in the function, and the
 server request `getDeadCode` lists none of its statements. Under that
-option, the other passes draw no conclusion at any statement, with or
-without a hit: `Eval_annots.mark_unreachable` marks nothing as
-unreachable, `Eval_annots.mark_green_and_red` gives no final status, and
-the summary counts every statement as reached. The statuses delivered by
+option, when the cvalue domain is the only domain, the other passes draw
+no conclusion at a statement of a function that the analysis calls, with
+or without a hit: `Eval_annots.mark_unreachable` marks none of them
+unreachable, `Eval_annots.mark_green_and_red` gives none a final status,
+and the summary counts each as reached. A function that the analysis never
+calls keeps its conclusions (its statements are unreachable), and another
+domain whose store saves states can still give a final status. The statuses delivered by
 the hit stay as delivered. The called function is the only one whose
 visits a hit skips: no hit is admitted on a body with a call. The passes
 after a hit whose points the queries see are the subject of
@@ -473,15 +476,17 @@ when its states are saved and the store of the cvalue domain saves none
 (`Cvalue_domain.State.Store.is_computed`). A hit whose preconditions leave
 no state delivers nothing and records nothing, since an analysis of the
 body would then save no state either. Under
-`-eva-no-results-domain cvalue`, the store answers `Top` at every point:
-`Results.is_reachable` holds at every statement, and the state at the
-start of a function is `Error Top`. `mark_unreachable`, which concludes
-that a statement is unreachable when `Results.is_reachable` is false
-there, marks nothing; `mark_green_and_red` evaluates an alarm through
-`eval_by_callstack`, which answers `Unknown` when the state at the start of
-the function is an error, and emits nothing; the summary counts the
-statements where `Results.is_reachable` holds
-(`Summary.compute_fun_stats`), all of them. These conclusions are the same
+`-eva-no-results-domain cvalue`, with no other domain, the store answers
+`Top` at every point of a function that the analysis calls:
+`Results.is_reachable` holds at each of its statements, and the cvalue
+state at its start is the top state (`Ok Cvalue.Model.top`).
+`mark_unreachable`, which concludes that a statement is unreachable when
+`Results.is_reachable` is false there, marks none of them;
+`mark_green_and_red` evaluates an alarm through `eval_by_callstack`, which
+takes the states before the statement by callstack, gets none, and answers
+`Unknown` from the empty fold, so that nothing is emitted; the summary
+counts the statements where `Results.is_reachable` holds
+(`Summary.compute_fun_stats`), all those of a called function. These conclusions are the same
 with caching disabled, and the three passes have no test of unknown
 reachability. `Export.generator` asserts `\false` at a statement without a
 callstack, and `dead_code` lists such a statement as unreachable: under

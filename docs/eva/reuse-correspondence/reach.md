@@ -439,7 +439,12 @@ candidate.
   were compared once with the parts that a first analysis of each body
   records from the same input, in a run outside the test suite: they have
   the same writes, those of the precondition entry up to the numbering of
-  the statements. No test repeats the comparison.
+  the statements. No test repeats the comparison: a part written by hand
+  that understates the writes is not caught by those ptests (with the read
+  of `choice` by the condition removed from the part of
+  `cache_supplied_keys.ml`, the entry still hits and the oracles are
+  unchanged). These tests therefore give no evidence on the Reach part;
+  `cache-reach.t`, whose parts come from a first analysis, does.
 
 ## The queries see the points reached by a hit, with the state top
 
@@ -660,12 +665,13 @@ hit reaches, and asserts `\false` at a statement without a state.
 `Export.generator`, `Export.main` and `dead_code` skip a function of
 unknown reachability (`reach_unknown_of`), in place of every function
 answered by a hit before issue #48. A function is of unknown reachability
-only after a hit under `-eva-no-results-domain cvalue`, where the store of
-the cvalue domain answers `Top` at every point: `Results.is_reachable`
-holds at every statement and the state at the start of a function is
-`Error Top`, so that `mark_unreachable` marks nothing, `mark_green_and_red`
-emits no status (`eval_by_callstack` answers `Unknown`) and the summary
-counts every statement as reached, with or without a hit. These three
+only after a hit under `-eva-no-results-domain cvalue`, where, with
+the cvalue domain alone, the store answers `Top` at every point of a
+function that the analysis calls: `Results.is_reachable` holds at each of
+its statements and the cvalue state at its start is the top state, so that
+`mark_unreachable` marks none of them, `mark_green_and_red` emits no status
+(`eval_by_callstack` gets no state by callstack and answers `Unknown`) and
+the summary counts each as reached, with or without a hit. These three
 passes have no gate. A statement that no analysed call and no hit reaches
 is a statement that the analysis of the body at each hit would not reach
 either, by the claims above.

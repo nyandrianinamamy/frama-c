@@ -518,10 +518,11 @@ analysis computes any call, so every call of an analysis takes the same
 branch. The candidates of a lookup are read by `Supplied_entries.entries` at
 that lookup, from the table that `supply` appends to; nothing freezes the
 table during an analysis. The table is filled only by
-`Supplied_entries.supply`. No module of the analyzer calls it: Eva exports
-the module in its internal API, marked for tests only, and the only callers
-in the tree are the test modules `cache_supplied.ml` and
-`cache_supplied_keys.ml`. The selection is made at run time; no build option
+`Supplied_entries.supply` and `Supplied_entries.supply_produced`. No module
+of the analyzer calls them: Eva exports the module in its internal API,
+marked for tests only, and the only callers in the tree are test modules
+(those of `cache_supplied.c` and `cache_supplied_keys.c`, and of the cram
+tests under `plugins/eva/tests/utils`). The selection is made at run time; no build option
 changes it.
 
 **Evidence.** Executed by runs 3, 4 and 5 of `cache_supplied.c`, in which
@@ -535,10 +536,11 @@ read `memexec-hits 0, memexec-stored 0`. Executed by run 2: with
 memexec path; see [the seam does not change the results of an
 analysis](call-cache-seam.md#the-seam-does-not-change-the-results-of-an-analysis).
 
-**Open.** No fixture supplies an entry while an analysis runs: that such an
-entry is not used by an analysis that started with memexec, and is a
-candidate for the later calls of an analysis that started with supplied
-entries, rests on source inspection.
+**Open.** An entry supplied while an analysis runs is a candidate for the
+later calls of an analysis that started with supplied entries: executed in
+`cache-safety.t`, `same.c`, which prints `supplied during the analysis: 1`
+and whose next lookup examines entry 2. That such an entry is not used by
+an analysis that started with memexec rests on source inspection.
 
 ## A supplied entry is used only where a hit is supported
 
