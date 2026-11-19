@@ -203,7 +203,10 @@ compares the maps and ignores the clobbered set. The engine never analyses a
 call from `Bottom`. On a hit, `compute_and_cache_call` evaluates the
 preconditions of the callee at the call, runs the call hooks with
 `` `Reuse `` and the results hooks with `` `Reuse N ``, N being the
-identifier of the entry, and returns the states as the result of the call.
+identifier of the entry, delivers the Safety part of the entry and returns
+the states as the result of the call. When no state satisfies the
+preconditions, it delivers nothing and returns no state
+([Safety at a hit](safety.md)).
 The caller then finalizes the call as after an analysed body.
 
 The match lemma of the model (`ReuseModel.Domain.match_lemma`, [Match
@@ -261,12 +264,12 @@ analysed bodies.
 - `key-unclosed` is not exercised: the `relate` of cvalue returns the empty
   set, so every key is closed (see [`relate` empty for
   cvalue](#relate-empty-for-cvalue)).
-- A hit delivers the Exit part only. The statements of a body reached only
-  through hits are not marked as reached, and no alarm or status is replayed;
-  in run 0 several bodies are never analysed. These are the tickets on Safety
-  and Reach at a hit
-  ([issue #47](https://github.com/nyandrianinamamy/frama-c/issues/47),
-  [issue #48](https://github.com/nyandrianinamamy/frama-c/issues/48)).
+- A hit delivers the Exit part and the Safety part
+  ([Safety at a hit](safety.md)); the entries supplied by these fixtures
+  have no Safety part. The statements of a body reached only through hits
+  are not marked as reached; in run 0 several bodies are never analysed.
+  This is the ticket on Reach at a hit
+  ([issue #48](https://github.com/nyandrianinamamy/frama-c/issues/48)).
 - The hypotheses of the match lemma that stay open for cvalue are listed
   under [`filter` exact on the stored input for
   cvalue](#filter-exact-on-the-stored-input-for-cvalue).

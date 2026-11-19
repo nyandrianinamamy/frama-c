@@ -195,7 +195,7 @@ their existing protocols outside the body observations.
 
 **Symbols.** `Body_access.record`, `Iterator.record_fireable`,
 `Iterator.Make_Dataflow.merge_results`, `Function_calls.register_call`,
-`Alarmset.register_alarm`, `Alarmset.already_emitted`,
+`Alarmset.emit_alarm`, `Alarmset.already_emitted`,
 `Transfer_logic.emit_status`, `Inout_access.register`,
 `Locals_scoping.remember_bases_with_locals`,
 `Cvalue_callbacks.register_call_hook`, `Cvalue_callbacks.register_call_results_hook`,
@@ -240,7 +240,9 @@ refusals for a temporary origin, an unclassified callback and cvalue
 restricted by function.
 
 **Open.** The classes in the observation do not carry replay payloads.
-Their Safety and Reach replay is pending. The collector reports unsupported
+The alarms, statuses and red contexts of a body are recorded apart and
+delivered at a hit: [Safety at a hit](safety.md). The Reach replay is
+pending ([issue #48](https://github.com/nyandrianinamamy/frama-c/issues/48)). The collector reports unsupported
 accesses at instrumented paths and at unclassified callback boundaries.
 For the validity records and the types of allocated blocks, the audit of
 transitive accesses in helpers and persistent memos is in
@@ -366,8 +368,9 @@ annotations in `Partition`.
 
 A level-6 result reads the history only when that level is shown, so the
 refusal is conditional on it. A status message accompanies a status
-emission that the observation records as `Statuses`. Its replay belongs to
-the pending replay of that class. `Logic_inout` runs in the callwise
+emission that the observation records as `Statuses`. A hit delivers the
+status but does not print the message again
+([Safety at a hit](safety.md#a-hit-delivers-the-safety-part-as-recorded-joins)). `Logic_inout` runs in the callwise
 hooks of From and Inout, with recording suspended, or after the analysis;
 Mthread, which also calls it, refuses while enabled.
 

@@ -103,6 +103,7 @@ fixture changes only the identifier when it supplies an entry.
 | W_sure is a lower bound on full overwrites on all paths to an exit. | The collector intersects sure bits at joins and retains a base only when the bits cover its full known range at the return. Scope updates and narrowing do not count as sure writes. The return slot follows the existing entry convention and must be present in every stored exit. The connection from the graph lower bound to concrete overwrites, including at offsets, remains open. |
 | The key includes the entry dependencies, sweeps and W_exit ∖ W_sure and is closed. | Established by key construction and the constructor checks described above. |
 | The body does not allocate, free, or end the lifetime of a block outside its locals. | The producer refuses every refusal issued by the collector. Allocation, release, unsupported builtins, foreign sweeps, allocated bases and recursive bodies are refused, including on nested paths. This uses the collector's instrumented effect coverage. The transitive side-table and allocation audit remains open. |
+| `safety` holds the alarms, statuses and red contexts of an analysis of the body from the input, without the checks of its `requires` clauses. | The producer stores the writes recorded during the analysis of the body, with the checks of the `requires` clauses outside the observation. See [Safety at a hit](safety.md#the-safety-part-records-the-writes-of-the-body). That these writes cover every concrete execution follows from the soundness of Eva's statuses, which is relied on. |
 | Every returning execution is covered by an exit, including changes to holders caused by leaving an inner scope. | The iterator supplies the producing Exit states. The producer permits only checked lexical sweeps and refuses missing overlay bindings except for their absent targets. Callee preconditions are excluded from the collector, and the current fixture hit checks their statuses without consuming their reduced states. The producer therefore refuses when requires clauses would be checked. Exit soundness relative to the concrete semantics and replay of inner-scope sweeps remain open. |
 
 On a hit, Eva still runs the outer cleanup in `Transfer_stmt.do_one_call`.
@@ -150,9 +151,9 @@ stored.
 ## Provenance, storage and lookup
 
 **Claim.** Each completed body observation leads to one production
-disposition and count. The stored entry carries the Exit part, the
-collector's recorded join classes, used functions with their call modes,
-sweep targets, the stamp of a widening read, and an Inner reference if cvalue statement states were recorded. Memexec
+disposition and count. The stored entry carries the Exit part, the Safety
+part, the collector's recorded join classes, used functions with their call
+modes, sweep targets, the stamp of a widening read, and an Inner reference if cvalue statement states were recorded. Memexec
 still serves ordinary calls. Only explicit fixture supply can make a
 produced entry a lookup candidate.
 
@@ -189,9 +190,10 @@ joins repeated visits at the same control point and callstack, so the
 query can include states from other calls. The collector supplies the
 classes of the observed joins. The
 [Shared Inner record](inner.md#saved-states-and-the-public-query) states the
-coverage premise for this reference. Per-position Safety and Reach data
-belongs to the producer and replay work in [#47](https://github.com/nyandrianinamamy/frama-c/issues/47)
-and [#48](https://github.com/nyandrianinamamy/frama-c/issues/48).
+coverage premise for this reference. The Safety part holds the alarms,
+statuses and red contexts recorded during the analysis of the body
+([Safety at a hit](safety.md)). Per-position Reach data belongs to
+[#48](https://github.com/nyandrianinamamy/frama-c/issues/48).
 
 **Evidence (executed).** [`cache-producer.t`](../../../plugins/eva/tests/utils/cache-producer.t/run.t)
 asserts the used function and its mode and the States join class. It
@@ -211,7 +213,7 @@ setting. A memexec hit skips the body and produces no observation. The
 producer checks `product` before the collector verdict, so that refusal
 masks collector causes for an unsupported product.
 
-**Open.** The stored join classes do not establish the Safety and Reach
-coverage or replay claims. Inner reconstruction and serialization remain
+**Open.** The stored join classes do not establish the Reach coverage or
+replay claims. Inner reconstruction and serialization remain
 open. The limit controls key cardinality, independently of retention of
 the projected exit states and the number of entries.
