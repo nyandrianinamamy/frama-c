@@ -17,18 +17,22 @@ let global name = Globals.Vars.find_from_astinfo name Global
 let formal f name =
   List.find (fun vi -> vi.vname = name) (Kernel_function.get_formals (kf f))
 
+let env name = Sys.getenv_opt ("EVA_TEST_CACHE_SAFETY_" ^ name)
+
 (* ----- Summary of an analysis -------------------------------------------- *)
+
+let pretty_emitted fmt (status : Property_status.emitted_status) =
+  Format.pp_print_string fmt
+    (match status with
+     | True -> "valid"
+     | False_if_reachable -> "invalid"
+     | False_and_reachable -> "invalid and reachable"
+     | Dont_know -> "unknown")
 
 let pretty_status fmt = function
   | Property_status.Never_tried -> Format.pp_print_string fmt "never tried"
   | Inconsistent _ -> Format.pp_print_string fmt "inconsistent"
-  | Best (status, _) ->
-    Format.pp_print_string fmt
-      (match status with
-       | True -> "valid"
-       | False_if_reachable -> "invalid"
-       | False_and_reachable -> "invalid and reachable"
-       | Dont_know -> "unknown")
+  | Best (status, _) -> pretty_emitted fmt status
 
 (* An alarm by its name, other properties by their short form. *)
 let pretty_property fmt ip =
@@ -100,6 +104,74 @@ let hits name =
   Format.printf "hits on %s: %d@." name
     (Eva.Statistics.get Eva.Statistics.cache_hits (kf name))
 
+(* The code annotation [name] of [f], as a property. *)
+let annotation f name =
+  let found = ref None in
+  Annotations.iter_all_code_annot (fun stmt _ ca ->
+      match ca.annot_content with
+      | AAssert (_, { tp_statement = { pred_name; _ }; _ })
+        when List.mem name pred_name
+          && Kernel_function.equal
+               (Kernel_function.find_englobing_kf stmt) (kf f) ->
+        found := Some (Property.ip_of_code_annot_single (kf f) stmt ca)
+      | _ -> ());
+  Option.get !found
+
+(* ----- Settings and observations of an analysis -------------------------- *)
+
+let red_hook_calls = ref 0
+
+(* Applied before the analysis that uses the entry, and before the reference
+   analysis, according to the environment:
+   - ALARM=S: option -eva-warn-key alarm=S, for instance abort, or active
+     after a first analysis with the category inactive, which prints no
+     message of the category and so leaves none for the rule that prints a
+     text once;
+   - STOP=N: option -eva-stop-at-nth-alarm N;
+   - OVERFLOW=on: option -warn-signed-overflow;
+   - COUNT=red: counts the calls of the hook of red statuses. *)
+let setup () =
+  Option.iter
+    (fun s -> Dynamic.Parameter.String.set "-eva-warn-key" ("alarm=" ^ s))
+    (env "ALARM");
+  Option.iter (fun n -> Eva.Parameters.StopAtNthAlarm.set (int_of_string n))
+    (env "STOP");
+  if env "OVERFLOW" = Some "on" then Kernel.SignedOverflow.on ();
+  if env "COUNT" = Some "red" then
+    Eva__Red_statuses.register_hook (fun _ -> incr red_hook_calls)
+
+(* Runs the analysis. An abort ends it, and the summary describes the tables
+   at that point. *)
+let analyse () =
+  try Eva.Analysis.compute ()
+  with Log.AbortError _ -> Format.printf "analysis aborted@."
+
+(* With EXPORT=on, the annotations that Eva.Export generates in [body] after
+   the analysis. Eva gives each of them a valid status. *)
+let export () =
+  if env "EXPORT" = Some "on" then begin
+    let fundec = Kernel_function.get_definition (kf "body") in
+    ignore (Visitor.visitFramacFunction (Eva.Export.generator ()) fundec);
+    let count = ref 0 in
+    List.iter (fun stmt ->
+        List.iter (fun ca ->
+            incr count;
+            Format.printf "exported at %a: %a@." Fileloc.pretty
+              (Cil_datatype.Stmt.loc stmt) Printer.pp_code_annotation ca)
+          (Annotations.code_annot ~emitter:Eva.Export.emitter stmt))
+      fundec.sallstmts;
+    Format.printf "annotations exported in body: %d@." !count
+  end
+
+let observations () =
+  if env "COUNT" = Some "red" then
+    Format.printf "red hook calls: %d@." !red_hook_calls;
+  if env "STOP" <> None then
+    Format.printf "cache-rejected-stop-at-nth-alarm of body: %d@."
+      (Eva.Statistics.get
+         (Eva.Statistics.cache_rejected "stop-at-nth-alarm") (kf "body"));
+  export ()
+
 (* ----- Modes ------------------------------------------------------------- *)
 
 (* Caching disabled: neither memexec nor supplied entries. Prints the
@@ -112,13 +184,22 @@ let reference ?observed names () =
             Format.printf "Safety part of %a: %a@." pretty_callstack
               (Some callstack) Eva.Safety_part.pretty safety))
     observed;
+  setup ();
   Eva.Parameters.Memexec.off ();
-  Eva.Analysis.compute ();
+  analyse ();
+  observations ();
   summary names
 
-(* A first analysis from [producer] stores the entry of [body], whose
-   Safety part is printed. Changing the entry point to [main] then resets the
-   analysis with its alarms and statuses. *)
+let one_line write =
+  let buffer = Buffer.create 80 in
+  let fmt = Format.formatter_of_buffer buffer in
+  Format.pp_set_margin fmt 1000;
+  Format.fprintf fmt "%a@?" Eva.Safety_part.pretty_write write;
+  Buffer.contents buffer
+
+(* A first analysis, from the entry point of the command line, stores the
+   entry of [body], whose Safety part is printed. Changing the entry point
+   to [main] then resets the analysis with its alarms and statuses. *)
 let produce_and_reset main =
   Eva.Analysis.compute ();
   let produced =
@@ -127,13 +208,6 @@ let produce_and_reset main =
     | _ -> assert false
   in
   let safety = Entry.safety (Producer.cache_entry produced) in
-  let one_line write =
-    let buffer = Buffer.create 80 in
-    let fmt = Format.formatter_of_buffer buffer in
-    Format.pp_set_margin fmt 1000;
-    Format.fprintf fmt "%a@?" Eva.Safety_part.pretty_write write;
-    Buffer.contents buffer
-  in
   List.iter (fun w -> Format.printf "safety: %s@." (one_line w)) safety;
   Kernel.MainFunction.set main;
   assert (not (Eva.Analysis.is_computed ()));
@@ -141,17 +215,29 @@ let produce_and_reset main =
     (List.length (statuses ())) (List.length (red_contexts ()));
   produced
 
+(* Whether a hit answered a call of [body] in the analysis, then whether
+   the record remains after a change of the entry point resets the
+   analysis. *)
+let skipped_after_reset () =
+  let skipped () = Eva__Safety_delivery.visits_skipped (kf "body") in
+  Format.printf "visits skipped in body: %b@." (skipped ());
+  Kernel.MainFunction.set "producer";
+  assert (not (Eva.Analysis.is_computed ()));
+  Format.printf "visits skipped in body after the reset: %b@." (skipped ())
+
 (* The entry of [body] is supplied to a second analysis, from the function
-   named by EVA_TEST_CACHE_SAFETY_MAIN, main by default. *)
-let replay () =
-  let main =
-    Option.value ~default:"main" (Sys.getenv_opt "EVA_TEST_CACHE_SAFETY_MAIN")
-  in
+   named by MAIN, main by default. *)
+let replay names () =
+  let main = Option.value ~default:"main" (env "MAIN") in
   let produced = produce_and_reset main in
+  setup ();
   ignore (Supplied.supply_produced produced);
-  Eva.Analysis.compute ();
+  Format.printf "second analysis@.";
+  analyse ();
   hits "body";
-  summary ["r1"; "r2"]
+  observations ();
+  summary names;
+  skipped_after_reset ()
 
 (* The last call of [body] in [caller]. *)
 let call_of_body caller =
@@ -161,6 +247,11 @@ let call_of_body caller =
   | (_, stmt) :: _ -> stmt
   | [] -> assert false
 
+(* The callstack of the last call of [body] in main. *)
+let at_hit () =
+  Eva.Callstack.init ~thread:Eva.Thread.main_id ~entry_point:(kf "main")
+  |> Eva.Callstack.push (kf "body") (call_of_body "main")
+
 (* The Safety part of the entry of [body] is delivered outside any analysis:
    twice for the call of [body] at line 26 of main, then its red contexts,
    with the call of [body] in [outer] as frame, for a callstack of
@@ -168,11 +259,7 @@ let call_of_body caller =
 let deliver () =
   let produced = produce_and_reset "main" in
   let safety = Entry.safety (Producer.cache_entry produced) in
-  let thread = Eva.Thread.main_id in
-  let at_hit =
-    Eva.Callstack.init ~thread ~entry_point:(kf "main")
-    |> Eva.Callstack.push (kf "body") (call_of_body "main")
-  in
+  let at_hit = at_hit () in
   let tables () = List.sort compare (statuses () @ red_contexts ()) in
   Eva__Safety_delivery.deliver at_hit safety;
   let once = tables () in
@@ -182,11 +269,101 @@ let deliver () =
     | Red_context r ->
       Some (Eva.Safety_part.Red_context
               { r with frames = [kf "body", call_of_body "outer"] })
-    | Emitted_alarm _ | Emitted_status _ -> None
+    | _ -> None
   in
+  let thread = Eva.Thread.main_id in
   let from_outer = Eva.Callstack.init ~thread ~entry_point:(kf "outer") in
   Eva__Safety_delivery.deliver from_outer (List.filter_map with_frame safety);
   summary []
+
+(* Another emitter registers the alarms of the entry of [body] first. Then
+   the entry is delivered at the call at line 26 (OWNER=deliver), or main is
+   analysed with caching disabled (OWNER=analyse). Prints the emitter that
+   owns each alarm and the status of each emitter on it. *)
+let owner () =
+  let produced = produce_and_reset "main" in
+  let safety = Entry.safety (Producer.cache_entry produced) in
+  let other =
+    Emitter.create "Other" [ Emitter.Alarm; Emitter.Property_status ]
+      ~correctness:[] ~tuning:[]
+  in
+  List.iter (function
+      | Eva.Safety_part.Emitted_alarm { kinstr; alarm; _ } ->
+        ignore (Alarms.register other kinstr alarm)
+      | _ -> ())
+    safety;
+  if env "OWNER" = Some "deliver"
+  then Eva__Safety_delivery.deliver (at_hit ()) safety
+  else begin
+    Eva.Parameters.Memexec.off ();
+    Eva.Analysis.compute ()
+  end;
+  Alarms.iter (fun emitter kf stmt ~rank:_ alarm ca ->
+      let ip = Property.ip_of_code_annot_single kf stmt ca in
+      let by_emitter (e : Property_status.emitter_with_properties) status acc =
+        Format.asprintf "%a %a" Emitter.Usable_emitter.pretty e.emitter
+          pretty_emitted status :: acc
+      in
+      let emitted = Property_status.fold_on_statuses by_emitter ip [] in
+      Format.printf "| alarm %s at %a: owner %a; statuses: %s@."
+        (Alarms.get_name alarm) Fileloc.pretty (Cil_datatype.Stmt.loc stmt)
+        Emitter.pretty emitter
+        (String.concat ", " (List.sort compare emitted)))
+
+(* A hook of red statuses enters another project at its first call, and
+   adds a red context there. *)
+let enter_other_project () =
+  let other = Project.create_by_copy ~last:false "other" in
+  let entered = ref false in
+  Eva__Red_statuses.register_hook (fun _ ->
+      if not !entered then begin
+        entered := true;
+        Project.on other (fun () ->
+            let body = kf "body" in
+            let first = Kernel_function.find_first_stmt body in
+            Eva__Red_statuses.add_red_property Kglobal
+              (Property.ip_reachable_stmt body first)) ()
+      end)
+
+(* An analysis from producer, with the hook above. The entries of [body] it
+   stores, if any, are supplied to an analysis from main. *)
+let crossing () =
+  enter_other_project ();
+  Eva.Analysis.compute ();
+  List.iter (fun name ->
+      Format.printf "collector-refused-project-switch of %s: %d@." name
+        (Eva.Statistics.get
+           (Eva.Statistics.collector_refused "project-switch") (kf name)))
+    [ "body"; "producer" ];
+  let produced = Producer.entries (kf "body") in
+  Format.printf "entries produced for body: %d@." (List.length produced);
+  List.iter (fun p ->
+      List.iter (fun w -> Format.printf "safety: %s@." (one_line w))
+        (Entry.safety (Producer.cache_entry p)))
+    produced;
+  Kernel.MainFunction.set "main";
+  List.iter (fun p -> ignore (Supplied.supply_produced p)) produced;
+  Eva.Analysis.compute ();
+  summary ["r1"; "r2"]
+
+let crossing_reference () =
+  enter_other_project ();
+  reference ["r1"; "r2"] ()
+
+(* An entry for [outer], whose body calls [body]. *)
+let nested () =
+  let input = Cvalue.Model.empty_map in
+  let none = Base.Hptset.empty in
+  let footprint =
+    Supplied.{ read = none; written = none; written_exit = none;
+               written_sure = none }
+  in
+  match
+    Supplied.supply (kf "outer") ~key:none ~input ~footprint
+      ~exit:[Supplied.empty_key, input]
+  with
+  | _ -> Format.printf "entry for outer supplied@."
+  | exception Invalid_argument msg -> Format.printf "refused: %s@." msg
 
 let bases vis =
   List.fold_left
@@ -202,28 +379,55 @@ let state bindings =
   in
   List.fold_left bind Cvalue.Model.empty_map bindings
 
+(* Prints the status of the check [one] of [pre] once main is analysed,
+   before the passes that run at the end of the analysis. *)
+let observe_one () =
+  let one = annotation "pre" "one" in
+  Eva.Safety_part.on_result (fun callstack _ ->
+      if Kernel_function.equal (Eva.Callstack.top_kf callstack) (kf "main")
+      then
+        Format.printf "before the passes: one is %a@." pretty_status
+          (Property_status.get one))
+
 (* A hand-written entry of [pre] for x = 1. The requires clause belongs to
-   the call site: the entry neither reads g nor carries a status. *)
+   the call site: the entry neither reads g nor carries its status. Its
+   Safety part gives the check [one] a valid status, as an analysis of the
+   body from x = 1 does. *)
 let precondition () =
   let x = formal "pre" "x" and out = global "out" in
   let written = bases [out] in
+  let safety =
+    [ Eva.Safety_part.Emitted_status
+        { property = annotation "pre" "one"; status = True;
+          emitter = Eva.Analysis.emitter; frames = [] } ]
+  in
   ignore
-    (Supplied.supply (kf "pre")
+    (Supplied.supply ~safety (kf "pre")
        ~key:(bases [x])
        ~input:(state [x, 1])
        ~footprint:Supplied.{ read = bases [x]; written;
                              written_exit = written; written_sure = written }
        ~exit:[Supplied.empty_key, state [x, 1; out, 2]]);
+  observe_one ();
   Eva.Analysis.compute ();
   hits "pre";
   summary ["out"]
 
+let precondition_reference () =
+  observe_one ();
+  reference ~observed:"pre" ["out"] ()
+
 let () =
   match Sys.getenv_opt "EVA_TEST_CACHE_SAFETY" with
-  | Some "replay" -> Boot.Main.extend replay
+  | Some "replay" -> Boot.Main.extend (replay ["r1"; "r2"])
+  | Some "replay-out" -> Boot.Main.extend (replay ["out"])
   | Some "deliver" -> Boot.Main.extend deliver
   | Some "reference" -> Boot.Main.extend (reference ["r1"; "r2"])
+  | Some "reference-out" -> Boot.Main.extend (reference ["out"])
   | Some "precondition" -> Boot.Main.extend precondition
-  | Some "precondition-reference" ->
-    Boot.Main.extend (reference ~observed:"pre" ["out"])
+  | Some "precondition-reference" -> Boot.Main.extend precondition_reference
+  | Some "crossing" -> Boot.Main.extend crossing
+  | Some "crossing-reference" -> Boot.Main.extend crossing_reference
+  | Some "owner" -> Boot.Main.extend owner
+  | Some "nested" -> Boot.Main.extend nested
   | _ -> ()

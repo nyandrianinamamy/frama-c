@@ -6,6 +6,9 @@ int g, out;
 /*@ requires positive: g > 0; */
 void pre(int x) {
   out = x + 1;
+  if (x == 1) {
+    /*@ check one: x == 1; */
+  }
 }
 
 int main(void) {

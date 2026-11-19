@@ -27,3 +27,8 @@
     ../mthread/mutex.c
     ../../../../dev/collector_statistics.ml
   ))
+
+; Supplied entries rejected when a reader of the states is loaded
+(cram
+  (applies_to cache-safety)
+  (deps (package frama-c-nonterm) (package frama-c-metrics)))
