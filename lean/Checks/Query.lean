@@ -27,8 +27,10 @@ line for each call.
   query answers 0, and the value 5 at the call is wrong.
 
 Each answer is the conclusion of `CacheEntry.query_sound` for that line.
-A second statement, with a lexical local, has the case of a local of the
-body, which answers top. Two further checks pin definitions: the marks of the sweeps in the frame
+A log with two lines on one callstack answers from the first, which misses
+the member of the second. A second statement, with a lexical local, has the
+case of a local of the body, which answers top. Two further checks pin
+definitions: the marks of the sweeps in the frame
 rule, and the end of a statement's execution in the visit after it.
 -/
 
@@ -538,15 +540,44 @@ theorem key_and_disabled_query :
     queryEntry.reached 21 :=
   ⟨rfl, valueOf_inner.1, fun _ => rfl, (query_at_line 16 9 5 .before rfl).1⟩
 
-/-- A point whose callstack is not that of a call of `h` has no visit. -/
+/-- A point whose callstack is not that of a call of `h` has no visit, before
+or after `r = 0;`. -/
 theorem query_point_callstack :
-    ¬ AtPoint querySubj ⟨noLocals, queryMem 9 5⟩ ⟨21, [], .before⟩ 5 := by
-  rintro ⟨s, k, env, m, hc, -, hcs⟩
+    ¬ AtPoint querySubj ⟨noLocals, queryMem 9 5⟩ ⟨21, [], .before⟩ 5 ∧
+    ¬ AtPoint querySubj ⟨noLocals, queryMem 9 5⟩ ⟨21, [], .after⟩ 6 := by
   have h : (trace querySubj ⟨noLocals, queryMem 9 5⟩ 5).2.cont.callstack = [3] := rfl
-  rw [hc] at h
-  change k.callstack = [3] at h
-  rw [hcs] at h
-  exact absurd h (by decide)
+  constructor
+  · rintro ⟨s, k, env, m, hc, -, hcs⟩
+    rw [hc] at h
+    change k.callstack = [3] at h
+    rw [hcs] at h
+    exact absurd h (by decide)
+  · rintro ⟨n₀, s, k, env₀, m₀, env, m, hlt, h₀, hl, hcs, -, -⟩
+    have hlab : labelOf? (trace querySubj ⟨noLocals, queryMem 9 5⟩ n₀).2 = some 21 := by
+      rw [h₀]; exact congrArg some hl
+    have hn₀ : n₀ = 5 := by
+      have hall : ∀ j : Fin 6,
+          labelOf? (trace querySubj ⟨noLocals, queryMem 9 5⟩ j).2 = some 21 → j.val = 5 := by
+        decide
+      exact hall ⟨n₀, hlt⟩ hlab
+    subst hn₀
+    rw [h₀] at h
+    change k.callstack = [3] at h
+    rw [hcs] at h
+    exact absurd h (by decide)
+
+/-- Two hits on one callstack, as for a call in a loop: the first line of the
+log answers, and its answer misses the content of `g` in the member of the
+second line, which visits the same point. -/
+theorem same_callstack_first_line :
+    query true [queryLine 16 4 3, queryLine 16 9 5] ⟨21, [3, 16], .before⟩ 1 =
+        some (predicates.valueOf (callState 4 3) 1).swept ∧
+      AtPoint querySubj ⟨noLocals, queryMem 9 5⟩ beforeWrite 5 ∧
+      ¬ (predicates.valueOf (callState 4 3) 1).swept
+        (load (trace querySubj ⟨noLocals, queryMem 9 5⟩ 5).2.mem 1) := by
+  refine ⟨rfl, (query_member_visits 9 5).1, ?_⟩
+  rw [(query_member_visits 9 5).2.2.1, swept_int (valueOf_call 4 3).1]
+  decide
 
 /-! ## A local of the body
 
@@ -580,6 +611,16 @@ def localInner : InnerPart predicates := ⟨fun _ _ => True, fun _ => [], fun _ 
 
 /-- The line of a hit at site 7, with `y = 2` at the call. -/
 def localLine : HitLine predicates := ⟨[7], localEntry, localInner, (· = memOf [.int 2]), [0]⟩
+
+/-- The names of the example denote its cells: `y` holds 1 for the producer
+and 2 for the member, and before `L41` the member's `t` is block 1 and
+holds 7. -/
+example :
+    (evalExpr localProg noLocals (memOf [.int 1]) (.var "y")).2 = .ok (.int 1) ∧
+    (evalExpr localProg noLocals (memOf [.int 2]) (.var "y")).2 = .ok (.int 2) ∧
+    ∃ k env m, (trace localSubj ⟨noLocals, memOf [.int 2]⟩ 1).2 = .run (.skip 41) k env m ∧
+      env "t" = some 1 ∧ (evalExpr localProg env m (.var "t")).2 = .ok (.int 7) :=
+  ⟨rfl, rfl, _, _, _, rfl, rfl, rfl⟩
 
 private def localRun (n : Nat) : List Event × Config FunMem :=
   trace localSubj ⟨noLocals, memOf [.int 1]⟩ n

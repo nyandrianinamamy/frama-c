@@ -69,7 +69,7 @@ directories that Dune reads, and `lean` is not among them.
 | `ReuseModel/Entry.lean` | Footprints, cache entries, producer soundness, `CacheEntry.sound_of_producer`, and `CacheEntry.shared_inner` |
 | `ReuseModel/Hit.lean` | Replay admission, the unchanged exit frame, and the projected and whole-product hit theorems |
 | `ReuseModel/SideTables.lean` | The four obligations for side-table accesses in skipped work |
-| `ReuseModel/Query.lean` | Query points (statement, callstack, before or after), visits at a point, the hit log, the reconstruction rules (`HitLine.answer`, `query`), the soundness of the inner part (`InnerPartSound`), `replay_trace` and `CacheEntry.query_sound` |
+| `ReuseModel/Query.lean` | Query points (statement, callstack, before or after), visits at a point, the hit log, the reconstruction rules (`HitLine.answer`, `query`), the soundness of the inner part (`InnerPartSound`) and of an inner part with states on the key only (`innerPartSound_of_key`), `replay_trace` and `CacheEntry.query_sound` |
 | `Checks/AxiomCheck.lean` | The `#check_axioms` command |
 | `Checks/Axioms.lean` | `#print axioms` and `#check_axioms` for each theorem |
 | `Checks/Examples.lean` | Aliasing, a dangling pointer after a return, and a call that does not return, using `frame_no_sweep_rewrite` for that case; the body of a function as the subject; comparisons with the null pointer |
@@ -80,7 +80,7 @@ directories that Dune reads, and `lean` is not among them.
 | `Checks/Hit.lean` | The value-domain hit instance and checked failures of liveness, allocator agreement and the unchanged frame |
 | `Checks/WholeProduct.lean` | A whole-product hit, rejections for differences in either component, and loss of a relation on a projected hit without current-side closure |
 | `Checks/SideTables.lean` | Positive and negative cases of the four obligations |
-| `Checks/Query.lean` | Two calls of one body in one run with a hit log line each: an untouched block answering 4 and 9, an overwritten block answering 5 before the write and 0 after it, the key block, disabled reconstruction, a local of the body answering top, and the negative checks of the naive answers; the callstack of a point, the marks of the sweeps in the frame rule, and the end of a statement's execution |
+| `Checks/Query.lean` | Two calls of one body in one run with a hit log line each: an untouched block answering 4 and 9, an overwritten block answering 5 before the write and 0 after it, the key block, disabled reconstruction, a local of the body answering top, and the negative checks of the naive answers; two lines on one callstack, where the first line's answer misses the member of the second; the callstack of a point, before and after a statement, the marks of the sweeps in the frame rule, and the end of a statement's execution |
 | `Checks/Fragment.lean` | Statements that meet the fragment conditions: one outside the function bodies, a function body, and a statement inside one. Programs and statements that do not: duplicate labels in the observed statement, a label of a body reused outside, duplicate labels across two bodies, direct recursion, mutual recursion |
 
 ## What the model contains
@@ -326,7 +326,11 @@ and the matching witness of the member as hypotheses. A visit before a
 statement is a configuration about to execute it; a visit after it is the
 first normal completion of that execution. Every write overwrites a whole
 block, so the rule for updated blocks holds in the model; Eva must restrict
-it to full overwrites and creations.
+it to full overwrites and creations. The theorem covers the members of the
+line that answers: with two lines on one callstack, the members of the
+second are not covered (`Checks.same_callstack_first_line`). An inner part
+with states on the key only, the writes of the footprint as possible writes
+and no updated block is sound by coverage (`innerPartSound_of_key`).
 
 ## What the model leaves out
 

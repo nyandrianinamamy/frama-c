@@ -648,6 +648,10 @@ open ReuseModel ReuseModel.CacheEntry in
 #print axioms Checks.query_point_callstack
 #check_axioms Checks.query_point_callstack
 
+#check Checks.same_callstack_first_line
+#print axioms Checks.same_callstack_first_line
+#check_axioms Checks.same_callstack_first_line
+
 #check Checks.local_premises
 #print axioms Checks.local_premises
 #check_axioms Checks.local_premises
