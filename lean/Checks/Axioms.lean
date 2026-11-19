@@ -551,3 +551,48 @@ open ReuseModel ReuseModel.CacheEntry Checks in
 #check Checks.projected_copy_loses_relation
 #print axioms Checks.projected_copy_loses_relation
 #check_axioms Checks.projected_copy_loses_relation
+
+/-! State queries on the callstack of a hit, in `ReuseModel/Query.lean`. -/
+
+open ReuseModel in
+#check @Cont.callstack
+open ReuseModel in
+#check @QueryPoint.below
+open ReuseModel in
+#check @trace
+open ReuseModel in
+#check @Config.Inside
+open ReuseModel in
+#check @AtPoint
+open ReuseModel in
+#check @ValueSet.swept
+open ReuseModel in
+#check @Domain.valueOf
+open ReuseModel in
+#check @InnerPart
+open ReuseModel in
+#check @HitLine
+open ReuseModel in
+#check @HitLine.answer
+open ReuseModel in
+#check @query
+open ReuseModel ReuseModel.CacheEntry in
+#check @InnerPartSound
+#print axioms ReuseModel.HitLine.answer
+#print axioms ReuseModel.query
+#print axioms ReuseModel.AtPoint
+#print axioms ReuseModel.CacheEntry.InnerPartSound
+#check_axioms ReuseModel.HitLine.answer
+#check_axioms ReuseModel.query
+#check_axioms ReuseModel.AtPoint
+#check_axioms ReuseModel.CacheEntry.InnerPartSound
+
+open ReuseModel ReuseModel.CacheEntry in
+#check @replay_trace
+#print axioms ReuseModel.CacheEntry.replay_trace
+#check_axioms ReuseModel.CacheEntry.replay_trace
+
+open ReuseModel ReuseModel.CacheEntry in
+#check @query_sound
+#print axioms ReuseModel.CacheEntry.query_sound
+#check_axioms ReuseModel.CacheEntry.query_sound

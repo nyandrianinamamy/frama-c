@@ -7,6 +7,7 @@ import ReuseModel.Domain
 import ReuseModel.Entry
 import ReuseModel.Hit
 import ReuseModel.SideTables
+import ReuseModel.Query
 
 /-!
 # Reference model for statement reuse in Eva
