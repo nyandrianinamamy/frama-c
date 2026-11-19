@@ -183,6 +183,9 @@ Dune 3.21.1 reused cached cram outputs after Python/TERM changes even with
 `_build/default/tests/fc_script/.cram.make-machdep.t`), then run
 `TERM=xterm dune runtest -j 8 --cache=disabled tests/misc tests/fc_script`.
 Do not delete source `.t` directories or promote their stale differences.
+For any other cram test, `bash dev/cram-fresh.sh DIR.t...` does the same:
+it builds `@install`, removes the generated directories and runs the tests
+with the cache disabled.
 
 ## Test configurations and oracle investigation
 

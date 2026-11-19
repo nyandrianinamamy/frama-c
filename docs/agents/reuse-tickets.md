@@ -36,9 +36,30 @@ file adds what is specific to these tickets.
   plug-in loaded later, a saved session. Each reader gets a delivery, a
   refusal or a line in the record, with a test compared against caching
   disabled.
+- **A hit runs registered code.** Between the lookup's test of unaudited
+  clients and the end of the delivery, a hit may reach hooks, observers,
+  listeners, change hooks of tables and client predicates. Before the
+  review, trace what your change adds to that path and give each interface
+  a row in the section "A hit runs no client that is not audited" of
+  `safety.md`: tested at lookup with
+  an audited flag, argued unreachable, or outside the guarantee. Search by
+  mechanism (`Hook.`, `on_call`, `observe`, `add_hook`, `register`,
+  forward references), not by the names already listed. Client code that
+  the lookup itself calls runs before that test, once.
 - **A fixture entry must be one a producer could build.** Its key contains
   its read set, its producer input binds every block its exit keeps, and its
-  exit sets are nested.
+  exit sets are nested. Take the entry from a first analysis of the body
+  where the test allows: a part written by hand that understates its
+  writes still hits, and the test is then no evidence for that part.
+- **Reuse the mechanism of a branch in flight.** The brief names the
+  tickets being worked in parallel. Before adding a set of functions
+  answered by a hit, a rejection reason, a field of the results snapshot or
+  a step of the hit sequence, look for it on their branches
+  (`git branch --list 't3/*'`, then
+  `git diff origin/spec/32-reuse-within-analysis...BRANCH`).
+  Take its name and interface, or report why yours differs: two forms of
+  one mechanism cost the second ticket a reconciliation round and a
+  re-check.
 - **No side effect when the plug-in loads.** A variable or a table entry
   created at module initialisation shifts identifiers in the oracles of
   other plug-ins.
@@ -59,6 +80,14 @@ file adds what is specific to these tickets.
   `markdown-report` downloads its schema. A failure of `ptests-default` on
   that download alone is a sandbox limit: rerun the step with network access
   and report both runs.
+- **A mutant counts when it ran.** Apply it alone, check that it compiles
+  (a mutant stopped by a warning is not killed), and run the tests with
+  `bash dev/cram-fresh.sh DIR.t...`, which builds the plug-ins the test
+  modules load and removes the generated directories: Dune can answer a
+  cram test from an earlier run, also with `--force`. A mutant that
+  survives is first checked against the configuration of the fixture (a
+  branch the fixture never takes), then reported with the program that
+  kills it.
 - **To see why a cram command fails**, copy the fixture directory to a
   scratch directory and run the command there through
   `dune exec -- sh -c '...'` from the checkout: the sandbox of the test
@@ -97,7 +126,19 @@ These checks found defects in earlier tickets and are owed on each one:
 8. **Read the results after a hit.** With a confirmed hit, run the
    readers of the skipped body (end-of-analysis statuses and dead code,
    `-then` printers, a server request, a session loaded in another
-   process) and compare with caching disabled.
+   process) and compare with caching disabled. Repeat under the options
+   that change what is saved (`-eva-no-results`,
+   `-eva-no-results-function`, `-eva-no-results-domain`), set on the
+   producer, the consumer and both, and after
+   `Eva_results.get_results` and `set_results`, in the same project and in
+   a copy. A reader that answers bottom or unreachable at an executed
+   statement is a defect; a wider answer is a loss of precision.
+
+9. **Register a client during a hit.** For each interface the hit path
+   reaches (the same section of `safety.md`), and for one found by your own
+   search, register a client without the audited flag, before the lookup
+   and from code the lookup calls. The candidate is rejected, or the
+   client is not called between admission and the end of the delivery.
 
 Report findings by severity with file, line, a failing input and a proposed
 fix, and state for each acceptance criterion whether it is met. The
@@ -112,7 +153,11 @@ the ticket branch onto the tip, run `bash dev/verify.sh` (or
 `cd lean && lake build --wfail` for a Lean ticket) on the rebased commit,
 fast-forward, push, and cite the CI run of that push. A push to the branch
 cancels a CI run still in progress on it: wait for the run that is the
-evidence of the previous ticket.
+evidence of the previous ticket. A job that fails in "Install system
+packages", before any test, is an infrastructure failure: rerun it with
+`gh run rerun ID --failed` and cite the run once it passes. Every commit of
+the landed range builds; the closing report names the commits where a test
+fails.
 
 A fix written after the last review in the kernel, the collector or a Lean
 statement gets a narrow re-check of those commits before the ticket closes;
