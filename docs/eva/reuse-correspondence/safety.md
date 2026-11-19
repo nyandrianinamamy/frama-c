@@ -327,8 +327,8 @@ reverted), the hit calls the hook twice before it stops.
   evaluation that leads to bottom without alarms, a sign of a defect of
   Eva, is printed at each visit and is not replayed. When the status of the
   category of such a message differs between the producing call and the
-  lookup of the hit, the entry is rejected; a change made after the lookup
-  by a hook on calls is not seen
+  lookup of the hit, the entry is rejected; when a hook that the hit runs
+  changes it after the lookup, the analysis stops after the delivery
   ([The settings that decide the alarms and messages are those of each hit](#the-settings-that-decide-the-alarms-and-messages-are-those-of-each-hit)).
 
 ## The owner of an alarm is that of an analysis of the body
@@ -685,11 +685,18 @@ stores it with the entry, and the lookup of the supplied entries reads it
 again and compares. A change made before the lookup, by any of these means,
 is seen. The status is read at the start of the body: if a client of the
 red status hooks, which a body admits, changes a category during the body,
-the earlier messages of the body ran under the status read. A change made
-at the call of the hit, after the lookup, is not seen: the hooks on calls
-run after it. Within one analysis, such a hook also runs at the producing
-call, inside the recording, where an unclassified client refuses the body
-(`callback`); a hook registered between the two calls is not covered. A
+the earlier messages of the body ran under the status read. A hit runs
+hooks after its lookup: the hooks on calls; the hooks on statuses, the red
+status hooks and the listeners of the logger, when it prints the line of
+the call and evaluates the preconditions; and the red status hooks during
+the delivery. `Call_cache` reads the status of the categories when the
+lookup of the supplied entries starts, and after the delivery, the hit
+compares it with the current status (`check_warn_categories` in
+`Compute_functions`): when one differs, the analysis stops with an error,
+since the hit cannot tell what an analysis of the body would do under the
+new status. The tables then hold the whole Safety part of the entry, where
+an analysis of the body that stops at a message holds the writes made
+before it. A change undone before the end of the delivery is not seen. A
 `-once` category becomes inactive after its first message; the lookup then
 rejects the entries produced before, which is conservative.
 
@@ -715,11 +722,17 @@ rejects the entries produced before, which is conservative.
   (entry 2: warn-categories)`, and stops at the overflow, as with caching
   disabled. With the comparison of `Supplied_entries.Lookup.admit` removed
   alone, both runs hit and give `out = 8`.
-- `overflow.c`, premise violated on purpose. The entry is produced with the
-  category inactive, and a hook on calls sets it to abort at the call of
-  `body` in the analysis that uses the entry: the hit prints nothing and
-  gives `out = 8`, where the analysis with caching disabled stops at the
-  overflow.
+- `overflow.c`, after the lookup. The entry is produced with the category
+  inactive, and in the analysis that uses it, a hook on calls sets the
+  category to abort at the call of `body`, after the lookup. The call reads
+  `lookup: hit (entry 1)`, then the analysis stops with `the status of the
+  warning categories signed-overflow changed during the hit on body`. The
+  analysis with caching disabled stops at the overflow, and the tables are
+  equal: the entry holds no alarm. With the call of `check_warn_categories`
+  removed alone (a mutation run), the hit prints nothing and gives
+  `out = 8`, and only this section of the test fails. The other hooks that
+  the hit runs after its lookup reach the same comparison; no test runs
+  them.
 
 **Open.**
 
@@ -729,10 +742,12 @@ rejects the entries produced before, which is conservative.
   cross analyses: they must store these options and the status of the
   categories with the entry, and compare them at the lookup in the
   analysis that loads them.
-- A change of a category by a hook on calls, at the call of the hit and
-  after its lookup, is not seen. One route: compare the status of the
-  categories again after the hooks of the call, and analyse the body when
-  it changed.
+- A hit stops the analysis when a hook that it runs changes a category,
+  where an analysis of the body goes on unless the body prints a message of
+  that category under an action that stops. Analysing the body instead
+  would announce the call to the hooks on calls a second time, as `Body`
+  after `Reuse`: the callwise clients of From and Inout push a frame for
+  `Body` only, and every client would see two calls.
 
 ## Preconditions at a hit
 

@@ -256,8 +256,8 @@ instrumented ACSL messages.
 consumption must account for hook configuration changes between
 production and use and for extensions outside these hook interfaces. The
 lookup rejects an entry when the status of a warning category changed
-before it; a change made by a hook on calls after the lookup of a hit is
-not seen
+before it; when a hook that a hit runs changes one after the lookup, the
+analysis stops after the delivery
 ([Safety at a hit](safety.md#the-settings-that-decide-the-alarms-and-messages-are-those-of-each-hit)).
 Effects whose normal replay belongs to Safety or Reach remain the
 responsibility of those parts. An interrupted body has no
