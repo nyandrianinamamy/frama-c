@@ -265,6 +265,23 @@ let check_client target install =
       assert (Producer.entries (kf target) = []);
       Format.printf "%s client calls: %d, entries: 0@." target !calls)
 
+(* A client of the red status hook runs during the body, and is not a
+   refusal: a hit runs the hook again (see {!Eva.Safety_part}). *)
+let red_client () =
+  let calls = ref 0 in
+  Eva__Red_statuses.register_hook (fun _ -> incr calls);
+  Observation.on_result (fun stack result ->
+      if name (Eva.Callstack.top_kf stack) = "alarm" then
+        let verdict =
+          match Access.verdict result with
+          | Ok () -> "would-store"
+          | Error reason -> Access.Result.refusal_id reason
+        in
+        Format.printf "alarm: %s@." verdict);
+  Boot.Main.extend (fun () ->
+      Eva.Analysis.compute ();
+      Format.printf "alarm client calls: %d@." !calls)
+
 let raise_alarm_threshold event =
   if event.Log.evt_category = Some "alarm" then begin
     Eva.Parameters.StopAtNthAlarm.set max_int;
@@ -277,9 +294,7 @@ let () =
   | Some "hint-lookup" -> Boot.Main.extend hint_lookup
   | Some "trace-stack" -> Boot.Main.extend trace_stack_check
   | Some "watch-install" -> Boot.Main.extend install_watch_check
-  | Some "red-client" ->
-    check_client "alarm" (fun called ->
-        Eva__Red_statuses.register_hook (fun _ -> called ()))
+  | Some "red-client" -> red_client ()
   | Some "history-client" ->
     check_client "swept" (fun called ->
         Log.on_history_access (fun ~plugin ~kind:_ ~category ~once_category:_ ->
