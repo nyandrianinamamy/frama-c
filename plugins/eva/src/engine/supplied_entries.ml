@@ -157,16 +157,19 @@ let exit e = List.map (fun (k, (s, _)) -> k, s) (Entry.exit e)
 let safety = Entry.safety
 let pretty = Entry.pretty
 
-type rejection = [ Cache_entry.rejection | `Product | `Consumer ]
+type rejection =
+  [ Cache_entry.rejection | `Product | `Consumer | `Stop_at_nth_alarm ]
 
 let rejections : rejection list =
   [ `Key_differs; `Key_unclosed; `Sweep; `Recursion; `Hint_generation;
-    `Watchpoint; `Automatic_cleanup; `Nested_delivery; `Product; `Consumer ]
+    `Watchpoint; `Automatic_cleanup; `Nested_delivery; `Product; `Consumer;
+    `Stop_at_nth_alarm ]
 
 let rejection_id : rejection -> string = function
   | #Cache_entry.rejection as r -> Cache_entry.rejection_id r
   | `Product -> "product"
   | `Consumer -> "consumer"
+  | `Stop_at_nth_alarm -> "stop-at-nth-alarm"
 
 type 'state lookup = {
   rejected : (int * rejection) list;
@@ -178,6 +181,11 @@ type 'state lookup = {
 let consumer_enabled () =
   Plugin.is_present "inout" || Plugin.is_present "from"
   || Mt_options.Enabled.get ()
+
+(* A fresh evaluation emits all the alarms of an evaluation before it tests
+   the threshold of [-eva-stop-at-nth-alarm]; a hit delivers the alarms one
+   by one, and does not know the evaluations they came from. *)
+let stop_at_nth_alarm () = Parameters.StopAtNthAlarm.get () < max_int
 
 let cast : type a b. (a, b) Structure.eq -> a -> b = fun Structure.Eq x -> x
 let cast_back : type a b. (a, b) Structure.eq -> b -> a =
@@ -254,6 +262,7 @@ module Lookup (Domain : sig
       | None -> reject_all `Product
       | Some _ when consumer_enabled () || stack.thread <> Thread.main_id ->
         reject_all `Consumer
+      | Some _ when stop_at_nth_alarm () -> reject_all `Stop_at_nth_alarm
       | Some eq ->
         let nested_call = lazy (has_nested_call (Callstack.top_kf stack)) in
         let result =

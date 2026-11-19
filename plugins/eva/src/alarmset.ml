@@ -351,21 +351,10 @@ let emit_alarm ~pos alarm status =
   in
   register ~pos ~emitter alarm status
 
-(* Stops the analysis when the number of alarms reaches the limit of
-   -eva-stop-at-nth-alarm. A capture during which the limit is finite, before
-   or after the emission, is refused. *)
-let stop_at_nth_alarm ~finite_at_entry =
-  let stop_at = Parameters.StopAtNthAlarm.get () in
-  if finite_at_entry || stop_at < max_int then Body_access.refuse Stop_at_alarm;
-  if Alarm_cache.length () >= stop_at
-  then Self.abort "Stopping at nth alarm"
-
 let deliver ~pos ~emitter alarm status =
   Body_access.record Alarms;
   Body_access.record Statuses;
-  let finite_at_entry = Parameters.StopAtNthAlarm.get () < max_int in
-  register ~pos ~emitter alarm status;
-  stop_at_nth_alarm ~finite_at_entry
+  register ~pos ~emitter alarm status
 
 let height_alarm = let open Eva_utils in function
     | Alarms.Division_by_zero e
@@ -421,7 +410,10 @@ let emit_alarms ~pos map =
   let sorted_list = List.sort cmp list in
   let finite_at_entry = Parameters.StopAtNthAlarm.get () < max_int in
   List.iter (fun (alarm, status) -> emit_alarm ~pos alarm status) sorted_list;
-  stop_at_nth_alarm ~finite_at_entry
+  let stop_at = Parameters.StopAtNthAlarm.get () in
+  if finite_at_entry || stop_at < max_int then Body_access.refuse Stop_at_alarm;
+  if Alarm_cache.length () >= stop_at
+  then Self.abort "Stopping at nth alarm"
 
 let emit ~pos = function
   | Just map -> if not (M.is_empty map) then emit_alarms ~pos map

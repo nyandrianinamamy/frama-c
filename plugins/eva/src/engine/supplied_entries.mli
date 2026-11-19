@@ -143,7 +143,8 @@ val active : unit -> bool
 (** Why a supplied entry is not used for a call. When the active domains
     are not the cvalue domain alone, every candidate is rejected with
     [`Product], whatever the other reasons; otherwise, when a consumer is
-    enabled, with [`Consumer]; otherwise each candidate is examined by
+    enabled, with [`Consumer]; otherwise, when [-eva-stop-at-nth-alarm] is
+    set, with [`Stop_at_nth_alarm]; otherwise each candidate is examined by
     {!Cache_entry.Make.find}. *)
 type rejection = [
   | Cache_entry.rejection
@@ -153,13 +154,18 @@ type rejection = [
   (** A component that resolves the identifier of a hit against the entries
       of memexec is enabled: the Inout or From plug-in, or the analysis of
       threads. *)
+  | `Stop_at_nth_alarm
+  (** Option [-eva-stop-at-nth-alarm] is set. A fresh evaluation emits all
+      its alarms before it tests the threshold; a hit does not deliver its
+      alarms by evaluation. *)
 ]
 
 (** All reasons, in the order of their documentation. *)
 val rejections : rejection list
 
 (** Stable identifier of a reason: those of {!Cache_entry.rejection_id},
-    [product] for [`Product] and [consumer] for [`Consumer]. *)
+    [product] for [`Product], [consumer] for [`Consumer] and
+    [stop-at-nth-alarm] for [`Stop_at_nth_alarm]. *)
 val rejection_id : rejection -> string
 
 (** Result of a lookup. *)
@@ -181,10 +187,11 @@ module Lookup (Domain : sig
   (** [find stack state] applies the reuse operation ({!Cache_entry.Make.find})
       to the entries supplied for the top function of [stack], at a call
       whose input is [state].
-      When the active domains are not the cvalue domain alone, or when a
-      component listed under [`Consumer] is enabled, every entry is rejected
-      for this reason. With either constructor, a matching body with a call
-      other than a direct show directive is rejected with [`Nested_delivery]
-      if it passes the other admission checks. *)
+      When the active domains are not the cvalue domain alone, when a
+      component listed under [`Consumer] is enabled, or when
+      [-eva-stop-at-nth-alarm] is set, every entry is rejected for this
+      reason. With either constructor, a matching body with a call other
+      than a direct show directive is rejected with [`Nested_delivery] if it
+      passes the other admission checks. *)
   val find : Callstack.t -> Domain.t -> Domain.t lookup
 end
