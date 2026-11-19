@@ -187,6 +187,53 @@ let () =
   Eva.Builtins.register_builtin "Frama_C_unknown_target"
     (fun _ _ -> Eva.Builtins.Result [Cvalue.V.top])
 
+(* An observer of the kernel set before a recording keeps running during
+   it and after it. A validity record made weak through the kernel, without
+   the allocation builtins, refuses the bodies that consult the node tags. *)
+let kernel_paths () =
+  let allocated name =
+    let size = Z.of_int 31 in
+    let validity =
+      Base.create_variable_validity ~weak:false ~min_alloc:size ~max_alloc:size
+    in
+    let vi = Cil.makeGlobalVar ~source:false name Cil_const.intType in
+    Base.register_allocated_var vi Base.Malloc (Base.Variable validity),
+    validity
+  in
+  let stack =
+    let entry_point = Globals.Functions.find_by_name "main" in
+    Eva.Callstack.init ~thread:0 ~entry_point
+  in
+  let capture f =
+    match Eva__Body_access.capture stack f with
+    | (), Some r -> r
+    | (), None -> failwith "no observation"
+  in
+  let observed, _ = allocated "observed" in
+  let calls = ref 0 in
+  let read () = ignore (Base.validity observed) in
+  let previous = Base.observe_metadata_reads (Some (fun _ -> incr calls)) in
+  read ();
+  let r = capture read in
+  read ();
+  ignore (Base.observe_metadata_reads previous);
+  Format.printf "observer runs: %d, collector owners: %s@."
+    !calls (String.concat " " (owners r));
+  let tags () =
+    let r = capture Eva__Body_access.read_node_tags in
+    Format.printf "tags: %s@." (first_reason r)
+  in
+  tags ();
+  let _, validity = allocated "weakened" in
+  let size = Z.of_int 31 in
+  Base.update_variable_validity validity ~weak:true
+    ~min_alloc:size ~max_alloc:size;
+  tags ()
+
+let () =
+  if Sys.getenv_opt "EVA_TEST_ALLOCATION" = Some "kernel" then
+    Boot.Main.extend kernel_paths
+
 let () =
   let observe stack result =
     let name = Kernel_function.get_name (Eva.Callstack.top_kf stack) in
@@ -199,6 +246,7 @@ let () =
     | Some "call-site" -> observe_call_site name result
     | Some ("contents" | "weakening") -> observe_unread name result
     | Some ("finalisation" | "hit") -> observe_all name result
+    | Some "kernel" -> ()
     | _ -> failwith "EVA_TEST_ALLOCATION is not set"
   in
   Access.on_result observe

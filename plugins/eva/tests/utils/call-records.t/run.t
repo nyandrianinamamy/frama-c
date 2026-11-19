@@ -24,13 +24,13 @@ the log end with a blank, removed before the messages are printed.
     call to outer: lookup: hit (entry 2); execution: not-analysed; storage: none
     stack: outer :: call-records.c:20 (stmt 13) <- main
   [eva:cache] call-records.c:21:
-    call to alloc: lookup: no-candidate; execution: analysed; storage: refused (not-cacheable); collector: refused (builtin)
+    call to alloc: lookup: no-candidate; execution: analysed; storage: refused (not-cacheable); collector: refused (allocation)
     stack: alloc :: call-records.c:21 (stmt 14) <- main
   [eva:cache] call-records.c:22:
-    call to alloc: lookup: no-candidate; execution: analysed; storage: refused (not-cacheable); collector: refused (builtin)
+    call to alloc: lookup: no-candidate; execution: analysed; storage: refused (not-cacheable); collector: refused (allocation)
     stack: alloc :: call-records.c:22 (stmt 15) <- main
   [eva:cache]
-    call to main: lookup: no-candidate; execution: analysed; storage: refused (not-cacheable); collector: refused (builtin)
+    call to main: lookup: no-candidate; execution: analysed; storage: refused (not-cacheable); collector: refused (allocation)
     stack: main
 
 The calls to malloc and free are answered by builtins and print no message

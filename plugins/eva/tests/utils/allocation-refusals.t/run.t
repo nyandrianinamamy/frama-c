@@ -124,13 +124,17 @@ before the allocation is not refused.
 
 A body that writes a part of a block whose other part holds part of a
 pointer to an allocated block is refused, though it does not read the
-pointer. The same writes to a block without pointer are not refused.
+pointer. The same writes to a block without pointer are not refused. A
+body that reads a field beside a field holding such a pointer, without
+reading the pointer, is not refused either: sibling records the current
+verdict, and the pointer stays in the block of a produced key.
 
   $ EVA_TEST_ALLOCATION=contents frama-c -no-autoload-plugins -load-module eva,test_allocation_refusals.cmxs -eva -eva-no-memexec -eva-no-alloc-returns-null -eva-msg-key cache contents.c > contents.log 2>&1
-  $ grep -E '^(partial|partial_once|control) call' contents.log
-  partial call 1: allocated-block, owners __malloc_main_l34
-  partial_once call 1: allocated-block, owners __malloc_main_l34
+  $ grep -E '^(partial|partial_once|control|sibling) call' contents.log
+  partial call 1: allocated-block, owners __malloc_main_l41
+  partial_once call 1: allocated-block, owners __malloc_main_l41
   control call 1: would-store
+  sibling call 1: would-store
 
 The automatic blocks of a call are freed by its caller when the call
 returns. A call that never returns and the entry point free nothing.
@@ -173,3 +177,14 @@ the weakening, and for a body with one state at each point, it is not.
   alloc call 3: allocation validity-mutation builtin contract nested-call allocated-block allocation-metadata, owners __malloc_w_alloc_l10
   branch call 2: allocation-metadata, owners __malloc_w_alloc_l10
   straight call 2: would-store
+
+An observer set in the kernel before a recording runs during it and after
+it: three reads, one of them recorded by the collector. A validity record
+made weak through the kernel, without the allocation builtins, refuses a
+body that consults the node tags; its owner is not known.
+
+  $ EVA_TEST_ALLOCATION=kernel frama-c -no-autoload-plugins -load-module eva,test_allocation_refusals.cmxs -eva-msg-key cache contents.c > kernel.log 2>&1
+  $ grep -E '^(observer|tags)' kernel.log
+  observer runs: 3, collector owners: observed
+  tags: would-store
+  tags: allocation-metadata

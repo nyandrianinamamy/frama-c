@@ -30,6 +30,13 @@ void control(void) {
     plain.c = 3;
 }
 
+/* Reads a field beside a field that holds a pointer to an allocated
+   block, without reading the pointer. */
+struct S { int n; int *p; } holder;
+int seen;
+
+void sibling(void) { seen = holder.n; }
+
 int main(void) {
   int *q = malloc(sizeof *q);
   if (!q)
@@ -39,5 +46,7 @@ int main(void) {
   partial();
   partial_once();
   control();
+  holder.p = q;
+  sibling();
   return 0;
 }
