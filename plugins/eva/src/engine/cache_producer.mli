@@ -51,6 +51,13 @@ type refusal =
 (** Stable identifier for diagnostics and statistics. *)
 val refusal_id : refusal -> string
 
+(** Whether a call of the function checks a [requires] clause: a behavior
+    of its specification has one, and its specification is not skipped
+    ([-eva-skip-stdlib-specs]). The producer refuses the body of such a
+    function ([Preconditions]), and the lookup rejects the entries supplied
+    for it ([`Preconditions]). *)
+val has_preconditions : kernel_function -> bool
+
 module Make (Domain : sig
     type t
     val structure : t Abstract.Domain.structure

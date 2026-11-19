@@ -29,7 +29,7 @@ type dependencies = {
 type rejection = [
   | `Key_differs | `Key_unclosed | `Missing_part | `Sweep | `Recursion
   | `Hint_generation | `Watchpoint | `Automatic_cleanup | `Nested_delivery
-  | `Warn_categories | `Missing_points
+  | `Warn_categories | `Missing_points | `Preconditions
 ]
 
 let rejection_id : rejection -> string = function
@@ -44,6 +44,7 @@ let rejection_id : rejection -> string = function
   | `Nested_delivery -> "nested-delivery"
   | `Warn_categories -> "warn-categories"
   | `Missing_points -> "missing-points"
+  | `Preconditions -> "preconditions"
 
 let return_block = function
   | Body kf -> Option.map Base.of_varinfo (Library_functions.get_retres_vi kf)

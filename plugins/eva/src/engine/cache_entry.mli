@@ -103,6 +103,10 @@ type rejection = [
   (** The entry has no Reach part, or its Reach part has no points while
       the states of the called function are saved in the analysis of the
       call. *)
+  | `Preconditions
+  (** The called function has a [requires] clause that the call must
+      evaluate. A hit evaluates no predicate: the body is analysed, and its
+      analysis checks the clause. *)
 ]
 
 (** Stable identifier of a rejection reason, such as [missing-part] for

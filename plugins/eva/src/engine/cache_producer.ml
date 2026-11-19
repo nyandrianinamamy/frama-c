@@ -113,8 +113,9 @@ let binds model b =
   | exception Not_found -> false
 
 let has_preconditions kf =
-  (* The observer excludes requires checks, and a supplied hit does not use
-     their reduced states. Record an entry only when there is no such check. *)
+  (* The observer excludes requires checks, and a hit evaluates none: the
+     lookup rejects the entries of such a function ([`Preconditions]). Record
+     an entry only when there is no such check. *)
   not (Eva_utils.skip_specifications kf)
   && List.exists (fun b -> b.b_requires <> [])
     (Annotations.funspec kf).spec_behavior

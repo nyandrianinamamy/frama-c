@@ -111,10 +111,6 @@ module Make (Engine: Engine_sig.S) = struct
         footprint;
       call_result
     | Cache.Hit (i, states, source) ->
-      (* [returns] is taken before the check of the preconditions below,
-         which can leave the call without a state. No composed entry has
-         preconditions: the producer refuses such bodies, and an entry given
-         to [supply] has no observation, which refuses the enclosing body. *)
       let delivery =
         match source with
         | Cache.Legacy_trace trace ->
@@ -132,59 +128,46 @@ module Make (Engine: Engine_sig.S) = struct
           | None -> assert false
       in
       apply_call_hooks call init_state `Reuse;
-      (* Evaluate the preconditions of kf, to update the statuses
-         at this call. They are not part of the entry. *)
-      Populate_spec.populate_funspec call.kf [`Assigns];
-      let spec = Annotations.funspec call.kf in
-      let satisfiable =
-        if not (Eva_utils.skip_specifications call.kf) &&
-           List.exists (fun b -> b.b_requires <> []) spec.spec_behavior
-        then begin
-          let ab = Logic.create init_state call.kf in
-          let kinstr = Callstack.top_callsite call.callstack in
-          match Logic.check_fct_preconditions kinstr call.kf ab init_state with
-          | [] -> false
-          | _ :: _ -> true
-        end
-        else true
-      in
-      (* A hit of the reuse operation delivers the Safety part and the
-         Reach part of its entry, unless no state satisfies the
-         preconditions: an analysis of the body would then analyse nothing,
-         and the call has no state at its end. A delivering hit saves no
-         state at the statements of the body: the points it reaches are
-         recorded for its callstack, where the state is top. The function
-         is also recorded among those whose visits a hit skipped, for its
-         statistics and for the readers of the results computed from the
-         states saved at statements. Memexec gives no Safety part, and its
-         states are kept. *)
-      let states =
-        match delivery with
-        | None -> states
-        | Some _ when not satisfiable -> []
+      begin match delivery with
+        | None ->
+          (* A hit of memexec evaluates the preconditions of kf, to update
+             the statuses at this call: they are not part of its entry. Its
+             states are kept, and it gives no Safety part. *)
+          Populate_spec.populate_funspec call.kf [`Assigns];
+          let spec = Annotations.funspec call.kf in
+          if not (Eva_utils.skip_specifications call.kf) &&
+             List.exists (fun b -> b.b_requires <> []) spec.spec_behavior
+          then begin
+            let ab = Logic.create init_state call.kf in
+            let kinstr = Callstack.top_callsite call.callstack in
+            ignore (Logic.check_fct_preconditions kinstr call.kf ab init_state)
+          end
         | Some (safety, reach, _) ->
+          (* A hit of the reuse operation evaluates no predicate: the lookup
+             rejects the entries of a function whose call checks a
+             [requires] clause ([`Preconditions]). It delivers the Safety
+             part and the Reach part of its entry, and saves no state at the
+             statements of the body: the points it reaches are recorded for
+             its callstack, where the state is top. The function is also
+             recorded among those whose visits a hit skipped, for its
+             statistics and for the readers of the results computed from the
+             states saved at statements. *)
           Safety_delivery.skip_visits call.kf;
           Safety_delivery.deliver call.callstack safety;
-          Reach_delivery.deliver call.callstack ~save_results reach;
-          states
-      in
+          Reach_delivery.deliver call.callstack ~save_results reach
+      end;
       Self.feedback ~current:true ~mkey:Log_key.progress
         "Reusing old results for call to %a" Kernel_function.pretty call.kf;
       (* A hit of memexec sends its number to the consumers, which resolve it
-         in their own tables. A delivering hit of the reuse operation, whose
-         number is not one of memexec, restores the parts of its entry
-         instead, after the delivery of its Safety part and of its Reach
-         part: the individual Inout result of the call, for instance, before
-         the caller reduces its actuals. The function recorded above as
-         answered by a hit is also the one whose results computed from the
-         states saved at statements are refused. A hit whose preconditions
-         leave no state restores no part: only the producer gives parts, and
-         it refuses a body with preconditions; an entry given to [supply] has
-         none, and a candidate without a part that a consumer needs is
-         rejected. *)
+         in their own tables. A hit of the reuse operation, whose number is
+         not one of memexec, restores the parts of its entry instead, after
+         the delivery of its Safety part and of its Reach part: the
+         individual Inout result of the call, for instance, before the
+         caller reduces its actuals. The function recorded above as answered
+         by a hit is also the one whose results computed from the states
+         saved at statements are refused. *)
       begin match delivery with
         | None -> apply_call_results_hooks call init_state (`Reuse i)
-        | Some _ when not satisfiable -> ()
         | Some (_, _, restoration) ->
           let cvalue_state = Engine.Dom.get_cvalue_or_top init_state in
           Cache_part.restore call.callstack call.kf cvalue_state restoration;

@@ -210,7 +210,7 @@ type rejection =
 let rejections : rejection list =
   [ `Key_differs; `Key_unclosed; `Missing_part; `Sweep; `Recursion;
     `Hint_generation; `Watchpoint; `Automatic_cleanup; `Nested_delivery;
-    `Warn_categories; `Missing_points; `Product; `Consumer;
+    `Warn_categories; `Missing_points; `Preconditions; `Product; `Consumer;
     `Stop_at_nth_alarm; `Callback; `Analysis_reset ]
 
 let rejection_id : rejection -> string = function
@@ -248,6 +248,40 @@ let consumer_enabled parts =
    by one, and does not know the evaluations they came from. *)
 let stop_at_nth_alarm () = Parameters.StopAtNthAlarm.get () < max_int
 
+(* The states of the tree that depend on the statuses of the properties,
+   by their unique names. The emission of a status ([Property_status.emit])
+   clears them in the current project, by their own functions, and applies
+   their hooks on an update. The states of the kernel hold the consolidated
+   statuses, which are computed again from the emitted ones at the next
+   request; those of Report hold a flag that makes it print its report
+   again, and count when Report is loaded. Metrics has another one, and
+   its presence rejects every entry ({!state_readers}). *)
+let kernel_status_dependents =
+  [ "Consolidation graph";
+    "Property_status.Consolidated_status";
+    "Property_status.Hypotheses";
+    "Property_status.Valid_cycles" ]
+
+let report_status_dependents =
+  [ "Report.classify_once"; "Report.print_csv_once"; "Report.print_once" ]
+
+(* Whether the emission of a status runs client code through a state that
+   depends on the statuses: the clearing function of a state that is not
+   one of those above, or a hook on the update of any of them. *)
+let unaudited_status_dependents () =
+  let known =
+    if Plugin.is_present "report"
+    then kernel_status_dependents @ report_status_dependents
+    else kernel_status_dependents
+  in
+  let unaudited state =
+    not (List.mem (State.get_unique_name state) known)
+    || State.has_hooks_on_update state
+  in
+  let selection = State_selection.only_dependencies Property_status.self in
+  State_selection.fold (fun state found -> found || unaudited state)
+    selection false
+
 (* Whether a client that is not audited is registered on a hook that a hit
    runs between its lookup and the end of its delivery, or that an analysis
    of the body runs and a hit does not. Such a client can tell a hit from an
@@ -256,10 +290,22 @@ let stop_at_nth_alarm () = Parameters.StopAtNthAlarm.get () < max_int
      registered with [cache_protocol] or [classified];
    - the hooks of red statuses, which have no audited client;
    - the hooks of the kernel on a new property and on a new status, which
-     the evaluation of the preconditions and the delivery of alarms and
-     statuses run, and on a change of the annotations, which the
-     registration of an alarm runs, apart from the hook of the server, which
-     emits a signal to its client;
+     the delivery of alarms and statuses runs, and on a change of the
+     annotations, which the registration of an alarm runs, apart from the
+     hook of the server, which emits a signal to its client;
+   - the actions registered before and after the clearing of a project,
+     apart from the one of the server, which drops the content that it
+     keeps for its arrays: the emission of a status clears the states that
+     depend on the statuses, and so runs them;
+   - the states that depend on the statuses, apart from those of the kernel
+     and of Report, and the hooks on the update of any of them
+     ({!unaudited_status_dependents}): the emission of a status runs their
+     clearing functions and these hooks;
+   - the function of [Cil.typeForInsertedCast], other than the default one,
+     and the hooks on the table of logic functions: an analysis of the body
+     builds the predicate of an alarm, with casts and, for some alarms, a
+     built-in predicate added to the table at its first use; a hit registers
+     the predicate that its entry holds, and builds none;
    - the listeners and the observers of the history of the logger, apart
      from the message collector of the kernel and the observer of the
      collector of block accesses, and the hooks of the message collector:
@@ -276,10 +322,9 @@ let stop_at_nth_alarm () = Parameters.StopAtNthAlarm.get () < max_int
      the hooks of the properties and messages run, apart from the observer
      of the collector of block accesses;
    - the observers of the reads of the metadata of the allocated bases and
-     of the updates of their validity, which the check of the preconditions
-     and the evaluation of the alarms run, and the observers of the
-     accesses to the history of the origins, apart from those of the
-     collector;
+     of the updates of their validity, which the evaluation of the alarms
+     runs, and the observers of the accesses to the history of the origins,
+     apart from those of the collector;
    - the daemons of [Async], which the analysis of a body runs at its
      statements, and a hit does not: the server registers one while it
      runs;
@@ -303,6 +348,10 @@ let unaudited_clients parts =
   || Red_statuses.has_hooks ()
   || Property_status.has_add_or_update_hooks ()
   || Annotations.has_unaudited_hooks_on_change ()
+  || Project.has_unaudited_clear_hooks ()
+  || unaudited_status_dependents ()
+  || Cil.has_inserted_cast_hook ()
+  || Logic_env.has_hooks_on_logic_functions ()
   || Log.unaudited_clients ()
   || Messages.has_hooks ()
   || Safety_delivery.unaudited_subscribers ()
@@ -392,6 +441,8 @@ module Lookup (Domain : sig
       | Error _ as error -> error
       | Ok () when missing_points stack entry -> Error `Missing_points
       | Ok () when Lazy.force nested_call -> Error `Nested_delivery
+      | Ok () when Cache_producer.has_preconditions (Callstack.top_kf stack) ->
+        Error `Preconditions
       | Ok () -> Ok ()
 
   let no_hit rejected =

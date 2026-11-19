@@ -69,9 +69,13 @@ type footprint = Cache_entry.footprint = {
       contexts that an analysis of the body from [input] emits (see
       {!Safety_part}): every undefined behaviour of an execution occurs
       where one of its alarms is, and a property given a status holds as
-      this status says. A hit delivers them for its own callstack. The
-      checks of the [requires] clauses of [kf] are not part of the body:
-      they are evaluated at each call;
+      this status says. A hit delivers them for its own callstack. An
+      alarm holds the predicate of its assertion, as the kernel builds it
+      ([Alarms.predicate]): a hit registers the alarm with it and builds
+      none. The checks of the [requires] clauses of [kf] are not part of
+      the body, and a hit evaluates no predicate: the lookup rejects the
+      entries of a function whose call checks such a clause
+      ([`Preconditions]);
     - [reach] holds the Reach part of an analysis of the body from
       [input] (see {!Reach_part.part}), and a hit requires it: its joins
       hold every guard outcome that an execution takes and, at each
@@ -169,9 +173,12 @@ val supply :
     otherwise with [`Missing_points] when the call needs the points of the
     Reach part and the entry has none; otherwise with [`Nested_delivery],
     the parts of a call whose calls were on paths that it did not take
-    included. Direct calls to the display directives [Frama_C_show_each*]
-    and [Frama_C_domain_show_each*] are not calls there. The check of
-    [supply] on the calls of the body does not apply here.
+    included; otherwise with [`Preconditions], which the producer never
+    meets on its own entries, since it refuses the body of a function whose
+    call checks a [requires] clause. Direct calls to the display directives
+    [Frama_C_show_each*] and [Frama_C_domain_show_each*] are not calls
+    there. The check of [supply] on the calls of the body does not apply
+    here.
 
     The fixture also owes that the options of Eva that decide which states
     are saved at the statements ([-eva-results],
@@ -261,9 +268,10 @@ val active : unit -> bool
     [`Automatic_cleanup], [`Watchpoint], the dependencies of a produced
     entry ([`Hint_generation], [`Warn_categories], [`Sweep]), then
     [`Missing_points] for a candidate without a Reach part, or whose Reach
-    part has no points when the call needs them, and last
-    [`Nested_delivery]. A candidate that lacks both a needed part and its
-    Reach part is rejected with [`Missing_part]. *)
+    part has no points when the call needs them, then [`Nested_delivery],
+    and last [`Preconditions] for the entries of a function whose call
+    checks a [requires] clause. A candidate that lacks both a needed part
+    and its Reach part is rejected with [`Missing_part]. *)
 type rejection = [
   | Cache_entry.rejection
   | `Product
@@ -292,6 +300,16 @@ type rejection = [
       kernel on a new property or status
       ({!Property_status.has_add_or_update_hooks}) and on a change of the
       annotations ({!Annotations.has_unaudited_hooks_on_change}), the
+      actions registered before and after the clearing of a project
+      ([Project.has_unaudited_clear_hooks]), which the emission of a status
+      runs when it clears the states that depend on the statuses, these
+      states apart from those of the kernel and of Report, whose clearing
+      functions run then, and the hooks on the update of any of them
+      ([State.has_hooks_on_update]), the function that gives the type of an
+      inserted cast ([Cil.has_inserted_cast_hook]) and the hooks on the
+      table of logic functions ([Logic_env.has_hooks_on_logic_functions]),
+      which an analysis of the body runs when it builds the predicate of an
+      alarm and a hit does not, the
       listeners and observers of the history of the logger
       ({!Log.unaudited_clients}), the hooks of the message collector of the
       kernel ({!Messages.has_hooks}), the restoration of the parts whose
@@ -372,8 +390,11 @@ module Lookup (Domain : sig
       function of [stack] ({!Function_calls.save_results}), is rejected with
       [`Missing_points] if it passes the other admission checks; the lookup
       then examines the next candidate. This check comes before the
-      following one: with either constructor, a matching body with a call
+      following ones: with either constructor, a matching body with a call
       other than a direct show directive is rejected with
-      [`Nested_delivery] if it passes the other admission checks. *)
+      [`Nested_delivery] if it passes the other admission checks, and
+      otherwise a matching entry of a function whose call checks a
+      [requires] clause ({!Cache_producer.has_preconditions}) is rejected
+      with [`Preconditions]. *)
   val find : Callstack.t -> Domain.t -> Domain.t lookup
 end

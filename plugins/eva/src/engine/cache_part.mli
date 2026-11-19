@@ -44,11 +44,12 @@ type 'a t
       entry used by a hit at a call of [kf] with [callstack], whose cvalue
       state at the start of the call is [pre]. It is called at the place
       where the fresh analysis of the body sends its results to the hooks
-      of {!Cvalue_callbacks}, after the call hooks with [`Reuse], the check
-      of the preconditions and the delivery of the Safety part of the entry
-      ({!Safety_delivery}), and before the caller uses the states at the end
-      of the call. The collector of block accesses does not observe
-      it. It must return normally: an exception that it raises stops the
+      of {!Cvalue_callbacks}, after the call hooks with [`Reuse] and the
+      delivery of the Safety part and of the Reach part of the entry
+      ({!Safety_delivery}, {!Reach_delivery}), and before the caller uses
+      the states at the end of the call. The collector of block accesses
+      does not observe it. It must return normally: an exception that it
+      raises stops the
       analysis, after the writes that this function and the restoration of
       the parts registered before it have made, which are not undone.
     - [audited ()] holds when [restore] and every client that it runs have

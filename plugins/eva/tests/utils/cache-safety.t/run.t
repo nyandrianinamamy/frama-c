@@ -428,13 +428,24 @@ the hooks on messages, the observers of Hook.Opaque, of the reads of the
 metadata of allocated blocks, of the updates of their validity and of the
 history of origins, the daemons of Async, the hooks on the changes of the
 current location, the hooks on the statistics of performance by
-callstack, and the observers of the Safety part, of the Reach part and of
-the result of the collector of each analysed body. Otherwise, every supplied
+callstack, the observers of the Safety part, of the Reach part and of
+the result of the collector of each analysed body, the actions registered
+before and after the clearing of a project, the states that depend on the
+statuses of the properties, apart from those of the kernel and of Report,
+the hooks on the update of any of them, the function that gives the type of
+an inserted cast and the hooks on the table of logic functions. The emission
+of a status clears the states that depend on the statuses, and so runs
+these actions, the functions of these states and these hooks (clear-before,
+clear-after, status-state, status-update); a state with the name of one of
+Report counts when Report is not loaded (status-report). An analysis of a
+body builds the predicate of an alarm with casts and, for some alarms, with
+a built-in predicate that the kernel adds to the table of logic functions
+at its first use (cast, logic); a hit builds none. Otherwise, every supplied
 candidate is rejected for callback, and the body is analysed. Below, one
 client of each hook is registered after the analysis from producer of
 safety.c; both calls of body in the analysis from main reject the entry.
 
-  $ for c in call call-results statement red status property annotations listener register history messages opaque metadata validity origin daemon location perf safety-result reach-result collector-result; do EVA_TEST_CACHE_SAFETY=replay EVA_TEST_CACHE_SAFETY_CLIENT=$c frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -main producer -eva-msg-key cache safety.c > client-$c.log 2>&1; echo "$c: exit $?"; done
+  $ for c in call call-results statement red status property annotations listener register history messages opaque metadata validity origin daemon location perf safety-result reach-result collector-result clear-before clear-after status-state status-report status-update cast logic; do EVA_TEST_CACHE_SAFETY=replay EVA_TEST_CACHE_SAFETY_CLIENT=$c frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -main producer -eva-msg-key cache safety.c > client-$c.log 2>&1; echo "$c: exit $?"; done
   call: exit 0
   call-results: exit 0
   statement: exit 0
@@ -456,7 +467,14 @@ safety.c; both calls of body in the analysis from main reject the entry.
   safety-result: exit 0
   reach-result: exit 0
   collector-result: exit 0
-  $ for c in call call-results statement red status property annotations listener register history messages opaque metadata validity origin daemon location perf safety-result reach-result collector-result; do grep '^client' client-$c.log; done
+  clear-before: exit 0
+  clear-after: exit 0
+  status-state: exit 0
+  status-report: exit 0
+  status-update: exit 0
+  cast: exit 0
+  logic: exit 0
+  $ for c in call call-results statement red status property annotations listener register history messages opaque metadata validity origin daemon location perf safety-result reach-result collector-result clear-before clear-after status-state status-report status-update cast logic; do grep '^client' client-$c.log; done
   client call: hits on body: 0, rejected for callback: 2
   client call-results: hits on body: 0, rejected for callback: 2
   client statement: hits on body: 0, rejected for callback: 2
@@ -478,6 +496,41 @@ safety.c; both calls of body in the analysis from main reject the entry.
   client safety-result: hits on body: 0, rejected for callback: 2
   client reach-result: hits on body: 0, rejected for callback: 2
   client collector-result: hits on body: 0, rejected for callback: 2
+  client clear-before: hits on body: 0, rejected for callback: 2
+  client clear-after: hits on body: 0, rejected for callback: 2
+  client status-state: hits on body: 0, rejected for callback: 2
+  client status-report: hits on body: 0, rejected for callback: 2
+  client status-update: hits on body: 0, rejected for callback: 2
+  client cast: hits on body: 0, rejected for callback: 2
+  client logic: hits on body: 0, rejected for callback: 2
+
+A hit builds no predicate: the Safety part of an entry holds the predicate
+of each of its alarms, taken when the analysis of the body registered the
+alarm, and the delivery registers the alarm with it. In prepared.c, body has
+an alarm on an unaligned pointer, whose predicate the kernel builds with a
+cast, and an alarm on a float that is not finite, whose predicate uses a
+built-in predicate of the logic. The hit on body registers both alarms with
+the predicates of the entry, and the tables are those of the run with
+caching disabled.
+
+  $ EVA_TEST_CACHE_SAFETY=replay EVA_TEST_CACHE_SAFETY_PREDICATES=on frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -main producer -warn-unaligned-pointer -warn-special-float non-finite -eva-msg-key cache prepared.c > prepared.log 2>&1
+  $ sed -n '/^second analysis/,$p' prepared.log > prepared.second
+  $ grep -E "call to body|^hits on|^alarm " prepared.second
+    call to body: lookup: hit (entry 1); execution: not-analysed; storage: none
+  hits on body: 1
+  alarm pointer_alignment: registered with the predicate of the entry: true
+  alarm is_nan_or_infinite: registered with the predicate of the entry: true
+  $ grep '^| ' prepared.log > prepared.summary
+  $ cat prepared.summary
+  | end of main: r1 = 0
+  | end of main: r2 = 8
+  | prepared.c:12: red context of alarm pointer_alignment in body :: prepared.c:26 <- main
+  | prepared.c:12: status of alarm pointer_alignment: invalid
+  | prepared.c:13: red context of alarm is_nan_or_infinite in body :: prepared.c:26 <- main
+  | prepared.c:13: status of alarm is_nan_or_infinite: invalid
+  $ EVA_TEST_CACHE_SAFETY=reference frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -warn-unaligned-pointer -warn-special-float non-finite -eva-msg-key cache prepared.c > prepared-reference.log 2>&1
+  $ grep '^| ' prepared-reference.log > prepared-reference.summary
+  $ diff prepared.summary prepared-reference.summary
 
 The observers of the kernel through which the collector of block accesses
 sees what happens during the analysis of a body are registered as audited
@@ -501,13 +554,13 @@ call hits, and the observer is called during the delivery.
   observer calls during a delivery: 1
 
 The precondition of pre in metadata.c reads the validity of an allocated
-block. At a hit, the check of the preconditions runs the observer of the
-reads of the metadata of allocated blocks, through the observer of the
-collector, which records the body of main and runs the observer that it
-replaced. An observer registered without an audit makes both calls reject
-the hand-written entry with callback; registered as audited, the second
-call hits, and the observer is called during the check of the
-preconditions of that hit.
+block, and its check runs the observer of the reads of the metadata of
+allocated blocks, through the observer of the collector, which records the
+body of main and runs the observer that it replaced. A hit checks no
+precondition. An observer registered without an audit makes both calls
+reject the hand-written entry with callback; registered as audited, it
+rejects none, the entry is rejected for preconditions at the second call,
+and the observer is called during no delivery.
 
   $ for c in metadata metadata-audited; do EVA_TEST_CACHE_SAFETY=precondition EVA_TEST_CACHE_SAFETY_CLIENT=$c frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -eva-alloc-returns-null -eva-msg-key cache metadata.c > precondition-$c.log 2>&1; echo "$c: exit $?"; done
   metadata: exit 0
@@ -515,8 +568,18 @@ preconditions of that hit.
   $ grep -hE '^(client|observer)' precondition-metadata.log precondition-metadata-audited.log
   client metadata: hits on pre: 0, rejected for callback: 2
   observer calls during a delivery: 0
-  client metadata-audited: hits on pre: 1, rejected for callback: 0
-  observer calls during a delivery: 1
+  client metadata-audited: hits on pre: 0, rejected for callback: 0
+  observer calls during a delivery: 0
+  $ grep -c 'call to pre: lookup: rejected (entry 1: preconditions)' precondition-metadata-audited.log
+  1
+
+In alone.c, body has no precondition: with the audited observer, the call
+of body hits, and the observer is called during no delivery.
+
+  $ EVA_TEST_CACHE_SAFETY=replay EVA_TEST_CACHE_SAFETY_CLIENT=metadata-audited frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -main producer -eva-msg-key cache alone.c > alone-metadata-audited.log 2>&1
+  $ grep -hE '^(client|observer)' alone-metadata-audited.log
+  client metadata-audited: hits on body: 1, rejected for callback: 0
+  observer calls during a delivery: 0
 
 The audited observers of the metadata are known by their physical identity,
 in a registry that holds them weakly. 128 audited observers of 64 KiB each,
@@ -883,22 +946,23 @@ it.
   $ grep '^| ' owner-late.log
   | alarm division_by_zero at safety.c:11: owner Eva; statuses: Eva unknown
 
-The preconditions of the callee belong to the call site and are evaluated at
-each call, a hit included. A hand-written entry of pre answers the call
-pre(1) at line 18, where g = 0: the precondition is reported invalid at that
-call, and no state reaches the end of main, as when pre is analysed. The
-entry gives the check one a valid status. No state satisfies the
-precondition, so the hit delivers nothing: before the passes at the end of
-the analysis, one is never tried. The passes then mark one unreachable, as
-with caching disabled.
+The preconditions of the callee belong to the call site, and a hit
+evaluates no predicate: the lookup rejects the entries of a function whose
+call checks a requires clause (preconditions), and the body is analysed. A
+hand-written entry of pre matches the call pre(1) at line 18, where g = 0,
+and is rejected: the precondition is reported invalid at that call by the
+analysis of pre, and no state reaches the end of main. The entry gives the
+check one a valid status, which is not delivered: before the passes at the
+end of the analysis, one is never tried. The passes then mark one
+unreachable, as with caching disabled.
 
   $ EVA_TEST_CACHE_SAFETY=precondition frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -eva-msg-key cache precondition.c > precondition.log 2>&1
   $ grep -E "^hits on|call to pre|precondition 'positive'|^before the passes" precondition.log
     call to pre: lookup: rejected (entry 1: key-differs); execution: analysed; storage: refused (supplied-only); collector: would-store
-    call to pre: lookup: hit (entry 1); execution: not-analysed; storage: none
     function pre: precondition 'positive' got status invalid.
+    call to pre: lookup: rejected (entry 1: preconditions); execution: analysed; storage: refused (supplied-only); collector: refused (side-table)
   before the passes: one is never tried
-  hits on pre: 1
+  hits on pre: 0
   $ grep -B 1 "precondition 'positive'" precondition.log | sed 's/ *$//'
   [eva:alarm] precondition.c:18: Warning:
     function pre: precondition 'positive' got status invalid.

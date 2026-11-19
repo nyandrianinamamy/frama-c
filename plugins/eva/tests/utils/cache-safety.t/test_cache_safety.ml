@@ -152,6 +152,19 @@ let observe_metadata ~audited =
   in
   previous := Base.observe_metadata_reads ~audited (Some observer)
 
+(* A state that depends on the statuses of the properties: each emission of
+   a status clears it, by the functions of its datatype and of its module. *)
+let status_dependent name =
+  let module M =
+    State_builder.Ref (Datatype.Unit)
+      (struct
+        let name = name
+        let dependencies = [ Property_status.self ]
+        let default () = ()
+      end)
+  in
+  ignore M.self
+
 (* A client of one of the hooks that a hit runs, or that an analysis of a
    body runs and a hit does not. None of them is audited, but the observers
    whose name ends with -audited. *)
@@ -184,6 +197,17 @@ let register_client = function
   | "safety-result" -> Eva.Safety_part.on_result (fun _ _ -> ())
   | "reach-result" -> Eva.Reach_part.on_result (fun _ _ -> ())
   | "collector-result" -> Eva.Body_access.on_result (fun _ _ -> ())
+  | "clear-before" -> Project.register_todo_before_clear ignore
+  | "clear-after" -> Project.register_todo_after_clear ignore
+  | "status-state" -> status_dependent "Test.status_dependent"
+  | "status-report" -> status_dependent "Report.print_once"
+  | "status-update" ->
+    State.add_hook_on_update
+      (State.get "Property_status.Consolidated_status") ignore
+  | "cast" ->
+    let previous = !Cil.typeForInsertedCast in
+    Cil.typeForInsertedCast := (fun e t t' -> previous e t t')
+  | "logic" -> Logic_env.Logic_info.add_hook_on_change ignore
   | client -> failwith ("unknown client " ^ client)
 
 let set_category directive =
@@ -397,8 +421,25 @@ let supply produced =
          ~exit:(List.map (fun (k, (s, _)) -> k, s) (Entry.exit e)))
   else ignore (Supplied.supply_produced produced)
 
+(* For each alarm of the Safety part of the [produced] entry, whether the
+   assertion registered for it holds the predicate of the entry itself. *)
+let predicates produced =
+  let registered kinstr alarm predicate =
+    match (fst (Alarms.to_annot kinstr alarm)).annot_content with
+    | AAssert (_, p) -> p.tp_statement == predicate
+    | _ -> false
+  in
+  List.iter (function
+      | Eva.Safety_part.Emitted_alarm { kinstr; alarm; predicate; _ } ->
+        Format.printf "alarm %s: registered with the predicate of the \
+                       entry: %b@."
+          (Alarms.get_name alarm) (registered kinstr alarm predicate)
+      | _ -> ())
+    (Entry.safety (Producer.cache_entry produced))
+
 (* The entry of [body] is supplied to a second analysis, from the function
-   named by MAIN, main by default. *)
+   named by MAIN, main by default. With PREDICATES=on, prints whether the
+   alarms registered after it hold the predicates of the entry. *)
 let replay names () =
   let main = Option.value ~default:"main" (env "MAIN") in
   let produced = produce_and_reset main in
@@ -407,6 +448,7 @@ let replay names () =
   Format.printf "second analysis@.";
   analyse ();
   hits "body";
+  if env "PREDICATES" = Some "on" then Option.iter predicates produced;
   observations ();
   summary names;
   skipped_after_reset ()
