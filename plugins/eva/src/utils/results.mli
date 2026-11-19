@@ -42,8 +42,10 @@ val are_available : Cil_types.kernel_function -> bool
 
 (** Whether the states saved at the statements cover every call of the
     current analysis. They do not when a hit of the cache answered a call
-    without analysing the body of the called function: the statements of
-    this function have no state for this call, and may look unreachable.
+    without analysing the body of the called function: no state of this
+    function is saved for this call, and the results give the top state at
+    the statements that its body reaches, in the callstack of the hit and
+    over all callstacks.
     The results by statement, and the results by function computed from
     them, such as the dependencies of From and the inputs and outputs of
     Inout by function, are then incomplete and must not be computed. Only
