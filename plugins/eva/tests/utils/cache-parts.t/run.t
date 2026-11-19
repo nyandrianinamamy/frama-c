@@ -167,6 +167,19 @@ dependencies.
   call to copy: lookup: rejected (entry 1: key-differs), rejected (entry 2: missing-part), rejected (entry 3: key-differs); execution: analysed
   call to copy: lookup: rejected (entry 1: missing-part), rejected (entry 2: key-differs), rejected (entry 3: missing-part); execution: analysed
 
+Each entry of copy is supplied again by hand, without its Reach part and
+without the parts of other modules. Inout is loaded and needs its part:
+each candidate whose key matches lacks both, and the lookup rejects it with
+missing-part, which it tests before missing-points.
+
+  $ EVA_TEST_CACHE_PARTS=both frama-c -no-autoload-plugins -load-module eva,from,inout,test_cache_parts.cmxs -eva-msg-key cache parts.c > both.log 2>&1
+  $ grep -E '^copy: hits' both.log
+  copy: hits 0, rejected for missing-part 5, for missing-points 0
+  $ grep -o 'call to copy: lookup: rejected[^;]*; execution: [a-z-]*' both.log
+  call to copy: lookup: rejected (entry 1: missing-part), rejected (entry 2: key-differs), rejected (entry 3: missing-part); execution: analysed
+  call to copy: lookup: rejected (entry 1: key-differs), rejected (entry 2: missing-part), rejected (entry 3: key-differs); execution: analysed
+  call to copy: lookup: rejected (entry 1: missing-part), rejected (entry 2: key-differs), rejected (entry 3: missing-part); execution: analysed
+
 A body with a call. In nested.c, outer calls inner: the entries of inner
 have both parts, those of outer have none. In the second analysis, the
 calls to inner hit, every candidate of outer is rejected for missing-part,

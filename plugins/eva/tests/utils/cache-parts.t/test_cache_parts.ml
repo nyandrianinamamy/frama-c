@@ -123,6 +123,34 @@ let missing () =
     callees;
   print_froms (callwise_froms ()) "copy"
 
+(* Each entry of copy is supplied again by hand, from the one that the first
+   analysis produced, without its Reach part and without the parts of other
+   modules. Inout is loaded and its part is needed: each candidate whose key
+   matches lacks both parts. The lookup tests the parts of other modules
+   first (missing-part), then the Reach part (missing-points). *)
+let both () =
+  let produced = first_analysis () in
+  let by_hand p =
+    let module Entry = Eva.Cache_entry.Cvalue in
+    let entry = Producer.cache_entry p in
+    let Eva.Cache_entry.Body f = Entry.statement entry in
+    if Kernel_function.equal f (kf "copy") then begin
+      let exit = List.map (fun (k, (s, _)) -> k, s) (Entry.exit entry) in
+      ignore
+        (Supplied.supply ~safety:(Entry.safety entry) f
+           ~key:(Entry.key entry) ~input:(fst (Entry.input entry))
+           ~footprint:(Entry.footprint entry) ~exit)
+    end
+  in
+  List.iter by_hand produced;
+  clear ();
+  Eva.Parameters.Memexec.on ();
+  Eva.Analysis.compute ();
+  Format.printf "copy: hits %d, rejected for missing-part %d, \
+                 for missing-points %d@."
+    (hits "copy") (rejected "missing-part" "copy")
+    (rejected "missing-points" "copy")
+
 (* ----- Inout -------------------------------------------------------------- *)
 
 let value_after stmt name =
@@ -878,6 +906,7 @@ let () =
   match Sys.getenv_opt "EVA_TEST_CACHE_PARTS" with
   | Some "from" -> Boot.Main.extend from
   | Some "missing" -> Boot.Main.extend missing
+  | Some "both" -> Boot.Main.extend both
   | Some "inout" -> Boot.Main.extend inout
   | Some "options" -> Boot.Main.extend options
   | Some "verify" -> Boot.Main.extend verify

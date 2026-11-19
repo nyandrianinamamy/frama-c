@@ -253,10 +253,17 @@ val active : unit -> bool
     [-eva-stop-at-nth-alarm] is set, with [`Stop_at_nth_alarm]; otherwise,
     when a client that is not audited is registered on a hook that a hit
     runs, with [`Callback]; otherwise, when, while an analysis runs, its
-    results were cleared or another analysis ended, with [`Analysis_reset];
-    otherwise each candidate is examined by {!Cache_entry.Make.find}, which
-    rejects a candidate that lacks a part whose consumer is enabled with
-    [`Missing_part]. *)
+    results were cleared or another analysis ended, with [`Analysis_reset].
+    Otherwise each candidate is examined by {!Cache_entry.Make.find}, oldest
+    first, and the first test that fails gives its reason: [`Key_differs],
+    [`Key_unclosed], then [`Missing_part] for a candidate that lacks a part
+    whose consumer is enabled; then, in {!Lookup.find}, [`Recursion],
+    [`Automatic_cleanup], [`Watchpoint], the dependencies of a produced
+    entry ([`Hint_generation], [`Warn_categories], [`Sweep]), then
+    [`Missing_points] for a candidate without a Reach part, or whose Reach
+    part has no points when the call needs them, and last
+    [`Nested_delivery]. A candidate that lacks both a needed part and its
+    Reach part is rejected with [`Missing_part]. *)
 type rejection = [
   | Cache_entry.rejection
   | `Product
