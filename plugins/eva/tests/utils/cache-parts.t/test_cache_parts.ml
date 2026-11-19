@@ -706,6 +706,49 @@ let fallback () =
   Format.printf "after the hits: Inout.get_precise_inout of inner equal to \
                  caching disabled: %b@." (Inout_type.equal fresh (inner ()))
 
+(* On nested.c. The three requests of Inout on the external view of a
+   function that test their refusal before a table of their own: the
+   dereferenced zones (-deref), the operational inputs without the formals
+   and with them (-inout). Each is made as in the scenario above, at the
+   start of the analysis with -deps, which fills its table, then after the
+   hits: the request is refused, the result memoised before the hits
+   included. *)
+let external_requests () =
+  let requests =
+    [ "the dereferenced zones of inner",
+      (fun () -> Inout__Derefs.compute_external (kf "inner"));
+      "the operational inputs of unused",
+      (fun () -> ignore (Inout__Operational_inputs.get_external (kf "unused")));
+      "the operational inputs of unused with its formals",
+      (fun () ->
+         let pretty =
+           Inout__Operational_inputs
+           .pretty_operational_inputs_external_with_formals
+         in
+         ignore (Format.asprintf "%a" pretty (kf "unused"))) ]
+  in
+  clear ();
+  Eva.Parameters.Memexec.off ();
+  Eva.Analysis.compute ();
+  let produced =
+    List.concat_map (fun f -> Producer.entries (kf f)) [ "inner"; "outer" ]
+  in
+  let early = ref true in
+  Eva.Cvalue_callbacks.register_at_start_hook
+    (fun () ->
+       if !early then begin
+         early := false;
+         Dynamic.Parameter.Bool.on "-deps" ();
+         List.iter
+           (fun (name, f) -> refused ("at the start, with -deps: " ^ name) f)
+           requests;
+         Dynamic.Parameter.Bool.off "-deps" ()
+       end);
+  second_analysis produced;
+  Format.printf "inner: hits %d; statement results complete: %b@."
+    (hits "inner") (Eva.Results.statement_results_complete ());
+  List.iter (fun (name, f) -> refused ("after the hits: " ^ name) f) requests
+
 (* The results of Eva at the first statement of copy, read directly, which
    no reader of this test refuses: whether it is reached, and the value of
    the formal src there. *)
@@ -931,6 +974,7 @@ let () =
   | Some "nested" -> Boot.Main.extend nested
   | Some "dead-call" -> Boot.Main.extend dead_call
   | Some "fallback" -> Boot.Main.extend fallback
+  | Some "external" -> Boot.Main.extend external_requests
   | Some "raw" -> Boot.Main.extend raw
   | Some "lazy-from" -> Boot.Main.extend lazy_from
   | Some "warm" -> Boot.Main.extend warm

@@ -549,6 +549,22 @@ and that of inner, joined from the results of its calls, is not.
   after the hits: Inout.get_precise_inout of unused: refused
   after the hits: Inout.get_precise_inout of inner equal to caching disabled: true
 
+The same on the three requests of Inout on the external view of a function,
+each of which tests the refusal before its own table: the dereferenced zones
+and the operational inputs, without the formals and with them. Their tables
+are filled at the start, with -deps; after the hits, each request is
+refused.
+
+  $ EVA_TEST_CACHE_PARTS=external frama-c -no-autoload-plugins -load-module eva,from,inout,test_cache_parts.cmxs nested.c > external.log 2>&1
+  $ grep -E '^(at the start|inner|after the hits)' external.log
+  at the start, with -deps: the dereferenced zones of inner: computed
+  at the start, with -deps: the operational inputs of unused: computed
+  at the start, with -deps: the operational inputs of unused with its formals: computed
+  inner: hits 2; statement results complete: false
+  after the hits: the dereferenced zones of inner: refused
+  after the hits: the operational inputs of unused: refused
+  after the hits: the operational inputs of unused with its formals: refused
+
 The results of an analysis taken and installed again keep the record of the
 hits: installed in turn, the results with hits refuse the dependencies by
 function, and those of caching disabled give them.
