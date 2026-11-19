@@ -326,4 +326,15 @@ theorem projected_copy_loses_relation :
     change some (Value.int 1) = some (.int 0) at h
     contradiction
 
+/-- The names of the example denote the cells the memories are built from:
+`x`, `w` and `z` evaluate to the three arguments of `copyMem`. -/
+example (x w z : Int) :
+    (evalExpr copyEntry.subject.prog copyEntry.env (copyMem x w z) (.var "x")).2
+      = .ok (.int x) ∧
+    (evalExpr copyEntry.subject.prog copyEntry.env (copyMem x w z) (.var "w")).2
+      = .ok (.int w) ∧
+    (evalExpr copyEntry.subject.prog copyEntry.env (copyMem x w z) (.var "z")).2
+      = .ok (.int z) :=
+  ⟨rfl, rfl, rfl⟩
+
 end Checks
