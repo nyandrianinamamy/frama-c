@@ -1,0 +1,731 @@
+import ReuseModel
+import Checks.Entries
+import Checks.Sweeps
+
+/-!
+# State queries on the callstack of a hit
+
+Globals `x`, `g` and `r` are blocks 0, 1 and 2. The cached statement is the
+body of `f`:
+
+```
+f: L1: { L2: assert x;  L3: h(); }
+h: L20: { L21: r = 0;  L22: ; }
+```
+
+The key is `{x}`; `r` is written on every path to the exit and is outside
+the key; `g` is not touched. `main` calls `f` at site 11 with
+`x, g, r = 1, 4, 3`, then sets `g = 9` and `r = 5` and calls `f` at site 16.
+The first call produces the entry; the second matches it. The hit log has a
+line for each call.
+
+* Two-call example: before `r = 0;`, on the callstacks `[3, 11]` and
+  `[3, 16]`, the query on `g` answers 4 and 9. The stored inner state holds
+  4 there.
+* Overwritten block: before `r = 0;`, the stored inner state holds `{3}`;
+  on the callstack `[3, 16]` the query on `r` answers 5. After `r = 0;` the
+  query answers 0, and the value 5 at the call is wrong.
+
+Each answer is the conclusion of `CacheEntry.query_sound` for that line.
+A second statement, with a lexical local, has the case of a local of the
+body, which answers top. Two further checks pin definitions: the marks of the sweeps in the frame
+rule, and the end of a statement's execution in the visit after it.
+-/
+
+namespace Checks
+
+open ReuseModel Memory
+
+def queryBody : Stmt := .seq 1 (.assert 2 (.var "x")) (.call 3 none "h" [])
+
+def queryCallee : Stmt := .seq 20 (.assign 21 (.var "r") (.const 0)) (.skip 22)
+
+def queryProg : Program where
+  funs := [("f", ⟨[], [], queryBody⟩), ("h", ⟨[], [], queryCallee⟩)]
+  globals := fun x => if x = "x" then some 0 else if x = "g" then some 1
+    else if x = "r" then some 2 else none
+
+def querySubj : Subject := ⟨queryProg, queryBody,
+  ⟨by decide, ⟨fun f => if f = "f" then 1 else 0, by decide⟩, by decide,
+    Or.inl (by decide)⟩⟩
+
+/-- The memory at a call of `f`: `x = 1`, and `g` and `r` as given. -/
+def queryMem (g r : Int) : FunMem := memOf [.int 1, .int g, .int r]
+
+/-- The state at a call of `f`, as a set of memories. -/
+def callState (g r : Int) (m : FunMem) : Prop :=
+  load m 0 = some (.int 1) ∧ load m 1 = some (.int g) ∧
+    load m 2 = some (.int r) ∧ m.next = 3
+
+instance (g r : Int) (m : FunMem) : Decidable (callState g r m) := by
+  unfold callState; infer_instance
+
+/-- The names of the example denote the cells of `queryMem`, and `f` runs
+with no binding of its own. -/
+example (g r : Int) :
+    (evalExpr queryProg noLocals (queryMem g r) (.var "x")).2 = .ok (.int 1) ∧
+    (evalExpr queryProg noLocals (queryMem g r) (.var "g")).2 = .ok (.int g) ∧
+    (evalExpr queryProg noLocals (queryMem g r) (.var "r")).2 = .ok (.int r) ∧
+    Env.bind [] [] = noLocals :=
+  ⟨rfl, rfl, rfl, rfl⟩
+
+private theorem funMem_ext {m m' : FunMem} (hc : ∀ b, m.cells b = m'.cells b)
+    (hn : m.next = m'.next) : m = m' := by
+  obtain ⟨c, n, f⟩ := m
+  obtain ⟨c', n', f'⟩ := m'
+  simp only at hc hn
+  subst hn
+  have h : c = c' := funext hc
+  subst h
+  rfl
+
+/-- The state at a call determines the memory. -/
+theorem callState_eq {g r : Int} {m : FunMem} (h : callState g r m) : m = queryMem g r := by
+  obtain ⟨h₀, h₁, h₂, hn⟩ := h
+  refine funMem_ext ?_ hn
+  intro b
+  by_cases hb : b < 3
+  · match b, hb with
+    | 0, _ => exact h₀
+    | 1, _ => exact h₁
+    | 2, _ => exact h₂
+  · have h3 : 3 ≤ b := Nat.le_of_not_lt hb
+    rw [m.fresh b (by rw [hn]; exact h3), (queryMem g r).fresh b h3]
+
+theorem callState_queryMem (g r : Int) : callState g r (queryMem g r) :=
+  ⟨rfl, rfl, rfl, rfl⟩
+
+/-- The program that makes the two calls, outside the functions. -/
+def queryMain : Stmt :=
+  .seq 10 (.call 11 none "f" [])
+    (.seq 12 (.assign 13 (.var "g") (.const 9))
+      (.seq 14 (.assign 15 (.var "r") (.const 5)) (.call 16 none "f" [])))
+
+/-- The call sites of a configuration about to execute a statement. -/
+def callstackOf? {M : Type} : Config M → Option (List Label)
+  | .run _ k _ _ => some k.callstack
+  | _ => none
+
+/-- `main` enters the body of `f` at site 11 in the state `callState 4 3`
+and at site 16 in the state `callState 9 5`. -/
+theorem two_call_sites :
+    let r := fun n => run queryProg n (Config.entry queryMain ⟨noLocals, queryMem 4 3⟩)
+    labelOf? (r 2).2 = some 1 ∧ callstackOf? (r 2).2 = some [11] ∧
+      callState 4 3 (r 2).2.mem ∧
+    labelOf? (r 22).2 = some 1 ∧ callstackOf? (r 22).2 = some [16] ∧
+      callState 9 5 (r 22).2.mem := by
+  decide
+
+/-- The entry stored by the call at site 11. -/
+def queryEntry : CacheEntry predicates where
+  subject := querySubj
+  env := noLocals
+  input := callState 4 3
+  key := [0]
+  footprint := ⟨[0], [2], [2], [2]⟩
+  exit := fun o m => o = .completed ∧ load m 2 = some (.int 0)
+  violations := fun _ => False
+  reached := (· ∈ [1, 2, 3, 20, 21, 22])
+
+/-- Before `r = 0;` in `h`, called at site 3 of `f`. -/
+def beforeWrite : QueryPoint := ⟨21, [3], .before⟩
+
+/-- After `r = 0;`. -/
+def afterWrite : QueryPoint := ⟨21, [3], .after⟩
+
+/-- The stored inner state before the write. -/
+def innerBefore (m : FunMem) : Prop :=
+  load m 0 = some (.int 1) ∧ load m 1 = some (.int 4) ∧ load m 2 = some (.int 3)
+
+/-- The stored inner state after the write. -/
+def innerAfter (m : FunMem) : Prop :=
+  load m 0 = some (.int 1) ∧ load m 1 = some (.int 4) ∧ load m 2 = some (.int 0)
+
+instance (m : FunMem) : Decidable (innerBefore m) := by
+  unfold innerBefore; infer_instance
+
+instance (m : FunMem) : Decidable (innerAfter m) := by
+  unfold innerAfter; infer_instance
+
+/-- The inner part stored by the producing call: the states before and after
+the write, no write before it, `r` updated after it. Elsewhere the state is
+top and `r` may have been written. -/
+def queryInner : InnerPart predicates where
+  state q := if q = beforeWrite then innerBefore
+    else if q = afterWrite then innerAfter else fun _ => True
+  mayWrite q := if q = beforeWrite then [] else [2]
+  updated q := if q = afterWrite then [2] else []
+
+/-- The line of the hit log for a call at `site`. -/
+def queryLine (site : Label) (g r : Int) : HitLine predicates :=
+  ⟨[site], queryEntry, queryInner, callState g r, [0, 1, 2]⟩
+
+def queryLog : List (HitLine predicates) := [queryLine 11 4 3, queryLine 16 9 5]
+
+/-! ## The producing execution -/
+
+private def producerRun (n : Nat) : List Event × Config FunMem :=
+  trace querySubj ⟨noLocals, queryMem 4 3⟩ n
+
+private theorem producer_bound (n : Nat) : ∃ i : Fin 12, producerRun n = producerRun i := by
+  have hs (extra : Nat) : producerRun (extra + 11) = producerRun 11 := by
+    cases extra <;> rfl
+  by_cases hlt : n < 12
+  · exact ⟨⟨n, hlt⟩, rfl⟩
+  · have he : n = (n - 11) + 11 := by omega
+    exact ⟨11, by rw [he, hs]; rfl⟩
+
+private def ProducerTrace (evs : List Event) (c : Config FunMem) : Prop :=
+  (∀ e ∈ evs, e = .read 0 ∨ e = .write 2) ∧
+  match c with
+  | .run (.assert l e) _ env m => l = 2 ∧ assertionHolds queryProg env m e = true
+  | .run s _ _ m => s.label ∈ [1, 3, 20, 21, 22] ∧
+      (s.label = 21 → Event.write 2 ∉ evs ∧ innerBefore m)
+  | .next _ _ m => Event.write 2 ∈ evs → innerAfter m
+  | .done o m => o = .completed ∧ load m 2 = some (.int 0) ∧ Event.write 2 ∈ evs
+  | .fault .. => False
+  | .ret .. => True
+
+private instance (evs : List Event) (c : Config FunMem) :
+    Decidable (ProducerTrace evs c) := by
+  unfold ProducerTrace
+  refine @instDecidableAnd _ _ inferInstance ?_
+  split <;> infer_instance
+
+private theorem producer_trace :
+    ∀ n : Fin 12, ProducerTrace (producerRun n).1 (producerRun n).2 := by
+  decide
+
+/-- The write precedes every configuration after the visit to `r = 0;`. -/
+private theorem producer_after_write :
+    ∀ n₀ n : Fin 12, n₀ < n → labelOf? (producerRun n₀).2 = some 21 →
+      Event.write 2 ∈ (producerRun n).1 := by
+  decide
+
+private theorem producer_at (n : Nat) :
+    ProducerTrace (producerRun n).1 (producerRun n).2 := by
+  obtain ⟨i, hi⟩ := producer_bound n
+  rw [hi]
+  exact producer_trace i
+
+private theorem producer_eq {w : FunMem} (hw : queryEntry.input w) :
+    (⟨queryEntry.env, w⟩ : State FunMem) = ⟨noLocals, queryMem 4 3⟩ := by
+  rw [callState_eq hw]
+  rfl
+
+private theorem producer_prefix {w : FunMem} (hw : queryEntry.input w)
+    {evs : List Event} {c : Config FunMem}
+    (h : Prefix querySubj ⟨queryEntry.env, w⟩ evs c) : ProducerTrace evs c := by
+  rw [producer_eq hw] at h
+  obtain ⟨n, hn⟩ := steps_run h
+  have ht := producer_at n
+  change producerRun n = (evs, c) at hn
+  rw [hn] at ht
+  exact ht
+
+theorem query_entry_premises :
+    queryEntry.ProducerSound ∧ queryEntry.Coverage ∧ queryEntry.KeyCovers := by
+  refine ⟨⟨?_, ?_, ?_⟩, ?_, ?_⟩
+  · rintro m hm o out ⟨evs, he⟩
+    obtain ⟨-, ho, hval, -⟩ := producer_prefix hm he
+    exact ⟨ho, hval⟩
+  · intro m hm v hv
+    cases v with
+    | alarm l a =>
+      obtain ⟨evs, out, he⟩ := hv
+      exact (producer_prefix hm he).2
+    | assertion l =>
+      obtain ⟨evs, e, k, env, out, he, hf⟩ := hv
+      have ht := (producer_prefix hm he).2
+      change l = 2 ∧ assertionHolds queryProg env out e = true at ht
+      change assertionHolds queryProg env out e = false at hf
+      rw [ht.2] at hf
+      contradiction
+  · rintro m hm l ⟨env, out, evs, s, k, he, rfl⟩
+    have ht := (producer_prefix hm he).2
+    change s.label ∈ [1, 2, 3, 20, 21, 22]
+    cases s
+    case assert l e =>
+      change l ∈ [1, 2, 3, 20, 21, 22]
+      rw [ht.1]
+      decide
+    all_goals
+      have h := ht.1
+      simp only [Stmt.label, List.mem_cons, List.not_mem_nil, or_false] at h ⊢
+      rcases h with h | h | h | h | h <;> simp [h]
+  · intro m hm
+    constructor
+    · intro evs c he e hmem
+      rcases (producer_prefix hm he).1 e hmem with rfl | rfl <;> exact List.mem_cons_self
+    · intro evs o out he b hb
+      rcases (producer_prefix hm he).1 (.write b) hb with h | h
+      · contradiction
+      · cases h; exact List.mem_cons_self
+    · intro evs o out he b hb
+      simp only [queryEntry, List.mem_singleton] at hb
+      subst b
+      exact (producer_prefix hm he).2.2.2
+  · exact ⟨fun _ h => h, fun _ hb h => (h hb).elim⟩
+
+/-- A visit before the write is a visit to `r = 0;`; a visit after it follows
+one. -/
+private theorem producer_point {w : FunMem} (hw : queryEntry.input w) {q : QueryPoint}
+    {n : Nat} (hv : AtPoint queryEntry.subject ⟨queryEntry.env, w⟩ q n) :
+    (q = beforeWrite → ∃ s k env m, producerRun n = ((producerRun n).1, .run s k env m) ∧
+        s.label = 21) ∧
+      (q = afterWrite → ∃ n₀ k env m, n₀ < n ∧ labelOf? (producerRun n₀).2 = some 21 ∧
+        producerRun n = ((producerRun n).1, .next k env m)) := by
+  rw [producer_eq hw] at hv
+  constructor
+  · rintro rfl
+    obtain ⟨s, k, env, m, hc, hl, -⟩ := hv
+    exact ⟨s, k, env, m, by rw [← hc]; rfl, hl⟩
+  · rintro rfl
+    obtain ⟨n₀, s, k, env₀, m₀, env, m, hlt, h₀, hl, -, hn, -⟩ := hv
+    refine ⟨n₀, k, env, m, hlt, ?_, by rw [← hn]; rfl⟩
+    change labelOf? (trace queryEntry.subject ⟨noLocals, queryMem 4 3⟩ n₀).2 = some 21
+    rw [h₀]
+    exact congrArg some hl
+
+private theorem fin12 (n₀ n : Nat) (hlt : n₀ < n) (hn : n < 12) :
+    ∃ i j : Fin 12, i.val = n₀ ∧ j.val = n ∧ i < j :=
+  ⟨⟨n₀, by omega⟩, ⟨n, hn⟩, rfl, rfl, hlt⟩
+
+theorem query_inner_sound : queryEntry.InnerPartSound queryInner := by
+  -- A configuration after a visit to `r = 0;` comes after the write.
+  have written {w : FunMem} (hw : queryEntry.input w) {n₀ n : Nat}
+      {k : Cont} {env : Env} {m : FunMem} (hlt : n₀ < n)
+      (h₀ : labelOf? (producerRun n₀).2 = some 21)
+      (hn : producerRun n = ((producerRun n).1, .next k env m)) :
+      Event.write 2 ∈ (producerRun n).1 ∧ innerAfter m := by
+    have hnext : ∀ j, 11 ≤ j → (producerRun j).2 = (producerRun 11).2 := by
+      intro j hj
+      obtain ⟨i, hi⟩ := producer_bound j
+      have hs (extra : Nat) : producerRun (extra + 11) = producerRun 11 := by
+        cases extra <;> rfl
+      have he : j = (j - 11) + 11 := by omega
+      rw [he, hs]
+    have hlt12 : n < 12 := by
+      refine Nat.lt_of_not_le fun hge => ?_
+      have h := hnext n (by omega)
+      rw [hn] at h
+      change Config.next k env m = (producerRun 11).2 at h
+      have h11 : (producerRun 11).2 = .done .completed (producerRun 11).2.mem := rfl
+      rw [h11] at h
+      cases h
+    obtain ⟨i, j, rfl, rfl, hij⟩ := fin12 n₀ n hlt hlt12
+    have hw2 := producer_after_write i j hij h₀
+    refine ⟨hw2, ?_⟩
+    have ht := (producer_at j).2
+    rw [hn] at ht
+    exact ht hw2
+  refine ⟨?_, ?_, ?_⟩
+  · intro w hw q n hv
+    obtain ⟨hb, ha⟩ := producer_point hw hv
+    rw [producer_eq hw]
+    change ∃ r, queryInner.state q r ∧ AgreeOn _ r (producerRun n).2.mem
+    by_cases hq₁ : q = beforeWrite
+    · obtain ⟨s, k, env, m, hc, hl⟩ := hb hq₁
+      have ht := (producer_at n).2
+      rw [hc] at ht ⊢
+      refine ⟨m, ?_, fun _ _ => rfl⟩
+      subst hq₁
+      change innerBefore m
+      cases s
+      all_goals first
+        | exact (ht.2 hl).2
+        | (simp only [Stmt.label] at hl; subst hl; exact absurd ht.1 (by decide))
+    · by_cases hq₂ : q = afterWrite
+      · obtain ⟨n₀, k, env, m, hlt, h₀, hn⟩ := ha hq₂
+        rw [hn]
+        refine ⟨m, ?_, fun _ _ => rfl⟩
+        subst hq₂
+        exact (written hw hlt h₀ hn).2
+      · refine ⟨(producerRun n).2.mem, ?_, fun _ _ => rfl⟩
+        simp only [queryInner, hq₁, hq₂, if_false]
+  · intro w hw q n hv b hb
+    obtain ⟨hbw, -⟩ := producer_point hw hv
+    rw [producer_eq hw] at hb
+    change Event.write b ∈ (producerRun n).1 at hb
+    have hev := (producer_at n).1 _ hb
+    have hb2 : b = 2 := by
+      rcases hev with h | h <;> cases h; rfl
+    subst hb2
+    by_cases hq₁ : q = beforeWrite
+    · obtain ⟨s, k, env, m, hc, hl⟩ := hbw hq₁
+      have ht := (producer_at n).2
+      rw [hc] at ht hb
+      cases s
+      all_goals first
+        | exact absurd hb (ht.2 hl).1
+        | (simp only [Stmt.label] at hl; subst hl; exact absurd ht.1 (by decide))
+    · simp only [queryInner, hq₁, if_false]
+      exact List.mem_cons_self
+  · intro w hw q n hv b hb
+    obtain ⟨-, ha⟩ := producer_point hw hv
+    by_cases hq₂ : q = afterWrite
+    · simp only [queryInner, hq₂, if_true, List.mem_singleton] at hb
+      subst hb
+      obtain ⟨n₀, k, env, m, hlt, h₀, hn⟩ := ha hq₂
+      rw [producer_eq hw]
+      exact List.mem_filterMap.mpr ⟨.write 2, (written hw hlt h₀ hn).1, rfl⟩
+    · simp only [queryInner, hq₂, if_false] at hb
+      exact absurd hb List.not_mem_nil
+
+/-! ## The members and the theorem at each line -/
+
+/-- Every call state matches the entry: the stored witness is the producing
+memory, and the key holds `x = 1` in both. -/
+theorem query_member_matches (g r : Int) :
+    queryEntry.Matches FunMem.allocatorAgreement (queryMem g r) :=
+  ⟨queryMem 4 3, callState_queryMem 4 3, ⟨fun b hb => by
+      simp only [queryEntry, List.mem_singleton] at hb; subst hb; rfl,
+    fun b hb => by simp only [queryEntry, List.mem_singleton] at hb; subst hb; rfl, rfl⟩⟩
+
+/-- The visits of a member before and after `r = 0;`, and the contents there. -/
+theorem query_member_visits (g r : Int) :
+    AtPoint querySubj ⟨noLocals, queryMem g r⟩ beforeWrite 5 ∧
+    AtPoint querySubj ⟨noLocals, queryMem g r⟩ afterWrite 6 ∧
+    load (trace querySubj ⟨noLocals, queryMem g r⟩ 5).2.mem 1 = some (.int g) ∧
+    load (trace querySubj ⟨noLocals, queryMem g r⟩ 5).2.mem 2 = some (.int r) ∧
+    load (trace querySubj ⟨noLocals, queryMem g r⟩ 6).2.mem 2 = some (.int 0) := by
+  refine ⟨⟨_, _, _, _, rfl, rfl, rfl⟩,
+    ⟨5, _, _, _, _, _, _, by decide, rfl, rfl, rfl, rfl, by intro i hi hi'; omega⟩,
+    rfl, rfl, rfl⟩
+
+private theorem query_line_premises (site : Label) (g r : Int) :
+    (∀ m, (queryLine site g r).state m → ∀ b ∈ (queryLine site g r).blocks, Issued m b) := by
+  intro m hm b hb
+  have hn : m.next = 3 := hm.2.2.2
+  change b < m.next
+  rw [hn]
+  change b ∈ [0, 1, 2] at hb
+  simp only [List.mem_cons, List.not_mem_nil, or_false] at hb
+  rcases hb with h | h | h <;> subst h <;> decide
+
+/-- `CacheEntry.query_sound` at the line of the call at `site`, for a query
+on the callstack `[3, site]` before or after `r = 0;`. -/
+theorem query_at_line (site : Label) (g r : Int) (pos : Pos)
+    (hsel : queryLog.find? (fun l => l.callstack.isSuffixOf [3, site]) =
+      some (queryLine site g r)) :
+    queryEntry.reached 21 ∧ ∀ enabled b vs,
+      query enabled queryLog ⟨21, [3, site], pos⟩ b = some vs →
+        vs (load (trace querySubj ⟨noLocals, queryMem g r⟩
+          (if pos = .before then 5 else 6)).2.mem b) := by
+  obtain ⟨hp, hc, hk⟩ := query_entry_premises
+  have hv := query_member_visits g r
+  cases pos with
+  | before =>
+    exact CacheEntry.query_sound (q := ⟨21, [3, site], .before⟩) hsel hp hc hk
+      query_inner_sound (query_line_premises site g r) (callState_queryMem g r)
+      (query_member_matches g r) hv.1
+  | after =>
+    exact CacheEntry.query_sound (q := ⟨21, [3, site], .after⟩) hsel hp hc hk
+      query_inner_sound (query_line_premises site g r) (callState_queryMem g r)
+      (query_member_matches g r) hv.2.1
+
+/-! ## The answers -/
+
+private theorem applySweeps_int (targets : List Block) (z : Int) :
+    applySweeps targets (some (.int z)) = some (.int z) :=
+  (applySweeps_eq_iff _ _).2 fun _ _ h => by cases h
+
+private theorem swept_int {vs : ValueSet} {z : Int} (h : ∀ v, vs v ↔ v = some (.int z)) :
+    ∀ u, vs.swept u ↔ u = some (.int z) := by
+  intro u
+  constructor
+  · rintro ⟨v, targets, hv, rfl⟩
+    rw [(h v).1 hv, applySweeps_int]
+  · rintro rfl
+    exact ⟨_, [], (h _).2 rfl, rfl⟩
+
+private theorem valueOf_call (g r : Int) :
+    (∀ v, predicates.valueOf (callState g r) 1 v ↔ v = some (.int g)) ∧
+    (∀ v, predicates.valueOf (callState g r) 2 v ↔ v = some (.int r)) := by
+  constructor
+  · intro v
+    constructor
+    · rintro ⟨m, hm, rfl⟩; exact hm.2.1
+    · rintro rfl; exact ⟨queryMem g r, callState_queryMem g r, rfl⟩
+  · intro v
+    constructor
+    · rintro ⟨m, hm, rfl⟩; exact hm.2.2.1
+    · rintro rfl; exact ⟨queryMem g r, callState_queryMem g r, rfl⟩
+
+private theorem valueOf_inner :
+    (∀ v, predicates.valueOf (queryInner.state beforeWrite) 0 v ↔ v = some (.int 1)) ∧
+    (∀ v, predicates.valueOf (queryInner.state beforeWrite) 1 v ↔ v = some (.int 4)) ∧
+    (∀ v, predicates.valueOf (queryInner.state beforeWrite) 2 v ↔ v = some (.int 3)) ∧
+    (∀ v, predicates.valueOf (queryInner.state afterWrite) 2 v ↔ v = some (.int 0)) := by
+  have hb : queryInner.state beforeWrite = innerBefore := rfl
+  have ha : queryInner.state afterWrite = innerAfter := rfl
+  have wb : innerBefore (queryMem 4 3) := ⟨rfl, rfl, rfl⟩
+  have wa : innerAfter (queryMem 4 0) := ⟨rfl, rfl, rfl⟩
+  rw [hb, ha]
+  refine ⟨fun v => ⟨?_, ?_⟩, fun v => ⟨?_, ?_⟩, fun v => ⟨?_, ?_⟩, fun v => ⟨?_, ?_⟩⟩
+  all_goals first
+    | (rintro ⟨m, hm, rfl⟩; first | exact hm.1 | exact hm.2.1 | exact hm.2.2)
+    | (rintro rfl; first | exact ⟨_, wb, rfl⟩ | exact ⟨_, wa, rfl⟩)
+
+/-- The two-call example. Before `r = 0;`, the query on `g` answers exactly 4
+on the callstack `[3, 11]` and exactly 9 on `[3, 16]`, and each answer
+contains the content of `g` at the visit of that call. The stored inner
+state holds 4 for `g` there, which misses the 9 of the second call. -/
+theorem two_call_query :
+    (query true queryLog ⟨21, [3, 11], .before⟩ 1 =
+        some (predicates.valueOf (callState 4 3) 1).swept ∧
+      (∀ u, (predicates.valueOf (callState 4 3) 1).swept u ↔ u = some (.int 4)) ∧
+      load (trace querySubj ⟨noLocals, queryMem 4 3⟩ 5).2.mem 1 = some (.int 4) ∧
+      (predicates.valueOf (callState 4 3) 1).swept
+        (load (trace querySubj ⟨noLocals, queryMem 4 3⟩ 5).2.mem 1)) ∧
+    (query true queryLog ⟨21, [3, 16], .before⟩ 1 =
+        some (predicates.valueOf (callState 9 5) 1).swept ∧
+      (∀ u, (predicates.valueOf (callState 9 5) 1).swept u ↔ u = some (.int 9)) ∧
+      load (trace querySubj ⟨noLocals, queryMem 9 5⟩ 5).2.mem 1 = some (.int 9) ∧
+      (predicates.valueOf (callState 9 5) 1).swept
+        (load (trace querySubj ⟨noLocals, queryMem 9 5⟩ 5).2.mem 1)) ∧
+    (∀ v, predicates.valueOf (queryInner.state beforeWrite) 1 v ↔ v = some (.int 4)) ∧
+    ¬ predicates.valueOf (queryInner.state beforeWrite) 1
+      (load (trace querySubj ⟨noLocals, queryMem 9 5⟩ 5).2.mem 1) := by
+  have h₁ := (query_at_line 11 4 3 .before rfl).2 true 1 _ rfl
+  have h₂ := (query_at_line 16 9 5 .before rfl).2 true 1 _ rfl
+  refine ⟨⟨rfl, swept_int (valueOf_call 4 3).1, rfl, h₁⟩,
+    ⟨rfl, swept_int (valueOf_call 9 5).1, rfl, h₂⟩, valueOf_inner.2.1, ?_⟩
+  rw [(query_member_visits 9 5).2.2.1, valueOf_inner.2.1]
+  decide
+
+/-- The overwritten block. The stored inner state holds `{3}` for `r` before
+`r = 0;`; the second call enters with `r = 5`. On the callstack `[3, 16]`,
+the query on `r` answers exactly 5 before the write and exactly 0 after it,
+and each answer contains the content at the visit. The stored value misses
+the 5 before the write, and the value 5 at the call misses the 0 after
+it. -/
+theorem overwritten_query :
+    (∀ v, predicates.valueOf (queryInner.state beforeWrite) 2 v ↔ v = some (.int 3)) ∧
+    (query true queryLog ⟨21, [3, 16], .before⟩ 2 =
+        some (predicates.valueOf (callState 9 5) 2).swept ∧
+      (∀ u, (predicates.valueOf (callState 9 5) 2).swept u ↔ u = some (.int 5)) ∧
+      load (trace querySubj ⟨noLocals, queryMem 9 5⟩ 5).2.mem 2 = some (.int 5) ∧
+      (predicates.valueOf (callState 9 5) 2).swept
+        (load (trace querySubj ⟨noLocals, queryMem 9 5⟩ 5).2.mem 2)) ∧
+    (query true queryLog ⟨21, [3, 16], .after⟩ 2 =
+        some (predicates.valueOf (queryInner.state afterWrite) 2) ∧
+      (∀ u, predicates.valueOf (queryInner.state afterWrite) 2 u ↔ u = some (.int 0)) ∧
+      load (trace querySubj ⟨noLocals, queryMem 9 5⟩ 6).2.mem 2 = some (.int 0) ∧
+      predicates.valueOf (queryInner.state afterWrite) 2
+        (load (trace querySubj ⟨noLocals, queryMem 9 5⟩ 6).2.mem 2)) ∧
+    ¬ predicates.valueOf (queryInner.state beforeWrite) 2
+      (load (trace querySubj ⟨noLocals, queryMem 9 5⟩ 5).2.mem 2) ∧
+    ¬ (predicates.valueOf (callState 9 5) 2).swept
+      (load (trace querySubj ⟨noLocals, queryMem 9 5⟩ 6).2.mem 2) := by
+  have hb := (query_at_line 16 9 5 .before rfl).2 true 2 _ rfl
+  have ha := (query_at_line 16 9 5 .after rfl).2 true 2 _ rfl
+  refine ⟨valueOf_inner.2.2.1, ⟨rfl, swept_int (valueOf_call 9 5).2, rfl, hb⟩,
+    ⟨rfl, valueOf_inner.2.2.2, rfl, ha⟩, ?_, ?_⟩
+  · rw [(query_member_visits 9 5).2.2.2.1, valueOf_inner.2.2.1]
+    decide
+  · rw [(query_member_visits 9 5).2.2.2.2, swept_int (valueOf_call 9 5).2]
+    decide
+
+/-- The key block `x` takes the shared inner state; with reconstruction
+disabled the query reports no state, and the entry still reports the
+statement as reached. -/
+theorem key_and_disabled_query :
+    query true queryLog ⟨21, [3, 16], .before⟩ 0 =
+        some (predicates.valueOf (queryInner.state beforeWrite) 0) ∧
+      (∀ u, predicates.valueOf (queryInner.state beforeWrite) 0 u ↔ u = some (.int 1)) ∧
+    (∀ b, query false queryLog ⟨21, [3, 16], .before⟩ b = none) ∧
+    queryEntry.reached 21 :=
+  ⟨rfl, valueOf_inner.1, fun _ => rfl, (query_at_line 16 9 5 .before rfl).1⟩
+
+/-- A point whose callstack is not that of a call of `h` has no visit. -/
+theorem query_point_callstack :
+    ¬ AtPoint querySubj ⟨noLocals, queryMem 9 5⟩ ⟨21, [], .before⟩ 5 := by
+  rintro ⟨s, k, env, m, hc, -, hcs⟩
+  have h : (trace querySubj ⟨noLocals, queryMem 9 5⟩ 5).2.cont.callstack = [3] := rfl
+  rw [hc] at h
+  change k.callstack = [3] at h
+  rw [hcs] at h
+  exact absurd h (by decide)
+
+/-! ## A local of the body
+
+The cached statement is `L40: { int t = 7;  L41: ; }`, with a global `y` in
+block 0 that it does not access; `t` is created in block 1. The entry has an
+empty key and footprint. The producing call has `y = 1`; the member has
+`y = 2` and the same next fresh block, so it matches. The line of the hit log
+binds block 0 only. Before `L41`, the query on `t` answers top; the value of
+block 1 at the call is no value, which misses the 7 of the visit. -/
+
+def localProg : Program := ⟨[], fun x => if x = "y" then some 0 else none⟩
+
+def localStmt : Stmt := .scope 40 [("t", 7)] (.skip 41)
+
+def localSubj : Subject := ⟨localProg, localStmt,
+  ⟨by decide, ⟨fun _ => 0, by decide⟩, by decide, by decide⟩⟩
+
+/-- The entry stored by a call with `y = 1`. -/
+def localEntry : CacheEntry predicates where
+  subject := localSubj
+  env := noLocals
+  input := (· = memOf [.int 1])
+  key := []
+  footprint := ⟨[], [], [], []⟩
+  exit := fun _ _ => True
+  violations := fun _ => True
+  reached := fun _ => True
+
+/-- The inner part: top at every point, no write, nothing updated. -/
+def localInner : InnerPart predicates := ⟨fun _ _ => True, fun _ => [], fun _ => []⟩
+
+/-- The line of a hit at site 7, with `y = 2` at the call. -/
+def localLine : HitLine predicates := ⟨[7], localEntry, localInner, (· = memOf [.int 2]), [0]⟩
+
+private def localRun (n : Nat) : List Event × Config FunMem :=
+  trace localSubj ⟨noLocals, memOf [.int 1]⟩ n
+
+private theorem local_no_access :
+    ∀ n : Fin 5, ∀ e ∈ (localRun n).1, e = .scopeEnter 1 ∨ e = .sweep 1 := by
+  decide
+
+private theorem local_events (n : Nat) :
+    ∀ e ∈ (localRun n).1, e = .scopeEnter 1 ∨ e = .sweep 1 := by
+  have hs (extra : Nat) : localRun (extra + 4) = localRun 4 := by
+    cases extra <;> rfl
+  by_cases hlt : n < 5
+  · exact local_no_access ⟨n, hlt⟩
+  · have he : n = (n - 4) + 4 := by omega
+    rw [he, hs]
+    exact local_no_access 4
+
+private theorem local_prefix {w : FunMem} (hw : localEntry.input w)
+    {evs : List Event} {c : Config FunMem}
+    (h : Prefix localSubj ⟨localEntry.env, w⟩ evs c) :
+    ∀ e ∈ evs, e = .scopeEnter 1 ∨ e = .sweep 1 := by
+  change w = memOf [.int 1] at hw
+  subst hw
+  obtain ⟨n, hn⟩ := steps_run h
+  change localRun n = (evs, c) at hn
+  have h := local_events n
+  rw [hn] at h
+  exact h
+
+theorem local_premises :
+    localEntry.ProducerSound ∧ localEntry.Coverage ∧ localEntry.KeyCovers ∧
+      localEntry.InnerPartSound localInner := by
+  refine ⟨⟨fun _ _ _ _ _ => trivial, fun _ _ _ _ => trivial, fun _ _ _ _ => trivial⟩,
+    fun m hm => ⟨?_, ?_, ?_⟩, ⟨fun _ h => h, fun _ hb _ => absurd hb List.not_mem_nil⟩,
+    ⟨?_, ?_, ?_⟩⟩
+  · intro evs c he e hmem
+    rcases local_prefix hm he e hmem with rfl | rfl <;> trivial
+  · intro evs o out he b hb
+    rcases local_prefix hm he _ hb with h | h <;> cases h
+  · intro _ _ _ _ b hb
+    exact absurd hb List.not_mem_nil
+  · intro w _ q n _
+    exact ⟨(trace localEntry.subject ⟨localEntry.env, w⟩ n).2.mem, trivial, fun _ _ => rfl⟩
+  · intro w hw q n _ b hb
+    have hs := run_steps localSubj.prog n (Config.entry localSubj.stmt ⟨localEntry.env, w⟩)
+    rcases local_prefix hw hs _ hb with h | h <;> cases h
+  · intro _ _ _ _ _ b hb
+    exact absurd hb List.not_mem_nil
+
+/-- `CacheEntry.query_sound` for the member with `y = 2`, before `L41`. -/
+theorem local_at_line :
+    localEntry.reached 41 ∧ ∀ enabled b vs,
+      query enabled [localLine] ⟨41, [7], .before⟩ b = some vs →
+        vs (load (trace localSubj ⟨noLocals, memOf [.int 2]⟩ 1).2.mem b) := by
+  obtain ⟨hp, hc, hk, hi⟩ := local_premises
+  refine CacheEntry.query_sound (log := [localLine]) (line := localLine)
+    (q := ⟨41, [7], .before⟩) (a := FunMem.allocatorAgreement) rfl hp hc hk hi ?_ rfl
+    ⟨memOf [.int 1], rfl, fun _ hb => absurd hb List.not_mem_nil,
+      fun _ hb => absurd hb List.not_mem_nil, rfl⟩
+    ⟨_, _, _, _, rfl, rfl, rfl⟩
+  intro m hm b hb
+  change m = memOf [.int 2] at hm
+  subst hm
+  change b ∈ [0] at hb
+  rw [List.mem_singleton] at hb
+  subst hb
+  change 0 < 1
+  decide
+
+private theorem applySweeps_none (targets : List Block) : applySweeps targets none = none :=
+  (applySweeps_eq_iff _ _).2 fun _ _ h => by cases h
+
+/-- The local `t` answers top before `L41`. Its content at the visit is 7;
+the value of its block at the call, with the marks of the sweeps, is no value
+and misses it. -/
+theorem local_query :
+    query true [localLine] ⟨41, [7], .before⟩ 1 = some ValueSet.top ∧
+    load (trace localSubj ⟨noLocals, memOf [.int 2]⟩ 1).2.mem 1 = some (.int 7) ∧
+    (∀ u, (predicates.valueOf localLine.state 1).swept u ↔ u = none) ∧
+    ¬ (predicates.valueOf localLine.state 1).swept
+      (load (trace localSubj ⟨noLocals, memOf [.int 2]⟩ 1).2.mem 1) := by
+  have hcall : ∀ u, (predicates.valueOf localLine.state 1).swept u ↔ u = none := by
+    intro u
+    constructor
+    · rintro ⟨v, targets, ⟨m, hm, rfl⟩, rfl⟩
+      change m = memOf [.int 2] at hm
+      subst hm
+      exact applySweeps_none targets
+    · rintro rfl
+      exact ⟨none, [], ⟨memOf [.int 2], rfl, rfl⟩, rfl⟩
+  refine ⟨rfl, rfl, hcall, ?_⟩
+  rw [hcall]
+  exact fun h => nomatch h
+
+/-! ## The marks of the sweeps in the frame rule
+
+A block that no prefix accesses can still change: a sweep marks a pointer it
+holds to the swept local. The value at the call misses the visit; the same
+value with the marks of the sweeps contains it. -/
+
+theorem frame_needs_sweeps :
+    AtPoint sweepSubj futurePointerInput ⟨4, [], .before⟩ 5 ∧
+    InFrame sweepSubj futurePointerInput 1 ∧
+    load futurePointerInput.mem 1 = some (.ptr 2) ∧
+    load (trace sweepSubj futurePointerInput 5).2.mem 1 = some (.escaped 2) ∧
+    ValueSet.swept (· = some (.ptr 2)) (load (trace sweepSubj futurePointerInput 5).2.mem 1) := by
+  obtain ⟨hframe, -, -, -, hentry, hvisit⟩ := future_pointer_needs_rewrite
+  refine ⟨⟨_, _, _, _, rfl, rfl, rfl⟩, hframe, hentry, hvisit, ?_⟩
+  exact ⟨some (.ptr 2), [2], rfl, hvisit⟩
+
+/-! ## The end of a statement's execution
+
+In `while (i < 2) { if (i == 0) A: i = 1; else B: i = 2; }`, A and B run on
+the same continuation. The completion of B is not a visit after A: the
+completion of A ends the execution of A. -/
+
+def branchProg : Program := ⟨[], fun x => if x = "i" then some 0 else none⟩
+
+def branchStmt : Stmt :=
+  .loop 30 (.binop .lt (.var "i") (.const 2))
+    (.ite 31 (.binop .eq (.var "i") (.const 0))
+      (.assign 32 (.var "i") (.const 1)) (.assign 33 (.var "i") (.const 2)))
+
+def branchSubj : Subject := ⟨branchProg, branchStmt,
+  ⟨by decide, ⟨fun _ => 0, by decide⟩, by decide, by decide⟩⟩
+
+def branchInput : State FunMem := topState [.int 0]
+
+theorem after_ends_at_completion :
+    AtPoint branchSubj branchInput ⟨32, [], .after⟩ 3 ∧
+    AtPoint branchSubj branchInput ⟨33, [], .after⟩ 7 ∧
+    ¬ AtPoint branchSubj branchInput ⟨32, [], .after⟩ 7 := by
+  refine ⟨⟨2, _, _, _, _, _, _, by decide, rfl, rfl, rfl, rfl, by intro i hi hi'; omega⟩,
+    ⟨6, _, _, _, _, _, _, by decide, rfl, rfl, rfl, rfl, by intro i hi hi'; omega⟩, ?_⟩
+  rintro ⟨n₀, s, k, env₀, m₀, env, m, hlt, h₀, hl, -, -, hin⟩
+  have hlab : labelOf? (trace branchSubj branchInput n₀).2 = some 32 := by
+    rw [h₀]; exact congrArg some hl
+  have hn₀ : n₀ = 2 := by
+    have hall : ∀ j : Fin 7, labelOf? (trace branchSubj branchInput j).2 = some 32 →
+        j.val = 2 := by decide
+    exact hall ⟨n₀, hlt⟩ hlab
+  subst hn₀
+  have hk : k = (trace branchSubj branchInput 2).2.cont := by rw [h₀]; rfl
+  have hout : ¬ (trace branchSubj branchInput 3).2.Inside
+      (trace branchSubj branchInput 2).2.cont := by decide
+  exact hout (hk ▸ hin 3 (by decide) (by decide))
+
+end Checks

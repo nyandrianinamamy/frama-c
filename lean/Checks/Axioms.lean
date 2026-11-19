@@ -7,6 +7,7 @@ import Checks.Inner
 import Checks.Hit
 import Checks.SideTables
 import Checks.WholeProduct
+import Checks.Query
 
 /-!
 # Axioms of the theorems
@@ -552,7 +553,8 @@ open ReuseModel ReuseModel.CacheEntry Checks in
 #print axioms Checks.projected_copy_loses_relation
 #check_axioms Checks.projected_copy_loses_relation
 
-/-! State queries on the callstack of a hit, in `ReuseModel/Query.lean`. -/
+/-! State queries on the callstack of a hit, in `ReuseModel/Query.lean`, and
+their checks in `Checks/Query.lean`. -/
 
 open ReuseModel in
 #check @Cont.callstack
@@ -596,3 +598,67 @@ open ReuseModel ReuseModel.CacheEntry in
 #check @query_sound
 #print axioms ReuseModel.CacheEntry.query_sound
 #check_axioms ReuseModel.CacheEntry.query_sound
+
+#check Checks.callState_eq
+#print axioms Checks.callState_eq
+#check_axioms Checks.callState_eq
+
+#check Checks.two_call_sites
+#print axioms Checks.two_call_sites
+#check_axioms Checks.two_call_sites
+
+#check Checks.query_entry_premises
+#print axioms Checks.query_entry_premises
+#check_axioms Checks.query_entry_premises
+
+#check Checks.query_inner_sound
+#print axioms Checks.query_inner_sound
+#check_axioms Checks.query_inner_sound
+
+#check Checks.query_member_matches
+#print axioms Checks.query_member_matches
+#check_axioms Checks.query_member_matches
+
+#check Checks.query_member_visits
+#print axioms Checks.query_member_visits
+#check_axioms Checks.query_member_visits
+
+#check Checks.query_at_line
+#print axioms Checks.query_at_line
+#check_axioms Checks.query_at_line
+
+#check Checks.two_call_query
+#print axioms Checks.two_call_query
+#check_axioms Checks.two_call_query
+
+#check Checks.overwritten_query
+#print axioms Checks.overwritten_query
+#check_axioms Checks.overwritten_query
+
+#check Checks.key_and_disabled_query
+#print axioms Checks.key_and_disabled_query
+#check_axioms Checks.key_and_disabled_query
+
+#check Checks.query_point_callstack
+#print axioms Checks.query_point_callstack
+#check_axioms Checks.query_point_callstack
+
+#check Checks.local_premises
+#print axioms Checks.local_premises
+#check_axioms Checks.local_premises
+
+#check Checks.local_at_line
+#print axioms Checks.local_at_line
+#check_axioms Checks.local_at_line
+
+#check Checks.local_query
+#print axioms Checks.local_query
+#check_axioms Checks.local_query
+
+#check Checks.frame_needs_sweeps
+#print axioms Checks.frame_needs_sweeps
+#check_axioms Checks.frame_needs_sweeps
+
+#check Checks.after_ends_at_completion
+#print axioms Checks.after_ends_at_completion
+#check_axioms Checks.after_ends_at_completion

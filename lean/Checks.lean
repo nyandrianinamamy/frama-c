@@ -8,6 +8,7 @@ import Checks.Inner
 import Checks.Hit
 import Checks.SideTables
 import Checks.WholeProduct
+import Checks.Query
 
 /-!
 # Checks on the model
