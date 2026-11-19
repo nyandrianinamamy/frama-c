@@ -181,25 +181,35 @@ the weakening, and for a body with one state at each point, it is not.
 An observer set in the kernel before a recording runs before, during and
 after it; the collector records the read made during it. An observer set
 during a recording is kept when the recording ends, and the collector
-records the reads of the next recording. A second registration of an
-allocated variable refuses a body that consults the node tags; its owner
-is not known.
+records the reads of the next recording. An observer set during a
+recording that does not forward hides the read: the recording is refused
+without owner, also when the client restores the observer before the
+recording ends; the next recording is not refused. A read made by an
+observer of updates reaches the collector and the observer of reads. A
+second registration of an allocated variable refuses a body that consults
+the node tags; its owner is not known.
 
   $ EVA_TEST_ALLOCATION=kernel frama-c -no-autoload-plugins -load-module eva,test_allocation_refusals.cmxs -eva-msg-key cache contents.c > kernel.log 2>&1
   $ grep -E '^(observer|tags)' kernel.log
   observer set before: runs 3, collector owners: observed
   observer set during: runs 3, kept true, owners: late; late, idle after: true
+  observer set during: allocation-metadata; allocation-metadata
+  observer hiding: allocation-metadata, no owner; allocation-metadata, no owner; then would-store
+  observer nested: validity-mutation allocation-metadata, owners: nested, reads seen: 1
   tags: would-store, no owner
   tags: allocation-metadata, no owner
 
 A validity record made weak through the kernel, without the allocation
 builtins, refuses a body that consults the node tags. The weakening is
 saved with the session: a node loaded by another process keeps the tag
-computed while its target was strong, and the body is still refused.
+computed while its target was strong, and the body is still refused. In
+the saving process, the body is still refused after the state that holds
+the count is cleared alone.
 
   $ EVA_TEST_ALLOCATION=kernel-save frama-c -no-autoload-plugins -load-module eva,test_allocation_refusals.cmxs -eva-msg-key cache contents.c -save kernel.sav > save.log 2>&1
   $ grep -E '^(loaded|tags)' save.log
   tags: would-store, no owner
+  tags: allocation-metadata, no owner
   tags: allocation-metadata, no owner
   $ EVA_TEST_ALLOCATION=kernel-load frama-c -no-autoload-plugins -load-module eva,test_allocation_refusals.cmxs -eva-msg-key cache -load kernel.sav > load.log 2>&1
   $ grep -E '^(loaded|tags)' load.log

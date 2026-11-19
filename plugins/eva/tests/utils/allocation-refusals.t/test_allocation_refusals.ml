@@ -261,7 +261,45 @@ let observer_during () =
   Format.printf
     "observer set during: runs %d, kept %b, owners: %s; %s, idle after: %b@."
     !calls kept (String.concat " " (owners first))
-    (String.concat " " (owners second)) (idle = None)
+    (String.concat " " (owners second)) (idle = None);
+  Format.printf "observer set during: %s; %s@."
+    (first_reason first) (first_reason second)
+
+(* An observer set during a recording that does not forward hides the read:
+   the recording is refused without owner, also when the client restores
+   the observer it replaced before the recording ends. *)
+let observer_hiding () =
+  let observed, _ = allocated ~weak:false "hidden" in
+  let read () = ignore (Base.validity observed) in
+  let hide ~restore () =
+    let displaced = Base.observe_metadata_reads (Some ignore) in
+    read ();
+    if restore then ignore (Base.observe_metadata_reads displaced)
+  in
+  let kept = capture (hide ~restore:false) in
+  ignore (Base.observe_metadata_reads None);
+  let restored = capture (hide ~restore:true) in
+  let quiet = capture (fun () -> ()) in
+  Format.printf "observer hiding: %s%s; %s%s; then %s@."
+    (first_reason kept) (if owners kept = [] then ", no owner" else "")
+    (first_reason restored) (if owners restored = [] then ", no owner" else "")
+    (first_reason quiet)
+
+(* An observer of updates that reads metadata: the read reaches the
+   collector and the observer of reads. *)
+let observer_nested () =
+  let observed, validity = allocated ~weak:true "nested" in
+  let reads = ref 0 in
+  let previous_read = Base.observe_metadata_reads (Some (fun _ -> incr reads)) in
+  let previous_update =
+    Base.observe_validity_updates
+      (Some (fun _ ~weak:_ -> ignore (Base.validity observed)))
+  in
+  let r = capture (fun () -> weaken validity) in
+  ignore (Base.observe_validity_updates previous_update);
+  ignore (Base.observe_metadata_reads previous_read);
+  Format.printf "observer nested: %s, owners: %s, reads seen: %d@."
+    (String.concat " " (reasons r)) (String.concat " " (owners r)) !reads
 
 (* A validity record made weak through the kernel alone refuses the bodies
    that consult the node tags, and so does a second registration of a
@@ -269,6 +307,8 @@ let observer_during () =
 let kernel_paths () =
   observer_before ();
   observer_during ();
+  observer_hiding ();
+  observer_nested ();
   tags ();
   let base, _ = allocated ~weak:false "registered" in
   let validity =
@@ -297,7 +337,13 @@ let kernel_save () =
   Saved.set (Cvalue.V_Offsetmap.create ~size value ~size_v:size);
   tags ();
   weaken validity;
-  tags ()
+  tags ();
+  (* The count of the process remains when the state alone is cleared. *)
+  let state = State.get "Base.Weakenings" in
+  Project.clear ~selection:(State_selection.singleton state) ();
+  tags ();
+  (* The saved session holds a count again. *)
+  weaken (snd (allocated ~weak:false "again"))
 
 let kernel_load () =
   let map = Saved.get () in
