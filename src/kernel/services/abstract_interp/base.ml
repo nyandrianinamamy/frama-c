@@ -122,19 +122,53 @@ let validity_observer : (variable_validity -> weak:bool -> unit) option ref =
 let observer_change_count = ref 0
 let observer_changes () = !observer_change_count
 
-(* The functions installed with [audited], compared physically, and whether
-   another function was installed. *)
-let audited_reads : (base -> unit) list ref = ref []
-let audited_updates : (variable_validity -> weak:bool -> unit) list ref =
-  ref []
+(* The functions installed with [audited], compared physically. They are
+   held weakly: the registry keeps no function alive, and a function that
+   the program can no longer reach cannot be installed again. *)
+module Audited = struct
+  type 'a t = { mutable cells : 'a Weak.t }
+
+  let create () = { cells = Weak.create 4 }
+
+  let mem t f =
+    let rec find i =
+      i < Weak.length t.cells
+      && (match Weak.get t.cells i with
+          | Some g when g == f -> true
+          | _ -> find (i + 1))
+    in
+    find 0
+
+  (* Fills a cell whose function was collected, or doubles the array. *)
+  let add t f =
+    let length = Weak.length t.cells in
+    let rec free i =
+      if i = length then None
+      else if Weak.check t.cells i then free (i + 1)
+      else Some i
+    in
+    match free 0 with
+    | Some i -> Weak.set t.cells i (Some f)
+    | None ->
+      let cells = Weak.create (2 * length) in
+      Weak.blit t.cells 0 cells 0 length;
+      Weak.set cells length (Some f);
+      t.cells <- cells
+end
+
+let audited_reads : (base -> unit) Audited.t = Audited.create ()
+let audited_updates : (variable_validity -> weak:bool -> unit) Audited.t =
+  Audited.create ()
+
+(* Whether a function that is not audited was installed. *)
 let unaudited_observer = ref false
 let has_unaudited_observers () = !unaudited_observer
 
 let audit audited known = function
   | None -> ()
   | Some f ->
-    if List.memq f !known then ()
-    else if audited then known := f :: !known
+    if Audited.mem known f then ()
+    else if audited then Audited.add known f
     else unaudited_observer := true
 
 let observe_metadata_reads ?(audited = false) f =

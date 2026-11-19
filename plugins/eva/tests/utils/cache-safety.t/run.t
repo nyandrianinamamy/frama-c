@@ -518,6 +518,20 @@ preconditions of that hit.
   client metadata-audited: hits on pre: 1, rejected for callback: 0
   observer calls during a delivery: 1
 
+The audited observers of the metadata are known by their physical identity,
+in a registry that holds them weakly. 128 audited observers of 64 KiB each,
+installed and removed in turn, are collected. An audited observer installed
+again without the flag does not count as a client that is not audited;
+another observer installed without the flag counts, and counts once removed.
+
+  $ EVA_TEST_CACHE_SAFETY=registry frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs safety.c > registry.log 2>&1
+  $ grep -E '^(audited|after)' registry.log
+  audited observers removed and still alive: 0 of 128
+  after them, an observer that is not audited: false
+  after an audited observer installed again without the flag: false
+  after another observer installed without the flag: true
+  after its removal: true
+
 The server plug-in registers a client of the hooks on the changes of
 annotations when it loads. With it, the registration of the alarm of body
 runs that client, and the collector refuses the body for callback: no entry

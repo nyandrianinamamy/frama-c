@@ -146,7 +146,9 @@ val observe_metadata_reads:
     Set [audited] only for an observer audited for the cache of Eva: the
     observer of its collector of block accesses sets it. The function [f] is
     then audited, and installing it again, with or without [audited], is
-    not counted by {!has_unaudited_observers}. *)
+    not counted by {!has_unaudited_observers}. The audited functions are
+    known by their physical identity and held weakly: the registry keeps
+    none alive. *)
 
 val metadata_read: t -> unit
 (** Runs the observer of {!observe_metadata_reads} on an [Allocated] base,

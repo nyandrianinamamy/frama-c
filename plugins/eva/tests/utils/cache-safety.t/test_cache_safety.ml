@@ -836,6 +836,51 @@ let () =
         end)
   end
 
+(* ----- The registry of the audited observers of Base ---------------------- *)
+
+(* Installs an audited observer of the reads of the metadata that holds 64
+   KiB, and removes it. The observer is reachable from [cells] only, which
+   holds it weakly. *)
+let[@inline never] install_and_remove cells index =
+  let payload = Bytes.make 65536 'x' in
+  let observer (_ : Base.t) =
+    ignore (Sys.opaque_identity (Bytes.get payload 0))
+  in
+  Weak.set cells index (Some observer);
+  ignore (Base.observe_metadata_reads ~audited:true (Some observer));
+  ignore (Base.observe_metadata_reads None)
+
+(* The registry of the audited observers keeps no observer alive, and keeps
+   the rule on the functions installed again: an audited function installed
+   again without the flag does not count, another function installed without
+   the flag counts, also once removed. *)
+let registry () =
+  let count = 128 in
+  let cells = Weak.create count in
+  for i = 0 to count - 1 do install_and_remove cells i done;
+  Gc.full_major ();
+  Gc.full_major ();
+  let alive = ref 0 in
+  for i = 0 to count - 1 do if Weak.check cells i then incr alive done;
+  Format.printf "audited observers removed and still alive: %d of %d@."
+    !alive count;
+  let unaudited () = Base.has_unaudited_observers () in
+  Format.printf "after them, an observer that is not audited: %b@."
+    (unaudited ());
+  let kept (_ : Base.t) = ignore (Sys.opaque_identity cells) in
+  ignore (Base.observe_metadata_reads ~audited:true (Some kept));
+  ignore (Base.observe_metadata_reads None);
+  ignore (Base.observe_metadata_reads (Some kept));
+  ignore (Base.observe_metadata_reads None);
+  Format.printf "after an audited observer installed again without the \
+                 flag: %b@." (unaudited ());
+  let other (_ : Base.t) = ignore (Sys.opaque_identity count) in
+  ignore (Base.observe_metadata_reads (Some other));
+  Format.printf "after another observer installed without the flag: %b@."
+    (unaudited ());
+  ignore (Base.observe_metadata_reads None);
+  Format.printf "after its removal: %b@." (unaudited ())
+
 let () =
   match Sys.getenv_opt "EVA_TEST_CACHE_SAFETY" with
   | Some "replay" -> Boot.Main.extend (replay ["r1"; "r2"])
@@ -856,4 +901,5 @@ let () =
   | Some "enclosing" -> Boot.Main.extend enclosing
   | Some "project-count" -> Boot.Main.extend project_count
   | Some "load-hook" -> Boot.Main.extend load_hook
+  | Some "registry" -> Boot.Main.extend registry
   | _ -> ()
