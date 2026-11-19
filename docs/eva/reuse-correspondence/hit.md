@@ -216,7 +216,9 @@ definition and checks compiled in the scratch control.
 Tree of `lean/` `c87015b3742b0acb20e9ee1a0e51afa3648bf218` at
 commit `0acc22c6077e0c7145602cb2d82972abc51c1971`.
 On 2026-11-19, `cd lean && lake build --wfail` exited 0 in the rebased
-worktree using Lean 4.28.0 (`7e01a1bf5c70`). CI pending. No OCaml check
+worktree using Lean 4.28.0 (`7e01a1bf5c70`). CI:
+[run 44436454539](https://github.com/nyandrianinamamy/frama-c/actions/runs/44436454539)
+succeeded on this tree. No OCaml check
 was executed for this entry.
 
 Replay the statements and axiom reports with the build above. The
