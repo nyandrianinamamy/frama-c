@@ -73,6 +73,9 @@ type results = {
   statuses: Property_status.emitted_status Property.Hashtbl.t
 (** alarms are _not_ present here *);
   (* conditions then/else *)
+  hits: Reach_delivery.records;
+  (* The records of the hits of the cache, apart from the states: the
+     points they reached and the functions they answered. *)
 }
 
 let get_results () =
@@ -139,7 +142,8 @@ let get_results () =
     | _ -> add ()
   in
   Property_status.iter aux_ip;
-  { states; kf_callers; initial_args; alarms; statuses; }
+  let hits = Reach_delivery.records () in
+  { states; kf_callers; initial_args; alarms; statuses; hits; }
 
 let set_results results =
   let selection = State_selection.with_dependencies Self.state in
@@ -180,4 +184,6 @@ let set_results results =
     Property_status.emit Eva_utils.emitter ~hyps:[] ip st
   in
   Property.Hashtbl.iter aux_statuses results.statuses;
+  (* The clearing above emptied the records of the hits. *)
+  Reach_delivery.restore results.hits;
   Self.ComputationState.set Computed

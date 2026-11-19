@@ -59,3 +59,21 @@ val reach_unknown_of : Cil_types.kernel_function -> bool
 (** Whether a hit on an entry without a Reach part has answered a call of
     the function that contains the statement, in the current analysis. *)
 val reach_unknown_at : Cil_types.stmt -> bool
+
+(** {2 Saved results}
+
+    The records of the hits of the current analysis that are kept apart
+    from the store of states: the points reached by hits, the functions of
+    unknown reachability, and the functions whose visits a hit skipped
+    ({!Safety_delivery.skip_visits}). They are states of the analysis,
+    saved with the session and copied with the project. The results taken
+    by {!Eva_results.get_results} hold them, and {!Eva_results.set_results}
+    installs them again after it clears the results of the analysis. *)
+
+type records
+
+(** The records of the hits of the current analysis. *)
+val records : unit -> records
+
+(** [restore records] adds [records] to those of the current analysis. *)
+val restore : records -> unit

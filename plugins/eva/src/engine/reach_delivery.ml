@@ -71,3 +71,31 @@ let reach_unknown_of kf = not (Unknown.is_empty ()) && Unknown.mem kf
 let reach_unknown_at stmt =
   not (Unknown.is_empty ())
   && Unknown.mem (Kernel_function.find_englobing_kf stmt)
+
+(* ----- Saved results ----------------------------------------------------- *)
+
+type records = {
+  points : (Domain_store.control_point * Callstack.Set.t) list;
+  unknown : Kernel_function.Set.t;
+  skipped : Kernel_function.t list;
+}
+
+let records () =
+  let skipped kf acc =
+    if Safety_delivery.visits_skipped kf then kf :: acc else acc
+  in
+  { points = Points.fold (fun point set acc -> (point, set) :: acc) [];
+    unknown = Unknown.get ();
+    skipped = Globals.Functions.fold skipped [] }
+
+let restore records =
+  let add (point, set) =
+    let union = function
+      | None -> set
+      | Some previous -> Callstack.Set.union previous set
+    in
+    Points.replace point (union (Points.find_opt point))
+  in
+  List.iter add records.points;
+  Kernel_function.Set.iter reach_unknown records.unknown;
+  List.iter Safety_delivery.skip_visits records.skipped
