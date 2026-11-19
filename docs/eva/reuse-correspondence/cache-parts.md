@@ -103,6 +103,10 @@ with `-calldeps`: the entries of `inner` have `[from, inout]` and those of
 calls to `inner` hit; each call to `outer` reads `rejected (entry N:
 missing-part)` for the entry whose key matches and is analysed; the
 callwise dependencies of the 4 call sites are those of caching disabled.
+With the tests of a body without calls removed from `provide_froms` and
+`provide_inout`, the entries of `outer` have `[inout]` and the fixture
+fails; the From part is still withheld, since its reads are `Top` for a
+body with a call.
 
 ## A part whose reads the key misses is withheld
 
@@ -434,7 +438,8 @@ withheld](#a-part-whose-reads-the-key-misses-is-withheld), the producer
 obligations of
 [Entries from fresh bodies](cache-producer.md#producer-obligations-for-exit-reuse).
 
-**Symbols.** `Callwise.reads_of_body` in From;
+**Symbols.** `Cache_part.provide` (contract), `Callwise.reads_of_body` in
+From;
 `Operational_inputs.Callwise.compute_call_from_value_states` in Inout;
 `Eva.Results.is_reachable`, `Eva.Results.at_start_of`, `Engine.find`,
 `Self.is_computed`, `Eval_terms.add_init`.
@@ -482,7 +487,12 @@ during the analysis, since a label without one gives no logic inputs
 supplied to a second analysis, in which the first and third calls hit: the
 third call restores the parts computed before the second call reached the
 branch. The dependencies and the inputs and outputs at the three call
-sites are those of caching disabled. In the scenario `visits`, the body
+sites are those of caching disabled. With `Engine.find` answering from the
+saved states during the analysis (its test of `Self.is_computed` removed),
+the first call reads 0 of its 2 unreached statements as reachable in the
+results, the third call 2, and the state at the start is not `Top`: the
+answers depend on the earlier calls and the fixture fails. In the scenario
+`visits`, the body
 of `choose` is visited from three call sites and the third hit uses an
 entry produced before the second visit reached the other branch: the
 dependencies equal those of caching disabled and of memexec. The scenario
@@ -609,7 +619,8 @@ analysis with caching disabled gives the results by function again, equal
 to those of the first analysis. Scenario `nested`:
 `Inout.get_precise_inout` of `unused`, which is never called and has no
 callwise result, is computed after caching disabled and refused after the
-hits (`get_internal`). Scenario `then` with
+hits (`get_internal`); with the record of the function removed from the
+hit, it is computed. Scenario `then` with
 `-then -deps -input` and `-then -input`: the error, exit status 1, no
 result printed. Scenario `save`, then `-load` in another process with
 `-deps` and with `-out`: the same errors. Scenarios `server-fresh` and
