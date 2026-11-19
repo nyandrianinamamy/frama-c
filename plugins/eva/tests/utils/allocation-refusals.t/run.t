@@ -204,7 +204,9 @@ builtins, refuses a body that consults the node tags. The weakening is
 saved with the session: a node loaded by another process keeps the tag
 computed while its target was strong, and the body is still refused. In
 the saving process, the body is still refused after the state that holds
-the count is cleared alone.
+the count is cleared alone, and the session saved after that clearing
+still carries a count. In the loading process, the body is still refused
+after the loaded state is cleared alone.
 
   $ EVA_TEST_ALLOCATION=kernel-save frama-c -no-autoload-plugins -load-module eva,test_allocation_refusals.cmxs -eva-msg-key cache contents.c -save kernel.sav > save.log 2>&1
   $ grep -E '^(loaded|tags)' save.log
@@ -214,4 +216,17 @@ the count is cleared alone.
   $ EVA_TEST_ALLOCATION=kernel-load frama-c -no-autoload-plugins -load-module eva,test_allocation_refusals.cmxs -eva-msg-key cache -load kernel.sav > load.log 2>&1
   $ grep -E '^(loaded|tags)' load.log
   loaded node tag: true
+  tags: allocation-metadata, no owner
+  tags: allocation-metadata, no owner
+
+The same holds when the record was made weak while another project was
+current: the session of the project that holds the node carries the count.
+
+  $ EVA_TEST_ALLOCATION=kernel-save-foreign frama-c -no-autoload-plugins -load-module eva,test_allocation_refusals.cmxs -eva-msg-key cache contents.c -save foreign.sav > foreign.log 2>&1
+  $ grep -E '^(loaded|tags)' foreign.log
+  tags: allocation-metadata, no owner
+  $ EVA_TEST_ALLOCATION=kernel-load frama-c -no-autoload-plugins -load-module eva,test_allocation_refusals.cmxs -eva-msg-key cache -load foreign.sav > foreign-load.log 2>&1
+  $ grep -E '^(loaded|tags)' foreign-load.log
+  loaded node tag: true
+  tags: allocation-metadata, no owner
   tags: allocation-metadata, no owner

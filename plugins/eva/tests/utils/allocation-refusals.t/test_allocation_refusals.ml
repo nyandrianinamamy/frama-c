@@ -341,20 +341,36 @@ let kernel_save () =
   (* The count of the process remains when the state alone is cleared. *)
   let state = State.get "Base.Weakenings" in
   Project.clear ~selection:(State_selection.singleton state) ();
-  tags ();
-  (* The saved session holds a count again. *)
-  weaken (snd (allocated ~weak:false "again"))
+  tags ()
+
+(* The record is made weak while another project is current. *)
+let kernel_save_foreign () =
+  let base, validity = allocated ~weak:false "foreign" in
+  let value =
+    Cvalue.V_Or_Uninitialized.initialized (Cvalue.V.inject base Ival.zero)
+  in
+  let size = Z.of_int 64 in
+  Saved.set (Cvalue.V_Offsetmap.create ~size value ~size_v:size);
+  let other = Project.create "other" in
+  Project.on other (fun () -> weaken validity) ();
+  tags ()
 
 let kernel_load () =
   let map = Saved.get () in
   Format.printf "loaded node tag: %b@."
     (Cvalue.V_Offsetmap.cardinal_zero_or_one map);
   tags ()
+  ;
+  (* The loaded count remains when the state alone is cleared. *)
+  let state = State.get "Base.Weakenings" in
+  Project.clear ~selection:(State_selection.singleton state) ();
+  tags ()
 
 let () =
   match Sys.getenv_opt "EVA_TEST_ALLOCATION" with
   | Some "kernel" -> Boot.Main.extend kernel_paths
   | Some "kernel-save" -> Boot.Main.extend kernel_save
+  | Some "kernel-save-foreign" -> Boot.Main.extend kernel_save_foreign
   | Some "kernel-load" -> Boot.Main.extend kernel_load
   | _ -> ()
 
@@ -370,7 +386,7 @@ let () =
     | Some "call-site" -> observe_call_site name result
     | Some ("contents" | "weakening") -> observe_unread name result
     | Some ("finalisation" | "hit") -> observe_all name result
-    | Some ("kernel" | "kernel-save" | "kernel-load") -> ()
+    | Some ("kernel" | "kernel-save" | "kernel-save-foreign" | "kernel-load") -> ()
     | _ -> failwith "EVA_TEST_ALLOCATION is not set"
   in
   Access.on_result observe
