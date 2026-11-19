@@ -16,25 +16,38 @@ def KeyedRead {Hit Read Value : Type} (admitted : Hit → Prop)
     (reads : Hit → Read → Prop) (saved lookup : Hit → Read → Value) : Prop :=
   ∀ hit, admitted hit → ∀ read, reads hit read → saved hit read = lookup hit read
 
-/-- For each fixed observation, its value is invariant across positions in
-the same run where it can be read. Positions may distinguish times. -/
-def FixedRead {Time Read Value : Type} (reads : Time → Read → Prop)
-    (observe : Time → Read → Value) : Prop :=
-  ∀ t₁ t₂ read, reads t₁ read → reads t₂ read → observe t₁ read = observe t₂ read
+/-- Each fixed observation has the same value at every time in the run. -/
+def FixedRead {Time Read Value : Type} (observe : Time → Read → Value) : Prop :=
+  ∀ t₁ t₂ read, observe t₁ read = observe t₂ read
 
-/-- The saved contribution covers the fresh contribution and is joined into
-the existing table at the current hit's position. The before/after tables
-describe the replay of this contribution. The join laws allow repeated
-replay of the same contribution at the same position. -/
-def RecordedWrite {Hit Position Value : Type} (admitted writes : Hit → Prop)
+/-- Run-wide invariance implies agreement at any two reported reads. -/
+theorem FixedRead.agrees_on_reads {Time Read Value : Type}
+    {observe : Time → Read → Value} (h : FixedRead observe)
+    (reads : Time → Read → Prop) :
+    ∀ t₁ t₂ read, reads t₁ read → reads t₂ read → observe t₁ read = observe t₂ read :=
+  fun t₁ t₂ read _ _ => h t₁ t₂ read
+
+/-- Every observation represented by the contribution is represented by the value. -/
+def Covers {Value Observation : Type} (represents : Value → Observation → Prop)
+    (value contribution : Value) : Prop :=
+  ∀ o, represents contribution o → represents value o
+
+/-- Join the payload into the table at the current hit position. Replay
+covers the skipped execution's contribution and the previous contents
+there, and preserves the represented observations at every other position.
+The join covers both operands and supports repeated replay. -/
+def RecordedWrite {Hit Position Value Observation : Type} (admitted writes : Hit → Prop)
     (position : Hit → Position) (fresh saved : Hit → Value)
-    (before after : Hit → Position → Value) (join : Value → Value → Value) : Prop :=
+    (before after : Hit → Position → Value) (join : Value → Value → Value)
+    (represents : Value → Observation → Prop) : Prop :=
   (∀ x y z, join (join x y) z = join x (join y z)) ∧
   (∀ x y, join x y = join y x) ∧ (∀ x, join x x = x) ∧
+  (∀ x y, Covers represents (join x y) x ∧ Covers represents (join x y) y) ∧
   ∀ hit, admitted hit → writes hit →
-    join (fresh hit) (saved hit) = saved hit ∧
     after hit (position hit) = join (before hit (position hit)) (saved hit) ∧
-    ∀ p, p ≠ position hit → after hit p = before hit p
+    Covers represents (after hit (position hit)) (before hit (position hit)) ∧
+    Covers represents (after hit (position hit)) (fresh hit) ∧
+    ∀ p, p ≠ position hit → ∀ o, represents (after hit p) o ↔ represents (before hit p) o
 
 /-- Unsupported accesses, including unclassified accesses and overwrites
 without a separate justification, prevent storage and admission. The

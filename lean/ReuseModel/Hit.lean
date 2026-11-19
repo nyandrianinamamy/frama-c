@@ -30,6 +30,16 @@ theorem matches_of_projected {entry : CacheEntry d} {a : AllocatorAgreement M}
     entry.Matches a m :=
   hcompat m hm (Domain.match_lemma hf hsub hex hm).2
 
+/-- Under the projection hypotheses, compatibility is exactly the
+existence of a joint replay witness for every current member. -/
+theorem replayCompatible_iff_matches {entry : CacheEntry d} {a : AllocatorAgreement M}
+    {cur : d.State} (hf : ∀ m, d.γ cur m → d.γ (d.filter entry.key cur) m)
+    (hex : d.ExactOn entry.key entry.input)
+    (hsub : ∀ m, d.γ (d.filter entry.key cur) m → d.γ (d.filter entry.key entry.input) m) :
+    entry.ReplayCompatible a cur ↔ ∀ m, d.γ cur m → entry.Matches a m :=
+  ⟨fun hcompat _ hm => matches_of_projected hf hex hsub hcompat hm,
+    fun h m hm _ => h m hm⟩
+
 /-- Every frame holder in the current memory avoids the targets of the
 sweeps performed on a normal exit. The condition uses that exit's trace. -/
 def NoFrameRewrite (entry : CacheEntry d) (m : M) : Prop :=
@@ -93,8 +103,9 @@ theorem hit_of_matches {entry : CacheEntry d} {a : AllocatorAgreement M}
     · exact False.elim (hv (ho.safety (.assertion l) ⟨evs, e, k, env, atVisit, hp, he⟩))
     · rfl
 
-/-- The within-analysis hit theorem for a projected match. The same subject
-and entry bindings are used throughout. -/
+/-- Compose a joint replay witness supplied by compatibility with entry soundness,
+frame preservation and sound reuse. The same subject and entry bindings are
+used throughout. -/
 theorem hit {entry : CacheEntry d} {a : AllocatorAgreement M}
     {cur : d.State} (hs : entry.Sound a) (hf : ∀ m, d.γ cur m → d.γ (d.filter entry.key cur) m)
     (hex : d.ExactOn entry.key entry.input)

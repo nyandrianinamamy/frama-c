@@ -250,6 +250,33 @@ theorem value_hit_distinct_member :
     contradiction
 
 
+/-- The larger key excludes this member, although its concrete hit
+observations still satisfy the contract. -/
+theorem hit_observations_do_not_imply_match :
+    let larger := { hitEntry with key := [1, 2] }
+    larger.Sound FunMem.allocatorAgreement ∧
+    (valueDom FunMem).γ hitCurrent hitMember ∧
+    ¬ larger.Matches FunMem.allocatorAgreement hitMember ∧
+    larger.HitObservations hitCurrent hitMember := by
+  dsimp only
+  have observations := value_hit_distinct_member.2.2.1
+  refine ⟨⟨hit_sound.nonempty, ?_⟩, hit_member_mem, ?_,
+    ⟨observations.exit, observations.reach, observations.safety, observations.valid⟩⟩
+  · rintro m ⟨w, hw, hr⟩
+    have contents : AgreeOn hitEntry.key w m := by
+      intro b hb
+      have hb' : b = 1 := List.mem_singleton.mp hb
+      subst b
+      exact hr.contents 1 (by decide)
+    obtain ⟨c, o⟩ := hit_sound.matched m ⟨w, hw, ⟨contents, hr.live, hr.allocator⟩⟩
+    exact ⟨⟨c.accesses, c.exitWrites, c.sure⟩, ⟨o.exit, o.safety, o.reach⟩⟩
+  · rintro ⟨w, hw, hr⟩
+    have stored := value_fact hw (b := 2) (v := .int 4)
+      (List.Mem.tail _ (List.Mem.tail _ (List.Mem.head _)))
+    have agrees := hr.contents 2 (by decide)
+    rw [stored] at agrees
+    contradiction
+
 /-- A live stored overwrite destination may be absent from the current
 memory even when the filtered states agree and the allocator is unchanged.
 Skipping the liveness check would miss the fault at the store. -/

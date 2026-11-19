@@ -259,21 +259,31 @@ visits to the increment in `i = 0; while (i < 2) { L: i++; }`.
 
 ## A hit within one analysis
 
-`CacheEntry.hit` combines weak filter soundness on the current input,
-filtered inclusion, and stored-side exactness to obtain key agreement.
-`ReplayCompatible` supplies a single stored witness preserving key
-contents, write-target liveness and allocator state. The two runs use
-the same subject and entry bindings. At each normal exit the hit uses
-`ReuseSoundAt` on the stored witness over `W_exit` and the unchanged
-current frame. `HitObservations` also covers Reach and Safety on all
-finite prefixes, with a valid assertion holding at every visit.
-`Checks.value_hit_distinct_member` exercises the value-domain instance,
-with distinct current and stored frame values.
+`CacheEntry.hit` is a conditional composition. It takes the joint
+witness required by #36 for execution replay and by #37 for shared
+Inner as a hypothesis. Under weak filter soundness, filtered inclusion
+and stored-side exactness, `replayCompatible_iff_matches` says that
+`ReplayCompatible` is equivalent to the existence of a single stored
+witness for every current member, agreeing on key contents, write-target
+liveness and allocator state. `valueDom_hit` constructs the witness for
+the value domain using block fit and live write targets. For Eva's cvalue
+this remains an open lookup obligation.
 
-The four contracts in `SideTables.lean` state the conditions on keyed
-reads, fixed reads, recorded joins at the current hit position, and
-unsupported accesses in skipped work, including nested work. Their
-applicability to the Eva inventory is an assumption of the correspondence.
+The two runs use the same subject and entry bindings. At each normal exit
+the hit uses `ReuseSoundAt` on the stored witness over `W_exit` and the
+unchanged current frame. `HitObservations` covers Reach and Safety on all
+finite prefixes, with a valid assertion holding at every visit. The
+checks include a hit on a member with a distinct frame and a larger key
+that rejects that member even though its observations are covered.
+
+The four contracts in `SideTables.lean` require equality at reported keyed
+reads, run-wide invariance for each fixed observation, and a join at the
+current hit position that covers the fresh contribution and existing
+observations there and preserves coverage at other positions. Unsupported
+accesses in producers or skipped work prevent storage or admission.
+Completeness of the access relations, including nested work, is an open
+Eva obligation. Coverage of the table inventory by the four contracts
+is assumed.
 
 ## What the model leaves out
 

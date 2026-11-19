@@ -330,6 +330,10 @@ open ReuseModel ReuseModel.SideTables Checks
 #print axioms ReuseModel.CacheEntry.matches_of_projected
 #check_axioms ReuseModel.CacheEntry.matches_of_projected
 
+#check @CacheEntry.replayCompatible_iff_matches
+#print axioms ReuseModel.CacheEntry.replayCompatible_iff_matches
+#check_axioms ReuseModel.CacheEntry.replayCompatible_iff_matches
+
 #check @CacheEntry.NoFrameRewrite
 #print axioms ReuseModel.CacheEntry.NoFrameRewrite
 #check_axioms ReuseModel.CacheEntry.NoFrameRewrite
@@ -373,6 +377,14 @@ open ReuseModel ReuseModel.SideTables Checks
 #check @FixedRead
 #print axioms ReuseModel.SideTables.FixedRead
 #check_axioms ReuseModel.SideTables.FixedRead
+
+#check @FixedRead.agrees_on_reads
+#print axioms ReuseModel.SideTables.FixedRead.agrees_on_reads
+#check_axioms ReuseModel.SideTables.FixedRead.agrees_on_reads
+
+#check @Covers
+#print axioms ReuseModel.SideTables.Covers
+#check_axioms ReuseModel.SideTables.Covers
 
 #check @RecordedWrite
 #print axioms ReuseModel.SideTables.RecordedWrite
@@ -418,6 +430,10 @@ open ReuseModel ReuseModel.SideTables Checks
 #print axioms Checks.value_hit_distinct_member
 #check_axioms Checks.value_hit_distinct_member
 
+#check hit_observations_do_not_imply_match
+#print axioms Checks.hit_observations_do_not_imply_match
+#check_axioms Checks.hit_observations_do_not_imply_match
+
 #check hit_needs_write_liveness
 #print axioms Checks.hit_needs_write_liveness
 #check_axioms Checks.hit_needs_write_liveness
@@ -441,6 +457,30 @@ open ReuseModel ReuseModel.SideTables Checks
 #check side_table_contracts
 #print axioms Checks.side_table_contracts
 #check_axioms Checks.side_table_contracts
+
+#check fixed_read_needs_run_invariance
+#print axioms Checks.fixed_read_needs_run_invariance
+#check_axioms Checks.fixed_read_needs_run_invariance
+
+#check keyed_read_can_miss_nested_read
+#print axioms Checks.keyed_read_can_miss_nested_read
+#check_axioms Checks.keyed_read_can_miss_nested_read
+
+#check recorded_write_preserves_current_reach
+#print axioms Checks.recorded_write_preserves_current_reach
+#check_axioms Checks.recorded_write_preserves_current_reach
+
+#check recorded_write_needs_fresh_coverage
+#print axioms Checks.recorded_write_needs_fresh_coverage
+#check_axioms Checks.recorded_write_needs_fresh_coverage
+
+#check recorded_write_preserves_other_positions
+#print axioms Checks.recorded_write_preserves_other_positions
+#check_axioms Checks.recorded_write_preserves_other_positions
+
+#check unsupported_producer_prevents_storage
+#print axioms Checks.unsupported_producer_prevents_storage
+#check_axioms Checks.unsupported_producer_prevents_storage
 
 #check projectedPredicates
 #print axioms Checks.projectedPredicates
