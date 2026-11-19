@@ -54,8 +54,12 @@ let find_englobing_kf ?kf stmt =
 (**************************************************************************)
 
 module Changed = Hook.Make()
-let add_hook_on_change f = Changed.extend (Hook.Opaque.wrap f)
+let unaudited_changed = ref false
+let add_hook_on_change ?(audited = false) f =
+  if not audited then unaudited_changed := true;
+  Changed.extend (Hook.Opaque.wrap f)
 let has_hooks_on_change () = not (Changed.is_empty ())
+let has_unaudited_hooks_on_change () = !unaudited_changed
 
 module Usable_emitter = struct
   include Emitter.Usable_emitter

@@ -370,35 +370,6 @@ let api () =
 let save () =
   Project.save (Filepath.of_string (Sys.getenv "EVA_TEST_CACHE_PARTS_SESSION"))
 
-(* Three requests of the server: the dead code of copy, which hits answer in
-   the analysis with hits, and the statements that read and that write b at
-   the first call to copy, which Studia, loaded after the analysis, computes
-   with Inout. *)
-let server () =
-  Dynamic.load_plugin "studia";
-  let size = function `List l -> string_of_int (List.length l) | _ -> "?" in
-  let ask name arg =
-    match Server.Main.find name with
-    | None -> Format.printf "%s: missing@." name
-    | Some (_, handler) ->
-      match handler arg with
-      | `Assoc fields ->
-        let field (k, v) = k ^ " " ^ size v in
-        Format.printf "%s: %s@." name
-          (String.concat ", " (List.map field fields))
-      | _ -> Format.printf "%s: answered@." name
-      | exception Log.AbortError _ -> Format.printf "%s: refused@." name
-  in
-  let copy = Server.Printer_tag.SFunction (kf "copy") in
-  ask "plugins.eva.ast.getDeadCode" (Server.Kernel_ast.Decl.to_json copy);
-  let b = Var (global "b"), NoOffset in
-  let call = Kstmt (List.hd (calls "copy")) in
-  let marker = Server.Printer_tag.PLval (Some (kf "deps_main"), call, b) in
-  ask "plugins.studia.studia.getReadsLval"
-    (Server.Kernel_ast.Marker.to_json marker);
-  ask "plugins.studia.studia.getWritesLval"
-    (Server.Kernel_ast.Marker.to_json marker)
-
 (* ----- Requests that start the analysis or read a memo ------------------ *)
 
 (* From.get starts the analysis of Eva when its results are not computed.
@@ -491,7 +462,7 @@ let reset () =
   let copy = kf "copy" in
   let produced = first_analysis () in
   let changed = ref false in
-  Eva.Cvalue_callbacks.register_call_hook
+  Eva.Cvalue_callbacks.register_call_hook ~cache_protocol:true
     (fun _callstack f _state _kind ->
        if not !changed && Kernel_function.equal f copy then begin
          changed := true;
@@ -507,10 +478,13 @@ let reset () =
 
 (* Three parts of this test, which no consumer needs. During each analysis of
    the body of copy, a value of each is given: for the callstack of the body
-   in the current project, for the same callstack while another project is
-   current, and for the callstack of the caller. Only the first one is kept
-   with the entry. *)
+   in the current project, for the callstack of the caller and, with
+   EVA_TEST_CACHE_PARTS_SWITCH set, for the same callstack while another
+   project is current. Only the first one is kept with the entry. The change
+   of the current project refuses the body of copy (see [Body_access]):
+   then no entry of copy is produced. *)
 let project () =
+  let switch = Sys.getenv_opt "EVA_TEST_CACHE_PARTS_SWITCH" <> None in
   let register name =
     Eva.Cache_part.register ~name ~needed:(fun () -> false)
       ~restore:(fun _ _ _ () -> ()) ()
@@ -524,8 +498,9 @@ let project () =
     match results with
     | `Body _ when Kernel_function.equal f (kf "copy") ->
       Eva.Cache_part.provide kept callstack ~reads ();
-      Project.on other (Eva.Cache_part.provide other_project callstack ~reads)
-        ();
+      if switch then
+        Project.on other
+          (Eva.Cache_part.provide other_project callstack ~reads) ();
       Option.iter
         (fun outer -> Eva.Cache_part.provide caller outer ~reads ())
         (Eva.Callstack.pop callstack)
@@ -729,9 +704,6 @@ let () =
   | Some "api" -> Boot.Main.extend api
   | Some "then" -> Boot.Main.extend (after_hits ignore)
   | Some "save" -> Boot.Main.extend (after_hits save)
-  | Some "server" -> Boot.Main.extend (after_hits server)
-  | Some "server-fresh" ->
-    Boot.Main.extend (fun () -> ignore (first_analysis ()); server ())
   | Some "visits" -> Boot.Main.extend visits
   | Some "logic" -> Boot.Main.extend logic
   | Some "history" -> Boot.Main.extend history

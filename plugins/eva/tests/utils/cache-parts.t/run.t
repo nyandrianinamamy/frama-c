@@ -3,7 +3,7 @@ analysis with caching disabled produces the entries of the callees of
 parts.c, which are then supplied to a second analysis. The test module
 prints the parts of each entry and compares the two analyses.
 
-  $ dune build -j 8 --cache=disabled --root . test_cache_parts.cmxs
+  $ dune build -j 8 --cache=disabled --root . test_cache_parts.cmxs test_cache_parts_server.cmxs
 
 With -calldeps, each entry has a From part and an Inout part. The three
 calls to copy hit in the second analysis. The callwise dependencies of every
@@ -448,27 +448,6 @@ saved, and the later calls to copy are not answered by them.
   call to copy: lookup: rejected (entry 1: analysis-reset), rejected (entry 2: analysis-reset), rejected (entry 3: analysis-reset); execution: analysed
   call to copy: lookup: rejected (entry 1: analysis-reset), rejected (entry 2: analysis-reset), rejected (entry 3: analysis-reset); execution: analysed
 
-Three requests of the server, after an analysis with caching disabled and
-after the analysis with hits: the dead code of copy, and the statements
-that read and that write b at the first call to copy, which Studia, loaded
-after the analysis, computes with Inout. After the hits, no statement of
-copy is reported as reached or unreachable, and Studia's requests are
-refused.
-
-  $ EVA_TEST_CACHE_PARTS=server-fresh frama-c -no-autoload-plugins -load-module eva,eva.server_api,from,inout,test_cache_parts.cmxs parts.c > server-fresh.log 2>&1
-  $ grep -E '^plugins' server-fresh.log
-  plugins.eva.ast.getDeadCode: unreachable 0, reached 2, nonTerminating 0
-  plugins.studia.studia.getReadsLval: indirect 4, direct 1
-  plugins.studia.studia.getWritesLval: indirect 0, direct 1
-  $ EVA_TEST_CACHE_PARTS=server frama-c -no-autoload-plugins -load-module eva,eva.server_api,from,inout,test_cache_parts.cmxs parts.c > server.log 2>&1
-  $ grep -E '^(hits|plugins)|User Error|Error when' server.log
-  hits: copy 3; statement results complete: false
-  plugins.eva.ast.getDeadCode: unreachable 0, reached 0, nonTerminating 0
-  [studia] User Error: cannot find the statements that access a location: in the current analysis of Eva, a hit of the cache answered a call without analysing the body of the called function, and saved no state at its statements
-  plugins.studia.studia.getReadsLval: refused
-  [studia] User Error: cannot find the statements that access a location: in the current analysis of Eva, a hit of the cache answered a call without analysing the body of the called function, and saved no state at its statements
-  plugins.studia.studia.getWritesLval: refused
-
 The record of the hits is saved with the session: another process that
 loads it refuses the same requests.
 
@@ -483,6 +462,42 @@ loads it refuses the same requests.
   [1]
   $ grep -E 'User Error|Function|Out' load-out.log
   [inout] User Error: cannot compute the inputs and outputs by function or by statement: in the current analysis of Eva, a hit of the cache answered a call without analysing the body of the called function, and saved no state at its statements
+
+Three requests of the server: the dead code of copy, and the statements
+that read and that write b at the first call to copy, which Studia, loaded
+after the analysis, computes with Inout. The server, which From and Inout
+load through Callgraph, registers a client of the hooks on the changes of
+annotations; the client emits a signal to the client of the server, and
+the lookup admits the entries while it is registered. After an analysis
+with caching disabled, the server answers the three requests. After the
+analysis with hits, in the same process and in the session saved above,
+the three requests are refused: the request of Eva answers with an error
+of the server that names the cause.
+
+  $ EVA_TEST_CACHE_PARTS_SERVER=fresh frama-c -no-autoload-plugins -load-module eva,eva.server_api,from,inout,test_cache_parts_server.cmxs parts.c > server-fresh.log 2>&1
+  $ grep -E '^(statement|plugins)' server-fresh.log
+  statement results complete: true
+  plugins.eva.ast.getDeadCode: unreachable 0, reached 2, nonTerminating 0
+  plugins.studia.studia.getReadsLval: indirect 4, direct 1
+  plugins.studia.studia.getWritesLval: indirect 0, direct 1
+  $ EVA_TEST_CACHE_PARTS_SERVER=hits frama-c -no-autoload-plugins -load-module eva,eva.server_api,from,inout,test_cache_parts_server.cmxs parts.c > server-hits.log 2>&1
+  $ sed -n '/^hits/,$p' server-hits.log > server-hits.txt
+  $ grep -E '^(hits|statement|plugins)|User Error|Error when' server-hits.txt
+  hits: copy 3
+  statement results complete: false
+  plugins.eva.ast.getDeadCode: refused: cannot classify the statements of copy as reached or unreachable: in the current analysis of Eva, a hit of the cache answered a call of this function without analysing its body, and saved no state at its statements
+  [studia] User Error: cannot find the statements that access a location: in the current analysis of Eva, a hit of the cache answered a call without analysing the body of the called function, and saved no state at its statements
+  plugins.studia.studia.getReadsLval: refused
+  [studia] User Error: cannot find the statements that access a location: in the current analysis of Eva, a hit of the cache answered a call without analysing the body of the called function, and saved no state at its statements
+  plugins.studia.studia.getWritesLval: refused
+  $ EVA_TEST_CACHE_PARTS_SERVER=loaded frama-c -no-autoload-plugins -load-module eva,eva.server_api,from,inout,test_cache_parts_server.cmxs -load hits.sav > server.log 2>&1
+  $ grep -E '^(statement|plugins)|User Error|Error when' server.log
+  statement results complete: false
+  plugins.eva.ast.getDeadCode: refused: cannot classify the statements of copy as reached or unreachable: in the current analysis of Eva, a hit of the cache answered a call of this function without analysing its body, and saved no state at its statements
+  [studia] User Error: cannot find the statements that access a location: in the current analysis of Eva, a hit of the cache answered a call without analysing the body of the called function, and saved no state at its statements
+  plugins.studia.studia.getReadsLval: refused
+  [studia] User Error: cannot find the statements that access a location: in the current analysis of Eva, a hit of the cache answered a call without analysing the body of the called function, and saved no state at its statements
+  plugins.studia.studia.getWritesLval: refused
 
 Pdg, loaded in the process that loads the session, refuses to build the
 graph of a function, and stops. With an option of Eva changed, the analysis
@@ -514,10 +529,9 @@ the work of the issue of the reachable statements.
   after the hits: first statement of copy reachable: false
 
 A value of a part is kept with the entry only when it is given for the body
-being analysed, in the project current when its analysis started. The test
-module registers three parts and gives a value of each during the analysis
-of copy: for its callstack, for its callstack while another project is
-current, and for the callstack of its caller.
+being analysed. The test module registers parts and gives a value of each
+during the analysis of copy: for its callstack, and for the callstack of its
+caller.
 
   $ EVA_TEST_CACHE_PARTS=project frama-c -no-autoload-plugins -load-module eva,from,inout,test_cache_parts.cmxs parts.c > project.log 2>&1
   $ grep '^entry of' project.log
@@ -528,6 +542,18 @@ current, and for the callstack of its caller.
   entry of narrow_and_write: parts [inout]
   entry of checked: parts [inout]
   entry of checked: parts [inout]
+
+A value given while another project is current is computed in the tables of
+that project. The test module also gives a value for the callstack of copy
+while another project is current: the change of the current project during
+the analysis of the body refuses it (project-switch), and no entry of copy
+is produced.
+
+  $ EVA_TEST_CACHE_PARTS=project EVA_TEST_CACHE_PARTS_SWITCH=1 frama-c -no-autoload-plugins -load-module eva,from,inout,test_cache_parts.cmxs -eva-msg-key cache parts.c > switch.log 2>&1
+  $ grep -E '^entry of copy|call to copy' switch.log
+    call to copy: lookup: no-candidate; execution: analysed; storage: refused (disabled); collector: refused (project-switch)
+    call to copy: lookup: no-candidate; execution: analysed; storage: refused (disabled); collector: refused (project-switch)
+    call to copy: lookup: no-candidate; execution: analysed; storage: refused (disabled); collector: refused (project-switch)
 
 Entries are supplied to the project in which they were produced. A copy of
 this project, made by Project.create_by_copy, has other values for its

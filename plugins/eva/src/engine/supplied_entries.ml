@@ -257,7 +257,8 @@ let stop_at_nth_alarm () = Parameters.StopAtNthAlarm.get () < max_int
    - the hooks of the kernel on a new property and on a new status, which
      the evaluation of the preconditions and the delivery of alarms and
      statuses run, and on a change of the annotations, which the
-     registration of an alarm runs;
+     registration of an alarm runs, apart from the hook of the server, which
+     emits a signal to its client;
    - the listeners and the observers of the history of the logger, apart
      from the message collector of the kernel and the observer of the
      collector of block accesses, and the hooks of the message collector:
@@ -270,7 +271,7 @@ let unaudited_clients () =
   Cvalue_callbacks.unaudited_hooks ()
   || Red_statuses.has_hooks ()
   || Property_status.has_add_or_update_hooks ()
-  || Annotations.has_hooks_on_change ()
+  || Annotations.has_unaudited_hooks_on_change ()
   || Log.unaudited_clients ()
   || Messages.has_hooks ()
 

@@ -38,7 +38,13 @@ let ast_update_hook f =
   end
 
 let () = ast_update_hook ast_changed
-let () = Annotations.add_hook_on_change ast_changed
+
+(* The hook on the changes of annotations emits the signal [changed]. With
+   no server running, the emission does nothing; with a server running, it
+   adds the signal to the sets and to the queue of messages of the server
+   ([Main.do_signal]), and runs no other hook. The analyses read none of
+   these: the hook is audited. *)
+let () = Annotations.add_hook_on_change ~audited:true ast_changed
 
 (* -------------------------------------------------------------------------- *)
 (* --- File Positions                                                     --- *)

@@ -262,11 +262,11 @@ type rejection = [
       hooks of red statuses ({!Red_statuses.has_hooks}), the hooks of the
       kernel on a new property or status
       ({!Property_status.has_add_or_update_hooks}) and on a change of the
-      annotations ({!Annotations.has_hooks_on_change}), the listeners and
-      observers of the history of the logger ({!Log.unaudited_clients}), and
-      the hooks of the message collector of the kernel
-      ({!Messages.has_hooks}). A client registered since the production of
-      the entry counts. *)
+      annotations ({!Annotations.has_unaudited_hooks_on_change}), the
+      listeners and observers of the history of the logger
+      ({!Log.unaudited_clients}), the hooks of the message collector of the
+      kernel ({!Messages.has_hooks}). A client registered since the
+      production of the entry counts. *)
   | `Analysis_reset
   (** While an analysis runs, its computation state is no longer
       [Computing]: its results were cleared, which a change of an option of

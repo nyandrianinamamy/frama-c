@@ -16,13 +16,22 @@ open Cil_types
 (** {2 Getting annotations} *)
 (**************************************************************************)
 
-val add_hook_on_change: (unit -> unit) -> unit
+val add_hook_on_change: ?audited:bool -> (unit -> unit) -> unit
 (** Emitted whenever any of the annotation tables is modified.
+
+    Set [audited] only for a hook that runs no other hook, reads nothing
+    that an analysis writes, and writes nothing that an analysis reads.
+    {!has_unaudited_hooks_on_change} does not count it. Its invocation is
+    reported to {!Hook.Opaque} all the same.
     @since 27.0-Cobalt *)
 
 val has_hooks_on_change: unit -> bool
 (** Whether a hook was registered by {!add_hook_on_change}. A hook cannot be
     removed. *)
+
+val has_unaudited_hooks_on_change: unit -> bool
+(** Whether a hook was registered by {!add_hook_on_change} without
+    [audited]. A hook cannot be removed. *)
 
 (**************************************************************************)
 (** {3 Code annotations} *)
