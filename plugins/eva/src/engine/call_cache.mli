@@ -179,20 +179,20 @@ module Make
     val lookup : ('loc, Value.t) Eval.call -> Domain.t -> lookup
 
     (** [store ~save_results ~safety ~reach ~parts call state pending
-        result footprint] offers the [result] of analysing the body of the
-        called function, after a lookup that found no candidate for the call
-        [call] in the state [state] and returned [pending]. It prints the message of the
-        call and, if a cache was consulted, counts the stored entry or the
-        refused storage. If [footprint] is present, it also reports and
-        counts the collector verdict and the storage of an entry produced
-        from it, with [safety], the writes recorded during the analysis of
-        the body ({!Safety_part.capture}), as its Safety part, [reach]
-        ({!Reach_part.capture}) as its Reach part, and [parts], the parts
-        given during this analysis of the body (see {!Cache_part.capture}).
-        [save_results] enables statement recording for this body. An Inner
-        reference also requires recording in the cvalue store, and the
-        points of the Reach part require [save_results].
-        Returns the produced entry, if any. *)
+        result fp] offers the [result] of analysing the body of the called
+        function, after a lookup that found no candidate for the call [call]
+        in the state [state] and returned [pending]. It prints the message
+        of the call and, if a cache was consulted, counts the stored entry
+        or the refused storage. If the footprint [fp] is present, it also
+        reports and counts the collector verdict and the storage of an entry
+        produced from it, with [safety], the writes recorded during the
+        analysis of the body ({!Safety_part.capture}), as its Safety part,
+        [reach] ({!Reach_part.capture}) as its Reach part, and [parts], the
+        parts given during this analysis of the body (see
+        {!Cache_part.capture}). [save_results] enables statement recording
+        for this body. An Inner reference also requires recording in the
+        cvalue store, and the points of the Reach part require
+        [save_results]. Returns the produced entry, if any. *)
     val store :
       save_results:bool -> safety:Safety_part.t -> reach:Reach_part.t ->
       parts:Cache_part.parts -> ('loc, Value.t) Eval.call -> Domain.t ->
