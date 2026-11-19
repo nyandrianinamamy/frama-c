@@ -212,6 +212,42 @@ let readers () =
   Format.printf "hits %d, rejected for consumer %d@."
     (sum hits) (sum (rejected "consumer"))
 
+(* ----- Several visits of one body ----------------------------------------- *)
+
+(* On visits.c, with -calldeps: the callwise dependencies at the call sites of
+   choose, in an analysis with memexec, in an analysis with caching
+   disabled, which produces the entries of choose, and in an analysis to
+   which these entries are supplied. *)
+let visits () =
+  let print name table =
+    List.iter
+      (fun stmt ->
+         Format.printf "%s: choose at line %d: %s@." name (line stmt)
+           (one_line Eva.Assigns.pretty (List.assoc (Kstmt stmt) table)))
+      (calls "choose")
+  in
+  clear ();
+  Eva.Parameters.Memexec.on ();
+  Eva.Analysis.compute ();
+  let memexec = callwise_froms () in
+  let memexec_hits =
+    Eva.Statistics.(get memexec_hits) (kf "choose")
+  in
+  clear ();
+  Eva.Parameters.Memexec.off ();
+  Eva.Analysis.compute ();
+  let produced = Producer.entries (kf "choose") in
+  let fresh = callwise_froms () in
+  second_analysis produced;
+  let reused = callwise_froms () in
+  Format.printf "memexec hits: choose %d; supplied hits: choose %d@."
+    memexec_hits (hits "choose");
+  print "caching disabled" fresh;
+  print "memexec" memexec;
+  print "supplied hits" reused;
+  Format.printf "equal to caching disabled: %b; equal to memexec: %b@."
+    (same_froms fresh reused) (same_froms memexec reused)
+
 (* ----- Results by function requested by the module ---------------------- *)
 
 (* The results by function of From and Inout are computed from the states
@@ -275,4 +311,5 @@ let () =
   | Some "readers" -> Boot.Main.extend readers
   | Some "project" -> Boot.Main.extend project
   | Some "api" -> Boot.Main.extend api
+  | Some "visits" -> Boot.Main.extend visits
   | _ -> ()

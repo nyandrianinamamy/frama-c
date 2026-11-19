@@ -47,6 +47,31 @@ every function joined over its calls, are those of the first analysis.
   callwise inputs and outputs equal at 9 call sites: true
   inputs and outputs equal for 7 functions: true
 
+A body visited several times in one analysis. In visits.c, the third call
+to choose hits the entry produced by the first call, before the second call
+reached the other branch; with caching disabled, it is analysed after both
+branches were reached. Its callwise dependencies are the same in the three
+analyses. The last three dispositions are those of the analysis with the
+supplied entries.
+
+  $ EVA_TEST_CACHE_PARTS=visits frama-c -no-autoload-plugins -load-module eva,from,inout,test_cache_parts.cmxs -calldeps -eva-msg-key cache visits.c > visits.log 2>&1
+  $ grep -E '^(memexec hits|caching disabled|memexec:|supplied hits:|equal)' visits.log
+  memexec hits: choose 1; supplied hits: choose 3
+  caching disabled: choose at line 16: a FROM indirect: c; direct: b; \result FROM \nothing
+  caching disabled: choose at line 17: a FROM indirect: c; direct: d; \result FROM \nothing
+  caching disabled: choose at line 18: a FROM indirect: c; direct: b; \result FROM \nothing
+  memexec: choose at line 16: a FROM indirect: c; direct: b; \result FROM \nothing
+  memexec: choose at line 17: a FROM indirect: c; direct: d; \result FROM \nothing
+  memexec: choose at line 18: a FROM indirect: c; direct: b; \result FROM \nothing
+  supplied hits: choose at line 16: a FROM indirect: c; direct: b; \result FROM \nothing
+  supplied hits: choose at line 17: a FROM indirect: c; direct: d; \result FROM \nothing
+  supplied hits: choose at line 18: a FROM indirect: c; direct: b; \result FROM \nothing
+  equal to caching disabled: true; equal to memexec: true
+  $ grep -o 'call to choose: lookup: [^;]*; execution: [a-z-]*' visits.log | tail -3
+  call to choose: lookup: hit (entry 1); execution: not-analysed
+  call to choose: lookup: rejected (entry 1: key-differs), hit (entry 2); execution: not-analysed
+  call to choose: lookup: hit (entry 1); execution: not-analysed
+
 With -eva, Eva also analyses the program before the test module does, and
 prints the final states after each of the three analyses, filtered by the
 outputs that Inout computes by function. An analysed caller of a hit has
