@@ -10,7 +10,7 @@ The fixture
 [`allocation-refusals.t`](../../../plugins/eva/tests/utils/allocation-refusals.t/run.t)
 holds the regressions cited below. Its OCaml module asserts the fields of each
 observation; the cram file records the reasons of each body. "Before the
-fixes" below means revision `724cee633b83de028e67399622e0f3189c4b98bb`, the
+fixes" below means revision `1333c8063f2cda041cf7c2f6b0de5e4f84708bcc`, the
 reviewed state of this ticket rebased on the integration branch; "the base
 revision" means `50dc2a31ff53bf181cbd6b9fa83aea3a8f445c8b`, the integration
 branch before this ticket.
@@ -415,7 +415,7 @@ rule it read `would-store`. Called before the weakening, it reads
 `would-store`. `straight` has one state at each point and reads
 `would-store` after the weakening. On the Eva ptests run with collection
 (`dev/collector-counts.sh`), the verdicts are the same at revision
-`dee02c6f736604e65f9672ab1eb4bd3acff34a1e`, before the rule, and with the
+`b6a0e9c2a443bb8b19c039008f3e2e9f5072321d`, before the rule, and with the
 rule: 998 bodies would be stored in both runs, and every count of a first
 reason is unchanged.
 
