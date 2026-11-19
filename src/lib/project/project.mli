@@ -108,14 +108,15 @@ val is_current: t -> bool
 
 val current_changes: unit -> int
 (** The number of changes of the current project in this process. Each
-    operation that changes the current project counts its change before
-    running any hook: {!set_current}, {!on} on entry and on exit, {!remove}
-    of the current project, {!remove_all}, the loading of a session or of a
-    project, and the creation of a project when there is none. A change made
-    during a hook registered by {!register_after_set_current_hook} is
-    counted, although the kernel runs no hook for it. Two equal counts read
-    at two points of a computation mean that the current project did not
-    change between them. *)
+    operation that changes the current project counts its change when it
+    makes it, before the hooks that follow: {!set_current}, {!on} on entry
+    and on exit, {!remove} of the current project, {!remove_all}, the
+    creation of a project when there is none, and each step of the loading
+    of a session or of a project that may change the current project. A
+    change made during a hook registered by
+    {!register_after_set_current_hook} is counted, although the kernel runs
+    no hook for it. Two equal counts read at two points of a computation
+    mean that the current project did not change between them. *)
 
 val last_project_created_by_copy: unit -> int option
 (** @since 33.0-Arsenic *)
