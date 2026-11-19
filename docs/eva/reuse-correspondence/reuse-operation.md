@@ -158,12 +158,14 @@ identifiers](#a-supplied-entry-is-used-with-cvalue-alone-and-no-consumer-of-meme
 the candidates are the entries supplied for the function, oldest first. Let s
 be the input of the call. A candidate E with key K, stored input I, and exit
 states (k_i, o_i) matches when `filter` K s = I and `relate` K s ⊆ K. The
-oldest matching candidate is used and the body is not analysed; the states
-at the end of the call are given by [A hit takes the blocks of W_exit from
+oldest matching candidate that passes effect and dependency admission is
+used. Its states at the end of the call are given by [A hit takes the blocks of W_exit from
 the exit state](#a-hit-takes-the-blocks-of-w_exit-from-the-exit-state). The
 candidates examined before it are rejected with `key-differs` when the first
-test fails and `key-unclosed` when the second fails. No argument value, call
-site or callstack takes part in the match.
+test fails and `key-unclosed` when the second fails. Memory matching uses
+the filtered input. Admission separately checks the enclosing stack, active
+watchpoints and the produced entry's recorded sweep and hint dependencies.
+[Collector dependencies](collector-effects.md).
 
 **Kind.** OCaml obligation.
 
@@ -184,12 +186,11 @@ not closed in the input: `relate K input` must be included in K. `supply`
 gives the entries the identifiers 1, 2, ... in the order of the calls to
 `supply`, and appends each entry to the list of its function, so the list is
 ordered from the oldest. `find` examines the list in order and stops at the
-first candidate whose `check` succeeds; `check` compares `Domain.filter K s`
-with I by `Domain.equal`, then tests `relate K s` ⊆ K. A failure of either
-test adds the candidate to the rejected list with its reason and the next
-one is examined. The lookup takes the function and the state only, so no
-argument value, call site or callstack is compared. The state given to the
-lookup is the input of the call: the caller's state after
+first candidate whose `check` and `admit` succeed. `check` compares
+`Domain.filter K s` with I by `Domain.equal`, then tests `relate K s` ⊆ K.
+`Supplied_entries.Lookup.admit` checks the dependent effects. A failure adds
+the candidate to the rejected list with its reason and the next one is
+examined. The state given to the lookup is the input of the call: the caller's state after
 `Domain.start_call`, which binds the formals (`Transfer_stmt`), so formals
 take part in the key as blocks. For cvalue, `Cvalue_domain.State.equal`
 compares the maps and ignores the clobbered set. The engine never analyses a
@@ -788,16 +789,12 @@ state](#a-hit-takes-the-blocks-of-w_exit-from-the-exit-state).
 
 - The law holds for cvalue only under the condition on bindings; the hit
   supplies it through the check of the exit states by `supply`.
-- At lookup with sweeps, justify `NoFrameRewrite` for each covered
-  current memory and each normal exit outside W_exit. The model proves
-  the absent-binding case at normal exit. Eva must justify its lifetime
-  and offsetmap behavior there and that outer cleanup sees holders
-  known only to the current caller. If an exit requires a current
-  holder rewrite, the unchanged overlay refuses that case.
-  [Sweep admission](frame.md#admission-condition-for-sweeps-of-own-locals).
-- An unrolled recursive call reaches the lookup before the check that
-  refuses recursion on a miss. No fixture has a recursive function with a
-  supplied entry, and the argument above assumes one activation of the body.
+- The supplied lookup checks current inputs for potential references to
+  the recorded sweep targets of produced entries. Coverage of all actual
+  targets, outer cleanup and the interpretation of offsetmap cells remain
+  obligations. [Sweep admission](frame.md#admission-condition-for-sweeps-of-own-locals).
+- The supplied lookup checks used functions against the enclosing stack.
+  No fixture has a recursive function with a supplied entry.
 - R holds every read, so a block read only after it is surely overwritten
   must still be in the key (`make` refuses the entry otherwise). The key is
   then larger than the incoming values the body depends on. Sound; a finer

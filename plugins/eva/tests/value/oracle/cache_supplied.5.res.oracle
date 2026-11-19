@@ -133,7 +133,7 @@
 [eva:progress] Recording results for twice
 [eva:progress] Done for function twice
 [eva:cache] cache_supplied.c:155: 
-  call to twice: lookup: rejected (entry 10: consumer); execution: analysed; storage: refused (supplied-only); collector: refused (side-table)
+  call to twice: lookup: rejected (entry 10: consumer); execution: analysed; storage: refused (supplied-only); collector: refused (threaded)
 [eva:progress] cache_supplied.c:156: assertion 'returned' got status valid.
 [eva:progress] 
   computing for function twice <- main.
@@ -141,7 +141,7 @@
 [eva:progress] Recording results for twice
 [eva:progress] Done for function twice
 [eva:cache] cache_supplied.c:157: 
-  call to twice: lookup: rejected (entry 10: consumer); execution: analysed; storage: refused (supplied-only); collector: refused (side-table)
+  call to twice: lookup: rejected (entry 10: consumer); execution: analysed; storage: refused (supplied-only); collector: refused (threaded)
 [eva:progress] cache_supplied.c:158: assertion 'analysed' got status valid.
 [eva:progress] 
   computing for function leak_address <- main.

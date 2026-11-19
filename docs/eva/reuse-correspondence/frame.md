@@ -23,8 +23,8 @@ departing local. Ordinary call cleanup uses release without a sweep in
 this model. There is no heap or VLA sweep. Concrete execution includes
 lexical scopes executed inside calls. The semantics sweeps the locals of
 the scope being unwound. A lexical sweep event alone cannot establish
-that the cached unit owns those locals. The ownership check for admission
-belongs to #44.
+that the cached unit owns those locals. Eva checks their ownership at
+the collector's [lexical sweep boundary](collector-effects.md#lexical-sweep-in-cvalue).
 
 **Declarations.** [Frame](../../../lean/ReuseModel/Frame.lean),
 [Memory](../../../lean/ReuseModel/Memory.lean),
@@ -243,22 +243,19 @@ currently refused by the collector.
 non-temporaries, reports `Body_access.Sweep` through `unknown_access`,
 and applies `make_escaping` to the candidate holders and the null base,
 with a full map scan when the holder set is Top. `Transfer_stmt.do_one_call`
-performs the outer cleanup. The observed collector disposition is still
-`sweep`. See [Body access](body-access.md#refusal-and-reporting) and
-[Entries from fresh bodies](cache-producer.md#key-and-footprint-from-the-collector).
+performs the outer cleanup. The own-local path records the targets and
+the holder rewrites. The supplied lookup checks the caller's input for
+potential holders, with an Eva fixture that exercises both acceptance and
+refusal. [Lexical sweep in cvalue](collector-effects.md#lexical-sweep-in-cvalue).
 
 **Open.** The checks here use fresh concrete identifiers for each lexical
-lifetime. Eva's bases identify variables, so #44 must give the
-correspondence for repeated visits to a lexical scope, preceding
-activations, unmarked versus already-escaping references, and the
-concretisation of offsetmaps and unknown values. Excluding recursion
-helps separate the body from an active outer instance of the same
-body. The holder condition still needs a proof when a lexical scope has
-already run in a loop or on an earlier call. #44 needs an admission check or argument for the current frame,
-coverage of the holder updates and their exit bindings, and an Eva
-regression with a written holder checked after the sweep. The
-whole-block proof is checked. The argument for offsets is open. No Eva
-regression for sweep admission was run here.
+lifetime. Eva's bases identify variables. The input guard excludes any
+unmarked reference to a recorded target, including a reference left from
+an earlier lifetime. Excluding recursion separates the body from an active
+outer instance of the same body. Relating the current and stored concrete
+lifetimes to a matched abstract trace still needs the joint witness and
+coverage for repeated visits to a lexical scope. The model is whole-block.
+The argument for offsets remains open.
 
 ## Reading a marked holder
 
