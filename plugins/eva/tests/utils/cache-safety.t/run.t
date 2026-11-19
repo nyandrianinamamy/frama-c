@@ -469,6 +469,14 @@ in a delivery of the Safety part as in an analysis of body.
   $ grep '^| ' owner-analyse.log
   | alarm division_by_zero at safety.c:11: owner Other; statuses: Eva unknown
 
+The owner depends on the order of the registrations: when the other emitter
+registers the alarm after the delivery, Eva registered it first and owns
+it.
+
+  $ EVA_TEST_CACHE_SAFETY=owner EVA_TEST_CACHE_SAFETY_OWNER=late frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -main producer safety.c > owner-late.log 2>&1
+  $ grep '^| ' owner-late.log
+  | alarm division_by_zero at safety.c:11: owner Eva; statuses: Eva unknown
+
 The preconditions of the callee belong to the call site and are evaluated at
 each call, a hit included. A hand-written entry of pre answers the call
 pre(1) at line 18, where g = 0: the precondition is reported invalid at that
