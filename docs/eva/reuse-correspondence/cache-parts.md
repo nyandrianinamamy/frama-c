@@ -436,7 +436,8 @@ it runs are checked by execution.
 **Depends on.** [A part whose reads the key misses is
 withheld](#a-part-whose-reads-the-key-misses-is-withheld), the producer
 obligations of
-[Entries from fresh bodies](cache-producer.md#producer-obligations-for-exit-reuse).
+[Entries from fresh bodies](cache-producer.md#producer-obligations-for-exit-reuse),
+among them the premise of the supplier on the options of Eva (below).
 
 **Symbols.** `Cache_part.provide` (contract), `Callwise.reads_of_body` in
 From;
@@ -509,13 +510,47 @@ withholds.
 the analysis runs, which the scenario `history` checks for the queries of
 From and Inout; a later change that makes them available must revisit
 premise 2. An entry produced in an analysis with another initial state is
-not detected (the supplier's premise). The option `-eva-no-results-function`
-is read in each analysis: when the analysis that produced the entry saved
-the results of the body and the current one does not, the restored part is
-the one computed from the states of the call, narrower than the `Top` that
-the current analysis would compute; it is sound, but does not cover `Top`
-as the claim states. The fixture does not change this option between the
-two analyses.
+not detected (the supplier's premise).
+
+The claim is stated for one configuration: the options of Eva that decide
+which states are saved at the statements (`-eva-results`,
+`-eva-no-results-function`) and how precisely bodies are analysed (options
+of precision, of the domains and of the alarms) are equal in the analysis
+that produced the entry and in the one that uses it. This is a premise of
+the supplier, stated on `Supplied_entries.supply_produced` and in the
+obligations of [Entries from fresh
+bodies](cache-producer.md#producer-obligations-for-exit-reuse); nothing
+checks it, and [#59](https://github.com/nyandrianinamamy/frama-c/issues/59),
+which saves the options of the producing analysis with its entries, must
+enforce it. Within one analysis these options do not change unnoticed:
+each is registered as a dependency of the state of Eva's results
+(`Parameters.add_dep`, `add_precision_dep`, `add_correctness_dep`), and
+changing one clears the results; the lookup then rejects every candidate
+with `analysis-reset` ([A supplied entry is used with cvalue alone and no
+unserved
+consumer](reuse-operation.md#a-supplied-entry-is-used-with-cvalue-alone-and-no-unserved-consumer)).
+The options of Eva outside this registration choose the cache
+(`-eva-memexec`, `-eva-cache-collect`), consolidate the results after the
+analysis (`-eva-join-results`), stop the analysis (`-eva-interpreter-mode`,
+`-eva-stop-at-nth-alarm`), name allocation functions, which a body with an
+entry does not call (`-eva-alloc-functions`), configure the sign or traces
+domains, with which every candidate is rejected (`product`), or print
+messages (source inspection of `Parameters`). A violated premise can change
+the restored parts and, through the reduction of the actuals, the state of
+the caller. Scenario `options`, which violates the premise on purpose: with
+`-eva-no-results-function narrow` in the using analysis only, `g` is `{-5;
+5}` after `narrow(g)` with caching disabled and `{5}` after the hit. Two
+other limits, found in review and executed again on this revision with a
+test module outside the tree: with `-eva-no-results-function copy` in the
+using analysis only, the dependencies at the three calls to `copy` are
+`FROMTOP` with caching disabled and the finite dependencies of the
+producing analysis after the three hits; in a function whose two branches
+set `x` and `y` equal, a statement under `x != y` is unreachable with
+`-eva-slevel 40` and reachable with `-eva-slevel 0`, and the hit of an
+entry produced with `-eva-slevel 40` gives `r FROM indirect: c; direct: b
+(or UNASSIGNED)` where caching disabled with `-eva-slevel 0` gives `r FROM
+indirect: c; direct: a; b`. These are limits under a violated premise, not
+counterexamples to the claim for one configuration.
 
 ## Readers of the states saved at statements reject every candidate
 
