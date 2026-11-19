@@ -648,7 +648,12 @@ module Callwise = struct
         let _version = "callwise"
         let _kf = kf
 
-        (* Returns the [kf] pre-state with respect to the single [call_stack]. *)
+        (* Returns the [kf] pre-state with respect to the single [call_stack].
+           While the analysis runs, its results are not available and this
+           state is [Top] for every call (see [Engine.find] in Eva): the
+           logic inputs of the label [Pre] do not depend on the other calls.
+           Those of the label [Init] are computed in the initial state of the
+           analysis. *)
         let kf_pre_state =
           Eva.Results.(at_start_of kf |> in_callstack call_stack |>
                        get_cvalue_model)
