@@ -248,6 +248,41 @@ let visits () =
   Format.printf "equal to caching disabled: %b; equal to memexec: %b@."
     (same_froms fresh reused) (same_froms memexec reused)
 
+(* ----- Logic inputs of an assertion that Eva does not evaluate ---------- *)
+
+(* On logic.c, logic_loop.c and logic_wider.c, with -calldeps. Inout computes
+   the logic inputs of the assertion of leaf from the address in p, which
+   Eva does not read: the Inout part of an entry of leaf is withheld, and
+   every candidate is rejected for missing-part. The logic inputs of each
+   call site are then those of caching disabled. *)
+let logic () =
+  let f = kf "leaf" in
+  let zones () =
+    List.map
+      (fun stmt ->
+         line stmt,
+         (Inout.get_precise_inout ~stmt f).Inout_type.over_logic_inputs)
+      (calls "leaf")
+  in
+  clear ();
+  Eva.Parameters.Memexec.off ();
+  Eva.Analysis.compute ();
+  let produced = Producer.entries f in
+  print_parts produced;
+  let fresh = zones () in
+  second_analysis produced;
+  let reused = zones () in
+  Format.printf "leaf: hits %d, rejected for missing-part %d@." (hits "leaf")
+    (rejected "missing-part" "leaf");
+  List.iter2
+    (fun (line, zone) (_, zone') ->
+       Format.printf "leaf at line %d: logic inputs %s; caching disabled %s@."
+         line (one_line Memory_zone.pretty zone')
+         (one_line Memory_zone.pretty zone))
+    fresh reused;
+  Format.printf "logic inputs equal to caching disabled: %b@."
+    (List.for_all2 (fun (_, z) (_, z') -> Memory_zone.equal z z') fresh reused)
+
 (* ----- Results by function requested by the module ---------------------- *)
 
 (* The results by function of From and Inout are computed from the states
@@ -289,13 +324,15 @@ let project () =
   and other_project = register "other-project"
   and caller = register "caller" in
   let other = Project.create "other" in
+  let reads = Base.SetLattice.empty in
   let give callstack f _state results =
     match results with
     | `Body _ when Kernel_function.equal f (kf "copy") ->
-      Eva.Cache_part.provide kept callstack ();
-      Project.on other (Eva.Cache_part.provide other_project callstack) ();
+      Eva.Cache_part.provide kept callstack ~reads ();
+      Project.on other (Eva.Cache_part.provide other_project callstack ~reads)
+        ();
       Option.iter
-        (fun outer -> Eva.Cache_part.provide caller outer ())
+        (fun outer -> Eva.Cache_part.provide caller outer ~reads ())
         (Eva.Callstack.pop callstack)
     | _ -> ()
   in
@@ -312,4 +349,5 @@ let () =
   | Some "project" -> Boot.Main.extend project
   | Some "api" -> Boot.Main.extend api
   | Some "visits" -> Boot.Main.extend visits
+  | Some "logic" -> Boot.Main.extend logic
   | _ -> ()

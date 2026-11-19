@@ -112,11 +112,49 @@ let part =
    the body made no call: a hit restores them at the call site of the hit,
    not the dependencies that the calls of the body record at their own call
    sites. *)
-let provide_froms callstack froms =
+let provide_froms callstack ~reads froms =
   match !call_froms_stack with
   | { table_for_calls } :: _ when Kinstr.Hashtbl.length table_for_calls = 0 ->
-    Eva.Cache_part.provide part callstack froms
+    Eva.Cache_part.provide part callstack ~reads froms
   | _ -> ()
+
+(* The blocks whose values the computation of the dependencies of a call of
+   [kf] reads in [states], the states of the call before each statement:
+   those of the expressions, of the addresses of the left values and of the
+   conditions of the statements that the call reaches, the blocks read to
+   compute an address included (see [From_compute]). The evaluations at a
+   statement that the call does not reach read nothing. A call, which the
+   computation reads in the table of the call site, gives [Top]. *)
+let reads_of_body kf states =
+  let open Cil_types in
+  let module Zone = Memory_zone in
+  let exception Unknown in
+  let reads stmt =
+    let state =
+      try Stmt.Hashtbl.find states stmt with Not_found -> Cvalue.Model.bottom
+    in
+    if not (Cvalue.Model.is_reachable state) then Zone.bottom
+    else
+      let request = Eva.Results.in_cvalue_state state in
+      let exp e = Eva.Results.expr_deps e request in
+      let rec init = function
+        | SingleInit e -> exp e
+        | CompoundInit (_, l) ->
+          List.fold_left (fun acc (_, i) -> Zone.join acc (init i)) Zone.bottom l
+      in
+      match stmt.skind with
+      | Instr (Set (lv, e, _)) ->
+        Zone.join (exp e) (Eva.Results.address_deps lv request)
+      | Instr (Local_init (_, AssignInit i, _)) -> init i
+      | Instr (Call _ | Local_init (_, ConsInit _, _)) -> raise Unknown
+      | If (e, _, _, _) | Switch (e, _, _, _) | Return (Some e, _) -> exp e
+      | _ -> Zone.bottom
+  in
+  try
+    let stmts = (Kernel_function.get_definition kf).sallstmts in
+    Zone.get_bases
+      (List.fold_left (fun acc s -> Zone.join acc (reads s)) Zone.bottom stmts)
+  with Unknown -> Base.SetLattice.top
 
 let compute_call_from_value_states current_function states =
   let module To_Use = struct
@@ -146,15 +184,17 @@ let record_for_individual_froms callstack kf pre_state value_res =
     let froms =
       match value_res with
       | `Body (Eva.Cvalue_callbacks.{before_stmts}, memexec_counter) ->
-        let froms =
+        let froms, reads =
           if Eva.Analysis.save_results kf
-          then compute_call_from_value_states kf (Lazy.force before_stmts)
-          else Eva.Assigns.top
+          then
+            let states = Lazy.force before_stmts in
+            compute_call_from_value_states kf states, reads_of_body kf states
+          else Eva.Assigns.top, Base.SetLattice.empty
         in
         if From_parameters.VerifyAssigns.get () then
           Eva.Logic_inout.verify_assigns kf ~pre:pre_state froms;
         MemExec.replace memexec_counter froms;
-        provide_froms callstack froms;
+        provide_froms callstack ~reads froms;
         pop_local_table kf;
         froms
       | `Reuse counter -> MemExec.find counter

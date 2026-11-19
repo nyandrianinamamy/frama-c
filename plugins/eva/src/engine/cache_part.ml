@@ -49,15 +49,21 @@ let register (type a) ~name ~needed ~restore () : a t =
 
 let name part = part.name
 
+(* A value of a part, with the blocks read to compute it. *)
+type value = {
+  value : exn;
+  reads : Base.SetLattice.t;
+}
+
 (* The parts of an entry: identifier of the part and its value. *)
-type parts = (int * exn) list
+type parts = (int * value) list
 
 let empty = []
 
 let find part parts =
   match List.assoc_opt part.id parts with
   | None -> None
-  | Some value -> part.project value
+  | Some { value } -> part.project value
 
 let names parts =
   List.filter_map
@@ -86,14 +92,36 @@ let capture callstack analyse =
 (* A value given while another project is current was computed in the tables
    of that project: it is dropped, as a value given for a body that is not
    the innermost one. *)
-let provide part callstack value =
+let provide part callstack ~reads value =
   match !frames with
   | frame :: _
     when Callstack.equal frame.callstack callstack
       && Project.is_current frame.project ->
     let others = List.remove_assoc part.id frame.parts in
-    frame.parts <- (part.id, part.inject value) :: others
+    frame.parts <- (part.id, { value = part.inject value; reads }) :: others
   | _ -> ()
+
+(* ----- Coverage by the key ----------------------------------------------- *)
+
+let uncovered_read = "uncovered-read"
+
+(* A local variable of the body, formals excluded, does not exist when the
+   call starts: its value at each statement is computed by the body. *)
+let own_local kf = function
+  | Base.Var (vi, _) ->
+    not vi.vglob && not (Kernel_function.is_formal vi kf)
+    && Kernel_function.is_local vi kf
+  | _ -> false
+
+let covered kf ~key { reads } =
+  match reads with
+  | Base.SetLattice.Top -> false
+  | Base.SetLattice.Set bases ->
+    Base.Hptset.for_all (fun b -> Base.Hptset.mem b key || own_local kf b)
+      bases
+
+let cover kf ~key parts =
+  List.filter (fun (_, value) -> covered kf ~key value) parts
 
 (* ----- Consumers --------------------------------------------------------- *)
 
@@ -122,7 +150,7 @@ let restore callstack kf pre parts =
   let restore_one p =
     if p.packed_needed () then
       match List.assoc_opt p.packed_id parts with
-      | Some value -> p.packed_restore callstack kf pre value
+      | Some { value } -> p.packed_restore callstack kf pre value
       | None ->
         Format.kasprintf invalid_arg
           "Cache_part.restore: the part %s is missing" p.packed_name

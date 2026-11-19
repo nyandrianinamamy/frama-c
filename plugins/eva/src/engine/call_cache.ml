@@ -137,8 +137,11 @@ let report ?collector ?produced call ~lookup ~execution ~storage =
       in
       let pretty_produced fmt = function
         | None -> ()
-        | Some (Ok id) ->
+        | Some (Ok (id, [])) ->
           Format.fprintf fmt "; producer: stored (entry %d)" id
+        | Some (Ok (id, withheld)) ->
+          Format.fprintf fmt "; producer: stored (entry %d; withheld: %s (%s))"
+            id (String.concat ", " withheld) Cache_part.uncovered_read
         | Some (Error reason) ->
           Format.fprintf fmt "; producer: refused (%s)"
             (Cache_producer.refusal_id reason)
@@ -289,8 +292,13 @@ module Make
            Statistics.(incr (cache_production_refused reason) kf));
         Some verdict, Some result
     in
-    let entry_id = Cache_entry.Cvalue.id in
-    let reported = Option.map (Result.map entry_id) produced in
+    (* The parts given during the analysis that the entry does not keep. *)
+    let withheld entry =
+      let kept = Cache_part.names (Cache_entry.Cvalue.parts entry) in
+      List.filter (fun n -> not (List.mem n kept)) (Cache_part.names parts)
+    in
+    let reported entry = Cache_entry.Cvalue.id entry, withheld entry in
+    let reported = Option.map (Result.map reported) produced in
     report ?collector ?produced:reported call
       ~lookup:(lookup_disposition pending) ~execution:`Analysed ~storage;
     Stdlib.Option.bind produced Result.to_option

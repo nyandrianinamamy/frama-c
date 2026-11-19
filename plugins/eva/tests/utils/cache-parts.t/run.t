@@ -136,6 +136,67 @@ second analysis, and the hits check the clauses again.
   after the hits: assigns clause in function checked: VALID according to Eva
   after the hits: from clause of term vout in function checked: VALID according to Eva
 
+An assertion that Eva does not evaluate, tagged no_eva, whose logic inputs
+Inout computes from the address in p. Eva does not read p: an entry
+produced at a call with p = &a would match a call with p = &b. The Inout
+part of each entry of leaf is withheld (uncovered-read), every candidate is
+rejected (missing-part) and the body is analysed: the logic inputs at each
+call site are those of caching disabled. In logic.c, leaf is called at two
+sites of main and through wrap; in logic_loop.c, twice at one call site; in
+logic_wider.c, first with an address among two, then with one of them.
+Without the check, the restored logic inputs miss a block that caching
+disabled finds in the first three runs. In the last run, without
+-eva-slevel, the first call of logic_wider.c is analysed with p pointing to
+a or b, and its entry matches the second call, with p = &a: the restored
+logic inputs would be wider than with caching disabled.
+
+  $ EVA_TEST_CACHE_PARTS=logic frama-c -no-autoload-plugins -load-module eva,from,inout,test_cache_parts.cmxs -calldeps -eva-slevel 20 -eva-msg-key cache,cache-producer logic.c > logic.log 2>&1
+  $ grep -E '^(entry of|leaf|logic inputs)' logic.log
+  entry of leaf: parts [from]
+  entry of leaf: parts [from]
+  entry of leaf: parts [from]
+  leaf: hits 0, rejected for missing-part 9
+  leaf at line 14: logic inputs b; p; caching disabled b; p
+  leaf at line 18: logic inputs a; p; caching disabled a; p
+  leaf at line 20: logic inputs b; p; caching disabled b; p
+  logic inputs equal to caching disabled: true
+  $ grep -o 'call to leaf: lookup: [^;]*; execution: [a-z-]*' logic.log | tail -3
+  call to leaf: lookup: rejected (entry 1: missing-part), rejected (entry 2: missing-part), rejected (entry 3: missing-part); execution: analysed
+  call to leaf: lookup: rejected (entry 1: missing-part), rejected (entry 2: missing-part), rejected (entry 3: missing-part); execution: analysed
+  call to leaf: lookup: rejected (entry 1: missing-part), rejected (entry 2: missing-part), rejected (entry 3: missing-part); execution: analysed
+  $ grep -o 'producer: stored (entry [0-9]*; withheld: [a-z, ]* ([a-z-]*))' logic.log | sort | uniq -c
+        3 producer: stored (entry 1; withheld: inout (uncovered-read))
+        3 producer: stored (entry 2; withheld: inout (uncovered-read))
+        2 producer: stored (entry 3; withheld: inout (uncovered-read))
+  $ EVA_TEST_CACHE_PARTS=logic frama-c -no-autoload-plugins -load-module eva,from,inout,test_cache_parts.cmxs -calldeps -eva-slevel 20 -eva-msg-key cache logic_loop.c > logic_loop.log 2>&1
+  $ grep -E '^(entry of|leaf|logic inputs)' logic_loop.log
+  entry of leaf: parts [from]
+  entry of leaf: parts [from]
+  leaf: hits 0, rejected for missing-part 4
+  leaf at line 16: logic inputs a; b; p; caching disabled a; b; p
+  logic inputs equal to caching disabled: true
+  $ grep -o 'call to leaf: lookup: [^;]*; execution: [a-z-]*' logic_loop.log | tail -2
+  call to leaf: lookup: rejected (entry 1: missing-part), rejected (entry 2: missing-part); execution: analysed
+  call to leaf: lookup: rejected (entry 1: missing-part), rejected (entry 2: missing-part); execution: analysed
+  $ EVA_TEST_CACHE_PARTS=logic frama-c -no-autoload-plugins -load-module eva,from,inout,test_cache_parts.cmxs -calldeps -eva-slevel 20 logic_wider.c > logic_wider.log 2>&1
+  $ grep -E '^(entry of|leaf|logic inputs)' logic_wider.log
+  entry of leaf: parts [from]
+  entry of leaf: parts [from]
+  entry of leaf: parts [from]
+  entry of leaf: parts [from]
+  leaf: hits 0, rejected for missing-part 16
+  leaf at line 16: logic inputs a; b; p; caching disabled a; b; p
+  leaf at line 17: logic inputs a; p; caching disabled a; p
+  logic inputs equal to caching disabled: true
+  $ EVA_TEST_CACHE_PARTS=logic frama-c -no-autoload-plugins -load-module eva,from,inout,test_cache_parts.cmxs -calldeps logic_wider.c > logic_joined.log 2>&1
+  $ grep -E '^(entry of|leaf|logic inputs)' logic_joined.log
+  entry of leaf: parts [from]
+  entry of leaf: parts [from]
+  leaf: hits 0, rejected for missing-part 4
+  leaf at line 16: logic inputs a; b; p; caching disabled a; b; p
+  leaf at line 17: logic inputs a; p; caching disabled a; p
+  logic inputs equal to caching disabled: true
+
 From and Inout compute their results by function from the states that Eva
 saves at the statements of each body. When one of these results is
 requested, every candidate is rejected (consumer). The callwise results of

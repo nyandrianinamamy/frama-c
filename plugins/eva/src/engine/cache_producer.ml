@@ -164,6 +164,7 @@ let produce ~save_results ~safety ~reach ~parts callstack input states r =
        it saves its states; the other writes of the Reach part are made in
        any case. *)
     let reach = Reach_part.part ~points:save_results reach in
+    let parts = Cache_part.cover kf ~key parts in
     let cache_entry =
       Entry.make ~id ~reads ~dependencies ~observation ~children:r.children
         ~safety ~reach ~parts statement ~key ~input:(copy input) ~footprint

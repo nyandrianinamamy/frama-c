@@ -54,17 +54,26 @@ val register :
 
 val name : 'a t -> string
 
-(** [provide part callstack value] gives [value] as the part computed by the
-    fresh analysis of the body called with [callstack]. It must be called
-    during this analysis, after the analysis of the calls made by the body:
-    for instance from a hook of {!Cvalue_callbacks} that receives the
+(** [provide part callstack ~reads value] gives [value] as the part computed
+    by the fresh analysis of the body called with [callstack]. It must be
+    called during this analysis, after the analysis of the calls made by the
+    body: for instance from a hook of {!Cvalue_callbacks} that receives the
     [`Body] results of the call. The value is kept when the innermost body
     being analysed through the cache is called with [callstack] and when the
     current project is the one in which its analysis started. Otherwise it
     is dropped, and the entry produced from this analysis lacks the part. A
     second value given for the same part and the same analysis replaces the
-    first. *)
-val provide : 'a t -> Callstack.t -> 'a -> unit
+    first.
+
+    [reads] holds every block whose value, in the states of this call at
+    the statements of the body or at its start, the computation of [value]
+    read, the blocks read to compute an address included; [Top] when they
+    are not known. A hit restores [value] in place of a computation from the
+    states of the call of the hit, which agree with those of this call on
+    the key of the entry only. The entry keeps the part only when every
+    block of [reads] is in its key or is a local variable of the body (see
+    {!cover}). *)
+val provide : 'a t -> Callstack.t -> reads:Base.SetLattice.t -> 'a -> unit
 
 (** [register_state_reader ~name reads] declares a consumer that reads the
     states that Eva saves at the statements of the functions, while
@@ -94,6 +103,18 @@ val find : 'a t -> parts -> 'a option
     {!provide} meanwhile. Captures can be nested. The parts given during an
     analysis that raises an exception are dropped. *)
 val capture : Callstack.t -> (unit -> 'a) -> 'a * parts
+
+(** [cover kf ~key parts] keeps the parts of [parts] whose reads (see
+    {!provide}) are covered by [key], the key of the entry produced from the
+    analysis of the body of [kf]: each block read is in [key] or is a local
+    variable of [kf], other than a formal. The values of these blocks at the
+    statements of the body depend only on the blocks of the key in the state
+    at the start of the call. The other parts are withheld, with the
+    reason {!uncovered_read}. *)
+val cover : kernel_function -> key:Base.Hptset.t -> parts -> parts
+
+(** [uncovered-read], the reason why {!cover} withholds a part. *)
+val uncovered_read : string
 
 (** Whether [parts] has every part whose consumer is enabled. *)
 val supplies : parts -> bool

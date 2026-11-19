@@ -57,8 +57,9 @@ module Make (Domain : sig
   end) : sig
   (** Offer a completed body, with the Safety part, the Reach part, the
       collector result and the verdict that belong to this analysis of the
-      body, and the [parts] given by other modules during this analysis,
-      which a stored entry keeps. Returns the stored entry or the reason for
+      body, and the [parts] given by other modules during this analysis. A
+      stored entry keeps the parts whose reads its key covers
+      ({!Cache_part.cover}). Returns the stored entry or the reason for
       refusing storage. *)
   val store :
     save_results:bool -> safety:Safety_part.t -> reach:Reach_part.t ->

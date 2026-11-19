@@ -227,6 +227,10 @@ module Computer(Fenv:Dataflows.FUNCTION_ENV)(X:sig
   let non_terminating_outputs = ref Memory_zone.bottom
   let non_terminating_logic_inputs = ref Memory_zone.bottom
 
+  (* Whether the logic inputs of a predicate could not be computed: they are
+     then missing from [non_terminating_logic_inputs]. *)
+  let unknown_logic_inputs = ref false
+
   let store_non_terminating_inputs inputs =
     non_terminating_inputs := Memory_zone.join !non_terminating_inputs inputs;
   ;;
@@ -355,7 +359,7 @@ module Computer(Fenv:Dataflows.FUNCTION_ENV)(X:sig
                (* To be sound, we should perform a join with the top zone here.
                   We do nothing instead because the latter behavior would
                   directly disable memexec. *)
-               ()
+               unknown_logic_inputs := true
              | Some p_zone -> store_non_terminating_logic_inputs p_zone
            end
          | _ -> ())
@@ -616,12 +620,25 @@ module Callwise = struct
   (* The result of a call is kept with the entry of its body only when the
      body made no call: a hit records it for the call of the hit, not the
      results that the calls of the body record for their own call sites. *)
-  let provide_inout callstack kf inout =
+  let provide_inout callstack kf ~reads inout =
     match !call_inout_stack with
     | (kf', table) :: _
       when Kernel_function.equal kf kf' && CallsiteHash.length table = 0 ->
-      Eva.Cache_part.provide part callstack inout
+      Eva.Cache_part.provide part callstack ~reads inout
     | _ -> ()
+
+  (* The blocks whose values the computation of [inout] read in the states of
+     the call. Each evaluation of an expression, of the address of a left
+     value or of a predicate adds to the inputs or to the logic inputs every
+     block it reads, the blocks read for an address included. The inputs
+     omit the blocks that the body surely wrote before: their values are
+     computed by the body. When the logic inputs of a predicate are unknown,
+     so are the blocks read. *)
+  let reads_of ~unknown_logic inout =
+    if unknown_logic then Base.SetLattice.top
+    else
+      Memory_zone.get_bases
+        (Memory_zone.join inout.over_inputs inout.over_logic_inputs)
 
 
   let compute_call_from_value_states kf call_stack states =
@@ -660,21 +677,22 @@ module Callwise = struct
     let module [@warning "-60"] Compute =
       Dataflows.Simple_forward (Fenv) (Computer)
     in
-    Computer.end_dataflow ()
+    let inout = Computer.end_dataflow () in
+    inout, reads_of ~unknown_logic:!Computer.unknown_logic_inputs inout
 
   let record_for_callwise_inout callstack kf pre_state value_res =
     let inout =
       match value_res with
       | `Body (Eva.Cvalue_callbacks.{before_stmts}, memexec_counter) ->
-        let inout =
+        let inout, reads =
           if Eva.Analysis.save_results kf
           then
             let cvalue_states = Lazy.force before_stmts in
             compute_call_from_value_states kf callstack cvalue_states
-          else top
+          else top, Base.SetLattice.empty
         in
         MemExec.replace memexec_counter inout;
-        provide_inout callstack kf inout;
+        provide_inout callstack kf ~reads inout;
         pop_local_table kf;
         inout
       | `Reuse counter -> MemExec.find counter
