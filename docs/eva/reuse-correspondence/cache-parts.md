@@ -683,8 +683,8 @@ The readers, by class:
 
 **Depends on.** None.
 
-**Symbols.** `Skipped_visits` (state `Eva.Skipped_visits.Skipped`, with
-dependency `Self.state`; `get`, `set`),
+**Symbols.** `Safety_delivery` (state `Eva.Safety_delivery.Skipped`, with
+dependency `Self.state`; `skip_visits`, `complete`, `get`, `set`),
 `Compute_functions.Make.compute_and_cache_call`,
 `Eva.Results.statement_results_complete`, `Eva_results.get_results`,
 `Eva_results.set_results`; `Functionwise.To_Use.memo` in From;
@@ -696,8 +696,10 @@ in Inout; `Pdg_tbl.get` in Pdg; `Eva_dynamic.Inout.kf_outputs`,
 `Ast_requests.dead_code`, `Server.Data.failure`;
 `Studia_request.check_statement_results`.
 
-**Argument (source inspection).** The branch of a hit that restores parts
-adds the called function to the set. The set is a project state that
+**Argument (source inspection).** The branch of a hit of a supplied entry
+adds the called function to the set before it delivers the Safety part and
+restores the parts; the record of #47 and this one are the same set. The
+set is a project state that
 depends on the state of Eva's results: it is saved with the session, and a
 new analysis clears it. `statement_results_complete` holds when it is
 empty. `get_results` copies it with the states, and `set_results`, after

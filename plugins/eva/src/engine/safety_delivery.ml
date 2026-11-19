@@ -39,6 +39,8 @@ let skip_visits = Skipped.add
 
 let visits_skipped kf = not (Skipped.is_empty ()) && Skipped.mem kf
 
+let complete = Skipped.is_empty
+
 (* ----- Statistics of the summary ----------------------------------------- *)
 
 let on_delivery = ref (fun (_ : Cil_types.kernel_function) -> ())

@@ -42,21 +42,37 @@ val deliver : Callstack.t -> Safety_part.t -> unit
     ({!Reach_delivery}), where the state of its callstack is [top]; the
     passes run at the end of the analysis read these points, and Export and
     the server request of dead code skip the functions of unknown
-    reachability ({!Reach_delivery.reach_unknown_of}). The record below
+    reachability ({!Reach_delivery.reach_unknown_of}). The values at these
+    points are not those of the call: the results computed from the values
+    that the states saved at statements give, such as the dependencies of
+    From and the inputs and outputs of Inout by function, and the results
+    of the callers computed from them, are incomplete; their readers refuse
+    them while the record below is not empty ({!complete}). The record also
     serves the statistics of a function, computed again after each such
-    hit. The functions called by the body of an entry are skipped as well;
-    there are none, since an entry is refused for a body that may call a
-    function that has a body (see {!Supplied_entries.supply}). *)
+    hit. The functions called by the body of an entry would be skipped as
+    well; no hit skips one, since {!Supplied_entries.supply} refuses a body
+    that may call a function that has a body, and the lookup rejects an
+    entry given to {!Supplied_entries.supply_produced} whose body contains
+    another call. Memexec saves the states of the analysis that produced
+    its entry, in the same analysis, and is not concerned.
+
+    The record is one state of the analysis, saved with the session, copied
+    with the project, kept in the results taken by
+    {!Eva_results.get_results} ({!Reach_delivery.records}), and reset with
+    the analysis. *)
 
 (** [skip_visits kf] records that a hit has answered a call of [kf] in the
-    current analysis. The record is a state of the analysis, and is reset
-    with it. *)
+    current analysis. *)
 val skip_visits : Cil_types.kernel_function -> unit
 
 (** Whether a hit has answered a call of the function in the current
     analysis. *)
 val visits_skipped : Cil_types.kernel_function -> bool
 
+
+(** Whether no hit has answered a call in the current analysis: the states
+    saved at the statements cover every call of the analysis. *)
+val complete : unit -> bool
 (** {2 Statistics of the summary} *)
 
 (** [delivered kf] is called by the engine after a hit has delivered the

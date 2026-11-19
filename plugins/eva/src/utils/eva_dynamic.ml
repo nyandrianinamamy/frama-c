@@ -20,10 +20,10 @@ module Inout = struct
 
   (* Inout computes the outputs by function from the states saved at the
      statements, and refuses to compute them when they do not cover every
-     call (see [Skipped_visits]). *)
+     call (see [Safety_delivery]). *)
   let kf_outputs kf =
     let fallback _ = Memory_zone.top in
-    if not (Skipped_visits.complete ()) then fallback kf
+    if not (Safety_delivery.complete ()) then fallback kf
     else
       let typ arg = Datatype.func arg Memory_zone.ty in
       get ~plugin "kf_outputs" (typ Kernel_function.ty) ~fallback kf

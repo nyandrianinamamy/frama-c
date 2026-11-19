@@ -65,7 +65,6 @@ module Results = Results
 module Safety_delivery = Safety_delivery
 module Self = Self
 module Simple_memory = Simple_memory
-module Skipped_visits = Skipped_visits
 module Structure = Structure
 module Summary = Summary
 module Taint_domain = Taint_domain

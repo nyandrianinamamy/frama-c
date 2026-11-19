@@ -76,9 +76,6 @@ type results = {
   hits: Reach_delivery.records;
   (* The records of the hits of the cache, apart from the states: the
      points they reached and the functions they answered. *)
-  skipped: Kernel_function.Set.t;
-  (* The functions of which a hit of the cache answered a call: their
-     statements have no state for these calls (see [Skipped_visits]). *)
 }
 
 let get_results () =
@@ -146,8 +143,7 @@ let get_results () =
   in
   Property_status.iter aux_ip;
   let hits = Reach_delivery.records () in
-  let skipped = Skipped_visits.get () in
-  { states; kf_callers; initial_args; alarms; statuses; hits; skipped; }
+  { states; kf_callers; initial_args; alarms; statuses; hits; }
 
 let set_results results =
   let selection = State_selection.with_dependencies Self.state in
@@ -188,8 +184,8 @@ let set_results results =
     Property_status.emit Eva_utils.emitter ~hyps:[] ip st
   in
   Property.Hashtbl.iter aux_statuses results.statuses;
-  (* The clearing above emptied the records of the hits. They are
-     restored before the results are published as computed. *)
+  (* The clearing above emptied the records of the hits, the record of the
+     functions answered by hits included. They are restored before the
+     results are published as computed. *)
   Reach_delivery.restore results.hits;
-  Skipped_visits.set results.skipped;
   Self.ComputationState.set Computed
