@@ -287,14 +287,26 @@ type rejection = [
       consumer is enabled, with the clients that it runs
       ({!Cache_part.unaudited_clients}), and the subscribers of the
       statistics by function of the summary, which the end of the delivery
-      updates ({!Safety_delivery.unaudited_subscribers}). A client
-      registered since the
-      production of the entry counts. The predicates of the parts are
-      evaluated once by each lookup, before this test
-      ({!Cache_part.decide}), and the check of the parts and the restoration
-      use their answers: a hook that a predicate registers is seen by the
-      test, and no predicate runs between the test and the end of the
-      delivery. *)
+      updates ({!Safety_delivery.unaudited_subscribers}). The other
+      interfaces are the observers of the clients of the kernel hooks
+      ({!Hook.Opaque.has_unaudited_observers}), of the metadata and validity
+      of the allocated bases ({!Base.has_unaudited_observers}) and of the
+      history of the origins ({!Origin.has_unaudited_observers}), the
+      daemons of [Async] ({!Async.has_daemons}), the hooks on a change of
+      the current location ({!Current_loc.has_hooks_on_change}) and of the
+      statistics by callstack of Eva ({!Eva_perf.has_hooks_on_change}), and
+      the observers of the Safety part and of the results of the collector
+      ({!Safety_part.has_unaudited_observers},
+      {!Body_access.Result.has_unaudited_observers}). A hit can run the
+      observers of the clients of the kernel hooks and of the metadata of
+      the allocated bases; an analysis of the body runs these interfaces at
+      other places or with other values. The collector registers its own
+      observers as audited. A client registered since the production of the
+      entry counts. The predicates of the parts are evaluated once by each
+      lookup, before this test ({!Cache_part.decide}), and the check of the
+      parts and the restoration use their answers: a hook that a predicate
+      registers is seen by the test, and no predicate runs between the test
+      and the end of the delivery. *)
   | `Analysis_reset
   (** While an analysis runs, its computation state is no longer
       [Computing]: its results were cleared, which a change of an option of

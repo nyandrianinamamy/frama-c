@@ -121,8 +121,40 @@ let annotation f name =
 
 let red_hook_calls = ref 0
 
+(* The calls of the observer of the kernel registered by [register_client]
+   while a hit on body or on pre delivers: after the visits of the
+   function were recorded as skipped for body, whose Safety part registers
+   an alarm, and before for pre, whose preconditions are evaluated before. *)
+let observer_calls = ref 0
+
+let visits_skipped name =
+  match Globals.Functions.find_by_name name with
+  | f -> Eva__Safety_delivery.visits_skipped f
+  | exception Not_found -> false
+
+let hits_on name =
+  match Globals.Functions.find_by_name name with
+  | f -> Eva.Statistics.get Eva.Statistics.cache_hits f
+  | exception Not_found -> 0
+
+let count_in_delivery () =
+  if visits_skipped "body"
+  || hits_on "pre" > 0 && not (visits_skipped "pre")
+  then incr observer_calls
+
+(* An observer of the reads of the metadata of allocated blocks, which runs
+   the observer that it replaces. *)
+let observe_metadata ~audited =
+  let previous = ref None in
+  let observer base =
+    count_in_delivery ();
+    Option.iter (fun f -> f base) !previous
+  in
+  previous := Base.observe_metadata_reads ~audited (Some observer)
+
 (* A client of one of the hooks that a hit runs, or that an analysis of a
-   body runs and a hit does not. None of them is audited. *)
+   body runs and a hit does not. None of them is audited, but the observers
+   whose name ends with -audited. *)
 let register_client = function
   | "call" -> Eva.Cvalue_callbacks.register_call_hook (fun _ _ _ _ -> ())
   | "call-results" ->
@@ -139,6 +171,18 @@ let register_client = function
     Log.on_history_access
       (fun ~plugin:_ ~kind:_ ~category:_ ~once_category:_ -> ())
   | "messages" -> Messages.add_hook ignore
+  | "opaque" -> Hook.Opaque.on_call count_in_delivery
+  | "opaque-audited" -> Hook.Opaque.on_call ~audited:true count_in_delivery
+  | "metadata" -> observe_metadata ~audited:false
+  | "metadata-audited" -> observe_metadata ~audited:true
+  | "validity" ->
+    ignore (Base.observe_validity_updates (Some (fun _ ~weak:_ -> ())))
+  | "origin" -> Origin.on_history_access ignore
+  | "daemon" -> ignore (Async.on_progress ignore)
+  | "location" -> Current_loc.add_hook_on_change ignore
+  | "perf" -> Eva.Eva_perf.StatByCallstack.add_hook_on_change ignore
+  | "safety-result" -> Eva.Safety_part.on_result (fun _ _ -> ())
+  | "collector-result" -> Eva.Body_access.on_result (fun _ _ -> ())
   | client -> failwith ("unknown client " ^ client)
 
 let set_category directive =
@@ -169,6 +213,9 @@ let add_own_red_status () =
    - STOP=N: option -eva-stop-at-nth-alarm N;
    - OVERFLOW=on: option -warn-signed-overflow;
    - COUNT=red: counts the calls of the hook of red statuses;
+   - SERVER=late: loads the server plug-in, which registers a client of the
+     hooks on the changes of annotations, audited for the lookup but run
+     through [Hook.Opaque.wrap];
    - CLIENT=C: registers a client of the hook C (see [register_client]);
    - ROUTE=R: a client sets signed-overflow to abort: a hook of red
      statuses (R=red), a hook on the status of the instance of a
@@ -180,6 +227,7 @@ let add_own_red_status () =
    - OWNRED=1: a client of the hooks of red statuses adds a red status of
      its own (see [add_own_red_status]). *)
 let setup () =
+  if env "SERVER" = Some "late" then Dynamic.load_plugin "server";
   Option.iter register_client (env "CLIENT");
   (match env "ROUTE" with
    | Some "red" ->
@@ -258,17 +306,22 @@ let export () =
     Format.printf "annotations exported in body: %d@." !count
   end
 
-let observations () =
+let observations ?(called = "body") () =
   if env "COUNT" = Some "red" || env "OWNRED" = Some "1" then
     Format.printf "red hook calls: %d@." !red_hook_calls;
   Option.iter (fun client ->
       let rejected =
         Eva.Statistics.get (Eva.Statistics.cache_rejected "callback")
-          (kf "body")
+          (kf called)
       in
-      Format.printf "client %s: hits on body: %d, rejected for callback: %d@."
-        client (Eva.Statistics.get Eva.Statistics.cache_hits (kf "body"))
-        rejected)
+      let hits = Eva.Statistics.get Eva.Statistics.cache_hits (kf called) in
+      Format.printf "client %s: hits on %s: %d, rejected for callback: %d@."
+        client called hits rejected;
+      if List.mem client
+          [ "opaque"; "opaque-audited"; "metadata"; "metadata-audited" ]
+      then
+        Format.printf "observer calls during a delivery: %d@."
+          !observer_calls)
     (env "CLIENT");
   if env "STOP" <> None then
     Format.printf "cache-rejected-stop-at-nth-alarm of body: %d@."
@@ -547,7 +600,7 @@ let nested () =
    call. *)
 let enclosing () =
   let parent = kf "parent" and child = kf "child" in
-  Eva.Safety_part.on_result (fun callstack safety ->
+  Eva.Safety_part.on_result ~audited:true (fun callstack safety ->
       if Kernel_function.equal (Eva.Callstack.top_kf callstack) parent then
         match safety with
         | [] -> Format.printf "Safety part of parent: none@."
@@ -586,7 +639,7 @@ let state bindings =
    before the passes that run at the end of the analysis. *)
 let observe_one () =
   let one = annotation "pre" "one" in
-  Eva.Safety_part.on_result (fun callstack _ ->
+  Eva.Safety_part.on_result ~audited:true (fun callstack _ ->
       if Kernel_function.equal (Eva.Callstack.top_kf callstack) (kf "main")
       then
         Format.printf "before the passes: one is %a@." pretty_status
@@ -645,6 +698,7 @@ let precondition () =
   observe_one ();
   analyse ();
   hits "pre";
+  observations ~called:"pre" ();
   summary ["out"]
 
 let precondition_reference () =
@@ -704,7 +758,10 @@ let same_analysis () =
          | Prop ip when Property.equal ip trigger -> fire ()
          | Prop _ | Alarm _ -> ())
    | Some "observer" ->
-     Eva.Safety_part.on_result (fun callstack _ ->
+     (* Registered as audited, which it is not: it supplies entries and
+        changes a setting. The scenario tests the check of the warning
+        categories, which does not rely on the audit. *)
+     Eva.Safety_part.on_result ~audited:true (fun callstack _ ->
          if Kernel_function.equal (Eva.Callstack.top_kf callstack) (kf "other")
          then fire ())
    | _ ->

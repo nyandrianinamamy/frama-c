@@ -21,5 +21,9 @@ val reset: unit -> unit
     called during the analysis. *)
 val display: Format.formatter -> unit
 
+(** Whether a hook was registered by [StatByCallstack.add_hook_on_change].
+    A hook cannot be removed. *)
+val has_hooks_on_change : unit -> bool
+
 (** Interface exported via Eva.ml. *)
 include Eva_perf_sig.API

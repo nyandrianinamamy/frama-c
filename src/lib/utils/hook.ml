@@ -63,7 +63,13 @@ end
 module Opaque = struct
   module Observers = Build (struct type t = unit end)
 
-  let on_call = Observers.extend
+  let unaudited = ref false
+
+  let on_call ?(audited = false) f =
+    if not audited then unaudited := true;
+    Observers.extend f
+
+  let has_unaudited_observers () = !unaudited
 
   let wrap f x =
     Observers.apply ();

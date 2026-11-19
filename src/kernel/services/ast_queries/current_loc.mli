@@ -12,6 +12,10 @@
 *)
 include State_builder.Ref with type data = Fileloc.t
 
+(** Whether a hook was registered by [add_hook_on_change]. A hook cannot be
+    removed. *)
+val has_hooks_on_change : unit -> bool
+
 (** [with_loc loc f x] set the current location to [loc], which can be used
     with [Current_loc.get ()] or via the option [~current] in Log functions.
     The old location is saved and set back after execution of [f x]. If [f x]

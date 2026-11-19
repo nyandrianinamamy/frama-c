@@ -312,7 +312,7 @@ let hint_replay () =
   assert (Eva.Statistics.get Eva.Statistics.cache_hits (kf "hint_reader") = 1)
 
 let () =
-  Access.on_result observe;
+  Access.on_result ~audited:true observe;
   match mode with
   | Some ("replay" | "automatic" | "recursive") -> Boot.Main.extend replay
   | Some "fresh" -> Boot.Main.extend (fun () -> ignore (only_outer ()))

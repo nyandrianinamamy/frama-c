@@ -127,7 +127,8 @@ val update_variable_validity:
     The validity and the type of the variable of an [Allocated] base can
     change during an analysis. *)
 
-val observe_metadata_reads: (t -> unit) option -> (t -> unit) option
+val observe_metadata_reads:
+  ?audited:bool -> (t -> unit) option -> (t -> unit) option
 (** [observe_metadata_reads (Some f)] makes [f] the observer run with the
     base when {!validity}, {!is_weak}, {!typeof}, {!bits_sizeof} or
     {!alignof} is applied to an [Allocated] base, and by {!metadata_read}.
@@ -140,7 +141,12 @@ val observe_metadata_reads: (t -> unit) option -> (t -> unit) option
     Without observer, these functions test one reference and call no
     function. A function given an already extracted validity is not
     observed. The observer must not apply these functions to an [Allocated]
-    base: doing so runs it again. *)
+    base: doing so runs it again.
+
+    Set [audited] only for an observer audited for the cache of Eva: the
+    observer of its collector of block accesses sets it. The function [f] is
+    then audited, and installing it again, with or without [audited], is
+    not counted by {!has_unaudited_observers}. *)
 
 val metadata_read: t -> unit
 (** Runs the observer of {!observe_metadata_reads} on an [Allocated] base,
@@ -148,12 +154,18 @@ val metadata_read: t -> unit
     allocated base by matching its constructor. *)
 
 val observe_validity_updates:
+  ?audited:bool ->
   (variable_validity -> weak:bool -> unit) option ->
   (variable_validity -> weak:bool -> unit) option
 (** [observe_validity_updates (Some f)] makes [f] the observer run at each
     call of {!update_variable_validity}, before the update, with the record
     and the [weak] argument; [None] removes it. It returns the observer it
-    replaces, as {!observe_metadata_reads} does. *)
+    replaces, and takes [audited], as {!observe_metadata_reads} does. *)
+
+val has_unaudited_observers: unit -> bool
+(** Whether a function was installed by {!observe_metadata_reads} or
+    {!observe_validity_updates} that is not audited. An observer removed
+    since counts: the test is on the installations made in the process. *)
 
 val weakenings: unit -> int
 (** The number of calls, since the start of the process, of

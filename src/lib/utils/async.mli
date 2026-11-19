@@ -29,6 +29,11 @@ val on_progress :
 (** Unregister the [daemon]. *)
 val off_progress : daemon -> unit
 
+(** Whether a daemon is registered: by {!on_progress} and not unregistered,
+    by {!while_progress} and not finished, or by {!with_progress} during its
+    job. *)
+val has_daemons : unit -> bool
+
 (** [while_progress ?debounced ?on_delayed ?on_finished trigger] is similar to
     [on_progress] but the daemon is automatically unregistered
     as soon as [trigger] returns [false].

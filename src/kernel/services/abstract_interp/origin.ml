@@ -110,7 +110,12 @@ let is_unknown t = t = Unknown
    These info are printed at the end of an Eva analysis. *)
 
 module History_access = Hook.Build (struct type t = unit end)
-let on_history_access f = History_access.extend f
+let unaudited_observers = ref false
+let has_unaudited_observers () = !unaudited_observers
+
+let on_history_access ?(audited = false) f =
+  if not audited then unaudited_observers := true;
+  History_access.extend f
 
 module LocSet = Fileloc.Set
 

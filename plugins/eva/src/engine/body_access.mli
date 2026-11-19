@@ -86,8 +86,15 @@ module Result : sig
 
   (** Observe an immutable result after a completed analysis of a body and
       before the storage verdict. Requires [-eva-cache-collect].
-      Observers must not change the analysis. *)
-  val on_result : (Callstack.t -> t -> unit) -> unit
+      Observers must not change the analysis. A hit runs no observer: set
+      [audited] only for an observer whose effects do not depend on whether
+      a hit answered a call, such as a test device that prints what it
+      receives. {!has_unaudited_observers} does not count it. *)
+  val on_result : ?audited:bool -> (Callstack.t -> t -> unit) -> unit
+
+  (** Whether an observer was registered by {!on_result} without [audited].
+      An observer cannot be removed. *)
+  val has_unaudited_observers : unit -> bool
 end
 
 (** The status of every warning category of the kernel, then of Eva, but

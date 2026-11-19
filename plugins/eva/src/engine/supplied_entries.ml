@@ -270,12 +270,32 @@ let stop_at_nth_alarm () = Parameters.StopAtNthAlarm.get () < max_int
      {!Cache_part.register}), by the decisions [parts] that the lookup took
      before this test;
    - the subscribers of the statistics by function of the summary, which the
-     end of a delivery updates, apart from those registered as audited.
+     end of a delivery updates, apart from those registered as audited;
+   - the observers of the calls of the clients of the kernel hooks wrapped
+     by [Hook.Opaque], which the hook of the server on the annotations and
+     the hooks of the properties and messages run, apart from the observer
+     of the collector of block accesses;
+   - the observers of the reads of the metadata of the allocated bases and
+     of the updates of their validity, which the check of the preconditions
+     and the evaluation of the alarms run, and the observers of the
+     accesses to the history of the origins, apart from those of the
+     collector;
+   - the daemons of [Async], which the analysis of a body runs at its
+     statements, and a hit does not: the server registers one while it
+     runs;
+   - the hooks on a change of the current location of the kernel, which the
+     analysis of a body changes at each statement, and of the statistics by
+     callstack of Eva ([Eva_perf]), which record the duration of each call
+     and of the calls that it makes;
+   - the observers of the Safety part ({!Safety_part.on_result}) and of the
+     results of the collector ({!Body_access.Result.on_result}), which run
+     after the analysis of a body, apart from those registered as audited.
 
-   Registration is the test: a client cannot be removed, and one registered
-   after the production of an entry counts. The predicates of the parts are
-   evaluated before ({!Cache_part.decide}), as those of the readers of the
-   statement states: a hook that they register is seen here. *)
+   Registration is the test: a client cannot be removed, apart from a daemon
+   of [Async], and one registered after the production of an entry counts.
+   The predicates of the parts are evaluated before ({!Cache_part.decide}),
+   as those of the readers of the statement states: a hook that they
+   register is seen here. *)
 let unaudited_clients parts =
   Cache_part.unaudited_clients parts
   || Cvalue_callbacks.unaudited_hooks ()
@@ -285,6 +305,14 @@ let unaudited_clients parts =
   || Log.unaudited_clients ()
   || Messages.has_hooks ()
   || Safety_delivery.unaudited_subscribers ()
+  || Hook.Opaque.has_unaudited_observers ()
+  || Base.has_unaudited_observers ()
+  || Origin.has_unaudited_observers ()
+  || Async.has_daemons ()
+  || Current_loc.has_hooks_on_change ()
+  || Eva_perf.has_hooks_on_change ()
+  || Safety_part.has_unaudited_observers ()
+  || Body_access.Result.has_unaudited_observers ()
 
 let cast : type a b. (a, b) Structure.eq -> a -> b = fun Structure.Eq x -> x
 let cast_back : type a b. (a, b) Structure.eq -> b -> a =

@@ -81,7 +81,16 @@ module Make() : S with type param = unit and type result = unit
 (** Notification for externally registered callbacks whose effects are
     unspecified. Wrapping preserves application order and exceptions. *)
 module Opaque : sig
-  val on_call : (unit -> unit) -> unit
+  (** [on_call f] registers [f], run before each call of a function wrapped
+      by {!wrap}. Set [audited] only for an observer audited for the cache of
+      Eva: the observer of its collector of block accesses sets it.
+      {!has_unaudited_observers} does not count it. *)
+  val on_call : ?audited:bool -> (unit -> unit) -> unit
+
+  (** Whether an observer was registered by {!on_call} without [audited].
+      An observer cannot be removed. *)
+  val has_unaudited_observers : unit -> bool
+
   val wrap : ('a -> 'b) -> 'a -> 'b
 end
 

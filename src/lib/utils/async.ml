@@ -30,6 +30,8 @@ let on_progress ?(debounced=0) ?on_delayed ?on_finished trigger =
   } in
   daemons := List.append !daemons [d] ; d
 
+let has_daemons () = !daemons <> []
+
 let off_progress d =
   daemons := List.filter (fun d0 -> d != d0) !daemons ;
   match d.on_finished with

@@ -16,6 +16,14 @@ include State_builder.Ref
 
 let () = Log.set_current_loc get
 
+let hooked = ref false
+
+let add_hook_on_change f =
+  hooked := true;
+  add_hook_on_change f
+
+let has_hooks_on_change () = !hooked
+
 let with_loc loc f x =
   let oldLoc = get () in
   let finally () = set oldLoc in

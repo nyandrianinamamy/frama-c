@@ -76,7 +76,12 @@ module Result = struct
 
   let hint_generation_number = Widen_generation.number
 
-  let on_result f = Hooks.extend (fun (stack, result) -> f stack result)
+  let unaudited = ref false
+  let has_unaudited_observers () = !unaudited
+
+  let on_result ?(audited = false) f =
+    if not audited then unaudited := true;
+    Hooks.extend (fun (stack, result) -> f stack result)
 end
 
 open Result
@@ -203,9 +208,9 @@ let set_recorders body site =
   current := body;
   call_site := site;
   if Option.is_some body || Option.is_some site then begin
-    let top = Base.observe_metadata_reads read_observer in
+    let top = Base.observe_metadata_reads ~audited:true read_observer in
     if top != read_observer then previous_read := top;
-    let top = Base.observe_validity_updates update_observer in
+    let top = Base.observe_validity_updates ~audited:true update_observer in
     if top != update_observer then previous_update := top
   end
   else begin
@@ -390,7 +395,11 @@ let may_write_base base =
 let unknown_write () =
   Option.iter (fun r -> add_write r Bases.top Zone.bottom) !current
 
-let () = Origin.on_history_access (fun () -> refuse Side_table)
+(* The observers of the collector write in the recordings in progress only:
+   they are audited for the lookup of supplied entries, which rejects every
+   candidate while another observer of these kernel interfaces is
+   registered. *)
+let () = Origin.on_history_access ~audited:true (fun () -> refuse Side_table)
 
 let write location =
   match !current with
@@ -445,7 +454,7 @@ let swept_holder base value =
 
 let read_message_history () = refuse Side_table
 
-let () = Hook.Opaque.on_call (fun () -> refuse Callback)
+let () = Hook.Opaque.on_call ~audited:true (fun () -> refuse Callback)
 
 (* Whether the message being printed is recorded by the Safety part, which a
    hit prints again through the logger. *)

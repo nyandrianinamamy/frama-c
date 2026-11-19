@@ -122,13 +122,30 @@ let validity_observer : (variable_validity -> weak:bool -> unit) option ref =
 let observer_change_count = ref 0
 let observer_changes () = !observer_change_count
 
-let observe_metadata_reads f =
+(* The functions installed with [audited], compared physically, and whether
+   another function was installed. *)
+let audited_reads : (base -> unit) list ref = ref []
+let audited_updates : (variable_validity -> weak:bool -> unit) list ref =
+  ref []
+let unaudited_observer = ref false
+let has_unaudited_observers () = !unaudited_observer
+
+let audit audited known = function
+  | None -> ()
+  | Some f ->
+    if List.memq f !known then ()
+    else if audited then known := f :: !known
+    else unaudited_observer := true
+
+let observe_metadata_reads ?(audited = false) f =
+  audit audited audited_reads f;
   let previous = !metadata_observer in
   incr observer_change_count;
   metadata_observer := f;
   previous
 
-let observe_validity_updates f =
+let observe_validity_updates ?(audited = false) f =
+  audit audited audited_updates f;
   let previous = !validity_observer in
   incr observer_change_count;
   validity_observer := f;

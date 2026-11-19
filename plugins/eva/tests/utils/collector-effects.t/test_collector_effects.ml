@@ -92,7 +92,7 @@ let observe_sweep stack (result : Access.Result.t) =
 
 let sweep_check () =
   let checking = ref true in
-  Observation.on_result (fun stack result ->
+  Observation.on_result ~audited:true (fun stack result ->
       if !checking then observe_sweep stack result);
   Eva.Analysis.compute ();
   checking := false;
@@ -256,7 +256,7 @@ let install_watch_check () =
 let check_client target install =
   let calls = ref 0 in
   install (fun () -> incr calls);
-  Observation.on_result (fun stack result ->
+  Observation.on_result ~audited:true (fun stack result ->
       if name (Eva.Callstack.top_kf stack) = target then
         Format.printf "%s: %s@." target (reason result Observation.Callback));
   Boot.Main.extend (fun () ->
@@ -289,4 +289,4 @@ let () =
     Log.add_listener ~plugin:"eva" ~kind:[Log.Warning] raise_alarm_threshold
   | Some "logger" ->
     Log.add_listener ~plugin:"eva" ~kind:[Log.Warning] ignore
-  | _ -> Observation.on_result observe
+  | _ -> Observation.on_result ~audited:true observe

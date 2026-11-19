@@ -42,8 +42,15 @@ val join: t -> t -> t
 
 (** Register an observer run just before reading or changing origin history.
     An observer must not read or change the history itself: doing so runs
-    the observers again before the first run returns. *)
-val on_history_access: (unit -> unit) -> unit
+    the observers again before the first run returns. Set [audited] only for
+    an observer audited for the cache of Eva: the observer of its collector
+    of block accesses sets it. {!has_unaudited_observers} does not count
+    it. *)
+val on_history_access: ?audited:bool -> (unit -> unit) -> unit
+
+(** Whether an observer was registered by {!on_history_access} without
+    [audited]. An observer cannot be removed. *)
+val has_unaudited_observers: unit -> bool
 
 (** Records the creation of an imprecise value of the given bases. *)
 val register: Base.SetLattice.t -> t -> unit

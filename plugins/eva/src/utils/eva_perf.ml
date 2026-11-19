@@ -80,6 +80,12 @@ module StatByCallstack = struct
 
   include State_builder.Hashtbl (KfList.Hashtbl) (Stat) (Info)
 
+  let hooked = ref false
+
+  let add_hook_on_change f =
+    hooked := true;
+    add_hook_on_change f
+
   type callstack = KfList.t
 
   let get kf_list =
@@ -325,3 +331,5 @@ let compute_stat_by_fun () : (stat * stat by_fun) by_fun =
   let current_time = Sys.time () in
   let total_duration = analysis_duration current_time in
   compute_stat_by_fun ~total_duration ~current_time
+
+let has_hooks_on_change () = !StatByCallstack.hooked

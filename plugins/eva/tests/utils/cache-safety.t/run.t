@@ -424,12 +424,17 @@ would run: the hooks on calls and on statements of Eva, the hooks of red
 statuses, the hooks on the addition and the status of properties, the hooks
 on the changes of annotations, the listeners of the logger, for all
 plug-ins (listener) or for one (register), the observers of its history,
-and the hooks on messages. Otherwise, every supplied
+the hooks on messages, the observers of Hook.Opaque, of the reads of the
+metadata of allocated blocks, of the updates of their validity and of the
+history of origins, the daemons of Async, the hooks on the changes of the
+current location, the hooks on the statistics of performance by
+callstack, and the observers of the Safety part and of the result of the
+collector of each analysed body. Otherwise, every supplied
 candidate is rejected for callback, and the body is analysed. Below, one
 client of each hook is registered after the analysis from producer of
 safety.c; both calls of body in the analysis from main reject the entry.
 
-  $ for c in call call-results statement red status property annotations listener register history messages; do EVA_TEST_CACHE_SAFETY=replay EVA_TEST_CACHE_SAFETY_CLIENT=$c frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -main producer -eva-msg-key cache safety.c > client-$c.log 2>&1; echo "$c: exit $?"; done
+  $ for c in call call-results statement red status property annotations listener register history messages opaque metadata validity origin daemon location perf safety-result collector-result; do EVA_TEST_CACHE_SAFETY=replay EVA_TEST_CACHE_SAFETY_CLIENT=$c frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -main producer -eva-msg-key cache safety.c > client-$c.log 2>&1; echo "$c: exit $?"; done
   call: exit 0
   call-results: exit 0
   statement: exit 0
@@ -441,7 +446,16 @@ safety.c; both calls of body in the analysis from main reject the entry.
   register: exit 0
   history: exit 0
   messages: exit 0
-  $ for c in call call-results statement red status property annotations listener register history messages; do grep '^client' client-$c.log; done
+  opaque: exit 0
+  metadata: exit 0
+  validity: exit 0
+  origin: exit 0
+  daemon: exit 0
+  location: exit 0
+  perf: exit 0
+  safety-result: exit 0
+  collector-result: exit 0
+  $ for c in call call-results statement red status property annotations listener register history messages opaque metadata validity origin daemon location perf safety-result collector-result; do grep '^client' client-$c.log; done
   client call: hits on body: 0, rejected for callback: 2
   client call-results: hits on body: 0, rejected for callback: 2
   client statement: hits on body: 0, rejected for callback: 2
@@ -453,6 +467,54 @@ safety.c; both calls of body in the analysis from main reject the entry.
   client register: hits on body: 0, rejected for callback: 2
   client history: hits on body: 0, rejected for callback: 2
   client messages: hits on body: 0, rejected for callback: 2
+  client opaque: hits on body: 0, rejected for callback: 2
+  client metadata: hits on body: 0, rejected for callback: 2
+  client validity: hits on body: 0, rejected for callback: 2
+  client origin: hits on body: 0, rejected for callback: 2
+  client daemon: hits on body: 0, rejected for callback: 2
+  client location: hits on body: 0, rejected for callback: 2
+  client perf: hits on body: 0, rejected for callback: 2
+  client safety-result: hits on body: 0, rejected for callback: 2
+  client collector-result: hits on body: 0, rejected for callback: 2
+
+The observers of the kernel through which the collector of block accesses
+sees what happens during the analysis of a body are registered as audited
+by the collector, and by no other client of the tree. One of them runs at a
+hit with an audited client: the client of the server on the changes of
+annotations is audited for the lookup, and runs through Hook.Opaque.wrap,
+which runs the observers of Hook.Opaque. In alone.c, the hit on body
+registers an alarm that the analysis from main has not registered before;
+the server is loaded after the analysis from producer. An observer of
+Hook.Opaque registered without an audit makes the call reject the entry with
+callback, and is not called during a delivery; registered as audited, the
+call hits, and the observer is called during the delivery.
+
+  $ for c in opaque opaque-audited; do EVA_TEST_CACHE_SAFETY=replay EVA_TEST_CACHE_SAFETY_SERVER=late EVA_TEST_CACHE_SAFETY_CLIENT=$c frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -main producer -eva-msg-key cache alone.c > server-$c.log 2>&1; echo "$c: exit $?"; done
+  opaque: exit 0
+  opaque-audited: exit 0
+  $ grep -hE '^(client|observer)' server-opaque.log server-opaque-audited.log
+  client opaque: hits on body: 0, rejected for callback: 1
+  observer calls during a delivery: 0
+  client opaque-audited: hits on body: 1, rejected for callback: 0
+  observer calls during a delivery: 1
+
+The precondition of pre in metadata.c reads the validity of an allocated
+block. At a hit, the check of the preconditions runs the observer of the
+reads of the metadata of allocated blocks, through the observer of the
+collector, which records the body of main and runs the observer that it
+replaced. An observer registered without an audit makes both calls reject
+the hand-written entry with callback; registered as audited, the second
+call hits, and the observer is called during the check of the
+preconditions of that hit.
+
+  $ for c in metadata metadata-audited; do EVA_TEST_CACHE_SAFETY=precondition EVA_TEST_CACHE_SAFETY_CLIENT=$c frama-c -no-autoload-plugins -load-module eva,test_cache_safety.cmxs -eva-alloc-returns-null -eva-msg-key cache metadata.c > precondition-$c.log 2>&1; echo "$c: exit $?"; done
+  metadata: exit 0
+  metadata-audited: exit 0
+  $ grep -hE '^(client|observer)' precondition-metadata.log precondition-metadata-audited.log
+  client metadata: hits on pre: 0, rejected for callback: 2
+  observer calls during a delivery: 0
+  client metadata-audited: hits on pre: 1, rejected for callback: 0
+  observer calls during a delivery: 1
 
 The server plug-in registers a client of the hooks on the changes of
 annotations when it loads. With it, the registration of the alarm of body
