@@ -193,8 +193,7 @@ the key only](#closure-depends-on-the-members-of-the-key-only), hypothesis
 2). `decomposes_prod` uses neither closure nor non-emptiness: the witness of
 `split` for the product is the same memory for both components.
 `[Memory M]`: the memory meets the laws of the interface `Memory`; proved in
-Lean for `FunMem` (see [the frame entry](frame.md#frame-lemma-without-sweeps),
-hypothesis 1).
+Lean for `FunMem` (see [the frame entry](frame.md#frame-lemma-with-lexical-sweeps)).
 
 **Depends on.** None.
 

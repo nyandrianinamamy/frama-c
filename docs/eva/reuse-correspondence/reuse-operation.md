@@ -754,11 +754,29 @@ agreement only on the targets of the chosen prefix. The checked
 agreement on key contents alone cannot supply the full witness.
 
 Project that exit state to K ∪ W using `filter` sound, yielding o_i.
-Outside W_exit, the frame argument gives agreement with σ where an
-unchanged block was issued at entry. This uses
-`ReuseModel.frame_of_not_written` and needs the issued-at-entry premise.
-Under that premise, τ agrees on W_exit with a memory covered by o_i and
-outside W_exit with σ. The law above puts τ in `reuse W_exit s o_i`.
+Let `evs` be the events of the execution from σ to τ. Outside W_exit,
+exit-write coverage rules out an ordinary write of a block `b` in those
+events. If `b` was issued at entry, `frame_of_not_written` gives its
+entry value with the recorded sweeps applied in order. By
+`applySweeps_eq_iff`, the value agrees with σ exactly when
+
+```lean
+∀ target ∈ sweepTargets evs, Memory.load σ b ≠ some (Value.ptr target)
+```
+
+The sufficient condition of `frame_no_sweep_rewrite` is that every
+target of an unmarked pointer held by `b` was already issued at entry.
+Check either condition on the current input σ. A producing witness can
+hold a different pointer outside the key. If the condition fails, an
+overlay must apply the recorded sweeps to those current frame holders.
+The checked matching exit with W_exit = {0} changes block 1 from
+`ptr 2` to `escaped 2` without an ordinary write.
+[Frame checks](frame.md#frame-lemma-with-lexical-sweeps).
+
+When every block off the overlay agrees with σ, the law above puts τ
+in `reuse W_exit s o_i`. The frame argument supplies this equality for
+issued off-overlay blocks under the current-input condition. The status
+of other off-overlay bindings is part of the open composition.
 
 The clobbered set of the result is that of out. `supply` sets it to the
 blocks of the exit state bound to a value that may contain the address of a
@@ -794,9 +812,17 @@ state](#a-hit-takes-the-blocks-of-w_exit-from-the-exit-state).
 
 - The law holds for cvalue only under the condition on bindings; the hit
   supplies it through the check of the exit states by `supply`.
-- The step outside W_exit needs the block issued at entry, and the holders
-  described only by the caller's state need an argument that the result
-  keeps them in the clobbered set.
+- For #38, compose the exit witness with the current frame. For each
+  covered current memory σ, normal-exit trace `evs`, and issued block
+  `b` outside W_exit whose value is taken unchanged from σ, establish
+  `∀ target ∈ sweepTargets evs, Memory.load σ b ≠ some (Value.ptr target)`.
+  If this condition fails, an overlay that supports the case must apply
+  the recorded sweeps to that current holder. The milestone admits the
+  unchanged overlay only with its no-rewrite argument. Justify agreement
+  for the remaining off-overlay bindings, including absent or released
+  bindings, and show that the result keeps holders known only to the
+  caller in the clobbered set.
+  [Sweep admission](frame.md#admission-condition-for-sweeps-of-own-locals).
 - An unrolled recursive call reaches the lookup before the check that
   refuses recursion on a miss. No fixture has a recursive function with a
   supplied entry, and the argument above assumes one activation of the body.

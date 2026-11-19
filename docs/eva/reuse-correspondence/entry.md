@@ -11,7 +11,8 @@ and covered reads and writes is sound for each execution satisfying
 every finite prefix, and Reach covers every visit. Exit supplies a memory covered by the
 stored output that agrees with the current output on the possible normal-exit
 writes, for the same outcome. The footprint bounds and the certain-write
-guarantee also hold for the matching execution.
+guarantee also hold for the matching execution. The [frame lemma](frame.md#frame-lemma-with-lexical-sweeps)
+gives the complementary condition on the current caller's frame.
 
 **Scope.** Whole blocks and the execution of a single subject with fixed
 entry bindings. A matching memory has one producing witness that agrees on
@@ -26,7 +27,8 @@ the key. The proof uses the next
 step from the assertion visit to account for its reads. A write that
 appears on a normal exit has succeeded, since an attempted store that
 faults ends the execution. Every successful store overwrites a whole
-block.
+block. The Safety, Reach and Exit correspondence excludes evaluations
+of a marked holder. [Known difference](frame.md#reading-a-marked-holder).
 
 For an OCaml hit, the overlay set is `W_exit`. Keep `W` in the
 footprint to cover writes on all prefixes, including faulting and
@@ -53,7 +55,7 @@ old value. Composition with frame and lifetime replay remains open.
 **Hypotheses.**
 
 1. `[Memory M]`. Proved in Lean for `FunMem`. See the
-   [frame entry](frame.md#frame-lemma-without-sweeps).
+   [frame entry](frame.md#frame-lemma-with-lexical-sweeps).
 2. `d : Domain M` and `entry : CacheEntry d`. Model parameters. The subject
    contains the fragment proof and the entry supplies the common initial
    bindings and stored parts. The construction uses the concretisation of
@@ -61,7 +63,8 @@ old value. Composition with frame and lifetime replay remains open.
 3. `a : AllocatorAgreement M`. Model parameter with laws proved in Lean
    for `FunMem.allocatorAgreement`. The relation is reflexive. It is
    preserved by paired stores of the same value to the same block, by
-   paired releases of a block, and by paired creations of the same value.
+   paired releases and lexical sweeps of a block, and by paired creations
+   of the same value.
    Paired creations also choose the same identifier. For `FunMem` the
    relation is equality of the next fresh identifier. Reflexivity makes
    every producing memory match its own entry, by `matches_of_input`.
@@ -211,7 +214,9 @@ FunMem.allocatorAgreement : AllocatorAgreement FunMem
 `ReplayAgreement`, the two runs at each finite step count have the same
 events and control, including the outcome, bindings or fault where
 applicable. Their contents agree on the key and on every block written,
-created or released along the prefix. Write attempts that fault also
+created or released along the prefix, including the targets of lexical
+sweeps. A sweep applies the same value transformation to any other block
+already in agreement. Write attempts that fault also
 establish equality of the cell contents, which are absent in both memories.
 At an assertion visit, agreement on its reads gives equal truth values.
 
@@ -221,7 +226,7 @@ the model fragment.
 
 For a chosen producing prefix, `run_agree_on_writes` requires liveness
 agreement only on the targets of its attempted stores. `writeTargets`
-selects those events. Scope events continue to use the allocator laws.
+selects those events. Scope events and sweeps continue to use the allocator laws.
 The entry construction still uses the static write bound `W` in
 `Matches` to cover every prefix.
 
@@ -276,6 +281,9 @@ environment is common to both evaluations.
 [semantics](../../../lean/ReuseModel/Semantics.lean).
 
 **Evidence.** Same build as the [construction](#sound-entry-from-producer-soundness-and-coverage).
+The [sweep and Inner build](frame.md#frame-lemma-with-lexical-sweeps)
+rechecks these statements and their axiom output with lexical scopes.
+
 
 ```
 'ReuseModel.run_agree' depends on axioms: [propext, Quot.sound]

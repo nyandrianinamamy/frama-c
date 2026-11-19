@@ -54,7 +54,12 @@ that a checkout has the model sources of an entry, compare
 
 ## Topic files
 
-- [Frame](frame.md): the blocks that a statement does not access.
+- [Frame](frame.md): frame preservation up to recorded lexical sweeps and
+  the admission condition for sweeps of the body's own locals.
+- [Reading a marked holder](frame.md#reading-a-marked-holder): a known
+  difference in Safety, Reach and Exit.
+- [Shared Inner](inner.md): coverage at each matching visit on the key
+  blocks issued at entry and the obligations for a saved-state reference.
 - [Domain laws](domain-laws.md): the laws of `filter`, `relate` and `reuse`,
   and the law that they depend on the members of a set of blocks only; the
   product of two domains; and the equality domain, with an identity

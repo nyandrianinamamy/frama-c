@@ -100,8 +100,11 @@ On a hit, Eva still runs the outer cleanup in `Transfer_stmt.do_one_call`.
 `Cvalue_domain.State.leave_scope` uses the post-state holder set to sweep
 the callee's departing locals and formals. `finalize_call` then accumulates
 the post-state's holders into the caller's holder set. This preserves the
-caller's holder information after that step. Agreement on what the earlier
-sweep should see in an arbitrary caller frame remains open.
+caller's holder information after that step. The earlier sweep still
+owes a separate argument for a holder known only to the current caller.
+The later accumulation comes after the sweep and cannot establish that
+the earlier step saw that holder. Skipped inner scopes have their own
+open admission condition. [Admission condition for sweeps of own locals](frame.md#admission-condition-for-sweeps-of-own-locals).
 
 **Evidence (executed).** [`cache-producer.t`](../../../plugins/eva/tests/utils/cache-producer.t/run.t)
 supplies the first fresh `leaf` entry explicitly to a fixture analysis.
@@ -175,8 +178,9 @@ callstack. [`Engine.Store.register_state`](../../../plugins/eva/src/engine/engin
 joins repeated visits at the same control point and callstack, so the
 query can include states from other calls. The collector supplies the
 classes of the observed joins. The
-data for per-position Safety and Reach joins belongs to their producer and
-replay work, in [#47](https://github.com/nyandrianinamamy/frama-c/issues/47)
+[Shared Inner record](inner.md#saved-states-and-the-public-query) states the
+coverage premise for this reference. Per-position Safety and Reach data
+belongs to the producer and replay work in [#47](https://github.com/nyandrianinamamy/frama-c/issues/47)
 and [#48](https://github.com/nyandrianinamamy/frama-c/issues/48).
 
 **Evidence (executed).** [`cache-producer.t`](../../../plugins/eva/tests/utils/cache-producer.t/run.t)

@@ -59,7 +59,8 @@ The cvalue audit covers the following state updates.
   removed by the caller according to the call protocol. These changes fall
   within the caller's unsupported nested-call footprint, when applicable.
   Inner scope removal is scoped to the body. Its escape sweep and automatic
-  allocation cleanup are refused.
+  allocation cleanup are refused. [The frame record](frame.md#admission-condition-for-sweeps-of-own-locals)
+  gives the condition for admitting a sweep of the body's own locals.
 - `logic_assign`, including initialization by type for specification
   results, is covered by the refusal and Top bounds for specification,
   builtin and statement-contract effects. Recursive removal, substitution

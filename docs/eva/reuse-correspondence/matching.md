@@ -21,7 +21,7 @@ The hypotheses of the lemmas below, with their kind, are:
 
 | Hypothesis | Kind | Status |
 |---|---|---|
-| `[Memory M]`: the memory meets the laws of `Memory` | Proved in Lean for `FunMem` | Done ([frame entry](frame.md#frame-lemma-without-sweeps), hypothesis 1) |
+| `[Memory M]`: the memory meets the laws of `Memory` | Proved in Lean for `FunMem` | Done ([frame entry](frame.md#frame-lemma-with-lexical-sweeps)) |
 | `Combinable M`: two memories combine on any set of blocks | Proved in Lean for `FunMem`; for Eva's concrete memories, an argument in prose is owed | Done in Lean; open for Eva, with the missing premise under the product lemma |
 | `FilterSound`, weak form, of each domain | OCaml obligation, per domain | cvalue: argued in prose ([reuse operation](reuse-operation.md#filter-sound-for-cvalue)); other domains pending |
 | `RelateSound` of each domain (clause `decomposes`) | OCaml obligation, per domain | cvalue: argued in prose ([reuse operation](reuse-operation.md#relate-empty-for-cvalue)); other domains pending; fails for the equality domain on `y == z` with the key `{x}` ([domain laws](domain-laws.md#the-equality-domain-fails-relate-sound-on-a-closed-key)), not for every identity `filter` |
