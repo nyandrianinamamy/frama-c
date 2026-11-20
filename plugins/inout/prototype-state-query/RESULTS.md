@@ -49,19 +49,95 @@ the independently built write-only control, allocator overhead, and time
 are outside the storage counts. The equality and inclusion checks establish
 the relationships to the observed fresh models for these fixtures.
 
-## Plug-in readers
+## Zero legacy reads (#80)
 
-`acceptance.sh` passed on the revision that adds this section, with the
-plug-in fixture `plugins.c`: its 195 requests are `MATCH`, with the
-answers of the reference and no legacy read, and the native run finds no
-difference. In `plugin-readers.t`, the battery also runs on `statuses.i`,
-which has a function of each analysis status; the snapshot of the
-statuses, as all the other answers, equals that of the reference. The
-request that reads these statuses after the restoration reads them from
-the status table with the guard off: its count of legacy reads covers the
-export and the restoration only. The callers in the snapshot are not
-compared, since the hit log answers the requests on callers on the
-restored results. The controls `plugins-trap` and `plugins-perturbation` pass,
-with every other control. The zero-read gate fails, as expected: the
-registration of the states by the engine and the availability readers
-still read the legacy store.
+Revision `a6c5427b46029aaa416d3d1b2bd4a57998ee48c0`, clean worktree, one
+command:
+
+```sh
+bash plugins/inout/prototype-state-query/acceptance.sh <empty-directory>
+```
+
+It exited 0 in 140 s. Configuration: `frama-c -no-autoload-plugins
+-load-module eva,inout -eva-domains cvalue -eva-slevel 30`, candidate
+option `-eva-no-memexec`; Callgraph and Server are loaded through the
+dependencies of Eva and InOut. Every reference, candidate and control
+runs in its own process.
+
+Each candidate runs under the continuous trap: the guard is armed once,
+before the analysis, with the trap of every phase, and is never disarmed.
+Any read of the legacy result store, from the initialization through the
+analysis, the collection, the post-analysis passes and every request,
+aborts Eva. Each candidate completed its battery with the guard armed
+once (`trap:all`), no read logged and none trapped.
+
+| Fixtures | Requests | Disposition |
+| --- | --- | --- |
+| 14 point fixtures (`legacy-reads.c` to `precondition.c`) | 31 to 54 each | all `MATCH` |
+| `selection.c` | 478 | all `MATCH` |
+| `plugins.c` | 199 | all `MATCH` |
+| `statuses.i` (`-eva-no-results-function no_results`) | 100 | all `MATCH` |
+
+Zero-read gate: 0 reads during the executions, 0 requests served by the
+legacy store, no failing gate record.
+
+Reads per phase, legacy path (`record` mode, `-eva-no-hit-log`) against
+the candidate:
+
+| Battery | Initialization | Analysis | Collection | Post-analysis | Requests |
+| --- | --- | --- | --- | --- | --- |
+| `legacy-reads.c`, legacy path | 0 | 39 | 19 | 250 | 247 |
+| `plugins.c`, legacy path | 0 | 294 | 134 | 1775 | 1440 |
+| every candidate | 0 | 0 | 0 | 0 | 0 |
+
+No reader of the store runs during the initialization on either path:
+there, the trap has nothing to catch, and `trap:initialization` exits 0.
+
+Positive controls, each in its own process on the legacy path, exit 1 on
+the first read of their phase: `trap:analysis` at
+`Eva.Engine.register_state`, `trap:collection` at
+`Eva.Summary.compute_fun_stats`, `trap:post-analysis` at
+`Eva.Eval_annots.mark_unreachable`, `trap:request` at
+`Eva.Results.get_cvalue_model`. The candidate command itself, run on the
+legacy path, aborts at `Eva.Engine.register_state` on `legacy-reads.c`
+and on `plugins.c` (`continuous-trap-legacy-path`). After the battery, a
+request on cleared results aborts with no read logged before it
+(`tail-probe`). The gate rejects the two legacy-path runs as candidates
+(`gate-sensitivity`: 308 and 1178 execution reads).
+
+On the candidate, the three writers resolve from the hit log during the
+analysis of `plugins.c`: 206 states, 24 call targets and 12 guard
+outcomes. With the hit log declining every request (`store-check`),
+the legacy tables written from the records give the reference's answers
+on every fixture.
+
+Snapshot round trip on `plugins.c`: the exported statuses and callers,
+the statuses before the export, after an intervening analysis (they
+differ) and after the restore (equal to those before the export) match
+the reference, under the trap. With wrong exported statuses and callers
+(`plugins-perturb-calls`), only `export.calls` differs: the restored
+records serve the requests. With the hit log declining after the restore
+(`plugins-restore-check`), the statuses come from the legacy tables that
+the payload wrote: they match, with 19 legacy reads after the restore and
+none during the export (`restored-payload`).
+
+Native equality in one process: 151 models and values on `plugins.c`, 69
+on `statuses.i`, none differing.
+
+All controls pass: the five phase traps, `comparator-mismatch`,
+`continuous-trap`, `continuous-trap-legacy-path`, `tail-probe`,
+`guard-sensitivity`, `hit-log-registration`, `legacy-store-writes`,
+`read-accounting`, `reference-independence`, `resolver-path`,
+`native-equality`, `resolver-perturbation`, `selection-order`,
+`selection-perturbation`, `plugins-perturbation`,
+`export-payload-perturbation`, `restored-payload`, `snapshot-round-trip`,
+`inout-collection`, `inout-memexec-parity`, `gate-sensitivity` and
+`zero-read-gate-exit`.
+
+The reachability battery runs in the cram test
+`plugins/eva/tests/utils/reach-availability.t`: on each fixture but
+`interrupted-hit.i`, whose memexec hit is outside the trapped
+configuration, the candidate runs under the same continuous trap, and on
+`points.i` and
+`interrupted.i` the payload exported from the records restores legacy
+tables that give the reference's answers (`reach-restore-check`).
