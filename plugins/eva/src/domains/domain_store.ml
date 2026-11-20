@@ -36,6 +36,34 @@ end
 
 module ControlPoint = Datatype.Make_with_collections (ControlPointPrototype)
 
+(* Short description of a read point for {!Legacy_read_guard}. *)
+let pretty_read_point ?callstack control_point fmt =
+  let line stmt = Fileloc.line (Cil_datatype.Stmt.loc stmt) in
+  let kf stmt = Kernel_function.find_englobing_kf stmt in
+  begin match control_point with
+    | Initial -> Format.pp_print_string fmt "initial state"
+    | Start kf -> Format.fprintf fmt "start of %a" Kernel_function.pretty kf
+    | Before stmt ->
+      Format.fprintf fmt "before line %d of %a" (line stmt)
+        Kernel_function.pretty (kf stmt)
+    | After stmt ->
+      Format.fprintf fmt "after line %d of %a" (line stmt)
+        Kernel_function.pretty (kf stmt)
+  end;
+  (* Same naming as the acceptance driver: entry point, then callee@line. *)
+  let pp_call fmt (kf, kinstr) =
+    match kinstr with
+    | Cil_types.Kglobal -> ()
+    | Kstmt stmt ->
+      Format.fprintf fmt "/%a@%d" Kernel_function.pretty kf (line stmt)
+  in
+  Option.iter (fun callstack ->
+      Format.fprintf fmt " in %a%a"
+        Kernel_function.pretty callstack.Callstack.entry_point
+        (Pretty_utils.pp_list ~sep:"" pp_call)
+        (Callstack.to_call_list callstack))
+    callstack
+
 
 module type InputDomain = sig
   include Datatype.S
@@ -98,10 +126,20 @@ module Make (Domain: InputDomain) = struct
         let by_callstack = TableByCallstack.memo create control_point in
         Callstack.Hashtbl.replace by_callstack callstack state
 
-  let is_computed () = Save.get_option () |> Option.value ~default:false
+  let notify access ?callstack control_point =
+    Legacy_read_guard.notify access ~store:Domain.name
+      (pretty_read_point ?callstack control_point)
+
+  let computed () = Save.get_option () |> Option.value ~default:false
+
+  let is_computed () =
+    Legacy_read_guard.notify Availability ~store:Domain.name
+      (fun fmt -> Format.pp_print_string fmt "recorded states");
+    computed ()
 
   let get_state ?callstack control_point =
-    if is_computed ()
+    notify Getter ?callstack control_point;
+    if computed ()
     then
       try
         match callstack with
@@ -116,7 +154,8 @@ module Make (Domain: InputDomain) = struct
     TableByCallstack.find key |> Callstack.Hashtbl.to_seq_keys |> List.of_seq
 
   let callstacks control_point =
-    if is_computed () then
+    notify Enumeration control_point;
+    if computed () then
       try `Value (get_callstacks control_point)
       with Not_found -> `Value []
     else `Top

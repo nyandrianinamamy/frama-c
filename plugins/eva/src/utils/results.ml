@@ -8,7 +8,13 @@
 
 open Lattice_bounds
 
+(* Labels the reads of the legacy result store made by public functions. *)
+let reading name f = Legacy_read_guard.reader ("Eva.Results." ^ name) f
+
 let are_available kf =
+  reading "are_available" @@ fun () ->
+  Legacy_read_guard.notify Availability ~store:"analysis-status"
+    (fun fmt -> Kernel_function.pretty fmt kf);
   Self.is_computed () &&
   match Function_calls.analysis_status kf with
   | Analyzed (Complete | Partial) -> true
@@ -501,10 +507,12 @@ end
 (* Working with callstacks *)
 
 let callstacks req =
+  reading "callstacks" @@ fun () ->
   let module E = Make () in
   E.callstacks req
 
 let by_callstack req =
+  reading "by_callstack" @@ fun () ->
   let module E = Make () in
   E.by_callstack req
 
@@ -512,20 +520,24 @@ let by_callstack req =
 (* State requests *)
 
 let equality_class exp req =
+  reading "equality_class" @@ fun () ->
   let module E = Make () in
   E.equality_class exp req
 
 let get_cvalue_model_result req =
+  reading "get_cvalue_model_result" @@ fun () ->
   let module E = Make () in
   E.get_cvalue_model req
 
 let get_cvalue_model req =
+  reading "get_cvalue_model" @@ fun () ->
   match get_cvalue_model_result req with
   | Ok state -> state
   | Error Bottom -> Cvalue.Model.bottom
   | Error (Top | DisabledDomain) -> Cvalue.Model.top
 
 let print_states ?filter req =
+  reading "print_states" @@ fun () ->
   let module E = Make () in
   E.print_states ?filter req
 
@@ -561,12 +573,15 @@ let build_eval_lval_and_exp () =
   eval_lval, eval_exp
 
 let eval_lval lval req =
+  reading "eval_lval" @@ fun () ->
   let lval = Eva_ast.translate_lval lval in
   Value ((fst @@ build_eval_lval_and_exp ()) lval req)
 
-let eval_var vi req = eval_lval (Cil.var vi) req
+let eval_var vi req =
+  reading "eval_var" @@ fun () -> eval_lval (Cil.var vi) req
 
 let eval_exp exp req =
+  reading "eval_exp" @@ fun () ->
   let exp = Eva_ast.translate_exp exp in
   Value ((snd @@ build_eval_lval_and_exp ()) exp req)
 
@@ -580,15 +595,18 @@ let eval_address' ?(for_writing=false) lval req =
     end : Lvaluation)
 
 let eval_address ?(for_writing=false) lval req =
+  reading "eval_address" @@ fun () ->
   let lval = Eva_ast.translate_lval lval in
   eval_address' ~for_writing lval req
 
 let eval_callee f req =
+  reading "eval_callee" @@ fun () ->
   let module M = Make () in
   let f = Eva_ast.translate_host f in
   M.eval_callee f req
 
 let callee stmt =
+  reading "callee" @@ fun () ->
   let callee_lv =
     match stmt.Cil_types.skind with
     | Instr (Call (_lval, callee_lv, _args, _loc)) ->
@@ -709,20 +727,24 @@ let alarms : type a. a evaluation -> Alarms.t list =
 (* Dependencies *)
 
 let expr_deps expr request =
+  reading "expr_deps" @@ fun () ->
   let lval_to_loc lv = eval_address' lv request |> as_precise_loc in
   Eva_ast.PreciseDepsOf.zone_of_exp lval_to_loc (Eva_ast.translate_exp expr)
 
 let lval_deps lval request =
+  reading "lval_deps" @@ fun () ->
   let lval_to_loc lv = eval_address' lv request |> as_precise_loc in
   Eva_ast.PreciseDepsOf.zone_of_lval lval_to_loc Read
     (Eva_ast.translate_lval lval)
 
 let address_deps lval request =
+  reading "address_deps" @@ fun () ->
   let lval_to_loc lv = eval_address' lv request |> as_precise_loc in
   Eva_ast.PreciseDepsOf.indirect_zone_of_lval
     lval_to_loc (Eva_ast.translate_lval lval)
 
 let expr_dependencies expr request =
+  reading "expr_dependencies" @@ fun () ->
   let lval_to_loc lv = eval_address' lv request |> as_precise_loc in
   Eva_ast.PreciseDepsOf.deps_of_exp lval_to_loc (Eva_ast.translate_exp expr)
 
@@ -731,6 +753,7 @@ let expr_dependencies expr request =
 type taint = Taint_domain.taint = Direct | Indirect | Untainted
 
 let is_tainted ?names zone request =
+  reading "is_tainted" @@ fun () ->
   let module M = Make () in
   let state = M.get_state request Taint_domain.key Taint_domain.join in
   Result.map (fun state -> Taint_domain.is_tainted ?names state zone) state
@@ -741,6 +764,7 @@ type taint_names_by_kind = Taint_domain.taint_names_by_kind =
   }
 
 let taint_names_by_kind zone request =
+  reading "taint_names_by_kind" @@ fun () ->
   let module M = Make () in
   let state = M.get_state request Taint_domain.key Taint_domain.join in
   Result.bind state (fun state ->
@@ -751,6 +775,7 @@ let taint_names_by_kind zone request =
 (* Reachability *)
 
 let is_empty rq =
+  reading "is_empty" @@ fun () ->
   let module E = Make () in
   E.callstacks rq = []
 
@@ -764,14 +789,17 @@ let is_bottom : type a. a evaluation -> bool =
     L.is_bottom L.v
 
 let is_reachable stmt =
+  reading "is_reachable" @@ fun () ->
   let module M = Make () in
   M.is_reachable (before stmt)
 
 let is_reachable_pos pos =
+  reading "is_reachable_pos" @@ fun () ->
   let module M = Make () in
   M.is_reachable (before_pos pos)
 
 let is_reachable_kinstr kinstr =
+  reading "is_reachable_kinstr" @@ fun () ->
   let module M = Make () in
   M.is_reachable (before_kinstr kinstr)
 

@@ -221,7 +221,10 @@ struct
     let new_interferences_by_pos =
       let add (stmt, callstack as pos) acc_map =
         let loc = Pos.loc pos in
-        let state = Engine.get_state ~callstack (After stmt) in
+        let state =
+          Legacy_read_guard.reader "Eva.Interferences.add_last_analysis"
+            (fun () -> Engine.get_state ~callstack (After stmt))
+        in
         match state with
         | `Bottom -> acc_map (* no interference to add *)
         | `Top | `Value _ as state ->

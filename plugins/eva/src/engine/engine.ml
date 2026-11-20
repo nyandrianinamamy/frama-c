@@ -29,6 +29,7 @@ module Make_Domain (Abstract: Abstractions.S) = struct
   module Store = struct
 
     let register_state callstack control_point state =
+      Legacy_read_guard.reader "Eva.Engine.register_state" @@ fun () ->
       match control_point with
       | Domain_store.Initial ->
         (* Only one possible initial state, which is also the consolidated state.
@@ -46,6 +47,7 @@ module Make_Domain (Abstract: Abstractions.S) = struct
     (* Computes and registers consolidated state as the join of states
        registered for all possible callstacks at the given [control_point]. *)
     let compute_consolidated_state control_point =
+      Legacy_read_guard.reader "Eva.Engine.consolidate" @@ fun () ->
       let open Lattice_bounds.TopBottom.Operators in
       let* callstacks = Store.callstacks control_point in
       let join a b = `Value (join a b) in
@@ -147,7 +149,11 @@ module Make (Abstract: Abstractions.S) = struct
     module Interferences = Interference'
 
 
-    let find get (control_point: Domain_store.control_point) =
+    (* The computation state and the analysis status of the function, part
+       of the legacy result store, decide the answer before the states. *)
+    let find ?callstack get (control_point: Domain_store.control_point) =
+      Legacy_read_guard.notify Availability ~store:"analysis-status"
+        (Domain_store.pretty_read_point ?callstack control_point);
       if Self.is_computed ()
       then
         match control_point with
@@ -165,7 +171,7 @@ module Make (Abstract: Abstractions.S) = struct
       else `Top
 
     let get_state ?callstack =
-      find (Dom.Store.get_state ?callstack)
+      find ?callstack (Dom.Store.get_state ?callstack)
 
     let get_state_by_callstack control_point =
       find (Dom.Store.get_state_by_callstack) control_point

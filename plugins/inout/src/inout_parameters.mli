@@ -11,6 +11,8 @@ val name: string
 include Plugin.S
 
 module QueryPrototype: Parameter_sig.String
+module QueryAcceptance: Parameter_sig.String
+module QueryAcceptanceOutput: Parameter_sig.String
 
 module ForceAccessPath: Parameter_sig.Bool
 module ForceOut: Parameter_sig.Bool

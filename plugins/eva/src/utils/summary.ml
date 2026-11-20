@@ -155,6 +155,7 @@ let get_status ip =
   Property_status.fold_on_statuses aux_status ip None
 
 let compute_fun_stats kf =
+  Legacy_read_guard.reader "Eva.Summary.compute_fun_stats" @@ fun () ->
   let alarms = AlarmsStats.create 13
   and coverage = Coverage.make ()
   and statuses = Statuses.make ()
@@ -255,6 +256,7 @@ let compute_events () =
   eva, kernel
 
 let compute_statuses ()  =
+  Legacy_read_guard.reader "Eva.Summary.compute_statuses" @@ fun () ->
   let alarms = Statuses.make ()
   and assertions = Statuses.make ()
   and preconds = Statuses.make ()

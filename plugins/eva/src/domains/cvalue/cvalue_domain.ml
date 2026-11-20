@@ -398,6 +398,7 @@ module State = struct
     | `Value v -> v
 
   let display_final_state kf =
+    Legacy_read_guard.reader "Eva.Cvalue_domain.display_final_state" @@ fun () ->
     try
       let values = get_state_before (Kernel_function.find_return kf) in
       let fst_values = get_state_before (Kernel_function.find_first_stmt kf) in

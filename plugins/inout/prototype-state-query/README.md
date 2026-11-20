@@ -38,3 +38,87 @@ measurements. The experiment exercises finite ordinary C bases, scalar
 updates, and field slices. It does not establish a general reconstruction
 theorem for Cvalue, other domains, nested hits, scope effects, or imported
 results. See [the recorded results](RESULTS.md).
+
+## Acceptance driver and legacy-read guard
+
+Run `bash plugins/inout/prototype-state-query/acceptance.sh [evidence-dir]`
+to replay the acceptance driver alone; `run.sh` also runs it, into
+`evidence/acceptance`. The configuration is the minimal one: no plugin
+autoloading, Eva and InOut loaded explicitly, Callgraph and Server through
+their dependencies, only the Cvalue domain, slevel 30.
+
+For each fixture, two processes run the same public requests on the
+statement labelled `P`:
+
+- The reference runs `-inout-state-query-acceptance reference`. The driver
+  disables memexec, so the reference is fresh-only, and leaves the guard
+  off.
+- The candidate runs `-inout-state-query-acceptance candidate` with the
+  options in `CANDIDATE_OPTIONS` (default `-eva-no-memexec`). The guard
+  records every legacy read.
+
+Each process writes JSON lines (`-inout-state-query-acceptance-output`): a
+header with the command line, loaded plugins, Eva configuration and inputs;
+the reads made during the execution, grouped by phase and reader; and one
+record per request with its answer and the reads it made. `compare.py`
+compares the two files of each fixture and writes `report.md` and
+`report.json` with the revision, a SHA-256 of each input and one
+disposition per request:
+
+| Disposition | Meaning |
+| --- | --- |
+| `MATCH` | Equal answers and no legacy read during the request. |
+| `LEGACY` | Equal answers served with legacy reads. |
+| `MISMATCH` | Different answers. |
+| `MISSING` | The request is absent from one of the runs. |
+| `UNOBSERVED` | Equal answers, with the candidate's guard off. |
+
+Answers are compared as printed text, so equality is exact for printed
+answers, and native inclusion between models is not checked across
+processes. The script fails on `MISMATCH`, `MISSING` or a failed control,
+and also on `LEGACY` with `--require-zero-reads`. Until a reader is
+migrated, every request on stored results is `LEGACY`.
+
+The requests cover stack enumeration (`callstacks`, `by_callstack`),
+availability (`are_available`, `Eva.Analysis.status`, `is_reachable`),
+models before and after `P`, joined and per stack, the values of the
+globals, the entry and initial states, and the snapshot export
+`Eva.Eva_results.get_results`. A request on a supplied Cvalue state must
+read nothing.
+
+The guard (`Eva.Legacy_read_guard`) sees three kinds of reads:
+
+- getters and enumerations of any `Domain_store`, which every alias reaches:
+  `Cvalue_results`, the domain-level `Store` modules, the engine's store,
+  the snapshot export, the `\init` label of logic evaluation, the
+  final-value printer and the consolidation of states;
+- the store's own availability flag;
+- the availability decision of point queries: the computation state and the
+  analysis status of the function in the engine, `Results.are_available`
+  and `Eva.Analysis.status`.
+
+Each read carries the phase (initialization, analysis, collection by
+`Cvalue_callbacks` hooks, post-analysis, or request), the outermost
+labelled reader, and the first stack frame outside Eva when the read does
+not come from Eva's own analysis. The driver arms the guard through its API,
+so arming it does not invalidate Eva's results. The controls run in separate
+processes with `-inout-state-query-acceptance trap:<phase>`, where the first
+read in that phase aborts Eva with exit status 1:
+
+| Control | Expected trap |
+| --- | --- |
+| `trap:request` | `Eva.Results.get_cvalue_model` on `before P`, the known request. |
+| `trap:analysis` | `Eva.Engine.register_state`, which reads the recorded state to join it. |
+| `trap:collection` | `Eva.Summary.compute_fun_stats`, Eva's statistics hook. |
+| `trap:initialization` | None: the run completes. |
+
+The report adds two controls: altering one candidate answer must give
+exactly one `MISMATCH`, and the guard must see reads on every request on
+stored results and none on the supplied state. The cram test
+`plugins/eva/tests/utils/legacy-read-guard.t` checks the guard and the
+driver output.
+
+Not covered yet: Callgraph relations (`Results.callers`, `callsites`,
+`is_called` outside point queries), branch outcomes
+(`condition_truth_value`), alarms and property statuses, InOut and Server
+answers, and restoring a snapshot. Later tickets extend the driver to them.

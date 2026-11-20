@@ -16,12 +16,7 @@ prototype=plugins/inout/prototype-state-query
 evidence="${1:-$prototype/evidence}"
 mkdir -p -- "$evidence"
 
-main_checkout=$(git worktree list --porcelain | sed -n '1s/^worktree //p')
-eval "$(opam env --switch="$main_checkout" --set-switch)"
-export PATH="$main_checkout/_opam/setup-venv/bin:$PATH"
-
-bash dev/check-env.sh
-dune build -j 8 @install
+source "$prototype/setup.sh"
 
 frama_c=(dune exec --no-build -- frama-c -no-autoload-plugins
   -load-module eva,inout -eva-domains cvalue -eva-slevel 30
@@ -46,3 +41,5 @@ done
 printf 'Recorded missing\n'
 
 python3 "$prototype/render.py" "$prototype" "$evidence"
+
+bash "$prototype/acceptance.sh" "$evidence/acceptance"

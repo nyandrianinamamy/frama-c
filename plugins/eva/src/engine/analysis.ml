@@ -110,10 +110,12 @@ let post_analysis (type t) (engine: t engine) mthread_analysis final_state =
      propagation is incomplete. Also do not mark unreachable statutes if
      there is an alarm in the initializers (bottom initial state), as we
      would end up marking the alarm as dead. *)
-  Eval_annots.mark_unreachable ();
+  Legacy_read_guard.reader "Eva.Eval_annots.mark_unreachable"
+    Eval_annots.mark_unreachable;
   (* Try to refine the 'Unknown' statuses that have been emitted during
      this analysis. *)
-  Eval_annots.mark_green_and_red ();
+  Legacy_read_guard.reader "Eva.Eval_annots.mark_green_and_red"
+    Eval_annots.mark_green_and_red;
   Mem_exec.cleanup_results ();
   (* Remove redundant alarms *)
   if Parameters.RmAssert.get () then Eva_dynamic.Scope.rm_asserts ();
@@ -153,6 +155,9 @@ type results = Function_calls.results = Complete | Partial | NoResults
 type status = Function_calls.analysis_status =
     Unreachable | SpecUsed | Builtin of string | Analyzed of results
 let status kf =
+  Legacy_read_guard.reader "Eva.Analysis.status" @@ fun () ->
+  Legacy_read_guard.notify Availability ~store:"analysis-status"
+    (fun fmt -> Kernel_function.pretty fmt kf);
   match Function_calls.analysis_status kf with
   | Analyzed Complete as status ->
     if is_computed () then status else Analyzed Partial
@@ -173,8 +178,12 @@ let compute_from_entry_point  (type t) (engine: t engine)
     ?(thread=Thread.main) ?cvalue_state ?arguments entry_point =
   let module Engine = (val engine) in
   let lib_entry = Kernel.LibEntry.get () in
-  match Engine.Initialization.initial_state_with_formals
-          ?cvalue_state ?arguments ~lib_entry entry_point with
+  let initial_state =
+    Legacy_read_guard.during Initialization @@ fun () ->
+    Engine.Initialization.initial_state_with_formals
+      ?cvalue_state ?arguments ~lib_entry entry_point
+  in
+  match initial_state with
   | `Bottom ->
     Eval_annots.mark_invalid_initializers ();
     Self.error "Eva not started because globals \
@@ -249,7 +258,9 @@ let compute_from ?cvalue_state ?arguments entry_point =
   (* Mthread pre-analysis: returns an analysis state if requested. *)
   let mt_analysis = Mt_main.pre_analysis () in
   (* Prepare the analysis and build the engine. *)
-  let module Engine = (val pre_analysis ()) in
+  let module Engine =
+    (val Legacy_read_guard.during Initialization pre_analysis)
+  in
   Self.feedback "Analyzing a%scomplete application starting at %a"
     (if Kernel.LibEntry.get () then "n in" else " ")
     Kernel_function.pretty entry_point;
@@ -257,6 +268,7 @@ let compute_from ?cvalue_state ?arguments entry_point =
     Self.ComputationState.set Computing;
     (* Run the analysis. *)
     let final_state =
+      Legacy_read_guard.during Analysis @@ fun () ->
       match mt_analysis with
       | Some analysis -> mthread_fixpoint (module Engine) analysis
       | None ->
@@ -264,6 +276,7 @@ let compute_from ?cvalue_state ?arguments entry_point =
           ?cvalue_state ?arguments entry_point
     in
     Self.(ComputationState.set Computed);
+    Legacy_read_guard.during Post_analysis @@ fun () ->
     post_analysis (module Engine) mt_analysis final_state
   with exn ->
     let backtrace = Printexc.get_raw_backtrace () in

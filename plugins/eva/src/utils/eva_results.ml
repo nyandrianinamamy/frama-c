@@ -76,6 +76,7 @@ type results = {
 }
 
 let get_results () =
+  Legacy_read_guard.reader "Eva.Eva_results.get_results" @@ fun () ->
   let vue = Emitter.get Eva_utils.emitter in
   let module CS = Callstack in
   let states = ControlPoint.Hashtbl.create 128 in

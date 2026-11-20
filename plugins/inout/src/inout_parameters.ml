@@ -23,6 +23,23 @@ module QueryPrototype =
     let help = "Run the throwaway point-query prototype"
   end)
 
+module QueryAcceptance =
+  String (struct
+    let option_name = "-inout-state-query-acceptance"
+    let default = ""
+    let arg_name = "reference|candidate|trap:<phase>"
+    let help = "Run the state-query acceptance driver (prototype)"
+  end)
+
+module QueryAcceptanceOutput =
+  String (struct
+    let option_name = "-inout-state-query-acceptance-output"
+    let default = ""
+    let arg_name = "file"
+    let help = "Write the records of the acceptance driver to <file>, \
+                as JSON lines"
+  end)
+
 module ForceDeref =
   False
     (struct
