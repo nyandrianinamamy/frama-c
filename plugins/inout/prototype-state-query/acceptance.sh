@@ -41,8 +41,12 @@ candidate_options=(${CANDIDATE_OPTIONS:--eva-no-memexec})
 fixtures=(legacy-reads assign stages original loop read-before-write guard
   unreachable partial-base maybe-write maybe-write-goto maybe-write-upstream
   pre-label precondition selection)
-# The fixture of the plug-in readers, which runs the plugins- modes.
+# The fixtures of the plug-in readers, which run the plugins- modes. The
+# second one has a function of each analysis status, among them a
+# function whose results are not saved.
 plugin_fixture=plugins
+status_fixture=statuses
+status_options=(-eva-no-results-function no_results)
 
 {
   printf 'revision %s\n' "$(git rev-parse HEAD)"
@@ -56,11 +60,16 @@ plugin_fixture=plugins
 } > "$evidence/environment.txt" 2>&1
 
 run() {
-  local name=$1 mode=$2 output=$3
+  local name=$1 mode=$2 output=$3 file
   shift 3
+  file=$prototype/$name.c
+  if [ "$name" = "$status_fixture" ]; then
+    file=plugins/eva/tests/utils/plugin-readers.t/statuses.i
+    set -- "${status_options[@]}" "$@"
+  fi
   "${base[@]}" "$@" -inout-state-query-acceptance "$mode" \
     -inout-state-query-acceptance-output "$output.jsonl" \
-    "$prototype/$name.c" > "$output.log" 2>&1
+    "$file" > "$output.log" 2>&1
 }
 
 for name in "${fixtures[@]}"; do
@@ -73,11 +82,13 @@ done
 
 # Plug-in readers and Eva's semantic reports: Callgraph, InOut, Server's
 # filters and properties, statuses and statistics.
-run "$plugin_fixture" plugins-reference "$evidence/$plugin_fixture.reference"
-run "$plugin_fixture" plugins-candidate "$evidence/$plugin_fixture.candidate" \
-  "${candidate_options[@]}"
-run "$plugin_fixture" plugins-native "$evidence/$plugin_fixture.native"
-printf 'Recorded %s\n' "$plugin_fixture"
+for name in "$plugin_fixture" "$status_fixture"; do
+  run "$name" plugins-reference "$evidence/$name.reference"
+  run "$name" plugins-candidate "$evidence/$name.candidate" \
+    "${candidate_options[@]}"
+  run "$name" plugins-native "$evidence/$name.native"
+  printf 'Recorded %s\n' "$name"
+done
 
 # Resolver controls. A resolver that rebuilds each visit from the wrong
 # producer must be reported, and so must a hit log that exports wrong
@@ -109,8 +120,15 @@ for name in "${fixtures[@]}"; do
   run "$name" store-check "$evidence/control-store-check-$name" \
     "${candidate_options[@]}"
 done
-run "$plugin_fixture" plugins-store-check \
-  "$evidence/control-store-check-$plugin_fixture" "${candidate_options[@]}"
+for name in "$plugin_fixture" "$status_fixture"; do
+  run "$name" plugins-store-check "$evidence/control-store-check-$name" \
+    "${candidate_options[@]}"
+done
+# The payload that the candidate exports from the hit log, restored: the
+# hit log then declines every request, which reads the legacy tables that
+# the payload wrote.
+run "$plugin_fixture" plugins-restore-check \
+  "$evidence/control-restore-check-$plugin_fixture" "${candidate_options[@]}"
 printf 'Recorded legacy-store controls\n'
 
 # Sensitivity: the same batteries on the legacy path, with every read
@@ -160,8 +178,9 @@ done
 # compare.py checks against the evidence.
 status=0
 python3 -I "$prototype/compare.py" --require-zero-reads --no-write \
-  "$evidence" "${fixtures[@]}" "$plugin_fixture" \
+  "$evidence" "${fixtures[@]}" "$plugin_fixture" "$status_fixture" \
   > "$evidence/zero-read-gate.log" || status=$?
 printf '%s\n' "$status" > "$evidence/zero-read-gate.status"
 
-python3 -I "$prototype/compare.py" "$evidence" "${fixtures[@]}" "$plugin_fixture"
+python3 -I "$prototype/compare.py" "$evidence" "${fixtures[@]}" \
+  "$plugin_fixture" "$status_fixture"

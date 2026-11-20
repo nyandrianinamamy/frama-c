@@ -72,6 +72,7 @@ type log = {
   states: bool; (* whether states are recorded at all *)
   mutable consistent: bool;
   mutable completion: completion;
+  restored: bool; (* whether a snapshot restored these records *)
   mutable initial: (Callstack.t * state) option;
   invocations: invocation list Callstack.Hashtbl.t; (* latest first *)
   producers: (int, producer) Hashtbl.t;
@@ -98,6 +99,7 @@ let create stamp ~exact ~states = {
   stamp; exact; states;
   consistent = true;
   completion = Recording;
+  restored = false;
   initial = None;
   invocations = Callstack.Hashtbl.create 17;
   producers = Hashtbl.create 17;
@@ -781,48 +783,62 @@ let resolve_consolidated point =
 
 let pretty_count what n fmt = Format.fprintf fmt "%d %s" n what
 
+(* The states that the visits on [callstack] registered at [point], in
+   the order of the visits: their inputs at the start of the function, the
+   states of their bodies at a statement, including the states computed so
+   far by an interrupted body. *)
+let registrations_on log ~callstack (point : Domain_store.control_point) =
+  let at_point (points : points) stmt =
+    let table =
+      match point with Before _ -> points.before | _ -> points.after
+    in
+    Stmt.Hashtbl.find_opt table stmt
+  in
+  if not log.states then []
+  else
+    match point with
+    | Initial ->
+      (match log.initial with
+       | Some (stack, state) when Callstack.equal stack callstack -> [state]
+       | Some _ | None -> [])
+    | Start kf ->
+      List.map (fun v -> v.input) (visits_of kf callstack)
+    | Before stmt | After stmt ->
+      let kf = Kernel_function.find_englobing_kf stmt in
+      let state visit =
+        match visit.kind with
+        | Body id ->
+          begin match Hashtbl.find_opt log.producers id with
+            | Some { points = Some points; _ } -> at_point points stmt
+            | Some { points = None; _ } | None -> None
+          end
+        | Hit _ | Spec | Builtin _ | Unresolved -> None
+      in
+      List.filter_map state (visits_of kf callstack)
+
+(* Joins the registrations as the legacy store does, each new state on the
+   right. *)
+let join_registrations = function
+  | [] -> None
+  | first :: others ->
+    Some (List.fold_left Cvalue_domain.State.join first others)
+
 let registered ~callstack (point : Domain_store.control_point) =
   if not (recording ()) then None
   else
-    let log = !current in
-    let at_point (points : points) stmt =
-      let table =
-        match point with Before _ -> points.before | _ -> points.after
-      in
-      Stmt.Hashtbl.find_opt table stmt
-    in
-    (* The states that the earlier visits on [callstack] registered at
-       [point]: their inputs at the start of the function, the states of
-       their bodies at a statement. The registering invocation is the
-       latest one; it is not recorded yet at the start of the function, and
-       has no producer yet at a statement. *)
+    (* The registering invocation is the latest one; it is not recorded
+       yet at the start of the function, and has no producer yet at a
+       statement: the registrations are those of the earlier visits. The
+       initial state is registered once, without this function. *)
     let earlier =
-      if not log.states then []
-      else
-        match point with
-        | Initial -> []
-        | Start kf ->
-          List.map (fun v -> v.input) (visits_of kf callstack)
-        | Before stmt | After stmt ->
-          let kf = Kernel_function.find_englobing_kf stmt in
-          let state visit =
-            match visit.kind with
-            | Body id ->
-              begin match Hashtbl.find_opt log.producers id with
-                | Some { points = Some points; _ } -> at_point points stmt
-                | Some { points = None; _ } | None -> None
-              end
-            | Hit _ | Spec | Builtin _ | Unresolved -> None
-          in
-          List.filter_map state (visits_of kf callstack)
+      match point with
+      | Initial -> []
+      | _ -> registrations_on !current ~callstack point
     in
     Legacy_read_guard.resolved
       (Domain_store.pretty_read_point ~callstack point)
       (pretty_count "earlier registrations" (List.length earlier));
-    match earlier with
-    | [] -> Some None
-    | first :: others ->
-      Some (Some (List.fold_left Cvalue_domain.State.join first others))
+    Some (join_registrations earlier)
 
 let target callstack status =
   if not (recording ()) then None
@@ -928,12 +944,15 @@ let computed () = Option.map (fun c -> c <> Recording) (completion ())
 
 (* The records are started before the computation state becomes
    [Computing], and sealed or interrupted before it becomes [Computed] or
-   [Aborted]: the hooks on these changes see the new completion. *)
+   [Aborted]: the hooks on these changes see the new completion. Restored
+   results are computed, as [Eva_results.set_results] sets them, even
+   those of an interrupted analysis. *)
 let computation_state () =
   Option.map
     (function
       | Recording -> Self.Computing
       | Complete -> Self.Computed
+      | Interrupted when (!current).restored -> Self.Computed
       | Interrupted -> Self.Aborted)
     (completion ())
 
@@ -1062,6 +1081,21 @@ let stored_states point =
       let stacks = selected_stacks log ~filter:all point in
       match selection_on log ~supplied:false stacks point with
       | exception Decline -> None
+      | Unknown_state _ when log.completion = Interrupted && not log.has_hit ->
+        (* The state of some callstack is unavailable to the requests, but
+           the store holds what each visit registered, including the states
+           computed so far by an interrupted body. *)
+        let stored stack =
+          Option.map (fun state -> stack, state)
+            (join_registrations (registrations_on log ~callstack:stack point))
+        in
+        let list =
+          List.filter_map stored (Lazy.force (point_info log point).order)
+        in
+        Legacy_read_guard.resolved (Domain_store.pretty_read_point point)
+          (fun fmt -> Format.fprintf fmt "%d registered callstack(s)"
+              (List.length list));
+        Some list
       | Unknown_state _ -> None
       | Known list as selection ->
         Legacy_read_guard.resolved (Domain_store.pretty_read_point point)
@@ -1078,7 +1112,7 @@ let snapshot () =
    that produced them may still be current in another project. *)
 let restore log =
   incr last_stamp;
-  current := { log with stamp = !last_stamp };
+  current := { log with stamp = !last_stamp; restored = true };
   Current.set !last_stamp
 
 let pretty_visits fmt stack =

@@ -42,4 +42,6 @@ printf 'Recorded missing\n'
 
 python3 "$prototype/render.py" "$prototype" "$evidence"
 
+# The acceptance driver runs every process anew, in an empty directory.
+rm -rf -- "$evidence/acceptance"
 bash "$prototype/acceptance.sh" "$evidence/acceptance"

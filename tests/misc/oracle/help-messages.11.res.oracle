@@ -22,9 +22,12 @@ Options taking a string as argument should preferably be written
                     sure outputs, an under-approximation of the set of the
                     certainly written locations (opposite option is
                     -no-inout)
--inout-state-query-acceptance <reference|candidate|trap:<phase>>  Run the
-                    state-query acceptance driver (prototype) (preferably use
-                    -inout-state-query-acceptance="reference|candidate|trap:<phase>")
+-inout-state-query-acceptance <[reach-|plugins-]<mode>>  Run the state-query
+                    acceptance driver (prototype). <mode> is reference,
+                    candidate, record, native, wrong-producer, tail-probe,
+                    store-check, perturb-calls, restore-check or trap:<phase>
+                    (preferably use
+                    -inout-state-query-acceptance="[reach-|plugins-]<mode>")
 -inout-state-query-acceptance-output <file>  Write the records of the
                     acceptance driver to <file>, as JSON lines (preferably
                     use -inout-state-query-acceptance-output="file")

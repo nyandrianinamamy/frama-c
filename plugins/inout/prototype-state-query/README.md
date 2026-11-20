@@ -149,9 +149,11 @@ and trapped no read.
 The other modes of the driver are `record` (every read logged, none
 trapped), `tail-probe` (the candidate, then one request on cleared results,
 which must abort), `store-check` (the analysis records the hit log, which
-then declines every request) and `perturb-calls` (the hit log exports every
-function as unreachable and without caller); the `plugins-` and `reach-`
-prefixes select the other batteries (see below).
+then declines every request), `perturb-calls` (the hit log exports every
+function as unreachable and without caller) and `restore-check` (the
+candidate, whose hit log declines every request once a snapshot of its
+results is restored); the `plugins-` and `reach-` prefixes select the
+other batteries (see below).
 
 The requests cover stack enumeration (`callstacks`, `by_callstack`),
 availability (`are_available`, `Eva.Analysis.status`, `is_reachable`,
@@ -405,9 +407,15 @@ The report adds these controls:
   `export.calls`, which prints the payload, differs from the reference:
   the statuses read after restoring that payload stay the reference's,
   since the restored records of the hit log serve them, not the exported
-  tables. `legacy-store-writes` covers the other side: there, the hit log
-  declines, and the statuses read after the restoration come from the
-  exported tables.
+  tables. `restored-payload` covers the other side.
+- `restored-payload`: with `plugins-restore-check`, the candidate exports
+  its results from the hit log, with no legacy read, and restores them;
+  the hit log then declines every request, and the statuses read after the
+  restore come from the legacy tables that the payload wrote. They must be
+  the reference's, with legacy reads and no resolution.
+- `gate-sensitivity`: the zero-read gate, applied to the sensitivity runs
+  of `legacy-reads.c` and `plugins.c` on the legacy path as if they were
+  candidates, rejects each of them.
 - `snapshot-round-trip`: on `plugins.c`, the exported statuses and callers,
   the statuses before the export, those after an intervening analysis that
   interprets `h` by its specification, and those after restoring the
@@ -616,6 +624,8 @@ optional Eva server API is loaded, which it is not. The battery asks:
   `statuses.i` in `plugin-readers.t` has a function of each status:
   analyzed with and without saved results, partially analyzed through a
   recursive call, specification only, builtin and unreachable.
+  `acceptance.sh` runs it as a second plug-in fixture, `statuses`, with
+  `-eva-no-results-function no_results`.
 
 Eva's final display computes the graph of Callgraph and InOut's outputs of
 the analyzed functions; the driver clears these memos, so that each
@@ -623,7 +633,9 @@ request computes its own answer from Eva's results. InOut's callwise
 results, which it records during the analysis, are kept: those requests
 read nothing. The `plugins-` prefix applies to the modes `reference`,
 `candidate`, `record`, `native`, `wrong-producer`, `tail-probe`,
-`store-check` and `perturb-calls`. The native run compares the snapshot
+`store-check`, `perturb-calls` and `restore-check`; the `reach-` prefix
+to `reference`, `candidate`, `record`, `native` and `restore-check`. The
+native run compares the snapshot
 requests across processes only: in one process, the intervening analysis
 of the reference half makes Eva generate an assigns clause for the
 function it interprets by its specification, which the candidate half
@@ -635,7 +647,7 @@ reader declines to the legacy store.
 
 | Fact | Readers | Recorded as | Equal to the legacy answer because | Declines | With memexec hits (#81) |
 | --- | --- | --- | --- | --- | --- |
-| Completion | `Eva.Analysis.is_computed`, `Eva.Analysis.current_computation_state` | The completion of the records. | The records are sealed or interrupted when the computation state changes. | When the records do not describe the results. | Unaffected. |
+| Completion | `Eva.Analysis.is_computed`, `Eva.Analysis.current_computation_state` | The completion of the records, and whether a snapshot restored them. | The records are sealed or interrupted when the computation state changes; restored results are computed, as `set_results` sets them. | When the records do not describe the results. | Unaffected. |
 | Call relations | `is_called`, `callers`, `callsites`, `nb_callsites`; Callgraph; InOut's external effects; the snapshot export | The callstack of each invocation. | The legacy table registers a call when Eva chooses how to interpret it, after the invocation is recorded and before any hook. | Once the records contain a hit. | Needs the calls below a hit. |
 | Guard outcomes | `condition_truth_value` | The fireable branches of each conditional, with each analyzed body, whatever the results recorded. | The legacy table joins the same transitions of every analysis of the body. | While the analysis runs; once the records contain a hit. | Needs the outcomes of the reused producer. |
 | Analyzed function | The marking of postconditions | The kind of each invocation. | A function is `Analyzed` when one of its calls analyzed its body or reused it. | Before the analysis completes; on an unresolved invocation. | Unaffected. |
@@ -659,6 +671,10 @@ controls.
 
 Every path to the legacy result store, with where the guard sees it and
 what the candidate does with it. Line numbers are those of this revision.
+The audit covers every state of Eva cleared with its results, that is
+every state that depends on `Self.state` (`git grep -n 'Self.state'
+plugins/eva/src`): the result store and its aliases, then the side tables,
+each with its reason to stay outside the store.
 "Resolved" means that the reader asks the hit log first and reads the
 store only when the hit log declines; the candidates of the acceptance
 script reach no store read at all, under the continuous trap.
@@ -683,6 +699,10 @@ script reach no store read at all, under the continuous trap.
 | `Interferences.add_last_analysis` (multithread) | getter | labelled reader | not reached | The hit log does not record a multithread analysis: the reads stay on the legacy path. |
 | Saving, loading and copying a project | the store's state tables | not notified | not run | Serialization, not a query. The records of the hit log are not saved (`howto_marshal`): after a load, every request reads the legacy store, which notifies. |
 | `Engine.callstacks` | enumeration | — | — | Removed: it had no caller. |
+| `Self.ComputationState` (`self.ml:42`), `Hit_log.Current` (`hit_log.ml:124`) | computation state, stamp of the records | `Analysis` readers | resolved | The state of the computation is answered by the hit log, as above; the stamp ties the records to the results of one project and is cleared with them. |
+| `Inout_access.Cache` (`inout_access.ml:70`): `register` (`:122`), called by `Transfer_inout` (`transfer_inout.ml:23`) | the zones read and written at each position, merged at each write | not notified | written, read only by its merge | A side table of its own, not part of the result store: the hit log neither records nor serves it. Its readers are those of the multithread analysis (`interferences.ml:235`, `mt_interferences.ml:19`, `mt_shared_vars.ml:101`), which the hit log does not record. |
+| Facts that the analysis computes for itself: alarms already emitted (`Alarmset.Alarm_cache`, `alarmset.ml:221`), red statuses (`Red_statuses.RedStatusesTable`, `red_statuses.ml:48`), statistics (`Statistics.IntState`, `FloatState`, `statistics.ml:173`), function statistics (`Summary.FunctionStats`, `summary.ml:205`), performance (`Eva_perf.StatByCallstack`, `eva_perf.ml:74`), degeneration points (`Eva_utils.DegenerationPoints`, `eva_utils.ml:22`), callwise InOut (`Transfer_stmt.InOutCallback`, `transfer_stmt.ml:13`), dump counters (`DumpFileCounters`, `:62`), taint names (`taint_domain.ml:256`), thread summaries (`Mt_summary.ThreadTable`, `mt_summary.ml:279`) | side tables | not notified | written and read | Not part of the result store: each is a fact of its own, computed by the execution that occurred. With hits disabled, each holds what the execution wrote; the facts computed from the states (function statistics, red statuses through the alarms) read the states through the resolved readers above. Their validity under a hit is the subject of the later tickets. |
+| Caches and configuration: memexec (`Mem_exec.PreviousCalls`, `mem_exec.ml:62`), builtins (`Builtins.BuiltinsOverride`, `builtins.ml:42`; `Builtins_malloc` weakest bases, `builtins_malloc.ml:376`), return variables (`Library_functions.Retres`, `library_functions.ml:11`), widening hints (`Widen.Parsed_Dynamic_Hints`, `Dynamic_Hints`, `widen.ml:413`, `:453`), arguments of main and globals (`Eva_results.MainArgs`, `VGlobals`, `eva_results.ml:30`, `:46`) | caches, inputs | not notified | run | Not results: inputs of the analysis, or caches that it reads to compute. The memexec cache is off in the trapped configuration (`-eva-no-memexec`). |
 
 ## Not covered
 

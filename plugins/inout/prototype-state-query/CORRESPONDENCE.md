@@ -128,7 +128,11 @@ the store of `Engine.Make_Domain`, where `Points` answers `Top`;
 **Now.** The hit log serves the queries; it declines at the points of a
 memexec hit and on the stacks below one, and the query then reads the
 store. `get_results` and `set_results` also carry the records of the hit
-log.
+log. `get_results` exports the states from the records
+(`Hit_log.stored_states`): after an interruption, the states of each
+callstack are the join of what its visits registered, including the
+states that an interrupted body computed before the stop, as the legacy
+store holds them.
 
 **Holds.** Only if the hit log declines at the points of a hit of a
 supplied entry. Otherwise it classifies these points from the recorded
@@ -138,7 +142,11 @@ where the claim requires `Top`.
 **Evidence.** For memexec hits, which the hit log records: `stack-selection.t`
 and `hit-log-resolver.t` show the requests at the points of a hit reading
 the store (record mode). `snapshot-round-trip`: the restored records answer
-the statuses read before the export.
+the statuses read before the export. `restored-payload` and
+`reach-availability.t` (restore-check mode, on `points.i` and
+`interrupted.i`): the payload exported from the records, without legacy
+read, writes legacy tables that give the reference's answers once the hit
+log declines.
 
 **Open.** Record a hit of a supplied entry in the hit log as a hit, so that
 it declines its points, the stacks below it, the call relations and the
@@ -160,6 +168,9 @@ callers and status tables from `Hit_log.target`, without the merge of
 `fire`, the counterpart of `add_condition`. `register_state` writes the
 store itself, with the state already registered taken from
 `Hit_log.registered`. Otherwise, the writers read the tables as before.
+The zones, `Inout_access.register`, are unchanged: the writer merges into
+its own table, which is not part of the result store, and the hit log
+records no zones. Their readers are those of the multithread analysis.
 
 **Holds.** The values written are those of the legacy path. The recording
 points of `spec/32` (`Reach_part.record_caller`, `record_guard`) sit in
@@ -236,8 +247,17 @@ start hooks, and an analysis started by a callback sets `Computed` or
 
 **Now.** `Hit_log.start` runs before `Computing`; `seal` and `interrupt`
 run before `Computed` and `Aborted`. A nested analysis starts new records.
+`Eva.Analysis.current_computation_state` and `is_computed` answer from the
+records (`Hit_log.computation_state`, `computed`): computing while they
+record, computed or aborted once sealed or interrupted, and computed once
+restored from a snapshot, as `set_results` sets it on the legacy path.
 
 **Holds.** The computation state changes as cited.
+
+**Evidence.** `reach-availability.t`: the candidate answers computing
+during the analysis (`pending.i`), aborted after an interruption and
+computed after the restore (`interrupted.i`), as the reference does,
+without legacy read.
 
 **Open.** A nested analysis, which replaces the records of the outer one,
 is not exercised on this branch.

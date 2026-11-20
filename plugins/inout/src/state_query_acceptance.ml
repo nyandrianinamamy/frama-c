@@ -32,6 +32,10 @@ type mode =
       Reads are logged. *)
   | Perturb_calls
   (** The hit log exports wrong statuses and callers. Reads are logged. *)
+  | Restore_check
+  (** The candidate, whose hit log declines every request once a snapshot
+      of its results is restored: the requests after the restore read the
+      legacy tables that the exported payload wrote. Reads are logged. *)
 
 (* The requests made after the analysis: the battery around the statement
    labelled P, the reachability battery on every labelled statement
@@ -47,7 +51,9 @@ let rec parse_mode name =
   in
   if String.starts_with ~prefix:reach name then
     match parse_mode (suffix reach) with
-    | Point_battery, (Reference | Candidate | Record_reads | Native as mode) ->
+    | Point_battery,
+      (Reference | Candidate | Record_reads | Native | Restore_check as mode)
+      ->
       Reach_battery, mode
     | _ ->
       Inout_parameters.abort "unknown mode %S for %s" name
@@ -56,7 +62,7 @@ let rec parse_mode name =
     match parse_mode (suffix plugins) with
     | Point_battery,
       (Reference | Candidate | Record_reads | Native | Wrong_producer
-      | Tail_probe | Store_check | Perturb_calls as mode) ->
+      | Tail_probe | Store_check | Perturb_calls | Restore_check as mode) ->
       Plugin_battery, mode
     | _ ->
       Inout_parameters.abort "unknown mode %S for %s" name
@@ -72,6 +78,7 @@ let rec parse_mode name =
       | "tail-probe" -> Tail_probe
       | "store-check" -> Store_check
       | "perturb-calls" -> Perturb_calls
+      | "restore-check" -> Restore_check
       | _ ->
         let phase =
           if String.starts_with ~prefix:"trap:" name then
@@ -304,6 +311,23 @@ let model req =
 
 let by_stack_name stacks =
   List.sort (fun a b -> compare (stack_name a) (stack_name b)) stacks
+
+(* Whether the results are computed, and the state of the computation. *)
+let computation_requests ~prefix ~suffix =
+  call ~id:(prefix ^ "analysis.is_computed") ~family:"availability"
+    ~expect:Resolver ~request:("Eva.Analysis.is_computed ()" ^ suffix)
+    (fun () ->
+       let computed = Eva.Analysis.is_computed () in
+       string_of_bool computed, Flag computed);
+  call ~id:(prefix ^ "analysis.computation_state") ~family:"availability"
+    ~expect:Resolver
+    ~request:("Eva.Analysis.current_computation_state ()" ^ suffix)
+    (text (fun () ->
+         match Eva.Analysis.current_computation_state () with
+         | NotComputed -> "not computed"
+         | Computing -> "computing"
+         | Computed -> "computed"
+         | Aborted -> "aborted"))
 
 let line stmt = Fileloc.line (Cil_datatype.Stmt.loc stmt)
 
@@ -1097,7 +1121,54 @@ let reach_label (label, kf, stmt) =
   List.iter (reach_selection ~prefix:"select." ~suffix:"" label stmt)
     (reach_selections (stacks_of kf))
 
+(* [restore_check] mode: the hit log declines every request after a
+   restore. *)
+let decline_after_restore = ref false
+
+let restore_results results =
+  Eva.Eva_results.set_results results;
+  if !decline_after_restore then Eva.Hit_log.set_decline_control true
+
+(* The results of the analysis, exported and restored: a restored
+   analysis is computed, even an interrupted one. The availability of each
+   function and the points of each labelled statement are then asked
+   again. Last requests of the battery, since they replace the results. *)
+let restore_requests () =
+  call ~id:"restore" ~family:"snapshot" ~expect:Resolver
+    ~request:"Eva.Eva_results.(set_results (get_results ()))"
+    (text (fun () ->
+         restore_results (Eva.Eva_results.get_results ());
+         "restored"));
+  let suffix = " after the restore" in
+  computation_requests ~prefix:"restored." ~suffix;
+  List.iter (fun kf ->
+      let name = Kernel_function.get_name kf in
+      let id s = "restored.fn." ^ name ^ "." ^ s in
+      call ~id:(id "status") ~family:"availability" ~expect:Resolver
+        ~request:("Eva.Analysis.status " ^ name ^ suffix)
+        (text (fun () -> pretty_kf_status (Eva.Analysis.status kf)));
+      call ~id:(id "available") ~family:"availability" ~expect:Resolver
+        ~request:("Eva.Results.are_available " ^ name ^ suffix)
+        (text (fun () -> string_of_bool (R.are_available kf))))
+    (input_functions ());
+  List.iter (fun (label, _kf, stmt) ->
+      let id s = "restored.reach." ^ label ^ "." ^ s in
+      let request s = "Eva.Results.(" ^ s ^ ")" ^ suffix in
+      call ~id:(id "reachable") ~family:"reachability" ~expect:Resolver
+        ~request:(request ("is_reachable " ^ label))
+        (text (fun () -> string_of_bool (R.is_reachable stmt)));
+      call ~id:(id "stacks") ~family:"enumeration" ~expect:Resolver
+        ~request:(request ("before " ^ label ^ " |> callstacks"))
+        (text (fun () ->
+             R.(before stmt |> callstacks) |> by_stack_name
+             |> List.map stack_name |> String.concat " "));
+      call ~id:(id "model-before") ~family:"getter" ~expect:Resolver
+        ~request:(request ("before " ^ label ^ " |> get_cvalue_model"))
+        (fun () -> model (R.before stmt)))
+    (labelled_statements ())
+
 let reach_battery () =
+  computation_requests ~prefix:"" ~suffix:"";
   List.iter reach_function (input_functions ());
   List.iter reach_label (labelled_statements ());
   (* A known top model, which is not an unavailable result. *)
@@ -1107,7 +1178,8 @@ let reach_battery () =
     (fun () -> model top);
   call ~id:"supplied-top.empty" ~family:"supplied-state" ~expect:No_read
     ~request:"Eva.Results.(in_cvalue_state top |> is_empty)"
-    (text (fun () -> string_of_bool (R.is_empty top)))
+    (text (fun () -> string_of_bool (R.is_empty top)));
+  restore_requests ()
 
 (* Requests made while the analysis runs, from the call hook of
    [pending_probe], on the stack of its caller. *)
@@ -1151,7 +1223,8 @@ let pending_requests callstack =
   call ~id:("pending.fn." ^ name ^ ".available") ~family:"availability"
     ~expect:Resolver
     ~request:("Eva.Results.are_available " ^ name ^ " during the analysis")
-    (text (fun () -> string_of_bool (R.are_available caller_kf)))
+    (text (fun () -> string_of_bool (R.are_available caller_kf)));
+  computation_requests ~prefix:"pending." ~suffix:" during the analysis"
 
 (* A program that defines the global [top_initial_state] starts from a top
    state: its points are reached with a known top model. *)
@@ -1645,26 +1718,14 @@ let snapshot_requests () =
     ~request:"Eva.Eva_results.set_results (the snapshot), then \
               Eva.Analysis.status of each function"
     (text (fun () ->
-         Option.iter Eva.Eva_results.set_results !snapshot;
+         Option.iter restore_results !snapshot;
          statuses ()))
 
 (* [snapshot] adds the snapshot requests, which run a new analysis. *)
 let plugin_battery ~snapshot =
-  (* Server's filters and Callgraph ask it before reading Eva's results. *)
-  call ~id:"analysis.is_computed" ~family:"availability" ~expect:Resolver
-    ~request:"Eva.Analysis.is_computed ()"
-    (fun () ->
-       let computed = Eva.Analysis.is_computed () in
-       string_of_bool computed, Flag computed);
-  (* The same fact, through the state of the computation. *)
-  call ~id:"analysis.computation_state" ~family:"availability"
-    ~expect:Resolver ~request:"Eva.Analysis.current_computation_state ()"
-    (text (fun () ->
-         match Eva.Analysis.current_computation_state () with
-         | NotComputed -> "not computed"
-         | Computing -> "computing"
-         | Computed -> "computed"
-         | Aborted -> "aborted"));
+  (* Server's filters and Callgraph ask whether the results are computed
+     before reading them. *)
+  computation_requests ~prefix:"" ~suffix:"";
   relation_requests ();
   guard_requests ();
   callgraph_requests ();
@@ -1963,6 +2024,9 @@ let run () =
         Eva.Hit_log.set_calls_perturbation_control true;
         Guard.arm Record
       | Store_check -> Guard.arm Record
+      | Restore_check ->
+        decline_after_restore := true;
+        Guard.arm Record
       | Trap phase -> Guard.arm (Trap [phase])
     end;
     header name;
@@ -1975,7 +2039,7 @@ let run () =
         | Trap phase ->
           log "control not trapped in phase %s" (Guard.phase_name phase)
         | Reference | Candidate | Record_reads | Wrong_producer | Native
-        | Tail_probe | Store_check | Perturb_calls ->
+        | Tail_probe | Store_check | Perturb_calls | Restore_check ->
           if mode = Store_check then Eva.Hit_log.set_decline_control true;
           execution ();
           run_battery ~snapshot:true;

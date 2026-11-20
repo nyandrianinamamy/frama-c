@@ -7,7 +7,12 @@ call hooks of Eva see during the analysis, which do not depend on the
 result store: the model before and after the statement on each callstack
 and without callstack, Eva.Results.is_reachable, is_reachable_pos and
 is_empty, the callstacks at the point, Eva.Analysis.status and
-Eva.Results.are_available. The reference runs Eva on the legacy path,
+Eva.Results.are_available, and first Eva.Analysis.is_computed and
+current_computation_state. Last, a snapshot of the results is exported
+and restored, and these requests are made again, on the functions and
+the labelled statements: each path then repeats the answers that it gave
+before the restore, but for the computation state, which becomes
+computed. The reference runs Eva on the legacy path,
 without the hit log; the candidate runs it with the hit log. A line
 "internal" gives, for each callstack, the answer of the hit log before its
 public conversion.
@@ -63,6 +68,13 @@ it for both. The candidate gives the reference's answers.
   0
   $ consistent points.log
   0
+  $ run reach-restore-check points-restore.log points.i -eva-use-spec by_spec
+  $ answers points-restore.log > points-restore.txt
+  $ diff points-reference.txt points-restore.txt
+  $ grep -e "call restore " points-restore.log
+  [acceptance] call restore legacy-reads=0 resolved=51 answer=restored
+  $ awk '/call restored\./ { if (/legacy-reads=0 /) z++; else n++ } END { print n+0, "read the legacy tables,", z+0, "do not" }' points-restore.log
+  33 read the legacy tables, 0 do not
   $ grep -e "internal" points.log
   [acceptance] internal S.main/by_spec@40 before=body not analyzed after=body not analyzed
   [acceptance] internal B.main/floor@41 before=body not analyzed after=body not analyzed
@@ -116,19 +128,20 @@ second one stopped before R, and nothing after it was analyzed. The legacy
 store has no state at R on the second callstack nor at L, and answers
 Bottom: R and L look unreachable. The hit log answers that these results
 are unavailable, which the public requests convert to Top: this is the
-deliberate correction of an ambiguous legacy conversion. Each model on one
-callstack that the native comparison finds different is one of them. The
+deliberate correction of an ambiguous legacy conversion. Each model that
+the native comparison finds different is one of them, before or after the
+restore of the snapshot. The
 callstacks at R are those of the reference: the first call reached R.
   $ run reach-reference interrupted-reference.log interrupted.i
   $ run reach-candidate interrupted.log interrupted.i
   $ answers interrupted-reference.log > interrupted-reference.txt
   $ answers interrupted.log > interrupted.txt
   $ diff interrupted-reference.txt interrupted.txt
-  14c14
+  16c16
   < reach.R.model-before g ∈ {0}; x ∈ {1}
   ---
   > reach.R.model-before NO INFORMATION
-  21,24c21,24
+  23,26c23,26
   < reach.R.before.main/f@19 error bottom
   < reach.R.after.main/f@19 error bottom
   < reach.R.reachable-pos.main/f@19 false
@@ -138,7 +151,7 @@ callstacks at R are those of the reference: the first call reached R.
   > reach.R.after.main/f@19 error top
   > reach.R.reachable-pos.main/f@19 true
   > reach.R.empty.main/f@19 false
-  26,29c26,29
+  28,31c28,31
   < reach.L.reachable false
   < reach.L.empty-before true
   < reach.L.empty-after true
@@ -148,7 +161,7 @@ callstacks at R are those of the reference: the first call reached R.
   > reach.L.empty-before false
   > reach.L.empty-after false
   > reach.L.model-before NO INFORMATION
-  32,35c32,35
+  34,37c34,37
   < reach.L.before.main error bottom
   < reach.L.after.main error bottom
   < reach.L.reachable-pos.main false
@@ -158,6 +171,16 @@ callstacks at R are those of the reference: the first call reached R.
   > reach.L.after.main error top
   > reach.L.reachable-pos.main true
   > reach.L.empty.main false
+  49,50c49,50
+  < restored.reach.R.model-before g ∈ {0}; x ∈ {1}
+  < restored.reach.L.reachable false
+  ---
+  > restored.reach.R.model-before NO INFORMATION
+  > restored.reach.L.reachable true
+  52c52
+  < restored.reach.L.model-before error bottom
+  ---
+  > restored.reach.L.model-before NO INFORMATION
   [1]
   $ served interrupted.log
   0
@@ -175,6 +198,8 @@ callstacks at R are those of the reference: the first call reached R.
   [acceptance] native reach.L.model-before equal=false reference-reads=4 reference-resolved=0 legacy-reads=0 resolved=1
   [acceptance] native reach.L.before.main equal=false reference-reads=3 reference-resolved=0 legacy-reads=0 resolved=1
   [acceptance] native reach.L.after.main equal=false reference-reads=3 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native restored.reach.R.model-before equal=false reference-reads=3 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native restored.reach.L.model-before equal=false reference-reads=4 reference-resolved=0 legacy-reads=0 resolved=1
 
 Without callstack, the legacy store answers Bottom at L, and the state of
 the first call alone at R. The hit log answers Top at both: the state on
@@ -189,6 +214,33 @@ interrupted analysis, although its documentation says partial.
   [acceptance] call reach.R.model-before legacy-reads=0 resolved=1 answer=NO INFORMATION
   [acceptance] call reach.L.stacks legacy-reads=0 resolved=1 answer=
   [acceptance] call reach.L.model-before legacy-reads=0 resolved=1 answer=NO INFORMATION
+
+A snapshot of the results of the interrupted analysis, exported and
+restored by the last requests of the battery. The candidate exports the
+results from the hit log, without legacy read. Restored results are
+computed on both paths, even those of an interrupted analysis; each path
+then gives the answers that it gave before the restore. In the
+restore-check mode, the hit log declines every request once the snapshot
+is restored: the requests after the restore read the legacy tables that
+the exported payload wrote, and give the answers of the reference after
+its own restore. The payload holds the states that the interrupted body
+computed before the stop, as the legacy store does.
+  $ grep -e "call restore " -e "call \(restored\.\)\{0,1\}analysis\." interrupted.log
+  [acceptance] call analysis.is_computed legacy-reads=0 resolved=1 answer=true
+  [acceptance] call analysis.computation_state legacy-reads=0 resolved=1 answer=aborted
+  [acceptance] call restore legacy-reads=0 resolved=23 answer=restored
+  [acceptance] call restored.analysis.is_computed legacy-reads=0 resolved=1 answer=true
+  [acceptance] call restored.analysis.computation_state legacy-reads=0 resolved=1 answer=computed
+  $ run reach-restore-check interrupted-restore.log interrupted.i
+  $ answers interrupted-reference.log > interrupted-reference.all
+  $ grep -e "^restored\." interrupted-reference.all > interrupted-reference.rst
+  $ answers interrupted-restore.log > interrupted-restore.all
+  $ grep -e "^restored\." interrupted-restore.all > interrupted-restore.rst
+  $ diff interrupted-reference.rst interrupted-restore.rst
+  $ grep -e "call restore " interrupted-restore.log
+  [acceptance] call restore legacy-reads=0 resolved=23 answer=restored
+  $ awk '/call restored\./ { if (/legacy-reads=0 /) z++; else n++ } END { print n+0, "read the legacy tables,", z+0, "do not" }' interrupted-restore.log
+  12 read the legacy tables, 0 do not
 
 Interrupted analysis with memexec. The second call to h is a memexec hit
 on the first; the second call to f then stops the analysis, after R, and
@@ -205,7 +257,7 @@ the trapped configuration: this run logs the reads without trapping them.
   $ answers hit-reference.log > hit-reference.txt
   $ answers hit.log > hit.txt
   $ diff hit-reference.txt hit.txt
-  34,37c34,37
+  36,39c36,39
   < reach.Z.reachable false
   < reach.Z.empty-before true
   < reach.Z.empty-after true
@@ -215,7 +267,7 @@ the trapped configuration: this run logs the reads without trapping them.
   > reach.Z.empty-before false
   > reach.Z.empty-after false
   > reach.Z.model-before NO INFORMATION
-  41,44c41,44
+  43,46c43,46
   < reach.L.reachable false
   < reach.L.empty-before true
   < reach.L.empty-after true
@@ -225,7 +277,7 @@ the trapped configuration: this run logs the reads without trapping them.
   > reach.L.empty-before false
   > reach.L.empty-after false
   > reach.L.model-before NO INFORMATION
-  47,50c47,50
+  49,52c49,52
   < reach.L.before.main error bottom
   < reach.L.after.main error bottom
   < reach.L.reachable-pos.main false
@@ -235,6 +287,20 @@ the trapped configuration: this run logs the reads without trapping them.
   > reach.L.after.main error top
   > reach.L.reachable-pos.main true
   > reach.L.empty.main false
+  69c69
+  < restored.reach.Z.reachable false
+  ---
+  > restored.reach.Z.reachable true
+  71,72c71,72
+  < restored.reach.Z.model-before error bottom
+  < restored.reach.L.reachable false
+  ---
+  > restored.reach.Z.model-before NO INFORMATION
+  > restored.reach.L.reachable true
+  74c74
+  < restored.reach.L.model-before error bottom
+  ---
+  > restored.reach.L.model-before NO INFORMATION
   [1]
   $ served hit.log
   0
@@ -419,7 +485,7 @@ both kinds, and selector-none names none.
   [acceptance] native select.L.filter-none.model equal=false reference-reads=3 reference-resolved=0 legacy-reads=0 resolved=1
   [acceptance] native select.L.filter-none.empty equal=false reference-reads=3 reference-resolved=0 legacy-reads=0 resolved=1
   $ grep -e "native compared" interrupted-native.log
-  [acceptance] native compared=112 differing=29
+  [acceptance] native compared=116 differing=31
 
 interrupted-three.i calls f three times: the first two calls reach R with
 x = 1 and x = 3, and the third one stops before R. The known-only
@@ -576,7 +642,7 @@ selector whose predicate rejects the callstack, or that names none.
   $ answers spec-reference.log > spec-reference.txt
   $ answers spec.log > spec.txt
   $ diff spec-reference.txt spec.txt
-  18,21c18,21
+  20,23c20,23
   < reach.S.reachable false
   < reach.S.empty-before true
   < reach.S.empty-after true
@@ -586,7 +652,7 @@ selector whose predicate rejects the callstack, or that names none.
   > reach.S.empty-before false
   > reach.S.empty-after false
   > reach.S.model-before NO INFORMATION
-  29,32c29,32
+  31,34c31,34
   < reach.B.reachable false
   < reach.B.empty-before true
   < reach.B.empty-after true
@@ -596,6 +662,20 @@ selector whose predicate rejects the callstack, or that names none.
   > reach.B.empty-before false
   > reach.B.empty-after false
   > reach.B.model-before NO INFORMATION
+  54c54
+  < restored.reach.S.reachable false
+  ---
+  > restored.reach.S.reachable true
+  56,57c56,57
+  < restored.reach.S.model-before error bottom
+  < restored.reach.B.reachable false
+  ---
+  > restored.reach.S.model-before NO INFORMATION
+  > restored.reach.B.reachable true
+  59c59
+  < restored.reach.B.model-before error bottom
+  ---
+  > restored.reach.B.model-before NO INFORMATION
   [1]
   $ served spec.log
   0
@@ -639,31 +719,31 @@ answer is_empty true.
   $ answers nrf-reference.log > nrf-reference.txt
   $ answers nrf.log > nrf.txt
   $ diff nrf-reference.txt nrf.txt
-  57,58c57,58
+  59,60c59,60
   < reach.U.empty-before true
   < reach.U.empty-after true
   ---
   > reach.U.empty-before false
   > reach.U.empty-after false
-  65c65
+  67c67
   < reach.U.empty.main/f@38 true
   ---
   > reach.U.empty.main/f@38 false
-  69c69
+  71c71
   < reach.U.empty.main/f@39 true
   ---
   > reach.U.empty.main/f@39 false
-  72,73c72,73
+  74,75c74,75
   < reach.P.empty-before true
   < reach.P.empty-after true
   ---
   > reach.P.empty-before false
   > reach.P.empty-after false
-  80c80
+  82c82
   < reach.P.empty.main/f@38 true
   ---
   > reach.P.empty.main/f@38 false
-  84c84
+  86c86
   < reach.P.empty.main/f@39 true
   ---
   > reach.P.empty.main/f@39 false
@@ -831,6 +911,8 @@ callstack.
   [acceptance] call pending.P.before.main/f@16 legacy-reads=0 resolved=1 answer=error top
   [acceptance] call pending.fn.f.status legacy-reads=0 resolved=1 answer=analyzed partial
   [acceptance] call pending.fn.f.available legacy-reads=0 resolved=1 answer=false
+  [acceptance] call pending.analysis.is_computed legacy-reads=0 resolved=1 answer=false
+  [acceptance] call pending.analysis.computation_state legacy-reads=0 resolved=1 answer=computing
   $ selections pending-reference.log > pending-reference.sel
   $ selections pending.log > pending.sel
   $ diff pending-reference.sel pending.sel

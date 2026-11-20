@@ -555,6 +555,47 @@ def export_payload_control(evidence):
     }
 
 
+def restore_check_control(evidence):
+    """The payload that the candidate exports from the hit log, restored:
+    once restored, the hit log declines every request, which reads the
+    legacy tables that the payload wrote. The statuses read after the
+    restore must be the reference's, and read from those tables; the
+    export itself reads nothing."""
+    path = evidence / f"control-restore-check-{PLUGIN_FIXTURE}.jsonl"
+    if not path.exists():
+        return {"control": "restored-payload", "result": "NOT RUN"}
+    _, ref_calls, _ = load(evidence / f"{PLUGIN_FIXTURE}.reference.jsonl")
+    _, calls, _ = load(path)
+    rows = {r["id"]: r for r in compare_calls(ref_calls, calls)}
+    differing = [i for i, r in rows.items() if r["disposition"] in ("MISMATCH", "MISSING")]
+    export = rows.get("snapshot.statuses") or {}
+    restored = rows.get("export.statuses") or {}
+    observed = {
+        "differing": differing,
+        "export_legacy_reads": export.get("legacy_reads"),
+        "restored_legacy_reads": restored.get("legacy_reads"),
+        "restored_resolved": restored.get("resolved"),
+    }
+    ok = (
+        bool(rows)
+        and not differing
+        and export.get("legacy_reads") == 0
+        and (restored.get("legacy_reads") or 0) > 0
+        and restored.get("resolved") == 0
+    )
+    return {
+        "control": "restored-payload",
+        "expected": {
+            "differing": [],
+            "export_legacy_reads": 0,
+            "restored_legacy_reads": ">0",
+            "restored_resolved": 0,
+        },
+        "observed": observed,
+        "result": "PASS" if ok else "FAIL",
+    }
+
+
 def snapshot_control(fixtures):
     """The snapshot round trip: the exported statuses and callers are the
     reference's; an intervening analysis changes the statuses; restoring
@@ -976,6 +1017,35 @@ def zero_read_gate(fixtures):
     }
 
 
+def gate_sensitivity_control(evidence, names):
+    """The zero-read gate applied to the sensitivity runs, on the legacy
+    path, as if they were candidates: it must reject each of them."""
+    observed = {}
+    for name in names:
+        path = evidence / f"control-sensitivity-{name}.jsonl"
+        if not path.exists():
+            continue
+        _, ref_calls, _ = load(evidence / f"{name}.reference.jsonl")
+        _, calls, execution = load(path)
+        pseudo = {
+            "fixture": name,
+            "execution_reads": sum(e["count"] for e in execution),
+            "calls": compare_calls(ref_calls, calls),
+            "gate": gate_record(path),
+        }
+        passes, gate = zero_read_gate([pseudo])
+        observed[name] = {"passes": passes, **gate}
+    ok = bool(observed) and all(not o["passes"] for o in observed.values())
+    if not observed:
+        return {"control": "gate-sensitivity", "result": "NOT RUN"}
+    return {
+        "control": "gate-sensitivity",
+        "expected": {name: {"passes": False} for name in observed},
+        "observed": observed,
+        "result": "PASS" if ok else "FAIL",
+    }
+
+
 def gate_control(evidence, gate_passes):
     """compare.py --require-zero-reads must exit 1 exactly when the gate
     fails on the same evidence."""
@@ -1117,9 +1187,11 @@ def main(argv):
     controls.append(selection_perturbation_control(evidence))
     controls.append(plugin_perturbation_control(evidence))
     controls.append(export_payload_control(evidence))
+    controls.append(restore_check_control(evidence))
     controls.append(snapshot_control(report["fixtures"]))
     controls.append(collection_control(evidence, report["fixtures"]))
     controls.append(parity_control(evidence))
+    controls.append(gate_sensitivity_control(evidence, ["legacy-reads", PLUGIN_FIXTURE]))
     if not require_zero:
         controls.append(gate_control(evidence, gate_passes))
     report["controls"] = controls

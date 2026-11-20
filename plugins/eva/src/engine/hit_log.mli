@@ -319,8 +319,9 @@ val computed: unit -> bool option
 
 (** The computation state, as [Eva.Analysis.current_computation_state]
     reports it: computing while the records are recorded, computed once
-    they are sealed, aborted once interrupted. Returns [None] when the
-    records do not describe the current results. *)
+    they are sealed, aborted once interrupted, and computed once restored
+    from a snapshot, as [Eva_results.set_results] sets it. Returns [None]
+    when the records do not describe the current results. *)
 val computation_state: unit -> Self.computation_state option
 
 (** [analyzed kf]: whether some invocation of [kf] analyzed its body, or
@@ -353,9 +354,12 @@ val calls: unit -> Function_calls.t option
 (** [stored_states point] is the state of each callstack that reaches
     [point], in the order of the legacy store, rebuilt from the records
     once the analysis has ended. It is what the legacy store records at
-    [point], and is empty where the states are not recorded. Returns [None]
-    when the resolver declines, or when the state of a callstack that
-    reaches the point is unavailable. Each answer is reported to
+    [point], and is empty where the states are not recorded. After an
+    interruption, where the state of a callstack is unavailable to the
+    requests, it is the join of the states that the visits on each
+    callstack registered, including those of an interrupted body. Returns
+    [None] when the resolver declines, and when the state of a callstack
+    of a completed analysis is unavailable. Each answer is reported to
     {!Legacy_read_guard}. *)
 val stored_states:
   Domain_store.control_point -> (Callstack.t * state) list option

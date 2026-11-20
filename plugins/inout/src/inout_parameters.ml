@@ -27,8 +27,11 @@ module QueryAcceptance =
   String (struct
     let option_name = "-inout-state-query-acceptance"
     let default = ""
-    let arg_name = "reference|candidate|trap:<phase>"
-    let help = "Run the state-query acceptance driver (prototype)"
+    let arg_name = "[reach-|plugins-]<mode>"
+    let help = "Run the state-query acceptance driver (prototype). \
+                <mode> is reference, candidate, record, native, \
+                wrong-producer, tail-probe, store-check, perturb-calls, \
+                restore-check or trap:<phase>"
   end)
 
 module QueryAcceptanceOutput =
