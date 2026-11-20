@@ -102,6 +102,22 @@ function takes the outcomes of the first call to h and to g for both calls.
   > guard.h@27 then=true else=false
   [1]
 
+The same control changes InOut's outputs of g and h, and of the statement
+of each that only one of its calls executes, and the coverage of Eva's
+statistics, which Eva computes after the analysis from the answers of the
+resolver. Every other answer is that of the reference.
+  $ sed -n -e 's/^\[acceptance\] call \([^ ]*\) legacy-reads=[^ ]* resolved=[^ ]* answer=/\1 /p' wrong.log > wrong.answers
+  $ diff reference.answers wrong.answers | sed -n -e 's/^> \([^ ]*\) .*/\1/p'
+  guard.g@34
+  guard.h@27
+  inout.kf_outputs.g
+  inout.kf_external_outputs.g
+  inout.kf_outputs.h
+  inout.kf_external_outputs.h
+  inout.stmt_outputs.g@34#2
+  inout.stmt_outputs.h@27#3
+  statistics.semantic
+
 Callgraph. The request recomputes the graph from Eva's call relations: one
 read per function on the legacy path, one resolution per function in the
 candidate. Every function is a vertex, but no edge leads to dead_callee nor

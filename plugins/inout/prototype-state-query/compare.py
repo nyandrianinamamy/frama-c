@@ -404,6 +404,98 @@ def selection_perturbation_control(evidence):
     }
 
 
+PLUGIN_FIXTURE = "plugins"
+# Where the trap of the plug-in battery aborts the legacy path: the
+# statistics of the first function that Eva analyzes, after its analysis.
+PLUGIN_TRAP_LEGACY = ("collection", "Eva.Summary.compute_fun_stats")
+# Reports that Eva derives from its results after the analysis: reading
+# them reads neither store, but they follow the answers of the resolver.
+DERIVED_FAMILIES = {"statuses", "statistics"}
+
+
+def plugin_trap_control(evidence):
+    """Under the trap of every read but those of the readers that other
+    changes migrate, the candidate completes the plug-in battery with the
+    answers of the reference and no legacy read; on the legacy path, the
+    trap aborts the run."""
+    paths = {p: evidence / f"control-plugins-trap-{p}" for p in ("hit-log", "legacy")}
+    if not all(Path(f"{p}.status").exists() for p in paths.values()):
+        return {"control": "plugins-trap", "result": "NOT RUN"}
+    status = {p: int(Path(f"{path}.status").read_text()) for p, path in paths.items()}
+    trap = {p: parse_trap(Path(f"{path}.log").read_text()) for p, path in paths.items()}
+    _, ref_calls, _ = load(evidence / f"{PLUGIN_FIXTURE}.reference.jsonl")
+    _, calls, _ = load(Path(f"{paths['hit-log']}.jsonl"))
+    rows = compare_calls(ref_calls, calls)
+    not_matching = [r["id"] for r in rows if r["disposition"] != "MATCH"]
+    legacy = trap["legacy"] or {}
+    ok = (
+        status["hit-log"] == 0
+        and trap["hit-log"] is None
+        and bool(rows)
+        and not not_matching
+        and status["legacy"] == 1
+        and (legacy.get("phase"), legacy.get("reader")) == PLUGIN_TRAP_LEGACY
+    )
+    return {
+        "control": "plugins-trap",
+        "expected": {
+            "hit_log": {"status": 0, "trapped": None, "not_matching": []},
+            "legacy": {
+                "status": 1,
+                "phase": PLUGIN_TRAP_LEGACY[0],
+                "reader": PLUGIN_TRAP_LEGACY[1],
+            },
+        },
+        "observed": {
+            "hit_log": {
+                "status": status["hit-log"],
+                "trapped": trap["hit-log"],
+                "calls": len(rows),
+                "not_matching": not_matching,
+            },
+            "legacy": {
+                "status": status["legacy"],
+                "phase": legacy.get("phase"),
+                "reader": legacy.get("reader"),
+            },
+        },
+        "result": "PASS" if ok else "FAIL",
+    }
+
+
+def plugin_perturbation_control(evidence):
+    """With the wrong producer, the plug-in battery must report mismatches on
+    the guard outcomes and on InOut's effects, and only on requests served
+    by the resolver or on reports that Eva derives from its results."""
+    path = evidence / "control-wrong-producer-plugins.jsonl"
+    if not path.exists():
+        return {"control": "plugins-perturbation", "result": "NOT RUN"}
+    _, ref_calls, _ = load(evidence / f"{PLUGIN_FIXTURE}.reference.jsonl")
+    _, calls, _ = load(path)
+    rows = compare_calls(ref_calls, calls)
+    mismatches = [r for r in rows if r["disposition"] == "MISMATCH"]
+    outside = [
+        r["id"]
+        for r in mismatches
+        if r["expect"] != "resolver" and r["family"] not in DERIVED_FAMILIES
+    ]
+    families = sorted({r["family"] for r in mismatches})
+    ok = "guards" in families and any(f.startswith("inout-") for f in families) and not outside
+    return {
+        "control": "plugins-perturbation",
+        "expected": {
+            "families": "guards and inout-*",
+            "outside_resolver_or_derived": [],
+        },
+        "observed": {
+            "mismatches": [r["id"] for r in mismatches],
+            "families": families,
+            "outside_resolver_or_derived": outside,
+        },
+        "result": "PASS" if ok else "FAIL",
+    }
+
+
 def inout_reads(rows):
     return sum(
         r["count"]
@@ -720,6 +812,8 @@ def main(argv):
     controls.append(perturbation_control(evidence))
     controls.append(selection_control(report["fixtures"]))
     controls.append(selection_perturbation_control(evidence))
+    controls.append(plugin_trap_control(evidence))
+    controls.append(plugin_perturbation_control(evidence))
     controls.append(collection_control(evidence, report["fixtures"]))
     controls.append(parity_control(evidence))
     if not require_zero:

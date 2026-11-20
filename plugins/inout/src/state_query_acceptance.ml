@@ -1369,7 +1369,8 @@ let inout_requests () =
       in
       begin match stmt.skind with
         | Instr _ ->
-          request "stmt_inputs" (fun () -> zone_answer (Inout.stmt_inputs stmt));
+          request "stmt_inputs"
+            (fun () -> zone_answer (Inout.stmt_inputs stmt));
           request "stmt_outputs"
             (fun () -> zone_answer (Inout.stmt_outputs stmt))
         | _ -> ()

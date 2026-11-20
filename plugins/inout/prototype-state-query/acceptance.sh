@@ -33,6 +33,8 @@ candidate_options=(${CANDIDATE_OPTIONS:--eva-no-memexec})
 fixtures=(legacy-reads assign stages original loop read-before-write guard
   unreachable partial-base maybe-write maybe-write-goto maybe-write-upstream
   pre-label precondition selection)
+# The fixture of the plug-in readers, which runs the plugins- modes.
+plugin_fixture=plugins
 
 {
   printf 'revision %s\n' "$(git rev-parse HEAD)"
@@ -61,6 +63,14 @@ for name in "${fixtures[@]}"; do
   printf 'Recorded %s\n' "$name"
 done
 
+# Plug-in readers and Eva's semantic reports: Callgraph, InOut, Server's
+# filters and properties, statuses and statistics.
+run "$plugin_fixture" plugins-reference "$evidence/$plugin_fixture.reference"
+run "$plugin_fixture" plugins-candidate "$evidence/$plugin_fixture.candidate" \
+  "${candidate_options[@]}"
+run "$plugin_fixture" plugins-native "$evidence/$plugin_fixture.native"
+printf 'Recorded %s\n' "$plugin_fixture"
+
 # Resolver controls. A resolver that rebuilds each visit from the wrong
 # producer must be reported; on the legacy path, InOut's collection reads
 # the store. With memexec, InOut's answers and the analyses of f in
@@ -70,6 +80,8 @@ run legacy-reads wrong-producer "$evidence/control-wrong-producer" \
   "${candidate_options[@]}"
 run selection wrong-producer "$evidence/control-wrong-producer-selection" \
   "${candidate_options[@]}"
+run "$plugin_fixture" plugins-wrong-producer \
+  "$evidence/control-wrong-producer-plugins" "${candidate_options[@]}"
 run legacy-reads candidate "$evidence/control-legacy-path" \
   "${candidate_options[@]}" -eva-no-hit-log
 for name in pre-label precondition; do
@@ -95,11 +107,25 @@ for phase in request analysis collection post-analysis initialization; do
   printf 'Recorded control %s (exit %s)\n' "$phase" "$status"
 done
 
+# The plug-in battery under the trap of every read but those of the readers
+# that other changes migrate: the candidate must complete it; on the legacy
+# path, the trap must abort the run.
+for path in hit-log legacy; do
+  status=0
+  legacy_path=()
+  if [ "$path" = legacy ]; then legacy_path=(-eva-no-hit-log); fi
+  run "$plugin_fixture" plugins-trap "$evidence/control-plugins-trap-$path" \
+    "${candidate_options[@]}" "${legacy_path[@]}" || status=$?
+  printf '%s\n' "$status" > "$evidence/control-plugins-trap-$path.status"
+  printf 'Recorded control plugins-trap on %s (exit %s)\n' "$path" "$status"
+done
+
 # The zero-read gate must fail while legacy reads remain: record the exit
 # status of the gate alone, which compare.py checks against the evidence.
 status=0
 python3 -I "$prototype/compare.py" --require-zero-reads --no-write \
-  "$evidence" "${fixtures[@]}" > "$evidence/zero-read-gate.log" || status=$?
+  "$evidence" "${fixtures[@]}" "$plugin_fixture" \
+  > "$evidence/zero-read-gate.log" || status=$?
 printf '%s\n' "$status" > "$evidence/zero-read-gate.status"
 
-python3 -I "$prototype/compare.py" "$evidence" "${fixtures[@]}"
+python3 -I "$prototype/compare.py" "$evidence" "${fixtures[@]}" "$plugin_fixture"
