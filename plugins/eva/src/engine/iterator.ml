@@ -570,7 +570,9 @@ module Make_Dataflow
     );
     states_after
 
-  let merge_results ~save_results =
+  (* [complete] is false when the analysis stops before the fixpoint: the
+     results are then those computed so far. *)
+  let merge_results ~save_results ~complete =
     let get_merged_states =
       let merged_states = VertexTable.create control_point_count
       and get_smashed_store v =
@@ -610,7 +612,8 @@ module Make_Dataflow
       then Some (merged_pre_states, merged_post_states)
       else None
     in
-    Domain.Hit_log.body callstack ~producer ~entries:initial_states ~points;
+    Domain.Hit_log.body callstack ~producer ~complete ~entries:initial_states
+      ~points;
     let states =
       Cvalue_callbacks.{
         input = Engine.Dom.get_cvalue_or_top AnalysisParam.initial_state;
@@ -644,7 +647,7 @@ module Make (Engine : Engine_Subset) = struct
       let results = Dataflow.compute () in
       Self.feedback ~mkey:Log_key.progress
         "Recording results for %a" Kernel_function.pretty kf;
-      Dataflow.merge_results ~save_results;
+      Dataflow.merge_results ~save_results ~complete:true;
       let f = Kernel_function.get_definition kf in
       if Ast_types.C.has_attribute "noreturn" f.svar.vtype && results <> [] then
         Self.warning ~current:true ~once:true
@@ -655,7 +658,7 @@ module Make (Engine : Engine_Subset) = struct
     let cleanup () =
       Self.feedback ~once:true ~level:3 "Clean up partial results.";
       Dataflow.mark_degeneration ();
-      Dataflow.merge_results ~save_results
+      Dataflow.merge_results ~save_results ~complete:false
     in
     Signal.protect compute ~cleanup
 end

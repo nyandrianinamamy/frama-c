@@ -155,23 +155,36 @@ states before and after each statement, the same states as the hooks get.
 A memexec hit records the producer of the entry it uses. Recording does not
 depend on memexec.
 
-After the analysis, a request on one supplied stack, at the initial state,
-the start of a function or before or after a statement, goes to the
-resolver before the legacy store. The resolver rebuilds the state of each
-visit on the stack from its own producer, joins the visits in the order of
-the analysis, and answers bottom when no visit reaches the point and top
-when the results of the function are not recorded. It reads neither the
-analysis status nor the stored states. For a fresh invocation, the rebuilt
-state is the state the body produced, so it equals the stored one.
+A request on one supplied stack, at the initial state, the start of a
+function or before or after a statement, goes to the resolver before the
+legacy store. The resolver classifies the point on the stack
+(`Hit_log.classify`): it rebuilds the state of each visit from its own
+producer and joins the visits in the order of the analysis. It reads
+neither the analysis status nor the stored states. For a fresh invocation,
+the rebuilt state is the state the body produced, so it equals the stored
+one. The public answer converts the classification:
+
+| Classification | When | Public answer |
+| --- | --- | --- |
+| `Reached s` | A visit reaches the point. | `s` |
+| `Unreachable` | Every visit analyzed its body to completion, with its points recorded, and none reaches the point, in a completed analysis; or no invocation of the function is on the stack. | Bottom |
+| `Not_analyzed` | The visits interpret the function by its specification or a builtin. | Bottom, as `Eva.Analysis.status` declares |
+| `Unavailable Pending` | The analysis is running. | Top |
+| `Unavailable Interrupted` | The analysis stopped, and what it computed does not reach the point. | Top |
+| `Unavailable Not_recorded` | `-eva-no-results`, `-eva-no-results-domain cvalue` or `-eva-no-results-function`. | Top |
+
+A missing state alone does not make a point unreachable. With
+`-eva-no-results` or `-eva-no-results-domain cvalue`, the hit log records
+the invocations and how they were interpreted, without their states.
 
 The resolver declines, and the request reads the legacy store, when the
-records are not exact: another domain than Cvalue, `-eva-no-results` or
-`-eva-no-results-domain`, a multithread analysis, an analysis that did not
-complete, `-eva-no-hit-log`, or results cleared or loaded from a file. It
-also declines the points of a memexec hit and every stack below one, whose
-states it cannot rebuild yet; it answers the start of a hit from the input
-recorded at the call. Unfiltered requests, several stacks and enumerations
-still read the legacy store.
+records do not describe the current results: another domain than Cvalue, a
+multithread analysis, `-eva-no-hit-log`, or results cleared or loaded from
+a file. It also declines the points of a memexec hit and every stack below
+one, whose states it cannot rebuild yet; it answers the start of a hit from
+the input recorded at the call. Unfiltered requests, several stacks and
+enumerations still read the legacy store, except for the reachability
+requests of the next section.
 
 InOut's callwise collection runs in the collection hook, during the
 analysis. The `Pre` state of its logic inputs is the start of the function
@@ -213,8 +226,8 @@ read in that phase aborts Eva with exit status 1:
 | --- | --- |
 | `trap:request` | `Eva.Results.get_cvalue_model` on `before P`, the known request. |
 | `trap:analysis` | `Eva.Engine.register_state`, which reads the recorded state to join it. |
-| `trap:collection` | `Eva.Summary.compute_fun_stats`, Eva's statistics hook. |
-| `trap:post-analysis` | `Eva.Eval_annots.mark_unreachable`, through `Eva.Results.is_reachable`. |
+| `trap:collection` | `Eva.Eval_terms.add_init`, the `\init` label of a logic evaluation, which reads the initial state. |
+| `trap:post-analysis` | `Eva.Eval_annots.mark_unreachable`, which reads the analysis status of each function to mark the postconditions of unreachable returns. |
 | `trap:initialization` | None: the run completes. |
 
 The report adds these controls:
@@ -229,11 +242,12 @@ The report adds these controls:
   requests, and the reference logs none.
 - `reference-independence`: every reference ran without memexec, without
   the hit log, and with the guard off.
-- `resolver-path`: every request on a supplied stack is resolved with no
-  legacy read, and no other request is resolved.
+- `resolver-path`: every request expected on the resolver, those on a
+  supplied stack and `is_reachable` at `P`, is resolved with no legacy
+  read, and no other request is resolved.
 - `native-equality`: in each native run, all models and values are equal,
-  the reference resolves nothing, and every supplied-stack request of the
-  candidate is resolved.
+  the reference resolves nothing, and every request of the candidate that
+  is expected on the resolver and has a native answer is resolved.
 - `resolver-perturbation`: with `-inout-state-query-acceptance
   wrong-producer`, the resolver rebuilds each visit from the first producer
   of its function. The second call to `f` in `legacy-reads.c` then gets
@@ -264,6 +278,81 @@ The cram tests `plugins/eva/tests/utils/legacy-read-guard.t` and
 `plugins/eva/tests/utils/hit-log-resolver.t` check the guard, the resolver
 and the driver output.
 
+## Reachability and unavailable results
+
+`Hit_log.reach` tells whether a point is reached on some selected stack,
+from the classification of each stack: `Reaching` when one stack reaches
+it, `Not_reaching` when every selected stack is `Unreachable` or
+`Not_analyzed`, and `Unknown` when a stack is unavailable and none reaches
+the point. Without supplied stacks, it selects the stacks of the function
+in the records, and declines when a negative answer could depend on a
+memexec hit. `Eva.Results.is_reachable`, `is_reachable_pos`,
+`is_reachable_kinstr`, and `is_empty` on a point request, use it with the
+stacks and filters of the request, and read the legacy store only when it
+declines. An unknown point is reachable and not empty, as a point whose
+legacy state is Top is reachable. These readers then make no legacy read:
+Eva's statistics and its marking of unreachable annotations no longer read
+the store.
+
+On the legacy path, `is_reachable` also stored the consolidated state of
+the statement as a side effect. The post-analysis does not store it for a
+function whose analysis is partial, such as a recursion that uses the
+specification, nor for any function without `-eva-join-results`. Eva's
+display of the final states read these stored states: it now joins the
+states of the callstacks itself when none is stored, and prints the same
+final states on both paths.
+
+The legacy conversions and the candidate's answers:
+
+| Case | Legacy store | Candidate |
+| --- | --- | --- |
+| Reached point | The state. | The same state, from the hit log. |
+| Unreachable point of a completed analysis | Bottom; `is_empty` true. | The same. |
+| Body interpreted by a specification or a builtin | Bottom at its statements, as `Eva.Analysis.status` declares. | The same; the classification is `Not_analyzed`. |
+| Nontermination: after a call that does not return | Bottom. | The same. |
+| Pending results, during the analysis | Top on a stack; `is_empty` true. | Top; `is_empty` false. |
+| Interrupted analysis, point not reached by what it computed | Bottom; `is_reachable` false; `is_empty` true. | Top; `is_reachable` true; `is_empty` false. |
+| Results not recorded | Top on a stack; `is_empty` true. | Top; `is_empty` false. |
+| Known top model | The top model on a stack. | The same. |
+| Equality or taint request on a disabled domain | The declared error, with no read. | The same. |
+
+The differences are deliberate corrections of an ambiguous legacy
+conversion: the legacy store answers from a missing row, and cannot tell a
+point that no stack reaches from a point whose results are missing.
+
+Not corrected:
+
+- `Eva.Analysis.status` answers `analyzed complete` after an interrupted
+  analysis, although its interface says partial: Eva counts an aborted
+  analysis as computed.
+- With `-eva-no-results-domain cvalue`, `Eva.Analysis.status` answers
+  `analyzed complete` and `Eva.Results.are_available` true, while no state
+  is available.
+- Unfiltered models read the legacy store. After an interruption, they are
+  Bottom at a point that the analysis did not reach, and the state of the
+  completed calls alone at a point that some of them reached. Without
+  stack, a request converts Top to a top model, so an unavailable result
+  and a known top model print the same.
+- The enumeration of stacks (`callstacks`, `by_callstack`) is empty when
+  the results are unavailable (#76).
+- A request on a supplied state has no stack: `is_empty` is true, as on the
+  legacy path.
+
+The reach modes of the driver, `reach-reference`, `reach-candidate` and
+`reach-native`, make these requests on every labelled statement and every
+function of the input files, on each stack that the call hooks of Eva see.
+The fixtures use three conventions: a call to `stop_analysis` aborts the
+analysis through `Eva.Analysis.abort`; a call to `pending_probe` makes
+requests during the analysis; a global `top_initial_state` starts the
+analysis from a top state. An `internal` line prints the classification
+before its public conversion. The cram test
+`plugins/eva/tests/utils/reach-availability.t` runs them on a completed
+analysis with a specification, a builtin and a nonterminating call, an
+interrupted analysis, the three options that disable results, pending
+results, a recursion, a known top model and disabled domains.
+
+## Not covered
+
 Not covered yet:
 
 - `Eva.Analysis.is_computed`, which reads the computation state alone.
@@ -276,15 +365,16 @@ Not covered yet:
 - InOut's functionwise answers and the Server answers; the driver covers
   InOut's callwise answers only;
 - restoring a snapshot;
-- requests on several stacks, filters and enumeration through the resolver
-  (#76), unavailable results distinguished from unreachable points (#77),
-  and the points of memexec hits (#81).
+- requests on several stacks, filters and enumeration through the resolver,
+  except for reachability (#76), and the points of memexec hits (#81);
+- `Eva.Analysis.status` and `Eva.Results.are_available`, which still read
+  the analysis status.
 
 No fixture reaches the `Domain_store.is_computed` notification, nor the
 labels `Eva.Interferences.add_last_analysis`,
 `Eva.Eval_annots.mark_green_and_red` and the `Eva.Results` readers that the
 requests do not call: dependencies, taint, `eval_exp`, `eval_address`,
-`eval_callee`, `callee`, `equality_class`, `is_empty`, `print_states`,
-`is_reachable_kinstr` and `is_reachable_pos`. The guard records the reads
-of these readers, but their attribution has not run. Later tickets extend
-the driver.
+`eval_callee`, `callee`, `equality_class`, `print_states` and
+`is_reachable_kinstr`. The guard records the reads of these readers, but
+their attribution has not run. Only the reach modes call `is_empty` and
+`is_reachable_pos`. Later tickets extend the driver.

@@ -774,10 +774,30 @@ let taint_names_by_kind zone request =
 
 (* Reachability *)
 
+(* Reachability from the hit log, when it describes the current results;
+   see {!Hit_log.reach}. *)
+let reach (ctx : context) =
+  let filter cs = List.for_all (fun filter -> filter cs) ctx.filter in
+  Hit_log.reach ?callstacks:ctx.selector ~filter ctx.control_point
+
+(* A request is empty only when no selected callstack reaches its point.
+   The legacy implementation, [callstacks rq = []], is also true when the
+   results are not recorded or not available yet: when the hit log
+   describes the results, it answers false then. A supplied state has no
+   callstack, and is empty as in the legacy implementation. *)
 let is_empty rq =
   reading "Eva.Results.is_empty" @@ fun () ->
-  let module E = Make () in
-  E.callstacks rq = []
+  let legacy () =
+    let module E = Make () in
+    E.callstacks rq = []
+  in
+  match rq with
+  | Cvalue _ -> legacy ()
+  | Point ctx ->
+    match reach ctx with
+    | Some Reaching | Some (Unknown _) -> false
+    | Some Not_reaching -> true
+    | None -> legacy ()
 
 let is_bottom : type a. a evaluation -> bool =
   function
@@ -788,20 +808,28 @@ let is_bottom : type a. a evaluation -> bool =
     let module L = (val lvaluation : Lvaluation) in
     L.is_bottom L.v
 
+(* An unknown answer is reachable, as the [Top] state of the legacy
+   store. *)
+let is_reachable_point rq =
+  match rq with
+  | Cvalue _ -> let module M = Make () in M.is_reachable rq
+  | Point ctx ->
+    match reach ctx with
+    | Some (Reaching | Unknown _) -> true
+    | Some Not_reaching -> false
+    | None -> let module M = Make () in M.is_reachable rq
+
 let is_reachable stmt =
   reading "Eva.Results.is_reachable" @@ fun () ->
-  let module M = Make () in
-  M.is_reachable (before stmt)
+  is_reachable_point (before stmt)
 
 let is_reachable_pos pos =
   reading "Eva.Results.is_reachable_pos" @@ fun () ->
-  let module M = Make () in
-  M.is_reachable (before_pos pos)
+  is_reachable_point (before_pos pos)
 
 let is_reachable_kinstr kinstr =
   reading "Eva.Results.is_reachable_kinstr" @@ fun () ->
-  let module M = Make () in
-  M.is_reachable (before_kinstr kinstr)
+  is_reachable_point (before_kinstr kinstr)
 
 let condition_truth_value = Iterator.condition_truth_value
 

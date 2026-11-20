@@ -115,7 +115,7 @@ module Make_Domain (Abstract: Abstractions.S) = struct
     let enter callstack state =
       record (fun get -> Hit_log.enter callstack (get state))
 
-    let body callstack ~producer ~entries ~points =
+    let body callstack ~producer ~complete ~entries ~points =
       record @@ fun get ->
       let convert table =
         let result = Cil_datatype.Stmt.Hashtbl.create 17 in
@@ -131,7 +131,8 @@ module Make_Domain (Abstract: Abstractions.S) = struct
              lazy Hit_log.{ before = convert before; after = convert after })
           points
       in
-      Hit_log.body callstack ~producer ~entries:(List.map get entries) ~points
+      Hit_log.body callstack ~producer ~complete
+        ~entries:(List.map get entries) ~points
   end
 
   (* Computes consolidated states at the end of the analysis. *)

@@ -17,17 +17,23 @@
     {!Cvalue_callbacks} receive. A memexec hit records the producer of the
     cache entry it uses.
 
-    After the analysis, {!resolve} rebuilds the state at a control point on
-    one callstack from these records, without reading the legacy result
-    store. It rebuilds the state of each visit on the callstack, then joins
-    the visits in the order of the analysis.
+    {!classify} answers a request at a control point on one callstack from
+    these records, without reading the legacy result store. It rebuilds
+    the state of each visit on the callstack, then joins the visits in the
+    order of the analysis. It tells a reached point from an unreachable
+    one, from a body that no visit analyzed, and from a result that is
+    unavailable. A point is unreachable only on positive evidence: a visit
+    whose analysis completed, whose points are recorded, and which has no
+    state at the point, in an analysis that completed. {!resolve} converts
+    the answer to the public one of the legacy store. {!reach} tells
+    whether any selected callstack reaches a point.
 
-    The resolver only answers when the records are exact: the cvalue domain
-    alone, all results recorded, no multithread analysis, and an analysis
-    that completed. It declines a request on a memexec hit, or below one,
-    whose states it cannot rebuild yet. When it declines, the request reads
-    the legacy store. The records are not saved with the project, and
-    clearing the results of Eva invalidates them. *)
+    The records describe the current results when the cvalue domain runs
+    alone, without multithread analysis, and with [-eva-hit-log]. With
+    [-eva-no-results] or [-eva-no-results-domain cvalue], they record the
+    invocations and how they were interpreted, and every state is
+    unavailable. The records are not saved with the project, and clearing
+    the results of Eva invalidates them. *)
 
 type state = Cvalue_domain.State.t
 
@@ -37,18 +43,26 @@ type kind =
   (** Its body was analyzed; this invocation is the producer of this id. *)
   | Hit of int
   (** A memexec hit on the cache entry of the producer of this id. *)
-  | Spec_or_builtin
-  (** A specification or a builtin, or a body whose analysis did not
-      record its producer. *)
+  | Spec
+  (** Its specification was used; the body was not analyzed. *)
+  | Builtin of string
+  (** The builtin of this name was used; the body was not analyzed. *)
+  | Unresolved
+  (** Nothing is recorded yet: the analysis has not interpreted the call,
+      or stopped first. *)
 
 (** {2 Recording} *)
 
-(** [start ~exact] starts the records of a new analysis. Nothing is
-    recorded unless [exact]. *)
-val start: exact:bool -> unit
+(** [start ~exact ~states] starts the records of a new analysis. Nothing is
+    recorded unless [exact]. States are unavailable unless [states]. *)
+val start: exact:bool -> states:bool -> unit
 
 (** Marks the records as complete, once the analysis has completed. *)
 val seal: unit -> unit
+
+(** Marks the records as interrupted, when the analysis stops early. The
+    invocations still open at that time are interrupted. *)
+val interrupt: unit -> unit
 
 (** Whether the current analysis records. *)
 val recording: unit -> bool
@@ -68,28 +82,96 @@ val leave: Callstack.t -> unit
     memexec hit. *)
 val hit: Callstack.t -> producer:int -> unit
 
+(** [interpreted callstack kind]: the open invocation on [callstack] is
+    interpreted by its specification or by a builtin. *)
+val interpreted: Callstack.t -> [ `Spec | `Builtin of string ] -> unit
+
 type points = {
   before: state Cil_datatype.Stmt.Hashtbl.t;
   after: state Cil_datatype.Stmt.Hashtbl.t;
 }
 
-(** [body callstack ~producer ~entries ~points]: the open invocation on
-    [callstack] analyzed its body. [entries] are the states that survive the
-    preconditions; [points] are the states before and after each statement,
-    or [None] if the results of the function are not recorded. *)
+(** [body callstack ~producer ~complete ~entries ~points]: the open
+    invocation on [callstack] analyzed its body. [entries] are the states
+    that survive the preconditions; [points] are the states before and
+    after each statement, or [None] if the results of the function are not
+    recorded. [complete] is false when the analysis of the body stopped
+    before its fixpoint: its points are then those computed so far. *)
 val body:
-  Callstack.t -> producer:int -> entries:state list ->
+  Callstack.t -> producer:int -> complete:bool -> entries:state list ->
   points:points Lazy.t option -> unit
 
 (** {2 Resolver} *)
 
-(** [resolve ~callstack point] rebuilds the state at [point] on [callstack]
-    from the records: [`Bottom] if no visit reaches the point, [`Top] if the
-    results of the function are not recorded. Returns [None] when the
-    resolver declines. *)
+(** Why the records cannot give the state at a point. *)
+type unavailable =
+  | Pending
+  (** The analysis is running: no result is available yet. *)
+  | Interrupted
+  (** The analysis stopped before its end, and the point is not reached by
+      what it computed. Later visits, or the rest of an interrupted one,
+      could reach it. *)
+  | Not_recorded
+  (** The states are deliberately not recorded: [-eva-no-results],
+      [-eva-no-results-domain cvalue] or [-eva-no-results-function]. *)
+
+(** The answer at a control point on one callstack. *)
+type answer =
+  | Reached of state
+  (** The join of the states of the visits that reach the point. *)
+  | Unreachable
+  (** Every visit analyzed its body to completion, and none reaches the
+      point; or no invocation of the function exists on the callstack. *)
+  | Not_analyzed
+  (** The visits on the callstack interpret the function by its
+      specification or a builtin: the call is reached, the statements of
+      its body are not analyzed. *)
+  | Unavailable of unavailable
+  (** The records do not tell. One unavailable visit makes the whole
+      callstack unavailable. *)
+
+(** [classify ~callstack point] answers from the records. Returns [None]
+    when the records do not describe the current results, and on the
+    points of a memexec hit and of the callstacks below one, whose states
+    are not rebuilt yet. *)
+val classify:
+  callstack:Callstack.t -> Domain_store.control_point -> answer option
+
+(** [resolve ~callstack point] is {!classify} converted to the public
+    answer of the legacy store, as [Eva.Results] reports it. The legacy
+    store answers [`Bottom] at the points that an interrupted analysis did
+    not reach; the resolver answers [`Top]. Each answer is reported to
+    {!Legacy_read_guard}.
+    - [Reached s] is [`Value s];
+    - [Unreachable] is [`Bottom];
+    - [Not_analyzed] is [`Bottom], the response that [Eva.Analysis.status]
+      declares for a function interpreted by its specification or a
+      builtin;
+    - [Unavailable _] is [`Top]. *)
 val resolve:
   callstack:Callstack.t -> Domain_store.control_point ->
   state Lattice_bounds.or_top_bottom option
+
+(** Whether the analysis reached a point on some selected callstack. *)
+type reach =
+  | Reaching
+  | Not_reaching
+  (** Every selected callstack is [Unreachable] or [Not_analyzed]. *)
+  | Unknown of unavailable
+
+(** [reach ?callstacks ?filter point] tells whether [point] is reached on
+    one of [callstacks] that satisfies [filter]. [callstacks] defaults to
+    the callstacks of the function of [point] in the records. A point
+    reached on a callstack is reached whatever the other visits on that
+    callstack. Returns [None] when the records do not describe the current
+    results, and when a negative answer could depend on a memexec hit.
+    Each answer is reported to {!Legacy_read_guard}. *)
+val reach:
+  ?callstacks:Callstack.t list -> ?filter:(Callstack.t -> bool) ->
+  Domain_store.control_point -> reach option
+
+val pretty_answer: Format.formatter -> answer -> unit
+val pretty_reach: Format.formatter -> reach -> unit
 
 (** Prints the visits recorded on a callstack: their kind, their input, and
     the number of entries that survive the preconditions. *)

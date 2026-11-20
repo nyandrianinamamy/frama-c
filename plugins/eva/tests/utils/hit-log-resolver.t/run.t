@@ -54,10 +54,10 @@ Collection. InOut computes the callwise inputs and outputs of each call from
 the point states that Eva passes to its hook. The state at the start of the
 call, which a request answers Top during the analysis, is taken without the
 request: InOut reads no legacy state during the collection, and serves its
-answers without legacy read. Eva's own statistics hook still reads the
-store.
+answers without legacy read. The hit log answers the reachability requests
+of Eva's statistics hook: nothing reads the store during the collection.
   $ grep -e "phase=collection" candidate.log
-  [acceptance] execution phase=collection reader=Eva.Summary.compute_fun_stats access=availability store=analysis-status
+  [1]
   $ grep -e "call inout" candidate.log
   [acceptance] call inout.call-f@15 legacy-reads=0 resolved=0 answer=Operational inputs:; x; Operational inputs on termination:; x; Sure outputs:; y; Over outputs:; y; Over outputs on termination:; y; Logic inputs:; \nothing
   [acceptance] call inout.call-f@18 legacy-reads=0 resolved=0 answer=Operational inputs:; x; Operational inputs on termination:; x; Sure outputs:; y; Over outputs:; y; Over outputs on termination:; y; Logic inputs:; \nothing

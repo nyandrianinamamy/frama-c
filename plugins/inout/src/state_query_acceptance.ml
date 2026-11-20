@@ -20,23 +20,41 @@ type mode =
   | Wrong_producer
   | Trap of Guard.phase
 
-let parse_mode name =
-  match name with
-  | "reference" -> Reference
-  | "candidate" -> Candidate
-  | "native" -> Native
-  | "wrong-producer" -> Wrong_producer
-  | _ ->
-    let phase =
-      if String.starts_with ~prefix:"trap:" name then
-        Guard.phase_of_name (String.sub name 5 (String.length name - 5))
-      else None
-    in
-    match phase with
-    | Some phase -> Trap phase
-    | None ->
+(* The requests made after the analysis: the battery around the statement
+   labelled P, or the reachability battery on every labelled statement
+   ([reach-] modes). *)
+type battery = Point_battery | Reach_battery
+
+let rec parse_mode name =
+  let reach = "reach-" in
+  if String.starts_with ~prefix:reach name then
+    let len = String.length reach in
+    match parse_mode (String.sub name len (String.length name - len)) with
+    | Point_battery, (Reference | Candidate | Native as mode) ->
+      Reach_battery, mode
+    | _ ->
       Inout_parameters.abort "unknown mode %S for %s" name
         Inout_parameters.QueryAcceptance.option_name
+  else
+    let mode =
+      match name with
+      | "reference" -> Reference
+      | "candidate" -> Candidate
+      | "native" -> Native
+      | "wrong-producer" -> Wrong_producer
+      | _ ->
+        let phase =
+          if String.starts_with ~prefix:"trap:" name then
+            Guard.phase_of_name (String.sub name 5 (String.length name - 5))
+          else None
+        in
+        match phase with
+        | Some phase -> Trap phase
+        | None ->
+          Inout_parameters.abort "unknown mode %S for %s" name
+            Inout_parameters.QueryAcceptance.option_name
+    in
+    Point_battery, mode
 
 let log fmt = Format.printf ("[acceptance] " ^^ fmt ^^ "@.")
 
@@ -272,7 +290,7 @@ let battery kf stmt =
   call ~id:("status." ^ kf_name) ~family:"availability" ~expect:Legacy
     ~request:"Eva.Analysis.status f"
     (text (fun () -> pretty_kf_status (Eva.Analysis.status kf)));
-  call ~id:"reachable.P" ~family:"availability" ~expect:Legacy
+  call ~id:"reachable.P" ~family:"availability" ~expect:Resolver
     ~request:"Eva.Results.is_reachable P"
     (text (fun () -> string_of_bool (R.is_reachable stmt)));
   let stacks = by_stack_name !stacks in
@@ -420,6 +438,232 @@ let battery kf stmt =
        in
        pretty_result Cvalue.V.pretty result, Value result)
 
+(* {2 Reachability battery}
+
+   Requests on every labelled statement and every function of the input
+   files, on each callstack that the analysis creates: reached and
+   unreachable points, bodies interpreted by a specification or a builtin,
+   nontermination, and the results that are unavailable because they are
+   pending, interrupted or not recorded. A call to [stop_analysis] stops
+   the analysis; a call to [pending_probe] makes requests while it runs. *)
+
+let stop_function = "stop_analysis"
+let pending_function = "pending_probe"
+
+(* The callstacks that the call hooks see during the analysis, latest
+   first. They do not depend on the result store. *)
+let seen_stacks = ref []
+
+let stacks_of kf =
+  List.filter (fun cs -> Kernel_function.equal (Eva.Callstack.top_kf cs) kf)
+    !seen_stacks
+  |> List.sort_uniq Eva.Callstack.compare
+  |> by_stack_name
+
+let labelled_statements () =
+  let statements = ref [] in
+  Globals.Functions.iter (fun kf ->
+      if Kernel_function.is_definition kf then
+        List.iter (fun stmt ->
+            List.iter (function
+                | Label (name, _, _) ->
+                  statements := (name, kf, stmt) :: !statements
+                | Case _ | Default _ -> ())
+              stmt.labels)
+          (Kernel_function.get_definition kf).sallstmts);
+  List.sort (fun (_, _, s1) (_, _, s2) -> compare (line s1) (line s2))
+    !statements
+
+(* The functions declared in the input files, but the driver's own. *)
+let input_functions () =
+  let files = Kernel.Files.get () in
+  let in_input kf =
+    let file = Fileloc.path (Kernel_function.get_location kf) in
+    List.exists (Filepath.equal file) files
+  in
+  let driver kf =
+    List.mem (Kernel_function.get_name kf) [stop_function; pending_function]
+  in
+  Globals.Functions.fold (fun kf acc ->
+      if in_input kf && not (driver kf) then kf :: acc else acc) []
+  |> List.sort (fun a b ->
+      compare (Kernel_function.get_name a) (Kernel_function.get_name b))
+
+let reach_function kf =
+  let name = Kernel_function.get_name kf in
+  let id s = "fn." ^ name ^ "." ^ s in
+  call ~id:(id "status") ~family:"availability" ~expect:Legacy
+    ~request:("Eva.Analysis.status " ^ name)
+    (text (fun () -> pretty_kf_status (Eva.Analysis.status kf)));
+  call ~id:(id "available") ~family:"availability" ~expect:Legacy
+    ~request:("Eva.Results.are_available " ^ name)
+    (text (fun () -> string_of_bool (R.are_available kf)));
+  call ~id:(id "stacks") ~family:"enumeration" ~expect:Legacy
+    ~request:("Eva.Results.(at_start_of " ^ name ^ " |> callstacks)")
+    (text (fun () ->
+         R.(at_start_of kf |> callstacks) |> by_stack_name
+         |> List.map stack_name |> String.concat " "));
+  List.iter (fun stack ->
+      call ~id:(id ("start." ^ stack_name stack)) ~family:"supplied-stack"
+        ~expect:Resolver
+        ~request:("Eva.Results.(at_start_of " ^ name ^ " |> in_callstack "
+                  ^ stack_name stack ^ " |> get_cvalue_model)")
+        (fun () -> model R.(at_start_of kf |> in_callstack stack)))
+    (stacks_of kf)
+
+(* The internal answers of the hit log, which the public requests convert:
+   [none] when the hit log does not answer. They read no store. *)
+let internal label stmt stack =
+  let pretty pp = Format.asprintf "%a" (Pretty_utils.pp_opt ~none:"none" pp) in
+  let classify point =
+    pretty Eva.Hit_log.pretty_answer
+      (Eva.Hit_log.classify ~callstack:stack point)
+  in
+  let before = classify (Before stmt) and after = classify (After stmt) in
+  if not !quiet then begin
+    log "internal %s.%s before=%s after=%s" label (stack_name stack) before
+      after;
+    emit (`Assoc [
+        "kind", `String "internal";
+        "label", `String label;
+        "stack", `String (stack_name stack);
+        "before", `String before;
+        "after", `String after;
+      ])
+  end
+
+let reach_label (label, kf, stmt) =
+  let id s = "reach." ^ label ^ "." ^ s in
+  let request s = "Eva.Results.(" ^ s ^ ")" in
+  call ~id:(id "stacks") ~family:"enumeration" ~expect:Legacy
+    ~request:(request ("before " ^ label ^ " |> callstacks"))
+    (text (fun () ->
+         R.(before stmt |> callstacks) |> by_stack_name
+         |> List.map stack_name |> String.concat " "));
+  call ~id:(id "reachable") ~family:"reachability" ~expect:Legacy
+    ~request:(request ("is_reachable " ^ label))
+    (text (fun () -> string_of_bool (R.is_reachable stmt)));
+  call ~id:(id "empty-before") ~family:"reachability" ~expect:Legacy
+    ~request:(request ("before " ^ label ^ " |> is_empty"))
+    (text (fun () -> string_of_bool (R.(before stmt |> is_empty))));
+  call ~id:(id "empty-after") ~family:"reachability" ~expect:Legacy
+    ~request:(request ("after " ^ label ^ " |> is_empty"))
+    (text (fun () -> string_of_bool (R.(after stmt |> is_empty))));
+  call ~id:(id "model-before") ~family:"getter" ~expect:Legacy
+    ~request:(request ("before " ^ label ^ " |> get_cvalue_model"))
+    (fun () -> model (R.before stmt));
+  (* Requests on a disabled domain keep their declared error. *)
+  call ~id:(id "equality") ~family:"disabled-domain" ~expect:No_read
+    ~request:(request ("before " ^ label ^ " |> equality_class 0"))
+    (text (fun () ->
+         let zero = Cil.zero ~loc:(Cil_datatype.Stmt.loc stmt) in
+         match R.(before stmt |> equality_class zero) with
+         | Ok exps ->
+           Format.asprintf "%a" (Pretty_utils.pp_list ~sep:", "
+                                   Printer.pp_exp) exps
+         | Error e -> pretty_error e));
+  call ~id:(id "taint") ~family:"disabled-domain" ~expect:No_read
+    ~request:(request ("before " ^ label ^ " |> is_tainted nothing"))
+    (text (fun () ->
+         match R.(before stmt |> is_tainted Memory_zone.bottom) with
+         | Ok Direct -> "direct"
+         | Ok Indirect -> "indirect"
+         | Ok Untainted -> "untainted"
+         | Error e -> pretty_error e));
+  List.iter (fun stack ->
+      internal label stmt stack;
+      let on s = s ^ " |> in_callstack " ^ stack_name stack in
+      let id s = id (s ^ "." ^ stack_name stack) in
+      call ~id:(id "before") ~family:"supplied-stack" ~expect:Resolver
+        ~request:(request (on ("before " ^ label) ^ " |> get_cvalue_model"))
+        (fun () -> model R.(before stmt |> in_callstack stack));
+      call ~id:(id "after") ~family:"supplied-stack" ~expect:Resolver
+        ~request:(request (on ("after " ^ label) ^ " |> get_cvalue_model"))
+        (fun () -> model R.(after stmt |> in_callstack stack));
+      call ~id:(id "reachable-pos") ~family:"supplied-stack"
+        ~expect:Resolver
+        ~request:(request ("is_reachable_pos (" ^ label ^ ", "
+                           ^ stack_name stack ^ ")"))
+        (text (fun () ->
+             string_of_bool
+               (R.is_reachable_pos (Eva.Position.local stmt stack))));
+      call ~id:(id "empty") ~family:"supplied-stack" ~expect:Resolver
+        ~request:(request (on ("before " ^ label) ^ " |> is_empty"))
+        (text (fun () ->
+             string_of_bool R.(before stmt |> in_callstack stack |> is_empty))))
+    (stacks_of kf)
+
+let reach_battery () =
+  List.iter reach_function (input_functions ());
+  List.iter reach_label (labelled_statements ());
+  (* A known top model, which is not an unavailable result. *)
+  let top = R.in_cvalue_state Cvalue.Model.top in
+  call ~id:"supplied-top.model" ~family:"supplied-state" ~expect:No_read
+    ~request:"Eva.Results.(in_cvalue_state top |> get_cvalue_model)"
+    (fun () -> model top);
+  call ~id:"supplied-top.empty" ~family:"supplied-state" ~expect:No_read
+    ~request:"Eva.Results.(in_cvalue_state top |> is_empty)"
+    (text (fun () -> string_of_bool (R.is_empty top)))
+
+(* Requests made while the analysis runs, from the call hook of
+   [pending_probe], on the stack of its caller. *)
+let pending_requests callstack =
+  let caller = Option.get (Eva.Callstack.pop callstack) in
+  let caller_kf = Eva.Callstack.top_kf caller in
+  List.iter (fun (label, kf, stmt) ->
+      let id s = "pending." ^ label ^ "." ^ s in
+      let request s = "Eva.Results.(" ^ s ^ ") during the analysis" in
+      call ~id:(id "reachable") ~family:"reachability" ~expect:Legacy
+        ~request:(request ("is_reachable " ^ label))
+        (text (fun () -> string_of_bool (R.is_reachable stmt)));
+      call ~id:(id "empty-before") ~family:"reachability" ~expect:Legacy
+        ~request:(request ("before " ^ label ^ " |> is_empty"))
+        (text (fun () -> string_of_bool (R.(before stmt |> is_empty))));
+      if Kernel_function.equal kf caller_kf then
+        call ~id:(id ("before." ^ stack_name caller))
+          ~family:"supplied-stack" ~expect:Resolver
+          ~request:(request ("before " ^ label ^ " |> in_callstack "
+                             ^ stack_name caller ^ " |> get_cvalue_model"))
+          (fun () -> model R.(before stmt |> in_callstack caller)))
+    (labelled_statements ());
+  let name = Kernel_function.get_name caller_kf in
+  call ~id:("pending.fn." ^ name ^ ".status") ~family:"availability"
+    ~expect:Legacy
+    ~request:("Eva.Analysis.status " ^ name ^ " during the analysis")
+    (text (fun () -> pretty_kf_status (Eva.Analysis.status caller_kf)));
+  call ~id:("pending.fn." ^ name ^ ".available") ~family:"availability"
+    ~expect:Legacy
+    ~request:("Eva.Results.are_available " ^ name ^ " during the analysis")
+    (text (fun () -> string_of_bool (R.are_available caller_kf)))
+
+(* A program that defines the global [top_initial_state] starts from a top
+   state: its points are reached with a known top model. *)
+let top_initial_state () =
+  let defined =
+    Globals.Vars.fold
+      (fun vi _ acc -> acc || vi.vname = "top_initial_state") false
+  in
+  if defined then begin
+    log "initial state top";
+    Eva.Eva_results.set_initial_state Cvalue.Model.top
+  end
+
+let reach_hooks = ref false
+
+let register_reach_hooks () =
+  if not !reach_hooks then begin
+    reach_hooks := true;
+    Eva.Cvalue_callbacks.register_at_start_hook (fun () -> seen_stacks := []);
+    Eva.Cvalue_callbacks.register_call_hook (fun callstack kf _state _kind ->
+        seen_stacks := callstack :: !seen_stacks;
+        let name = Kernel_function.get_name kf in
+        if name = stop_function then begin
+          log "stop requested at %s" (stack_name callstack);
+          Eva.Analysis.abort ()
+        end
+        else if name = pending_function then pending_requests callstack)
+  end
+
 (* {2 Header} *)
 
 let header mode =
@@ -529,21 +773,21 @@ let accounting () =
    process, on the same AST, so that their models are compared with the
    native equality of Cvalue, and InOut's callwise results with the
    equality of their zones. *)
-let native kf stmt =
+let native run_battery =
   quiet := true;
   legacy_reference ();
   (* The guard does not change the answers: record the reads of the
      reference too, to show that it took the legacy path. *)
   Guard.arm Record;
   compute ();
-  battery kf stmt;
+  run_battery ();
   let reference = List.rev !answers in
   answers := [];
   Eva.Parameters.HitLog.set true;
   Guard.clear ();
   Guard.arm Record;
   compute ();
-  battery kf stmt;
+  run_battery ();
   let candidate = List.rev !answers in
   let find id = List.find_opt (fun a -> a.id = id) candidate in
   let compared = ref 0 and differing = ref 0 in
@@ -587,7 +831,18 @@ let run () =
   match Inout_parameters.QueryAcceptance.get () with
   | "" -> ()
   | name ->
-    let mode = parse_mode name in
+    let kind, mode = parse_mode name in
+    let run_battery () =
+      match kind with
+      | Point_battery ->
+        let kf, stmt = target () in
+        battery kf stmt
+      | Reach_battery -> reach_battery ()
+    in
+    if kind = Reach_battery then begin
+      register_reach_hooks ();
+      top_initial_state ()
+    end;
     begin match Inout_parameters.QueryAcceptanceOutput.get () with
       | "" -> ()
       | file -> output := Some (open_out file)
@@ -603,19 +858,16 @@ let run () =
     end;
     header name;
     begin match mode with
-      | Native ->
-        let kf, stmt = target () in
-        native kf stmt
+      | Native -> native run_battery
       | _ ->
         compute ();
-        let kf, stmt = target () in
         match mode with
-        | Trap Request -> control stmt
+        | Trap Request -> control (snd (target ()))
         | Trap phase ->
           log "control not trapped in phase %s" (Guard.phase_name phase)
         | Reference | Candidate | Wrong_producer | Native ->
           execution ();
-          battery kf stmt;
+          run_battery ();
           (* Every logged read must belong to the execution or to one
              call. *)
           accounting ()

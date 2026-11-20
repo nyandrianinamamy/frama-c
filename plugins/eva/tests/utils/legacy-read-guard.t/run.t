@@ -15,9 +15,12 @@ the phase of the read.
 
 The trap can target another phase. In the analysis phase, the first read is
 the engine's registration of the entry state of main, which joins the new
-state with the recorded one. In the collection phase, it is Eva's own
-statistics hook, and after the analysis, the marking of unreachable
-properties. No read happens during initialization.
+state with the recorded one. In the collection phase, it is the Init label
+of the assertion, which reads the initial state, and after the analysis,
+the marking of the postconditions of unreachable returns, which reads the
+analysis status of each function. Eva's statistics and its marking of
+unreachable annotations ask Eva.Results.is_reachable, which the hit log
+answers without read. No read happens during initialization.
   $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-no-memexec -inout-state-query-acceptance trap:analysis legacy-reads.i > analysis.log 2>&1
   [1]
   $ grep -e "legacy result-store" analysis.log
@@ -25,11 +28,11 @@ properties. No read happens during initialization.
   $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-no-memexec -inout-state-query-acceptance trap:collection legacy-reads.i > collection.log 2>&1
   [1]
   $ grep -e "legacy result-store" collection.log
-  [eva] User Error: legacy result-store read trapped: phase=collection reader=Eva.Summary.compute_fun_stats access=availability store=analysis-status point=before line 6 of f via=Eva.Results.is_reachable
+  [eva] User Error: legacy result-store read trapped: phase=collection reader=Eva.Eval_terms.add_init access=getter store=cvalue point=initial state
   $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-no-memexec -inout-state-query-acceptance trap:post-analysis legacy-reads.i > post-analysis.log 2>&1
   [1]
   $ grep -e "legacy result-store" post-analysis.log
-  [eva] User Error: legacy result-store read trapped: phase=post-analysis reader=Eva.Eval_annots.mark_unreachable access=availability store=analysis-status point=before line 12 of main via=Eva.Results.is_reachable
+  [eva] User Error: legacy result-store read trapped: phase=post-analysis reader=Eva.Eval_annots.mark_unreachable access=availability store=analysis-status point=f
   $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-no-memexec -inout-state-query-acceptance trap:initialization legacy-reads.i > initialization.log 2>&1
   $ grep -e "^\[acceptance\] control" initialization.log
   [acceptance] control not trapped in phase initialization
@@ -60,25 +63,18 @@ on a supplied state reads nothing.
   [acceptance] config -eva-domains=cvalue -eva-slevel=0 -eva-memexec=false -eva-hit-log=true -eva-results=true -eva-join-results=true -eva-no-results-domain= -eva-no-results-function=@default
   [acceptance] execution phase=analysis reader=Eva.Engine.register_state access=getter store=cvalue
   [acceptance] execution phase=analysis reader=Eva.Eval_terms.add_init access=getter store=cvalue
-  [acceptance] execution phase=collection reader=Eva.Summary.compute_fun_stats access=availability store=analysis-status
   [acceptance] execution phase=collection reader=Eva.Eval_terms.add_init access=getter store=cvalue
   [acceptance] execution phase=post-analysis reader=Eva.Eval_annots.mark_unreachable access=availability store=analysis-status
-  [acceptance] execution phase=post-analysis reader=Eva.Eval_annots.mark_unreachable access=getter store=cvalue
-  [acceptance] execution phase=post-analysis reader=Eva.Eval_annots.mark_unreachable access=enumeration store=cvalue
-  [acceptance] execution phase=post-analysis reader=Eva.Summary.compute_fun_stats access=availability store=analysis-status
-  [acceptance] execution phase=post-analysis reader=Eva.Summary.compute_fun_stats access=getter store=cvalue
   [acceptance] execution phase=post-analysis reader=Eva.Engine.consolidate access=availability store=analysis-status
   [acceptance] execution phase=post-analysis reader=Eva.Engine.consolidate access=enumeration store=cvalue
   [acceptance] execution phase=post-analysis reader=Eva.Engine.consolidate access=getter store=cvalue
   [acceptance] execution phase=post-analysis reader=Eva.Cvalue_domain.display_final_state access=getter store=cvalue
   [acceptance] execution phase=post-analysis reader=Eva.Cvalue_domain.display_final_state access=availability store=analysis-status
-  [acceptance] execution phase=post-analysis reader=Eva.Summary.compute_statuses access=availability store=analysis-status
-  [acceptance] execution phase=post-analysis reader=Eva.Summary.compute_statuses access=getter store=cvalue
   [acceptance] call stacks.before-P legacy-reads=4 resolved=0 answer=main/f@15 main/f@18
   [acceptance] call by_callstack.before-P legacy-reads=4 resolved=0 answer=main/f@15 main/f@18
   [acceptance] call available.f legacy-reads=1 resolved=0 answer=true
   [acceptance] call status.f legacy-reads=1 resolved=0 answer=analyzed complete
-  [acceptance] call reachable.P legacy-reads=2 resolved=0 answer=true
+  [acceptance] call reachable.P legacy-reads=0 resolved=1 answer=true
   [acceptance] call model.before-P legacy-reads=2 resolved=0 answer=g ∈ {4; 9}; y ∈ {11}; x ∈ {10}; __retres ∈ UNINITIALIZED
   [acceptance] call model.before-P.main/f@15 legacy-reads=0 resolved=1 answer=g ∈ {4}; y ∈ {11}; x ∈ {10}; __retres ∈ UNINITIALIZED
   [acceptance] call model.before-P.main/f@18 legacy-reads=0 resolved=1 answer=g ∈ {9}; y ∈ {11}; x ∈ {10}; __retres ∈ UNINITIALIZED
@@ -118,4 +114,4 @@ on a supplied state reads nothing.
   [acceptance] call inout.call-f@18 legacy-reads=0 resolved=0 answer=Operational inputs:; x; Operational inputs on termination:; x; Sure outputs:; y; Over outputs:; y; Over outputs on termination:; y; Logic inputs:; \nothing
   [acceptance] call export.get_results legacy-reads=62 resolved=0 answer=exported
   [acceptance] call supplied-state.eval legacy-reads=0 resolved=0 answer={5}
-  [acceptance] accounting logged=329 attributed=329
+  [acceptance] accounting logged=209 attributed=209

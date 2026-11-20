@@ -191,8 +191,12 @@ module Make (Engine: Engine_sig.S) = struct
   let compute_call_with_target call target state =
     Function_calls.register_analysis_target call target;
     match target with
-    | `Builtin builtin_info -> compute_builtin builtin_info call state
-    | `Spec _ as spec -> compute_using_spec_or_body spec call state
+    | `Builtin ((name, _, _) as builtin_info) ->
+      Hit_log.interpreted call.callstack (`Builtin name);
+      compute_builtin builtin_info call state
+    | `Spec _ as spec ->
+      Hit_log.interpreted call.callstack `Spec;
+      compute_using_spec_or_body spec call state
     | `Body _ as def ->
       let compute = compute_using_spec_or_body def in
       if Parameters.Memexec.get ()

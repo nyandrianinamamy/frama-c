@@ -40,7 +40,7 @@ module type Domain = sig
     val initial: Callstack.t -> t -> unit
     val enter: Callstack.t -> t -> unit
     val body:
-      Callstack.t -> producer:int -> entries:t list ->
+      Callstack.t -> producer:int -> complete:bool -> entries:t list ->
       points:(t Cil_datatype.Stmt.Hashtbl.t Lazy.t
               * t Cil_datatype.Stmt.Hashtbl.t Lazy.t) option ->
       unit

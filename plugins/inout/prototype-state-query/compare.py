@@ -40,7 +40,7 @@ import sys
 CONTROLS = {
     "request": (1, "request", "Eva.Results.get_cvalue_model"),
     "analysis": (1, "analysis", "Eva.Engine.register_state"),
-    "collection": (1, "collection", "Eva.Summary.compute_fun_stats"),
+    "collection": (1, "collection", "Eva.Eval_terms.add_init"),
     "post-analysis": (1, "post-analysis", "Eva.Eval_annots.mark_unreachable"),
     "initialization": (0, None, None),
 }
@@ -257,8 +257,9 @@ def sensitivity_control(fixture):
 
 
 def resolver_control(fixtures):
-    """Every request on a supplied stack is served by the resolver, with no
-    legacy read, and no other request is."""
+    """Every request expected on the resolver, those on a supplied stack and
+    reachability, is served by it, with no legacy read, and no other
+    request is."""
     unserved, unexpected = [], []
     count = 0
     for f in fixtures:
@@ -337,7 +338,8 @@ def collection_control(evidence, fixtures):
 def native_control(fixtures):
     """In one process, the legacy reference and the candidate give natively
     equal models and values; the reference resolves nothing, and every
-    supplied-stack request of the candidate is resolved."""
+    request expected on the resolver with a native answer is resolved.
+    Text answers, such as reachability, have no native record."""
     observed, ok = {}, True
     for f in fixtures:
         native = f["native"]
@@ -346,6 +348,7 @@ def native_control(fixtures):
             ok = False
             continue
         resolver_ids = {r["id"] for r in f["calls"] if r["expect"] == "resolver"}
+        resolver_ids &= set(native["resolved"])
         unresolved = [i for i in resolver_ids if native["resolved"].get(i, 0) == 0]
         summary = native["summary"] or {}
         observed[f["fixture"]] = {

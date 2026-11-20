@@ -391,8 +391,29 @@ module State = struct
     let is_computed = Cvalue_results.is_computed
   end
 
+  (* The consolidated state before [stmt]. It is not stored for a function
+     whose analysis is partial, nor without -eva-join-results: it is then
+     the join of the states of the callstacks, as the engine consolidates
+     it on request. *)
   let get_state_before stmt =
-    match Cvalue_results.get_state (Before stmt) with
+    let point : Domain_store.control_point = Before stmt in
+    let join_callstacks () =
+      match Cvalue_results.callstacks point with
+      | `Top -> `Top
+      | `Value callstacks ->
+        let join a b = `Value (Cvalue.Model.join a b) in
+        let add acc callstack =
+          Lattice_bounds.TopBottom.join join
+            (Cvalue_results.get_state ~callstack point) acc
+        in
+        List.fold_left add `Bottom callstacks
+    in
+    let state =
+      match Cvalue_results.get_state point with
+      | `Bottom -> join_callstacks ()
+      | (`Top | `Value _) as state -> state
+    in
+    match state with
     | `Bottom -> Cvalue.Model.bottom
     | `Top -> Cvalue.Model.top
     | `Value v -> v
