@@ -1,0 +1,109 @@
+<!---------------------------------------------------------------------------->
+<!--                                                                        -->
+<!--  SPDX-License-Identifier LGPL-2.1                                      -->
+<!--  Copyright (C)                                                         -->
+<!--  CEA (Commissariat à l'énergie atomique et aux énergies alternatives)  -->
+<!--                                                                        -->
+<!---------------------------------------------------------------------------->
+
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Eva state queries under reuse</title>
+<style>
+  * { box-sizing: border-box; }
+  body { max-width: 76rem; margin: 3rem auto; padding: 0 1.25rem;
+         color: #18222b; background: #f7f9fb; font: 1rem/1.55 system-ui, sans-serif; }
+  header { max-width: 54rem; }
+  h1 { font-size: clamp(2rem, 5vw, 3.25rem); line-height: 1.1; margin: .4em 0; }
+  h2 { margin: 1.1rem 0 .25rem; }
+  p { margin: .45rem 0 1rem; }
+  nav { display: flex; flex-wrap: wrap; gap: .45rem; margin: 1rem 0; }
+  button { color: #194b6b; background: white; border: 1px solid #a4bccb;
+           border-radius: .35rem; padding: .5rem .75rem; font: inherit; cursor: pointer; }
+  button[aria-pressed="true"] { background: #194b6b; color: white; }
+  button:focus-visible { outline: 3px solid #4184aa; outline-offset: 2px; }
+  button:disabled { cursor: default; opacity: .5; }
+  .panels { display: grid; grid-template-columns: minmax(15rem, 1fr) minmax(0, 2fr);
+            gap: 1rem; }
+  section { background: white; border: 1px solid #d4e0e7;
+            padding: 1rem; border-radius: .45rem; }
+  section h2 { margin-top: 0; font-size: 1.15rem; }
+  pre { margin: 0; overflow: auto; font: .87rem/1.55 ui-monospace, monospace; }
+  #state { max-height: 39rem; }
+  footer { margin: 1rem 0; color: #475c69; }
+  @media (max-width: 52rem) {
+    .panels { grid-template-columns: 1fr; }
+    #state { max-height: none; }
+  }
+</style>
+<body>
+<header>
+  <h1>Eva state queries under reuse</h1>
+  <p>Can a stored statement payload and a current call frame recover the whole
+     Cvalue state that fresh Eva would return? Compare actual executions with and
+     without memexec, before and after <code>P</code>.</p>
+</header>
+<nav id="cases" aria-label="Scenarios"></nav>
+<h2 id="title"></h2>
+<p id="description"></p>
+<nav id="steps" aria-label="Invocation and query steps"></nav>
+<nav aria-label="Walkthrough navigation">
+  <button id="previous">Previous step</button>
+  <button id="next">Next step</button>
+</nav>
+<div class="panels">
+  <section>
+    <h2>C input</h2>
+    <pre id="source" tabindex="0"></pre>
+  </section>
+  <section>
+    <h2 id="result-title">Recorded state</h2>
+    <pre id="state" tabindex="0" aria-labelledby="result-title"></pre>
+  </section>
+</div>
+<footer>Captured from checkout <code>__REVISION__</code> with the local
+  prototype instrumentation.</footer>
+<script>
+  const cases = __CASES__;
+  let selectedCase = 0;
+  let selectedStep = 0;
+  const get = id => document.getElementById(id);
+  function buttons(container, items, selected, choose) {
+    get(container).replaceChildren(...items.map((title, index) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = title;
+      button.setAttribute("aria-pressed", String(index === selected));
+      button.addEventListener("click", () => {
+        choose(index);
+        get(container).children[index].focus();
+      });
+      return button;
+    }));
+  }
+  function draw() {
+    const scenario = cases[selectedCase];
+    const step = scenario.steps[selectedStep];
+    buttons("cases", cases.map(item => item.title), selectedCase, index => {
+      selectedCase = index;
+      selectedStep = 0;
+      draw();
+    });
+    buttons("steps", scenario.steps.map(item => item.label), selectedStep, index => {
+      selectedStep = index;
+      draw();
+    });
+    get("title").textContent = scenario.title;
+    get("description").textContent = scenario.description;
+    get("source").textContent = scenario.source;
+    get("state").textContent = step.text;
+    get("state").scrollTop = 0;
+    get("previous").disabled = selectedStep === 0;
+    get("next").disabled = selectedStep === scenario.steps.length - 1;
+  }
+  get("previous").addEventListener("click", () => { selectedStep--; draw(); });
+  get("next").addEventListener("click", () => { selectedStep++; draw(); });
+  draw();
+</script>

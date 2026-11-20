@@ -8,6 +8,8 @@
 
 open Cil_types
 
+module Query_prototype = State_query_prototype
+
 (* Computation of over-approximated operational inputs:
    An accurate computation of these inputs needs the computation of
    under-approximated outputs.
@@ -601,7 +603,7 @@ module Callwise = struct
       end)
 
 
-  let compute_call_from_value_states kf call_stack states =
+  let compute_call_from_value_states kf call_stack pre_state states capture =
     let module Fenv = (val Dataflows.function_env kf: Dataflows.FUNCTION_ENV) in
     let module Computer = Computer(Fenv)(
       struct
@@ -634,20 +636,37 @@ module Callwise = struct
             Inout_type.map (Memory_zone.filter_base filter) with_internals
           with Not_found -> Inout_type.bottom
       end) in
-    let module [@warning "-60"] Compute =
+    let module Compute =
       Dataflows.Simple_forward (Fenv) (Computer)
     in
-    Computer.end_dataflow ()
+    let inout = Computer.end_dataflow () in
+    let project { over_inputs_d; under_outputs_d; over_outputs_d } =
+      Query_prototype.{
+        reads = over_inputs_d; may_write = over_outputs_d;
+        sure_write = under_outputs_d;
+      }
+    in
+    if Query_prototype.selected kf then begin
+      let edges stmt data =
+        Computer.transfer_stmt stmt data
+        |> List.map (fun (succ, effect) -> succ, project effect)
+      in
+      capture pre_state (fun stmt -> project (Compute.pre_state stmt))
+        (fun stmt -> edges stmt (Compute.pre_state stmt))
+        (fun stmt -> edges stmt empty)
+    end;
+    inout
 
   let record_for_callwise_inout callstack kf pre_state value_res =
     let inout =
       match value_res with
-      | `Body (Eva.Cvalue_callbacks.{before_stmts}, memexec_counter) ->
+      | `Body (results, memexec_counter) ->
         let inout =
           if Eva.Analysis.save_results kf
           then
-            let cvalue_states = Lazy.force before_stmts in
-            compute_call_from_value_states kf callstack cvalue_states
+            let cvalue_states = Lazy.force results.Eva.Cvalue_callbacks.before_stmts in
+            compute_call_from_value_states kf callstack pre_state cvalue_states
+              (Query_prototype.body kf results memexec_counter)
           else top
         in
         MemExec.replace memexec_counter inout;
@@ -667,6 +686,7 @@ module Callwise = struct
           under_outputs_if_termination = sure_out;
         }
     in
+    Query_prototype.record callstack kf pre_state value_res;
     end_record callstack kf inout
 
 

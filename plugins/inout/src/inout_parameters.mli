@@ -10,6 +10,8 @@ val name: string
 
 include Plugin.S
 
+module QueryPrototype: Parameter_sig.String
+
 module ForceAccessPath: Parameter_sig.Bool
 module ForceOut: Parameter_sig.Bool
 module ForceExternalOut: Parameter_sig.Bool

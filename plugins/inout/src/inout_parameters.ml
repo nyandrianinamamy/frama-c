@@ -15,6 +15,13 @@ include Plugin.Register
       let help = "operational, imperative and all kinds of inputs/outputs"
     end)
 
+module QueryPrototype =
+  String (struct
+    let option_name = "-inout-state-query-prototype"
+    let default = ""
+    let arg_name = "fresh|hit|missing"
+    let help = "Run the throwaway point-query prototype"
+  end)
 
 module ForceDeref =
   False
