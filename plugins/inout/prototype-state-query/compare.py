@@ -316,9 +316,10 @@ def inout_reads(rows):
 
 
 def collection_control(evidence, fixtures):
-    """InOut collects from the input that Eva passes to its hook: the
-    candidates make no collection read on InOut's behalf through
-    Eva.Results. On the legacy path, the same driver sees that read."""
+    """When the hit log records, InOut takes the state at the start of each
+    call, Top during the analysis, without a request: the candidates make
+    no collection read on InOut's behalf through Eva.Results. On the legacy
+    path, the same driver sees that read."""
     path = evidence / "control-legacy-path.jsonl"
     if not path.exists():
         return {"control": "inout-collection", "result": "NOT RUN"}
@@ -382,42 +383,60 @@ def independence_control(fixtures):
 
 
 PRE_LABEL = "control-pre-label"
+PROGRESS = re.compile(
+    r"computing for function (?P<body>\w+)|Reusing old results for call to (?P<reuse>\w+)"
+)
+
+
+def analyses(log, function):
+    """How Eva interpreted the calls to [function], from its own progress
+    messages: bodies analyzed and calls served from the memexec cache."""
+    counts = {"body": 0, "reuse": 0}
+    for m in PROGRESS.finditer(log.read_text()):
+        for kind in counts:
+            if m.group(kind) == function:
+                counts[kind] += 1
+    return counts
 
 
 def pre_label_control(evidence):
-    """Expected difference. The legacy path reads the input of a call from
-    the store during the analysis, gets Top, and InOut's logic inputs of
-    \\at(*p, Pre) are ANYTHING. With the input of the invocation, they are
-    a and p. Only InOut's answers may differ."""
-    ref, cand = (
-        evidence / f"{PRE_LABEL}.reference.jsonl",
-        evidence / f"{PRE_LABEL}.candidate.jsonl",
-    )
-    if not (ref.exists() and cand.exists()):
-        return {"control": "pre-label-difference", "result": "NOT RUN"}
-    rows = compare_calls(load(ref)[1], load(cand)[1])
-    differing = [r for r in rows if r["disposition"] in ("MISMATCH", "MISSING")]
+    """InOut's Pre label and memexec admission. In pre-label.c, f is called
+    twice with the same input and its assertion reads *p in the Pre state.
+    With memexec, the legacy path and the hit log must give the same
+    answers, InOut's included, and Eva must interpret the calls to f in the
+    same way. The legacy path must exercise the case: logic inputs ANYTHING,
+    hence no call to f reused."""
+    paths = {side: evidence / f"{PRE_LABEL}.{side}" for side in ("legacy", "hit-log")}
+    files = [Path(f"{p}{ext}") for p in paths.values() for ext in (".jsonl", ".log")]
+    if not all(f.exists() for f in files):
+        return {"control": "pre-label-parity", "result": "NOT RUN"}
+    legacy, hit_log = (load(Path(f"{p}.jsonl"))[1] for p in paths.values())
+    rows = compare_calls(legacy, hit_log)
+    differing = [r["id"] for r in rows if r["disposition"] in ("MISMATCH", "MISSING")]
+    counts = {side: analyses(Path(f"{p}.log"), "f") for side, p in paths.items()}
 
-    def zone(answer):
+    def logic(answer):
         return answer.split("Logic inputs:")[-1].replace(";", " ").split()
 
-    logic = {
-        r["id"]: {"reference": zone(r["expected"]), "candidate": zone(r["observed"])}
-        for r in differing
+    inout = {
+        r["id"]: {"legacy": logic(r["expected"]), "hit-log": logic(r["observed"])}
+        for r in rows
         if r["family"] == "inout"
     }
-    ok = len(logic) == len(differing) == 1 and all(
-        v["reference"][:1] == ["ANYTHING(origin:Unknown)"] and v["candidate"] == ["a", "p"]
-        for v in logic.values()
+    exercised = (
+        len(inout) == 2
+        and all(v["legacy"][:1] == ["ANYTHING(origin:Unknown)"] for v in inout.values())
+        and counts["legacy"] == {"body": 2, "reuse": 0}
     )
+    ok = exercised and not differing and counts["hit-log"] == counts["legacy"]
     return {
-        "control": "pre-label-difference",
+        "control": "pre-label-parity",
         "expected": {
-            "differing": "one InOut call",
-            "reference": "ANYTHING",
-            "candidate": "a; p",
+            "differing": [],
+            "logic_inputs": "ANYTHING on both paths",
+            "analyses_of_f": {"legacy": {"body": 2, "reuse": 0}, "hit-log": "same"},
         },
-        "observed": {"differing": [r["id"] for r in differing], "logic_inputs": logic},
+        "observed": {"differing": differing, "logic_inputs": inout, "analyses_of_f": counts},
         "result": "PASS" if ok else "FAIL",
     }
 

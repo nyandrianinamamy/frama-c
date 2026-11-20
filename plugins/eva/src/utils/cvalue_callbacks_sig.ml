@@ -42,7 +42,9 @@ module type API = sig
 
   (** Results of the analysis of a body. [input] is the cvalue state at the
       start of the call, after the binding of the arguments to the formals
-      and before the preconditions reduce it. *)
+      and before the preconditions reduce it. It is not what a request on
+      Eva's results answers during the analysis: no result is available
+      then, and such a request answers Top. *)
   type results = {
     input: state;
     before_stmts: state_by_stmt;

@@ -49,8 +49,8 @@ Candidate. The guard records every legacy read, and every answer of the
 resolver of the hit log. The driver groups the reads of the execution by
 phase and reader, and attributes the other reads and the resolutions to the
 public request that made them. Registration-time reads come from the
-engine; InOut collects from the input that Eva passes to its hook, and its
-remaining collection read is the Init label of the assertion. Final
+engine; InOut takes the state at the start of each call without a request,
+and its remaining collection read is the Init label of the assertion. Final
 printing and logic initialization read the store without Eva.Results. The
 requests on a supplied stack are resolved without legacy read; the request
 on a supplied state reads nothing.

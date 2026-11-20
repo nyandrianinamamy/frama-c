@@ -156,6 +156,7 @@ let expect_name = function
 type native =
   | Model of Cvalue.Model.t R.result
   | Value of Cvalue.V.t R.result
+  | Inout of Inout_type.t
   | Text
 
 let native_equal a b =
@@ -168,6 +169,7 @@ let native_equal a b =
   match a, b with
   | Model a, Model b -> Some (equal_result Cvalue.Model.equal a b)
   | Value a, Value b -> Some (equal_result Cvalue.V.equal a b)
+  | Inout a, Inout b -> Some (Inout_type.equal a b)
   | _ -> None
 
 type answer = {
@@ -387,16 +389,17 @@ let battery kf stmt =
         !kf_stacks)
     functions;
   (* InOut: the callwise inputs and outputs of each call, collected during
-     the analysis from the live inputs and point states. *)
+     the analysis from the point states passed to its hook. *)
   List.iter (fun (stmt, kf) ->
       let name = Kernel_function.get_name kf in
       call ~id:(Format.sprintf "inout.call-%s@%d" name (line stmt))
         ~family:"inout" ~expect:No_read
         ~request:"Inout.get_precise_inout ~stmt f"
-        (text (fun () ->
-             let inout = Operational_inputs.get_internal_precise ~stmt kf in
-             Format.asprintf "%a@\nLogic inputs:@ %a" Inout_type.pretty inout
-               Memory_zone.pretty inout.over_logic_inputs)))
+        (fun () ->
+           let inout = Operational_inputs.get_internal_precise ~stmt kf in
+           Format.asprintf "%a@\nLogic inputs:@ %a" Inout_type.pretty inout
+             Memory_zone.pretty inout.over_logic_inputs,
+           Inout inout))
     (call_sites ());
   call ~id:"export.get_results" ~family:"alias" ~expect:Legacy
     ~request:"Eva.Eva_results.get_results ()"
@@ -469,7 +472,7 @@ let execution () =
         ]))
     (group reads);
   (* Collection reads by reader and caller: a plug-in that collects from the
-     live inputs makes no read of its own. *)
+     states passed to its hook makes no read of its own. *)
   let collection =
     List.filter (fun (r : Guard.read) -> r.phase = Collection) reads
   in
@@ -524,7 +527,8 @@ let accounting () =
 
 (* Native mode: the fresh-only reference and the candidate run in the same
    process, on the same AST, so that their models are compared with the
-   native equality of Cvalue. *)
+   native equality of Cvalue, and InOut's callwise results with the
+   equality of their zones. *)
 let native kf stmt =
   quiet := true;
   legacy_reference ();
