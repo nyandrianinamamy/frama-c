@@ -251,6 +251,13 @@ module Make (Abstract: Abstractions.S) = struct
         map_value to_states answer
       | None -> find (Dom.Store.get_state_by_callstack) control_point
 
+    let select_by_callstack ?callstacks ~filter control_point =
+      let to_states = List.map (fun (cs, state) -> cs, to_state state) in
+      Option.map (function
+          | Hit_log.Known list -> Hit_log.Known (to_states list)
+          | Unknown_state stacks -> Unknown_state stacks)
+        (Hit_log.select ?callstacks ~filter control_point)
+
     let callstacks = Abstract.Dom.Store.callstacks
 
     let eval_expr state expr = Eval.evaluate state expr >>=: snd

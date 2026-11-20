@@ -212,13 +212,13 @@ them: the resolver fills a `Callstack.Hashtbl.create 7` in the order of
 their first registration in the store (the call, for the start of a
 function; the completion of a body that reaches the point, for a
 statement) and reads it back. This order is the hash order, not the order
-of the calls. These requests answer Top on pending or unrecorded results.
-After an interrupted analysis, they answer Top unless each recorded stack
-of the function is classified and one of them reaches the point: the
-records say nothing of the stacks that the analysis did not enter, so they
-never answer Bottom then. `Eva.Results.is_reachable` and `is_empty` use
-the reachability of the hit log (see below), including during Eva's
-post-analysis.
+of the calls. The enumeration and the state are separate
+(`Hit_log.select`): a selected stack is enumerated as soon as one of its
+visits reaches the point, and the state of the selection is unknown as
+soon as one selected stack may contribute an unavailable state. See
+"Enumeration and selections" below. `Eva.Results.is_reachable` and
+`is_empty` use the reachability of the hit log (see below), including
+during Eva's post-analysis.
 
 On the legacy path, the marking of unreachable statements in the
 post-analysis consolidated, as a side effect, the states before the
@@ -354,7 +354,9 @@ the point. Without supplied stacks, it selects the stacks of the function
 in the records, and declines when a negative answer could depend on a
 memexec hit. After an interrupted analysis, a point that no recorded stack
 reaches is `Unknown` when no stack is selected, or when a hit could hide
-one: the rest of the analysis could reach it. `Eva.Results.is_reachable`,
+one: the rest of the analysis could reach it. The same holds whenever the
+request does not name its stacks, as with a predicate, even if each
+recorded stack is classified. `Eva.Results.is_reachable`,
 `is_reachable_pos`, `is_reachable_kinstr`, and `is_empty` on a point
 request, use it with the stacks and filters of the request, and read the
 legacy store only when it declines. An unknown point is reachable and not
@@ -373,7 +375,9 @@ The legacy conversions and the candidate's answers:
 | Pending results, during the analysis | Top on a stack; `is_empty` true. | Top; `is_empty` false. |
 | Interrupted analysis, point not reached by what it computed | Bottom; `is_reachable` false; `is_empty` true. | Top; `is_reachable` true; `is_empty` false. |
 | Interrupted analysis, function never entered, with or without memexec | Bottom; `is_reachable` false; `is_empty` true. | Top without stack; `is_reachable` true; `is_empty` false. |
-| Interrupted analysis, model without stack at a point reached on some stacks only | The join of the stacks that reached it. | Top, and no stack enumerated. |
+| Interrupted analysis, model without stack at a point reached on some stacks only | The join of the stacks that reached it. | Top; the stacks that reached it are enumerated. |
+| Interrupted analysis, selection of stacks whose states are all known | The join of the selected stacks. | The same. |
+| Interrupted analysis, stack with a visit that reached the point and an interrupted one | The state of the first visit. | Top; the stack is enumerated. |
 | Results not recorded | Top on a stack; `is_empty` true. | Top; `is_empty` false. |
 | Known top model | The top model on a stack. | The same. |
 | Equality or taint request on a disabled domain | The declared error, with no read. | The same. |
@@ -394,9 +398,6 @@ Not corrected:
 - With `-eva-no-results-domain cvalue`, `Eva.Analysis.status` answers
   `analyzed complete` and `Eva.Results.are_available` true, while no state
   is available.
-- The enumeration of stacks (`callstacks`, `by_callstack`) is empty when
-  the answer is Top: after an interruption, at a point that some stacks
-  reached, it lists none of them.
 - With a memexec hit, the requests on several stacks or none read the
   legacy store at a point that a recorded stack reaches, also after an
   interruption (#81).
@@ -418,6 +419,55 @@ analysis with a specification, a builtin and a nonterminating call, an
 interrupted analysis, with and without memexec, the three options that
 disable results, pending results, a recursion, a known top model and
 disabled domains.
+
+### Enumeration and selections
+
+A request on several stacks, a predicate, an enumeration or an unfiltered
+request is answered by `Hit_log.select` on the selected stacks: those that
+the request names, by default the stacks of the function in the records,
+that satisfy its predicates. The answer separates two things:
+
+- the enumeration (`callstacks`, `by_callstack`): each selected stack with
+  a visit that reaches the point, in the order of the legacy store. One
+  visit that reaches the point is positive evidence, whatever the other
+  visits on the stack, and whatever the state of the other stacks;
+- the state: known when the records give the state of each selected stack
+  that may reach the point, unknown otherwise.
+
+The public conversions:
+
+| Selection | Enumeration | Model |
+| --- | --- | --- |
+| Every selected stack is classified, and its state known or unreachable | The stacks that reach the point. | Their join, or each stack evaluated then joined, as on the legacy path; Bottom if none reaches it. |
+| A selected stack is unavailable: its state, or the state of one of its visits | The stacks that reach the point, including that one if a visit reached it. | Top: a top model without selection, the error Top with one. |
+| Pending results, or states not recorded at the point | None, as on the legacy path. | Top. |
+| After an interruption, no selected stack reaches the point | None. | Top, unless the request names its stacks and each one is classified: Bottom then. |
+| A memexec hit in the records | The legacy store (#81), except after an interruption when no selected stack reaches the point: Top then. | The same. |
+
+A selector that names one stack keeps its own request: Top when its state
+is unavailable, and the predicates are not applied to this Top, as on the
+legacy path. Its enumeration lists the stack if a visit reached the point.
+The subrequests of `by_callstack` are such requests, one per enumerated
+stack.
+
+After an interruption, the state of a stack that reaches the point is the
+one that the analysis computed, as for a request on that stack alone, and
+the stacks that the analysis did not enter are not part of a selection
+that a recorded stack reaches. A later visit, or a stack that the analysis
+would have entered later, could add values to these answers. The legacy
+store makes the same assumption.
+
+`reach-availability.t` checks each case with `interrupted.i` (R reached by
+the first call, unavailable on the second; L reached by none),
+`interrupted-three.i` (two stacks known at R, one unavailable),
+`interrupted-loop.i` (one stack whose first visit reaches R and second
+visit is interrupted), the pending, not recorded, known top, recursion and
+memexec fixtures. The selections are the unfiltered request, every stack
+by a selector and by a predicate, each stack alone by a predicate, every
+stack but one, and none. Each selection is compared with the reference,
+in text and natively, and must be served by the hit log without legacy
+read, except with a memexec hit. Its model is Bottom exactly when
+`is_empty` answers true.
 
 ## Not covered
 

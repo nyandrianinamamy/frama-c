@@ -12,13 +12,28 @@ without the hit log; the candidate runs it with the hit log. A line
 "internal" gives, for each callstack, the answer of the hit log before its
 public conversion.
 
-  $ answers () { sed -n 's/^\[acceptance\] call \([^ ]*\) legacy-reads=[^ ]* resolved=[^ ]* answer=/\1 /p' "$1" | sed 's/ $//'; }
+  $ answers () { sed -n 's/^\[acceptance\] call \([^ ]*\) legacy-reads=[^ ]* resolved=[^ ]* answer=/\1 /p' "$1" | grep -v -e '^select\.' -e '^pending\.select\.' | sed 's/ $//'; }
   $ run () { mode=$1; log=$2; shift 2; frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-no-memexec -inout-state-query-acceptance "$mode" "$@" > "$log" 2>&1; }
 
 The migrated readers are the requests on one callstack, is_reachable,
 is_reachable_pos and is_empty. In every candidate below, the hit log
 serves each of them without legacy read; served lists the others.
   $ served () { grep -E "call (reach|fn)\.[^ ]+\.(reachable|empty-before|empty-after|(before|after|reachable-pos|empty|start)\.[^ ]+) " "$1" | awk '!/legacy-reads=0 resolved=1 /{n++} END{print n+0}'; }
+
+The driver also makes requests at each labelled statement under several
+selections of the callstacks that the hooks saw for its function:
+unfiltered, all of them by a selector (selector-all) and by a predicate
+(filter-all), each one alone by a predicate (only:), all but one by a
+selector and by a predicate (selector-without:, filter-without:), and none
+(filter-none). Under each, it records the callstacks in the order of the
+answer, the subrequests of by_callstack with their models, the model and
+is_empty. The pending probe makes the same requests during the analysis.
+selections lists these answers; selected counts those that read the legacy
+store or are not resolved; consistent counts the selections whose model is
+Bottom while is_empty is false, or the reverse.
+  $ selections () { sed -n 's/^\[acceptance\] call \([^ ]*\) legacy-reads=[^ ]* resolved=[^ ]* answer=/\1 /p' "$1" | grep -e '^select\.' -e '^pending\.select\.' | sed 's/ $//'; }
+  $ selected () { grep -E "call (pending\.)?select\." "$1" | awk '!/legacy-reads=0 resolved=[1-9]/{n++} END{print n+0}'; }
+  $ consistent () { sed -n 's/^\[acceptance\] call \(\(pending\.\)\{0,1\}select\.[^ ]*\)\.\(model\|empty\) legacy-reads=[^ ]* resolved=[^ ]* answer=\(.*\)$/\1 \3 \4/p' "$1" | awk '$2 == "model" { bottom[$1] = ($3 " " $4 == "error bottom") } $2 == "empty" { empty[$1] = ($3 == "true") } END { n = 0; for (k in bottom) if (bottom[k] != empty[k]) n++; print n }'; }
 
 Complete analysis. f reaches P and never U; spin does not terminate, so C is
 reached and its successor D is not, nor is N after the loop of spin. by_spec
@@ -32,6 +47,13 @@ it for both. The candidate gives the reference's answers.
   $ answers points.log > points.txt
   $ diff points-reference.txt points.txt
   $ served points.log
+  0
+  $ selections points-reference.log > points-reference.sel
+  $ selections points.log > points.sel
+  $ diff points-reference.sel points.sel
+  $ selected points.log
+  0
+  $ consistent points.log
   0
   $ grep -e "internal" points.log
   [acceptance] internal S.main/by_spec@40 before=body not analyzed after=body not analyzed
@@ -87,16 +109,13 @@ store has no state at R on the second callstack nor at L, and answers
 Bottom: R and L look unreachable. The hit log answers that these results
 are unavailable, which the public requests convert to Top: this is the
 deliberate correction of an ambiguous legacy conversion. Each model on one
-callstack that the native comparison finds different is one of them.
+callstack that the native comparison finds different is one of them. The
+callstacks at R are those of the reference: the first call reached R.
   $ run reach-reference interrupted-reference.log interrupted.i
   $ run reach-candidate interrupted.log interrupted.i
   $ answers interrupted-reference.log > interrupted-reference.txt
   $ answers interrupted.log > interrupted.txt
   $ diff interrupted-reference.txt interrupted.txt
-  10c10
-  < reach.R.stacks main/f@18
-  ---
-  > reach.R.stacks
   14c14
   < reach.R.model-before g ∈ {0}; x ∈ {1}
   ---
@@ -140,25 +159,25 @@ callstack that the native comparison finds different is one of them.
   [acceptance] internal R.main/f@19 before=unavailable (interrupted) after=unavailable (interrupted)
   [acceptance] internal L.main before=unavailable (interrupted) after=unavailable (interrupted)
   $ run reach-native interrupted-native.log interrupted.i
-  $ grep -e "equal=false" -e "native compared" interrupted-native.log
+  $ grep -e "equal=false" interrupted-native.log > interrupted-native.txt
+  $ grep -v -e "native select\." interrupted-native.txt
   [acceptance] native reach.R.model-before equal=false reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
   [acceptance] native reach.R.before.main/f@19 equal=false reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
   [acceptance] native reach.R.after.main/f@19 equal=false reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
   [acceptance] native reach.L.model-before equal=false reference-reads=3 reference-resolved=0 legacy-reads=0 resolved=1
   [acceptance] native reach.L.before.main equal=false reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
   [acceptance] native reach.L.after.main equal=false reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
-  [acceptance] native compared=12 differing=6
 
 Without callstack, the legacy store answers Bottom at L, and the state of
-the first call alone at R. The hit log answers Top at both, as for any
-request on several callstacks or none after an interrupted analysis,
-unless each recorded callstack of the function is classified and one of
-them reaches the point. Top has no callstack: the enumeration is empty.
+the first call alone at R. The hit log answers Top at both: the state on
+the second callstack is unavailable at R, and no callstack reaches L. The
+enumeration is apart from the state: it lists the callstack of the first
+call at R, whose visit reached it, and none at L.
 Not corrected: Eva.Analysis.status answers analyzed complete after an
 interrupted analysis, although its documentation says partial.
   $ grep -e "call fn\.f\.status" -e "call reach\.[RL]\.\(model-before\|stacks\)" interrupted.log
   [acceptance] call fn.f.status legacy-reads=1 resolved=0 answer=analyzed complete
-  [acceptance] call reach.R.stacks legacy-reads=0 resolved=1 answer=
+  [acceptance] call reach.R.stacks legacy-reads=0 resolved=1 answer=main/f@18
   [acceptance] call reach.R.model-before legacy-reads=0 resolved=1 answer=NO INFORMATION
   [acceptance] call reach.L.stacks legacy-reads=0 resolved=1 answer=
   [acceptance] call reach.L.model-before legacy-reads=0 resolved=1 answer=NO INFORMATION
@@ -224,6 +243,240 @@ hit: the callstacks below a hit are not recorded.
   [acceptance] call reach.L.empty-before legacy-reads=0 resolved=1 answer=false
   [acceptance] call reach.L.model-before legacy-reads=0 resolved=1 answer=NO INFORMATION
 
+At R, the selections on several callstacks or by a predicate that keep a
+callstack of f read the legacy store as well (#81), and give the answers
+of the reference; a selector that names one callstack is served by the
+hit log. The selection that keeps no callstack answers Top, as is_empty
+answers false. At Z and L, every selection answers Top.
+  $ selections hit-reference.log > hit-reference.sel
+  $ selections hit.log > hit.sel
+  $ diff hit-reference.sel hit.sel > hit-sel.diff
+  [1]
+  $ sed -n 's/^> \(select\.R\.\)/\1/p' hit-sel.diff
+  select.R.filter-none.model error top
+  select.R.filter-none.empty false
+  $ grep -e "call select\.R\." hit.log | grep -c -v -e "legacy-reads=0 resolved=[1-9]"
+  21
+  $ consistent hit.log
+  0
+
+Selections after an interruption. The enumeration of callstacks is apart
+from the state: callstacks and by_callstack list each selected callstack
+with a visit that reaches the point, in the order of the legacy store,
+even when the state of another visit, or of another selected callstack,
+is unavailable. The model of a selection is known only when the state of
+each selected callstack is. A selection that keeps only callstacks whose
+state is known gives the model of the reference; one that keeps a
+callstack whose state is unavailable answers Top. After an interruption,
+a selection that no callstack reaches answers Top and is not empty, unless
+it names its callstacks and the records classify each of them: the
+analysis could have reached the point on a callstack that it did not
+enter. The state of a callstack that reaches the point is the one that the
+analysis computed, as on one callstack.
+
+In interrupted.i, the reference and the candidate enumerate the same
+callstacks with the same subrequests; only models and is_empty differ.
+At R, the state on main/f@18 is known and the state on main/f@19 is
+unavailable; no callstack reaches L.
+  $ selections interrupted-reference.log > interrupted-reference.sel
+  $ selections interrupted.log > interrupted.sel
+  $ diff interrupted-reference.sel interrupted.sel > interrupted-sel.diff
+  [1]
+  $ grep -c -e "^[<>] [^ ]*\.\(stacks\|by_callstack\) " interrupted-sel.diff
+  0
+  [1]
+  $ grep -e "^select\.R\." interrupted.sel
+  select.R.unfiltered.stacks main/f@18
+  select.R.unfiltered.by_callstack main/f@18: g ∈ {0}; x ∈ {1}
+  select.R.unfiltered.model NO INFORMATION
+  select.R.unfiltered.empty false
+  select.R.selector-all.stacks main/f@18
+  select.R.selector-all.by_callstack main/f@18: g ∈ {0}; x ∈ {1}
+  select.R.selector-all.model error top
+  select.R.selector-all.empty false
+  select.R.filter-all.stacks main/f@18
+  select.R.filter-all.by_callstack main/f@18: g ∈ {0}; x ∈ {1}
+  select.R.filter-all.model error top
+  select.R.filter-all.empty false
+  select.R.only:main/f@18.stacks main/f@18
+  select.R.only:main/f@18.by_callstack main/f@18: g ∈ {0}; x ∈ {1}
+  select.R.only:main/f@18.model g ∈ {0}; x ∈ {1}
+  select.R.only:main/f@18.empty false
+  select.R.only:main/f@19.stacks
+  select.R.only:main/f@19.by_callstack
+  select.R.only:main/f@19.model error top
+  select.R.only:main/f@19.empty false
+  select.R.selector-without:main/f@18.stacks
+  select.R.selector-without:main/f@18.by_callstack
+  select.R.selector-without:main/f@18.model error top
+  select.R.selector-without:main/f@18.empty false
+  select.R.filter-without:main/f@18.stacks
+  select.R.filter-without:main/f@18.by_callstack
+  select.R.filter-without:main/f@18.model error top
+  select.R.filter-without:main/f@18.empty false
+  select.R.selector-without:main/f@19.stacks main/f@18
+  select.R.selector-without:main/f@19.by_callstack main/f@18: g ∈ {0}; x ∈ {1}
+  select.R.selector-without:main/f@19.model g ∈ {0}; x ∈ {1}
+  select.R.selector-without:main/f@19.empty false
+  select.R.filter-without:main/f@19.stacks main/f@18
+  select.R.filter-without:main/f@19.by_callstack main/f@18: g ∈ {0}; x ∈ {1}
+  select.R.filter-without:main/f@19.model g ∈ {0}; x ∈ {1}
+  select.R.filter-without:main/f@19.empty false
+  select.R.filter-none.stacks
+  select.R.filter-none.by_callstack
+  select.R.filter-none.model error top
+  select.R.filter-none.empty false
+  $ grep -e "^select\.L\.\(unfiltered\|selector-all\)\." interrupted.sel
+  select.L.unfiltered.stacks
+  select.L.unfiltered.by_callstack
+  select.L.unfiltered.model NO INFORMATION
+  select.L.unfiltered.empty false
+  select.L.selector-all.stacks
+  select.L.selector-all.by_callstack
+  select.L.selector-all.model error top
+  select.L.selector-all.empty false
+  $ selected interrupted.log
+  0
+  $ grep -e "native select\." interrupted-native.txt
+  [acceptance] native select.R.unfiltered.model equal=false reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.R.selector-all.model equal=false reference-reads=3 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.R.filter-all.model equal=false reference-reads=3 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.R.only:main/f@19.model equal=false reference-reads=3 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.R.only:main/f@19.empty equal=false reference-reads=3 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.R.selector-without:main/f@18.model equal=false reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.R.selector-without:main/f@18.empty equal=false reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.R.filter-without:main/f@18.model equal=false reference-reads=3 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.R.filter-without:main/f@18.empty equal=false reference-reads=3 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.R.filter-none.model equal=false reference-reads=3 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.R.filter-none.empty equal=false reference-reads=3 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.L.unfiltered.model equal=false reference-reads=3 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.L.unfiltered.empty equal=false reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.L.selector-all.model equal=false reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.L.selector-all.empty equal=false reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.L.filter-all.model equal=false reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.L.filter-all.empty equal=false reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.L.only:main.model equal=false reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.L.only:main.empty equal=false reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.L.filter-none.model equal=false reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.L.filter-none.empty equal=false reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
+  $ grep -e "native compared" interrupted-native.log
+  [acceptance] native compared=72 differing=27
+
+interrupted-three.i calls f three times: the first two calls reach R with
+x = 1 and x = 3, and the third one stops before R. The known-only
+selections, main/f@18 alone and every callstack but main/f@20, by a
+selector or by a predicate, give the models of the reference.
+  $ run reach-reference three-reference.log interrupted-three.i
+  $ run reach-candidate three.log interrupted-three.i
+  $ answers three-reference.log > three-reference.txt
+  $ answers three.log > three.txt
+  $ diff three-reference.txt three.txt > three.diff
+  [1]
+  $ grep -e "stacks" three.diff
+  [1]
+  $ grep -e "internal R\." three.log
+  [acceptance] internal R.main/f@18 before=reached after=reached
+  [acceptance] internal R.main/f@19 before=reached after=reached
+  [acceptance] internal R.main/f@20 before=unavailable (interrupted) after=unavailable (interrupted)
+  $ selections three.log > three.sel
+  $ grep -e "^select\.R\.\(unfiltered\|filter-all\|only:\|selector-without:main/f@20\|filter-without:main/f@20\|filter-none\)" three.sel
+  select.R.unfiltered.stacks main/f@18 main/f@19
+  select.R.unfiltered.by_callstack main/f@19: g ∈ {1}; x ∈ {3} | main/f@18: g ∈ {0}; x ∈ {1}
+  select.R.unfiltered.model NO INFORMATION
+  select.R.unfiltered.empty false
+  select.R.filter-all.stacks main/f@18 main/f@19
+  select.R.filter-all.by_callstack main/f@19: g ∈ {1}; x ∈ {3} | main/f@18: g ∈ {0}; x ∈ {1}
+  select.R.filter-all.model error top
+  select.R.filter-all.empty false
+  select.R.only:main/f@18.stacks main/f@18
+  select.R.only:main/f@18.by_callstack main/f@18: g ∈ {0}; x ∈ {1}
+  select.R.only:main/f@18.model g ∈ {0}; x ∈ {1}
+  select.R.only:main/f@18.empty false
+  select.R.only:main/f@19.stacks main/f@19
+  select.R.only:main/f@19.by_callstack main/f@19: g ∈ {1}; x ∈ {3}
+  select.R.only:main/f@19.model g ∈ {1}; x ∈ {3}
+  select.R.only:main/f@19.empty false
+  select.R.only:main/f@20.stacks
+  select.R.only:main/f@20.by_callstack
+  select.R.only:main/f@20.model error top
+  select.R.only:main/f@20.empty false
+  select.R.selector-without:main/f@20.stacks main/f@18 main/f@19
+  select.R.selector-without:main/f@20.by_callstack main/f@19: g ∈ {1}; x ∈ {3} | main/f@18: g ∈ {0}; x ∈ {1}
+  select.R.selector-without:main/f@20.model g ∈ {0; 1}; x ∈ {1; 3}
+  select.R.selector-without:main/f@20.empty false
+  select.R.filter-without:main/f@20.stacks main/f@18 main/f@19
+  select.R.filter-without:main/f@20.by_callstack main/f@19: g ∈ {1}; x ∈ {3} | main/f@18: g ∈ {0}; x ∈ {1}
+  select.R.filter-without:main/f@20.model g ∈ {0; 1}; x ∈ {1; 3}
+  select.R.filter-without:main/f@20.empty false
+  select.R.filter-none.stacks
+  select.R.filter-none.by_callstack
+  select.R.filter-none.model error top
+  select.R.filter-none.empty false
+  $ selected three.log
+  0
+  $ run reach-native three-native.log interrupted-three.i
+  $ grep -e "native select\.R\." three-native.log > three-native.txt
+  $ grep -e "equal=false" three-native.txt
+  [acceptance] native select.R.unfiltered.model equal=false reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.R.selector-all.model equal=false reference-reads=4 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.R.filter-all.model equal=false reference-reads=4 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.R.only:main/f@20.model equal=false reference-reads=4 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.R.only:main/f@20.empty equal=false reference-reads=4 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.R.selector-without:main/f@18.model equal=false reference-reads=4 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.R.filter-without:main/f@18.model equal=false reference-reads=4 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.R.selector-without:main/f@19.model equal=false reference-reads=4 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.R.filter-without:main/f@19.model equal=false reference-reads=4 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.R.filter-none.model equal=false reference-reads=4 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.R.filter-none.empty equal=false reference-reads=4 reference-resolved=0 legacy-reads=0 resolved=1
+  $ grep -c -e "equal=true" three-native.txt
+  41
+
+interrupted-loop.i calls f twice from one site, on one callstack: the
+first visit reaches R, and the second one stops before it. The callstack
+is enumerated, by every selection that keeps it, also in a selector that
+names it alone; its state, and each model that includes it, is Top.
+  $ run reach-reference loop-reference.log interrupted-loop.i
+  $ run reach-candidate loop.log interrupted-loop.i
+  $ grep -e "internal R\." loop.log
+  [acceptance] internal R.main/f@19 before=unavailable (interrupted) after=unavailable (interrupted)
+  $ selections loop-reference.log > loop-reference.sel
+  $ selections loop.log > loop.sel
+  $ diff loop-reference.sel loop.sel > loop-sel.diff
+  [1]
+  $ grep -c -e "^[<>] [^ ]*\.stacks " loop-sel.diff
+  0
+  [1]
+  $ grep -e "^select\.R\." loop.sel
+  select.R.unfiltered.stacks main/f@19
+  select.R.unfiltered.by_callstack main/f@19: error top
+  select.R.unfiltered.model NO INFORMATION
+  select.R.unfiltered.empty false
+  select.R.selector-all.stacks main/f@19
+  select.R.selector-all.by_callstack main/f@19: error top
+  select.R.selector-all.model error top
+  select.R.selector-all.empty false
+  select.R.filter-all.stacks main/f@19
+  select.R.filter-all.by_callstack main/f@19: error top
+  select.R.filter-all.model error top
+  select.R.filter-all.empty false
+  select.R.only:main/f@19.stacks main/f@19
+  select.R.only:main/f@19.by_callstack main/f@19: error top
+  select.R.only:main/f@19.model error top
+  select.R.only:main/f@19.empty false
+  select.R.filter-none.stacks
+  select.R.filter-none.by_callstack
+  select.R.filter-none.model error top
+  select.R.filter-none.empty false
+  $ selected loop.log
+  0
+
+The model of each selection is Bottom exactly when is_empty answers true,
+in every candidate of this file.
+  $ for log in interrupted.log three.log loop.log; do consistent $log; done
+  0
+  0
+  0
+
 Results that are not recorded. With -eva-no-results-function f, the
 states of f are not recorded; with -eva-no-results-domain cvalue or
 -eva-no-results, no state is. The legacy is_empty answers true wherever no
@@ -231,7 +484,8 @@ state is recorded, so that P, which f reaches, and even C in main look
 unreachable. The hit log tells that these results are unavailable, and
 is_empty answers false: this is the only difference with the reference.
 The other requests give the legacy answers: Top on one callstack, a top
-model without callstack, reachable, and no callstack.
+model without callstack, reachable, and no callstack. The same holds under
+every selection: only is_empty differs.
   $ run reach-reference nrf-reference.log points.i -eva-use-spec by_spec -eva-no-results-function f
   $ run reach-candidate nrf.log points.i -eva-use-spec by_spec -eva-no-results-function f
   $ answers nrf-reference.log > nrf-reference.txt
@@ -267,6 +521,18 @@ model without callstack, reachable, and no callstack.
   > reach.P.empty.main/f@39 false
   [1]
   $ served nrf.log
+  0
+  $ selections nrf-reference.log > nrf-reference.sel
+  $ selections nrf.log > nrf.sel
+  $ diff nrf-reference.sel nrf.sel > nrf-sel.diff
+  [1]
+  $ grep -c -e "^<" nrf-sel.diff
+  20
+  $ grep -c -e "^< [^ ]*\.empty true$" nrf-sel.diff
+  20
+  $ selected nrf.log
+  0
+  $ consistent nrf.log
   0
   $ grep -e "internal [UP]\." nrf.log
   [acceptance] internal U.main/f@38 before=unavailable (not recorded) after=unavailable (not recorded)
@@ -314,6 +580,18 @@ model without callstack, reachable, and no callstack.
   reach.D.empty.main false
   $ served nrd.log
   0
+  $ selections nrd-reference.log > nrd-reference.sel
+  $ selections nrd.log > nrd.sel
+  $ diff nrd-reference.sel nrd.sel > nrd-sel.diff
+  [1]
+  $ grep -c -e "^<" nrd-sel.diff
+  35
+  $ grep -c -e "^< [^ ]*\.empty true$" nrd-sel.diff
+  35
+  $ selected nrd.log
+  0
+  $ consistent nrd.log
+  0
   $ grep -e "internal" nrd.log
   [acceptance] internal S.main/by_spec@40 before=body not analyzed after=body not analyzed
   [acceptance] internal B.main/floor@41 before=body not analyzed after=body not analyzed
@@ -349,6 +627,13 @@ state of f is available.
   $ diff nrd.diff nr.diff
   $ served nr.log
   0
+  $ selections nr-reference.log > nr-reference.sel
+  $ selections nr.log > nr.sel
+  $ diff nr-reference.sel nr.sel > nr-sel.diff
+  [1]
+  $ diff nrd-sel.diff nr-sel.diff
+  $ selected nr.log
+  0
   $ grep -e "call fn\.f\.\(status\|available\)" nr.log
   [acceptance] call fn.f.status legacy-reads=1 resolved=0 answer=analyzed without results
   [acceptance] call fn.f.available legacy-reads=1 resolved=0 answer=false
@@ -358,9 +643,10 @@ driver makes requests on the callstack of f. No result is available yet:
 the hit log answers that they are pending. The legacy is_empty answers
 true at P; the candidate answers false. The other answers are the legacy
 ones: Top on the callstack and without callstack, no callstack, reachable,
-Eva.Analysis.status partial and no result available. These answers are not
-kept: after the analysis, the same requests answer the state of the call
-and its callstack.
+Eva.Analysis.status partial and no result available. Under every
+selection, no callstack is enumerated and the model is Top; is_empty
+answers false. These answers are not kept: after the analysis, the same
+requests answer the state of the call and its callstack.
   $ run reach-reference pending-reference.log pending.i
   $ run reach-candidate pending.log pending.i
   $ answers pending-reference.log > pending-reference.txt
@@ -371,7 +657,7 @@ and its callstack.
   ---
   > pending.P.empty-before false
   [1]
-  $ grep -e "call pending\." pending.log
+  $ grep -e "call pending\." pending.log | grep -v -e "call pending\.select\."
   [acceptance] call pending.P.reachable legacy-reads=0 resolved=1 answer=true
   [acceptance] call pending.P.empty-before legacy-reads=0 resolved=1 answer=false
   [acceptance] call pending.P.stacks legacy-reads=0 resolved=1 answer=
@@ -379,6 +665,39 @@ and its callstack.
   [acceptance] call pending.P.before.main/f@16 legacy-reads=0 resolved=1 answer=error top
   [acceptance] call pending.fn.f.status legacy-reads=1 resolved=0 answer=analyzed partial
   [acceptance] call pending.fn.f.available legacy-reads=1 resolved=0 answer=false
+  $ selections pending-reference.log > pending-reference.sel
+  $ selections pending.log > pending.sel
+  $ diff pending-reference.sel pending.sel
+  4c4
+  < pending.select.P.unfiltered.empty true
+  ---
+  > pending.select.P.unfiltered.empty false
+  8c8
+  < pending.select.P.selector-all.empty true
+  ---
+  > pending.select.P.selector-all.empty false
+  12c12
+  < pending.select.P.filter-all.empty true
+  ---
+  > pending.select.P.filter-all.empty false
+  16c16
+  < pending.select.P.only:main/f@16.empty true
+  ---
+  > pending.select.P.only:main/f@16.empty false
+  20c20
+  < pending.select.P.filter-none.empty true
+  ---
+  > pending.select.P.filter-none.empty false
+  [1]
+  $ grep -e "pending\.select\.P\.selector-all\." pending.sel
+  pending.select.P.selector-all.stacks
+  pending.select.P.selector-all.by_callstack
+  pending.select.P.selector-all.model error top
+  pending.select.P.selector-all.empty false
+  $ selected pending.log
+  0
+  $ consistent pending.log
+  0
   $ grep -e "call reach\.P\.\(stacks\|model-before\) " pending.log
   [acceptance] call reach.P.stacks legacy-reads=0 resolved=1 answer=main/f@16
   [acceptance] call reach.P.model-before legacy-reads=0 resolved=1 answer=g ∈ {0}; x ∈ {1}
@@ -394,6 +713,11 @@ Bottom, as on the legacy path.
   $ answers recursion.log > recursion.txt
   $ diff recursion-reference.txt recursion.txt
   $ served recursion.log
+  0
+  $ selections recursion-reference.log > recursion-reference.sel
+  $ selections recursion.log > recursion.sel
+  $ diff recursion-reference.sel recursion.sel
+  $ selected recursion.log
   0
   $ grep -e "internal" -e "call fn\.rec\.status" -e "call reach\.R\.\(before\|reachable-pos\)\." recursion.log
   [acceptance] call fn.rec.status legacy-reads=1 resolved=0 answer=analyzed partial
@@ -416,6 +740,20 @@ legacy path.
   $ answers top-reference.log > top-reference.txt
   $ answers top.log > top.txt
   $ diff top-reference.txt top.txt
+  $ selections top-reference.log > top-reference.sel
+  $ selections top.log > top.sel
+  $ diff top-reference.sel top.sel
+  $ grep -e "^select\.T\.\(unfiltered\|selector-all\)\." top.sel
+  select.T.unfiltered.stacks main
+  select.T.unfiltered.by_callstack main: NO INFORMATION
+  select.T.unfiltered.model NO INFORMATION
+  select.T.unfiltered.empty false
+  select.T.selector-all.stacks main
+  select.T.selector-all.by_callstack main: NO INFORMATION
+  select.T.selector-all.model NO INFORMATION
+  select.T.selector-all.empty false
+  $ selected top.log
+  0
   $ grep -e "internal" -e "call reach\.T\.\(model-before\|before\.\)" -e "call supplied-top" top.log
   [acceptance] call reach.T.model-before legacy-reads=0 resolved=1 answer=NO INFORMATION
   [acceptance] internal T.main before=reached after=reached

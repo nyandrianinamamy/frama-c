@@ -26,11 +26,12 @@
     whose analysis completed, whose points are recorded, and which has no
     state at the point, in an analysis that completed. {!resolve} converts
     the answer to the public one of the legacy store. {!reach} tells
-    whether any selected callstack reaches a point.
-    {!resolve_by_callstack} rebuilds the state on each callstack that
-    reaches a point, and {!resolve_consolidated} joins the callstacks. The
-    requests on several callstacks, or on none, keep their own aggregation
-    on top of these states.
+    whether any selected callstack reaches a point. {!select} enumerates
+    the selected callstacks that reach a point, apart from the state of
+    the selection, which is unknown as soon as one selected callstack may
+    contribute an unavailable state. {!resolve_consolidated} joins the
+    callstacks. The requests on several callstacks, or on none, keep their
+    own aggregation on top of these states.
 
     The records describe the current results when the cvalue domain runs
     alone, without multithread analysis, and with [-eva-hit-log]. With
@@ -159,22 +160,53 @@ val resolve:
   callstack:Callstack.t -> Domain_store.control_point ->
   state Lattice_bounds.or_top_bottom option
 
-(** [resolve_by_callstack point] rebuilds the state at [point] on each
-    callstack that reaches it, each as {!resolve} does, in the order in
-    which the legacy store enumerates them: [`Bottom] if no callstack
-    reaches the point in a completed analysis. It answers [`Top] when the
-    results are pending or not recorded. After an interrupted analysis, it
-    answers [`Top] unless each recorded callstack of the function is
-    classified and one of them reaches the point: never [`Bottom]. Returns
-    [None] when the resolver declines, which it does whenever the records
-    contain a memexec hit, except, after an interrupted analysis, at a
-    point that no recorded callstack reaches: the answer is then [`Top]. *)
+(** The answer at a control point on a selection of callstacks. The
+    callstacks that reach the point are enumerated apart from the state of
+    the selection: a callstack reaches the point when one of its visits
+    does, even if the state of another visit is unavailable. *)
+type 'a selection =
+  | Known of (Callstack.t * 'a) list
+  (** The state of each selected callstack is known: the callstacks that
+      reach the point, with their state, in the order in which the legacy
+      store enumerates them. The other selected callstacks do not reach the
+      point. *)
+  | Unknown_state of Callstack.t list
+  (** The state of some selected callstack, or of a callstack that the
+      analysis has not entered, is unavailable. The list holds the
+      selected callstacks that reach the point, in the order of the legacy
+      store; it is empty when the results are pending or not recorded. *)
+
+(** [select ?callstacks ~filter point] answers at [point] on [callstacks]
+    that satisfy [filter]. [callstacks] defaults to the callstacks of the
+    function of [point] in the records. The state of each callstack is
+    rebuilt as {!resolve} does. After an interrupted analysis, the state of
+    a callstack that reaches the point is the one that the analysis
+    computed, as on one callstack. Returns [None] when the resolver
+    declines, which it does whenever the records contain a memexec hit,
+    except, after an interrupted analysis, at a point that no selected
+    callstack reaches. Each answer is reported to {!Legacy_read_guard}.
+    The answer is [Unknown_state] when:
+    - the results are pending or not recorded;
+    - the state of a selected callstack is unavailable, as on a callstack
+      with an interrupted visit;
+    - after an interrupted analysis, no selected callstack reaches the
+      point, unless [callstacks] is supplied and each selected callstack is
+      classified. The analysis could have reached the point on a callstack
+      it has not entered. *)
+val select:
+  ?callstacks:Callstack.t list -> filter:(Callstack.t -> bool) ->
+  Domain_store.control_point -> state selection option
+
+(** [resolve_by_callstack point] is {!select} on every callstack, converted
+    to the answer of the legacy store: [`Top] for [Unknown_state], [`Bottom] for
+    [Known []]. *)
 val resolve_by_callstack:
   Domain_store.control_point ->
   (Callstack.t * state) list Lattice_bounds.or_top_bottom option
 
-(** [resolve_consolidated point] joins the states that
-    {!resolve_by_callstack} rebuilds, as the legacy consolidation does.
+(** [resolve_consolidated point] joins the states of {!select} on every
+    callstack, as the legacy consolidation does: [`Top] for
+    [Unknown_state].
     Returns [None] when the resolver declines. *)
 val resolve_consolidated:
   Domain_store.control_point -> state Lattice_bounds.or_top_bottom option
@@ -190,9 +222,11 @@ type reach =
     one of [callstacks] that satisfies [filter]. [callstacks] defaults to
     the callstacks of the function of [point] in the records. A point
     reached on a callstack is reached whatever the other visits on that
-    callstack. Returns [None] when the records do not describe the current
-    results, and when a negative answer could depend on a memexec hit.
-    Each answer is reported to {!Legacy_read_guard}. *)
+    callstack. After an interrupted analysis, the answer is [Unknown] when
+    no selected callstack reaches the point, under the same conditions as
+    in {!select}. Returns [None] when the records do not describe the
+    current results, and when a negative answer could depend on a memexec
+    hit. Each answer is reported to {!Legacy_read_guard}. *)
 val reach:
   ?callstacks:Callstack.t list -> ?filter:(Callstack.t -> bool) ->
   Domain_store.control_point -> reach option

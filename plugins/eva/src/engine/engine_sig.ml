@@ -296,6 +296,14 @@ module type Results = sig
   val get_state_by_callstack:
     Domain_store.control_point -> (Callstack.t * state) list or_top_bottom
 
+  (** [select_by_callstack ?callstacks ~filter control_point] is the answer
+      of the hit log at [control_point] on the [callstacks] (by default, all
+      callstacks) that satisfy [filter], when it describes the results:
+      see {!Hit_log.select}. Returns [None] otherwise. *)
+  val select_by_callstack:
+    ?callstacks:Callstack.t list -> filter:(Callstack.t -> bool) ->
+    Domain_store.control_point -> state Hit_log.selection option
+
   (** Returns all callstacks analyzed at a control point. *)
   val callstacks: Domain_store.control_point -> Callstack.t list or_top
 

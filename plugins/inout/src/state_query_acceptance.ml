@@ -867,6 +867,72 @@ let internal label stmt stack =
       ])
   end
 
+(* The selections of a request at a statement of a function whose stacks,
+   seen by the hooks, are [stacks]: unfiltered, every stack by a selector
+   and by a predicate, each stack alone by a predicate, every stack but one
+   by a selector and by a predicate, and none. *)
+let reach_selections stacks =
+  let equal = Eva.Callstack.equal in
+  let list stacks =
+    "[" ^ String.concat "; " (List.map stack_name stacks) ^ "]"
+  in
+  let only stack =
+    "only:" ^ stack_name stack,
+    "filter_callstack (fun cs -> cs = " ^ stack_name stack ^ ")",
+    R.filter_callstack (equal stack)
+  in
+  let without stack =
+    let others = List.filter (fun s -> not (equal s stack)) stacks in
+    [ "selector-without:" ^ stack_name stack, "in_callstacks " ^ list others,
+      R.in_callstacks others;
+      "filter-without:" ^ stack_name stack,
+      "filter_callstack (fun cs -> cs <> " ^ stack_name stack ^ ")",
+      R.filter_callstack (fun cs -> not (equal cs stack)) ]
+  in
+  let several = List.compare_length_with stacks 1 > 0 in
+  [ "unfiltered", "", Fun.id;
+    "selector-all", "in_callstacks " ^ list stacks, R.in_callstacks stacks;
+    "filter-all", "filter_callstack (fun _ -> true)",
+    R.filter_callstack (fun _ -> true) ]
+  @ List.map only stacks
+  @ (if several then List.concat_map without stacks else [])
+  @ [ "filter-none", "filter_callstack (fun _ -> false)",
+      R.filter_callstack (fun _ -> false) ]
+
+(* Under each selection of the state before a labelled statement: the
+   stacks in the order of the answer, the subrequests of [by_callstack]
+   with their models, the model and [is_empty]. [prefix] names the ids and
+   [suffix] ends the requests. *)
+let reach_selection ~prefix ~suffix label stmt (selection, text, select) =
+  let req = select (R.before stmt) in
+  let id s = prefix ^ label ^ "." ^ selection ^ "." ^ s in
+  let request s =
+    "Eva.Results.(before " ^ label ^ (if text = "" then "" else " |> " ^ text)
+    ^ " |> " ^ s ^ ")" ^ suffix
+  in
+  let names stacks = String.concat " " (List.map stack_name stacks) in
+  call ~id:(id "stacks") ~family:"selection" ~expect:Resolver
+    ~request:(request "callstacks")
+    (fun () -> let stacks = R.callstacks req in names stacks, Stacks stacks);
+  call ~id:(id "by_callstack") ~family:"selection" ~expect:Resolver
+    ~request:(request "by_callstack, get_cvalue_model of each")
+    (fun () ->
+       let subrequests = R.by_callstack req in
+       let answer (stack, sub) =
+         let result = R.get_cvalue_model_result sub in
+         stack_name stack ^ ": "
+         ^ pretty_result Cvalue.Model.pretty result,
+         Model result
+       in
+       let answers = List.map answer subrequests in
+       String.concat " | " (List.map fst answers),
+       Several (Stacks (List.map fst subrequests) :: List.map snd answers));
+  call ~id:(id "model") ~family:"selection" ~expect:Resolver
+    ~request:(request "get_cvalue_model") (fun () -> model req);
+  call ~id:(id "empty") ~family:"selection" ~expect:Resolver
+    ~request:(request "is_empty")
+    (fun () -> let empty = R.is_empty req in string_of_bool empty, Flag empty)
+
 let reach_label (label, kf, stmt) =
   let id s = "reach." ^ label ^ "." ^ s in
   let request s = "Eva.Results.(" ^ s ^ ")" in
@@ -926,7 +992,9 @@ let reach_label (label, kf, stmt) =
         ~request:(request (on ("before " ^ label) ^ " |> is_empty"))
         (text (fun () ->
              string_of_bool R.(before stmt |> in_callstack stack |> is_empty))))
-    (stacks_of kf)
+    (stacks_of kf);
+  List.iter (reach_selection ~prefix:"select." ~suffix:"" label stmt)
+    (reach_selections (stacks_of kf))
 
 let reach_battery () =
   List.iter reach_function (input_functions ());
@@ -962,12 +1030,17 @@ let pending_requests callstack =
       call ~id:(id "model-before") ~family:"getter" ~expect:Legacy
         ~request:(request ("before " ^ label ^ " |> get_cvalue_model"))
         (fun () -> model (R.before stmt));
-      if Kernel_function.equal kf caller_kf then
+      if Kernel_function.equal kf caller_kf then begin
         call ~id:(id ("before." ^ stack_name caller))
           ~family:"supplied-stack" ~expect:Resolver
           ~request:(request ("before " ^ label ^ " |> in_callstack "
                              ^ stack_name caller ^ " |> get_cvalue_model"))
-          (fun () -> model R.(before stmt |> in_callstack caller)))
+          (fun () -> model R.(before stmt |> in_callstack caller));
+        List.iter
+          (reach_selection ~prefix:"pending.select."
+             ~suffix:" during the analysis" label stmt)
+          (reach_selections [ caller ])
+      end)
     (labelled_statements ());
   let name = Kernel_function.get_name caller_kf in
   call ~id:("pending.fn." ^ name ^ ".status") ~family:"availability"

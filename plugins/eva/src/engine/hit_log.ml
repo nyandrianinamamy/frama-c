@@ -37,6 +37,30 @@ type producer = {
 
 type completion = Recording | Complete | Interrupted
 
+type unavailable = Pending | Interrupted | Not_recorded
+
+type answer =
+  | Reached of state
+  | Unreachable
+  | Not_analyzed
+  | Unavailable of unavailable
+
+type reach = Reaching | Not_reaching | Unknown of unavailable
+
+type 'a selection =
+  | Known of (Callstack.t * 'a) list
+  | Unknown_state of Callstack.t list
+
+(* What the records tell of the callstacks at one point, once the analysis
+   has ended. [order]: the callstacks on which the legacy store registers a
+   state at the point, in its order. [stacks]: for each callstack, whether a
+   visit reaches the point, and its classification, [None] if the resolver
+   declines it. *)
+type point_info = {
+  order: Callstack.t list Lazy.t;
+  stacks: (bool * answer option) Callstack.Hashtbl.t;
+}
+
 (* The records of one analysis. They are plain tables shared by all
    projects; [Current] ties them to the results of one project. *)
 type log = {
@@ -53,10 +77,8 @@ type log = {
   by_kf: invocation list Kernel_function.Hashtbl.t;
   (* the invocations of each function, latest first *)
   mutable has_hit: bool;
-  (* Answers on all callstacks, computed once the analysis completed. *)
-  by_callstack:
-    (Callstack.t * state) list Lattice_bounds.or_top_bottom
-      Domain_store.ControlPoint.Hashtbl.t;
+  (* Answers computed once the analysis has ended. *)
+  points: point_info Domain_store.ControlPoint.Hashtbl.t;
   consolidated:
     state Lattice_bounds.or_top_bottom Domain_store.ControlPoint.Hashtbl.t;
 }
@@ -72,7 +94,7 @@ let create stamp ~exact ~states = {
   open_calls = [];
   by_kf = Kernel_function.Hashtbl.create 17;
   has_hit = false;
-  by_callstack = Domain_store.ControlPoint.Hashtbl.create 17;
+  points = Domain_store.ControlPoint.Hashtbl.create 17;
   consolidated = Domain_store.ControlPoint.Hashtbl.create 17;
 }
 
@@ -188,16 +210,6 @@ let body stack ~producer ~complete ~entries ~points =
 
 (* ----- Resolver ----------------------------------------------------------- *)
 
-type unavailable = Pending | Interrupted | Not_recorded
-
-type answer =
-  | Reached of state
-  | Unreachable
-  | Not_analyzed
-  | Unavailable of unavailable
-
-type reach = Reaching | Not_reaching | Unknown of unavailable
-
 let wrong_producer = ref false
 let set_wrong_producer_control b = wrong_producer := b
 
@@ -297,10 +309,10 @@ let join_answers answers =
   | [] -> Unreachable
   | first :: others -> List.fold_left join first others
 
-(* Answers that do not depend on the callstack, as the analysis status
-   decides them in the legacy store. Without recorded states, the points of
-   an analyzed body, the start of a called function and the initial state
-   are unavailable. *)
+(* The points whose states are unavailable on every callstack, as the
+   analysis status decides them in the legacy store. Without recorded
+   states, the points of an analyzed body, the start of a called function
+   and the initial state are not recorded. *)
 let function_level log point =
   let analyzed kf =
     List.exists (fun v -> match v.kind with
@@ -310,15 +322,15 @@ let function_level log point =
   in
   match point with
   | Domain_store.Initial ->
-    if log.states then None else Some (Unavailable Not_recorded)
+    if log.states then None else Some Not_recorded
   | Start kf ->
     if log.states || invocations_of log kf = [] then None
-    else Some (Unavailable Not_recorded)
+    else Some Not_recorded
   | Before stmt | After stmt ->
     let kf = Kernel_function.find_englobing_kf stmt in
     if not log.states && analyzed kf
     || Kernel_function.Hashtbl.mem log.no_results kf
-    then Some (Unavailable Not_recorded)
+    then Some Not_recorded
     else None
 
 (* The answer on [stack], with the visits used. *)
@@ -327,7 +339,7 @@ let classify_on log stack (point : Domain_store.control_point) =
   | Recording -> Unavailable Pending, []
   | Complete | Interrupted ->
     match function_level log point with
-    | Some answer -> answer, []
+    | Some reason -> Unavailable reason, []
     | None ->
       match point with
       | Initial ->
@@ -386,100 +398,13 @@ let resolve ~callstack point =
       | Unreachable | Not_analyzed -> Some `Bottom
       | Unavailable _ -> Some `Top
 
-(* Whether one callstack reaches [point]. A visit that reaches it is
-   enough, whatever the other visits. *)
-let reach_on log stack point =
-  let reaching =
-    match point with
-    | Domain_store.Initial | Start _ -> false
-    | Before stmt | After stmt ->
-      log.completion <> Recording
-      && function_level log point = None
-      && not (below_hit stack)
-      &&
-      let kf = Kernel_function.find_englobing_kf stmt in
-      List.exists
-        (fun visit ->
-           match visit_answer log point stmt kf visit with
-           | Reached _ -> true
-           | _ -> false
-           | exception Decline -> false)
-        (visits_of kf stack)
-  in
-  if reaching then `Reaching
-  else
-    match fst (classify_on log stack point) with
-    | Reached _ -> `Reaching
-    | Unreachable | Not_analyzed -> `Not_reaching
-    | Unavailable r -> `Unknown r
-    | exception Decline -> `Decline
-
-(* The callstacks of the records at [point]. *)
-let recorded_stacks log (point : Domain_store.control_point) =
-  match point with
-  | Initial -> Option.to_list (Option.map fst log.initial)
-  | Start kf -> invocations_of log kf |> List.map (fun v -> v.stack)
-  | Before stmt | After stmt ->
-    let kf = Kernel_function.find_englobing_kf stmt in
-    invocations_of log kf |> List.map (fun v -> v.stack)
-
-let reach ?callstacks ?(filter = fun _ -> true) point =
-  if not (usable ()) then None
-  else
-    let log = !current in
-    let supplied = Option.is_some callstacks in
-    let stacks =
-      match callstacks with
-      | Some stacks -> stacks
-      | None -> recorded_stacks log point |> List.sort_uniq Callstack.compare
-    in
-    let stacks = List.filter filter stacks in
-    let answer =
-      match log.completion, function_level log point with
-      | Recording, _ -> Some (Unknown Pending)
-      | _, Some (Unavailable r) -> Some (Unknown r)
-      | _ ->
-        let answers = List.map (fun stack -> reach_on log stack point) stacks in
-        let unknown =
-          List.find_map (function `Unknown r -> Some r | _ -> None) answers
-        in
-        (* A function called below a hit has no recorded invocation. *)
-        let hidden = not supplied && log.has_hit in
-        if List.mem `Reaching answers then Some Reaching
-        else if log.completion = Interrupted
-             && (stacks = [] || hidden || List.mem `Decline answers)
-        then
-          (* The rest of the analysis could reach the point, on a callstack
-             that it has not entered or below a memexec hit. *)
-          Some (Unknown Interrupted)
-        else if List.mem `Decline answers then None
-        else if Option.is_some unknown then Some (Unknown (Option.get unknown))
-        else if hidden then None
-        else Some Not_reaching
-    in
-    Option.iter (fun _ ->
-        Legacy_read_guard.resolved
-          (Domain_store.pretty_read_point point)
-          (fun fmt ->
-             Format.fprintf fmt "%d callstack(s)" (List.length stacks)))
-      answer;
+let memo table point compute =
+  match Domain_store.ControlPoint.Hashtbl.find_opt table point with
+  | Some answer -> answer
+  | None ->
+    let answer = compute () in
+    Domain_store.ControlPoint.Hashtbl.replace table point answer;
     answer
-
-let pretty_unavailable fmt = function
-  | Pending -> Format.pp_print_string fmt "pending"
-  | Interrupted -> Format.pp_print_string fmt "interrupted"
-  | Not_recorded -> Format.pp_print_string fmt "not recorded"
-
-let pretty_answer fmt = function
-  | Reached _ -> Format.pp_print_string fmt "reached"
-  | Unreachable -> Format.pp_print_string fmt "unreachable"
-  | Not_analyzed -> Format.pp_print_string fmt "body not analyzed"
-  | Unavailable r -> Format.fprintf fmt "unavailable (%a)" pretty_unavailable r
-
-let pretty_reach fmt = function
-  | Reaching -> Format.pp_print_string fmt "reaching"
-  | Not_reaching -> Format.pp_print_string fmt "not reaching"
-  | Unknown r -> Format.fprintf fmt "unknown (%a)" pretty_unavailable r
 
 (* ----- Several callstacks ----------------------------------------------- *)
 
@@ -532,63 +457,256 @@ let registrations log (point : Domain_store.control_point) =
     List.sort (fun (a, _) (b, _) -> Int.compare a b) bodies
     |> List.map snd |> first_occurrences
 
-(* The state at [point] on each callstack that reaches it, each classified
-   as by [classify_on], in the order of the legacy store; [`Bottom] if no
-   callstack reaches it in a completed analysis. The answer is [`Top] when
-   the results are pending or not recorded. After an interrupted analysis,
-   it is [`Top] unless each recorded callstack of the function is
-   classified, and one of them reaches the point; the records then say
-   nothing of the callstacks that the analysis did not enter. Declines
-   when the records contain a memexec hit, since the callstacks below a
-   hit, and its points, are not recorded yet; after an interrupted
-   analysis, only at a point that a recorded callstack reaches, and the
-   answer is [`Top] at the others. *)
-let rebuild_by_callstack log (point : Domain_store.control_point) =
-  let in_order answer =
-    List.filter_map answer (store_order (registrations log point))
+(* Whether a visit on [stack] reaches [point]. A visit that reaches it is
+   positive evidence, whatever the other visits. *)
+let visit_reaches log stack (point : Domain_store.control_point) =
+  match point with
+  | Initial | Start _ -> false
+  | Before stmt | After stmt ->
+    log.completion <> Recording
+    && function_level log point = None
+    && not (below_hit stack)
+    &&
+    let kf = Kernel_function.find_englobing_kf stmt in
+    List.exists
+      (fun visit ->
+         match visit_answer log point stmt kf visit with
+         | Reached _ -> true
+         | _ -> false
+         | exception Decline -> false)
+      (visits_of kf stack)
+
+(* What the records tell of [stack] at [point]: whether a visit reaches
+   the point, and the classification of the callstack, [None] when the
+   resolver declines it. A callstack reaches the point if one of its
+   visits does, even when the state of another visit, hence of the
+   callstack, is unavailable. *)
+let compute_stack_info log point stack =
+  let answer =
+    match classify_on log stack point with
+    | answer, _visits -> Some answer
+    | exception Decline -> None
   in
+  let reaching =
+    match answer with
+    | Some (Reached _) -> true
+    | _ -> visit_reaches log stack point
+  in
+  reaching, answer
+
+(* The records at [point], memoized once the analysis has ended. *)
+let point_info log point =
+  memo log.points point (fun () ->
+      { order = lazy (store_order (registrations log point));
+        stacks = Callstack.Hashtbl.create 7 })
+
+let stack_info log point stack =
+  if log.completion = Recording then compute_stack_info log point stack
+  else
+    let info = point_info log point in
+    match Callstack.Hashtbl.find_opt info.stacks stack with
+    | Some answer -> answer
+    | None ->
+      let answer = compute_stack_info log point stack in
+      Callstack.Hashtbl.replace info.stacks stack answer;
+      answer
+
+(* Whether one callstack reaches [point]. *)
+let reach_on log stack point =
+  match stack_info log point stack with
+  | true, _ | false, Some (Reached _) -> `Reaching
+  | false, Some (Unreachable | Not_analyzed) -> `Not_reaching
+  | false, Some (Unavailable r) -> `Unknown r
+  | false, None -> `Decline
+
+(* The callstacks of the records at [point]. *)
+let recorded_stacks log (point : Domain_store.control_point) =
+  match point with
+  | Initial -> Option.to_list (Option.map fst log.initial)
+  | Start kf -> invocations_of log kf |> List.map (fun v -> v.stack)
+  | Before stmt | After stmt ->
+    let kf = Kernel_function.find_englobing_kf stmt in
+    invocations_of log kf |> List.map (fun v -> v.stack)
+
+(* The callstacks of a request: those supplied, by default those of the
+   records at [point], that satisfy [filter]. *)
+let selected_stacks log ?callstacks ~filter point =
+  let stacks =
+    match callstacks with
+    | Some stacks -> stacks
+    | None -> recorded_stacks log point |> List.sort_uniq Callstack.compare
+  in
+  List.filter filter stacks
+
+(* After an interruption, the rest of the analysis could reach a point on a
+   callstack that it has not entered, or below a memexec hit. When no
+   selected callstack reaches the point, its answer is unknown, unless the
+   request supplies its callstacks and the records classify each of them.
+   [declined]: the records do not classify some selected callstack. *)
+let open_selection log ~supplied ~declined stacks =
+  log.completion = Interrupted && (stacks = [] || not supplied || declined)
+
+let reach ?callstacks ?(filter = fun _ -> true) point =
+  if not (usable ()) then None
+  else
+    let log = !current in
+    let supplied = Option.is_some callstacks in
+    let stacks = selected_stacks log ?callstacks ~filter point in
+    let answer =
+      match log.completion, function_level log point with
+      | Recording, _ -> Some (Unknown Pending)
+      | _, Some r -> Some (Unknown r)
+      | (Complete | Interrupted), None ->
+        let answers = List.map (fun stack -> reach_on log stack point) stacks in
+        let unknown =
+          List.find_map (function `Unknown r -> Some r | _ -> None) answers
+        in
+        let declined = List.mem `Decline answers in
+        (* A function called below a hit has no recorded invocation. *)
+        let hidden = not supplied && log.has_hit in
+        if List.mem `Reaching answers then Some Reaching
+        else if open_selection log ~supplied ~declined stacks
+        then Some (Unknown Interrupted)
+        else if declined then None
+        else if Option.is_some unknown then Some (Unknown (Option.get unknown))
+        else if hidden then None
+        else Some Not_reaching
+    in
+    Option.iter (fun _ ->
+        Legacy_read_guard.resolved
+          (Domain_store.pretty_read_point point)
+          (fun fmt ->
+             Format.fprintf fmt "%d callstack(s)" (List.length stacks)))
+      answer;
+    answer
+
+let pretty_unavailable fmt = function
+  | Pending -> Format.pp_print_string fmt "pending"
+  | Interrupted -> Format.pp_print_string fmt "interrupted"
+  | Not_recorded -> Format.pp_print_string fmt "not recorded"
+
+let pretty_answer fmt = function
+  | Reached _ -> Format.pp_print_string fmt "reached"
+  | Unreachable -> Format.pp_print_string fmt "unreachable"
+  | Not_analyzed -> Format.pp_print_string fmt "body not analyzed"
+  | Unavailable r -> Format.fprintf fmt "unavailable (%a)" pretty_unavailable r
+
+let pretty_reach fmt = function
+  | Reaching -> Format.pp_print_string fmt "reaching"
+  | Not_reaching -> Format.pp_print_string fmt "not reaching"
+  | Unknown r -> Format.fprintf fmt "unknown (%a)" pretty_unavailable r
+
+(* ----- Selections ------------------------------------------------------- *)
+
+(* The selection of [stacks] at [point]. The callstacks that reach the
+   point come in the order of the legacy store: each visit that reaches it
+   is positive evidence, whatever the others. Declines, so that the
+   request reads the legacy store, when the records contain a memexec hit,
+   since the callstacks below a hit and its points are not recorded yet;
+   after an interruption, only when a selected callstack reaches the
+   point, the selection being unknown or empty otherwise. Also declines
+   when the records do not classify a selected callstack of a completed
+   analysis. The state of the selection is known when the records give the
+   state of each selected callstack that may reach the point:
+   - while the analysis runs, or when the states at the point are not
+     recorded, nothing is known and no callstack is enumerated, as on the
+     legacy path;
+   - a callstack whose state is unavailable, such as a callstack with an
+     interrupted visit, makes the state of the selection unknown, even
+     when one of its visits reaches the point;
+   - after an interruption, the state of a callstack that reaches the
+     point is what the analysis computed; a selection that no callstack
+     reaches is unknown, as [open_selection] tells. *)
+let selection_on log ~supplied stacks point =
   match log.completion, function_level log point with
-  | Recording, _ | _, Some _ -> `Top
-  | Complete, None ->
-    if log.has_hit then raise Decline;
-    let answer stack =
-      match fst (classify_on log stack point) with
-      | Reached state -> Some (stack, state)
-      | Unreachable | Not_analyzed -> None
-      | Unavailable _ -> raise Decline
+  | Recording, _ | _, Some _ -> Unknown_state []
+  | Complete, None when log.has_hit -> raise Decline
+  | Interrupted, None
+    when log.has_hit
+      && List.exists (fun stack -> fst (stack_info log point stack)) stacks ->
+    raise Decline
+  | (Complete | Interrupted), None ->
+    let infos =
+      List.map (fun stack -> stack, stack_info log point stack) stacks
     in
-    begin match in_order answer with
-      | [] -> `Bottom
-      | list -> `Value list
-    end
-  | Interrupted, None ->
-    let classified stack =
-      match fst (classify_on log stack point) with
-      | Reached _ | Unreachable | Not_analyzed -> true
-      | Unavailable _ -> false
-      | exception Decline -> false
+    let reaching = List.exists (fun (_, (reaching, _)) -> reaching) infos in
+    let declined =
+      List.exists (function _, (_, None) -> true | _ -> false) infos
     in
-    let stacks = recorded_stacks log point in
-    let reaching stack = reach_on log stack point = `Reaching in
-    if log.has_hit then
-      if List.exists reaching stacks then raise Decline else `Top
-    else if stacks = [] || not (List.for_all classified stacks) then `Top
+    if declined && log.completion = Complete then raise Decline;
+    let unavailable =
+      List.exists (function _, (_, Some (Unavailable _)) -> true | _ -> false)
+        infos
+    in
+    let unknown =
+      declined || unavailable
+      || not reaching && open_selection log ~supplied ~declined stacks
+    in
+    let selected = Callstack.Hashtbl.create 7 in
+    List.iter (fun (stack, (reaching, answer)) ->
+        if reaching then Callstack.Hashtbl.replace selected stack answer)
+      infos;
+    let enumerated =
+      List.filter_map (fun stack ->
+          Option.map (fun answer -> stack, answer)
+            (Callstack.Hashtbl.find_opt selected stack))
+        (Lazy.force (point_info log point).order)
+    in
+    if unknown then Unknown_state (List.map fst enumerated)
     else
-      let answer stack =
-        match fst (classify_on log stack point) with
-        | Reached state -> Some (stack, state)
-        | Unreachable | Not_analyzed | Unavailable _ -> None
-      in
-      match in_order answer with
-      | [] -> `Top
-      | list -> `Value list
+      Known
+        (List.filter_map (function
+             | stack, Some (Reached state) -> Some (stack, state)
+             | _ -> None)
+            enumerated)
+
+(* The callstacks of a selection and the kinds of their visits. *)
+let pretty_selection selection fmt =
+  let pretty fmt stack =
+    Format.fprintf fmt "%a:%t" Domain_store.pretty_callstack stack
+      (pretty_kinds (visits stack))
+  in
+  match selection with
+  | Known [] -> Format.pp_print_string fmt "none"
+  | Known list -> Pretty_utils.pp_list ~sep:" " pretty fmt (List.map fst list)
+  | Unknown_state [] -> Format.pp_print_string fmt "unknown"
+  | Unknown_state stacks ->
+    Format.fprintf fmt "unknown, reached on %a"
+      (Pretty_utils.pp_list ~sep:" " pretty) stacks
+
+let resolve_selection ?callstacks ~filter point f =
+  if not (usable ()) then None
+  else
+    let log = !current in
+    let supplied = Option.is_some callstacks in
+    let stacks = selected_stacks log ?callstacks ~filter point in
+    match selection_on log ~supplied stacks point with
+    | exception Decline -> None
+    | selection ->
+      Legacy_read_guard.resolved
+        (Domain_store.pretty_read_point point) (pretty_selection selection);
+      Some (f log selection)
+
+let select ?callstacks ~filter point =
+  resolve_selection ?callstacks ~filter point (fun _ selection -> selection)
+
+let all _ = true
+
+(* The legacy answer on all callstacks. *)
+let by_callstack = function
+  | Unknown_state _ -> `Top
+  | Known [] -> `Bottom
+  | Known list -> `Value list
+
+let resolve_by_callstack point =
+  resolve_selection ~filter:all point (fun _ selection ->
+      by_callstack selection)
 
 (* Joins the states of all callstacks as the legacy consolidation does:
    in the order of the store, each new state on the left. *)
 let consolidate = function
-  | `Top -> `Top
-  | `Bottom -> `Bottom
-  | `Value list ->
+  | Unknown_state _ -> `Top
+  | Known list ->
     let join acc (_, state) =
       match acc with
       | `Bottom -> `Value state
@@ -596,48 +714,11 @@ let consolidate = function
     in
     (List.fold_left join `Bottom list :> state Lattice_bounds.or_top_bottom)
 
-let memo table point compute =
-  match Domain_store.ControlPoint.Hashtbl.find_opt table point with
-  | Some answer -> answer
-  | None ->
-    let answer = compute () in
-    Domain_store.ControlPoint.Hashtbl.replace table point answer;
-    answer
-
 (* The answers are final once the analysis has ended. *)
-let by_callstack log point =
-  if log.completion = Recording then rebuild_by_callstack log point
-  else memo log.by_callstack point (fun () -> rebuild_by_callstack log point)
-
-(* The callstacks of an answer and the kinds of their visits. *)
-let pretty_stacks answer fmt =
-  match answer with
-  | `Top -> Format.pp_print_string fmt "top"
-  | `Bottom -> Format.pp_print_string fmt "none"
-  | `Value list ->
-    let pretty fmt (stack, _) =
-      Format.fprintf fmt "%a:%t" Domain_store.pretty_callstack stack
-        (pretty_kinds (visits stack))
-    in
-    Pretty_utils.pp_list ~sep:" " pretty fmt list
-
-let resolve_all point f =
-  if not (usable ()) then None
-  else
-    let log = !current in
-    match by_callstack log point with
-    | exception Decline -> None
-    | answer ->
-      Legacy_read_guard.resolved
-        (Domain_store.pretty_read_point point) (pretty_stacks answer);
-      Some (f log answer)
-
-let resolve_by_callstack point = resolve_all point (fun _ answer -> answer)
-
 let resolve_consolidated point =
-  resolve_all point (fun log answer ->
-      if log.completion = Recording then consolidate answer
-      else memo log.consolidated point (fun () -> consolidate answer))
+  resolve_selection ~filter:all point (fun log selection ->
+      if log.completion = Recording then consolidate selection
+      else memo log.consolidated point (fun () -> consolidate selection))
 
 let pretty_visits fmt stack =
   let log = !current in

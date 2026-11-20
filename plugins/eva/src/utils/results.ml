@@ -75,6 +75,9 @@ let in_callstack cs =
 let filter_callstack f =
   change_context (fun ctx -> { ctx with filter = f :: ctx.filter })
 
+(* The conjunction of the predicates of a request. *)
+let selection_filter ctx cs = List.for_all (fun filter -> filter cs) ctx.filter
+
 let in_cvalue_state cvalue = Cvalue cvalue
 
 let before_pos pos =
@@ -107,15 +110,17 @@ type unrestricted_response = private [ `Unrestricted ]
 module Response =
 struct
 
+  (* [Top stacks]: the answer is unknown; [stacks] reach the point, in the
+     order of the store. They are computed only when enumerated. *)
   type ('a, 'callstack) t =
     | Consolidated : 'a -> ('a, unrestricted_response) t
     | ByCallstack  : 'a by_callstack -> ('a, 'callstack) t
-    | Top : ('a, 'callstack) t
+    | Top : Callstack.t list Lazy.t -> ('a, 'callstack) t
     | Bottom : ('a, 'callstack) t
 
   let coercion : ('a, restricted_to_callstack) t -> ('a, 'c) t = function
     | ByCallstack c -> ByCallstack c
-    | Top -> Top
+    | Top stacks -> Top stacks
     | Bottom -> Bottom
 
   let is_bottom = function
@@ -134,7 +139,7 @@ struct
     [< `Bottom | `Top | `Value of (Callstack.t * 'a) list ] ->
     ('a, restricted_to_callstack) t =
     fun req -> function
-      | `Top -> Top
+      | `Top -> Top (lazy [])
       | `Bottom -> Bottom
       | `Value table ->
         let keep (cs, _state) =
@@ -145,24 +150,19 @@ struct
 
   (* Accessors *)
 
+  (* The callstacks that reach the point, even when the answer is
+     unknown. *)
   let callstacks: ('a, restricted_to_callstack) t -> Callstack.t list = function
-    | Top | Bottom -> [] (* What else to do when Top is given ? *)
+    | Top stacks -> Lazy.force stacks
+    | Bottom -> []
     | ByCallstack l -> List.map fst l
-
-  (* Fold *)
-
-  let fold (f  : Callstack.t -> 'a -> 'b -> 'b) (acc : 'b) :
-    ('a, restricted_to_callstack) t -> 'b =
-    function
-    | Top | Bottom -> acc (* What else to do when Top is given ? *)
-    | ByCallstack l -> List.fold_left (fun acc (cs,x) -> f cs x acc) acc l
 
   (* Map *)
 
   let map : type c. ('a -> 'b) -> ('a, c) t -> ('b, c) t = fun f -> function
     | Consolidated v -> Consolidated (f v)
     | ByCallstack l -> ByCallstack (List.map (fun (cs,x) -> cs,f x) l)
-    | Top -> Top
+    | Top stacks -> Top stacks
     | Bottom -> Bottom
 
   (* Reduction *)
@@ -174,7 +174,7 @@ struct
       | ByCallstack ((_,h) :: t) ->
         List.fold_left (fun acc (_,x) -> reduce acc (map x)) (map h) t
       | ByCallstack [] | Bottom -> default `Bottom
-      | Top -> default `Top
+      | Top _ -> default `Top
 
   let default = function
     | `Bottom -> `Bottom
@@ -229,19 +229,41 @@ struct
       let state = cvalue, Locals_scoping.bottom () in
       `Value (Engine.Dom.set Cvalue_domain.State.key state Engine.Dom.top)
 
+  (* The hit log answers a request on several callstacks, or with a
+     predicate, when it describes the results: the callstacks that reach
+     the point are then enumerated even when the answer is unknown. *)
+  let select (ctx : context) callstacks =
+    let filter = selection_filter ctx in
+    Engine.select_by_callstack ?callstacks ~filter ctx.control_point
+
   let get_by_callstack (ctx : context) :
     (_, restricted_to_callstack) Response.t =
-    let list =
-      match ctx.selector with
-      | Some [ callstack ] ->
-        (* Optimization if only one callstack. *)
-        let open Lattice_bounds.TopBottom.Operators in
-        let+ state = Engine.get_state ~callstack ctx.control_point in
-        [ callstack, state ]
-      | _ ->
-        Engine.get_state_by_callstack ctx.control_point
-    in
-    Response.by_callstack ctx list
+    match ctx.selector with
+    | Some [ callstack ] ->
+      (* Optimization if only one callstack. An unknown state on the
+         callstack keeps the legacy answer, which ignores the predicates;
+         the callstack is enumerated if a visit reaches the point. *)
+      begin match Engine.get_state ~callstack ctx.control_point with
+        | `Top ->
+          let enumerate () =
+            match select ctx (Some [ callstack ]) with
+            | Some (Hit_log.Known list) -> List.map fst list
+            | Some (Hit_log.Unknown_state stacks) -> stacks
+            | None -> []
+          in
+          Response.Top (Lazy.from_fun enumerate)
+        | (`Bottom | `Value _) as state ->
+          let open Lattice_bounds.Bottom.Operators in
+          Response.by_callstack ctx
+            (let+ state = state in [ callstack, state ])
+      end
+    | callstacks ->
+      match select ctx callstacks with
+      | Some (Hit_log.Known list) -> Response.ByCallstack list
+      | Some (Hit_log.Unknown_state stacks) -> Response.Top (lazy stacks)
+      | None ->
+        Response.by_callstack ctx
+          (Engine.get_state_by_callstack ctx.control_point)
 
   let get (req : request) : (_, unrestricted_response) Response.t =
     let open Response in
@@ -263,13 +285,12 @@ struct
     | Point ctx -> get_by_callstack ctx |> Response.callstacks
     | Cvalue _ -> []
 
+  (* The subrequests come in the reverse order of [callstacks]. *)
   let by_callstack = function
     | Cvalue _ -> assert false
     | Point ctx as req ->
-      let f cs _res acc =
-        (cs, in_callstack cs req) :: acc
-      in
-      get_by_callstack ctx |> Response.fold f []
+      get_by_callstack ctx |> Response.callstacks
+      |> List.rev_map (fun cs -> cs, in_callstack cs req)
 
   let is_reachable req =
     match get req with
@@ -777,7 +798,7 @@ let taint_names_by_kind zone request =
 (* Reachability from the hit log, when it describes the current results;
    see {!Hit_log.reach}. *)
 let reach (ctx : context) =
-  let filter cs = List.for_all (fun filter -> filter cs) ctx.filter in
+  let filter = selection_filter ctx in
   Hit_log.reach ?callstacks:ctx.selector ~filter ctx.control_point
 
 (* A request is empty only when no selected callstack reaches its point.
