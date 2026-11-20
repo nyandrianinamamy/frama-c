@@ -52,15 +52,20 @@ type point = {
   write_only : projection;
 }
 
+(* An analyzed body. [input] is the input of its invocation, before the
+   preconditions; [surviving] is the join of the entries that survive them,
+   bottom if none does. The points derive from [surviving]. *)
 type producer = {
-  entry : M.t;
+  input : M.t;
+  surviving : M.t;
   before : point;
   after : point;
 }
 
+(* [input] is the input of the invocation, before the preconditions. *)
 type invocation = {
   stack : Eva.Callstack.t;
-  entry : M.t;
+  input : M.t;
   kind : [ `Body of int | `Reuse of int ];
 }
 
@@ -127,13 +132,13 @@ let replace_base base binding state =
   | None -> M.remove_base base state
   | Some offsetmap -> M.add_base base offsetmap state
 
-let project entry state prefix =
+let project input state prefix =
   let affected = Zone.join prefix.reads prefix.may_write in
   let uncertain = maybe_only prefix in
-  let all_bases = Base.Hptset.union (bases state) (bases entry) in
+  let all_bases = Base.Hptset.union (bases state) (bases input) in
   Base.Hptset.fold
     (fun base acc ->
-       match get_explicit base entry, get_explicit base state with
+       match get_explicit base input, get_explicit base state with
        | None, None -> acc
        | Some _, None -> Remove base :: acc
        | None, Some offsetmap -> Install (base, offsetmap) :: acc
@@ -151,7 +156,7 @@ let project entry state prefix =
            add true maybe (add false (Zone.diff retained maybe) acc))
     all_bases []
 
-let assemble entry = function
+let assemble frame = function
   | Unreachable -> M.bottom
   | Unavailable -> M.top
   | Reachable projected ->
@@ -163,11 +168,11 @@ let assemble entry = function
            let value = Option.get payload in
            let value =
              if may_pass_through then
-               O.join value (extract entry base first last)
+               O.join value (extract frame base first last)
              else value
            in
            paste state base first last value)
-      entry projected
+      frame projected
 
 let split_before stmt results state prefix edges =
   let zone = maybe_only prefix in
@@ -238,22 +243,30 @@ let one_step_earlier stmt results effect edges local_edges =
        | _ -> None)
     | _ -> None
 
-let project_point entry state prefix =
+let project_point input state prefix =
   match prefix with
   | Some effect ->
     let writes = { effect with reads = Zone.bottom } in
-    Reachable (project entry state effect), Reachable (project entry state writes)
+    Reachable (project input state effect), Reachable (project input state writes)
   | None ->
     let missing = if M.is_reachable state then Unavailable else Unreachable in
     missing, missing
 
-let body kf results id entry prefix edges local_edges =
+(* [state] is the state that Eva passes to the hook for an analyzed body: the
+   join of the entries that survive the preconditions, or top if none does.
+   The entries are reductions of the input, so top with an input that is
+   not top means that no entry survives. *)
+let body kf results id state prefix edges local_edges =
+  let input = results.Eva.Cvalue_callbacks.input in
+  let surviving =
+    if M.is_top state && not (M.is_top input) then M.bottom else state
+  in
   let stmt = Option.get (target kf) in
   let before = from_table results.Eva.Cvalue_callbacks.before_stmts stmt in
   let after = from_table results.Eva.Cvalue_callbacks.after_stmts stmt in
   let before =
     let prefix = if M.is_reachable before then Some (prefix stmt) else None in
-    let projected, write_only = project_point entry before prefix in
+    let projected, write_only = project_point input before prefix in
     let alternatives, earlier =
       match prefix with
       | None -> [], None
@@ -278,36 +291,44 @@ let body kf results id entry prefix edges local_edges =
         | [] -> None
       else None
     in
-    let projected, write_only = project_point entry after prefix in
+    let projected, write_only = project_point input after prefix in
     { state = after; prefix; alternatives = []; earlier = None;
       projected; write_only }
   in
-  Hashtbl.replace producers id { entry; before; after }
+  Hashtbl.replace producers id { input; surviving; before; after }
 
-let record stack kf entry = function
-  | `Body (_, id) when selected kf ->
-    invocations := { stack; entry; kind = `Body id } :: !invocations
+(* For a hit, [state] is the input of the invocation. *)
+let record stack kf state = function
+  | `Body ({ Eva.Cvalue_callbacks.input; _ }, id) when selected kf ->
+    invocations := { stack; input; kind = `Body id } :: !invocations
   | `Reuse id when selected kf ->
-    invocations := { stack; entry; kind = `Reuse id } :: !invocations
+    invocations := { stack; input = state; kind = `Reuse id } :: !invocations
   | _ -> ()
 
 let () =
   Eva.Cvalue_callbacks.register_at_start_hook (fun () ->
       invocations := []; Hashtbl.clear producers)
 
-let rebase_whole_base producer current point =
+(* Rebases the producer's state at [point] on the input [current] of a hit.
+   A base that a precondition of the producer reduced is not taken from the
+   producer, even with the same input: the reduction may depend on other
+   bases, which memexec does not compare. *)
+let rebase_whole_base (producer : producer) current point =
   let state = point.state in
   if not (M.is_reachable state) then state else
     let prefix = Option.get point.prefix in
     let affected = Zone.join prefix.reads prefix.may_write in
-    let all_bases = Base.Hptset.union (bases producer) (bases current) in
+    let all_bases = Base.Hptset.union (bases producer.input) (bases current) in
     Base.Hptset.fold
       (fun base acc ->
-         let old_entry = get_explicit base producer in
-         let new_entry = get_explicit base current in
-         if same_offsetmap old_entry new_entry then acc
+         let old_input = get_explicit base producer.input in
+         let new_input = get_explicit base current in
+         let reduced =
+           not (same_offsetmap old_input (get_explicit base producer.surviving))
+         in
+         if same_offsetmap old_input new_input && not reduced then acc
          else if not (Zone.mem_base base affected) then
-           replace_base base new_entry acc
+           replace_base base new_input acc
          else
            match Base.validity base with
            | Base.Known (first, last) ->
@@ -418,25 +439,34 @@ let get_point point producer =
 
 let strategies = ["producer"; "whole-base"; "write-only"; "bitwise"; "split"; "lookback"]
 
-let for_invocation point { entry; kind; _ } =
+let for_invocation point { input; kind; _ } =
   let id = match kind with `Body id | `Reuse id -> id in
   match lookup id with
   | None -> List.map (fun _ -> M.top) strategies
   | Some producer ->
     let p = get_point point producer in
-    let bits = assemble entry p.projected in
-    let split = apply_alternatives entry bits p.alternatives in
+    (* The frame of an analyzed body is the entry that survives its
+       preconditions. A hit does not reduce its input by its own
+       preconditions: its frame is its input, which contains the entries
+       that would survive them. *)
+    let frame =
+      match kind with
+      | `Body _ -> producer.surviving
+      | `Reuse _ -> input
+    in
+    let bits = assemble frame p.projected in
+    let split = apply_alternatives frame bits p.alternatives in
     let lookback =
       match p.earlier with
       | None -> split
-      | Some (_, alternatives) -> apply_alternatives entry bits alternatives
+      | Some (_, alternatives) -> apply_alternatives frame bits alternatives
     in
     let whole =
       match kind with
       | `Body _ -> p.state
-      | `Reuse _ -> rebase_whole_base producer.entry entry p
+      | `Reuse _ -> rebase_whole_base producer input p
     in
-    [p.state; whole; assemble entry p.write_only; bits; split; lookback]
+    [p.state; whole; assemble frame p.write_only; bits; split; lookback]
 
 let show_alternatives where alternatives =
   List.iter
@@ -453,13 +483,16 @@ let show_alternatives where alternatives =
          slices)
     alternatives
 
-let show_invocation n ({ stack; entry; kind } as call) =
+let show_invocation n ({ stack; input; kind } as call) =
   log "event %d stack=%s %s" n (stack_name stack) (event_id kind);
-  show "entry" entry;
+  show "input" input;
   let id = match kind with `Body id | `Reuse id -> id in
   match lookup id with
   | None -> log "point payload unavailable"
   | Some producer ->
+    (match kind with
+     | `Body _ -> show "surviving" producer.surviving
+     | `Reuse _ -> ());
     List.iter (fun where ->
         let p = get_point where producer in
         print_prefix where p;
@@ -509,6 +542,19 @@ let summarize_query phase kf stmt stack calls =
         show "legacy" normal;
         log "prototype unavailable")
     ["before"; "after"]
+
+(* The inputs recorded on a stack, joined, against the state that a public
+   request answers at the start of the function on that stack. *)
+let check_input kf calls stack =
+  let recorded =
+    List.fold_left
+      (fun acc call ->
+         if Eva.Callstack.equal call.stack stack then M.join acc call.input
+         else acc)
+      M.bottom calls
+  in
+  let public = R.(at_start_of kf |> in_callstack stack |> get_cvalue_model) in
+  log "input %s start-of-call %s" (stack_name stack) (classify public recorded)
 
 let summarize_storage () =
   let projected, alternatives, stored_slices, references, bridges =
@@ -564,6 +610,7 @@ let run () =
       List.map (fun call -> call.stack) calls
       |> List.sort_uniq Eva.Callstack.compare
     in
+    List.iter (check_input kf calls) stacks;
     List.iter (fun stack ->
         let own = List.filter (fun call -> Eva.Callstack.equal call.stack stack)
             calls in

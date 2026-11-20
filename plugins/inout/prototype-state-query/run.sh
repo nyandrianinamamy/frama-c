@@ -22,7 +22,7 @@ frama_c=(dune exec --no-build -- frama-c -no-autoload-plugins
   -load-module eva,inout -eva-domains cvalue -eva-slevel 30
   -eva-show-progress -eva-no-remove-redundant-alarms)
 cases=(original loop read-before-write guard unreachable partial-base
-  maybe-write maybe-write-goto maybe-write-upstream)
+  maybe-write maybe-write-goto maybe-write-upstream precondition)
 {
   git rev-parse HEAD
   printf '%q ' "${frama_c[@]}"

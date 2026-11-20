@@ -11,9 +11,23 @@ The runner uses a fresh Eva analysis with memexec off for the baseline and
 clears the Eva state before the memexec-enabled run. The AST stays shared, so
 comparison uses the native whole-model equality and inclusion operations on
 the same base identities. Each run records the real `Body` and `Reuse`
-events and their entry frames. The event's producer ID supplies the slices
-for the already chosen cache entry. The prototype does one Inout-based
-projection per producer and queries it with the current frame.
+events and the input of each invocation, after the binding of the
+arguments and before the preconditions: `Cvalue_callbacks.results.input`
+for a body, the state passed to the hook for a hit. The run checks that
+the inputs recorded on each stack equal the public request at the start of
+the function on that stack (`start-of-call`). The event's producer ID
+supplies the slices for the already chosen cache entry. The prototype does
+one Inout-based projection per producer and queries it with the frame of
+the current invocation.
+
+The producer of a body also records the entry that survives its
+preconditions, the state that Eva passes to the hook with the results
+(top when no entry survives, recorded as bottom). The points of the body
+derive from it, so it is the frame of an analyzed body. A hit does not
+reduce its input by its own preconditions, and the precondition of the
+producer can read bases that memexec does not compare: the frame of a hit
+is its input, which contains its surviving entries. The whole-base result
+takes a base reduced by the producer's preconditions from the hit's input.
 
 The diagnostic whole-base result joins the producer and hit bindings for a
 partly written base. The bitwise result preserves sure writes and refinements
@@ -38,6 +52,39 @@ measurements. The experiment exercises finite ordinary C bases, scalar
 updates, and field slices. It does not establish a general reconstruction
 theorem for Cvalue, other domains, nested hits, scope effects, or imported
 results. See [the recorded results](RESULTS.md).
+
+The reconstructions of a hit inherit the admission of memexec, which does
+not compare the bases that only a precondition reads. In
+`relational-precondition.c`, the body of `f` reads `x`, and its
+precondition `x >= g` also reads `g`. The second call, with `g = 4`,
+reuses the first, with `g = 9`. Even on the legacy path, the value after
+the call then omits fresh values: `r2 ∈ [10..2147483647]` with memexec and
+`[5..2147483647]` without. Replay:
+
+```sh
+for m in -eva-memexec -eva-no-memexec; do
+  dune exec -- frama-c -no-autoload-plugins -load-module eva,inout -eva \
+    -eva-domains cvalue -eva-no-hit-log -eva-msg-key progress $m \
+    plugins/inout/prototype-state-query/relational-precondition.c \
+    > "relational$m.log" 2>&1
+  grep -e Reusing -e "r2 ∈" "relational$m.log"
+done
+```
+
+The prototype classifies every reconstruction of that hit, bitwise, split
+and lookback included, as `OMITS_FRESH` before and after `P`:
+
+```sh
+dune exec -- frama-c -no-autoload-plugins -load-module eva,inout \
+  -eva-domains cvalue -eva-slevel 30 -inout-state-query-prototype fresh \
+  plugins/inout/prototype-state-query/relational-precondition.c \
+  -then -inout-state-query-prototype hit > relational-prototype.log 2>&1
+sed -n '/query hit main\/f@28 before/,/query hit joined/p' \
+  relational-prototype.log | grep -E 'query hit main|_FRESH$|EXACT$'
+```
+
+`precondition.c` avoids this case: its precondition reads and reduces only
+bases that the body does not read.
 
 ## Acceptance driver and legacy-read guard
 
@@ -126,18 +173,21 @@ states it cannot rebuild yet; it answers the start of a hit from the input
 recorded at the call. Unfiltered requests, several stacks and enumerations
 still read the legacy store.
 
-InOut's callwise collection takes the input of the invocation from the
-hook, in `Cvalue_callbacks.results.input`, instead of reading the start of
-the function on the stack from the legacy store. With `-eva-no-hit-log`, it
-reads the store as before. That read happens during the analysis, when no
-result is available yet, so the legacy path gets top. For an assertion that
-reads `\at(*p, Pre)`, the legacy path then reports the logic inputs as
-`ANYTHING`, and the hit log as `a; p` (fixture `pre-label.c`). This
-difference is expected and reported by its own control; it does not hold
-for the other fixtures. It also changes memexec: a call whose logic inputs
-are `ANYTHING` is not cached, so with `-eva-memexec` and two identical calls
-to such a function, the legacy path analyzes the body twice and the hit log
-reuses the first call.
+InOut's callwise collection runs in the collection hook, during the
+analysis. The `Pre` state of its logic inputs is the start of the function
+on the stack, as a request on Eva's results answers it then: top, since no
+result is available yet. On the legacy path (`-eva-no-hit-log`), and
+whenever the hit log does not record, InOut makes this request, which reads
+the store. When the hit log records, it takes top without the request.
+Neither state that the hook passes, the input of the call or the entry that
+survives its preconditions, becomes the `Pre` state: only the prototype
+collection of `-inout-state-query-prototype` reads them (see the first
+section). In `pre-label.c`, the input has `p ∈ {&a; &b}` and the surviving
+entry `p = &a`. The logic inputs of `\at(*p, Pre)` are `ANYTHING` on both
+paths, where the input would give `a; b; p` and the surviving entry
+`a; p`. Memexec admission is therefore the same on both paths: a call
+whose logic inputs are `ANYTHING` is not cached, and the two identical
+calls to `f` analyze the body twice.
 
 The guard (`Eva.Legacy_read_guard`) sees three kinds of reads:
 
@@ -189,11 +239,14 @@ The report adds these controls:
   of its function. The second call to `f` in `legacy-reads.c` then gets
   `g = 4`: the comparison must report `MISMATCH`, on resolved requests only.
 - `inout-collection`: the candidates make no collection read through
-  `Eva.Results` from InOut, while the same driver on the legacy path
-  (`-eva-no-hit-log`) does.
-- `pre-label-difference`: on `pre-label.c`, only InOut's answer differs,
-  with the logic inputs `ANYTHING` on the reference and `a; p` on the
-  candidate.
+  `Eva.Results` from InOut, which takes the `Pre` state without the
+  request, while the same driver on the legacy path (`-eva-no-hit-log`)
+  makes it.
+- `inout-memexec-parity`: with `-eva-memexec`, the legacy path and the hit
+  log give the same answers, InOut's included, and Eva's progress messages
+  report the same analyses of `f`. In `pre-label.c`, the logic inputs are
+  `ANYTHING` and both calls analyze the body. In `precondition.c`, the
+  logic inputs are empty and the second call is reused.
 - `zero-read-gate-exit`: `acceptance.sh` first runs `compare.py
   --require-zero-reads --no-write` and records its exit status in
   `zero-read-gate.status`; the status is 1 while the gate fails and 0 once

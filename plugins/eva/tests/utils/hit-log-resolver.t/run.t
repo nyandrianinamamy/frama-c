@@ -76,9 +76,11 @@ collection.
 The Pre label of InOut. Callwise InOut runs in the collection hook, during
 the analysis, when a request on the stored results answers Top. On the
 legacy path, InOut makes this request for the input of each call, and the
-logic inputs of \at(*p, Pre) are ANYTHING. Memexec does not cache a call
-whose logic inputs are ANYTHING: f is called twice with the same input, and
-its body is analyzed twice.
+logic inputs of \at(*p, Pre) are ANYTHING. The input of each call has
+p ∈ {&a; &b}, and the precondition of f reduces it to &a: the logic inputs
+would be a; b; p from the input, and a; p from the entry that survives.
+Memexec does not cache a call whose logic inputs are ANYTHING: f is called
+twice with the same input, and its body is analyzed twice.
   $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-memexec -eva-msg-key progress -eva-no-hit-log -inout-state-query-acceptance candidate pre-label.i > pre-legacy.log 2>&1
   $ grep -e "computing for function f" -e "Reusing" -e "phase=collection reader=Eva.Results" pre-legacy.log
     computing for function f <- main.
@@ -86,8 +88,8 @@ its body is analyzed twice.
   [acceptance] execution phase=collection reader=Eva.Results.get_cvalue_model access=availability store=analysis-status
   $ grep -e "call inout" pre-legacy.log > inout-legacy.txt
   $ cat inout-legacy.txt
-  [acceptance] call inout.call-f@16 legacy-reads=0 resolved=0 answer=Operational inputs:; x; Operational inputs on termination:; x; Sure outputs:; y; Over outputs:; y; Over outputs on termination:; y; Logic inputs:; ANYTHING(origin:Unknown)
-  [acceptance] call inout.call-f@17 legacy-reads=0 resolved=0 answer=Operational inputs:; x; Operational inputs on termination:; x; Sure outputs:; y; Over outputs:; y; Over outputs on termination:; y; Logic inputs:; ANYTHING(origin:Unknown)
+  [acceptance] call inout.call-f@19 legacy-reads=0 resolved=0 answer=Operational inputs:; x; Operational inputs on termination:; x; Sure outputs:; y; Over outputs:; y; Over outputs on termination:; y; Logic inputs:; ANYTHING(origin:Unknown)
+  [acceptance] call inout.call-f@21 legacy-reads=0 resolved=0 answer=Operational inputs:; x; Operational inputs on termination:; x; Sure outputs:; y; Over outputs:; y; Over outputs on termination:; y; Logic inputs:; ANYTHING(origin:Unknown)
 
 With the hit log, InOut takes the same answer without reading the store.
 Its answers are those of the legacy path, and both calls analyze the body:
@@ -96,8 +98,8 @@ the hit log records two body visits and no hit.
   $ grep -e "computing for function f" -e "Reusing" -e "phase=collection reader=Eva.Results" -e "visits f" pre-hit-log.log
     computing for function f <- main.
     computing for function f <- main.
-  [acceptance] visits f.main/f@16 body#1: 1 entries survive the preconditions; input:; a ∈ {1}; p ∈ {{ &a }}; y ∈ {0}; x ∈ {10}
-  [acceptance] visits f.main/f@17 body#2: 1 entries survive the preconditions; input:; a ∈ {1}; p ∈ {{ &a }}; y ∈ {10}; x ∈ {10}
+  [acceptance] visits f.main/f@19 body#1: 1 entries survive the preconditions; input:; a ∈ {1}; b ∈ {0}; p ∈ {{ &a ; &b }}; y ∈ {0}; x ∈ {10}; n ∈ [--..--]; t[0] ∈ {{ &a }}; [1] ∈ {{ &b }}
+  [acceptance] visits f.main/f@21 body#2: 1 entries survive the preconditions; input:; a ∈ {1}; b ∈ {0}; p ∈ {{ &a ; &b }}; y ∈ {10}; x ∈ {10}; n ∈ [--..--]; t[0] ∈ {{ &a }}; [1] ∈ {{ &b }}
   $ grep -e "call inout" pre-hit-log.log > inout-hit-log.txt
   $ diff inout-legacy.txt inout-hit-log.txt
 
@@ -105,9 +107,9 @@ In one process, without memexec, InOut's callwise results of the fresh-only
 reference and of the candidate have equal zones, the logic inputs included.
   $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -inout-state-query-acceptance native pre-label.i > pre-native.log 2>&1
   $ grep -e "native inout" -e "equal=false" -e "native compared" pre-native.log
-  [acceptance] native inout.call-f@16 equal=true reference-reads=0 reference-resolved=0 legacy-reads=0 resolved=0
-  [acceptance] native inout.call-f@17 equal=true reference-reads=0 reference-resolved=0 legacy-reads=0 resolved=0
-  [acceptance] native compared=36 differing=0
+  [acceptance] native inout.call-f@19 equal=true reference-reads=0 reference-resolved=0 legacy-reads=0 resolved=0
+  [acceptance] native inout.call-f@21 equal=true reference-reads=0 reference-resolved=0 legacy-reads=0 resolved=0
+  [acceptance] native compared=39 differing=0
 
 The hit log records nothing when another domain than cvalue runs, even
 with -eva-hit-log. InOut then reads the store as on the legacy path, with
@@ -120,6 +122,33 @@ the same answers and the same analyses of f.
   [acceptance] execution phase=collection reader=Eva.Results.get_cvalue_model access=availability store=analysis-status
   $ grep -e "call inout" pre-equality.log > inout-equality.txt
   $ diff inout-legacy.txt inout-equality.txt
+
+Memexec admission with a precondition. The precondition of f reads z and g,
+which its body does not read, and memexec does not compare them. On the
+legacy path and with the hit log, the second call to f reuses the first,
+and InOut's answers are the same. The hit log records the input of each
+call before the precondition reduces it; no entry of the third call
+survives.
+  $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-memexec -eva-msg-key progress -eva-no-hit-log -inout-state-query-acceptance candidate precondition.i > precondition-legacy.log 2>&1
+  $ grep -e "computing for function f" -e "Reusing" precondition-legacy.log
+    computing for function f <- main.
+  [eva:progress] precondition.i:24: Reusing old results for call to f
+    computing for function f <- main.
+  $ grep -e "call inout" precondition-legacy.log > precondition-inout-legacy.txt
+  $ cat precondition-inout-legacy.txt
+  [acceptance] call inout.call-f@20 legacy-reads=0 resolved=0 answer=Operational inputs:; x; Operational inputs on termination:; x; Sure outputs:; y; Over outputs:; y; Over outputs on termination:; y; Logic inputs:; \nothing
+  [acceptance] call inout.call-f@24 legacy-reads=0 resolved=0 answer=Operational inputs:; x; Operational inputs on termination:; x; Sure outputs:; y; Over outputs:; y; Over outputs on termination:; y; Logic inputs:; \nothing
+  [acceptance] call inout.call-f@26 legacy-reads=0 resolved=0 answer=Operational inputs:; \nothing; Operational inputs on termination:; \nothing; Sure outputs:; ANYTHING(origin:Unknown); Over outputs:; \nothing; Over outputs on termination:; \nothing; Logic inputs:; \nothing
+  $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-memexec -eva-msg-key progress -inout-state-query-acceptance candidate precondition.i > precondition-hit-log.log 2>&1
+  $ grep -e "computing for function f" -e "Reusing" -e "visits f" precondition-hit-log.log
+    computing for function f <- main.
+  [eva:progress] precondition.i:24: Reusing old results for call to f
+    computing for function f <- main.
+  [acceptance] visits f.main/f@20 body#1: 1 entries survive the preconditions; input:; g ∈ {9}; z ∈ [--..--]; y ∈ {0}; x ∈ {10}; n ∈ [--..--]
+  [acceptance] visits f.main/f@24 hit#1: no body analysis; input:; g ∈ {4}; z ∈ [--..--]; y ∈ {0}; x ∈ {10}; n ∈ [--..--]
+  [acceptance] visits f.main/f@26 body#2: no entry survives the preconditions; input:; g ∈ {4}; z ∈ {1}; y ∈ {11}; x ∈ {11}; n ∈ [--..--]
+  $ grep -e "call inout" precondition-hit-log.log > precondition-inout-hit-log.txt
+  $ diff precondition-inout-legacy.txt precondition-inout-hit-log.txt
 
 Control: a resolver that rebuilds every visit from the first producer of its
 function answers the second call with the state of the first, g = 4 instead

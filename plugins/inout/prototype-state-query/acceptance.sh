@@ -32,7 +32,7 @@ base=(dune exec --no-build -- frama-c -no-autoload-plugins
 candidate_options=(${CANDIDATE_OPTIONS:--eva-no-memexec})
 fixtures=(legacy-reads assign stages original loop read-before-write guard
   unreachable partial-base maybe-write maybe-write-goto maybe-write-upstream
-  pre-label)
+  pre-label precondition)
 
 {
   printf 'revision %s\n' "$(git rev-parse HEAD)"
@@ -63,16 +63,19 @@ done
 
 # Resolver controls. A resolver that rebuilds each visit from the wrong
 # producer must be reported; on the legacy path, InOut's collection reads
-# the store. With memexec, InOut's Pre label and the analyses of f in
-# pre-label.c must be the same on the legacy path and with the hit log.
+# the store. With memexec, InOut's answers and the analyses of f in
+# pre-label.c and precondition.c must be the same on the legacy path and
+# with the hit log.
 run legacy-reads wrong-producer "$evidence/control-wrong-producer" \
   "${candidate_options[@]}"
 run legacy-reads candidate "$evidence/control-legacy-path" \
   "${candidate_options[@]}" -eva-no-hit-log
-run pre-label candidate "$evidence/control-pre-label.legacy" \
-  -eva-memexec -eva-msg-key progress -eva-no-hit-log
-run pre-label candidate "$evidence/control-pre-label.hit-log" \
-  -eva-memexec -eva-msg-key progress
+for name in pre-label precondition; do
+  run "$name" candidate "$evidence/control-parity-$name.legacy" \
+    -eva-memexec -eva-msg-key progress -eva-no-hit-log
+  run "$name" candidate "$evidence/control-parity-$name.hit-log" \
+    -eva-memexec -eva-msg-key progress
+done
 printf 'Recorded resolver controls\n'
 
 # Positive controls: the trap must abort the run with exit status 1.

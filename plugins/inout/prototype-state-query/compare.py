@@ -382,10 +382,16 @@ def independence_control(fixtures):
     }
 
 
-PRE_LABEL = "control-pre-label"
+PARITY = "control-parity"
 PROGRESS = re.compile(
     r"computing for function (?P<body>\w+)|Reusing old results for call to (?P<reuse>\w+)"
 )
+# For each fixture of the parity control: the analyses of f on the legacy
+# path with memexec, and InOut's logic inputs for each call to f.
+PARITY_FIXTURES = {
+    "pre-label": ({"body": 2, "reuse": 0}, ["ANYTHING(origin:Unknown)"]),
+    "precondition": ({"body": 2, "reuse": 1}, ["\\nothing"]),
+}
 
 
 def analyses(log, function):
@@ -399,44 +405,56 @@ def analyses(log, function):
     return counts
 
 
-def pre_label_control(evidence):
-    """InOut's Pre label and memexec admission. In pre-label.c, f is called
-    twice with the same input and its assertion reads *p in the Pre state.
-    With memexec, the legacy path and the hit log must give the same
-    answers, InOut's included, and Eva must interpret the calls to f in the
-    same way. The legacy path must exercise the case: logic inputs ANYTHING,
-    hence no call to f reused."""
-    paths = {side: evidence / f"{PRE_LABEL}.{side}" for side in ("legacy", "hit-log")}
-    files = [Path(f"{p}{ext}") for p in paths.values() for ext in (".jsonl", ".log")]
-    if not all(f.exists() for f in files):
-        return {"control": "pre-label-parity", "result": "NOT RUN"}
-    legacy, hit_log = (load(Path(f"{p}.jsonl"))[1] for p in paths.values())
-    rows = compare_calls(legacy, hit_log)
-    differing = [r["id"] for r in rows if r["disposition"] in ("MISMATCH", "MISSING")]
-    counts = {side: analyses(Path(f"{p}.log"), "f") for side, p in paths.items()}
+def parity_control(evidence):
+    """InOut's answers and memexec admission. In both fixtures, the input of a
+    call to f differs from the entry that survives its precondition. With
+    memexec, the legacy path and the hit log must give the same answers,
+    InOut's included, and Eva must interpret the calls to f in the same
+    way. The legacy path must exercise each case. In pre-label.c, the
+    assertion of f reads *p in the Pre state: its logic inputs are ANYTHING,
+    and no call to f is reused. In precondition.c, the precondition of f
+    reads bases that its body does not: the second call to f is reused."""
+    observed, ok = {}, True
+    for fixture, (expected_analyses, expected_logic) in PARITY_FIXTURES.items():
+        paths = {side: evidence / f"{PARITY}-{fixture}.{side}" for side in ("legacy", "hit-log")}
+        files = [Path(f"{p}{ext}") for p in paths.values() for ext in (".jsonl", ".log")]
+        if not all(f.exists() for f in files):
+            return {"control": "inout-memexec-parity", "result": "NOT RUN"}
+        legacy, hit_log = (load(Path(f"{p}.jsonl"))[1] for p in paths.values())
+        rows = compare_calls(legacy, hit_log)
+        differing = [r["id"] for r in rows if r["disposition"] in ("MISMATCH", "MISSING")]
+        counts = {side: analyses(Path(f"{p}.log"), "f") for side, p in paths.items()}
 
-    def logic(answer):
-        return answer.split("Logic inputs:")[-1].replace(";", " ").split()
+        def logic(answer):
+            return answer.split("Logic inputs:")[-1].replace(";", " ").split()
 
-    inout = {
-        r["id"]: {"legacy": logic(r["expected"]), "hit-log": logic(r["observed"])}
-        for r in rows
-        if r["family"] == "inout"
-    }
-    exercised = (
-        len(inout) == 2
-        and all(v["legacy"][:1] == ["ANYTHING(origin:Unknown)"] for v in inout.values())
-        and counts["legacy"] == {"body": 2, "reuse": 0}
-    )
-    ok = exercised and not differing and counts["hit-log"] == counts["legacy"]
+        inout = {
+            r["id"]: {"legacy": logic(r["expected"]), "hit-log": logic(r["observed"])}
+            for r in rows
+            if r["family"] == "inout"
+        }
+        exercised = (
+            len(inout) == sum(expected_analyses.values())
+            and all(v["legacy"] == expected_logic for v in inout.values())
+            and counts["legacy"] == expected_analyses
+        )
+        ok = ok and exercised and not differing and counts["hit-log"] == counts["legacy"]
+        observed[fixture] = {
+            "differing": differing,
+            "logic_inputs": inout,
+            "analyses_of_f": counts,
+        }
     return {
-        "control": "pre-label-parity",
+        "control": "inout-memexec-parity",
         "expected": {
-            "differing": [],
-            "logic_inputs": "ANYTHING on both paths",
-            "analyses_of_f": {"legacy": {"body": 2, "reuse": 0}, "hit-log": "same"},
+            fixture: {
+                "differing": [],
+                "logic_inputs": logic_inputs,
+                "analyses_of_f": {"legacy": counts, "hit-log": "same"},
+            }
+            for fixture, (counts, logic_inputs) in PARITY_FIXTURES.items()
         },
-        "observed": {"differing": differing, "logic_inputs": inout, "analyses_of_f": counts},
+        "observed": observed,
         "result": "PASS" if ok else "FAIL",
     }
 
@@ -598,7 +616,7 @@ def main(argv):
     controls.append(native_control(report["fixtures"]))
     controls.append(perturbation_control(evidence))
     controls.append(collection_control(evidence, report["fixtures"]))
-    controls.append(pre_label_control(evidence))
+    controls.append(parity_control(evidence))
     if not require_zero:
         controls.append(gate_control(evidence, gate_passes))
     report["controls"] = controls

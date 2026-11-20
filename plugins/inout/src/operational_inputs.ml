@@ -603,7 +603,7 @@ module Callwise = struct
       end)
 
 
-  let compute_call_from_value_states kf call_stack pre_state states capture =
+  let compute_call_from_value_states kf call_stack states capture =
     let module Fenv = (val Dataflows.function_env kf: Dataflows.FUNCTION_ENV) in
     let module Computer = Computer(Fenv)(
       struct
@@ -658,7 +658,7 @@ module Callwise = struct
         Computer.transfer_stmt stmt data
         |> List.map (fun (succ, effect) -> succ, project effect)
       in
-      capture pre_state (fun stmt -> project (Compute.pre_state stmt))
+      capture (fun stmt -> project (Compute.pre_state stmt))
         (fun stmt -> edges stmt (Compute.pre_state stmt))
         (fun stmt -> edges stmt empty)
     end;
@@ -672,8 +672,8 @@ module Callwise = struct
           if Eva.Analysis.save_results kf
           then
             let cvalue_states = Lazy.force results.Eva.Cvalue_callbacks.before_stmts in
-            compute_call_from_value_states kf callstack pre_state
-              cvalue_states (Query_prototype.body kf results memexec_counter)
+            compute_call_from_value_states kf callstack cvalue_states
+              (Query_prototype.body kf results memexec_counter pre_state)
           else top
         in
         MemExec.replace memexec_counter inout;

@@ -16,6 +16,11 @@ type prefix = {
 
 val selected : Cil_types.kernel_function -> bool
 
+(** [body kf results id state prefix edges local_edges] records the analysis
+    of a body, under the producer [id] of the collection hooks. It takes the
+    input of the invocation, before the preconditions, from [results];
+    [state] is the state passed to the hook with [results]: the join of the
+    entries that survive the preconditions, or top if none does. *)
 val body :
   Cil_types.kernel_function ->
   Eva.Cvalue_callbacks.results ->
@@ -26,4 +31,6 @@ val body :
   (Cil_types.stmt -> (Cil_types.stmt * prefix) list) ->
   unit
 
+(** Records an invocation and its input: from the results of an analyzed
+    body, or the state passed to the hook for a memexec hit. *)
 val record : Eva.Cvalue_callbacks.call_results_hook

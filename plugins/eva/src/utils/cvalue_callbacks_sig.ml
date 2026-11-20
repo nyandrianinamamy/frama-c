@@ -66,8 +66,11 @@ module type API = sig
     ]
 
   (** Signature of a hook to be called after the analysis of each function call.
-      Arguments are the callstack of the call, the function called, the initial
-      cvalue state at the start of the call, and the results from its analysis. *)
+      Arguments are the callstack of the call, the function called, a cvalue
+      state, and the results from its analysis. For [`Body], the state is the
+      join of the entries that survive the preconditions, or Top if none
+      survives; the input of the call is in the results. Otherwise, it is the
+      cvalue state at the start of the call. *)
   type call_results_hook =
     Callstack.t -> Cil_types.kernel_function -> state -> call_results -> unit
 

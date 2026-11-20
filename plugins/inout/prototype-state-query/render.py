@@ -52,6 +52,12 @@ SCENARIOS = {
         "The immediate predecessor has already merged at h=2. Looking back "
         "across that independent assignment recovers the two alternatives.",
     ),
+    "precondition": (
+        "Precondition stages",
+        "The input of each call is recorded before its precondition reduces "
+        "z. The hit reuses a call whose precondition read another g: it gets "
+        "z from its own input only.",
+    ),
     "missing": (
         "Storage disabled",
         "Eva analyzes the body with statement storage disabled for f.",
@@ -62,6 +68,7 @@ SCENARIOS = {
 def validate(name, lines):
     events = {}
     queries = {}
+    inputs = {}
     phase = None
     query = None
     for raw in lines:
@@ -78,6 +85,8 @@ def validate(name, lines):
                 events[phase].append((stack.removeprefix("stack="), outcome))
             case ["query", phase, scope, point]:
                 query = queries[phase, scope, point] = {}
+            case ["input", stack, "start-of-call", result]:
+                inputs[phase, stack] = result
             case [point, "legacy", available, status, stacks]:
                 query["public"] = (available, status, stacks)
             case [strategy, result] if result in {
@@ -93,6 +102,16 @@ def validate(name, lines):
         key = phase, scope, point
         observed = queries[key].get(method)
         assert observed == result, (name, key, method, observed, result)
+
+    # The inputs recorded on each stack are the state that a public request
+    # answers at the start of the function on that stack.
+    stacks = {(phase, stack) for phase in events for stack, _ in events[phase]}
+    assert set(inputs) == stacks, (name, inputs, stacks)
+    assert all(result == "EXACT" for result in inputs.values()), (name, inputs)
+
+    if name == "precondition":
+        validate_precondition(name, events, queries, expect)
+        return
 
     if name == "missing":
         assert set(events) == {"missing"}
@@ -157,6 +176,35 @@ def validate(name, lines):
         assert "extra-alternatives=2 extra-offsetmaps=1 extra-pass-through=1" in joined
         expected = 1 if name == "maybe-write-upstream" else 0
         assert f"storage lookback-edges={expected}" in joined
+
+
+def validate_precondition(name, events, queries, expect):
+    """Three calls to f: a and b analyze the body, and no entry of c
+    survives the precondition. With memexec, b reuses a."""
+    a, b, c = (stack for stack, _ in events["fresh"])
+    assert len({a, b, c}) == 3
+    assert [stack for stack, _ in events["hit"]] == [a, b, c]
+    assert all(outcome.startswith("Body/") for _, outcome in events["fresh"])
+    first, second, third = (outcome for _, outcome in events["hit"])
+    assert first.startswith("Body/") and third.startswith("Body/") and first != third
+    assert second == first.replace("Body/", "Reuse/")
+    assert len(queries) == 2 * 4 * 2
+    for phase in ("fresh", "hit"):
+        for scope in (a, b, c, "joined"):
+            for point in ("before", "after"):
+                # The frame of an analyzed body is the entry that survives its
+                # precondition: its reconstruction is exact. The hit at b gets
+                # z from its own input, which contains the fresh z >= 4; the
+                # producer's z >= 9 would omit part of it.
+                reused = phase == "hit" and scope in (b, "joined")
+                for method in ("whole-base", "write-only", "bitwise", "split", "lookback"):
+                    expect(phase, scope, point, method, "CONTAINS_FRESH" if reused else "EXACT")
+                expect(phase, scope, point, "producer", "OMITS_FRESH" if reused else "EXACT")
+                if phase == "hit":
+                    expect(phase, scope, point, "legacy", "OMITS_FRESH" if reused else "EXACT")
+        for point in ("before", "after"):
+            public = queries[phase, c, point]["public"]
+            assert public[1] == "status=bottom", (name, phase, point, public)
 
 
 def walkthrough(prototype, evidence):
