@@ -198,9 +198,9 @@ model without callstack, reachable, and no callstack.
   $ grep -e "call fn\.f\.\(status\|available\)" -e "call reach\.P\.\(stacks\|reachable\|model-before\|before\.\)" nrf.log
   [acceptance] call fn.f.status legacy-reads=1 resolved=0 answer=analyzed without results
   [acceptance] call fn.f.available legacy-reads=1 resolved=0 answer=false
-  [acceptance] call reach.P.stacks legacy-reads=1 resolved=0 answer=
+  [acceptance] call reach.P.stacks legacy-reads=0 resolved=1 answer=
   [acceptance] call reach.P.reachable legacy-reads=0 resolved=1 answer=true
-  [acceptance] call reach.P.model-before legacy-reads=1 resolved=0 answer=NO INFORMATION
+  [acceptance] call reach.P.model-before legacy-reads=0 resolved=1 answer=NO INFORMATION
   [acceptance] call reach.P.before.main/f@38 legacy-reads=0 resolved=1 answer=error top
   [acceptance] call reach.P.reachable-pos.main/f@38 legacy-reads=0 resolved=1 answer=true
   [acceptance] call reach.P.before.main/f@39 legacy-reads=0 resolved=1 answer=error top
@@ -332,13 +332,13 @@ legacy path.
   $ answers top.log > top.txt
   $ diff top-reference.txt top.txt
   $ grep -e "internal" -e "call reach\.T\.\(model-before\|before\.\)" -e "call supplied-top" top.log
-  [acceptance] call reach.T.model-before legacy-reads=2 resolved=0 answer=NO INFORMATION
+  [acceptance] call reach.T.model-before legacy-reads=0 resolved=1 answer=NO INFORMATION
   [acceptance] internal T.main before=reached after=reached
   [acceptance] call reach.T.before.main legacy-reads=0 resolved=1 answer=NO INFORMATION
   [acceptance] call supplied-top.model legacy-reads=0 resolved=0 answer=NO INFORMATION
   [acceptance] call supplied-top.empty legacy-reads=0 resolved=0 answer=true
   $ grep -e "call reach\.U\.model-before" nrf.log
-  [acceptance] call reach.U.model-before legacy-reads=1 resolved=0 answer=NO INFORMATION
+  [acceptance] call reach.U.model-before legacy-reads=0 resolved=1 answer=NO INFORMATION
 
 Disabled domains. The equality and taint domains are not enabled: requests
 on them answer their declared error, at reached, unreachable and
@@ -353,9 +353,10 @@ Final states. Eva's display of the final states reads the consolidated
 state before the first and the return statements. The post-analysis does
 not store it for a partial analysis, such as the recursion of rec, nor for
 any function without -eva-join-results. The legacy is_reachable stored it
-as a side effect, before the display; when the hit log answers
-is_reachable, the display joins the states of the callstacks itself, and
-prints the final states of both functions.
+as a side effect, before the display. The hit log answers is_reachable
+without storing; the engine now consolidates the states before the
+statements of every analyzed function, and the display prints the final
+states of both functions.
   $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-no-memexec recursion.i -eva -eva-unroll-recursive-calls 1 -eva-no-join-results > final.log 2>&1
   $ grep -A1 -e "Values at end of function" final.log
   [eva:final-states] Values at end of function rec:

@@ -2,14 +2,15 @@ Rebuild the point states of a fresh invocation from the hit log (prototype,
 see plugins/inout/prototype-state-query).
 
 At a straight-line assignment, the request on each supplied stack is served
-by the resolver, before and after the statement, without legacy read. The
-unfiltered request still reads the legacy store.
+by the resolver, before and after the statement, without legacy read. So is
+the unfiltered request, from the states of both stacks; see
+stack-selection.t for the other selections.
   $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-no-memexec -inout-state-query-acceptance candidate assign.i > candidate.log 2>&1
   $ grep -e "call model.before-P" -e "call model.after-P" candidate.log
-  [acceptance] call model.before-P legacy-reads=2 resolved=0 answer=g ∈ {4; 9}; y ∈ {0}; x ∈ {10}; __retres ∈ UNINITIALIZED
+  [acceptance] call model.before-P legacy-reads=0 resolved=1 answer=g ∈ {4; 9}; y ∈ {0}; x ∈ {10}; __retres ∈ UNINITIALIZED
   [acceptance] call model.before-P.main/f@15 legacy-reads=0 resolved=1 answer=g ∈ {4}; y ∈ {0}; x ∈ {10}; __retres ∈ UNINITIALIZED
   [acceptance] call model.before-P.main/f@18 legacy-reads=0 resolved=1 answer=g ∈ {9}; y ∈ {0}; x ∈ {10}; __retres ∈ UNINITIALIZED
-  [acceptance] call model.after-P legacy-reads=2 resolved=0 answer=g ∈ {4; 9}; y ∈ {11}; x ∈ {10}; __retres ∈ UNINITIALIZED
+  [acceptance] call model.after-P legacy-reads=0 resolved=1 answer=g ∈ {4; 9}; y ∈ {11}; x ∈ {10}; __retres ∈ UNINITIALIZED
   [acceptance] call model.after-P.main/f@15 legacy-reads=0 resolved=1 answer=g ∈ {4}; y ∈ {11}; x ∈ {10}; __retres ∈ UNINITIALIZED
   [acceptance] call model.after-P.main/f@18 legacy-reads=0 resolved=1 answer=g ∈ {9}; y ∈ {11}; x ∈ {10}; __retres ∈ UNINITIALIZED
 
@@ -19,10 +20,10 @@ and InOut's callwise results, compared for each of the two calls, have equal
 zones. The reference reads the legacy store and resolves nothing.
   $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -inout-state-query-acceptance native assign.i > native.log 2>&1
   $ grep -e "native model.before-P" -e "native model.after-P" -e "native compared" native.log
-  [acceptance] native model.before-P equal=true reference-reads=2 reference-resolved=0 legacy-reads=2 resolved=0
+  [acceptance] native model.before-P equal=true reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
   [acceptance] native model.before-P.main/f@15 equal=true reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
   [acceptance] native model.before-P.main/f@18 equal=true reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
-  [acceptance] native model.after-P equal=true reference-reads=2 reference-resolved=0 legacy-reads=2 resolved=0
+  [acceptance] native model.after-P equal=true reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
   [acceptance] native model.after-P.main/f@15 equal=true reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
   [acceptance] native model.after-P.main/f@18 equal=true reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
   [acceptance] native compared=33 differing=0
@@ -34,7 +35,7 @@ precondition. No entry survives the precondition of h: its input exists,
 its body is bottom.
   $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-no-memexec -inout-state-query-acceptance candidate stages.i > stages.log 2>&1
   $ grep -e "call model.initial" -e "pos-root" -e "of-f\." -e "of-h\." -e "visits [fh]" stages.log
-  [acceptance] call model.initial legacy-reads=2 resolved=0 answer=g ∈ {3}; y ∈ {0}
+  [acceptance] call model.initial legacy-reads=0 resolved=1 answer=g ∈ {3}; y ∈ {0}
   [acceptance] call model.initial.main legacy-reads=0 resolved=1 answer=g ∈ {3}; y ∈ {0}
   [acceptance] call model.before-pos-root legacy-reads=0 resolved=1 answer=g ∈ {3}; y ∈ {0}; n ∈ [--..--]
   [acceptance] call model.after-pos-root legacy-reads=0 resolved=1 answer=g ∈ {3}; y ∈ {13}; n ∈ [-2147483648..5]; v ∈ {10}; tmp ∈ {2; 10}
@@ -190,3 +191,32 @@ legacy store does. The native comparison agrees.
   $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-no-results-function f -inout-state-query-acceptance native assign.i > no-results-native.log 2>&1
   $ grep -e "equal=false" -e "native compared" no-results-native.log
   [acceptance] native compared=21 differing=0
+
+The cvalue domain prints the final states of each function from the
+consolidated states before its first and return statements. On the legacy
+path, the marking of unreachable statements consolidates them on demand;
+the hit log answers it without consolidating, and the engine consolidates
+these states itself. f is recursive and only partially analyzed, which the
+engine's consolidation skipped. The final states of f are printed as on the
+legacy path.
+  $ frama-c -no-autoload-plugins -load-module eva,inout -eva recursive.i > recursive.log 2>&1
+  $ frama-c -no-autoload-plugins -load-module eva,inout -eva -eva-no-hit-log recursive.i > recursive-legacy.log 2>&1
+  $ grep -A2 "Values at end of function f" recursive.log
+  [eva:final-states] Values at end of function f:
+    x ∈ [--..--]
+    __retres ∈ [-2147483647..2147483647]
+  $ grep -e "final-states" -e "^  " recursive.log > final.txt
+  $ grep -e "final-states" -e "^  " recursive-legacy.log > final-legacy.txt
+  $ diff final-legacy.txt final.txt
+
+Without -eva-join-results, the engine consolidates no other state, but the
+legacy path still consolidates the states before statements on demand. The
+final states are printed as on the legacy path.
+  $ frama-c -no-autoload-plugins -load-module eva,inout -eva -eva-no-join-results recursive.i > no-join.log 2>&1
+  $ frama-c -no-autoload-plugins -load-module eva,inout -eva -eva-no-join-results -eva-no-hit-log recursive.i > no-join-legacy.log 2>&1
+  $ grep -e "Values at end" no-join.log
+  [eva:final-states] Values at end of function f:
+  [eva:final-states] Values at end of function main:
+  $ grep -e "final-states" -e "^  " no-join.log > no-join.txt
+  $ grep -e "final-states" -e "^  " no-join-legacy.log > no-join-legacy.txt
+  $ diff no-join-legacy.txt no-join.txt

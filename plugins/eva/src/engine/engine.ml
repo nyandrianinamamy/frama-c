@@ -76,25 +76,37 @@ module Make_Domain (Abstract: Abstractions.S) = struct
       let list = List.filter_map get_state callstacks in
       if list = [] then `Bottom else `Value list
 
-    let compute_consolidated_states () =
-      let compute_initial_state kf =
-        ignore (compute_consolidated_state (Start kf));
+    (* The cvalue domain prints the final states of each function from the
+       consolidated states before its statements. On the legacy path, the
+       marking of unreachable statements requests all of them, and the
+       requests consolidate them on demand, even without [join_results].
+       The hit log serves these requests without consolidating: they are
+       consolidated here for every analyzed function, including those
+       for which some calls used the specification. The other states are
+       consolidated with [join_results] only. *)
+    let compute_consolidated_states ~join_results =
+      let compute control_point =
+        ignore (compute_consolidated_state control_point)
       in
-      let compute_stmt_state stmt =
-        ignore (compute_consolidated_state (Before stmt));
-        ignore (compute_consolidated_state (After stmt));
+      let compute_stmt_states ~after stmt =
+        compute (Before stmt);
+        if after then compute (After stmt)
       in
       let compute_kf_states kf =
         Legacy_read_guard.reader "Eva.Engine.consolidate" @@ fun () ->
         Legacy_read_guard.notify Availability ~store:"analysis-status"
           (fun fmt -> Kernel_function.pretty fmt kf);
-        match Function_calls.analysis_status kf with
-        | Unreachable | Analyzed NoResults | Analyzed Partial -> ()
-        | SpecUsed | Builtin _ -> compute_initial_state kf
-        | Analyzed Complete ->
-          compute_initial_state kf;
+        let statements ~after =
           let fundec = Kernel_function.get_definition kf in
-          List.iter compute_stmt_state fundec.sallstmts
+          List.iter (compute_stmt_states ~after) fundec.sallstmts
+        in
+        match Function_calls.analysis_status kf with
+        | Unreachable | Analyzed NoResults -> ()
+        | SpecUsed | Builtin _ -> if join_results then compute (Start kf)
+        | Analyzed Partial -> statements ~after:false
+        | Analyzed Complete ->
+          if join_results then compute (Start kf);
+          statements ~after:join_results
       in
       Globals.Functions.iter compute_kf_states
   end
@@ -137,7 +149,8 @@ module Make_Domain (Abstract: Abstractions.S) = struct
 
   (* Computes consolidated states at the end of the analysis. *)
   let post_analysis final_state =
-    if Parameters.JoinResults.get () then Store.compute_consolidated_states ();
+    let join_results = Parameters.JoinResults.get () in
+    Store.compute_consolidated_states ~join_results;
     post_analysis final_state
 end
 
@@ -209,28 +222,34 @@ module Make (Abstract: Abstractions.S) = struct
           | Analyzed (Complete | Partial) -> get control_point
       else `Top
 
-    (* The hit log answers a request on one callstack when it can; it then
-       reads neither the analysis status nor the stored states. It records
-       the cvalue domain alone, which is then the whole state. *)
-    let resolve ~callstack control_point =
-      let to_state state = Dom.set Cvalue_domain.State.key state Dom.top in
-      match Hit_log.resolve ~callstack control_point with
-      | None -> None
-      | Some (`Value state) -> Some (`Value (to_state state))
-      | Some (`Top | `Bottom as x) -> Some x
+    (* The hit log answers a request when it can; it then reads neither the
+       analysis status nor the stored states. It records the cvalue domain
+       alone, which is then the whole state. *)
+    let to_state state = Dom.set Cvalue_domain.State.key state Dom.top
 
-    let get_state ?callstack control_point =
+    let map_value f = function
+      | `Value x -> `Value (f x)
+      | `Top | `Bottom as x -> x
+
+    let resolve ?callstack control_point =
       let resolved =
         match callstack with
-        | None -> None
-        | Some callstack -> resolve ~callstack control_point
+        | None -> Hit_log.resolve_consolidated control_point
+        | Some callstack -> Hit_log.resolve ~callstack control_point
       in
-      match resolved with
+      Option.map (map_value to_state) resolved
+
+    let get_state ?callstack control_point =
+      match resolve ?callstack control_point with
       | Some state -> state
       | None -> find ?callstack (Dom.Store.get_state ?callstack) control_point
 
     let get_state_by_callstack control_point =
-      find (Dom.Store.get_state_by_callstack) control_point
+      match Hit_log.resolve_by_callstack control_point with
+      | Some answer ->
+        let to_states = List.map (fun (cs, state) -> cs, to_state state) in
+        map_value to_states answer
+      | None -> find (Dom.Store.get_state_by_callstack) control_point
 
     let callstacks = Abstract.Dom.Store.callstacks
 

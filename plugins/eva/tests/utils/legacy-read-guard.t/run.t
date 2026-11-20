@@ -1,14 +1,15 @@
 Acceptance driver for Eva result queries and the legacy-read guard
 (prototype, see plugins/inout/prototype-state-query).
 
-Positive control. The trap is armed for the request phase only. The control
-request reads the legacy store, which aborts the run with the reader and
-the phase of the read.
-  $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-no-memexec -inout-state-query-acceptance trap:request legacy-reads.i > control.log 2>&1
+Positive control. The trap is armed for the request phase only. On the
+legacy path (-eva-no-hit-log), the control request reads the legacy store,
+which aborts the run with the reader and the phase of the read. With the
+hit log, the resolver serves this request.
+  $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-no-memexec -eva-no-hit-log -inout-state-query-acceptance trap:request legacy-reads.i > control.log 2>&1
   [1]
   $ grep -e "^\[acceptance\]" -e "legacy result-store" -e "aborted" control.log
   [acceptance] mode=trap:request guard=trap:request
-  [acceptance] config -eva-domains=cvalue -eva-slevel=0 -eva-memexec=false -eva-hit-log=true -eva-results=true -eva-join-results=true -eva-no-results-domain= -eva-no-results-function=@default
+  [acceptance] config -eva-domains=cvalue -eva-slevel=0 -eva-memexec=false -eva-hit-log=false -eva-results=true -eva-join-results=true -eva-no-results-domain= -eva-no-results-function=@default
   [acceptance] control Eva.Results.(before P |> get_cvalue_model)
   [eva] User Error: legacy result-store read trapped: phase=request reader=Eva.Results.get_cvalue_model access=availability store=analysis-status point=before line 8 of f via=Eva.Results.get_cvalue_model_result
   [kernel] Plug-in eva aborted: invalid user input.
@@ -16,11 +17,11 @@ the phase of the read.
 The trap can target another phase. In the analysis phase, the first read is
 the engine's registration of the entry state of main, which joins the new
 state with the recorded one. In the collection phase, it is the Init label
-of the assertion, which reads the initial state, and after the analysis,
-the marking of the postconditions of unreachable returns, which reads the
-analysis status of each function. Eva's statistics and its marking of
-unreachable annotations ask Eva.Results.is_reachable, which the hit log
-answers without read. No read happens during initialization.
+of the assertion, which reads the initial state; the hit log answers the
+reachability requests of Eva's statistics hook. After the analysis, the
+marking of unreachable properties asks whether each statement is
+reachable, which the hit log answers, then reads the analysis status of f
+to mark its postconditions. No read happens during initialization.
   $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-no-memexec -inout-state-query-acceptance trap:analysis legacy-reads.i > analysis.log 2>&1
   [1]
   $ grep -e "legacy result-store" analysis.log
@@ -53,10 +54,13 @@ resolver of the hit log. The driver groups the reads of the execution by
 phase and reader, and attributes the other reads and the resolutions to the
 public request that made them. Registration-time reads come from the
 engine; InOut takes the state at the start of each call without a request,
-and its remaining collection read is the Init label of the assertion. Final
-printing and logic initialization read the store without Eva.Results. The
-requests on a supplied stack are resolved without legacy read; the request
-on a supplied state reads nothing.
+and its remaining collection read is the Init label of the assertion. After
+the analysis, the readers through Eva.Results are resolved; the
+consolidation of the store, the marking of postconditions and the final
+printing still read it. Logic initialization reads the store without
+Eva.Results. The requests on a supplied stack, on several stacks and on
+none are resolved without legacy read, except the availability readers and
+the snapshot export; the request on a supplied state reads nothing.
   $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-no-memexec -inout-state-query-acceptance candidate -inout-state-query-acceptance-output candidate.jsonl legacy-reads.i > candidate.log 2>&1
   $ grep -e "^\[acceptance\]" candidate.log
   [acceptance] mode=candidate guard=record
@@ -69,26 +73,25 @@ on a supplied state reads nothing.
   [acceptance] execution phase=post-analysis reader=Eva.Engine.consolidate access=enumeration store=cvalue
   [acceptance] execution phase=post-analysis reader=Eva.Engine.consolidate access=getter store=cvalue
   [acceptance] execution phase=post-analysis reader=Eva.Cvalue_domain.display_final_state access=getter store=cvalue
-  [acceptance] execution phase=post-analysis reader=Eva.Cvalue_domain.display_final_state access=availability store=analysis-status
-  [acceptance] call stacks.before-P legacy-reads=4 resolved=0 answer=main/f@15 main/f@18
-  [acceptance] call by_callstack.before-P legacy-reads=4 resolved=0 answer=main/f@15 main/f@18
+  [acceptance] call stacks.before-P legacy-reads=0 resolved=1 answer=main/f@15 main/f@18
+  [acceptance] call by_callstack.before-P legacy-reads=0 resolved=1 answer=main/f@15 main/f@18
   [acceptance] call available.f legacy-reads=1 resolved=0 answer=true
   [acceptance] call status.f legacy-reads=1 resolved=0 answer=analyzed complete
   [acceptance] call reachable.P legacy-reads=0 resolved=1 answer=true
-  [acceptance] call model.before-P legacy-reads=2 resolved=0 answer=g ∈ {4; 9}; y ∈ {11}; x ∈ {10}; __retres ∈ UNINITIALIZED
+  [acceptance] call model.before-P legacy-reads=0 resolved=1 answer=g ∈ {4; 9}; y ∈ {11}; x ∈ {10}; __retres ∈ UNINITIALIZED
   [acceptance] call model.before-P.main/f@15 legacy-reads=0 resolved=1 answer=g ∈ {4}; y ∈ {11}; x ∈ {10}; __retres ∈ UNINITIALIZED
   [acceptance] call model.before-P.main/f@18 legacy-reads=0 resolved=1 answer=g ∈ {9}; y ∈ {11}; x ∈ {10}; __retres ∈ UNINITIALIZED
-  [acceptance] call model.after-P legacy-reads=2 resolved=0 answer=g ∈ {4; 9}; y ∈ {11}; x ∈ {10}; __retres ∈ UNINITIALIZED
+  [acceptance] call model.after-P legacy-reads=0 resolved=1 answer=g ∈ {4; 9}; y ∈ {11}; x ∈ {10}; __retres ∈ UNINITIALIZED
   [acceptance] call model.after-P.main/f@15 legacy-reads=0 resolved=1 answer=g ∈ {4}; y ∈ {11}; x ∈ {10}; __retres ∈ UNINITIALIZED
   [acceptance] call model.after-P.main/f@18 legacy-reads=0 resolved=1 answer=g ∈ {9}; y ∈ {11}; x ∈ {10}; __retres ∈ UNINITIALIZED
-  [acceptance] call value.g.before-P legacy-reads=2 resolved=0 answer={4; 9}
+  [acceptance] call value.g.before-P legacy-reads=0 resolved=1 answer={4; 9}
   [acceptance] call value.g.before-P.main/f@15 legacy-reads=0 resolved=1 answer={4}
   [acceptance] call value.g.before-P.main/f@18 legacy-reads=0 resolved=1 answer={9}
-  [acceptance] call value.y.before-P legacy-reads=2 resolved=0 answer={11}
+  [acceptance] call value.y.before-P legacy-reads=0 resolved=1 answer={11}
   [acceptance] call value.y.before-P.main/f@15 legacy-reads=0 resolved=1 answer={11}
   [acceptance] call value.y.before-P.main/f@18 legacy-reads=0 resolved=1 answer={11}
-  [acceptance] call model.start-of-f legacy-reads=2 resolved=0 answer=g ∈ {4; 9}; y ∈ {0}; x ∈ {10}; __retres ∈ UNINITIALIZED
-  [acceptance] call model.initial legacy-reads=2 resolved=0 answer=g ∈ {0}; y ∈ {0}
+  [acceptance] call model.start-of-f legacy-reads=0 resolved=1 answer=g ∈ {4; 9}; y ∈ {0}; x ∈ {10}; __retres ∈ UNINITIALIZED
+  [acceptance] call model.initial legacy-reads=0 resolved=1 answer=g ∈ {0}; y ∈ {0}
   [acceptance] call model.before-pos-P.main/f@15 legacy-reads=0 resolved=1 answer=g ∈ {4}; y ∈ {11}; x ∈ {10}; __retres ∈ UNINITIALIZED
   [acceptance] call model.after-pos-P.main/f@15 legacy-reads=0 resolved=1 answer=g ∈ {4}; y ∈ {11}; x ∈ {10}; __retres ∈ UNINITIALIZED
   [acceptance] call model.before-pos-P.main/f@18 legacy-reads=0 resolved=1 answer=g ∈ {9}; y ∈ {11}; x ∈ {10}; __retres ∈ UNINITIALIZED
@@ -96,7 +99,7 @@ on a supplied state reads nothing.
   [acceptance] call model.initial.main legacy-reads=0 resolved=1 answer=g ∈ {0}; y ∈ {0}
   [acceptance] call model.before-pos-root legacy-reads=0 resolved=1 answer=g ∈ {0}; y ∈ {0}
   [acceptance] call model.after-pos-root legacy-reads=0 resolved=1 answer=g ∈ {9}; y ∈ {11}; __retres ∈ {20}
-  [acceptance] call stacks.start-of-f legacy-reads=4 resolved=0 answer=main/f@15 main/f@18
+  [acceptance] call stacks.start-of-f legacy-reads=0 resolved=1 answer=main/f@15 main/f@18
   [acceptance] call model.start-of-f.main/f@15 legacy-reads=0 resolved=1 answer=g ∈ {4}; y ∈ {0}; x ∈ {10}; __retres ∈ UNINITIALIZED
   [acceptance] call model.body-entry-of-f.main/f@15 legacy-reads=0 resolved=1 answer=g ∈ {4}; y ∈ {0}; x ∈ {10}; __retres ∈ UNINITIALIZED
   [acceptance] call model.end-of-f.main/f@15 legacy-reads=0 resolved=1 answer=g ∈ {4}; y ∈ {11}; x ∈ {10}; __retres ∈ UNINITIALIZED
@@ -105,7 +108,7 @@ on a supplied state reads nothing.
   [acceptance] call model.body-entry-of-f.main/f@18 legacy-reads=0 resolved=1 answer=g ∈ {9}; y ∈ {0}; x ∈ {10}; __retres ∈ UNINITIALIZED
   [acceptance] call model.end-of-f.main/f@18 legacy-reads=0 resolved=1 answer=g ∈ {9}; y ∈ {11}; x ∈ {10}; __retres ∈ UNINITIALIZED
   [acceptance] visits f.main/f@18 body#2: 1 entries survive the preconditions; input:; g ∈ {9}; y ∈ {0}; x ∈ {10}; __retres ∈ UNINITIALIZED
-  [acceptance] call stacks.start-of-main legacy-reads=3 resolved=0 answer=main
+  [acceptance] call stacks.start-of-main legacy-reads=0 resolved=1 answer=main
   [acceptance] call model.start-of-main.main legacy-reads=0 resolved=1 answer=g ∈ {0}; y ∈ {0}
   [acceptance] call model.body-entry-of-main.main legacy-reads=0 resolved=1 answer=g ∈ {0}; y ∈ {0}; __retres ∈ UNINITIALIZED
   [acceptance] call model.end-of-main.main legacy-reads=0 resolved=1 answer=g ∈ {9}; y ∈ {11}; __retres ∈ {20}
@@ -114,4 +117,4 @@ on a supplied state reads nothing.
   [acceptance] call inout.call-f@18 legacy-reads=0 resolved=0 answer=Operational inputs:; x; Operational inputs on termination:; x; Sure outputs:; y; Over outputs:; y; Over outputs on termination:; y; Logic inputs:; \nothing
   [acceptance] call export.get_results legacy-reads=62 resolved=0 answer=exported
   [acceptance] call supplied-state.eval legacy-reads=0 resolved=0 answer={5}
-  [acceptance] accounting logged=209 attributed=209
+  [acceptance] accounting logged=166 attributed=166

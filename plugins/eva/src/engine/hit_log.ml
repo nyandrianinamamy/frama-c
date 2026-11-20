@@ -50,6 +50,15 @@ type log = {
   producers: (int, producer) Hashtbl.t;
   no_results: unit Kernel_function.Hashtbl.t;
   mutable open_calls: invocation list; (* innermost first *)
+  by_kf: invocation list Kernel_function.Hashtbl.t;
+  (* the invocations of each function, latest first *)
+  mutable has_hit: bool;
+  (* Answers on all callstacks, computed once the analysis completed. *)
+  by_callstack:
+    (Callstack.t * state) list Lattice_bounds.or_top_bottom
+      Domain_store.ControlPoint.Hashtbl.t;
+  consolidated:
+    state Lattice_bounds.or_top_bottom Domain_store.ControlPoint.Hashtbl.t;
 }
 
 let create stamp ~exact ~states = {
@@ -61,6 +70,10 @@ let create stamp ~exact ~states = {
   producers = Hashtbl.create 17;
   no_results = Kernel_function.Hashtbl.create 7;
   open_calls = [];
+  by_kf = Kernel_function.Hashtbl.create 17;
+  has_hit = false;
+  by_callstack = Domain_store.ControlPoint.Hashtbl.create 17;
+  consolidated = Domain_store.ControlPoint.Hashtbl.create 17;
 }
 
 let current = ref (create 0 ~exact:false ~states:false)
@@ -114,6 +127,11 @@ let enter stack input =
       Option.value ~default:[] (Callstack.Hashtbl.find_opt log.invocations stack)
     in
     Callstack.Hashtbl.replace log.invocations stack (invocation :: visits);
+    let kf = Callstack.top_kf stack in
+    let calls =
+      Option.value ~default:[] (Kernel_function.Hashtbl.find_opt log.by_kf kf)
+    in
+    Kernel_function.Hashtbl.replace log.by_kf kf (invocation :: calls);
     log.open_calls <- invocation :: log.open_calls
 
 (* The innermost open invocation, which must be on [stack]. When an analysis
@@ -139,7 +157,9 @@ let leave stack =
 
 let hit stack ~producer =
   if recording () then
-    Option.iter (fun invocation -> invocation.kind <- Hit producer)
+    Option.iter (fun invocation ->
+        invocation.kind <- Hit producer;
+        (!current).has_hit <- true)
       (open_invocation stack)
 
 let interpreted stack kind =
@@ -206,18 +226,9 @@ let rec below_hit stack =
 let visits_of kf stack =
   if Kernel_function.equal (Callstack.top_kf stack) kf then visits stack else []
 
-(* All the invocations of [kf], on every callstack. *)
+(* All the invocations of [kf], on every callstack, latest first. *)
 let invocations_of log kf =
-  Callstack.Hashtbl.fold
-    (fun stack visits acc ->
-       if Kernel_function.equal (Callstack.top_kf stack) kf
-       then visits @ acc else acc)
-    log.invocations []
-
-let has_hits log =
-  Callstack.Hashtbl.fold
-    (fun _ visits acc -> acc || List.exists is_hit visits)
-    log.invocations false
+  Option.value ~default:[] (Kernel_function.Hashtbl.find_opt log.by_kf kf)
 
 (* The producer that rebuilds a body visit. *)
 let producer_of log kf id =
@@ -435,7 +446,7 @@ let reach ?callstacks ?(filter = fun _ -> true) point =
         if List.mem `Reaching answers then Some Reaching
         else if List.mem `Decline answers then None
         else if Option.is_some unknown then Some (Unknown (Option.get unknown))
-        else if not supplied && has_hits log then
+        else if not supplied && log.has_hit then
           (* A function called below a hit has no recorded invocation. *)
           None
         else if stacks = [] && log.completion = Interrupted
@@ -465,6 +476,139 @@ let pretty_reach fmt = function
   | Reaching -> Format.pp_print_string fmt "reaching"
   | Not_reaching -> Format.pp_print_string fmt "not reaching"
   | Unknown r -> Format.fprintf fmt "unknown (%a)" pretty_unavailable r
+
+(* ----- Several callstacks ----------------------------------------------- *)
+
+(* The legacy store registers the state of a control point on a callstack
+   in a [Callstack.Hashtbl.create 7] per point, and enumerates the
+   callstacks in the order of that table. [store_order] rebuilds the same
+   table from the callstacks in the order of their first registration, and
+   reads it back. *)
+let store_order stacks =
+  let table = Callstack.Hashtbl.create 7 in
+  List.iter (fun stack -> Callstack.Hashtbl.replace table stack ()) stacks;
+  Callstack.Hashtbl.to_seq_keys table |> List.of_seq
+
+(* The callstacks on which the legacy store registers a state at [point],
+   in the order of their first registration. The start of a function is
+   registered at each call, before the body or the hit; the states of a
+   statement when the analysis of a body that reaches it completes, in the
+   order of the producer ids. *)
+let registrations log (point : Domain_store.control_point) =
+  let first_occurrences stacks =
+    let seen = Callstack.Hashtbl.create 17 in
+    List.filter (fun stack ->
+        not (Callstack.Hashtbl.mem seen stack)
+        && (Callstack.Hashtbl.add seen stack (); true))
+      stacks
+  in
+  (* The invocations of [kf], in the order in which they were entered. *)
+  let calls kf = List.rev (invocations_of log kf) in
+  match point with
+  | Initial -> Option.to_list (Option.map fst log.initial)
+  | Start kf -> calls kf |> List.map (fun v -> v.stack) |> first_occurrences
+  | Before stmt | After stmt ->
+    let kf = Kernel_function.find_englobing_kf stmt in
+    let reaches id =
+      match Hashtbl.find_opt log.producers id with
+      | Some { points = Some points; _ } ->
+        let table =
+          match point with Before _ -> points.before | _ -> points.after
+        in
+        Stmt.Hashtbl.mem table stmt
+      | Some { points = None; _ } | None -> false
+    in
+    let bodies =
+      List.filter_map (fun v ->
+          match v.kind with
+          | Body id when reaches id -> Some (id, v.stack)
+          | Body _ | Hit _ | Spec | Builtin _ | Unresolved -> None)
+        (calls kf)
+    in
+    List.sort (fun (a, _) (b, _) -> Int.compare a b) bodies
+    |> List.map snd |> first_occurrences
+
+(* The state at [point] on each callstack that reaches it, each classified
+   as by [classify_on], in the order of the legacy store; [`Bottom] if no
+   callstack reaches it, [`Top] if the results of its function are not
+   recorded. Declines when the records contain a memexec hit: the
+   callstacks below a hit, and its points, are not recorded yet. Declines
+   also unless the analysis completed with its states recorded: these
+   answers do not tell unavailable results yet. *)
+let rebuild_by_callstack log (point : Domain_store.control_point) =
+  if log.has_hit || log.completion <> Complete || not log.states
+  then raise Decline;
+  let no_results =
+    match point with
+    | Initial | Start _ -> false
+    | Before stmt | After stmt ->
+      Kernel_function.Hashtbl.mem log.no_results
+        (Kernel_function.find_englobing_kf stmt)
+  in
+  if no_results then `Top
+  else
+    let answer stack =
+      match fst (classify_on log stack point) with
+      | Reached state -> Some (stack, state)
+      | Unreachable | Not_analyzed -> None
+      | Unavailable _ -> raise Decline
+    in
+    match List.filter_map answer (store_order (registrations log point)) with
+    | [] -> `Bottom
+    | list -> `Value list
+
+(* Joins the states of all callstacks as the legacy consolidation does:
+   in the order of the store, each new state on the left. *)
+let consolidate = function
+  | `Top -> `Top
+  | `Bottom -> `Bottom
+  | `Value list ->
+    let join acc (_, state) =
+      match acc with
+      | `Bottom -> `Value state
+      | `Value acc -> `Value (Cvalue_domain.State.join state acc)
+    in
+    (List.fold_left join `Bottom list :> state Lattice_bounds.or_top_bottom)
+
+let memo table point compute =
+  match Domain_store.ControlPoint.Hashtbl.find_opt table point with
+  | Some answer -> answer
+  | None ->
+    let answer = compute () in
+    Domain_store.ControlPoint.Hashtbl.replace table point answer;
+    answer
+
+let by_callstack log point =
+  memo log.by_callstack point (fun () -> rebuild_by_callstack log point)
+
+(* The callstacks of an answer and the kinds of their visits. *)
+let pretty_stacks answer fmt =
+  match answer with
+  | `Top -> Format.pp_print_string fmt "top"
+  | `Bottom -> Format.pp_print_string fmt "none"
+  | `Value list ->
+    let pretty fmt (stack, _) =
+      Format.fprintf fmt "%a:%t" Domain_store.pretty_callstack stack
+        (pretty_kinds (visits stack))
+    in
+    Pretty_utils.pp_list ~sep:" " pretty fmt list
+
+let resolve_all point f =
+  if not (usable ()) then None
+  else
+    let log = !current in
+    match by_callstack log point with
+    | exception Decline -> None
+    | answer ->
+      Legacy_read_guard.resolved
+        (Domain_store.pretty_read_point point) (pretty_stacks answer);
+      Some (f log answer)
+
+let resolve_by_callstack point = resolve_all point (fun _ answer -> answer)
+
+let resolve_consolidated point =
+  resolve_all point (fun log answer ->
+      memo log.consolidated point (fun () -> consolidate answer))
 
 let pretty_visits fmt stack =
   let log = !current in

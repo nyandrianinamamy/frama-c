@@ -27,13 +27,20 @@
     state at the point, in an analysis that completed. {!resolve} converts
     the answer to the public one of the legacy store. {!reach} tells
     whether any selected callstack reaches a point.
+    {!resolve_by_callstack} rebuilds the state on each callstack that
+    reaches a point, and {!resolve_consolidated} joins the callstacks. The
+    requests on several callstacks, or on none, keep their own aggregation
+    on top of these states.
 
     The records describe the current results when the cvalue domain runs
     alone, without multithread analysis, and with [-eva-hit-log]. With
     [-eva-no-results] or [-eva-no-results-domain cvalue], they record the
     invocations and how they were interpreted, and every state is
-    unavailable. The records are not saved with the project, and clearing
-    the results of Eva invalidates them. *)
+    unavailable. The resolver declines a request on a memexec hit, or below
+    one, whose states it cannot rebuild yet, and every request on several
+    callstacks or none once the records contain a hit. When it declines,
+    the request reads the legacy store. The records are not saved with the
+    project, and clearing the results of Eva invalidates them. *)
 
 type state = Cvalue_domain.State.t
 
@@ -151,6 +158,24 @@ val classify:
 val resolve:
   callstack:Callstack.t -> Domain_store.control_point ->
   state Lattice_bounds.or_top_bottom option
+
+(** [resolve_by_callstack point] rebuilds the state at [point] on each
+    callstack that reaches it, each as {!resolve} does, in the order in
+    which the legacy store enumerates them: [`Bottom] if no callstack
+    reaches the point, [`Top] if the results of its function are not
+    recorded. Returns [None] when the resolver declines, which it does
+    whenever the records contain a memexec hit, and unless the analysis
+    completed with its states recorded: an unfiltered request on pending,
+    interrupted or unrecorded results reads the legacy store. *)
+val resolve_by_callstack:
+  Domain_store.control_point ->
+  (Callstack.t * state) list Lattice_bounds.or_top_bottom option
+
+(** [resolve_consolidated point] joins the states that
+    {!resolve_by_callstack} rebuilds, as the legacy consolidation does.
+    Returns [None] when the resolver declines. *)
+val resolve_consolidated:
+  Domain_store.control_point -> state Lattice_bounds.or_top_bottom option
 
 (** Whether the analysis reached a point on some selected callstack. *)
 type reach =

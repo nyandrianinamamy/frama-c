@@ -175,9 +175,18 @@ type native =
   | Model of Cvalue.Model.t R.result
   | Value of Cvalue.V.t R.result
   | Inout of Inout_type.t
+  | Uninit of Cvalue.V_Or_Uninitialized.t
+  | Location of Locations.t R.result
+  | Zone of Memory_zone.t R.result
+  | Deps of Eva.Deps.t
+  | Callees of Kernel_function.t list R.result
+  | Stacks of Eva.Callstack.t list (* in the order of the answer *)
+  | Alarms of Alarms.t list
+  | Flag of bool
+  | Several of native list
   | Text
 
-let native_equal a b =
+let rec native_equal a b =
   let equal_result equal a b =
     match a, b with
     | Ok a, Ok b -> equal a b
@@ -188,6 +197,18 @@ let native_equal a b =
   | Model a, Model b -> Some (equal_result Cvalue.Model.equal a b)
   | Value a, Value b -> Some (equal_result Cvalue.V.equal a b)
   | Inout a, Inout b -> Some (Inout_type.equal a b)
+  | Uninit a, Uninit b -> Some (Cvalue.V_Or_Uninitialized.equal a b)
+  | Location a, Location b -> Some (equal_result Locations.equal a b)
+  | Zone a, Zone b -> Some (equal_result Memory_zone.equal a b)
+  | Deps a, Deps b -> Some (Eva.Deps.equal a b)
+  | Callees a, Callees b ->
+    Some (equal_result (List.equal Kernel_function.equal) a b)
+  | Stacks a, Stacks b -> Some (List.equal Eva.Callstack.equal a b)
+  | Alarms a, Alarms b -> Some (List.equal Alarms.equal a b)
+  | Flag a, Flag b -> Some (a = b)
+  | Several a, Several b when List.compare_lengths a b = 0 ->
+    let parts = List.map2 native_equal a b |> List.filter_map Fun.id in
+    if parts = [] then None else Some (List.for_all Fun.id parts)
   | _ -> None
 
 type answer = {
@@ -268,18 +289,330 @@ let call_sites () =
           (Kernel_function.get_definition caller).sallstmts);
   List.sort (fun (s1, _) (s2, _) -> compare (line s1) (line s2)) !sites
 
+(* {2 Stack selection and evaluation order} *)
+
+(* What the selection battery evaluates before P: the expressions assigned
+   in the block of the statement labelled E, and the callees of its calls.
+   The block is never executed. *)
+type probe =
+  | Exp of exp
+  | Callee of lhost
+
+let probes () =
+  let is_e = function Label ("E", _, _) -> true | _ -> false in
+  let find kf found =
+    match found with
+    | Some _ -> found
+    | None when Kernel_function.is_definition kf ->
+      let body = Kernel_function.get_definition kf in
+      List.find_opt (fun s -> List.exists is_e s.labels) body.sallstmts
+    | None -> None
+  in
+  let probe stmt =
+    match stmt.skind with
+    | Instr (Set (_, e, _)) -> Some (Exp e)
+    | Instr (Call (_, host, _, _)) -> Some (Callee host)
+    | _ -> None
+  in
+  (* CIL can attach the label to an empty statement before the block. *)
+  let rec block stmt =
+    match stmt.skind, stmt.succs with
+    | If (_, block, _, _), _ -> List.filter_map probe block.bstmts
+    | Instr (Skip _), [ next ] -> block next
+    | _ -> []
+  in
+  Globals.Functions.fold find None |> Option.fold ~none:[] ~some:block
+
+let exp_name e =
+  Format.asprintf "%a" Printer.pp_exp e
+  |> String.split_on_char ' ' |> String.concat ""
+
+let pretty_alarms = function
+  | [] -> "none"
+  | alarms ->
+    String.concat ", " (List.map (Format.asprintf "%a" Alarms.pretty) alarms)
+
+let pretty_callees = function
+  | Ok kfs -> String.concat " " (List.map Kernel_function.get_name kfs)
+  | Error e -> pretty_error e
+
+(* The selections of a request at P. [stacks] reach P, sorted by name;
+   [unreached] are stacks of the function of P that do not reach it. Each
+   selection has a name, its text in the requests and its transformation. *)
+let selections stacks unreached =
+  let all = [
+    "selector-all", "in_callstacks (all stacks)", R.in_callstacks stacks;
+    "filter-all", "filter_callstack (fun _ -> true)",
+    R.filter_callstack (fun _ -> true);
+  ] in
+  let singletons =
+    List.map (fun s ->
+        "stack:" ^ stack_name s, "in_callstack " ^ stack_name s,
+        R.in_callstack s)
+      stacks
+  in
+  let partial =
+    match stacks with
+    | first :: second :: _ :: _ ->
+      [ "selector-two",
+        "in_callstacks [" ^ stack_name first ^ "; " ^ stack_name second ^ "]",
+        R.in_callstacks [ first; second ];
+        "filter-drop-first",
+        "filter_callstack (fun cs -> cs <> " ^ stack_name first ^ ")",
+        R.filter_callstack (fun cs -> not (Eva.Callstack.equal cs first)) ]
+    | _ -> []
+  in
+  let none = R.filter_callstack (fun _ -> false) in
+  let unreached =
+    match unreached with
+    | [] -> []
+    | _ ->
+      [ "selector-unreached",
+        "in_callstacks [" ^ String.concat "; " (List.map stack_name unreached)
+        ^ "]",
+        R.in_callstacks unreached ]
+  in
+  let rejected =
+    match stacks with
+    | [] -> []
+    | first :: _ ->
+      [ "stack-rejected",
+        "in_callstack " ^ stack_name first
+        ^ " |> filter_callstack (fun _ -> false)",
+        (fun r -> none (R.in_callstack first r)) ]
+  in
+  let empty =
+    unreached @ rejected
+    @ [ "filter-none", "filter_callstack (fun _ -> false)", none ]
+  in
+  ("unfiltered", "", Fun.id) :: singletons @ all @ partial @ empty
+
+(* The evaluation families of [probe] on [req]. *)
+let evaluate ~id ~request ~expect probe req =
+  let request family arg = "Eva.Results.(" ^ request ^ " |> " ^ family ^ " "
+                           ^ arg ^ ")" in
+  match probe with
+  | Callee host ->
+    let name =
+      Format.asprintf "%a" Printer.pp_lval (host, NoOffset)
+      |> String.split_on_char ' ' |> String.concat ""
+    in
+    call ~id:("eval_callee[" ^ name ^ "]." ^ id) ~family:"evaluation"
+      ~request:(request "eval_callee" name) ~expect
+      (fun () ->
+         let callees = R.eval_callee host req in
+         pretty_callees callees, Callees callees)
+  | Exp e ->
+    let name = exp_name e in
+    let call ?(expect = expect) family f =
+      call ~id:(family ^ "[" ^ name ^ "]." ^ id) ~family:"evaluation"
+        ~request:(request family name) ~expect f
+    in
+    call "eval_exp" (fun () ->
+        let ev = R.eval_exp e req in
+        let v = R.as_cvalue_result ev and alarms = R.alarms ev in
+        let singleton = R.is_singleton ev in
+        Format.sprintf "%s; alarms: %s; singleton: %b"
+          (pretty_result Cvalue.V.pretty v) (pretty_alarms alarms) singleton,
+        Several [ Value v; Alarms alarms; Flag singleton ]);
+    call "expr_deps" (fun () ->
+        let zone = R.expr_deps e req in
+        Format.asprintf "%a" Memory_zone.pretty zone, Zone (Ok zone));
+    call "expr_dependencies" (fun () ->
+        let deps = R.expr_dependencies e req in
+        Format.asprintf "%a" Eva.Deps.pretty deps, Deps deps);
+    match e.enode with
+    | Lval lv ->
+      call "eval_lval" (fun () ->
+          let ev = R.eval_lval lv req in
+          let v = R.as_cvalue_or_uninitialized ev in
+          let initialized = R.is_initialized ev and alarms = R.alarms ev in
+          Format.asprintf "%a; initialized: %b; alarms: %s"
+            Cvalue.V_Or_Uninitialized.pretty v initialized
+            (pretty_alarms alarms),
+          Several [ Uninit v; Flag initialized; Alarms alarms ]);
+      call "eval_address" (fun () ->
+          let ev = R.eval_address lv req in
+          let loc = R.as_location_result ev and zone = R.as_zone_result ev in
+          let alarms = R.alarms ev in
+          Format.sprintf "%s; zone: %s; alarms: %s"
+            (pretty_result Locations.pretty loc)
+            (pretty_result Memory_zone.pretty zone) (pretty_alarms alarms),
+          Several [ Location loc; Zone zone; Alarms alarms ]);
+      call "lval_deps" (fun () ->
+          let zone = R.lval_deps lv req in
+          Format.asprintf "%a" Memory_zone.pretty zone, Zone (Ok zone));
+      (* The address of a variable without index reads no state. *)
+      let rec indexed = function
+        | NoOffset -> false
+        | Field (_, offset) -> indexed offset
+        | Index _ -> true
+      in
+      let expect =
+        match lv with
+        | Var _, offset when not (indexed offset) -> No_read
+        | _ -> expect
+      in
+      call ~expect "address_deps" (fun () ->
+          let zone = R.address_deps lv req in
+          Format.asprintf "%a" Memory_zone.pretty zone, Zone (Ok zone))
+    | _ -> ()
+
+(* With the probes of a fixture, the requests at P under each selection:
+   the stacks in the order of the answer, the subrequests, the model and
+   the printed states, and each evaluation family of each probe. Then the
+   same evaluations on a supplied Cvalue state, the callee of P, and the
+   requests of disabled domains. *)
+let selection_battery kf stmt stacks =
+  match probes () with
+  | [] -> ()
+  | probes ->
+    let names stacks = String.concat " " (List.map stack_name stacks) in
+    let unreached = ref [] in
+    call ~id:"stacks.unreached-P" ~family:"enumeration" ~expect:Resolver
+      ~request:"Eva.Results.(at_start_of f |> callstacks) minus before P"
+      (fun () ->
+         let all = R.(at_start_of kf |> callstacks) in
+         let reaches s = List.exists (Eva.Callstack.equal s) stacks in
+         unreached :=
+           List.filter (fun s -> not (reaches s)) all |> by_stack_name;
+         names !unreached, Stacks !unreached);
+    let first_exp =
+      List.find_map (function Exp e -> Some e | Callee _ -> None) probes
+    in
+    List.iter (fun (sel, text, select) ->
+        let req = select (R.before stmt) in
+        let request = "before P" ^ (if text = "" then "" else " |> " ^ text) in
+        let on id family f =
+          call ~id:(id ^ "." ^ sel) ~family ~expect:Resolver
+            ~request:("Eva.Results.(" ^ request ^ " |> " ^ id ^ ")") f
+        in
+        on "stacks" "selection" (fun () ->
+            let stacks = R.callstacks req in
+            names stacks, Stacks stacks);
+        on "is_empty" "selection" (fun () ->
+            let empty = R.is_empty req in
+            string_of_bool empty, Flag empty);
+        on "by_callstack" "selection" (fun () ->
+            let subrequests = R.by_callstack req in
+            let answer (stack, sub) =
+              match first_exp with
+              | None -> stack_name stack, Text
+              | Some e ->
+                let v = R.(eval_exp e sub |> as_cvalue_result) in
+                stack_name stack ^ ": " ^ pretty_result Cvalue.V.pretty v,
+                Value v
+            in
+            let answers = List.map answer subrequests in
+            String.concat " " (List.map fst answers),
+            Several (Stacks (List.map fst subrequests)
+                     :: List.map snd answers));
+        on "model" "selection" (fun () -> model req);
+        on "print_states" "selection" (fun () ->
+            R.print_states req
+            |> List.map (fun (name, s) -> name ^ ": " ^ s)
+            |> String.concat "\n",
+            Text);
+        List.iter (fun probe ->
+            evaluate ~id:sel ~request ~expect:Resolver probe req)
+          probes)
+      (selections stacks !unreached);
+    call ~id:"callee.P" ~family:"evaluation" ~expect:Resolver
+      ~request:"Eva.Results.callee P"
+      (fun () ->
+         let callees = R.callee stmt in
+         pretty_callees (Ok callees), Callees (Ok callees));
+    (* A supplied state is the input of the evaluation, whatever the
+       selection: the model of the first stack, with x = 7 if the fixture
+       has a global x. *)
+    let supplied = ref Cvalue.Model.top in
+    begin match stacks with
+      | [] -> ()
+      | first :: _ ->
+        call ~id:"supplied-state.source" ~family:"supplied-stack"
+          ~expect:Resolver
+          ~request:("Eva.Results.(before P |> in_callstack "
+                    ^ stack_name first ^ " |> get_cvalue_model), x := 7")
+          (fun () ->
+             let m =
+               R.(before stmt |> in_callstack first |> get_cvalue_model)
+             in
+             let m =
+               match Globals.Vars.find_from_astinfo "x" Global with
+               | x ->
+                 Cvalue.Model.add_binding ~exact:true m
+                   (Locations.of_varinfo x) (Cvalue.V.inject_int Z.(of_int 7))
+               | exception Not_found -> m
+             in
+             supplied := m;
+             Format.asprintf "%a" Cvalue.Model.pretty m, Model (Ok m));
+        let states = [
+          "supplied", "in_cvalue_state m", R.in_cvalue_state !supplied;
+          "supplied-selected",
+          "in_cvalue_state m |> in_callstack " ^ stack_name first
+          ^ " |> filter_callstack (fun _ -> false)",
+          R.in_cvalue_state !supplied |> R.in_callstack first
+          |> R.filter_callstack (fun _ -> false);
+        ] in
+        List.iter (fun (id, request, req) ->
+            call ~id:("model." ^ id) ~family:"supplied-state" ~expect:No_read
+              ~request:("Eva.Results.(" ^ request ^ " |> get_cvalue_model)")
+              (fun () -> model req);
+            List.iter (fun probe ->
+                evaluate ~id ~request ~expect:No_read probe req)
+              probes)
+          states
+    end;
+    (* Disabled domains keep their declared response, without reading. *)
+    Option.iter (fun e ->
+        call ~id:("equality_class[" ^ exp_name e ^ "]")
+          ~family:"disabled-domain" ~expect:No_read
+          ~request:"Eva.Results.(before P |> equality_class e)"
+          (fun () ->
+             let r = R.(before stmt |> equality_class e) in
+             pretty_result (Pretty_utils.pp_list ~sep:", " Printer.pp_exp) r,
+             Text);
+        call ~id:("is_tainted[" ^ exp_name e ^ "]")
+          ~family:"disabled-domain" ~expect:No_read
+          ~request:"Eva.Results.(before P |> is_tainted (zone of e))"
+          (fun () ->
+             let r = R.(before stmt |> is_tainted Memory_zone.top) in
+             pretty_result (fun fmt t ->
+                 Format.pp_print_string fmt
+                   (match t with
+                    | R.Direct -> "direct" | Indirect -> "indirect"
+                    | Untainted -> "untainted")) r,
+             Text))
+      first_exp;
+    (* The order in which each enumeration answers, at the initial state,
+       and at the start and the end of each defined function. *)
+    let order id request req =
+      call ~id:("order." ^ id) ~family:"enumeration" ~expect:Resolver
+        ~request:("Eva.Results.(" ^ request ^ " |> callstacks)")
+        (fun () ->
+           let stacks = R.callstacks req in
+           names stacks, Stacks stacks)
+    in
+    order "initial" "at_start" R.at_start;
+    Globals.Functions.iter (fun kf ->
+        if Kernel_function.is_definition kf then begin
+          let name = Kernel_function.get_name kf in
+          order ("start-of-" ^ name) ("at_start_of " ^ name) (R.at_start_of kf);
+          order ("end-of-" ^ name) ("at_end_of " ^ name) (R.at_end_of kf)
+        end)
+
 let battery kf stmt =
   let kf_name = Kernel_function.get_name kf in
   let names stacks = List.map stack_name stacks |> List.sort compare in
   (* The stacks used by the per-stack requests are the answer of this
      request, so that its reads are attributed. *)
   let stacks = ref [] in
-  call ~id:"stacks.before-P" ~family:"enumeration" ~expect:Legacy
+  call ~id:"stacks.before-P" ~family:"enumeration" ~expect:Resolver
     ~request:"Eva.Results.(before P |> callstacks)"
     (text (fun () ->
          stacks := R.(before stmt |> callstacks);
          String.concat " " (names !stacks)));
-  call ~id:"by_callstack.before-P" ~family:"enumeration" ~expect:Legacy
+  call ~id:"by_callstack.before-P" ~family:"enumeration" ~expect:Resolver
     ~request:"Eva.Results.(before P |> by_callstack)"
     (text (fun () ->
          String.concat " "
@@ -290,14 +623,15 @@ let battery kf stmt =
   call ~id:("status." ^ kf_name) ~family:"availability" ~expect:Legacy
     ~request:"Eva.Analysis.status f"
     (text (fun () -> pretty_kf_status (Eva.Analysis.status kf)));
+  (* Served by the reachability of the hit log, Hit_log.reach. *)
   call ~id:"reachable.P" ~family:"availability" ~expect:Resolver
     ~request:"Eva.Results.is_reachable P"
     (text (fun () -> string_of_bool (R.is_reachable stmt)));
   let stacks = by_stack_name !stacks in
-  (* The unfiltered request reads the legacy store; the request on each
-     supplied stack goes through the resolver. *)
+  (* The unfiltered request and the request on each supplied stack go
+     through the resolver. *)
   let per_stack id request req f =
-    call ~id ~family:"getter" ~request ~expect:Legacy (fun () -> f req);
+    call ~id ~family:"getter" ~request ~expect:Resolver (fun () -> f req);
     List.iter (fun stack ->
         call ~id:(id ^ "." ^ stack_name stack) ~family:"supplied-stack"
           ~expect:Resolver
@@ -321,10 +655,10 @@ let battery kf stmt =
            let result = R.(eval_var vi req |> as_cvalue_result) in
            pretty_result Cvalue.V.pretty result, Value result))
     globals;
-  call ~id:("model.start-of-" ^ kf_name) ~family:"getter" ~expect:Legacy
+  call ~id:("model.start-of-" ^ kf_name) ~family:"getter" ~expect:Resolver
     ~request:"Eva.Results.(at_start_of f |> get_cvalue_model)"
     (fun () -> model (R.at_start_of kf));
-  call ~id:"model.initial" ~family:"getter" ~expect:Legacy
+  call ~id:"model.initial" ~family:"getter" ~expect:Resolver
     ~request:"Eva.Results.(at_start |> get_cvalue_model)"
     (fun () -> model R.at_start);
   (* Position adapters at P, on each supplied stack. *)
@@ -371,7 +705,7 @@ let battery kf stmt =
       let name = Kernel_function.get_name kf in
       let kf_stacks = ref [] in
       call ~id:("stacks.start-of-" ^ name) ~family:"enumeration"
-        ~expect:Legacy
+        ~expect:Resolver
         ~request:("Eva.Results.(at_start_of " ^ name ^ " |> callstacks)")
         (text (fun () ->
              kf_stacks := by_stack_name R.(at_start_of kf |> callstacks);
@@ -436,7 +770,8 @@ let battery kf stmt =
          R.(in_cvalue_state Cvalue.Model.empty_map |> eval_exp exp
             |> as_cvalue_result)
        in
-       pretty_result Cvalue.V.pretty result, Value result)
+       pretty_result Cvalue.V.pretty result, Value result);
+  selection_battery kf stmt stacks
 
 (* {2 Reachability battery}
 
@@ -797,28 +1132,31 @@ let native run_battery =
         log "native %s missing" expected.id;
         incr differing
       | Some observed ->
-        match native_equal expected.native observed.native with
-        | None -> ()
-        | Some equal ->
-          incr compared;
-          if not equal then incr differing;
-          log "native %s equal=%b reference-reads=%d reference-resolved=%d \
-               legacy-reads=%d resolved=%d" expected.id equal
-            (List.length expected.reads) (List.length expected.resolutions)
-            (List.length observed.reads) (List.length observed.resolutions);
-          emit (`Assoc [
-              "kind", `String "native";
-              "id", `String expected.id;
-              "equal", `Bool equal;
-              "expected", `String expected.text;
-              "observed", `String observed.text;
-              "reference_reads", `Int (List.length expected.reads);
-              "reference_resolved",
-              `List (List.map json_of_resolution expected.resolutions);
-              "reads", `List (List.map json_of_read observed.reads);
-              "resolved",
-              `List (List.map json_of_resolution observed.resolutions);
-            ]))
+        let equal = native_equal expected.native observed.native in
+        Option.iter (fun equal ->
+            incr compared;
+            if not equal then incr differing;
+            log "native %s equal=%b reference-reads=%d reference-resolved=%d \
+                 legacy-reads=%d resolved=%d" expected.id equal
+              (List.length expected.reads) (List.length expected.resolutions)
+              (List.length observed.reads) (List.length observed.resolutions))
+          equal;
+        (* Answers without a native comparison are recorded too, with the
+           path that served them; equal is then null. *)
+        emit (`Assoc [
+            "kind", `String "native";
+            "id", `String expected.id;
+            "equal", Option.fold ~none:`Null ~some:(fun b -> `Bool b) equal;
+            "text_equal", `Bool (String.equal expected.text observed.text);
+            "expected", `String expected.text;
+            "observed", `String observed.text;
+            "reference_reads", `Int (List.length expected.reads);
+            "reference_resolved",
+            `List (List.map json_of_resolution expected.resolutions);
+            "reads", `List (List.map json_of_read observed.reads);
+            "resolved",
+            `List (List.map json_of_resolution observed.resolutions);
+          ]))
     reference;
   log "native compared=%d differing=%d" !compared !differing;
   emit (`Assoc [
