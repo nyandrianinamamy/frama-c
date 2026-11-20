@@ -357,8 +357,10 @@ Pending results. While the analysis runs, f calls pending_probe, and the
 driver makes requests on the callstack of f. No result is available yet:
 the hit log answers that they are pending. The legacy is_empty answers
 true at P; the candidate answers false. The other answers are the legacy
-ones: Top on the callstack, reachable, Eva.Analysis.status partial and no
-result available.
+ones: Top on the callstack and without callstack, no callstack, reachable,
+Eva.Analysis.status partial and no result available. These answers are not
+kept: after the analysis, the same requests answer the state of the call
+and its callstack.
   $ run reach-reference pending-reference.log pending.i
   $ run reach-candidate pending.log pending.i
   $ answers pending-reference.log > pending-reference.txt
@@ -372,9 +374,14 @@ result available.
   $ grep -e "call pending\." pending.log
   [acceptance] call pending.P.reachable legacy-reads=0 resolved=1 answer=true
   [acceptance] call pending.P.empty-before legacy-reads=0 resolved=1 answer=false
+  [acceptance] call pending.P.stacks legacy-reads=0 resolved=1 answer=
+  [acceptance] call pending.P.model-before legacy-reads=0 resolved=1 answer=NO INFORMATION
   [acceptance] call pending.P.before.main/f@16 legacy-reads=0 resolved=1 answer=error top
   [acceptance] call pending.fn.f.status legacy-reads=1 resolved=0 answer=analyzed partial
   [acceptance] call pending.fn.f.available legacy-reads=1 resolved=0 answer=false
+  $ grep -e "call reach\.P\.\(stacks\|model-before\) " pending.log
+  [acceptance] call reach.P.stacks legacy-reads=0 resolved=1 answer=main/f@16
+  [acceptance] call reach.P.model-before legacy-reads=0 resolved=1 answer=g ∈ {0}; x ∈ {1}
 
 Partial results of a recursion. rec is unrolled once: its first call
 analyzes the body, and the recursive call uses the specification.

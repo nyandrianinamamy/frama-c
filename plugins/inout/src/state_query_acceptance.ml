@@ -954,6 +954,14 @@ let pending_requests callstack =
       call ~id:(id "empty-before") ~family:"reachability" ~expect:Legacy
         ~request:(request ("before " ^ label ^ " |> is_empty"))
         (text (fun () -> string_of_bool (R.(before stmt |> is_empty))));
+      call ~id:(id "stacks") ~family:"enumeration" ~expect:Legacy
+        ~request:(request ("before " ^ label ^ " |> callstacks"))
+        (text (fun () ->
+             R.(before stmt |> callstacks) |> by_stack_name
+             |> List.map stack_name |> String.concat " "));
+      call ~id:(id "model-before") ~family:"getter" ~expect:Legacy
+        ~request:(request ("before " ^ label ^ " |> get_cvalue_model"))
+        (fun () -> model (R.before stmt));
       if Kernel_function.equal kf caller_kf then
         call ~id:(id ("before." ^ stack_name caller))
           ~family:"supplied-stack" ~expect:Resolver
