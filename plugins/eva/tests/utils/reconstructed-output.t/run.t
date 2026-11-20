@@ -15,58 +15,52 @@ legacy read of a migrated reader abort the run: the final printing
 every read of the requests replayed on restored results (replay). The run
 completes. The checks, which read the label Init, are valid with the
 supplied g = 7 and invalid with g = 3, and keep their status once
-restored. The legacy reads that remain are the engine's registration of
-states during the analysis, the marking of postconditions, which reads the
-analysis status of each function, and the copy of the callers and analysis
-status of each function by the snapshot export. The metadata requests
-Eva.Results.are_available and Eva.Analysis.status, made outside the replay,
-read the status table too. The hit log served each migrated reader.
+restored. The script lists the reads of the migrated readers and of the
+snapshot functions only: the one that remains is the copy of the callers
+and analysis status of each function by the snapshot export, which the
+migration of the metadata covers. The hit log served each migrated reader.
   $ mkdir candidate reference
   $ FORBID=display,init,export,replay ANSWERS=candidate frama-c -no-autoload-plugins -load-module eva,inout,reconstructed.cmxs -eva-domains cvalue -eva-no-memexec inputs.i > candidate.log 2>&1
   $ grep -e "^\[reconstructed\]" -e "legacy result-store" candidate.log
   [reconstructed] analysis 1: g = 7 in the supplied memory, n = 10
   [reconstructed] status f_init: VALID
   [reconstructed] status main_init: VALID
-  [reconstructed] fresh-1: replayed with 0 legacy reads
-  [reconstructed] snapshot 1: exported with 1 legacy reads
+  [reconstructed] fresh-1: replayed with no legacy read
+  [reconstructed] snapshot 1: states exported with no legacy read
   [reconstructed] analysis 2: g = 3 in the supplied memory, n = 20
   [reconstructed] status f_init: **NOT** VALID
   [reconstructed] status main_init: **NOT** VALID
-  [reconstructed] fresh-2: replayed with 0 legacy reads
-  [reconstructed] snapshot 2: exported with 1 legacy reads
-  [reconstructed] snapshot 1: restored with 0 legacy reads
+  [reconstructed] fresh-2: replayed with no legacy read
+  [reconstructed] snapshot 2: states exported with no legacy read
+  [reconstructed] snapshot 1: restored with no legacy read
   [reconstructed] status f_init: VALID
   [reconstructed] status main_init: VALID
-  [reconstructed] restored-1: replayed with 0 legacy reads
-  [reconstructed] snapshot 2: restored with 0 legacy reads
+  [reconstructed] restored-1: replayed with no legacy read
+  [reconstructed] snapshot 2: restored with no legacy read
   [reconstructed] status f_init: **NOT** VALID
   [reconstructed] status main_init: **NOT** VALID
-  [reconstructed] restored-2: replayed with 0 legacy reads
-  [reconstructed] read phase=analysis readers=Eva.Engine.register_state access=getter store=cvalue count=66
-  [reconstructed] read phase=post-analysis readers=Eva.Eval_annots.mark_unreachable access=availability store=analysis-status count=4
-  [reconstructed] read phase=request readers=Eva.Results.are_available access=availability store=analysis-status count=4
-  [reconstructed] read phase=request readers=Eva.Analysis.status access=availability store=analysis-status count=4
-  [reconstructed] read phase=request readers=Eva.Eva_results.get_results>Eva.Eva_results.export_calls access=availability store=analysis-status count=2
-  [reconstructed] display: legacy-reads=0 resolved=36
-  [reconstructed] init: legacy-reads=0 resolved=12
-  [reconstructed] export: legacy-reads=0 resolved=54
+  [reconstructed] restored-2: replayed with no legacy read
+  [reconstructed] read phase=request readers=Eva.Eva_results.get_results>Eva.Eva_results.export_calls access=availability store=analysis-status
+  [reconstructed] display: no legacy read, answers of the hit log
+  [reconstructed] init: no legacy read, answers of the hit log
+  [reconstructed] export: no legacy read, answers of the hit log
 
 Reference. A separate process runs the same script on the legacy path,
 fresh-only: every migrated reader reads the legacy store, and the hit log
 serves none.
   $ ANSWERS=reference frama-c -no-autoload-plugins -load-module eva,inout,reconstructed.cmxs -eva-domains cvalue -eva-no-memexec -eva-no-hit-log inputs.i > reference.log 2>&1
-  $ grep -e "replayed" -e "exported" -e "restored with" -e "legacy-reads=" -e "legacy result-store" reference.log
-  [reconstructed] fresh-1: replayed with 50 legacy reads
-  [reconstructed] snapshot 1: exported with 62 legacy reads
-  [reconstructed] fresh-2: replayed with 50 legacy reads
-  [reconstructed] snapshot 2: exported with 62 legacy reads
-  [reconstructed] snapshot 1: restored with 0 legacy reads
-  [reconstructed] restored-1: replayed with 60 legacy reads
-  [reconstructed] snapshot 2: restored with 0 legacy reads
-  [reconstructed] restored-2: replayed with 60 legacy reads
-  [reconstructed] display: legacy-reads=74 resolved=0
-  [reconstructed] init: legacy-reads=12 resolved=0
-  [reconstructed] export: legacy-reads=122 resolved=0
+  $ grep -e "replayed" -e "exported" -e "restored with" -e "hit log" -e "legacy result-store" reference.log
+  [reconstructed] fresh-1: replayed with legacy reads
+  [reconstructed] snapshot 1: states exported with legacy reads
+  [reconstructed] fresh-2: replayed with legacy reads
+  [reconstructed] snapshot 2: states exported with legacy reads
+  [reconstructed] snapshot 1: restored with no legacy read
+  [reconstructed] restored-1: replayed with legacy reads
+  [reconstructed] snapshot 2: restored with no legacy read
+  [reconstructed] restored-2: replayed with legacy reads
+  [reconstructed] display: legacy reads, no answer of the hit log
+  [reconstructed] init: legacy reads, no answer of the hit log
+  [reconstructed] export: legacy reads, no answer of the hit log
 
 The output of Eva is the same in both processes: the initial state, the
 final values, the alarms, the statuses and the summary of each analysis.
@@ -161,10 +155,10 @@ D stays unreachable.
   $ mkdir no-results no-results-reference
   $ FORBID=display,init,export,replay ANSWERS=no-results frama-c -no-autoload-plugins -load-module eva,inout,reconstructed.cmxs -eva-domains cvalue -eva-no-memexec -eva-no-results-function f inputs.i > no-results.log 2>&1
   $ grep -e "replayed" -e "legacy result-store" no-results.log
-  [reconstructed] fresh-1: replayed with 0 legacy reads
-  [reconstructed] fresh-2: replayed with 0 legacy reads
-  [reconstructed] restored-1: replayed with 0 legacy reads
-  [reconstructed] restored-2: replayed with 0 legacy reads
+  [reconstructed] fresh-1: replayed with no legacy read
+  [reconstructed] fresh-2: replayed with no legacy read
+  [reconstructed] restored-1: replayed with no legacy read
+  [reconstructed] restored-2: replayed with no legacy read
   $ diff no-results/fresh-1 no-results/restored-1
   $ diff no-results/fresh-2 no-results/restored-2
   $ cat no-results/restored-1
@@ -248,8 +242,8 @@ snapshot, and the first request replayed on the restored results.
   $ FORBID=replay frama-c -no-autoload-plugins -load-module eva,inout,reconstructed.cmxs -eva-domains cvalue -eva-no-memexec -eva-no-hit-log inputs.i > control-replay.log 2>&1
   [1]
   $ grep -e "replayed" -e "legacy result-store" control-replay.log
-  [reconstructed] fresh-1: replayed with 50 legacy reads
-  [reconstructed] fresh-2: replayed with 50 legacy reads
+  [reconstructed] fresh-1: replayed with legacy reads
+  [reconstructed] fresh-2: replayed with legacy reads
   [eva] User Error: legacy result-store read trapped: phase=request reader=Eva.Results.callstacks access=availability store=analysis-status point=before line 12 of f
 
 Final values without the script, on hit.i. With memexec, the second call

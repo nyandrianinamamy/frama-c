@@ -40,6 +40,14 @@ let arm ~replay =
   Guard.arm (if trap then Guard.Trap [ Guard.Request ] else Guard.Record);
   Guard.forbid (List.filter_map (fun n -> List.assoc_opt n labels) forbidden)
 
+(* Whether some reads were logged. The exact counts depend on the readers
+   that other changes migrate, such as the nested requests of InOut. *)
+let some_reads = function
+  | [] -> "no legacy read"
+  | _ :: _ -> "legacy reads"
+
+let read_by label (r : Guard.read) = List.mem label r.readers
+
 (* ----- Program ------------------------------------------------------------ *)
 
 let global name =
@@ -167,7 +175,7 @@ let write_answers ~replay:trap name =
   metadata fmt;
   Format.pp_print_flush fmt ();
   close_out channel;
-  log "%s: replayed with %d legacy reads" name (List.length reads)
+  log "%s: replayed with %s" name (some_reads reads)
 
 (* The status that Eva emits for each check, which reads the label Init. *)
 let statuses () =
@@ -196,46 +204,54 @@ let analyze ~step ~g ~n =
   statuses ();
   write_answers ~replay:false ("fresh-" ^ step);
   let results, reads = Guard.observe Eva.Eva_results.get_results in
-  log "snapshot %s: exported with %d legacy reads" step (List.length reads);
+  let states = List.filter (read_by (List.assoc "export" labels)) reads in
+  log "snapshot %s: states exported with %s" step (some_reads states);
   results
 
 let restore ~step results =
   let (), reads =
     Guard.observe (fun () -> Eva.Eva_results.set_results results)
   in
-  log "snapshot %s: restored with %d legacy reads" step (List.length reads);
+  log "snapshot %s: restored with %s" step (some_reads reads);
   statuses ();
   write_answers ~replay:true ("restored-" ^ step)
 
-(* The reads of the run, grouped by phase, enclosing readers, access and
-   store, in order of first occurrence; then, for each migrated reader, its
-   reads and the answers of the hit log that served it. *)
+(* The reads of the run made on behalf of a migrated reader or of the
+   snapshot functions of Eva_results, grouped by phase, enclosing readers,
+   access and store, in order of first occurrence; then, for each migrated
+   reader, whether it read the legacy store and whether the hit log served
+   it. The other reads belong to readers that this test does not cover. *)
 let summary () =
   let reads = Guard.reads () in
+  let snapshot label = String.starts_with ~prefix:"Eva.Eva_results." label in
+  let covered (r : Guard.read) =
+    List.exists snapshot r.readers
+    || List.exists (fun (_, label) -> read_by label r) labels
+  in
   let key (r : Guard.read) =
     Guard.phase_name r.phase, String.concat ">" r.readers,
     Guard.access_name r.access, r.store
   in
-  let counts = Hashtbl.create 17 and order = ref [] in
-  List.iter (fun r ->
-      let k = key r in
-      match Hashtbl.find_opt counts k with
-      | Some n -> Hashtbl.replace counts k (n + 1)
-      | None -> Hashtbl.add counts k 1; order := k :: !order)
-    reads;
-  List.iter (fun ((phase, readers, access, store) as k) ->
-      log "read phase=%s readers=%s access=%s store=%s count=%d"
-        phase readers access store (Hashtbl.find counts k))
-    (List.rev !order);
+  let order =
+    List.fold_left (fun order r ->
+        let k = key r in
+        if not (covered r) || List.mem k order then order else k :: order)
+      [] reads
+  in
+  List.iter (fun (phase, readers, access, store) ->
+      log "read phase=%s readers=%s access=%s store=%s"
+        phase readers access store)
+    (List.rev order);
   let resolutions = Guard.resolutions () in
   List.iter (fun (name, label) ->
-      let reads = List.filter (fun r -> List.mem label r.Guard.readers) reads
+      let reads = List.filter (read_by label) reads
       and served =
         List.filter (fun r -> List.mem label r.Guard.resolved_readers)
           resolutions
       in
-      log "%s: legacy-reads=%d resolved=%d" name (List.length reads)
-        (List.length served))
+      log "%s: %s, %s" name (some_reads reads)
+        (if served = [] then "no answer of the hit log"
+         else "answers of the hit log"))
     labels
 
 let main () =

@@ -40,7 +40,7 @@ import sys
 CONTROLS = {
     "request": (1, "request", "Eva.Results.get_cvalue_model"),
     "analysis": (1, "analysis", "Eva.Engine.register_state"),
-    "collection": (1, "collection", "Eva.Eval_terms.add_init"),
+    "collection": (1, "collection", "Eva.Summary.compute_fun_stats"),
     "post-analysis": (1, "post-analysis", "Eva.Eval_annots.mark_unreachable"),
     "initialization": (0, None, None),
 }
