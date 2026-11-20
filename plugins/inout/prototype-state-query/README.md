@@ -134,7 +134,10 @@ result is available yet, so the legacy path gets top. For an assertion that
 reads `\at(*p, Pre)`, the legacy path then reports the logic inputs as
 `ANYTHING`, and the hit log as `a; p` (fixture `pre-label.c`). This
 difference is expected and reported by its own control; it does not hold
-for the other fixtures.
+for the other fixtures. It also changes memexec: a call whose logic inputs
+are `ANYTHING` is not cached, so with `-eva-memexec` and two identical calls
+to such a function, the legacy path analyzes the body twice and the hit log
+reuses the first call.
 
 The guard (`Eva.Legacy_read_guard`) sees three kinds of reads:
 

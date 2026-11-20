@@ -89,13 +89,35 @@ of g = 9.
   [acceptance] call model.before-P.main/f@15 legacy-reads=0 resolved=1 answer=g ∈ {4}; y ∈ {0}; x ∈ {10}; __retres ∈ UNINITIALIZED
   [acceptance] call model.before-P.main/f@18 legacy-reads=0 resolved=1 answer=g ∈ {4}; y ∈ {0}; x ∈ {10}; __retres ∈ UNINITIALIZED
 
-With memexec, the second call to f is a hit on the entry of the first. The
-resolver answers its input, recorded at the call, and declines the points of
-its body, which it cannot rebuild yet: these requests read the legacy store.
+With memexec, the first call to f is analyzed: the resolver serves the
+points of its body as without memexec. The second call is a hit on the entry
+of the first. The resolver answers its input, recorded at the call, and
+declines the points of its body, which it cannot rebuild yet: these requests
+read the legacy store.
   $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-memexec -inout-state-query-acceptance candidate assign.i > memexec.log 2>&1
-  $ grep -e "of-f.main/f@18" -e "visits f" memexec.log
+  $ grep -e "model.before-P.main" -e "model.after-P.main" -e "of-f.main" -e "visits f" memexec.log
+  [acceptance] call model.before-P.main/f@15 legacy-reads=0 resolved=1 answer=g ∈ {4}; y ∈ {0}; x ∈ {10}; __retres ∈ UNINITIALIZED
+  [acceptance] call model.after-P.main/f@15 legacy-reads=0 resolved=1 answer=g ∈ {4}; y ∈ {11}; x ∈ {10}; __retres ∈ UNINITIALIZED
+  [acceptance] call model.start-of-f.main/f@15 legacy-reads=0 resolved=1 answer=g ∈ {4}; y ∈ {0}; x ∈ {10}; __retres ∈ UNINITIALIZED
+  [acceptance] call model.body-entry-of-f.main/f@15 legacy-reads=0 resolved=1 answer=g ∈ {4}; y ∈ {0}; x ∈ {10}; __retres ∈ UNINITIALIZED
+  [acceptance] call model.end-of-f.main/f@15 legacy-reads=0 resolved=1 answer=g ∈ {4}; y ∈ {11}; x ∈ {10}; __retres ∈ UNINITIALIZED
   [acceptance] visits f.main/f@15 body#1: 1 entries survive the preconditions; input:; g ∈ {4}; y ∈ {0}; x ∈ {10}; __retres ∈ UNINITIALIZED
   [acceptance] call model.start-of-f.main/f@18 legacy-reads=0 resolved=1 answer=g ∈ {9}; y ∈ {0}; x ∈ {10}; __retres ∈ UNINITIALIZED
   [acceptance] call model.body-entry-of-f.main/f@18 legacy-reads=2 resolved=0 answer=error bottom
   [acceptance] call model.end-of-f.main/f@18 legacy-reads=2 resolved=0 answer=error bottom
   [acceptance] visits f.main/f@18 hit#1: no body analysis; input:; g ∈ {9}; y ∈ {0}; x ∈ {10}; __retres ∈ UNINITIALIZED
+
+Without saved results for f (-eva-no-results-function f), the resolver
+answers the input of each call, and Top at the points of its body, as the
+legacy store does. The native comparison agrees.
+  $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-no-memexec -eva-no-results-function f -inout-state-query-acceptance candidate assign.i > no-results.log 2>&1
+  $ grep -e "of-f.main" no-results.log
+  [acceptance] call model.start-of-f.main/f@15 legacy-reads=0 resolved=1 answer=g ∈ {4}; y ∈ {0}; x ∈ {10}; __retres ∈ UNINITIALIZED
+  [acceptance] call model.body-entry-of-f.main/f@15 legacy-reads=0 resolved=1 answer=error top
+  [acceptance] call model.end-of-f.main/f@15 legacy-reads=0 resolved=1 answer=error top
+  [acceptance] call model.start-of-f.main/f@18 legacy-reads=0 resolved=1 answer=g ∈ {9}; y ∈ {0}; x ∈ {10}; __retres ∈ UNINITIALIZED
+  [acceptance] call model.body-entry-of-f.main/f@18 legacy-reads=0 resolved=1 answer=error top
+  [acceptance] call model.end-of-f.main/f@18 legacy-reads=0 resolved=1 answer=error top
+  $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-no-results-function f -inout-state-query-acceptance native assign.i > no-results-native.log 2>&1
+  $ grep -e "equal=false" -e "native compared" no-results-native.log
+  [acceptance] native compared=19 differing=0
