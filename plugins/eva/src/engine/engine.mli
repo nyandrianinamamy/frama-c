@@ -16,6 +16,9 @@ module Make (Abstract: Abstractions.S) : Engine_sig.S_with_results
 (** The current analysis engine, with all abstractions and the results. *)
 val current : unit -> (module Engine_sig.S_with_results)
 
+(** Whether the current engine uses the cvalue domain alone. *)
+val is_cvalue_only : unit -> bool
+
 (** Builds the current analysis engine according to the Eva parameters. *)
 val reset : unit -> (module Engine_sig.S_with_results)
 

@@ -85,6 +85,32 @@ val observe: (unit -> 'a) -> 'a * read list
 (** The read that triggered the trap, if any. *)
 val trapped: unit -> read option
 
+(** {2 Resolutions}
+
+    The resolver of {!Hit_log} answers some requests without reading the
+    legacy store. The guard logs each answer as a resolution, separately
+    from the reads, so that a request shows which path served it. *)
+
+type resolution = {
+  resolved_phase: phase;
+  resolved_point: string;
+  (** The control point and callstack. *)
+  visits: string;
+  (** The invocations used, with their kind and producer. *)
+}
+
+(** [resolved point visits] is called by the resolver on each answer. The
+    arguments are only used when the guard is armed. *)
+val resolved:
+  (Format.formatter -> unit) -> (Format.formatter -> unit) -> unit
+
+(** Resolutions logged since the last {!clear}, in chronological order. *)
+val resolutions: unit -> resolution list
+
+(** [observe_resolutions f] runs [f] and also returns the resolutions logged
+    during [f]. *)
+val observe_resolutions: (unit -> 'a) -> 'a * resolution list
+
 (** The outermost labelled reader, or ["unlabelled"]. *)
 val reader_name: read -> string
 

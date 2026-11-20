@@ -8,10 +8,12 @@
 ##########################################################################
 
 # Acceptance driver for Eva result queries. For each fixture, a reference
-# process runs fresh-only Eva with the legacy-read guard off, and a separate
-# candidate process records every legacy read. The trap controls run in
-# their own processes. compare.py then compares the answers and writes the
-# report. Usage: acceptance.sh [evidence-dir]
+# process runs fresh-only Eva on the legacy path with the legacy-read guard
+# off, and a separate candidate process records every legacy read and every
+# answer of the hit-log resolver. A third process compares the models of
+# both in memory. The controls run in their own processes. compare.py then
+# compares the answers and writes the report.
+# Usage: acceptance.sh [evidence-dir]
 
 set -euo pipefail
 
@@ -28,8 +30,8 @@ base=(dune exec --no-build -- frama-c -no-autoload-plugins
 # This slice compares fresh-only executions; later tickets change the
 # candidate's options.
 candidate_options=(${CANDIDATE_OPTIONS:--eva-no-memexec})
-fixtures=(legacy-reads original loop read-before-write guard unreachable
-  partial-base maybe-write maybe-write-goto maybe-write-upstream)
+fixtures=(legacy-reads assign stages original loop read-before-write guard
+  unreachable partial-base maybe-write maybe-write-goto maybe-write-upstream)
 
 {
   printf 'revision %s\n' "$(git rev-parse HEAD)"
@@ -53,8 +55,22 @@ run() {
 for name in "${fixtures[@]}"; do
   run "$name" reference "$evidence/$name.reference"
   run "$name" candidate "$evidence/$name.candidate" "${candidate_options[@]}"
+  # Fresh-only reference and candidate in one process, compared natively.
+  run "$name" native "$evidence/$name.native"
   printf 'Recorded %s\n' "$name"
 done
+
+# Resolver controls. A resolver that rebuilds each visit from the wrong
+# producer must be reported; on the legacy path, InOut's collection reads
+# the store; the Pre label of InOut is an expected difference.
+run legacy-reads wrong-producer "$evidence/control-wrong-producer" \
+  "${candidate_options[@]}"
+run legacy-reads candidate "$evidence/control-legacy-path" \
+  "${candidate_options[@]}" -eva-no-hit-log
+run pre-label reference "$evidence/control-pre-label.reference"
+run pre-label candidate "$evidence/control-pre-label.candidate" \
+  "${candidate_options[@]}"
+printf 'Recorded resolver controls\n'
 
 # Positive controls: the trap must abort the run with exit status 1.
 for phase in request analysis collection post-analysis initialization; do

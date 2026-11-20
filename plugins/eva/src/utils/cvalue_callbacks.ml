@@ -39,7 +39,11 @@ let apply_call_hooks callstack kf state kind =
 type call_assigns = (Assigns.t * Memory_zone.t) option
 
 type state_by_stmt = (state Cil_datatype.Stmt.Hashtbl.t) Lazy.t
-type results = { before_stmts: state_by_stmt; after_stmts: state_by_stmt }
+type results = {
+  input: state;
+  before_stmts: state_by_stmt;
+  after_stmts: state_by_stmt;
+}
 
 type call_results =
   [ `Builtin of state list * call_assigns

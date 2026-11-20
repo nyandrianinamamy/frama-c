@@ -121,22 +121,51 @@ let notify access ~store point =
       Self.abort "legacy result-store read trapped: %a" pretty_read read
     | Off | Record | Trap _ -> ()
 
+type resolution = {
+  resolved_phase: phase;
+  resolved_point: string;
+  visits: string;
+}
+
+let resolution_log = ref [] (* latest first *)
+let resolved_count = ref 0
+
+let resolved point visits =
+  match !current_mode with
+  | Off -> ()
+  | Record | Trap _ ->
+    let resolution = {
+      resolved_phase = !current_phase;
+      resolved_point = Format.asprintf "%t" point;
+      visits = Format.asprintf "%t" visits;
+    } in
+    resolution_log := resolution :: !resolution_log;
+    incr resolved_count
+
 let reads () = List.rev !log
+let resolutions () = List.rev !resolution_log
 
 let clear () =
   log := [];
   logged := 0;
-  trapped_read := None
+  trapped_read := None;
+  resolution_log := [];
+  resolved_count := 0
+
+let rec take n list =
+  if n <= 0 then [] else
+    match list with
+    | [] -> []
+    | x :: tail -> x :: take (n - 1) tail
 
 let observe f =
   let before = !logged in
   let result = f () in
-  let rec take n list =
-    if n <= 0 then [] else
-      match list with
-      | [] -> []
-      | x :: tail -> x :: take (n - 1) tail
-  in
   result, List.rev (take (!logged - before) !log)
+
+let observe_resolutions f =
+  let before = !resolved_count in
+  let result = f () in
+  result, List.rev (take (!resolved_count - before) !resolution_log)
 
 let trapped () = !trapped_read

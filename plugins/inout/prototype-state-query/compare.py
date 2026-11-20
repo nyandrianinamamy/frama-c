@@ -12,8 +12,9 @@ Usage: compare.py EVIDENCE-DIR FIXTURE... [--require-zero-reads] [--no-write]
 
 For each fixture, EVIDENCE-DIR holds NAME.reference.jsonl and
 NAME.candidate.jsonl, written by separate processes. Answers are compared
-as text: equal text means equal printed answers, and inclusion between
-models is not checked. Each call gets one disposition:
+as text: equal text means equal printed answers. NAME.native.jsonl, when
+present, holds the native comparison of the models of a reference and a
+candidate run in one process. Each call gets one disposition:
 
   MATCH       equal answers, no legacy read during the call
   LEGACY      equal answers, served with legacy reads
@@ -21,8 +22,11 @@ models is not checked. Each call gets one disposition:
   MISSING     the call is absent from one of the runs
   UNOBSERVED  equal answers, but the candidate's guard was off
 
-The zero-read gate passes when no call is LEGACY or UNOBSERVED and the
-candidates logged no read during the execution either. The exit status is 1
+Each call also states the path expected to serve it (legacy, resolver or
+none); the resolver and sensitivity controls check it against the reads and
+resolutions the candidate recorded. The zero-read gate passes when no call
+is LEGACY or UNOBSERVED and the candidates logged no read during the
+execution either. The exit status is 1
 on any MISMATCH, MISSING or failed control, and also on a failed gate with
 --require-zero-reads. --no-write skips writing report.md and report.json."""
 
@@ -44,17 +48,24 @@ CONTROL_FIXTURE = "legacy-reads"
 TRAP_PREFIX = "legacy result-store read trapped: "
 
 
+def records(path):
+    return [json.loads(line) for line in path.read_text().splitlines()]
+
+
 def load(path):
-    records = [json.loads(line) for line in path.read_text().splitlines()]
-    header = next(r for r in records if r["kind"] == "header")
-    calls = [r for r in records if r["kind"] == "call"]
-    execution = [r for r in records if r["kind"] == "execution"]
+    rs = records(path)
+    header = next(r for r in rs if r["kind"] == "header")
+    calls = [r for r in rs if r["kind"] == "call"]
+    execution = [r for r in rs if r["kind"] == "execution"]
     return header, calls, execution
 
 
+def collection(path):
+    return next((r["reads"] for r in records(path) if r["kind"] == "collection"), [])
+
+
 def accounting(path):
-    records = [json.loads(line) for line in path.read_text().splitlines()]
-    return next((r for r in records if r["kind"] == "accounting"), None)
+    return next((r for r in records(path) if r["kind"] == "accounting"), None)
 
 
 def disposition(expected, observed):
@@ -76,17 +87,21 @@ def compare_calls(reference, candidate):
     for call_id in ids:
         exp, obs = expected.get(call_id), observed.get(call_id)
         reads = (obs or {}).get("reads") or []
+        resolved = (obs or {}).get("resolved") or []
         rows.append(
             {
                 "id": call_id,
                 "family": (exp or obs)["family"],
                 "request": (exp or obs)["request"],
+                "expect": (exp or obs).get("expect"),
                 "expected": exp and exp["answer"],
                 "observed": obs and obs["answer"],
                 "legacy_reads": len(reads),
                 "readers": sorted(
                     {f"{r['phase']}/{r['reader']}/{r['access']}/{r['store']}" for r in reads}
                 ),
+                "resolved": len(resolved),
+                "visits": sorted({r["visits"] for r in resolved}),
                 "disposition": disposition(exp, obs),
             }
         )
@@ -98,6 +113,22 @@ def digest(path):
         return hashlib.sha256(Path(path).read_bytes()).hexdigest()
     except OSError:
         return None
+
+
+def native_report(evidence, name):
+    path = evidence / f"{name}.native.jsonl"
+    if not path.exists():
+        return None
+    rs = records(path)
+    summary = next((r for r in rs if r["kind"] == "native-summary"), None)
+    return {
+        "summary": summary,
+        "differing": [r["id"] for r in rs if r["kind"] == "native" and not r["equal"]],
+        "resolved": {r["id"]: len(r["resolved"]) for r in rs if r["kind"] == "native"},
+        "reference_resolved": sum(
+            len(r["reference_resolved"]) for r in rs if r["kind"] == "native"
+        ),
+    }
 
 
 def fixture_report(evidence, name):
@@ -115,6 +146,8 @@ def fixture_report(evidence, name):
         "inputs": inputs,
         "execution": [{**e["first"], "count": e["count"]} for e in execution],
         "execution_reads": sum(e["count"] for e in execution),
+        "collection": collection(evidence / f"{name}.candidate.jsonl"),
+        "native": native_report(evidence, name),
         "accounting": {
             "reference": accounting(evidence / f"{name}.reference.jsonl"),
             "candidate": accounting(evidence / f"{name}.candidate.jsonl"),
@@ -201,20 +234,190 @@ def comparator_control(evidence):
 
 
 def sensitivity_control(fixture):
-    """The guard sees reads on stored results and none on a supplied
-    state. Requests the candidate did not make are left out."""
+    """The guard sees reads on every request still served by the legacy
+    store, and none on a request that reads neither store, such as a
+    supplied state. Requests the candidate did not make are left out."""
     rows = [r for r in fixture["calls"] if r["disposition"] != "MISSING"]
-    supplied = [r for r in rows if r["family"] == "supplied-state"]
-    stored = [r for r in rows if r["family"] != "supplied-state"]
-    silent = [r["id"] for r in stored if r["legacy_reads"] == 0]
-    ok = supplied and all(r["legacy_reads"] == 0 for r in supplied) and not silent
+    legacy = [r for r in rows if r["expect"] == "legacy"]
+    silent = [r["id"] for r in legacy if r["legacy_reads"] == 0]
+    unread = [r for r in rows if r["expect"] == "none"]
+    noisy = [r["id"] for r in unread if r["legacy_reads"] or r["resolved"]]
+    ok = legacy and unread and not silent and not noisy
     return {
         "control": "guard-sensitivity",
-        "expected": {"supplied_state_reads": 0, "stored_without_reads": []},
+        "expected": {"legacy_without_reads": [], "unread_with_reads": []},
         "observed": {
-            "supplied_state_reads": [r["legacy_reads"] for r in supplied],
-            "stored_without_reads": silent,
+            "legacy_calls": len(legacy),
+            "legacy_without_reads": silent,
+            "unread_calls": len(unread),
+            "unread_with_reads": noisy,
         },
+        "result": "PASS" if ok else "FAIL",
+    }
+
+
+def resolver_control(fixtures):
+    """Every request on a supplied stack is served by the resolver, with no
+    legacy read, and no other request is."""
+    unserved, unexpected = [], []
+    count = 0
+    for f in fixtures:
+        for r in f["calls"]:
+            if r["disposition"] == "MISSING":
+                continue
+            if r["expect"] == "resolver":
+                count += 1
+                if not r["resolved"] or r["legacy_reads"]:
+                    unserved.append(f"{f['fixture']}:{r['id']}")
+            elif r["resolved"]:
+                unexpected.append(f"{f['fixture']}:{r['id']}")
+    return {
+        "control": "resolver-path",
+        "expected": {"unserved": [], "unexpected": []},
+        "observed": {
+            "resolver_calls": count,
+            "unserved": unserved,
+            "unexpected": unexpected,
+        },
+        "result": "PASS" if count and not unserved and not unexpected else "FAIL",
+    }
+
+
+def perturbation_control(evidence):
+    """A resolver that rebuilds every visit from the first producer of its
+    function answers the second stack with the state of the first call: the
+    comparison must report it, on requests served by the resolver only."""
+    path = evidence / "control-wrong-producer.jsonl"
+    if not path.exists():
+        return {"control": "resolver-perturbation", "result": "NOT RUN"}
+    _, ref_calls, _ = load(evidence / f"{CONTROL_FIXTURE}.reference.jsonl")
+    _, calls, _ = load(path)
+    rows = compare_calls(ref_calls, calls)
+    mismatches = [r for r in rows if r["disposition"] == "MISMATCH"]
+    outside = [r["id"] for r in mismatches if r["expect"] != "resolver"]
+    ok = bool(mismatches) and not outside
+    return {
+        "control": "resolver-perturbation",
+        "expected": {"mismatches": ">0", "outside_resolver": []},
+        "observed": {
+            "mismatches": [r["id"] for r in mismatches],
+            "outside_resolver": outside,
+        },
+        "result": "PASS" if ok else "FAIL",
+    }
+
+
+def inout_reads(rows):
+    return sum(
+        r["count"]
+        for r in rows
+        if r["reader"].startswith("Eva.Results.") and r["caller"].startswith("Inout")
+    )
+
+
+def collection_control(evidence, fixtures):
+    """InOut collects from the input that Eva passes to its hook: the
+    candidates make no collection read on InOut's behalf through
+    Eva.Results. On the legacy path, the same driver sees that read."""
+    path = evidence / "control-legacy-path.jsonl"
+    if not path.exists():
+        return {"control": "inout-collection", "result": "NOT RUN"}
+    candidates = {f["fixture"]: inout_reads(f["collection"]) for f in fixtures}
+    legacy = inout_reads(collection(path))
+    ok = legacy > 0 and not any(candidates.values())
+    return {
+        "control": "inout-collection",
+        "expected": {"candidates": 0, "legacy_path": ">0"},
+        "observed": {"candidates": candidates, "legacy_path": legacy},
+        "result": "PASS" if ok else "FAIL",
+    }
+
+
+def native_control(fixtures):
+    """In one process, the legacy reference and the candidate give natively
+    equal models and values; the reference resolves nothing, and every
+    supplied-stack request of the candidate is resolved."""
+    observed, ok = {}, True
+    for f in fixtures:
+        native = f["native"]
+        if native is None:
+            observed[f["fixture"]] = "NOT RUN"
+            ok = False
+            continue
+        resolver_ids = {r["id"] for r in f["calls"] if r["expect"] == "resolver"}
+        unresolved = [i for i in resolver_ids if native["resolved"].get(i, 0) == 0]
+        summary = native["summary"] or {}
+        observed[f["fixture"]] = {
+            "compared": summary.get("compared"),
+            "differing": native["differing"],
+            "reference_resolved": native["reference_resolved"],
+            "unresolved": sorted(unresolved),
+        }
+        ok &= bool(summary.get("compared")) and summary.get("differing") == 0
+        ok &= not native["differing"] and native["reference_resolved"] == 0
+        ok &= not unresolved
+    return {
+        "control": "native-equality",
+        "expected": {"differing": 0, "reference_resolved": 0, "unresolved": []},
+        "observed": observed,
+        "result": "PASS" if ok else "FAIL",
+    }
+
+
+def independence_control(fixtures):
+    """The reference is fresh-only and takes the legacy path."""
+    wrong = [
+        f["fixture"]
+        for f in fixtures
+        if f["reference"]["config"].get("-eva-memexec") != "false"
+        or f["reference"]["config"].get("-eva-hit-log") != "false"
+        or f["reference"]["guard"] != "off"
+    ]
+    return {
+        "control": "reference-independence",
+        "expected": {"memexec": "false", "hit_log": "false", "guard": "off"},
+        "observed": {"other_reference": wrong},
+        "result": "PASS" if not wrong else "FAIL",
+    }
+
+
+PRE_LABEL = "control-pre-label"
+
+
+def pre_label_control(evidence):
+    """Expected difference. The legacy path reads the input of a call from
+    the store during the analysis, gets Top, and InOut's logic inputs of
+    \\at(*p, Pre) are ANYTHING. With the input of the invocation, they are
+    a and p. Only InOut's answers may differ."""
+    ref, cand = (
+        evidence / f"{PRE_LABEL}.reference.jsonl",
+        evidence / f"{PRE_LABEL}.candidate.jsonl",
+    )
+    if not (ref.exists() and cand.exists()):
+        return {"control": "pre-label-difference", "result": "NOT RUN"}
+    rows = compare_calls(load(ref)[1], load(cand)[1])
+    differing = [r for r in rows if r["disposition"] in ("MISMATCH", "MISSING")]
+
+    def zone(answer):
+        return answer.split("Logic inputs:")[-1].replace(";", " ").split()
+
+    logic = {
+        r["id"]: {"reference": zone(r["expected"]), "candidate": zone(r["observed"])}
+        for r in differing
+        if r["family"] == "inout"
+    }
+    ok = len(logic) == len(differing) == 1 and all(
+        v["reference"][:1] == ["ANYTHING(origin:Unknown)"] and v["candidate"] == ["a", "p"]
+        for v in logic.values()
+    )
+    return {
+        "control": "pre-label-difference",
+        "expected": {
+            "differing": "one InOut call",
+            "reference": "ANYTHING",
+            "candidate": "a; p",
+        },
+        "observed": {"differing": [r["id"] for r in differing], "logic_inputs": logic},
         "result": "PASS" if ok else "FAIL",
     }
 
@@ -247,7 +450,10 @@ def zero_read_gate(fixtures):
     calls = sum(
         1 for f in fixtures for r in f["calls"] if r["disposition"] in ("LEGACY", "UNOBSERVED")
     )
-    return execution == 0 and calls == 0, {"execution_reads": execution, "legacy_calls": calls}
+    return execution == 0 and calls == 0, {
+        "execution_reads": execution,
+        "legacy_calls": calls,
+    }
 
 
 def gate_control(evidence, gate_passes):
@@ -316,17 +522,26 @@ def markdown(report):
                 f"| {e['phase']} | {e['reader']} | {e['access']} | "
                 f"{e['store']} | {e['count']} | {e['caller'] or '—'} |"
             )
+        native = f["native"]
+        if native:
+            summary = native["summary"] or {}
+            out += [
+                "",
+                f"- Native equality: {summary.get('compared')} models and values "
+                f"compared, differing: {native['differing'] or 'none'}",
+            ]
         out += [
             "",
-            "| Call | Expected | Observed | Legacy reads | " "Disposition |",
-            "| --- | --- | --- | --- | --- |",
+            "| Call | Expect | Expected | Observed | Legacy reads | Resolved | " "Disposition |",
+            "| --- | --- | --- | --- | --- | --- | --- |",
         ]
         for r in f["calls"]:
             readers = "<br>".join(r["readers"])
+            visits = "<br>".join(r["visits"])
             out.append(
-                f"| `{r['id']}` | {one_line(r['expected'])} | "
+                f"| `{r['id']}` | {r['expect']} | {one_line(r['expected'])} | "
                 f"{one_line(r['observed'])} | {r['legacy_reads']} "
-                f"{readers} | {r['disposition']} |"
+                f"{readers} | {r['resolved']} {visits} | {r['disposition']} |"
             )
     return "\n".join(out) + "\n"
 
@@ -359,6 +574,12 @@ def main(argv):
     control_fixture = next(f for f in report["fixtures"] if f["fixture"] == CONTROL_FIXTURE)
     controls.append(sensitivity_control(control_fixture))
     controls.append(accounting_control(report["fixtures"]))
+    controls.append(independence_control(report["fixtures"]))
+    controls.append(resolver_control(report["fixtures"]))
+    controls.append(native_control(report["fixtures"]))
+    controls.append(perturbation_control(evidence))
+    controls.append(collection_control(evidence, report["fixtures"]))
+    controls.append(pre_label_control(evidence))
     if not require_zero:
         controls.append(gate_control(evidence, gate_passes))
     report["controls"] = controls

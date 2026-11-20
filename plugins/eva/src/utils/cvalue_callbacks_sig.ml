@@ -39,7 +39,15 @@ module type API = sig
 
 
   type state_by_stmt = (state Cil_datatype.Stmt.Hashtbl.t) Lazy.t
-  type results = { before_stmts: state_by_stmt; after_stmts: state_by_stmt }
+
+  (** Results of the analysis of a body. [input] is the cvalue state at the
+      start of the call, after the binding of the arguments to the formals
+      and before the preconditions reduce it. *)
+  type results = {
+    input: state;
+    before_stmts: state_by_stmt;
+    after_stmts: state_by_stmt;
+  }
 
   (** Results of a function call. *)
   type call_results =

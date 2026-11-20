@@ -99,6 +99,41 @@ module Make_Domain (Abstract: Abstractions.S) = struct
       Globals.Functions.iter compute_kf_states
   end
 
+  (* Records the hit log, as cvalue states. Nothing is recorded unless the
+     hit log is exact, which requires the cvalue domain alone. *)
+  module Hit_log = struct
+    let get_cvalue = Abstract.Dom.get Cvalue_domain.State.key
+
+    let record f =
+      match get_cvalue with
+      | Some get when Hit_log.recording () -> f get
+      | _ -> ()
+
+    let initial callstack state =
+      record (fun get -> Hit_log.initial callstack (get state))
+
+    let enter callstack state =
+      record (fun get -> Hit_log.enter callstack (get state))
+
+    let body callstack ~producer ~entries ~points =
+      record @@ fun get ->
+      let convert table =
+        let result = Cil_datatype.Stmt.Hashtbl.create 17 in
+        Cil_datatype.Stmt.Hashtbl.iter
+          (fun stmt state ->
+             Cil_datatype.Stmt.Hashtbl.add result stmt (get state))
+          (Lazy.force table);
+        result
+      in
+      let points =
+        Stdlib.Option.map
+          (fun (before, after) ->
+             lazy Hit_log.{ before = convert before; after = convert after })
+          points
+      in
+      Hit_log.body callstack ~producer ~entries:(List.map get entries) ~points
+  end
+
   (* Computes consolidated states at the end of the analysis. *)
   let post_analysis final_state =
     if Parameters.JoinResults.get () then Store.compute_consolidated_states ();
@@ -173,8 +208,25 @@ module Make (Abstract: Abstractions.S) = struct
           | Analyzed (Complete | Partial) -> get control_point
       else `Top
 
-    let get_state ?callstack =
-      find ?callstack (Dom.Store.get_state ?callstack)
+    (* The hit log answers a request on one callstack when it can; it then
+       reads neither the analysis status nor the stored states. It records
+       the cvalue domain alone, which is then the whole state. *)
+    let resolve ~callstack control_point =
+      let to_state state = Dom.set Cvalue_domain.State.key state Dom.top in
+      match Hit_log.resolve ~callstack control_point with
+      | None -> None
+      | Some (`Value state) -> Some (`Value (to_state state))
+      | Some (`Top | `Bottom as x) -> Some x
+
+    let get_state ?callstack control_point =
+      let resolved =
+        match callstack with
+        | None -> None
+        | Some callstack -> resolve ~callstack control_point
+      in
+      match resolved with
+      | Some state -> state
+      | None -> find ?callstack (Dom.Store.get_state ?callstack) control_point
 
     let get_state_by_callstack control_point =
       find (Dom.Store.get_state_by_callstack) control_point
@@ -216,6 +268,9 @@ let ref_engine = ref (default, (module Default : S))
 
 (* Returns the current Engine module. *)
 let current () = (module (val (snd !ref_engine)): S)
+
+(* Whether the current engine uses the cvalue domain alone. *)
+let is_cvalue_only () = Abstractions.Config.equal (fst !ref_engine) default
 
 (* Set of hooks called whenever the current Engine module is changed.
    Useful for the GUI parts that depend on it. *)

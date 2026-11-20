@@ -287,7 +287,11 @@ module Make (Engine: Engine_Subset) = struct
       let pos = Position.of_local pos in
       let state = Interferences.inject_after_change ~pos access state in
       Domain.Store.register_state call.callstack (Start call.kf) state;
-      Engine.Compute.compute_call call recursion state
+      (* The input of the invocation, after the binding of the arguments. *)
+      Domain.Hit_log.enter call.callstack state;
+      let result = Engine.Compute.compute_call call recursion state in
+      Hit_log.leave call.callstack;
+      result
     | `Bottom ->
       { states = []; cacheable = Cacheable; kind = `Bottom }
 

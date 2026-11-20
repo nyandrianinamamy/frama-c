@@ -602,12 +602,23 @@ module Make_Dataflow
       StmtTable.iter register_pre (Lazy.force merged_pre_states);
       StmtTable.iter register_post (Lazy.force merged_post_states);
     end;
+    (* The hit log and the collection hooks receive the same normalized
+       states, under the same producer id. *)
+    let producer = Mem_exec.new_counter () in
+    let points =
+      if save_results
+      then Some (merged_pre_states, merged_post_states)
+      else None
+    in
+    Domain.Hit_log.body callstack ~producer ~entries:initial_states ~points;
     let states =
-      Cvalue_callbacks.{ before_stmts = merged_pre_cvalues;
-                         after_stmts = merged_post_cvalues }
+      Cvalue_callbacks.{
+        input = Engine.Dom.get_cvalue_or_top AnalysisParam.initial_state;
+        before_stmts = merged_pre_cvalues;
+        after_stmts = merged_post_cvalues }
     in
     let cvalue_init = Engine.Dom.get_cvalue_or_top initial_state in
-    let results = `Body (states, Mem_exec.new_counter ()) in
+    let results = `Body (states, producer) in
     Cvalue_callbacks.apply_call_results_hooks callstack kf cvalue_init results;
 
 end

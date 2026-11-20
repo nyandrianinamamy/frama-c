@@ -8,6 +8,15 @@
 
 type 'state engine = (module Engine_sig.S with type Dom.state = 'state)
 
+(* Whether the hit log records exactly the states of the legacy store; see
+   {!Hit_log}. Defined before [Engine] is shadowed below. *)
+let exact_hit_log ~mthread =
+  Parameters.HitLog.get ()
+  && not mthread
+  && Engine.is_cvalue_only ()
+  && Parameters.ResultsAll.get ()
+  && Parameters.NoResultsDomain.is_empty ()
+
 (* ----- Pre-analysis checks ------------------------------------------------ *)
 
 (* Clear Eva's various caches. Some operations of Eva depend on parameters,
@@ -261,6 +270,7 @@ let compute_from ?cvalue_state ?arguments entry_point =
   let module Engine =
     (val Legacy_read_guard.during Initialization pre_analysis)
   in
+  Hit_log.start ~exact:(exact_hit_log ~mthread:(Option.is_some mt_analysis));
   Self.feedback "Analyzing a%scomplete application starting at %a"
     (if Kernel.LibEntry.get () then "n in" else " ")
     Kernel_function.pretty entry_point;
@@ -276,6 +286,7 @@ let compute_from ?cvalue_state ?arguments entry_point =
           ?cvalue_state ?arguments entry_point
     in
     Self.(ComputationState.set Computed);
+    Hit_log.seal ();
     Legacy_read_guard.during Post_analysis @@ fun () ->
     post_analysis (module Engine) mt_analysis final_state
   with exn ->

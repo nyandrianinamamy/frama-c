@@ -603,17 +603,23 @@ module Callwise = struct
       end)
 
 
-  let compute_call_from_value_states kf call_stack pre_state states capture =
+  let compute_call_from_value_states kf call_stack input pre_state states
+      capture =
     let module Fenv = (val Dataflows.function_env kf: Dataflows.FUNCTION_ENV) in
     let module Computer = Computer(Fenv)(
       struct
         let _version = "callwise"
         let _kf = kf
 
-        (* Returns the [kf] pre-state with respect to the single [call_stack]. *)
+        (* Returns the [kf] pre-state with respect to the single [call_stack].
+           With the hit log, it is the input of the invocation that Eva
+           passes to the hook; otherwise, it is read from the stored states,
+           which are not available during the analysis. *)
         let kf_pre_state =
-          Eva.Results.(at_start_of kf |> in_callstack call_stack |>
-                       get_cvalue_model)
+          if Eva.Parameters.HitLog.get () then input
+          else
+            Eva.Results.(at_start_of kf |> in_callstack call_stack |>
+                         get_cvalue_model)
 
         let stmt_state stmt =
           try Cil_datatype.Stmt.Hashtbl.find states stmt
@@ -665,7 +671,8 @@ module Callwise = struct
           if Eva.Analysis.save_results kf
           then
             let cvalue_states = Lazy.force results.Eva.Cvalue_callbacks.before_stmts in
-            compute_call_from_value_states kf callstack pre_state cvalue_states
+            compute_call_from_value_states kf callstack
+              results.Eva.Cvalue_callbacks.input pre_state cvalue_states
               (Query_prototype.body kf results memexec_counter)
           else top
         in

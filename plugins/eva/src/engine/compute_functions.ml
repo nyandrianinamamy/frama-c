@@ -55,6 +55,7 @@ module Make (Engine: Engine_sig.S) = struct
       in
       call_result
     | Some (states, i) ->
+      Hit_log.hit call.callstack ~producer:i;
       apply_call_hooks call init_state `Reuse;
       (* Evaluate the preconditions of kf, to update the statuses
          at this call. *)
@@ -226,6 +227,7 @@ module Make (Engine: Engine_sig.S) = struct
       let callstack = Callstack.init ~thread:thread_id ~entry_point:kf in
       Current_callstack.with_callstack callstack @@ fun init_state ->
       Engine.Dom.Store.register_state callstack (Start kf) init_state;
+      Engine.Dom.Hit_log.enter callstack init_state;
       let init_state =
         (* Inject interferences in the initial state. The interferences are
            injected after registering the initial state as this is part of the
@@ -235,6 +237,7 @@ module Make (Engine: Engine_sig.S) = struct
       let call = { kf; callstack; arguments = []; rest = []; return = None; } in
       check_main_function_target kf (Function_calls.analysis_target kf Kglobal);
       let final_result = compute_call call None init_state in
+      Hit_log.leave callstack;
       let final_states = List.map snd (final_result.states) in
       let final_state = Bottom.List.join Engine.Dom.join final_states in
       final_state
