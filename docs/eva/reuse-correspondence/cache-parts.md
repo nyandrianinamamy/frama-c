@@ -995,15 +995,25 @@ below (From and Inout in rows 14 to 19).
 **An unknown answer turned into a value.** Rows 1 and 35 are sound because
 the answer after a hit is the state top or the error `Top`. A reader that
 replaces that error by a value is not covered by them: it needs its own row.
-Three other places of the tree do so for the functions called at a
-statement: `Eva.Results.callee` (`results.ml:603`, used by Studia, Scope,
-Slicing, Impact, Pdg, the Markdown report and From), `From_compute`
-(`from_compute.ml:310`) and Dive (`build.ml:95`). Each reads the state
-before a call statement, and each of its callers but From's display is a
-listed plug-in or loads one. No hit answers a body that contains a call
-(the lookup rejects its entries with `nested-delivery`), so no such statement is in a
-function answered by a hit. The ticket that admits bodies with calls owes
-the same treatment for these three.
+Other places of the tree do so for the functions called at a statement.
+Three have no row of their own: `Eva.Results.callee` (`results.ml:603`,
+used by Studia, Scope, Slicing, Impact, Pdg, the Markdown report and From),
+`From_compute` (`from_compute.ml:310`) and Dive (`build.ml:95`). Four are
+under a row above: Scope (`datascope.ml:105`, `zones.ml:144`; row 21), Inout
+(`operational_inputs.ml:337`; rows 17 and 18) and the analysis of threads
+(`mt_shared_vars.ml:241`; row 11). This list comes from a search of the
+conversions at one revision, and is not a proof that there is no other.
+
+The three read the state before a call statement. The lookup rejects the
+entries of a body that contains a call with `nested-delivery`, except a
+direct call to a display directive (`Frama_C_show_each` and the like,
+`supplied_entries.ml:374`). The callee of such a call is a function named
+in the program, which the evaluation resolves without reading the memory
+(`evaluation.ml:1761`): after a hit, with the state top, the three give
+the same function as an analysis with caching disabled. So none of the
+three gives an empty list for a statement of a function answered by a hit.
+The ticket that admits bodies with other calls owes the three the
+treatment of row 36.
 
 **Kind.** OCaml obligation.
 
