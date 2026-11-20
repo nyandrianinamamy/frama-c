@@ -870,7 +870,9 @@ let internal label stmt stack =
 (* The selections of a request at a statement of a function whose stacks,
    seen by the hooks, are [stacks]: unfiltered, every stack by a selector
    and by a predicate, each stack alone by a predicate, every stack but one
-   by a selector and by a predicate, and none. *)
+   by a selector and by a predicate, a selector with a predicate that
+   rejects some or all of its stacks, and none, by an empty selector and by
+   a predicate. *)
 let reach_selections stacks =
   let equal = Eva.Callstack.equal in
   let list stacks =
@@ -904,6 +906,20 @@ let reach_selections stacks =
        R.filter_callstack (fun cs -> not (equal cs stack))
          (R.in_callstacks stacks r))
   in
+  (* Selectors whose stacks the predicate rejects: they are not part of
+     the selection, whatever their state. *)
+  let all_rejected =
+    "selector-all-filter-none",
+    "in_callstacks " ^ list stacks ^ " |> filter_callstack (fun _ -> false)",
+    (fun r -> R.filter_callstack (fun _ -> false) (R.in_callstacks stacks r))
+  in
+  let others_only stack =
+    let others = List.filter (fun s -> not (equal s stack)) stacks in
+    "selector-without-filter-only:" ^ stack_name stack,
+    "in_callstacks " ^ list others ^ " |> filter_callstack (fun cs -> cs = "
+    ^ stack_name stack ^ ")",
+    (fun r -> R.filter_callstack (equal stack) (R.in_callstacks others r))
+  in
   let several = List.compare_length_with stacks 1 > 0 in
   [ "unfiltered", "", Fun.id;
     "selector-all", "in_callstacks " ^ list stacks, R.in_callstacks stacks;
@@ -913,7 +929,9 @@ let reach_selections stacks =
   @ (if several then List.concat_map without stacks else [])
   @ List.map rejected stacks
   @ (if several then List.map all_but stacks else [])
-  @ [ "filter-none", "filter_callstack (fun _ -> false)",
+  @ (if several then all_rejected :: List.map others_only stacks else [])
+  @ [ "selector-none", "in_callstacks []", R.in_callstacks [];
+      "filter-none", "filter_callstack (fun _ -> false)",
       R.filter_callstack (fun _ -> false) ]
 
 (* Under each selection of the state before a labelled statement: the

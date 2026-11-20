@@ -236,31 +236,44 @@ struct
     let filter = selection_filter ctx in
     Engine.select_by_callstack ?callstacks ~filter ctx.control_point
 
+  let of_selection = function
+    | Hit_log.Known list -> Response.ByCallstack list
+    | Hit_log.Unknown_state stacks -> Response.Top (lazy stacks)
+
+  (* Optimization if only one callstack, which the predicates keep, or on
+     the legacy path. An unknown state on the callstack keeps the legacy
+     answer, which ignores the predicates; the callstack is enumerated if a
+     visit reaches the point. *)
+  let get_on_callstack (ctx : context) callstack =
+    match Engine.get_state ~callstack ctx.control_point with
+    | `Top ->
+      let enumerate () =
+        match select ctx (Some [ callstack ]) with
+        | Some (Hit_log.Known list) -> List.map fst list
+        | Some (Hit_log.Unknown_state stacks) -> stacks
+        | None -> []
+      in
+      Response.Top (Lazy.from_fun enumerate)
+    | (`Bottom | `Value _) as state ->
+      let open Lattice_bounds.Bottom.Operators in
+      Response.by_callstack ctx
+        (let+ state = state in [ callstack, state ])
+
   let get_by_callstack (ctx : context) :
     (_, restricted_to_callstack) Response.t =
     match ctx.selector with
+    | Some [ callstack ] when selection_filter ctx callstack ->
+      get_on_callstack ctx callstack
     | Some [ callstack ] ->
-      (* Optimization if only one callstack. An unknown state on the
-         callstack keeps the legacy answer, which ignores the predicates;
-         the callstack is enumerated if a visit reaches the point. *)
-      begin match Engine.get_state ~callstack ctx.control_point with
-        | `Top ->
-          let enumerate () =
-            match select ctx (Some [ callstack ]) with
-            | Some (Hit_log.Known list) -> List.map fst list
-            | Some (Hit_log.Unknown_state stacks) -> stacks
-            | None -> []
-          in
-          Response.Top (Lazy.from_fun enumerate)
-        | (`Bottom | `Value _) as state ->
-          let open Lattice_bounds.Bottom.Operators in
-          Response.by_callstack ctx
-            (let+ state = state in [ callstack, state ])
+      (* The predicates reject the only callstack: the hit log answers the
+         empty selection, whatever the state on the callstack. *)
+      begin match select ctx ctx.selector with
+        | Some selection -> of_selection selection
+        | None -> get_on_callstack ctx callstack
       end
     | callstacks ->
       match select ctx callstacks with
-      | Some (Hit_log.Known list) -> Response.ByCallstack list
-      | Some (Hit_log.Unknown_state stacks) -> Response.Top (lazy stacks)
+      | Some selection -> of_selection selection
       | None ->
         Response.by_callstack ctx
           (Engine.get_state_by_callstack ctx.control_point)

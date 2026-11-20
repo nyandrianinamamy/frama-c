@@ -181,18 +181,26 @@ type 'a selection =
     function of [point] in the records. The state of each callstack is
     rebuilt as {!resolve} does. After an interrupted analysis, the state of
     a callstack that reaches the point is the one that the analysis
-    computed, as on one callstack. Returns [None] when the resolver
-    declines, which it does whenever the records contain a memexec hit,
-    except, after an interrupted analysis, at a point that no selected
-    callstack reaches. Each answer is reported to {!Legacy_read_guard}.
+    computed, as on one callstack. Each answer is reported to
+    {!Legacy_read_guard}.
+
+    When [callstacks] is supplied and [filter] rejects each of them, or
+    [callstacks] is empty, the selection is empty: the answer is
+    [Known []] whenever the records describe the current results, whatever
+    the completion of the analysis and the records of the rejected
+    callstacks.
+
+    Otherwise, returns [None] when the resolver declines, which it does
+    whenever the records contain a memexec hit, except, after an
+    interrupted analysis, at a point that no selected callstack reaches.
     The answer is [Unknown_state] when:
     - the results are pending or not recorded;
     - the state of a selected callstack is unavailable, as on a callstack
       with an interrupted visit;
     - after an interrupted analysis, no selected callstack reaches the
-      point, unless [callstacks] is supplied, at least one callstack is
-      selected, and each selected callstack is classified. The analysis
-      could have reached the point on a callstack it has not entered. *)
+      point, unless [callstacks] is supplied and each selected callstack is
+      classified. The analysis could have reached the point on a callstack
+      it has not entered. *)
 val select:
   ?callstacks:Callstack.t list -> filter:(Callstack.t -> bool) ->
   Domain_store.control_point -> state selection option
@@ -222,7 +230,9 @@ type reach =
     one of [callstacks] that satisfies [filter]. [callstacks] defaults to
     the callstacks of the function of [point] in the records. A point
     reached on a callstack is reached whatever the other visits on that
-    callstack. After an interrupted analysis, the answer is [Unknown] when
+    callstack. When [callstacks] is supplied and [filter] rejects each of
+    them, the answer is [Not_reaching], as the selection is empty in
+    {!select}. After an interrupted analysis, the answer is [Unknown] when
     no selected callstack reaches the point, under the same conditions as
     in {!select}. Returns [None] when the records do not describe the
     current results, and when a negative answer could depend on a memexec

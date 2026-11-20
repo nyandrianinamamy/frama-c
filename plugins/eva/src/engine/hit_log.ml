@@ -538,14 +538,20 @@ let selected_stacks log ?callstacks ~filter point =
   in
   List.filter filter stacks
 
+(* A request that supplies its callstacks selects some of them: when its
+   predicates reject each one, or when it supplies none, its selection is
+   empty, whatever the analysis and the records of the rejected callstacks.
+   No other callstack can contribute. *)
+let empty_selection ~supplied stacks = supplied && stacks = []
+
 (* After an interruption, the rest of the analysis could reach a point on a
    callstack that it has not entered, or below a memexec hit. When no
    selected callstack reaches the point, its answer is unknown, unless the
-   request supplies its callstacks, selects at least one, and the records
-   classify each selected one.
+   request supplies its callstacks and the records classify each selected
+   one.
    [declined]: the records do not classify some selected callstack. *)
-let open_selection log ~supplied ~declined stacks =
-  log.completion = Interrupted && (stacks = [] || not supplied || declined)
+let open_selection log ~supplied ~declined =
+  log.completion = Interrupted && (not supplied || declined)
 
 let reach ?callstacks ?(filter = fun _ -> true) point =
   if not (usable ()) then None
@@ -555,6 +561,7 @@ let reach ?callstacks ?(filter = fun _ -> true) point =
     let stacks = selected_stacks log ?callstacks ~filter point in
     let answer =
       match log.completion, function_level log point with
+      | _ when empty_selection ~supplied stacks -> Some Not_reaching
       | Recording, _ -> Some (Unknown Pending)
       | _, Some r -> Some (Unknown r)
       | (Complete | Interrupted), None ->
@@ -566,7 +573,7 @@ let reach ?callstacks ?(filter = fun _ -> true) point =
         (* A function called below a hit has no recorded invocation. *)
         let hidden = not supplied && log.has_hit in
         if List.mem `Reaching answers then Some Reaching
-        else if open_selection log ~supplied ~declined stacks
+        else if open_selection log ~supplied ~declined
         then Some (Unknown Interrupted)
         else if declined then None
         else if Option.is_some unknown then Some (Unknown (Option.get unknown))
@@ -599,16 +606,18 @@ let pretty_reach fmt = function
 
 (* ----- Selections ------------------------------------------------------- *)
 
-(* The selection of [stacks] at [point]. The callstacks that reach the
-   point come in the order of the legacy store: each visit that reaches it
-   is positive evidence, whatever the others. Declines, so that the
-   request reads the legacy store, when the records contain a memexec hit,
-   since the callstacks below a hit and its points are not recorded yet;
-   after an interruption, only when a selected callstack reaches the
-   point, the selection being unknown or empty otherwise. Also declines
-   when the records do not classify a selected callstack of a completed
-   analysis. The state of the selection is known when the records give the
-   state of each selected callstack that may reach the point:
+(* The selection of [stacks] at [point]. A selection that supplies its
+   callstacks and keeps none of them is empty, as [empty_selection] tells;
+   the rest of this comment concerns the other selections. The callstacks
+   that reach the point come in the order of the legacy store: each visit
+   that reaches it is positive evidence, whatever the others. Declines, so
+   that the request reads the legacy store, when the records contain a
+   memexec hit, since the callstacks below a hit and its points are not
+   recorded yet; after an interruption, only when a selected callstack
+   reaches the point, the selection being unknown or empty otherwise. Also
+   declines when the records do not classify a selected callstack of a
+   completed analysis. The state of the selection is known when the records
+   give the state of each selected callstack that may reach the point:
    - while the analysis runs, or when the states at the point are not
      recorded, nothing is known and no callstack is enumerated, as on the
      legacy path;
@@ -620,6 +629,7 @@ let pretty_reach fmt = function
      reaches is unknown, as [open_selection] tells. *)
 let selection_on log ~supplied stacks point =
   match log.completion, function_level log point with
+  | _ when empty_selection ~supplied stacks -> Known []
   | Recording, _ | _, Some _ -> Unknown_state []
   | Complete, None when log.has_hit -> raise Decline
   | Interrupted, None
@@ -641,7 +651,7 @@ let selection_on log ~supplied stacks point =
     in
     let unknown =
       declined || unavailable
-      || not reaching && open_selection log ~supplied ~declined stacks
+      || not reaching && open_selection log ~supplied ~declined
     in
     let selected = Callstack.Hashtbl.create 7 in
     List.iter (fun (stack, (reaching, answer)) ->
