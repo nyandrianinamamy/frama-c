@@ -280,7 +280,11 @@ Snapshot of the analysis status. The last request exports the results,
 clears them, restores the snapshot and prints the analysis status of each
 function from the restored table. On the legacy path, the export reads the
 status table; the candidate builds the callers and the status of each
-function from the invocations of the hit log.
+function from the invocations of the hit log. The statuses are read with
+the guard off: Eva.Analysis.status reads the restored table on both paths,
+so the reads counted for this request are those of the export and of the
+restoration only. The callers in the snapshot are not compared: on the
+restored results, the hit log answers the requests on callers.
   $ grep -e "call export\.statuses" legacy.log candidate.log | sed -e 's/ answer=.*//'
   legacy.log:[acceptance] call export.statuses legacy-reads=219 resolved=0
   candidate.log:[acceptance] call export.statuses legacy-reads=0 resolved=107
@@ -312,7 +316,8 @@ Trap. Every read of the legacy store aborts the run, in every phase, except
 those of the readers that other changes migrate: the registration of the
 states by the engine. The candidate runs the whole battery under the trap.
 The reads left are those of the exempt reader; every request reads
-nothing, and the answers are those of the reference.
+nothing, except the statuses of the snapshot, read with the guard off; the
+answers are those of the reference.
   $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-no-memexec -inout-state-query-acceptance plugins-trap -inout-state-query-acceptance-output trap.jsonl plugins.i > trap.log 2>&1
   $ grep -e "guard=" -e "legacy result-store" trap.log
   [acceptance] mode=plugins-trap guard=trap-except:Eva.Engine.register_state

@@ -56,7 +56,12 @@ plug-in fixture `plugins.c`: its 195 requests are `MATCH`, with the
 answers of the reference and no legacy read, and the native run finds no
 difference. In `plugin-readers.t`, the battery also runs on `statuses.i`,
 which has a function of each analysis status; the snapshot of the
-statuses, as all the other answers, equals that of the reference. The controls `plugins-trap` and `plugins-perturbation` pass,
+statuses, as all the other answers, equals that of the reference. The
+request that reads these statuses after the restoration reads them from
+the status table with the guard off: its count of legacy reads covers the
+export and the restoration only. The callers in the snapshot are not
+compared, since the hit log answers the requests on callers on the
+restored results. The controls `plugins-trap` and `plugins-perturbation` pass,
 with every other control. The zero-read gate fails, as expected: the
 registration of the states by the engine and the availability readers
 still read the legacy store.
