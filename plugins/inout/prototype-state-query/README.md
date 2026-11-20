@@ -204,10 +204,13 @@ of the calls. `Eva.Results.is_reachable` goes through the unfiltered
 state and is resolved too, including during Eva's post-analysis. On the
 legacy path, the marking of unreachable statements in the post-analysis
 consolidated, as a side effect, the states before the statements of every
-analyzed function. The final-value printer reads these states from the
-store. The engine's consolidation skipped the functions whose analysis is
+analyzed function, with or without `-eva-join-results`. The final-value
+printer reads these states from the store. The engine's consolidation ran
+only with `-eva-join-results` and skipped the functions whose analysis is
 partial, such as a recursive function whose innermost call uses its
-specification; it now consolidates the states before their statements.
+specification. It now consolidates the states before the statements of
+every analyzed function in all cases, and the other states with
+`-eva-join-results` only.
 
 The resolver declines, and the request reads the legacy store, when the
 records are not exact: another domain than Cvalue, `-eva-no-results` or

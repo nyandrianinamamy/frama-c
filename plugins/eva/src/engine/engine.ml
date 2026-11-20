@@ -76,36 +76,37 @@ module Make_Domain (Abstract: Abstractions.S) = struct
       let list = List.filter_map get_state callstacks in
       if list = [] then `Bottom else `Value list
 
-    let compute_consolidated_states () =
-      let compute_initial_state kf =
-        ignore (compute_consolidated_state (Start kf));
+    (* The cvalue domain prints the final states of each function from the
+       consolidated states before its statements. On the legacy path, the
+       marking of unreachable statements requests all of them, and the
+       requests consolidate them on demand, even without [join_results].
+       The hit log serves these requests without consolidating: they are
+       consolidated here for every analyzed function, including those
+       for which some calls used the specification. The other states are
+       consolidated with [join_results] only. *)
+    let compute_consolidated_states ~join_results =
+      let compute control_point =
+        ignore (compute_consolidated_state control_point)
       in
-      let compute_before_state stmt =
-        ignore (compute_consolidated_state (Before stmt))
-      in
-      let compute_stmt_state stmt =
-        compute_before_state stmt;
-        ignore (compute_consolidated_state (After stmt));
+      let compute_stmt_states ~after stmt =
+        compute (Before stmt);
+        if after then compute (After stmt)
       in
       let compute_kf_states kf =
         Legacy_read_guard.reader "Eva.Engine.consolidate" @@ fun () ->
         Legacy_read_guard.notify Availability ~store:"analysis-status"
           (fun fmt -> Kernel_function.pretty fmt kf);
+        let statements ~after =
+          let fundec = Kernel_function.get_definition kf in
+          List.iter (compute_stmt_states ~after) fundec.sallstmts
+        in
         match Function_calls.analysis_status kf with
         | Unreachable | Analyzed NoResults -> ()
-        | SpecUsed | Builtin _ -> compute_initial_state kf
-        | Analyzed Partial ->
-          (* Some calls used the specification of [kf]. The cvalue domain
-             prints the final states from the states before statements.
-             Requests on the legacy path consolidate them on demand, and
-             the marking of unreachable statements requests all of them;
-             the hit log serves these requests without consolidating. *)
-          let fundec = Kernel_function.get_definition kf in
-          List.iter compute_before_state fundec.sallstmts
+        | SpecUsed | Builtin _ -> if join_results then compute (Start kf)
+        | Analyzed Partial -> statements ~after:false
         | Analyzed Complete ->
-          compute_initial_state kf;
-          let fundec = Kernel_function.get_definition kf in
-          List.iter compute_stmt_state fundec.sallstmts
+          if join_results then compute (Start kf);
+          statements ~after:join_results
       in
       Globals.Functions.iter compute_kf_states
   end
@@ -147,7 +148,8 @@ module Make_Domain (Abstract: Abstractions.S) = struct
 
   (* Computes consolidated states at the end of the analysis. *)
   let post_analysis final_state =
-    if Parameters.JoinResults.get () then Store.compute_consolidated_states ();
+    let join_results = Parameters.JoinResults.get () in
+    Store.compute_consolidated_states ~join_results;
     post_analysis final_state
 end
 

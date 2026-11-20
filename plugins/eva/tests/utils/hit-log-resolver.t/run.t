@@ -193,11 +193,12 @@ legacy store does. The native comparison agrees.
   [acceptance] native compared=21 differing=0
 
 The cvalue domain prints the final states of each function from the
-consolidated states before its first and return statements. f is recursive
-and only partially analyzed; the hit log answers the marking of unreachable
-statements without consolidating these states, which the engine then
-consolidates itself. The final states of f are printed as on the legacy
-path.
+consolidated states before its first and return statements. On the legacy
+path, the marking of unreachable statements consolidates them on demand;
+the hit log answers it without consolidating, and the engine consolidates
+these states itself. f is recursive and only partially analyzed, which the
+engine's consolidation skipped. The final states of f are printed as on the
+legacy path.
   $ frama-c -no-autoload-plugins -load-module eva,inout -eva recursive.i > recursive.log 2>&1
   $ frama-c -no-autoload-plugins -load-module eva,inout -eva -eva-no-hit-log recursive.i > recursive-legacy.log 2>&1
   $ grep -A2 "Values at end of function f" recursive.log
@@ -207,3 +208,15 @@ path.
   $ grep -e "final-states" -e "^  " recursive.log > final.txt
   $ grep -e "final-states" -e "^  " recursive-legacy.log > final-legacy.txt
   $ diff final-legacy.txt final.txt
+
+Without -eva-join-results, the engine consolidates no other state, but the
+legacy path still consolidates the states before statements on demand. The
+final states are printed as on the legacy path.
+  $ frama-c -no-autoload-plugins -load-module eva,inout -eva -eva-no-join-results recursive.i > no-join.log 2>&1
+  $ frama-c -no-autoload-plugins -load-module eva,inout -eva -eva-no-join-results -eva-no-hit-log recursive.i > no-join-legacy.log 2>&1
+  $ grep -e "Values at end" no-join.log
+  [eva:final-states] Values at end of function f:
+  [eva:final-states] Values at end of function main:
+  $ grep -e "final-states" -e "^  " no-join.log > no-join.txt
+  $ grep -e "final-states" -e "^  " no-join-legacy.log > no-join-legacy.txt
+  $ diff no-join-legacy.txt no-join.txt
