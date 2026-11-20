@@ -127,7 +127,7 @@ module Make_Domain (Abstract: Abstractions.S) = struct
     let enter callstack state =
       record (fun get -> Hit_log.enter callstack (get state))
 
-    let body callstack ~producer ~complete ~entries ~points =
+    let body callstack ~producer ~complete ~entries ~points ~guards =
       record @@ fun get ->
       let convert table =
         let result = Cil_datatype.Stmt.Hashtbl.create 17 in
@@ -144,7 +144,7 @@ module Make_Domain (Abstract: Abstractions.S) = struct
           points
       in
       Hit_log.body callstack ~producer ~complete
-        ~entries:(List.map get entries) ~points
+        ~entries:(List.map get entries) ~points ~guards
   end
 
   (* Computes consolidated states at the end of the analysis. *)
@@ -211,7 +211,7 @@ module Make (Abstract: Abstractions.S) = struct
         match control_point with
         | Initial -> get control_point
         | Start kf ->
-          if Function_calls.is_called kf
+          if Function_calls.registered kf
           then get control_point
           else `Bottom
         | Before stmt | After stmt ->

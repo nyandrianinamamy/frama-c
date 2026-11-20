@@ -35,6 +35,12 @@ val use_spec_instead_of_definition:
 val register_analysis_target: ('l, 'v) Eval.call -> analysis_target -> unit
 
 
+(** {2 Call relations}
+
+    The readers below answer from the hit log when it describes the current
+    results; otherwise they read the legacy table of call relations, which
+    {!Legacy_read_guard} reports. *)
+
 (** Returns true if the function has been analyzed. *)
 val is_called: kernel_function -> bool
 
@@ -47,6 +53,20 @@ val callsites: kernel_function -> (kernel_function * stmt list) list
 
 (** Returns the number of callsites that have been analyzed. *)
 val nb_callsites: unit -> int
+
+(** For each called function, its callers and the call statements in each
+    caller. The entry point is bound to no caller. *)
+type relations =
+  Cil_datatype.Stmt.Set.t Kernel_function.Map.t Kernel_function.Map.t
+
+(** Sets the call relations of the hit log: [None] when they do not
+    describe the current results. *)
+val set_recorded_relations: (unit -> relations option) -> unit
+
+(** Whether a call to the function is registered in the legacy table. Part
+    of the legacy result store; does not report to {!Legacy_read_guard}:
+    its readers report their own read. *)
+val registered: kernel_function -> bool
 
 
 type results = Complete | Partial | NoResults

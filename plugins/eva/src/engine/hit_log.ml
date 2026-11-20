@@ -28,11 +28,14 @@ type points = {
   after: state Stmt.Hashtbl.t;
 }
 
+type guards = (bool * bool) Stmt.Hashtbl.t
+
 type producer = {
   kf: Kernel_function.t;
   complete: bool; (* whether its analysis reached its fixpoint *)
   entries: state list;
   points: points option;
+  guards: guards; (* recorded even when the states are not *)
 }
 
 type completion = Recording | Complete | Interrupted
@@ -81,6 +84,7 @@ type log = {
   points: point_info Domain_store.ControlPoint.Hashtbl.t;
   consolidated:
     state Lattice_bounds.or_top_bottom Domain_store.ControlPoint.Hashtbl.t;
+  mutable relations: Function_calls.relations option;
 }
 
 let create stamp ~exact ~states = {
@@ -96,6 +100,7 @@ let create stamp ~exact ~states = {
   has_hit = false;
   points = Domain_store.ControlPoint.Hashtbl.create 17;
   consolidated = Domain_store.ControlPoint.Hashtbl.create 17;
+  relations = None;
 }
 
 let current = ref (create 0 ~exact:false ~states:false)
@@ -190,7 +195,7 @@ let interpreted stack kind =
     Option.iter (fun invocation -> invocation.kind <- kind)
       (open_invocation stack)
 
-let body stack ~producer ~complete ~entries ~points =
+let body stack ~producer ~complete ~entries ~points ~guards =
   if recording () then
     match open_invocation ~strict:complete stack with
     | None -> ()
@@ -205,7 +210,8 @@ let body stack ~producer ~complete ~entries ~points =
         end
         else None
       in
-      Hashtbl.replace log.producers producer { kf; complete; entries; points };
+      Hashtbl.replace log.producers producer
+        { kf; complete; entries; points; guards };
       invocation.kind <- Body producer
 
 (* ----- Resolver ----------------------------------------------------------- *)
@@ -730,6 +736,112 @@ let resolve_consolidated point =
   resolve_selection ~filter:all point (fun log selection ->
       if log.completion = Recording then consolidate selection
       else memo log.consolidated point (fun () -> consolidate selection))
+
+(* ----- Guard outcomes ---------------------------------------------------- *)
+
+let condition_truth_value stmt =
+  let log = !current in
+  if not (usable ()) || log.has_hit || log.completion = Recording then None
+  else
+    let kf = Kernel_function.find_englobing_kf stmt in
+    (* An unresolved invocation analyzed no body: an interrupted body
+       records its producer. *)
+    let add (then_, else_) invocation =
+      match invocation.kind with
+      | Body id ->
+        let then', else' =
+          match producer_of log kf id with
+          | None -> false, false
+          | Some producer ->
+            Stmt.Hashtbl.find_opt producer.guards stmt
+            |> Option.value ~default:(false, false)
+        in
+        then_ || then', else_ || else'
+      | Hit _ | Spec | Builtin _ | Unresolved -> then_, else_
+    in
+    let invocations = List.rev (invocations_of log kf) in
+    let answer = List.fold_left add (false, false) invocations in
+    Legacy_read_guard.resolved
+      (fun fmt -> Format.fprintf fmt "guard of %a at line %d"
+          Kernel_function.pretty kf
+          (Fileloc.line (Cil_datatype.Stmt.loc stmt)))
+      (pretty_kinds invocations);
+    Some answer
+
+(* ----- Completion and analyzed functions -------------------------------- *)
+
+let computed () =
+  if not (usable ()) then None
+  else
+    let log = !current in
+    let computed = log.completion <> Recording in
+    Legacy_read_guard.resolved
+      (fun fmt -> Format.pp_print_string fmt "computation state")
+      (fun fmt -> Format.pp_print_string fmt
+          (match log.completion with
+           | Recording -> "recording"
+           | Complete -> "complete"
+           | Interrupted -> "interrupted"));
+    Some computed
+
+let analyzed kf =
+  let log = !current in
+  if not (usable ()) || log.completion <> Complete then None
+  else
+    let invocations = List.rev (invocations_of log kf) in
+    let unresolved v = match v.kind with Unresolved -> true | _ -> false in
+    if List.exists unresolved invocations then None
+    else begin
+      Legacy_read_guard.resolved
+        (fun fmt -> Format.fprintf fmt "analysis of %a" Kernel_function.pretty kf)
+        (pretty_kinds invocations);
+      Some (List.exists (fun v -> match v.kind with
+          | Body _ | Hit _ -> true
+          | Spec | Builtin _ | Unresolved -> false) invocations)
+    end
+
+(* ----- Call relations ----------------------------------------------------- *)
+
+(* The call relations of the invocations recorded so far: each invocation
+   binds its function to its caller and its call statement, and the entry
+   point to no caller. The legacy table registers a call when the analysis
+   chooses how to interpret it, after the invocation is recorded and before
+   any hook runs on it: at any time, both hold the same calls. *)
+let compute_relations log =
+  let add_call callers invocation =
+    match Callstack.top_caller invocation.stack with
+    | None -> callers
+    | Some (stmt, caller) ->
+      let stmts =
+        Kernel_function.Map.find_opt caller callers
+        |> Option.value ~default:Stmt.Set.empty
+      in
+      Kernel_function.Map.add caller (Stmt.Set.add stmt stmts) callers
+  in
+  let add kf invocations relations =
+    let callers =
+      List.fold_left add_call Kernel_function.Map.empty invocations
+    in
+    Kernel_function.Map.add kf callers relations
+  in
+  Kernel_function.Hashtbl.fold add log.by_kf Kernel_function.Map.empty
+
+(* The calls below a memexec hit are not recorded: the relations decline
+   once the records contain a hit. They are final once the analysis has
+   ended. *)
+let relations () =
+  if not (usable ()) || (!current).has_hit then None
+  else
+    let log = !current in
+    match log.completion, log.relations with
+    | Recording, _ -> Some (compute_relations log)
+    | (Complete | Interrupted), Some relations -> Some relations
+    | (Complete | Interrupted), None ->
+      let relations = compute_relations log in
+      log.relations <- Some relations;
+      Some relations
+
+let () = Function_calls.set_recorded_relations relations
 
 let pretty_visits fmt stack =
   let log = !current in

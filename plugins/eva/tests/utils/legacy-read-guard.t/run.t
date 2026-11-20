@@ -19,9 +19,9 @@ the engine's registration of the entry state of main, which joins the new
 state with the recorded one. In the collection phase, it is the Init label
 of the assertion, which reads the initial state; the hit log answers the
 reachability requests of Eva's statistics hook. After the analysis, the
-marking of unreachable properties asks whether each statement is
-reachable, which the hit log answers, then reads the analysis status of f
-to mark its postconditions. No read happens during initialization.
+hit log answers the marking of unreachable properties: the control runs on
+the legacy path, where this marking first asks whether a statement is
+reachable. No read happens during initialization.
   $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-no-memexec -inout-state-query-acceptance trap:analysis legacy-reads.i > analysis.log 2>&1
   [1]
   $ grep -e "legacy result-store" analysis.log
@@ -30,10 +30,10 @@ to mark its postconditions. No read happens during initialization.
   [1]
   $ grep -e "legacy result-store" collection.log
   [eva] User Error: legacy result-store read trapped: phase=collection reader=Eva.Eval_terms.add_init access=getter store=cvalue point=initial state
-  $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-no-memexec -inout-state-query-acceptance trap:post-analysis legacy-reads.i > post-analysis.log 2>&1
+  $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-no-memexec -eva-no-hit-log -inout-state-query-acceptance trap:post-analysis legacy-reads.i > post-analysis.log 2>&1
   [1]
   $ grep -e "legacy result-store" post-analysis.log
-  [eva] User Error: legacy result-store read trapped: phase=post-analysis reader=Eva.Eval_annots.mark_unreachable access=availability store=analysis-status point=f
+  [eva] User Error: legacy result-store read trapped: phase=post-analysis reader=Eva.Eval_annots.mark_unreachable access=availability store=analysis-status point=before line 12 of main via=Eva.Results.is_reachable
   $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-no-memexec -inout-state-query-acceptance trap:initialization legacy-reads.i > initialization.log 2>&1
   $ grep -e "^\[acceptance\] control" initialization.log
   [acceptance] control not trapped in phase initialization
@@ -55,8 +55,8 @@ phase and reader, and attributes the other reads and the resolutions to the
 public request that made them. Registration-time reads come from the
 engine; InOut takes the state at the start of each call without a request,
 and its remaining collection read is the Init label of the assertion. After
-the analysis, the readers through Eva.Results are resolved; the
-consolidation of the store, the marking of postconditions and the final
+the analysis, the readers through Eva.Results and the marking of
+postconditions are resolved; the consolidation of the store and the final
 printing still read it. Logic initialization reads the store without
 Eva.Results. The requests on a supplied stack, on several stacks and on
 none are resolved without legacy read, except the availability readers and
@@ -68,7 +68,6 @@ the snapshot export; the request on a supplied state reads nothing.
   [acceptance] execution phase=analysis reader=Eva.Engine.register_state access=getter store=cvalue
   [acceptance] execution phase=analysis reader=Eva.Eval_terms.add_init access=getter store=cvalue
   [acceptance] execution phase=collection reader=Eva.Eval_terms.add_init access=getter store=cvalue
-  [acceptance] execution phase=post-analysis reader=Eva.Eval_annots.mark_unreachable access=availability store=analysis-status
   [acceptance] execution phase=post-analysis reader=Eva.Engine.consolidate access=availability store=analysis-status
   [acceptance] execution phase=post-analysis reader=Eva.Engine.consolidate access=enumeration store=cvalue
   [acceptance] execution phase=post-analysis reader=Eva.Engine.consolidate access=getter store=cvalue
@@ -117,4 +116,4 @@ the snapshot export; the request on a supplied state reads nothing.
   [acceptance] call inout.call-f@18 legacy-reads=0 resolved=0 answer=Operational inputs:; x; Operational inputs on termination:; x; Sure outputs:; y; Over outputs:; y; Over outputs on termination:; y; Logic inputs:; \nothing
   [acceptance] call export.get_results legacy-reads=62 resolved=0 answer=exported
   [acceptance] call supplied-state.eval legacy-reads=0 resolved=0 answer={5}
-  [acceptance] accounting logged=166 attributed=166
+  [acceptance] accounting logged=164 attributed=164

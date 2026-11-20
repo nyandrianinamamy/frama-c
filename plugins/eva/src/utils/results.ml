@@ -865,13 +865,30 @@ let is_reachable_kinstr kinstr =
   reading "Eva.Results.is_reachable_kinstr" @@ fun () ->
   is_reachable_point (before_kinstr kinstr)
 
-let condition_truth_value = Iterator.condition_truth_value
+(* Served by the hit log when it describes the results. *)
+let condition_truth_value stmt =
+  reading "Eva.Results.condition_truth_value" @@ fun () ->
+  match Hit_log.condition_truth_value stmt with
+  | Some outcomes -> outcomes
+  | None ->
+    Legacy_read_guard.notify Getter ~store:"guards" (fun fmt ->
+        Format.fprintf fmt "guard of %a at line %d" Kernel_function.pretty
+          (Kernel_function.find_englobing_kf stmt)
+          (Fileloc.line (Cil_datatype.Stmt.loc stmt)));
+    Iterator.condition_truth_value stmt
 
 (* Callers / callsites *)
 
-let is_called = Function_calls.is_called
-let callers = Function_calls.callers
-let callsites = Function_calls.callsites
+(* Served by the hit log when it describes the results; see
+   {!Function_calls}. *)
+let is_called kf =
+  reading "Eva.Results.is_called" @@ fun () -> Function_calls.is_called kf
+
+let callers kf =
+  reading "Eva.Results.callers" @@ fun () -> Function_calls.callers kf
+
+let callsites kf =
+  reading "Eva.Results.callsites" @@ fun () -> Function_calls.callsites kf
 
 (* Result conversion *)
 

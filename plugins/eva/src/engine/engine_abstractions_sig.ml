@@ -43,7 +43,7 @@ module type Domain = sig
       Callstack.t -> producer:int -> complete:bool -> entries:t list ->
       points:(t Cil_datatype.Stmt.Hashtbl.t Lazy.t
               * t Cil_datatype.Stmt.Hashtbl.t Lazy.t) option ->
-      unit
+      guards:Hit_log.guards -> unit
   end
 end
 

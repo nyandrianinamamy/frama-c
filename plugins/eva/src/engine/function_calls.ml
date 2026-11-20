@@ -39,27 +39,64 @@ let register_call call =
     let add _kf = Kernel_function.Map.singleton caller callsite in
     ignore (CallersTable.memo ~change add kf)
 
-let is_called = CallersTable.mem
+let registered = CallersTable.mem
+
+(* ----- Call relations ----------------------------------------------------- *)
+
+(* The table of call relations is part of the legacy result store: a call
+   below a memexec hit is not registered. The hit log answers the readers
+   below from the callstacks of the invocations it records, when it
+   describes the current results; it sets [recorded_relations], since it
+   cannot be a dependency of this module. *)
+type relations = StmtSet.t Kernel_function.Map.t Kernel_function.Map.t
+
+let recorded_relations : (unit -> relations option) ref = ref (fun () -> None)
+let set_recorded_relations f = recorded_relations := f
+
+(* The relations of the hit log, or the legacy table, for the reader
+   [label]. [point] prints what is read. *)
+let relations ~label point =
+  Legacy_read_guard.reader label @@ fun () ->
+  match !recorded_relations () with
+  | Some relations ->
+    Legacy_read_guard.resolved point
+      (fun fmt -> Format.pp_print_string fmt "call relations of the hit log");
+    `Recorded relations
+  | None ->
+    Legacy_read_guard.notify Getter ~store:"call-relations" point;
+    `Legacy
+
+let callers_of kf ~label =
+  let point fmt = Kernel_function.pretty fmt kf in
+  match relations ~label point with
+  | `Recorded relations -> Kernel_function.Map.find_opt kf relations
+  | `Legacy -> CallersTable.find_opt kf
+
+let is_called kf =
+  Option.is_some (callers_of kf ~label:"Eva.Function_calls.is_called")
 
 let callers kf =
-  try
-    let calls = Kernel_function.Map.bindings (CallersTable.find kf) in
-    List.map fst calls
-  with Not_found -> []
+  match callers_of kf ~label:"Eva.Function_calls.callers" with
+  | Some calls -> List.map fst (Kernel_function.Map.bindings calls)
+  | None -> []
 
 let callsites kf =
-  try
-    let calls = Kernel_function.Map.bindings (CallersTable.find kf) in
-    List.map (fun (kf, set) -> kf, StmtSet.elements set) calls
-  with Not_found -> []
+  match callers_of kf ~label:"Eva.Function_calls.callsites" with
+  | Some calls ->
+    Kernel_function.Map.bindings calls
+    |> List.map (fun (kf, set) -> kf, StmtSet.elements set)
+  | None -> []
+
+let count_callsites _kf callers count =
+  Kernel_function.Map.fold
+    (fun _caller callsites count -> count + StmtSet.cardinal callsites)
+    callers count
 
 let nb_callsites () =
-  CallersTable.fold
-    (fun _kf callers count ->
-       Kernel_function.Map.fold
-         (fun _caller callsites count -> count + StmtSet.cardinal callsites)
-         callers count)
-    0
+  let point fmt = Format.pp_print_string fmt "all call sites" in
+  match relations ~label:"Eva.Function_calls.nb_callsites" point with
+  | `Recorded relations -> Kernel_function.Map.fold count_callsites relations 0
+  | `Legacy -> CallersTable.fold count_callsites 0
 
 type analysis_target =
   [ `Builtin of string * Builtins.builtin * funspec

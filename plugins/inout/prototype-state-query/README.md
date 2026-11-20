@@ -282,7 +282,7 @@ read in that phase aborts Eva with exit status 1:
 | `trap:request` | `Eva.Results.get_cvalue_model` on `before P`, the known request, on the legacy path (`-eva-no-hit-log`): the resolver serves it otherwise. |
 | `trap:analysis` | `Eva.Engine.register_state`, which reads the recorded state to join it. |
 | `trap:collection` | `Eva.Eval_terms.add_init`, the `\init` label of a logic evaluation, which reads the initial state. |
-| `trap:post-analysis` | `Eva.Eval_annots.mark_unreachable`, through its availability read for the postconditions of `f`; its `Eva.Results.is_reachable` requests are resolved. |
+| `trap:post-analysis` | `Eva.Eval_annots.mark_unreachable`, through the availability read of its first `Eva.Results.is_reachable` request, on the legacy path (`-eva-no-hit-log`): the hit log serves the marking otherwise. |
 | `trap:initialization` | None: the run completes. |
 
 The report adds these controls:

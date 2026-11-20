@@ -21,17 +21,29 @@ type mode =
   | Trap of Guard.phase
 
 (* The requests made after the analysis: the battery around the statement
-   labelled P, or the reachability battery on every labelled statement
-   ([reach-] modes). *)
-type battery = Point_battery | Reach_battery
+   labelled P, the reachability battery on every labelled statement
+   ([reach-] modes), or the battery of the plug-in readers and of Eva's
+   semantic reports ([plugins-] modes). *)
+type battery = Point_battery | Reach_battery | Plugin_battery
 
 let rec parse_mode name =
-  let reach = "reach-" in
+  let reach = "reach-" and plugins = "plugins-" in
+  let suffix prefix =
+    let len = String.length prefix in
+    String.sub name len (String.length name - len)
+  in
   if String.starts_with ~prefix:reach name then
-    let len = String.length reach in
-    match parse_mode (String.sub name len (String.length name - len)) with
+    match parse_mode (suffix reach) with
     | Point_battery, (Reference | Candidate | Native as mode) ->
       Reach_battery, mode
+    | _ ->
+      Inout_parameters.abort "unknown mode %S for %s" name
+        Inout_parameters.QueryAcceptance.option_name
+  else if String.starts_with ~prefix:plugins name then
+    match parse_mode (suffix plugins) with
+    | Point_battery, (Reference | Candidate | Native | Wrong_producer as mode)
+      ->
+      Plugin_battery, mode
     | _ ->
       Inout_parameters.abort "unknown mode %S for %s" name
         Inout_parameters.QueryAcceptance.option_name
@@ -1115,6 +1127,86 @@ let register_reach_hooks () =
         else if name = pending_function then pending_requests callstack)
   end
 
+(* {2 Plug-in readers and semantic reports}
+
+   The minimal plug-ins read Eva's results through their own public
+   interfaces: the call relations and the guard outcomes of Eva.Results,
+   Callgraph, InOut's statement, expression, function and callwise
+   effects, the variable filters that InOut registers in Server, and
+   Eva's statuses, alarms and statistics. The battery asks each consumer
+   once, in an order where each one computes its own answer: InOut and
+   Callgraph memoize theirs. *)
+
+(* The functions of the input files, defined or not. *)
+let fixture_functions () = input_functions ()
+
+let words = function [] -> "none" | list -> String.concat " " list
+
+let pretty_kfs kfs = words (List.map Kernel_function.get_name kfs)
+
+let pretty_callsites callsites =
+  List.map (fun (kf, stmts) ->
+      Kernel_function.get_name kf ^ "@"
+      ^ String.concat "," (List.map (fun s -> string_of_int (line s)) stmts))
+    callsites
+  |> words
+
+(* Call relations: whether each function is called, its callers, and the
+   call statements in each caller. *)
+let relation_requests () =
+  List.iter (fun kf ->
+      let name = Kernel_function.get_name kf in
+      call ~id:("is_called." ^ name) ~family:"call-relations" ~expect:Resolver
+        ~request:("Eva.Results.is_called " ^ name)
+        (fun () ->
+           let called = R.is_called kf in
+           string_of_bool called, Flag called);
+      call ~id:("callers." ^ name) ~family:"call-relations" ~expect:Resolver
+        ~request:("Eva.Results.callers " ^ name)
+        (text (fun () -> pretty_kfs (R.callers kf)));
+      call ~id:("callsites." ^ name) ~family:"call-relations"
+        ~expect:Resolver ~request:("Eva.Results.callsites " ^ name)
+        (text (fun () -> pretty_callsites (R.callsites kf))))
+    (fixture_functions ())
+
+(* The statements of the defined functions of the input files. *)
+let fixture_statements () =
+  List.concat_map (fun kf ->
+      if Kernel_function.is_definition kf
+      then
+        List.map (fun stmt -> kf, stmt)
+          (Kernel_function.get_definition kf).sallstmts
+      else [])
+    (fixture_functions ())
+
+let site kf stmt =
+  Format.sprintf "%s@%d" (Kernel_function.get_name kf) (line stmt)
+
+(* Guard outcomes: whether the analysis took each branch of each
+   conditional. *)
+let guard_requests () =
+  List.iter (fun (kf, stmt) ->
+      match stmt.skind with
+      | If _ ->
+        call ~id:("guard." ^ site kf stmt) ~family:"guards" ~expect:Resolver
+          ~request:("Eva.Results.condition_truth_value " ^ site kf stmt)
+          (fun () ->
+             let then_, else_ = R.condition_truth_value stmt in
+             Format.sprintf "then=%b else=%b" then_ else_,
+             Several [ Flag then_; Flag else_ ])
+      | _ -> ())
+    (fixture_statements ())
+
+let plugin_battery () =
+  (* Server's filters and Callgraph ask it before reading Eva's results. *)
+  call ~id:"analysis.is_computed" ~family:"availability" ~expect:Resolver
+    ~request:"Eva.Analysis.is_computed ()"
+    (fun () ->
+       let computed = Eva.Analysis.is_computed () in
+       string_of_bool computed, Flag computed);
+  relation_requests ();
+  guard_requests ()
+
 (* {2 Header} *)
 
 let header mode =
@@ -1292,11 +1384,15 @@ let run () =
         let kf, stmt = target () in
         battery kf stmt
       | Reach_battery -> reach_battery ()
+      | Plugin_battery -> plugin_battery ()
     in
     if kind = Reach_battery then begin
       register_reach_hooks ();
       top_initial_state ()
     end;
+    (* The call hooks give the calls of the analysis without reading its
+       results. *)
+    if kind = Plugin_battery then register_reach_hooks ();
     begin match Inout_parameters.QueryAcceptanceOutput.get () with
       | "" -> ()
       | file -> output := Some (open_out file)

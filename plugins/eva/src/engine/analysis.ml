@@ -160,7 +160,17 @@ let register_computation_hook ?on f =
   in
   Self.ComputationState.add_hook_on_change f'
 
-let is_computed = Self.is_computed
+(* Public reader: answered by the hit log when it describes the results.
+   Eva itself reads the computation state directly. *)
+let is_computed () =
+  Legacy_read_guard.reader "Eva.Analysis.is_computed" @@ fun () ->
+  match Hit_log.computed () with
+  | Some computed -> computed
+  | None ->
+    Legacy_read_guard.notify Availability ~store:"analysis-status"
+      (fun fmt -> Format.pp_print_string fmt "computation state");
+    Self.is_computed ()
+
 let self = Self.state
 let emitter = Eva_utils.emitter
 
@@ -173,7 +183,7 @@ let status kf =
     (fun fmt -> Kernel_function.pretty fmt kf);
   match Function_calls.analysis_status kf with
   | Analyzed Complete as status ->
-    if is_computed () then status else Analyzed Partial
+    if Self.is_computed () then status else Analyzed Partial
   | status -> status
 
 let use_spec_instead_of_definition =
@@ -306,7 +316,7 @@ let compute () =
   (* Nothing to recompute when Eva has already been computed. This boolean
       is automatically cleared when an option of Eva changes, because they
       are registered as dependencies on [Self.state] in {!Parameters}.*)
-  if not (is_computed ()) then
+  if not (Self.is_computed ()) then
     let cvalue_state = Eva_results.get_initial_state ()
     and arguments = Eva_results.get_main_args ()
     and entry_point = fst @@ Globals.entry_point () in

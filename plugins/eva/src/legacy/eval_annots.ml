@@ -99,16 +99,24 @@ let mark_unreachable () =
     method! vcode_annot _ = Cil.SkipChildren
   end
   in
+  (* Whether some call analyzed the body of [kf]: from the hit log when it
+     describes the results, from the analysis status of [kf] otherwise. *)
+  let analyzed kf =
+    match Hit_log.analyzed kf with
+    | Some analyzed -> analyzed
+    | None ->
+      Legacy_read_guard.notify Availability ~store:"analysis-status"
+        (fun fmt -> Kernel_function.pretty fmt kf);
+      match Function_calls.analysis_status kf with
+      | Analyzed _ -> true
+      | Unreachable | SpecUsed | Builtin _ -> false
+  in
   (* Mark postconditions of analyzed functions with unreachable return stmt. *)
   let mark_postconditions kf =
-    Legacy_read_guard.notify Availability ~store:"analysis-status"
-      (fun fmt -> Kernel_function.pretty fmt kf);
-    match Function_calls.analysis_status kf with
-    | Analyzed _ when not (Eva_utils.skip_specifications kf) ->
+    if analyzed kf && not (Eva_utils.skip_specifications kf) then
       let return_stmt = Kernel_function.find_return kf in
       if not (Results.is_reachable return_stmt) then
         iter_normal_ensures mark kf
-    | _ -> ()
   in
   Annotations.iter_all_code_annot mark_code_annot;
   Visitor.visitFramacFileFunctions mark_preconditions (Ast.get ());

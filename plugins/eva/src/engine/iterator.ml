@@ -34,17 +34,21 @@ let condition_truth_value s =
   try Conditions_table.find s
   with Not_found -> false, false
 
-let record_fireable edge =
+(* Records that [edge] is fireable in the table [find, replace]. *)
+let fire ~find ~replace edge =
   match edge.edge_transition with
   | Guard (_exp, kind, stmt) ->
-    let b_then, b_else = condition_truth_value stmt in
+    let b_then, b_else = find stmt in
     let new_status =
       match kind with
       | Then -> true, b_else
       | Else -> b_then, true
     in
-    Conditions_table.replace stmt new_status
+    replace stmt new_status
   | _ -> ()
+
+let record_fireable =
+  fire ~find:condition_truth_value ~replace:Conditions_table.replace
 
 
 module type Engine_Subset = sig
@@ -77,6 +81,17 @@ module Make_Dataflow
   let callstack = AnalysisParam.callstack
   let fundec = Kernel_function.get_definition kf
   let cacheable = ref Eval.Cacheable
+
+  (* The guards of this analysis of the body, for the hit log. *)
+  let guards : Hit_log.guards = Cil_datatype.Stmt.Hashtbl.create 7
+
+  let record_fireable edge =
+    record_fireable edge;
+    let find stmt =
+      Cil_datatype.Stmt.Hashtbl.find_opt guards stmt
+      |> Option.value ~default:(false, false)
+    in
+    fire ~find ~replace:(Cil_datatype.Stmt.Hashtbl.replace guards) edge
 
 
   (* --- Plugin parameters --- *)
@@ -613,7 +628,7 @@ module Make_Dataflow
       else None
     in
     Domain.Hit_log.body callstack ~producer ~complete ~entries:initial_states
-      ~points;
+      ~points ~guards;
     let states =
       Cvalue_callbacks.{
         input = Engine.Dom.get_cvalue_or_top AnalysisParam.initial_state;

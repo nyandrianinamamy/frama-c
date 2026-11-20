@@ -99,15 +99,21 @@ type points = {
   after: state Cil_datatype.Stmt.Hashtbl.t;
 }
 
-(** [body callstack ~producer ~complete ~entries ~points]: the open
+(** The branches of each conditional that the analysis of a body took:
+    whether the then and the else branches of the statement are
+    fireable. *)
+type guards = (bool * bool) Cil_datatype.Stmt.Hashtbl.t
+
+(** [body callstack ~producer ~complete ~entries ~points ~guards]: the open
     invocation on [callstack] analyzed its body. [entries] are the states
     that survive the preconditions; [points] are the states before and
     after each statement, or [None] if the results of the function are not
-    recorded. [complete] is false when the analysis of the body stopped
-    before its fixpoint: its points are then those computed so far. *)
+    recorded. [guards] are recorded whatever the results recorded.
+    [complete] is false when the analysis of the body stopped before its
+    fixpoint: its points and guards are then those computed so far. *)
 val body:
   Callstack.t -> producer:int -> complete:bool -> entries:state list ->
-  points:points Lazy.t option -> unit
+  points:points Lazy.t option -> guards:guards -> unit
 
 (** {2 Resolver} *)
 
@@ -240,6 +246,36 @@ type reach =
 val reach:
   ?callstacks:Callstack.t list -> ?filter:(Callstack.t -> bool) ->
   Domain_store.control_point -> reach option
+
+(** {2 Semantic facts}
+
+    Facts of the analysis that the states do not give. Each answer is
+    reported to {!Legacy_read_guard}. The call relations, which the hit log
+    derives from the callstacks of its invocations, answer the readers of
+    {!Function_calls}. *)
+
+(** [condition_truth_value stmt]: whether some analysis of the body of the
+    function of [stmt] took the then branch, and the else branch, of the
+    conditional [stmt], as [Eva.Results.condition_truth_value] reports it.
+    The union of the guards of the producers of the invocations of the
+    function. Returns [None] while the analysis runs, since the legacy
+    table is updated on each transition while a producer records its
+    guards at its end, when the records do not describe the current
+    results, and when they contain a memexec hit. *)
+val condition_truth_value: Cil_types.stmt -> (bool * bool) option
+
+(** Whether the analysis has ended, completed or interrupted, as
+    [Eva.Analysis.is_computed] reports it. Returns [None] when the records
+    do not describe the current results. *)
+val computed: unit -> bool option
+
+(** [analyzed kf]: whether some invocation of [kf] analyzed its body, or
+    reused the analysis of its body by a memexec hit, in a completed
+    analysis. The analysis status of [kf] then tells [Analyzed]. Returns
+    [None] before the analysis has completed, when the records do not
+    describe the current results, and when an invocation of [kf] is
+    unresolved. *)
+val analyzed: Kernel_function.t -> bool option
 
 val pretty_answer: Format.formatter -> answer -> unit
 val pretty_reach: Format.formatter -> reach -> unit
