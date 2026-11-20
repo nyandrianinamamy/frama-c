@@ -201,7 +201,13 @@ their first registration in the store (the call, for the start of a
 function; the completion of a body that reaches the point, for a
 statement) and reads it back. This order is the hash order, not the order
 of the calls. `Eva.Results.is_reachable` goes through the unfiltered
-state and is resolved too, including during Eva's post-analysis.
+state and is resolved too, including during Eva's post-analysis. On the
+legacy path, the marking of unreachable statements in the post-analysis
+consolidated, as a side effect, the states before the statements of every
+analyzed function. The final-value printer reads these states from the
+store. The engine's consolidation skipped the functions whose analysis is
+partial, such as a recursive function whose innermost call uses its
+specification; it now consolidates the states before their statements.
 
 The resolver declines, and the request reads the legacy store, when the
 records are not exact: another domain than Cvalue, `-eva-no-results` or

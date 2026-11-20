@@ -191,3 +191,19 @@ legacy store does. The native comparison agrees.
   $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-no-results-function f -inout-state-query-acceptance native assign.i > no-results-native.log 2>&1
   $ grep -e "equal=false" -e "native compared" no-results-native.log
   [acceptance] native compared=21 differing=0
+
+The cvalue domain prints the final states of each function from the
+consolidated states before its first and return statements. f is recursive
+and only partially analyzed; the hit log answers the marking of unreachable
+statements without consolidating these states, which the engine then
+consolidates itself. The final states of f are printed as on the legacy
+path.
+  $ frama-c -no-autoload-plugins -load-module eva,inout -eva recursive.i > recursive.log 2>&1
+  $ frama-c -no-autoload-plugins -load-module eva,inout -eva -eva-no-hit-log recursive.i > recursive-legacy.log 2>&1
+  $ grep -A2 "Values at end of function f" recursive.log
+  [eva:final-states] Values at end of function f:
+    x ∈ [--..--]
+    __retres ∈ [-2147483647..2147483647]
+  $ grep -e "final-states" -e "^  " recursive.log > final.txt
+  $ grep -e "final-states" -e "^  " recursive-legacy.log > final-legacy.txt
+  $ diff final-legacy.txt final.txt

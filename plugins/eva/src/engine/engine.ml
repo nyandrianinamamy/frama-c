@@ -80,8 +80,11 @@ module Make_Domain (Abstract: Abstractions.S) = struct
       let compute_initial_state kf =
         ignore (compute_consolidated_state (Start kf));
       in
+      let compute_before_state stmt =
+        ignore (compute_consolidated_state (Before stmt))
+      in
       let compute_stmt_state stmt =
-        ignore (compute_consolidated_state (Before stmt));
+        compute_before_state stmt;
         ignore (compute_consolidated_state (After stmt));
       in
       let compute_kf_states kf =
@@ -89,8 +92,16 @@ module Make_Domain (Abstract: Abstractions.S) = struct
         Legacy_read_guard.notify Availability ~store:"analysis-status"
           (fun fmt -> Kernel_function.pretty fmt kf);
         match Function_calls.analysis_status kf with
-        | Unreachable | Analyzed NoResults | Analyzed Partial -> ()
+        | Unreachable | Analyzed NoResults -> ()
         | SpecUsed | Builtin _ -> compute_initial_state kf
+        | Analyzed Partial ->
+          (* Some calls used the specification of [kf]. The cvalue domain
+             prints the final states from the states before statements.
+             Requests on the legacy path consolidate them on demand, and
+             the marking of unreachable statements requests all of them;
+             the hit log serves these requests without consolidating. *)
+          let fundec = Kernel_function.get_definition kf in
+          List.iter compute_before_state fundec.sallstmts
         | Analyzed Complete ->
           compute_initial_state kf;
           let fundec = Kernel_function.get_definition kf in
