@@ -118,10 +118,10 @@ read in that phase aborts Eva with exit status 1:
 
 The report adds four controls:
 
-- `comparator-mismatch`: altering one candidate answer gives exactly one
-  `MISMATCH`.
+- `comparator-mismatch`: altering one candidate answer that agrees with the
+  reference adds exactly one `MISMATCH`.
 - `guard-sensitivity`: the guard sees reads on every request on stored
-  results and none on the supplied state.
+  results that the candidate made, and none on the supplied state.
 - `read-accounting`: each process ends with an `accounting` record. The
   candidate's logged reads equal its execution reads plus the reads of its
   requests, and the reference logs none.
@@ -129,6 +129,13 @@ The report adds four controls:
   --require-zero-reads --no-write` and records its exit status in
   `zero-read-gate.status`; the status is 1 while the gate fails and 0 once
   it passes.
+
+Both controls compare with the differences the evidence already has, so
+they also hold for a candidate that differs from the reference. With
+`CANDIDATE_OPTIONS=-eva-memexec`, the second call to `f` in `legacy-reads.c`
+is a memexec hit: the candidate has no state for the stack `main/f@27`, so
+the stack and model requests are `MISMATCH` or `MISSING` and the script
+exits 1.
 
 The cram test
 `plugins/eva/tests/utils/legacy-read-guard.t` checks the guard and the

@@ -170,27 +170,40 @@ def control_report(evidence, phase):
 
 
 def comparator_control(evidence):
-    """Altering one observed answer must give exactly one MISMATCH."""
+    """Altering one agreeing answer must add exactly one MISMATCH to those
+    the evidence already has."""
     path = evidence / f"{CONTROL_FIXTURE}.candidate.jsonl"
     _, ref_calls, _ = load(evidence / f"{CONTROL_FIXTURE}.reference.jsonl")
     _, cand_calls, _ = load(path)
+
+    def mismatches(calls):
+        rows = compare_calls(ref_calls, calls)
+        return [r["id"] for r in rows if r["disposition"] == "MISMATCH"]
+
+    differing = set(mismatches(cand_calls))
+    ref_ids = {c["id"] for c in ref_calls}
+    target = next(
+        (i for i, c in enumerate(cand_calls) if c["id"] in ref_ids and c["id"] not in differing),
+        None,
+    )
+    if target is None:
+        return {"control": "comparator-mismatch", "result": "NOT RUN"}
     altered = [dict(c) for c in cand_calls]
-    altered[0]["answer"] += " (altered)"
-    rows = compare_calls(ref_calls, altered)
-    mismatches = [r["id"] for r in rows if r["disposition"] == "MISMATCH"]
-    ok = mismatches == [altered[0]["id"]]
+    altered[target]["answer"] += " (altered)"
+    added = sorted(set(mismatches(altered)) - differing)
+    expected = [altered[target]["id"]]
     return {
         "control": "comparator-mismatch",
-        "expected": {"mismatches": [altered[0]["id"]]},
-        "observed": {"mismatches": mismatches},
-        "result": "PASS" if ok else "FAIL",
+        "expected": {"added_mismatches": expected},
+        "observed": {"added_mismatches": added},
+        "result": "PASS" if added == expected else "FAIL",
     }
 
 
 def sensitivity_control(fixture):
     """The guard sees reads on stored results and none on a supplied
-    state."""
-    rows = fixture["calls"]
+    state. Requests the candidate did not make are left out."""
+    rows = [r for r in fixture["calls"] if r["disposition"] != "MISSING"]
     supplied = [r for r in rows if r["family"] == "supplied-state"]
     stored = [r for r in rows if r["family"] != "supplied-state"]
     silent = [r["id"] for r in stored if r["legacy_reads"] == 0]
