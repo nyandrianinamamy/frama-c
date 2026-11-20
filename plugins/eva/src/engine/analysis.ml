@@ -8,6 +8,19 @@
 
 type 'state engine = (module Engine_sig.S with type Dom.state = 'state)
 
+(* Whether the hit log records exactly the invocations of the analysis; see
+   {!Hit_log}. Defined before [Engine] is shadowed below. *)
+let exact_hit_log ~mthread =
+  Parameters.HitLog.get ()
+  && not mthread
+  && Engine.is_cvalue_only ()
+
+(* Whether the legacy store records the states of the cvalue domain. When it
+   does not, the hit log records no state either. *)
+let hit_log_states () =
+  Parameters.ResultsAll.get ()
+  && not (Parameters.NoResultsDomain.mem Cvalue_domain.State.name)
+
 (* ----- Pre-analysis checks ------------------------------------------------ *)
 
 (* Clear Eva's various caches. Some operations of Eva depend on parameters,
@@ -110,10 +123,12 @@ let post_analysis (type t) (engine: t engine) mthread_analysis final_state =
      propagation is incomplete. Also do not mark unreachable statutes if
      there is an alarm in the initializers (bottom initial state), as we
      would end up marking the alarm as dead. *)
-  Eval_annots.mark_unreachable ();
+  Legacy_read_guard.reader "Eva.Eval_annots.mark_unreachable"
+    Eval_annots.mark_unreachable;
   (* Try to refine the 'Unknown' statuses that have been emitted during
      this analysis. *)
-  Eval_annots.mark_green_and_red ();
+  Legacy_read_guard.reader "Eva.Eval_annots.mark_green_and_red"
+    Eval_annots.mark_green_and_red;
   Mem_exec.cleanup_results ();
   (* Remove redundant alarms *)
   if Parameters.RmAssert.get () then Eva_dynamic.Scope.rm_asserts ();
@@ -137,7 +152,19 @@ let post_analysis (type t) (engine: t engine) mthread_analysis final_state =
 
 type computation_state = Self.computation_state =
   | NotComputed | Computing | Computed | Aborted
-let current_computation_state = Self.ComputationState.get
+
+(* Public reader: answered by the hit log when it describes the results.
+   The computation state decides whether results are available, as
+   {!is_computed} does. *)
+let current_computation_state () =
+  Legacy_read_guard.reader "Eva.Analysis.current_computation_state"
+  @@ fun () ->
+  match Hit_log.computation_state () with
+  | Some state -> state
+  | None ->
+    Legacy_read_guard.notify Availability ~store:"analysis-status"
+      (fun fmt -> Format.pp_print_string fmt "computation state");
+    Self.ComputationState.get ()
 let register_computation_hook ?on f =
   let f' = match on with
     | None -> f
@@ -145,18 +172,43 @@ let register_computation_hook ?on f =
   in
   Self.ComputationState.add_hook_on_change f'
 
-let is_computed = Self.is_computed
+(* Public reader: answered by the hit log when it describes the results.
+   Eva itself reads the computation state directly. *)
+let is_computed () =
+  Legacy_read_guard.reader "Eva.Analysis.is_computed" @@ fun () ->
+  match Hit_log.computed () with
+  | Some computed -> computed
+  | None ->
+    Legacy_read_guard.notify Availability ~store:"analysis-status"
+      (fun fmt -> Format.pp_print_string fmt "computation state");
+    Self.is_computed ()
+
 let self = Self.state
 let emitter = Eva_utils.emitter
 
 type results = Function_calls.results = Complete | Partial | NoResults
 type status = Function_calls.analysis_status =
     Unreachable | SpecUsed | Builtin of string | Analyzed of results
+
+(* The computation state, read on the legacy path. *)
+let legacy_is_computed () =
+  Legacy_read_guard.notify Availability ~store:"analysis-status"
+    (fun fmt -> Format.pp_print_string fmt "computation state");
+  Self.is_computed ()
+
+(* Public reader: answered by the hit log when it describes the results,
+   from the status table and the computation state otherwise. A complete
+   analysis of a function is partial while the analysis runs. *)
 let status kf =
-  match Function_calls.analysis_status kf with
-  | Analyzed Complete as status ->
-    if is_computed () then status else Analyzed Partial
-  | status -> status
+  Legacy_read_guard.reader "Eva.Analysis.status" @@ fun () ->
+  match Hit_log.status kf with
+  | Some (Analyzed Complete, false) -> Analyzed Partial
+  | Some (status, _computed) -> status
+  | None ->
+    match Function_calls.analysis_status kf with
+    | Analyzed Complete as status ->
+      if legacy_is_computed () then status else Analyzed Partial
+    | status -> status
 
 let use_spec_instead_of_definition =
   Function_calls.use_spec_instead_of_definition ?recursion_depth:None
@@ -173,8 +225,12 @@ let compute_from_entry_point  (type t) (engine: t engine)
     ?(thread=Thread.main) ?cvalue_state ?arguments entry_point =
   let module Engine = (val engine) in
   let lib_entry = Kernel.LibEntry.get () in
-  match Engine.Initialization.initial_state_with_formals
-          ?cvalue_state ?arguments ~lib_entry entry_point with
+  let initial_state =
+    Legacy_read_guard.during Initialization @@ fun () ->
+    Engine.Initialization.initial_state_with_formals
+      ?cvalue_state ?arguments ~lib_entry entry_point
+  in
+  match initial_state with
   | `Bottom ->
     Eval_annots.mark_invalid_initializers ();
     Self.error "Eva not started because globals \
@@ -249,7 +305,11 @@ let compute_from ?cvalue_state ?arguments entry_point =
   (* Mthread pre-analysis: returns an analysis state if requested. *)
   let mt_analysis = Mt_main.pre_analysis () in
   (* Prepare the analysis and build the engine. *)
-  let module Engine = (val pre_analysis ()) in
+  let module Engine =
+    (val Legacy_read_guard.during Initialization pre_analysis)
+  in
+  Hit_log.start ~exact:(exact_hit_log ~mthread:(Option.is_some mt_analysis))
+    ~states:(hit_log_states ());
   Self.feedback "Analyzing a%scomplete application starting at %a"
     (if Kernel.LibEntry.get () then "n in" else " ")
     Kernel_function.pretty entry_point;
@@ -257,16 +317,22 @@ let compute_from ?cvalue_state ?arguments entry_point =
     Self.ComputationState.set Computing;
     (* Run the analysis. *)
     let final_state =
+      Legacy_read_guard.during Analysis @@ fun () ->
       match mt_analysis with
       | Some analysis -> mthread_fixpoint (module Engine) analysis
       | None ->
         compute_from_entry_point (module Engine)
           ?cvalue_state ?arguments entry_point
     in
+    (* The records are sealed before the hooks on the computation state
+       run, so that the hit log answers as the legacy store then. *)
+    Hit_log.seal ();
     Self.(ComputationState.set Computed);
+    Legacy_read_guard.during Post_analysis @@ fun () ->
     post_analysis (module Engine) mt_analysis final_state
   with exn ->
     let backtrace = Printexc.get_raw_backtrace () in
+    Hit_log.interrupt ();
     Self.(ComputationState.set Aborted);
     match exn with
     | Error | Self.Abort -> () (* do not re-raise  *)
@@ -276,7 +342,7 @@ let compute () =
   (* Nothing to recompute when Eva has already been computed. This boolean
       is automatically cleared when an option of Eva changes, because they
       are registered as dependencies on [Self.state] in {!Parameters}.*)
-  if not (is_computed ()) then
+  if not (Self.is_computed ()) then
     let cvalue_state = Eva_results.get_initial_state ()
     and arguments = Eva_results.get_main_args ()
     and entry_point = fst @@ Globals.entry_point () in

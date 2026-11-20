@@ -129,5 +129,11 @@ module Logic_inout = Logic_inout
 (** Undocumented. *)
 module Eva_results = Eva_results
 
+(** Instrumentation of the reads of the legacy result store (prototype). *)
+module Legacy_read_guard = Legacy_read_guard
+
+(** Records of the current invocations and result resolver (prototype). *)
+module Hit_log = Hit_log
+
 (** Unit testing. *)
 module Unit_tests = Unit_tests

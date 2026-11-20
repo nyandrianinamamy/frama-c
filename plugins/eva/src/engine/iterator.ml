@@ -31,19 +31,39 @@ module Conditions_table =
     end)
 
 let condition_truth_value s =
+  Legacy_read_guard.notify Getter ~store:"guards" (fun fmt ->
+      Format.fprintf fmt "guard of %a at line %d" Kernel_function.pretty
+        (Kernel_function.find_englobing_kf s)
+        (Fileloc.line (Cil_datatype.Stmt.loc s)));
   try Conditions_table.find s
   with Not_found -> false, false
 
-let record_fireable edge =
+(* Records that [edge] is fireable in the table [find, replace]. *)
+let fire ~find ~replace edge =
   match edge.edge_transition with
   | Guard (_exp, kind, stmt) ->
-    let b_then, b_else = condition_truth_value stmt in
+    let b_then, b_else = find stmt in
     let new_status =
       match kind with
       | Then -> true, b_else
       | Else -> b_then, true
     in
-    Conditions_table.replace stmt new_status
+    replace stmt new_status
+  | _ -> ()
+
+(* Registers a fireable branch in the legacy table. While the hit log
+   records, it gives the branches already fired, and the table is only
+   written; otherwise, the registration reads the table. *)
+let record_fireable edge =
+  match edge.edge_transition with
+  | Guard (_exp, kind, stmt) ->
+    Legacy_read_guard.reader "Eva.Iterator.record_fireable" @@ fun () ->
+    let fired = match kind with Then -> true, false | Else -> false, true in
+    begin match Hit_log.fire stmt fired with
+      | Some fired -> Conditions_table.replace stmt fired
+      | None ->
+        fire ~find:condition_truth_value ~replace:Conditions_table.replace edge
+    end
   | _ -> ()
 
 
@@ -77,6 +97,17 @@ module Make_Dataflow
   let callstack = AnalysisParam.callstack
   let fundec = Kernel_function.get_definition kf
   let cacheable = ref Eval.Cacheable
+
+  (* The guards of this analysis of the body, for the hit log. *)
+  let guards : Hit_log.guards = Cil_datatype.Stmt.Hashtbl.create 7
+
+  let record_fireable edge =
+    record_fireable edge;
+    let find stmt =
+      Cil_datatype.Stmt.Hashtbl.find_opt guards stmt
+      |> Option.value ~default:(false, false)
+    in
+    fire ~find ~replace:(Cil_datatype.Stmt.Hashtbl.replace guards) edge
 
 
   (* --- Plugin parameters --- *)
@@ -570,7 +601,9 @@ module Make_Dataflow
     );
     states_after
 
-  let merge_results ~save_results =
+  (* [complete] is false when the analysis stops before the fixpoint: the
+     results are then those computed so far. *)
+  let merge_results ~save_results ~complete =
     let get_merged_states =
       let merged_states = VertexTable.create control_point_count
       and get_smashed_store v =
@@ -602,12 +635,24 @@ module Make_Dataflow
       StmtTable.iter register_pre (Lazy.force merged_pre_states);
       StmtTable.iter register_post (Lazy.force merged_post_states);
     end;
+    (* The hit log and the collection hooks receive the same normalized
+       states, under the same producer id. *)
+    let producer = Mem_exec.new_counter () in
+    let points =
+      if save_results
+      then Some (merged_pre_states, merged_post_states)
+      else None
+    in
+    Domain.Hit_log.body callstack ~producer ~complete ~entries:initial_states
+      ~points ~guards;
     let states =
-      Cvalue_callbacks.{ before_stmts = merged_pre_cvalues;
-                         after_stmts = merged_post_cvalues }
+      Cvalue_callbacks.{
+        input = Engine.Dom.get_cvalue_or_top AnalysisParam.initial_state;
+        before_stmts = merged_pre_cvalues;
+        after_stmts = merged_post_cvalues }
     in
     let cvalue_init = Engine.Dom.get_cvalue_or_top initial_state in
-    let results = `Body (states, Mem_exec.new_counter ()) in
+    let results = `Body (states, producer) in
     Cvalue_callbacks.apply_call_results_hooks callstack kf cvalue_init results;
 
 end
@@ -633,7 +678,7 @@ module Make (Engine : Engine_Subset) = struct
       let results = Dataflow.compute () in
       Self.feedback ~mkey:Log_key.progress
         "Recording results for %a" Kernel_function.pretty kf;
-      Dataflow.merge_results ~save_results;
+      Dataflow.merge_results ~save_results ~complete:true;
       let f = Kernel_function.get_definition kf in
       if Ast_types.C.has_attribute "noreturn" f.svar.vtype && results <> [] then
         Self.warning ~current:true ~once:true
@@ -644,7 +689,7 @@ module Make (Engine : Engine_Subset) = struct
     let cleanup () =
       Self.feedback ~once:true ~level:3 "Clean up partial results.";
       Dataflow.mark_degeneration ();
-      Dataflow.merge_results ~save_results
+      Dataflow.merge_results ~save_results ~complete:false
     in
     Signal.protect compute ~cleanup
 end

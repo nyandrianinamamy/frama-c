@@ -30,13 +30,20 @@ module Call =
 let register_call_hook f =
   Call.extend (fun (callstack, kf, kind, state) -> f callstack kf kind state)
 
+(* Hooks run in the collection phase of {!Legacy_read_guard}. *)
+let collect f x = Legacy_read_guard.during Collection (fun () -> f x)
+
 let apply_call_hooks callstack kf state kind =
-  Call.apply (callstack, kf, state, kind)
+  collect Call.apply (callstack, kf, state, kind)
 
 type call_assigns = (Assigns.t * Memory_zone.t) option
 
 type state_by_stmt = (state Cil_datatype.Stmt.Hashtbl.t) Lazy.t
-type results = { before_stmts: state_by_stmt; after_stmts: state_by_stmt }
+type results = {
+  input: state;
+  before_stmts: state_by_stmt;
+  after_stmts: state_by_stmt;
+}
 
 type call_results =
   [ `Builtin of state list * call_assigns
@@ -57,7 +64,7 @@ let register_call_results_hook f =
     (fun (callstack, kf, state, results) -> f callstack kf state results)
 
 let apply_call_results_hooks callstack kf state call_results =
-  Call_Results.apply (callstack, kf, state, call_results)
+  collect Call_Results.apply (callstack, kf, state, call_results)
 
 
 module Statement =
@@ -67,4 +74,4 @@ let register_statement_hook f =
   Statement.extend (fun (callstack, stmt, states) -> f callstack stmt states)
 
 let apply_statement_hooks callstack stmt states =
-  Statement.apply (callstack, stmt, states)
+  collect Statement.apply (callstack, stmt, states)

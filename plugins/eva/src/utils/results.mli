@@ -138,11 +138,15 @@ val filter_callstack : (Callstack.t -> bool) -> request -> request
     An empty list is returned if the request control point has not been
     reached by the analysis, or if no information has been saved at this point
     (for instance with the -eva-no-results option).
-    Use [is_empty request] to distinguish these two cases. *)
+    Use [is_empty request] to distinguish these two cases.
+    Prototype: when the hit log describes the results, a callstack is listed
+    as soon as one of its visits reached the point, even if the state on
+    this callstack or on another selected one is unavailable, as after an
+    interrupted analysis. The state of the request is then unknown. *)
 val callstacks : request -> Callstack.t list
 
 (** Returns a list of subrequests for each reachable callstack from
-    the given request. *)
+    the given request, as listed by [callstacks]. *)
 val by_callstack : request -> (Callstack.t * request) list
 
 

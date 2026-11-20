@@ -461,6 +461,9 @@ module Make (Engine: Engine_Subset) = struct
     in
     let callstack = Callstack.init ~thread:Thread.main_id ~entry_point:kf in
     Domain.Store.register_state callstack Initial init_state;
+    (* The initialized globals, before the binding of the formals of the
+       entry point. *)
+    Domain.Hit_log.initial callstack init_state;
     print_initial_cvalue_state init_state;
     add_main_formals ?arguments kf init_state
 

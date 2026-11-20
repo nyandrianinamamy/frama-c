@@ -67,6 +67,8 @@ module ControlPoint = Domain_store.ControlPoint
 
 type results = {
   states: stmt_by_callstack ControlPoint.Hashtbl.t;
+  hit_log: Hit_log.snapshot option;
+  (* The records of the hit log, when they describe the results. *)
   kf_callers: Function_calls.t;
   initial_args: Cvalue.V.t list option;
   alarms: Property_status.emitted_status AlarmsStmt.Hashtbl.t;
@@ -75,25 +77,41 @@ type results = {
   (* conditions then/else *)
 }
 
-let get_results () =
-  let vue = Emitter.get Eva_utils.emitter in
+(* The states that the legacy store records at each control point, for each
+   callstack. The hit log rebuilds them when it describes the results; the
+   states that it does not rebuild are read from the legacy store. *)
+let export_states () =
+  Legacy_read_guard.reader "Eva.Eva_results.export_states" @@ fun () ->
   let module CS = Callstack in
   let states = ControlPoint.Hashtbl.create 128 in
-  let copy_states control_point =
+  let legacy_states control_point =
     match Cvalue_results.callstacks control_point with
-    | `Top -> ()
+    | `Top -> None
     | `Value callstacks ->
-      let copy_callstack by_cs control_point callstack =
+      let state callstack =
         match Cvalue_results.get_state ~callstack control_point with
-        | `Bottom | `Top -> ()
-        | `Value state -> CS.Hashtbl.replace by_cs callstack state
+        | `Bottom | `Top -> None
+        | `Value state -> Some (callstack, state)
       in
-      let copy h control_point =
-        let by_cs = CS.Hashtbl.create (List.length callstacks) in
-        List.iter (copy_callstack by_cs control_point) callstacks;
-        ControlPoint.Hashtbl.replace h control_point by_cs
-      in
-      copy states control_point;
+      Some (List.length callstacks, List.filter_map state callstacks)
+  in
+  let rebuilt_states control_point =
+    let cvalue (callstack, (state, _clobbered)) = callstack, state in
+    Option.map (fun list -> List.length list, List.map cvalue list)
+      (Hit_log.stored_states control_point)
+  in
+  let copy_states control_point =
+    let stored =
+      match rebuilt_states control_point with
+      | Some _ as stored -> stored
+      | None -> legacy_states control_point
+    in
+    Option.iter (fun (size, list) ->
+        let by_cs = CS.Hashtbl.create size in
+        List.iter (fun (callstack, state) ->
+            CS.Hashtbl.replace by_cs callstack state) list;
+        ControlPoint.Hashtbl.replace states control_point by_cs)
+      stored
   in
   let copy_stmt stmt =
     copy_states (Before stmt); copy_states (After stmt)
@@ -107,7 +125,22 @@ let get_results () =
   in
   Globals.Functions.iter copy_kf;
   copy_states Initial;
-  let kf_callers = Function_calls.get_results () in
+  states
+
+(* The callers and the analysis status of each function: from the hit log
+   when it describes the results, from the status table otherwise. *)
+let export_calls () =
+  Legacy_read_guard.reader "Eva.Eva_results.export_calls" @@ fun () ->
+  match Hit_log.calls () with
+  | Some calls -> calls
+  | None -> Function_calls.get_results ()
+
+let get_results () =
+  Legacy_read_guard.reader "Eva.Eva_results.get_results" @@ fun () ->
+  let vue = Emitter.get Eva_utils.emitter in
+  let hit_log = Hit_log.snapshot () in
+  let states = export_states () in
+  let kf_callers = export_calls () in
   let initial_args = get_main_args () in
   let aux_statuses f_status ip =
     let aux_any_status e status =
@@ -139,9 +172,12 @@ let get_results () =
     | _ -> add ()
   in
   Property_status.iter aux_ip;
-  { states; kf_callers; initial_args; alarms; statuses; }
+  { states; hit_log; kf_callers; initial_args; alarms; statuses; }
+
+let pretty_calls fmt results = Function_calls.pretty fmt results.kf_callers
 
 let set_results results =
+  Legacy_read_guard.reader "Eva.Eva_results.set_results" @@ fun () ->
   let selection = State_selection.with_dependencies Self.state in
   Project.clear ~selection ();
   Parameters.change_correctness ();
@@ -180,4 +216,8 @@ let set_results results =
     Property_status.emit Eva_utils.emitter ~hyps:[] ip st
   in
   Property.Hashtbl.iter aux_statuses results.statuses;
+  (* The records of the hit log answer the requests on the restored results,
+     as they answered them when the results were saved. Restored once the
+     results are cleared and the arguments of main are set. *)
+  Option.iter Hit_log.restore results.hit_log;
   Self.ComputationState.set Computed

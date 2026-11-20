@@ -39,7 +39,17 @@ module type API = sig
 
 
   type state_by_stmt = (state Cil_datatype.Stmt.Hashtbl.t) Lazy.t
-  type results = { before_stmts: state_by_stmt; after_stmts: state_by_stmt }
+
+  (** Results of the analysis of a body. [input] is the cvalue state at the
+      start of the call, after the binding of the arguments to the formals
+      and before the preconditions reduce it. It is not what a request on
+      Eva's results answers during the analysis: no result is available
+      then, and such a request answers Top. *)
+  type results = {
+    input: state;
+    before_stmts: state_by_stmt;
+    after_stmts: state_by_stmt;
+  }
 
   (** Results of a function call. *)
   type call_results =
@@ -56,8 +66,11 @@ module type API = sig
     ]
 
   (** Signature of a hook to be called after the analysis of each function call.
-      Arguments are the callstack of the call, the function called, the initial
-      cvalue state at the start of the call, and the results from its analysis. *)
+      Arguments are the callstack of the call, the function called, a cvalue
+      state, and the results from its analysis. For [`Body], the state is the
+      join of the entries that survive the preconditions, or Top if none
+      survives; the input of the call is in the results. Otherwise, it is the
+      cvalue state at the start of the call. *)
   type call_results_hook =
     Callstack.t -> Cil_types.kernel_function -> state -> call_results -> unit
 

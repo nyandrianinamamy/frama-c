@@ -33,6 +33,18 @@ module type Domain = sig
   module Store : sig
     val register_state: Callstack.t -> Domain_store.control_point -> t -> unit
   end
+
+  (** Functions used during the analysis to record the invocations and the
+      producers of the hit log; see {!Hit_log}. Built by [Engine.Make]. *)
+  module Hit_log : sig
+    val initial: Callstack.t -> t -> unit
+    val enter: Callstack.t -> t -> unit
+    val body:
+      Callstack.t -> producer:int -> complete:bool -> entries:t list ->
+      points:(t Cil_datatype.Stmt.Hashtbl.t Lazy.t
+              * t Cil_datatype.Stmt.Hashtbl.t Lazy.t) option ->
+      guards:Hit_log.guards -> unit
+  end
 end
 
 

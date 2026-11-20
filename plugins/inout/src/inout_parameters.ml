@@ -15,6 +15,33 @@ include Plugin.Register
       let help = "operational, imperative and all kinds of inputs/outputs"
     end)
 
+module QueryPrototype =
+  String (struct
+    let option_name = "-inout-state-query-prototype"
+    let default = ""
+    let arg_name = "fresh|hit|missing"
+    let help = "Run the throwaway point-query prototype"
+  end)
+
+module QueryAcceptance =
+  String (struct
+    let option_name = "-inout-state-query-acceptance"
+    let default = ""
+    let arg_name = "[reach-|plugins-]<mode>"
+    let help = "Run the state-query acceptance driver (prototype). \
+                <mode> is reference, candidate, record, native, \
+                wrong-producer, tail-probe, store-check, perturb-calls, \
+                restore-check or trap:<phase>"
+  end)
+
+module QueryAcceptanceOutput =
+  String (struct
+    let option_name = "-inout-state-query-acceptance-output"
+    let default = ""
+    let arg_name = "file"
+    let help = "Write the records of the acceptance driver to <file>, \
+                as JSON lines"
+  end)
 
 module ForceDeref =
   False

@@ -8,11 +8,23 @@
 
 open Lattice_bounds
 
+(* Labels the reads of the legacy result store made by public functions. *)
+let reading = Legacy_read_guard.reader
+
+(* Answered by the hit log when it describes the results, from the
+   computation state and the status table otherwise. *)
 let are_available kf =
-  Self.is_computed () &&
-  match Function_calls.analysis_status kf with
-  | Analyzed (Complete | Partial) -> true
-  | SpecUsed | Builtin _ | Unreachable | Analyzed NoResults -> false
+  reading "Eva.Results.are_available" @@ fun () ->
+  let available : Function_calls.analysis_status -> bool = function
+    | Analyzed (Complete | Partial) -> true
+    | SpecUsed | Builtin _ | Unreachable | Analyzed NoResults -> false
+  in
+  match Hit_log.status kf with
+  | Some (status, computed) -> computed && available status
+  | None ->
+    Legacy_read_guard.notify Availability ~store:"analysis-status"
+      (fun fmt -> Format.pp_print_string fmt "computation state");
+    Self.is_computed () && available (Function_calls.analysis_status kf)
 
 type 'a by_callstack = (Callstack.t * 'a) list
 
@@ -69,6 +81,9 @@ let in_callstack cs =
 let filter_callstack f =
   change_context (fun ctx -> { ctx with filter = f :: ctx.filter })
 
+(* The conjunction of the predicates of a request. *)
+let selection_filter ctx cs = List.for_all (fun filter -> filter cs) ctx.filter
+
 let in_cvalue_state cvalue = Cvalue cvalue
 
 let before_pos pos =
@@ -101,15 +116,17 @@ type unrestricted_response = private [ `Unrestricted ]
 module Response =
 struct
 
+  (* [Top stacks]: the answer is unknown; [stacks] reach the point, in the
+     order of the store. They are computed only when enumerated. *)
   type ('a, 'callstack) t =
     | Consolidated : 'a -> ('a, unrestricted_response) t
     | ByCallstack  : 'a by_callstack -> ('a, 'callstack) t
-    | Top : ('a, 'callstack) t
+    | Top : Callstack.t list Lazy.t -> ('a, 'callstack) t
     | Bottom : ('a, 'callstack) t
 
   let coercion : ('a, restricted_to_callstack) t -> ('a, 'c) t = function
     | ByCallstack c -> ByCallstack c
-    | Top -> Top
+    | Top stacks -> Top stacks
     | Bottom -> Bottom
 
   let is_bottom = function
@@ -128,7 +145,7 @@ struct
     [< `Bottom | `Top | `Value of (Callstack.t * 'a) list ] ->
     ('a, restricted_to_callstack) t =
     fun req -> function
-      | `Top -> Top
+      | `Top -> Top (lazy [])
       | `Bottom -> Bottom
       | `Value table ->
         let keep (cs, _state) =
@@ -139,24 +156,19 @@ struct
 
   (* Accessors *)
 
+  (* The callstacks that reach the point, even when the answer is
+     unknown. *)
   let callstacks: ('a, restricted_to_callstack) t -> Callstack.t list = function
-    | Top | Bottom -> [] (* What else to do when Top is given ? *)
+    | Top stacks -> Lazy.force stacks
+    | Bottom -> []
     | ByCallstack l -> List.map fst l
-
-  (* Fold *)
-
-  let fold (f  : Callstack.t -> 'a -> 'b -> 'b) (acc : 'b) :
-    ('a, restricted_to_callstack) t -> 'b =
-    function
-    | Top | Bottom -> acc (* What else to do when Top is given ? *)
-    | ByCallstack l -> List.fold_left (fun acc (cs,x) -> f cs x acc) acc l
 
   (* Map *)
 
   let map : type c. ('a -> 'b) -> ('a, c) t -> ('b, c) t = fun f -> function
     | Consolidated v -> Consolidated (f v)
     | ByCallstack l -> ByCallstack (List.map (fun (cs,x) -> cs,f x) l)
-    | Top -> Top
+    | Top stacks -> Top stacks
     | Bottom -> Bottom
 
   (* Reduction *)
@@ -168,7 +180,7 @@ struct
       | ByCallstack ((_,h) :: t) ->
         List.fold_left (fun acc (_,x) -> reduce acc (map x)) (map h) t
       | ByCallstack [] | Bottom -> default `Bottom
-      | Top -> default `Top
+      | Top _ -> default `Top
 
   let default = function
     | `Bottom -> `Bottom
@@ -223,19 +235,54 @@ struct
       let state = cvalue, Locals_scoping.bottom () in
       `Value (Engine.Dom.set Cvalue_domain.State.key state Engine.Dom.top)
 
+  (* The hit log answers a request on several callstacks, or with a
+     predicate, when it describes the results: the callstacks that reach
+     the point are then enumerated even when the answer is unknown. *)
+  let select (ctx : context) callstacks =
+    let filter = selection_filter ctx in
+    Engine.select_by_callstack ?callstacks ~filter ctx.control_point
+
+  let of_selection = function
+    | Hit_log.Known list -> Response.ByCallstack list
+    | Hit_log.Unknown_state stacks -> Response.Top (lazy stacks)
+
+  (* Optimization if only one callstack, which the predicates keep, or on
+     the legacy path. An unknown state on the callstack keeps the legacy
+     answer, which ignores the predicates; the callstack is enumerated if a
+     visit reaches the point. *)
+  let get_on_callstack (ctx : context) callstack =
+    match Engine.get_state ~callstack ctx.control_point with
+    | `Top ->
+      let enumerate () =
+        match select ctx (Some [ callstack ]) with
+        | Some (Hit_log.Known list) -> List.map fst list
+        | Some (Hit_log.Unknown_state stacks) -> stacks
+        | None -> []
+      in
+      Response.Top (Lazy.from_fun enumerate)
+    | (`Bottom | `Value _) as state ->
+      let open Lattice_bounds.Bottom.Operators in
+      Response.by_callstack ctx
+        (let+ state = state in [ callstack, state ])
+
   let get_by_callstack (ctx : context) :
     (_, restricted_to_callstack) Response.t =
-    let list =
-      match ctx.selector with
-      | Some [ callstack ] ->
-        (* Optimization if only one callstack. *)
-        let open Lattice_bounds.TopBottom.Operators in
-        let+ state = Engine.get_state ~callstack ctx.control_point in
-        [ callstack, state ]
-      | _ ->
-        Engine.get_state_by_callstack ctx.control_point
-    in
-    Response.by_callstack ctx list
+    match ctx.selector with
+    | Some [ callstack ] when selection_filter ctx callstack ->
+      get_on_callstack ctx callstack
+    | Some [ callstack ] ->
+      (* The predicates reject the only callstack: the hit log answers the
+         empty selection, whatever the state on the callstack. *)
+      begin match select ctx ctx.selector with
+        | Some selection -> of_selection selection
+        | None -> get_on_callstack ctx callstack
+      end
+    | callstacks ->
+      match select ctx callstacks with
+      | Some selection -> of_selection selection
+      | None ->
+        Response.by_callstack ctx
+          (Engine.get_state_by_callstack ctx.control_point)
 
   let get (req : request) : (_, unrestricted_response) Response.t =
     let open Response in
@@ -257,13 +304,12 @@ struct
     | Point ctx -> get_by_callstack ctx |> Response.callstacks
     | Cvalue _ -> []
 
+  (* The subrequests come in the reverse order of [callstacks]. *)
   let by_callstack = function
     | Cvalue _ -> assert false
     | Point ctx as req ->
-      let f cs _res acc =
-        (cs, in_callstack cs req) :: acc
-      in
-      get_by_callstack ctx |> Response.fold f []
+      get_by_callstack ctx |> Response.callstacks
+      |> List.rev_map (fun cs -> cs, in_callstack cs req)
 
   let is_reachable req =
     match get req with
@@ -501,10 +547,12 @@ end
 (* Working with callstacks *)
 
 let callstacks req =
+  reading "Eva.Results.callstacks" @@ fun () ->
   let module E = Make () in
   E.callstacks req
 
 let by_callstack req =
+  reading "Eva.Results.by_callstack" @@ fun () ->
   let module E = Make () in
   E.by_callstack req
 
@@ -512,20 +560,24 @@ let by_callstack req =
 (* State requests *)
 
 let equality_class exp req =
+  reading "Eva.Results.equality_class" @@ fun () ->
   let module E = Make () in
   E.equality_class exp req
 
 let get_cvalue_model_result req =
+  reading "Eva.Results.get_cvalue_model_result" @@ fun () ->
   let module E = Make () in
   E.get_cvalue_model req
 
 let get_cvalue_model req =
+  reading "Eva.Results.get_cvalue_model" @@ fun () ->
   match get_cvalue_model_result req with
   | Ok state -> state
   | Error Bottom -> Cvalue.Model.bottom
   | Error (Top | DisabledDomain) -> Cvalue.Model.top
 
 let print_states ?filter req =
+  reading "Eva.Results.print_states" @@ fun () ->
   let module E = Make () in
   E.print_states ?filter req
 
@@ -561,12 +613,15 @@ let build_eval_lval_and_exp () =
   eval_lval, eval_exp
 
 let eval_lval lval req =
+  reading "Eva.Results.eval_lval" @@ fun () ->
   let lval = Eva_ast.translate_lval lval in
   Value ((fst @@ build_eval_lval_and_exp ()) lval req)
 
-let eval_var vi req = eval_lval (Cil.var vi) req
+let eval_var vi req =
+  reading "Eva.Results.eval_var" @@ fun () -> eval_lval (Cil.var vi) req
 
 let eval_exp exp req =
+  reading "Eva.Results.eval_exp" @@ fun () ->
   let exp = Eva_ast.translate_exp exp in
   Value ((snd @@ build_eval_lval_and_exp ()) exp req)
 
@@ -580,15 +635,18 @@ let eval_address' ?(for_writing=false) lval req =
     end : Lvaluation)
 
 let eval_address ?(for_writing=false) lval req =
+  reading "Eva.Results.eval_address" @@ fun () ->
   let lval = Eva_ast.translate_lval lval in
   eval_address' ~for_writing lval req
 
 let eval_callee f req =
+  reading "Eva.Results.eval_callee" @@ fun () ->
   let module M = Make () in
   let f = Eva_ast.translate_host f in
   M.eval_callee f req
 
 let callee stmt =
+  reading "Eva.Results.callee" @@ fun () ->
   let callee_lv =
     match stmt.Cil_types.skind with
     | Instr (Call (_lval, callee_lv, _args, _loc)) ->
@@ -709,20 +767,24 @@ let alarms : type a. a evaluation -> Alarms.t list =
 (* Dependencies *)
 
 let expr_deps expr request =
+  reading "Eva.Results.expr_deps" @@ fun () ->
   let lval_to_loc lv = eval_address' lv request |> as_precise_loc in
   Eva_ast.PreciseDepsOf.zone_of_exp lval_to_loc (Eva_ast.translate_exp expr)
 
 let lval_deps lval request =
+  reading "Eva.Results.lval_deps" @@ fun () ->
   let lval_to_loc lv = eval_address' lv request |> as_precise_loc in
   Eva_ast.PreciseDepsOf.zone_of_lval lval_to_loc Read
     (Eva_ast.translate_lval lval)
 
 let address_deps lval request =
+  reading "Eva.Results.address_deps" @@ fun () ->
   let lval_to_loc lv = eval_address' lv request |> as_precise_loc in
   Eva_ast.PreciseDepsOf.indirect_zone_of_lval
     lval_to_loc (Eva_ast.translate_lval lval)
 
 let expr_dependencies expr request =
+  reading "Eva.Results.expr_dependencies" @@ fun () ->
   let lval_to_loc lv = eval_address' lv request |> as_precise_loc in
   Eva_ast.PreciseDepsOf.deps_of_exp lval_to_loc (Eva_ast.translate_exp expr)
 
@@ -731,6 +793,7 @@ let expr_dependencies expr request =
 type taint = Taint_domain.taint = Direct | Indirect | Untainted
 
 let is_tainted ?names zone request =
+  reading "Eva.Results.is_tainted" @@ fun () ->
   let module M = Make () in
   let state = M.get_state request Taint_domain.key Taint_domain.join in
   Result.map (fun state -> Taint_domain.is_tainted ?names state zone) state
@@ -741,6 +804,7 @@ type taint_names_by_kind = Taint_domain.taint_names_by_kind =
   }
 
 let taint_names_by_kind zone request =
+  reading "Eva.Results.taint_names_by_kind" @@ fun () ->
   let module M = Make () in
   let state = M.get_state request Taint_domain.key Taint_domain.join in
   Result.bind state (fun state ->
@@ -750,9 +814,30 @@ let taint_names_by_kind zone request =
 
 (* Reachability *)
 
+(* Reachability from the hit log, when it describes the current results;
+   see {!Hit_log.reach}. *)
+let reach (ctx : context) =
+  let filter = selection_filter ctx in
+  Hit_log.reach ?callstacks:ctx.selector ~filter ctx.control_point
+
+(* A request is empty only when no selected callstack reaches its point.
+   The legacy implementation, [callstacks rq = []], is also true when the
+   results are not recorded or not available yet: when the hit log
+   describes the results, it answers false then. A supplied state has no
+   callstack, and is empty as in the legacy implementation. *)
 let is_empty rq =
-  let module E = Make () in
-  E.callstacks rq = []
+  reading "Eva.Results.is_empty" @@ fun () ->
+  let legacy () =
+    let module E = Make () in
+    E.callstacks rq = []
+  in
+  match rq with
+  | Cvalue _ -> legacy ()
+  | Point ctx ->
+    match reach ctx with
+    | Some Reaching | Some (Unknown _) -> false
+    | Some Not_reaching -> true
+    | None -> legacy ()
 
 let is_bottom : type a. a evaluation -> bool =
   function
@@ -763,25 +848,48 @@ let is_bottom : type a. a evaluation -> bool =
     let module L = (val lvaluation : Lvaluation) in
     L.is_bottom L.v
 
+(* An unknown answer is reachable, as the [Top] state of the legacy
+   store. *)
+let is_reachable_point rq =
+  match rq with
+  | Cvalue _ -> let module M = Make () in M.is_reachable rq
+  | Point ctx ->
+    match reach ctx with
+    | Some (Reaching | Unknown _) -> true
+    | Some Not_reaching -> false
+    | None -> let module M = Make () in M.is_reachable rq
+
 let is_reachable stmt =
-  let module M = Make () in
-  M.is_reachable (before stmt)
+  reading "Eva.Results.is_reachable" @@ fun () ->
+  is_reachable_point (before stmt)
 
 let is_reachable_pos pos =
-  let module M = Make () in
-  M.is_reachable (before_pos pos)
+  reading "Eva.Results.is_reachable_pos" @@ fun () ->
+  is_reachable_point (before_pos pos)
 
 let is_reachable_kinstr kinstr =
-  let module M = Make () in
-  M.is_reachable (before_kinstr kinstr)
+  reading "Eva.Results.is_reachable_kinstr" @@ fun () ->
+  is_reachable_point (before_kinstr kinstr)
 
-let condition_truth_value = Iterator.condition_truth_value
+(* Served by the hit log when it describes the results. *)
+let condition_truth_value stmt =
+  reading "Eva.Results.condition_truth_value" @@ fun () ->
+  match Hit_log.condition_truth_value stmt with
+  | Some outcomes -> outcomes
+  | None -> Iterator.condition_truth_value stmt
 
 (* Callers / callsites *)
 
-let is_called = Function_calls.is_called
-let callers = Function_calls.callers
-let callsites = Function_calls.callsites
+(* Served by the hit log when it describes the results; see
+   {!Function_calls}. *)
+let is_called kf =
+  reading "Eva.Results.is_called" @@ fun () -> Function_calls.is_called kf
+
+let callers kf =
+  reading "Eva.Results.callers" @@ fun () -> Function_calls.callers kf
+
+let callsites kf =
+  reading "Eva.Results.callsites" @@ fun () -> Function_calls.callsites kf
 
 (* Result conversion *)
 

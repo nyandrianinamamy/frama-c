@@ -28,7 +28,12 @@ module Make_Domain (Abstract: Abstractions.S) = struct
        an associative list (callstack, state). *)
   module Store = struct
 
+    (* The hit log records the cvalue domain alone, which is then the whole
+       state. *)
+    let to_state cvalue = Abstract.Dom.set Cvalue_domain.State.key cvalue top
+
     let register_state callstack control_point state =
+      Legacy_read_guard.reader "Eva.Engine.register_state" @@ fun () ->
       match control_point with
       | Domain_store.Initial ->
         (* Only one possible initial state, which is also the consolidated state.
@@ -37,15 +42,22 @@ module Make_Domain (Abstract: Abstractions.S) = struct
         Store.set_state ~callstack Initial state
       | _ ->
         (* Only register [state] for the given callstack; the consolidated state
-           is computed afterward by [post_analysis]. *)
+           is computed afterward by [post_analysis]. While the hit log
+           records, it gives the state previously registered, and the store
+           is only written. *)
         let set = Store.set_state ~callstack control_point in
-        match Store.get_state ~callstack control_point with
-        | `Value previous_state -> set (join previous_state state)
-        | `Bottom | `Top -> set state (* No state previously registered. *)
+        match Hit_log.registered ~callstack control_point with
+        | Some None -> set state
+        | Some (Some previous) -> set (join (to_state previous) state)
+        | None ->
+          match Store.get_state ~callstack control_point with
+          | `Value previous_state -> set (join previous_state state)
+          | `Bottom | `Top -> set state (* No state previously registered. *)
 
     (* Computes and registers consolidated state as the join of states
        registered for all possible callstacks at the given [control_point]. *)
     let compute_consolidated_state control_point =
+      Legacy_read_guard.reader "Eva.Engine.consolidate" @@ fun () ->
       let open Lattice_bounds.TopBottom.Operators in
       let* callstacks = Store.callstacks control_point in
       let join a b = `Value (join a b) in
@@ -83,6 +95,7 @@ module Make_Domain (Abstract: Abstractions.S) = struct
         ignore (compute_consolidated_state (After stmt));
       in
       let compute_kf_states kf =
+        Legacy_read_guard.reader "Eva.Engine.consolidate" @@ fun () ->
         match Function_calls.analysis_status kf with
         | Unreachable | Analyzed NoResults | Analyzed Partial -> ()
         | SpecUsed | Builtin _ -> compute_initial_state kf
@@ -94,9 +107,51 @@ module Make_Domain (Abstract: Abstractions.S) = struct
       Globals.Functions.iter compute_kf_states
   end
 
-  (* Computes consolidated states at the end of the analysis. *)
+  (* Records the hit log, as cvalue states. Nothing is recorded unless the
+     hit log is exact, which requires the cvalue domain alone. *)
+  module Hit_log = struct
+    let get_cvalue = Abstract.Dom.get Cvalue_domain.State.key
+
+    let record f =
+      match get_cvalue with
+      | Some get when Hit_log.recording () -> f get
+      | _ -> ()
+
+    let initial callstack state =
+      record (fun get -> Hit_log.initial callstack (get state))
+
+    let enter callstack state =
+      record (fun get -> Hit_log.enter callstack (get state))
+
+    let body callstack ~producer ~complete ~entries ~points ~guards =
+      record @@ fun get ->
+      let convert table =
+        let result = Cil_datatype.Stmt.Hashtbl.create 17 in
+        Cil_datatype.Stmt.Hashtbl.iter
+          (fun stmt state ->
+             Cil_datatype.Stmt.Hashtbl.add result stmt (get state))
+          (Lazy.force table);
+        result
+      in
+      let points =
+        Stdlib.Option.map
+          (fun (before, after) ->
+             lazy Hit_log.{ before = convert before; after = convert after })
+          points
+      in
+      Hit_log.body callstack ~producer ~complete
+        ~entries:(List.map get entries) ~points ~guards
+
+    let describes_results = Hit_log.describes_results
+  end
+
+  (* Computes consolidated states at the end of the analysis. When the hit
+     log describes the results, it answers the requests for these states,
+     and the legacy store consolidates a state only for a request that the
+     hit log declines. *)
   let post_analysis final_state =
-    if Parameters.JoinResults.get () then Store.compute_consolidated_states ();
+    if Parameters.JoinResults.get () && not (Hit_log.describes_results ())
+    then Store.compute_consolidated_states ();
     post_analysis final_state
 end
 
@@ -147,13 +202,20 @@ module Make (Abstract: Abstractions.S) = struct
     module Interferences = Interference'
 
 
-    let find get (control_point: Domain_store.control_point) =
+    (* The computation state and the analysis status of the function, part
+       of the legacy result store, decide the answer before the states. The
+       readers of the status table and of the call relations report their
+       own reads. *)
+    let find ?callstack get (control_point: Domain_store.control_point) =
+      Legacy_read_guard.notify Availability ~store:"analysis-status"
+        (fun fmt -> Format.fprintf fmt "computation state at %t"
+            (Domain_store.pretty_read_point ?callstack control_point));
       if Self.is_computed ()
       then
         match control_point with
         | Initial -> get control_point
         | Start kf ->
-          if Function_calls.is_called kf
+          if Function_calls.registered kf
           then get control_point
           else `Bottom
         | Before stmt | After stmt ->
@@ -164,13 +226,41 @@ module Make (Abstract: Abstractions.S) = struct
           | Analyzed (Complete | Partial) -> get control_point
       else `Top
 
-    let get_state ?callstack =
-      find (Dom.Store.get_state ?callstack)
+    (* The hit log answers a request when it can; it then reads neither the
+       analysis status nor the stored states. It records the cvalue domain
+       alone, which is then the whole state. *)
+    let to_state state = Dom.set Cvalue_domain.State.key state Dom.top
+
+    let map_value f = function
+      | `Value x -> `Value (f x)
+      | `Top | `Bottom as x -> x
+
+    let resolve ?callstack control_point =
+      let resolved =
+        match callstack with
+        | None -> Hit_log.resolve_consolidated control_point
+        | Some callstack -> Hit_log.resolve ~callstack control_point
+      in
+      Option.map (map_value to_state) resolved
+
+    let get_state ?callstack control_point =
+      match resolve ?callstack control_point with
+      | Some state -> state
+      | None -> find ?callstack (Dom.Store.get_state ?callstack) control_point
 
     let get_state_by_callstack control_point =
-      find (Dom.Store.get_state_by_callstack) control_point
+      match Hit_log.resolve_by_callstack control_point with
+      | Some answer ->
+        let to_states = List.map (fun (cs, state) -> cs, to_state state) in
+        map_value to_states answer
+      | None -> find (Dom.Store.get_state_by_callstack) control_point
 
-    let callstacks = Abstract.Dom.Store.callstacks
+    let select_by_callstack ?callstacks ~filter control_point =
+      let to_states = List.map (fun (cs, state) -> cs, to_state state) in
+      Option.map (function
+          | Hit_log.Known list -> Hit_log.Known (to_states list)
+          | Unknown_state stacks -> Unknown_state stacks)
+        (Hit_log.select ?callstacks ~filter control_point)
 
     let eval_expr state expr = Eval.evaluate state expr >>=: snd
 
@@ -207,6 +297,27 @@ let ref_engine = ref (default, (module Default : S))
 
 (* Returns the current Engine module. *)
 let current () = (module (val (snd !ref_engine)): S)
+
+(* Whether the current engine uses the cvalue domain alone. *)
+let is_cvalue_only () = Abstractions.Config.equal (fst !ref_engine) default
+
+(* The reads of the logic label Init and of the printing of the final
+   states. The label Init reads the initial state from the hit log while
+   the analysis runs, when the public request answers Top; it reads the
+   legacy store directly otherwise, as before the hit log. The final states
+   are read as the unfiltered public request reads them. *)
+let () =
+  let initial_state () =
+    match Hit_log.initial_state () with
+    | Some state -> Lattice_bounds.TopBottom.map fst state
+    | None -> Cvalue_results.get_state Initial
+  in
+  let before stmt =
+    let module Engine = (val current ()) in
+    Engine.get_state (Before stmt)
+    |> Lattice_bounds.TopBottom.map Engine.Dom.get_cvalue_or_top
+  in
+  Cvalue_reads.install ~initial_state ~before
 
 (* Set of hooks called whenever the current Engine module is changed.
    Useful for the GUI parts that depend on it. *)

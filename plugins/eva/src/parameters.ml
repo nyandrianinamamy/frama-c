@@ -397,6 +397,20 @@ module JoinResults =
       let default = true
     end)
 
+let () = Parameter_customize.set_group performance
+let () = Parameter_customize.is_invisible ()
+module HitLog =
+  True
+    (struct
+      let option_name = "-eva-hit-log"
+      let help = "Record the invocations of each function and the states \
+                  produced by their analysis, and answer point requests on \
+                  one callstack from these records rather than from the \
+                  stored states (prototype, cvalue domain only). With \
+                  -eva-no-hit-log, every request reads the stored states."
+    end)
+let () = add_dep HitLog.parameter
+
 (* ------------------------------------------------------------------------- *)
 (* --- Non-standard alarms                                               --- *)
 (* ------------------------------------------------------------------------- *)
