@@ -32,7 +32,7 @@ base=(dune exec --no-build -- frama-c -no-autoload-plugins
 candidate_options=(${CANDIDATE_OPTIONS:--eva-no-memexec})
 fixtures=(legacy-reads assign stages original loop read-before-write guard
   unreachable partial-base maybe-write maybe-write-goto maybe-write-upstream
-  pre-label precondition)
+  pre-label precondition selection)
 
 {
   printf 'revision %s\n' "$(git rev-parse HEAD)"
@@ -68,6 +68,8 @@ done
 # with the hit log.
 run legacy-reads wrong-producer "$evidence/control-wrong-producer" \
   "${candidate_options[@]}"
+run selection wrong-producer "$evidence/control-wrong-producer-selection" \
+  "${candidate_options[@]}"
 run legacy-reads candidate "$evidence/control-legacy-path" \
   "${candidate_options[@]}" -eva-no-hit-log
 for name in pre-label precondition; do
@@ -78,11 +80,14 @@ for name in pre-label precondition; do
 done
 printf 'Recorded resolver controls\n'
 
-# Positive controls: the trap must abort the run with exit status 1.
+# Positive controls: the trap must abort the run with exit status 1. The
+# resolver serves the known request: its control runs on the legacy path.
 for phase in request analysis collection post-analysis initialization; do
   status=0
+  legacy_path=()
+  [ "$phase" = request ] && legacy_path=(-eva-no-hit-log)
   run legacy-reads "trap:$phase" "$evidence/control-$phase" \
-    "${candidate_options[@]}" || status=$?
+    "${candidate_options[@]}" "${legacy_path[@]}" || status=$?
   printf '%s\n' "$status" > "$evidence/control-$phase.status"
   printf 'Recorded control %s (exit %s)\n' "$phase" "$status"
 done

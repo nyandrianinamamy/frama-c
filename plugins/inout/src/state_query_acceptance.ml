@@ -386,7 +386,7 @@ let evaluate ~id ~request ~expect probe req =
          pretty_callees callees, Callees callees)
   | Exp e ->
     let name = exp_name e in
-    let call family f =
+    let call ?(expect = expect) family f =
       call ~id:(family ^ "[" ^ name ^ "]." ^ id) ~family:"evaluation"
         ~request:(request family name) ~expect f
     in
@@ -424,7 +424,18 @@ let evaluate ~id ~request ~expect probe req =
       call "lval_deps" (fun () ->
           let zone = R.lval_deps lv req in
           Format.asprintf "%a" Memory_zone.pretty zone, Zone (Ok zone));
-      call "address_deps" (fun () ->
+      (* The address of a variable without index reads no state. *)
+      let rec indexed = function
+        | NoOffset -> false
+        | Field (_, offset) -> indexed offset
+        | Index _ -> true
+      in
+      let expect =
+        match lv with
+        | Var _, offset when not (indexed offset) -> No_read
+        | _ -> expect
+      in
+      call ~expect "address_deps" (fun () ->
           let zone = R.address_deps lv req in
           Format.asprintf "%a" Memory_zone.pretty zone, Zone (Ok zone))
     | _ -> ()
@@ -877,28 +888,31 @@ let native kf stmt =
         log "native %s missing" expected.id;
         incr differing
       | Some observed ->
-        match native_equal expected.native observed.native with
-        | None -> ()
-        | Some equal ->
-          incr compared;
-          if not equal then incr differing;
-          log "native %s equal=%b reference-reads=%d reference-resolved=%d \
-               legacy-reads=%d resolved=%d" expected.id equal
-            (List.length expected.reads) (List.length expected.resolutions)
-            (List.length observed.reads) (List.length observed.resolutions);
-          emit (`Assoc [
-              "kind", `String "native";
-              "id", `String expected.id;
-              "equal", `Bool equal;
-              "expected", `String expected.text;
-              "observed", `String observed.text;
-              "reference_reads", `Int (List.length expected.reads);
-              "reference_resolved",
-              `List (List.map json_of_resolution expected.resolutions);
-              "reads", `List (List.map json_of_read observed.reads);
-              "resolved",
-              `List (List.map json_of_resolution observed.resolutions);
-            ]))
+        let equal = native_equal expected.native observed.native in
+        Option.iter (fun equal ->
+            incr compared;
+            if not equal then incr differing;
+            log "native %s equal=%b reference-reads=%d reference-resolved=%d \
+                 legacy-reads=%d resolved=%d" expected.id equal
+              (List.length expected.reads) (List.length expected.resolutions)
+              (List.length observed.reads) (List.length observed.resolutions))
+          equal;
+        (* Answers without a native comparison are recorded too, with the
+           path that served them; equal is then null. *)
+        emit (`Assoc [
+            "kind", `String "native";
+            "id", `String expected.id;
+            "equal", Option.fold ~none:`Null ~some:(fun b -> `Bool b) equal;
+            "text_equal", `Bool (String.equal expected.text observed.text);
+            "expected", `String expected.text;
+            "observed", `String observed.text;
+            "reference_reads", `Int (List.length expected.reads);
+            "reference_resolved",
+            `List (List.map json_of_resolution expected.resolutions);
+            "reads", `List (List.map json_of_read observed.reads);
+            "resolved",
+            `List (List.map json_of_resolution observed.resolutions);
+          ]))
     reference;
   log "native compared=%d differing=%d" !compared !differing;
   emit (`Assoc [

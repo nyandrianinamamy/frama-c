@@ -123,7 +123,10 @@ def native_report(evidence, name):
     summary = next((r for r in rs if r["kind"] == "native-summary"), None)
     return {
         "summary": summary,
-        "differing": [r["id"] for r in rs if r["kind"] == "native" and not r["equal"]],
+        "differing": [r["id"] for r in rs if r["kind"] == "native" and r["equal"] is False],
+        "text_differing": [
+            r["id"] for r in rs if r["kind"] == "native" and not r.get("text_equal", True)
+        ],
         "resolved": {r["id"]: len(r["resolved"]) for r in rs if r["kind"] == "native"},
         "reference_resolved": sum(
             len(r["reference_resolved"]) for r in rs if r["kind"] == "native"
@@ -307,6 +310,100 @@ def perturbation_control(evidence):
     }
 
 
+SELECTION_FIXTURE = "selection"
+# Answers of the fresh-only reference that make the selection fixture
+# discriminate, with the reason. The unfiltered request evaluates the joined
+# state; a selection evaluates each stack then joins the answers, even when
+# it names every stack; the visits of one stack are joined before the
+# evaluation.
+SELECTION_EXPECTED = {
+    "eval_exp[u==w].unfiltered": "{0; 1}",
+    "eval_exp[u==w].selector-all": "{1}",
+    "eval_exp[u==w].filter-all": "{1}",
+    "eval_exp[x==y].stack:main/g@53": "{0; 1}",
+    "eval_exp[x==y].stack:main/g@49": "{1}",
+    "eval_exp[100/((u-w)+1)].unfiltered": "{-100; 33; 50; 100}",
+    "eval_exp[100/((u-w)+1)].selector-all": "{100}",
+    "eval_callee[*(tbl[u-w])].unfiltered": "f1 f2",
+    "eval_callee[*(tbl[u-w])].selector-all": "f1",
+    "eval_exp[x==y].supplied": "{0}",
+}
+
+
+def selection_control(fixtures):
+    """The selection fixture distinguishes evaluating the joined state from
+    evaluating each stack then joining, on the reference's own answers; its
+    enumeration order differs from the order of the names; and the
+    candidate serves each of these requests like the reference."""
+    fixture = next((f for f in fixtures if f["fixture"] == SELECTION_FIXTURE), None)
+    if fixture is None:
+        return {"control": "selection-order", "result": "NOT RUN"}
+    rows = {r["id"]: r for r in fixture["calls"]}
+
+    def reference(call_id):
+        # The value of an evaluation, before its alarms.
+        text = (rows.get(call_id) or {}).get("expected") or ""
+        return text.split("; alarms")[0]
+
+    wrong = {i: reference(i) for i in SELECTION_EXPECTED if reference(i) != SELECTION_EXPECTED[i]}
+    stacks = reference("stacks.unfiltered").split()
+    order_exercised = len(stacks) > 2 and stacks != sorted(stacks)
+    checked = list(SELECTION_EXPECTED) + [
+        "stacks.unfiltered",
+        "by_callstack.unfiltered",
+    ]
+    served = [
+        i
+        for i in checked
+        if (rows.get(i) or {}).get("disposition") != "MATCH"
+        or (rows[i]["expect"] == "resolver" and not rows[i]["resolved"])
+    ]
+    ok = not wrong and order_exercised and not served
+    return {
+        "control": "selection-order",
+        "expected": {
+            "reference_answers": SELECTION_EXPECTED,
+            "stack_order_differs_from_names": True,
+            "not_served_like_reference": [],
+        },
+        "observed": {
+            "reference_answers_differing": wrong,
+            "stacks.unfiltered": " ".join(stacks),
+            "not_served_like_reference": served,
+        },
+        "result": "PASS" if ok else "FAIL",
+    }
+
+
+def selection_perturbation_control(evidence):
+    """With the wrong producer, the requests on several stacks or none of the
+    selection fixture must report MISMATCH, on resolved requests only."""
+    path = evidence / "control-wrong-producer-selection.jsonl"
+    if not path.exists():
+        return {"control": "selection-perturbation", "result": "NOT RUN"}
+    _, ref_calls, _ = load(evidence / f"{SELECTION_FIXTURE}.reference.jsonl")
+    _, calls, _ = load(path)
+    rows = compare_calls(ref_calls, calls)
+    mismatches = [r for r in rows if r["disposition"] == "MISMATCH"]
+    outside = [r["id"] for r in mismatches if r["expect"] != "resolver"]
+    several = [
+        r["id"]
+        for r in mismatches
+        if r["id"].endswith((".unfiltered", ".selector-all", ".filter-all", ".filter-drop-first"))
+    ]
+    ok = bool(several) and not outside
+    return {
+        "control": "selection-perturbation",
+        "expected": {"several_or_no_stack_mismatches": ">0", "outside_resolver": []},
+        "observed": {
+            "mismatches": len(mismatches),
+            "several_or_no_stack_mismatches": len(several),
+            "outside_resolver": outside,
+        },
+        "result": "PASS" if ok else "FAIL",
+    }
+
+
 def inout_reads(rows):
     return sum(
         r["count"]
@@ -351,15 +448,21 @@ def native_control(fixtures):
         observed[f["fixture"]] = {
             "compared": summary.get("compared"),
             "differing": native["differing"],
+            "text_differing": native["text_differing"],
             "reference_resolved": native["reference_resolved"],
             "unresolved": sorted(unresolved),
         }
         ok &= bool(summary.get("compared")) and summary.get("differing") == 0
         ok &= not native["differing"] and native["reference_resolved"] == 0
-        ok &= not unresolved
+        ok &= not native["text_differing"] and not unresolved
     return {
         "control": "native-equality",
-        "expected": {"differing": 0, "reference_resolved": 0, "unresolved": []},
+        "expected": {
+            "differing": 0,
+            "text_differing": [],
+            "reference_resolved": 0,
+            "unresolved": [],
+        },
         "observed": observed,
         "result": "PASS" if ok else "FAIL",
     }
@@ -615,6 +718,8 @@ def main(argv):
     controls.append(resolver_control(report["fixtures"]))
     controls.append(native_control(report["fixtures"]))
     controls.append(perturbation_control(evidence))
+    controls.append(selection_control(report["fixtures"]))
+    controls.append(selection_perturbation_control(evidence))
     controls.append(collection_control(evidence, report["fixtures"]))
     controls.append(parity_control(evidence))
     if not require_zero:
