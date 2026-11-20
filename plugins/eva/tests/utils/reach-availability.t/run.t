@@ -242,6 +242,18 @@ computed before the stop, as the legacy store does.
   $ awk '/call restored\./ { if (/legacy-reads=0 /) z++; else n++ } END { print n+0, "read the legacy tables,", z+0, "do not" }' interrupted-restore.log
   12 read the legacy tables, 0 do not
 
+The same check where the interrupted visit reaches a labelled statement:
+in interrupted-reached.i, both calls reach Q, and the second one stops
+after Q. The legacy tables that the payload wrote hold the state of the
+interrupted visit at Q, as the reference's store does. In
+interrupted-loop.i, one callstack has a visit that reaches R and one that
+was interrupted before it.
+  $ for f in interrupted-reached interrupted-loop; do run reach-reference $f-reference.restore.log $f.i; run reach-restore-check $f-restore.log $f.i; answers $f-reference.restore.log > $f-reference.all; grep -e "^restored\." $f-reference.all > $f-reference.rst; answers $f-restore.log > $f-restore.all; grep -e "^restored\." $f-restore.all > $f-restore.rst; diff $f-reference.rst $f-restore.rst; done
+  $ grep -e "call restored\.reach\.Q\." interrupted-reached-restore.log
+  [acceptance] call restored.reach.Q.reachable legacy-reads=6 resolved=0 answer=true
+  [acceptance] call restored.reach.Q.stacks legacy-reads=5 resolved=0 answer=main/f@18 main/f@19
+  [acceptance] call restored.reach.Q.model-before legacy-reads=3 resolved=0 answer=g ∈ {0; 1}; x ∈ {1; 2}
+
 Interrupted analysis with memexec. The second call to h is a memexec hit
 on the first; the second call to f then stops the analysis, after R, and
 later is never entered. The legacy store has no state at Z nor at L, and

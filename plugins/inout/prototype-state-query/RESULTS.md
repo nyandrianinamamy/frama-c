@@ -135,9 +135,14 @@ All controls pass: the five phase traps, `comparator-mismatch`,
 `zero-read-gate-exit`.
 
 The reachability battery runs in the cram test
-`plugins/eva/tests/utils/reach-availability.t`: on each fixture but
+`plugins/eva/tests/utils/reach-availability.t`, part of
+`TERM=xterm dune runtest -j 8 plugins/eva`. On each fixture but
 `interrupted-hit.i`, whose memexec hit is outside the trapped
-configuration, the candidate runs under the same continuous trap, and on
-`points.i` and
-`interrupted.i` the payload exported from the records restores legacy
-tables that give the reference's answers (`reach-restore-check`).
+configuration, the candidate runs under the same continuous trap. It asks
+the computation state (computing during the analysis, aborted after an
+interruption), then exports and restores the results, which are then
+computed. In `reach-restore-check` mode, on `points.i`, `interrupted.i`,
+`interrupted-loop.i` and `interrupted-reached.i`, the payload exported
+from the records, without legacy read, writes legacy tables that give the
+reference's answers after its own restore, including the state of the
+interrupted visit at the label it reached.
