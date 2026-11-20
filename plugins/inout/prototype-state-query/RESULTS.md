@@ -48,3 +48,13 @@ These counts describe the prototype representation. Full diagnostic states,
 the independently built write-only control, allocator overhead, and time
 are outside the storage counts. The equality and inclusion checks establish
 the relationships to the observed fresh models for these fixtures.
+
+## Plug-in readers
+
+`acceptance.sh` passed on the revision that adds this section, with the
+plug-in fixture `plugins.c`: its 194 requests are `MATCH`, with the
+answers of the reference and no legacy read, and the native run finds no
+difference. The controls `plugins-trap` and `plugins-perturbation` pass,
+with every other control. The zero-read gate fails, as expected: the
+registration of the states by the engine and the availability readers
+still read the legacy store.

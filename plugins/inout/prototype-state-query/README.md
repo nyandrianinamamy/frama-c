@@ -494,29 +494,91 @@ every fixture: no stack, no subrequest, Bottom, `is_empty` true, without
 legacy read; and lists the fixtures where the reference answers Top for
 them: pending and not recorded results.
 
+## Plug-in readers and semantic facts
+
+The `plugins-` modes run the battery of the plug-ins that read Eva's
+results, on `plugins.c`; `plugins/eva/tests/utils/plugin-readers.t` runs it
+on a copy, `plugins.i`, and shows each answer. Only Eva and InOut are
+loaded, with autoload disabled; Callgraph and Server come with their
+dependencies, and the header records the plug-in list and whether the
+optional Eva server API is loaded, which it is not. The battery asks:
+
+- `Eva.Analysis.is_computed`, which Server's filters and Callgraph ask
+  before reading Eva's results;
+- the call relations: `Eva.Results.is_called`, `callers` and `callsites`
+  of each function;
+- the guard outcomes: `Eva.Results.condition_truth_value` on each
+  conditional;
+- Callgraph: the graph, recomputed from Eva's results, and its order;
+- InOut: `kf_inputs`, `kf_external_inputs`, `kf_outputs`,
+  `kf_external_outputs` and `get_precise_inout` of each function, callees
+  first; `get_precise_inout ~stmt` of each call that the analysis made;
+  `stmt_inputs` and `stmt_outputs` of each instruction; `expr_inputs` of
+  each assigned or returned expression that reads memory;
+- Server: the read and written filters that InOut registers, on each
+  global variable (`kernel.ast.fetchGlobals`), and Ivette's array of
+  properties, with the alarms (`kernel.properties.fetchStatus`);
+- the status that Eva emits on each property, and the consolidated status;
+- the statistics that Eva computes from its results: the number of alarms
+  and the coverage of statements and functions. The statistics of the
+  execution (memory, time, iterations, memexec hits and misses, widenings,
+  unrolling, partitioning index) are written apart, in an
+  `execution-statistics` record, and are not compared.
+
+Eva's final display computes the graph of Callgraph and InOut's outputs of
+the analyzed functions; the driver clears these memos, so that each
+request computes its own answer from Eva's results. InOut's callwise
+results, which it records during the analysis, are kept: those requests
+read nothing. The modes are `plugins-reference`, `plugins-candidate`,
+`plugins-native`, `plugins-wrong-producer` and `plugins-trap`. The last
+arms the guard's `Trap_except` mode: every legacy read, in any phase,
+whose innermost reader is not exempt aborts Eva. The only exempt reader is
+`Eva.Engine.register_state`, which joins each new state with the recorded
+one during the analysis.
+
+The hit log records the facts that these readers need beyond the states.
+Each answer equals the legacy one; where the records cannot give it, the
+reader declines to the legacy store.
+
+| Fact | Readers | Recorded as | Equal to the legacy answer because | Declines | With memexec hits (#81) |
+| --- | --- | --- | --- | --- | --- |
+| Completion | `Eva.Analysis.is_computed` | The completion of the records. | The records are sealed or interrupted when the computation state changes. | When the records do not describe the results. | Unaffected. |
+| Call relations | `is_called`, `callers`, `callsites`, `nb_callsites`; Callgraph; InOut's external effects; the snapshot export | The callstack of each invocation. | The legacy table registers a call when Eva chooses how to interpret it, after the invocation is recorded and before any hook. | Once the records contain a hit. | Needs the calls below a hit. |
+| Guard outcomes | `condition_truth_value` | The fireable branches of each conditional, with each analyzed body, whatever the results recorded. | The legacy table joins the same transitions of every analysis of the body. | While the analysis runs; once the records contain a hit. | Needs the outcomes of the reused producer. |
+| Analyzed function | The marking of postconditions | The kind of each invocation. | A function is `Analyzed` when one of its calls analyzed its body or reused it. | Before the analysis completes; on an unresolved invocation. | Unaffected. |
+| Analysis status and callers | `Eva.Eva_results.get_results` | The kind of each invocation, and whether Eva saves the results of each analyzed body. | The status table registers the same target for each call, and the records merge the statuses in the order of the calls with the table's own merge. | Before the analysis ends; once the records contain a hit; on an unresolved invocation. | Needs the calls below a hit. |
+
+The statuses, the alarms and the statistics are stored apart from Eva's
+results: reading them reads neither store. Eva computes them after the
+analysis from requests that the hit log answers, and the battery compares
+them with the reference. The wrong-producer control changes the guard
+outcomes of `g` and `h`, InOut's outputs of both, and the coverage of
+Eva's statistics.
+
+`compare.py` adds two controls: `plugins-trap` (the candidate completes the
+battery under the trap with the answers of the reference; on the legacy
+path, the trap aborts the run at `Eva.Summary.compute_fun_stats`) and
+`plugins-perturbation` (the wrong producer changes the guard outcomes and
+InOut's effects, and only requests served by the resolver or the reports
+that Eva derives from its results).
+
 ## Not covered
 
 Not covered yet:
 
-- `Eva.Analysis.is_computed`, which reads the computation state alone.
-  Other plug-ins call it before reading Eva results, among them the InOut
-  and Eva server requests, Callgraph, From, Metrics, PDG and Slicing;
-- Callgraph relations (`Results.callers`, `callsites`, `is_called` outside
-  point queries);
-- branch outcomes (`condition_truth_value`);
-- alarms and property statuses;
-- InOut's functionwise answers and the Server answers; the driver covers
-  InOut's callwise answers only;
-- restoring a snapshot;
-- the points of memexec hits, with the requests on several stacks or none
-  that the resolver declines once the records contain a hit (#81);
+- the points of memexec hits, with the requests on several stacks or none,
+  the call relations, the guard outcomes and the snapshot metadata, which
+  the hit log declines once the records contain a hit (#81);
 - `Eva.Analysis.status` and `Eva.Results.are_available`, which still read
   the analysis status;
-- `Engine.callstacks`, which no reader calls, still enumerates the store.
+- `Engine.callstacks`, which no reader calls, still enumerates the store;
+- the optional Eva server API, and the other plug-ins that ask
+  `Eva.Analysis.is_computed` before reading Eva's results: From, Metrics,
+  PDG and Slicing.
 
 No fixture reaches the `Domain_store.is_computed` notification, nor the
-labels `Eva.Interferences.add_last_analysis`,
-`Eva.Eval_annots.mark_green_and_red` and the `Eva.Results` readers that the
-requests do not call: `is_reachable_kinstr`, and `is_reachable_pos`
-outside the reach modes. The guard records the reads of these readers, but
-their attribution has not run. Later tickets extend the driver.
+label `Eva.Interferences.add_last_analysis` and the `Eva.Results` readers
+that the requests do not call: `is_reachable_kinstr`, and
+`is_reachable_pos` outside the reach modes. The guard records the reads of
+these readers, but their attribution has not run. Later tickets extend the
+driver.
