@@ -136,8 +136,9 @@ driver output.
 
 Not covered yet:
 
-- `Eva.Analysis.is_computed`, which reads the computation state alone and
-  guards the InOut and Server filters and Callgraph;
+- `Eva.Analysis.is_computed`, which reads the computation state alone.
+  Other plug-ins call it before reading Eva results, among them the InOut
+  and Eva server requests, Callgraph, From, Metrics, PDG and Slicing;
 - Callgraph relations (`Results.callers`, `callsites`, `is_called` outside
   point queries);
 - branch outcomes (`condition_truth_value`);
@@ -145,6 +146,11 @@ Not covered yet:
 - InOut and Server answers;
 - restoring a snapshot.
 
-No fixture reaches the `Domain_store.is_computed` notification or the
-`Eva.Interferences.add_last_analysis` label, so these two paths have not
-run. Later tickets extend the driver.
+No fixture reaches the `Domain_store.is_computed` notification, nor the
+labels `Eva.Interferences.add_last_analysis`,
+`Eva.Eval_annots.mark_green_and_red` and the `Eva.Results` readers that the
+requests do not call: dependencies, taint, `eval_exp`, `eval_address`,
+`eval_callee`, `callee`, `equality_class`, `is_empty`, `print_states`,
+`is_reachable_kinstr` and `is_reachable_pos`. The guard records the reads
+of these readers, but their attribution has not run. Later tickets extend
+the driver.
