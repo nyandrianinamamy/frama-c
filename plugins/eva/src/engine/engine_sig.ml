@@ -304,8 +304,6 @@ module type Results = sig
     ?callstacks:Callstack.t list -> filter:(Callstack.t -> bool) ->
     Domain_store.control_point -> state Hit_log.selection option
 
-  (** Returns all callstacks analyzed at a control point. *)
-  val callstacks: Domain_store.control_point -> Callstack.t list or_top
 
   (** {2 Shortcuts for the evaluation in an abstract state} *)
 

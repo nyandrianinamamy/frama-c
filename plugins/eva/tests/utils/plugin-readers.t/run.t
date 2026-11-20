@@ -4,10 +4,12 @@ explicitly; Callgraph and Server come with their dependencies.
 
 Three processes run the same requests. The reference runs fresh-only Eva on
 the legacy path (no memexec, no hit log) with the guard off. The legacy run
-is the candidate on the legacy path (-eva-no-hit-log): the guard records
-the reads of each request. The candidate records the hit log.
+takes the legacy path too (-eva-no-hit-log), in the record mode: the guard
+logs the reads of each request without trapping them. The candidate
+records the hit log, under the trap of every read, armed once before the
+analysis.
   $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -inout-state-query-acceptance plugins-reference -inout-state-query-acceptance-output reference.jsonl plugins.i > reference.log 2>&1
-  $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-no-memexec -eva-no-hit-log -inout-state-query-acceptance plugins-candidate -inout-state-query-acceptance-output legacy.jsonl plugins.i > legacy.log 2>&1
+  $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-no-memexec -eva-no-hit-log -inout-state-query-acceptance plugins-record -inout-state-query-acceptance-output legacy.jsonl plugins.i > legacy.log 2>&1
   $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-no-memexec -inout-state-query-acceptance plugins-candidate -inout-state-query-acceptance-output candidate.jsonl plugins.i > candidate.log 2>&1
   $ for run in reference legacy candidate; do sed -n -e 's/^\[acceptance\] call \([^ ]*\) legacy-reads=[^ ]* resolved=[^ ]* answer=/\1 /p' $run.log > $run.answers; done
 
@@ -19,12 +21,15 @@ plug-ins they depend on. The optional server API of Eva is not loaded.
 Completion of the analysis. Server's filters and Callgraph ask whether Eva
 has computed its results before reading them. On the legacy path, this
 reads the computation state of Eva; the candidate answers from the
-completion of the hit log.
-  $ grep -e "call analysis\.is_computed" legacy.log candidate.log
+completion of the hit log. The public computation state is the same fact.
+  $ grep -e "call analysis\.\(is_computed\|computation_state\)" legacy.log candidate.log
   legacy.log:[acceptance] call analysis.is_computed legacy-reads=1 resolved=0 answer=true
+  legacy.log:[acceptance] call analysis.computation_state legacy-reads=1 resolved=0 answer=computed
   candidate.log:[acceptance] call analysis.is_computed legacy-reads=0 resolved=1 answer=true
-  $ grep -e "^analysis\.is_computed" reference.answers
+  candidate.log:[acceptance] call analysis.computation_state legacy-reads=0 resolved=1 answer=computed
+  $ grep -e "^analysis\." reference.answers
   analysis.is_computed true
+  analysis.computation_state computed
 
 Call relations. On the legacy path, each request reads Eva's table of call
 relations. The candidate serves them from the callstacks of the recorded
@@ -240,12 +245,15 @@ the memory or the iterations, are recorded apart and not compared.
   18 candidate legacy-reads=0 resolved=0
   18 legacy legacy-reads=0 resolved=0
 
-The summary that Eva prints is that of the reference.
+The summaries that Eva prints, after the analysis and after the
+intervening analysis of the snapshot requests, are those of the reference.
   $ for run in reference candidate; do sed -n -e '/^\[eva:summary\]/,/^\[/p' $run.log | grep -v -e "^\[acceptance\]" > $run.summary; done
   $ diff reference.summary candidate.summary
   $ grep -e "coverage" candidate.summary
     8 functions analyzed (out of 11): 73% coverage.
     In these functions, 38 statements reached (out of 41): 93% coverage.
+    6 functions analyzed (out of 11): 55% coverage.
+    In these functions, 32 statements reached (out of 35): 91% coverage.
 
 Native comparison: the reference and the candidate run in one process, and
 their answers are compared with the equality of their values: InOut's
@@ -274,23 +282,34 @@ answers too: the candidate reads nothing.
   legacy.log:[acceptance] execution phase=post-analysis reader=Eva.Eval_annots.mark_unreachable access=enumeration store=cvalue
   legacy.log:[acceptance] execution phase=post-analysis reader=Eva.Eval_annots.mark_green_and_red access=availability store=analysis-status
   legacy.log:[acceptance] execution phase=post-analysis reader=Eva.Eval_annots.mark_green_and_red access=getter store=cvalue
+  legacy.log:[acceptance] execution phase=post-analysis reader=Eva.Eval_annots.mark_green_and_red access=availability store=call-relations
   legacy.log:[acceptance] execution phase=post-analysis reader=Eva.Eval_annots.mark_green_and_red access=enumeration store=cvalue
 
-Snapshot of the analysis status. The last request exports the results,
-clears them, restores the snapshot and prints the analysis status of each
-function from the restored table. On the legacy path, the export reads the
-status table; the candidate builds the callers and the status of each
-function from the invocations of the hit log. The statuses are read with
-the guard off: Eva.Analysis.status reads the restored table on both paths,
-so the reads counted for this request are those of the export and of the
-restoration only. The callers in the snapshot are not compared: on the
-restored results, the hit log answers the requests on callers.
-  $ grep -e "call export\.statuses" legacy.log candidate.log | sed -e 's/ answer=.*//'
-  legacy.log:[acceptance] call export.statuses legacy-reads=219 resolved=0
-  candidate.log:[acceptance] call export.statuses legacy-reads=0 resolved=107
-  $ grep -e "^export\.statuses" candidate.answers > export.txt
-  $ grep -e "^export\.statuses" reference.answers | diff - export.txt
+Snapshot round trip. The last requests print the analysis status and the
+callers of each function that the export carries (export.calls), read the
+statuses and take a snapshot (snapshot.statuses), run a new analysis that
+interprets h, the first function called by main, by its specification, so
+that the statuses differ (snapshot.intervening), then restore the snapshot
+and read the statuses again (export.statuses). On the legacy path, these
+requests read the status and callers tables; the candidate answers them
+from the hit log, the new analysis and the restored records included,
+under the same trap. The restored statuses are those read before the
+export, and those of the reference.
+  $ grep -e "call \(export\.calls\|snapshot\.\|export\.statuses\)" legacy.log candidate.log | sed -e 's/ answer=.*//'
+  legacy.log:[acceptance] call export.calls legacy-reads=219 resolved=0
+  legacy.log:[acceptance] call snapshot.statuses legacy-reads=238 resolved=0
+  legacy.log:[acceptance] call snapshot.intervening legacy-reads=1030 resolved=0
+  legacy.log:[acceptance] call export.statuses legacy-reads=19 resolved=0
+  candidate.log:[acceptance] call export.calls legacy-reads=0 resolved=107
+  candidate.log:[acceptance] call snapshot.statuses legacy-reads=0 resolved=118
+  candidate.log:[acceptance] call snapshot.intervening legacy-reads=0 resolved=409
+  candidate.log:[acceptance] call export.statuses legacy-reads=0 resolved=11
+  $ grep -e "^\(export\.calls\|snapshot\.\|export\.statuses\)" candidate.answers > export.txt
+  $ grep -e "^\(export\.calls\|snapshot\.\|export\.statuses\)" reference.answers | diff - export.txt
   $ cat export.txt
+  export.calls leaf_a: analyzed complete; callers: h@27 g@35; leaf_b: analyzed complete; callers: h@27; ptr1: analyzed complete; callers: main@45; ptr2: analyzed complete; callers: main@45; never_returns: analyzed complete; callers: main@56; h: analyzed complete; callers: main@41,42; g: analyzed complete; callers: main@43,44; main: analyzed complete; callers: none
+  snapshot.statuses dead_callee: unreachable; g: analyzed complete; h: analyzed complete; leaf_a: analyzed complete; leaf_b: analyzed complete; main: analyzed complete; never_returns: analyzed complete; ptr1: analyzed complete; ptr2: analyzed complete; ptr3: unreachable; uncalled: unreachable
+  snapshot.intervening differs=true; dead_callee: unreachable; g: analyzed complete; h: specification used; leaf_a: analyzed complete; leaf_b: unreachable; main: analyzed complete; never_returns: analyzed complete; ptr1: analyzed complete; ptr2: analyzed complete; ptr3: unreachable; uncalled: unreachable
   export.statuses dead_callee: unreachable; g: analyzed complete; h: analyzed complete; leaf_a: analyzed complete; leaf_b: analyzed complete; main: analyzed complete; never_returns: analyzed complete; ptr1: analyzed complete; ptr2: analyzed complete; ptr3: unreachable; uncalled: unreachable
 
 statuses.i has a function of each status: no_results is analyzed without
@@ -300,44 +319,54 @@ interpreted by a builtin; unreachable is never called. The candidate
 exports the statuses of the reference, and all its answers are those of
 the reference, with no legacy read.
   $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-no-results-function no_results -inout-state-query-acceptance plugins-reference statuses.i > statuses-reference.log 2>&1
-  $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-no-results-function no_results -eva-no-memexec -eva-no-hit-log -inout-state-query-acceptance plugins-candidate statuses.i > statuses-legacy.log 2>&1
+  $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-no-results-function no_results -eva-no-memexec -eva-no-hit-log -inout-state-query-acceptance plugins-record statuses.i > statuses-legacy.log 2>&1
   $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-no-results-function no_results -eva-no-memexec -inout-state-query-acceptance plugins-candidate statuses.i > statuses-candidate.log 2>&1
   $ for run in reference legacy candidate; do sed -n -e 's/^\[acceptance\] call \([^ ]*\) legacy-reads=[^ ]* resolved=[^ ]* answer=/\1 /p' statuses-$run.log > statuses-$run.answers; done
   $ grep -e "^export\.statuses" statuses-candidate.answers
   export.statuses ext: specification used; main: analyzed complete; no_results: analyzed without results; rec: analyzed partial; strlen: builtin strlen; unreachable: unreachable
   $ diff statuses-reference.answers statuses-candidate.answers
   $ grep -e "call export\.statuses" statuses-legacy.log statuses-candidate.log | sed -e 's/ answer=.*//'
-  statuses-legacy.log:[acceptance] call export.statuses legacy-reads=77 resolved=0
-  statuses-candidate.log:[acceptance] call export.statuses legacy-reads=0 resolved=44
+  statuses-legacy.log:[acceptance] call export.statuses legacy-reads=7 resolved=0
+  statuses-candidate.log:[acceptance] call export.statuses legacy-reads=0 resolved=6
   $ grep -e "^\[acceptance\] call" statuses-candidate.log | sed -e 's/^\[acceptance\] call [^ ]* \(legacy-reads=[^ ]*\) .*/\1/' | sort | uniq -c | sed -e 's/^ *//'
-  96 legacy-reads=0
+  100 legacy-reads=0
 
-Trap. Every read of the legacy store aborts the run, in every phase, except
-those of the readers that other changes migrate: the registration of the
-states by the engine. The candidate runs the whole battery under the trap.
-The reads left are those of the exempt reader; every request reads
-nothing, except the statuses of the snapshot, read with the guard off; the
-answers are those of the reference.
-  $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-no-memexec -inout-state-query-acceptance plugins-trap -inout-state-query-acceptance-output trap.jsonl plugins.i > trap.log 2>&1
-  $ grep -e "guard=" -e "legacy result-store" trap.log
-  [acceptance] mode=plugins-trap guard=trap-except:Eva.Engine.register_state
-  $ grep -e "^\[acceptance\] execution phase=" trap.log | sed -e 's/ access=.*//' | sort -u
-  [acceptance] execution phase=analysis reader=Eva.Engine.register_state
-  $ grep -e "^\[acceptance\] call" trap.log | sed -e 's/^\[acceptance\] call [^ ]* \(legacy-reads=[^ ]*\) .*/\1/' | sort | uniq -c | sed -e 's/^ *//'
-  195 legacy-reads=0
-  $ sed -n -e 's/^\[acceptance\] call \([^ ]*\) legacy-reads=[^ ]* resolved=[^ ]* answer=/\1 /p' trap.log | diff reference.answers -
+Continuous trap. The candidate ran the whole battery under the trap of
+every read, armed once before the analysis and never changed: no request
+read the legacy store, and the answers are those of the reference. For
+each phase, the driver prints its entries while the guard was armed, its
+reads and its resolutions, those of the three writers of the registration
+included; then the state of the guard.
+  $ grep -e "guard=" -e "legacy result-store" -e "^\[acceptance\] \(execution\|scope\|gate\)" candidate.log
+  [acceptance] mode=plugins-candidate guard=trap:all
+  [acceptance] execution-statistics memory-usage analysis-time iterations memexec-hits memexec-misses max-widenings max-unrolling partitioning-index-hits partitioning-index-misses
+  [acceptance] scope initialization entries=4 reads=0 resolutions=0 registrations=Eva.Engine.register_state:0,Eva.Function_calls.register_analysis_target:0,Eva.Iterator.record_fireable:0
+  [acceptance] scope analysis entries=2 reads=0 resolutions=256 registrations=Eva.Engine.register_state:200,Eva.Function_calls.register_analysis_target:22,Eva.Iterator.record_fireable:12
+  [acceptance] scope collection entries=164 reads=0 resolutions=108 registrations=Eva.Engine.register_state:0,Eva.Function_calls.register_analysis_target:0,Eva.Iterator.record_fireable:0
+  [acceptance] scope post-analysis entries=2 reads=0 resolutions=490 registrations=Eva.Engine.register_state:0,Eva.Function_calls.register_analysis_target:0,Eva.Iterator.record_fireable:0
+  [acceptance] scope request entries=199 reads=0 resolutions=690 registrations=Eva.Engine.register_state:0,Eva.Function_calls.register_analysis_target:0,Eva.Iterator.record_fireable:0
+  [acceptance] gate arms=trap:all final=trap:all logged=0 trapped=0 passes=true
+  $ grep -e "^\[acceptance\] call" candidate.log | sed -e 's/^\[acceptance\] call [^ ]* \(legacy-reads=[^ ]*\) .*/\1/' | sort | uniq -c | sed -e 's/^ *//'
+  199 legacy-reads=0
+  $ diff reference.answers candidate.answers
 
-Control: on the legacy path, the trap aborts the run at the first read that
-is not exempt, when the statistics of Eva ask whether a statement of the
-first analyzed function is reachable.
-  $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-no-memexec -eva-no-hit-log -inout-state-query-acceptance plugins-trap plugins.i > trap-control.log 2>&1
+Sensitivity: the legacy run logs reads in every phase but the
+initialization.
+  $ grep -e "^\[acceptance\] scope" legacy.log | sed -e 's/ resolutions=.*//'
+  [acceptance] scope initialization entries=4 reads=0
+  [acceptance] scope analysis entries=2 reads=276
+  [acceptance] scope collection entries=164 reads=128
+  [acceptance] scope post-analysis entries=2 reads=1775
+  [acceptance] scope request entries=199 reads=1440
+
+Control: the candidate's command on the legacy path aborts at the first
+read of the analysis.
+  $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-no-memexec -eva-no-hit-log -inout-state-query-acceptance plugins-candidate plugins.i > trap-control.log 2>&1
   [1]
   $ grep -e "legacy result-store" trap-control.log
-  [eva] User Error: legacy result-store read trapped: phase=collection reader=Eva.Summary.compute_fun_stats access=availability store=analysis-status point=before line 11 of leaf_a via=Eva.Results.is_reachable
+  [eva] User Error: legacy result-store read trapped: phase=analysis reader=Eva.Engine.register_state access=getter store=cvalue point=start of main in main
 
-Under the same trap, the candidate completes the battery on statuses.i,
-with the answers of the reference.
-  $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-no-results-function no_results -eva-no-memexec -inout-state-query-acceptance plugins-trap statuses.i > statuses-trap.log 2>&1
-  $ grep -e "guard=" -e "legacy result-store" statuses-trap.log
-  [acceptance] mode=plugins-trap guard=trap-except:Eva.Engine.register_state
-  $ sed -n -e 's/^\[acceptance\] call \([^ ]*\) legacy-reads=[^ ]* resolved=[^ ]* answer=/\1 /p' statuses-trap.log | diff statuses-reference.answers -
+Under the same trap, the candidate completes the battery on statuses.i.
+  $ grep -e "guard=" -e "legacy result-store" -e "^\[acceptance\] gate" statuses-candidate.log
+  [acceptance] mode=plugins-candidate guard=trap:all
+  [acceptance] gate arms=trap:all final=trap:all logged=0 trapped=0 passes=true

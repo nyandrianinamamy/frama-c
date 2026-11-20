@@ -36,9 +36,6 @@ type producer = {
   entries: state list;
   points: points option;
   guards: guards; (* recorded even when the states are not *)
-  saved: bool;
-  (* whether Eva saves the results of the function, even when the hit log
-     does not record states *)
 }
 
 type completion = Recording | Complete | Interrupted
@@ -88,6 +85,13 @@ type log = {
   consolidated:
     state Lattice_bounds.or_top_bottom Domain_store.ControlPoint.Hashtbl.t;
   mutable relations: Function_calls.relations option;
+  (* The facts that the legacy tables register when the analysis chooses
+     how to interpret a call, and on each fireable branch: the merged
+     analysis status and the callers of each function, and the fireable
+     branches of each conditional. *)
+  statuses: Function_calls.analysis_status Kernel_function.Hashtbl.t;
+  callers: Stmt.Set.t Kernel_function.Map.t Kernel_function.Hashtbl.t;
+  fired: (bool * bool) Stmt.Hashtbl.t;
 }
 
 let create stamp ~exact ~states = {
@@ -104,6 +108,9 @@ let create stamp ~exact ~states = {
   points = Domain_store.ControlPoint.Hashtbl.create 17;
   consolidated = Domain_store.ControlPoint.Hashtbl.create 17;
   relations = None;
+  statuses = Kernel_function.Hashtbl.create 17;
+  callers = Kernel_function.Hashtbl.create 17;
+  fired = Stmt.Hashtbl.create 17;
 }
 
 let current = ref (create 0 ~exact:false ~states:false)
@@ -205,17 +212,16 @@ let body stack ~producer ~complete ~entries ~points ~guards =
     | Some invocation ->
       let log = !current in
       let kf = Callstack.top_kf stack in
-      let saved = Option.is_some points in
       let points =
         if log.states then begin
-          if not saved
+          if Option.is_none points
           then Kernel_function.Hashtbl.replace log.no_results kf ();
           Option.map Lazy.force points
         end
         else None
       in
       Hashtbl.replace log.producers producer
-        { kf; complete; entries; points; guards; saved };
+        { kf; complete; entries; points; guards };
       invocation.kind <- Body producer
 
 (* ----- Resolver ----------------------------------------------------------- *)
@@ -223,9 +229,13 @@ let body stack ~producer ~complete ~entries ~points ~guards =
 let wrong_producer = ref false
 let set_wrong_producer_control b = wrong_producer := b
 
+let decline = ref false
+let set_decline_control b = decline := b
+
 let usable () =
   let log = !current in
-  log.exact && log.consistent && Current.get_option () = Some log.stamp
+  not !decline
+  && log.exact && log.consistent && Current.get_option () = Some log.stamp
 
 (* The visits on [stack], in the order of the analysis. *)
 let visits stack =
@@ -761,6 +771,111 @@ let resolve_consolidated point =
       if log.completion = Recording then consolidate selection
       else memo log.consolidated point (fun () -> consolidate selection))
 
+(* ----- Registration ------------------------------------------------------- *)
+
+(* Eva still writes its legacy tables during the analysis: the requests that
+   the resolver declines read them, and a saved project keeps them. Each
+   write merges a new fact with the one already registered. While the hit
+   log records, the facts already registered come from the records, and
+   the legacy tables are only written. *)
+
+let pretty_count what n fmt = Format.fprintf fmt "%d %s" n what
+
+let registered ~callstack (point : Domain_store.control_point) =
+  if not (recording ()) then None
+  else
+    let log = !current in
+    let at_point (points : points) stmt =
+      let table =
+        match point with Before _ -> points.before | _ -> points.after
+      in
+      Stmt.Hashtbl.find_opt table stmt
+    in
+    (* The states that the earlier visits on [callstack] registered at
+       [point]: their inputs at the start of the function, the states of
+       their bodies at a statement. The registering invocation is the
+       latest one; it is not recorded yet at the start of the function, and
+       has no producer yet at a statement. *)
+    let earlier =
+      if not log.states then []
+      else
+        match point with
+        | Initial -> []
+        | Start kf ->
+          List.map (fun v -> v.input) (visits_of kf callstack)
+        | Before stmt | After stmt ->
+          let kf = Kernel_function.find_englobing_kf stmt in
+          let state visit =
+            match visit.kind with
+            | Body id ->
+              begin match Hashtbl.find_opt log.producers id with
+                | Some { points = Some points; _ } -> at_point points stmt
+                | Some { points = None; _ } | None -> None
+              end
+            | Hit _ | Spec | Builtin _ | Unresolved -> None
+          in
+          List.filter_map state (visits_of kf callstack)
+    in
+    Legacy_read_guard.resolved
+      (Domain_store.pretty_read_point ~callstack point)
+      (pretty_count "earlier registrations" (List.length earlier));
+    match earlier with
+    | [] -> Some None
+    | first :: others ->
+      Some (Some (List.fold_left Cvalue_domain.State.join first others))
+
+let target callstack status =
+  if not (recording ()) then None
+  else
+    let log = !current in
+    let kf = Callstack.top_kf callstack in
+    let merged =
+      match Kernel_function.Hashtbl.find_opt log.statuses kf with
+      | None -> status
+      | Some previous -> Function_calls.merge_status previous status
+    in
+    Kernel_function.Hashtbl.replace log.statuses kf merged;
+    let previous =
+      Kernel_function.Hashtbl.find_opt log.callers kf
+      |> Option.value ~default:Kernel_function.Map.empty
+    in
+    let callers =
+      match Callstack.top_caller callstack with
+      | None -> previous
+      | Some (stmt, caller) ->
+        let stmts =
+          Kernel_function.Map.find_opt caller previous
+          |> Option.value ~default:Stmt.Set.empty
+        in
+        Kernel_function.Map.add caller (Stmt.Set.add stmt stmts) previous
+    in
+    Kernel_function.Hashtbl.replace log.callers kf callers;
+    Legacy_read_guard.resolved
+      (fun fmt ->
+         Format.fprintf fmt "target of %a" Domain_store.pretty_callstack
+           callstack)
+      (fun fmt -> Format.pp_print_string fmt
+          "analysis status and callers of the function");
+    Some (merged, callers)
+
+let () = Function_calls.set_recorded_target target
+
+let fire stmt (then_, else_) =
+  if not (recording ()) then None
+  else
+    let log = !current in
+    let fired_then, fired_else =
+      Stmt.Hashtbl.find_opt log.fired stmt
+      |> Option.value ~default:(false, false)
+    in
+    let fired = fired_then || then_, fired_else || else_ in
+    Stmt.Hashtbl.replace log.fired stmt fired;
+    Legacy_read_guard.resolved
+      (fun fmt -> Format.fprintf fmt "guard at line %d"
+          (Fileloc.line (Cil_datatype.Stmt.loc stmt)))
+      (fun fmt -> Format.pp_print_string fmt "fireable branches");
+    Some fired
+
 (* ----- Guard outcomes ---------------------------------------------------- *)
 
 let condition_truth_value stmt =
@@ -794,11 +909,12 @@ let condition_truth_value stmt =
 
 (* ----- Completion and analyzed functions -------------------------------- *)
 
-let computed () =
+(* The completion of the records, when they describe the current
+   results. *)
+let completion () =
   if not (usable ()) then None
   else
     let log = !current in
-    let computed = log.completion <> Recording in
     Legacy_read_guard.resolved
       (fun fmt -> Format.pp_print_string fmt "computation state")
       (fun fmt -> Format.pp_print_string fmt
@@ -806,7 +922,20 @@ let computed () =
            | Recording -> "recording"
            | Complete -> "complete"
            | Interrupted -> "interrupted"));
-    Some computed
+    Some log.completion
+
+let computed () = Option.map (fun c -> c <> Recording) (completion ())
+
+(* The records are started before the computation state becomes
+   [Computing], and sealed or interrupted before it becomes [Computed] or
+   [Aborted]: the hooks on these changes see the new completion. *)
+let computation_state () =
+  Option.map
+    (function
+      | Recording -> Self.Computing
+      | Complete -> Self.Computed
+      | Interrupted -> Self.Aborted)
+    (completion ())
 
 let analyzed kf =
   let log = !current in
@@ -867,48 +996,51 @@ let relations () =
 
 let () = Function_calls.set_recorded_relations relations
 
-(* The analysis status of an invocation, as the status table registers it
-   when the analysis chooses how to interpret the call. *)
-let status_of log invocation =
-  match invocation.kind with
-  | Body id | Hit id ->
-    let status (producer : producer) : Function_calls.analysis_status =
-      Analyzed (if producer.saved then Complete else NoResults)
+(* The analysis status of [kf] as the status table registers it. *)
+let status kf =
+  if not (usable ()) then None
+  else
+    let log = !current in
+    let status =
+      Kernel_function.Hashtbl.find_opt log.statuses kf
+      |> Option.value ~default:Function_calls.Unreachable
     in
-    Option.map status (Hashtbl.find_opt log.producers id)
-  | Spec -> Some Function_calls.SpecUsed
-  | Builtin name -> Some (Function_calls.Builtin name)
-  | Unresolved -> None
+    Legacy_read_guard.resolved
+      (fun fmt -> Format.fprintf fmt "analysis status of %a"
+          Kernel_function.pretty kf)
+      (fun fmt -> Format.pp_print_string fmt
+          (match log.completion with
+           | Recording -> "recording"
+           | Complete -> "complete"
+           | Interrupted -> "interrupted"));
+    Some (status, log.completion <> Recording)
+
+(* The calls below a memexec hit are not recorded: the answer declines once
+   the records contain a hit. *)
+let perturb_calls = ref false
+let set_calls_perturbation_control b = perturb_calls := b
 
 let calls () =
   let log = !current in
-  if not (usable ()) || log.completion = Recording then None
+  if not (usable ()) || log.completion = Recording || log.has_hit then None
   else
-    match relations () with
-    | None -> None
-    | Some relations ->
-      let exception Unknown in
-      (* The status table merges the statuses in the order of the calls. *)
-      let status invocations =
-        match List.rev_map (status_of log) invocations with
-        | [] -> raise Unknown
-        | first :: rest ->
-          let get = function Some s -> s | None -> raise Unknown in
-          List.fold_left (fun acc s -> Function_calls.merge_status acc (get s))
-            (get first) rest
-      in
-      match
-        Kernel_function.Hashtbl.fold (fun kf invocations statuses ->
-            Kernel_function.Map.add kf (status invocations) statuses)
-          log.by_kf Kernel_function.Map.empty
-      with
-      | exception Unknown -> None
-      | statuses ->
-        Legacy_read_guard.resolved
-          (fun fmt -> Format.pp_print_string fmt "all functions")
-          (fun fmt -> Format.pp_print_string fmt
-              "analysis status and callers of each function");
-        Some (Function_calls.make_results statuses relations)
+    let to_map table =
+      Kernel_function.Hashtbl.fold Kernel_function.Map.add table
+        Kernel_function.Map.empty
+    in
+    let statuses = to_map log.statuses and relations = to_map log.callers in
+    (* Test control: every function unreachable, without caller. *)
+    let statuses, relations =
+      if !perturb_calls then
+        Kernel_function.Map.map (fun _ -> Function_calls.Unreachable) statuses,
+        Kernel_function.Map.empty
+      else statuses, relations
+    in
+    Legacy_read_guard.resolved
+      (fun fmt -> Format.pp_print_string fmt "all functions")
+      (fun fmt -> Format.pp_print_string fmt
+          "analysis status and callers of each function");
+    Some (Function_calls.make_results statuses relations)
 
 (* ----- Snapshots -------------------------------------------------------- *)
 

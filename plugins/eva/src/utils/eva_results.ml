@@ -133,10 +133,7 @@ let export_calls () =
   Legacy_read_guard.reader "Eva.Eva_results.export_calls" @@ fun () ->
   match Hit_log.calls () with
   | Some calls -> calls
-  | None ->
-    Legacy_read_guard.notify Availability ~store:"analysis-status"
-      (fun fmt -> Format.pp_print_string fmt "all functions");
-    Function_calls.get_results ()
+  | None -> Function_calls.get_results ()
 
 let get_results () =
   Legacy_read_guard.reader "Eva.Eva_results.get_results" @@ fun () ->
@@ -176,6 +173,8 @@ let get_results () =
   in
   Property_status.iter aux_ip;
   { states; hit_log; kf_callers; initial_args; alarms; statuses; }
+
+let pretty_calls fmt results = Function_calls.pretty fmt results.kf_callers
 
 let set_results results =
   Legacy_read_guard.reader "Eva.Eva_results.set_results" @@ fun () ->

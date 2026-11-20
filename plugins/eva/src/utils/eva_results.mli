@@ -40,3 +40,8 @@ type results
 
 val get_results: unit -> results
 val set_results: results -> unit
+
+(** Prints the analysis status and the callers of each function that
+    [results] hold, as {!set_results} installs them in the tables of the
+    legacy result store (prototype). *)
+val pretty_calls: Format.formatter -> results -> unit

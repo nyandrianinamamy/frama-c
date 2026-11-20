@@ -55,26 +55,41 @@ type mode =
   | Record
   (** Log every read. *)
   | Trap of phase list
-  (** Log every read, and abort Eva on the first read in one of these
-      phases. The guard then falls back to [Record]. *)
-  | Trap_except of string list
-  (** Log every read, and abort Eva on the first read, in any phase, whose
-      innermost reader is not one of these labels. The guard then falls
-      back to [Record]. *)
+  (** Log every read, and abort Eva on each read in one of these phases.
+      The trap has no exemption and stays armed: the first trapped read
+      aborts Eva with its description, and each later trapped read raises
+      the same exception again, without a new message. A reader that
+      catches the exception therefore does not disarm the guard. *)
+
+(** Every phase, in the order of an execution. [Trap all_phases] traps every
+    read from the moment it is armed. *)
+val all_phases: phase list
 
 (** Phases and readers are only tracked while the guard is armed: arm it
     before running the analysis. Arming the guard clears {!forbid}. *)
 val arm: mode -> unit
 val mode: unit -> mode
 
+(** The modes armed since the start of the process, in order. Not cleared by
+    {!clear}: it shows whether a run changed the mode of the guard. *)
+val arm_history: unit -> mode list
+
 (** [forbid labels] traps the reads made on behalf of the readers [labels],
-    in addition to the mode, while the guard is armed: the first read whose
+    in addition to the mode, while the guard is armed: each read whose
     enclosing readers include one of [labels] aborts Eva, in any phase, as a
-    read trapped by the mode does. The guard then falls back to [Record]. *)
+    read trapped by the mode does. *)
 val forbid: string list -> unit
 
-(** [during phase f] runs [f] in [phase]. *)
+(** [during phase f] runs [f] in [phase]. While the guard is armed, each
+    call counts as an entry of [phase]. *)
 val during: phase -> (unit -> 'a) -> 'a
+
+(** The current phase, while the guard is armed; [Request] otherwise. *)
+val phase: unit -> phase
+
+(** The number of entries of each phase since the last {!clear}, while the
+    guard was armed, in the order of {!all_phases}. *)
+val phase_entries: unit -> (phase * int) list
 
 (** [reader label f] runs [f] on behalf of the reader [label]. *)
 val reader: string -> (unit -> 'a) -> 'a
@@ -92,8 +107,13 @@ val clear: unit -> unit
 (** [observe f] runs [f] and also returns the reads logged during [f]. *)
 val observe: (unit -> 'a) -> 'a * read list
 
-(** The read that triggered the trap, if any. *)
+(** The first read that triggered the trap since the last {!clear}, if
+    any. *)
 val trapped: unit -> read option
+
+(** The number of trapped reads since the last {!clear}: the first one and
+    those that raised the exception again. *)
+val trapped_count: unit -> int
 
 (** {2 Resolutions}
 

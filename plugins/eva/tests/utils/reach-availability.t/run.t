@@ -74,11 +74,11 @@ it for both. The candidate gives the reference's answers.
   [acceptance] internal C.main before=reached after=unreachable
   [acceptance] internal D.main before=unreachable after=unreachable
   $ grep -e "call fn\.\(by_spec\|floor\|spin\)\.\(status\|start\)" points.log
-  [acceptance] call fn.by_spec.status legacy-reads=1 resolved=0 answer=specification used
+  [acceptance] call fn.by_spec.status legacy-reads=0 resolved=1 answer=specification used
   [acceptance] call fn.by_spec.start.main/by_spec@40 legacy-reads=0 resolved=1 answer=nondet ∈ [--..--]; g ∈ {2}; h ∈ {0}; x ∈ {3}; r ∈ UNINITIALIZED; d ∈ UNINITIALIZED; __retres ∈ UNINITIALIZED
-  [acceptance] call fn.floor.status legacy-reads=1 resolved=0 answer=builtin floor
+  [acceptance] call fn.floor.status legacy-reads=0 resolved=1 answer=builtin floor
   [acceptance] call fn.floor.start.main/floor@41 legacy-reads=0 resolved=1 answer=nondet ∈ [--..--]; g ∈ {2}; h ∈ {0}; x ∈ {2.5}; r ∈ {4}; d ∈ UNINITIALIZED; __retres ∈ UNINITIALIZED
-  [acceptance] call fn.spin.status legacy-reads=1 resolved=0 answer=analyzed complete
+  [acceptance] call fn.spin.status legacy-reads=0 resolved=1 answer=analyzed complete
   [acceptance] call fn.spin.start.main/spin@44 legacy-reads=0 resolved=1 answer=nondet ∈ [--..--]; g ∈ {2}; h ∈ {0}; r ∈ {4}; d ∈ {2.}; __retres ∈ UNINITIALIZED
   $ grep -e "call reach\.[SBNCD]\.\(reachable\|empty-before\|before\.\|after\.\)" points.log
   [acceptance] call reach.S.reachable legacy-reads=0 resolved=1 answer=false
@@ -169,12 +169,12 @@ callstacks at R are those of the reference: the first call reached R.
   $ run reach-native interrupted-native.log interrupted.i
   $ grep -e "equal=false" interrupted-native.log > interrupted-native.txt
   $ grep -v -e "native select\." interrupted-native.txt
-  [acceptance] native reach.R.model-before equal=false reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
-  [acceptance] native reach.R.before.main/f@19 equal=false reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
-  [acceptance] native reach.R.after.main/f@19 equal=false reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
-  [acceptance] native reach.L.model-before equal=false reference-reads=3 reference-resolved=0 legacy-reads=0 resolved=1
-  [acceptance] native reach.L.before.main equal=false reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
-  [acceptance] native reach.L.after.main equal=false reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native reach.R.model-before equal=false reference-reads=3 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native reach.R.before.main/f@19 equal=false reference-reads=3 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native reach.R.after.main/f@19 equal=false reference-reads=3 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native reach.L.model-before equal=false reference-reads=4 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native reach.L.before.main equal=false reference-reads=3 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native reach.L.after.main equal=false reference-reads=3 reference-resolved=0 legacy-reads=0 resolved=1
 
 Without callstack, the legacy store answers Bottom at L, and the state of
 the first call alone at R. The hit log answers Top at both: the state on
@@ -184,7 +184,7 @@ call at R, whose visit reached it, and none at L.
 Not corrected: Eva.Analysis.status answers analyzed complete after an
 interrupted analysis, although its documentation says partial.
   $ grep -e "call fn\.f\.status" -e "call reach\.[RL]\.\(model-before\|stacks\)" interrupted.log
-  [acceptance] call fn.f.status legacy-reads=1 resolved=0 answer=analyzed complete
+  [acceptance] call fn.f.status legacy-reads=0 resolved=1 answer=analyzed complete
   [acceptance] call reach.R.stacks legacy-reads=0 resolved=1 answer=main/f@18
   [acceptance] call reach.R.model-before legacy-reads=0 resolved=1 answer=NO INFORMATION
   [acceptance] call reach.L.stacks legacy-reads=0 resolved=1 answer=
@@ -198,9 +198,10 @@ could still reach them: Z is not dead although no callstack of later is
 recorded. At Z and L, which no recorded callstack reaches, the requests on
 several callstacks or none answer Top. At R, which both calls to f
 reached, they read the legacy store, as in any analysis with a memexec
-hit: the callstacks below a hit are not recorded.
+hit: the callstacks below a hit are not recorded. Memexec hits are outside
+the trapped configuration: this run logs the reads without trapping them.
   $ run reach-reference hit-reference.log interrupted-hit.i -eva-memexec
-  $ run reach-candidate hit.log interrupted-hit.i -eva-memexec
+  $ run reach-record hit.log interrupted-hit.i -eva-memexec
   $ answers hit-reference.log > hit-reference.txt
   $ answers hit.log > hit.txt
   $ diff hit-reference.txt hit.txt
@@ -238,10 +239,10 @@ hit: the callstacks below a hit are not recorded.
   $ served hit.log
   0
   $ grep -e "call reach\.[RZL]\.\(stacks\|reachable\|empty-before\|model-before\) " hit.log
-  [acceptance] call reach.R.stacks legacy-reads=4 resolved=0 answer=main/f@25 main/f@26
+  [acceptance] call reach.R.stacks legacy-reads=5 resolved=0 answer=main/f@25 main/f@26
   [acceptance] call reach.R.reachable legacy-reads=0 resolved=1 answer=true
   [acceptance] call reach.R.empty-before legacy-reads=0 resolved=1 answer=false
-  [acceptance] call reach.R.model-before legacy-reads=5 resolved=0 answer=g ∈ {1}; x ∈ {0; 1}; n ∈ {1; 2}
+  [acceptance] call reach.R.model-before legacy-reads=6 resolved=0 answer=g ∈ {1}; x ∈ {0; 1}; n ∈ {1; 2}
   [acceptance] call reach.Z.stacks legacy-reads=0 resolved=1 answer=
   [acceptance] call reach.Z.reachable legacy-reads=0 resolved=1 answer=true
   [acceptance] call reach.Z.empty-before legacy-reads=0 resolved=1 answer=false
@@ -394,29 +395,29 @@ both kinds, and selector-none names none.
   $ selected interrupted.log
   0
   $ grep -e "native select\." interrupted-native.txt
-  [acceptance] native select.R.unfiltered.model equal=false reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
-  [acceptance] native select.R.selector-all.model equal=false reference-reads=3 reference-resolved=0 legacy-reads=0 resolved=1
-  [acceptance] native select.R.filter-all.model equal=false reference-reads=3 reference-resolved=0 legacy-reads=0 resolved=1
-  [acceptance] native select.R.only:main/f@19.model equal=false reference-reads=3 reference-resolved=0 legacy-reads=0 resolved=1
-  [acceptance] native select.R.only:main/f@19.empty equal=false reference-reads=3 reference-resolved=0 legacy-reads=0 resolved=1
-  [acceptance] native select.R.selector-without:main/f@18.model equal=false reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
-  [acceptance] native select.R.selector-without:main/f@18.empty equal=false reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
-  [acceptance] native select.R.filter-without:main/f@18.model equal=false reference-reads=3 reference-resolved=0 legacy-reads=0 resolved=1
-  [acceptance] native select.R.filter-without:main/f@18.empty equal=false reference-reads=3 reference-resolved=0 legacy-reads=0 resolved=1
-  [acceptance] native select.R.selector-all-filter-without:main/f@18.model equal=false reference-reads=3 reference-resolved=0 legacy-reads=0 resolved=1
-  [acceptance] native select.R.selector-all-filter-without:main/f@18.empty equal=false reference-reads=3 reference-resolved=0 legacy-reads=0 resolved=1
-  [acceptance] native select.R.filter-none.model equal=false reference-reads=3 reference-resolved=0 legacy-reads=0 resolved=1
-  [acceptance] native select.R.filter-none.empty equal=false reference-reads=3 reference-resolved=0 legacy-reads=0 resolved=1
-  [acceptance] native select.L.unfiltered.model equal=false reference-reads=3 reference-resolved=0 legacy-reads=0 resolved=1
-  [acceptance] native select.L.unfiltered.empty equal=false reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
-  [acceptance] native select.L.selector-all.model equal=false reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
-  [acceptance] native select.L.selector-all.empty equal=false reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
-  [acceptance] native select.L.filter-all.model equal=false reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
-  [acceptance] native select.L.filter-all.empty equal=false reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
-  [acceptance] native select.L.only:main.model equal=false reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
-  [acceptance] native select.L.only:main.empty equal=false reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
-  [acceptance] native select.L.filter-none.model equal=false reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
-  [acceptance] native select.L.filter-none.empty equal=false reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.R.unfiltered.model equal=false reference-reads=3 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.R.selector-all.model equal=false reference-reads=4 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.R.filter-all.model equal=false reference-reads=4 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.R.only:main/f@19.model equal=false reference-reads=4 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.R.only:main/f@19.empty equal=false reference-reads=4 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.R.selector-without:main/f@18.model equal=false reference-reads=3 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.R.selector-without:main/f@18.empty equal=false reference-reads=3 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.R.filter-without:main/f@18.model equal=false reference-reads=4 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.R.filter-without:main/f@18.empty equal=false reference-reads=4 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.R.selector-all-filter-without:main/f@18.model equal=false reference-reads=4 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.R.selector-all-filter-without:main/f@18.empty equal=false reference-reads=4 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.R.filter-none.model equal=false reference-reads=4 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.R.filter-none.empty equal=false reference-reads=4 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.L.unfiltered.model equal=false reference-reads=4 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.L.unfiltered.empty equal=false reference-reads=3 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.L.selector-all.model equal=false reference-reads=3 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.L.selector-all.empty equal=false reference-reads=3 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.L.filter-all.model equal=false reference-reads=3 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.L.filter-all.empty equal=false reference-reads=3 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.L.only:main.model equal=false reference-reads=3 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.L.only:main.empty equal=false reference-reads=3 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.L.filter-none.model equal=false reference-reads=3 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.L.filter-none.empty equal=false reference-reads=3 reference-resolved=0 legacy-reads=0 resolved=1
   $ grep -e "native compared" interrupted-native.log
   [acceptance] native compared=112 differing=29
 
@@ -495,19 +496,19 @@ main/f@19, known, and main/f@20, unavailable, and keeps neither.
   $ run reach-native three-native.log interrupted-three.i
   $ grep -e "native select\.R\." three-native.log > three-native.txt
   $ grep -e "equal=false" three-native.txt
-  [acceptance] native select.R.unfiltered.model equal=false reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
-  [acceptance] native select.R.selector-all.model equal=false reference-reads=4 reference-resolved=0 legacy-reads=0 resolved=1
-  [acceptance] native select.R.filter-all.model equal=false reference-reads=4 reference-resolved=0 legacy-reads=0 resolved=1
-  [acceptance] native select.R.only:main/f@20.model equal=false reference-reads=4 reference-resolved=0 legacy-reads=0 resolved=1
-  [acceptance] native select.R.only:main/f@20.empty equal=false reference-reads=4 reference-resolved=0 legacy-reads=0 resolved=1
-  [acceptance] native select.R.selector-without:main/f@18.model equal=false reference-reads=4 reference-resolved=0 legacy-reads=0 resolved=1
-  [acceptance] native select.R.filter-without:main/f@18.model equal=false reference-reads=4 reference-resolved=0 legacy-reads=0 resolved=1
-  [acceptance] native select.R.selector-without:main/f@19.model equal=false reference-reads=4 reference-resolved=0 legacy-reads=0 resolved=1
-  [acceptance] native select.R.filter-without:main/f@19.model equal=false reference-reads=4 reference-resolved=0 legacy-reads=0 resolved=1
-  [acceptance] native select.R.selector-all-filter-without:main/f@18.model equal=false reference-reads=4 reference-resolved=0 legacy-reads=0 resolved=1
-  [acceptance] native select.R.selector-all-filter-without:main/f@19.model equal=false reference-reads=4 reference-resolved=0 legacy-reads=0 resolved=1
-  [acceptance] native select.R.filter-none.model equal=false reference-reads=4 reference-resolved=0 legacy-reads=0 resolved=1
-  [acceptance] native select.R.filter-none.empty equal=false reference-reads=4 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.R.unfiltered.model equal=false reference-reads=3 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.R.selector-all.model equal=false reference-reads=5 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.R.filter-all.model equal=false reference-reads=5 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.R.only:main/f@20.model equal=false reference-reads=5 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.R.only:main/f@20.empty equal=false reference-reads=5 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.R.selector-without:main/f@18.model equal=false reference-reads=5 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.R.filter-without:main/f@18.model equal=false reference-reads=5 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.R.selector-without:main/f@19.model equal=false reference-reads=5 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.R.filter-without:main/f@19.model equal=false reference-reads=5 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.R.selector-all-filter-without:main/f@18.model equal=false reference-reads=5 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.R.selector-all-filter-without:main/f@19.model equal=false reference-reads=5 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.R.filter-none.model equal=false reference-reads=5 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native select.R.filter-none.empty equal=false reference-reads=5 reference-resolved=0 legacy-reads=0 resolved=1
   $ grep -c -e "equal=true" three-native.txt
   83
 
@@ -696,8 +697,8 @@ while is_empty answers true: each one that the diff above lists.
   [acceptance] internal P.main/f@38 before=unavailable (not recorded) after=unavailable (not recorded)
   [acceptance] internal P.main/f@39 before=unavailable (not recorded) after=unavailable (not recorded)
   $ grep -e "call fn\.f\.\(status\|available\)" -e "call reach\.P\.\(stacks\|reachable\|model-before\|before\.\)" nrf.log
-  [acceptance] call fn.f.status legacy-reads=1 resolved=0 answer=analyzed without results
-  [acceptance] call fn.f.available legacy-reads=1 resolved=0 answer=false
+  [acceptance] call fn.f.status legacy-reads=0 resolved=1 answer=analyzed without results
+  [acceptance] call fn.f.available legacy-reads=0 resolved=1 answer=false
   [acceptance] call reach.P.stacks legacy-reads=0 resolved=1 answer=
   [acceptance] call reach.P.reachable legacy-reads=0 resolved=1 answer=true
   [acceptance] call reach.P.model-before legacy-reads=0 resolved=1 answer=NO INFORMATION
@@ -763,8 +764,8 @@ while is_empty answers true: each one that the diff above lists.
   [acceptance] internal C.main before=unavailable (not recorded) after=unavailable (not recorded)
   [acceptance] internal D.main before=unavailable (not recorded) after=unavailable (not recorded)
   $ grep -e "call fn\.f\.\(status\|available\|start\)" -e "call reach\.C\.\(stacks\|reachable\|empty-before\|model-before\|before\.\)" nrd.log
-  [acceptance] call fn.f.status legacy-reads=1 resolved=0 answer=analyzed complete
-  [acceptance] call fn.f.available legacy-reads=1 resolved=0 answer=true
+  [acceptance] call fn.f.status legacy-reads=0 resolved=1 answer=analyzed complete
+  [acceptance] call fn.f.available legacy-reads=0 resolved=1 answer=true
   [acceptance] call fn.f.start.main/f@38 legacy-reads=0 resolved=1 answer=error top
   [acceptance] call fn.f.start.main/f@39 legacy-reads=0 resolved=1 answer=error top
   [acceptance] call reach.C.stacks legacy-reads=0 resolved=1 answer=
@@ -797,8 +798,8 @@ state of f is available.
   $ consistent nr.log
   0
   $ grep -e "call fn\.f\.\(status\|available\)" nr.log
-  [acceptance] call fn.f.status legacy-reads=1 resolved=0 answer=analyzed without results
-  [acceptance] call fn.f.available legacy-reads=1 resolved=0 answer=false
+  [acceptance] call fn.f.status legacy-reads=0 resolved=1 answer=analyzed without results
+  [acceptance] call fn.f.available legacy-reads=0 resolved=1 answer=false
 
 Pending results. While the analysis runs, f calls pending_probe, and the
 driver makes requests on the callstack of f. No result is available yet:
@@ -828,8 +829,8 @@ callstack.
   [acceptance] call pending.P.stacks legacy-reads=0 resolved=1 answer=
   [acceptance] call pending.P.model-before legacy-reads=0 resolved=1 answer=NO INFORMATION
   [acceptance] call pending.P.before.main/f@16 legacy-reads=0 resolved=1 answer=error top
-  [acceptance] call pending.fn.f.status legacy-reads=1 resolved=0 answer=analyzed partial
-  [acceptance] call pending.fn.f.available legacy-reads=1 resolved=0 answer=false
+  [acceptance] call pending.fn.f.status legacy-reads=0 resolved=1 answer=analyzed partial
+  [acceptance] call pending.fn.f.available legacy-reads=0 resolved=1 answer=false
   $ selections pending-reference.log > pending-reference.sel
   $ selections pending.log > pending.sel
   $ diff pending-reference.sel pending.sel
@@ -893,7 +894,7 @@ Bottom, as on the legacy path.
   $ selected recursion.log
   0
   $ grep -e "internal" -e "call fn\.rec\.status" -e "call reach\.R\.\(before\|reachable-pos\)\." recursion.log
-  [acceptance] call fn.rec.status legacy-reads=1 resolved=0 answer=analyzed partial
+  [acceptance] call fn.rec.status legacy-reads=0 resolved=1 answer=analyzed partial
   [acceptance] internal R.main/rec@15 before=reached after=reached
   [acceptance] call reach.R.before.main/rec@15 legacy-reads=0 resolved=1 answer=g ∈ [--..--]; n ∈ {2}
   [acceptance] call reach.R.reachable-pos.main/rec@15 legacy-reads=0 resolved=1 answer=true

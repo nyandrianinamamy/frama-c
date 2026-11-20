@@ -115,6 +115,42 @@ val body:
   Callstack.t -> producer:int -> complete:bool -> entries:state list ->
   points:points Lazy.t option -> guards:guards -> unit
 
+(** {2 Registration}
+
+    Eva still writes its legacy tables during the analysis: the states of
+    each control point on each callstack, the analysis status and the
+    callers of each function, and the fireable branches of each
+    conditional. The requests that the resolver declines read them, and a
+    saved project keeps them. Each write merges a new fact with the one
+    already registered. While the hit log records, the functions below give
+    the fact already registered from the records, so that the writers of
+    the legacy tables never read them. Each returns [None] when the hit log
+    does not record: the writer then reads the legacy table. Each answer is
+    reported to {!Legacy_read_guard}. *)
+
+(** [registered ~callstack point] is the state that the earlier visits on
+    [callstack] registered at [point], before the registration of the
+    latest one: the join of their inputs at the start of the function,
+    of the states of their bodies at a statement, in the order of the
+    analysis; [Some None] when there is none, or when the states are not
+    recorded, and the legacy store records none either. Not for the
+    initial state, which is registered once. *)
+val registered:
+  callstack:Callstack.t -> Domain_store.control_point -> state option option
+
+(** [target callstack status] records that the analysis chose to interpret
+    the open invocation on [callstack] with [status]. Returns the merged
+    status of its function, and its callers, including this call. *)
+val target:
+  Callstack.t -> Function_calls.analysis_status ->
+  (Function_calls.analysis_status
+   * Cil_datatype.Stmt.Set.t Kernel_function.Map.t) option
+
+(** [fire stmt (then_, else_)] records that the analysis took the then
+    branch of the conditional [stmt] if [then_], its else branch if [else_].
+    Returns whether some analysis took each branch so far. *)
+val fire: Cil_types.stmt -> bool * bool -> (bool * bool) option
+
 (** {2 Resolver} *)
 
 (** Why the records cannot give the state at a point. *)
@@ -281,6 +317,12 @@ val condition_truth_value: Cil_types.stmt -> (bool * bool) option
     do not describe the current results. *)
 val computed: unit -> bool option
 
+(** The computation state, as [Eva.Analysis.current_computation_state]
+    reports it: computing while the records are recorded, computed once
+    they are sealed, aborted once interrupted. Returns [None] when the
+    records do not describe the current results. *)
+val computation_state: unit -> Self.computation_state option
+
 (** [analyzed kf]: whether some invocation of [kf] analyzed its body, or
     reused the analysis of its body by a memexec hit, in a completed
     analysis. The analysis status of [kf] then tells [Analyzed]. Returns
@@ -289,14 +331,21 @@ val computed: unit -> bool option
     unresolved. *)
 val analyzed: Kernel_function.t -> bool option
 
-(** The analysis status and the callers of each function that the analysis
-    called, as the status table and the table of call relations record
-    them, once the analysis has ended. The statuses of the invocations of a
-    function are merged in the order of the calls, as the status table
-    merges them. Returns [None] when the records do not describe the
-    current results, before the analysis has ended, when the records
-    contain a memexec hit, and when an invocation is unresolved. Each
+(** [status kf] is the analysis status of [kf] as the status table
+    registers it, [Unreachable] when no call to [kf] is registered, and
+    whether the analysis has ended, as {!computed}. The statuses of the
+    calls to a function are merged in the order of the calls, with the
+    merge of the status table. Answers while the analysis runs. Returns
+    [None] when the records do not describe the current results. The
     answer is reported to {!Legacy_read_guard}. *)
+val status: Kernel_function.t -> (Function_calls.analysis_status * bool) option
+
+(** The analysis status and the callers of each function that the analysis
+    called, as the status table and the table of call relations register
+    them, once the analysis has ended. Returns [None] when the records do
+    not describe the current results, before the analysis has ended, and
+    when the records contain a memexec hit. Each answer is reported to
+    {!Legacy_read_guard}. *)
 val calls: unit -> Function_calls.t option
 
 (** {2 Snapshots} *)
@@ -334,3 +383,12 @@ val pretty_visits: Format.formatter -> Callstack.t -> unit
 (** Test control. When set, the resolver rebuilds each body visit from the
     first producer recorded for its function instead of its own. *)
 val set_wrong_producer_control: bool -> unit
+
+(** Test control. When set, the records describe no result: every request
+    reads the legacy store, as written during the analysis. The
+    registration of the hit log is unchanged. *)
+val set_decline_control: bool -> unit
+
+(** Test control. When set, {!calls} answers that every function is
+    unreachable, without caller. *)
+val set_calls_perturbation_control: bool -> unit

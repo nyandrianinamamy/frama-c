@@ -22,12 +22,14 @@ candidate run in one process. Each call gets one disposition:
   MISSING     the call is absent from one of the runs
   UNOBSERVED  equal answers, but the candidate's guard was off
 
-Each call also states the path expected to serve it (legacy, resolver or
-none); the resolver and sensitivity controls check it against the reads and
-resolutions the candidate recorded. The zero-read gate passes when no call
-is LEGACY or UNOBSERVED and the candidates logged no read during the
-execution either. The exit status is 1
-on any MISMATCH, MISSING or failed control, and also on a failed gate with
+Each call also states the path expected to serve it (resolver or none);
+the resolver and sensitivity controls check it against the reads and
+resolutions of the candidate and of the legacy path. The candidates run
+under the continuous trap, armed once before the analysis: any legacy read
+aborts them. The zero-read gate passes when no call is LEGACY or
+UNOBSERVED, the candidates logged no read during the execution either, and
+the gate record of every candidate passes. The exit status is 1 on any
+MISMATCH, MISSING or failed control, and also on a failed gate with
 --require-zero-reads. --no-write skips writing report.md and report.json."""
 
 import hashlib
@@ -36,7 +38,9 @@ from pathlib import Path
 import re
 import sys
 
-# Expected exit status, phase and reader of each trap control.
+# Expected exit status, phase and reader of each trap control. The hit log
+# serves every read: these controls run on the legacy path. No read happens
+# during the initialization, on either path.
 CONTROLS = {
     "request": (1, "request", "Eva.Results.get_cvalue_model"),
     "analysis": (1, "analysis", "Eva.Engine.register_state"),
@@ -45,6 +49,7 @@ CONTROLS = {
     "initialization": (0, None, None),
 }
 CONTROL_FIXTURE = "legacy-reads"
+PLUGIN_FIXTURE = "plugins"
 TRAP_PREFIX = "legacy result-store read trapped: "
 
 
@@ -66,6 +71,18 @@ def collection(path):
 
 def accounting(path):
     return next((r for r in records(path) if r["kind"] == "accounting"), None)
+
+
+def gate_record(path):
+    return next((r for r in records(path) if r["kind"] == "gate"), None)
+
+
+def scopes(path):
+    return [
+        {k: r[k] for k in ("phase", "entries", "reads", "resolutions", "registrations")}
+        for r in records(path)
+        if r["kind"] == "scope"
+    ]
 
 
 def disposition(expected, observed):
@@ -155,6 +172,8 @@ def fixture_report(evidence, name):
             "reference": accounting(evidence / f"{name}.reference.jsonl"),
             "candidate": accounting(evidence / f"{name}.candidate.jsonl"),
         },
+        "gate": gate_record(evidence / f"{name}.candidate.jsonl"),
+        "scopes": scopes(evidence / f"{name}.candidate.jsonl"),
         "calls": rows,
     }
 
@@ -236,24 +255,333 @@ def comparator_control(evidence):
     }
 
 
-def sensitivity_control(fixture):
-    """The guard sees reads on every request still served by the legacy
-    store, and none on a request that reads neither store, such as a
-    supplied state. Requests the candidate did not make are left out."""
-    rows = [r for r in fixture["calls"] if r["disposition"] != "MISSING"]
-    legacy = [r for r in rows if r["expect"] == "legacy"]
-    silent = [r["id"] for r in legacy if r["legacy_reads"] == 0]
-    unread = [r for r in rows if r["expect"] == "none"]
-    noisy = [r["id"] for r in unread if r["legacy_reads"] or r["resolved"]]
-    ok = legacy and unread and not silent and not noisy
+def status_of(evidence, stem):
+    path = evidence / f"{stem}.status"
+    return int(path.read_text()) if path.exists() else None
+
+
+def trap_of(evidence, stem):
+    path = evidence / f"{stem}.log"
+    return parse_trap(path.read_text()) if path.exists() else None
+
+
+# The fixtures whose candidate command also runs on the legacy path, as the
+# positive control of the continuous trap, and with the tail probe.
+CONTINUOUS_FIXTURES = ("legacy-reads", "plugins")
+# Where the continuous trap aborts the legacy path: the first read of the
+# analysis, when the state at the start of main is registered.
+CONTINUOUS_LEGACY = ("analysis", "Eva.Engine.register_state")
+
+
+def continuous_trap_control(fixtures):
+    """Every candidate ran under the trap of every phase, armed once before
+    the analysis and never changed: the guard was never armed with another
+    mode, the battery completed, and the trap logged no read."""
+    observed, ok = {}, bool(fixtures)
+    for f in fixtures:
+        gate = f["gate"] or {}
+        observed[f["fixture"]] = {
+            "guard": f["candidate"]["guard"],
+            "arms": gate.get("arms"),
+            "logged": gate.get("logged"),
+            "trapped_count": gate.get("trapped_count"),
+        }
+        ok &= (
+            f["candidate"]["guard"] == "trap:all"
+            and gate.get("arms") == ["trap:all"]
+            and gate.get("final") == "trap:all"
+            and gate.get("logged") == 0
+            and gate.get("trapped") is None
+            and gate.get("trapped_count") == 0
+            and gate.get("passes") is True
+        )
     return {
-        "control": "guard-sensitivity",
-        "expected": {"legacy_without_reads": [], "unread_with_reads": []},
-        "observed": {
-            "legacy_calls": len(legacy),
-            "legacy_without_reads": silent,
+        "control": "continuous-trap",
+        "expected": {
+            "guard": "trap:all",
+            "arms": ["trap:all"],
+            "logged": 0,
+            "trapped_count": 0,
+        },
+        "observed": observed,
+        "result": "PASS" if ok else "FAIL",
+    }
+
+
+def continuous_legacy_control(evidence):
+    """The candidate's command on the legacy path, under the same trap, must
+    abort at the first read of the legacy store."""
+    observed, ok = {}, True
+    for name in CONTINUOUS_FIXTURES:
+        stem = f"control-continuous-legacy-{name}"
+        status, trap = status_of(evidence, stem), trap_of(evidence, stem) or {}
+        observed[name] = {
+            "status": status,
+            "phase": trap.get("phase"),
+            "reader": trap.get("reader"),
+            "point": trap.get("point"),
+        }
+        ok &= status == 1 and (trap.get("phase"), trap.get("reader")) == CONTINUOUS_LEGACY
+    return {
+        "control": "continuous-trap-legacy-path",
+        "expected": {
+            "status": 1,
+            "phase": CONTINUOUS_LEGACY[0],
+            "reader": CONTINUOUS_LEGACY[1],
+        },
+        "observed": observed,
+        "result": "PASS" if ok else "FAIL",
+    }
+
+
+TAIL_PROBE = re.compile(r"\[acceptance\] tail-probe logged=(\d+) trapped=(\d+)")
+
+
+def tail_probe_control(evidence):
+    """After the candidate's battery, still under the trap and with no read
+    logged, a request on cleared results must abort in the request phase:
+    the trap is still armed at the end of the run."""
+    observed, ok = {}, True
+    for name in CONTINUOUS_FIXTURES:
+        stem = f"control-tail-probe-{name}"
+        log_path, jsonl = evidence / f"{stem}.log", evidence / f"{stem}.jsonl"
+        status, trap = status_of(evidence, stem), trap_of(evidence, stem) or {}
+        before = TAIL_PROBE.search(log_path.read_text()) if log_path.exists() else None
+        gate = (gate_record(jsonl) if jsonl.exists() else None) or {}
+        observed[name] = {
+            "status": status,
+            "before_probe": before and {"logged": int(before[1]), "trapped": int(before[2])},
+            "gate_passes": gate.get("passes"),
+            "phase": trap.get("phase"),
+            "reader": trap.get("reader"),
+        }
+        ok &= (
+            status == 1
+            and before is not None
+            and before[1] == "0"
+            and before[2] == "0"
+            and gate.get("passes") is True
+            and trap.get("phase") == "request"
+        )
+    return {
+        "control": "tail-probe",
+        "expected": {
+            "status": 1,
+            "before_probe": {"logged": 0, "trapped": 0},
+            "gate_passes": True,
+            "phase": "request",
+        },
+        "observed": observed,
+        "result": "PASS" if ok else "FAIL",
+    }
+
+
+# Phases in which the legacy path must read its store. No read happens
+# during the initialization, on either path.
+READING_PHASES = ("analysis", "collection", "post-analysis", "request")
+
+
+def by_phase(rows):
+    return {r["phase"]: r for r in rows}
+
+
+def sensitivity_control(evidence, fixtures):
+    """The guard sees the reads that the candidates avoid. The same battery
+    on the legacy path, with every read logged, reads the store in each
+    phase but the initialization, and on each request that the candidate's
+    resolver serves; the candidate reads in no phase. A request that reads
+    neither store, such as a supplied state, reads and resolves nothing on
+    either path."""
+    by_name = {f["fixture"]: f for f in fixtures}
+    observed, ok = {}, True
+    for name in CONTINUOUS_FIXTURES:
+        path = evidence / f"control-sensitivity-{name}.jsonl"
+        if name not in by_name or not path.exists():
+            return {"control": "guard-sensitivity", "result": "NOT RUN"}
+        f = by_name[name]
+        legacy_scopes = by_phase(scopes(path))
+        cand_scopes = by_phase(f["scopes"])
+        _, legacy_calls, _ = load(path)
+        legacy = {c["id"]: c for c in legacy_calls}
+        resolver = [r["id"] for r in f["calls"] if r["expect"] == "resolver"]
+        silent = [i for i in resolver if not (legacy.get(i) or {}).get("reads")]
+        unread = [r for r in f["calls"] if r["expect"] == "none"]
+        noisy = [
+            r["id"]
+            for r in unread
+            if r["legacy_reads"]
+            or r["resolved"]
+            or (legacy.get(r["id"]) or {}).get("reads")
+            or (legacy.get(r["id"]) or {}).get("resolved")
+        ]
+        phases = {
+            p: {
+                "legacy_path": (legacy_scopes.get(p) or {}).get("reads"),
+                "candidate": (cand_scopes.get(p) or {}).get("reads"),
+            }
+            for p in ("initialization",) + READING_PHASES
+        }
+        observed[name] = {
+            "reads_by_phase": phases,
+            "resolver_calls": len(resolver),
+            "resolver_calls_without_legacy_reads": silent,
             "unread_calls": len(unread),
             "unread_with_reads": noisy,
+        }
+        ok &= (
+            all(v["candidate"] == 0 for v in phases.values())
+            and all((phases[p]["legacy_path"] or 0) > 0 for p in READING_PHASES)
+            and phases["initialization"]["legacy_path"] == 0
+            and bool(resolver)
+            and not silent
+            and not noisy
+        )
+    return {
+        "control": "guard-sensitivity",
+        "expected": {
+            "reads_by_phase": {
+                "candidate": 0,
+                "legacy_path": {"initialization": 0, "other phases": ">0"},
+            },
+            "resolver_calls_without_legacy_reads": [],
+            "unread_with_reads": [],
+        },
+        "observed": observed,
+        "result": "PASS" if ok else "FAIL",
+    }
+
+
+REGISTRATION = (
+    "Eva.Engine.register_state",
+    "Eva.Function_calls.register_analysis_target",
+    "Eva.Iterator.record_fireable",
+)
+
+
+def registration_control(fixtures):
+    """During the analysis of each candidate, the three writers of the
+    legacy store take the previously registered value from the hit log:
+    each resolves in the analysis phase, and no phase reads."""
+    observed, ok = {}, bool(fixtures)
+    for f in fixtures:
+        analysis = by_phase(f["scopes"]).get("analysis") or {}
+        counts = analysis.get("registrations") or {}
+        observed[f["fixture"]] = {
+            "entries": {s["phase"]: s["entries"] for s in f["scopes"]},
+            "registrations": counts,
+        }
+        ok &= (
+            analysis.get("entries", 0) > 0
+            and counts.get(REGISTRATION[0], 0) > 0
+            and counts.get(REGISTRATION[1], 0) > 0
+            and all(s["reads"] == 0 for s in f["scopes"])
+        )
+    return {
+        "control": "hit-log-registration",
+        "expected": {"registrations": {REGISTRATION[0]: ">0", REGISTRATION[1]: ">0"}},
+        "observed": observed,
+        "result": "PASS" if ok else "FAIL",
+    }
+
+
+def store_check_control(evidence, names):
+    """The legacy store that the analysis writes from the hit log: once the
+    hit log declines every request, each request reads that store, and its
+    answer must still be the reference's. The analysis that a request runs,
+    such as the intervening analysis of the snapshot, still registers its
+    results through the hit log: these resolutions, in the analysis phase,
+    serve no request."""
+    observed, ok = {}, bool(names)
+    for name in names:
+        path = evidence / f"control-store-check-{name}.jsonl"
+        if not path.exists():
+            return {"control": "legacy-store-writes", "result": "NOT RUN"}
+        _, ref_calls, _ = load(evidence / f"{name}.reference.jsonl")
+        _, calls, _ = load(path)
+        rows = compare_calls(ref_calls, calls)
+        differing = [r["id"] for r in rows if r["disposition"] in ("MISMATCH", "MISSING")]
+        reads = sum(r["legacy_reads"] for r in rows)
+        resolved = [
+            c["id"]
+            for c in calls
+            if any(x.get("phase") != "analysis" for x in c.get("resolved") or [])
+        ]
+        observed[name] = {
+            "calls": len(rows),
+            "differing": differing,
+            "legacy_reads": reads,
+            "resolved": resolved,
+        }
+        ok &= bool(rows) and not differing and reads > 0 and not resolved
+    return {
+        "control": "legacy-store-writes",
+        "expected": {
+            "differing": [],
+            "legacy_reads": ">0",
+            "resolved outside an analysis": [],
+        },
+        "observed": observed,
+        "result": "PASS" if ok else "FAIL",
+    }
+
+
+# The request that prints the exported statuses and callers.
+EXPORT_CALLS = "export.calls"
+
+
+def export_payload_control(evidence):
+    """A hit log that exports every function as unreachable and without
+    caller changes the exported payload only: the comparison must report
+    export.calls, and nothing else. The statuses read after restoring that
+    payload stay the reference's: the restored records of the hit log serve
+    them, not the exported tables."""
+    path = evidence / "control-perturb-calls-plugins.jsonl"
+    if not path.exists():
+        return {"control": "export-payload-perturbation", "result": "NOT RUN"}
+    _, ref_calls, _ = load(evidence / f"{PLUGIN_FIXTURE}.reference.jsonl")
+    _, calls, _ = load(path)
+    rows = compare_calls(ref_calls, calls)
+    mismatches = [r["id"] for r in rows if r["disposition"] in ("MISMATCH", "MISSING")]
+    restored = next((r for r in rows if r["id"] == "export.statuses"), {})
+    ok = mismatches == [EXPORT_CALLS] and restored.get("disposition") in ("MATCH", "LEGACY")
+    return {
+        "control": "export-payload-perturbation",
+        "expected": {"mismatches": [EXPORT_CALLS], "export.statuses": "equal"},
+        "observed": {
+            "mismatches": mismatches,
+            "export.statuses": restored.get("disposition"),
+        },
+        "result": "PASS" if ok else "FAIL",
+    }
+
+
+def snapshot_control(fixtures):
+    """The snapshot round trip: the exported statuses and callers are the
+    reference's; an intervening analysis changes the statuses; restoring
+    the snapshot gives back the statuses read before the export. Each of
+    these requests is served by the hit log, under the trap."""
+    fixture = next((f for f in fixtures if f["fixture"] == PLUGIN_FIXTURE), None)
+    if fixture is None:
+        return {"control": "snapshot-round-trip", "result": "NOT RUN"}
+    rows = {r["id"]: r for r in fixture["calls"]}
+    ids = [EXPORT_CALLS, "snapshot.statuses", "snapshot.intervening", "export.statuses"]
+    not_matching = [i for i in ids if (rows.get(i) or {}).get("disposition") != "MATCH"]
+    intervening = (rows.get("snapshot.intervening") or {}).get("observed") or ""
+    before = (rows.get("snapshot.statuses") or {}).get("observed")
+    after = (rows.get("export.statuses") or {}).get("observed")
+    differs = intervening.startswith("differs=true")
+    ok = not not_matching and differs and before is not None and before == after
+    return {
+        "control": "snapshot-round-trip",
+        "expected": {
+            "not_matching": [],
+            "intervening_differs": True,
+            "restored_equals_saved": True,
+        },
+        "observed": {
+            "not_matching": not_matching,
+            "intervening_differs": differs,
+            "restored_equals_saved": before is not None and before == after,
         },
         "result": "PASS" if ok else "FAIL",
     }
@@ -404,63 +732,9 @@ def selection_perturbation_control(evidence):
     }
 
 
-PLUGIN_FIXTURE = "plugins"
-# Where the trap of the plug-in battery aborts the legacy path: the
-# statistics of the first function that Eva analyzes, after its analysis.
-PLUGIN_TRAP_LEGACY = ("collection", "Eva.Summary.compute_fun_stats")
 # Reports that Eva derives from its results after the analysis: reading
 # them reads neither store, but they follow the answers of the resolver.
 DERIVED_FAMILIES = {"statuses", "statistics"}
-
-
-def plugin_trap_control(evidence):
-    """Under the trap of every read but those of the readers that other
-    changes migrate, the candidate completes the plug-in battery with the
-    answers of the reference and no legacy read; on the legacy path, the
-    trap aborts the run."""
-    paths = {p: evidence / f"control-plugins-trap-{p}" for p in ("hit-log", "legacy")}
-    if not all(Path(f"{p}.status").exists() for p in paths.values()):
-        return {"control": "plugins-trap", "result": "NOT RUN"}
-    status = {p: int(Path(f"{path}.status").read_text()) for p, path in paths.items()}
-    trap = {p: parse_trap(Path(f"{path}.log").read_text()) for p, path in paths.items()}
-    _, ref_calls, _ = load(evidence / f"{PLUGIN_FIXTURE}.reference.jsonl")
-    _, calls, _ = load(Path(f"{paths['hit-log']}.jsonl"))
-    rows = compare_calls(ref_calls, calls)
-    not_matching = [r["id"] for r in rows if r["disposition"] != "MATCH"]
-    legacy = trap["legacy"] or {}
-    ok = (
-        status["hit-log"] == 0
-        and trap["hit-log"] is None
-        and bool(rows)
-        and not not_matching
-        and status["legacy"] == 1
-        and (legacy.get("phase"), legacy.get("reader")) == PLUGIN_TRAP_LEGACY
-    )
-    return {
-        "control": "plugins-trap",
-        "expected": {
-            "hit_log": {"status": 0, "trapped": None, "not_matching": []},
-            "legacy": {
-                "status": 1,
-                "phase": PLUGIN_TRAP_LEGACY[0],
-                "reader": PLUGIN_TRAP_LEGACY[1],
-            },
-        },
-        "observed": {
-            "hit_log": {
-                "status": status["hit-log"],
-                "trapped": trap["hit-log"],
-                "calls": len(rows),
-                "not_matching": not_matching,
-            },
-            "legacy": {
-                "status": status["legacy"],
-                "phase": legacy.get("phase"),
-                "reader": legacy.get("reader"),
-            },
-        },
-        "result": "PASS" if ok else "FAIL",
-    }
 
 
 def plugin_perturbation_control(evidence):
@@ -526,7 +800,9 @@ def collection_control(evidence, fixtures):
 def native_control(fixtures):
     """In one process, the legacy reference and the candidate give natively
     equal models and values and equal text answers; the reference resolves
-    nothing, and every request expected on the resolver is resolved."""
+    nothing, and every request expected on the resolver is resolved. The
+    snapshot requests, whose intervening analysis adds an assigns clause to
+    the AST, are compared across processes only."""
     observed, ok = {}, True
     for f in fixtures:
         native = f["native"]
@@ -534,8 +810,16 @@ def native_control(fixtures):
             observed[f["fixture"]] = "NOT RUN"
             ok = False
             continue
-        resolver_ids = {r["id"] for r in f["calls"] if r["expect"] == "resolver"}
-        unresolved = [i for i in resolver_ids if native["resolved"].get(i, 0) == 0]
+        # The snapshot requests run a new analysis, which changes the AST:
+        # only the comparison across processes covers them.
+        compared = native["resolved"]
+        not_compared = sorted(
+            r["id"] for r in f["calls"] if r["id"] not in compared and r["family"] != "snapshot"
+        )
+        resolver_ids = {
+            r["id"] for r in f["calls"] if r["expect"] == "resolver" and r["id"] in compared
+        }
+        unresolved = [i for i in resolver_ids if compared[i] == 0]
         summary = native["summary"] or {}
         observed[f["fixture"]] = {
             "compared": summary.get("compared"),
@@ -543,10 +827,11 @@ def native_control(fixtures):
             "text_differing": native["text_differing"],
             "reference_resolved": native["reference_resolved"],
             "unresolved": sorted(unresolved),
+            "not_compared": not_compared,
         }
         ok &= bool(summary.get("compared")) and summary.get("differing") == 0
         ok &= not native["differing"] and native["reference_resolved"] == 0
-        ok &= not native["text_differing"] and not unresolved
+        ok &= not native["text_differing"] and not unresolved and not not_compared
     return {
         "control": "native-equality",
         "expected": {
@@ -554,6 +839,7 @@ def native_control(fixtures):
             "text_differing": [],
             "reference_resolved": 0,
             "unresolved": [],
+            "not_compared": "snapshot requests only",
         },
         "observed": observed,
         "result": "PASS" if ok else "FAIL",
@@ -682,9 +968,11 @@ def zero_read_gate(fixtures):
     calls = sum(
         1 for f in fixtures for r in f["calls"] if r["disposition"] in ("LEGACY", "UNOBSERVED")
     )
-    return execution == 0 and calls == 0, {
+    failed = [f["fixture"] for f in fixtures if not (f["gate"] or {}).get("passes")]
+    return execution == 0 and calls == 0 and not failed, {
         "execution_reads": execution,
         "legacy_calls": calls,
+        "failed_gates": failed,
     }
 
 
@@ -746,6 +1034,17 @@ def markdown(report):
             out.append(f"- {side.capitalize()}: guard={f[side]['guard']} " f"`{cfg}`")
         out += [
             "",
+            "| Scope | Entries | Reads | Resolutions | Registrations |",
+            "| --- | --- | --- | --- | --- |",
+        ]
+        for sc in f["scopes"]:
+            regs = ", ".join(f"{k}: {v}" for k, v in sc["registrations"].items())
+            out.append(
+                f"| {sc['phase']} | {sc['entries']} | {sc['reads']} | "
+                f"{sc['resolutions']} | {regs} |"
+            )
+        out += [
+            "",
             "| Phase | Reader | Access | Store | Reads | Caller |",
             "| --- | --- | --- | --- | --- | --- |",
         ]
@@ -803,8 +1102,12 @@ def main(argv):
     report["gate"] = {"passes": gate_passes, "observed": gate_observed}
     controls = [control_report(evidence, phase) for phase in CONTROLS]
     controls.append(comparator_control(evidence))
-    control_fixture = next(f for f in report["fixtures"] if f["fixture"] == CONTROL_FIXTURE)
-    controls.append(sensitivity_control(control_fixture))
+    controls.append(continuous_trap_control(report["fixtures"]))
+    controls.append(continuous_legacy_control(evidence))
+    controls.append(tail_probe_control(evidence))
+    controls.append(sensitivity_control(evidence, report["fixtures"]))
+    controls.append(registration_control(report["fixtures"]))
+    controls.append(store_check_control(evidence, fixtures))
     controls.append(accounting_control(report["fixtures"]))
     controls.append(independence_control(report["fixtures"]))
     controls.append(resolver_control(report["fixtures"]))
@@ -812,8 +1115,9 @@ def main(argv):
     controls.append(perturbation_control(evidence))
     controls.append(selection_control(report["fixtures"]))
     controls.append(selection_perturbation_control(evidence))
-    controls.append(plugin_trap_control(evidence))
     controls.append(plugin_perturbation_control(evidence))
+    controls.append(export_payload_control(evidence))
+    controls.append(snapshot_control(report["fixtures"]))
     controls.append(collection_control(evidence, report["fixtures"]))
     controls.append(parity_control(evidence))
     if not require_zero:

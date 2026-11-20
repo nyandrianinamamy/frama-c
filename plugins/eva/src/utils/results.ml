@@ -11,14 +11,20 @@ open Lattice_bounds
 (* Labels the reads of the legacy result store made by public functions. *)
 let reading = Legacy_read_guard.reader
 
+(* Answered by the hit log when it describes the results, from the
+   computation state and the status table otherwise. *)
 let are_available kf =
   reading "Eva.Results.are_available" @@ fun () ->
-  Legacy_read_guard.notify Availability ~store:"analysis-status"
-    (fun fmt -> Kernel_function.pretty fmt kf);
-  Self.is_computed () &&
-  match Function_calls.analysis_status kf with
-  | Analyzed (Complete | Partial) -> true
-  | SpecUsed | Builtin _ | Unreachable | Analyzed NoResults -> false
+  let available : Function_calls.analysis_status -> bool = function
+    | Analyzed (Complete | Partial) -> true
+    | SpecUsed | Builtin _ | Unreachable | Analyzed NoResults -> false
+  in
+  match Hit_log.status kf with
+  | Some (status, computed) -> computed && available status
+  | None ->
+    Legacy_read_guard.notify Availability ~store:"analysis-status"
+      (fun fmt -> Format.pp_print_string fmt "computation state");
+    Self.is_computed () && available (Function_calls.analysis_status kf)
 
 type 'a by_callstack = (Callstack.t * 'a) list
 
@@ -870,12 +876,7 @@ let condition_truth_value stmt =
   reading "Eva.Results.condition_truth_value" @@ fun () ->
   match Hit_log.condition_truth_value stmt with
   | Some outcomes -> outcomes
-  | None ->
-    Legacy_read_guard.notify Getter ~store:"guards" (fun fmt ->
-        Format.fprintf fmt "guard of %a at line %d" Kernel_function.pretty
-          (Kernel_function.find_englobing_kf stmt)
-          (Fileloc.line (Cil_datatype.Stmt.loc stmt)));
-    Iterator.condition_truth_value stmt
+  | None -> Iterator.condition_truth_value stmt
 
 (* Callers / callsites *)
 

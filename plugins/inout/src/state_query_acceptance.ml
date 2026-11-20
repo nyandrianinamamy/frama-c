@@ -16,12 +16,22 @@ module R = Eva.Results
 type mode =
   | Reference
   | Candidate
+  (** The continuous trap: every legacy read, in any phase, aborts Eva. The
+      guard is armed once, before the analysis, and never changed. *)
+  | Record_reads
+  (** Every legacy read is logged; none aborts. *)
   | Native
   | Wrong_producer
   | Trap of Guard.phase
-  | Trap_readers
-  (** The plug-in battery, with every read trapped but those of
-      {!exempt_readers}. *)
+  | Tail_probe
+  (** The candidate, then one request on cleared results, which must
+      abort. *)
+  | Store_check
+  (** The analysis records the hit log, which then declines every request:
+      the requests read the legacy store, as written during the analysis.
+      Reads are logged. *)
+  | Perturb_calls
+  (** The hit log exports wrong statuses and callers. Reads are logged. *)
 
 (* The requests made after the analysis: the battery around the statement
    labelled P, the reachability battery on every labelled statement
@@ -37,28 +47,31 @@ let rec parse_mode name =
   in
   if String.starts_with ~prefix:reach name then
     match parse_mode (suffix reach) with
-    | Point_battery, (Reference | Candidate | Native as mode) ->
+    | Point_battery, (Reference | Candidate | Record_reads | Native as mode) ->
       Reach_battery, mode
     | _ ->
       Inout_parameters.abort "unknown mode %S for %s" name
         Inout_parameters.QueryAcceptance.option_name
   else if String.starts_with ~prefix:plugins name then
-    if suffix plugins = "trap" then Plugin_battery, Trap_readers
-    else
-      match parse_mode (suffix plugins) with
-      | Point_battery, (Reference | Candidate | Native | Wrong_producer as mode)
-        ->
-        Plugin_battery, mode
-      | _ ->
-        Inout_parameters.abort "unknown mode %S for %s" name
-          Inout_parameters.QueryAcceptance.option_name
+    match parse_mode (suffix plugins) with
+    | Point_battery,
+      (Reference | Candidate | Record_reads | Native | Wrong_producer
+      | Tail_probe | Store_check | Perturb_calls as mode) ->
+      Plugin_battery, mode
+    | _ ->
+      Inout_parameters.abort "unknown mode %S for %s" name
+        Inout_parameters.QueryAcceptance.option_name
   else
     let mode =
       match name with
       | "reference" -> Reference
       | "candidate" -> Candidate
+      | "record" -> Record_reads
       | "native" -> Native
       | "wrong-producer" -> Wrong_producer
+      | "tail-probe" -> Tail_probe
+      | "store-check" -> Store_check
+      | "perturb-calls" -> Perturb_calls
       | _ ->
         let phase =
           if String.starts_with ~prefix:"trap:" name then
@@ -176,14 +189,13 @@ let stack_name stack =
 
 (* {2 Calls} *)
 
-(* The path that should serve a request once the hit log is on. *)
+(* The path that should serve a request once the hit log is on. No request
+   is expected on the legacy store any more. *)
 type expect =
-  | Legacy    (* reads the legacy store *)
   | Resolver  (* served by the resolver, without legacy read *)
   | No_read   (* reads neither, such as a supplied state *)
 
 let expect_name = function
-  | Legacy -> "legacy"
   | Resolver -> "resolver"
   | No_read -> "none"
 
@@ -248,6 +260,12 @@ let quiet = ref false
 (* Runs one public request and records its answer, the legacy reads it
    made and the resolutions that served it. *)
 let call ~id ~family ~request ~expect answer =
+  (* A request made outside the analysis counts as an entry of the request
+     phase. *)
+  let answer () =
+    if Guard.phase () = Request then Guard.during Request answer
+    else answer ()
+  in
   let (text, native), reads, resolutions =
     let (result, resolutions), reads =
       Guard.observe (fun () -> Guard.observe_resolutions answer)
@@ -618,6 +636,23 @@ let selection_battery kf stmt stacks =
           order ("end-of-" ^ name) ("at_end_of " ^ name) (R.at_end_of kf)
         end)
 
+let compute () =
+  Project.clear
+    ~selection:(State_selection.with_dependencies Eva.Analysis.self) ();
+  (* The final values are printed only when Eva is enabled. *)
+  Eva.Parameters.Eva.set true;
+  Eva.Analysis.compute ()
+
+(* The analysis status and the callers of each function that a snapshot
+   exports, as Eva.Eva_results.set_results installs them in the legacy
+   tables: the payload itself, not a read of the restored results. *)
+let export_calls_request () =
+  call ~id:"export.calls" ~family:"snapshot" ~expect:Resolver
+    ~request:"Eva.Eva_results.(pretty_calls (get_results ()))"
+    (text (fun () ->
+         Format.asprintf "%a" Eva.Eva_results.pretty_calls
+           (Eva.Eva_results.get_results ())))
+
 let battery kf stmt =
   let kf_name = Kernel_function.get_name kf in
   let names stacks = List.map stack_name stacks |> List.sort compare in
@@ -634,17 +669,28 @@ let battery kf stmt =
     (text (fun () ->
          String.concat " "
            (names (List.map fst R.(before stmt |> by_callstack)))));
-  call ~id:("available." ^ kf_name) ~family:"availability" ~expect:Legacy
+  call ~id:("available." ^ kf_name) ~family:"availability" ~expect:Resolver
     ~request:"Eva.Results.are_available f"
     (text (fun () -> string_of_bool (R.are_available kf)));
-  call ~id:("status." ^ kf_name) ~family:"availability" ~expect:Legacy
+  call ~id:("status." ^ kf_name) ~family:"availability" ~expect:Resolver
     ~request:"Eva.Analysis.status f"
     (text (fun () -> pretty_kf_status (Eva.Analysis.status kf)));
   (* Served by the reachability of the hit log, Hit_log.reach. *)
   call ~id:"reachable.P" ~family:"availability" ~expect:Resolver
     ~request:"Eva.Results.is_reachable P"
     (text (fun () -> string_of_bool (R.is_reachable stmt)));
+  call ~id:"reachable-kinstr.P" ~family:"availability" ~expect:Resolver
+    ~request:"Eva.Results.is_reachable_kinstr (Kstmt P)"
+    (text (fun () -> string_of_bool (R.is_reachable_kinstr (Kstmt stmt))));
   let stacks = by_stack_name !stacks in
+  List.iter (fun stack ->
+      call ~id:("reachable-pos.P." ^ stack_name stack) ~family:"supplied-stack"
+        ~expect:Resolver
+        ~request:("Eva.Results.is_reachable_pos (P, " ^ stack_name stack ^ ")")
+        (text (fun () ->
+             string_of_bool
+               (R.is_reachable_pos (Eva.Position.local stmt stack)))))
+    stacks;
   (* The unfiltered request and the request on each supplied stack go
      through the resolver. *)
   let per_stack id request req f =
@@ -775,6 +821,7 @@ let battery kf stmt =
   call ~id:"export.get_results" ~family:"alias" ~expect:Resolver
     ~request:"Eva.Eva_results.get_results ()"
     (text (fun () -> ignore (Eva.Eva_results.get_results ()); "exported"));
+  export_calls_request ();
   (* Sensitivity: a request on a supplied state must not read the store. *)
   call ~id:"supplied-state.eval" ~family:"supplied-state" ~expect:No_read
     ~request:"Eva.Results.(in_cvalue_state empty |> eval_exp (2+3))"
@@ -846,13 +893,13 @@ let input_functions () =
 let reach_function kf =
   let name = Kernel_function.get_name kf in
   let id s = "fn." ^ name ^ "." ^ s in
-  call ~id:(id "status") ~family:"availability" ~expect:Legacy
+  call ~id:(id "status") ~family:"availability" ~expect:Resolver
     ~request:("Eva.Analysis.status " ^ name)
     (text (fun () -> pretty_kf_status (Eva.Analysis.status kf)));
-  call ~id:(id "available") ~family:"availability" ~expect:Legacy
+  call ~id:(id "available") ~family:"availability" ~expect:Resolver
     ~request:("Eva.Results.are_available " ^ name)
     (text (fun () -> string_of_bool (R.are_available kf)));
-  call ~id:(id "stacks") ~family:"enumeration" ~expect:Legacy
+  call ~id:(id "stacks") ~family:"enumeration" ~expect:Resolver
     ~request:("Eva.Results.(at_start_of " ^ name ^ " |> callstacks)")
     (text (fun () ->
          R.(at_start_of kf |> callstacks) |> by_stack_name
@@ -990,21 +1037,21 @@ let reach_selection ~prefix ~suffix label stmt (selection, text, select) =
 let reach_label (label, kf, stmt) =
   let id s = "reach." ^ label ^ "." ^ s in
   let request s = "Eva.Results.(" ^ s ^ ")" in
-  call ~id:(id "stacks") ~family:"enumeration" ~expect:Legacy
+  call ~id:(id "stacks") ~family:"enumeration" ~expect:Resolver
     ~request:(request ("before " ^ label ^ " |> callstacks"))
     (text (fun () ->
          R.(before stmt |> callstacks) |> by_stack_name
          |> List.map stack_name |> String.concat " "));
-  call ~id:(id "reachable") ~family:"reachability" ~expect:Legacy
+  call ~id:(id "reachable") ~family:"reachability" ~expect:Resolver
     ~request:(request ("is_reachable " ^ label))
     (text (fun () -> string_of_bool (R.is_reachable stmt)));
-  call ~id:(id "empty-before") ~family:"reachability" ~expect:Legacy
+  call ~id:(id "empty-before") ~family:"reachability" ~expect:Resolver
     ~request:(request ("before " ^ label ^ " |> is_empty"))
     (text (fun () -> string_of_bool (R.(before stmt |> is_empty))));
-  call ~id:(id "empty-after") ~family:"reachability" ~expect:Legacy
+  call ~id:(id "empty-after") ~family:"reachability" ~expect:Resolver
     ~request:(request ("after " ^ label ^ " |> is_empty"))
     (text (fun () -> string_of_bool (R.(after stmt |> is_empty))));
-  call ~id:(id "model-before") ~family:"getter" ~expect:Legacy
+  call ~id:(id "model-before") ~family:"getter" ~expect:Resolver
     ~request:(request ("before " ^ label ^ " |> get_cvalue_model"))
     (fun () -> model (R.before stmt));
   (* Requests on a disabled domain keep their declared error. *)
@@ -1070,18 +1117,18 @@ let pending_requests callstack =
   List.iter (fun (label, kf, stmt) ->
       let id s = "pending." ^ label ^ "." ^ s in
       let request s = "Eva.Results.(" ^ s ^ ") during the analysis" in
-      call ~id:(id "reachable") ~family:"reachability" ~expect:Legacy
+      call ~id:(id "reachable") ~family:"reachability" ~expect:Resolver
         ~request:(request ("is_reachable " ^ label))
         (text (fun () -> string_of_bool (R.is_reachable stmt)));
-      call ~id:(id "empty-before") ~family:"reachability" ~expect:Legacy
+      call ~id:(id "empty-before") ~family:"reachability" ~expect:Resolver
         ~request:(request ("before " ^ label ^ " |> is_empty"))
         (text (fun () -> string_of_bool (R.(before stmt |> is_empty))));
-      call ~id:(id "stacks") ~family:"enumeration" ~expect:Legacy
+      call ~id:(id "stacks") ~family:"enumeration" ~expect:Resolver
         ~request:(request ("before " ^ label ^ " |> callstacks"))
         (text (fun () ->
              R.(before stmt |> callstacks) |> by_stack_name
              |> List.map stack_name |> String.concat " "));
-      call ~id:(id "model-before") ~family:"getter" ~expect:Legacy
+      call ~id:(id "model-before") ~family:"getter" ~expect:Resolver
         ~request:(request ("before " ^ label ^ " |> get_cvalue_model"))
         (fun () -> model (R.before stmt));
       if Kernel_function.equal kf caller_kf then begin
@@ -1098,11 +1145,11 @@ let pending_requests callstack =
     (labelled_statements ());
   let name = Kernel_function.get_name caller_kf in
   call ~id:("pending.fn." ^ name ^ ".status") ~family:"availability"
-    ~expect:Legacy
+    ~expect:Resolver
     ~request:("Eva.Analysis.status " ^ name ^ " during the analysis")
     (text (fun () -> pretty_kf_status (Eva.Analysis.status caller_kf)));
   call ~id:("pending.fn." ^ name ^ ".available") ~family:"availability"
-    ~expect:Legacy
+    ~expect:Resolver
     ~request:("Eva.Results.are_available " ^ name ^ " during the analysis")
     (text (fun () -> string_of_bool (R.are_available caller_kf)))
 
@@ -1543,43 +1590,81 @@ let statistics_requests () =
       ])
   end
 
-(* The analysis status of each function in a snapshot of the results. The
-   request exports the results, clears them and restores the snapshot. Its
-   legacy reads are those of the export and of the restoration. The
-   statuses are then read from the restored status table with the guard
-   off: Eva.Analysis.status reads this table on both paths, and the answer
-   shows what the snapshot holds. Last request of the battery, since it
-   replaces the results. *)
-let snapshot_status_request () =
+(* The analysis status of each function, as Eva.Analysis.status answers. *)
+let statuses () =
+  List.map (fun kf ->
+      Format.asprintf "%a: %s" Kernel_function.pretty kf
+        (pretty_kf_status (Eva.Analysis.status kf)))
+    (fixture_functions ())
+  |> String.concat "\n"
+
+(* A snapshot of the results, restored after an intervening analysis. The
+   exported payload is compared first. The snapshot is then taken, and a
+   new analysis interprets the first function called by main by its
+   specification: its statuses must differ. Restoring the snapshot must
+   give back the statuses of the first analysis, read under the same guard
+   as the rest of the run. The intervening analysis also runs under that
+   guard. Last requests of the battery, since they replace the results. *)
+let snapshot_requests () =
+  export_calls_request ();
+  let snapshot = ref None and first = ref "" in
+  call ~id:"snapshot.statuses" ~family:"snapshot" ~expect:Resolver
+    ~request:"Eva.Analysis.status of each function, then \
+              Eva.Eva_results.get_results ()"
+    (text (fun () ->
+         first := statuses ();
+         snapshot := Some (Eva.Eva_results.get_results ());
+         !first));
+  let spec =
+    List.find_map (fun (stmt, kf) ->
+        let caller = Kernel_function.find_englobing_kf stmt in
+        if Kernel_function.equal caller (fst (Globals.entry_point ()))
+        then Some kf else None)
+      (call_sites ())
+  in
+  Option.iter (fun spec ->
+      let name = Kernel_function.get_name spec in
+      call ~id:"snapshot.intervening" ~family:"snapshot" ~expect:Resolver
+        ~request:("Eva.Analysis.status of each function after a new analysis \
+                   with -eva-use-spec " ^ name)
+        (text (fun () ->
+             let use_spec = Eva.Parameters.UseSpec.get () in
+             (* The specification has no assigns clause: the warning would
+                be a deferred error at the end of the run. No analysis
+                follows this one. *)
+             Dynamic.Parameter.String.set "-eva-warn-key"
+               "assigns:missing=inactive";
+             Eva.Parameters.UseSpec.set (Kernel_function.Set.add spec use_spec);
+             compute ();
+             let intervening = statuses () in
+             Eva.Parameters.UseSpec.set use_spec;
+             Printf.sprintf "differs=%b\n%s" (intervening <> !first)
+               intervening)))
+    spec;
   call ~id:"export.statuses" ~family:"snapshot" ~expect:Resolver
-    ~request:"Eva.Eva_results.(set_results (get_results ())), then \
+    ~request:"Eva.Eva_results.set_results (the snapshot), then \
               Eva.Analysis.status of each function"
     (text (fun () ->
-         let results = Eva.Eva_results.get_results () in
-         Project.clear
-           ~selection:(State_selection.with_dependencies Eva.Analysis.self) ();
-         Eva.Eva_results.set_results results;
-         let mode = Guard.mode () in
-         Guard.arm Off;
-         let status kf =
-           Format.asprintf "%a: %s" Kernel_function.pretty kf
-             (pretty_kf_status (Eva.Analysis.status kf))
-         in
-         let statuses = List.map status (fixture_functions ()) in
-         Guard.arm mode;
-         String.concat "\n" statuses))
+         Option.iter Eva.Eva_results.set_results !snapshot;
+         statuses ()))
 
-(* The readers that other changes migrate: the registration of the states
-   by the engine, which joins each new state with the recorded one. *)
-let exempt_readers = [ "Eva.Engine.register_state" ]
-
-let plugin_battery () =
+(* [snapshot] adds the snapshot requests, which run a new analysis. *)
+let plugin_battery ~snapshot =
   (* Server's filters and Callgraph ask it before reading Eva's results. *)
   call ~id:"analysis.is_computed" ~family:"availability" ~expect:Resolver
     ~request:"Eva.Analysis.is_computed ()"
     (fun () ->
        let computed = Eva.Analysis.is_computed () in
        string_of_bool computed, Flag computed);
+  (* The same fact, through the state of the computation. *)
+  call ~id:"analysis.computation_state" ~family:"availability"
+    ~expect:Resolver ~request:"Eva.Analysis.current_computation_state ()"
+    (text (fun () ->
+         match Eva.Analysis.current_computation_state () with
+         | NotComputed -> "not computed"
+         | Computing -> "computing"
+         | Computed -> "computed"
+         | Aborted -> "aborted"));
   relation_requests ();
   guard_requests ();
   callgraph_requests ();
@@ -1587,9 +1672,16 @@ let plugin_battery () =
   server_filter_requests ();
   status_requests ();
   statistics_requests ();
-  snapshot_status_request ()
+  if snapshot then snapshot_requests ()
 
 (* {2 Header} *)
+
+let guard_name : Guard.mode -> string = function
+  | Off -> "off"
+  | Record -> "record"
+  | Trap phases when phases = Guard.all_phases -> "trap:all"
+  | Trap phases ->
+    "trap:" ^ String.concat "," (List.map Guard.phase_name phases)
 
 let header mode =
   let plugins = ref [] in
@@ -1608,11 +1700,7 @@ let header mode =
     "-eva-no-results-function",
     Eva.Parameters.NoResultsFunction.As_string.get ();
   ] in
-  let guard = match Guard.mode () with
-    | Off -> "off" | Record -> "record"
-    | Trap phases -> "trap:" ^ String.concat "," (List.map Guard.phase_name phases)
-    | Trap_except readers -> "trap-except:" ^ String.concat "," readers
-  in
+  let guard = guard_name (Guard.mode ()) in
   log "mode=%s guard=%s" mode guard;
   log "config %s"
     (String.concat " " (List.map (fun (k, v) -> k ^ "=" ^ v) config));
@@ -1676,18 +1764,66 @@ let control stmt =
   ignore R.(before stmt |> get_cvalue_model);
   log "control not trapped"
 
-let compute () =
+(* The first statement of the entry point. *)
+let entry_statement () =
+  let main, _ = Globals.entry_point () in
+  Kernel_function.find_first_stmt main
+
+(* Tail probe: once the battery has run, still under the trap, the results
+   are cleared, so that the hit log no longer describes them, and one point
+   request is made. It reads the legacy store, which must abort the run. *)
+let tail_probe () =
+  log "tail-probe logged=%d trapped=%d" (List.length (Guard.reads ()))
+    (Guard.trapped_count ());
   Project.clear
     ~selection:(State_selection.with_dependencies Eva.Analysis.self) ();
-  (* The final values are printed only when Eva is enabled. *)
-  Eva.Parameters.Eva.set true;
-  Eva.Analysis.compute ()
+  log "tail-probe Eva.Results.(before <first statement of main> \
+       |> get_cvalue_model) on cleared results";
+  ignore R.(before (entry_statement ()) |> get_cvalue_model);
+  log "tail-probe not trapped"
 
 (* The reference is fresh-only and reads the legacy store alone. *)
 let legacy_reference () =
   Eva.Parameters.Memexec.set false;
   Eva.Parameters.HitLog.set false;
   Guard.arm Off
+
+(* The reads and the resolutions of each phase, with the number of entries
+   of the phase while the guard was armed, and the resolutions of each
+   reader that registers results during the analysis. *)
+let scopes () =
+  let reads = Guard.reads () and resolutions = Guard.resolutions () in
+  let count phase list field =
+    List.length (List.filter (fun x -> field x = phase) list)
+  in
+  let registration = [
+    "Eva.Engine.register_state"; "Eva.Function_calls.register_analysis_target";
+    "Eva.Iterator.record_fireable" ] in
+  List.iter (fun (phase, entries) ->
+      let n_reads = count phase reads (fun (r : Guard.read) -> r.phase)
+      and n_resolutions =
+        count phase resolutions (fun (r : Guard.resolution) -> r.resolved_phase)
+      in
+      let by_reader label =
+        List.length (List.filter (fun (r : Guard.resolution) ->
+            r.resolved_phase = phase && List.mem label r.resolved_readers)
+            resolutions)
+      in
+      let registrations = List.map (fun l -> l, by_reader l) registration in
+      log "scope %s entries=%d reads=%d resolutions=%d registrations=%s"
+        (Guard.phase_name phase) entries n_reads n_resolutions
+        (String.concat "," (List.map (fun (l, n) ->
+             Printf.sprintf "%s:%d" l n) registrations));
+      emit (`Assoc [
+          "kind", `String "scope";
+          "phase", `String (Guard.phase_name phase);
+          "entries", `Int entries;
+          "reads", `Int n_reads;
+          "resolutions", `Int n_resolutions;
+          "registrations",
+          `Assoc (List.map (fun (l, n) -> l, `Int n) registrations);
+        ]))
+    (Guard.phase_entries ())
 
 let accounting () =
   let logged = List.length (Guard.reads ()) in
@@ -1698,25 +1834,56 @@ let accounting () =
       "attributed", `Int !attributed;
     ])
 
+(* The state of the guard at the end of the run: the modes armed since the
+   start of the process, the first trapped read and the number of reads.
+   The zero-read gate passes when the guard was armed once, with the
+   continuous trap, and when no read was logged or trapped. *)
+let gate () =
+  let arms = List.map guard_name (Guard.arm_history ()) in
+  let logged = List.length (Guard.reads ()) in
+  let trapped = Guard.trapped () in
+  let passes =
+    arms = [ "trap:all" ] && logged = 0 && Option.is_none trapped
+    && Guard.trapped_count () = 0
+  in
+  log "gate arms=%s final=%s logged=%d trapped=%d passes=%b"
+    (String.concat ">" arms) (guard_name (Guard.mode ())) logged
+    (Guard.trapped_count ()) passes;
+  emit (`Assoc [
+      "kind", `String "gate";
+      "arms", `List (List.map (fun a -> `String a) arms);
+      "final", `String (guard_name (Guard.mode ()));
+      "logged", `Int logged;
+      "trapped", Option.fold ~none:`Null ~some:json_of_read trapped;
+      "trapped_count", `Int (Guard.trapped_count ());
+      "passes", `Bool passes;
+    ]);
+  passes
+
 (* Native mode: the fresh-only reference and the candidate run in the same
    process, on the same AST, so that their models are compared with the
    native equality of Cvalue, and InOut's callwise results with the
    equality of their zones. *)
-let native run_battery =
+let native (run_battery : snapshot:bool -> unit) =
   quiet := true;
   legacy_reference ();
   (* The guard does not change the answers: record the reads of the
      reference too, to show that it took the legacy path. *)
   Guard.arm Record;
   compute ();
-  run_battery ();
+  (* The intervening analysis of the snapshot requests makes Eva generate
+     an assigns clause for the function it uses by its specification: the
+     candidate half would see the new properties. These requests are only
+     compared across processes. *)
+  run_battery ~snapshot:false;
   let reference = List.rev !answers in
   answers := [];
   Eva.Parameters.HitLog.set true;
   Guard.clear ();
-  Guard.arm Record;
+  (* The candidate runs under the continuous trap. *)
+  Guard.arm (Trap Guard.all_phases);
   compute ();
-  run_battery ();
+  run_battery ~snapshot:true;
   let candidate = List.rev !answers in
   let find id = List.find_opt (fun a -> a.id = id) candidate in
   let compared = ref 0 and differing = ref 0 in
@@ -1764,13 +1931,13 @@ let run () =
   | "" -> ()
   | name ->
     let kind, mode = parse_mode name in
-    let run_battery () =
+    let run_battery ~snapshot =
       match kind with
       | Point_battery ->
         let kf, stmt = target () in
         battery kf stmt
       | Reach_battery -> reach_battery ()
-      | Plugin_battery -> plugin_battery ()
+      | Plugin_battery -> plugin_battery ~snapshot
     in
     if kind = Reach_battery then begin
       register_reach_hooks ();
@@ -1784,14 +1951,19 @@ let run () =
       | file -> output := Some (open_out file)
     end;
     Guard.clear ();
+    (* The guard is armed once, before the analysis starts. *)
     begin match mode with
       | Reference -> legacy_reference ()
-      | Candidate | Native -> Guard.arm Record
+      | Candidate | Tail_probe -> Guard.arm (Trap Guard.all_phases)
+      | Record_reads | Native -> Guard.arm Record
       | Wrong_producer ->
         Eva.Hit_log.set_wrong_producer_control true;
         Guard.arm Record
+      | Perturb_calls ->
+        Eva.Hit_log.set_calls_perturbation_control true;
+        Guard.arm Record
+      | Store_check -> Guard.arm Record
       | Trap phase -> Guard.arm (Trap [phase])
-      | Trap_readers -> Guard.arm (Trap_except exempt_readers)
     end;
     header name;
     begin match mode with
@@ -1802,12 +1974,21 @@ let run () =
         | Trap Request -> control (snd (target ()))
         | Trap phase ->
           log "control not trapped in phase %s" (Guard.phase_name phase)
-        | Reference | Candidate | Wrong_producer | Native | Trap_readers ->
+        | Reference | Candidate | Record_reads | Wrong_producer | Native
+        | Tail_probe | Store_check | Perturb_calls ->
+          if mode = Store_check then Eva.Hit_log.set_decline_control true;
           execution ();
-          run_battery ();
+          run_battery ~snapshot:true;
           (* Every logged read must belong to the execution or to one
              call. *)
-          accounting ()
+          accounting ();
+          scopes ();
+          match mode with
+          | Candidate ->
+            if not (gate ()) then
+              Inout_parameters.abort "the zero-read gate failed"
+          | Tail_probe -> ignore (gate ()); tail_probe ()
+          | _ -> ()
     end;
     Option.iter close_out !output
 

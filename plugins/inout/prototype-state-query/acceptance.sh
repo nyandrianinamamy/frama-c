@@ -9,10 +9,12 @@
 
 # Acceptance driver for Eva result queries. For each fixture, a reference
 # process runs fresh-only Eva on the legacy path with the legacy-read guard
-# off, and a separate candidate process records every legacy read and every
-# answer of the hit-log resolver. A third process compares the models of
-# both in memory. The controls run in their own processes. compare.py then
-# compares the answers and writes the report.
+# off, and a separate candidate process runs under the continuous trap:
+# armed once before the analysis, every legacy read, in any phase, aborts
+# Eva. A third process compares the models of both in memory. The controls
+# run in their own processes. compare.py then compares the answers and
+# writes the report. Every process runs anew: the evidence directory must
+# be new or empty; the default one is emptied first.
 # Usage: acceptance.sh [evidence-dir]
 
 set -euo pipefail
@@ -20,7 +22,13 @@ set -euo pipefail
 prototype="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 cd -- "$prototype/../../.."
 prototype=plugins/inout/prototype-state-query
-evidence="${1:-$prototype/evidence/acceptance}"
+default_evidence=$prototype/evidence/acceptance
+evidence="${1:-$default_evidence}"
+if [ "$evidence" = "$default_evidence" ]; then rm -rf -- "$evidence"; fi
+if [ -n "$(ls -A -- "$evidence" 2>/dev/null)" ]; then
+  printf 'acceptance.sh: %s is not empty\n' "$evidence" >&2
+  exit 2
+fi
 mkdir -p -- "$evidence"
 
 source "$prototype/setup.sh"
@@ -72,34 +80,58 @@ run "$plugin_fixture" plugins-native "$evidence/$plugin_fixture.native"
 printf 'Recorded %s\n' "$plugin_fixture"
 
 # Resolver controls. A resolver that rebuilds each visit from the wrong
-# producer must be reported; on the legacy path, InOut's collection reads
-# the store. With memexec, InOut's answers and the analyses of f in
+# producer must be reported, and so must a hit log that exports wrong
+# statuses and callers; on the legacy path, InOut's collection reads the
+# store. With memexec, InOut's answers and the analyses of f in
 # pre-label.c and precondition.c must be the same on the legacy path and
-# with the hit log.
+# with the hit log. These controls log the reads without trapping them.
 run legacy-reads wrong-producer "$evidence/control-wrong-producer" \
   "${candidate_options[@]}"
 run selection wrong-producer "$evidence/control-wrong-producer-selection" \
   "${candidate_options[@]}"
 run "$plugin_fixture" plugins-wrong-producer \
   "$evidence/control-wrong-producer-plugins" "${candidate_options[@]}"
-run legacy-reads candidate "$evidence/control-legacy-path" \
+run "$plugin_fixture" plugins-perturb-calls \
+  "$evidence/control-perturb-calls-plugins" "${candidate_options[@]}"
+run legacy-reads record "$evidence/control-legacy-path" \
   "${candidate_options[@]}" -eva-no-hit-log
 for name in pre-label precondition; do
-  run "$name" candidate "$evidence/control-parity-$name.legacy" \
+  run "$name" record "$evidence/control-parity-$name.legacy" \
     -eva-memexec -eva-msg-key progress -eva-no-hit-log
-  run "$name" candidate "$evidence/control-parity-$name.hit-log" \
+  run "$name" record "$evidence/control-parity-$name.hit-log" \
     -eva-memexec -eva-msg-key progress
 done
 printf 'Recorded resolver controls\n'
 
+# The legacy store that the analysis writes from the hit log: the hit log
+# then declines every request, which reads that store.
+for name in "${fixtures[@]}"; do
+  run "$name" store-check "$evidence/control-store-check-$name" \
+    "${candidate_options[@]}"
+done
+run "$plugin_fixture" plugins-store-check \
+  "$evidence/control-store-check-$plugin_fixture" "${candidate_options[@]}"
+printf 'Recorded legacy-store controls\n'
+
+# Sensitivity: the same batteries on the legacy path, with every read
+# logged, show the reads that the guard sees in each phase.
+run legacy-reads record "$evidence/control-sensitivity-legacy-reads" \
+  "${candidate_options[@]}" -eva-no-hit-log
+run "$plugin_fixture" plugins-record \
+  "$evidence/control-sensitivity-$plugin_fixture" \
+  "${candidate_options[@]}" -eva-no-hit-log
+printf 'Recorded sensitivity controls\n'
+
 # Positive controls: the trap must abort the run with exit status 1. The
-# hit log serves the known request, the reads of the collection phase and
-# the marking of postconditions: their controls run on the legacy path.
+# hit log serves every read: the controls of a phase run on the legacy
+# path, where Eva reads its legacy store. No read happens during the
+# initialization on either path.
 for phase in request analysis collection post-analysis initialization; do
   status=0
   legacy_path=()
   case "$phase" in
-    request | collection | post-analysis) legacy_path=(-eva-no-hit-log) ;;
+    request | analysis | collection | post-analysis)
+      legacy_path=(-eva-no-hit-log) ;;
   esac
   run legacy-reads "trap:$phase" "$evidence/control-$phase" \
     "${candidate_options[@]}" "${legacy_path[@]}" || status=$?
@@ -107,21 +139,25 @@ for phase in request analysis collection post-analysis initialization; do
   printf 'Recorded control %s (exit %s)\n' "$phase" "$status"
 done
 
-# The plug-in battery under the trap of every read but those of the readers
-# that other changes migrate: the candidate must complete it; on the legacy
-# path, the trap must abort the run.
-for path in hit-log legacy; do
+# The continuous trap of the candidates: the same command on the legacy
+# path must abort; after the battery, a request on cleared results must
+# abort with no read logged before it.
+for name in legacy-reads "$plugin_fixture"; do
+  prefix=
+  if [ "$name" = "$plugin_fixture" ]; then prefix=plugins-; fi
   status=0
-  legacy_path=()
-  if [ "$path" = legacy ]; then legacy_path=(-eva-no-hit-log); fi
-  run "$plugin_fixture" plugins-trap "$evidence/control-plugins-trap-$path" \
-    "${candidate_options[@]}" "${legacy_path[@]}" || status=$?
-  printf '%s\n' "$status" > "$evidence/control-plugins-trap-$path.status"
-  printf 'Recorded control plugins-trap on %s (exit %s)\n' "$path" "$status"
+  run "$name" "${prefix}candidate" "$evidence/control-continuous-legacy-$name" \
+    "${candidate_options[@]}" -eva-no-hit-log || status=$?
+  printf '%s\n' "$status" > "$evidence/control-continuous-legacy-$name.status"
+  status=0
+  run "$name" "${prefix}tail-probe" "$evidence/control-tail-probe-$name" \
+    "${candidate_options[@]}" || status=$?
+  printf '%s\n' "$status" > "$evidence/control-tail-probe-$name.status"
+  printf 'Recorded continuous-trap controls on %s\n' "$name"
 done
 
-# The zero-read gate must fail while legacy reads remain: record the exit
-# status of the gate alone, which compare.py checks against the evidence.
+# The zero-read gate: record the exit status of the gate alone, which
+# compare.py checks against the evidence.
 status=0
 python3 -I "$prototype/compare.py" --require-zero-reads --no-write \
   "$evidence" "${fixtures[@]}" "$plugin_fixture" \

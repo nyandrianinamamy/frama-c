@@ -117,12 +117,13 @@ response without reading either.
   [acceptance] call equality_class[x==y] legacy-reads=0 resolved=0 answer=error disabled domain
   [acceptance] call is_tainted[x==y] legacy-reads=0 resolved=0 answer=error disabled domain
 
-No request of the battery reads the legacy store, except the availability
-readers. The snapshot export takes its states, and the callers and the
-analysis status of each function, from the hit log.
+No request of the battery reads the legacy store: the candidate runs under
+the trap of every read, and the availability readers are resolved too. The
+snapshot export takes its states, and the callers and the analysis status
+of each function, from the hit log.
   $ grep -e "^\[acceptance\] call" candidate.log | grep -v -e "legacy-reads=0 " | cut -d " " -f 3,4
-  available.g legacy-reads=1
-  status.g legacy-reads=1
+  $ grep -e "^\[acceptance\] gate" candidate.log
+  [acceptance] gate arms=trap:all final=trap:all logged=0 trapped=0 passes=true
 
 A fresh-only reference on the legacy path, in a separate process, gives
 the same answers, the order of the stacks included.
@@ -131,7 +132,7 @@ the same answers, the order of the stacks included.
   $ grep -e "^\[acceptance\] call" candidate.log | sed -e "s/ legacy-reads=[^ ]* resolved=[^ ]*//" > candidate-answers.txt
   $ diff reference-answers.txt candidate-answers.txt
   $ wc -l < candidate-answers.txt
-  473
+  478
 
 In one process, the models, values, locations, zones, dependencies,
 callees, alarms and stack lists of the reference and the candidate are
@@ -152,11 +153,13 @@ stacks or none follow it.
 With a memexec hit, the resolver cannot rebuild the points below the hit
 yet: it declines every request on several stacks or none, which reads the
 legacy store. The singleton requests outside the hit stay on the resolver.
-  $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-memexec -eva-msg-key progress -inout-state-query-acceptance candidate hit.i > hit.log 2>&1
+Memexec hits are outside the trapped configuration: this run logs the
+reads without trapping them.
+  $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-memexec -eva-msg-key progress -inout-state-query-acceptance record hit.i > hit.log 2>&1
   $ grep -e "Reusing" -e "call stacks.before-P" -e "call model.before-P" -e "visits f" hit.log
   [eva:progress] hit.i:16: Reusing old results for call to f
-  [acceptance] call stacks.before-P legacy-reads=3 resolved=0 answer=main/f@13
-  [acceptance] call model.before-P legacy-reads=2 resolved=0 answer=g ∈ {4}; y ∈ {0}; x ∈ {10}; __retres ∈ UNINITIALIZED
+  [acceptance] call stacks.before-P legacy-reads=4 resolved=0 answer=main/f@13
+  [acceptance] call model.before-P legacy-reads=3 resolved=0 answer=g ∈ {4}; y ∈ {0}; x ∈ {10}; __retres ∈ UNINITIALIZED
   [acceptance] call model.before-P.main/f@13 legacy-reads=0 resolved=1 answer=g ∈ {4}; y ∈ {0}; x ∈ {10}; __retres ∈ UNINITIALIZED
   [acceptance] visits f.main/f@13 body#1: 1 entries survive the preconditions; input:; g ∈ {4}; y ∈ {0}; x ∈ {10}; __retres ∈ UNINITIALIZED
   [acceptance] visits f.main/f@16 hit#1: no body analysis; input:; g ∈ {9}; y ∈ {0}; x ∈ {10}; __retres ∈ UNINITIALIZED

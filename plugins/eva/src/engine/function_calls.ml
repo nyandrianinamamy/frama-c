@@ -23,11 +23,18 @@ module StmtSet = Cil_datatype.Stmt.Set
 module Callers = Kernel_function.Map.Make (StmtSet)
 module CallersTable = Kernel_function.Make_Table (Callers) (val info "Callers")
 
+(* Reports a read of a legacy table to {!Legacy_read_guard}. *)
+let notify access ~store kf what =
+  Legacy_read_guard.notify access ~store (fun fmt ->
+      Format.fprintf fmt "%s of %a" what Kernel_function.pretty kf)
+
+(* Merges the call into the legacy table, which it reads. *)
 let register_call call =
   let kf = Callstack.top_kf call.callstack in
   match Callstack.top_caller call.callstack with
   | None -> CallersTable.add kf Kernel_function.Map.empty
   | Some (callsite, caller) ->
+    notify Getter ~store:"call-relations" kf "callers";
     let callsite = StmtSet.singleton callsite in
     let change calls =
       let prev_stmts = Kernel_function.Map.find_opt caller calls in
@@ -39,7 +46,9 @@ let register_call call =
     let add _kf = Kernel_function.Map.singleton caller callsite in
     ignore (CallersTable.memo ~change add kf)
 
-let registered = CallersTable.mem
+let registered kf =
+  notify Availability ~store:"call-relations" kf "registered call";
+  CallersTable.mem kf
 
 (* ----- Call relations ----------------------------------------------------- *)
 
@@ -140,17 +149,19 @@ let merge_status s1 s2 =
     assert (s1 = s2);
     s1
 
-let register_status kf kind =
-  let status =
-    match kind with
-    | `Builtin (name, _, _) -> Builtin name
-    | `Spec _ -> SpecUsed
-    | `Body (_, results) -> Analyzed (if results then Complete else NoResults)
-  in
+let status_of_target = function
+  | `Builtin (name, _, _) -> Builtin name
+  | `Spec _ -> SpecUsed
+  | `Body (_, results) -> Analyzed (if results then Complete else NoResults)
+
+(* Merges the status into the legacy table, which it reads. *)
+let register_status kf status =
+  notify Getter ~store:"analysis-status" kf "analysis status";
   let change prev_status = merge_status prev_status status in
   ignore (StatusTable.memo ~change (fun _ -> status) kf)
 
 let analysis_status kf =
+  notify Availability ~store:"analysis-status" kf "analysis status";
   try StatusTable.find kf
   with Not_found -> Unreachable
 
@@ -192,19 +203,63 @@ let analysis_target ?(recursion_depth = -1) kf callsite =
         then `Spec (get_funspec callsite kf)
         else `Body (def, save_results def)
 
-let register_analysis_target call analysis_target  =
-  register_call call;
-  register_status call.kf analysis_target
+(* The registration of the hit log: see {!set_recorded_target}. *)
+let recorded_target :
+  (Callstack.t -> analysis_status -> (analysis_status * Callers.t) option) ref
+  = ref (fun _ _ -> None)
+
+let set_recorded_target f = recorded_target := f
+
+(* While the hit log records, it gives the merged status and the callers,
+   and the legacy tables are only written. *)
+let register_analysis_target call analysis_target =
+  Legacy_read_guard.reader "Eva.Function_calls.register_analysis_target"
+  @@ fun () ->
+  let status = status_of_target analysis_target in
+  match !recorded_target call.callstack status with
+  | Some (merged, callers) ->
+    CallersTable.replace (Callstack.top_kf call.callstack) callers;
+    StatusTable.replace call.kf merged
+  | None ->
+    register_call call;
+    register_status call.kf status
 
 
 type t = (analysis_status * Callers.t) Kernel_function.Map.t
 
 let get_results () =
+  Legacy_read_guard.notify Getter ~store:"analysis-status"
+    (fun fmt -> Format.pp_print_string fmt "all functions");
   StatusTable.fold_sorted
     (fun kf status acc ->
        let callers = CallersTable.find kf in
        Kernel_function.Map.add kf (status, callers) acc)
     Kernel_function.Map.empty
+
+let pretty fmt (results : t) =
+  let pretty_status fmt = function
+    | Unreachable -> Format.pp_print_string fmt "unreachable"
+    | SpecUsed -> Format.pp_print_string fmt "specification used"
+    | Builtin name -> Format.fprintf fmt "builtin %s" name
+    | Analyzed Complete -> Format.pp_print_string fmt "analyzed complete"
+    | Analyzed Partial -> Format.pp_print_string fmt "analyzed partial"
+    | Analyzed NoResults ->
+      Format.pp_print_string fmt "analyzed without results"
+  in
+  let pretty_caller fmt (caller, stmts) =
+    Format.fprintf fmt "%a@@%a" Kernel_function.pretty caller
+      (Pretty_utils.pp_list ~sep:"," Format.pp_print_int)
+      (List.map (fun s -> Fileloc.line (Cil_datatype.Stmt.loc s))
+         (StmtSet.elements stmts))
+  in
+  let pretty_function fmt (kf, (status, callers)) =
+    Format.fprintf fmt "%a: %a; callers: %a" Kernel_function.pretty kf
+      pretty_status status
+      (Pretty_utils.pp_list ~sep:" " ~empty:"none" pretty_caller)
+      (Kernel_function.Map.bindings callers)
+  in
+  Pretty_utils.pp_list ~sep:"@\n" pretty_function fmt
+    (Kernel_function.Map.bindings results)
 
 let make_results statuses relations =
   Kernel_function.Map.mapi (fun kf status ->

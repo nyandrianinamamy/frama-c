@@ -28,6 +28,10 @@ module Make_Domain (Abstract: Abstractions.S) = struct
        an associative list (callstack, state). *)
   module Store = struct
 
+    (* The hit log records the cvalue domain alone, which is then the whole
+       state. *)
+    let to_state cvalue = Abstract.Dom.set Cvalue_domain.State.key cvalue top
+
     let register_state callstack control_point state =
       Legacy_read_guard.reader "Eva.Engine.register_state" @@ fun () ->
       match control_point with
@@ -38,11 +42,17 @@ module Make_Domain (Abstract: Abstractions.S) = struct
         Store.set_state ~callstack Initial state
       | _ ->
         (* Only register [state] for the given callstack; the consolidated state
-           is computed afterward by [post_analysis]. *)
+           is computed afterward by [post_analysis]. While the hit log
+           records, it gives the state previously registered, and the store
+           is only written. *)
         let set = Store.set_state ~callstack control_point in
-        match Store.get_state ~callstack control_point with
-        | `Value previous_state -> set (join previous_state state)
-        | `Bottom | `Top -> set state (* No state previously registered. *)
+        match Hit_log.registered ~callstack control_point with
+        | Some None -> set state
+        | Some (Some previous) -> set (join (to_state previous) state)
+        | None ->
+          match Store.get_state ~callstack control_point with
+          | `Value previous_state -> set (join previous_state state)
+          | `Bottom | `Top -> set state (* No state previously registered. *)
 
     (* Computes and registers consolidated state as the join of states
        registered for all possible callstacks at the given [control_point]. *)
@@ -86,8 +96,6 @@ module Make_Domain (Abstract: Abstractions.S) = struct
       in
       let compute_kf_states kf =
         Legacy_read_guard.reader "Eva.Engine.consolidate" @@ fun () ->
-        Legacy_read_guard.notify Availability ~store:"analysis-status"
-          (fun fmt -> Kernel_function.pretty fmt kf);
         match Function_calls.analysis_status kf with
         | Unreachable | Analyzed NoResults | Analyzed Partial -> ()
         | SpecUsed | Builtin _ -> compute_initial_state kf
@@ -195,10 +203,13 @@ module Make (Abstract: Abstractions.S) = struct
 
 
     (* The computation state and the analysis status of the function, part
-       of the legacy result store, decide the answer before the states. *)
+       of the legacy result store, decide the answer before the states. The
+       readers of the status table and of the call relations report their
+       own reads. *)
     let find ?callstack get (control_point: Domain_store.control_point) =
       Legacy_read_guard.notify Availability ~store:"analysis-status"
-        (Domain_store.pretty_read_point ?callstack control_point);
+        (fun fmt -> Format.fprintf fmt "computation state at %t"
+            (Domain_store.pretty_read_point ?callstack control_point));
       if Self.is_computed ()
       then
         match control_point with
@@ -250,8 +261,6 @@ module Make (Abstract: Abstractions.S) = struct
           | Hit_log.Known list -> Hit_log.Known (to_states list)
           | Unknown_state stacks -> Unknown_state stacks)
         (Hit_log.select ?callstacks ~filter control_point)
-
-    let callstacks = Abstract.Dom.Store.callstacks
 
     let eval_expr state expr = Eval.evaluate state expr >>=: snd
 

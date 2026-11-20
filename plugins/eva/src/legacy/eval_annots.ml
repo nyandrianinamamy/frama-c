@@ -105,8 +105,6 @@ let mark_unreachable () =
     match Hit_log.analyzed kf with
     | Some analyzed -> analyzed
     | None ->
-      Legacy_read_guard.notify Availability ~store:"analysis-status"
-        (fun fmt -> Kernel_function.pretty fmt kf);
       match Function_calls.analysis_status kf with
       | Analyzed _ -> true
       | Unreachable | SpecUsed | Builtin _ -> false

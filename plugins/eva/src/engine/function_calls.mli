@@ -64,8 +64,7 @@ type relations =
 val set_recorded_relations: (unit -> relations option) -> unit
 
 (** Whether a call to the function is registered in the legacy table. Part
-    of the legacy result store; does not report to {!Legacy_read_guard}:
-    its readers report their own read. *)
+    of the legacy result store; reports its read to {!Legacy_read_guard}. *)
 val registered: kernel_function -> bool
 
 
@@ -73,8 +72,22 @@ type results = Complete | Partial | NoResults
 type analysis_status =
     Unreachable | SpecUsed | Builtin of string | Analyzed of results
 
-(** Returns the current analysis status of a given function. *)
+(** Returns the current analysis status of a given function, from the
+    legacy status table. Reports its read to {!Legacy_read_guard}. *)
 val analysis_status: kernel_function -> analysis_status
+
+(** [set_recorded_target f] sets the registration of the hit log. When the
+    analysis chooses how to interpret a call, [f callstack status] records
+    the [status] of the call on [callstack], and returns the merged status
+    of the function and its callers, including this call, or [None] when
+    the hit log does not record. {!register_analysis_target} then writes
+    them in the legacy tables without reading these tables. Otherwise, it
+    merges the call into the legacy tables, and reports their reads to
+    {!Legacy_read_guard}. *)
+val set_recorded_target:
+  (Callstack.t -> analysis_status ->
+   (analysis_status * Cil_datatype.Stmt.Set.t Kernel_function.Map.t) option)
+  -> unit
 
 (** The functions below are used by Eva_results.ml to save, merge and load
     the results of multiple Eva analyses.  *)
@@ -82,6 +95,10 @@ val analysis_status: kernel_function -> analysis_status
 type t
 val get_results: unit -> t
 val set_results: t -> unit
+
+(** Prints the analysis status and the callers of each function, with the
+    lines of the call statements. *)
+val pretty: Format.formatter -> t -> unit
 
 (** Merges the analysis statuses of two calls to the same function, as the
     status table does. *)

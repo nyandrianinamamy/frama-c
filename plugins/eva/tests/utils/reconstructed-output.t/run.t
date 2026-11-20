@@ -238,7 +238,7 @@ restored results.
   $ FORBID=display frama-c -no-autoload-plugins -load-module eva,inout,reconstructed.cmxs -eva-domains cvalue -eva-no-memexec -eva-no-hit-log inputs.i > control-display.log 2>&1
   [1]
   $ grep -e "legacy result-store" control-display.log
-  [eva] User Error: legacy result-store read trapped: phase=post-analysis reader=Eva.Cvalue_domain.display_final_state access=availability store=analysis-status point=before line 12 of f
+  [eva] User Error: legacy result-store read trapped: phase=post-analysis reader=Eva.Cvalue_domain.display_final_state access=availability store=analysis-status point=computation state at before line 12 of f
   $ FORBID=export frama-c -no-autoload-plugins -load-module eva,inout,reconstructed.cmxs -eva-domains cvalue -eva-no-memexec -eva-no-hit-log inputs.i > control-export.log 2>&1
   [1]
   $ grep -e "legacy result-store" control-export.log
@@ -250,13 +250,13 @@ no legacy read on either path, so forbidding it traps nothing here.
   $ FORBID=calls frama-c -no-autoload-plugins -load-module eva,inout,reconstructed.cmxs -eva-domains cvalue -eva-no-memexec -eva-no-hit-log inputs.i > control-calls.log 2>&1
   [1]
   $ grep -e "legacy result-store" control-calls.log
-  [eva] User Error: legacy result-store read trapped: phase=request reader=Eva.Eva_results.get_results access=availability store=analysis-status point=all functions via=Eva.Eva_results.export_calls
+  [eva] User Error: legacy result-store read trapped: phase=request reader=Eva.Eva_results.get_results access=getter store=analysis-status point=all functions via=Eva.Eva_results.export_calls
   $ FORBID=replay frama-c -no-autoload-plugins -load-module eva,inout,reconstructed.cmxs -eva-domains cvalue -eva-no-memexec -eva-no-hit-log inputs.i > control-replay.log 2>&1
   [1]
   $ grep -e "replayed" -e "legacy result-store" control-replay.log
   [reconstructed] fresh-1: replayed with legacy reads
   [reconstructed] fresh-2: replayed with legacy reads
-  [eva] User Error: legacy result-store read trapped: phase=request reader=Eva.Results.callstacks access=availability store=analysis-status point=before line 12 of f
+  [eva] User Error: legacy result-store read trapped: phase=request reader=Eva.Results.callstacks access=availability store=analysis-status point=computation state at before line 12 of f
 
 Final values without the script, on hit.i. With memexec, the second call
 to f is a hit: the hit log declines the states of f, and the printing reads

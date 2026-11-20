@@ -152,7 +152,19 @@ let post_analysis (type t) (engine: t engine) mthread_analysis final_state =
 
 type computation_state = Self.computation_state =
   | NotComputed | Computing | Computed | Aborted
-let current_computation_state = Self.ComputationState.get
+
+(* Public reader: answered by the hit log when it describes the results.
+   The computation state decides whether results are available, as
+   {!is_computed} does. *)
+let current_computation_state () =
+  Legacy_read_guard.reader "Eva.Analysis.current_computation_state"
+  @@ fun () ->
+  match Hit_log.computation_state () with
+  | Some state -> state
+  | None ->
+    Legacy_read_guard.notify Availability ~store:"analysis-status"
+      (fun fmt -> Format.pp_print_string fmt "computation state");
+    Self.ComputationState.get ()
 let register_computation_hook ?on f =
   let f' = match on with
     | None -> f
@@ -177,14 +189,26 @@ let emitter = Eva_utils.emitter
 type results = Function_calls.results = Complete | Partial | NoResults
 type status = Function_calls.analysis_status =
     Unreachable | SpecUsed | Builtin of string | Analyzed of results
+
+(* The computation state, read on the legacy path. *)
+let legacy_is_computed () =
+  Legacy_read_guard.notify Availability ~store:"analysis-status"
+    (fun fmt -> Format.pp_print_string fmt "computation state");
+  Self.is_computed ()
+
+(* Public reader: answered by the hit log when it describes the results,
+   from the status table and the computation state otherwise. A complete
+   analysis of a function is partial while the analysis runs. *)
 let status kf =
   Legacy_read_guard.reader "Eva.Analysis.status" @@ fun () ->
-  Legacy_read_guard.notify Availability ~store:"analysis-status"
-    (fun fmt -> Kernel_function.pretty fmt kf);
-  match Function_calls.analysis_status kf with
-  | Analyzed Complete as status ->
-    if Self.is_computed () then status else Analyzed Partial
-  | status -> status
+  match Hit_log.status kf with
+  | Some (Analyzed Complete, false) -> Analyzed Partial
+  | Some (status, _computed) -> status
+  | None ->
+    match Function_calls.analysis_status kf with
+    | Analyzed Complete as status ->
+      if legacy_is_computed () then status else Analyzed Partial
+    | status -> status
 
 let use_spec_instead_of_definition =
   Function_calls.use_spec_instead_of_definition ?recursion_depth:None
@@ -300,14 +324,16 @@ let compute_from ?cvalue_state ?arguments entry_point =
         compute_from_entry_point (module Engine)
           ?cvalue_state ?arguments entry_point
     in
-    Self.(ComputationState.set Computed);
+    (* The records are sealed before the hooks on the computation state
+       run, so that the hit log answers as the legacy store then. *)
     Hit_log.seal ();
+    Self.(ComputationState.set Computed);
     Legacy_read_guard.during Post_analysis @@ fun () ->
     post_analysis (module Engine) mt_analysis final_state
   with exn ->
     let backtrace = Printexc.get_raw_backtrace () in
-    Self.(ComputationState.set Aborted);
     Hit_log.interrupt ();
+    Self.(ComputationState.set Aborted);
     match exn with
     | Error | Self.Abort -> () (* do not re-raise  *)
     | exn -> Printexc.raise_with_backtrace exn backtrace

@@ -1,6 +1,11 @@
 Rebuild the point states of a fresh invocation from the hit log (prototype,
 see plugins/inout/prototype-state-query).
 
+The candidate runs under the trap of every legacy read. The runs on the
+legacy path (-eva-no-hit-log), with a memexec hit or with another domain
+than cvalue read the legacy store: they run in the record mode, which logs
+the reads without trapping them.
+
 At a straight-line assignment, the request on each supplied stack is served
 by the resolver, before and after the statement, without legacy read. So is
 the unfiltered request, from the states of both stacks; see
@@ -20,12 +25,12 @@ and InOut's callwise results, compared for each of the two calls, have equal
 zones. The reference reads the legacy store and resolves nothing.
   $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -inout-state-query-acceptance native assign.i > native.log 2>&1
   $ grep -e "native model.before-P" -e "native model.after-P" -e "native compared" native.log
-  [acceptance] native model.before-P equal=true reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
-  [acceptance] native model.before-P.main/f@15 equal=true reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
-  [acceptance] native model.before-P.main/f@18 equal=true reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
-  [acceptance] native model.after-P equal=true reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
-  [acceptance] native model.after-P.main/f@15 equal=true reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
-  [acceptance] native model.after-P.main/f@18 equal=true reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native model.before-P equal=true reference-reads=3 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native model.before-P.main/f@15 equal=true reference-reads=3 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native model.before-P.main/f@18 equal=true reference-reads=3 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native model.after-P equal=true reference-reads=3 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native model.after-P.main/f@15 equal=true reference-reads=3 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native model.after-P.main/f@18 equal=true reference-reads=3 reference-resolved=0 legacy-reads=0 resolved=1
   [acceptance] native compared=33 differing=0
 
 Stages of the input. The initial state holds the initialized globals; the
@@ -66,13 +71,13 @@ of Eva's statistics hook: nothing reads the store during the collection.
 Control: on the legacy path (-eva-no-hit-log), the resolver serves nothing
 and InOut reads the input of each call from the legacy store during the
 collection.
-  $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-no-memexec -eva-no-hit-log -inout-state-query-acceptance candidate assign.i > legacy-path.log 2>&1
+  $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-no-memexec -eva-no-hit-log -inout-state-query-acceptance record assign.i > legacy-path.log 2>&1
   $ grep -e "phase=collection" -e "call model.before-P" legacy-path.log
   [acceptance] execution phase=collection reader=Eva.Summary.compute_fun_stats access=availability store=analysis-status
   [acceptance] execution phase=collection reader=Eva.Results.get_cvalue_model access=availability store=analysis-status
-  [acceptance] call model.before-P legacy-reads=2 resolved=0 answer=g ∈ {4; 9}; y ∈ {0}; x ∈ {10}; __retres ∈ UNINITIALIZED
-  [acceptance] call model.before-P.main/f@15 legacy-reads=2 resolved=0 answer=g ∈ {4}; y ∈ {0}; x ∈ {10}; __retres ∈ UNINITIALIZED
-  [acceptance] call model.before-P.main/f@18 legacy-reads=2 resolved=0 answer=g ∈ {9}; y ∈ {0}; x ∈ {10}; __retres ∈ UNINITIALIZED
+  [acceptance] call model.before-P legacy-reads=3 resolved=0 answer=g ∈ {4; 9}; y ∈ {0}; x ∈ {10}; __retres ∈ UNINITIALIZED
+  [acceptance] call model.before-P.main/f@15 legacy-reads=3 resolved=0 answer=g ∈ {4}; y ∈ {0}; x ∈ {10}; __retres ∈ UNINITIALIZED
+  [acceptance] call model.before-P.main/f@18 legacy-reads=3 resolved=0 answer=g ∈ {9}; y ∈ {0}; x ∈ {10}; __retres ∈ UNINITIALIZED
 
 The Pre label of InOut. Callwise InOut runs in the collection hook, during
 the analysis, when a request on the stored results answers Top. On the
@@ -82,7 +87,7 @@ p ∈ {&a; &b}, and the precondition of f reduces it to &a: the logic inputs
 would be a; b; p from the input, and a; p from the entry that survives.
 Memexec does not cache a call whose logic inputs are ANYTHING: f is called
 twice with the same input, and its body is analyzed twice.
-  $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-memexec -eva-msg-key progress -eva-no-hit-log -inout-state-query-acceptance candidate pre-label.i > pre-legacy.log 2>&1
+  $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-memexec -eva-msg-key progress -eva-no-hit-log -inout-state-query-acceptance record pre-label.i > pre-legacy.log 2>&1
   $ grep -e "computing for function f" -e "Reusing" -e "phase=collection reader=Eva.Results" pre-legacy.log
     computing for function f <- main.
     computing for function f <- main.
@@ -115,7 +120,7 @@ reference and of the candidate have equal zones, the logic inputs included.
 The hit log records nothing when another domain than cvalue runs, even
 with -eva-hit-log. InOut then reads the store as on the legacy path, with
 the same answers and the same analyses of f.
-  $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue,equality -eva-memexec -eva-msg-key progress -inout-state-query-acceptance candidate pre-label.i > pre-equality.log 2>&1
+  $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue,equality -eva-memexec -eva-msg-key progress -inout-state-query-acceptance record pre-label.i > pre-equality.log 2>&1
   $ grep -e "config" -e "computing for function f" -e "Reusing" -e "phase=collection reader=Eva.Results" -e "visits f" pre-equality.log
   [acceptance] config -eva-domains=cvalue,equality -eva-slevel=0 -eva-memexec=true -eva-hit-log=true -eva-results=true -eva-join-results=true -eva-no-results-domain= -eva-no-results-function=@default
     computing for function f <- main.
@@ -130,7 +135,7 @@ legacy path and with the hit log, the second call to f reuses the first,
 and InOut's answers are the same. The hit log records the input of each
 call before the precondition reduces it; no entry of the third call
 survives.
-  $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-memexec -eva-msg-key progress -eva-no-hit-log -inout-state-query-acceptance candidate precondition.i > precondition-legacy.log 2>&1
+  $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-memexec -eva-msg-key progress -eva-no-hit-log -inout-state-query-acceptance record precondition.i > precondition-legacy.log 2>&1
   $ grep -e "computing for function f" -e "Reusing" precondition-legacy.log
     computing for function f <- main.
   [eva:progress] precondition.i:24: Reusing old results for call to f
@@ -140,7 +145,7 @@ survives.
   [acceptance] call inout.call-f@20 legacy-reads=0 resolved=0 answer=Operational inputs:; x; Operational inputs on termination:; x; Sure outputs:; y; Over outputs:; y; Over outputs on termination:; y; Logic inputs:; \nothing
   [acceptance] call inout.call-f@24 legacy-reads=0 resolved=0 answer=Operational inputs:; x; Operational inputs on termination:; x; Sure outputs:; y; Over outputs:; y; Over outputs on termination:; y; Logic inputs:; \nothing
   [acceptance] call inout.call-f@26 legacy-reads=0 resolved=0 answer=Operational inputs:; \nothing; Operational inputs on termination:; \nothing; Sure outputs:; ANYTHING(origin:Unknown); Over outputs:; \nothing; Over outputs on termination:; \nothing; Logic inputs:; \nothing
-  $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-memexec -eva-msg-key progress -inout-state-query-acceptance candidate precondition.i > precondition-hit-log.log 2>&1
+  $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-memexec -eva-msg-key progress -inout-state-query-acceptance record precondition.i > precondition-hit-log.log 2>&1
   $ grep -e "computing for function f" -e "Reusing" -e "visits f" precondition-hit-log.log
     computing for function f <- main.
   [eva:progress] precondition.i:24: Reusing old results for call to f
@@ -164,7 +169,7 @@ points of its body as without memexec. The second call is a hit on the entry
 of the first. The resolver answers its input, recorded at the call, and
 declines the points of its body, which it cannot rebuild yet: these requests
 read the legacy store.
-  $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-memexec -inout-state-query-acceptance candidate assign.i > memexec.log 2>&1
+  $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-memexec -inout-state-query-acceptance record assign.i > memexec.log 2>&1
   $ grep -e "model.before-P.main" -e "model.after-P.main" -e "of-f.main" -e "visits f" memexec.log
   [acceptance] call model.before-P.main/f@15 legacy-reads=0 resolved=1 answer=g ∈ {4}; y ∈ {0}; x ∈ {10}; __retres ∈ UNINITIALIZED
   [acceptance] call model.after-P.main/f@15 legacy-reads=0 resolved=1 answer=g ∈ {4}; y ∈ {11}; x ∈ {10}; __retres ∈ UNINITIALIZED
@@ -173,8 +178,8 @@ read the legacy store.
   [acceptance] call model.end-of-f.main/f@15 legacy-reads=0 resolved=1 answer=g ∈ {4}; y ∈ {11}; x ∈ {10}; __retres ∈ UNINITIALIZED
   [acceptance] visits f.main/f@15 body#1: 1 entries survive the preconditions; input:; g ∈ {4}; y ∈ {0}; x ∈ {10}; __retres ∈ UNINITIALIZED
   [acceptance] call model.start-of-f.main/f@18 legacy-reads=0 resolved=1 answer=g ∈ {9}; y ∈ {0}; x ∈ {10}; __retres ∈ UNINITIALIZED
-  [acceptance] call model.body-entry-of-f.main/f@18 legacy-reads=2 resolved=0 answer=error bottom
-  [acceptance] call model.end-of-f.main/f@18 legacy-reads=2 resolved=0 answer=error bottom
+  [acceptance] call model.body-entry-of-f.main/f@18 legacy-reads=3 resolved=0 answer=error bottom
+  [acceptance] call model.end-of-f.main/f@18 legacy-reads=3 resolved=0 answer=error bottom
   [acceptance] visits f.main/f@18 hit#1: no body analysis; input:; g ∈ {9}; y ∈ {0}; x ∈ {10}; __retres ∈ UNINITIALIZED
 
 Without saved results for f (-eva-no-results-function f), the resolver

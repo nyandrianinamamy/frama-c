@@ -90,7 +90,8 @@ bases that the body does not read.
 
 Run `bash plugins/inout/prototype-state-query/acceptance.sh [evidence-dir]`
 to replay the acceptance driver alone; `run.sh` also runs it, into
-`evidence/acceptance`. The configuration is the minimal one: no plugin
+`evidence/acceptance`. Every process runs anew: the script empties its
+default evidence directory and refuses a given one that is not empty. The configuration is the minimal one: no plugin
 autoloading, Eva and InOut loaded explicitly, Callgraph and Server through
 their dependencies, only the Cvalue domain, slevel 30.
 
@@ -101,19 +102,29 @@ around the statement labelled `P`:
   disables memexec and the hit log (`-eva-no-hit-log`), so the reference is
   fresh-only and every request reads the legacy store. The guard is off.
 - The candidate runs `-inout-state-query-acceptance candidate` with the
-  options in `CANDIDATE_OPTIONS` (default `-eva-no-memexec`). The guard
-  records every legacy read and every answer of the resolver.
+  options in `CANDIDATE_OPTIONS` (default `-eva-no-memexec`), under the
+  continuous trap: the driver arms the guard once, before the analysis,
+  with the trap of every phase (`Trap Legacy_read_guard.all_phases`), and
+  never changes it. Any legacy read, from the initialization to the last
+  request, aborts Eva; a reader that catches the abort does not disarm the
+  trap, since each later trapped read raises the same exception again. The
+  guard also logs every answer of the resolver.
 - The native run, `-inout-state-query-acceptance native`, runs the
   reference and then the candidate in one process, on the same AST, and
   compares their models and values with Cvalue's native equality. It also
   records the reads of the reference, which resolves nothing.
 
 Each process writes JSON lines (`-inout-state-query-acceptance-output`): a
-header with the command line, loaded plugins, Eva configuration and inputs;
-the reads made during the execution, grouped by phase and reader; the
-collection reads, by reader and calling frame; and one record per request
-with the path expected to serve it, its answer, the reads it made and the
-resolutions that served it. `compare.py`
+header with the command line, loaded plugins, Eva configuration, the mode
+of the guard and inputs; the reads made during the execution, grouped by
+phase and reader; the collection reads, by reader and calling frame; one
+record per request with the path expected to serve it, its answer, the
+reads it made and the resolutions that served it; for each phase, a
+`scope` record with its entries while the guard was armed, its reads, its
+resolutions and those of the three writers of the registration (see
+"Hit log and resolver"); and, for a candidate, a `gate` record with the
+modes armed since the start of the process, the final mode, the number of
+reads logged and trapped, and whether the run passes. `compare.py`
 compares the two files of each fixture and writes `report.md` and
 `report.json` with the revision, a SHA-256 of each input and one
 disposition per request:
@@ -130,15 +141,25 @@ Across processes, answers are compared as printed text, so equality is
 exact for printed answers; the native run checks the equality of the models
 themselves. The script fails on `MISMATCH`, `MISSING` or a failed control.
 With `--require-zero-reads` it also fails unless the zero-read gate passes:
-no request is `LEGACY` or `UNOBSERVED`, and the candidate made no legacy
-read during the execution either. Until a reader is migrated, every request
-on stored results is `LEGACY` and the gate fails.
+no request is `LEGACY` or `UNOBSERVED`, the candidates made no legacy read
+during the execution either, and the `gate` record of every candidate
+passes: the guard was armed once, with the trap of every phase, and logged
+and trapped no read.
+
+The other modes of the driver are `record` (every read logged, none
+trapped), `tail-probe` (the candidate, then one request on cleared results,
+which must abort), `store-check` (the analysis records the hit log, which
+then declines every request) and `perturb-calls` (the hit log exports every
+function as unreachable and without caller); the `plugins-` and `reach-`
+prefixes select the other batteries (see below).
 
 The requests cover stack enumeration (`callstacks`, `by_callstack`),
-availability (`are_available`, `Eva.Analysis.status`, `is_reachable`),
+availability (`are_available`, `Eva.Analysis.status`, `is_reachable`,
+`is_reachable_kinstr`, and `is_reachable_pos` on each stack),
 models before and after `P`, joined and per stack, the values of the
 globals, the entry and initial states, the snapshot export
-`Eva.Eva_results.get_results`, and on each supplied stack: the position
+`Eva.Eva_results.get_results` and the analysis status and callers that it
+exports, and on each supplied stack: the position
 adapters at `P` (`before_pos`, `after_pos`), the root call, the initial
 state, and for each function its start, its first statement and its end.
 They also cover the callwise inputs and outputs that InOut collects for
@@ -232,6 +253,24 @@ records of the hit log, and restoring it with
 `Eva.Eva_results.set_results` makes them current again, so that the
 requests on the restored results keep their answers.
 
+Eva still writes its legacy tables during the analysis: the requests that
+the resolver declines read them, and a saved project keeps them. Each
+writer merges a new fact with the one already registered. While the hit
+log records, the writer takes the fact already registered from the
+records, and only writes the table:
+
+| Writer | Fact already registered | From the records |
+| --- | --- | --- |
+| `Engine.Store.register_state` | The state at a control point and callstack. | `Hit_log.registered`: at the start of a function, the join of the inputs of the visits on the callstack; at a statement, the join of the states of the earlier body visits on the callstack, from their producers. |
+| `Function_calls.register_analysis_target` | The analysis status of the called function, and the call sites of its callers. | `Hit_log.target`: the statuses merged with the table's own merge, in the order of the calls, and the call sites of each caller. |
+| `Iterator.record_fireable` | The branches of a conditional already fired. | `Hit_log.fire`: the branches fired by the earlier body visits. |
+
+Otherwise (`-eva-no-hit-log`, another domain, a multithread analysis), each
+writer reads the table, as before. The `store-check` mode checks the tables
+written from the records: the hit log declines every request after the
+analysis, so that each one reads them, and the answers must be those of
+the reference.
+
 The engine's consolidation of the stored states, with
 `-eva-join-results`, runs only when the hit log does not describe the
 results. It skips the functions whose analysis is partial, such as a
@@ -264,17 +303,24 @@ paths, where the input would give `a; b; p` and the surviving entry
 whose logic inputs are `ANYTHING` is not cached, and the two identical
 calls to `f` analyze the body twice.
 
-The guard (`Eva.Legacy_read_guard`) sees three kinds of reads:
+The guard (`Eva.Legacy_read_guard`) sees these reads:
 
 - getters and enumerations of any `Domain_store`, which every alias reaches:
   `Cvalue_results`, the domain-level `Store` modules, the engine's store,
   the snapshot export, the `\init` label of logic evaluation, the
   final-value printer and the consolidation of states;
 - the store's own availability flag;
-- the availability decision of point queries: the computation state and the
-  analysis status of the function in the engine, `Results.are_available`,
-  `Eva.Analysis.status`, the consolidation of per-function states, the
-  postcondition marking of `Eval_annots` and the snapshot export.
+- the tables of the analysis status and of the call relations
+  (`Function_calls`) and the table of the guard outcomes (`Iterator`):
+  each reader of a table reports its own read, the merges of the writers
+  included;
+- the computation state, read to decide whether results are available:
+  by the engine's point queries, `Results.are_available`,
+  `Eva.Analysis.is_computed`, `Eva.Analysis.status` and
+  `Eva.Analysis.current_computation_state`.
+
+See "Audit of the access paths" below for every path and its
+disposition.
 
 Each read carries the phase (initialization, analysis, collection by
 `Cvalue_callbacks` hooks, post-analysis, or request), the outermost
@@ -286,8 +332,8 @@ read in that phase aborts Eva with exit status 1:
 
 | Control | Expected trap |
 | --- | --- |
-| `trap:request` | `Eva.Results.get_cvalue_model` on `before P`, the known request, on the legacy path (`-eva-no-hit-log`): the resolver serves it otherwise. |
-| `trap:analysis` | `Eva.Engine.register_state`, which reads the recorded state to join it. |
+| `trap:request` | `Eva.Results.get_cvalue_model` on `before P`, the known request, on the legacy path (`-eva-no-hit-log`), at its read of the computation state: the resolver serves it otherwise. |
+| `trap:analysis` | `Eva.Engine.register_state`, which reads the recorded state to join it, on the legacy path (`-eva-no-hit-log`): the registration takes it from the hit log otherwise, and the run completes. |
 | `trap:collection` | `Eva.Summary.compute_fun_stats`, through its `Eva.Results.is_reachable` requests, on the legacy path (`-eva-no-hit-log`): the hit log serves them and the `\init` label of a logic evaluation otherwise, and the run completes. |
 | `trap:post-analysis` | `Eva.Eval_annots.mark_unreachable`, through the availability read of its first `Eva.Results.is_reachable` request, on the legacy path (`-eva-no-hit-log`): the hit log serves the marking of unreachable properties and of postconditions otherwise. |
 | `trap:initialization` | None: the run completes. |
@@ -296,9 +342,29 @@ The report adds these controls:
 
 - `comparator-mismatch`: altering one candidate answer that agrees with the
   reference adds exactly one `MISMATCH`.
-- `guard-sensitivity`: the guard sees reads on every request still expected
-  on the legacy store, and neither reads nor resolutions on the requests
-  that read neither store (the supplied state and InOut's answers).
+- `continuous-trap`: every candidate ran under the trap of every phase,
+  armed once and never changed, and its `gate` record passes.
+- `continuous-trap-legacy-path`: the candidate's command on the legacy path
+  (`-eva-no-hit-log`), on `legacy-reads.c` and `plugins.c`, aborts with
+  exit status 1 at the first read of the analysis, the registration of the
+  state at the start of `main` by `Eva.Engine.register_state`.
+- `tail-probe`: after the battery, still under the trap and with no read
+  logged, the driver clears the results and makes one request. The hit log
+  no longer describes the results: the request reads the legacy store and
+  the trap, still armed, aborts the run in the request phase.
+- `guard-sensitivity`: the same batteries on the legacy path, in the
+  `record` mode, read the store in every phase but the initialization, and
+  on every request that the candidate's resolver serves; the candidate
+  reads in no phase. The requests that read neither store (the supplied
+  state and InOut's callwise answers) read and resolve nothing on either
+  path. No read happens during the initialization on either path: the
+  initial state is computed before any result is stored.
+- `hit-log-registration`: in each candidate, the registration of the
+  states and of the analysis targets resolves from the hit log during the
+  analysis, and no phase reads.
+- `legacy-store-writes`: with `store-check`, every fixture gives the
+  reference's answers from the legacy tables, which the analysis wrote from
+  the records, with legacy reads and no resolution outside an analysis.
 - `read-accounting`: each process ends with an `accounting` record. The
   candidate's logged reads equal its execution reads plus the reads of its
   requests, and the reference logs none.
@@ -334,18 +400,33 @@ The report adds these controls:
   report the same analyses of `f`. In `pre-label.c`, the logic inputs are
   `ANYTHING` and both calls analyze the body. In `precondition.c`, the
   logic inputs are empty and the second call is reused.
+- `export-payload-perturbation`: with `plugins-perturb-calls`, the hit log
+  exports every function as unreachable and without caller. Only
+  `export.calls`, which prints the payload, differs from the reference:
+  the statuses read after restoring that payload stay the reference's,
+  since the restored records of the hit log serve them, not the exported
+  tables. `legacy-store-writes` covers the other side: there, the hit log
+  declines, and the statuses read after the restoration come from the
+  exported tables.
+- `snapshot-round-trip`: on `plugins.c`, the exported statuses and callers,
+  the statuses before the export, those after an intervening analysis that
+  interprets `h` by its specification, and those after restoring the
+  snapshot are the reference's; the intervening statuses differ, and the
+  restored ones equal those read before the export. The intervening
+  analysis and the restoration run under the trap.
 - `zero-read-gate-exit`: `acceptance.sh` first runs `compare.py
   --require-zero-reads --no-write` and records its exit status in
-  `zero-read-gate.status`; the status is 1 while the gate fails and 0 once
-  it passes.
+  `zero-read-gate.status`; the status must be 0 when the gate passes and
+  every control passes, 1 otherwise.
 
 The comparator and gate controls compare with the differences the evidence
 already has, so they also hold for a candidate that differs from the
 reference. With `CANDIDATE_OPTIONS=-eva-memexec`, the second call to `f` in
-`legacy-reads.c` is a memexec hit: the candidate has no state for the stack
-`main/f@27`, the resolver declines the points of the hit, so the stack and
-model requests are `MISMATCH` or `MISSING`, `resolver-path` fails and the
-script exits 1.
+`legacy-reads.c` is a memexec hit: the hit log declines the call relations
+once its records contain a hit, and the trap aborts the candidate at the
+first of these reads, in Eva's post-analysis
+(`Eva.Function_calls.nb_callsites`). Its file then lacks the requests,
+which are `MISSING`, and the script exits 1. Memexec hits are #81.
 
 The cram tests `plugins/eva/tests/utils/legacy-read-guard.t` and
 `plugins/eva/tests/utils/hit-log-resolver.t` check the guard, the resolver
@@ -524,24 +605,29 @@ optional Eva server API is loaded, which it is not. The battery asks:
   execution (memory, time, iterations, memexec hits and misses, widenings,
   unrolling, partitioning index) are written apart, in an
   `execution-statistics` record, and are not compared;
-- the snapshot of the analysis status: the last request exports the
-  results, clears them, restores the snapshot and reads
-  `Eva.Analysis.status` of each function on the restored table, with the
-  guard off for that read. `statuses.i` in `plugin-readers.t` has a
-  function of each status: analyzed with and without saved results,
-  partially analyzed through a recursive call, specification only,
-  builtin and unreachable.
+- the snapshot round trip, last since it replaces the results: the
+  analysis status and the callers of each function that the export
+  carries (`export.calls`); the statuses read before the snapshot is taken
+  (`snapshot.statuses`); the statuses after an intervening analysis that
+  interprets the first function called by `main` by its specification
+  (`snapshot.intervening`), which must differ; and the statuses read after
+  `Eva.Eva_results.set_results` restores the snapshot (`export.statuses`).
+  All run under the same guard as the rest of the battery.
+  `statuses.i` in `plugin-readers.t` has a function of each status:
+  analyzed with and without saved results, partially analyzed through a
+  recursive call, specification only, builtin and unreachable.
 
 Eva's final display computes the graph of Callgraph and InOut's outputs of
 the analyzed functions; the driver clears these memos, so that each
 request computes its own answer from Eva's results. InOut's callwise
 results, which it records during the analysis, are kept: those requests
-read nothing. The modes are `plugins-reference`, `plugins-candidate`,
-`plugins-native`, `plugins-wrong-producer` and `plugins-trap`. The last
-arms the guard's `Trap_except` mode: every legacy read, in any phase,
-whose innermost reader is not exempt aborts Eva. The only exempt reader is
-`Eva.Engine.register_state`, which joins each new state with the recorded
-one during the analysis.
+read nothing. The `plugins-` prefix applies to the modes `reference`,
+`candidate`, `record`, `native`, `wrong-producer`, `tail-probe`,
+`store-check` and `perturb-calls`. The native run compares the snapshot
+requests across processes only: in one process, the intervening analysis
+of the reference half makes Eva generate an assigns clause for the
+function it interprets by its specification, which the candidate half
+would list among the properties.
 
 The hit log records the facts that these readers need beyond the states.
 Each answer equals the legacy one; where the records cannot give it, the
@@ -549,11 +635,11 @@ reader declines to the legacy store.
 
 | Fact | Readers | Recorded as | Equal to the legacy answer because | Declines | With memexec hits (#81) |
 | --- | --- | --- | --- | --- | --- |
-| Completion | `Eva.Analysis.is_computed` | The completion of the records. | The records are sealed or interrupted when the computation state changes. | When the records do not describe the results. | Unaffected. |
+| Completion | `Eva.Analysis.is_computed`, `Eva.Analysis.current_computation_state` | The completion of the records. | The records are sealed or interrupted when the computation state changes. | When the records do not describe the results. | Unaffected. |
 | Call relations | `is_called`, `callers`, `callsites`, `nb_callsites`; Callgraph; InOut's external effects; the snapshot export | The callstack of each invocation. | The legacy table registers a call when Eva chooses how to interpret it, after the invocation is recorded and before any hook. | Once the records contain a hit. | Needs the calls below a hit. |
 | Guard outcomes | `condition_truth_value` | The fireable branches of each conditional, with each analyzed body, whatever the results recorded. | The legacy table joins the same transitions of every analysis of the body. | While the analysis runs; once the records contain a hit. | Needs the outcomes of the reused producer. |
 | Analyzed function | The marking of postconditions | The kind of each invocation. | A function is `Analyzed` when one of its calls analyzed its body or reused it. | Before the analysis completes; on an unresolved invocation. | Unaffected. |
-| Analysis status and callers | `Eva.Eva_results.get_results` | The kind of each invocation, and whether Eva saves the results of each analyzed body. | The status table registers the same target for each call, and the records merge the statuses in the order of the calls with the table's own merge. | Before the analysis ends; once the records contain a hit; on an unresolved invocation. | Needs the calls below a hit. |
+| Analysis status and callers | `Eva.Analysis.status`, `Eva.Results.are_available`, `Eva.Eva_results.get_results`; during the analysis, `Function_calls.register_analysis_target` | The kind of each invocation, and whether Eva saves the results of each analyzed body. | The status table registers the same target for each call, and the records merge the statuses in the order of the calls with the table's own merge. | Before the analysis ends; once the records contain a hit; on an unresolved invocation. | Needs the calls below a hit. |
 
 The statuses, the alarms and the statistics are stored apart from Eva's
 results: reading them reads neither store. Eva computes them after the
@@ -562,12 +648,41 @@ them with the reference. The wrong-producer control changes the guard
 outcomes of `g` and `h`, InOut's outputs of both, and the coverage of
 Eva's statistics.
 
-`compare.py` adds two controls: `plugins-trap` (the candidate completes the
-battery under the trap with the answers of the reference; on the legacy
-path, the trap aborts the run at `Eva.Summary.compute_fun_stats`) and
-`plugins-perturbation` (the wrong producer changes the guard outcomes and
-InOut's effects, and only requests served by the resolver or the reports
-that Eva derives from its results).
+`compare.py` adds `plugins-perturbation` (the wrong producer changes the
+guard outcomes and InOut's effects, and only requests served by the
+resolver or the reports that Eva derives from its results),
+`export-payload-perturbation` and `snapshot-round-trip`; the candidate
+battery on `plugins.c` also runs under the continuous trap and its
+controls.
+
+## Audit of the access paths
+
+Every path to the legacy result store, with where the guard sees it and
+what the candidate does with it. Line numbers are those of this revision.
+"Resolved" means that the reader asks the hit log first and reads the
+store only when the hit log declines; the candidates of the acceptance
+script reach no store read at all, under the continuous trap.
+
+| Path | Kind | Notified at | In the candidates | Disposition |
+| --- | --- | --- | --- | --- |
+| `Domain_store.Make`: `get_state`, `callstacks`, `is_computed` | getter, enumeration, availability | `domain_store.ml:131`, `:138`, `:143`, `:159` | not reached | The store itself: every alias below goes through it. |
+| `Cvalue_results`, `Cvalue_domain.State.Store` (`cvalue_domain.ml:383`), `Domain_builder` (`:642`), `Domain_product` (`:312`), `Engine.Make_Domain.Store` (`engine.ml:53` to `:81`) | aliases | `Domain_store` | not reached | Aliases of the store: no read bypasses its notification. |
+| `Engine.Make.find` and its point queries (`engine.ml:209`, `:249`, `:256`) | computation state, analysis status, call relations, states | `engine.ml:210`; `Function_calls.analysis_status`, `registered`; `Domain_store` | resolved | `Results`, `Analysis` and Eva's own passes ask the hit log first. |
+| `Engine.Make_Domain.Store.register_state` (`engine.ml:35`) | merge read at registration | `Domain_store` | resolved | `Hit_log.registered` gives the state already registered. |
+| `Function_calls.register_analysis_target` (`function_calls.ml:215`): `register_call`, `register_status` | merge reads at registration | `function_calls.ml:37`, `:159` | resolved | `Hit_log.target` gives the merged status and the callers. |
+| `Iterator.record_fireable` (`iterator.ml:57`) | merge read at registration | `iterator.ml:34` | resolved | `Hit_log.fire` gives the branches already fired. |
+| `Function_calls.callers_of`, `nb_callsites` (`function_calls.ml:67`) | call relations | `function_calls.ml:75` | resolved | `Hit_log.relations`. |
+| `Function_calls.analysis_status`, `registered`, `get_results` | status table, callers table | `function_calls.ml:164`, `:50`, `:231` | not reached | Legacy fallbacks of `Analysis.status`, `Results.are_available`, `Engine.find` and `Eva_results.export_calls`. |
+| `Iterator.condition_truth_value` (`iterator.ml:33`) | guard outcomes | `iterator.ml:34` | resolved | `Results.condition_truth_value` asks `Hit_log.condition_truth_value` first. |
+| `Analysis.is_computed`, `status`, `current_computation_state`; `Results.are_available` | computation state, analysis status | `analysis.ml`, `results.ml:25` | resolved | `Hit_log.computed`, `computation_state`, `status`. |
+| `Engine.get_initial_state` fallback (`engine.ml:313`), `Cvalue_reads` defaults (`cvalue_reads.ml:10`, `:12`) | getter | `Domain_store` | resolved | `Hit_log.initial_state`; the printer and the `\init` label install readers of the hit log. |
+| `Eva_results.export_states` (`eva_results.ml:88`), `export_calls` (`:132`) | getter, enumeration, status table | `Domain_store`, `Function_calls.get_results` | resolved | `Hit_log.stored_states`, `Hit_log.calls`. |
+| `Eva_results.set_results` (`eva_results.ml:179`) | writes only | none needed | runs under the trap | Restores the tables and the records of the hit log; reads nothing. |
+| `Self.is_computed` in `Analysis.compute` (`analysis.ml:343`); `ComputationState.get` in `Evaluation` (`evaluation.ml:1023`) and `Mt_analysis_fixpoint` | computation state | not notified | run | Not a read of results: whether to start an analysis, and whether an evaluation runs during one. |
+| Eva's server API: `analysis_requests.ml:61`, `taint_requests.ml:203`, `:290`, and its requests through `Analysis.is_computed` and `Results` | computation state, taint store | partly | not loaded | The optional server API is not loaded in the minimal configuration (`eva_server_api` is false in each header). |
+| `Interferences.add_last_analysis` (multithread) | getter | labelled reader | not reached | The hit log does not record a multithread analysis: the reads stay on the legacy path. |
+| Saving, loading and copying a project | the store's state tables | not notified | not run | Serialization, not a query. The records of the hit log are not saved (`howto_marshal`): after a load, every request reads the legacy store, which notifies. |
+| `Engine.callstacks` | enumeration | — | — | Removed: it had no caller. |
 
 ## Not covered
 
@@ -576,16 +691,15 @@ Not covered yet:
 - the points of memexec hits, with the requests on several stacks or none,
   the call relations, the guard outcomes and the snapshot metadata, which
   the hit log declines once the records contain a hit (#81);
-- `Eva.Analysis.status` and `Eva.Results.are_available`, which still read
-  the analysis status;
-- `Engine.callstacks`, which no reader calls, still enumerates the store;
 - the optional Eva server API, and the other plug-ins that ask
   `Eva.Analysis.is_computed` before reading Eva's results: From, Metrics,
-  PDG and Slicing.
+  PDG and Slicing;
+- an analysis started by a callback during the analysis, which starts new
+  records of the hit log in place of those of the outer analysis.
+
+`CORRESPONDENCE.md` lists the claims of the Lean–Eva correspondence record
+whose cited code this migration changes, and what remains open for each.
 
 No fixture reaches the `Domain_store.is_computed` notification, nor the
-label `Eva.Interferences.add_last_analysis` and the `Eva.Results` readers
-that the requests do not call: `is_reachable_kinstr`, and
-`is_reachable_pos` outside the reach modes. The guard records the reads of
-these readers, but their attribution has not run. Later tickets extend the
-driver.
+label `Eva.Interferences.add_last_analysis`. The guard records the reads
+of these readers, but their attribution has not run.

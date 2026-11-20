@@ -31,6 +31,10 @@ module Conditions_table =
     end)
 
 let condition_truth_value s =
+  Legacy_read_guard.notify Getter ~store:"guards" (fun fmt ->
+      Format.fprintf fmt "guard of %a at line %d" Kernel_function.pretty
+        (Kernel_function.find_englobing_kf s)
+        (Fileloc.line (Cil_datatype.Stmt.loc s)));
   try Conditions_table.find s
   with Not_found -> false, false
 
@@ -47,8 +51,20 @@ let fire ~find ~replace edge =
     replace stmt new_status
   | _ -> ()
 
-let record_fireable =
-  fire ~find:condition_truth_value ~replace:Conditions_table.replace
+(* Registers a fireable branch in the legacy table. While the hit log
+   records, it gives the branches already fired, and the table is only
+   written; otherwise, the registration reads the table. *)
+let record_fireable edge =
+  match edge.edge_transition with
+  | Guard (_exp, kind, stmt) ->
+    Legacy_read_guard.reader "Eva.Iterator.record_fireable" @@ fun () ->
+    let fired = match kind with Then -> true, false | Else -> false, true in
+    begin match Hit_log.fire stmt fired with
+      | Some fired -> Conditions_table.replace stmt fired
+      | None ->
+        fire ~find:condition_truth_value ~replace:Conditions_table.replace edge
+    end
+  | _ -> ()
 
 
 module type Engine_Subset = sig
