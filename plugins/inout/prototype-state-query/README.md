@@ -220,21 +220,28 @@ soon as one selected stack may contribute an unavailable state. See
 `is_empty` use the reachability of the hit log (see below), including
 during Eva's post-analysis.
 
-On the legacy path, the marking of unreachable statements in the
-post-analysis consolidated, as a side effect, the states before the
-statements of every analyzed function, with or without
-`-eva-join-results`. The final-value printer reads these states from the
-store. The engine's consolidation ran
-only with `-eva-join-results` and skipped the functions whose analysis is
-partial, such as a recursive function whose innermost call uses its
-specification. It now consolidates the states before the statements of
-every analyzed function in all cases, and the other states with
-`-eva-join-results` only.
+The final-value printer, the `\init` label of logic evaluation and the
+snapshot export (`Eva.Eva_results.get_results`) read the hit log first.
+The printer makes the unfiltered request before the first and the return
+statements of each function, the `\init` label takes the initialized globals that the
+hit log records, and the export takes the state of each recorded stack at
+each point. Each reads the legacy store only when the resolver declines.
+The export still copies the callers and the analysis status of each
+function from the store. A snapshot also saves the records of the hit
+log, and restoring it with `Eva.Eva_results.set_results` makes them
+current again, so that the requests on the restored results keep their
+answers.
+
+The engine's consolidation of the stored states, with
+`-eva-join-results`, runs only when the hit log does not describe the
+results. It skips the functions whose analysis is partial, such as a
+recursive function whose innermost call uses its specification. A request
+that reads the legacy store consolidates the states it needs on demand.
 
 The resolver declines, and the request reads the legacy store, when the
 records do not describe the current results: another domain than Cvalue, a
 multithread analysis, `-eva-no-hit-log`, or results cleared or loaded from
-a file. It also declines the points of a memexec hit and every stack below
+a file, unless a snapshot restores them with its records. It also declines the points of a memexec hit and every stack below
 one, whose states it cannot rebuild yet; it answers the start of a hit from
 the input recorded at the call. Once the records contain a hit, it declines
 the requests on several stacks or none, since the stacks below the hit are
@@ -281,8 +288,8 @@ read in that phase aborts Eva with exit status 1:
 | --- | --- |
 | `trap:request` | `Eva.Results.get_cvalue_model` on `before P`, the known request, on the legacy path (`-eva-no-hit-log`): the resolver serves it otherwise. |
 | `trap:analysis` | `Eva.Engine.register_state`, which reads the recorded state to join it. |
-| `trap:collection` | `Eva.Eval_terms.add_init`, the `\init` label of a logic evaluation, which reads the initial state. |
-| `trap:post-analysis` | `Eva.Eval_annots.mark_unreachable`, through the availability read of its first `Eva.Results.is_reachable` request, on the legacy path (`-eva-no-hit-log`): the hit log serves the marking otherwise. |
+| `trap:collection` | `Eva.Summary.compute_fun_stats`, through its `Eva.Results.is_reachable` requests, on the legacy path (`-eva-no-hit-log`): the hit log serves them and the `\init` label of a logic evaluation otherwise, and the run completes. |
+| `trap:post-analysis` | `Eva.Eval_annots.mark_unreachable`, through the availability read of its first `Eva.Results.is_reachable` request, on the legacy path (`-eva-no-hit-log`): the hit log serves the marking of unreachable properties and of postconditions otherwise. |
 | `trap:initialization` | None: the run completes. |
 
 The report adds these controls:

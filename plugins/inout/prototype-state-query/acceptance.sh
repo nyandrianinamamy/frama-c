@@ -93,13 +93,13 @@ done
 printf 'Recorded resolver controls\n'
 
 # Positive controls: the trap must abort the run with exit status 1. The
-# resolver serves the known request and the marking of postconditions:
-# their controls run on the legacy path.
+# hit log serves the known request, the reads of the collection phase and
+# the marking of postconditions: their controls run on the legacy path.
 for phase in request analysis collection post-analysis initialization; do
   status=0
   legacy_path=()
   case "$phase" in
-    request|post-analysis) legacy_path=(-eva-no-hit-log) ;;
+    request | collection | post-analysis) legacy_path=(-eva-no-hit-log) ;;
   esac
   run legacy-reads "trap:$phase" "$evidence/control-$phase" \
     "${candidate_options[@]}" "${legacy_path[@]}" || status=$?

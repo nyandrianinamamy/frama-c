@@ -32,9 +32,11 @@ let current_readers = ref [] (* innermost first *)
 let log = ref [] (* latest first *)
 let logged = ref 0
 let trapped_read = ref None
+let forbidden = ref []
 
-let arm mode = current_mode := mode
+let arm mode = current_mode := mode; forbidden := []
 let mode () = !current_mode
+let forbid labels = forbidden := labels
 
 let scoped reference value f =
   let saved = !reference in
@@ -120,15 +122,19 @@ let notify access ~store point =
     } in
     log := read :: !log;
     incr logged;
-    let trap =
+    let trapped =
       match mode with
       | Trap phases -> List.mem read.phase phases
       | Trap_except readers -> not (List.mem (innermost_reader read) readers)
       | Off | Record -> false
     in
-    if trap then begin
+    let by_forbidden_reader =
+      List.exists (fun label -> List.mem label read.readers) !forbidden
+    in
+    if trapped || by_forbidden_reader then begin
       trapped_read := Some read;
       current_mode := Record;
+      forbidden := [];
       Self.abort "legacy result-store read trapped: %a" pretty_read read
     end
 
@@ -136,6 +142,7 @@ type resolution = {
   resolved_phase: phase;
   resolved_point: string;
   visits: string;
+  resolved_readers: string list;
 }
 
 let resolution_log = ref [] (* latest first *)
@@ -149,6 +156,7 @@ let resolved point visits =
       resolved_phase = !current_phase;
       resolved_point = Format.asprintf "%t" point;
       visits = Format.asprintf "%t" visits;
+      resolved_readers = List.rev !current_readers;
     } in
     resolution_log := resolution :: !resolution_log;
     incr resolved_count

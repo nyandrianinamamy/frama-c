@@ -383,6 +383,26 @@ let pretty_kinds visits fmt =
     Pretty_utils.pp_list ~sep:"," pretty_kind fmt
       (List.map (fun v -> v.kind) visits)
 
+let describes_results = usable
+
+(* The initial state is final once recorded: it answers during the
+   analysis too. *)
+let initial_state () =
+  if not (usable ()) then None
+  else
+    let log = !current in
+    let answer =
+      if not log.states then `Top
+      else
+        match log.initial with
+        | Some (_stack, state) -> `Value state
+        | None -> `Bottom
+    in
+    Legacy_read_guard.resolved
+      (Domain_store.pretty_read_point Initial)
+      (fun fmt -> Format.pp_print_string fmt "initialized globals");
+    Some answer
+
 let classify ~callstack point =
   if not (usable ()) then None
   else
@@ -842,6 +862,45 @@ let relations () =
       Some relations
 
 let () = Function_calls.set_recorded_relations relations
+
+(* ----- Snapshots -------------------------------------------------------- *)
+
+(* The states of the callstacks that reach [point], as the legacy store
+   records them. Where the records tell that the states are not recorded,
+   the store records none. *)
+let stored_states point =
+  if not (usable ()) then None
+  else
+    let log = !current in
+    match log.completion, function_level log point with
+    | Recording, _ -> None
+    | (Complete | Interrupted), Some (Pending | Interrupted) -> None
+    | (Complete | Interrupted), Some Not_recorded ->
+      Legacy_read_guard.resolved (Domain_store.pretty_read_point point)
+        (fun fmt -> Format.pp_print_string fmt "not recorded");
+      Some []
+    | (Complete | Interrupted), None ->
+      let stacks = selected_stacks log ~filter:all point in
+      match selection_on log ~supplied:false stacks point with
+      | exception Decline -> None
+      | Unknown_state _ -> None
+      | Known list as selection ->
+        Legacy_read_guard.resolved (Domain_store.pretty_read_point point)
+          (pretty_selection selection);
+        Some list
+
+type snapshot = log
+
+let snapshot () =
+  let log = !current in
+  if usable () && log.completion <> Recording then Some log else None
+
+(* The restored records get a stamp of their own: those of the analysis
+   that produced them may still be current in another project. *)
+let restore log =
+  incr last_stamp;
+  current := { log with stamp = !last_stamp };
+  Current.set !last_stamp
 
 let pretty_visits fmt stack =
   let log = !current in

@@ -770,7 +770,9 @@ let battery kf stmt =
              Memory_zone.pretty inout.over_logic_inputs,
            Inout inout))
     (call_sites ());
-  call ~id:"export.get_results" ~family:"alias" ~expect:Legacy
+  (* The hit log rebuilds the exported states; the copy of the callers and
+     analysis status of each function still reads the status table. *)
+  call ~id:"export.get_results" ~family:"alias" ~expect:Resolver
     ~request:"Eva.Eva_results.get_results ()"
     (text (fun () -> ignore (Eva.Eva_results.get_results ()); "exported"));
   (* Sensitivity: a request on a supplied state must not read the store. *)
@@ -1542,14 +1544,8 @@ let statistics_requests () =
   end
 
 (* The readers that other changes migrate: the registration of the states
-   by the engine, the initial state of the logic, the consolidation of the
-   states after the analysis and the display of the final states. *)
-let exempt_readers = [
-  "Eva.Engine.register_state";
-  "Eva.Eval_terms.add_init";
-  "Eva.Engine.consolidate";
-  "Eva.Cvalue_domain.display_final_state";
-]
+   by the engine, which joins each new state with the recorded one. *)
+let exempt_readers = [ "Eva.Engine.register_state" ]
 
 let plugin_battery () =
   (* Server's filters and Callgraph ask it before reading Eva's results. *)

@@ -192,13 +192,13 @@ legacy store does. The native comparison agrees.
   $ grep -e "equal=false" -e "native compared" no-results-native.log
   [acceptance] native compared=21 differing=0
 
-The cvalue domain prints the final states of each function from the
-consolidated states before its first and return statements. On the legacy
-path, the marking of unreachable statements consolidates them on demand;
-the hit log answers it without consolidating, and the engine consolidates
-these states itself. f is recursive and only partially analyzed, which the
-engine's consolidation skipped. The final states of f are printed as on the
-legacy path.
+The cvalue domain prints the final states of each function from the states
+before its first and return statements, joined over its callstacks, as the
+unfiltered public request answers them: from the hit log, which joins them
+without consolidating the legacy store. On the legacy path, the request
+consolidates them on demand. f is recursive and only partially analyzed,
+which the consolidation of the store at the end of the analysis skips. The
+final states of f are printed as on the legacy path.
   $ frama-c -no-autoload-plugins -load-module eva,inout -eva recursive.i > recursive.log 2>&1
   $ frama-c -no-autoload-plugins -load-module eva,inout -eva -eva-no-hit-log recursive.i > recursive-legacy.log 2>&1
   $ grep -A2 "Values at end of function f" recursive.log
@@ -209,9 +209,9 @@ legacy path.
   $ grep -e "final-states" -e "^  " recursive-legacy.log > final-legacy.txt
   $ diff final-legacy.txt final.txt
 
-Without -eva-join-results, the engine consolidates no other state, but the
-legacy path still consolidates the states before statements on demand. The
-final states are printed as on the legacy path.
+Without -eva-join-results, the store consolidates no state at the end of
+the analysis, on the legacy path either. The final states are printed as on
+the legacy path; see reconstructed-output.t for the reads they make.
   $ frama-c -no-autoload-plugins -load-module eva,inout -eva -eva-no-join-results recursive.i > no-join.log 2>&1
   $ frama-c -no-autoload-plugins -load-module eva,inout -eva -eva-no-join-results -eva-no-hit-log recursive.i > no-join-legacy.log 2>&1
   $ grep -e "Values at end" no-join.log

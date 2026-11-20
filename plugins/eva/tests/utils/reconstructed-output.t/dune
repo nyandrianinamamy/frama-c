@@ -1,0 +1,8 @@
+(executable
+  (name "reconstructed")
+  (modules "reconstructed")
+  (modes plugin)
+  (libraries frama-c.kernel "frama-c-eva.core")
+  (flags :standard -open Frama_c_kernel)
+  (promote (until-clean))
+)
