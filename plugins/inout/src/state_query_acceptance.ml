@@ -1197,6 +1197,344 @@ let guard_requests () =
       | _ -> ())
     (fixture_statements ())
 
+(* Callgraph. Eva's final display computes the graph after the analysis;
+   it is cleared so that the request computes it from Eva's results. *)
+let callgraph_requests () =
+  Project.clear
+    ~selection:(State_selection.with_dependencies Callgraph.Cg.self) ();
+  call ~id:"callgraph.edges" ~family:"callgraph" ~expect:Resolver
+    ~request:"Callgraph.Cg.get ()"
+    (text (fun () ->
+         let module G = Callgraph.Cg.G in
+         let g = Callgraph.Cg.get () in
+         let edges =
+           G.fold_edges_e (fun e acc ->
+               Format.sprintf "%s->%s"
+                 (site (G.E.src e) (G.E.label e))
+                 (Kernel_function.get_name (G.E.dst e))
+               :: acc)
+             g []
+         in
+         let vertices =
+           G.fold_vertex (fun kf acc -> Kernel_function.get_name kf :: acc)
+             g []
+         in
+         Format.sprintf "vertices: %s; edges: %s"
+           (words (List.sort compare vertices))
+           (words (List.sort compare edges))));
+  (* The graph is memoized. *)
+  call ~id:"callgraph.rev_order" ~family:"callgraph" ~expect:No_read
+    ~request:"Callgraph.Uses.iter_in_rev_order"
+    (text (fun () ->
+         let order = ref [] in
+         Callgraph.Uses.iter_in_rev_order
+           (fun kf -> order := Kernel_function.get_name kf :: !order);
+         words (List.rev !order)))
+
+(* InOut. Its function-wise results are memoized, and Eva's final display
+   computes the outputs of the analyzed functions. The memos are cleared,
+   and the functions are asked callees first, so that each request
+   computes its own answer from Eva's results. The callwise results, which
+   InOut records during the analysis, are kept. *)
+
+(* The public interface of InOut, as Inout.ml defines it. The driver
+   belongs to the library, which cannot depend on its main module. *)
+module Inout = struct
+  let expr_inputs = Inputs.expr
+  let stmt_inputs = Inputs.statement
+  let kf_inputs = Inputs.get_internal
+  let kf_external_inputs = Inputs.get_external
+  let stmt_outputs = Outputs.statement
+  let kf_outputs = Outputs.get_internal
+  let kf_external_outputs = Outputs.get_external
+  let get_precise_inout = Operational_inputs.get_internal_precise
+end
+
+let pretty_zone zone = one_line (Format.asprintf "%a" Memory_zone.pretty zone)
+
+let zone_answer zone = pretty_zone zone, Zone (Ok zone)
+
+let inout_answer (inout : Inout_type.t) =
+  let z = pretty_zone in
+  Format.sprintf
+    "inputs=[%s] inputs-if-termination=[%s] logic-inputs=[%s] \
+     may-outputs=[%s] may-outputs-if-termination=[%s] sure-outputs=[%s]"
+    (z inout.over_inputs) (z inout.over_inputs_if_termination)
+    (z inout.over_logic_inputs) (z inout.over_outputs)
+    (z inout.over_outputs_if_termination)
+    (z inout.under_outputs_if_termination),
+  Inout inout
+
+(* The name of a statement: its function and line, numbered when several
+   statements share the line. *)
+let statement_name kf stmt =
+  let stmts = (Kernel_function.get_definition kf).sallstmts in
+  match List.filter (fun s -> line s = line stmt) stmts with
+  | [ _ ] -> site kf stmt
+  | same_line ->
+    let rec index i = function
+      | [] -> assert false
+      | s :: tail ->
+        if Cil_datatype.Stmt.equal s stmt then i else index (i + 1) tail
+    in
+    Format.sprintf "%s#%d" (site kf stmt) (index 1 same_line)
+
+(* The functions of the input files, callees first. *)
+let callees_first () =
+  let fixture = fixture_functions () in
+  let order = ref [] in
+  Callgraph.Uses.iter_in_rev_order (fun kf ->
+      if List.exists (Kernel_function.equal kf) fixture
+      then order := kf :: !order);
+  List.rev !order
+
+(* The calls of the analysis, as the call hooks saw them: the callee, the
+   caller and the call statement. *)
+let analyzed_calls () =
+  let compare_call (k1, _, s1) (k2, _, s2) =
+    let c = Cil_datatype.Stmt.compare s1 s2 in
+    if c <> 0 then c else Kernel_function.compare k1 k2
+  in
+  List.filter_map (fun cs ->
+      Option.map (fun (stmt, caller) -> Eva.Callstack.top_kf cs, caller, stmt)
+        (Eva.Callstack.top_caller cs))
+    !seen_stacks
+  |> List.sort_uniq compare_call
+
+let reads_memory exp =
+  let exception Found in
+  let visitor = object
+    inherit Visitor.frama_c_inplace
+    method! vlval _ = raise Found
+  end in
+  try ignore (Visitor.visitFramacExpr visitor exp); false
+  with Found -> true
+
+let clear_inout_memos () =
+  let memo analysis =
+    State.get ("Inout.Cumulative_analysis.Memo(" ^ analysis ^ ")")
+  in
+  Project.clear
+    ~selection:State_selection.(union
+                                  (with_dependencies (memo "inputs"))
+                                  (with_dependencies (memo "outputs")))
+    ()
+
+let inout_requests () =
+  clear_inout_memos ();
+  let called kf =
+    List.exists (fun cs -> Kernel_function.equal (Eva.Callstack.top_kf cs) kf)
+      !seen_stacks
+  in
+  List.iter (fun kf ->
+      let name = Kernel_function.get_name kf in
+      let zone reader request =
+        call ~id:(Format.sprintf "inout.%s.%s" reader name)
+          ~family:"inout-function" ~expect:Resolver
+          ~request:(Format.sprintf "Inout.%s %s" reader name)
+          (fun () -> zone_answer (request kf))
+      in
+      zone "kf_inputs" Inout.kf_inputs;
+      zone "kf_external_inputs" Inout.kf_external_inputs;
+      zone "kf_outputs" Inout.kf_outputs;
+      zone "kf_external_outputs" Inout.kf_external_outputs;
+      (* The callwise hooks of InOut compute the effects of each call during
+         the analysis; the function-wise analysis computes those of the
+         functions that are not called. *)
+      call ~id:("inout.precise." ^ name) ~family:"inout-function"
+        ~expect:(if called kf then No_read else Resolver)
+        ~request:("Inout.get_precise_inout " ^ name)
+        (fun () -> inout_answer (Inout.get_precise_inout kf)))
+    (callees_first ());
+  List.iter (fun (kf, caller, stmt) ->
+      let name = statement_name caller stmt ^ "." ^ Kernel_function.get_name kf
+      in
+      call ~id:("inout.call." ^ name) ~family:"inout-callwise" ~expect:No_read
+        ~request:("Inout.get_precise_inout ~stmt " ^ name)
+        (fun () -> inout_answer (Inout.get_precise_inout ~stmt kf)))
+    (analyzed_calls ());
+  List.iter (fun (kf, stmt) ->
+      let name = statement_name kf stmt in
+      let request reader answer =
+        call ~id:(Format.sprintf "inout.%s.%s" reader name)
+          ~family:("inout-" ^ if reader = "expr_inputs" then "expression"
+                   else "statement")
+          ~expect:Resolver ~request:(Format.sprintf "Inout.%s %s" reader name)
+          answer
+      in
+      begin match stmt.skind with
+        | Instr _ ->
+          request "stmt_inputs" (fun () -> zone_answer (Inout.stmt_inputs stmt));
+          request "stmt_outputs"
+            (fun () -> zone_answer (Inout.stmt_outputs stmt))
+        | _ -> ()
+      end;
+      match stmt.skind with
+      | Instr (Set (_, exp, _)) | Return (Some exp, _) when reads_memory exp ->
+        request "expr_inputs"
+          (fun () -> zone_answer (Inout.expr_inputs stmt exp))
+      | _ -> ())
+    (fixture_statements ())
+
+(* Server: the variable filters that InOut registers, as the array of
+   global variables gives them. Each filter is enabled once Eva has
+   computed its results; it then reads InOut's effects of the entry point,
+   which the InOut requests have memoized. *)
+let server_request name json =
+  match Server.Main.find name with
+  | None -> Inout_parameters.abort "server request %s not registered" name
+  | Some _ -> Server.Main.exec name json
+
+let member key = function
+  | `Assoc fields -> Option.value ~default:`Null (List.assoc_opt key fields)
+  | _ -> `Null
+
+(* The rows of a Server array, fully reloaded. *)
+let server_rows package array =
+  let request kind = Format.sprintf "%s.%s%s" package kind array in
+  ignore (server_request (request "reload") `Null);
+  match member "updated" (server_request (request "fetch") (`Int 10_000)) with
+  | `List rows -> rows
+  | _ -> []
+
+let server_filter_requests () =
+  let filters row =
+    let value name =
+      match member "filters" row with
+      | `List filters ->
+        List.find_map (function
+            | `List [ `String n; `Bool b ] when n = name -> Some b
+            | _ -> None)
+          filters
+      | _ -> None
+    in
+    let effects =
+      List.filter_map (fun (name, label) ->
+          match value name with
+          | Some true -> Some label
+          | Some false -> None
+          | None -> Some (label ^ "-disabled"))
+        [ "read", "read"; "written", "written" ]
+    in
+    if effects = [] then "none" else String.concat "," effects
+  in
+  call ~id:"server.globals.filters" ~family:"server-filters" ~expect:Resolver
+    ~request:"kernel.ast.reloadGlobals; kernel.ast.fetchGlobals"
+    (text (fun () ->
+         List.filter_map (fun row ->
+             match member "name" row, member "stringLiteral" row with
+             | `String name, `Bool false -> Some (name ^ ":" ^ filters row)
+             | _ -> None)
+           (server_rows "kernel.ast" "Globals")
+         |> List.sort compare |> String.concat " "))
+
+(* Statuses, alarms and statistics. Eva emits them from its results during
+   the analysis and after it; they are stored apart from its results, and
+   reading them reads neither store. *)
+
+let in_fixture_file loc =
+  List.exists (Filepath.equal (Fileloc.path loc)) (Kernel.Files.get ())
+
+(* The status that Eva emits on each property of the input files, and the
+   consolidated status. *)
+let status_requests () =
+  let properties =
+    Property_status.fold (fun ip acc ->
+        if in_fixture_file (Property.location ip)
+        then (one_line (Format.asprintf "%a" Property.pretty ip), ip) :: acc
+        else acc)
+      []
+    |> List.sort (fun (k1, ip1) (k2, ip2) ->
+        let c =
+          compare (Fileloc.line (Property.location ip1))
+            (Fileloc.line (Property.location ip2))
+        in
+        if c <> 0 then c else compare k1 k2)
+  in
+  let eva = Emitter.get_name Eva.Analysis.emitter in
+  let rec index line i = function
+    | [] -> []
+    | (key, ip) :: tail ->
+      let l = Fileloc.line (Property.location ip) in
+      let i = if l = line then i + 1 else 1 in
+      (Format.sprintf "status.L%d#%d" l i, key, ip) :: index l i tail
+  in
+  List.iter (fun (id, key, ip) ->
+      call ~id ~family:"statuses" ~expect:No_read
+        ~request:("Property_status " ^ key)
+        (text (fun () ->
+             let emitted =
+               Property_status.fold_on_statuses (fun e status acc ->
+                   if Emitter.Usable_emitter.get_name e.emitter = eva
+                   then
+                     Format.asprintf "%a" Property_status.Emitted_status.pretty
+                       status
+                     :: acc
+                   else acc)
+                 ip []
+             in
+             Format.asprintf "%s: eva=%s consolidated=%a" key (words emitted)
+               Property_status.Feedback.pretty
+               (Property_status.Feedback.get ip))))
+    (index 0 0 properties);
+  (* Ivette's view of the properties, with the alarms. *)
+  call ~id:"server.properties" ~family:"statuses" ~expect:No_read
+    ~request:"kernel.properties.reloadStatus; kernel.properties.fetchStatus"
+    (text (fun () ->
+         let field key row =
+           match member key row with
+           | `String s -> s
+           | `Int n -> string_of_int n
+           | `Null -> "-"
+           | json -> Yojson.Basic.to_string json
+         in
+         let base =
+           List.map (fun f -> Filename.basename (Filepath.to_string f))
+             (Kernel.Files.get ())
+         in
+         List.filter_map (fun row ->
+             let source = member "source" row in
+             if List.mem (field "base" source) base then
+               Some (Format.sprintf "L%s %s %s %s"
+                       (field "line" source) (field "kind" row)
+                       (field "alarm" row) (field "status" row))
+             else None)
+           (server_rows "kernel.properties" "Status")
+         |> List.sort compare |> String.concat " | "))
+
+(* The statistics that Eva computes from its results; the statistics of the
+   execution, which other runs need not share, are recorded apart. *)
+let statistics_requests () =
+  let open Eva.Statistics in
+  call ~id:"statistics.semantic" ~family:"statistics" ~expect:No_read
+    ~request:"Eva.Statistics.get alarm_count, stmt_coverage, fun_coverage"
+    (text (fun () ->
+         Format.sprintf "alarm-count=%d stmt-coverage=%.6f fun-coverage=%.6f"
+           (get alarm_count ()) (get stmt_coverage ()) (get fun_coverage ())));
+  if not !quiet then begin
+    let stmts = List.map snd (fixture_statements ()) in
+    let kfs = fixture_functions () in
+    let sum stat elements =
+      `Int (List.fold_left (fun acc x -> acc + get stat x) 0 elements)
+    in
+    let execution = [
+      "memory-usage", `Int (get memory_usage ());
+      "analysis-time", `Float (get analysis_duration ());
+      "iterations", sum iterations stmts;
+      "memexec-hits", sum memexec_hits kfs;
+      "memexec-misses", sum memexec_misses kfs;
+      "max-widenings", sum max_widenings stmts;
+      "max-unrolling", sum max_unrolling stmts;
+      "partitioning-index-hits", `Int (get partitioning_index_hits ());
+      "partitioning-index-misses", `Int (get partitioning_index_misses ());
+    ] in
+    log "execution-statistics %s" (String.concat " " (List.map fst execution));
+    emit (`Assoc [
+        "kind", `String "execution-statistics";
+        "values", `Assoc execution;
+      ])
+  end
+
 let plugin_battery () =
   (* Server's filters and Callgraph ask it before reading Eva's results. *)
   call ~id:"analysis.is_computed" ~family:"availability" ~expect:Resolver
@@ -1205,7 +1543,12 @@ let plugin_battery () =
        let computed = Eva.Analysis.is_computed () in
        string_of_bool computed, Flag computed);
   relation_requests ();
-  guard_requests ()
+  guard_requests ();
+  callgraph_requests ();
+  inout_requests ();
+  server_filter_requests ();
+  status_requests ();
+  statistics_requests ()
 
 (* {2 Header} *)
 
@@ -1240,6 +1583,9 @@ let header mode =
       "argv", `List (Array.to_list Sys.argv |> List.map (fun s -> `String s));
       "plugins", `List (List.sort compare !plugins
                         |> List.map (fun s -> `String s));
+      (* The optional server API of Eva, which the readers do not use. *)
+      "eva_server_api",
+      `Bool (Option.is_some (Server.Main.find "plugins.eva.ast.getCallers"));
       "config", `Assoc (List.map (fun (k, v) -> k, `String v) config);
       "inputs", `List (Kernel.Files.get ()
                        |> List.map (fun f -> `String (Filepath.to_string f)));
