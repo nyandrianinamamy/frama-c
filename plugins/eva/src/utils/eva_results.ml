@@ -127,12 +127,16 @@ let export_states () =
   copy_states Initial;
   states
 
-(* The callers and the analysis status of each function. *)
+(* The callers and the analysis status of each function: from the hit log
+   when it describes the results, from the status table otherwise. *)
 let export_calls () =
   Legacy_read_guard.reader "Eva.Eva_results.export_calls" @@ fun () ->
-  Legacy_read_guard.notify Availability ~store:"analysis-status"
-    (fun fmt -> Format.pp_print_string fmt "all functions");
-  Function_calls.get_results ()
+  match Hit_log.calls () with
+  | Some calls -> calls
+  | None ->
+    Legacy_read_guard.notify Availability ~store:"analysis-status"
+      (fun fmt -> Format.pp_print_string fmt "all functions");
+    Function_calls.get_results ()
 
 let get_results () =
   Legacy_read_guard.reader "Eva.Eva_results.get_results" @@ fun () ->

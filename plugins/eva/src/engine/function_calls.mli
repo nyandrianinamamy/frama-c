@@ -82,3 +82,12 @@ val analysis_status: kernel_function -> analysis_status
 type t
 val get_results: unit -> t
 val set_results: t -> unit
+
+(** Merges the analysis statuses of two calls to the same function, as the
+    status table does. *)
+val merge_status: analysis_status -> analysis_status -> analysis_status
+
+(** [make_results statuses relations]: the analysis status of each function
+    of [statuses], and its callers in [relations], as {!get_results}
+    exports them. *)
+val make_results: analysis_status Kernel_function.Map.t -> relations -> t

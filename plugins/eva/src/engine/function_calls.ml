@@ -206,6 +206,15 @@ let get_results () =
        Kernel_function.Map.add kf (status, callers) acc)
     Kernel_function.Map.empty
 
+let make_results statuses relations =
+  Kernel_function.Map.mapi (fun kf status ->
+      let callers =
+        Kernel_function.Map.find_opt kf relations
+        |> Option.value ~default:Kernel_function.Map.empty
+      in
+      status, callers)
+    statuses
+
 let set_results =
   let register kf (status, callers) =
     StatusTable.replace kf status;

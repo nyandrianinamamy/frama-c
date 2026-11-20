@@ -11,7 +11,9 @@
    The guard records every legacy read and every answer of the hit log. The
    environment variable FORBID lists the migrated readers whose legacy reads
    abort the run: [display] (final values), [init] (label Init), [export]
-   (states of a snapshot) and [replay] (requests on restored results). *)
+   (the export of a snapshot, its states, and the callers and analysis
+   status of each function, and its restoration) and [replay] (requests on
+   restored results). *)
 
 open Cil_types
 
@@ -23,9 +25,9 @@ let log fmt = Format.printf ("[reconstructed] " ^^ fmt ^^ "@.")
 (* ----- Guard -------------------------------------------------------------- *)
 
 let labels = [
-  "display", "Eva.Cvalue_domain.display_final_state";
-  "init", "Eva.Eval_terms.add_init";
-  "export", "Eva.Eva_results.export_states";
+  "display", [ "Eva.Cvalue_domain.display_final_state" ];
+  "init", [ "Eva.Eval_terms.add_init" ];
+  "export", [ "Eva.Eva_results.get_results"; "Eva.Eva_results.set_results" ];
 ]
 
 let forbidden =
@@ -38,7 +40,10 @@ let forbidden =
 let arm ~replay =
   let trap = replay && List.mem "replay" forbidden in
   Guard.arm (if trap then Guard.Trap [ Guard.Request ] else Guard.Record);
-  Guard.forbid (List.filter_map (fun n -> List.assoc_opt n labels) forbidden)
+  Guard.forbid
+    (List.concat_map (fun n -> Option.value ~default:[]
+                         (List.assoc_opt n labels))
+       forbidden)
 
 (* Whether some reads were logged. The exact counts depend on the readers
    that other changes migrate, such as the nested requests of InOut. *)
@@ -46,7 +51,8 @@ let some_reads = function
   | [] -> "no legacy read"
   | _ :: _ -> "legacy reads"
 
-let read_by label (r : Guard.read) = List.mem label r.readers
+let read_by labels (r : Guard.read) =
+  List.exists (fun label -> List.mem label r.readers) labels
 
 (* ----- Program ------------------------------------------------------------ *)
 
@@ -156,12 +162,15 @@ let replay fmt =
   answer "before D empty" Format.pp_print_bool R.(before d |> is_empty);
   answer "before D" model R.(before d |> get_cvalue_model_result)
 
-(* The status table of f, which Eva.Results.are_available and
-   Eva.Analysis.status read. *)
+(* The status table, which Eva.Results.are_available and Eva.Analysis.status
+   read. On restored results, it holds what the snapshot exported. *)
 let metadata fmt =
   let f = Kernel_function.find_englobing_kf (labelled "P") in
   Format.fprintf fmt "f available: %b@." (R.are_available f);
-  Format.fprintf fmt "f status: %s@." (pretty_status (Eva.Analysis.status f))
+  Format.fprintf fmt "f status: %s@." (pretty_status (Eva.Analysis.status f));
+  let main = fst (Globals.entry_point ()) in
+  Format.fprintf fmt "main status: %s@."
+    (pretty_status (Eva.Analysis.status main))
 
 (* The directory of the answers, from the environment variable ANSWERS. *)
 let directory = Option.value ~default:"." (Sys.getenv_opt "ANSWERS")
@@ -204,8 +213,8 @@ let analyze ~step ~g ~n =
   statuses ();
   write_answers ~replay:false ("fresh-" ^ step);
   let results, reads = Guard.observe Eva.Eva_results.get_results in
-  let states = List.filter (read_by (List.assoc "export" labels)) reads in
-  log "snapshot %s: states exported with %s" step (some_reads states);
+  let export = List.filter (read_by (List.assoc "export" labels)) reads in
+  log "snapshot %s: exported with %s" step (some_reads export);
   results
 
 let restore ~step results =
@@ -226,7 +235,7 @@ let summary () =
   let snapshot label = String.starts_with ~prefix:"Eva.Eva_results." label in
   let covered (r : Guard.read) =
     List.exists snapshot r.readers
-    || List.exists (fun (_, label) -> read_by label r) labels
+    || List.exists (fun (_, labels) -> read_by labels r) labels
   in
   let key (r : Guard.read) =
     Guard.phase_name r.phase, String.concat ">" r.readers,
@@ -243,10 +252,11 @@ let summary () =
         phase readers access store)
     (List.rev order);
   let resolutions = Guard.resolutions () in
-  List.iter (fun (name, label) ->
-      let reads = List.filter (read_by label) reads
+  List.iter (fun (name, labels) ->
+      let reads = List.filter (read_by labels) reads
       and served =
-        List.filter (fun r -> List.mem label r.Guard.resolved_readers)
+        List.filter (fun r ->
+            List.exists (fun l -> List.mem l r.Guard.resolved_readers) labels)
           resolutions
       in
       log "%s: %s, %s" name (some_reads reads)

@@ -11,14 +11,14 @@ fresh-2, restored-1 and restored-2. See the script for the requests.
 
 Candidate. The guard records every legacy read. FORBID makes the first
 legacy read of a migrated reader abort the run: the final printing
-(display), the label Init (init), the states of a snapshot (export), and
-every read of the requests replayed on restored results (replay). The run
-completes. The checks, which read the label Init, are valid with the
-supplied g = 7 and invalid with g = 3, and keep their status once
-restored. The script lists the reads of the migrated readers and of the
-snapshot functions only: the one that remains is the copy of the callers
-and analysis status of each function by the snapshot export, which the
-migration of the metadata covers. The hit log served each migrated reader.
+(display), the label Init (init), the export of a snapshot, with its
+states and the callers and analysis status of each function, and its
+restoration (export), and every read of the requests replayed on restored
+results (replay). The run completes. The checks, which read the label
+Init, are valid with the supplied g = 7 and invalid with g = 3, and keep
+their status once restored. The script lists the reads of the migrated
+readers and of the snapshot functions only: none remains. The hit log
+served each migrated reader.
   $ mkdir candidate reference
   $ FORBID=display,init,export,replay ANSWERS=candidate frama-c -no-autoload-plugins -load-module eva,inout,reconstructed.cmxs -eva-domains cvalue -eva-no-memexec inputs.i > candidate.log 2>&1
   $ grep -e "^\[reconstructed\]" -e "legacy result-store" candidate.log
@@ -26,12 +26,12 @@ migration of the metadata covers. The hit log served each migrated reader.
   [reconstructed] status f_init: VALID
   [reconstructed] status main_init: VALID
   [reconstructed] fresh-1: replayed with no legacy read
-  [reconstructed] snapshot 1: states exported with no legacy read
+  [reconstructed] snapshot 1: exported with no legacy read
   [reconstructed] analysis 2: g = 3 in the supplied memory, n = 20
   [reconstructed] status f_init: **NOT** VALID
   [reconstructed] status main_init: **NOT** VALID
   [reconstructed] fresh-2: replayed with no legacy read
-  [reconstructed] snapshot 2: states exported with no legacy read
+  [reconstructed] snapshot 2: exported with no legacy read
   [reconstructed] snapshot 1: restored with no legacy read
   [reconstructed] status f_init: VALID
   [reconstructed] status main_init: VALID
@@ -40,7 +40,6 @@ migration of the metadata covers. The hit log served each migrated reader.
   [reconstructed] status f_init: **NOT** VALID
   [reconstructed] status main_init: **NOT** VALID
   [reconstructed] restored-2: replayed with no legacy read
-  [reconstructed] read phase=request readers=Eva.Eva_results.get_results>Eva.Eva_results.export_calls access=availability store=analysis-status
   [reconstructed] display: no legacy read, answers of the hit log
   [reconstructed] init: no legacy read, answers of the hit log
   [reconstructed] export: no legacy read, answers of the hit log
@@ -51,9 +50,9 @@ serves none.
   $ ANSWERS=reference frama-c -no-autoload-plugins -load-module eva,inout,reconstructed.cmxs -eva-domains cvalue -eva-no-memexec -eva-no-hit-log inputs.i > reference.log 2>&1
   $ grep -e "replayed" -e "exported" -e "restored with" -e "hit log" -e "legacy result-store" reference.log
   [reconstructed] fresh-1: replayed with legacy reads
-  [reconstructed] snapshot 1: states exported with legacy reads
+  [reconstructed] snapshot 1: exported with legacy reads
   [reconstructed] fresh-2: replayed with legacy reads
-  [reconstructed] snapshot 2: states exported with legacy reads
+  [reconstructed] snapshot 2: exported with legacy reads
   [reconstructed] snapshot 1: restored with no legacy read
   [reconstructed] restored-1: replayed with legacy reads
   [reconstructed] snapshot 2: restored with no legacy read
@@ -147,6 +146,7 @@ after the first was saved.
     error bottom
   f available: true
   f status: analyzed complete
+  main status: analyzed complete
 
 Unavailable results. Without saved results for f, the states at P are
 unavailable: Top, not Bottom, on each callstack and joined, and P is
@@ -203,6 +203,7 @@ D stays unreachable.
     error bottom
   f available: false
   f status: analyzed without results
+  main status: analyzed complete
 
 The reference differs on two answers, the same after each analysis and
 each restoration, where the hit log answers by design otherwise than the
@@ -225,8 +226,9 @@ empty, whereas the legacy store finds no callstack at P.
 
 Positive controls. On the legacy path, the same traps abort the run on the
 first read of each migrated reader: the label Init during the analysis,
-the final printing after it, the export of the states of the first
-snapshot, and the first request replayed on the restored results.
+the final printing after it, the export of the first snapshot, whose
+first read is that of its states, and the first request replayed on the
+restored results.
   $ FORBID=init frama-c -no-autoload-plugins -load-module eva,inout,reconstructed.cmxs -eva-domains cvalue -eva-no-memexec -eva-no-hit-log inputs.i > control-init.log 2>&1
   [1]
   $ grep -e "legacy result-store" control-init.log

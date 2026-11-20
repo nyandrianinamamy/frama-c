@@ -289,6 +289,16 @@ val computed: unit -> bool option
     unresolved. *)
 val analyzed: Kernel_function.t -> bool option
 
+(** The analysis status and the callers of each function that the analysis
+    called, as the status table and the table of call relations record
+    them, once the analysis has ended. The statuses of the invocations of a
+    function are merged in the order of the calls, as the status table
+    merges them. Returns [None] when the records do not describe the
+    current results, before the analysis has ended, when the records
+    contain a memexec hit, and when an invocation is unresolved. Each
+    answer is reported to {!Legacy_read_guard}. *)
+val calls: unit -> Function_calls.t option
+
 (** {2 Snapshots} *)
 
 (** [stored_states point] is the state of each callstack that reaches

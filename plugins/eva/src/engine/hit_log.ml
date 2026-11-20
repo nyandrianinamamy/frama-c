@@ -36,6 +36,9 @@ type producer = {
   entries: state list;
   points: points option;
   guards: guards; (* recorded even when the states are not *)
+  saved: bool;
+  (* whether Eva saves the results of the function, even when the hit log
+     does not record states *)
 }
 
 type completion = Recording | Complete | Interrupted
@@ -202,16 +205,17 @@ let body stack ~producer ~complete ~entries ~points ~guards =
     | Some invocation ->
       let log = !current in
       let kf = Callstack.top_kf stack in
+      let saved = Option.is_some points in
       let points =
         if log.states then begin
-          if Option.is_none points
+          if not saved
           then Kernel_function.Hashtbl.replace log.no_results kf ();
           Option.map Lazy.force points
         end
         else None
       in
       Hashtbl.replace log.producers producer
-        { kf; complete; entries; points; guards };
+        { kf; complete; entries; points; guards; saved };
       invocation.kind <- Body producer
 
 (* ----- Resolver ----------------------------------------------------------- *)
@@ -862,6 +866,49 @@ let relations () =
       Some relations
 
 let () = Function_calls.set_recorded_relations relations
+
+(* The analysis status of an invocation, as the status table registers it
+   when the analysis chooses how to interpret the call. *)
+let status_of log invocation =
+  match invocation.kind with
+  | Body id | Hit id ->
+    let status (producer : producer) : Function_calls.analysis_status =
+      Analyzed (if producer.saved then Complete else NoResults)
+    in
+    Option.map status (Hashtbl.find_opt log.producers id)
+  | Spec -> Some Function_calls.SpecUsed
+  | Builtin name -> Some (Function_calls.Builtin name)
+  | Unresolved -> None
+
+let calls () =
+  let log = !current in
+  if not (usable ()) || log.completion = Recording then None
+  else
+    match relations () with
+    | None -> None
+    | Some relations ->
+      let exception Unknown in
+      (* The status table merges the statuses in the order of the calls. *)
+      let status invocations =
+        match List.rev_map (status_of log) invocations with
+        | [] -> raise Unknown
+        | first :: rest ->
+          let get = function Some s -> s | None -> raise Unknown in
+          List.fold_left (fun acc s -> Function_calls.merge_status acc (get s))
+            (get first) rest
+      in
+      match
+        Kernel_function.Hashtbl.fold (fun kf invocations statuses ->
+            Kernel_function.Map.add kf (status invocations) statuses)
+          log.by_kf Kernel_function.Map.empty
+      with
+      | exception Unknown -> None
+      | statuses ->
+        Legacy_read_guard.resolved
+          (fun fmt -> Format.pp_print_string fmt "all functions")
+          (fun fmt -> Format.pp_print_string fmt
+              "analysis status and callers of each function");
+        Some (Function_calls.make_results statuses relations)
 
 (* ----- Snapshots -------------------------------------------------------- *)
 

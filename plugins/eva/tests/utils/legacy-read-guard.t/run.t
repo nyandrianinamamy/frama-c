@@ -59,9 +59,9 @@ analysis, the readers through Eva.Results, the marking of postconditions
 and the final printing are resolved, and the store is not consolidated.
 The requests on a supplied stack, on several stacks and on none are
 resolved without legacy read, except the availability readers. The
-snapshot export rebuilds its states from the hit log; its copy of the
-callers and analysis status of each function reads the status table. The
-request on a supplied state reads nothing.
+snapshot export rebuilds its states, and the callers and the analysis
+status of each function, from the hit log. The request on a supplied state
+reads nothing.
   $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-no-memexec -inout-state-query-acceptance candidate -inout-state-query-acceptance-output candidate.jsonl legacy-reads.i > candidate.log 2>&1
   $ grep -e "^\[acceptance\]" candidate.log
   [acceptance] mode=candidate guard=record
@@ -109,6 +109,6 @@ request on a supplied state reads nothing.
   [acceptance] visits main.main body#3: 1 entries survive the preconditions; input:; g ∈ {0}; y ∈ {0}
   [acceptance] call inout.call-f@15 legacy-reads=0 resolved=0 answer=Operational inputs:; x; Operational inputs on termination:; x; Sure outputs:; y; Over outputs:; y; Over outputs on termination:; y; Logic inputs:; \nothing
   [acceptance] call inout.call-f@18 legacy-reads=0 resolved=0 answer=Operational inputs:; x; Operational inputs on termination:; x; Sure outputs:; y; Over outputs:; y; Over outputs on termination:; y; Logic inputs:; \nothing
-  [acceptance] call export.get_results legacy-reads=1 resolved=27 answer=exported
+  [acceptance] call export.get_results legacy-reads=0 resolved=28 answer=exported
   [acceptance] call supplied-state.eval legacy-reads=0 resolved=0 answer={5}
-  [acceptance] accounting logged=36 attributed=36
+  [acceptance] accounting logged=35 attributed=35
