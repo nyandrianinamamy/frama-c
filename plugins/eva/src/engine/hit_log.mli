@@ -37,8 +37,8 @@
     [-eva-no-results] or [-eva-no-results-domain cvalue], they record the
     invocations and how they were interpreted, and every state is
     unavailable. The resolver declines a request on a memexec hit, or below
-    one, whose states it cannot rebuild yet, and every request on several
-    callstacks or none once the records contain a hit. When it declines,
+    one, whose states it cannot rebuild yet, and the requests on several
+    callstacks or none that depend on a hit. When it declines,
     the request reads the legacy store. The records are not saved with the
     project, and clearing the results of Eva invalidates them. *)
 
@@ -162,11 +162,13 @@ val resolve:
 (** [resolve_by_callstack point] rebuilds the state at [point] on each
     callstack that reaches it, each as {!resolve} does, in the order in
     which the legacy store enumerates them: [`Bottom] if no callstack
-    reaches the point, [`Top] if the results of its function are not
-    recorded. Returns [None] when the resolver declines, which it does
-    whenever the records contain a memexec hit, and unless the analysis
-    completed with its states recorded: an unfiltered request on pending,
-    interrupted or unrecorded results reads the legacy store. *)
+    reaches the point in a completed analysis. It answers [`Top] when the
+    results are pending or not recorded. After an interrupted analysis, it
+    answers [`Top] unless each recorded callstack of the function is
+    classified and one of them reaches the point: never [`Bottom]. Returns
+    [None] when the resolver declines, which it does whenever the records
+    contain a memexec hit, except, after an interrupted analysis, at a
+    point that no recorded callstack reaches: the answer is then [`Top]. *)
 val resolve_by_callstack:
   Domain_store.control_point ->
   (Callstack.t * state) list Lattice_bounds.or_top_bottom option

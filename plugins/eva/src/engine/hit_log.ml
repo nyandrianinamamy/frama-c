@@ -443,14 +443,18 @@ let reach ?callstacks ?(filter = fun _ -> true) point =
         let unknown =
           List.find_map (function `Unknown r -> Some r | _ -> None) answers
         in
+        (* A function called below a hit has no recorded invocation. *)
+        let hidden = not supplied && log.has_hit in
         if List.mem `Reaching answers then Some Reaching
+        else if log.completion = Interrupted
+             && (stacks = [] || hidden || List.mem `Decline answers)
+        then
+          (* The rest of the analysis could reach the point, on a callstack
+             that it has not entered or below a memexec hit. *)
+          Some (Unknown Interrupted)
         else if List.mem `Decline answers then None
         else if Option.is_some unknown then Some (Unknown (Option.get unknown))
-        else if not supplied && log.has_hit then
-          (* A function called below a hit has no recorded invocation. *)
-          None
-        else if stacks = [] && log.completion = Interrupted
-        then Some (Unknown Interrupted)
+        else if hidden then None
         else Some Not_reaching
     in
     Option.iter (fun _ ->
@@ -530,32 +534,54 @@ let registrations log (point : Domain_store.control_point) =
 
 (* The state at [point] on each callstack that reaches it, each classified
    as by [classify_on], in the order of the legacy store; [`Bottom] if no
-   callstack reaches it, [`Top] if the results of its function are not
-   recorded. Declines when the records contain a memexec hit: the
-   callstacks below a hit, and its points, are not recorded yet. Declines
-   also unless the analysis completed with its states recorded: these
-   answers do not tell unavailable results yet. *)
+   callstack reaches it in a completed analysis. The answer is [`Top] when
+   the results are pending or not recorded. After an interrupted analysis,
+   it is [`Top] unless each recorded callstack of the function is
+   classified, and one of them reaches the point; the records then say
+   nothing of the callstacks that the analysis did not enter. Declines
+   when the records contain a memexec hit, since the callstacks below a
+   hit, and its points, are not recorded yet; after an interrupted
+   analysis, only at a point that a recorded callstack reaches, and the
+   answer is [`Top] at the others. *)
 let rebuild_by_callstack log (point : Domain_store.control_point) =
-  if log.has_hit || log.completion <> Complete || not log.states
-  then raise Decline;
-  let no_results =
-    match point with
-    | Initial | Start _ -> false
-    | Before stmt | After stmt ->
-      Kernel_function.Hashtbl.mem log.no_results
-        (Kernel_function.find_englobing_kf stmt)
+  let in_order answer =
+    List.filter_map answer (store_order (registrations log point))
   in
-  if no_results then `Top
-  else
+  match log.completion, function_level log point with
+  | Recording, _ | _, Some _ -> `Top
+  | Complete, None ->
+    if log.has_hit then raise Decline;
     let answer stack =
       match fst (classify_on log stack point) with
       | Reached state -> Some (stack, state)
       | Unreachable | Not_analyzed -> None
       | Unavailable _ -> raise Decline
     in
-    match List.filter_map answer (store_order (registrations log point)) with
-    | [] -> `Bottom
-    | list -> `Value list
+    begin match in_order answer with
+      | [] -> `Bottom
+      | list -> `Value list
+    end
+  | Interrupted, None ->
+    let classified stack =
+      match fst (classify_on log stack point) with
+      | Reached _ | Unreachable | Not_analyzed -> true
+      | Unavailable _ -> false
+      | exception Decline -> false
+    in
+    let stacks = recorded_stacks log point in
+    let reaching stack = reach_on log stack point = `Reaching in
+    if log.has_hit then
+      if List.exists reaching stacks then raise Decline else `Top
+    else if stacks = [] || not (List.for_all classified stacks) then `Top
+    else
+      let answer stack =
+        match fst (classify_on log stack point) with
+        | Reached state -> Some (stack, state)
+        | Unreachable | Not_analyzed | Unavailable _ -> None
+      in
+      match in_order answer with
+      | [] -> `Top
+      | list -> `Value list
 
 (* Joins the states of all callstacks as the legacy consolidation does:
    in the order of the store, each new state on the left. *)
@@ -578,8 +604,10 @@ let memo table point compute =
     Domain_store.ControlPoint.Hashtbl.replace table point answer;
     answer
 
+(* The answers are final once the analysis has ended. *)
 let by_callstack log point =
-  memo log.by_callstack point (fun () -> rebuild_by_callstack log point)
+  if log.completion = Recording then rebuild_by_callstack log point
+  else memo log.by_callstack point (fun () -> rebuild_by_callstack log point)
 
 (* The callstacks of an answer and the kinds of their visits. *)
 let pretty_stacks answer fmt =
@@ -608,7 +636,8 @@ let resolve_by_callstack point = resolve_all point (fun _ answer -> answer)
 
 let resolve_consolidated point =
   resolve_all point (fun log answer ->
-      memo log.consolidated point (fun () -> consolidate answer))
+      if log.completion = Recording then consolidate answer
+      else memo log.consolidated point (fun () -> consolidate answer))
 
 let pretty_visits fmt stack =
   let log = !current in

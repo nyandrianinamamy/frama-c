@@ -12,7 +12,7 @@ without the hit log; the candidate runs it with the hit log. A line
 "internal" gives, for each callstack, the answer of the hit log before its
 public conversion.
 
-  $ answers () { sed -n 's/^\[acceptance\] call \([^ ]*\) legacy-reads=[^ ]* resolved=[^ ]* answer=/\1 /p' "$1"; }
+  $ answers () { sed -n 's/^\[acceptance\] call \([^ ]*\) legacy-reads=[^ ]* resolved=[^ ]* answer=/\1 /p' "$1" | sed 's/ $//'; }
   $ run () { mode=$1; log=$2; shift 2; frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-no-memexec -inout-state-query-acceptance "$mode" "$@" > "$log" 2>&1; }
 
 The migrated readers are the requests on one callstack, is_reachable,
@@ -93,6 +93,14 @@ callstack that the native comparison finds different is one of them.
   $ answers interrupted-reference.log > interrupted-reference.txt
   $ answers interrupted.log > interrupted.txt
   $ diff interrupted-reference.txt interrupted.txt
+  10c10
+  < reach.R.stacks main/f@18
+  ---
+  > reach.R.stacks
+  14c14
+  < reach.R.model-before g ∈ {0}; x ∈ {1}
+  ---
+  > reach.R.model-before NO INFORMATION
   21,24c21,24
   < reach.R.before.main/f@19 error bottom
   < reach.R.after.main/f@19 error bottom
@@ -103,14 +111,16 @@ callstack that the native comparison finds different is one of them.
   > reach.R.after.main/f@19 error top
   > reach.R.reachable-pos.main/f@19 true
   > reach.R.empty.main/f@19 false
-  26,28c26,28
+  26,29c26,29
   < reach.L.reachable false
   < reach.L.empty-before true
   < reach.L.empty-after true
+  < reach.L.model-before error bottom
   ---
   > reach.L.reachable true
   > reach.L.empty-before false
   > reach.L.empty-after false
+  > reach.L.model-before NO INFORMATION
   32,35c32,35
   < reach.L.before.main error bottom
   < reach.L.after.main error bottom
@@ -131,20 +141,88 @@ callstack that the native comparison finds different is one of them.
   [acceptance] internal L.main before=unavailable (interrupted) after=unavailable (interrupted)
   $ run reach-native interrupted-native.log interrupted.i
   $ grep -e "equal=false" -e "native compared" interrupted-native.log
+  [acceptance] native reach.R.model-before equal=false reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
   [acceptance] native reach.R.before.main/f@19 equal=false reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
   [acceptance] native reach.R.after.main/f@19 equal=false reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
+  [acceptance] native reach.L.model-before equal=false reference-reads=3 reference-resolved=0 legacy-reads=0 resolved=1
   [acceptance] native reach.L.before.main equal=false reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
   [acceptance] native reach.L.after.main equal=false reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
-  [acceptance] native compared=12 differing=4
+  [acceptance] native compared=12 differing=6
 
+Without callstack, the legacy store answers Bottom at L, and the state of
+the first call alone at R. The hit log answers Top at both, as for any
+request on several callstacks or none after an interrupted analysis,
+unless each recorded callstack of the function is classified and one of
+them reaches the point. Top has no callstack: the enumeration is empty.
 Not corrected: Eva.Analysis.status answers analyzed complete after an
-interrupted analysis, although its documentation says partial; the model
-without callstack still reads the legacy store, and is Bottom at L and the
-state of the first call alone at R.
-  $ grep -e "call fn\.f\.status" -e "call reach\.[RL]\.model-before" interrupted.log
+interrupted analysis, although its documentation says partial.
+  $ grep -e "call fn\.f\.status" -e "call reach\.[RL]\.\(model-before\|stacks\)" interrupted.log
   [acceptance] call fn.f.status legacy-reads=1 resolved=0 answer=analyzed complete
-  [acceptance] call reach.R.model-before legacy-reads=4 resolved=0 answer=g ∈ {0}; x ∈ {1}
-  [acceptance] call reach.L.model-before legacy-reads=3 resolved=0 answer=error bottom
+  [acceptance] call reach.R.stacks legacy-reads=0 resolved=1 answer=
+  [acceptance] call reach.R.model-before legacy-reads=0 resolved=1 answer=NO INFORMATION
+  [acceptance] call reach.L.stacks legacy-reads=0 resolved=1 answer=
+  [acceptance] call reach.L.model-before legacy-reads=0 resolved=1 answer=NO INFORMATION
+
+Interrupted analysis with memexec. The second call to h is a memexec hit
+on the first; the second call to f then stops the analysis, after R, and
+later is never entered. The legacy store has no state at Z nor at L, and
+answers that they are unreachable. The hit log answers that the analysis
+could still reach them: Z is not dead although no callstack of later is
+recorded. At Z and L, which no recorded callstack reaches, the requests on
+several callstacks or none answer Top. At R, which both calls to f
+reached, they read the legacy store, as in any analysis with a memexec
+hit: the callstacks below a hit are not recorded.
+  $ run reach-reference hit-reference.log interrupted-hit.i -eva-memexec
+  $ run reach-candidate hit.log interrupted-hit.i -eva-memexec
+  $ answers hit-reference.log > hit-reference.txt
+  $ answers hit.log > hit.txt
+  $ diff hit-reference.txt hit.txt
+  34,37c34,37
+  < reach.Z.reachable false
+  < reach.Z.empty-before true
+  < reach.Z.empty-after true
+  < reach.Z.model-before error bottom
+  ---
+  > reach.Z.reachable true
+  > reach.Z.empty-before false
+  > reach.Z.empty-after false
+  > reach.Z.model-before NO INFORMATION
+  41,44c41,44
+  < reach.L.reachable false
+  < reach.L.empty-before true
+  < reach.L.empty-after true
+  < reach.L.model-before error bottom
+  ---
+  > reach.L.reachable true
+  > reach.L.empty-before false
+  > reach.L.empty-after false
+  > reach.L.model-before NO INFORMATION
+  47,50c47,50
+  < reach.L.before.main error bottom
+  < reach.L.after.main error bottom
+  < reach.L.reachable-pos.main false
+  < reach.L.empty.main true
+  ---
+  > reach.L.before.main error top
+  > reach.L.after.main error top
+  > reach.L.reachable-pos.main true
+  > reach.L.empty.main false
+  [1]
+  $ served hit.log
+  0
+  $ grep -e "call reach\.[RZL]\.\(stacks\|reachable\|empty-before\|model-before\) " hit.log
+  [acceptance] call reach.R.stacks legacy-reads=4 resolved=0 answer=main/f@25 main/f@26
+  [acceptance] call reach.R.reachable legacy-reads=0 resolved=1 answer=true
+  [acceptance] call reach.R.empty-before legacy-reads=0 resolved=1 answer=false
+  [acceptance] call reach.R.model-before legacy-reads=5 resolved=0 answer=g ∈ {1}; x ∈ {0; 1}; n ∈ {1; 2}
+  [acceptance] call reach.Z.stacks legacy-reads=0 resolved=1 answer=
+  [acceptance] call reach.Z.reachable legacy-reads=0 resolved=1 answer=true
+  [acceptance] call reach.Z.empty-before legacy-reads=0 resolved=1 answer=false
+  [acceptance] call reach.Z.model-before legacy-reads=0 resolved=1 answer=NO INFORMATION
+  [acceptance] call reach.L.stacks legacy-reads=0 resolved=1 answer=
+  [acceptance] call reach.L.reachable legacy-reads=0 resolved=1 answer=true
+  [acceptance] call reach.L.empty-before legacy-reads=0 resolved=1 answer=false
+  [acceptance] call reach.L.model-before legacy-reads=0 resolved=1 answer=NO INFORMATION
 
 Results that are not recorded. With -eva-no-results-function f, the
 states of f are not recorded; with -eva-no-results-domain cvalue or
@@ -251,10 +329,10 @@ model without callstack, reachable, and no callstack.
   [acceptance] call fn.f.available legacy-reads=1 resolved=0 answer=true
   [acceptance] call fn.f.start.main/f@38 legacy-reads=0 resolved=1 answer=error top
   [acceptance] call fn.f.start.main/f@39 legacy-reads=0 resolved=1 answer=error top
-  [acceptance] call reach.C.stacks legacy-reads=2 resolved=0 answer=
+  [acceptance] call reach.C.stacks legacy-reads=0 resolved=1 answer=
   [acceptance] call reach.C.reachable legacy-reads=0 resolved=1 answer=true
   [acceptance] call reach.C.empty-before legacy-reads=0 resolved=1 answer=false
-  [acceptance] call reach.C.model-before legacy-reads=2 resolved=0 answer=NO INFORMATION
+  [acceptance] call reach.C.model-before legacy-reads=0 resolved=1 answer=NO INFORMATION
   [acceptance] call reach.C.before.main legacy-reads=0 resolved=1 answer=error top
   [acceptance] call reach.C.reachable-pos.main legacy-reads=0 resolved=1 answer=true
 
