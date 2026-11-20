@@ -201,7 +201,7 @@ let add_old = add_logic Logic_const.old_label
 (* Init is a bit special, it is constant and always added to the initial state*)
 let add_init states =
   Legacy_read_guard.reader "Eva.Eval_terms.add_init" @@ fun () ->
-  match Cvalue_results.get_state Initial with
+  match Cvalue_reads.initial_state () with
   | `Bottom | `Top -> states
   | `Value state -> add_logic Logic_const.init_label state states
 

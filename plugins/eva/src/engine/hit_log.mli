@@ -138,6 +138,18 @@ type answer =
   (** The records do not tell. One unavailable visit makes the whole
       callstack unavailable. *)
 
+(** Whether the records describe the current results. The resolver then
+    answers every request on them, except those it declines. *)
+val describes_results: unit -> bool
+
+(** The initialized globals that {!initial} recorded, before the binding of
+    the formals of the entry point, as the logic label Init reads them. The
+    state is final once recorded, and is answered while the analysis runs:
+    [`Bottom] before it is recorded, [`Top] when the states are not
+    recorded. Returns [None] when the records do not describe the current
+    results. Each answer is reported to {!Legacy_read_guard}. *)
+val initial_state: unit -> state Lattice_bounds.or_top_bottom option
+
 (** [classify ~callstack point] answers from the records. Returns [None]
     when the records do not describe the current results, and on the
     points of a memexec hit and of the callstacks below one, whose states
@@ -240,6 +252,31 @@ type reach =
 val reach:
   ?callstacks:Callstack.t list -> ?filter:(Callstack.t -> bool) ->
   Domain_store.control_point -> reach option
+
+(** {2 Snapshots} *)
+
+(** [stored_states point] is the state of each callstack that reaches
+    [point], in the order of the legacy store, rebuilt from the records
+    once the analysis has ended. It is what the legacy store records at
+    [point], and is empty where the states are not recorded. Returns [None]
+    when the resolver declines, or when the state of a callstack that
+    reaches the point is unavailable. Each answer is reported to
+    {!Legacy_read_guard}. *)
+val stored_states:
+  Domain_store.control_point -> (Callstack.t * state) list option
+
+(** The records of the results of an ended analysis. *)
+type snapshot
+
+(** The records of the current results, if they describe them and the
+    analysis has ended. *)
+val snapshot: unit -> snapshot option
+
+(** [restore snapshot] makes [snapshot] the records of the current results:
+    the resolver answers each request as it did on the results that
+    [snapshot] describes. Clearing the results of Eva invalidates them:
+    restore the snapshot after the changes that clear the results. *)
+val restore: snapshot -> unit
 
 val pretty_answer: Format.formatter -> answer -> unit
 val pretty_reach: Format.formatter -> reach -> unit

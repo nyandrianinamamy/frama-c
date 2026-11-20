@@ -59,9 +59,15 @@ type mode =
       phases. The guard then falls back to [Record]. *)
 
 (** Phases and readers are only tracked while the guard is armed: arm it
-    before running the analysis. *)
+    before running the analysis. Arming the guard clears {!forbid}. *)
 val arm: mode -> unit
 val mode: unit -> mode
+
+(** [forbid labels] traps the reads made on behalf of the readers [labels],
+    in addition to the mode, while the guard is armed: the first read whose
+    enclosing readers include one of [labels] aborts Eva, in any phase, as a
+    read trapped by the mode does. The guard then falls back to [Record]. *)
+val forbid: string list -> unit
 
 (** [during phase f] runs [f] in [phase]. *)
 val during: phase -> (unit -> 'a) -> 'a
@@ -97,6 +103,8 @@ type resolution = {
   (** The control point and callstack. *)
   visits: string;
   (** The invocations used, with their kind and producer. *)
+  resolved_readers: string list;
+  (** Labels of the enclosing readers, outermost first. *)
 }
 
 (** [resolved point visits] is called by the resolver on each answer. The

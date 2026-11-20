@@ -76,37 +76,25 @@ module Make_Domain (Abstract: Abstractions.S) = struct
       let list = List.filter_map get_state callstacks in
       if list = [] then `Bottom else `Value list
 
-    (* The cvalue domain prints the final states of each function from the
-       consolidated states before its statements. On the legacy path, the
-       marking of unreachable statements requests all of them, and the
-       requests consolidate them on demand, even without [join_results].
-       The hit log serves these requests without consolidating: they are
-       consolidated here for every analyzed function, including those
-       for which some calls used the specification. The other states are
-       consolidated with [join_results] only. *)
-    let compute_consolidated_states ~join_results =
-      let compute control_point =
-        ignore (compute_consolidated_state control_point)
+    let compute_consolidated_states () =
+      let compute_initial_state kf =
+        ignore (compute_consolidated_state (Start kf));
       in
-      let compute_stmt_states ~after stmt =
-        compute (Before stmt);
-        if after then compute (After stmt)
+      let compute_stmt_state stmt =
+        ignore (compute_consolidated_state (Before stmt));
+        ignore (compute_consolidated_state (After stmt));
       in
       let compute_kf_states kf =
         Legacy_read_guard.reader "Eva.Engine.consolidate" @@ fun () ->
         Legacy_read_guard.notify Availability ~store:"analysis-status"
           (fun fmt -> Kernel_function.pretty fmt kf);
-        let statements ~after =
-          let fundec = Kernel_function.get_definition kf in
-          List.iter (compute_stmt_states ~after) fundec.sallstmts
-        in
         match Function_calls.analysis_status kf with
-        | Unreachable | Analyzed NoResults -> ()
-        | SpecUsed | Builtin _ -> if join_results then compute (Start kf)
-        | Analyzed Partial -> statements ~after:false
+        | Unreachable | Analyzed NoResults | Analyzed Partial -> ()
+        | SpecUsed | Builtin _ -> compute_initial_state kf
         | Analyzed Complete ->
-          if join_results then compute (Start kf);
-          statements ~after:join_results
+          compute_initial_state kf;
+          let fundec = Kernel_function.get_definition kf in
+          List.iter compute_stmt_state fundec.sallstmts
       in
       Globals.Functions.iter compute_kf_states
   end
@@ -145,12 +133,17 @@ module Make_Domain (Abstract: Abstractions.S) = struct
       in
       Hit_log.body callstack ~producer ~complete
         ~entries:(List.map get entries) ~points
+
+    let describes_results = Hit_log.describes_results
   end
 
-  (* Computes consolidated states at the end of the analysis. *)
+  (* Computes consolidated states at the end of the analysis. When the hit
+     log describes the results, it answers the requests for these states,
+     and the legacy store consolidates a state only for a request that the
+     hit log declines. *)
   let post_analysis final_state =
-    let join_results = Parameters.JoinResults.get () in
-    Store.compute_consolidated_states ~join_results;
+    if Parameters.JoinResults.get () && not (Hit_log.describes_results ())
+    then Store.compute_consolidated_states ();
     post_analysis final_state
 end
 
@@ -298,6 +291,24 @@ let current () = (module (val (snd !ref_engine)): S)
 
 (* Whether the current engine uses the cvalue domain alone. *)
 let is_cvalue_only () = Abstractions.Config.equal (fst !ref_engine) default
+
+(* The reads of the logic label Init and of the printing of the final
+   states. The label Init reads the initial state from the hit log while
+   the analysis runs, when the public request answers Top; it reads the
+   legacy store directly otherwise, as before the hit log. The final states
+   are read as the unfiltered public request reads them. *)
+let () =
+  let initial_state () =
+    match Hit_log.initial_state () with
+    | Some state -> Lattice_bounds.TopBottom.map fst state
+    | None -> Cvalue_results.get_state Initial
+  in
+  let before stmt =
+    let module Engine = (val current ()) in
+    Engine.get_state (Before stmt)
+    |> Lattice_bounds.TopBottom.map Engine.Dom.get_cvalue_or_top
+  in
+  Cvalue_reads.install ~initial_state ~before
 
 (* Set of hooks called whenever the current Engine module is changed.
    Useful for the GUI parts that depend on it. *)

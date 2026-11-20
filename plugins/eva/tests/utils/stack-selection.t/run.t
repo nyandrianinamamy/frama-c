@@ -117,12 +117,14 @@ response without reading either.
   [acceptance] call equality_class[x==y] legacy-reads=0 resolved=0 answer=error disabled domain
   [acceptance] call is_tainted[x==y] legacy-reads=0 resolved=0 answer=error disabled domain
 
-No request of the battery reads the legacy store, except the snapshot
-export and the availability readers.
+No request of the battery reads the legacy store, except the availability
+readers and the snapshot export, whose states the hit log rebuilds: the
+export reads the status table once, to copy the callers and analysis
+status of each function.
   $ grep -e "^\[acceptance\] call" candidate.log | grep -v -e "legacy-reads=0 " | cut -d " " -f 3,4
   available.g legacy-reads=1
   status.g legacy-reads=1
-  export.get_results legacy-reads=195
+  export.get_results legacy-reads=1
 
 A fresh-only reference on the legacy path, in a separate process, gives
 the same answers, the order of the stacks included.

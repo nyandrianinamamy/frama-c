@@ -753,7 +753,9 @@ let battery kf stmt =
              Memory_zone.pretty inout.over_logic_inputs,
            Inout inout))
     (call_sites ());
-  call ~id:"export.get_results" ~family:"alias" ~expect:Legacy
+  (* The hit log rebuilds the exported states; the copy of the callers and
+     analysis status of each function still reads the status table. *)
+  call ~id:"export.get_results" ~family:"alias" ~expect:Resolver
     ~request:"Eva.Eva_results.get_results ()"
     (text (fun () -> ignore (Eva.Eva_results.get_results ()); "exported"));
   (* Sensitivity: a request on a supplied state must not read the store. *)

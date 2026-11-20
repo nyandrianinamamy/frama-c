@@ -391,8 +391,10 @@ module State = struct
     let is_computed = Cvalue_results.is_computed
   end
 
+  (* The final states are those that the unfiltered public request answers,
+     from the hit log when it describes the results. *)
   let get_state_before stmt =
-    match Cvalue_results.get_state (Before stmt) with
+    match Cvalue_reads.before stmt with
     | `Bottom -> Cvalue.Model.bottom
     | `Top -> Cvalue.Model.top
     | `Value v -> v
