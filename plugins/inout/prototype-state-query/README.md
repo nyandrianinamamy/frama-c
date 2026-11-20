@@ -370,7 +370,8 @@ The legacy conversions and the candidate's answers:
 | --- | --- | --- |
 | Reached point | The state. | The same state, from the hit log. |
 | Unreachable point of a completed analysis | Bottom; `is_empty` true. | The same. |
-| Body interpreted by a specification or a builtin | Bottom at its statements, as `Eva.Analysis.status` declares. | The same; the classification is `Not_analyzed`. |
+| Body interpreted by a specification or a builtin, in a completed analysis or on its stack | Bottom at its statements, as `Eva.Analysis.status` declares. | The same; the classification is `Not_analyzed`. |
+| Interrupted analysis, body interpreted by a specification or a builtin, request that does not name its stacks | Bottom; `is_reachable` false; `is_empty` true. | Top; `is_reachable` true; `is_empty` false. |
 | Nontermination: after a call that does not return | Bottom. | The same. |
 | Pending results, during the analysis | Top on a stack; `is_empty` true. | Top; `is_empty` false. |
 | Interrupted analysis, point not reached by what it computed | Bottom; `is_reachable` false; `is_empty` true. | Top; `is_reachable` true; `is_empty` false. |
@@ -405,6 +406,12 @@ Not corrected:
   result and a known top model print the same.
 - A request on a supplied state has no stack: `is_empty` is true, as on the
   legacy path.
+- After an interruption, a selector that names one stack with a predicate
+  that rejects it answers as a request on that stack, filtered: Bottom
+  when the state on the stack is known or its body not analyzed, Top when
+  it is unavailable. Its `is_empty` answers false, as for every selection
+  that keeps no stack after an interruption. The legacy store answers
+  Bottom and `is_empty` true.
 
 The reach modes of the driver, `reach-reference`, `reach-candidate` and
 `reach-native`, make these requests on every labelled statement and every
@@ -441,7 +448,7 @@ The public conversions:
 | Every selected stack is classified, and its state known or unreachable | The stacks that reach the point. | Their join, or each stack evaluated then joined, as on the legacy path; Bottom if none reaches it. |
 | A selected stack is unavailable: its state, or the state of one of its visits | The stacks that reach the point, including that one if a visit reached it. | Top: a top model without selection, the error Top with one. |
 | Pending results, or states not recorded at the point | None, as on the legacy path. | Top. |
-| After an interruption, no selected stack reaches the point | None. | Top, unless the request names its stacks and each one is classified: Bottom then. |
+| After an interruption, no selected stack reaches the point | None. | Top, unless the request names its stacks, keeps at least one, and each one it keeps is classified: Bottom then. |
 | A memexec hit in the records | The legacy store (#81), except after an interruption when no selected stack reaches the point: Top then. | The same. |
 
 A selector that names one stack keeps its own request: Top when its state
@@ -461,13 +468,18 @@ store makes the same assumption.
 the first call, unavailable on the second; L reached by none),
 `interrupted-three.i` (two stacks known at R, one unavailable),
 `interrupted-loop.i` (one stack whose first visit reaches R and second
-visit is interrupted), the pending, not recorded, known top, recursion and
-memexec fixtures. The selections are the unfiltered request, every stack
-by a selector and by a predicate, each stack alone by a predicate, every
-stack but one, and none. Each selection is compared with the reference,
-in text and natively, and must be served by the hit log without legacy
-read, except with a memexec hit. Its model is Bottom exactly when
-`is_empty` answers true.
+visit is interrupted), `interrupted-spec.i` (bodies interpreted by a
+specification and a builtin before the interruption), the pending, not
+recorded, known top, recursion and memexec fixtures. The selections are
+the unfiltered request, every stack by a selector and by a predicate,
+each stack alone by a predicate, every stack but one by a selector and by
+a predicate, each stack by a selector with a predicate that rejects it,
+every stack by a selector with a predicate that drops one, and none. Each
+selection is compared with the reference, in text and natively, and must
+be served by the hit log without legacy read, except with a memexec hit.
+Its model is Bottom exactly when `is_empty` answers true, except for a
+selector with a predicate that rejects its stack after an interruption
+(see "Not corrected"); the test lists these selections.
 
 ## Not covered
 

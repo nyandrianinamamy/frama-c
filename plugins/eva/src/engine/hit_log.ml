@@ -541,7 +541,8 @@ let selected_stacks log ?callstacks ~filter point =
 (* After an interruption, the rest of the analysis could reach a point on a
    callstack that it has not entered, or below a memexec hit. When no
    selected callstack reaches the point, its answer is unknown, unless the
-   request supplies its callstacks and the records classify each of them.
+   request supplies its callstacks, selects at least one, and the records
+   classify each selected one.
    [declined]: the records do not classify some selected callstack. *)
 let open_selection log ~supplied ~declined stacks =
   log.completion = Interrupted && (stacks = [] || not supplied || declined)

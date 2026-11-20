@@ -889,6 +889,21 @@ let reach_selections stacks =
       "filter_callstack (fun cs -> cs <> " ^ stack_name stack ^ ")",
       R.filter_callstack (fun cs -> not (equal cs stack)) ]
   in
+  (* A selector and a predicate together. *)
+  let rejected stack =
+    "rejected:" ^ stack_name stack,
+    "in_callstack " ^ stack_name stack
+    ^ " |> filter_callstack (fun _ -> false)",
+    (fun r -> R.filter_callstack (fun _ -> false) (R.in_callstack stack r))
+  in
+  let all_but stack =
+    "selector-all-filter-without:" ^ stack_name stack,
+    "in_callstacks " ^ list stacks ^ " |> filter_callstack (fun cs -> cs <> "
+    ^ stack_name stack ^ ")",
+    (fun r ->
+       R.filter_callstack (fun cs -> not (equal cs stack))
+         (R.in_callstacks stacks r))
+  in
   let several = List.compare_length_with stacks 1 > 0 in
   [ "unfiltered", "", Fun.id;
     "selector-all", "in_callstacks " ^ list stacks, R.in_callstacks stacks;
@@ -896,6 +911,8 @@ let reach_selections stacks =
     R.filter_callstack (fun _ -> true) ]
   @ List.map only stacks
   @ (if several then List.concat_map without stacks else [])
+  @ List.map rejected stacks
+  @ (if several then List.map all_but stacks else [])
   @ [ "filter-none", "filter_callstack (fun _ -> false)",
       R.filter_callstack (fun _ -> false) ]
 

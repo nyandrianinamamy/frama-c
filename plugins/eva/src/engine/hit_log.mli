@@ -190,9 +190,9 @@ type 'a selection =
     - the state of a selected callstack is unavailable, as on a callstack
       with an interrupted visit;
     - after an interrupted analysis, no selected callstack reaches the
-      point, unless [callstacks] is supplied and each selected callstack is
-      classified. The analysis could have reached the point on a callstack
-      it has not entered. *)
+      point, unless [callstacks] is supplied, at least one callstack is
+      selected, and each selected callstack is classified. The analysis
+      could have reached the point on a callstack it has not entered. *)
 val select:
   ?callstacks:Callstack.t list -> filter:(Callstack.t -> bool) ->
   Domain_store.control_point -> state selection option
