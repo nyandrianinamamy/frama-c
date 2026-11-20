@@ -57,6 +57,10 @@ type mode =
   | Trap of phase list
   (** Log every read, and abort Eva on the first read in one of these
       phases. The guard then falls back to [Record]. *)
+  | Trap_except of string list
+  (** Log every read, and abort Eva on the first read, in any phase, whose
+      innermost reader is not one of these labels. The guard then falls
+      back to [Record]. *)
 
 (** Phases and readers are only tracked while the guard is armed: arm it
     before running the analysis. *)
@@ -113,6 +117,9 @@ val observe_resolutions: (unit -> 'a) -> 'a * resolution list
 
 (** The outermost labelled reader, or ["unlabelled"]. *)
 val reader_name: read -> string
+
+(** The innermost labelled reader, or ["unlabelled"]. *)
+val innermost_reader: read -> string
 
 val phase_name: phase -> string
 val phase_of_name: string -> phase option

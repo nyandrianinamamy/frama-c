@@ -24,7 +24,7 @@ type read = {
   caller: string option;
 }
 
-type mode = Off | Record | Trap of phase list
+type mode = Off | Record | Trap of phase list | Trap_except of string list
 
 let current_mode = ref Off
 let current_phase = ref Request
@@ -45,12 +45,13 @@ let scoped reference value f =
 let during phase f =
   match !current_mode with
   | Off -> f ()
-  | Record | Trap _ -> scoped current_phase phase f
+  | Record | Trap _ | Trap_except _ -> scoped current_phase phase f
 
 let reader label f =
   match !current_mode with
   | Off -> f ()
-  | Record | Trap _ -> scoped current_readers (label :: !current_readers) f
+  | Record | Trap _ | Trap_except _ ->
+    scoped current_readers (label :: !current_readers) f
 
 let phase_name = function
   | Initialization -> "initialization"
@@ -72,6 +73,11 @@ let reader_name read =
   match read.readers with
   | [] -> "unlabelled"
   | outermost :: _ -> outermost
+
+let innermost_reader read =
+  match List.rev read.readers with
+  | [] -> "unlabelled"
+  | innermost :: _ -> innermost
 
 let pretty_read fmt read =
   Format.fprintf fmt "phase=%s reader=%s access=%s store=%s point=%s"
@@ -105,7 +111,7 @@ let caller () =
 let notify access ~store point =
   match !current_mode with
   | Off -> ()
-  | Record | Trap _ as mode ->
+  | Record | Trap _ | Trap_except _ as mode ->
     let read = {
       phase = !current_phase; access; store;
       point = Format.asprintf "%t" point;
@@ -114,12 +120,17 @@ let notify access ~store point =
     } in
     log := read :: !log;
     incr logged;
-    match mode with
-    | Trap phases when List.mem read.phase phases ->
+    let trap =
+      match mode with
+      | Trap phases -> List.mem read.phase phases
+      | Trap_except readers -> not (List.mem (innermost_reader read) readers)
+      | Off | Record -> false
+    in
+    if trap then begin
       trapped_read := Some read;
       current_mode := Record;
       Self.abort "legacy result-store read trapped: %a" pretty_read read
-    | Off | Record | Trap _ -> ()
+    end
 
 type resolution = {
   resolved_phase: phase;
@@ -133,7 +144,7 @@ let resolved_count = ref 0
 let resolved point visits =
   match !current_mode with
   | Off -> ()
-  | Record | Trap _ ->
+  | Record | Trap _ | Trap_except _ ->
     let resolution = {
       resolved_phase = !current_phase;
       resolved_point = Format.asprintf "%t" point;

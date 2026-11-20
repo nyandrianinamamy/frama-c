@@ -264,3 +264,33 @@ records).
   candidate.log:[acceptance] execution phase=post-analysis reader=Eva.Eval_annots.mark_green_and_red access=getter store=cvalue
   $ grep -o -e '"readers":\["Eva.Eval_annots.mark_green_and_red"[^]]*\]' candidate.jsonl
   "readers":["Eva.Eval_annots.mark_green_and_red","Eva.Eval_terms.add_init"]
+
+Trap. Every read of the legacy store aborts the run, in every phase, except
+those of the readers that other changes migrate: the registration of the
+states by the engine, the initial state of the logic, the consolidation of
+the states after the analysis and the display of the final states. The
+candidate runs the whole battery under the trap. The reads left are those
+of the exempt readers, the read of Eva.Eval_annots.mark_green_and_red going
+through Eva.Eval_terms.add_init; every request reads nothing, and the
+answers are those of the reference.
+  $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-no-memexec -inout-state-query-acceptance plugins-trap -inout-state-query-acceptance-output trap.jsonl plugins.i > trap.log 2>&1
+  $ grep -e "guard=" -e "legacy result-store" trap.log
+  [acceptance] mode=plugins-trap guard=trap-except:Eva.Engine.register_state,Eva.Eval_terms.add_init,Eva.Engine.consolidate,Eva.Cvalue_domain.display_final_state
+  $ grep -e "^\[acceptance\] execution phase=" trap.log | sed -e 's/ access=.*//' | sort -u
+  [acceptance] execution phase=analysis reader=Eva.Engine.register_state
+  [acceptance] execution phase=analysis reader=Eva.Eval_terms.add_init
+  [acceptance] execution phase=collection reader=Eva.Eval_terms.add_init
+  [acceptance] execution phase=post-analysis reader=Eva.Cvalue_domain.display_final_state
+  [acceptance] execution phase=post-analysis reader=Eva.Engine.consolidate
+  [acceptance] execution phase=post-analysis reader=Eva.Eval_annots.mark_green_and_red
+  $ grep -e "^\[acceptance\] call" trap.log | sed -e 's/^\[acceptance\] call [^ ]* \(legacy-reads=[^ ]*\) .*/\1/' | sort | uniq -c | sed -e 's/^ *//'
+  194 legacy-reads=0
+  $ sed -n -e 's/^\[acceptance\] call \([^ ]*\) legacy-reads=[^ ]* resolved=[^ ]* answer=/\1 /p' trap.log | diff reference.answers -
+
+Control: on the legacy path, the trap aborts the run at the first read that
+is not exempt, when the statistics of Eva ask whether a statement of the
+first analyzed function is reachable.
+  $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-no-memexec -eva-no-hit-log -inout-state-query-acceptance plugins-trap plugins.i > trap-control.log 2>&1
+  [1]
+  $ grep -e "legacy result-store" trap-control.log
+  [eva] User Error: legacy result-store read trapped: phase=collection reader=Eva.Summary.compute_fun_stats access=availability store=analysis-status point=before line 11 of leaf_a via=Eva.Results.is_reachable
