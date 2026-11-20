@@ -208,28 +208,34 @@ module Make (Abstract: Abstractions.S) = struct
           | Analyzed (Complete | Partial) -> get control_point
       else `Top
 
-    (* The hit log answers a request on one callstack when it can; it then
-       reads neither the analysis status nor the stored states. It records
-       the cvalue domain alone, which is then the whole state. *)
-    let resolve ~callstack control_point =
-      let to_state state = Dom.set Cvalue_domain.State.key state Dom.top in
-      match Hit_log.resolve ~callstack control_point with
-      | None -> None
-      | Some (`Value state) -> Some (`Value (to_state state))
-      | Some (`Top | `Bottom as x) -> Some x
+    (* The hit log answers a request when it can; it then reads neither the
+       analysis status nor the stored states. It records the cvalue domain
+       alone, which is then the whole state. *)
+    let to_state state = Dom.set Cvalue_domain.State.key state Dom.top
 
-    let get_state ?callstack control_point =
+    let map_value f = function
+      | `Value x -> `Value (f x)
+      | `Top | `Bottom as x -> x
+
+    let resolve ?callstack control_point =
       let resolved =
         match callstack with
-        | None -> None
-        | Some callstack -> resolve ~callstack control_point
+        | None -> Hit_log.resolve_consolidated control_point
+        | Some callstack -> Hit_log.resolve ~callstack control_point
       in
-      match resolved with
+      Option.map (map_value to_state) resolved
+
+    let get_state ?callstack control_point =
+      match resolve ?callstack control_point with
       | Some state -> state
       | None -> find ?callstack (Dom.Store.get_state ?callstack) control_point
 
     let get_state_by_callstack control_point =
-      find (Dom.Store.get_state_by_callstack) control_point
+      match Hit_log.resolve_by_callstack control_point with
+      | Some answer ->
+        let to_states = List.map (fun (cs, state) -> cs, to_state state) in
+        map_value to_states answer
+      | None -> find (Dom.Store.get_state_by_callstack) control_point
 
     let callstacks = Abstract.Dom.Store.callstacks
 

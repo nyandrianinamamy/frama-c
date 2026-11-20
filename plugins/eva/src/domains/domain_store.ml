@@ -36,9 +36,23 @@ end
 
 module ControlPoint = Datatype.Make_with_collections (ControlPointPrototype)
 
+let line stmt = Fileloc.line (Cil_datatype.Stmt.loc stmt)
+
+(* Same naming as the acceptance driver: entry point, then callee@line. *)
+let pretty_callstack fmt callstack =
+  let pp_call fmt (kf, kinstr) =
+    match kinstr with
+    | Cil_types.Kglobal -> ()
+    | Kstmt stmt ->
+      Format.fprintf fmt "/%a@%d" Kernel_function.pretty kf (line stmt)
+  in
+  Format.fprintf fmt "%a%a"
+    Kernel_function.pretty callstack.Callstack.entry_point
+    (Pretty_utils.pp_list ~sep:"" pp_call)
+    (Callstack.to_call_list callstack)
+
 (* Short description of a read point for {!Legacy_read_guard}. *)
 let pretty_read_point ?callstack control_point fmt =
-  let line stmt = Fileloc.line (Cil_datatype.Stmt.loc stmt) in
   let kf stmt = Kernel_function.find_englobing_kf stmt in
   begin match control_point with
     | Initial -> Format.pp_print_string fmt "initial state"
@@ -50,19 +64,7 @@ let pretty_read_point ?callstack control_point fmt =
       Format.fprintf fmt "after line %d of %a" (line stmt)
         Kernel_function.pretty (kf stmt)
   end;
-  (* Same naming as the acceptance driver: entry point, then callee@line. *)
-  let pp_call fmt (kf, kinstr) =
-    match kinstr with
-    | Cil_types.Kglobal -> ()
-    | Kstmt stmt ->
-      Format.fprintf fmt "/%a@%d" Kernel_function.pretty kf (line stmt)
-  in
-  Option.iter (fun callstack ->
-      Format.fprintf fmt " in %a%a"
-        Kernel_function.pretty callstack.Callstack.entry_point
-        (Pretty_utils.pp_list ~sep:"" pp_call)
-        (Callstack.to_call_list callstack))
-    callstack
+  Option.iter (Format.fprintf fmt " in %a" pretty_callstack) callstack
 
 
 module type InputDomain = sig

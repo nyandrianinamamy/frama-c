@@ -16,6 +16,10 @@ type control_point =
 
 module ControlPoint : Datatype.S_with_collections with type t = control_point
 
+(** Prints a callstack as its entry point, then [/callee@line] for each
+    call, as the acceptance driver names it. *)
+val pretty_callstack: Format.formatter -> Callstack.t -> unit
+
 (** Short description of a read at a control point, on a callstack if
     given, for {!Legacy_read_guard}. *)
 val pretty_read_point:

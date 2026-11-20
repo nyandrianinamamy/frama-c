@@ -20,12 +20,16 @@
     After the analysis, {!resolve} rebuilds the state at a control point on
     one callstack from these records, without reading the legacy result
     store. It rebuilds the state of each visit on the callstack, then joins
-    the visits in the order of the analysis.
+    the visits in the order of the analysis. {!resolve_by_callstack} does so
+    on each callstack that reaches the point, and {!resolve_consolidated}
+    joins the callstacks. The requests on several callstacks, or on none,
+    keep their own aggregation on top of these states.
 
     The resolver only answers when the records are exact: the cvalue domain
     alone, all results recorded, no multithread analysis, and an analysis
     that completed. It declines a request on a memexec hit, or below one,
-    whose states it cannot rebuild yet. When it declines, the request reads
+    whose states it cannot rebuild yet, and every request on several
+    callstacks or none once the records contain a hit. When it declines, the request reads
     the legacy store. The records are not saved with the project, and
     clearing the results of Eva invalidates them. *)
 
@@ -90,6 +94,22 @@ val body:
 val resolve:
   callstack:Callstack.t -> Domain_store.control_point ->
   state Lattice_bounds.or_top_bottom option
+
+(** [resolve_by_callstack point] rebuilds the state at [point] on each
+    callstack that reaches it, each as {!resolve} does, in the order in
+    which the legacy store enumerates them: [`Bottom] if no callstack
+    reaches the point, [`Top] if the results of its function are not
+    recorded. Returns [None] when the resolver declines, which it does
+    whenever the records contain a memexec hit. *)
+val resolve_by_callstack:
+  Domain_store.control_point ->
+  (Callstack.t * state) list Lattice_bounds.or_top_bottom option
+
+(** [resolve_consolidated point] joins the states that
+    {!resolve_by_callstack} rebuilds, as the legacy consolidation does.
+    Returns [None] when the resolver declines. *)
+val resolve_consolidated:
+  Domain_store.control_point -> state Lattice_bounds.or_top_bottom option
 
 (** Prints the visits recorded on a callstack: their kind, their input, and
     the number of entries that survive the preconditions. *)

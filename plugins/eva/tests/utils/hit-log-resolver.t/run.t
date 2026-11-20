@@ -2,14 +2,15 @@ Rebuild the point states of a fresh invocation from the hit log (prototype,
 see plugins/inout/prototype-state-query).
 
 At a straight-line assignment, the request on each supplied stack is served
-by the resolver, before and after the statement, without legacy read. The
-unfiltered request still reads the legacy store.
+by the resolver, before and after the statement, without legacy read. So is
+the unfiltered request, from the states of both stacks; see
+stack-selection.t for the other selections.
   $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-no-memexec -inout-state-query-acceptance candidate assign.i > candidate.log 2>&1
   $ grep -e "call model.before-P" -e "call model.after-P" candidate.log
-  [acceptance] call model.before-P legacy-reads=2 resolved=0 answer=g ∈ {4; 9}; y ∈ {0}; x ∈ {10}; __retres ∈ UNINITIALIZED
+  [acceptance] call model.before-P legacy-reads=0 resolved=1 answer=g ∈ {4; 9}; y ∈ {0}; x ∈ {10}; __retres ∈ UNINITIALIZED
   [acceptance] call model.before-P.main/f@15 legacy-reads=0 resolved=1 answer=g ∈ {4}; y ∈ {0}; x ∈ {10}; __retres ∈ UNINITIALIZED
   [acceptance] call model.before-P.main/f@18 legacy-reads=0 resolved=1 answer=g ∈ {9}; y ∈ {0}; x ∈ {10}; __retres ∈ UNINITIALIZED
-  [acceptance] call model.after-P legacy-reads=2 resolved=0 answer=g ∈ {4; 9}; y ∈ {11}; x ∈ {10}; __retres ∈ UNINITIALIZED
+  [acceptance] call model.after-P legacy-reads=0 resolved=1 answer=g ∈ {4; 9}; y ∈ {11}; x ∈ {10}; __retres ∈ UNINITIALIZED
   [acceptance] call model.after-P.main/f@15 legacy-reads=0 resolved=1 answer=g ∈ {4}; y ∈ {11}; x ∈ {10}; __retres ∈ UNINITIALIZED
   [acceptance] call model.after-P.main/f@18 legacy-reads=0 resolved=1 answer=g ∈ {9}; y ∈ {11}; x ∈ {10}; __retres ∈ UNINITIALIZED
 
@@ -19,10 +20,10 @@ and InOut's callwise results, compared for each of the two calls, have equal
 zones. The reference reads the legacy store and resolves nothing.
   $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -inout-state-query-acceptance native assign.i > native.log 2>&1
   $ grep -e "native model.before-P" -e "native model.after-P" -e "native compared" native.log
-  [acceptance] native model.before-P equal=true reference-reads=2 reference-resolved=0 legacy-reads=2 resolved=0
+  [acceptance] native model.before-P equal=true reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
   [acceptance] native model.before-P.main/f@15 equal=true reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
   [acceptance] native model.before-P.main/f@18 equal=true reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
-  [acceptance] native model.after-P equal=true reference-reads=2 reference-resolved=0 legacy-reads=2 resolved=0
+  [acceptance] native model.after-P equal=true reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
   [acceptance] native model.after-P.main/f@15 equal=true reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
   [acceptance] native model.after-P.main/f@18 equal=true reference-reads=2 reference-resolved=0 legacy-reads=0 resolved=1
   [acceptance] native compared=33 differing=0
@@ -34,7 +35,7 @@ precondition. No entry survives the precondition of h: its input exists,
 its body is bottom.
   $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-no-memexec -inout-state-query-acceptance candidate stages.i > stages.log 2>&1
   $ grep -e "call model.initial" -e "pos-root" -e "of-f\." -e "of-h\." -e "visits [fh]" stages.log
-  [acceptance] call model.initial legacy-reads=2 resolved=0 answer=g ∈ {3}; y ∈ {0}
+  [acceptance] call model.initial legacy-reads=0 resolved=1 answer=g ∈ {3}; y ∈ {0}
   [acceptance] call model.initial.main legacy-reads=0 resolved=1 answer=g ∈ {3}; y ∈ {0}
   [acceptance] call model.before-pos-root legacy-reads=0 resolved=1 answer=g ∈ {3}; y ∈ {0}; n ∈ [--..--]
   [acceptance] call model.after-pos-root legacy-reads=0 resolved=1 answer=g ∈ {3}; y ∈ {13}; n ∈ [-2147483648..5]; v ∈ {10}; tmp ∈ {2; 10}
