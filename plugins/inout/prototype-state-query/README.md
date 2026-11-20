@@ -226,11 +226,11 @@ The printer makes the unfiltered request before the first and the return
 statements of each function, the `\init` label takes the initialized globals that the
 hit log records, and the export takes the state of each recorded stack at
 each point. Each reads the legacy store only when the resolver declines.
-The export still copies the callers and the analysis status of each
-function from the store. A snapshot also saves the records of the hit
-log, and restoring it with `Eva.Eva_results.set_results` makes them
-current again, so that the requests on the restored results keep their
-answers.
+The export takes the callers and the analysis status of each function
+from the records too (see the table below). A snapshot also saves the
+records of the hit log, and restoring it with
+`Eva.Eva_results.set_results` makes them current again, so that the
+requests on the restored results keep their answers.
 
 The engine's consolidation of the stored states, with
 `-eva-join-results`, runs only when the hit log does not describe the
@@ -523,7 +523,14 @@ optional Eva server API is loaded, which it is not. The battery asks:
   and the coverage of statements and functions. The statistics of the
   execution (memory, time, iterations, memexec hits and misses, widenings,
   unrolling, partitioning index) are written apart, in an
-  `execution-statistics` record, and are not compared.
+  `execution-statistics` record, and are not compared;
+- the snapshot of the analysis status: the last request exports the
+  results, clears them, restores the snapshot and reads
+  `Eva.Analysis.status` of each function on the restored table, with the
+  guard off for that read. `statuses.i` in `plugin-readers.t` has a
+  function of each status: analyzed with and without saved results,
+  partially analyzed through a recursive call, specification only,
+  builtin and unreachable.
 
 Eva's final display computes the graph of Callgraph and InOut's outputs of
 the analyzed functions; the driver clears these memos, so that each

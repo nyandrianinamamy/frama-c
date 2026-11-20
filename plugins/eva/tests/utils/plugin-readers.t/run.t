@@ -255,9 +255,9 @@ predicates as booleans. The other answers are compared as text.
   $ grep -e "native compared" native.log
   [acceptance] native compared=151 differing=0
   $ grep -c -e '"kind":"native",' native.jsonl
-  194
+  195
   $ grep -c -e '"kind":"native",.*"text_equal":true' native.jsonl
-  194
+  195
 
 Annotation statuses after the analysis. Eva marks the postconditions of an
 analyzed function as dead when its return statement is unreachable, as for
@@ -276,6 +276,38 @@ answers too: the candidate reads nothing.
   legacy.log:[acceptance] execution phase=post-analysis reader=Eva.Eval_annots.mark_green_and_red access=getter store=cvalue
   legacy.log:[acceptance] execution phase=post-analysis reader=Eva.Eval_annots.mark_green_and_red access=enumeration store=cvalue
 
+Snapshot of the analysis status. The last request exports the results,
+clears them, restores the snapshot and prints the analysis status of each
+function from the restored table. On the legacy path, the export reads the
+status table; the candidate builds the callers and the status of each
+function from the invocations of the hit log.
+  $ grep -e "call export\.statuses" legacy.log candidate.log | sed -e 's/ answer=.*//'
+  legacy.log:[acceptance] call export.statuses legacy-reads=219 resolved=0
+  candidate.log:[acceptance] call export.statuses legacy-reads=0 resolved=107
+  $ grep -e "^export\.statuses" candidate.answers > export.txt
+  $ grep -e "^export\.statuses" reference.answers | diff - export.txt
+  $ cat export.txt
+  export.statuses dead_callee: unreachable; g: analyzed complete; h: analyzed complete; leaf_a: analyzed complete; leaf_b: analyzed complete; main: analyzed complete; never_returns: analyzed complete; ptr1: analyzed complete; ptr2: analyzed complete; ptr3: unreachable; uncalled: unreachable
+
+statuses.i has a function of each status: no_results is analyzed without
+saving its results; the recursive call of rec uses its specification, so
+rec is partially analyzed; ext has only a specification; strlen is
+interpreted by a builtin; unreachable is never called. The candidate
+exports the statuses of the reference, and all its answers are those of
+the reference, with no legacy read.
+  $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-no-results-function no_results -inout-state-query-acceptance plugins-reference statuses.i > statuses-reference.log 2>&1
+  $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-no-results-function no_results -eva-no-memexec -eva-no-hit-log -inout-state-query-acceptance plugins-candidate statuses.i > statuses-legacy.log 2>&1
+  $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-no-results-function no_results -eva-no-memexec -inout-state-query-acceptance plugins-candidate statuses.i > statuses-candidate.log 2>&1
+  $ for run in reference legacy candidate; do sed -n -e 's/^\[acceptance\] call \([^ ]*\) legacy-reads=[^ ]* resolved=[^ ]* answer=/\1 /p' statuses-$run.log > statuses-$run.answers; done
+  $ grep -e "^export\.statuses" statuses-candidate.answers
+  export.statuses ext: specification used; main: analyzed complete; no_results: analyzed without results; rec: analyzed partial; strlen: builtin strlen; unreachable: unreachable
+  $ diff statuses-reference.answers statuses-candidate.answers
+  $ grep -e "call export\.statuses" statuses-legacy.log statuses-candidate.log | sed -e 's/ answer=.*//'
+  statuses-legacy.log:[acceptance] call export.statuses legacy-reads=77 resolved=0
+  statuses-candidate.log:[acceptance] call export.statuses legacy-reads=0 resolved=44
+  $ grep -e "^\[acceptance\] call" statuses-candidate.log | sed -e 's/^\[acceptance\] call [^ ]* \(legacy-reads=[^ ]*\) .*/\1/' | sort | uniq -c | sed -e 's/^ *//'
+  96 legacy-reads=0
+
 Trap. Every read of the legacy store aborts the run, in every phase, except
 those of the readers that other changes migrate: the registration of the
 states by the engine. The candidate runs the whole battery under the trap.
@@ -287,7 +319,7 @@ nothing, and the answers are those of the reference.
   $ grep -e "^\[acceptance\] execution phase=" trap.log | sed -e 's/ access=.*//' | sort -u
   [acceptance] execution phase=analysis reader=Eva.Engine.register_state
   $ grep -e "^\[acceptance\] call" trap.log | sed -e 's/^\[acceptance\] call [^ ]* \(legacy-reads=[^ ]*\) .*/\1/' | sort | uniq -c | sed -e 's/^ *//'
-  194 legacy-reads=0
+  195 legacy-reads=0
   $ sed -n -e 's/^\[acceptance\] call \([^ ]*\) legacy-reads=[^ ]* resolved=[^ ]* answer=/\1 /p' trap.log | diff reference.answers -
 
 Control: on the legacy path, the trap aborts the run at the first read that
@@ -297,3 +329,10 @@ first analyzed function is reachable.
   [1]
   $ grep -e "legacy result-store" trap-control.log
   [eva] User Error: legacy result-store read trapped: phase=collection reader=Eva.Summary.compute_fun_stats access=availability store=analysis-status point=before line 11 of leaf_a via=Eva.Results.is_reachable
+
+Under the same trap, the candidate completes the battery on statuses.i,
+with the answers of the reference.
+  $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-no-results-function no_results -eva-no-memexec -inout-state-query-acceptance plugins-trap statuses.i > statuses-trap.log 2>&1
+  $ grep -e "guard=" -e "legacy result-store" statuses-trap.log
+  [acceptance] mode=plugins-trap guard=trap-except:Eva.Engine.register_state
+  $ sed -n -e 's/^\[acceptance\] call \([^ ]*\) legacy-reads=[^ ]* resolved=[^ ]* answer=/\1 /p' statuses-trap.log | diff statuses-reference.answers -

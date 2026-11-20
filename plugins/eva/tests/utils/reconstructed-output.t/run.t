@@ -43,6 +43,7 @@ served each migrated reader.
   [reconstructed] display: no legacy read, answers of the hit log
   [reconstructed] init: no legacy read, answers of the hit log
   [reconstructed] export: no legacy read, answers of the hit log
+  [reconstructed] calls: no legacy read, answers of the hit log
 
 Reference. A separate process runs the same script on the legacy path,
 fresh-only: every migrated reader reads the legacy store, and the hit log
@@ -60,6 +61,7 @@ serves none.
   [reconstructed] display: legacy reads, no answer of the hit log
   [reconstructed] init: legacy reads, no answer of the hit log
   [reconstructed] export: legacy reads, no answer of the hit log
+  [reconstructed] calls: legacy reads, no answer of the hit log
 
 The output of Eva is the same in both processes: the initial state, the
 final values, the alarms, the statuses and the summary of each analysis.
@@ -241,6 +243,14 @@ restored results.
   [1]
   $ grep -e "legacy result-store" control-export.log
   [eva] User Error: legacy result-store read trapped: phase=request reader=Eva.Eva_results.get_results access=enumeration store=cvalue point=start of f via=Eva.Eva_results.export_states
+
+The export of the callers and analysis status of each function reads the
+status table on the legacy path, after the states. The restoration makes
+no legacy read on either path, so forbidding it traps nothing here.
+  $ FORBID=calls frama-c -no-autoload-plugins -load-module eva,inout,reconstructed.cmxs -eva-domains cvalue -eva-no-memexec -eva-no-hit-log inputs.i > control-calls.log 2>&1
+  [1]
+  $ grep -e "legacy result-store" control-calls.log
+  [eva] User Error: legacy result-store read trapped: phase=request reader=Eva.Eva_results.get_results access=availability store=analysis-status point=all functions via=Eva.Eva_results.export_calls
   $ FORBID=replay frama-c -no-autoload-plugins -load-module eva,inout,reconstructed.cmxs -eva-domains cvalue -eva-no-memexec -eva-no-hit-log inputs.i > control-replay.log 2>&1
   [1]
   $ grep -e "replayed" -e "legacy result-store" control-replay.log

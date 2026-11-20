@@ -52,9 +52,11 @@ the relationships to the observed fresh models for these fixtures.
 ## Plug-in readers
 
 `acceptance.sh` passed on the revision that adds this section, with the
-plug-in fixture `plugins.c`: its 194 requests are `MATCH`, with the
+plug-in fixture `plugins.c`: its 195 requests are `MATCH`, with the
 answers of the reference and no legacy read, and the native run finds no
-difference. The controls `plugins-trap` and `plugins-perturbation` pass,
+difference. In `plugin-readers.t`, the battery also runs on `statuses.i`,
+which has a function of each analysis status; the snapshot of the
+statuses, as all the other answers, equals that of the reference. The controls `plugins-trap` and `plugins-perturbation` pass,
 with every other control. The zero-read gate fails, as expected: the
 registration of the states by the engine and the availability readers
 still read the legacy store.

@@ -770,8 +770,8 @@ let battery kf stmt =
              Memory_zone.pretty inout.over_logic_inputs,
            Inout inout))
     (call_sites ());
-  (* The hit log rebuilds the exported states; the copy of the callers and
-     analysis status of each function still reads the status table. *)
+  (* The hit log rebuilds the exported states, and the callers and analysis
+     status of each function. *)
   call ~id:"export.get_results" ~family:"alias" ~expect:Resolver
     ~request:"Eva.Eva_results.get_results ()"
     (text (fun () -> ignore (Eva.Eva_results.get_results ()); "exported"));
@@ -1543,6 +1543,32 @@ let statistics_requests () =
       ])
   end
 
+(* The analysis status of each function in a snapshot of the results. The
+   request exports the results, clears them and restores the snapshot. Its
+   legacy reads are those of the export and of the restoration. The
+   statuses are then read from the restored status table with the guard
+   off: Eva.Analysis.status reads this table on both paths, and the answer
+   shows what the snapshot holds. Last request of the battery, since it
+   replaces the results. *)
+let snapshot_status_request () =
+  call ~id:"export.statuses" ~family:"snapshot" ~expect:Resolver
+    ~request:"Eva.Eva_results.(set_results (get_results ())), then \
+              Eva.Analysis.status of each function"
+    (text (fun () ->
+         let results = Eva.Eva_results.get_results () in
+         Project.clear
+           ~selection:(State_selection.with_dependencies Eva.Analysis.self) ();
+         Eva.Eva_results.set_results results;
+         let mode = Guard.mode () in
+         Guard.arm Off;
+         let status kf =
+           Format.asprintf "%a: %s" Kernel_function.pretty kf
+             (pretty_kf_status (Eva.Analysis.status kf))
+         in
+         let statuses = List.map status (fixture_functions ()) in
+         Guard.arm mode;
+         String.concat "\n" statuses))
+
 (* The readers that other changes migrate: the registration of the states
    by the engine, which joins each new state with the recorded one. *)
 let exempt_readers = [ "Eva.Engine.register_state" ]
@@ -1560,7 +1586,8 @@ let plugin_battery () =
   inout_requests ();
   server_filter_requests ();
   status_requests ();
-  statistics_requests ()
+  statistics_requests ();
+  snapshot_status_request ()
 
 (* {2 Header} *)
 

@@ -12,7 +12,8 @@
    environment variable FORBID lists the migrated readers whose legacy reads
    abort the run: [display] (final values), [init] (label Init), [export]
    (the export of a snapshot, its states, and the callers and analysis
-   status of each function, and its restoration) and [replay] (requests on
+   status of each function, and its restoration), [calls] (the export of
+   the callers and analysis status alone) and [replay] (requests on
    restored results). *)
 
 open Cil_types
@@ -28,6 +29,7 @@ let labels = [
   "display", [ "Eva.Cvalue_domain.display_final_state" ];
   "init", [ "Eva.Eval_terms.add_init" ];
   "export", [ "Eva.Eva_results.get_results"; "Eva.Eva_results.set_results" ];
+  "calls", [ "Eva.Eva_results.export_calls" ];
 ]
 
 let forbidden =
