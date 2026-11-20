@@ -16,7 +16,8 @@ the phase of the read.
 The trap can target another phase. In the analysis phase, the first read is
 the engine's registration of the entry state of main, which joins the new
 state with the recorded one. In the collection phase, it is Eva's own
-statistics hook. No read happens during initialization.
+statistics hook, and after the analysis, the marking of unreachable
+properties. No read happens during initialization.
   $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-no-memexec -inout-state-query-acceptance trap:analysis legacy-reads.i > analysis.log 2>&1
   [1]
   $ grep -e "legacy result-store" analysis.log
@@ -25,6 +26,10 @@ statistics hook. No read happens during initialization.
   [1]
   $ grep -e "legacy result-store" collection.log
   [eva] User Error: legacy result-store read trapped: phase=collection reader=Eva.Summary.compute_fun_stats access=availability store=analysis-status point=before line 6 of f via=Eva.Results.is_reachable
+  $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-no-memexec -inout-state-query-acceptance trap:post-analysis legacy-reads.i > post-analysis.log 2>&1
+  [1]
+  $ grep -e "legacy result-store" post-analysis.log
+  [eva] User Error: legacy result-store read trapped: phase=post-analysis reader=Eva.Eval_annots.mark_unreachable access=availability store=analysis-status point=before line 12 of main via=Eva.Results.is_reachable
   $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -eva-no-memexec -inout-state-query-acceptance trap:initialization legacy-reads.i > initialization.log 2>&1
   $ grep -e "^\[acceptance\] control" initialization.log
   [acceptance] control not trapped in phase initialization
@@ -32,12 +37,13 @@ statistics hook. No read happens during initialization.
 Reference. A separate process runs fresh-only Eva (memexec off) with the
 guard off; reads are not observed.
   $ frama-c -no-autoload-plugins -load-module eva,inout -eva-domains cvalue -inout-state-query-acceptance reference -inout-state-query-acceptance-output reference.jsonl legacy-reads.i > reference.log 2>&1
-  $ grep -e "^\[acceptance\] mode" -e "^\[acceptance\] config" -e "^\[acceptance\] call value.g" reference.log
+  $ grep -e "^\[acceptance\] mode" -e "^\[acceptance\] config" -e "^\[acceptance\] call value.g" -e "^\[acceptance\] accounting" reference.log
   [acceptance] mode=reference guard=off
   [acceptance] config -eva-domains=cvalue -eva-slevel=0 -eva-memexec=false -eva-results=true -eva-join-results=true -eva-no-results-domain= -eva-no-results-function=@default
   [acceptance] call value.g.before-P legacy-reads=unobserved answer={4; 9}
   [acceptance] call value.g.before-P.main/f@15 legacy-reads=unobserved answer={4}
   [acceptance] call value.g.before-P.main/f@18 legacy-reads=unobserved answer={9}
+  [acceptance] accounting logged=0 attributed=0
 
 Candidate. The guard records every legacy read. The driver groups the reads
 of the execution by phase and reader, and attributes the other reads to the
@@ -58,6 +64,7 @@ the store without Eva.Results. The request on a supplied state reads nothing.
   [acceptance] execution phase=post-analysis reader=Eva.Eval_annots.mark_unreachable access=enumeration store=cvalue
   [acceptance] execution phase=post-analysis reader=Eva.Summary.compute_fun_stats access=availability store=analysis-status
   [acceptance] execution phase=post-analysis reader=Eva.Summary.compute_fun_stats access=getter store=cvalue
+  [acceptance] execution phase=post-analysis reader=Eva.Engine.consolidate access=availability store=analysis-status
   [acceptance] execution phase=post-analysis reader=Eva.Engine.consolidate access=enumeration store=cvalue
   [acceptance] execution phase=post-analysis reader=Eva.Engine.consolidate access=getter store=cvalue
   [acceptance] execution phase=post-analysis reader=Eva.Cvalue_domain.display_final_state access=getter store=cvalue
@@ -83,5 +90,6 @@ the store without Eva.Results. The request on a supplied state reads nothing.
   [acceptance] call value.y.before-P.main/f@18 legacy-reads=2 answer={11}
   [acceptance] call model.start-of-f legacy-reads=2 answer=g ∈ {4; 9}; y ∈ {0}; x ∈ {10}; __retres ∈ UNINITIALIZED
   [acceptance] call model.initial legacy-reads=2 answer=g ∈ {0}; y ∈ {0}
-  [acceptance] call export.get_results legacy-reads=61 answer=exported
+  [acceptance] call export.get_results legacy-reads=62 answer=exported
   [acceptance] call supplied-state.eval legacy-reads=0 answer={5}
+  [acceptance] accounting logged=341 attributed=341

@@ -85,6 +85,9 @@ module Make_Domain (Abstract: Abstractions.S) = struct
         ignore (compute_consolidated_state (After stmt));
       in
       let compute_kf_states kf =
+        Legacy_read_guard.reader "Eva.Engine.consolidate" @@ fun () ->
+        Legacy_read_guard.notify Availability ~store:"analysis-status"
+          (fun fmt -> Kernel_function.pretty fmt kf);
         match Function_calls.analysis_status kf with
         | Unreachable | Analyzed NoResults | Analyzed Partial -> ()
         | SpecUsed | Builtin _ -> compute_initial_state kf

@@ -127,10 +127,14 @@ let stack_name stack =
 
 (* {2 Calls} *)
 
+(* Number of reads attributed to the execution and to the calls. *)
+let attributed = ref 0
+
 (* Runs one public request and records its answer and the legacy reads it
    made. *)
 let call ~id ~family ~request answer =
   let text, reads = Guard.observe answer in
+  attributed := !attributed + List.length reads;
   let observed = Guard.mode () <> Off in
   log "call %s legacy-reads=%s answer=%s" id
     (if observed then string_of_int (List.length reads) else "unobserved")
@@ -148,10 +152,14 @@ let call ~id ~family ~request answer =
 let battery kf stmt =
   let kf_name = Kernel_function.get_name kf in
   let names stacks = List.map stack_name stacks |> List.sort compare in
-  let stacks = R.(before stmt |> callstacks) in
+  (* The stacks used by the per-stack requests are the answer of this
+     request, so that its reads are attributed. *)
+  let stacks = ref [] in
   call ~id:"stacks.before-P" ~family:"enumeration"
     ~request:"Eva.Results.(before P |> callstacks)"
-    (fun () -> String.concat " " (names R.(before stmt |> callstacks)));
+    (fun () ->
+       stacks := R.(before stmt |> callstacks);
+       String.concat " " (names !stacks));
   call ~id:"by_callstack.before-P" ~family:"enumeration"
     ~request:"Eva.Results.(before P |> by_callstack)"
     (fun () ->
@@ -165,8 +173,9 @@ let battery kf stmt =
   call ~id:"reachable.P" ~family:"availability"
     ~request:"Eva.Results.is_reachable P"
     (fun () -> string_of_bool (R.is_reachable stmt));
-  let stacks = List.sort (fun a b -> compare (stack_name a) (stack_name b))
-      stacks in
+  let stacks =
+    List.sort (fun a b -> compare (stack_name a) (stack_name b)) !stacks
+  in
   let per_stack id request req f =
     call ~id ~family:"getter" ~request (fun () -> f req);
     List.iter (fun stack ->
@@ -255,6 +264,7 @@ let header mode =
 
 let execution () =
   let reads = Guard.reads () in
+  attributed := List.length reads;
   List.iter (fun ((read : Guard.read), count) ->
       log "execution phase=%s reader=%s access=%s store=%s"
         (Guard.phase_name read.phase) (Guard.reader_name read)
@@ -306,6 +316,14 @@ let run () =
     | Reference | Candidate ->
       execution ();
       battery kf stmt;
+      (* Every logged read must belong to the execution or to one call. *)
+      let logged = List.length (Guard.reads ()) in
+      log "accounting logged=%d attributed=%d" logged !attributed;
+      emit (`Assoc [
+          "kind", `String "accounting";
+          "logged", `Int logged;
+          "attributed", `Int !attributed;
+        ]);
       Option.iter close_out !output
 
 let () = Boot.Main.extend run

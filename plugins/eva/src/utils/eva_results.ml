@@ -108,6 +108,8 @@ let get_results () =
   in
   Globals.Functions.iter copy_kf;
   copy_states Initial;
+  Legacy_read_guard.notify Availability ~store:"analysis-status"
+    (fun fmt -> Format.pp_print_string fmt "all functions");
   let kf_callers = Function_calls.get_results () in
   let initial_args = get_main_args () in
   let aux_statuses f_status ip =

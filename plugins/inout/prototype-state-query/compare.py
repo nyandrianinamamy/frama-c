@@ -8,7 +8,7 @@
 
 """Compare the records of the acceptance driver and write the report.
 
-Usage: compare.py EVIDENCE-DIR FIXTURE... [--require-zero-reads]
+Usage: compare.py EVIDENCE-DIR FIXTURE... [--require-zero-reads] [--no-write]
 
 For each fixture, EVIDENCE-DIR holds NAME.reference.jsonl and
 NAME.candidate.jsonl, written by separate processes. Answers are compared
@@ -21,8 +21,10 @@ models is not checked. Each call gets one disposition:
   MISSING     the call is absent from one of the runs
   UNOBSERVED  equal answers, but the candidate's guard was off
 
-The exit status is 1 on any MISMATCH, MISSING or failed control, and also
-on LEGACY or UNOBSERVED with --require-zero-reads."""
+The zero-read gate passes when no call is LEGACY or UNOBSERVED and the
+candidates logged no read during the execution either. The exit status is 1
+on any MISMATCH, MISSING or failed control, and also on a failed gate with
+--require-zero-reads. --no-write skips writing report.md and report.json."""
 
 import hashlib
 import json
@@ -35,6 +37,7 @@ CONTROLS = {
     "request": (1, "request", "Eva.Results.get_cvalue_model"),
     "analysis": (1, "analysis", "Eva.Engine.register_state"),
     "collection": (1, "collection", "Eva.Summary.compute_fun_stats"),
+    "post-analysis": (1, "post-analysis", "Eva.Eval_annots.mark_unreachable"),
     "initialization": (0, None, None),
 }
 CONTROL_FIXTURE = "legacy-reads"
@@ -47,6 +50,11 @@ def load(path):
     calls = [r for r in records if r["kind"] == "call"]
     execution = [r for r in records if r["kind"] == "execution"]
     return header, calls, execution
+
+
+def accounting(path):
+    records = [json.loads(line) for line in path.read_text().splitlines()]
+    return next((r for r in records if r["kind"] == "accounting"), None)
 
 
 def disposition(expected, observed):
@@ -106,6 +114,11 @@ def fixture_report(evidence, name):
         "same_inputs": ref_header["inputs"] == cand_header["inputs"],
         "inputs": inputs,
         "execution": [{**e["first"], "count": e["count"]} for e in execution],
+        "execution_reads": sum(e["count"] for e in execution),
+        "accounting": {
+            "reference": accounting(evidence / f"{name}.reference.jsonl"),
+            "candidate": accounting(evidence / f"{name}.candidate.jsonl"),
+        },
         "calls": rows,
     }
 
@@ -193,6 +206,53 @@ def sensitivity_control(fixture):
     }
 
 
+def accounting_control(fixtures):
+    """Every logged read belongs to the execution or to one call, and the
+    reference logs none."""
+    unbalanced = []
+    for f in fixtures:
+        ref, cand = f["accounting"]["reference"], f["accounting"]["candidate"]
+        if not (
+            ref
+            and cand
+            and ref["logged"] == 0
+            and cand["logged"] == cand["attributed"]
+            and cand["attributed"]
+            == f["execution_reads"] + sum(r["legacy_reads"] for r in f["calls"])
+        ):
+            unbalanced.append(f["fixture"])
+    return {
+        "control": "read-accounting",
+        "expected": {"unbalanced": []},
+        "observed": {"unbalanced": unbalanced},
+        "result": "PASS" if not unbalanced else "FAIL",
+    }
+
+
+def zero_read_gate(fixtures):
+    execution = sum(f["execution_reads"] for f in fixtures)
+    calls = sum(
+        1 for f in fixtures for r in f["calls"] if r["disposition"] in ("LEGACY", "UNOBSERVED")
+    )
+    return execution == 0 and calls == 0, {"execution_reads": execution, "legacy_calls": calls}
+
+
+def gate_control(evidence, gate_passes):
+    """compare.py --require-zero-reads must exit 1 exactly when the gate
+    fails on the same evidence."""
+    path = evidence / "zero-read-gate.status"
+    expected = 0 if gate_passes else 1
+    if not path.exists():
+        return {"control": "zero-read-gate-exit", "result": "NOT RUN"}
+    status = int(path.read_text())
+    return {
+        "control": "zero-read-gate-exit",
+        "expected": {"status": expected},
+        "observed": {"status": status},
+        "result": "PASS" if status == expected else "FAIL",
+    }
+
+
 def one_line(text):
     if text is None:
         return "—"
@@ -208,6 +268,8 @@ def markdown(report):
         f"- Command: `{env.get('command')}`",
         f"- Candidate options: `{env.get('candidate-options')}`",
         f"- Replay: `bash plugins/inout/prototype-state-query/" f"acceptance.sh`",
+        f"- Zero-read gate: {'PASS' if report['gate']['passes'] else 'FAIL'} "
+        f"`{json.dumps(report['gate']['observed'])}`",
         "",
     ]
     out += [
@@ -269,24 +331,29 @@ def environment(evidence):
 
 
 def main(argv):
+    flags = {"--require-zero-reads", "--no-write"}
     require_zero = "--require-zero-reads" in argv
-    args = [a for a in argv if a != "--require-zero-reads"]
+    args = [a for a in argv if a not in flags]
     evidence, fixtures = Path(args[0]), args[1:]
     report = {
         "environment": environment(evidence),
         "fixtures": [fixture_report(evidence, name) for name in fixtures],
     }
+    gate_passes, gate_observed = zero_read_gate(report["fixtures"])
+    report["gate"] = {"passes": gate_passes, "observed": gate_observed}
     controls = [control_report(evidence, phase) for phase in CONTROLS]
     controls.append(comparator_control(evidence))
     control_fixture = next(f for f in report["fixtures"] if f["fixture"] == CONTROL_FIXTURE)
     controls.append(sensitivity_control(control_fixture))
+    controls.append(accounting_control(report["fixtures"]))
+    if not require_zero:
+        controls.append(gate_control(evidence, gate_passes))
     report["controls"] = controls
-    (evidence / "report.json").write_text(json.dumps(report, indent=1))
-    (evidence / "report.md").write_text(markdown(report))
+    if "--no-write" not in argv:
+        (evidence / "report.json").write_text(json.dumps(report, indent=1))
+        (evidence / "report.md").write_text(markdown(report))
     failing = {"MISMATCH", "MISSING"}
-    if require_zero:
-        failing |= {"LEGACY", "UNOBSERVED"}
-    failed = False
+    failed = require_zero and not gate_passes
     for f in report["fixtures"]:
         counts = {}
         for r in f["calls"]:
@@ -298,7 +365,9 @@ def main(argv):
     for c in controls:
         print(f"{c['control']}: {c['result']}")
         failed |= c["result"] != "PASS"
-    print(f"Report: {evidence / 'report.md'}")
+    print(f"zero-read gate: {'PASS' if gate_passes else 'FAIL'} {json.dumps(gate_observed)}")
+    if "--no-write" not in argv:
+        print(f"Report: {evidence / 'report.md'}")
     return 1 if failed else 0
 
 

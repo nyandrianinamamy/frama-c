@@ -57,12 +57,19 @@ for name in "${fixtures[@]}"; do
 done
 
 # Positive controls: the trap must abort the run with exit status 1.
-for phase in request analysis collection initialization; do
+for phase in request analysis collection post-analysis initialization; do
   status=0
   run legacy-reads "trap:$phase" "$evidence/control-$phase" \
     "${candidate_options[@]}" || status=$?
   printf '%s\n' "$status" > "$evidence/control-$phase.status"
   printf 'Recorded control %s (exit %s)\n' "$phase" "$status"
 done
+
+# The zero-read gate must fail while legacy reads remain: record the exit
+# status of the gate alone, which compare.py checks against the evidence.
+status=0
+python3 -I "$prototype/compare.py" --require-zero-reads --no-write \
+  "$evidence" "${fixtures[@]}" > "$evidence/zero-read-gate.log" || status=$?
+printf '%s\n' "$status" > "$evidence/zero-read-gate.status"
 
 python3 -I "$prototype/compare.py" "$evidence" "${fixtures[@]}"

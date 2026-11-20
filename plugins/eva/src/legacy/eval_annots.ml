@@ -101,6 +101,8 @@ let mark_unreachable () =
   in
   (* Mark postconditions of analyzed functions with unreachable return stmt. *)
   let mark_postconditions kf =
+    Legacy_read_guard.notify Availability ~store:"analysis-status"
+      (fun fmt -> Kernel_function.pretty fmt kf);
     match Function_calls.analysis_status kf with
     | Analyzed _ when not (Eva_utils.skip_specifications kf) ->
       let return_stmt = Kernel_function.find_return kf in

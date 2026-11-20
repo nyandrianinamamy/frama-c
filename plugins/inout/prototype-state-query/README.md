@@ -75,9 +75,11 @@ disposition per request:
 
 Answers are compared as printed text, so equality is exact for printed
 answers, and native inclusion between models is not checked across
-processes. The script fails on `MISMATCH`, `MISSING` or a failed control,
-and also on `LEGACY` with `--require-zero-reads`. Until a reader is
-migrated, every request on stored results is `LEGACY`.
+processes. The script fails on `MISMATCH`, `MISSING` or a failed control.
+With `--require-zero-reads` it also fails unless the zero-read gate passes:
+no request is `LEGACY` or `UNOBSERVED`, and the candidate made no legacy
+read during the execution either. Until a reader is migrated, every request
+on stored results is `LEGACY` and the gate fails.
 
 The requests cover stack enumeration (`callstacks`, `by_callstack`),
 availability (`are_available`, `Eva.Analysis.status`, `is_reachable`),
@@ -94,8 +96,9 @@ The guard (`Eva.Legacy_read_guard`) sees three kinds of reads:
   final-value printer and the consolidation of states;
 - the store's own availability flag;
 - the availability decision of point queries: the computation state and the
-  analysis status of the function in the engine, `Results.are_available`
-  and `Eva.Analysis.status`.
+  analysis status of the function in the engine, `Results.are_available`,
+  `Eva.Analysis.status`, the consolidation of per-function states, the
+  postcondition marking of `Eval_annots` and the snapshot export.
 
 Each read carries the phase (initialization, analysis, collection by
 `Cvalue_callbacks` hooks, post-analysis, or request), the outermost
@@ -110,15 +113,38 @@ read in that phase aborts Eva with exit status 1:
 | `trap:request` | `Eva.Results.get_cvalue_model` on `before P`, the known request. |
 | `trap:analysis` | `Eva.Engine.register_state`, which reads the recorded state to join it. |
 | `trap:collection` | `Eva.Summary.compute_fun_stats`, Eva's statistics hook. |
+| `trap:post-analysis` | `Eva.Eval_annots.mark_unreachable`, through `Eva.Results.is_reachable`. |
 | `trap:initialization` | None: the run completes. |
 
-The report adds two controls: altering one candidate answer must give
-exactly one `MISMATCH`, and the guard must see reads on every request on
-stored results and none on the supplied state. The cram test
+The report adds four controls:
+
+- `comparator-mismatch`: altering one candidate answer gives exactly one
+  `MISMATCH`.
+- `guard-sensitivity`: the guard sees reads on every request on stored
+  results and none on the supplied state.
+- `read-accounting`: each process ends with an `accounting` record. The
+  candidate's logged reads equal its execution reads plus the reads of its
+  requests, and the reference logs none.
+- `zero-read-gate-exit`: `acceptance.sh` first runs `compare.py
+  --require-zero-reads --no-write` and records its exit status in
+  `zero-read-gate.status`; the status is 1 while the gate fails and 0 once
+  it passes.
+
+The cram test
 `plugins/eva/tests/utils/legacy-read-guard.t` checks the guard and the
 driver output.
 
-Not covered yet: Callgraph relations (`Results.callers`, `callsites`,
-`is_called` outside point queries), branch outcomes
-(`condition_truth_value`), alarms and property statuses, InOut and Server
-answers, and restoring a snapshot. Later tickets extend the driver to them.
+Not covered yet:
+
+- `Eva.Analysis.is_computed`, which reads the computation state alone and
+  guards the InOut and Server filters and Callgraph;
+- Callgraph relations (`Results.callers`, `callsites`, `is_called` outside
+  point queries);
+- branch outcomes (`condition_truth_value`);
+- alarms and property statuses;
+- InOut and Server answers;
+- restoring a snapshot.
+
+No fixture reaches the `Domain_store.is_computed` notification or the
+`Eva.Interferences.add_last_analysis` label, so these two paths have not
+run. Later tickets extend the driver.
