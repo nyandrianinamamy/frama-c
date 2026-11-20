@@ -120,8 +120,44 @@ let hits () =
   Format.printf "hits: copy %d, narrow %d@." (hits "copy") (hits "narrow");
   requests ()
 
+(* On callees.c: the functions that the formal p of body points to, before
+   the statement of body. The request reads the state at the statement. A
+   hit saves none there, and the results of Eva answer that the functions
+   are unknown: the request refuses, where an empty list would say that p
+   points to no function. *)
+let callees () =
+  let body = kf "body" in
+  let stmt = List.hd (Kernel_function.get_definition body).sallstmts in
+  let p = List.hd (Kernel_function.get_formals body) in
+  let marker = Server.Printer_tag.PLval (Some body, Kstmt stmt, Cil.var p) in
+  let name = "plugins.eva.ast.getCallees" in
+  match Server.Main.find name with
+  | None -> Format.printf "%s: missing@." name
+  | Some (_, handler) ->
+    match handler (Server.Kernel_ast.Marker.to_json marker) with
+    | `List l -> Format.printf "%s: %d function@." name (List.length l)
+    | _ -> Format.printf "%s: answered@." name
+    | exception Log.AbortError _ -> Format.printf "%s: refused@." name
+
+let callees_fresh () =
+  caching_disabled ();
+  callees ()
+
+let callees_hits () =
+  caching_disabled ();
+  Eva.Cache_producer.entries (kf "body")
+  |> List.iter (fun p -> ignore (Eva.Supplied_entries.supply_produced p));
+  clear ();
+  Eva.Parameters.Memexec.on ();
+  Eva.Analysis.compute ();
+  Format.printf "hits: body %d@."
+    (Eva.Statistics.get Eva.Statistics.cache_hits (kf "body"));
+  callees ()
+
 let () =
   match Sys.getenv_opt "EVA_TEST_CACHE_PARTS_SERVER" with
+  | Some "callees-fresh" -> Boot.Main.extend callees_fresh
+  | Some "callees-hits" -> Boot.Main.extend callees_hits
   | Some "fresh" -> Boot.Main.extend fresh
   | Some "hits" -> Boot.Main.extend hits
   | Some "loaded" -> Boot.Main.extend requests

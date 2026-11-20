@@ -45,7 +45,25 @@ let callees = function
       | Mem _ as lhost, NoOffset -> lhost
       | _ -> Mem (Cil.new_exp ~loc:Self.gen_loc (Lval lval))
     in
-    let kfs = Results.(before stmt |> eval_callee lhost |> default []) in
+    (* After a hit of the cache on the function of [stmt], no state is saved
+       at [stmt], and the functions pointed to are unknown: an empty list
+       would say that the pointer points to no function. *)
+    let unknown_after_hit () =
+      let kf = Kernel_function.find_englobing_kf stmt in
+      if Safety_delivery.visits_skipped kf then
+        Self.abort
+          "cannot give the functions that %a points to in %a: in the current \
+           analysis of Eva, a hit of the cache answered a call to %a without \
+           analysing its body, and saved no state at its statements"
+          Printer.pp_lval lval
+          Kernel_function.pretty kf Kernel_function.pretty kf
+    in
+    let kfs =
+      match Results.(before stmt |> eval_callee lhost) with
+      | Ok kfs -> kfs
+      | Error Results.Top -> unknown_after_hit (); []
+      | Error _ -> []
+    in
     List.map (fun kf -> Printer_tag.SFunction kf) kfs
   | _ -> []
 

@@ -978,8 +978,22 @@ each by its own test.
   [studia] User Error: cannot find the statements that access a location
   plugins.studia.studia.getWritesLval: refused
 
-Pdg, loaded in the process that loads the session, refuses to build the
-graph of a function, and stops. With an option of Eva changed, the analysis
+The request of the functions that a function pointer points to reads the
+state before a statement. With caching disabled it answers target for the
+formal of body. After a hit on body no state is saved there, and the
+results of Eva answer that the functions are unknown: the request refuses,
+and does not answer an empty list, which would say that the pointer points
+to no function.
+
+  $ EVA_TEST_CACHE_PARTS_SERVER=callees-fresh frama-c -no-autoload-plugins -load-module eva,eva.server_api,from,inout,test_cache_parts_server.cmxs callees.c > callees-fresh.log 2>&1
+  $ grep -E '^(hits|plugins)|User Error' callees-fresh.log
+  plugins.eva.ast.getCallees: 1 function
+  $ EVA_TEST_CACHE_PARTS_SERVER=callees-hits frama-c -no-autoload-plugins -load-module eva,eva.server_api,from,inout,test_cache_parts_server.cmxs callees.c > callees-hits.log 2>&1
+  $ grep -E '^(hits|plugins)|User Error' callees-hits.log
+  hits: body 1
+  [eva] User Error: cannot give the functions that p points to in body: in the current analysis of Eva, a hit of the cache answered a call to body without analysing its body, and saved no state at its statements
+  plugins.eva.ast.getCallees: refused
+ With an option of Eva changed, the analysis
 runs again, with caching disabled: the graph of copy is the one that an
 analysis of the program with the same options builds, with the inputs b and
 d.

@@ -953,7 +953,7 @@ Readers inside Eva:
 | 4 | The filter of the final values by the outputs of Inout (`Eva_dynamic.Inout.kf_outputs`) | `top`: answers `Top`, and the values are printed unfiltered | `eva_dynamic.ml:26` | `inout` with `-eva`, lines `Cannot filter` | follows row 16 |
 | 5 | The marking of dead code (`Eval_annots.mark_unreachable`) and the coverage of the summary (`Summary`) | `top`: read whether a statement is reached, and the points of the hits are reached | `eval_annots.ml:56`, `:67`, `:107`; `summary.ml:179`, `:276` | `cache-reach.t`, `reach.c`; `cache-safety.t`, `passes.c` | no change |
 | 6 | The refinement of the statuses of the alarms (`Eval_annots.mark_green_and_red`) and `Export` | `top`: conclude at a statement only when every callstack agrees, and the state is top on the callstacks of the hits ([The passes after the analysis read the points reached by hits](reach.md#the-passes-after-the-analysis-read-the-points-reached-by-hits)); `Export` run with `-eva-annot` after the analysis is `refused` while a listed plug-in is loaded (row 2, *new*) | `eval_annots.ml:124`, `:141`; `export.ml:219` to `:231`; `engine.ml:177` | `cache-safety.t`, `passes.c`; `cache-reach.t`, `reach.c`; `-eva-annot` on the session with hits, without and with Occurrence | more statuses refined |
-| 7 | The server request `getDeadCode` | `top`, as row 5; `refused` while a listed plug-in is loaded (row 2, *new*) | `ast_requests.ml:137`; `engine.ml:177` | `server`, before and after Studia is loaded | no change; row 2 |
+| 7 | The server request `getDeadCode` | `top`, as row 5; `refused` while a listed plug-in is loaded (row 2, *new*) | `ast_requests.ml:155`; `engine.ml:177` | `server`, before and after Studia is loaded | no change; row 2 |
 | 8 | The other requests of Eva's server, which the graphical interface sends: the values at a statement and by callstack (`value_requests.ml:360` to `:362`, `:461`), the states before and after a statement (`analysis_requests.ml:132`) | `top`: display the state top; `refused` while a listed plug-in is loaded (row 2, *new*) | `engine.ml:68`; `engine.ml:172`, `:177` | `server`, lines `getValues`, for the values at a statement; source inspection for the states before and after | the values of the visit |
 | 9 | The requests of the taint (`taint_requests.ml:164`, `:240`, `:295`) | no hit: the taint domain is a second domain, and the lookup rejects every candidate with `product` | `supplied_entries.ml:489` | [A supplied entry is used only where a hit is supported](reuse-operation.md#a-supplied-entry-is-used-only-where-a-hit-is-supported) | not concerned |
 | 10 | The dependencies of a term at a statement (`Logic_inout`, installed as `Logic_deps.compute_term_deps`); its callers are Pdg, Scope, Slicing and Sparecode | `consumer` and `refused`, as row 21 | `logic_inout.ml:29`; `engine.ml:177` | as row 21 | as row 21 |
@@ -990,6 +990,20 @@ below (From and Inout in rows 14 to 19).
 | 33 | Aorai (`aorai_eva_analysis.enabled.ml:42`) | `none`: evaluates in the state that the analysis passes to its builtin | source inspection | none | not concerned |
 | 34 | RTE (`rte/src/eva_analysis.enabled.ml:13`) | `none`: reads whether Eva analysed the function, and then relies on the alarms of Eva, which a hit delivers ([A hit delivers the Safety part as recorded joins](safety.md#a-hit-delivers-the-safety-part-as-recorded-joins)) | source inspection | none | not concerned |
 | 35 | A reader outside the tree that asks `Eva.Results` | `top` (row 1); `refused` while a listed plug-in is loaded (row 2) | rows 1 and 2 | rows 1 and 2 | row 1 |
+| 36 | The server request `getCallees`, the functions that a function pointer points to before a statement; it accepts any lvalue of that type, with no call at the statement (*new refusal*) | `refused` for a statement of a function answered by a hit, when the results answer that the functions are unknown (`Error Top`): the request gave the empty list for that answer, which says that the pointer points to no function, where an analysis with caching disabled lists the function. With no hit on the function the request is unchanged | `ast_requests.ml:48` to `:66`; `Safety_delivery.visits_skipped` | `server`, on `callees.c`: one function with caching disabled, refused after the hit on `body` | the functions of the visit |
+
+**An unknown answer turned into a value.** Rows 1 and 35 are sound because
+the answer after a hit is the state top or the error `Top`. A reader that
+replaces that error by a value is not covered by them: it needs its own row.
+Three other places of the tree do so for the functions called at a
+statement: `Eva.Results.callee` (`results.ml:603`, used by Studia, Scope,
+Slicing, Impact, Pdg, the Markdown report and From), `From_compute`
+(`from_compute.ml:310`) and Dive (`build.ml:95`). Each reads the state
+before a call statement, and each of its callers but From's display is a
+listed plug-in or loads one. No hit answers a body that contains a call
+(the lookup rejects its entries with `nested-delivery`), so no such statement is in a
+function answered by a hit. The ticket that admits bodies with calls owes
+the same treatment for these three.
 
 **Kind.** OCaml obligation.
 
