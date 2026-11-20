@@ -41,7 +41,9 @@ type log = {
   producers: (int, producer) Hashtbl.t;
   no_results: unit Kernel_function.Hashtbl.t;
   mutable open_calls: invocation list; (* innermost first *)
-  mutable sequence: invocation list; (* all invocations, latest first *)
+  by_kf: invocation list Kernel_function.Hashtbl.t;
+  (* the invocations of each function, latest first *)
+  mutable has_hit: bool;
   (* Answers on all callstacks, computed once the records are sealed. *)
   by_callstack:
     (Callstack.t * state) list Lattice_bounds.or_top_bottom
@@ -59,7 +61,8 @@ let create stamp exact = {
   producers = Hashtbl.create 17;
   no_results = Kernel_function.Hashtbl.create 7;
   open_calls = [];
-  sequence = [];
+  by_kf = Kernel_function.Hashtbl.create 17;
+  has_hit = false;
   by_callstack = Domain_store.ControlPoint.Hashtbl.create 17;
   consolidated = Domain_store.ControlPoint.Hashtbl.create 17;
 }
@@ -108,7 +111,11 @@ let enter stack input =
       Option.value ~default:[] (Callstack.Hashtbl.find_opt log.invocations stack)
     in
     Callstack.Hashtbl.replace log.invocations stack (invocation :: visits);
-    log.sequence <- invocation :: log.sequence;
+    let kf = Callstack.top_kf stack in
+    let calls =
+      Option.value ~default:[] (Kernel_function.Hashtbl.find_opt log.by_kf kf)
+    in
+    Kernel_function.Hashtbl.replace log.by_kf kf (invocation :: calls);
     log.open_calls <- invocation :: log.open_calls
 
 (* The innermost open invocation, which must be on [stack]. *)
@@ -129,7 +136,9 @@ let leave stack =
 
 let hit stack ~producer =
   if recording () then
-    Option.iter (fun invocation -> invocation.kind <- Hit producer)
+    Option.iter (fun invocation ->
+        invocation.kind <- Hit producer;
+        (!current).has_hit <- true)
       (open_invocation stack)
 
 let body stack ~producer ~entries ~points =
@@ -287,14 +296,14 @@ let registrations log (point : Domain_store.control_point) =
         && (Callstack.Hashtbl.add seen stack (); true))
       stacks
   in
+  (* The invocations of [kf], in the order in which they were entered. *)
+  let calls kf =
+    Kernel_function.Hashtbl.find_opt log.by_kf kf
+    |> Option.value ~default:[] |> List.rev
+  in
   match point with
   | Initial -> Option.to_list (Option.map fst log.initial)
-  | Start kf ->
-    List.rev log.sequence
-    |> List.filter (fun v ->
-        Kernel_function.equal (Callstack.top_kf v.stack) kf)
-    |> List.map (fun v -> v.stack)
-    |> first_occurrences
+  | Start kf -> calls kf |> List.map (fun v -> v.stack) |> first_occurrences
   | Before stmt | After stmt ->
     let kf = Kernel_function.find_englobing_kf stmt in
     let reaches id =
@@ -309,10 +318,9 @@ let registrations log (point : Domain_store.control_point) =
     let bodies =
       List.filter_map (fun v ->
           match v.kind with
-          | Body id when Kernel_function.equal (Callstack.top_kf v.stack) kf
-                      && reaches id -> Some (id, v.stack)
+          | Body id when reaches id -> Some (id, v.stack)
           | Body _ | Hit _ | Spec_or_builtin -> None)
-        log.sequence
+        (calls kf)
     in
     List.sort (fun (a, _) (b, _) -> Int.compare a b) bodies
     |> List.map snd |> first_occurrences
@@ -323,7 +331,7 @@ let registrations log (point : Domain_store.control_point) =
    recorded. Declines when the records contain a memexec hit: the
    callstacks below a hit, and its points, are not recorded yet. *)
 let rebuild_by_callstack log (point : Domain_store.control_point) =
-  if List.exists is_hit log.sequence then raise Decline;
+  if log.has_hit then raise Decline;
   let no_results =
     match point with
     | Initial | Start _ -> false
