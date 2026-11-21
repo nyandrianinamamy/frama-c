@@ -1,0 +1,53 @@
+[kernel] Parsing calloc.c (with preprocessing)
+Calls:
+  calloc :: calloc.c:16 <- alloc :: calloc.c:22 <- alloc_once: builtin
+  alloc :: calloc.c:22 <- alloc_once: analysed, cache entry 7
+  calloc :: calloc.c:16 <- alloc :: calloc.c:25 <- alloc_once: builtin
+  alloc :: calloc.c:25 <- alloc_once: analysed, cache entry 8
+  alloc_once: analysed, cache entry 9
+alloc, start:
+  joined: p ∈ {{ NULL ; &__calloc_alloc_l16_3 }}
+          q ∈ {{ NULL ; &__calloc_alloc_l16_3 }}
+          __calloc_alloc_l16_3.a ∈ {0; 5}
+                              .b ∈ {0; 1}
+  alloc :: calloc.c:22 <- alloc_once: p ∈ {0}
+                                      q ∈ {0}
+  alloc :: calloc.c:25 <- alloc_once: p ∈ {{ NULL ; &__calloc_alloc_l16_3 }}
+                                      q ∈ {{ NULL ; &__calloc_alloc_l16_3 }}
+                                      __calloc_alloc_l16_3.a ∈ {0; 5}
+                                                          .b ∈ {0; 1}
+alloc, before calloc.c:17 `;` (P):
+  joined: p ∈ {{ NULL ; &__calloc_alloc_l16_3 ; &__calloc_alloc_l16_4 }}
+          q ∈ {{ NULL ; &__calloc_alloc_l16_3 }}
+          __calloc_alloc_l16_3.a ∈ {0; 5}
+                              .b ∈ {0; 1}
+          __calloc_alloc_l16_4 ∈ {0}
+  alloc :: calloc.c:22 <- alloc_once: p ∈ {{ NULL ; &__calloc_alloc_l16_3 }}
+                                      q ∈ {0}
+                                      __calloc_alloc_l16_3 ∈ {0}
+  alloc :: calloc.c:25 <- alloc_once: p ∈ {{ NULL ; &__calloc_alloc_l16_4 }}
+                                      q ∈ {{ NULL ; &__calloc_alloc_l16_3 }}
+                                      __calloc_alloc_l16_3.a ∈ {0; 5}
+                                                          .b ∈ {0; 1}
+                                      __calloc_alloc_l16_4 ∈ {0}
+alloc, after calloc.c:18 `return;`:
+  joined: p ∈ {{ NULL ; &__calloc_alloc_l16_3 ; &__calloc_alloc_l16_4 }}
+          q ∈ {{ NULL ; &__calloc_alloc_l16_3 }}
+          __calloc_alloc_l16_3.a ∈ {0; 5}
+                              .b ∈ {0; 1}
+          __calloc_alloc_l16_4.a ∈ {0}
+                              .b ∈ {0; 1}
+  alloc :: calloc.c:22 <- alloc_once: p ∈ {{ NULL ; &__calloc_alloc_l16_3 }}
+                                      q ∈ {0}
+                                      __calloc_alloc_l16_3.a ∈ {0}
+                                                          .b ∈ {0; 1}
+  alloc :: calloc.c:25 <- alloc_once: p ∈ {{ NULL ; &__calloc_alloc_l16_4 }}
+                                      q ∈ {{ NULL ; &__calloc_alloc_l16_3 }}
+                                      __calloc_alloc_l16_3.a ∈ {0; 5}
+                                                          .b ∈ {0; 1}
+                                      __calloc_alloc_l16_4.a ∈ {0}
+                                                          .b ∈ {0; 1}
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 131 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Requests made: 178; reported by the trap: 178; reads of the legacy store: 0.

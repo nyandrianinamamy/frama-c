@@ -1,0 +1,87 @@
+[kernel] Parsing fixtures.c (with preprocessing)
+Calls:
+  dead_branch :: fixtures.c:105 <- unreachable: analysed, cache entry 6
+  dead_branch :: fixtures.c:106 <- unreachable: hit of cache entry 6
+  unreachable: analysed, cache entry 7
+dead_branch, start:
+  joined: v ∈ [--..--]
+          a ∈ {0}
+          c ∈ {0}
+          g ∈ {0}
+          h ∈ {7; 8}
+          out ∈ {0}
+          w ∈ {0}
+          x ∈ {0}
+          y ∈ {0}
+          t1 ∈ {0}
+          t2 ∈ {0}
+          p ∈ {0}
+  dead_branch :: fixtures.c:105 <- unreachable: v ∈ [--..--]
+                                                a ∈ {0}
+                                                c ∈ {0}
+                                                g ∈ {0}
+                                                h ∈ {7}
+                                                out ∈ {0}
+                                                w ∈ {0}
+                                                x ∈ {0}
+                                                y ∈ {0}
+                                                t1 ∈ {0}
+                                                t2 ∈ {0}
+                                                p ∈ {0}
+  dead_branch :: fixtures.c:106 <- unreachable: v ∈ [--..--]
+                                                a ∈ {0}
+                                                c ∈ {0}
+                                                g ∈ {0}
+                                                h ∈ {8}
+                                                out ∈ {0}
+                                                w ∈ {0}
+                                                x ∈ {0}
+                                                y ∈ {0}
+                                                t1 ∈ {0}
+                                                t2 ∈ {0}
+                                                p ∈ {0}
+dead_branch, before fixtures.c:102 `g = 1;` (P):
+  joined: unreachable
+dead_branch, after fixtures.c:102 `return;`:
+  joined: v ∈ [--..--]
+          a ∈ {0}
+          c ∈ {0}
+          g ∈ {0}
+          h ∈ {7; 8}
+          out ∈ {0}
+          w ∈ {0}
+          x ∈ {0}
+          y ∈ {0}
+          t1 ∈ {0}
+          t2 ∈ {0}
+          p ∈ {0}
+  dead_branch :: fixtures.c:105 <- unreachable: v ∈ [--..--]
+                                                a ∈ {0}
+                                                c ∈ {0}
+                                                g ∈ {0}
+                                                h ∈ {7}
+                                                out ∈ {0}
+                                                w ∈ {0}
+                                                x ∈ {0}
+                                                y ∈ {0}
+                                                t1 ∈ {0}
+                                                t2 ∈ {0}
+                                                p ∈ {0}
+  dead_branch :: fixtures.c:106 <- unreachable: v ∈ [--..--]
+                                                a ∈ {0}
+                                                c ∈ {0}
+                                                g ∈ {0}
+                                                h ∈ {8}
+                                                out ∈ {0}
+                                                w ∈ {0}
+                                                x ∈ {0}
+                                                y ∈ {0}
+                                                t1 ∈ {0}
+                                                t2 ∈ {0}
+                                                p ∈ {0}
+Hits against the analysed call of their cache entry:
+  dead_branch :: fixtures.c:106 <- unreachable, hit of cache entry 6, against dead_branch :: fixtures.c:105 <- unreachable: differs on h, at 7 points.
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 549 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Requests made: 808; reported by the trap: 808; reads of the legacy store: 0.

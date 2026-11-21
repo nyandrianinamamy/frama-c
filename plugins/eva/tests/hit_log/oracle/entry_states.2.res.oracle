@@ -1,0 +1,64 @@
+[kernel] Parsing entry_states.c (with preprocessing)
+[eva:alarm] entry_states.c:51: Warning: 
+  function req_read: precondition got status unknown.
+[eva:alarm] entry_states.c:53: Warning: 
+  function req_read: precondition got status unknown.
+[eva:alarm] entry_states.c:51: Warning: 
+  function req_read: precondition got status unknown.
+[eva:alarm] entry_states.c:53: Warning: 
+  function req_read: precondition got status unknown.
+[eva:alarm] entry_states.c:51: Warning: 
+  function req_read: precondition got status unknown.
+[eva:alarm] entry_states.c:53: Warning: 
+  function req_read: precondition got status unknown.
+Calls:
+  Frama_C_interval :: entry_states.c:50 <- requires_read: specification
+  req_read :: entry_states.c:51 <- requires_read: analysed, cache entry 6
+  Frama_C_interval :: entry_states.c:52 <- requires_read: specification
+  req_read :: entry_states.c:53 <- requires_read: hit of cache entry 6
+  requires_read: analysed, cache entry 7
+req_read, start:
+  joined: v ∈ [--..--]
+          g ∈ [0..9]
+          x ∈ {0}
+          out ∈ {0}
+  req_read :: entry_states.c:51 <- requires_read: v ∈ [--..--]
+                                                  g ∈ [0..9]
+                                                  x ∈ {0}
+                                                  out ∈ {0}
+  req_read :: entry_states.c:53 <- requires_read: v ∈ [--..--]
+                                                  g ∈ [0..9]
+                                                  x ∈ {0}
+                                                  out ∈ {0}
+req_read, before entry_states.c:47 `out = g;` (P):
+  joined: v ∈ [--..--]
+          g ∈ {4; 5; 6; 7; 8; 9}
+          x ∈ {0}
+          out ∈ {0}
+  req_read :: entry_states.c:51 <- requires_read: v ∈ [--..--]
+                                                  g ∈ {4; 5; 6; 7; 8; 9}
+                                                  x ∈ {0}
+                                                  out ∈ {0}
+  req_read :: entry_states.c:53 <- requires_read: v ∈ [--..--]
+                                                  g ∈ {4; 5; 6; 7; 8; 9}
+                                                  x ∈ {0}
+                                                  out ∈ {0}
+req_read, after entry_states.c:47 `return;`:
+  joined: v ∈ [--..--]
+          g ∈ {4; 5; 6; 7; 8; 9}
+          x ∈ {0}
+          out ∈ {4; 5; 6; 7; 8; 9}
+  req_read :: entry_states.c:51 <- requires_read: v ∈ [--..--]
+                                                  g ∈ {4; 5; 6; 7; 8; 9}
+                                                  x ∈ {0}
+                                                  out ∈ {4; 5; 6; 7; 8; 9}
+  req_read :: entry_states.c:53 <- requires_read: v ∈ [--..--]
+                                                  g ∈ {4; 5; 6; 7; 8; 9}
+                                                  x ∈ {0}
+                                                  out ∈ {4; 5; 6; 7; 8; 9}
+Hits against the analysed call of their cache entry:
+  req_read :: entry_states.c:53 <- requires_read, hit of cache entry 6, against req_read :: entry_states.c:51 <- requires_read: no difference, at 5 points.
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 199 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Requests made: 285; reported by the trap: 285; reads of the legacy store: 0.

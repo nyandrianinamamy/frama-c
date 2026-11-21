@@ -1,6 +1,6 @@
 # Default tests
 
-DEFAULT_SUITES= builtins float idct numerors traces value mthread secure_flow
+DEFAULT_SUITES= builtins float idct numerors traces value mthread secure_flow hit_log
 
 ## Diff/default domain tests
 apron_SUITES = builtins float idct value secure_flow

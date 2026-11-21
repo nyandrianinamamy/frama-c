@@ -1,0 +1,248 @@
+[kernel] Parsing more_precise.c (with preprocessing)
+Calls:
+  count :: more_precise.c:39 <- hints_on_branch: analysed, cache entry 11
+  discover :: more_precise.c:40 <- hints_on_branch: analysed, cache entry 12
+  count :: more_precise.c:41 <- hints_on_branch: hit of cache entry 11
+  hint_y :: more_precise.c:42 <- hints_on_branch: analysed, cache entry 13
+  loop_y :: more_precise.c:44 <- hints_on_branch: analysed, cache entry 14
+  hints_on_branch: analysed, cache entry 15
+hint_y, start:
+  joined: x ∈ [14..2147483647]
+          y ∈ {0}
+          h ∈ {8}
+          q ∈ {{ &y }}
+          bound ∈ {13}
+          budget ∈ {0}
+          first ∈ {0}
+          second ∈ {0}
+  hint_y :: more_precise.c:42 <- hints_on_branch: x ∈ [14..2147483647]
+                                                  y ∈ {0}
+                                                  h ∈ {8}
+                                                  q ∈ {{ &y }}
+                                                  bound ∈ {13}
+                                                  budget ∈ {0}
+                                                  first ∈ {0}
+                                                  second ∈ {0}
+  reference, joined: unreachable
+hint_y, before more_precise.c:29 `;` (H):
+  joined: x ∈ [14..2147483647]
+          y ∈ {0}
+          h ∈ {8}
+          q ∈ {{ &y }}
+          bound ∈ {13}
+          budget ∈ {0}
+          first ∈ {0}
+          second ∈ {0}
+  hint_y :: more_precise.c:42 <- hints_on_branch: x ∈ [14..2147483647]
+                                                  y ∈ {0}
+                                                  h ∈ {8}
+                                                  q ∈ {{ &y }}
+                                                  bound ∈ {13}
+                                                  budget ∈ {0}
+                                                  first ∈ {0}
+                                                  second ∈ {0}
+  reference, joined: unreachable
+hint_y, after more_precise.c:30 `return;`:
+  joined: x ∈ [14..2147483647]
+          y ∈ {0}
+          h ∈ {8}
+          q ∈ {{ &y }}
+          bound ∈ {13}
+          budget ∈ {0}
+          first ∈ {0}
+          second ∈ {0}
+  hint_y :: more_precise.c:42 <- hints_on_branch: x ∈ [14..2147483647]
+                                                  y ∈ {0}
+                                                  h ∈ {8}
+                                                  q ∈ {{ &y }}
+                                                  bound ∈ {13}
+                                                  budget ∈ {0}
+                                                  first ∈ {0}
+                                                  second ∈ {0}
+  reference, joined: unreachable
+loop_y, start:
+  joined: x ∈ {0}
+          y ∈ {0}
+          h ∈ {8}
+          n ∈ {20}
+          bound ∈ {13}
+          budget ∈ {0}
+          first ∈ {0}
+          second ∈ {0}
+  loop_y :: more_precise.c:44 <- hints_on_branch: x ∈ {0}
+                                                  y ∈ {0}
+                                                  h ∈ {8}
+                                                  n ∈ {20}
+                                                  bound ∈ {13}
+                                                  budget ∈ {0}
+                                                  first ∈ {0}
+                                                  second ∈ {0}
+loop_y, before more_precise.c:34 `h = 0;` (P):
+  joined: x ∈ {0}
+          y ∈ {20}
+          h ∈ {8}
+          n ∈ {20}
+          bound ∈ {13}
+          budget ∈ {0}
+          first ∈ {0}
+          second ∈ {0}
+  loop_y :: more_precise.c:44 <- hints_on_branch: x ∈ {0}
+                                                  y ∈ {20}
+                                                  h ∈ {8}
+                                                  n ∈ {20}
+                                                  bound ∈ {13}
+                                                  budget ∈ {0}
+                                                  first ∈ {0}
+                                                  second ∈ {0}
+  reference, joined: x ∈ {0}
+                     y ∈ [20..2147483647]
+                     h ∈ {8}
+                     n ∈ {20}
+                     bound ∈ {13}
+                     budget ∈ {0}
+                     first ∈ {0}
+                     second ∈ {0}
+  loop_y :: more_precise.c:44 <- hints_on_branch: x ∈ {0}
+                                                  y ∈ [20..2147483647]
+                                                  h ∈ {8}
+                                                  n ∈ {20}
+                                                  bound ∈ {13}
+                                                  budget ∈ {0}
+                                                  first ∈ {0}
+                                                  second ∈ {0}
+loop_y, after more_precise.c:35 `return;`:
+  joined: x ∈ {0}
+          y ∈ {20}
+          h ∈ {0}
+          n ∈ {20}
+          bound ∈ {13}
+          budget ∈ {0}
+          first ∈ {0}
+          second ∈ {0}
+  loop_y :: more_precise.c:44 <- hints_on_branch: x ∈ {0}
+                                                  y ∈ {20}
+                                                  h ∈ {0}
+                                                  n ∈ {20}
+                                                  bound ∈ {13}
+                                                  budget ∈ {0}
+                                                  first ∈ {0}
+                                                  second ∈ {0}
+  reference, joined: x ∈ {0}
+                     y ∈ [20..2147483647]
+                     h ∈ {0}
+                     n ∈ {20}
+                     bound ∈ {13}
+                     budget ∈ {0}
+                     first ∈ {0}
+                     second ∈ {0}
+  loop_y :: more_precise.c:44 <- hints_on_branch: x ∈ {0}
+                                                  y ∈ [20..2147483647]
+                                                  h ∈ {0}
+                                                  n ∈ {20}
+                                                  bound ∈ {13}
+                                                  budget ∈ {0}
+                                                  first ∈ {0}
+                                                  second ∈ {0}
+Hits against the analysed call of their cache entry:
+  count :: more_precise.c:41 <- hints_on_branch, hit of cache entry 11, against count :: more_precise.c:39 <- hints_on_branch: differs on h, at 11 points.
+Initial state: equal.
+Differences with the run without memexec:
+  final state, joined: more precise, as with memexec
+  final state, filtered: more precise, as with memexec
+  final state, hints_on_branch: more precise, as with memexec
+  count, after more_precise.c:19 `loop`, count :: more_precise.c:41 <- hints_on_branch: covers
+  count, before more_precise.c:19 `if (x < n)`, count :: more_precise.c:41 <- hints_on_branch: covers
+  count, after more_precise.c:19 `if (x < n)`, count :: more_precise.c:41 <- hints_on_branch: covers
+  count, before more_precise.c:19 `break;`, count :: more_precise.c:41 <- hints_on_branch: covers
+  count, after more_precise.c:19 `break;`, count :: more_precise.c:41 <- hints_on_branch: covers
+  count, before more_precise.c:19 `return;`, count :: more_precise.c:41 <- hints_on_branch: covers
+  count, after more_precise.c:19 `return;`, count :: more_precise.c:41 <- hints_on_branch: covers
+  hint_y, start, joined: covers, as with memexec
+  hint_y, start, filtered: covers, as with memexec
+  hint_y, start, hint_y :: more_precise.c:42 <- hints_on_branch: covers, as with memexec
+  hint_y, before more_precise.c:28 `loop`, joined: covers, as with memexec
+  hint_y, before more_precise.c:28 `loop`, filtered: covers, as with memexec
+  hint_y, before more_precise.c:28 `loop`, hint_y :: more_precise.c:42 <- hints_on_branch: covers, as with memexec
+  hint_y, after more_precise.c:28 `loop`, joined: covers, as with memexec
+  hint_y, after more_precise.c:28 `loop`, filtered: covers, as with memexec
+  hint_y, after more_precise.c:28 `loop`, hint_y :: more_precise.c:42 <- hints_on_branch: covers, as with memexec
+  hint_y, before more_precise.c:28 `if (*q < 0)`, joined: covers, as with memexec
+  hint_y, before more_precise.c:28 `if (*q < 0)`, filtered: covers, as with memexec
+  hint_y, before more_precise.c:28 `if (*q < 0)`, hint_y :: more_precise.c:42 <- hints_on_branch: covers, as with memexec
+  hint_y, after more_precise.c:28 `if (*q < 0)`, joined: covers, as with memexec
+  hint_y, after more_precise.c:28 `if (*q < 0)`, filtered: covers, as with memexec
+  hint_y, after more_precise.c:28 `if (*q < 0)`, hint_y :: more_precise.c:42 <- hints_on_branch: covers, as with memexec
+  hint_y, before more_precise.c:28 `break;`, joined: covers, as with memexec
+  hint_y, before more_precise.c:28 `break;`, filtered: covers, as with memexec
+  hint_y, before more_precise.c:28 `break;`, hint_y :: more_precise.c:42 <- hints_on_branch: covers, as with memexec
+  hint_y, after more_precise.c:28 `break;`, joined: covers, as with memexec
+  hint_y, after more_precise.c:28 `break;`, filtered: covers, as with memexec
+  hint_y, after more_precise.c:28 `break;`, hint_y :: more_precise.c:42 <- hints_on_branch: covers, as with memexec
+  hint_y, before more_precise.c:29 `;` (H), joined: covers, as with memexec
+  hint_y, before more_precise.c:29 `;` (H), filtered: covers, as with memexec
+  hint_y, before more_precise.c:29 `;` (H), hint_y :: more_precise.c:42 <- hints_on_branch: covers, as with memexec
+  hint_y, after more_precise.c:29 `;` (H), joined: covers, as with memexec
+  hint_y, after more_precise.c:29 `;` (H), filtered: covers, as with memexec
+  hint_y, after more_precise.c:29 `;` (H), hint_y :: more_precise.c:42 <- hints_on_branch: covers, as with memexec
+  hint_y, before more_precise.c:30 `return;`, joined: covers, as with memexec
+  hint_y, before more_precise.c:30 `return;`, filtered: covers, as with memexec
+  hint_y, before more_precise.c:30 `return;`, hint_y :: more_precise.c:42 <- hints_on_branch: covers, as with memexec
+  hint_y, after more_precise.c:30 `return;`, joined: covers, as with memexec
+  hint_y, after more_precise.c:30 `return;`, filtered: covers, as with memexec
+  hint_y, after more_precise.c:30 `return;`, hint_y :: more_precise.c:42 <- hints_on_branch: covers, as with memexec
+  loop_y, after more_precise.c:33 `loop`, joined: more precise, as with memexec
+  loop_y, after more_precise.c:33 `loop`, filtered: more precise, as with memexec
+  loop_y, after more_precise.c:33 `loop`, loop_y :: more_precise.c:44 <- hints_on_branch: more precise, as with memexec
+  loop_y, before more_precise.c:33 `if (y < n)`, joined: more precise, as with memexec
+  loop_y, before more_precise.c:33 `if (y < n)`, filtered: more precise, as with memexec
+  loop_y, before more_precise.c:33 `if (y < n)`, loop_y :: more_precise.c:44 <- hints_on_branch: more precise, as with memexec
+  loop_y, after more_precise.c:33 `if (y < n)`, joined: more precise, as with memexec
+  loop_y, after more_precise.c:33 `if (y < n)`, filtered: more precise, as with memexec
+  loop_y, after more_precise.c:33 `if (y < n)`, loop_y :: more_precise.c:44 <- hints_on_branch: more precise, as with memexec
+  loop_y, before more_precise.c:33 `break;`, joined: more precise, as with memexec
+  loop_y, before more_precise.c:33 `break;`, filtered: more precise, as with memexec
+  loop_y, before more_precise.c:33 `break;`, loop_y :: more_precise.c:44 <- hints_on_branch: more precise, as with memexec
+  loop_y, after more_precise.c:33 `break;`, joined: more precise, as with memexec
+  loop_y, after more_precise.c:33 `break;`, filtered: more precise, as with memexec
+  loop_y, after more_precise.c:33 `break;`, loop_y :: more_precise.c:44 <- hints_on_branch: more precise, as with memexec
+  loop_y, before more_precise.c:34 `h = 0;` (P), joined: more precise, as with memexec
+  loop_y, before more_precise.c:34 `h = 0;` (P), filtered: more precise, as with memexec
+  loop_y, before more_precise.c:34 `h = 0;` (P), loop_y :: more_precise.c:44 <- hints_on_branch: more precise, as with memexec
+  loop_y, after more_precise.c:34 `h = 0;` (P), joined: more precise, as with memexec
+  loop_y, after more_precise.c:34 `h = 0;` (P), filtered: more precise, as with memexec
+  loop_y, after more_precise.c:34 `h = 0;` (P), loop_y :: more_precise.c:44 <- hints_on_branch: more precise, as with memexec
+  loop_y, before more_precise.c:35 `return;`, joined: more precise, as with memexec
+  loop_y, before more_precise.c:35 `return;`, filtered: more precise, as with memexec
+  loop_y, before more_precise.c:35 `return;`, loop_y :: more_precise.c:44 <- hints_on_branch: more precise, as with memexec
+  loop_y, after more_precise.c:35 `return;`, joined: more precise, as with memexec
+  loop_y, after more_precise.c:35 `return;`, filtered: more precise, as with memexec
+  loop_y, after more_precise.c:35 `return;`, loop_y :: more_precise.c:44 <- hints_on_branch: more precise, as with memexec
+  hints_on_branch, after more_precise.c:41 `count(bound);`, joined: covers, as with memexec
+  hints_on_branch, after more_precise.c:41 `count(bound);`, filtered: covers, as with memexec
+  hints_on_branch, after more_precise.c:41 `count(bound);`, hints_on_branch: covers, as with memexec
+  hints_on_branch, before more_precise.c:42 `if (x > bound)`, joined: covers, as with memexec
+  hints_on_branch, before more_precise.c:42 `if (x > bound)`, filtered: covers, as with memexec
+  hints_on_branch, before more_precise.c:42 `if (x > bound)`, hints_on_branch: covers, as with memexec
+  hints_on_branch, after more_precise.c:42 `if (x > bound)`, joined: covers, as with memexec
+  hints_on_branch, after more_precise.c:42 `if (x > bound)`, filtered: covers, as with memexec
+  hints_on_branch, after more_precise.c:42 `if (x > bound)`, hints_on_branch: covers, as with memexec
+  hints_on_branch, before more_precise.c:42 `hint_y(& y);`, joined: covers, as with memexec
+  hints_on_branch, before more_precise.c:42 `hint_y(& y);`, filtered: covers, as with memexec
+  hints_on_branch, before more_precise.c:42 `hint_y(& y);`, hints_on_branch: covers, as with memexec
+  hints_on_branch, after more_precise.c:42 `hint_y(& y);`, joined: covers, as with memexec
+  hints_on_branch, after more_precise.c:42 `hint_y(& y);`, filtered: covers, as with memexec
+  hints_on_branch, after more_precise.c:42 `hint_y(& y);`, hints_on_branch: covers, as with memexec
+  hints_on_branch, before more_precise.c:43 `x = 0;`, joined: covers, as with memexec
+  hints_on_branch, before more_precise.c:43 `x = 0;`, filtered: covers, as with memexec
+  hints_on_branch, before more_precise.c:43 `x = 0;`, hints_on_branch: covers, as with memexec
+  hints_on_branch, after more_precise.c:44 `loop_y(20);`, joined: more precise, as with memexec
+  hints_on_branch, after more_precise.c:44 `loop_y(20);`, filtered: more precise, as with memexec
+  hints_on_branch, after more_precise.c:44 `loop_y(20);`, hints_on_branch: more precise, as with memexec
+  hints_on_branch, before more_precise.c:45 `return;`, joined: more precise, as with memexec
+  hints_on_branch, before more_precise.c:45 `return;`, filtered: more precise, as with memexec
+  hints_on_branch, before more_precise.c:45 `return;`, hints_on_branch: more precise, as with memexec
+  hints_on_branch, after more_precise.c:45 `return;`, joined: more precise, as with memexec
+  hints_on_branch, after more_precise.c:45 `return;`, filtered: more precise, as with memexec
+  hints_on_branch, after more_precise.c:45 `return;`, hints_on_branch: more precise, as with memexec
+Answers: 215 equal, 58 covering, 39 more precise, 0 omitting, 0 unavailable.
+Requests made: 425; reported by the trap: 425; reads of the legacy store: 0.

@@ -1,0 +1,171 @@
+[kernel] Parsing more_precise.c (with preprocessing)
+Calls:
+  unrolled :: more_precise.c:61 <- unroll_bound: analysed, cache entry 6
+  unrolled :: more_precise.c:62 <- unroll_bound: hit of cache entry 6
+  unroll_bound: analysed, cache entry 7
+unrolled, start:
+  joined: x ∈ {0}
+          y ∈ {0}
+          h ∈ {0}
+          budget ∈ {1; 12}
+          first ∈ {0; 42}
+          second ∈ {0}
+  unrolled :: more_precise.c:61 <- unroll_bound: x ∈ {0}
+                                                 y ∈ {0}
+                                                 h ∈ {0}
+                                                 budget ∈ {12}
+                                                 first ∈ {0}
+                                                 second ∈ {0}
+  unrolled :: more_precise.c:62 <- unroll_bound: x ∈ {0}
+                                                 y ∈ {0}
+                                                 h ∈ {0}
+                                                 budget ∈ {1}
+                                                 first ∈ {42}
+                                                 second ∈ {0}
+unrolled, before more_precise.c:57 `;` (P):
+  joined: x ∈ {0}
+          y ∈ {0}
+          h ∈ {0}
+          budget ∈ {1; 12}
+          first ∈ {0; 42}
+          second ∈ {0}
+          a[0..9] ∈ {42}
+          __retres ∈ UNINITIALIZED
+  unrolled :: more_precise.c:61 <- unroll_bound: x ∈ {0}
+                                                 y ∈ {0}
+                                                 h ∈ {0}
+                                                 budget ∈ {12}
+                                                 first ∈ {0}
+                                                 second ∈ {0}
+                                                 a[0..9] ∈ {42}
+                                                 __retres ∈ UNINITIALIZED
+  unrolled :: more_precise.c:62 <- unroll_bound: x ∈ {0}
+                                                 y ∈ {0}
+                                                 h ∈ {0}
+                                                 budget ∈ {1}
+                                                 first ∈ {42}
+                                                 second ∈ {0}
+                                                 a[0..9] ∈ {42}
+                                                 __retres ∈ UNINITIALIZED
+  reference, joined: x ∈ {0}
+                     y ∈ {0}
+                     h ∈ {0}
+                     budget ∈ {1; 12}
+                     first ∈ {0; 42}
+                     second ∈ {0}
+                     a[0] ∈ {42}
+                      [1..9] ∈ {0; 42}
+                     __retres ∈ UNINITIALIZED
+  unrolled :: more_precise.c:61 <- unroll_bound: x ∈ {0}
+                                                 y ∈ {0}
+                                                 h ∈ {0}
+                                                 budget ∈ {12}
+                                                 first ∈ {0}
+                                                 second ∈ {0}
+                                                 a[0..9] ∈ {42}
+                                                 __retres ∈ UNINITIALIZED
+  unrolled :: more_precise.c:62 <- unroll_bound: x ∈ {0}
+                                                 y ∈ {0}
+                                                 h ∈ {0}
+                                                 budget ∈ {1}
+                                                 first ∈ {42}
+                                                 second ∈ {0}
+                                                 a[0] ∈ {42}
+                                                  [1..9] ∈ {0; 42}
+                                                 __retres ∈ UNINITIALIZED
+unrolled, after more_precise.c:57 `return __retres;`:
+  joined: x ∈ {0}
+          y ∈ {0}
+          h ∈ {0}
+          budget ∈ {1; 12}
+          first ∈ {0; 42}
+          second ∈ {0}
+          a[0..9] ∈ {42}
+          __retres ∈ {42}
+  unrolled :: more_precise.c:61 <- unroll_bound: x ∈ {0}
+                                                 y ∈ {0}
+                                                 h ∈ {0}
+                                                 budget ∈ {12}
+                                                 first ∈ {0}
+                                                 second ∈ {0}
+                                                 a[0..9] ∈ {42}
+                                                 __retres ∈ {42}
+  unrolled :: more_precise.c:62 <- unroll_bound: x ∈ {0}
+                                                 y ∈ {0}
+                                                 h ∈ {0}
+                                                 budget ∈ {1}
+                                                 first ∈ {42}
+                                                 second ∈ {0}
+                                                 a[0..9] ∈ {42}
+                                                 __retres ∈ {42}
+  reference, joined: x ∈ {0}
+                     y ∈ {0}
+                     h ∈ {0}
+                     budget ∈ {1; 12}
+                     first ∈ {0; 42}
+                     second ∈ {0}
+                     a[0] ∈ {42}
+                      [1..9] ∈ {0; 42}
+                     __retres ∈ {0; 42}
+  unrolled :: more_precise.c:61 <- unroll_bound: x ∈ {0}
+                                                 y ∈ {0}
+                                                 h ∈ {0}
+                                                 budget ∈ {12}
+                                                 first ∈ {0}
+                                                 second ∈ {0}
+                                                 a[0..9] ∈ {42}
+                                                 __retres ∈ {42}
+  unrolled :: more_precise.c:62 <- unroll_bound: x ∈ {0}
+                                                 y ∈ {0}
+                                                 h ∈ {0}
+                                                 budget ∈ {1}
+                                                 first ∈ {42}
+                                                 second ∈ {0}
+                                                 a[0] ∈ {42}
+                                                  [1..9] ∈ {0; 42}
+                                                 __retres ∈ {0; 42}
+Hits against the analysed call of their cache entry:
+  unrolled :: more_precise.c:62 <- unroll_bound, hit of cache entry 6, against unrolled :: more_precise.c:61 <- unroll_bound: differs on budget, first, at 23 points.
+Initial state: equal.
+Differences with the run without memexec:
+  final state, joined: more precise, as with memexec
+  final state, filtered: more precise, as with memexec
+  final state, unroll_bound: more precise, as with memexec
+  unrolled, before more_precise.c:56 `break;`, joined: more precise
+  unrolled, before more_precise.c:56 `break;`, filtered: more precise
+  unrolled, before more_precise.c:56 `break;`, unrolled :: more_precise.c:62 <- unroll_bound: more precise
+  unrolled, after more_precise.c:56 `break;`, joined: more precise
+  unrolled, after more_precise.c:56 `break;`, filtered: more precise
+  unrolled, after more_precise.c:56 `break;`, unrolled :: more_precise.c:62 <- unroll_bound: more precise
+  unrolled, before more_precise.c:56 `a[i] = 42;`, joined: more precise
+  unrolled, before more_precise.c:56 `a[i] = 42;`, filtered: more precise
+  unrolled, before more_precise.c:56 `a[i] = 42;`, unrolled :: more_precise.c:62 <- unroll_bound: more precise
+  unrolled, before more_precise.c:57 `;` (P), joined: more precise
+  unrolled, before more_precise.c:57 `;` (P), filtered: more precise
+  unrolled, before more_precise.c:57 `;` (P), unrolled :: more_precise.c:62 <- unroll_bound: more precise
+  unrolled, after more_precise.c:57 `;` (P), joined: more precise
+  unrolled, after more_precise.c:57 `;` (P), filtered: more precise
+  unrolled, after more_precise.c:57 `;` (P), unrolled :: more_precise.c:62 <- unroll_bound: more precise
+  unrolled, before more_precise.c:57 `__retres = a[4];`, joined: more precise
+  unrolled, before more_precise.c:57 `__retres = a[4];`, filtered: more precise
+  unrolled, before more_precise.c:57 `__retres = a[4];`, unrolled :: more_precise.c:62 <- unroll_bound: more precise
+  unrolled, after more_precise.c:57 `__retres = a[4];`, joined: more precise
+  unrolled, after more_precise.c:57 `__retres = a[4];`, filtered: more precise
+  unrolled, after more_precise.c:57 `__retres = a[4];`, unrolled :: more_precise.c:62 <- unroll_bound: more precise
+  unrolled, before more_precise.c:57 `return __retres;`, joined: more precise
+  unrolled, before more_precise.c:57 `return __retres;`, filtered: more precise
+  unrolled, before more_precise.c:57 `return __retres;`, unrolled :: more_precise.c:62 <- unroll_bound: more precise
+  unrolled, after more_precise.c:57 `return __retres;`, joined: more precise
+  unrolled, after more_precise.c:57 `return __retres;`, filtered: more precise
+  unrolled, after more_precise.c:57 `return __retres;`, unrolled :: more_precise.c:62 <- unroll_bound: more precise
+  unroll_bound, after more_precise.c:62 `second = unrolled();`, joined: more precise, as with memexec
+  unroll_bound, after more_precise.c:62 `second = unrolled();`, filtered: more precise, as with memexec
+  unroll_bound, after more_precise.c:62 `second = unrolled();`, unroll_bound: more precise, as with memexec
+  unroll_bound, before more_precise.c:63 `return;`, joined: more precise, as with memexec
+  unroll_bound, before more_precise.c:63 `return;`, filtered: more precise, as with memexec
+  unroll_bound, before more_precise.c:63 `return;`, unroll_bound: more precise, as with memexec
+  unroll_bound, after more_precise.c:63 `return;`, joined: more precise, as with memexec
+  unroll_bound, after more_precise.c:63 `return;`, filtered: more precise, as with memexec
+  unroll_bound, after more_precise.c:63 `return;`, unroll_bound: more precise, as with memexec
+Answers: 246 equal, 0 covering, 39 more precise, 0 omitting, 0 unavailable.
+Requests made: 398; reported by the trap: 398; reads of the legacy store: 0.

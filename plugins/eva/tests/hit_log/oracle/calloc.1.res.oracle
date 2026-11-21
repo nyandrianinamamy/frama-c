@@ -1,0 +1,47 @@
+[kernel] Parsing calloc.c (with preprocessing)
+Calls:
+  calloc :: calloc.c:16 <- alloc :: calloc.c:37 <- alloc_twice: builtin
+  alloc :: calloc.c:37 <- alloc_twice: analysed, cache entry 7
+  calloc :: calloc.c:16 <- alloc :: calloc.c:37 <- alloc_twice: builtin
+  alloc :: calloc.c:37 <- alloc_twice: analysed, cache entry 8
+  alloc_twice: analysed, cache entry 9
+alloc, start:
+  joined: p ∈ {{ NULL ; &__calloc_w_alloc_l16_1 }}
+          q ∈ {0}
+          i ∈ {0; 1}
+          __calloc_w_alloc_l16_1.a ∈ {0; 5}
+                                .b ∈ {0; 1}
+  alloc :: calloc.c:37 <- alloc_twice: p ∈
+                                        {{ NULL ; &__calloc_w_alloc_l16_1 }}
+                                       q ∈ {0}
+                                       i ∈ {0; 1}
+                                       __calloc_w_alloc_l16_1.a ∈ {0; 5}
+                                                             .b ∈ {0; 1}
+alloc, before calloc.c:17 `;` (P):
+  joined: p ∈ {{ NULL ; &__calloc_w_alloc_l16_1 }}
+          q ∈ {0}
+          i ∈ {0; 1}
+          __calloc_w_alloc_l16_1.a ∈ {0; 5}
+                                .b ∈ {0; 1}
+  alloc :: calloc.c:37 <- alloc_twice: p ∈
+                                        {{ NULL ; &__calloc_w_alloc_l16_1 }}
+                                       q ∈ {0}
+                                       i ∈ {0; 1}
+                                       __calloc_w_alloc_l16_1.a ∈ {0; 5}
+                                                             .b ∈ {0; 1}
+alloc, after calloc.c:18 `return;`:
+  joined: p ∈ {{ NULL ; &__calloc_w_alloc_l16_1 }}
+          q ∈ {0}
+          i ∈ {0; 1}
+          __calloc_w_alloc_l16_1.a ∈ {0; 5}
+                                .b ∈ {0; 1}
+  alloc :: calloc.c:37 <- alloc_twice: p ∈
+                                        {{ NULL ; &__calloc_w_alloc_l16_1 }}
+                                       q ∈ {0}
+                                       i ∈ {0; 1}
+                                       __calloc_w_alloc_l16_1.a ∈ {0; 5}
+                                                             .b ∈ {0; 1}
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 128 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Requests made: 175; reported by the trap: 175; reads of the legacy store: 0.

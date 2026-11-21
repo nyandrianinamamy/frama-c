@@ -1,0 +1,81 @@
+[kernel] Parsing closed_list.c (with preprocessing)
+Calls:
+  nores :: closed_list.c:18 <- disabled: analysed, cache entry 7
+  nores :: closed_list.c:19 <- disabled: analysed, cache entry 8
+  disabled: analysed, cache entry 9
+nores, start:
+  joined: v ∈ [--..--]
+          g ∈ {1}
+          h ∈ {7; 8}
+          out ∈ {0; 1}
+  nores :: closed_list.c:18 <- disabled: v ∈ [--..--]
+                                         g ∈ {1}
+                                         h ∈ {7}
+                                         out ∈ {0}
+  nores :: closed_list.c:19 <- disabled: v ∈ [--..--]
+                                         g ∈ {1}
+                                         h ∈ {8}
+                                         out ∈ {1}
+nores, before closed_list.c:15 `out = g;` (P):
+  joined: unavailable
+  reference, joined: unavailable
+nores, after closed_list.c:15 `return;`:
+  joined: unavailable
+  reference, joined: unavailable
+Initial state: equal.
+Differences with the run without memexec:
+  final state, joined: unavailable
+  final state, filtered: unavailable
+  final state, disabled: unavailable
+  nores, before closed_list.c:15 `out = g;` (P), joined: unavailable, as in the reference
+  nores, before closed_list.c:15 `out = g;` (P), filtered: unavailable, as in the reference
+  nores, after closed_list.c:15 `out = g;` (P), joined: unavailable, as in the reference
+  nores, after closed_list.c:15 `out = g;` (P), filtered: unavailable, as in the reference
+  nores, before closed_list.c:15 `return;`, joined: unavailable, as in the reference
+  nores, before closed_list.c:15 `return;`, filtered: unavailable, as in the reference
+  nores, after closed_list.c:15 `return;`, joined: unavailable, as in the reference
+  nores, after closed_list.c:15 `return;`, filtered: unavailable, as in the reference
+  disabled, before closed_list.c:18 `g = 1;`, joined: unavailable
+  disabled, before closed_list.c:18 `g = 1;`, filtered: unavailable
+  disabled, before closed_list.c:18 `g = 1;`, disabled: unavailable
+  disabled, after closed_list.c:18 `g = 1;`, joined: unavailable
+  disabled, after closed_list.c:18 `g = 1;`, filtered: unavailable
+  disabled, after closed_list.c:18 `g = 1;`, disabled: unavailable
+  disabled, before closed_list.c:18 `h = 7;`, joined: unavailable
+  disabled, before closed_list.c:18 `h = 7;`, filtered: unavailable
+  disabled, before closed_list.c:18 `h = 7;`, disabled: unavailable
+  disabled, after closed_list.c:18 `h = 7;`, joined: unavailable
+  disabled, after closed_list.c:18 `h = 7;`, filtered: unavailable
+  disabled, after closed_list.c:18 `h = 7;`, disabled: unavailable
+  disabled, before closed_list.c:18 `nores();`, joined: unavailable
+  disabled, before closed_list.c:18 `nores();`, filtered: unavailable
+  disabled, before closed_list.c:18 `nores();`, disabled: unavailable
+  disabled, after closed_list.c:18 `nores();`, joined: unavailable
+  disabled, after closed_list.c:18 `nores();`, filtered: unavailable
+  disabled, after closed_list.c:18 `nores();`, disabled: unavailable
+  disabled, before closed_list.c:19 `g = 1;`, joined: unavailable
+  disabled, before closed_list.c:19 `g = 1;`, filtered: unavailable
+  disabled, before closed_list.c:19 `g = 1;`, disabled: unavailable
+  disabled, after closed_list.c:19 `g = 1;`, joined: unavailable
+  disabled, after closed_list.c:19 `g = 1;`, filtered: unavailable
+  disabled, after closed_list.c:19 `g = 1;`, disabled: unavailable
+  disabled, before closed_list.c:19 `h = 8;`, joined: unavailable
+  disabled, before closed_list.c:19 `h = 8;`, filtered: unavailable
+  disabled, before closed_list.c:19 `h = 8;`, disabled: unavailable
+  disabled, after closed_list.c:19 `h = 8;`, joined: unavailable
+  disabled, after closed_list.c:19 `h = 8;`, filtered: unavailable
+  disabled, after closed_list.c:19 `h = 8;`, disabled: unavailable
+  disabled, before closed_list.c:19 `nores();`, joined: unavailable
+  disabled, before closed_list.c:19 `nores();`, filtered: unavailable
+  disabled, before closed_list.c:19 `nores();`, disabled: unavailable
+  disabled, after closed_list.c:19 `nores();`, joined: unavailable
+  disabled, after closed_list.c:19 `nores();`, filtered: unavailable
+  disabled, after closed_list.c:19 `nores();`, disabled: unavailable
+  disabled, before closed_list.c:20 `return;`, joined: unavailable
+  disabled, before closed_list.c:20 `return;`, filtered: unavailable
+  disabled, before closed_list.c:20 `return;`, disabled: unavailable
+  disabled, after closed_list.c:20 `return;`, joined: unavailable
+  disabled, after closed_list.c:20 `return;`, filtered: unavailable
+  disabled, after closed_list.c:20 `return;`, disabled: unavailable
+Answers: 90 equal, 0 covering, 0 more precise, 0 omitting, 53 unavailable.
+Requests made: 190; reported by the trap: 190; reads of the legacy store: 0.

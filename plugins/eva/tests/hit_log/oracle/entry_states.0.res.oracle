@@ -1,0 +1,98 @@
+[kernel] Parsing entry_states.c (with preprocessing)
+Calls:
+  agg :: entry_states.c:26 <- aggregate: analysed, cache entry 6
+  agg :: entry_states.c:29 <- aggregate: hit of cache entry 6
+  aggregate: analysed, cache entry 7
+agg, start:
+  joined: v ∈ [--..--]
+          g ∈ {0}
+          x ∈ {0}
+          out ∈ {0}
+          s{.a; .b} ∈ {1; 2}
+          s1.a ∈ {1}
+            .b ∈ {2}
+          s2.a ∈ {2} or UNINITIALIZED
+            .b ∈ {1} or UNINITIALIZED
+  agg :: entry_states.c:26 <- aggregate: v ∈ [--..--]
+                                         g ∈ {0}
+                                         x ∈ {0}
+                                         out ∈ {0}
+                                         s.a ∈ {1}
+                                          .b ∈ {2}
+                                         s1.a ∈ {1}
+                                           .b ∈ {2}
+                                         s2 ∈ UNINITIALIZED
+  agg :: entry_states.c:29 <- aggregate: v ∈ [--..--]
+                                         g ∈ {0}
+                                         x ∈ {0}
+                                         out ∈ {0}
+                                         s.a ∈ {2}
+                                          .b ∈ {1}
+                                         s1.a ∈ {1}
+                                           .b ∈ {2}
+                                         s2.a ∈ {2}
+                                           .b ∈ {1}
+agg, before entry_states.c:21 `g = 1;` (P):
+  joined: v ∈ [--..--]
+          g ∈ {0}
+          x ∈ {0}
+          out ∈ {0}
+          s{.a; .b} ∈ {1; 2}
+          s1.a ∈ {1}
+            .b ∈ {2}
+          s2.a ∈ {2} or UNINITIALIZED
+            .b ∈ {1} or UNINITIALIZED
+  agg :: entry_states.c:26 <- aggregate: v ∈ [--..--]
+                                         g ∈ {0}
+                                         x ∈ {0}
+                                         out ∈ {0}
+                                         s.a ∈ {1}
+                                          .b ∈ {2}
+                                         s1.a ∈ {1}
+                                           .b ∈ {2}
+                                         s2 ∈ UNINITIALIZED
+  agg :: entry_states.c:29 <- aggregate: v ∈ [--..--]
+                                         g ∈ {0}
+                                         x ∈ {0}
+                                         out ∈ {0}
+                                         s.a ∈ {2}
+                                          .b ∈ {1}
+                                         s1.a ∈ {1}
+                                           .b ∈ {2}
+                                         s2.a ∈ {2}
+                                           .b ∈ {1}
+agg, after entry_states.c:21 `return;`:
+  joined: v ∈ [--..--]
+          g ∈ {1}
+          x ∈ {0}
+          out ∈ {0}
+          s{.a; .b} ∈ {1; 2}
+          s1.a ∈ {1}
+            .b ∈ {2}
+          s2.a ∈ {2} or UNINITIALIZED
+            .b ∈ {1} or UNINITIALIZED
+  agg :: entry_states.c:26 <- aggregate: v ∈ [--..--]
+                                         g ∈ {1}
+                                         x ∈ {0}
+                                         out ∈ {0}
+                                         s.a ∈ {1}
+                                          .b ∈ {2}
+                                         s1.a ∈ {1}
+                                           .b ∈ {2}
+                                         s2 ∈ UNINITIALIZED
+  agg :: entry_states.c:29 <- aggregate: v ∈ [--..--]
+                                         g ∈ {1}
+                                         x ∈ {0}
+                                         out ∈ {0}
+                                         s.a ∈ {2}
+                                          .b ∈ {1}
+                                         s1.a ∈ {1}
+                                           .b ∈ {2}
+                                         s2.a ∈ {2}
+                                           .b ∈ {1}
+Hits against the analysed call of their cache entry:
+  agg :: entry_states.c:29 <- aggregate, hit of cache entry 6, against agg :: entry_states.c:26 <- aggregate: differs on s, s2, at 5 points.
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 199 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Requests made: 285; reported by the trap: 285; reads of the legacy store: 0.

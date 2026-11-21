@@ -1,0 +1,94 @@
+[kernel] Parsing calloc.c (with preprocessing)
+[eva:malloc:imprecise] calloc.c:16: Warning: 
+  allocating a single weak variable for ALL dynamic allocations via malloc/calloc/realloc: __alloc_w_alloc_once
+[eva:alarm] calloc.c:17: Warning: out of bounds write. assert \valid(&p->b);
+[eva:alarm] calloc.c:24: Warning: out of bounds write. assert \valid(&q->a);
+[eva:malloc:imprecise] calloc.c:16: Warning: 
+  allocating a single weak variable for ALL dynamic allocations via malloc/calloc/realloc: __alloc_w_alloc_once_0
+[eva:alarm] calloc.c:17: Warning: out of bounds write. assert \valid(&p->b);
+[eva:alarm] calloc.c:24: Warning: out of bounds write. assert \valid(&q->a);
+[eva:malloc:imprecise] calloc.c:16: Warning: 
+  allocating a single weak variable for ALL dynamic allocations via malloc/calloc/realloc: __alloc_w_alloc_once_1
+[eva:alarm] calloc.c:17: Warning: out of bounds write. assert \valid(&p->b);
+[eva:alarm] calloc.c:24: Warning: out of bounds write. assert \valid(&q->a);
+Calls:
+  calloc :: calloc.c:16 <- alloc :: calloc.c:22 <- alloc_once: builtin
+  alloc :: calloc.c:22 <- alloc_once: analysed, cache entry 7
+  calloc :: calloc.c:16 <- alloc :: calloc.c:25 <- alloc_once: builtin
+  alloc :: calloc.c:25 <- alloc_once: analysed, cache entry 8
+  alloc_once: analysed, cache entry 9
+alloc, start:
+  joined: p ∈ {{ NULL ; (struct S *)&__alloc_w_alloc_once_1 }}
+          q ∈ {{ NULL ; (struct S *)&__alloc_w_alloc_once_1 }}
+          __alloc_w_alloc_once_1[bits 0 to 31] ∈ {0; 5}
+                                [bits 32 to 63] ∈ {0; 1}
+                                [8..4294967295] ∈ {0}
+  alloc :: calloc.c:22 <- alloc_once: p ∈ {0}
+                                      q ∈ {0}
+  alloc :: calloc.c:25 <- alloc_once: p ∈
+                                       {{ NULL ;
+                                          (struct S *)&__alloc_w_alloc_once_1 }}
+                                      q ∈
+                                       {{ NULL ;
+                                          (struct S *)&__alloc_w_alloc_once_1 }}
+                                      __alloc_w_alloc_once_1[bits 0 to 31] ∈
+                                                            {0; 5}
+                                                            [bits 32 to 63] ∈
+                                                            {0; 1}
+                                                            [8..4294967295] ∈
+                                                            {0}
+alloc, before calloc.c:17 `;` (P):
+  joined: p ∈ {{ NULL ; (struct S *)&__alloc_w_alloc_once_1 }}
+          q ∈ {{ NULL ; (struct S *)&__alloc_w_alloc_once_1 }}
+          __alloc_w_alloc_once_1[bits 0 to 31] ∈ {0; 5}
+                                [bits 32 to 63] ∈ {0; 1}
+                                [8..4294967295] ∈ {0}
+  alloc :: calloc.c:22 <- alloc_once: p ∈
+                                       {{ NULL ;
+                                          (struct S *)&__alloc_w_alloc_once_1 }}
+                                      q ∈ {0}
+                                      __alloc_w_alloc_once_1[0..4294967295] ∈
+                                                            {0}
+  alloc :: calloc.c:25 <- alloc_once: p ∈
+                                       {{ NULL ;
+                                          (struct S *)&__alloc_w_alloc_once_1 }}
+                                      q ∈
+                                       {{ NULL ;
+                                          (struct S *)&__alloc_w_alloc_once_1 }}
+                                      __alloc_w_alloc_once_1[bits 0 to 31] ∈
+                                                            {0; 5}
+                                                            [bits 32 to 63] ∈
+                                                            {0; 1}
+                                                            [8..4294967295] ∈
+                                                            {0}
+alloc, after calloc.c:18 `return;`:
+  joined: p ∈ {{ NULL ; (struct S *)&__alloc_w_alloc_once_1 }}
+          q ∈ {{ NULL ; (struct S *)&__alloc_w_alloc_once_1 }}
+          __alloc_w_alloc_once_1[bits 0 to 31] ∈ {0; 5}
+                                [bits 32 to 63] ∈ {0; 1}
+                                [8..4294967295] ∈ {0}
+  alloc :: calloc.c:22 <- alloc_once: p ∈
+                                       {{ NULL ;
+                                          (struct S *)&__alloc_w_alloc_once_1 }}
+                                      q ∈ {0}
+                                      __alloc_w_alloc_once_1[0..3] ∈ {0}
+                                                            [bits 32 to 63] ∈
+                                                            {0; 1}
+                                                            [8..4294967295] ∈
+                                                            {0}
+  alloc :: calloc.c:25 <- alloc_once: p ∈
+                                       {{ NULL ;
+                                          (struct S *)&__alloc_w_alloc_once_1 }}
+                                      q ∈
+                                       {{ NULL ;
+                                          (struct S *)&__alloc_w_alloc_once_1 }}
+                                      __alloc_w_alloc_once_1[bits 0 to 31] ∈
+                                                            {0; 5}
+                                                            [bits 32 to 63] ∈
+                                                            {0; 1}
+                                                            [8..4294967295] ∈
+                                                            {0}
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 131 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Requests made: 178; reported by the trap: 178; reads of the legacy store: 0.

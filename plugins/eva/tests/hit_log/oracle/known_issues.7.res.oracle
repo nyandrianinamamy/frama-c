@@ -1,0 +1,306 @@
+[kernel] Parsing known_issues.c (with preprocessing)
+Calls:
+  Frama_C_abstract_max :: known_issues.c:116 <- count96 :: known_issues.c:127 <- issue96: builtin
+  count96 :: known_issues.c:127 <- issue96: analysed, cache entry 8
+  discover96 :: known_issues.c:128 <- issue96: analysed, cache entry 9
+  count96 :: known_issues.c:130 <- issue96: hit of cache entry 8
+  issue96: analysed, cache entry 10
+count96, start:
+  joined: a ∈ {0}
+          g ∈ {0}
+          out ∈ {0}
+          r1 ∈ {0}
+          r2 ∈ {0}
+          y ∈ {0}
+          answer ∈ {0}
+          owner ∈ {0}
+          alias ∈ {0}
+          one ∈ {0}
+          two ∈ {0}
+          xc ∈ {0}
+          n ∈ {13}
+          first ∈ {2147483647} or UNINITIALIZED
+          second ∈ UNINITIALIZED
+  count96 :: known_issues.c:127 <- issue96: a ∈ {0}
+                                            g ∈ {0}
+                                            out ∈ {0}
+                                            r1 ∈ {0}
+                                            r2 ∈ {0}
+                                            y ∈ {0}
+                                            answer ∈ {0}
+                                            owner ∈ {0}
+                                            alias ∈ {0}
+                                            one ∈ {0}
+                                            two ∈ {0}
+                                            xc ∈ {0}
+                                            n ∈ {13}
+                                            first ∈ UNINITIALIZED
+                                            second ∈ UNINITIALIZED
+  count96 :: known_issues.c:130 <- issue96: a ∈ {0}
+                                            g ∈ {0}
+                                            out ∈ {0}
+                                            r1 ∈ {0}
+                                            r2 ∈ {0}
+                                            y ∈ {0}
+                                            answer ∈ {0}
+                                            owner ∈ {0}
+                                            alias ∈ {0}
+                                            one ∈ {0}
+                                            two ∈ {0}
+                                            xc ∈ {0}
+                                            n ∈ {13}
+                                            first ∈ {2147483647}
+                                            second ∈ UNINITIALIZED
+count96, before known_issues.c:117 `;` (P):
+  joined: a ∈ {0}
+          g ∈ {0}
+          out ∈ {0}
+          r1 ∈ {0}
+          r2 ∈ {0}
+          y ∈ {0}
+          answer ∈ {0}
+          owner ∈ {0}
+          alias ∈ {0}
+          one ∈ {0}
+          two ∈ {0}
+          xc ∈ [13..2147483647]
+          n ∈ {13}
+          result ∈ {2147483647}
+          tmp ∈ {2147483647}
+          first ∈ {2147483647} or UNINITIALIZED
+          second ∈ UNINITIALIZED
+  count96 :: known_issues.c:127 <- issue96: a ∈ {0}
+                                            g ∈ {0}
+                                            out ∈ {0}
+                                            r1 ∈ {0}
+                                            r2 ∈ {0}
+                                            y ∈ {0}
+                                            answer ∈ {0}
+                                            owner ∈ {0}
+                                            alias ∈ {0}
+                                            one ∈ {0}
+                                            two ∈ {0}
+                                            xc ∈ [13..2147483647]
+                                            n ∈ {13}
+                                            result ∈ {2147483647}
+                                            tmp ∈ {2147483647}
+                                            first ∈ UNINITIALIZED
+                                            second ∈ UNINITIALIZED
+  count96 :: known_issues.c:130 <- issue96: a ∈ {0}
+                                            g ∈ {0}
+                                            out ∈ {0}
+                                            r1 ∈ {0}
+                                            r2 ∈ {0}
+                                            y ∈ {0}
+                                            answer ∈ {0}
+                                            owner ∈ {0}
+                                            alias ∈ {0}
+                                            one ∈ {0}
+                                            two ∈ {0}
+                                            xc ∈ [13..2147483647]
+                                            n ∈ {13}
+                                            result ∈ {2147483647}
+                                            tmp ∈ {2147483647}
+                                            first ∈ {2147483647}
+                                            second ∈ UNINITIALIZED
+  reference, joined: a ∈ {0}
+                     g ∈ {0}
+                     out ∈ {0}
+                     r1 ∈ {0}
+                     r2 ∈ {0}
+                     y ∈ {0}
+                     answer ∈ {0}
+                     owner ∈ {0}
+                     alias ∈ {0}
+                     one ∈ {0}
+                     two ∈ {0}
+                     xc ∈ [13..2147483647]
+                     n ∈ {13}
+                     result ∈ {13; 2147483647}
+                     tmp ∈ {13; 2147483647}
+                     first ∈ {2147483647} or UNINITIALIZED
+                     second ∈ UNINITIALIZED
+  count96 :: known_issues.c:127 <- issue96: a ∈ {0}
+                                            g ∈ {0}
+                                            out ∈ {0}
+                                            r1 ∈ {0}
+                                            r2 ∈ {0}
+                                            y ∈ {0}
+                                            answer ∈ {0}
+                                            owner ∈ {0}
+                                            alias ∈ {0}
+                                            one ∈ {0}
+                                            two ∈ {0}
+                                            xc ∈ [13..2147483647]
+                                            n ∈ {13}
+                                            result ∈ {2147483647}
+                                            tmp ∈ {2147483647}
+                                            first ∈ UNINITIALIZED
+                                            second ∈ UNINITIALIZED
+  count96 :: known_issues.c:130 <- issue96: a ∈ {0}
+                                            g ∈ {0}
+                                            out ∈ {0}
+                                            r1 ∈ {0}
+                                            r2 ∈ {0}
+                                            y ∈ {0}
+                                            answer ∈ {0}
+                                            owner ∈ {0}
+                                            alias ∈ {0}
+                                            one ∈ {0}
+                                            two ∈ {0}
+                                            xc ∈ {13}
+                                            n ∈ {13}
+                                            result ∈ {13}
+                                            tmp ∈ {13}
+                                            first ∈ {2147483647}
+                                            second ∈ UNINITIALIZED
+count96, after known_issues.c:117 `return result;`:
+  joined: a ∈ {0}
+          g ∈ {0}
+          out ∈ {0}
+          r1 ∈ {0}
+          r2 ∈ {0}
+          y ∈ {0}
+          answer ∈ {0}
+          owner ∈ {0}
+          alias ∈ {0}
+          one ∈ {0}
+          two ∈ {0}
+          xc ∈ [13..2147483647]
+          n ∈ {13}
+          result ∈ {2147483647}
+          tmp ∈ {2147483647}
+          first ∈ {2147483647} or UNINITIALIZED
+          second ∈ UNINITIALIZED
+  count96 :: known_issues.c:127 <- issue96: a ∈ {0}
+                                            g ∈ {0}
+                                            out ∈ {0}
+                                            r1 ∈ {0}
+                                            r2 ∈ {0}
+                                            y ∈ {0}
+                                            answer ∈ {0}
+                                            owner ∈ {0}
+                                            alias ∈ {0}
+                                            one ∈ {0}
+                                            two ∈ {0}
+                                            xc ∈ [13..2147483647]
+                                            n ∈ {13}
+                                            result ∈ {2147483647}
+                                            tmp ∈ {2147483647}
+                                            first ∈ UNINITIALIZED
+                                            second ∈ UNINITIALIZED
+  count96 :: known_issues.c:130 <- issue96: a ∈ {0}
+                                            g ∈ {0}
+                                            out ∈ {0}
+                                            r1 ∈ {0}
+                                            r2 ∈ {0}
+                                            y ∈ {0}
+                                            answer ∈ {0}
+                                            owner ∈ {0}
+                                            alias ∈ {0}
+                                            one ∈ {0}
+                                            two ∈ {0}
+                                            xc ∈ [13..2147483647]
+                                            n ∈ {13}
+                                            result ∈ {2147483647}
+                                            tmp ∈ {2147483647}
+                                            first ∈ {2147483647}
+                                            second ∈ UNINITIALIZED
+  reference, joined: a ∈ {0}
+                     g ∈ {0}
+                     out ∈ {0}
+                     r1 ∈ {0}
+                     r2 ∈ {0}
+                     y ∈ {0}
+                     answer ∈ {0}
+                     owner ∈ {0}
+                     alias ∈ {0}
+                     one ∈ {0}
+                     two ∈ {0}
+                     xc ∈ [13..2147483647]
+                     n ∈ {13}
+                     result ∈ {13; 2147483647}
+                     tmp ∈ {13; 2147483647}
+                     first ∈ {2147483647} or UNINITIALIZED
+                     second ∈ UNINITIALIZED
+  count96 :: known_issues.c:127 <- issue96: a ∈ {0}
+                                            g ∈ {0}
+                                            out ∈ {0}
+                                            r1 ∈ {0}
+                                            r2 ∈ {0}
+                                            y ∈ {0}
+                                            answer ∈ {0}
+                                            owner ∈ {0}
+                                            alias ∈ {0}
+                                            one ∈ {0}
+                                            two ∈ {0}
+                                            xc ∈ [13..2147483647]
+                                            n ∈ {13}
+                                            result ∈ {2147483647}
+                                            tmp ∈ {2147483647}
+                                            first ∈ UNINITIALIZED
+                                            second ∈ UNINITIALIZED
+  count96 :: known_issues.c:130 <- issue96: a ∈ {0}
+                                            g ∈ {0}
+                                            out ∈ {0}
+                                            r1 ∈ {0}
+                                            r2 ∈ {0}
+                                            y ∈ {0}
+                                            answer ∈ {0}
+                                            owner ∈ {0}
+                                            alias ∈ {0}
+                                            one ∈ {0}
+                                            two ∈ {0}
+                                            xc ∈ {13}
+                                            n ∈ {13}
+                                            result ∈ {13}
+                                            tmp ∈ {13}
+                                            first ∈ {2147483647}
+                                            second ∈ UNINITIALIZED
+Hits against the analysed call of their cache entry:
+  count96 :: known_issues.c:130 <- issue96, hit of cache entry 8, against count96 :: known_issues.c:127 <- issue96: differs on first, at 19 points.
+Initial state: equal.
+Differences with the run without memexec:
+  final state, joined: OMITS, as with memexec
+  final state, filtered: OMITS, as with memexec
+  final state, issue96: OMITS, as with memexec
+  count96, after known_issues.c:115 `loop`, count96 :: known_issues.c:130 <- issue96: covers
+  count96, before known_issues.c:115 `if (xc < n)`, count96 :: known_issues.c:130 <- issue96: covers
+  count96, after known_issues.c:115 `if (xc < n)`, count96 :: known_issues.c:130 <- issue96: covers
+  count96, before known_issues.c:115 `break;`, count96 :: known_issues.c:130 <- issue96: covers
+  count96, after known_issues.c:115 `break;`, count96 :: known_issues.c:130 <- issue96: covers
+  count96, before known_issues.c:116 `sequence`, count96 :: known_issues.c:130 <- issue96: covers
+  count96, after known_issues.c:116 `sequence`, count96 :: known_issues.c:130 <- issue96: covers
+  count96, before known_issues.c:116 `tmp = Frama_C_abstract_max((long long)xc);`, count96 :: known_issues.c:130 <- issue96: covers
+  count96, after known_issues.c:116 `tmp = Frama_C_abstract_max((long long)xc);`, joined: more precise
+  count96, after known_issues.c:116 `tmp = Frama_C_abstract_max((long long)xc);`, filtered: more precise
+  count96, after known_issues.c:116 `tmp = Frama_C_abstract_max((long long)xc);`, count96 :: known_issues.c:130 <- issue96: OMITS
+  count96, before known_issues.c:116 `int result = (int)tmp;`, joined: more precise
+  count96, before known_issues.c:116 `int result = (int)tmp;`, filtered: more precise
+  count96, before known_issues.c:116 `int result = (int)tmp;`, count96 :: known_issues.c:130 <- issue96: OMITS
+  count96, after known_issues.c:116 `int result = (int)tmp;`, joined: more precise
+  count96, after known_issues.c:116 `int result = (int)tmp;`, filtered: more precise
+  count96, after known_issues.c:116 `int result = (int)tmp;`, count96 :: known_issues.c:130 <- issue96: OMITS
+  count96, before known_issues.c:117 `;` (P), joined: more precise
+  count96, before known_issues.c:117 `;` (P), filtered: more precise
+  count96, before known_issues.c:117 `;` (P), count96 :: known_issues.c:130 <- issue96: OMITS
+  count96, after known_issues.c:117 `;` (P), joined: more precise
+  count96, after known_issues.c:117 `;` (P), filtered: more precise
+  count96, after known_issues.c:117 `;` (P), count96 :: known_issues.c:130 <- issue96: OMITS
+  count96, before known_issues.c:117 `return result;`, joined: more precise
+  count96, before known_issues.c:117 `return result;`, filtered: more precise
+  count96, before known_issues.c:117 `return result;`, count96 :: known_issues.c:130 <- issue96: OMITS
+  count96, after known_issues.c:117 `return result;`, joined: more precise
+  count96, after known_issues.c:117 `return result;`, filtered: more precise
+  count96, after known_issues.c:117 `return result;`, count96 :: known_issues.c:130 <- issue96: OMITS
+  issue96, after known_issues.c:130 `int second = count96(13);`, joined: OMITS, as with memexec
+  issue96, after known_issues.c:130 `int second = count96(13);`, filtered: OMITS, as with memexec
+  issue96, after known_issues.c:130 `int second = count96(13);`, issue96: OMITS, as with memexec
+  issue96, before known_issues.c:131 `return second;`, joined: OMITS, as with memexec
+  issue96, before known_issues.c:131 `return second;`, filtered: OMITS, as with memexec
+  issue96, before known_issues.c:131 `return second;`, issue96: OMITS, as with memexec
+  issue96, after known_issues.c:131 `return second;`, joined: OMITS, as with memexec
+  issue96, after known_issues.c:131 `return second;`, filtered: OMITS, as with memexec
+  issue96, after known_issues.c:131 `return second;`, issue96: OMITS, as with memexec
+Answers: 557 equal, 8 covering, 14 more precise, 19 omitting, 0 unavailable.
+Requests made: 866; reported by the trap: 866; reads of the legacy store: 0.

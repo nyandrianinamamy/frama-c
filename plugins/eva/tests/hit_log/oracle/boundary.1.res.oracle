@@ -1,0 +1,185 @@
+[kernel] Parsing boundary.c (with preprocessing)
+Calls:
+  gc :: boundary.c:35 <- child :: boundary.c:40 <- second_case: analysed, cache entry 14
+  child :: boundary.c:40 <- second_case: analysed, cache entry 15
+  child :: boundary.c:37 <- parent :: boundary.c:41 <- second_case: hit of cache entry 15
+  parent :: boundary.c:41 <- second_case: analysed, cache entry 16
+  parent :: boundary.c:42 <- second_case: hit of cache entry 16
+  second_case: analysed, cache entry 17
+gc, start:
+  joined: unavailable
+  reference, joined: c ∈ {0}
+                     g ∈ {0}
+                     h ∈ {0; 7; 8}
+                     k ∈ {0}
+                     n ∈ {0}
+  gc :: boundary.c:35 <- child :: boundary.c:37 <- parent :: boundary.c:41 <- second_case: 
+  c ∈ {0}
+  g ∈ {0}
+  h ∈ {7}
+  k ∈ {0}
+  n ∈ {0}
+  gc :: boundary.c:35 <- child :: boundary.c:37 <- parent :: boundary.c:42 <- second_case: 
+  c ∈ {0}
+  g ∈ {0}
+  h ∈ {8}
+  k ∈ {0}
+  n ∈ {0}
+  gc :: boundary.c:35 <- child :: boundary.c:40 <- second_case: c ∈ {0}
+                                                                g ∈ {0}
+                                                                h ∈ {0}
+                                                                k ∈ {0}
+                                                                n ∈ {0}
+gc, before boundary.c:33 `n ++;` (P):
+  joined: unavailable
+  reference, joined: c ∈ {0}
+                     g ∈ {0}
+                     h ∈ {0; 7; 8}
+                     k ∈ {0}
+                     n ∈ {0}
+  gc :: boundary.c:35 <- child :: boundary.c:37 <- parent :: boundary.c:41 <- second_case: 
+  c ∈ {0}
+  g ∈ {0}
+  h ∈ {7}
+  k ∈ {0}
+  n ∈ {0}
+  gc :: boundary.c:35 <- child :: boundary.c:37 <- parent :: boundary.c:42 <- second_case: 
+  c ∈ {0}
+  g ∈ {0}
+  h ∈ {8}
+  k ∈ {0}
+  n ∈ {0}
+  gc :: boundary.c:35 <- child :: boundary.c:40 <- second_case: c ∈ {0}
+                                                                g ∈ {0}
+                                                                h ∈ {0}
+                                                                k ∈ {0}
+                                                                n ∈ {0}
+gc, after boundary.c:33 `return;`:
+  joined: unavailable
+  reference, joined: c ∈ {0}
+                     g ∈ {0}
+                     h ∈ {0; 7; 8}
+                     k ∈ {0}
+                     n ∈ {1}
+  gc :: boundary.c:35 <- child :: boundary.c:37 <- parent :: boundary.c:41 <- second_case: 
+  c ∈ {0}
+  g ∈ {0}
+  h ∈ {7}
+  k ∈ {0}
+  n ∈ {1}
+  gc :: boundary.c:35 <- child :: boundary.c:37 <- parent :: boundary.c:42 <- second_case: 
+  c ∈ {0}
+  g ∈ {0}
+  h ∈ {8}
+  k ∈ {0}
+  n ∈ {1}
+  gc :: boundary.c:35 <- child :: boundary.c:40 <- second_case: c ∈ {0}
+                                                                g ∈ {0}
+                                                                h ∈ {0}
+                                                                k ∈ {0}
+                                                                n ∈ {1}
+parent, start:
+  joined: c ∈ {0}
+          g ∈ {0}
+          h ∈ {7; 8}
+          k ∈ {0}
+          n ∈ {0}
+  parent :: boundary.c:41 <- second_case: c ∈ {0}
+                                          g ∈ {0}
+                                          h ∈ {7}
+                                          k ∈ {0}
+                                          n ∈ {0}
+  parent :: boundary.c:42 <- second_case: c ∈ {0}
+                                          g ∈ {0}
+                                          h ∈ {8}
+                                          k ∈ {0}
+                                          n ∈ {0}
+parent, before boundary.c:37 `;` (P):
+  joined: c ∈ {0}
+          g ∈ {0}
+          h ∈ {7; 8}
+          k ∈ {0}
+          n ∈ {1}
+  parent :: boundary.c:41 <- second_case: c ∈ {0}
+                                          g ∈ {0}
+                                          h ∈ {7}
+                                          k ∈ {0}
+                                          n ∈ {1}
+  parent :: boundary.c:42 <- second_case: c ∈ {0}
+                                          g ∈ {0}
+                                          h ∈ {8}
+                                          k ∈ {0}
+                                          n ∈ {1}
+parent, after boundary.c:37 `return;`:
+  joined: c ∈ {0}
+          g ∈ {0}
+          h ∈ {7; 8}
+          k ∈ {0}
+          n ∈ {1}
+  parent :: boundary.c:41 <- second_case: c ∈ {0}
+                                          g ∈ {0}
+                                          h ∈ {7}
+                                          k ∈ {0}
+                                          n ∈ {1}
+  parent :: boundary.c:42 <- second_case: c ∈ {0}
+                                          g ∈ {0}
+                                          h ∈ {8}
+                                          k ∈ {0}
+                                          n ∈ {1}
+Hits against the analysed call of their cache entry:
+  child :: boundary.c:37 <- parent :: boundary.c:41 <- second_case, hit of cache entry 15, against child :: boundary.c:40 <- second_case: no difference, at 5 points.
+  parent :: boundary.c:42 <- second_case, hit of cache entry 16, against parent :: boundary.c:41 <- second_case: differs on h, at 7 points.
+Initial state: equal.
+Differences with the run without memexec:
+  gc, start, joined: unavailable
+  gc, start, filtered: unavailable
+  gc, start, gc :: boundary.c:35 <- child :: boundary.c:37 <- parent :: boundary.c:41 <- second_case: unavailable
+  gc, start, gc :: boundary.c:35 <- child :: boundary.c:37 <- parent :: boundary.c:42 <- second_case: unavailable
+  gc, start, gc :: boundary.c:35 <- child :: boundary.c:40 <- second_case: unavailable
+  gc, before boundary.c:33 `n ++;` (P), joined: unavailable
+  gc, before boundary.c:33 `n ++;` (P), filtered: unavailable
+  gc, before boundary.c:33 `n ++;` (P), gc :: boundary.c:35 <- child :: boundary.c:37 <- parent :: boundary.c:41 <- second_case: unavailable
+  gc, before boundary.c:33 `n ++;` (P), gc :: boundary.c:35 <- child :: boundary.c:37 <- parent :: boundary.c:42 <- second_case: unavailable
+  gc, before boundary.c:33 `n ++;` (P), gc :: boundary.c:35 <- child :: boundary.c:40 <- second_case: unavailable
+  gc, after boundary.c:33 `n ++;` (P), joined: unavailable
+  gc, after boundary.c:33 `n ++;` (P), filtered: unavailable
+  gc, after boundary.c:33 `n ++;` (P), gc :: boundary.c:35 <- child :: boundary.c:37 <- parent :: boundary.c:41 <- second_case: unavailable
+  gc, after boundary.c:33 `n ++;` (P), gc :: boundary.c:35 <- child :: boundary.c:37 <- parent :: boundary.c:42 <- second_case: unavailable
+  gc, after boundary.c:33 `n ++;` (P), gc :: boundary.c:35 <- child :: boundary.c:40 <- second_case: unavailable
+  gc, before boundary.c:33 `return;`, joined: unavailable
+  gc, before boundary.c:33 `return;`, filtered: unavailable
+  gc, before boundary.c:33 `return;`, gc :: boundary.c:35 <- child :: boundary.c:37 <- parent :: boundary.c:41 <- second_case: unavailable
+  gc, before boundary.c:33 `return;`, gc :: boundary.c:35 <- child :: boundary.c:37 <- parent :: boundary.c:42 <- second_case: unavailable
+  gc, before boundary.c:33 `return;`, gc :: boundary.c:35 <- child :: boundary.c:40 <- second_case: unavailable
+  gc, after boundary.c:33 `return;`, joined: unavailable
+  gc, after boundary.c:33 `return;`, filtered: unavailable
+  gc, after boundary.c:33 `return;`, gc :: boundary.c:35 <- child :: boundary.c:37 <- parent :: boundary.c:41 <- second_case: unavailable
+  gc, after boundary.c:33 `return;`, gc :: boundary.c:35 <- child :: boundary.c:37 <- parent :: boundary.c:42 <- second_case: unavailable
+  gc, after boundary.c:33 `return;`, gc :: boundary.c:35 <- child :: boundary.c:40 <- second_case: unavailable
+  child, start, joined: unavailable
+  child, start, filtered: unavailable
+  child, start, child :: boundary.c:37 <- parent :: boundary.c:41 <- second_case: unavailable
+  child, start, child :: boundary.c:37 <- parent :: boundary.c:42 <- second_case: unavailable
+  child, start, child :: boundary.c:40 <- second_case: unavailable
+  child, before boundary.c:35 `gc();`, joined: unavailable
+  child, before boundary.c:35 `gc();`, filtered: unavailable
+  child, before boundary.c:35 `gc();`, child :: boundary.c:37 <- parent :: boundary.c:41 <- second_case: unavailable
+  child, before boundary.c:35 `gc();`, child :: boundary.c:37 <- parent :: boundary.c:42 <- second_case: unavailable
+  child, before boundary.c:35 `gc();`, child :: boundary.c:40 <- second_case: unavailable
+  child, after boundary.c:35 `gc();`, joined: unavailable
+  child, after boundary.c:35 `gc();`, filtered: unavailable
+  child, after boundary.c:35 `gc();`, child :: boundary.c:37 <- parent :: boundary.c:41 <- second_case: unavailable
+  child, after boundary.c:35 `gc();`, child :: boundary.c:37 <- parent :: boundary.c:42 <- second_case: unavailable
+  child, after boundary.c:35 `gc();`, child :: boundary.c:40 <- second_case: unavailable
+  child, before boundary.c:35 `return;`, joined: unavailable
+  child, before boundary.c:35 `return;`, filtered: unavailable
+  child, before boundary.c:35 `return;`, child :: boundary.c:37 <- parent :: boundary.c:41 <- second_case: unavailable
+  child, before boundary.c:35 `return;`, child :: boundary.c:37 <- parent :: boundary.c:42 <- second_case: unavailable
+  child, before boundary.c:35 `return;`, child :: boundary.c:40 <- second_case: unavailable
+  child, after boundary.c:35 `return;`, joined: unavailable
+  child, after boundary.c:35 `return;`, filtered: unavailable
+  child, after boundary.c:35 `return;`, child :: boundary.c:37 <- parent :: boundary.c:41 <- second_case: unavailable
+  child, after boundary.c:35 `return;`, child :: boundary.c:37 <- parent :: boundary.c:42 <- second_case: unavailable
+  child, after boundary.c:35 `return;`, child :: boundary.c:40 <- second_case: unavailable
+Answers: 185 equal, 0 covering, 0 more precise, 0 omitting, 50 unavailable.
+Requests made: 290; reported by the trap: 290; reads of the legacy store: 0.

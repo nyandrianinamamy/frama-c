@@ -1,0 +1,232 @@
+[kernel] Parsing known_issues.c (with preprocessing)
+Calls:
+  f93_4 :: known_issues.c:63 <- issue93_4: analysed, cache entry 6
+  f93_4 :: known_issues.c:64 <- issue93_4: hit of cache entry 6
+  issue93_4: analysed, cache entry 7
+f93_4, start:
+  joined: a ∈ {0}
+          g ∈ {4; 9}
+          out ∈ {0}
+          r1 ∈ {0}
+          r2 ∈ {0}
+          y ∈ {0}
+          answer ∈ {0}
+          owner ∈ {0}
+          alias ∈ {0}
+          one ∈ {0}
+          two ∈ {0}
+          xc ∈ {0}
+  f93_4 :: known_issues.c:63 <- issue93_4: a ∈ {0}
+                                           g ∈ {4}
+                                           out ∈ {0}
+                                           r1 ∈ {0}
+                                           r2 ∈ {0}
+                                           y ∈ {0}
+                                           answer ∈ {0}
+                                           owner ∈ {0}
+                                           alias ∈ {0}
+                                           one ∈ {0}
+                                           two ∈ {0}
+                                           xc ∈ {0}
+  f93_4 :: known_issues.c:64 <- issue93_4: a ∈ {0}
+                                           g ∈ {9}
+                                           out ∈ {0}
+                                           r1 ∈ {0}
+                                           r2 ∈ {0}
+                                           y ∈ {0}
+                                           answer ∈ {0}
+                                           owner ∈ {0}
+                                           alias ∈ {0}
+                                           one ∈ {0}
+                                           two ∈ {0}
+                                           xc ∈ {0}
+f93_4, before known_issues.c:60 `;` (P):
+  joined: a ∈ {0}
+          g ∈ {4; 9}
+          out ∈ {0}
+          r1 ∈ {0}
+          r2 ∈ {0}
+          y ∈ {0}
+          answer ∈ {0}
+          owner ∈ {0}
+          alias ∈ {0}
+          one ∈ {0}
+          two ∈ {0}
+          xc ∈ {0}
+  f93_4 :: known_issues.c:63 <- issue93_4: a ∈ {0}
+                                           g ∈ {4}
+                                           out ∈ {0}
+                                           r1 ∈ {0}
+                                           r2 ∈ {0}
+                                           y ∈ {0}
+                                           answer ∈ {0}
+                                           owner ∈ {0}
+                                           alias ∈ {0}
+                                           one ∈ {0}
+                                           two ∈ {0}
+                                           xc ∈ {0}
+  f93_4 :: known_issues.c:64 <- issue93_4: a ∈ {0}
+                                           g ∈ {9}
+                                           out ∈ {0}
+                                           r1 ∈ {0}
+                                           r2 ∈ {0}
+                                           y ∈ {0}
+                                           answer ∈ {0}
+                                           owner ∈ {0}
+                                           alias ∈ {0}
+                                           one ∈ {0}
+                                           two ∈ {0}
+                                           xc ∈ {0}
+  reference, joined: a ∈ {0}
+                     g ∈ [--..--]
+                     out ∈ {0}
+                     r1 ∈ {0}
+                     r2 ∈ {0}
+                     y ∈ {0}
+                     answer ∈ {0}
+                     owner ∈ {0}
+                     alias ∈ {0}
+                     one ∈ {0}
+                     two ∈ {0}
+                     xc ∈ {0}
+  f93_4 :: known_issues.c:63 <- issue93_4: a ∈ {0}
+                                           g ∈ [--..--]
+                                           out ∈ {0}
+                                           r1 ∈ {0}
+                                           r2 ∈ {0}
+                                           y ∈ {0}
+                                           answer ∈ {0}
+                                           owner ∈ {0}
+                                           alias ∈ {0}
+                                           one ∈ {0}
+                                           two ∈ {0}
+                                           xc ∈ {0}
+  f93_4 :: known_issues.c:64 <- issue93_4: a ∈ {0}
+                                           g ∈ [--..--]
+                                           out ∈ {0}
+                                           r1 ∈ {0}
+                                           r2 ∈ {0}
+                                           y ∈ {0}
+                                           answer ∈ {0}
+                                           owner ∈ {0}
+                                           alias ∈ {0}
+                                           one ∈ {0}
+                                           two ∈ {0}
+                                           xc ∈ {0}
+f93_4, after known_issues.c:60 `return;`:
+  joined: a ∈ {0}
+          g ∈ {4; 9}
+          out ∈ {0}
+          r1 ∈ {0}
+          r2 ∈ {0}
+          y ∈ {0}
+          answer ∈ {0}
+          owner ∈ {0}
+          alias ∈ {0}
+          one ∈ {0}
+          two ∈ {0}
+          xc ∈ {0}
+  f93_4 :: known_issues.c:63 <- issue93_4: a ∈ {0}
+                                           g ∈ {4}
+                                           out ∈ {0}
+                                           r1 ∈ {0}
+                                           r2 ∈ {0}
+                                           y ∈ {0}
+                                           answer ∈ {0}
+                                           owner ∈ {0}
+                                           alias ∈ {0}
+                                           one ∈ {0}
+                                           two ∈ {0}
+                                           xc ∈ {0}
+  f93_4 :: known_issues.c:64 <- issue93_4: a ∈ {0}
+                                           g ∈ {9}
+                                           out ∈ {0}
+                                           r1 ∈ {0}
+                                           r2 ∈ {0}
+                                           y ∈ {0}
+                                           answer ∈ {0}
+                                           owner ∈ {0}
+                                           alias ∈ {0}
+                                           one ∈ {0}
+                                           two ∈ {0}
+                                           xc ∈ {0}
+  reference, joined: a ∈ {0}
+                     g ∈ [--..--]
+                     out ∈ {0}
+                     r1 ∈ {0}
+                     r2 ∈ {0}
+                     y ∈ {0}
+                     answer ∈ {0}
+                     owner ∈ {0}
+                     alias ∈ {0}
+                     one ∈ {0}
+                     two ∈ {0}
+                     xc ∈ {0}
+  f93_4 :: known_issues.c:63 <- issue93_4: a ∈ {0}
+                                           g ∈ [--..--]
+                                           out ∈ {0}
+                                           r1 ∈ {0}
+                                           r2 ∈ {0}
+                                           y ∈ {0}
+                                           answer ∈ {0}
+                                           owner ∈ {0}
+                                           alias ∈ {0}
+                                           one ∈ {0}
+                                           two ∈ {0}
+                                           xc ∈ {0}
+  f93_4 :: known_issues.c:64 <- issue93_4: a ∈ {0}
+                                           g ∈ [--..--]
+                                           out ∈ {0}
+                                           r1 ∈ {0}
+                                           r2 ∈ {0}
+                                           y ∈ {0}
+                                           answer ∈ {0}
+                                           owner ∈ {0}
+                                           alias ∈ {0}
+                                           one ∈ {0}
+                                           two ∈ {0}
+                                           xc ∈ {0}
+Hits against the analysed call of their cache entry:
+  f93_4 :: known_issues.c:64 <- issue93_4, hit of cache entry 6, against f93_4 :: known_issues.c:63 <- issue93_4: differs on g, at 7 points.
+Initial state: equal.
+Differences with the run without memexec:
+  final state, joined: more precise, as with memexec
+  final state, filtered: more precise, as with memexec
+  final state, issue93_4: more precise, as with memexec
+  f93_4, after known_issues.c:60 `__asm__ ("");`, joined: more precise
+  f93_4, after known_issues.c:60 `__asm__ ("");`, filtered: more precise
+  f93_4, after known_issues.c:60 `__asm__ ("");`, f93_4 :: known_issues.c:63 <- issue93_4: more precise
+  f93_4, after known_issues.c:60 `__asm__ ("");`, f93_4 :: known_issues.c:64 <- issue93_4: more precise
+  f93_4, before known_issues.c:60 `;` (P), joined: more precise
+  f93_4, before known_issues.c:60 `;` (P), filtered: more precise
+  f93_4, before known_issues.c:60 `;` (P), f93_4 :: known_issues.c:63 <- issue93_4: more precise
+  f93_4, before known_issues.c:60 `;` (P), f93_4 :: known_issues.c:64 <- issue93_4: more precise
+  f93_4, after known_issues.c:60 `;` (P), joined: more precise
+  f93_4, after known_issues.c:60 `;` (P), filtered: more precise
+  f93_4, after known_issues.c:60 `;` (P), f93_4 :: known_issues.c:63 <- issue93_4: more precise
+  f93_4, after known_issues.c:60 `;` (P), f93_4 :: known_issues.c:64 <- issue93_4: more precise
+  f93_4, before known_issues.c:60 `return;`, joined: more precise
+  f93_4, before known_issues.c:60 `return;`, filtered: more precise
+  f93_4, before known_issues.c:60 `return;`, f93_4 :: known_issues.c:63 <- issue93_4: more precise
+  f93_4, before known_issues.c:60 `return;`, f93_4 :: known_issues.c:64 <- issue93_4: more precise
+  f93_4, after known_issues.c:60 `return;`, joined: more precise
+  f93_4, after known_issues.c:60 `return;`, filtered: more precise
+  f93_4, after known_issues.c:60 `return;`, f93_4 :: known_issues.c:63 <- issue93_4: more precise
+  f93_4, after known_issues.c:60 `return;`, f93_4 :: known_issues.c:64 <- issue93_4: more precise
+  issue93_4, after known_issues.c:64 `f93_4();`, joined: more precise, as with memexec
+  issue93_4, after known_issues.c:64 `f93_4();`, filtered: more precise, as with memexec
+  issue93_4, after known_issues.c:64 `f93_4();`, issue93_4: more precise, as with memexec
+  issue93_4, before known_issues.c:65 `answer = g;`, joined: more precise, as with memexec
+  issue93_4, before known_issues.c:65 `answer = g;`, filtered: more precise, as with memexec
+  issue93_4, before known_issues.c:65 `answer = g;`, issue93_4: more precise, as with memexec
+  issue93_4, after known_issues.c:65 `answer = g;`, joined: more precise, as with memexec
+  issue93_4, after known_issues.c:65 `answer = g;`, filtered: more precise, as with memexec
+  issue93_4, after known_issues.c:65 `answer = g;`, issue93_4: more precise, as with memexec
+  issue93_4, before known_issues.c:66 `return;`, joined: more precise, as with memexec
+  issue93_4, before known_issues.c:66 `return;`, filtered: more precise, as with memexec
+  issue93_4, before known_issues.c:66 `return;`, issue93_4: more precise, as with memexec
+  issue93_4, after known_issues.c:66 `return;`, joined: more precise, as with memexec
+  issue93_4, after known_issues.c:66 `return;`, filtered: more precise, as with memexec
+  issue93_4, after known_issues.c:66 `return;`, issue93_4: more precise, as with memexec
+Answers: 527 equal, 0 covering, 38 more precise, 0 omitting, 0 unavailable.
+Requests made: 833; reported by the trap: 833; reads of the legacy store: 0.

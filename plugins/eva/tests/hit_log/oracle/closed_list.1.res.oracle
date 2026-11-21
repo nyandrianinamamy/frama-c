@@ -1,0 +1,161 @@
+[kernel] Parsing closed_list.c (with preprocessing)
+Calls:
+  fact :: closed_list.c:24 <- fact :: closed_list.c:24 <- fact :: closed_list.c:26 <- recursion: analysed, cache entry 9
+  fact :: closed_list.c:24 <- fact :: closed_list.c:26 <- recursion: analysed, cache entry 10
+  fact :: closed_list.c:26 <- recursion: analysed, cache entry 11
+  recursion: analysed, cache entry 12
+fact, start:
+  joined: v ∈ [--..--]
+          g ∈ {0}
+          h ∈ {0}
+          out ∈ {0}
+          m ∈ {1; 2; 3}
+  fact :: closed_list.c:24 <- fact :: closed_list.c:24 <- fact :: closed_list.c:26 <- recursion: 
+  v ∈ [--..--]
+  g ∈ {0}
+  h ∈ {0}
+  out ∈ {0}
+  m ∈ {1}
+  fact :: closed_list.c:24 <- fact :: closed_list.c:26 <- recursion: 
+  v ∈ [--..--]
+  g ∈ {0}
+  h ∈ {0}
+  out ∈ {0}
+  m ∈ {2}
+  fact :: closed_list.c:26 <- recursion: v ∈ [--..--]
+                                         g ∈ {0}
+                                         h ∈ {0}
+                                         out ∈ {0}
+                                         m ∈ {3}
+fact, before closed_list.c:24 `sequence` (P):
+  joined: unavailable
+  reference, joined: v ∈ [--..--]
+                     g ∈ {0}
+                     h ∈ {0}
+                     out ∈ {0}
+                     m ∈ {2; 3}
+                     tmp ∈ UNINITIALIZED
+                     __retres ∈ UNINITIALIZED
+  fact :: closed_list.c:24 <- fact :: closed_list.c:26 <- recursion: 
+  v ∈ [--..--]
+  g ∈ {0}
+  h ∈ {0}
+  out ∈ {0}
+  m ∈ {2}
+  tmp ∈ UNINITIALIZED
+  __retres ∈ UNINITIALIZED
+  fact :: closed_list.c:26 <- recursion: v ∈ [--..--]
+                                         g ∈ {0}
+                                         h ∈ {0}
+                                         out ∈ {0}
+                                         m ∈ {3}
+                                         tmp ∈ UNINITIALIZED
+                                         __retres ∈ UNINITIALIZED
+fact, after closed_list.c:24 `return __retres;`:
+  joined: unavailable
+  reference, joined: v ∈ [--..--]
+                     g ∈ {0}
+                     h ∈ {0}
+                     out ∈ {0}
+                     m ∈ {1; 2; 3}
+                     tmp ∈ {1; 2} or UNINITIALIZED
+                     __retres ∈ {1; 2; 6}
+  fact :: closed_list.c:24 <- fact :: closed_list.c:24 <- fact :: closed_list.c:26 <- recursion: 
+  v ∈ [--..--]
+  g ∈ {0}
+  h ∈ {0}
+  out ∈ {0}
+  m ∈ {1}
+  tmp ∈ UNINITIALIZED
+  __retres ∈ {1}
+  fact :: closed_list.c:24 <- fact :: closed_list.c:26 <- recursion: 
+  v ∈ [--..--]
+  g ∈ {0}
+  h ∈ {0}
+  out ∈ {0}
+  m ∈ {2}
+  tmp ∈ {1}
+  __retres ∈ {2}
+  fact :: closed_list.c:26 <- recursion: v ∈ [--..--]
+                                         g ∈ {0}
+                                         h ∈ {0}
+                                         out ∈ {0}
+                                         m ∈ {3}
+                                         tmp ∈ {2}
+                                         __retres ∈ {6}
+Initial state: equal.
+Differences with the run without memexec:
+  fact, before closed_list.c:24 `if (m <= 1)`, joined: unavailable
+  fact, before closed_list.c:24 `if (m <= 1)`, filtered: unavailable
+  fact, before closed_list.c:24 `if (m <= 1)`, fact :: closed_list.c:24 <- fact :: closed_list.c:24 <- fact :: closed_list.c:26 <- recursion: unavailable
+  fact, before closed_list.c:24 `if (m <= 1)`, fact :: closed_list.c:24 <- fact :: closed_list.c:26 <- recursion: unavailable
+  fact, before closed_list.c:24 `if (m <= 1)`, fact :: closed_list.c:26 <- recursion: unavailable
+  fact, after closed_list.c:24 `if (m <= 1)`, joined: unavailable
+  fact, after closed_list.c:24 `if (m <= 1)`, filtered: unavailable
+  fact, after closed_list.c:24 `if (m <= 1)`, fact :: closed_list.c:24 <- fact :: closed_list.c:24 <- fact :: closed_list.c:26 <- recursion: unavailable
+  fact, after closed_list.c:24 `if (m <= 1)`, fact :: closed_list.c:24 <- fact :: closed_list.c:26 <- recursion: unavailable
+  fact, after closed_list.c:24 `if (m <= 1)`, fact :: closed_list.c:26 <- recursion: unavailable
+  fact, before closed_list.c:24 `block`, joined: unavailable
+  fact, before closed_list.c:24 `block`, filtered: unavailable
+  fact, before closed_list.c:24 `block`, fact :: closed_list.c:24 <- fact :: closed_list.c:24 <- fact :: closed_list.c:26 <- recursion: unavailable
+  fact, after closed_list.c:24 `block`, joined: unavailable
+  fact, after closed_list.c:24 `block`, filtered: unavailable
+  fact, after closed_list.c:24 `block`, fact :: closed_list.c:24 <- fact :: closed_list.c:24 <- fact :: closed_list.c:26 <- recursion: unavailable
+  fact, before closed_list.c:24 `__retres = 1;`, joined: unavailable
+  fact, before closed_list.c:24 `__retres = 1;`, filtered: unavailable
+  fact, before closed_list.c:24 `__retres = 1;`, fact :: closed_list.c:24 <- fact :: closed_list.c:24 <- fact :: closed_list.c:26 <- recursion: unavailable
+  fact, after closed_list.c:24 `__retres = 1;`, joined: unavailable
+  fact, after closed_list.c:24 `__retres = 1;`, filtered: unavailable
+  fact, after closed_list.c:24 `__retres = 1;`, fact :: closed_list.c:24 <- fact :: closed_list.c:24 <- fact :: closed_list.c:26 <- recursion: unavailable
+  fact, before closed_list.c:24 `goto`, joined: unavailable
+  fact, before closed_list.c:24 `goto`, filtered: unavailable
+  fact, before closed_list.c:24 `goto`, fact :: closed_list.c:24 <- fact :: closed_list.c:24 <- fact :: closed_list.c:26 <- recursion: unavailable
+  fact, after closed_list.c:24 `goto`, joined: unavailable
+  fact, after closed_list.c:24 `goto`, filtered: unavailable
+  fact, after closed_list.c:24 `goto`, fact :: closed_list.c:24 <- fact :: closed_list.c:24 <- fact :: closed_list.c:26 <- recursion: unavailable
+  fact, after closed_list.c:24 `goto`, fact :: closed_list.c:24 <- fact :: closed_list.c:26 <- recursion: unavailable
+  fact, after closed_list.c:24 `goto`, fact :: closed_list.c:26 <- recursion: unavailable
+  fact, before closed_list.c:24 `sequence` (P), joined: unavailable
+  fact, before closed_list.c:24 `sequence` (P), filtered: unavailable
+  fact, before closed_list.c:24 `sequence` (P), fact :: closed_list.c:24 <- fact :: closed_list.c:26 <- recursion: unavailable
+  fact, before closed_list.c:24 `sequence` (P), fact :: closed_list.c:26 <- recursion: unavailable
+  fact, after closed_list.c:24 `sequence` (P), joined: unavailable
+  fact, after closed_list.c:24 `sequence` (P), filtered: unavailable
+  fact, after closed_list.c:24 `sequence` (P), fact :: closed_list.c:24 <- fact :: closed_list.c:26 <- recursion: unavailable
+  fact, after closed_list.c:24 `sequence` (P), fact :: closed_list.c:26 <- recursion: unavailable
+  fact, before closed_list.c:24 `tmp = fact(m - 1);`, joined: unavailable
+  fact, before closed_list.c:24 `tmp = fact(m - 1);`, filtered: unavailable
+  fact, before closed_list.c:24 `tmp = fact(m - 1);`, fact :: closed_list.c:24 <- fact :: closed_list.c:26 <- recursion: unavailable
+  fact, before closed_list.c:24 `tmp = fact(m - 1);`, fact :: closed_list.c:26 <- recursion: unavailable
+  fact, after closed_list.c:24 `tmp = fact(m - 1);`, joined: unavailable
+  fact, after closed_list.c:24 `tmp = fact(m - 1);`, filtered: unavailable
+  fact, after closed_list.c:24 `tmp = fact(m - 1);`, fact :: closed_list.c:24 <- fact :: closed_list.c:26 <- recursion: unavailable
+  fact, after closed_list.c:24 `tmp = fact(m - 1);`, fact :: closed_list.c:26 <- recursion: unavailable
+  fact, before closed_list.c:24 `;`, joined: unavailable
+  fact, before closed_list.c:24 `;`, filtered: unavailable
+  fact, before closed_list.c:24 `;`, fact :: closed_list.c:24 <- fact :: closed_list.c:26 <- recursion: unavailable
+  fact, before closed_list.c:24 `;`, fact :: closed_list.c:26 <- recursion: unavailable
+  fact, after closed_list.c:24 `;`, joined: unavailable
+  fact, after closed_list.c:24 `;`, filtered: unavailable
+  fact, after closed_list.c:24 `;`, fact :: closed_list.c:24 <- fact :: closed_list.c:26 <- recursion: unavailable
+  fact, after closed_list.c:24 `;`, fact :: closed_list.c:26 <- recursion: unavailable
+  fact, before closed_list.c:24 `__retres = m * tmp;`, joined: unavailable
+  fact, before closed_list.c:24 `__retres = m * tmp;`, filtered: unavailable
+  fact, before closed_list.c:24 `__retres = m * tmp;`, fact :: closed_list.c:24 <- fact :: closed_list.c:26 <- recursion: unavailable
+  fact, before closed_list.c:24 `__retres = m * tmp;`, fact :: closed_list.c:26 <- recursion: unavailable
+  fact, after closed_list.c:24 `__retres = m * tmp;`, joined: unavailable
+  fact, after closed_list.c:24 `__retres = m * tmp;`, filtered: unavailable
+  fact, after closed_list.c:24 `__retres = m * tmp;`, fact :: closed_list.c:24 <- fact :: closed_list.c:26 <- recursion: unavailable
+  fact, after closed_list.c:24 `__retres = m * tmp;`, fact :: closed_list.c:26 <- recursion: unavailable
+  fact, before closed_list.c:24 `return __retres;`, joined: unavailable
+  fact, before closed_list.c:24 `return __retres;`, filtered: unavailable
+  fact, before closed_list.c:24 `return __retres;`, fact :: closed_list.c:24 <- fact :: closed_list.c:24 <- fact :: closed_list.c:26 <- recursion: unavailable
+  fact, before closed_list.c:24 `return __retres;`, fact :: closed_list.c:24 <- fact :: closed_list.c:26 <- recursion: unavailable
+  fact, before closed_list.c:24 `return __retres;`, fact :: closed_list.c:26 <- recursion: unavailable
+  fact, after closed_list.c:24 `return __retres;`, joined: unavailable
+  fact, after closed_list.c:24 `return __retres;`, filtered: unavailable
+  fact, after closed_list.c:24 `return __retres;`, fact :: closed_list.c:24 <- fact :: closed_list.c:24 <- fact :: closed_list.c:26 <- recursion: unavailable
+  fact, after closed_list.c:24 `return __retres;`, fact :: closed_list.c:24 <- fact :: closed_list.c:26 <- recursion: unavailable
+  fact, after closed_list.c:24 `return __retres;`, fact :: closed_list.c:26 <- recursion: unavailable
+Answers: 98 equal, 0 covering, 0 more precise, 0 omitting, 72 unavailable.
+Requests made: 196; reported by the trap: 196; reads of the legacy store: 0.

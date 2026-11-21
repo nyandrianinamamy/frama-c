@@ -1,0 +1,57 @@
+[kernel] Parsing nonterm.c (with preprocessing)
+Calls:
+  Frama_C_interval :: nonterm.c:21 <- main: specification
+  f :: nonterm.c:23 <- main: analysed, cache entry 8
+  f :: nonterm.c:24 <- main: hit of cache entry 8
+  f :: nonterm.c:25 <- main: analysed, cache entry 9
+  main: analysed, cache entry 10
+f, start:
+  joined: v ∈ [--..--]
+          c ∈ {0; 1}
+          g ∈ {4; 9}
+          h ∈ {7; 8}
+          __retres ∈ UNINITIALIZED
+  f :: nonterm.c:23 <- main: v ∈ [--..--]
+                             c ∈ {0; 1}
+                             g ∈ {4}
+                             h ∈ {7}
+                             __retres ∈ UNINITIALIZED
+  f :: nonterm.c:24 <- main: v ∈ [--..--]
+                             c ∈ {0; 1}
+                             g ∈ {4}
+                             h ∈ {8}
+                             __retres ∈ UNINITIALIZED
+  f :: nonterm.c:25 <- main: v ∈ [--..--]
+                             c ∈ {0; 1}
+                             g ∈ {9}
+                             h ∈ {8}
+                             __retres ∈ UNINITIALIZED
+f, before nonterm.c:17 `loop` (L):
+  joined: v ∈ [--..--]
+          c ∈ {0; 1}
+          g ∈ {1; 4; 9}
+          h ∈ {7; 8}
+          __retres ∈ UNINITIALIZED
+  f :: nonterm.c:23 <- main: v ∈ [--..--]
+                             c ∈ {0; 1}
+                             g ∈ {1; 4}
+                             h ∈ {7}
+                             __retres ∈ UNINITIALIZED
+  f :: nonterm.c:24 <- main: v ∈ [--..--]
+                             c ∈ {0; 1}
+                             g ∈ {1; 4}
+                             h ∈ {8}
+                             __retres ∈ UNINITIALIZED
+  f :: nonterm.c:25 <- main: v ∈ [--..--]
+                             c ∈ {0; 1}
+                             g ∈ {1; 9}
+                             h ∈ {8}
+                             __retres ∈ UNINITIALIZED
+f, after nonterm.c:17 `return;`:
+  joined: unreachable
+Hits against the analysed call of their cache entry:
+  f :: nonterm.c:24 <- main, hit of cache entry 8, against f :: nonterm.c:23 <- main: differs on h, at 9 points.
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 130 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Requests made: 174; reported by the trap: 174; reads of the legacy store: 0.

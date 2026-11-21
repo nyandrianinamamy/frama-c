@@ -1,0 +1,84 @@
+[kernel] Parsing entry_states.c (with preprocessing)
+[eva:alarm] entry_states.c:40: Warning: 
+  function req_untouched: precondition got status unknown.
+[eva:alarm] entry_states.c:42: Warning: 
+  function req_untouched: precondition got status unknown.
+[eva:alarm] entry_states.c:40: Warning: 
+  function req_untouched: precondition got status unknown.
+[eva:alarm] entry_states.c:42: Warning: 
+  function req_untouched: precondition got status unknown.
+[eva:alarm] entry_states.c:40: Warning: 
+  function req_untouched: precondition got status unknown.
+[eva:alarm] entry_states.c:42: Warning: 
+  function req_untouched: precondition got status unknown.
+Calls:
+  Frama_C_interval :: entry_states.c:39 <- requires_untouched: specification
+  req_untouched :: entry_states.c:40 <- requires_untouched: analysed, cache entry 6
+  Frama_C_interval :: entry_states.c:41 <- requires_untouched: specification
+  req_untouched :: entry_states.c:42 <- requires_untouched: hit of cache entry 6
+  requires_untouched: analysed, cache entry 7
+req_untouched, start:
+  joined: v ∈ [--..--]
+          g ∈ [0..9]
+          x ∈ {0}
+          out ∈ {0}
+  req_untouched :: entry_states.c:40 <- requires_untouched: v ∈ [--..--]
+                                                            g ∈ [0..9]
+                                                            x ∈ {0}
+                                                            out ∈ {0}
+  req_untouched :: entry_states.c:42 <- requires_untouched: v ∈ [--..--]
+                                                            g ∈ [0..9]
+                                                            x ∈ {0}
+                                                            out ∈ {0}
+req_untouched, before entry_states.c:36 `x = 1;` (P):
+  joined: v ∈ [--..--]
+          g ∈ {4; 5; 6; 7; 8; 9}
+          x ∈ {0}
+          out ∈ {0}
+  req_untouched :: entry_states.c:40 <- requires_untouched: v ∈ [--..--]
+                                                            g ∈
+                                                             {4; 5; 6; 7; 8;
+                                                              9}
+                                                            x ∈ {0}
+                                                            out ∈ {0}
+  req_untouched :: entry_states.c:42 <- requires_untouched: v ∈ [--..--]
+                                                            g ∈
+                                                             {4; 5; 6; 7; 8;
+                                                              9}
+                                                            x ∈ {0}
+                                                            out ∈ {0}
+req_untouched, after entry_states.c:36 `return;`:
+  joined: v ∈ [--..--]
+          g ∈ {4; 5; 6; 7; 8; 9}
+          x ∈ {1}
+          out ∈ {0}
+  req_untouched :: entry_states.c:40 <- requires_untouched: v ∈ [--..--]
+                                                            g ∈
+                                                             {4; 5; 6; 7; 8;
+                                                              9}
+                                                            x ∈ {1}
+                                                            out ∈ {0}
+  req_untouched :: entry_states.c:42 <- requires_untouched: v ∈ [--..--]
+                                                            g ∈
+                                                             {4; 5; 6; 7; 8;
+                                                              9}
+                                                            x ∈ {1}
+                                                            out ∈ {0}
+Hits against the analysed call of their cache entry:
+  req_untouched :: entry_states.c:42 <- requires_untouched, hit of cache entry 6, against req_untouched :: entry_states.c:40 <- requires_untouched: no difference, at 5 points.
+Initial state: equal.
+Differences with the run without memexec:
+  final state, joined: covers, as with memexec
+  final state, filtered: covers, as with memexec
+  final state, requires_untouched: covers, as with memexec
+  requires_untouched, after entry_states.c:42 `req_untouched();`, joined: covers, as with memexec
+  requires_untouched, after entry_states.c:42 `req_untouched();`, filtered: covers, as with memexec
+  requires_untouched, after entry_states.c:42 `req_untouched();`, requires_untouched: covers, as with memexec
+  requires_untouched, before entry_states.c:43 `return;`, joined: covers, as with memexec
+  requires_untouched, before entry_states.c:43 `return;`, filtered: covers, as with memexec
+  requires_untouched, before entry_states.c:43 `return;`, requires_untouched: covers, as with memexec
+  requires_untouched, after entry_states.c:43 `return;`, joined: covers, as with memexec
+  requires_untouched, after entry_states.c:43 `return;`, filtered: covers, as with memexec
+  requires_untouched, after entry_states.c:43 `return;`, requires_untouched: covers, as with memexec
+Answers: 187 equal, 12 covering, 0 more precise, 0 omitting, 0 unavailable.
+Requests made: 285; reported by the trap: 285; reads of the legacy store: 0.

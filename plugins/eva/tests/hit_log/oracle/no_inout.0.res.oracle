@@ -1,0 +1,120 @@
+[kernel] Parsing no_inout.c (with preprocessing)
+[eva] Warning: The inout plugin is missing: some features are disabled, and the analysis may have degraded precision and performance.
+[eva] Warning: The inout plugin is missing: some features are disabled, and the analysis may have degraded precision and performance.
+[eva] Warning: The inout plugin is missing: some features are disabled, and the analysis may have degraded precision and performance.
+Calls:
+  f :: no_inout.c:14 <- main: analysed, cache entry 7
+  f :: no_inout.c:15 <- main: analysed, cache entry 8
+  main: analysed, cache entry 9
+f, start:
+  joined: g ∈ {1}
+          h ∈ {7; 8}
+          out ∈ {0; 1}
+          __retres ∈ UNINITIALIZED
+  f :: no_inout.c:14 <- main: g ∈ {1}
+                              h ∈ {7}
+                              out ∈ {0}
+                              __retres ∈ UNINITIALIZED
+  f :: no_inout.c:15 <- main: g ∈ {1}
+                              h ∈ {8}
+                              out ∈ {1}
+                              __retres ∈ UNINITIALIZED
+f, before no_inout.c:11 `out = g;` (P):
+  joined: unavailable
+  reference, joined: g ∈ {1}
+                     h ∈ {7; 8}
+                     out ∈ {0; 1}
+                     __retres ∈ UNINITIALIZED
+  f :: no_inout.c:14 <- main: g ∈ {1}
+                              h ∈ {7}
+                              out ∈ {0}
+                              __retres ∈ UNINITIALIZED
+  f :: no_inout.c:15 <- main: g ∈ {1}
+                              h ∈ {8}
+                              out ∈ {1}
+                              __retres ∈ UNINITIALIZED
+f, after no_inout.c:11 `return;`:
+  joined: unavailable
+  reference, joined: g ∈ {1}
+                     h ∈ {7; 8}
+                     out ∈ {1}
+                     __retres ∈ UNINITIALIZED
+  f :: no_inout.c:14 <- main: g ∈ {1}
+                              h ∈ {7}
+                              out ∈ {1}
+                              __retres ∈ UNINITIALIZED
+  f :: no_inout.c:15 <- main: g ∈ {1}
+                              h ∈ {8}
+                              out ∈ {1}
+                              __retres ∈ UNINITIALIZED
+Initial state: equal.
+Differences with the run without memexec:
+  final state, joined: unavailable
+  final state, filtered: unavailable
+  final state, main: unavailable
+  f, before no_inout.c:11 `out = g;` (P), joined: unavailable
+  f, before no_inout.c:11 `out = g;` (P), filtered: unavailable
+  f, before no_inout.c:11 `out = g;` (P), f :: no_inout.c:14 <- main: unavailable
+  f, before no_inout.c:11 `out = g;` (P), f :: no_inout.c:15 <- main: unavailable
+  f, after no_inout.c:11 `out = g;` (P), joined: unavailable
+  f, after no_inout.c:11 `out = g;` (P), filtered: unavailable
+  f, after no_inout.c:11 `out = g;` (P), f :: no_inout.c:14 <- main: unavailable
+  f, after no_inout.c:11 `out = g;` (P), f :: no_inout.c:15 <- main: unavailable
+  f, before no_inout.c:11 `return;`, joined: unavailable
+  f, before no_inout.c:11 `return;`, filtered: unavailable
+  f, before no_inout.c:11 `return;`, f :: no_inout.c:14 <- main: unavailable
+  f, before no_inout.c:11 `return;`, f :: no_inout.c:15 <- main: unavailable
+  f, after no_inout.c:11 `return;`, joined: unavailable
+  f, after no_inout.c:11 `return;`, filtered: unavailable
+  f, after no_inout.c:11 `return;`, f :: no_inout.c:14 <- main: unavailable
+  f, after no_inout.c:11 `return;`, f :: no_inout.c:15 <- main: unavailable
+  main, before no_inout.c:14 `g = 1;`, joined: unavailable
+  main, before no_inout.c:14 `g = 1;`, filtered: unavailable
+  main, before no_inout.c:14 `g = 1;`, main: unavailable
+  main, after no_inout.c:14 `g = 1;`, joined: unavailable
+  main, after no_inout.c:14 `g = 1;`, filtered: unavailable
+  main, after no_inout.c:14 `g = 1;`, main: unavailable
+  main, before no_inout.c:14 `h = 7;`, joined: unavailable
+  main, before no_inout.c:14 `h = 7;`, filtered: unavailable
+  main, before no_inout.c:14 `h = 7;`, main: unavailable
+  main, after no_inout.c:14 `h = 7;`, joined: unavailable
+  main, after no_inout.c:14 `h = 7;`, filtered: unavailable
+  main, after no_inout.c:14 `h = 7;`, main: unavailable
+  main, before no_inout.c:14 `f();`, joined: unavailable
+  main, before no_inout.c:14 `f();`, filtered: unavailable
+  main, before no_inout.c:14 `f();`, main: unavailable
+  main, after no_inout.c:14 `f();`, joined: unavailable
+  main, after no_inout.c:14 `f();`, filtered: unavailable
+  main, after no_inout.c:14 `f();`, main: unavailable
+  main, before no_inout.c:15 `g = 1;`, joined: unavailable
+  main, before no_inout.c:15 `g = 1;`, filtered: unavailable
+  main, before no_inout.c:15 `g = 1;`, main: unavailable
+  main, after no_inout.c:15 `g = 1;`, joined: unavailable
+  main, after no_inout.c:15 `g = 1;`, filtered: unavailable
+  main, after no_inout.c:15 `g = 1;`, main: unavailable
+  main, before no_inout.c:15 `h = 8;`, joined: unavailable
+  main, before no_inout.c:15 `h = 8;`, filtered: unavailable
+  main, before no_inout.c:15 `h = 8;`, main: unavailable
+  main, after no_inout.c:15 `h = 8;`, joined: unavailable
+  main, after no_inout.c:15 `h = 8;`, filtered: unavailable
+  main, after no_inout.c:15 `h = 8;`, main: unavailable
+  main, before no_inout.c:15 `f();`, joined: unavailable
+  main, before no_inout.c:15 `f();`, filtered: unavailable
+  main, before no_inout.c:15 `f();`, main: unavailable
+  main, after no_inout.c:15 `f();`, joined: unavailable
+  main, after no_inout.c:15 `f();`, filtered: unavailable
+  main, after no_inout.c:15 `f();`, main: unavailable
+  main, before no_inout.c:16 `__retres = 0;`, joined: unavailable
+  main, before no_inout.c:16 `__retres = 0;`, filtered: unavailable
+  main, before no_inout.c:16 `__retres = 0;`, main: unavailable
+  main, after no_inout.c:16 `__retres = 0;`, joined: unavailable
+  main, after no_inout.c:16 `__retres = 0;`, filtered: unavailable
+  main, after no_inout.c:16 `__retres = 0;`, main: unavailable
+  main, before no_inout.c:16 `return __retres;`, joined: unavailable
+  main, before no_inout.c:16 `return __retres;`, filtered: unavailable
+  main, before no_inout.c:16 `return __retres;`, main: unavailable
+  main, after no_inout.c:16 `return __retres;`, joined: unavailable
+  main, after no_inout.c:16 `return __retres;`, filtered: unavailable
+  main, after no_inout.c:16 `return __retres;`, main: unavailable
+Answers: 10 equal, 0 covering, 0 more precise, 0 omitting, 67 unavailable.
+Requests made: 76; reported by the trap: 76; reads of the legacy store: 0.

@@ -1,0 +1,328 @@
+[kernel] Parsing known_issues.c (with preprocessing)
+[eva] known_issues.c:105: Warning: 
+  Using specification of function h95 for recursive calls.
+  Analysis of function h95 is thus incomplete and its soundness
+  relies on the written specification.
+[eva:alarm] known_issues.c:103: Warning: 
+  function h95: postcondition got status unknown.
+Calls:
+  h95 :: known_issues.c:105 <- f95 :: known_issues.c:108 <- issue95: analysed, cache entry 10
+  f95 :: known_issues.c:108 <- issue95: analysed, cache entry 11
+  f95 :: known_issues.c:104 <- h95 :: known_issues.c:109 <- issue95: hit of cache entry 11
+  h95 :: known_issues.c:109 <- issue95: analysed, cache entry 12
+  issue95: analysed, cache entry 13
+f95, start:
+  joined: a ∈ {0}
+          g ∈ {0}
+          out ∈ {0}
+          r1 ∈ {0}
+          r2 ∈ {0}
+          y ∈ {0}
+          answer ∈ {0}
+          owner ∈ {0}
+          alias ∈ {0}
+          one ∈ {0; 2}
+          two ∈ {0}
+          n ∈ {1}
+          tmp ∈ UNINITIALIZED
+          xc ∈ {0}
+          __retres ∈ UNINITIALIZED
+  f95 :: known_issues.c:104 <- h95 :: known_issues.c:109 <- issue95: 
+  a ∈ {0}
+  g ∈ {0}
+  out ∈ {0}
+  r1 ∈ {0}
+  r2 ∈ {0}
+  y ∈ {0}
+  answer ∈ {0}
+  owner ∈ {0}
+  alias ∈ {0}
+  one ∈ {2}
+  two ∈ {0}
+  n ∈ {1}
+  tmp ∈ UNINITIALIZED
+  xc ∈ {0}
+  __retres ∈ UNINITIALIZED
+  f95 :: known_issues.c:108 <- issue95: a ∈ {0}
+                                        g ∈ {0}
+                                        out ∈ {0}
+                                        r1 ∈ {0}
+                                        r2 ∈ {0}
+                                        y ∈ {0}
+                                        answer ∈ {0}
+                                        owner ∈ {0}
+                                        alias ∈ {0}
+                                        one ∈ {0}
+                                        two ∈ {0}
+                                        xc ∈ {0}
+f95, before known_issues.c:105 `;` (P):
+  joined: a ∈ {0}
+          g ∈ {0}
+          out ∈ {0}
+          r1 ∈ {0}
+          r2 ∈ {0}
+          y ∈ {0}
+          answer ∈ {0}
+          owner ∈ {0}
+          alias ∈ {0}
+          one ∈ {0; 2}
+          two ∈ {0}
+          n ∈ {1}
+          tmp ∈ UNINITIALIZED
+          v ∈ {2}
+          xc ∈ {0}
+          __retres ∈ UNINITIALIZED
+  f95 :: known_issues.c:104 <- h95 :: known_issues.c:109 <- issue95: 
+  a ∈ {0}
+  g ∈ {0}
+  out ∈ {0}
+  r1 ∈ {0}
+  r2 ∈ {0}
+  y ∈ {0}
+  answer ∈ {0}
+  owner ∈ {0}
+  alias ∈ {0}
+  one ∈ {2}
+  two ∈ {0}
+  n ∈ {1}
+  tmp ∈ UNINITIALIZED
+  v ∈ {2}
+  xc ∈ {0}
+  __retres ∈ UNINITIALIZED
+  f95 :: known_issues.c:108 <- issue95: a ∈ {0}
+                                        g ∈ {0}
+                                        out ∈ {0}
+                                        r1 ∈ {0}
+                                        r2 ∈ {0}
+                                        y ∈ {0}
+                                        answer ∈ {0}
+                                        owner ∈ {0}
+                                        alias ∈ {0}
+                                        one ∈ {0}
+                                        two ∈ {0}
+                                        v ∈ {2}
+                                        xc ∈ {0}
+  reference, joined: a ∈ {0}
+                     g ∈ {0}
+                     out ∈ {0}
+                     r1 ∈ {0}
+                     r2 ∈ {0}
+                     y ∈ {0}
+                     answer ∈ {0}
+                     owner ∈ {0}
+                     alias ∈ {0}
+                     one ∈ {0; 2}
+                     two ∈ {0}
+                     n ∈ {1}
+                     tmp ∈ UNINITIALIZED
+                     v ∈ [0..9]
+                     xc ∈ {0}
+                     __retres ∈ UNINITIALIZED
+  f95 :: known_issues.c:104 <- h95 :: known_issues.c:109 <- issue95: 
+  a ∈ {0}
+  g ∈ {0}
+  out ∈ {0}
+  r1 ∈ {0}
+  r2 ∈ {0}
+  y ∈ {0}
+  answer ∈ {0}
+  owner ∈ {0}
+  alias ∈ {0}
+  one ∈ {2}
+  two ∈ {0}
+  n ∈ {1}
+  tmp ∈ UNINITIALIZED
+  v ∈ [0..9]
+  xc ∈ {0}
+  __retres ∈ UNINITIALIZED
+  f95 :: known_issues.c:108 <- issue95: a ∈ {0}
+                                        g ∈ {0}
+                                        out ∈ {0}
+                                        r1 ∈ {0}
+                                        r2 ∈ {0}
+                                        y ∈ {0}
+                                        answer ∈ {0}
+                                        owner ∈ {0}
+                                        alias ∈ {0}
+                                        one ∈ {0}
+                                        two ∈ {0}
+                                        v ∈ {2}
+                                        xc ∈ {0}
+f95, after known_issues.c:105 `return v;`:
+  joined: a ∈ {0}
+          g ∈ {0}
+          out ∈ {0}
+          r1 ∈ {0}
+          r2 ∈ {0}
+          y ∈ {0}
+          answer ∈ {0}
+          owner ∈ {0}
+          alias ∈ {0}
+          one ∈ {0; 2}
+          two ∈ {0}
+          n ∈ {1}
+          tmp ∈ UNINITIALIZED
+          v ∈ {2}
+          xc ∈ {0}
+          __retres ∈ UNINITIALIZED
+  f95 :: known_issues.c:104 <- h95 :: known_issues.c:109 <- issue95: 
+  a ∈ {0}
+  g ∈ {0}
+  out ∈ {0}
+  r1 ∈ {0}
+  r2 ∈ {0}
+  y ∈ {0}
+  answer ∈ {0}
+  owner ∈ {0}
+  alias ∈ {0}
+  one ∈ {2}
+  two ∈ {0}
+  n ∈ {1}
+  tmp ∈ UNINITIALIZED
+  v ∈ {2}
+  xc ∈ {0}
+  __retres ∈ UNINITIALIZED
+  f95 :: known_issues.c:108 <- issue95: a ∈ {0}
+                                        g ∈ {0}
+                                        out ∈ {0}
+                                        r1 ∈ {0}
+                                        r2 ∈ {0}
+                                        y ∈ {0}
+                                        answer ∈ {0}
+                                        owner ∈ {0}
+                                        alias ∈ {0}
+                                        one ∈ {0}
+                                        two ∈ {0}
+                                        v ∈ {2}
+                                        xc ∈ {0}
+  reference, joined: a ∈ {0}
+                     g ∈ {0}
+                     out ∈ {0}
+                     r1 ∈ {0}
+                     r2 ∈ {0}
+                     y ∈ {0}
+                     answer ∈ {0}
+                     owner ∈ {0}
+                     alias ∈ {0}
+                     one ∈ {0; 2}
+                     two ∈ {0}
+                     n ∈ {1}
+                     tmp ∈ UNINITIALIZED
+                     v ∈ [0..9]
+                     xc ∈ {0}
+                     __retres ∈ UNINITIALIZED
+  f95 :: known_issues.c:104 <- h95 :: known_issues.c:109 <- issue95: 
+  a ∈ {0}
+  g ∈ {0}
+  out ∈ {0}
+  r1 ∈ {0}
+  r2 ∈ {0}
+  y ∈ {0}
+  answer ∈ {0}
+  owner ∈ {0}
+  alias ∈ {0}
+  one ∈ {2}
+  two ∈ {0}
+  n ∈ {1}
+  tmp ∈ UNINITIALIZED
+  v ∈ [0..9]
+  xc ∈ {0}
+  __retres ∈ UNINITIALIZED
+  f95 :: known_issues.c:108 <- issue95: a ∈ {0}
+                                        g ∈ {0}
+                                        out ∈ {0}
+                                        r1 ∈ {0}
+                                        r2 ∈ {0}
+                                        y ∈ {0}
+                                        answer ∈ {0}
+                                        owner ∈ {0}
+                                        alias ∈ {0}
+                                        one ∈ {0}
+                                        two ∈ {0}
+                                        v ∈ {2}
+                                        xc ∈ {0}
+Hits against the analysed call of their cache entry:
+  f95 :: known_issues.c:104 <- h95 :: known_issues.c:109 <- issue95, hit of cache entry 11, against f95 :: known_issues.c:108 <- issue95: differs on __retres, n, one, tmp, at 7 points.
+Initial state: equal.
+Differences with the run without memexec:
+  final state, joined: more precise, as with memexec
+  final state, filtered: more precise, as with memexec
+  final state, issue95: more precise, as with memexec
+  h95, start, joined: unavailable
+  h95, start, filtered: unavailable
+  h95, start, h95 :: known_issues.c:105 <- f95 :: known_issues.c:104 <- h95 :: known_issues.c:109 <- issue95: unavailable
+  h95, start, h95 :: known_issues.c:105 <- f95 :: known_issues.c:108 <- issue95: unavailable
+  h95, start, h95 :: known_issues.c:109 <- issue95: unavailable
+  h95, before known_issues.c:104 `if (n)`, joined: unavailable
+  h95, before known_issues.c:104 `if (n)`, filtered: unavailable
+  h95, before known_issues.c:104 `if (n)`, h95 :: known_issues.c:105 <- f95 :: known_issues.c:108 <- issue95: unavailable
+  h95, before known_issues.c:104 `if (n)`, h95 :: known_issues.c:109 <- issue95: unavailable
+  h95, after known_issues.c:104 `if (n)`, joined: unavailable
+  h95, after known_issues.c:104 `if (n)`, filtered: unavailable
+  h95, after known_issues.c:104 `if (n)`, h95 :: known_issues.c:105 <- f95 :: known_issues.c:108 <- issue95: unavailable
+  h95, after known_issues.c:104 `if (n)`, h95 :: known_issues.c:109 <- issue95: unavailable
+  h95, before known_issues.c:104 `tmp = f95();`, joined: unavailable
+  h95, before known_issues.c:104 `tmp = f95();`, filtered: unavailable
+  h95, before known_issues.c:104 `tmp = f95();`, h95 :: known_issues.c:109 <- issue95: unavailable
+  h95, after known_issues.c:104 `tmp = f95();`, joined: unavailable
+  h95, after known_issues.c:104 `tmp = f95();`, filtered: unavailable
+  h95, after known_issues.c:104 `tmp = f95();`, h95 :: known_issues.c:109 <- issue95: unavailable
+  h95, before known_issues.c:104 `block`, joined: unavailable
+  h95, before known_issues.c:104 `block`, filtered: unavailable
+  h95, before known_issues.c:104 `block`, h95 :: known_issues.c:109 <- issue95: unavailable
+  h95, after known_issues.c:104 `block`, joined: unavailable
+  h95, after known_issues.c:104 `block`, filtered: unavailable
+  h95, after known_issues.c:104 `block`, h95 :: known_issues.c:109 <- issue95: unavailable
+  h95, before known_issues.c:104 `__retres = tmp;`, joined: unavailable
+  h95, before known_issues.c:104 `__retres = tmp;`, filtered: unavailable
+  h95, before known_issues.c:104 `__retres = tmp;`, h95 :: known_issues.c:109 <- issue95: unavailable
+  h95, after known_issues.c:104 `__retres = tmp;`, joined: unavailable
+  h95, after known_issues.c:104 `__retres = tmp;`, filtered: unavailable
+  h95, after known_issues.c:104 `__retres = tmp;`, h95 :: known_issues.c:109 <- issue95: unavailable
+  h95, before known_issues.c:104 `goto`, joined: unavailable
+  h95, before known_issues.c:104 `goto`, filtered: unavailable
+  h95, before known_issues.c:104 `goto`, h95 :: known_issues.c:109 <- issue95: unavailable
+  h95, after known_issues.c:104 `goto`, joined: unavailable
+  h95, after known_issues.c:104 `goto`, filtered: unavailable
+  h95, after known_issues.c:104 `goto`, h95 :: known_issues.c:105 <- f95 :: known_issues.c:108 <- issue95: unavailable
+  h95, after known_issues.c:104 `goto`, h95 :: known_issues.c:109 <- issue95: unavailable
+  h95, before known_issues.c:104 `__retres = 2;`, joined: unavailable
+  h95, before known_issues.c:104 `__retres = 2;`, filtered: unavailable
+  h95, before known_issues.c:104 `__retres = 2;`, h95 :: known_issues.c:105 <- f95 :: known_issues.c:108 <- issue95: unavailable
+  h95, after known_issues.c:104 `__retres = 2;`, joined: unavailable
+  h95, after known_issues.c:104 `__retres = 2;`, filtered: unavailable
+  h95, after known_issues.c:104 `__retres = 2;`, h95 :: known_issues.c:105 <- f95 :: known_issues.c:108 <- issue95: unavailable
+  h95, before known_issues.c:104 `return __retres;`, joined: unavailable
+  h95, before known_issues.c:104 `return __retres;`, filtered: unavailable
+  h95, before known_issues.c:104 `return __retres;`, h95 :: known_issues.c:105 <- f95 :: known_issues.c:108 <- issue95: unavailable
+  h95, before known_issues.c:104 `return __retres;`, h95 :: known_issues.c:109 <- issue95: unavailable
+  h95, after known_issues.c:104 `return __retres;`, joined: unavailable
+  h95, after known_issues.c:104 `return __retres;`, filtered: unavailable
+  h95, after known_issues.c:104 `return __retres;`, h95 :: known_issues.c:105 <- f95 :: known_issues.c:108 <- issue95: unavailable
+  h95, after known_issues.c:104 `return __retres;`, h95 :: known_issues.c:109 <- issue95: unavailable
+  f95, after known_issues.c:105 `int v = h95(0);`, joined: more precise
+  f95, after known_issues.c:105 `int v = h95(0);`, filtered: more precise
+  f95, after known_issues.c:105 `int v = h95(0);`, f95 :: known_issues.c:104 <- h95 :: known_issues.c:109 <- issue95: more precise
+  f95, before known_issues.c:105 `;` (P), joined: more precise
+  f95, before known_issues.c:105 `;` (P), filtered: more precise
+  f95, before known_issues.c:105 `;` (P), f95 :: known_issues.c:104 <- h95 :: known_issues.c:109 <- issue95: more precise
+  f95, after known_issues.c:105 `;` (P), joined: more precise
+  f95, after known_issues.c:105 `;` (P), filtered: more precise
+  f95, after known_issues.c:105 `;` (P), f95 :: known_issues.c:104 <- h95 :: known_issues.c:109 <- issue95: more precise
+  f95, before known_issues.c:105 `return v;`, joined: more precise
+  f95, before known_issues.c:105 `return v;`, filtered: more precise
+  f95, before known_issues.c:105 `return v;`, f95 :: known_issues.c:104 <- h95 :: known_issues.c:109 <- issue95: more precise
+  f95, after known_issues.c:105 `return v;`, joined: more precise
+  f95, after known_issues.c:105 `return v;`, filtered: more precise
+  f95, after known_issues.c:105 `return v;`, f95 :: known_issues.c:104 <- h95 :: known_issues.c:109 <- issue95: more precise
+  issue95, after known_issues.c:109 `two = h95(1);`, joined: more precise, as with memexec
+  issue95, after known_issues.c:109 `two = h95(1);`, filtered: more precise, as with memexec
+  issue95, after known_issues.c:109 `two = h95(1);`, issue95: more precise, as with memexec
+  issue95, before known_issues.c:110 `return;`, joined: more precise, as with memexec
+  issue95, before known_issues.c:110 `return;`, filtered: more precise, as with memexec
+  issue95, before known_issues.c:110 `return;`, issue95: more precise, as with memexec
+  issue95, after known_issues.c:110 `return;`, joined: more precise, as with memexec
+  issue95, after known_issues.c:110 `return;`, filtered: more precise, as with memexec
+  issue95, after known_issues.c:110 `return;`, issue95: more precise, as with memexec
+Answers: 502 equal, 0 covering, 27 more precise, 0 omitting, 52 unavailable.
+Requests made: 827; reported by the trap: 827; reads of the legacy store: 0.

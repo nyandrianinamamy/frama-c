@@ -1,0 +1,122 @@
+[kernel] Parsing fixtures.c (with preprocessing)
+Calls:
+  rbo :: fixtures.c:26 <- read_before_overwrite: analysed, cache entry 6
+  rbo :: fixtures.c:27 <- read_before_overwrite: hit of cache entry 6
+  read_before_overwrite: analysed, cache entry 7
+rbo, start:
+  joined: v ∈ [--..--]
+          a ∈ {1}
+          c ∈ {0}
+          g ∈ {0}
+          h ∈ {7; 8}
+          out ∈ {0}
+          w ∈ {0}
+          x ∈ {0}
+          y ∈ {0}
+          t1 ∈ {0}
+          t2 ∈ {0}
+          p ∈ {0}
+  rbo :: fixtures.c:26 <- read_before_overwrite: v ∈ [--..--]
+                                                 a ∈ {1}
+                                                 c ∈ {0}
+                                                 g ∈ {0}
+                                                 h ∈ {7}
+                                                 out ∈ {0}
+                                                 w ∈ {0}
+                                                 x ∈ {0}
+                                                 y ∈ {0}
+                                                 t1 ∈ {0}
+                                                 t2 ∈ {0}
+                                                 p ∈ {0}
+  rbo :: fixtures.c:27 <- read_before_overwrite: v ∈ [--..--]
+                                                 a ∈ {1}
+                                                 c ∈ {0}
+                                                 g ∈ {0}
+                                                 h ∈ {8}
+                                                 out ∈ {0}
+                                                 w ∈ {0}
+                                                 x ∈ {0}
+                                                 y ∈ {0}
+                                                 t1 ∈ {0}
+                                                 t2 ∈ {0}
+                                                 p ∈ {0}
+rbo, before fixtures.c:23 `a = 5;` (P):
+  joined: v ∈ [--..--]
+          a ∈ {1}
+          c ∈ {0}
+          g ∈ {0}
+          h ∈ {7; 8}
+          out ∈ {1}
+          w ∈ {0}
+          x ∈ {0}
+          y ∈ {0}
+          t1 ∈ {0}
+          t2 ∈ {0}
+          p ∈ {0}
+  rbo :: fixtures.c:26 <- read_before_overwrite: v ∈ [--..--]
+                                                 a ∈ {1}
+                                                 c ∈ {0}
+                                                 g ∈ {0}
+                                                 h ∈ {7}
+                                                 out ∈ {1}
+                                                 w ∈ {0}
+                                                 x ∈ {0}
+                                                 y ∈ {0}
+                                                 t1 ∈ {0}
+                                                 t2 ∈ {0}
+                                                 p ∈ {0}
+  rbo :: fixtures.c:27 <- read_before_overwrite: v ∈ [--..--]
+                                                 a ∈ {1}
+                                                 c ∈ {0}
+                                                 g ∈ {0}
+                                                 h ∈ {8}
+                                                 out ∈ {1}
+                                                 w ∈ {0}
+                                                 x ∈ {0}
+                                                 y ∈ {0}
+                                                 t1 ∈ {0}
+                                                 t2 ∈ {0}
+                                                 p ∈ {0}
+rbo, after fixtures.c:23 `return;`:
+  joined: v ∈ [--..--]
+          a ∈ {5}
+          c ∈ {0}
+          g ∈ {0}
+          h ∈ {7; 8}
+          out ∈ {1}
+          w ∈ {0}
+          x ∈ {0}
+          y ∈ {0}
+          t1 ∈ {0}
+          t2 ∈ {0}
+          p ∈ {0}
+  rbo :: fixtures.c:26 <- read_before_overwrite: v ∈ [--..--]
+                                                 a ∈ {5}
+                                                 c ∈ {0}
+                                                 g ∈ {0}
+                                                 h ∈ {7}
+                                                 out ∈ {1}
+                                                 w ∈ {0}
+                                                 x ∈ {0}
+                                                 y ∈ {0}
+                                                 t1 ∈ {0}
+                                                 t2 ∈ {0}
+                                                 p ∈ {0}
+  rbo :: fixtures.c:27 <- read_before_overwrite: v ∈ [--..--]
+                                                 a ∈ {5}
+                                                 c ∈ {0}
+                                                 g ∈ {0}
+                                                 h ∈ {8}
+                                                 out ∈ {1}
+                                                 w ∈ {0}
+                                                 x ∈ {0}
+                                                 y ∈ {0}
+                                                 t1 ∈ {0}
+                                                 t2 ∈ {0}
+                                                 p ∈ {0}
+Hits against the analysed call of their cache entry:
+  rbo :: fixtures.c:27 <- read_before_overwrite, hit of cache entry 6, against rbo :: fixtures.c:26 <- read_before_overwrite: differs on h, at 7 points.
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 553 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Requests made: 812; reported by the trap: 812; reads of the legacy store: 0.

@@ -1,0 +1,131 @@
+[kernel] Parsing fixtures.c (with preprocessing)
+Calls:
+  scoped :: fixtures.c:89 <- scope: analysed, cache entry 6
+  scoped :: fixtures.c:90 <- scope: hit of cache entry 6
+  scope: analysed, cache entry 7
+scoped, start:
+  joined: v ∈ [--..--]
+          a ∈ {0}
+          c ∈ {0}
+          g ∈ {0}
+          h ∈ {7; 8}
+          out ∈ {0}
+          w ∈ {0}
+          x ∈ {0}
+          y ∈ {0}
+          t1 ∈ {0}
+          t2 ∈ {0}
+          p ∈ {0}
+          f ∈ {2}
+  scoped :: fixtures.c:89 <- scope: v ∈ [--..--]
+                                    a ∈ {0}
+                                    c ∈ {0}
+                                    g ∈ {0}
+                                    h ∈ {7}
+                                    out ∈ {0}
+                                    w ∈ {0}
+                                    x ∈ {0}
+                                    y ∈ {0}
+                                    t1 ∈ {0}
+                                    t2 ∈ {0}
+                                    p ∈ {0}
+                                    f ∈ {2}
+  scoped :: fixtures.c:90 <- scope: v ∈ [--..--]
+                                    a ∈ {0}
+                                    c ∈ {0}
+                                    g ∈ {0}
+                                    h ∈ {8}
+                                    out ∈ {0}
+                                    w ∈ {0}
+                                    x ∈ {0}
+                                    y ∈ {0}
+                                    t1 ∈ {0}
+                                    t2 ∈ {0}
+                                    p ∈ {0}
+                                    f ∈ {2}
+scoped, before fixtures.c:85 `out ++;` (P):
+  joined: v ∈ [--..--]
+          a ∈ {0}
+          c ∈ {0}
+          g ∈ {0}
+          h ∈ {7; 8}
+          out ∈ {3}
+          w ∈ {0}
+          x ∈ {0}
+          y ∈ {0}
+          t1 ∈ {0}
+          t2 ∈ {0}
+          p ∈ {0}
+          f ∈ {2}
+  scoped :: fixtures.c:89 <- scope: v ∈ [--..--]
+                                    a ∈ {0}
+                                    c ∈ {0}
+                                    g ∈ {0}
+                                    h ∈ {7}
+                                    out ∈ {3}
+                                    w ∈ {0}
+                                    x ∈ {0}
+                                    y ∈ {0}
+                                    t1 ∈ {0}
+                                    t2 ∈ {0}
+                                    p ∈ {0}
+                                    f ∈ {2}
+  scoped :: fixtures.c:90 <- scope: v ∈ [--..--]
+                                    a ∈ {0}
+                                    c ∈ {0}
+                                    g ∈ {0}
+                                    h ∈ {8}
+                                    out ∈ {3}
+                                    w ∈ {0}
+                                    x ∈ {0}
+                                    y ∈ {0}
+                                    t1 ∈ {0}
+                                    t2 ∈ {0}
+                                    p ∈ {0}
+                                    f ∈ {2}
+scoped, after fixtures.c:86 `return;`:
+  joined: v ∈ [--..--]
+          a ∈ {0}
+          c ∈ {0}
+          g ∈ {0}
+          h ∈ {7; 8}
+          out ∈ {4}
+          w ∈ {0}
+          x ∈ {0}
+          y ∈ {0}
+          t1 ∈ {0}
+          t2 ∈ {0}
+          p ∈ {0}
+          f ∈ {2}
+  scoped :: fixtures.c:89 <- scope: v ∈ [--..--]
+                                    a ∈ {0}
+                                    c ∈ {0}
+                                    g ∈ {0}
+                                    h ∈ {7}
+                                    out ∈ {4}
+                                    w ∈ {0}
+                                    x ∈ {0}
+                                    y ∈ {0}
+                                    t1 ∈ {0}
+                                    t2 ∈ {0}
+                                    p ∈ {0}
+                                    f ∈ {2}
+  scoped :: fixtures.c:90 <- scope: v ∈ [--..--]
+                                    a ∈ {0}
+                                    c ∈ {0}
+                                    g ∈ {0}
+                                    h ∈ {8}
+                                    out ∈ {4}
+                                    w ∈ {0}
+                                    x ∈ {0}
+                                    y ∈ {0}
+                                    t1 ∈ {0}
+                                    t2 ∈ {0}
+                                    p ∈ {0}
+                                    f ∈ {2}
+Hits against the analysed call of their cache entry:
+  scoped :: fixtures.c:90 <- scope, hit of cache entry 6, against scoped :: fixtures.c:89 <- scope: differs on h, at 11 points.
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 557 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Requests made: 816; reported by the trap: 816; reads of the legacy store: 0.

@@ -1,0 +1,128 @@
+[kernel] Parsing fixtures.c (with preprocessing)
+[eva:alarm] fixtures.c:50: Warning: 
+  signed overflow. assert out + i ≤ 2147483647;
+[eva:alarm] fixtures.c:50: Warning: 
+  signed overflow. assert out + i ≤ 2147483647;
+[eva:alarm] fixtures.c:50: Warning: 
+  signed overflow. assert out + i ≤ 2147483647;
+Calls:
+  sum :: fixtures.c:55 <- loop: analysed, cache entry 6
+  sum :: fixtures.c:56 <- loop: hit of cache entry 6
+  loop: analysed, cache entry 7
+sum, start:
+  joined: v ∈ [--..--]
+          a ∈ {0}
+          c ∈ {0}
+          g ∈ {0}
+          h ∈ {7; 8}
+          out ∈ {0}
+          w ∈ {0}
+          x ∈ {0}
+          y ∈ {0}
+          t1 ∈ {0}
+          t2 ∈ {0}
+          p ∈ {0}
+  sum :: fixtures.c:55 <- loop: v ∈ [--..--]
+                                a ∈ {0}
+                                c ∈ {0}
+                                g ∈ {0}
+                                h ∈ {7}
+                                out ∈ {0}
+                                w ∈ {0}
+                                x ∈ {0}
+                                y ∈ {0}
+                                t1 ∈ {0}
+                                t2 ∈ {0}
+                                p ∈ {0}
+  sum :: fixtures.c:56 <- loop: v ∈ [--..--]
+                                a ∈ {0}
+                                c ∈ {0}
+                                g ∈ {0}
+                                h ∈ {8}
+                                out ∈ {0}
+                                w ∈ {0}
+                                x ∈ {0}
+                                y ∈ {0}
+                                t1 ∈ {0}
+                                t2 ∈ {0}
+                                p ∈ {0}
+sum, before fixtures.c:51 `w = out;` (P):
+  joined: v ∈ [--..--]
+          a ∈ {0}
+          c ∈ {0}
+          g ∈ {0}
+          h ∈ {7; 8}
+          out ∈ [0..2147483647]
+          w ∈ {0}
+          x ∈ {0}
+          y ∈ {0}
+          t1 ∈ {0}
+          t2 ∈ {0}
+          p ∈ {0}
+  sum :: fixtures.c:55 <- loop: v ∈ [--..--]
+                                a ∈ {0}
+                                c ∈ {0}
+                                g ∈ {0}
+                                h ∈ {7}
+                                out ∈ [0..2147483647]
+                                w ∈ {0}
+                                x ∈ {0}
+                                y ∈ {0}
+                                t1 ∈ {0}
+                                t2 ∈ {0}
+                                p ∈ {0}
+  sum :: fixtures.c:56 <- loop: v ∈ [--..--]
+                                a ∈ {0}
+                                c ∈ {0}
+                                g ∈ {0}
+                                h ∈ {8}
+                                out ∈ [0..2147483647]
+                                w ∈ {0}
+                                x ∈ {0}
+                                y ∈ {0}
+                                t1 ∈ {0}
+                                t2 ∈ {0}
+                                p ∈ {0}
+sum, after fixtures.c:52 `return;`:
+  joined: v ∈ [--..--]
+          a ∈ {0}
+          c ∈ {0}
+          g ∈ {0}
+          h ∈ {7; 8}
+          out ∈ [0..2147483647]
+          w ∈ [0..2147483647]
+          x ∈ {0}
+          y ∈ {0}
+          t1 ∈ {0}
+          t2 ∈ {0}
+          p ∈ {0}
+  sum :: fixtures.c:55 <- loop: v ∈ [--..--]
+                                a ∈ {0}
+                                c ∈ {0}
+                                g ∈ {0}
+                                h ∈ {7}
+                                out ∈ [0..2147483647]
+                                w ∈ [0..2147483647]
+                                x ∈ {0}
+                                y ∈ {0}
+                                t1 ∈ {0}
+                                t2 ∈ {0}
+                                p ∈ {0}
+  sum :: fixtures.c:56 <- loop: v ∈ [--..--]
+                                a ∈ {0}
+                                c ∈ {0}
+                                g ∈ {0}
+                                h ∈ {8}
+                                out ∈ [0..2147483647]
+                                w ∈ [0..2147483647]
+                                x ∈ {0}
+                                y ∈ {0}
+                                t1 ∈ {0}
+                                t2 ∈ {0}
+                                p ∈ {0}
+Hits against the analysed call of their cache entry:
+  sum :: fixtures.c:56 <- loop, hit of cache entry 6, against sum :: fixtures.c:55 <- loop: differs on h, at 21 points.
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 581 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Requests made: 840; reported by the trap: 840; reads of the legacy store: 0.

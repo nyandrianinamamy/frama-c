@@ -1,0 +1,40 @@
+[kernel] Parsing entry_states.c (with preprocessing)
+[eva:alarm] entry_states.c:63: Warning: 
+  function dead: precondition got status invalid.
+[eva:alarm] entry_states.c:65: Warning: 
+  function dead: precondition got status invalid.
+[eva:alarm] entry_states.c:63: Warning: 
+  function dead: precondition got status invalid.
+[eva:alarm] entry_states.c:65: Warning: 
+  function dead: precondition got status invalid.
+[eva:alarm] entry_states.c:63: Warning: 
+  function dead: precondition got status invalid.
+[eva:alarm] entry_states.c:65: Warning: 
+  function dead: precondition got status invalid.
+Calls:
+  dead :: entry_states.c:63 <- no_body_entry: analysed, cache entry 6
+  dead :: entry_states.c:65 <- no_body_entry: hit of cache entry 6
+  no_body_entry: analysed, cache entry 7
+dead, start:
+  joined: v ∈ [--..--]
+          g ∈ {0}
+          x ∈ {0}
+          out ∈ {0}
+  dead :: entry_states.c:63 <- no_body_entry: v ∈ [--..--]
+                                              g ∈ {0}
+                                              x ∈ {0}
+                                              out ∈ {0}
+  dead :: entry_states.c:65 <- no_body_entry: v ∈ [--..--]
+                                              g ∈ {0}
+                                              x ∈ {0}
+                                              out ∈ {0}
+dead, before entry_states.c:59 `g = 2;` (P):
+  joined: unreachable
+dead, after entry_states.c:59 `return;`:
+  joined: unreachable
+Hits against the analysed call of their cache entry:
+  dead :: entry_states.c:65 <- no_body_entry, hit of cache entry 6, against dead :: entry_states.c:63 <- no_body_entry: no difference, at 5 points.
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 193 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Requests made: 279; reported by the trap: 279; reads of the legacy store: 0.

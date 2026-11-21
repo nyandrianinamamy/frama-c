@@ -1,0 +1,305 @@
+[kernel] Parsing fixtures.c (with preprocessing)
+Calls:
+  count :: fixtures.c:77 <- widening_hints: analysed, cache entry 8
+  discover :: fixtures.c:78 <- widening_hints: analysed, cache entry 9
+  count :: fixtures.c:79 <- widening_hints: hit of cache entry 8
+  widening_hints: analysed, cache entry 10
+count, start:
+  joined: v ∈ [--..--]
+          a ∈ {0}
+          c ∈ {0}
+          g ∈ {0}
+          h ∈ {7; 8}
+          out ∈ {0}
+          w ∈ {0}
+          x ∈ {0}
+          y ∈ {0}
+          t1 ∈ {0}
+          t2 ∈ {0}
+          p ∈ {0}
+          n ∈ {13}
+  count :: fixtures.c:77 <- widening_hints: v ∈ [--..--]
+                                            a ∈ {0}
+                                            c ∈ {0}
+                                            g ∈ {0}
+                                            h ∈ {7}
+                                            out ∈ {0}
+                                            w ∈ {0}
+                                            x ∈ {0}
+                                            y ∈ {0}
+                                            t1 ∈ {0}
+                                            t2 ∈ {0}
+                                            p ∈ {0}
+                                            n ∈ {13}
+  count :: fixtures.c:79 <- widening_hints: v ∈ [--..--]
+                                            a ∈ {0}
+                                            c ∈ {0}
+                                            g ∈ {0}
+                                            h ∈ {8}
+                                            out ∈ {0}
+                                            w ∈ {0}
+                                            x ∈ {0}
+                                            y ∈ {0}
+                                            t1 ∈ {0}
+                                            t2 ∈ {0}
+                                            p ∈ {0}
+                                            n ∈ {13}
+count, before fixtures.c:68 `;` (P):
+  joined: v ∈ [--..--]
+          a ∈ {0}
+          c ∈ {0}
+          g ∈ {0}
+          h ∈ {7; 8}
+          out ∈ {0}
+          w ∈ {0}
+          x ∈ [13..2147483647]
+          y ∈ {0}
+          t1 ∈ {0}
+          t2 ∈ {0}
+          p ∈ {0}
+          n ∈ {13}
+  count :: fixtures.c:77 <- widening_hints: v ∈ [--..--]
+                                            a ∈ {0}
+                                            c ∈ {0}
+                                            g ∈ {0}
+                                            h ∈ {7}
+                                            out ∈ {0}
+                                            w ∈ {0}
+                                            x ∈ [13..2147483647]
+                                            y ∈ {0}
+                                            t1 ∈ {0}
+                                            t2 ∈ {0}
+                                            p ∈ {0}
+                                            n ∈ {13}
+  count :: fixtures.c:79 <- widening_hints: v ∈ [--..--]
+                                            a ∈ {0}
+                                            c ∈ {0}
+                                            g ∈ {0}
+                                            h ∈ {8}
+                                            out ∈ {0}
+                                            w ∈ {0}
+                                            x ∈ [13..2147483647]
+                                            y ∈ {0}
+                                            t1 ∈ {0}
+                                            t2 ∈ {0}
+                                            p ∈ {0}
+                                            n ∈ {13}
+  reference, joined: v ∈ [--..--]
+                     a ∈ {0}
+                     c ∈ {0}
+                     g ∈ {0}
+                     h ∈ {7; 8}
+                     out ∈ {0}
+                     w ∈ {0}
+                     x ∈ [13..2147483647]
+                     y ∈ {0}
+                     t1 ∈ {0}
+                     t2 ∈ {0}
+                     p ∈ {0}
+                     n ∈ {13}
+  count :: fixtures.c:77 <- widening_hints: v ∈ [--..--]
+                                            a ∈ {0}
+                                            c ∈ {0}
+                                            g ∈ {0}
+                                            h ∈ {7}
+                                            out ∈ {0}
+                                            w ∈ {0}
+                                            x ∈ [13..2147483647]
+                                            y ∈ {0}
+                                            t1 ∈ {0}
+                                            t2 ∈ {0}
+                                            p ∈ {0}
+                                            n ∈ {13}
+  count :: fixtures.c:79 <- widening_hints: v ∈ [--..--]
+                                            a ∈ {0}
+                                            c ∈ {0}
+                                            g ∈ {0}
+                                            h ∈ {8}
+                                            out ∈ {0}
+                                            w ∈ {0}
+                                            x ∈ {13}
+                                            y ∈ {0}
+                                            t1 ∈ {0}
+                                            t2 ∈ {0}
+                                            p ∈ {0}
+                                            n ∈ {13}
+count, before fixtures.c:68 `y = 1;` (R):
+  joined: v ∈ [--..--]
+          a ∈ {0}
+          c ∈ {0}
+          g ∈ {0}
+          h ∈ {7; 8}
+          out ∈ {0}
+          w ∈ {0}
+          x ∈ [14..2147483647]
+          y ∈ {0}
+          t1 ∈ {0}
+          t2 ∈ {0}
+          p ∈ {0}
+          n ∈ {13}
+  count :: fixtures.c:77 <- widening_hints: v ∈ [--..--]
+                                            a ∈ {0}
+                                            c ∈ {0}
+                                            g ∈ {0}
+                                            h ∈ {7}
+                                            out ∈ {0}
+                                            w ∈ {0}
+                                            x ∈ [14..2147483647]
+                                            y ∈ {0}
+                                            t1 ∈ {0}
+                                            t2 ∈ {0}
+                                            p ∈ {0}
+                                            n ∈ {13}
+  count :: fixtures.c:79 <- widening_hints: v ∈ [--..--]
+                                            a ∈ {0}
+                                            c ∈ {0}
+                                            g ∈ {0}
+                                            h ∈ {8}
+                                            out ∈ {0}
+                                            w ∈ {0}
+                                            x ∈ [14..2147483647]
+                                            y ∈ {0}
+                                            t1 ∈ {0}
+                                            t2 ∈ {0}
+                                            p ∈ {0}
+                                            n ∈ {13}
+  reference, joined: v ∈ [--..--]
+                     a ∈ {0}
+                     c ∈ {0}
+                     g ∈ {0}
+                     h ∈ {7}
+                     out ∈ {0}
+                     w ∈ {0}
+                     x ∈ [14..2147483647]
+                     y ∈ {0}
+                     t1 ∈ {0}
+                     t2 ∈ {0}
+                     p ∈ {0}
+                     n ∈ {13}
+  count :: fixtures.c:77 <- widening_hints: v ∈ [--..--]
+                                            a ∈ {0}
+                                            c ∈ {0}
+                                            g ∈ {0}
+                                            h ∈ {7}
+                                            out ∈ {0}
+                                            w ∈ {0}
+                                            x ∈ [14..2147483647]
+                                            y ∈ {0}
+                                            t1 ∈ {0}
+                                            t2 ∈ {0}
+                                            p ∈ {0}
+                                            n ∈ {13}
+count, after fixtures.c:69 `return;`:
+  joined: v ∈ [--..--]
+          a ∈ {0}
+          c ∈ {0}
+          g ∈ {0}
+          h ∈ {7; 8}
+          out ∈ {0}
+          w ∈ {0}
+          x ∈ [13..2147483647]
+          y ∈ {0; 1}
+          t1 ∈ {0}
+          t2 ∈ {0}
+          p ∈ {0}
+          n ∈ {13}
+  count :: fixtures.c:77 <- widening_hints: v ∈ [--..--]
+                                            a ∈ {0}
+                                            c ∈ {0}
+                                            g ∈ {0}
+                                            h ∈ {7}
+                                            out ∈ {0}
+                                            w ∈ {0}
+                                            x ∈ [13..2147483647]
+                                            y ∈ {0; 1}
+                                            t1 ∈ {0}
+                                            t2 ∈ {0}
+                                            p ∈ {0}
+                                            n ∈ {13}
+  count :: fixtures.c:79 <- widening_hints: v ∈ [--..--]
+                                            a ∈ {0}
+                                            c ∈ {0}
+                                            g ∈ {0}
+                                            h ∈ {8}
+                                            out ∈ {0}
+                                            w ∈ {0}
+                                            x ∈ [13..2147483647]
+                                            y ∈ {0; 1}
+                                            t1 ∈ {0}
+                                            t2 ∈ {0}
+                                            p ∈ {0}
+                                            n ∈ {13}
+  reference, joined: v ∈ [--..--]
+                     a ∈ {0}
+                     c ∈ {0}
+                     g ∈ {0}
+                     h ∈ {7; 8}
+                     out ∈ {0}
+                     w ∈ {0}
+                     x ∈ [13..2147483647]
+                     y ∈ {0; 1}
+                     t1 ∈ {0}
+                     t2 ∈ {0}
+                     p ∈ {0}
+                     n ∈ {13}
+  count :: fixtures.c:77 <- widening_hints: v ∈ [--..--]
+                                            a ∈ {0}
+                                            c ∈ {0}
+                                            g ∈ {0}
+                                            h ∈ {7}
+                                            out ∈ {0}
+                                            w ∈ {0}
+                                            x ∈ [13..2147483647]
+                                            y ∈ {0; 1}
+                                            t1 ∈ {0}
+                                            t2 ∈ {0}
+                                            p ∈ {0}
+                                            n ∈ {13}
+  count :: fixtures.c:79 <- widening_hints: v ∈ [--..--]
+                                            a ∈ {0}
+                                            c ∈ {0}
+                                            g ∈ {0}
+                                            h ∈ {8}
+                                            out ∈ {0}
+                                            w ∈ {0}
+                                            x ∈ {13}
+                                            y ∈ {0}
+                                            t1 ∈ {0}
+                                            t2 ∈ {0}
+                                            p ∈ {0}
+                                            n ∈ {13}
+Hits against the analysed call of their cache entry:
+  count :: fixtures.c:79 <- widening_hints, hit of cache entry 8, against count :: fixtures.c:77 <- widening_hints: differs on h, at 17 points.
+Initial state: equal.
+Differences with the run without memexec:
+  final state, joined: covers, as with memexec
+  final state, filtered: covers, as with memexec
+  final state, widening_hints: covers, as with memexec
+  count, after fixtures.c:67 `loop`, count :: fixtures.c:79 <- widening_hints: covers
+  count, before fixtures.c:67 `if (x < n)`, count :: fixtures.c:79 <- widening_hints: covers
+  count, after fixtures.c:67 `if (x < n)`, count :: fixtures.c:79 <- widening_hints: covers
+  count, before fixtures.c:67 `break;`, count :: fixtures.c:79 <- widening_hints: covers
+  count, after fixtures.c:67 `break;`, count :: fixtures.c:79 <- widening_hints: covers
+  count, before fixtures.c:68 `;` (P), count :: fixtures.c:79 <- widening_hints: covers
+  count, after fixtures.c:68 `;` (P), count :: fixtures.c:79 <- widening_hints: covers
+  count, before fixtures.c:68 `if (x > n)`, count :: fixtures.c:79 <- widening_hints: covers
+  count, after fixtures.c:68 `if (x > n)`, count :: fixtures.c:79 <- widening_hints: covers
+  count, before fixtures.c:68 `y = 1;` (R), joined: covers
+  count, before fixtures.c:68 `y = 1;` (R), filtered: covers
+  count, before fixtures.c:68 `y = 1;` (R), count :: fixtures.c:79 <- widening_hints: covers
+  count, after fixtures.c:68 `y = 1;` (R), joined: covers
+  count, after fixtures.c:68 `y = 1;` (R), filtered: covers
+  count, after fixtures.c:68 `y = 1;` (R), count :: fixtures.c:79 <- widening_hints: covers
+  count, before fixtures.c:69 `return;`, count :: fixtures.c:79 <- widening_hints: covers
+  count, after fixtures.c:69 `return;`, count :: fixtures.c:79 <- widening_hints: covers
+  widening_hints, after fixtures.c:79 `count(13);`, joined: covers, as with memexec
+  widening_hints, after fixtures.c:79 `count(13);`, filtered: covers, as with memexec
+  widening_hints, after fixtures.c:79 `count(13);`, widening_hints: covers, as with memexec
+  widening_hints, before fixtures.c:80 `return;`, joined: covers, as with memexec
+  widening_hints, before fixtures.c:80 `return;`, filtered: covers, as with memexec
+  widening_hints, before fixtures.c:80 `return;`, widening_hints: covers, as with memexec
+  widening_hints, after fixtures.c:80 `return;`, joined: covers, as with memexec
+  widening_hints, after fixtures.c:80 `return;`, filtered: covers, as with memexec
+  widening_hints, after fixtures.c:80 `return;`, widening_hints: covers, as with memexec
+Answers: 555 equal, 29 covering, 0 more precise, 0 omitting, 0 unavailable.
+Requests made: 843; reported by the trap: 843; reads of the legacy store: 0.
