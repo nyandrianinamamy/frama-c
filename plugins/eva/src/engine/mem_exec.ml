@@ -71,40 +71,6 @@ module Make
   let cleanup = !cleanup_ref
   let () = cleanup_ref := fun () -> cleanup (); PreviousCalls.clear ()
 
-  (** [diff_base_full_zone bases zones] remove from the set of bases [bases]
-      those of which all bits are present in [zones] *)
-  let diff_base_full_zone =
-    let cache = Hptmap_sig.PersistentCache "Mem_exec.diff_base_full_zone" in
-    let empty_left _ = Base.Hptset.empty (* nothing left to clear *) in
-    let empty_right v = v (* return all bases unchanged *) in
-    (* Check whether [range] covers the validity of [b]. If so, remove [b]
-       (hence, return an empty set). Otherwise, keep [b]. Variable bases are
-       always kept, because they may be changed into weak variables later.
-       This is specific to the way this function is used later in this file. *)
-    let both b range = begin
-      match Base.validity b with
-      | Base.Invalid -> assert false
-      | Base.Empty -> Base.Hptset.empty
-      | Base.Variable _ -> Base.Hptset.singleton b
-      | Base.Known (min, max) | Base.Unknown (min, _, max) ->
-        match Int_Intervals.project_singleton range with
-        | Some (min', max') ->
-          if Z.equal min min' && Z.equal max max' then
-            Base.Hptset.empty
-          else
-            Base.Hptset.singleton b
-        | None -> Base.Hptset.singleton b
-    end in
-    let join = Base.Hptset.union in
-    let empty = Base.Hptset.empty in
-    let f = Base.Hptset.fold2_join_heterogeneous
-        ~cache ~empty_left ~empty_right ~both ~join ~empty
-    in
-    fun bases z ->
-      match z with
-      | Memory_zone.Map m -> f bases (Memory_zone.shape m)
-      | Memory_zone.Top _ -> bases (* Never happens anyway *)
-
   (* Extends the input [bases] of a function [kf] by adding all bases related to
      these inputs in state [state]. We perform a fixpoint over [Domain.relate]
      to compute the transitive closure of the relations in [state] on [bases].
@@ -132,29 +98,16 @@ module Make
     | None -> ()
     | Some inout ->
       try
-        let output_bases = bases inout.Inout_type.over_outputs_if_termination in
+        (* The matching key: the bases read by the call, those read by its
+           annotations, and those it writes on the paths that return, including
+           the bases it surely overwrites. *)
         let input_bases =
           let input_bases = bases inout.Inout_type.over_inputs in
           let logic_input_bases = bases inout.Inout_type.over_logic_inputs in
-          Base.Hptset.union input_bases logic_input_bases
-        in
-        (* There are two strategies to compute the 'inputs' for a memexec
-           function: either we take all inputs_bases+outputs_bases
-           (outputs_bases are important because of weak updates), or we
-           remove the sure outputs from the outputs, as sure outputs by
-           definition strong updated. The latter will enable memexec to fire
-           more often, but requires more computations. *)
-        let remove_sure_outputs = true in
-        let input_bases =
-          if remove_sure_outputs then
-            let uncertain_output_bases =
-              (* Remove outputs whose base is completely overwritten *)
-              diff_base_full_zone
-                output_bases inout.Inout_type.under_outputs_if_termination
-            in
-            Base.Hptset.union input_bases uncertain_output_bases
-          else
-            Base.Hptset.union input_bases output_bases
+          let output_bases =
+            bases inout.Inout_type.over_outputs_if_termination
+          in
+          Base.Hptset.(union input_bases (union logic_input_bases output_bases))
         in
         let input_bases =
           expand_inputs_with_relations 2 kf input_bases input_state
@@ -164,13 +117,10 @@ module Make
           | Base.SetLattice.Set bases -> bases
         in
         let state_input = Domain.filter input_bases input_state in
-        (* Outputs bases, that is bases that are copy-pasted, also include
-           input bases. Indeed, those may get reduced during the call. *)
-        let all_output_bases =
-          if remove_sure_outputs
-          then Base.Hptset.union input_bases output_bases
-          else input_bases
-        in
+        (* Output bases, that is bases that are copy-pasted on a reuse: the
+           key, which includes the written bases and the input bases, as the
+           latter may get reduced during the call. *)
+        let all_output_bases = input_bases in
         (* Adds the fake varinfo used for the result of [kf] to the
            output_bases. *)
         let return_varinfo = Library_functions.get_retres_vi kf in
