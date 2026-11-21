@@ -1,0 +1,58 @@
+[kernel] Parsing below_no_body.c (with preprocessing)
+[eva:builtins:missing-spec] below_no_body.c:27: Warning: 
+  No Frama-C libc specification found for function builtin_leaf, for which a builtin is used; its soundness relies on the specification provided by the user.
+[eva:builtins:override] below_no_body.c:27: Warning: 
+  Definition of function builtin_leaf is overridden by builtin Frama_C_sqrt
+[eva:builtins:missing-spec] below_no_body.c:27: Warning: 
+  No Frama-C libc specification found for function builtin_leaf, for which a builtin is used; its soundness relies on the specification provided by the user.
+[eva:builtins:override] below_no_body.c:27: Warning: 
+  Definition of function builtin_leaf is overridden by builtin Frama_C_sqrt
+[eva:builtins:missing-spec] below_no_body.c:27: Warning: 
+  No Frama-C libc specification found for function builtin_leaf, for which a builtin is used; its soundness relies on the specification provided by the user.
+[eva:builtins:override] below_no_body.c:27: Warning: 
+  Definition of function builtin_leaf is overridden by builtin Frama_C_sqrt
+Calls:
+  builtin_leaf :: below_no_body.c:29 <- builtin_parent :: below_no_body.c:32 <- by_builtin: builtin
+  builtin_parent :: below_no_body.c:32 <- by_builtin: analysed, cache entry 6
+  builtin_parent :: below_no_body.c:34 <- by_builtin: hit of cache entry 6
+  by_builtin: analysed, cache entry 7
+builtin_leaf, start:
+  joined: unavailable
+  reference, joined: g ∈ {0}
+                     h ∈ {0; 8}
+                     d ∈ {0}
+                     x ∈ {2.}
+  builtin_leaf :: below_no_body.c:29 <- builtin_parent :: below_no_body.c:32 <- by_builtin: 
+  g ∈ {0}
+  h ∈ {0}
+  d ∈ {0}
+  x ∈ {2.}
+  builtin_leaf :: below_no_body.c:29 <- builtin_parent :: below_no_body.c:34 <- by_builtin: 
+  g ∈ {0}
+  h ∈ {8}
+  d ∈ {0}
+  x ∈ {2.}
+builtin_leaf, before below_no_body.c:27 `g = 3;` (P):
+  joined: unavailable
+  reference, joined: unreachable
+builtin_leaf, after below_no_body.c:27 `return x;`:
+  joined: unavailable
+  reference, joined: unreachable
+Hits against the analysed call of their cache entry:
+  builtin_parent :: below_no_body.c:34 <- by_builtin, hit of cache entry 6, against builtin_parent :: below_no_body.c:32 <- by_builtin: differs on h, at 5 points.
+Initial state: equal.
+Differences with the run without memexec:
+  builtin_leaf, start, joined: unavailable
+  builtin_leaf, start, filtered: unavailable
+  builtin_leaf, start, builtin_leaf :: below_no_body.c:29 <- builtin_parent :: below_no_body.c:32 <- by_builtin: unavailable
+  builtin_leaf, start, builtin_leaf :: below_no_body.c:29 <- builtin_parent :: below_no_body.c:34 <- by_builtin: unavailable
+  builtin_leaf, before below_no_body.c:27 `g = 3;` (P), joined: unavailable
+  builtin_leaf, before below_no_body.c:27 `g = 3;` (P), filtered: unavailable
+  builtin_leaf, after below_no_body.c:27 `g = 3;` (P), joined: unavailable
+  builtin_leaf, after below_no_body.c:27 `g = 3;` (P), filtered: unavailable
+  builtin_leaf, before below_no_body.c:27 `return x;`, joined: unavailable
+  builtin_leaf, before below_no_body.c:27 `return x;`, filtered: unavailable
+  builtin_leaf, after below_no_body.c:27 `return x;`, joined: unavailable
+  builtin_leaf, after below_no_body.c:27 `return x;`, filtered: unavailable
+Answers: 97 equal, 0 covering, 0 more precise, 0 omitting, 12 unavailable.
+Requests made: 149; reported by the trap: 149; reads of the legacy store: 0.

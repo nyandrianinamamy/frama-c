@@ -472,25 +472,21 @@ let find_point entry control_point =
   | Known { after; _ }, After stmt -> Stmt_table.find_opt after stmt
   | Known _, (Initial | Start _) -> None
 
-type availability = Available | Unavailable
-
-let availability store = function
-  | Domain_store.Initial -> Available
-  | Start kf ->
-    if Kf_table.mem store.below_hit kf then Unavailable else Available
+let is_available store = function
+  | Domain_store.Initial -> true
+  | Start kf -> not (Kf_table.mem store.below_hit kf)
   | Before stmt | After stmt ->
     let kf = Kernel_function.find_englobing_kf stmt in
-    if Kf_table.(mem store.below_hit kf || mem store.body_unavailable kf)
-    then Unavailable
-    else Available
+    not Kf_table.(mem store.below_hit kf || mem store.body_unavailable kf)
+
+let available control_point = is_available (Store.get ()) control_point
 
 let join_all list = List.fold_left Cvalue.Model.join Cvalue.Model.bottom list
 
 let get_state ?callstack control_point =
   let store = Store.get () in
-  match availability store control_point with
-  | Unavailable -> `Top
-  | Available ->
+  if not (is_available store control_point) then `Top
+  else
     match control_point with
     | Initial ->
       begin match store.initial, callstack with
@@ -513,9 +509,8 @@ let get_state ?callstack control_point =
 
 let get_state_by_callstack control_point =
   let store = Store.get () in
-  match availability store control_point with
-  | Unavailable -> `Top
-  | Available ->
+  if not (is_available store control_point) then `Top
+  else
     let callstacks =
       match control_point with
       | Initial -> Option.to_list (Option.map fst store.initial)

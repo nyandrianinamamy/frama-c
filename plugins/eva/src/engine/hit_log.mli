@@ -112,6 +112,10 @@ val analysis: (unit -> 'a) -> 'a
     the recording was on and the analysis has ended. *)
 val serving: unit -> bool
 
+(** Whether the requests at a control point are answered: false if they are
+    unavailable. *)
+val available: Domain_store.control_point -> bool
+
 (** The state at a control point, joined over all callstacks or for one. *)
 val get_state:
   ?callstack:Callstack.t -> Domain_store.control_point ->

@@ -165,10 +165,18 @@ module Make (Abstract: Abstractions.S) = struct
       else `Top
 
     (* After an analysis with option -eva-hit-log, the states are rebuilt from
-       the cache entries and the hit log, see {!Hit_log}. *)
+       the cache entries and the hit log, see {!Hit_log}. A point that the
+       recording makes unavailable is unavailable whatever the analysis of its
+       function: a function analysed by a specification or a builtin has no
+       state in its body, but can be unavailable. *)
     let of_cvalue cvalue =
       let state = cvalue, Locals_scoping.bottom () in
       Dom.set Cvalue_domain.State.key state Dom.top
+
+    let from_hit_log get control_point =
+      if Hit_log.available control_point
+      then find get control_point
+      else `Top
 
     let get_state ?callstack control_point =
       if Hit_log.serving ()
@@ -177,7 +185,7 @@ module Make (Abstract: Abstractions.S) = struct
           Hit_log.get_state ?callstack control_point
           |> Lattice_bounds.TopBottom.map of_cvalue
         in
-        find get control_point
+        from_hit_log get control_point
       else find (Dom.Store.get_state ?callstack) control_point
 
     let get_state_by_callstack control_point =
@@ -188,7 +196,7 @@ module Make (Abstract: Abstractions.S) = struct
           |> Lattice_bounds.TopBottom.map
             (List.map (fun (callstack, cvalue) -> callstack, of_cvalue cvalue))
         in
-        find get control_point
+        from_hit_log get control_point
       else find (Dom.Store.get_state_by_callstack) control_point
 
     let callstacks = Abstract.Dom.Store.callstacks
