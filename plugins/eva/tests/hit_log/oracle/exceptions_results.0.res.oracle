@@ -1,0 +1,10 @@
+[kernel] Parsing exceptions_results.c (with preprocessing)
+Call of f: body analysed.
+Call of f: hit.
+Call of f: hit.
+The exception is caught.
+Call 1 of f: start of f: value, before P: unavailable
+Call 2 of f: start of f: value, before P: unavailable
+Call 3 of f: start of f: value, before P: unavailable
+Without callstack: start of f: value, before P: unavailable
+Before Q in other: value
