@@ -99,14 +99,12 @@ module Make
     | Some inout ->
       try
         (* The matching key: the bases read by the call, those read by its
-           annotations, and those it writes on the paths that return, including
-           the bases it surely overwrites. *)
+           annotations, and those it writes on any path, whether the path
+           returns or not, including the bases it surely overwrites. *)
         let input_bases =
           let input_bases = bases inout.Inout_type.over_inputs in
           let logic_input_bases = bases inout.Inout_type.over_logic_inputs in
-          let output_bases =
-            bases inout.Inout_type.over_outputs_if_termination
-          in
+          let output_bases = bases inout.Inout_type.over_outputs in
           Base.Hptset.(union input_bases (union logic_input_bases output_bases))
         in
         let input_bases =
