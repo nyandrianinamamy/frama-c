@@ -60,21 +60,20 @@ module Make (Engine: Engine_sig.S) = struct
          at this call. *)
       Populate_spec.populate_funspec call.kf [`Assigns];
       let spec = Annotations.funspec call.kf in
-      let body_entry =
+      let body_entry_states =
         if not (Eva_utils.skip_specifications call.kf) &&
            List.exists (fun b -> b.b_requires <> []) spec.spec_behavior
         then begin
           let ab = Logic.create init_state call.kf in
           let kinstr = Callstack.top_callsite call.callstack in
           Logic.check_fct_preconditions kinstr call.kf ab init_state
-          |> Bottom.List.join Engine.Dom.join
         end
-        else `Value init_state
+        else [ init_state ]
       in
       if Hit_log.enabled () then begin
         let start = Engine.Dom.get_cvalue_or_top init_state in
         let body_entry =
-          match body_entry with
+          match Bottom.List.join Engine.Dom.join body_entry_states with
           | `Bottom -> Cvalue.Model.bottom
           | `Value state -> Engine.Dom.get_cvalue_or_top state
         in

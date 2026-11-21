@@ -216,6 +216,7 @@ module Computer(Fenv:Dataflows.FUNCTION_ENV)(X:sig
     val stmt_request: stmt -> Eva.Results.request (* Request at the given stmt *)
     val at_call: stmt -> kernel_function -> Inout_type.t (* Results of the
                                                             analysis for the given call. Must not contain locals or formals *)
+    val footprint: bool (* Whether [footprint] below is computed. *)
   end) = struct
 
   (* We want to compute the in/out for all terminating and
@@ -244,18 +245,34 @@ module Computer(Fenv:Dataflows.FUNCTION_ENV)(X:sig
      iterations and the successors; the successors it reaches; and the logic
      inputs it reads: those of its annotations, read before the statement, and
      those of the calls it makes, read by the statement. They give the
-     footprint at each point, see [footprint] below. *)
+     footprint at each point, see [footprint] below, and are only kept if
+     [X.footprint] is set. *)
   module Stmt_table = Cil_datatype.Stmt.Hashtbl
-  let transferred = Stmt_table.create 17
-  let reached_succs = Stmt_table.create 17
-  let annotation_reads = Stmt_table.create 17
-  let call_logic_reads = Stmt_table.create 17
+  type footprint_tables = {
+    transferred: compute_t Stmt_table.t;
+    reached_succs: stmt list Stmt_table.t;
+    annotation_reads: Memory_zone.t Stmt_table.t;
+    call_logic_reads: Memory_zone.t Stmt_table.t;
+  }
+
+  let tables =
+    if X.footprint
+    then Some { transferred = Stmt_table.create 17;
+                reached_succs = Stmt_table.create 17;
+                annotation_reads = Stmt_table.create 17;
+                call_logic_reads = Stmt_table.create 17; }
+    else None
 
   let add_logic_reads table stmt zone =
-    let previous =
-      Option.value ~default:Memory_zone.bottom (Stmt_table.find_opt table stmt)
-    in
-    Stmt_table.replace table stmt (Memory_zone.join previous zone)
+    match tables with
+    | None -> ()
+    | Some tables ->
+      let table = table tables in
+      let previous =
+        Option.value ~default:Memory_zone.bottom
+          (Stmt_table.find_opt table stmt)
+      in
+      Stmt_table.replace table stmt (Memory_zone.join previous zone)
 
   (* Store the 'non-termination' information of a function subcall into
      the current call. [under_outputs] are the current call sure outputs.
@@ -338,7 +355,8 @@ module Computer(Fenv:Dataflows.FUNCTION_ENV)(X:sig
         (fun acc kf ->
            let res = X.at_call s kf in
            store_non_terminating_subcall data.over_outputs_d res;
-           add_logic_reads call_logic_reads s res.over_logic_inputs;
+           add_logic_reads (fun t -> t.call_logic_reads) s
+             res.over_logic_inputs;
            let for_function = {
              over_inputs_d = res.over_inputs_if_termination;
              under_outputs_d = res.under_outputs_if_termination;
@@ -379,7 +397,7 @@ module Computer(Fenv:Dataflows.FUNCTION_ENV)(X:sig
                ()
              | Some p_zone ->
                store_non_terminating_logic_inputs p_zone;
-               add_logic_reads annotation_reads stmt p_zone
+               add_logic_reads (fun t -> t.annotation_reads) stmt p_zone
            end
          | _ -> ())
       stmt
@@ -465,21 +483,23 @@ module Computer(Fenv:Dataflows.FUNCTION_ENV)(X:sig
 
   (* Records the result of the transfer of [stmt]. A return statement has no
      successor: its result is [return_data]. *)
-  let record_transfer stmt result =
+  let record_transfer tables stmt result =
     let add data =
       let previous =
-        Option.value ~default:bottom (Stmt_table.find_opt transferred stmt)
+        Option.value ~default:bottom
+          (Stmt_table.find_opt tables.transferred stmt)
       in
-      Stmt_table.replace transferred stmt (join previous data)
+      Stmt_table.replace tables.transferred stmt (join previous data)
     in
     let add_succ (succ, data) =
       if not (equal data bottom) then begin
         add data;
         let succs =
-          Option.value ~default:[] (Stmt_table.find_opt reached_succs stmt)
+          Option.value ~default:[]
+            (Stmt_table.find_opt tables.reached_succs stmt)
         in
         if not (List.memq succ succs)
-        then Stmt_table.replace reached_succs stmt (succ :: succs)
+        then Stmt_table.replace tables.reached_succs stmt (succ :: succs)
       end
     in
     match stmt.skind with
@@ -491,7 +511,7 @@ module Computer(Fenv:Dataflows.FUNCTION_ENV)(X:sig
     then begin
       transfer_annotations s;
       let result = transfer_stmt s data in
-      record_transfer s result;
+      Option.iter (fun tables -> record_transfer tables s result) tables;
       result
     end
     else []
@@ -499,25 +519,25 @@ module Computer(Fenv:Dataflows.FUNCTION_ENV)(X:sig
 
   let init = [(Kernel_function.find_first_stmt Fenv.kf), empty];;
 
-  let find_succs stmt =
-    Option.value ~default:[] (Stmt_table.find_opt reached_succs stmt)
-
   (* The logic inputs read on the paths from the start of the function to the
      point before and to the point after each statement. *)
-  let propagate_logic_reads () =
+  let propagate_logic_reads tables =
     let before = Stmt_table.create 17 and after = Stmt_table.create 17 in
     let find table stmt =
       Option.value ~default:Memory_zone.bottom (Stmt_table.find_opt table stmt)
     in
+    let find_succs stmt =
+      Option.value ~default:[] (Stmt_table.find_opt tables.reached_succs stmt)
+    in
     let worklist = Queue.create () in
-    Stmt_table.iter (fun stmt _ -> Queue.add stmt worklist) transferred;
+    Stmt_table.iter (fun stmt _ -> Queue.add stmt worklist) tables.transferred;
     while not (Queue.is_empty worklist) do
       let stmt = Queue.pop worklist in
       let zone_before =
-        Memory_zone.join (find before stmt) (find annotation_reads stmt)
+        Memory_zone.join (find before stmt) (find tables.annotation_reads stmt)
       in
       let zone_after =
-        Memory_zone.join zone_before (find call_logic_reads stmt)
+        Memory_zone.join zone_before (find tables.call_logic_reads stmt)
       in
       Stmt_table.replace before stmt zone_before;
       Stmt_table.replace after stmt zone_after;
@@ -539,21 +559,27 @@ module Computer(Fenv:Dataflows.FUNCTION_ENV)(X:sig
      annotations and of the logic inputs of the calls. [pre_state] is the
      result of the dataflow before each statement. Over a path, the
      operational inputs and the outputs hold every block read or written:
-     a block read after a sure write is an output. *)
+     a block read after a sure write is an output. None if [X.footprint] is
+     not set. *)
   let footprint pre_state =
-    let logic_reads = lazy (propagate_logic_reads ()) in
-    let zone data = Memory_zone.join data.over_inputs_d data.over_outputs_d in
-    fun stmt ->
-      let logic_before, logic_after = Lazy.force logic_reads in
-      let before =
-        Memory_zone.join (zone (pre_state stmt)) (logic_before stmt)
+    let footprint tables =
+      let logic_reads = lazy (propagate_logic_reads tables) in
+      let zone data =
+        Memory_zone.join data.over_inputs_d data.over_outputs_d
       in
-      let after =
-        match Stmt_table.find_opt transferred stmt with
-        | None -> before
-        | Some data -> Memory_zone.join (zone data) (logic_after stmt)
-      in
-      before, after
+      fun stmt ->
+        let logic_before, logic_after = Lazy.force logic_reads in
+        let before =
+          Memory_zone.join (zone (pre_state stmt)) (logic_before stmt)
+        in
+        let after =
+          match Stmt_table.find_opt tables.transferred stmt with
+          | None -> before
+          | Some data -> Memory_zone.join (zone data) (logic_after stmt)
+        in
+        before, after
+    in
+    Option.map footprint tables
 
   let end_dataflow () =
     let res_if_termination = !return_data in {
@@ -743,6 +769,8 @@ module Callwise = struct
             in
             Inout_type.map (Memory_zone.filter_base filter) with_internals
           with Not_found -> Inout_type.bottom
+
+        let footprint = Eva.Parameters.HitLog.get ()
       end) in
     let module [@warning "-60"] Compute =
       Dataflows.Simple_forward (Fenv) (Computer)
@@ -760,7 +788,7 @@ module Callwise = struct
             let inout, footprint =
               compute_call_from_value_states kf callstack cvalue_states
             in
-            Record_Footprint_Callbacks.apply footprint;
+            Option.iter Record_Footprint_Callbacks.apply footprint;
             inout
           end
           else top
@@ -835,6 +863,7 @@ module FunctionWise = struct
           let stmt_state s = Eva.Results.(before s |> get_cvalue_model)
           let stmt_request s = Eva.Results.before s
           let at_call stmt kf = get_external_aux ~stmt kf
+          let footprint = false
         end) in
       Stack.iter (fun g -> if kf == g then raise Exit) call_stack;
       Stack.push kf call_stack;
