@@ -236,6 +236,9 @@ Help message about message categories.
     domain_product         : inactive category
   
   # Message categories for debug purposes:
+    debug:hit-log         : number of pastes made by each state request
+                            answered from the cache entries and the hit log
+                            (option -eva-hit-log)
     debug:interferences   : debug messages about interferences from other
                             threads injected in Eva analysis with Mthread
     debug:iterator        : debug messages about the fixpoint engine on the
