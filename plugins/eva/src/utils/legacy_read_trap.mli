@@ -17,17 +17,18 @@
 
     A request is an access of {!Results} to the states at one control point:
     the joined state, or the states of some callstacks. It is reported if it
-    starts while the instrument is on, when Eva has results in the current
-    project, and outside the iteration of an analysis of this project. The
-    iteration of an analysis lasts from its start to the end of the
-    computation of the states; the hooks run when Eva has results and the
-    passes that Eva runs afterwards, such as the summary, are outside it. The
-    reads made by a request that starts during the iteration of an analysis
-    of its project are not reported, only counted by {!ignored_reads}. A read
-    made outside any request is reported apart, by {!stray_reads}, under the
-    same conditions as a request. A lookup is a read only when the store of
-    the domain has been saved: when the results of a domain are disabled, a
-    request has no read of its store.
+    starts while the instrument is on, after the iteration of an analysis of
+    the current project: when Eva has results in this project, and from the
+    end of the iteration to the setting of these results, while Eva is still
+    computing. The iteration of an analysis lasts from its start to the end of
+    the computation of the states, when the fixpoint returns; the hooks run
+    when Eva has results and the passes that Eva runs afterwards, such as the
+    summary, are outside it. The reads made by a request that starts during
+    the iteration of an analysis of its project are not reported, only
+    counted by {!ignored_reads}. A read made outside any request is reported
+    apart, by {!stray_reads}, under the same conditions as a request. A lookup
+    is a read only when the store of the domain has been saved: when the
+    results of a domain are disabled, a request has no read of its store.
 
     The passes that Eva runs after the iteration are named: the requests and
     the reads outside any request made during a pass are reported with its
@@ -111,7 +112,9 @@ val pretty_callstack: Format.formatter -> Callstack.t -> unit
 
 (** [analysis f] runs the iteration [f] of an analysis of the current
     project: requests that start meanwhile in this project are not reported,
-    and their reads are counted by {!ignored_reads}. *)
+    and their reads are counted by {!ignored_reads}. Eva sets its computation
+    state to [Computing] within [f]: once [f] has returned, the requests and
+    the reads are reported, even before Eva has results. *)
 val analysis: (unit -> 'a) -> 'a
 
 (** [pass name f] runs [f], the pass [name] that Eva runs after the

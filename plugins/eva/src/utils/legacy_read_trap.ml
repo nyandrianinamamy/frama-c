@@ -95,8 +95,14 @@ let current_pass () =
 let iterating () = List.exists in_project !analyses
 
 (* Whether a read or a request in the current project is made after the
-   iteration of its analysis. *)
-let after_iteration () = not (iterating ()) && Self.is_computed ()
+   iteration of its analysis: when Eva has results, and from the return of the
+   iteration, while Eva is still computing, to the setting of its results.
+   Eva computes only within [analysis] and in that interval. *)
+let after_iteration () =
+  not (iterating ()) &&
+  match Self.ComputationState.get () with
+  | Computing | Computed | Aborted -> true
+  | NotComputed -> false
 
 let serve served f =
   let outer = !current in
@@ -116,7 +122,7 @@ let served () = Option.map snd (served_in_session ())
 let request pp f =
   if not !on || Option.is_some (served ()) then f ()
   else if iterating () then serve Ignored f
-  else if not (Self.is_computed ()) then f ()
+  else if not (after_iteration ()) then f ()
   else begin
     incr count;
     let number = !count in
