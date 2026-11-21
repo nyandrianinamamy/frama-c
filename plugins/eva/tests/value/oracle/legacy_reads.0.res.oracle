@@ -1,0 +1,96 @@
+[kernel] Parsing legacy_reads.c (with preprocessing)
+[eva] Analyzing a complete application starting at main
+[eva:progress] Computing initial state
+[eva:progress] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  v ∈ [--..--]
+  g ∈ {0}
+  t[0..1] ∈ {0}
+[eva:progress] 
+  computing for function f <- main.
+  Called from legacy_reads.c:29.
+Request at the first call of f, answered by top: true
+During the iteration:
+  requests reported: 0
+  reads ignored: none
+[eva:progress] Recording results for f
+[eva:progress] Done for function f
+[eva:progress] 
+  computing for function f <- main.
+  Called from legacy_reads.c:31.
+[eva:progress] Recording results for f
+[eva:progress] Done for function f
+[eva:alarm] legacy_reads.c:34: Warning: 
+  accessing out of bounds index. assert 0 ≤ v;
+[eva:alarm] legacy_reads.c:34: Warning: 
+  accessing out of bounds index. assert v < 2;
+[eva:progress] Recording results for main
+[eva:progress] Done for function main
+At the end of the iteration:
+  requests reported: 0
+  reads ignored: some
+After the analysis, for the requests made during it:
+  requests reported: 0
+  reads ignored: some
+State before a statement, joined:
+  request 1: before legacy_reads.c:23 in f; joined
+    read of the cvalue store: joined state, before legacy_reads.c:23 in f
+State before a statement, in one callstack:
+  request 1: before legacy_reads.c:23 in f; callstack f :: legacy_reads.c:29 <- main
+    read of the cvalue store: state of callstack f :: legacy_reads.c:29 <- main, before legacy_reads.c:23 in f
+State after a statement, joined:
+  request 1: after legacy_reads.c:23 in f; joined
+    read of the cvalue store: joined state, after legacy_reads.c:23 in f
+State after a statement, in one callstack:
+  request 1: after legacy_reads.c:23 in f; callstack f :: legacy_reads.c:31 <- main
+    read of the cvalue store: state of callstack f :: legacy_reads.c:31 <- main, after legacy_reads.c:23 in f
+State at the start of a function, joined:
+  request 1: start of f; joined
+    read of the cvalue store: joined state, start of f
+State at the start of a function, in one callstack:
+  request 1: start of f; callstack f :: legacy_reads.c:29 <- main
+    read of the cvalue store: state of callstack f :: legacy_reads.c:29 <- main, start of f
+State at the end of a function, joined:
+  request 1: after legacy_reads.c:24 in f; joined
+    read of the cvalue store: joined state, after legacy_reads.c:24 in f
+State at the end of a function, in one callstack:
+  request 1: after legacy_reads.c:24 in f; callstack f :: legacy_reads.c:31 <- main
+    read of the cvalue store: state of callstack f :: legacy_reads.c:31 <- main, after legacy_reads.c:24 in f
+Initial state, joined:
+  request 1: initial state; joined
+    read of the cvalue store: joined state, initial state
+Initial state, in one callstack:
+  request 1: initial state; callstack main
+    read of the cvalue store: state of callstack main, initial state
+Final state, joined:
+  request 1: after legacy_reads.c:35 in main; joined
+    read of the cvalue store: joined state, after legacy_reads.c:35 in main
+Final state, in one callstack:
+  request 1: after legacy_reads.c:35 in main; callstack main
+    read of the cvalue store: state of callstack main, after legacy_reads.c:35 in main
+State before a statement, in two callstacks:
+  request 1: before legacy_reads.c:23 in f; callstacks f :: legacy_reads.c:29 <- main, f :: legacy_reads.c:31 <- main
+    read of the cvalue store: callstacks, before legacy_reads.c:23 in f
+    read of the cvalue store: state of callstack f :: legacy_reads.c:29 <- main, before legacy_reads.c:23 in f
+    read of the cvalue store: state of callstack f :: legacy_reads.c:31 <- main, before legacy_reads.c:23 in f
+State before a statement, in the callstacks kept by a filter:
+  request 1: before legacy_reads.c:23 in f; every callstack, filtered
+    read of the cvalue store: callstacks, before legacy_reads.c:23 in f
+    read of the cvalue store: state of callstack f :: legacy_reads.c:29 <- main, before legacy_reads.c:23 in f
+    read of the cvalue store: state of callstack f :: legacy_reads.c:31 <- main, before legacy_reads.c:23 in f
+Callstacks reaching a statement:
+  request 1: before legacy_reads.c:23 in f; every callstack
+    read of the cvalue store: callstacks, before legacy_reads.c:23 in f
+    read of the cvalue store: state of callstack f :: legacy_reads.c:29 <- main, before legacy_reads.c:23 in f
+    read of the cvalue store: state of callstack f :: legacy_reads.c:31 <- main, before legacy_reads.c:23 in f
+State before an unreachable statement, joined:
+  request 1: before legacy_reads.c:33 in main; joined
+    read of the cvalue store: joined state, before legacy_reads.c:33 in main
+    read of the cvalue store: callstacks, before legacy_reads.c:33 in main
+g: {0; 1}
+Value of g before a statement, joined:
+  request 1: before legacy_reads.c:23 in f; joined
+    read of the cvalue store: joined state, before legacy_reads.c:23 in f
+Truth values of the condition g > 5: false, true
+Truth values of a condition:
+  no request reported
