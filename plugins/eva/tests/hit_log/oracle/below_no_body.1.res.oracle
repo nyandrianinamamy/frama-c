@@ -47,7 +47,7 @@ Callstacks listed through the filter: those of the run without memexec at each o
 Filtered requests that reject one callstack: 6.
 Requests made: 193; reported by the trap: 193, each once with its description; reads of the legacy store: 0.
 Passes after the iteration:
-  with memexec, without recording: 26 requests, 16 reads of the legacy store in them, 0 reads outside any request.
+  with memexec, without recording: 26 requests, 30 reads of the legacy store in them, 35 reads outside any request.
   with -eva-hit-log: 26 requests, 0 reads of the legacy store in them, 0 reads outside any request.
     unreachable statements: 19 requests
     statistics: 7 requests
