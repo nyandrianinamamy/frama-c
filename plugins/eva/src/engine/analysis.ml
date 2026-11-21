@@ -282,39 +282,30 @@ let compute_from ?cvalue_state ?arguments entry_point =
   (* Setup signals *)
   let restore_signals = Signal.setup () in
   Fun.protect ~finally:restore_signals @@ fun () ->
-  (* The iteration ends with [Legacy_read_trap.analysis] and
-     [Hit_log.analysis], before the hooks run by [Computed] and the passes of
-     [post_analysis]. It returns these passes, or the exception raised. *)
-  let iteration =
-    Legacy_read_trap.analysis @@ fun () ->
-    Hit_log.analysis @@ fun () ->
-    (* Mthread pre-analysis: returns an analysis state if requested. *)
-    let mt_analysis = Mt_main.pre_analysis () in
-    (* Prepare the analysis and build the engine. *)
-    let module Engine = (val pre_analysis ()) in
-    Self.feedback "Analyzing a%scomplete application starting at %a"
-      (if Kernel.LibEntry.get () then "n in" else " ")
-      Kernel_function.pretty entry_point;
-    try
-      Self.ComputationState.set Computing;
-      (* Run the analysis. *)
-      let final_state =
-        match mt_analysis with
-        | Some analysis -> mthread_fixpoint (module Engine) analysis
-        | None ->
-          compute_from_entry_point (module Engine)
-            ?cvalue_state ?arguments entry_point
-      in
-      Ok (fun () -> post_analysis (module Engine) mt_analysis final_state)
-    with exn -> Stdlib.Error (exn, Printexc.get_raw_backtrace ())
-  in
+  (* Mthread pre-analysis: returns an analysis state if requested. *)
+  let mt_analysis = Mt_main.pre_analysis () in
+  (* Prepare the analysis and build the engine. *)
+  let module Engine = (val pre_analysis ()) in
+  Self.feedback "Analyzing a%scomplete application starting at %a"
+    (if Kernel.LibEntry.get () then "n in" else " ")
+    Kernel_function.pretty entry_point;
   try
-    match iteration with
-    | Ok passes ->
-      Self.(ComputationState.set Computed);
-      passes ()
-    | Stdlib.Error (exn, backtrace) ->
-      Printexc.raise_with_backtrace exn backtrace
+    (* Run the analysis. Its iteration lasts from [Computing] to the return
+       of the fixpoint, within [Legacy_read_trap.analysis] and
+       [Hit_log.analysis]: what follows, up to the hooks run by [Computed] and
+       the passes of [post_analysis], is after the iteration. *)
+    let final_state =
+      Legacy_read_trap.analysis @@ fun () ->
+      Hit_log.analysis @@ fun () ->
+      Self.ComputationState.set Computing;
+      match mt_analysis with
+      | Some analysis -> mthread_fixpoint (module Engine) analysis
+      | None ->
+        compute_from_entry_point (module Engine)
+          ?cvalue_state ?arguments entry_point
+    in
+    Self.(ComputationState.set Computed);
+    post_analysis (module Engine) mt_analysis final_state
   with exn ->
     let backtrace = Printexc.get_raw_backtrace () in
     Self.(ComputationState.set Aborted);
