@@ -13,6 +13,13 @@ open Eval
 let ignore_predicate named_pred =
   List.exists (fun tag -> tag = "no_eva") named_pred.Cil_types.pred_name
 
+let create_conjunction l=
+  let loc = match l with
+    | [] -> None
+    | p :: _ -> Some (Logic_const.pred_of_id_pred p).pred_loc
+  in
+  Logic_const.(List.fold_right (fun p1 p2 -> pand ?loc (p1, p2)) (List.map pred_of_id_pred l) ptrue)
+
 let ip_from_precondition kf call_ki b pre =
   let ip_precondition = Property.ip_of_requires kf Kglobal b pre in
   match call_ki with
@@ -536,7 +543,7 @@ module Make (Domain: LogicDomain) = struct
   let evaluate_assumes_of_behavior state =
     let pre_env = pre_env ~pre:state in
     fun behavior ->
-      let assumes = Active_behaviors.assumes behavior in
+      let assumes = create_conjunction behavior.b_assumes in
       Domain.evaluate_predicate pre_env state assumes
 
 

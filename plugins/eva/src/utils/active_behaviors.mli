@@ -8,10 +8,6 @@
 
 open Cil_types
 
-(** The conjunction evaluated to select [behavior]. This includes clauses
-    tagged [no_eva]: the tag only disables their evaluation for reduction. *)
-val assumes: behavior -> predicate
-
 type t
 val is_active: t -> behavior -> Alarmset.status
 val is_active_from_name: t -> string -> Alarmset.status

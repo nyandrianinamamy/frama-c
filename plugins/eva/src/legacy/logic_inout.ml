@@ -13,19 +13,17 @@ let join_logic_deps logic_deps =
     (fun _ -> Memory_zone.join) logic_deps Memory_zone.bottom
 
 let predicate_deps ~pre ~here predicate =
-  let env = Eval_terms.for_dependencies (Eval_terms.env_annot ~pre ~here ()) in
-  try
-    let logic_deps = Eval_terms.predicate_deps env predicate in
-    Option.map join_logic_deps logic_deps
-  with Abstract_interp.Error_Top -> None
+  let env = Eval_terms.env_annot ~pre ~here () in
+  let logic_deps = Eval_terms.predicate_deps env predicate in
+  Option.map join_logic_deps logic_deps
 
 let term_deps state t =
   try
-    let env = Eval_terms.for_dependencies (Eval_terms.env_only_here state) in
+    let env = Eval_terms.env_only_here state in
     let r = Eval_terms.eval_term ~alarm_mode:Eval_terms.Ignore env t in
     let zone = join_logic_deps r.Eval_terms.ldeps in
     Some zone
-  with Eval_terms.LogicEvalError _ | Abstract_interp.Error_Top -> None
+  with Eval_terms.LogicEvalError _ -> None
 
 let compute_term_deps stmt t =
   let state = Results.(before stmt |> get_cvalue_model) in
@@ -46,316 +44,6 @@ let valid_behaviors kf state =
   Active_behaviors.active_behaviors ab
 
 (* -------------------------------------------------------------------------- *)
-(* --- Dependencies of the predicates interpreted by Eva                  --- *)
-(* -------------------------------------------------------------------------- *)
-
-(* Evaluation environment of a predicate, built as [Transfer_logic] builds it
-   for the cvalue domain: [here] is the current state, [labels] binds some
-   builtin labels, and the other labels are bound to the top state. The
-   evaluation emits no warning about the parts that it cannot evaluate: Eva
-   emits its own when it evaluates the predicate, and these evaluations also
-   cover parts that Eva may not evaluate. *)
-let logic_env ~result ~here labels =
-  let states = function
-    | BuiltinLabel label ->
-      Option.value ~default:Cvalue.Model.top (List.assoc_opt label labels)
-    | FormalLabel _ | StmtLabel _ -> Cvalue.Model.top
-  in
-  let env = Eval_terms.make_env Abstract_domain.{ states; result } here in
-  Eval_terms.silent env
-
-let pre_env ~pre = logic_env ~result:None ~here:pre [ Pre, pre ]
-let here_env ~pre ~here = logic_env ~result:None ~here [ Pre, pre ]
-let post_env ~pre ~post ~result =
-  logic_env ~result ~here:post [ Pre, pre; Old, pre; Post, post ]
-
-(* Dependencies of [pred] as Eva interprets it in [env]: none if Eva ignores
-   [pred], and top if the dependencies of a part of [pred] cannot be
-   computed. *)
-let evaluated_deps env pred =
-  let deps, complete = Eval_terms.predicate_deps_by_parts env pred in
-  if complete then join_logic_deps deps else Memory_zone.top
-
-let interpreted_deps env pred =
-  if Transfer_logic.ignore_predicate pred then Memory_zone.bottom
-  else evaluated_deps env pred
-
-let annotation_deps ~pre ~here pred =
-  interpreted_deps (here_env ~pre ~here) pred
-
-(* Joins to [acc] the dependencies of the clause [ip] evaluated in [env].
-   The clauses of kind check are included: Eva does not reduce by them, but
-   it emits their status, which a reuse of the call would not emit. *)
-let clause_deps env acc ip =
-  let pred = Logic_const.pred_of_id_pred ip in
-  Memory_zone.join acc (interpreted_deps env pred)
-
-(* Activity of the behaviors of [funspec] in the pre-state [pre], evaluated
-   from their assumes clauses as Eva does. *)
-let behavior_activity ~pre funspec =
-  let env = pre_env ~pre in
-  let eval_predicate pred =
-    match Eval_terms.eval_predicate env pred with
-    | Eval_terms.True -> Alarmset.True
-    | Eval_terms.False -> Alarmset.False
-    | Eval_terms.Unknown -> Alarmset.Unknown
-    | exception Abstract_interp.Error_Top -> Alarmset.Unknown
-  in
-  Active_behaviors.create eval_predicate funspec
-
-let may_be_active activity b =
-  Active_behaviors.is_active activity b <> Alarmset.False
-
-(* Dependencies of the clauses that Eva evaluates in the pre-state [pre] of a
-   function of specification [funspec]: the assumes clauses of all
-   behaviors, which decide the activity of the behaviors, and, if [requires]
-   holds, the requires clauses of the behaviors that may be active. *)
-let preconditions_deps ~requires ~pre funspec activity =
-  let env = pre_env ~pre in
-  let behavior_deps acc b =
-    (* Selection evaluates this conjunction directly, including [no_eva]
-       clauses that [clause_deps] would ignore for reduction. *)
-    let assumes = Active_behaviors.assumes b in
-    let acc = Memory_zone.join acc (evaluated_deps env assumes) in
-    if requires && may_be_active activity b
-    then List.fold_left (clause_deps env) acc b.b_requires
-    else acc
-  in
-  List.fold_left behavior_deps Memory_zone.bottom funspec.spec_behavior
-
-(* Dependencies of the normal postconditions of the behaviors of [funspec]
-   that may be active, evaluated in [env]. *)
-let postconditions_deps env funspec activity =
-  let behavior_deps acc b =
-    if may_be_active activity b then
-      let normal acc (kind, ip) =
-        if kind = Normal then clause_deps env acc ip else acc
-      in
-      List.fold_left normal acc b.b_post_cond
-    else acc
-  in
-  List.fold_left behavior_deps Memory_zone.bottom funspec.spec_behavior
-
-(* Binds the variable [result] that stands for \result to [value]. *)
-let bind_result result value state =
-  match result with
-  | None -> state
-  | Some vi ->
-    let offsm = Eval_op.offsetmap_of_v ~typ:vi.vtype value in
-    Cvalue.Model.add_base (Base.of_varinfo vi) offsm state
-
-(* Removes the base of the variable [result] that stands for \result. *)
-let remove_result result zone =
-  match result with
-  | None -> zone
-  | Some vi ->
-    let base = Base.of_varinfo vi in
-    Memory_zone.filter_base (fun b -> not (Base.equal b base)) zone
-
-(* [verify_assigns] evaluates the locations of the declared assigns/from
-   clauses when From checks a body. A hit skips that check, so its address
-   reads must belong to the key too. Keeping them when the checker is
-   disabled is a conservative excess; scalar locations have no such read.
-   As for the preconditions, [pre] includes the reduced state of the check. *)
-let assigns_validation_deps ~pre funspec activity =
-  let env = Eval_terms.for_dependencies (Eval_terms.env_assigns ~pre) in
-  let term_deps acc it =
-    let term = it.it_content in
-    if Logic_utils.is_result term then acc
-    else
-      try
-        let deps = join_logic_deps (Eval_terms.tlval_deps env term) in
-        Memory_zone.join acc deps
-      with Eval_terms.LogicEvalError _ | Abstract_interp.Error_Top ->
-        Memory_zone.top
-  in
-  let assigns_deps acc (out, froms) =
-    let acc = term_deps acc out in
-    match froms with
-    | FromAny -> acc
-    | From terms -> List.fold_left term_deps acc terms
-  in
-  let behavior_deps acc b =
-    if not (may_be_active activity b) then acc
-    else match b.b_assigns with
-      | WritesAny -> acc
-      | Writes clauses -> List.fold_left assigns_deps acc clauses
-  in
-  List.fold_left behavior_deps Memory_zone.bottom funspec.spec_behavior
-
-let precondition_deps kf ~pre =
-  let funspec = Annotations.funspec kf in
-  let activity = behavior_activity ~pre funspec in
-  let requires = not (Eva_utils.skip_specifications kf) in
-  let predicates = preconditions_deps ~requires ~pre funspec activity in
-  let assigns = assigns_validation_deps ~pre funspec activity in
-  Memory_zone.join predicates assigns
-
-let postcondition_deps kf ~pre ~here ~return =
-  if Eva_utils.skip_specifications kf
-  then Memory_zone.bottom
-  else
-    let funspec = Annotations.funspec kf in
-    let activity = behavior_activity ~pre funspec in
-    let result = Library_functions.get_retres_vi kf in
-    let value = Option.value ~default:Cvalue.V.top return in
-    let post = bind_result result value here in
-    (* Eva binds Pre and Old to the join after precondition reduction. The
-       call's earlier [pre] includes that state: successful strict evaluation
-       covers its addresses, and any failed part makes the dependencies top.
-       The same argument applies to the Pre label of body annotations. *)
-    let env = post_env ~pre ~post ~result in
-    remove_result result (postconditions_deps env funspec activity)
-
-(* The specification transfer resolves all effects before the domain applies
-   them. These evaluations can emit diagnostics even for frees/allocates,
-   whose cvalue transfer does not change memory. Builtins with their own
-   input/output summary still interpret this specification first, so these
-   reads must be included independently of that summary. *)
-let specification_effects_deps ~pre funspec activity =
-  let env = Eval_terms.for_dependencies (Eval_terms.env_assigns ~pre) in
-  let lval_deps ~read acc term =
-    try
-      let deps = join_logic_deps (Eval_terms.tlval_deps env term) in
-      let deps =
-        if not read then deps
-        else
-          let alarm_mode = Eval_terms.Ignore in
-          let zone = Eval_terms.eval_tlval_as_zone ~alarm_mode Read env term in
-          Memory_zone.join deps zone
-      in
-      Memory_zone.join acc deps
-    with Eval_terms.LogicEvalError _ | Abstract_interp.Error_Top ->
-      Memory_zone.top
-  in
-  let from_deps acc it =
-    let term = it.it_content in
-    match Transfer_specification.term_as_address term with
-    | Some _ -> acc
-    | None ->
-      let read = not (List.mem "indirect" term.term_name) in
-      lval_deps ~read acc term
-  in
-  let assigns_deps acc (out, froms) =
-    let term = out.it_content in
-    let acc =
-      if Logic_utils.is_result term then acc
-      else lval_deps ~read:false acc term
-    in
-    match froms with
-    | FromAny -> acc
-    | From terms -> List.fold_left from_deps acc terms
-  in
-  let pointer_deps ~allocate acc it =
-    let term = it.it_content in
-    if allocate && Logic_utils.is_result term then acc
-    else
-      try
-        let result = Eval_terms.eval_term ~alarm_mode:Ignore env term in
-        Memory_zone.join acc (join_logic_deps result.ldeps)
-      with Eval_terms.LogicEvalError _ | Abstract_interp.Error_Top ->
-        Memory_zone.top
-  in
-  let behavior_deps acc b =
-    if not (may_be_active activity b) then acc
-    else
-      let acc = match b.b_assigns with
-        | WritesAny -> acc
-        | Writes clauses -> List.fold_left assigns_deps acc clauses
-      in
-      match b.b_allocation with
-      | FreeAllocAny -> acc
-      | FreeAlloc (frees, allocates) ->
-        let acc = List.fold_left (pointer_deps ~allocate:false) acc frees in
-        List.fold_left (pointer_deps ~allocate:true) acc allocates
-  in
-  List.fold_left behavior_deps Memory_zone.bottom funspec.spec_behavior
-
-(* Over-approximation of the value that Eva writes for an assigns clause
-   with the \from part [froms], in the state [pre]: the join of the values
-   of the dependencies, made imprecise. *)
-let assigned_value env pre froms =
-  let from_value acc from =
-    let term = from.it_content in
-    let value =
-      match Transfer_specification.term_as_address term with
-      | Some vi -> Cvalue.V.inject (Base.of_varinfo vi) Ival.zero
-      | None ->
-        try
-          let alarm_mode = Eval_terms.Ignore in
-          let loc = Eval_terms.eval_tlval_as_location ~alarm_mode env term in
-          Cvalue.Model.find ~conflate_bottom:false pre loc
-        with Eval_terms.LogicEvalError _ | Abstract_interp.Error_Top ->
-          Cvalue.V.top
-    in
-    Cvalue.V.join acc value
-  in
-  let froms = match froms with FromAny -> [] | From l -> l in
-  let value = List.fold_left from_value Cvalue.V.top_int froms in
-  Cvalue.V.topify Origin.Leaf value
-
-(* Over-approximation of the state in which Eva evaluates the postconditions
-   of [kf] interpreted through its specification [funspec], from the state
-   [pre] at the call: the variable [result] that stands for \result holds
-   its initial value, and each location of an assigns clause of any behavior
-   may also hold the value Eva writes there. Eva resolves these locations
-   after reducing by the preconditions. A failed evaluation in the larger
-   [pre] may succeed in a reduced state: it makes this reconstruction
-   incomplete, even when Eva would ignore the clause in [pre] itself. *)
-let specification_post_state kf funspec ~pre result =
-  let exception Incomplete in
-  let env = Eval_terms.for_dependencies (Eval_terms.env_assigns ~pre) in
-  let state = bind_result result (Library_functions.returned_value kf) pre in
-  let location term =
-    if Logic_utils.is_result term
-    then Option.map Locations.of_varinfo result
-    else
-      try
-        let alarm_mode = Eval_terms.Ignore in
-        let loc = Eval_terms.eval_tlval_as_location ~alarm_mode env term in
-        if Locations.(Addresses.Bits.(equal top loc.addr)) then raise Incomplete
-        else
-          let loc = Locations.valid_part Write loc in
-          if Locations.is_bottom loc then None else Some loc
-      with Eval_terms.LogicEvalError _ | Abstract_interp.Error_Top ->
-        raise Incomplete
-  in
-  let assign state (out, froms) =
-    match location out.it_content with
-    | None -> state
-    | Some loc ->
-      let value = assigned_value env pre froms in
-      Cvalue.Model.add_binding ~exact:false state loc value
-  in
-  let behavior_assigns state b =
-    match b.b_assigns with
-    | WritesAny -> state
-    | Writes l -> List.fold_left assign state l
-  in
-  try Some (List.fold_left behavior_assigns state funspec.spec_behavior)
-  with Incomplete -> None
-
-let specification_deps kf ~pre =
-  let vi = Kernel_function.get_vi kf in
-  if Ast_types.C.has_attribute "noreturn" vi.vtype
-  then Memory_zone.bottom
-  else begin
-    Populate_spec.populate_funspec kf [`Assigns];
-    let funspec = Annotations.funspec kf in
-    let activity = behavior_activity ~pre funspec in
-    let pre_deps = preconditions_deps ~requires:true ~pre funspec activity in
-    let effects_deps = specification_effects_deps ~pre funspec activity in
-    let pre_deps = Memory_zone.join pre_deps effects_deps in
-    let result = Library_functions.get_retres_vi kf in
-    match specification_post_state kf funspec ~pre result with
-    | None -> Memory_zone.top
-    | Some post ->
-      let env = post_env ~pre ~post ~result in
-      let post_deps = postconditions_deps env funspec activity in
-      remove_result result (Memory_zone.join pre_deps post_deps)
-  end
-
-(* -------------------------------------------------------------------------- *)
 (* --- Compute inout from assigns clauses                                 --- *)
 (* -------------------------------------------------------------------------- *)
 
@@ -363,13 +51,12 @@ let eval_error_reason fmt e =
   if e <> Eval_terms.CAlarm
   then Eval_terms.pretty_logic_evaluation_error fmt e
 
-(* Does [term] refer to the address of a C variable (or function)?
-   This is the special interpretation of addresses in assigns/from clauses,
-   matching [Transfer_specification.term_as_address]: even with an offset,
-   Eva uses the base address without evaluating the offset. This shortcut
-   does not apply to ordinary evaluation of an address term. *)
+(* Does [term] refers to the address of a C variable (or function)? *)
 let is_address term =
-  Option.is_some (Transfer_specification.term_as_address term)
+  match term.term_node with
+  | TAddrOf (TVar _, _) | TStartOf (TVar _, _) -> true
+  | TLval (TVar lv, _) when Ast_types.Acsl.is_plain_fun lv.lv_type -> true
+  | _ -> false
 
 let eval_tlval_as_zone assigns kind env acc t =
   let term = t.it_content in
@@ -434,7 +121,7 @@ let make_env context state =
   | Code_annot -> Eval_terms.env_only_here state
 
 let tlval_to_zones context state access tlval =
-  let env = Eval_terms.silent (make_env context state) in
+  let env = make_env context state in
   let alarm_mode = Eval_terms.Ignore in
   (* If the term is an address, it has no memory dependency.
      This is possible in "\from &g" clauses. *)
@@ -445,17 +132,9 @@ let tlval_to_zones context state access tlval =
       let under, over =
         Eval_terms.eval_tlval_as_zone_under_over ~alarm_mode access env tlval
       in
-      (* Keep the location approximation used by Eva even if its dependencies
-         are incomplete. InOut will refuse reuse through the top input zone;
-         From still needs the successfully evaluated output zone. *)
-      let deps =
-        let env = Eval_terms.for_dependencies env in
-        try join_logic_deps (Eval_terms.tlval_deps env tlval)
-        with Eval_terms.LogicEvalError _ | Abstract_interp.Error_Top ->
-          Memory_zone.top
-      in
+      let deps = join_logic_deps (Eval_terms.tlval_deps env tlval) in
       Some { under; over; deps; }
-    with Eval_terms.LogicEvalError _ | Abstract_interp.Error_Top -> None
+    with Eval_terms.LogicEvalError _ -> None
 
 
 (* -------------------------------------------------------------------------- *)

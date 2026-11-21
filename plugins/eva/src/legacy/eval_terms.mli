@@ -55,18 +55,6 @@ val env_only_here: Model.t -> eval_env
 
 val env_current_state: eval_env -> Model.t
 
-(** [silent env] is [env] where the evaluation emits no warning about the
-    terms, predicates and range bounds that it cannot evaluate, bottom
-    [\let] bindings, nor those of [\warning]. *)
-val silent: eval_env -> eval_env
-
-(** [for_dependencies env] enables complete dependency collection, silently.
-    Terms also record the memory read by logic builtins. A conditional or a
-    set comprehension whose predicate dependencies cannot be computed raises
-    [LogicEvalError], as does a range bound whose evaluation fails.
-    Callers must treat a failure as incomplete. *)
-val for_dependencies: eval_env -> eval_env
-
 (** Dependencies needed to evaluate a term or a predicate *)
 type logic_deps = Memory_zone.t Cil_datatype.Logic_label.Map.t
 
@@ -111,20 +99,6 @@ val eval_predicate :
     [p] in the given evaluation environment [env].
     Returns None on either an evaluation error or on unsupported construct. *)
 val predicate_deps: eval_env -> Cil_types.predicate -> logic_deps option
-
-(** [predicate_deps_by_parts env p] computes the logic dependencies needed to
-    evaluate or reduce by [p] in [env] as Eva does, part by part: an atomic
-    part of [p] whose dependencies cannot be computed is left out, and the
-    boolean returned is then [false]. The predicates that Eva evaluates to
-    Unknown without evaluating their operands and does not reduce by, such
-    as [\fresh] or a predicate it can neither evaluate nor inline, have no
-    dependency. The dependencies include the memory read by the logic
-    builtins on strings. A bound of a range whose evaluation fails is an
-    incomplete part, even when it always fails: the subterms evaluated
-    before the failure can influence diagnostics. The evaluation is silent,
-    as with {!silent}. *)
-val predicate_deps_by_parts:
-  eval_env -> Cil_types.predicate -> logic_deps * bool
 
 (** [tlval_deps env t] computes the logic dependencies needed to evaluate the
     address of lvalue term [t] in the given evaluation environment [env].

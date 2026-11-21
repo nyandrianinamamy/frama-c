@@ -18,57 +18,6 @@ val predicate_deps:
   pre:Cvalue.Model.t -> here:Cvalue.Model.t ->
   Cil_types.predicate -> Memory_zone.t option
 
-(** {2 Memory read by the predicates that Eva interprets}
-
-    The functions below over-approximate the memory that Eva reads to
-    evaluate the predicates of a function, and to reduce its states by them,
-    when it analyzes a call to this function from the given states. The
-    states are cvalue states; they must include the states that Eva meets.
-    The predicates that Eva ignores are left out. The clauses of kind check
-    are included: Eva does not reduce by them, but emits their status. The
-    labels not bound by Eva are bound to the top state, as Eva does. The
-    result is [Memory_zone.top] if the dependencies of a part of a predicate
-    cannot be computed. *)
-
-(** [annotation_deps ~pre ~here p] is the memory read by Eva to interpret
-    the assertion or loop invariant [p] in the state [here], in a function
-    whose pre-state is [pre]. *)
-val annotation_deps:
-  pre:Cvalue.Model.t -> here:Cvalue.Model.t ->
-  Cil_types.predicate -> Memory_zone.t
-
-(** [precondition_deps kf ~pre] is the memory read by Eva to interpret the
-    preconditions of [kf] in its pre-state [pre], before analyzing its body:
-    the assumes clauses of all behaviors, which decide their activity, and
-    the requires clauses of the behaviors that may be active. It also
-    includes the address reads of assigns/from clauses used by the optional
-    From contract checker, conservatively even when the checker is disabled. *)
-val precondition_deps:
-  Cil_types.kernel_function -> pre:Cvalue.Model.t -> Memory_zone.t
-
-(** [postcondition_deps kf ~pre ~here ~return] is the memory read by Eva to
-    interpret the normal postconditions of [kf] at its return statement,
-    for the behaviors that may be active. [pre] is its pre-state, [here]
-    the state before the return statement, and [return] the value returned,
-    if any. The variable that stands for [\result] is left out. *)
-val postcondition_deps:
-  Cil_types.kernel_function -> pre:Cvalue.Model.t -> here:Cvalue.Model.t ->
-  return:Cvalue.V.t option -> Memory_zone.t
-
-(** [specification_deps kf ~pre] is the memory read by Eva to interpret the
-    preconditions, normal postconditions and effect clauses of [kf] when it
-    analyzes a call to [kf] through its specification, from the state [pre] at
-    the call. Effect clauses include the address and direct content reads of
-    assigns/from, and the pointer-term reads of frees/allocates, even if the
-    cvalue transfer has no effect: their evaluation can emit diagnostics.
-    The postconditions are evaluated in an over-approximation of the state
-    after the assigns clauses. If an assigns destination cannot be evaluated
-    in [pre], returns [Memory_zone.top]: Eva may evaluate it successfully
-    after reducing by the preconditions. The variable that stands for
-    [\result] is left out. *)
-val specification_deps:
-  Cil_types.kernel_function -> pre:Cvalue.Model.t -> Memory_zone.t
-
 (** Returns the list of behaviors of the given function that are active for
     the given initial state. *)
 val valid_behaviors:
@@ -96,10 +45,7 @@ type tlval_zones = {
 type annotation = Code_annot | Assigns
 
 (** Evaluation of the memory zones and dependencies of an lvalue term,
-    in the given cvalue state for a read or write access. Returns [None] if
-    the location cannot be evaluated. If its dependencies cannot all be
-    computed, including a part that ordinary evaluation may ignore, returns
-    [Memory_zone.top] for [deps] while retaining the location zones. *)
+    in the given cvalue state for a read or write access. *)
 val tlval_to_zones:
   annotation -> Cvalue.Model.t -> Locations.access ->
   Cil_types.term -> tlval_zones option

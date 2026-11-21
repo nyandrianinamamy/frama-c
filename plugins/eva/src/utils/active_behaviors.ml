@@ -8,9 +8,8 @@
 
 open Cil_types
 
-let assumes behavior =
+let create_conjunction l =
   let open Logic_const in
-  let l = behavior.b_assumes in
   let loc = match l with
     | [] -> None
     | p :: _ -> Some (pred_of_id_pred p).pred_loc
@@ -31,7 +30,8 @@ module HashBehaviors = Hashtbl.Make(
   end)
 
 let is_active eval_predicate b =
-  eval_predicate (assumes b)
+  let assumes = create_conjunction b.b_assumes in
+  eval_predicate assumes
 
 let create eval_predicate funspec =
   let h = HashBehaviors.create 3 in

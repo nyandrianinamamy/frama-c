@@ -1,9 +1,0 @@
-49a50,52
-> [eva:progress] 
->   computing for function deref_f <- requires_deref_case.
->   Called from memexec_key_logic.c:197.
-52c55,56
-< [eva:progress] memexec_key_logic.c:197: Reusing old results for call to deref_f
----
-> [eva:progress] Recording results for deref_f
-> [eva:progress] Done for function deref_f

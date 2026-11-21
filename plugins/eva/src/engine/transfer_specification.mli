@@ -8,11 +8,6 @@
 
 (** Interpretation of function specification. *)
 
-(** Special interpretation of an address in a from clause: the C variable
-    whose base address contributes to the assigned value. Any term offset is
-    ignored by this interpretation, unlike ordinary term evaluation. *)
-val term_as_address: Cil_types.term -> Cil_types.varinfo option
-
 (** Subset of [Engine_sig.S] required by this functor. *)
 module type Engine_Subset = sig
   include Engine_abstractions_sig.S

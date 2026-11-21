@@ -18,13 +18,8 @@ type t = Inout_type.t = {
   over_inputs_if_termination: Memory_zone.t;
   over_logic_inputs: Memory_zone.t;
   (* [over_logic_inputs] is used internally by Eva to make memexec consider also
-     the logic inputs of the function and of its callees: the memory that Eva
-     reads to interpret the annotations and the contract of the function, and
-     the logic inputs of its callees. Computed in [transfer_annotations],
-     [transfer_postconditions], [end_dataflow] and
-     [store_non_terminating_subcall], and by [compute_using_spec] and
-     [Callwise.record_for_callwise_inout] for the calls that Eva analyzes
-     through a specification or a builtin. *)
+     the logic inputs of the function and of its callees. Computed in
+     [transfer_annotations] and [store_non_terminating_subcall]. *)
   under_outputs_if_termination: Memory_zone.t;
   over_outputs: Memory_zone.t;
   over_outputs_if_termination: Memory_zone.t;
@@ -99,10 +94,18 @@ let externalize_zone ~with_formals kf =
    (Note: large parts of this code are inspired/redundant with
    [assigns_to_zone_foobar_state] in Value/register.ml)
 *)
-let eval_assigns_clauses ~clean_deps ~from_any state clauses =
+let eval_assigns kf state assigns =
   let treat_one_zone acc (out, froms as asgn) = (* treat a single assign *)
     (* Return a list of independent output zones, plus a zone indicating
        that the zone has been overwritten in a sure way *)
+    let clean_deps =
+      Memory_zone.filter_base
+        (function
+          | Base.Var (v, _) | Base.Allocated (v, _, _) ->
+            not (Kernel_function.is_formal v kf)
+          | Base.CLogic_Var _ | Base.Null | Base.Absolute _ ->
+            true)
+    in
     let out_term = out.it_content in
     let outputs_under, outputs_over, deps =
       if Logic_const.(is_result out_term || is_exit_status out_term)
@@ -121,7 +124,7 @@ let eval_assigns_clauses ~clean_deps ~from_any state clauses =
     (* Compute all inputs as a zone *)
     let inputs =
       match froms with
-      | FromAny -> Memory_zone.join deps from_any
+      | FromAny -> Memory_zone.top
       | From l ->
         let aux acc { it_content = from } =
           let inputs = Eva.Logic_inout.tlval_to_zones Assigns state Read from in
@@ -153,10 +156,6 @@ let eval_assigns_clauses ~clean_deps ~from_any state clauses =
       over_outputs_d = Memory_zone.join acc.over_outputs_d outputs_over;
     }
   in
-  let init = { bottom with under_outputs_d = Memory_zone.bottom } in
-  List.fold_left treat_one_zone init clauses
-
-let eval_assigns kf state assigns =
   match assigns with
   | WritesAny ->
     Inout_parameters.warning "@[no assigns clauses for@ function %a.@]@ \
@@ -164,16 +163,8 @@ let eval_assigns kf state assigns =
       Kernel_function.pretty kf;
     top
   | Writes l  ->
-    let clean_deps =
-      Memory_zone.filter_base
-        (function
-          | Base.Var (v, _) | Base.Allocated (v, _, _) ->
-            not (Kernel_function.is_formal v kf)
-          | Base.CLogic_Var _ | Base.Null | Base.Absolute _ ->
-            true)
-    in
-    let from_any = Memory_zone.top in
-    let r = eval_assigns_clauses ~clean_deps ~from_any state l in {
+    let init = { bottom with under_outputs_d = Memory_zone.bottom } in
+    let r = List.fold_left treat_one_zone init l in {
       over_inputs = r.over_inputs_d;
       over_logic_inputs = r.over_inputs_d;
       over_inputs_if_termination = r.over_inputs_d;
@@ -182,18 +173,10 @@ let eval_assigns kf state assigns =
       over_outputs_if_termination = r.over_outputs_d;
     }
 
-(* Adds to the logic inputs [inout] of a call to [kf] analyzed by Eva through
-   its specification from [state] the memory read by Eva to interpret the
-   preconditions and postconditions of this specification. *)
-let add_specification_deps kf state inout =
-  let deps = Eva.Logic_inout.specification_deps kf ~pre:state in
-  let over_logic_inputs = Memory_zone.join inout.over_logic_inputs deps in
-  { inout with over_logic_inputs }
-
 let compute_using_spec state kf =
   let behaviors = Eva.Logic_inout.valid_behaviors kf state in
   let assigns = Ast_info.merge_assigns behaviors in
-  add_specification_deps kf state (eval_assigns kf state assigns)
+  eval_assigns kf state assigns
 
 let compute_using_prototype ?stmt kf =
   let state = Cumulative_analysis.specialize_state_on_call ?stmt kf in
@@ -258,12 +241,10 @@ module Computer(Fenv:Dataflows.FUNCTION_ENV)(X:sig
   ;;
 
   (* Store the 'non-termination' information of a function subcall into
-     the current call. [outputs] are the outputs of the current call before
-     the subcall, over-approximated: the inputs of the subcall that they
-     contain are left out of the inputs of the current call.
+     the current call. [under_outputs] are the current call sure outputs.
      The logic inputs of the subcall are logic inputs of the current call. *)
-  let store_non_terminating_subcall outputs subcall =
-    store_non_terminating_inputs (Memory_zone.diff subcall.over_inputs outputs);
+  let store_non_terminating_subcall under_outputs subcall =
+    store_non_terminating_inputs (Memory_zone.diff subcall.over_inputs under_outputs);
     store_non_terminating_logic_inputs subcall.over_logic_inputs;
     store_non_terminating_outputs subcall.over_outputs;
   ;;
@@ -357,58 +338,31 @@ module Computer(Fenv:Dataflows.FUNCTION_ENV)(X:sig
        | Some lv -> add_out ~for_writing request lv Memory_zone.bottom result)
     in result
 
-  (* Propagate the memory read by Eva to interpret the assertions and loop
-     invariants of the given statement, including the checks, whose status
-     Eva emits. This memory is top if it cannot be computed for some part of
-     a predicate: Eva may have used this part, and the call must then not be
-     reused. For the time being, we do not treat terminating and
-     non-terminating points of the function differently. *)
+  (* Propagate all zones in predicates for the given statement, only in the case
+     of assertions and loop-invariants. For the time being, we do not treat
+     terminating and non-terminating points of the function differently. *)
   let transfer_annotations stmt =
     Annotations.iter_code_annot
       (fun _ ca ->
          match ca.annot_content with
          | AAssert (_, p)
          | AInvariant (_, true, p) ->
-           let pre = X.kf_pre_state
-           and here = X.stmt_state stmt in
-           let deps =
-             Eva.Logic_inout.annotation_deps ~pre ~here p.tp_statement
-           in
-           store_non_terminating_logic_inputs deps
+           begin
+             let pre = X.kf_pre_state
+             and here = X.stmt_state stmt in
+             let deps =
+               Eva.Logic_inout.predicate_deps ~pre ~here p.tp_statement
+             in
+             match deps with
+             | None ->
+               (* To be sound, we should perform a join with the top zone here.
+                  We do nothing instead because the latter behavior would
+                  directly disable memexec. *)
+               ()
+             | Some p_zone -> store_non_terminating_logic_inputs p_zone
+           end
          | _ -> ())
       stmt
-
-  (* Propagate the memory read by Eva to interpret the postconditions of the
-     function at the return statement [stmt], which returns [exp]. *)
-  let transfer_postconditions stmt exp =
-    let eval e = Eva.Results.(eval_exp e (X.stmt_request stmt) |> as_cvalue) in
-    let return = Option.map eval exp in
-    let deps =
-      Eva.Logic_inout.postcondition_deps Fenv.kf
-        ~pre:X.kf_pre_state ~here:(X.stmt_state stmt) ~return
-    in
-    store_non_terminating_logic_inputs deps
-
-  (* Eva applies the assigns clauses of the contract of an asm statement, if
-     any, as weak updates: their locations are possible outputs, never sure
-     ones, and Eva writes values that do not depend on a clause without
-     \from part. Without contract or assigns clause, Eva assumes that the
-     statement has no effect. *)
-  let transfer_asm stmt data =
-    match Logic_utils.extract_contract (Annotations.code_annot stmt) with
-    | [] -> data
-    | (_, spec) :: _ ->
-      match Ast_info.merge_assigns_from_spec ~warn:false spec with
-      | WritesAny -> data
-      | Writes clauses ->
-        let state = X.stmt_state stmt in
-        let clean_deps = Fun.id and from_any = Memory_zone.bottom in
-        let effects =
-          eval_assigns_clauses ~clean_deps ~from_any state clauses
-        in
-        let effects = { effects with under_outputs_d = Memory_zone.bottom } in
-        store_non_terminating_outputs effects.over_outputs_d;
-        catenate data effects
 
   (* Transfer function on instructions. *)
   let transfer_instr stmt (i: instr) (data: t) =
@@ -442,8 +396,7 @@ module Computer(Fenv:Dataflows.FUNCTION_ENV)(X:sig
     | Local_init(v, ConsInit(f, args, kind), loc) ->
       let transfer = transfer_call ~for_writing:false stmt in
       Cil.treat_constructor_as_func transfer v f args kind loc data
-    | Asm _ -> transfer_asm stmt data
-    | Code_annot _ | Skip _ -> data
+    | Asm _ | Code_annot _ | Skip _ -> data
   ;;
 
   (* transfer_guard: gets the state obtained after evaluating the
@@ -478,13 +431,9 @@ module Computer(Fenv:Dataflows.FUNCTION_ENV)(X:sig
       let data = transfer_exp s exp data in
       Dataflows.transfer_switch_from_guard transfer_guard s data
 
-    | Return(Some exp,_) ->
-      transfer_postconditions s (Some exp);
-      return_data := transfer_exp s exp data;
+    | Return(Some exp,_) -> return_data := transfer_exp s exp data;
       assert (s.succs == []); []
-    | Return(None,_) ->
-      transfer_postconditions s None;
-      return_data := data;
+    | Return(None,_) -> return_data := data;
       assert (s.succs == []); []
     | Throw _ | TryCatch _ ->
       Inout_parameters.fatal "Exception node in the AST"
@@ -506,10 +455,6 @@ module Computer(Fenv:Dataflows.FUNCTION_ENV)(X:sig
   let init = [(Kernel_function.find_first_stmt Fenv.kf), empty];;
 
   let end_dataflow () =
-    (* Eva interprets the preconditions of the function before its first
-       statement, even if they make this statement unreachable. *)
-    store_non_terminating_logic_inputs
-      (Eva.Logic_inout.precondition_deps Fenv.kf ~pre:X.kf_pre_state);
     let res_if_termination = !return_data in {
       over_inputs_if_termination = res_if_termination.over_inputs_d;
       under_outputs_if_termination = res_if_termination.under_outputs_d ;
@@ -613,25 +558,20 @@ module Callwise = struct
   ;;
 
 
-  (* Stack of the calls whose body Eva is analyzing: the function, its state
-     at the start of the call, and the inputs and outputs of its calls. The
-     results of Eva are not available during the analysis: [Eva.Results]
-     returns the top state for the start of the call. *)
   let call_inout_stack = ref []
 
   let reset () =
     call_inout_stack := []
 
-  let call_for_callwise_inout _callstack kf state = function
+  let call_for_callwise_inout _callstack kf _state = function
     | `Body ->
       let table_current_function = CallsiteHash.create 7 in
-      call_inout_stack :=
-        (kf, state, table_current_function) :: !call_inout_stack
+      call_inout_stack := (kf, table_current_function) :: !call_inout_stack
     | `Reuse | `Spec | `Builtin -> ()
 
   let pop_local_table kf =
     match !call_inout_stack with
-    | (kf', _, table) :: tail ->
+    | (kf', table) :: tail ->
       if not (Kernel_function.equal kf kf') then
         Inout_parameters.fatal "callwise inout: %a != %a@."
           Kernel_function.pretty kf Kernel_function.pretty kf';
@@ -643,7 +583,7 @@ module Callwise = struct
     Record_Inout_Callbacks.apply inout;
     let callsite = Eva.Callstack.top_callsite callstack in
     match callsite, !call_inout_stack with
-    | Kstmt _, (_caller, _, table) :: _ ->
+    | Kstmt _, (_caller, table) :: _ ->
       merge_call_in_local_table (kf, callsite) table inout;
     | Kglobal, [] ->  (* the entry point *)
       merge_call_in_global_tables (kf, callsite) inout;
@@ -664,16 +604,17 @@ module Callwise = struct
       end)
 
 
-  let compute_call_from_value_states kf states =
+  let compute_call_from_value_states kf call_stack states =
     let module Fenv = (val Dataflows.function_env kf: Dataflows.FUNCTION_ENV) in
-    let _cur_kf, pre_state, table = List.hd !call_inout_stack in
     let module Computer = Computer(Fenv)(
       struct
         let _version = "callwise"
         let _kf = kf
 
-        (* The state at the start of the call being analyzed. *)
-        let kf_pre_state = pre_state
+        (* Returns the [kf] pre-state with respect to the single [call_stack]. *)
+        let kf_pre_state =
+          Eva.Results.(at_start_of kf |> in_callstack call_stack |>
+                       get_cvalue_model)
 
         let stmt_state stmt =
           try Cil_datatype.Stmt.Hashtbl.find states stmt
@@ -682,6 +623,7 @@ module Callwise = struct
         let stmt_request stmt = Eva.Results.in_cvalue_state (stmt_state stmt)
 
         let at_call stmt kf =
+          let _cur_kf, table = List.hd !call_inout_stack in
           try
             let with_internals = CallsiteHash.find table (kf, Kstmt stmt) in
             let filter =
@@ -708,7 +650,7 @@ module Callwise = struct
           if Eva.Analysis.save_results kf
           then
             let cvalue_states = Lazy.force before_stmts in
-            compute_call_from_value_states kf cvalue_states
+            compute_call_from_value_states kf callstack cvalue_states
           else top
         in
         MemExec.replace memexec_counter inout;
@@ -719,12 +661,10 @@ module Callwise = struct
       | `Builtin (_states, None) -> compute_using_spec pre_state kf
       | `Builtin (_states, Some (froms,sure_out)) ->
         let in_, out_ = extract_inout_from_froms kf froms in
-        (* Eva interprets the specification of [kf] before the builtin. *)
-        let logic_in = Eva.Logic_inout.specification_deps kf ~pre:pre_state in
         {
           over_inputs_if_termination = in_;
           over_inputs = in_;
-          over_logic_inputs = logic_in;
+          over_logic_inputs = Memory_zone.bottom;
           over_outputs_if_termination = out_ ;
           over_outputs = out_;
           under_outputs_if_termination = sure_out;

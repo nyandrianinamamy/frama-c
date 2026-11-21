@@ -1,9 +1,0 @@
-29,30c29,33
-< [eva:progress] memexec_key_logic_terms.c:120: 
-<   Reusing old results for call to assigns_string_f
----
-> [eva:progress] 
->   computing for function assigns_string_f <- assigns_string_case.
->   Called from memexec_key_logic_terms.c:120.
-> [eva:progress] Recording results for assigns_string_f
-> [eva:progress] Done for function assigns_string_f

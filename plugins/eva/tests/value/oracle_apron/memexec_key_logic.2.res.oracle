@@ -1,9 +1,0 @@
-49a50,52
-> [eva:progress] 
->   computing for function assumes_f <- assumes_case.
->   Called from memexec_key_logic.c:66.
-52c55,56
-< [eva:progress] memexec_key_logic.c:66: Reusing old results for call to assumes_f
----
-> [eva:progress] Recording results for assumes_f
-> [eva:progress] Done for function assumes_f
