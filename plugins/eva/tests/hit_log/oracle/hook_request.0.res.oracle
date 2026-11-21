@@ -1,0 +1,38 @@
+[kernel] Parsing hook_request.c (with preprocessing)
+Calls:
+  f :: hook_request.c:19 <- main (call statements 4): analysed, cache entry 6
+  f :: hook_request.c:19 <- main (call statements 6): hit of cache entry 6
+  main: analysed, cache entry 7
+f, start:
+  joined: g ∈ {0}
+  f :: hook_request.c:19 <- main (call statements 4): g ∈ {0}
+  f :: hook_request.c:19 <- main (call statements 6): g ∈ {0}
+f, before hook_request.c:17 `g ++;` (P):
+  joined: g ∈ {0}
+  f :: hook_request.c:19 <- main (call statements 4): g ∈ {0}
+  f :: hook_request.c:19 <- main (call statements 6): g ∈ {0}
+f, after hook_request.c:17 `return;`:
+  joined: g ∈ {1}
+  f :: hook_request.c:19 <- main (call statements 4): g ∈ {1}
+  f :: hook_request.c:19 <- main (call statements 6): g ∈ {1}
+Hits against the analysed call of their cache entry:
+  f :: hook_request.c:19 <- main (call statements 6), hit of cache entry 6, against f :: hook_request.c:19 <- main (call statements 4): no difference, at 5 points.
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 53 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 16 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 16 points.
+Filtered requests that reject one callstack: 5.
+Requests made: 85; reported by the trap: 85, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 15 requests, 29 reads of the legacy store in them, 29 reads outside any request.
+  with -eva-hit-log: 15 requests, 2 reads of the legacy store in them, 0 reads outside any request.
+    outside the passes: 1 request
+    unreachable statements: 8 requests
+    statistics: 6 requests
+  request 1: before hook_request.c:17 in f; every callstack, filtered
+    read of the cvalue store: joined state, before hook_request.c:17 in f
+    read of the cvalue store: joined state, before hook_request.c:17 in f
+Statuses of the properties: those of the run without memexec, for 0 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 1.0000, 0 alarms, those of the run without memexec.
