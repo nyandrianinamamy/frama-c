@@ -434,7 +434,7 @@ let make_env context state =
   | Code_annot -> Eval_terms.env_only_here state
 
 let tlval_to_zones context state access tlval =
-  let env = Eval_terms.for_dependencies (make_env context state) in
+  let env = Eval_terms.silent (make_env context state) in
   let alarm_mode = Eval_terms.Ignore in
   (* If the term is an address, it has no memory dependency.
      This is possible in "\from &g" clauses. *)
@@ -445,7 +445,15 @@ let tlval_to_zones context state access tlval =
       let under, over =
         Eval_terms.eval_tlval_as_zone_under_over ~alarm_mode access env tlval
       in
-      let deps = join_logic_deps (Eval_terms.tlval_deps env tlval) in
+      (* Keep the location approximation used by Eva even if its dependencies
+         are incomplete. InOut will refuse reuse through the top input zone;
+         From still needs the successfully evaluated output zone. *)
+      let deps =
+        let env = Eval_terms.for_dependencies env in
+        try join_logic_deps (Eval_terms.tlval_deps env tlval)
+        with Eval_terms.LogicEvalError _ | Abstract_interp.Error_Top ->
+          Memory_zone.top
+      in
       Some { under; over; deps; }
     with Eval_terms.LogicEvalError _ | Abstract_interp.Error_Top -> None
 

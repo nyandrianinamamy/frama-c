@@ -97,8 +97,9 @@ type annotation = Code_annot | Assigns
 
 (** Evaluation of the memory zones and dependencies of an lvalue term,
     in the given cvalue state for a read or write access. Returns [None] if
-    any dependency cannot be computed, including a part that ordinary
-    evaluation may ignore. *)
+    the location cannot be evaluated. If its dependencies cannot all be
+    computed, including a part that ordinary evaluation may ignore, returns
+    [Memory_zone.top] for [deps] while retaining the location zones. *)
 val tlval_to_zones:
   annotation -> Cvalue.Model.t -> Locations.access ->
   Cil_types.term -> tlval_zones option
