@@ -16,6 +16,10 @@ type control_point =
 
 module ControlPoint : Datatype.S_with_collections with type t = control_point
 
+(** Prints a control point on one line: the location and the function of its
+    statement, if any. *)
+val pretty_point: Format.formatter -> control_point -> unit
+
 module type InputDomain = sig
   include Datatype.S
 

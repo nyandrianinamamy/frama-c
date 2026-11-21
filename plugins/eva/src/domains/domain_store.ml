@@ -36,6 +36,18 @@ end
 
 module ControlPoint = Datatype.Make_with_collections (ControlPointPrototype)
 
+let pretty_point fmt point =
+  let pretty_stmt position stmt =
+    Format.fprintf fmt "%s %a in %a" position
+      Fileloc.pretty (Cil_datatype.Stmt.loc stmt)
+      Kernel_function.pretty (Kernel_function.find_englobing_kf stmt)
+  in
+  match point with
+  | Initial -> Format.pp_print_string fmt "initial state"
+  | Start kf -> Format.fprintf fmt "start of %a" Kernel_function.pretty kf
+  | Before stmt -> pretty_stmt "before" stmt
+  | After stmt -> pretty_stmt "after" stmt
+
 
 module type InputDomain = sig
   include Datatype.S
@@ -100,7 +112,20 @@ module Make (Domain: InputDomain) = struct
 
   let is_computed () = Save.get_option () |> Option.value ~default:false
 
+  (* Signals a read of the tables to the test instrument. *)
+  let signal access control_point =
+    Legacy_read_trap.read ~store:Domain.name access
+      (fun fmt -> pretty_point fmt control_point)
+
   let get_state ?callstack control_point =
+    if Legacy_read_trap.reading () then begin
+      let access =
+        match callstack with
+        | None -> Legacy_read_trap.Joined
+        | Some callstack -> Legacy_read_trap.Callstack callstack
+      in
+      signal access control_point
+    end;
     if is_computed ()
     then
       try
@@ -116,6 +141,7 @@ module Make (Domain: InputDomain) = struct
     TableByCallstack.find key |> Callstack.Hashtbl.to_seq_keys |> List.of_seq
 
   let callstacks control_point =
+    if Legacy_read_trap.reading () then signal Callstacks control_point;
     if is_computed () then
       try `Value (get_callstacks control_point)
       with Not_found -> `Value []

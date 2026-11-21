@@ -26,6 +26,21 @@ type request =
   | Point of context
   | Cvalue of Cvalue.Model.t
 
+(* Describes a request at a control point for {!Legacy_read_trap}. *)
+let pretty_context ~joined ctx fmt =
+  let filtered = match ctx.filter with [] -> "" | _ :: _ -> ", filtered" in
+  Domain_store.pretty_point fmt ctx.control_point;
+  match ctx.selector with
+  | _ when joined -> Format.fprintf fmt "; joined"
+  | None -> Format.fprintf fmt "; every callstack%s" filtered
+  | Some [ callstack ] ->
+    Format.fprintf fmt "; callstack %a%s"
+      Legacy_read_trap.pretty_callstack callstack filtered
+  | Some list ->
+    Format.fprintf fmt "; callstacks %a%s"
+      (Pretty_utils.pp_list ~pre:"" ~sep:", " ~suf:""
+         Legacy_read_trap.pretty_callstack) list filtered
+
 type error = Bottom | Top | DisabledDomain
 type 'a result = ('a,error) Result.t
 
@@ -225,6 +240,7 @@ struct
 
   let get_by_callstack (ctx : context) :
     (_, restricted_to_callstack) Response.t =
+    Legacy_read_trap.request (pretty_context ~joined:false ctx) @@ fun () ->
     let list =
       match ctx.selector with
       | Some [ callstack ] ->
@@ -245,6 +261,7 @@ struct
       if req.filter <> [] || Option.is_some req.selector then
         Response.coercion @@ get_by_callstack req
       else
+        Legacy_read_trap.request (pretty_context ~joined:true req) @@ fun () ->
         let state = Engine.get_state req.control_point in
         consolidated ~top:Engine.Dom.top state
 

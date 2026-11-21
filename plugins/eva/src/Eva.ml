@@ -131,3 +131,7 @@ module Eva_results = Eva_results
 
 (** Unit testing. *)
 module Unit_tests = Unit_tests
+
+(** Test instrument: reports the reads of the legacy result store made by
+    the requests of {!Results} after the analysis. *)
+module Legacy_read_trap = Legacy_read_trap

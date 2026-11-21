@@ -246,6 +246,7 @@ let compute_from ?cvalue_state ?arguments entry_point =
   (* Setup signals *)
   let restore_signals = Signal.setup () in
   Fun.protect ~finally:restore_signals @@ fun () ->
+  Legacy_read_trap.analysis @@ fun () ->
   (* Mthread pre-analysis: returns an analysis state if requested. *)
   let mt_analysis = Mt_main.pre_analysis () in
   (* Prepare the analysis and build the engine. *)
