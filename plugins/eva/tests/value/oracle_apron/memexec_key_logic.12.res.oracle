@@ -1,0 +1,9 @@
+27,28c27,31
+< [eva:progress] memexec_key_logic.c:180: 
+<   Reusing old results for call to asm_write
+---
+> [eva:progress] 
+>   computing for function asm_write <- asm_case.
+>   Called from memexec_key_logic.c:180.
+> [eva:progress] Recording results for asm_write
+> [eva:progress] Done for function asm_write

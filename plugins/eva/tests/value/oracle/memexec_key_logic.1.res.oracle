@@ -1,0 +1,119 @@
+[kernel] Parsing memexec_key_logic.c (with preprocessing)
+[eva] Analyzing a complete application starting at requires_case
+[eva:progress] Computing initial state
+[eva:progress] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  c ∈ {0}
+  g ∈ {0}
+  h ∈ {0}
+  a ∈ {0}
+  y ∈ {0}
+  out ∈ {0}
+  t ∈ {0}
+  p ∈ {0}
+  r[0..8] ∈ {0}
+  pa ∈ {0}
+  q ∈ {0}
+[eva:progress] 
+  computing for function req_f <- requires_case.
+  Called from memexec_key_logic.c:45.
+[eva:alarm] memexec_key_logic.c:45: Warning: 
+  function req_f: precondition got status unknown.
+[eva:alarm] memexec_key_logic.c:38: Warning: 
+  signed overflow. assert x + 1 ≤ 2147483647;
+[eva:progress] Recording results for req_f
+[eva:progress] Done for function req_f
+[eva:progress] 
+  computing for function req_f <- requires_case.
+  Called from memexec_key_logic.c:46.
+[eva:alarm] memexec_key_logic.c:46: Warning: 
+  function req_f: precondition got status unknown.
+[eva:progress] Recording results for req_f
+[eva:progress] Done for function req_f
+[eva:progress] 
+  computing for function req_f <- requires_case.
+  Called from memexec_key_logic.c:47.
+[eva:alarm] memexec_key_logic.c:47: Warning: 
+  function req_f: precondition got status unknown.
+[eva:progress] Recording results for req_f
+[eva:progress] Done for function req_f
+[eva:progress] 
+  computing for function Frama_C_interval <- requires_case.
+  Called from memexec_key_logic.c:48.
+[eva] using specification for function Frama_C_interval
+[eva:progress] memexec_key_logic.c:48: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva:progress] Done for function Frama_C_interval
+[eva:progress] 
+  computing for function req_false <- requires_case.
+  Called from memexec_key_logic.c:50.
+[eva:alarm] memexec_key_logic.c:50: Warning: 
+  function req_false: precondition got status invalid.
+[eva:progress] Recording results for req_false
+[eva:progress] Done for function req_false
+[eva:progress] 
+  computing for function req_false <- requires_case.
+  Called from memexec_key_logic.c:51.
+[eva:progress] memexec_key_logic.c:51: 
+  function req_false: precondition got status valid.
+[eva:progress] Recording results for req_false
+[eva:progress] Done for function req_false
+[eva:progress] Recording results for requires_case
+[eva:progress] Done for function requires_case
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function req_f:
+  y ∈ [5..2147483647]
+[eva:final-states] Values at end of function req_false:
+  out ∈ {1}
+[eva:final-states] Values at end of function requires_case:
+  Frama_C_entropy_source ∈ [--..--]
+  c ∈ {0}
+  g ∈ {1}
+  h ∈ {1}
+  y ∈ [5..2147483647]
+  out ∈ {1}
+  r[0] ∈ [10..2147483647]
+   [1..2] ∈ [5..2147483647]
+   [3] ∈ {1}
+   [4..8] ∈ {0}
+  v ∈ [4..2147483646]
+[from] Computing for function req_f
+[from] Done for function req_f
+[from] Computing for function req_false
+[from] Done for function req_false
+[from] Computing for function requires_case
+[from] Computing for function Frama_C_interval <-requires_case
+[from] Done for function Frama_C_interval
+[from] Done for function requires_case
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function Frama_C_interval:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  \result FROM Frama_C_entropy_source; min; max
+[from] Function req_f:
+  y FROM x
+  \result FROM x
+[from] Function req_false:
+  out FROM \nothing
+[from] Function requires_case:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  c FROM Frama_C_entropy_source
+  g FROM \nothing
+  h FROM \nothing
+  y FROM n
+  out FROM \nothing
+  r[0..2] FROM n
+   [3] FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function req_f:
+    y
+[inout] Inputs for function req_f:
+    y
+[inout] Out (internal) for function req_false:
+    out
+[inout] Inputs for function req_false:
+    \nothing
+[inout] Out (internal) for function requires_case:
+    Frama_C_entropy_source; c; g; h; y; out; r[0..3]; v
+[inout] Inputs for function requires_case:
+    Frama_C_entropy_source; c; y; out

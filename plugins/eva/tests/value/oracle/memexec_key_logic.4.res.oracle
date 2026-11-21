@@ -1,0 +1,93 @@
+[kernel] Parsing memexec_key_logic.c (with preprocessing)
+[eva] Analyzing a complete application starting at ensures_case
+[eva:progress] Computing initial state
+[eva:progress] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  c ∈ {0}
+  g ∈ {0}
+  h ∈ {0}
+  a ∈ {0}
+  y ∈ {0}
+  out ∈ {0}
+  t ∈ {0}
+  p ∈ {0}
+  r[0..8] ∈ {0}
+  pa ∈ {0}
+  q ∈ {0}
+[eva:progress] 
+  computing for function Frama_C_interval <- ensures_case.
+  Called from memexec_key_logic.c:77.
+[eva] using specification for function Frama_C_interval
+[eva:progress] memexec_key_logic.c:77: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva:progress] Done for function Frama_C_interval
+[eva:progress] 
+  computing for function ensures_f <- ensures_case.
+  Called from memexec_key_logic.c:77.
+[eva:alarm] memexec_key_logic.c:73: Warning: 
+  function ensures_f: postcondition got status unknown.
+[eva:progress] Recording results for ensures_f
+[eva:progress] Done for function ensures_f
+[eva:progress] 
+  computing for function Frama_C_interval <- ensures_case.
+  Called from memexec_key_logic.c:78.
+[eva:progress] memexec_key_logic.c:78: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva:progress] Done for function Frama_C_interval
+[eva:progress] 
+  computing for function ensures_f <- ensures_case.
+  Called from memexec_key_logic.c:78.
+[eva:progress] memexec_key_logic.c:73: 
+  function ensures_f: postcondition got status valid.
+[eva:progress] Recording results for ensures_f
+[eva:progress] Done for function ensures_f
+[eva:progress] 
+  computing for function Frama_C_interval <- ensures_case.
+  Called from memexec_key_logic.c:79.
+[eva:progress] memexec_key_logic.c:79: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva:progress] Done for function Frama_C_interval
+[eva:progress] memexec_key_logic.c:79: Reusing old results for call to ensures_f
+[eva:progress] Recording results for ensures_case
+[eva:progress] Done for function ensures_case
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function ensures_f:
+  out ∈ [0..9]
+[eva:final-states] Values at end of function ensures_case:
+  Frama_C_entropy_source ∈ [--..--]
+  g ∈ {9}
+  h ∈ {1}
+  a ∈ [0..9]
+  out ∈ [0..9]
+  r[0] ∈ {0; 1; 2; 3}
+   [1..2] ∈ [0..9]
+   [3..8] ∈ {0}
+[from] Computing for function ensures_f
+[from] Done for function ensures_f
+[from] Computing for function ensures_case
+[from] Computing for function Frama_C_interval <-ensures_case
+[from] Done for function Frama_C_interval
+[from] Done for function ensures_case
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function Frama_C_interval:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  \result FROM Frama_C_entropy_source; min; max
+[from] Function ensures_f:
+  out FROM a
+[from] Function ensures_case:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  g FROM \nothing
+  h FROM \nothing
+  a FROM Frama_C_entropy_source
+  out FROM Frama_C_entropy_source
+  r[0..2] FROM Frama_C_entropy_source
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function ensures_f:
+    out
+[inout] Inputs for function ensures_f:
+    a
+[inout] Out (internal) for function ensures_case:
+    Frama_C_entropy_source; g; h; a; out; r[0..2]
+[inout] Inputs for function ensures_case:
+    Frama_C_entropy_source; a; out

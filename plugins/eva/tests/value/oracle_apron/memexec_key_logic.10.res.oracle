@@ -1,0 +1,8 @@
+47c47,51
+< [eva:progress] memexec_key_logic.c:158: Reusing old results for call to parts_f
+---
+> [eva:progress] 
+>   computing for function parts_f <- assert_case.
+>   Called from memexec_key_logic.c:158.
+> [eva:progress] Recording results for parts_f
+> [eva:progress] Done for function parts_f

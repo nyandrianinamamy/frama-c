@@ -1,0 +1,34 @@
+29,30c29,37
+< [eva:alarm] memexec_key_logic.c:46: Warning: 
+<   function req_f: precondition got status unknown.
+---
+> [eva:progress] memexec_key_logic.c:46: 
+>   function req_f: precondition got status valid.
+> [eva:progress] Recording results for req_f
+> [eva:progress] Done for function req_f
+> [eva:progress] 
+>   computing for function req_f <- requires_case.
+>   Called from memexec_key_logic.c:47.
+> [eva:progress] memexec_key_logic.c:47: 
+>   function req_f: precondition got status valid.
+33,35d39
+< [eva:alarm] memexec_key_logic.c:47: Warning: 
+<   function req_f: precondition got status unknown.
+< [eva:progress] memexec_key_logic.c:47: Reusing old results for call to req_f
+61c65
+<   y ∈ [5..2147483647]
+---
+>   y ∈ [10..2147483647]
+69c73
+<   y ∈ [5..2147483647]
+---
+>   y ∈ [10..2147483647]
+71,72c75
+<   r[0] ∈ [10..2147483647]
+<    [1..2] ∈ [5..2147483647]
+---
+>   r[0..2] ∈ [10..2147483647]
+75c78
+<   v ∈ [4..2147483646]
+---
+>   v ∈ [9..2147483646]

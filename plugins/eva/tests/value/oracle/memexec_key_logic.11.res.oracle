@@ -1,0 +1,199 @@
+[kernel] Parsing memexec_key_logic.c (with preprocessing)
+[eva] Analyzing a complete application starting at assert_case
+[eva:progress] Computing initial state
+[eva:progress] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  c ∈ {0}
+  g ∈ {0}
+  h ∈ {0}
+  a ∈ {0}
+  y ∈ {0}
+  out ∈ {0}
+  t ∈ {0}
+  p ∈ {0}
+  r[0..8] ∈ {0}
+  pa ∈ {0}
+  q ∈ {0}
+[eva:progress] 
+  computing for function Frama_C_interval <- assert_case.
+  Called from memexec_key_logic.c:156.
+[eva] using specification for function Frama_C_interval
+[eva:progress] memexec_key_logic.c:156: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva:progress] Done for function Frama_C_interval
+[eva:progress] 
+  computing for function parts_f <- assert_case.
+  Called from memexec_key_logic.c:156.
+[eva:alarm] memexec_key_logic.c:144: Warning: assertion got status unknown.
+[eva:progress] Recording results for parts_f
+[eva:progress] Done for function parts_f
+[eva:progress] 
+  computing for function Frama_C_interval <- assert_case.
+  Called from memexec_key_logic.c:157.
+[eva:progress] memexec_key_logic.c:157: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva:progress] Done for function Frama_C_interval
+[eva:progress] 
+  computing for function parts_f <- assert_case.
+  Called from memexec_key_logic.c:157.
+[eva:progress] Recording results for parts_f
+[eva:progress] Done for function parts_f
+[eva:progress] 
+  computing for function Frama_C_interval <- assert_case.
+  Called from memexec_key_logic.c:158.
+[eva:progress] memexec_key_logic.c:158: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva:progress] Done for function Frama_C_interval
+[eva:progress] 
+  computing for function parts_f <- assert_case.
+  Called from memexec_key_logic.c:158.
+[eva:progress] Recording results for parts_f
+[eva:progress] Done for function parts_f
+[eva:progress] 
+  computing for function Frama_C_interval <- assert_case.
+  Called from memexec_key_logic.c:159.
+[eva:progress] memexec_key_logic.c:159: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva:progress] Done for function Frama_C_interval
+[eva:progress] 
+  computing for function label_caller <- assert_case.
+  Called from memexec_key_logic.c:159.
+[eva:progress] 
+  computing for function label_f <- label_caller <- assert_case.
+  Called from memexec_key_logic.c:151.
+[eva:acsl:unsupported] memexec_key_logic.c:147: 
+  cannot evaluate ACSL term, \at() on a C label is unsupported
+[eva:alarm] memexec_key_logic.c:147: Warning: assertion got status unknown.
+[eva:progress] Recording results for label_f
+[eva:progress] Done for function label_f
+[eva:progress] Recording results for label_caller
+[eva:progress] Done for function label_caller
+[eva:progress] 
+  computing for function Frama_C_interval <- assert_case.
+  Called from memexec_key_logic.c:160.
+[eva:progress] memexec_key_logic.c:160: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva:progress] Done for function Frama_C_interval
+[eva:progress] 
+  computing for function label_caller <- assert_case.
+  Called from memexec_key_logic.c:160.
+[eva:progress] 
+  computing for function label_f <- label_caller <- assert_case.
+  Called from memexec_key_logic.c:151.
+[eva:progress] Recording results for label_f
+[eva:progress] Done for function label_f
+[eva:progress] Recording results for label_caller
+[eva:progress] Done for function label_caller
+[eva:progress] 
+  computing for function Frama_C_interval <- assert_case.
+  Called from memexec_key_logic.c:161.
+[eva:progress] memexec_key_logic.c:161: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva:progress] Done for function Frama_C_interval
+[eva:progress] 
+  computing for function label_caller <- assert_case.
+  Called from memexec_key_logic.c:161.
+[eva:progress] 
+  computing for function label_f <- label_caller <- assert_case.
+  Called from memexec_key_logic.c:151.
+[eva:progress] Recording results for label_f
+[eva:progress] Done for function label_f
+[eva:progress] Recording results for label_caller
+[eva:progress] Done for function label_caller
+[eva:progress] 
+  computing for function Frama_C_interval <- assert_case.
+  Called from memexec_key_logic.c:162.
+[eva:progress] memexec_key_logic.c:162: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva:progress] Done for function Frama_C_interval
+[eva:progress] 
+  computing for function check_f <- assert_case.
+  Called from memexec_key_logic.c:162.
+[eva:progress] memexec_key_logic.c:153: check got status valid.
+[eva:progress] Recording results for check_f
+[eva:progress] Done for function check_f
+[eva:progress] 
+  computing for function Frama_C_interval <- assert_case.
+  Called from memexec_key_logic.c:163.
+[eva:progress] memexec_key_logic.c:163: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva:progress] Done for function Frama_C_interval
+[eva:progress] 
+  computing for function check_f <- assert_case.
+  Called from memexec_key_logic.c:163.
+[eva:alarm] memexec_key_logic.c:153: Warning: check got status unknown.
+[eva:progress] Recording results for check_f
+[eva:progress] Done for function check_f
+[eva:progress] Recording results for assert_case
+[eva:progress] Done for function assert_case
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function check_f:
+  out ∈ [0..9]
+[eva:final-states] Values at end of function label_f:
+  out ∈ [0..9]
+[eva:final-states] Values at end of function label_caller:
+  out ∈ [0..9]
+[eva:final-states] Values at end of function parts_f:
+  out ∈ [0..9]
+[eva:final-states] Values at end of function assert_case:
+  Frama_C_entropy_source ∈ [--..--]
+  g ∈ {3}
+  a ∈ [0..9]
+  out ∈ [0..9]
+  r[0] ∈ {0; 1; 2; 3}
+   [1..2] ∈ [0..9]
+   [3] ∈ {0; 1; 2; 3}
+   [4..7] ∈ [0..9]
+   [8] ∈ {0}
+[from] Computing for function check_f
+[from] Done for function check_f
+[from] Computing for function label_f
+[from] Done for function label_f
+[from] Computing for function label_caller
+[from] Done for function label_caller
+[from] Computing for function parts_f
+[from] Done for function parts_f
+[from] Computing for function assert_case
+[from] Computing for function Frama_C_interval <-assert_case
+[from] Done for function Frama_C_interval
+[from] Done for function assert_case
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function Frama_C_interval:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  \result FROM Frama_C_entropy_source; min; max
+[from] Function check_f:
+  out FROM a
+[from] Function label_f:
+  out FROM a
+[from] Function label_caller:
+  out FROM a
+[from] Function parts_f:
+  out FROM a
+[from] Function assert_case:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  g FROM \nothing
+  a FROM Frama_C_entropy_source
+  out FROM Frama_C_entropy_source
+  r[0..7] FROM Frama_C_entropy_source
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function check_f:
+    out
+[inout] Inputs for function check_f:
+    a
+[inout] Out (internal) for function label_f:
+    out
+[inout] Inputs for function label_f:
+    a
+[inout] Out (internal) for function label_caller:
+    out
+[inout] Inputs for function label_caller:
+    a
+[inout] Out (internal) for function parts_f:
+    out
+[inout] Inputs for function parts_f:
+    a
+[inout] Out (internal) for function assert_case:
+    Frama_C_entropy_source; g; a; out; r[0..7]
+[inout] Inputs for function assert_case:
+    Frama_C_entropy_source; a; out

@@ -1,0 +1,13 @@
+59,60c59,67
+< [eva:progress] memexec_key_logic.c:105: 
+<   Reusing old results for call to spec_req_caller
+---
+> [eva:progress] 
+>   computing for function spec_req_caller <- spec_case.
+>   Called from memexec_key_logic.c:105.
+> [eva:progress] 
+>   computing for function spec_req <- spec_req_caller <- spec_case.
+>   Called from memexec_key_logic.c:93.
+> [eva:progress] Done for function spec_req
+> [eva:progress] Recording results for spec_req_caller
+> [eva:progress] Done for function spec_req_caller

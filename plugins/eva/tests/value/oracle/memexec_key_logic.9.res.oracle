@@ -1,0 +1,108 @@
+[kernel] Parsing memexec_key_logic.c (with preprocessing)
+[eva] Analyzing a complete application starting at three_calls
+[eva:progress] Computing initial state
+[eva:progress] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  c ∈ {0}
+  g ∈ {0}
+  h ∈ {0}
+  a ∈ {0}
+  y ∈ {0}
+  out ∈ {0}
+  t ∈ {0}
+  p ∈ {0}
+  r[0..8] ∈ {0}
+  pa ∈ {0}
+  q ∈ {0}
+[eva:progress] 
+  computing for function outer <- three_calls.
+  Called from memexec_key_logic.c:125.
+[eva:progress] 
+  computing for function pick_f <- outer <- three_calls.
+  Called from memexec_key_logic.c:122.
+[kernel:annot:missing-spec] memexec_key_logic.c:120: Warning: 
+  Neither code nor explicit assigns for function pick, generating default
+  clauses from the specification. See -generated-spec-* options for more info.
+[eva:progress] 
+  computing for function pick <- pick_f <- outer <- three_calls.
+  Called from memexec_key_logic.c:120.
+[eva] using specification for function pick
+[eva:progress] Done for function pick
+[eva:progress] Recording results for pick_f
+[eva:progress] Done for function pick_f
+[eva:progress] Recording results for outer
+[eva:progress] Done for function outer
+[eva:progress] 
+  computing for function pick_f <- three_calls.
+  Called from memexec_key_logic.c:126.
+[eva:progress] 
+  computing for function pick <- pick_f <- three_calls.
+  Called from memexec_key_logic.c:120.
+[eva:progress] Done for function pick
+[eva:progress] Recording results for pick_f
+[eva:progress] Done for function pick_f
+[eva:progress] 
+  computing for function outer <- three_calls.
+  Called from memexec_key_logic.c:127.
+[eva:progress] 
+  computing for function pick_f <- outer <- three_calls.
+  Called from memexec_key_logic.c:122.
+[eva:progress] 
+  computing for function pick <- pick_f <- outer <- three_calls.
+  Called from memexec_key_logic.c:120.
+[eva:progress] Done for function pick
+[eva:progress] Recording results for pick_f
+[eva:progress] Done for function pick_f
+[eva:progress] Recording results for outer
+[eva:progress] Done for function outer
+[eva:progress] Recording results for three_calls
+[eva:progress] Done for function three_calls
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function pick_f:
+  out ∈ [--..--]
+[eva:final-states] Values at end of function outer:
+  h ∈ {7}
+  out ∈ [--..--]
+[eva:final-states] Values at end of function three_calls:
+  g ∈ {1}
+  h ∈ {7}
+  out ∈ [--..--]
+  r[0] ∈ [--..--]
+   [1] ∈ {42}
+   [2] ∈ [--..--]
+   [3..8] ∈ {0}
+[from] Computing for function pick_f
+[from] Computing for function pick <-pick_f
+[from] Done for function pick
+[from] Done for function pick_f
+[from] Computing for function outer
+[from] Done for function outer
+[from] Computing for function three_calls
+[from] Done for function three_calls
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function pick:
+  out FROM \nothing
+[from] Function pick_f:
+  out FROM \nothing
+[from] Function outer:
+  h FROM \nothing
+  out FROM \nothing
+[from] Function three_calls:
+  g FROM \nothing
+  h FROM \nothing
+  out FROM \nothing
+  r[0..2] FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function pick_f:
+    out
+[inout] Inputs for function pick_f:
+    \nothing
+[inout] Out (internal) for function outer:
+    h; out
+[inout] Inputs for function outer:
+    \nothing
+[inout] Out (internal) for function three_calls:
+    g; h; out; r[0..2]
+[inout] Inputs for function three_calls:
+    out
