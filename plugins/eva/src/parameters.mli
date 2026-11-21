@@ -99,6 +99,7 @@ module NoResultsDomain: Parameter_sig.String_set
 module NoResultsFunction: Parameter_sig.Fundec_set
 module ResultsAll: Parameter_sig.Bool
 module JoinResults: Parameter_sig.Bool
+module HitLog: Parameter_sig.Bool
 
 module Memexec: Parameter_sig.Bool
 

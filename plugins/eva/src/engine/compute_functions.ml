@@ -60,12 +60,25 @@ module Make (Engine: Engine_sig.S) = struct
          at this call. *)
       Populate_spec.populate_funspec call.kf [`Assigns];
       let spec = Annotations.funspec call.kf in
-      if not (Eva_utils.skip_specifications call.kf) &&
-         List.exists (fun b -> b.b_requires <> []) spec.spec_behavior
-      then begin
-        let ab = Logic.create init_state call.kf in
-        let kinstr = Callstack.top_callsite call.callstack in
-        ignore (Logic.check_fct_preconditions kinstr call.kf ab init_state);
+      let body_entry =
+        if not (Eva_utils.skip_specifications call.kf) &&
+           List.exists (fun b -> b.b_requires <> []) spec.spec_behavior
+        then begin
+          let ab = Logic.create init_state call.kf in
+          let kinstr = Callstack.top_callsite call.callstack in
+          Logic.check_fct_preconditions kinstr call.kf ab init_state
+          |> Bottom.List.join Engine.Dom.join
+        end
+        else `Value init_state
+      in
+      if Hit_log.enabled () then begin
+        let start = Engine.Dom.get_cvalue_or_top init_state in
+        let body_entry =
+          match body_entry with
+          | `Bottom -> Cvalue.Model.bottom
+          | `Value state -> Engine.Dom.get_cvalue_or_top state
+        in
+        Hit_log.record_hit ~id:i call.callstack ~start ~body_entry
       end;
       Self.feedback ~current:true ~mkey:Log_key.progress
         "Reusing old results for call to %a" Kernel_function.pretty call.kf;
@@ -189,11 +202,27 @@ module Make (Engine: Engine_sig.S) = struct
      the body of the called function according to [target]. *)
   let compute_call_with_target call target state =
     Function_calls.register_analysis_target call target;
+    let record = Hit_log.enabled () in
+    if record then Hit_log.record_call call.kf;
+    let record_start () =
+      if record then
+        Hit_log.record_start call.callstack (Engine.Dom.get_cvalue_or_top state)
+    in
     match target with
-    | `Builtin builtin_info -> compute_builtin builtin_info call state
-    | `Spec _ as spec -> compute_using_spec_or_body spec call state
+    | `Builtin builtin_info ->
+      record_start ();
+      compute_builtin builtin_info call state
+    | `Spec _ as spec ->
+      record_start ();
+      compute_using_spec_or_body spec call state
     | `Body _ as def ->
       let compute = compute_using_spec_or_body def in
+      let compute =
+        if record
+        then fun call state ->
+          Hit_log.analyse_body (fun () -> compute call state)
+        else compute
+      in
       if Parameters.Memexec.get ()
       then compute_and_cache_call compute call state
       else compute call state
@@ -207,6 +236,11 @@ module Make (Engine: Engine_sig.S) = struct
     let callsite = Callstack.top_callsite call.callstack in
     let recursion_depth = Option.map (fun r -> r.depth) recursion in
     let target = Function_calls.analysis_target ?recursion_depth kf callsite in
+    begin match target, recursion with
+      | `Body _, Some _ when Hit_log.enabled () ->
+        Hit_log.mark_unrolled_recursion kf
+      | _ -> ()
+    end;
     compute_call_with_target call target state
 
   (* ----- Main call -------------------------------------------------------- *)

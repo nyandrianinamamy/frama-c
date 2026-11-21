@@ -18,6 +18,13 @@ module Inout = struct
     let typ = Datatype.(func (func Inout_type.ty unit) unit) in
     get ~plugin "register_call_hook" typ ~fallback f
 
+  let register_footprint_hook f =
+    let fallback _ = () in
+    let zones = Datatype.pair Memory_zone.ty Memory_zone.ty in
+    let footprint = Datatype.func Cil_datatype.Stmt.ty zones in
+    let typ = Datatype.(func (func footprint unit) unit) in
+    get ~plugin "register_footprint_hook" typ ~fallback f
+
   let kf_outputs kf =
     let fallback _ = Memory_zone.top in
     let typ arg = Datatype.func arg Memory_zone.ty in

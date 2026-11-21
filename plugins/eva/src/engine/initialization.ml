@@ -461,6 +461,10 @@ module Make (Engine: Engine_Subset) = struct
     in
     let callstack = Callstack.init ~thread:Thread.main_id ~entry_point:kf in
     Domain.Store.register_state callstack Initial init_state;
+    if Hit_log.enabled () then begin
+      let cvalue_state = Domain.get_cvalue_or_top init_state in
+      Hit_log.record_initial_state callstack cvalue_state
+    end;
     print_initial_cvalue_state init_state;
     add_main_formals ?arguments kf init_state
 

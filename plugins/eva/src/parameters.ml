@@ -397,6 +397,22 @@ module JoinResults =
       let default = true
     end)
 
+let () = Parameter_customize.set_group performance
+let () = Parameter_customize.is_invisible ()
+module HitLog =
+  False
+    (struct
+      let option_name = "-eva-hit-log"
+      let help = "Record a cache entry for each call analysed by its body, \
+                  with the states before and after each statement on the \
+                  memory read or written before them, and the states at the \
+                  calls that use each entry. After the analysis, the states \
+                  requested through Eva.Results are rebuilt from these \
+                  records instead of the stored states (prototype, cvalue \
+                  domain only)."
+    end)
+let () = add_dep HitLog.parameter
+
 (* ------------------------------------------------------------------------- *)
 (* --- Non-standard alarms                                               --- *)
 (* ------------------------------------------------------------------------- *)

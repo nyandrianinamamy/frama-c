@@ -570,7 +570,7 @@ module Make_Dataflow
     );
     states_after
 
-  let merge_results ~save_results =
+  let merge_results ~save_results ~interrupted =
     let get_merged_states =
       let merged_states = VertexTable.create control_point_count
       and get_smashed_store v =
@@ -607,8 +607,21 @@ module Make_Dataflow
                          after_stmts = merged_post_cvalues }
     in
     let cvalue_init = Engine.Dom.get_cvalue_or_top initial_state in
-    let results = `Body (states, Mem_exec.new_counter ()) in
+    let counter = Mem_exec.new_counter () in
+    let results = `Body (states, counter) in
+    let record = Hit_log.enabled () && not interrupted in
+    if record then Hit_log.clear_footprint ();
     Cvalue_callbacks.apply_call_results_hooks callstack kf cvalue_init results;
+    if record then begin
+      let start = Engine.Dom.get_cvalue_or_top AnalysisParam.initial_state in
+      let body_entry =
+        match Bottom.List.join Domain.join initial_states with
+        | `Bottom -> Cvalue.Model.bottom
+        | `Value state -> Engine.Dom.get_cvalue_or_top state
+      in
+      Hit_log.record_analysed_call ~id:counter callstack ~start ~body_entry
+        ~before:merged_pre_cvalues ~after:merged_post_cvalues
+    end
 
 end
 
@@ -633,7 +646,7 @@ module Make (Engine : Engine_Subset) = struct
       let results = Dataflow.compute () in
       Self.feedback ~mkey:Log_key.progress
         "Recording results for %a" Kernel_function.pretty kf;
-      Dataflow.merge_results ~save_results;
+      Dataflow.merge_results ~save_results ~interrupted:false;
       let f = Kernel_function.get_definition kf in
       if Ast_types.C.has_attribute "noreturn" f.svar.vtype && results <> [] then
         Self.warning ~current:true ~once:true
@@ -644,7 +657,8 @@ module Make (Engine : Engine_Subset) = struct
     let cleanup () =
       Self.feedback ~once:true ~level:3 "Clean up partial results.";
       Dataflow.mark_degeneration ();
-      Dataflow.merge_results ~save_results
+      if Hit_log.enabled () then Hit_log.mark_interrupted kf;
+      Dataflow.merge_results ~save_results ~interrupted:true
     in
     Signal.protect compute ~cleanup
 end
