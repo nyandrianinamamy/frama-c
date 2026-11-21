@@ -1,0 +1,71 @@
+[kernel] Parsing memexec_key_logic_terms.c (with preprocessing)
+[eva] Analyzing a complete application starting at location_conditional_case
+[eva:progress] Computing initial state
+[eva:progress] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  g ∈ {0}
+  h ∈ {0}
+  a ∈ {0}
+  b ∈ {0}
+  out ∈ {0}
+  first ∈ {0}
+  second ∈ {0}
+  third ∈ {0}
+  live ∈ {{ &h }}
+  escaped ∈ {0}
+  pointer_cell ∈ {0}
+  text[0..1] ∈ {0}
+  array[0..1] ∈ {0}
+[eva:progress] 
+  computing for function location_conditional_f <- location_conditional_case.
+  Called from memexec_key_logic_terms.c:63.
+[eva:progress] Recording results for location_conditional_f
+[eva:progress] Done for function location_conditional_f
+[eva:progress] 
+  computing for function location_conditional_f <- location_conditional_case.
+  Called from memexec_key_logic_terms.c:64.
+[eva:progress] Recording results for location_conditional_f
+[eva:progress] Done for function location_conditional_f
+[eva:progress] 
+  computing for function location_conditional_f <- location_conditional_case.
+  Called from memexec_key_logic_terms.c:65.
+[eva:progress] Recording results for location_conditional_f
+[eva:progress] Done for function location_conditional_f
+[eva:progress] Recording results for location_conditional_case
+[eva:progress] Done for function location_conditional_case
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function location_conditional_f:
+  
+[eva:final-states] Values at end of function location_conditional_case:
+  g ∈ {1}
+  h ∈ {1}
+  a ∈ {1}
+  b ∈ [--..--]
+  first ∈ [--..--]
+  second ∈ [--..--]
+  third ∈ [--..--]
+[from] Computing for function location_conditional_f
+[from] Done for function location_conditional_f
+[from] Computing for function location_conditional_case
+[from] Done for function location_conditional_case
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function location_conditional_f:
+  NO EFFECTS
+[from] Function location_conditional_case:
+  g FROM \nothing
+  h FROM \nothing
+  a FROM \nothing
+  b FROM \nothing
+  first FROM \nothing
+  second FROM \nothing
+  third FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function location_conditional_f:
+    \nothing
+[inout] Inputs for function location_conditional_f:
+    \nothing
+[inout] Out (internal) for function location_conditional_case:
+    g; h; a; b; first; second; third
+[inout] Inputs for function location_conditional_case:
+    a; b

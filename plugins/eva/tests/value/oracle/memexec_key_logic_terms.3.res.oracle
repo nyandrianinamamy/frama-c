@@ -1,0 +1,103 @@
+[kernel] Parsing memexec_key_logic_terms.c (with preprocessing)
+[eva] Analyzing a complete application starting at comprehension_case
+[eva:progress] Computing initial state
+[eva:progress] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  g ∈ {0}
+  h ∈ {0}
+  a ∈ {0}
+  b ∈ {0}
+  out ∈ {0}
+  first ∈ {0}
+  second ∈ {0}
+  third ∈ {0}
+  live ∈ {{ &h }}
+  escaped ∈ {0}
+  pointer_cell ∈ {0}
+  text[0..1] ∈ {0}
+  array[0..1] ∈ {0}
+[eva:progress] 
+  computing for function Frama_C_interval <- comprehension_case.
+  Called from memexec_key_logic_terms.c:50.
+[eva] using specification for function Frama_C_interval
+[eva:progress] memexec_key_logic_terms.c:50: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva:progress] Done for function Frama_C_interval
+[eva:progress] 
+  computing for function comprehension_f <- comprehension_case.
+  Called from memexec_key_logic_terms.c:50.
+[eva:alarm] memexec_key_logic_terms.c:50: Warning: 
+  function comprehension_f: precondition got status unknown.
+[eva:progress] Recording results for comprehension_f
+[eva:progress] Done for function comprehension_f
+[eva:progress] 
+  computing for function Frama_C_interval <- comprehension_case.
+  Called from memexec_key_logic_terms.c:51.
+[eva:progress] memexec_key_logic_terms.c:51: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva:progress] Done for function Frama_C_interval
+[eva:progress] 
+  computing for function comprehension_f <- comprehension_case.
+  Called from memexec_key_logic_terms.c:51.
+[eva:alarm] memexec_key_logic_terms.c:51: Warning: 
+  function comprehension_f: precondition got status unknown.
+[eva:progress] Recording results for comprehension_f
+[eva:progress] Done for function comprehension_f
+[eva:progress] 
+  computing for function Frama_C_interval <- comprehension_case.
+  Called from memexec_key_logic_terms.c:52.
+[eva:progress] memexec_key_logic_terms.c:52: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva:progress] Done for function Frama_C_interval
+[eva:progress] 
+  computing for function comprehension_f <- comprehension_case.
+  Called from memexec_key_logic_terms.c:52.
+[eva:alarm] memexec_key_logic_terms.c:52: Warning: 
+  function comprehension_f: precondition got status unknown.
+[eva:progress] Recording results for comprehension_f
+[eva:progress] Done for function comprehension_f
+[eva:progress] Recording results for comprehension_case
+[eva:progress] Done for function comprehension_case
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function comprehension_f:
+  out ∈ {3; 5; 9}
+[eva:final-states] Values at end of function comprehension_case:
+  Frama_C_entropy_source ∈ [--..--]
+  g ∈ {5}
+  h ∈ {1}
+  a ∈ {5; 9}
+  out ∈ {5; 9}
+  first ∈ {3; 9}
+  second ∈ {5; 9}
+  third ∈ {5; 9}
+[from] Computing for function comprehension_f
+[from] Done for function comprehension_f
+[from] Computing for function comprehension_case
+[from] Computing for function Frama_C_interval <-comprehension_case
+[from] Done for function Frama_C_interval
+[from] Done for function comprehension_case
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function Frama_C_interval:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  \result FROM Frama_C_entropy_source; min; max
+[from] Function comprehension_f:
+  out FROM a
+[from] Function comprehension_case:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  g FROM \nothing
+  h FROM \nothing
+  a FROM Frama_C_entropy_source
+  out FROM Frama_C_entropy_source
+  first FROM Frama_C_entropy_source
+  second FROM Frama_C_entropy_source
+  third FROM Frama_C_entropy_source
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function comprehension_f:
+    out
+[inout] Inputs for function comprehension_f:
+    a
+[inout] Out (internal) for function comprehension_case:
+    Frama_C_entropy_source; g; h; a; out; first; second; third
+[inout] Inputs for function comprehension_case:
+    Frama_C_entropy_source; a; out

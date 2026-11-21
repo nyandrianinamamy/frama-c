@@ -1,0 +1,100 @@
+[kernel] Parsing memexec_key_logic_terms.c (with preprocessing)
+[eva] Analyzing a complete application starting at extremum_case
+[eva:progress] Computing initial state
+[eva:progress] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  g ∈ {0}
+  h ∈ {0}
+  a ∈ {0}
+  b ∈ {0}
+  out ∈ {0}
+  first ∈ {0}
+  second ∈ {0}
+  third ∈ {0}
+  live ∈ {{ &h }}
+  escaped ∈ {0}
+  pointer_cell ∈ {0}
+  text[0..1] ∈ {0}
+  array[0..1] ∈ {0}
+[eva:progress] 
+  computing for function Frama_C_interval <- extremum_case.
+  Called from memexec_key_logic_terms.c:38.
+[eva] using specification for function Frama_C_interval
+[eva:progress] memexec_key_logic_terms.c:38: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva:progress] Done for function Frama_C_interval
+[eva:progress] 
+  computing for function extremum_f <- extremum_case.
+  Called from memexec_key_logic_terms.c:38.
+[eva:alarm] memexec_key_logic_terms.c:38: Warning: 
+  function extremum_f: precondition got status unknown.
+[eva:progress] Recording results for extremum_f
+[eva:progress] Done for function extremum_f
+[eva:progress] 
+  computing for function Frama_C_interval <- extremum_case.
+  Called from memexec_key_logic_terms.c:39.
+[eva:progress] memexec_key_logic_terms.c:39: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva:progress] Done for function Frama_C_interval
+[eva:progress] 
+  computing for function extremum_f <- extremum_case.
+  Called from memexec_key_logic_terms.c:39.
+[eva:progress] memexec_key_logic_terms.c:39: 
+  function extremum_f: precondition got status valid.
+[eva:progress] Recording results for extremum_f
+[eva:progress] Done for function extremum_f
+[eva:progress] 
+  computing for function Frama_C_interval <- extremum_case.
+  Called from memexec_key_logic_terms.c:40.
+[eva:progress] memexec_key_logic_terms.c:40: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva:progress] Done for function Frama_C_interval
+[eva:progress] memexec_key_logic_terms.c:40: 
+  function extremum_f: precondition got status valid.
+[eva:progress] memexec_key_logic_terms.c:40: 
+  Reusing old results for call to extremum_f
+[eva:progress] Recording results for extremum_case
+[eva:progress] Done for function extremum_case
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function extremum_f:
+  out ∈ [0..9]
+[eva:final-states] Values at end of function extremum_case:
+  Frama_C_entropy_source ∈ [--..--]
+  g ∈ {9}
+  h ∈ {1}
+  a ∈ [0..9]
+  out ∈ [0..9]
+  first ∈ {0; 1; 2; 3}
+  second ∈ [0..9]
+  third ∈ [0..9]
+[from] Computing for function extremum_f
+[from] Done for function extremum_f
+[from] Computing for function extremum_case
+[from] Computing for function Frama_C_interval <-extremum_case
+[from] Done for function Frama_C_interval
+[from] Done for function extremum_case
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function Frama_C_interval:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  \result FROM Frama_C_entropy_source; min; max
+[from] Function extremum_f:
+  out FROM a
+[from] Function extremum_case:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  g FROM \nothing
+  h FROM \nothing
+  a FROM Frama_C_entropy_source
+  out FROM Frama_C_entropy_source
+  first FROM Frama_C_entropy_source
+  second FROM Frama_C_entropy_source
+  third FROM Frama_C_entropy_source
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function extremum_f:
+    out
+[inout] Inputs for function extremum_f:
+    a
+[inout] Out (internal) for function extremum_case:
+    Frama_C_entropy_source; g; h; a; out; first; second; third
+[inout] Inputs for function extremum_case:
+    Frama_C_entropy_source; a; out

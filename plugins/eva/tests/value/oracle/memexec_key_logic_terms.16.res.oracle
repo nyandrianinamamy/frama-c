@@ -1,0 +1,66 @@
+[kernel] Parsing memexec_key_logic_terms.c (with preprocessing)
+[eva] Analyzing a complete application starting at opaque_range_case
+[eva:progress] Computing initial state
+[eva:progress] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  g ∈ {0}
+  h ∈ {0}
+  a ∈ {0}
+  b ∈ {0}
+  out ∈ {0}
+  first ∈ {0}
+  second ∈ {0}
+  third ∈ {0}
+  live ∈ {{ &h }}
+  escaped ∈ {0}
+  pointer_cell ∈ {0}
+  text[0..1] ∈ {0}
+  array[0..1] ∈ {0}
+[eva:progress] 
+  computing for function opaque_range_f <- opaque_range_case.
+  Called from memexec_key_logic_terms.c:160.
+[eva:alarm] memexec_key_logic_terms.c:155: Warning: check got status unknown.
+[eva:progress] Recording results for opaque_range_f
+[eva:progress] Done for function opaque_range_f
+[eva:progress] 
+  computing for function opaque_range_f <- opaque_range_case.
+  Called from memexec_key_logic_terms.c:161.
+[eva:acsl:unsupported] memexec_key_logic_terms.c:155: 
+  Cannot evaluate range bound 1 / g + opaque_value(0) (unsupported ACSL construct: logic function opaque_value). Approximating.
+[eva:progress] Recording results for opaque_range_f
+[eva:progress] Done for function opaque_range_f
+[eva:progress] 
+  computing for function opaque_range_f <- opaque_range_case.
+  Called from memexec_key_logic_terms.c:162.
+[eva:progress] Recording results for opaque_range_f
+[eva:progress] Done for function opaque_range_f
+[eva:progress] Recording results for opaque_range_case
+[eva:progress] Done for function opaque_range_case
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function opaque_range_f:
+  out ∈ {0}
+[eva:final-states] Values at end of function opaque_range_case:
+  g ∈ {1}
+  h ∈ {1}
+  out ∈ {0}
+[from] Computing for function opaque_range_f
+[from] Done for function opaque_range_f
+[from] Computing for function opaque_range_case
+[from] Done for function opaque_range_case
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function opaque_range_f:
+  out FROM \nothing
+[from] Function opaque_range_case:
+  g FROM \nothing
+  h FROM \nothing
+  out FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function opaque_range_f:
+    out
+[inout] Inputs for function opaque_range_f:
+    \nothing
+[inout] Out (internal) for function opaque_range_case:
+    g; h; out
+[inout] Inputs for function opaque_range_case:
+    \nothing
