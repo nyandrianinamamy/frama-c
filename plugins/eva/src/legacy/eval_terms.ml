@@ -170,7 +170,8 @@ type logic_env = Cvalue.V.t LogicVarEnv.t
    strings, and the dependencies of a set comprehension or of a range bound
    that cannot be computed raise an error instead of being ignored, unless
    the evaluation of the bound fails in any state. [silent] disables the
-   warnings about the evaluation. *)
+   warnings about the terms, predicates and range bounds that cannot be
+   evaluated, and those of \warning. *)
 type eval_env = {
   e_cur: logic_label;
   e_states: labels_states;
@@ -1771,10 +1772,9 @@ and eval_let_binding ~alarm_mode env logic_info =
       let var_term = Logic_const.tvar var in
       try reduce_left_by_relation ~alarm_mode env true var_term Req term
       with Reduce_to_bottom ->
-        if not env.silent then
-          Self.warning ~current:true ~once:true
-            "ignoring \\let binding of logic variable %a evaluating to bottom"
-            Printer.pp_logic_var var;
+        Self.warning ~current:true ~once:true
+          "ignoring \\let binding of logic variable %a evaluating to bottom"
+          Printer.pp_logic_var var;
         env
     end
   | _ -> unsupported "\\let binding"

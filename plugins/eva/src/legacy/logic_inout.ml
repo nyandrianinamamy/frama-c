@@ -50,8 +50,9 @@ let valid_behaviors kf state =
 (* Evaluation environment of a predicate, built as [Transfer_logic] builds it
    for the cvalue domain: [here] is the current state, [labels] binds some
    builtin labels, and the other labels are bound to the top state. The
-   evaluation emits no warning: Eva emits its own when it evaluates the
-   predicate. *)
+   evaluation emits no warning about the parts that it cannot evaluate: Eva
+   emits its own when it evaluates the predicate, and these evaluations also
+   cover parts that Eva may not evaluate. *)
 let logic_env ~result ~here labels =
   let states = function
     | BuiltinLabel label ->

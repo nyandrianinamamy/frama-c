@@ -55,7 +55,9 @@ val env_only_here: Model.t -> eval_env
 
 val env_current_state: eval_env -> Model.t
 
-(** [silent env] is [env] where the evaluation emits no warning. *)
+(** [silent env] is [env] where the evaluation emits no warning about the
+    terms, predicates and range bounds that it cannot evaluate, nor those of
+    [\warning]. *)
 val silent: eval_env -> eval_env
 
 (** Dependencies needed to evaluate a term or a predicate *)
@@ -113,7 +115,7 @@ val predicate_deps: eval_env -> Cil_types.predicate -> logic_deps option
     have no dependency. The dependencies include the memory read by the
     logic builtins on strings. A bound of a range whose evaluation fails is
     such a part, unless this evaluation fails in any state; Eva then ignores
-    the bound. No warning is emitted. *)
+    the bound. The evaluation is silent, as with {!silent}. *)
 val predicate_deps_by_parts:
   eval_env -> Cil_types.predicate -> logic_deps * bool
 
