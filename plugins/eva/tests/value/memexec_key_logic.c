@@ -13,8 +13,9 @@
    STDOPT: +"-main assert_case -eva-no-memexec"
    STDOPT: +"-main asm_case"
    STDOPT: +"-main asm_case -eva-no-memexec"
+   STDOPT: +"-main requires_deref_case"
+   STDOPT: +"-main requires_deref_case -eva-no-memexec"
 */
-
 /* The matching key of memexec holds the blocks that Eva reads to interpret
    the annotations and the contracts of a call and of its callees, and the
    blocks written by the assigns clauses of its asm statements. Each case is
@@ -22,7 +23,6 @@
    The calls reused are those with a "Reusing old results" message. */
 
 #include "__fc_builtin.h"
-
 int c, g, h, a, y, out, t, *p;
 int r[9];
 
@@ -180,4 +180,19 @@ void asm_case(void) {
   g = 9; asm_write(); r[2] = g;
   pa = 0; q = &a; asm_read();
   pa = 0; q = &g; asm_read();
+}
+
+/* Case 1, with a requires clause that dereferences a pointer. The requires
+   clause of deref_f reads p and t, to which p points. The second call
+   differs from the first on t and is analysed: r[1] is restricted by the
+   clause. The third call differs from the second only on h, and is
+   reused. */
+
+/*@ requires *p <= 3; */
+void deref_f(void) { out = 1; }
+
+void requires_deref_case(void) {
+  p = &t; t = Frama_C_interval(0, 3); deref_f(); r[0] = t;
+  t = Frama_C_interval(0, 9); deref_f(); r[1] = t;
+  t = Frama_C_interval(0, 9); h = 1; deref_f(); r[2] = t;
 }
