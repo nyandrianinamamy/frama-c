@@ -613,20 +613,25 @@ module Callwise = struct
   ;;
 
 
+  (* Stack of the calls whose body Eva is analyzing: the function, its state
+     at the start of the call, and the inputs and outputs of its calls. The
+     results of Eva are not available during the analysis: [Eva.Results]
+     returns the top state for the start of the call. *)
   let call_inout_stack = ref []
 
   let reset () =
     call_inout_stack := []
 
-  let call_for_callwise_inout _callstack kf _state = function
+  let call_for_callwise_inout _callstack kf state = function
     | `Body ->
       let table_current_function = CallsiteHash.create 7 in
-      call_inout_stack := (kf, table_current_function) :: !call_inout_stack
+      call_inout_stack :=
+        (kf, state, table_current_function) :: !call_inout_stack
     | `Reuse | `Spec | `Builtin -> ()
 
   let pop_local_table kf =
     match !call_inout_stack with
-    | (kf', table) :: tail ->
+    | (kf', _, table) :: tail ->
       if not (Kernel_function.equal kf kf') then
         Inout_parameters.fatal "callwise inout: %a != %a@."
           Kernel_function.pretty kf Kernel_function.pretty kf';
@@ -638,7 +643,7 @@ module Callwise = struct
     Record_Inout_Callbacks.apply inout;
     let callsite = Eva.Callstack.top_callsite callstack in
     match callsite, !call_inout_stack with
-    | Kstmt _, (_caller, table) :: _ ->
+    | Kstmt _, (_caller, _, table) :: _ ->
       merge_call_in_local_table (kf, callsite) table inout;
     | Kglobal, [] ->  (* the entry point *)
       merge_call_in_global_tables (kf, callsite) inout;
@@ -659,17 +664,16 @@ module Callwise = struct
       end)
 
 
-  let compute_call_from_value_states kf call_stack states =
+  let compute_call_from_value_states kf states =
     let module Fenv = (val Dataflows.function_env kf: Dataflows.FUNCTION_ENV) in
+    let _cur_kf, pre_state, table = List.hd !call_inout_stack in
     let module Computer = Computer(Fenv)(
       struct
         let _version = "callwise"
         let _kf = kf
 
-        (* Returns the [kf] pre-state with respect to the single [call_stack]. *)
-        let kf_pre_state =
-          Eva.Results.(at_start_of kf |> in_callstack call_stack |>
-                       get_cvalue_model)
+        (* The state at the start of the call being analyzed. *)
+        let kf_pre_state = pre_state
 
         let stmt_state stmt =
           try Cil_datatype.Stmt.Hashtbl.find states stmt
@@ -678,7 +682,6 @@ module Callwise = struct
         let stmt_request stmt = Eva.Results.in_cvalue_state (stmt_state stmt)
 
         let at_call stmt kf =
-          let _cur_kf, table = List.hd !call_inout_stack in
           try
             let with_internals = CallsiteHash.find table (kf, Kstmt stmt) in
             let filter =
@@ -705,7 +708,7 @@ module Callwise = struct
           if Eva.Analysis.save_results kf
           then
             let cvalue_states = Lazy.force before_stmts in
-            compute_call_from_value_states kf callstack cvalue_states
+            compute_call_from_value_states kf cvalue_states
           else top
         in
         MemExec.replace memexec_counter inout;
