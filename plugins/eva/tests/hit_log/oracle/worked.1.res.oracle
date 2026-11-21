@@ -1,0 +1,119 @@
+[kernel] Parsing worked.c (with preprocessing)
+[eva] Analyzing a complete application starting at main
+[eva] Analyzing a complete application starting at main
+[eva] Analyzing a complete application starting at main
+Calls:
+  Frama_C_interval :: worked.c:22 <- main: specification
+  f :: worked.c:23 <- main: analysed, cache entry 9
+  f :: worked.c:24 <- main: hit of cache entry 9
+  f :: worked.c:25 <- main: analysed, cache entry 10
+  f :: worked.c:26 <- main: hit of cache entry 10
+  main: analysed, cache entry 11
+f, start:
+  joined: c ∈ {0; 1}
+          g ∈ {4; 9}
+          h ∈ {5; 7; 8}
+          __retres ∈ UNINITIALIZED
+  f :: worked.c:23 <- main: c ∈ {0; 1}
+                            g ∈ {4}
+                            h ∈ {7}
+                            __retres ∈ UNINITIALIZED
+  f :: worked.c:24 <- main: c ∈ {0; 1}
+                            g ∈ {4}
+                            h ∈ {8}
+                            __retres ∈ UNINITIALIZED
+  f :: worked.c:25 <- main: c ∈ {0; 1}
+                            g ∈ {9}
+                            h ∈ {8}
+                            __retres ∈ UNINITIALIZED
+  f :: worked.c:26 <- main: c ∈ {0; 1}
+                            g ∈ {9}
+                            h ∈ {5}
+                            __retres ∈ UNINITIALIZED
+f, before worked.c:19 `g = 1;` (P):
+  joined: c ∈ {0; 1}
+          g ∈ {0; 4; 9}
+          h ∈ {5; 7; 8}
+          __retres ∈ UNINITIALIZED
+  f :: worked.c:23 <- main: c ∈ {0; 1}
+                            g ∈ {0; 4}
+                            h ∈ {7}
+                            __retres ∈ UNINITIALIZED
+  f :: worked.c:24 <- main: c ∈ {0; 1}
+                            g ∈ {0; 4}
+                            h ∈ {8}
+                            __retres ∈ UNINITIALIZED
+  f :: worked.c:25 <- main: c ∈ {0; 1}
+                            g ∈ {0; 9}
+                            h ∈ {8}
+                            __retres ∈ UNINITIALIZED
+  f :: worked.c:26 <- main: c ∈ {0; 1}
+                            g ∈ {0; 9}
+                            h ∈ {5}
+                            __retres ∈ UNINITIALIZED
+f, after worked.c:19 `return;`:
+  joined: c ∈ {0; 1}
+          g ∈ {1}
+          h ∈ {5; 7; 8}
+          __retres ∈ UNINITIALIZED
+  f :: worked.c:23 <- main: c ∈ {0; 1}
+                            g ∈ {1}
+                            h ∈ {7}
+                            __retres ∈ UNINITIALIZED
+  f :: worked.c:24 <- main: c ∈ {0; 1}
+                            g ∈ {1}
+                            h ∈ {8}
+                            __retres ∈ UNINITIALIZED
+  f :: worked.c:25 <- main: c ∈ {0; 1}
+                            g ∈ {1}
+                            h ∈ {8}
+                            __retres ∈ UNINITIALIZED
+  f :: worked.c:26 <- main: c ∈ {0; 1}
+                            g ∈ {1}
+                            h ∈ {5}
+                            __retres ∈ UNINITIALIZED
+Hits against the analysed call of their cache entry:
+  f :: worked.c:24 <- main, hit of cache entry 9, against f :: worked.c:23 <- main: differs on h, at 9 points.
+  f :: worked.c:26 <- main, hit of cache entry 10, against f :: worked.c:25 <- main: differs on h, at 9 points.
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 153 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 42 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 42 points.
+Filtered requests that reject one callstack: 9.
+Requests made: 237; reported by the trap: 237, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 74 requests, 74 reads of the legacy store in them, 4 reads outside any request.
+  with -eva-hit-log: 78 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 21 requests
+    statistics: 19 requests
+    final values: 37 requests
+    summary: 1 request
+Statuses of the properties: those of the run without memexec, for 199 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 1.0000, 0 alarms, those of the run without memexec.
+Messages of the passes, run without memexec:
+  [eva] ====== VALUES COMPUTED ======
+  [eva:final-states] Values at end of function f:
+    g ∈ {1}
+  [eva:final-states] Values at end of function main:
+    Frama_C_entropy_source ∈ [--..--]
+    c ∈ {0; 1}
+    g ∈ {1}
+    h ∈ {5}
+    __retres ∈ {0}
+  [eva:summary] ====== ANALYSIS SUMMARY ======
+    ----------------------------------------------------------------------------
+    2 functions analyzed (out of 2): 100% coverage.
+    In these functions, 19 statements reached (out of 19): 100% coverage.
+    ----------------------------------------------------------------------------
+    No errors or warnings raised during the analysis.
+    ----------------------------------------------------------------------------
+    0 alarms generated by the analysis.
+    ----------------------------------------------------------------------------
+    Evaluation of the logical properties reached by the analysis:
+      Assertions        0 valid     0 unknown     0 invalid      0 total
+      Preconditions     1 valid     0 unknown     0 invalid      1 total
+    100% of the logical properties reached have been proven.
+    ----------------------------------------------------------------------------
+Messages of the passes with -eva-hit-log: those of the run without memexec.

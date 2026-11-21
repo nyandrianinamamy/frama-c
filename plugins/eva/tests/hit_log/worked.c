@@ -1,5 +1,6 @@
 /* run.config
    STDOPT:
+   STDOPT: +"-eva-verbose 1 -eva-msg-key=final-states"
 */
 
 /* The worked example of #87. The matching key of f is {c, g}; h is in the

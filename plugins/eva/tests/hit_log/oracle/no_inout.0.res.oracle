@@ -167,3 +167,11 @@ Callstacks listed through the filter: NOT those of the run without memexec at 21
   main, after no_inout.c:16 `return __retres;`
 Filtered requests that reject one callstack: 5.
 Requests made: 125; reported by the trap: 125, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 22 requests, 22 reads of the legacy store in them, 0 reads outside any request.
+  with -eva-hit-log: 22 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 12 requests
+    statistics: 10 requests
+Statuses of the properties: those of the run without memexec, for 0 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 1.0000, 0 alarms, those of the run without memexec.

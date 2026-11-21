@@ -58,3 +58,12 @@ Callstacks listed: those of the run without memexec at each of the 44 points.
 Callstacks listed through the filter: those of the run without memexec at each of the 44 points.
 Filtered requests that reject one callstack: 7.
 Requests made: 218; reported by the trap: 218, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 43 requests, 57 reads of the legacy store in them, 0 reads outside any request.
+  with -eva-hit-log: 43 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 22 requests
+    statistics: 20 requests
+    summary: 1 request
+Statuses of the properties: those of the run without memexec, for 199 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 0.7000, function coverage 1.0000, 0 alarms, those of the run without memexec.

@@ -1,6 +1,7 @@
 /* run.config
    STDOPT: +"-main nested"
    STDOPT: +"-main second_case"
+   STDOPT: +"-main nested -eva-verbose 1 -eva-msg-key=final-states"
 */
 
 /* Calls below a hit. */

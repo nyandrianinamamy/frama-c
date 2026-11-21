@@ -101,3 +101,9 @@ Callstacks listed through the filter: NOT those of the run without memexec at 8 
   interrupted, before closed_list.c:31 `out = divide(v);`
 Filtered requests that reject one callstack: 0.
 Requests made: 259; reported by the trap: 259, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 0 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+  with -eva-hit-log: 0 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+Statuses of the properties: those of the run without memexec, for 1 property.
+Alarms: 1, of which 1 not proven, those of the run without memexec.
+Summary: statement coverage 0.0000, function coverage 0.0000, 0 alarms, those of the run without memexec.

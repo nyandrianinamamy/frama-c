@@ -36,7 +36,16 @@
    - the number of filtered requests that reject a callstack;
    - whether each request made in the current project is reported by
      Eva.Legacy_read_trap, once and with its description, and the reads of
-     the legacy store that it reports.
+     the legacy store that it reports;
+   - the passes that Eva runs after the iteration, in the run with memexec
+     and in the run with -eva-hit-log: their requests and their reads of the
+     legacy store, within requests and outside any request, as reported by
+     Eva.Legacy_read_trap, which is on during these two analyses; and the
+     requests made on the callstacks below a hit;
+   - the outputs of these passes, against the run without memexec: the
+     statuses of the properties, the alarms, the statement and function
+     coverage and the number of alarms of the summary, and the messages they
+     print, if any.
      When the analysis with -eva-hit-log has no result, as when it is refused,
      no request is made. *)
 
@@ -120,7 +129,8 @@ let print_calls () =
   Format.printf "@]@."
 
 (* The callstacks that reach the start of a function and are not those of a
-   call of the analysis. [starts] gives the callstacks of each start. *)
+   call of the analysis. [starts] gives the callstacks of each start. Returns
+   their printed forms. *)
 let print_below starts =
   let observed = List.map (fun ((_, p), _, _) -> p) !calls in
   let below =
@@ -132,7 +142,8 @@ let print_below starts =
     Format.printf "@[<v 2>Calls below a hit:";
     List.iter (fun stack -> Format.printf "@ %s" (display stack)) below;
     Format.printf "@]@."
-  end
+  end;
+  List.map fst below
 
 (* ----- Points ------------------------------------------------------------ *)
 
@@ -584,22 +595,281 @@ let print_control compared =
     Format.printf "Hits against the analysed call of their cache entry:@.";
   List.iter control (List.rev !calls)
 
-(* ----- Main -------------------------------------------------------------- *)
+(* ----- Passes after the iteration ---------------------------------------- *)
+
+(* What an analysis gives after its iteration: the requests and the reads
+   outside any request that Eva.Legacy_read_trap reports, and the messages
+   printed by the passes. *)
+type passes = {
+  requests: Legacy_read_trap.request list;
+  strays: Legacy_read_trap.stray list;
+  output: string;
+}
+
+(* The messages printed from the end of the iteration, when Eva has results,
+   to the end of the analysis, by the passes, are captured. *)
+let capture = ref None
+
+let () =
+  Analysis.register_computation_hook ~on:Computed
+    (fun _ ->
+       Option.iter
+         (fun (_, fmt) -> Log.set_formatter ~isatty:false fmt)
+         !capture)
 
 let analyse () =
-  try Analysis.compute ()
-  with Log.AbortError _ -> Format.printf "The analysis has stopped.@."
+  let buffer = Buffer.create 80 in
+  let fmt = Format.formatter_of_buffer buffer in
+  capture := Some (buffer, fmt);
+  Legacy_read_trap.start ();
+  begin
+    try Analysis.compute ()
+    with Log.AbortError _ -> Format.printf "The analysis has stopped.@."
+  end;
+  Legacy_read_trap.stop ();
+  capture := None;
+  Format.pp_print_flush fmt ();
+  Log.reset_stdout ~isatty:false ();
+  let passes =
+    List.filter
+      (fun r -> Option.is_some r.Legacy_read_trap.pass)
+      (Legacy_read_trap.requests ())
+  in
+  { requests = passes; strays = Legacy_read_trap.stray_reads ();
+    output = Buffer.contents buffer }
 
-(* Analyses a copy of the current project, made before its analysis. *)
-let copy_and_analyse name ~memexec =
-  let project = Project.create_by_copy ~last:false name in
+let reads_of passes =
+  List.length (List.concat_map (fun r -> r.Legacy_read_trap.reads)
+                 passes.requests)
+
+let plural ?plural n word =
+  let words = Option.value ~default:(word ^ "s") plural in
+  Format.sprintf "%d %s" n (if n = 1 then word else words)
+
+(* The passes in the order of their first request, with their number of
+   requests. *)
+let by_pass passes =
+  List.fold_left
+    (fun acc r ->
+       let name = Option.get r.Legacy_read_trap.pass in
+       if List.mem_assoc name acc
+       then List.map (fun (n, c) -> n, if n = name then c + 1 else c) acc
+       else acc @ [ name, 1 ])
+    [] passes.requests
+
+(* [below] are the printed callstacks of the calls below a hit. *)
+let print_passes ~memexec ~current ~below =
+  let summary what passes =
+    Format.printf "  %s: %s, %s of the legacy store in them, %s outside any \
+                   request.@." what
+      (plural (List.length passes.requests) "request")
+      (plural (reads_of passes) "read")
+      (plural (List.length passes.strays) "read")
+  in
+  Format.printf "Passes after the iteration:@.";
+  summary "with memexec, without recording" memexec;
+  summary "with -eva-hit-log" current;
+  List.iter
+    (fun (name, n) ->
+       Format.printf "    %s: %s@." name (plural n "request"))
+    (by_pass current);
+  if below <> [] then begin
+    let on_below r =
+      List.exists
+        (fun cs ->
+           let suffix = "; callstack " ^ cs in
+           String.ends_with ~suffix r.Legacy_read_trap.description)
+        below
+    in
+    Format.printf "  requests of the passes on a callstack below a hit, with \
+                   -eva-hit-log: %d.@."
+      (List.length (List.filter on_below current.requests))
+  end;
+  List.iter
+    (fun r -> if r.Legacy_read_trap.reads <> [] then
+        Format.printf "  %a@." Legacy_read_trap.pretty_request r)
+    current.requests;
+  List.iter (Format.printf "  %a@." Legacy_read_trap.pretty_stray)
+    current.strays
+
+(* ----- Outputs of the passes --------------------------------------------- *)
+
+let one_line = Str.global_replace (Str.regexp "[ \n]+") " "
+
+(* The status of each property, by its location, its description and its
+   text: the description of an alarm does not give its expression. *)
+let statuses () =
+  let list = ref [] in
+  Property_status.iter
+    (fun ip ->
+       let key =
+         Format.asprintf "%a: %a: %a" Fileloc.pretty (Property.location ip)
+           Description.pp_property ip Property.pretty ip
+         |> one_line
+       in
+       list := (key, Property_status.Feedback.get ip) :: !list);
+  List.sort_uniq compare !list
+
+(* The alarms, by their statement and their text, with their status. Scope
+   does not remove a redundant alarm: it gives it a valid status under the
+   hypothesis of the alarm that makes it redundant. *)
+let alarms () =
+  let list = ref [] in
+  Alarms.iter
+    (fun _emitter kf stmt ~rank:_ alarm ca ->
+       let ip = Property.ip_of_code_annot_single kf stmt ca in
+       let alarm =
+         Format.asprintf "%a: %a" Fileloc.pretty (Cil_datatype.Stmt.loc stmt)
+           Alarms.pretty alarm
+         |> one_line
+       in
+       list := (alarm, Property_status.Feedback.get ip) :: !list);
+  List.sort_uniq compare !list
+
+(* The statement and function coverage and the number of alarms computed by
+   the summary. *)
+let summary_statistics () =
+  Statistics.(get stmt_coverage (), get fun_coverage (), get alarm_count ())
+
+(* A property absent from a project, as an alarm that is not emitted, is
+   ranked as valid. *)
+let rank : Property_status.Feedback.t option -> int = function
+  | Some (Invalid | Invalid_under_hyp) -> 0
+  | Some (Unknown | Never_tried | Inconsistent) -> 1
+  | None | Some (Valid | Valid_under_hyp | Considered_valid | Valid_but_dead
+                | Unknown_but_dead | Invalid_but_dead) -> 2
+
+let string_of_status = function
+  | None -> "absent"
+  | Some status -> Description.status_feedback status
+
+type outputs = {
+  statuses: (string * Property_status.Feedback.t) list;
+  alarms: (string * Property_status.Feedback.t) list;
+  statistics: float * float * int;
+  output: string;
+}
+
+let outputs project (passes: passes) =
   Project.on project
     (fun () ->
-       Parameters.Memexec.set memexec;
-       Parameters.HitLog.off ();
-       analyse ())
-    ();
-  project
+       { statuses = statuses (); alarms = alarms ();
+         statistics = summary_statistics (); output = passes.output })
+    ()
+
+(* The statuses of [o] that differ from those of [reference], with their
+   verdict. *)
+let differing_statuses keys ~reference ~memexec o =
+  List.filter_map
+    (fun key ->
+       let find o = List.assoc_opt key o.statuses in
+       let r = find reference and c = find o in
+       if r = c then None
+       else
+         let verdict =
+           if rank c > rank r then "MORE OPTIMISTIC"
+           else if rank c < rank r then "less optimistic"
+           else "different"
+         in
+         let origin =
+           if o != memexec && find memexec = c then ", as with memexec" else ""
+         in
+         Some (Format.sprintf "  %s: %s against %s: %s%s" key
+                 (string_of_status c) (string_of_status r) verdict origin))
+    keys
+
+(* Prints the messages [output] in a box, one line per line. *)
+let print_messages title output =
+  Format.printf "@[<v 2>%s:" title;
+  List.iter (Format.printf "@ %s")
+    (String.split_on_char '\n' (String.trim output));
+  Format.printf "@]@."
+
+let print_outputs ~reference ~memexec ~current =
+  let keys =
+    List.sort_uniq compare
+      (List.map fst reference.statuses @ List.map fst current.statuses
+       @ List.map fst memexec.statuses)
+  in
+  begin match differing_statuses keys ~reference ~memexec current with
+    | [] ->
+      Format.printf "Statuses of the properties: those of the run without \
+                     memexec, for %s.@."
+        (plural ~plural:"properties" (List.length keys) "property")
+    | lines ->
+      Format.printf "Statuses of the properties that differ from the run \
+                     without memexec:@.";
+      List.iter (Format.printf "%s@.") lines
+  end;
+  begin match differing_statuses keys ~reference ~memexec memexec with
+    | [] -> ()
+    | lines ->
+      Format.printf "Statuses with memexec, without recording, that differ \
+                     from the run without memexec:@.";
+      List.iter (Format.printf "%s@.") lines
+  end;
+  let kept o =
+    List.filter (fun (_, status) -> rank (Some status) < 2) o.alarms
+  in
+  if reference.alarms = current.alarms then
+    Format.printf "Alarms: %d, of which %d not proven, those of the run \
+                   without memexec.@."
+      (List.length current.alarms) (List.length (kept current))
+  else begin
+    let print (alarm, status) =
+      Format.sprintf "%s: %s" alarm (Description.status_feedback status)
+    in
+    let only a b = List.filter (fun x -> not (List.mem x b)) a in
+    Format.printf "Alarms that differ from the run without memexec:@.";
+    List.iter (fun a -> Format.printf "  missing: %s@." (print a))
+      (only reference.alarms current.alarms);
+    List.iter (fun a -> Format.printf "  added: %s@." (print a))
+      (only current.alarms reference.alarms)
+  end;
+  let print_statistics (stmts, funs, alarms) =
+    Format.sprintf "statement coverage %.4f, function coverage %.4f, %s"
+      stmts funs (plural alarms "alarm")
+  in
+  if reference.statistics = current.statistics then
+    Format.printf "Summary: %s, those of the run without memexec.@."
+      (print_statistics current.statistics)
+  else
+    Format.printf "Summary: %s, against %s without memexec%s.@."
+      (print_statistics current.statistics)
+      (print_statistics reference.statistics)
+      (if memexec.statistics = current.statistics then ", as with memexec"
+       else "");
+  if reference.output <> "" || current.output <> "" then begin
+    print_messages "Messages of the passes, run without memexec"
+      reference.output;
+    if reference.output = current.output then
+      Format.printf "Messages of the passes with -eva-hit-log: those of the \
+                     run without memexec.@."
+    else
+      print_messages
+        ("Messages of the passes with -eva-hit-log, which differ from the \
+          run without memexec"
+         ^ if memexec.output = current.output then ", as with memexec" else "")
+        current.output
+  end
+
+(* ----- Main -------------------------------------------------------------- *)
+
+(* Analyses a copy of the current project, made before its analysis. The
+   option -eva is set, as for the current project, so that the passes after
+   the iteration print the values at the end of each function. *)
+let copy_and_analyse name ~memexec =
+  let project = Project.create_by_copy ~last:false name in
+  let passes =
+    Project.on project
+      (fun () ->
+         Parameters.Memexec.set memexec;
+         Parameters.HitLog.off ();
+         Parameters.Eva.on ();
+         analyse ())
+      ()
+  in
+  project, passes
 
 (* The statements and functions of each project are its own: the points are
    built in each project, in the same order. *)
@@ -617,10 +887,13 @@ let with_trap f =
 
 let main () =
   let current = Project.current () in
-  let reference = copy_and_analyse "reference" ~memexec:false in
-  let with_memexec = copy_and_analyse "memexec" ~memexec:true in
+  let reference, reference_passes =
+    copy_and_analyse "reference" ~memexec:false
+  in
+  let with_memexec, memexec_passes = copy_and_analyse "memexec" ~memexec:true in
+  Parameters.Eva.on ();
   observing_calls := true;
-  analyse ();
+  let current_passes = analyse () in
   observing_calls := false;
   print_calls ();
   if not (Analysis.is_computed ()) then
@@ -643,7 +916,7 @@ let main () =
            if String.starts_with ~prefix:"start of " point.trap
            then Some stacks else None)
     in
-    print_below starts;
+    let below = print_below starts in
     (* The callstacks listed with the recording are compared with those of
        the run without memexec before their union is taken: a callstack that
        one of the two lacks is not hidden by the requests made on the union. *)
@@ -728,7 +1001,12 @@ let main () =
     List.iter
       (fun r -> if r.Legacy_read_trap.reads <> [] then
           Format.printf "%a@." Legacy_read_trap.pretty_request r)
-      reported
+      reported;
+    print_passes ~memexec:memexec_passes ~current:current_passes ~below;
+    print_outputs
+      ~reference:(outputs reference reference_passes)
+      ~memexec:(outputs with_memexec memexec_passes)
+      ~current:(outputs current current_passes)
   end
 
 let () = Boot.Main.extend main
