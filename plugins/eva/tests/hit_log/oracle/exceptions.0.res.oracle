@@ -1,0 +1,61 @@
+[kernel] Parsing exceptions.c (with preprocessing)
+Exception in a hook run before the iteration.
+The exception is caught.
+After the analysis:
+  requests answered by the rule: false
+  Eva has no result
+Exception in a hook run at the call of leaf.
+In the hook run when the analysis is aborted:
+  requests answered by the rule: true
+  start of main: value
+  before M in main: unavailable
+  start of f: value
+  before A in f: unavailable
+  before B in f: unavailable
+  before C in f: unavailable
+  start of leaf: value
+  before L in leaf: unavailable
+The exception is caught.
+After the analysis:
+  requests answered by the rule: true
+  start of main: value
+  before M in main: unavailable
+  start of f: value
+  before A in f: unavailable
+  before B in f: unavailable
+  before C in f: unavailable
+  start of leaf: value
+  before L in leaf: unavailable
+Exception in a hook run at the end of the analysis of leaf.
+In the hook run when the analysis is aborted:
+  requests answered by the rule: true
+  start of main: value
+  before M in main: unavailable
+  start of f: value
+  before A in f: unavailable
+  before B in f: unavailable
+  before C in f: unavailable
+  start of leaf: value
+  before L in leaf: unavailable
+The exception is caught.
+After the analysis:
+  requests answered by the rule: true
+  start of main: value
+  before M in main: unavailable
+  start of f: value
+  before A in f: unavailable
+  before B in f: unavailable
+  before C in f: unavailable
+  start of leaf: value
+  before L in leaf: unavailable
+Exception nowhere.
+After the analysis:
+  requests answered by the rule: true
+  start of main: value
+  before M in main: value
+  start of f: value
+  before A in f: value
+  before B in f: value
+  before C in f: value
+  start of leaf: value
+  before L in leaf: value
