@@ -121,5 +121,49 @@ Differences with the run without memexec:
   main, after no_inout.c:16 `return __retres;`, filtered: unavailable
   main, after no_inout.c:16 `return __retres;`, main: unavailable
 Answers: 10 equal, 0 covering, 0 more precise, 0 omitting, 67 unavailable.
+Callstacks listed: NOT those of the run without memexec at 21 of the 24 points:
+  final state
+  f, before no_inout.c:11 `out = g;` (P)
+  f, after no_inout.c:11 `out = g;` (P)
+  f, before no_inout.c:11 `return;`
+  f, after no_inout.c:11 `return;`
+  main, before no_inout.c:14 `g = 1;`
+  main, after no_inout.c:14 `g = 1;`
+  main, before no_inout.c:14 `h = 7;`
+  main, after no_inout.c:14 `h = 7;`
+  main, before no_inout.c:14 `f();`
+  main, after no_inout.c:14 `f();`
+  main, before no_inout.c:15 `g = 1;`
+  main, after no_inout.c:15 `g = 1;`
+  main, before no_inout.c:15 `h = 8;`
+  main, after no_inout.c:15 `h = 8;`
+  main, before no_inout.c:15 `f();`
+  main, after no_inout.c:15 `f();`
+  main, before no_inout.c:16 `__retres = 0;`
+  main, after no_inout.c:16 `__retres = 0;`
+  main, before no_inout.c:16 `return __retres;`
+  main, after no_inout.c:16 `return __retres;`
+Callstacks listed through the filter: NOT those of the run without memexec at 21 of the 24 points:
+  final state
+  f, before no_inout.c:11 `out = g;` (P)
+  f, after no_inout.c:11 `out = g;` (P)
+  f, before no_inout.c:11 `return;`
+  f, after no_inout.c:11 `return;`
+  main, before no_inout.c:14 `g = 1;`
+  main, after no_inout.c:14 `g = 1;`
+  main, before no_inout.c:14 `h = 7;`
+  main, after no_inout.c:14 `h = 7;`
+  main, before no_inout.c:14 `f();`
+  main, after no_inout.c:14 `f();`
+  main, before no_inout.c:15 `g = 1;`
+  main, after no_inout.c:15 `g = 1;`
+  main, before no_inout.c:15 `h = 8;`
+  main, after no_inout.c:15 `h = 8;`
+  main, before no_inout.c:15 `f();`
+  main, after no_inout.c:15 `f();`
+  main, before no_inout.c:16 `__retres = 0;`
+  main, after no_inout.c:16 `__retres = 0;`
+  main, before no_inout.c:16 `return __retres;`
+  main, after no_inout.c:16 `return __retres;`
 Filtered requests that reject one callstack: 5.
-Requests made: 101; reported by the trap: 101, each once with its description; reads of the legacy store: 0.
+Requests made: 125; reported by the trap: 125, each once with its description; reads of the legacy store: 0.

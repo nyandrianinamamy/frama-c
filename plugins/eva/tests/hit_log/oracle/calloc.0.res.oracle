@@ -50,5 +50,7 @@ alloc, after calloc.c:18 `return;`:
 Initial state: equal.
 Differences with the run without memexec:
 Answers: 131 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 47 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 47 points.
 Filtered requests that reject one callstack: 11.
-Requests made: 178; reported by the trap: 178, each once with its description; reads of the legacy store: 0.
+Requests made: 225; reported by the trap: 225, each once with its description; reads of the legacy store: 0.

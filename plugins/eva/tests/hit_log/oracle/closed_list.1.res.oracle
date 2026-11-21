@@ -166,5 +166,43 @@ Differences with the run without memexec:
   fact, after closed_list.c:24 `return __retres;`, fact :: closed_list.c:24 <- fact :: closed_list.c:26 <- recursion: unavailable
   fact, after closed_list.c:24 `return __retres;`, fact :: closed_list.c:26 <- recursion: unavailable
 Answers: 98 equal, 0 covering, 0 more precise, 0 omitting, 72 unavailable.
+Callstacks listed: NOT those of the run without memexec at 18 of the 62 points:
+  fact, before closed_list.c:24 `if (m <= 1)`
+  fact, after closed_list.c:24 `if (m <= 1)`
+  fact, before closed_list.c:24 `block`
+  fact, after closed_list.c:24 `block`
+  fact, before closed_list.c:24 `__retres = 1;`
+  fact, after closed_list.c:24 `__retres = 1;`
+  fact, before closed_list.c:24 `goto`
+  fact, after closed_list.c:24 `goto`
+  fact, before closed_list.c:24 `sequence` (P)
+  fact, after closed_list.c:24 `sequence` (P)
+  fact, before closed_list.c:24 `tmp = fact(m - 1);`
+  fact, after closed_list.c:24 `tmp = fact(m - 1);`
+  fact, before closed_list.c:24 `;`
+  fact, after closed_list.c:24 `;`
+  fact, before closed_list.c:24 `__retres = m * tmp;`
+  fact, after closed_list.c:24 `__retres = m * tmp;`
+  fact, before closed_list.c:24 `return __retres;`
+  fact, after closed_list.c:24 `return __retres;`
+Callstacks listed through the filter: NOT those of the run without memexec at 18 of the 62 points:
+  fact, before closed_list.c:24 `if (m <= 1)`
+  fact, after closed_list.c:24 `if (m <= 1)`
+  fact, before closed_list.c:24 `block`
+  fact, after closed_list.c:24 `block`
+  fact, before closed_list.c:24 `__retres = 1;`
+  fact, after closed_list.c:24 `__retres = 1;`
+  fact, before closed_list.c:24 `goto`
+  fact, after closed_list.c:24 `goto`
+  fact, before closed_list.c:24 `sequence` (P)
+  fact, after closed_list.c:24 `sequence` (P)
+  fact, before closed_list.c:24 `tmp = fact(m - 1);`
+  fact, after closed_list.c:24 `tmp = fact(m - 1);`
+  fact, before closed_list.c:24 `;`
+  fact, after closed_list.c:24 `;`
+  fact, before closed_list.c:24 `__retres = m * tmp;`
+  fact, after closed_list.c:24 `__retres = m * tmp;`
+  fact, before closed_list.c:24 `return __retres;`
+  fact, after closed_list.c:24 `return __retres;`
 Filtered requests that reject one callstack: 14.
-Requests made: 232; reported by the trap: 232, each once with its description; reads of the legacy store: 0.
+Requests made: 294; reported by the trap: 294, each once with its description; reads of the legacy store: 0.

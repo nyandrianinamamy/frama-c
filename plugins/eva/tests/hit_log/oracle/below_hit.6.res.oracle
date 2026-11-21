@@ -188,5 +188,7 @@ Differences with the run without memexec:
   precondition, after below_hit.c:112 `return;`, filtered: covers, as with memexec
   precondition, after below_hit.c:112 `return;`, precondition: covers, as with memexec
 Answers: 489 equal, 36 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 244 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 244 points.
 Filtered requests that reject one callstack: 10.
-Requests made: 769; reported by the trap: 769, each once with its description; reads of the legacy store: 0.
+Requests made: 1013; reported by the trap: 1013, each once with its description; reads of the legacy store: 0.

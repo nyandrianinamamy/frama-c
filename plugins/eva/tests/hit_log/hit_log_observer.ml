@@ -75,12 +75,19 @@ let identify callstack =
   printed, p
 
 (* The name shown for a callstack: its printed form, with the numbers of its
-   call statements when another callstack is printed alike. *)
+   call statements, and its thread if needed, when another callstack is
+   printed alike. It is used for output only: callstacks are looked up by
+   their identity. *)
 let display (printed, p) =
   match Hashtbl.find_opt seen printed with
-  | Some (_ :: _ :: _) ->
+  | Some (_ :: _ :: _ as alike) ->
     let sids = List.map (fun (_, sid) -> string_of_int sid) p.calls in
-    Format.sprintf "%s (call statements %s)" printed (String.concat ", " sids)
+    let thread =
+      if List.for_all (fun p' -> p'.thread = p.thread) alike then ""
+      else Format.sprintf "thread %d, " p.thread
+    in
+    Format.sprintf "%s (%scall statements %s)" printed thread
+      (String.concat ", " sids)
   | _ -> printed
 
 let observing_calls = ref false
@@ -273,7 +280,8 @@ let union lists =
 type point_answers = {
   joined: answer;
   filtered: answer;
-  by_callstack: (string * answer) list;
+  by_callstack: ((string * portable) * answer) list;
+  filtered_stacks: portable list; (* The callstacks the filter keeps. *)
 }
 
 (* The number of points of the current project at which the filter rejects
@@ -302,11 +310,17 @@ let answers (point : point) stacks =
     List.map
       (fun (printed, cs as stack) ->
          let expected = point.trap ^ "; callstack " ^ printed in
-         display stack,
+         stack,
          state ~expected Results.(point.request |> in_callstack (rebuild cs)))
       stacks
   in
-  { joined; filtered; by_callstack }
+  let filtered_stacks =
+    request ~expected:(point.trap ^ "; every callstack, filtered")
+      (fun () ->
+         Results.(callstacks (point.request |> filter_callstack keep)))
+    |> List.map portable |> List.sort compare
+  in
+  { joined; filtered; by_callstack; filtered_stacks }
 
 
 (* ----- Comparison -------------------------------------------------------- *)
@@ -370,7 +384,7 @@ let compare_point point c =
     ~memexec:c.memexec.filtered ~answer:c.current.filtered;
   List.iter
     (fun (name, answer) ->
-       compare_answer (describe name)
+       compare_answer (describe (display name))
          ~reference:(find name c.reference.by_callstack)
          ~memexec:(find name c.memexec.by_callstack)
          ~answer)
@@ -448,7 +462,8 @@ let rename ~into answers =
        { joined = rename_answer a.joined;
          filtered = rename_answer a.filtered;
          by_callstack =
-           List.map (fun (cs, a) -> cs, rename_answer a) a.by_callstack })
+           List.map (fun (cs, a) -> cs, rename_answer a) a.by_callstack;
+         filtered_stacks = a.filtered_stacks })
     answers
 
 (* ----- Printing of states ------------------------------------------------ *)
@@ -471,7 +486,7 @@ let print_answers title answers =
   Format.printf "@ %s: @[%a@]" title pretty_state answers.joined;
   List.iter
     (fun (name, answer) ->
-       Format.printf "@ %s: @[%a@]" name pretty_state answer)
+       Format.printf "@ %s: @[%a@]" (display name) pretty_state answer)
     answers.by_callstack
 
 let all_equal c =
@@ -541,8 +556,8 @@ let print_control compared =
                    Option.value ~default:(Error Results.Bottom)
                      (List.assoc_opt name list)
                  in
-                 let a = find (display entry) c.current.by_callstack in
-                 let b = find (display hit) c.current.by_callstack in
+                 let a = find entry c.current.by_callstack in
+                 let b = find hit c.current.by_callstack in
                  if model a = None || model b = None then incr unavailable
                  else variables := differing_variables a b @ !variables
                end)
@@ -629,6 +644,16 @@ let main () =
            then Some stacks else None)
     in
     print_below starts;
+    (* The callstacks listed with the recording are compared with those of
+       the run without memexec before their union is taken: a callstack that
+       one of the two lacks is not hidden by the requests made on the union. *)
+    let different_stacks =
+      List.combine (points ()) (List.combine reference_stacks current_stacks)
+      |> List.filter_map
+        (fun (point, (r, c)) ->
+           if List.map snd r = List.map snd c then None
+           else Some point.description)
+    in
     let stacks =
       List.map2 (fun (r, m) c -> union [ r; m; c ])
         (List.combine reference_stacks memexec_stacks) current_stacks
@@ -664,6 +689,27 @@ let main () =
                    %d omitting, %d unavailable.@."
       (get Equal) (get Covers) (get More_precise) (get Omits) (get Unavailable);
     let reads = List.concat_map (fun r -> r.Legacy_read_trap.reads) reported in
+    let different_filtered =
+      List.filter_map
+        (fun (point, c) ->
+           if c.reference.filtered_stacks = c.current.filtered_stacks then None
+           else Some point.description)
+        compared
+    in
+    let print_different what = function
+      | [] ->
+        Format.printf "Callstacks listed%s: those of the run without memexec \
+                       at each of the %d points.@."
+          what (List.length compared)
+      | list ->
+        Format.printf "@[<v 2>Callstacks listed%s: NOT those of the run \
+                       without memexec at %d of the %d points:"
+          what (List.length list) (List.length compared);
+        List.iter (Format.printf "@ %s") list;
+        Format.printf "@]@."
+    in
+    print_different "" different_stacks;
+    print_different " through the filter" different_filtered;
     Format.printf "Filtered requests that reject one callstack: %d.@."
       !rejecting;
     Format.printf "Requests made: %d; reported by the trap: %d, %s; reads of \

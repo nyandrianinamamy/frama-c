@@ -168,5 +168,7 @@ Differences with the run without memexec:
   unroll_bound, after more_precise.c:63 `return;`, filtered: more precise, as with memexec
   unroll_bound, after more_precise.c:63 `return;`, unroll_bound: more precise, as with memexec
 Answers: 246 equal, 0 covering, 39 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 113 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 113 points.
 Filtered requests that reject one callstack: 23.
-Requests made: 398; reported by the trap: 398, each once with its description; reads of the legacy store: 0.
+Requests made: 511; reported by the trap: 511, each once with its description; reads of the legacy store: 0.

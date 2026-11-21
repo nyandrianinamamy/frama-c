@@ -78,5 +78,37 @@ Differences with the run without memexec:
   disabled, after closed_list.c:20 `return;`, filtered: unavailable
   disabled, after closed_list.c:20 `return;`, disabled: unavailable
 Answers: 90 equal, 0 covering, 0 more precise, 0 omitting, 53 unavailable.
+Callstacks listed: NOT those of the run without memexec at 15 of the 62 points:
+  final state
+  disabled, before closed_list.c:18 `g = 1;`
+  disabled, after closed_list.c:18 `g = 1;`
+  disabled, before closed_list.c:18 `h = 7;`
+  disabled, after closed_list.c:18 `h = 7;`
+  disabled, before closed_list.c:18 `nores();`
+  disabled, after closed_list.c:18 `nores();`
+  disabled, before closed_list.c:19 `g = 1;`
+  disabled, after closed_list.c:19 `g = 1;`
+  disabled, before closed_list.c:19 `h = 8;`
+  disabled, after closed_list.c:19 `h = 8;`
+  disabled, before closed_list.c:19 `nores();`
+  disabled, after closed_list.c:19 `nores();`
+  disabled, before closed_list.c:20 `return;`
+  disabled, after closed_list.c:20 `return;`
+Callstacks listed through the filter: NOT those of the run without memexec at 15 of the 62 points:
+  final state
+  disabled, before closed_list.c:18 `g = 1;`
+  disabled, after closed_list.c:18 `g = 1;`
+  disabled, before closed_list.c:18 `h = 7;`
+  disabled, after closed_list.c:18 `h = 7;`
+  disabled, before closed_list.c:18 `nores();`
+  disabled, after closed_list.c:18 `nores();`
+  disabled, before closed_list.c:19 `g = 1;`
+  disabled, after closed_list.c:19 `g = 1;`
+  disabled, before closed_list.c:19 `h = 8;`
+  disabled, after closed_list.c:19 `h = 8;`
+  disabled, before closed_list.c:19 `nores();`
+  disabled, after closed_list.c:19 `nores();`
+  disabled, before closed_list.c:20 `return;`
+  disabled, after closed_list.c:20 `return;`
 Filtered requests that reject one callstack: 1.
-Requests made: 205; reported by the trap: 205, each once with its description; reads of the legacy store: 0.
+Requests made: 267; reported by the trap: 267, each once with its description; reads of the legacy store: 0.

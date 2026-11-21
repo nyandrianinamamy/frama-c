@@ -306,5 +306,14 @@ Differences with the run without memexec:
   issue95, after known_issues.c:110 `return;`, filtered: more precise, as with memexec
   issue95, after known_issues.c:110 `return;`, issue95: more precise, as with memexec
 Answers: 530 equal, 9 covering, 49 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: NOT those of the run without memexec at 7 of the 268 points:
+  h95, before known_issues.c:104 `if (n)`
+  h95, after known_issues.c:104 `if (n)`
+  h95, after known_issues.c:104 `goto`
+  h95, before known_issues.c:104 `__retres = 2;`
+  h95, after known_issues.c:104 `__retres = 2;`
+  h95, before known_issues.c:104 `return __retres;`
+  h95, after known_issues.c:104 `return __retres;`
+Callstacks listed through the filter: those of the run without memexec at each of the 268 points.
 Filtered requests that reject one callstack: 15.
-Requests made: 856; reported by the trap: 856, each once with its description; reads of the legacy store: 0.
+Requests made: 1124; reported by the trap: 1124, each once with its description; reads of the legacy store: 0.

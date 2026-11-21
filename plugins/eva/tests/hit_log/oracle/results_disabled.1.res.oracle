@@ -55,5 +55,7 @@ Differences with the run without memexec:
   main, after results_disabled.c:19 `return __retres;`, joined: unavailable, as in the reference
   main, after results_disabled.c:19 `return __retres;`, filtered: unavailable, as in the reference
 Answers: 0 equal, 0 covering, 0 more precise, 0 omitting, 40 unavailable.
+Callstacks listed: those of the run without memexec at each of the 20 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 20 points.
 Filtered requests that reject one callstack: 0.
-Requests made: 60; reported by the trap: 60, each once with its description; reads of the legacy store: 0.
+Requests made: 80; reported by the trap: 80, each once with its description; reads of the legacy store: 0.

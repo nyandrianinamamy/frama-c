@@ -255,5 +255,33 @@ Differences with the run without memexec:
   hints_on_branch, after more_precise.c:45 `return;`, filtered: more precise, as with memexec
   hints_on_branch, after more_precise.c:45 `return;`, hints_on_branch: more precise, as with memexec
 Answers: 208 equal, 65 covering, 39 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: NOT those of the run without memexec at 13 of the 113 points:
+  hint_y, start
+  hint_y, before more_precise.c:28 `loop`
+  hint_y, after more_precise.c:28 `loop`
+  hint_y, before more_precise.c:28 `if (*q < 0)`
+  hint_y, after more_precise.c:28 `if (*q < 0)`
+  hint_y, before more_precise.c:28 `break;`
+  hint_y, after more_precise.c:28 `break;`
+  hint_y, before more_precise.c:29 `;` (H)
+  hint_y, after more_precise.c:29 `;` (H)
+  hint_y, before more_precise.c:30 `return;`
+  hint_y, after more_precise.c:30 `return;`
+  hints_on_branch, before more_precise.c:42 `hint_y(& y);`
+  hints_on_branch, after more_precise.c:42 `hint_y(& y);`
+Callstacks listed through the filter: NOT those of the run without memexec at 13 of the 113 points:
+  hint_y, start
+  hint_y, before more_precise.c:28 `loop`
+  hint_y, after more_precise.c:28 `loop`
+  hint_y, before more_precise.c:28 `if (*q < 0)`
+  hint_y, after more_precise.c:28 `if (*q < 0)`
+  hint_y, before more_precise.c:28 `break;`
+  hint_y, after more_precise.c:28 `break;`
+  hint_y, before more_precise.c:29 `;` (H)
+  hint_y, after more_precise.c:29 `;` (H)
+  hint_y, before more_precise.c:30 `return;`
+  hint_y, after more_precise.c:30 `return;`
+  hints_on_branch, before more_precise.c:42 `hint_y(& y);`
+  hints_on_branch, after more_precise.c:42 `hint_y(& y);`
 Filtered requests that reject one callstack: 11.
-Requests made: 425; reported by the trap: 425, each once with its description; reads of the legacy store: 0.
+Requests made: 538; reported by the trap: 538, each once with its description; reads of the legacy store: 0.

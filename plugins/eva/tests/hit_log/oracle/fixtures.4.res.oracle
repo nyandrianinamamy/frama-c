@@ -314,5 +314,11 @@ Differences with the run without memexec:
   widening_hints, after fixtures.c:80 `return;`, filtered: covers, as with memexec
   widening_hints, after fixtures.c:80 `return;`, widening_hints: covers, as with memexec
 Answers: 544 equal, 40 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: NOT those of the run without memexec at 2 of the 259 points:
+  count, before fixtures.c:68 `y = 1;` (R)
+  count, after fixtures.c:68 `y = 1;` (R)
+Callstacks listed through the filter: NOT those of the run without memexec at 2 of the 259 points:
+  count, before fixtures.c:68 `y = 1;` (R)
+  count, after fixtures.c:68 `y = 1;` (R)
 Filtered requests that reject one callstack: 17.
-Requests made: 843; reported by the trap: 843, each once with its description; reads of the legacy store: 0.
+Requests made: 1102; reported by the trap: 1102, each once with its description; reads of the legacy store: 0.

@@ -121,5 +121,7 @@ Hits against the analysed call of their cache entry:
 Initial state: equal.
 Differences with the run without memexec:
 Answers: 557 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 244 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 244 points.
 Filtered requests that reject one callstack: 15.
-Requests made: 801; reported by the trap: 801, each once with its description; reads of the legacy store: 0.
+Requests made: 1045; reported by the trap: 1045, each once with its description; reads of the legacy store: 0.

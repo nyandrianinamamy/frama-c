@@ -224,5 +224,7 @@ Differences with the run without memexec:
   issue93_4, after below_known_issues.c:74 `return;`, filtered: more precise, as with memexec
   issue93_4, after below_known_issues.c:74 `return;`, issue93_4: more precise, as with memexec
 Answers: 537 equal, 0 covering, 50 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 274 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 274 points.
 Filtered requests that reject one callstack: 12.
-Requests made: 861; reported by the trap: 861, each once with its description; reads of the legacy store: 0.
+Requests made: 1135; reported by the trap: 1135, each once with its description; reads of the legacy store: 0.

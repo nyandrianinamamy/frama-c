@@ -81,5 +81,23 @@ Differences with the run without memexec:
   interrupted, after closed_list.c:31 `return;`, joined: unavailable
   interrupted, after closed_list.c:31 `return;`, filtered: unavailable
 Answers: 97 equal, 0 covering, 0 more precise, 0 omitting, 38 unavailable.
+Callstacks listed: NOT those of the run without memexec at 8 of the 62 points:
+  divide, before closed_list.c:29 `;` (P)
+  divide, after closed_list.c:29 `;` (P)
+  divide, before closed_list.c:29 `__retres = 10 / d;`
+  interrupted, before closed_list.c:31 `out = 0;`
+  interrupted, after closed_list.c:31 `out = 0;`
+  interrupted, before closed_list.c:31 `h = 7;`
+  interrupted, after closed_list.c:31 `h = 7;`
+  interrupted, before closed_list.c:31 `out = divide(v);`
+Callstacks listed through the filter: NOT those of the run without memexec at 8 of the 62 points:
+  divide, before closed_list.c:29 `;` (P)
+  divide, after closed_list.c:29 `;` (P)
+  divide, before closed_list.c:29 `__retres = 10 / d;`
+  interrupted, before closed_list.c:31 `out = 0;`
+  interrupted, after closed_list.c:31 `out = 0;`
+  interrupted, before closed_list.c:31 `h = 7;`
+  interrupted, after closed_list.c:31 `h = 7;`
+  interrupted, before closed_list.c:31 `out = divide(v);`
 Filtered requests that reject one callstack: 0.
-Requests made: 197; reported by the trap: 197, each once with its description; reads of the legacy store: 0.
+Requests made: 259; reported by the trap: 259, each once with its description; reads of the legacy store: 0.
