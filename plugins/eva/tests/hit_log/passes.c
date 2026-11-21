@@ -2,6 +2,7 @@
    PLUGIN: eva,inout,scope
    STDOPT: +"-main below -eva-verbose 1 -eva-msg-key=final-states -eva-remove-redundant-alarms"
    STDOPT: +"-main below_child -eva-verbose 1 -eva-msg-key=final-states"
+   STDOPT: +"-main recursion -eva-unroll-recursive-calls 4 -eva-verbose 1 -eva-msg-key=final-states -eva-remove-redundant-alarms"
 */
 
 /* The passes after the iteration on calls below a hit. The options
@@ -62,4 +63,33 @@ void below_child(void) {
   g = 4; h = 7; leaf2();
   g = 4; h = 8; f2();
   g = 4; h = 9; f2();
+}
+
+/* rec is analysed with unrolled recursive calls: the points of its body are
+   unavailable to the rule (closed list of #87), and each request on them is
+   answered by top. The run without memexec has their states. The three
+   reads of t have the same alarm, which reduces neither k2 nor c: without
+   memexec, Scope removes the second one and keeps the third, after a write
+   to k2 through q. The assertion with the label M holds on each call. The
+   block under n > 5 is dead. With the rule, the passes see top states in
+   rec: no alarm is removed, the assertion stays unknown, the block is not
+   marked dead and the values at the end of rec are not printed. */
+int k2, *q;
+void rec(int n) {
+  r = t[k2 + c];
+  r = t[k2 + c];
+  *q = k2;
+  r = t[k2 + c];
+ M:
+  if (n > 0) rec(n - 1);
+  /*@ assert label_rec: \at(n, M) >= 0; */
+  if (n > 5) {
+    /*@ assert dead_rec: n == 6; */
+    g = 1;
+  }
+}
+
+void recursion(void) {
+  c = Frama_C_interval(0, 1); k2 = Frama_C_interval(5, 9); q = &k2;
+  rec(2);
 }

@@ -1,80 +1,80 @@
 [kernel] Parsing boundary.c (with preprocessing)
 Calls:
-  gc :: boundary.c:36 <- child :: boundary.c:41 <- second_case: analysed, cache entry 14
-  child :: boundary.c:41 <- second_case: analysed, cache entry 15
-  child :: boundary.c:38 <- parent :: boundary.c:42 <- second_case: hit of cache entry 15
-  parent :: boundary.c:42 <- second_case: analysed, cache entry 16
-  parent :: boundary.c:43 <- second_case: hit of cache entry 16
+  gc :: boundary.c:37 <- child :: boundary.c:42 <- second_case: analysed, cache entry 14
+  child :: boundary.c:42 <- second_case: analysed, cache entry 15
+  child :: boundary.c:39 <- parent :: boundary.c:43 <- second_case: hit of cache entry 15
+  parent :: boundary.c:43 <- second_case: analysed, cache entry 16
+  parent :: boundary.c:44 <- second_case: hit of cache entry 16
   second_case: analysed, cache entry 17
 Calls below a hit:
-  child :: boundary.c:38 <- parent :: boundary.c:43 <- second_case
-  gc :: boundary.c:36 <- child :: boundary.c:38 <- parent :: boundary.c:42 <- second_case
-  gc :: boundary.c:36 <- child :: boundary.c:38 <- parent :: boundary.c:43 <- second_case
+  child :: boundary.c:39 <- parent :: boundary.c:44 <- second_case
+  gc :: boundary.c:37 <- child :: boundary.c:39 <- parent :: boundary.c:43 <- second_case
+  gc :: boundary.c:37 <- child :: boundary.c:39 <- parent :: boundary.c:44 <- second_case
 gc, start:
   joined: c ∈ {0}
           g ∈ {0}
           h ∈ {0; 7; 8}
           k ∈ {0}
           n ∈ {0}
-  gc :: boundary.c:36 <- child :: boundary.c:38 <- parent :: boundary.c:42 <- second_case: 
+  gc :: boundary.c:37 <- child :: boundary.c:39 <- parent :: boundary.c:43 <- second_case: 
   c ∈ {0}
   g ∈ {0}
   h ∈ {7}
   k ∈ {0}
   n ∈ {0}
-  gc :: boundary.c:36 <- child :: boundary.c:38 <- parent :: boundary.c:43 <- second_case: 
+  gc :: boundary.c:37 <- child :: boundary.c:39 <- parent :: boundary.c:44 <- second_case: 
   c ∈ {0}
   g ∈ {0}
   h ∈ {8}
   k ∈ {0}
   n ∈ {0}
-  gc :: boundary.c:36 <- child :: boundary.c:41 <- second_case: c ∈ {0}
+  gc :: boundary.c:37 <- child :: boundary.c:42 <- second_case: c ∈ {0}
                                                                 g ∈ {0}
                                                                 h ∈ {0}
                                                                 k ∈ {0}
                                                                 n ∈ {0}
-gc, before boundary.c:34 `n ++;` (P):
+gc, before boundary.c:35 `n ++;` (P):
   joined: c ∈ {0}
           g ∈ {0}
           h ∈ {0; 7; 8}
           k ∈ {0}
           n ∈ {0}
-  gc :: boundary.c:36 <- child :: boundary.c:38 <- parent :: boundary.c:42 <- second_case: 
+  gc :: boundary.c:37 <- child :: boundary.c:39 <- parent :: boundary.c:43 <- second_case: 
   c ∈ {0}
   g ∈ {0}
   h ∈ {7}
   k ∈ {0}
   n ∈ {0}
-  gc :: boundary.c:36 <- child :: boundary.c:38 <- parent :: boundary.c:43 <- second_case: 
+  gc :: boundary.c:37 <- child :: boundary.c:39 <- parent :: boundary.c:44 <- second_case: 
   c ∈ {0}
   g ∈ {0}
   h ∈ {8}
   k ∈ {0}
   n ∈ {0}
-  gc :: boundary.c:36 <- child :: boundary.c:41 <- second_case: c ∈ {0}
+  gc :: boundary.c:37 <- child :: boundary.c:42 <- second_case: c ∈ {0}
                                                                 g ∈ {0}
                                                                 h ∈ {0}
                                                                 k ∈ {0}
                                                                 n ∈ {0}
-gc, after boundary.c:34 `return;`:
+gc, after boundary.c:35 `return;`:
   joined: c ∈ {0}
           g ∈ {0}
           h ∈ {0; 7; 8}
           k ∈ {0}
           n ∈ {1}
-  gc :: boundary.c:36 <- child :: boundary.c:38 <- parent :: boundary.c:42 <- second_case: 
+  gc :: boundary.c:37 <- child :: boundary.c:39 <- parent :: boundary.c:43 <- second_case: 
   c ∈ {0}
   g ∈ {0}
   h ∈ {7}
   k ∈ {0}
   n ∈ {1}
-  gc :: boundary.c:36 <- child :: boundary.c:38 <- parent :: boundary.c:43 <- second_case: 
+  gc :: boundary.c:37 <- child :: boundary.c:39 <- parent :: boundary.c:44 <- second_case: 
   c ∈ {0}
   g ∈ {0}
   h ∈ {8}
   k ∈ {0}
   n ∈ {1}
-  gc :: boundary.c:36 <- child :: boundary.c:41 <- second_case: c ∈ {0}
+  gc :: boundary.c:37 <- child :: boundary.c:42 <- second_case: c ∈ {0}
                                                                 g ∈ {0}
                                                                 h ∈ {0}
                                                                 k ∈ {0}
@@ -85,51 +85,51 @@ parent, start:
           h ∈ {7; 8}
           k ∈ {0}
           n ∈ {0}
-  parent :: boundary.c:42 <- second_case: c ∈ {0}
+  parent :: boundary.c:43 <- second_case: c ∈ {0}
                                           g ∈ {0}
                                           h ∈ {7}
                                           k ∈ {0}
                                           n ∈ {0}
-  parent :: boundary.c:43 <- second_case: c ∈ {0}
+  parent :: boundary.c:44 <- second_case: c ∈ {0}
                                           g ∈ {0}
                                           h ∈ {8}
                                           k ∈ {0}
                                           n ∈ {0}
-parent, before boundary.c:38 `;` (P):
+parent, before boundary.c:39 `;` (P):
   joined: c ∈ {0}
           g ∈ {0}
           h ∈ {7; 8}
           k ∈ {0}
           n ∈ {1}
-  parent :: boundary.c:42 <- second_case: c ∈ {0}
+  parent :: boundary.c:43 <- second_case: c ∈ {0}
                                           g ∈ {0}
                                           h ∈ {7}
                                           k ∈ {0}
                                           n ∈ {1}
-  parent :: boundary.c:43 <- second_case: c ∈ {0}
+  parent :: boundary.c:44 <- second_case: c ∈ {0}
                                           g ∈ {0}
                                           h ∈ {8}
                                           k ∈ {0}
                                           n ∈ {1}
-parent, after boundary.c:38 `return;`:
+parent, after boundary.c:39 `return;`:
   joined: c ∈ {0}
           g ∈ {0}
           h ∈ {7; 8}
           k ∈ {0}
           n ∈ {1}
-  parent :: boundary.c:42 <- second_case: c ∈ {0}
+  parent :: boundary.c:43 <- second_case: c ∈ {0}
                                           g ∈ {0}
                                           h ∈ {7}
                                           k ∈ {0}
                                           n ∈ {1}
-  parent :: boundary.c:43 <- second_case: c ∈ {0}
+  parent :: boundary.c:44 <- second_case: c ∈ {0}
                                           g ∈ {0}
                                           h ∈ {8}
                                           k ∈ {0}
                                           n ∈ {1}
 Hits against the analysed call of their cache entry:
-  child :: boundary.c:38 <- parent :: boundary.c:42 <- second_case, hit of cache entry 15, against child :: boundary.c:41 <- second_case: differs on h, at 5 points.
-  parent :: boundary.c:43 <- second_case, hit of cache entry 16, against parent :: boundary.c:42 <- second_case: differs on h, at 7 points.
+  child :: boundary.c:39 <- parent :: boundary.c:43 <- second_case, hit of cache entry 15, against child :: boundary.c:42 <- second_case: differs on h, at 5 points.
+  parent :: boundary.c:44 <- second_case, hit of cache entry 16, against parent :: boundary.c:43 <- second_case: differs on h, at 7 points.
 Initial state: equal.
 Differences with the run without memexec:
 Answers: 235 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.

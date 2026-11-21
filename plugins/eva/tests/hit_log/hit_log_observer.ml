@@ -697,7 +697,8 @@ let print_passes ~memexec ~current ~below =
 let one_line = Str.global_replace (Str.regexp "[ \n]+") " "
 
 (* The status of each property, by its location, its description and its
-   text: the description of an alarm does not give its expression. *)
+   text: the description of an alarm does not give its expression. The flag
+   tells a property of reachability. *)
 let statuses () =
   let list = ref [] in
   Property_status.iter
@@ -707,7 +708,10 @@ let statuses () =
            Description.pp_property ip Property.pretty ip
          |> one_line
        in
-       list := (key, Property_status.Feedback.get ip) :: !list);
+       let reachability =
+         match ip with Property.IPReachable _ -> true | _ -> false
+       in
+       list := (key, (reachability, Property_status.Feedback.get ip)) :: !list);
   List.sort_uniq compare !list
 
 (* The alarms, by their statement and their text, with their status. Scope
@@ -731,9 +735,16 @@ let alarms () =
 let summary_statistics () =
   Statistics.(get stmt_coverage (), get fun_coverage (), get alarm_count ())
 
-(* A property absent from a project, as an alarm that is not emitted, is
-   ranked as valid. *)
-let rank : Property_status.Feedback.t option -> int = function
+(* The rank of a status, from the most pessimistic. A property absent from
+   a project, as an alarm that is not emitted, is ranked as valid. For a
+   property of reachability, an invalid status claims that the statement is
+   unreachable: it is ranked as the most optimistic, and the absence of the
+   property, which claims nothing, below it. *)
+let rank ?(reachability = false) : Property_status.Feedback.t option -> int =
+  function
+  | Some (Invalid | Invalid_under_hyp | Invalid_but_dead) when reachability ->
+    2
+  | None when reachability -> 1
   | Some (Invalid | Invalid_under_hyp) -> 0
   | Some (Unknown | Never_tried | Inconsistent) -> 1
   | None | Some (Valid | Valid_under_hyp | Considered_valid | Valid_but_dead
@@ -744,7 +755,7 @@ let string_of_status = function
   | Some status -> Description.status_feedback status
 
 type outputs = {
-  statuses: (string * Property_status.Feedback.t) list;
+  statuses: (string * (bool * Property_status.Feedback.t)) list;
   alarms: (string * Property_status.Feedback.t) list;
   statistics: float * float * int;
   output: string;
@@ -762,7 +773,12 @@ let outputs project (passes: passes) =
 let differing_statuses keys ~reference ~memexec o =
   List.filter_map
     (fun key ->
-       let find o = List.assoc_opt key o.statuses in
+       let find o = Option.map snd (List.assoc_opt key o.statuses) in
+       let reachability =
+         List.exists (fun (k, (r, _)) -> k = key && r)
+           (reference.statuses @ o.statuses)
+       in
+       let rank = rank ~reachability in
        let r = find reference and c = find o in
        if r = c then None
        else
@@ -842,6 +858,11 @@ let print_outputs ~reference ~memexec ~current =
   if reference.output <> "" || current.output <> "" then begin
     print_messages "Messages of the passes, run without memexec"
       reference.output;
+    if memexec.output <> reference.output then
+      print_messages
+        "Messages of the passes with memexec, without recording, which \
+         differ from the run without memexec"
+        memexec.output;
     if reference.output = current.output then
       Format.printf "Messages of the passes with -eva-hit-log: those of the \
                      run without memexec.@."

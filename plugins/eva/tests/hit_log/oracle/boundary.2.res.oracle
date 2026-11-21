@@ -3,15 +3,15 @@
 [eva] Analyzing a complete application starting at nested
 [eva] Analyzing a complete application starting at nested
 Calls:
-  Frama_C_interval :: boundary.c:22 <- nested: specification
-  leaf :: boundary.c:19 <- f :: boundary.c:23 <- nested: analysed, cache entry 13
-  f :: boundary.c:23 <- nested: analysed, cache entry 14
-  f :: boundary.c:24 <- nested: hit of cache entry 14
-  leaf :: boundary.c:19 <- f :: boundary.c:25 <- nested: analysed, cache entry 15
-  f :: boundary.c:25 <- nested: analysed, cache entry 16
+  Frama_C_interval :: boundary.c:23 <- nested: specification
+  leaf :: boundary.c:20 <- f :: boundary.c:24 <- nested: analysed, cache entry 13
+  f :: boundary.c:24 <- nested: analysed, cache entry 14
+  f :: boundary.c:25 <- nested: hit of cache entry 14
+  leaf :: boundary.c:20 <- f :: boundary.c:26 <- nested: analysed, cache entry 15
+  f :: boundary.c:26 <- nested: analysed, cache entry 16
   nested: analysed, cache entry 17
 Calls below a hit:
-  leaf :: boundary.c:19 <- f :: boundary.c:24 <- nested
+  leaf :: boundary.c:20 <- f :: boundary.c:25 <- nested
 leaf, start:
   joined: c ∈ {0; 1}
           g ∈ {0; 4; 9}
@@ -20,28 +20,28 @@ leaf, start:
           p ∈ {{ &x }}
           x ∈ {0; 4; 9}
           n ∈ {0}
-  leaf :: boundary.c:19 <- f :: boundary.c:23 <- nested: c ∈ {0; 1}
+  leaf :: boundary.c:20 <- f :: boundary.c:24 <- nested: c ∈ {0; 1}
                                                          g ∈ {0; 4}
                                                          h ∈ {7}
                                                          k ∈ {3}
                                                          p ∈ {{ &x }}
                                                          x ∈ {0; 4}
                                                          n ∈ {0}
-  leaf :: boundary.c:19 <- f :: boundary.c:24 <- nested: c ∈ {0; 1}
+  leaf :: boundary.c:20 <- f :: boundary.c:25 <- nested: c ∈ {0; 1}
                                                          g ∈ {0; 4}
                                                          h ∈ {8}
                                                          k ∈ {3}
                                                          p ∈ {{ &x }}
                                                          x ∈ {0; 4}
                                                          n ∈ {0}
-  leaf :: boundary.c:19 <- f :: boundary.c:25 <- nested: c ∈ {0; 1}
+  leaf :: boundary.c:20 <- f :: boundary.c:26 <- nested: c ∈ {0; 1}
                                                          g ∈ {0; 9}
                                                          h ∈ {8}
                                                          k ∈ {3}
                                                          p ∈ {{ &x }}
                                                          x ∈ {0; 9}
                                                          n ∈ {0}
-leaf, before boundary.c:17 `(*p) ++;` (Q):
+leaf, before boundary.c:18 `(*p) ++;` (Q):
   joined: c ∈ {0; 1}
           g ∈ {0; 4; 9}
           h ∈ {7; 8}
@@ -49,28 +49,28 @@ leaf, before boundary.c:17 `(*p) ++;` (Q):
           p ∈ {{ &x }}
           x ∈ {0; 3; 4; 9}
           n ∈ {0}
-  leaf :: boundary.c:19 <- f :: boundary.c:23 <- nested: c ∈ {0; 1}
+  leaf :: boundary.c:20 <- f :: boundary.c:24 <- nested: c ∈ {0; 1}
                                                          g ∈ {0; 4}
                                                          h ∈ {7}
                                                          k ∈ {3}
                                                          p ∈ {{ &x }}
                                                          x ∈ {0; 3; 4}
                                                          n ∈ {0}
-  leaf :: boundary.c:19 <- f :: boundary.c:24 <- nested: c ∈ {0; 1}
+  leaf :: boundary.c:20 <- f :: boundary.c:25 <- nested: c ∈ {0; 1}
                                                          g ∈ {0; 4}
                                                          h ∈ {8}
                                                          k ∈ {3}
                                                          p ∈ {{ &x }}
                                                          x ∈ {0; 3; 4}
                                                          n ∈ {0}
-  leaf :: boundary.c:19 <- f :: boundary.c:25 <- nested: c ∈ {0; 1}
+  leaf :: boundary.c:20 <- f :: boundary.c:26 <- nested: c ∈ {0; 1}
                                                          g ∈ {0; 9}
                                                          h ∈ {8}
                                                          k ∈ {3}
                                                          p ∈ {{ &x }}
                                                          x ∈ {0; 3; 9}
                                                          n ∈ {0}
-leaf, after boundary.c:17 `return;`:
+leaf, after boundary.c:18 `return;`:
   joined: c ∈ {0; 1}
           g ∈ {0; 4; 9}
           h ∈ {7; 8}
@@ -78,21 +78,21 @@ leaf, after boundary.c:17 `return;`:
           p ∈ {{ &x }}
           x ∈ {1; 4; 5; 10}
           n ∈ {0}
-  leaf :: boundary.c:19 <- f :: boundary.c:23 <- nested: c ∈ {0; 1}
+  leaf :: boundary.c:20 <- f :: boundary.c:24 <- nested: c ∈ {0; 1}
                                                          g ∈ {0; 4}
                                                          h ∈ {7}
                                                          k ∈ {3}
                                                          p ∈ {{ &x }}
                                                          x ∈ {1; 4; 5}
                                                          n ∈ {0}
-  leaf :: boundary.c:19 <- f :: boundary.c:24 <- nested: c ∈ {0; 1}
+  leaf :: boundary.c:20 <- f :: boundary.c:25 <- nested: c ∈ {0; 1}
                                                          g ∈ {0; 4}
                                                          h ∈ {8}
                                                          k ∈ {3}
                                                          p ∈ {{ &x }}
                                                          x ∈ {1; 4; 5}
                                                          n ∈ {0}
-  leaf :: boundary.c:19 <- f :: boundary.c:25 <- nested: c ∈ {0; 1}
+  leaf :: boundary.c:20 <- f :: boundary.c:26 <- nested: c ∈ {0; 1}
                                                          g ∈ {0; 9}
                                                          h ∈ {8}
                                                          k ∈ {3}
@@ -105,73 +105,73 @@ f, start:
           h ∈ {7; 8}
           k ∈ {3}
           n ∈ {0}
-  f :: boundary.c:23 <- nested: c ∈ {0; 1}
+  f :: boundary.c:24 <- nested: c ∈ {0; 1}
                                 g ∈ {4}
                                 h ∈ {7}
                                 k ∈ {3}
                                 n ∈ {0}
-  f :: boundary.c:24 <- nested: c ∈ {0; 1}
+  f :: boundary.c:25 <- nested: c ∈ {0; 1}
                                 g ∈ {4}
                                 h ∈ {8}
                                 k ∈ {3}
                                 n ∈ {0}
-  f :: boundary.c:25 <- nested: c ∈ {0; 1}
+  f :: boundary.c:26 <- nested: c ∈ {0; 1}
                                 g ∈ {9}
                                 h ∈ {8}
                                 k ∈ {3}
                                 n ∈ {0}
-f, before boundary.c:19 `leaf(& x);` (P):
+f, before boundary.c:20 `leaf(& x);` (P):
   joined: c ∈ {0; 1}
           g ∈ {0; 4; 9}
           h ∈ {7; 8}
           k ∈ {3}
           x ∈ {0; 4; 9}
           n ∈ {0}
-  f :: boundary.c:23 <- nested: c ∈ {0; 1}
+  f :: boundary.c:24 <- nested: c ∈ {0; 1}
                                 g ∈ {0; 4}
                                 h ∈ {7}
                                 k ∈ {3}
                                 x ∈ {0; 4}
                                 n ∈ {0}
-  f :: boundary.c:24 <- nested: c ∈ {0; 1}
+  f :: boundary.c:25 <- nested: c ∈ {0; 1}
                                 g ∈ {0; 4}
                                 h ∈ {8}
                                 k ∈ {3}
                                 x ∈ {0; 4}
                                 n ∈ {0}
-  f :: boundary.c:25 <- nested: c ∈ {0; 1}
+  f :: boundary.c:26 <- nested: c ∈ {0; 1}
                                 g ∈ {0; 9}
                                 h ∈ {8}
                                 k ∈ {3}
                                 x ∈ {0; 9}
                                 n ∈ {0}
-f, after boundary.c:19 `return;`:
+f, after boundary.c:20 `return;`:
   joined: c ∈ {0; 1}
           g ∈ {1; 4; 5; 10}
           h ∈ {7; 8}
           k ∈ {3}
           x ∈ {1; 4; 5; 10}
           n ∈ {0}
-  f :: boundary.c:23 <- nested: c ∈ {0; 1}
+  f :: boundary.c:24 <- nested: c ∈ {0; 1}
                                 g ∈ {1; 4; 5}
                                 h ∈ {7}
                                 k ∈ {3}
                                 x ∈ {1; 4; 5}
                                 n ∈ {0}
-  f :: boundary.c:24 <- nested: c ∈ {0; 1}
+  f :: boundary.c:25 <- nested: c ∈ {0; 1}
                                 g ∈ {1; 4; 5}
                                 h ∈ {8}
                                 k ∈ {3}
                                 x ∈ {1; 4; 5}
                                 n ∈ {0}
-  f :: boundary.c:25 <- nested: c ∈ {0; 1}
+  f :: boundary.c:26 <- nested: c ∈ {0; 1}
                                 g ∈ {1; 4; 10}
                                 h ∈ {8}
                                 k ∈ {3}
                                 x ∈ {1; 4; 10}
                                 n ∈ {0}
 Hits against the analysed call of their cache entry:
-  f :: boundary.c:24 <- nested, hit of cache entry 14, against f :: boundary.c:23 <- nested: differs on h, at 13 points.
+  f :: boundary.c:25 <- nested, hit of cache entry 14, against f :: boundary.c:24 <- nested: differs on h, at 13 points.
 Initial state: equal.
 Differences with the run without memexec:
 Answers: 263 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.

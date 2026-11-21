@@ -1,7 +1,8 @@
 /* run.config
    STDOPT: +"-main nested"
    STDOPT: +"-main second_case"
-   STDOPT: +"-main nested -eva-verbose 1 -eva-msg-key=final-states"
+   PLUGIN: eva,inout,scope
+   STDOPT: +"-main nested -eva-verbose 1 -eva-msg-key=final-states -eva-remove-redundant-alarms"
 */
 
 /* Calls below a hit. */

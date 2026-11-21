@@ -1,0 +1,377 @@
+[kernel] Parsing passes.c (with preprocessing)
+[eva] Analyzing a complete application starting at recursion
+[eva:alarm] passes.c:79: Warning: 
+  accessing out of bounds index. assert (int)(k2 + c) < 10;
+[eva:alarm] passes.c:80: Warning: 
+  accessing out of bounds index. assert (int)(k2 + c) < 10;
+[eva:alarm] passes.c:82: Warning: 
+  accessing out of bounds index. assert (int)(k2 + c) < 10;
+[eva:alarm] passes.c:85: Warning: assertion 'label_rec' got status unknown.
+[eva] Analyzing a complete application starting at recursion
+[eva:alarm] passes.c:79: Warning: 
+  accessing out of bounds index. assert (int)(k2 + c) < 10;
+[eva:alarm] passes.c:80: Warning: 
+  accessing out of bounds index. assert (int)(k2 + c) < 10;
+[eva:alarm] passes.c:82: Warning: 
+  accessing out of bounds index. assert (int)(k2 + c) < 10;
+[eva:alarm] passes.c:85: Warning: assertion 'label_rec' got status unknown.
+[eva] Analyzing a complete application starting at recursion
+[eva:alarm] passes.c:79: Warning: 
+  accessing out of bounds index. assert (int)(k2 + c) < 10;
+[eva:alarm] passes.c:80: Warning: 
+  accessing out of bounds index. assert (int)(k2 + c) < 10;
+[eva:alarm] passes.c:82: Warning: 
+  accessing out of bounds index. assert (int)(k2 + c) < 10;
+[eva:alarm] passes.c:85: Warning: assertion 'label_rec' got status unknown.
+Calls:
+  Frama_C_interval :: passes.c:93 <- recursion (call statements 75): specification
+  Frama_C_interval :: passes.c:93 <- recursion (call statements 76): specification
+  rec :: passes.c:84 <- rec :: passes.c:84 <- rec :: passes.c:94 <- recursion: analysed, cache entry 9
+  rec :: passes.c:84 <- rec :: passes.c:94 <- recursion: analysed, cache entry 10
+  rec :: passes.c:94 <- recursion: analysed, cache entry 11
+  recursion: analysed, cache entry 12
+rec, start:
+  joined: c ∈ {0; 1}
+          g ∈ {0}
+          h ∈ {0}
+          k ∈ {0}
+          r ∈ {0}
+          t[0..9] ∈ {0}
+          k2 ∈ {5; 6; 7; 8; 9}
+          q ∈ {{ &k2 }}
+          n ∈ {0; 1; 2}
+  rec :: passes.c:84 <- rec :: passes.c:84 <- rec :: passes.c:94 <- recursion: 
+  c ∈ {0; 1}
+  g ∈ {0}
+  h ∈ {0}
+  k ∈ {0}
+  r ∈ {0}
+  t[0..9] ∈ {0}
+  k2 ∈ {5; 6; 7; 8; 9}
+  q ∈ {{ &k2 }}
+  n ∈ {0}
+  rec :: passes.c:84 <- rec :: passes.c:94 <- recursion: c ∈ {0; 1}
+                                                         g ∈ {0}
+                                                         h ∈ {0}
+                                                         k ∈ {0}
+                                                         r ∈ {0}
+                                                         t[0..9] ∈ {0}
+                                                         k2 ∈ {5; 6; 7; 8; 9}
+                                                         q ∈ {{ &k2 }}
+                                                         n ∈ {1}
+  rec :: passes.c:94 <- recursion: c ∈ {0; 1}
+                                   g ∈ {0}
+                                   h ∈ {0}
+                                   k ∈ {0}
+                                   r ∈ {0}
+                                   t[0..9] ∈ {0}
+                                   k2 ∈ {5; 6; 7; 8; 9}
+                                   q ∈ {{ &k2 }}
+                                   n ∈ {2}
+rec, before passes.c:84 `;` (M):
+  joined: unavailable
+  rec :: passes.c:84 <- rec :: passes.c:84 <- rec :: passes.c:94 <- recursion: 
+  unavailable
+  rec :: passes.c:84 <- rec :: passes.c:94 <- recursion: unavailable
+  rec :: passes.c:94 <- recursion: unavailable
+  reference, joined: c ∈ {0; 1}
+                     g ∈ {0}
+                     h ∈ {0}
+                     k ∈ {0}
+                     r ∈ {0}
+                     t[0..9] ∈ {0}
+                     k2 ∈ {5; 6; 7; 8; 9}
+                     q ∈ {{ &k2 }}
+                     n ∈ {0; 1; 2}
+  rec :: passes.c:84 <- rec :: passes.c:84 <- rec :: passes.c:94 <- recursion: 
+  c ∈ {0; 1}
+  g ∈ {0}
+  h ∈ {0}
+  k ∈ {0}
+  r ∈ {0}
+  t[0..9] ∈ {0}
+  k2 ∈ {5; 6; 7; 8; 9}
+  q ∈ {{ &k2 }}
+  n ∈ {0}
+  rec :: passes.c:84 <- rec :: passes.c:94 <- recursion: c ∈ {0; 1}
+                                                         g ∈ {0}
+                                                         h ∈ {0}
+                                                         k ∈ {0}
+                                                         r ∈ {0}
+                                                         t[0..9] ∈ {0}
+                                                         k2 ∈ {5; 6; 7; 8; 9}
+                                                         q ∈ {{ &k2 }}
+                                                         n ∈ {1}
+  rec :: passes.c:94 <- recursion: c ∈ {0; 1}
+                                   g ∈ {0}
+                                   h ∈ {0}
+                                   k ∈ {0}
+                                   r ∈ {0}
+                                   t[0..9] ∈ {0}
+                                   k2 ∈ {5; 6; 7; 8; 9}
+                                   q ∈ {{ &k2 }}
+                                   n ∈ {2}
+rec, after passes.c:90 `return;`:
+  joined: unavailable
+  rec :: passes.c:84 <- rec :: passes.c:84 <- rec :: passes.c:94 <- recursion: 
+  unavailable
+  rec :: passes.c:84 <- rec :: passes.c:94 <- recursion: unavailable
+  rec :: passes.c:94 <- recursion: unavailable
+  reference, joined: c ∈ {0; 1}
+                     g ∈ {0}
+                     h ∈ {0}
+                     k ∈ {0}
+                     r ∈ {0}
+                     t[0..9] ∈ {0}
+                     k2 ∈ {5; 6; 7; 8; 9}
+                     q ∈ {{ &k2 }}
+                     n ∈ {0; 1; 2}
+  rec :: passes.c:84 <- rec :: passes.c:84 <- rec :: passes.c:94 <- recursion: 
+  c ∈ {0; 1}
+  g ∈ {0}
+  h ∈ {0}
+  k ∈ {0}
+  r ∈ {0}
+  t[0..9] ∈ {0}
+  k2 ∈ {5; 6; 7; 8; 9}
+  q ∈ {{ &k2 }}
+  n ∈ {0}
+  rec :: passes.c:84 <- rec :: passes.c:94 <- recursion: c ∈ {0; 1}
+                                                         g ∈ {0}
+                                                         h ∈ {0}
+                                                         k ∈ {0}
+                                                         r ∈ {0}
+                                                         t[0..9] ∈ {0}
+                                                         k2 ∈ {5; 6; 7; 8; 9}
+                                                         q ∈ {{ &k2 }}
+                                                         n ∈ {1}
+  rec :: passes.c:94 <- recursion: c ∈ {0; 1}
+                                   g ∈ {0}
+                                   h ∈ {0}
+                                   k ∈ {0}
+                                   r ∈ {0}
+                                   t[0..9] ∈ {0}
+                                   k2 ∈ {5; 6; 7; 8; 9}
+                                   q ∈ {{ &k2 }}
+                                   n ∈ {2}
+Initial state: equal.
+Differences with the run without memexec:
+  rec, before passes.c:79 `r = t[k2 + c];`, joined: unavailable
+  rec, before passes.c:79 `r = t[k2 + c];`, filtered: unavailable
+  rec, before passes.c:79 `r = t[k2 + c];`, rec :: passes.c:84 <- rec :: passes.c:84 <- rec :: passes.c:94 <- recursion: unavailable
+  rec, before passes.c:79 `r = t[k2 + c];`, rec :: passes.c:84 <- rec :: passes.c:94 <- recursion: unavailable
+  rec, before passes.c:79 `r = t[k2 + c];`, rec :: passes.c:94 <- recursion: unavailable
+  rec, after passes.c:79 `r = t[k2 + c];`, joined: unavailable
+  rec, after passes.c:79 `r = t[k2 + c];`, filtered: unavailable
+  rec, after passes.c:79 `r = t[k2 + c];`, rec :: passes.c:84 <- rec :: passes.c:84 <- rec :: passes.c:94 <- recursion: unavailable
+  rec, after passes.c:79 `r = t[k2 + c];`, rec :: passes.c:84 <- rec :: passes.c:94 <- recursion: unavailable
+  rec, after passes.c:79 `r = t[k2 + c];`, rec :: passes.c:94 <- recursion: unavailable
+  rec, before passes.c:80 `r = t[k2 + c];`, joined: unavailable
+  rec, before passes.c:80 `r = t[k2 + c];`, filtered: unavailable
+  rec, before passes.c:80 `r = t[k2 + c];`, rec :: passes.c:84 <- rec :: passes.c:84 <- rec :: passes.c:94 <- recursion: unavailable
+  rec, before passes.c:80 `r = t[k2 + c];`, rec :: passes.c:84 <- rec :: passes.c:94 <- recursion: unavailable
+  rec, before passes.c:80 `r = t[k2 + c];`, rec :: passes.c:94 <- recursion: unavailable
+  rec, after passes.c:80 `r = t[k2 + c];`, joined: unavailable
+  rec, after passes.c:80 `r = t[k2 + c];`, filtered: unavailable
+  rec, after passes.c:80 `r = t[k2 + c];`, rec :: passes.c:84 <- rec :: passes.c:84 <- rec :: passes.c:94 <- recursion: unavailable
+  rec, after passes.c:80 `r = t[k2 + c];`, rec :: passes.c:84 <- rec :: passes.c:94 <- recursion: unavailable
+  rec, after passes.c:80 `r = t[k2 + c];`, rec :: passes.c:94 <- recursion: unavailable
+  rec, before passes.c:81 `*q = k2;`, joined: unavailable
+  rec, before passes.c:81 `*q = k2;`, filtered: unavailable
+  rec, before passes.c:81 `*q = k2;`, rec :: passes.c:84 <- rec :: passes.c:84 <- rec :: passes.c:94 <- recursion: unavailable
+  rec, before passes.c:81 `*q = k2;`, rec :: passes.c:84 <- rec :: passes.c:94 <- recursion: unavailable
+  rec, before passes.c:81 `*q = k2;`, rec :: passes.c:94 <- recursion: unavailable
+  rec, after passes.c:81 `*q = k2;`, joined: unavailable
+  rec, after passes.c:81 `*q = k2;`, filtered: unavailable
+  rec, after passes.c:81 `*q = k2;`, rec :: passes.c:84 <- rec :: passes.c:84 <- rec :: passes.c:94 <- recursion: unavailable
+  rec, after passes.c:81 `*q = k2;`, rec :: passes.c:84 <- rec :: passes.c:94 <- recursion: unavailable
+  rec, after passes.c:81 `*q = k2;`, rec :: passes.c:94 <- recursion: unavailable
+  rec, before passes.c:82 `r = t[k2 + c];`, joined: unavailable
+  rec, before passes.c:82 `r = t[k2 + c];`, filtered: unavailable
+  rec, before passes.c:82 `r = t[k2 + c];`, rec :: passes.c:84 <- rec :: passes.c:84 <- rec :: passes.c:94 <- recursion: unavailable
+  rec, before passes.c:82 `r = t[k2 + c];`, rec :: passes.c:84 <- rec :: passes.c:94 <- recursion: unavailable
+  rec, before passes.c:82 `r = t[k2 + c];`, rec :: passes.c:94 <- recursion: unavailable
+  rec, after passes.c:82 `r = t[k2 + c];`, joined: unavailable
+  rec, after passes.c:82 `r = t[k2 + c];`, filtered: unavailable
+  rec, after passes.c:82 `r = t[k2 + c];`, rec :: passes.c:84 <- rec :: passes.c:84 <- rec :: passes.c:94 <- recursion: unavailable
+  rec, after passes.c:82 `r = t[k2 + c];`, rec :: passes.c:84 <- rec :: passes.c:94 <- recursion: unavailable
+  rec, after passes.c:82 `r = t[k2 + c];`, rec :: passes.c:94 <- recursion: unavailable
+  rec, before passes.c:84 `;` (M), joined: unavailable
+  rec, before passes.c:84 `;` (M), filtered: unavailable
+  rec, before passes.c:84 `;` (M), rec :: passes.c:84 <- rec :: passes.c:84 <- rec :: passes.c:94 <- recursion: unavailable
+  rec, before passes.c:84 `;` (M), rec :: passes.c:84 <- rec :: passes.c:94 <- recursion: unavailable
+  rec, before passes.c:84 `;` (M), rec :: passes.c:94 <- recursion: unavailable
+  rec, after passes.c:84 `;` (M), joined: unavailable
+  rec, after passes.c:84 `;` (M), filtered: unavailable
+  rec, after passes.c:84 `;` (M), rec :: passes.c:84 <- rec :: passes.c:84 <- rec :: passes.c:94 <- recursion: unavailable
+  rec, after passes.c:84 `;` (M), rec :: passes.c:84 <- rec :: passes.c:94 <- recursion: unavailable
+  rec, after passes.c:84 `;` (M), rec :: passes.c:94 <- recursion: unavailable
+  rec, before passes.c:84 `if (n > 0)`, joined: unavailable
+  rec, before passes.c:84 `if (n > 0)`, filtered: unavailable
+  rec, before passes.c:84 `if (n > 0)`, rec :: passes.c:84 <- rec :: passes.c:84 <- rec :: passes.c:94 <- recursion: unavailable
+  rec, before passes.c:84 `if (n > 0)`, rec :: passes.c:84 <- rec :: passes.c:94 <- recursion: unavailable
+  rec, before passes.c:84 `if (n > 0)`, rec :: passes.c:94 <- recursion: unavailable
+  rec, after passes.c:84 `if (n > 0)`, joined: unavailable
+  rec, after passes.c:84 `if (n > 0)`, filtered: unavailable
+  rec, after passes.c:84 `if (n > 0)`, rec :: passes.c:84 <- rec :: passes.c:84 <- rec :: passes.c:94 <- recursion: unavailable
+  rec, after passes.c:84 `if (n > 0)`, rec :: passes.c:84 <- rec :: passes.c:94 <- recursion: unavailable
+  rec, after passes.c:84 `if (n > 0)`, rec :: passes.c:94 <- recursion: unavailable
+  rec, before passes.c:84 `rec(n - 1);`, joined: unavailable
+  rec, before passes.c:84 `rec(n - 1);`, filtered: unavailable
+  rec, before passes.c:84 `rec(n - 1);`, rec :: passes.c:84 <- rec :: passes.c:94 <- recursion: unavailable
+  rec, before passes.c:84 `rec(n - 1);`, rec :: passes.c:94 <- recursion: unavailable
+  rec, after passes.c:84 `rec(n - 1);`, joined: unavailable
+  rec, after passes.c:84 `rec(n - 1);`, filtered: unavailable
+  rec, after passes.c:84 `rec(n - 1);`, rec :: passes.c:84 <- rec :: passes.c:94 <- recursion: unavailable
+  rec, after passes.c:84 `rec(n - 1);`, rec :: passes.c:94 <- recursion: unavailable
+  rec, before passes.c:85 `;`, joined: unavailable
+  rec, before passes.c:85 `;`, filtered: unavailable
+  rec, before passes.c:85 `;`, rec :: passes.c:84 <- rec :: passes.c:84 <- rec :: passes.c:94 <- recursion: unavailable
+  rec, before passes.c:85 `;`, rec :: passes.c:84 <- rec :: passes.c:94 <- recursion: unavailable
+  rec, before passes.c:85 `;`, rec :: passes.c:94 <- recursion: unavailable
+  rec, after passes.c:85 `;`, joined: unavailable
+  rec, after passes.c:85 `;`, filtered: unavailable
+  rec, after passes.c:85 `;`, rec :: passes.c:84 <- rec :: passes.c:84 <- rec :: passes.c:94 <- recursion: unavailable
+  rec, after passes.c:85 `;`, rec :: passes.c:84 <- rec :: passes.c:94 <- recursion: unavailable
+  rec, after passes.c:85 `;`, rec :: passes.c:94 <- recursion: unavailable
+  rec, before passes.c:86 `if (n > 5)`, joined: unavailable
+  rec, before passes.c:86 `if (n > 5)`, filtered: unavailable
+  rec, before passes.c:86 `if (n > 5)`, rec :: passes.c:84 <- rec :: passes.c:84 <- rec :: passes.c:94 <- recursion: unavailable
+  rec, before passes.c:86 `if (n > 5)`, rec :: passes.c:84 <- rec :: passes.c:94 <- recursion: unavailable
+  rec, before passes.c:86 `if (n > 5)`, rec :: passes.c:94 <- recursion: unavailable
+  rec, after passes.c:86 `if (n > 5)`, joined: unavailable
+  rec, after passes.c:86 `if (n > 5)`, filtered: unavailable
+  rec, after passes.c:86 `if (n > 5)`, rec :: passes.c:84 <- rec :: passes.c:84 <- rec :: passes.c:94 <- recursion: unavailable
+  rec, after passes.c:86 `if (n > 5)`, rec :: passes.c:84 <- rec :: passes.c:94 <- recursion: unavailable
+  rec, after passes.c:86 `if (n > 5)`, rec :: passes.c:94 <- recursion: unavailable
+  rec, before passes.c:87 `;`, joined: unavailable
+  rec, before passes.c:87 `;`, filtered: unavailable
+  rec, after passes.c:87 `;`, joined: unavailable
+  rec, after passes.c:87 `;`, filtered: unavailable
+  rec, before passes.c:88 `g = 1;`, joined: unavailable
+  rec, before passes.c:88 `g = 1;`, filtered: unavailable
+  rec, after passes.c:88 `g = 1;`, joined: unavailable
+  rec, after passes.c:88 `g = 1;`, filtered: unavailable
+  rec, before passes.c:90 `return;`, joined: unavailable
+  rec, before passes.c:90 `return;`, filtered: unavailable
+  rec, before passes.c:90 `return;`, rec :: passes.c:84 <- rec :: passes.c:84 <- rec :: passes.c:94 <- recursion: unavailable
+  rec, before passes.c:90 `return;`, rec :: passes.c:84 <- rec :: passes.c:94 <- recursion: unavailable
+  rec, before passes.c:90 `return;`, rec :: passes.c:94 <- recursion: unavailable
+  rec, after passes.c:90 `return;`, joined: unavailable
+  rec, after passes.c:90 `return;`, filtered: unavailable
+  rec, after passes.c:90 `return;`, rec :: passes.c:84 <- rec :: passes.c:84 <- rec :: passes.c:94 <- recursion: unavailable
+  rec, after passes.c:90 `return;`, rec :: passes.c:84 <- rec :: passes.c:94 <- recursion: unavailable
+  rec, after passes.c:90 `return;`, rec :: passes.c:94 <- recursion: unavailable
+Answers: 240 equal, 0 covering, 0 more precise, 0 omitting, 106 unavailable.
+Callstacks listed: NOT those of the run without memexec at 20 of the 136 points:
+  rec, before passes.c:79 `r = t[k2 + c];`
+  rec, after passes.c:79 `r = t[k2 + c];`
+  rec, before passes.c:80 `r = t[k2 + c];`
+  rec, after passes.c:80 `r = t[k2 + c];`
+  rec, before passes.c:81 `*q = k2;`
+  rec, after passes.c:81 `*q = k2;`
+  rec, before passes.c:82 `r = t[k2 + c];`
+  rec, after passes.c:82 `r = t[k2 + c];`
+  rec, before passes.c:84 `;` (M)
+  rec, after passes.c:84 `;` (M)
+  rec, before passes.c:84 `if (n > 0)`
+  rec, after passes.c:84 `if (n > 0)`
+  rec, before passes.c:84 `rec(n - 1);`
+  rec, after passes.c:84 `rec(n - 1);`
+  rec, before passes.c:85 `;`
+  rec, after passes.c:85 `;`
+  rec, before passes.c:86 `if (n > 5)`
+  rec, after passes.c:86 `if (n > 5)`
+  rec, before passes.c:90 `return;`
+  rec, after passes.c:90 `return;`
+Callstacks listed through the filter: NOT those of the run without memexec at 20 of the 136 points:
+  rec, before passes.c:79 `r = t[k2 + c];`
+  rec, after passes.c:79 `r = t[k2 + c];`
+  rec, before passes.c:80 `r = t[k2 + c];`
+  rec, after passes.c:80 `r = t[k2 + c];`
+  rec, before passes.c:81 `*q = k2;`
+  rec, after passes.c:81 `*q = k2;`
+  rec, before passes.c:82 `r = t[k2 + c];`
+  rec, after passes.c:82 `r = t[k2 + c];`
+  rec, before passes.c:84 `;` (M)
+  rec, after passes.c:84 `;` (M)
+  rec, before passes.c:84 `if (n > 0)`
+  rec, after passes.c:84 `if (n > 0)`
+  rec, before passes.c:84 `rec(n - 1);`
+  rec, after passes.c:84 `rec(n - 1);`
+  rec, before passes.c:85 `;`
+  rec, after passes.c:85 `;`
+  rec, before passes.c:86 `if (n > 5)`
+  rec, after passes.c:86 `if (n > 5)`
+  rec, before passes.c:90 `return;`
+  rec, after passes.c:90 `return;`
+Filtered requests that reject one callstack: 21.
+Requests made: 618; reported by the trap: 618, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 233 requests, 201 reads of the legacy store in them, 30 reads outside any request.
+  with -eva-hit-log: 235 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 75 requests
+    statuses of the properties: 15 requests
+    redundant alarms: 88 requests
+    statistics: 17 requests
+    final values: 26 requests
+    summary: 14 requests
+Statuses of the properties that differ from the run without memexec:
+  passes.c:80: Assertion 'Eva,index_bound' ("passes.c", line 80): assert Eva: index_bound: (int) (k2 + c) < 10;: Unknown against Partially proven: less optimistic
+  passes.c:85: Assertion 'label_rec' ("passes.c", line 85): assert label_rec: \at(n,M) ≥ 0;: Unknown against Valid: less optimistic
+  passes.c:87: Assertion 'dead_rec' ("passes.c", line 87): assert dead_rec: n ≡ 6;: Ignored against Dead: less optimistic
+  passes.c:87: Unreachable program point ("passes.c", line 87): reachability of stmt passes.c:87 in rec: absent against Invalid: less optimistic
+Alarms that differ from the run without memexec:
+  missing: passes.c:80: Index_out_of_bound(k2 + c < 10): Partially proven
+  added: passes.c:80: Index_out_of_bound(k2 + c < 10): Unknown
+Summary: statement coverage 1.0000, function coverage 0.2500, 3 alarms, against statement coverage 0.8824, function coverage 0.2500, 3 alarms without memexec.
+Messages of the passes, run without memexec:
+  [scope:rm_asserts] removing 1 assertion(s)
+  [eva] ====== VALUES COMPUTED ======
+  [eva:final-states] Values at end of function rec:
+    r ∈ {0}
+    k2 ∈ {5; 6; 7; 8; 9}
+  [eva:final-states] Values at end of function recursion:
+    Frama_C_entropy_source ∈ [--..--]
+    c ∈ {0; 1}
+    r ∈ {0}
+    k2 ∈ {5; 6; 7; 8; 9}
+    q ∈ {{ &k2 }}
+  [eva:summary] ====== ANALYSIS SUMMARY ======
+    ----------------------------------------------------------------------------
+    2 functions analyzed (out of 8): 25% coverage.
+    In these functions, 15 statements reached (out of 17): 88% coverage.
+    ----------------------------------------------------------------------------
+    No errors or warnings raised during the analysis.
+    ----------------------------------------------------------------------------
+    3 alarms generated by the analysis:
+         3 accesses out of bounds index
+    ----------------------------------------------------------------------------
+    Evaluation of the logical properties reached by the analysis:
+      Assertions        1 valid     0 unknown     0 invalid      1 total
+      Preconditions     2 valid     0 unknown     0 invalid      2 total
+    100% of the logical properties reached have been proven.
+    ----------------------------------------------------------------------------
+Messages of the passes with -eva-hit-log, which differ from the run without memexec:
+  [eva] ====== VALUES COMPUTED ======
+  [eva:final-states] Values at end of function recursion:
+    Frama_C_entropy_source ∈ [--..--]
+    c ∈ {0; 1}
+    r ∈ {0}
+    k2 ∈ {5; 6; 7; 8; 9}
+    q ∈ {{ &k2 }}
+  [eva:summary] ====== ANALYSIS SUMMARY ======
+    ----------------------------------------------------------------------------
+    2 functions analyzed (out of 8): 25% coverage.
+    In these functions, 17 statements reached (out of 17): 100% coverage.
+    ----------------------------------------------------------------------------
+    No errors or warnings raised during the analysis.
+    ----------------------------------------------------------------------------
+    3 alarms generated by the analysis:
+         3 accesses out of bounds index
+    ----------------------------------------------------------------------------
+    Evaluation of the logical properties reached by the analysis:
+      Assertions        0 valid     1 unknown     0 invalid      1 total
+      Preconditions     2 valid     0 unknown     0 invalid      2 total
+    66% of the logical properties reached have been proven.
+    ----------------------------------------------------------------------------
