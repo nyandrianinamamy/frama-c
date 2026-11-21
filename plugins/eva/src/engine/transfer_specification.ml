@@ -153,7 +153,7 @@ let reduce_to_valid_location kind term loc =
 (* If [term] refers to the address of a C variable (or a function), returns its
    varinfo. For a function, f is equivalent to &f. Returns [None] otherwise. *)
 let term_as_address term =
-  match term.it_content.term_node with
+  match term.term_node with
   | TAddrOf (TVar lv, _) | TStartOf (TVar lv, _) -> lv.lv_origin
   | TLval (TVar lv, _) when Ast_types.Acsl.is_plain_fun lv.lv_type ->
     lv.lv_origin
@@ -285,7 +285,7 @@ module Make (Engine: Engine_Subset) = struct
         let direct = not (List.mem "indirect" term.it_content.term_name) in
         let+ location =
           (* Special case for clauses "\from &g". *)
-          match term_as_address term with
+          match term_as_address term.it_content with
           | Some vi -> Some (Address vi)
           | None ->
             (* \from dependencies whose location cannot be interpreted are

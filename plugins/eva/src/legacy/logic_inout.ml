@@ -207,6 +207,70 @@ let postcondition_deps kf ~pre ~here ~return =
     let env = post_env ~pre ~post ~result in
     remove_result result (postconditions_deps env funspec activity)
 
+(* The specification transfer resolves all effects before the domain applies
+   them. These evaluations can emit diagnostics even for frees/allocates,
+   whose cvalue transfer does not change memory. Builtins with their own
+   input/output summary still interpret this specification first, so these
+   reads must be included independently of that summary. *)
+let specification_effects_deps ~pre funspec activity =
+  let env = Eval_terms.for_dependencies (Eval_terms.env_assigns ~pre) in
+  let lval_deps ~read acc term =
+    try
+      let deps = join_logic_deps (Eval_terms.tlval_deps env term) in
+      let deps =
+        if not read then deps
+        else
+          let alarm_mode = Eval_terms.Ignore in
+          let zone = Eval_terms.eval_tlval_as_zone ~alarm_mode Read env term in
+          Memory_zone.join deps zone
+      in
+      Memory_zone.join acc deps
+    with Eval_terms.LogicEvalError _ | Abstract_interp.Error_Top ->
+      Memory_zone.top
+  in
+  let from_deps acc it =
+    let term = it.it_content in
+    match Transfer_specification.term_as_address term with
+    | Some _ -> acc
+    | None ->
+      let read = not (List.mem "indirect" term.term_name) in
+      lval_deps ~read acc term
+  in
+  let assigns_deps acc (out, froms) =
+    let term = out.it_content in
+    let acc =
+      if Logic_utils.is_result term then acc
+      else lval_deps ~read:false acc term
+    in
+    match froms with
+    | FromAny -> acc
+    | From terms -> List.fold_left from_deps acc terms
+  in
+  let pointer_deps ~allocate acc it =
+    let term = it.it_content in
+    if allocate && Logic_utils.is_result term then acc
+    else
+      try
+        let result = Eval_terms.eval_term ~alarm_mode:Ignore env term in
+        Memory_zone.join acc (join_logic_deps result.ldeps)
+      with Eval_terms.LogicEvalError _ | Abstract_interp.Error_Top ->
+        Memory_zone.top
+  in
+  let behavior_deps acc b =
+    if not (may_be_active activity b) then acc
+    else
+      let acc = match b.b_assigns with
+        | WritesAny -> acc
+        | Writes clauses -> List.fold_left assigns_deps acc clauses
+      in
+      match b.b_allocation with
+      | FreeAllocAny -> acc
+      | FreeAlloc (frees, allocates) ->
+        let acc = List.fold_left (pointer_deps ~allocate:false) acc frees in
+        List.fold_left (pointer_deps ~allocate:true) acc allocates
+  in
+  List.fold_left behavior_deps Memory_zone.bottom funspec.spec_behavior
+
 (* Over-approximation of the value that Eva writes for an assigns clause
    with the \from part [froms], in the state [pre]: the join of the values
    of the dependencies, made imprecise. *)
@@ -214,14 +278,9 @@ let assigned_value env pre froms =
   let from_value acc from =
     let term = from.it_content in
     let value =
-      match term.term_node with
-      | TAddrOf (TVar { lv_origin = Some vi }, _)
-      | TStartOf (TVar { lv_origin = Some vi }, _) ->
-        Cvalue.V.inject (Base.of_varinfo vi) Ival.zero
-      | TLval (TVar { lv_origin = Some vi; lv_type }, _)
-        when Ast_types.Acsl.is_plain_fun lv_type ->
-        Cvalue.V.inject (Base.of_varinfo vi) Ival.zero
-      | _ ->
+      match Transfer_specification.term_as_address term with
+      | Some vi -> Cvalue.V.inject (Base.of_varinfo vi) Ival.zero
+      | None ->
         try
           let alarm_mode = Eval_terms.Ignore in
           let loc = Eval_terms.eval_tlval_as_location ~alarm_mode env term in
@@ -285,6 +344,8 @@ let specification_deps kf ~pre =
     let funspec = Annotations.funspec kf in
     let activity = behavior_activity ~pre funspec in
     let pre_deps = preconditions_deps ~requires:true ~pre funspec activity in
+    let effects_deps = specification_effects_deps ~pre funspec activity in
+    let pre_deps = Memory_zone.join pre_deps effects_deps in
     let result = Library_functions.get_retres_vi kf in
     match specification_post_state kf funspec ~pre result with
     | None -> Memory_zone.top
@@ -308,10 +369,7 @@ let eval_error_reason fmt e =
    Eva uses the base address without evaluating the offset. This shortcut
    does not apply to ordinary evaluation of an address term. *)
 let is_address term =
-  match term.term_node with
-  | TAddrOf (TVar _, _) | TStartOf (TVar _, _) -> true
-  | TLval (TVar lv, _) when Ast_types.Acsl.is_plain_fun lv.lv_type -> true
-  | _ -> false
+  Option.is_some (Transfer_specification.term_as_address term)
 
 let eval_tlval_as_zone assigns kind env acc t =
   let term = t.it_content in

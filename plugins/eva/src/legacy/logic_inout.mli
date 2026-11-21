@@ -56,8 +56,11 @@ val postcondition_deps:
   return:Cvalue.V.t option -> Memory_zone.t
 
 (** [specification_deps kf ~pre] is the memory read by Eva to interpret the
-    preconditions and normal postconditions of [kf] when it analyzes a call
-    to [kf] through its specification, from the state [pre] at the call.
+    preconditions, normal postconditions and effect clauses of [kf] when it
+    analyzes a call to [kf] through its specification, from the state [pre] at
+    the call. Effect clauses include the address and direct content reads of
+    assigns/from, and the pointer-term reads of frees/allocates, even if the
+    cvalue transfer has no effect: their evaluation can emit diagnostics.
     The postconditions are evaluated in an over-approximation of the state
     after the assigns clauses. If an assigns destination cannot be evaluated
     in [pre], returns [Memory_zone.top]: Eva may evaluate it successfully
