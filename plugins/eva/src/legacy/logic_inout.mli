@@ -40,7 +40,9 @@ val annotation_deps:
 (** [precondition_deps kf ~pre] is the memory read by Eva to interpret the
     preconditions of [kf] in its pre-state [pre], before analyzing its body:
     the assumes clauses of all behaviors, which decide their activity, and
-    the requires clauses of the behaviors that may be active. *)
+    the requires clauses of the behaviors that may be active. It also
+    includes the address reads of assigns/from clauses used by the optional
+    From contract checker, conservatively even when the checker is disabled. *)
 val precondition_deps:
   Cil_types.kernel_function -> pre:Cvalue.Model.t -> Memory_zone.t
 
@@ -57,8 +59,10 @@ val postcondition_deps:
     preconditions and normal postconditions of [kf] when it analyzes a call
     to [kf] through its specification, from the state [pre] at the call.
     The postconditions are evaluated in an over-approximation of the state
-    after the assigns clauses. The variable that stands for [\result] is
-    left out. *)
+    after the assigns clauses. If an assigns destination cannot be evaluated
+    in [pre], returns [Memory_zone.top]: Eva may evaluate it successfully
+    after reducing by the preconditions. The variable that stands for
+    [\result] is left out. *)
 val specification_deps:
   Cil_types.kernel_function -> pre:Cvalue.Model.t -> Memory_zone.t
 
@@ -89,7 +93,9 @@ type tlval_zones = {
 type annotation = Code_annot | Assigns
 
 (** Evaluation of the memory zones and dependencies of an lvalue term,
-    in the given cvalue state for a read or write access. *)
+    in the given cvalue state for a read or write access. Returns [None] if
+    any dependency cannot be computed, including a part that ordinary
+    evaluation may ignore. *)
 val tlval_to_zones:
   annotation -> Cvalue.Model.t -> Locations.access ->
   Cil_types.term -> tlval_zones option

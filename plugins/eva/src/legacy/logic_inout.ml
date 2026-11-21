@@ -13,17 +13,19 @@ let join_logic_deps logic_deps =
     (fun _ -> Memory_zone.join) logic_deps Memory_zone.bottom
 
 let predicate_deps ~pre ~here predicate =
-  let env = Eval_terms.env_annot ~pre ~here () in
-  let logic_deps = Eval_terms.predicate_deps env predicate in
-  Option.map join_logic_deps logic_deps
+  let env = Eval_terms.for_dependencies (Eval_terms.env_annot ~pre ~here ()) in
+  try
+    let logic_deps = Eval_terms.predicate_deps env predicate in
+    Option.map join_logic_deps logic_deps
+  with Abstract_interp.Error_Top -> None
 
 let term_deps state t =
   try
-    let env = Eval_terms.env_only_here state in
+    let env = Eval_terms.for_dependencies (Eval_terms.env_only_here state) in
     let r = Eval_terms.eval_term ~alarm_mode:Eval_terms.Ignore env t in
     let zone = join_logic_deps r.Eval_terms.ldeps in
     Some zone
-  with Eval_terms.LogicEvalError _ -> None
+  with Eval_terms.LogicEvalError _ | Abstract_interp.Error_Top -> None
 
 let compute_term_deps stmt t =
   let state = Results.(before stmt |> get_cvalue_model) in
@@ -70,11 +72,13 @@ let post_env ~pre ~post ~result =
 (* Dependencies of [pred] as Eva interprets it in [env]: none if Eva ignores
    [pred], and top if the dependencies of a part of [pred] cannot be
    computed. *)
+let evaluated_deps env pred =
+  let deps, complete = Eval_terms.predicate_deps_by_parts env pred in
+  if complete then join_logic_deps deps else Memory_zone.top
+
 let interpreted_deps env pred =
   if Transfer_logic.ignore_predicate pred then Memory_zone.bottom
-  else
-    let deps, complete = Eval_terms.predicate_deps_by_parts env pred in
-    if complete then join_logic_deps deps else Memory_zone.top
+  else evaluated_deps env pred
 
 let annotation_deps ~pre ~here pred =
   interpreted_deps (here_env ~pre ~here) pred
@@ -109,7 +113,10 @@ let may_be_active activity b =
 let preconditions_deps ~requires ~pre funspec activity =
   let env = pre_env ~pre in
   let behavior_deps acc b =
-    let acc = List.fold_left (clause_deps env) acc b.b_assumes in
+    (* Selection evaluates this conjunction directly, including [no_eva]
+       clauses that [clause_deps] would ignore for reduction. *)
+    let assumes = Active_behaviors.assumes b in
+    let acc = Memory_zone.join acc (evaluated_deps env assumes) in
     if requires && may_be_active activity b
     then List.fold_left (clause_deps env) acc b.b_requires
     else acc
@@ -145,11 +152,44 @@ let remove_result result zone =
     let base = Base.of_varinfo vi in
     Memory_zone.filter_base (fun b -> not (Base.equal b base)) zone
 
+(* [verify_assigns] evaluates the locations of the declared assigns/from
+   clauses when From checks a body. A hit skips that check, so its address
+   reads must belong to the key too. Keeping them when the checker is
+   disabled is a conservative excess; scalar locations have no such read.
+   As for the preconditions, [pre] includes the reduced state of the check. *)
+let assigns_validation_deps ~pre funspec activity =
+  let env = Eval_terms.for_dependencies (Eval_terms.env_assigns ~pre) in
+  let term_deps acc it =
+    let term = it.it_content in
+    if Logic_utils.is_result term then acc
+    else
+      try
+        let deps = join_logic_deps (Eval_terms.tlval_deps env term) in
+        Memory_zone.join acc deps
+      with Eval_terms.LogicEvalError _ | Abstract_interp.Error_Top ->
+        Memory_zone.top
+  in
+  let assigns_deps acc (out, froms) =
+    let acc = term_deps acc out in
+    match froms with
+    | FromAny -> acc
+    | From terms -> List.fold_left term_deps acc terms
+  in
+  let behavior_deps acc b =
+    if not (may_be_active activity b) then acc
+    else match b.b_assigns with
+      | WritesAny -> acc
+      | Writes clauses -> List.fold_left assigns_deps acc clauses
+  in
+  List.fold_left behavior_deps Memory_zone.bottom funspec.spec_behavior
+
 let precondition_deps kf ~pre =
   let funspec = Annotations.funspec kf in
   let activity = behavior_activity ~pre funspec in
   let requires = not (Eva_utils.skip_specifications kf) in
-  preconditions_deps ~requires ~pre funspec activity
+  let predicates = preconditions_deps ~requires ~pre funspec activity in
+  let assigns = assigns_validation_deps ~pre funspec activity in
+  Memory_zone.join predicates assigns
 
 let postcondition_deps kf ~pre ~here ~return =
   if Eva_utils.skip_specifications kf
@@ -160,6 +200,10 @@ let postcondition_deps kf ~pre ~here ~return =
     let result = Library_functions.get_retres_vi kf in
     let value = Option.value ~default:Cvalue.V.top return in
     let post = bind_result result value here in
+    (* Eva binds Pre and Old to the join after precondition reduction. The
+       call's earlier [pre] includes that state: successful strict evaluation
+       covers its addresses, and any failed part makes the dependencies top.
+       The same argument applies to the Pre label of body annotations. *)
     let env = post_env ~pre ~post ~result in
     remove_result result (postconditions_deps env funspec activity)
 
@@ -195,10 +239,13 @@ let assigned_value env pre froms =
    of [kf] interpreted through its specification [funspec], from the state
    [pre] at the call: the variable [result] that stands for \result holds
    its initial value, and each location of an assigns clause of any behavior
-   may also hold the value Eva writes there. Eva ignores the assigns clauses
-   that it cannot interpret, and so does this function. *)
+   may also hold the value Eva writes there. Eva resolves these locations
+   after reducing by the preconditions. A failed evaluation in the larger
+   [pre] may succeed in a reduced state: it makes this reconstruction
+   incomplete, even when Eva would ignore the clause in [pre] itself. *)
 let specification_post_state kf funspec ~pre result =
-  let env = Eval_terms.silent (Eval_terms.env_assigns ~pre) in
+  let exception Incomplete in
+  let env = Eval_terms.for_dependencies (Eval_terms.env_assigns ~pre) in
   let state = bind_result result (Library_functions.returned_value kf) pre in
   let location term =
     if Logic_utils.is_result term
@@ -207,11 +254,12 @@ let specification_post_state kf funspec ~pre result =
       try
         let alarm_mode = Eval_terms.Ignore in
         let loc = Eval_terms.eval_tlval_as_location ~alarm_mode env term in
-        if Locations.(Addresses.Bits.(equal top loc.addr)) then None
+        if Locations.(Addresses.Bits.(equal top loc.addr)) then raise Incomplete
         else
           let loc = Locations.valid_part Write loc in
           if Locations.is_bottom loc then None else Some loc
-      with Eval_terms.LogicEvalError _ | Abstract_interp.Error_Top -> None
+      with Eval_terms.LogicEvalError _ | Abstract_interp.Error_Top ->
+        raise Incomplete
   in
   let assign state (out, froms) =
     match location out.it_content with
@@ -225,7 +273,8 @@ let specification_post_state kf funspec ~pre result =
     | WritesAny -> state
     | Writes l -> List.fold_left assign state l
   in
-  List.fold_left behavior_assigns state funspec.spec_behavior
+  try Some (List.fold_left behavior_assigns state funspec.spec_behavior)
+  with Incomplete -> None
 
 let specification_deps kf ~pre =
   let vi = Kernel_function.get_vi kf in
@@ -237,10 +286,12 @@ let specification_deps kf ~pre =
     let activity = behavior_activity ~pre funspec in
     let pre_deps = preconditions_deps ~requires:true ~pre funspec activity in
     let result = Library_functions.get_retres_vi kf in
-    let post = specification_post_state kf funspec ~pre result in
-    let env = post_env ~pre ~post ~result in
-    let post_deps = postconditions_deps env funspec activity in
-    remove_result result (Memory_zone.join pre_deps post_deps)
+    match specification_post_state kf funspec ~pre result with
+    | None -> Memory_zone.top
+    | Some post ->
+      let env = post_env ~pre ~post ~result in
+      let post_deps = postconditions_deps env funspec activity in
+      remove_result result (Memory_zone.join pre_deps post_deps)
   end
 
 (* -------------------------------------------------------------------------- *)
@@ -251,7 +302,11 @@ let eval_error_reason fmt e =
   if e <> Eval_terms.CAlarm
   then Eval_terms.pretty_logic_evaluation_error fmt e
 
-(* Does [term] refers to the address of a C variable (or function)? *)
+(* Does [term] refer to the address of a C variable (or function)?
+   This is the special interpretation of addresses in assigns/from clauses,
+   matching [Transfer_specification.term_as_address]: even with an offset,
+   Eva uses the base address without evaluating the offset. This shortcut
+   does not apply to ordinary evaluation of an address term. *)
 let is_address term =
   match term.term_node with
   | TAddrOf (TVar _, _) | TStartOf (TVar _, _) -> true
@@ -321,7 +376,7 @@ let make_env context state =
   | Code_annot -> Eval_terms.env_only_here state
 
 let tlval_to_zones context state access tlval =
-  let env = make_env context state in
+  let env = Eval_terms.for_dependencies (make_env context state) in
   let alarm_mode = Eval_terms.Ignore in
   (* If the term is an address, it has no memory dependency.
      This is possible in "\from &g" clauses. *)
@@ -334,7 +389,7 @@ let tlval_to_zones context state access tlval =
       in
       let deps = join_logic_deps (Eval_terms.tlval_deps env tlval) in
       Some { under; over; deps; }
-    with Eval_terms.LogicEvalError _ -> None
+    with Eval_terms.LogicEvalError _ | Abstract_interp.Error_Top -> None
 
 
 (* -------------------------------------------------------------------------- *)

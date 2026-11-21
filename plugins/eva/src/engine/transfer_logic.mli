@@ -9,7 +9,7 @@
 open Cil_types
 open Eval
 
-(* Eva ignores the predicates with a "no_eva" tag. *)
+(** Eva ignores the predicates with a "no_eva" tag. *)
 val ignore_predicate: predicate -> bool
 
 (* Marks all behaviors of the list as inactive. *)

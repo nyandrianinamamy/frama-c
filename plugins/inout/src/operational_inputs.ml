@@ -121,7 +121,7 @@ let eval_assigns_clauses ~clean_deps ~from_any state clauses =
     (* Compute all inputs as a zone *)
     let inputs =
       match froms with
-      | FromAny -> from_any
+      | FromAny -> Memory_zone.join deps from_any
       | From l ->
         let aux acc { it_content = from } =
           let inputs = Eva.Logic_inout.tlval_to_zones Assigns state Read from in
