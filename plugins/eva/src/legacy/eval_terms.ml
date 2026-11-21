@@ -168,10 +168,9 @@ type logic_env = Cvalue.V.t LogicVarEnv.t
    contract, etc.) [strict_deps] is set by [predicate_deps_by_parts]: the
    logic dependencies then include the memory read by the logic builtins on
    strings, and the dependencies of a set comprehension or of a range bound
-   that cannot be computed raise an error instead of being ignored, unless
-   the evaluation of the bound fails in any state. [silent] disables the
-   warnings about the terms, predicates and range bounds that cannot be
-   evaluated, and those of \warning. *)
+   that cannot be computed raise an error instead of being ignored.
+   [silent] disables the warnings about the terms, predicates and range
+   bounds that cannot be evaluated, bottom \let bindings, and \warning. *)
 type eval_env = {
   e_cur: logic_label;
   e_states: labels_states;
@@ -1054,25 +1053,6 @@ let forward_binop typ v1 op v2 =
     else Cvalue.V.zero_or_one
   | _ -> forward_binop_by_type typ v1 op v2
 
-(* Is [t] the application of a logic function that Eva can neither evaluate
-   nor inline, possibly under casts? Its evaluation then fails in any state. *)
-let rec is_unevaluable_application env t =
-  match t.term_node with
-  | TCast (_, _, t) -> is_unevaluable_application env t
-  | Tapp (li, _, _) ->
-    not (is_known_logic_fun li.l_var_info)
-    && Inline.inline_term ~inline ~current:env.e_cur t = None
-  | _ -> false
-
-(* Does the evaluation of [t] fail in any state, because it evaluates such an
-   application? The operands of casts and of unary and binary operators are
-   always evaluated. *)
-let rec fails_in_any_state env t =
-  match t.term_node with
-  | TCast (_, _, t) | TUnOp (_, t) -> fails_in_any_state env t
-  | TBinOp (_, t1, t2) -> fails_in_any_state env t1 || fails_in_any_state env t2
-  | _ -> is_unevaluable_application env t
-
 let rec eval_term ~alarm_mode env t =
   match t.term_node with
   | Tat (t, lab) ->
@@ -1207,8 +1187,10 @@ let rec eval_term ~alarm_mode env t =
         with
         | Cvalue.V.Not_based_on_null -> None, None
         | LogicEvalError e ->
-          if env.strict_deps && not (fails_in_any_state env term)
-          then raise (LogicEvalError e);
+          (* Even a bound that always fails can emit different diagnostics:
+             an earlier subterm may raise CAlarm before an unsupported one.
+             Its failure therefore cannot establish an absence of reads. *)
+          if env.strict_deps then raise (LogicEvalError e);
           if e <> CAlarm && not env.silent then
             Self.warning ~wkey:Log_key.warn_acsl_unsupported
               ~loc:t.term_loc ~once:true
@@ -1406,17 +1388,12 @@ let rec eval_term ~alarm_mode env t =
     end
 
   | Tcomprehension (term, quantifiers, predicate) ->
-    let env = bind_comprehension_quantifiers env quantifiers predicate in
-    let r = eval_term ~alarm_mode env term in
-    let pred_deps = comprehension_deps env predicate in
-    let ldeps =
-      Option.fold ~none:r.ldeps ~some:(join_logic_deps r.ldeps) pred_deps
-    in
-    { r with empty = true; ldeps }
+    eval_comprehension eval_term ~alarm_mode env term quantifiers predicate
 
   | Tlet (li, t') ->
-    let env = eval_let_binding ~alarm_mode env li in
-    eval_term ~alarm_mode env t'
+    let env, deps = eval_let_binding ~alarm_mode env li in
+    let r = eval_term ~alarm_mode env t' in
+    { r with ldeps = join_logic_deps deps r.ldeps }
 
   | Tlambda _ -> unsupported "logic functions or predicates"
   | TUpdate _ -> unsupported "functional updates"
@@ -1467,24 +1444,36 @@ and eval_binop ~alarm_mode env op t1 t2 =
       ldeps = join_logic_deps r1.ldeps r2.ldeps;
       eunder; eover; empty = r1.empty || r2.empty; }
 
-and eval_tif : 'a. (alarm_mode:_ -> _ -> _ -> 'a eval_result) -> ('a -> 'a -> 'a) -> ('a -> 'a -> 'a) -> alarm_mode:_ -> _ -> _ -> _ -> _ -> 'a eval_result =
+and eval_tif : 'a. (alarm_mode:_ -> _ -> _ -> 'a eval_result) ->
+  ('a -> 'a -> 'a) -> ('a -> 'a -> 'a) ->
+  alarm_mode:_ -> _ -> _ -> _ -> _ -> 'a eval_result =
   fun eval join meet ~alarm_mode env pcond ttrue tfalse ->
-  match eval_predicate env pcond with
-  | Unknown ->
-    let vtrue = eval ~alarm_mode env ttrue in
-    let vfalse = eval ~alarm_mode env tfalse in
-    if not (same_etype vtrue.etype vfalse.etype) then
-      Self.failure ~current:true
-        "Incoherent types in conditional: %a vs. %a. \
-         Please report"
-        Printer.pp_typ vtrue.etype Printer.pp_typ vfalse.etype;
-    let eover = join vtrue.eover vfalse.eover in
-    let eunder = meet vtrue.eunder vfalse.eunder in
-    { etype = vtrue.etype;
-      ldeps = join_logic_deps vtrue.ldeps vfalse.ldeps;
-      eunder; eover; empty = vtrue.empty || vfalse.empty; }
-  | True -> eval ~alarm_mode env ttrue
-  | False -> eval ~alarm_mode env tfalse
+  let deps =
+    match predicate_deps { env with silent = true } pcond with
+    | Some deps -> deps
+    | None when env.strict_deps ->
+      unsupported "dependencies of a conditional term"
+    | None -> empty_logic_deps
+  in
+  let r =
+    match eval_predicate env pcond with
+    | Unknown ->
+      let vtrue = eval ~alarm_mode env ttrue in
+      let vfalse = eval ~alarm_mode env tfalse in
+      if not (same_etype vtrue.etype vfalse.etype) then
+        Self.failure ~current:true
+          "Incoherent types in conditional: %a vs. %a. \
+           Please report"
+          Printer.pp_typ vtrue.etype Printer.pp_typ vfalse.etype;
+      let eover = join vtrue.eover vfalse.eover in
+      let eunder = meet vtrue.eunder vfalse.eunder in
+      { etype = vtrue.etype;
+        ldeps = join_logic_deps vtrue.ldeps vfalse.ldeps;
+        eunder; eover; empty = vtrue.empty || vfalse.empty; }
+    | True -> eval ~alarm_mode env ttrue
+    | False -> eval ~alarm_mode env tfalse
+  in
+  { r with ldeps = join_logic_deps deps r.ldeps }
 
 (* if you add something here, update known_logic_funs above also *)
 and eval_known_logic_function ~alarm_mode env li labels args =
@@ -1728,7 +1717,7 @@ and eval_quantifier_extremum backward_left ~min ~max eval_term =
     and above = eval_ival (Ival.inject_range (Some (Z.succ e)) max) in
     let below = { below with eover = backward_left below.eover r.eover }
     and above = { above with eover = backward_left above.eover r.eover } in
-    join_eval_result r (join_eval_result below above)
+    return (join_eval_result r (join_eval_result below above))
   | (b, _), (_, e) ->
     (* If [min] can be greater than [max], the result is unspecified. *)
     let r = eval_ival (Ival.inject_range b e) in
@@ -1737,10 +1726,8 @@ and eval_quantifier_extremum backward_left ~min ~max eval_term =
     let r = eval_term (Cvalue.V.join min.eover max.eover) in
     return { r with eover = Cvalue.V.top; eunder = Cvalue.V.bottom }
 
-(* Introduces the logic variables [quantifiers] in [env], and reduces their
-   value according to [predicate]. *)
-and bind_comprehension_quantifiers env quantifiers predicate =
-  let env = bind_logic_vars env quantifiers in
+(* Reduces the values of the already bound [quantifiers] by [predicate]. *)
+and reduce_comprehension_quantifiers env quantifiers predicate =
   match predicate with
   | None -> env
   | Some pred ->
@@ -1751,6 +1738,26 @@ and bind_comprehension_quantifiers env quantifiers predicate =
     with LogicEvalError error ->
       display_evaluation_error ~silent:env.silent ~loc:pred.pred_loc error;
       env
+
+and bind_comprehension_quantifiers env quantifiers predicate =
+  let env = bind_logic_vars env quantifiers in
+  reduce_comprehension_quantifiers env quantifiers predicate
+
+(* Collect the predicate's reads before narrowing the quantified variables.
+   Narrowing can select a different arm of a conditional inside the predicate,
+   hiding reads that were needed to obtain the narrowed values. This applies
+   both to values and to sets of locations. *)
+and eval_comprehension : 'a. (alarm_mode:_ -> _ -> _ -> 'a eval_result) ->
+  alarm_mode:_ -> _ -> _ -> _ -> _ -> 'a eval_result =
+  fun eval ~alarm_mode env term quantifiers predicate ->
+  let env = bind_logic_vars env quantifiers in
+  let pred_deps = comprehension_deps env predicate in
+  let env = reduce_comprehension_quantifiers env quantifiers predicate in
+  let r = eval ~alarm_mode env term in
+  let ldeps =
+    Option.fold ~none:r.ldeps ~some:(join_logic_deps r.ldeps) pred_deps
+  in
+  { r with empty = true; ldeps }
 
 (* Dependencies of the optional predicate of a set comprehension. They are
    ignored if they cannot be computed, unless [env.strict_deps] holds. *)
@@ -1770,12 +1777,20 @@ and eval_let_binding ~alarm_mode env logic_info =
       let var = logic_info.l_var_info in
       let env = bind_logic_vars env [var] in
       let var_term = Logic_const.tvar var in
-      try reduce_left_by_relation ~alarm_mode env true var_term Req term
-      with Reduce_to_bottom ->
-        Self.warning ~current:true ~once:true
-          "ignoring \\let binding of logic variable %a evaluating to bottom"
-          Printer.pp_logic_var var;
-        env
+      let r = eval_term ~alarm_mode env term in
+      let reduce typ cvalue =
+        Eval_op.backward_comp_left_from_type typ true Req cvalue r.eover
+      in
+      let env =
+        try reduce_exact_location ~alarm_mode env reduce var_term
+        with Reduce_to_bottom ->
+          if not env.silent then
+            Self.warning ~current:true ~once:true
+              "ignoring \\let binding of logic variable %a evaluating to bottom"
+              Printer.pp_logic_var var;
+          env
+      in
+      env, r.ldeps
     end
   | _ -> unsupported "\\let binding"
 
@@ -1924,13 +1939,7 @@ and eval_term_as_lval ~alarm_mode env t =
     eval_tif eval_term_as_lval Addresses.Bits.join Addresses.Bits.meet ~alarm_mode env
       pcond ttrue tfalse
   | Tcomprehension (term, quantifiers, predicate) ->
-    let env = bind_comprehension_quantifiers env quantifiers predicate in
-    let r = eval_term_as_lval ~alarm_mode env term in
-    let pred_deps = comprehension_deps env predicate in
-    let ldeps =
-      Option.fold ~none:r.ldeps ~some:(join_logic_deps r.ldeps) pred_deps
-    in
-    { r with empty = true; ldeps }
+    eval_comprehension eval_term_as_lval ~alarm_mode env term quantifiers predicate
   | Tinter _ -> unsupported "intersection of locations"
   | _ -> ast_error (Format.asprintf "non-lval term %a" Printer.pp_term t)
 
@@ -2472,7 +2481,7 @@ and reduce_by_predicate ~alarm_mode env positive p =
     | _, Plet (li, p') ->
       begin
         try
-          let env = eval_let_binding ~alarm_mode env li in
+          let env, _deps = eval_let_binding ~alarm_mode env li in
           let env_result = reduce_by_predicate ~alarm_mode env positive p' in
           unbind_logic_vars env_result [li.l_var_info]
         with LogicEvalError _ -> env
@@ -2718,7 +2727,7 @@ and eval_predicate env pred =
       end
 
     | Plet (li, p') ->
-      let env = eval_let_binding ~alarm_mode env li in
+      let env, _deps = eval_let_binding ~alarm_mode env li in
       do_eval env p'
 
     | Pnot p ->  begin match do_eval env p with
@@ -2891,20 +2900,13 @@ and eval_tsets_deps ~alarm_mode env lbl tsets =
   let size_bits = Eval_typ.sizeof_lval_typ r.etype in
   let loc = Locations.make r.eover size_bits in
   let zone = Locations.enumerate_valid_bits Locations.Read loc in
-  Logic_label.Map.add lbl zone r.ldeps
+  add_deps lbl r.ldeps zone
 
 and predicate_deps env pred =
   let alarm_mode = Ignore in
   let rec do_eval env p =
     let term_deps term = (eval_term ~alarm_mode env term).ldeps in
     let tsets_deps lbl tsets = eval_tsets_deps ~alarm_mode env lbl tsets in
-    let logic_info_deps li =
-      match li.l_body with
-      | LBnone -> empty_logic_deps
-      | LBterm t -> term_deps t
-      | LBpred p -> do_eval env p
-      | _ -> unsupported (Format.asprintf "%a" Printer.pp_logic_info li)
-    in
     match p.pred_content with
     | Ptrue | Pfalse -> empty_logic_deps
 
@@ -2945,8 +2947,8 @@ and predicate_deps env pred =
       do_eval env p
 
     | Plet (li, p) ->
-      let env = eval_let_binding ~alarm_mode env li in
-      join_logic_deps (logic_info_deps li) (do_eval env p)
+      let env, deps = eval_let_binding ~alarm_mode env li in
+      join_logic_deps deps (do_eval env p)
 
     | Papp (li, _labels, args) -> begin
         if is_known_predicate li.l_var_info then
@@ -2980,18 +2982,20 @@ and predicate_deps env pred =
   try Some (do_eval env pred)
   with LogicEvalError _ -> None
 
+let for_dependencies env = { env with strict_deps = true; silent = true }
+
 (* Dependencies of [pred] as Eva interprets it, computed part by part.
    The dependencies of an atomic part that cannot be computed are left out,
    and the boolean returned is then false. Some parts read nothing: Eva
    evaluates to Unknown, and does not reduce by, the predicates \fresh,
    \allocable, \freeable at another label than Here, the predicates that it
-   can neither evaluate nor inline, and the relations with a side that is
-   the application of a logic function it can neither evaluate nor inline:
-   the evaluation of such a relation fails, and its reduction fails before
-   it changes the state. The dependencies are strict, as described with
-   [eval_env]. *)
+   can neither evaluate nor inline. These constructs neither evaluate nor
+   reduce their operands. A relation containing an unsupported term is not
+   such a case: earlier operands can affect which warning Eva emits, even
+   when the relation never changes the state. The dependencies are strict,
+   as described with [eval_env]. *)
 let predicate_deps_by_parts env pred =
-  let env = { env with strict_deps = true; silent = true } in
+  let env = for_dependencies env in
   let complete = ref true in
   let incomplete () = complete := false; empty_logic_deps in
   let atom env p =
@@ -3026,10 +3030,6 @@ let predicate_deps_by_parts env pred =
           incomplete ()
       end
     | Pfreeable _ -> empty_logic_deps
-    | Prel (_, t1, t2)
-      when is_unevaluable_application env t1
-        || is_unevaluable_application env t2 ->
-      empty_logic_deps
     | Papp (li, _, _) when not (is_known_predicate li.l_var_info) ->
       begin
         match Inline.inline_predicate ~inline ~current:env.e_cur p with
