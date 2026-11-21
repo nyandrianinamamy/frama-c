@@ -118,16 +118,16 @@ module Make (Domain: InputDomain) = struct
       (fun fmt -> pretty_point fmt control_point)
 
   let get_state ?callstack control_point =
-    if Legacy_read_trap.reading () then begin
-      let access =
-        match callstack with
-        | None -> Legacy_read_trap.Joined
-        | Some callstack -> Legacy_read_trap.Callstack callstack
-      in
-      signal access control_point
-    end;
     if is_computed ()
-    then
+    then begin
+      if Legacy_read_trap.reading () then begin
+        let access =
+          match callstack with
+          | None -> Legacy_read_trap.Joined
+          | Some callstack -> Legacy_read_trap.Callstack callstack
+        in
+        signal access control_point
+      end;
       try
         match callstack with
         | None -> `Value (Table.find control_point)
@@ -135,15 +135,17 @@ module Make (Domain: InputDomain) = struct
           let cs_tbl = TableByCallstack.find control_point in
           `Value (Callstack.Hashtbl.find cs_tbl callstack)
       with Not_found -> `Bottom
+    end
     else `Top
 
   let get_callstacks key =
     TableByCallstack.find key |> Callstack.Hashtbl.to_seq_keys |> List.of_seq
 
   let callstacks control_point =
-    if Legacy_read_trap.reading () then signal Callstacks control_point;
-    if is_computed () then
+    if is_computed () then begin
+      if Legacy_read_trap.reading () then signal Callstacks control_point;
       try `Value (get_callstacks control_point)
       with Not_found -> `Value []
+    end
     else `Top
 end

@@ -1,0 +1,72 @@
+[kernel] Parsing legacy_reads_projects.c (with preprocessing)
+[eva] Analyzing a complete application starting at main
+[eva:progress] Computing initial state
+[eva:progress] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  g ∈ {0}
+[eva:progress] 
+  computing for function f <- main.
+  Called from legacy_reads_projects.c:23.
+[eva:progress] Recording results for f
+[eva:progress] Done for function f
+[eva:progress] 
+  computing for function f <- main.
+  Called from legacy_reads_projects.c:24.
+[eva:progress] Recording results for f
+[eva:progress] Done for function f
+[eva:progress] Recording results for main
+[eva:progress] Done for function main
+[eva] Analyzing a complete application starting at main
+[eva:progress] Computing initial state
+[eva:progress] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  g ∈ {0}
+[eva:progress] 
+  computing for function f <- main.
+  Called from legacy_reads_projects.c:23.
+[eva:progress] Recording results for f
+[eva:progress] Done for function f
+[eva:progress] 
+  computing for function f <- main.
+  Called from legacy_reads_projects.c:24.
+[eva:progress] Recording results for f
+[eva:progress] Done for function f
+[eva:progress] Recording results for main
+[eva:progress] Done for function main
+Request in the first project during the analysis of the second:
+  request 1: initial state; joined
+    read of the cvalue store: joined state, initial state
+  reads ignored: some
+[eva] Analyzing a complete application starting at main
+[eva:progress] Computing initial state
+[eva:progress] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  g ∈ {0}
+[eva:progress] 
+  computing for function f <- main.
+  Called from legacy_reads_projects.c:23.
+[eva:progress] Recording results for f
+[eva:progress] Done for function f
+[eva:progress] 
+  computing for function f <- main.
+  Called from legacy_reads_projects.c:24.
+[eva:progress] Recording results for f
+[eva:progress] Done for function f
+[eva:progress] Recording results for main
+[eva:progress] Done for function main
+Request of the first project that starts an analysis:
+  request 1: before legacy_reads_projects.c:18 in f; every callstack, filtered
+    read of the cvalue store: callstacks, before legacy_reads_projects.c:18 in f
+    read of the cvalue store: state of callstack f :: legacy_reads_projects.c:23 <- main, before legacy_reads_projects.c:18 in f
+    read of the cvalue store: state of callstack f :: legacy_reads_projects.c:24 <- main, before legacy_reads_projects.c:18 in f
+  reads ignored: some
+Request of the first project that makes one in the third:
+  request 1: before legacy_reads_projects.c:18 in f; every callstack, filtered
+    read of the cvalue store: callstacks, before legacy_reads_projects.c:18 in f
+    read of the cvalue store: state of callstack f :: legacy_reads_projects.c:23 <- main, before legacy_reads_projects.c:18 in f
+    read of the cvalue store: state of callstack f :: legacy_reads_projects.c:24 <- main, before legacy_reads_projects.c:18 in f
+  request 2: initial state; joined
+    read of the cvalue store: joined state, initial state
+  request 3: initial state; joined
+    read of the cvalue store: joined state, initial state
+  reads ignored: none

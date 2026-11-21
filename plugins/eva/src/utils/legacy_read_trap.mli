@@ -16,15 +16,24 @@
 
     A request is an access of {!Results} to the states at one control point:
     the joined state, or the states of some callstacks. It is reported if it
-    starts while the instrument is on, when Eva has results, and outside an
-    analysis. An analysis lasts from its start to the end of the passes that
-    Eva runs after the iteration, such as the summary. The reads made by a
-    request that starts during an analysis are not reported, only counted by
+    starts while the instrument is on, when Eva has results in the current
+    project, and outside an analysis of this project. An analysis lasts from
+    its start to the end of the passes that Eva runs after the iteration,
+    such as the summary. The reads made by a request that starts during an
+    analysis of its project are not reported, only counted by
     {!ignored_reads}. The reads made outside any request, by the analysis or
-    by other readers of the store, are neither reported nor counted.
+    by other readers of the store, are neither reported nor counted. A lookup
+    is a read only when the store of the domain has been saved: when the
+    results of a domain are disabled, a request has no read of its store.
 
-    The instrument is off by default and changes no result. Its state is not
-    projectified: it is neither saved nor changed with the current project. *)
+    Requests and analyses are followed by project: a request made in a
+    project is reported even if the analysis of another project is running,
+    and an analysis started within a request, or a request made in another
+    project within a request, is not part of that request.
+
+    The instrument is off by default and changes no result. The report is
+    not projectified: it gathers the requests of all projects, and is
+    neither saved nor changed with the current project. *)
 
 (** What a read looks up in the store of one domain at one control point. *)
 type access =
@@ -74,16 +83,16 @@ val pretty_callstack: Format.formatter -> Callstack.t -> unit
 
 (** {2 Used by Eva} *)
 
-(** [analysis f] runs the analysis [f]: requests that start meanwhile are not
-    reported. *)
+(** [analysis f] runs the analysis [f] of the current project: requests that
+    start meanwhile in this project are not reported. *)
 val analysis: (unit -> 'a) -> 'a
 
 (** [request pp f] serves by [f] the request printed by [pp]. Within another
-    request, [f] is part of that request. *)
+    request of the same project, [f] is part of that request. *)
 val request: (Format.formatter -> unit) -> (unit -> 'a) -> 'a
 
-(** Whether a request is being served while the instrument is on. Only then
-    are reads signalled with {!read}. *)
+(** Whether a request is being served in the current project while the
+    instrument is on. Only then are reads signalled with {!read}. *)
 val reading: unit -> bool
 
 (** [read ~store access pp] signals a read of the store of domain [store] at

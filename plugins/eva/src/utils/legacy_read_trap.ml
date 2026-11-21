@@ -30,8 +30,10 @@ type served =
   | Ignored
 
 let on = ref false
-let analyses = ref 0 (* Number of analyses running. *)
-let current = ref None
+(* Projects whose analysis is running, innermost first. *)
+let analyses : Project.t list ref = ref []
+(* The request being served and its project. *)
+let current : (Project.t * served) option ref = ref None
 let reported = ref [] (* Latest first. *)
 let count = ref 0
 let ignored = ref 0
@@ -44,21 +46,40 @@ let start () =
 
 let stop () = on := false
 
-let requests () = List.rev !reported
+(* A request made within a request of another project ends first. *)
+let requests () =
+  List.sort (fun r r' -> Int.compare r.number r'.number) !reported
 
 let ignored_reads () = !ignored
 
+let in_project project = Project.equal project (Project.current ())
+
+(* An analysis started inside a request does not belong to this request. *)
 let analysis f =
-  incr analyses;
-  Fun.protect ~finally:(fun () -> decr analyses) f
+  let outer = !current in
+  let finally () =
+    analyses := List.tl !analyses;
+    current := outer
+  in
+  analyses := Project.current () :: !analyses;
+  current := None;
+  Fun.protect ~finally f
 
 let serve served f =
-  current := Some served;
-  Fun.protect ~finally:(fun () -> current := None) f
+  let outer = !current in
+  current := Some (Project.current (), served);
+  Fun.protect ~finally:(fun () -> current := outer) f
+
+(* The request being served in the current project, if any. A request made
+   in another project is a request of its own. *)
+let served () =
+  match !current with
+  | Some (project, served) when in_project project -> Some served
+  | Some _ | None -> None
 
 let request pp f =
-  if not !on || Option.is_some !current then f ()
-  else if !analyses > 0 then serve Ignored f
+  if not !on || Option.is_some (served ()) then f ()
+  else if List.exists in_project !analyses then serve Ignored f
   else if not (Self.is_computed ()) then f ()
   else begin
     incr count;
@@ -72,10 +93,10 @@ let request pp f =
     Fun.protect ~finally:record (fun () -> serve (Reported reads) f)
   end
 
-let reading () = !on && Option.is_some !current
+let reading () = !on && Option.is_some (served ())
 
 let read ~store access pp =
-  match !current with
+  match served () with
   | None -> ()
   | Some Ignored -> incr ignored
   | Some (Reported reads) ->
