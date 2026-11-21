@@ -1,0 +1,324 @@
+[kernel] Parsing nested_passes.c (with preprocessing)
+[eva] Analyzing a complete application starting at main
+[eva:alarm] nested_passes.c:29: Warning: assertion 'at_Q' got status unknown.
+[eva:alarm] nested_passes.c:26: Warning: 
+  accessing out of bounds index. assert (int)(*p + c) < 10;
+[eva:alarm] nested_passes.c:27: Warning: 
+  accessing out of bounds index. assert (int)(*p + c) < 10;
+[eva] Analyzing a complete application starting at main
+[eva:alarm] nested_passes.c:29: Warning: assertion 'at_Q' got status unknown.
+[eva:alarm] nested_passes.c:26: Warning: 
+  accessing out of bounds index. assert (int)(*p + c) < 10;
+[eva:alarm] nested_passes.c:27: Warning: 
+  accessing out of bounds index. assert (int)(*p + c) < 10;
+[eva] Analyzing a complete application starting at main
+[eva:alarm] nested_passes.c:29: Warning: assertion 'at_Q' got status unknown.
+[eva:alarm] nested_passes.c:26: Warning: 
+  accessing out of bounds index. assert (int)(*p + c) < 10;
+[eva:alarm] nested_passes.c:27: Warning: 
+  accessing out of bounds index. assert (int)(*p + c) < 10;
+Calls:
+  Frama_C_interval :: nested_passes.c:35 <- main: specification
+  leaf :: nested_passes.c:32 <- f :: nested_passes.c:36 <- main: analysed, cache entry 13
+  f :: nested_passes.c:36 <- main: analysed, cache entry 14
+  f :: nested_passes.c:37 <- main: hit of cache entry 14
+  leaf :: nested_passes.c:32 <- f :: nested_passes.c:38 <- main: analysed, cache entry 15
+  f :: nested_passes.c:38 <- main: analysed, cache entry 16
+  main: analysed, cache entry 17
+Calls below a hit:
+  leaf :: nested_passes.c:32 <- f :: nested_passes.c:37 <- main
+leaf, start:
+  joined: c ∈ {0; 1}
+          g ∈ {0; 4; 9}
+          h ∈ {7; 8}
+          k ∈ {3}
+          r ∈ {0}
+          t[0..9] ∈ {0}
+          p ∈ {{ &x }}
+          x ∈ {0; 4; 9}
+          __retres ∈ UNINITIALIZED
+  leaf :: nested_passes.c:32 <- f :: nested_passes.c:36 <- main: c ∈ {0; 1}
+                                                                 g ∈ {0; 4}
+                                                                 h ∈ {7}
+                                                                 k ∈ {3}
+                                                                 r ∈ {0}
+                                                                 t[0..9] ∈
+                                                                  {0}
+                                                                 p ∈ {{ &x }}
+                                                                 x ∈ {0; 4}
+                                                                 __retres
+                                                                  ∈
+                                                                 UNINITIALIZED
+  leaf :: nested_passes.c:32 <- f :: nested_passes.c:37 <- main: c ∈ {0; 1}
+                                                                 g ∈ {0; 4}
+                                                                 h ∈ {8}
+                                                                 k ∈ {3}
+                                                                 r ∈ {0}
+                                                                 t[0..9] ∈
+                                                                  {0}
+                                                                 p ∈ {{ &x }}
+                                                                 x ∈ {0; 4}
+                                                                 __retres
+                                                                  ∈
+                                                                 UNINITIALIZED
+  leaf :: nested_passes.c:32 <- f :: nested_passes.c:38 <- main: c ∈ {0; 1}
+                                                                 g ∈ {0; 9}
+                                                                 h ∈ {8}
+                                                                 k ∈ {3}
+                                                                 r ∈ {0}
+                                                                 t[0..9] ∈
+                                                                  {0}
+                                                                 p ∈ {{ &x }}
+                                                                 x ∈ {0; 9}
+                                                                 __retres
+                                                                  ∈
+                                                                 UNINITIALIZED
+leaf, before nested_passes.c:26 `r = t[*p + c];` (Q):
+  joined: c ∈ {0; 1}
+          g ∈ {0; 4; 9}
+          h ∈ {7; 8}
+          k ∈ {3}
+          r ∈ {0}
+          t[0..9] ∈ {0}
+          p ∈ {{ &x }}
+          x ∈ {0; 3; 4; 9}
+          __retres ∈ UNINITIALIZED
+  leaf :: nested_passes.c:32 <- f :: nested_passes.c:36 <- main: c ∈ {0; 1}
+                                                                 g ∈ {0; 4}
+                                                                 h ∈ {7}
+                                                                 k ∈ {3}
+                                                                 r ∈ {0}
+                                                                 t[0..9] ∈
+                                                                  {0}
+                                                                 p ∈ {{ &x }}
+                                                                 x ∈
+                                                                  {0; 3; 4}
+                                                                 __retres
+                                                                  ∈
+                                                                 UNINITIALIZED
+  leaf :: nested_passes.c:32 <- f :: nested_passes.c:37 <- main: c ∈ {0; 1}
+                                                                 g ∈ {0; 4}
+                                                                 h ∈ {8}
+                                                                 k ∈ {3}
+                                                                 r ∈ {0}
+                                                                 t[0..9] ∈
+                                                                  {0}
+                                                                 p ∈ {{ &x }}
+                                                                 x ∈
+                                                                  {0; 3; 4}
+                                                                 __retres
+                                                                  ∈
+                                                                 UNINITIALIZED
+  leaf :: nested_passes.c:32 <- f :: nested_passes.c:38 <- main: c ∈ {0; 1}
+                                                                 g ∈ {0; 9}
+                                                                 h ∈ {8}
+                                                                 k ∈ {3}
+                                                                 r ∈ {0}
+                                                                 t[0..9] ∈
+                                                                  {0}
+                                                                 p ∈ {{ &x }}
+                                                                 x ∈
+                                                                  {0; 3; 9}
+                                                                 __retres
+                                                                  ∈
+                                                                 UNINITIALIZED
+leaf, after nested_passes.c:30 `return;`:
+  joined: c ∈ {0; 1}
+          g ∈ {0; 4; 9}
+          h ∈ {7; 8}
+          k ∈ {3}
+          r ∈ {0}
+          t[0..9] ∈ {0}
+          p ∈ {{ &x }}
+          x ∈ {1; 4; 5; 10}
+          __retres ∈ UNINITIALIZED
+  leaf :: nested_passes.c:32 <- f :: nested_passes.c:36 <- main: c ∈ {0; 1}
+                                                                 g ∈ {0; 4}
+                                                                 h ∈ {7}
+                                                                 k ∈ {3}
+                                                                 r ∈ {0}
+                                                                 t[0..9] ∈
+                                                                  {0}
+                                                                 p ∈ {{ &x }}
+                                                                 x ∈
+                                                                  {1; 4; 5}
+                                                                 __retres
+                                                                  ∈
+                                                                 UNINITIALIZED
+  leaf :: nested_passes.c:32 <- f :: nested_passes.c:37 <- main: c ∈ {0; 1}
+                                                                 g ∈ {0; 4}
+                                                                 h ∈ {8}
+                                                                 k ∈ {3}
+                                                                 r ∈ {0}
+                                                                 t[0..9] ∈
+                                                                  {0}
+                                                                 p ∈ {{ &x }}
+                                                                 x ∈
+                                                                  {1; 4; 5}
+                                                                 __retres
+                                                                  ∈
+                                                                 UNINITIALIZED
+  leaf :: nested_passes.c:32 <- f :: nested_passes.c:38 <- main: c ∈ {0; 1}
+                                                                 g ∈ {0; 9}
+                                                                 h ∈ {8}
+                                                                 k ∈ {3}
+                                                                 r ∈ {0}
+                                                                 t[0..9] ∈
+                                                                  {0}
+                                                                 p ∈ {{ &x }}
+                                                                 x ∈
+                                                                  {1; 4; 10}
+                                                                 __retres
+                                                                  ∈
+                                                                 UNINITIALIZED
+f, start:
+  joined: c ∈ {0; 1}
+          g ∈ {4; 9}
+          h ∈ {7; 8}
+          k ∈ {3}
+          r ∈ {0}
+          t[0..9] ∈ {0}
+          __retres ∈ UNINITIALIZED
+  f :: nested_passes.c:36 <- main: c ∈ {0; 1}
+                                   g ∈ {4}
+                                   h ∈ {7}
+                                   k ∈ {3}
+                                   r ∈ {0}
+                                   t[0..9] ∈ {0}
+                                   __retres ∈ UNINITIALIZED
+  f :: nested_passes.c:37 <- main: c ∈ {0; 1}
+                                   g ∈ {4}
+                                   h ∈ {8}
+                                   k ∈ {3}
+                                   r ∈ {0}
+                                   t[0..9] ∈ {0}
+                                   __retres ∈ UNINITIALIZED
+  f :: nested_passes.c:38 <- main: c ∈ {0; 1}
+                                   g ∈ {9}
+                                   h ∈ {8}
+                                   k ∈ {3}
+                                   r ∈ {0}
+                                   t[0..9] ∈ {0}
+                                   __retres ∈ UNINITIALIZED
+f, before nested_passes.c:32 `leaf(& x);` (P):
+  joined: c ∈ {0; 1}
+          g ∈ {0; 4; 9}
+          h ∈ {7; 8}
+          k ∈ {3}
+          r ∈ {0}
+          t[0..9] ∈ {0}
+          x ∈ {0; 4; 9}
+          __retres ∈ UNINITIALIZED
+  f :: nested_passes.c:36 <- main: c ∈ {0; 1}
+                                   g ∈ {0; 4}
+                                   h ∈ {7}
+                                   k ∈ {3}
+                                   r ∈ {0}
+                                   t[0..9] ∈ {0}
+                                   x ∈ {0; 4}
+                                   __retres ∈ UNINITIALIZED
+  f :: nested_passes.c:37 <- main: c ∈ {0; 1}
+                                   g ∈ {0; 4}
+                                   h ∈ {8}
+                                   k ∈ {3}
+                                   r ∈ {0}
+                                   t[0..9] ∈ {0}
+                                   x ∈ {0; 4}
+                                   __retres ∈ UNINITIALIZED
+  f :: nested_passes.c:38 <- main: c ∈ {0; 1}
+                                   g ∈ {0; 9}
+                                   h ∈ {8}
+                                   k ∈ {3}
+                                   r ∈ {0}
+                                   t[0..9] ∈ {0}
+                                   x ∈ {0; 9}
+                                   __retres ∈ UNINITIALIZED
+f, after nested_passes.c:32 `return;`:
+  joined: c ∈ {0; 1}
+          g ∈ {1; 4; 5; 10}
+          h ∈ {7; 8}
+          k ∈ {3}
+          r ∈ {0}
+          t[0..9] ∈ {0}
+          x ∈ {1; 4; 5; 10}
+          __retres ∈ UNINITIALIZED
+  f :: nested_passes.c:36 <- main: c ∈ {0; 1}
+                                   g ∈ {1; 4; 5}
+                                   h ∈ {7}
+                                   k ∈ {3}
+                                   r ∈ {0}
+                                   t[0..9] ∈ {0}
+                                   x ∈ {1; 4; 5}
+                                   __retres ∈ UNINITIALIZED
+  f :: nested_passes.c:37 <- main: c ∈ {0; 1}
+                                   g ∈ {1; 4; 5}
+                                   h ∈ {8}
+                                   k ∈ {3}
+                                   r ∈ {0}
+                                   t[0..9] ∈ {0}
+                                   x ∈ {1; 4; 5}
+                                   __retres ∈ UNINITIALIZED
+  f :: nested_passes.c:38 <- main: c ∈ {0; 1}
+                                   g ∈ {1; 4; 10}
+                                   h ∈ {8}
+                                   k ∈ {3}
+                                   r ∈ {0}
+                                   t[0..9] ∈ {0}
+                                   x ∈ {1; 4; 10}
+                                   __retres ∈ UNINITIALIZED
+Hits against the analysed call of their cache entry:
+  f :: nested_passes.c:37 <- main, hit of cache entry 14, against f :: nested_passes.c:36 <- main: differs on h, at 13 points.
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 227 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 57 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 57 points.
+Filtered requests that reject one callstack: 28.
+Requests made: 341; reported by the trap: 341, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 148 requests, 222 reads of the legacy store in them, 156 reads outside any request.
+  with -eva-hit-log: 166 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 32 requests
+    statuses of the properties: 24 requests
+    redundant alarms: 32 requests
+    statistics: 26 requests
+    final values: 48 requests
+    summary: 4 requests
+  requests of the passes on a callstack below a hit, with -eva-hit-log: 2.
+Statuses of the properties: those of the run without memexec, for 202 properties.
+Alarms: 2, of which 1 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 1.0000, 2 alarms, those of the run without memexec.
+Messages of the passes, run without memexec:
+  [scope:rm_asserts] removing 1 assertion(s)
+  [eva] ====== VALUES COMPUTED ======
+  [eva:final-states] Values at end of function leaf:
+    r ∈ {0}
+    x ∈ {1; 4; 5; 10}
+  [eva:final-states] Values at end of function f:
+    g ∈ {1; 4; 5; 10}
+    r ∈ {0}
+    x ∈ {1; 4; 5; 10}
+  [eva:final-states] Values at end of function main:
+    Frama_C_entropy_source ∈ [--..--]
+    c ∈ {0; 1}
+    g ∈ {1; 4; 10}
+    h ∈ {8}
+    k ∈ {3}
+    r ∈ {0}
+    __retres ∈ {0}
+  [eva:summary] ====== ANALYSIS SUMMARY ======
+    ----------------------------------------------------------------------------
+    3 functions analyzed (out of 3): 100% coverage.
+    In these functions, 26 statements reached (out of 26): 100% coverage.
+    ----------------------------------------------------------------------------
+    No errors or warnings raised during the analysis.
+    ----------------------------------------------------------------------------
+    2 alarms generated by the analysis:
+         2 accesses out of bounds index
+    ----------------------------------------------------------------------------
+    Evaluation of the logical properties reached by the analysis:
+      Assertions        1 valid     0 unknown     0 invalid      1 total
+      Preconditions     1 valid     0 unknown     0 invalid      1 total
+    100% of the logical properties reached have been proven.
+    ----------------------------------------------------------------------------
+Messages of the passes with -eva-hit-log: those of the run without memexec.

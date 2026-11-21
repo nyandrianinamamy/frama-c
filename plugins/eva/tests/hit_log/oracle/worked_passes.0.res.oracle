@@ -1,0 +1,170 @@
+[kernel] Parsing worked_passes.c (with preprocessing)
+[eva] Analyzing a complete application starting at main
+[eva:alarm] worked_passes.c:27: Warning: assertion 'at_P' got status unknown.
+[eva:alarm] worked_passes.c:25: Warning: 
+  accessing out of bounds index. assert (int)(g + c) < 10;
+[eva:alarm] worked_passes.c:26: Warning: 
+  accessing out of bounds index. assert (int)(g + c) < 10;
+[eva] Analyzing a complete application starting at main
+[eva:alarm] worked_passes.c:27: Warning: assertion 'at_P' got status unknown.
+[eva:alarm] worked_passes.c:25: Warning: 
+  accessing out of bounds index. assert (int)(g + c) < 10;
+[eva:alarm] worked_passes.c:26: Warning: 
+  accessing out of bounds index. assert (int)(g + c) < 10;
+[eva] Analyzing a complete application starting at main
+[eva:alarm] worked_passes.c:27: Warning: assertion 'at_P' got status unknown.
+[eva:alarm] worked_passes.c:25: Warning: 
+  accessing out of bounds index. assert (int)(g + c) < 10;
+[eva:alarm] worked_passes.c:26: Warning: 
+  accessing out of bounds index. assert (int)(g + c) < 10;
+Calls:
+  Frama_C_interval :: worked_passes.c:32 <- main: specification
+  f :: worked_passes.c:33 <- main: analysed, cache entry 9
+  f :: worked_passes.c:34 <- main: hit of cache entry 9
+  f :: worked_passes.c:35 <- main: analysed, cache entry 10
+  f :: worked_passes.c:36 <- main: hit of cache entry 10
+  main: analysed, cache entry 11
+f, start:
+  joined: c ∈ {0; 1}
+          g ∈ {4; 9}
+          h ∈ {5; 7; 8}
+          r ∈ {0}
+          t[0..9] ∈ {0}
+          __retres ∈ UNINITIALIZED
+  f :: worked_passes.c:33 <- main: c ∈ {0; 1}
+                                   g ∈ {4}
+                                   h ∈ {7}
+                                   r ∈ {0}
+                                   t[0..9] ∈ {0}
+                                   __retres ∈ UNINITIALIZED
+  f :: worked_passes.c:34 <- main: c ∈ {0; 1}
+                                   g ∈ {4}
+                                   h ∈ {8}
+                                   r ∈ {0}
+                                   t[0..9] ∈ {0}
+                                   __retres ∈ UNINITIALIZED
+  f :: worked_passes.c:35 <- main: c ∈ {0; 1}
+                                   g ∈ {9}
+                                   h ∈ {8}
+                                   r ∈ {0}
+                                   t[0..9] ∈ {0}
+                                   __retres ∈ UNINITIALIZED
+  f :: worked_passes.c:36 <- main: c ∈ {0; 1}
+                                   g ∈ {9}
+                                   h ∈ {5}
+                                   r ∈ {0}
+                                   t[0..9] ∈ {0}
+                                   __retres ∈ UNINITIALIZED
+f, before worked_passes.c:25 `r = t[g + c];` (P):
+  joined: c ∈ {0; 1}
+          g ∈ {0; 4; 9}
+          h ∈ {5; 7; 8}
+          r ∈ {0}
+          t[0..9] ∈ {0}
+          __retres ∈ UNINITIALIZED
+  f :: worked_passes.c:33 <- main: c ∈ {0; 1}
+                                   g ∈ {0; 4}
+                                   h ∈ {7}
+                                   r ∈ {0}
+                                   t[0..9] ∈ {0}
+                                   __retres ∈ UNINITIALIZED
+  f :: worked_passes.c:34 <- main: c ∈ {0; 1}
+                                   g ∈ {0; 4}
+                                   h ∈ {8}
+                                   r ∈ {0}
+                                   t[0..9] ∈ {0}
+                                   __retres ∈ UNINITIALIZED
+  f :: worked_passes.c:35 <- main: c ∈ {0; 1}
+                                   g ∈ {0; 9}
+                                   h ∈ {8}
+                                   r ∈ {0}
+                                   t[0..9] ∈ {0}
+                                   __retres ∈ UNINITIALIZED
+  f :: worked_passes.c:36 <- main: c ∈ {0; 1}
+                                   g ∈ {0; 9}
+                                   h ∈ {5}
+                                   r ∈ {0}
+                                   t[0..9] ∈ {0}
+                                   __retres ∈ UNINITIALIZED
+f, after worked_passes.c:29 `return;`:
+  joined: c ∈ {0; 1}
+          g ∈ {1}
+          h ∈ {5; 7; 8}
+          r ∈ {0}
+          t[0..9] ∈ {0}
+          __retres ∈ UNINITIALIZED
+  f :: worked_passes.c:33 <- main: c ∈ {0; 1}
+                                   g ∈ {1}
+                                   h ∈ {7}
+                                   r ∈ {0}
+                                   t[0..9] ∈ {0}
+                                   __retres ∈ UNINITIALIZED
+  f :: worked_passes.c:34 <- main: c ∈ {0; 1}
+                                   g ∈ {1}
+                                   h ∈ {8}
+                                   r ∈ {0}
+                                   t[0..9] ∈ {0}
+                                   __retres ∈ UNINITIALIZED
+  f :: worked_passes.c:35 <- main: c ∈ {0; 1}
+                                   g ∈ {1}
+                                   h ∈ {8}
+                                   r ∈ {0}
+                                   t[0..9] ∈ {0}
+                                   __retres ∈ UNINITIALIZED
+  f :: worked_passes.c:36 <- main: c ∈ {0; 1}
+                                   g ∈ {1}
+                                   h ∈ {5}
+                                   r ∈ {0}
+                                   t[0..9] ∈ {0}
+                                   __retres ∈ UNINITIALIZED
+Hits against the analysed call of their cache entry:
+  f :: worked_passes.c:34 <- main, hit of cache entry 9, against f :: worked_passes.c:33 <- main: differs on h, at 15 points.
+  f :: worked_passes.c:36 <- main, hit of cache entry 10, against f :: worked_passes.c:35 <- main: differs on h, at 15 points.
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 189 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 48 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 48 points.
+Filtered requests that reject one callstack: 15.
+Requests made: 285; reported by the trap: 285, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 135 requests, 197 reads of the legacy store in them, 124 reads outside any request.
+  with -eva-hit-log: 154 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 27 requests
+    statuses of the properties: 27 requests
+    redundant alarms: 32 requests
+    statistics: 22 requests
+    final values: 42 requests
+    summary: 4 requests
+Statuses of the properties: those of the run without memexec, for 202 properties.
+Alarms: 2, of which 1 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 1.0000, 2 alarms, those of the run without memexec.
+Messages of the passes, run without memexec:
+  [scope:rm_asserts] removing 1 assertion(s)
+  [eva] ====== VALUES COMPUTED ======
+  [eva:final-states] Values at end of function f:
+    g ∈ {1}
+    r ∈ {0}
+  [eva:final-states] Values at end of function main:
+    Frama_C_entropy_source ∈ [--..--]
+    c ∈ {0; 1}
+    g ∈ {1}
+    h ∈ {5}
+    r ∈ {0}
+    __retres ∈ {0}
+  [eva:summary] ====== ANALYSIS SUMMARY ======
+    ----------------------------------------------------------------------------
+    2 functions analyzed (out of 2): 100% coverage.
+    In these functions, 22 statements reached (out of 22): 100% coverage.
+    ----------------------------------------------------------------------------
+    No errors or warnings raised during the analysis.
+    ----------------------------------------------------------------------------
+    2 alarms generated by the analysis:
+         2 accesses out of bounds index
+    ----------------------------------------------------------------------------
+    Evaluation of the logical properties reached by the analysis:
+      Assertions        1 valid     0 unknown     0 invalid      1 total
+      Preconditions     1 valid     0 unknown     0 invalid      1 total
+    100% of the logical properties reached have been proven.
+    ----------------------------------------------------------------------------
+Messages of the passes with -eva-hit-log: those of the run without memexec.
