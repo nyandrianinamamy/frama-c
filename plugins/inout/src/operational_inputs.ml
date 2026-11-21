@@ -18,7 +18,8 @@ type t = Inout_type.t = {
   over_inputs_if_termination: Memory_zone.t;
   over_logic_inputs: Memory_zone.t;
   (* [over_logic_inputs] is used internally by Eva to make memexec consider also
-     the logic inputs of the function. Computed in [transfer_annotations]. *)
+     the logic inputs of the function and of its callees. Computed in
+     [transfer_annotations] and [store_non_terminating_subcall]. *)
   under_outputs_if_termination: Memory_zone.t;
   over_outputs: Memory_zone.t;
   over_outputs_if_termination: Memory_zone.t;
@@ -240,9 +241,11 @@ module Computer(Fenv:Dataflows.FUNCTION_ENV)(X:sig
   ;;
 
   (* Store the 'non-termination' information of a function subcall into
-     the current call. [under_outputs] are the current call sure outputs. *)
+     the current call. [under_outputs] are the current call sure outputs.
+     The logic inputs of the subcall are logic inputs of the current call. *)
   let store_non_terminating_subcall under_outputs subcall =
     store_non_terminating_inputs (Memory_zone.diff subcall.over_inputs under_outputs);
+    store_non_terminating_logic_inputs subcall.over_logic_inputs;
     store_non_terminating_outputs subcall.over_outputs;
   ;;
 
