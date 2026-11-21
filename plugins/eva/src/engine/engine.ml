@@ -21,9 +21,10 @@ module Make_Domain (Abstract: Abstractions.S) = struct
   (* Store used by the engine, built over Domain_store.S:
      - [register_state] joins the previous registered state (if any) at the
        given control point with the new computed state.
-     - during the analysis, states are registered by callstack. At the end of
-       the iteration, for each function/statement, consolidated states are
-       computed as the join of states registered for each callstack.
+     - during the analysis, states are registered by callstack. After the
+       analysis, without option -eva-hit-log, for each function/statement,
+       consolidated states are computed as the join of states registered for
+       each callstack.
      - [get_state_by_callstack] uses multiple calls to [get_state] to return
        an associative list (callstack, state). *)
   module Store = struct
@@ -93,7 +94,7 @@ module Make_Domain (Abstract: Abstractions.S) = struct
       in
       Globals.Functions.iter compute_kf_states
 
-    (* Computes consolidated states at the end of the iteration. *)
+    (* Computes consolidated states after the analysis. *)
     let consolidate () =
       if Parameters.JoinResults.get () then compute_consolidated_states ()
   end

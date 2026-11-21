@@ -147,9 +147,15 @@ let post_analysis (type t) (engine: t engine) mthread_analysis final_state =
   (* The above functions may have changed the status of alarms. *)
   pass "statistics" Summary.FunctionStats.recompute_all;
   pass "red statuses" Red_statuses.report;
+  let module Engine = (val engine) in
+  (* Without the recording, the states joined over all callstacks are stored
+     here, before the values printed at the end of each function are read from
+     them. With -eva-hit-log, no request reads them, and they are not
+     computed. *)
+  if not (Hit_log.enabled ())
+  then pass "consolidation" Engine.Dom.Store.consolidate;
   (* The cvalue domain prints values inferred at the end of each function,
      then the domains run their [post_analysis]. *)
-  let module Engine = (val engine) in
   if Option.is_some Engine.Dom.get_cvalue
   then pass "final values" display_results;
   pass "domains" (fun () -> Engine.Dom.post_analysis final_state);
@@ -299,7 +305,6 @@ let compute_from ?cvalue_state ?arguments entry_point =
           compute_from_entry_point (module Engine)
             ?cvalue_state ?arguments entry_point
       in
-      Engine.Dom.Store.consolidate ();
       Ok (fun () -> post_analysis (module Engine) mt_analysis final_state)
     with exn -> Stdlib.Error (exn, Printexc.get_raw_backtrace ())
   in

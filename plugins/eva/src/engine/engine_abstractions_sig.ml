@@ -34,7 +34,8 @@ module type Domain = sig
     val register_state: Callstack.t -> Domain_store.control_point -> t -> unit
 
     (** Computes the states joined over all callstacks, if option
-        -eva-join-results is set. Called at the end of the iteration. *)
+        -eva-join-results is set. Called by the passes after the iteration,
+        without option -eva-hit-log. *)
     val consolidate: unit -> unit
   end
 end
