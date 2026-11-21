@@ -417,20 +417,6 @@ let inner_part footprint ~start ~before ~after ~calls =
 let record_initial_state callstack state =
   (Store.get ()).initial <- Some (callstack, state)
 
-let call callstack ~start f =
-  let running = Running.get () in
-  let frame = { calls = []; used = None } in
-  running.frames <- frame :: running.frames;
-  let finally () =
-    running.frames <- List.tl running.frames;
-    match running.frames, Callstack.top_callsite callstack with
-    | caller :: _, Kstmt site ->
-      let call = site, Callstack.top_kf callstack, start, frame.used in
-      caller.calls <- call :: caller.calls
-    | _, Kglobal | [], _ -> ()
-  in
-  Fun.protect ~finally f
-
 let current_frame () =
   match (Running.get ()).frames with
   | [] -> None
@@ -501,6 +487,28 @@ let mark_unrolled_recursion kf = mark (Store.get ()).body_unavailable kf
 let mark_interrupted callstack ~start =
   record_start callstack start;
   mark (Store.get ()).body_unavailable (Callstack.top_kf callstack)
+
+(* A call that an exception stops is interrupted, whatever the exception and
+   wherever it is raised: in the body, by a hook, or before the body starts.
+   Its function is marked, and so are those of the calls that make it, which
+   the exception stops as well. *)
+let call callstack ~start f =
+  let running = Running.get () in
+  let frame = { calls = []; used = None } in
+  running.frames <- frame :: running.frames;
+  let finally () =
+    running.frames <- List.tl running.frames;
+    match running.frames, Callstack.top_callsite callstack with
+    | caller :: _, Kstmt site ->
+      let call = site, Callstack.top_kf callstack, start, frame.used in
+      caller.calls <- call :: caller.calls
+    | _, Kglobal | [], _ -> ()
+  in
+  try Fun.protect ~finally f
+  with exn ->
+    let backtrace = Printexc.get_raw_backtrace () in
+    mark_interrupted callstack ~start;
+    Printexc.raise_with_backtrace exn backtrace
 
 let analysis f =
   let finally () = if enabled () then (Store.get ()).ended <- true in

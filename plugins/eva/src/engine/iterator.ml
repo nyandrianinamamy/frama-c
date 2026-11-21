@@ -659,10 +659,8 @@ module Make (Engine : Engine_Subset) = struct
     let cleanup () =
       Self.feedback ~once:true ~level:3 "Clean up partial results.";
       Dataflow.mark_degeneration ();
-      if Hit_log.enabled () then begin
-        let start = Engine.Dom.get_cvalue_or_top state in
-        Hit_log.mark_interrupted callstack ~start
-      end;
+      (* With -eva-hit-log, the call is marked as interrupted by
+         [Hit_log.call], whatever the exception. *)
       Dataflow.merge_results ~save_results ~interrupted:true
     in
     Signal.protect compute ~cleanup

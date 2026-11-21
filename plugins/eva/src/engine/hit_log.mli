@@ -69,7 +69,9 @@ val record_initial_state: Callstack.t -> Cvalue.Model.t -> unit
 (** [call callstack ~start f] runs [f], the analysis of the call on
     [callstack] in any mode, whose start state is [start]. The call is
     recorded among the calls made by the body that makes it, with the cache
-    entry it uses. *)
+    entry it uses. If [f] raises an exception, the call is interrupted: its
+    start state is recorded, the points of the body of its function are
+    unavailable, and the exception is raised again. *)
 val call: Callstack.t -> start:Cvalue.Model.t -> (unit -> 'a) -> 'a
 
 (** Records the start state of a call analysed by a specification or a
@@ -110,10 +112,6 @@ val record_hit:
 
 (** Marks a function of which a recursive call is analysed by its body. *)
 val mark_unrolled_recursion: Cil_types.kernel_function -> unit
-
-(** [mark_interrupted callstack ~start] records the start state of a call
-    interrupted before its end, and marks its function. *)
-val mark_interrupted: Callstack.t -> start:Cvalue.Model.t -> unit
 
 (** [analysis f] runs [f], the iteration of an analysis of the current
     project. The rule answers the requests made after it, if the recording
