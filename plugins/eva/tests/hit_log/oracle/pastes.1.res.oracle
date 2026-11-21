@@ -1,0 +1,9 @@
+[kernel] Parsing pastes.c (with preprocessing)
+Hits of parent: 100.
+First request before P in child, without callstack:
+[eva:debug:hit-log] Debug: pastes made by the request: 2
+  h ∈ [0..100]
+Repeated request:
+[eva:debug:hit-log] Debug: pastes made by the request: 1
+  h ∈ [0..100]
+The two answers are equal: true.
