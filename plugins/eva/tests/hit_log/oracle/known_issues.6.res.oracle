@@ -301,19 +301,14 @@ Differences with the run without memexec:
   h95, after known_issues.c:104 `return __retres;`, h95 :: known_issues.c:105 <- f95 :: known_issues.c:108 <- issue95: unavailable
   h95, after known_issues.c:104 `return __retres;`, h95 :: known_issues.c:109 <- issue95: unavailable
   f95, after known_issues.c:105 `int v = h95(0);`, joined: more precise
-  f95, after known_issues.c:105 `int v = h95(0);`, filtered: more precise
   f95, after known_issues.c:105 `int v = h95(0);`, f95 :: known_issues.c:104 <- h95 :: known_issues.c:109 <- issue95: more precise
   f95, before known_issues.c:105 `;` (P), joined: more precise
-  f95, before known_issues.c:105 `;` (P), filtered: more precise
   f95, before known_issues.c:105 `;` (P), f95 :: known_issues.c:104 <- h95 :: known_issues.c:109 <- issue95: more precise
   f95, after known_issues.c:105 `;` (P), joined: more precise
-  f95, after known_issues.c:105 `;` (P), filtered: more precise
   f95, after known_issues.c:105 `;` (P), f95 :: known_issues.c:104 <- h95 :: known_issues.c:109 <- issue95: more precise
   f95, before known_issues.c:105 `return v;`, joined: more precise
-  f95, before known_issues.c:105 `return v;`, filtered: more precise
   f95, before known_issues.c:105 `return v;`, f95 :: known_issues.c:104 <- h95 :: known_issues.c:109 <- issue95: more precise
   f95, after known_issues.c:105 `return v;`, joined: more precise
-  f95, after known_issues.c:105 `return v;`, filtered: more precise
   f95, after known_issues.c:105 `return v;`, f95 :: known_issues.c:104 <- h95 :: known_issues.c:109 <- issue95: more precise
   issue95, after known_issues.c:109 `two = h95(1);`, joined: more precise, as with memexec
   issue95, after known_issues.c:109 `two = h95(1);`, filtered: more precise, as with memexec
@@ -324,5 +319,6 @@ Differences with the run without memexec:
   issue95, after known_issues.c:110 `return;`, joined: more precise, as with memexec
   issue95, after known_issues.c:110 `return;`, filtered: more precise, as with memexec
   issue95, after known_issues.c:110 `return;`, issue95: more precise, as with memexec
-Answers: 502 equal, 0 covering, 27 more precise, 0 omitting, 52 unavailable.
-Requests made: 827; reported by the trap: 827; reads of the legacy store: 0.
+Answers: 507 equal, 0 covering, 22 more precise, 0 omitting, 52 unavailable.
+Filtered requests that reject one callstack: 13.
+Requests made: 849; reported by the trap: 849, each once with its description; reads of the legacy store: 0.

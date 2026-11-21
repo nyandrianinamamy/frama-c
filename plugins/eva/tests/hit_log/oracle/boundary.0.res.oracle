@@ -9,6 +9,9 @@ Calls:
   nested: analysed, cache entry 17
 leaf, start:
   joined: unavailable
+  leaf :: boundary.c:18 <- f :: boundary.c:22 <- nested: unavailable
+  leaf :: boundary.c:18 <- f :: boundary.c:23 <- nested: unavailable
+  leaf :: boundary.c:18 <- f :: boundary.c:24 <- nested: unavailable
   reference, joined: c ∈ {0; 1}
                      g ∈ {0; 4; 9}
                      h ∈ {7; 8}
@@ -39,6 +42,9 @@ leaf, start:
                                                          n ∈ {0}
 leaf, before boundary.c:16 `(*p) ++;` (Q):
   joined: unavailable
+  leaf :: boundary.c:18 <- f :: boundary.c:22 <- nested: unavailable
+  leaf :: boundary.c:18 <- f :: boundary.c:23 <- nested: unavailable
+  leaf :: boundary.c:18 <- f :: boundary.c:24 <- nested: unavailable
   reference, joined: c ∈ {0; 1}
                      g ∈ {0; 4; 9}
                      h ∈ {7; 8}
@@ -69,6 +75,9 @@ leaf, before boundary.c:16 `(*p) ++;` (Q):
                                                          n ∈ {0}
 leaf, after boundary.c:16 `return;`:
   joined: unavailable
+  leaf :: boundary.c:18 <- f :: boundary.c:22 <- nested: unavailable
+  leaf :: boundary.c:18 <- f :: boundary.c:23 <- nested: unavailable
+  leaf :: boundary.c:18 <- f :: boundary.c:24 <- nested: unavailable
   reference, joined: c ∈ {0; 1}
                      g ∈ {0; 4; 9}
                      h ∈ {7; 8}
@@ -218,4 +227,5 @@ Differences with the run without memexec:
   leaf, after boundary.c:16 `return;`, leaf :: boundary.c:18 <- f :: boundary.c:23 <- nested: unavailable
   leaf, after boundary.c:16 `return;`, leaf :: boundary.c:18 <- f :: boundary.c:24 <- nested: unavailable
 Answers: 218 equal, 0 covering, 0 more precise, 0 omitting, 45 unavailable.
-Requests made: 321; reported by the trap: 321; reads of the legacy store: 0.
+Filtered requests that reject one callstack: 22.
+Requests made: 348; reported by the trap: 348, each once with its description; reads of the legacy store: 0.

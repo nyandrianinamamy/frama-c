@@ -78,4 +78,5 @@ Differences with the run without memexec:
   disabled, after closed_list.c:20 `return;`, filtered: unavailable
   disabled, after closed_list.c:20 `return;`, disabled: unavailable
 Answers: 90 equal, 0 covering, 0 more precise, 0 omitting, 53 unavailable.
-Requests made: 190; reported by the trap: 190; reads of the legacy store: 0.
+Filtered requests that reject one callstack: 1.
+Requests made: 205; reported by the trap: 205, each once with its description; reads of the legacy store: 0.

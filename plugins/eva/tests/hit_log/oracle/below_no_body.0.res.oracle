@@ -6,6 +6,10 @@ Calls:
   by_spec: analysed, cache entry 7
 spec_leaf, start:
   joined: unavailable
+  spec_leaf :: below_no_body.c:18 <- spec_parent :: below_no_body.c:21 <- by_spec: 
+  unavailable
+  spec_leaf :: below_no_body.c:18 <- spec_parent :: below_no_body.c:23 <- by_spec: 
+  unavailable
   reference, joined: g ∈ {0}
                      h ∈ {0; 8}
                      d ∈ {0}
@@ -40,4 +44,5 @@ Differences with the run without memexec:
   spec_leaf, after below_no_body.c:16 `return;`, joined: unavailable
   spec_leaf, after below_no_body.c:16 `return;`, filtered: unavailable
 Answers: 95 equal, 0 covering, 0 more precise, 0 omitting, 12 unavailable.
-Requests made: 147; reported by the trap: 147; reads of the legacy store: 0.
+Filtered requests that reject one callstack: 6.
+Requests made: 149; reported by the trap: 149, each once with its description; reads of the legacy store: 0.

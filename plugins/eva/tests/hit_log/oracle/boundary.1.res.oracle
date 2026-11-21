@@ -8,6 +8,11 @@ Calls:
   second_case: analysed, cache entry 17
 gc, start:
   joined: unavailable
+  gc :: boundary.c:35 <- child :: boundary.c:37 <- parent :: boundary.c:41 <- second_case: 
+  unavailable
+  gc :: boundary.c:35 <- child :: boundary.c:37 <- parent :: boundary.c:42 <- second_case: 
+  unavailable
+  gc :: boundary.c:35 <- child :: boundary.c:40 <- second_case: unavailable
   reference, joined: c ∈ {0}
                      g ∈ {0}
                      h ∈ {0; 7; 8}
@@ -32,6 +37,11 @@ gc, start:
                                                                 n ∈ {0}
 gc, before boundary.c:33 `n ++;` (P):
   joined: unavailable
+  gc :: boundary.c:35 <- child :: boundary.c:37 <- parent :: boundary.c:41 <- second_case: 
+  unavailable
+  gc :: boundary.c:35 <- child :: boundary.c:37 <- parent :: boundary.c:42 <- second_case: 
+  unavailable
+  gc :: boundary.c:35 <- child :: boundary.c:40 <- second_case: unavailable
   reference, joined: c ∈ {0}
                      g ∈ {0}
                      h ∈ {0; 7; 8}
@@ -56,6 +66,11 @@ gc, before boundary.c:33 `n ++;` (P):
                                                                 n ∈ {0}
 gc, after boundary.c:33 `return;`:
   joined: unavailable
+  gc :: boundary.c:35 <- child :: boundary.c:37 <- parent :: boundary.c:41 <- second_case: 
+  unavailable
+  gc :: boundary.c:35 <- child :: boundary.c:37 <- parent :: boundary.c:42 <- second_case: 
+  unavailable
+  gc :: boundary.c:35 <- child :: boundary.c:40 <- second_case: unavailable
   reference, joined: c ∈ {0}
                      g ∈ {0}
                      h ∈ {0; 7; 8}
@@ -127,7 +142,7 @@ parent, after boundary.c:37 `return;`:
                                           k ∈ {0}
                                           n ∈ {1}
 Hits against the analysed call of their cache entry:
-  child :: boundary.c:37 <- parent :: boundary.c:41 <- second_case, hit of cache entry 15, against child :: boundary.c:40 <- second_case: no difference, at 5 points.
+  child :: boundary.c:37 <- parent :: boundary.c:41 <- second_case, hit of cache entry 15, against child :: boundary.c:40 <- second_case: unavailable, at 5 points.
   parent :: boundary.c:42 <- second_case, hit of cache entry 16, against parent :: boundary.c:41 <- second_case: differs on h, at 7 points.
 Initial state: equal.
 Differences with the run without memexec:
@@ -182,4 +197,5 @@ Differences with the run without memexec:
   child, after boundary.c:35 `return;`, child :: boundary.c:37 <- parent :: boundary.c:42 <- second_case: unavailable
   child, after boundary.c:35 `return;`, child :: boundary.c:40 <- second_case: unavailable
 Answers: 185 equal, 0 covering, 0 more precise, 0 omitting, 50 unavailable.
-Requests made: 290; reported by the trap: 290; reads of the legacy store: 0.
+Filtered requests that reject one callstack: 17.
+Requests made: 320; reported by the trap: 320, each once with its description; reads of the legacy store: 0.

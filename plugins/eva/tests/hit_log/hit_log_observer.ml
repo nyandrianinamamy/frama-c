@@ -3,10 +3,12 @@
    The current project is analysed with the options of the test, which set
    -eva-hit-log. Two copies of it, made before, are analysed without
    recording: the reference, without memexec, and a run with memexec. After
-   the analyses, the observer asks Eva.Results, in each project, for the state
-   at the start of each function and before and after each statement, joined
-   over the callstacks, for each callstack that reaches the point, and through
-   a filter on the callstacks.
+   the analyses, the observer asks Eva.Results, in each project, for the
+   callstacks that reach the start of each function and the points before and
+   after each statement, then for the state at each of these points: joined
+   over the callstacks, through a filter that rejects one of the callstacks
+   when there are several, and for each callstack that reaches the point in
+   one of the three projects.
 
    It prints:
    - the calls of the analysis with -eva-hit-log, with the cache entry they
@@ -15,9 +17,10 @@
      they differ;
    - for each hit on another callstack than the analysed call of its cache
      entry, the variables whose values differ between the two callstacks, at
-     the points of the function;
+     the points of the function where both answers are available;
    - the verdict on the initial state, then each answer that is not equal to
-     the reference, with one of these verdicts:
+     the answer to the same request in the reference, with one of these
+     verdicts:
      "covers": the answer includes the reference and is larger;
      "more precise": the answer is included in the reference and smaller;
      "OMITS": the answer does not include the reference;
@@ -27,8 +30,12 @@
      the analysis with memexec, not from the answers served from the hit log.
      "unavailable" is followed by "as in the reference" when the reference is
      top as well;
-   - the report of Eva.Legacy_read_trap for the requests made in the current
-     project. *)
+   - the number of filtered requests that reject a callstack;
+   - whether each request made in the current project is reported by
+     Eva.Legacy_read_trap, once and with its description, and the reads of
+     the legacy store that it reports.
+     When the analysis with -eva-hit-log has no result, as when it is refused,
+     no request is made. *)
 
 open Eva
 
@@ -66,52 +73,12 @@ let print_calls () =
     (List.rev !calls);
   Format.printf "@]@."
 
-(* ----- Requests ---------------------------------------------------------- *)
-
-type answer = Cvalue.Model.t Results.result
-
-(* The requests made in the current project, counted to check the report of
-   Eva.Legacy_read_trap. *)
-let count = ref 0
-let request f x = incr count; f x
-
-let state request_ : answer =
-  request Results.get_cvalue_model_result request_
-
-(* The callstacks of the two projects are paired by their printed form:
-   two calls of a function on one line would be confused. *)
-let callstacks request_ =
-  let list =
-    request Results.callstacks request_
-    |> List.map (fun cs -> string_of_callstack cs, cs)
-    |> List.sort (fun (s, _) (s', _) -> String.compare s s')
-  in
-  let names = List.map fst list in
-  if List.length (List.sort_uniq String.compare names) <> List.length names
-  then Format.printf "Two callstacks are printed alike: %s.@."
-      (String.concat ", " names);
-  list
-
-(* The answers at one point. *)
-type point_answers = {
-  joined: answer;
-  filtered: answer;
-  by_callstack: (string * answer) list;
-}
-
-let answers request_ =
-  let joined = state request_ in
-  let filtered = state Results.(request_ |> filter_callstack (fun _ -> true)) in
-  let by_callstack =
-    List.map
-      (fun (name, cs) -> name, state Results.(request_ |> in_callstack cs))
-      (callstacks request_)
-  in
-  { joined; filtered; by_callstack }
+(* ----- Points ------------------------------------------------------------ *)
 
 type point = {
   description: string;
   request: Results.request;
+  trap: string; (* The point, as Eva.Legacy_read_trap describes it. *)
   kf: Kernel_function.t option; (* The function of the point. *)
   show: bool; (* Whether its states are printed. *)
 }
@@ -147,6 +114,11 @@ let describe_stmt position stmt =
     Fileloc.pretty (Cil_datatype.Stmt.loc stmt) pretty_stmt stmt
     (match labels stmt with [] -> "" | l -> " (" ^ String.concat ", " l ^ ")")
 
+let trap_stmt position stmt =
+  Format.asprintf "%s %a in %a" position
+    Fileloc.pretty (Cil_datatype.Stmt.loc stmt)
+    Kernel_function.pretty (Kernel_function.find_englobing_kf stmt)
+
 (* The initial and final states of the analysis, then the points of the
    functions with a body, in the order of the source. The states are printed
    at the start, at the labelled statements and at the end of the functions
@@ -172,23 +144,141 @@ let points () =
     let return = Kernel_function.find_return kf in
     let start =
       { description = Kernel_function.get_name kf ^ ", start";
-        request = Results.at_start_of kf; kf = Some kf; show = labelled }
+        request = Results.at_start_of kf;
+        trap = "start of " ^ Kernel_function.get_name kf;
+        kf = Some kf; show = labelled }
     in
     let of_stmt stmt =
       [ { description = describe_stmt "before" stmt;
-          request = Results.before stmt; kf = Some kf;
-          show = labelled && labels stmt <> [] };
+          request = Results.before stmt; trap = trap_stmt "before" stmt;
+          kf = Some kf; show = labelled && labels stmt <> [] };
         { description = describe_stmt "after" stmt;
-          request = Results.after stmt; kf = Some kf;
+          request = Results.after stmt; trap = trap_stmt "after" stmt;
+          kf = Some kf;
           show = labelled && Cil_datatype.Stmt.equal stmt return } ]
     in
     start :: List.concat_map of_stmt stmts
   in
-  { description = "initial state"; request = Results.at_start; kf = None;
-    show = false }
-  :: { description = "final state"; request = Results.at_end (); kf = None;
-       show = false }
+  let main = fst (Globals.entry_point ()) in
+  { description = "initial state"; request = Results.at_start;
+    trap = "initial state"; kf = None; show = false }
+  :: { description = "final state"; request = Results.at_end ();
+       trap = trap_stmt "after" (Kernel_function.find_return main);
+       kf = None; show = false }
   :: List.concat_map of_function functions
+
+(* ----- Requests ---------------------------------------------------------- *)
+
+type answer = Cvalue.Model.t Results.result
+
+(* In the current project, each request is checked against the report of
+   Eva.Legacy_read_trap: it must add one request to the report, with the
+   description expected. *)
+let checking = ref false
+let made = ref 0
+let unmatched = ref [] (* Expected description and descriptions added. *)
+
+let request ~expected f =
+  if not !checking then f ()
+  else begin
+    let before = List.length (Legacy_read_trap.requests ()) in
+    let result = f () in
+    incr made;
+    let added =
+      List.filteri (fun i _ -> i >= before) (Legacy_read_trap.requests ())
+      |> List.map (fun r -> r.Legacy_read_trap.description)
+    in
+    begin match added with
+      | [ description ] when String.equal description expected -> ()
+      | _ -> unmatched := (expected, added) :: !unmatched
+    end;
+    result
+  end
+
+(* A callstack in a form that is rebuilt in another project: the functions by
+   name, the call statements by number. *)
+type portable = {
+  thread: int;
+  entry: string;
+  calls: (string * int) list;
+}
+
+let portable (cs: Callstack.t) =
+  { thread = cs.thread;
+    entry = Kernel_function.get_name cs.entry_point;
+    calls =
+      List.map
+        (fun (kf, stmt) -> Kernel_function.get_name kf, stmt.Cil_types.sid)
+        cs.stack }
+
+let rebuild p : Callstack.t =
+  let kf = Globals.Functions.find_by_name in
+  { thread = p.thread;
+    entry_point = kf p.entry;
+    stack =
+      List.map
+        (fun (name, sid) -> kf name, fst (Kernel_function.find_from_sid sid))
+        p.calls }
+
+(* The callstacks of the two projects are paired by their printed form:
+   two calls of a function on one line would be confused. *)
+let callstacks (point : point) =
+  let list =
+    request ~expected:(point.trap ^ "; every callstack")
+      (fun () -> Results.callstacks point.request)
+    |> List.map (fun cs -> string_of_callstack cs, portable cs)
+    |> List.sort (fun (s, _) (s', _) -> String.compare s s')
+  in
+  let names = List.map fst list in
+  if List.length (List.sort_uniq String.compare names) <> List.length names
+  then Format.printf "Two callstacks are printed alike: %s.@."
+      (String.concat ", " names);
+  list
+
+(* The callstacks that reach a point in one of the projects. *)
+let union lists =
+  List.concat lists
+  |> List.sort_uniq (fun (s, _) (s', _) -> String.compare s s')
+
+(* The answers at one point. *)
+type point_answers = {
+  joined: answer;
+  filtered: answer;
+  by_callstack: (string * answer) list;
+}
+
+(* The number of points of the current project at which the filter rejects
+   a callstack. *)
+let rejecting = ref 0
+
+(* The answers at [point], for the callstacks [stacks]. With several
+   callstacks, the filter rejects the first one. *)
+let answers (point : point) stacks =
+  let state ~expected request_ =
+    request ~expected (fun () -> Results.get_cvalue_model_result request_)
+  in
+  let joined = state ~expected:(point.trap ^ "; joined") point.request in
+  let keep =
+    match stacks with
+    | (rejected, _) :: _ :: _ ->
+      if !checking then incr rejecting;
+      fun cs -> not (String.equal rejected (string_of_callstack cs))
+    | _ -> fun _ -> true
+  in
+  let filtered =
+    state ~expected:(point.trap ^ "; every callstack, filtered")
+      Results.(point.request |> filter_callstack keep)
+  in
+  let by_callstack =
+    List.map
+      (fun (name, cs) ->
+         let expected = point.trap ^ "; callstack " ^ name in
+         name,
+         state ~expected Results.(point.request |> in_callstack (rebuild cs)))
+      stacks
+  in
+  { joined; filtered; by_callstack }
+
 
 (* ----- Comparison -------------------------------------------------------- *)
 
@@ -226,8 +316,8 @@ type compared = {
   current: point_answers; (* With recording. *)
 }
 
-let missing = Error Results.Bottom
-let find name list = Option.value ~default:missing (List.assoc_opt name list)
+(* The three projects are asked for the same callstacks at each point. *)
+let find name list = List.assoc name list
 
 let counts = Hashtbl.create 5
 let compare_answer description ~reference ~memexec ~answer =
@@ -243,32 +333,19 @@ let compare_answer description ~reference ~memexec ~answer =
     in
     Format.printf "  %s: %s%s@." description (string_of_verdict v) origin
 
-(* A callstack missing from the answers of a point is unreachable, unless
-   the joined answer is unavailable: the callstacks of a function without
-   results are unknown. *)
 let compare_point point c =
   let describe what = point.description ^ ", " ^ what in
-  let default = if model c.current.joined = None then Error Results.Top
-    else missing
-  in
-  let find_current name =
-    Option.value ~default (List.assoc_opt name c.current.by_callstack)
-  in
   compare_answer (describe "joined") ~reference:c.reference.joined
     ~memexec:c.memexec.joined ~answer:c.current.joined;
   compare_answer (describe "filtered") ~reference:c.reference.filtered
     ~memexec:c.memexec.filtered ~answer:c.current.filtered;
-  let names =
-    List.map fst c.reference.by_callstack @ List.map fst c.current.by_callstack
-    |> List.sort_uniq String.compare
-  in
   List.iter
-    (fun name ->
+    (fun (name, answer) ->
        compare_answer (describe name)
          ~reference:(find name c.reference.by_callstack)
          ~memexec:(find name c.memexec.by_callstack)
-         ~answer:(find_current name))
-    names
+         ~answer)
+    c.current.by_callstack
 
 (* ----- Allocated blocks -------------------------------------------------- *)
 
@@ -413,7 +490,7 @@ let differing_variables a b =
 
 (* For each hit on another callstack than the analysed call of its cache
    entry, the variables whose values differ between the answers on the two
-   callstacks, at the points of the function. *)
+   callstacks, at the points of the function where both are available. *)
 let print_control compared =
   let analysed id =
     List.find_map
@@ -425,24 +502,36 @@ let print_control compared =
     | Hit id ->
       begin match analysed id with
         | Some entry when entry <> hit ->
-          let points = ref 0 and variables = ref [] in
+          let points = ref 0 and unavailable = ref 0 and variables = ref [] in
           List.iter
             (fun (point, c) ->
                if Option.equal Kernel_function.equal point.kf (Some kf)
                then begin
                  incr points;
+                 let find name list =
+                   Option.value ~default:(Error Results.Bottom)
+                     (List.assoc_opt name list)
+                 in
                  let a = find entry c.current.by_callstack in
                  let b = find hit c.current.by_callstack in
-                 variables := differing_variables a b @ !variables
+                 if model a = None || model b = None then incr unavailable
+                 else variables := differing_variables a b @ !variables
                end)
             compared;
           let variables = List.sort_uniq String.compare !variables in
+          let summary =
+            if !unavailable = !points then "unavailable"
+            else if variables = [] then "no difference"
+            else "differs on " ^ String.concat ", " variables
+          in
+          let summary =
+            if !unavailable = 0 || !unavailable = !points then summary
+            else Format.sprintf "%s, unavailable at %d points" summary
+                !unavailable
+          in
           Format.printf "  %s, hit of cache entry %d, against %s: %s, at %d \
                          points.@."
-            hit id entry
-            (if variables = [] then "no difference"
-             else "differs on " ^ String.concat ", " variables)
-            !points
+            hit id entry summary !points
         | _ -> ()
       end
     | Analysed _ | Other _ -> ()
@@ -470,9 +559,17 @@ let copy_and_analyse name ~memexec =
 
 (* The statements and functions of each project are its own: the points are
    built in each project, in the same order. *)
-let answers_in project =
-  Project.on project
-    (fun () -> List.map (fun p -> answers p.request) (points ())) ()
+let in_project project f = Project.on project (fun () -> f (points ())) ()
+
+(* Makes the requests of [f] in the current project, with the trap on, and
+   returns their result with the requests reported. *)
+let with_trap f =
+  Legacy_read_trap.start ();
+  checking := true;
+  let result = f () in
+  checking := false;
+  Legacy_read_trap.stop ();
+  result, Legacy_read_trap.requests ()
 
 let main () =
   let current = Project.current () in
@@ -482,43 +579,73 @@ let main () =
   analyse ();
   observing_calls := false;
   print_calls ();
-  let reference_answers = answers_in reference in
-  let memexec_answers = answers_in with_memexec in
-  let points = points () in
-  assert (Project.equal current (Project.current ()));
-  Legacy_read_trap.start ();
-  count := 0;
-  let answers = List.map (fun p -> answers p.request) points in
-  Legacy_read_trap.stop ();
-  let reported = Legacy_read_trap.requests () in
-  let reference_answers = rename ~into:answers reference_answers in
-  let memexec_answers = rename ~into:answers memexec_answers in
-  let compared =
-    List.map2
-      (fun (reference, memexec) current -> { reference; memexec; current })
-      (List.combine reference_answers memexec_answers) answers
-  in
-  let compared = List.combine points compared in
-  List.iter print_labelled compared;
-  print_control compared;
-  let initial = snd (List.hd compared) in
-  Format.printf "Initial state: %s.@."
-    (string_of_verdict
-       (verdict ~reference:initial.reference.joined
-          ~answer:initial.current.joined));
-  Format.printf "Differences with the run without memexec:@.";
-  List.iter (fun (point, c) -> compare_point point c) compared;
-  let get v = Option.value ~default:0 (Hashtbl.find_opt counts v) in
-  Format.printf "Answers: %d equal, %d covering, %d more precise, %d omitting, \
-                 %d unavailable.@."
-    (get Equal) (get Covers) (get More_precise) (get Omits) (get Unavailable);
-  let reads = List.concat_map (fun r -> r.Legacy_read_trap.reads) reported in
-  Format.printf "Requests made: %d; reported by the trap: %d; reads of the \
-                 legacy store: %d.@."
-    !count (List.length reported) (List.length reads);
-  List.iter
-    (fun r -> if r.Legacy_read_trap.reads <> [] then
-        Format.printf "%a@." Legacy_read_trap.pretty_request r)
-    reported
+  if not (Analysis.is_computed ()) then
+    Format.printf "The analysis with -eva-hit-log has no result: no request \
+                   is made.@."
+  else begin
+    (* The callstacks at each point, in the three projects, then the answers
+       for the callstacks of the three projects. *)
+    let callstacks_in project = in_project project (List.map callstacks) in
+    let reference_stacks = callstacks_in reference in
+    let memexec_stacks = callstacks_in with_memexec in
+    assert (Project.equal current (Project.current ()));
+    let current_stacks, reported_stacks =
+      with_trap (fun () -> callstacks_in current)
+    in
+    let stacks =
+      List.map2 (fun (r, m) c -> union [ r; m; c ])
+        (List.combine reference_stacks memexec_stacks) current_stacks
+    in
+    let answers_in project =
+      in_project project (fun points -> List.map2 answers points stacks)
+    in
+    let reference_answers = answers_in reference in
+    let memexec_answers = answers_in with_memexec in
+    let answers, reported_answers =
+      with_trap (fun () -> answers_in current)
+    in
+    let reported = reported_stacks @ reported_answers in
+    let reference_answers = rename ~into:answers reference_answers in
+    let memexec_answers = rename ~into:answers memexec_answers in
+    let compared =
+      List.map2
+        (fun (reference, memexec) current -> { reference; memexec; current })
+        (List.combine reference_answers memexec_answers) answers
+    in
+    let compared = List.combine (points ()) compared in
+    List.iter print_labelled compared;
+    print_control compared;
+    let initial = snd (List.hd compared) in
+    Format.printf "Initial state: %s.@."
+      (string_of_verdict
+         (verdict ~reference:initial.reference.joined
+            ~answer:initial.current.joined));
+    Format.printf "Differences with the run without memexec:@.";
+    List.iter (fun (point, c) -> compare_point point c) compared;
+    let get v = Option.value ~default:0 (Hashtbl.find_opt counts v) in
+    Format.printf "Answers: %d equal, %d covering, %d more precise, \
+                   %d omitting, %d unavailable.@."
+      (get Equal) (get Covers) (get More_precise) (get Omits) (get Unavailable);
+    let reads = List.concat_map (fun r -> r.Legacy_read_trap.reads) reported in
+    Format.printf "Filtered requests that reject one callstack: %d.@."
+      !rejecting;
+    Format.printf "Requests made: %d; reported by the trap: %d, %s; reads of \
+                   the legacy store: %d.@."
+      !made (List.length reported)
+      (if !unmatched = [] then "each once with its description"
+       else "NOT each once with its description")
+      (List.length reads);
+    List.iter
+      (fun (expected, added) ->
+         Format.printf "  @[<v 2>request %s, reported as:%t@]@." expected
+           (fun fmt -> match added with
+              | [] -> Format.fprintf fmt "@ nothing"
+              | _ -> List.iter (Format.fprintf fmt "@ %s") added))
+      (List.rev !unmatched);
+    List.iter
+      (fun r -> if r.Legacy_read_trap.reads <> [] then
+          Format.printf "%a@." Legacy_read_trap.pretty_request r)
+      reported
+  end
 
 let () = Boot.Main.extend main

@@ -18,6 +18,10 @@ Calls:
   by_builtin: analysed, cache entry 7
 builtin_leaf, start:
   joined: unavailable
+  builtin_leaf :: below_no_body.c:29 <- builtin_parent :: below_no_body.c:32 <- by_builtin: 
+  unavailable
+  builtin_leaf :: below_no_body.c:29 <- builtin_parent :: below_no_body.c:34 <- by_builtin: 
+  unavailable
   reference, joined: g ∈ {0}
                      h ∈ {0; 8}
                      d ∈ {0}
@@ -55,4 +59,5 @@ Differences with the run without memexec:
   builtin_leaf, after below_no_body.c:27 `return x;`, joined: unavailable
   builtin_leaf, after below_no_body.c:27 `return x;`, filtered: unavailable
 Answers: 97 equal, 0 covering, 0 more precise, 0 omitting, 12 unavailable.
-Requests made: 149; reported by the trap: 149; reads of the legacy store: 0.
+Filtered requests that reject one callstack: 6.
+Requests made: 151; reported by the trap: 151, each once with its description; reads of the legacy store: 0.

@@ -24,6 +24,7 @@ hint_y, start:
                                                   first ∈ {0}
                                                   second ∈ {0}
   reference, joined: unreachable
+  hint_y :: more_precise.c:42 <- hints_on_branch: unreachable
 hint_y, before more_precise.c:29 `;` (H):
   joined: x ∈ [14..2147483647]
           y ∈ {0}
@@ -42,6 +43,7 @@ hint_y, before more_precise.c:29 `;` (H):
                                                   first ∈ {0}
                                                   second ∈ {0}
   reference, joined: unreachable
+  hint_y :: more_precise.c:42 <- hints_on_branch: unreachable
 hint_y, after more_precise.c:30 `return;`:
   joined: x ∈ [14..2147483647]
           y ∈ {0}
@@ -60,6 +62,7 @@ hint_y, after more_precise.c:30 `return;`:
                                                   first ∈ {0}
                                                   second ∈ {0}
   reference, joined: unreachable
+  hint_y :: more_precise.c:42 <- hints_on_branch: unreachable
 loop_y, start:
   joined: x ∈ {0}
           y ∈ {0}
@@ -150,12 +153,19 @@ Differences with the run without memexec:
   final state, joined: more precise, as with memexec
   final state, filtered: more precise, as with memexec
   final state, hints_on_branch: more precise, as with memexec
+  count, after more_precise.c:19 `loop`, filtered: covers
   count, after more_precise.c:19 `loop`, count :: more_precise.c:41 <- hints_on_branch: covers
+  count, before more_precise.c:19 `if (x < n)`, filtered: covers
   count, before more_precise.c:19 `if (x < n)`, count :: more_precise.c:41 <- hints_on_branch: covers
+  count, after more_precise.c:19 `if (x < n)`, filtered: covers
   count, after more_precise.c:19 `if (x < n)`, count :: more_precise.c:41 <- hints_on_branch: covers
+  count, before more_precise.c:19 `break;`, filtered: covers
   count, before more_precise.c:19 `break;`, count :: more_precise.c:41 <- hints_on_branch: covers
+  count, after more_precise.c:19 `break;`, filtered: covers
   count, after more_precise.c:19 `break;`, count :: more_precise.c:41 <- hints_on_branch: covers
+  count, before more_precise.c:19 `return;`, filtered: covers
   count, before more_precise.c:19 `return;`, count :: more_precise.c:41 <- hints_on_branch: covers
+  count, after more_precise.c:19 `return;`, filtered: covers
   count, after more_precise.c:19 `return;`, count :: more_precise.c:41 <- hints_on_branch: covers
   hint_y, start, joined: covers, as with memexec
   hint_y, start, filtered: covers, as with memexec
@@ -244,5 +254,6 @@ Differences with the run without memexec:
   hints_on_branch, after more_precise.c:45 `return;`, joined: more precise, as with memexec
   hints_on_branch, after more_precise.c:45 `return;`, filtered: more precise, as with memexec
   hints_on_branch, after more_precise.c:45 `return;`, hints_on_branch: more precise, as with memexec
-Answers: 215 equal, 58 covering, 39 more precise, 0 omitting, 0 unavailable.
-Requests made: 425; reported by the trap: 425; reads of the legacy store: 0.
+Answers: 208 equal, 65 covering, 39 more precise, 0 omitting, 0 unavailable.
+Filtered requests that reject one callstack: 11.
+Requests made: 425; reported by the trap: 425, each once with its description; reads of the legacy store: 0.

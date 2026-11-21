@@ -264,34 +264,42 @@ Differences with the run without memexec:
   final state, joined: OMITS, as with memexec
   final state, filtered: OMITS, as with memexec
   final state, issue96: OMITS, as with memexec
+  count96, after known_issues.c:115 `loop`, filtered: covers
   count96, after known_issues.c:115 `loop`, count96 :: known_issues.c:130 <- issue96: covers
+  count96, before known_issues.c:115 `if (xc < n)`, filtered: covers
   count96, before known_issues.c:115 `if (xc < n)`, count96 :: known_issues.c:130 <- issue96: covers
+  count96, after known_issues.c:115 `if (xc < n)`, filtered: covers
   count96, after known_issues.c:115 `if (xc < n)`, count96 :: known_issues.c:130 <- issue96: covers
+  count96, before known_issues.c:115 `break;`, filtered: covers
   count96, before known_issues.c:115 `break;`, count96 :: known_issues.c:130 <- issue96: covers
+  count96, after known_issues.c:115 `break;`, filtered: covers
   count96, after known_issues.c:115 `break;`, count96 :: known_issues.c:130 <- issue96: covers
+  count96, before known_issues.c:116 `sequence`, filtered: covers
   count96, before known_issues.c:116 `sequence`, count96 :: known_issues.c:130 <- issue96: covers
+  count96, after known_issues.c:116 `sequence`, filtered: covers
   count96, after known_issues.c:116 `sequence`, count96 :: known_issues.c:130 <- issue96: covers
+  count96, before known_issues.c:116 `tmp = Frama_C_abstract_max((long long)xc);`, filtered: covers
   count96, before known_issues.c:116 `tmp = Frama_C_abstract_max((long long)xc);`, count96 :: known_issues.c:130 <- issue96: covers
   count96, after known_issues.c:116 `tmp = Frama_C_abstract_max((long long)xc);`, joined: more precise
-  count96, after known_issues.c:116 `tmp = Frama_C_abstract_max((long long)xc);`, filtered: more precise
+  count96, after known_issues.c:116 `tmp = Frama_C_abstract_max((long long)xc);`, filtered: OMITS
   count96, after known_issues.c:116 `tmp = Frama_C_abstract_max((long long)xc);`, count96 :: known_issues.c:130 <- issue96: OMITS
   count96, before known_issues.c:116 `int result = (int)tmp;`, joined: more precise
-  count96, before known_issues.c:116 `int result = (int)tmp;`, filtered: more precise
+  count96, before known_issues.c:116 `int result = (int)tmp;`, filtered: OMITS
   count96, before known_issues.c:116 `int result = (int)tmp;`, count96 :: known_issues.c:130 <- issue96: OMITS
   count96, after known_issues.c:116 `int result = (int)tmp;`, joined: more precise
-  count96, after known_issues.c:116 `int result = (int)tmp;`, filtered: more precise
+  count96, after known_issues.c:116 `int result = (int)tmp;`, filtered: OMITS
   count96, after known_issues.c:116 `int result = (int)tmp;`, count96 :: known_issues.c:130 <- issue96: OMITS
   count96, before known_issues.c:117 `;` (P), joined: more precise
-  count96, before known_issues.c:117 `;` (P), filtered: more precise
+  count96, before known_issues.c:117 `;` (P), filtered: OMITS
   count96, before known_issues.c:117 `;` (P), count96 :: known_issues.c:130 <- issue96: OMITS
   count96, after known_issues.c:117 `;` (P), joined: more precise
-  count96, after known_issues.c:117 `;` (P), filtered: more precise
+  count96, after known_issues.c:117 `;` (P), filtered: OMITS
   count96, after known_issues.c:117 `;` (P), count96 :: known_issues.c:130 <- issue96: OMITS
   count96, before known_issues.c:117 `return result;`, joined: more precise
-  count96, before known_issues.c:117 `return result;`, filtered: more precise
+  count96, before known_issues.c:117 `return result;`, filtered: OMITS
   count96, before known_issues.c:117 `return result;`, count96 :: known_issues.c:130 <- issue96: OMITS
   count96, after known_issues.c:117 `return result;`, joined: more precise
-  count96, after known_issues.c:117 `return result;`, filtered: more precise
+  count96, after known_issues.c:117 `return result;`, filtered: OMITS
   count96, after known_issues.c:117 `return result;`, count96 :: known_issues.c:130 <- issue96: OMITS
   issue96, after known_issues.c:130 `int second = count96(13);`, joined: OMITS, as with memexec
   issue96, after known_issues.c:130 `int second = count96(13);`, filtered: OMITS, as with memexec
@@ -302,5 +310,6 @@ Differences with the run without memexec:
   issue96, after known_issues.c:131 `return second;`, joined: OMITS, as with memexec
   issue96, after known_issues.c:131 `return second;`, filtered: OMITS, as with memexec
   issue96, after known_issues.c:131 `return second;`, issue96: OMITS, as with memexec
-Answers: 557 equal, 8 covering, 14 more precise, 19 omitting, 0 unavailable.
-Requests made: 866; reported by the trap: 866; reads of the legacy store: 0.
+Answers: 549 equal, 16 covering, 7 more precise, 26 omitting, 0 unavailable.
+Filtered requests that reject one callstack: 19.
+Requests made: 866; reported by the trap: 866, each once with its description; reads of the legacy store: 0.

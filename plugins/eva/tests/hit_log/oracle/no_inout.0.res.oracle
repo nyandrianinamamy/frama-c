@@ -21,6 +21,8 @@ f, start:
                               __retres ∈ UNINITIALIZED
 f, before no_inout.c:11 `out = g;` (P):
   joined: unavailable
+  f :: no_inout.c:14 <- main: unavailable
+  f :: no_inout.c:15 <- main: unavailable
   reference, joined: g ∈ {1}
                      h ∈ {7; 8}
                      out ∈ {0; 1}
@@ -35,6 +37,8 @@ f, before no_inout.c:11 `out = g;` (P):
                               __retres ∈ UNINITIALIZED
 f, after no_inout.c:11 `return;`:
   joined: unavailable
+  f :: no_inout.c:14 <- main: unavailable
+  f :: no_inout.c:15 <- main: unavailable
   reference, joined: g ∈ {1}
                      h ∈ {7; 8}
                      out ∈ {1}
@@ -117,4 +121,5 @@ Differences with the run without memexec:
   main, after no_inout.c:16 `return __retres;`, filtered: unavailable
   main, after no_inout.c:16 `return __retres;`, main: unavailable
 Answers: 10 equal, 0 covering, 0 more precise, 0 omitting, 67 unavailable.
-Requests made: 76; reported by the trap: 76; reads of the legacy store: 0.
+Filtered requests that reject one callstack: 5.
+Requests made: 101; reported by the trap: 101, each once with its description; reads of the legacy store: 0.

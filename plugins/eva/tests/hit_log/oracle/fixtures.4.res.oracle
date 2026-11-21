@@ -189,6 +189,7 @@ count, before fixtures.c:68 `y = 1;` (R):
                                             t2 ∈ {0}
                                             p ∈ {0}
                                             n ∈ {13}
+  count :: fixtures.c:79 <- widening_hints: unreachable
 count, after fixtures.c:69 `return;`:
   joined: v ∈ [--..--]
           a ∈ {0}
@@ -275,14 +276,23 @@ Differences with the run without memexec:
   final state, joined: covers, as with memexec
   final state, filtered: covers, as with memexec
   final state, widening_hints: covers, as with memexec
+  count, after fixtures.c:67 `loop`, filtered: covers
   count, after fixtures.c:67 `loop`, count :: fixtures.c:79 <- widening_hints: covers
+  count, before fixtures.c:67 `if (x < n)`, filtered: covers
   count, before fixtures.c:67 `if (x < n)`, count :: fixtures.c:79 <- widening_hints: covers
+  count, after fixtures.c:67 `if (x < n)`, filtered: covers
   count, after fixtures.c:67 `if (x < n)`, count :: fixtures.c:79 <- widening_hints: covers
+  count, before fixtures.c:67 `break;`, filtered: covers
   count, before fixtures.c:67 `break;`, count :: fixtures.c:79 <- widening_hints: covers
+  count, after fixtures.c:67 `break;`, filtered: covers
   count, after fixtures.c:67 `break;`, count :: fixtures.c:79 <- widening_hints: covers
+  count, before fixtures.c:68 `;` (P), filtered: covers
   count, before fixtures.c:68 `;` (P), count :: fixtures.c:79 <- widening_hints: covers
+  count, after fixtures.c:68 `;` (P), filtered: covers
   count, after fixtures.c:68 `;` (P), count :: fixtures.c:79 <- widening_hints: covers
+  count, before fixtures.c:68 `if (x > n)`, filtered: covers
   count, before fixtures.c:68 `if (x > n)`, count :: fixtures.c:79 <- widening_hints: covers
+  count, after fixtures.c:68 `if (x > n)`, filtered: covers
   count, after fixtures.c:68 `if (x > n)`, count :: fixtures.c:79 <- widening_hints: covers
   count, before fixtures.c:68 `y = 1;` (R), joined: covers
   count, before fixtures.c:68 `y = 1;` (R), filtered: covers
@@ -290,7 +300,9 @@ Differences with the run without memexec:
   count, after fixtures.c:68 `y = 1;` (R), joined: covers
   count, after fixtures.c:68 `y = 1;` (R), filtered: covers
   count, after fixtures.c:68 `y = 1;` (R), count :: fixtures.c:79 <- widening_hints: covers
+  count, before fixtures.c:69 `return;`, filtered: covers
   count, before fixtures.c:69 `return;`, count :: fixtures.c:79 <- widening_hints: covers
+  count, after fixtures.c:69 `return;`, filtered: covers
   count, after fixtures.c:69 `return;`, count :: fixtures.c:79 <- widening_hints: covers
   widening_hints, after fixtures.c:79 `count(13);`, joined: covers, as with memexec
   widening_hints, after fixtures.c:79 `count(13);`, filtered: covers, as with memexec
@@ -301,5 +313,6 @@ Differences with the run without memexec:
   widening_hints, after fixtures.c:80 `return;`, joined: covers, as with memexec
   widening_hints, after fixtures.c:80 `return;`, filtered: covers, as with memexec
   widening_hints, after fixtures.c:80 `return;`, widening_hints: covers, as with memexec
-Answers: 555 equal, 29 covering, 0 more precise, 0 omitting, 0 unavailable.
-Requests made: 843; reported by the trap: 843; reads of the legacy store: 0.
+Answers: 544 equal, 40 covering, 0 more precise, 0 omitting, 0 unavailable.
+Filtered requests that reject one callstack: 17.
+Requests made: 843; reported by the trap: 843, each once with its description; reads of the legacy store: 0.
