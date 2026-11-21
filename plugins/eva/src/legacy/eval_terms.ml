@@ -65,8 +65,9 @@ let track_alarms b = function
   | Fail -> if b then c_alarm ()
   | Track bref -> if b then bref := true
 
-let display_evaluation_error ~loc = function
+let display_evaluation_error ~silent ~loc = function
   | CAlarm -> ()
+  | _ when silent -> ()
   | pa ->
     Self.warning
       ~wkey:Log_key.warn_acsl_unsupported ~loc ~once:true
@@ -166,14 +167,17 @@ type logic_env = Cvalue.V.t LogicVarEnv.t
    (e.g. the function returns void, logic outside of a function
    contract, etc.) [strict_deps] is set by [predicate_deps_by_parts]: the
    logic dependencies then include the memory read by the logic builtins on
-   strings, and the dependencies of a set comprehension that cannot be
-   computed raise an error instead of being ignored. *)
+   strings, and the dependencies of a set comprehension or of a range bound
+   that cannot be computed raise an error instead of being ignored, unless
+   the evaluation of the bound fails in any state. [silent] disables the
+   warnings about the evaluation. *)
 type eval_env = {
   e_cur: logic_label;
   e_states: labels_states;
   logic_vars: logic_env;
   result: varinfo option;
   strict_deps: bool;
+  silent: bool;
 }
 
 let join_env e1 e2 = {
@@ -182,6 +186,7 @@ let join_env e1 e2 = {
   logic_vars = LogicVarEnv.join e1.logic_vars e2.logic_vars;
   result = (assert (e1.result == e2.result); e1.result);
   strict_deps = e1.strict_deps || e2.strict_deps;
+  silent = e1.silent || e2.silent;
 }
 
 let env_state env lbl =
@@ -224,7 +229,8 @@ let make_env logic_env state =
     e_states = map;
     logic_vars = LogicVarEnv.empty;
     result = logic_env.Abstract_domain.result;
-    strict_deps = false; }
+    strict_deps = false;
+    silent = false; }
 
 let env_pre_f ~pre () = {
   e_cur = lbl_here;
@@ -232,6 +238,7 @@ let env_pre_f ~pre () = {
   logic_vars = LogicVarEnv.empty;
   result = None (* Never useful in a pre *);
   strict_deps = false;
+  silent = false;
 }
 
 let env_post_f ?(c_labels=Logic_label.Map.empty) ~pre ~post ~result () = {
@@ -241,6 +248,7 @@ let env_post_f ?(c_labels=Logic_label.Map.empty) ~pre ~post ~result () = {
   logic_vars = LogicVarEnv.empty;
   result = result;
   strict_deps = false;
+  silent = false;
 }
 
 let env_annot ?(c_labels=Logic_label.Map.empty) ~pre ~here () = {
@@ -250,6 +258,7 @@ let env_annot ?(c_labels=Logic_label.Map.empty) ~pre ~here () = {
   result = None (* Never useful in a 'assert'. TODO: will be needed for stmt
                    contracts *);
   strict_deps = false;
+  silent = false;
 }
 
 let env_assigns ~pre = {
@@ -261,6 +270,7 @@ let env_assigns ~pre = {
   logic_vars = LogicVarEnv.empty;
   result = None (* Treated in a special way in callers *);
   strict_deps = false;
+  silent = false;
 }
 
 let env_only_here state = {
@@ -270,6 +280,7 @@ let env_only_here state = {
   result = None (* Never useful in a 'assert'. TODO: will be needed for stmt
                    contracts *);
   strict_deps = false;
+  silent = false;
 }
 
 let top_float =
@@ -1042,6 +1053,25 @@ let forward_binop typ v1 op v2 =
     else Cvalue.V.zero_or_one
   | _ -> forward_binop_by_type typ v1 op v2
 
+(* Is [t] the application of a logic function that Eva can neither evaluate
+   nor inline, possibly under casts? Its evaluation then fails in any state. *)
+let rec is_unevaluable_application env t =
+  match t.term_node with
+  | TCast (_, _, t) -> is_unevaluable_application env t
+  | Tapp (li, _, _) ->
+    not (is_known_logic_fun li.l_var_info)
+    && Inline.inline_term ~inline ~current:env.e_cur t = None
+  | _ -> false
+
+(* Does the evaluation of [t] fail in any state, because it evaluates such an
+   application? The operands of casts and of unary and binary operators are
+   always evaluated. *)
+let rec fails_in_any_state env t =
+  match t.term_node with
+  | TCast (_, _, t) | TUnOp (_, t) -> fails_in_any_state env t
+  | TBinOp (_, t1, t2) -> fails_in_any_state env t1 || fails_in_any_state env t2
+  | _ -> is_unevaluable_application env t
+
 let rec eval_term ~alarm_mode env t =
   match t.term_node with
   | Tat (t, lab) ->
@@ -1176,7 +1206,9 @@ let rec eval_term ~alarm_mode env t =
         with
         | Cvalue.V.Not_based_on_null -> None, None
         | LogicEvalError e ->
-          if e <> CAlarm then
+          if env.strict_deps && not (fails_in_any_state env term)
+          then raise (LogicEvalError e);
+          if e <> CAlarm && not env.silent then
             Self.warning ~wkey:Log_key.warn_acsl_unsupported
               ~loc:t.term_loc ~once:true
               "Cannot evaluate range bound %a (%a). Approximating."
@@ -1716,7 +1748,7 @@ and bind_comprehension_quantifiers env quantifiers predicate =
       let reduced_env = reduce_by_predicate ~alarm_mode env true pred in
       copy_logic_vars ~src:reduced_env ~dst:env quantifiers
     with LogicEvalError error ->
-      display_evaluation_error ~loc:pred.pred_loc error;
+      display_evaluation_error ~silent:env.silent ~loc:pred.pred_loc error;
       env
 
 (* Dependencies of the optional predicate of a set comprehension. They are
@@ -1739,9 +1771,10 @@ and eval_let_binding ~alarm_mode env logic_info =
       let var_term = Logic_const.tvar var in
       try reduce_left_by_relation ~alarm_mode env true var_term Req term
       with Reduce_to_bottom ->
-        Self.warning ~current:true ~once:true
-          "ignoring \\let binding of logic variable %a evaluating to bottom"
-          Printer.pp_logic_var var;
+        if not env.silent then
+          Self.warning ~current:true ~once:true
+            "ignoring \\let binding of logic variable %a evaluating to bottom"
+            Printer.pp_logic_var var;
         env
     end
   | _ -> unsupported "\\let binding"
@@ -2484,7 +2517,7 @@ and eval_predicate env pred =
   let rec do_eval env p =
     try do_eval_exn env p
     with LogicEvalError ee ->
-      display_evaluation_error ~loc:p.pred_loc ee;
+      display_evaluation_error ~silent:env.silent ~loc:p.pred_loc ee;
       Unknown
   and do_eval_exn env p =
     match p.pred_content with
@@ -2804,7 +2837,8 @@ and eval_predicate env pred =
     | "\\warning", _ -> begin
         match args with
         | [{ term_node = TConst(LStr(str))}] ->
-          Self.warning "reached \\warning(\"%s\")" str; Unknown
+          if not env.silent then Self.warning "reached \\warning(\"%s\")" str;
+          Unknown
         | _ ->
           Self.abort
             "Wrong argument: \\warning expects a constant string"
@@ -2946,16 +2980,6 @@ and predicate_deps env pred =
   try Some (do_eval env pred)
   with LogicEvalError _ -> None
 
-(* Is [t] the application of a logic function that Eva can neither evaluate
-   nor inline, possibly under casts? Its evaluation then fails in any state. *)
-let rec is_unevaluable_application env t =
-  match t.term_node with
-  | TCast (_, _, t) -> is_unevaluable_application env t
-  | Tapp (li, _, _) ->
-    not (is_known_logic_fun li.l_var_info)
-    && Inline.inline_term ~inline ~current:env.e_cur t = None
-  | _ -> false
-
 (* Dependencies of [pred] as Eva interprets it, computed part by part.
    The dependencies of an atomic part that cannot be computed are left out,
    and the boolean returned is then false. Some parts read nothing: Eva
@@ -2967,13 +2991,14 @@ let rec is_unevaluable_application env t =
    it changes the state. The dependencies are strict, as described with
    [eval_env]. *)
 let predicate_deps_by_parts env pred =
-  let env = { env with strict_deps = true } in
+  let env = { env with strict_deps = true; silent = true } in
   let complete = ref true in
   let incomplete () = complete := false; empty_logic_deps in
   let atom env p =
     match predicate_deps env p with
     | Some deps -> deps
     | None -> incomplete ()
+    | exception Abstract_interp.Error_Top -> incomplete ()
   in
   let rec do_eval env p =
     match p.pred_content with
@@ -2997,7 +3022,8 @@ let predicate_deps_by_parts env pred =
       begin
         match eval_term ~alarm_mode:Ignore env t with
         | r -> r.ldeps
-        | exception LogicEvalError _ -> incomplete ()
+        | exception (LogicEvalError _ | Abstract_interp.Error_Top) ->
+          incomplete ()
       end
     | Pfreeable _ -> empty_logic_deps
     | Prel (_, t1, t2)
@@ -3021,6 +3047,8 @@ let predicate_deps_by_parts env pred =
 (* -------------------------------------------------------------------------- *)
 (* --- Export                                                             --- *)
 (* -------------------------------------------------------------------------- *)
+
+let silent env = { env with silent = true }
 
 (* Position default value for ~alarm_mode *)
 let reduce_by_predicate env positive p =

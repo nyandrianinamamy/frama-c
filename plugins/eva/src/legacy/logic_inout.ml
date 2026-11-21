@@ -49,14 +49,17 @@ let valid_behaviors kf state =
 
 (* Evaluation environment of a predicate, built as [Transfer_logic] builds it
    for the cvalue domain: [here] is the current state, [labels] binds some
-   builtin labels, and the other labels are bound to the top state. *)
+   builtin labels, and the other labels are bound to the top state. The
+   evaluation emits no warning: Eva emits its own when it evaluates the
+   predicate. *)
 let logic_env ~result ~here labels =
   let states = function
     | BuiltinLabel label ->
       Option.value ~default:Cvalue.Model.top (List.assoc_opt label labels)
     | FormalLabel _ | StmtLabel _ -> Cvalue.Model.top
   in
-  Eval_terms.make_env Abstract_domain.{ states; result } here
+  let env = Eval_terms.make_env Abstract_domain.{ states; result } here in
+  Eval_terms.silent env
 
 let pre_env ~pre = logic_env ~result:None ~here:pre [ Pre, pre ]
 let here_env ~pre ~here = logic_env ~result:None ~here [ Pre, pre ]
@@ -91,6 +94,7 @@ let behavior_activity ~pre funspec =
     | Eval_terms.True -> Alarmset.True
     | Eval_terms.False -> Alarmset.False
     | Eval_terms.Unknown -> Alarmset.Unknown
+    | exception Abstract_interp.Error_Top -> Alarmset.Unknown
   in
   Active_behaviors.create eval_predicate funspec
 
@@ -177,7 +181,8 @@ let assigned_value env pre froms =
           let alarm_mode = Eval_terms.Ignore in
           let loc = Eval_terms.eval_tlval_as_location ~alarm_mode env term in
           Cvalue.Model.find ~conflate_bottom:false pre loc
-        with Eval_terms.LogicEvalError _ -> Cvalue.V.top
+        with Eval_terms.LogicEvalError _ | Abstract_interp.Error_Top ->
+          Cvalue.V.top
     in
     Cvalue.V.join acc value
   in
@@ -192,7 +197,7 @@ let assigned_value env pre froms =
    may also hold the value Eva writes there. Eva ignores the assigns clauses
    that it cannot interpret, and so does this function. *)
 let specification_post_state kf funspec ~pre result =
-  let env = Eval_terms.env_assigns ~pre in
+  let env = Eval_terms.silent (Eval_terms.env_assigns ~pre) in
   let state = bind_result result (Library_functions.returned_value kf) pre in
   let location term =
     if Logic_utils.is_result term
@@ -205,7 +210,7 @@ let specification_post_state kf funspec ~pre result =
         else
           let loc = Locations.valid_part Write loc in
           if Locations.is_bottom loc then None else Some loc
-      with Eval_terms.LogicEvalError _ -> None
+      with Eval_terms.LogicEvalError _ | Abstract_interp.Error_Top -> None
   in
   let assign state (out, froms) =
     match location out.it_content with

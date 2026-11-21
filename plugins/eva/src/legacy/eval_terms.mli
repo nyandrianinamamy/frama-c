@@ -55,6 +55,9 @@ val env_only_here: Model.t -> eval_env
 
 val env_current_state: eval_env -> Model.t
 
+(** [silent env] is [env] where the evaluation emits no warning. *)
+val silent: eval_env -> eval_env
+
 (** Dependencies needed to evaluate a term or a predicate *)
 type logic_deps = Memory_zone.t Cil_datatype.Logic_label.Map.t
 
@@ -108,7 +111,9 @@ val predicate_deps: eval_env -> Cil_types.predicate -> logic_deps option
     neither evaluate nor inline, or a relation between a term and the
     application of a logic function it can neither evaluate nor inline,
     have no dependency. The dependencies include the memory read by the
-    logic builtins on strings. *)
+    logic builtins on strings. A bound of a range whose evaluation fails is
+    such a part, unless this evaluation fails in any state; Eva then ignores
+    the bound. No warning is emitted. *)
 val predicate_deps_by_parts:
   eval_env -> Cil_types.predicate -> logic_deps * bool
 
