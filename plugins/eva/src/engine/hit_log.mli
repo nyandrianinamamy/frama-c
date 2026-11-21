@@ -89,8 +89,9 @@ val record_hit:
 (** Marks a function of which a recursive call is analysed by its body. *)
 val mark_unrolled_recursion: Cil_types.kernel_function -> unit
 
-(** Marks a function of which a call was interrupted before its end. *)
-val mark_interrupted: Cil_types.kernel_function -> unit
+(** [mark_interrupted callstack ~start] records the start state of a call
+    interrupted before its end, and marks its function. *)
+val mark_interrupted: Callstack.t -> start:Cvalue.Model.t -> unit
 
 (** [analysis f] runs the analysis [f] of the current project. The rule
     answers the requests made after it, if the recording was on. *)

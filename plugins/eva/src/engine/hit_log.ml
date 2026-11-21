@@ -272,7 +272,9 @@ let record_hit ~id callstack ~start ~body_entry =
 
 let mark_unrolled_recursion kf = mark (Store.get ()).body_unavailable kf
 
-let mark_interrupted kf = mark (Store.get ()).body_unavailable kf
+let mark_interrupted callstack ~start =
+  record_start callstack start;
+  mark (Store.get ()).body_unavailable (Callstack.top_kf callstack)
 
 let analysis f =
   let finally () = if enabled () then (Store.get ()).ended <- true in
