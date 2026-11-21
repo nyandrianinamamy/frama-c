@@ -1,0 +1,83 @@
+[kernel] Parsing memexec_key_logic_spec_deps.c (with preprocessing)
+[eva] Analyzing a complete application starting at main
+[eva:progress] Computing initial state
+[eva:progress] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  k ∈ {0}
+  t ∈ {0}
+  p ∈ {0}
+  first ∈ {0}
+  second ∈ {0}
+[eva:progress] 
+  computing for function Frama_C_interval <- main.
+  Called from memexec_key_logic_spec_deps.c:28.
+[eva] using specification for function Frama_C_interval
+[eva:progress] memexec_key_logic_spec_deps.c:28: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva:progress] Done for function Frama_C_interval
+[eva:progress] 
+  computing for function Frama_C_interval <- main.
+  Called from memexec_key_logic_spec_deps.c:29.
+[eva:progress] memexec_key_logic_spec_deps.c:29: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva:progress] Done for function Frama_C_interval
+[eva:progress] 
+  computing for function f <- main.
+  Called from memexec_key_logic_spec_deps.c:29.
+[eva:progress] 
+  computing for function choose <- f <- main.
+  Called from memexec_key_logic_spec_deps.c:25.
+[eva] using specification for function choose
+[eva:alarm] memexec_key_logic_spec_deps.c:25: Warning: 
+  function choose: precondition got status unknown.
+[inout] memexec_key_logic_spec_deps.c:25: Warning: 
+  failed to interpret assigns clause '*(k ≡ 0 ? &p : opaque(0))'
+[kernel] Specification logic inputs for choose: ANYTHING(origin:Unknown)
+[eva:progress] Done for function choose
+[eva:progress] Recording results for f
+[eva:progress] Done for function f
+[eva:progress] 
+  computing for function Frama_C_interval <- main.
+  Called from memexec_key_logic_spec_deps.c:30.
+[eva:progress] memexec_key_logic_spec_deps.c:30: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva:progress] Done for function Frama_C_interval
+[eva:progress] 
+  computing for function Frama_C_interval <- main.
+  Called from memexec_key_logic_spec_deps.c:31.
+[eva:progress] memexec_key_logic_spec_deps.c:31: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva:progress] Done for function Frama_C_interval
+[eva:progress] 
+  computing for function f <- main.
+  Called from memexec_key_logic_spec_deps.c:31.
+[eva:progress] 
+  computing for function choose <- f <- main.
+  Called from memexec_key_logic_spec_deps.c:25.
+[kernel] Specification logic inputs for choose: ANYTHING(origin:Unknown)
+[eva:progress] Done for function choose
+[eva:progress] Recording results for f
+[eva:progress] Done for function f
+[eva:progress] Recording results for main
+[eva:progress] Done for function main
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function f:
+Cannot filter: dumping raw memory (including unchanged variables)
+  __fc_heap_status ∈ [--..--]
+  Frama_C_entropy_source ∈ [--..--]
+  k ∈ {0}
+  t ∈ {0; 1; 2; 3}
+  p ∈ {{ &t }}
+  first ∈ {0; 1; 2; 3}
+  second ∈ {0}
+  __retres ∈ UNINITIALIZED
+[eva:final-states] Values at end of function main:
+Cannot filter: dumping raw memory (including unchanged variables)
+  __fc_heap_status ∈ [--..--]
+  Frama_C_entropy_source ∈ [--..--]
+  k ∈ {0}
+  t ∈ {0; 1; 2; 3}
+  p ∈ {{ &t }}
+  first ∈ {0; 1; 2; 3}
+  second ∈ {0; 1; 2; 3}
+  __retres ∈ {0}

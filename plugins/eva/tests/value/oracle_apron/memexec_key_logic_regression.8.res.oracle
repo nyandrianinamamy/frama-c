@@ -1,0 +1,10 @@
+51a52,54
+> [eva:progress] 
+>   computing for function term_let_f <- term_let_case.
+>   Called from memexec_key_logic_regression.c:90.
+54,55c57,58
+< [eva:progress] memexec_key_logic_regression.c:90: 
+<   Reusing old results for call to term_let_f
+---
+> [eva:progress] Recording results for term_let_f
+> [eva:progress] Done for function term_let_f

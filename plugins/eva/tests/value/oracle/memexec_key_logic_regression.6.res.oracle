@@ -1,0 +1,100 @@
+[kernel] Parsing memexec_key_logic_regression.c (with preprocessing)
+[eva] Analyzing a complete application starting at separated_case
+[eva:progress] Computing initial state
+[eva:progress] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  g ∈ {0}
+  h ∈ {0}
+  a ∈ {0}
+  b ∈ {0}
+  out ∈ {0}
+  frame ∈ {0}
+  p ∈ {0}
+  first ∈ {0}
+  second ∈ {0}
+  third ∈ {0}
+  table[0..3] ∈ {0}
+  k ∈ {0}
+  t ∈ {0}
+[eva:progress] 
+  computing for function Frama_C_interval <- separated_case.
+  Called from memexec_key_logic_regression.c:74.
+[eva] using specification for function Frama_C_interval
+[eva:progress] memexec_key_logic_regression.c:74: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva:progress] Done for function Frama_C_interval
+[eva:progress] 
+  computing for function separated_f <- separated_case.
+  Called from memexec_key_logic_regression.c:74.
+[eva:alarm] memexec_key_logic_regression.c:74: Warning: 
+  function separated_f, behavior small: precondition got status unknown.
+[eva:progress] Recording results for separated_f
+[eva:progress] Done for function separated_f
+[eva:progress] 
+  computing for function Frama_C_interval <- separated_case.
+  Called from memexec_key_logic_regression.c:75.
+[eva:progress] memexec_key_logic_regression.c:75: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva:progress] Done for function Frama_C_interval
+[eva:progress] 
+  computing for function separated_f <- separated_case.
+  Called from memexec_key_logic_regression.c:76.
+[eva:progress] memexec_key_logic_regression.c:76: 
+  function separated_f, behavior big: precondition got status valid.
+[eva:progress] Recording results for separated_f
+[eva:progress] Done for function separated_f
+[eva:progress] 
+  computing for function Frama_C_interval <- separated_case.
+  Called from memexec_key_logic_regression.c:77.
+[eva:progress] memexec_key_logic_regression.c:77: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva:progress] Done for function Frama_C_interval
+[eva:progress] memexec_key_logic_regression.c:78: 
+  function separated_f, behavior big: precondition got status valid.
+[eva:progress] memexec_key_logic_regression.c:78: 
+  Reusing old results for call to separated_f
+[eva:progress] Recording results for separated_case
+[eva:progress] Done for function separated_case
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function separated_f:
+  out ∈ [0..9]
+[eva:final-states] Values at end of function separated_case:
+  Frama_C_entropy_source ∈ [--..--]
+  a ∈ [0..9]
+  out ∈ [0..9]
+  frame ∈ {1}
+  p ∈ {{ &h }}
+  first ∈ {0; 1; 2; 3}
+  second ∈ [0..9]
+  third ∈ [0..9]
+[from] Computing for function separated_f
+[from] Done for function separated_f
+[from] Computing for function separated_case
+[from] Computing for function Frama_C_interval <-separated_case
+[from] Done for function Frama_C_interval
+[from] Done for function separated_case
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function Frama_C_interval:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  \result FROM Frama_C_entropy_source; min; max
+[from] Function separated_f:
+  out FROM a
+[from] Function separated_case:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  a FROM Frama_C_entropy_source
+  out FROM Frama_C_entropy_source
+  frame FROM \nothing
+  p FROM \nothing
+  first FROM Frama_C_entropy_source
+  second FROM Frama_C_entropy_source
+  third FROM Frama_C_entropy_source
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function separated_f:
+    out
+[inout] Inputs for function separated_f:
+    a
+[inout] Out (internal) for function separated_case:
+    Frama_C_entropy_source; a; out; frame; p; first; second; third
+[inout] Inputs for function separated_case:
+    Frama_C_entropy_source; a; out

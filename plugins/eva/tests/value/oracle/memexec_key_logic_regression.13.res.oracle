@@ -1,0 +1,74 @@
+[kernel] Parsing memexec_key_logic_regression.c (with preprocessing)
+[eva] Analyzing a complete application starting at asm_target_case
+[eva:progress] Computing initial state
+[eva:progress] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  g ∈ {0}
+  h ∈ {0}
+  a ∈ {0}
+  b ∈ {0}
+  out ∈ {0}
+  frame ∈ {0}
+  p ∈ {0}
+  first ∈ {0}
+  second ∈ {0}
+  third ∈ {0}
+  table[0..3] ∈ {0}
+  k ∈ {0}
+  t ∈ {0}
+[eva:progress] 
+  computing for function asm_target_f <- asm_target_case.
+  Called from memexec_key_logic_regression.c:110.
+[eva:assigns:missing] memexec_key_logic_regression.c:107: Warning: 
+  no \from part for clause 'assigns *p;'.
+  Assuming \from \nothing so that the analysis can continue, but be aware this is probably incorrect.
+[eva:progress] Recording results for asm_target_f
+[eva:progress] Done for function asm_target_f
+[eva:progress] 
+  computing for function asm_target_f <- asm_target_case.
+  Called from memexec_key_logic_regression.c:111.
+[eva:progress] Recording results for asm_target_f
+[eva:progress] Done for function asm_target_f
+[eva:progress] 
+  computing for function asm_target_f <- asm_target_case.
+  Called from memexec_key_logic_regression.c:112.
+[eva:progress] Recording results for asm_target_f
+[eva:progress] Done for function asm_target_f
+[eva:progress] Recording results for asm_target_case
+[eva:progress] Done for function asm_target_case
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function asm_target_f:
+  
+[eva:final-states] Values at end of function asm_target_case:
+  a ∈ {1}
+  b ∈ [--..--]
+  frame ∈ {1}
+  p ∈ {{ &b }}
+  first ∈ [--..--]
+  second ∈ [--..--]
+  third ∈ [--..--]
+[from] Computing for function asm_target_f
+[from] Done for function asm_target_f
+[from] Computing for function asm_target_case
+[from] Done for function asm_target_case
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function asm_target_f:
+  NO EFFECTS
+[from] Function asm_target_case:
+  a FROM \nothing
+  b FROM \nothing
+  frame FROM \nothing
+  p FROM \nothing
+  first FROM \nothing
+  second FROM \nothing
+  third FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function asm_target_f:
+    \nothing
+[inout] Inputs for function asm_target_f:
+    \nothing
+[inout] Out (internal) for function asm_target_case:
+    a; b; frame; p; first; second; third
+[inout] Inputs for function asm_target_case:
+    a; b

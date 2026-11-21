@@ -1,0 +1,19 @@
+[kernel] Parsing memexec_key_logic_silent.c (with preprocessing)
+[eva] Analyzing a complete application starting at comprehension_case
+[eva:progress] Computing initial state
+[eva:progress] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  answer ∈ {0}
+[eva:progress] 
+  computing for function comprehension_f <- comprehension_case.
+  Called from memexec_key_logic_silent.c:25.
+[eva:alarm] memexec_key_logic_silent.c:20: Warning: check got status invalid.
+[eva:progress] Recording results for comprehension_f
+[eva:progress] Done for function comprehension_f
+[eva:progress] Recording results for comprehension_case
+[eva:progress] Done for function comprehension_case
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function comprehension_f:
+  answer ∈ {1}
+[eva:final-states] Values at end of function comprehension_case:
+  answer ∈ {1}

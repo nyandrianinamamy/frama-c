@@ -1,0 +1,22 @@
+[kernel] Parsing memexec_key_logic_silent.c (with preprocessing)
+[eva] Analyzing a complete application starting at ordinary_let_case
+[eva:progress] Computing initial state
+[eva:progress] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  answer ∈ {0}
+[eva:progress] 
+  computing for function ordinary_let_f <- ordinary_let_case.
+  Called from memexec_key_logic_silent.c:33.
+[eva:alarm] memexec_key_logic_silent.c:29: Warning: 
+  assertion 'uninitialized' got status unknown.
+[eva] memexec_key_logic_silent.c:29: Warning: 
+  ignoring \let binding of logic variable z evaluating to bottom
+[eva:progress] Recording results for ordinary_let_f
+[eva:progress] Done for function ordinary_let_f
+[eva:progress] Recording results for ordinary_let_case
+[eva:progress] Done for function ordinary_let_case
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function ordinary_let_f:
+  answer ∈ {1}
+[eva:final-states] Values at end of function ordinary_let_case:
+  answer ∈ {1}

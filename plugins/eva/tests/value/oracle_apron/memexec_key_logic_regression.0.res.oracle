@@ -1,0 +1,10 @@
+51a52,54
+> [eva:progress] 
+>   computing for function conditional_f <- conditional_case.
+>   Called from memexec_key_logic_regression.c:42.
+54,55c57,58
+< [eva:progress] memexec_key_logic_regression.c:42: 
+<   Reusing old results for call to conditional_f
+---
+> [eva:progress] Recording results for conditional_f
+> [eva:progress] Done for function conditional_f
