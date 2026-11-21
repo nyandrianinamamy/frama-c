@@ -100,6 +100,18 @@ val eval_predicate :
     Returns None on either an evaluation error or on unsupported construct. *)
 val predicate_deps: eval_env -> Cil_types.predicate -> logic_deps option
 
+(** [predicate_deps_by_parts env p] computes the logic dependencies needed to
+    evaluate or reduce by [p] in [env] as Eva does, part by part: an atomic
+    part of [p] whose dependencies cannot be computed is left out, and the
+    boolean returned is then [false]. The predicates that Eva evaluates to
+    Unknown and does not reduce by, such as [\fresh], a predicate it can
+    neither evaluate nor inline, or a relation between a term and the
+    application of a logic function it can neither evaluate nor inline,
+    have no dependency. The dependencies include the memory read by the
+    logic builtins on strings. *)
+val predicate_deps_by_parts:
+  eval_env -> Cil_types.predicate -> logic_deps * bool
+
 (** [tlval_deps env t] computes the logic dependencies needed to evaluate the
     address of lvalue term [t] in the given evaluation environment [env].
     @raises LogicEvalError on evaluation errors, unsupported constructs, or
