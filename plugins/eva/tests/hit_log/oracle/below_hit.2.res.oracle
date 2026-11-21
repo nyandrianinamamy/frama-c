@@ -1,0 +1,125 @@
+[kernel] Parsing below_hit.c (with preprocessing)
+Calls:
+  leaf2 :: below_hit.c:42 <- mid :: below_hit.c:47 <- two_levels: analysed, cache entry 14
+  mid :: below_hit.c:47 <- two_levels: analysed, cache entry 15
+  mid :: below_hit.c:44 <- top :: below_hit.c:48 <- two_levels: hit of cache entry 15
+  top :: below_hit.c:48 <- two_levels: analysed, cache entry 16
+  top :: below_hit.c:49 <- two_levels: hit of cache entry 16
+  two_levels: analysed, cache entry 17
+Calls below a hit:
+  leaf2 :: below_hit.c:42 <- mid :: below_hit.c:44 <- top :: below_hit.c:48 <- two_levels
+  leaf2 :: below_hit.c:42 <- mid :: below_hit.c:44 <- top :: below_hit.c:49 <- two_levels
+  mid :: below_hit.c:44 <- top :: below_hit.c:49 <- two_levels
+leaf2, start:
+  joined: c ∈ {0}
+          g ∈ {1}
+          h ∈ {6; 7; 8}
+          k ∈ {0}
+          out ∈ {0}
+          t ∈ {0}
+          b ∈ {0}
+          s1 ∈ {0}
+  leaf2 :: below_hit.c:42 <- mid :: below_hit.c:44 <- top :: below_hit.c:48 <- two_levels: 
+  c ∈ {0}
+  g ∈ {1}
+  h ∈ {7}
+  k ∈ {0}
+  out ∈ {0}
+  t ∈ {0}
+  b ∈ {0}
+  s1 ∈ {0}
+  leaf2 :: below_hit.c:42 <- mid :: below_hit.c:44 <- top :: below_hit.c:49 <- two_levels: 
+  c ∈ {0}
+  g ∈ {1}
+  h ∈ {8}
+  k ∈ {0}
+  out ∈ {0}
+  t ∈ {0}
+  b ∈ {0}
+  s1 ∈ {0}
+  leaf2 :: below_hit.c:42 <- mid :: below_hit.c:47 <- two_levels: c ∈ {0}
+                                                                  g ∈ {1}
+                                                                  h ∈ {6}
+                                                                  k ∈ {0}
+                                                                  out ∈ {0}
+                                                                  t ∈ {0}
+                                                                  b ∈ {0}
+                                                                  s1 ∈ {0}
+leaf2, before below_hit.c:40 `out = g + 1;` (P):
+  joined: c ∈ {0}
+          g ∈ {1}
+          h ∈ {6; 7; 8}
+          k ∈ {0}
+          out ∈ {0}
+          t ∈ {0}
+          b ∈ {0}
+          s1 ∈ {0}
+  leaf2 :: below_hit.c:42 <- mid :: below_hit.c:44 <- top :: below_hit.c:48 <- two_levels: 
+  c ∈ {0}
+  g ∈ {1}
+  h ∈ {7}
+  k ∈ {0}
+  out ∈ {0}
+  t ∈ {0}
+  b ∈ {0}
+  s1 ∈ {0}
+  leaf2 :: below_hit.c:42 <- mid :: below_hit.c:44 <- top :: below_hit.c:49 <- two_levels: 
+  c ∈ {0}
+  g ∈ {1}
+  h ∈ {8}
+  k ∈ {0}
+  out ∈ {0}
+  t ∈ {0}
+  b ∈ {0}
+  s1 ∈ {0}
+  leaf2 :: below_hit.c:42 <- mid :: below_hit.c:47 <- two_levels: c ∈ {0}
+                                                                  g ∈ {1}
+                                                                  h ∈ {6}
+                                                                  k ∈ {0}
+                                                                  out ∈ {0}
+                                                                  t ∈ {0}
+                                                                  b ∈ {0}
+                                                                  s1 ∈ {0}
+leaf2, after below_hit.c:40 `return;`:
+  joined: c ∈ {0}
+          g ∈ {1}
+          h ∈ {6; 7; 8}
+          k ∈ {0}
+          out ∈ {2}
+          t ∈ {0}
+          b ∈ {0}
+          s1 ∈ {0}
+  leaf2 :: below_hit.c:42 <- mid :: below_hit.c:44 <- top :: below_hit.c:48 <- two_levels: 
+  c ∈ {0}
+  g ∈ {1}
+  h ∈ {7}
+  k ∈ {0}
+  out ∈ {2}
+  t ∈ {0}
+  b ∈ {0}
+  s1 ∈ {0}
+  leaf2 :: below_hit.c:42 <- mid :: below_hit.c:44 <- top :: below_hit.c:49 <- two_levels: 
+  c ∈ {0}
+  g ∈ {1}
+  h ∈ {8}
+  k ∈ {0}
+  out ∈ {2}
+  t ∈ {0}
+  b ∈ {0}
+  s1 ∈ {0}
+  leaf2 :: below_hit.c:42 <- mid :: below_hit.c:47 <- two_levels: c ∈ {0}
+                                                                  g ∈ {1}
+                                                                  h ∈ {6}
+                                                                  k ∈ {0}
+                                                                  out ∈ {2}
+                                                                  t ∈ {0}
+                                                                  b ∈ {0}
+                                                                  s1 ∈ {0}
+Hits against the analysed call of their cache entry:
+  mid :: below_hit.c:44 <- top :: below_hit.c:48 <- two_levels, hit of cache entry 15, against mid :: below_hit.c:47 <- two_levels: differs on h, at 5 points.
+  top :: below_hit.c:49 <- two_levels, hit of cache entry 16, against top :: below_hit.c:48 <- two_levels: differs on h, at 5 points.
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 557 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Filtered requests that reject one callstack: 15.
+Requests made: 801; reported by the trap: 801, each once with its description; reads of the legacy store: 0.

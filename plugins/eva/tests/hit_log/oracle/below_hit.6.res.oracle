@@ -1,0 +1,192 @@
+[kernel] Parsing below_hit.c (with preprocessing)
+[eva:alarm] below_hit.c:107: Warning: 
+  function required: precondition got status unknown.
+[eva:alarm] below_hit.c:107: Warning: 
+  function required: precondition got status unknown.
+[eva:alarm] below_hit.c:107: Warning: 
+  function required: precondition got status unknown.
+Calls:
+  Frama_C_interval :: below_hit.c:110 <- precondition: specification
+  required :: below_hit.c:107 <- requires_parent :: below_hit.c:110 <- precondition: analysed, cache entry 9
+  requires_parent :: below_hit.c:110 <- precondition: analysed, cache entry 10
+  Frama_C_interval :: below_hit.c:111 <- precondition: specification
+  requires_parent :: below_hit.c:111 <- precondition: hit of cache entry 10
+  precondition: analysed, cache entry 11
+Calls below a hit:
+  required :: below_hit.c:107 <- requires_parent :: below_hit.c:111 <- precondition
+required, start:
+  joined: c ∈ {0}
+          g ∈ {0}
+          h ∈ [0..9]
+          k ∈ {0}
+          out ∈ {0}
+          t ∈ {0}
+          b ∈ {0}
+          s1 ∈ {0}
+  required :: below_hit.c:107 <- requires_parent :: below_hit.c:110 <- precondition: 
+  c ∈ {0}
+  g ∈ {0}
+  h ∈ [0..9]
+  k ∈ {0}
+  out ∈ {0}
+  t ∈ {0}
+  b ∈ {0}
+  s1 ∈ {0}
+  required :: below_hit.c:107 <- requires_parent :: below_hit.c:111 <- precondition: 
+  c ∈ {0}
+  g ∈ {0}
+  h ∈ {2; 3; 4; 5; 6; 7; 8; 9}
+  k ∈ {0}
+  out ∈ {0}
+  t ∈ {0}
+  b ∈ {0}
+  s1 ∈ {0}
+required, before below_hit.c:105 `out = 1;` (P):
+  joined: c ∈ {0}
+          g ∈ {0}
+          h ∈ {2; 3; 4; 5; 6; 7; 8; 9}
+          k ∈ {0}
+          out ∈ {0}
+          t ∈ {0}
+          b ∈ {0}
+          s1 ∈ {0}
+  required :: below_hit.c:107 <- requires_parent :: below_hit.c:110 <- precondition: 
+  c ∈ {0}
+  g ∈ {0}
+  h ∈ {4; 5; 6; 7; 8; 9}
+  k ∈ {0}
+  out ∈ {0}
+  t ∈ {0}
+  b ∈ {0}
+  s1 ∈ {0}
+  required :: below_hit.c:107 <- requires_parent :: below_hit.c:111 <- precondition: 
+  c ∈ {0}
+  g ∈ {0}
+  h ∈ {2; 3; 4; 5; 6; 7; 8; 9}
+  k ∈ {0}
+  out ∈ {0}
+  t ∈ {0}
+  b ∈ {0}
+  s1 ∈ {0}
+  reference, joined: c ∈ {0}
+                     g ∈ {0}
+                     h ∈ {4; 5; 6; 7; 8; 9}
+                     k ∈ {0}
+                     out ∈ {0}
+                     t ∈ {0}
+                     b ∈ {0}
+                     s1 ∈ {0}
+  required :: below_hit.c:107 <- requires_parent :: below_hit.c:110 <- precondition: 
+  c ∈ {0}
+  g ∈ {0}
+  h ∈ {4; 5; 6; 7; 8; 9}
+  k ∈ {0}
+  out ∈ {0}
+  t ∈ {0}
+  b ∈ {0}
+  s1 ∈ {0}
+  required :: below_hit.c:107 <- requires_parent :: below_hit.c:111 <- precondition: 
+  c ∈ {0}
+  g ∈ {0}
+  h ∈ {4; 5; 6; 7; 8; 9}
+  k ∈ {0}
+  out ∈ {0}
+  t ∈ {0}
+  b ∈ {0}
+  s1 ∈ {0}
+required, after below_hit.c:105 `return;`:
+  joined: c ∈ {0}
+          g ∈ {0}
+          h ∈ {2; 3; 4; 5; 6; 7; 8; 9}
+          k ∈ {0}
+          out ∈ {1}
+          t ∈ {0}
+          b ∈ {0}
+          s1 ∈ {0}
+  required :: below_hit.c:107 <- requires_parent :: below_hit.c:110 <- precondition: 
+  c ∈ {0}
+  g ∈ {0}
+  h ∈ {4; 5; 6; 7; 8; 9}
+  k ∈ {0}
+  out ∈ {1}
+  t ∈ {0}
+  b ∈ {0}
+  s1 ∈ {0}
+  required :: below_hit.c:107 <- requires_parent :: below_hit.c:111 <- precondition: 
+  c ∈ {0}
+  g ∈ {0}
+  h ∈ {2; 3; 4; 5; 6; 7; 8; 9}
+  k ∈ {0}
+  out ∈ {1}
+  t ∈ {0}
+  b ∈ {0}
+  s1 ∈ {0}
+  reference, joined: c ∈ {0}
+                     g ∈ {0}
+                     h ∈ {4; 5; 6; 7; 8; 9}
+                     k ∈ {0}
+                     out ∈ {1}
+                     t ∈ {0}
+                     b ∈ {0}
+                     s1 ∈ {0}
+  required :: below_hit.c:107 <- requires_parent :: below_hit.c:110 <- precondition: 
+  c ∈ {0}
+  g ∈ {0}
+  h ∈ {4; 5; 6; 7; 8; 9}
+  k ∈ {0}
+  out ∈ {1}
+  t ∈ {0}
+  b ∈ {0}
+  s1 ∈ {0}
+  required :: below_hit.c:107 <- requires_parent :: below_hit.c:111 <- precondition: 
+  c ∈ {0}
+  g ∈ {0}
+  h ∈ {4; 5; 6; 7; 8; 9}
+  k ∈ {0}
+  out ∈ {1}
+  t ∈ {0}
+  b ∈ {0}
+  s1 ∈ {0}
+Hits against the analysed call of their cache entry:
+  requires_parent :: below_hit.c:111 <- precondition, hit of cache entry 10, against requires_parent :: below_hit.c:110 <- precondition: differs on h, at 5 points.
+Initial state: equal.
+Differences with the run without memexec:
+  final state, joined: covers, as with memexec
+  final state, filtered: covers, as with memexec
+  final state, precondition: covers, as with memexec
+  required, before below_hit.c:105 `out = 1;` (P), joined: covers
+  required, before below_hit.c:105 `out = 1;` (P), filtered: covers
+  required, before below_hit.c:105 `out = 1;` (P), required :: below_hit.c:107 <- requires_parent :: below_hit.c:111 <- precondition: covers
+  required, after below_hit.c:105 `out = 1;` (P), joined: covers
+  required, after below_hit.c:105 `out = 1;` (P), filtered: covers
+  required, after below_hit.c:105 `out = 1;` (P), required :: below_hit.c:107 <- requires_parent :: below_hit.c:111 <- precondition: covers
+  required, before below_hit.c:105 `return;`, joined: covers
+  required, before below_hit.c:105 `return;`, filtered: covers
+  required, before below_hit.c:105 `return;`, required :: below_hit.c:107 <- requires_parent :: below_hit.c:111 <- precondition: covers
+  required, after below_hit.c:105 `return;`, joined: covers
+  required, after below_hit.c:105 `return;`, filtered: covers
+  required, after below_hit.c:105 `return;`, required :: below_hit.c:107 <- requires_parent :: below_hit.c:111 <- precondition: covers
+  requires_parent, after below_hit.c:107 `required();`, joined: covers
+  requires_parent, after below_hit.c:107 `required();`, filtered: covers
+  requires_parent, after below_hit.c:107 `required();`, requires_parent :: below_hit.c:110 <- precondition: covers
+  requires_parent, after below_hit.c:107 `required();`, requires_parent :: below_hit.c:111 <- precondition: covers
+  requires_parent, before below_hit.c:107 `return;`, joined: covers
+  requires_parent, before below_hit.c:107 `return;`, filtered: covers
+  requires_parent, before below_hit.c:107 `return;`, requires_parent :: below_hit.c:110 <- precondition: covers
+  requires_parent, before below_hit.c:107 `return;`, requires_parent :: below_hit.c:111 <- precondition: covers
+  requires_parent, after below_hit.c:107 `return;`, joined: covers
+  requires_parent, after below_hit.c:107 `return;`, filtered: covers
+  requires_parent, after below_hit.c:107 `return;`, requires_parent :: below_hit.c:110 <- precondition: covers
+  requires_parent, after below_hit.c:107 `return;`, requires_parent :: below_hit.c:111 <- precondition: covers
+  precondition, after below_hit.c:111 `requires_parent();`, joined: covers, as with memexec
+  precondition, after below_hit.c:111 `requires_parent();`, filtered: covers, as with memexec
+  precondition, after below_hit.c:111 `requires_parent();`, precondition: covers, as with memexec
+  precondition, before below_hit.c:112 `return;`, joined: covers, as with memexec
+  precondition, before below_hit.c:112 `return;`, filtered: covers, as with memexec
+  precondition, before below_hit.c:112 `return;`, precondition: covers, as with memexec
+  precondition, after below_hit.c:112 `return;`, joined: covers, as with memexec
+  precondition, after below_hit.c:112 `return;`, filtered: covers, as with memexec
+  precondition, after below_hit.c:112 `return;`, precondition: covers, as with memexec
+Answers: 489 equal, 36 covering, 0 more precise, 0 omitting, 0 unavailable.
+Filtered requests that reject one callstack: 10.
+Requests made: 769; reported by the trap: 769, each once with its description; reads of the legacy store: 0.

@@ -1,0 +1,105 @@
+[kernel] Parsing below_hit.c (with preprocessing)
+Calls:
+  child :: below_hit.c:56 <- formal_parent :: below_hit.c:59 <- formal: analysed, cache entry 9
+  formal_parent :: below_hit.c:59 <- formal: analysed, cache entry 10
+  formal_parent :: below_hit.c:60 <- formal: hit of cache entry 10
+  formal: analysed, cache entry 11
+Calls below a hit:
+  child :: below_hit.c:56 <- formal_parent :: below_hit.c:60 <- formal
+child, start:
+  joined: c ∈ {0}
+          g ∈ {0}
+          h ∈ {7; 8}
+          k ∈ {0}
+          out ∈ {0}
+          t ∈ {0}
+          x ∈ {7}
+          b ∈ {0}
+          s1 ∈ {0}
+  child :: below_hit.c:56 <- formal_parent :: below_hit.c:59 <- formal: 
+  c ∈ {0}
+  g ∈ {0}
+  h ∈ {7}
+  k ∈ {0}
+  out ∈ {0}
+  t ∈ {0}
+  x ∈ {7}
+  b ∈ {0}
+  s1 ∈ {0}
+  child :: below_hit.c:56 <- formal_parent :: below_hit.c:60 <- formal: 
+  c ∈ {0}
+  g ∈ {0}
+  h ∈ {8}
+  k ∈ {0}
+  out ∈ {0}
+  t ∈ {0}
+  x ∈ {7}
+  b ∈ {0}
+  s1 ∈ {0}
+child, before below_hit.c:54 `g = x;` (P):
+  joined: c ∈ {0}
+          g ∈ {0}
+          h ∈ {7; 8}
+          k ∈ {0}
+          out ∈ {0}
+          t ∈ {0}
+          x ∈ {7}
+          b ∈ {0}
+          s1 ∈ {0}
+  child :: below_hit.c:56 <- formal_parent :: below_hit.c:59 <- formal: 
+  c ∈ {0}
+  g ∈ {0}
+  h ∈ {7}
+  k ∈ {0}
+  out ∈ {0}
+  t ∈ {0}
+  x ∈ {7}
+  b ∈ {0}
+  s1 ∈ {0}
+  child :: below_hit.c:56 <- formal_parent :: below_hit.c:60 <- formal: 
+  c ∈ {0}
+  g ∈ {0}
+  h ∈ {8}
+  k ∈ {0}
+  out ∈ {0}
+  t ∈ {0}
+  x ∈ {7}
+  b ∈ {0}
+  s1 ∈ {0}
+child, after below_hit.c:54 `return;`:
+  joined: c ∈ {0}
+          g ∈ {7}
+          h ∈ {7; 8}
+          k ∈ {0}
+          out ∈ {0}
+          t ∈ {0}
+          x ∈ {7}
+          b ∈ {0}
+          s1 ∈ {0}
+  child :: below_hit.c:56 <- formal_parent :: below_hit.c:59 <- formal: 
+  c ∈ {0}
+  g ∈ {7}
+  h ∈ {7}
+  k ∈ {0}
+  out ∈ {0}
+  t ∈ {0}
+  x ∈ {7}
+  b ∈ {0}
+  s1 ∈ {0}
+  child :: below_hit.c:56 <- formal_parent :: below_hit.c:60 <- formal: 
+  c ∈ {0}
+  g ∈ {7}
+  h ∈ {8}
+  k ∈ {0}
+  out ∈ {0}
+  t ∈ {0}
+  x ∈ {7}
+  b ∈ {0}
+  s1 ∈ {0}
+Hits against the analysed call of their cache entry:
+  formal_parent :: below_hit.c:60 <- formal, hit of cache entry 10, against formal_parent :: below_hit.c:59 <- formal: differs on h, at 5 points.
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 525 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Filtered requests that reject one callstack: 10.
+Requests made: 769; reported by the trap: 769, each once with its description; reads of the legacy store: 0.

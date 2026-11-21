@@ -1,0 +1,49 @@
+[kernel] Parsing below_hit.c (with preprocessing)
+Calls:
+  spec_child :: below_hit.c:119 <- spec_parent :: below_hit.c:122 <- by_spec: specification
+  spec_parent :: below_hit.c:122 <- by_spec: analysed, cache entry 6
+  spec_parent :: below_hit.c:123 <- by_spec: hit of cache entry 6
+  by_spec: analysed, cache entry 7
+Calls below a hit:
+  spec_child :: below_hit.c:119 <- spec_parent :: below_hit.c:123 <- by_spec
+spec_child, start:
+  joined: c ∈ {0}
+          g ∈ {0}
+          h ∈ {7; 8}
+          k ∈ {0}
+          out ∈ {0}
+          t ∈ {0}
+          b ∈ {0}
+          s1 ∈ {0}
+          x ∈ {5}
+  spec_child :: below_hit.c:119 <- spec_parent :: below_hit.c:122 <- by_spec: 
+  c ∈ {0}
+  g ∈ {0}
+  h ∈ {7}
+  k ∈ {0}
+  out ∈ {0}
+  t ∈ {0}
+  b ∈ {0}
+  s1 ∈ {0}
+  x ∈ {5}
+  spec_child :: below_hit.c:119 <- spec_parent :: below_hit.c:123 <- by_spec: 
+  c ∈ {0}
+  g ∈ {0}
+  h ∈ {8}
+  k ∈ {0}
+  out ∈ {0}
+  t ∈ {0}
+  b ∈ {0}
+  s1 ∈ {0}
+  x ∈ {5}
+spec_child, before below_hit.c:117 `out = x;` (P):
+  joined: unreachable
+spec_child, after below_hit.c:117 `return;`:
+  joined: unreachable
+Hits against the analysed call of their cache entry:
+  spec_parent :: below_hit.c:123 <- by_spec, hit of cache entry 6, against spec_parent :: below_hit.c:122 <- by_spec: differs on h, at 5 points.
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 517 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Filtered requests that reject one callstack: 6.
+Requests made: 761; reported by the trap: 761, each once with its description; reads of the legacy store: 0.

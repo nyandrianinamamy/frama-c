@@ -1,0 +1,130 @@
+[kernel] Parsing below_hit.c (with preprocessing)
+[eva:alarm] below_hit.c:90: Warning: assertion got status unknown.
+[eva:alarm] below_hit.c:90: Warning: assertion got status unknown.
+[eva:alarm] below_hit.c:90: Warning: assertion got status unknown.
+Calls:
+  Frama_C_interval :: below_hit.c:95 <- assertion: specification
+  asserted :: below_hit.c:92 <- assert_parent :: below_hit.c:95 <- assertion: analysed, cache entry 13
+  assert_parent :: below_hit.c:95 <- assertion: analysed, cache entry 14
+  Frama_C_interval :: below_hit.c:96 <- assertion: specification
+  assert_parent :: below_hit.c:96 <- assertion: hit of cache entry 14
+  asserted :: below_hit.c:92 <- assert_parent :: below_hit.c:97 <- assertion: analysed, cache entry 15
+  assert_parent :: below_hit.c:97 <- assertion: analysed, cache entry 16
+  assertion: analysed, cache entry 17
+Calls below a hit:
+  asserted :: below_hit.c:92 <- assert_parent :: below_hit.c:96 <- assertion
+asserted, start:
+  joined: c ∈ {0}
+          g ∈ {0}
+          h ∈ {7; 8}
+          k ∈ {0}
+          out ∈ {0}
+          t ∈ [0..9]
+          b ∈ {0}
+          s1 ∈ {0}
+  asserted :: below_hit.c:92 <- assert_parent :: below_hit.c:95 <- assertion: 
+  c ∈ {0}
+  g ∈ {0}
+  h ∈ {7}
+  k ∈ {0}
+  out ∈ {0}
+  t ∈ [0..9]
+  b ∈ {0}
+  s1 ∈ {0}
+  asserted :: below_hit.c:92 <- assert_parent :: below_hit.c:96 <- assertion: 
+  c ∈ {0}
+  g ∈ {0}
+  h ∈ {8}
+  k ∈ {0}
+  out ∈ {0}
+  t ∈ [0..9]
+  b ∈ {0}
+  s1 ∈ {0}
+  asserted :: below_hit.c:92 <- assert_parent :: below_hit.c:97 <- assertion: 
+  c ∈ {0}
+  g ∈ {0}
+  h ∈ {8}
+  k ∈ {0}
+  out ∈ {0}
+  t ∈ {2}
+  b ∈ {0}
+  s1 ∈ {0}
+asserted, before below_hit.c:90 `out = 1;` (P):
+  joined: c ∈ {0}
+          g ∈ {0}
+          h ∈ {7; 8}
+          k ∈ {0}
+          out ∈ {0}
+          t ∈ {0; 1; 2; 3; 4; 5}
+          b ∈ {0}
+          s1 ∈ {0}
+  asserted :: below_hit.c:92 <- assert_parent :: below_hit.c:95 <- assertion: 
+  c ∈ {0}
+  g ∈ {0}
+  h ∈ {7}
+  k ∈ {0}
+  out ∈ {0}
+  t ∈ {0; 1; 2; 3; 4; 5}
+  b ∈ {0}
+  s1 ∈ {0}
+  asserted :: below_hit.c:92 <- assert_parent :: below_hit.c:96 <- assertion: 
+  c ∈ {0}
+  g ∈ {0}
+  h ∈ {8}
+  k ∈ {0}
+  out ∈ {0}
+  t ∈ {0; 1; 2; 3; 4; 5}
+  b ∈ {0}
+  s1 ∈ {0}
+  asserted :: below_hit.c:92 <- assert_parent :: below_hit.c:97 <- assertion: 
+  c ∈ {0}
+  g ∈ {0}
+  h ∈ {8}
+  k ∈ {0}
+  out ∈ {0}
+  t ∈ {2}
+  b ∈ {0}
+  s1 ∈ {0}
+asserted, after below_hit.c:90 `return;`:
+  joined: c ∈ {0}
+          g ∈ {0}
+          h ∈ {7; 8}
+          k ∈ {0}
+          out ∈ {1}
+          t ∈ {0; 1; 2; 3; 4; 5}
+          b ∈ {0}
+          s1 ∈ {0}
+  asserted :: below_hit.c:92 <- assert_parent :: below_hit.c:95 <- assertion: 
+  c ∈ {0}
+  g ∈ {0}
+  h ∈ {7}
+  k ∈ {0}
+  out ∈ {1}
+  t ∈ {0; 1; 2; 3; 4; 5}
+  b ∈ {0}
+  s1 ∈ {0}
+  asserted :: below_hit.c:92 <- assert_parent :: below_hit.c:96 <- assertion: 
+  c ∈ {0}
+  g ∈ {0}
+  h ∈ {8}
+  k ∈ {0}
+  out ∈ {1}
+  t ∈ {0; 1; 2; 3; 4; 5}
+  b ∈ {0}
+  s1 ∈ {0}
+  asserted :: below_hit.c:92 <- assert_parent :: below_hit.c:97 <- assertion: 
+  c ∈ {0}
+  g ∈ {0}
+  h ∈ {8}
+  k ∈ {0}
+  out ∈ {1}
+  t ∈ {2}
+  b ∈ {0}
+  s1 ∈ {0}
+Hits against the analysed call of their cache entry:
+  assert_parent :: below_hit.c:96 <- assertion, hit of cache entry 14, against assert_parent :: below_hit.c:95 <- assertion: differs on h, at 5 points.
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 553 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Filtered requests that reject one callstack: 12.
+Requests made: 797; reported by the trap: 797, each once with its description; reads of the legacy store: 0.
