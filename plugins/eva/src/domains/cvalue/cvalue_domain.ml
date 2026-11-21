@@ -391,33 +391,33 @@ module State = struct
     let is_computed = Cvalue_results.is_computed
   end
 
-  let get_state_before stmt =
-    match Cvalue_results.get_state (Before stmt) with
-    | `Bottom -> Cvalue.Model.bottom
-    | `Top -> Cvalue.Model.top
-    | `Value v -> v
-
-  let display_final_state kf =
-    try
-      let values = get_state_before (Kernel_function.find_return kf) in
-      let fst_values = get_state_before (Kernel_function.find_first_stmt kf) in
-      if Cvalue.Model.(is_reachable fst_values && not (is_top fst_values))
-      then print_final_state kf values
-    with Kernel_function.No_Statement -> ()
-
-  let display_results () =
-    Self.result "====== VALUES COMPUTED ======";
-    Eva_dynamic.Callgraph.iter_in_rev_order display_final_state
-
-  let post_analysis _state =
-    if Plugin.is_present "inout"
-    && Self.is_message_category_enabled Log_key.final_states
-    && Self.verbose_atleast 1
-    && Parameters.Eva.get ()
-    then display_results ();
-    Self.result "%t" Eva_perf.display
+  let post_analysis _state = Self.result "%t" Eva_perf.display
 
 end
+
+let stored_state_before stmt =
+  match Cvalue_results.get_state (Before stmt) with
+  | `Bottom -> Cvalue.Model.bottom
+  | `Top -> Cvalue.Model.top
+  | `Value v -> v
+
+let display_final_state state_before kf =
+  try
+    let values = state_before (Kernel_function.find_return kf) in
+    let fst_values = state_before (Kernel_function.find_first_stmt kf) in
+    if Cvalue.Model.(is_reachable fst_values && not (is_top fst_values))
+    then print_final_state kf values
+  with Kernel_function.No_Statement -> ()
+
+let display_results ?(state_before = stored_state_before) () =
+  if Plugin.is_present "inout"
+  && Self.is_message_category_enabled Log_key.final_states
+  && Self.verbose_atleast 1
+  && Parameters.Eva.get ()
+  then begin
+    Self.result "====== VALUES COMPUTED ======";
+    Eva_dynamic.Callgraph.iter_in_rev_order (display_final_state state_before)
+  end
 
 
 let registered =

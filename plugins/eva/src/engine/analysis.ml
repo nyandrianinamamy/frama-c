@@ -101,6 +101,30 @@ let pre_analysis () =
 
 (* ----- Post-analysis cleanup ---------------------------------------------- *)
 
+(* The passes below run once the iteration has ended. After an analysis with
+   option -eva-hit-log, the states they read are answered by the rule of
+   {!Hit_log}: through {!Results}, through the label Init of the logic, and
+   for the values printed at the end of each function. Without the
+   recording, the label Init and these values are read from the store of the
+   cvalue domain. *)
+
+let () =
+  let initial_state () =
+    if Hit_log.serving ()
+    then
+      match Results.(at_start |> get_cvalue_model_result) with
+      | Ok state -> `Value state
+      | Error Bottom -> `Bottom
+      | Error (Top | DisabledDomain) -> `Top
+    else Cvalue_results.get_state Initial
+  in
+  Eval_terms.set_initial_state initial_state
+
+let display_results () =
+  let state_before stmt = Results.(before stmt |> get_cvalue_model) in
+  let state_before = if Hit_log.serving () then Some state_before else None in
+  Cvalue_domain.display_results ?state_before ()
+
 let post_analysis (type t) (engine: t engine) mthread_analysis final_state =
   let pass = Legacy_read_trap.pass in
   (* Garbled mix must be dumped here -- at least before the call to
@@ -123,9 +147,11 @@ let post_analysis (type t) (engine: t engine) mthread_analysis final_state =
   (* The above functions may have changed the status of alarms. *)
   pass "statistics" Summary.FunctionStats.recompute_all;
   pass "red statuses" Red_statuses.report;
-  (* Domains [post_analysis]. By default, the cvalue domain prints values
-     inferred at the end of each function.  *)
+  (* The cvalue domain prints values inferred at the end of each function,
+     then the domains run their [post_analysis]. *)
   let module Engine = (val engine) in
+  if Option.is_some Engine.Dom.get_cvalue
+  then pass "final values" display_results;
   pass "domains" (fun () -> Engine.Dom.post_analysis final_state);
   (* Mthread [post_analysis]: prints shared memory protections and possible
      data-races, exports results to file and computes a concurrency summary. *)

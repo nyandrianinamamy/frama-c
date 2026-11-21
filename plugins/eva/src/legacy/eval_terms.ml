@@ -198,9 +198,15 @@ let add_here = add_logic Logic_const.here_label
 let add_pre = add_logic Logic_const.pre_label
 let add_post = add_logic Logic_const.post_label
 let add_old = add_logic Logic_const.old_label
+(* The initial state of the analysis, read from the store of the cvalue
+   domain unless replaced by [set_initial_state]. *)
+let initial_state = ref (fun () -> Cvalue_results.get_state Initial)
+
+let set_initial_state get = initial_state := get
+
 (* Init is a bit special, it is constant and always added to the initial state*)
 let add_init states =
-  match Cvalue_results.get_state Initial with
+  match !initial_state () with
   | `Bottom | `Top -> states
   | `Value state -> add_logic Logic_const.init_label state states
 

@@ -39,6 +39,12 @@ type labels_states = Cvalue.Model.t Cil_datatype.Logic_label.Map.t
     the environment to evaluate an annotation. *)
 type eval_env
 
+(** Replaces the function that gives the initial state of the analysis, in
+    which the label Init is evaluated by every environment. By default, it is
+    the state saved by the cvalue domain. *)
+val set_initial_state:
+  (unit -> Cvalue.Model.t Lattice_bounds.or_top_bottom) -> unit
+
 val make_env: Model.t Abstract_domain.logic_environment -> Model.t -> eval_env
 
 val env_pre_f : pre:Model.t -> unit -> eval_env

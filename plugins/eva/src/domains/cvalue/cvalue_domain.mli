@@ -15,6 +15,13 @@ module State : Abstract_domain.Leaf
 
 val registered: Abstractions.Domain.registered
 
+(** Prints the values at the end of each function, if the inout plugin is
+    loaded and the message category final-states is enabled. [state_before
+    stmt] is the state before [stmt], joined over all callstacks; by default,
+    the state saved by the cvalue domain. Called after the analysis. *)
+val display_results:
+  ?state_before:(Cil_types.stmt -> Cvalue.Model.t) -> unit -> unit
+
 (** Specific functions for partitioning optimizations.  *)
 
 type prefix
