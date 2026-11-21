@@ -1,0 +1,31 @@
+[kernel] Parsing saved.c (with preprocessing)
+original: 109 answers; requests reported: 150; reads of the legacy store: 0.
+  f, before P, joined:
+    c ∈ {0; 1}
+    g ∈ {0; 4; 9}
+    h ∈ {5; 7; 8}
+    __retres ∈ UNINITIALIZED
+  f, before P, f :: saved.c:24 <- main:
+    c ∈ {0; 1}
+    g ∈ {0; 4}
+    h ∈ {7}
+    __retres ∈ UNINITIALIZED
+  f, before P, f :: saved.c:25 <- main:
+    c ∈ {0; 1}
+    g ∈ {0; 4}
+    h ∈ {8}
+    __retres ∈ UNINITIALIZED
+  f, before P, f :: saved.c:26 <- main:
+    c ∈ {0; 1}
+    g ∈ {0; 9}
+    h ∈ {8}
+    __retres ∈ UNINITIALIZED
+  f, before P, f :: saved.c:27 <- main:
+    c ∈ {0; 1}
+    g ∈ {0; 9}
+    h ∈ {5}
+    __retres ∈ UNINITIALIZED
+copy: 109 answers; requests reported: 150; reads of the legacy store: 0.
+Answers of copy equal those of original.
+loaded: 109 answers; requests reported: 150; reads of the legacy store: 0.
+Answers of loaded equal those of original.

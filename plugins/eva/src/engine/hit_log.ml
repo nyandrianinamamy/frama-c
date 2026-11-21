@@ -23,6 +23,11 @@ let check_configuration () =
 
 (* ----- Store ------------------------------------------------------------- *)
 
+(* The store is saved with the project, and thus kept by a copy of the
+   project, which is made by saving and loading it. *)
+
+module Int_table = Datatype.Int.Hashtbl
+
 (* The state at a point of the Inner part: [inner] is the state projected on
    the blocks of [covered]. A covered block that [inner] does not bind has no
    binding at this point. *)
@@ -30,6 +35,20 @@ type point = {
   covered: Base.Hptset.t;
   inner: Cvalue.Model.t;
 }
+
+module Point =
+  Datatype.Make
+    (struct
+      include Datatype.Serializable_undefined
+      type t = point
+      let name = "Eva.Hit_log.Point"
+      let reprs = [ { covered = Base.Hptset.empty; inner = Cvalue.Model.top } ]
+      let structural_descr =
+        Structural_descr.t_record
+          [| Base.Hptset.packed_descr; Cvalue.Model.packed_descr |]
+    end)
+
+module Points = Stmt_table.Make (Point)
 
 (* The points absent from the tables are unreachable. With an unknown
    footprint, no point is kept. *)
@@ -44,6 +63,20 @@ type states = {
   by_callstack: Cvalue.Model.t Cs_table.t;
 }
 
+module States =
+  Datatype.Make
+    (struct
+      include Datatype.Serializable_undefined
+      type t = states
+      let name = "Eva.Hit_log.States"
+      let reprs =
+        [ { joined = Cvalue.Model.bottom; by_callstack = Cs_table.create 1 } ]
+      let structural_descr =
+        let module By_callstack = Cs_table.Make (Cvalue.Model) in
+        Structural_descr.t_record
+          [| Cvalue.Model.packed_descr; By_callstack.packed_descr |]
+    end)
+
 type entry = {
   inner: inner_part;
   (* The functions called while the entry was computed, in any mode, and
@@ -53,50 +86,110 @@ type entry = {
   body_entries: states;
 }
 
-(* A body being analysed: the functions it calls, and its cache entry once
-   recorded. *)
-type frame = {
-  mutable called_below: Kernel_function.Set.t;
-  mutable entry: entry option;
-}
+module Entry =
+  Datatype.Make
+    (struct
+      include Datatype.Serializable_undefined
+      type t = entry
+      let name = "Eva.Hit_log.Entry"
+      let reprs =
+        List.map
+          (fun states ->
+             { inner = Unknown; called = Kernel_function.Set.empty;
+               starts = states; body_entries = states })
+          States.reprs
+      let structural_descr =
+        let inner_part =
+          Structural_descr.t_sum
+            [| [| Points.packed_descr; Points.packed_descr |] |]
+        in
+        Structural_descr.t_record
+          [| Structural_descr.pack inner_part;
+             Kernel_function.Set.packed_descr;
+             States.packed_descr;
+             States.packed_descr |]
+    end)
 
 type store = {
   mutable ended: bool;
   mutable initial: (Callstack.t * Cvalue.Model.t) option;
-  entries: (int, entry) Hashtbl.t;
-  entries_of: entry list Kf_table.t;
+  (* The cache entries, by number. *)
+  entries: entry Int_table.t;
+  (* The numbers of the cache entries of each function. *)
+  entries_of: int list Kf_table.t;
   (* Start states of the calls analysed by a specification or a builtin. *)
   other_starts: states Kf_table.t;
   (* Functions unavailable at every point. *)
   below_hit: unit Kf_table.t;
   (* Functions whose body points are unavailable. *)
   body_unavailable: unit Kf_table.t;
-  (* The bodies being analysed, innermost first. *)
-  mutable frames: frame list;
 }
 
 let create () = {
   ended = false;
   initial = None;
-  entries = Hashtbl.create 17;
+  entries = Int_table.create 17;
   entries_of = Kf_table.create 17;
   other_starts = Kf_table.create 17;
   below_hit = Kf_table.create 7;
   body_unavailable = Kf_table.create 7;
-  frames = [];
 }
 
-(* The store is neither saved nor copied: a loaded or copied project answers
-   the requests from the stored states. *)
+let copy_states states =
+  { joined = states.joined; by_callstack = Cs_table.copy states.by_callstack }
+
+let copy_entry entry =
+  let inner =
+    match entry.inner with
+    | Unknown -> Unknown
+    | Known { before; after } ->
+      Known { before = Stmt_table.copy before; after = Stmt_table.copy after }
+  in
+  { inner; called = entry.called;
+    starts = copy_states entry.starts;
+    body_entries = copy_states entry.body_entries }
+
+let copy_store store =
+  let entries = Int_table.create (Int_table.length store.entries) in
+  Int_table.iter
+    (fun id entry -> Int_table.replace entries id (copy_entry entry))
+    store.entries;
+  let other_starts = Kf_table.create (Kf_table.length store.other_starts) in
+  Kf_table.iter
+    (fun kf states -> Kf_table.replace other_starts kf (copy_states states))
+    store.other_starts;
+  { ended = store.ended;
+    initial = store.initial;
+    entries;
+    entries_of = Kf_table.copy store.entries_of;
+    other_starts;
+    below_hit = Kf_table.copy store.below_hit;
+    body_unavailable = Kf_table.copy store.body_unavailable; }
+
 module Store_datatype =
   Datatype.Make
     (struct
-      include Datatype.Undefined
+      include Datatype.Serializable_undefined
       type t = store
       let name = "Eva.Hit_log.Store"
       let reprs = [ create () ]
-      let copy _ = create ()
-      let mem_project = Datatype.never_any_project
+      let structural_descr =
+        let module Initial =
+          Datatype.Option (Datatype.Pair (Callstack) (Cvalue.Model))
+        in
+        let module Entries = Int_table.Make (Entry) in
+        let module Entries_of = Kf_table.Make (Datatype.List (Datatype.Int)) in
+        let module States_of = Kf_table.Make (States) in
+        let module Marks = Kf_table.Make (Datatype.Unit) in
+        Structural_descr.t_record
+          [| Structural_descr.p_bool;
+             Initial.packed_descr;
+             Entries.packed_descr;
+             Entries_of.packed_descr;
+             States_of.packed_descr;
+             Marks.packed_descr;
+             Marks.packed_descr |]
+      let copy = copy_store
     end)
 
 module Store =
@@ -122,8 +215,9 @@ let add_state states callstack state =
 
 let mark table kf = Kf_table.replace table kf ()
 
-(* ----- Footprint given by the inout plugin ------------------------------- *)
+(* ----- The analysis being run -------------------------------------------- *)
 
+(* The memory read or written before and after each statement of a body. *)
 type footprint = Cil_types.stmt -> Memory_zone.t * Memory_zone.t
 
 (* The call of the current project whose hooks of the end of call are being
@@ -133,26 +227,45 @@ type slot =
   | Closed
   | Open of { id: int; mutable footprint: footprint option }
 
-module Slot =
+(* A body being analysed: the functions it calls, and its cache entry once
+   recorded. *)
+type frame = {
+  mutable called_below: Kernel_function.Set.t;
+  mutable entry: entry option;
+}
+
+(* The parts of the recording used only while the analysis runs. They are
+   neither saved nor copied. *)
+type running = {
+  (* The bodies being analysed, innermost first. *)
+  mutable frames: frame list;
+  mutable slot: slot;
+}
+
+let new_running () = { frames = []; slot = Closed }
+
+module Running =
   State_builder.Ref
     (Datatype.Make
        (struct
          include Datatype.Undefined
-         type t = slot
-         let name = "Eva.Hit_log.Slot"
-         let reprs = [ Closed ]
-         let copy _ = Closed
+         type t = running
+         let name = "Eva.Hit_log.Running"
+         let reprs = [ new_running () ]
+         let copy _ = new_running ()
          let mem_project = Datatype.never_any_project
        end))
     (struct
-      let name = "Eva.Hit_log.Slot"
+      let name = "Eva.Hit_log.Running"
       let dependencies = [ Self.state ]
-      let default () = Closed
+      let default = new_running
     end)
+
+(* ----- Footprint given by the inout plugin ------------------------------- *)
 
 let offer_footprint (id, footprint) =
   if enabled () then
-    match Slot.get () with
+    match (Running.get ()).slot with
     | Open slot when slot.id = id -> slot.footprint <- Some footprint
     | Open _ | Closed -> ()
 
@@ -161,10 +274,11 @@ let () =
     (fun () -> Eva_dynamic.Inout.register_footprint_hook offer_footprint)
 
 let footprint_of_call ~id hooks =
-  let outer = Slot.get () in
+  let running = Running.get () in
+  let outer = running.slot in
   let slot = Open { id; footprint = None } in
-  Slot.set slot;
-  Fun.protect ~finally:(fun () -> Slot.set outer) hooks;
+  running.slot <- slot;
+  Fun.protect ~finally:(fun () -> running.slot <- outer) hooks;
   match slot with
   | Open { footprint; _ } -> footprint
   | Closed -> None
@@ -229,13 +343,13 @@ let record_initial_state callstack state =
   (Store.get ()).initial <- Some (callstack, state)
 
 let record_call kf =
-  match (Store.get ()).frames with
+  match (Running.get ()).frames with
   | [] -> ()
   | frame :: _ ->
     frame.called_below <- Kernel_function.Set.add kf frame.called_below
 
 let add_below called =
-  match (Store.get ()).frames with
+  match (Running.get ()).frames with
   | [] -> ()
   | frame :: _ ->
     frame.called_below <- Kernel_function.Set.union called frame.called_below
@@ -254,11 +368,11 @@ let record_start callstack state =
   add_state states callstack state
 
 let analyse_body f =
-  let store = Store.get () in
+  let running = Running.get () in
   let frame = { called_below = Kernel_function.Set.empty; entry = None } in
-  store.frames <- frame :: store.frames;
+  running.frames <- frame :: running.frames;
   let finally () =
-    store.frames <- List.tl store.frames;
+    running.frames <- List.tl running.frames;
     Option.iter (fun entry -> entry.called <- frame.called_below) frame.entry;
     add_below frame.called_below
   in
@@ -284,18 +398,18 @@ let record_analysed_call ~id callstack ~footprint ~start ~body_entry ~before
   } in
   add_state entry.starts callstack start;
   add_state entry.body_entries callstack body_entry;
-  Hashtbl.replace store.entries id entry;
+  Int_table.replace store.entries id entry;
   let previous =
     Option.value ~default:[] (Kf_table.find_opt store.entries_of kf)
   in
-  Kf_table.replace store.entries_of kf (entry :: previous);
-  match store.frames with
+  Kf_table.replace store.entries_of kf (id :: previous);
+  match (Running.get ()).frames with
   | [] -> ()
   | frame :: _ -> frame.entry <- Some entry
 
 let record_hit ~id callstack ~start ~body_entry =
   let store = Store.get () in
-  match Hashtbl.find_opt store.entries id with
+  match Int_table.find_opt store.entries id with
   | None ->
     (* The entry was not recorded: nothing is answered for this function. *)
     mark store.below_hit (Callstack.top_kf callstack)
@@ -342,6 +456,7 @@ let select callstack states =
 
 let entries_of store kf =
   Option.value ~default:[] (Kf_table.find_opt store.entries_of kf)
+  |> List.filter_map (Int_table.find_opt store.entries)
 
 (* The start states of the calls to [kf]. *)
 let starts store kf =

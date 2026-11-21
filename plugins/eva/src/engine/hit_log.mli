@@ -35,7 +35,8 @@
     points only are unavailable when one of its calls has an unknown
     footprint, was interrupted, or is a recursive call analysed by its body.
 
-    Only the cvalue domain is recorded. *)
+    Only the cvalue domain is recorded. The records are saved with the
+    project, and kept by its copies. *)
 
 open Eval
 
