@@ -1,0 +1,45 @@
+[kernel] Parsing memexec_key_logic_effects.c (with preprocessing)
+[eva] Analyzing a complete application starting at alloc_case
+[eva:progress] Computing initial state
+[eva:progress] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  g ∈ {0}
+  x ∈ {0}
+  y ∈ {0}
+  a ∈ {0}
+  b ∈ {0}
+  ptr ∈ {0}
+  q ∈ {0}
+  answer ∈ {0}
+  buffer ∈ {0}
+[eva:progress] 
+  computing for function alloc_call <- alloc_case.
+  Called from memexec_key_logic_effects.c:57.
+[eva:progress] 
+  computing for function alloc_spec <- alloc_call <- alloc_case.
+  Called from memexec_key_logic_effects.c:47.
+[eva] using specification for function alloc_spec
+[eva] memexec_key_logic_effects.c:47: Warning: 
+  ignoring unsupported allocates clause
+[eva:progress] Done for function alloc_spec
+[eva:progress] Recording results for alloc_call
+[eva:progress] Done for function alloc_call
+[eva:progress] 
+  computing for function alloc_call <- alloc_case.
+  Called from memexec_key_logic_effects.c:58.
+[eva:progress] 
+  computing for function alloc_spec <- alloc_call <- alloc_case.
+  Called from memexec_key_logic_effects.c:47.
+[eva] memexec_key_logic_effects.c:47: Warning: 
+  cannot interpret allocates clause g ≢ 0 ? opaque(0) : &x
+  (unsupported ACSL construct: logic function opaque); effects will be ignored
+[eva:progress] Done for function alloc_spec
+[eva:progress] Recording results for alloc_call
+[eva:progress] Done for function alloc_call
+[eva:progress] Recording results for alloc_case
+[eva:progress] Done for function alloc_case
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function alloc_call:
+  
+[eva:final-states] Values at end of function alloc_case:
+  g ∈ {1}

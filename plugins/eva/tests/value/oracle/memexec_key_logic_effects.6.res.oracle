@@ -1,0 +1,40 @@
+[kernel] Parsing memexec_key_logic_effects.c (with preprocessing)
+[eva] Analyzing a complete application starting at alloc_builtin_case
+[eva:progress] Computing initial state
+[eva:progress] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  g ∈ {0}
+  x ∈ {0}
+  y ∈ {0}
+  a ∈ {0}
+  b ∈ {0}
+  ptr ∈ {0}
+  q ∈ {0}
+  answer ∈ {0}
+  buffer ∈ {0}
+[eva:progress] 
+  computing for function alloc_builtin_call <- alloc_builtin_case.
+  Called from memexec_key_logic_effects.c:67.
+[eva:builtins:missing-spec] memexec_key_logic_effects.c:44: Warning: 
+  No Frama-C libc specification found for function alloc_builtin, for which a builtin is used; its soundness relies on the specification provided by the user.
+[eva:progress] memexec_key_logic_effects.c:49: 
+  Call to builtin Frama_C_memcpy for function alloc_builtin
+[eva:progress] Recording results for alloc_builtin_call
+[eva:progress] Done for function alloc_builtin_call
+[eva:progress] 
+  computing for function alloc_builtin_call <- alloc_builtin_case.
+  Called from memexec_key_logic_effects.c:68.
+[eva:progress] memexec_key_logic_effects.c:49: 
+  Call to builtin Frama_C_memcpy for function alloc_builtin
+[eva] memexec_key_logic_effects.c:49: Warning: 
+  cannot interpret allocates clause g ≢ 0 ? opaque(0) : &x
+  (unsupported ACSL construct: logic function opaque); effects will be ignored
+[eva:progress] Recording results for alloc_builtin_call
+[eva:progress] Done for function alloc_builtin_call
+[eva:progress] Recording results for alloc_builtin_case
+[eva:progress] Done for function alloc_builtin_case
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function alloc_builtin_call:
+  
+[eva:final-states] Values at end of function alloc_builtin_case:
+  g ∈ {1}

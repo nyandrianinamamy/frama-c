@@ -1,0 +1,45 @@
+[kernel] Parsing memexec_key_logic_effects.c (with preprocessing)
+[eva] Analyzing a complete application starting at free_case
+[eva:progress] Computing initial state
+[eva:progress] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  g ∈ {0}
+  x ∈ {0}
+  y ∈ {0}
+  a ∈ {0}
+  b ∈ {0}
+  ptr ∈ {0}
+  q ∈ {0}
+  answer ∈ {0}
+  buffer ∈ {0}
+[eva:progress] 
+  computing for function free_call <- free_case.
+  Called from memexec_key_logic_effects.c:52.
+[eva:progress] 
+  computing for function free_spec <- free_call <- free_case.
+  Called from memexec_key_logic_effects.c:46.
+[eva] using specification for function free_spec
+[eva] memexec_key_logic_effects.c:46: Warning: 
+  ignoring unsupported allocates clause
+[eva:progress] Done for function free_spec
+[eva:progress] Recording results for free_call
+[eva:progress] Done for function free_call
+[eva:progress] 
+  computing for function free_call <- free_case.
+  Called from memexec_key_logic_effects.c:53.
+[eva:progress] 
+  computing for function free_spec <- free_call <- free_case.
+  Called from memexec_key_logic_effects.c:46.
+[eva] memexec_key_logic_effects.c:46: Warning: 
+  cannot interpret frees clause g ≢ 0 ? opaque(0) : &x
+  (unsupported ACSL construct: logic function opaque); effects will be ignored
+[eva:progress] Done for function free_spec
+[eva:progress] Recording results for free_call
+[eva:progress] Done for function free_call
+[eva:progress] Recording results for free_case
+[eva:progress] Done for function free_case
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function free_call:
+  
+[eva:final-states] Values at end of function free_case:
+  g ∈ {1}

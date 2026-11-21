@@ -1,0 +1,75 @@
+[kernel] Parsing memexec_key_logic_assigns_check.c (with preprocessing)
+[eva] Analyzing a complete application starting at from_case
+[eva:progress] Computing initial state
+[eva:progress] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  x ∈ {0}
+  y ∈ {0}
+  z ∈ {0}
+  p ∈ {0}
+  answer ∈ {0}
+[eva:progress] 
+  computing for function read_f <- from_case.
+  Called from memexec_key_logic_assigns_check.c:32.
+[eva:progress] Recording results for read_f
+[from] Computing for function read_f
+[from] Done for function read_f
+[eva:progress] memexec_key_logic_assigns_check.c:27: 
+  function read_f: assigns got status valid.
+[eva:progress] memexec_key_logic_assigns_check.c:27: 
+  function read_f: \from ... part in assign clause got status valid.
+[eva:progress] Done for function read_f
+[eva:progress] 
+  computing for function read_f <- from_case.
+  Called from memexec_key_logic_assigns_check.c:33.
+[eva:progress] Recording results for read_f
+[from] Computing for function read_f
+[from] Done for function read_f
+[eva:alarm] memexec_key_logic_assigns_check.c:27: Warning: 
+  function read_f: \from ... part in assign clause got status unknown (cannot validate direct dependencies).
+[eva:progress] Done for function read_f
+[eva:progress] Recording results for from_case
+[from] Computing for function from_case
+[from] Done for function from_case
+[eva:progress] Done for function from_case
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function read_f:
+  x ∈ {1}
+[eva:final-states] Values at end of function from_case:
+  x ∈ {1}
+  y ∈ {1}
+  p ∈ {{ &z }}
+  answer ∈ {1}
+[from] Computing for function read_f
+[from] Done for function read_f
+[from] Computing for function from_case
+[from] Done for function from_case
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function read_f:
+  x FROM y
+[from] Function from_case:
+  x FROM \nothing
+  y FROM \nothing
+  p FROM \nothing
+  answer FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[from] ====== DISPLAYING CALLWISE DEPENDENCIES ======
+[from] call to read_f at memexec_key_logic_assigns_check.c:32 (by from_case):
+  x FROM y
+[from] call to read_f at memexec_key_logic_assigns_check.c:33 (by from_case):
+  x FROM y
+[from] entry point:
+  x FROM \nothing
+  y FROM \nothing
+  p FROM \nothing
+  answer FROM \nothing
+[from] ====== END OF CALLWISE DEPENDENCIES ======
+[inout] Out (internal) for function read_f:
+    x
+[inout] Inputs for function read_f:
+    y
+[inout] Out (internal) for function from_case:
+    x; y; p; answer
+[inout] Inputs for function from_case:
+    x; y
