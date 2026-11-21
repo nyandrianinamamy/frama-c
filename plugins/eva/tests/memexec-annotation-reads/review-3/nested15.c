@@ -1,0 +1,1 @@
+int g,h,j; int main(void) { /*@ check ((((((((((((((((((((((((((((((g) == g ? h : j)) == g ? h : j)) == g ? h : j)) == g ? h : j)) == g ? h : j)) == g ? h : j)) == g ? h : j)) == g ? h : j)) == g ? h : j)) == g ? h : j)) == g ? h : j)) == g ? h : j)) == g ? h : j)) == g ? h : j)) == g ? h : j) == 2; */ return 0; }
