@@ -64,6 +64,15 @@ let main () =
   Legacy_read_trap.start ();
   ignore Results.(before stmt |> filter_callstack in_third |> callstacks);
   print_reported "Request of the first project that makes one in the third";
+  (* The report restarted within a request: this request started before, and
+     is left out of the new report with its reads. The next request is the
+     first one of the report. Without saved cvalue results, the filter is not
+     applied and the report is not restarted: both requests are reported. *)
+  let restart _callstack = Legacy_read_trap.start (); true in
+  Legacy_read_trap.start ();
+  ignore Results.(before stmt |> filter_callstack restart |> callstacks);
+  initial_state ();
+  print_reported "Report restarted within a request, then a request";
   Legacy_read_trap.stop ()
 
 let () = Boot.Main.extend main

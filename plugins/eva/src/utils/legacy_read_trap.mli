@@ -62,7 +62,9 @@ type request = {
   (** In the order they were made. *)
 }
 
-(** Turns the instrument on, and empties its report. *)
+(** Turns the instrument on, and empties its report. A request being served
+    when [start] is called is left out of the new report, with the requests
+    made within it and all their reads. *)
 val start: unit -> unit
 
 (** Turns the instrument off. Its report is kept. *)
@@ -72,8 +74,8 @@ val stop: unit -> unit
     made, including those that read nothing. *)
 val requests: unit -> request list
 
-(** The number of reads made, since the last {!start}, by requests that
-    started during an analysis. *)
+(** The number of reads made by requests that started during an analysis,
+    since the last {!start}. *)
 val ignored_reads: unit -> int
 
 val pretty_request: Format.formatter -> request -> unit

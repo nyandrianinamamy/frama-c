@@ -8,9 +8,9 @@
 */
 
 /* Requests of Eva.Results made in one project while another project is
-   analysed, and requests made when the results of the cvalue domain are not
-   saved, with the reports of Eva.Legacy_read_trap. legacy_reads_projects.ml
-   makes the requests and prints the reports. */
+   analysed, without saved cvalue results, and while the report restarts,
+   with the reports of Eva.Legacy_read_trap. legacy_reads_projects.ml makes
+   the requests and prints the reports. */
 
 int g;
 

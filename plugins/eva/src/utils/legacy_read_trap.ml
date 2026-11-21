@@ -30,16 +30,20 @@ type served =
   | Ignored
 
 let on = ref false
+(* The session of the report: incremented by each [start]. A request that
+   started in an earlier session is left out of the report. *)
+let session = ref 0
 (* Projects whose analysis is running, innermost first. *)
 let analyses : Project.t list ref = ref []
-(* The request being served and its project. *)
-let current : (Project.t * served) option ref = ref None
+(* The request being served, its project and its session. *)
+let current : (Project.t * int * served) option ref = ref None
 let reported = ref [] (* Latest first. *)
 let count = ref 0
 let ignored = ref 0
 
 let start () =
   on := true;
+  incr session;
   reported := [];
   count := 0;
   ignored := 0
@@ -67,15 +71,18 @@ let analysis f =
 
 let serve served f =
   let outer = !current in
-  current := Some (Project.current (), served);
+  current := Some (Project.current (), !session, served);
   Fun.protect ~finally:(fun () -> current := outer) f
 
-(* The request being served in the current project, if any. A request made
-   in another project is a request of its own. *)
-let served () =
+(* The request being served in the current project, if any, with its
+   session. A request made in another project is a request of its own. *)
+let served_in_session () =
   match !current with
-  | Some (project, served) when in_project project -> Some served
+  | Some (project, session, served) when in_project project ->
+    Some (session, served)
   | Some _ | None -> None
+
+let served () = Option.map snd (served_in_session ())
 
 let request pp f =
   if not !on || Option.is_some (served ()) then f ()
@@ -86,9 +93,11 @@ let request pp f =
     let number = !count in
     let description = Format.asprintf "%t" pp in
     let reads = ref [] in
+    let started = !session in
     let record () =
-      let reads = List.rev !reads in
-      reported := { number; description; reads } :: !reported
+      if started = !session then
+        let reads = List.rev !reads in
+        reported := { number; description; reads } :: !reported
     in
     Fun.protect ~finally:record (fun () -> serve (Reported reads) f)
   end
@@ -96,10 +105,11 @@ let request pp f =
 let reading () = !on && Option.is_some (served ())
 
 let read ~store access pp =
-  match served () with
+  match served_in_session () with
   | None -> ()
-  | Some Ignored -> incr ignored
-  | Some (Reported reads) ->
+  | Some (started, _) when started <> !session -> ()
+  | Some (_, Ignored) -> incr ignored
+  | Some (_, Reported reads) ->
     let point = Format.asprintf "%t" pp in
     reads := { store; access; point } :: !reads
 

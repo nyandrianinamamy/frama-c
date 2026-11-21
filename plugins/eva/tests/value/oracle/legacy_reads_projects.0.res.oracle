@@ -70,3 +70,7 @@ Request of the first project that makes one in the third:
   request 3: initial state; joined
     read of the cvalue store: joined state, initial state
   reads ignored: none
+Report restarted within a request, then a request:
+  request 1: initial state; joined
+    read of the cvalue store: joined state, initial state
+  reads ignored: none
