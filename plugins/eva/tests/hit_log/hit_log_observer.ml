@@ -37,9 +37,10 @@
    - whether each request made in the current project is reported by
      Eva.Legacy_read_trap, once and with its description, and the reads of
      the legacy store that it reports;
-   - the passes that Eva runs after the iteration, in the run with memexec
-     and in the run with -eva-hit-log: their requests and their reads of the
-     legacy store, within requests and outside any request, as reported by
+   - the requests made after the iteration, by the passes that Eva runs and
+     by the hooks run when Eva has results, in the run with memexec and in
+     the run with -eva-hit-log: their number by pass, the reads of the legacy
+     store within them and outside any request, as reported by
      Eva.Legacy_read_trap, which is on during these two analyses; and the
      requests made on the callstacks below a hit;
    - the outputs of these passes, against the run without memexec: the
@@ -598,8 +599,9 @@ let print_control compared =
 (* ----- Passes after the iteration ---------------------------------------- *)
 
 (* What an analysis gives after its iteration: the requests and the reads
-   outside any request that Eva.Legacy_read_trap reports, and the messages
-   printed by the passes. *)
+   outside any request that Eva.Legacy_read_trap reports, made by the passes
+   or outside them, as by the hooks, and the messages printed by the
+   passes. *)
 type passes = {
   requests: Legacy_read_trap.request list;
   strays: Legacy_read_trap.stray list;
@@ -630,12 +632,8 @@ let analyse () =
   capture := None;
   Format.pp_print_flush fmt ();
   Log.reset_stdout ~isatty:false ();
-  let passes =
-    List.filter
-      (fun r -> Option.is_some r.Legacy_read_trap.pass)
-      (Legacy_read_trap.requests ())
-  in
-  { requests = passes; strays = Legacy_read_trap.stray_reads ();
+  { requests = Legacy_read_trap.requests ();
+    strays = Legacy_read_trap.stray_reads ();
     output = Buffer.contents buffer }
 
 let reads_of passes =
@@ -647,11 +645,13 @@ let plural ?plural n word =
   Format.sprintf "%d %s" n (if n = 1 then word else words)
 
 (* The passes in the order of their first request, with their number of
-   requests. *)
+   requests. The requests made outside the passes are counted together. *)
 let by_pass passes =
   List.fold_left
     (fun acc r ->
-       let name = Option.get r.Legacy_read_trap.pass in
+       let name =
+         Option.value ~default:"outside the passes" r.Legacy_read_trap.pass
+       in
        if List.mem_assoc name acc
        then List.map (fun (n, c) -> n, if n = name then c + 1 else c) acc
        else acc @ [ name, 1 ])
