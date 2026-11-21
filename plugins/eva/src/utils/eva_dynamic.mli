@@ -14,11 +14,12 @@ module Inout: sig
   val register_call_hook: (Inout_type.t -> unit) -> unit
 
   (** Registers a hook to be called, for each call analysed by its body, on
-      the function that gives the memory read or written on the paths from the
-      start of the body to the point before and to the point after each
-      statement. Nothing is done if the inout plugin is missing. *)
+      the number of its cache entry and on the function that gives the memory
+      read or written on the paths from the start of the body to the point
+      before and to the point after each statement. Nothing is done if the
+      inout plugin is missing. *)
   val register_footprint_hook:
-    ((Cil_types.stmt -> Memory_zone.t * Memory_zone.t) -> unit) -> unit
+    (int * (Cil_types.stmt -> Memory_zone.t * Memory_zone.t) -> unit) -> unit
 
   (** Returns the memory zone modified by the given function (including local
       and formal variables). Returns Top if the inout plugin is missing. *)

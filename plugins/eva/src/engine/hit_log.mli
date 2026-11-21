@@ -63,18 +63,26 @@ val record_start: Callstack.t -> Cvalue.Model.t -> unit
     meanwhile are recorded in the cache entry of this call. *)
 val analyse_body: (unit -> 'a) -> 'a
 
-(** Forgets the footprint given by the inout plugin for the last call. To be
-    called before the hooks at the end of a call. *)
-val clear_footprint: unit -> unit
+(** The memory read or written on the paths from the start of a body to the
+    point before and to the point after each statement, as given by the inout
+    plugin. *)
+type footprint = Cil_types.stmt -> Memory_zone.t * Memory_zone.t
 
-(** [record_analysed_call ~id callstack ~start ~body_entry ~before ~after]
-    records the cache entry [id] computed by the call on [callstack], with
-    its start state, its body-entry state, and its states before and after
-    each statement reached. The footprint is the one given by the inout
-    plugin since the last {!clear_footprint}. Without footprint, as when the
+(** [footprint_of_call ~id hooks] runs [hooks], the hooks at the end of the
+    call analysed by its body that computes the cache entry [id], and returns
+    the footprint that the inout plugin gives meanwhile for this call, if
+    any. The footprint is kept with the current project and this call: it is
+    not lost to an analysis of another project started by the hooks, and is
+    not kept after the hooks. *)
+val footprint_of_call: id:int -> (unit -> unit) -> footprint option
+
+(** [record_analysed_call ~id callstack ~footprint ~start ~body_entry ~before
+    ~after] records the cache entry [id] computed by the call on [callstack],
+    with its footprint, its start state, its body-entry state, and its states
+    before and after each statement reached. Without footprint, as when the
     results of the call are not saved, its body points are unavailable. *)
 val record_analysed_call:
-  id:int -> Callstack.t ->
+  id:int -> Callstack.t -> footprint:footprint option ->
   start:Cvalue.Model.t -> body_entry:Cvalue.Model.t ->
   before:Cvalue.Model.t Cil_datatype.Stmt.Hashtbl.t Lazy.t ->
   after:Cvalue.Model.t Cil_datatype.Stmt.Hashtbl.t Lazy.t ->

@@ -22,7 +22,7 @@ module Inout = struct
     let fallback _ = () in
     let zones = Datatype.pair Memory_zone.ty Memory_zone.ty in
     let footprint = Datatype.func Cil_datatype.Stmt.ty zones in
-    let typ = Datatype.(func (func footprint unit) unit) in
+    let typ = Datatype.(func (func (pair int footprint) unit) unit) in
     get ~plugin "register_footprint_hook" typ ~fallback f
 
   let kf_outputs kf =

@@ -1,0 +1,66 @@
+[kernel] Parsing reentrant.c (with preprocessing)
+The analysis of project other has ended in a hook of the analysis of project default.
+Project default:
+  main, before its first statement:
+    c ∈ {0}
+    g ∈ {0}
+    h ∈ {0}
+    __retres ∈ UNINITIALIZED
+  f, before P, joined:
+    c ∈ {0; 1}
+    g ∈ {0; 4; 9}
+    h ∈ {5; 7; 8}
+    __retres ∈ UNINITIALIZED
+  f, before P, f :: reentrant.c:19 <- main:
+    c ∈ {0; 1}
+    g ∈ {0; 4}
+    h ∈ {7}
+    __retres ∈ UNINITIALIZED
+  f, before P, f :: reentrant.c:20 <- main:
+    c ∈ {0; 1}
+    g ∈ {0; 4}
+    h ∈ {8}
+    __retres ∈ UNINITIALIZED
+  f, before P, f :: reentrant.c:21 <- main:
+    c ∈ {0; 1}
+    g ∈ {0; 9}
+    h ∈ {8}
+    __retres ∈ UNINITIALIZED
+  f, before P, f :: reentrant.c:22 <- main:
+    c ∈ {0; 1}
+    g ∈ {0; 9}
+    h ∈ {5}
+    __retres ∈ UNINITIALIZED
+  requests reported: 7; reads of the legacy store: 0
+Project other:
+  main, before its first statement:
+    c ∈ {0}
+    g ∈ {0}
+    h ∈ {0}
+    __retres ∈ UNINITIALIZED
+  f, before P, joined:
+    c ∈ {0; 1}
+    g ∈ {0; 4; 9}
+    h ∈ {5; 7; 8}
+    __retres ∈ UNINITIALIZED
+  f, before P, f :: reentrant.c:19 <- main:
+    c ∈ {0; 1}
+    g ∈ {0; 4}
+    h ∈ {7}
+    __retres ∈ UNINITIALIZED
+  f, before P, f :: reentrant.c:20 <- main:
+    c ∈ {0; 1}
+    g ∈ {0; 4}
+    h ∈ {8}
+    __retres ∈ UNINITIALIZED
+  f, before P, f :: reentrant.c:21 <- main:
+    c ∈ {0; 1}
+    g ∈ {0; 9}
+    h ∈ {8}
+    __retres ∈ UNINITIALIZED
+  f, before P, f :: reentrant.c:22 <- main:
+    c ∈ {0; 1}
+    g ∈ {0; 9}
+    h ∈ {5}
+    __retres ∈ UNINITIALIZED
+  requests reported: 7; reads of the legacy store: 0

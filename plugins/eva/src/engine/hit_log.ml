@@ -124,15 +124,50 @@ let mark table kf = Kf_table.replace table kf ()
 
 (* ----- Footprint given by the inout plugin ------------------------------- *)
 
-let footprint = ref None
+type footprint = Cil_types.stmt -> Memory_zone.t * Memory_zone.t
 
-let clear_footprint () = footprint := None
+(* The call of the current project whose hooks of the end of call are being
+   run, identified by the number of its cache entry, with the footprint given
+   so far for it. A footprint given for another call is ignored. *)
+type slot =
+  | Closed
+  | Open of { id: int; mutable footprint: footprint option }
+
+module Slot =
+  State_builder.Ref
+    (Datatype.Make
+       (struct
+         include Datatype.Undefined
+         type t = slot
+         let name = "Eva.Hit_log.Slot"
+         let reprs = [ Closed ]
+         let copy _ = Closed
+         let mem_project = Datatype.never_any_project
+       end))
+    (struct
+      let name = "Eva.Hit_log.Slot"
+      let dependencies = [ Self.state ]
+      let default () = Closed
+    end)
+
+let offer_footprint (id, footprint) =
+  if enabled () then
+    match Slot.get () with
+    | Open slot when slot.id = id -> slot.footprint <- Some footprint
+    | Open _ | Closed -> ()
 
 let () =
   Cmdline.run_after_configuring_stage
-    (fun () ->
-       Eva_dynamic.Inout.register_footprint_hook
-         (fun f -> if enabled () then footprint := Some f))
+    (fun () -> Eva_dynamic.Inout.register_footprint_hook offer_footprint)
+
+let footprint_of_call ~id hooks =
+  let outer = Slot.get () in
+  let slot = Open { id; footprint = None } in
+  Slot.set slot;
+  Fun.protect ~finally:(fun () -> Slot.set outer) hooks;
+  match slot with
+  | Open { footprint; _ } -> footprint
+  | Closed -> None
 
 exception Unknown_footprint
 
@@ -229,17 +264,17 @@ let analyse_body f =
   in
   Fun.protect ~finally f
 
-let record_analysed_call ~id callstack ~start ~body_entry ~before ~after =
+let record_analysed_call ~id callstack ~footprint ~start ~body_entry ~before
+    ~after =
   let store = Store.get () in
   let kf = Callstack.top_kf callstack in
   let inner =
-    match !footprint with
+    match footprint with
     | None -> Unknown
     | Some footprint ->
       try inner_part footprint ~start ~before ~after
       with Unknown_footprint -> Unknown
   in
-  clear_footprint ();
   if inner = Unknown then mark store.body_unavailable kf;
   let entry = {
     inner;

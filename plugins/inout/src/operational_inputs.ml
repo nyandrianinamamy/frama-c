@@ -661,11 +661,14 @@ module Callwise = struct
 
   module Record_Inout_Callbacks = Hook.Build (struct type t = Inout_type.t end)
 
-  (* For a call analysed by its body, the memory read or written before and
-     after each statement of the body, as given by [Computer.footprint]. *)
+  (* For a call analysed by its body, the number of its cache entry and the
+     memory read or written before and after each statement of the body, as
+     given by [Computer.footprint]. *)
   module Record_Footprint_Callbacks =
     Hook.Build
-      (struct type t = Cil_types.stmt -> Memory_zone.t * Memory_zone.t end)
+      (struct
+        type t = int * (Cil_types.stmt -> Memory_zone.t * Memory_zone.t)
+      end)
 
   let merge_call_in_local_table call local_table v =
     let prev =
@@ -788,7 +791,9 @@ module Callwise = struct
             let inout, footprint =
               compute_call_from_value_states kf callstack cvalue_states
             in
-            Option.iter Record_Footprint_Callbacks.apply footprint;
+            Option.iter
+              (fun f -> Record_Footprint_Callbacks.apply (memexec_counter, f))
+              footprint;
             inout
           end
           else top
@@ -834,12 +839,13 @@ module Callwise = struct
     let footprint = Datatype.func Cil_datatype.Stmt.ty zones in
     Dynamic.register
       ~comment:"Registers a function to be applied, for each call analysed \
-                by its body, on the memory read or written on the paths \
-                from the start of the body to the point before and to the \
-                point after each statement."
+                by its body, on the number of its cache entry and on the \
+                memory read or written on the paths from the start of the \
+                body to the point before and to the point after each \
+                statement."
       ~plugin:Inout_parameters.name
       "register_footprint_hook"
-      Datatype.(func (func footprint unit) unit)
+      Datatype.(func (func (pair int footprint) unit) unit)
       Record_Footprint_Callbacks.extend_once
 
 end

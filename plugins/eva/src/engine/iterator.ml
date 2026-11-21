@@ -609,19 +609,21 @@ module Make_Dataflow
     let cvalue_init = Engine.Dom.get_cvalue_or_top initial_state in
     let counter = Mem_exec.new_counter () in
     let results = `Body (states, counter) in
-    let record = Hit_log.enabled () && not interrupted in
-    if record then Hit_log.clear_footprint ();
-    Cvalue_callbacks.apply_call_results_hooks callstack kf cvalue_init results;
-    if record then begin
+    let apply_hooks () =
+      Cvalue_callbacks.apply_call_results_hooks callstack kf cvalue_init results
+    in
+    if Hit_log.enabled () && not interrupted then begin
+      let footprint = Hit_log.footprint_of_call ~id:counter apply_hooks in
       let start = Engine.Dom.get_cvalue_or_top AnalysisParam.initial_state in
       let body_entry =
         match Bottom.List.join Domain.join initial_states with
         | `Bottom -> Cvalue.Model.bottom
         | `Value state -> Engine.Dom.get_cvalue_or_top state
       in
-      Hit_log.record_analysed_call ~id:counter callstack ~start ~body_entry
-        ~before:merged_pre_cvalues ~after:merged_post_cvalues
+      Hit_log.record_analysed_call ~id:counter callstack ~footprint ~start
+        ~body_entry ~before:merged_pre_cvalues ~after:merged_post_cvalues
     end
+    else apply_hooks ()
 
 end
 
