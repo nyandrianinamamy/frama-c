@@ -36,7 +36,9 @@
 Request in the first project during the analysis of the second:
   request 1: initial state; joined
     read of the cvalue store: joined state, initial state
-  reads ignored: some
+  requests of the passes after the iteration: some, with reads: some
+  reads outside any request: none
+  reads ignored: none
 [eva] Analyzing a complete application starting at main
 [eva:progress] Computing initial state
 [eva:progress] Initial state computed
@@ -59,7 +61,11 @@ Request of the first project that starts an analysis:
     read of the cvalue store: callstacks, before legacy_reads_projects.c:18 in f
     read of the cvalue store: state of callstack f :: legacy_reads_projects.c:23 <- main, before legacy_reads_projects.c:18 in f
     read of the cvalue store: state of callstack f :: legacy_reads_projects.c:24 <- main, before legacy_reads_projects.c:18 in f
-  reads ignored: some
+  request 2: initial state; joined
+    read of the cvalue store: joined state, initial state
+  requests of the passes after the iteration: some, with reads: some
+  reads outside any request: none
+  reads ignored: none
 Request of the first project that makes one in the third:
   request 1: before legacy_reads_projects.c:18 in f; every callstack, filtered
     read of the cvalue store: callstacks, before legacy_reads_projects.c:18 in f
@@ -69,8 +75,12 @@ Request of the first project that makes one in the third:
     read of the cvalue store: joined state, initial state
   request 3: initial state; joined
     read of the cvalue store: joined state, initial state
+  requests of the passes after the iteration: none, with reads: none
+  reads outside any request: none
   reads ignored: none
 Report restarted within a request, then a request:
   request 1: initial state; joined
     read of the cvalue store: joined state, initial state
+  requests of the passes after the iteration: none, with reads: none
+  reads outside any request: none
   reads ignored: none

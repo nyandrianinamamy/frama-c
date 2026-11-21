@@ -406,10 +406,11 @@ module HitLog =
       let help = "Record a cache entry for each call analysed by its body, \
                   with the states before and after each statement on the \
                   memory read or written before them, and the states at the \
-                  calls that use each entry. After the analysis, the states \
-                  requested through Eva.Results are rebuilt from these \
-                  records instead of the stored states (prototype, cvalue \
-                  domain only)."
+                  calls that use each entry. Once the iteration of the \
+                  analysis has ended, the states requested through \
+                  Eva.Results, by the passes of Eva after the iteration \
+                  among others, are rebuilt from these records instead of \
+                  the stored states (prototype, cvalue domain only)."
     end)
 let () = add_dep HitLog.parameter
 

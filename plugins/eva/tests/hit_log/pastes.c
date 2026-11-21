@@ -1,7 +1,7 @@
 /* run.config
    MODULE: @PTEST_NAME@
-   STDOPT: +"-cpp-extra-args=-DHITS=1 -eva-msg-key debug:hit-log"
-   STDOPT: +"-cpp-extra-args=-DHITS=100 -eva-msg-key debug:hit-log"
+   STDOPT: +"-cpp-extra-args=-DHITS=1"
+   STDOPT: +"-cpp-extra-args=-DHITS=100"
 */
 
 /* The cost of a request without callstack inside a function called below a
@@ -11,8 +11,8 @@
    parent. The joined body-entry state of the hits of parent is kept by the
    hit log, so the first request before P in child makes the same number of
    pastes for 1 and for 100 hits; a repeated request makes one paste, the
-   other states being memoised. pastes.ml makes the requests, and option
-   -eva-msg-key debug:hit-log prints the number of pastes of each. */
+   other states being memoised. pastes.ml makes the requests and prints the
+   number of pastes of each. */
 
 int h, out;
 

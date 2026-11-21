@@ -36,18 +36,26 @@
 Request in the first project during the analysis of the second:
   request 1: initial state; joined
     no read
+  requests of the passes after the iteration: some, with reads: none
+  reads outside any request: none
   reads ignored: none
 Request of the first project that starts an analysis:
   request 1: before legacy_reads_projects.c:18 in f; every callstack, filtered
     no read
+  requests of the passes after the iteration: none, with reads: none
+  reads outside any request: none
   reads ignored: none
 Request of the first project that makes one in the third:
   request 1: before legacy_reads_projects.c:18 in f; every callstack, filtered
     no read
+  requests of the passes after the iteration: none, with reads: none
+  reads outside any request: none
   reads ignored: none
 Report restarted within a request, then a request:
   request 1: before legacy_reads_projects.c:18 in f; every callstack, filtered
     no read
   request 2: initial state; joined
     no read
+  requests of the passes after the iteration: none, with reads: none
+  reads outside any request: none
   reads ignored: none

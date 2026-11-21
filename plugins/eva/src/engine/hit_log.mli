@@ -7,8 +7,9 @@
 (**************************************************************************)
 
 (** Cache entries and hit log, recorded with option [-eva-hit-log], and the
-    rule that answers the state requests from them once the analysis has
-    ended.
+    rule that answers the state requests from them once the iteration of the
+    analysis has ended, including the requests of the passes that Eva runs
+    afterwards, such as the statuses of the properties and the summary.
 
     Each call analysed by its body records a cache entry, identified by the
     number that memexec gives to the call. Its Inner part holds, before and
@@ -114,14 +115,15 @@ val mark_unrolled_recursion: Cil_types.kernel_function -> unit
     interrupted before its end, and marks its function. *)
 val mark_interrupted: Callstack.t -> start:Cvalue.Model.t -> unit
 
-(** [analysis f] runs the analysis [f] of the current project. The rule
-    answers the requests made after it, if the recording was on. *)
+(** [analysis f] runs [f], the iteration of an analysis of the current
+    project. The rule answers the requests made after it, if the recording
+    was on. *)
 val analysis: (unit -> 'a) -> 'a
 
-(** {2 The rule, after the analysis} *)
+(** {2 The rule, after the iteration} *)
 
 (** Whether the requests of the current project are answered by the rule:
-    the recording was on and the analysis has ended. *)
+    the recording was on and the iteration of the analysis has ended. *)
 val serving: unit -> bool
 
 (** Whether the requests at a control point are answered: false if they are

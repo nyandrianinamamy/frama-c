@@ -1,6 +1,9 @@
 (* Makes twice the request without callstack before P in child, after an
    analysis with -eva-hit-log. Each request served by the rule prints the
-   number of its pastes, with option -eva-msg-key debug:hit-log. *)
+   number of its pastes, with the debug category hit-log, set after the
+   analysis. The passes of Eva after the iteration make requests served by
+   the rule, which fill the memoised states: the two requests are made in a
+   copy of the project, which starts without memoised states. *)
 
 open Eva
 
@@ -13,6 +16,12 @@ let main () =
        | _ -> ());
   Analysis.compute ();
   Format.printf "Hits of parent: %d.@." !hits;
+  let copy = Project.create_by_copy ~last:false "copy" in
+  Project.set_current copy;
+  begin match (Typed_parameter.get "-eva-msg-key").accessor with
+    | String (accessor, _) -> accessor.set "debug:hit-log"
+    | Bool _ | Int _ | Float _ -> assert false
+  end;
   let child = Globals.Functions.find_by_name "child" in
   let p = !(Kernel_function.find_label child "P") in
   let h = Base.of_varinfo (Globals.Vars.find_from_astinfo "h" Global) in

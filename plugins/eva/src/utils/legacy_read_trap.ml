@@ -20,7 +20,13 @@ type read = {
 type request = {
   number: int;
   description: string;
+  pass: string option;
   reads: read list;
+}
+
+type stray = {
+  in_pass: string option;
+  read: read;
 }
 
 (* The request being served: reported with its reads so far, latest first,
@@ -33,11 +39,15 @@ let on = ref false
 (* The session of the report: incremented by each [start]. A request that
    started in an earlier session is left out of the report. *)
 let session = ref 0
-(* Projects whose analysis is running, innermost first. *)
+(* Projects whose iteration is running, innermost first. *)
 let analyses : Project.t list ref = ref []
+(* The passes that Eva runs after the iteration, being run, with their
+   project, innermost first. *)
+let passes : (Project.t * string) list ref = ref []
 (* The request being served, its project and its session. *)
 let current : (Project.t * int * served) option ref = ref None
 let reported = ref [] (* Latest first. *)
+let strays = ref [] (* Latest first. *)
 let count = ref 0
 let ignored = ref 0
 
@@ -45,6 +55,7 @@ let start () =
   on := true;
   incr session;
   reported := [];
+  strays := [];
   count := 0;
   ignored := 0
 
@@ -53,6 +64,8 @@ let stop () = on := false
 (* A request made within a request of another project ends first. *)
 let requests () =
   List.sort (fun r r' -> Int.compare r.number r'.number) !reported
+
+let stray_reads () = List.rev !strays
 
 let ignored_reads () = !ignored
 
@@ -68,6 +81,22 @@ let analysis f =
   analyses := Project.current () :: !analyses;
   current := None;
   Fun.protect ~finally f
+
+let pass name f =
+  passes := (Project.current (), name) :: !passes;
+  Fun.protect ~finally:(fun () -> passes := List.tl !passes) f
+
+(* The pass being run in the current project, if any. *)
+let current_pass () =
+  List.find_map
+    (fun (project, name) -> if in_project project then Some name else None)
+    !passes
+
+let iterating () = List.exists in_project !analyses
+
+(* Whether a read or a request in the current project is made after the
+   iteration of its analysis. *)
+let after_iteration () = not (iterating ()) && Self.is_computed ()
 
 let serve served f =
   let outer = !current in
@@ -86,32 +115,35 @@ let served () = Option.map snd (served_in_session ())
 
 let request pp f =
   if not !on || Option.is_some (served ()) then f ()
-  else if List.exists in_project !analyses then serve Ignored f
+  else if iterating () then serve Ignored f
   else if not (Self.is_computed ()) then f ()
   else begin
     incr count;
     let number = !count in
     let description = Format.asprintf "%t" pp in
+    let pass = current_pass () in
     let reads = ref [] in
     let started = !session in
     let record () =
       if started = !session then
         let reads = List.rev !reads in
-        reported := { number; description; reads } :: !reported
+        reported := { number; description; pass; reads } :: !reported
     in
     Fun.protect ~finally:record (fun () -> serve (Reported reads) f)
   end
 
-let reading () = !on && Option.is_some (served ())
+let reading () =
+  !on && (Option.is_some (served ()) || after_iteration ())
 
 let read ~store access pp =
+  let read () = { store; access; point = Format.asprintf "%t" pp } in
   match served_in_session () with
-  | None -> ()
+  | None ->
+    if !on && after_iteration () then
+      strays := { in_pass = current_pass (); read = read () } :: !strays
   | Some (started, _) when started <> !session -> ()
   | Some (_, Ignored) -> incr ignored
-  | Some (_, Reported reads) ->
-    let point = Format.asprintf "%t" pp in
-    reads := { store; access; point } :: !reads
+  | Some (_, Reported reads) -> reads := read () :: !reads
 
 let pretty_callstack fmt callstack =
   let pretty_call fmt (kf, kinstr) =
@@ -134,10 +166,19 @@ let pretty_read fmt { store; access; point } =
   Format.fprintf fmt "read of the %s store: %a, %s" store pretty_access access
     point
 
-let pretty_request fmt { number; description; reads } =
-  Format.fprintf fmt "@[<v 2>request %d: %s" number description;
+let pretty_pass fmt = function
+  | None -> ()
+  | Some name -> Format.fprintf fmt " (pass: %s)" name
+
+let pretty_request fmt { number; description; pass; reads } =
+  Format.fprintf fmt "@[<v 2>request %d%a: %s" number pretty_pass pass
+    description;
   begin match reads with
     | [] -> Format.fprintf fmt "@ no read"
     | _ -> List.iter (Format.fprintf fmt "@ %a" pretty_read) reads
   end;
   Format.fprintf fmt "@]"
+
+let pretty_stray fmt { in_pass; read } =
+  Format.fprintf fmt "@[<v 2>outside any request%a:@ %a@]" pretty_pass in_pass
+    pretty_read read

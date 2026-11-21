@@ -102,6 +102,7 @@ let pre_analysis () =
 (* ----- Post-analysis cleanup ---------------------------------------------- *)
 
 let post_analysis (type t) (engine: t engine) mthread_analysis final_state =
+  let pass = Legacy_read_trap.pass in
   (* Garbled mix must be dumped here -- at least before the call to
      mark_green_and_red -- because fresh ones are created when re-evaluating
      all the alarms, and we get an unpleasant "ghost effect". *)
@@ -111,27 +112,29 @@ let post_analysis (type t) (engine: t engine) mthread_analysis final_state =
      propagation is incomplete. Also do not mark unreachable statutes if
      there is an alarm in the initializers (bottom initial state), as we
      would end up marking the alarm as dead. *)
-  Eval_annots.mark_unreachable ();
+  pass "unreachable statements" Eval_annots.mark_unreachable;
   (* Try to refine the 'Unknown' statuses that have been emitted during
      this analysis. *)
-  Eval_annots.mark_green_and_red ();
+  pass "statuses of the properties" Eval_annots.mark_green_and_red;
   Mem_exec.cleanup_results ();
   (* Remove redundant alarms *)
-  if Parameters.RmAssert.get () then Eva_dynamic.Scope.rm_asserts ();
+  if Parameters.RmAssert.get ()
+  then pass "redundant alarms" Eva_dynamic.Scope.rm_asserts;
   (* The above functions may have changed the status of alarms. *)
-  Summary.FunctionStats.recompute_all ();
-  Red_statuses.report ();
+  pass "statistics" Summary.FunctionStats.recompute_all;
+  pass "red statuses" Red_statuses.report;
   (* Domains [post_analysis]. By default, the cvalue domain prints values
      inferred at the end of each function.  *)
   let module Engine = (val engine) in
-  Engine.Dom.post_analysis final_state;
+  pass "domains" (fun () -> Engine.Dom.post_analysis final_state);
   (* Mthread [post_analysis]: prints shared memory protections and possible
      data-races, exports results to file and computes a concurrency summary. *)
-  Option.iter Mt_main.post_analysis mthread_analysis;
+  Option.iter (fun a -> pass "mthread" (fun () -> Mt_main.post_analysis a))
+    mthread_analysis;
   (* Print global summary. *)
-  Summary.print ();
+  pass "summary" Summary.print;
   (* Export after summary, as some stats are computed for the summary. *)
-  Statistics.export_as_csv ()
+  pass "statistics export" Statistics.export_as_csv
 
 
 (* ----- Analysis status ---------------------------------------------------- *)
@@ -247,27 +250,40 @@ let compute_from ?cvalue_state ?arguments entry_point =
   (* Setup signals *)
   let restore_signals = Signal.setup () in
   Fun.protect ~finally:restore_signals @@ fun () ->
-  Legacy_read_trap.analysis @@ fun () ->
-  Hit_log.analysis @@ fun () ->
-  (* Mthread pre-analysis: returns an analysis state if requested. *)
-  let mt_analysis = Mt_main.pre_analysis () in
-  (* Prepare the analysis and build the engine. *)
-  let module Engine = (val pre_analysis ()) in
-  Self.feedback "Analyzing a%scomplete application starting at %a"
-    (if Kernel.LibEntry.get () then "n in" else " ")
-    Kernel_function.pretty entry_point;
+  (* The iteration ends with [Legacy_read_trap.analysis] and
+     [Hit_log.analysis], before the hooks run by [Computed] and the passes of
+     [post_analysis]. It returns these passes, or the exception raised. *)
+  let iteration =
+    Legacy_read_trap.analysis @@ fun () ->
+    Hit_log.analysis @@ fun () ->
+    (* Mthread pre-analysis: returns an analysis state if requested. *)
+    let mt_analysis = Mt_main.pre_analysis () in
+    (* Prepare the analysis and build the engine. *)
+    let module Engine = (val pre_analysis ()) in
+    Self.feedback "Analyzing a%scomplete application starting at %a"
+      (if Kernel.LibEntry.get () then "n in" else " ")
+      Kernel_function.pretty entry_point;
+    try
+      Self.ComputationState.set Computing;
+      (* Run the analysis. *)
+      let final_state =
+        match mt_analysis with
+        | Some analysis -> mthread_fixpoint (module Engine) analysis
+        | None ->
+          compute_from_entry_point (module Engine)
+            ?cvalue_state ?arguments entry_point
+      in
+      Engine.Dom.Store.consolidate ();
+      Ok (fun () -> post_analysis (module Engine) mt_analysis final_state)
+    with exn -> Stdlib.Error (exn, Printexc.get_raw_backtrace ())
+  in
   try
-    Self.ComputationState.set Computing;
-    (* Run the analysis. *)
-    let final_state =
-      match mt_analysis with
-      | Some analysis -> mthread_fixpoint (module Engine) analysis
-      | None ->
-        compute_from_entry_point (module Engine)
-          ?cvalue_state ?arguments entry_point
-    in
-    Self.(ComputationState.set Computed);
-    post_analysis (module Engine) mt_analysis final_state
+    match iteration with
+    | Ok passes ->
+      Self.(ComputationState.set Computed);
+      passes ()
+    | Stdlib.Error (exn, backtrace) ->
+      Printexc.raise_with_backtrace exn backtrace
   with exn ->
     let backtrace = Printexc.get_raw_backtrace () in
     Self.(ComputationState.set Aborted);

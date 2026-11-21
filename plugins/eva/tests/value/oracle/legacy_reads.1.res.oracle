@@ -12,6 +12,8 @@
 Request at the first call of f, answered by top: true
 During the iteration:
   requests reported: 0
+  requests of the passes after the iteration: none, with reads: none
+  reads outside any request: none
   reads ignored: none
 [eva:progress] Recording results for f
 [eva:progress] Done for function f
@@ -27,11 +29,15 @@ During the iteration:
 [eva:progress] Recording results for main
 [eva:progress] Done for function main
 At the end of the iteration:
-  requests reported: 0
-  reads ignored: some
-After the analysis, for the requests made during it:
-  requests reported: 0
-  reads ignored: some
+  requests reported: 1
+  requests of the passes after the iteration: none, with reads: none
+  reads outside any request: none
+  reads ignored: none
+After the analysis, for the requests made during it and after its iteration:
+  requests reported: 1
+  requests of the passes after the iteration: some, with reads: some
+  reads outside any request: some
+  reads ignored: none
 State before a statement, joined:
   request 1: before legacy_reads.c:23 in f; joined
     read of the cvalue store: joined state, before legacy_reads.c:23 in f

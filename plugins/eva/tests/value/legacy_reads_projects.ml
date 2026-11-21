@@ -3,11 +3,22 @@
 
 open Eva
 
+(* The requests made by the passes that Eva runs after the iteration of an
+   analysis, and the reads outside any request, are counted apart. *)
 let print_reported title =
-  let requests = Legacy_read_trap.requests () in
+  let some list = if list = [] then "none" else "some" in
+  let passes, requests =
+    List.partition (fun r -> Option.is_some r.Legacy_read_trap.pass)
+      (Legacy_read_trap.requests ())
+  in
+  let reads = List.concat_map (fun r -> r.Legacy_read_trap.reads) passes in
   Format.printf "@[<v 2>%s:" title;
   if requests = [] then Format.printf "@ no request reported";
   List.iter (Format.printf "@ %a" Legacy_read_trap.pretty_request) requests;
+  Format.printf "@ requests of the passes after the iteration: %s, \
+                 with reads: %s" (some passes) (some reads);
+  Format.printf "@ reads outside any request: %s"
+    (some (Legacy_read_trap.stray_reads ()));
   Format.printf "@ reads ignored: %s@]@."
     (if Legacy_read_trap.ignored_reads () > 0 then "some" else "none")
 
@@ -33,8 +44,9 @@ let at_end_of_next_iteration =
 let main () =
   Analysis.compute ();
   let first = Project.current () in
-  (* A request in the first project, which has results, made while the second
-     one is analysed: reported with its read. *)
+  (* A request in the first project, which has results, made at the end of
+     the iteration of the second one: reported with its read. The passes of
+     the second project are reported as well. *)
   let second = copy "second" in
   Legacy_read_trap.start ();
   at_end_of_next_iteration (Project.on first initial_state);
@@ -43,8 +55,9 @@ let main () =
     "Request in the first project during the analysis of the second";
   (* An analysis of the third project started within a request of the first
      one, with a request of its own at the end of its iteration: the request
-     of the first project has its own reads only, those of the third project
-     are ignored. *)
+     of the first project has its own reads only; the request of the third
+     project, made after its iteration, is a request of its own, as are the
+     requests of its passes. *)
   let third = copy "third" in
   let f = Globals.Functions.find_by_name "f" in
   let stmt = Kernel_function.find_first_stmt f in

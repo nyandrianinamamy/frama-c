@@ -13,9 +13,22 @@ let print_reported title =
   List.iter (Format.printf "@ %a" Legacy_read_trap.pretty_request) requests;
   Format.printf "@]@."
 
+(* The requests made by the passes that Eva runs after the iteration, and
+   the reads outside any request, are counted apart. *)
 let print_ignored title =
-  Format.printf "@[<v 2>%s:@ requests reported: %d@ reads ignored: %s@]@."
-    title (List.length (Legacy_read_trap.requests ()))
+  let some list = if list = [] then "none" else "some" in
+  let passes, others =
+    List.partition (fun r -> Option.is_some r.Legacy_read_trap.pass)
+      (Legacy_read_trap.requests ())
+  in
+  let reads = List.concat_map (fun r -> r.Legacy_read_trap.reads) passes in
+  Format.printf "@[<v 2>%s:@ requests reported: %d@ \
+                 requests of the passes after the iteration: %s, \
+                 with reads: %s@ \
+                 reads outside any request: %s@ \
+                 reads ignored: %s@]@."
+    title (List.length others) (some passes) (some reads)
+    (some (Legacy_read_trap.stray_reads ()))
     (if Legacy_read_trap.ignored_reads () > 0 then "some" else "none")
 
 let first_stmt () = Kernel_function.find_first_stmt (kf "f")
@@ -37,8 +50,8 @@ let () =
          print_ignored "During the iteration"
        end)
 
-(* At the end of the iteration, Eva has results and answers from the store;
-   the analysis still runs. *)
+(* The hook runs once the iteration has ended or stopped, when Eva has
+   results: the request is reported. *)
 let () =
   Analysis.register_computation_hook
     (function
@@ -53,7 +66,8 @@ let main () =
     try Analysis.compute ()
     with Log.AbortError _ -> Format.printf "The analysis has stopped.@."
   end;
-  print_ignored "After the analysis, for the requests made during it";
+  print_ignored "After the analysis, for the requests made during it and \
+                 after its iteration";
   let main = kf "main" and f = kf "f" in
   let stmt = first_stmt () in
   let dead = label main "D" in
