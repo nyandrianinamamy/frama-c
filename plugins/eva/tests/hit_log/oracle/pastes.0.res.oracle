@@ -4,6 +4,6 @@ First request before P in child, without callstack:
 [eva:debug:hit-log] Debug: pastes made by the request: 2
   h ∈ {0; 1}
 Repeated request:
-[eva:debug:hit-log] Debug: pastes made by the request: 1
+[eva:debug:hit-log] Debug: pastes made by the request: 0
   h ∈ {0; 1}
 The two answers are equal: true.

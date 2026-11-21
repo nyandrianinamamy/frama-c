@@ -10,9 +10,9 @@
    these hits use the cache entry of the call made by the first call of
    parent. The joined body-entry state of the hits of parent is kept by the
    hit log, so the first request before P in child makes the same number of
-   pastes for 1 and for 100 hits; a repeated request makes one paste, the
-   other states being memoised. pastes.ml makes the requests and prints the
-   number of pastes of each. */
+   pastes for 1 and for 100 hits; a repeated request makes none, its answer
+   being memoised. pastes.ml makes the requests and prints the number of
+   pastes of each. */
 
 int h, out;
 

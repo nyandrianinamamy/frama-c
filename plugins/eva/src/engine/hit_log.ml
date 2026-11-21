@@ -539,6 +539,11 @@ type derived = {
      and per callstack. *)
   starts_joined: Cvalue.Model.t Kf_table.t;
   starts_by_callstack: Cvalue.Model.t Cs_table.t Kf_table.t;
+  (* The answers to the requests joined over all callstacks, at the start of
+     each function and before and after each statement. *)
+  answers_start: Cvalue.Model.t Kf_table.t;
+  answers_before: Cvalue.Model.t Stmt_table.t;
+  answers_after: Cvalue.Model.t Stmt_table.t;
   mutable indexed: bool;
   mutable pastes: int;
 }
@@ -550,6 +555,9 @@ let new_derived () = {
   unrun_by_callstack = Int_table.create 17;
   starts_joined = Kf_table.create 17;
   starts_by_callstack = Kf_table.create 17;
+  answers_start = Kf_table.create 17;
+  answers_before = Stmt_table.create 17;
+  answers_after = Stmt_table.create 17;
   indexed = false;
   pastes = 0;
 }
@@ -814,12 +822,29 @@ let point_state store derived ?callstack control_point kf =
   in
   List.map state (entries_with_ids store kf) |> join_all
 
+(* [memo table find replace key f] is the answer [f ()] for [key], memoised
+   in [table]. *)
+let memo table find replace key f =
+  match find table key with
+  | Some state -> state
+  | None ->
+    let state = f () in
+    replace table key state;
+    state
+
 let get_state ?callstack control_point =
   let store = Store.get () in
   if not (is_available store control_point) then `Top
   else
     let derived = derived store in
     count_pastes derived @@ fun () ->
+    let point_state stmt table =
+      let kf = Kernel_function.find_englobing_kf stmt in
+      let compute () = point_state store derived ?callstack control_point kf in
+      match callstack with
+      | Some _ -> compute ()
+      | None -> memo table Stmt_table.find_opt Stmt_table.replace stmt compute
+    in
     try
       match control_point with
       | Initial ->
@@ -830,10 +855,17 @@ let get_state ?callstack control_point =
             if Callstack.equal initial callstack then to_result state
             else `Bottom
         end
-      | Start kf -> to_result (start_state store derived ?callstack kf)
-      | Before stmt | After stmt ->
-        let kf = Kernel_function.find_englobing_kf stmt in
-        to_result (point_state store derived ?callstack control_point kf)
+      | Start kf ->
+        let compute () = start_state store derived ?callstack kf in
+        begin match callstack with
+          | Some _ -> to_result (compute ())
+          | None ->
+            memo derived.answers_start Kf_table.find_opt Kf_table.replace kf
+              compute
+            |> to_result
+        end
+      | Before stmt -> to_result (point_state stmt derived.answers_before)
+      | After stmt -> to_result (point_state stmt derived.answers_after)
     with Unavailable -> `Top
 
 (* Joins [state] into the state of [callstack] in [table]. *)

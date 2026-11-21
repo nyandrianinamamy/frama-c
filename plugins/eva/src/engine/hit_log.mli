@@ -130,7 +130,9 @@ val serving: unit -> bool
     unavailable. *)
 val available: Domain_store.control_point -> bool
 
-(** The state at a control point, joined over all callstacks or for one. *)
+(** The state at a control point, joined over all callstacks or for one.
+    The answers joined over all callstacks are memoised: the records do not
+    change once the iteration has ended. *)
 val get_state:
   ?callstack:Callstack.t -> Domain_store.control_point ->
   Cvalue.Model.t or_top_bottom
