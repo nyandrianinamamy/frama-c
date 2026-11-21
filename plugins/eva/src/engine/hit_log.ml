@@ -601,14 +601,21 @@ let derived store =
 exception Unavailable
 
 (* The state at a point whose Inner part is [point], of a call whose
-   body-entry state is [entry]. *)
-let paste derived point entry =
-  match entry with
-  | Cvalue.Model.Bottom | Top -> entry
-  | Map _ ->
+   body-entry state is [entry]: [entry] without the covered blocks, and the
+   Inner part. Only the covered blocks that the Inner part does not bind are
+   removed from [entry] before the Inner part is merged into it, so that the
+   result shares the rest of [entry]. *)
+let paste derived (point: point) entry =
+  match entry, point.inner with
+  | (Cvalue.Model.Bottom | Top), _ -> entry
+  | Map _, (Cvalue.Model.Bottom | Top) ->
     derived.pastes <- derived.pastes + 1;
-    let not_covered base = not (Base.Hptset.mem base point.covered) in
-    let frame = Cvalue.Model.filter_base not_covered entry in
+    point.inner
+  | Map _, Cvalue.Model.Map inner ->
+    derived.pastes <- derived.pastes + 1;
+    let bound = Base.Hptset.from_map (Cvalue.Model.shape inner) in
+    let unbound = Base.Hptset.diff point.covered bound in
+    let frame = Base.Hptset.fold Cvalue.Model.remove_base unbound entry in
     Cvalue.Model.merge ~into:frame point.inner
 
 (* The start state of the call [below] made by the body of a member whose
