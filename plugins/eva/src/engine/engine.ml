@@ -164,11 +164,32 @@ module Make (Abstract: Abstractions.S) = struct
           | Analyzed (Complete | Partial) -> get control_point
       else `Top
 
-    let get_state ?callstack =
-      find (Dom.Store.get_state ?callstack)
+    (* After an analysis with option -eva-hit-log, the states are rebuilt from
+       the cache entries and the hit log, see {!Hit_log}. *)
+    let of_cvalue cvalue =
+      let state = cvalue, Locals_scoping.bottom () in
+      Dom.set Cvalue_domain.State.key state Dom.top
+
+    let get_state ?callstack control_point =
+      if Hit_log.serving ()
+      then
+        let get control_point =
+          Hit_log.get_state ?callstack control_point
+          |> Lattice_bounds.TopBottom.map of_cvalue
+        in
+        find get control_point
+      else find (Dom.Store.get_state ?callstack) control_point
 
     let get_state_by_callstack control_point =
-      find (Dom.Store.get_state_by_callstack) control_point
+      if Hit_log.serving ()
+      then
+        let get control_point =
+          Hit_log.get_state_by_callstack control_point
+          |> Lattice_bounds.TopBottom.map
+            (List.map (fun (callstack, cvalue) -> callstack, of_cvalue cvalue))
+        in
+        find get control_point
+      else find (Dom.Store.get_state_by_callstack) control_point
 
     let callstacks = Abstract.Dom.Store.callstacks
 
