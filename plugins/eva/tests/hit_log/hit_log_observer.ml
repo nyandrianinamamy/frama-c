@@ -45,6 +45,41 @@ type call_kind = Analysed of int | Hit of int | Other of string
 
 let string_of_callstack = Format.asprintf "%a" Legacy_read_trap.pretty_callstack
 
+(* A callstack in a form that is rebuilt in another project: the functions by
+   name, the call statements by number. *)
+type portable = {
+  thread: int;
+  entry: string;
+  calls: (string * int) list;
+}
+
+let portable (cs: Callstack.t) =
+  { thread = cs.thread;
+    entry = Kernel_function.get_name cs.entry_point;
+    calls =
+      List.map
+        (fun (kf, stmt) -> Kernel_function.get_name kf, stmt.Cil_types.sid)
+        cs.stack }
+
+(* A callstack is identified by its printed form and its portable form: two
+   calls of a function on one source line are printed alike. *)
+let seen : (string, portable list) Hashtbl.t = Hashtbl.create 17
+
+let identify callstack =
+  let printed = string_of_callstack callstack and p = portable callstack in
+  let known = Option.value ~default:[] (Hashtbl.find_opt seen printed) in
+  if not (List.mem p known) then Hashtbl.replace seen printed (p :: known);
+  printed, p
+
+(* The name shown for a callstack: its printed form, with the numbers of its
+   call statements when another callstack is printed alike. *)
+let display (printed, p) =
+  match Hashtbl.find_opt seen printed with
+  | Some (_ :: _ :: _) ->
+    let sids = List.map (fun (_, sid) -> string_of_int sid) p.calls in
+    Format.sprintf "%s (call statements %s)" printed (String.concat ", " sids)
+  | _ -> printed
+
 let observing_calls = ref false
 let calls = ref []
 
@@ -59,12 +94,13 @@ let () =
            | `Spec _ -> Other "specification"
            | `Builtin _ -> Other "builtin"
          in
-         calls := (string_of_callstack callstack, kf, kind) :: !calls)
+         calls := (identify callstack, kf, kind) :: !calls)
 
 let print_calls () =
   Format.printf "@[<v 2>Calls:";
   List.iter
     (fun (callstack, _kf, kind) ->
+       let callstack = display callstack in
        match kind with
        | Analysed id ->
          Format.printf "@ %s: analysed, cache entry %d" callstack id
@@ -195,22 +231,6 @@ let request ~expected f =
     result
   end
 
-(* A callstack in a form that is rebuilt in another project: the functions by
-   name, the call statements by number. *)
-type portable = {
-  thread: int;
-  entry: string;
-  calls: (string * int) list;
-}
-
-let portable (cs: Callstack.t) =
-  { thread = cs.thread;
-    entry = Kernel_function.get_name cs.entry_point;
-    calls =
-      List.map
-        (fun (kf, stmt) -> Kernel_function.get_name kf, stmt.Cil_types.sid)
-        cs.stack }
-
 let rebuild p : Callstack.t =
   let kf = Globals.Functions.find_by_name in
   { thread = p.thread;
@@ -220,25 +240,16 @@ let rebuild p : Callstack.t =
         (fun (name, sid) -> kf name, fst (Kernel_function.find_from_sid sid))
         p.calls }
 
-(* The callstacks of the two projects are paired by their printed form:
-   two calls of a function on one line would be confused. *)
+(* The callstacks of the projects are paired by their portable form. *)
 let callstacks (point : point) =
-  let list =
-    request ~expected:(point.trap ^ "; every callstack")
-      (fun () -> Results.callstacks point.request)
-    |> List.map (fun cs -> string_of_callstack cs, portable cs)
-    |> List.sort (fun (s, _) (s', _) -> String.compare s s')
-  in
-  let names = List.map fst list in
-  if List.length (List.sort_uniq String.compare names) <> List.length names
-  then Format.printf "Two callstacks are printed alike: %s.@."
-      (String.concat ", " names);
-  list
+  request ~expected:(point.trap ^ "; every callstack")
+    (fun () -> Results.callstacks point.request)
+  |> List.map identify
+  |> List.sort compare
 
 (* The callstacks that reach a point in one of the projects. *)
 let union lists =
-  List.concat lists
-  |> List.sort_uniq (fun (s, _) (s', _) -> String.compare s s')
+  List.sort_uniq compare (List.concat lists)
 
 (* The answers at one point. *)
 type point_answers = {
@@ -260,9 +271,9 @@ let answers (point : point) stacks =
   let joined = state ~expected:(point.trap ^ "; joined") point.request in
   let keep =
     match stacks with
-    | (rejected, _) :: _ :: _ ->
+    | (_, rejected) :: _ :: _ ->
       if !checking then incr rejecting;
-      fun cs -> not (String.equal rejected (string_of_callstack cs))
+      fun cs -> portable cs <> rejected
     | _ -> fun _ -> true
   in
   let filtered =
@@ -271,9 +282,9 @@ let answers (point : point) stacks =
   in
   let by_callstack =
     List.map
-      (fun (name, cs) ->
-         let expected = point.trap ^ "; callstack " ^ name in
-         name,
+      (fun (printed, cs as stack) ->
+         let expected = point.trap ^ "; callstack " ^ printed in
+         display stack,
          state ~expected Results.(point.request |> in_callstack (rebuild cs)))
       stacks
   in
@@ -512,8 +523,8 @@ let print_control compared =
                    Option.value ~default:(Error Results.Bottom)
                      (List.assoc_opt name list)
                  in
-                 let a = find entry c.current.by_callstack in
-                 let b = find hit c.current.by_callstack in
+                 let a = find (display entry) c.current.by_callstack in
+                 let b = find (display hit) c.current.by_callstack in
                  if model a = None || model b = None then incr unavailable
                  else variables := differing_variables a b @ !variables
                end)
@@ -531,7 +542,7 @@ let print_control compared =
           in
           Format.printf "  %s, hit of cache entry %d, against %s: %s, at %d \
                          points.@."
-            hit id entry summary !points
+            (display hit) id (display entry) summary !points
         | _ -> ()
       end
     | Analysed _ | Other _ -> ()

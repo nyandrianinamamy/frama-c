@@ -1,0 +1,33 @@
+[kernel] Parsing same_line.c (with preprocessing)
+Calls:
+  f :: same_line.c:9 <- main (call statements 4): analysed, cache entry 6
+  f :: same_line.c:9 <- main (call statements 7): hit of cache entry 6
+  main: analysed, cache entry 7
+f, start:
+  joined: g ∈ {0}
+          h ∈ {0; 8}
+  f :: same_line.c:9 <- main (call statements 4): g ∈ {0}
+                                                  h ∈ {0}
+  f :: same_line.c:9 <- main (call statements 7): g ∈ {0}
+                                                  h ∈ {8}
+f, before same_line.c:7 `g = 1;` (P):
+  joined: g ∈ {0}
+          h ∈ {0; 8}
+  f :: same_line.c:9 <- main (call statements 4): g ∈ {0}
+                                                  h ∈ {0}
+  f :: same_line.c:9 <- main (call statements 7): g ∈ {0}
+                                                  h ∈ {8}
+f, after same_line.c:7 `return;`:
+  joined: g ∈ {1}
+          h ∈ {0; 8}
+  f :: same_line.c:9 <- main (call statements 4): g ∈ {1}
+                                                  h ∈ {0}
+  f :: same_line.c:9 <- main (call statements 7): g ∈ {1}
+                                                  h ∈ {8}
+Hits against the analysed call of their cache entry:
+  f :: same_line.c:9 <- main (call statements 7), hit of cache entry 6, against f :: same_line.c:9 <- main (call statements 4): differs on h, at 5 points.
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 59 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Filtered requests that reject one callstack: 5.
+Requests made: 77; reported by the trap: 77, each once with its description; reads of the legacy store: 0.
