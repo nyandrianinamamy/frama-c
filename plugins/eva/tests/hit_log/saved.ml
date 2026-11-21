@@ -53,13 +53,13 @@ let all_answers () =
     point_answers (name ^ ", start") (Results.at_start_of kf)
     @ List.concat_map of_stmt stmts
   in
-  let main = Globals.Functions.find_by_name "main" in
-  let f = Globals.Functions.find_by_name "f" in
+  let find = Globals.Functions.find_by_name in
   point_answers "initial state" Results.at_start
-  @ of_function main @ of_function f
+  @ List.concat_map of_function
+    [ find "main"; find "f"; find "parent"; find "leaf" ]
 
 (* Makes the requests in the current project, and prints the report of the
-   trap and, if [show], the answers before P. *)
+   trap and, if [show], the answers before P and before Q. *)
 let requests ~show name =
   Legacy_read_trap.start ();
   let answers = all_answers () in
@@ -70,12 +70,17 @@ let requests ~show name =
                  store: %d.@."
     name (List.length answers) (List.length reported) (List.length reads);
   if show then begin
-    let f = Globals.Functions.find_by_name "f" in
-    let p = !(Kernel_function.find_label f "P") in
-    List.iter
-      (fun (description, answer) ->
-         Format.printf "  @[<v 2>%s:@ %a@]@." description pretty_answer answer)
-      (point_answers "f, before P" (Results.before p))
+    let show_label name label =
+      let kf = Globals.Functions.find_by_name name in
+      let stmt = !(Kernel_function.find_label kf label) in
+      List.iter
+        (fun (description, answer) ->
+           Format.printf "  @[<v 2>%s:@ %a@]@." description pretty_answer
+             answer)
+        (point_answers (name ^ ", before " ^ label) (Results.before stmt))
+    in
+    show_label "f" "P";
+    show_label "leaf" "Q"
   end;
   answers
 

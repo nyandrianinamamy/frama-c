@@ -11,7 +11,9 @@
 /* The recording is kept by a copy of the project, and by a project saved and
    loaded, in the same process (first run) or in another one (second run):
    their requests are answered by the rule, as in the original project or in
-   a new analysis. saved.ml makes the requests. */
+   a new analysis. The second call of parent is a hit, and the call of leaf
+   is below it: the calls stored in the cache entries are kept as well.
+   saved.ml makes the requests. */
 
 #include "__fc_builtin.h"
 
@@ -19,11 +21,19 @@ int c, g, h;
 
 void f(void) { if (c) g = 0; P: g = 1; }
 
+int k;
+
+void leaf(int x) { Q: k = x; }
+
+void parent(void) { leaf(3); }
+
 int main(void) {
   c = Frama_C_interval(0, 1);
   g = 4; h = 7; f();
   g = 4; h = 8; f();
   g = 9; h = 8; f();
   g = 9; h = 5; f();
+  h = 1; k = 0; parent();
+  h = 2; k = 0; parent();
   return 0;
 }

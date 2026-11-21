@@ -1,28 +1,54 @@
-loaded: 109 answers; requests reported: 150; reads of the legacy store: 0.
+loaded: 163 answers; requests reported: 226; reads of the legacy store: 0.
   f, before P, joined:
     c ∈ {0; 1}
     g ∈ {0; 4; 9}
     h ∈ {5; 7; 8}
+    k ∈ {0}
     __retres ∈ UNINITIALIZED
-  f, before P, f :: saved.c:24 <- main:
+  f, before P, f :: saved.c:32 <- main:
     c ∈ {0; 1}
     g ∈ {0; 4}
     h ∈ {7}
+    k ∈ {0}
     __retres ∈ UNINITIALIZED
-  f, before P, f :: saved.c:25 <- main:
+  f, before P, f :: saved.c:33 <- main:
     c ∈ {0; 1}
     g ∈ {0; 4}
     h ∈ {8}
+    k ∈ {0}
     __retres ∈ UNINITIALIZED
-  f, before P, f :: saved.c:26 <- main:
+  f, before P, f :: saved.c:34 <- main:
     c ∈ {0; 1}
     g ∈ {0; 9}
     h ∈ {8}
+    k ∈ {0}
     __retres ∈ UNINITIALIZED
-  f, before P, f :: saved.c:27 <- main:
+  f, before P, f :: saved.c:35 <- main:
     c ∈ {0; 1}
     g ∈ {0; 9}
     h ∈ {5}
+    k ∈ {0}
     __retres ∈ UNINITIALIZED
-again: 109 answers; requests reported: 150; reads of the legacy store: 0.
+  leaf, before Q, joined:
+    c ∈ {0; 1}
+    g ∈ {1}
+    h ∈ {1; 2}
+    k ∈ {0}
+    x ∈ {3}
+    __retres ∈ UNINITIALIZED
+  leaf, before Q, leaf :: saved.c:28 <- parent :: saved.c:36 <- main:
+    c ∈ {0; 1}
+    g ∈ {1}
+    h ∈ {1}
+    k ∈ {0}
+    x ∈ {3}
+    __retres ∈ UNINITIALIZED
+  leaf, before Q, leaf :: saved.c:28 <- parent :: saved.c:37 <- main:
+    c ∈ {0; 1}
+    g ∈ {1}
+    h ∈ {2}
+    k ∈ {0}
+    x ∈ {3}
+    __retres ∈ UNINITIALIZED
+again: 163 answers; requests reported: 226; reads of the legacy store: 0.
 Answers of loaded equal those of again.
