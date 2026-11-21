@@ -1,0 +1,219 @@
+[kernel] Parsing below_known_issues.c (with preprocessing)
+Calls:
+  Frama_C_interval :: below_known_issues.c:60 <- issue93_3: specification
+  restrict_a :: below_known_issues.c:55 <- f93_3 :: below_known_issues.c:57 <- p93_3 :: below_known_issues.c:60 <- issue93_3: specification
+  f93_3 :: below_known_issues.c:57 <- p93_3 :: below_known_issues.c:60 <- issue93_3: analysed, cache entry 9
+  p93_3 :: below_known_issues.c:60 <- issue93_3: analysed, cache entry 10
+  Frama_C_interval :: below_known_issues.c:61 <- issue93_3: specification
+  p93_3 :: below_known_issues.c:61 <- issue93_3: hit of cache entry 10
+  issue93_3: analysed, cache entry 11
+Calls below a hit:
+  f93_3 :: below_known_issues.c:57 <- p93_3 :: below_known_issues.c:61 <- issue93_3
+f93_3, start:
+  joined: a ∈ [0..9]
+          g ∈ {3; 9}
+          out ∈ {0}
+          r1 ∈ {0; 1; 2; 3}
+          r2 ∈ {0}
+          y ∈ {0}
+          answer ∈ {0}
+          owner ∈ {0}
+          alias ∈ {0}
+          xc ∈ {0}
+  f93_3 :: below_known_issues.c:57 <- p93_3 :: below_known_issues.c:60 <- issue93_3: 
+  a ∈ [0..9]
+  g ∈ {3}
+  out ∈ {0}
+  r1 ∈ {0}
+  r2 ∈ {0}
+  y ∈ {0}
+  answer ∈ {0}
+  owner ∈ {0}
+  alias ∈ {0}
+  xc ∈ {0}
+  f93_3 :: below_known_issues.c:57 <- p93_3 :: below_known_issues.c:61 <- issue93_3: 
+  a ∈ [0..9]
+  g ∈ {9}
+  out ∈ {0}
+  r1 ∈ {0; 1; 2; 3}
+  r2 ∈ {0}
+  y ∈ {0}
+  answer ∈ {0}
+  owner ∈ {0}
+  alias ∈ {0}
+  xc ∈ {0}
+f93_3, before below_known_issues.c:55 `out = a;` (P):
+  joined: a ∈ [0..9]
+          g ∈ {3; 9}
+          out ∈ {0}
+          r1 ∈ {0; 1; 2; 3}
+          r2 ∈ {0}
+          y ∈ {0}
+          answer ∈ {0}
+          owner ∈ {0}
+          alias ∈ {0}
+          xc ∈ {0}
+  f93_3 :: below_known_issues.c:57 <- p93_3 :: below_known_issues.c:60 <- issue93_3: 
+  a ∈ [0..9]
+  g ∈ {3}
+  out ∈ {0}
+  r1 ∈ {0}
+  r2 ∈ {0}
+  y ∈ {0}
+  answer ∈ {0}
+  owner ∈ {0}
+  alias ∈ {0}
+  xc ∈ {0}
+  f93_3 :: below_known_issues.c:57 <- p93_3 :: below_known_issues.c:61 <- issue93_3: 
+  a ∈ [0..9]
+  g ∈ {9}
+  out ∈ {0}
+  r1 ∈ {0; 1; 2; 3}
+  r2 ∈ {0}
+  y ∈ {0}
+  answer ∈ {0}
+  owner ∈ {0}
+  alias ∈ {0}
+  xc ∈ {0}
+  reference, joined: a ∈ [0..9]
+                     g ∈ {3; 9}
+                     out ∈ {0}
+                     r1 ∈ {0; 1; 2; 3}
+                     r2 ∈ {0}
+                     y ∈ {0}
+                     answer ∈ {0}
+                     owner ∈ {0}
+                     alias ∈ {0}
+                     xc ∈ {0}
+  f93_3 :: below_known_issues.c:57 <- p93_3 :: below_known_issues.c:60 <- issue93_3: 
+  a ∈ {0; 1; 2; 3}
+  g ∈ {3}
+  out ∈ {0}
+  r1 ∈ {0}
+  r2 ∈ {0}
+  y ∈ {0}
+  answer ∈ {0}
+  owner ∈ {0}
+  alias ∈ {0}
+  xc ∈ {0}
+  f93_3 :: below_known_issues.c:57 <- p93_3 :: below_known_issues.c:61 <- issue93_3: 
+  a ∈ [0..9]
+  g ∈ {9}
+  out ∈ {0}
+  r1 ∈ {0; 1; 2; 3}
+  r2 ∈ {0}
+  y ∈ {0}
+  answer ∈ {0}
+  owner ∈ {0}
+  alias ∈ {0}
+  xc ∈ {0}
+f93_3, after below_known_issues.c:55 `return;`:
+  joined: a ∈ {0; 1; 2; 3}
+          g ∈ {3; 9}
+          out ∈ {0; 1; 2; 3}
+          r1 ∈ {0; 1; 2; 3}
+          r2 ∈ {0}
+          y ∈ {0}
+          answer ∈ {0}
+          owner ∈ {0}
+          alias ∈ {0}
+          xc ∈ {0}
+  f93_3 :: below_known_issues.c:57 <- p93_3 :: below_known_issues.c:60 <- issue93_3: 
+  a ∈ {0; 1; 2; 3}
+  g ∈ {3}
+  out ∈ {0; 1; 2; 3}
+  r1 ∈ {0}
+  r2 ∈ {0}
+  y ∈ {0}
+  answer ∈ {0}
+  owner ∈ {0}
+  alias ∈ {0}
+  xc ∈ {0}
+  f93_3 :: below_known_issues.c:57 <- p93_3 :: below_known_issues.c:61 <- issue93_3: 
+  a ∈ {0; 1; 2; 3}
+  g ∈ {9}
+  out ∈ {0; 1; 2; 3}
+  r1 ∈ {0; 1; 2; 3}
+  r2 ∈ {0}
+  y ∈ {0}
+  answer ∈ {0}
+  owner ∈ {0}
+  alias ∈ {0}
+  xc ∈ {0}
+  reference, joined: a ∈ [0..9]
+                     g ∈ {3; 9}
+                     out ∈ [0..9]
+                     r1 ∈ {0; 1; 2; 3}
+                     r2 ∈ {0}
+                     y ∈ {0}
+                     answer ∈ {0}
+                     owner ∈ {0}
+                     alias ∈ {0}
+                     xc ∈ {0}
+  f93_3 :: below_known_issues.c:57 <- p93_3 :: below_known_issues.c:60 <- issue93_3: 
+  a ∈ {0; 1; 2; 3}
+  g ∈ {3}
+  out ∈ {0; 1; 2; 3}
+  r1 ∈ {0}
+  r2 ∈ {0}
+  y ∈ {0}
+  answer ∈ {0}
+  owner ∈ {0}
+  alias ∈ {0}
+  xc ∈ {0}
+  f93_3 :: below_known_issues.c:57 <- p93_3 :: below_known_issues.c:61 <- issue93_3: 
+  a ∈ [0..9]
+  g ∈ {9}
+  out ∈ [0..9]
+  r1 ∈ {0; 1; 2; 3}
+  r2 ∈ {0}
+  y ∈ {0}
+  answer ∈ {0}
+  owner ∈ {0}
+  alias ∈ {0}
+  xc ∈ {0}
+Hits against the analysed call of their cache entry:
+  p93_3 :: below_known_issues.c:61 <- issue93_3, hit of cache entry 10, against p93_3 :: below_known_issues.c:60 <- issue93_3: differs on g, r1, at 5 points.
+Initial state: equal.
+Differences with the run without memexec:
+  final state, joined: more precise, as with memexec
+  final state, filtered: more precise, as with memexec
+  final state, issue93_3: more precise, as with memexec
+  f93_3, after below_known_issues.c:55 `restrict_a();`, f93_3 :: below_known_issues.c:57 <- p93_3 :: below_known_issues.c:60 <- issue93_3: covers
+  f93_3, before below_known_issues.c:55 `out = a;` (P), f93_3 :: below_known_issues.c:57 <- p93_3 :: below_known_issues.c:60 <- issue93_3: covers
+  f93_3, after below_known_issues.c:55 `out = a;` (P), joined: more precise
+  f93_3, after below_known_issues.c:55 `out = a;` (P), filtered: more precise
+  f93_3, after below_known_issues.c:55 `out = a;` (P), f93_3 :: below_known_issues.c:57 <- p93_3 :: below_known_issues.c:61 <- issue93_3: more precise
+  f93_3, before below_known_issues.c:55 `return;`, joined: more precise
+  f93_3, before below_known_issues.c:55 `return;`, filtered: more precise
+  f93_3, before below_known_issues.c:55 `return;`, f93_3 :: below_known_issues.c:57 <- p93_3 :: below_known_issues.c:61 <- issue93_3: more precise
+  f93_3, after below_known_issues.c:55 `return;`, joined: more precise
+  f93_3, after below_known_issues.c:55 `return;`, filtered: more precise
+  f93_3, after below_known_issues.c:55 `return;`, f93_3 :: below_known_issues.c:57 <- p93_3 :: below_known_issues.c:61 <- issue93_3: more precise
+  p93_3, after below_known_issues.c:57 `f93_3();`, joined: more precise
+  p93_3, after below_known_issues.c:57 `f93_3();`, filtered: more precise
+  p93_3, after below_known_issues.c:57 `f93_3();`, p93_3 :: below_known_issues.c:61 <- issue93_3: more precise
+  p93_3, before below_known_issues.c:57 `return;`, joined: more precise
+  p93_3, before below_known_issues.c:57 `return;`, filtered: more precise
+  p93_3, before below_known_issues.c:57 `return;`, p93_3 :: below_known_issues.c:61 <- issue93_3: more precise
+  p93_3, after below_known_issues.c:57 `return;`, joined: more precise
+  p93_3, after below_known_issues.c:57 `return;`, filtered: more precise
+  p93_3, after below_known_issues.c:57 `return;`, p93_3 :: below_known_issues.c:61 <- issue93_3: more precise
+  issue93_3, after below_known_issues.c:61 `p93_3();`, joined: more precise, as with memexec
+  issue93_3, after below_known_issues.c:61 `p93_3();`, filtered: more precise, as with memexec
+  issue93_3, after below_known_issues.c:61 `p93_3();`, issue93_3: more precise, as with memexec
+  issue93_3, before below_known_issues.c:61 `r2 = out;`, joined: more precise, as with memexec
+  issue93_3, before below_known_issues.c:61 `r2 = out;`, filtered: more precise, as with memexec
+  issue93_3, before below_known_issues.c:61 `r2 = out;`, issue93_3: more precise, as with memexec
+  issue93_3, after below_known_issues.c:61 `r2 = out;`, joined: more precise, as with memexec
+  issue93_3, after below_known_issues.c:61 `r2 = out;`, filtered: more precise, as with memexec
+  issue93_3, after below_known_issues.c:61 `r2 = out;`, issue93_3: more precise, as with memexec
+  issue93_3, before below_known_issues.c:62 `return;`, joined: more precise, as with memexec
+  issue93_3, before below_known_issues.c:62 `return;`, filtered: more precise, as with memexec
+  issue93_3, before below_known_issues.c:62 `return;`, issue93_3: more precise, as with memexec
+  issue93_3, after below_known_issues.c:62 `return;`, joined: more precise, as with memexec
+  issue93_3, after below_known_issues.c:62 `return;`, filtered: more precise, as with memexec
+  issue93_3, after below_known_issues.c:62 `return;`, issue93_3: more precise, as with memexec
+Answers: 557 equal, 2 covering, 36 more precise, 0 omitting, 0 unavailable.
+Filtered requests that reject one callstack: 12.
+Requests made: 869; reported by the trap: 869, each once with its description; reads of the legacy store: 0.

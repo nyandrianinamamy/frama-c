@@ -1,0 +1,224 @@
+[kernel] Parsing below_known_issues.c (with preprocessing)
+Calls:
+  malloc :: below_known_issues.c:85 <- issue94_1: builtin
+  equal_live :: below_known_issues.c:80 <- p94_1 :: below_known_issues.c:88 <- issue94_1: analysed, cache entry 9
+  p94_1 :: below_known_issues.c:88 <- issue94_1: analysed, cache entry 10
+  Frama_C_show_each_equal :: below_known_issues.c:89 <- issue94_1: builtin
+  malloc :: below_known_issues.c:85 <- issue94_1: builtin
+  p94_1 :: below_known_issues.c:88 <- issue94_1: hit of cache entry 10
+  Frama_C_show_each_equal :: below_known_issues.c:89 <- issue94_1: builtin
+  issue94_1: analysed, cache entry 11
+equal_live, start:
+  joined: a ∈ {0}
+          g ∈ {0}
+          out ∈ {0}
+          r1 ∈ {0}
+          r2 ∈ {0}
+          y ∈ {0}
+          answer ∈ {0}
+          pa ∈ {{ (void const *)&__malloc_w_issue94_1_l85_1 }}
+          pb ∈ {{ (void const *)&__malloc_w_issue94_1_l85_1 }}
+          pa ∈ {{ (void const *)&__malloc_w_issue94_1_l85_1 }}
+          pb ∈ {{ (void const *)&__malloc_w_issue94_1_l85_1 }}
+          tmp ∈ UNINITIALIZED
+          first ∈ {{ (void *)&__malloc_w_issue94_1_l85_1 }}
+          i ∈ {0; 1}
+          current ∈ {{ (void *)&__malloc_w_issue94_1_l85_1 }}
+          same ∈ UNINITIALIZED
+          owner ∈ {0}
+          alias ∈ {0}
+          xc ∈ {0}
+          __retres ∈ UNINITIALIZED
+          __malloc_w_issue94_1_l85_1[0..1] ∈ UNINITIALIZED
+  equal_live :: below_known_issues.c:80 <- p94_1 :: below_known_issues.c:88 <- issue94_1: 
+  a ∈ {0}
+  g ∈ {0}
+  out ∈ {0}
+  r1 ∈ {0}
+  r2 ∈ {0}
+  y ∈ {0}
+  answer ∈ {0}
+  pa ∈ {{ (void const *)&__malloc_w_issue94_1_l85_1 }}
+  pb ∈ {{ (void const *)&__malloc_w_issue94_1_l85_1 }}
+  pa ∈ {{ (void const *)&__malloc_w_issue94_1_l85_1 }}
+  pb ∈ {{ (void const *)&__malloc_w_issue94_1_l85_1 }}
+  tmp ∈ UNINITIALIZED
+  first ∈ {{ (void *)&__malloc_w_issue94_1_l85_1 }}
+  i ∈ {0; 1}
+  current ∈ {{ (void *)&__malloc_w_issue94_1_l85_1 }}
+  same ∈ UNINITIALIZED
+  owner ∈ {0}
+  alias ∈ {0}
+  xc ∈ {0}
+  __retres ∈ UNINITIALIZED
+  __malloc_w_issue94_1_l85_1[0..1] ∈ UNINITIALIZED
+equal_live, before below_known_issues.c:78 `;` (P):
+  joined: a ∈ {0}
+          g ∈ {0}
+          out ∈ {0}
+          r1 ∈ {0}
+          r2 ∈ {0}
+          y ∈ {0}
+          answer ∈ {0}
+          pa ∈ {{ (void const *)&__malloc_w_issue94_1_l85_1 }}
+          pb ∈ {{ (void const *)&__malloc_w_issue94_1_l85_1 }}
+          pa ∈ {{ (void const *)&__malloc_w_issue94_1_l85_1 }}
+          pb ∈ {{ (void const *)&__malloc_w_issue94_1_l85_1 }}
+          tmp ∈ UNINITIALIZED
+          first ∈ {{ (void *)&__malloc_w_issue94_1_l85_1 }}
+          i ∈ {0; 1}
+          current ∈ {{ (void *)&__malloc_w_issue94_1_l85_1 }}
+          same ∈ UNINITIALIZED
+          owner ∈ {0}
+          alias ∈ {0}
+          xc ∈ {0}
+          __retres ∈ UNINITIALIZED
+          __retres ∈ UNINITIALIZED
+          __malloc_w_issue94_1_l85_1[0..1] ∈ UNINITIALIZED
+  equal_live :: below_known_issues.c:80 <- p94_1 :: below_known_issues.c:88 <- issue94_1: 
+  a ∈ {0}
+  g ∈ {0}
+  out ∈ {0}
+  r1 ∈ {0}
+  r2 ∈ {0}
+  y ∈ {0}
+  answer ∈ {0}
+  pa ∈ {{ (void const *)&__malloc_w_issue94_1_l85_1 }}
+  pb ∈ {{ (void const *)&__malloc_w_issue94_1_l85_1 }}
+  pa ∈ {{ (void const *)&__malloc_w_issue94_1_l85_1 }}
+  pb ∈ {{ (void const *)&__malloc_w_issue94_1_l85_1 }}
+  tmp ∈ UNINITIALIZED
+  first ∈ {{ (void *)&__malloc_w_issue94_1_l85_1 }}
+  i ∈ {0; 1}
+  current ∈ {{ (void *)&__malloc_w_issue94_1_l85_1 }}
+  same ∈ UNINITIALIZED
+  owner ∈ {0}
+  alias ∈ {0}
+  xc ∈ {0}
+  __retres ∈ UNINITIALIZED
+  __retres ∈ UNINITIALIZED
+  __malloc_w_issue94_1_l85_1[0..1] ∈ UNINITIALIZED
+equal_live, after below_known_issues.c:78 `return __retres;`:
+  joined: a ∈ {0}
+          g ∈ {0}
+          out ∈ {0}
+          r1 ∈ {0}
+          r2 ∈ {0}
+          y ∈ {0}
+          answer ∈ {0}
+          pa ∈ {{ (void const *)&__malloc_w_issue94_1_l85_1 }}
+          pb ∈ {{ (void const *)&__malloc_w_issue94_1_l85_1 }}
+          pa ∈ {{ (void const *)&__malloc_w_issue94_1_l85_1 }}
+          pb ∈ {{ (void const *)&__malloc_w_issue94_1_l85_1 }}
+          tmp ∈ UNINITIALIZED
+          first ∈ {{ (void *)&__malloc_w_issue94_1_l85_1 }}
+          i ∈ {0; 1}
+          current ∈ {{ (void *)&__malloc_w_issue94_1_l85_1 }}
+          same ∈ UNINITIALIZED
+          owner ∈ {0}
+          alias ∈ {0}
+          xc ∈ {0}
+          __retres ∈ {1}
+          __retres ∈ UNINITIALIZED
+          __malloc_w_issue94_1_l85_1[0..1] ∈ UNINITIALIZED
+  equal_live :: below_known_issues.c:80 <- p94_1 :: below_known_issues.c:88 <- issue94_1: 
+  a ∈ {0}
+  g ∈ {0}
+  out ∈ {0}
+  r1 ∈ {0}
+  r2 ∈ {0}
+  y ∈ {0}
+  answer ∈ {0}
+  pa ∈ {{ (void const *)&__malloc_w_issue94_1_l85_1 }}
+  pb ∈ {{ (void const *)&__malloc_w_issue94_1_l85_1 }}
+  pa ∈ {{ (void const *)&__malloc_w_issue94_1_l85_1 }}
+  pb ∈ {{ (void const *)&__malloc_w_issue94_1_l85_1 }}
+  tmp ∈ UNINITIALIZED
+  first ∈ {{ (void *)&__malloc_w_issue94_1_l85_1 }}
+  i ∈ {0; 1}
+  current ∈ {{ (void *)&__malloc_w_issue94_1_l85_1 }}
+  same ∈ UNINITIALIZED
+  owner ∈ {0}
+  alias ∈ {0}
+  xc ∈ {0}
+  __retres ∈ {1}
+  __retres ∈ UNINITIALIZED
+  __malloc_w_issue94_1_l85_1[0..1] ∈ UNINITIALIZED
+  reference, joined: a ∈ {0}
+                     g ∈ {0}
+                     out ∈ {0}
+                     r1 ∈ {0}
+                     r2 ∈ {0}
+                     y ∈ {0}
+                     answer ∈ {0}
+                     pa ∈ {{ (void const *)&__malloc_w_issue94_1_l85_1 }}
+                     pb ∈ {{ (void const *)&__malloc_w_issue94_1_l85_1 }}
+                     pa ∈ {{ (void const *)&__malloc_w_issue94_1_l85_1 }}
+                     pb ∈ {{ (void const *)&__malloc_w_issue94_1_l85_1 }}
+                     tmp ∈ UNINITIALIZED
+                     first ∈ {{ (void *)&__malloc_w_issue94_1_l85_1 }}
+                     i ∈ {0; 1}
+                     current ∈ {{ (void *)&__malloc_w_issue94_1_l85_1 }}
+                     same ∈ UNINITIALIZED
+                     owner ∈ {0}
+                     alias ∈ {0}
+                     xc ∈ {0}
+                     __retres ∈ {0; 1}
+                     __retres ∈ UNINITIALIZED
+                     __malloc_w_issue94_1_l85_1[0..1] ∈ UNINITIALIZED
+  equal_live :: below_known_issues.c:80 <- p94_1 :: below_known_issues.c:88 <- issue94_1: 
+  a ∈ {0}
+  g ∈ {0}
+  out ∈ {0}
+  r1 ∈ {0}
+  r2 ∈ {0}
+  y ∈ {0}
+  answer ∈ {0}
+  pa ∈ {{ (void const *)&__malloc_w_issue94_1_l85_1 }}
+  pb ∈ {{ (void const *)&__malloc_w_issue94_1_l85_1 }}
+  pa ∈ {{ (void const *)&__malloc_w_issue94_1_l85_1 }}
+  pb ∈ {{ (void const *)&__malloc_w_issue94_1_l85_1 }}
+  tmp ∈ UNINITIALIZED
+  first ∈ {{ (void *)&__malloc_w_issue94_1_l85_1 }}
+  i ∈ {0; 1}
+  current ∈ {{ (void *)&__malloc_w_issue94_1_l85_1 }}
+  same ∈ UNINITIALIZED
+  owner ∈ {0}
+  alias ∈ {0}
+  xc ∈ {0}
+  __retres ∈ {0; 1}
+  __retres ∈ UNINITIALIZED
+  __malloc_w_issue94_1_l85_1[0..1] ∈ UNINITIALIZED
+Hits against the analysed call of their cache entry:
+Initial state: equal.
+Differences with the run without memexec:
+  equal_live, after below_known_issues.c:78 `__retres = pa == pb;`, joined: more precise
+  equal_live, after below_known_issues.c:78 `__retres = pa == pb;`, filtered: more precise
+  equal_live, after below_known_issues.c:78 `__retres = pa == pb;`, equal_live :: below_known_issues.c:80 <- p94_1 :: below_known_issues.c:88 <- issue94_1: more precise
+  equal_live, before below_known_issues.c:78 `return __retres;`, joined: more precise
+  equal_live, before below_known_issues.c:78 `return __retres;`, filtered: more precise
+  equal_live, before below_known_issues.c:78 `return __retres;`, equal_live :: below_known_issues.c:80 <- p94_1 :: below_known_issues.c:88 <- issue94_1: more precise
+  equal_live, after below_known_issues.c:78 `return __retres;`, joined: more precise
+  equal_live, after below_known_issues.c:78 `return __retres;`, filtered: more precise
+  equal_live, after below_known_issues.c:78 `return __retres;`, equal_live :: below_known_issues.c:80 <- p94_1 :: below_known_issues.c:88 <- issue94_1: more precise
+  p94_1, after below_known_issues.c:80 `tmp = equal_live(pa,pb);`, joined: more precise
+  p94_1, after below_known_issues.c:80 `tmp = equal_live(pa,pb);`, filtered: more precise
+  p94_1, after below_known_issues.c:80 `tmp = equal_live(pa,pb);`, p94_1 :: below_known_issues.c:88 <- issue94_1: more precise
+  p94_1, before below_known_issues.c:80 `return tmp;`, joined: more precise
+  p94_1, before below_known_issues.c:80 `return tmp;`, filtered: more precise
+  p94_1, before below_known_issues.c:80 `return tmp;`, p94_1 :: below_known_issues.c:88 <- issue94_1: more precise
+  p94_1, after below_known_issues.c:80 `return tmp;`, joined: more precise
+  p94_1, after below_known_issues.c:80 `return tmp;`, filtered: more precise
+  p94_1, after below_known_issues.c:80 `return tmp;`, p94_1 :: below_known_issues.c:88 <- issue94_1: more precise
+  issue94_1, after below_known_issues.c:88 `int same = p94_1((void const *)first,(void const *)current);`, joined: more precise, as with memexec
+  issue94_1, after below_known_issues.c:88 `int same = p94_1((void const *)first,(void const *)current);`, filtered: more precise, as with memexec
+  issue94_1, after below_known_issues.c:88 `int same = p94_1((void const *)first,(void const *)current);`, issue94_1: more precise, as with memexec
+  issue94_1, before below_known_issues.c:89 `Frama_C_show_each_equal(i,same);`, joined: more precise, as with memexec
+  issue94_1, before below_known_issues.c:89 `Frama_C_show_each_equal(i,same);`, filtered: more precise, as with memexec
+  issue94_1, before below_known_issues.c:89 `Frama_C_show_each_equal(i,same);`, issue94_1: more precise, as with memexec
+  issue94_1, after below_known_issues.c:89 `Frama_C_show_each_equal(i,same);`, joined: more precise, as with memexec
+  issue94_1, after below_known_issues.c:89 `Frama_C_show_each_equal(i,same);`, filtered: more precise, as with memexec
+  issue94_1, after below_known_issues.c:89 `Frama_C_show_each_equal(i,same);`, issue94_1: more precise, as with memexec
+Answers: 569 equal, 0 covering, 27 more precise, 0 omitting, 0 unavailable.
+Filtered requests that reject one callstack: 0.
+Requests made: 870; reported by the trap: 870, each once with its description; reads of the legacy store: 0.

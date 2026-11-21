@@ -1,0 +1,301 @@
+[kernel] Parsing below_known_issues.c (with preprocessing)
+Calls:
+  malloc :: below_known_issues.c:102 <- issue94_2: builtin
+  free :: below_known_issues.c:96 <- release :: below_known_issues.c:98 <- p94_2 :: below_known_issues.c:106 <- issue94_2: builtin
+  release :: below_known_issues.c:98 <- p94_2 :: below_known_issues.c:106 <- issue94_2: analysed, cache entry 11
+  p94_2 :: below_known_issues.c:106 <- issue94_2: analysed, cache entry 12
+  malloc :: below_known_issues.c:102 <- issue94_2: builtin
+  p94_2 :: below_known_issues.c:106 <- issue94_2: hit of cache entry 12
+  malloc :: below_known_issues.c:102 <- issue94_2: builtin
+  p94_2 :: below_known_issues.c:106 <- issue94_2: hit of cache entry 12
+  issue94_2: analysed, cache entry 13
+release, start:
+  joined: a ∈ {0}
+          g ∈ {0}
+          out ∈ {0}
+          r1 ∈ {0}
+          r2 ∈ {0}
+          y ∈ {0}
+          answer ∈ {0}
+          owner ∈ {{ &__malloc_w_issue94_2_l102_1 }}
+          alias ∈ {{ NULL ; &__malloc_w_issue94_2_l102_1 }}
+          i ∈ {0; 1; 2}
+          xc ∈ {0}
+          __retres ∈ UNINITIALIZED
+          __malloc_w_issue94_2_l102_1 ∈ {17} or UNINITIALIZED
+  release :: below_known_issues.c:98 <- p94_2 :: below_known_issues.c:106 <- issue94_2: 
+  a ∈ {0}
+  g ∈ {0}
+  out ∈ {0}
+  r1 ∈ {0}
+  r2 ∈ {0}
+  y ∈ {0}
+  answer ∈ {0}
+  owner ∈ {{ &__malloc_w_issue94_2_l102_1 }}
+  alias ∈ {{ NULL ; &__malloc_w_issue94_2_l102_1 }}
+  i ∈ {0; 1; 2}
+  xc ∈ {0}
+  __retres ∈ UNINITIALIZED
+  __malloc_w_issue94_2_l102_1 ∈ {17} or UNINITIALIZED
+  reference, joined: a ∈ {0}
+                     g ∈ {0}
+                     out ∈ {0}
+                     r1 ∈ {0}
+                     r2 ∈ {0}
+                     y ∈ {0}
+                     answer ∈ {0}
+                     owner ∈ {{ &__malloc_issue94_2_l102 }}
+                     alias ∈ {{ NULL ; &__malloc_issue94_2_l102 }}
+                     i ∈ {0; 1; 2}
+                     xc ∈ {0}
+                     __retres ∈ UNINITIALIZED
+                     __malloc_issue94_2_l102 ∈ {17}
+  release :: below_known_issues.c:98 <- p94_2 :: below_known_issues.c:106 <- issue94_2: 
+  a ∈ {0}
+  g ∈ {0}
+  out ∈ {0}
+  r1 ∈ {0}
+  r2 ∈ {0}
+  y ∈ {0}
+  answer ∈ {0}
+  owner ∈ {{ &__malloc_issue94_2_l102 }}
+  alias ∈ {{ NULL ; &__malloc_issue94_2_l102 }}
+  i ∈ {0; 1; 2}
+  xc ∈ {0}
+  __retres ∈ UNINITIALIZED
+  __malloc_issue94_2_l102 ∈ {17}
+release, before below_known_issues.c:96 `owner = (int *)0;` (P):
+  joined: a ∈ {0}
+          g ∈ {0}
+          out ∈ {0}
+          r1 ∈ {0}
+          r2 ∈ {0}
+          y ∈ {0}
+          answer ∈ {0}
+          owner ∈ ESCAPINGADDR
+          alias ∈ {{ NULL ; &__malloc_w_issue94_2_l102_1 }}
+          i ∈ {0; 1; 2}
+          xc ∈ {0}
+          __retres ∈ UNINITIALIZED
+          __malloc_w_issue94_2_l102_1 ∈ {17} or UNINITIALIZED
+  release :: below_known_issues.c:98 <- p94_2 :: below_known_issues.c:106 <- issue94_2: 
+  a ∈ {0}
+  g ∈ {0}
+  out ∈ {0}
+  r1 ∈ {0}
+  r2 ∈ {0}
+  y ∈ {0}
+  answer ∈ {0}
+  owner ∈ ESCAPINGADDR
+  alias ∈ {{ NULL ; &__malloc_w_issue94_2_l102_1 }}
+  i ∈ {0; 1; 2}
+  xc ∈ {0}
+  __retres ∈ UNINITIALIZED
+  __malloc_w_issue94_2_l102_1 ∈ {17} or UNINITIALIZED
+  reference, joined: a ∈ {0}
+                     g ∈ {0}
+                     out ∈ {0}
+                     r1 ∈ {0}
+                     r2 ∈ {0}
+                     y ∈ {0}
+                     answer ∈ {0}
+                     owner ∈ ESCAPINGADDR
+                     alias ∈ {0} or ESCAPINGADDR
+                     i ∈ {0; 1; 2}
+                     xc ∈ {0}
+                     __retres ∈ UNINITIALIZED
+  release :: below_known_issues.c:98 <- p94_2 :: below_known_issues.c:106 <- issue94_2: 
+  a ∈ {0}
+  g ∈ {0}
+  out ∈ {0}
+  r1 ∈ {0}
+  r2 ∈ {0}
+  y ∈ {0}
+  answer ∈ {0}
+  owner ∈ ESCAPINGADDR
+  alias ∈ {0} or ESCAPINGADDR
+  i ∈ {0; 1; 2}
+  xc ∈ {0}
+  __retres ∈ UNINITIALIZED
+release, after below_known_issues.c:96 `return;`:
+  joined: a ∈ {0}
+          g ∈ {0}
+          out ∈ {0}
+          r1 ∈ {0}
+          r2 ∈ {0}
+          y ∈ {0}
+          answer ∈ {0}
+          owner ∈ {0}
+          alias ∈ {{ NULL ; &__malloc_w_issue94_2_l102_1 }}
+          i ∈ {0; 1; 2}
+          xc ∈ {0}
+          __retres ∈ UNINITIALIZED
+          __malloc_w_issue94_2_l102_1 ∈ {17} or UNINITIALIZED
+  release :: below_known_issues.c:98 <- p94_2 :: below_known_issues.c:106 <- issue94_2: 
+  a ∈ {0}
+  g ∈ {0}
+  out ∈ {0}
+  r1 ∈ {0}
+  r2 ∈ {0}
+  y ∈ {0}
+  answer ∈ {0}
+  owner ∈ {0}
+  alias ∈ {{ NULL ; &__malloc_w_issue94_2_l102_1 }}
+  i ∈ {0; 1; 2}
+  xc ∈ {0}
+  __retres ∈ UNINITIALIZED
+  __malloc_w_issue94_2_l102_1 ∈ {17} or UNINITIALIZED
+  reference, joined: a ∈ {0}
+                     g ∈ {0}
+                     out ∈ {0}
+                     r1 ∈ {0}
+                     r2 ∈ {0}
+                     y ∈ {0}
+                     answer ∈ {0}
+                     owner ∈ {0}
+                     alias ∈ {0} or ESCAPINGADDR
+                     i ∈ {0; 1; 2}
+                     xc ∈ {0}
+                     __retres ∈ UNINITIALIZED
+  release :: below_known_issues.c:98 <- p94_2 :: below_known_issues.c:106 <- issue94_2: 
+  a ∈ {0}
+  g ∈ {0}
+  out ∈ {0}
+  r1 ∈ {0}
+  r2 ∈ {0}
+  y ∈ {0}
+  answer ∈ {0}
+  owner ∈ {0}
+  alias ∈ {0} or ESCAPINGADDR
+  i ∈ {0; 1; 2}
+  xc ∈ {0}
+  __retres ∈ UNINITIALIZED
+Hits against the analysed call of their cache entry:
+Initial state: equal.
+Differences with the run without memexec:
+  final state, joined: OMITS, as with memexec
+  final state, filtered: OMITS, as with memexec
+  final state, issue94_2: OMITS, as with memexec
+  release, start, joined: OMITS
+  release, start, filtered: OMITS
+  release, start, release :: below_known_issues.c:98 <- p94_2 :: below_known_issues.c:106 <- issue94_2: OMITS
+  release, before below_known_issues.c:96 `free((void *)owner);`, joined: OMITS
+  release, before below_known_issues.c:96 `free((void *)owner);`, filtered: OMITS
+  release, before below_known_issues.c:96 `free((void *)owner);`, release :: below_known_issues.c:98 <- p94_2 :: below_known_issues.c:106 <- issue94_2: OMITS
+  release, after below_known_issues.c:96 `free((void *)owner);`, joined: OMITS
+  release, after below_known_issues.c:96 `free((void *)owner);`, filtered: OMITS
+  release, after below_known_issues.c:96 `free((void *)owner);`, release :: below_known_issues.c:98 <- p94_2 :: below_known_issues.c:106 <- issue94_2: OMITS
+  release, before below_known_issues.c:96 `owner = (int *)0;` (P), joined: OMITS
+  release, before below_known_issues.c:96 `owner = (int *)0;` (P), filtered: OMITS
+  release, before below_known_issues.c:96 `owner = (int *)0;` (P), release :: below_known_issues.c:98 <- p94_2 :: below_known_issues.c:106 <- issue94_2: OMITS
+  release, after below_known_issues.c:96 `owner = (int *)0;` (P), joined: OMITS
+  release, after below_known_issues.c:96 `owner = (int *)0;` (P), filtered: OMITS
+  release, after below_known_issues.c:96 `owner = (int *)0;` (P), release :: below_known_issues.c:98 <- p94_2 :: below_known_issues.c:106 <- issue94_2: OMITS
+  release, before below_known_issues.c:96 `return;`, joined: OMITS
+  release, before below_known_issues.c:96 `return;`, filtered: OMITS
+  release, before below_known_issues.c:96 `return;`, release :: below_known_issues.c:98 <- p94_2 :: below_known_issues.c:106 <- issue94_2: OMITS
+  release, after below_known_issues.c:96 `return;`, joined: OMITS
+  release, after below_known_issues.c:96 `return;`, filtered: OMITS
+  release, after below_known_issues.c:96 `return;`, release :: below_known_issues.c:98 <- p94_2 :: below_known_issues.c:106 <- issue94_2: OMITS
+  p94_2, start, joined: OMITS, as with memexec
+  p94_2, start, filtered: OMITS, as with memexec
+  p94_2, start, p94_2 :: below_known_issues.c:106 <- issue94_2: OMITS, as with memexec
+  p94_2, before below_known_issues.c:98 `release();`, joined: OMITS
+  p94_2, before below_known_issues.c:98 `release();`, filtered: OMITS
+  p94_2, before below_known_issues.c:98 `release();`, p94_2 :: below_known_issues.c:106 <- issue94_2: OMITS
+  p94_2, after below_known_issues.c:98 `release();`, joined: OMITS
+  p94_2, after below_known_issues.c:98 `release();`, filtered: OMITS
+  p94_2, after below_known_issues.c:98 `release();`, p94_2 :: below_known_issues.c:106 <- issue94_2: OMITS
+  p94_2, before below_known_issues.c:98 `return;`, joined: OMITS
+  p94_2, before below_known_issues.c:98 `return;`, filtered: OMITS
+  p94_2, before below_known_issues.c:98 `return;`, p94_2 :: below_known_issues.c:106 <- issue94_2: OMITS
+  p94_2, after below_known_issues.c:98 `return;`, joined: OMITS
+  p94_2, after below_known_issues.c:98 `return;`, filtered: OMITS
+  p94_2, after below_known_issues.c:98 `return;`, p94_2 :: below_known_issues.c:106 <- issue94_2: OMITS
+  issue94_2, after below_known_issues.c:101-107 `loop`, joined: OMITS, as with memexec
+  issue94_2, after below_known_issues.c:101-107 `loop`, filtered: OMITS, as with memexec
+  issue94_2, after below_known_issues.c:101-107 `loop`, issue94_2: OMITS, as with memexec
+  issue94_2, before below_known_issues.c:101 `if (i < 3)`, joined: OMITS, as with memexec
+  issue94_2, before below_known_issues.c:101 `if (i < 3)`, filtered: OMITS, as with memexec
+  issue94_2, before below_known_issues.c:101 `if (i < 3)`, issue94_2: OMITS, as with memexec
+  issue94_2, after below_known_issues.c:101 `if (i < 3)`, joined: OMITS, as with memexec
+  issue94_2, after below_known_issues.c:101 `if (i < 3)`, filtered: OMITS, as with memexec
+  issue94_2, after below_known_issues.c:101 `if (i < 3)`, issue94_2: OMITS, as with memexec
+  issue94_2, before below_known_issues.c:101-107 `break;`, joined: OMITS, as with memexec
+  issue94_2, before below_known_issues.c:101-107 `break;`, filtered: OMITS, as with memexec
+  issue94_2, before below_known_issues.c:101-107 `break;`, issue94_2: OMITS, as with memexec
+  issue94_2, after below_known_issues.c:101-107 `break;`, joined: OMITS, as with memexec
+  issue94_2, after below_known_issues.c:101-107 `break;`, filtered: OMITS, as with memexec
+  issue94_2, after below_known_issues.c:101-107 `break;`, issue94_2: OMITS, as with memexec
+  issue94_2, before below_known_issues.c:102 `block`, joined: OMITS, as with memexec
+  issue94_2, before below_known_issues.c:102 `block`, filtered: OMITS, as with memexec
+  issue94_2, before below_known_issues.c:102 `block`, issue94_2: OMITS, as with memexec
+  issue94_2, after below_known_issues.c:102 `block`, joined: OMITS, as with memexec
+  issue94_2, after below_known_issues.c:102 `block`, filtered: OMITS, as with memexec
+  issue94_2, after below_known_issues.c:102 `block`, issue94_2: OMITS, as with memexec
+  issue94_2, before below_known_issues.c:102 `owner = (int *)malloc(sizeof(*owner));`, joined: OMITS, as with memexec
+  issue94_2, before below_known_issues.c:102 `owner = (int *)malloc(sizeof(*owner));`, filtered: OMITS, as with memexec
+  issue94_2, before below_known_issues.c:102 `owner = (int *)malloc(sizeof(*owner));`, issue94_2: OMITS, as with memexec
+  issue94_2, after below_known_issues.c:102 `owner = (int *)malloc(sizeof(*owner));`, joined: OMITS, as with memexec
+  issue94_2, after below_known_issues.c:102 `owner = (int *)malloc(sizeof(*owner));`, filtered: OMITS, as with memexec
+  issue94_2, after below_known_issues.c:102 `owner = (int *)malloc(sizeof(*owner));`, issue94_2: OMITS, as with memexec
+  issue94_2, before below_known_issues.c:103 `if (! owner)`, joined: OMITS, as with memexec
+  issue94_2, before below_known_issues.c:103 `if (! owner)`, filtered: OMITS, as with memexec
+  issue94_2, before below_known_issues.c:103 `if (! owner)`, issue94_2: OMITS, as with memexec
+  issue94_2, after below_known_issues.c:103 `if (! owner)`, joined: OMITS, as with memexec
+  issue94_2, after below_known_issues.c:103 `if (! owner)`, filtered: OMITS, as with memexec
+  issue94_2, after below_known_issues.c:103 `if (! owner)`, issue94_2: OMITS, as with memexec
+  issue94_2, after below_known_issues.c:103 `goto`, joined: OMITS, as with memexec
+  issue94_2, after below_known_issues.c:103 `goto`, filtered: OMITS, as with memexec
+  issue94_2, after below_known_issues.c:103 `goto`, issue94_2: OMITS, as with memexec
+  issue94_2, before below_known_issues.c:104 `*owner = 17;`, joined: OMITS, as with memexec
+  issue94_2, before below_known_issues.c:104 `*owner = 17;`, filtered: OMITS, as with memexec
+  issue94_2, before below_known_issues.c:104 `*owner = 17;`, issue94_2: OMITS, as with memexec
+  issue94_2, after below_known_issues.c:104 `*owner = 17;`, joined: OMITS, as with memexec
+  issue94_2, after below_known_issues.c:104 `*owner = 17;`, filtered: OMITS, as with memexec
+  issue94_2, after below_known_issues.c:104 `*owner = 17;`, issue94_2: OMITS, as with memexec
+  issue94_2, before below_known_issues.c:105 `if (i)`, joined: OMITS, as with memexec
+  issue94_2, before below_known_issues.c:105 `if (i)`, filtered: OMITS, as with memexec
+  issue94_2, before below_known_issues.c:105 `if (i)`, issue94_2: OMITS, as with memexec
+  issue94_2, after below_known_issues.c:105 `if (i)`, joined: OMITS, as with memexec
+  issue94_2, after below_known_issues.c:105 `if (i)`, filtered: OMITS, as with memexec
+  issue94_2, after below_known_issues.c:105 `if (i)`, issue94_2: OMITS, as with memexec
+  issue94_2, before below_known_issues.c:105 `alias = owner;`, joined: OMITS, as with memexec
+  issue94_2, before below_known_issues.c:105 `alias = owner;`, filtered: OMITS, as with memexec
+  issue94_2, before below_known_issues.c:105 `alias = owner;`, issue94_2: OMITS, as with memexec
+  issue94_2, after below_known_issues.c:105 `alias = owner;`, joined: OMITS, as with memexec
+  issue94_2, after below_known_issues.c:105 `alias = owner;`, filtered: OMITS, as with memexec
+  issue94_2, after below_known_issues.c:105 `alias = owner;`, issue94_2: OMITS, as with memexec
+  issue94_2, before below_known_issues.c:105 `alias = (int *)0;`, joined: OMITS, as with memexec
+  issue94_2, before below_known_issues.c:105 `alias = (int *)0;`, filtered: OMITS, as with memexec
+  issue94_2, before below_known_issues.c:105 `alias = (int *)0;`, issue94_2: OMITS, as with memexec
+  issue94_2, after below_known_issues.c:105 `alias = (int *)0;`, joined: OMITS, as with memexec
+  issue94_2, after below_known_issues.c:105 `alias = (int *)0;`, filtered: OMITS, as with memexec
+  issue94_2, after below_known_issues.c:105 `alias = (int *)0;`, issue94_2: OMITS, as with memexec
+  issue94_2, before below_known_issues.c:106 `p94_2();`, joined: OMITS, as with memexec
+  issue94_2, before below_known_issues.c:106 `p94_2();`, filtered: OMITS, as with memexec
+  issue94_2, before below_known_issues.c:106 `p94_2();`, issue94_2: OMITS, as with memexec
+  issue94_2, after below_known_issues.c:106 `p94_2();`, joined: OMITS, as with memexec
+  issue94_2, after below_known_issues.c:106 `p94_2();`, filtered: OMITS, as with memexec
+  issue94_2, after below_known_issues.c:106 `p94_2();`, issue94_2: OMITS, as with memexec
+  issue94_2, before below_known_issues.c:101 `i ++;`, joined: OMITS, as with memexec
+  issue94_2, before below_known_issues.c:101 `i ++;`, filtered: OMITS, as with memexec
+  issue94_2, before below_known_issues.c:101 `i ++;`, issue94_2: OMITS, as with memexec
+  issue94_2, after below_known_issues.c:101 `i ++;`, joined: OMITS, as with memexec
+  issue94_2, after below_known_issues.c:101 `i ++;`, filtered: OMITS, as with memexec
+  issue94_2, after below_known_issues.c:101 `i ++;`, issue94_2: OMITS, as with memexec
+  issue94_2, before below_known_issues.c:108 `__retres = 0;`, joined: OMITS, as with memexec
+  issue94_2, before below_known_issues.c:108 `__retres = 0;`, filtered: OMITS, as with memexec
+  issue94_2, before below_known_issues.c:108 `__retres = 0;`, issue94_2: OMITS, as with memexec
+  issue94_2, after below_known_issues.c:108 `__retres = 0;`, joined: OMITS, as with memexec
+  issue94_2, after below_known_issues.c:108 `__retres = 0;`, filtered: OMITS, as with memexec
+  issue94_2, after below_known_issues.c:108 `__retres = 0;`, issue94_2: OMITS, as with memexec
+  issue94_2, before below_known_issues.c:108 `return __retres;`, joined: OMITS, as with memexec
+  issue94_2, before below_known_issues.c:108 `return __retres;`, filtered: OMITS, as with memexec
+  issue94_2, before below_known_issues.c:108 `return __retres;`, issue94_2: OMITS, as with memexec
+  issue94_2, after below_known_issues.c:108 `return __retres;`, joined: OMITS, as with memexec
+  issue94_2, after below_known_issues.c:108 `return __retres;`, filtered: OMITS, as with memexec
+  issue94_2, after below_known_issues.c:108 `return __retres;`, issue94_2: OMITS, as with memexec
+Answers: 473 equal, 0 covering, 0 more precise, 123 omitting, 0 unavailable.
+Filtered requests that reject one callstack: 0.
+Requests made: 870; reported by the trap: 870, each once with its description; reads of the legacy store: 0.

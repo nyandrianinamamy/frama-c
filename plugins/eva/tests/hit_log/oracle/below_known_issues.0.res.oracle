@@ -1,0 +1,304 @@
+[kernel] Parsing below_known_issues.c (with preprocessing)
+[eva:alarm] below_known_issues.c:29: Warning: 
+  function f86: precondition got status unknown.
+[eva:alarm] below_known_issues.c:27: Warning: 
+  signed overflow. assert x + 1 ≤ 2147483647;
+[eva:alarm] below_known_issues.c:29: Warning: 
+  function f86: precondition got status unknown.
+[eva:alarm] below_known_issues.c:27: Warning: 
+  signed overflow. assert x + 1 ≤ 2147483647;
+[eva:alarm] below_known_issues.c:29: Warning: 
+  function f86: precondition got status unknown.
+[eva:alarm] below_known_issues.c:27: Warning: 
+  signed overflow. assert x + 1 ≤ 2147483647;
+Calls:
+  f86 :: below_known_issues.c:29 <- p86 :: below_known_issues.c:34 <- issue86: analysed, cache entry 9
+  p86 :: below_known_issues.c:34 <- issue86: analysed, cache entry 10
+  p86 :: below_known_issues.c:37 <- issue86: hit of cache entry 10
+  issue86: analysed, cache entry 11
+Calls below a hit:
+  f86 :: below_known_issues.c:29 <- p86 :: below_known_issues.c:37 <- issue86
+f86, start:
+  joined: a ∈ {0}
+          g ∈ {4; 9}
+          out ∈ {0}
+          r1 ∈ [0..2147483647]
+          r2 ∈ {0}
+          y ∈ {0}
+          x ∈ [--..--]
+          x ∈ [--..--]
+          tmp ∈ UNINITIALIZED
+          n ∈ [--..--]
+          v ∈ [--..--]
+          answer ∈ {0}
+          owner ∈ {0}
+          alias ∈ {0}
+          xc ∈ {0}
+  f86 :: below_known_issues.c:29 <- p86 :: below_known_issues.c:34 <- issue86: 
+  a ∈ {0}
+  g ∈ {9}
+  out ∈ {0}
+  r1 ∈ {0}
+  r2 ∈ {0}
+  y ∈ {0}
+  x ∈ [--..--]
+  x ∈ [--..--]
+  tmp ∈ UNINITIALIZED
+  n ∈ [--..--]
+  v ∈ [--..--]
+  answer ∈ {0}
+  owner ∈ {0}
+  alias ∈ {0}
+  xc ∈ {0}
+  f86 :: below_known_issues.c:29 <- p86 :: below_known_issues.c:37 <- issue86: 
+  a ∈ {0}
+  g ∈ {4}
+  out ∈ {0}
+  r1 ∈ [10..2147483647]
+  r2 ∈ {0}
+  y ∈ {0}
+  x ∈ [--..--]
+  x ∈ [--..--]
+  tmp ∈ UNINITIALIZED
+  n ∈ [--..--]
+  v ∈ [--..--]
+  answer ∈ {0}
+  owner ∈ {0}
+  alias ∈ {0}
+  xc ∈ {0}
+f86, before below_known_issues.c:27 `;` (P):
+  joined: a ∈ {0}
+          g ∈ {4; 9}
+          out ∈ {0}
+          r1 ∈ [0..2147483647]
+          r2 ∈ {0}
+          y ∈ [10..2147483647]
+          x ∈ [9..2147483646]
+          x ∈ [--..--]
+          tmp ∈ UNINITIALIZED
+          n ∈ [--..--]
+          v ∈ [--..--]
+          answer ∈ {0}
+          owner ∈ {0}
+          alias ∈ {0}
+          xc ∈ {0}
+  f86 :: below_known_issues.c:29 <- p86 :: below_known_issues.c:34 <- issue86: 
+  a ∈ {0}
+  g ∈ {9}
+  out ∈ {0}
+  r1 ∈ {0}
+  r2 ∈ {0}
+  y ∈ [10..2147483647]
+  x ∈ [9..2147483646]
+  x ∈ [--..--]
+  tmp ∈ UNINITIALIZED
+  n ∈ [--..--]
+  v ∈ [--..--]
+  answer ∈ {0}
+  owner ∈ {0}
+  alias ∈ {0}
+  xc ∈ {0}
+  f86 :: below_known_issues.c:29 <- p86 :: below_known_issues.c:37 <- issue86: 
+  a ∈ {0}
+  g ∈ {4}
+  out ∈ {0}
+  r1 ∈ [10..2147483647]
+  r2 ∈ {0}
+  y ∈ [10..2147483647]
+  x ∈ [9..2147483646]
+  x ∈ [--..--]
+  tmp ∈ UNINITIALIZED
+  n ∈ [--..--]
+  v ∈ [--..--]
+  answer ∈ {0}
+  owner ∈ {0}
+  alias ∈ {0}
+  xc ∈ {0}
+  reference, joined: a ∈ {0}
+                     g ∈ {4; 9}
+                     out ∈ {0}
+                     r1 ∈ [0..2147483647]
+                     r2 ∈ {0}
+                     y ∈ [5..2147483647]
+                     x ∈ [4..2147483646]
+                     x ∈ [--..--]
+                     tmp ∈ UNINITIALIZED
+                     n ∈ [--..--]
+                     v ∈ [--..--]
+                     answer ∈ {0}
+                     owner ∈ {0}
+                     alias ∈ {0}
+                     xc ∈ {0}
+  f86 :: below_known_issues.c:29 <- p86 :: below_known_issues.c:34 <- issue86: 
+  a ∈ {0}
+  g ∈ {9}
+  out ∈ {0}
+  r1 ∈ {0}
+  r2 ∈ {0}
+  y ∈ [10..2147483647]
+  x ∈ [9..2147483646]
+  x ∈ [--..--]
+  tmp ∈ UNINITIALIZED
+  n ∈ [--..--]
+  v ∈ [--..--]
+  answer ∈ {0}
+  owner ∈ {0}
+  alias ∈ {0}
+  xc ∈ {0}
+  f86 :: below_known_issues.c:29 <- p86 :: below_known_issues.c:37 <- issue86: 
+  a ∈ {0}
+  g ∈ {4}
+  out ∈ {0}
+  r1 ∈ [10..2147483647]
+  r2 ∈ {0}
+  y ∈ [5..2147483647]
+  x ∈ [4..2147483646]
+  x ∈ [--..--]
+  tmp ∈ UNINITIALIZED
+  n ∈ [--..--]
+  v ∈ [--..--]
+  answer ∈ {0}
+  owner ∈ {0}
+  alias ∈ {0}
+  xc ∈ {0}
+f86, after below_known_issues.c:27 `return y;`:
+  joined: a ∈ {0}
+          g ∈ {4; 9}
+          out ∈ {0}
+          r1 ∈ [0..2147483647]
+          r2 ∈ {0}
+          y ∈ [10..2147483647]
+          x ∈ [9..2147483646]
+          x ∈ [--..--]
+          tmp ∈ UNINITIALIZED
+          n ∈ [--..--]
+          v ∈ [--..--]
+          answer ∈ {0}
+          owner ∈ {0}
+          alias ∈ {0}
+          xc ∈ {0}
+  f86 :: below_known_issues.c:29 <- p86 :: below_known_issues.c:34 <- issue86: 
+  a ∈ {0}
+  g ∈ {9}
+  out ∈ {0}
+  r1 ∈ {0}
+  r2 ∈ {0}
+  y ∈ [10..2147483647]
+  x ∈ [9..2147483646]
+  x ∈ [--..--]
+  tmp ∈ UNINITIALIZED
+  n ∈ [--..--]
+  v ∈ [--..--]
+  answer ∈ {0}
+  owner ∈ {0}
+  alias ∈ {0}
+  xc ∈ {0}
+  f86 :: below_known_issues.c:29 <- p86 :: below_known_issues.c:37 <- issue86: 
+  a ∈ {0}
+  g ∈ {4}
+  out ∈ {0}
+  r1 ∈ [10..2147483647]
+  r2 ∈ {0}
+  y ∈ [10..2147483647]
+  x ∈ [9..2147483646]
+  x ∈ [--..--]
+  tmp ∈ UNINITIALIZED
+  n ∈ [--..--]
+  v ∈ [--..--]
+  answer ∈ {0}
+  owner ∈ {0}
+  alias ∈ {0}
+  xc ∈ {0}
+  reference, joined: a ∈ {0}
+                     g ∈ {4; 9}
+                     out ∈ {0}
+                     r1 ∈ [0..2147483647]
+                     r2 ∈ {0}
+                     y ∈ [5..2147483647]
+                     x ∈ [4..2147483646]
+                     x ∈ [--..--]
+                     tmp ∈ UNINITIALIZED
+                     n ∈ [--..--]
+                     v ∈ [--..--]
+                     answer ∈ {0}
+                     owner ∈ {0}
+                     alias ∈ {0}
+                     xc ∈ {0}
+  f86 :: below_known_issues.c:29 <- p86 :: below_known_issues.c:34 <- issue86: 
+  a ∈ {0}
+  g ∈ {9}
+  out ∈ {0}
+  r1 ∈ {0}
+  r2 ∈ {0}
+  y ∈ [10..2147483647]
+  x ∈ [9..2147483646]
+  x ∈ [--..--]
+  tmp ∈ UNINITIALIZED
+  n ∈ [--..--]
+  v ∈ [--..--]
+  answer ∈ {0}
+  owner ∈ {0}
+  alias ∈ {0}
+  xc ∈ {0}
+  f86 :: below_known_issues.c:29 <- p86 :: below_known_issues.c:37 <- issue86: 
+  a ∈ {0}
+  g ∈ {4}
+  out ∈ {0}
+  r1 ∈ [10..2147483647]
+  r2 ∈ {0}
+  y ∈ [5..2147483647]
+  x ∈ [4..2147483646]
+  x ∈ [--..--]
+  tmp ∈ UNINITIALIZED
+  n ∈ [--..--]
+  v ∈ [--..--]
+  answer ∈ {0}
+  owner ∈ {0}
+  alias ∈ {0}
+  xc ∈ {0}
+Hits against the analysed call of their cache entry:
+  p86 :: below_known_issues.c:37 <- issue86, hit of cache entry 10, against p86 :: below_known_issues.c:34 <- issue86: differs on g, r1, at 5 points.
+Initial state: equal.
+Differences with the run without memexec:
+  final state, joined: more precise, as with memexec
+  final state, filtered: more precise, as with memexec
+  final state, issue86: more precise, as with memexec
+  f86, before below_known_issues.c:27 `y = x + 1;`, joined: more precise
+  f86, before below_known_issues.c:27 `y = x + 1;`, filtered: more precise
+  f86, before below_known_issues.c:27 `y = x + 1;`, f86 :: below_known_issues.c:29 <- p86 :: below_known_issues.c:37 <- issue86: more precise
+  f86, after below_known_issues.c:27 `y = x + 1;`, joined: more precise
+  f86, after below_known_issues.c:27 `y = x + 1;`, filtered: more precise
+  f86, after below_known_issues.c:27 `y = x + 1;`, f86 :: below_known_issues.c:29 <- p86 :: below_known_issues.c:37 <- issue86: more precise
+  f86, before below_known_issues.c:27 `;` (P), joined: more precise
+  f86, before below_known_issues.c:27 `;` (P), filtered: more precise
+  f86, before below_known_issues.c:27 `;` (P), f86 :: below_known_issues.c:29 <- p86 :: below_known_issues.c:37 <- issue86: more precise
+  f86, after below_known_issues.c:27 `;` (P), joined: more precise
+  f86, after below_known_issues.c:27 `;` (P), filtered: more precise
+  f86, after below_known_issues.c:27 `;` (P), f86 :: below_known_issues.c:29 <- p86 :: below_known_issues.c:37 <- issue86: more precise
+  f86, before below_known_issues.c:27 `return y;`, joined: more precise
+  f86, before below_known_issues.c:27 `return y;`, filtered: more precise
+  f86, before below_known_issues.c:27 `return y;`, f86 :: below_known_issues.c:29 <- p86 :: below_known_issues.c:37 <- issue86: more precise
+  f86, after below_known_issues.c:27 `return y;`, joined: more precise
+  f86, after below_known_issues.c:27 `return y;`, filtered: more precise
+  f86, after below_known_issues.c:27 `return y;`, f86 :: below_known_issues.c:29 <- p86 :: below_known_issues.c:37 <- issue86: more precise
+  p86, after below_known_issues.c:29 `tmp = f86(x);`, joined: more precise
+  p86, after below_known_issues.c:29 `tmp = f86(x);`, filtered: more precise
+  p86, after below_known_issues.c:29 `tmp = f86(x);`, p86 :: below_known_issues.c:37 <- issue86: more precise
+  p86, before below_known_issues.c:29 `return tmp;`, joined: more precise
+  p86, before below_known_issues.c:29 `return tmp;`, filtered: more precise
+  p86, before below_known_issues.c:29 `return tmp;`, p86 :: below_known_issues.c:37 <- issue86: more precise
+  p86, after below_known_issues.c:29 `return tmp;`, joined: more precise
+  p86, after below_known_issues.c:29 `return tmp;`, filtered: more precise
+  p86, after below_known_issues.c:29 `return tmp;`, p86 :: below_known_issues.c:37 <- issue86: more precise
+  issue86, after below_known_issues.c:37 `r2 = p86(v);`, joined: more precise, as with memexec
+  issue86, after below_known_issues.c:37 `r2 = p86(v);`, filtered: more precise, as with memexec
+  issue86, after below_known_issues.c:37 `r2 = p86(v);`, issue86: more precise, as with memexec
+  issue86, before below_known_issues.c:38 `return;`, joined: more precise, as with memexec
+  issue86, before below_known_issues.c:38 `return;`, filtered: more precise, as with memexec
+  issue86, before below_known_issues.c:38 `return;`, issue86: more precise, as with memexec
+  issue86, after below_known_issues.c:38 `return;`, joined: more precise, as with memexec
+  issue86, after below_known_issues.c:38 `return;`, filtered: more precise, as with memexec
+  issue86, after below_known_issues.c:38 `return;`, issue86: more precise, as with memexec
+Answers: 554 equal, 0 covering, 39 more precise, 0 omitting, 0 unavailable.
+Filtered requests that reject one callstack: 12.
+Requests made: 867; reported by the trap: 867, each once with its description; reads of the legacy store: 0.

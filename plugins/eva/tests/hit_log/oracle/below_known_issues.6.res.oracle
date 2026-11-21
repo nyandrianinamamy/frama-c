@@ -1,0 +1,337 @@
+[kernel] Parsing below_known_issues.c (with preprocessing)
+Calls:
+  Frama_C_abstract_max :: below_known_issues.c:115 <- count96 :: below_known_issues.c:119 <- p96 :: below_known_issues.c:128 <- issue96: builtin
+  count96 :: below_known_issues.c:119 <- p96 :: below_known_issues.c:128 <- issue96: analysed, cache entry 11
+  p96 :: below_known_issues.c:128 <- issue96: analysed, cache entry 12
+  discover96 :: below_known_issues.c:129 <- issue96: analysed, cache entry 13
+  p96 :: below_known_issues.c:131 <- issue96: hit of cache entry 12
+  issue96: analysed, cache entry 14
+Calls below a hit:
+  count96 :: below_known_issues.c:119 <- p96 :: below_known_issues.c:131 <- issue96
+count96, start:
+  joined: a ∈ {0}
+          g ∈ {0}
+          out ∈ {0}
+          r1 ∈ {0}
+          r2 ∈ {0}
+          y ∈ {0}
+          answer ∈ {0}
+          owner ∈ {0}
+          alias ∈ {0}
+          xc ∈ {0}
+          n ∈ {13}
+          n ∈ {13}
+          tmp ∈ UNINITIALIZED
+          first ∈ {2147483647} or UNINITIALIZED
+          second ∈ UNINITIALIZED
+  count96 :: below_known_issues.c:119 <- p96 :: below_known_issues.c:128 <- issue96: 
+  a ∈ {0}
+  g ∈ {0}
+  out ∈ {0}
+  r1 ∈ {0}
+  r2 ∈ {0}
+  y ∈ {0}
+  answer ∈ {0}
+  owner ∈ {0}
+  alias ∈ {0}
+  xc ∈ {0}
+  n ∈ {13}
+  n ∈ {13}
+  tmp ∈ UNINITIALIZED
+  first ∈ UNINITIALIZED
+  second ∈ UNINITIALIZED
+  count96 :: below_known_issues.c:119 <- p96 :: below_known_issues.c:131 <- issue96: 
+  a ∈ {0}
+  g ∈ {0}
+  out ∈ {0}
+  r1 ∈ {0}
+  r2 ∈ {0}
+  y ∈ {0}
+  answer ∈ {0}
+  owner ∈ {0}
+  alias ∈ {0}
+  xc ∈ {0}
+  n ∈ {13}
+  n ∈ {13}
+  tmp ∈ UNINITIALIZED
+  first ∈ {2147483647}
+  second ∈ UNINITIALIZED
+count96, before below_known_issues.c:116 `;` (P):
+  joined: a ∈ {0}
+          g ∈ {0}
+          out ∈ {0}
+          r1 ∈ {0}
+          r2 ∈ {0}
+          y ∈ {0}
+          answer ∈ {0}
+          owner ∈ {0}
+          alias ∈ {0}
+          xc ∈ [13..2147483647]
+          n ∈ {13}
+          result ∈ {2147483647}
+          tmp ∈ {2147483647}
+          n ∈ {13}
+          tmp ∈ UNINITIALIZED
+          first ∈ {2147483647} or UNINITIALIZED
+          second ∈ UNINITIALIZED
+  count96 :: below_known_issues.c:119 <- p96 :: below_known_issues.c:128 <- issue96: 
+  a ∈ {0}
+  g ∈ {0}
+  out ∈ {0}
+  r1 ∈ {0}
+  r2 ∈ {0}
+  y ∈ {0}
+  answer ∈ {0}
+  owner ∈ {0}
+  alias ∈ {0}
+  xc ∈ [13..2147483647]
+  n ∈ {13}
+  result ∈ {2147483647}
+  tmp ∈ {2147483647}
+  n ∈ {13}
+  tmp ∈ UNINITIALIZED
+  first ∈ UNINITIALIZED
+  second ∈ UNINITIALIZED
+  count96 :: below_known_issues.c:119 <- p96 :: below_known_issues.c:131 <- issue96: 
+  a ∈ {0}
+  g ∈ {0}
+  out ∈ {0}
+  r1 ∈ {0}
+  r2 ∈ {0}
+  y ∈ {0}
+  answer ∈ {0}
+  owner ∈ {0}
+  alias ∈ {0}
+  xc ∈ [13..2147483647]
+  n ∈ {13}
+  result ∈ {2147483647}
+  tmp ∈ {2147483647}
+  n ∈ {13}
+  tmp ∈ UNINITIALIZED
+  first ∈ {2147483647}
+  second ∈ UNINITIALIZED
+  reference, joined: a ∈ {0}
+                     g ∈ {0}
+                     out ∈ {0}
+                     r1 ∈ {0}
+                     r2 ∈ {0}
+                     y ∈ {0}
+                     answer ∈ {0}
+                     owner ∈ {0}
+                     alias ∈ {0}
+                     xc ∈ [13..2147483647]
+                     n ∈ {13}
+                     result ∈ {13; 2147483647}
+                     tmp ∈ {13; 2147483647}
+                     n ∈ {13}
+                     tmp ∈ UNINITIALIZED
+                     first ∈ {2147483647} or UNINITIALIZED
+                     second ∈ UNINITIALIZED
+  count96 :: below_known_issues.c:119 <- p96 :: below_known_issues.c:128 <- issue96: 
+  a ∈ {0}
+  g ∈ {0}
+  out ∈ {0}
+  r1 ∈ {0}
+  r2 ∈ {0}
+  y ∈ {0}
+  answer ∈ {0}
+  owner ∈ {0}
+  alias ∈ {0}
+  xc ∈ [13..2147483647]
+  n ∈ {13}
+  result ∈ {2147483647}
+  tmp ∈ {2147483647}
+  n ∈ {13}
+  tmp ∈ UNINITIALIZED
+  first ∈ UNINITIALIZED
+  second ∈ UNINITIALIZED
+  count96 :: below_known_issues.c:119 <- p96 :: below_known_issues.c:131 <- issue96: 
+  a ∈ {0}
+  g ∈ {0}
+  out ∈ {0}
+  r1 ∈ {0}
+  r2 ∈ {0}
+  y ∈ {0}
+  answer ∈ {0}
+  owner ∈ {0}
+  alias ∈ {0}
+  xc ∈ {13}
+  n ∈ {13}
+  result ∈ {13}
+  tmp ∈ {13}
+  n ∈ {13}
+  tmp ∈ UNINITIALIZED
+  first ∈ {2147483647}
+  second ∈ UNINITIALIZED
+count96, after below_known_issues.c:116 `return result;`:
+  joined: a ∈ {0}
+          g ∈ {0}
+          out ∈ {0}
+          r1 ∈ {0}
+          r2 ∈ {0}
+          y ∈ {0}
+          answer ∈ {0}
+          owner ∈ {0}
+          alias ∈ {0}
+          xc ∈ [13..2147483647]
+          n ∈ {13}
+          result ∈ {2147483647}
+          tmp ∈ {2147483647}
+          n ∈ {13}
+          tmp ∈ UNINITIALIZED
+          first ∈ {2147483647} or UNINITIALIZED
+          second ∈ UNINITIALIZED
+  count96 :: below_known_issues.c:119 <- p96 :: below_known_issues.c:128 <- issue96: 
+  a ∈ {0}
+  g ∈ {0}
+  out ∈ {0}
+  r1 ∈ {0}
+  r2 ∈ {0}
+  y ∈ {0}
+  answer ∈ {0}
+  owner ∈ {0}
+  alias ∈ {0}
+  xc ∈ [13..2147483647]
+  n ∈ {13}
+  result ∈ {2147483647}
+  tmp ∈ {2147483647}
+  n ∈ {13}
+  tmp ∈ UNINITIALIZED
+  first ∈ UNINITIALIZED
+  second ∈ UNINITIALIZED
+  count96 :: below_known_issues.c:119 <- p96 :: below_known_issues.c:131 <- issue96: 
+  a ∈ {0}
+  g ∈ {0}
+  out ∈ {0}
+  r1 ∈ {0}
+  r2 ∈ {0}
+  y ∈ {0}
+  answer ∈ {0}
+  owner ∈ {0}
+  alias ∈ {0}
+  xc ∈ [13..2147483647]
+  n ∈ {13}
+  result ∈ {2147483647}
+  tmp ∈ {2147483647}
+  n ∈ {13}
+  tmp ∈ UNINITIALIZED
+  first ∈ {2147483647}
+  second ∈ UNINITIALIZED
+  reference, joined: a ∈ {0}
+                     g ∈ {0}
+                     out ∈ {0}
+                     r1 ∈ {0}
+                     r2 ∈ {0}
+                     y ∈ {0}
+                     answer ∈ {0}
+                     owner ∈ {0}
+                     alias ∈ {0}
+                     xc ∈ [13..2147483647]
+                     n ∈ {13}
+                     result ∈ {13; 2147483647}
+                     tmp ∈ {13; 2147483647}
+                     n ∈ {13}
+                     tmp ∈ UNINITIALIZED
+                     first ∈ {2147483647} or UNINITIALIZED
+                     second ∈ UNINITIALIZED
+  count96 :: below_known_issues.c:119 <- p96 :: below_known_issues.c:128 <- issue96: 
+  a ∈ {0}
+  g ∈ {0}
+  out ∈ {0}
+  r1 ∈ {0}
+  r2 ∈ {0}
+  y ∈ {0}
+  answer ∈ {0}
+  owner ∈ {0}
+  alias ∈ {0}
+  xc ∈ [13..2147483647]
+  n ∈ {13}
+  result ∈ {2147483647}
+  tmp ∈ {2147483647}
+  n ∈ {13}
+  tmp ∈ UNINITIALIZED
+  first ∈ UNINITIALIZED
+  second ∈ UNINITIALIZED
+  count96 :: below_known_issues.c:119 <- p96 :: below_known_issues.c:131 <- issue96: 
+  a ∈ {0}
+  g ∈ {0}
+  out ∈ {0}
+  r1 ∈ {0}
+  r2 ∈ {0}
+  y ∈ {0}
+  answer ∈ {0}
+  owner ∈ {0}
+  alias ∈ {0}
+  xc ∈ {13}
+  n ∈ {13}
+  result ∈ {13}
+  tmp ∈ {13}
+  n ∈ {13}
+  tmp ∈ UNINITIALIZED
+  first ∈ {2147483647}
+  second ∈ UNINITIALIZED
+Hits against the analysed call of their cache entry:
+  p96 :: below_known_issues.c:131 <- issue96, hit of cache entry 12, against p96 :: below_known_issues.c:128 <- issue96: differs on first, at 5 points.
+Initial state: equal.
+Differences with the run without memexec:
+  final state, joined: OMITS, as with memexec
+  final state, filtered: OMITS, as with memexec
+  final state, issue96: OMITS, as with memexec
+  count96, after below_known_issues.c:114 `loop`, filtered: covers
+  count96, after below_known_issues.c:114 `loop`, count96 :: below_known_issues.c:119 <- p96 :: below_known_issues.c:131 <- issue96: covers
+  count96, before below_known_issues.c:114 `if (xc < n)`, filtered: covers
+  count96, before below_known_issues.c:114 `if (xc < n)`, count96 :: below_known_issues.c:119 <- p96 :: below_known_issues.c:131 <- issue96: covers
+  count96, after below_known_issues.c:114 `if (xc < n)`, filtered: covers
+  count96, after below_known_issues.c:114 `if (xc < n)`, count96 :: below_known_issues.c:119 <- p96 :: below_known_issues.c:131 <- issue96: covers
+  count96, before below_known_issues.c:114 `break;`, filtered: covers
+  count96, before below_known_issues.c:114 `break;`, count96 :: below_known_issues.c:119 <- p96 :: below_known_issues.c:131 <- issue96: covers
+  count96, after below_known_issues.c:114 `break;`, filtered: covers
+  count96, after below_known_issues.c:114 `break;`, count96 :: below_known_issues.c:119 <- p96 :: below_known_issues.c:131 <- issue96: covers
+  count96, before below_known_issues.c:115 `sequence`, filtered: covers
+  count96, before below_known_issues.c:115 `sequence`, count96 :: below_known_issues.c:119 <- p96 :: below_known_issues.c:131 <- issue96: covers
+  count96, after below_known_issues.c:115 `sequence`, filtered: covers
+  count96, after below_known_issues.c:115 `sequence`, count96 :: below_known_issues.c:119 <- p96 :: below_known_issues.c:131 <- issue96: covers
+  count96, before below_known_issues.c:115 `tmp = Frama_C_abstract_max((long long)xc);`, filtered: covers
+  count96, before below_known_issues.c:115 `tmp = Frama_C_abstract_max((long long)xc);`, count96 :: below_known_issues.c:119 <- p96 :: below_known_issues.c:131 <- issue96: covers
+  count96, after below_known_issues.c:115 `tmp = Frama_C_abstract_max((long long)xc);`, joined: more precise
+  count96, after below_known_issues.c:115 `tmp = Frama_C_abstract_max((long long)xc);`, filtered: OMITS
+  count96, after below_known_issues.c:115 `tmp = Frama_C_abstract_max((long long)xc);`, count96 :: below_known_issues.c:119 <- p96 :: below_known_issues.c:131 <- issue96: OMITS
+  count96, before below_known_issues.c:115 `int result = (int)tmp;`, joined: more precise
+  count96, before below_known_issues.c:115 `int result = (int)tmp;`, filtered: OMITS
+  count96, before below_known_issues.c:115 `int result = (int)tmp;`, count96 :: below_known_issues.c:119 <- p96 :: below_known_issues.c:131 <- issue96: OMITS
+  count96, after below_known_issues.c:115 `int result = (int)tmp;`, joined: more precise
+  count96, after below_known_issues.c:115 `int result = (int)tmp;`, filtered: OMITS
+  count96, after below_known_issues.c:115 `int result = (int)tmp;`, count96 :: below_known_issues.c:119 <- p96 :: below_known_issues.c:131 <- issue96: OMITS
+  count96, before below_known_issues.c:116 `;` (P), joined: more precise
+  count96, before below_known_issues.c:116 `;` (P), filtered: OMITS
+  count96, before below_known_issues.c:116 `;` (P), count96 :: below_known_issues.c:119 <- p96 :: below_known_issues.c:131 <- issue96: OMITS
+  count96, after below_known_issues.c:116 `;` (P), joined: more precise
+  count96, after below_known_issues.c:116 `;` (P), filtered: OMITS
+  count96, after below_known_issues.c:116 `;` (P), count96 :: below_known_issues.c:119 <- p96 :: below_known_issues.c:131 <- issue96: OMITS
+  count96, before below_known_issues.c:116 `return result;`, joined: more precise
+  count96, before below_known_issues.c:116 `return result;`, filtered: OMITS
+  count96, before below_known_issues.c:116 `return result;`, count96 :: below_known_issues.c:119 <- p96 :: below_known_issues.c:131 <- issue96: OMITS
+  count96, after below_known_issues.c:116 `return result;`, joined: more precise
+  count96, after below_known_issues.c:116 `return result;`, filtered: OMITS
+  count96, after below_known_issues.c:116 `return result;`, count96 :: below_known_issues.c:119 <- p96 :: below_known_issues.c:131 <- issue96: OMITS
+  p96, after below_known_issues.c:119 `tmp = count96(n);`, joined: more precise
+  p96, after below_known_issues.c:119 `tmp = count96(n);`, filtered: OMITS
+  p96, after below_known_issues.c:119 `tmp = count96(n);`, p96 :: below_known_issues.c:131 <- issue96: OMITS
+  p96, before below_known_issues.c:119 `return tmp;`, joined: more precise
+  p96, before below_known_issues.c:119 `return tmp;`, filtered: OMITS
+  p96, before below_known_issues.c:119 `return tmp;`, p96 :: below_known_issues.c:131 <- issue96: OMITS
+  p96, after below_known_issues.c:119 `return tmp;`, joined: more precise
+  p96, after below_known_issues.c:119 `return tmp;`, filtered: OMITS
+  p96, after below_known_issues.c:119 `return tmp;`, p96 :: below_known_issues.c:131 <- issue96: OMITS
+  issue96, after below_known_issues.c:131 `int second = p96(13);`, joined: OMITS, as with memexec
+  issue96, after below_known_issues.c:131 `int second = p96(13);`, filtered: OMITS, as with memexec
+  issue96, after below_known_issues.c:131 `int second = p96(13);`, issue96: OMITS, as with memexec
+  issue96, before below_known_issues.c:132 `return second;`, joined: OMITS, as with memexec
+  issue96, before below_known_issues.c:132 `return second;`, filtered: OMITS, as with memexec
+  issue96, before below_known_issues.c:132 `return second;`, issue96: OMITS, as with memexec
+  issue96, after below_known_issues.c:132 `return second;`, joined: OMITS, as with memexec
+  issue96, after below_known_issues.c:132 `return second;`, filtered: OMITS, as with memexec
+  issue96, after below_known_issues.c:132 `return second;`, issue96: OMITS, as with memexec
+Answers: 562 equal, 16 covering, 10 more precise, 32 omitting, 0 unavailable.
+Filtered requests that reject one callstack: 24.
+Requests made: 894; reported by the trap: 894, each once with its description; reads of the legacy store: 0.
