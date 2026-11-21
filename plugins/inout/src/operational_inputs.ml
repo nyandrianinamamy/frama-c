@@ -99,18 +99,10 @@ let externalize_zone ~with_formals kf =
    (Note: large parts of this code are inspired/redundant with
    [assigns_to_zone_foobar_state] in Value/register.ml)
 *)
-let eval_assigns kf state assigns =
+let eval_assigns_clauses ~clean_deps ~from_any state clauses =
   let treat_one_zone acc (out, froms as asgn) = (* treat a single assign *)
     (* Return a list of independent output zones, plus a zone indicating
        that the zone has been overwritten in a sure way *)
-    let clean_deps =
-      Memory_zone.filter_base
-        (function
-          | Base.Var (v, _) | Base.Allocated (v, _, _) ->
-            not (Kernel_function.is_formal v kf)
-          | Base.CLogic_Var _ | Base.Null | Base.Absolute _ ->
-            true)
-    in
     let out_term = out.it_content in
     let outputs_under, outputs_over, deps =
       if Logic_const.(is_result out_term || is_exit_status out_term)
@@ -129,7 +121,7 @@ let eval_assigns kf state assigns =
     (* Compute all inputs as a zone *)
     let inputs =
       match froms with
-      | FromAny -> Memory_zone.top
+      | FromAny -> from_any
       | From l ->
         let aux acc { it_content = from } =
           let inputs = Eva.Logic_inout.tlval_to_zones Assigns state Read from in
@@ -161,6 +153,10 @@ let eval_assigns kf state assigns =
       over_outputs_d = Memory_zone.join acc.over_outputs_d outputs_over;
     }
   in
+  let init = { bottom with under_outputs_d = Memory_zone.bottom } in
+  List.fold_left treat_one_zone init clauses
+
+let eval_assigns kf state assigns =
   match assigns with
   | WritesAny ->
     Inout_parameters.warning "@[no assigns clauses for@ function %a.@]@ \
@@ -168,8 +164,16 @@ let eval_assigns kf state assigns =
       Kernel_function.pretty kf;
     top
   | Writes l  ->
-    let init = { bottom with under_outputs_d = Memory_zone.bottom } in
-    let r = List.fold_left treat_one_zone init l in {
+    let clean_deps =
+      Memory_zone.filter_base
+        (function
+          | Base.Var (v, _) | Base.Allocated (v, _, _) ->
+            not (Kernel_function.is_formal v kf)
+          | Base.CLogic_Var _ | Base.Null | Base.Absolute _ ->
+            true)
+    in
+    let from_any = Memory_zone.top in
+    let r = eval_assigns_clauses ~clean_deps ~from_any state l in {
       over_inputs = r.over_inputs_d;
       over_logic_inputs = r.over_inputs_d;
       over_inputs_if_termination = r.over_inputs_d;
@@ -385,6 +389,27 @@ module Computer(Fenv:Dataflows.FUNCTION_ENV)(X:sig
     in
     store_non_terminating_logic_inputs deps
 
+  (* Eva applies the assigns clauses of the contract of an asm statement, if
+     any, as weak updates: their locations are possible outputs, never sure
+     ones, and Eva writes values that do not depend on a clause without
+     \from part. Without contract or assigns clause, Eva assumes that the
+     statement has no effect. *)
+  let transfer_asm stmt data =
+    match Logic_utils.extract_contract (Annotations.code_annot stmt) with
+    | [] -> data
+    | (_, spec) :: _ ->
+      match Ast_info.merge_assigns_from_spec ~warn:false spec with
+      | WritesAny -> data
+      | Writes clauses ->
+        let state = X.stmt_state stmt in
+        let clean_deps = Fun.id and from_any = Memory_zone.bottom in
+        let effects =
+          eval_assigns_clauses ~clean_deps ~from_any state clauses
+        in
+        let effects = { effects with under_outputs_d = Memory_zone.bottom } in
+        store_non_terminating_outputs effects.over_outputs_d;
+        catenate data effects
+
   (* Transfer function on instructions. *)
   let transfer_instr stmt (i: instr) (data: t) =
     match i with
@@ -417,7 +442,8 @@ module Computer(Fenv:Dataflows.FUNCTION_ENV)(X:sig
     | Local_init(v, ConsInit(f, args, kind), loc) ->
       let transfer = transfer_call ~for_writing:false stmt in
       Cil.treat_constructor_as_func transfer v f args kind loc data
-    | Asm _ | Code_annot _ | Skip _ -> data
+    | Asm _ -> transfer_asm stmt data
+    | Code_annot _ | Skip _ -> data
   ;;
 
   (* transfer_guard: gets the state obtained after evaluating the
