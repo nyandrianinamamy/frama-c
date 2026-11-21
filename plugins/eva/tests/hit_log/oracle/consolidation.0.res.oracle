@@ -1,0 +1,7 @@
+[kernel] Parsing consolidation.c (with preprocessing)
+Recording: true.
+Reported from the end of the iteration to the hook run when Eva has results: 0 requests, 0 reads of the legacy store in them, 0 reads outside any request
+Reported at the end of the analysis: 12 requests, 0 reads of the legacy store in them, 0 reads outside any request
+  unreachable statements: 7 requests, 0 reads of the legacy store in them, 0 reads outside any request
+  statistics: 5 requests, 0 reads of the legacy store in them, 0 reads outside any request
+Joined state before S in the legacy store: no.
