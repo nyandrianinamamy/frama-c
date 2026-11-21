@@ -34,6 +34,9 @@
     a hit, that is while the cache entry of a hit was computed. Its body
     points only are unavailable when one of its calls has an unknown
     footprint, was interrupted, or is a recursive call analysed by its body.
+    Every request is unavailable when the states of the cvalue domain are
+    not saved, as with options [-eva-no-results] and
+    [-eva-no-results-domain cvalue].
 
     Only the cvalue domain is recorded. The records are saved with the
     project, and kept by its copies. *)

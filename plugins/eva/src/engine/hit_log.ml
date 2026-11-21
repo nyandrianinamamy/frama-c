@@ -472,7 +472,16 @@ let find_point entry control_point =
   | Known { after; _ }, After stmt -> Stmt_table.find_opt after stmt
   | Known _, (Initial | Start _) -> None
 
-let is_available store = function
+(* Whether the states of the cvalue domain are saved, by the condition of the
+   legacy store. When they are not, every request is unavailable, as with the
+   legacy store. *)
+let cvalue_results_saved () =
+  Parameters.(ResultsAll.get ()
+              && not (NoResultsDomain.mem Cvalue_domain.State.name))
+
+let is_available store control_point =
+  cvalue_results_saved () &&
+  match control_point with
   | Domain_store.Initial -> true
   | Start kf -> not (Kf_table.mem store.below_hit kf)
   | Before stmt | After stmt ->
