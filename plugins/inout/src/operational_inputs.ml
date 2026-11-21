@@ -240,6 +240,23 @@ module Computer(Fenv:Dataflows.FUNCTION_ENV)(X:sig
     non_terminating_outputs := Memory_zone.join !non_terminating_outputs outputs;
   ;;
 
+  (* For each statement, the data that its transfer produces, joined over the
+     iterations and the successors; the successors it reaches; and the logic
+     inputs it reads: those of its annotations, read before the statement, and
+     those of the calls it makes, read by the statement. They give the
+     footprint at each point, see [footprint] below. *)
+  module Stmt_table = Cil_datatype.Stmt.Hashtbl
+  let transferred = Stmt_table.create 17
+  let reached_succs = Stmt_table.create 17
+  let annotation_reads = Stmt_table.create 17
+  let call_logic_reads = Stmt_table.create 17
+
+  let add_logic_reads table stmt zone =
+    let previous =
+      Option.value ~default:Memory_zone.bottom (Stmt_table.find_opt table stmt)
+    in
+    Stmt_table.replace table stmt (Memory_zone.join previous zone)
+
   (* Store the 'non-termination' information of a function subcall into
      the current call. [under_outputs] are the current call sure outputs.
      The logic inputs of the subcall are logic inputs of the current call. *)
@@ -321,6 +338,7 @@ module Computer(Fenv:Dataflows.FUNCTION_ENV)(X:sig
         (fun acc kf ->
            let res = X.at_call s kf in
            store_non_terminating_subcall data.over_outputs_d res;
+           add_logic_reads call_logic_reads s res.over_logic_inputs;
            let for_function = {
              over_inputs_d = res.over_inputs_if_termination;
              under_outputs_d = res.under_outputs_if_termination;
@@ -359,7 +377,9 @@ module Computer(Fenv:Dataflows.FUNCTION_ENV)(X:sig
                   We do nothing instead because the latter behavior would
                   directly disable memexec. *)
                ()
-             | Some p_zone -> store_non_terminating_logic_inputs p_zone
+             | Some p_zone ->
+               store_non_terminating_logic_inputs p_zone;
+               add_logic_reads annotation_reads stmt p_zone
            end
          | _ -> ())
       stmt
@@ -443,16 +463,97 @@ module Computer(Fenv:Dataflows.FUNCTION_ENV)(X:sig
       -> map_on_all_succs data
   ;;
 
+  (* Records the result of the transfer of [stmt]. A return statement has no
+     successor: its result is [return_data]. *)
+  let record_transfer stmt result =
+    let add data =
+      let previous =
+        Option.value ~default:bottom (Stmt_table.find_opt transferred stmt)
+      in
+      Stmt_table.replace transferred stmt (join previous data)
+    in
+    let add_succ (succ, data) =
+      if not (equal data bottom) then begin
+        add data;
+        let succs =
+          Option.value ~default:[] (Stmt_table.find_opt reached_succs stmt)
+        in
+        if not (List.memq succ succs)
+        then Stmt_table.replace reached_succs stmt (succ :: succs)
+      end
+    in
+    match stmt.skind with
+    | Return _ -> add !return_data
+    | _ -> List.iter add_succ result
+
   let transfer_stmt s data =
     if Cvalue.Model.is_reachable (X.stmt_state s)
     then begin
       transfer_annotations s;
-      transfer_stmt s data
+      let result = transfer_stmt s data in
+      record_transfer s result;
+      result
     end
     else []
   ;;
 
   let init = [(Kernel_function.find_first_stmt Fenv.kf), empty];;
+
+  let find_succs stmt =
+    Option.value ~default:[] (Stmt_table.find_opt reached_succs stmt)
+
+  (* The logic inputs read on the paths from the start of the function to the
+     point before and to the point after each statement. *)
+  let propagate_logic_reads () =
+    let before = Stmt_table.create 17 and after = Stmt_table.create 17 in
+    let find table stmt =
+      Option.value ~default:Memory_zone.bottom (Stmt_table.find_opt table stmt)
+    in
+    let worklist = Queue.create () in
+    Stmt_table.iter (fun stmt _ -> Queue.add stmt worklist) transferred;
+    while not (Queue.is_empty worklist) do
+      let stmt = Queue.pop worklist in
+      let zone_before =
+        Memory_zone.join (find before stmt) (find annotation_reads stmt)
+      in
+      let zone_after =
+        Memory_zone.join zone_before (find call_logic_reads stmt)
+      in
+      Stmt_table.replace before stmt zone_before;
+      Stmt_table.replace after stmt zone_after;
+      let propagate succ =
+        let previous = find before succ in
+        let joined = Memory_zone.join previous zone_after in
+        if not (Memory_zone.equal joined previous) then begin
+          Stmt_table.replace before succ joined;
+          Queue.add succ worklist
+        end
+      in
+      List.iter propagate (find_succs stmt)
+    done;
+    find before, find after
+
+  (* [footprint pre_state] gives, for each statement, the memory read or
+     written on the paths from the start of the function to the point before
+     the statement, and to the point after it, including the reads of the
+     annotations and of the logic inputs of the calls. [pre_state] is the
+     result of the dataflow before each statement. Over a path, the
+     operational inputs and the outputs hold every block read or written:
+     a block read after a sure write is an output. *)
+  let footprint pre_state =
+    let logic_reads = lazy (propagate_logic_reads ()) in
+    let zone data = Memory_zone.join data.over_inputs_d data.over_outputs_d in
+    fun stmt ->
+      let logic_before, logic_after = Lazy.force logic_reads in
+      let before =
+        Memory_zone.join (zone (pre_state stmt)) (logic_before stmt)
+      in
+      let after =
+        match Stmt_table.find_opt transferred stmt with
+        | None -> before
+        | Some data -> Memory_zone.join (zone data) (logic_after stmt)
+      in
+      before, after
 
   let end_dataflow () =
     let res_if_termination = !return_data in {
@@ -533,6 +634,12 @@ let extract_inout_from_froms kf assigns =
 module Callwise = struct
 
   module Record_Inout_Callbacks = Hook.Build (struct type t = Inout_type.t end)
+
+  (* For a call analysed by its body, the memory read or written before and
+     after each statement of the body, as given by [Computer.footprint]. *)
+  module Record_Footprint_Callbacks =
+    Hook.Build
+      (struct type t = Cil_types.stmt -> Memory_zone.t * Memory_zone.t end)
 
   let merge_call_in_local_table call local_table v =
     let prev =
@@ -640,7 +747,7 @@ module Callwise = struct
     let module [@warning "-60"] Compute =
       Dataflows.Simple_forward (Fenv) (Computer)
     in
-    Computer.end_dataflow ()
+    Computer.end_dataflow (), Computer.footprint Compute.pre_state
 
   let record_for_callwise_inout callstack kf pre_state value_res =
     let inout =
@@ -648,9 +755,14 @@ module Callwise = struct
       | `Body (Eva.Cvalue_callbacks.{before_stmts}, memexec_counter) ->
         let inout =
           if Eva.Analysis.save_results kf
-          then
+          then begin
             let cvalue_states = Lazy.force before_stmts in
-            compute_call_from_value_states kf callstack cvalue_states
+            let inout, footprint =
+              compute_call_from_value_states kf callstack cvalue_states
+            in
+            Record_Footprint_Callbacks.apply footprint;
+            inout
+          end
           else top
         in
         MemExec.replace memexec_counter inout;
@@ -688,6 +800,19 @@ module Callwise = struct
       "register_call_hook"
       Datatype.(func (func Inout_type.ty unit) unit)
       Record_Inout_Callbacks.extend_once
+
+  let _register_footprint_hook =
+    let zones = Datatype.pair Memory_zone.ty Memory_zone.ty in
+    let footprint = Datatype.func Cil_datatype.Stmt.ty zones in
+    Dynamic.register
+      ~comment:"Registers a function to be applied, for each call analysed \
+                by its body, on the memory read or written on the paths \
+                from the start of the body to the point before and to the \
+                point after each statement."
+      ~plugin:Inout_parameters.name
+      "register_footprint_hook"
+      Datatype.(func (func footprint unit) unit)
+      Record_Footprint_Callbacks.extend_once
 
 end
 
