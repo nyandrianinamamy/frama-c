@@ -1,0 +1,16 @@
+26c26,30
+< [eva:progress] memexec_key.c:29: Reusing old results for call to worked_f
+---
+> [eva:progress] 
+>   computing for function worked_f <- worked.
+>   Called from memexec_key.c:29.
+> [eva:progress] Recording results for worked_f
+> [eva:progress] Done for function worked_f
+32c36,40
+< [eva:progress] memexec_key.c:31: Reusing old results for call to worked_f
+---
+> [eva:progress] 
+>   computing for function worked_f <- worked.
+>   Called from memexec_key.c:31.
+> [eva:progress] Recording results for worked_f
+> [eva:progress] Done for function worked_f

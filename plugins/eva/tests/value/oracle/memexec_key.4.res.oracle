@@ -1,0 +1,99 @@
+[kernel] Parsing memexec_key.c (with preprocessing)
+[eva] Analyzing a complete application starting at logic
+[eva:progress] Computing initial state
+[eva:progress] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  c ∈ {0}
+  g ∈ {0}
+  h ∈ {0}
+  k ∈ {0}
+  a ∈ {0}
+  out ∈ {0}
+  r1 ∈ {0}
+  r2 ∈ {0}
+[eva:progress] 
+  computing for function Frama_C_interval <- logic.
+  Called from memexec_key.c:59.
+[eva] using specification for function Frama_C_interval
+[eva:progress] memexec_key.c:59: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva:progress] Done for function Frama_C_interval
+[eva:progress] 
+  computing for function logic_f <- logic.
+  Called from memexec_key.c:59.
+[eva:progress] 
+  computing for function logic_leaf <- logic_f <- logic.
+  Called from memexec_key.c:56.
+[eva:alarm] memexec_key.c:54: Warning: assertion got status unknown.
+[eva:progress] Recording results for logic_leaf
+[eva:progress] Done for function logic_leaf
+[eva:progress] Recording results for logic_f
+[eva:progress] Done for function logic_f
+[eva:progress] 
+  computing for function Frama_C_interval <- logic.
+  Called from memexec_key.c:60.
+[eva:progress] memexec_key.c:60: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva:progress] Done for function Frama_C_interval
+[eva:progress] 
+  computing for function logic_f <- logic.
+  Called from memexec_key.c:60.
+[eva:progress] 
+  computing for function logic_leaf <- logic_f <- logic.
+  Called from memexec_key.c:56.
+[eva:progress] memexec_key.c:54: assertion got status valid.
+[eva:progress] Recording results for logic_leaf
+[eva:progress] Done for function logic_leaf
+[eva:progress] Recording results for logic_f
+[eva:progress] Done for function logic_f
+[eva:progress] Recording results for logic
+[eva:progress] Done for function logic
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function logic_leaf:
+  out ∈ [0..9]
+[eva:final-states] Values at end of function logic_f:
+  out ∈ [0..9]
+[eva:final-states] Values at end of function logic:
+  Frama_C_entropy_source ∈ [--..--]
+  g ∈ {9}
+  a ∈ [0..9]
+  out ∈ [0..9]
+  r1 ∈ {0; 1; 2; 3}
+  r2 ∈ [0..9]
+[from] Computing for function logic_leaf
+[from] Done for function logic_leaf
+[from] Computing for function logic_f
+[from] Done for function logic_f
+[from] Computing for function logic
+[from] Computing for function Frama_C_interval <-logic
+[from] Done for function Frama_C_interval
+[from] Done for function logic
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function Frama_C_interval:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  \result FROM Frama_C_entropy_source; min; max
+[from] Function logic_leaf:
+  out FROM a
+[from] Function logic_f:
+  out FROM a
+[from] Function logic:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  g FROM \nothing
+  a FROM Frama_C_entropy_source
+  out FROM Frama_C_entropy_source
+  r1 FROM Frama_C_entropy_source
+  r2 FROM Frama_C_entropy_source
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function logic_leaf:
+    out
+[inout] Inputs for function logic_leaf:
+    a
+[inout] Out (internal) for function logic_f:
+    out
+[inout] Inputs for function logic_f:
+    a
+[inout] Out (internal) for function logic:
+    Frama_C_entropy_source; g; a; out; r1; r2
+[inout] Inputs for function logic:
+    Frama_C_entropy_source; a; out

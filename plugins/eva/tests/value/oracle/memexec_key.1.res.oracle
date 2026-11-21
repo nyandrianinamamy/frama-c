@@ -1,0 +1,77 @@
+[kernel] Parsing memexec_key.c (with preprocessing)
+[eva] Analyzing a complete application starting at worked
+[eva:progress] Computing initial state
+[eva:progress] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  c ∈ {0}
+  g ∈ {0}
+  h ∈ {0}
+  k ∈ {0}
+  a ∈ {0}
+  out ∈ {0}
+  r1 ∈ {0}
+  r2 ∈ {0}
+[eva:progress] 
+  computing for function Frama_C_interval <- worked.
+  Called from memexec_key.c:27.
+[eva] using specification for function Frama_C_interval
+[eva:progress] memexec_key.c:27: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva:progress] Done for function Frama_C_interval
+[eva:progress] 
+  computing for function worked_f <- worked.
+  Called from memexec_key.c:28.
+[eva:progress] Recording results for worked_f
+[eva:progress] Done for function worked_f
+[eva:progress] 
+  computing for function worked_f <- worked.
+  Called from memexec_key.c:29.
+[eva:progress] Recording results for worked_f
+[eva:progress] Done for function worked_f
+[eva:progress] 
+  computing for function worked_f <- worked.
+  Called from memexec_key.c:30.
+[eva:progress] Recording results for worked_f
+[eva:progress] Done for function worked_f
+[eva:progress] 
+  computing for function worked_f <- worked.
+  Called from memexec_key.c:31.
+[eva:progress] Recording results for worked_f
+[eva:progress] Done for function worked_f
+[eva:progress] Recording results for worked
+[eva:progress] Done for function worked
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function worked_f:
+  g ∈ {1}
+[eva:final-states] Values at end of function worked:
+  Frama_C_entropy_source ∈ [--..--]
+  c ∈ {0; 1}
+  g ∈ {1}
+  h ∈ {5}
+[from] Computing for function worked_f
+[from] Done for function worked_f
+[from] Computing for function worked
+[from] Computing for function Frama_C_interval <-worked
+[from] Done for function Frama_C_interval
+[from] Done for function worked
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function Frama_C_interval:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  \result FROM Frama_C_entropy_source; min; max
+[from] Function worked_f:
+  g FROM \nothing
+[from] Function worked:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  c FROM Frama_C_entropy_source
+  g FROM \nothing
+  h FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function worked_f:
+    g
+[inout] Inputs for function worked_f:
+    c
+[inout] Out (internal) for function worked:
+    Frama_C_entropy_source; c; g; h
+[inout] Inputs for function worked:
+    Frama_C_entropy_source; c

@@ -1,0 +1,13 @@
+31c31,40
+< [eva:progress] memexec_key.c:73: Reusing old results for call to nested_f
+---
+> [eva:progress] 
+>   computing for function nested_f <- nested.
+>   Called from memexec_key.c:73.
+> [eva:progress] 
+>   computing for function nested_leaf <- nested_f <- nested.
+>   Called from memexec_key.c:67.
+> [eva:progress] Recording results for nested_leaf
+> [eva:progress] Done for function nested_leaf
+> [eva:progress] Recording results for nested_f
+> [eva:progress] Done for function nested_f

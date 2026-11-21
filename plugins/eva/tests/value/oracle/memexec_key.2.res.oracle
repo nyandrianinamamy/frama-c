@@ -1,0 +1,69 @@
+[kernel] Parsing memexec_key.c (with preprocessing)
+[eva] Analyzing a complete application starting at nonterm
+[eva:progress] Computing initial state
+[eva:progress] Initial state computed
+[eva:initial-state] Values of globals at initialization
+  c ∈ {0}
+  g ∈ {0}
+  h ∈ {0}
+  k ∈ {0}
+  a ∈ {0}
+  out ∈ {0}
+  r1 ∈ {0}
+  r2 ∈ {0}
+[eva:progress] 
+  computing for function Frama_C_interval <- nonterm.
+  Called from memexec_key.c:39.
+[eva] using specification for function Frama_C_interval
+[eva:progress] memexec_key.c:39: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva:progress] Done for function Frama_C_interval
+[eva:progress] 
+  computing for function Frama_C_interval <- nonterm.
+  Called from memexec_key.c:40.
+[eva:progress] memexec_key.c:40: 
+  function Frama_C_interval: precondition 'order' got status valid.
+[eva:progress] Done for function Frama_C_interval
+[eva:progress] 
+  computing for function nonterm_f <- nonterm.
+  Called from memexec_key.c:42.
+[eva:progress] Recording results for nonterm_f
+[eva:progress] Done for function nonterm_f
+[eva:progress] 
+  computing for function nonterm_f <- nonterm.
+  Called from memexec_key.c:45.
+[eva:progress] Recording results for nonterm_f
+[eva:progress] Done for function nonterm_f
+[eva:progress] Recording results for nonterm
+[eva:progress] Done for function nonterm
+[eva] ====== VALUES COMPUTED ======
+[eva:final-states] Values at end of function nonterm_f:
+  NON TERMINATING FUNCTION
+[eva:final-states] Values at end of function nonterm:
+  NON TERMINATING FUNCTION
+[from] Computing for function nonterm_f
+[from] Non-terminating function nonterm_f (no dependencies)
+[from] Done for function nonterm_f
+[from] Computing for function nonterm
+[from] Computing for function Frama_C_interval <-nonterm
+[from] Done for function Frama_C_interval
+[from] Non-terminating function nonterm (no dependencies)
+[from] Done for function nonterm
+[from] ====== DEPENDENCIES COMPUTED ======
+  These dependencies hold at termination for the executions that terminate:
+[from] Function Frama_C_interval:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  \result FROM Frama_C_entropy_source; min; max
+[from] Function nonterm_f:
+  NON TERMINATING - NO EFFECTS
+[from] Function nonterm:
+  NON TERMINATING - NO EFFECTS
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function nonterm_f:
+    g
+[inout] Inputs for function nonterm_f:
+    c
+[inout] Out (internal) for function nonterm:
+    Frama_C_entropy_source; c; g; tmp
+[inout] Inputs for function nonterm:
+    Frama_C_entropy_source; c
