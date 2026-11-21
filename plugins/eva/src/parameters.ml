@@ -410,7 +410,9 @@ module HitLog =
                   analysis has ended, the states requested through \
                   Eva.Results, by the passes of Eva after the iteration \
                   among others, are rebuilt from these records instead of \
-                  the stored states (prototype, cvalue domain only)."
+                  the stored states, which are not joined over the \
+                  callstacks, whatever option -eva-join-results (prototype, \
+                  cvalue domain only)."
     end)
 let () = add_dep HitLog.parameter
 
