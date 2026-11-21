@@ -1765,7 +1765,7 @@ and comprehension_deps env predicate =
   match predicate with
   | None -> None
   | Some pred ->
-    match predicate_deps env pred with
+    match predicate_deps { env with silent = true } pred with
     | None when env.strict_deps ->
       unsupported "dependencies of a set comprehension"
     | deps -> deps
