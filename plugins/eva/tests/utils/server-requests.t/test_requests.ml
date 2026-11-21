@@ -24,7 +24,8 @@ module Target =
       let help = "Choose the requests to test"
       let default = ""
       let arg_name = "analysis|stats|call|dead_code|\
-                      values|values_by_stmt|values_by_callstack|states"
+                      values|values_by_stmt|values_by_callstack|states|\
+                      hit_log"
     end)
 
 (* ----- Building json of AST elements -------------------------------------- *)
@@ -264,6 +265,35 @@ let test_values_by_callstack_requests () =
   in
   List.iter eval_in_callstack (Json.list cs_json)
 
+(* Prints the values of [g] and [h] returned by the [getValues] request
+   before the statement labelled P of function "f" of "hit_log.i", for each
+   callstack and without callstack. Run with and without -eva-hit-log. *)
+let test_hit_log_requests () =
+  set_file "hit_log.i";
+  send "plugins.eva.analysis.compute" `Null;
+  let kf = Globals.Functions.find_by_name "f" in
+  let fundec = Kernel_function.get_definition kf in
+  let is_p = function Cil_types.Label ("P", _, _) -> true | _ -> false in
+  let stmt =
+    List.find (fun s -> List.exists is_p s.Cil_types.labels) fundec.sallstmts
+  in
+  let targets = [ parse_lval kf stmt "g"; parse_lval kf stmt "h" ] in
+  let cs_json =
+    send' "plugins.eva.callstack.getMarkersCallstacks" (`List targets)
+  in
+  let eval ?callstack target =
+    let callstack = Option.to_list callstack in
+    let callstack = List.map (fun cs -> "callstack", cs) callstack in
+    let json = `Assoc (("target", target) :: callstack) in
+    send "plugins.eva.values.getValues" json
+  in
+  List.iter (fun target -> eval target) targets;
+  let eval_in_callstack callstack =
+    send "plugins.eva.callstack.getCallstackInfo" callstack;
+    List.iter (eval ~callstack) targets
+  in
+  List.iter eval_in_callstack (Json.list cs_json)
+
 (* Test the [getStates] request on "states.i" file:
    - print filtered cvalue state at each statement of "main";
    - print complete cvalue state at the return statement of "main". *)
@@ -294,6 +324,7 @@ let run () =
   | "values" -> test_values_requests ()
   | "values_by_stmt" -> test_values_by_stmt_requests ()
   | "values_by_callstack" -> test_values_by_callstack_requests ()
+  | "hit_log" -> test_hit_log_requests ()
   | "states" -> test_states_requests ()
   | s -> Self.abort "Invalid argument %s for parameter %s." s Target.name
 

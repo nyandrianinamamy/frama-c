@@ -340,3 +340,159 @@ In "states.i" file:
       [ { name: cvalue,
           before: nondet ∈ [--..--] g ∈ {10} h ∈ {0} x ∈ [-9..9] z ∈ [1..19],
           after: nondet ∈ [--..--] g ∈ {10} h ∈ {0} x ∈ [-9..9] z ∈ [1..19] } ]
+
+In "hit_log.i" file, print the values of [g] and [h] before the statement
+labelled P of function "f", without callstack and for each callstack.
+With option -eva-hit-log, the request is served from the cache entries and
+the hit log: the four callstacks of f are answered, the hits included.
+With memexec and without the option, the callstacks of the hits have no state.
+Without memexec, the four calls are analysed: the answers are those of the
+first run.
+  $ frama-c -test hit_log -eva-hit-log
+  [test] Request SET kernel.ast.setFiles [ hit_log.i ];
+  [kernel] Parsing hit_log.i (no preprocessing)
+  [test] Request EXEC plugins.eva.analysis.compute;
+  [test] Request GET plugins.eva.callstack.getMarkersCallstacks [ g, h ]:
+      [ 1, 2, 3, 4 ]
+  [test] Request GET plugins.eva.values.getValues { target: g }:
+      { vBefore: { value: {0; 4; 9}, pointedVars: [], alarms: [] },
+        vAfter: { value: {1}, pointedVars: [], alarms: [] } }
+  [test] Request GET plugins.eva.values.getValues { target: h }:
+      { vBefore: { value: {5; 7; 8}, pointedVars: [], alarms: [] },
+        vAfter: { value: {5; 7; 8}, pointedVars: [], alarms: [] } }
+  [test] Request GET plugins.eva.callstack.getCallstackInfo 1:
+      { thread: <main>,
+        entryPoint: function main,
+        stack: [ { caller: function main, callee: function f, stmt: f(); } ],
+        analyzed: true }
+  [test] Request GET plugins.eva.values.getValues { target: g, callstack: 1 }:
+      { vBefore: { value: {0; 4}, pointedVars: [], alarms: [] },
+        vAfter: { value: {1}, pointedVars: [], alarms: [] } }
+  [test] Request GET plugins.eva.values.getValues { target: h, callstack: 1 }:
+      { vBefore: { value: {7}, pointedVars: [], alarms: [] },
+        vAfter: { value: {7}, pointedVars: [], alarms: [] } }
+  [test] Request GET plugins.eva.callstack.getCallstackInfo 2:
+      { thread: <main>,
+        entryPoint: function main,
+        stack: [ { caller: function main, callee: function f, stmt: f(); } ],
+        analyzed: true }
+  [test] Request GET plugins.eva.values.getValues { target: g, callstack: 2 }:
+      { vBefore: { value: {0; 4}, pointedVars: [], alarms: [] },
+        vAfter: { value: {1}, pointedVars: [], alarms: [] } }
+  [test] Request GET plugins.eva.values.getValues { target: h, callstack: 2 }:
+      { vBefore: { value: {8}, pointedVars: [], alarms: [] },
+        vAfter: { value: {8}, pointedVars: [], alarms: [] } }
+  [test] Request GET plugins.eva.callstack.getCallstackInfo 3:
+      { thread: <main>,
+        entryPoint: function main,
+        stack: [ { caller: function main, callee: function f, stmt: f(); } ],
+        analyzed: true }
+  [test] Request GET plugins.eva.values.getValues { target: g, callstack: 3 }:
+      { vBefore: { value: {0; 9}, pointedVars: [], alarms: [] },
+        vAfter: { value: {1}, pointedVars: [], alarms: [] } }
+  [test] Request GET plugins.eva.values.getValues { target: h, callstack: 3 }:
+      { vBefore: { value: {8}, pointedVars: [], alarms: [] },
+        vAfter: { value: {8}, pointedVars: [], alarms: [] } }
+  [test] Request GET plugins.eva.callstack.getCallstackInfo 4:
+      { thread: <main>,
+        entryPoint: function main,
+        stack: [ { caller: function main, callee: function f, stmt: f(); } ],
+        analyzed: true }
+  [test] Request GET plugins.eva.values.getValues { target: g, callstack: 4 }:
+      { vBefore: { value: {0; 9}, pointedVars: [], alarms: [] },
+        vAfter: { value: {1}, pointedVars: [], alarms: [] } }
+  [test] Request GET plugins.eva.values.getValues { target: h, callstack: 4 }:
+      { vBefore: { value: {5}, pointedVars: [], alarms: [] },
+        vAfter: { value: {5}, pointedVars: [], alarms: [] } }
+
+  $ frama-c -test hit_log
+  [test] Request SET kernel.ast.setFiles [ hit_log.i ];
+  [kernel] Parsing hit_log.i (no preprocessing)
+  [test] Request EXEC plugins.eva.analysis.compute;
+  [test] Request GET plugins.eva.callstack.getMarkersCallstacks [ g, h ]:
+      [ 1, 2 ]
+  [test] Request GET plugins.eva.values.getValues { target: g }:
+      { vBefore: { value: {0; 4; 9}, pointedVars: [], alarms: [] },
+        vAfter: { value: {1}, pointedVars: [], alarms: [] } }
+  [test] Request GET plugins.eva.values.getValues { target: h }:
+      { vBefore: { value: {7; 8}, pointedVars: [], alarms: [] },
+        vAfter: { value: {7; 8}, pointedVars: [], alarms: [] } }
+  [test] Request GET plugins.eva.callstack.getCallstackInfo 1:
+      { thread: <main>,
+        entryPoint: function main,
+        stack: [ { caller: function main, callee: function f, stmt: f(); } ],
+        analyzed: true }
+  [test] Request GET plugins.eva.values.getValues { target: g, callstack: 1 }:
+      { vBefore: { value: {0; 4}, pointedVars: [], alarms: [] },
+        vAfter: { value: {1}, pointedVars: [], alarms: [] } }
+  [test] Request GET plugins.eva.values.getValues { target: h, callstack: 1 }:
+      { vBefore: { value: {7}, pointedVars: [], alarms: [] },
+        vAfter: { value: {7}, pointedVars: [], alarms: [] } }
+  [test] Request GET plugins.eva.callstack.getCallstackInfo 2:
+      { thread: <main>,
+        entryPoint: function main,
+        stack: [ { caller: function main, callee: function f, stmt: f(); } ],
+        analyzed: true }
+  [test] Request GET plugins.eva.values.getValues { target: g, callstack: 2 }:
+      { vBefore: { value: {0; 9}, pointedVars: [], alarms: [] },
+        vAfter: { value: {1}, pointedVars: [], alarms: [] } }
+  [test] Request GET plugins.eva.values.getValues { target: h, callstack: 2 }:
+      { vBefore: { value: {8}, pointedVars: [], alarms: [] },
+        vAfter: { value: {8}, pointedVars: [], alarms: [] } }
+
+  $ frama-c -test hit_log -eva-no-memexec
+  [test] Request SET kernel.ast.setFiles [ hit_log.i ];
+  [kernel] Parsing hit_log.i (no preprocessing)
+  [test] Request EXEC plugins.eva.analysis.compute;
+  [test] Request GET plugins.eva.callstack.getMarkersCallstacks [ g, h ]:
+      [ 1, 2, 3, 4 ]
+  [test] Request GET plugins.eva.values.getValues { target: g }:
+      { vBefore: { value: {0; 4; 9}, pointedVars: [], alarms: [] },
+        vAfter: { value: {1}, pointedVars: [], alarms: [] } }
+  [test] Request GET plugins.eva.values.getValues { target: h }:
+      { vBefore: { value: {5; 7; 8}, pointedVars: [], alarms: [] },
+        vAfter: { value: {5; 7; 8}, pointedVars: [], alarms: [] } }
+  [test] Request GET plugins.eva.callstack.getCallstackInfo 1:
+      { thread: <main>,
+        entryPoint: function main,
+        stack: [ { caller: function main, callee: function f, stmt: f(); } ],
+        analyzed: true }
+  [test] Request GET plugins.eva.values.getValues { target: g, callstack: 1 }:
+      { vBefore: { value: {0; 4}, pointedVars: [], alarms: [] },
+        vAfter: { value: {1}, pointedVars: [], alarms: [] } }
+  [test] Request GET plugins.eva.values.getValues { target: h, callstack: 1 }:
+      { vBefore: { value: {7}, pointedVars: [], alarms: [] },
+        vAfter: { value: {7}, pointedVars: [], alarms: [] } }
+  [test] Request GET plugins.eva.callstack.getCallstackInfo 2:
+      { thread: <main>,
+        entryPoint: function main,
+        stack: [ { caller: function main, callee: function f, stmt: f(); } ],
+        analyzed: true }
+  [test] Request GET plugins.eva.values.getValues { target: g, callstack: 2 }:
+      { vBefore: { value: {0; 4}, pointedVars: [], alarms: [] },
+        vAfter: { value: {1}, pointedVars: [], alarms: [] } }
+  [test] Request GET plugins.eva.values.getValues { target: h, callstack: 2 }:
+      { vBefore: { value: {8}, pointedVars: [], alarms: [] },
+        vAfter: { value: {8}, pointedVars: [], alarms: [] } }
+  [test] Request GET plugins.eva.callstack.getCallstackInfo 3:
+      { thread: <main>,
+        entryPoint: function main,
+        stack: [ { caller: function main, callee: function f, stmt: f(); } ],
+        analyzed: true }
+  [test] Request GET plugins.eva.values.getValues { target: g, callstack: 3 }:
+      { vBefore: { value: {0; 9}, pointedVars: [], alarms: [] },
+        vAfter: { value: {1}, pointedVars: [], alarms: [] } }
+  [test] Request GET plugins.eva.values.getValues { target: h, callstack: 3 }:
+      { vBefore: { value: {8}, pointedVars: [], alarms: [] },
+        vAfter: { value: {8}, pointedVars: [], alarms: [] } }
+  [test] Request GET plugins.eva.callstack.getCallstackInfo 4:
+      { thread: <main>,
+        entryPoint: function main,
+        stack: [ { caller: function main, callee: function f, stmt: f(); } ],
+        analyzed: true }
+  [test] Request GET plugins.eva.values.getValues { target: g, callstack: 4 }:
+      { vBefore: { value: {0; 9}, pointedVars: [], alarms: [] },
+        vAfter: { value: {1}, pointedVars: [], alarms: [] } }
+  [test] Request GET plugins.eva.values.getValues { target: h, callstack: 4 }:
+      { vBefore: { value: {5}, pointedVars: [], alarms: [] },
+        vAfter: { value: {5}, pointedVars: [], alarms: [] } }
