@@ -10,7 +10,11 @@
   Called from called.i:25:7-13.
 [eva:progress] Recording results for f
 [eva:progress] Done for function f
-[eva:progress] called.i:27: Reusing old results for call to f
+[eva:progress] 
+  computing for function f <- h.
+  Called from called.i:27:7-13.
+[eva:progress] Recording results for f
+[eva:progress] Done for function f
 [eva:progress] Recording results for h
 [eva:progress] Done for function h
 [pdg] computing for function h

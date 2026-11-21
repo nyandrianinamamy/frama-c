@@ -24,7 +24,11 @@
 [eva:progress] 
   computing for function g1 <- main1.
   Called from initial.i:25:5-9.
-[eva:progress] initial.i:19: Reusing old results for call to f1
+[eva:progress] 
+  computing for function f1 <- g1 <- main1.
+  Called from initial.i:19:6-10.
+[eva:progress] Recording results for f1
+[eva:progress] Done for function f1
 [eva:progress] Recording results for g1
 [eva:progress] Done for function g1
 [eva:progress] Recording results for main1
@@ -106,7 +110,16 @@
 [eva:progress] Recording results for g3
 [eva:progress] Done for function g3
 [eva:partition] initial.i:80: starting to merge loop iterations
-[eva:progress] initial.i:81: Reusing old results for call to g3
+[eva:progress] 
+  computing for function g3 <- main3.
+  Called from initial.i:81:5-9.
+[eva:progress] 
+  computing for function f3 <- g3 <- main3.
+  Called from initial.i:69:4-8.
+[eva:progress] Recording results for f3
+[eva:progress] Done for function f3
+[eva:progress] Recording results for g3
+[eva:progress] Done for function g3
 [eva:progress] Recording results for main3
 [eva:progress] Done for function main3
 [from] Computing for function f3

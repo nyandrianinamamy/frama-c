@@ -121,7 +121,11 @@
   Called from domains_function.c:63.
 [eva:progress] Recording results for no_infer
 [eva:progress] Done for function no_infer
-[eva:progress] domains_function.c:64: Reusing old results for call to use
+[eva:progress] 
+  computing for function use <- test_propagation <- main.
+  Called from domains_function.c:64.
+[eva:progress] Recording results for use
+[eva:progress] Done for function use
 [eva:show] domains_function.c:65: 
   Frama_C_show_each_top: [-2147483648..2147483647]
 [eva:progress] Recording results for test_propagation

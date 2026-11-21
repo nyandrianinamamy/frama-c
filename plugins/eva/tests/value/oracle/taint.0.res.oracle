@@ -195,7 +195,15 @@
   ==END OF DUMP==
 [eva:progress] Recording results for taint_infinite_while
 [eva:progress] Done for function taint_infinite_while
-[eva:progress] taint.c:250: Reusing old results for call to taints
+[eva:progress] 
+  computing for function taints <- main.
+  Called from taint.c:250.
+[eva:progress] 
+  computing for function Frama_C_interval <- taints <- main.
+  Called from taint.c:220.
+[eva:progress] Done for function Frama_C_interval
+[eva:progress] Recording results for taints
+[eva:progress] Done for function taints
 [eva:progress] 
   computing for function tainted_predicate <- main.
   Called from taint.c:251.

@@ -26,7 +26,15 @@
   Called from bts1768.i:46:5-21.
 [eva:progress] Recording results for fsm_transition
 [eva:progress] Done for function fsm_transition
-[eva:progress] bts1768.i:45: Reusing old results for call to lecture
+[eva:progress] 
+  computing for function lecture <- main.
+  Called from bts1768.i:45:3-12.
+[eva:progress] 
+  computing for function choisir <- lecture <- main.
+  Called from bts1768.i:18:9-18.
+[eva:progress] Done for function choisir
+[eva:progress] Recording results for lecture
+[eva:progress] Done for function lecture
 [eva:progress] 
   computing for function fsm_transition <- main.
   Called from bts1768.i:46:5-21.

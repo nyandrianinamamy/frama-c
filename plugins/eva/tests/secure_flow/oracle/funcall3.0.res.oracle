@@ -23,7 +23,11 @@
 [eva:progress] Done for function set_x
 [eva:alarm] funcall3.c:20: Warning: assertion got status unknown.
 [eva:alarm] funcall3.c:22: Warning: assertion got status unknown.
-[eva:progress] funcall3.c:23: Reusing old results for call to set_x
+[eva:progress] 
+  computing for function set_x <- main.
+  Called from funcall3.c:23.
+[eva:progress] Recording results for set_x
+[eva:progress] Done for function set_x
 [eva:progress] funcall3.c:24: assertion got status valid.
 [eva:progress] Recording results for main
 [eva:progress] Done for function main

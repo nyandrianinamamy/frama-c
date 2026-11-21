@@ -27,15 +27,3 @@
 185,186d199
 < [eva:loop-unroll:auto] taint.c:170: Automatic loop unrolling.
 < [eva:loop-unroll:partial] taint.c:170: loop not completely unrolled
-198c211,219
-< [eva:progress] taint.c:250: Reusing old results for call to taints
----
-> [eva:progress] 
->   computing for function taints <- main.
->   Called from taint.c:250.
-> [eva:progress] 
->   computing for function Frama_C_interval <- taints <- main.
->   Called from taint.c:220.
-> [eva:progress] Done for function Frama_C_interval
-> [eva:progress] Recording results for taints
-> [eva:progress] Done for function taints

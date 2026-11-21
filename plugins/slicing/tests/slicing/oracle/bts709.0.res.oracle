@@ -41,8 +41,23 @@
 [eva:progress] Recording results for func
 [eva:progress] Done for function func
 [eva:partition] bts709.c:46: starting to merge loop iterations
-[eva:progress] bts709.c:47: 
-  Reusing old results for call to inputsOf_testcase_func
+[eva:progress] 
+  computing for function inputsOf_testcase_func <- main.
+  Called from bts709.c:47.
+[eva:progress] 
+  computing for function nondet_int <- inputsOf_testcase_func <- main.
+  Called from bts709.c:55.
+[eva:progress] Done for function nondet_int
+[eva:progress] 
+  computing for function nondet_int <- inputsOf_testcase_func <- main.
+  Called from bts709.c:56.
+[eva:progress] Done for function nondet_int
+[eva:progress] 
+  computing for function nondet_int <- inputsOf_testcase_func <- main.
+  Called from bts709.c:57.
+[eva:progress] Done for function nondet_int
+[eva:progress] Recording results for inputsOf_testcase_func
+[eva:progress] Done for function inputsOf_testcase_func
 [eva:progress] Recording results for main
 [eva:progress] Done for function main
 [slicing] initializing slicing ...

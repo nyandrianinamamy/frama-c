@@ -170,7 +170,11 @@
 [eva:progress] 
   computing for function aux4bis <- main4.
   Called from variadic.i:74:3-19.
-[eva:progress] variadic.i:68: Reusing old results for call to aux4
+[eva:progress] 
+  computing for function aux4 <- aux4bis <- main4.
+  Called from variadic.i:68:3-10.
+[eva:progress] Recording results for aux4
+[eva:progress] Done for function aux4
 [eva:progress] Recording results for aux4bis
 [eva:progress] Done for function aux4bis
 [eva:progress] Recording results for main4

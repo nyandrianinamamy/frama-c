@@ -32,6 +32,8 @@
     c:
       write by th1 at memexec.c:10 <-
         g :: memexec.c:16 <- f :: memexec.c:25 <- t1
+      write by th1 at memexec.c:10 <-
+        g :: memexec.c:19 <- f :: memexec.c:25 <- t1
 [eva:debug:interferences] Debug: 
   Interferences from thread th1
     concurrent writes:
@@ -74,13 +76,19 @@
     c:
       write by th1 at memexec.c:10 <-
         g :: memexec.c:16 <- f :: memexec.c:25 <- t1
+      write by th1 at memexec.c:10 <-
+        g :: memexec.c:19 <- f :: memexec.c:25 <- t1
 [eva:debug:interferences] Debug: 
   Interferences from thread th1
     concurrent writes:
       c = 2; memexec.c:10 <- g :: memexec.c:16 <- f :: memexec.c:25 <- t1
+      c = 2; memexec.c:10 <- g :: memexec.c:19 <- f :: memexec.c:25 <- t1
       a = 1; memexec.c:14 <- f :: memexec.c:25 <- t1
     shared bases: {a, c}
     interferences by location:
+      memexec.c:10:
+        # cvalue: a ∈ {1}
+                  c ∈ {2} 
       memexec.c:10:
         # cvalue: a ∈ {1}
                   c ∈ {2} 

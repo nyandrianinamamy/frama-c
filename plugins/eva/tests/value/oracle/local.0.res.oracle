@@ -21,7 +21,11 @@
 [eva:progress] 
   computing for function g <- main.
   Called from local.i:34:7-10.
-[eva:progress] local.i:13: Reusing old results for call to f
+[eva:progress] 
+  computing for function f <- g <- main.
+  Called from local.i:13:7-10.
+[eva:progress] Recording results for f
+[eva:progress] Done for function f
 [eva:locals-escaping] local.i:13: Warning: 
   locals {a} escaping the scope of f through X
 [eva:locals-escaping] local.i:13: Warning: 

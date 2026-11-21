@@ -1,0 +1,8 @@
+35c35,39
+< [eva:progress] memexec.c:16: Reusing old results for call to f11
+---
+> [eva:progress] 
+>   computing for function f11 <- f1 <- main.
+>   Called from memexec.c:16.
+> [eva:progress] Recording results for f11
+> [eva:progress] Done for function f11

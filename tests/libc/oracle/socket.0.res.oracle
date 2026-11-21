@@ -81,7 +81,19 @@
 [eva:progress] 
   computing for function test_readv <- main.
   Called from socket.c:127.
-[eva:progress] socket.c:68: Reusing old results for call to init_reception
+[eva:progress] 
+  computing for function init_reception <- test_readv <- main.
+  Called from socket.c:68.
+[eva:progress] 
+  computing for function bzero <- init_reception <- test_readv <- main.
+  Called from socket.c:43.
+[eva:progress] Done for function bzero
+[eva:progress] 
+  computing for function write <- init_reception <- test_readv <- main.
+  Called from socket.c:44.
+[eva:progress] Done for function write
+[eva:progress] Recording results for init_reception
+[eva:progress] Done for function init_reception
 [eva:progress] 
   computing for function readv <- test_readv <- main.
   Called from socket.c:69.

@@ -38,24 +38,24 @@
 <   Frama_C_show_each_top: [-2147483648..2147483647]
 ---
 > [eva:show] domains_function.c:56: Frama_C_show_each_top: {42}
-125,126c117
+129,130c121
 < [eva:show] domains_function.c:65: 
 <   Frama_C_show_each_top: [-2147483648..2147483647]
 ---
 > [eva:show] domains_function.c:65: Frama_C_show_each_top: {42}
-133c124
+137c128
 <   result ∈ [--..--]
 ---
 >   result ∈ {2}
-147c138
+151c142
 <   result ∈ [--..--]
 ---
 >   result ∈ {1}
-152c143
+156c147
 <   result ∈ [--..--]
 ---
 >   result ∈ {2}
-155c146
+159c150
 <   result ∈ [--..--]
 ---
 >   result ∈ {2}

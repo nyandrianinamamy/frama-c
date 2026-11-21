@@ -38,7 +38,11 @@
 [eva:progress] 
   computing for function set_x <- main.
   Called from funcall4.c:36.
-[eva:progress] funcall4.c:18: Reusing old results for call to set_y
+[eva:progress] 
+  computing for function set_y <- set_x <- main.
+  Called from funcall4.c:18.
+[eva:progress] Recording results for set_y
+[eva:progress] Done for function set_y
 [eva:progress] Recording results for set_x
 [eva:progress] Done for function set_x
 [eva:progress] funcall4.c:37: assertion got status valid.

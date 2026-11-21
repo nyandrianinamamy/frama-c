@@ -141,7 +141,12 @@
   Called from secureflow.c:158.
 [eva:secure-flow:indirect] secureflow.c:139: Warning: 
   indirect non-interference violation on {x}
-[eva:progress] secureflow.c:141: Reusing old results for call to set_y
+[eva:progress] 
+  computing for function set_y <- set_xy <- indirect_interference_fun_call <- 
+                          main.
+  Called from secureflow.c:141.
+[eva:progress] Recording results for set_y
+[eva:progress] Done for function set_y
 [eva:progress] Recording results for set_xy
 [eva:progress] Done for function set_xy
 [eva:alarm] secureflow.c:159: Warning: check got status unknown.
@@ -150,7 +155,12 @@
 [eva:progress] 
   computing for function set_xy <- indirect_interference_fun_call <- main.
   Called from secureflow.c:164.
-[eva:progress] secureflow.c:141: Reusing old results for call to set_y
+[eva:progress] 
+  computing for function set_y <- set_xy <- indirect_interference_fun_call <- 
+                          main.
+  Called from secureflow.c:141.
+[eva:progress] Recording results for set_y
+[eva:progress] Done for function set_y
 [eva:progress] Recording results for set_xy
 [eva:progress] Done for function set_xy
 [eva:progress] secureflow.c:165: check got status valid.

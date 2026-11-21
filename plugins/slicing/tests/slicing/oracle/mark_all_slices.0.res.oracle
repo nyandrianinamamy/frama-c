@@ -24,7 +24,11 @@
 [eva:progress] 
   computing for function fB <- main.
   Called from mark_all_slices.i:24:8-12.
-[eva:progress] mark_all_slices.i:18: Reusing old results for call to all
+[eva:progress] 
+  computing for function all <- fB <- main.
+  Called from mark_all_slices.i:18:17-24.
+[eva:progress] Recording results for all
+[eva:progress] Done for function all
 [eva:progress] Recording results for fB
 [eva:progress] Done for function fB
 [eva:progress] 

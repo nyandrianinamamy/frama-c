@@ -1,8 +1,14 @@
-60,62d59
+72,80d71
 < [eva:show] fptr.i:67: 
 <   Frama_C_show_each_F: {{ NULL + [0..4294967295] ; &h ; &hh }}
-< [eva:progress] fptr.i:68: Reusing old results for call to f
-74c71
+< [eva:progress] 
+<   computing for function f <- main_uninit.
+<   Called from fptr.i:68:7-21.
+< [eva:progress] fptr.i:9: Reusing old results for call to h
+< [eva:progress] fptr.i:9: Reusing old results for call to hh
+< [eva:progress] Recording results for f
+< [eva:progress] Done for function f
+92c83
 <   n ∈ {0; 1; 2}
 ---
 >   n ∈ {0; 1}

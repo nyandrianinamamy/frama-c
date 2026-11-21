@@ -26,11 +26,19 @@
   Called from memexec.c:12.
 [eva:progress] Recording results for f11
 [eva:progress] Done for function f11
-[eva:progress] memexec.c:13: Reusing old results for call to f11
+[eva:progress] 
+  computing for function f11 <- f1 <- main.
+  Called from memexec.c:13.
+[eva:progress] Recording results for f11
+[eva:progress] Done for function f11
 [eva:progress] memexec.c:14: Reusing old results for call to f11
 [eva:progress] memexec.c:16: Reusing old results for call to f11
 [eva:progress] memexec.c:18: Reusing old results for call to f11
-[eva:progress] memexec.c:20: Reusing old results for call to f11
+[eva:progress] 
+  computing for function f11 <- f1 <- main.
+  Called from memexec.c:20.
+[eva:progress] Recording results for f11
+[eva:progress] Done for function f11
 [eva:progress] memexec.c:21: Reusing old results for call to f11
 [eva:progress] Recording results for f1
 [eva:progress] Done for function f1
@@ -147,7 +155,11 @@
   Called from memexec.c:136.
 [eva:progress] Recording results for f7_1
 [eva:progress] Done for function f7_1
-[eva:progress] memexec.c:137: Reusing old results for call to f7_1
+[eva:progress] 
+  computing for function f7_1 <- f7 <- main.
+  Called from memexec.c:137.
+[eva:progress] Recording results for f7_1
+[eva:progress] Done for function f7_1
 [eva:progress] Recording results for f7
 [eva:progress] Done for function f7
 [eva:progress] 

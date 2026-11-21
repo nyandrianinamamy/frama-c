@@ -41,46 +41,40 @@
 96,97d87
 <   signed overflow. assert -2147483648 ≤ t[i] - t[0];
 < [eva:alarm] domains_function.c:22: Warning: 
-124,126c114,119
-< [eva:progress] domains_function.c:64: Reusing old results for call to use
+129,130c119
 < [eva:show] domains_function.c:65: 
 <   Frama_C_show_each_top: [-2147483648..2147483647]
 ---
-> [eva:progress] 
->   computing for function use <- test_propagation <- main.
->   Called from domains_function.c:64.
-> [eva:progress] Recording results for use
-> [eva:progress] Done for function use
 > [eva:show] domains_function.c:65: Frama_C_show_each_top: {42}
-133c126
+137c126
 <   result ∈ [--..--]
 ---
 >   result ∈ {2}
-145c138
+149c138
 <   result ∈ [--..--]
 ---
 >   result ∈ {42}
-147c140
+151c140
 <   result ∈ [--..--]
 ---
 >   result ∈ {1}
-150c143
+154c143
 <   tmp ∈ [--..--]
 ---
 >   tmp ∈ [-2147483605..2147483647]
-152c145
+156c145
 <   result ∈ [--..--]
 ---
 >   result ∈ {2}
-155c148
+159c148
 <   result ∈ [--..--]
 ---
 >   result ∈ {2}
-160c153
+164c153
 <   result ∈ [--..--]
 ---
 >   result ∈ {42}
-165c158
+169c158
 <   result ∈ [--..--]
 ---
 >   result ∈ {42}
