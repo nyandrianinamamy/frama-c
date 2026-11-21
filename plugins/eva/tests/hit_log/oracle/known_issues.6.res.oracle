@@ -11,6 +11,8 @@ Calls:
   f95 :: known_issues.c:104 <- h95 :: known_issues.c:109 <- issue95: hit of cache entry 11
   h95 :: known_issues.c:109 <- issue95: analysed, cache entry 12
   issue95: analysed, cache entry 13
+Calls below a hit:
+  h95 :: known_issues.c:105 <- f95 :: known_issues.c:104 <- h95 :: known_issues.c:109 <- issue95
 f95, start:
   joined: a ∈ {0}
           g ∈ {0}
@@ -248,58 +250,42 @@ Differences with the run without memexec:
   final state, joined: more precise, as with memexec
   final state, filtered: more precise, as with memexec
   final state, issue95: more precise, as with memexec
-  h95, start, joined: unavailable
-  h95, start, filtered: unavailable
-  h95, start, h95 :: known_issues.c:105 <- f95 :: known_issues.c:104 <- h95 :: known_issues.c:109 <- issue95: unavailable
-  h95, start, h95 :: known_issues.c:105 <- f95 :: known_issues.c:108 <- issue95: unavailable
-  h95, start, h95 :: known_issues.c:109 <- issue95: unavailable
-  h95, before known_issues.c:104 `if (n)`, joined: unavailable
-  h95, before known_issues.c:104 `if (n)`, filtered: unavailable
-  h95, before known_issues.c:104 `if (n)`, h95 :: known_issues.c:105 <- f95 :: known_issues.c:108 <- issue95: unavailable
-  h95, before known_issues.c:104 `if (n)`, h95 :: known_issues.c:109 <- issue95: unavailable
-  h95, after known_issues.c:104 `if (n)`, joined: unavailable
-  h95, after known_issues.c:104 `if (n)`, filtered: unavailable
-  h95, after known_issues.c:104 `if (n)`, h95 :: known_issues.c:105 <- f95 :: known_issues.c:108 <- issue95: unavailable
-  h95, after known_issues.c:104 `if (n)`, h95 :: known_issues.c:109 <- issue95: unavailable
-  h95, before known_issues.c:104 `tmp = f95();`, joined: unavailable
-  h95, before known_issues.c:104 `tmp = f95();`, filtered: unavailable
-  h95, before known_issues.c:104 `tmp = f95();`, h95 :: known_issues.c:109 <- issue95: unavailable
-  h95, after known_issues.c:104 `tmp = f95();`, joined: unavailable
-  h95, after known_issues.c:104 `tmp = f95();`, filtered: unavailable
-  h95, after known_issues.c:104 `tmp = f95();`, h95 :: known_issues.c:109 <- issue95: unavailable
-  h95, before known_issues.c:104 `block`, joined: unavailable
-  h95, before known_issues.c:104 `block`, filtered: unavailable
-  h95, before known_issues.c:104 `block`, h95 :: known_issues.c:109 <- issue95: unavailable
-  h95, after known_issues.c:104 `block`, joined: unavailable
-  h95, after known_issues.c:104 `block`, filtered: unavailable
-  h95, after known_issues.c:104 `block`, h95 :: known_issues.c:109 <- issue95: unavailable
-  h95, before known_issues.c:104 `__retres = tmp;`, joined: unavailable
-  h95, before known_issues.c:104 `__retres = tmp;`, filtered: unavailable
-  h95, before known_issues.c:104 `__retres = tmp;`, h95 :: known_issues.c:109 <- issue95: unavailable
-  h95, after known_issues.c:104 `__retres = tmp;`, joined: unavailable
-  h95, after known_issues.c:104 `__retres = tmp;`, filtered: unavailable
-  h95, after known_issues.c:104 `__retres = tmp;`, h95 :: known_issues.c:109 <- issue95: unavailable
-  h95, before known_issues.c:104 `goto`, joined: unavailable
-  h95, before known_issues.c:104 `goto`, filtered: unavailable
-  h95, before known_issues.c:104 `goto`, h95 :: known_issues.c:109 <- issue95: unavailable
-  h95, after known_issues.c:104 `goto`, joined: unavailable
-  h95, after known_issues.c:104 `goto`, filtered: unavailable
-  h95, after known_issues.c:104 `goto`, h95 :: known_issues.c:105 <- f95 :: known_issues.c:108 <- issue95: unavailable
-  h95, after known_issues.c:104 `goto`, h95 :: known_issues.c:109 <- issue95: unavailable
-  h95, before known_issues.c:104 `__retres = 2;`, joined: unavailable
-  h95, before known_issues.c:104 `__retres = 2;`, filtered: unavailable
-  h95, before known_issues.c:104 `__retres = 2;`, h95 :: known_issues.c:105 <- f95 :: known_issues.c:108 <- issue95: unavailable
-  h95, after known_issues.c:104 `__retres = 2;`, joined: unavailable
-  h95, after known_issues.c:104 `__retres = 2;`, filtered: unavailable
-  h95, after known_issues.c:104 `__retres = 2;`, h95 :: known_issues.c:105 <- f95 :: known_issues.c:108 <- issue95: unavailable
-  h95, before known_issues.c:104 `return __retres;`, joined: unavailable
-  h95, before known_issues.c:104 `return __retres;`, filtered: unavailable
-  h95, before known_issues.c:104 `return __retres;`, h95 :: known_issues.c:105 <- f95 :: known_issues.c:108 <- issue95: unavailable
-  h95, before known_issues.c:104 `return __retres;`, h95 :: known_issues.c:109 <- issue95: unavailable
-  h95, after known_issues.c:104 `return __retres;`, joined: unavailable
-  h95, after known_issues.c:104 `return __retres;`, filtered: unavailable
-  h95, after known_issues.c:104 `return __retres;`, h95 :: known_issues.c:105 <- f95 :: known_issues.c:108 <- issue95: unavailable
-  h95, after known_issues.c:104 `return __retres;`, h95 :: known_issues.c:109 <- issue95: unavailable
+  h95, before known_issues.c:104 `if (n)`, h95 :: known_issues.c:105 <- f95 :: known_issues.c:104 <- h95 :: known_issues.c:109 <- issue95: covers
+  h95, after known_issues.c:104 `if (n)`, h95 :: known_issues.c:105 <- f95 :: known_issues.c:104 <- h95 :: known_issues.c:109 <- issue95: covers
+  h95, after known_issues.c:104 `tmp = f95();`, joined: more precise, as with memexec
+  h95, after known_issues.c:104 `tmp = f95();`, filtered: more precise, as with memexec
+  h95, after known_issues.c:104 `tmp = f95();`, h95 :: known_issues.c:109 <- issue95: more precise, as with memexec
+  h95, before known_issues.c:104 `block`, joined: more precise, as with memexec
+  h95, before known_issues.c:104 `block`, filtered: more precise, as with memexec
+  h95, before known_issues.c:104 `block`, h95 :: known_issues.c:109 <- issue95: more precise, as with memexec
+  h95, after known_issues.c:104 `block`, joined: more precise, as with memexec
+  h95, after known_issues.c:104 `block`, filtered: more precise, as with memexec
+  h95, after known_issues.c:104 `block`, h95 :: known_issues.c:109 <- issue95: more precise, as with memexec
+  h95, before known_issues.c:104 `__retres = tmp;`, joined: more precise, as with memexec
+  h95, before known_issues.c:104 `__retres = tmp;`, filtered: more precise, as with memexec
+  h95, before known_issues.c:104 `__retres = tmp;`, h95 :: known_issues.c:109 <- issue95: more precise, as with memexec
+  h95, after known_issues.c:104 `__retres = tmp;`, joined: more precise, as with memexec
+  h95, after known_issues.c:104 `__retres = tmp;`, filtered: more precise, as with memexec
+  h95, after known_issues.c:104 `__retres = tmp;`, h95 :: known_issues.c:109 <- issue95: more precise, as with memexec
+  h95, before known_issues.c:104 `goto`, joined: more precise, as with memexec
+  h95, before known_issues.c:104 `goto`, filtered: more precise, as with memexec
+  h95, before known_issues.c:104 `goto`, h95 :: known_issues.c:109 <- issue95: more precise, as with memexec
+  h95, after known_issues.c:104 `goto`, joined: more precise, as with memexec
+  h95, after known_issues.c:104 `goto`, filtered: more precise, as with memexec
+  h95, after known_issues.c:104 `goto`, h95 :: known_issues.c:105 <- f95 :: known_issues.c:104 <- h95 :: known_issues.c:109 <- issue95: covers
+  h95, after known_issues.c:104 `goto`, h95 :: known_issues.c:109 <- issue95: more precise, as with memexec
+  h95, before known_issues.c:104 `__retres = 2;`, joined: covers
+  h95, before known_issues.c:104 `__retres = 2;`, h95 :: known_issues.c:105 <- f95 :: known_issues.c:104 <- h95 :: known_issues.c:109 <- issue95: covers
+  h95, after known_issues.c:104 `__retres = 2;`, joined: covers
+  h95, after known_issues.c:104 `__retres = 2;`, h95 :: known_issues.c:105 <- f95 :: known_issues.c:104 <- h95 :: known_issues.c:109 <- issue95: covers
+  h95, before known_issues.c:104 `return __retres;`, joined: more precise, as with memexec
+  h95, before known_issues.c:104 `return __retres;`, filtered: more precise, as with memexec
+  h95, before known_issues.c:104 `return __retres;`, h95 :: known_issues.c:105 <- f95 :: known_issues.c:104 <- h95 :: known_issues.c:109 <- issue95: covers
+  h95, before known_issues.c:104 `return __retres;`, h95 :: known_issues.c:109 <- issue95: more precise, as with memexec
+  h95, after known_issues.c:104 `return __retres;`, joined: more precise, as with memexec
+  h95, after known_issues.c:104 `return __retres;`, filtered: more precise, as with memexec
+  h95, after known_issues.c:104 `return __retres;`, h95 :: known_issues.c:105 <- f95 :: known_issues.c:104 <- h95 :: known_issues.c:109 <- issue95: covers
+  h95, after known_issues.c:104 `return __retres;`, h95 :: known_issues.c:109 <- issue95: more precise, as with memexec
   f95, after known_issues.c:105 `int v = h95(0);`, joined: more precise
   f95, after known_issues.c:105 `int v = h95(0);`, f95 :: known_issues.c:104 <- h95 :: known_issues.c:109 <- issue95: more precise
   f95, before known_issues.c:105 `;` (P), joined: more precise
@@ -319,6 +305,6 @@ Differences with the run without memexec:
   issue95, after known_issues.c:110 `return;`, joined: more precise, as with memexec
   issue95, after known_issues.c:110 `return;`, filtered: more precise, as with memexec
   issue95, after known_issues.c:110 `return;`, issue95: more precise, as with memexec
-Answers: 507 equal, 0 covering, 22 more precise, 0 omitting, 52 unavailable.
-Filtered requests that reject one callstack: 13.
-Requests made: 849; reported by the trap: 849, each once with its description; reads of the legacy store: 0.
+Answers: 530 equal, 9 covering, 49 more precise, 0 omitting, 0 unavailable.
+Filtered requests that reject one callstack: 15.
+Requests made: 856; reported by the trap: 856, each once with its description; reads of the legacy store: 0.

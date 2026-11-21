@@ -202,29 +202,27 @@ module Make (Engine: Engine_sig.S) = struct
   let compute_call_with_target call target state =
     Function_calls.register_analysis_target call target;
     let record = Hit_log.enabled () in
-    if record then Hit_log.record_call call.kf;
+    let start = lazy (Engine.Dom.get_cvalue_or_top state) in
     let record_start () =
-      if record then
-        Hit_log.record_start call.callstack (Engine.Dom.get_cvalue_or_top state)
+      if record then Hit_log.record_start call.callstack (Lazy.force start)
     in
-    match target with
-    | `Builtin builtin_info ->
-      record_start ();
-      compute_builtin builtin_info call state
-    | `Spec _ as spec ->
-      record_start ();
-      compute_using_spec_or_body spec call state
-    | `Body _ as def ->
-      let compute = compute_using_spec_or_body def in
-      let compute =
-        if record
-        then fun call state ->
-          Hit_log.analyse_body (fun () -> compute call state)
-        else compute
-      in
-      if Parameters.Memexec.get ()
-      then compute_and_cache_call compute call state
-      else compute call state
+    let compute () =
+      match target with
+      | `Builtin builtin_info ->
+        record_start ();
+        compute_builtin builtin_info call state
+      | `Spec _ as spec ->
+        record_start ();
+        compute_using_spec_or_body spec call state
+      | `Body _ as def ->
+        let compute = compute_using_spec_or_body def in
+        if Parameters.Memexec.get ()
+        then compute_and_cache_call compute call state
+        else compute call state
+    in
+    if record
+    then Hit_log.call call.callstack ~start:(Lazy.force start) compute
+    else compute ()
 
   (* Defines the target of the analysis of a call, and analyze it.
      Exported in [Engine_sig.Compute] and used by [Transfer_stmt] when

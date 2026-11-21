@@ -4,15 +4,12 @@ Calls:
   spec_parent :: below_no_body.c:21 <- by_spec: analysed, cache entry 6
   spec_parent :: below_no_body.c:23 <- by_spec: hit of cache entry 6
   by_spec: analysed, cache entry 7
+Calls below a hit:
+  spec_leaf :: below_no_body.c:18 <- spec_parent :: below_no_body.c:23 <- by_spec
 spec_leaf, start:
-  joined: unavailable
-  spec_leaf :: below_no_body.c:18 <- spec_parent :: below_no_body.c:21 <- by_spec: 
-  unavailable
-  spec_leaf :: below_no_body.c:18 <- spec_parent :: below_no_body.c:23 <- by_spec: 
-  unavailable
-  reference, joined: g ∈ {0}
-                     h ∈ {0; 8}
-                     d ∈ {0}
+  joined: g ∈ {0}
+          h ∈ {0; 8}
+          d ∈ {0}
   spec_leaf :: below_no_body.c:18 <- spec_parent :: below_no_body.c:21 <- by_spec: 
   g ∈ {0}
   h ∈ {0}
@@ -22,27 +19,13 @@ spec_leaf, start:
   h ∈ {8}
   d ∈ {0}
 spec_leaf, before below_no_body.c:16 `g = 3;` (P):
-  joined: unavailable
-  reference, joined: unreachable
+  joined: unreachable
 spec_leaf, after below_no_body.c:16 `return;`:
-  joined: unavailable
-  reference, joined: unreachable
+  joined: unreachable
 Hits against the analysed call of their cache entry:
   spec_parent :: below_no_body.c:23 <- by_spec, hit of cache entry 6, against spec_parent :: below_no_body.c:21 <- by_spec: differs on h, at 5 points.
 Initial state: equal.
 Differences with the run without memexec:
-  spec_leaf, start, joined: unavailable
-  spec_leaf, start, filtered: unavailable
-  spec_leaf, start, spec_leaf :: below_no_body.c:18 <- spec_parent :: below_no_body.c:21 <- by_spec: unavailable
-  spec_leaf, start, spec_leaf :: below_no_body.c:18 <- spec_parent :: below_no_body.c:23 <- by_spec: unavailable
-  spec_leaf, before below_no_body.c:16 `g = 3;` (P), joined: unavailable
-  spec_leaf, before below_no_body.c:16 `g = 3;` (P), filtered: unavailable
-  spec_leaf, after below_no_body.c:16 `g = 3;` (P), joined: unavailable
-  spec_leaf, after below_no_body.c:16 `g = 3;` (P), filtered: unavailable
-  spec_leaf, before below_no_body.c:16 `return;`, joined: unavailable
-  spec_leaf, before below_no_body.c:16 `return;`, filtered: unavailable
-  spec_leaf, after below_no_body.c:16 `return;`, joined: unavailable
-  spec_leaf, after below_no_body.c:16 `return;`, filtered: unavailable
-Answers: 95 equal, 0 covering, 0 more precise, 0 omitting, 12 unavailable.
+Answers: 107 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
 Filtered requests that reject one callstack: 6.
 Requests made: 149; reported by the trap: 149, each once with its description; reads of the legacy store: 0.

@@ -4,10 +4,10 @@
 */
 
 /* A function called below a hit, and analysed by its specification (first
-   run) or by a builtin (second run), is unavailable at every point: at its
-   start, and at the points of its body, which the analysis does not reach.
-   In each run, the second call of the parent is a hit. The calls are on
-   separate lines, so that their callstacks are printed apart. */
+   run) or by a builtin (second run): its start is answered from the call
+   stored in the cache entry of the parent, and the points of its body are
+   unreachable. In each run, the second call of the parent is a hit. The
+   calls are on separate lines, so that their callstacks are printed apart. */
 
 int g, h;
 double d;

@@ -135,6 +135,11 @@ let debug_widen_hints =
   Self.register_debug_category "widen-hints"
     ~help:"debug messages for the interpretation of widen_hints annotations"
 
+let debug_hit_log =
+  register_debug_category "hit-log"
+    ~help:"number of pastes made by each state request answered from the \
+           cache entries and the hit log (option -eva-hit-log)"
+
 let debug_string_literal =
   register_debug_category "string-literals"
     ~help:"when printing a state, \

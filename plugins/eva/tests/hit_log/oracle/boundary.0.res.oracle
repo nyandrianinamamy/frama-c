@@ -7,18 +7,16 @@ Calls:
   leaf :: boundary.c:18 <- f :: boundary.c:24 <- nested: analysed, cache entry 15
   f :: boundary.c:24 <- nested: analysed, cache entry 16
   nested: analysed, cache entry 17
+Calls below a hit:
+  leaf :: boundary.c:18 <- f :: boundary.c:23 <- nested
 leaf, start:
-  joined: unavailable
-  leaf :: boundary.c:18 <- f :: boundary.c:22 <- nested: unavailable
-  leaf :: boundary.c:18 <- f :: boundary.c:23 <- nested: unavailable
-  leaf :: boundary.c:18 <- f :: boundary.c:24 <- nested: unavailable
-  reference, joined: c ∈ {0; 1}
-                     g ∈ {0; 4; 9}
-                     h ∈ {7; 8}
-                     k ∈ {3}
-                     p ∈ {{ &x }}
-                     x ∈ {0; 4; 9}
-                     n ∈ {0}
+  joined: c ∈ {0; 1}
+          g ∈ {0; 4; 9}
+          h ∈ {7; 8}
+          k ∈ {3}
+          p ∈ {{ &x }}
+          x ∈ {0; 4; 9}
+          n ∈ {0}
   leaf :: boundary.c:18 <- f :: boundary.c:22 <- nested: c ∈ {0; 1}
                                                          g ∈ {0; 4}
                                                          h ∈ {7}
@@ -41,17 +39,13 @@ leaf, start:
                                                          x ∈ {0; 9}
                                                          n ∈ {0}
 leaf, before boundary.c:16 `(*p) ++;` (Q):
-  joined: unavailable
-  leaf :: boundary.c:18 <- f :: boundary.c:22 <- nested: unavailable
-  leaf :: boundary.c:18 <- f :: boundary.c:23 <- nested: unavailable
-  leaf :: boundary.c:18 <- f :: boundary.c:24 <- nested: unavailable
-  reference, joined: c ∈ {0; 1}
-                     g ∈ {0; 4; 9}
-                     h ∈ {7; 8}
-                     k ∈ {3}
-                     p ∈ {{ &x }}
-                     x ∈ {0; 3; 4; 9}
-                     n ∈ {0}
+  joined: c ∈ {0; 1}
+          g ∈ {0; 4; 9}
+          h ∈ {7; 8}
+          k ∈ {3}
+          p ∈ {{ &x }}
+          x ∈ {0; 3; 4; 9}
+          n ∈ {0}
   leaf :: boundary.c:18 <- f :: boundary.c:22 <- nested: c ∈ {0; 1}
                                                          g ∈ {0; 4}
                                                          h ∈ {7}
@@ -74,17 +68,13 @@ leaf, before boundary.c:16 `(*p) ++;` (Q):
                                                          x ∈ {0; 3; 9}
                                                          n ∈ {0}
 leaf, after boundary.c:16 `return;`:
-  joined: unavailable
-  leaf :: boundary.c:18 <- f :: boundary.c:22 <- nested: unavailable
-  leaf :: boundary.c:18 <- f :: boundary.c:23 <- nested: unavailable
-  leaf :: boundary.c:18 <- f :: boundary.c:24 <- nested: unavailable
-  reference, joined: c ∈ {0; 1}
-                     g ∈ {0; 4; 9}
-                     h ∈ {7; 8}
-                     k ∈ {3}
-                     p ∈ {{ &x }}
-                     x ∈ {1; 4; 5; 10}
-                     n ∈ {0}
+  joined: c ∈ {0; 1}
+          g ∈ {0; 4; 9}
+          h ∈ {7; 8}
+          k ∈ {3}
+          p ∈ {{ &x }}
+          x ∈ {1; 4; 5; 10}
+          n ∈ {0}
   leaf :: boundary.c:18 <- f :: boundary.c:22 <- nested: c ∈ {0; 1}
                                                          g ∈ {0; 4}
                                                          h ∈ {7}
@@ -181,51 +171,6 @@ Hits against the analysed call of their cache entry:
   f :: boundary.c:23 <- nested, hit of cache entry 14, against f :: boundary.c:22 <- nested: differs on h, at 13 points.
 Initial state: equal.
 Differences with the run without memexec:
-  leaf, start, joined: unavailable
-  leaf, start, filtered: unavailable
-  leaf, start, leaf :: boundary.c:18 <- f :: boundary.c:22 <- nested: unavailable
-  leaf, start, leaf :: boundary.c:18 <- f :: boundary.c:23 <- nested: unavailable
-  leaf, start, leaf :: boundary.c:18 <- f :: boundary.c:24 <- nested: unavailable
-  leaf, before boundary.c:16 `if (c)`, joined: unavailable
-  leaf, before boundary.c:16 `if (c)`, filtered: unavailable
-  leaf, before boundary.c:16 `if (c)`, leaf :: boundary.c:18 <- f :: boundary.c:22 <- nested: unavailable
-  leaf, before boundary.c:16 `if (c)`, leaf :: boundary.c:18 <- f :: boundary.c:23 <- nested: unavailable
-  leaf, before boundary.c:16 `if (c)`, leaf :: boundary.c:18 <- f :: boundary.c:24 <- nested: unavailable
-  leaf, after boundary.c:16 `if (c)`, joined: unavailable
-  leaf, after boundary.c:16 `if (c)`, filtered: unavailable
-  leaf, after boundary.c:16 `if (c)`, leaf :: boundary.c:18 <- f :: boundary.c:22 <- nested: unavailable
-  leaf, after boundary.c:16 `if (c)`, leaf :: boundary.c:18 <- f :: boundary.c:23 <- nested: unavailable
-  leaf, after boundary.c:16 `if (c)`, leaf :: boundary.c:18 <- f :: boundary.c:24 <- nested: unavailable
-  leaf, before boundary.c:16 `*p = k;`, joined: unavailable
-  leaf, before boundary.c:16 `*p = k;`, filtered: unavailable
-  leaf, before boundary.c:16 `*p = k;`, leaf :: boundary.c:18 <- f :: boundary.c:22 <- nested: unavailable
-  leaf, before boundary.c:16 `*p = k;`, leaf :: boundary.c:18 <- f :: boundary.c:23 <- nested: unavailable
-  leaf, before boundary.c:16 `*p = k;`, leaf :: boundary.c:18 <- f :: boundary.c:24 <- nested: unavailable
-  leaf, after boundary.c:16 `*p = k;`, joined: unavailable
-  leaf, after boundary.c:16 `*p = k;`, filtered: unavailable
-  leaf, after boundary.c:16 `*p = k;`, leaf :: boundary.c:18 <- f :: boundary.c:22 <- nested: unavailable
-  leaf, after boundary.c:16 `*p = k;`, leaf :: boundary.c:18 <- f :: boundary.c:23 <- nested: unavailable
-  leaf, after boundary.c:16 `*p = k;`, leaf :: boundary.c:18 <- f :: boundary.c:24 <- nested: unavailable
-  leaf, before boundary.c:16 `(*p) ++;` (Q), joined: unavailable
-  leaf, before boundary.c:16 `(*p) ++;` (Q), filtered: unavailable
-  leaf, before boundary.c:16 `(*p) ++;` (Q), leaf :: boundary.c:18 <- f :: boundary.c:22 <- nested: unavailable
-  leaf, before boundary.c:16 `(*p) ++;` (Q), leaf :: boundary.c:18 <- f :: boundary.c:23 <- nested: unavailable
-  leaf, before boundary.c:16 `(*p) ++;` (Q), leaf :: boundary.c:18 <- f :: boundary.c:24 <- nested: unavailable
-  leaf, after boundary.c:16 `(*p) ++;` (Q), joined: unavailable
-  leaf, after boundary.c:16 `(*p) ++;` (Q), filtered: unavailable
-  leaf, after boundary.c:16 `(*p) ++;` (Q), leaf :: boundary.c:18 <- f :: boundary.c:22 <- nested: unavailable
-  leaf, after boundary.c:16 `(*p) ++;` (Q), leaf :: boundary.c:18 <- f :: boundary.c:23 <- nested: unavailable
-  leaf, after boundary.c:16 `(*p) ++;` (Q), leaf :: boundary.c:18 <- f :: boundary.c:24 <- nested: unavailable
-  leaf, before boundary.c:16 `return;`, joined: unavailable
-  leaf, before boundary.c:16 `return;`, filtered: unavailable
-  leaf, before boundary.c:16 `return;`, leaf :: boundary.c:18 <- f :: boundary.c:22 <- nested: unavailable
-  leaf, before boundary.c:16 `return;`, leaf :: boundary.c:18 <- f :: boundary.c:23 <- nested: unavailable
-  leaf, before boundary.c:16 `return;`, leaf :: boundary.c:18 <- f :: boundary.c:24 <- nested: unavailable
-  leaf, after boundary.c:16 `return;`, joined: unavailable
-  leaf, after boundary.c:16 `return;`, filtered: unavailable
-  leaf, after boundary.c:16 `return;`, leaf :: boundary.c:18 <- f :: boundary.c:22 <- nested: unavailable
-  leaf, after boundary.c:16 `return;`, leaf :: boundary.c:18 <- f :: boundary.c:23 <- nested: unavailable
-  leaf, after boundary.c:16 `return;`, leaf :: boundary.c:18 <- f :: boundary.c:24 <- nested: unavailable
-Answers: 218 equal, 0 covering, 0 more precise, 0 omitting, 45 unavailable.
+Answers: 263 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
 Filtered requests that reject one callstack: 22.
 Requests made: 348; reported by the trap: 348, each once with its description; reads of the legacy store: 0.

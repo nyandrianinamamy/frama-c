@@ -42,6 +42,7 @@ val final_states : message_category
 
 val debug_iterator : debug_category
 val debug_widen_hints : debug_category
+val debug_hit_log : debug_category
 val debug_string_literal: debug_category
 
 (** {2 Warning categories.} *)

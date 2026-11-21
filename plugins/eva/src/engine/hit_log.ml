@@ -50,13 +50,45 @@ module Point =
 
 module Points = Stmt_table.Make (Point)
 
+(* A call made by the body of the analysed call of a cache entry, at the call
+   statement [site], to [callee]: [child] is the cache entry it used, computed
+   or hit, if any; none for a call analysed by a specification or a builtin.
+   [start] is its start state, projected on the blocks that the body had
+   read or written before [site] and on those that do not exist in the start
+   state of the body: the blocks the body created and the formals of
+   [callee]. None if the footprint of the body is unknown. *)
+type below = {
+  site: Cil_types.stmt;
+  callee: Cil_types.kernel_function;
+  child: int option;
+  start: point option;
+}
+
+module Below =
+  Datatype.Make
+    (struct
+      include Datatype.Serializable_undefined
+      type t = below
+      let name = "Eva.Hit_log.Below"
+      let reprs =
+        [ { site = Cil_datatype.Stmt.dummy;
+            callee = List.hd Kernel_function.reprs;
+            child = None; start = None } ]
+      let structural_descr =
+        let module Child = Datatype.Option (Datatype.Int) in
+        let module Start = Datatype.Option (Point) in
+        Structural_descr.t_record
+          [| Cil_datatype.Stmt.packed_descr; Kernel_function.packed_descr;
+             Child.packed_descr; Start.packed_descr |]
+    end)
+
 (* The points absent from the tables are unreachable. With an unknown
    footprint, no point is kept. *)
 type inner_part =
   | Unknown
   | Known of { before: point Stmt_table.t; after: point Stmt_table.t }
 
-(* States joined over the members of a key group, overall and per
+(* States joined over some members of a key group, overall and per
    callstack. *)
 type states = {
   mutable joined: Cvalue.Model.t;
@@ -77,13 +109,37 @@ module States =
           [| Cvalue.Model.packed_descr; By_callstack.packed_descr |]
     end)
 
+(* The call that computed a cache entry. *)
+type analysed = {
+  callstack: Callstack.t;
+  start: Cvalue.Model.t;
+  body_entry: Cvalue.Model.t;
+}
+
+module Analysed =
+  Datatype.Make
+    (struct
+      include Datatype.Serializable_undefined
+      type t = analysed
+      let name = "Eva.Hit_log.Analysed"
+      let reprs =
+        [ { callstack = List.hd Callstack.reprs;
+            start = Cvalue.Model.top; body_entry = Cvalue.Model.top } ]
+      let structural_descr =
+        Structural_descr.t_record
+          [| Callstack.packed_descr; Cvalue.Model.packed_descr;
+             Cvalue.Model.packed_descr |]
+    end)
+
+(* The key group of an entry is made of its analysed call, of its hits, and of
+   the calls below a hit that use it. The states of the latter are computed on
+   request from the entries of their callers. *)
 type entry = {
   inner: inner_part;
-  (* The functions called while the entry was computed, in any mode, and
-     those called while the entries used by these calls were computed. *)
-  mutable called: Kernel_function.Set.t;
-  starts: states;
-  body_entries: states;
+  below: below list;
+  analysed: analysed;
+  hit_starts: states;
+  hit_body_entries: states;
 }
 
 module Entry =
@@ -95,17 +151,20 @@ module Entry =
       let reprs =
         List.map
           (fun states ->
-             { inner = Unknown; called = Kernel_function.Set.empty;
-               starts = states; body_entries = states })
+             { inner = Unknown; below = [];
+               analysed = List.hd Analysed.reprs;
+               hit_starts = states; hit_body_entries = states })
           States.reprs
       let structural_descr =
         let inner_part =
           Structural_descr.t_sum
             [| [| Points.packed_descr; Points.packed_descr |] |]
         in
+        let module Below_list = Datatype.List (Below) in
         Structural_descr.t_record
           [| Structural_descr.pack inner_part;
-             Kernel_function.Set.packed_descr;
+             Below_list.packed_descr;
+             Analysed.packed_descr;
              States.packed_descr;
              States.packed_descr |]
     end)
@@ -119,10 +178,11 @@ type store = {
   entries_of: int list Kf_table.t;
   (* Start states of the calls analysed by a specification or a builtin. *)
   other_starts: states Kf_table.t;
-  (* Functions unavailable at every point. *)
-  below_hit: unit Kf_table.t;
   (* Functions whose body points are unavailable. *)
   body_unavailable: unit Kf_table.t;
+  (* Whether a hit used an entry that was not recorded. Every request is then
+     unavailable. *)
+  mutable unrecorded_hit: bool;
 }
 
 let create () = {
@@ -131,8 +191,8 @@ let create () = {
   entries = Int_table.create 17;
   entries_of = Kf_table.create 17;
   other_starts = Kf_table.create 17;
-  below_hit = Kf_table.create 7;
   body_unavailable = Kf_table.create 7;
+  unrecorded_hit = false;
 }
 
 let copy_states states =
@@ -145,9 +205,9 @@ let copy_entry entry =
     | Known { before; after } ->
       Known { before = Stmt_table.copy before; after = Stmt_table.copy after }
   in
-  { inner; called = entry.called;
-    starts = copy_states entry.starts;
-    body_entries = copy_states entry.body_entries }
+  { inner; below = entry.below; analysed = entry.analysed;
+    hit_starts = copy_states entry.hit_starts;
+    hit_body_entries = copy_states entry.hit_body_entries }
 
 let copy_store store =
   let entries = Int_table.create (Int_table.length store.entries) in
@@ -163,8 +223,8 @@ let copy_store store =
     entries;
     entries_of = Kf_table.copy store.entries_of;
     other_starts;
-    below_hit = Kf_table.copy store.below_hit;
-    body_unavailable = Kf_table.copy store.body_unavailable; }
+    body_unavailable = Kf_table.copy store.body_unavailable;
+    unrecorded_hit = store.unrecorded_hit; }
 
 module Store_datatype =
   Datatype.Make
@@ -188,7 +248,7 @@ module Store_datatype =
              Entries_of.packed_descr;
              States_of.packed_descr;
              Marks.packed_descr;
-             Marks.packed_descr |]
+             Structural_descr.p_bool |]
       let copy = copy_store
     end)
 
@@ -227,17 +287,20 @@ type slot =
   | Closed
   | Open of { id: int; mutable footprint: footprint option }
 
-(* A body being analysed: the functions it calls, and its cache entry once
-   recorded. *)
+(* A call being analysed, in any mode: the calls made by its body so far, each
+   with its call statement, its function, its start state and the cache entry
+   it used; and the cache entry this call uses, once known. *)
 type frame = {
-  mutable called_below: Kernel_function.Set.t;
-  mutable entry: entry option;
+  mutable calls:
+    (Cil_types.stmt * Cil_types.kernel_function * Cvalue.Model.t * int option)
+      list;
+  mutable used: int option;
 }
 
 (* The parts of the recording used only while the analysis runs. They are
    neither saved nor copied. *)
 type running = {
-  (* The bodies being analysed, innermost first. *)
+  (* The calls being analysed, innermost first. *)
   mutable frames: frame list;
   mutable slot: slot;
 }
@@ -295,16 +358,26 @@ let bases_of_state = function
   | Top -> raise Unknown_footprint
   | Map map -> Base.Hptset.from_map (Cvalue.Model.shape map)
 
+(* Projects [state] on the blocks of [zone] and on those that do not belong to
+   [existing], the blocks of the start state of the call. *)
+let project ~existing zone state =
+  let created = Base.Hptset.diff (bases_of_state state) existing in
+  let covered = Base.Hptset.union (bases_of_zone zone) created in
+  { covered; inner = Cvalue.Model.filter_by_shape covered state }
+
 (* Projects the states [before] and [after] each statement on the blocks
    covered at that point: those of the footprint, and the blocks that do not
-   exist in the start state [start], created by the call.
+   exist in the start state, created by the call. Projects the start states
+   of the [calls] made by the body on the blocks covered before their call
+   statement and on those that do not exist in the start state, which include
+   the formals of the callee.
    The state after a statement is the state at the point where it ends,
    which also receives the other paths that reach its successors: after a
    branch, the paths of the other branch; after a statement that is not an
    instruction, the join of the states before its successors. The footprint
    after a statement is thus completed by the footprints before its
    successors. *)
-let inner_part footprint ~start ~before ~after =
+let inner_part footprint ~start ~before ~after ~calls =
   let existing = bases_of_state start in
   let footprints = Stmt_table.create 17 in
   let footprint stmt =
@@ -320,39 +393,48 @@ let inner_part footprint ~start ~before ~after =
     let succs = List.map zone_before stmt.Cil_types.succs in
     List.fold_left Memory_zone.join (snd (footprint stmt)) succs
   in
-  let project zone state =
-    let created = Base.Hptset.diff (bases_of_state state) existing in
-    let covered = Base.Hptset.union (bases_of_zone zone) created in
-    { covered; inner = Cvalue.Model.filter_by_shape covered state }
-  in
   let project_all zone_of states =
     let points = Stmt_table.create (Stmt_table.length states) in
     let add stmt state =
-      Stmt_table.replace points stmt (project (zone_of stmt) state)
+      Stmt_table.replace points stmt (project ~existing (zone_of stmt) state)
     in
     Stmt_table.iter add states;
     points
   in
   let before = project_all zone_before (Lazy.force before) in
   let after = project_all zone_after (Lazy.force after) in
-  Known { before; after }
+  let below =
+    List.rev_map
+      (fun (site, callee, state, child) ->
+         let start = project ~existing (zone_before site) state in
+         { site; callee; child; start = Some start })
+      calls
+  in
+  Known { before; after }, below
 
 (* ----- Recording --------------------------------------------------------- *)
 
 let record_initial_state callstack state =
   (Store.get ()).initial <- Some (callstack, state)
 
-let record_call kf =
-  match (Running.get ()).frames with
-  | [] -> ()
-  | frame :: _ ->
-    frame.called_below <- Kernel_function.Set.add kf frame.called_below
+let call callstack ~start f =
+  let running = Running.get () in
+  let frame = { calls = []; used = None } in
+  running.frames <- frame :: running.frames;
+  let finally () =
+    running.frames <- List.tl running.frames;
+    match running.frames, Callstack.top_callsite callstack with
+    | caller :: _, Kstmt site ->
+      let call = site, Callstack.top_kf callstack, start, frame.used in
+      caller.calls <- call :: caller.calls
+    | _, Kglobal | [], _ -> ()
+  in
+  Fun.protect ~finally f
 
-let add_below called =
+let current_frame () =
   match (Running.get ()).frames with
-  | [] -> ()
-  | frame :: _ ->
-    frame.called_below <- Kernel_function.Set.union called frame.called_below
+  | [] -> None
+  | frame :: _ -> Some frame
 
 let record_start callstack state =
   let store = Store.get () in
@@ -367,57 +449,52 @@ let record_start callstack state =
   in
   add_state states callstack state
 
-let analyse_body f =
-  let running = Running.get () in
-  let frame = { called_below = Kernel_function.Set.empty; entry = None } in
-  running.frames <- frame :: running.frames;
-  let finally () =
-    running.frames <- List.tl running.frames;
-    Option.iter (fun entry -> entry.called <- frame.called_below) frame.entry;
-    add_below frame.called_below
-  in
-  Fun.protect ~finally f
-
 let record_analysed_call ~id callstack ~footprint ~start ~body_entry ~before
     ~after =
   let store = Store.get () in
   let kf = Callstack.top_kf callstack in
-  let inner =
+  let calls =
+    match current_frame () with
+    | None -> []
+    | Some frame -> frame.used <- Some id; frame.calls
+  in
+  let unknown () =
+    let below =
+      List.rev_map
+        (fun (site, callee, _, child) -> { site; callee; child; start = None })
+        calls
+    in
+    Unknown, below
+  in
+  let inner, below =
     match footprint with
-    | None -> Unknown
+    | None -> unknown ()
     | Some footprint ->
-      try inner_part footprint ~start ~before ~after
-      with Unknown_footprint -> Unknown
+      try inner_part footprint ~start ~before ~after ~calls
+      with Unknown_footprint -> unknown ()
   in
   if inner = Unknown then mark store.body_unavailable kf;
   let entry = {
     inner;
-    called = Kernel_function.Set.empty;
-    starts = new_states ();
-    body_entries = new_states ();
+    below;
+    analysed = { callstack; start; body_entry };
+    hit_starts = new_states ();
+    hit_body_entries = new_states ();
   } in
-  add_state entry.starts callstack start;
-  add_state entry.body_entries callstack body_entry;
   Int_table.replace store.entries id entry;
   let previous =
     Option.value ~default:[] (Kf_table.find_opt store.entries_of kf)
   in
-  Kf_table.replace store.entries_of kf (id :: previous);
-  match (Running.get ()).frames with
-  | [] -> ()
-  | frame :: _ -> frame.entry <- Some entry
+  Kf_table.replace store.entries_of kf (id :: previous)
 
 let record_hit ~id callstack ~start ~body_entry =
   let store = Store.get () in
+  Option.iter (fun frame -> frame.used <- Some id) (current_frame ());
   match Int_table.find_opt store.entries id with
-  | None ->
-    (* The entry was not recorded: nothing is answered for this function. *)
-    mark store.below_hit (Callstack.top_kf callstack)
+  | None -> store.unrecorded_hit <- true
   | Some entry ->
-    add_state entry.starts callstack start;
-    add_state entry.body_entries callstack body_entry;
-    Kernel_function.Set.iter (mark store.below_hit) entry.called;
-    add_below entry.called
+    add_state entry.hit_starts callstack start;
+    add_state entry.hit_body_entries callstack body_entry
 
 let mark_unrolled_recursion kf = mark (Store.get ()).body_unavailable kf
 
@@ -429,6 +506,206 @@ let analysis f =
   let finally () = if enabled () then (Store.get ()).ended <- true in
   Fun.protect ~finally f
 
+(* ----- Calls below a hit ------------------------------------------------- *)
+
+(* The calls below a hit never run. Their states are those of the calls made
+   by the analysed call of the entry hit, as stored in this entry, pasted on
+   the body-entry state of the hit. They are computed on request from the
+   store, which does not change once the analysis has ended, and memoised.
+
+   The members of an entry whose body did not run are its hits and the calls
+   below a hit that use it. The calls made by their body are the calls below a
+   hit. The body-entry states of these members are, joined: the joined
+   body-entry state of the hits of the entry, joined with, for each call
+   stored in an entry [parent] that used it, the stored start state of the
+   call pasted on the body-entry states of the members of [parent] whose body
+   did not run. The preconditions of a call below a hit are not evaluated: its
+   body-entry state is its start state. Per callstack, the call below a member
+   of [parent] on callstack [cs] is on the callstack [cs] extended with the
+   call. An entry is completed after the entries its calls used: the
+   recursion ends. *)
+
+type derived = {
+  (* The calls stored in the entries, with the number of the entry that
+     stores them, by the entry they used. *)
+  by_child: (int * below) list Int_table.t;
+  (* The same calls, by the function they call. *)
+  by_callee: (int * below) list Kf_table.t;
+  (* For each entry, the body-entry states of its members whose body did not
+     run, joined, and per callstack. *)
+  unrun_joined: Cvalue.Model.t Int_table.t;
+  unrun_by_callstack: Cvalue.Model.t Cs_table.t Int_table.t;
+  (* For each function, the start states of the calls below a hit, joined,
+     and per callstack. *)
+  starts_joined: Cvalue.Model.t Kf_table.t;
+  starts_by_callstack: Cvalue.Model.t Cs_table.t Kf_table.t;
+  mutable indexed: bool;
+  mutable pastes: int;
+}
+
+let new_derived () = {
+  by_child = Int_table.create 17;
+  by_callee = Kf_table.create 17;
+  unrun_joined = Int_table.create 17;
+  unrun_by_callstack = Int_table.create 17;
+  starts_joined = Kf_table.create 17;
+  starts_by_callstack = Kf_table.create 17;
+  indexed = false;
+  pastes = 0;
+}
+
+module Derived =
+  State_builder.Ref
+    (Datatype.Make
+       (struct
+         include Datatype.Undefined
+         type t = derived
+         let name = "Eva.Hit_log.Derived"
+         let reprs = [ new_derived () ]
+         let copy _ = new_derived ()
+         let mem_project = Datatype.never_any_project
+       end))
+    (struct
+      let name = "Eva.Hit_log.Derived"
+      let dependencies = [ Store.self ]
+      let default = new_derived
+    end)
+
+let derived store =
+  let derived = Derived.get () in
+  if not derived.indexed then begin
+    let add table find key value =
+      let previous = Option.value ~default:[] (find table key) in
+      value :: previous
+    in
+    Int_table.iter
+      (fun parent entry ->
+         List.iter
+           (fun below ->
+              let call = parent, below in
+              let callee = below.callee in
+              Kf_table.replace derived.by_callee callee
+                (add derived.by_callee Kf_table.find_opt callee call);
+              Option.iter
+                (fun child ->
+                   Int_table.replace derived.by_child child
+                     (add derived.by_child Int_table.find_opt child call))
+                below.child)
+           entry.below)
+      store.entries;
+    derived.indexed <- true
+  end;
+  derived
+
+(* Raised when a call below a hit was stored without its start state. *)
+exception Unavailable
+
+(* The state at a point whose Inner part is [point], of a call whose
+   body-entry state is [entry]. *)
+let paste derived point entry =
+  match entry with
+  | Cvalue.Model.Bottom | Top -> entry
+  | Map _ ->
+    derived.pastes <- derived.pastes + 1;
+    let not_covered base = not (Base.Hptset.mem base point.covered) in
+    let frame = Cvalue.Model.filter_base not_covered entry in
+    Cvalue.Model.merge ~into:frame point.inner
+
+(* The start state of the call [below] made by the body of a member whose
+   body-entry state is [entry]. *)
+let paste_call derived (below: below) entry =
+  match below.start, entry with
+  | _, Cvalue.Model.Bottom -> Cvalue.Model.bottom
+  | None, _ -> raise Unavailable
+  | Some start, _ -> paste derived start entry
+
+let calls_of table find key =
+  Option.value ~default:[] (find table key)
+
+(* The joined body-entry state of the members of entry [id] whose body did
+   not run. *)
+let rec unrun_joined store derived id =
+  match Int_table.find_opt derived.unrun_joined id with
+  | Some state -> state
+  | None ->
+    let hits =
+      match Int_table.find_opt store.entries id with
+      | None -> Cvalue.Model.bottom
+      | Some entry -> entry.hit_body_entries.joined
+    in
+    let state =
+      List.fold_left
+        (fun acc (parent, below) ->
+           let entry = unrun_joined store derived parent in
+           Cvalue.Model.join acc (paste_call derived below entry))
+        hits (calls_of derived.by_child Int_table.find_opt id)
+    in
+    Int_table.replace derived.unrun_joined id state;
+    state
+
+(* Adds to [table], for each callstack of [states], the start state of the
+   call [below] made by the body of the member of that callstack. *)
+let add_calls_below derived table (below: below) states =
+  Cs_table.iter
+    (fun callstack entry ->
+       let callstack = Callstack.push below.callee below.site callstack in
+       let state = paste_call derived below entry in
+       let state =
+         match Cs_table.find_opt table callstack with
+         | None -> state
+         | Some previous -> Cvalue.Model.join previous state
+       in
+       Cs_table.replace table callstack state)
+    states
+
+(* The body-entry states of the members of entry [id] whose body did not run,
+   per callstack. *)
+let rec unrun_by_callstack store derived id =
+  match Int_table.find_opt derived.unrun_by_callstack id with
+  | Some table -> table
+  | None ->
+    let table =
+      match Int_table.find_opt store.entries id with
+      | None -> Cs_table.create 1
+      | Some entry -> Cs_table.copy entry.hit_body_entries.by_callstack
+    in
+    List.iter
+      (fun (parent, below) ->
+         let states = unrun_by_callstack store derived parent in
+         add_calls_below derived table below states)
+      (calls_of derived.by_child Int_table.find_opt id);
+    Int_table.replace derived.unrun_by_callstack id table;
+    table
+
+(* The start states of the calls below a hit to [kf], joined. *)
+let starts_below_joined store derived kf =
+  match Kf_table.find_opt derived.starts_joined kf with
+  | Some state -> state
+  | None ->
+    let state =
+      List.fold_left
+        (fun acc (parent, below) ->
+           let entry = unrun_joined store derived parent in
+           Cvalue.Model.join acc (paste_call derived below entry))
+        Cvalue.Model.bottom (calls_of derived.by_callee Kf_table.find_opt kf)
+    in
+    Kf_table.replace derived.starts_joined kf state;
+    state
+
+(* The start states of the calls below a hit to [kf], per callstack. *)
+let starts_below_by_callstack store derived kf =
+  match Kf_table.find_opt derived.starts_by_callstack kf with
+  | Some table -> table
+  | None ->
+    let table = Cs_table.create 7 in
+    List.iter
+      (fun (parent, below) ->
+         let states = unrun_by_callstack store derived parent in
+         add_calls_below derived table below states)
+      (calls_of derived.by_callee Kf_table.find_opt kf);
+    Kf_table.replace derived.starts_by_callstack kf table;
+    table
+
 (* ----- The rule ---------------------------------------------------------- *)
 
 let serving () = enabled () && (Store.get ()).ended
@@ -438,30 +715,15 @@ let to_result = function
   | Top -> `Top
   | Map _ as state -> `Value state
 
-(* The state at a point of a call whose body-entry state is [entry]. *)
-let paste point entry =
-  match entry with
-  | Cvalue.Model.Bottom | Top -> entry
-  | Map _ ->
-    let not_covered base = not (Base.Hptset.mem base point.covered) in
-    let frame = Cvalue.Model.filter_base not_covered entry in
-    Cvalue.Model.merge ~into:frame point.inner
-
-let select callstack states =
-  match callstack with
-  | None -> states.joined
-  | Some callstack ->
-    Option.value ~default:Cvalue.Model.bottom
-      (Cs_table.find_opt states.by_callstack callstack)
-
 let entries_of store kf =
   Option.value ~default:[] (Kf_table.find_opt store.entries_of kf)
   |> List.filter_map (Int_table.find_opt store.entries)
 
-(* The start states of the calls to [kf]. *)
-let starts store kf =
-  let others = Option.to_list (Kf_table.find_opt store.other_starts kf) in
-  List.map (fun entry -> entry.starts) (entries_of store kf) @ others
+let entries_with_ids store kf =
+  Option.value ~default:[] (Kf_table.find_opt store.entries_of kf)
+  |> List.filter_map
+    (fun id ->
+       Option.map (fun entry -> id, entry) (Int_table.find_opt store.entries id))
 
 (* The point of the Inner part of [entry] at [control_point], if reached. *)
 let find_point entry control_point =
@@ -480,68 +742,152 @@ let cvalue_results_saved () =
               && not (NoResultsDomain.mem Cvalue_domain.State.name))
 
 let is_available store control_point =
-  cvalue_results_saved () &&
+  cvalue_results_saved () && not store.unrecorded_hit &&
   match control_point with
-  | Domain_store.Initial -> true
-  | Start kf -> not (Kf_table.mem store.below_hit kf)
+  | Domain_store.Initial | Start _ -> true
   | Before stmt | After stmt ->
     let kf = Kernel_function.find_englobing_kf stmt in
-    not Kf_table.(mem store.below_hit kf || mem store.body_unavailable kf)
+    not (Kf_table.mem store.body_unavailable kf)
 
 let available control_point = is_available (Store.get ()) control_point
 
 let join_all list = List.fold_left Cvalue.Model.join Cvalue.Model.bottom list
 
+let find_callstack table callstack =
+  Option.value ~default:Cvalue.Model.bottom (Cs_table.find_opt table callstack)
+
+(* The state of the analysed call of [entry] if it is on [callstack]. *)
+let analysed_on callstack get entry =
+  if Callstack.equal entry.analysed.callstack callstack
+  then get entry.analysed
+  else Cvalue.Model.bottom
+
+(* Reports the number of pastes made by a request. *)
+let count_pastes derived f =
+  let before = derived.pastes in
+  let result = f () in
+  Self.debug ~dkey:Log_key.debug_hit_log "pastes made by the request: %d"
+    (derived.pastes - before);
+  result
+
+let start_state store derived ?callstack kf =
+  let entries = entries_of store kf in
+  let others = Option.to_list (Kf_table.find_opt store.other_starts kf) in
+  match callstack with
+  | None ->
+    List.map (fun entry -> entry.analysed.start) entries
+    @ List.map (fun entry -> entry.hit_starts.joined) entries
+    @ List.map (fun states -> states.joined) others
+    @ [ starts_below_joined store derived kf ]
+    |> join_all
+  | Some callstack ->
+    let find states = find_callstack states.by_callstack callstack in
+    List.map (analysed_on callstack (fun a -> a.start)) entries
+    @ List.map (fun entry -> find entry.hit_starts) entries
+    @ List.map find others
+    @ [ find_callstack (starts_below_by_callstack store derived kf) callstack ]
+    |> join_all
+
+let point_state store derived ?callstack control_point kf =
+  let state (id, entry) =
+    match find_point entry control_point with
+    | None -> Cvalue.Model.bottom
+    | Some point ->
+      let body_entry =
+        match callstack with
+        | None ->
+          Cvalue.Model.join entry.analysed.body_entry
+            (unrun_joined store derived id)
+        | Some callstack ->
+          Cvalue.Model.join
+            (analysed_on callstack (fun a -> a.body_entry) entry)
+            (find_callstack (unrun_by_callstack store derived id) callstack)
+      in
+      paste derived point body_entry
+  in
+  List.map state (entries_with_ids store kf) |> join_all
+
 let get_state ?callstack control_point =
   let store = Store.get () in
   if not (is_available store control_point) then `Top
   else
-    match control_point with
-    | Initial ->
-      begin match store.initial, callstack with
-        | None, _ -> `Bottom
-        | Some (_, state), None -> to_result state
-        | Some (initial, state), Some callstack ->
-          if Callstack.equal initial callstack then to_result state
-          else `Bottom
-      end
+    let derived = derived store in
+    count_pastes derived @@ fun () ->
+    try
+      match control_point with
+      | Initial ->
+        begin match store.initial, callstack with
+          | None, _ -> `Bottom
+          | Some (_, state), None -> to_result state
+          | Some (initial, state), Some callstack ->
+            if Callstack.equal initial callstack then to_result state
+            else `Bottom
+        end
+      | Start kf -> to_result (start_state store derived ?callstack kf)
+      | Before stmt | After stmt ->
+        let kf = Kernel_function.find_englobing_kf stmt in
+        to_result (point_state store derived ?callstack control_point kf)
+    with Unavailable -> `Top
+
+(* Joins [state] into the state of [callstack] in [table]. *)
+let add table callstack state =
+  let state =
+    match Cs_table.find_opt table callstack with
+    | None -> state
+    | Some previous -> Cvalue.Model.join previous state
+  in
+  Cs_table.replace table callstack state
+
+let states_by_callstack store derived control_point =
+  let table = Cs_table.create 17 in
+  begin match control_point with
+    | Domain_store.Initial ->
+      Option.iter (fun (callstack, state) -> add table callstack state)
+        store.initial
     | Start kf ->
-      List.map (select callstack) (starts store kf) |> join_all |> to_result
+      let add_all states = Cs_table.iter (add table) states.by_callstack in
+      List.iter
+        (fun entry ->
+           add table entry.analysed.callstack entry.analysed.start;
+           add_all entry.hit_starts)
+        (entries_of store kf);
+      Option.iter add_all (Kf_table.find_opt store.other_starts kf);
+      Cs_table.iter (add table) (starts_below_by_callstack store derived kf)
     | Before stmt | After stmt ->
       let kf = Kernel_function.find_englobing_kf stmt in
-      let state entry =
-        match find_point entry control_point with
-        | None -> Cvalue.Model.bottom
-        | Some point -> paste point (select callstack entry.body_entries)
-      in
-      List.map state (entries_of store kf) |> join_all |> to_result
+      List.iter
+        (fun (id, entry) ->
+           match find_point entry control_point with
+           | None -> ()
+           | Some point ->
+             let analysed = entry.analysed in
+             add table analysed.callstack
+               (paste derived point analysed.body_entry);
+             Cs_table.iter
+               (fun callstack state ->
+                  add table callstack (paste derived point state))
+               (unrun_by_callstack store derived id))
+        (entries_with_ids store kf)
+  end;
+  table
 
 let get_state_by_callstack control_point =
   let store = Store.get () in
   if not (is_available store control_point) then `Top
   else
-    let callstacks =
-      match control_point with
-      | Initial -> Option.to_list (Option.map fst store.initial)
-      | Start kf ->
-        let keys states =
-          List.of_seq (Cs_table.to_seq_keys states.by_callstack)
-        in
-        List.concat_map keys (starts store kf)
-      | Before stmt | After stmt ->
-        let kf = Kernel_function.find_englobing_kf stmt in
-        let keys entry =
-          List.of_seq (Cs_table.to_seq_keys entry.body_entries.by_callstack)
-        in
-        List.concat_map keys (entries_of store kf)
-    in
-    let callstacks = List.sort_uniq Callstack.compare callstacks in
-    let state callstack =
-      match get_state ~callstack control_point with
-      | `Bottom -> None
-      | `Top -> Some (callstack, Cvalue.Model.top)
-      | `Value state -> Some (callstack, state)
-    in
-    match List.filter_map state callstacks with
-    | [] -> `Bottom
-    | list -> `Value list
+    let derived = derived store in
+    count_pastes derived @@ fun () ->
+    try
+      let table = states_by_callstack store derived control_point in
+      let reached =
+        Cs_table.fold
+          (fun callstack state acc ->
+             match state with
+             | Cvalue.Model.Bottom -> acc
+             | Top | Map _ -> (callstack, state) :: acc)
+          table []
+      in
+      match List.sort (fun (a, _) (b, _) -> Callstack.compare a b) reached with
+      | [] -> `Bottom
+      | list -> `Value list
+    with Unavailable -> `Top

@@ -15,12 +15,25 @@
     after each statement reached, the cvalue state projected on the blocks
     covered at that point: the blocks read or written on the paths from the
     start of the body to the point, as given by the inout plugin, and the
-    blocks created by the call that exist at the point. The calls that use an
-    entry, the one that computed it and its hits, form its key group: the hit
-    log keeps, per entry, the join of their start states and of their
-    body-entry states, overall and per callstack. The start state of a call
-    is the state after the binding of its arguments; its body-entry state is
-    what remains of it after the preconditions.
+    blocks created by the call that exist at the point. The entry also keeps
+    the calls made by the body, in any mode: for each, its call statement, the
+    cache entry it used if any, and its start state projected on the blocks
+    covered before the call statement and on the blocks that do not exist in
+    the start state of the body, among which the formals of the callee.
+
+    The calls that use an entry form its key group: the call that computed
+    it, its hits, and the calls below a hit that use it. The hit log keeps,
+    per entry, the start state and the body-entry state of the call that
+    computed it, and the join of the start states and of the body-entry states
+    of its hits, overall and per callstack. The start state of a call is the
+    state after the binding of its arguments; its body-entry state is what
+    remains of it after the preconditions.
+
+    The body of a hit does not run: the calls below a hit are not analysed.
+    The start state of such a call is the start state stored in the entry of
+    the hit, pasted on the body-entry state of the hit. Its preconditions are
+    not evaluated: its body-entry state is its start state. These states are
+    computed on request, through the entries of the callers, and memoised.
 
     The rule: the state at a point of a call is the Inner part of its entry
     at this point on the blocks it covers, and the body-entry state of the
@@ -28,14 +41,11 @@
     join of the start states of its calls, including the calls analysed by
     a specification or a builtin.
 
-    Some functions are unavailable: every state request on them answers
-    [`Top], as for a function whose results are not saved. A function is
-    unavailable at every point, its start included, when it is called below
-    a hit, that is while the cache entry of a hit was computed. Its body
-    points only are unavailable when one of its calls has an unknown
-    footprint, was interrupted, or is a recursive call analysed by its body.
-    Every request is unavailable when the states of the cvalue domain are
-    not saved, as with options [-eva-no-results] and
+    The body points of a function are unavailable when one of its calls has
+    an unknown footprint, was interrupted, or is a recursive call analysed by
+    its body: every state request on them answers [`Top], as for a function
+    whose results are not saved. Every request is unavailable when the states
+    of the cvalue domain are not saved, as with options [-eva-no-results] and
     [-eva-no-results-domain cvalue].
 
     Only the cvalue domain is recorded. The records are saved with the
@@ -55,17 +65,15 @@ val check_configuration: unit -> unit
 (** Records the initial state of the analysis. *)
 val record_initial_state: Callstack.t -> Cvalue.Model.t -> unit
 
-(** Records a call to a function, in any mode, in the set of functions
-    called below the body being analysed. *)
-val record_call: Cil_types.kernel_function -> unit
+(** [call callstack ~start f] runs [f], the analysis of the call on
+    [callstack] in any mode, whose start state is [start]. The call is
+    recorded among the calls made by the body that makes it, with the cache
+    entry it uses. *)
+val call: Callstack.t -> start:Cvalue.Model.t -> (unit -> 'a) -> 'a
 
 (** Records the start state of a call analysed by a specification or a
     builtin. *)
 val record_start: Callstack.t -> Cvalue.Model.t -> unit
-
-(** [analyse_body f] runs [f], the analysis of a body: the functions called
-    meanwhile are recorded in the cache entry of this call. *)
-val analyse_body: (unit -> 'a) -> 'a
 
 (** The memory read or written on the paths from the start of a body to the
     point before and to the point after each statement, as given by the inout
@@ -82,9 +90,10 @@ val footprint_of_call: id:int -> (unit -> unit) -> footprint option
 
 (** [record_analysed_call ~id callstack ~footprint ~start ~body_entry ~before
     ~after] records the cache entry [id] computed by the call on [callstack],
-    with its footprint, its start state, its body-entry state, and its states
-    before and after each statement reached. Without footprint, as when the
-    results of the call are not saved, its body points are unavailable. *)
+    with its footprint, its start state, its body-entry state, its states
+    before and after each statement reached, and the calls made by its body.
+    Without footprint, as when the results of the call are not saved, its
+    body points are unavailable. *)
 val record_analysed_call:
   id:int -> Callstack.t -> footprint:footprint option ->
   start:Cvalue.Model.t -> body_entry:Cvalue.Model.t ->

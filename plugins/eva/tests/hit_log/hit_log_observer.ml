@@ -13,6 +13,9 @@
    It prints:
    - the calls of the analysis with -eva-hit-log, with the cache entry they
      compute or use;
+   - the callstacks that reach the start of a function in the current project
+     and are not those of a call of the analysis: the calls below a hit,
+     whose body did not run;
    - the states at the labelled statements, and those of the reference when
      they differ;
    - for each hit on another callstack than the analysed call of its cache
@@ -108,6 +111,21 @@ let print_calls () =
        | Other s -> Format.printf "@ %s: %s" callstack s)
     (List.rev !calls);
   Format.printf "@]@."
+
+(* The callstacks that reach the start of a function and are not those of a
+   call of the analysis. [starts] gives the callstacks of each start. *)
+let print_below starts =
+  let observed = List.map (fun ((_, p), _, _) -> p) !calls in
+  let below =
+    List.concat starts
+    |> List.filter (fun (_, p) -> not (List.mem p observed))
+    |> List.sort_uniq compare
+  in
+  if below <> [] then begin
+    Format.printf "@[<v 2>Calls below a hit:";
+    List.iter (fun stack -> Format.printf "@ %s" (display stack)) below;
+    Format.printf "@]@."
+  end
 
 (* ----- Points ------------------------------------------------------------ *)
 
@@ -603,6 +621,14 @@ let main () =
     let current_stacks, reported_stacks =
       with_trap (fun () -> callstacks_in current)
     in
+    let starts =
+      List.combine (points ()) current_stacks
+      |> List.filter_map
+        (fun (point, stacks) ->
+           if String.starts_with ~prefix:"start of " point.trap
+           then Some stacks else None)
+    in
+    print_below starts;
     let stacks =
       List.map2 (fun (r, m) c -> union [ r; m; c ])
         (List.combine reference_stacks memexec_stacks) current_stacks
