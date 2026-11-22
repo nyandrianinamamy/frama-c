@@ -907,17 +907,29 @@ def observations(result):
         found = []
         if "observer" in result:
             found = [dict(result["observer"], stage=1, summary=result.get("summary", []))]
+    listed = {o["stage"] for o in found}
+    found = found + [
+        dict(stage=s["stage"], failure="missing observer")
+        for s in stages_of(result)
+        if s["observed"] and s["stage"] not in listed
+    ]
     several = len(stages_of(result)) > 1
     first_stage = min((o["stage"] for o in found), default=None)
-    return [
-        dict(
-            o,
-            name=result["name"] + (" stage %d" % o["stage"] if several else ""),
-            first=o["stage"] == first_stage,
-            expected=expected_exits(result, o),
+    checked = []
+    for o in found:
+        if "failure" not in o:
+            problem = record_shape_damage(o)
+            if problem:
+                o = dict(o, failure="damaged records: " + problem)
+        checked.append(
+            dict(
+                o,
+                name=result["name"] + (" stage %d" % o["stage"] if several else ""),
+                first=o["stage"] == first_stage,
+                expected=None if "failure" in o else expected_exits(result, o),
+            )
         )
-        for o in found
-    ]
+    return checked
 
 
 def expected_exits(result, o):
@@ -1094,22 +1106,7 @@ def has_format(o):
     return bool(records(o, "format"))
 
 
-def damage(o):
-    """What is damaged or missing in the records of an observation that the
-    observer ended (phase "done") with a result: the first defect found, or
-    None. The records are checked before any of them is counted:
-    - each record is of a known kind, with the number of fields of its kind,
-      numbers where its kind has numbers, and known values where it has a
-      closed set of values;
-    - the records that a complete summary has once are there once, among
-      them the record of the trap and those of the passes;
-    - the phases are those of a complete run, in order;
-    - the counts agree with each other: the requests per kind with the
-      requests of the trap, the requests per pass with those of the passes,
-      the verdicts with the requests that have a verdict, and the answers
-      listed with the verdicts that are not "equal".
-    A summary of an earlier version of the observer is checked with the
-    shapes and the records of that version."""
+def record_shape_damage(o):
     summary = o.get("summary")
     if not isinstance(summary, list) or not all(
         isinstance(rec, list) and rec and all(isinstance(f, str) for f in rec) for rec in summary
@@ -1141,6 +1138,26 @@ def damage(o):
                         else "one of " + ", ".join(sorted(expected))
                     ),
                 )
+    return None
+
+
+def damage(o):
+    """What is damaged or missing in the records of an observation that the
+    observer ended (phase "done") with a result: the first defect found, or
+    None. The records are checked before any of them is counted:
+    - each record is of a known kind, with the number of fields of its kind,
+      numbers where its kind has numbers, and known values where it has a
+      closed set of values;
+    - the records that a complete summary has once are there once, among
+      them the record of the trap and those of the passes;
+    - the phases are those of a complete run, in order;
+    - the counts agree with each other: the requests per kind with the
+      requests of the trap, the requests per pass with those of the passes,
+      the verdicts with the requests that have a verdict, and the answers
+      listed with the verdicts that are not "equal".
+    A summary of an earlier version of the observer is checked with the
+    shapes and the records of that version."""
+    current = has_format(o)
     if current and records(o, "format") != [[FORMAT]]:
         return "the records are of the format %s, not %s" % (
             " ".join(sum(records(o, "format"), [])),
@@ -1230,6 +1247,11 @@ def result_damage(result):
         isinstance(s, dict) and isinstance(s.get("stage"), int) and "observed" in s for s in stages
     ):
         return "the stages are not a list of stages"
+    if "stages" in result:
+        expected = [s["stage"] for s in stages if s["observed"]]
+        listed = [o["stage"] for o in found]
+        if len(set(listed)) != len(listed) or set(listed) - set(expected):
+            return "duplicate observer or observer of an unobserved stage"
     if not isinstance(result.get("log_diffs", {}), dict):
         return "the differences of the outputs are not recorded by pair"
     return None
@@ -1251,6 +1273,8 @@ def observer_state(o):
     """The outcome of an observation: done, or the failure that stopped it,
     that its exit status shows, or that left its records damaged or
     incomplete."""
+    if "failure" in o:
+        return "failure: " + o["failure"]
     status = o["status"]
     phase = phase_of(o)
     # A record of an earlier version of this script does not tell whether
