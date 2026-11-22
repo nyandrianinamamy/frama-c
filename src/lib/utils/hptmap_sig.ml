@@ -140,6 +140,32 @@ module type Shape = sig
       called in an unspecified order. The results of the function may be cached,
       depending on [cache]. *)
 
+  val fold2_join_homogeneous:
+    cache:cache_type ->
+    empty_left:('v map -> 'b) ->
+    empty_right:('v map -> 'b) ->
+    both:(key -> 'v -> 'v -> 'b) ->
+    same:('v map -> 'b) ->
+    join:('b -> 'b -> 'b) ->
+    empty:'b ->
+    'v map -> 'v map ->
+    'b
+  (** [fold2_join_homogeneous ~cache ~empty_left ~empty_right ~both ~same
+        ~join ~empty m1 m2] is [fold2_join_heterogeneous] for two maps with
+      the same type of values, except that it does not traverse the subtrees
+      shared by [m1] and [m2]: when the iteration reaches a subtree [t] of
+      [m1] and a subtree of [m2] that are physically equal, it returns
+      [same t] if [t] is not empty, and [empty] otherwise, without calling
+      the other functions on the bindings of [t]. The result is then that of
+      [fold2_join_heterogeneous] if [same t] is the join of [both k v v] for
+      all bindings from [k] to [v] in [t].
+      As equal maps built by the same functor are physically equal, the
+      iteration only follows the paths to the keys that are bound in one map
+      only, or bound to different values in [m1] and [m2]. The results of the
+      function may be cached, depending on [cache], except those on
+      physically equal subtrees. If a cache is used, the auxiliary functions
+      must be pure. *)
+
   (** {2 Binary predicates} *)
 
   (** Existential ([||]) or universal ([&&]) predicates. *)
