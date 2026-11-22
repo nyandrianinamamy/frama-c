@@ -88,6 +88,11 @@ CPU=4
 MEASURE_SRC=
 MEASURE_BUILD=
 PERF_STACK=16384
+# Frames read from each call chain of a profile. perf script reads 127 by
+# default (kernel.perf_event_max_stack), and the chains of the iteration are
+# deeper: at 127, 5 % of the samples of gzip had a chain that reaches the
+# start of the program; at 4096, 80 %, with a dump of 16 or 64 KiB alike.
+PERF_MAX_STACK=4096
 TIMEOUT=20m
 JOBS=8
 # Option -cache-size of every analysis, see [command_of].
@@ -268,10 +273,12 @@ if has_stage build; then
     echo "measure	$(cat "$REVS/measure")"
     echo "oscs	$(git -C "$OSCS" rev-parse HEAD)"
     echo "cpu	$CPU	$(grep -m1 'model name' /proc/cpuinfo | cut -d: -f2)"
-    echo "perf	--call-graph dwarf,$PERF_STACK"
+    echo "perf	--call-graph dwarf,$PERF_STACK," \
+         "perf script --max-stack $PERF_MAX_STACK"
     echo "programs	$PROGRAMS"
     echo "ablations	$ABLATIONS"
-    echo "cache	-cache-size $CACHE_SIZE (share/analysis-scripts/analysis.mk:125)"
+    echo "cache	-cache-size $CACHE_SIZE" \
+         "(share/analysis-scripts/analysis.mk:125)"
     echo "built	$(date -Iseconds)"
   } > "$OUT/revisions.tsv"
 fi
@@ -474,7 +481,8 @@ if has_stage perf; then
       if [ "$status" = 0 ]; then
         log "summary of perf-$mode-$prog"
         (set -o pipefail &&
-           perf script -i "$data" -F time,ip,sym --no-inline 2> /dev/null |
+           perf script -i "$data" -F time,ip,sym --no-inline \
+             --max-stack "$PERF_MAX_STACK" 2> /dev/null |
              python3 "$THIS_DIR/report.py" perf-summary \
                --phases "$dir/phases.tsv" --freq "$freq" \
                > "$dir/perf.tsv") || status=$?
