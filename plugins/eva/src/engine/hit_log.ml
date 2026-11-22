@@ -355,31 +355,95 @@ let bases_of_zone = function
   | Memory_zone.Top (Base.SetLattice.Set bases, _) -> bases
   | Memory_zone.Map map -> Base.Hptset.from_map (Memory_zone.shape map)
 
-let bases_of_state = function
-  | Cvalue.Model.Bottom -> Base.Hptset.empty
-  | Top -> raise Unknown_footprint
-  | Map map -> Base.Hptset.from_map (Cvalue.Model.shape map)
+(* The blocks that a state of the body of a call creates or removes, compared
+   with the start state of the call, are computed by walking the two maps
+   together: the subtrees present in one map only hold these blocks, and the
+   keys present in both maps give none. This does not build the set of all
+   blocks of a state. *)
 
-(* Projects [state] on the blocks of [zone], on those that do not belong to
-   [existing], the blocks of the start state of the call, and on [bound]. *)
-let project ?(bound = Base.Hptset.empty) ~existing zone state =
-  let created = Base.Hptset.diff (bases_of_state state) existing in
+module Shape = Hptmap.Shape (Base.Base)
+
+(* The caches of [Shape] are not project-aware. *)
+let () = State.add_hook_on_update Self.state Shape.clear_caches
+
+type shape = Cvalue.V_Offsetmap.t Shape.map
+
+(* The shape of a state: [None] for Bottom, which has no blocks. *)
+let shape_of_state = function
+  | Cvalue.Model.Bottom -> None
+  | Top -> raise Unknown_footprint
+  | Map map -> Some (Cvalue.Model.shape map)
+
+(* [created_in start state] are the blocks of [state] absent from [start]. *)
+let created_in : shape -> shape -> Base.Hptset.t =
+  let join s t =
+    if Base.Hptset.is_empty s then t
+    else if Base.Hptset.is_empty t then s
+    else Base.Hptset.union s t
+  in
+  Shape.fold2_join_heterogeneous
+    ~cache:(Hptmap_sig.PersistentCache "Eva.Hit_log.created_in")
+    ~empty_left:Base.Hptset.from_map
+    ~empty_right:(fun _ -> Base.Hptset.empty)
+    ~both:(fun _ _ _ -> Base.Hptset.empty)
+    ~join ~empty:Base.Hptset.empty
+
+(* No block created or removed. Shared, so that the walk below allocates no
+   pair where neither map has blocks of its own. *)
+let no_change = Base.Hptset.empty, Base.Hptset.empty
+
+(* [changes_in start state] are the blocks of [state] absent from [start],
+   and those of [start] absent from [state]. *)
+let changes_in : shape -> shape -> Base.Hptset.t * Base.Hptset.t =
+  let join (created, removed as x) (created', removed' as y) =
+    if x == no_change then y
+    else if y == no_change then x
+    else Base.Hptset.union created created', Base.Hptset.union removed removed'
+  in
+  Shape.fold2_join_heterogeneous
+    ~cache:(Hptmap_sig.PersistentCache "Eva.Hit_log.changes_in")
+    ~empty_left:(fun t -> Base.Hptset.from_map t, Base.Hptset.empty)
+    ~empty_right:(fun s -> Base.Hptset.empty, Base.Hptset.from_map s)
+    ~both:(fun _ _ _ -> no_change)
+    ~join ~empty:no_change
+
+(* The blocks of [state] absent from [start], the shape of the start state of
+   the call. *)
+let created_blocks ~start state =
+  match start, shape_of_state state with
+  | _, None -> Base.Hptset.empty
+  | None, Some state -> Base.Hptset.from_map state
+  | Some start, Some state ->
+    if start == state then Base.Hptset.empty else created_in start state
+
+(* The blocks of [state] absent from [start], the shape of the start state of
+   the call, and the blocks of [start] absent from [state]. *)
+let created_and_removed_blocks ~start state =
+  match start, shape_of_state state with
+  | None, None -> no_change
+  | None, Some state -> Base.Hptset.from_map state, Base.Hptset.empty
+  | Some start, None -> Base.Hptset.empty, Base.Hptset.from_map start
+  | Some start, Some state ->
+    if start == state then no_change else changes_in start state
+
+(* Projects [state] on the blocks of [zone], on the blocks [created] that do
+   not exist in the start state of the call, and on [bound]. *)
+let project ?(bound = Base.Hptset.empty) ~created zone state =
   let covered = Base.Hptset.union (bases_of_zone zone) created in
   let covered = Base.Hptset.union covered bound in
   { covered; inner = Cvalue.Model.filter_by_shape covered state }
 
-(* The blocks that a call to [callee] binds or removes, given its start state
-   [state] and the blocks [existing] of the start state of the body that makes
-   the call: the formals of [callee], bound by the call; its locals, absent
-   from its start state; and the blocks of [existing] that [state] does not
-   have. With unrolled recursive calls, the formals and locals of [callee] can
-   exist in the state of the caller, in the frame of an outer call of
-   [callee]: a recursive call removes them, or renames those whose address is
-   taken, and binds the formals anew. *)
-let bound_by_call ~existing callee state =
+(* The blocks that a call to [callee] binds or removes: the formals of
+   [callee], bound by the call; its locals, absent from its start state; and
+   [removed], the blocks of the start state of the body that makes the call
+   that are absent from the start state of the call. With unrolled recursive
+   calls, the formals and locals of [callee] can exist in the state of the
+   caller, in the frame of an outer call of [callee]: a recursive call removes
+   them, or renames those whose address is taken, and binds the formals
+   anew. *)
+let bound_by_call ~removed callee =
   let vars = Kernel_function.(get_formals callee @ get_locals callee) in
   let vars = Base.Hptset.of_list (List.map Base.of_varinfo vars) in
-  let removed = Base.Hptset.diff existing (bases_of_state state) in
   Base.Hptset.union vars removed
 
 (* Projects the states [before] and [after] each statement on the blocks
@@ -395,7 +459,7 @@ let bound_by_call ~existing callee state =
    after a statement is thus completed by the footprints before its
    successors. *)
 let inner_part footprint ~start ~before ~after ~calls =
-  let existing = bases_of_state start in
+  let start = shape_of_state start in
   let footprints = Stmt_table.create 17 in
   let footprint stmt =
     match Stmt_table.find_opt footprints stmt with
@@ -413,7 +477,8 @@ let inner_part footprint ~start ~before ~after ~calls =
   let project_all zone_of states =
     let points = Stmt_table.create (Stmt_table.length states) in
     let add stmt state =
-      Stmt_table.replace points stmt (project ~existing (zone_of stmt) state)
+      let created = created_blocks ~start state in
+      Stmt_table.replace points stmt (project ~created (zone_of stmt) state)
     in
     Stmt_table.iter add states;
     points
@@ -423,8 +488,9 @@ let inner_part footprint ~start ~before ~after ~calls =
   let below =
     List.rev_map
       (fun (site, callee, state, child) ->
-         let bound = bound_by_call ~existing callee state in
-         let start = project ~bound ~existing (zone_before site) state in
+         let created, removed = created_and_removed_blocks ~start state in
+         let bound = bound_by_call ~removed callee in
+         let start = project ~bound ~created (zone_before site) state in
          { site; callee; child; start = Some start })
       calls
   in
