@@ -158,6 +158,21 @@ let made_by_calls_in_progress = Hashtbl.create 17
    compute two cache entries that make different calls. *)
 let made_by_entry = Hashtbl.create 17
 
+(* The statements that the analysed call of each cache entry reaches, by
+   number of the entry: those with a state before them, and those with a
+   state after them. *)
+let reached_by_entry = Hashtbl.create 17
+
+let reached (states : Cvalue_callbacks.results) =
+  let reached table =
+    Cil_datatype.Stmt.Hashtbl.fold
+      (fun stmt state acc ->
+         if Cvalue.Model.is_reachable state
+         then Cil_datatype.Stmt.Set.add stmt acc else acc)
+      (Lazy.force table) Cil_datatype.Stmt.Set.empty
+  in
+  reached states.before_stmts, reached states.after_stmts
+
 let () =
   Cvalue_callbacks.register_call_hook
     (fun callstack kf _state _kind ->
@@ -247,9 +262,11 @@ let () =
              Hashtbl.remove made_by_calls_in_progress p;
              List.rev !made
          in
-         begin match kind with
-           | Analysed id -> Hashtbl.replace made_by_entry id made
-           | Hit _ | Other _ -> ()
+         begin match results with
+           | `Body (states, id) ->
+             Hashtbl.replace made_by_entry id made;
+             Hashtbl.replace reached_by_entry id (reached states)
+           | `Reuse _ | `Spec _ | `Builtin _ -> ()
          end;
          match p.calls with
          | call :: calls ->
@@ -298,6 +315,8 @@ type point = {
   kf: Kernel_function.t option; (* The function of the point. *)
   show: bool; (* Whether its states are printed. *)
   kind: string; (* The kind of point, for the summary. *)
+  stmt: Cil_types.stmt option; (* The statement of a point before or after
+                                  a statement. *)
 }
 
 (* In the summary mode, the names of the functions without a body that are
@@ -387,18 +406,18 @@ let points () =
       { description = Kernel_function.get_name kf ^ ", start";
         request = Results.at_start_of kf;
         trap = "start of " ^ Kernel_function.get_name kf;
-        kf = Some kf; show = labelled; kind = "start" }
+        kf = Some kf; show = labelled; kind = "start"; stmt = None }
     in
     let of_stmt stmt =
       [ { description = describe_stmt "before" stmt;
           request = Results.before stmt; trap = trap_stmt "before" stmt;
           kf = Some kf; show = labelled && labels stmt <> [];
-          kind = "before" };
+          kind = "before"; stmt = Some stmt };
         { description = describe_stmt "after" stmt;
           request = Results.after stmt; trap = trap_stmt "after" stmt;
           kf = Some kf;
           show = labelled && Cil_datatype.Stmt.equal stmt return;
-          kind = "after" } ]
+          kind = "after"; stmt = Some stmt } ]
     in
     start :: List.concat_map of_stmt stmts
   in
@@ -406,7 +425,7 @@ let points () =
     let kf = Globals.Functions.find_by_name name in
     { description = name ^ ", start, without body";
       request = Results.at_start_of kf; trap = "start of " ^ name;
-      kf = Some kf; show = false; kind = "start without body" }
+      kf = Some kf; show = false; kind = "start without body"; stmt = None }
   in
   let main = fst (Globals.entry_point ()) in
   (* An entry point without a body has no final state. *)
@@ -415,11 +434,12 @@ let points () =
     | return ->
       [ { description = "final state"; request = Results.at_end ();
           trap = trap_stmt "after" return;
-          kf = None; show = false; kind = "final" } ]
+          kf = None; show = false; kind = "final"; stmt = None } ]
     | exception Kernel_function.No_Statement -> []
   in
   { description = "initial state"; request = Results.at_start;
-    trap = "initial state"; kf = None; show = false; kind = "initial" }
+    trap = "initial state"; kf = None; show = false; kind = "initial";
+    stmt = None }
   :: final
   @ List.concat_map of_function functions
   @ List.map of_declaration !without_body
@@ -671,7 +691,8 @@ let renames name sid =
     vars
 
 (* The callstacks of the calls below a hit, each with whether it crosses a
-   recursion: from the hit down, one of its calls is a recursive call that
+   recursion and with the cache entries of its counterparts, if they have
+   one: from the hit down, one of its calls is a recursive call that
    renames variables, its function being already on the callstack of its
    caller, whether its counterpart was analysed by its body or by its
    specification. The counterpart of a call below a hit is the call made at
@@ -699,8 +720,15 @@ let crossing_callstacks =
            let crossing =
              crossing || List.mem name frames && renames name sid
            in
-           let previous = Hashtbl.find_opt table p = Some true in
-           Hashtbl.replace table p (previous || crossing);
+           let previous, entries =
+             Option.value ~default:(false, []) (Hashtbl.find_opt table p)
+           in
+           let entries =
+             match entry with
+             | Some id when not (List.mem id entries) -> id :: entries
+             | _ -> entries
+           in
+           Hashtbl.replace table p (previous || crossing, entries);
            Option.iter (walk p crossing) entry)
         (Option.value ~default:[] (Hashtbl.find_opt made_by_entry id))
     in
@@ -713,11 +741,32 @@ let crossing_callstacks =
     table
   end
 
+let is_crossing table p =
+  match Hashtbl.find_opt table p with
+  | Some (crossing, _) -> crossing
+  | None -> false
+
 (* Whether one of the callstacks [stacks] is that of a call below a hit that
-   crosses a recursion. *)
-let crossing stacks =
+   crosses a recursion, and whose counterpart reaches [point] if it is before
+   or after a statement: the rule keeps unreachable the points that the cache
+   entry of the counterpart does not reach. *)
+let crossing (point : point) stacks =
   let table = Lazy.force crossing_callstacks in
-  List.exists (fun p -> Hashtbl.find_opt table p = Some true) stacks
+  let reaches id =
+    match point.stmt, Hashtbl.find_opt reached_by_entry id with
+    | None, _ -> true
+    | Some _, None -> false
+    | Some stmt, Some (before, after) ->
+      Cil_datatype.Stmt.Set.mem stmt
+        (if String.equal point.kind "before" then before else after)
+  in
+  List.exists
+    (fun p ->
+       match Hashtbl.find_opt table p with
+       | Some (true, entries) ->
+         Option.is_none point.stmt || List.exists reaches entries
+       | Some (false, _) | None -> false)
+    stacks
 
 (* The name shown for a callstack of the current project that Eva may not
    list. *)
@@ -760,13 +809,13 @@ let print_rebuilt ~listed ~requested =
     "not rebuilt" (only listed rebuilt);
   print "Calls below a hit that cross a recursion, rebuilt by the observer"
     "crossing"
-    (List.filter (fun p -> Hashtbl.find_opt table p = Some true) rebuilt)
+    (List.filter (is_crossing table) rebuilt)
 
 (* The case of an unavailable answer at [point] that includes the callstacks
    [stacks]. The cases are numbered as in the closed list of #87. The points
    of the body of a call below a hit that crosses a recursion are rebuilt
-   from its start, and are unavailable with it: they are told apart, as
-   case 3b. *)
+   from its start, and are unavailable with it where the cache entry of its
+   counterpart reaches them: they are told apart, as case 3b. *)
 let closed_list_case (point : point) ~stacks =
   let name =
     match point.kf, point.kind with
@@ -786,14 +835,15 @@ let closed_list_case (point : point) ~stacks =
     match name with
     | None -> "none"
     | Some _ when start ->
-      if crossing stacks then "3: start below a hit, across a recursion"
+      if crossing point stacks then "3: start below a hit, across a recursion"
       else "none"
     | Some name ->
       if results_disabled name then "5: results disabled"
       else if unrolled name then "2: unrolled recursive calls"
       else if interrupted name then "4: interrupted call"
       else if unknown_footprint name then "6: unknown footprint"
-      else if crossing stacks then "3b: body below a hit, across a recursion"
+      else if crossing point stacks
+      then "3b: body below a hit, across a recursion"
       else "none"
 
 (* ----- Comparison of the answers ----------------------------------------- *)
