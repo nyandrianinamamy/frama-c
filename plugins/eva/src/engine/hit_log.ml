@@ -687,6 +687,8 @@ type derived = {
      with their states, as [get_state_by_callstack] answers them. *)
   reached_before: (Callstack.t * Cvalue.Model.t) list Stmt_table.t;
   reached_after: (Callstack.t * Cvalue.Model.t) list Stmt_table.t;
+  (* For each function, its entries by callstack, see [entries_on]. *)
+  entries_on: ((int * entry) list Cs_table.t * (int * entry) list) Kf_table.t;
   mutable indexed: bool;
   mutable pastes: int;
 }
@@ -706,6 +708,7 @@ let new_derived () = {
   callstack_after = Stmt_table.create 17;
   reached_before = Stmt_table.create 17;
   reached_after = Stmt_table.create 17;
+  entries_on = Kf_table.create 17;
   indexed = false;
   pastes = 0;
 }
@@ -1054,24 +1057,82 @@ let start_state store derived ?callstack kf =
     @ [ find_callstack (starts_below_by_callstack store derived kf) callstack ]
     |> join_all
 
+(* The state at [control_point], a point of the body of the function of the
+   entry [id], of the members of this entry: those on [callstack], or all of
+   them, joined. *)
+let entry_state store derived ?callstack control_point (id, entry) =
+  match find_point entry control_point with
+  | None -> Cvalue.Model.bottom
+  | Some point ->
+    let body_entry =
+      match callstack with
+      | None ->
+        Cvalue.Model.join entry.analysed.body_entry
+          (unrun_joined store derived id)
+      | Some callstack ->
+        Cvalue.Model.join
+          (analysed_on callstack (fun a -> a.body_entry) entry)
+          (find_callstack (unrun_by_callstack store derived id) callstack)
+    in
+    paste derived point body_entry
+
+(* For the function [kf]: its entries by callstack, those whose analysed call
+   is on the callstack or that have on it a member whose body did not run,
+   each list in the order of [entries_with_ids]; and its entries on which
+   [unrun_by_callstack] raises [Unavailable]. *)
+let entries_on store derived kf =
+  match Kf_table.find_opt derived.entries_on kf with
+  | Some index -> index
+  | None ->
+    let table = Cs_table.create 17 in
+    let add (id, _ as member) callstack =
+      match Cs_table.find_opt table callstack with
+      | Some ((id', _) :: _) when id' = id -> ()
+      | previous ->
+        Cs_table.replace table callstack
+          (member :: Option.value ~default:[] previous)
+    in
+    let unavailable =
+      List.fold_left
+        (fun unavailable (id, entry as member) ->
+           add member entry.analysed.callstack;
+           match unrun_by_callstack store derived id with
+           | states ->
+             Cs_table.iter (fun callstack _ -> add member callstack) states;
+             unavailable
+           | exception Unavailable -> member :: unavailable)
+        [] (List.rev (entries_with_ids store kf))
+    in
+    let index = table, unavailable in
+    Kf_table.replace derived.entries_on kf index;
+    index
+
+(* The state at [control_point], a point of the body of [kf], joined over all
+   callstacks or on [callstack]: the join of the states of the entries of
+   [kf], in the order of [entries_with_ids].
+   On [callstack], only the entries that [entries_on] lists for [callstack]
+   are joined. The state on [callstack] of any other entry is Bottom: its
+   body-entry state on [callstack] is the join of two Bottom states, and
+   [paste] gives Bottom on Bottom. [Cvalue.Model.join] gives its other
+   argument when one is Bottom, so leaving these entries out of the join
+   gives the same value, the order of the others being kept. The state of an
+   entry with a point at [control_point] computes [unrun_by_callstack] on it:
+   if [Unavailable] is raised on such an entry, it is raised here as well. *)
 let point_state store derived ?callstack control_point kf =
-  let state (id, entry) =
-    match find_point entry control_point with
-    | None -> Cvalue.Model.bottom
-    | Some point ->
-      let body_entry =
-        match callstack with
-        | None ->
-          Cvalue.Model.join entry.analysed.body_entry
-            (unrun_joined store derived id)
-        | Some callstack ->
-          Cvalue.Model.join
-            (analysed_on callstack (fun a -> a.body_entry) entry)
-            (find_callstack (unrun_by_callstack store derived id) callstack)
-      in
-      paste derived point body_entry
-  in
-  List.map state (entries_with_ids store kf) |> join_all
+  match callstack with
+  | None ->
+    List.map (entry_state store derived control_point)
+      (entries_with_ids store kf)
+    |> join_all
+  | Some callstack ->
+    let table, unavailable = entries_on store derived kf in
+    let has_point (_, entry) =
+      Option.is_some (find_point entry control_point)
+    in
+    if List.exists has_point unavailable then raise Unavailable;
+    Option.value ~default:[] (Cs_table.find_opt table callstack)
+    |> List.map (entry_state store derived ~callstack control_point)
+    |> join_all
 
 (* [memo table find replace key f] is the answer [f ()] for [key], memoised
    in [table]. *)
