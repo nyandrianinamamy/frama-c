@@ -350,10 +350,40 @@ let footprint_of_call ~id hooks =
 
 exception Unknown_footprint
 
+(* The set of the blocks of a zone, memoised by the zone. The footprints of a
+   statement are often the same zone from one call to the next, and
+   [Base.Hptset.from_map] walks the zone and hash-conses each node of the set
+   again at each call. The memo is a direct-mapped cache, with as many slots
+   as the caches of the hash-consed maps (option -cache-size), keyed by the
+   shape of the zone. Zones are hash-consed: two shapes with the same
+   bindings are the same value, and the cache compares them by physical
+   equality, as [Base.Hptshape.equal] does. The set is a function of the
+   blocks bound in the shape, so a hit gives the set that [from_map] builds,
+   itself hash-consed: the same value. The answer does not depend on the
+   project, and the cache needs no clearing. A slot keeps its zone and its
+   set alive until another zone takes it. *)
+module Zone_bases =
+  Binary_cache.Arity_One
+    (struct
+      type t = Int_Intervals.t Base.Hptshape.map
+      let hash = Base.Hptshape.hash
+      let equal = Base.Hptshape.equal
+      (* The empty zone, whose set of blocks is the sentinel of the sets. *)
+      let sentinel =
+        match Memory_zone.bottom with
+        | Memory_zone.Map map -> Memory_zone.shape map
+        | Memory_zone.Top _ -> assert false
+    end)
+    (struct
+      type t = Base.Hptset.t
+      let sentinel = Base.Hptset.empty
+    end)
+
 let bases_of_zone = function
   | Memory_zone.Top (Base.SetLattice.Top, _) -> raise Unknown_footprint
   | Memory_zone.Top (Base.SetLattice.Set bases, _) -> bases
-  | Memory_zone.Map map -> Base.Hptset.from_map (Memory_zone.shape map)
+  | Memory_zone.Map map ->
+    Zone_bases.merge Base.Hptset.from_map (Memory_zone.shape map)
 
 (* The blocks that a state of the body of a call creates or removes, compared
    with the start state of the call, are computed by walking the two maps
