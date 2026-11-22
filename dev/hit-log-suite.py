@@ -1448,6 +1448,24 @@ def write_summary(outdir, runs, results, elapsed, unread=()):
                 )
             )
     emit("Every stage, with its reason or the options not observed: `stages.tsv`.\n")
+    conditional = [o for o in all_obs if o["stage"] > 1]
+    emit(
+        "**The reference of a stage that is not the first stage of its command "
+        "is conditional on the stages before it.** The observer of such a stage "
+        "runs the stages before it with -eva-hit-log, then copies the project "
+        "that they leave and analyses the copy without memexec: this reference "
+        "is not the whole command run without memexec. An answer of such a "
+        "stage that is equal to its reference is equal given that prefix: a "
+        "difference that an earlier stage run with the recording leaves in the "
+        "project, as in its annotations, its statuses or the state of another "
+        "plug-in, is in the reference as well, and the comparison does not see "
+        "it. This concerns %d observed stages: the %d later stages listed above, "
+        "and the first observed stage of the %d runs just named, whose earlier "
+        "stages start no analysis. The outputs of the whole commands, run "
+        "without memexec and with -eva-hit-log, are compared apart, in "
+        '"Outputs of the test commands".\n'
+        % (len(conditional), len(later), len(conditional) - len(later))
+    )
     # Observer.
     emit("## Observer\n")
     states = collections.Counter(observer_state(o) for o in all_obs)
@@ -1475,6 +1493,17 @@ def write_summary(outdir, runs, results, elapsed, unread=()):
     )
     emit(table(["Run", "Failure"], uncounted))
     emit("")
+    earlier = [o for o in observed if not has_format(o)]
+    if earlier:
+        emit(
+            "**%d of these %d stages have records of an earlier version of the "
+            "observer**, without a record of their format: they are checked and "
+            "read as that version wrote them. Its comparison is not that of this "
+            "version: it does not keep the strength of the allocated blocks, it "
+            "compares the run with memexec through the run with -eva-hit-log, "
+            "and its first versions do not count the unresolved answers, shown "
+            "as 0.\n" % (len(earlier), len(observed))
+        )
     stopped = sorted(o["name"] for o in observed if records(o, "stopped"))
     emit(
         "Observed stages where an analysis stops, as by an option or an "
@@ -1537,6 +1566,19 @@ def write_summary(outdir, runs, results, elapsed, unread=()):
             rows.append([run_kind, group] + total(members, "verdicts", run_kind, len(VERDICTS)))
     emit(table(["Run", "Stages"] + VERDICTS, rows))
     emit("")
+    emit(
+        "The answers of a stage that is not the first stage of its command are "
+        "compared with a reference that is conditional on the stages before it: "
+        'see "Stages".\n'
+    )
+    not_compared = sum(int(rec[1]) for o in observed for rec in records(o, "not compared"))
+    emit(
+        "The run with memexec, without recording, is compared with the "
+        "reference between these two runs only: with the created bases of the "
+        "two matched to each other, and on the callstacks that one of the two "
+        "lists. Answers with -eva-hit-log on a callstack that neither of the two "
+        "lists, where the run with memexec is not compared: %d.\n" % not_compared
+    )
     answers = [(o["name"], answer(a)) for o in observed for a in records(o, "answer")]
     cases = collections.Counter(
         (a["case"] or "?")
@@ -1547,18 +1589,48 @@ def write_summary(outdir, runs, results, elapsed, unread=()):
     emit("Unavailable answers with -eva-hit-log, per case of the closed list:\n")
     emit(table(["Case", "Answers"], sorted(cases.items())))
     emit("")
-    rows = [[o["name"]] + rec for o in observed for rec in records(o, "unresolved")]
+    # The comparison of a record of created bases: the run with -eva-hit-log
+    # against the run named, or the run with memexec against the reference.
+    comparisons = {
+        "without memexec": "-eva-hit-log against the reference",
+        "with memexec": "-eva-hit-log against memexec",
+        "memexec against reference": "memexec against the reference",
+    }
+
+    def comparison(rec):
+        return [comparisons.get(rec[0], rec[0])] + rec[1:]
+
+    rows = [
+        [o["name"]] + (comparison(rec) + ["match undecided"])[:3]
+        for o in observed
+        for rec in records(o, "unresolved")
+    ]
     emit(
-        "Created bases whose match with the run with -eva-hit-log is "
-        "unresolved (their answers are counted as unresolved):\n"
+        "Created bases whose match between two runs is unresolved (the answers "
+        "that hold them are counted as unresolved in that comparison): the match "
+        "is not decided, or the base is one block in the run compared and a "
+        "summary of several blocks in the run it is compared with.\n"
     )
-    emit(table(["Stage", "Run", "Base"], rows))
+    emit(table(["Stage", "Comparison", "Base", "Reason"], rows))
+    emit("")
+    rows = [[o["name"]] + comparison(rec) for o in observed for rec in records(o, "summarised")]
+    emit(
+        "Created bases that summarise several blocks, matched to one block of "
+        "the run they are compared with. An answer that holds one is compared "
+        "in one direction only: it covers the answer of that run, or OMITS it, "
+        "and is never equal to it nor more precise.\n"
+    )
+    emit(table(["Stage", "Comparison", "Summary of several blocks", "One block"], rows))
     emit("")
     unresolved = total(observed, "verdicts", "recording", len(VERDICTS))[-1]
     emit(
         "**Unresolved answers with -eva-hit-log: %d.** Each one fails the criterion "
         "that no state of the run with -eva-hit-log omits a value of the reference, "
         "unless it is explained: the comparison cannot tell whether it omits one.\n" % unresolved
+    )
+    emit(
+        "Unresolved answers with memexec, without recording: %d.\n"
+        % total(observed, "verdicts", "memexec", len(VERDICTS))[-1]
     )
     emit("Answers that are not equal, per stage, function and verdict ")
     emit("(recording, then memexec without recording, against the reference):\n")
@@ -1663,13 +1735,34 @@ def write_summary(outdir, runs, results, elapsed, unread=()):
         "bottom): %s.\n"
         % ", ".join("%d %s" % (count[k], k) for k in ["reference", "memexec", "recording"])
     )
-    rows = [[o["name"]] + rec for o in observed for rec in records(o, "unreachable")]
     emit(
         "Statements unreachable in one run and reachable in the reference, or "
-        "the converse, compared one by one:\n"
+        "the converse, compared one by one. The two comparisons are separate, "
+        "each against the reference:\n"
     )
-    emit(table(["Stage", "With", "Unreachable", "Statement", "Case"], rows))
-    emit("")
+    for run_kind, title in [
+        ("recording", "with -eva-hit-log"),
+        ("memexec", "with memexec, without recording"),
+    ]:
+        rows = [
+            [o["name"]] + rec[1:]
+            for o in observed
+            for rec in records(o, "unreachable")
+            if rec[0] == run_kind
+        ]
+        directions = collections.Counter(row[1] for row in rows)
+        emit(
+            "- %s: %d statements differ, %d unreachable only in the reference and "
+            "%d only in this run.\n"
+            % (
+                title,
+                len(rows),
+                directions["only in the reference"],
+                directions["only in this run"],
+            )
+        )
+        emit(table(["Stage", "Unreachable", "Statement", "Case"], rows))
+        emit("")
     rows = []
     for o in observed:
         for rec in records(o, "messages"):
