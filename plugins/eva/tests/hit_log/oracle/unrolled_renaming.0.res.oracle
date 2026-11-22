@@ -25,6 +25,14 @@ Calls below a hit:
   set :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:46 <- main
   set :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:47 <- main
   set :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:49 <- main
+Calls below a hit that cross a recursion, rebuilt by the observer:
+  even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:44 <- main
+  even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:46 <- main
+  even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:46 <- main
+  odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:44 <- main
+  odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:46 <- main
+  set :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:44 <- main
+  set :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:46 <- main
 set, start:
   joined: unavailable
   set :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:44 <- main: 

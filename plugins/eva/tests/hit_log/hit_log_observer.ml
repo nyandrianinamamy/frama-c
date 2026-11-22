@@ -16,6 +16,9 @@
    - the callstacks that reach the start of a function in the current project
      and are not those of a call of the analysis: the calls below a hit,
      whose body did not run;
+   - the calls below a hit that the observer rebuilds from the calls made by
+     the analysed call of each cache entry, if they differ from those that
+     Eva lists, and those of them that cross a recursion, if any;
    - the states at the labelled statements, and those of the reference when
      they differ;
    - for each hit on another callstack than the analysed call of its cache
@@ -142,12 +145,26 @@ type event = Start of portable | End of portable * string
 let events = ref []
 let stopped = ref false
 
+(* The calls made by each call in progress, by its callstack: the callstack
+   of the call made and how it was analysed, most recent first. A call on a
+   callstack ends before another call on that callstack starts, but for an
+   interrupted call, which never ends: the calls in progress on a callstack
+   are kept as a stack, by Hashtbl.add and Hashtbl.remove. *)
+let made_by_calls_in_progress = Hashtbl.create 17
+
+(* The calls made by the analysed call of each cache entry, by number of the
+   entry: the calls made at each call statement of its body while it ran,
+   which are those its cache entry keeps. Two calls on one callstack can
+   compute two cache entries that make different calls. *)
+let made_by_entry = Hashtbl.create 17
+
 let () =
   Cvalue_callbacks.register_call_hook
     (fun callstack kf _state _kind ->
        if !observing_calls then begin
          started := (portable callstack, kf) :: !started;
-         events := Start (portable callstack) :: !events
+         events := Start (portable callstack) :: !events;
+         Hashtbl.add made_by_calls_in_progress (portable callstack) (ref [])
        end)
 
 (* In the summary mode, the footprint that InOut gives for each call analysed
@@ -213,7 +230,7 @@ let () =
        if !observing_calls then
          events :=
            End (portable callstack, Kernel_function.get_name kf) :: !events;
-       if !observing_calls then
+       if !observing_calls then begin
          let kind =
            match results with
            | `Body (_, id) -> Analysed id
@@ -221,7 +238,26 @@ let () =
            | `Spec _ -> Other "specification"
            | `Builtin _ -> Other "builtin"
          in
-         calls := (identify callstack, kf, kind) :: !calls)
+         calls := (identify callstack, kf, kind) :: !calls;
+         let p = portable callstack in
+         let made =
+           match Hashtbl.find_opt made_by_calls_in_progress p with
+           | None -> []
+           | Some made ->
+             Hashtbl.remove made_by_calls_in_progress p;
+             List.rev !made
+         in
+         begin match kind with
+           | Analysed id -> Hashtbl.replace made_by_entry id made
+           | Hit _ | Other _ -> ()
+         end;
+         match p.calls with
+         | call :: calls ->
+           Option.iter
+             (fun made -> made := (call, kind) :: !made)
+             (Hashtbl.find_opt made_by_calls_in_progress { p with calls })
+         | [] -> ()
+       end)
 
 let print_calls () =
   Format.printf "@[<v 2>Calls:";
@@ -251,7 +287,7 @@ let print_below starts =
     List.iter (fun stack -> Format.printf "@ %s" (display stack)) below;
     Format.printf "@]@."
   end;
-  List.map fst below
+  below
 
 (* ----- Points ------------------------------------------------------------ *)
 
@@ -641,43 +677,32 @@ let renames name sid =
    specification. The counterpart of a call below a hit is the call made at
    the same statement by the analysed call of the cache entry that its
    caller uses. These callstacks are rebuilt from the calls of the analysis,
-   from each hit down, as the rule of #87 does. *)
+   from each hit down, as the rule of #87 does: the calls below a call that
+   uses a cache entry are those made by the analysed call of this entry. A
+   cache entry is completed after the entries its analysed call uses, so the
+   rebuilding ends. *)
 let crossing_callstacks =
   lazy begin
     let table = Hashtbl.create 17 in
-    let analysed = Hashtbl.create 17 and children = Hashtbl.create 17 in
-    List.iter
-      (fun ((_, p), _, kind) ->
-         begin match kind with
-           | Analysed id -> Hashtbl.replace analysed id p
-           | Hit _ | Other _ -> ()
-         end;
-         match p.calls with
-         | call :: calls -> Hashtbl.add children { p with calls } (call, kind)
-         | [] -> ())
-      !calls;
     (* [walk q crossing id] adds the callstacks below the call on [q], which
        uses the cache entry [id] and does not run its body. *)
     let rec walk q crossing id =
-      match Hashtbl.find_opt analysed id with
-      | None -> ()
-      | Some a ->
-        let frames = q.entry :: List.map fst q.calls in
-        List.iter
-          (fun ((name, sid as call), kind) ->
-             let p = { q with calls = call :: q.calls } in
-             let entry =
-               match kind with
-               | Analysed id | Hit id -> Some id
-               | Other _ -> None
-             in
-             let crossing =
-               crossing || List.mem name frames && renames name sid
-             in
-             let previous = Hashtbl.find_opt table p = Some true in
-             Hashtbl.replace table p (previous || crossing);
-             Option.iter (walk p crossing) entry)
-          (Hashtbl.find_all children a)
+      let frames = q.entry :: List.map fst q.calls in
+      List.iter
+        (fun ((name, sid as call), kind) ->
+           let p = { q with calls = call :: q.calls } in
+           let entry =
+             match kind with
+             | Analysed id | Hit id -> Some id
+             | Other _ -> None
+           in
+           let crossing =
+             crossing || List.mem name frames && renames name sid
+           in
+           let previous = Hashtbl.find_opt table p = Some true in
+           Hashtbl.replace table p (previous || crossing);
+           Option.iter (walk p crossing) entry)
+        (Option.value ~default:[] (Hashtbl.find_opt made_by_entry id))
     in
     List.iter
       (fun ((_, p), _, kind) ->
@@ -693,6 +718,49 @@ let crossing_callstacks =
 let crossing stacks =
   let table = Lazy.force crossing_callstacks in
   List.exists (fun p -> Hashtbl.find_opt table p = Some true) stacks
+
+(* The name shown for a callstack of the current project that Eva may not
+   list. *)
+let display_portable p = display (string_of_callstack (rebuild p), p)
+
+(* Prints the callstacks below a hit that the observer rebuilds and that Eva
+   does not list among [listed], those that Eva lists and the observer does
+   not rebuild, and those that cross a recursion. Only the callstacks of the
+   functions [requested], whose start is requested, are compared and
+   printed; those of the calls of the analysis are not below a hit. *)
+let print_rebuilt ~listed ~requested =
+  let table = Lazy.force crossing_callstacks in
+  let observed = List.map (fun ((_, p), _, _) -> p) !calls in
+  let rebuilt =
+    Hashtbl.fold (fun p _ acc -> p :: acc) table []
+    |> List.filter
+      (fun p ->
+         not (List.mem p observed)
+         && match p.calls with
+         | (name, _) :: _ -> List.mem name requested
+         | [] -> false)
+    |> List.sort_uniq compare
+  in
+  let only a b = List.filter (fun x -> not (List.mem x b)) a in
+  let print title what stacks =
+    if stacks <> [] then begin
+      Format.printf "@[<v 2>%s:" title;
+      List.iter
+        (fun p ->
+           let shown = display_portable p in
+           Format.printf "@ %s" shown;
+           record [ "below rebuilt"; what; shown ])
+        stacks;
+      Format.printf "@]@."
+    end
+  in
+  print "Calls below a hit rebuilt by the observer, NOT listed by Eva"
+    "not listed" (only rebuilt listed);
+  print "Calls below a hit listed by Eva, NOT rebuilt by the observer"
+    "not rebuilt" (only listed rebuilt);
+  print "Calls below a hit that cross a recursion, rebuilt by the observer"
+    "crossing"
+    (List.filter (fun p -> Hashtbl.find_opt table p = Some true) rebuilt)
 
 (* The case of an unavailable answer at [point] that includes the callstacks
    [stacks]. The cases are numbered as in the closed list of #87. The points
@@ -1474,7 +1542,18 @@ let observe () =
            if String.starts_with ~prefix:"start of " point.trap
            then Some stacks else None)
     in
-    let below = print_below starts in
+    let below_stacks = print_below starts in
+    let requested =
+      List.filter_map
+        (fun point ->
+           match point.kind, point.kf with
+           | ("start" | "start without body"), Some kf ->
+             Some (Kernel_function.get_name kf)
+           | _ -> None)
+        (points ())
+    in
+    print_rebuilt ~listed:(List.map snd below_stacks) ~requested;
+    let below = List.map fst below_stacks in
     (* The callstacks listed with the recording are compared with those of
        the run without memexec before their union is taken: a callstack that
        one of the two lacks is not hidden by the requests made on the union. *)

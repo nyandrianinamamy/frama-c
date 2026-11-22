@@ -27,6 +27,9 @@ Calls:
 Calls below a hit:
   fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr
   fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr
+Calls below a hit that cross a recursion, rebuilt by the observer:
+  fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr
+  fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr
 Hits against the analysed call of their cache entry:
   fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr, hit of cache entry 52, against fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: differs on \copy<m>[2], \copy<x>[2], \copy<x>[3], unavailable at 6 points, at 19 points.
   fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr, hit of cache entry 53, against fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: differs on \copy<m>[2], \copy<x>[2], \copy<x>[3], unavailable at 6 points, at 19 points.

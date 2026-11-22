@@ -38,6 +38,8 @@ Calls below a hit:
   g :: spec_renaming.c:32 <- f :: spec_renaming.c:48 <- main
   h :: spec_renaming.c:41 <- k :: spec_renaming.c:39 <- h :: spec_renaming.c:50 <- main
   k :: spec_renaming.c:39 <- h :: spec_renaming.c:50 <- main
+Calls below a hit that cross a recursion, rebuilt by the observer:
+  f :: spec_renaming.c:34 <- g :: spec_renaming.c:32 <- f :: spec_renaming.c:48 <- main
 f, start:
   joined: unavailable
   f :: spec_renaming.c:34 <- g :: spec_renaming.c:32 <- f :: spec_renaming.c:46 <- main: 
