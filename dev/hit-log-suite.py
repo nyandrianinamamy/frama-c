@@ -41,7 +41,10 @@
 #
 # The exit status of each observer is checked against the one expected from
 # the exit statuses of the three commands of the run, whatever the observer
-# writes: see expected_exits.
+# writes: see expected_exits. The records that an observer writes are checked
+# before they are counted: see damage. A stage whose records are damaged or
+# incomplete is a failure, named in the summary, and none of its records is
+# counted.
 #
 # Usage: dev/hit-log-suite.py [-j JOBS] [-o OUTDIR] [-w WORKDIR] [-k PATTERN]
 #                             [--report]
@@ -963,9 +966,291 @@ def stages_of(result):
     ]
 
 
+# The version of the records that the observer writes, in its record
+# "format". A summary without this record is of an earlier version of the
+# observer.
+FORMAT = "2"
+
+INT = "a number"
+DECIMAL = "a decimal number"
+TEXT = "a text"
+THREE_RUNS = {"reference", "recording", "memexec"}
+TWO_RUNS = {"recording", "memexec"}
+
+# The fields of each kind of record, after the kind: a number, a decimal
+# number, a text, or one of the values of a set.
+SHAPES = {
+    "format": [TEXT],
+    "control": [TEXT, TEXT],
+    "phase": [{"reference", "memexec", "recording", "requests", "done"}],
+    "stopped": [],
+    "no result": [],
+    "error": [TEXT],
+    "unresolved": [TEXT, TEXT, TEXT],
+    "summarised": [TEXT, TEXT, TEXT],
+    "below rebuilt": [{"not listed", "not rebuilt", "crossing"}, TEXT],
+    "answer": [
+        TEXT,
+        TEXT,
+        TEXT,
+        {"joined", "filtered", "callstack"},
+        set(VERDICTS),
+        set(VERDICTS) | {"not compared"},
+        TEXT,
+        TEXT,
+    ],
+    "unreachable statements": [THREE_RUNS, INT],
+    "unreachable": [TWO_RUNS, {"only in this run", "only in the reference"}, TEXT, TEXT],
+    "initial": [set(VERDICTS)],
+    "calls": [INT] * 5,
+    "requests": [TEXT, TEXT, INT],
+    "verdicts": [TWO_RUNS] + [INT] * len(VERDICTS),
+    "not compared": [{"memexec"}, INT],
+    "callstacks": [INT, INT],
+    "callstacks filtered": [INT, INT],
+    "trap": [INT, INT, {"matched", "unmatched"}, INT],
+    "passes": [TWO_RUNS, INT, INT, INT],
+    "pass": [TEXT, INT],
+    "below requests": [INT],
+    "properties": [INT],
+    "status": [
+        TWO_RUNS,
+        TEXT,
+        TEXT,
+        TEXT,
+        {"MORE OPTIMISTIC", "less optimistic", "different"},
+        TEXT,
+    ],
+    "alarms": [THREE_RUNS, INT],
+    "alarm": [THREE_RUNS, {"missing", "added"}, TEXT],
+    "statistics": [THREE_RUNS, DECIMAL, DECIMAL, INT],
+    "messages": [
+        TWO_RUNS,
+        {"equal", "equal up to the names of the created bases", "unresolved", "differ"},
+    ],
+}
+
+# The shapes that differ in the records of an earlier version of the
+# observer: it did not count the unresolved answers at first, did not give
+# the reason of an unresolved base, and compared the messages up to the
+# suffixes of the names at first.
+EARLIER_SHAPES = {
+    "verdicts": [[TWO_RUNS] + [INT] * n for n in (len(VERDICTS) - 1, len(VERDICTS))],
+    "unresolved": [[TEXT, TEXT]],
+    "messages": [
+        [TWO_RUNS, SHAPES["messages"][1] | {"equal up to the suffixes of the names"}],
+    ],
+}
+
+# The records that a complete summary has once: the kind, and the first
+# field for a record written for each run. Those of the second list are not
+# in the summaries of an earlier version of the observer.
+REQUIRED = (
+    [
+        ("calls", None),
+        ("verdicts", "recording"),
+        ("verdicts", "memexec"),
+        ("callstacks", None),
+        ("callstacks filtered", None),
+        ("trap", None),
+        ("passes", "memexec"),
+        ("passes", "recording"),
+        ("below requests", None),
+        ("properties", None),
+        ("initial", None),
+        ("messages", "recording"),
+        ("messages", "memexec"),
+    ]
+    + [("alarms", run) for run in sorted(THREE_RUNS)]
+    + [("statistics", run) for run in sorted(THREE_RUNS)]
+)
+REQUIRED_SINCE_FORMAT = [("format", None), ("not compared", "memexec")] + [
+    ("unreachable statements", run) for run in sorted(THREE_RUNS)
+]
+
+PHASES = ["reference", "memexec", "recording", "requests", "done"]
+
+
+def fits(field, shape):
+    if shape == INT:
+        return re.fullmatch(r"\d+", field) is not None
+    if shape == DECIMAL:
+        # The coverage of an analysis that reaches no statement is printed
+        # as -nan.
+        return re.fullmatch(r"\d+\.\d+|-?nan", field) is not None
+    if shape == TEXT:
+        return True
+    return field in shape
+
+
+def describe_record(rec):
+    text = " ".join(rec)
+    return "`%s`" % (text if len(text) <= 60 else text[:60] + "...")
+
+
+def has_format(o):
+    """Whether the summary of an observation has the record of its format:
+    one without it is of an earlier version of the observer."""
+    return bool(records(o, "format"))
+
+
+def damage(o):
+    """What is damaged or missing in the records of an observation that the
+    observer ended (phase "done") with a result: the first defect found, or
+    None. The records are checked before any of them is counted:
+    - each record is of a known kind, with the number of fields of its kind,
+      numbers where its kind has numbers, and known values where it has a
+      closed set of values;
+    - the records that a complete summary has once are there once, among
+      them the record of the trap and those of the passes;
+    - the phases are those of a complete run, in order;
+    - the counts agree with each other: the requests per kind with the
+      requests of the trap, the requests per pass with those of the passes,
+      the verdicts with the requests that have a verdict, and the answers
+      listed with the verdicts that are not "equal".
+    A summary of an earlier version of the observer is checked with the
+    shapes and the records of that version."""
+    summary = o.get("summary")
+    if not isinstance(summary, list) or not all(
+        isinstance(rec, list) and rec and all(isinstance(f, str) for f in rec) for rec in summary
+    ):
+        return "the summary is not a list of records"
+    current = has_format(o)
+    for rec in summary:
+        kind, fields = rec[0], rec[1:]
+        if kind not in SHAPES:
+            return "unknown record %s" % describe_record(rec)
+        shapes = [SHAPES[kind]]
+        if not current:
+            shapes = EARLIER_SHAPES.get(kind, shapes)
+        if not any(len(fields) == len(shape) for shape in shapes):
+            return "the record %s has %d fields, not %s" % (
+                describe_record(rec),
+                len(fields),
+                " or ".join(str(len(shape)) for shape in shapes),
+            )
+        shape = next(shape for shape in shapes if len(fields) == len(shape))
+        for position, (field, expected) in enumerate(zip(fields, shape), 1):
+            if not fits(field, expected):
+                return "the field %d of the record %s is not %s" % (
+                    position,
+                    describe_record(rec),
+                    (
+                        expected
+                        if isinstance(expected, str)
+                        else "one of " + ", ".join(sorted(expected))
+                    ),
+                )
+    if current and records(o, "format") != [[FORMAT]]:
+        return "the records are of the format %s, not %s" % (
+            " ".join(sum(records(o, "format"), [])),
+            FORMAT,
+        )
+    if records(o, "control"):
+        return "the run is under a control of the observer: %s" % " ".join(records(o, "control")[0])
+    for kind, key in REQUIRED + (REQUIRED_SINCE_FORMAT if current else []):
+        found = [rec for rec in records(o, kind) if key is None or rec[0] == key]
+        if len(found) != 1:
+            return "%s `%s`" % (
+                "no record" if not found else "%d records" % len(found),
+                kind + (" " + key if key else ""),
+            )
+    phases = [rec[0] for rec in records(o, "phase")]
+    if phases != PHASES:
+        return "the phases are %s, not %s" % (", ".join(phases), ", ".join(PHASES))
+
+    def one(kind, key=None):
+        found = [rec for rec in records(o, kind) if key is None or rec[0] == key][0]
+        return [int(f) for f in found if re.fullmatch(r"\d+", f)]
+
+    requests = [(what, int(n)) for _, what, n in records(o, "requests")]
+    made = sum(n for _, n in requests)
+    with_verdict = sum(n for what, n in requests if what in ("joined", "filtered", "callstack"))
+    trap = one("trap")
+    if made != trap[0]:
+        return "%d requests per kind, and %d requests made in the record of the trap" % (
+            made,
+            trap[0],
+        )
+    per_pass = sum(int(n) for _, n in records(o, "pass"))
+    if per_pass != one("passes", "recording")[0]:
+        return "%d requests per pass, and %d requests in the record of the passes" % (
+            per_pass,
+            one("passes", "recording")[0],
+        )
+    not_compared = one("not compared", "memexec")[0] if current else 0
+    answers = [answer(a) for a in records(o, "answer")]
+    for run, missing in [("recording", 0), ("memexec", not_compared)]:
+        verdicts = one("verdicts", run)
+        if sum(verdicts) + missing != with_verdict:
+            return "%d verdicts of the run %s%s, and %d requests with a verdict" % (
+                sum(verdicts),
+                run,
+                ", %d answers not compared" % missing if missing else "",
+                with_verdict,
+            )
+        listed = len([a for a in answers if a[run] not in ("equal", "not compared")])
+        if listed != sum(verdicts) - verdicts[0]:
+            return "%d answers listed as not equal for the run %s, and %d in its verdicts" % (
+                listed,
+                run,
+                sum(verdicts) - verdicts[0],
+            )
+    return None
+
+
+def result_damage(result):
+    """What is damaged in the result of a run, read from its file, before
+    its observations are read: None if it has the fields that the summary
+    uses, of the types it expects."""
+
+    def is_status(execution):
+        return isinstance(execution, dict) and (
+            isinstance(execution.get("status"), int) or execution.get("status") == "timeout"
+        )
+
+    if not isinstance(result, dict) or not isinstance(result.get("name"), str):
+        return "the result has no name"
+    if "not_run" in result:
+        return None if isinstance(result["not_run"], str) else "the reason not run is not a text"
+    for variant in ["hitlog", "reference", "memexec"]:
+        if not is_status(result.get(variant)):
+            return "no exit status of the command %s" % variant
+    found = result.get("observers")
+    if found is None and "observer" in result:
+        # A result of an earlier version of this script.
+        found = [dict(result["observer"], stage=1)] if is_status(result["observer"]) else None
+    if not isinstance(found, list):
+        return "no list of observers"
+    for o in found:
+        if not is_status(o) or not isinstance(o.get("stage"), int):
+            return "an observer without stage or exit status"
+    stages = result.get("stages", [])
+    if not isinstance(stages, list) or not all(
+        isinstance(s, dict) and isinstance(s.get("stage"), int) and "observed" in s for s in stages
+    ):
+        return "the stages are not a list of stages"
+    if not isinstance(result.get("log_diffs", {}), dict):
+        return "the differences of the outputs are not recorded by pair"
+    return None
+
+
+def read_result(path):
+    """The result of a run in the file [path], and what is damaged in it:
+    one of the two is None."""
+    try:
+        with open(path) as f:
+            result = json.load(f)
+    except (OSError, ValueError) as error:
+        return None, "the file is not read: %s" % type(error).__name__
+    damaged = result_damage(result)
+    return (None, damaged) if damaged else (result, None)
+
+
 def observer_state(o):
-    """The outcome of an observation: done, or the failure that stopped it
-    or left it without a complete record of the trap."""
+    """The outcome of an observation: done, or the failure that stopped it,
+    that its exit status shows, or that left its records damaged or
+    incomplete."""
     status = o["status"]
     phase = phase_of(o)
     # A record of an earlier version of this script does not tell whether
@@ -986,9 +1271,10 @@ def observer_state(o):
         return "failure: stopped (exit %s) in phase %s" % (status, phase)
     if records(o, "no result"):
         return "failure: the analysis with -eva-hit-log has no result"
+    damaged = damage(o)
+    if damaged:
+        return "failure: damaged records: " + damaged
     t = first(o, "trap")
-    if t is None:
-        return "failure: no record of the trap"
     if t[2] != "matched" or t[0] != t[1]:
         return "failure: incomplete record of the trap"
     return "done" if status == 0 else "done, exit %s" % status
@@ -1028,19 +1314,27 @@ def describe_provenance(p):
 
 
 def total(observed, kind, run_kind, width):
+    """The sums of the [width] numbers of the records [kind] of the run
+    [run_kind], over observations whose records are checked. The verdicts of
+    an earlier version of the observer have no count of unresolved answers,
+    which it did not tell apart: that count is not known, and adds
+    nothing."""
     totals = [0] * width
     for o in observed:
         for rec in records(o, kind):
             if rec[0] == run_kind:
-                # A record of an earlier version of the observer may have
-                # fewer fields: the missing ones count as zero.
-                fields = (rec[1:] + ["0"] * width)[:width]
-                totals = [a + int(b) for a, b in zip(totals, fields)]
+                fields = rec[1:]
+                if len(fields) < width and kind == "verdicts" and not has_format(o):
+                    fields = fields + ["0"] * (width - len(fields))
+                totals = [a + int(b) for a, b in zip(totals, fields, strict=True)]
     return totals
 
 
-def write_summary(outdir, runs, results, elapsed):
+def write_summary(outdir, runs, results, elapsed, unread=()):
+    """Writes the summary of the results [results] of the runs [runs].
+    [unread] are the runs whose result file is damaged, with the damage."""
     by_name = {r["name"]: r for r in results}
+    unread = dict(unread)
     lines = []
     emit = lines.append
     emit("# Eva tests under -eva-hit-log\n")
@@ -1069,6 +1363,8 @@ def write_summary(outdir, runs, results, elapsed):
     for run in runs:
         result = by_name.get(run["name"], {})
         reason = run.get("not_run") or result.get("not_run")
+        if reason is None and run["name"] in unread:
+            reason = "FAILURE: the result of the run is damaged"
         if reason is None and not result:
             reason = "other: not executed by this invocation"
         inventory.append((run["name"], reason))
@@ -1164,6 +1460,12 @@ def write_summary(outdir, runs, results, elapsed):
         "below, which are those of the %d other observed stages.\n" % (len(failures), len(observed))
     )
     emit(table(["Stage", "Outcome"], [[o["name"], observer_state(o)] for o in failures]))
+    emit("")
+    emit(
+        "**Runs whose result is damaged: %d.** The file of the result of the run "
+        "cannot be read: nothing of it is counted.\n" % len(unread)
+    )
+    emit(table(["Run", "Damage"], sorted(unread.items())))
     emit("")
     uncounted = [(r["name"], r["stages failure"]) for r in done if "stages failure" in r]
     emit(
@@ -1459,6 +1761,7 @@ def main():
         classify(run, saves)
     selected = [run for run in runs if "args" in run and selects(options.patterns, run)]
     results = []
+    unread = []
     if not options.report:
         observer = os.path.abspath(OBSERVER)
         print("%d runs, %d to execute" % (len(runs), len(selected)), flush=True)
@@ -1502,10 +1805,13 @@ def main():
         for run in selected:
             path = os.path.join(outdir, "runs", run["name"] + ".json")
             if os.path.isfile(path):
-                with open(path) as f:
-                    results.append(json.load(f))
+                result, damaged = read_result(path)
+                if damaged:
+                    unread.append((run["name"], damaged))
+                else:
+                    results.append(result)
     runs = [r for r in runs if selects(options.patterns, r)]
-    write_summary(outdir, runs, results, elapsed)
+    write_summary(outdir, runs, results, elapsed, unread)
     print("Summary: " + os.path.join(outdir, "summary.md"))
 
 
