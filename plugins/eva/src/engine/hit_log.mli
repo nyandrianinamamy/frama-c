@@ -38,6 +38,12 @@
     the hit, pasted on the body-entry state of the hit. Its preconditions are
     not evaluated: its body-entry state is its start state. These states are
     computed on request, through the entries of the callers, and memoised.
+    Not rebuilt: with unrolled recursive calls, a recursive call renames the
+    variables of the outer calls of its function whose address is taken, and
+    the pointers to them. Below a hit, this renaming is not applied to the
+    blocks that the stored start state does not cover, and the copies are
+    named after the depth of the call in the entry, which can differ from its
+    depth below the hit.
 
     The rule: the state at a point of a call is the Inner part of its entry
     at this point on the blocks it covers, and the body-entry state of the
