@@ -782,10 +782,14 @@ let cvalue_results_saved () =
   Parameters.(ResultsAll.get ()
               && not (NoResultsDomain.mem Cvalue_domain.State.name))
 
+(* The initial state is unavailable when it was not recorded: the
+   initialization of the globals failed and the analysis did not start. The
+   legacy store then saves no state either, and its answer is top. *)
 let is_available store control_point =
   cvalue_results_saved () && not store.unrecorded_hit &&
   match control_point with
-  | Domain_store.Initial | Start _ -> true
+  | Domain_store.Initial -> Option.is_some store.initial
+  | Start _ -> true
   | Before stmt | After stmt ->
     let kf = Kernel_function.find_englobing_kf stmt in
     not (Kf_table.mem store.body_unavailable kf)
@@ -875,7 +879,7 @@ let get_state ?callstack control_point =
       match control_point with
       | Initial ->
         begin match store.initial, callstack with
-          | None, _ -> `Bottom
+          | None, _ -> `Top
           | Some (_, state), None -> to_result state
           | Some (initial, state), Some callstack ->
             if Callstack.equal initial callstack then to_result state

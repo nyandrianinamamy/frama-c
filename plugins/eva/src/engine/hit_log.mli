@@ -50,7 +50,9 @@
     its body: every state request on them answers [`Top], as for a function
     whose results are not saved. Every request is unavailable when the states
     of the cvalue domain are not saved, as with options [-eva-no-results] and
-    [-eva-no-results-domain cvalue].
+    [-eva-no-results-domain cvalue]. The initial state is unavailable when
+    the initialization of the globals fails and the analysis does not start,
+    as without recording.
 
     Only the cvalue domain is recorded. The records are saved with the
     project, and kept by its copies. *)
