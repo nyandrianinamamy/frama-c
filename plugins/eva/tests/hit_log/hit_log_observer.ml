@@ -60,7 +60,10 @@
    functions without a body that are called in the reference, and it gives
    for each unavailable answer the case of the closed list of #87 that the
    run shows, if any. It stops if the analysis of the current project is
-   computed before it starts. What it prints is otherwise unchanged. *)
+   computed before it starts. What it prints is otherwise unchanged. The
+   environment variables HIT_LOG_OBSERVER_STAGE and HIT_LOG_OBSERVER_STAGES
+   select the stage of the command line that it observes, and list the
+   stages that start an analysis, for that script too. *)
 
 open Eva
 
@@ -83,6 +86,57 @@ let record fields =
        output_char channel '\n';
        flush channel)
     summary
+
+(* ----- Stages of the command line ---------------------------------------- *)
+
+(* The observer acts at each stage of the command line, as in the ptests
+   rules, or at the stage numbered by the environment variable
+   HIT_LOG_OBSERVER_STAGE only, the first being 1: dev/hit-log-suite.py
+   observes in this way an analysis that a later stage starts. *)
+let selected_stage =
+  match Sys.getenv_opt "HIT_LOG_OBSERVER_STAGE" with
+  | None | Some "" -> None
+  | Some n -> Some (int_of_string n)
+
+(* When the environment variable HIT_LOG_OBSERVER_STAGES names a file, the
+   observer only writes there one record per stage: its number, the project
+   it runs on, and the projects in which an analysis of Eva started during
+   the stage. dev/hit-log-suite.py finds in this way the stages of a test
+   that start an analysis. A stage that the command does not finish is
+   written at exit, marked as such. *)
+let stages =
+  match Sys.getenv_opt "HIT_LOG_OBSERVER_STAGES" with
+  | None | Some "" -> None
+  | Some file -> Some (open_out file)
+
+let stage = ref 0
+let started_in_stage = ref []
+
+let write_stage ?(unfinished=false) channel =
+  output_string channel
+    (String.concat "\t"
+       ([ "stage"; string_of_int !stage;
+          Project.get_name (Project.current ());
+          String.concat "," (List.rev !started_in_stage) ]
+        @ if unfinished then [ "unfinished" ] else []));
+  output_char channel '\n';
+  flush channel;
+  started_in_stage := []
+
+let () =
+  Option.iter
+    (fun channel ->
+       Analysis.register_computation_hook ~on:Computing
+         (fun _ ->
+            started_in_stage :=
+              Project.get_name (Project.current ()) :: !started_in_stage);
+       at_exit
+         (fun () ->
+            if !started_in_stage <> [] then begin
+              incr stage;
+              write_stage ~unfinished:true channel
+            end))
+    stages
 
 (* ----- Calls of the analysis --------------------------------------------- *)
 
@@ -2009,12 +2063,20 @@ let observe () =
   end;
   record [ "phase"; "done" ]
 
-let main () =
+let observe_stage () =
   if suite && Analysis.is_computed () then begin
     record [ "error"; "the analysis is computed before the observer starts" ];
     Format.printf "The analysis is computed before the observer starts: no \
                    observation.@."
   end
   else observe ()
+
+let main () =
+  incr stage;
+  match stages with
+  | Some channel -> write_stage channel
+  | None ->
+    if Option.fold ~none:true ~some:(Int.equal !stage) selected_stage
+    then observe_stage ()
 
 let () = Boot.Main.extend main
