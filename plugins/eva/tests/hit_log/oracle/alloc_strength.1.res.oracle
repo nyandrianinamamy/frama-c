@@ -1,0 +1,102 @@
+[kernel] Parsing alloc_strength.c (with preprocessing)
+Control: the run without memexec allocates with -eva-alloc-builtin fresh.
+[eva:alarm] alloc_strength.c:34: Warning: 
+  accessing uninitialized left-value. assert \initialized(p);
+[eva:alarm] alloc_strength.c:34: Warning: 
+  accessing uninitialized left-value. assert \initialized(p);
+Calls:
+  malloc :: alloc_strength.c:30 <- main: builtin
+  main: analysed, cache entry 3
+Created bases that summarise several blocks, matched to one block of the run without memexec:
+  __malloc_w_main_l30_0, for __malloc_main_l30
+Created bases of the run with memexec, without recording, that summarise several blocks, matched to one block of the run without memexec:
+  __malloc_w_main_l30, for __malloc_main_l30
+main, start:
+  joined: p ∈ {0}
+          r ∈ {0}
+  main: p ∈ {0}
+        r ∈ {0}
+main, before alloc_strength.c:32 `*p = 17;` (W):
+  joined: p ∈ {{ &__malloc_w_main_l30_0[0] }}
+          r ∈ {0}
+          __malloc_w_main_l30_0[0] ∈ UNINITIALIZED
+  main: p ∈ {{ &__malloc_w_main_l30_0[0] }}
+        r ∈ {0}
+        __malloc_w_main_l30_0[0] ∈ UNINITIALIZED
+  reference, joined: p ∈ {{ &__malloc_w_main_l30_0[0] }}
+                     r ∈ {0}
+                     __malloc_w_main_l30_0[0] ∈ UNINITIALIZED
+  main: p ∈ {{ &__malloc_w_main_l30_0[0] }}
+        r ∈ {0}
+        __malloc_w_main_l30_0[0] ∈ UNINITIALIZED
+main, before alloc_strength.c:34 `r = *p;` (R):
+  joined: p ∈ {{ &__malloc_w_main_l30_0[0] }}
+          r ∈ {0}
+          __malloc_w_main_l30_0[0] ∈ {17} or UNINITIALIZED
+  main: p ∈ {{ &__malloc_w_main_l30_0[0] }}
+        r ∈ {0}
+        __malloc_w_main_l30_0[0] ∈ {17} or UNINITIALIZED
+  reference, joined: p ∈ {{ &__malloc_w_main_l30_0[0] }}
+                     r ∈ {0}
+                     __malloc_w_main_l30_0[0] ∈ {17}
+  main: p ∈ {{ &__malloc_w_main_l30_0[0] }}
+        r ∈ {0}
+        __malloc_w_main_l30_0[0] ∈ {17}
+main, after alloc_strength.c:35 `return r;`:
+  joined: p ∈ {{ &__malloc_w_main_l30_0[0] }}
+          r ∈ {17}
+          __malloc_w_main_l30_0[0] ∈ {17} or UNINITIALIZED
+  main: p ∈ {{ &__malloc_w_main_l30_0[0] }}
+        r ∈ {17}
+        __malloc_w_main_l30_0[0] ∈ {17} or UNINITIALIZED
+  reference, joined: p ∈ {{ &__malloc_w_main_l30_0[0] }}
+                     r ∈ {17}
+                     __malloc_w_main_l30_0[0] ∈ {17}
+  main: p ∈ {{ &__malloc_w_main_l30_0[0] }}
+        r ∈ {17}
+        __malloc_w_main_l30_0[0] ∈ {17}
+Initial state: equal.
+Differences with the run without memexec:
+  final state, joined: covers, as with memexec
+  final state, filtered: covers, as with memexec
+  final state, main: covers, as with memexec
+  main, after alloc_strength.c:30 `p = (int *)malloc(sizeof(*p));`, joined: covers, as with memexec
+  main, after alloc_strength.c:30 `p = (int *)malloc(sizeof(*p));`, filtered: covers, as with memexec
+  main, after alloc_strength.c:30 `p = (int *)malloc(sizeof(*p));`, main: covers, as with memexec
+  main, before alloc_strength.c:32 `*p = 17;` (W), joined: covers, as with memexec
+  main, before alloc_strength.c:32 `*p = 17;` (W), filtered: covers, as with memexec
+  main, before alloc_strength.c:32 `*p = 17;` (W), main: covers, as with memexec
+  main, after alloc_strength.c:32 `*p = 17;` (W), joined: covers, as with memexec
+  main, after alloc_strength.c:32 `*p = 17;` (W), filtered: covers, as with memexec
+  main, after alloc_strength.c:32 `*p = 17;` (W), main: covers, as with memexec
+  main, before alloc_strength.c:34 `r = *p;` (R), joined: covers, as with memexec
+  main, before alloc_strength.c:34 `r = *p;` (R), filtered: covers, as with memexec
+  main, before alloc_strength.c:34 `r = *p;` (R), main: covers, as with memexec
+  main, after alloc_strength.c:34 `r = *p;` (R), joined: covers, as with memexec
+  main, after alloc_strength.c:34 `r = *p;` (R), filtered: covers, as with memexec
+  main, after alloc_strength.c:34 `r = *p;` (R), main: covers, as with memexec
+  main, before alloc_strength.c:35 `return r;`, joined: covers, as with memexec
+  main, before alloc_strength.c:35 `return r;`, filtered: covers, as with memexec
+  main, before alloc_strength.c:35 `return r;`, main: covers, as with memexec
+  main, after alloc_strength.c:35 `return r;`, joined: covers, as with memexec
+  main, after alloc_strength.c:35 `return r;`, filtered: covers, as with memexec
+  main, after alloc_strength.c:35 `return r;`, main: covers, as with memexec
+Answers: 9 equal, 24 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 11 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 11 points.
+Filtered requests that reject one callstack: 0.
+Requests made: 55; reported by the trap: 55, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 17 requests, 28 reads of the legacy store in them, 21 reads outside any request.
+  with -eva-hit-log: 18 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 6 requests
+    statuses of the properties: 7 requests
+    statistics: 4 requests
+    summary: 1 request
+Statuses of the properties that differ from the run without memexec:
+  alloc_strength.c:34: Assertion 'Eva,initialization' ("alloc_strength.c", line 34): assert Eva: initialization: \initialized(p);: Unknown against absent: less optimistic, as with memexec
+Statuses with memexec, without recording, that differ from the run without memexec:
+  alloc_strength.c:34: Assertion 'Eva,initialization' ("alloc_strength.c", line 34): assert Eva: initialization: \initialized(p);: Unknown against absent: less optimistic
+Alarms that differ from the run without memexec:
+  added: alloc_strength.c:34: Uninitialized(*p): Unknown
+Summary: statement coverage 1.0000, function coverage 1.0000, 1 alarm, against statement coverage 1.0000, function coverage 1.0000, 0 alarms without memexec, as with memexec.
