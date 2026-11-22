@@ -31,13 +31,26 @@
 # A command that loads a project saved by an EXECNOW command without analysis
 # runs that command first, in each directory. The other runs are listed as
 # not run, and the stages that are not observed as such, with the reason.
-# Each run records the revision of the checkout and whether its tree has
-# changes, taken when the script starts.
 #
-# Usage: dev/hit-log-suite.py [-j JOBS] [-o OUTDIR] [-k PATTERN] [--report]
+# Each invocation of the script writes the outputs of its commands in a new
+# directory, named after its date, and each command in a new directory of
+# it: a command reads nothing that an earlier invocation wrote, and a
+# command that fails leaves no summary of an earlier one in its place. Each
+# run records this invocation, the revision of the checkout and whether its
+# tree has changes, taken when the script starts.
+#
+# The exit status of each observer is checked against the one expected from
+# the exit statuses of the three commands of the run, whatever the observer
+# writes: see expected_exits.
+#
+# Usage: dev/hit-log-suite.py [-j JOBS] [-o OUTDIR] [-w WORKDIR] [-k PATTERN]
+#                             [--report]
 #   -j JOBS     number of runs in parallel (default 8)
-#   -o OUTDIR   directory of the work files and of the summary; it must not be
+#   -o OUTDIR   directory of the results and of the summary; it must not be
 #               in the checkout (default: a new temporary directory)
+#   -w WORKDIR  directory in which the invocation creates the directory of
+#               the outputs of its commands (default: OUTDIR/work); it must
+#               not be in the checkout
 #   -k PATTERN  only the runs whose name (suite/test.number) contains PATTERN;
 #               the option can be repeated
 #   --report    only write the summary again, from the results in OUTDIR
@@ -45,7 +58,7 @@
 # Run it from the root of the checkout, with the opam switch active. It builds
 # Frama-C, regenerates the ptests rules of Eva and builds the observer first.
 # The summary is OUTDIR/summary.md; the results of each run are in
-# OUTDIR/runs, and its outputs in OUTDIR/work.
+# OUTDIR/runs, and its outputs in the directory of the invocation.
 
 import argparse
 import collections
@@ -561,9 +574,10 @@ def included_files(directory, name, seen):
 
 
 def prepare_directory(run, directory):
-    """Links into [directory] the files of the suite that the run uses."""
+    """Creates [directory], which must not exist, and links into it the files
+    of the suite that the run uses."""
     suite_dir = os.path.abspath(os.path.join(TESTS, run["suite"]))
-    os.makedirs(directory, exist_ok=True)
+    os.makedirs(directory)
     names = set()
     for entry in os.listdir(suite_dir):
         path = os.path.join(suite_dir, entry)
@@ -699,8 +713,8 @@ def run_prerequisite(run, directory, env):
             )
 
 
-def run_one(run, outdir, env, observer, provenance):
-    work = os.path.join(outdir, "work", run["name"])
+def run_one(run, work_root, env, observer, provenance):
+    work = os.path.join(work_root, run["name"])
     result = {"name": run["name"], "provenance": provenance}
     variants = {
         "hitlog": add_to_each_stage(run["args"], ["-eva-hit-log"]),
@@ -767,6 +781,18 @@ def run_one(run, outdir, env, observer, provenance):
         stages_env["HIT_LOG_OBSERVER_STAGES"] = os.path.join(directory, "stages")
         result["stages run"] = execute(run, argv, directory, stages_env, TIMEOUT)
         status = result["stages run"]["status"]
+        # The observer creates the file when it is loaded. It only lists
+        # the stages: the command exits as without it.
+        result["stages run"]["loaded"] = os.path.isfile(os.path.join(directory, "stages"))
+        if not result["stages run"]["loaded"]:
+            result["stages failure"] = (
+                "the observer that lists the stages is not loaded (exit %s)" % status
+            )
+        elif status != result["memexec"]["status"]:
+            result["stages failure"] = (
+                "the observer that lists the stages exits with %s, where the "
+                "command exits with %s" % (status, result["memexec"]["status"])
+            )
         counted = parse_stages(os.path.join(directory, "stages"))
     plan = stage_plan(run, counted, status, observer)
     result["stages"] = [{k: v for k, v in entry.items() if k != "args"} for entry in plan]
@@ -785,16 +811,25 @@ def run_one(run, outdir, env, observer, provenance):
         observer_env["HIT_LOG_OBSERVER_STAGE"] = str(entry["stage"])
         observed = execute(run, argv, directory, observer_env, TIMEOUT)
         observed["stage"] = entry["stage"]
+        # The observer creates the summary when it is loaded: the directory
+        # is new, so a summary is that of this command.
+        observed["loaded"] = os.path.isfile(os.path.join(directory, "summary"))
         observed["summary"] = parse_summary(os.path.join(directory, "summary"))
         result["observers"].append(observed)
     statuses = {result[v]["status"] for v in ["hitlog", "reference", "memexec"]}
     status = statuses.pop() if len(statuses) == 1 else 0
-    if status != 0 and all(
-        phase_of(o) == "start" and o["status"] == status for o in result["observers"]
+    if (
+        status != 0
+        and "stages failure" not in result
+        and all(
+            o["loaded"] and phase_of(o) == "start" and o["status"] == status
+            for o in result["observers"]
+        )
     ):
         # A command that stops before an analysis starts, as one whose file
-        # does not parse, in every mode. For a command of several stages, the
-        # observer has not found an analysis that starts.
+        # does not parse, in every mode: the observer is loaded, and stops
+        # as the command does, before its stage. For a command of several
+        # stages, the observer has not found an analysis that starts.
         if len(plan) == 1 or not result["observers"]:
             result["not_run"] = "other: every command stops before the analysis (exit %s)" % status
     return result
@@ -814,6 +849,12 @@ def build(jobs):
     env = dict(item.split("=", 1) for item in env.decode().split("\0") if "=" in item)
     env["FRAMA_C"] = shutil.which("frama-c", path=env["PATH"])
     return env
+
+
+def without_observer_variables(env):
+    """[env] without the variables that the observer reads, as its controls:
+    the script sets those of each command."""
+    return {k: v for k, v in env.items() if not k.startswith("HIT_LOG_OBSERVER_")}
 
 
 # ----- Summary ------------------------------------------------------------
@@ -870,9 +911,40 @@ def observations(result):
             o,
             name=result["name"] + (" stage %d" % o["stage"] if several else ""),
             first=o["stage"] == first_stage,
+            expected=expected_exits(result, o),
         )
         for o in found
     ]
+
+
+def expected_exits(result, o):
+    """The exit statuses expected from the observer of a stage, from the exit
+    statuses of the three commands of its run and from the stages that the
+    command reaches, and why.
+
+    The command of the observer runs the stages of the test command up to
+    its stage, and the three analyses in one process:
+    - if the command reaches a later stage, it does not stop in this one:
+      the observer exits with 0;
+    - otherwise the observer exits as the commands do, with one of their
+      statuses: with 0 if they do, and with 1 for an error of the analysed
+      program, which each analysis reports;
+    - but an analysis that stops (record "stopped") ends a command with a
+      status that is not 0, while the observer, which catches the stop to
+      go on with the two other analyses, then exits with 0."""
+    statuses = sorted({result[v]["status"] for v in ["hitlog", "reference", "memexec"]}, key=str)
+    reached = [
+        s["stage"]
+        for s in stages_of(result)
+        if not (s.get("reason") or "").startswith("the command stops before this stage")
+    ]
+    if o["stage"] < max(reached, default=o["stage"]):
+        return [0], "the command reaches a later stage"
+    if statuses != [0] and records(o, "stopped"):
+        return [0], "an analysis stops, which ends the commands with exit %s" % ", ".join(
+            str(s) for s in statuses
+        )
+    return statuses, "the commands exit with %s" % ", ".join(str(s) for s in statuses)
 
 
 def stages_of(result):
@@ -896,6 +968,18 @@ def observer_state(o):
     or left it without a complete record of the trap."""
     status = o["status"]
     phase = phase_of(o)
+    # A record of an earlier version of this script does not tell whether
+    # the observer was loaded.
+    if not o.get("loaded", True):
+        return "failure: the observer is not loaded (exit %s): it wrote no summary" % status
+    expected, why = o["expected"]
+    if status not in expected:
+        return "failure: exit %s in phase %s, where %s is expected: %s" % (
+            status,
+            phase,
+            " or ".join(str(s) for s in expected),
+            why,
+        )
     if records(o, "error"):
         return "failure: " + records(o, "error")[0][0]
     if phase != "done":
@@ -970,6 +1054,14 @@ def write_summary(outdir, runs, results, elapsed):
     now = describe_provenance(provenance())
     if revisions and now not in revisions:
         emit("This summary is written at revision %s.\n" % now)
+    invocations = collections.Counter(
+        (r.get("provenance") or {}).get("invocation", "not recorded") for r in results
+    )
+    emit(
+        "Invocations of the script that made the runs, each with its own "
+        "directory of outputs: %s.\n"
+        % (", ".join("`%s` (%d runs)" % i for i in sorted(invocations.items())) or "none")
+    )
     if elapsed is not None:
         emit("Wall-clock time of the run: %.0f s.\n" % elapsed)
     # Inventory.
@@ -1072,6 +1164,14 @@ def write_summary(outdir, runs, results, elapsed):
         "below, which are those of the %d other observed stages.\n" % (len(failures), len(observed))
     )
     emit(table(["Stage", "Outcome"], [[o["name"], observer_state(o)] for o in failures]))
+    emit("")
+    uncounted = [(r["name"], r["stages failure"]) for r in done if "stages failure" in r]
+    emit(
+        "**Runs whose stages are not listed: %d.** The observer that lists the "
+        "stages of a command of several stages failed: none of its stages is "
+        "observed.\n" % len(uncounted)
+    )
+    emit(table(["Run", "Failure"], uncounted))
     emit("")
     stopped = sorted(o["name"] for o in observed if records(o, "stopped"))
     emit(
@@ -1329,6 +1429,7 @@ def main():
     parser = argparse.ArgumentParser(description="Eva tests under -eva-hit-log")
     parser.add_argument("-j", type=int, default=8, dest="jobs")
     parser.add_argument("-o", dest="outdir")
+    parser.add_argument("-w", dest="workdir")
     parser.add_argument("-k", dest="patterns", action="append", default=[])
     parser.add_argument("--report", action="store_true")
     options = parser.parse_args()
@@ -1339,14 +1440,19 @@ def main():
     if outdir.startswith(os.path.abspath(".") + os.sep):
         sys.exit("the output directory must not be in the checkout")
     os.makedirs(os.path.join(outdir, "runs"), exist_ok=True)
-    os.makedirs(os.path.join(outdir, "work"), exist_ok=True)
-    share = os.path.join(outdir, "work", "share")
-    if not os.path.lexists(share):
-        os.symlink(os.path.abspath(SHARE), share)
     start = time.monotonic()
     if not options.report:
-        source = provenance()
-        env = build(options.jobs)
+        # The directory of the outputs of this invocation: a new one, so
+        # that no command finds a file of an earlier invocation.
+        workdir = os.path.abspath(options.workdir or os.path.join(outdir, "work"))
+        if (workdir + os.sep).startswith(os.path.abspath(".") + os.sep):
+            sys.exit("the directory of the outputs must not be in the checkout")
+        os.makedirs(workdir, exist_ok=True)
+        work_root = tempfile.mkdtemp(prefix=time.strftime("%Y%m%d-%H%M%S-"), dir=workdir)
+        os.symlink(os.path.abspath(SHARE), os.path.join(work_root, "share"))
+        source = dict(provenance(), invocation=os.path.basename(work_root))
+        env = without_observer_variables(build(options.jobs))
+        print("Outputs of the commands: " + work_root, flush=True)
     runs = [run for suite in default_suites() for run in runs_of_suite(suite)]
     saves = saving_runs(runs)
     for run in runs:
@@ -1358,10 +1464,13 @@ def main():
         print("%d runs, %d to execute" % (len(runs), len(selected)), flush=True)
         with concurrent.futures.ThreadPoolExecutor(options.jobs) as pool:
             futures = {
-                pool.submit(run_one, run, outdir, env, observer, source): run for run in selected
+                pool.submit(run_one, run, work_root, env, observer, source): run for run in selected
             }
             for n, future in enumerate(concurrent.futures.as_completed(futures), 1):
                 result = future.result()
+                # The summary is written from the results of this
+                # invocation, not from the files of an earlier one.
+                results.append(result)
                 path = os.path.join(outdir, "runs", result["name"] + ".json")
                 os.makedirs(os.path.dirname(path), exist_ok=True)
                 with open(path, "w") as f:
@@ -1373,6 +1482,7 @@ def main():
                         len(selected),
                         result["name"],
                         result.get("not_run")
+                        or result.get("stages failure")
                         or ", ".join(
                             "stage %d %s" % (o["stage"], observer_state(o))
                             for o in observations(result)
@@ -1389,11 +1499,11 @@ def main():
         t = read(os.path.join(outdir, "time"))
         if t:
             elapsed = float(t)
-    for run in selected:
-        path = os.path.join(outdir, "runs", run["name"] + ".json")
-        if os.path.isfile(path):
-            with open(path) as f:
-                results.append(json.load(f))
+        for run in selected:
+            path = os.path.join(outdir, "runs", run["name"] + ".json")
+            if os.path.isfile(path):
+                with open(path) as f:
+                    results.append(json.load(f))
     runs = [r for r in runs if selects(options.patterns, r)]
     write_summary(outdir, runs, results, elapsed)
     print("Summary: " + os.path.join(outdir, "summary.md"))
