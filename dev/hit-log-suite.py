@@ -1231,13 +1231,13 @@ def result_damage(result):
 
     if not isinstance(result, dict) or not isinstance(result.get("name"), str):
         return "the result has no name"
-    if "provenance" in result:
-        p = result["provenance"]
+    if "provenance" in result or "stages" in result:
+        p = result.get("provenance")
         if not isinstance(p, dict) or not isinstance(p.get("revision"), str):
             return "missing or invalid provenance.revision"
         if not texts(p.get("changes")):
             return "missing or invalid provenance.changes"
-        if not isinstance(p.get("invocation"), str):
+        if "invocation" in p and not isinstance(p["invocation"], str):
             return "missing or invalid provenance.invocation"
     if "not_run" in result:
         return None if isinstance(result["not_run"], str) else "the reason not run is not a text"
@@ -1253,6 +1253,13 @@ def result_damage(result):
     for o in found:
         if not is_status(o) or type(o.get("stage")) is not int:
             return "an observer without stage or exit status"
+        # Earlier records predate invocation directories and the format row.
+        if (
+            isinstance(o.get("summary"), list)
+            and ["format", FORMAT] in o["summary"]
+            and "invocation" not in result.get("provenance", {})
+        ):
+            return "missing or invalid provenance.invocation"
         if type(o.get("loaded", True)) is not bool or not isinstance(o.get("failure", ""), str):
             return "invalid observer loaded flag or failure"
     for field in ["stages failure", "observer_not_run"]:
