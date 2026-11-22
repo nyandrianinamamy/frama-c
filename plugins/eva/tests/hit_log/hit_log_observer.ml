@@ -612,13 +612,36 @@ let interrupted name =
        n_started > n_results)
     callstacks
 
+(* Whether the call of the function [name] at the statement [sid] may rename
+   variables if it is a recursive call: the function has a formal or a local
+   whose address is taken, or that appears in an argument of the call. *)
+let renames name sid =
+  let kf = Globals.Functions.find_by_name name in
+  let vars = Kernel_function.get_formals kf @ Kernel_function.get_locals kf in
+  let args =
+    match (fst (Kernel_function.find_from_sid sid)).Cil_types.skind with
+    | Instr (Call (_, _, args, _))
+    | Instr (Local_init (_, ConsInit (_, args, _), _)) -> args
+    | _ -> []
+  in
+  let passed =
+    List.fold_left
+      (fun acc arg ->
+         Cil_datatype.Varinfo.Set.union acc (Cil.extract_varinfos_from_exp arg))
+      Cil_datatype.Varinfo.Set.empty args
+  in
+  List.exists
+    (fun vi -> vi.Cil_types.vaddrof || Cil_datatype.Varinfo.Set.mem vi passed)
+    vars
+
 (* The callstacks of the calls below a hit, each with whether it crosses a
-   recursion: from the hit down, one of its calls is a recursive call, its
-   function being already on the callstack of its caller, whose counterpart
-   was analysed by its body, computed or hit. The counterpart of a call below
-   a hit is the call made at the same statement by the analysed call of the
-   cache entry that its caller uses. These callstacks are rebuilt from the
-   calls of the analysis, from each hit down, as the rule of #87 does. *)
+   recursion: from the hit down, one of its calls is a recursive call that
+   renames variables, its function being already on the callstack of its
+   caller, and its counterpart was analysed by its body, computed or hit.
+   The counterpart of a call below a hit is the call made at the same
+   statement by the analysed call of the cache entry that its caller uses.
+   These callstacks are rebuilt from the calls of the analysis, from each
+   hit down, as the rule of #87 does. *)
 let crossing_callstacks =
   lazy begin
     let table = Hashtbl.create 17 in
@@ -641,7 +664,7 @@ let crossing_callstacks =
       | Some a ->
         let frames = q.entry :: List.map fst q.calls in
         List.iter
-          (fun ((name, _ as call), kind) ->
+          (fun ((name, sid as call), kind) ->
              let p = { q with calls = call :: q.calls } in
              let entry =
                match kind with
@@ -649,7 +672,9 @@ let crossing_callstacks =
                | Other _ -> None
              in
              let crossing =
-               crossing || Option.is_some entry && List.mem name frames
+               crossing
+               || Option.is_some entry && List.mem name frames
+                  && renames name sid
              in
              let previous = Hashtbl.find_opt table p = Some true in
              Hashtbl.replace table p (previous || crossing);
