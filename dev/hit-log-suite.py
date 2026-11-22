@@ -1221,13 +1221,24 @@ def result_damage(result):
     its observations are read: None if it has the fields that the summary
     uses, of the types it expects."""
 
+    def texts(value):
+        return isinstance(value, list) and all(isinstance(item, str) for item in value)
+
     def is_status(execution):
         return isinstance(execution, dict) and (
-            isinstance(execution.get("status"), int) or execution.get("status") == "timeout"
+            type(execution.get("status")) is int or execution.get("status") == "timeout"
         )
 
     if not isinstance(result, dict) or not isinstance(result.get("name"), str):
         return "the result has no name"
+    if "provenance" in result:
+        p = result["provenance"]
+        if not isinstance(p, dict) or not isinstance(p.get("revision"), str):
+            return "missing or invalid provenance.revision"
+        if not texts(p.get("changes")):
+            return "missing or invalid provenance.changes"
+        if not isinstance(p.get("invocation"), str):
+            return "missing or invalid provenance.invocation"
     if "not_run" in result:
         return None if isinstance(result["not_run"], str) else "the reason not run is not a text"
     for variant in ["hitlog", "reference", "memexec"]:
@@ -1240,20 +1251,44 @@ def result_damage(result):
     if not isinstance(found, list):
         return "no list of observers"
     for o in found:
-        if not is_status(o) or not isinstance(o.get("stage"), int):
+        if not is_status(o) or type(o.get("stage")) is not int:
             return "an observer without stage or exit status"
+        if type(o.get("loaded", True)) is not bool or not isinstance(o.get("failure", ""), str):
+            return "invalid observer loaded flag or failure"
+    for field in ["stages failure", "observer_not_run"]:
+        if field in result and not isinstance(result[field], str):
+            return "invalid " + field
+    if type(result.get("memexec_matches_oracle")) is not bool:
+        return "missing or invalid memexec_matches_oracle"
     stages = result.get("stages", [])
     if not isinstance(stages, list) or not all(
-        isinstance(s, dict) and isinstance(s.get("stage"), int) and "observed" in s for s in stages
+        isinstance(s, dict) and type(s.get("stage")) is int and type(s.get("observed")) is bool
+        for s in stages
     ):
         return "the stages are not a list of stages"
+    for s in stages:
+        if s["observed"]:
+            if "reason" not in s or s["reason"] is not None:
+                return "invalid reason for observed stage %d" % s["stage"]
+        elif not isinstance(s.get("reason"), str):
+            return "missing or invalid reason for unobserved stage %d" % s["stage"]
+        if (s["observed"] or "not_observed" in s) and not texts(s.get("not_observed")):
+            return "missing or invalid not_observed options for stage %d" % s["stage"]
     if "stages" in result:
         expected = [s["stage"] for s in stages if s["observed"]]
         listed = [o["stage"] for o in found]
         if len(set(listed)) != len(listed) or set(listed) - set(expected):
             return "duplicate observer or observer of an unobserved stage"
-    if not isinstance(result.get("log_diffs", {}), dict):
+    diffs = result.get("log_diffs")
+    if not isinstance(diffs, dict):
         return "the differences of the outputs are not recorded by pair"
+    for pair in ["memexec -> hitlog", "reference -> memexec", "reference -> hitlog"]:
+        if pair not in diffs:
+            return "missing log difference " + pair
+    for pair, difference in diffs.items():
+        for stream in ["res", "err"]:
+            if not isinstance(difference, dict) or not texts(difference.get(stream)):
+                return "missing or invalid %s in log difference %s" % (stream, pair)
     return None
 
 
@@ -1509,13 +1544,12 @@ def write_summary(outdir, runs, results, elapsed, unread=()):
     )
     emit(table(["Run", "Damage"], sorted(unread.items())))
     emit("")
-    uncounted = [(r["name"], r["stages failure"]) for r in done if "stages failure" in r]
+    listing_failures = [(r["name"], r["stages failure"]) for r in done if "stages failure" in r]
     emit(
-        "**Runs whose stages are not listed: %d.** The observer that lists the "
-        "stages of a command of several stages failed: none of its stages is "
-        "observed.\n" % len(uncounted)
+        "**Runs whose stage listing failed: %d.** Valid observations from these "
+        "runs are kept and counted.\n" % len(listing_failures)
     )
-    emit(table(["Run", "Failure"], uncounted))
+    emit(table(["Run", "Failure"], listing_failures))
     emit("")
     earlier = [o for o in observed if not has_format(o)]
     if earlier:
