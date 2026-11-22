@@ -362,12 +362,7 @@ let bases_of_zone = function
    shared by the two maps, and does not build the set of all blocks of a
    state. *)
 
-module Shape = Hptmap.Shape (Base.Base)
-
-(* The caches of [Shape] are not project-aware. *)
-let () = State.add_hook_on_update Self.state Shape.clear_caches
-
-type shape = Cvalue.V_Offsetmap.t Shape.map
+type shape = Cvalue.V_Offsetmap.t Base.Hptshape.map
 
 (* The shape of a state: [None] for Bottom, which has no blocks. *)
 let shape_of_state = function
@@ -382,7 +377,7 @@ let created_in : shape -> shape -> Base.Hptset.t =
     else if Base.Hptset.is_empty t then s
     else Base.Hptset.union s t
   in
-  Shape.fold2_join_homogeneous
+  Base.Hptshape.fold2_join_homogeneous
     ~cache:Hptmap_sig.NoCache
     ~empty_left:Base.Hptset.from_map
     ~empty_right:(fun _ -> Base.Hptset.empty)
@@ -402,7 +397,7 @@ let changes_in : shape -> shape -> Base.Hptset.t * Base.Hptset.t =
     else if y == no_change then x
     else Base.Hptset.union created created', Base.Hptset.union removed removed'
   in
-  Shape.fold2_join_homogeneous
+  Base.Hptshape.fold2_join_homogeneous
     ~cache:Hptmap_sig.NoCache
     ~empty_left:(fun t -> Base.Hptset.from_map t, Base.Hptset.empty)
     ~empty_right:(fun s -> Base.Hptset.empty, Base.Hptset.from_map s)
