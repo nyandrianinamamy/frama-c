@@ -76,10 +76,9 @@
    select the stage of the command line that it observes, and list the
    stages that start an analysis, for that script too.
 
-   Two other environment variables are controls, for the tests of the
-   observer itself: they make a run differ from what the command line asks,
-   in a known way, to check what the observer concludes. See "Controls"
-   below. *)
+   Three other environment variables are controls, for the tests of the
+   observer itself: they make a run differ from what Eva gives, in a known
+   way, to check what the observer concludes. See "Controls" below. *)
 
 open Eva
 
@@ -113,14 +112,18 @@ let () = record [ "format"; format ]
 
 (* ----- Controls ---------------------------------------------------------- *)
 
-(* For the tests of the observer itself, two environment variables make a
-   run differ, in a known way, from what the command line asks, so that the
-   conclusions of the observer are checked on a difference. A control is
-   printed, and recorded in the summary: a run under a control is not an
-   observation of Eva. HIT_LOG_OBSERVER_ALLOC_REFERENCE and
-   HIT_LOG_OBSERVER_ALLOC_MEMEXEC give the value of -eva-alloc-builtin in
-   the run without memexec, and in the run with memexec and without
-   recording. *)
+(* For the tests of the observer itself, three environment variables make a
+   run differ, in a known way, from what the command line asks or from what
+   Eva gives, so that the conclusions of the observer are checked on a
+   difference. A control is printed, and recorded in the summary: a run
+   under a control is not an observation of Eva. The variables:
+   - HIT_LOG_OBSERVER_ALLOC_REFERENCE and HIT_LOG_OBSERVER_ALLOC_MEMEXEC give
+     the value of -eva-alloc-builtin in the run without memexec, and in the
+     run with memexec and without recording;
+   - HIT_LOG_OBSERVER_UNAVAILABLE names a label. At the points before and
+     after the statement that has it, the observer takes as listed with
+     -eva-hit-log the callstacks that reach the start of the function, and
+     as unavailable each answer with -eva-hit-log, as if Eva gave them. *)
 let control variable =
   match Sys.getenv_opt variable with
   | None | Some "" -> None
@@ -129,6 +132,8 @@ let control variable =
 let alloc_controls =
   [ "reference", control "HIT_LOG_OBSERVER_ALLOC_REFERENCE";
     "memexec", control "HIT_LOG_OBSERVER_ALLOC_MEMEXEC" ]
+
+let unavailable_control = control "HIT_LOG_OBSERVER_UNAVAILABLE"
 
 let print_controls () =
   let print what value =
@@ -143,7 +148,12 @@ let print_controls () =
                title))
          (List.assoc run alloc_controls))
     [ "reference", "without memexec";
-      "memexec", "with memexec, without recording" ]
+      "memexec", "with memexec, without recording" ];
+  Option.iter
+    (print "the answers with -eva-hit-log are taken as unavailable, on the \
+            callstacks of the start of the function, at the statement \
+            labelled")
+    unavailable_control
 
 (* ----- Stages of the command line ---------------------------------------- *)
 
@@ -2066,6 +2076,45 @@ let record_summary ~below ~different_stacks ~different_filtered ~compared
            string_of_int
              (List.length (List.filter on_below current_passes.requests)) ]
 
+(* Whether [point] is under the control HIT_LOG_OBSERVER_UNAVAILABLE: a
+   point before or after the statement that has the label it names. *)
+let controlled (point : point) =
+  match unavailable_control, point.stmt with
+  | Some label, Some stmt -> List.mem label (labels stmt)
+  | _ -> false
+
+(* Under this control, the callstacks listed with -eva-hit-log at each point,
+   [stacks], with those of the start of its function at a controlled
+   point. *)
+let controlled_stacks points stacks =
+  let with_stacks = List.combine points stacks in
+  let of_start kf =
+    List.find_map
+      (fun ((point : point), stacks) ->
+         if String.equal point.kind "start"
+         && Option.equal Kernel_function.equal point.kf kf
+         then Some stacks else None)
+      with_stacks
+  in
+  List.map
+    (fun (point, stacks) ->
+       if controlled point
+       then Option.value ~default:stacks (of_start point.kf) else stacks)
+    with_stacks
+
+(* Under this control, the answers with -eva-hit-log, [answers], with each
+   answer at a controlled point unavailable, on the callstacks [stacks]. *)
+let controlled_answers points stacks answers =
+  List.map2
+    (fun (point, stacks) a ->
+       if controlled point then
+         { joined = Error Results.Top; filtered = Error Results.Top;
+           by_callstack =
+             List.map (fun (cs, _) -> cs, Error Results.Top) a.by_callstack;
+           filtered_stacks = List.sort compare (List.map snd stacks) }
+       else a)
+    (List.combine points stacks) answers
+
 let observe () =
   let current = Project.current () in
   collect_existing_variables ();
@@ -2100,6 +2149,7 @@ let observe () =
     let current_stacks, reported_stacks =
       with_trap (fun () -> callstacks_in current)
     in
+    let current_stacks = controlled_stacks (points ()) current_stacks in
     let starts =
       List.combine (points ()) current_stacks
       |> List.filter_map
@@ -2146,6 +2196,7 @@ let observe () =
     let answers, reported_answers =
       with_trap (fun () -> answers_in current)
     in
+    let answers = controlled_answers (points ()) current_stacks answers in
     let reported = reported_stacks @ reported_answers in
     (* The reference and the run with memexec are each compared with the run
        with -eva-hit-log, with its created bases; and with each other, with
