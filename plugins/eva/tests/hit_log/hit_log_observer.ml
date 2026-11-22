@@ -960,7 +960,8 @@ let matched_reference = ref no_match
 let matched_memexec = ref no_match
 let matched_pair = ref no_match
 
-(* Rename [answers] using the two runs' captured blocks. *)
+(* Rename [answers] using the two runs' captured blocks. The target's
+   project must be current for pointer substitution and normalization. *)
 let rename ~source ~target answers =
   let mapped, undecided = matching source target in
   let mapped, different_extents =
@@ -1114,22 +1115,42 @@ let string_of_verdict = function
   | Unavailable -> "unavailable"
   | Unresolved -> "unresolved"
 
-(* The answers of the three projects at one point. Those of the reference
-   and of the run with memexec have their created bases renamed into those
-   of the run with -eva-hit-log. For the comparison of the run with memexec
-   with the reference, [pair] has the answers of the reference, with its
-   created bases renamed into those of the run with memexec, and the answers
-   of the run with memexec as they are; [pair_stacks] are the callstacks
-   that one of the two lists at the point. *)
-type compared = {
-  reference: point_answers; (* Without memexec. *)
-  memexec: point_answers; (* With memexec, without recording. *)
-  current: point_answers; (* With recording. *)
-  pair: point_answers * point_answers;
-  pair_stacks: (string * portable) list;
+(* Renaming can merge adjacent pointer fragments based on the target
+   block's strength. Inclusion can also construct default offsetmaps.
+   Finish both operations in the memexec project before returning verdicts
+   to the recording project. *)
+type pair_verdicts = {
+  joined_verdict: verdict;
+  filtered_verdict: verdict;
+  stack_verdicts: ((string * portable) * verdict) list;
 }
 
-(* The three projects are asked for the same callstacks at each point. *)
+let compare_pair project ~source ~target reference memexec stacks =
+  Project.on project
+    (fun () ->
+       let reference, matched = rename ~source ~target reference in
+       let compare reference answer = verdict ~matched ~reference ~answer () in
+       let at_point (r, m) stacks =
+         let stack_verdict cs =
+           cs, compare (List.assoc cs r.by_callstack)
+             (List.assoc cs m.by_callstack)
+         in
+         { joined_verdict = compare r.joined m.joined;
+           filtered_verdict = compare r.filtered m.filtered;
+           stack_verdicts = List.map stack_verdict stacks }
+       in
+       List.map2 at_point (List.combine reference memexec) stacks, matched)
+    ()
+
+(* The answers expressed in the recording project and the independent
+   comparison of the reference with memexec. *)
+type compared = {
+  reference: point_answers;
+  memexec: point_answers;
+  current: point_answers;
+  pair: pair_verdicts;
+}
+
 let find name list = List.assoc name list
 
 (* ----- Cases of the closed list ------------------------------------------ *)
@@ -1400,18 +1421,10 @@ let count table v =
   Hashtbl.replace table v (n + 1)
 
 (* [stacks] are the callstacks that [answer] includes in the current
-   project. [pair] has the answers of the reference and of the run with
-   memexec to the same request, for the comparison of these two runs, if it
-   is made. *)
+   project. [v_memexec] is the independent verdict, when compared. *)
 let compare_answer point ~what ~stacks description ~reference ~memexec
-    ~answer ~pair =
+    ~answer ~v_memexec =
   let v = verdict ~matched:!matched_reference ~reference ~answer () in
-  let v_memexec =
-    Option.map
-      (fun (reference, answer) ->
-         verdict ~matched:!matched_pair ~reference ~answer ())
-      pair
-  in
   count counts v;
   begin match v_memexec with
     | Some v -> count memexec_counts v
@@ -1445,29 +1458,22 @@ let compare_answer point ~what ~stacks description ~reference ~memexec
 (* [listed] are the callstacks that reach [point] in the current project. *)
 let compare_point point c ~listed =
   let describe what = point.description ^ ", " ^ what in
-  let pair_reference, pair_memexec = c.pair in
   compare_answer point ~what:"joined" ~stacks:listed (describe "joined")
     ~reference:c.reference.joined
     ~memexec:c.memexec.joined ~answer:c.current.joined
-    ~pair:(Some (pair_reference.joined, pair_memexec.joined));
+    ~v_memexec:(Some c.pair.joined_verdict);
   compare_answer point ~what:"filtered" ~stacks:c.current.filtered_stacks
     (describe "filtered")
     ~reference:c.reference.filtered
     ~memexec:c.memexec.filtered ~answer:c.current.filtered
-    ~pair:(Some (pair_reference.filtered, pair_memexec.filtered));
+    ~v_memexec:(Some c.pair.filtered_verdict);
   List.iter
     (fun ((_, p as name), answer) ->
-       let pair =
-         if List.mem name c.pair_stacks
-         then Some (find name pair_reference.by_callstack,
-                    find name pair_memexec.by_callstack)
-         else None
-       in
        compare_answer point ~what:"callstack" ~stacks:[ p ]
          (describe (display name))
          ~reference:(find name c.reference.by_callstack)
          ~memexec:(find name c.memexec.by_callstack)
-         ~answer ~pair)
+         ~answer ~v_memexec:(List.assoc_opt name c.pair.stack_verdicts))
     c.current.by_callstack
 
 (* The statements unreachable for the passes in one run and not in the
@@ -2247,21 +2253,21 @@ let observe () =
       rename ~source:mem_blocks ~target:recording_blocks own_memexec
     in
     matched_memexec := matched;
-    let pair_reference, matched =
-      rename ~source:ref_blocks ~target:mem_blocks own_reference
-    in
-    matched_pair := matched;
-    print_matches ();
     let pair_stacks =
       List.map2 (fun r m -> union [ r; m ]) reference_stacks memexec_stacks
     in
+    let pair, matched =
+      compare_pair with_memexec ~source:ref_blocks ~target:mem_blocks
+        own_reference own_memexec pair_stacks
+    in
+    matched_pair := matched;
+    print_matches ();
     let compared =
       List.map2
-        (fun (reference, memexec, current) (pair, pair_stacks) ->
-           { reference; memexec; current; pair; pair_stacks })
-        (List.map2 (fun (r, m) c -> r, m, c)
-           (List.combine reference_answers memexec_answers) answers)
-        (List.combine (List.combine pair_reference own_memexec) pair_stacks)
+        (fun (reference, memexec) (current, pair) ->
+           { reference; memexec; current; pair })
+        (List.combine reference_answers memexec_answers)
+        (List.combine answers pair)
     in
     let compared = List.combine (points ()) compared in
     List.iter print_labelled compared;
@@ -2443,6 +2449,75 @@ let check_prefix ~copied ~weak ~min_alloc =
   assert (verdict ~matched ~reference:(List.hd renamed).joined
             ~answer:answer.joined () = Unresolved)
 
+(* A pointer split across two intervals of a weak block must keep its
+   fragments when compared with memexec, even when recording has a strong
+   copy of the same block. *)
+module Pointer_state =
+  State_builder.Option_ref (Datatype.Pair (Base) (Base)) (struct
+    let name = "Hit_log_observer.Pointer_state"
+    let dependencies = [Ast.self]
+  end)
+
+let check_pointer_fragments () =
+  Hashtbl.clear allocations;
+  let last = Z.of_int 31 and width = Z.of_int 32 in
+  let block, _ = make_bound_base "pointer_block" ~weak:false ~min_alloc:31 in
+  let slot =
+    Cil.makeGlobalVar ~source:false "pointer_slot" Cil_const.voidPtrType
+    |> fun vi -> Base.register_memory_var vi (Base.Known (Z.zero, last))
+  in
+  let weaken block =
+    match Base.validity block with
+    | Base.Variable v ->
+      Base.update_variable_validity v ~weak:true ~min_alloc:last ~max_alloc:last
+    | _ -> assert false
+  in
+  let pointer block =
+    Cvalue.V_Or_Uninitialized.initialized (Cvalue.V.inject block Ival.zero)
+  in
+  let pointers = pointer block in
+  Pointer_state.set (block, slot);
+  let copy name ~split =
+    let project = Project.create_by_copy ~last:false name in
+    let answer, blocks =
+      Project.on project
+        (fun () ->
+           let other, slot = Pointer_state.get () in
+           assert (Base.equal block other && block != other);
+           weaken other;
+           let value = pointer other in
+           let offsetmap =
+             if split then
+               let add lo hi map =
+                 Cvalue.V_Offsetmap.add ~exact:true (lo, hi)
+                   (value, width, Abstract_interp.Rel.sub_abs lo Z.zero) map
+               in
+               Cvalue.V_Offsetmap.empty
+               |> add Z.zero (Z.of_int 15) |> add (Z.of_int 16) last
+             else Cvalue.V_Offsetmap.create ~size:width value ~size_v:width
+           in
+           let answer = point_of_model
+               (Cvalue.Model.add_base slot offsetmap Cvalue.Model.empty_map)
+           in
+           answer, created name [answer])
+        ()
+    in
+    project, answer, blocks
+  in
+  let _, reference, source = copy "reference" ~split:true in
+  let project, answer, target = copy "memexec" ~split:false in
+  let check () =
+    let compared, _ =
+      compare_pair project ~source ~target [reference] [answer] [[]]
+    in
+    assert ((List.hd compared).joined_verdict = Omits)
+  in
+  assert (Cvalue.V_Or_Uninitialized.cardinal_zero_or_one pointers);
+  check ();
+  weaken block;
+  assert (not (Cvalue.V_Or_Uninitialized.cardinal_zero_or_one pointers));
+  check ()
+
 let () =
   Boot.Main.extend
     (if Sys.getenv_opt "HIT_LOG_OBSERVER_CHECK_BOUNDS" = Some "1" then
@@ -2454,5 +2529,6 @@ let () =
          check_bounds 7 true Unresolved;
          check_prefix ~copied:true ~weak:false ~min_alloc:7;
          check_prefix ~copied:true ~weak:true ~min_alloc:31;
-         check_prefix ~copied:false ~weak:false ~min_alloc:7
+         check_prefix ~copied:false ~weak:false ~min_alloc:7;
+         check_pointer_fragments ()
      else main)
