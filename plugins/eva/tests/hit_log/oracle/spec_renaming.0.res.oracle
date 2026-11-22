@@ -1,0 +1,127 @@
+[kernel] Parsing spec_renaming.c (with preprocessing)
+[eva] spec_renaming.c:34: Warning: 
+  Using specification of function f for recursive calls. Analysis of function f
+  is thus incomplete and its soundness relies on the written specification.
+[eva:alarm] spec_renaming.c:32: Warning: 
+  accessing uninitialized left-value. assert \initialized(&x);
+[eva] spec_renaming.c:41: Warning: 
+  Using specification of function h for recursive calls. Analysis of function h
+  is thus incomplete and its soundness relies on the written specification.
+[eva] spec_renaming.c:34: Warning: 
+  Using specification of function f for recursive calls. Analysis of function f
+  is thus incomplete and its soundness relies on the written specification.
+[eva:alarm] spec_renaming.c:32: Warning: 
+  accessing uninitialized left-value. assert \initialized(&x);
+[eva] spec_renaming.c:41: Warning: 
+  Using specification of function h for recursive calls. Analysis of function h
+  is thus incomplete and its soundness relies on the written specification.
+[eva] spec_renaming.c:34: Warning: 
+  Using specification of function f for recursive calls. Analysis of function f
+  is thus incomplete and its soundness relies on the written specification.
+[eva:alarm] spec_renaming.c:32: Warning: 
+  accessing uninitialized left-value. assert \initialized(&x);
+[eva] spec_renaming.c:41: Warning: 
+  Using specification of function h for recursive calls. Analysis of function h
+  is thus incomplete and its soundness relies on the written specification.
+Calls:
+  f :: spec_renaming.c:34 <- g :: spec_renaming.c:32 <- f :: spec_renaming.c:46 <- main: specification
+  g :: spec_renaming.c:32 <- f :: spec_renaming.c:46 <- main: analysed, cache entry 15
+  f :: spec_renaming.c:46 <- main: analysed, cache entry 16
+  f :: spec_renaming.c:48 <- main: hit of cache entry 16
+  h :: spec_renaming.c:41 <- k :: spec_renaming.c:39 <- h :: spec_renaming.c:49 <- main: specification
+  k :: spec_renaming.c:39 <- h :: spec_renaming.c:49 <- main: analysed, cache entry 17
+  h :: spec_renaming.c:49 <- main: analysed, cache entry 18
+  h :: spec_renaming.c:50 <- main: hit of cache entry 18
+  main: analysed, cache entry 19
+Calls below a hit:
+  f :: spec_renaming.c:34 <- g :: spec_renaming.c:32 <- f :: spec_renaming.c:48 <- main
+  g :: spec_renaming.c:32 <- f :: spec_renaming.c:48 <- main
+  h :: spec_renaming.c:41 <- k :: spec_renaming.c:39 <- h :: spec_renaming.c:50 <- main
+  k :: spec_renaming.c:39 <- h :: spec_renaming.c:50 <- main
+f, start:
+  joined: unavailable
+  f :: spec_renaming.c:34 <- g :: spec_renaming.c:32 <- f :: spec_renaming.c:46 <- main: 
+  r ∈ {{ &\copy<x>[1] }}
+  p ∈ {{ &\copy<x>[1] }}
+  a ∈ {0}
+  \copy<x>[1] ∈ UNINITIALIZED
+  f :: spec_renaming.c:34 <- g :: spec_renaming.c:32 <- f :: spec_renaming.c:48 <- main: 
+  unavailable
+  f :: spec_renaming.c:46 <- main: r ∈ {{ &a }}
+                                   a ∈ {0}
+  f :: spec_renaming.c:48 <- main: r ∈ {{ &a }}
+                                   a ∈ {0}
+  reference, joined: r ∈ {{ &a ; &\copy<x>[1] }}
+                     p ∈ {{ &\copy<x>[1] }}
+                     a ∈ {0}
+                     \copy<x>[1] ∈ UNINITIALIZED
+  f :: spec_renaming.c:34 <- g :: spec_renaming.c:32 <- f :: spec_renaming.c:46 <- main: 
+  r ∈ {{ &\copy<x>[1] }}
+  p ∈ {{ &\copy<x>[1] }}
+  a ∈ {0}
+  \copy<x>[1] ∈ UNINITIALIZED
+  f :: spec_renaming.c:34 <- g :: spec_renaming.c:32 <- f :: spec_renaming.c:48 <- main: 
+  r ∈ {{ &\copy<x>[1] }}
+  p ∈ {{ &\copy<x>[1] }}
+  a ∈ {0}
+  \copy<x>[1] ∈ UNINITIALIZED
+  f :: spec_renaming.c:46 <- main: r ∈ {{ &a }}
+                                   a ∈ {0}
+  f :: spec_renaming.c:48 <- main: r ∈ {{ &a }}
+                                   a ∈ {0}
+f, before spec_renaming.c:32 `g(& x);` (F):
+  joined: r ∈ {{ &a }}
+          x ∈ UNINITIALIZED
+          a ∈ {0}
+  f :: spec_renaming.c:46 <- main: r ∈ {{ &a }}
+                                   x ∈ UNINITIALIZED
+                                   a ∈ {0}
+  f :: spec_renaming.c:48 <- main: r ∈ {{ &a }}
+                                   x ∈ UNINITIALIZED
+                                   a ∈ {0}
+f, after spec_renaming.c:32 `return;`:
+  joined: r ∈ {{ &a }}
+          x ∈ [--..--]
+          a ∈ [--..--]
+  f :: spec_renaming.c:46 <- main: r ∈ {{ &a }}
+                                   x ∈ [--..--]
+                                   a ∈ [--..--]
+  f :: spec_renaming.c:48 <- main: r ∈ {{ &a }}
+                                   x ∈ [--..--]
+                                   a ∈ [--..--]
+Hits against the analysed call of their cache entry:
+  f :: spec_renaming.c:48 <- main, hit of cache entry 16, against f :: spec_renaming.c:46 <- main: no difference, at 7 points.
+  h :: spec_renaming.c:50 <- main, hit of cache entry 18, against h :: spec_renaming.c:49 <- main: no difference, at 5 points.
+Initial state: equal.
+Differences with the run without memexec:
+  f, start, joined: unavailable
+  f, start, filtered: unavailable
+  f, start, f :: spec_renaming.c:34 <- g :: spec_renaming.c:32 <- f :: spec_renaming.c:48 <- main: unavailable
+  g, after spec_renaming.c:34 `f(p);`, joined: more precise
+  g, after spec_renaming.c:34 `f(p);`, filtered: more precise
+  g, after spec_renaming.c:34 `f(p);`, g :: spec_renaming.c:32 <- f :: spec_renaming.c:46 <- main: more precise
+  g, after spec_renaming.c:34 `f(p);`, g :: spec_renaming.c:32 <- f :: spec_renaming.c:48 <- main: more precise
+  g, before spec_renaming.c:34 `return;`, joined: more precise
+  g, before spec_renaming.c:34 `return;`, filtered: more precise
+  g, before spec_renaming.c:34 `return;`, g :: spec_renaming.c:32 <- f :: spec_renaming.c:46 <- main: more precise
+  g, before spec_renaming.c:34 `return;`, g :: spec_renaming.c:32 <- f :: spec_renaming.c:48 <- main: more precise
+  g, after spec_renaming.c:34 `return;`, joined: more precise
+  g, after spec_renaming.c:34 `return;`, filtered: more precise
+  g, after spec_renaming.c:34 `return;`, g :: spec_renaming.c:32 <- f :: spec_renaming.c:46 <- main: more precise
+  g, after spec_renaming.c:34 `return;`, g :: spec_renaming.c:32 <- f :: spec_renaming.c:48 <- main: more precise
+Answers: 130 equal, 0 covering, 12 more precise, 0 omitting, 3 unavailable.
+Callstacks listed: those of the run without memexec at each of the 39 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 39 points.
+Filtered requests that reject one callstack: 24.
+Requests made: 223; reported by the trap: 223, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 44 requests, 81 reads of the legacy store in them, 51 reads outside any request.
+  with -eva-hit-log: 45 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 22 requests
+    statuses of the properties: 6 requests
+    statistics: 16 requests
+    summary: 1 request
+  requests of the passes on a callstack below a hit, with -eva-hit-log: 0.
+Statuses of the properties: those of the run without memexec, for 6 properties.
+Alarms: 1, of which 1 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 1.0000, 1 alarm, those of the run without memexec.
