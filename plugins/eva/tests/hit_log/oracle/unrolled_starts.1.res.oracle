@@ -1,0 +1,392 @@
+[kernel] Parsing unrolled_starts.c (with preprocessing)
+Calls:
+  fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: analysed, cache entry 47
+  fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: analysed, cache entry 48
+  fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: analysed, cache entry 49
+  fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: analysed, cache entry 50
+  fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: analysed, cache entry 51
+  fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: analysed, cache entry 52
+  fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: analysed, cache entry 53
+  fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: analysed, cache entry 54
+  fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: analysed, cache entry 55
+  fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: hit of cache entry 52
+  fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: hit of cache entry 53
+  fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: analysed, cache entry 56
+  fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: analysed, cache entry 57
+  fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: analysed, cache entry 58
+  fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: analysed, cache entry 59
+  fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: hit of cache entry 56
+  fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: hit of cache entry 57
+  fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: analysed, cache entry 60
+  fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: analysed, cache entry 61
+  fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: analysed, cache entry 62
+  fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: analysed, cache entry 63
+  fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: analysed, cache entry 64
+  fib :: unrolled_starts.c:55 <- direct_ptr: analysed, cache entry 65
+  direct_ptr: analysed, cache entry 66
+Calls below a hit:
+  fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr
+  fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr
+Hits against the analysed call of their cache entry:
+  fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr, hit of cache entry 52, against fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: differs on \copy<m>[2], \copy<x>[2], \copy<x>[3], unavailable at 6 points, at 19 points.
+  fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr, hit of cache entry 53, against fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: differs on \copy<m>[2], \copy<x>[2], \copy<x>[3], unavailable at 6 points, at 19 points.
+  fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr, hit of cache entry 56, against fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: differs on \copy<m>[1], \copy<x>[1], \copy<x>[2], unavailable at 16 points, at 19 points.
+  fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr, hit of cache entry 57, against fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: differs on \copy<m>[1], \copy<x>[1], \copy<x>[2], unavailable at 6 points, at 19 points.
+Initial state: equal.
+Differences with the run without memexec:
+  fib, before unrolled_starts.c:41 `if (*p < (unsigned int)2)`, joined: unavailable
+  fib, before unrolled_starts.c:41 `if (*p < (unsigned int)2)`, filtered: unavailable
+  fib, before unrolled_starts.c:41 `if (*p < (unsigned int)2)`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:41 `if (*p < (unsigned int)2)`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:41 `if (*p < (unsigned int)2)`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:41 `if (*p < (unsigned int)2)`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:41 `if (*p < (unsigned int)2)`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:41 `if (*p < (unsigned int)2)`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:41 `if (*p < (unsigned int)2)`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:41 `if (*p < (unsigned int)2)`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:41 `if (*p < (unsigned int)2)`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:41 `if (*p < (unsigned int)2)`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:41 `if (*p < (unsigned int)2)`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:41 `if (*p < (unsigned int)2)`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:41 `if (*p < (unsigned int)2)`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:41 `if (*p < (unsigned int)2)`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:41 `if (*p < (unsigned int)2)`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:41 `if (*p < (unsigned int)2)`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:41 `if (*p < (unsigned int)2)`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:41 `if (*p < (unsigned int)2)`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:41 `if (*p < (unsigned int)2)`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:41 `if (*p < (unsigned int)2)`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:41 `if (*p < (unsigned int)2)`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:41 `if (*p < (unsigned int)2)`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:41 `if (*p < (unsigned int)2)`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:41 `if (*p < (unsigned int)2)`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:41 `if (*p < (unsigned int)2)`, fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:41 `if (*p < (unsigned int)2)`, joined: unavailable
+  fib, after unrolled_starts.c:41 `if (*p < (unsigned int)2)`, filtered: unavailable
+  fib, after unrolled_starts.c:41 `if (*p < (unsigned int)2)`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:41 `if (*p < (unsigned int)2)`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:41 `if (*p < (unsigned int)2)`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:41 `if (*p < (unsigned int)2)`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:41 `if (*p < (unsigned int)2)`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:41 `if (*p < (unsigned int)2)`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:41 `if (*p < (unsigned int)2)`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:41 `if (*p < (unsigned int)2)`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:41 `if (*p < (unsigned int)2)`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:41 `if (*p < (unsigned int)2)`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:41 `if (*p < (unsigned int)2)`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:41 `if (*p < (unsigned int)2)`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:41 `if (*p < (unsigned int)2)`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:41 `if (*p < (unsigned int)2)`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:41 `if (*p < (unsigned int)2)`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:41 `if (*p < (unsigned int)2)`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:41 `if (*p < (unsigned int)2)`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:41 `if (*p < (unsigned int)2)`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:41 `if (*p < (unsigned int)2)`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:41 `if (*p < (unsigned int)2)`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:41 `if (*p < (unsigned int)2)`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:41 `if (*p < (unsigned int)2)`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:41 `if (*p < (unsigned int)2)`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:41 `if (*p < (unsigned int)2)`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:41 `if (*p < (unsigned int)2)`, fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:41 `*r = *p;`, joined: unavailable
+  fib, before unrolled_starts.c:41 `*r = *p;`, filtered: unavailable
+  fib, before unrolled_starts.c:41 `*r = *p;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:41 `*r = *p;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:41 `*r = *p;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:41 `*r = *p;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:41 `*r = *p;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:41 `*r = *p;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:41 `*r = *p;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:41 `*r = *p;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:41 `*r = *p;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:41 `*r = *p;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:41 `*r = *p;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:41 `*r = *p;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:41 `*r = *p;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:41 `*r = *p;`, joined: unavailable
+  fib, after unrolled_starts.c:41 `*r = *p;`, filtered: unavailable
+  fib, after unrolled_starts.c:41 `*r = *p;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:41 `*r = *p;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:41 `*r = *p;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:41 `*r = *p;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:41 `*r = *p;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:41 `*r = *p;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:41 `*r = *p;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:41 `*r = *p;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:41 `*r = *p;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:41 `*r = *p;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:41 `*r = *p;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:41 `*r = *p;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:41 `*r = *p;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:44 `unsigned int m = *p;`, joined: unavailable
+  fib, before unrolled_starts.c:44 `unsigned int m = *p;`, filtered: unavailable
+  fib, before unrolled_starts.c:44 `unsigned int m = *p;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:44 `unsigned int m = *p;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:44 `unsigned int m = *p;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:44 `unsigned int m = *p;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:44 `unsigned int m = *p;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:44 `unsigned int m = *p;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:44 `unsigned int m = *p;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:44 `unsigned int m = *p;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:44 `unsigned int m = *p;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:44 `unsigned int m = *p;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:44 `unsigned int m = *p;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:44 `unsigned int m = *p;`, fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:44 `unsigned int m = *p;`, joined: unavailable
+  fib, after unrolled_starts.c:44 `unsigned int m = *p;`, filtered: unavailable
+  fib, after unrolled_starts.c:44 `unsigned int m = *p;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:44 `unsigned int m = *p;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:44 `unsigned int m = *p;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:44 `unsigned int m = *p;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:44 `unsigned int m = *p;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:44 `unsigned int m = *p;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:44 `unsigned int m = *p;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:44 `unsigned int m = *p;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:44 `unsigned int m = *p;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:44 `unsigned int m = *p;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:44 `unsigned int m = *p;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:44 `unsigned int m = *p;`, fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:45 `m --;`, joined: unavailable
+  fib, before unrolled_starts.c:45 `m --;`, filtered: unavailable
+  fib, before unrolled_starts.c:45 `m --;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:45 `m --;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:45 `m --;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:45 `m --;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:45 `m --;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:45 `m --;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:45 `m --;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:45 `m --;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:45 `m --;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:45 `m --;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:45 `m --;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:45 `m --;`, fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:45 `m --;`, joined: unavailable
+  fib, after unrolled_starts.c:45 `m --;`, filtered: unavailable
+  fib, after unrolled_starts.c:45 `m --;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:45 `m --;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:45 `m --;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:45 `m --;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:45 `m --;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:45 `m --;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:45 `m --;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:45 `m --;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:45 `m --;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:45 `m --;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:45 `m --;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:45 `m --;`, fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:46 `fib(& m,& x);`, joined: unavailable
+  fib, before unrolled_starts.c:46 `fib(& m,& x);`, filtered: unavailable
+  fib, before unrolled_starts.c:46 `fib(& m,& x);`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:46 `fib(& m,& x);`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:46 `fib(& m,& x);`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:46 `fib(& m,& x);`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:46 `fib(& m,& x);`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:46 `fib(& m,& x);`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:46 `fib(& m,& x);`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:46 `fib(& m,& x);`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:46 `fib(& m,& x);`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:46 `fib(& m,& x);`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:46 `fib(& m,& x);`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:46 `fib(& m,& x);`, fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:46 `fib(& m,& x);`, joined: unavailable
+  fib, after unrolled_starts.c:46 `fib(& m,& x);`, filtered: unavailable
+  fib, after unrolled_starts.c:46 `fib(& m,& x);`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:46 `fib(& m,& x);`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:46 `fib(& m,& x);`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:46 `fib(& m,& x);`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:46 `fib(& m,& x);`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:46 `fib(& m,& x);`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:46 `fib(& m,& x);`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:46 `fib(& m,& x);`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:46 `fib(& m,& x);`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:46 `fib(& m,& x);`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:46 `fib(& m,& x);`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:46 `fib(& m,& x);`, fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:47 `m --;`, joined: unavailable
+  fib, before unrolled_starts.c:47 `m --;`, filtered: unavailable
+  fib, before unrolled_starts.c:47 `m --;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:47 `m --;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:47 `m --;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:47 `m --;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:47 `m --;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:47 `m --;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:47 `m --;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:47 `m --;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:47 `m --;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:47 `m --;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:47 `m --;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:47 `m --;`, fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:47 `m --;`, joined: unavailable
+  fib, after unrolled_starts.c:47 `m --;`, filtered: unavailable
+  fib, after unrolled_starts.c:47 `m --;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:47 `m --;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:47 `m --;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:47 `m --;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:47 `m --;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:47 `m --;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:47 `m --;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:47 `m --;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:47 `m --;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:47 `m --;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:47 `m --;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:47 `m --;`, fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:48 `fib(& m,& y);`, joined: unavailable
+  fib, before unrolled_starts.c:48 `fib(& m,& y);`, filtered: unavailable
+  fib, before unrolled_starts.c:48 `fib(& m,& y);`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:48 `fib(& m,& y);`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:48 `fib(& m,& y);`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:48 `fib(& m,& y);`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:48 `fib(& m,& y);`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:48 `fib(& m,& y);`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:48 `fib(& m,& y);`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:48 `fib(& m,& y);`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:48 `fib(& m,& y);`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:48 `fib(& m,& y);`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:48 `fib(& m,& y);`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:48 `fib(& m,& y);`, fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:48 `fib(& m,& y);`, joined: unavailable
+  fib, after unrolled_starts.c:48 `fib(& m,& y);`, filtered: unavailable
+  fib, after unrolled_starts.c:48 `fib(& m,& y);`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:48 `fib(& m,& y);`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:48 `fib(& m,& y);`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:48 `fib(& m,& y);`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:48 `fib(& m,& y);`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:48 `fib(& m,& y);`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:48 `fib(& m,& y);`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:48 `fib(& m,& y);`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:48 `fib(& m,& y);`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:48 `fib(& m,& y);`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:48 `fib(& m,& y);`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:48 `fib(& m,& y);`, fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:49 `*r = x + y;`, joined: unavailable
+  fib, before unrolled_starts.c:49 `*r = x + y;`, filtered: unavailable
+  fib, before unrolled_starts.c:49 `*r = x + y;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:49 `*r = x + y;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:49 `*r = x + y;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:49 `*r = x + y;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:49 `*r = x + y;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:49 `*r = x + y;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:49 `*r = x + y;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:49 `*r = x + y;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:49 `*r = x + y;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:49 `*r = x + y;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:49 `*r = x + y;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:49 `*r = x + y;`, fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:49 `*r = x + y;`, joined: unavailable
+  fib, after unrolled_starts.c:49 `*r = x + y;`, filtered: unavailable
+  fib, after unrolled_starts.c:49 `*r = x + y;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:49 `*r = x + y;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:49 `*r = x + y;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:49 `*r = x + y;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:49 `*r = x + y;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:49 `*r = x + y;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:49 `*r = x + y;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:49 `*r = x + y;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:49 `*r = x + y;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:49 `*r = x + y;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:49 `*r = x + y;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:49 `*r = x + y;`, fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:51 `return;`, joined: unavailable
+  fib, before unrolled_starts.c:51 `return;`, filtered: unavailable
+  fib, before unrolled_starts.c:51 `return;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:51 `return;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:51 `return;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:51 `return;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:51 `return;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:51 `return;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:51 `return;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:51 `return;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:51 `return;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:51 `return;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:51 `return;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:51 `return;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:51 `return;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:51 `return;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:51 `return;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:51 `return;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:51 `return;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:51 `return;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:51 `return;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:51 `return;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:51 `return;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:51 `return;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:51 `return;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:51 `return;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, before unrolled_starts.c:51 `return;`, fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:51 `return;`, joined: unavailable
+  fib, after unrolled_starts.c:51 `return;`, filtered: unavailable
+  fib, after unrolled_starts.c:51 `return;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:51 `return;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:51 `return;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:51 `return;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:51 `return;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:51 `return;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:51 `return;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:51 `return;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:51 `return;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:51 `return;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:51 `return;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:51 `return;`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:51 `return;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:51 `return;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:51 `return;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:51 `return;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:51 `return;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:51 `return;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:51 `return;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:51 `return;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:51 `return;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:51 `return;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:51 `return;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:51 `return;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, after unrolled_starts.c:51 `return;`, fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+Answers: 152 equal, 0 covering, 0 more precise, 0 omitting, 306 unavailable.
+Callstacks listed: NOT those of the run without memexec at 18 of the 77 points:
+  fib, before unrolled_starts.c:41 `if (*p < (unsigned int)2)`
+  fib, after unrolled_starts.c:41 `if (*p < (unsigned int)2)`
+  fib, before unrolled_starts.c:41 `*r = *p;`
+  fib, after unrolled_starts.c:41 `*r = *p;`
+  fib, before unrolled_starts.c:44 `unsigned int m = *p;`
+  fib, after unrolled_starts.c:44 `unsigned int m = *p;`
+  fib, before unrolled_starts.c:45 `m --;`
+  fib, after unrolled_starts.c:45 `m --;`
+  fib, before unrolled_starts.c:46 `fib(& m,& x);`
+  fib, after unrolled_starts.c:46 `fib(& m,& x);`
+  fib, before unrolled_starts.c:47 `m --;`
+  fib, after unrolled_starts.c:47 `m --;`
+  fib, before unrolled_starts.c:48 `fib(& m,& y);`
+  fib, after unrolled_starts.c:48 `fib(& m,& y);`
+  fib, before unrolled_starts.c:49 `*r = x + y;`
+  fib, after unrolled_starts.c:49 `*r = x + y;`
+  fib, before unrolled_starts.c:51 `return;`
+  fib, after unrolled_starts.c:51 `return;`
+Callstacks listed through the filter: NOT those of the run without memexec at 18 of the 77 points:
+  fib, before unrolled_starts.c:41 `if (*p < (unsigned int)2)`
+  fib, after unrolled_starts.c:41 `if (*p < (unsigned int)2)`
+  fib, before unrolled_starts.c:41 `*r = *p;`
+  fib, after unrolled_starts.c:41 `*r = *p;`
+  fib, before unrolled_starts.c:44 `unsigned int m = *p;`
+  fib, after unrolled_starts.c:44 `unsigned int m = *p;`
+  fib, before unrolled_starts.c:45 `m --;`
+  fib, after unrolled_starts.c:45 `m --;`
+  fib, before unrolled_starts.c:46 `fib(& m,& x);`
+  fib, after unrolled_starts.c:46 `fib(& m,& x);`
+  fib, before unrolled_starts.c:47 `m --;`
+  fib, after unrolled_starts.c:47 `m --;`
+  fib, before unrolled_starts.c:48 `fib(& m,& y);`
+  fib, after unrolled_starts.c:48 `fib(& m,& y);`
+  fib, before unrolled_starts.c:49 `*r = x + y;`
+  fib, after unrolled_starts.c:49 `*r = x + y;`
+  fib, before unrolled_starts.c:51 `return;`
+  fib, after unrolled_starts.c:51 `return;`
+Filtered requests that reject one callstack: 19.
+Requests made: 612; reported by the trap: 612, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 49 requests, 153 reads of the legacy store in them, 280 reads outside any request.
+  with -eva-hit-log: 49 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 37 requests
+    statistics: 12 requests
+  requests of the passes on a callstack below a hit, with -eva-hit-log: 0.
+Statuses of the properties: those of the run without memexec, for 0 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.4000, 0 alarms, those of the run without memexec.
