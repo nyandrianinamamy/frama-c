@@ -1,0 +1,107 @@
+[kernel] Parsing alloc_sites.c (with preprocessing)
+Calls:
+  malloc :: alloc_sites.c:35 <- f :: alloc_sites.c:33 <- f :: alloc_sites.c:41 <- hidden: builtin
+  free :: alloc_sites.c:36 <- f :: alloc_sites.c:33 <- f :: alloc_sites.c:41 <- hidden: builtin
+  f :: alloc_sites.c:33 <- f :: alloc_sites.c:41 <- hidden: analysed, cache entry 9
+  f :: alloc_sites.c:41 <- hidden: analysed, cache entry 10
+  malloc :: alloc_sites.c:35 <- f :: alloc_sites.c:42 <- hidden: builtin
+  f :: alloc_sites.c:42 <- hidden: analysed, cache entry 11
+  hidden: analysed, cache entry 12
+Initial state: equal.
+Differences with the run without memexec:
+  f, before alloc_sites.c:33 `if (n)`, joined: unavailable
+  f, before alloc_sites.c:33 `if (n)`, filtered: unavailable
+  f, before alloc_sites.c:33 `if (n)`, f :: alloc_sites.c:33 <- f :: alloc_sites.c:41 <- hidden: unavailable
+  f, before alloc_sites.c:33 `if (n)`, f :: alloc_sites.c:41 <- hidden: unavailable
+  f, before alloc_sites.c:33 `if (n)`, f :: alloc_sites.c:42 <- hidden: unavailable
+  f, after alloc_sites.c:33 `if (n)`, joined: unavailable
+  f, after alloc_sites.c:33 `if (n)`, filtered: unavailable
+  f, after alloc_sites.c:33 `if (n)`, f :: alloc_sites.c:33 <- f :: alloc_sites.c:41 <- hidden: unavailable
+  f, after alloc_sites.c:33 `if (n)`, f :: alloc_sites.c:41 <- hidden: unavailable
+  f, after alloc_sites.c:33 `if (n)`, f :: alloc_sites.c:42 <- hidden: unavailable
+  f, before alloc_sites.c:33 `f(n - 1,keep);`, joined: unavailable
+  f, before alloc_sites.c:33 `f(n - 1,keep);`, filtered: unavailable
+  f, before alloc_sites.c:33 `f(n - 1,keep);`, f :: alloc_sites.c:41 <- hidden: unavailable
+  f, after alloc_sites.c:33 `f(n - 1,keep);`, joined: unavailable
+  f, after alloc_sites.c:33 `f(n - 1,keep);`, filtered: unavailable
+  f, after alloc_sites.c:33 `f(n - 1,keep);`, f :: alloc_sites.c:41 <- hidden: unavailable
+  f, before alloc_sites.c:35 `int *t = malloc((size_t)4);`, joined: unavailable
+  f, before alloc_sites.c:35 `int *t = malloc((size_t)4);`, filtered: unavailable
+  f, before alloc_sites.c:35 `int *t = malloc((size_t)4);`, f :: alloc_sites.c:33 <- f :: alloc_sites.c:41 <- hidden: unavailable
+  f, before alloc_sites.c:35 `int *t = malloc((size_t)4);`, f :: alloc_sites.c:42 <- hidden: unavailable
+  f, after alloc_sites.c:35 `int *t = malloc((size_t)4);`, joined: unavailable
+  f, after alloc_sites.c:35 `int *t = malloc((size_t)4);`, filtered: unavailable
+  f, after alloc_sites.c:35 `int *t = malloc((size_t)4);`, f :: alloc_sites.c:33 <- f :: alloc_sites.c:41 <- hidden: unavailable
+  f, after alloc_sites.c:35 `int *t = malloc((size_t)4);`, f :: alloc_sites.c:42 <- hidden: unavailable
+  f, before alloc_sites.c:36 `if (keep)`, joined: unavailable
+  f, before alloc_sites.c:36 `if (keep)`, filtered: unavailable
+  f, before alloc_sites.c:36 `if (keep)`, f :: alloc_sites.c:33 <- f :: alloc_sites.c:41 <- hidden: unavailable
+  f, before alloc_sites.c:36 `if (keep)`, f :: alloc_sites.c:42 <- hidden: unavailable
+  f, after alloc_sites.c:36 `if (keep)`, joined: unavailable
+  f, after alloc_sites.c:36 `if (keep)`, filtered: unavailable
+  f, after alloc_sites.c:36 `if (keep)`, f :: alloc_sites.c:33 <- f :: alloc_sites.c:41 <- hidden: unavailable
+  f, after alloc_sites.c:36 `if (keep)`, f :: alloc_sites.c:42 <- hidden: unavailable
+  f, before alloc_sites.c:36 `p = (void *)t;`, joined: unavailable
+  f, before alloc_sites.c:36 `p = (void *)t;`, filtered: unavailable
+  f, before alloc_sites.c:36 `p = (void *)t;`, f :: alloc_sites.c:42 <- hidden: unavailable
+  f, after alloc_sites.c:36 `p = (void *)t;`, joined: unavailable
+  f, after alloc_sites.c:36 `p = (void *)t;`, filtered: unavailable
+  f, after alloc_sites.c:36 `p = (void *)t;`, f :: alloc_sites.c:42 <- hidden: unavailable
+  f, before alloc_sites.c:36 `free((void *)t);`, joined: unavailable
+  f, before alloc_sites.c:36 `free((void *)t);`, filtered: unavailable
+  f, before alloc_sites.c:36 `free((void *)t);`, f :: alloc_sites.c:33 <- f :: alloc_sites.c:41 <- hidden: unavailable
+  f, after alloc_sites.c:36 `free((void *)t);`, joined: unavailable
+  f, after alloc_sites.c:36 `free((void *)t);`, filtered: unavailable
+  f, after alloc_sites.c:36 `free((void *)t);`, f :: alloc_sites.c:33 <- f :: alloc_sites.c:41 <- hidden: unavailable
+  f, before alloc_sites.c:38 `return;`, joined: unavailable
+  f, before alloc_sites.c:38 `return;`, filtered: unavailable
+  f, before alloc_sites.c:38 `return;`, f :: alloc_sites.c:33 <- f :: alloc_sites.c:41 <- hidden: unavailable
+  f, before alloc_sites.c:38 `return;`, f :: alloc_sites.c:41 <- hidden: unavailable
+  f, before alloc_sites.c:38 `return;`, f :: alloc_sites.c:42 <- hidden: unavailable
+  f, after alloc_sites.c:38 `return;`, joined: unavailable
+  f, after alloc_sites.c:38 `return;`, filtered: unavailable
+  f, after alloc_sites.c:38 `return;`, f :: alloc_sites.c:33 <- f :: alloc_sites.c:41 <- hidden: unavailable
+  f, after alloc_sites.c:38 `return;`, f :: alloc_sites.c:41 <- hidden: unavailable
+  f, after alloc_sites.c:38 `return;`, f :: alloc_sites.c:42 <- hidden: unavailable
+Answers: 54 equal, 0 covering, 0 more precise, 0 omitting, 54 unavailable.
+Callstacks listed: NOT those of the run without memexec at 14 of the 35 points:
+  f, before alloc_sites.c:33 `if (n)`
+  f, after alloc_sites.c:33 `if (n)`
+  f, before alloc_sites.c:33 `f(n - 1,keep);`
+  f, after alloc_sites.c:33 `f(n - 1,keep);`
+  f, before alloc_sites.c:35 `int *t = malloc((size_t)4);`
+  f, after alloc_sites.c:35 `int *t = malloc((size_t)4);`
+  f, before alloc_sites.c:36 `if (keep)`
+  f, after alloc_sites.c:36 `if (keep)`
+  f, before alloc_sites.c:36 `p = (void *)t;`
+  f, after alloc_sites.c:36 `p = (void *)t;`
+  f, before alloc_sites.c:36 `free((void *)t);`
+  f, after alloc_sites.c:36 `free((void *)t);`
+  f, before alloc_sites.c:38 `return;`
+  f, after alloc_sites.c:38 `return;`
+Callstacks listed through the filter: NOT those of the run without memexec at 14 of the 35 points:
+  f, before alloc_sites.c:33 `if (n)`
+  f, after alloc_sites.c:33 `if (n)`
+  f, before alloc_sites.c:33 `f(n - 1,keep);`
+  f, after alloc_sites.c:33 `f(n - 1,keep);`
+  f, before alloc_sites.c:35 `int *t = malloc((size_t)4);`
+  f, after alloc_sites.c:35 `int *t = malloc((size_t)4);`
+  f, before alloc_sites.c:36 `if (keep)`
+  f, after alloc_sites.c:36 `if (keep)`
+  f, before alloc_sites.c:36 `p = (void *)t;`
+  f, after alloc_sites.c:36 `p = (void *)t;`
+  f, before alloc_sites.c:36 `free((void *)t);`
+  f, after alloc_sites.c:36 `free((void *)t);`
+  f, before alloc_sites.c:38 `return;`
+  f, after alloc_sites.c:38 `return;`
+Filtered requests that reject one callstack: 9.
+Requests made: 178; reported by the trap: 178, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 28 requests, 49 reads of the legacy store in them, 63 reads outside any request.
+  with -eva-hit-log: 28 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 17 requests
+    statistics: 10 requests
+    summary: 1 request
+Statuses of the properties: those of the run without memexec, for 91 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.6667, 0 alarms, those of the run without memexec.

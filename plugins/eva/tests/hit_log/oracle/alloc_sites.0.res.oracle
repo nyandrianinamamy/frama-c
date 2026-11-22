@@ -1,0 +1,43 @@
+[kernel] Parsing alloc_sites.c (with preprocessing)
+Calls:
+  malloc :: alloc_sites.c:29 <- same_line (call statements 1): builtin
+  malloc :: alloc_sites.c:29 <- same_line (call statements 3): builtin
+  same_line: analysed, cache entry 3
+same_line, start:
+  joined: p ∈ {0}
+  same_line: p ∈ {0}
+same_line, before alloc_sites.c:29 `;` (A):
+  joined: p ∈ {{ NULL ; (void *)&__malloc_same_line_l29_3 }}
+          __malloc_same_line_l29_3[0..3] ∈ UNINITIALIZED
+  same_line: p ∈ {{ NULL ; (void *)&__malloc_same_line_l29_3 }}
+             __malloc_same_line_l29_3[0..3] ∈ UNINITIALIZED
+same_line, before alloc_sites.c:29 `;` (B):
+  joined: p ∈ {{ NULL ; (void *)&__malloc_same_line_l29_4 }}
+          __malloc_same_line_l29_3[0..3] ∈ UNINITIALIZED
+          __malloc_same_line_l29_4[0..3] ∈ UNINITIALIZED
+  same_line: p ∈ {{ NULL ; (void *)&__malloc_same_line_l29_4 }}
+             __malloc_same_line_l29_3[0..3] ∈ UNINITIALIZED
+             __malloc_same_line_l29_4[0..3] ∈ UNINITIALIZED
+same_line, after alloc_sites.c:30 `return;`:
+  joined: p ∈ {{ NULL ; (void *)&__malloc_same_line_l29_4 }}
+          __malloc_same_line_l29_3[0..3] ∈ UNINITIALIZED
+          __malloc_same_line_l29_4[0..3] ∈ UNINITIALIZED
+  same_line: p ∈ {{ NULL ; (void *)&__malloc_same_line_l29_4 }}
+             __malloc_same_line_l29_3[0..3] ∈ UNINITIALIZED
+             __malloc_same_line_l29_4[0..3] ∈ UNINITIALIZED
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 83 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 35 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 35 points.
+Filtered requests that reject one callstack: 0.
+Requests made: 153; reported by the trap: 153, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 22 requests, 21 reads of the legacy store in them, 25 reads outside any request.
+  with -eva-hit-log: 22 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 16 requests
+    statistics: 5 requests
+    summary: 1 request
+Statuses of the properties: those of the run without memexec, for 92 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.3333, 0 alarms, those of the run without memexec.
