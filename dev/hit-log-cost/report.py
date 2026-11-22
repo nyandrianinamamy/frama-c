@@ -476,7 +476,13 @@ def tables(args):
         "parts account for the difference within the tolerance if the "
         "remainder is at most 10 % of the difference of the iteration, or at "
         "most the largest range of the iteration across the runs of either "
-        "mode if that is larger.\n"
+        "mode if that is larger. The growth of the GC time in the iteration, "
+        "from the profiles of section 6 (minor GC, major GC and major "
+        "allocation), counts as a part of its own: a remainder above the "
+        "tolerance is accounted for if it exceeds that growth by at most the "
+        "tolerance. GC time inside a timed part is also counted in that part, "
+        "so the GC part bounds the untimed GC from above; it is not attributed "
+        "to the timed parts.\n"
     )
     for prog in programs:
         off, on = get(f"meter-off-{prog}"), get(f"meter-on-{prog}")
@@ -537,6 +543,17 @@ def tables(args):
             f"tolerance: {fmt(tolerance, 2)} s; within the tolerance: "
             f"{'yes' if within else 'NO'}.\n"
         )
+        if not within:
+            gc_growth = gc_growth_in_iteration(args.results, prog)
+            if gc_growth is None:
+                w("No profile: the growth of the GC time is unknown; not accounted for.\n")
+            else:
+                excess = remainder - gc_growth
+                w(
+                    f"Growth of the GC time in the iteration: {fmt(gc_growth, 2)} s; "
+                    f"remainder minus that growth: {fmt(excess, 2)} s; accounted for "
+                    f"with the GC as a part: {'yes' if abs(excess) <= tolerance else 'NO'}.\n"
+                )
 
     # 5. GC counters.
     w("## 5. Garbage collector, from the probe\n")
@@ -965,6 +982,24 @@ def perf_summary(args):
             out.write(f"gc\t{name}\t{cls}\t{value}\t\n")
         for sym in sorted(incl[name]):
             out.write(f"function\t{name}\t{sym}\t{own[name].get(sym, 0)}\t{incl[name][sym]}\n")
+
+
+def gc_growth_in_iteration(results, prog):
+    """GC time of the iteration window, on − off, in seconds, from the
+    profiles of [prog]; None without both profiles."""
+    paths = [
+        os.path.join(results, "runs", f"perf-{mode}-{prog}", "perf.tsv") for mode in ["off", "on"]
+    ]
+    if not all(os.path.exists(p) for p in paths):
+        return None
+    off, on = (read_perf(p) for p in paths)
+
+    def gc(p):
+        g = p["gc"].get("iteration", {})
+        kinds = ["minor", "major", "major allocation"]
+        return sum(g.get(k, 0) for k in kinds) / p["meta"]["freq"]
+
+    return gc(on) - gc(off)
 
 
 def read_perf(path):

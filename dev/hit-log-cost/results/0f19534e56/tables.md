@@ -98,7 +98,7 @@ Cache size of these runs: 8.
 
 ## 4. Parts of the iteration, measurement build with timers
 
-Exclusive wall-clock time of each part (a part nested in another is counted in the inner one only), median of the runs. The parts are those of the timers file. 'rest' is the iteration of the probe minus the parts. The remainder is the difference of the iteration minus the differences of the parts, that is the difference of the rest. The parts account for the difference within the tolerance if the remainder is at most 10 % of the difference of the iteration, or at most the largest range of the iteration across the runs of either mode if that is larger.
+Exclusive wall-clock time of each part (a part nested in another is counted in the inner one only), median of the runs. The parts are those of the timers file. 'rest' is the iteration of the probe minus the parts. The remainder is the difference of the iteration minus the differences of the parts, that is the difference of the rest. The parts account for the difference within the tolerance if the remainder is at most 10 % of the difference of the iteration, or at most the largest range of the iteration across the runs of either mode if that is larger. The growth of the GC time in the iteration, from the profiles of section 6 (minor GC, major GC and major allocation), counts as a part of its own: a remainder above the tolerance is accounted for if it exceeds that growth by at most the tolerance. GC time inside a timed part is also counted in that part, so the GC part bounds the untimed GC from above; it is not attributed to the timed parts.
 
 ### gzip (n = 3 off, 3 on)
 
@@ -143,6 +143,8 @@ Difference of the iteration: 8.09 s; of the parts: 7.78 s; remainder: 0.31 s (3.
 Cache size of these runs: 8.
 
 Difference of the iteration: 20.04 s; of the parts: 12.30 s; remainder: 7.74 s (38.6 % of the difference); tolerance: 2.19 s; within the tolerance: NO.
+
+Growth of the GC time in the iteration: 7.00 s; remainder minus that growth: 0.74 s; accounted for with the GC as a part: yes.
 
 ## 5. Garbage collector, from the probe
 
