@@ -777,13 +777,9 @@ let () =
               Hashtbl.replace a.by_site site (n + 1))
        | _, (`Builtin _ | `Spec _ | `Body _ | `Reuse _) -> ())
 
-(* Adds to [acc] the created bases bound in the state of [answer], or
-   present in its values: a block of size zero, as the context of an empty
-   structure, has no binding. *)
-let bases_of_answer acc answer =
-  let add_base base acc =
-    if created_by_analysis base then Base.Hptset.add base acc else acc
-  in
+(* Fold over bindings and pointer values. A zero-sized block may occur
+   only in a value. *)
+let fold_bases_of_answer add_base acc answer =
   let add_value v acc =
     try Cvalue.V.fold_bases add_base (Cvalue.V_Or_Uninitialized.get_v v) acc
     with Abstract_interp.Error_Top -> acc
@@ -799,11 +795,14 @@ let bases_of_answer acc answer =
 
 (* The created bases of [answers]. *)
 let allocated_bases answers =
+  let add base acc =
+    if created_by_analysis base then Base.Set.add base acc else acc
+  in
   List.fold_left
     (fun acc a ->
-       List.fold_left bases_of_answer acc
+       List.fold_left (fold_bases_of_answer add) acc
          (a.joined :: a.filtered :: List.map snd a.by_callstack))
-    Base.Hptset.empty answers
+    Base.Set.empty answers
 
 type key =
   | Site of portable * int (* An allocated block, by its creation. *)
@@ -826,22 +825,48 @@ let key run base =
     let vi = Base.to_varinfo base in
     Named (stripped base, Format.asprintf "%a" Fileloc.pretty vi.vdecl)
 
-(* The created bases of the run [run]: those of its answers [answers], and
-   the blocks that its allocation built-ins create; with their key and their
-   name as a strong block. *)
+(* Capture mutable validity fields and names while the owning project is
+   current. Only [base] itself is used for identity and substitution later. *)
+type block = {
+  base: Base.t;
+  name: string;
+  extent: [ `Variable of Z.t * Z.t * Z.t | `Fixed of Base.validity ];
+  weak: bool;
+}
+
+let capture base =
+  let extent = match Base.validity base with
+    | Base.Variable v -> `Variable (v.min_alloc, v.max_alloc, v.max_allocable)
+    | v -> `Fixed v
+  in
+  { base; name = name base; extent; weak = Base.is_weak base }
+
+let describe block =
+  let extent = match block.extent with
+    | `Variable (lo, hi, limit) ->
+      Format.asprintf "Variable [0..%a--%a], max allocable %a"
+        Z.pretty lo Z.pretty hi Z.pretty limit
+    | `Fixed v -> Format.asprintf "%a" Base.pretty_validity v
+  in
+  Format.asprintf "%s (%s, %s)" block.name extent
+    (if block.weak then "weak" else "strong")
+
 let created run answers =
-  Base.Hashtbl.fold
-    (fun base _ acc -> Base.Hptset.add base acc)
-    (allocations_of run).origins (allocated_bases answers)
-  |> Base.Hptset.elements
-  |> List.map (fun base -> key run base, family base, base)
+  let blocks =
+    Base.Hashtbl.fold
+      (fun base _ acc -> Base.Set.add base acc)
+      (allocations_of run).origins (allocated_bases answers)
+    |> Base.Set.elements
+    |> List.map (fun base -> key run base, family base, capture base)
+  in
+  run, blocks
 
 (* The created bases of the run [source], each with its key, matched to
    those of the run [target]: the pairs of the bases matched, and the bases
    of the two runs that are unresolved. *)
 let matching (source_run, source) (target_run, target) =
-  let unresolved = ref Base.Hptset.empty in
-  let mark base = unresolved := Base.Hptset.add base !unresolved in
+  let unresolved = ref [] in
+  let mark block = unresolved := block :: !unresolved in
   let created_on run site =
     Option.value ~default:0 (Hashtbl.find_opt (allocations_of run).by_site site)
   in
@@ -864,11 +889,12 @@ let matching (source_run, source) (target_run, target) =
            List.iter (fun (_, _, base') -> mark base') candidates)
     source;
   List.iter (fun (key, _, base) -> if site_differs key then mark base) target;
-  let matched base = List.exists (fun (_, b) -> Base.equal b base) !mapped in
+  let same a b = Base.equal a.base b.base in
+  let matched base = List.exists (fun (_, b) -> same b base) !mapped in
   let unmatched_target =
     List.filter
       (fun (_, _, base) ->
-         not (matched base || Base.Hptset.mem base !unresolved))
+         not (matched base || List.exists (same base) !unresolved))
       target
   in
   List.iter
@@ -903,18 +929,20 @@ let matching (source_run, source) (target_run, target) =
    run it is compared with, the target:
    - [unresolved]: the bases of the two runs whose match is not decided,
      and the bases of the pairs matched whose source is weak and whose
-     target is strong;
+     target is strong, or whose extents differ;
    - [summarised]: the weak bases of the target matched to a strong base of
      the source;
    - [names]: the names of the bases of the source that are matched, with
      the names of their match;
    - [undecided], [weaker], [summarising]: the same bases, by name, for
-     their printing: the bases whose match is not decided, and the pairs of
-     the two kinds, the base of the target first. *)
+     their printing: the bases whose match is not decided, and pairs with
+     differing extents printed source -> target, and strength pairs printed
+     target first. *)
 type matched = {
   unresolved: Base.Hptset.t;
   summarised: Base.Hptset.t;
   names: (string * string) list;
+  unresolved_names: string list;
   undecided: string list;
   weaker: (string * string) list;
   summarising: (string * string) list;
@@ -922,7 +950,8 @@ type matched = {
 
 let no_match =
   { unresolved = Base.Hptset.empty; summarised = Base.Hptset.empty;
-    names = []; undecided = []; weaker = []; summarising = [] }
+    names = []; unresolved_names = []; undecided = [];
+    weaker = []; summarising = [] }
 
 (* The matches of the three comparisons: of the reference and of the run
    with memexec with the run with -eva-hit-log, and of the reference with
@@ -931,53 +960,44 @@ let matched_reference = ref no_match
 let matched_memexec = ref no_match
 let matched_pair = ref no_match
 
-(* Renames the created bases of [answers], of the run [source], into those
-   of [target_answers], of the run [target]. Returns the answers renamed and
-   the match. *)
-let rename ~source ~target answers target_answers =
-  let mapped, undecided =
-    matching (source, created source answers)
-      (target, created target target_answers)
-  in
-  (* Validity.equal compares the constructors and every extent field, including
-     max_allocable, but deliberately ignores the weak flag. *)
+(* Rename [answers] using the two runs' captured blocks. *)
+let rename ~source ~target answers =
+  let mapped, undecided = matching source target in
   let mapped, different_extents =
-    List.partition
-      (fun (a, b) -> Base.Validity.equal (Base.validity a) (Base.validity b))
-      mapped
+    List.partition (fun (a, b) -> a.extent = b.extent) mapped
   in
   let weaker =
-    List.filter (fun (b, b') -> Base.is_weak b && not (Base.is_weak b')) mapped
+    List.filter (fun (a, b) -> a.weak && not b.weak) mapped
   and summarising =
-    List.filter (fun (b, b') -> not (Base.is_weak b) && Base.is_weak b') mapped
+    List.filter (fun (a, b) -> not a.weak && b.weak) mapped
   in
-  let add acc base = Base.Hptset.add base acc in
+  let unresolved =
+    List.fold_left (fun blocks (a, b) -> a :: b :: blocks)
+      undecided (different_extents @ weaker)
+  in
+  let base_set blocks =
+    List.fold_left (fun set b -> Base.Hptset.add b.base set)
+      Base.Hptset.empty blocks
+  and names blocks = List.map (fun b -> b.name) blocks in
   let names_of pairs =
-    List.sort_uniq compare
-      (List.map (fun (base, base') -> name base', name base) pairs)
+    List.map (fun (a, b) -> b.name, a.name) pairs |> List.sort_uniq compare
   in
   let matched =
-    { unresolved =
-        List.fold_left (fun acc (base, base') -> add (add acc base) base')
-          undecided (different_extents @ weaker);
-      summarised =
-        List.fold_left (fun acc (_, base') -> add acc base')
-          Base.Hptset.empty summarising;
-      names = List.map (fun (base, base') -> name base, name base') mapped;
+    { unresolved = base_set unresolved;
+      summarised = base_set (List.map snd summarising);
+      unresolved_names = names unresolved;
+      names = List.map (fun (a, b) -> a.name, b.name) mapped;
       undecided = (
-        let describe b =
-          Format.asprintf "%s (%a, %s)" (name b) Base.pretty_validity
-            (Base.validity b) (if Base.is_weak b then "weak" else "strong")
-        in
         let extents = List.map
             (fun (a, b) -> describe a ^ " -> " ^ describe b) different_extents
         in
-        List.sort_uniq String.compare
-          (extents @ List.map name (Base.Hptset.elements undecided)));
+        List.sort_uniq String.compare (extents @ names undecided));
       weaker = names_of weaker;
       summarising = names_of summarising }
   in
-  let substitution = Base.substitution_from_list mapped in
+  let substitution =
+    Base.substitution_from_list (List.map (fun (a, b) -> a.base, b.base) mapped)
+  in
   let rename_value v =
     snd (Cvalue.V_Or_Uninitialized.replace_base substitution v)
   in
@@ -1049,9 +1069,8 @@ let print_matches () =
 (* Whether [answer] has a base of [bases]. *)
 let mentions bases answer =
   not (Base.Hptset.is_empty bases)
-  && Base.Hptset.exists
-    (fun base -> Base.Hptset.mem base bases)
-    (bases_of_answer Base.Hptset.empty answer)
+  && fold_bases_of_answer
+    (fun base found -> found || Base.Hptset.mem base bases) false answer
 
 (* ----- Comparison -------------------------------------------------------- *)
 
@@ -1906,9 +1925,7 @@ let record_outputs ~reference ~memexec ~current =
   let normal text = Str.global_replace (Str.regexp "[ \n]+") " " text in
   List.iter
     (fun (run, o, matched) ->
-       let unresolved_names =
-         List.map name (Base.Hptset.elements matched.unresolved)
-       in
+       let unresolved_names = matched.unresolved_names in
        let reference_text = rename_names matched.names reference.output in
        record [ "messages"; run;
                 if String.equal o.output reference.output then "equal"
@@ -2218,16 +2235,20 @@ let observe () =
        with -eva-hit-log, with its created bases; and with each other, with
        those of the run with memexec, on the callstacks that one of the two
        lists. *)
+    let blocks project run answers = Project.on project (created run) answers in
+    let ref_blocks = blocks reference "reference" own_reference in
+    let mem_blocks = blocks with_memexec "memexec" own_memexec in
+    let recording_blocks = created "recording" answers in
     let reference_answers, matched =
-      rename ~source:"reference" ~target:"recording" own_reference answers
+      rename ~source:ref_blocks ~target:recording_blocks own_reference
     in
     matched_reference := matched;
     let memexec_answers, matched =
-      rename ~source:"memexec" ~target:"recording" own_memexec answers
+      rename ~source:mem_blocks ~target:recording_blocks own_memexec
     in
     matched_memexec := matched;
     let pair_reference, matched =
-      rename ~source:"reference" ~target:"memexec" own_reference own_memexec
+      rename ~source:ref_blocks ~target:mem_blocks own_reference
     in
     matched_pair := matched;
     print_matches ();
@@ -2379,10 +2400,48 @@ let check_bounds ref_min answer_weak expected =
   let reference = point_of_model ref_model
   and answer = point_of_model answer_model in
   let renamed, matched =
-    rename ~source:"reference" ~target:"recording" [reference] [answer]
+    rename ~source:(created "reference" [reference])
+      ~target:(created "recording" [answer]) [reference]
   in
   assert (verdict ~matched ~reference:(List.hd renamed).joined
             ~answer:answer.joined () = expected)
+
+module Bound_state =
+  State_builder.Option_ref (Datatype.Pair (Base) (Cvalue.Model)) (struct
+    let name = "Hit_log_observer.Bound_state"
+    let dependencies = [Ast.self]
+  end)
+
+let check_prefix ~copied ~weak ~min_alloc =
+  Hashtbl.clear allocations;
+  let label = "prefix_block" in
+  let base, model = make_bound_base label ~weak:false ~min_alloc:31 in
+  Bound_state.set (base, model);
+  let project = Project.create_by_copy ~last:false "prefix_reference" in
+  let reference, source =
+    Project.on project
+      (fun () ->
+         let other, model =
+           if copied then Bound_state.get ()
+           else make_bound_base label ~weak:false ~min_alloc:31
+         in
+         assert (other != base && Base.equal other base = copied);
+         begin match Base.validity other with
+           | Base.Variable v ->
+             Base.update_variable_validity v ~weak ~min_alloc:(Z.of_int min_alloc)
+               ~max_alloc:(Z.of_int 31)
+           | _ -> assert false
+         end;
+         let answers = [point_of_model model] in
+         answers, created "reference" answers)
+      ()
+  in
+  let answer = point_of_model model in
+  let renamed, matched =
+    rename ~source ~target:(created "recording" [answer]) reference
+  in
+  assert (verdict ~matched ~reference:(List.hd renamed).joined
+            ~answer:answer.joined () = Unresolved)
 
 let () =
   Boot.Main.extend
@@ -2392,5 +2451,8 @@ let () =
          check_bounds 31 false Equal;
          check_bounds 31 true Covers;
          check_bounds 7 false Unresolved;
-         check_bounds 7 true Unresolved
+         check_bounds 7 true Unresolved;
+         check_prefix ~copied:true ~weak:false ~min_alloc:7;
+         check_prefix ~copied:true ~weak:true ~min_alloc:31;
+         check_prefix ~copied:false ~weak:false ~min_alloc:7
      else main)
