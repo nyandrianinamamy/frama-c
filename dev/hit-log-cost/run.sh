@@ -43,10 +43,12 @@
 #   NAME:OFF:ON:PLAIN:ABLATION-RUNS:ABLATIONS:PERF-FREQUENCY
 # with the number of repetitions of the runs with recording off, of those
 # with recording on, of the plain runs, and of each ablation; ABLATIONS is a
-# comma-separated list, or "all" for those of -a. The default is the
-# campaign of #100: monocypher runs for more than 30 minutes with recording
-# on, so these runs and its ablations are not repeated, only the ablations
-# that remove the most time on its profile are run, and its plain runs are
+# comma-separated list, or "all" for those of -a. An ablation A+B skips the
+# parts A and B; its saving is taken against the run of ablation A. The
+# default is the campaign of #100: monocypher runs for more than 30 minutes
+# with recording on, so these runs and its ablations are not repeated; its
+# ablations are state-bases, which removes most of the time on its profile,
+# projection, and each other part on top of state-bases; its plain runs are
 # left to gzip.
 # A run whose directory holds a status file with status 0 is not run again:
 # the campaign resumes where it stopped.
@@ -66,7 +68,12 @@ DEV_REV=375ab36aa5
 WORK=/dev/shm/hit-log-cost
 OUT=
 PROGRAMS="gzip:3:3:3:3:all:99"
-PROGRAMS+=" monocypher:3:1:0:1:state-bases,projection,call-starts:25"
+MONO_ABLATIONS=state-bases,projection
+for ab in footprint footprint-call projection call-starts hits legacy \
+          zone-bases; do
+  MONO_ABLATIONS+=",state-bases+$ab"
+done
+PROGRAMS+=" monocypher:3:1:0:1:$MONO_ABLATIONS:25"
 STAGES="build timing hits perf report"
 ABLATIONS="footprint footprint-call projection call-starts hits legacy"
 ABLATIONS+=" state-bases zone-bases"
@@ -74,7 +81,7 @@ CPU=4
 MEASURE_SRC=
 MEASURE_BUILD=
 PERF_STACK=16384
-TIMEOUT=100m
+TIMEOUT=150m
 JOBS=8
 
 usage () {
@@ -365,7 +372,7 @@ if has_stage timing; then
       if [ "$rep" -le "$abl_reps" ]; then
         for ab in $abl; do
           timed "ablate-$ab-$prog-$rep" measure "$prog" on \
-            "$(meter "ablate-$ab-$prog-$rep")" HIT_LOG_COST_ABLATE="$ab"
+            "$(meter "ablate-$ab-$prog-$rep")" HIT_LOG_COST_ABLATE="${ab//+/,}"
         done
       fi
     done

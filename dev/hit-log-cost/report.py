@@ -345,8 +345,10 @@ def tables(args):
         "counted in the inner one only), median of the runs. 'rest' is the "
         "iteration of the probe minus the parts. The remainder is the "
         "difference of the iteration minus the differences of the parts, "
-        "that is the difference of the rest; the tolerance is the largest "
-        "range of the iteration across the runs of either mode.\n"
+        "that is the difference of the rest. The parts account for the "
+        "difference within the tolerance if the remainder is at most 10 % of "
+        "the difference of the iteration, or at most the largest range of the "
+        "iteration across the runs of either mode if that is larger.\n"
     )
     part_names = [
         "memexec",
@@ -396,19 +398,20 @@ def tables(args):
             ]
         )
         rows.append(["iteration", fmt(it_off, 2), fmt(it_on, 2), fmt(it_on - it_off, 2), ""])
-        tolerance = max(
-            spread([r.phase("iteration") for r in off])[1]
-            - spread([r.phase("iteration") for r in off])[0],
-            spread([r.phase("iteration") for r in on])[1]
-            - spread([r.phase("iteration") for r in on])[0],
-        )
+        ranges = [spread([r.phase("iteration") for r in rs]) for rs in [off, on]]
+        tolerance = max([0.1 * abs(it_on - it_off)] + [high - low for low, high in ranges])
+        remainder = (it_on - it_off) - (total_on - total_off)
+        within = abs(remainder) <= tolerance
         w(f"### {prog} (n = {len(off)} off, {len(on)} on)\n")
         w(table(["part", "off", "on", "on − off", "calls (on)"], rows))
         w(
             f"Difference of the iteration: {fmt(it_on - it_off, 2)} s; of the "
             f"parts: {fmt(total_on - total_off, 2)} s; remainder: "
-            f"{fmt((it_on - it_off) - (total_on - total_off), 2)} s; tolerance: "
-            f"{fmt(tolerance, 2)} s.\n"
+            f"{fmt(remainder, 2)} s "
+            f"({fmt(100 * remainder / (it_on - it_off) if it_on != it_off else math.nan, 1)}"
+            " % of the difference); "
+            f"tolerance: {fmt(tolerance, 2)} s; within the tolerance: "
+            f"{'yes' if within else 'NO'}.\n"
         )
 
     # 5. GC counters.
@@ -529,8 +532,10 @@ def tables(args):
     w(
         "Each ablation skips one part of the recording; its answers are wrong, "
         "so only the iteration counts. Upper bound of the saving = iteration "
-        "of the control (recording on, no ablation) minus iteration of the "
-        "ablation. The hits, the calls analysed by their body (memexec misses) "
+        "of the run it is taken against minus iteration of the ablation: the "
+        "control (recording on, no ablation), or, for an ablation A+B, the run "
+        "of ablation A, so that the bound of B is its saving once A is "
+        "removed. The hits, the calls analysed by their body (memexec misses) "
         "and the alarms come from `-eva-statistics-file`; 'same' compares them "
         "with the control.\n"
     )
@@ -543,6 +548,7 @@ def tables(args):
         rows = [
             [
                 "control",
+                "",
                 len(control),
                 fmt_spread([r.phase("iteration") for r in control]),
                 "",
@@ -552,10 +558,22 @@ def tables(args):
             ]
         ]
         c_stats = control[0].stats
-        for ab in ablations:
+        prefix, suffix = "ablate-", f"-{prog}"
+        found = [
+            key[len(prefix) : -len(suffix)]
+            for key in runs
+            if key.startswith(prefix) and key.endswith(suffix)
+        ]
+        names = [ab for ab in ablations if ab in found]
+        names += sorted(ab for ab in found if ab not in names)
+        for ab in names:
             rs = get(f"ablate-{ab}-{prog}")
-            if not rs:
-                continue
+            against, b_it, b_wall = "control", c_it, c_wall
+            if "+" in ab:
+                against = ab.rsplit("+", 1)[0]
+                base = get(f"ablate-{against}-{prog}")
+                b_it = median([r.phase("iteration") for r in base])
+                b_wall = median([r.wall for r in base])
             it = median([r.phase("iteration") for r in rs])
             wall = median([r.wall for r in rs])
             same = all(
@@ -566,11 +584,12 @@ def tables(args):
             rows.append(
                 [
                     ab,
+                    against,
                     len(rs),
                     fmt_spread([r.phase("iteration") for r in rs]),
-                    fmt(c_it - it),
+                    fmt(b_it - it),
                     fmt(wall),
-                    fmt(c_wall - wall),
+                    fmt(b_wall - wall),
                     "yes" if same else "NO",
                 ]
             )
@@ -579,6 +598,7 @@ def tables(args):
             table(
                 [
                     "ablation",
+                    "against",
                     "n",
                     "iteration",
                     "upper bound (iteration)",
