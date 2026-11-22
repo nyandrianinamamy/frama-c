@@ -16,32 +16,12 @@ Calls below a hit:
   even :: unrolled_starts.c:25 <- odd :: unrolled_starts.c:27 <- even :: unrolled_starts.c:33 <- mutual
   odd :: unrolled_starts.c:27 <- even :: unrolled_starts.c:25 <- odd :: unrolled_starts.c:27 <- even :: unrolled_starts.c:33 <- mutual
 odd, start:
-  joined: unavailable
-  odd :: unrolled_starts.c:27 <- even :: unrolled_starts.c:25 <- odd :: unrolled_starts.c:27 <- even :: unrolled_starts.c:33 <- mutual: 
-  unavailable
-  odd :: unrolled_starts.c:27 <- even :: unrolled_starts.c:25 <- odd :: unrolled_starts.c:32 <- mutual: 
-  n ∈ {1}
-  n ∈ {2}
-  tmp ∈ UNINITIALIZED
-  a ∈ {0}
-  b ∈ {0}
-  __retres ∈ UNINITIALIZED
-  odd :: unrolled_starts.c:27 <- even :: unrolled_starts.c:33 <- mutual: 
-  n ∈ {3}
-  n ∈ {4}
-  tmp ∈ UNINITIALIZED
-  a ∈ {1}
-  b ∈ {0}
-  __retres ∈ UNINITIALIZED
-  odd :: unrolled_starts.c:32 <- mutual: n ∈ {3}
-                                         a ∈ {0}
-                                         b ∈ {0}
-  reference, joined: n ∈ {1; 3}
-                     n ∈ {2; 4}
-                     tmp ∈ UNINITIALIZED
-                     a ∈ {0; 1}
-                     b ∈ {0}
-                     __retres ∈ UNINITIALIZED
+  joined: n ∈ {1; 3}
+          n ∈ {2; 4}
+          tmp ∈ UNINITIALIZED
+          a ∈ {0; 1}
+          b ∈ {0}
+          __retres ∈ UNINITIALIZED
   odd :: unrolled_starts.c:27 <- even :: unrolled_starts.c:25 <- odd :: unrolled_starts.c:27 <- even :: unrolled_starts.c:33 <- mutual: 
   n ∈ {1}
   n ∈ {2}
@@ -155,34 +135,12 @@ odd, after unrolled_starts.c:25 `return __retres;`:
                                          b ∈ {0}
                                          __retres ∈ {1}
 even, start:
-  joined: unavailable
-  even :: unrolled_starts.c:25 <- odd :: unrolled_starts.c:27 <- even :: unrolled_starts.c:25 <- odd :: unrolled_starts.c:27 <- even :: unrolled_starts.c:33 <- mutual: 
-  unavailable
-  even :: unrolled_starts.c:25 <- odd :: unrolled_starts.c:27 <- even :: unrolled_starts.c:25 <- odd :: unrolled_starts.c:32 <- mutual: 
-  n ∈ {1}
-  tmp ∈ UNINITIALIZED
-  n ∈ {0}
-  a ∈ {0}
-  b ∈ {0}
-  __retres ∈ UNINITIALIZED
-  even :: unrolled_starts.c:25 <- odd :: unrolled_starts.c:27 <- even :: unrolled_starts.c:33 <- mutual: 
-  unavailable
-  even :: unrolled_starts.c:25 <- odd :: unrolled_starts.c:32 <- mutual: 
-  n ∈ {3}
-  tmp ∈ UNINITIALIZED
-  n ∈ {2}
-  a ∈ {0}
-  b ∈ {0}
-  __retres ∈ UNINITIALIZED
-  even :: unrolled_starts.c:33 <- mutual: n ∈ {4}
-                                          a ∈ {1}
-                                          b ∈ {0}
-  reference, joined: n ∈ {1; 3}
-                     tmp ∈ UNINITIALIZED
-                     n ∈ {0; 2; 4}
-                     a ∈ {0; 1}
-                     b ∈ {0}
-                     __retres ∈ UNINITIALIZED
+  joined: n ∈ {1; 3}
+          tmp ∈ UNINITIALIZED
+          n ∈ {0; 2; 4}
+          a ∈ {0; 1}
+          b ∈ {0}
+          __retres ∈ UNINITIALIZED
   even :: unrolled_starts.c:25 <- odd :: unrolled_starts.c:27 <- even :: unrolled_starts.c:25 <- odd :: unrolled_starts.c:27 <- even :: unrolled_starts.c:33 <- mutual: 
   n ∈ {1}
   tmp ∈ UNINITIALIZED
@@ -309,8 +267,6 @@ Differences with the run without memexec:
   final state, joined: more precise, as with memexec
   final state, filtered: more precise, as with memexec
   final state, mutual: more precise, as with memexec
-  odd, start, joined: unavailable
-  odd, start, odd :: unrolled_starts.c:27 <- even :: unrolled_starts.c:25 <- odd :: unrolled_starts.c:27 <- even :: unrolled_starts.c:33 <- mutual: unavailable
   odd, before unrolled_starts.c:25 `;` (P), joined: unavailable
   odd, before unrolled_starts.c:25 `;` (P), filtered: unavailable
   odd, before unrolled_starts.c:25 `;` (P), odd :: unrolled_starts.c:27 <- even :: unrolled_starts.c:25 <- odd :: unrolled_starts.c:27 <- even :: unrolled_starts.c:33 <- mutual: unavailable
@@ -411,10 +367,6 @@ Differences with the run without memexec:
   odd, after unrolled_starts.c:25 `return __retres;`, odd :: unrolled_starts.c:27 <- even :: unrolled_starts.c:25 <- odd :: unrolled_starts.c:32 <- mutual: unavailable
   odd, after unrolled_starts.c:25 `return __retres;`, odd :: unrolled_starts.c:27 <- even :: unrolled_starts.c:33 <- mutual: unavailable
   odd, after unrolled_starts.c:25 `return __retres;`, odd :: unrolled_starts.c:32 <- mutual: unavailable
-  even, start, joined: unavailable
-  even, start, filtered: unavailable
-  even, start, even :: unrolled_starts.c:25 <- odd :: unrolled_starts.c:27 <- even :: unrolled_starts.c:25 <- odd :: unrolled_starts.c:27 <- even :: unrolled_starts.c:33 <- mutual: unavailable
-  even, start, even :: unrolled_starts.c:25 <- odd :: unrolled_starts.c:27 <- even :: unrolled_starts.c:33 <- mutual: unavailable
   even, before unrolled_starts.c:27 `;` (P), joined: unavailable
   even, before unrolled_starts.c:27 `;` (P), filtered: unavailable
   even, before unrolled_starts.c:27 `;` (P), even :: unrolled_starts.c:25 <- odd :: unrolled_starts.c:27 <- even :: unrolled_starts.c:25 <- odd :: unrolled_starts.c:32 <- mutual: unavailable
@@ -522,7 +474,7 @@ Differences with the run without memexec:
   mutual, after unrolled_starts.c:34 `return;`, joined: more precise, as with memexec
   mutual, after unrolled_starts.c:34 `return;`, filtered: more precise, as with memexec
   mutual, after unrolled_starts.c:34 `return;`, mutual: more precise, as with memexec
-Answers: 74 equal, 0 covering, 12 more precise, 0 omitting, 204 unavailable.
+Answers: 80 equal, 0 covering, 12 more precise, 0 omitting, 198 unavailable.
 Callstacks listed: NOT those of the run without memexec at 35 of the 77 points:
   odd, before unrolled_starts.c:25 `;` (P)
   odd, after unrolled_starts.c:25 `;` (P)

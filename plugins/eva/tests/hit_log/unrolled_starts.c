@@ -6,15 +6,15 @@
 */
 
 /* Starts of the calls below a hit, with unrolled recursive calls. The points
-   of the bodies of the recursive functions are unavailable. Below a hit, a
-   recursive call and the calls below it cross a recursion: their starts are
-   unavailable, see unrolled_renaming.c. A recursive call removes the formals
-   and locals of the outer call of its function, or renames them when their
-   address is taken; the start state stored for the call replaces them. */
+   of the bodies of the recursive functions are unavailable. A recursive call
+   removes from the state the formals and locals of the outer call of its
+   function, which the start state stored for the call replaces, and renames
+   those whose address is taken: below a hit, the starts of such a call and
+   of the calls below it are unavailable, see unrolled_renaming.c. */
 
-/* even(4) calls odd(3), a hit of the call made by mutual. Below it, even(2)
-   is a recursive call: its start and those of odd(1) and even(0) below it
-   are unavailable on these callstacks, and answered on the others.
+/* even(4) calls odd(3), a hit of the call made by mutual. Below it, odd(1)
+   is called by even(2): its formal n holds 1, and not the value 3 of the
+   outer call odd(3); the locals of odd(3) are not in its start state.
    With -eva-unroll-recursive-calls 2, the run without memexec reaches even(0)
    at depth 2 below even(4), and uses a generated specification for it; the
    hit reuses the call made by mutual, within the bound. The answers after

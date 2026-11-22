@@ -19,8 +19,8 @@
 
    The second call even_ptr(4, &b) is a hit of the first one. Below it,
    odd_ptr(3) is not a recursive call: its start is answered. even_ptr(2) is
-   a recursive call: its start is unavailable, as are those of the calls
-   below it.
+   a recursive call that renames y: its start is unavailable, as are those of
+   the calls below it.
 
    The second call odd_ptr(1, &c) is a hit of the first one. Below it,
    even_ptr(0) and set are not recursive calls: their starts are answered. */
