@@ -13,7 +13,12 @@
      give nothing for the keys bound to the same value in the two maps and
      when they give these bindings;
    - it never calls [both] on a key bound to the same value in the two maps,
-     and it calls [same] on shared subtrees of several keys. *)
+     and it calls [same] on shared subtrees of several keys;
+   - it never calls [same] on an empty map: two empty maps give [empty];
+   - with a cache, it tests the physical equality of two maps before it
+     looks up the cache: a second walk of a map with itself calls [same]
+     again, where the cache alone would give the result of the first walk
+     without calling it. *)
 
 let%test "fold2_join_homogeneous" =
   let module Key = struct include Datatype.Int let id = Fun.id end in
@@ -87,10 +92,12 @@ let%test "fold2_join_homogeneous" =
       ~empty_left:only_right ~empty_right:only_left ~both
       ~join:( @ ) ~empty:[]
   in
-  (* Calls of [both] on equal values, and of [same] on several keys. *)
-  let both_equal = ref 0 and same_shared = ref 0 in
+  (* Calls of [both] on equal values, of [same] on several keys, and of
+     [same] on an empty map. *)
+  let both_equal = ref 0 and same_shared = ref 0 and same_empty = ref 0 in
   let homogeneous ~cache both same =
     let both k v1 v2 = if v1 = v2 then incr both_equal; both k v1 v2 in
+    let same t = if M.is_empty t then incr same_empty; same t in
     M.fold2_join_homogeneous ~cache
       ~empty_left:only_right ~empty_right:only_left ~both ~same
       ~join:( @ ) ~empty:[]
@@ -109,8 +116,7 @@ let%test "fold2_join_homogeneous" =
         homogeneous ~cache:Hptmap_sig.NoCache all all_shared;
         homogeneous ~cache:(cache "test_hptmap_all") all all_shared ] ]
   in
-  let check i =
-    let m1, m2 = random_pair i in
+  let check (m1, m2) =
     let same_result (reference, walks) =
       let expected = List.sort compare (reference m1 m2) in
       List.for_all (fun walk -> List.sort compare (walk m1 m2) = expected) walks
@@ -121,9 +127,31 @@ let%test "fold2_join_homogeneous" =
         M.pretty m1 M.pretty m2;
     ok
   in
-  let ok = List.for_all check (List.init 2000 Fun.id) in
-  if !both_equal <> 0 || !same_shared = 0 then
+  let ok =
+    List.for_all (fun i -> check (random_pair i)) (List.init 2000 Fun.id)
+  in
+  (* Two empty maps, physically equal. *)
+  let ok_empty = check (M.empty, M.empty) in
+  (* Two walks of a map with itself, by one walk with a cache. *)
+  let same_calls = ref 0 in
+  let repeated =
+    homogeneous ~cache:(cache "test_hptmap_repeated") all
+      (fun t -> incr same_calls; all_shared t)
+  in
+  let t = random_map 32 in
+  let expected = List.sort compare (all_shared t) in
+  let ok_repeated =
+    List.for_all
+      (fun () -> List.sort compare (repeated t t) = expected)
+      [ (); () ]
+    && !same_calls = 2
+  in
+  if !both_equal <> 0 || !same_shared = 0 || !same_empty <> 0
+     || not ok_repeated then
     Format.eprintf "fold2_join_homogeneous: %d calls of both on equal values, \
-                    %d calls of same on several keys@."
-      !both_equal !same_shared;
-  ok && !both_equal = 0 && !same_shared > 0
+                    %d calls of same on several keys, %d calls of same on an \
+                    empty map, %d calls of same in two walks of a map with \
+                    itself@."
+      !both_equal !same_shared !same_empty !same_calls;
+  ok && ok_empty && ok_repeated
+  && !both_equal = 0 && !same_shared > 0 && !same_empty = 0
