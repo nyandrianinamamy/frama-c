@@ -679,6 +679,14 @@ type derived = {
   answers_start: Cvalue.Model.t Kf_table.t;
   answers_before: Cvalue.Model.t Stmt_table.t;
   answers_after: Cvalue.Model.t Stmt_table.t;
+  (* The answers to the requests on one callstack before and after each
+     statement, by statement and callstack. *)
+  callstack_before: Cvalue.Model.t Cs_table.t Stmt_table.t;
+  callstack_after: Cvalue.Model.t Cs_table.t Stmt_table.t;
+  (* The callstacks that reach the point before and after each statement,
+     with their states, as [get_state_by_callstack] answers them. *)
+  reached_before: (Callstack.t * Cvalue.Model.t) list Stmt_table.t;
+  reached_after: (Callstack.t * Cvalue.Model.t) list Stmt_table.t;
   mutable indexed: bool;
   mutable pastes: int;
 }
@@ -694,6 +702,10 @@ let new_derived () = {
   answers_start = Kf_table.create 17;
   answers_before = Stmt_table.create 17;
   answers_after = Stmt_table.create 17;
+  callstack_before = Stmt_table.create 17;
+  callstack_after = Stmt_table.create 17;
+  reached_before = Stmt_table.create 17;
+  reached_after = Stmt_table.create 17;
   indexed = false;
   pastes = 0;
 }
@@ -1071,18 +1083,33 @@ let memo table find replace key f =
     replace table key state;
     state
 
+(* The answers before and after the statements are memoised, joined over all
+   callstacks and for each callstack. A memoised answer is the state that
+   [point_state] computed for the same point and callstack, from the store,
+   which does not change once the analysis has ended, and from memoised
+   states that do not change either: [point_state] would compute the same
+   value again. The passes after the iteration ask for the same states
+   several times: the statuses of the properties evaluate each property of a
+   statement on each callstack that reaches it, with the labels of its
+   function. If [Unavailable] is raised, no answer is memoised, and the next
+   request raises it again. *)
 let get_state ?callstack control_point =
   let store = Store.get () in
   if not (is_available store control_point) then `Top
   else
     let derived = derived store in
     count_pastes derived @@ fun () ->
-    let point_state stmt table =
+    let point_state stmt ~joined ~by_callstack =
       let kf = Kernel_function.find_englobing_kf stmt in
       let compute () = point_state store derived ?callstack control_point kf in
       match callstack with
-      | Some _ -> compute ()
-      | None -> memo table Stmt_table.find_opt Stmt_table.replace stmt compute
+      | None -> memo joined Stmt_table.find_opt Stmt_table.replace stmt compute
+      | Some callstack ->
+        let table =
+          memo by_callstack Stmt_table.find_opt Stmt_table.replace stmt
+            (fun () -> Cs_table.create 7)
+        in
+        memo table Cs_table.find_opt Cs_table.replace callstack compute
     in
     try
       match control_point with
@@ -1103,8 +1130,14 @@ let get_state ?callstack control_point =
               compute
             |> to_result
         end
-      | Before stmt -> to_result (point_state stmt derived.answers_before)
-      | After stmt -> to_result (point_state stmt derived.answers_after)
+      | Before stmt ->
+        point_state stmt ~joined:derived.answers_before
+          ~by_callstack:derived.callstack_before
+        |> to_result
+      | After stmt ->
+        point_state stmt ~joined:derived.answers_after
+          ~by_callstack:derived.callstack_after
+        |> to_result
     with Unavailable -> `Top
 
 (* Joins [state] into the state of [callstack] in [table]. *)
@@ -1149,13 +1182,15 @@ let states_by_callstack store derived control_point =
   end;
   table
 
+(* The answers before and after the statements are memoised, as those of
+   [get_state] and for the same reasons. *)
 let get_state_by_callstack control_point =
   let store = Store.get () in
   if not (is_available store control_point) then `Top
   else
     let derived = derived store in
     count_pastes derived @@ fun () ->
-    try
+    let compute () =
       let table = states_by_callstack store derived control_point in
       let reached =
         Cs_table.fold
@@ -1165,7 +1200,19 @@ let get_state_by_callstack control_point =
              | Top | Map _ -> (callstack, state) :: acc)
           table []
       in
-      match List.sort (fun (a, _) (b, _) -> Callstack.compare a b) reached with
+      List.sort (fun (a, _) (b, _) -> Callstack.compare a b) reached
+    in
+    let memoised table stmt =
+      memo table Stmt_table.find_opt Stmt_table.replace stmt compute
+    in
+    try
+      let reached =
+        match control_point with
+        | Before stmt -> memoised derived.reached_before stmt
+        | After stmt -> memoised derived.reached_after stmt
+        | Initial | Start _ -> compute ()
+      in
+      match reached with
       | [] -> `Bottom
       | list -> `Value list
     with Unavailable -> `Top
