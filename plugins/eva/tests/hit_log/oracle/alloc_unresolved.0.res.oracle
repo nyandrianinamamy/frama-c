@@ -13,6 +13,10 @@ Created bases whose match with the run without memexec is unresolved:
   __malloc_issue94_l26
   __malloc_issue94_l26_2
   __malloc_issue94_l26_3
+Created bases of the run with memexec, without recording, whose match with the run without memexec is unresolved:
+  __malloc_issue94_l26
+  __malloc_issue94_l26_0
+  __malloc_issue94_l26_1
 Hits against the analysed call of their cache entry:
 Initial state: equal.
 Differences with the run without memexec:

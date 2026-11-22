@@ -9,6 +9,10 @@ Calls:
   malloc :: below_known_issues.c:102 <- issue94_2: builtin
   p94_2 :: below_known_issues.c:106 <- issue94_2: hit of cache entry 12
   issue94_2: analysed, cache entry 13
+Created bases that summarise several blocks, matched to one block of the run without memexec:
+  __malloc_w_issue94_2_l102_1, for __malloc_issue94_2_l102
+Created bases of the run with memexec, without recording, that summarise several blocks, matched to one block of the run without memexec:
+  __malloc_w_issue94_2_l102_0, for __malloc_issue94_2_l102
 release, start:
   joined: a ∈ {0}
           g ∈ {0}
@@ -266,6 +270,12 @@ Differences with the run without memexec:
   issue94_2, after below_known_issues.c:105 `alias = owner;`, joined: covers, as with memexec
   issue94_2, after below_known_issues.c:105 `alias = owner;`, filtered: covers, as with memexec
   issue94_2, after below_known_issues.c:105 `alias = owner;`, issue94_2: covers, as with memexec
+  issue94_2, before below_known_issues.c:105 `alias = (int *)0;`, joined: covers, as with memexec
+  issue94_2, before below_known_issues.c:105 `alias = (int *)0;`, filtered: covers, as with memexec
+  issue94_2, before below_known_issues.c:105 `alias = (int *)0;`, issue94_2: covers, as with memexec
+  issue94_2, after below_known_issues.c:105 `alias = (int *)0;`, joined: covers, as with memexec
+  issue94_2, after below_known_issues.c:105 `alias = (int *)0;`, filtered: covers, as with memexec
+  issue94_2, after below_known_issues.c:105 `alias = (int *)0;`, issue94_2: covers, as with memexec
   issue94_2, before below_known_issues.c:106 `p94_2();`, joined: covers, as with memexec
   issue94_2, before below_known_issues.c:106 `p94_2();`, filtered: covers, as with memexec
   issue94_2, before below_known_issues.c:106 `p94_2();`, issue94_2: covers, as with memexec
@@ -290,7 +300,7 @@ Differences with the run without memexec:
   issue94_2, after below_known_issues.c:108 `return __retres;`, joined: OMITS, as with memexec
   issue94_2, after below_known_issues.c:108 `return __retres;`, filtered: OMITS, as with memexec
   issue94_2, after below_known_issues.c:108 `return __retres;`, issue94_2: OMITS, as with memexec
-Answers: 479 equal, 18 covering, 0 more precise, 99 omitting, 0 unavailable.
+Answers: 473 equal, 24 covering, 0 more precise, 99 omitting, 0 unavailable.
 Callstacks listed: those of the run without memexec at each of the 274 points.
 Callstacks listed through the filter: those of the run without memexec at each of the 274 points.
 Filtered requests that reject one callstack: 0.

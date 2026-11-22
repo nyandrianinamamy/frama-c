@@ -10,6 +10,11 @@
    the reference when the reference lists several, and for each callstack
    that reaches the point in one of the three projects.
 
+   The run with memexec and without recording is compared with the reference
+   between these two runs only: on the callstacks that one of the two lists,
+   with the allocated blocks of the two matched to each other. Its verdicts
+   do not depend on the run with -eva-hit-log.
+
    It prints:
    - the calls of the analysis with -eva-hit-log, with the cache entry they
      compute or use;
@@ -30,7 +35,13 @@
      "covers": the answer includes the reference and is larger;
      "more precise": the answer is included in the reference and smaller;
      "OMITS": the answer does not include the reference;
-     "unavailable": the answer is top, as for a function without results.
+     "unavailable": the answer is top, as for a function without results;
+     "unresolved": the answer or the reference holds an allocated block
+     whose match in the other run is not decided, or that is a summary of
+     several blocks in the reference and one block in the answer.
+     An answer that holds a summary of several blocks matched to one block
+     of the reference is compared in one direction only: it covers the
+     reference or omits it.
      A verdict is followed by "as with memexec" when the answer equals that of
      the run with memexec and without recording: the difference comes from
      the analysis with memexec, not from the answers served from the hit log.
@@ -63,7 +74,12 @@
    computed before it starts. What it prints is otherwise unchanged. The
    environment variables HIT_LOG_OBSERVER_STAGE and HIT_LOG_OBSERVER_STAGES
    select the stage of the command line that it observes, and list the
-   stages that start an analysis, for that script too. *)
+   stages that start an analysis, for that script too.
+
+   Two other environment variables are controls, for the tests of the
+   observer itself: they make a run differ from what the command line asks,
+   in a known way, to check what the observer concludes. See "Controls"
+   below. *)
 
 open Eva
 
@@ -76,6 +92,10 @@ let summary =
 
 let suite = Option.is_some summary
 
+(* The version of the records of the summary, which dev/hit-log-suite.py
+   checks before it reads them. *)
+let format = "2"
+
 (* Writes one record of the summary, flushed at once, so that the record of
    a phase is kept if the run is stopped during that phase. *)
 let record fields =
@@ -86,6 +106,44 @@ let record fields =
        output_char channel '\n';
        flush channel)
     summary
+
+(* The first record, written when the observer is loaded: a summary without
+   it is not one of this observer. *)
+let () = record [ "format"; format ]
+
+(* ----- Controls ---------------------------------------------------------- *)
+
+(* For the tests of the observer itself, two environment variables make a
+   run differ, in a known way, from what the command line asks, so that the
+   conclusions of the observer are checked on a difference. A control is
+   printed, and recorded in the summary: a run under a control is not an
+   observation of Eva. HIT_LOG_OBSERVER_ALLOC_REFERENCE and
+   HIT_LOG_OBSERVER_ALLOC_MEMEXEC give the value of -eva-alloc-builtin in
+   the run without memexec, and in the run with memexec and without
+   recording. *)
+let control variable =
+  match Sys.getenv_opt variable with
+  | None | Some "" -> None
+  | Some value -> Some value
+
+let alloc_controls =
+  [ "reference", control "HIT_LOG_OBSERVER_ALLOC_REFERENCE";
+    "memexec", control "HIT_LOG_OBSERVER_ALLOC_MEMEXEC" ]
+
+let print_controls () =
+  let print what value =
+    Format.printf "Control: %s %s.@." what value;
+    record [ "control"; what; value ]
+  in
+  List.iter
+    (fun (run, title) ->
+       Option.iter
+         (print
+            (Format.sprintf "the run %s allocates with -eva-alloc-builtin"
+               title))
+         (List.assoc run alloc_controls))
+    [ "reference", "without memexec";
+      "memexec", "with memexec, without recording" ]
 
 (* ----- Stages of the command line ---------------------------------------- *)
 
@@ -814,23 +872,84 @@ let matching (source_run, source) (target_run, target) =
     !unmatched;
   !mapped, !unresolved
 
-(* The created bases of the reference and of the run with memexec whose
-   match with those of the run with -eva-hit-log is unresolved, with these
-   bases of the run with -eva-hit-log; and the names of the bases of the
-   reference and of the run with memexec matched, with the names of their
-   match. *)
-let unresolved_reference = ref Base.Hptset.empty
-let unresolved_memexec = ref Base.Hptset.empty
-let names_reference = ref []
-let names_memexec = ref []
+(* An allocated block is one block, a strong base, or a summary of the
+   blocks allocated at one place, a weak base, which Eva updates weakly: a
+   store adds its value to those that the base has. Eva makes a base weak in
+   place, during the analysis: the strength compared here is that of the
+   base at the end of its analysis. Renaming a base into its match loses its
+   strength, so the pairs matched whose strengths differ are kept apart,
+   as follows. The bounds of the blocks are not compared.
+   - a strong base matched to a weak base of the run compared with it: a
+     state with the one block is among the states that the summary
+     describes, with the same contents, and not the converse. Only the
+     inclusion of the first run in the second is tested;
+   - a weak base matched to a strong base of the run compared with it: the
+     states that the summary describes are not all states of the one block.
+     No inclusion is tested: the answers that hold it are unresolved. *)
+
+(* How the created bases of a run, the source, are matched to those of the
+   run it is compared with, the target:
+   - [unresolved]: the bases of the two runs whose match is not decided,
+     and the bases of the pairs matched whose source is weak and whose
+     target is strong;
+   - [summarised]: the weak bases of the target matched to a strong base of
+     the source;
+   - [names]: the names of the bases of the source that are matched, with
+     the names of their match;
+   - [undecided], [weaker], [summarising]: the same bases, by name, for
+     their printing: the bases whose match is not decided, and the pairs of
+     the two kinds, the base of the target first. *)
+type matched = {
+  unresolved: Base.Hptset.t;
+  summarised: Base.Hptset.t;
+  names: (string * string) list;
+  undecided: string list;
+  weaker: (string * string) list;
+  summarising: (string * string) list;
+}
+
+let no_match =
+  { unresolved = Base.Hptset.empty; summarised = Base.Hptset.empty;
+    names = []; undecided = []; weaker = []; summarising = [] }
+
+(* The matches of the three comparisons: of the reference and of the run
+   with memexec with the run with -eva-hit-log, and of the reference with
+   the run with memexec. *)
+let matched_reference = ref no_match
+let matched_memexec = ref no_match
+let matched_pair = ref no_match
 
 (* Renames the created bases of [answers], of the run [source], into those
-   of [into], of the run with -eva-hit-log. Returns the answers renamed, the
-   unresolved bases and the names of the bases matched. *)
-let rename ~source ~into answers =
-  let mapped, unresolved =
+   of [target_answers], of the run [target]. Returns the answers renamed and
+   the match. *)
+let rename ~source ~target answers target_answers =
+  let mapped, undecided =
     matching (source, created source answers)
-      ("recording", created "recording" into)
+      (target, created target target_answers)
+  in
+  let weaker =
+    List.filter (fun (b, b') -> Base.is_weak b && not (Base.is_weak b')) mapped
+  and summarising =
+    List.filter (fun (b, b') -> not (Base.is_weak b) && Base.is_weak b') mapped
+  in
+  let add acc base = Base.Hptset.add base acc in
+  let names_of pairs =
+    List.sort_uniq compare
+      (List.map (fun (base, base') -> name base', name base) pairs)
+  in
+  let matched =
+    { unresolved =
+        List.fold_left (fun acc (base, base') -> add (add acc base) base')
+          undecided weaker;
+      summarised =
+        List.fold_left (fun acc (_, base') -> add acc base')
+          Base.Hptset.empty summarising;
+      names = List.map (fun (base, base') -> name base, name base') mapped;
+      undecided =
+        Base.Hptset.elements undecided |> List.map name
+        |> List.sort_uniq String.compare;
+      weaker = names_of weaker;
+      summarising = names_of summarising }
   in
   let substitution = Base.substitution_from_list mapped in
   let rename_value v =
@@ -857,33 +976,55 @@ let rename ~source ~into answers =
            filtered_stacks = a.filtered_stacks })
       answers
   in
-  renamed, unresolved,
-  List.map (fun (base, base') -> name base, name base') mapped
+  renamed, matched
 
-(* Prints and records the created bases whose match is unresolved, if
-   any. *)
-let print_unresolved () =
-  List.iter
-    (fun (run, unresolved) ->
-       if not (Base.Hptset.is_empty unresolved) then begin
-         let names =
-           Base.Hptset.elements unresolved |> List.map name
-           |> List.sort_uniq String.compare
-         in
-         Format.printf "@[<v 2>Created bases whose match with the run %s is \
-                        unresolved:" run;
-         List.iter (Format.printf "@ %s") names;
-         Format.printf "@]@.";
-         List.iter (fun name -> record [ "unresolved"; run; name ]) names
-       end)
-    [ "without memexec", !unresolved_reference;
-      "with memexec", !unresolved_memexec ]
+(* Prints and records, for each of the three comparisons, the created bases
+   whose match is unresolved and those that summarise a block of the run
+   they are compared with, if any. *)
+let print_matches () =
+  let print (of_run, run, label, matched) =
+    if matched.undecided <> [] || matched.weaker <> [] then begin
+      Format.printf "@[<v 2>Created bases%s whose match with the run %s is \
+                     unresolved:" of_run run;
+      List.iter (Format.printf "@ %s") matched.undecided;
+      List.iter
+        (fun (name, name') ->
+           Format.printf "@ %s, one block, for %s, a summary of several"
+             name name')
+        matched.weaker;
+      Format.printf "@]@.";
+      List.iter
+        (fun name -> record [ "unresolved"; label; name; "match undecided" ])
+        matched.undecided;
+      List.iter
+        (fun (name, name') ->
+           record [ "unresolved"; label; name;
+                    "one block, for the summary " ^ name' ])
+        matched.weaker
+    end;
+    if matched.summarising <> [] then begin
+      Format.printf "@[<v 2>Created bases%s that summarise several blocks, \
+                     matched to one block of the run %s:" of_run run;
+      List.iter
+        (fun (name, name') -> Format.printf "@ %s, for %s" name name')
+        matched.summarising;
+      Format.printf "@]@.";
+      List.iter
+        (fun (name, name') -> record [ "summarised"; label; name; name' ])
+        matched.summarising
+    end
+  in
+  List.iter print
+    [ "", "without memexec", "without memexec", !matched_reference;
+      "", "with memexec", "with memexec", !matched_memexec;
+      " of the run with memexec, without recording,", "without memexec",
+      "memexec against reference", !matched_pair ]
 
-(* Whether [answer] has a base of [unresolved]. *)
-let mentions unresolved answer =
-  not (Base.Hptset.is_empty unresolved)
+(* Whether [answer] has a base of [bases]. *)
+let mentions bases answer =
+  not (Base.Hptset.is_empty bases)
   && Base.Hptset.exists
-    (fun base -> Base.Hptset.mem base unresolved)
+    (fun base -> Base.Hptset.mem base bases)
     (bases_of_answer Base.Hptset.empty answer)
 
 (* ----- Comparison -------------------------------------------------------- *)
@@ -896,15 +1037,22 @@ let model = function
   | Ok state -> Some state
   | Error Results.Bottom -> Some Cvalue.Model.bottom
 
-(* The verdict on [answer] against [reference]: unresolved if a created base
-   of [unresolved] is in one of them, and if both are available. *)
-let verdict ?(unresolved = Base.Hptset.empty) ~reference ~answer () =
+(* The verdict on [answer] against [reference], whose created bases are
+   renamed by the match [matched], when both are available:
+   - unresolved, if one of them has an unresolved base;
+   - by the inclusion of the reference in the answer only, if one of them
+     has a base that summarises a block of the reference: the answer covers
+     the reference, or omits it when the reference is not included, and is
+     never equal to it nor more precise;
+   - by the two inclusions otherwise. *)
+let verdict ?(matched = no_match) ~reference ~answer () =
+  let has bases = mentions bases reference || mentions bases answer in
   match model reference, model answer with
   | _, None -> Unavailable
   | None, Some _ -> Omits
-  | Some _, Some _
-    when mentions unresolved reference || mentions unresolved answer ->
-    Unresolved
+  | Some _, Some _ when has matched.unresolved -> Unresolved
+  | Some reference, Some answer when has matched.summarised ->
+    if Cvalue.Model.is_included reference answer then Covers else Omits
   | Some reference, Some answer ->
     match Cvalue.Model.is_included reference answer,
           Cvalue.Model.is_included answer reference with
@@ -921,11 +1069,19 @@ let string_of_verdict = function
   | Unavailable -> "unavailable"
   | Unresolved -> "unresolved"
 
-(* The answers of the three projects at one point. *)
+(* The answers of the three projects at one point. Those of the reference
+   and of the run with memexec have their created bases renamed into those
+   of the run with -eva-hit-log. For the comparison of the run with memexec
+   with the reference, [pair] has the answers of the reference, with its
+   created bases renamed into those of the run with memexec, and the answers
+   of the run with memexec as they are; [pair_stacks] are the callstacks
+   that one of the two lists at the point. *)
 type compared = {
   reference: point_answers; (* Without memexec. *)
   memexec: point_answers; (* With memexec, without recording. *)
   current: point_answers; (* With recording. *)
+  pair: point_answers * point_answers;
+  pair_stacks: (string * portable) list;
 }
 
 (* The three projects are asked for the same callstacks at each point. *)
@@ -1190,33 +1346,43 @@ let closed_list_case (point : point) ~stacks =
 let counts = Hashtbl.create 5
 let memexec_counts = Hashtbl.create 5
 
+(* The number of answers on a callstack that neither the reference nor the
+   run with memexec lists: the run with memexec is not compared there. *)
+let not_compared = ref 0
+
 let count table v =
   let n = Option.value ~default:0 (Hashtbl.find_opt table v) in
   Hashtbl.replace table v (n + 1)
 
 (* [stacks] are the callstacks that [answer] includes in the current
-   project. *)
+   project. [pair] has the answers of the reference and of the run with
+   memexec to the same request, for the comparison of these two runs, if it
+   is made. *)
 let compare_answer point ~what ~stacks description ~reference ~memexec
-    ~answer =
-  let v = verdict ~unresolved:!unresolved_reference ~reference ~answer () in
+    ~answer ~pair =
+  let v = verdict ~matched:!matched_reference ~reference ~answer () in
   let v_memexec =
-    verdict
-      ~unresolved:(Base.Hptset.union !unresolved_reference !unresolved_memexec)
-      ~reference ~answer:memexec ()
+    Option.map
+      (fun (reference, answer) ->
+         verdict ~matched:!matched_pair ~reference ~answer ())
+      pair
   in
   count counts v;
-  count memexec_counts v_memexec;
+  begin match v_memexec with
+    | Some v -> count memexec_counts v
+    | None -> incr not_compared
+  end;
   let origin =
     if v = Unavailable && model reference = None then ", as in the reference"
     else if
-      verdict ~unresolved:!unresolved_memexec ~reference:memexec ~answer ()
-      = Equal
+      verdict ~matched:!matched_memexec ~reference:memexec ~answer () = Equal
     then ", as with memexec"
     else ""
   in
   if v <> Equal then
     Format.printf "  %s: %s%s@." description (string_of_verdict v) origin;
-  if suite && (v <> Equal || v_memexec <> Equal) then
+  let differs = Option.fold ~none:false ~some:(( <> ) Equal) v_memexec in
+  if suite && (v <> Equal || differs) then
     let name = match point.kf with
       | Some kf -> Kernel_function.get_name kf
       | None -> ""
@@ -1225,27 +1391,38 @@ let compare_answer point ~what ~stacks description ~reference ~memexec
       if v = Unavailable then closed_list_case point ~stacks else ""
     in
     record [ "answer"; point.kind; name; description; what;
-             string_of_verdict v; string_of_verdict v_memexec;
+             string_of_verdict v;
+             Option.fold ~none:"not compared" ~some:string_of_verdict
+               v_memexec;
              String.trim (Str.global_replace (Str.regexp "^, ") "" origin);
              case ]
 
 (* [listed] are the callstacks that reach [point] in the current project. *)
 let compare_point point c ~listed =
   let describe what = point.description ^ ", " ^ what in
+  let pair_reference, pair_memexec = c.pair in
   compare_answer point ~what:"joined" ~stacks:listed (describe "joined")
     ~reference:c.reference.joined
-    ~memexec:c.memexec.joined ~answer:c.current.joined;
+    ~memexec:c.memexec.joined ~answer:c.current.joined
+    ~pair:(Some (pair_reference.joined, pair_memexec.joined));
   compare_answer point ~what:"filtered" ~stacks:c.current.filtered_stacks
     (describe "filtered")
     ~reference:c.reference.filtered
-    ~memexec:c.memexec.filtered ~answer:c.current.filtered;
+    ~memexec:c.memexec.filtered ~answer:c.current.filtered
+    ~pair:(Some (pair_reference.filtered, pair_memexec.filtered));
   List.iter
     (fun ((_, p as name), answer) ->
+       let pair =
+         if List.mem name c.pair_stacks
+         then Some (find name pair_reference.by_callstack,
+                    find name pair_memexec.by_callstack)
+         else None
+       in
        compare_answer point ~what:"callstack" ~stacks:[ p ]
          (describe (display name))
          ~reference:(find name c.reference.by_callstack)
          ~memexec:(find name c.memexec.by_callstack)
-         ~answer)
+         ~answer ~pair)
     c.current.by_callstack
 
 (* The statements unreachable for the passes in one run and not in the
@@ -1326,12 +1503,12 @@ let print_answers title answers =
     answers.by_callstack
 
 let all_equal c =
-  verdict ~unresolved:!unresolved_reference ~reference:c.reference.joined
+  verdict ~matched:!matched_reference ~reference:c.reference.joined
     ~answer:c.current.joined () = Equal
   && List.length c.reference.by_callstack = List.length c.current.by_callstack
   && List.for_all
     (fun (name, answer) ->
-       verdict ~unresolved:!unresolved_reference
+       verdict ~matched:!matched_reference
          ~reference:(find name c.reference.by_callstack) ~answer () = Equal)
     c.current.by_callstack
 
@@ -1696,27 +1873,27 @@ let record_outputs ~reference ~memexec ~current =
     [ "reference", reference; "recording", current; "memexec", memexec ];
   (* The bases created by an analysis are named in each project with its own
      suffix of a counter. For a second comparison, the names of the created
-     bases of the reference and of the run with memexec are replaced by those
-     of the bases they match in the run with -eva-hit-log, and the spaces and
-     the line breaks that align the names are removed. *)
+     bases of the reference are replaced by those of the bases they match in
+     the run compared with it, and the spaces and the line breaks that align
+     the names are removed. The run with memexec is compared with the
+     reference by the match of these two runs. *)
   let normal text = Str.global_replace (Str.regexp "[ \n]+") " " text in
-  let unresolved_names =
-    Base.Hptset.union !unresolved_reference !unresolved_memexec
-    |> Base.Hptset.elements |> List.map name
-  in
-  let reference_text = rename_names !names_reference reference.output in
   List.iter
-    (fun (run, o, names) ->
-       let text = rename_names names o.output in
+    (fun (run, o, matched) ->
+       let unresolved_names =
+         List.map name (Base.Hptset.elements matched.unresolved)
+       in
+       let reference_text = rename_names matched.names reference.output in
        record [ "messages"; run;
                 if String.equal o.output reference.output then "equal"
-                else if String.equal (normal text) (normal reference_text)
+                else if String.equal (normal o.output) (normal reference_text)
                 then "equal up to the names of the created bases"
-                else if has_names unresolved_names text
+                else if has_names unresolved_names o.output
                      || has_names unresolved_names reference_text
                 then "unresolved"
                 else "differ" ])
-    [ "recording", current, []; "memexec", memexec, !names_memexec ]
+    [ "recording", current, !matched_reference;
+      "memexec", memexec, !matched_pair ]
 
 (* Prints the messages [output] in a box, one line per line. *)
 let print_messages title output =
@@ -1811,6 +1988,8 @@ let copy_and_analyse name ~memexec =
       (fun () ->
          Parameters.Memexec.set memexec;
          Parameters.HitLog.off ();
+         Option.iter Parameters.AllocBuiltin.set
+           (List.assoc name alloc_controls);
          Parameters.Eva.on ();
          analysing := Some name;
          let passes = analyse () in
@@ -1857,6 +2036,7 @@ let record_summary ~below ~different_stacks ~different_filtered ~compared
                  [ Equal; Covers; More_precise; Omits; Unavailable;
                    Unresolved ]))
     [ "recording", counts; "memexec", memexec_counts ];
+  record [ "not compared"; "memexec"; string_of_int !not_compared ];
   let total = string_of_int (List.length compared) in
   record [ "callstacks"; string_of_int (List.length different_stacks); total ];
   record [ "callstacks filtered";
@@ -1889,6 +2069,7 @@ let record_summary ~below ~different_stacks ~different_filtered ~compared
 let observe () =
   let current = Project.current () in
   collect_existing_variables ();
+  print_controls ();
   let reference, reference_passes =
     copy_and_analyse "reference" ~memexec:false
   in
@@ -1960,27 +2141,39 @@ let observe () =
                 answers point ~in_reference stacks)
              (List.combine points reference_stacks) stacks)
     in
-    let reference_answers = answers_in reference in
-    let memexec_answers = answers_in with_memexec in
+    let own_reference = answers_in reference in
+    let own_memexec = answers_in with_memexec in
     let answers, reported_answers =
       with_trap (fun () -> answers_in current)
     in
     let reported = reported_stacks @ reported_answers in
-    let reference_answers, unresolved, names =
-      rename ~source:"reference" ~into:answers reference_answers
+    (* The reference and the run with memexec are each compared with the run
+       with -eva-hit-log, with its created bases; and with each other, with
+       those of the run with memexec, on the callstacks that one of the two
+       lists. *)
+    let reference_answers, matched =
+      rename ~source:"reference" ~target:"recording" own_reference answers
     in
-    unresolved_reference := unresolved;
-    names_reference := names;
-    let memexec_answers, unresolved, names =
-      rename ~source:"memexec" ~into:answers memexec_answers
+    matched_reference := matched;
+    let memexec_answers, matched =
+      rename ~source:"memexec" ~target:"recording" own_memexec answers
     in
-    unresolved_memexec := unresolved;
-    names_memexec := names;
-    print_unresolved ();
+    matched_memexec := matched;
+    let pair_reference, matched =
+      rename ~source:"reference" ~target:"memexec" own_reference own_memexec
+    in
+    matched_pair := matched;
+    print_matches ();
+    let pair_stacks =
+      List.map2 (fun r m -> union [ r; m ]) reference_stacks memexec_stacks
+    in
     let compared =
       List.map2
-        (fun (reference, memexec) current -> { reference; memexec; current })
-        (List.combine reference_answers memexec_answers) answers
+        (fun (reference, memexec, current) (pair, pair_stacks) ->
+           { reference; memexec; current; pair; pair_stacks })
+        (List.map2 (fun (r, m) c -> r, m, c)
+           (List.combine reference_answers memexec_answers) answers)
+        (List.combine (List.combine pair_reference own_memexec) pair_stacks)
     in
     let compared = List.combine (points ()) compared in
     List.iter print_labelled compared;
@@ -1988,7 +2181,7 @@ let observe () =
     let initial = snd (List.hd compared) in
     Format.printf "Initial state: %s.@."
       (string_of_verdict
-         (verdict ~unresolved:!unresolved_reference
+         (verdict ~matched:!matched_reference
             ~reference:initial.reference.joined
             ~answer:initial.current.joined ()));
     Format.printf "Differences with the run without memexec:@.";
@@ -2053,7 +2246,7 @@ let observe () =
     if suite then begin
       record [ "initial";
                string_of_verdict
-                 (verdict ~unresolved:!unresolved_reference
+                 (verdict ~matched:!matched_reference
                     ~reference:initial.reference.joined
                     ~answer:initial.current.joined ()) ];
       record_summary ~below ~different_stacks ~different_filtered ~compared
