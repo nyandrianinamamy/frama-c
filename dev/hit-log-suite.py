@@ -500,9 +500,22 @@ def classify(run, saves):
         if programs[:1] == ["diff"]:
             run["not_run"] = "other: compares the outputs of two tests (diff), with no " "analysis"
         else:
+            # The frama-c commands of the group that start an analysis: they
+            # are not observed, and the reason says so.
+            analyses = [
+                " ".join(t for t in shlex.split(segment)[1:] if starts_analysis(t))
+                for segment in re.split(r"[|;&{}]+", cmd)
+                if segment.split()[:1] in (["frama-c"], ["%{bin:frama-c}"])
+                and any(starts_analysis(t) for t in shlex.split(segment)[1:])
+            ]
             run["not_run"] = (
                 "other: not a single frama-c command, but a shell group of "
                 "%s" % ", ".join(dict.fromkeys(programs))
+            ) + (
+                "; its frama-c commands start analyses (%s) that are not observed"
+                % ", ".join(analyses)
+                if analyses
+                else ""
             )
         return
     tokens = strip_redirections(shlex.split(cmd))[1:]
