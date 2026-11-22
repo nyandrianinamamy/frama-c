@@ -1,0 +1,147 @@
+phase	reference
+phase	memexec
+phase	recording
+phase	requests
+below rebuilt	crossing	f :: children_cycle.c:23 <- f :: children_cycle.c:31 <- main
+answer	start	f	f, start, joined	joined	unavailable	equal		3: start below a hit, across a recursion
+answer	start	f	f, start, filtered	filtered	unavailable	more precise		3: start below a hit, across a recursion
+answer	start	f	f, start, f :: children_cycle.c:23 <- f :: children_cycle.c:31 <- main	callstack	unavailable	more precise		3: start below a hit, across a recursion
+answer	before	f	f, before children_cycle.c:22 `int x = n;`, joined	joined	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before children_cycle.c:22 `int x = n;`, filtered	filtered	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before children_cycle.c:22 `int x = n;`, f :: children_cycle.c:23 <- f :: children_cycle.c:30 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before children_cycle.c:22 `int x = n;`, f :: children_cycle.c:23 <- f :: children_cycle.c:31 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before children_cycle.c:22 `int x = n;`, f :: children_cycle.c:30 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before children_cycle.c:22 `int x = n;`, f :: children_cycle.c:31 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after children_cycle.c:22 `int x = n;`, joined	joined	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after children_cycle.c:22 `int x = n;`, filtered	filtered	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after children_cycle.c:22 `int x = n;`, f :: children_cycle.c:23 <- f :: children_cycle.c:30 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after children_cycle.c:22 `int x = n;`, f :: children_cycle.c:23 <- f :: children_cycle.c:31 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after children_cycle.c:22 `int x = n;`, f :: children_cycle.c:30 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after children_cycle.c:22 `int x = n;`, f :: children_cycle.c:31 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before children_cycle.c:22 `int *p = & x;`, joined	joined	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before children_cycle.c:22 `int *p = & x;`, filtered	filtered	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before children_cycle.c:22 `int *p = & x;`, f :: children_cycle.c:23 <- f :: children_cycle.c:30 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before children_cycle.c:22 `int *p = & x;`, f :: children_cycle.c:23 <- f :: children_cycle.c:31 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before children_cycle.c:22 `int *p = & x;`, f :: children_cycle.c:30 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before children_cycle.c:22 `int *p = & x;`, f :: children_cycle.c:31 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after children_cycle.c:22 `int *p = & x;`, joined	joined	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after children_cycle.c:22 `int *p = & x;`, filtered	filtered	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after children_cycle.c:22 `int *p = & x;`, f :: children_cycle.c:23 <- f :: children_cycle.c:30 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after children_cycle.c:22 `int *p = & x;`, f :: children_cycle.c:23 <- f :: children_cycle.c:31 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after children_cycle.c:22 `int *p = & x;`, f :: children_cycle.c:30 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after children_cycle.c:22 `int *p = & x;`, f :: children_cycle.c:31 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before children_cycle.c:23 `if (n)`, joined	joined	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before children_cycle.c:23 `if (n)`, filtered	filtered	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before children_cycle.c:23 `if (n)`, f :: children_cycle.c:23 <- f :: children_cycle.c:30 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before children_cycle.c:23 `if (n)`, f :: children_cycle.c:23 <- f :: children_cycle.c:31 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before children_cycle.c:23 `if (n)`, f :: children_cycle.c:30 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before children_cycle.c:23 `if (n)`, f :: children_cycle.c:31 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after children_cycle.c:23 `if (n)`, joined	joined	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after children_cycle.c:23 `if (n)`, filtered	filtered	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after children_cycle.c:23 `if (n)`, f :: children_cycle.c:23 <- f :: children_cycle.c:30 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after children_cycle.c:23 `if (n)`, f :: children_cycle.c:23 <- f :: children_cycle.c:31 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after children_cycle.c:23 `if (n)`, f :: children_cycle.c:30 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after children_cycle.c:23 `if (n)`, f :: children_cycle.c:31 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before children_cycle.c:23 `tmp = f(0);`, joined	joined	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before children_cycle.c:23 `tmp = f(0);`, filtered	filtered	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before children_cycle.c:23 `tmp = f(0);`, f :: children_cycle.c:30 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before children_cycle.c:23 `tmp = f(0);`, f :: children_cycle.c:31 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after children_cycle.c:23 `tmp = f(0);`, joined	joined	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after children_cycle.c:23 `tmp = f(0);`, filtered	filtered	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after children_cycle.c:23 `tmp = f(0);`, f :: children_cycle.c:30 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after children_cycle.c:23 `tmp = f(0);`, f :: children_cycle.c:31 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before children_cycle.c:23 `block`, joined	joined	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before children_cycle.c:23 `block`, filtered	filtered	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before children_cycle.c:23 `block`, f :: children_cycle.c:30 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before children_cycle.c:23 `block`, f :: children_cycle.c:31 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after children_cycle.c:23 `block`, joined	joined	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after children_cycle.c:23 `block`, filtered	filtered	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after children_cycle.c:23 `block`, f :: children_cycle.c:30 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after children_cycle.c:23 `block`, f :: children_cycle.c:31 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before children_cycle.c:23 `__retres = tmp;`, joined	joined	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before children_cycle.c:23 `__retres = tmp;`, filtered	filtered	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before children_cycle.c:23 `__retres = tmp;`, f :: children_cycle.c:30 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before children_cycle.c:23 `__retres = tmp;`, f :: children_cycle.c:31 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after children_cycle.c:23 `__retres = tmp;`, joined	joined	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after children_cycle.c:23 `__retres = tmp;`, filtered	filtered	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after children_cycle.c:23 `__retres = tmp;`, f :: children_cycle.c:30 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after children_cycle.c:23 `__retres = tmp;`, f :: children_cycle.c:31 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before children_cycle.c:23 `goto`, joined	joined	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before children_cycle.c:23 `goto`, filtered	filtered	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before children_cycle.c:23 `goto`, f :: children_cycle.c:30 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before children_cycle.c:23 `goto`, f :: children_cycle.c:31 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after children_cycle.c:23 `goto`, joined	joined	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after children_cycle.c:23 `goto`, filtered	filtered	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after children_cycle.c:23 `goto`, f :: children_cycle.c:23 <- f :: children_cycle.c:30 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after children_cycle.c:23 `goto`, f :: children_cycle.c:23 <- f :: children_cycle.c:31 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after children_cycle.c:23 `goto`, f :: children_cycle.c:30 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after children_cycle.c:23 `goto`, f :: children_cycle.c:31 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before children_cycle.c:24 `__retres = *p;`, joined	joined	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before children_cycle.c:24 `__retres = *p;`, filtered	filtered	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before children_cycle.c:24 `__retres = *p;`, f :: children_cycle.c:23 <- f :: children_cycle.c:30 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before children_cycle.c:24 `__retres = *p;`, f :: children_cycle.c:23 <- f :: children_cycle.c:31 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before children_cycle.c:24 `__retres = *p;`, f :: children_cycle.c:30 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after children_cycle.c:24 `__retres = *p;`, joined	joined	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after children_cycle.c:24 `__retres = *p;`, filtered	filtered	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after children_cycle.c:24 `__retres = *p;`, f :: children_cycle.c:23 <- f :: children_cycle.c:30 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after children_cycle.c:24 `__retres = *p;`, f :: children_cycle.c:23 <- f :: children_cycle.c:31 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after children_cycle.c:24 `__retres = *p;`, f :: children_cycle.c:30 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before children_cycle.c:24 `return __retres;`, joined	joined	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before children_cycle.c:24 `return __retres;`, filtered	filtered	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before children_cycle.c:24 `return __retres;`, f :: children_cycle.c:23 <- f :: children_cycle.c:30 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before children_cycle.c:24 `return __retres;`, f :: children_cycle.c:23 <- f :: children_cycle.c:31 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before children_cycle.c:24 `return __retres;`, f :: children_cycle.c:30 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before children_cycle.c:24 `return __retres;`, f :: children_cycle.c:31 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after children_cycle.c:24 `return __retres;`, joined	joined	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after children_cycle.c:24 `return __retres;`, filtered	filtered	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after children_cycle.c:24 `return __retres;`, f :: children_cycle.c:23 <- f :: children_cycle.c:30 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after children_cycle.c:24 `return __retres;`, f :: children_cycle.c:23 <- f :: children_cycle.c:31 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after children_cycle.c:24 `return __retres;`, f :: children_cycle.c:30 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after children_cycle.c:24 `return __retres;`, f :: children_cycle.c:31 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+initial	equal
+calls	3	2	0	0	1
+requests	after	callstack	39
+requests	after	callstacks	19
+requests	after	callstacks, filtered	19
+requests	after	filtered	19
+requests	after	joined	19
+requests	before	callstack	37
+requests	before	callstacks	19
+requests	before	callstacks, filtered	19
+requests	before	filtered	19
+requests	before	joined	19
+requests	final	callstack	1
+requests	final	callstacks	1
+requests	final	callstacks, filtered	1
+requests	final	filtered	1
+requests	final	joined	1
+requests	initial	callstack	1
+requests	initial	callstacks	1
+requests	initial	callstacks, filtered	1
+requests	initial	filtered	1
+requests	initial	joined	1
+requests	start	callstack	5
+requests	start	callstacks	2
+requests	start	callstacks, filtered	2
+requests	start	filtered	2
+requests	start	joined	2
+verdicts	recording	72	0	0	0	95
+verdicts	memexec	98	0	69	0	0
+callstacks	18	42
+callstacks filtered	18	42
+trap	251	251	matched	0
+passes	memexec	40	78	82
+passes	recording	40	0	0
+pass	unreachable statements	21
+pass	statistics	19
+below requests	0
+properties	0
+alarms	reference	0
+alarms	recording	0
+alarms	memexec	0
+statistics	reference	1.0000	1.0000	0
+statistics	recording	1.0000	1.0000	0
+statistics	memexec	1.0000	1.0000	0
+messages	recording	equal
+messages	memexec	equal
+phase	done

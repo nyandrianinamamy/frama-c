@@ -1,0 +1,136 @@
+[kernel] Parsing children_closure.c (with preprocessing)
+Calls:
+  f :: children_closure.c:21 <- f :: children_closure.c:28 <- main: analysed, cache entry 10
+  f :: children_closure.c:28 <- main: analysed, cache entry 11
+  f :: children_closure.c:28 <- main: analysed, cache entry 12
+  f :: children_closure.c:29 <- main: hit of cache entry 12
+  main: analysed, cache entry 13
+Hits against the analysed call of their cache entry:
+  f :: children_closure.c:29 <- main, hit of cache entry 12, against f :: children_closure.c:28 <- main: differs on a, i, n, tmp, unavailable at 18 points, at 19 points.
+Initial state: equal.
+Differences with the run without memexec:
+  f, before children_closure.c:20 `int x = n;`, joined: unavailable
+  f, before children_closure.c:20 `int x = n;`, filtered: unavailable
+  f, before children_closure.c:20 `int x = n;`, f :: children_closure.c:21 <- f :: children_closure.c:28 <- main: unavailable
+  f, before children_closure.c:20 `int x = n;`, f :: children_closure.c:28 <- main: unavailable
+  f, before children_closure.c:20 `int x = n;`, f :: children_closure.c:29 <- main: unavailable
+  f, after children_closure.c:20 `int x = n;`, joined: unavailable
+  f, after children_closure.c:20 `int x = n;`, filtered: unavailable
+  f, after children_closure.c:20 `int x = n;`, f :: children_closure.c:21 <- f :: children_closure.c:28 <- main: unavailable
+  f, after children_closure.c:20 `int x = n;`, f :: children_closure.c:28 <- main: unavailable
+  f, after children_closure.c:20 `int x = n;`, f :: children_closure.c:29 <- main: unavailable
+  f, before children_closure.c:20 `int *p = & x;`, joined: unavailable
+  f, before children_closure.c:20 `int *p = & x;`, filtered: unavailable
+  f, before children_closure.c:20 `int *p = & x;`, f :: children_closure.c:21 <- f :: children_closure.c:28 <- main: unavailable
+  f, before children_closure.c:20 `int *p = & x;`, f :: children_closure.c:28 <- main: unavailable
+  f, before children_closure.c:20 `int *p = & x;`, f :: children_closure.c:29 <- main: unavailable
+  f, after children_closure.c:20 `int *p = & x;`, joined: unavailable
+  f, after children_closure.c:20 `int *p = & x;`, filtered: unavailable
+  f, after children_closure.c:20 `int *p = & x;`, f :: children_closure.c:21 <- f :: children_closure.c:28 <- main: unavailable
+  f, after children_closure.c:20 `int *p = & x;`, f :: children_closure.c:28 <- main: unavailable
+  f, after children_closure.c:20 `int *p = & x;`, f :: children_closure.c:29 <- main: unavailable
+  f, before children_closure.c:21 `if (n == 2)`, joined: unavailable
+  f, before children_closure.c:21 `if (n == 2)`, filtered: unavailable
+  f, before children_closure.c:21 `if (n == 2)`, f :: children_closure.c:21 <- f :: children_closure.c:28 <- main: unavailable
+  f, before children_closure.c:21 `if (n == 2)`, f :: children_closure.c:28 <- main: unavailable
+  f, before children_closure.c:21 `if (n == 2)`, f :: children_closure.c:29 <- main: unavailable
+  f, after children_closure.c:21 `if (n == 2)`, joined: unavailable
+  f, after children_closure.c:21 `if (n == 2)`, filtered: unavailable
+  f, after children_closure.c:21 `if (n == 2)`, f :: children_closure.c:21 <- f :: children_closure.c:28 <- main: unavailable
+  f, after children_closure.c:21 `if (n == 2)`, f :: children_closure.c:28 <- main: unavailable
+  f, after children_closure.c:21 `if (n == 2)`, f :: children_closure.c:29 <- main: unavailable
+  f, before children_closure.c:21 `tmp = f(1);`, joined: unavailable
+  f, before children_closure.c:21 `tmp = f(1);`, filtered: unavailable
+  f, before children_closure.c:21 `tmp = f(1);`, f :: children_closure.c:28 <- main: unavailable
+  f, after children_closure.c:21 `tmp = f(1);`, joined: unavailable
+  f, after children_closure.c:21 `tmp = f(1);`, filtered: unavailable
+  f, after children_closure.c:21 `tmp = f(1);`, f :: children_closure.c:28 <- main: unavailable
+  f, before children_closure.c:21 `block`, joined: unavailable
+  f, before children_closure.c:21 `block`, filtered: unavailable
+  f, before children_closure.c:21 `block`, f :: children_closure.c:28 <- main: unavailable
+  f, after children_closure.c:21 `block`, joined: unavailable
+  f, after children_closure.c:21 `block`, filtered: unavailable
+  f, after children_closure.c:21 `block`, f :: children_closure.c:28 <- main: unavailable
+  f, before children_closure.c:21 `__retres = tmp;`, joined: unavailable
+  f, before children_closure.c:21 `__retres = tmp;`, filtered: unavailable
+  f, before children_closure.c:21 `__retres = tmp;`, f :: children_closure.c:28 <- main: unavailable
+  f, after children_closure.c:21 `__retres = tmp;`, joined: unavailable
+  f, after children_closure.c:21 `__retres = tmp;`, filtered: unavailable
+  f, after children_closure.c:21 `__retres = tmp;`, f :: children_closure.c:28 <- main: unavailable
+  f, before children_closure.c:21 `goto`, joined: unavailable
+  f, before children_closure.c:21 `goto`, filtered: unavailable
+  f, before children_closure.c:21 `goto`, f :: children_closure.c:28 <- main: unavailable
+  f, after children_closure.c:21 `goto`, joined: unavailable
+  f, after children_closure.c:21 `goto`, filtered: unavailable
+  f, after children_closure.c:21 `goto`, f :: children_closure.c:21 <- f :: children_closure.c:28 <- main: unavailable
+  f, after children_closure.c:21 `goto`, f :: children_closure.c:28 <- main: unavailable
+  f, after children_closure.c:21 `goto`, f :: children_closure.c:29 <- main: unavailable
+  f, before children_closure.c:22 `__retres = *p;`, joined: unavailable
+  f, before children_closure.c:22 `__retres = *p;`, filtered: unavailable
+  f, before children_closure.c:22 `__retres = *p;`, f :: children_closure.c:21 <- f :: children_closure.c:28 <- main: unavailable
+  f, before children_closure.c:22 `__retres = *p;`, f :: children_closure.c:28 <- main: unavailable
+  f, before children_closure.c:22 `__retres = *p;`, f :: children_closure.c:29 <- main: unavailable
+  f, after children_closure.c:22 `__retres = *p;`, joined: unavailable
+  f, after children_closure.c:22 `__retres = *p;`, filtered: unavailable
+  f, after children_closure.c:22 `__retres = *p;`, f :: children_closure.c:21 <- f :: children_closure.c:28 <- main: unavailable
+  f, after children_closure.c:22 `__retres = *p;`, f :: children_closure.c:28 <- main: unavailable
+  f, after children_closure.c:22 `__retres = *p;`, f :: children_closure.c:29 <- main: unavailable
+  f, before children_closure.c:22 `return __retres;`, joined: unavailable
+  f, before children_closure.c:22 `return __retres;`, filtered: unavailable
+  f, before children_closure.c:22 `return __retres;`, f :: children_closure.c:21 <- f :: children_closure.c:28 <- main: unavailable
+  f, before children_closure.c:22 `return __retres;`, f :: children_closure.c:28 <- main: unavailable
+  f, before children_closure.c:22 `return __retres;`, f :: children_closure.c:29 <- main: unavailable
+  f, after children_closure.c:22 `return __retres;`, joined: unavailable
+  f, after children_closure.c:22 `return __retres;`, filtered: unavailable
+  f, after children_closure.c:22 `return __retres;`, f :: children_closure.c:21 <- f :: children_closure.c:28 <- main: unavailable
+  f, after children_closure.c:22 `return __retres;`, f :: children_closure.c:28 <- main: unavailable
+  f, after children_closure.c:22 `return __retres;`, f :: children_closure.c:29 <- main: unavailable
+Answers: 98 equal, 0 covering, 0 more precise, 0 omitting, 76 unavailable.
+Callstacks listed: NOT those of the run without memexec at 18 of the 50 points:
+  f, before children_closure.c:20 `int x = n;`
+  f, after children_closure.c:20 `int x = n;`
+  f, before children_closure.c:20 `int *p = & x;`
+  f, after children_closure.c:20 `int *p = & x;`
+  f, before children_closure.c:21 `if (n == 2)`
+  f, after children_closure.c:21 `if (n == 2)`
+  f, before children_closure.c:21 `tmp = f(1);`
+  f, after children_closure.c:21 `tmp = f(1);`
+  f, before children_closure.c:21 `block`
+  f, after children_closure.c:21 `block`
+  f, before children_closure.c:21 `__retres = tmp;`
+  f, after children_closure.c:21 `__retres = tmp;`
+  f, before children_closure.c:21 `goto`
+  f, after children_closure.c:21 `goto`
+  f, before children_closure.c:22 `__retres = *p;`
+  f, after children_closure.c:22 `__retres = *p;`
+  f, before children_closure.c:22 `return __retres;`
+  f, after children_closure.c:22 `return __retres;`
+Callstacks listed through the filter: NOT those of the run without memexec at 18 of the 50 points:
+  f, before children_closure.c:20 `int x = n;`
+  f, after children_closure.c:20 `int x = n;`
+  f, before children_closure.c:20 `int *p = & x;`
+  f, after children_closure.c:20 `int *p = & x;`
+  f, before children_closure.c:21 `if (n == 2)`
+  f, after children_closure.c:21 `if (n == 2)`
+  f, before children_closure.c:21 `tmp = f(1);`
+  f, after children_closure.c:21 `tmp = f(1);`
+  f, before children_closure.c:21 `block`
+  f, after children_closure.c:21 `block`
+  f, before children_closure.c:21 `__retres = tmp;`
+  f, after children_closure.c:21 `__retres = tmp;`
+  f, before children_closure.c:21 `goto`
+  f, after children_closure.c:21 `goto`
+  f, before children_closure.c:22 `__retres = *p;`
+  f, after children_closure.c:22 `__retres = *p;`
+  f, before children_closure.c:22 `return __retres;`
+  f, after children_closure.c:22 `return __retres;`
+Filtered requests that reject one callstack: 12.
+Requests made: 274; reported by the trap: 274, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 48 requests, 99 reads of the legacy store in them, 109 reads outside any request.
+  with -eva-hit-log: 48 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 25 requests
+    statistics: 23 requests
+Statuses of the properties: those of the run without memexec, for 0 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 1.0000, 0 alarms, those of the run without memexec.

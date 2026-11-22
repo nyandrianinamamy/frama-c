@@ -1,0 +1,127 @@
+phase	reference
+phase	memexec
+phase	recording
+phase	requests
+answer	before	f	f, before children_closure.c:20 `int x = n;`, joined	joined	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before children_closure.c:20 `int x = n;`, filtered	filtered	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before children_closure.c:20 `int x = n;`, f :: children_closure.c:21 <- f :: children_closure.c:28 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before children_closure.c:20 `int x = n;`, f :: children_closure.c:28 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before children_closure.c:20 `int x = n;`, f :: children_closure.c:29 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after children_closure.c:20 `int x = n;`, joined	joined	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after children_closure.c:20 `int x = n;`, filtered	filtered	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after children_closure.c:20 `int x = n;`, f :: children_closure.c:21 <- f :: children_closure.c:28 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after children_closure.c:20 `int x = n;`, f :: children_closure.c:28 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after children_closure.c:20 `int x = n;`, f :: children_closure.c:29 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before children_closure.c:20 `int *p = & x;`, joined	joined	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before children_closure.c:20 `int *p = & x;`, filtered	filtered	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before children_closure.c:20 `int *p = & x;`, f :: children_closure.c:21 <- f :: children_closure.c:28 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before children_closure.c:20 `int *p = & x;`, f :: children_closure.c:28 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before children_closure.c:20 `int *p = & x;`, f :: children_closure.c:29 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after children_closure.c:20 `int *p = & x;`, joined	joined	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after children_closure.c:20 `int *p = & x;`, filtered	filtered	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after children_closure.c:20 `int *p = & x;`, f :: children_closure.c:21 <- f :: children_closure.c:28 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after children_closure.c:20 `int *p = & x;`, f :: children_closure.c:28 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after children_closure.c:20 `int *p = & x;`, f :: children_closure.c:29 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before children_closure.c:21 `if (n == 2)`, joined	joined	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before children_closure.c:21 `if (n == 2)`, filtered	filtered	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before children_closure.c:21 `if (n == 2)`, f :: children_closure.c:21 <- f :: children_closure.c:28 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before children_closure.c:21 `if (n == 2)`, f :: children_closure.c:28 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before children_closure.c:21 `if (n == 2)`, f :: children_closure.c:29 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after children_closure.c:21 `if (n == 2)`, joined	joined	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after children_closure.c:21 `if (n == 2)`, filtered	filtered	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after children_closure.c:21 `if (n == 2)`, f :: children_closure.c:21 <- f :: children_closure.c:28 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after children_closure.c:21 `if (n == 2)`, f :: children_closure.c:28 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after children_closure.c:21 `if (n == 2)`, f :: children_closure.c:29 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before children_closure.c:21 `tmp = f(1);`, joined	joined	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before children_closure.c:21 `tmp = f(1);`, filtered	filtered	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before children_closure.c:21 `tmp = f(1);`, f :: children_closure.c:28 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after children_closure.c:21 `tmp = f(1);`, joined	joined	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after children_closure.c:21 `tmp = f(1);`, filtered	filtered	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after children_closure.c:21 `tmp = f(1);`, f :: children_closure.c:28 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before children_closure.c:21 `block`, joined	joined	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before children_closure.c:21 `block`, filtered	filtered	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before children_closure.c:21 `block`, f :: children_closure.c:28 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after children_closure.c:21 `block`, joined	joined	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after children_closure.c:21 `block`, filtered	filtered	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after children_closure.c:21 `block`, f :: children_closure.c:28 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before children_closure.c:21 `__retres = tmp;`, joined	joined	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before children_closure.c:21 `__retres = tmp;`, filtered	filtered	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before children_closure.c:21 `__retres = tmp;`, f :: children_closure.c:28 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after children_closure.c:21 `__retres = tmp;`, joined	joined	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after children_closure.c:21 `__retres = tmp;`, filtered	filtered	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after children_closure.c:21 `__retres = tmp;`, f :: children_closure.c:28 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before children_closure.c:21 `goto`, joined	joined	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before children_closure.c:21 `goto`, filtered	filtered	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before children_closure.c:21 `goto`, f :: children_closure.c:28 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after children_closure.c:21 `goto`, joined	joined	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after children_closure.c:21 `goto`, filtered	filtered	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after children_closure.c:21 `goto`, f :: children_closure.c:21 <- f :: children_closure.c:28 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after children_closure.c:21 `goto`, f :: children_closure.c:28 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after children_closure.c:21 `goto`, f :: children_closure.c:29 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before children_closure.c:22 `__retres = *p;`, joined	joined	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before children_closure.c:22 `__retres = *p;`, filtered	filtered	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before children_closure.c:22 `__retres = *p;`, f :: children_closure.c:21 <- f :: children_closure.c:28 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before children_closure.c:22 `__retres = *p;`, f :: children_closure.c:28 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before children_closure.c:22 `__retres = *p;`, f :: children_closure.c:29 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after children_closure.c:22 `__retres = *p;`, joined	joined	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after children_closure.c:22 `__retres = *p;`, filtered	filtered	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after children_closure.c:22 `__retres = *p;`, f :: children_closure.c:21 <- f :: children_closure.c:28 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after children_closure.c:22 `__retres = *p;`, f :: children_closure.c:28 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after children_closure.c:22 `__retres = *p;`, f :: children_closure.c:29 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before children_closure.c:22 `return __retres;`, joined	joined	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before children_closure.c:22 `return __retres;`, filtered	filtered	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before children_closure.c:22 `return __retres;`, f :: children_closure.c:21 <- f :: children_closure.c:28 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before children_closure.c:22 `return __retres;`, f :: children_closure.c:28 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before children_closure.c:22 `return __retres;`, f :: children_closure.c:29 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after children_closure.c:22 `return __retres;`, joined	joined	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after children_closure.c:22 `return __retres;`, filtered	filtered	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after children_closure.c:22 `return __retres;`, f :: children_closure.c:21 <- f :: children_closure.c:28 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after children_closure.c:22 `return __retres;`, f :: children_closure.c:28 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after children_closure.c:22 `return __retres;`, f :: children_closure.c:29 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+initial	equal
+calls	4	1	0	0	0
+requests	after	callstack	35
+requests	after	callstacks	23
+requests	after	callstacks, filtered	23
+requests	after	filtered	23
+requests	after	joined	23
+requests	before	callstack	33
+requests	before	callstacks	23
+requests	before	callstacks, filtered	23
+requests	before	filtered	23
+requests	before	joined	23
+requests	final	callstack	1
+requests	final	callstacks	1
+requests	final	callstacks, filtered	1
+requests	final	filtered	1
+requests	final	joined	1
+requests	initial	callstack	1
+requests	initial	callstacks	1
+requests	initial	callstacks, filtered	1
+requests	initial	filtered	1
+requests	initial	joined	1
+requests	start	callstack	4
+requests	start	callstacks	2
+requests	start	callstacks, filtered	2
+requests	start	filtered	2
+requests	start	joined	2
+verdicts	recording	98	0	0	0	76
+verdicts	memexec	163	0	11	0	0
+callstacks	18	50
+callstacks filtered	18	50
+trap	274	274	matched	0
+passes	memexec	48	99	109
+passes	recording	48	0	0
+pass	unreachable statements	25
+pass	statistics	23
+below requests	0
+properties	0
+alarms	reference	0
+alarms	recording	0
+alarms	memexec	0
+statistics	reference	1.0000	1.0000	0
+statistics	recording	1.0000	1.0000	0
+statistics	memexec	1.0000	1.0000	0
+messages	recording	equal
+messages	memexec	equal
+phase	done
