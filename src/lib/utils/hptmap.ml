@@ -422,9 +422,13 @@ module Shape(Key: Id_Datatype) = struct
     in
     compute
 
-  let fold2_join_heterogeneous ~cache ~empty_left ~empty_right ~both ~join ~empty =
-    let cache_merge = make_binary_cache empty "fold2" cache in
-    let rec compute s t = cache_merge aux s t
+  (* The walk of [fold2_join_heterogeneous] and [fold2_join_homogeneous]. On
+     each pair of subtrees [s] and [t] that it reaches, including the two
+     maps, it calls [enter aux s t], where [aux s t] continues the walk on [s]
+     and [t]: [enter] looks up the cache, and skips the subtrees that two maps
+     share in [fold2_join_homogeneous]. *)
+  let fold2_join ~enter ~empty_left ~empty_right ~both ~join ~empty =
+    let rec compute s t = enter aux s t
     and aux s t =
       match s, t with
       | Empty, Empty -> empty
@@ -477,72 +481,24 @@ module Shape(Key: Id_Datatype) = struct
           (* The prefixes disagree. *)
           join (empty_right s) (empty_left t)
     in
-    fun s t -> compute s t
+    compute
 
-  (* Same as [fold2_join_heterogeneous], except for the test of physical
-     equality in [compute], made before the cache is looked up. *)
+  let fold2_join_heterogeneous ~cache ~empty_left ~empty_right ~both ~join ~empty =
+    let cache_merge = make_binary_cache empty "fold2" cache in
+    fold2_join ~enter:cache_merge ~empty_left ~empty_right ~both ~join ~empty
+
   let fold2_join_homogeneous
       ~cache ~empty_left ~empty_right ~both ~same ~join ~empty =
     let cache_merge = make_binary_cache empty "fold2_homogeneous" cache in
-    let rec compute s t =
+    (* Physical equality is tested before the cache is looked up. *)
+    let enter aux s t =
       if s == t then
         match s with
         | Empty -> empty
         | Leaf _ | Branch _ -> same s
       else cache_merge aux s t
-    and aux s t =
-      match s, t with
-      | Empty, Empty -> empty
-      | Empty, t -> empty_left t
-      | s, Empty -> empty_right s
-
-      | Leaf (ks, vs, _), Leaf (kt, vt, _) ->
-        if Key.equal ks kt then
-          both ks vs vt
-        else
-          join (empty_left t) (empty_right s)
-
-      | Branch (p, m, s0, s1, _), Leaf(kt, _, _) ->
-        let k_id = Key.id kt in
-        if match_prefix k_id p m then
-          if (k_id land m) = 0 then
-            join (compute s0 t) (empty_right s1)
-          else
-            join (compute s1 t) (empty_right s0)
-        else
-          join (empty_right s) (empty_left t)
-
-      | Leaf (ks, _, _), Branch(q, n, t0, t1, _) ->
-        let k_id = Key.id ks in
-        if match_prefix k_id q n then
-          if (k_id land n) = 0 then
-            join (compute s t0) (empty_left t1)
-          else
-            join (compute s t1) (empty_left t0)
-        else
-          join (empty_right s) (empty_left t)
-
-      | Branch(p, m, s0, s1, _), Branch(q, n, t0, t1, _) ->
-        if (p = q) && (m = n) then
-          (* The trees have the same prefix. recurse on the sub-trees *)
-          join (compute s0 t0) (compute s1 t1)
-        else if (Big_Endian.shorter m n) && (match_prefix q p m) then
-          (* [q] contains [p]. Merge [t] with a sub-tree of [s]. *)
-          if (q land m) = 0 then
-            join (compute s0 t) (empty_right s1)
-          else
-            join (compute s1 t) (empty_right s0)
-        else if (Big_Endian.shorter n m) && (match_prefix p q n) then
-          (* [p] contains [q]. Merge [s] with a sub-tree of [t]. *)
-          if (p land n) = 0 then
-            join (compute s t0) (empty_left t1)
-          else
-            join (compute s t1) (empty_left t0)
-        else
-          (* The prefixes disagree. *)
-          join (empty_right s) (empty_left t)
     in
-    fun s t -> compute s t
+    fold2_join ~enter ~empty_left ~empty_right ~both ~join ~empty
 
   type predicate_type = ExistentialPredicate | UniversalPredicate
   type predicate_result = PTrue | PFalse | PUnknown
