@@ -105,8 +105,8 @@ requests	start	callstacks	2
 requests	start	callstacks, filtered	2
 requests	start	filtered	2
 requests	start	joined	2
-verdicts	recording	98	0	0	0	76
-verdicts	memexec	163	0	11	0	0
+verdicts	recording	98	0	0	0	76	0
+verdicts	memexec	163	0	11	0	0	0
 callstacks	18	50
 callstacks filtered	18	50
 trap	274	274	matched	0

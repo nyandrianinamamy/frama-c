@@ -555,9 +555,284 @@ let answers (point : point) ~in_reference stacks =
   { joined; filtered; by_callstack; filtered_stacks }
 
 
+(* ----- Allocated blocks -------------------------------------------------- *)
+
+(* The bases of allocated blocks, and the variables that Eva creates during
+   the analysis, as those of the context of option -lib-entry and the copies
+   of the locals of recursive calls, are created by each analysis, with
+   another identity in each project, and sometimes with a counter shared by
+   the projects in their name. The variables that exist before the analyses
+   have the same identity in the three projects, which are copies. The
+   created bases are matched across projects by a key:
+   - an allocated block, by the callstack of the call of an allocation
+     built-in that created it, which ends with its call statement, and by
+     the number of the blocks created before it on this callstack, as with
+     -eva-alloc-builtin fresh: its name tells neither the call statement
+     nor the callstack, and a block made weak is renamed;
+   - another created variable, by its name without the suffixes of the
+     counter, and by the location of its declaration: a copy of a variable
+     of a recursive call has the location of the variable. *)
+
+(* A created base is unresolved when its key is that of several bases in
+   one of the two projects, when its callstack creates a different number of
+   blocks in the two projects, or when it matches no base while a base of
+   the other project that matches none has the same name, a weak block being
+   named as a strong one. *)
+
+let existing_variables = ref Cil_datatype.Varinfo.Set.empty
+
+let collect_existing_variables () =
+  let set = ref Cil_datatype.Varinfo.Set.empty in
+  let add vi = set := Cil_datatype.Varinfo.Set.add vi !set in
+  Globals.Vars.iter (fun vi _ -> add vi);
+  Globals.Functions.iter
+    (fun kf ->
+       add (Kernel_function.get_vi kf);
+       List.iter add (Kernel_function.get_formals kf);
+       if Kernel_function.is_definition kf
+       then List.iter add (Kernel_function.get_locals kf));
+  existing_variables := !set
+
+let created_by_analysis = function
+  | Base.Allocated _ -> true
+  | Base.Var (vi, _) ->
+    not (Cil_datatype.Varinfo.Set.mem vi !existing_variables)
+  | _ -> false
+
+(* The run whose analysis is in progress: "reference", "memexec" or
+   "recording". *)
+let analysing = ref None
+
+(* For each run, the allocated blocks that the allocation built-ins create:
+   for each block, the callstack of the call that created it and the number
+   of the blocks created before it on this callstack; and the number of the
+   blocks created on each callstack. A call creates the allocated blocks
+   that the states at the end of the built-in bind, and that no earlier call
+   of the run bound. *)
+type allocations = {
+  origins: (portable * int) Base.Hashtbl.t;
+  by_site: (portable, int) Hashtbl.t;
+}
+
+let allocations = Hashtbl.create 3
+
+let allocations_of run =
+  match Hashtbl.find_opt allocations run with
+  | Some a -> a
+  | None ->
+    let a = { origins = Base.Hashtbl.create 7; by_site = Hashtbl.create 7 } in
+    Hashtbl.replace allocations run a;
+    a
+
+let () =
+  Cvalue_callbacks.register_call_results_hook
+    (fun callstack _kf _state results ->
+       match !analysing, results with
+       | Some run, `Builtin (states, _) ->
+         let a = allocations_of run in
+         let add acc = function
+           | Cvalue.Model.Map map ->
+             Cvalue.Model.fold
+               (fun base _ acc ->
+                  match base with
+                  | Base.Allocated _ when not (Base.Hashtbl.mem a.origins base)
+                    -> Base.Hptset.add base acc
+                  | _ -> acc)
+               map acc
+           | Cvalue.Model.Bottom | Cvalue.Model.Top -> acc
+         in
+         let site = portable callstack in
+         List.fold_left add Base.Hptset.empty states
+         |> Base.Hptset.elements
+         |> List.sort (fun b b' -> Int.compare (Base.id b) (Base.id b'))
+         |> List.iter
+           (fun base ->
+              let n =
+                Option.value ~default:0 (Hashtbl.find_opt a.by_site site)
+              in
+              Base.Hashtbl.replace a.origins base (site, n);
+              Hashtbl.replace a.by_site site (n + 1))
+       | _, (`Builtin _ | `Spec _ | `Body _ | `Reuse _) -> ())
+
+(* Adds to [acc] the created bases bound in the state of [answer], or
+   present in its values: a block of size zero, as the context of an empty
+   structure, has no binding. *)
+let bases_of_answer acc answer =
+  let add_base base acc =
+    if created_by_analysis base then Base.Hptset.add base acc else acc
+  in
+  let add_value v acc =
+    try Cvalue.V.fold_bases add_base (Cvalue.V_Or_Uninitialized.get_v v) acc
+    with Abstract_interp.Error_Top -> acc
+  in
+  match answer with
+  | Ok (Cvalue.Model.Map map) ->
+    Cvalue.Model.fold
+      (fun base offsetmap acc ->
+         add_base base acc
+         |> Cvalue.V_Offsetmap.fold_on_values add_value offsetmap)
+      map acc
+  | _ -> acc
+
+(* The created bases of [answers]. *)
+let allocated_bases answers =
+  List.fold_left
+    (fun acc a ->
+       List.fold_left bases_of_answer acc
+         (a.joined :: a.filtered :: List.map snd a.by_callstack))
+    Base.Hptset.empty answers
+
+type key =
+  | Site of portable * int (* An allocated block, by its creation. *)
+  | Named of string * string (* Another base, by its name and location. *)
+
+let counter_suffix = Str.regexp "\\(_[0-9]+\\)+$"
+
+let name base = (Base.to_varinfo base).vname
+
+let stripped base = Str.global_replace counter_suffix "" (name base)
+
+(* The name of a base, as that of a strong block if it is a weak one. *)
+let family base =
+  Str.global_replace (Str.regexp_string "_w_") "_" (stripped base)
+
+let key run base =
+  match Base.Hashtbl.find_opt (allocations_of run).origins base with
+  | Some (site, n) -> Site (site, n)
+  | None ->
+    let vi = Base.to_varinfo base in
+    Named (stripped base, Format.asprintf "%a" Fileloc.pretty vi.vdecl)
+
+(* The created bases of the run [run]: those of its answers [answers], and
+   the blocks that its allocation built-ins create; with their key and their
+   name as a strong block. *)
+let created run answers =
+  Base.Hashtbl.fold
+    (fun base _ acc -> Base.Hptset.add base acc)
+    (allocations_of run).origins (allocated_bases answers)
+  |> Base.Hptset.elements
+  |> List.map (fun base -> key run base, family base, base)
+
+(* The created bases of the run [source], each with its key, matched to
+   those of the run [target]: the pairs of the bases matched, and the bases
+   of the two runs that are unresolved. *)
+let matching (source_run, source) (target_run, target) =
+  let unresolved = ref Base.Hptset.empty in
+  let mark base = unresolved := Base.Hptset.add base !unresolved in
+  let created_on run site =
+    Option.value ~default:0 (Hashtbl.find_opt (allocations_of run).by_site site)
+  in
+  let site_differs = function
+    | Site (site, _) -> created_on source_run site <> created_on target_run site
+    | Named _ -> false
+  in
+  let with_key key list = List.filter (fun (k, _, _) -> k = key) list in
+  let mapped = ref [] and unmatched = ref [] in
+  List.iter
+    (fun (key, family, base) ->
+       if site_differs key then mark base
+       else
+         match with_key key target with
+         | [ _, _, base' ] when List.length (with_key key source) = 1 ->
+           mapped := (base, base') :: !mapped
+         | [] -> unmatched := (family, base) :: !unmatched
+         | candidates ->
+           mark base;
+           List.iter (fun (_, _, base') -> mark base') candidates)
+    source;
+  List.iter (fun (key, _, base) -> if site_differs key then mark base) target;
+  let matched base = List.exists (fun (_, b) -> Base.equal b base) !mapped in
+  let unmatched_target =
+    List.filter
+      (fun (_, _, base) ->
+         not (matched base || Base.Hptset.mem base !unresolved))
+      target
+  in
+  List.iter
+    (fun (family, base) ->
+       let alike =
+         List.filter (fun (_, f, _) -> String.equal f family) unmatched_target
+       in
+       if alike <> [] then begin
+         mark base;
+         List.iter (fun (_, _, base') -> mark base') alike
+       end)
+    !unmatched;
+  !mapped, !unresolved
+
+(* The created bases of the reference and of the run with memexec whose
+   match with those of the run with -eva-hit-log is unresolved, with these
+   bases of the run with -eva-hit-log; and the names of the bases of the
+   reference matched, with the names of their match. *)
+let unresolved_reference = ref Base.Hptset.empty
+let unresolved_memexec = ref Base.Hptset.empty
+let matched_names = ref []
+
+(* Renames the created bases of [answers], of the run [source], into those
+   of [into], of the run with -eva-hit-log. Returns the answers renamed, the
+   unresolved bases and the names of the bases matched. *)
+let rename ~source ~into answers =
+  let mapped, unresolved =
+    matching (source, created source answers)
+      ("recording", created "recording" into)
+  in
+  let substitution = Base.substitution_from_list mapped in
+  let rename_value v =
+    snd (Cvalue.V_Or_Uninitialized.replace_base substitution v)
+  in
+  let rename_model = function
+    | Cvalue.Model.Map map ->
+      Cvalue.Model.fold
+        (fun base offsetmap acc ->
+           Cvalue.Model.add_base base
+             (Cvalue.V_Offsetmap.map_on_values rename_value offsetmap) acc)
+        map Cvalue.Model.empty_map
+      |> Cvalue.Model.replace_base substitution
+    | model -> model
+  in
+  let rename_answer answer = Result.map rename_model answer in
+  let renamed =
+    List.map
+      (fun a ->
+         { joined = rename_answer a.joined;
+           filtered = rename_answer a.filtered;
+           by_callstack =
+             List.map (fun (cs, a) -> cs, rename_answer a) a.by_callstack;
+           filtered_stacks = a.filtered_stacks })
+      answers
+  in
+  renamed, unresolved,
+  List.map (fun (base, base') -> name base, name base') mapped
+
+(* Prints and records the created bases whose match is unresolved, if
+   any. *)
+let print_unresolved () =
+  List.iter
+    (fun (run, unresolved) ->
+       if not (Base.Hptset.is_empty unresolved) then begin
+         let names =
+           Base.Hptset.elements unresolved |> List.map name
+           |> List.sort_uniq String.compare
+         in
+         Format.printf "@[<v 2>Created bases whose match with the run %s is \
+                        unresolved:" run;
+         List.iter (Format.printf "@ %s") names;
+         Format.printf "@]@.";
+         List.iter (fun name -> record [ "unresolved"; run; name ]) names
+       end)
+    [ "without memexec", !unresolved_reference;
+      "with memexec", !unresolved_memexec ]
+
+(* Whether [answer] has a base of [unresolved]. *)
+let mentions unresolved answer =
+  not (Base.Hptset.is_empty unresolved)
+  && Base.Hptset.exists
+    (fun base -> Base.Hptset.mem base unresolved)
+    (bases_of_answer Base.Hptset.empty answer)
+
 (* ----- Comparison -------------------------------------------------------- *)
 
-type verdict = Equal | Covers | More_precise | Omits | Unavailable
+type verdict = Equal | Covers | More_precise | Omits | Unavailable | Unresolved
 
 (* The model of an answer, or None if it is unavailable. *)
 let model = function
@@ -565,10 +840,15 @@ let model = function
   | Ok state -> Some state
   | Error Results.Bottom -> Some Cvalue.Model.bottom
 
-let verdict ~reference ~answer =
+(* The verdict on [answer] against [reference]: unresolved if a created base
+   of [unresolved] is in one of them, and if both are available. *)
+let verdict ?(unresolved = Base.Hptset.empty) ~reference ~answer () =
   match model reference, model answer with
   | _, None -> Unavailable
   | None, Some _ -> Omits
+  | Some _, Some _
+    when mentions unresolved reference || mentions unresolved answer ->
+    Unresolved
   | Some reference, Some answer ->
     match Cvalue.Model.is_included reference answer,
           Cvalue.Model.is_included answer reference with
@@ -583,6 +863,7 @@ let string_of_verdict = function
   | More_precise -> "more precise"
   | Omits -> "OMITS"
   | Unavailable -> "unavailable"
+  | Unresolved -> "unresolved"
 
 (* The answers of the three projects at one point. *)
 type compared = {
@@ -861,13 +1142,19 @@ let count table v =
    project. *)
 let compare_answer point ~what ~stacks description ~reference ~memexec
     ~answer =
-  let v = verdict ~reference ~answer in
-  let v_memexec = verdict ~reference ~answer:memexec in
+  let v = verdict ~unresolved:!unresolved_reference ~reference ~answer () in
+  let v_memexec =
+    verdict
+      ~unresolved:(Base.Hptset.union !unresolved_reference !unresolved_memexec)
+      ~reference ~answer:memexec ()
+  in
   count counts v;
   count memexec_counts v_memexec;
   let origin =
     if v = Unavailable && model reference = None then ", as in the reference"
-    else if verdict ~reference:memexec ~answer = Equal
+    else if
+      verdict ~unresolved:!unresolved_memexec ~reference:memexec ~answer ()
+      = Equal
     then ", as with memexec"
     else ""
   in
@@ -905,115 +1192,6 @@ let compare_point point c ~listed =
          ~answer)
     c.current.by_callstack
 
-(* ----- Allocated blocks -------------------------------------------------- *)
-
-(* The bases of allocated blocks, and the variables that Eva creates during
-   the analysis, as those of the context of option -lib-entry and the copies
-   of the locals of recursive calls, are created by each analysis, with
-   another identity in each project, and sometimes with a counter shared by
-   the projects in their name. The bases are matched across projects by
-   their name without the suffixes of the counter, and by their rank of
-   creation. The variables that exist before the analyses have the same
-   identity in the three projects, which are copies. *)
-
-let existing_variables = ref Cil_datatype.Varinfo.Set.empty
-
-let collect_existing_variables () =
-  let set = ref Cil_datatype.Varinfo.Set.empty in
-  let add vi = set := Cil_datatype.Varinfo.Set.add vi !set in
-  Globals.Vars.iter (fun vi _ -> add vi);
-  Globals.Functions.iter
-    (fun kf ->
-       add (Kernel_function.get_vi kf);
-       List.iter add (Kernel_function.get_formals kf);
-       if Kernel_function.is_definition kf
-       then List.iter add (Kernel_function.get_locals kf));
-  existing_variables := !set
-
-let created_by_analysis = function
-  | Base.Allocated _ -> true
-  | Base.Var (vi, _) ->
-    not (Cil_datatype.Varinfo.Set.mem vi !existing_variables)
-  | _ -> false
-
-(* The created bases bound in the states of [answers], or present in their
-   values: a block of size zero, as the context of an empty structure, has
-   no binding. *)
-let allocated_bases answers =
-  let add_base base acc =
-    if created_by_analysis base then Base.Hptset.add base acc else acc
-  in
-  let add_value v acc =
-    try Cvalue.V.fold_bases add_base (Cvalue.V_Or_Uninitialized.get_v v) acc
-    with Abstract_interp.Error_Top -> acc
-  in
-  let add acc = function
-    | Ok (Cvalue.Model.Map map) ->
-      Cvalue.Model.fold
-        (fun base offsetmap acc ->
-           add_base base acc
-           |> Cvalue.V_Offsetmap.fold_on_values add_value offsetmap)
-        map acc
-    | _ -> acc
-  in
-  List.fold_left
-    (fun acc a ->
-       List.fold_left add acc
-         (a.joined :: a.filtered :: List.map snd a.by_callstack))
-    Base.Hptset.empty answers
-
-let counter_suffix = Str.regexp "\\(_[0-9]+\\)+$"
-
-(* Each allocated base with its key: its name without the suffix of the
-   counter, and its rank among the bases of that name. *)
-let ranked answers =
-  let bases =
-    allocated_bases answers |> Base.Hptset.elements
-    |> List.sort (fun b b' -> Int.compare (Base.id b) (Base.id b'))
-  in
-  let ranks = Hashtbl.create 7 in
-  List.map
-    (fun base ->
-       let name = (Base.to_varinfo base).vname in
-       let name = Str.global_replace counter_suffix "" name in
-       let rank = Option.value ~default:0 (Hashtbl.find_opt ranks name) in
-       Hashtbl.replace ranks name (rank + 1);
-       (name, rank), base)
-    bases
-
-(* Renames the allocated bases of [answers] into those of [into]. *)
-let rename ~into answers =
-  let into = ranked into in
-  let substitution =
-    ranked answers
-    |> List.filter_map
-      (fun (key, base) ->
-         Option.map (fun base' -> base, base') (List.assoc_opt key into))
-    |> Base.substitution_from_list
-  in
-  let rename_value v =
-    snd (Cvalue.V_Or_Uninitialized.replace_base substitution v)
-  in
-  let rename_model = function
-    | Cvalue.Model.Map map ->
-      Cvalue.Model.fold
-        (fun base offsetmap acc ->
-           Cvalue.Model.add_base base
-             (Cvalue.V_Offsetmap.map_on_values rename_value offsetmap) acc)
-        map Cvalue.Model.empty_map
-      |> Cvalue.Model.replace_base substitution
-    | model -> model
-  in
-  let rename_answer answer = Result.map rename_model answer in
-  List.map
-    (fun a ->
-       { joined = rename_answer a.joined;
-         filtered = rename_answer a.filtered;
-         by_callstack =
-           List.map (fun (cs, a) -> cs, rename_answer a) a.by_callstack;
-         filtered_stacks = a.filtered_stacks })
-    answers
-
 (* ----- Printing of states ------------------------------------------------ *)
 
 (* Whether a base is printed: the variables of the source file, without those
@@ -1038,11 +1216,13 @@ let print_answers title answers =
     answers.by_callstack
 
 let all_equal c =
-  verdict ~reference:c.reference.joined ~answer:c.current.joined = Equal
+  verdict ~unresolved:!unresolved_reference ~reference:c.reference.joined
+    ~answer:c.current.joined () = Equal
   && List.length c.reference.by_callstack = List.length c.current.by_callstack
   && List.for_all
     (fun (name, answer) ->
-       verdict ~reference:(find name c.reference.by_callstack) ~answer = Equal)
+       verdict ~unresolved:!unresolved_reference
+         ~reference:(find name c.reference.by_callstack) ~answer () = Equal)
     c.current.by_callstack
 
 let print_labelled (point, c) =
@@ -1486,7 +1666,10 @@ let copy_and_analyse name ~memexec =
          Parameters.Memexec.set memexec;
          Parameters.HitLog.off ();
          Parameters.Eva.on ();
-         analyse ())
+         analysing := Some name;
+         let passes = analyse () in
+         analysing := None;
+         passes)
       ()
   in
   project, passes
@@ -1525,7 +1708,8 @@ let record_summary ~below ~different_stacks ~different_filtered ~compared
        let get v = Option.value ~default:0 (Hashtbl.find_opt table v) in
        record ("verdicts" :: run ::
                List.map (fun v -> string_of_int (get v))
-                 [ Equal; Covers; More_precise; Omits; Unavailable ]))
+                 [ Equal; Covers; More_precise; Omits; Unavailable;
+                   Unresolved ]))
     [ "recording", counts; "memexec", memexec_counts ];
   let total = string_of_int (List.length compared) in
   record [ "callstacks"; string_of_int (List.length different_stacks); total ];
@@ -1566,7 +1750,9 @@ let observe () =
   record [ "phase"; "recording" ];
   Parameters.Eva.on ();
   observing_calls := true;
+  analysing := Some "recording";
   let current_passes = analyse () in
+  analysing := None;
   observing_calls := false;
   print_calls ();
   if not (Analysis.is_computed ()) then begin
@@ -1634,8 +1820,16 @@ let observe () =
       with_trap (fun () -> answers_in current)
     in
     let reported = reported_stacks @ reported_answers in
-    let reference_answers = rename ~into:answers reference_answers in
-    let memexec_answers = rename ~into:answers memexec_answers in
+    let reference_answers, unresolved, names =
+      rename ~source:"reference" ~into:answers reference_answers
+    in
+    unresolved_reference := unresolved;
+    matched_names := names;
+    let memexec_answers, unresolved, _ =
+      rename ~source:"memexec" ~into:answers memexec_answers
+    in
+    unresolved_memexec := unresolved;
+    print_unresolved ();
     let compared =
       List.map2
         (fun (reference, memexec) current -> { reference; memexec; current })
@@ -1647,8 +1841,9 @@ let observe () =
     let initial = snd (List.hd compared) in
     Format.printf "Initial state: %s.@."
       (string_of_verdict
-         (verdict ~reference:initial.reference.joined
-            ~answer:initial.current.joined));
+         (verdict ~unresolved:!unresolved_reference
+            ~reference:initial.reference.joined
+            ~answer:initial.current.joined ()));
     Format.printf "Differences with the run without memexec:@.";
     List.iter2
       (fun (point, c) listed ->
@@ -1656,8 +1851,10 @@ let observe () =
       compared current_stacks;
     let get v = Option.value ~default:0 (Hashtbl.find_opt counts v) in
     Format.printf "Answers: %d equal, %d covering, %d more precise, \
-                   %d omitting, %d unavailable.@."
-      (get Equal) (get Covers) (get More_precise) (get Omits) (get Unavailable);
+                   %d omitting, %d unavailable%s.@."
+      (get Equal) (get Covers) (get More_precise) (get Omits) (get Unavailable)
+      (if get Unresolved = 0 then ""
+       else Format.sprintf ", %d unresolved" (get Unresolved));
     let reads = List.concat_map (fun r -> r.Legacy_read_trap.reads) reported in
     let different_filtered =
       List.filter_map
@@ -1707,8 +1904,9 @@ let observe () =
     if suite then begin
       record [ "initial";
                string_of_verdict
-                 (verdict ~reference:initial.reference.joined
-                    ~answer:initial.current.joined) ];
+                 (verdict ~unresolved:!unresolved_reference
+                    ~reference:initial.reference.joined
+                    ~answer:initial.current.joined ()) ];
       record_summary ~below ~different_stacks ~different_filtered ~compared
         ~reported ~memexec_passes ~current_passes;
       record_outputs ~reference ~memexec ~current

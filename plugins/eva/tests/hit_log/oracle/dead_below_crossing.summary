@@ -153,8 +153,8 @@ requests	start	callstacks	3
 requests	start	callstacks, filtered	3
 requests	start	filtered	3
 requests	start	joined	3
-verdicts	recording	47	0	0	0	122
-verdicts	memexec	104	0	65	0	0
+verdicts	recording	47	0	0	0	122	0
+verdicts	memexec	104	0	65	0	0	0
 callstacks	20	41
 callstacks filtered	20	41
 trap	251	251	matched	0

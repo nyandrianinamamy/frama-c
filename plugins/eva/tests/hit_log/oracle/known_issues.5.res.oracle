@@ -50,14 +50,14 @@ release, start:
                      r2 ∈ {0}
                      y ∈ {0}
                      answer ∈ {0}
-                     owner ∈ {{ &__malloc_issue94_2_l90 }}
-                     alias ∈ {{ NULL ; &__malloc_issue94_2_l90 }}
+                     owner ∈ {{ &__malloc_w_issue94_2_l90_1 }}
+                     alias ∈ {{ NULL ; &__malloc_w_issue94_2_l90_1 }}
                      i ∈ {0; 1; 2}
                      one ∈ {0}
                      two ∈ {0}
                      xc ∈ {0}
                      __retres ∈ UNINITIALIZED
-                     __malloc_issue94_2_l90 ∈ {17}
+                     __malloc_w_issue94_2_l90_1 ∈ {17}
   release :: known_issues.c:94 <- issue94_2: a ∈ {0}
                                              g ∈ {0}
                                              out ∈ {0}
@@ -66,16 +66,17 @@ release, start:
                                              y ∈ {0}
                                              answer ∈ {0}
                                              owner ∈
-                                                  {{ &__malloc_issue94_2_l90 }}
+                                                  {{ &__malloc_w_issue94_2_l90_1 }}
                                              alias ∈
                                                   {{ NULL ;
-                                                     &__malloc_issue94_2_l90 }}
+                                                     &__malloc_w_issue94_2_l90_1 }}
                                              i ∈ {0; 1; 2}
                                              one ∈ {0}
                                              two ∈ {0}
                                              xc ∈ {0}
                                              __retres ∈ UNINITIALIZED
-                                             __malloc_issue94_2_l90 ∈ {17}
+                                             __malloc_w_issue94_2_l90_1
+                                              ∈ {17}
 release, before known_issues.c:86 `owner = (int *)0;` (P):
   joined: a ∈ {0}
           g ∈ {0}
@@ -206,12 +207,12 @@ Differences with the run without memexec:
   final state, joined: OMITS, as with memexec
   final state, filtered: OMITS, as with memexec
   final state, issue94_2: OMITS, as with memexec
-  release, start, joined: OMITS, as with memexec
-  release, start, filtered: OMITS, as with memexec
-  release, start, release :: known_issues.c:94 <- issue94_2: OMITS, as with memexec
-  release, before known_issues.c:86 `free((void *)owner);`, joined: OMITS
-  release, before known_issues.c:86 `free((void *)owner);`, filtered: OMITS
-  release, before known_issues.c:86 `free((void *)owner);`, release :: known_issues.c:94 <- issue94_2: OMITS
+  release, start, joined: covers, as with memexec
+  release, start, filtered: covers, as with memexec
+  release, start, release :: known_issues.c:94 <- issue94_2: covers, as with memexec
+  release, before known_issues.c:86 `free((void *)owner);`, joined: covers
+  release, before known_issues.c:86 `free((void *)owner);`, filtered: covers
+  release, before known_issues.c:86 `free((void *)owner);`, release :: known_issues.c:94 <- issue94_2: covers
   release, after known_issues.c:86 `free((void *)owner);`, joined: OMITS
   release, after known_issues.c:86 `free((void *)owner);`, filtered: OMITS
   release, after known_issues.c:86 `free((void *)owner);`, release :: known_issues.c:94 <- issue94_2: OMITS
@@ -278,18 +279,12 @@ Differences with the run without memexec:
   issue94_2, before known_issues.c:93 `alias = owner;`, joined: OMITS, as with memexec
   issue94_2, before known_issues.c:93 `alias = owner;`, filtered: OMITS, as with memexec
   issue94_2, before known_issues.c:93 `alias = owner;`, issue94_2: OMITS, as with memexec
-  issue94_2, after known_issues.c:93 `alias = owner;`, joined: OMITS, as with memexec
-  issue94_2, after known_issues.c:93 `alias = owner;`, filtered: OMITS, as with memexec
-  issue94_2, after known_issues.c:93 `alias = owner;`, issue94_2: OMITS, as with memexec
-  issue94_2, before known_issues.c:93 `alias = (int *)0;`, joined: OMITS, as with memexec
-  issue94_2, before known_issues.c:93 `alias = (int *)0;`, filtered: OMITS, as with memexec
-  issue94_2, before known_issues.c:93 `alias = (int *)0;`, issue94_2: OMITS, as with memexec
-  issue94_2, after known_issues.c:93 `alias = (int *)0;`, joined: OMITS, as with memexec
-  issue94_2, after known_issues.c:93 `alias = (int *)0;`, filtered: OMITS, as with memexec
-  issue94_2, after known_issues.c:93 `alias = (int *)0;`, issue94_2: OMITS, as with memexec
-  issue94_2, before known_issues.c:94 `release();`, joined: OMITS, as with memexec
-  issue94_2, before known_issues.c:94 `release();`, filtered: OMITS, as with memexec
-  issue94_2, before known_issues.c:94 `release();`, issue94_2: OMITS, as with memexec
+  issue94_2, after known_issues.c:93 `alias = owner;`, joined: covers, as with memexec
+  issue94_2, after known_issues.c:93 `alias = owner;`, filtered: covers, as with memexec
+  issue94_2, after known_issues.c:93 `alias = owner;`, issue94_2: covers, as with memexec
+  issue94_2, before known_issues.c:94 `release();`, joined: covers, as with memexec
+  issue94_2, before known_issues.c:94 `release();`, filtered: covers, as with memexec
+  issue94_2, before known_issues.c:94 `release();`, issue94_2: covers, as with memexec
   issue94_2, after known_issues.c:94 `release();`, joined: OMITS, as with memexec
   issue94_2, after known_issues.c:94 `release();`, filtered: OMITS, as with memexec
   issue94_2, after known_issues.c:94 `release();`, issue94_2: OMITS, as with memexec
@@ -311,7 +306,7 @@ Differences with the run without memexec:
   issue94_2, after known_issues.c:96 `return __retres;`, joined: OMITS, as with memexec
   issue94_2, after known_issues.c:96 `return __retres;`, filtered: OMITS, as with memexec
   issue94_2, after known_issues.c:96 `return __retres;`, issue94_2: OMITS, as with memexec
-Answers: 471 equal, 0 covering, 0 more precise, 108 omitting, 0 unavailable.
+Answers: 477 equal, 12 covering, 0 more precise, 90 omitting, 0 unavailable.
 Callstacks listed: those of the run without memexec at each of the 268 points.
 Callstacks listed through the filter: those of the run without memexec at each of the 268 points.
 Filtered requests that reject one callstack: 0.
