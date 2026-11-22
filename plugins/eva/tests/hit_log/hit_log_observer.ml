@@ -614,7 +614,8 @@ let interrupted name =
 
 (* Whether the call of the function [name] at the statement [sid] may rename
    variables if it is a recursive call: the function has a formal or a local
-   whose address is taken, or that appears in an argument of the call. *)
+   whose address is taken, or that an argument of the call copies, the
+   argument being an lvalue of this variable. *)
 let renames name sid =
   let kf = Globals.Functions.find_by_name name in
   let vars = Kernel_function.get_formals kf @ Kernel_function.get_locals kf in
@@ -624,14 +625,13 @@ let renames name sid =
     | Instr (Local_init (_, ConsInit (_, args, _), _)) -> args
     | _ -> []
   in
-  let passed =
-    List.fold_left
-      (fun acc arg ->
-         Cil_datatype.Varinfo.Set.union acc (Cil.extract_varinfos_from_exp arg))
-      Cil_datatype.Varinfo.Set.empty args
+  let copies vi (arg: Cil_types.exp) =
+    match arg.enode with
+    | Lval (Var v, _) -> Cil_datatype.Varinfo.equal v vi
+    | _ -> false
   in
   List.exists
-    (fun vi -> vi.Cil_types.vaddrof || Cil_datatype.Varinfo.Set.mem vi passed)
+    (fun vi -> vi.Cil_types.vaddrof || List.exists (copies vi) args)
     vars
 
 (* The callstacks of the calls below a hit, each with whether it crosses a
