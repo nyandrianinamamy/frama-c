@@ -25,6 +25,10 @@ above overrides the upstream GitLab workflow in `CONTRIBUTING.md`.
 - Kernel and shared OCaml libraries: `src/kernel/`, `src/lib/`.
 - Eva: `plugins/eva/src/` (engine, domains, public interfaces), with regression
   suites in `plugins/eva/tests/`. Kernel regression suites live in `tests/`.
+- Delegated work, as a subagent or child thread on a ticket: follow
+  [docs/agents/delegate-rules.md](docs/agents/delegate-rules.md).
+- Writing or reviewing a change to the hit log observer: check each
+  invariant of [its README](plugins/eva/tests/hit_log/README.md#comparing-states-across-projects).
 - For OCaml contributions, read [CONTRIBUTING.md](CONTRIBUTING.md#coding-conventions).
   For GUI changes, use [ivette/CONTRIBUTING.md](ivette/CONTRIBUTING.md) and
   [ivette/tests/README.md](ivette/tests/README.md); the commands below concern
