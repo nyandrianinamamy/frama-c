@@ -126,6 +126,9 @@ answer	after	f	f, after dead_below_crossing.c:31 `return __retres;`, f :: dead_b
 answer	after	f	f, after dead_below_crossing.c:31 `return __retres;`, f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
 answer	after	f	f, after dead_below_crossing.c:31 `return __retres;`, f :: dead_below_crossing.c:35 <- main	callstack	unavailable	equal		2: unrolled recursive calls
 answer	after	f	f, after dead_below_crossing.c:31 `return __retres;`, f :: dead_below_crossing.c:36 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+unreachable statements	reference	1
+unreachable statements	recording	1
+unreachable statements	memexec	1
 initial	equal
 calls	4	1	0	0	2
 requests	after	callstack	40

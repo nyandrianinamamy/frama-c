@@ -763,10 +763,12 @@ let matching (source_run, source) (target_run, target) =
 (* The created bases of the reference and of the run with memexec whose
    match with those of the run with -eva-hit-log is unresolved, with these
    bases of the run with -eva-hit-log; and the names of the bases of the
-   reference matched, with the names of their match. *)
+   reference and of the run with memexec matched, with the names of their
+   match. *)
 let unresolved_reference = ref Base.Hptset.empty
 let unresolved_memexec = ref Base.Hptset.empty
-let matched_names = ref []
+let names_reference = ref []
+let names_memexec = ref []
 
 (* Renames the created bases of [answers], of the run [source], into those
    of [into], of the run with -eva-hit-log. Returns the answers renamed, the
@@ -1192,6 +1194,60 @@ let compare_point point c ~listed =
          ~answer)
     c.current.by_callstack
 
+(* The statements unreachable for the passes in one run and not in the
+   reference, or the converse: the passes ask whether the state before a
+   statement is bottom, and an unavailable answer is not. Those unreachable
+   with memexec or with -eva-hit-log and reachable in the reference are
+   printed; all are recorded in the summary, with the case of the closed
+   list of an unavailable answer. [listed] are the callstacks that reach
+   each point in the current project. *)
+let compare_unreachable compared ~listed =
+  let bottom = function
+    | Error Results.Bottom | Ok Cvalue.Model.Bottom -> true
+    | _ -> false
+  in
+  let count run answers =
+    let n = List.length (List.filter bottom answers) in
+    record [ "unreachable statements"; run; string_of_int n ]
+  in
+  let befores =
+    List.combine compared listed
+    |> List.filter (fun ((point, _), _) -> String.equal point.kind "before")
+  in
+  count "reference" (List.map (fun ((_, c), _) -> c.reference.joined) befores);
+  List.iter
+    (fun (run, title, answer) ->
+       count run (List.map (fun ((_, c), _) -> answer c) befores);
+       let only =
+         List.filter_map
+           (fun ((point, c), listed) ->
+              let r = bottom c.reference.joined and a = bottom (answer c) in
+              if r = a then None
+              else begin
+                let unavailable = not a && model (answer c) = None in
+                let case =
+                  if unavailable && String.equal run "recording"
+                  then closed_list_case point ~stacks:listed
+                  else ""
+                in
+                record [ "unreachable"; run;
+                         (if a then "only in this run"
+                          else "only in the reference");
+                         point.description; case ];
+                if a then Some point.description else None
+              end)
+           befores
+       in
+       if only <> [] then begin
+         Format.printf "@[<v 2>Statements unreachable for the passes %s, \
+                        and reachable without memexec:" title;
+         List.iter (Format.printf "@ %s") only;
+         Format.printf "@]@."
+       end)
+    [ "recording", "with -eva-hit-log", (fun c -> c.current.joined);
+      "memexec", "with memexec, without recording",
+      (fun c -> c.memexec.joined) ]
+
 (* ----- Printing of states ------------------------------------------------ *)
 
 (* Whether a base is printed: the variables of the source file, without those
@@ -1519,6 +1575,36 @@ let differing_statuses keys ~reference ~memexec o =
        Format.sprintf "  %s: %s against %s: %s%s" key c r verdict origin)
     (status_differences keys ~reference ~memexec o)
 
+(* A name of a variable in a message, as a copy \copy<x>[1] of a variable
+   of a recursive call. *)
+let name_token =
+  Str.regexp
+    ("\\\\?[A-Za-z_][A-Za-z0-9_]*"
+     ^ "\\(<[^<> \n]*>\\[[0-9]+\\]\\(_[0-9]+\\)*\\)?")
+
+(* The text [text] with each name of [names], a list of pairs, replaced by
+   the second name of its pair. *)
+let rename_names names text =
+  let table = Hashtbl.create 7 in
+  List.iter (fun (name, name') -> Hashtbl.replace table name name') names;
+  Str.global_substitute name_token
+    (fun text ->
+       let token = Str.matched_string text in
+       Option.value ~default:token (Hashtbl.find_opt table token))
+    text
+
+(* Whether the text [text] has one of the names [names]. *)
+let has_names names text =
+  let rec search start =
+    match Str.search_forward name_token text start with
+    | exception Not_found -> false
+    | position ->
+      let token = Str.matched_string text in
+      List.mem token names
+      || search (position + max 1 (String.length token))
+  in
+  names <> [] && search 0
+
 (* The outputs of the passes, in the summary. *)
 let record_outputs ~reference ~memexec ~current =
   let keys =
@@ -1554,23 +1640,29 @@ let record_outputs ~reference ~memexec ~current =
        record [ "statistics"; run; Format.sprintf "%.4f" stmts;
                 Format.sprintf "%.4f" funs; string_of_int alarms ])
     [ "reference", reference; "recording", current; "memexec", memexec ];
-  (* The blocks created by an analysis are named in each project with its own
-     suffix of a counter, which is removed for a second comparison, with the
-     spaces and the line breaks that align the names. *)
-  let without_suffixes text =
-    Str.global_replace (Str.regexp "\\(_[0-9]+\\)+\\([^A-Za-z0-9_]\\|$\\)")
-      "\\2" text
-    |> Str.global_replace (Str.regexp "[ \n]+") " "
+  (* The bases created by an analysis are named in each project with its own
+     suffix of a counter. For a second comparison, the names of the created
+     bases of the reference and of the run with memexec are replaced by those
+     of the bases they match in the run with -eva-hit-log, and the spaces and
+     the line breaks that align the names are removed. *)
+  let normal text = Str.global_replace (Str.regexp "[ \n]+") " " text in
+  let unresolved_names =
+    Base.Hptset.union !unresolved_reference !unresolved_memexec
+    |> Base.Hptset.elements |> List.map name
   in
+  let reference_text = rename_names !names_reference reference.output in
   List.iter
-    (fun (run, o) ->
+    (fun (run, o, names) ->
+       let text = rename_names names o.output in
        record [ "messages"; run;
                 if String.equal o.output reference.output then "equal"
-                else if String.equal (without_suffixes o.output)
-                    (without_suffixes reference.output)
-                then "equal up to the suffixes of the names"
+                else if String.equal (normal text) (normal reference_text)
+                then "equal up to the names of the created bases"
+                else if has_names unresolved_names text
+                     || has_names unresolved_names reference_text
+                then "unresolved"
                 else "differ" ])
-    [ "recording", current; "memexec", memexec ]
+    [ "recording", current, []; "memexec", memexec, !names_memexec ]
 
 (* Prints the messages [output] in a box, one line per line. *)
 let print_messages title output =
@@ -1824,11 +1916,12 @@ let observe () =
       rename ~source:"reference" ~into:answers reference_answers
     in
     unresolved_reference := unresolved;
-    matched_names := names;
-    let memexec_answers, unresolved, _ =
+    names_reference := names;
+    let memexec_answers, unresolved, names =
       rename ~source:"memexec" ~into:answers memexec_answers
     in
     unresolved_memexec := unresolved;
+    names_memexec := names;
     print_unresolved ();
     let compared =
       List.map2
@@ -1849,6 +1942,8 @@ let observe () =
       (fun (point, c) listed ->
          compare_point point c ~listed:(List.map snd listed))
       compared current_stacks;
+    compare_unreachable compared
+      ~listed:(List.map (List.map snd) current_stacks);
     let get v = Option.value ~default:0 (Hashtbl.find_opt counts v) in
     Format.printf "Answers: %d equal, %d covering, %d more precise, \
                    %d omitting, %d unavailable%s.@."

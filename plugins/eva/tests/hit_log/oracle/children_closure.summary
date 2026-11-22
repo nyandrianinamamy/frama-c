@@ -78,6 +78,9 @@ answer	after	f	f, after children_closure.c:22 `return __retres;`, filtered	filte
 answer	after	f	f, after children_closure.c:22 `return __retres;`, f :: children_closure.c:21 <- f :: children_closure.c:28 <- main	callstack	unavailable	equal		2: unrolled recursive calls
 answer	after	f	f, after children_closure.c:22 `return __retres;`, f :: children_closure.c:28 <- main	callstack	unavailable	equal		2: unrolled recursive calls
 answer	after	f	f, after children_closure.c:22 `return __retres;`, f :: children_closure.c:29 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+unreachable statements	reference	0
+unreachable statements	recording	0
+unreachable statements	memexec	0
 initial	equal
 calls	4	1	0	0	0
 requests	after	callstack	35
