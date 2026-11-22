@@ -1,0 +1,358 @@
+[kernel] Parsing dead_control.c (with preprocessing)
+Control: the answers with -eva-hit-log are taken as unavailable, on the callstacks of the start of the function, at the statement labelled Dead.
+Calls:
+  leaf :: dead_below_crossing.c:30 <- f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:35 <- main: analysed, cache entry 12
+  f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:35 <- main: analysed, cache entry 13
+  f :: dead_below_crossing.c:35 <- main: analysed, cache entry 14
+  f :: dead_below_crossing.c:36 <- main: hit of cache entry 14
+  main: analysed, cache entry 15
+Calls below a hit:
+  f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main
+  leaf :: dead_below_crossing.c:30 <- f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main
+Calls below a hit that cross a recursion, rebuilt by the observer:
+  f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main
+  leaf :: dead_below_crossing.c:30 <- f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main
+leaf, start:
+  joined: unavailable
+  leaf :: dead_below_crossing.c:30 <- f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:35 <- main: 
+  a ∈ {0}
+  b ∈ {0}
+  z ∈ {0}
+  v ∈ {0}
+  n ∈ {0}
+  x ∈ {0}
+  p ∈ {{ &x }}
+  __retres ∈ UNINITIALIZED
+  __retres ∈ UNINITIALIZED
+  \copy<x>[1] ∈ {1}
+  leaf :: dead_below_crossing.c:30 <- f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main: 
+  unavailable
+  reference, joined: a ∈ {0}
+                     b ∈ {0}
+                     z ∈ {0}
+                     v ∈ {0}
+                     n ∈ {0}
+                     x ∈ {0}
+                     p ∈ {{ &x }}
+                     __retres ∈ UNINITIALIZED
+                     __retres ∈ UNINITIALIZED
+                     \copy<x>[1] ∈ {1}
+  leaf :: dead_below_crossing.c:30 <- f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:35 <- main: 
+  a ∈ {0}
+  b ∈ {0}
+  z ∈ {0}
+  v ∈ {0}
+  n ∈ {0}
+  x ∈ {0}
+  p ∈ {{ &x }}
+  __retres ∈ UNINITIALIZED
+  __retres ∈ UNINITIALIZED
+  \copy<x>[1] ∈ {1}
+  leaf :: dead_below_crossing.c:30 <- f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main: 
+  a ∈ {0}
+  b ∈ {0}
+  z ∈ {0}
+  v ∈ {0}
+  n ∈ {0}
+  x ∈ {0}
+  p ∈ {{ &x }}
+  __retres ∈ UNINITIALIZED
+  __retres ∈ UNINITIALIZED
+  \copy<x>[1] ∈ {1}
+leaf, before dead_below_crossing.c:21 `;` (R):
+  joined: unavailable
+  leaf :: dead_below_crossing.c:30 <- f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:35 <- main: 
+  a ∈ {0}
+  b ∈ {0}
+  z ∈ {0}
+  v ∈ {0}
+  n ∈ {0}
+  x ∈ {0}
+  p ∈ {{ &x }}
+  __retres ∈ UNINITIALIZED
+  __retres ∈ UNINITIALIZED
+  \copy<x>[1] ∈ {1}
+  leaf :: dead_below_crossing.c:30 <- f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main: 
+  unavailable
+  reference, joined: a ∈ {0}
+                     b ∈ {0}
+                     z ∈ {0}
+                     v ∈ {0}
+                     n ∈ {0}
+                     x ∈ {0}
+                     p ∈ {{ &x }}
+                     __retres ∈ UNINITIALIZED
+                     __retres ∈ UNINITIALIZED
+                     \copy<x>[1] ∈ {1}
+  leaf :: dead_below_crossing.c:30 <- f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:35 <- main: 
+  a ∈ {0}
+  b ∈ {0}
+  z ∈ {0}
+  v ∈ {0}
+  n ∈ {0}
+  x ∈ {0}
+  p ∈ {{ &x }}
+  __retres ∈ UNINITIALIZED
+  __retres ∈ UNINITIALIZED
+  \copy<x>[1] ∈ {1}
+  leaf :: dead_below_crossing.c:30 <- f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main: 
+  a ∈ {0}
+  b ∈ {0}
+  z ∈ {0}
+  v ∈ {0}
+  n ∈ {0}
+  x ∈ {0}
+  p ∈ {{ &x }}
+  __retres ∈ UNINITIALIZED
+  __retres ∈ UNINITIALIZED
+  \copy<x>[1] ∈ {1}
+leaf, before dead_below_crossing.c:23 `z = 7;` (Dead):
+  joined: unavailable
+  leaf :: dead_below_crossing.c:30 <- f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:35 <- main: 
+  unavailable
+  leaf :: dead_below_crossing.c:30 <- f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main: 
+  unavailable
+  reference, joined: unreachable
+  leaf :: dead_below_crossing.c:30 <- f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:35 <- main: 
+  unreachable
+  leaf :: dead_below_crossing.c:30 <- f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main: 
+  unreachable
+leaf, after dead_below_crossing.c:25 `return;`:
+  joined: unavailable
+  leaf :: dead_below_crossing.c:30 <- f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:35 <- main: 
+  a ∈ {0}
+  b ∈ {0}
+  z ∈ {0}
+  v ∈ {0}
+  n ∈ {0}
+  x ∈ {0}
+  p ∈ {{ &x }}
+  __retres ∈ UNINITIALIZED
+  __retres ∈ UNINITIALIZED
+  \copy<x>[1] ∈ {1}
+  leaf :: dead_below_crossing.c:30 <- f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main: 
+  unavailable
+  reference, joined: a ∈ {0}
+                     b ∈ {0}
+                     z ∈ {0}
+                     v ∈ {0}
+                     n ∈ {0}
+                     x ∈ {0}
+                     p ∈ {{ &x }}
+                     __retres ∈ UNINITIALIZED
+                     __retres ∈ UNINITIALIZED
+                     \copy<x>[1] ∈ {1}
+  leaf :: dead_below_crossing.c:30 <- f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:35 <- main: 
+  a ∈ {0}
+  b ∈ {0}
+  z ∈ {0}
+  v ∈ {0}
+  n ∈ {0}
+  x ∈ {0}
+  p ∈ {{ &x }}
+  __retres ∈ UNINITIALIZED
+  __retres ∈ UNINITIALIZED
+  \copy<x>[1] ∈ {1}
+  leaf :: dead_below_crossing.c:30 <- f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main: 
+  a ∈ {0}
+  b ∈ {0}
+  z ∈ {0}
+  v ∈ {0}
+  n ∈ {0}
+  x ∈ {0}
+  p ∈ {{ &x }}
+  __retres ∈ UNINITIALIZED
+  __retres ∈ UNINITIALIZED
+  \copy<x>[1] ∈ {1}
+Hits against the analysed call of their cache entry:
+  f :: dead_below_crossing.c:36 <- main, hit of cache entry 14, against f :: dead_below_crossing.c:35 <- main: no difference, unavailable at 16 points, at 21 points.
+Initial state: equal.
+Differences with the run without memexec:
+  leaf, start, joined: unavailable
+  leaf, start, filtered: unavailable
+  leaf, start, leaf :: dead_below_crossing.c:30 <- f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main: unavailable
+  leaf, before dead_below_crossing.c:21 `;` (R), joined: unavailable
+  leaf, before dead_below_crossing.c:21 `;` (R), filtered: unavailable
+  leaf, before dead_below_crossing.c:21 `;` (R), leaf :: dead_below_crossing.c:30 <- f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main: unavailable
+  leaf, after dead_below_crossing.c:21 `;` (R), joined: unavailable
+  leaf, after dead_below_crossing.c:21 `;` (R), filtered: unavailable
+  leaf, after dead_below_crossing.c:21 `;` (R), leaf :: dead_below_crossing.c:30 <- f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main: unavailable
+  leaf, before dead_below_crossing.c:21 `if (v == 7)`, joined: unavailable
+  leaf, before dead_below_crossing.c:21 `if (v == 7)`, filtered: unavailable
+  leaf, before dead_below_crossing.c:21 `if (v == 7)`, leaf :: dead_below_crossing.c:30 <- f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main: unavailable
+  leaf, after dead_below_crossing.c:21 `if (v == 7)`, joined: unavailable
+  leaf, after dead_below_crossing.c:21 `if (v == 7)`, filtered: unavailable
+  leaf, after dead_below_crossing.c:21 `if (v == 7)`, leaf :: dead_below_crossing.c:30 <- f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main: unavailable
+  leaf, before dead_below_crossing.c:23 `z = 7;` (Dead), joined: unavailable
+  leaf, before dead_below_crossing.c:23 `z = 7;` (Dead), filtered: unavailable
+  leaf, before dead_below_crossing.c:23 `z = 7;` (Dead), leaf :: dead_below_crossing.c:30 <- f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:35 <- main: unavailable
+  leaf, before dead_below_crossing.c:23 `z = 7;` (Dead), leaf :: dead_below_crossing.c:30 <- f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main: unavailable
+  leaf, after dead_below_crossing.c:23 `z = 7;` (Dead), joined: unavailable
+  leaf, after dead_below_crossing.c:23 `z = 7;` (Dead), filtered: unavailable
+  leaf, after dead_below_crossing.c:23 `z = 7;` (Dead), leaf :: dead_below_crossing.c:30 <- f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:35 <- main: unavailable
+  leaf, after dead_below_crossing.c:23 `z = 7;` (Dead), leaf :: dead_below_crossing.c:30 <- f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main: unavailable
+  leaf, before dead_below_crossing.c:25 `return;`, joined: unavailable
+  leaf, before dead_below_crossing.c:25 `return;`, filtered: unavailable
+  leaf, before dead_below_crossing.c:25 `return;`, leaf :: dead_below_crossing.c:30 <- f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main: unavailable
+  leaf, after dead_below_crossing.c:25 `return;`, joined: unavailable
+  leaf, after dead_below_crossing.c:25 `return;`, filtered: unavailable
+  leaf, after dead_below_crossing.c:25 `return;`, leaf :: dead_below_crossing.c:30 <- f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main: unavailable
+  f, start, joined: unavailable
+  f, start, filtered: unavailable
+  f, start, f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main: unavailable
+  f, before dead_below_crossing.c:28 `int x = n;`, joined: unavailable
+  f, before dead_below_crossing.c:28 `int x = n;`, filtered: unavailable
+  f, before dead_below_crossing.c:28 `int x = n;`, f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:35 <- main: unavailable
+  f, before dead_below_crossing.c:28 `int x = n;`, f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main: unavailable
+  f, before dead_below_crossing.c:28 `int x = n;`, f :: dead_below_crossing.c:35 <- main: unavailable
+  f, before dead_below_crossing.c:28 `int x = n;`, f :: dead_below_crossing.c:36 <- main: unavailable
+  f, after dead_below_crossing.c:28 `int x = n;`, joined: unavailable
+  f, after dead_below_crossing.c:28 `int x = n;`, filtered: unavailable
+  f, after dead_below_crossing.c:28 `int x = n;`, f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:35 <- main: unavailable
+  f, after dead_below_crossing.c:28 `int x = n;`, f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main: unavailable
+  f, after dead_below_crossing.c:28 `int x = n;`, f :: dead_below_crossing.c:35 <- main: unavailable
+  f, after dead_below_crossing.c:28 `int x = n;`, f :: dead_below_crossing.c:36 <- main: unavailable
+  f, before dead_below_crossing.c:28 `int *p = & x;`, joined: unavailable
+  f, before dead_below_crossing.c:28 `int *p = & x;`, filtered: unavailable
+  f, before dead_below_crossing.c:28 `int *p = & x;`, f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:35 <- main: unavailable
+  f, before dead_below_crossing.c:28 `int *p = & x;`, f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main: unavailable
+  f, before dead_below_crossing.c:28 `int *p = & x;`, f :: dead_below_crossing.c:35 <- main: unavailable
+  f, before dead_below_crossing.c:28 `int *p = & x;`, f :: dead_below_crossing.c:36 <- main: unavailable
+  f, after dead_below_crossing.c:28 `int *p = & x;`, joined: unavailable
+  f, after dead_below_crossing.c:28 `int *p = & x;`, filtered: unavailable
+  f, after dead_below_crossing.c:28 `int *p = & x;`, f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:35 <- main: unavailable
+  f, after dead_below_crossing.c:28 `int *p = & x;`, f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main: unavailable
+  f, after dead_below_crossing.c:28 `int *p = & x;`, f :: dead_below_crossing.c:35 <- main: unavailable
+  f, after dead_below_crossing.c:28 `int *p = & x;`, f :: dead_below_crossing.c:36 <- main: unavailable
+  f, before dead_below_crossing.c:29 `if (n)`, joined: unavailable
+  f, before dead_below_crossing.c:29 `if (n)`, filtered: unavailable
+  f, before dead_below_crossing.c:29 `if (n)`, f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:35 <- main: unavailable
+  f, before dead_below_crossing.c:29 `if (n)`, f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main: unavailable
+  f, before dead_below_crossing.c:29 `if (n)`, f :: dead_below_crossing.c:35 <- main: unavailable
+  f, before dead_below_crossing.c:29 `if (n)`, f :: dead_below_crossing.c:36 <- main: unavailable
+  f, after dead_below_crossing.c:29 `if (n)`, joined: unavailable
+  f, after dead_below_crossing.c:29 `if (n)`, filtered: unavailable
+  f, after dead_below_crossing.c:29 `if (n)`, f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:35 <- main: unavailable
+  f, after dead_below_crossing.c:29 `if (n)`, f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main: unavailable
+  f, after dead_below_crossing.c:29 `if (n)`, f :: dead_below_crossing.c:35 <- main: unavailable
+  f, after dead_below_crossing.c:29 `if (n)`, f :: dead_below_crossing.c:36 <- main: unavailable
+  f, before dead_below_crossing.c:29 `tmp = f(n - 1);`, joined: unavailable
+  f, before dead_below_crossing.c:29 `tmp = f(n - 1);`, filtered: unavailable
+  f, before dead_below_crossing.c:29 `tmp = f(n - 1);`, f :: dead_below_crossing.c:35 <- main: unavailable
+  f, before dead_below_crossing.c:29 `tmp = f(n - 1);`, f :: dead_below_crossing.c:36 <- main: unavailable
+  f, after dead_below_crossing.c:29 `tmp = f(n - 1);`, joined: unavailable
+  f, after dead_below_crossing.c:29 `tmp = f(n - 1);`, filtered: unavailable
+  f, after dead_below_crossing.c:29 `tmp = f(n - 1);`, f :: dead_below_crossing.c:35 <- main: unavailable
+  f, after dead_below_crossing.c:29 `tmp = f(n - 1);`, f :: dead_below_crossing.c:36 <- main: unavailable
+  f, before dead_below_crossing.c:29 `block`, joined: unavailable
+  f, before dead_below_crossing.c:29 `block`, filtered: unavailable
+  f, before dead_below_crossing.c:29 `block`, f :: dead_below_crossing.c:35 <- main: unavailable
+  f, before dead_below_crossing.c:29 `block`, f :: dead_below_crossing.c:36 <- main: unavailable
+  f, after dead_below_crossing.c:29 `block`, joined: unavailable
+  f, after dead_below_crossing.c:29 `block`, filtered: unavailable
+  f, after dead_below_crossing.c:29 `block`, f :: dead_below_crossing.c:35 <- main: unavailable
+  f, after dead_below_crossing.c:29 `block`, f :: dead_below_crossing.c:36 <- main: unavailable
+  f, before dead_below_crossing.c:29 `__retres = tmp;`, joined: unavailable
+  f, before dead_below_crossing.c:29 `__retres = tmp;`, filtered: unavailable
+  f, before dead_below_crossing.c:29 `__retres = tmp;`, f :: dead_below_crossing.c:35 <- main: unavailable
+  f, before dead_below_crossing.c:29 `__retres = tmp;`, f :: dead_below_crossing.c:36 <- main: unavailable
+  f, after dead_below_crossing.c:29 `__retres = tmp;`, joined: unavailable
+  f, after dead_below_crossing.c:29 `__retres = tmp;`, filtered: unavailable
+  f, after dead_below_crossing.c:29 `__retres = tmp;`, f :: dead_below_crossing.c:35 <- main: unavailable
+  f, after dead_below_crossing.c:29 `__retres = tmp;`, f :: dead_below_crossing.c:36 <- main: unavailable
+  f, before dead_below_crossing.c:29 `goto`, joined: unavailable
+  f, before dead_below_crossing.c:29 `goto`, filtered: unavailable
+  f, before dead_below_crossing.c:29 `goto`, f :: dead_below_crossing.c:35 <- main: unavailable
+  f, before dead_below_crossing.c:29 `goto`, f :: dead_below_crossing.c:36 <- main: unavailable
+  f, after dead_below_crossing.c:29 `goto`, joined: unavailable
+  f, after dead_below_crossing.c:29 `goto`, filtered: unavailable
+  f, after dead_below_crossing.c:29 `goto`, f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:35 <- main: unavailable
+  f, after dead_below_crossing.c:29 `goto`, f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main: unavailable
+  f, after dead_below_crossing.c:29 `goto`, f :: dead_below_crossing.c:35 <- main: unavailable
+  f, after dead_below_crossing.c:29 `goto`, f :: dead_below_crossing.c:36 <- main: unavailable
+  f, before dead_below_crossing.c:30 `leaf(*p);`, joined: unavailable
+  f, before dead_below_crossing.c:30 `leaf(*p);`, filtered: unavailable
+  f, before dead_below_crossing.c:30 `leaf(*p);`, f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:35 <- main: unavailable
+  f, before dead_below_crossing.c:30 `leaf(*p);`, f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main: unavailable
+  f, after dead_below_crossing.c:30 `leaf(*p);`, joined: unavailable
+  f, after dead_below_crossing.c:30 `leaf(*p);`, filtered: unavailable
+  f, after dead_below_crossing.c:30 `leaf(*p);`, f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:35 <- main: unavailable
+  f, after dead_below_crossing.c:30 `leaf(*p);`, f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main: unavailable
+  f, before dead_below_crossing.c:31 `__retres = *p;`, joined: unavailable
+  f, before dead_below_crossing.c:31 `__retres = *p;`, filtered: unavailable
+  f, before dead_below_crossing.c:31 `__retres = *p;`, f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:35 <- main: unavailable
+  f, before dead_below_crossing.c:31 `__retres = *p;`, f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main: unavailable
+  f, after dead_below_crossing.c:31 `__retres = *p;`, joined: unavailable
+  f, after dead_below_crossing.c:31 `__retres = *p;`, filtered: unavailable
+  f, after dead_below_crossing.c:31 `__retres = *p;`, f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:35 <- main: unavailable
+  f, after dead_below_crossing.c:31 `__retres = *p;`, f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main: unavailable
+  f, before dead_below_crossing.c:31 `return __retres;`, joined: unavailable
+  f, before dead_below_crossing.c:31 `return __retres;`, filtered: unavailable
+  f, before dead_below_crossing.c:31 `return __retres;`, f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:35 <- main: unavailable
+  f, before dead_below_crossing.c:31 `return __retres;`, f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main: unavailable
+  f, before dead_below_crossing.c:31 `return __retres;`, f :: dead_below_crossing.c:35 <- main: unavailable
+  f, before dead_below_crossing.c:31 `return __retres;`, f :: dead_below_crossing.c:36 <- main: unavailable
+  f, after dead_below_crossing.c:31 `return __retres;`, joined: unavailable
+  f, after dead_below_crossing.c:31 `return __retres;`, filtered: unavailable
+  f, after dead_below_crossing.c:31 `return __retres;`, f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:35 <- main: unavailable
+  f, after dead_below_crossing.c:31 `return __retres;`, f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main: unavailable
+  f, after dead_below_crossing.c:31 `return __retres;`, f :: dead_below_crossing.c:35 <- main: unavailable
+  f, after dead_below_crossing.c:31 `return __retres;`, f :: dead_below_crossing.c:36 <- main: unavailable
+Answers: 43 equal, 0 covering, 0 more precise, 0 omitting, 130 unavailable.
+Callstacks listed: NOT those of the run without memexec at 22 of the 41 points:
+  leaf, before dead_below_crossing.c:23 `z = 7;` (Dead)
+  leaf, after dead_below_crossing.c:23 `z = 7;` (Dead)
+  f, before dead_below_crossing.c:28 `int x = n;`
+  f, after dead_below_crossing.c:28 `int x = n;`
+  f, before dead_below_crossing.c:28 `int *p = & x;`
+  f, after dead_below_crossing.c:28 `int *p = & x;`
+  f, before dead_below_crossing.c:29 `if (n)`
+  f, after dead_below_crossing.c:29 `if (n)`
+  f, before dead_below_crossing.c:29 `tmp = f(n - 1);`
+  f, after dead_below_crossing.c:29 `tmp = f(n - 1);`
+  f, before dead_below_crossing.c:29 `block`
+  f, after dead_below_crossing.c:29 `block`
+  f, before dead_below_crossing.c:29 `__retres = tmp;`
+  f, after dead_below_crossing.c:29 `__retres = tmp;`
+  f, before dead_below_crossing.c:29 `goto`
+  f, after dead_below_crossing.c:29 `goto`
+  f, before dead_below_crossing.c:30 `leaf(*p);`
+  f, after dead_below_crossing.c:30 `leaf(*p);`
+  f, before dead_below_crossing.c:31 `__retres = *p;`
+  f, after dead_below_crossing.c:31 `__retres = *p;`
+  f, before dead_below_crossing.c:31 `return __retres;`
+  f, after dead_below_crossing.c:31 `return __retres;`
+Callstacks listed through the filter: NOT those of the run without memexec at 22 of the 41 points:
+  leaf, before dead_below_crossing.c:23 `z = 7;` (Dead)
+  leaf, after dead_below_crossing.c:23 `z = 7;` (Dead)
+  f, before dead_below_crossing.c:28 `int x = n;`
+  f, after dead_below_crossing.c:28 `int x = n;`
+  f, before dead_below_crossing.c:28 `int *p = & x;`
+  f, after dead_below_crossing.c:28 `int *p = & x;`
+  f, before dead_below_crossing.c:29 `if (n)`
+  f, after dead_below_crossing.c:29 `if (n)`
+  f, before dead_below_crossing.c:29 `tmp = f(n - 1);`
+  f, after dead_below_crossing.c:29 `tmp = f(n - 1);`
+  f, before dead_below_crossing.c:29 `block`
+  f, after dead_below_crossing.c:29 `block`
+  f, before dead_below_crossing.c:29 `__retres = tmp;`
+  f, after dead_below_crossing.c:29 `__retres = tmp;`
+  f, before dead_below_crossing.c:29 `goto`
+  f, after dead_below_crossing.c:29 `goto`
+  f, before dead_below_crossing.c:30 `leaf(*p);`
+  f, after dead_below_crossing.c:30 `leaf(*p);`
+  f, before dead_below_crossing.c:31 `__retres = *p;`
+  f, after dead_below_crossing.c:31 `__retres = *p;`
+  f, before dead_below_crossing.c:31 `return __retres;`
+  f, after dead_below_crossing.c:31 `return __retres;`
+Filtered requests that reject one callstack: 28.
+Requests made: 255; reported by the trap: 255, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 39 requests, 79 reads of the legacy store in them, 87 reads outside any request.
+  with -eva-hit-log: 39 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 21 requests
+    statistics: 18 requests
+  requests of the passes on a callstack below a hit, with -eva-hit-log: 0.
+Statuses of the properties: those of the run without memexec, for 0 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 0.9444, function coverage 1.0000, 0 alarms, those of the run without memexec.
