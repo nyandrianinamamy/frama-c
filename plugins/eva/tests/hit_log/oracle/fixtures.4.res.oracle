@@ -320,7 +320,7 @@ Callstacks listed: NOT those of the run without memexec at 2 of the 259 points:
 Callstacks listed through the filter: NOT those of the run without memexec at 2 of the 259 points:
   count, before fixtures.c:68 `y = 1;` (R)
   count, after fixtures.c:68 `y = 1;` (R)
-Filtered requests that reject one callstack: 17.
+Filtered requests that reject one callstack: 15.
 Requests made: 1102; reported by the trap: 1102, each once with its description; reads of the legacy store: 0.
 Passes after the iteration:
   with memexec, without recording: 149 requests, 96 reads of the legacy store in them, 97 reads outside any request.

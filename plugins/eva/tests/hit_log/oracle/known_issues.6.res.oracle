@@ -250,7 +250,9 @@ Differences with the run without memexec:
   final state, joined: more precise, as with memexec
   final state, filtered: more precise, as with memexec
   final state, issue95: more precise, as with memexec
+  h95, before known_issues.c:104 `if (n)`, filtered: covers
   h95, before known_issues.c:104 `if (n)`, h95 :: known_issues.c:105 <- f95 :: known_issues.c:104 <- h95 :: known_issues.c:109 <- issue95: covers
+  h95, after known_issues.c:104 `if (n)`, filtered: covers
   h95, after known_issues.c:104 `if (n)`, h95 :: known_issues.c:105 <- f95 :: known_issues.c:104 <- h95 :: known_issues.c:109 <- issue95: covers
   h95, after known_issues.c:104 `tmp = f95();`, joined: more precise, as with memexec
   h95, after known_issues.c:104 `tmp = f95();`, filtered: more precise, as with memexec
@@ -271,19 +273,21 @@ Differences with the run without memexec:
   h95, before known_issues.c:104 `goto`, filtered: more precise, as with memexec
   h95, before known_issues.c:104 `goto`, h95 :: known_issues.c:109 <- issue95: more precise, as with memexec
   h95, after known_issues.c:104 `goto`, joined: more precise, as with memexec
-  h95, after known_issues.c:104 `goto`, filtered: more precise, as with memexec
+  h95, after known_issues.c:104 `goto`, filtered: OMITS
   h95, after known_issues.c:104 `goto`, h95 :: known_issues.c:105 <- f95 :: known_issues.c:104 <- h95 :: known_issues.c:109 <- issue95: covers
   h95, after known_issues.c:104 `goto`, h95 :: known_issues.c:109 <- issue95: more precise, as with memexec
   h95, before known_issues.c:104 `__retres = 2;`, joined: covers
+  h95, before known_issues.c:104 `__retres = 2;`, filtered: covers
   h95, before known_issues.c:104 `__retres = 2;`, h95 :: known_issues.c:105 <- f95 :: known_issues.c:104 <- h95 :: known_issues.c:109 <- issue95: covers
   h95, after known_issues.c:104 `__retres = 2;`, joined: covers
+  h95, after known_issues.c:104 `__retres = 2;`, filtered: covers
   h95, after known_issues.c:104 `__retres = 2;`, h95 :: known_issues.c:105 <- f95 :: known_issues.c:104 <- h95 :: known_issues.c:109 <- issue95: covers
   h95, before known_issues.c:104 `return __retres;`, joined: more precise, as with memexec
-  h95, before known_issues.c:104 `return __retres;`, filtered: more precise, as with memexec
+  h95, before known_issues.c:104 `return __retres;`, filtered: OMITS
   h95, before known_issues.c:104 `return __retres;`, h95 :: known_issues.c:105 <- f95 :: known_issues.c:104 <- h95 :: known_issues.c:109 <- issue95: covers
   h95, before known_issues.c:104 `return __retres;`, h95 :: known_issues.c:109 <- issue95: more precise, as with memexec
   h95, after known_issues.c:104 `return __retres;`, joined: more precise, as with memexec
-  h95, after known_issues.c:104 `return __retres;`, filtered: more precise, as with memexec
+  h95, after known_issues.c:104 `return __retres;`, filtered: OMITS
   h95, after known_issues.c:104 `return __retres;`, h95 :: known_issues.c:105 <- f95 :: known_issues.c:104 <- h95 :: known_issues.c:109 <- issue95: covers
   h95, after known_issues.c:104 `return __retres;`, h95 :: known_issues.c:109 <- issue95: more precise, as with memexec
   f95, after known_issues.c:105 `int v = h95(0);`, joined: more precise
@@ -305,7 +309,7 @@ Differences with the run without memexec:
   issue95, after known_issues.c:110 `return;`, joined: more precise, as with memexec
   issue95, after known_issues.c:110 `return;`, filtered: more precise, as with memexec
   issue95, after known_issues.c:110 `return;`, issue95: more precise, as with memexec
-Answers: 530 equal, 9 covering, 49 more precise, 0 omitting, 0 unavailable.
+Answers: 526 equal, 13 covering, 46 more precise, 3 omitting, 0 unavailable.
 Callstacks listed: NOT those of the run without memexec at 7 of the 268 points:
   h95, before known_issues.c:104 `if (n)`
   h95, after known_issues.c:104 `if (n)`
@@ -314,8 +318,15 @@ Callstacks listed: NOT those of the run without memexec at 7 of the 268 points:
   h95, after known_issues.c:104 `__retres = 2;`
   h95, before known_issues.c:104 `return __retres;`
   h95, after known_issues.c:104 `return __retres;`
-Callstacks listed through the filter: those of the run without memexec at each of the 268 points.
-Filtered requests that reject one callstack: 15.
+Callstacks listed through the filter: NOT those of the run without memexec at 7 of the 268 points:
+  h95, before known_issues.c:104 `if (n)`
+  h95, after known_issues.c:104 `if (n)`
+  h95, after known_issues.c:104 `goto`
+  h95, before known_issues.c:104 `__retres = 2;`
+  h95, after known_issues.c:104 `__retres = 2;`
+  h95, before known_issues.c:104 `return __retres;`
+  h95, after known_issues.c:104 `return __retres;`
+Filtered requests that reject one callstack: 13.
 Requests made: 1124; reported by the trap: 1124, each once with its description; reads of the legacy store: 0.
 Passes after the iteration:
   with memexec, without recording: 151 requests, 57 reads of the legacy store in them, 65 reads outside any request.

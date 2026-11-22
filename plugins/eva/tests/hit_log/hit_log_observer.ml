@@ -6,9 +6,9 @@
    the analyses, the observer asks Eva.Results, in each project, for the
    callstacks that reach the start of each function and the points before and
    after each statement, then for the state at each of these points: joined
-   over the callstacks, through a filter that rejects one of the callstacks
-   when there are several, and for each callstack that reaches the point in
-   one of the three projects.
+   over the callstacks, through a filter that rejects the first callstack of
+   the reference when the reference lists several, and for each callstack
+   that reaches the point in one of the three projects.
 
    It prints:
    - the calls of the analysis with -eva-hit-log, with the cache entry they
@@ -512,9 +512,11 @@ type point_answers = {
    a callstack. *)
 let rejecting = ref 0
 
-(* The answers at [point], for the callstacks [stacks]. With several
-   callstacks, the filter rejects the first one. *)
-let answers (point : point) stacks =
+(* The answers at [point], for the callstacks [stacks]. When the run
+   without memexec lists several callstacks at [point], [in_reference], the
+   filter rejects the first of them, in the three projects: a callstack that
+   another project lists alone does not change the filter. *)
+let answers (point : point) ~in_reference stacks =
   let state ~what ~expected request_ =
     request ~point:point.kind ~what ~expected
       (fun () -> Results.get_cvalue_model_result request_)
@@ -523,7 +525,7 @@ let answers (point : point) stacks =
     state ~what:"joined" ~expected:(point.trap ^ "; joined") point.request
   in
   let keep =
-    match stacks with
+    match in_reference with
     | (_, rejected) :: _ :: _ ->
       if !checking then incr rejecting;
       fun cs -> portable cs <> rejected
@@ -1619,7 +1621,12 @@ let observe () =
         (List.combine reference_stacks memexec_stacks) current_stacks
     in
     let answers_in project =
-      in_project project (fun points -> List.map2 answers points stacks)
+      in_project project
+        (fun points ->
+           List.map2
+             (fun (point, in_reference) stacks ->
+                answers point ~in_reference stacks)
+             (List.combine points reference_stacks) stacks)
     in
     let reference_answers = answers_in reference in
     let memexec_answers = answers_in with_memexec in
