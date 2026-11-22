@@ -1,0 +1,175 @@
+phase	reference
+phase	memexec
+phase	recording
+phase	requests
+below rebuilt	crossing	f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main
+below rebuilt	crossing	leaf :: dead_below_crossing.c:30 <- f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main
+answer	start	leaf	leaf, start, joined	joined	unavailable	equal		3: start below a hit, across a recursion
+answer	start	leaf	leaf, start, filtered	filtered	unavailable	more precise		3: start below a hit, across a recursion
+answer	start	leaf	leaf, start, leaf :: dead_below_crossing.c:30 <- f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main	callstack	unavailable	more precise		3: start below a hit, across a recursion
+answer	before	leaf	leaf, before dead_below_crossing.c:21 `;` (R), joined	joined	unavailable	equal		3b: body below a hit, across a recursion
+answer	before	leaf	leaf, before dead_below_crossing.c:21 `;` (R), filtered	filtered	unavailable	more precise		3b: body below a hit, across a recursion
+answer	before	leaf	leaf, before dead_below_crossing.c:21 `;` (R), leaf :: dead_below_crossing.c:30 <- f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main	callstack	unavailable	more precise		3b: body below a hit, across a recursion
+answer	after	leaf	leaf, after dead_below_crossing.c:21 `;` (R), joined	joined	unavailable	equal		3b: body below a hit, across a recursion
+answer	after	leaf	leaf, after dead_below_crossing.c:21 `;` (R), filtered	filtered	unavailable	more precise		3b: body below a hit, across a recursion
+answer	after	leaf	leaf, after dead_below_crossing.c:21 `;` (R), leaf :: dead_below_crossing.c:30 <- f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main	callstack	unavailable	more precise		3b: body below a hit, across a recursion
+answer	before	leaf	leaf, before dead_below_crossing.c:21 `if (v == 7)`, joined	joined	unavailable	equal		3b: body below a hit, across a recursion
+answer	before	leaf	leaf, before dead_below_crossing.c:21 `if (v == 7)`, filtered	filtered	unavailable	more precise		3b: body below a hit, across a recursion
+answer	before	leaf	leaf, before dead_below_crossing.c:21 `if (v == 7)`, leaf :: dead_below_crossing.c:30 <- f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main	callstack	unavailable	more precise		3b: body below a hit, across a recursion
+answer	after	leaf	leaf, after dead_below_crossing.c:21 `if (v == 7)`, joined	joined	unavailable	equal		3b: body below a hit, across a recursion
+answer	after	leaf	leaf, after dead_below_crossing.c:21 `if (v == 7)`, filtered	filtered	unavailable	more precise		3b: body below a hit, across a recursion
+answer	after	leaf	leaf, after dead_below_crossing.c:21 `if (v == 7)`, leaf :: dead_below_crossing.c:30 <- f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main	callstack	unavailable	more precise		3b: body below a hit, across a recursion
+answer	before	leaf	leaf, before dead_below_crossing.c:25 `return;`, joined	joined	unavailable	equal		3b: body below a hit, across a recursion
+answer	before	leaf	leaf, before dead_below_crossing.c:25 `return;`, filtered	filtered	unavailable	more precise		3b: body below a hit, across a recursion
+answer	before	leaf	leaf, before dead_below_crossing.c:25 `return;`, leaf :: dead_below_crossing.c:30 <- f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main	callstack	unavailable	more precise		3b: body below a hit, across a recursion
+answer	after	leaf	leaf, after dead_below_crossing.c:25 `return;`, joined	joined	unavailable	equal		3b: body below a hit, across a recursion
+answer	after	leaf	leaf, after dead_below_crossing.c:25 `return;`, filtered	filtered	unavailable	more precise		3b: body below a hit, across a recursion
+answer	after	leaf	leaf, after dead_below_crossing.c:25 `return;`, leaf :: dead_below_crossing.c:30 <- f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main	callstack	unavailable	more precise		3b: body below a hit, across a recursion
+answer	start	f	f, start, joined	joined	unavailable	equal		3: start below a hit, across a recursion
+answer	start	f	f, start, filtered	filtered	unavailable	more precise		3: start below a hit, across a recursion
+answer	start	f	f, start, f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main	callstack	unavailable	more precise		3: start below a hit, across a recursion
+answer	before	f	f, before dead_below_crossing.c:28 `int x = n;`, joined	joined	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before dead_below_crossing.c:28 `int x = n;`, filtered	filtered	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before dead_below_crossing.c:28 `int x = n;`, f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:35 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before dead_below_crossing.c:28 `int x = n;`, f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before dead_below_crossing.c:28 `int x = n;`, f :: dead_below_crossing.c:35 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before dead_below_crossing.c:28 `int x = n;`, f :: dead_below_crossing.c:36 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after dead_below_crossing.c:28 `int x = n;`, joined	joined	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after dead_below_crossing.c:28 `int x = n;`, filtered	filtered	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after dead_below_crossing.c:28 `int x = n;`, f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:35 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after dead_below_crossing.c:28 `int x = n;`, f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after dead_below_crossing.c:28 `int x = n;`, f :: dead_below_crossing.c:35 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after dead_below_crossing.c:28 `int x = n;`, f :: dead_below_crossing.c:36 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before dead_below_crossing.c:28 `int *p = & x;`, joined	joined	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before dead_below_crossing.c:28 `int *p = & x;`, filtered	filtered	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before dead_below_crossing.c:28 `int *p = & x;`, f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:35 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before dead_below_crossing.c:28 `int *p = & x;`, f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before dead_below_crossing.c:28 `int *p = & x;`, f :: dead_below_crossing.c:35 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before dead_below_crossing.c:28 `int *p = & x;`, f :: dead_below_crossing.c:36 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after dead_below_crossing.c:28 `int *p = & x;`, joined	joined	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after dead_below_crossing.c:28 `int *p = & x;`, filtered	filtered	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after dead_below_crossing.c:28 `int *p = & x;`, f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:35 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after dead_below_crossing.c:28 `int *p = & x;`, f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after dead_below_crossing.c:28 `int *p = & x;`, f :: dead_below_crossing.c:35 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after dead_below_crossing.c:28 `int *p = & x;`, f :: dead_below_crossing.c:36 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before dead_below_crossing.c:29 `if (n)`, joined	joined	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before dead_below_crossing.c:29 `if (n)`, filtered	filtered	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before dead_below_crossing.c:29 `if (n)`, f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:35 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before dead_below_crossing.c:29 `if (n)`, f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before dead_below_crossing.c:29 `if (n)`, f :: dead_below_crossing.c:35 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before dead_below_crossing.c:29 `if (n)`, f :: dead_below_crossing.c:36 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after dead_below_crossing.c:29 `if (n)`, joined	joined	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after dead_below_crossing.c:29 `if (n)`, filtered	filtered	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after dead_below_crossing.c:29 `if (n)`, f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:35 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after dead_below_crossing.c:29 `if (n)`, f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after dead_below_crossing.c:29 `if (n)`, f :: dead_below_crossing.c:35 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after dead_below_crossing.c:29 `if (n)`, f :: dead_below_crossing.c:36 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before dead_below_crossing.c:29 `tmp = f(n - 1);`, joined	joined	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before dead_below_crossing.c:29 `tmp = f(n - 1);`, filtered	filtered	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before dead_below_crossing.c:29 `tmp = f(n - 1);`, f :: dead_below_crossing.c:35 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before dead_below_crossing.c:29 `tmp = f(n - 1);`, f :: dead_below_crossing.c:36 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after dead_below_crossing.c:29 `tmp = f(n - 1);`, joined	joined	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after dead_below_crossing.c:29 `tmp = f(n - 1);`, filtered	filtered	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after dead_below_crossing.c:29 `tmp = f(n - 1);`, f :: dead_below_crossing.c:35 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after dead_below_crossing.c:29 `tmp = f(n - 1);`, f :: dead_below_crossing.c:36 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before dead_below_crossing.c:29 `block`, joined	joined	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before dead_below_crossing.c:29 `block`, filtered	filtered	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before dead_below_crossing.c:29 `block`, f :: dead_below_crossing.c:35 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before dead_below_crossing.c:29 `block`, f :: dead_below_crossing.c:36 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after dead_below_crossing.c:29 `block`, joined	joined	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after dead_below_crossing.c:29 `block`, filtered	filtered	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after dead_below_crossing.c:29 `block`, f :: dead_below_crossing.c:35 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after dead_below_crossing.c:29 `block`, f :: dead_below_crossing.c:36 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before dead_below_crossing.c:29 `__retres = tmp;`, joined	joined	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before dead_below_crossing.c:29 `__retres = tmp;`, filtered	filtered	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before dead_below_crossing.c:29 `__retres = tmp;`, f :: dead_below_crossing.c:35 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before dead_below_crossing.c:29 `__retres = tmp;`, f :: dead_below_crossing.c:36 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after dead_below_crossing.c:29 `__retres = tmp;`, joined	joined	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after dead_below_crossing.c:29 `__retres = tmp;`, filtered	filtered	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after dead_below_crossing.c:29 `__retres = tmp;`, f :: dead_below_crossing.c:35 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after dead_below_crossing.c:29 `__retres = tmp;`, f :: dead_below_crossing.c:36 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before dead_below_crossing.c:29 `goto`, joined	joined	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before dead_below_crossing.c:29 `goto`, filtered	filtered	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before dead_below_crossing.c:29 `goto`, f :: dead_below_crossing.c:35 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before dead_below_crossing.c:29 `goto`, f :: dead_below_crossing.c:36 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after dead_below_crossing.c:29 `goto`, joined	joined	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after dead_below_crossing.c:29 `goto`, filtered	filtered	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after dead_below_crossing.c:29 `goto`, f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:35 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after dead_below_crossing.c:29 `goto`, f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after dead_below_crossing.c:29 `goto`, f :: dead_below_crossing.c:35 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after dead_below_crossing.c:29 `goto`, f :: dead_below_crossing.c:36 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before dead_below_crossing.c:30 `leaf(*p);`, joined	joined	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before dead_below_crossing.c:30 `leaf(*p);`, filtered	filtered	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before dead_below_crossing.c:30 `leaf(*p);`, f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:35 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before dead_below_crossing.c:30 `leaf(*p);`, f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after dead_below_crossing.c:30 `leaf(*p);`, joined	joined	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after dead_below_crossing.c:30 `leaf(*p);`, filtered	filtered	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after dead_below_crossing.c:30 `leaf(*p);`, f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:35 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after dead_below_crossing.c:30 `leaf(*p);`, f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before dead_below_crossing.c:31 `__retres = *p;`, joined	joined	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before dead_below_crossing.c:31 `__retres = *p;`, filtered	filtered	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before dead_below_crossing.c:31 `__retres = *p;`, f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:35 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before dead_below_crossing.c:31 `__retres = *p;`, f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after dead_below_crossing.c:31 `__retres = *p;`, joined	joined	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after dead_below_crossing.c:31 `__retres = *p;`, filtered	filtered	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after dead_below_crossing.c:31 `__retres = *p;`, f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:35 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after dead_below_crossing.c:31 `__retres = *p;`, f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before dead_below_crossing.c:31 `return __retres;`, joined	joined	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before dead_below_crossing.c:31 `return __retres;`, filtered	filtered	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before dead_below_crossing.c:31 `return __retres;`, f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:35 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before dead_below_crossing.c:31 `return __retres;`, f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	before	f	f, before dead_below_crossing.c:31 `return __retres;`, f :: dead_below_crossing.c:35 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	before	f	f, before dead_below_crossing.c:31 `return __retres;`, f :: dead_below_crossing.c:36 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after dead_below_crossing.c:31 `return __retres;`, joined	joined	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after dead_below_crossing.c:31 `return __retres;`, filtered	filtered	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after dead_below_crossing.c:31 `return __retres;`, f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:35 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after dead_below_crossing.c:31 `return __retres;`, f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+answer	after	f	f, after dead_below_crossing.c:31 `return __retres;`, f :: dead_below_crossing.c:35 <- main	callstack	unavailable	equal		2: unrolled recursive calls
+answer	after	f	f, after dead_below_crossing.c:31 `return __retres;`, f :: dead_below_crossing.c:36 <- main	callstack	unavailable	more precise		2: unrolled recursive calls
+initial	equal
+calls	4	1	0	0	2
+requests	after	callstack	40
+requests	after	callstacks	18
+requests	after	callstacks, filtered	18
+requests	after	filtered	18
+requests	after	joined	18
+requests	before	callstack	38
+requests	before	callstacks	18
+requests	before	callstacks, filtered	18
+requests	before	filtered	18
+requests	before	joined	18
+requests	final	callstack	1
+requests	final	callstacks	1
+requests	final	callstacks, filtered	1
+requests	final	filtered	1
+requests	final	joined	1
+requests	initial	callstack	1
+requests	initial	callstacks	1
+requests	initial	callstacks, filtered	1
+requests	initial	filtered	1
+requests	initial	joined	1
+requests	start	callstack	7
+requests	start	callstacks	3
+requests	start	callstacks, filtered	3
+requests	start	filtered	3
+requests	start	joined	3
+verdicts	recording	47	0	0	0	122
+verdicts	memexec	104	0	65	0	0
+callstacks	20	41
+callstacks filtered	20	41
+trap	251	251	matched	0
+passes	memexec	39	79	87
+passes	recording	39	0	0
+pass	unreachable statements	21
+pass	statistics	18
+below requests	0
+properties	0
+alarms	reference	0
+alarms	recording	0
+alarms	memexec	0
+statistics	reference	0.9444	1.0000	0
+statistics	recording	0.9444	1.0000	0
+statistics	memexec	0.9444	1.0000	0
+messages	recording	equal
+messages	memexec	equal
+phase	done
