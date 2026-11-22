@@ -551,18 +551,19 @@ let analysis f =
    call. An entry is completed after the entries its calls used: the
    recursion ends.
 
-   A call below a hit crosses a recursion when it is a recursive call
-   analysed by its body that renames variables, its function being already
-   on the callstack of its caller, or when it is made below such a call. A
-   recursive call renames the variables of the outer call of its function
-   whose address is taken or that an argument of the call copies, and
-   rewrites the pointers to them in the whole state, according to its depth
-   on the callstack. It removes the other variables of the outer call, as the
-   stored start state does, but the stored start state does not replay the
-   renaming on the blocks it does not cover. The state of a call that
-   crosses a recursion is thus top, on its callstack and in the joined
-   states that include it, unless the call is unreachable. The points of its
-   body, pasted on this state, are top as well. *)
+   A call below a hit crosses a recursion when it is a recursive call that
+   renames variables, its function being already on the callstack of its
+   caller, or when it is made below such a call. A recursive call renames
+   the variables of the outer call of its function whose address is taken or
+   that an argument of the call copies, and rewrites the pointers to them in
+   the whole state, according to its depth on the callstack, whether it is
+   analysed by its body or by its specification. It removes the other
+   variables of the outer call, as the stored start state does, but the
+   stored start state does not replay the renaming on the blocks it does not
+   cover. The state of a call that crosses a recursion is thus top, on its
+   callstack and in the joined states that include it, unless the call is
+   unreachable. The points of its body, if it has one, pasted on this state,
+   are top as well. *)
 
 type derived = {
   (* The calls stored in the entries, with the number of the entry that
@@ -678,13 +679,13 @@ let paste_call derived (below: below) entry =
   | Some start, _ -> paste derived start entry
 
 (* Whether the call [below] may rename variables if it is a recursive call:
-   it is analysed by its body, and its function has a formal or a local
-   whose address is taken, or that an argument of the call copies, the
-   argument being an lvalue of this variable. A recursive call renames these
-   variables, see [Recursion.make]. Eva copies fewer arguments: it assigns
-   the scalar arguments of the functions that it treats as determinate. *)
+   its function has a formal or a local whose address is taken, or that an
+   argument of the call copies, the argument being an lvalue of this
+   variable. A recursive call renames these variables, see [Recursion.make],
+   before its analysis by its body or by its specification is chosen. Eva
+   copies fewer arguments: it assigns the scalar arguments of the functions
+   that it treats as determinate. *)
 let renames (below: below) =
-  Option.is_some below.child &&
   let kf = below.callee in
   let vars = Kernel_function.get_formals kf @ Kernel_function.get_locals kf in
   let args =

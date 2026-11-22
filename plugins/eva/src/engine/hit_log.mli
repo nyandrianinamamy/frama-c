@@ -38,15 +38,15 @@
     the hit, pasted on the body-entry state of the hit. Its preconditions are
     not evaluated: its body-entry state is its start state. These states are
     computed on request, through the entries of the callers, and memoised.
-    A call below a hit crosses a recursion when it is a recursive call
-    analysed by its body that renames variables, or is made below such a
-    call. A recursive call renames the variables of the outer call of its
-    function whose address is taken or that an argument of the call copies,
-    and rewrites the pointers to them, according to its depth on the
-    callstack; the stored start state does not replay this renaming. A
-    recursive call that renames no variable only removes the variables of
-    the outer call, as the stored start state does. The states of a call
-    that crosses a recursion are not rebuilt.
+    A call below a hit crosses a recursion when it is a recursive call that
+    renames variables, analysed by its body or by its specification, or is
+    made below such a call. A recursive call renames the variables of the
+    outer call of its function whose address is taken or that an argument of
+    the call copies, and rewrites the pointers to them, according to its
+    depth on the callstack; the stored start state does not replay this
+    renaming. A recursive call that renames no variable only removes the
+    variables of the outer call, as the stored start state does. The states
+    of a call that crosses a recursion are not rebuilt.
 
     The rule: the state at a point of a call is the Inner part of its entry
     at this point on the blocks it covers, and the body-entry state of the
