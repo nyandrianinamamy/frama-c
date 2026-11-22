@@ -26,6 +26,8 @@
 # measure.patch applied, built apart. Its environment variables time the
 # parts of the iteration and the passes after it (HIT_LOG_COST_TIMERS), and
 # skip one part of the recording, with wrong answers (HIT_LOG_COST_ABLATE).
+# The revision of each build is noted when it is built, in revisions.tsv and
+# in the file revision of each run, with the cache size in cache-size.
 #
 # Stages, in this order unless -s is given:
 #   build    builds this checkout, the measurement build, the dev build if
@@ -36,7 +38,10 @@
 #            on, on and meter; the measurement build without any variable
 #            (plain), off and on; each ablation, with the timers;
 #   hits     one run per program and configuration with the progress
-#            messages, counted on the fly and not kept;
+#            messages, counted on the fly and not kept: the hits (Reusing
+#            old results), the calls analysed by their body (Recording
+#            results), and the calls analysed by their body or specification
+#            that are not hits (computing for function);
 #   perf     one profile per program, recording off and on, of this
 #            checkout, with perf record; only its summary is kept;
 #   report   writes the tables, see report.py.
@@ -47,11 +52,9 @@
 # with recording on, of the plain runs, and of each ablation; ABLATIONS is a
 # comma-separated list, or "all" for those of -a. An ablation A+B skips the
 # parts A and B; its saving is taken against the run of ablation A. The
-# default is the campaign of #100: monocypher runs for more than 30 minutes
-# with recording on, so these runs and its ablations are not repeated; its
-# ablations are state-bases, which removes most of the time on its profile,
-# projection, and each other part on top of state-bases; its plain runs are
-# left to gzip.
+# default is the campaign of #100: three repetitions of every run on both
+# programs, and each ablation of -a taken against the control (see
+# [ABLATIONS] for the choice).
 # A run whose directory holds a status file with status 0 is not run again:
 # the campaign resumes where it stopped.
 #
@@ -69,21 +72,23 @@ DEV_INSTALL=
 DEV_REV=375ab36aa5
 WORK=/dev/shm/hit-log-cost
 OUT=
-PROGRAMS="gzip:3:3:3:3:all:99"
-MONO_ABLATIONS=state-bases,projection
-for ab in footprint footprint-call projection call-starts hits legacy \
-          zone-bases; do
-  MONO_ABLATIONS+=",state-bases+$ab"
-done
-PROGRAMS+=" monocypher:3:1:0:1:$MONO_ABLATIONS:25"
+PROGRAMS="gzip:3:3:3:3:all:99 monocypher:3:3:3:3:all:25"
 STAGES="build timing hits perf report"
-ABLATIONS="footprint footprint-call projection call-starts hits legacy"
-ABLATIONS+=" state-bases zone-bases"
+# The ablations of the campaign, chosen on a first profile at 0f19534e56
+# (one run of each program with the timers, recording off and on, and one
+# run of each ablation on gzip): one for each part of the recording that
+# #100 names (footprint, projection, call-starts, hits, legacy), the walk of
+# the created and removed blocks (walk), and the largest part on both
+# programs, the set of the blocks of the footprint at each point
+# (zone-bases). footprint-call is left out: the footprint itself (parts
+# hooks and footprint) adds at most 1.6 s, which footprint bounds, and the
+# iteration with footprint-call was 1.5 s slower than without it on gzip.
+ABLATIONS="footprint projection call-starts hits legacy walk zone-bases"
 CPU=4
 MEASURE_SRC=
 MEASURE_BUILD=
 PERF_STACK=16384
-TIMEOUT=150m
+TIMEOUT=20m
 JOBS=8
 # Option -cache-size of every analysis, see [command_of].
 CACHE_SIZE=8
@@ -140,6 +145,7 @@ BRANCH_INSTALL=$REPO/_build/install/default
 MEASURE_INSTALL=$MEASURE_BUILD/install/default
 DEV_SRC=$(dirname "$REPO")/hit-log-cost-dev
 DEV_BUILD=$WORK/dev
+DEV_GIVEN=$DEV_INSTALL
 DEV_INSTALL=${DEV_INSTALL:-$DEV_BUILD/install/default}
 mkdir -p "$WORK" "$OUT/runs"
 
@@ -217,6 +223,10 @@ build_probe () { # build name
     { log "probe for $1 failed, see $OUT/build-probe-$1.log"; exit 1; }
 }
 
+# The revision of each build, noted when it is built, see [stamp].
+REVS=$WORK/revisions
+mkdir -p "$REVS"
+
 if has_stage build; then
   if ! git -C "$REPO" diff --quiet HEAD -- src plugins; then
     log "the checkout has changes in src or plugins: commit them first"
@@ -239,25 +249,32 @@ if has_stage build; then
     exit 1
   fi
   build_tree "$MEASURE_SRC" "$MEASURE_BUILD" measure
-  if [ ! -x "$DEV_INSTALL/bin/frama-c" ]; then
+  echo "$HEAD" > "$REVS/branch"
+  patch_id=$(git hash-object "$THIS_DIR/measure.patch")
+  echo "$mrev + measure.patch $patch_id" > "$REVS/measure"
+  if [ -z "$DEV_GIVEN" ]; then
     worktree "$DEV_SRC" "$DEV_REV"
     build_tree "$DEV_SRC" "$DEV_BUILD" dev
+    git -C "$DEV_SRC" rev-parse HEAD > "$REVS/dev"
+  else
+    echo "$(git -C "$REPO" rev-parse "$DEV_REV") (stated with -r, install" \
+         "$DEV_INSTALL given with -d)" > "$REVS/dev"
   fi
   for b in dev branch measure; do build_probe $b; done
+  # Revisions of the campaign.
+  {
+    echo "branch	$(cat "$REVS/branch")"
+    echo "dev	$(cat "$REVS/dev")"
+    echo "measure	$(cat "$REVS/measure")"
+    echo "oscs	$(git -C "$OSCS" rev-parse HEAD)"
+    echo "cpu	$CPU	$(grep -m1 'model name' /proc/cpuinfo | cut -d: -f2)"
+    echo "perf	--call-graph dwarf,$PERF_STACK"
+    echo "programs	$PROGRAMS"
+    echo "ablations	$ABLATIONS"
+    echo "cache	-cache-size $CACHE_SIZE (share/analysis-scripts/analysis.mk:125)"
+    echo "built	$(date -Iseconds)"
+  } > "$OUT/revisions.tsv"
 fi
-
-# Revisions of the campaign.
-{
-  echo "branch	$HEAD"
-  echo "dev	$(git -C "$REPO" rev-parse "$DEV_REV")"
-  mrev=$(git -C "$MEASURE_SRC" rev-parse HEAD 2> /dev/null || true)
-  echo "measure	$mrev + dev/hit-log-cost/measure.patch"
-  echo "oscs	$(git -C "$OSCS" rev-parse HEAD)"
-  echo "cpu	$CPU	$(grep -m1 'model name' /proc/cpuinfo | cut -d: -f2)"
-  echo "perf	--call-graph dwarf,$PERF_STACK"
-  echo "programs	$PROGRAMS"
-  echo "cache	-cache-size $CACHE_SIZE (share/analysis-scripts/analysis.mk:125)"
-} > "$OUT/revisions.tsv"
 
 # ----- Programs ----------------------------------------------------------
 
@@ -327,6 +344,15 @@ command_of () {
 
 # ----- Runs --------------------------------------------------------------
 
+# Notes in run directory $1 the revision of build $2, as noted when it was
+# built, and the cache size of the analyses.
+stamp () {
+  local dir=$1 build=$2
+  cat "$REVS/$build" > "$dir/revision" 2> /dev/null ||
+    echo "unknown: build $build not noted in $REVS" > "$dir/revision"
+  echo "$CACHE_SIZE" > "$dir/cache-size"
+}
+
 # [timed ID BUILD PROGRAM MODE VAR=VALUE...] runs program in mode with build,
 # pinned, with the given environment, in directory runs/ID.
 timed () {
@@ -339,6 +365,7 @@ timed () {
   cmd+=(-eva-statistics-file "$dir/stats.csv")
   printf '%s\n' "$@" > "$dir/env"
   printf '%q ' "${cmd[@]}" > "$dir/command"
+  stamp "$dir" "$build"
   log "run $id"
   local status=0
   (activate "$(install_of "$build")" &&
@@ -402,6 +429,7 @@ if has_stage hits; then
       mapfile -t cmd < <(command_of "$prog" "$mode" "$build")
       cmd+=(-eva-msg-key=progress)
       printf '%q ' "${cmd[@]}" > "$dir/command"
+      stamp "$dir" "$build"
       log "run hits-$cfg-$prog"
       status=0
       (activate "$(install_of "$build")" && cd "$dir" &&
@@ -409,7 +437,7 @@ if has_stage hits; then
          timeout "$TIMEOUT" "${cmd[@]}" 2>&1 |
            awk '/Reusing old results for call to/ { hits++ }
                 /Recording results for/ { recorded++ }
-                /Computing for function/ { computing++ }
+                /computing for function/ { computing++ }
                 END { printf "hits\t%d\nrecorded\t%d\ncomputing\t%d\n",
                         hits, recorded, computing }' > "$dir/counts.tsv") ||
         status=$?
@@ -434,6 +462,7 @@ if has_stage perf; then
       data=$WORK/perf/$mode-$prog.data
       mapfile -t cmd < <(command_of "$prog" "$mode" branch)
       printf '%q ' "${cmd[@]}" > "$dir/command"
+      stamp "$dir" branch
       log "run perf-$mode-$prog"
       status=0
       (activate "$BRANCH_INSTALL" && cd "$dir" &&
@@ -461,6 +490,6 @@ fi
 
 if has_stage report; then
   python3 "$THIS_DIR/report.py" tables --results "$OUT" \
-    --programs "$NAMES" --ablations "$ABLATIONS" > "$OUT/tables.md"
+    --specs "$PROGRAMS" --ablations "$ABLATIONS" > "$OUT/tables.md"
   log "tables written to $OUT/tables.md"
 fi
