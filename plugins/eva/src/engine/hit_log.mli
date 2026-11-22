@@ -19,8 +19,11 @@
     blocks created by the call that exist at the point. The entry also keeps
     the calls made by the body, in any mode: for each, its call statement, the
     cache entry it used if any, and its start state projected on the blocks
-    covered before the call statement and on the blocks that do not exist in
-    the start state of the body, among which the formals of the callee.
+    covered before the call statement, on the blocks that do not exist in the
+    start state of the body, and on the blocks that the call binds or
+    removes: the formals and locals of the callee, which can exist in the
+    state of the caller under unrolled recursive calls, and the blocks of the
+    start state of the body that the start state of the call does not have.
 
     The calls that use an entry form its key group: the call that computed
     it, its hits, and the calls below a hit that use it. The hit log keeps,

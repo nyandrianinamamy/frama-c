@@ -54,9 +54,11 @@ module Points = Stmt_table.Make (Point)
    statement [site], to [callee]: [child] is the cache entry it used, computed
    or hit, if any; none for a call analysed by a specification or a builtin.
    [start] is its start state, projected on the blocks that the body had
-   read or written before [site] and on those that do not exist in the start
-   state of the body: the blocks the body created and the formals of
-   [callee]. None if the footprint of the body is unknown. *)
+   read or written before [site], on those that do not exist in the start
+   state of the body (the blocks the body created), and on those that the
+   call binds or removes (the formals and locals of [callee], and the blocks
+   of the start state of the body that the start state of the call does not
+   have). None if the footprint of the body is unknown. *)
 type below = {
   site: Cil_types.stmt;
   callee: Cil_types.kernel_function;
@@ -358,19 +360,34 @@ let bases_of_state = function
   | Top -> raise Unknown_footprint
   | Map map -> Base.Hptset.from_map (Cvalue.Model.shape map)
 
-(* Projects [state] on the blocks of [zone] and on those that do not belong to
-   [existing], the blocks of the start state of the call. *)
-let project ~existing zone state =
+(* Projects [state] on the blocks of [zone], on those that do not belong to
+   [existing], the blocks of the start state of the call, and on [bound]. *)
+let project ?(bound = Base.Hptset.empty) ~existing zone state =
   let created = Base.Hptset.diff (bases_of_state state) existing in
   let covered = Base.Hptset.union (bases_of_zone zone) created in
+  let covered = Base.Hptset.union covered bound in
   { covered; inner = Cvalue.Model.filter_by_shape covered state }
+
+(* The blocks that a call to [callee] binds or removes, given its start state
+   [state] and the blocks [existing] of the start state of the body that makes
+   the call: the formals of [callee], bound by the call; its locals, absent
+   from its start state; and the blocks of [existing] that [state] does not
+   have. With unrolled recursive calls, the formals and locals of [callee] can
+   exist in the state of the caller, in the frame of an outer call of
+   [callee]: a recursive call removes them, or renames those whose address is
+   taken, and binds the formals anew. *)
+let bound_by_call ~existing callee state =
+  let vars = Kernel_function.(get_formals callee @ get_locals callee) in
+  let vars = Base.Hptset.of_list (List.map Base.of_varinfo vars) in
+  let removed = Base.Hptset.diff existing (bases_of_state state) in
+  Base.Hptset.union vars removed
 
 (* Projects the states [before] and [after] each statement on the blocks
    covered at that point: those of the footprint, and the blocks that do not
    exist in the start state, created by the call. Projects the start states
    of the [calls] made by the body on the blocks covered before their call
-   statement and on those that do not exist in the start state, which include
-   the formals of the callee.
+   statement, on those that do not exist in the start state, and on those
+   that the call binds or removes, see [bound_by_call].
    The state after a statement is the state at the point where it ends,
    which also receives the other paths that reach its successors: after a
    branch, the paths of the other branch; after a statement that is not an
@@ -406,7 +423,8 @@ let inner_part footprint ~start ~before ~after ~calls =
   let below =
     List.rev_map
       (fun (site, callee, state, child) ->
-         let start = project ~existing (zone_before site) state in
+         let bound = bound_by_call ~existing callee state in
+         let start = project ~bound ~existing (zone_before site) state in
          { site; callee; child; start = Some start })
       calls
   in
