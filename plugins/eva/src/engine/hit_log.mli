@@ -154,6 +154,13 @@ val get_state:
   ?callstack:Callstack.t -> Domain_store.control_point ->
   Cvalue.Model.t or_top_bottom
 
+(** Whether the state at a control point joined over all callstacks is not
+    bottom: the same answer as the test of [get_state control_point] against
+    [`Bottom]. Before and after a statement, it is decided without building
+    the state, except when the Inner part of an entry at this point is
+    bottom. *)
+val is_reachable: Domain_store.control_point -> bool
+
 (** The states at a control point of the callstacks that reach it. The
     answers before and after a statement are memoised. *)
 val get_state_by_callstack:

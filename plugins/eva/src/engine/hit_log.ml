@@ -1201,6 +1201,64 @@ let get_state ?callstack control_point =
         |> to_result
     with Unavailable -> `Top
 
+(* Whether the state at [control_point], joined over all callstacks, is not
+   Bottom: whether [get_state control_point] is not [`Bottom]. At a point
+   before or after a statement, the answer is decided without pasting the
+   Inner parts, except in one case where it falls back to pasting.
+
+   The joined state at such a point is the join, over the entries of the
+   function, of the state of each entry ([entry_state]): Bottom if the entry
+   has no point there, and otherwise its Inner part [p] pasted on [B], the
+   join of the body-entry state [A] of the analysed call of the entry and of
+   [U], the joined body-entry state of its members whose body did not run
+   ([unrun_joined]).
+
+   [Cvalue.Model.join] is Bottom only when both its arguments are. The joined
+   state is thus Bottom if and only if the state of every entry is, and [B]
+   is Bottom if and only if [A] and [U] both are. [paste] gives [B] when [B]
+   is Bottom or Top; [p.inner] when [B] is a map and [p.inner] is Bottom or
+   Top; and a map otherwise, since [Cvalue.Model.remove_base] and
+   [Cvalue.Model.merge] of two maps give a map.
+   So, when [p.inner] is not Bottom, the state of the entry is Bottom if and
+   only if [A] and [U] both are. When [p.inner] is Bottom, the state of the
+   entry is Top if [B] is Top, and Bottom otherwise: this case falls back to
+   [entry_state], which pastes.
+
+   [U] is computed by [unrun_joined], memoised, as for the pasted state, and
+   only when [A] is Bottom or the entry falls back. When it raises
+   [Unavailable], the pasted state is unavailable, [`Top]: not Bottom, as
+   answered here. The search stops at the first entry whose state is not
+   Bottom: the pasted state is then not Bottom, or is unavailable, which is
+   not Bottom either. When the search finds no such entry, it has computed
+   [U] without exception for every entry that has a point, as the pasted
+   state does: the pasted state is then the join of Bottom states.
+
+   The initial state and the start of a function are answered by
+   [get_state]. *)
+let is_reachable control_point =
+  let not_bottom = function `Bottom -> false | `Top | `Value _ -> true in
+  match control_point with
+  | Domain_store.Initial | Start _ -> not_bottom (get_state control_point)
+  | Before stmt | After stmt ->
+    let store = Store.get () in
+    if not (is_available store control_point) then true
+    else
+      let derived = derived store in
+      count_pastes derived @@ fun () ->
+      let reached (id, entry as member) =
+        match find_point entry control_point with
+        | None -> false
+        | Some { inner = Cvalue.Model.Bottom; _ } ->
+          Cvalue.Model.is_reachable
+            (entry_state store derived control_point member)
+        | Some _ ->
+          Cvalue.Model.is_reachable entry.analysed.body_entry
+          || Cvalue.Model.is_reachable (unrun_joined store derived id)
+      in
+      let kf = Kernel_function.find_englobing_kf stmt in
+      try List.exists reached (entries_with_ids store kf)
+      with Unavailable -> true
+
 (* Joins [state] into the state of [callstack] in [table]. *)
 let add table callstack state =
   let state =

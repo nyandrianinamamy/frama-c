@@ -296,6 +296,12 @@ module type Results = sig
   val get_state_by_callstack:
     Domain_store.control_point -> (Callstack.t * state) list or_top_bottom
 
+  (** Whether the state inferred at a control point for any callstack is not
+      bottom: whether [get_state control_point] is not [`Bottom]. After an
+      analysis with option -eva-hit-log, the answer is given without
+      building this state in most cases. *)
+  val is_reachable: Domain_store.control_point -> bool
+
   (** Returns all callstacks analyzed at a control point. *)
   val callstacks: Domain_store.control_point -> Callstack.t list or_top
 
