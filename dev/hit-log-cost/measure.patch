@@ -4,7 +4,7 @@ index 70f4850c9c..ed82ea766e 100644
 +++ b/plugins/eva/src/engine/analysis.ml
 @@ -126,11 +126,13 @@ let display_results () =
    Cvalue_domain.display_results ?state_before ()
- 
+
  let post_analysis (type t) (engine: t engine) mthread_analysis final_state =
 -  let pass = Legacy_read_trap.pass in
 +  let pass name f = Cost_meter.pass name (fun () -> Legacy_read_trap.pass name f) in
@@ -104,7 +104,7 @@ index 1c906a4e28..a9e5453241 100644
 +      let start = Cost_meter.(time Hits_and_starts) (fun () -> Lazy.force start) in
 +      Hit_log.call call.callstack ~start compute
      else compute ()
- 
+
    (* Defines the target of the analysis of a call, and analyze it.
 @@ -256,7 +265,8 @@ module Make (Engine: Engine_sig.S) = struct
        let thread_id = Thread.id thread in
@@ -135,7 +135,7 @@ index c7d8c7fa0d..9323479bcf 100644
 +    | _, None -> Base.Hptset.empty
 +    | None, Some state -> Base.Hptset.from_map state
 +    | Some start, Some state -> created_in start state
- 
+
  (* The blocks of [state] absent from [start], the shape of the start state of
     the call, and the blocks of [start] absent from [state]. *)
  let created_and_removed_blocks ~start state =
@@ -152,7 +152,7 @@ index c7d8c7fa0d..9323479bcf 100644
 +    | None, Some state -> Base.Hptset.from_map state, Base.Hptset.empty
 +    | Some start, None -> Base.Hptset.empty, Base.Hptset.from_map start
 +    | Some start, Some state -> changes_in start state
- 
+
  (* Projects [state] on the blocks of [zone], on the blocks [created] that do
     not exist in the start state of the call, and on [bound]. *)
  let project ?(bound = Base.Hptset.empty) ~created zone state =
@@ -164,7 +164,7 @@ index c7d8c7fa0d..9323479bcf 100644
 +  let covered = Base.Hptset.union zone created in
    let covered = Base.Hptset.union covered bound in
    { covered; inner = Cvalue.Model.filter_by_shape covered state }
- 
+
 @@ -461,33 +471,47 @@ let inner_part footprint ~start ~before ~after ~calls =
      match Stmt_table.find_opt footprints stmt with
      | Some zones -> zones
@@ -229,7 +229,7 @@ index c7d8c7fa0d..9323479bcf 100644
    Known { before; after }, below
 @@ -503,6 +527,7 @@ let current_frame () =
    | frame :: _ -> Some frame
- 
+
  let record_start callstack state =
 +  Cost_meter.(time Hits_and_starts) @@ fun () ->
    let store = Store.get () in
@@ -237,7 +237,7 @@ index c7d8c7fa0d..9323479bcf 100644
    let states =
 @@ -554,6 +579,7 @@ let record_analysed_call ~id callstack ~footprint ~start ~body_entry ~before
    Kf_table.replace store.entries_of kf (id :: previous)
- 
+
  let record_hit ~id callstack ~start ~body_entry =
 +  Cost_meter.(time Hits_and_starts) @@ fun () ->
    let store = Store.get () in
@@ -563,9 +563,9 @@ index d6c0b98d4b..461d7cd4e6 100644
 --- a/plugins/inout/src/operational_inputs.ml
 +++ b/plugins/inout/src/operational_inputs.ml
 @@ -661,6 +661,15 @@ module Callwise = struct
- 
+
    module Record_Inout_Callbacks = Hook.Build (struct type t = Inout_type.t end)
- 
+
 +  (* Ablations of the measurement build of dev/hit-log-cost, see
 +     Eva's Cost_meter. *)
 +  let cost_ablations =
@@ -581,7 +581,7 @@ index d6c0b98d4b..461d7cd4e6 100644
 @@ -773,12 +782,27 @@ module Callwise = struct
              Inout_type.map (Memory_zone.filter_base filter) with_internals
            with Not_found -> Inout_type.bottom
- 
+
 -        let footprint = Eva.Parameters.HitLog.get ()
 +        let footprint =
 +          Eva.Parameters.HitLog.get ()
@@ -605,6 +605,6 @@ index d6c0b98d4b..461d7cd4e6 100644
 +      else Computer.footprint Compute.pre_state
 +    in
 +    inout, footprint
- 
+
    let record_for_callwise_inout callstack kf pre_state value_res =
      let inout =
