@@ -1,0 +1,32 @@
+[kernel] Parsing not_started.c (with preprocessing)
+[eva:alarm] not_started.c:10: Warning: 
+  invalid RHS operand for shift. assert 0 ≤ 40 < 32;
+[eva] not_started.c:10: Warning: evaluation of initializer '1 << 40' failed
+[eva] User Error: Eva not started because globals initialization is not computable.
+[eva:alarm] not_started.c:10: Warning: 
+  invalid RHS operand for shift. assert 0 ≤ 40 < 32;
+[eva] not_started.c:10: Warning: evaluation of initializer '1 << 40' failed
+[eva] User Error: Eva not started because globals initialization is not computable.
+[eva:alarm] not_started.c:10: Warning: 
+  invalid RHS operand for shift. assert 0 ≤ 40 < 32;
+[eva] not_started.c:10: Warning: evaluation of initializer '1 << 40' failed
+[eva] User Error: Eva not started because globals initialization is not computable.
+Calls:
+Initial state: unavailable.
+Differences with the run without memexec:
+  initial state, joined: unavailable, as in the reference
+  initial state, filtered: unavailable, as in the reference
+Answers: 8 equal, 0 covering, 0 more precise, 0 omitting, 2 unavailable.
+Callstacks listed: those of the run without memexec at each of the 5 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 5 points.
+Filtered requests that reject one callstack: 0.
+Requests made: 20; reported by the trap: 20, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 0 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+  with -eva-hit-log: 0 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+Statuses of the properties: those of the run without memexec, for 1 property.
+Alarms: 1, of which 1 not proven, those of the run without memexec.
+Summary: statement coverage 0.0000, function coverage 0.0000, 0 alarms, those of the run without memexec.
+[eva] Deferred error message was emitted during execution:
+  Eva not started because globals initialization is not computable.
+[kernel] Plug-in eva aborted: invalid user input.
