@@ -1139,6 +1139,12 @@ def write_summary(outdir, runs, results, elapsed):
     )
     emit(table(["Stage", "Run", "Base"], rows))
     emit("")
+    unresolved = total(observed, "verdicts", "recording", len(VERDICTS))[-1]
+    emit(
+        "**Unresolved answers with -eva-hit-log: %d.** Each one fails the criterion "
+        "that no state of the run with -eva-hit-log omits a value of the reference, "
+        "unless it is explained: the comparison cannot tell whether it omits one.\n" % unresolved
+    )
     emit("Answers that are not equal, per stage, function and verdict ")
     emit("(recording, then memexec without recording, against the reference):\n")
     groups = collections.Counter(
