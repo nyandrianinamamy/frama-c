@@ -48,9 +48,38 @@
      coverage and the number of alarms of the summary, and the messages they
      print, if any.
      When the analysis with -eva-hit-log has no result, as when it is refused,
-     no request is made. *)
+     no request is made.
+
+   When the environment variable HIT_LOG_OBSERVER_SUMMARY names a file, the
+   observer also writes there a summary of its run, for dev/hit-log-suite.py,
+   which runs it over the tests of Eva: one record per line, with fields
+   separated by tabs. In this mode, it also requests the start of the
+   functions without a body that are called in the reference, and it gives
+   for each unavailable answer the case of the closed list of #87 that the
+   run shows, if any. It stops if the analysis of the current project is
+   computed before it starts. What it prints is otherwise unchanged. *)
 
 open Eva
+
+(* ----- Summary ----------------------------------------------------------- *)
+
+let summary =
+  match Sys.getenv_opt "HIT_LOG_OBSERVER_SUMMARY" with
+  | None | Some "" -> None
+  | Some file -> Some (open_out file)
+
+let suite = Option.is_some summary
+
+(* Writes one record of the summary, flushed at once, so that the record of
+   a phase is kept if the run is stopped during that phase. *)
+let record fields =
+  Option.iter
+    (fun channel ->
+       let clean = String.map (function '\t' | '\n' | '\r' -> ' ' | c -> c) in
+       output_string channel (String.concat "\t" (List.map clean fields));
+       output_char channel '\n';
+       flush channel)
+    summary
 
 (* ----- Calls of the analysis --------------------------------------------- *)
 
@@ -103,9 +132,87 @@ let display (printed, p) =
 let observing_calls = ref false
 let calls = ref []
 
+(* The calls of the analysis that have started, with their function. A call
+   that has started and has no results is interrupted. *)
+let started = ref []
+
+(* The starts and the results of the calls of the analysis, most recent
+   first, and whether an exception stopped the analysis. *)
+type event = Start of portable | End of portable * string
+let events = ref []
+let stopped = ref false
+
+let () =
+  Cvalue_callbacks.register_call_hook
+    (fun callstack kf _state _kind ->
+       if !observing_calls then begin
+         started := (portable callstack, kf) :: !started;
+         events := Start (portable callstack) :: !events
+       end)
+
+(* In the summary mode, the footprint that InOut gives for each call analysed
+   by its body, by number of its cache entry, until the results of the call
+   are known; then the numbers of the calls whose footprint is unknown for
+   the rule: absent, or with a zone or a state that is top at a point. *)
+let footprints = Hashtbl.create 17
+let unknown_footprints = Hashtbl.create 17
+
+let () =
+  Cmdline.run_after_configuring_stage
+    (fun () ->
+       let zones = Datatype.pair Memory_zone.ty Memory_zone.ty in
+       let footprint = Datatype.func Cil_datatype.Stmt.ty zones in
+       let typ = Datatype.(func (func (pair int footprint) unit) unit) in
+       if suite then
+         match Dynamic.get ~plugin:"Inout" "register_footprint_hook" typ with
+         | register ->
+           register
+             (fun (id, f) ->
+                if !observing_calls then Hashtbl.replace footprints id f)
+         | exception
+             (Failure _ | Dynamic.(Unbound_value _ | Incompatible_type _)) ->
+           ())
+
+let is_top_zone = function
+  | Memory_zone.Top (Base.SetLattice.Top, _) -> true
+  | _ -> false
+
+let is_top_state = function Cvalue.Model.Top -> true | _ -> false
+
+(* As the rule of #87 does, the zones before the statements, and after them
+   with those before their successors, at the points reached by the call. *)
+let record_footprint id start (states : Cvalue_callbacks.results) =
+  let unknown =
+    match Hashtbl.find_opt footprints id with
+    | None -> true
+    | Some footprint ->
+      Hashtbl.remove footprints id;
+      let before stmt = is_top_zone (fst (footprint stmt)) in
+      let after (stmt: Cil_types.stmt) =
+        is_top_zone (snd (footprint stmt)) || List.exists before stmt.succs
+      in
+      let unknown_at zone table =
+        Cil_datatype.Stmt.Hashtbl.fold
+          (fun stmt state acc -> acc || is_top_state state || zone stmt)
+          (Lazy.force table) false
+      in
+      is_top_state start
+      || unknown_at before states.before_stmts
+      || unknown_at after states.after_stmts
+  in
+  if unknown then Hashtbl.replace unknown_footprints id ()
+
 let () =
   Cvalue_callbacks.register_call_results_hook
-    (fun callstack kf _state results ->
+    (fun callstack kf state results ->
+       if !observing_calls && suite then begin
+         match results with
+         | `Body (states, id) -> record_footprint id state states
+         | `Reuse _ | `Spec _ | `Builtin _ -> ()
+       end;
+       if !observing_calls then
+         events :=
+           End (portable callstack, Kernel_function.get_name kf) :: !events;
        if !observing_calls then
          let kind =
            match results with
@@ -154,7 +261,20 @@ type point = {
   trap: string; (* The point, as Eva.Legacy_read_trap describes it. *)
   kf: Kernel_function.t option; (* The function of the point. *)
   show: bool; (* Whether its states are printed. *)
+  kind: string; (* The kind of point, for the summary. *)
 }
+
+(* In the summary mode, the names of the functions without a body that are
+   called in the reference, sorted. *)
+let without_body = ref []
+
+let called_without_body () =
+  let names = ref [] in
+  Globals.Functions.iter
+    (fun kf ->
+       if not (Kernel_function.is_definition kf) && Results.is_called kf
+       then names := Kernel_function.get_name kf :: !names);
+  List.sort String.compare !names
 
 (* The built-ins whose call the kernel printer completes with the last named
    formal of the current function: outside the printing of a function, it
@@ -231,18 +351,26 @@ let points () =
       { description = Kernel_function.get_name kf ^ ", start";
         request = Results.at_start_of kf;
         trap = "start of " ^ Kernel_function.get_name kf;
-        kf = Some kf; show = labelled }
+        kf = Some kf; show = labelled; kind = "start" }
     in
     let of_stmt stmt =
       [ { description = describe_stmt "before" stmt;
           request = Results.before stmt; trap = trap_stmt "before" stmt;
-          kf = Some kf; show = labelled && labels stmt <> [] };
+          kf = Some kf; show = labelled && labels stmt <> [];
+          kind = "before" };
         { description = describe_stmt "after" stmt;
           request = Results.after stmt; trap = trap_stmt "after" stmt;
           kf = Some kf;
-          show = labelled && Cil_datatype.Stmt.equal stmt return } ]
+          show = labelled && Cil_datatype.Stmt.equal stmt return;
+          kind = "after" } ]
     in
     start :: List.concat_map of_stmt stmts
+  in
+  let of_declaration name =
+    let kf = Globals.Functions.find_by_name name in
+    { description = name ^ ", start, without body";
+      request = Results.at_start_of kf; trap = "start of " ^ name;
+      kf = Some kf; show = false; kind = "start without body" }
   in
   let main = fst (Globals.entry_point ()) in
   (* An entry point without a body has no final state. *)
@@ -250,13 +378,15 @@ let points () =
     match Kernel_function.find_return main with
     | return ->
       [ { description = "final state"; request = Results.at_end ();
-          trap = trap_stmt "after" return; kf = None; show = false } ]
+          trap = trap_stmt "after" return;
+          kf = None; show = false; kind = "final" } ]
     | exception Kernel_function.No_Statement -> []
   in
   { description = "initial state"; request = Results.at_start;
-    trap = "initial state"; kf = None; show = false }
+    trap = "initial state"; kf = None; show = false; kind = "initial" }
   :: final
   @ List.concat_map of_function functions
+  @ List.map of_declaration !without_body
 
 (* ----- Requests ---------------------------------------------------------- *)
 
@@ -269,9 +399,16 @@ let checking = ref false
 let made = ref 0
 let unmatched = ref [] (* Expected description and descriptions added. *)
 
-let request ~expected f =
+(* The number of requests made in the current project, by kind of point and
+   kind of request. *)
+let made_by_kind = Hashtbl.create 17
+
+let request ?(point = "") ~what ~expected f =
   if not !checking then f ()
   else begin
+    let key = point, what in
+    let n = Option.value ~default:0 (Hashtbl.find_opt made_by_kind key) in
+    Hashtbl.replace made_by_kind key (n + 1);
     let before = List.length (Legacy_read_trap.requests ()) in
     let result = f () in
     incr made;
@@ -297,7 +434,8 @@ let rebuild p : Callstack.t =
 
 (* The callstacks of the projects are paired by their portable form. *)
 let callstacks (point : point) =
-  request ~expected:(point.trap ^ "; every callstack")
+  request ~point:point.kind ~what:"callstacks"
+    ~expected:(point.trap ^ "; every callstack")
     (fun () -> Results.callstacks point.request)
   |> List.map identify
   |> List.sort compare
@@ -321,10 +459,13 @@ let rejecting = ref 0
 (* The answers at [point], for the callstacks [stacks]. With several
    callstacks, the filter rejects the first one. *)
 let answers (point : point) stacks =
-  let state ~expected request_ =
-    request ~expected (fun () -> Results.get_cvalue_model_result request_)
+  let state ~what ~expected request_ =
+    request ~point:point.kind ~what ~expected
+      (fun () -> Results.get_cvalue_model_result request_)
   in
-  let joined = state ~expected:(point.trap ^ "; joined") point.request in
+  let joined =
+    state ~what:"joined" ~expected:(point.trap ^ "; joined") point.request
+  in
   let keep =
     match stacks with
     | (_, rejected) :: _ :: _ ->
@@ -333,7 +474,8 @@ let answers (point : point) stacks =
     | _ -> fun _ -> true
   in
   let filtered =
-    state ~expected:(point.trap ^ "; every callstack, filtered")
+    state ~what:"filtered"
+      ~expected:(point.trap ^ "; every callstack, filtered")
       Results.(point.request |> filter_callstack keep)
   in
   let by_callstack =
@@ -341,11 +483,13 @@ let answers (point : point) stacks =
       (fun (printed, cs as stack) ->
          let expected = point.trap ^ "; callstack " ^ printed in
          stack,
-         state ~expected Results.(point.request |> in_callstack (rebuild cs)))
+         state ~what:"callstack" ~expected
+           Results.(point.request |> in_callstack (rebuild cs)))
       stacks
   in
   let filtered_stacks =
-    request ~expected:(point.trap ^ "; every callstack, filtered")
+    request ~point:point.kind ~what:"callstacks, filtered"
+      ~expected:(point.trap ^ "; every callstack, filtered")
       (fun () ->
          Results.(callstacks (point.request |> filter_callstack keep)))
     |> List.map portable |> List.sort compare
@@ -392,29 +536,150 @@ type compared = {
 (* The three projects are asked for the same callstacks at each point. *)
 let find name list = List.assoc name list
 
+(* ----- Cases of the closed list ------------------------------------------ *)
+
+(* In the summary mode, the case of the closed list of #87 that the run shows
+   for an unavailable answer at a point of a function, from the options, the
+   calls of the analysis with -eva-hit-log, and the footprints that InOut
+   gives for them. Calls below a hit, the first case of the list, are
+   answered since #91 and are not a case. *)
+
+(* Whether a call of a function analysed by its body has an unknown
+   footprint. *)
+let unknown_footprint name =
+  List.exists
+    (fun (_, kf, kind) ->
+       match kind with
+       | Analysed id ->
+         String.equal (Kernel_function.get_name kf) name
+         && Hashtbl.mem unknown_footprints id
+       | Hit _ | Other _ -> false)
+    !calls
+
+(* Whether a function has a call of the analysis analysed by its body, or a
+   hit, on a callstack where it is already called: its recursive calls are
+   unrolled. *)
+let unrolled name =
+  List.exists
+    (fun ((_, p), _, kind) ->
+       match kind with
+       | Analysed _ | Hit _ ->
+         let frames = p.entry :: List.map fst p.calls in
+         List.length (List.filter (String.equal name) frames) >= 2
+       | Other _ -> false)
+    !calls
+
+(* The functions of the calls in progress when an exception stopped the
+   analysis. Eva then runs the hooks on the results of each call in
+   progress, from the innermost, and starts no call: these are the results
+   that end the analysis, each of the caller of the previous one. The last
+   call that ended before the stop, if called by a call in progress, is
+   among them: the hooks do not tell it apart. *)
+let in_progress_at_stop () =
+  let extends caller callee =
+    caller.thread = callee.thread && String.equal caller.entry callee.entry
+    && match callee.calls with
+    | _ :: calls -> calls = caller.calls
+    | [] -> false
+  in
+  let rec chain caller acc = function
+    | End (p, name) :: rest when extends caller p -> chain p (name :: acc) rest
+    | _ -> acc
+  in
+  match !events with
+  | End (p, name) :: rest when !stopped && p.calls = [] -> chain p [ name ] rest
+  | _ -> []
+
+(* Whether a call of a function has started and has no results, or was in
+   progress when an exception stopped the analysis. *)
+let interrupted name =
+  List.mem name (in_progress_at_stop ()) ||
+  let callstacks =
+    List.sort_uniq compare
+      (List.filter_map
+         (fun (p, kf) ->
+            if String.equal (Kernel_function.get_name kf) name then Some p
+            else None)
+         !started)
+  in
+  List.exists
+    (fun p ->
+       let n_started =
+         List.length (List.filter (fun (p', _) -> p' = p) !started)
+       and n_results =
+         List.length (List.filter (fun ((_, p'), _, _) -> p' = p) !calls)
+       in
+       n_started > n_results)
+    callstacks
+
+let closed_list_case (point : point) =
+  let name =
+    match point.kf, point.kind with
+    | Some kf, _ -> Some (Kernel_function.get_name kf)
+    | None, "final" ->
+      Some (Kernel_function.get_name (fst (Globals.entry_point ())))
+    | None, _ -> None
+  in
+  let results_disabled name =
+    not (Analysis.save_results (Globals.Functions.find_by_name name))
+  in
+  if not (Parameters.ResultsAll.get ())
+  || Parameters.NoResultsDomain.mem "cvalue"
+  then "results of the cvalue domain disabled"
+  else
+    match name with
+    | None -> "none"
+    | Some name ->
+      if results_disabled name then "4: results disabled"
+      else if unrolled name then "2: unrolled recursive calls"
+      else if interrupted name then "3: interrupted call"
+      else if unknown_footprint name then "5: unknown footprint"
+      else "none"
+
+(* ----- Comparison of the answers ----------------------------------------- *)
+
 let counts = Hashtbl.create 5
-let compare_answer description ~reference ~memexec ~answer =
+let memexec_counts = Hashtbl.create 5
+
+let count table v =
+  let n = Option.value ~default:0 (Hashtbl.find_opt table v) in
+  Hashtbl.replace table v (n + 1)
+
+let compare_answer point ~what description ~reference ~memexec ~answer =
   let v = verdict ~reference ~answer in
-  let n = Option.value ~default:0 (Hashtbl.find_opt counts v) in
-  Hashtbl.replace counts v (n + 1);
+  let v_memexec = verdict ~reference ~answer:memexec in
+  count counts v;
+  count memexec_counts v_memexec;
+  let origin =
+    if v = Unavailable && model reference = None then ", as in the reference"
+    else if verdict ~reference:memexec ~answer = Equal
+    then ", as with memexec"
+    else ""
+  in
   if v <> Equal then
-    let origin =
-      if v = Unavailable && model reference = None then ", as in the reference"
-      else if verdict ~reference:memexec ~answer = Equal
-      then ", as with memexec"
-      else ""
+    Format.printf "  %s: %s%s@." description (string_of_verdict v) origin;
+  if suite && (v <> Equal || v_memexec <> Equal) then
+    let name = match point.kf with
+      | Some kf -> Kernel_function.get_name kf
+      | None -> ""
     in
-    Format.printf "  %s: %s%s@." description (string_of_verdict v) origin
+    let case = if v = Unavailable then closed_list_case point else "" in
+    record [ "answer"; point.kind; name; description; what;
+             string_of_verdict v; string_of_verdict v_memexec;
+             String.trim (Str.global_replace (Str.regexp "^, ") "" origin);
+             case ]
 
 let compare_point point c =
   let describe what = point.description ^ ", " ^ what in
-  compare_answer (describe "joined") ~reference:c.reference.joined
+  compare_answer point ~what:"joined" (describe "joined")
+    ~reference:c.reference.joined
     ~memexec:c.memexec.joined ~answer:c.current.joined;
-  compare_answer (describe "filtered") ~reference:c.reference.filtered
+  compare_answer point ~what:"filtered" (describe "filtered")
+    ~reference:c.reference.filtered
     ~memexec:c.memexec.filtered ~answer:c.current.filtered;
   List.iter
     (fun (name, answer) ->
-       compare_answer (describe (display name))
+       compare_answer point ~what:"callstack" (describe (display name))
          ~reference:(find name c.reference.by_callstack)
          ~memexec:(find name c.memexec.by_callstack)
          ~answer)
@@ -677,7 +942,10 @@ let analyse () =
   Legacy_read_trap.start ();
   begin
     try Analysis.compute ()
-    with Log.AbortError _ -> Format.printf "The analysis has stopped.@."
+    with Log.AbortError _ ->
+      if !observing_calls then stopped := true;
+      record [ "stopped" ];
+      Format.printf "The analysis has stopped.@."
   end;
   Legacy_read_trap.stop ();
   capture := None;
@@ -819,9 +1087,9 @@ let outputs project (passes: passes) =
          statistics = summary_statistics (); output = passes.output })
     ()
 
-(* The statuses of [o] that differ from those of [reference], with their
-   verdict. *)
-let differing_statuses keys ~reference ~memexec o =
+(* The statuses of [o] that differ from those of [reference]: the property,
+   the two statuses, the verdict and the origin. *)
+let status_differences keys ~reference ~memexec o =
   List.filter_map
     (fun key ->
        let find o = Option.map snd (List.assoc_opt key o.statuses) in
@@ -841,9 +1109,68 @@ let differing_statuses keys ~reference ~memexec o =
          let origin =
            if o != memexec && find memexec = c then ", as with memexec" else ""
          in
-         Some (Format.sprintf "  %s: %s against %s: %s%s" key
-                 (string_of_status c) (string_of_status r) verdict origin))
+         Some (key, string_of_status c, string_of_status r, verdict, origin))
     keys
+
+(* The same, printed. *)
+let differing_statuses keys ~reference ~memexec o =
+  List.map
+    (fun (key, c, r, verdict, origin) ->
+       Format.sprintf "  %s: %s against %s: %s%s" key c r verdict origin)
+    (status_differences keys ~reference ~memexec o)
+
+(* The outputs of the passes, in the summary. *)
+let record_outputs ~reference ~memexec ~current =
+  let keys =
+    List.sort_uniq compare
+      (List.map fst reference.statuses @ List.map fst current.statuses
+       @ List.map fst memexec.statuses)
+  in
+  record [ "properties"; string_of_int (List.length keys) ];
+  List.iter
+    (fun (run, o) ->
+       List.iter
+         (fun (key, c, r, verdict, origin) ->
+            record [ "status"; run; key; c; r; verdict;
+                     String.trim (Str.global_replace (Str.regexp "^, ") ""
+                                    origin) ])
+         (status_differences keys ~reference ~memexec o))
+    [ "recording", current; "memexec", memexec ];
+  let only a b = List.filter (fun x -> not (List.mem x b)) a in
+  List.iter
+    (fun (run, o) ->
+       let print (alarm, status) =
+         alarm ^ ": " ^ Description.status_feedback status
+       in
+       record [ "alarms"; run; string_of_int (List.length o.alarms) ];
+       List.iter (fun a -> record [ "alarm"; run; "missing"; print a ])
+         (only reference.alarms o.alarms);
+       List.iter (fun a -> record [ "alarm"; run; "added"; print a ])
+         (only o.alarms reference.alarms))
+    [ "reference", reference; "recording", current; "memexec", memexec ];
+  List.iter
+    (fun (run, o) ->
+       let stmts, funs, alarms = o.statistics in
+       record [ "statistics"; run; Format.sprintf "%.4f" stmts;
+                Format.sprintf "%.4f" funs; string_of_int alarms ])
+    [ "reference", reference; "recording", current; "memexec", memexec ];
+  (* The blocks created by an analysis are named in each project with its own
+     suffix of a counter, which is removed for a second comparison, with the
+     spaces and the line breaks that align the names. *)
+  let without_suffixes text =
+    Str.global_replace (Str.regexp "\\(_[0-9]+\\)+\\([^A-Za-z0-9_]\\|$\\)")
+      "\\2" text
+    |> Str.global_replace (Str.regexp "[ \n]+") " "
+  in
+  List.iter
+    (fun (run, o) ->
+       record [ "messages"; run;
+                if String.equal o.output reference.output then "equal"
+                else if String.equal (without_suffixes o.output)
+                    (without_suffixes reference.output)
+                then "equal up to the suffixes of the names"
+                else "differ" ])
+    [ "recording", current; "memexec", memexec ]
 
 (* Prints the messages [output] in a box, one line per line. *)
 let print_messages title output =
@@ -932,6 +1259,7 @@ let print_outputs ~reference ~memexec ~current =
    the iteration print the values at the end of each function. *)
 let copy_and_analyse name ~memexec =
   let project = Project.create_by_copy ~last:false name in
+  record [ "phase"; name ];
   let passes =
     Project.on project
       (fun () ->
@@ -957,22 +1285,79 @@ let with_trap f =
   Legacy_read_trap.stop ();
   result, Legacy_read_trap.requests ()
 
-let main () =
+(* The summary of what main prints, but the outputs of the passes. *)
+let record_summary ~below ~different_stacks ~different_filtered ~compared
+    ~reported ~memexec_passes ~current_passes =
+  let n kind = List.length (List.filter (fun (_, _, k) -> kind k) !calls) in
+  record [ "calls";
+           string_of_int (n (function Analysed _ -> true | _ -> false));
+           string_of_int (n (function Hit _ -> true | _ -> false));
+           string_of_int (n (( = ) (Other "specification")));
+           string_of_int (n (( = ) (Other "builtin")));
+           string_of_int (List.length below) ];
+  Hashtbl.fold (fun (point, what) n acc -> (point, what, n) :: acc)
+    made_by_kind []
+  |> List.sort compare
+  |> List.iter (fun (point, what, n) ->
+      record [ "requests"; point; what; string_of_int n ]);
+  List.iter
+    (fun (run, table) ->
+       let get v = Option.value ~default:0 (Hashtbl.find_opt table v) in
+       record ("verdicts" :: run ::
+               List.map (fun v -> string_of_int (get v))
+                 [ Equal; Covers; More_precise; Omits; Unavailable ]))
+    [ "recording", counts; "memexec", memexec_counts ];
+  let total = string_of_int (List.length compared) in
+  record [ "callstacks"; string_of_int (List.length different_stacks); total ];
+  record [ "callstacks filtered";
+           string_of_int (List.length different_filtered); total ];
+  record [ "trap"; string_of_int !made; string_of_int (List.length reported);
+           (if !unmatched = [] then "matched" else "unmatched");
+           string_of_int
+             (List.length
+                (List.concat_map (fun r -> r.Legacy_read_trap.reads)
+                   reported)) ];
+  List.iter
+    (fun (run, passes) ->
+       record [ "passes"; run; string_of_int (List.length passes.requests);
+                string_of_int (reads_of passes);
+                string_of_int (List.length passes.strays) ])
+    [ "memexec", memexec_passes; "recording", current_passes ];
+  List.iter (fun (name, n) -> record [ "pass"; name; string_of_int n ])
+    (by_pass current_passes);
+  let on_below r =
+    List.exists
+      (fun cs ->
+         String.ends_with ~suffix:("; callstack " ^ cs)
+           r.Legacy_read_trap.description)
+      below
+  in
+  record [ "below requests";
+           string_of_int
+             (List.length (List.filter on_below current_passes.requests)) ]
+
+let observe () =
   let current = Project.current () in
   collect_existing_variables ();
   let reference, reference_passes =
     copy_and_analyse "reference" ~memexec:false
   in
   let with_memexec, memexec_passes = copy_and_analyse "memexec" ~memexec:true in
+  record [ "phase"; "recording" ];
   Parameters.Eva.on ();
   observing_calls := true;
   let current_passes = analyse () in
   observing_calls := false;
   print_calls ();
-  if not (Analysis.is_computed ()) then
+  if not (Analysis.is_computed ()) then begin
+    record [ "no result" ];
     Format.printf "The analysis with -eva-hit-log has no result: no request \
                    is made.@."
+  end
   else begin
+    record [ "phase"; "requests" ];
+    if suite then
+      without_body := Project.on reference called_without_body ();
     (* The callstacks at each point, in the three projects, then the answers
        for the callstacks of the three projects. *)
     let callstacks_in project = in_project project (List.map callstacks) in
@@ -1076,10 +1461,28 @@ let main () =
           Format.printf "%a@." Legacy_read_trap.pretty_request r)
       reported;
     print_passes ~memexec:memexec_passes ~current:current_passes ~below;
-    print_outputs
-      ~reference:(outputs reference reference_passes)
-      ~memexec:(outputs with_memexec memexec_passes)
-      ~current:(outputs current current_passes)
+    let reference = outputs reference reference_passes
+    and memexec = outputs with_memexec memexec_passes
+    and current = outputs current current_passes in
+    print_outputs ~reference ~memexec ~current;
+    if suite then begin
+      record [ "initial";
+               string_of_verdict
+                 (verdict ~reference:initial.reference.joined
+                    ~answer:initial.current.joined) ];
+      record_summary ~below ~different_stacks ~different_filtered ~compared
+        ~reported ~memexec_passes ~current_passes;
+      record_outputs ~reference ~memexec ~current
+    end
+  end;
+  record [ "phase"; "done" ]
+
+let main () =
+  if suite && Analysis.is_computed () then begin
+    record [ "error"; "the analysis is computed before the observer starts" ];
+    Format.printf "The analysis is computed before the observer starts: no \
+                   observation.@."
   end
+  else observe ()
 
 let () = Boot.Main.extend main
