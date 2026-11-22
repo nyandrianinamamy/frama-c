@@ -1,0 +1,85 @@
+format	2
+control	the run without memexec allocates with -eva-alloc-builtin	by_stack
+control	the run with memexec, without recording allocates with -eva-alloc-builtin	by_stack
+phase	reference
+phase	memexec
+phase	recording
+phase	requests
+unresolved	without memexec	__malloc_main_l31	match undecided
+unresolved	without memexec	__malloc_main_l31_1	match undecided
+unresolved	without memexec	__malloc_main_l31_2	match undecided
+unresolved	with memexec	__malloc_main_l31_0	match undecided
+unresolved	with memexec	__malloc_main_l31_1	match undecided
+unresolved	with memexec	__malloc_main_l31_2	match undecided
+answer	after	main	main, after alloc_pairwise.c:31 `p = (int *)malloc(sizeof(*p));`, joined	joined	unresolved	equal		
+answer	after	main	main, after alloc_pairwise.c:31 `p = (int *)malloc(sizeof(*p));`, filtered	filtered	unresolved	equal		
+answer	after	main	main, after alloc_pairwise.c:31 `p = (int *)malloc(sizeof(*p));`, main	callstack	unresolved	equal		
+answer	before	main	main, before alloc_pairwise.c:32 `*p = 17;`, joined	joined	unresolved	equal		
+answer	before	main	main, before alloc_pairwise.c:32 `*p = 17;`, filtered	filtered	unresolved	equal		
+answer	before	main	main, before alloc_pairwise.c:32 `*p = 17;`, main	callstack	unresolved	equal		
+answer	after	main	main, after alloc_pairwise.c:32 `*p = 17;`, joined	joined	unresolved	equal		
+answer	after	main	main, after alloc_pairwise.c:32 `*p = 17;`, filtered	filtered	unresolved	equal		
+answer	after	main	main, after alloc_pairwise.c:32 `*p = 17;`, main	callstack	unresolved	equal		
+answer	before	main	main, before alloc_pairwise.c:33 `free((void *)p);`, joined	joined	unresolved	equal		
+answer	before	main	main, before alloc_pairwise.c:33 `free((void *)p);`, filtered	filtered	unresolved	equal		
+answer	before	main	main, before alloc_pairwise.c:33 `free((void *)p);`, main	callstack	unresolved	equal		
+answer	start without body	free	free, start, without body, joined	joined	unresolved	equal		
+answer	start without body	free	free, start, without body, filtered	filtered	unresolved	equal		
+answer	start without body	free	free, start, without body, free :: alloc_pairwise.c:33 <- main	callstack	unresolved	equal		
+unreachable statements	reference	0
+unreachable statements	recording	0
+unreachable statements	memexec	0
+initial	equal
+calls	1	0	0	4	0
+requests	after	callstack	12
+requests	after	callstacks	12
+requests	after	callstacks, filtered	12
+requests	after	filtered	12
+requests	after	joined	12
+requests	before	callstack	12
+requests	before	callstacks	12
+requests	before	callstacks, filtered	12
+requests	before	filtered	12
+requests	before	joined	12
+requests	final	callstack	1
+requests	final	callstacks	1
+requests	final	callstacks, filtered	1
+requests	final	filtered	1
+requests	final	joined	1
+requests	initial	callstack	1
+requests	initial	callstacks	1
+requests	initial	callstacks, filtered	1
+requests	initial	filtered	1
+requests	initial	joined	1
+requests	start	callstack	1
+requests	start	callstacks	1
+requests	start	callstacks, filtered	1
+requests	start	filtered	1
+requests	start	joined	1
+requests	start without body	callstack	2
+requests	start without body	callstacks	2
+requests	start without body	callstacks, filtered	2
+requests	start without body	filtered	2
+requests	start without body	joined	2
+verdicts	recording	72	0	0	0	0	15
+verdicts	memexec	87	0	0	0	0	0
+not compared	memexec	0
+callstacks	0	29
+callstacks filtered	0	29
+trap	145	145	matched	0
+passes	memexec	26	50	54
+passes	recording	26	0	0
+pass	unreachable statements	13
+pass	statistics	12
+pass	summary	1
+below requests	0
+properties	91
+alarms	reference	0
+alarms	recording	0
+alarms	memexec	0
+statistics	reference	1.0000	1.0000	0
+statistics	recording	1.0000	1.0000	0
+statistics	memexec	1.0000	1.0000	0
+messages	recording	equal
+messages	memexec	equal
+phase	done
