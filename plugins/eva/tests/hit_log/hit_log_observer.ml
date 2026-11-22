@@ -38,7 +38,8 @@
      "unavailable": the answer is top, as for a function without results;
      "unresolved": the answer or the reference holds an allocated block
      whose match in the other run is not decided, or that is a summary of
-     several blocks in the reference and one block in the answer.
+     several blocks in the reference and one block in the answer, or
+     whose validity differs in extent.
      An answer that holds a summary of several blocks matched to one block
      of the reference is compared in one direction only: it covers the
      reference or omits it.
@@ -888,7 +889,8 @@ let matching (source_run, source) (target_run, target) =
    place, during the analysis: the strength compared here is that of the
    base at the end of its analysis. Renaming a base into its match loses its
    strength, so the pairs matched whose strengths differ are kept apart,
-   as follows. The bounds of the blocks are not compared.
+   as follows. Substitution also erases the extent. Require identical
+   extents before comparing contents in the coordinates of the target.
    - a strong base matched to a weak base of the run compared with it: a
      state with the one block is among the states that the summary
      describes, with the same contents, and not the converse. Only the
@@ -937,6 +939,13 @@ let rename ~source ~target answers target_answers =
     matching (source, created source answers)
       (target, created target target_answers)
   in
+  (* Validity.equal compares the constructors and every extent field, including
+     max_allocable, but deliberately ignores the weak flag. *)
+  let mapped, different_extents =
+    List.partition
+      (fun (a, b) -> Base.Validity.equal (Base.validity a) (Base.validity b))
+      mapped
+  in
   let weaker =
     List.filter (fun (b, b') -> Base.is_weak b && not (Base.is_weak b')) mapped
   and summarising =
@@ -950,14 +959,21 @@ let rename ~source ~target answers target_answers =
   let matched =
     { unresolved =
         List.fold_left (fun acc (base, base') -> add (add acc base) base')
-          undecided weaker;
+          undecided (different_extents @ weaker);
       summarised =
         List.fold_left (fun acc (_, base') -> add acc base')
           Base.Hptset.empty summarising;
       names = List.map (fun (base, base') -> name base, name base') mapped;
-      undecided =
-        Base.Hptset.elements undecided |> List.map name
-        |> List.sort_uniq String.compare;
+      undecided = (
+        let describe b =
+          Format.asprintf "%s (%a, %s)" (name b) Base.pretty_validity
+            (Base.validity b) (if Base.is_weak b then "weak" else "strong")
+        in
+        let extents = List.map
+            (fun (a, b) -> describe a ^ " -> " ^ describe b) different_extents
+        in
+        List.sort_uniq String.compare
+          (extents @ List.map name (Base.Hptset.elements undecided)));
       weaker = names_of weaker;
       summarising = names_of summarising }
   in
@@ -2323,4 +2339,58 @@ let main () =
     if Option.fold ~none:true ~some:(Int.equal !stage) selected_stage
     then observe_stage ()
 
-let () = Boot.Main.extend main
+(* Equal contents, but a four-byte read is guaranteed only in the target. *)
+let make_bound_base label ~weak ~min_alloc =
+  let vi = Cil.makeGlobalVar ~source:false label Cil_const.intType in
+  let validity =
+    Base.Variable (Base.create_variable_validity ~weak
+                     ~min_alloc:(Z.of_int min_alloc) ~max_alloc:(Z.of_int 31))
+  in
+  let base = Base.register_allocated_var vi Base.Malloc validity in
+  let size =
+    Lattice_bounds.Bottom.non_bottom
+      (Cvalue.V_Offsetmap.size_from_validity validity)
+  in
+  let offsetmap =
+    Cvalue.V_Offsetmap.create_isotropic ~size Cvalue.V_Or_Uninitialized.bottom
+    |> Cvalue.V_Offsetmap.add ~exact:true (Z.zero, Z.of_int 31)
+      (Cvalue.V_Or_Uninitialized.uninitialized, Z.one, Abstract_interp.Rel.zero)
+  in
+  base, Cvalue.Model.add_base base offsetmap Cvalue.Model.empty_map
+
+let point_of_model model =
+  { joined = Ok model; filtered = Ok model;
+    by_callstack = []; filtered_stacks = [] }
+
+let check_bounds ref_min answer_weak expected =
+  Hashtbl.clear allocations;
+  let ref_base, ref_model =
+    make_bound_base "bound_reference" ~weak:false ~min_alloc:ref_min
+  and answer_base, answer_model =
+    make_bound_base "bound_answer" ~weak:answer_weak ~min_alloc:31
+  in
+  let site = { thread = 0; entry = "synthetic"; calls = [] } in
+  List.iter
+    (fun (run, base) ->
+       let a = allocations_of run in
+       Base.Hashtbl.replace a.origins base (site, 0);
+       Hashtbl.replace a.by_site site 1)
+    [ "reference", ref_base; "recording", answer_base ];
+  let reference = point_of_model ref_model
+  and answer = point_of_model answer_model in
+  let renamed, matched =
+    rename ~source:"reference" ~target:"recording" [reference] [answer]
+  in
+  assert (verdict ~matched ~reference:(List.hd renamed).joined
+            ~answer:answer.joined () = expected)
+
+let () =
+  Boot.Main.extend
+    (if Sys.getenv_opt "HIT_LOG_OBSERVER_CHECK_BOUNDS" = Some "1" then
+       fun () ->
+         File.init_cil ();
+         check_bounds 31 false Equal;
+         check_bounds 31 true Covers;
+         check_bounds 7 false Unresolved;
+         check_bounds 7 true Unresolved
+     else main)
