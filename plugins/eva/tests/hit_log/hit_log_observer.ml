@@ -2353,19 +2353,63 @@ let observe () =
 (* The reference is analysed without memexec, which takes hours on a case
    study such as monocypher or gzip, for no gain: their reference is not
    needed. The observer therefore observes the programs of the tests of Eva
-   only: each input file, once its symbolic links are resolved, must lie in
-   a directory plugins/eva/tests, or in a share directory of Frama-C.
-   HIT_LOG_OBSERVER_ANY_PROGRAM=1 lifts this limit. The statement count
+   only. HIT_LOG_OBSERVER_ANY_PROGRAM=1 lifts this limit. The statement count
    cannot replace this check: value/unfold.i has more statements than gzip
-   or monocypher. *)
-let foreign_files () =
+   or monocypher.
+
+   The sources of the program are read from the project, whichever way its
+   AST was built: from the command line, by File.init_from_c_files with no
+   file on the command line, or by -load. They are the files of the
+   locations of the globals of the AST, which are kept with the AST, by
+   -load and in the projects that a visitor derives from it, and which
+   include the headers; and the files registered for parsing
+   (File.get_all), which name an input file even when it declares no
+   global. Kernel.Files alone is empty after File.init_from_c_files. A
+   program whose AST has globals but no source is refused.
+
+   Each source, once its symbolic links are resolved, must lie in a
+   directory plugins/eva/tests, or be a file of a share directory of
+   Frama-C: under that directory once resolved, or the resolved path of
+   the file at the same relative path in that directory. The second case is
+   the install layout of Dune, where each file of the share directory is a
+   symbolic link into the build tree. A file is thus accepted as a share
+   file only if one of the share directories leads to it. A source whose
+   path cannot be resolved, as a symbolic link that no longer exists, is
+   refused. *)
+type sources = {
+  foreign: string list;
+  unresolved: string list;
+  no_source: bool;
+}
+
+let check_sources () =
   let real path =
-    try Unix.realpath path with Unix.Unix_error _ -> path
+    try Some (Unix.realpath path) with Unix.Unix_error _ -> None
   in
   let under dir path = String.starts_with ~prefix:(dir ^ "/") path in
-  let shares =
-    List.map (fun d -> real (Filepath.to_string_abs d))
-      System_config.Share.dirs
+  let shares = List.map Filepath.to_string_abs System_config.Share.dirs in
+  let real_shares = List.filter_map real shares in
+  (* The paths [dir/r] of the share directories, for each relative path [r]
+     that ends [path] and is made of whole components. *)
+  let share_candidates path =
+    let rec suffixes acc = function
+      | [] -> acc
+      | _ :: rest as components ->
+        suffixes (String.concat "/" components :: acc) rest
+    in
+    let components =
+      List.filter (fun c -> c <> "") (String.split_on_char '/' path)
+    in
+    let relative = suffixes [] components in
+    List.concat_map
+      (fun dir -> List.map (fun r -> dir ^ "/" ^ r) relative)
+      shares
+  in
+  let in_share path =
+    List.exists (fun dir -> under dir path) real_shares
+    || List.exists
+      (fun candidate -> real candidate = Some path)
+      (share_candidates path)
   in
   let in_tests path =
     let marker = "/plugins/eva/tests/" in
@@ -2375,22 +2419,69 @@ let foreign_files () =
     in
     from 0
   in
-  Kernel.Files.get ()
-  |> List.map (fun f -> real (Filepath.to_string_abs f))
-  |> List.filter
-    (fun path -> not (in_tests path || List.exists (fun d -> under d path) shares))
+  let ast = Ast.get () in
+  let paths = Hashtbl.create 17 in
+  let add path =
+    if not (Filepath.is_empty path) then
+      Hashtbl.replace paths (Filepath.to_string_abs path) ()
+  in
+  List.iter
+    (fun global ->
+       let pos = Fileloc.start_pos (Cil_datatype.Global.loc global) in
+       if Filepos.generated_by pos = None then add (Filepos.path pos))
+    ast.Cil_types.globals;
+  List.iter
+    (function
+      | File.NeedCPP (path, _, _, _) | File.NoCPP path
+      | File.External (path, _) -> add path)
+    (File.get_all ());
+  let paths =
+    List.sort String.compare (Hashtbl.fold (fun p () acc -> p :: acc) paths [])
+  in
+  let unresolved, resolved =
+    List.partition_map
+      (fun path ->
+         match real path with
+         | None -> Either.Left path
+         | Some resolved -> Either.Right (path, resolved))
+      paths
+  in
+  { foreign =
+      List.filter_map
+        (fun (path, resolved) ->
+           if in_tests resolved || in_share resolved then None
+           else Some path)
+        resolved;
+    unresolved;
+    no_source = paths = [] && ast.Cil_types.globals <> [] }
+
+let refusal sources =
+  let list = String.concat ", " in
+  List.filter_map Fun.id
+    [ (if sources.no_source then
+         Some "the AST has globals but no source file"
+       else None);
+      (if sources.foreign <> [] then
+         Some ("these source files are outside plugins/eva/tests and the \
+                share directories of Frama-C: " ^ list sources.foreign)
+       else None);
+      (if sources.unresolved <> [] then
+         Some ("these source paths are unresolvable: "
+               ^ list sources.unresolved)
+       else None) ]
 
 let observe_stage () =
-  let foreign = foreign_files () in
-  if foreign <> [] && Sys.getenv_opt "HIT_LOG_OBSERVER_ANY_PROGRAM" <> Some "1"
-  then begin
-    record [ "error"; "input files outside the tests of Eva" ];
+  let refused =
+    if Sys.getenv_opt "HIT_LOG_OBSERVER_ANY_PROGRAM" = Some "1" then []
+    else refusal (check_sources ())
+  in
+  if refused <> [] then begin
+    record [ "error"; "sources outside the tests of Eva" ];
     Kernel.abort
       "the hit log observer analyses its reference without memexec, and \
-       observes the tests of Eva only; these input files are outside \
-       plugins/eva/tests: %s. Set HIT_LOG_OBSERVER_ANY_PROGRAM=1 to observe \
-       them anyway."
-      (String.concat ", " foreign)
+       observes the tests of Eva only; %s. Set \
+       HIT_LOG_OBSERVER_ANY_PROGRAM=1 to observe the program anyway."
+      (String.concat "; " refused)
   end
   else if suite && Analysis.is_computed () then begin
     record [ "error"; "the analysis is computed before the observer starts" ];

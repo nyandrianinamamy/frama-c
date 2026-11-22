@@ -9,10 +9,15 @@ of the recording run a verdict against the reference: equal, covers, more
 precise, OMITS, unavailable or unresolved. The comment at the top of the
 file lists everything it prints.
 
-It observes the programs of the tests of Eva only: it refuses input files
-outside a `plugins/eva/tests` directory or a share directory of Frama-C,
-because the reference run without memexec takes hours on a case study.
-`HIT_LOG_OBSERVER_ANY_PROGRAM=1` lifts this.
+It observes the programs of the tests of Eva only, because the reference
+run without memexec takes hours on a case study. It refuses a program whose
+sources, once their symbolic links are resolved, lie outside a
+`plugins/eva/tests` directory and are not files of a share directory of
+Frama-C, or cannot be resolved. The sources are the files of the locations
+of the globals of the AST and the files of `File.get_all`, so that a
+program built by `File.init_from_c_files` or loaded with `-load` is checked
+as well. `HIT_LOG_OBSERVER_ANY_PROGRAM=1` lifts this. Test:
+`../utils/hit-log-guard.t`.
 
 ## Comparing states across projects
 

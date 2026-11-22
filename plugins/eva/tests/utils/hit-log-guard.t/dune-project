@@ -1,0 +1,4 @@
+(lang dune 3.15)
+(name frama-c-test-hit-log-guard)
+(package (name frama-c-test-hit-log-guard))
+(wrapped_executables false)

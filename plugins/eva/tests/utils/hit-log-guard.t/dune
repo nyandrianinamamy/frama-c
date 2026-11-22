@@ -1,0 +1,10 @@
+; The observer, copied from plugins/eva/tests/hit_log by run.t, with the
+; flags of its ptests rules, and a module that builds the AST without files
+; on the command line. Unwrapped, so that both load in one process.
+(executables
+  (names hit_log_observer init_files)
+  (modules hit_log_observer init_files)
+  (modes plugin)
+  (libraries frama-c.kernel "frama-c-eva.core")
+  (flags :standard -w -50-9-32-6-34 -open Frama_c_kernel)
+)

@@ -18,3 +18,9 @@
   (applies_to server-requests)
   (deps (package frama-c-server))
 )
+
+; Test of the guard of the hit log observer, which run.t compiles
+(cram
+  (applies_to hit-log-guard)
+  (deps ../hit_log/hit_log_observer.ml)
+)
