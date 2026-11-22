@@ -10,21 +10,29 @@
 # Runs the tests of Eva in their default configuration with the recording of
 # option -eva-hit-log, and writes a summary of the run.
 #
-# Each test run is a command of the ptests rules of plugins/eva/tests. A run
-# that fits the configuration of the recording (cvalue domain alone, memexec
-# on, no option whose limits are accepted) is executed four times, each in
-# its own directory:
+# Each test run is a command of the ptests rules of plugins/eva/tests, a test
+# or a single frama-c command run before the tests (EXECNOW). A run that fits
+# the configuration of the recording (cvalue domain alone, memexec on, no
+# option whose limits are accepted) is executed in several directories:
 #   - hitlog: the command with -eva-hit-log;
 #   - reference: the command with -eva-no-memexec, stopped after two minutes;
 #   - memexec: the command as it is, whose output is the oracle of the test;
-#   - observer: the first analysis of the command, without its option -eva
-#     and the options of other plug-ins that start an analysis or print, with
-#     the observer of plugins/eva/tests/hit_log/hit_log_observer.ml and
-#     -eva-hit-log. The observer analyses copies of the project without
-#     memexec and with memexec, then the project with -eva-hit-log, asks each
-#     of them for the states at every point, and writes a summary of the
-#     comparison (environment variable HIT_LOG_OBSERVER_SUMMARY).
-# The other runs are listed as not run, with the reason.
+#   - stages, for a command of several stages (-then): the command with the
+#     observer of plugins/eva/tests/hit_log/hit_log_observer.ml, which only
+#     lists the stages that start an analysis of Eva (environment variable
+#     HIT_LOG_OBSERVER_STAGES);
+#   - observer-N, for each stage N that starts an analysis: the stages before
+#     it, as in hitlog, then the stage N without the options that start an
+#     analysis or print, and with -eva-hit-log; the observer, loaded, acts at
+#     stage N only (HIT_LOG_OBSERVER_STAGE). It analyses copies of the project
+#     without memexec and with memexec, then the project with -eva-hit-log,
+#     asks each of them for the states at every point, and writes a summary
+#     of the comparison (HIT_LOG_OBSERVER_SUMMARY).
+# A command that loads a project saved by an EXECNOW command without analysis
+# runs that command first, in each directory. The other runs are listed as
+# not run, and the stages that are not observed as such, with the reason.
+# Each run records the revision of the checkout and whether its tree has
+# changes, taken when the script starts.
 #
 # Usage: dev/hit-log-suite.py [-j JOBS] [-o OUTDIR] [-k PATTERN] [--report]
 #   -j JOBS     number of runs in parallel (default 8)
@@ -101,6 +109,40 @@ ANALYSIS_WITH_ARGUMENT = {
 }
 PRINTING_FLAGS = {"-report", "-print"}
 
+# The options above that have a negation -no-..., which the observer of a
+# later stage sets when an earlier stage set the option.
+NEGATED = {
+    "-eva",
+    "-out",
+    "-input",
+    "-deps",
+    "-calldeps",
+    "-inout",
+    "-input-with-formals",
+    "-out-external",
+    "-deref",
+    "-scf",
+    "-sparecode",
+    "-print",
+    "-report",
+}
+
+# The reasons why the tests that load their own OCaml module are not run.
+MODULE_REASONS = {
+    "fval_test.cmxs": "unit program: its module tests the floating-point "
+    "intervals of Eva (Fval) in OCaml, with no analysis of a program",
+    "unit_tests.cmxs": "unit program: its module runs Eva.Unit_tests, the OCaml "
+    "tests of the abstract values, with no analysis of a program",
+    "legacy_reads.cmxs": "protocol test: its module makes requests and reads "
+    "the reports of Eva.Legacy_read_trap, which the observer drives as well",
+    "legacy_reads_projects.cmxs": "protocol test: its module copies and clears "
+    "projects, makes requests in them and reads the reports of "
+    "Eva.Legacy_read_trap, which the observer drives as well",
+    "big_local_array_script.cmxs": "creates a project: its module creates the "
+    "project prj and parses the file in it, then the stage -then-on prj prints "
+    "it, with no option that starts an analysis",
+}
+
 # Options whose limits under -eva-hit-log are accepted in #87, or that are
 # treated as such: the test is not run.
 ACCEPTED_LIMITS = {
@@ -126,16 +168,24 @@ def default_suites():
 
 def strip_redirections(tokens):
     """The tokens of a command without its redirections."""
+    return redirections(tokens)[0]
+
+
+def redirections(tokens):
+    """The tokens of a command without its redirections, and the files of
+    its standard output and error, if they are redirected."""
     result = []
-    skip = False
-    for t in tokens:
-        if skip:
-            skip = False
-        elif t in (">", "2>", "1>"):
-            skip = True
+    files = {}
+    i = 0
+    while i < len(tokens):
+        t = tokens[i]
+        if t in (">", "1>", "2>") and i + 1 < len(tokens):
+            files["err" if t == "2>" else "out"] = tokens[i + 1]
+            i += 2
         else:
             result.append(t)
-    return result
+            i += 1
+    return result, files.get("out"), files.get("err")
 
 
 def commands_file_tokens(suite, name):
@@ -204,48 +254,159 @@ def starts_analysis(token):
     return name in ANALYSIS_FLAGS or name in ANALYSIS_WITH_ARGUMENT
 
 
-def observer_args(args, observer):
-    """The arguments of the observer, or the reason why it cannot run: the
-    stages up to the first one that starts an analysis, without the options
-    that start an analysis or print, with the observer loaded."""
-    stages, separators = split_stages(args)
-    first = next(
-        (i for i, s in enumerate(stages) if any(starts_analysis(t) for t in s)),
-        None,
-    )
-    if first is None:
-        return None, "no stage starts an analysis"
-    if any(sep[0] != "-then" for sep in separators[:first]):
-        return None, "the first analysis is after " + separators[first - 1][0]
-    merged = [t for s in stages[: first + 1] for t in s]
+def with_module(tokens, observer):
+    """[tokens] with the observer loaded after the plug-ins."""
     result = []
+    loaded = False
     i = 0
-    while i < len(merged):
-        t = merged[i]
-        name = option_name(t)
-        if name in ANALYSIS_WITH_ARGUMENT and "=" not in t:
-            i += 2
-            continue
-        if name in ANALYSIS_FLAGS or name in ANALYSIS_WITH_ARGUMENT:
-            i += 1
-            continue
-        if name in PRINTING_FLAGS:
-            i += 1
-            continue
+    while i < len(tokens):
+        t = tokens[i]
         result.append(t)
-        if t.startswith("-load-plugin"):
+        if t == "-load-plugin" and i + 1 < len(tokens):
+            result.append(tokens[i + 1])
+            i += 1
+        if t.startswith("-load-plugin") and not loaded:
             result.append("-load-module=" + observer)
+            loaded = True
         i += 1
-    return result + ["-eva-hit-log"], None
+    if not loaded:
+        result.append("-load-module=" + observer)
+    return result
+
+
+def without_analysis(stage):
+    """The tokens of [stage] without the options that start an analysis or
+    print, and these options."""
+    kept, removed = [], []
+    i = 0
+    while i < len(stage):
+        t = stage[i]
+        name = option_name(t)
+        if name in ANALYSIS_WITH_ARGUMENT and "=" not in t and i + 1 < len(stage):
+            removed.append(t + " " + stage[i + 1])
+            i += 2
+        elif starts_analysis(t) or name in PRINTING_FLAGS:
+            removed.append(t)
+            i += 1
+        else:
+            kept.append(t)
+            i += 1
+    return kept, removed
+
+
+def set_before(stages):
+    """The options that start an analysis or print, set by [stages] and in
+    effect after them, and those of them that take an argument, with their
+    stage."""
+    on = set()
+    with_argument = []
+    for number, stage in enumerate(stages, 1):
+        for t in stage:
+            name = option_name(t)
+            if name in ANALYSIS_FLAGS or name in PRINTING_FLAGS:
+                on.add(name)
+            elif name in ANALYSIS_WITH_ARGUMENT:
+                with_argument.append((number, t))
+            elif name and name.startswith("-no-"):
+                on.discard("-" + name[len("-no-") :])
+    return on, with_argument
+
+
+def observer_args(stages, separators, number, observer):
+    """The arguments of the observer of stage [number] (the first is 1), the
+    options of that stage whose effects after the analysis are not observed,
+    and the reason why the stage is not observed, if it is not. The stages
+    before it run as in hitlog, with the observer loaded; the stage itself
+    without the options that start an analysis or print, those that the
+    stages before set being reset, and with -eva-hit-log."""
+    before = stages[: number - 1]
+    for separator in separators[: number - 1]:
+        if separator[0] != "-then":
+            return (
+                None,
+                [],
+                ("the stage follows %s: it runs on another project" % " ".join(separator)),
+            )
+    on, with_argument = set_before(before)
+    if with_argument:
+        stage, option = with_argument[0]
+        return (
+            None,
+            [],
+            (
+                "the option %s of stage %d, which starts an analysis, cannot be "
+                "reset" % (option, stage)
+            ),
+        )
+    kept, removed = without_analysis(stages[number - 1])
+    fixed = sorted(on - NEGATED)
+    if fixed:
+        return (
+            None,
+            [],
+            ("the option %s of an earlier stage cannot be reset" % fixed[0]),
+        )
+    not_observed = sorted(on - {"-eva"})
+    for t in removed:
+        name = option_name(t.split(" ")[0])
+        shown = t if name in ANALYSIS_WITH_ARGUMENT else name
+        if shown != "-eva" and shown not in not_observed:
+            not_observed.append(shown)
+    reset = ["-no-" + name[1:] for name in sorted(on)]
+    staged = [s + ["-eva-hit-log"] for s in before]
+    staged.append(kept + reset + ["-eva-hit-log"])
+    staged[0] = with_module(staged[0], observer)
+    return join_stages(staged, separators[: number - 1]), not_observed, None
+
+
+def saving_runs(runs):
+    """The runs that save a project, by suite and file."""
+    saves = {}
+    for run in runs:
+        tokens = redirections(shlex.split(run["cmd"]))[0]
+        if tokens[:1] != ["frama-c"]:
+            continue
+        for i, t in enumerate(tokens):
+            if t == "-save" and i + 1 < len(tokens):
+                saves[(run["suite"], os.path.normpath(tokens[i + 1]))] = run
+    return saves
+
+
+def loaded_save(run, tokens, saves):
+    """The prerequisite of a run that loads a saved project: the command
+    that saves it, without analysis; or the reason why the run is not run."""
+    for i, t in enumerate(tokens):
+        if t != "-load" or i + 1 >= len(tokens):
+            continue
+        name = os.path.normpath(tokens[i + 1])
+        saving = saves.get((run["suite"], name)) or saves.get(
+            (run["suite"], re.sub(r"\.error$", "", name))
+        )
+        if saving is None:
+            return None, "loads a saved project that no command of the suite saves"
+        saving_tokens = redirections(shlex.split(saving["cmd"]))[0][1:]
+        flags = [t for t in saving_tokens if starts_analysis(t)]
+        if flags:
+            return None, (
+                "saved project with computed results: loads the project that "
+                "%s saves after its analysis (%s), and queries its results"
+                % (saving["name"], " ".join(flags))
+            )
+        return {"name": saving["name"], "args": saving_tokens}, None
+    return None, None
 
 
 def static_reason(tokens):
     """The reason why a run is not executed, from its options."""
     names = [option_name(t) for t in tokens]
-    if "-load" in names:
-        return "other: the test loads a saved project"
-    if "-load-module" in names:
-        return "other: the test loads its own OCaml module"
+    for i, t in enumerate(tokens):
+        name = option_name(t)
+        if name == "-load-module":
+            module = t.split("=", 1)[1] if "=" in t else tokens[i + 1]
+            return MODULE_REASONS.get(
+                os.path.basename(module),
+                "other: the test loads its own OCaml module %s" % module,
+            )
     if "-eva-no-memexec" in names:
         return "memexec disabled by the test"
     for option, reason in ACCEPTED_LIMITS.items():
@@ -268,41 +429,80 @@ def runs_of_suite(suite):
             number,
             "" if kind == "TEST" else ".execnow",
         )
-        runs.append(
-            {
-                "name": name,
-                "suite": suite,
-                "source": base,
-                "kind": kind,
-                "cmd": test["cmd"],
-                "out": test.get("out"),
-                "err": test.get("err"),
-                "tmpout": test.get("tmpout"),
-                "tmperr": test.get("tmperr"),
-                "sedout": test.get("sedout"),
-                "sederr": test.get("sederr"),
-                "oracle_out": test.get("oracle_out"),
-                "oracle_err": test.get("oracle_err"),
-            }
-        )
+        run = {
+            "name": name,
+            "suite": suite,
+            "source": base,
+            "kind": kind,
+            "cmd": test["cmd"],
+            "out": test.get("out"),
+            "err": test.get("err"),
+            "tmpout": test.get("tmpout"),
+            "tmperr": test.get("tmperr"),
+            "sedout": test.get("sedout"),
+            "sederr": test.get("sederr"),
+            "oracle_out": test.get("oracle_out"),
+            "oracle_err": test.get("oracle_err"),
+        }
+        if kind == "EXECNOW":
+            # The logs of an EXECNOW command are its redirections, compared
+            # with the files of the same name in its oracle directory.
+            _, out, err = redirections(shlex.split(test["cmd"]))
+            oracles = test.get("oracle_dir", "../oracle")
+            run["out"] = os.path.basename(out) if out else name + ".res.log"
+            run["err"] = os.path.basename(err) if err else name + ".err.log"
+            for log in ["out", "err"]:
+                if run[log] in [os.path.basename(f) for f in test.get("log", [])]:
+                    run["oracle_" + log] = os.path.join(oracles, run[log])
+        runs.append(run)
     return runs
 
 
-def classify(run):
-    """Fills the arguments of the commands of a run, or the reason why it is
-    not run."""
-    if run["suite"] == OBSERVER_SUITE:
-        run["not_run"] = (
-            "other: fixture of the observer, run with the observer by its "
-            "own ptests rules (@plugins/eva/tests/hit_log/ptests_config)"
-        )
-        return
+def observer_suite_reason(run):
+    """The reason why a run of the observer's own suite is not run here."""
+    rules = "run by the ptests rules of the suite (@%s/%s/ptests_config)" % (
+        TESTS,
+        OBSERVER_SUITE,
+    )
     if run["kind"] != "TEST":
-        run["not_run"] = "other: EXECNOW command"
+        return "hit_log: EXECNOW that saves the project a fixture loads, " + rules
+    modules = sorted(
+        {
+            os.path.splitext(os.path.basename(m))[0]
+            for found in re.findall(r"-load-module[= ](\S+)", run["cmd"])
+            for m in found.split(",")
+        }
+    )
+    others = [m for m in modules if m != "hit_log_observer"]
+    if "hit_log_observer" in modules and not others:
+        return "hit_log: fixture of the observer, " + rules
+    if "hit_log_observer" in modules:
+        return "hit_log: fixture of the observer with its own module %s, %s" % (
+            ", ".join(others),
+            rules,
+        )
+    return "hit_log: fixture with its own module %s and not the observer, %s" % (
+        ", ".join(others),
+        rules,
+    )
+
+
+def classify(run, saves):
+    """Fills the arguments of the commands of a run, or the reason why it is
+    not run. [saves] are the runs that save a project."""
+    if run["suite"] == OBSERVER_SUITE:
+        run["not_run"] = observer_suite_reason(run)
         return
     cmd = run["cmd"]
     if not cmd.startswith("frama-c ") or re.search(r"[|;&{}]", cmd):
-        run["not_run"] = "other: not a single frama-c command"
+        programs = re.findall(r"(?:^|[|;&{]\s*)([\w.-]+)", cmd)
+        if programs[:1] == ["diff"]:
+            run["not_run"] = "other: compares the outputs of two tests (diff), with no " "analysis"
+        else:
+            run["not_run"] = (
+                "other: not a single frama-c command, but a shell group of "
+                "%s" % ", ".join(dict.fromkeys(programs))
+            )
         return
     tokens = strip_redirections(shlex.split(cmd))[1:]
     expanded = expand(run["suite"], tokens)
@@ -310,8 +510,23 @@ def classify(run):
     if reason:
         run["not_run"] = reason
         return
+    prerequisite, reason = loaded_save(run, expanded, saves)
+    if reason:
+        run["not_run"] = reason
+        return
+    if run["kind"] == "EXECNOW" and not any(starts_analysis(t) for t in expanded):
+        saved = [expanded[i + 1] for i, t in enumerate(expanded[:-1]) if t == "-save"]
+        run["not_run"] = "other: EXECNOW without an option that starts an " "analysis" + (
+            ": it saves the parsed program (-save %s), and a run that loads "
+            "it runs it first" % saved[0]
+            if saved
+            else ""
+        )
+        return
     run["args"] = tokens
     run["expanded"] = expanded
+    if prerequisite:
+        run["prerequisite"] = prerequisite
 
 
 # ----- Execution ----------------------------------------------------------
@@ -395,34 +610,98 @@ def diff(a, b, name_a, name_b):
     return list(lines)[2:]
 
 
-def run_one(run, outdir, env, observer):
+def parse_stages(path):
+    """The stages that the observer lists in the file [path]: by number,
+    the project of the stage, the projects of the analyses that start in it,
+    and whether the command finishes it."""
+    stages = {}
+    for fields in parse_summary(path):
+        if fields[:1] == ["stage"] and len(fields) >= 4:
+            stages[int(fields[1])] = {
+                "project": fields[2],
+                "analyses": [p for p in fields[3].split(",") if p],
+                "unfinished": fields[4:] == ["unfinished"],
+            }
+    return stages
+
+
+def stage_plan(run, counted, status, observer):
+    """For each stage of the command of [run], whether it is observed, with
+    the arguments of its observer and the options not observed, or the
+    reason why it is not. [counted] are the stages listed by the observer
+    for a command of several stages, run with the exit status [status]."""
+    stages, separators = split_stages(run["expanded"])
+    plan = []
+    for number in range(1, len(stages) + 1):
+        entry = {"stage": number, "reason": None}
+        if len(stages) == 1:
+            if not any(starts_analysis(t) for t in stages[0]):
+                entry["reason"] = "no option starts an analysis"
+        elif counted is None or number not in counted:
+            entry["reason"] = "the command stops before this stage (exit %s)" % status
+        else:
+            c = counted[number]
+            if not c["analyses"]:
+                _, removed = without_analysis(stages[number - 1])
+                entry["reason"] = "no analysis starts in this stage" + (
+                    "; its options %s use the results of an earlier stage" % " ".join(removed)
+                    if removed
+                    else ""
+                )
+            elif len(c["analyses"]) > 1:
+                entry["reason"] = "%d analyses start in this stage" % len(c["analyses"])
+            elif c["analyses"][0] != c["project"]:
+                entry["reason"] = (
+                    "the analysis starts in project %s, not in project %s of "
+                    "the stage" % (c["analyses"][0], c["project"])
+                )
+            entry["unfinished"] = c["unfinished"]
+        if entry["reason"] is None:
+            args, not_observed, reason = observer_args(stages, separators, number, observer)
+            entry["reason"] = reason
+            entry["args"] = args
+            entry["not_observed"] = not_observed
+        entry["observed"] = entry["reason"] is None
+        plan.append(entry)
+    return plan
+
+
+def run_prerequisite(run, directory, env):
+    """Runs in [directory] the command that saves the project that [run]
+    loads."""
+    prerequisite = run.get("prerequisite")
+    if prerequisite:
+        with open(os.path.join(directory, "prerequisite.res"), "w") as o, open(
+            os.path.join(directory, "prerequisite.err"), "w"
+        ) as e:
+            subprocess.run(
+                [env["FRAMA_C"]] + prerequisite["args"],
+                cwd=directory,
+                stdout=o,
+                stderr=e,
+                env=env,
+                timeout=TIMEOUT,
+            )
+
+
+def run_one(run, outdir, env, observer, provenance):
     work = os.path.join(outdir, "work", run["name"])
-    result = {"name": run["name"]}
+    result = {"name": run["name"], "provenance": provenance}
     variants = {
         "hitlog": add_to_each_stage(run["args"], ["-eva-hit-log"]),
         "reference": add_to_each_stage(run["args"], ["-eva-no-memexec"]),
         "memexec": run["args"],
     }
-    obs_args, obs_reason = observer_args(run["expanded"], observer)
     commands = {}
-    for variant in ["hitlog", "reference", "memexec", "observer"]:
-        if variant == "observer":
-            if obs_args is None:
-                result["observer_not_run"] = obs_reason
-                break
-            args = obs_args
-        else:
-            args = variants[variant]
+    for variant in ["hitlog", "reference", "memexec"]:
+        args = variants[variant]
         directory = os.path.join(work, variant)
         prepare_directory(run, directory)
+        run_prerequisite(run, directory, env)
         argv = [env["FRAMA_C"]] + args
         commands[variant] = shlex.join(argv)
-        variant_env = env
-        if variant == "observer":
-            variant_env = dict(env)
-            variant_env["HIT_LOG_OBSERVER_SUMMARY"] = os.path.join(directory, "summary")
         timeout = REFERENCE_TIMEOUT if variant == "reference" else TIMEOUT
-        result[variant] = execute(run, argv, directory, variant_env, timeout)
+        result[variant] = execute(run, argv, directory, env, timeout)
         if variant == "hitlog":
             text = (read(os.path.join(directory, run["out"])) or "") + (
                 read(os.path.join(directory, run["err"])) or ""
@@ -433,9 +712,10 @@ def run_one(run, outdir, env, observer):
         if variant == "reference" and result[variant]["status"] == "timeout":
             result["not_run"] = "reference too costly (over %d s)" % REFERENCE_TIMEOUT
             break
-    result["commands"] = commands
     if "not_run" in result:
+        result["commands"] = commands
         return result
+    result["commands"] = commands
     out = {
         v: (
             read(os.path.join(work, v, run["out"])),
@@ -459,14 +739,49 @@ def run_one(run, outdir, env, observer):
             "res": diff(out[a][0], out[b][0], a, b),
             "err": diff(out[a][1], out[b][1], a, b),
         }
-    if "observer" in result:
-        result["summary"] = parse_summary(os.path.join(work, "observer", "summary"))
-        statuses = {result[v]["status"] for v in ["hitlog", "reference", "memexec"]}
-        observer = result["observer"]["status"]
-        if phase_of(result) == "start" and statuses == {observer} and observer != 0:
-            result["not_run"] = (
-                "other: every command stops before the analysis (exit %s)" % observer
-            )
+    # The stages that start an analysis, for a command of several stages.
+    counted = None
+    status = None
+    if len(split_stages(run["expanded"])[0]) > 1:
+        directory = os.path.join(work, "stages")
+        prepare_directory(run, directory)
+        run_prerequisite(run, directory, env)
+        argv = [env["FRAMA_C"]] + with_module(run["expanded"], observer)
+        commands["stages"] = shlex.join(argv)
+        stages_env = dict(env)
+        stages_env["HIT_LOG_OBSERVER_STAGES"] = os.path.join(directory, "stages")
+        result["stages run"] = execute(run, argv, directory, stages_env, TIMEOUT)
+        status = result["stages run"]["status"]
+        counted = parse_stages(os.path.join(directory, "stages"))
+    plan = stage_plan(run, counted, status, observer)
+    result["stages"] = [{k: v for k, v in entry.items() if k != "args"} for entry in plan]
+    result["observers"] = []
+    for entry in plan:
+        if not entry["observed"]:
+            continue
+        variant = "observer-%d" % entry["stage"]
+        directory = os.path.join(work, variant)
+        prepare_directory(run, directory)
+        run_prerequisite(run, directory, env)
+        argv = [env["FRAMA_C"]] + entry["args"]
+        commands[variant] = shlex.join(argv)
+        observer_env = dict(env)
+        observer_env["HIT_LOG_OBSERVER_SUMMARY"] = os.path.join(directory, "summary")
+        observer_env["HIT_LOG_OBSERVER_STAGE"] = str(entry["stage"])
+        observed = execute(run, argv, directory, observer_env, TIMEOUT)
+        observed["stage"] = entry["stage"]
+        observed["summary"] = parse_summary(os.path.join(directory, "summary"))
+        result["observers"].append(observed)
+    statuses = {result[v]["status"] for v in ["hitlog", "reference", "memexec"]}
+    status = statuses.pop() if len(statuses) == 1 else 0
+    if status != 0 and all(
+        phase_of(o) == "start" and o["status"] == status for o in result["observers"]
+    ):
+        # A command that stops before an analysis starts, as one whose file
+        # does not parse, in every mode. For a command of several stages, the
+        # observer has not found an analysis that starts.
+        if len(plan) == 1 or not result["observers"]:
+            result["not_run"] = "other: every command stops before the analysis (exit %s)" % status
     return result
 
 
@@ -488,7 +803,7 @@ def build(jobs):
 
 # ----- Summary ------------------------------------------------------------
 
-VERDICTS = ["equal", "covers", "more precise", "OMITS", "unavailable"]
+VERDICTS = ["equal", "covers", "more precise", "OMITS", "unavailable", "unresolved"]
 
 
 ANSWER_FIELDS = [
@@ -522,19 +837,46 @@ def phase_of(result):
     return phases[-1][0] if phases else "start"
 
 
-def observer_state(result):
-    """The outcome of the observer: done, or what stopped it."""
-    if "observer" not in result:
-        return "not run: " + result.get("observer_not_run", "?")
-    status = result["observer"]["status"]
-    phase = phase_of(result)
-    if records(result, "error"):
-        return "error: " + records(result, "error")[0][0]
-    if phase == "done" and status == 0:
-        return "done"
-    if phase == "done":
-        return "done, exit %s" % status
-    return "stopped (exit %s) in phase %s" % (status, phase)
+def observations(result):
+    """The observations of a run, one per observed stage, with the name of
+    the run, labelled with the stage for a command of several stages, and
+    whether the stage is the first observed one of the run. A result of an
+    earlier version of this script has one observation, of the first
+    analysis."""
+    found = result.get("observers")
+    if found is None:
+        found = []
+        if "observer" in result:
+            found = [dict(result["observer"], stage=1, summary=result.get("summary", []))]
+    several = len(result.get("stages", [])) > 1
+    first_stage = min((o["stage"] for o in found), default=None)
+    return [
+        dict(
+            o,
+            name=result["name"] + (" stage %d" % o["stage"] if several else ""),
+            first=o["stage"] == first_stage,
+        )
+        for o in found
+    ]
+
+
+def observer_state(o):
+    """The outcome of an observation: done, or the failure that stopped it
+    or left it without a complete record of the trap."""
+    status = o["status"]
+    phase = phase_of(o)
+    if records(o, "error"):
+        return "failure: " + records(o, "error")[0][0]
+    if phase != "done":
+        return "failure: stopped (exit %s) in phase %s" % (status, phase)
+    if records(o, "no result"):
+        return "failure: the analysis with -eva-hit-log has no result"
+    t = first(o, "trap")
+    if t is None:
+        return "failure: no record of the trap"
+    if t[2] != "matched" or t[0] != t[1]:
+        return "failure: incomplete record of the trap"
+    return "done" if status == 0 else "done, exit %s" % status
 
 
 def table(header, rows):
@@ -544,20 +886,56 @@ def table(header, rows):
     return "\n".join(lines)
 
 
+def provenance():
+    """The revision of the checkout and its changes to tracked files."""
+    head = subprocess.run(
+        ["git", "rev-parse", "HEAD"], capture_output=True, text=True
+    ).stdout.strip()
+    changes = subprocess.run(
+        ["git", "status", "--porcelain", "--untracked-files=no"],
+        capture_output=True,
+        text=True,
+    ).stdout.splitlines()
+    return {"revision": head, "changes": changes}
+
+
+def describe_provenance(p):
+    if not p:
+        return "unknown (no record)"
+    return "`%s`%s" % (
+        p["revision"],
+        (
+            " with changes to %d tracked files" % len(p["changes"])
+            if p["changes"]
+            else ", tree clean"
+        ),
+    )
+
+
+def total(observed, kind, run_kind, width):
+    totals = [0] * width
+    for o in observed:
+        for rec in records(o, kind):
+            if rec[0] == run_kind:
+                totals = [a + int(b) for a, b in zip(totals, rec[1:])]
+    return totals
+
+
 def write_summary(outdir, runs, results, elapsed):
     by_name = {r["name"]: r for r in results}
     lines = []
     emit = lines.append
-    head = subprocess.run(
-        ["git", "rev-parse", "HEAD"], capture_output=True, text=True
-    ).stdout.strip()
-    dirty = subprocess.run(
-        ["git", "status", "--porcelain", "--untracked-files=no"],
-        capture_output=True,
-        text=True,
-    ).stdout.strip()
     emit("# Eva tests under -eva-hit-log\n")
-    emit("Revision: `%s`%s.\n" % (head, " with uncommitted changes" if dirty else ""))
+    revisions = collections.Counter(describe_provenance(r.get("provenance")) for r in results)
+    if len(revisions) <= 1:
+        emit("Revision of the runs: %s.\n" % (next(iter(revisions)) if revisions else "no run"))
+    else:
+        emit("**The runs are of %d different revisions:**\n" % len(revisions))
+        emit(table(["Revision", "Runs"], sorted(revisions.items())))
+        emit("")
+    now = describe_provenance(provenance())
+    if revisions and now not in revisions:
+        emit("This summary is written at revision %s.\n" % now)
     if elapsed is not None:
         emit("Wall-clock time of the run: %.0f s.\n" % elapsed)
     # Inventory.
@@ -598,17 +976,79 @@ def write_summary(outdir, runs, results, elapsed):
             f.write("%s\t%s\n" % (name, "executed" if reason is None else reason))
     emit("Every run, with its reason: `inventory.tsv`.\n")
     done = [by_name[n] for n in executed]
+    # Stages.
+    emit("## Stages\n")
+    stages = [(r, s) for r in done for s in r.get("stages", [])]
+    all_obs = [o for r in done for o in observations(r)]
+    later = [o for o in all_obs if not o["first"]]
+    emit(
+        "%d stages in the %d executed runs: %d observed, of which %d are the "
+        "first observed stage of their run and %d a later stage; %d not "
+        "observed.\n"
+        % (
+            len(stages),
+            len(done),
+            len(all_obs),
+            len(all_obs) - len(later),
+            len(later),
+            len([1 for _, s in stages if not s["observed"]]),
+        )
+    )
+    not_observed = collections.Counter(s["reason"] for _, s in stages if not s["observed"])
+    emit(table(["Reason a stage is not observed", "Stages"], sorted(not_observed.items())))
+    emit("")
+    emit("Observed stages that are not the first observed stage of their run:\n")
+    emit(table(["Stage"], [[o["name"]] for o in later]))
+    emit("")
+    late_first = sorted(o["name"] for o in all_obs if o["first"] and o["stage"] > 1)
+    emit(
+        "Runs whose first observed stage is not the first stage of the "
+        "command: %s.\n" % (", ".join(late_first) or "none")
+    )
+    options = collections.Counter(
+        option for _, s in stages if s["observed"] for option in s.get("not_observed", [])
+    )
+    emit(
+        "Options of the observed stages whose effects after the analysis are "
+        "not observed (the observer removes them), by number of stages:\n"
+    )
+    emit(table(["Option", "Stages"], sorted(options.items())))
+    emit("")
+    with open(os.path.join(outdir, "stages.tsv"), "w") as f:
+        for r, s in stages:
+            f.write(
+                "%s\t%d\t%s\t%s\n"
+                % (
+                    r["name"],
+                    s["stage"],
+                    "observed" if s["observed"] else s["reason"],
+                    " ".join(s.get("not_observed", [])),
+                )
+            )
+    emit("Every stage, with its reason or the options not observed: `stages.tsv`.\n")
     # Observer.
     emit("## Observer\n")
-    states = collections.Counter(observer_state(r) for r in done)
-    emit(table(["Outcome of the observer", "Runs"], sorted(states.items())))
+    states = collections.Counter(observer_state(o) for o in all_obs)
+    emit(table(["Outcome of the observer", "Stages"], sorted(states.items())))
     emit("")
-    observed = [r for r in done if observer_state(r).startswith("done")]
+    failures = [o for o in all_obs if observer_state(o).startswith("failure")]
+    observed = [o for o in all_obs if not observer_state(o).startswith("failure")]
+    emit(
+        "**Failures: %d** observed stages, counted apart from the totals "
+        "below, which are those of the %d other observed stages.\n" % (len(failures), len(observed))
+    )
+    emit(table(["Stage", "Outcome"], [[o["name"], observer_state(o)] for o in failures]))
+    emit("")
+    stopped = sorted(o["name"] for o in observed if records(o, "stopped"))
+    emit(
+        "Observed stages where an analysis stops, as by an option or an "
+        "error of the program: %s.\n" % (", ".join(stopped) or "none")
+    )
     emit("### Calls\n")
     calls = [0] * 5
     hit_runs = 0
-    for r in observed:
-        c = first(r, "calls")
+    for o in observed:
+        c = first(o, "calls")
         if c:
             calls = [a + int(b) for a, b in zip(calls, c)]
             hit_runs += int(c[1]) > 0
@@ -618,11 +1058,28 @@ def write_summary(outdir, runs, results, elapsed):
             [calls],
         )
     )
-    emit("\nRuns with at least one hit: %d of %d.\n" % (hit_runs, len(observed)))
+    emit("\nStages with at least one hit: %d of %d.\n" % (hit_runs, len(observed)))
+    rows = [
+        [o["name"]] + rec
+        for o in observed
+        for rec in records(o, "below rebuilt")
+        if rec[0] != "crossing"
+    ]
+    emit(
+        "Calls below a hit that the observer rebuilds and Eva does not list, " "or the converse:\n"
+    )
+    emit(table(["Stage", "Which", "Callstack"], rows))
+    emit("")
+    crossing = collections.Counter(
+        o["name"] for o in observed for rec in records(o, "below rebuilt") if rec[0] == "crossing"
+    )
+    emit("Calls below a hit that cross a recursion, per stage:\n")
+    emit(table(["Stage", "Calls"], sorted(crossing.items())))
+    emit("")
     emit("### Requests made with -eva-hit-log, per kind\n")
     requests = collections.Counter()
-    for r in observed:
-        for point, what, n in records(r, "requests"):
+    for o in observed:
+        for point, what, n in records(o, "requests"):
             requests[(point, what)] += int(n)
     points = sorted({p for p, _ in requests})
     whats = sorted({w for _, w in requests})
@@ -636,15 +1093,15 @@ def write_summary(outdir, runs, results, elapsed):
     emit("### Answers against the run without memexec\n")
     rows = []
     for run_kind in ["recording", "memexec"]:
-        totals = [0] * 5
-        for r in observed:
-            for rec in records(r, "verdicts"):
-                if rec[0] == run_kind:
-                    totals = [a + int(b) for a, b in zip(totals, rec[1:])]
-        rows.append([run_kind] + totals)
-    emit(table(["Run"] + VERDICTS, rows))
+        for group, members in [
+            ("all observed stages", observed),
+            ("first observed stage of each run", [o for o in observed if o["first"]]),
+            ("later stages", [o for o in observed if not o["first"]]),
+        ]:
+            rows.append([run_kind, group] + total(members, "verdicts", run_kind, len(VERDICTS)))
+    emit(table(["Run", "Stages"] + VERDICTS, rows))
     emit("")
-    answers = [(r["name"], answer(a)) for r in observed for a in records(r, "answer")]
+    answers = [(o["name"], answer(a)) for o in observed for a in records(o, "answer")]
     cases = collections.Counter(
         (a["case"] or "?")
         + (" (as in the reference)" if a["origin"] == "as in the reference" else "")
@@ -654,7 +1111,14 @@ def write_summary(outdir, runs, results, elapsed):
     emit("Unavailable answers with -eva-hit-log, per case of the closed list:\n")
     emit(table(["Case", "Answers"], sorted(cases.items())))
     emit("")
-    emit("Answers that are not equal, per run, function and verdict ")
+    rows = [[o["name"]] + rec for o in observed for rec in records(o, "unresolved")]
+    emit(
+        "Created bases whose match with the run with -eva-hit-log is "
+        "unresolved (their answers are counted as unresolved):\n"
+    )
+    emit(table(["Stage", "Run", "Base"], rows))
+    emit("")
+    emit("Answers that are not equal, per stage, function and verdict ")
     emit("(recording, then memexec without recording, against the reference):\n")
     groups = collections.Counter(
         (
@@ -669,106 +1133,108 @@ def write_summary(outdir, runs, results, elapsed):
     )
     emit(
         table(
-            ["Run", "Function", "Recording", "Memexec", "Origin", "Case", "Answers"],
+            ["Stage", "Function", "Recording", "Memexec", "Origin", "Case", "Answers"],
             [list(k) + [v] for k, v in sorted(groups.items())],
         )
     )
     emit("")
     emit("### Callstacks listed\n")
     rows = []
-    for r in observed:
-        cs = first(r, "callstacks")
-        cf = first(r, "callstacks filtered")
+    for o in observed:
+        cs = first(o, "callstacks")
+        cf = first(o, "callstacks filtered")
         if cs and (cs[0] != "0" or (cf and cf[0] != "0")):
-            rows.append([r["name"], cs[0], cf[0] if cf else "?", cs[1]])
+            rows.append([o["name"], cs[0], cf[0] if cf else "?", cs[1]])
     emit(
-        "Runs whose callstacks, listed with -eva-hit-log, are not those of the "
-        "reference at some points:\n"
+        "Stages whose callstacks, listed with -eva-hit-log, are not those of "
+        "the reference at some points:\n"
     )
-    emit(table(["Run", "Points", "Points, filtered", "Of"], rows))
+    emit(table(["Stage", "Points", "Points, filtered", "Of"], rows))
     emit("")
     emit("### Legacy-read trap\n")
     made = reported = reads = 0
-    unmatched = []
-    for r in observed:
-        t = first(r, "trap")
-        if t:
-            made += int(t[0])
-            reported += int(t[1])
-            reads += int(t[3])
-            if t[2] != "matched" or t[0] != t[1]:
-                unmatched.append(r["name"])
+    for o in observed:
+        t = first(o, "trap")
+        made += int(t[0])
+        reported += int(t[1])
+        reads += int(t[3])
     emit(
         "Requests made by the observer: %d; reported by the trap: %d; reads of "
-        "the legacy store: %d. Runs where a request is not reported once with "
-        "its description: %s.\n" % (made, reported, reads, ", ".join(unmatched) or "none")
+        "the legacy store: %d. Each of these stages has a complete record of "
+        "the trap: every request reported once, with its description; a stage "
+        "without one is a failure above.\n" % (made, reported, reads)
     )
     emit("### Passes after the iteration\n")
     rows = []
     for run_kind in ["memexec", "recording"]:
-        totals = [0, 0, 0]
-        for r in observed:
-            for rec in records(r, "passes"):
-                if rec[0] == run_kind:
-                    totals = [a + int(b) for a, b in zip(totals, rec[1:])]
-        rows.append([run_kind] + totals)
+        rows.append([run_kind] + total(observed, "passes", run_kind, 3))
     emit(table(["Run", "Requests", "Reads in them", "Reads outside"], rows))
     emit("")
     passes = collections.Counter()
-    for r in observed:
-        for name, n in records(r, "pass"):
+    for o in observed:
+        for name, n in records(o, "pass"):
             passes[name] += int(n)
     emit(table(["Pass, with -eva-hit-log", "Requests"], sorted(passes.items())))
-    below = sum(int(x[0]) for r in observed for x in records(r, "below requests"))
+    below = sum(int(x[0]) for o in observed for x in records(o, "below requests"))
     emit("\nRequests of the passes on a callstack below a hit: %d.\n" % below)
     bad = [
-        r["name"]
-        for r in observed
-        for rec in records(r, "passes")
+        o["name"]
+        for o in observed
+        for rec in records(o, "passes")
         if rec[0] == "recording" and (rec[2] != "0" or rec[3] != "0")
     ]
     emit(
-        "Runs with a read of the legacy store after the iteration: %s.\n"
+        "Stages with a read of the legacy store after the iteration: %s.\n"
         % (", ".join(bad) or "none")
     )
     emit("### Outputs of the passes\n")
-    rows = []
-    for r in observed:
-        for rec in records(r, "status"):
-            rows.append([r["name"]] + rec)
+    rows = [[o["name"]] + rec for o in observed for rec in records(o, "status")]
     emit("Statuses that differ from the reference:\n")
     emit(
         table(
-            ["Run", "With", "Property", "Status", "Reference", "Verdict", "Origin"],
+            ["Stage", "With", "Property", "Status", "Reference", "Verdict", "Origin"],
             rows,
         )
     )
     emit("")
-    rows = []
-    for r in observed:
-        for rec in records(r, "alarm"):
-            rows.append([r["name"]] + rec)
+    rows = [[o["name"]] + rec for o in observed for rec in records(o, "alarm")]
     emit("Alarms that differ from the reference:\n")
-    emit(table(["Run", "With", "Difference", "Alarm"], rows))
+    emit(table(["Stage", "With", "Difference", "Alarm"], rows))
     emit("")
     rows = []
-    for r in observed:
-        stats = {rec[0]: rec[1:] for rec in records(r, "statistics")}
+    for o in observed:
+        stats = {rec[0]: rec[1:] for rec in records(o, "statistics")}
         if len({tuple(v) for v in stats.values()}) > 1:
             rows.append(
-                [r["name"]]
+                [o["name"]]
                 + [" ".join(stats.get(k, ["?"])) for k in ["reference", "memexec", "recording"]]
             )
     emit("Summaries (statement coverage, function coverage, alarms) that differ:\n")
-    emit(table(["Run", "Reference", "Memexec", "Recording"], rows))
+    emit(table(["Stage", "Reference", "Memexec", "Recording"], rows))
+    emit("")
+    count = collections.Counter()
+    for o in observed:
+        for run_kind, n in records(o, "unreachable statements"):
+            count[run_kind] += int(n)
+    emit(
+        "Statements unreachable for the passes (the state before them is "
+        "bottom): %s.\n"
+        % ", ".join("%d %s" % (count[k], k) for k in ["reference", "memexec", "recording"])
+    )
+    rows = [[o["name"]] + rec for o in observed for rec in records(o, "unreachable")]
+    emit(
+        "Statements unreachable in one run and reachable in the reference, or "
+        "the converse, compared one by one:\n"
+    )
+    emit(table(["Stage", "With", "Unreachable", "Statement", "Case"], rows))
     emit("")
     rows = []
-    for r in observed:
-        for rec in records(r, "messages"):
+    for o in observed:
+        for rec in records(o, "messages"):
             if rec[1] != "equal":
-                rows.append([r["name"]] + rec)
+                rows.append([o["name"]] + rec)
     emit("Messages of the passes that differ from the reference:\n")
-    emit(table(["Run", "With", "Comparison"], rows))
+    emit(table(["Stage", "With", "Comparison"], rows))
     emit("")
     emit("## Outputs of the test commands\n")
     rows = []
@@ -839,17 +1305,21 @@ def main():
         os.symlink(os.path.abspath(SHARE), share)
     start = time.monotonic()
     if not options.report:
+        source = provenance()
         env = build(options.jobs)
     runs = [run for suite in default_suites() for run in runs_of_suite(suite)]
+    saves = saving_runs(runs)
     for run in runs:
-        classify(run)
+        classify(run, saves)
     selected = [run for run in runs if "args" in run and selects(options.patterns, run)]
     results = []
     if not options.report:
         observer = os.path.abspath(OBSERVER)
         print("%d runs, %d to execute" % (len(runs), len(selected)), flush=True)
         with concurrent.futures.ThreadPoolExecutor(options.jobs) as pool:
-            futures = {pool.submit(run_one, run, outdir, env, observer): run for run in selected}
+            futures = {
+                pool.submit(run_one, run, outdir, env, observer, source): run for run in selected
+            }
             for n, future in enumerate(concurrent.futures.as_completed(futures), 1):
                 result = future.result()
                 path = os.path.join(outdir, "runs", result["name"] + ".json")
@@ -862,7 +1332,12 @@ def main():
                         n,
                         len(selected),
                         result["name"],
-                        result.get("not_run") or observer_state(result),
+                        result.get("not_run")
+                        or ", ".join(
+                            "stage %d %s" % (o["stage"], observer_state(o))
+                            for o in observations(result)
+                        )
+                        or "no stage observed",
                     ),
                     flush=True,
                 )
