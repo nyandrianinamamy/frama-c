@@ -612,7 +612,71 @@ let interrupted name =
        n_started > n_results)
     callstacks
 
-let closed_list_case (point : point) =
+(* The callstacks of the calls below a hit, each with whether it crosses a
+   recursion: from the hit down, one of its calls is a recursive call, its
+   function being already on the callstack of its caller, whose counterpart
+   was analysed by its body, computed or hit. The counterpart of a call below
+   a hit is the call made at the same statement by the analysed call of the
+   cache entry that its caller uses. These callstacks are rebuilt from the
+   calls of the analysis, from each hit down, as the rule of #87 does. *)
+let crossing_callstacks =
+  lazy begin
+    let table = Hashtbl.create 17 in
+    let analysed = Hashtbl.create 17 and children = Hashtbl.create 17 in
+    List.iter
+      (fun ((_, p), _, kind) ->
+         begin match kind with
+           | Analysed id -> Hashtbl.replace analysed id p
+           | Hit _ | Other _ -> ()
+         end;
+         match p.calls with
+         | call :: calls -> Hashtbl.add children { p with calls } (call, kind)
+         | [] -> ())
+      !calls;
+    (* [walk q crossing id] adds the callstacks below the call on [q], which
+       uses the cache entry [id] and does not run its body. *)
+    let rec walk q crossing id =
+      match Hashtbl.find_opt analysed id with
+      | None -> ()
+      | Some a ->
+        let frames = q.entry :: List.map fst q.calls in
+        List.iter
+          (fun ((name, _ as call), kind) ->
+             let p = { q with calls = call :: q.calls } in
+             let entry =
+               match kind with
+               | Analysed id | Hit id -> Some id
+               | Other _ -> None
+             in
+             let crossing =
+               crossing || Option.is_some entry && List.mem name frames
+             in
+             let previous = Hashtbl.find_opt table p = Some true in
+             Hashtbl.replace table p (previous || crossing);
+             Option.iter (walk p crossing) entry)
+          (Hashtbl.find_all children a)
+    in
+    List.iter
+      (fun ((_, p), _, kind) ->
+         match kind with
+         | Hit id -> walk p false id
+         | Analysed _ | Other _ -> ())
+      !calls;
+    table
+  end
+
+(* Whether one of the callstacks [stacks] is that of a call below a hit that
+   crosses a recursion. *)
+let crossing stacks =
+  let table = Lazy.force crossing_callstacks in
+  List.exists (fun p -> Hashtbl.find_opt table p = Some true) stacks
+
+(* The case of an unavailable answer at [point] that includes the callstacks
+   [stacks]. The cases are numbered as in the closed list of #87. The points
+   of the body of a call below a hit that crosses a recursion are rebuilt
+   from its start, and are unavailable with it: they are told apart, as
+   case 3b. *)
+let closed_list_case (point : point) ~stacks =
   let name =
     match point.kf, point.kind with
     | Some kf, _ -> Some (Kernel_function.get_name kf)
@@ -623,17 +687,22 @@ let closed_list_case (point : point) =
   let results_disabled name =
     not (Analysis.save_results (Globals.Functions.find_by_name name))
   in
+  let start = List.mem point.kind [ "start"; "start without body" ] in
   if not (Parameters.ResultsAll.get ())
   || Parameters.NoResultsDomain.mem "cvalue"
   then "results of the cvalue domain disabled"
   else
     match name with
     | None -> "none"
+    | Some _ when start ->
+      if crossing stacks then "3: start below a hit, across a recursion"
+      else "none"
     | Some name ->
-      if results_disabled name then "4: results disabled"
+      if results_disabled name then "5: results disabled"
       else if unrolled name then "2: unrolled recursive calls"
-      else if interrupted name then "3: interrupted call"
-      else if unknown_footprint name then "5: unknown footprint"
+      else if interrupted name then "4: interrupted call"
+      else if unknown_footprint name then "6: unknown footprint"
+      else if crossing stacks then "3b: body below a hit, across a recursion"
       else "none"
 
 (* ----- Comparison of the answers ----------------------------------------- *)
@@ -645,7 +714,10 @@ let count table v =
   let n = Option.value ~default:0 (Hashtbl.find_opt table v) in
   Hashtbl.replace table v (n + 1)
 
-let compare_answer point ~what description ~reference ~memexec ~answer =
+(* [stacks] are the callstacks that [answer] includes in the current
+   project. *)
+let compare_answer point ~what ~stacks description ~reference ~memexec
+    ~answer =
   let v = verdict ~reference ~answer in
   let v_memexec = verdict ~reference ~answer:memexec in
   count counts v;
@@ -663,23 +735,28 @@ let compare_answer point ~what description ~reference ~memexec ~answer =
       | Some kf -> Kernel_function.get_name kf
       | None -> ""
     in
-    let case = if v = Unavailable then closed_list_case point else "" in
+    let case =
+      if v = Unavailable then closed_list_case point ~stacks else ""
+    in
     record [ "answer"; point.kind; name; description; what;
              string_of_verdict v; string_of_verdict v_memexec;
              String.trim (Str.global_replace (Str.regexp "^, ") "" origin);
              case ]
 
-let compare_point point c =
+(* [listed] are the callstacks that reach [point] in the current project. *)
+let compare_point point c ~listed =
   let describe what = point.description ^ ", " ^ what in
-  compare_answer point ~what:"joined" (describe "joined")
+  compare_answer point ~what:"joined" ~stacks:listed (describe "joined")
     ~reference:c.reference.joined
     ~memexec:c.memexec.joined ~answer:c.current.joined;
-  compare_answer point ~what:"filtered" (describe "filtered")
+  compare_answer point ~what:"filtered" ~stacks:c.current.filtered_stacks
+    (describe "filtered")
     ~reference:c.reference.filtered
     ~memexec:c.memexec.filtered ~answer:c.current.filtered;
   List.iter
-    (fun (name, answer) ->
-       compare_answer point ~what:"callstack" (describe (display name))
+    (fun ((_, p as name), answer) ->
+       compare_answer point ~what:"callstack" ~stacks:[ p ]
+         (describe (display name))
          ~reference:(find name c.reference.by_callstack)
          ~memexec:(find name c.memexec.by_callstack)
          ~answer)
@@ -1414,7 +1491,10 @@ let observe () =
          (verdict ~reference:initial.reference.joined
             ~answer:initial.current.joined));
     Format.printf "Differences with the run without memexec:@.";
-    List.iter (fun (point, c) -> compare_point point c) compared;
+    List.iter2
+      (fun (point, c) listed ->
+         compare_point point c ~listed:(List.map snd listed))
+      compared current_stacks;
     let get v = Option.value ~default:0 (Hashtbl.find_opt counts v) in
     Format.printf "Answers: %d equal, %d covering, %d more precise, \
                    %d omitting, %d unavailable.@."
