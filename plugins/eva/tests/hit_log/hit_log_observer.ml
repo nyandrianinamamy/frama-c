@@ -2375,7 +2375,18 @@ let observe () =
    symbolic link into the build tree. A file is thus accepted as a share
    file only if one of the share directories leads to it. A source whose
    path cannot be resolved, as a symbolic link that no longer exists, is
-   refused. *)
+   refused.
+
+   The guard prevents an accidental run on a case study; it does not prove
+   where every line comes from. It trusts the contents of the share
+   directories (a symbolic link placed there is accepted wherever it
+   points), and any directory named plugins/eva/tests. A header that
+   declares no global, as one that only defines macros or is included in a
+   function body, is not seen. In a project derived by a visitor, where
+   File.get_all is empty, a #line directive naming a test file hides the
+   real file. A file reached through a link to the source directory
+   plugins/eva/share is refused; no run that the observer observes needs
+   one. *)
 type sources = {
   foreign: string list;
   unresolved: string list;

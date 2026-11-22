@@ -19,6 +19,13 @@ program built by `File.init_from_c_files` or loaded with `-load` is checked
 as well. `HIT_LOG_OBSERVER_ANY_PROGRAM=1` lifts this. Test:
 `../utils/hit-log-guard.t`.
 
+The guard prevents an accidental run on a case study; it does not prove
+where every line comes from. It trusts the share directories and any
+directory named `plugins/eva/tests`, does not see a header that declares
+no global, and, in a project derived by a visitor, can be misled by a
+`#line` directive. The comment before `type sources` in the observer lists
+these limits.
+
 ## Comparing states across projects
 
 A verdict compares states of different projects. Every change to the
