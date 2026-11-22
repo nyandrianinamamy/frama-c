@@ -637,11 +637,11 @@ let renames name sid =
 (* The callstacks of the calls below a hit, each with whether it crosses a
    recursion: from the hit down, one of its calls is a recursive call that
    renames variables, its function being already on the callstack of its
-   caller, and its counterpart was analysed by its body, computed or hit.
-   The counterpart of a call below a hit is the call made at the same
-   statement by the analysed call of the cache entry that its caller uses.
-   These callstacks are rebuilt from the calls of the analysis, from each
-   hit down, as the rule of #87 does. *)
+   caller, whether its counterpart was analysed by its body or by its
+   specification. The counterpart of a call below a hit is the call made at
+   the same statement by the analysed call of the cache entry that its
+   caller uses. These callstacks are rebuilt from the calls of the analysis,
+   from each hit down, as the rule of #87 does. *)
 let crossing_callstacks =
   lazy begin
     let table = Hashtbl.create 17 in
@@ -672,9 +672,7 @@ let crossing_callstacks =
                | Other _ -> None
              in
              let crossing =
-               crossing
-               || Option.is_some entry && List.mem name frames
-                  && renames name sid
+               crossing || List.mem name frames && renames name sid
              in
              let previous = Hashtbl.find_opt table p = Some true in
              Hashtbl.replace table p (previous || crossing);
