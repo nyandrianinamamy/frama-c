@@ -1,0 +1,665 @@
+[kernel] Parsing unrolled_renaming.c (with preprocessing)
+Calls:
+  set :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:43 <- main: analysed, cache entry 34
+  even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:43 <- main: analysed, cache entry 35
+  odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:43 <- main: analysed, cache entry 36
+  even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:43 <- main: analysed, cache entry 37
+  odd_ptr :: unrolled_renaming.c:43 <- main: analysed, cache entry 38
+  even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:44 <- main: hit of cache entry 37
+  odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:44 <- main: analysed, cache entry 39
+  even_ptr :: unrolled_renaming.c:44 <- main: analysed, cache entry 40
+  even_ptr :: unrolled_renaming.c:46 <- main: hit of cache entry 40
+  even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:47 <- main: hit of cache entry 35
+  odd_ptr :: unrolled_renaming.c:47 <- main: analysed, cache entry 41
+  odd_ptr :: unrolled_renaming.c:49 <- main: hit of cache entry 41
+  main: analysed, cache entry 42
+Calls below a hit:
+  even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:44 <- main
+  even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:46 <- main
+  even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:46 <- main
+  even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:49 <- main
+  odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:44 <- main
+  odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:46 <- main
+  odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:46 <- main
+  set :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:44 <- main
+  set :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:46 <- main
+  set :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:47 <- main
+  set :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:49 <- main
+set, start:
+  joined: unavailable
+  set :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:44 <- main: 
+  unavailable
+  set :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:46 <- main: 
+  unavailable
+  set :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:43 <- main: 
+  p ∈ {{ &x }}
+  v ∈ {1}
+  n ∈ {1}
+  r ∈ {{ &\copy<y>[1] }}
+  x ∈ UNINITIALIZED
+  n ∈ {0}
+  r ∈ {{ &x }}
+  a ∈ {0}
+  b ∈ {0}
+  c ∈ {0}
+  __retres ∈ UNINITIALIZED
+  \copy<x>[1] ∈ UNINITIALIZED
+  \copy<y>[1] ∈ UNINITIALIZED
+  set :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:47 <- main: 
+  p ∈ {{ &x }}
+  v ∈ {1}
+  n ∈ {1}
+  r ∈ {{ &c }}
+  x ∈ UNINITIALIZED
+  n ∈ {0}
+  r ∈ {{ &x }}
+  a ∈ {1}
+  b ∈ {1}
+  c ∈ {0}
+  __retres ∈ UNINITIALIZED
+  set :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:49 <- main: 
+  p ∈ {{ &x }}
+  v ∈ {1}
+  n ∈ {1}
+  r ∈ {{ &c }}
+  x ∈ UNINITIALIZED
+  n ∈ {0}
+  r ∈ {{ &x }}
+  a ∈ {1}
+  b ∈ {1}
+  c ∈ {0}
+  __retres ∈ UNINITIALIZED
+  reference, joined: p ∈ {{ &x }}
+                     v ∈ {1}
+                     n ∈ {1}
+                     r ∈ {{ &c ; &\copy<y>[2] ; &\copy<y>[1] }}
+                     x ∈ UNINITIALIZED
+                     n ∈ {0}
+                     r ∈ {{ &x }}
+                     a ∈ {0; 1}
+                     b ∈ {0; 1}
+                     c ∈ {0}
+                     __retres ∈ UNINITIALIZED
+                     \copy<y>[2] ∈ UNINITIALIZED
+                     \copy<x>[1] ∈ UNINITIALIZED
+                     \copy<y>[1] ∈ UNINITIALIZED
+  set :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:44 <- main: 
+  p ∈ {{ &x }}
+  v ∈ {1}
+  n ∈ {1}
+  r ∈ {{ &\copy<y>[2] }}
+  x ∈ UNINITIALIZED
+  n ∈ {0}
+  r ∈ {{ &x }}
+  a ∈ {1}
+  b ∈ {0}
+  c ∈ {0}
+  __retres ∈ UNINITIALIZED
+  \copy<y>[2] ∈ UNINITIALIZED
+  \copy<x>[1] ∈ UNINITIALIZED
+  \copy<y>[1] ∈ UNINITIALIZED
+  set :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:46 <- main: 
+  p ∈ {{ &x }}
+  v ∈ {1}
+  n ∈ {1}
+  r ∈ {{ &\copy<y>[2] }}
+  x ∈ UNINITIALIZED
+  n ∈ {0}
+  r ∈ {{ &x }}
+  a ∈ {1}
+  b ∈ {0}
+  c ∈ {0}
+  __retres ∈ UNINITIALIZED
+  \copy<y>[2] ∈ UNINITIALIZED
+  \copy<x>[1] ∈ UNINITIALIZED
+  \copy<y>[1] ∈ UNINITIALIZED
+  set :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:43 <- main: 
+  p ∈ {{ &x }}
+  v ∈ {1}
+  n ∈ {1}
+  r ∈ {{ &\copy<y>[1] }}
+  x ∈ UNINITIALIZED
+  n ∈ {0}
+  r ∈ {{ &x }}
+  a ∈ {0}
+  b ∈ {0}
+  c ∈ {0}
+  __retres ∈ UNINITIALIZED
+  \copy<x>[1] ∈ UNINITIALIZED
+  \copy<y>[1] ∈ UNINITIALIZED
+  set :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:47 <- main: 
+  p ∈ {{ &x }}
+  v ∈ {1}
+  n ∈ {1}
+  r ∈ {{ &c }}
+  x ∈ UNINITIALIZED
+  n ∈ {0}
+  r ∈ {{ &x }}
+  a ∈ {1}
+  b ∈ {1}
+  c ∈ {0}
+  __retres ∈ UNINITIALIZED
+  set :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:49 <- main: 
+  p ∈ {{ &x }}
+  v ∈ {1}
+  n ∈ {1}
+  r ∈ {{ &c }}
+  x ∈ UNINITIALIZED
+  n ∈ {0}
+  r ∈ {{ &x }}
+  a ∈ {1}
+  b ∈ {1}
+  c ∈ {0}
+  __retres ∈ UNINITIALIZED
+set, before unrolled_renaming.c:30 `*p = v;` (L):
+  joined: unavailable
+  set :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:44 <- main: 
+  unavailable
+  set :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:46 <- main: 
+  unavailable
+  set :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:43 <- main: 
+  p ∈ {{ &x }}
+  v ∈ {1}
+  n ∈ {1}
+  r ∈ {{ &\copy<y>[1] }}
+  x ∈ UNINITIALIZED
+  n ∈ {0}
+  r ∈ {{ &x }}
+  a ∈ {0}
+  b ∈ {0}
+  c ∈ {0}
+  __retres ∈ UNINITIALIZED
+  \copy<x>[1] ∈ UNINITIALIZED
+  \copy<y>[1] ∈ UNINITIALIZED
+  set :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:47 <- main: 
+  p ∈ {{ &x }}
+  v ∈ {1}
+  n ∈ {1}
+  r ∈ {{ &c }}
+  x ∈ UNINITIALIZED
+  n ∈ {0}
+  r ∈ {{ &x }}
+  a ∈ {1}
+  b ∈ {1}
+  c ∈ {0}
+  __retres ∈ UNINITIALIZED
+  set :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:49 <- main: 
+  p ∈ {{ &x }}
+  v ∈ {1}
+  n ∈ {1}
+  r ∈ {{ &c }}
+  x ∈ UNINITIALIZED
+  n ∈ {0}
+  r ∈ {{ &x }}
+  a ∈ {1}
+  b ∈ {1}
+  c ∈ {0}
+  __retres ∈ UNINITIALIZED
+  reference, joined: p ∈ {{ &x }}
+                     v ∈ {1}
+                     n ∈ {1}
+                     r ∈ {{ &c ; &\copy<y>[2] ; &\copy<y>[1] }}
+                     x ∈ UNINITIALIZED
+                     n ∈ {0}
+                     r ∈ {{ &x }}
+                     a ∈ {0; 1}
+                     b ∈ {0; 1}
+                     c ∈ {0}
+                     __retres ∈ UNINITIALIZED
+                     \copy<y>[2] ∈ UNINITIALIZED
+                     \copy<x>[1] ∈ UNINITIALIZED
+                     \copy<y>[1] ∈ UNINITIALIZED
+  set :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:44 <- main: 
+  p ∈ {{ &x }}
+  v ∈ {1}
+  n ∈ {1}
+  r ∈ {{ &\copy<y>[2] }}
+  x ∈ UNINITIALIZED
+  n ∈ {0}
+  r ∈ {{ &x }}
+  a ∈ {1}
+  b ∈ {0}
+  c ∈ {0}
+  __retres ∈ UNINITIALIZED
+  \copy<y>[2] ∈ UNINITIALIZED
+  \copy<x>[1] ∈ UNINITIALIZED
+  \copy<y>[1] ∈ UNINITIALIZED
+  set :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:46 <- main: 
+  p ∈ {{ &x }}
+  v ∈ {1}
+  n ∈ {1}
+  r ∈ {{ &\copy<y>[2] }}
+  x ∈ UNINITIALIZED
+  n ∈ {0}
+  r ∈ {{ &x }}
+  a ∈ {1}
+  b ∈ {0}
+  c ∈ {0}
+  __retres ∈ UNINITIALIZED
+  \copy<y>[2] ∈ UNINITIALIZED
+  \copy<x>[1] ∈ UNINITIALIZED
+  \copy<y>[1] ∈ UNINITIALIZED
+  set :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:43 <- main: 
+  p ∈ {{ &x }}
+  v ∈ {1}
+  n ∈ {1}
+  r ∈ {{ &\copy<y>[1] }}
+  x ∈ UNINITIALIZED
+  n ∈ {0}
+  r ∈ {{ &x }}
+  a ∈ {0}
+  b ∈ {0}
+  c ∈ {0}
+  __retres ∈ UNINITIALIZED
+  \copy<x>[1] ∈ UNINITIALIZED
+  \copy<y>[1] ∈ UNINITIALIZED
+  set :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:47 <- main: 
+  p ∈ {{ &x }}
+  v ∈ {1}
+  n ∈ {1}
+  r ∈ {{ &c }}
+  x ∈ UNINITIALIZED
+  n ∈ {0}
+  r ∈ {{ &x }}
+  a ∈ {1}
+  b ∈ {1}
+  c ∈ {0}
+  __retres ∈ UNINITIALIZED
+  set :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:49 <- main: 
+  p ∈ {{ &x }}
+  v ∈ {1}
+  n ∈ {1}
+  r ∈ {{ &c }}
+  x ∈ UNINITIALIZED
+  n ∈ {0}
+  r ∈ {{ &x }}
+  a ∈ {1}
+  b ∈ {1}
+  c ∈ {0}
+  __retres ∈ UNINITIALIZED
+set, after unrolled_renaming.c:30 `return;`:
+  joined: unavailable
+  set :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:44 <- main: 
+  unavailable
+  set :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:46 <- main: 
+  unavailable
+  set :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:43 <- main: 
+  p ∈ {{ &x }}
+  v ∈ {1}
+  n ∈ {1}
+  r ∈ {{ &\copy<y>[1] }}
+  x ∈ {1}
+  n ∈ {0}
+  r ∈ {{ &x }}
+  a ∈ {0}
+  b ∈ {0}
+  c ∈ {0}
+  __retres ∈ UNINITIALIZED
+  \copy<x>[1] ∈ UNINITIALIZED
+  \copy<y>[1] ∈ UNINITIALIZED
+  set :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:47 <- main: 
+  p ∈ {{ &x }}
+  v ∈ {1}
+  n ∈ {1}
+  r ∈ {{ &c }}
+  x ∈ {1}
+  n ∈ {0}
+  r ∈ {{ &x }}
+  a ∈ {1}
+  b ∈ {1}
+  c ∈ {0}
+  __retres ∈ UNINITIALIZED
+  set :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:49 <- main: 
+  p ∈ {{ &x }}
+  v ∈ {1}
+  n ∈ {1}
+  r ∈ {{ &c }}
+  x ∈ {1}
+  n ∈ {0}
+  r ∈ {{ &x }}
+  a ∈ {1}
+  b ∈ {1}
+  c ∈ {0}
+  __retres ∈ UNINITIALIZED
+  reference, joined: p ∈ {{ &x }}
+                     v ∈ {1}
+                     n ∈ {1}
+                     r ∈ {{ &c ; &\copy<y>[2] ; &\copy<y>[1] }}
+                     x ∈ {1}
+                     n ∈ {0}
+                     r ∈ {{ &x }}
+                     a ∈ {0; 1}
+                     b ∈ {0; 1}
+                     c ∈ {0}
+                     __retres ∈ UNINITIALIZED
+                     \copy<y>[2] ∈ UNINITIALIZED
+                     \copy<x>[1] ∈ UNINITIALIZED
+                     \copy<y>[1] ∈ UNINITIALIZED
+  set :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:44 <- main: 
+  p ∈ {{ &x }}
+  v ∈ {1}
+  n ∈ {1}
+  r ∈ {{ &\copy<y>[2] }}
+  x ∈ {1}
+  n ∈ {0}
+  r ∈ {{ &x }}
+  a ∈ {1}
+  b ∈ {0}
+  c ∈ {0}
+  __retres ∈ UNINITIALIZED
+  \copy<y>[2] ∈ UNINITIALIZED
+  \copy<x>[1] ∈ UNINITIALIZED
+  \copy<y>[1] ∈ UNINITIALIZED
+  set :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:46 <- main: 
+  p ∈ {{ &x }}
+  v ∈ {1}
+  n ∈ {1}
+  r ∈ {{ &\copy<y>[2] }}
+  x ∈ {1}
+  n ∈ {0}
+  r ∈ {{ &x }}
+  a ∈ {1}
+  b ∈ {0}
+  c ∈ {0}
+  __retres ∈ UNINITIALIZED
+  \copy<y>[2] ∈ UNINITIALIZED
+  \copy<x>[1] ∈ UNINITIALIZED
+  \copy<y>[1] ∈ UNINITIALIZED
+  set :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:43 <- main: 
+  p ∈ {{ &x }}
+  v ∈ {1}
+  n ∈ {1}
+  r ∈ {{ &\copy<y>[1] }}
+  x ∈ {1}
+  n ∈ {0}
+  r ∈ {{ &x }}
+  a ∈ {0}
+  b ∈ {0}
+  c ∈ {0}
+  __retres ∈ UNINITIALIZED
+  \copy<x>[1] ∈ UNINITIALIZED
+  \copy<y>[1] ∈ UNINITIALIZED
+  set :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:47 <- main: 
+  p ∈ {{ &x }}
+  v ∈ {1}
+  n ∈ {1}
+  r ∈ {{ &c }}
+  x ∈ {1}
+  n ∈ {0}
+  r ∈ {{ &x }}
+  a ∈ {1}
+  b ∈ {1}
+  c ∈ {0}
+  __retres ∈ UNINITIALIZED
+  set :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:49 <- main: 
+  p ∈ {{ &x }}
+  v ∈ {1}
+  n ∈ {1}
+  r ∈ {{ &c }}
+  x ∈ {1}
+  n ∈ {0}
+  r ∈ {{ &x }}
+  a ∈ {1}
+  b ∈ {1}
+  c ∈ {0}
+  __retres ∈ UNINITIALIZED
+Hits against the analysed call of their cache entry:
+  even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:44 <- main, hit of cache entry 37, against even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:43 <- main: differs on \copy<y>[1], a, r, unavailable at 8 points, at 11 points.
+  even_ptr :: unrolled_renaming.c:46 <- main, hit of cache entry 40, against even_ptr :: unrolled_renaming.c:44 <- main: no difference, unavailable at 8 points, at 11 points.
+  even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:47 <- main, hit of cache entry 35, against even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:43 <- main: differs on \copy<x>[1], \copy<y>[1], a, b, r, unavailable at 6 points, at 11 points.
+  odd_ptr :: unrolled_renaming.c:49 <- main, hit of cache entry 41, against odd_ptr :: unrolled_renaming.c:47 <- main: no difference, unavailable at 8 points, at 11 points.
+Initial state: equal.
+Differences with the run without memexec:
+  set, start, joined: unavailable
+  set, start, filtered: unavailable
+  set, start, set :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:44 <- main: unavailable
+  set, start, set :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:46 <- main: unavailable
+  set, before unrolled_renaming.c:30 `*p = v;` (L), joined: unavailable
+  set, before unrolled_renaming.c:30 `*p = v;` (L), filtered: unavailable
+  set, before unrolled_renaming.c:30 `*p = v;` (L), set :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:44 <- main: unavailable
+  set, before unrolled_renaming.c:30 `*p = v;` (L), set :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:46 <- main: unavailable
+  set, after unrolled_renaming.c:30 `*p = v;` (L), joined: unavailable
+  set, after unrolled_renaming.c:30 `*p = v;` (L), filtered: unavailable
+  set, after unrolled_renaming.c:30 `*p = v;` (L), set :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:44 <- main: unavailable
+  set, after unrolled_renaming.c:30 `*p = v;` (L), set :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:46 <- main: unavailable
+  set, before unrolled_renaming.c:30 `return;`, joined: unavailable
+  set, before unrolled_renaming.c:30 `return;`, filtered: unavailable
+  set, before unrolled_renaming.c:30 `return;`, set :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:44 <- main: unavailable
+  set, before unrolled_renaming.c:30 `return;`, set :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:46 <- main: unavailable
+  set, after unrolled_renaming.c:30 `return;`, joined: unavailable
+  set, after unrolled_renaming.c:30 `return;`, filtered: unavailable
+  set, after unrolled_renaming.c:30 `return;`, set :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:44 <- main: unavailable
+  set, after unrolled_renaming.c:30 `return;`, set :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:46 <- main: unavailable
+  odd_ptr, start, joined: unavailable
+  odd_ptr, start, filtered: unavailable
+  odd_ptr, start, odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:44 <- main: unavailable
+  odd_ptr, start, odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:46 <- main: unavailable
+  odd_ptr, before unrolled_renaming.c:33 `if (n)`, joined: unavailable
+  odd_ptr, before unrolled_renaming.c:33 `if (n)`, filtered: unavailable
+  odd_ptr, before unrolled_renaming.c:33 `if (n)`, odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:44 <- main: unavailable
+  odd_ptr, before unrolled_renaming.c:33 `if (n)`, odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:46 <- main: unavailable
+  odd_ptr, before unrolled_renaming.c:33 `if (n)`, odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:43 <- main: unavailable
+  odd_ptr, before unrolled_renaming.c:33 `if (n)`, odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:44 <- main: unavailable
+  odd_ptr, before unrolled_renaming.c:33 `if (n)`, odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:46 <- main: unavailable
+  odd_ptr, before unrolled_renaming.c:33 `if (n)`, odd_ptr :: unrolled_renaming.c:43 <- main: unavailable
+  odd_ptr, before unrolled_renaming.c:33 `if (n)`, odd_ptr :: unrolled_renaming.c:47 <- main: unavailable
+  odd_ptr, before unrolled_renaming.c:33 `if (n)`, odd_ptr :: unrolled_renaming.c:49 <- main: unavailable
+  odd_ptr, after unrolled_renaming.c:33 `if (n)`, joined: unavailable
+  odd_ptr, after unrolled_renaming.c:33 `if (n)`, filtered: unavailable
+  odd_ptr, after unrolled_renaming.c:33 `if (n)`, odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:44 <- main: unavailable
+  odd_ptr, after unrolled_renaming.c:33 `if (n)`, odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:46 <- main: unavailable
+  odd_ptr, after unrolled_renaming.c:33 `if (n)`, odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:43 <- main: unavailable
+  odd_ptr, after unrolled_renaming.c:33 `if (n)`, odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:44 <- main: unavailable
+  odd_ptr, after unrolled_renaming.c:33 `if (n)`, odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:46 <- main: unavailable
+  odd_ptr, after unrolled_renaming.c:33 `if (n)`, odd_ptr :: unrolled_renaming.c:43 <- main: unavailable
+  odd_ptr, after unrolled_renaming.c:33 `if (n)`, odd_ptr :: unrolled_renaming.c:47 <- main: unavailable
+  odd_ptr, after unrolled_renaming.c:33 `if (n)`, odd_ptr :: unrolled_renaming.c:49 <- main: unavailable
+  odd_ptr, before unrolled_renaming.c:33 `even_ptr(n - (unsigned int)1,& x);`, joined: unavailable
+  odd_ptr, before unrolled_renaming.c:33 `even_ptr(n - (unsigned int)1,& x);`, filtered: unavailable
+  odd_ptr, before unrolled_renaming.c:33 `even_ptr(n - (unsigned int)1,& x);`, odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:44 <- main: unavailable
+  odd_ptr, before unrolled_renaming.c:33 `even_ptr(n - (unsigned int)1,& x);`, odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:46 <- main: unavailable
+  odd_ptr, before unrolled_renaming.c:33 `even_ptr(n - (unsigned int)1,& x);`, odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:43 <- main: unavailable
+  odd_ptr, before unrolled_renaming.c:33 `even_ptr(n - (unsigned int)1,& x);`, odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:44 <- main: unavailable
+  odd_ptr, before unrolled_renaming.c:33 `even_ptr(n - (unsigned int)1,& x);`, odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:46 <- main: unavailable
+  odd_ptr, before unrolled_renaming.c:33 `even_ptr(n - (unsigned int)1,& x);`, odd_ptr :: unrolled_renaming.c:43 <- main: unavailable
+  odd_ptr, before unrolled_renaming.c:33 `even_ptr(n - (unsigned int)1,& x);`, odd_ptr :: unrolled_renaming.c:47 <- main: unavailable
+  odd_ptr, before unrolled_renaming.c:33 `even_ptr(n - (unsigned int)1,& x);`, odd_ptr :: unrolled_renaming.c:49 <- main: unavailable
+  odd_ptr, after unrolled_renaming.c:33 `even_ptr(n - (unsigned int)1,& x);`, joined: unavailable
+  odd_ptr, after unrolled_renaming.c:33 `even_ptr(n - (unsigned int)1,& x);`, filtered: unavailable
+  odd_ptr, after unrolled_renaming.c:33 `even_ptr(n - (unsigned int)1,& x);`, odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:44 <- main: unavailable
+  odd_ptr, after unrolled_renaming.c:33 `even_ptr(n - (unsigned int)1,& x);`, odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:46 <- main: unavailable
+  odd_ptr, after unrolled_renaming.c:33 `even_ptr(n - (unsigned int)1,& x);`, odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:43 <- main: unavailable
+  odd_ptr, after unrolled_renaming.c:33 `even_ptr(n - (unsigned int)1,& x);`, odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:44 <- main: unavailable
+  odd_ptr, after unrolled_renaming.c:33 `even_ptr(n - (unsigned int)1,& x);`, odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:46 <- main: unavailable
+  odd_ptr, after unrolled_renaming.c:33 `even_ptr(n - (unsigned int)1,& x);`, odd_ptr :: unrolled_renaming.c:43 <- main: unavailable
+  odd_ptr, after unrolled_renaming.c:33 `even_ptr(n - (unsigned int)1,& x);`, odd_ptr :: unrolled_renaming.c:47 <- main: unavailable
+  odd_ptr, after unrolled_renaming.c:33 `even_ptr(n - (unsigned int)1,& x);`, odd_ptr :: unrolled_renaming.c:49 <- main: unavailable
+  odd_ptr, before unrolled_renaming.c:33 `*r = x;`, joined: unavailable
+  odd_ptr, before unrolled_renaming.c:33 `*r = x;`, filtered: unavailable
+  odd_ptr, before unrolled_renaming.c:33 `*r = x;`, odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:44 <- main: unavailable
+  odd_ptr, before unrolled_renaming.c:33 `*r = x;`, odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:46 <- main: unavailable
+  odd_ptr, before unrolled_renaming.c:33 `*r = x;`, odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:43 <- main: unavailable
+  odd_ptr, before unrolled_renaming.c:33 `*r = x;`, odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:44 <- main: unavailable
+  odd_ptr, before unrolled_renaming.c:33 `*r = x;`, odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:46 <- main: unavailable
+  odd_ptr, before unrolled_renaming.c:33 `*r = x;`, odd_ptr :: unrolled_renaming.c:43 <- main: unavailable
+  odd_ptr, before unrolled_renaming.c:33 `*r = x;`, odd_ptr :: unrolled_renaming.c:47 <- main: unavailable
+  odd_ptr, before unrolled_renaming.c:33 `*r = x;`, odd_ptr :: unrolled_renaming.c:49 <- main: unavailable
+  odd_ptr, after unrolled_renaming.c:33 `*r = x;`, joined: unavailable
+  odd_ptr, after unrolled_renaming.c:33 `*r = x;`, filtered: unavailable
+  odd_ptr, after unrolled_renaming.c:33 `*r = x;`, odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:44 <- main: unavailable
+  odd_ptr, after unrolled_renaming.c:33 `*r = x;`, odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:46 <- main: unavailable
+  odd_ptr, after unrolled_renaming.c:33 `*r = x;`, odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:43 <- main: unavailable
+  odd_ptr, after unrolled_renaming.c:33 `*r = x;`, odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:44 <- main: unavailable
+  odd_ptr, after unrolled_renaming.c:33 `*r = x;`, odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:46 <- main: unavailable
+  odd_ptr, after unrolled_renaming.c:33 `*r = x;`, odd_ptr :: unrolled_renaming.c:43 <- main: unavailable
+  odd_ptr, after unrolled_renaming.c:33 `*r = x;`, odd_ptr :: unrolled_renaming.c:47 <- main: unavailable
+  odd_ptr, after unrolled_renaming.c:33 `*r = x;`, odd_ptr :: unrolled_renaming.c:49 <- main: unavailable
+  odd_ptr, before unrolled_renaming.c:33 `set(r,0);`, joined: unavailable
+  odd_ptr, before unrolled_renaming.c:33 `set(r,0);`, filtered: unavailable
+  odd_ptr, after unrolled_renaming.c:33 `set(r,0);`, joined: unavailable
+  odd_ptr, after unrolled_renaming.c:33 `set(r,0);`, filtered: unavailable
+  odd_ptr, before unrolled_renaming.c:34 `return;`, joined: unavailable
+  odd_ptr, before unrolled_renaming.c:34 `return;`, filtered: unavailable
+  odd_ptr, before unrolled_renaming.c:34 `return;`, odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:44 <- main: unavailable
+  odd_ptr, before unrolled_renaming.c:34 `return;`, odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:46 <- main: unavailable
+  odd_ptr, before unrolled_renaming.c:34 `return;`, odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:43 <- main: unavailable
+  odd_ptr, before unrolled_renaming.c:34 `return;`, odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:44 <- main: unavailable
+  odd_ptr, before unrolled_renaming.c:34 `return;`, odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:46 <- main: unavailable
+  odd_ptr, before unrolled_renaming.c:34 `return;`, odd_ptr :: unrolled_renaming.c:43 <- main: unavailable
+  odd_ptr, before unrolled_renaming.c:34 `return;`, odd_ptr :: unrolled_renaming.c:47 <- main: unavailable
+  odd_ptr, before unrolled_renaming.c:34 `return;`, odd_ptr :: unrolled_renaming.c:49 <- main: unavailable
+  odd_ptr, after unrolled_renaming.c:34 `return;`, joined: unavailable
+  odd_ptr, after unrolled_renaming.c:34 `return;`, filtered: unavailable
+  odd_ptr, after unrolled_renaming.c:34 `return;`, odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:44 <- main: unavailable
+  odd_ptr, after unrolled_renaming.c:34 `return;`, odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:46 <- main: unavailable
+  odd_ptr, after unrolled_renaming.c:34 `return;`, odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:43 <- main: unavailable
+  odd_ptr, after unrolled_renaming.c:34 `return;`, odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:44 <- main: unavailable
+  odd_ptr, after unrolled_renaming.c:34 `return;`, odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:46 <- main: unavailable
+  odd_ptr, after unrolled_renaming.c:34 `return;`, odd_ptr :: unrolled_renaming.c:43 <- main: unavailable
+  odd_ptr, after unrolled_renaming.c:34 `return;`, odd_ptr :: unrolled_renaming.c:47 <- main: unavailable
+  odd_ptr, after unrolled_renaming.c:34 `return;`, odd_ptr :: unrolled_renaming.c:49 <- main: unavailable
+  even_ptr, start, joined: unavailable
+  even_ptr, start, filtered: unavailable
+  even_ptr, start, even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:44 <- main: unavailable
+  even_ptr, start, even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:46 <- main: unavailable
+  even_ptr, start, even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:46 <- main: unavailable
+  even_ptr, before unrolled_renaming.c:37 `if (n)`, joined: unavailable
+  even_ptr, before unrolled_renaming.c:37 `if (n)`, filtered: unavailable
+  even_ptr, before unrolled_renaming.c:37 `if (n)`, even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:44 <- main: unavailable
+  even_ptr, before unrolled_renaming.c:37 `if (n)`, even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:46 <- main: unavailable
+  even_ptr, before unrolled_renaming.c:37 `if (n)`, even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:43 <- main: unavailable
+  even_ptr, before unrolled_renaming.c:37 `if (n)`, even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:44 <- main: unavailable
+  even_ptr, before unrolled_renaming.c:37 `if (n)`, even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:46 <- main: unavailable
+  even_ptr, before unrolled_renaming.c:37 `if (n)`, even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:43 <- main: unavailable
+  even_ptr, before unrolled_renaming.c:37 `if (n)`, even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:47 <- main: unavailable
+  even_ptr, before unrolled_renaming.c:37 `if (n)`, even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:49 <- main: unavailable
+  even_ptr, before unrolled_renaming.c:37 `if (n)`, even_ptr :: unrolled_renaming.c:44 <- main: unavailable
+  even_ptr, before unrolled_renaming.c:37 `if (n)`, even_ptr :: unrolled_renaming.c:46 <- main: unavailable
+  even_ptr, after unrolled_renaming.c:37 `if (n)`, joined: unavailable
+  even_ptr, after unrolled_renaming.c:37 `if (n)`, filtered: unavailable
+  even_ptr, after unrolled_renaming.c:37 `if (n)`, even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:44 <- main: unavailable
+  even_ptr, after unrolled_renaming.c:37 `if (n)`, even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:46 <- main: unavailable
+  even_ptr, after unrolled_renaming.c:37 `if (n)`, even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:43 <- main: unavailable
+  even_ptr, after unrolled_renaming.c:37 `if (n)`, even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:44 <- main: unavailable
+  even_ptr, after unrolled_renaming.c:37 `if (n)`, even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:46 <- main: unavailable
+  even_ptr, after unrolled_renaming.c:37 `if (n)`, even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:43 <- main: unavailable
+  even_ptr, after unrolled_renaming.c:37 `if (n)`, even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:47 <- main: unavailable
+  even_ptr, after unrolled_renaming.c:37 `if (n)`, even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:49 <- main: unavailable
+  even_ptr, after unrolled_renaming.c:37 `if (n)`, even_ptr :: unrolled_renaming.c:44 <- main: unavailable
+  even_ptr, after unrolled_renaming.c:37 `if (n)`, even_ptr :: unrolled_renaming.c:46 <- main: unavailable
+  even_ptr, before unrolled_renaming.c:37 `odd_ptr(n - (unsigned int)1,& y);`, joined: unavailable
+  even_ptr, before unrolled_renaming.c:37 `odd_ptr(n - (unsigned int)1,& y);`, filtered: unavailable
+  even_ptr, before unrolled_renaming.c:37 `odd_ptr(n - (unsigned int)1,& y);`, even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:44 <- main: unavailable
+  even_ptr, before unrolled_renaming.c:37 `odd_ptr(n - (unsigned int)1,& y);`, even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:46 <- main: unavailable
+  even_ptr, before unrolled_renaming.c:37 `odd_ptr(n - (unsigned int)1,& y);`, even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:43 <- main: unavailable
+  even_ptr, before unrolled_renaming.c:37 `odd_ptr(n - (unsigned int)1,& y);`, even_ptr :: unrolled_renaming.c:44 <- main: unavailable
+  even_ptr, before unrolled_renaming.c:37 `odd_ptr(n - (unsigned int)1,& y);`, even_ptr :: unrolled_renaming.c:46 <- main: unavailable
+  even_ptr, after unrolled_renaming.c:37 `odd_ptr(n - (unsigned int)1,& y);`, joined: unavailable
+  even_ptr, after unrolled_renaming.c:37 `odd_ptr(n - (unsigned int)1,& y);`, filtered: unavailable
+  even_ptr, after unrolled_renaming.c:37 `odd_ptr(n - (unsigned int)1,& y);`, even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:44 <- main: unavailable
+  even_ptr, after unrolled_renaming.c:37 `odd_ptr(n - (unsigned int)1,& y);`, even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:46 <- main: unavailable
+  even_ptr, after unrolled_renaming.c:37 `odd_ptr(n - (unsigned int)1,& y);`, even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:43 <- main: unavailable
+  even_ptr, after unrolled_renaming.c:37 `odd_ptr(n - (unsigned int)1,& y);`, even_ptr :: unrolled_renaming.c:44 <- main: unavailable
+  even_ptr, after unrolled_renaming.c:37 `odd_ptr(n - (unsigned int)1,& y);`, even_ptr :: unrolled_renaming.c:46 <- main: unavailable
+  even_ptr, before unrolled_renaming.c:37 `*r = y;`, joined: unavailable
+  even_ptr, before unrolled_renaming.c:37 `*r = y;`, filtered: unavailable
+  even_ptr, before unrolled_renaming.c:37 `*r = y;`, even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:44 <- main: unavailable
+  even_ptr, before unrolled_renaming.c:37 `*r = y;`, even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:46 <- main: unavailable
+  even_ptr, before unrolled_renaming.c:37 `*r = y;`, even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:43 <- main: unavailable
+  even_ptr, before unrolled_renaming.c:37 `*r = y;`, even_ptr :: unrolled_renaming.c:44 <- main: unavailable
+  even_ptr, before unrolled_renaming.c:37 `*r = y;`, even_ptr :: unrolled_renaming.c:46 <- main: unavailable
+  even_ptr, after unrolled_renaming.c:37 `*r = y;`, joined: unavailable
+  even_ptr, after unrolled_renaming.c:37 `*r = y;`, filtered: unavailable
+  even_ptr, after unrolled_renaming.c:37 `*r = y;`, even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:44 <- main: unavailable
+  even_ptr, after unrolled_renaming.c:37 `*r = y;`, even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:46 <- main: unavailable
+  even_ptr, after unrolled_renaming.c:37 `*r = y;`, even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:43 <- main: unavailable
+  even_ptr, after unrolled_renaming.c:37 `*r = y;`, even_ptr :: unrolled_renaming.c:44 <- main: unavailable
+  even_ptr, after unrolled_renaming.c:37 `*r = y;`, even_ptr :: unrolled_renaming.c:46 <- main: unavailable
+  even_ptr, before unrolled_renaming.c:37 `set(r,1);`, joined: unavailable
+  even_ptr, before unrolled_renaming.c:37 `set(r,1);`, filtered: unavailable
+  even_ptr, before unrolled_renaming.c:37 `set(r,1);`, even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:44 <- main: unavailable
+  even_ptr, before unrolled_renaming.c:37 `set(r,1);`, even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:46 <- main: unavailable
+  even_ptr, before unrolled_renaming.c:37 `set(r,1);`, even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:43 <- main: unavailable
+  even_ptr, before unrolled_renaming.c:37 `set(r,1);`, even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:47 <- main: unavailable
+  even_ptr, before unrolled_renaming.c:37 `set(r,1);`, even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:49 <- main: unavailable
+  even_ptr, after unrolled_renaming.c:37 `set(r,1);`, joined: unavailable
+  even_ptr, after unrolled_renaming.c:37 `set(r,1);`, filtered: unavailable
+  even_ptr, after unrolled_renaming.c:37 `set(r,1);`, even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:44 <- main: unavailable
+  even_ptr, after unrolled_renaming.c:37 `set(r,1);`, even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:46 <- main: unavailable
+  even_ptr, after unrolled_renaming.c:37 `set(r,1);`, even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:43 <- main: unavailable
+  even_ptr, after unrolled_renaming.c:37 `set(r,1);`, even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:47 <- main: unavailable
+  even_ptr, after unrolled_renaming.c:37 `set(r,1);`, even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:49 <- main: unavailable
+  even_ptr, before unrolled_renaming.c:38 `return;`, joined: unavailable
+  even_ptr, before unrolled_renaming.c:38 `return;`, filtered: unavailable
+  even_ptr, before unrolled_renaming.c:38 `return;`, even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:44 <- main: unavailable
+  even_ptr, before unrolled_renaming.c:38 `return;`, even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:46 <- main: unavailable
+  even_ptr, before unrolled_renaming.c:38 `return;`, even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:43 <- main: unavailable
+  even_ptr, before unrolled_renaming.c:38 `return;`, even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:44 <- main: unavailable
+  even_ptr, before unrolled_renaming.c:38 `return;`, even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:46 <- main: unavailable
+  even_ptr, before unrolled_renaming.c:38 `return;`, even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:43 <- main: unavailable
+  even_ptr, before unrolled_renaming.c:38 `return;`, even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:47 <- main: unavailable
+  even_ptr, before unrolled_renaming.c:38 `return;`, even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:49 <- main: unavailable
+  even_ptr, before unrolled_renaming.c:38 `return;`, even_ptr :: unrolled_renaming.c:44 <- main: unavailable
+  even_ptr, before unrolled_renaming.c:38 `return;`, even_ptr :: unrolled_renaming.c:46 <- main: unavailable
+  even_ptr, after unrolled_renaming.c:38 `return;`, joined: unavailable
+  even_ptr, after unrolled_renaming.c:38 `return;`, filtered: unavailable
+  even_ptr, after unrolled_renaming.c:38 `return;`, even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:44 <- main: unavailable
+  even_ptr, after unrolled_renaming.c:38 `return;`, even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:46 <- main: unavailable
+  even_ptr, after unrolled_renaming.c:38 `return;`, even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:43 <- main: unavailable
+  even_ptr, after unrolled_renaming.c:38 `return;`, even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:44 <- main: unavailable
+  even_ptr, after unrolled_renaming.c:38 `return;`, even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:37 <- even_ptr :: unrolled_renaming.c:46 <- main: unavailable
+  even_ptr, after unrolled_renaming.c:38 `return;`, even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:43 <- main: unavailable
+  even_ptr, after unrolled_renaming.c:38 `return;`, even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:47 <- main: unavailable
+  even_ptr, after unrolled_renaming.c:38 `return;`, even_ptr :: unrolled_renaming.c:33 <- odd_ptr :: unrolled_renaming.c:49 <- main: unavailable
+  even_ptr, after unrolled_renaming.c:38 `return;`, even_ptr :: unrolled_renaming.c:44 <- main: unavailable
+  even_ptr, after unrolled_renaming.c:38 `return;`, even_ptr :: unrolled_renaming.c:46 <- main: unavailable
+Answers: 91 equal, 0 covering, 0 more precise, 0 omitting, 203 unavailable.
+Callstacks listed: NOT those of the run without memexec at 18 of the 48 points:
+  odd_ptr, before unrolled_renaming.c:33 `if (n)`
+  odd_ptr, after unrolled_renaming.c:33 `if (n)`
+  odd_ptr, before unrolled_renaming.c:33 `even_ptr(n - (unsigned int)1,& x);`
+  odd_ptr, after unrolled_renaming.c:33 `even_ptr(n - (unsigned int)1,& x);`
+  odd_ptr, before unrolled_renaming.c:33 `*r = x;`
+  odd_ptr, after unrolled_renaming.c:33 `*r = x;`
+  odd_ptr, before unrolled_renaming.c:34 `return;`
+  odd_ptr, after unrolled_renaming.c:34 `return;`
+  even_ptr, before unrolled_renaming.c:37 `if (n)`
+  even_ptr, after unrolled_renaming.c:37 `if (n)`
+  even_ptr, before unrolled_renaming.c:37 `odd_ptr(n - (unsigned int)1,& y);`
+  even_ptr, after unrolled_renaming.c:37 `odd_ptr(n - (unsigned int)1,& y);`
+  even_ptr, before unrolled_renaming.c:37 `*r = y;`
+  even_ptr, after unrolled_renaming.c:37 `*r = y;`
+  even_ptr, before unrolled_renaming.c:37 `set(r,1);`
+  even_ptr, after unrolled_renaming.c:37 `set(r,1);`
+  even_ptr, before unrolled_renaming.c:38 `return;`
+  even_ptr, after unrolled_renaming.c:38 `return;`
+Callstacks listed through the filter: NOT those of the run without memexec at 18 of the 48 points:
+  odd_ptr, before unrolled_renaming.c:33 `if (n)`
+  odd_ptr, after unrolled_renaming.c:33 `if (n)`
+  odd_ptr, before unrolled_renaming.c:33 `even_ptr(n - (unsigned int)1,& x);`
+  odd_ptr, after unrolled_renaming.c:33 `even_ptr(n - (unsigned int)1,& x);`
+  odd_ptr, before unrolled_renaming.c:33 `*r = x;`
+  odd_ptr, after unrolled_renaming.c:33 `*r = x;`
+  odd_ptr, before unrolled_renaming.c:34 `return;`
+  odd_ptr, after unrolled_renaming.c:34 `return;`
+  even_ptr, before unrolled_renaming.c:37 `if (n)`
+  even_ptr, after unrolled_renaming.c:37 `if (n)`
+  even_ptr, before unrolled_renaming.c:37 `odd_ptr(n - (unsigned int)1,& y);`
+  even_ptr, after unrolled_renaming.c:37 `odd_ptr(n - (unsigned int)1,& y);`
+  even_ptr, before unrolled_renaming.c:37 `*r = y;`
+  even_ptr, after unrolled_renaming.c:37 `*r = y;`
+  even_ptr, before unrolled_renaming.c:37 `set(r,1);`
+  even_ptr, after unrolled_renaming.c:37 `set(r,1);`
+  even_ptr, before unrolled_renaming.c:38 `return;`
+  even_ptr, after unrolled_renaming.c:38 `return;`
+Filtered requests that reject one callstack: 25.
+Requests made: 390; reported by the trap: 390, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 46 requests, 106 reads of the legacy store in them, 135 reads outside any request.
+  with -eva-hit-log: 46 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 25 requests
+    statistics: 21 requests
+  requests of the passes on a callstack below a hit, with -eva-hit-log: 0.
+Statuses of the properties: those of the run without memexec, for 0 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 1.0000, 0 alarms, against statement coverage 0.9524, function coverage 1.0000, 0 alarms without memexec.
