@@ -34,6 +34,10 @@ Hits against the analysed call of their cache entry:
   fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr, hit of cache entry 57, against fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: differs on \copy<m>[1], \copy<x>[1], \copy<x>[2], unavailable at 6 points, at 19 points.
 Initial state: equal.
 Differences with the run without memexec:
+  fib, start, joined: unavailable
+  fib, start, filtered: unavailable
+  fib, start, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
+  fib, start, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
   fib, before unrolled_starts.c:41 `if (*p < (unsigned int)2)`, joined: unavailable
   fib, before unrolled_starts.c:41 `if (*p < (unsigned int)2)`, filtered: unavailable
   fib, before unrolled_starts.c:41 `if (*p < (unsigned int)2)`, fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:46 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
@@ -340,7 +344,7 @@ Differences with the run without memexec:
   fib, after unrolled_starts.c:51 `return;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
   fib, after unrolled_starts.c:51 `return;`, fib :: unrolled_starts.c:48 <- fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
   fib, after unrolled_starts.c:51 `return;`, fib :: unrolled_starts.c:55 <- direct_ptr: unavailable
-Answers: 152 equal, 0 covering, 0 more precise, 0 omitting, 306 unavailable.
+Answers: 148 equal, 0 covering, 0 more precise, 0 omitting, 310 unavailable.
 Callstacks listed: NOT those of the run without memexec at 18 of the 77 points:
   fib, before unrolled_starts.c:41 `if (*p < (unsigned int)2)`
   fib, after unrolled_starts.c:41 `if (*p < (unsigned int)2)`
