@@ -552,15 +552,17 @@ let analysis f =
    recursion ends.
 
    A call below a hit crosses a recursion when it is a recursive call
-   analysed by its body, its function being already on the callstack of its
-   caller, or when it is made below such a call. With unrolled recursive
-   calls, a recursive call renames the variables of the outer call of its
-   function whose address is taken, and rewrites the pointers to them in the
-   whole state, according to its depth on the callstack. The stored start
-   state does not replay this renaming on the blocks it does not cover. The
-   state of a call that crosses a recursion is thus top, on its callstack
-   and in the joined states that include it, unless the call is unreachable.
-   The points of its body, pasted on this state, are top as well. *)
+   analysed by its body that renames variables, its function being already
+   on the callstack of its caller, or when it is made below such a call. A
+   recursive call renames the variables of the outer call of its function
+   whose address is taken or that it passes as arguments, and rewrites the
+   pointers to them in the whole state, according to its depth on the
+   callstack. It removes the other variables of the outer call, as the
+   stored start state does, but the stored start state does not replay the
+   renaming on the blocks it does not cover. The state of a call that
+   crosses a recursion is thus top, on its callstack and in the joined
+   states that include it, unless the call is unreachable. The points of its
+   body, pasted on this state, are top as well. *)
 
 type derived = {
   (* The calls stored in the entries, with the number of the entry that
@@ -675,22 +677,47 @@ let paste_call derived (below: below) entry =
   | None, _ -> raise Unavailable
   | Some start, _ -> paste derived start entry
 
-(* Whether the call [below], made on [callstack] by the body of a member
-   whose body did not run, is a recursive call analysed by its body. *)
-let is_recursive callstack (below: below) =
-  Option.is_some below.child
-  && List.exists (Kernel_function.equal below.callee)
-    (Callstack.to_kf_list callstack)
+(* Whether the call [below] may rename variables if it is a recursive call:
+   it is analysed by its body, and its function has a formal or a local
+   whose address is taken, or that appears in an argument of the call. A
+   recursive call renames such variables when their address is taken or
+   when an argument is a copy of them, see [Recursion.make]. *)
+let renames (below: below) =
+  Option.is_some below.child &&
+  let kf = below.callee in
+  let vars = Kernel_function.get_formals kf @ Kernel_function.get_locals kf in
+  let args =
+    match below.site.skind with
+    | Instr (Call (_, _, args, _))
+    | Instr (Local_init (_, ConsInit (_, args, _), _)) -> args
+    | _ -> []
+  in
+  let passed =
+    List.fold_left
+      (fun acc arg ->
+         Cil_datatype.Varinfo.Set.union acc (Cil.extract_varinfos_from_exp arg))
+      Cil_datatype.Varinfo.Set.empty args
+  in
+  List.exists
+    (fun vi -> vi.Cil_types.vaddrof || Cil_datatype.Varinfo.Set.mem vi passed)
+    vars
+
+(* Whether a call of [callee] made on [callstack] is a recursive call. *)
+let is_recursive callstack callee =
+  List.exists (Kernel_function.equal callee) (Callstack.to_kf_list callstack)
 
 (* The start state of the call [below] made on [callstack] by the body of a
    member whose body-entry state is [entry]: top if the call is reachable and
-   is a recursive call analysed by its body. Below a member that crosses a
-   recursion, [entry] is top, and so is the start state. *)
-let call_below derived callstack (below: below) entry =
+   is a recursive call that renames variables, as given by [renames]. Below a
+   member that crosses a recursion, [entry] is top, and so is the start
+   state. *)
+let call_below derived ~renames callstack (below: below) entry =
   match paste_call derived below entry with
   | Cvalue.Model.Bottom -> Cvalue.Model.bottom
   | Top | Map _ as state ->
-    if is_recursive callstack below then Cvalue.Model.top else state
+    if renames && is_recursive callstack below.callee
+    then Cvalue.Model.top
+    else state
 
 let calls_of table find key =
   Option.value ~default:[] (find table key)
@@ -730,21 +757,21 @@ let rec unrun_frames store derived id =
 
 (* Whether the call [below], made by the body of the members of entry
    [parent] whose body did not run, may cross a recursion: one of these
-   members may, or the call is analysed by its body and its function is on
-   the callstack of one of them. *)
+   members may, or the call renames variables and its function is on the
+   callstack of one of them. *)
 and may_cross store derived parent (below: below) =
   let kfs, crossing = unrun_frames store derived parent in
   not (Kernel_function.Set.is_empty kfs)
   && (crossing
-      || Option.is_some below.child
-         && Kernel_function.Set.mem below.callee kfs)
+      || Kernel_function.Set.mem below.callee kfs && renames below)
 
 (* Adds to [table], for each callstack of [states], the start state of the
    call [below] made by the body of the member of that callstack. *)
 let add_calls_below derived table (below: below) states =
+  let renames = renames below in
   Cs_table.iter
     (fun callstack entry ->
-       let state = call_below derived callstack below entry in
+       let state = call_below derived ~renames callstack below entry in
        let callstack = Callstack.push below.callee below.site callstack in
        let state =
          match Cs_table.find_opt table callstack with
@@ -800,9 +827,11 @@ let rec unrun_joined store derived id =
 and joined_call store derived parent below =
   if may_cross store derived parent below
   then
+    let renames = renames below in
     Cs_table.fold
       (fun callstack entry acc ->
-         Cvalue.Model.join acc (call_below derived callstack below entry))
+         let state = call_below derived ~renames callstack below entry in
+         Cvalue.Model.join acc state)
       (unrun_by_callstack store derived parent) Cvalue.Model.bottom
   else paste_call derived below (unrun_joined store derived parent)
 
