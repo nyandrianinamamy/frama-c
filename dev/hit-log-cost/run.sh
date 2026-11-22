@@ -14,7 +14,9 @@
 #
 # Corpus: gzip 1.2.4 and monocypher, from the open-source case studies, with
 # the parse and Eva options of their .frama-c/GNUmakefile (see
-# [program_args]), the default domain alone, memexec on. Configurations:
+# [program_args]), the default domain alone, memexec on. Every analysis runs
+# with -cache-size 8, the setting of share/analysis-scripts/analysis.mk:125
+# used by the case studies. Configurations:
 #   - dev: a build of dev at the base of the branch;
 #   - off, on: the build of this checkout, recording off and on.
 # Each run loads the probe phases.ml, which notes the time and the counters
@@ -83,6 +85,8 @@ MEASURE_BUILD=
 PERF_STACK=16384
 TIMEOUT=150m
 JOBS=8
+# Option -cache-size of every analysis, see [command_of].
+CACHE_SIZE=8
 
 usage () {
   cat <<EOF
@@ -252,6 +256,7 @@ fi
   echo "cpu	$CPU	$(grep -m1 'model name' /proc/cpuinfo | cut -d: -f2)"
   echo "perf	--call-graph dwarf,$PERF_STACK"
   echo "programs	$PROGRAMS"
+  echo "cache	-cache-size $CACHE_SIZE (share/analysis-scripts/analysis.mk:125)"
 } > "$OUT/revisions.tsv"
 
 # ----- Programs ----------------------------------------------------------
@@ -260,9 +265,10 @@ fi
 # case studies used for #100 (3dcefdb6), parse and Eva steps in one command:
 # MACHDEP, CPPFLAGS (where $(DIR), the directory of analysis.mk, is the
 # analysis-scripts directory of the share path), FCFLAGS, the sources, and
-# the EVAFLAGS that the GNUmakefile adds. Not kept:
-#   - the defaults of EVAFLAGS in analysis.mk (no progress, no initial and
-#     final states, no alarms as warnings), so that the passes print the
+# the EVAFLAGS that the GNUmakefile adds. Of the defaults of EVAFLAGS in
+# analysis.mk, [command_of] keeps -cache-size 8 only. Not kept:
+#   - the other defaults of EVAFLAGS in analysis.mk (no progress, no initial
+#     and final states, no alarms as warnings), so that the passes print the
 #     values at the end of each function, as in the measurement of #98;
 #   - for gzip, -nonterm-ignore do_exit: an option of the nonterm plugin,
 #     which the configuration of #87 does not load and the target does not
@@ -304,7 +310,8 @@ program_args () { # program, share directory
   esac
 }
 
-# The command of program $1 in mode $2 (off, on) with the frama-c of build $3.
+# The command of program $1 in mode $2 (off, on) with the frama-c of build $3,
+# with the cache setting of the case studies.
 command_of () {
   local prog=$1 mode=$2 build=$3 install share
   install=$(install_of "$build")
@@ -313,6 +320,7 @@ command_of () {
   echo -no-autoload-plugins; echo -load-plugin=eva,inout,scope
   echo -load-module; echo "$WORK/probe/$build/phases.cmxs"
   program_args "$prog" "$share"
+  echo -cache-size; echo "$CACHE_SIZE"
   echo -eva-memexec
   [ "$mode" = off ] || echo -eva-hit-log
 }
