@@ -2350,8 +2350,49 @@ let observe () =
   end;
   record [ "phase"; "done" ]
 
+(* The reference is analysed without memexec, which takes hours on a case
+   study such as monocypher or gzip, for no gain: their reference is not
+   needed. The observer therefore observes the programs of the tests of Eva
+   only: each input file, once its symbolic links are resolved, must lie in
+   a directory plugins/eva/tests, or in a share directory of Frama-C.
+   HIT_LOG_OBSERVER_ANY_PROGRAM=1 lifts this limit. The statement count
+   cannot replace this check: value/unfold.i has more statements than gzip
+   or monocypher. *)
+let foreign_files () =
+  let real path =
+    try Unix.realpath path with Unix.Unix_error _ -> path
+  in
+  let under dir path = String.starts_with ~prefix:(dir ^ "/") path in
+  let shares =
+    List.map (fun d -> real (Filepath.to_string_abs d))
+      System_config.Share.dirs
+  in
+  let in_tests path =
+    let marker = "/plugins/eva/tests/" in
+    let n = String.length marker and l = String.length path in
+    let rec from i =
+      i + n <= l && (String.sub path i n = marker || from (i + 1))
+    in
+    from 0
+  in
+  Kernel.Files.get ()
+  |> List.map (fun f -> real (Filepath.to_string_abs f))
+  |> List.filter
+    (fun path -> not (in_tests path || List.exists (fun d -> under d path) shares))
+
 let observe_stage () =
-  if suite && Analysis.is_computed () then begin
+  let foreign = foreign_files () in
+  if foreign <> [] && Sys.getenv_opt "HIT_LOG_OBSERVER_ANY_PROGRAM" <> Some "1"
+  then begin
+    record [ "error"; "input files outside the tests of Eva" ];
+    Kernel.abort
+      "the hit log observer analyses its reference without memexec, and \
+       observes the tests of Eva only; these input files are outside \
+       plugins/eva/tests: %s. Set HIT_LOG_OBSERVER_ANY_PROGRAM=1 to observe \
+       them anyway."
+      (String.concat ", " foreign)
+  end
+  else if suite && Analysis.is_computed () then begin
     record [ "error"; "the analysis is computed before the observer starts" ];
     Format.printf "The analysis is computed before the observer starts: no \
                    observation.@."
