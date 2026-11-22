@@ -13,6 +13,9 @@
 # Usage: verify.sh [-q] [-b REV]
 #   -q      quick: build, default Eva ptests and Eva native tests only
 #   -b REV  base revision for the lint of changed files (default origin/dev)
+#
+# It stops before the first step when the checkout or TMPDIR has less than
+# FC_MIN_FREE_GB GiB free (default 5).
 
 set -u
 
@@ -28,6 +31,18 @@ done
 
 cd "$(git rev-parse --show-toplevel)" || exit 2
 bash dev/check-env.sh || exit 2
+
+# A full disk makes builds and tests fail in ways that read as regressions:
+# stop at once when the checkout or the logs have less than FC_MIN_FREE_GB
+# (default 5) GiB free.
+MIN_FREE=${FC_MIN_FREE_GB:-5}
+for dir in . "${TMPDIR:-/tmp}"; do
+  free=$(df -Pk "$dir" | awk 'NR == 2 { print int($4 / 1048576) }')
+  if [ "$free" -lt "$MIN_FREE" ]; then
+    echo "only $free GiB free on the volume of $dir (FC_MIN_FREE_GB=$MIN_FREE)" >&2
+    exit 2
+  fi
+done
 
 export TERM=xterm
 FC_FORCE_PTESTS="$(date +%s)"
@@ -48,7 +63,7 @@ step () {
 }
 
 lint_changed () {
-  git diff --name-only -z "$BASE" HEAD | git check-attr --stdin -z -a \
+  git diff --name-only --diff-filter=d -z "$BASE" HEAD | git check-attr --stdin -z -a \
     | dune exec --root tools/lint -- frama-c-lint -s
 }
 

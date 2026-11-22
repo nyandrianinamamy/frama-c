@@ -58,6 +58,9 @@
 #               the option can be repeated
 #   --report    only write the summary again, from the results in OUTDIR
 #
+# It stops before the build when the checkout, OUTDIR or WORKDIR has less
+# than FC_MIN_FREE_GB GiB free (default 5).
+#
 # Run it from the root of the checkout, with the opam switch active. It builds
 # Frama-C, regenerates the ptests rules of Eva and builds the observer first.
 # The summary is OUTDIR/summary.md; the results of each run are in
@@ -1885,6 +1888,20 @@ def selects(patterns, run):
     return not patterns or any(p in run["name"] for p in patterns)
 
 
+def check_free_space(directories):
+    """Stops when one of [directories] is on a volume with less than
+    FC_MIN_FREE_GB GiB free: a full disk makes runs fail in ways that read
+    as failures of the observer."""
+    minimum = float(os.environ.get("FC_MIN_FREE_GB", "5"))
+    for directory in directories:
+        free = shutil.disk_usage(directory).free / 2**30
+        if free < minimum:
+            sys.exit(
+                "only %.1f GiB free on the volume of %s (FC_MIN_FREE_GB=%g)"
+                % (free, directory, minimum)
+            )
+
+
 def main():
     parser = argparse.ArgumentParser(description="Eva tests under -eva-hit-log")
     parser.add_argument("-j", type=int, default=8, dest="jobs")
@@ -1908,6 +1925,7 @@ def main():
         if (workdir + os.sep).startswith(os.path.abspath(".") + os.sep):
             sys.exit("the directory of the outputs must not be in the checkout")
         os.makedirs(workdir, exist_ok=True)
+        check_free_space([".", outdir, workdir])
         work_root = tempfile.mkdtemp(prefix=time.strftime("%Y%m%d-%H%M%S-"), dir=workdir)
         os.symlink(os.path.abspath(SHARE), os.path.join(work_root, "share"))
         source = dict(provenance(), invocation=os.path.basename(work_root))

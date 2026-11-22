@@ -68,6 +68,16 @@ opam pin add --switch=. dune 3.21.1 --no-action -y
 
 The first command recompiles the packages that depend on Dune.
 
+## Disk space
+
+`dev/verify.sh` and `dev/hit-log-suite.py` stop before their first step
+when the checkout or their output directories have less than
+`FC_MIN_FREE_GB` GiB free (default 5). A build tree takes 1 to 9 GB and a
+worktree with its `_build` up to 2 GB: remove those made for a review once
+its report is written. `/dev/shm` holds up to 16 GB in memory and is
+cleared at reboot; it suits work directories of a few hundred MB, such as
+those of the hit log suite, and outputs that need not outlive the session.
+
 ## Limits of this platform
 
 On Ubuntu 24.04 the configuration probe reports Eva and syntax test
