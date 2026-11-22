@@ -358,8 +358,9 @@ let bases_of_zone = function
 (* The blocks that a state of the body of a call creates or removes, compared
    with the start state of the call, are computed by walking the two maps
    together: the subtrees present in one map only hold these blocks, and the
-   keys present in both maps give none. This does not build the set of all
-   blocks of a state. *)
+   keys present in both maps give none. The walk does not enter the subtrees
+   shared by the two maps, and does not build the set of all blocks of a
+   state. *)
 
 module Shape = Hptmap.Shape (Base.Base)
 
@@ -381,11 +382,12 @@ let created_in : shape -> shape -> Base.Hptset.t =
     else if Base.Hptset.is_empty t then s
     else Base.Hptset.union s t
   in
-  Shape.fold2_join_heterogeneous
-    ~cache:(Hptmap_sig.PersistentCache "Eva.Hit_log.created_in")
+  Shape.fold2_join_homogeneous
+    ~cache:Hptmap_sig.NoCache
     ~empty_left:Base.Hptset.from_map
     ~empty_right:(fun _ -> Base.Hptset.empty)
     ~both:(fun _ _ _ -> Base.Hptset.empty)
+    ~same:(fun _ -> Base.Hptset.empty)
     ~join ~empty:Base.Hptset.empty
 
 (* No block created or removed. Shared, so that the walk below allocates no
@@ -400,11 +402,12 @@ let changes_in : shape -> shape -> Base.Hptset.t * Base.Hptset.t =
     else if y == no_change then x
     else Base.Hptset.union created created', Base.Hptset.union removed removed'
   in
-  Shape.fold2_join_heterogeneous
-    ~cache:(Hptmap_sig.PersistentCache "Eva.Hit_log.changes_in")
+  Shape.fold2_join_homogeneous
+    ~cache:Hptmap_sig.NoCache
     ~empty_left:(fun t -> Base.Hptset.from_map t, Base.Hptset.empty)
     ~empty_right:(fun s -> Base.Hptset.empty, Base.Hptset.from_map s)
     ~both:(fun _ _ _ -> no_change)
+    ~same:(fun _ -> no_change)
     ~join ~empty:no_change
 
 (* The blocks of [state] absent from [start], the shape of the start state of
@@ -413,8 +416,7 @@ let created_blocks ~start state =
   match start, shape_of_state state with
   | _, None -> Base.Hptset.empty
   | None, Some state -> Base.Hptset.from_map state
-  | Some start, Some state ->
-    if start == state then Base.Hptset.empty else created_in start state
+  | Some start, Some state -> created_in start state
 
 (* The blocks of [state] absent from [start], the shape of the start state of
    the call, and the blocks of [start] absent from [state]. *)
@@ -423,8 +425,7 @@ let created_and_removed_blocks ~start state =
   | None, None -> no_change
   | None, Some state -> Base.Hptset.from_map state, Base.Hptset.empty
   | Some start, None -> Base.Hptset.empty, Base.Hptset.from_map start
-  | Some start, Some state ->
-    if start == state then no_change else changes_in start state
+  | Some start, Some state -> changes_in start state
 
 (* Projects [state] on the blocks of [zone], on the blocks [created] that do
    not exist in the start state of the call, and on [bound]. *)
