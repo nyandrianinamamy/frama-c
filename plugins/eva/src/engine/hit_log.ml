@@ -549,7 +549,18 @@ let analysis f =
    body-entry state is its start state. Per callstack, the call below a member
    of [parent] on callstack [cs] is on the callstack [cs] extended with the
    call. An entry is completed after the entries its calls used: the
-   recursion ends. *)
+   recursion ends.
+
+   A call below a hit crosses a recursion when it is a recursive call
+   analysed by its body, its function being already on the callstack of its
+   caller, or when it is made below such a call. With unrolled recursive
+   calls, a recursive call renames the variables of the outer call of its
+   function whose address is taken, and rewrites the pointers to them in the
+   whole state, according to its depth on the callstack. The stored start
+   state does not replay this renaming on the blocks it does not cover. The
+   state of a call that crosses a recursion is thus top, on its callstack
+   and in the joined states that include it, unless the call is unreachable.
+   The points of its body, pasted on this state, are top as well. *)
 
 type derived = {
   (* The calls stored in the entries, with the number of the entry that
@@ -561,6 +572,9 @@ type derived = {
      run, joined, and per callstack. *)
   unrun_joined: Cvalue.Model.t Int_table.t;
   unrun_by_callstack: Cvalue.Model.t Cs_table.t Int_table.t;
+  (* For each entry, the functions on the callstacks of these members, and
+     whether one of these callstacks may cross a recursion. *)
+  unrun_frames: (Kernel_function.Set.t * bool) Int_table.t;
   (* For each function, the start states of the calls below a hit, joined,
      and per callstack. *)
   starts_joined: Cvalue.Model.t Kf_table.t;
@@ -579,6 +593,7 @@ let new_derived () = {
   by_callee = Kf_table.create 17;
   unrun_joined = Int_table.create 17;
   unrun_by_callstack = Int_table.create 17;
+  unrun_frames = Int_table.create 17;
   starts_joined = Kf_table.create 17;
   starts_by_callstack = Kf_table.create 17;
   answers_start = Kf_table.create 17;
@@ -660,37 +675,77 @@ let paste_call derived (below: below) entry =
   | None, _ -> raise Unavailable
   | Some start, _ -> paste derived start entry
 
+(* Whether the call [below], made on [callstack] by the body of a member
+   whose body did not run, is a recursive call analysed by its body. *)
+let is_recursive callstack (below: below) =
+  Option.is_some below.child
+  && List.exists (Kernel_function.equal below.callee)
+    (Callstack.to_kf_list callstack)
+
+(* The start state of the call [below] made on [callstack] by the body of a
+   member whose body-entry state is [entry]: top if the call is reachable and
+   is a recursive call analysed by its body. Below a member that crosses a
+   recursion, [entry] is top, and so is the start state. *)
+let call_below derived callstack (below: below) entry =
+  match paste_call derived below entry with
+  | Cvalue.Model.Bottom -> Cvalue.Model.bottom
+  | Top | Map _ as state ->
+    if is_recursive callstack below then Cvalue.Model.top else state
+
 let calls_of table find key =
   Option.value ~default:[] (find table key)
 
-(* The joined body-entry state of the members of entry [id] whose body did
-   not run. *)
-let rec unrun_joined store derived id =
-  match Int_table.find_opt derived.unrun_joined id with
-  | Some state -> state
+(* The functions on the callstacks of the members of entry [id] whose body
+   did not run, and whether one of these callstacks may cross a recursion.
+   They are computed without any state, so that a joined request pastes the
+   states per callstack only where a call may cross a recursion. *)
+let rec unrun_frames store derived id =
+  match Int_table.find_opt derived.unrun_frames id with
+  | Some frames -> frames
   | None ->
+    let add_frames callstack kfs =
+      List.fold_left (Fun.flip Kernel_function.Set.add) kfs
+        (Callstack.to_kf_list callstack)
+    in
     let hits =
       match Int_table.find_opt store.entries id with
-      | None -> Cvalue.Model.bottom
-      | Some entry -> entry.hit_body_entries.joined
+      | None -> Kernel_function.Set.empty
+      | Some entry ->
+        Cs_table.fold (fun callstack _ -> add_frames callstack)
+          entry.hit_body_entries.by_callstack Kernel_function.Set.empty
     in
-    let state =
-      List.fold_left
-        (fun acc (parent, below) ->
-           let entry = unrun_joined store derived parent in
-           Cvalue.Model.join acc (paste_call derived below entry))
-        hits (calls_of derived.by_child Int_table.find_opt id)
+    let add (kfs, crossing as acc) (parent, below) =
+      let parent_kfs, _ = unrun_frames store derived parent in
+      if Kernel_function.Set.is_empty parent_kfs then acc
+      else
+        Kernel_function.Set.(add below.callee (union parent_kfs kfs)),
+        crossing || may_cross store derived parent below
     in
-    Int_table.replace derived.unrun_joined id state;
-    state
+    let frames =
+      List.fold_left add (hits, false)
+        (calls_of derived.by_child Int_table.find_opt id)
+    in
+    Int_table.replace derived.unrun_frames id frames;
+    frames
+
+(* Whether the call [below], made by the body of the members of entry
+   [parent] whose body did not run, may cross a recursion: one of these
+   members may, or the call is analysed by its body and its function is on
+   the callstack of one of them. *)
+and may_cross store derived parent (below: below) =
+  let kfs, crossing = unrun_frames store derived parent in
+  not (Kernel_function.Set.is_empty kfs)
+  && (crossing
+      || Option.is_some below.child
+         && Kernel_function.Set.mem below.callee kfs)
 
 (* Adds to [table], for each callstack of [states], the start state of the
    call [below] made by the body of the member of that callstack. *)
 let add_calls_below derived table (below: below) states =
   Cs_table.iter
     (fun callstack entry ->
+       let state = call_below derived callstack below entry in
        let callstack = Callstack.push below.callee below.site callstack in
-       let state = paste_call derived below entry in
        let state =
          match Cs_table.find_opt table callstack with
          | None -> state
@@ -718,6 +773,39 @@ let rec unrun_by_callstack store derived id =
     Int_table.replace derived.unrun_by_callstack id table;
     table
 
+(* The joined body-entry state of the members of entry [id] whose body did
+   not run. *)
+let rec unrun_joined store derived id =
+  match Int_table.find_opt derived.unrun_joined id with
+  | Some state -> state
+  | None ->
+    let hits =
+      match Int_table.find_opt store.entries id with
+      | None -> Cvalue.Model.bottom
+      | Some entry -> entry.hit_body_entries.joined
+    in
+    let state =
+      List.fold_left
+        (fun acc (parent, below) ->
+           Cvalue.Model.join acc (joined_call store derived parent below))
+        hits (calls_of derived.by_child Int_table.find_opt id)
+    in
+    Int_table.replace derived.unrun_joined id state;
+    state
+
+(* The start states of the call [below] made by the body of the members of
+   entry [parent] whose body did not run, joined. One paste suffices, on
+   the joined body-entry state of these members, unless the call may cross
+   a recursion: the states are then pasted per callstack. *)
+and joined_call store derived parent below =
+  if may_cross store derived parent below
+  then
+    Cs_table.fold
+      (fun callstack entry acc ->
+         Cvalue.Model.join acc (call_below derived callstack below entry))
+      (unrun_by_callstack store derived parent) Cvalue.Model.bottom
+  else paste_call derived below (unrun_joined store derived parent)
+
 (* The start states of the calls below a hit to [kf], joined. *)
 let starts_below_joined store derived kf =
   match Kf_table.find_opt derived.starts_joined kf with
@@ -726,8 +814,7 @@ let starts_below_joined store derived kf =
     let state =
       List.fold_left
         (fun acc (parent, below) ->
-           let entry = unrun_joined store derived parent in
-           Cvalue.Model.join acc (paste_call derived below entry))
+           Cvalue.Model.join acc (joined_call store derived parent below))
         Cvalue.Model.bottom (calls_of derived.by_callee Kf_table.find_opt kf)
     in
     Kf_table.replace derived.starts_joined kf state;

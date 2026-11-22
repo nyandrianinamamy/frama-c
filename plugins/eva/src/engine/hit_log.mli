@@ -38,12 +38,13 @@
     the hit, pasted on the body-entry state of the hit. Its preconditions are
     not evaluated: its body-entry state is its start state. These states are
     computed on request, through the entries of the callers, and memoised.
-    Not rebuilt: with unrolled recursive calls, a recursive call renames the
-    variables of the outer calls of its function whose address is taken, and
-    the pointers to them. Below a hit, this renaming is not applied to the
-    blocks that the stored start state does not cover, and the copies are
-    named after the depth of the call in the entry, which can differ from its
-    depth below the hit.
+    A call below a hit crosses a recursion when it is a recursive call
+    analysed by its body, or is made below such a call. With unrolled
+    recursive calls, a recursive call renames the variables of the outer call
+    of its function whose address is taken, and rewrites the pointers to them,
+    according to its depth on the callstack; the stored start state does not
+    replay this renaming. The states of a call that crosses a recursion are
+    not rebuilt.
 
     The rule: the state at a point of a call is the Inner part of its entry
     at this point on the blocks it covers, and the body-entry state of the
@@ -54,7 +55,11 @@
     The body points of a function are unavailable when one of its calls has
     an unknown footprint, was interrupted, or is a recursive call analysed by
     its body: every state request on them answers [`Top], as for a function
-    whose results are not saved. Every request is unavailable when the states
+    whose results are not saved. On the callstack of a call below a hit that
+    crosses a recursion, the start and the points of the body of the call
+    are unavailable: the state on this callstack is [Cvalue.Model.top], and
+    so is every joined or filtered state that includes it; the other
+    callstacks are answered. Every request is unavailable when the states
     of the cvalue domain are not saved, as with options [-eva-no-results] and
     [-eva-no-results-domain cvalue]. The initial state is unavailable when
     the initialization of the globals fails and the analysis does not start,
