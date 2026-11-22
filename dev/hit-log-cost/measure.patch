@@ -1,0 +1,594 @@
+diff --git a/plugins/eva/src/engine/analysis.ml b/plugins/eva/src/engine/analysis.ml
+index 70f4850c9c..ed82ea766e 100644
+--- a/plugins/eva/src/engine/analysis.ml
++++ b/plugins/eva/src/engine/analysis.ml
+@@ -126,11 +126,13 @@ let display_results () =
+   Cvalue_domain.display_results ?state_before ()
+
+ let post_analysis (type t) (engine: t engine) mthread_analysis final_state =
+-  let pass = Legacy_read_trap.pass in
++  let pass name f = Cost_meter.pass name (fun () -> Legacy_read_trap.pass name f) in
+   (* Garbled mix must be dumped here -- at least before the call to
+      mark_green_and_red -- because fresh ones are created when re-evaluating
+      all the alarms, and we get an unpleasant "ghost effect". *)
+-  Self.warning ~wkey:Log_key.warn_garbled_mix_summary "%t" Origin.pretty_history;
++  Cost_meter.pass "garbled mix" (fun () ->
++      Self.warning ~wkey:Log_key.warn_garbled_mix_summary "%t"
++        Origin.pretty_history);
+   (* Mark unreachable and RTE statuses. Only do this there, not when the
+      analysis was aborted (hence, not in post_cleanup), because the
+      propagation is incomplete. Also do not mark unreachable statutes if
+@@ -140,7 +142,7 @@ let post_analysis (type t) (engine: t engine) mthread_analysis final_state =
+   (* Try to refine the 'Unknown' statuses that have been emitted during
+      this analysis. *)
+   pass "statuses of the properties" Eval_annots.mark_green_and_red;
+-  Mem_exec.cleanup_results ();
++  Cost_meter.pass "memexec cleanup" Mem_exec.cleanup_results;
+   (* Remove redundant alarms *)
+   if Parameters.RmAssert.get ()
+   then pass "redundant alarms" Eva_dynamic.Scope.rm_asserts;
+@@ -209,8 +211,11 @@ let compute_from_entry_point  (type t) (engine: t engine)
+     ?(thread=Thread.main) ?cvalue_state ?arguments entry_point =
+   let module Engine = (val engine) in
+   let lib_entry = Kernel.LibEntry.get () in
+-  match Engine.Initialization.initial_state_with_formals
+-          ?cvalue_state ?arguments ~lib_entry entry_point with
++  match
++    Cost_meter.pass "initial state" @@ fun () ->
++    Engine.Initialization.initial_state_with_formals
++      ?cvalue_state ?arguments ~lib_entry entry_point
++  with
+   | `Bottom ->
+     Eval_annots.mark_invalid_initializers ();
+     Self.error "Eva not started because globals \
+@@ -304,7 +309,8 @@ let compute_from ?cvalue_state ?arguments entry_point =
+         compute_from_entry_point (module Engine)
+           ?cvalue_state ?arguments entry_point
+     in
+-    Self.(ComputationState.set Computed);
++    Cost_meter.pass "computed hooks" (fun () ->
++        Self.(ComputationState.set Computed));
+     post_analysis (module Engine) mt_analysis final_state
+   with exn ->
+     let backtrace = Printexc.get_raw_backtrace () in
+diff --git a/plugins/eva/src/engine/compute_functions.ml b/plugins/eva/src/engine/compute_functions.ml
+index 1c906a4e28..a9e5453241 100644
+--- a/plugins/eva/src/engine/compute_functions.ml
++++ b/plugins/eva/src/engine/compute_functions.ml
+@@ -44,13 +44,17 @@ module Make (Engine: Engine_sig.S) = struct
+     let args =
+       List.map (fun {avalue} -> Eval.value_assigned avalue) call.arguments
+     in
+-    match MemExec.reuse_previous_call call.kf init_state args with
++    match
++      Cost_meter.(time Memexec)
++        (fun () -> MemExec.reuse_previous_call call.kf init_state args)
++    with
+     | None ->
+       let call_result = compute call init_state in
+       let () =
+         if call_result.Engine_sig.cacheable = Eval.Cacheable
+         then
+           let final_states = call_result.states in
++          Cost_meter.(time Memexec) @@ fun () ->
+           MemExec.store_computed_call call.kf init_state args final_states
+       in
+       call_result
+@@ -70,7 +74,8 @@ module Make (Engine: Engine_sig.S) = struct
+         end
+         else [ init_state ]
+       in
+-      if Hit_log.enabled () then begin
++      if Hit_log.enabled () && not Cost_meter.no_hits then begin
++        Cost_meter.(time Hits_and_starts) @@ fun () ->
+         let start = Engine.Dom.get_cvalue_or_top init_state in
+         let body_entry =
+           match Bottom.List.join Engine.Dom.join body_entry_states with
+@@ -204,7 +209,9 @@ module Make (Engine: Engine_sig.S) = struct
+     let record = Hit_log.enabled () in
+     let start = lazy (Engine.Dom.get_cvalue_or_top state) in
+     let record_start () =
+-      if record then Hit_log.record_start call.callstack (Lazy.force start)
++      if record && not Cost_meter.no_hits then
++        Cost_meter.(time Hits_and_starts) @@ fun () ->
++        Hit_log.record_start call.callstack (Lazy.force start)
+     in
+     let compute () =
+       match target with
+@@ -221,7 +228,9 @@ module Make (Engine: Engine_sig.S) = struct
+         else compute call state
+     in
+     if record
+-    then Hit_log.call call.callstack ~start:(Lazy.force start) compute
++    then
++      let start = Cost_meter.(time Hits_and_starts) (fun () -> Lazy.force start) in
++      Hit_log.call call.callstack ~start compute
+     else compute ()
+
+   (* Defines the target of the analysis of a call, and analyze it.
+@@ -256,7 +265,8 @@ module Make (Engine: Engine_sig.S) = struct
+       let thread_id = Thread.id thread in
+       let callstack = Callstack.init ~thread:thread_id ~entry_point:kf in
+       Current_callstack.with_callstack callstack @@ fun init_state ->
+-      Engine.Dom.Store.register_state callstack (Start kf) init_state;
++      Cost_meter.(time Legacy_store) (fun () ->
++          Engine.Dom.Store.register_state callstack (Start kf) init_state);
+       let init_state =
+         (* Inject interferences in the initial state. The interferences are
+            injected after registering the initial state as this is part of the
+diff --git a/plugins/eva/src/engine/hit_log.ml b/plugins/eva/src/engine/hit_log.ml
+index 64a4409809..37de72fd1e 100644
+--- a/plugins/eva/src/engine/hit_log.ml
++++ b/plugins/eva/src/engine/hit_log.ml
+@@ -363,8 +363,17 @@ let bases_of_state = function
+ (* Projects [state] on the blocks of [zone], on those that do not belong to
+    [existing], the blocks of the start state of the call, and on [bound]. *)
+ let project ?(bound = Base.Hptset.empty) ~existing zone state =
+-  let created = Base.Hptset.diff (bases_of_state state) existing in
+-  let covered = Base.Hptset.union (bases_of_zone zone) created in
++  let created =
++    if Cost_meter.no_state_bases then Base.Hptset.empty
++    else
++      Cost_meter.(time State_bases) @@ fun () ->
++      Base.Hptset.diff (bases_of_state state) existing
++  in
++  let zone =
++    if Cost_meter.no_zone_bases then Base.Hptset.empty
++    else Cost_meter.(time Zone_bases) (fun () -> bases_of_zone zone)
++  in
++  let covered = Base.Hptset.union zone created in
+   let covered = Base.Hptset.union covered bound in
+   { covered; inner = Cvalue.Model.filter_by_shape covered state }
+
+@@ -379,7 +388,12 @@ let project ?(bound = Base.Hptset.empty) ~existing zone state =
+ let bound_by_call ~existing callee state =
+   let vars = Kernel_function.(get_formals callee @ get_locals callee) in
+   let vars = Base.Hptset.of_list (List.map Base.of_varinfo vars) in
+-  let removed = Base.Hptset.diff existing (bases_of_state state) in
++  let removed =
++    if Cost_meter.no_state_bases then Base.Hptset.empty
++    else
++      Cost_meter.(time State_bases) @@ fun () ->
++      Base.Hptset.diff existing (bases_of_state state)
++  in
+   Base.Hptset.union vars removed
+
+ (* Projects the states [before] and [after] each statement on the blocks
+@@ -401,31 +415,45 @@ let inner_part footprint ~start ~before ~after ~calls =
+     match Stmt_table.find_opt footprints stmt with
+     | Some zones -> zones
+     | None ->
+-      let zones = footprint stmt in
++      let zones = Cost_meter.(time Footprint) (fun () -> footprint stmt) in
+       Stmt_table.replace footprints stmt zones;
+       zones
+   in
+   let zone_before stmt = fst (footprint stmt) in
+   let zone_after stmt =
++    Cost_meter.(time Footprint) @@ fun () ->
+     let succs = List.map zone_before stmt.Cil_types.succs in
+     List.fold_left Memory_zone.join (snd (footprint stmt)) succs
+   in
+   let project_all zone_of states =
+-    let points = Stmt_table.create (Stmt_table.length states) in
+-    let add stmt state =
+-      Stmt_table.replace points stmt (project ~existing (zone_of stmt) state)
+-    in
+-    Stmt_table.iter add states;
+-    points
++    Cost_meter.(time Projection) @@ fun () ->
++    if Cost_meter.no_projection then begin
++      (* The footprint is evaluated as without the ablation; the states after
++         each statement are not lifted to cvalue, nor any state projected. *)
++      Stmt_table.iter (fun stmt _ -> ignore (zone_of stmt)) (Lazy.force before);
++      Stmt_table.create 1
++    end
++    else
++      let states = Lazy.force states in
++      let points = Stmt_table.create (Stmt_table.length states) in
++      let add stmt state =
++        Stmt_table.replace points stmt (project ~existing (zone_of stmt) state)
++      in
++      Stmt_table.iter add states;
++      points
+   in
+-  let before = project_all zone_before (Lazy.force before) in
+-  let after = project_all zone_after (Lazy.force after) in
++  let before = project_all zone_before before in
++  let after = project_all zone_after after in
+   let below =
++    Cost_meter.(time Call_starts) @@ fun () ->
+     List.rev_map
+       (fun (site, callee, state, child) ->
+-         let bound = bound_by_call ~existing callee state in
+-         let start = project ~bound ~existing (zone_before site) state in
+-         { site; callee; child; start = Some start })
++         if Cost_meter.no_call_starts then
++           { site; callee; child; start = None }
++         else
++           let bound = bound_by_call ~existing callee state in
++           let start = project ~bound ~existing (zone_before site) state in
++           { site; callee; child; start = Some start })
+       calls
+   in
+   Known { before; after }, below
+@@ -441,6 +469,7 @@ let current_frame () =
+   | frame :: _ -> Some frame
+
+ let record_start callstack state =
++  Cost_meter.(time Hits_and_starts) @@ fun () ->
+   let store = Store.get () in
+   let kf = Callstack.top_kf callstack in
+   let states =
+@@ -492,6 +521,7 @@ let record_analysed_call ~id callstack ~footprint ~start ~body_entry ~before
+   Kf_table.replace store.entries_of kf (id :: previous)
+
+ let record_hit ~id callstack ~start ~body_entry =
++  Cost_meter.(time Hits_and_starts) @@ fun () ->
+   let store = Store.get () in
+   Option.iter (fun frame -> frame.used <- Some id) (current_frame ());
+   match Int_table.find_opt store.entries id with
+@@ -511,10 +541,15 @@ let mark_interrupted callstack ~start =
+    Its function is marked, and so are those of the calls that make it, which
+    the exception stops as well. *)
+ let call callstack ~start f =
+-  let running = Running.get () in
+-  let frame = { calls = []; used = None } in
+-  running.frames <- frame :: running.frames;
++  let running, frame =
++    Cost_meter.(time Call_starts) @@ fun () ->
++    let running = Running.get () in
++    let frame = { calls = []; used = None } in
++    running.frames <- frame :: running.frames;
++    running, frame
++  in
+   let finally () =
++    Cost_meter.(time Call_starts) @@ fun () ->
+     running.frames <- List.tl running.frames;
+     match running.frames, Callstack.top_callsite callstack with
+     | caller :: _, Kstmt site ->
+diff --git a/plugins/eva/src/engine/iterator.ml b/plugins/eva/src/engine/iterator.ml
+index 3fd6321ee9..d899546abf 100644
+--- a/plugins/eva/src/engine/iterator.ml
++++ b/plugins/eva/src/engine/iterator.ml
+@@ -596,11 +596,16 @@ module Make_Dataflow
+     let merged_pre_cvalues = lazy (lift_to_cvalues merged_pre_states)
+     and merged_post_cvalues = lazy (lift_to_cvalues merged_post_states) in
+     if save_results then begin
+-      let register = Domain.Store.register_state callstack in
+-      let register_pre stmt = register (Before stmt)
+-      and register_post stmt = register (After stmt) in
+-      StmtTable.iter register_pre (Lazy.force merged_pre_states);
+-      StmtTable.iter register_post (Lazy.force merged_post_states);
++      Cost_meter.(time Merge) (fun () ->
++          ignore (Lazy.force merged_pre_states);
++          ignore (Lazy.force merged_post_states));
++      if not (Hit_log.enabled () && Cost_meter.no_legacy) then
++        Cost_meter.(time Legacy_store) @@ fun () ->
++        let register = Domain.Store.register_state callstack in
++        let register_pre stmt = register (Before stmt)
++        and register_post stmt = register (After stmt) in
++        StmtTable.iter register_pre (Lazy.force merged_pre_states);
++        StmtTable.iter register_post (Lazy.force merged_post_states);
+     end;
+     let states =
+       Cvalue_callbacks.{ before_stmts = merged_pre_cvalues;
+@@ -610,10 +615,12 @@ module Make_Dataflow
+     let counter = Mem_exec.new_counter () in
+     let results = `Body (states, counter) in
+     let apply_hooks () =
++      Cost_meter.(time Hooks) @@ fun () ->
+       Cvalue_callbacks.apply_call_results_hooks callstack kf cvalue_init results
+     in
+     if Hit_log.enabled () && not interrupted then begin
+       let footprint = Hit_log.footprint_of_call ~id:counter apply_hooks in
++      Cost_meter.(time Hits_and_starts) @@ fun () ->
+       let start = Engine.Dom.get_cvalue_or_top AnalysisParam.initial_state in
+       let body_entry =
+         match Bottom.List.join Domain.join initial_states with
+diff --git a/plugins/eva/src/engine/transfer_stmt.ml b/plugins/eva/src/engine/transfer_stmt.ml
+index f7c6fdeeb8..e2d6de9b51 100644
+--- a/plugins/eva/src/engine/transfer_stmt.ml
++++ b/plugins/eva/src/engine/transfer_stmt.ml
+@@ -286,7 +286,8 @@ module Make (Engine: Engine_Subset) = struct
+     | `Value state ->
+       let pos = Position.of_local pos in
+       let state = Interferences.inject_after_change ~pos access state in
+-      Domain.Store.register_state call.callstack (Start call.kf) state;
++      Cost_meter.(time Legacy_store) (fun () ->
++          Domain.Store.register_state call.callstack (Start call.kf) state);
+       Engine.Compute.compute_call call recursion state
+     | `Bottom ->
+       { states = []; cacheable = Cacheable; kind = `Bottom }
+diff --git a/plugins/eva/src/utils/cost_meter.ml b/plugins/eva/src/utils/cost_meter.ml
+new file mode 100644
+index 0000000000..f2ed5536b6
+--- /dev/null
++++ b/plugins/eva/src/utils/cost_meter.ml
+@@ -0,0 +1,137 @@
++(**************************************************************************)
++(*                                                                        *)
++(*  SPDX-License-Identifier LGPL-2.1                                      *)
++(*  Copyright (C)                                                         *)
++(*  CEA (Commissariat à l'énergie atomique et aux énergies alternatives)  *)
++(*                                                                        *)
++(**************************************************************************)
++
++type part =
++  | Merge
++  | Legacy_store
++  | Hooks
++  | Footprint
++  | Projection
++  | Call_starts
++  | Hits_and_starts
++  | Memexec
++  | State_bases
++  | Zone_bases
++
++let parts =
++  [ Merge, "merge"; Legacy_store, "legacy store"; Hooks, "hooks";
++    Footprint, "footprint"; Projection, "point projection";
++    Call_starts, "call starts"; Hits_and_starts, "hits and starts";
++    Memexec, "memexec"; State_bases, "state bases";
++    Zone_bases, "zone bases" ]
++
++let index = function
++  | Merge -> 0
++  | Legacy_store -> 1
++  | Hooks -> 2
++  | Footprint -> 3
++  | Projection -> 4
++  | Call_starts -> 5
++  | Hits_and_starts -> 6
++  | Memexec -> 7
++  | State_bases -> 8
++  | Zone_bases -> 9
++
++let file =
++  match Sys.getenv_opt "HIT_LOG_COST_TIMERS" with
++  | None | Some "" -> None
++  | Some file -> Some file
++
++let on = Option.is_some file
++
++let ablations =
++  match Sys.getenv_opt "HIT_LOG_COST_ABLATE" with
++  | None -> []
++  | Some list -> String.split_on_char ',' list
++
++let ablated name = List.mem name ablations
++
++let no_footprint = ablated "footprint"
++let call_footprint = ablated "footprint-call"
++let no_projection = ablated "projection"
++let no_call_starts = ablated "call-starts"
++let no_hits = ablated "hits"
++let no_legacy = ablated "legacy"
++let no_state_bases = ablated "state-bases"
++let no_zone_bases = ablated "zone-bases"
++
++(* Exclusive time of each part: when a part starts within another, the time
++   of the outer part stops until the inner one ends. *)
++let seconds = Array.make (List.length parts) 0.
++let calls = Array.make (List.length parts) 0
++let current = ref (-1)
++let since = ref 0.
++
++let time part f =
++  if not on then f ()
++  else begin
++    let i = index part in
++    let outer = !current in
++    let start = Unix.gettimeofday () in
++    if outer >= 0 then seconds.(outer) <- seconds.(outer) +. (start -. !since);
++    current := i;
++    since := start;
++    calls.(i) <- calls.(i) + 1;
++    let finally () =
++      let stop = Unix.gettimeofday () in
++      seconds.(i) <- seconds.(i) +. (stop -. !since);
++      current := outer;
++      since := stop
++    in
++    Fun.protect ~finally f
++  end
++
++type pass = {
++  name: string;
++  wall: float;
++  cpu: float;
++  gc_before: Gc.stat;
++  gc_after: Gc.stat;
++}
++
++let passes = ref []
++
++let pass name f =
++  if not on then f ()
++  else begin
++    let gc_before = Gc.quick_stat () in
++    let wall = Unix.gettimeofday () and cpu = Sys.time () in
++    let finally () =
++      let gc_after = Gc.quick_stat () in
++      let wall = Unix.gettimeofday () -. wall and cpu = Sys.time () -. cpu in
++      passes := { name; wall; cpu; gc_before; gc_after } :: !passes
++    in
++    Fun.protect ~finally f
++  end
++
++let write file =
++  let out = open_out file in
++  Printf.fprintf out
++    "kind\tname\tcalls\twall\tcpu\tminor_words\tpromoted_words\t\
++     major_words\tminor_collections\tmajor_collections\n";
++  List.iter
++    (fun (part, name) ->
++       let i = index part in
++       Printf.fprintf out "part\t%s\t%d\t%.6f\t\t\t\t\t\t\n"
++         name calls.(i) seconds.(i))
++    parts;
++  List.iter
++    (fun p ->
++       let a = p.gc_after and b = p.gc_before in
++       Printf.fprintf out "pass\t%s\t1\t%.6f\t%.6f\t%.0f\t%.0f\t%.0f\t%d\t%d\n"
++         p.name p.wall p.cpu (a.minor_words -. b.minor_words)
++         (a.promoted_words -. b.promoted_words)
++         (a.major_words -. b.major_words)
++         (a.minor_collections - b.minor_collections)
++         (a.major_collections - b.major_collections))
++    (List.rev !passes);
++  Printf.fprintf out "ablations\t%s\t\t\t\t\t\t\t\t\n"
++    (String.concat "," ablations);
++  close_out out
++
++let () = Option.iter (fun file -> at_exit (fun () -> write file)) file
+diff --git a/plugins/eva/src/utils/cost_meter.mli b/plugins/eva/src/utils/cost_meter.mli
+new file mode 100644
+index 0000000000..8d99f8f3cf
+--- /dev/null
++++ b/plugins/eva/src/utils/cost_meter.mli
+@@ -0,0 +1,93 @@
++(**************************************************************************)
++(*                                                                        *)
++(*  SPDX-License-Identifier LGPL-2.1                                      *)
++(*  Copyright (C)                                                         *)
++(*  CEA (Commissariat à l'énergie atomique et aux énergies alternatives)  *)
++(*                                                                        *)
++(**************************************************************************)
++
++(** Measurement build of dev/hit-log-cost, never part of the branch: timers of
++    the parts of the iteration and of the passes after it, and ablations that
++    skip one part of the recording of option -eva-hit-log, with wrong answers.
++
++    Both are set by environment variables read once, when the module is
++    initialised:
++    - HIT_LOG_COST_TIMERS: the file where the timers are written at exit;
++      no timer runs if it is unset or empty;
++    - HIT_LOG_COST_ABLATE: a comma-separated list of ablations, among
++      [footprint], [footprint-call], [projection], [call-starts], [hits],
++      [legacy], [state-bases], [zone-bases]. *)
++
++(** The parts of the iteration timed, exclusive of the parts nested in them. *)
++type part =
++  | Merge
++  (** Merging the states of the statements of a call analysed by its body,
++      for the hooks at the end of the call and the legacy store. *)
++  | Legacy_store
++  (** Registering the states before and after each statement and at the start
++      of each call in the legacy store. *)
++  | Hooks
++  (** The hooks at the end of each call analysed by its body: the inout
++      plugin, which gives the footprint with -eva-hit-log. *)
++  | Footprint
++  (** Evaluating the footprint given by inout at each statement. *)
++  | Projection
++  (** Lifting the states after each statement to cvalue, and projecting the
++      states before and after each statement on the covered blocks. *)
++  | Call_starts
++  (** Keeping the calls made by each body, and projecting their start states
++      on the covered blocks. *)
++  | Hits_and_starts
++  (** Computing the start and body-entry states of the calls, recording the
++      hits and the starts of the calls by specification or builtin with
++      their joins, and storing the cache entries. *)
++  | Memexec
++  (** Matching each call against the memexec cache, and storing the calls
++      analysed by their body in it. *)
++  | State_bases
++  (** Within the projections, building the set of the blocks of a state, to
++      find the blocks created by the call or removed by a call it makes. *)
++  | Zone_bases
++  (** Within the projections, building the set of the blocks of the
++      footprint at a point. *)
++
++(** [time part f] runs [f], whose time is counted in [part] if the timers
++    run. *)
++val time: part -> (unit -> 'a) -> 'a
++
++(** [pass name f] runs [f], the step [name] after the iteration, whose
++    wall-clock and processor time are counted if the timers run. *)
++val pass: string -> (unit -> 'a) -> 'a
++
++(** Ablations. *)
++
++(** InOut keeps no footprint, and the footprint of every point is empty. *)
++val no_footprint: bool
++
++(** InOut keeps no footprint, and the footprint of every point is the memory
++    read or written by the whole call, its formals and locals included. *)
++val call_footprint: bool
++
++(** The footprint is evaluated at every point, but no state is projected:
++    the Inner parts are empty. *)
++val no_projection: bool
++
++(** The start states of the calls made by each body are not projected. *)
++val no_call_starts: bool
++
++(** The hits and the starts of the calls by specification or builtin are not
++    recorded. *)
++val no_hits: bool
++
++(** The set of the blocks of each projected state is not built: no block is
++    found created by the call, or removed by a call it makes. *)
++val no_state_bases: bool
++
++(** The set of the blocks of the footprint of each point is not built: the
++    projection keeps the created blocks only. *)
++val no_zone_bases: bool
++
++(** With -eva-hit-log, the states before and after each statement are not
++    registered in the legacy store. The states at the start of the calls still
++    are: inout reads them during the iteration. *)
++val no_legacy: bool
+diff --git a/plugins/inout/src/operational_inputs.ml b/plugins/inout/src/operational_inputs.ml
+index d6c0b98d4b..461d7cd4e6 100644
+--- a/plugins/inout/src/operational_inputs.ml
++++ b/plugins/inout/src/operational_inputs.ml
+@@ -661,6 +661,15 @@ module Callwise = struct
+
+   module Record_Inout_Callbacks = Hook.Build (struct type t = Inout_type.t end)
+
++  (* Ablations of the measurement build of dev/hit-log-cost, see
++     Eva's Cost_meter. *)
++  let cost_ablations =
++    match Sys.getenv_opt "HIT_LOG_COST_ABLATE" with
++    | None -> []
++    | Some list -> String.split_on_char ',' list
++  let cost_no_footprint = List.mem "footprint" cost_ablations
++  let cost_call_footprint = List.mem "footprint-call" cost_ablations
++
+   (* For a call analysed by its body, the number of its cache entry and the
+      memory read or written before and after each statement of the body, as
+      given by [Computer.footprint]. *)
+@@ -773,12 +782,27 @@ module Callwise = struct
+             Inout_type.map (Memory_zone.filter_base filter) with_internals
+           with Not_found -> Inout_type.bottom
+
+-        let footprint = Eva.Parameters.HitLog.get ()
++        let footprint =
++          Eva.Parameters.HitLog.get ()
++          && not (cost_no_footprint || cost_call_footprint)
+       end) in
+     let module [@warning "-60"] Compute =
+       Dataflows.Simple_forward (Fenv) (Computer)
+     in
+-    Computer.end_dataflow (), Computer.footprint Compute.pre_state
++    let inout = Computer.end_dataflow () in
++    let footprint =
++      if Eva.Parameters.HitLog.get () && cost_no_footprint
++      then Some (fun _ -> Memory_zone.bottom, Memory_zone.bottom)
++      else if Eva.Parameters.HitLog.get () && cost_call_footprint
++      then
++        let zone =
++          Memory_zone.join inout.over_inputs
++            (Memory_zone.join inout.over_logic_inputs inout.over_outputs)
++        in
++        Some (fun _ -> zone, zone)
++      else Computer.footprint Compute.pre_state
++    in
++    inout, footprint
+
+   let record_for_callwise_inout callstack kf pre_state value_res =
+     let inout =
