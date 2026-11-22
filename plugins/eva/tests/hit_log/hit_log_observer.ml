@@ -156,9 +156,21 @@ type point = {
   show: bool; (* Whether its states are printed. *)
 }
 
+(* The built-ins whose call the kernel printer completes with the last named
+   formal of the current function: outside the printing of a function, it
+   reports a failure. *)
+let completed_builtins =
+  [ "__builtin_next_arg"; "__builtin_va_start"; "__builtin_stdarg_start";
+    "__builtin_c23_va_start" ]
+
 (* A statement, shortened to one line. *)
 let pretty_stmt fmt stmt =
   match stmt.Cil_types.skind with
+  | Instr (Call (result, Var vi, args, _))
+    when List.mem vi.vname completed_builtins ->
+    Option.iter (Format.fprintf fmt "%a = " Printer.pp_lval) result;
+    Format.fprintf fmt "%s(%a);" vi.vname
+      (Pretty_utils.pp_list ~sep:", " Printer.pp_exp) args
   | Instr instr ->
     let text = Format.asprintf "%a" Printer.pp_instr instr in
     let text = String.map (function '\n' -> ' ' | c -> c) text in
@@ -233,12 +245,18 @@ let points () =
     start :: List.concat_map of_stmt stmts
   in
   let main = fst (Globals.entry_point ()) in
+  (* An entry point without a body has no final state. *)
+  let final =
+    match Kernel_function.find_return main with
+    | return ->
+      [ { description = "final state"; request = Results.at_end ();
+          trap = trap_stmt "after" return; kf = None; show = false } ]
+    | exception Kernel_function.No_Statement -> []
+  in
   { description = "initial state"; request = Results.at_start;
     trap = "initial state"; kf = None; show = false }
-  :: { description = "final state"; request = Results.at_end ();
-       trap = trap_stmt "after" (Kernel_function.find_return main);
-       kf = None; show = false }
-  :: List.concat_map of_function functions
+  :: final
+  @ List.concat_map of_function functions
 
 (* ----- Requests ---------------------------------------------------------- *)
 
@@ -404,19 +422,52 @@ let compare_point point c =
 
 (* ----- Allocated blocks -------------------------------------------------- *)
 
-(* The bases of allocated blocks are named with a counter shared by the
-   projects, and each analysis creates its own: the same block has another
-   name in each project. The bases are matched across projects by their name
-   without the suffix of the counter, and by their rank of creation. *)
+(* The bases of allocated blocks, and the variables that Eva creates during
+   the analysis, as those of the context of option -lib-entry and the copies
+   of the locals of recursive calls, are created by each analysis, with
+   another identity in each project, and sometimes with a counter shared by
+   the projects in their name. The bases are matched across projects by
+   their name without the suffixes of the counter, and by their rank of
+   creation. The variables that exist before the analyses have the same
+   identity in the three projects, which are copies. *)
 
+let existing_variables = ref Cil_datatype.Varinfo.Set.empty
+
+let collect_existing_variables () =
+  let set = ref Cil_datatype.Varinfo.Set.empty in
+  let add vi = set := Cil_datatype.Varinfo.Set.add vi !set in
+  Globals.Vars.iter (fun vi _ -> add vi);
+  Globals.Functions.iter
+    (fun kf ->
+       add (Kernel_function.get_vi kf);
+       List.iter add (Kernel_function.get_formals kf);
+       if Kernel_function.is_definition kf
+       then List.iter add (Kernel_function.get_locals kf));
+  existing_variables := !set
+
+let created_by_analysis = function
+  | Base.Allocated _ -> true
+  | Base.Var (vi, _) ->
+    not (Cil_datatype.Varinfo.Set.mem vi !existing_variables)
+  | _ -> false
+
+(* The created bases bound in the states of [answers], or present in their
+   values: a block of size zero, as the context of an empty structure, has
+   no binding. *)
 let allocated_bases answers =
+  let add_base base acc =
+    if created_by_analysis base then Base.Hptset.add base acc else acc
+  in
+  let add_value v acc =
+    try Cvalue.V.fold_bases add_base (Cvalue.V_Or_Uninitialized.get_v v) acc
+    with Abstract_interp.Error_Top -> acc
+  in
   let add acc = function
     | Ok (Cvalue.Model.Map map) ->
       Cvalue.Model.fold
-        (fun base _ acc ->
-           match base with
-           | Base.Allocated _ -> Base.Hptset.add base acc
-           | _ -> acc)
+        (fun base offsetmap acc ->
+           add_base base acc
+           |> Cvalue.V_Offsetmap.fold_on_values add_value offsetmap)
         map acc
     | _ -> acc
   in
@@ -426,7 +477,7 @@ let allocated_bases answers =
          (a.joined :: a.filtered :: List.map snd a.by_callstack))
     Base.Hptset.empty answers
 
-let counter_suffix = Str.regexp "_[0-9]+$"
+let counter_suffix = Str.regexp "\\(_[0-9]+\\)+$"
 
 (* Each allocated base with its key: its name without the suffix of the
    counter, and its rank among the bases of that name. *)
@@ -908,6 +959,7 @@ let with_trap f =
 
 let main () =
   let current = Project.current () in
+  collect_existing_variables ();
   let reference, reference_passes =
     copy_and_analyse "reference" ~memexec:false
   in
