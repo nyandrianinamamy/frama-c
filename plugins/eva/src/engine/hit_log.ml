@@ -555,9 +555,9 @@ let analysis f =
    analysed by its body that renames variables, its function being already
    on the callstack of its caller, or when it is made below such a call. A
    recursive call renames the variables of the outer call of its function
-   whose address is taken or that it passes as arguments, and rewrites the
-   pointers to them in the whole state, according to its depth on the
-   callstack. It removes the other variables of the outer call, as the
+   whose address is taken or that an argument of the call copies, and
+   rewrites the pointers to them in the whole state, according to its depth
+   on the callstack. It removes the other variables of the outer call, as the
    stored start state does, but the stored start state does not replay the
    renaming on the blocks it does not cover. The state of a call that
    crosses a recursion is thus top, on its callstack and in the joined
@@ -679,9 +679,10 @@ let paste_call derived (below: below) entry =
 
 (* Whether the call [below] may rename variables if it is a recursive call:
    it is analysed by its body, and its function has a formal or a local
-   whose address is taken, or that appears in an argument of the call. A
-   recursive call renames such variables when their address is taken or
-   when an argument is a copy of them, see [Recursion.make]. *)
+   whose address is taken, or that an argument of the call copies, the
+   argument being an lvalue of this variable. A recursive call renames these
+   variables, see [Recursion.make]. Eva copies fewer arguments: it assigns
+   the scalar arguments of the functions that it treats as determinate. *)
 let renames (below: below) =
   Option.is_some below.child &&
   let kf = below.callee in
@@ -692,14 +693,13 @@ let renames (below: below) =
     | Instr (Local_init (_, ConsInit (_, args, _), _)) -> args
     | _ -> []
   in
-  let passed =
-    List.fold_left
-      (fun acc arg ->
-         Cil_datatype.Varinfo.Set.union acc (Cil.extract_varinfos_from_exp arg))
-      Cil_datatype.Varinfo.Set.empty args
+  let copies vi (arg: Cil_types.exp) =
+    match arg.enode with
+    | Lval (Var v, _) -> Cil_datatype.Varinfo.equal v vi
+    | _ -> false
   in
   List.exists
-    (fun vi -> vi.Cil_types.vaddrof || Cil_datatype.Varinfo.Set.mem vi passed)
+    (fun vi -> vi.Cil_types.vaddrof || List.exists (copies vi) args)
     vars
 
 (* Whether a call of [callee] made on [callstack] is a recursive call. *)
