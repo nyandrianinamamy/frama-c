@@ -320,13 +320,14 @@ def observer_args(stages, separators, number, observer):
     without the options that start an analysis or print, those that the
     stages before set being reset, and with -eva-hit-log."""
     before = stages[: number - 1]
-    for separator in separators[: number - 1]:
-        if separator[0] != "-then":
-            return (
-                None,
-                [],
-                ("the stage follows %s: it runs on another project" % " ".join(separator)),
-            )
+    switches = [" ".join(s) for s in separators[: number - 1] if s[0] != "-then"]
+    if switches:
+        return (
+            None,
+            [],
+            "the stages before it change the project (%s): the observer does not follow a "
+            "change of project" % ", ".join(switches),
+        )
     on, with_argument = set_before(before)
     if with_argument:
         stage, option = with_argument[0]
@@ -644,7 +645,8 @@ def stage_plan(run, counted, status, observer):
             if not c["analyses"]:
                 _, removed = without_analysis(stages[number - 1])
                 entry["reason"] = "no analysis starts in this stage" + (
-                    "; its options %s use the results of an earlier stage" % " ".join(removed)
+                    "; its options %s act after the analysis of an earlier stage, and are not "
+                    "observed" % " ".join(removed)
                     if removed
                     else ""
                 )
@@ -848,7 +850,7 @@ def observations(result):
         found = []
         if "observer" in result:
             found = [dict(result["observer"], stage=1, summary=result.get("summary", []))]
-    several = len(result.get("stages", [])) > 1
+    several = len(stages_of(result)) > 1
     first_stage = min((o["stage"] for o in found), default=None)
     return [
         dict(
@@ -857,6 +859,22 @@ def observations(result):
             first=o["stage"] == first_stage,
         )
         for o in found
+    ]
+
+
+def stages_of(result):
+    """The stages of a run. A result of an earlier version of this script
+    has the first analysis only, observed or not."""
+    if "stages" in result:
+        return result["stages"]
+    if "observer" in result:
+        return [{"stage": 1, "observed": True, "reason": None}]
+    return [
+        {
+            "stage": 1,
+            "observed": False,
+            "reason": result.get("observer_not_run", "not recorded"),
+        }
     ]
 
 
@@ -917,7 +935,10 @@ def total(observed, kind, run_kind, width):
     for o in observed:
         for rec in records(o, kind):
             if rec[0] == run_kind:
-                totals = [a + int(b) for a, b in zip(totals, rec[1:])]
+                # A record of an earlier version of the observer may have
+                # fewer fields: the missing ones count as zero.
+                fields = (rec[1:] + ["0"] * width)[:width]
+                totals = [a + int(b) for a, b in zip(totals, fields)]
     return totals
 
 
@@ -978,7 +999,7 @@ def write_summary(outdir, runs, results, elapsed):
     done = [by_name[n] for n in executed]
     # Stages.
     emit("## Stages\n")
-    stages = [(r, s) for r in done for s in r.get("stages", [])]
+    stages = [(r, s) for r in done for s in stages_of(r)]
     all_obs = [o for r in done for o in observations(r)]
     later = [o for o in all_obs if not o["first"]]
     emit(
