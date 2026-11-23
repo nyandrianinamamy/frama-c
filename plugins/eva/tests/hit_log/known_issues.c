@@ -130,3 +130,9 @@ int issue96(void) {
   int second = count96(13);
   return second;
 }
+
+/* #94, case 1 is no longer a known issue under -eva-hit-log: since #123,
+   memexec matches a call with the snapshot of the allocated blocks it
+   mentions. The block of first and current is strong at the first call of
+   equal_live and weak at the second one, which is analysed, and every
+   answer of issue94_1 equals the run without memexec. */

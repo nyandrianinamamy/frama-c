@@ -28,12 +28,111 @@ let bases = function
   | Memory_zone.Top (Base.SetLattice.Set s, _) -> s
   | Memory_zone.Map m -> Base.Hptset.from_map (Memory_zone.shape m)
 
+(* ----- Snapshot of the mentioned blocks ---------------------------------- *)
+
+(* The validity record of an allocated block: its bounds, which the analysis
+   mutates in place, or a validity that it does not mutate. *)
+type record =
+  | Variable of { min_alloc: Z.t; max_alloc: Z.t }
+  | Fixed of Base.validity
+
+(* What the analysis of a call reads of an allocated block, besides its
+   content: its strength, its validity record, its type and its kind. *)
+type block = {
+  weak: bool;
+  record: record;
+  typ: Cil_types.typ;
+  kind: Base.deallocation;
+}
+
+let equal_record r1 r2 =
+  match r1, r2 with
+  | Variable v1, Variable v2 ->
+    Z.equal v1.min_alloc v2.min_alloc && Z.equal v1.max_alloc v2.max_alloc
+  | Fixed v1, Fixed v2 -> Base.Validity.equal v1 v2
+  | (Variable _ | Fixed _), _ -> false
+
+let equal_block b1 b2 =
+  b1.weak = b2.weak && equal_record b1.record b2.record
+  && Cil_datatype.Typ.equal b1.typ b2.typ && b1.kind = b2.kind
+
+(* The block of an allocated base as it is now. The record and the type are
+   copied: the analysis mutates them in place afterwards. *)
+let take_block = function
+  | Base.Allocated (vi, kind, validity) ->
+    let record =
+      match validity with
+      | Base.Variable v ->
+        Variable { min_alloc = v.min_alloc; max_alloc = v.max_alloc }
+      | validity -> Fixed validity
+    in
+    let weak = Base.is_weak_validity validity in
+    Some { weak; record; typ = vi.vtype; kind }
+  | Base.Var _ | Base.CLogic_Var _ | Base.Null | Base.Absolute _ -> None
+
+(* A snapshot: the block of each mentioned base, when the cache entry of the
+   call was stored. *)
+module Snapshot = struct
+  include Datatype.Make
+      (struct
+        type t = (Base.t * block) list
+        include Datatype.Undefined
+        let name = "Mem_exec.Snapshot"
+        let reprs = [ [] ]
+        let mem_project = Datatype.never_any_project
+      end)
+
+  let take bases =
+    Base.Hptset.fold
+      (fun base acc ->
+         match take_block base with
+         | Some block -> (base, block) :: acc
+         | None -> acc)
+      bases []
+
+  (* Whether each base of the snapshot has its block now. *)
+  let holds snapshot =
+    List.for_all
+      (fun (base, block) ->
+         match take_block base with
+         | Some now -> equal_block block now
+         | None -> false)
+      snapshot
+end
+
+let is_allocated = function
+  | Base.Allocated _ -> true
+  | Base.Var _ | Base.CLogic_Var _ | Base.Null | Base.Absolute _ -> false
+
+(* Adds to [acc] the allocated bases that [v] may point to. Raises
+   [TooImprecise] if [v] may point to an unknown set of bases. *)
+let add_targets v acc =
+  match Cvalue.V.get_bases v with
+  | Base.SetLattice.Top -> raise TooImprecise
+  | Base.SetLattice.Set bases ->
+    Base.Hptset.union (Base.Hptset.filter is_allocated bases) acc
+
+(* Adds to [acc] the allocated bases that a value of [state] may point to. *)
+let add_targets_of_state state acc =
+  match state with
+  | Cvalue.Model.Bottom -> acc
+  | Cvalue.Model.Top -> raise TooImprecise
+  | Cvalue.Model.Map map ->
+    let add_value v acc =
+      add_targets (Cvalue.V_Or_Uninitialized.get_v v) acc
+    in
+    Cvalue.Model.fold
+      (fun _base offsm acc ->
+         Cvalue.V_Offsetmap.fold_on_values add_value offsm acc)
+      map acc
+
 
 let counter = ref 0
 
 module Make
-    (Value : Datatype.S)
+    (Value : Engine_abstractions_sig.Value)
     (Domain : Engine_abstractions_sig.Domain)
+    (Key : sig val snapshot : unit -> bool end)
 = struct
 
   incr counter;
@@ -41,12 +140,14 @@ module Make
   module CallOutput = Datatype.List (Datatype.Pair (Partition.Key) (Domain))
 
   module StoredResult =
-    Datatype.Triple
+    Datatype.Quadruple
       (Base.Hptset)  (* Set of bases possibly read or written by the call. *)
       (CallOutput)   (* The resulting states of the call. *)
       (Datatype.Int) (* Call number, for plugins *)
+      (Snapshot)     (* The snapshot of the bases mentioned by the call. *)
 
-  (* Map from input states to outputs (summary and state). *)
+  (* Map from input states to outputs (summary and state). An input state
+     can have several stored results, which differ by their snapshots. *)
   module CallEffect = Domain.Hashtbl.Make (StoredResult)
 
   (* Map from useful input bases to call effects. *)
@@ -92,6 +193,34 @@ module Make
       else if count <= 0 then Base.SetLattice.top
       else expand_inputs_with_relations (count - 1) kf expanded_bases state
 
+  let get_cvalue =
+    match Value.get Main_values.CVal.key with
+    | Some get -> get
+    | None -> fun _ -> Cvalue.V.top
+
+  (* The snapshot of the allocated bases that a call mentions: the bases of
+     its key [bases], and those that a pointer value of its arguments [args]
+     or of [state], its start state on its key, may point to. A mentioned
+     base outside the key is not entered. Raises [TooImprecise] if one of
+     these values may point to an unknown set of bases. Empty unless
+     [Key.snapshot ()].
+     The call is stored after its analysis, but the blocks of the snapshot
+     are those of its start: a call that changes the validity or the type
+     of an allocated block receives a heap effect, and is not stored. *)
+  let take_snapshot bases args state =
+    if not (Key.snapshot ()) then []
+    else
+      let add_arg acc = function
+        | `Bottom -> acc
+        | `Value v -> add_targets (get_cvalue v) acc
+      in
+      let blocks = Base.Hptset.filter is_allocated bases in
+      let blocks = List.fold_left add_arg blocks args in
+      let blocks =
+        add_targets_of_state (Domain.get_cvalue_or_top state) blocks
+      in
+      Snapshot.take blocks
+
   let store_computed_call kf input_state args
       (call_result: (Partition.key * Domain.t) list) =
     match Transfer_stmt.current_kf_inout () with
@@ -115,6 +244,7 @@ module Make
           | Base.SetLattice.Set bases -> bases
         in
         let state_input = Domain.filter input_bases input_state in
+        let snapshot = take_snapshot input_bases args state_input in
         (* Output bases, that is bases that are copy-pasted on a reuse: the
            key, which includes the written bases and the input bases, as the
            latter may get reduced during the call. *)
@@ -154,7 +284,7 @@ module Make
             h
         in
         Domain.Hashtbl.add hkb state_input
-          (all_output_bases, outputs, call_number);
+          (all_output_bases, outputs, call_number, snapshot);
       with
       | TooImprecise
       | Kernel_function.No_Statement
@@ -173,8 +303,13 @@ module Make
       else
         (* restrict [state] to the inputs of this call *)
         let st_filtered = Domain.filter binputs state in
-        try
-          let bases, outputs, i = Domain.Hashtbl.find hstates st_filtered in
+        (* The stored results of this input state, the most recent first,
+           and the first of them whose snapshot holds now. *)
+        let stored = Domain.Hashtbl.find_all hstates st_filtered in
+        let holds (_, _, _, snapshot) = Snapshot.holds snapshot in
+        match List.find_opt holds stored with
+        | None -> ()
+        | Some (bases, outputs, i, _) ->
           (* We have found a previous execution, in which the outputs are
              [outputs]. Copy them in [state] and return this result. *)
           let process (key,output) =
@@ -183,7 +318,6 @@ module Make
           in
           let outputs = List.map process outputs in
           raise (Result_found (outputs, i))
-        with Not_found -> ()
     in
     Base.Hptset.Hashtbl.iter aux_previous_call map_inputs
 

@@ -38,12 +38,19 @@ module Make (Engine: Engine_sig.S) = struct
 
   (* ----- Mem Exec cache --------------------------------------------------- *)
 
-  module MemExec = Mem_exec.Make (Engine.Val) (Engine.Dom)
+  (* With -eva-hit-log, a call is matched with the snapshot of the allocated
+     blocks it mentions, see [Mem_exec]. *)
+  module MemExec =
+    Mem_exec.Make (Engine.Val) (Engine.Dom)
+      (struct let snapshot = Hit_log.enabled end)
 
   (* With -eva-hit-log, the heap calls that memexec would store, see
      [Hit_log]. They are never reused: they only tell which calls memexec
-     would have reused if it stored them. *)
-  module Refused = Mem_exec.Make (Engine.Val) (Engine.Dom)
+     would have reused if it stored them, with the matching of memexec
+     without the snapshot. *)
+  module Refused =
+    Mem_exec.Make (Engine.Val) (Engine.Dom)
+      (struct let snapshot () = false end)
 
   let compute_and_cache_call compute call init_state =
     let args =

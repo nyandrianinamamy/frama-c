@@ -16,9 +16,18 @@ val new_counter : unit -> int
 (** Clean all previously stored results *)
 val cleanup_results: unit -> unit
 
+(** With [snapshot ()], a call is also matched with the snapshot of the
+    allocated blocks it mentions: the blocks of its key, and those that a
+    pointer value of its arguments or of its key at its start may point to.
+    The snapshot of a block is its strength, its validity record, its type
+    and its kind, copied when the call is stored. A stored call is reused
+    only if each block of its snapshot has the same strength, record, type
+    and kind at the call. A call whose arguments or key hold a pointer to an
+    unknown set of blocks is not stored. Blocks are compared by identity. *)
 module Make
-    (Value : Datatype.S)
+    (Value : Engine_abstractions_sig.Value)
     (Domain : Engine_abstractions_sig.Domain)
+    (_ : sig val snapshot : unit -> bool end)
   : sig
 
     (** [store_computed_call kf init_state args call_results] memoizes the fact

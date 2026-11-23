@@ -1,14 +1,16 @@
 [kernel] Parsing snapshot.c (with preprocessing)
 [eva:alarm] snapshot.c:21: Warning: 
   pointer comparison. assert \pointer_comparable((void *)p, (void *)q);
+[eva:alarm] snapshot.c:21: Warning: 
+  pointer comparison. assert \pointer_comparable((void *)p, (void *)q);
 Calls:
   malloc :: snapshot.c:53 <- resized_main: builtin
   cmp :: snapshot.c:54 <- resized_main: analysed, cache entry 6
   free :: snapshot.c:55 <- resized_main: builtin
   malloc :: snapshot.c:53 <- resized_main: builtin
-  cmp :: snapshot.c:54 <- resized_main: hit of cache entry 6
+  cmp :: snapshot.c:54 <- resized_main: analysed, cache entry 7
   free :: snapshot.c:55 <- resized_main: builtin
-  resized_main: analysed, cache entry 7
+  resized_main: analysed, cache entry 8
 Heap calls, not stored by memexec: resized_main 1.
 Hits not made because memexec does not store the heap calls: none.
 cmp, start:
@@ -88,40 +90,8 @@ cmp, after snapshot.c:21 `return __retres;`:
           tmp_0 ∈ {{ &__malloc_resized_main_l53_1[0] }}
           r_unchanged[0..1] ∈ {0}
           r_unchanged_global[0..1] ∈ {0}
-          __retres ∈ {0}
+          __retres ∈ {0; 1}
           __malloc_resized_main_l53_1[0..7] ∈ UNINITIALIZED
-  cmp :: snapshot.c:54 <- resized_main: gp ∈ {0}
-                                        p ∈
-                                         {{ &__malloc_resized_main_l53_1[6] }}
-                                        q ∈ {0}
-                                        r_weak[0..1] ∈ {0}
-                                        r_weak_global[0..1] ∈ {0}
-                                        r_resized[0..1] ∈ {0}
-                                        i ∈ {0; 1}
-                                        b ∈
-                                         {{ &__malloc_resized_main_l53_1[0] }}
-                                        tmp ∈ {4; 8}
-                                        tmp_0 ∈
-                                             {{ &__malloc_resized_main_l53_1[0] }}
-                                        r_unchanged[0..1] ∈ {0}
-                                        r_unchanged_global[0..1] ∈ {0}
-                                        __retres ∈ {0}
-                                        __malloc_resized_main_l53_1[0..7] ∈
-                                                                   UNINITIALIZED
-  reference, joined: gp ∈ {0}
-                     p ∈ {{ &__malloc_resized_main_l53_1[6] }}
-                     q ∈ {0}
-                     r_weak[0..1] ∈ {0}
-                     r_weak_global[0..1] ∈ {0}
-                     r_resized[0..1] ∈ {0}
-                     i ∈ {0; 1}
-                     b ∈ {{ &__malloc_resized_main_l53_1[0] }}
-                     tmp ∈ {4; 8}
-                     tmp_0 ∈ {{ &__malloc_resized_main_l53_1[0] }}
-                     r_unchanged[0..1] ∈ {0}
-                     r_unchanged_global[0..1] ∈ {0}
-                     __retres ∈ {0; 1}
-                     __malloc_resized_main_l53_1[0..7] ∈ UNINITIALIZED
   cmp :: snapshot.c:54 <- resized_main: gp ∈ {0}
                                         p ∈
                                          {{ &__malloc_resized_main_l53_1[6] }}
@@ -140,72 +110,22 @@ cmp, after snapshot.c:21 `return __retres;`:
                                         __retres ∈ {0; 1}
                                         __malloc_resized_main_l53_1[0..7] ∈
                                                                    UNINITIALIZED
-Hits against the analysed call of their cache entry:
 Initial state: equal.
 Differences with the run without memexec:
-  final state, joined: more precise, as with memexec
-  final state, filtered: more precise, as with memexec
-  final state, resized_main: more precise, as with memexec
-  cmp, after snapshot.c:21 `__retres = p == q;`, joined: more precise
-  cmp, after snapshot.c:21 `__retres = p == q;`, filtered: more precise
-  cmp, after snapshot.c:21 `__retres = p == q;`, cmp :: snapshot.c:54 <- resized_main: more precise
-  cmp, before snapshot.c:21 `return __retres;`, joined: more precise
-  cmp, before snapshot.c:21 `return __retres;`, filtered: more precise
-  cmp, before snapshot.c:21 `return __retres;`, cmp :: snapshot.c:54 <- resized_main: more precise
-  cmp, after snapshot.c:21 `return __retres;`, joined: more precise
-  cmp, after snapshot.c:21 `return __retres;`, filtered: more precise
-  cmp, after snapshot.c:21 `return __retres;`, cmp :: snapshot.c:54 <- resized_main: more precise
-  resized_main, after snapshot.c:52-56 `loop`, joined: more precise, as with memexec
-  resized_main, after snapshot.c:52-56 `loop`, filtered: more precise, as with memexec
-  resized_main, after snapshot.c:52-56 `loop`, resized_main: more precise, as with memexec
-  resized_main, before snapshot.c:52 `if (i < 2)`, joined: more precise, as with memexec
-  resized_main, before snapshot.c:52 `if (i < 2)`, filtered: more precise, as with memexec
-  resized_main, before snapshot.c:52 `if (i < 2)`, resized_main: more precise, as with memexec
-  resized_main, after snapshot.c:52 `if (i < 2)`, joined: more precise, as with memexec
-  resized_main, after snapshot.c:52 `if (i < 2)`, filtered: more precise, as with memexec
-  resized_main, after snapshot.c:52 `if (i < 2)`, resized_main: more precise, as with memexec
-  resized_main, before snapshot.c:52-56 `break;`, joined: more precise, as with memexec
-  resized_main, before snapshot.c:52-56 `break;`, filtered: more precise, as with memexec
-  resized_main, before snapshot.c:52-56 `break;`, resized_main: more precise, as with memexec
-  resized_main, after snapshot.c:52-56 `break;`, joined: more precise, as with memexec
-  resized_main, after snapshot.c:52-56 `break;`, filtered: more precise, as with memexec
-  resized_main, after snapshot.c:52-56 `break;`, resized_main: more precise, as with memexec
-  resized_main, after snapshot.c:54 `r_resized[i] = cmp(b + 6,(char *)0);`, joined: more precise, as with memexec
-  resized_main, after snapshot.c:54 `r_resized[i] = cmp(b + 6,(char *)0);`, filtered: more precise, as with memexec
-  resized_main, after snapshot.c:54 `r_resized[i] = cmp(b + 6,(char *)0);`, resized_main: more precise, as with memexec
-  resized_main, before snapshot.c:55 `free((void *)b);`, joined: more precise, as with memexec
-  resized_main, before snapshot.c:55 `free((void *)b);`, filtered: more precise, as with memexec
-  resized_main, before snapshot.c:55 `free((void *)b);`, resized_main: more precise, as with memexec
-  resized_main, after snapshot.c:55 `free((void *)b);`, joined: more precise, as with memexec
-  resized_main, after snapshot.c:55 `free((void *)b);`, filtered: more precise, as with memexec
-  resized_main, after snapshot.c:55 `free((void *)b);`, resized_main: more precise, as with memexec
-  resized_main, before snapshot.c:52 `i ++;`, joined: more precise, as with memexec
-  resized_main, before snapshot.c:52 `i ++;`, filtered: more precise, as with memexec
-  resized_main, before snapshot.c:52 `i ++;`, resized_main: more precise, as with memexec
-  resized_main, after snapshot.c:52 `i ++;`, joined: more precise, as with memexec
-  resized_main, after snapshot.c:52 `i ++;`, filtered: more precise, as with memexec
-  resized_main, after snapshot.c:52 `i ++;`, resized_main: more precise, as with memexec
-  resized_main, before snapshot.c:57 `return;`, joined: more precise, as with memexec
-  resized_main, before snapshot.c:57 `return;`, filtered: more precise, as with memexec
-  resized_main, before snapshot.c:57 `return;`, resized_main: more precise, as with memexec
-  resized_main, after snapshot.c:57 `return;`, joined: more precise, as with memexec
-  resized_main, after snapshot.c:57 `return;`, filtered: more precise, as with memexec
-  resized_main, after snapshot.c:57 `return;`, resized_main: more precise, as with memexec
-Answers: 184 equal, 0 covering, 48 more precise, 0 omitting, 0 unavailable.
+Answers: 232 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
 Callstacks listed: those of the run without memexec at each of the 95 points.
 Callstacks listed through the filter: those of the run without memexec at each of the 95 points.
 Filtered requests that reject one callstack: 0.
 Requests made: 422; reported by the trap: 422, each once with its description; reads of the legacy store: 0.
 Passes after the iteration:
   with memexec, without recording: 66 requests, 79 reads of the legacy store in them, 84 reads outside any request.
-  with -eva-hit-log: 66 requests, 0 reads of the legacy store in them, 0 reads outside any request.
-    unreachable statements: 46 requests
+  with -eva-hit-log: 74 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 47 requests
+    statuses of the properties: 6 requests
     statistics: 19 requests
-    summary: 1 request
-Statuses of the properties that differ from the run without memexec:
-  snapshot.c:21: Assertion 'Eva,ptr_comparison' ("snapshot.c", line 21): assert Eva: ptr_comparison: \pointer_comparable((void *)p, (void *)q);: absent against Unknown: MORE OPTIMISTIC, as with memexec
+    summary: 2 requests
+Statuses of the properties: those of the run without memexec, for 92 properties.
 Statuses with memexec, without recording, that differ from the run without memexec:
   snapshot.c:21: Assertion 'Eva,ptr_comparison' ("snapshot.c", line 21): assert Eva: ptr_comparison: \pointer_comparable((void *)p, (void *)q);: absent against Unknown: MORE OPTIMISTIC
-Alarms that differ from the run without memexec:
-  missing: snapshot.c:21: Pointer_comparison(p, q): Unknown
-Summary: statement coverage 1.0000, function coverage 0.4000, 0 alarms, against statement coverage 1.0000, function coverage 0.4000, 1 alarm without memexec, as with memexec.
+Alarms: 1, of which 1 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.4000, 1 alarm, those of the run without memexec.
