@@ -50,6 +50,45 @@ module Make (Engine: Engine_sig.S) = struct
      without the snapshot. *)
   module Refused = Mem_exec.Make (Engine.Val) (Engine.Dom)
 
+  (* The results of [call] in [init_state] from the cache entry [i], whose
+     states at the exits are [states], used through [renaming]. Without
+     renaming, the hooks receive [`Reuse i], as without -eva-hit-log. *)
+  let reuse_call ~record call init_state states i renaming =
+    apply_call_hooks call init_state `Reuse;
+    (* Evaluate the preconditions of kf, to update the statuses
+       at this call. *)
+    Populate_spec.populate_funspec call.kf [`Assigns];
+    let spec = Annotations.funspec call.kf in
+    let body_entry_states =
+      if not (Eva_utils.skip_specifications call.kf) &&
+         List.exists (fun b -> b.b_requires <> []) spec.spec_behavior
+      then begin
+        let ab = Logic.create init_state call.kf in
+        let kinstr = Callstack.top_callsite call.callstack in
+        Logic.check_fct_preconditions kinstr call.kf ab init_state
+      end
+      else [ init_state ]
+    in
+    if record then begin
+      let start = Engine.Dom.get_cvalue_or_top init_state in
+      let body_entry =
+        match Bottom.List.join Engine.Dom.join body_entry_states with
+        | `Bottom -> Cvalue.Model.bottom
+        | `Value state -> Engine.Dom.get_cvalue_or_top state
+      in
+      Hit_log.record_hit ~id:i ~renaming call.callstack ~start ~body_entry
+    end;
+    Self.feedback ~current:true ~mkey:Log_key.progress
+      "Reusing old results for call to %a" Kernel_function.pretty call.kf;
+    let results =
+      match renaming with
+      | [] -> `Reuse i
+      | _ -> `Renamed_reuse (i, Base.substitution_from_list renaming)
+    in
+    apply_call_results_hooks call init_state results;
+    (* call can be cached since it was cached once *)
+    Engine_sig.{ states; cacheable = Cacheable; kind = `Body }
+
   let compute_and_cache_call compute call init_state =
     let args =
       List.map (fun {avalue} -> Eval.value_assigned avalue) call.arguments
@@ -94,37 +133,10 @@ module Make (Engine: Engine_sig.S) = struct
             if record then Hit_log.record_mentioned mentioned
       in
       call_result
-    | Some (states, i, renaming) ->
-      apply_call_hooks call init_state `Reuse;
-      (* Evaluate the preconditions of kf, to update the statuses
-         at this call. *)
-      Populate_spec.populate_funspec call.kf [`Assigns];
-      let spec = Annotations.funspec call.kf in
-      let body_entry_states =
-        if not (Eva_utils.skip_specifications call.kf) &&
-           List.exists (fun b -> b.b_requires <> []) spec.spec_behavior
-        then begin
-          let ab = Logic.create init_state call.kf in
-          let kinstr = Callstack.top_callsite call.callstack in
-          Logic.check_fct_preconditions kinstr call.kf ab init_state
-        end
-        else [ init_state ]
-      in
-      if record then begin
-        let start = Engine.Dom.get_cvalue_or_top init_state in
-        let body_entry =
-          match Bottom.List.join Engine.Dom.join body_entry_states with
-          | `Bottom -> Cvalue.Model.bottom
-          | `Value state -> Engine.Dom.get_cvalue_or_top state
-        in
-        Hit_log.record_hit ~id:i ~renaming call.callstack ~start ~body_entry
-      end;
-      Self.feedback ~current:true ~mkey:Log_key.progress
-        "Reusing old results for call to %a" Kernel_function.pretty call.kf;
-      let substitution = Base.substitution_from_list renaming in
-      apply_call_results_hooks call init_state (`Reuse (i, substitution));
-      (* call can be cached since it was cached once *)
-      Engine_sig.{ states; cacheable = Cacheable; kind = `Body }
+    | Some (MemExec.Hit (states, i)) ->
+      reuse_call ~record call init_state states i []
+    | Some (MemExec.Renamed_hit (states, i, renaming)) ->
+      reuse_call ~record call init_state states i renaming
 
   (* ----- Body or specification analysis ----------------------------------- *)
 

@@ -12,7 +12,8 @@ let main () =
   Cvalue_callbacks.register_call_results_hook
     (fun _callstack kf _state results ->
        match results with
-       | `Reuse _ when Kernel_function.get_name kf = "parent" -> incr hits
+       | (`Reuse _ | `Renamed_reuse _)
+         when Kernel_function.get_name kf = "parent" -> incr hits
        | _ -> ());
   Analysis.compute ();
   Format.printf "Hits of parent: %d.@." !hits;

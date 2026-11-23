@@ -93,18 +93,27 @@ module Make
       (Partition.key * Domain.t) list ->
       Base.t list option
 
+    (** A previous analysis that a call reuses. *)
+    type hit =
+      | Hit of (Partition.key * Domain.t) list * int
+      (** The results of the analysis, and the index of the matching call
+          (This information is intended to be used by the plugins that have
+          registered Value callbacks.). *)
+      | Renamed_hit of (Partition.key * Domain.t) list * int * renaming
+      (** The same, for a call stored in numbered form, with the renaming
+          from the blocks of the matching call to those of this call, when
+          it is not the identity. *)
+
     (** [reuse_previous_call kf init_state args] searches amongst the previous
         analyzes of [kf] one that matches the initial state [init_state] and the
         values of arguments [args]. If none is found, [None] is returned.
         Otherwise, the results of the analysis are returned, together with the
-        index of the matching call (This information is intended to be used
-        by the plugins that have registered Value callbacks.) and the
-        renaming from the blocks of the matching call to those of this
-        call: the identity unless the call was stored in numbered form. *)
+        index of the matching call, and with the renaming if it is not the
+        identity, which may happen only with [~snapshot:true]. *)
     val reuse_previous_call:
       snapshot:bool ->
       kernel_function -> Domain.t -> Value.t or_bottom list ->
-      ((Partition.key * Domain.t) list * int * renaming) option
+      hit option
 
     (** [has_previous_call kf init_state args] is whether
         [reuse_previous_call ~snapshot:false kf init_state args] would find a

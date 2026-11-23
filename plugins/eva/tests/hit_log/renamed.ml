@@ -35,7 +35,7 @@ let () =
          | `Body (_, id) ->
            project := Some (Project.current ());
            calls := { kf; id } :: !calls
-         | `Builtin _ | `Spec _ | `Reuse _ -> ())
+         | `Builtin _ | `Spec _ | `Reuse _ | `Renamed_reuse _ -> ())
 
 (* One line, whatever its length. *)
 let one_line pp x =

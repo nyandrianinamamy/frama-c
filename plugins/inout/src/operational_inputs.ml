@@ -801,7 +801,8 @@ module Callwise = struct
         MemExec.replace memexec_counter inout;
         pop_local_table kf;
         inout
-      | `Reuse (counter, substitution) ->
+      | `Reuse counter -> MemExec.find counter
+      | `Renamed_reuse (counter, substitution) ->
         let rename zone = snd (Memory_zone.replace_base substitution zone) in
         Inout_type.map rename (MemExec.find counter)
       | `Spec _states

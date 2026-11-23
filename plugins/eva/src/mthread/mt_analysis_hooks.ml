@@ -864,7 +864,7 @@ let catch_functions_record analysis stack _kf _pre_state = function
     let cur_events = curr_events analysis in
     Datatype.Int.Hashtbl.add analysis.memexec_cache i cur_events;
     pop_function_call analysis;
-  | `Reuse (i, _) ->
+  | `Reuse i | `Renamed_reuse (i, _) ->
     let events = Datatype.Int.Hashtbl.find analysis.memexec_cache i in
     (* Merge the memoized results in the current analysis *)
     register_multiple_events analysis events;

@@ -23,7 +23,7 @@ let () =
          in
          match results with
          | `Body _ -> Format.printf "Call of f: body analysed.@."
-         | `Reuse _ -> stop "hit"
+         | `Reuse _ | `Renamed_reuse _ -> stop "hit"
          | `Spec _ -> stop "specification"
          | `Builtin _ -> ()
        end)

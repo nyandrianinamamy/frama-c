@@ -50,11 +50,14 @@ module type API = sig
     | `Body of results * int
     (** Cvalue states before and after each statement of the given function,
         plus a unique integer id for the call. *)
-    | `Reuse of int * Base.substitution
-      (** The results are the same as a previous call with the given integer id,
-          previously recorded with the [`Body] constructor, with its allocated
-          blocks replaced through the substitution. The substitution is empty
-          unless option [-eva-hit-log] is set. *)
+    | `Reuse of int
+    (** The results are the same as a previous call with the given integer id,
+        previously recorded with the [`Body] constructor. *)
+    | `Renamed_reuse of int * Base.substitution
+      (** The results are the same as a previous call with the given integer
+          id, previously recorded with the [`Body] constructor, with its
+          allocated blocks replaced through the substitution, which is not
+          empty. Only with option [-eva-hit-log]. *)
     ]
 
   (** Signature of a hook to be called after the analysis of each function call.

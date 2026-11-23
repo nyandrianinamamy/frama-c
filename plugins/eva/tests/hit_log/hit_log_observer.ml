@@ -374,7 +374,7 @@ let () =
        if !observing_calls && suite then begin
          match results with
          | `Body (states, id) -> record_footprint id state states
-         | `Reuse _ | `Spec _ | `Builtin _ -> ()
+         | `Reuse _ | `Renamed_reuse _ | `Spec _ | `Builtin _ -> ()
        end;
        if !observing_calls then
          events :=
@@ -383,7 +383,7 @@ let () =
          let kind =
            match results with
            | `Body (_, id) -> Analysed id
-           | `Reuse (id, _) -> Hit id
+           | `Reuse id | `Renamed_reuse (id, _) -> Hit id
            | `Spec _ -> Other "specification"
            | `Builtin _ -> Other "builtin"
          in
@@ -400,7 +400,7 @@ let () =
            | `Body (states, id) ->
              Hashtbl.replace made_by_entry id made;
              Hashtbl.replace reached_by_entry id (reached states)
-           | `Reuse _ | `Spec _ | `Builtin _ -> ()
+           | `Reuse _ | `Renamed_reuse _ | `Spec _ | `Builtin _ -> ()
          end;
          match p.calls with
          | call :: calls ->
@@ -897,7 +897,8 @@ let () =
               in
               Base.Hashtbl.replace a.origins base (site, n);
               Hashtbl.replace a.by_site site (n + 1))
-       | _, (`Builtin _ | `Spec _ | `Body _ | `Reuse _) -> ())
+       | _, (`Builtin _ | `Spec _ | `Body _ | `Reuse _ | `Renamed_reuse _) ->
+         ())
 
 (* Fold over bindings and pointer values. A zero-sized block may occur
    only in a value. *)

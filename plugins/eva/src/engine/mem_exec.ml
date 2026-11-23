@@ -505,7 +505,16 @@ module Make
         Some mentioned
 
 
-  exception Result_found of CallOutput.t * int * renaming
+  exception Result_found of CallOutput.t * int
+
+  (* A call stored in numbered form reused through a renaming that is not the
+     identity. Without -eva-hit-log, the lookup raises [Result_found] only,
+     whose value has the size it had before the renaming. *)
+  exception Renamed_result_found of CallOutput.t * int * renaming
+
+  type hit =
+    | Hit of CallOutput.t * int
+    | Renamed_hit of CallOutput.t * int * renaming
 
   (** Find a previous execution in [map_inputs] that matches [st].
       raise [Result_found] when this execution exists, or do nothing. This is
@@ -527,7 +536,7 @@ module Make
             Domain.reuse bases ~current_input:state ~previous_output:output
           in
           let outputs = List.map process outputs in
-          raise (Result_found (outputs, i, []))
+          raise (Result_found (outputs, i))
         with Not_found -> ()
     in
     Base.Hptset.Hashtbl.iter aux_previous_call map_inputs
@@ -542,8 +551,9 @@ module Make
      result matches if its snapshot holds for the blocks of the numbering:
      the most recent one if several do. Its exits, their clobbered sets and
      its output bases are rewritten back through the numbering. Raises
-     [Result_found] with the renaming from the blocks of the call that
-     computed the result to those of this call, by number. Returns whether
+     [Renamed_result_found] with the renaming from the blocks of the call
+     that computed the result to those of this call, by number, or
+     [Result_found] if it is the identity. Returns whether
      a result has the numbered input state of the call but no snapshot that
      holds.
      A result whose snapshot fails is kept: it is no longer tied to one
@@ -598,11 +608,12 @@ module Make
                   List.map (fun (base, _, _) -> base)
                     (Numbering.blocks numbering)
                 in
-                let renaming =
-                  if List.equal Base.equal r.analysed blocks then []
-                  else List.combine r.analysed blocks
-                in
-                raise (Result_found (outputs, r.call_number, renaming))
+                if List.equal Base.equal r.analysed blocks
+                then raise (Result_found (outputs, r.call_number))
+                else
+                  let renaming = List.combine r.analysed blocks in
+                  raise
+                    (Renamed_result_found (outputs, r.call_number, renaming))
     in
     List.iter lookup keys;
     !same_input
@@ -649,10 +660,13 @@ module Make
     | Not_found | No_numbered_form ->
       Statistics.(incr memexec_misses) kf;
       None
-    | Result_found (outputs, i, renaming) ->
+    | Result_found (outputs, i) ->
       Statistics.(incr memexec_hits) kf;
       let call_result = outputs in
-      Some (call_result, i, renaming)
+      Some (Hit (call_result, i))
+    | Renamed_result_found (outputs, i, renaming) ->
+      Statistics.(incr memexec_hits) kf;
+      Some (Renamed_hit (outputs, i, renaming))
 
   let has_previous_call kf state args =
     try

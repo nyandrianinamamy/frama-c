@@ -132,11 +132,12 @@ let record_for_individual_froms callstack kf pre_state value_res =
         MemExec.replace memexec_counter froms;
         pop_local_table kf;
         froms
+      | `Reuse counter -> MemExec.find counter
       (* The allocated blocks of the dependencies are not replaced through the
          substitution of a reuse: with option -eva-hit-log, the dependencies
          of a call that reuses a previous call on other allocated blocks name
          the blocks of the previous call. *)
-      | `Reuse (counter, _substitution) -> MemExec.find counter
+      | `Renamed_reuse (counter, _substitution) -> MemExec.find counter
       | `Builtin (_states, Some (result,_)) -> result
       | `Builtin (_states, None)
       | `Spec _states ->

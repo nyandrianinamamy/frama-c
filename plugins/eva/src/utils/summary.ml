@@ -216,7 +216,7 @@ module FunctionStats = struct
     let aux _callstack kf _state results =
       match results with
       | `Body _ -> replace kf (compute_fun_stats kf)
-      | `Builtin _ | `Spec _ | `Reuse _ -> ()
+      | `Builtin _ | `Spec _ | `Reuse _ | `Renamed_reuse _ -> ()
     in
     Cvalue_callbacks.register_call_results_hook aux
 
