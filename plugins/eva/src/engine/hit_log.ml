@@ -58,19 +58,33 @@ module Point =
 
 module Points = Stmt_table.Make (Point)
 
+(* A renaming of the allocated blocks of a cache entry: pairs of blocks,
+   from the blocks of the analysed call of the entry to those of a call that
+   uses it, one pair for each block that memexec numbered when it stored
+   the entry, see [Mem_exec]. The empty list is the identity. *)
+type renaming = (Base.t * Base.t) list
+
+module Renaming = Datatype.List (Datatype.Pair (Base) (Base))
+
+let equal_renaming = Renaming.equal
+
 (* A call made by the body of the analysed call of a cache entry, at the call
    statement [site], to [callee]: [child] is the cache entry it used, computed
    or hit, if any; none for a call analysed by a specification or a builtin.
-   [start] is its start state, projected on the blocks that the body had
-   read or written before [site], on those that do not exist in the start
-   state of the body (the blocks the body created), and on those that the
-   call binds or removes (the formals and locals of [callee], and the blocks
-   of the start state of the body that the start state of the call does not
-   have). None if the footprint of the body is unknown. *)
+   [renaming] is the renaming through which it used [child], from the blocks
+   of the analysed call of [child] to the blocks of the body: the identity
+   if it computed [child]. [start] is its start state, projected on the
+   blocks that the body had read or written before [site], on those that do
+   not exist in the start state of the body (the blocks the body created),
+   and on those that the call binds or removes (the formals and locals of
+   [callee], and the blocks of the start state of the body that the start
+   state of the call does not have). None if the footprint of the body is
+   unknown. *)
 type below = {
   site: Cil_types.stmt;
   callee: Cil_types.kernel_function;
   child: int option;
+  renaming: renaming;
   start: point option;
 }
 
@@ -83,13 +97,13 @@ module Below =
       let reprs =
         [ { site = Cil_datatype.Stmt.dummy;
             callee = List.hd Kernel_function.reprs;
-            child = None; start = None } ]
+            child = None; renaming = []; start = None } ]
       let structural_descr =
         let module Child = Datatype.Option (Datatype.Int) in
         let module Start = Datatype.Option (Point) in
         Structural_descr.t_record
           [| Cil_datatype.Stmt.packed_descr; Kernel_function.packed_descr;
-             Child.packed_descr; Start.packed_descr |]
+             Child.packed_descr; Renaming.packed_descr; Start.packed_descr |]
     end)
 
 (* The points absent from the tables are unreachable. With an unknown
@@ -150,14 +164,15 @@ module Analysed =
    the calls below a hit that use it. The states of the latter are computed on
    request from the entries of their callers. [heap] tells whether the
    analysed call is a heap call: its key group is then made of this call
-   only. *)
+   only. The body-entry states of the hits are grouped by the renaming
+   through which each hit used the entry. *)
 type entry = {
   heap: bool;
   inner: inner_part;
   below: below list;
   analysed: analysed;
   hit_starts: states;
-  hit_body_entries: states;
+  mutable hit_body_entries: (renaming * states) list;
 }
 
 module Entry =
@@ -171,7 +186,7 @@ module Entry =
           (fun states ->
              { heap = false; inner = Unknown; below = [];
                analysed = List.hd Analysed.reprs;
-               hit_starts = states; hit_body_entries = states })
+               hit_starts = states; hit_body_entries = [ [], states ] })
           States.reprs
       let structural_descr =
         let inner_part =
@@ -181,13 +196,14 @@ module Entry =
                [| Full_states.packed_descr; Full_states.packed_descr |] |]
         in
         let module Below_list = Datatype.List (Below) in
+        let module Groups = Datatype.List (Datatype.Pair (Renaming) (States)) in
         Structural_descr.t_record
           [| Structural_descr.p_bool;
              Structural_descr.pack inner_part;
              Below_list.packed_descr;
              Analysed.packed_descr;
              States.packed_descr;
-             States.packed_descr |]
+             Groups.packed_descr |]
     end)
 
 type store = {
@@ -230,7 +246,10 @@ let copy_entry entry =
   in
   { heap = entry.heap; inner; below = entry.below; analysed = entry.analysed;
     hit_starts = copy_states entry.hit_starts;
-    hit_body_entries = copy_states entry.hit_body_entries }
+    hit_body_entries =
+      List.map
+        (fun (renaming, states) -> renaming, copy_states states)
+        entry.hit_body_entries }
 
 let copy_store store =
   let entries = Int_table.create (Int_table.length store.entries) in
@@ -329,8 +348,10 @@ type exit =
   | Exit of Heap_paths.sweeps
 
 (* A call being analysed, in any mode: the calls made by its body so far, each
-   with its call statement, its function, its start state and the cache entry
-   it used; the cache entry this call uses, once known; the heap effects it
+   with its call statement, its function, its start state, the cache entry it
+   used and the renaming through which it used it; the cache entry this call
+   uses, once known, and the renaming through which it uses it; the heap
+   effects it
    received so far; the sweeps of the calls made by its body, merged over the
    evaluations of each call statement, except the last evaluation, kept apart
    with its statement until the next one ends, see [add_evaluation]; the
@@ -343,9 +364,10 @@ type exit =
    that reads every allocated block. *)
 type frame = {
   mutable calls:
-    (Cil_types.stmt * Cil_types.kernel_function * Cvalue.Model.t * int option)
-      list;
+    (Cil_types.stmt * Cil_types.kernel_function * Cvalue.Model.t * int option
+     * renaming) list;
   mutable used: int option;
+  mutable renaming: renaming;
   mutable effects: effects;
   site_sweeps: Heap_paths.sweeps Stmt_table.t;
   mutable last: (Cil_types.stmt * Heap_paths.sweeps) option;
@@ -585,11 +607,11 @@ let inner_part ?(heap_before = no_heap) ?(heap_after = no_heap) footprint
   let after = project_all zone_after heap_after (Lazy.force after) in
   let below =
     List.rev_map
-      (fun (site, callee, state, child) ->
+      (fun (site, callee, state, child, renaming) ->
          let created, removed = created_and_removed_blocks ~start state in
          let bound = bound_by_call ~removed callee in
          let start = project ~bound ~created (zone_before site) state in
-         { site; callee; child; start = Some start })
+         { site; callee; child; renaming; start = Some start })
       calls
   in
   Known { before; after }, below
@@ -725,7 +747,7 @@ let lost_hit kf f =
    call. *)
 let check_no_heap_child store calls =
   List.iter
-    (fun (_, callee, _, child) ->
+    (fun (_, callee, _, child, _) ->
        let entry = Option.map (Int_table.find_opt store.entries) child in
        match entry with
        | Some (Some { heap = true; _ }) ->
@@ -1010,7 +1032,8 @@ let record_analysed_call ~id callstack ~automaton ~fired ~footprint ~start
   let unknown () =
     let below =
       List.rev_map
-        (fun (site, callee, _, child) -> { site; callee; child; start = None })
+        (fun (site, callee, _, child, renaming) ->
+           { site; callee; child; renaming; start = None })
         calls
     in
     Unknown, below
@@ -1056,7 +1079,7 @@ let record_analysed_call ~id callstack ~automaton ~fired ~footprint ~start
     below;
     analysed = { callstack; start; body_entry };
     hit_starts = new_states ();
-    hit_body_entries = new_states ();
+    hit_body_entries = [];
   } in
   Int_table.replace store.entries id entry;
   let previous =
@@ -1064,16 +1087,30 @@ let record_analysed_call ~id callstack ~automaton ~fired ~footprint ~start
   in
   Kf_table.replace store.entries_of kf (id :: previous)
 
-let record_hit ~id callstack ~start ~body_entry =
+(* The states of [groups] for [renaming], added to [groups] if absent. *)
+let group_states entry renaming =
+  match
+    List.find_opt
+      (fun (r, _) -> equal_renaming r renaming) entry.hit_body_entries
+  with
+  | Some (_, states) -> states
+  | None ->
+    let states = new_states () in
+    entry.hit_body_entries <- entry.hit_body_entries @ [ renaming, states ];
+    states
+
+let record_hit ~id ~renaming callstack ~start ~body_entry =
   let store = Store.get () in
-  Option.iter (fun frame -> frame.used <- Some id) (current_frame ());
+  Option.iter
+    (fun frame -> frame.used <- Some id; frame.renaming <- renaming)
+    (current_frame ());
   match Int_table.find_opt store.entries id with
   | None -> store.unrecorded_hit <- true
   | Some { heap = true; _ } ->
     Self.fatal "hit log: hit of the cache entry %d, of a heap call" id
   | Some entry ->
     add_state entry.hit_starts callstack start;
-    add_state entry.hit_body_entries callstack body_entry
+    add_state (group_states entry renaming) callstack body_entry
 
 let mark_unrolled_recursion kf = mark (Store.get ()).body_unavailable kf
 
@@ -1088,7 +1125,7 @@ let mark_interrupted callstack ~start =
 let call callstack ~start f =
   let running = Running.get () in
   let frame = {
-    calls = []; used = None; effects = [];
+    calls = []; used = None; renaming = []; effects = [];
     site_sweeps = Stmt_table.create 1; last = None;
     released = Stmt_table.create 1; withdrawn_at = Stmt_table.create 1;
     withdrawn = Base.Hptset.empty; exit = Unset; outputs = None;
@@ -1106,7 +1143,7 @@ let call callstack ~start f =
       if frame.refused then caller.refused <- true;
       add_withdrawn caller site frame.withdrawn;
       add_evaluation caller site frame;
-      let call = site, kf, start, frame.used in
+      let call = site, kf, start, frame.used, frame.renaming in
       caller.calls <- call :: caller.calls
     | _, Kglobal | [], _ -> ()
   in
@@ -1151,7 +1188,61 @@ let analysis f =
    cover. The state of a call that crosses a recursion is thus top, on its
    callstack and in the joined states that include it, unless the call is
    unreachable. The points of its body, if it has one, pasted on this state,
-   are top as well. *)
+   are top as well.
+
+   Each member whose body did not run uses its entry through a renaming,
+   from the blocks of the analysed call of the entry to its own blocks: a
+   hit, through the renaming that memexec gives; a call below a member of
+   [parent] that used the entry through the renaming rho, as recorded in
+   [parent], through the composition of the renaming sigma of that member
+   with rho. Its start state is the stored start state renamed by sigma,
+   pasted on the body-entry state of the member of [parent]. The members
+   are grouped by renaming, and per callstack by renaming: a state at a
+   point of the body of the entry is pasted once per group, from the point
+   of the Inner part renamed through the renaming of the group, and the
+   states of the groups are joined. *)
+
+(* The states of the members of an entry, grouped by renaming. *)
+type groups = (renaming * Cvalue.Model.t) list
+
+(* Joins [state] into the group of [renaming] in [groups]. *)
+let add_group renaming state groups =
+  let rec add = function
+    | [] -> [ renaming, state ]
+    | (r, previous) :: rest when equal_renaming r renaming ->
+      (r, Cvalue.Model.join previous state) :: rest
+    | group :: rest -> group :: add rest
+  in
+  add groups
+
+let join_groups groups =
+  List.fold_left
+    (fun acc (_, state) -> Cvalue.Model.join acc state)
+    Cvalue.Model.bottom groups
+
+(* The renaming of a call below a member that uses the entry of its caller
+   through [sigma], the call having used its own entry through [rho].
+   [sigma], if not the identity, has a pair for each block that memexec
+   numbered in the entry of the caller; so has [rho] for the entry of the
+   callee. The images by [rho] are blocks of the analysed call of the
+   caller that its entry numbers: the caller receives no heap effect, and
+   its key holds the key of the callee, renamed through [rho] by the inout
+   plugin, so that every allocated block that the callee mentions is
+   mentioned by the caller. If [rho] is the identity, the callee mentions
+   blocks of the analysed call of the caller, and [sigma] renames them. *)
+let compose sigma rho =
+  match sigma, rho with
+  | [], _ -> rho
+  | _, [] -> sigma
+  | _ ->
+    let image block =
+      match List.find_opt (fun (b, _) -> Base.equal b block) sigma with
+      | Some (_, image) -> image
+      | None -> block
+    in
+    let composed = List.map (fun (b, block) -> b, image block) rho in
+    if List.for_all (fun (b, image) -> Base.equal b image) composed then []
+    else composed
 
 type derived = {
   (* The calls stored in the entries, with the number of the entry that
@@ -1160,9 +1251,9 @@ type derived = {
   (* The same calls, by the function they call. *)
   by_callee: (int * below) list Kf_table.t;
   (* For each entry, the body-entry states of its members whose body did not
-     run, joined, and per callstack. *)
-  unrun_joined: Cvalue.Model.t Int_table.t;
-  unrun_by_callstack: Cvalue.Model.t Cs_table.t Int_table.t;
+     run, joined, and per callstack, grouped by renaming. *)
+  unrun_joined: groups Int_table.t;
+  unrun_by_callstack: groups Cs_table.t Int_table.t;
   (* For each entry, the functions on the callstacks of these members, and
      whether one of these callstacks may cross a recursion. *)
   unrun_frames: (Kernel_function.Set.t * bool) Int_table.t;
@@ -1252,8 +1343,41 @@ let derived store =
   end;
   derived
 
-(* Raised when a call below a hit was stored without its start state. *)
+(* Raised when a call below a hit was stored without its start state, or
+   when a renaming does not rename every allocated block of a point, or is
+   not injective on them. *)
 exception Unavailable
+
+(* [rename renaming point] is [point] with the blocks of the analysed call
+   of its entry renamed to those of a member. Every allocated block of the
+   point must be renamed, and no two to the same block, as [renaming] is
+   then injective on the blocks of the point and none of its images is
+   bound in the point unless it is renamed itself; raises [Unavailable]
+   otherwise. A memory state is renamed by [Numbering.rewrite_model]. *)
+let rename renaming (point: point) =
+  match renaming with
+  | [] -> point
+  | pairs ->
+    let domain = Base.Hptset.of_list (List.map fst pairs) in
+    let images = Base.Hptset.of_list (List.map snd pairs) in
+    let allocated =
+      Base.Hptset.filter (function Base.Allocated _ -> true | _ -> false)
+    in
+    let blocks =
+      Base.Hptset.union (Numbering.allocated_blocks point.inner)
+        (allocated
+           (Base.Hptset.union point.covered
+              (Base.Hptset.union point.swept_every point.swept_some)))
+    in
+    if Base.Hptset.cardinal images <> List.length pairs
+    || not (Base.Hptset.subset blocks domain)
+    then raise Unavailable;
+    let substitution = Base.substitution_from_list pairs in
+    let rename_bases = Numbering.rewrite_bases substitution in
+    { covered = rename_bases point.covered;
+      inner = Numbering.rewrite_model substitution point.inner;
+      swept_every = rename_bases point.swept_every;
+      swept_some = rename_bases point.swept_some; }
 
 (* The pointers to the blocks of [blocks] in [state] become escaping
    addresses: in place of the pointers if [exact], joined with them
@@ -1288,13 +1412,14 @@ let paste derived (point: point) entry =
     let frame = Base.Hptset.fold Cvalue.Model.remove_base unbound entry in
     Cvalue.Model.merge ~into:frame point.inner
 
-(* The start state of the call [below] made by the body of a member whose
-   body-entry state is [entry]. *)
-let paste_call derived (below: below) entry =
+(* The start state of the call [below] made by the body of a member that
+   uses the entry of the body through [renaming], whose body-entry state is
+   [entry]. *)
+let paste_call derived (below: below) renaming entry =
   match below.start, entry with
   | _, Cvalue.Model.Bottom -> Cvalue.Model.bottom
   | None, _ -> raise Unavailable
-  | Some start, _ -> paste derived start entry
+  | Some start, _ -> paste derived (rename renaming start) entry
 
 (* Whether the call [below] may rename variables if it is a recursive call:
    its function has a formal or a local whose address is taken, or that an
@@ -1326,12 +1451,13 @@ let is_recursive callstack callee =
   List.exists (Kernel_function.equal callee) (Callstack.to_kf_list callstack)
 
 (* The start state of the call [below] made on [callstack] by the body of a
-   member whose body-entry state is [entry]: top if the call is reachable and
-   is a recursive call that renames variables, as given by [renames]. Below a
+   member that uses the entry of the body through [renaming], whose
+   body-entry state is [entry]: top if the call is reachable and is a
+   recursive call that renames variables, as given by [renames]. Below a
    member that crosses a recursion, [entry] is top, and so is the start
    state. *)
-let call_below derived ~renames callstack (below: below) entry =
-  match paste_call derived below entry with
+let call_below derived ~renames callstack (below: below) renaming entry =
+  match paste_call derived below renaming entry with
   | Cvalue.Model.Bottom -> Cvalue.Model.bottom
   | Top | Map _ as state ->
     if renames && is_recursive callstack below.callee
@@ -1357,8 +1483,11 @@ let rec unrun_frames store derived id =
       match Int_table.find_opt store.entries id with
       | None -> Kernel_function.Set.empty
       | Some entry ->
-        Cs_table.fold (fun callstack _ -> add_frames callstack)
-          entry.hit_body_entries.by_callstack Kernel_function.Set.empty
+        List.fold_left
+          (fun acc (_, states) ->
+             Cs_table.fold (fun callstack _ -> add_frames callstack)
+               states.by_callstack acc)
+          Kernel_function.Set.empty entry.hit_body_entries
     in
     let add (kfs, crossing as acc) (parent, below) =
       let parent_kfs, _ = unrun_frames store derived parent in
@@ -1384,33 +1513,46 @@ and may_cross store derived parent (below: below) =
   && (crossing
       || Kernel_function.Set.mem below.callee kfs && renames below)
 
-(* Adds to [table], for each callstack of [states], the start state of the
-   call [below] made by the body of the member of that callstack. *)
+(* Joins [state] into the group of [renaming] of [callstack] in [table]. *)
+let add_to_table table callstack renaming state =
+  let groups = Option.value ~default:[] (Cs_table.find_opt table callstack) in
+  Cs_table.replace table callstack (add_group renaming state groups)
+
+(* Adds to [table], for each callstack and renaming of [states], the start
+   state of the call [below] made by the body of the members of that
+   callstack and renaming, in the group of the composed renaming. *)
 let add_calls_below derived table (below: below) states =
   let renames = renames below in
   Cs_table.iter
-    (fun callstack entry ->
-       let state = call_below derived ~renames callstack below entry in
-       let callstack = Callstack.push below.callee below.site callstack in
-       let state =
-         match Cs_table.find_opt table callstack with
-         | None -> state
-         | Some previous -> Cvalue.Model.join previous state
-       in
-       Cs_table.replace table callstack state)
+    (fun callstack groups ->
+       List.iter
+         (fun (renaming, entry) ->
+            let state =
+              call_below derived ~renames callstack below renaming entry
+            in
+            let callstack = Callstack.push below.callee below.site callstack in
+            add_to_table table callstack (compose renaming below.renaming)
+              state)
+         groups)
     states
 
 (* The body-entry states of the members of entry [id] whose body did not run,
-   per callstack. *)
+   per callstack and renaming. *)
 let rec unrun_by_callstack store derived id =
   match Int_table.find_opt derived.unrun_by_callstack id with
   | Some table -> table
   | None ->
-    let table =
-      match Int_table.find_opt store.entries id with
-      | None -> Cs_table.create 1
-      | Some entry -> Cs_table.copy entry.hit_body_entries.by_callstack
-    in
+    let table = Cs_table.create 7 in
+    Option.iter
+      (fun entry ->
+         List.iter
+           (fun (renaming, states) ->
+              Cs_table.iter
+                (fun callstack state ->
+                   add_to_table table callstack renaming state)
+                states.by_callstack)
+           entry.hit_body_entries)
+      (Int_table.find_opt store.entries id);
     List.iter
       (fun (parent, below) ->
          let states = unrun_by_callstack store derived parent in
@@ -1419,40 +1561,56 @@ let rec unrun_by_callstack store derived id =
     Int_table.replace derived.unrun_by_callstack id table;
     table
 
-(* The joined body-entry state of the members of entry [id] whose body did
-   not run. *)
+(* The body-entry states of the members of entry [id] whose body did not
+   run, joined, grouped by renaming. *)
 let rec unrun_joined store derived id =
   match Int_table.find_opt derived.unrun_joined id with
-  | Some state -> state
+  | Some groups -> groups
   | None ->
     let hits =
       match Int_table.find_opt store.entries id with
-      | None -> Cvalue.Model.bottom
-      | Some entry -> entry.hit_body_entries.joined
+      | None -> []
+      | Some entry ->
+        List.fold_left
+          (fun acc (renaming, states) -> add_group renaming states.joined acc)
+          [] entry.hit_body_entries
     in
-    let state =
+    let groups =
       List.fold_left
         (fun acc (parent, below) ->
-           Cvalue.Model.join acc (joined_call store derived parent below))
+           List.fold_left
+             (fun acc (renaming, state) -> add_group renaming state acc)
+             acc (joined_call store derived parent below))
         hits (calls_of derived.by_child Int_table.find_opt id)
     in
-    Int_table.replace derived.unrun_joined id state;
-    state
+    Int_table.replace derived.unrun_joined id groups;
+    groups
 
 (* The start states of the call [below] made by the body of the members of
-   entry [parent] whose body did not run, joined. One paste suffices, on
-   the joined body-entry state of these members, unless the call may cross
-   a recursion: the states are then pasted per callstack. *)
+   entry [parent] whose body did not run, joined, grouped by the renaming
+   through which they use the entry of [below]. One paste per renaming of
+   these members suffices, on their joined body-entry state, unless the call
+   may cross a recursion: the states are then pasted per callstack. *)
 and joined_call store derived parent below =
   if may_cross store derived parent below
   then
     let renames = renames below in
     Cs_table.fold
-      (fun callstack entry acc ->
-         let state = call_below derived ~renames callstack below entry in
-         Cvalue.Model.join acc state)
-      (unrun_by_callstack store derived parent) Cvalue.Model.bottom
-  else paste_call derived below (unrun_joined store derived parent)
+      (fun callstack groups acc ->
+         List.fold_left
+           (fun acc (renaming, entry) ->
+              let state =
+                call_below derived ~renames callstack below renaming entry
+              in
+              add_group (compose renaming below.renaming) state acc)
+           acc groups)
+      (unrun_by_callstack store derived parent) []
+  else
+    List.map
+      (fun (renaming, entry) ->
+         compose renaming below.renaming,
+         paste_call derived below renaming entry)
+      (unrun_joined store derived parent)
 
 (* The start states of the calls below a hit to [kf], joined. *)
 let starts_below_joined store derived kf =
@@ -1462,7 +1620,8 @@ let starts_below_joined store derived kf =
     let state =
       List.fold_left
         (fun acc (parent, below) ->
-           Cvalue.Model.join acc (joined_call store derived parent below))
+           Cvalue.Model.join acc
+             (join_groups (joined_call store derived parent below)))
         Cvalue.Model.bottom (calls_of derived.by_callee Kf_table.find_opt kf)
     in
     Kf_table.replace derived.starts_joined kf state;
@@ -1473,12 +1632,17 @@ let starts_below_by_callstack store derived kf =
   match Kf_table.find_opt derived.starts_by_callstack kf with
   | Some table -> table
   | None ->
-    let table = Cs_table.create 7 in
+    let groups = Cs_table.create 7 in
     List.iter
       (fun (parent, below) ->
          let states = unrun_by_callstack store derived parent in
-         add_calls_below derived table below states)
+         add_calls_below derived groups below states)
       (calls_of derived.by_callee Kf_table.find_opt kf);
+    let table = Cs_table.create 7 in
+    Cs_table.iter
+      (fun callstack groups ->
+         Cs_table.replace table callstack (join_groups groups))
+      groups;
     Kf_table.replace derived.starts_by_callstack kf table;
     table
 
@@ -1579,6 +1743,21 @@ let start_state store derived ?callstack kf =
     @ [ find_callstack (starts_below_by_callstack store derived kf) callstack ]
     |> join_all
 
+(* [paste_groups derived point entry groups] joins the states that the
+   rule gives at the point [point] of the Inner part of an entry, to the
+   members of [groups] and to the members whose body-entry state is [entry]
+   that use the entry through the identity: once on the join of [entry]
+   and of the group of the identity, as without renamings, and once for
+   each other group, from [point] renamed through the renaming of the
+   group. *)
+let paste_groups derived point entry groups =
+  let identity, renamed = List.partition (fun (r, _) -> r = []) groups in
+  let entry = Cvalue.Model.join entry (join_groups identity) in
+  List.fold_left
+    (fun acc (renaming, state) ->
+       Cvalue.Model.join acc (paste derived (rename renaming point) state))
+    (paste derived point entry) renamed
+
 (* The state at [control_point], a point of the body of the function of the
    entry [id], of the members of this entry: those on [callstack], or all of
    them, joined. The only member of the entry of a heap call is its analysed
@@ -1598,17 +1777,16 @@ let entry_state store derived ?callstack control_point (id, entry) =
     match find_point entry control_point with
     | None -> Cvalue.Model.bottom
     | Some point ->
-      let body_entry =
-        match callstack with
-        | None ->
-          Cvalue.Model.join entry.analysed.body_entry
-            (unrun_joined store derived id)
-        | Some callstack ->
-          Cvalue.Model.join
-            (analysed_on callstack (fun a -> a.body_entry) entry)
-            (find_callstack (unrun_by_callstack store derived id) callstack)
-      in
-      paste derived point body_entry
+      match callstack with
+      | None ->
+        paste_groups derived point entry.analysed.body_entry
+          (unrun_joined store derived id)
+      | Some callstack ->
+        paste_groups derived point
+          (analysed_on callstack (fun a -> a.body_entry) entry)
+          (Option.value ~default:[]
+             (Cs_table.find_opt (unrun_by_callstack store derived id)
+                callstack))
 
 (* For the function [kf]: its entries by callstack, those whose analysed call
    is on the callstack or that have on it a member whose body did not run,
@@ -1780,8 +1958,9 @@ let states_by_callstack store derived control_point =
                add table analysed.callstack
                  (paste derived point analysed.body_entry);
                Cs_table.iter
-                 (fun callstack state ->
-                    add table callstack (paste derived point state))
+                 (fun callstack groups ->
+                    add table callstack
+                      (paste_groups derived point Cvalue.Model.bottom groups))
                  (unrun_by_callstack store derived id))
         (entries_with_ids store kf)
   end;
@@ -1848,11 +2027,23 @@ let point_view ~id control_point =
               swept_every = point.swept_every;
               swept_some = point.swept_some }
 
-let rule ~id ~body_entry control_point =
+let rule ~id ?(renaming = []) ~body_entry control_point =
   let store = Store.get () in
   match Int_table.find_opt store.entries id with
   | None -> None
   | Some entry ->
-    Option.map
-      (fun point -> paste (derived store) point body_entry)
-      (find_point entry control_point)
+    try
+      Option.map
+        (fun point -> paste (derived store) (rename renaming point) body_entry)
+        (find_point entry control_point)
+    with Unavailable -> None
+
+let members ~id =
+  let store = Store.get () in
+  let table = unrun_by_callstack store (derived store) id in
+  Cs_table.fold
+    (fun callstack groups acc ->
+       List.map (fun (renaming, state) -> callstack, renaming, state) groups
+       @ acc)
+    table []
+  |> List.sort (fun (a, _, _) (b, _, _) -> Callstack.compare a b)

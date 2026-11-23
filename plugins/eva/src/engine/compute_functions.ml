@@ -111,7 +111,7 @@ module Make (Engine: Engine_sig.S) = struct
           | `Bottom -> Cvalue.Model.bottom
           | `Value state -> Engine.Dom.get_cvalue_or_top state
         in
-        Hit_log.record_hit ~id:i call.callstack ~start ~body_entry
+        Hit_log.record_hit ~id:i ~renaming:[] call.callstack ~start ~body_entry
       end;
       Self.feedback ~current:true ~mkey:Log_key.progress
         "Reusing old results for call to %a" Kernel_function.pretty call.kf;

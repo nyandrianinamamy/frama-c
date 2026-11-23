@@ -27,17 +27,25 @@
     start state of the body that the start state of the call does not have.
 
     The calls that use an entry form its key group: the call that computed
-    it, its hits, and the calls below a hit that use it. The hit log keeps,
-    per entry, the start state and the body-entry state of the call that
-    computed it, and the join of the start states and of the body-entry states
-    of its hits, overall and per callstack. The start state of a call is the
+    it, its hits, and the calls below a hit that use it. A hit uses its
+    entry through a renaming of the allocated blocks, from the blocks of the
+    call that computed the entry to its own, which memexec gives (see
+    {!Mem_exec.renaming}): the identity unless memexec matched the call on
+    its numbered form. The hit log keeps, per entry, the start state and the
+    body-entry state of the call that computed it, and the join of the start
+    states and of the body-entry states of its hits, overall and per
+    callstack, each grouped by renaming. The start state of a call is the
     state after the binding of its arguments; its body-entry state is what
     remains of it after the preconditions.
 
     The body of a hit does not run: the calls below a hit are not analysed.
     The start state of such a call is the start state stored in the entry of
-    the hit, pasted on the body-entry state of the hit. Its preconditions are
-    not evaluated: its body-entry state is its start state. These states are
+    the hit, renamed through the renaming of the hit, pasted on the
+    body-entry state of the hit. Its preconditions are not evaluated: its
+    body-entry state is its start state. The entry stores, with each call
+    made by the body, the renaming through which this call used its own
+    entry; below a hit, the call uses that entry through the composition of
+    this renaming with the renaming of the hit. These states are
     computed on request, through the entries of the callers, and memoised.
     A call below a hit crosses a recursion when it is a recursive call that
     renames variables, analysed by its body or by its specification, or is
@@ -50,10 +58,14 @@
     of a call that crosses a recursion are not rebuilt.
 
     The rule: the state at a point of a call is the Inner part of its entry
-    at this point on the blocks it covers, and the body-entry state of the
-    call on the other blocks. The state at the start of a function is the
-    join of the start states of its calls, including the calls analysed by
-    a specification or a builtin.
+    at this point on the blocks it covers, renamed through the renaming of
+    the call, and the body-entry state of the call on the other blocks. A
+    state joined over several calls is the join of the rule applied once per
+    group of calls with the same renaming, to the join of their body-entry
+    states; the point is unavailable to a group whose renaming does not
+    rename each allocated block of the point to a distinct block. The state
+    at the start of a function is the join of the start states of its
+    calls, including the calls analysed by a specification or a builtin.
 
     A heap call is a call analysed by its body that receives a heap effect
     (see {!Heap_effects}): an effect emitted during its analysis, in its body
@@ -210,10 +222,17 @@ val record_analysed_call:
   after:Cvalue.Model.t Cil_datatype.Stmt.Hashtbl.t Lazy.t ->
   unit
 
-(** [record_hit ~id callstack ~start ~body_entry] records a hit of the cache
-    entry [id] on [callstack]. Fails if [id] is the entry of a heap call. *)
+(** A renaming of the allocated blocks of a cache entry: pairs of blocks,
+    from the blocks of the analysed call of the entry to those of a call
+    that uses it, see {!Mem_exec.renaming}. The empty list is the
+    identity. *)
+type renaming = (Base.t * Base.t) list
+
+(** [record_hit ~id ~renaming callstack ~start ~body_entry] records a hit of
+    the cache entry [id] on [callstack], through [renaming]. Fails if [id] is
+    the entry of a heap call. *)
 val record_hit:
-  id:int -> Callstack.t ->
+  id:int -> renaming:renaming -> Callstack.t ->
   start:Cvalue.Model.t -> body_entry:Cvalue.Model.t -> unit
 
 (** [builtin_outputs n] records that the builtin whose analysis the innermost
@@ -316,11 +335,19 @@ type point_view =
     function. *)
 val point_view: id:int -> Domain_store.control_point -> point_view
 
-(** [rule ~id ~body_entry control_point] is the state that the rule gives at
-    [control_point], a point before or after a statement of the body of the
-    function of the cache entry [id], to a call that uses this entry and
-    whose body-entry state is [body_entry]. None if the entry holds no Inner
-    part at this point, see {!point_view}. *)
+(** [rule ~id ~renaming ~body_entry control_point] is the state that the
+    rule gives at [control_point], a point before or after a statement of the
+    body of the function of the cache entry [id], to a call that uses this
+    entry through [renaming], the identity by default, and whose body-entry
+    state is [body_entry]. None if the entry holds no Inner part at this
+    point, see {!point_view}, or if [renaming] does not rename each
+    allocated block of the point to a distinct block. *)
 val rule:
-  id:int -> body_entry:Cvalue.Model.t -> Domain_store.control_point ->
-  Cvalue.Model.t option
+  id:int -> ?renaming:renaming -> body_entry:Cvalue.Model.t ->
+  Domain_store.control_point -> Cvalue.Model.t option
+
+(** [members ~id] are the members of the cache entry [id] whose body did not
+    run, its hits and the calls below a hit that use it, grouped by
+    callstack and by the renaming through which they use the entry, with
+    their body-entry states joined, in the order of the callstacks. *)
+val members: id:int -> (Callstack.t * renaming * Cvalue.Model.t) list
