@@ -43,9 +43,12 @@ let sequence first next =
     let some = Base.Hptset.union first.some next.some in
     { every; some = Base.Hptset.diff some every }
 
-let filter f sweeps =
-  { every = Base.Hptset.filter f sweeps.every;
-    some = Base.Hptset.filter f sweeps.some }
+let promote f sweeps =
+  let promoted = Base.Hptset.filter f sweeps.some in
+  if Base.Hptset.is_empty promoted then sweeps
+  else
+    { every = Base.Hptset.union sweeps.every promoted;
+      some = Base.Hptset.diff sweeps.some promoted }
 
 type t = { covered: Base.Hptset.t; sweeps: sweeps }
 

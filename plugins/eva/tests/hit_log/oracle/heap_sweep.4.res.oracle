@@ -55,31 +55,7 @@ guarded, before heap_sweep.c:91 `z ++;` (GU):
           tmp ∈ {0; 1}
           n ∈ {0}
           saved ∈ ESCAPINGADDR
-          \copy<saved>[1] ∈
-                         {{ &__malloc_guarded_main_l98_1[0] }} or ESCAPINGADDR
-  guarded :: heap_sweep.c:93 <- mid :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main: 
-  p ∈ ESCAPINGADDR
-  g ∈ {0}
-  stale ∈ {0}
-  keep ∈ {{ &\copy<saved>[1] }}
-  z ∈ {0}
-  x ∈ ESCAPINGADDR
-  c ∈ {1}
-  tmp ∈ {0; 1}
-  n ∈ {0}
-  saved ∈ ESCAPINGADDR
-  \copy<saved>[1] ∈ {{ &__malloc_guarded_main_l98_1[0] }} or ESCAPINGADDR
-  reference, joined: p ∈ ESCAPINGADDR
-                     g ∈ {0}
-                     stale ∈ {0}
-                     keep ∈ {{ &\copy<saved>[1] }}
-                     z ∈ {0}
-                     x ∈ ESCAPINGADDR
-                     c ∈ {1}
-                     tmp ∈ {0; 1}
-                     n ∈ {0}
-                     saved ∈ ESCAPINGADDR
-                     \copy<saved>[1] ∈ ESCAPINGADDR
+          \copy<saved>[1] ∈ ESCAPINGADDR
   guarded :: heap_sweep.c:93 <- mid :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main: 
   p ∈ ESCAPINGADDR
   g ∈ {0}
@@ -103,31 +79,7 @@ guarded, after heap_sweep.c:92 `return;`:
           tmp ∈ {0; 1}
           n ∈ {0}
           saved ∈ ESCAPINGADDR
-          \copy<saved>[1] ∈
-                         {{ &__malloc_guarded_main_l98_1[0] }} or ESCAPINGADDR
-  guarded :: heap_sweep.c:93 <- mid :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main: 
-  p ∈ ESCAPINGADDR
-  g ∈ {0}
-  stale ∈ {0}
-  keep ∈ {{ &\copy<saved>[1] }}
-  z ∈ {1}
-  x ∈ ESCAPINGADDR
-  c ∈ {1}
-  tmp ∈ {0; 1}
-  n ∈ {0}
-  saved ∈ ESCAPINGADDR
-  \copy<saved>[1] ∈ {{ &__malloc_guarded_main_l98_1[0] }} or ESCAPINGADDR
-  reference, joined: p ∈ ESCAPINGADDR
-                     g ∈ {0}
-                     stale ∈ {0}
-                     keep ∈ {{ &\copy<saved>[1] }}
-                     z ∈ {1}
-                     x ∈ ESCAPINGADDR
-                     c ∈ {1}
-                     tmp ∈ {0; 1}
-                     n ∈ {0}
-                     saved ∈ ESCAPINGADDR
-                     \copy<saved>[1] ∈ ESCAPINGADDR
+          \copy<saved>[1] ∈ ESCAPINGADDR
   guarded :: heap_sweep.c:93 <- mid :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main: 
   p ∈ ESCAPINGADDR
   g ∈ {0}
@@ -169,27 +121,7 @@ mid, before heap_sweep.c:93 `z ++;` (MI):
           tmp ∈ {1}
           n ∈ {0}
           saved ∈ ESCAPINGADDR
-          \copy<saved>[1] ∈
-                         {{ &__malloc_guarded_main_l98_1[0] }} or ESCAPINGADDR
-  mid :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main: 
-  p ∈ ESCAPINGADDR
-  g ∈ {0}
-  stale ∈ {0}
-  keep ∈ {{ &\copy<saved>[1] }}
-  z ∈ {1}
-  tmp ∈ {1}
-  n ∈ {0}
-  saved ∈ ESCAPINGADDR
-  \copy<saved>[1] ∈ {{ &__malloc_guarded_main_l98_1[0] }} or ESCAPINGADDR
-  reference, joined: p ∈ ESCAPINGADDR
-                     g ∈ {0}
-                     stale ∈ {0}
-                     keep ∈ {{ &\copy<saved>[1] }}
-                     z ∈ {1}
-                     tmp ∈ {1}
-                     n ∈ {0}
-                     saved ∈ ESCAPINGADDR
-                     \copy<saved>[1] ∈ ESCAPINGADDR
+          \copy<saved>[1] ∈ ESCAPINGADDR
   mid :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main: 
   p ∈ ESCAPINGADDR
   g ∈ {0}
@@ -209,27 +141,7 @@ mid, after heap_sweep.c:93 `return;`:
           tmp ∈ {1}
           n ∈ {0}
           saved ∈ ESCAPINGADDR
-          \copy<saved>[1] ∈
-                         {{ &__malloc_guarded_main_l98_1[0] }} or ESCAPINGADDR
-  mid :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main: 
-  p ∈ ESCAPINGADDR
-  g ∈ {0}
-  stale ∈ {0}
-  keep ∈ {{ &\copy<saved>[1] }}
-  z ∈ {2}
-  tmp ∈ {1}
-  n ∈ {0}
-  saved ∈ ESCAPINGADDR
-  \copy<saved>[1] ∈ {{ &__malloc_guarded_main_l98_1[0] }} or ESCAPINGADDR
-  reference, joined: p ∈ ESCAPINGADDR
-                     g ∈ {0}
-                     stale ∈ {0}
-                     keep ∈ {{ &\copy<saved>[1] }}
-                     z ∈ {2}
-                     tmp ∈ {1}
-                     n ∈ {0}
-                     saved ∈ ESCAPINGADDR
-                     \copy<saved>[1] ∈ ESCAPINGADDR
+          \copy<saved>[1] ∈ ESCAPINGADDR
   mid :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main: 
   p ∈ ESCAPINGADDR
   g ∈ {0}
@@ -248,33 +160,6 @@ Differences with the run without memexec:
   guarded, after heap_sweep.c:90 `loop`, joined: covers
   guarded, after heap_sweep.c:90 `loop`, filtered: covers
   guarded, after heap_sweep.c:90 `loop`, guarded :: heap_sweep.c:93 <- mid :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main: covers
-  guarded, before heap_sweep.c:91 `z ++;` (GU), joined: covers
-  guarded, before heap_sweep.c:91 `z ++;` (GU), filtered: covers
-  guarded, before heap_sweep.c:91 `z ++;` (GU), guarded :: heap_sweep.c:93 <- mid :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main: covers
-  guarded, after heap_sweep.c:91 `z ++;` (GU), joined: covers
-  guarded, after heap_sweep.c:91 `z ++;` (GU), filtered: covers
-  guarded, after heap_sweep.c:91 `z ++;` (GU), guarded :: heap_sweep.c:93 <- mid :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main: covers
-  guarded, before heap_sweep.c:92 `return;`, joined: covers
-  guarded, before heap_sweep.c:92 `return;`, filtered: covers
-  guarded, before heap_sweep.c:92 `return;`, guarded :: heap_sweep.c:93 <- mid :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main: covers
-  guarded, after heap_sweep.c:92 `return;`, joined: covers
-  guarded, after heap_sweep.c:92 `return;`, filtered: covers
-  guarded, after heap_sweep.c:92 `return;`, guarded :: heap_sweep.c:93 <- mid :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main: covers
-  mid, after heap_sweep.c:93 `guarded(p,tmp);`, joined: covers
-  mid, after heap_sweep.c:93 `guarded(p,tmp);`, filtered: covers
-  mid, after heap_sweep.c:93 `guarded(p,tmp);`, mid :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main: covers
-  mid, before heap_sweep.c:93 `z ++;` (MI), joined: covers
-  mid, before heap_sweep.c:93 `z ++;` (MI), filtered: covers
-  mid, before heap_sweep.c:93 `z ++;` (MI), mid :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main: covers
-  mid, after heap_sweep.c:93 `z ++;` (MI), joined: covers
-  mid, after heap_sweep.c:93 `z ++;` (MI), filtered: covers
-  mid, after heap_sweep.c:93 `z ++;` (MI), mid :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main: covers
-  mid, before heap_sweep.c:93 `return;`, joined: covers
-  mid, before heap_sweep.c:93 `return;`, filtered: covers
-  mid, before heap_sweep.c:93 `return;`, mid :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main: covers
-  mid, after heap_sweep.c:93 `return;`, joined: covers
-  mid, after heap_sweep.c:93 `return;`, filtered: covers
-  mid, after heap_sweep.c:93 `return;`, mid :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main: covers
   recur_guarded, before heap_sweep.c:95 `char *saved = p;`, joined: unavailable
   recur_guarded, before heap_sweep.c:95 `char *saved = p;`, filtered: unavailable
   recur_guarded, before heap_sweep.c:95 `char *saved = p;`, recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main: unavailable
@@ -317,7 +202,7 @@ Differences with the run without memexec:
   recur_guarded, after heap_sweep.c:97 `return;`, filtered: unavailable
   recur_guarded, after heap_sweep.c:97 `return;`, recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main: unavailable
   recur_guarded, after heap_sweep.c:97 `return;`, recur_guarded :: heap_sweep.c:98 <- guarded_main: unavailable
-Answers: 482 equal, 33 covering, 0 more precise, 0 omitting, 42 unavailable.
+Answers: 509 equal, 6 covering, 0 more precise, 0 omitting, 42 unavailable.
 Callstacks listed: NOT those of the run without memexec at 12 of the 251 points:
   recur_guarded, before heap_sweep.c:95 `char *saved = p;`
   recur_guarded, after heap_sweep.c:95 `char *saved = p;`
@@ -357,9 +242,9 @@ Alarms: 0, of which 0 not proven, those of the run without memexec.
 Summary: statement coverage 1.0000, function coverage 0.1905, 0 alarms, those of the run without memexec.
 Points of the cache entries:
 guarded :: heap_sweep.c:93 <- mid :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main, cache entry 11:
-  before GU: covers __malloc_guarded_main_l98_1; does not bind __malloc_guarded_main_l98_1; swept on every path: none; on some path only: __malloc_guarded_main_l98_1
+  before GU: covers __malloc_guarded_main_l98_1; does not bind __malloc_guarded_main_l98_1; swept on every path: __malloc_guarded_main_l98_1; on some path only: none
 mid :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main, cache entry 12:
-  before MI: covers __malloc_guarded_main_l98_1; does not bind __malloc_guarded_main_l98_1; swept on every path: none; on some path only: __malloc_guarded_main_l98_1
+  before MI: covers __malloc_guarded_main_l98_1; does not bind __malloc_guarded_main_l98_1; swept on every path: __malloc_guarded_main_l98_1; on some path only: none
 recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main, cache entry 13:
 recur_guarded :: heap_sweep.c:98 <- guarded_main, cache entry 14:
 guarded_main, cache entry 15:

@@ -76,28 +76,37 @@
     variables that a recursive call, made there or in a call nested there,
     withdraws from the state: the recursive call puts them back at its end
     as they were before it, unswept by its releases. The paths from the
-    start of the body are those
-    of its analysis: an edge of the automaton of the body through which the
-    analysis propagated no state is on no path. A covered block that the
-    Inner part does not bind is removed at the point: this is the removal
-    mask. Each point also holds a sweep map: the blocks swept on every path
-    from the start of the body to the point, and those swept on some path
-    only. A block is swept when a release turns the pointers to it into
-    escaping addresses. The map keeps the blocks that the body-entry state
-    does not bind: this state can point to them, as a recursive call puts
-    back unswept the variables that it withdraws from the state. At a call
+    start of the body are those of its analysis: an edge of the automaton of
+    the body through which the analysis propagated no state is on no path. A
+    covered block that the Inner part does not bind is removed at the point:
+    this is the removal mask.
+
+    Each point also holds a sweep map: the blocks swept on every path from
+    the start of the body to the point, and those swept on some path only.
+    A block is swept when a release turns the pointers to it into escaping
+    addresses. The map keeps the blocks that the body-entry state does not
+    bind: this state can point to them, as a recursive call puts back
+    unswept the variables that it withdraws from the state. At a call
     statement, the sweeps of the evaluations of the call that return are
     merged: a block swept on every path of each of them is swept on every
     path, and a block swept in some of them only, or on some path only, is
     swept on some path only. The sweeps of a [free] on several blocks or on
-    a weak block, which joins the
-    pointers with escaping addresses, of a builtin that returns several
-    states, as [realloc] when it may fail, and of the automatic release, are
-    on some path only. A request at a point of a heap call is answered by
-    the rule, applied to the body-entry state of the call swept by the sweep
-    map of the point: the pointers to a block swept on every path become
-    escaping addresses, and those to a block swept on some path only are
-    joined with escaping addresses.
+    a weak block, which joins the pointers with escaping addresses, of a
+    builtin that returns several states, as [realloc] when it may fail, and
+    of the automatic release, are on some path only. The paths are joined
+    at each vertex of the automaton, while the states that reach it can
+    stay apart: a block that the body-entry state binds, swept on some path
+    only, that the state at the point does not bind, is swept on every
+    path, as the state at the point binds every block that one of the
+    states that reach it binds, and only a release that sweeps the block on
+    its path removes it. The same holds for the sweeps of the call at its
+    return, which its caller receives. A block that the state at the point
+    binds, or that the body-entry state does not bind, keeps its class. A
+    request at a point of a heap call is answered by the rule, applied to
+    the body-entry state of the call swept by the sweep map of the point:
+    the pointers to a block swept on every path become escaping addresses,
+    and those to a block swept on some path only are joined with escaping
+    addresses.
 
     A heap call is refused in threaded mode, when it or a call nested in it
     calls the builtin of [Frama_C_check_leak], which reads every allocated

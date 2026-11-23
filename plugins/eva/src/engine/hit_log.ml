@@ -544,10 +544,10 @@ let bound_by_call ~removed callee =
    instruction, the join of the states before its successors. The footprint
    after a statement is thus completed by the footprints before its
    successors.
-   For a heap call, [heap_before] and [heap_after] give at each point the
-   blocks that its heap effects cover, which are covered as well, and the
-   sweep map. *)
-let no_heap _ = Heap_paths.empty
+   For a heap call, [heap_before] and [heap_after] give at each point, from
+   the state there, the blocks that its heap effects cover, which are covered
+   as well, and the sweep map. *)
+let no_heap _ _ = Heap_paths.empty
 
 let inner_part ?(heap_before = no_heap) ?(heap_after = no_heap) footprint
     ~start ~before ~after ~calls =
@@ -570,7 +570,7 @@ let inner_part ?(heap_before = no_heap) ?(heap_after = no_heap) footprint
     let points = Stmt_table.create (Stmt_table.length states) in
     let add stmt state =
       let created = created_blocks ~start state in
-      let { Heap_paths.covered; sweeps } = heap_of stmt in
+      let { Heap_paths.covered; sweeps } = heap_of stmt state in
       Stmt_table.replace points stmt
         (project ~bound:covered ~sweeps ~created (zone_of stmt) state)
     in
@@ -856,6 +856,30 @@ let heap_paths frame automaton ~fired =
   in
   Heap_paths.compute automaton ~fired ~edge ~vertex
 
+let present state block =
+  match state with
+  | Cvalue.Model.Top -> true
+  | Bottom -> false
+  | Map _ ->
+    match Cvalue.Model.find_base block state with
+    | _ -> true
+    | exception Not_found -> false
+
+(* The sweeps [sweeps] at a point where the state is [state], in a call whose
+   body-entry state is [body_entry]: a block swept on some path only that
+   [body_entry] binds and [state] does not is swept on every path. The
+   preconditions only reduce the start state: every body-entry state binds
+   the blocks of their join. A block that no state at the point binds was
+   thus removed on every path that reaches it, by a release that removes
+   the block and sweeps the pointers to it in the same step. The join of
+   memory states binds every block that one of them binds. A recursive call
+   puts back the variables that it withdraws unswept, but these are covered
+   after the call, see [recursive_call]. *)
+let promote ~body_entry state sweeps =
+  Heap_paths.promote
+    (fun block -> present body_entry block && not (present state block))
+    sweeps
+
 (* The coverage and the sweep map before and after each statement of the
    body, from their values at the vertices of [automaton], as the legacy
    store computes the states before and after each statement from the
@@ -865,9 +889,11 @@ let heap_paths frame automaton ~fired =
    before it. The sweep map keeps every block swept, including those that
    the body-entry state does not bind: this state can hold pointers to such
    a block, as a recursive call puts back unswept the variables it withdraws
-   from the state, and a release of the block in the body sweeps them. Raises
-   [Unknown_footprint] at a point whose vertex the paths do not reach. *)
-let heap_points automaton paths ~before =
+   from the state, and a release of the block in the body sweeps them. The
+   sweeps at a point are promoted from the state there, see [promote].
+   Raises [Unknown_footprint] at a point whose vertex the paths do not
+   reach. *)
+let heap_points automaton paths ~body_entry ~before =
   let at vertex =
     match Eva_automata.Vertex.Hashtbl.find_opt paths vertex with
     | Some value -> value
@@ -878,20 +904,44 @@ let heap_points automaton paths ~before =
     | Some vertices -> vertices
     | None -> raise Unknown_footprint
   in
-  let heap_before stmt = at (fst (vertices stmt)) in
-  let heap_after (stmt: Cil_types.stmt) =
+  let path_before stmt = at (fst (vertices stmt)) in
+  let path_after (stmt: Cil_types.stmt) =
     match stmt.skind with
     | Instr _ -> at (snd (vertices stmt))
-    | Return _ -> heap_before stmt
+    | Return _ -> path_before stmt
     | _ ->
       let before = Lazy.force before in
       List.filter (Stmt_table.mem before) stmt.succs
-      |> List.map heap_before
+      |> List.map path_before
       |> function
       | [] -> raise Unknown_footprint
       | value :: values -> List.fold_left Heap_paths.join value values
   in
-  heap_before, heap_after
+  let promoted path stmt state =
+    let value = path stmt in
+    { value with
+      Heap_paths.sweeps = promote ~body_entry state value.Heap_paths.sweeps }
+  in
+  promoted path_before, promoted path_after
+
+(* The sweeps of the heap call that [paths] gives at the return point of
+   [automaton], promoted from the state before the return statement of [kf],
+   see [promote]; [No_return] if the paths do not reach this point. *)
+let exit_sweeps kf automaton paths ~body_entry ~before =
+  match
+    Eva_automata.Vertex.Hashtbl.find_opt paths
+      automaton.Eva_automata.return_point
+  with
+  | None -> No_return
+  | Some value ->
+    let state =
+      match Kernel_function.find_return kf with
+      | stmt -> Stmt_table.find_opt (Lazy.force before) stmt
+      | exception Kernel_function.No_Statement -> None
+    in
+    match state with
+    | None -> Exit value.Heap_paths.sweeps
+    | Some state -> Exit (promote ~body_entry state value.Heap_paths.sweeps)
 
 let record_start callstack state =
   let store = Store.get () in
@@ -939,21 +989,14 @@ let record_analysed_call ~id callstack ~automaton ~fired ~footprint ~start
     | Some frame when heap ->
       Statistics.incr heap_calls kf;
       let paths = heap_paths frame automaton ~fired in
-      frame.exit <-
-        begin match
-            Eva_automata.Vertex.Hashtbl.find_opt paths
-              automaton.Eva_automata.return_point
-          with
-          | None -> No_return
-          | Some value -> Exit value.sweeps
-        end;
+      frame.exit <- exit_sweeps kf automaton paths ~body_entry ~before;
       begin match footprint with
         | None -> Unknown, []
         | Some _ when refused frame -> full ()
         | Some footprint ->
           try
             let heap_before, heap_after =
-              heap_points automaton paths ~before
+              heap_points automaton paths ~body_entry ~before
             in
             inner_part ~heap_before ~heap_after footprint ~start ~before
               ~after ~calls:[]

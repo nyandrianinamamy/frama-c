@@ -39,8 +39,9 @@ val merge: sweeps -> sweeps -> sweeps
     swept on every path of one of them is swept on every path. *)
 val sequence: sweeps -> sweeps -> sweeps
 
-(** The blocks of [sweeps] that satisfy [f], with their class. *)
-val filter: (Base.t -> bool) -> sweeps -> sweeps
+(** [promote f sweeps]: the blocks of [sweeps] swept on some path only that
+    satisfy [f] become swept on every path. *)
+val promote: (Base.t -> bool) -> sweeps -> sweeps
 
 (** What the heap effects give at a point: the blocks they cover, and the
     sweeps. *)
