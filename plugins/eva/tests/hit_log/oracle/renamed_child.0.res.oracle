@@ -1,0 +1,55 @@
+[kernel] Parsing renamed_child.c (with preprocessing)
+Calls:
+  calloc :: renamed_child.c:24 <- child_main: builtin
+  calloc :: renamed_child.c:25 <- child_main: builtin
+  calloc :: renamed_child.c:26 <- child_main: builtin
+  calloc :: renamed_child.c:27 <- child_main: builtin
+  calloc :: renamed_child.c:28 <- child_main: builtin
+  leaf :: renamed_child.c:29 <- child_main: analysed, cache entry 22
+  leaf :: renamed_child.c:17 <- outer :: renamed_child.c:30 <- child_main: hit of cache entry 22
+  outer :: renamed_child.c:30 <- child_main: analysed, cache entry 23
+  outer :: renamed_child.c:31 <- child_main: hit of cache entry 23
+  outer :: renamed_child.c:32 <- child_main: hit of cache entry 23
+  half :: renamed_child.c:20 <- pair :: renamed_child.c:33 <- child_main: analysed, cache entry 24
+  pair :: renamed_child.c:33 <- child_main: analysed, cache entry 25
+  pair :: renamed_child.c:34 <- child_main: hit of cache entry 25
+  child_main: analysed, cache entry 26
+Heap calls, not stored by memexec: child_main 1.
+Heap calls whose answers come from full states: none.
+Hits not made because memexec does not store the heap calls: none.
+Calls below a hit:
+  half :: renamed_child.c:20 <- pair :: renamed_child.c:34 <- child_main
+  leaf :: renamed_child.c:17 <- outer :: renamed_child.c:31 <- child_main
+  leaf :: renamed_child.c:17 <- outer :: renamed_child.c:32 <- child_main
+Hits against the analysed call of their cache entry:
+  leaf :: renamed_child.c:17 <- outer :: renamed_child.c:30 <- child_main, hit of cache entry 22, against leaf :: renamed_child.c:29 <- child_main: differs on __retres, p, r, tmp, at 5 points.
+  outer :: renamed_child.c:31 <- child_main, hit of cache entry 23, against outer :: renamed_child.c:30 <- child_main: differs on p, r, at 11 points.
+  outer :: renamed_child.c:32 <- child_main, hit of cache entry 23, against outer :: renamed_child.c:30 <- child_main: differs on p, r, at 11 points.
+  pair :: renamed_child.c:34 <- child_main, hit of cache entry 25, against pair :: renamed_child.c:33 <- child_main: differs on p, q, at 11 points.
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 230 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 59 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 59 points.
+Filtered requests that reject one callstack: 32.
+Requests made: 348; reported by the trap: 348, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 57 requests, 126 reads of the legacy store in them, 161 reads outside any request.
+  with -eva-hit-log: 57 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 31 requests
+    statistics: 26 requests
+  requests of the passes on a callstack below a hit, with -eva-hit-log: 0.
+Statuses of the properties: those of the run without memexec, for 77 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 1.0000, 0 alarms, those of the run without memexec.
+Members of the cache entry 22, leaf, whose body did not run:
+  leaf :: renamed_child.c:17 <- outer :: renamed_child.c:30 <- child_main: identity
+  leaf :: renamed_child.c:17 <- outer :: renamed_child.c:31 <- child_main: __calloc_child_main_l24_1 -> __calloc_child_main_l25_1
+  leaf :: renamed_child.c:17 <- outer :: renamed_child.c:32 <- child_main: __calloc_child_main_l24_1 -> __calloc_child_main_l26_1
+Members of the cache entry 23, outer, whose body did not run:
+  outer :: renamed_child.c:31 <- child_main: __calloc_child_main_l24_1 -> __calloc_child_main_l25_1
+  outer :: renamed_child.c:32 <- child_main: __calloc_child_main_l24_1 -> __calloc_child_main_l26_1
+Members of the cache entry 24, half, whose body did not run:
+  half :: renamed_child.c:20 <- pair :: renamed_child.c:34 <- child_main: __calloc_child_main_l24_1 -> __calloc_child_main_l25_1, __calloc_child_main_l27_1 -> __calloc_child_main_l28_1
+Members of the cache entry 25, pair, whose body did not run:
+  pair :: renamed_child.c:34 <- child_main: __calloc_child_main_l24_1 -> __calloc_child_main_l25_1, __calloc_child_main_l27_1 -> __calloc_child_main_l28_1
