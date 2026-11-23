@@ -110,7 +110,9 @@ The blocks the statement neither reads nor writes.
 An allocated block of the matching key of a cache entry, or one that a
 pointer value of the arguments or of the matching key may point to when the
 statement starts. A mentioned block outside the matching key is not
-compared by its content.
+compared by its content. This is the definition of #123, where no cache
+entry of a heap call is used; when heap calls are stored, #120 adds the
+candidate blocks of each allocation, absent ones included.
 _Avoid_: Reachable block (reachability is transitive)
 
 **Snapshot**:
