@@ -1,0 +1,29 @@
+[kernel] Parsing heap_hit_limits.c (with preprocessing)
+Calls:
+  malloc :: heap_hit_limits.c:18 <- local_main: builtin
+  malloc :: heap_hit_limits.c:19 <- local_main: builtin
+  free :: heap_hit_limits.c:15 <- rel :: heap_hit_limits.c:21 <- local_main: builtin
+  rel :: heap_hit_limits.c:21 <- local_main: analysed, cache entry 7
+  free :: heap_hit_limits.c:15 <- rel :: heap_hit_limits.c:22 <- local_main: builtin
+  rel :: heap_hit_limits.c:22 <- local_main: analysed, cache entry 8
+  local_main: analysed, cache entry 9
+Heap calls, not stored by memexec: local_main 1.
+Heap calls stored by memexec: rel 2.
+Heap calls whose answers come from full states: none.
+Hits not made because memexec does not store the heap calls: none.
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 137 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 55 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 55 points.
+Filtered requests that reject one callstack: 5.
+Requests made: 247; reported by the trap: 247, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 38 requests, 41 reads of the legacy store in them, 51 reads outside any request.
+  with -eva-hit-log: 38 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 27 requests
+    statistics: 9 requests
+    summary: 2 requests
+Statuses of the properties: those of the run without memexec, for 93 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.4000, 0 alarms, those of the run without memexec.
