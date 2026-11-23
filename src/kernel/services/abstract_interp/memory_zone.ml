@@ -58,6 +58,17 @@ let pretty fmt m =
 
 let valid_intersects = intersects
 
+let replace_base substitution zone =
+  match zone with
+  | Top (Base.SetLattice.Top, _) -> false, zone
+  | Top (Base.SetLattice.Set set, origin) ->
+    let modified, set = Base.Hptset.replace substitution set in
+    modified, if modified then Top (Base.SetLattice.inject set, origin) else zone
+  | Map map ->
+    let decide _base = Int_Intervals.join in
+    let modified, map = M.replace_key ~decide substitution map in
+    modified, if modified then Map map else zone
+
 let mem_base b = function
   | Top (top_param, _) ->
     Base.SetLattice.mem b top_param

@@ -115,7 +115,8 @@ module Make (Engine: Engine_sig.S) = struct
       end;
       Self.feedback ~current:true ~mkey:Log_key.progress
         "Reusing old results for call to %a" Kernel_function.pretty call.kf;
-      apply_call_results_hooks call init_state (`Reuse i);
+      let substitution = Base.substitution_from_list [] in
+      apply_call_results_hooks call init_state (`Reuse (i, substitution));
       (* call can be cached since it was cached once *)
       Engine_sig.{ states; cacheable = Cacheable; kind = `Body }
 

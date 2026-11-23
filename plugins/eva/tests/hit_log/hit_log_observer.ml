@@ -383,7 +383,7 @@ let () =
          let kind =
            match results with
            | `Body (_, id) -> Analysed id
-           | `Reuse id -> Hit id
+           | `Reuse (id, _) -> Hit id
            | `Spec _ -> Other "specification"
            | `Builtin _ -> Other "builtin"
          in

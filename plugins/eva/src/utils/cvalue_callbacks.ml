@@ -42,7 +42,7 @@ type call_results =
   [ `Builtin of state list * call_assigns
   | `Spec of state list
   | `Body of results * int
-  | `Reuse of int
+  | `Reuse of int * Base.substitution
   ]
 
 type call_results_hook =

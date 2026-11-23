@@ -58,6 +58,12 @@ val filter_base : (Base.t -> bool) -> t -> t
     filtersbases of [Top bases]. Note: the filter may give an
     over-approximation (in the case [Top Top]). *)
 
+val replace_base: Base.substitution -> t -> bool * t
+(** [replace_base subst zone] substitutes the bases of [zone] according to
+    [subst], and tells whether [zone] has changed. If [subst] conflates
+    different bases, their intervals are joined.
+    @since Frama-C+dev *)
+
 val fold_bases : (Base.t -> 'a -> 'a) -> t -> 'a -> 'a
 (** [fold_bases] folds also bases of [Top bases].
     @raise Abstract_interp.Error_Top in the case [Top Top]. *)
