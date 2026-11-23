@@ -42,7 +42,7 @@ void round_trip_main(void) {
 
 /* A whole pointer to a weak block, then two fragments of pointers to it,
    copied apart: the two halves of frag_slot are bound apart, since the
-   block is weak. copy_slot copies frag_slot as it is. */
+   block is weak. The inputs of the two calls of copy_slot differ by that. */
 int *frag_slot, *frag_copy;
 void copy_slot(void) { frag_copy = frag_slot; }
 
@@ -52,7 +52,7 @@ void fragments_main(void) {
   frag_slot = w;
   copy_slot();
   int *p1 = w, *p2 = w;
-  frag_slot = 0;
+  frag_slot = 0; frag_copy = 0;
   memcpy(&frag_slot, &p1, 2);
   memcpy((char *)&frag_slot + 2, (char *)&p2 + 2, 2);
   copy_slot();

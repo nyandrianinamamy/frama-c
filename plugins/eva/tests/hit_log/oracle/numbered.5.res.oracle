@@ -9,15 +9,15 @@ Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 Initial state: equal.
 Differences with the run without memexec:
-Answers: 446 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
-Callstacks listed: those of the run without memexec at each of the 211 points.
-Callstacks listed through the filter: those of the run without memexec at each of the 211 points.
+Answers: 450 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 213 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 213 points.
 Filtered requests that reject one callstack: 0.
-Requests made: 868; reported by the trap: 868, each once with its description; reads of the legacy store: 0.
+Requests made: 876; reported by the trap: 876, each once with its description; reads of the legacy store: 0.
 Passes after the iteration:
-  with memexec, without recording: 120 requests, 42 reads of the legacy store in them, 47 reads outside any request.
-  with -eva-hit-log: 120 requests, 0 reads of the legacy store in them, 0 reads outside any request.
-    unreachable statements: 101 requests
+  with memexec, without recording: 121 requests, 42 reads of the legacy store in them, 47 reads outside any request.
+  with -eva-hit-log: 121 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 102 requests
     statistics: 10 requests
     summary: 9 requests
 Statuses of the properties: those of the run without memexec, for 319 properties.
