@@ -234,11 +234,13 @@ CONFIGS = [
 
 def parse_specs(specs, ablations):
     """Programs, and the number of runs expected in each group, from the
-    specifications NAME:OFF:ON:PLAIN:ABLATION-RUNS:ABLATIONS:PERF-FREQUENCY
+    specifications NAME:OFF:ON:PLAIN:ABLATION-RUNS:ABLATIONS:PERF-FREQUENCY[:BASE]
     of run.sh."""
     programs, expected = [], collections.OrderedDict()
     for spec in specs.split():
-        name, off, on, plain, abl_reps, abl, _ = spec.split(":")
+        fields = spec.split(":")
+        name, off, on, plain, abl_reps, abl, _ = fields[:7]
+        base = int(fields[7]) if len(fields) > 7 and fields[7] else 0
         off, on, plain, abl_reps = int(off), int(on), int(plain), int(abl_reps)
         programs.append(name)
         abl = ablations if abl == "all" else [a for a in abl.split(",") if a]
@@ -250,6 +252,7 @@ def parse_specs(specs, ablations):
             ("meter-on", on),
             ("plain-off", plain),
             ("plain-on", plain),
+            ("base", base),
         ]
         groups += [(f"ablate-{ab}", abl_reps) for ab in abl]
         for group, n in groups:
@@ -407,6 +410,53 @@ def tables(args):
         ],
         rows,
     )
+
+    # 1b. Base build against this checkout.
+    with_base = [prog for prog in programs if f"base-{prog}" in expected]
+    if with_base:
+        w("## 1b. Base build against this checkout, recording on\n")
+        w(
+            "base: the build of -B, at the revision noted in revisions.tsv; "
+            "on: this checkout. Both with recording on, in the same campaign. "
+            "Peak RSS: median and [min–max] of the runs, in MiB. The last row "
+            "of each program is the difference of the medians, on − base.\n"
+        )
+        rows = []
+        for prog in with_base:
+            groups = [("base", get(f"base-{prog}")), ("on", get(f"on-{prog}"))]
+            values = {}
+            for key, rs in groups:
+                values[key] = [
+                    [r.wall for r in rs],
+                    [r.cpu for r in rs],
+                    [r.phase("iteration") for r in rs],
+                    [r.phase("after iteration") for r in rs],
+                    [r.time.get("maxrss", math.nan) / 1024 for r in rs],
+                ]
+                rows.append(
+                    [prog, key, R.n(f"{key}-{prog}", rs)]
+                    + [fmt_spread(v, 0 if i == 4 else 1) for i, v in enumerate(values[key])]
+                )
+            rows.append(
+                [prog, "on − base", ""]
+                + [
+                    fmt(median(b) - median(a), 0 if i == 4 else 1)
+                    for i, (a, b) in enumerate(zip(values["base"], values["on"]))
+                ]
+            )
+        R.table(
+            [
+                "program",
+                "build",
+                "n",
+                "wall",
+                "CPU",
+                "iteration",
+                "after iteration",
+                "peak RSS (MiB)",
+            ],
+            rows,
+        )
 
     # 2. Phases from the probe.
     w("## 2. Phases, from the probe\n")
@@ -844,8 +894,49 @@ def tables(args):
                 )
     R.table(["program", "recording", "build", "n", "wall", "iteration"], rows)
 
-    # 10. Revision and cache size of each run.
-    w("## 10. Runs\n")
+    # 10. Heap calls.
+    w("## 10. Heap calls and hits not made\n")
+    w(
+        "Sums over the functions of the statistics of `-eva-statistics-file`, "
+        "in the timed runs with recording on (distinct values across the runs "
+        "separated by /): hit-log-heap-calls, the heap calls; "
+        "hit-log-lost-hits, the calls that memexec would have reused if it "
+        "stored the heap calls; hit-log-lost-hits-below, those of these calls "
+        "made during the analysis of such a call; memexec-hits and "
+        "memexec-misses. A build without these statistics shows 0.\n"
+    )
+    rows = []
+    for prog in programs:
+        for key, label in [("base", "base, recording on"), ("on", "branch, recording on")]:
+            rs = get(f"{key}-{prog}")
+            if not rs:
+                continue
+            row = [prog, label, R.n(f"{key}-{prog}", rs)]
+            for stat in [
+                "hit-log-heap-calls",
+                "hit-log-lost-hits",
+                "hit-log-lost-hits-below",
+                "memexec-hits",
+                "memexec-misses",
+            ]:
+                row.append("/".join(fmt(v, 0) for v in sorted({r.stats.get(stat, 0) for r in rs})))
+            rows.append(row)
+    R.table(
+        [
+            "program",
+            "configuration",
+            "n",
+            "heap calls",
+            "hits not made",
+            "of which during one",
+            "memexec hits",
+            "memexec misses",
+        ],
+        rows,
+    )
+
+    # 11. Revision and cache size of each run.
+    w("## 11. Runs\n")
     w(
         "Each run directory, with the revision of its build as noted when it "
         "was built, the cache size of its analyses, and its status.\n"
