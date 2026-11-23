@@ -52,6 +52,19 @@ module type Default_offsetmap = sig
   *)
 end
 
+(** [register_validity_widening_hook f] makes the widening of the maps built
+    by {!Make_LOffset} call [f b ~old_max_alloc] each time it raises the
+    validity of a weak base [b]. When the widening of two maps has no effect
+    and the two maps differ, the widening raises in place, for each weak base
+    whose memory maps differ between the two maps, the field [max_alloc] of
+    its variable validity to its field [max_allocable], when it is lower.
+    [old_max_alloc] is the value of [max_alloc] before the change; [f] is
+    called after it, so that [Base.validity b] gives the new validity. The
+    hooks are called in the order of their registration.
+    @since Frama-C+dev *)
+val register_validity_widening_hook:
+  (Base.t -> old_max_alloc:Z.t -> unit) -> unit
+
 module Make_LOffset
     (V: sig
        include Offsetmap_lattice_with_isotropy.S

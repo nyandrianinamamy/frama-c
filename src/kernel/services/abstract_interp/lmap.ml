@@ -25,6 +25,11 @@ module type Default_offsetmap = sig
   val default_contents: v default_contents
 end
 
+let validity_widening_hooks = ref []
+
+let register_validity_widening_hook f =
+  validity_widening_hooks := !validity_widening_hooks @ [ f ]
+
 module Make_LOffset
     (V: sig
        include Offsetmap_lattice_with_isotropy.S
@@ -452,8 +457,11 @@ struct
               | Base.Variable v when Z.lt v.max_alloc v.max_allocable ->
                 (* Increasing [max_alloc] is never unsound as any access beyond
                    [min_alloc] will generate an alarm anyway. *)
+                let old_max_alloc = v.max_alloc in
                 Base.update_variable_validity v ~weak:true
-                  ~min_alloc:v.min_alloc ~max_alloc:v.max_allocable
+                  ~min_alloc:v.min_alloc ~max_alloc:v.max_allocable;
+                List.iter
+                  (fun f -> f base ~old_max_alloc) !validity_widening_hooks
               | _ -> ()
           in
           fold2_join_heterogeneous
