@@ -33,6 +33,15 @@ type block
 (** The snapshot of a block as it is now; [None] if it is not allocated. *)
 val take_block: Base.t -> block option
 
+(** [take_block_at_entry ~mutations base] is the snapshot of [base] at the
+    start of a call that has made since then the validity mutations
+    [mutations], see {!Heap_effects}, in the order of emission: each field
+    that a mutation changed is taken back to its value before the first
+    mutation that changed it. A removal changes no field of the snapshot.
+    [None] if [base] is not allocated. *)
+val take_block_at_entry:
+  mutations:Heap_effects.t list -> Base.t -> block option
+
 (** Whether two snapshots are equal. *)
 val equal_block: block -> block -> bool
 
@@ -40,6 +49,20 @@ val equal_block: block -> block -> bool
     cache entry to those of a call that reuses it. The empty list is the
     identity. *)
 type renaming = (Base.t * Base.t) list
+
+(** What memexec stores of a call that frees, a heap call whose heap
+    effects are removals and sweeps only (see {!Hit_log}): [removed], the
+    blocks it removes, which exist at its start; [swept], the blocks it
+    sweeps at any point of its body; [exit], the blocks swept on every path
+    from its start to its return, and on some path only; [mutations], its
+    validity mutations, from which the snapshot of its start is rebuilt,
+    see {!take_block_at_entry}. *)
+type heap = {
+  removed: Base.Hptset.t;
+  swept: Base.Hptset.t;
+  exit: Heap_paths.sweeps;
+  mutations: Heap_effects.t list;
+}
 
 (** With [~snapshot:true] (option -eva-hit-log), a call that mentions an
     allocated block is stored and looked up in numbered form (#120, section
@@ -68,6 +91,32 @@ type renaming = (Base.t * Base.t) list
     substitution, and the inout plugin replaces the blocks of the inputs and
     outputs of the stored call through it, so that the key of a call names
     the blocks that the calls it makes read and write.
+    With [~snapshot:true], a call that frees, given with its removals and
+    sweeps [heap], is stored in numbered form only. Its key holds the blocks
+    it removes, and every block it sweeps must be numbered, else it is not
+    stored. The snapshot of each numbered block is that of the start of the
+    call: the snapshot of a block that the call removes is the one it had
+    before the removal, which changes no field of it. On a reuse, for each
+    exit of the stored call, the pointers of the state of the call to the
+    blocks swept on every path are replaced by escaping addresses, and those
+    to the blocks swept on some path only are joined with them, through the
+    renaming; a block swept on some path only that the exit does not bind is
+    swept on every path for this exit. The exit is then copied, and the
+    blocks that the stored call removed and that the exit does not bind are
+    removed. The statistic [hit-log-stored-heap-calls] counts, per function,
+    the calls that free stored by memexec.
+    [free] reports the cells that its sweep changes as written: the key of a
+    call that frees holds the cells that point to the blocks it frees at its
+    start, and the reuse sweeps the cells outside the key that point to them
+    at the start of the call that reuses it. On a reuse, the call-results
+    hooks receive the results of the stored call: for the inout plugin, its
+    inputs and outputs, through the renaming. A fresh analysis of the call
+    would also report as written the cells outside the key that the reuse
+    sweeps, weakly for a sweep on some path only; the outputs of a reuse do
+    not hold them. The hit log marks the calls that enclose a hit on a call
+    that frees, which memexec does not store: no key is built from these
+    outputs. The dependencies that option -calldeps prints for a call reused
+    there, and the inout of its callers, do not hold these cells.
     The statistic [hit-log-snapshot-misses] counts, per function, the calls
     that are not reused although a call stored in numbered form has their
     input state, because the snapshot of a block differs. The statistic
@@ -88,7 +137,7 @@ module Make
         numbers: the empty list if it mentions none, [None] if the call is not
         stored. Returns [None] with [~snapshot:false]. *)
     val store_computed_call:
-      snapshot:bool ->
+      snapshot:bool -> ?heap:heap ->
       kernel_function -> Domain.t -> Value.t or_bottom list ->
       (Partition.key * Domain.t) list ->
       Base.t list option

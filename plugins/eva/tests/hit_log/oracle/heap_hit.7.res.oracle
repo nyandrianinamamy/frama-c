@@ -12,7 +12,6 @@
   accessing left-value that contains escaping addresses. assert ¬\dangling(&p);
 [eva:alarm] heap_hit.c:144: Warning: 
   accessing left-value that contains escaping addresses. assert ¬\dangling(&p);
-[eva:alarm] heap_hit.c:154: Warning: assertion 'second' got status unknown.
 Calls:
   calloc :: heap_hit.c:148 <- witness_main: builtin
   malloc :: heap_hit.c:150 <- witness_main: builtin
@@ -23,23 +22,175 @@ Calls:
   free :: heap_hit.c:144 <- wit_release :: heap_hit.c:152 <- witness_main (call statements 108, 126): builtin
   wit_release :: heap_hit.c:152 <- witness_main: analysed, cache entry 6
   malloc :: heap_hit.c:150 <- witness_main: builtin
-  Frama_C_interval :: heap_hit.c:144 <- wit_release :: heap_hit.c:152 <- witness_main: specification
-  free :: heap_hit.c:144 <- wit_release :: heap_hit.c:152 <- witness_main (call statements 107, 126): builtin
-  Frama_C_interval :: heap_hit.c:144 <- wit_release :: heap_hit.c:152 <- witness_main: specification
-  free :: heap_hit.c:144 <- wit_release :: heap_hit.c:152 <- witness_main (call statements 107, 126): builtin
-  free :: heap_hit.c:144 <- wit_release :: heap_hit.c:152 <- witness_main (call statements 108, 126): builtin
-  wit_release :: heap_hit.c:152 <- witness_main: analysed, cache entry 7
-  witness_main: analysed, cache entry 8
-Heap calls, not stored by memexec: wit_release 2, witness_main 1.
-Heap calls whose answers come from full states: none.
-Hits not made because memexec does not store the heap calls: wit_release 1.
-Created bases whose match with the run with memexec is unresolved:
-  __calloc_w_witness_main_l148_0 (Variable [0..31--31], max allocable 34359738367, weak) -> __calloc_w_witness_main_l148_1 (Variable [0..31--34359738367], max allocable 34359738367, weak)
+  wit_release :: heap_hit.c:152 <- witness_main: hit of cache entry 6
+  witness_main: analysed, cache entry 7
+Heap calls, not stored by memexec: witness_main 1.
+Heap calls stored by memexec: wit_release 1.
+Heap calls whose answers come from full states: witness_main 1.
+Calls that enclose a hit on the entry of a heap call, not stored by memexec, with full states:
+  witness_main 1.
+Hits not made because memexec does not store the heap calls: none.
+Created bases whose match with the run without memexec is unresolved:
+  __calloc_w_witness_main_l148 (Variable [0..31--34359738367], max allocable 34359738367, weak) -> __calloc_w_witness_main_l148_1 (Variable [0..31--31], max allocable 34359738367, weak)
 Created bases of the run with memexec, without recording, whose match with the run without memexec is unresolved:
   __calloc_w_witness_main_l148 (Variable [0..31--34359738367], max allocable 34359738367, weak) -> __calloc_w_witness_main_l148_0 (Variable [0..31--31], max allocable 34359738367, weak)
+Hits against the analysed call of their cache entry:
 Initial state: equal.
 Differences with the run without memexec:
-Answers: 876 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+  final state, joined: unresolved
+  final state, filtered: unresolved
+  final state, witness_main: unresolved
+  wit_release, start, joined: unresolved, as with memexec
+  wit_release, start, filtered: unresolved, as with memexec
+  wit_release, start, wit_release :: heap_hit.c:152 <- witness_main: unresolved, as with memexec
+  wit_release, before heap_hit.c:144 `loop`, joined: unresolved
+  wit_release, before heap_hit.c:144 `loop`, filtered: unresolved
+  wit_release, before heap_hit.c:144 `loop`, wit_release :: heap_hit.c:152 <- witness_main: unresolved
+  wit_release, after heap_hit.c:144 `loop`, joined: unresolved
+  wit_release, after heap_hit.c:144 `loop`, filtered: unresolved
+  wit_release, after heap_hit.c:144 `loop`, wit_release :: heap_hit.c:152 <- witness_main: unresolved
+  wit_release, before heap_hit.c:144 `tmp = Frama_C_interval(0,1);`, joined: unresolved
+  wit_release, before heap_hit.c:144 `tmp = Frama_C_interval(0,1);`, filtered: unresolved
+  wit_release, before heap_hit.c:144 `tmp = Frama_C_interval(0,1);`, wit_release :: heap_hit.c:152 <- witness_main: unresolved
+  wit_release, after heap_hit.c:144 `tmp = Frama_C_interval(0,1);`, joined: unresolved
+  wit_release, after heap_hit.c:144 `tmp = Frama_C_interval(0,1);`, filtered: unresolved
+  wit_release, after heap_hit.c:144 `tmp = Frama_C_interval(0,1);`, wit_release :: heap_hit.c:152 <- witness_main: unresolved
+  wit_release, before heap_hit.c:144 `if (tmp)`, joined: unresolved
+  wit_release, before heap_hit.c:144 `if (tmp)`, filtered: unresolved
+  wit_release, before heap_hit.c:144 `if (tmp)`, wit_release :: heap_hit.c:152 <- witness_main: unresolved
+  wit_release, after heap_hit.c:144 `if (tmp)`, joined: unresolved
+  wit_release, after heap_hit.c:144 `if (tmp)`, filtered: unresolved
+  wit_release, after heap_hit.c:144 `if (tmp)`, wit_release :: heap_hit.c:152 <- witness_main: unresolved
+  wit_release, before heap_hit.c:144 `break;`, joined: unresolved
+  wit_release, before heap_hit.c:144 `break;`, filtered: unresolved
+  wit_release, before heap_hit.c:144 `break;`, wit_release :: heap_hit.c:152 <- witness_main: unresolved
+  wit_release, after heap_hit.c:144 `break;`, joined: unresolved
+  wit_release, after heap_hit.c:144 `break;`, filtered: unresolved
+  wit_release, after heap_hit.c:144 `break;`, wit_release :: heap_hit.c:152 <- witness_main: unresolved
+  wit_release, before heap_hit.c:144 `free((void *)p);`, joined: unresolved
+  wit_release, before heap_hit.c:144 `free((void *)p);`, filtered: unresolved
+  wit_release, before heap_hit.c:144 `free((void *)p);`, wit_release :: heap_hit.c:152 <- witness_main: unresolved
+  wit_release, after heap_hit.c:144 `free((void *)p);`, joined: unresolved
+  wit_release, after heap_hit.c:144 `free((void *)p);`, filtered: unresolved
+  wit_release, after heap_hit.c:144 `free((void *)p);`, wit_release :: heap_hit.c:152 <- witness_main: unresolved
+  wit_release, before heap_hit.c:144 `free((void *)p);`, joined: unresolved
+  wit_release, before heap_hit.c:144 `free((void *)p);`, filtered: unresolved
+  wit_release, before heap_hit.c:144 `free((void *)p);`, wit_release :: heap_hit.c:152 <- witness_main: unresolved
+  wit_release, after heap_hit.c:144 `free((void *)p);`, joined: unresolved
+  wit_release, after heap_hit.c:144 `free((void *)p);`, filtered: unresolved
+  wit_release, after heap_hit.c:144 `free((void *)p);`, wit_release :: heap_hit.c:152 <- witness_main: unresolved
+  wit_release, before heap_hit.c:144 `return;`, joined: unresolved
+  wit_release, before heap_hit.c:144 `return;`, filtered: unresolved
+  wit_release, before heap_hit.c:144 `return;`, wit_release :: heap_hit.c:152 <- witness_main: unresolved
+  wit_release, after heap_hit.c:144 `return;`, joined: unresolved
+  wit_release, after heap_hit.c:144 `return;`, filtered: unresolved
+  wit_release, after heap_hit.c:144 `return;`, wit_release :: heap_hit.c:152 <- witness_main: unresolved
+  witness_main, after heap_hit.c:148 `int **box = calloc((size_t)1,sizeof(*box));`, joined: unresolved, as with memexec
+  witness_main, after heap_hit.c:148 `int **box = calloc((size_t)1,sizeof(*box));`, filtered: unresolved, as with memexec
+  witness_main, after heap_hit.c:148 `int **box = calloc((size_t)1,sizeof(*box));`, witness_main: unresolved, as with memexec
+  witness_main, before heap_hit.c:149 `block`, joined: unresolved, as with memexec
+  witness_main, before heap_hit.c:149 `block`, filtered: unresolved, as with memexec
+  witness_main, before heap_hit.c:149 `block`, witness_main: unresolved, as with memexec
+  witness_main, after heap_hit.c:149 `block`, joined: unresolved, as with memexec
+  witness_main, after heap_hit.c:149 `block`, filtered: unresolved, as with memexec
+  witness_main, after heap_hit.c:149 `block`, witness_main: unresolved, as with memexec
+  witness_main, before heap_hit.c:149 `int i = 0;`, joined: unresolved, as with memexec
+  witness_main, before heap_hit.c:149 `int i = 0;`, filtered: unresolved, as with memexec
+  witness_main, before heap_hit.c:149 `int i = 0;`, witness_main: unresolved, as with memexec
+  witness_main, after heap_hit.c:149 `int i = 0;`, joined: unresolved, as with memexec
+  witness_main, after heap_hit.c:149 `int i = 0;`, filtered: unresolved, as with memexec
+  witness_main, after heap_hit.c:149 `int i = 0;`, witness_main: unresolved, as with memexec
+  witness_main, before heap_hit.c:149-155 `loop`, joined: unresolved, as with memexec
+  witness_main, before heap_hit.c:149-155 `loop`, filtered: unresolved, as with memexec
+  witness_main, before heap_hit.c:149-155 `loop`, witness_main: unresolved, as with memexec
+  witness_main, after heap_hit.c:149-155 `loop`, joined: unresolved
+  witness_main, after heap_hit.c:149-155 `loop`, filtered: unresolved
+  witness_main, after heap_hit.c:149-155 `loop`, witness_main: unresolved
+  witness_main, before heap_hit.c:149 `if (i < 2)`, joined: unresolved
+  witness_main, before heap_hit.c:149 `if (i < 2)`, filtered: unresolved
+  witness_main, before heap_hit.c:149 `if (i < 2)`, witness_main: unresolved
+  witness_main, after heap_hit.c:149 `if (i < 2)`, joined: unresolved
+  witness_main, after heap_hit.c:149 `if (i < 2)`, filtered: unresolved
+  witness_main, after heap_hit.c:149 `if (i < 2)`, witness_main: unresolved
+  witness_main, before heap_hit.c:149-155 `break;`, joined: unresolved
+  witness_main, before heap_hit.c:149-155 `break;`, filtered: unresolved
+  witness_main, before heap_hit.c:149-155 `break;`, witness_main: unresolved
+  witness_main, after heap_hit.c:149-155 `break;`, joined: unresolved
+  witness_main, after heap_hit.c:149-155 `break;`, filtered: unresolved
+  witness_main, after heap_hit.c:149-155 `break;`, witness_main: unresolved
+  witness_main, before heap_hit.c:150 `block`, joined: unresolved, as with memexec
+  witness_main, before heap_hit.c:150 `block`, filtered: unresolved, as with memexec
+  witness_main, before heap_hit.c:150 `block`, witness_main: unresolved, as with memexec
+  witness_main, after heap_hit.c:150 `block`, joined: unresolved, as with memexec
+  witness_main, after heap_hit.c:150 `block`, filtered: unresolved, as with memexec
+  witness_main, after heap_hit.c:150 `block`, witness_main: unresolved, as with memexec
+  witness_main, before heap_hit.c:150 `int *p = malloc(sizeof(*p));`, joined: unresolved, as with memexec
+  witness_main, before heap_hit.c:150 `int *p = malloc(sizeof(*p));`, filtered: unresolved, as with memexec
+  witness_main, before heap_hit.c:150 `int *p = malloc(sizeof(*p));`, witness_main: unresolved, as with memexec
+  witness_main, after heap_hit.c:150 `int *p = malloc(sizeof(*p));`, joined: unresolved, as with memexec
+  witness_main, after heap_hit.c:150 `int *p = malloc(sizeof(*p));`, filtered: unresolved, as with memexec
+  witness_main, after heap_hit.c:150 `int *p = malloc(sizeof(*p));`, witness_main: unresolved, as with memexec
+  witness_main, before heap_hit.c:150 `*p = 7;`, joined: unresolved, as with memexec
+  witness_main, before heap_hit.c:150 `*p = 7;`, filtered: unresolved, as with memexec
+  witness_main, before heap_hit.c:150 `*p = 7;`, witness_main: unresolved, as with memexec
+  witness_main, after heap_hit.c:150 `*p = 7;`, joined: unresolved, as with memexec
+  witness_main, after heap_hit.c:150 `*p = 7;`, filtered: unresolved, as with memexec
+  witness_main, after heap_hit.c:150 `*p = 7;`, witness_main: unresolved, as with memexec
+  witness_main, before heap_hit.c:151 `if (i)`, joined: unresolved, as with memexec
+  witness_main, before heap_hit.c:151 `if (i)`, filtered: unresolved, as with memexec
+  witness_main, before heap_hit.c:151 `if (i)`, witness_main: unresolved, as with memexec
+  witness_main, after heap_hit.c:151 `if (i)`, joined: unresolved, as with memexec
+  witness_main, after heap_hit.c:151 `if (i)`, filtered: unresolved, as with memexec
+  witness_main, after heap_hit.c:151 `if (i)`, witness_main: unresolved, as with memexec
+  witness_main, before heap_hit.c:151 `*box = p;`, joined: unresolved, as with memexec
+  witness_main, before heap_hit.c:151 `*box = p;`, filtered: unresolved, as with memexec
+  witness_main, before heap_hit.c:151 `*box = p;`, witness_main: unresolved, as with memexec
+  witness_main, after heap_hit.c:151 `*box = p;`, joined: unresolved, as with memexec
+  witness_main, after heap_hit.c:151 `*box = p;`, filtered: unresolved, as with memexec
+  witness_main, after heap_hit.c:151 `*box = p;`, witness_main: unresolved, as with memexec
+  witness_main, before heap_hit.c:152 `wit_release(p);`, joined: unresolved, as with memexec
+  witness_main, before heap_hit.c:152 `wit_release(p);`, filtered: unresolved, as with memexec
+  witness_main, before heap_hit.c:152 `wit_release(p);`, witness_main: unresolved, as with memexec
+  witness_main, after heap_hit.c:152 `wit_release(p);`, joined: unresolved
+  witness_main, after heap_hit.c:152 `wit_release(p);`, filtered: unresolved
+  witness_main, after heap_hit.c:152 `wit_release(p);`, witness_main: unresolved
+  witness_main, before heap_hit.c:153 `if (! i)`, joined: unresolved
+  witness_main, before heap_hit.c:153 `if (! i)`, filtered: unresolved
+  witness_main, before heap_hit.c:153 `if (! i)`, witness_main: unresolved
+  witness_main, after heap_hit.c:153 `if (! i)`, joined: unresolved
+  witness_main, after heap_hit.c:153 `if (! i)`, filtered: unresolved
+  witness_main, after heap_hit.c:153 `if (! i)`, witness_main: unresolved
+  witness_main, before heap_hit.c:153 `;`, joined: unresolved, as with memexec
+  witness_main, before heap_hit.c:153 `;`, filtered: unresolved, as with memexec
+  witness_main, before heap_hit.c:153 `;`, witness_main: unresolved, as with memexec
+  witness_main, after heap_hit.c:153 `;`, joined: unresolved, as with memexec
+  witness_main, after heap_hit.c:153 `;`, filtered: unresolved, as with memexec
+  witness_main, after heap_hit.c:153 `;`, witness_main: unresolved, as with memexec
+  witness_main, before heap_hit.c:154 `;`, joined: unresolved
+  witness_main, before heap_hit.c:154 `;`, filtered: unresolved
+  witness_main, before heap_hit.c:154 `;`, witness_main: unresolved
+  witness_main, after heap_hit.c:154 `;`, joined: unresolved
+  witness_main, after heap_hit.c:154 `;`, filtered: unresolved
+  witness_main, after heap_hit.c:154 `;`, witness_main: unresolved
+  witness_main, before heap_hit.c:149 `i ++;`, joined: unresolved
+  witness_main, before heap_hit.c:149 `i ++;`, filtered: unresolved
+  witness_main, before heap_hit.c:149 `i ++;`, witness_main: unresolved
+  witness_main, after heap_hit.c:149 `i ++;`, joined: unresolved
+  witness_main, after heap_hit.c:149 `i ++;`, filtered: unresolved
+  witness_main, after heap_hit.c:149 `i ++;`, witness_main: unresolved
+  witness_main, before heap_hit.c:156 `__retres = 0;`, joined: unresolved
+  witness_main, before heap_hit.c:156 `__retres = 0;`, filtered: unresolved
+  witness_main, before heap_hit.c:156 `__retres = 0;`, witness_main: unresolved
+  witness_main, after heap_hit.c:156 `__retres = 0;`, joined: unresolved
+  witness_main, after heap_hit.c:156 `__retres = 0;`, filtered: unresolved
+  witness_main, after heap_hit.c:156 `__retres = 0;`, witness_main: unresolved
+  witness_main, before heap_hit.c:156 `return __retres;`, joined: unresolved
+  witness_main, before heap_hit.c:156 `return __retres;`, filtered: unresolved
+  witness_main, before heap_hit.c:156 `return __retres;`, witness_main: unresolved
+  witness_main, after heap_hit.c:156 `return __retres;`, joined: unresolved
+  witness_main, after heap_hit.c:156 `return __retres;`, filtered: unresolved
+  witness_main, after heap_hit.c:156 `return __retres;`, witness_main: unresolved
+Answers: 723 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable, 153 unresolved.
 Callstacks listed: those of the run without memexec at each of the 411 points.
 Callstacks listed through the filter: those of the run without memexec at each of the 411 points.
 Filtered requests that reject one callstack: 0.
@@ -51,7 +202,8 @@ Passes after the iteration:
     statuses of the properties: 10 requests
     statistics: 25 requests
     summary: 20 requests
-Statuses of the properties: those of the run without memexec, for 350 properties.
+Statuses of the properties that differ from the run without memexec:
+  heap_hit.c:154: Assertion 'second' ("heap_hit.c", line 154): assert second: \block_length(box) ≤ sizeof(int *);: Valid against Unknown: MORE OPTIMISTIC, as with memexec
 Statuses with memexec, without recording, that differ from the run without memexec:
   heap_hit.c:154: Assertion 'second' ("heap_hit.c", line 154): assert second: \block_length(box) ≤ sizeof(int *);: Valid against Unknown: MORE OPTIMISTIC
 Alarms: 1, of which 1 not proven, those of the run without memexec.

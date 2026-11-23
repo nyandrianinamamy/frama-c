@@ -6,13 +6,15 @@ Calls:
   mid :: heap_hit.c:113 <- top :: heap_hit.c:118 <- chain_main: analysed, cache entry 16
   top :: heap_hit.c:118 <- chain_main: analysed, cache entry 17
   malloc :: heap_hit.c:119 <- chain_main: builtin
-  free :: heap_hit.c:111 <- leaf :: heap_hit.c:112 <- mid :: heap_hit.c:113 <- top :: heap_hit.c:122 <- chain_main: builtin
-  leaf :: heap_hit.c:112 <- mid :: heap_hit.c:113 <- top :: heap_hit.c:122 <- chain_main: analysed, cache entry 18
-  mid :: heap_hit.c:113 <- top :: heap_hit.c:122 <- chain_main: analysed, cache entry 19
-  top :: heap_hit.c:122 <- chain_main: analysed, cache entry 20
-  chain_main: analysed, cache entry 21
-Heap calls, not stored by memexec: chain_main 1, leaf 2, mid 2, top 2.
-Heap calls whose answers come from full states: none.
+  leaf :: heap_hit.c:112 <- mid :: heap_hit.c:113 <- top :: heap_hit.c:122 <- chain_main: hit of cache entry 15
+  mid :: heap_hit.c:113 <- top :: heap_hit.c:122 <- chain_main: analysed, cache entry 18
+  top :: heap_hit.c:122 <- chain_main: analysed, cache entry 19
+  chain_main: analysed, cache entry 20
+Heap calls, not stored by memexec: chain_main 1.
+Heap calls stored by memexec: leaf 1, mid 1, top 1.
+Heap calls whose answers come from full states: chain_main 1.
+Calls that enclose a hit on the entry of a heap call, not stored by memexec, with full states:
+  chain_main 1, mid 1, top 1.
 Hits not made because memexec does not store the heap calls: none.
 leaf, start:
   joined: cur ∈
@@ -502,6 +504,8 @@ chain_main, after heap_hit.c:124 `return;`:
               gq ∈ {0}
               src ∈ {0}
               dst ∈ {0}
+Hits against the analysed call of their cache entry:
+  leaf :: heap_hit.c:112 <- mid :: heap_hit.c:113 <- top :: heap_hit.c:122 <- chain_main, hit of cache entry 15, against leaf :: heap_hit.c:112 <- mid :: heap_hit.c:113 <- top :: heap_hit.c:118 <- chain_main: differs on __malloc_chain_main_l116_1, __malloc_chain_main_l119_1, cur, k, keep, p, at 7 points.
 Initial state: equal.
 Differences with the run without memexec:
 Answers: 885 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.

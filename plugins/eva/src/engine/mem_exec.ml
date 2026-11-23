@@ -63,11 +63,7 @@ let equal_block b1 b2 =
   && Cil_datatype.Typ.equal b1.typ b2.typ && b1.kind = b2.kind
 
 (* The block of an allocated base as it is now. The record and the type are
-   copied: the analysis mutates them in place afterwards. A snapshot read
-   when a call is stored, after its analysis, stands for the start of the
-   call only while no stored call changes the validity or the type of a
-   block: a call that does so receives a heap effect, and memexec does not
-   store it. *)
+   copied: the analysis mutates them in place afterwards. *)
 let take_block = function
   | Base.Allocated (vi, kind, validity) ->
     let record =
@@ -80,9 +76,78 @@ let take_block = function
     Some { weak; record; typ = vi.vtype; kind }
   | Base.Var _ | Base.CLogic_Var _ | Base.Null | Base.Absolute _ -> None
 
+(* The block of an allocated base as it was at the start of a call, which
+   has made since then the validity mutations [mutations], see
+   [Heap_effects], in the order of emission: each field that a mutation
+   changed is taken back to its value before the first mutation that
+   changed it. A removal changes no field: the block of a base that the
+   call removes is the block it had at the start of the call. The kind of
+   a block never changes. *)
+let take_block_at_entry ~mutations base =
+  let undo block = function
+    | Heap_effects.Mutation { block = b; record; weakened; typ }
+      when Base.equal b base ->
+      let block = if weakened then { block with weak = false } else block in
+      let block =
+        match record with
+        | None -> block
+        | Some ({ Heap_effects.min_alloc; max_alloc }, _) ->
+          { block with record = Variable { min_alloc; max_alloc } }
+      in
+      begin match typ with
+        | None -> block
+        | Some (typ, _) -> { block with typ }
+      end
+    | Allocation _ | Mutation _ | Removal _ | Sweep _ -> block
+  in
+  match mutations with
+  | [] -> take_block base
+  | _ ->
+    Option.map
+      (fun block -> List.fold_left undo block (List.rev mutations))
+      (take_block base)
+
 (* Whether the blocks [b1] and [b2], in the order of their numbers, are
    equal one by one. *)
 let equal_blocks b1 b2 = List.equal equal_block b1 b2
+
+(* ----- Heap calls ------------------------------------------------------- *)
+
+(* What memexec stores of a call that frees, with -eva-hit-log, see the
+   interface. *)
+type heap = {
+  removed: Base.Hptset.t;
+  swept: Base.Hptset.t;
+  exit: Heap_paths.sweeps;
+  mutations: Heap_effects.t list;
+}
+
+(* The heap calls that memexec stores, per function. *)
+let stored_heap_calls =
+  Statistics.(register_function_stat "hit-log-stored-heap-calls" Int)
+
+(* Whether the memory state [model] binds [base]. *)
+let binds model base =
+  match model with
+  | Cvalue.Model.Top -> true
+  | Bottom -> false
+  | Map _ ->
+    match Cvalue.Model.find_base base model with
+    | _ -> true
+    | exception Not_found -> false
+
+(* The pointers to the blocks [every] in [model] become escaping addresses,
+   and those to the blocks [some] are joined with escaping addresses, as the
+   releases of a call do. *)
+let sweep_model ~every ~some model =
+  let sweep ~exact escaping model =
+    if Base.Hptset.is_empty escaping then model
+    else
+      let on_escaping ~b:_ ~itv:_ ~v:_ = () in
+      Locals_scoping.make_escaping ~exact ~escaping ~on_escaping
+        ~within:Base.SetLattice.top model
+  in
+  sweep ~exact:true every model |> sweep ~exact:false some
 
 let is_allocated = function
   | Base.Allocated _ -> true
@@ -178,16 +243,27 @@ module Make
      the exits, with the placeholder of its number in place of each
      allocated block, see [Numbering]. *)
 
+  (* What memexec keeps of a call that frees, numbered: the blocks it
+     removes, and those it swept on every path from its start to its return
+     and on some path only. *)
+  type numbered_heap = {
+    removed_numbers: Base.Hptset.t;
+    every: Base.Hptset.t;
+    some: Base.Hptset.t;
+  }
+
   (* A result stored in numbered form: the output bases and the states at
      the exits, numbered; the call number; the snapshot, the block of each
-     number when the call was stored; and the blocks of the call that
-     computed the result, by number. *)
+     number at the start of the call; the blocks of the call that computed
+     the result, by number; and, for a call that frees, its removals and
+     sweeps. *)
   type numbered_result = {
     output_bases: Base.Hptset.t;
     outputs: (Partition.key * Domain.t) list;
     call_number: int;
     blocks: block list;
     analysed: Base.t list;
+    heap: numbered_heap option;
   }
 
   (* A key in numbered form, with the results stored for it by numbered
@@ -317,17 +393,21 @@ module Make
       and clobbered = Numbering.rewrite_clobbered substitution clobbered in
       Domain.set Cvalue_domain.State.key (model, clobbered) state
 
-  (* The snapshot of the blocks of [numbering], by number, as they are now. *)
-  let snapshot_of numbering =
-    List.filter_map (fun (base, _, _) -> take_block base)
+  (* The snapshot of the blocks of [numbering], by number, as they were at
+     the start of a call that has made since then the validity mutations
+     [mutations]: as they are now, for a call of a lookup. *)
+  let snapshot_of ?(mutations = []) numbering =
+    List.filter_map (fun (base, _, _) -> take_block_at_entry ~mutations base)
       (Numbering.blocks numbering)
 
   (* Stores in numbered form the call of [kf] with arguments [args], key
      [input_bases] and start state on its key [state_input], whose exits are
-     [outputs], copied on [output_bases] on a reuse. The snapshot is read
-     now, after the analysis of the call, and stands for its start: the
-     call receives no heap effect, and no stored call changes the validity
-     or the type of a block. Returns the numbered blocks, in the order of
+     [outputs], copied on [output_bases] on a reuse. For a call that frees,
+     [heap] gives its removals and its sweeps: the key holds the blocks it
+     removes, and every block it sweeps must be numbered. The snapshot is
+     that of the start of the call, rebuilt from the blocks as they are now
+     and from the validity mutations of the call, see
+     [take_block_at_entry]. Returns the numbered blocks, in the order of
      their numbers. Raises [No_numbered_form] and [TooImprecise].
      A result is added only after the lookup of the same call missed. That
      lookup numbers the call as the store does: from its arguments, then
@@ -340,8 +420,8 @@ module Make
      and snapshot, analysed inside this one, is stored after the lookup of
      this one, and both are kept, one per analysed level of the recursion.
      No result is removed, and the lookup tries them one by one. *)
-  let store_numbered kf args ~input_bases ~state_input ~output_bases ~outputs
-      call_number =
+  let store_numbered ?heap kf args ~input_bases ~state_input ~output_bases
+      ~outputs call_number =
     let get =
       match get_cvalue_state with
       | None -> raise No_numbered_form
@@ -356,6 +436,19 @@ module Make
       with Numbering.Unknown_targets -> raise TooImprecise
     in
     let to_numbers = Numbering.to_numbers numbering in
+    let heap =
+      Option.map
+        (fun heap ->
+           let numbered b = Option.is_some (Numbering.number numbering b) in
+           if not (Base.Hptset.for_all numbered heap.swept)
+           then raise No_numbered_form;
+           let rewrite = Numbering.rewrite_bases to_numbers in
+           { removed_numbers = rewrite heap.removed;
+             every = rewrite heap.exit.Heap_paths.every;
+             some = rewrite heap.exit.Heap_paths.some; },
+           heap.mutations)
+        heap
+    in
     let numbered =
       Numbering.rewrite to_numbers
         Numbering.{ args = cvalue_args; key = input_bases;
@@ -382,13 +475,15 @@ module Make
            | Argument _ | Content _ | Candidate -> None)
         (Numbering.blocks numbering)
     in
+    let mutations = Option.fold ~none:[] ~some:snd heap in
     let result = {
       output_bases = Numbering.rewrite_bases to_numbers output_bases;
       outputs =
         List.map (fun (k, state) -> k, rewrite_state to_numbers state) outputs;
       call_number;
-      blocks = snapshot_of numbering;
+      blocks = snapshot_of ~mutations numbering;
       analysed = List.map (fun (base, _, _) -> base) (Numbering.blocks numbering);
+      heap = Option.map fst heap;
     } in
     let args = rewrite_arguments to_numbers args in
     let start = rewrite_state to_numbers state_input in
@@ -417,6 +512,7 @@ module Make
     Domain.Hashtbl.add results start result;
     Statistics.grow snapshot_results kf
       (List.length (Domain.Hashtbl.find_all results start));
+    if Option.is_some heap then Statistics.incr stored_heap_calls kf;
     result.analysed
 
   (* With [~snapshot:false], the store of memexec without -eva-hit-log; the
@@ -425,8 +521,9 @@ module Make
      -eva-hit-log; the hooks of the tests are called once the call is
      stored, out of the handler of the store. The result is then the blocks
      numbered in the stored call, the empty list if it is not numbered, and
-     None if it is not stored. *)
-  let store_computed_call ~snapshot kf input_state args
+     None if it is not stored. A call that frees, with [heap], is stored in
+     numbered form only, with the blocks it removes in its key. *)
+  let store_computed_call ~snapshot ?heap kf input_state args
       (call_result: (Partition.key * Domain.t) list) =
     match Transfer_stmt.current_kf_inout () with
     | None -> None
@@ -434,12 +531,18 @@ module Make
       match
         (* The matching key: the bases read by the call, those read by its
            annotations, and those it writes on any path, whether the path
-           returns or not, including the bases it surely overwrites. *)
+           returns or not, including the bases it surely overwrites; and the
+           blocks that it removes, which the inout plugin does not give. *)
         let input_bases =
           let input_bases = bases inout.Inout_type.over_inputs in
           let logic_input_bases = bases inout.Inout_type.over_logic_inputs in
           let output_bases = bases inout.Inout_type.over_outputs in
           Base.Hptset.(union input_bases (union logic_input_bases output_bases))
+        in
+        let input_bases =
+          match heap with
+          | None -> input_bases
+          | Some heap -> Base.Hptset.union input_bases heap.removed
         in
         let input_bases =
           expand_inputs_with_relations 2 kf input_bases input_state
@@ -451,8 +554,9 @@ module Make
         let state_input = Domain.filter input_bases input_state in
         let numbered =
           snapshot
-          && not (Base.Hptset.is_empty
-                    (mentioned_blocks input_bases args state_input))
+          && (Option.is_some heap
+              || not (Base.Hptset.is_empty
+                        (mentioned_blocks input_bases args state_input)))
         in
         (* Output bases, that is bases that are copy-pasted on a reuse: the
            key, which includes the written bases and the input bases, as the
@@ -474,7 +578,7 @@ module Make
         let mentioned =
           if numbered
           then
-            store_numbered kf args ~input_bases ~state_input
+            store_numbered ?heap kf args ~input_bases ~state_input
               ~output_bases:all_output_bases ~outputs call_number
           else begin
             let map_a =
@@ -555,6 +659,63 @@ module Make
     in
     Base.Hptset.Hashtbl.iter aux_previous_call map_inputs
 
+  (* The states at the exits [outputs] of a stored call that frees, with
+     its removals and sweeps [heap], numbered, reused in the state [state]
+     of a call through [of_numbers], and copied on [bases]. For each exit,
+     the pointers of [state] to the blocks that the stored call swept are
+     swept: the frame, which the exit does not hold, has in [state] the
+     values it had at the start of the call. The exit is then copied on
+     [bases], and the blocks that the stored call removed and that the exit
+     does not bind are removed: the removal mask. A block swept on some path
+     only that the exit does not bind is swept on every path for this exit:
+     the key holds it, so the start of the call binds it, and no state of
+     the exit binds it, so a release that removes it, and sweeps the
+     pointers to it in the same step, ran on every path that leads to the
+     exit; no allocation brings it back, as the call allocates nothing. The
+     state is swept once for the exits that sweep the same blocks. *)
+  let reuse_heap of_numbers heap bases state outputs =
+    let get =
+      match get_cvalue_state with
+      | None -> raise No_numbered_form
+      | Some get -> get
+    in
+    let set model clobbered state =
+      Domain.set Cvalue_domain.State.key (model, clobbered) state
+    in
+    let rewrite = Numbering.rewrite_bases of_numbers in
+    let removed = rewrite heap.removed_numbers in
+    let every = rewrite heap.every and some = rewrite heap.some in
+    let swept = ref [] in
+    let sweep_state every some =
+      let same (e, s, _) =
+        Base.Hptset.equal e every && Base.Hptset.equal s some
+      in
+      match List.find_opt same !swept with
+      | Some (_, _, state) -> state
+      | None ->
+        let model, clobbered = get state in
+        let state = set (sweep_model ~every ~some model) clobbered state in
+        swept := (every, some, state) :: !swept;
+        state
+    in
+    let process (key, output) =
+      let output = rewrite_state of_numbers output in
+      let unbound b = not (binds (fst (get output)) b) in
+      let gone = Base.Hptset.filter unbound removed in
+      let promoted = Base.Hptset.inter some gone in
+      let input =
+        sweep_state (Base.Hptset.union every promoted)
+          (Base.Hptset.diff some promoted)
+      in
+      let result =
+        Domain.reuse bases ~current_input:input ~previous_output:output
+      in
+      let model, clobbered = get result in
+      key, set (Base.Hptset.fold Cvalue.Model.remove_base gone model)
+        clobbered result
+    in
+    List.map process outputs
+
   (* The lookup of a call in the keys [keys] stored in numbered form for its
      numbered arguments, [numbering] being the numbering of its arguments.
      For each key, the numbering continues on [state], guided by the key: a
@@ -612,12 +773,18 @@ module Make
               | Some r ->
                 let of_numbers = Numbering.of_numbers numbering in
                 let bases = Numbering.rewrite_bases of_numbers r.output_bases in
-                let process (key, output) =
-                  key,
-                  Domain.reuse bases ~current_input:state
-                    ~previous_output:(rewrite_state of_numbers output)
+                let outputs =
+                  match r.heap with
+                  | None ->
+                    let process (key, output) =
+                      key,
+                      Domain.reuse bases ~current_input:state
+                        ~previous_output:(rewrite_state of_numbers output)
+                    in
+                    List.map process r.outputs
+                  | Some heap ->
+                    reuse_heap of_numbers heap bases state r.outputs
                 in
-                let outputs = List.map process r.outputs in
                 let blocks =
                   List.map (fun (base, _, _) -> base)
                     (Numbering.blocks numbering)

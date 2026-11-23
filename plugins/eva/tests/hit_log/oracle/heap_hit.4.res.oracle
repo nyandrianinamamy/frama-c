@@ -8,11 +8,13 @@ Calls:
   malloc :: heap_hit.c:99 <- two_main: builtin
   malloc :: heap_hit.c:100 <- two_main: builtin
   Frama_C_interval :: heap_hit.c:102 <- two_main: specification
-  free :: heap_hit.c:92 <- tfree :: heap_hit.c:103 <- two_main: builtin
-  tfree :: heap_hit.c:103 <- two_main: analysed, cache entry 8
-  two_main: analysed, cache entry 9
-Heap calls, not stored by memexec: tfree 2, two_main 1.
-Heap calls whose answers come from full states: none.
+  tfree :: heap_hit.c:103 <- two_main: hit of cache entry 7
+  two_main: analysed, cache entry 8
+Heap calls, not stored by memexec: two_main 1.
+Heap calls stored by memexec: tfree 1.
+Heap calls whose answers come from full states: two_main 1.
+Calls that enclose a hit on the entry of a heap call, not stored by memexec, with full states:
+  two_main 1.
 Hits not made because memexec does not store the heap calls: none.
 tfree, start:
   joined: cur ∈
@@ -320,6 +322,8 @@ two_main, after heap_hit.c:105 `return;`:
             __malloc_two_main_l96_1 ∈ UNINITIALIZED
             __malloc_two_main_l99_1 ∈ UNINITIALIZED
             __malloc_two_main_l100_1 ∈ UNINITIALIZED
+Hits against the analysed call of their cache entry:
+  tfree :: heap_hit.c:103 <- two_main, hit of cache entry 7, against tfree :: heap_hit.c:98 <- two_main: differs on __malloc_two_main_l100_1, __malloc_two_main_l99_1, cur, g1, g2, keep, keep2, p, tmp_0, at 7 points.
 Initial state: equal.
 Differences with the run without memexec:
 Answers: 875 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.

@@ -6,14 +6,17 @@ Calls:
   mid :: heap_hit.c:113 <- top :: heap_hit.c:131 <- outer_main: analysed, cache entry 16
   top :: heap_hit.c:131 <- outer_main: analysed, cache entry 17
   malloc :: heap_hit.c:132 <- outer_main: builtin
-  free :: heap_hit.c:111 <- leaf :: heap_hit.c:112 <- mid :: heap_hit.c:113 <- top :: heap_hit.c:135 <- outer_main: builtin
-  leaf :: heap_hit.c:112 <- mid :: heap_hit.c:113 <- top :: heap_hit.c:135 <- outer_main: analysed, cache entry 18
-  mid :: heap_hit.c:113 <- top :: heap_hit.c:135 <- outer_main: analysed, cache entry 19
-  top :: heap_hit.c:135 <- outer_main: analysed, cache entry 20
-  outer_main: analysed, cache entry 21
-Heap calls, not stored by memexec: leaf 2, mid 2, outer_main 1, top 2.
-Heap calls whose answers come from full states: none.
+  top :: heap_hit.c:135 <- outer_main: hit of cache entry 17
+  outer_main: analysed, cache entry 18
+Heap calls, not stored by memexec: outer_main 1.
+Heap calls stored by memexec: leaf 1, mid 1, top 1.
+Heap calls whose answers come from full states: outer_main 1.
+Calls that enclose a hit on the entry of a heap call, not stored by memexec, with full states:
+  outer_main 1.
 Hits not made because memexec does not store the heap calls: none.
+Calls below a hit:
+  leaf :: heap_hit.c:112 <- mid :: heap_hit.c:113 <- top :: heap_hit.c:135 <- outer_main
+  mid :: heap_hit.c:113 <- top :: heap_hit.c:135 <- outer_main
 leaf, start:
   joined: cur ∈
              {{ &__malloc_outer_main_l129_1 ; &__malloc_outer_main_l132_1 }}
@@ -502,6 +505,8 @@ outer_main, after heap_hit.c:137 `return;`:
               gq ∈ {0}
               src ∈ {0}
               dst ∈ {0}
+Hits against the analysed call of their cache entry:
+  top :: heap_hit.c:135 <- outer_main, hit of cache entry 17, against top :: heap_hit.c:131 <- outer_main: differs on __malloc_outer_main_l129_1, __malloc_outer_main_l132_1, cur, keep, p, at 7 points.
 Initial state: equal.
 Differences with the run without memexec:
 Answers: 885 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
@@ -515,6 +520,7 @@ Passes after the iteration:
     unreachable statements: 205 requests
     statistics: 18 requests
     summary: 18 requests
+  requests of the passes on a callstack below a hit, with -eva-hit-log: 0.
 Statuses of the properties: those of the run without memexec, for 352 properties.
 Alarms: 0, of which 0 not proven, those of the run without memexec.
 Summary: statement coverage 1.0000, function coverage 0.1600, 0 alarms, those of the run without memexec.

@@ -5,19 +5,19 @@ Calls:
   free :: heap_hit.c:43 <- rel :: heap_hit.c:243 <- arg_main: builtin
   rel :: heap_hit.c:243 <- arg_main: analysed, cache entry 11
   malloc :: heap_hit.c:244 <- arg_main: builtin
-  free :: heap_hit.c:43 <- rel :: heap_hit.c:247 <- arg_main: builtin
-  rel :: heap_hit.c:247 <- arg_main: analysed, cache entry 12
+  rel :: heap_hit.c:247 <- arg_main: hit of cache entry 11
   malloc :: heap_hit.c:248 <- arg_main: builtin
   Frama_C_interval :: heap_hit.c:61 <- cfree :: heap_hit.c:250 <- arg_main: specification
   free :: heap_hit.c:61 <- cfree :: heap_hit.c:250 <- arg_main: builtin
-  cfree :: heap_hit.c:250 <- arg_main: analysed, cache entry 13
+  cfree :: heap_hit.c:250 <- arg_main: analysed, cache entry 12
   malloc :: heap_hit.c:251 <- arg_main: builtin
-  Frama_C_interval :: heap_hit.c:61 <- cfree :: heap_hit.c:254 <- arg_main: specification
-  free :: heap_hit.c:61 <- cfree :: heap_hit.c:254 <- arg_main: builtin
-  cfree :: heap_hit.c:254 <- arg_main: analysed, cache entry 14
-  arg_main: analysed, cache entry 15
-Heap calls, not stored by memexec: arg_main 1, cfree 2, rel 2.
-Heap calls whose answers come from full states: none.
+  cfree :: heap_hit.c:254 <- arg_main: hit of cache entry 12
+  arg_main: analysed, cache entry 13
+Heap calls, not stored by memexec: arg_main 1.
+Heap calls stored by memexec: cfree 1, rel 1.
+Heap calls whose answers come from full states: arg_main 1.
+Calls that enclose a hit on the entry of a heap call, not stored by memexec, with full states:
+  arg_main 1.
 Hits not made because memexec does not store the heap calls: none.
 rel, start:
   joined: cur ∈ {{ &__malloc_arg_main_l241_1 ; &__malloc_arg_main_l244_1 }}
@@ -392,6 +392,9 @@ arg_main, after heap_hit.c:256 `return;`:
                                     {{ &__malloc_arg_main_l251_1 }} or ESCAPINGADDR
             __malloc_arg_main_l248_1 ∈ {1}
             __malloc_arg_main_l251_1 ∈ {1}
+Hits against the analysed call of their cache entry:
+  rel :: heap_hit.c:247 <- arg_main, hit of cache entry 11, against rel :: heap_hit.c:243 <- arg_main: differs on __calloc_arg_main_l240_1, __malloc_arg_main_l241_1, __malloc_arg_main_l244_1, cur, p, at 7 points.
+  cfree :: heap_hit.c:254 <- arg_main, hit of cache entry 12, against cfree :: heap_hit.c:250 <- arg_main: differs on __calloc_arg_main_l240_1, __malloc_arg_main_l248_1, __malloc_arg_main_l251_1, cur, p, at 11 points.
 Initial state: equal.
 Differences with the run without memexec:
 Answers: 895 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.

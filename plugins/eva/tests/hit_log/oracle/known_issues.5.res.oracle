@@ -4,15 +4,16 @@ Calls:
   free :: known_issues.c:86 <- release :: known_issues.c:94 <- issue94_2: builtin
   release :: known_issues.c:94 <- issue94_2: analysed, cache entry 7
   malloc :: known_issues.c:90 <- issue94_2: builtin
-  free :: known_issues.c:86 <- release :: known_issues.c:94 <- issue94_2: builtin
-  release :: known_issues.c:94 <- issue94_2: analysed, cache entry 8
+  release :: known_issues.c:94 <- issue94_2: hit of cache entry 7
   malloc :: known_issues.c:90 <- issue94_2: builtin
-  free :: known_issues.c:86 <- release :: known_issues.c:94 <- issue94_2: builtin
-  release :: known_issues.c:94 <- issue94_2: analysed, cache entry 9
-  issue94_2: analysed, cache entry 10
-Heap calls, not stored by memexec: issue94_2 1, release 3.
-Heap calls whose answers come from full states: none.
-Hits not made because memexec does not store the heap calls: release 2.
+  release :: known_issues.c:94 <- issue94_2: hit of cache entry 7
+  issue94_2: analysed, cache entry 8
+Heap calls, not stored by memexec: issue94_2 1.
+Heap calls stored by memexec: release 1.
+Heap calls whose answers come from full states: issue94_2 1.
+Calls that enclose a hit on the entry of a heap call, not stored by memexec, with full states:
+  issue94_2 1.
+Hits not made because memexec does not store the heap calls: none.
 Created bases whose match with the run with memexec is unresolved:
   __malloc_issue94_2_l90_1, one block, for __malloc_w_issue94_2_l90_0, a summary of several
 Created bases of the run with memexec, without recording, that summarise several blocks, matched to one block of the run without memexec:
@@ -109,6 +110,7 @@ release, after known_issues.c:86 `return;`:
                                              two ∈ {0}
                                              xc ∈ {0}
                                              __retres ∈ UNINITIALIZED
+Hits against the analysed call of their cache entry:
 Initial state: equal.
 Differences with the run without memexec:
 Answers: 579 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.

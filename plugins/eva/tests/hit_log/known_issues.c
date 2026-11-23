@@ -136,3 +136,9 @@ int issue96(void) {
    mentions. The block of first and current is strong at the first call of
    equal_live and weak at the second one, which is analysed, and every
    answer of issue94_1 equals the run without memexec. */
+
+/* #94, case 2 is no longer a known issue under -eva-hit-log: since #126,
+   memexec stores release, a call that frees. Its second and third calls are
+   hits on the entry of its first one: each hit removes the block of owner,
+   and sweeps alias, which points to the block from the frame of the call.
+   Every answer of issue94_2 equals the run without memexec. */

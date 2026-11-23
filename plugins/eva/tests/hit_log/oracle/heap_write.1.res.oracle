@@ -4,12 +4,14 @@ Calls:
   free :: heap_write.c:30 <- release :: heap_write.c:32 <- lost_main: builtin
   release :: heap_write.c:32 <- lost_main: analysed, cache entry 6
   malloc :: heap_write.c:32 <- lost_main: builtin
-  free :: heap_write.c:30 <- release :: heap_write.c:32 <- lost_main: builtin
-  release :: heap_write.c:32 <- lost_main: analysed, cache entry 7
-  lost_main: analysed, cache entry 8
-Heap calls, not stored by memexec: lost_main 1, release 2.
-Heap calls whose answers come from full states: none.
-Hits not made because memexec does not store the heap calls: release 1.
+  release :: heap_write.c:32 <- lost_main: hit of cache entry 6
+  lost_main: analysed, cache entry 7
+Heap calls, not stored by memexec: lost_main 1.
+Heap calls stored by memexec: release 1.
+Heap calls whose answers come from full states: lost_main 1.
+Calls that enclose a hit on the entry of a heap call, not stored by memexec, with full states:
+  lost_main 1.
+Hits not made because memexec does not store the heap calls: none.
 release, start:
   joined: g ∈ {{ &__malloc_lost_main_l32_1[0] }}
           z ∈ {0}
@@ -54,6 +56,7 @@ lost_main, after heap_write.c:33 `return;`:
   lost_main: g ∈ {0}
              z ∈ {0}
              i ∈ {2}
+Hits against the analysed call of their cache entry:
 Initial state: equal.
 Differences with the run without memexec:
 Answers: 164 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.

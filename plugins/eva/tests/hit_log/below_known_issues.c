@@ -138,3 +138,10 @@ int issue96(void) {
    p94_1 and weak at the second one, which is analysed with its call of
    equal_live: no call is below a hit, and every answer of issue94_1 equals
    the run without memexec. */
+
+/* #94, case 2 is no longer a known issue under -eva-hit-log: since #126,
+   memexec stores p94_2 and release, calls that free. The second and third
+   calls of p94_2 are hits on the entry of its first one, and release is
+   below them: each hit removes the block of owner, and sweeps alias, which
+   points to the block from the frame of the call. Every answer of
+   issue94_2 equals the run without memexec. */

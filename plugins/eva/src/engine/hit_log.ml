@@ -367,9 +367,10 @@ type exit =
    that a recursive call withdraws from the state and puts back at its end,
    per call statement of the body that makes it or makes a call nested in
    which it is made, and overall; how the call ends, set when its body has
-   been analysed; for a builtin, the number of states it returns; and
-   whether it is refused: it calls, or a call nested in it calls, a builtin
-   that reads every allocated block. *)
+   been analysed; for a builtin, the number of states it returns; whether
+   it is refused: it calls, or a call nested in it calls, a builtin that
+   reads every allocated block; and whether it is a hit on the entry of a
+   heap call, or a call nested in it is, see [record_hit]. *)
 type frame = {
   mutable calls:
     (Cil_types.stmt * Cil_types.kernel_function * Cvalue.Model.t * int option
@@ -385,6 +386,7 @@ type frame = {
   mutable exit: exit;
   mutable outputs: int option;
   mutable refused: bool;
+  mutable heap_hit: bool;
 }
 
 (* The parts of the recording used only while the analysis runs. They are
@@ -580,7 +582,9 @@ let bound_by_call ~removed callee =
    successors.
    For a heap call, [heap_before] and [heap_after] give at each point, from
    the state there, the blocks that its heap effects cover, which are covered
-   as well, and the sweep map. *)
+   as well, and the sweep map. The start state of a call made by the body is
+   projected with the coverage and the sweep map before its call statement,
+   from this start state. *)
 let no_heap _ _ = Heap_paths.empty
 
 let inner_part ?(heap_before = no_heap) ?(heap_after = no_heap) footprint
@@ -618,7 +622,9 @@ let inner_part ?(heap_before = no_heap) ?(heap_after = no_heap) footprint
       (fun (site, callee, state, child, renaming) ->
          let created, removed = created_and_removed_blocks ~start state in
          let bound = bound_by_call ~removed callee in
-         let start = project ~bound ~created (zone_before site) state in
+         let { Heap_paths.covered; sweeps } = heap_before site state in
+         let bound = Base.Hptset.union bound covered in
+         let start = project ~bound ~sweeps ~created (zone_before site) state in
          { site; callee; child; renaming; start = Some start })
       calls
   in
@@ -646,15 +652,11 @@ let current_frame () =
 
 let heap_calls = Statistics.(register_function_stat "hit-log-heap-calls" Int)
 let full_states = Statistics.(register_function_stat "hit-log-full-states" Int)
+let above_heap_hits =
+  Statistics.(register_function_stat "hit-log-above-heap-hits" Int)
 let lost_hits = Statistics.(register_function_stat "hit-log-lost-hits" Int)
 let lost_hits_below =
   Statistics.(register_function_stat "hit-log-lost-hits-below" Int)
-
-let heap_call () =
-  enabled () &&
-  match current_frame () with
-  | None -> false
-  | Some frame -> frame.effects <> []
 
 (* Merges the last evaluation of a call made by the body of [frame] into the
    evaluations of its statement before it. *)
@@ -749,10 +751,10 @@ let lost_hit kf f =
   Fun.protect ~finally:(fun () -> running.lost <- running.lost - 1) f
 
 (* A call that is not a heap call makes no heap call: [call] passes the mark
-   of a heap call to its caller. Checked on the calls made by its body that
-   used a cache entry. With [record_hit], which fails on the entry of a heap
-   call, this ensures that no call below a hit uses the entry of a heap
-   call. *)
+   of a heap call to its caller. A call that encloses a hit on the entry of a
+   heap call keeps full states, and memexec does not store it, see
+   [record_hit]. Checked on the calls made by the body of any other call
+   that used a cache entry. *)
 let check_no_heap_child store calls =
   List.iter
     (fun (_, callee, _, child, _) ->
@@ -1037,6 +1039,10 @@ let record_analysed_call ~id callstack ~automaton ~fired ~footprint ~start
   let heap =
     Option.fold ~none:false ~some:(fun frame -> frame.effects <> []) frame
   in
+  let marked =
+    Option.fold ~none:false ~some:(fun frame -> frame.heap_hit) frame
+  in
+  if marked then Statistics.incr above_heap_hits kf;
   let unknown () =
     let below =
       List.rev_map
@@ -1046,13 +1052,15 @@ let record_analysed_call ~id callstack ~automaton ~fired ~footprint ~start
     in
     Unknown, below
   in
+  (* An entry that holds full states is never stored by memexec: it keeps
+     no call made by its body. *)
   let full () =
-    Statistics.incr full_states kf;
+    if heap then Statistics.incr full_states kf;
     Full { before = Lazy.force before; after = Lazy.force after }, []
   in
-  (* A heap call has no hit, and thus no call below a hit: the calls made by
-     its body are not kept. Its sweeps are computed for its caller, even when
-     it keeps full states. *)
+  (* The sweeps of a heap call are computed for its caller, even when it
+     keeps full states. A call that encloses a hit on the entry of a heap
+     call keeps full states. *)
   let inner, below =
     match frame with
     | Some frame when heap ->
@@ -1061,22 +1069,24 @@ let record_analysed_call ~id callstack ~automaton ~fired ~footprint ~start
       frame.exit <- exit_sweeps kf automaton paths ~body_entry ~before;
       begin match footprint with
         | None -> Unknown, []
-        | Some _ when refused frame -> full ()
+        | Some _ when refused frame || marked -> full ()
         | Some footprint ->
           try
             let heap_before, heap_after =
               heap_points automaton paths ~body_entry ~before
             in
             inner_part ~heap_before ~heap_after footprint ~start ~before
-              ~after ~calls:[]
+              ~after ~calls
           with Unknown_footprint -> full ()
       end
     | Some _ | None ->
       Option.iter (fun frame -> frame.exit <- Exit Heap_paths.no_sweep) frame;
-      check_no_heap_child store calls;
       match footprint with
-      | None -> unknown ()
+      | None when marked -> Unknown, []
+      | Some _ when marked -> full ()
+      | None -> check_no_heap_child store calls; unknown ()
       | Some footprint ->
+        check_no_heap_child store calls;
         try inner_part footprint ~start ~before ~after ~calls
         with Unknown_footprint -> unknown ()
   in
@@ -1119,18 +1129,74 @@ let record_mentioned mentioned =
       (Int_table.find_opt (Store.get ()).entries id)
   | _ -> ()
 
+(* A hit on the entry of a heap call emits no heap effect to the call that
+   makes it: the effects of the entry do not go up. The frame of the hit is
+   marked, and [call] passes the mark to its caller, up to the entry point:
+   each of these calls keeps full states, and memexec does not store it, see
+   [storage]. *)
 let record_hit ~id ~renaming callstack ~start ~body_entry =
   let store = Store.get () in
+  let frame = current_frame () in
   Option.iter
     (fun frame -> frame.used <- Some id; frame.renaming <- renaming)
-    (current_frame ());
+    frame;
   match Int_table.find_opt store.entries id with
   | None -> store.unrecorded_hit <- true
-  | Some { heap = true; _ } ->
-    Self.fatal "hit log: hit of the cache entry %d, of a heap call" id
+  | Some { inner = Full _; _ } ->
+    Self.fatal "hit log: hit of the cache entry %d, which holds full states"
+      id
   | Some entry ->
+    if entry.heap then Option.iter (fun frame -> frame.heap_hit <- true) frame;
     add_state entry.hit_starts callstack start;
     add_state (group_states entry renaming) callstack body_entry
+
+type storage =
+  | Plain
+  | Heap of Mem_exec.heap
+  | Refused
+
+(* The blocks that the effects [effects] remove and sweep, their validity
+   mutations in the order of emission, and whether they hold an allocation
+   or a validity mutation. *)
+let removals_and_sweeps effects =
+  let removed = ref Base.Hptset.empty and swept = ref Base.Hptset.empty in
+  let mutations = ref [] and other = ref false in
+  let rec add = function
+    | Here (_, (Heap_effects.Removal block)) ->
+      removed := Base.Hptset.add block !removed
+    | Here (_, Sweep { block; _ }) -> swept := Base.Hptset.add block !swept
+    | Here (_, (Mutation _ as e)) -> mutations := e :: !mutations; other := true
+    | Here (_, Allocation _) -> other := true
+    | Through (_, _, received) -> List.iter add (List.rev received)
+  in
+  List.iter add (List.rev effects);
+  !removed, !swept, List.rev !mutations, !other
+
+(* A heap call whose effects are removals and sweeps only, which is not
+   refused and whose entry holds an Inner part, is stored by memexec, with
+   its sweeps from the start of its body to its return. The sweeps of the
+   automatic release at the end of the call go to its caller. *)
+let storage () =
+  match current_frame () with
+  | None -> Plain
+  | Some frame when frame.heap_hit -> Refused
+  | Some { effects = []; _ } -> Plain
+  | Some frame ->
+    let removed, swept, mutations, other = removals_and_sweeps frame.effects in
+    let known =
+      match Option.map (Int_table.find_opt (Store.get ()).entries) frame.used
+      with
+      | Some (Some { inner = Known _; _ }) -> true
+      | Some (Some { inner = Unknown | Full _; _ } | None) | None -> false
+    in
+    if other || refused frame || not known then Refused
+    else
+      let exit =
+        match frame.exit with
+        | Exit sweeps -> sweeps
+        | No_return | Unset -> Heap_paths.no_sweep
+      in
+      Heap { Mem_exec.removed; swept; exit; mutations }
 
 let mark_unrolled_recursion kf = mark (Store.get ()).body_unavailable kf
 
@@ -1149,7 +1215,7 @@ let call callstack ~start f =
     site_sweeps = Stmt_table.create 1; last = None;
     released = Stmt_table.create 1; withdrawn_at = Stmt_table.create 1;
     withdrawn = Base.Hptset.empty; exit = Unset; outputs = None;
-    refused = false;
+    refused = false; heap_hit = false;
   } in
   running.frames <- frame :: running.frames;
   let finally () =
@@ -1161,6 +1227,7 @@ let call callstack ~start f =
       if frame.effects <> [] then
         caller.effects <- Through (site, kf, frame.effects) :: caller.effects;
       if frame.refused then caller.refused <- true;
+      if frame.heap_hit then caller.heap_hit <- true;
       add_withdrawn caller site frame.withdrawn;
       add_evaluation caller site frame;
       let call = site, kf, start, frame.used, frame.renaming in

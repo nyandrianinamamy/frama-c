@@ -7,7 +7,8 @@ Calls:
   free :: heap_rule.c:114 <- release :: heap_rule.c:119 <- sweep_main: builtin
   release :: heap_rule.c:119 <- sweep_main: analysed, cache entry 8
   sweep_main: analysed, cache entry 9
-Heap calls, not stored by memexec: release 2, sweep_main 1.
+Heap calls, not stored by memexec: sweep_main 1.
+Heap calls stored by memexec: release 2.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 release, start:

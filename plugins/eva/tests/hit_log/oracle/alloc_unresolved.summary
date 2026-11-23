@@ -2,7 +2,7 @@ format	4
 phase	reference
 phase	memexec
 phase	recording
-heap calls	4	2	0	0
+heap calls	2	0	0	1
 phase	requests
 unresolved	with memexec	__malloc_issue94_l31_0	match undecided
 unresolved	with memexec	__malloc_issue94_l31_1	match undecided
@@ -128,7 +128,7 @@ unreachable statements	reference	3
 unreachable statements	recording	3
 unreachable statements	memexec	3
 initial	equal
-calls	4	0	0	6	0
+calls	2	2	0	4	0
 requests	after	callstack	20
 requests	after	callstacks	22
 requests	after	callstacks, filtered	22

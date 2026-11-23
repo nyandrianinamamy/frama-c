@@ -5,7 +5,8 @@ Calls:
   free :: heap_rule.c:33 <- cf :: heap_rule.c:36 <- cond_main: builtin
   cf :: heap_rule.c:36 <- cond_main: analysed, cache entry 5
   cond_main: analysed, cache entry 6
-Heap calls, not stored by memexec: cf 1, cond_main 1.
+Heap calls, not stored by memexec: cond_main 1.
+Heap calls stored by memexec: cf 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 cf, start:

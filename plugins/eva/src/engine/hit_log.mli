@@ -74,11 +74,21 @@
     [reallocarray], [alloca], [free], and of the allocation and release of
     variable-length arrays emit them, and so does the widening of the
     memory, when it raises the validity of a weak block. Every caller of a
-    heap call, up to the entry point, is a heap call. Memexec does not store
-    a heap call: no hit, and thus no call below a hit, uses the entry of a
-    heap call, and the entry does not keep the calls made by the body. A
+    heap call analysed by its body, up to the entry point, is a heap call. A
     call that reads or writes an allocated block and receives no heap effect
     is not a heap call.
+
+    Memexec stores a call that frees: a heap call whose heap effects are
+    removals and sweeps only, which is not refused and whose entry holds an
+    Inner part, see [storage]. It stores no other heap call. The entry of a
+    heap call keeps the calls made by the body, projected as above and on
+    the blocks covered by the heap effects before the call statement: a hit
+    on the entry of a call that frees has calls below it. A hit on the entry
+    of a heap call emits no heap effect into the call that makes it: this
+    call, and each call that encloses it up to the entry point, is marked.
+    Memexec does not store a marked call, and its entry holds full states,
+    see below. The statistic [hit-log-above-heap-hits] counts the marked
+    calls analysed by their body, per function.
 
     The Inner part of a heap call also covers the blocks that its heap
     effects allocate, mutate or remove, from the point where the effect
@@ -130,12 +140,15 @@
     states that the analysis of the body computes and that the legacy store
     saves, taken when the analysis of the body ends. A request at a point of
     a refused heap call is answered by these full states; the rule is not
-    applied. The statistic [hit-log-heap-calls] counts the heap calls, and
-    [hit-log-full-states] those of them whose entries hold full states.
+    applied. The entry of a marked call holds full states too, whether it
+    is a heap call or not. The statistic [hit-log-heap-calls] counts the
+    heap calls, and [hit-log-full-states] those of them whose entries hold
+    full states.
 
     With memexec, the hits that memexec no longer makes are counted per
     function: the statistic [hit-log-lost-hits] counts the calls that it
-    would have reused if it stored the heap calls, except those made during
+    would have reused if it stored the heap calls that it does not store,
+    with their real blocks, not through a renaming, except those made during
     the analysis of such a call, which would have been below a hit:
     [hit-log-lost-hits-below] counts these. A call is counted in one of the
     two only.
@@ -208,10 +221,11 @@ val footprint_of_call: id:int -> (unit -> unit) -> footprint option
     state, its states before and after each statement reached, and the calls
     made by its body. [automaton] is the automaton of the body, and [fired]
     tells the edges through which its analysis propagated a state. For a
-    heap call, the calls made by the body are not kept; the Inner part also
-    covers the blocks of its heap effects, with the sweep map, computed on
-    the paths of the edges [fired]; a refused heap call keeps its states
-    before and after each statement whole. Without footprint, as when the
+    heap call, the Inner part, and the start states of the calls made by the
+    body, also cover the blocks of its heap effects, with the sweep map,
+    computed on the paths of the edges [fired]. A refused heap call and a
+    marked call, with a footprint, keep their states before and after each
+    statement whole, and no call made by the body. Without footprint, as when the
     results of the call are not saved, its body points are unavailable. *)
 val record_analysed_call:
   id:int -> Callstack.t ->
@@ -237,8 +251,9 @@ type renaming = (Base.t * Base.t) list
 val record_mentioned: Base.t list option -> unit
 
 (** [record_hit ~id ~renaming callstack ~start ~body_entry] records a hit of
-    the cache entry [id] on [callstack], through [renaming]. Fails if [id] is
-    the entry of a heap call. *)
+    the cache entry [id] on [callstack], through [renaming]. If [id] is the
+    entry of a heap call, the call that makes the hit is marked. Fails if
+    the entry of [id] holds full states, which memexec does not store. *)
 val record_hit:
   id:int -> renaming:renaming -> Callstack.t ->
   start:Cvalue.Model.t -> body_entry:Cvalue.Model.t -> unit
@@ -247,15 +262,25 @@ val record_hit:
     [call] runs returns [n] states. *)
 val builtin_outputs: int -> unit
 
-(** Whether the call whose analysis the innermost [call] runs is a heap call
-    so far: it has received a heap effect. For a call analysed by its body,
-    the answer is final once the analysis of the body has ended. False when
-    the recording is off. *)
-val heap_call: unit -> bool
+(** How memexec stores the call analysed by its body whose analysis the
+    innermost [call] runs, once [record_analysed_call] has recorded it:
+    - [Plain]: the call is not a heap call and encloses no hit on the entry
+      of a heap call; memexec stores it as without heap effects;
+    - [Heap heap]: the call frees, see {!Mem_exec.heap}: a heap call whose
+      heap effects are removals and sweeps only, which is not refused and
+      whose entry holds an Inner part. Its validity mutations are none;
+    - [Refused]: any other heap call, and any call that encloses a hit on
+      the entry of a heap call. Memexec does not store it. *)
+type storage =
+  | Plain
+  | Heap of Mem_exec.heap
+  | Refused
+
+val storage: unit -> storage
 
 (** [lost_hit kf f] runs [f], the analysis of a call to [kf] that memexec
-    would have reused if it stored the heap calls, and counts it as a hit not
-    made. *)
+    would have reused if it stored the heap calls that it does not store,
+    and counts it as a hit not made. *)
 val lost_hit: Cil_types.kernel_function -> (unit -> 'a) -> 'a
 
 (** The heap effects that a call received while it was analysed, see

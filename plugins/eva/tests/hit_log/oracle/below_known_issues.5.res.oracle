@@ -5,19 +5,16 @@ Calls:
   release :: below_known_issues.c:98 <- p94_2 :: below_known_issues.c:106 <- issue94_2: analysed, cache entry 11
   p94_2 :: below_known_issues.c:106 <- issue94_2: analysed, cache entry 12
   malloc :: below_known_issues.c:102 <- issue94_2: builtin
-  free :: below_known_issues.c:96 <- release :: below_known_issues.c:98 <- p94_2 :: below_known_issues.c:106 <- issue94_2: builtin
-  release :: below_known_issues.c:98 <- p94_2 :: below_known_issues.c:106 <- issue94_2: analysed, cache entry 13
-  p94_2 :: below_known_issues.c:106 <- issue94_2: analysed, cache entry 14
+  p94_2 :: below_known_issues.c:106 <- issue94_2: hit of cache entry 12
   malloc :: below_known_issues.c:102 <- issue94_2: builtin
-  free :: below_known_issues.c:96 <- release :: below_known_issues.c:98 <- p94_2 :: below_known_issues.c:106 <- issue94_2: builtin
-  release :: below_known_issues.c:98 <- p94_2 :: below_known_issues.c:106 <- issue94_2: analysed, cache entry 15
-  p94_2 :: below_known_issues.c:106 <- issue94_2: analysed, cache entry 16
-  issue94_2: analysed, cache entry 17
-Heap calls, not stored by memexec: issue94_2 1, p94_2 3, release 3.
-Heap calls whose answers come from full states: none.
-Hits not made because memexec does not store the heap calls: p94_2 2.
-Hits not made during the analysis of a call that would have been a hit:
-  release 2.
+  p94_2 :: below_known_issues.c:106 <- issue94_2: hit of cache entry 12
+  issue94_2: analysed, cache entry 13
+Heap calls, not stored by memexec: issue94_2 1.
+Heap calls stored by memexec: p94_2 1, release 1.
+Heap calls whose answers come from full states: issue94_2 1.
+Calls that enclose a hit on the entry of a heap call, not stored by memexec, with full states:
+  issue94_2 1.
+Hits not made because memexec does not store the heap calls: none.
 Created bases whose match with the run with memexec is unresolved:
   __malloc_issue94_2_l102_1, one block, for __malloc_w_issue94_2_l102_0, a summary of several
 Created bases of the run with memexec, without recording, that summarise several blocks, matched to one block of the run without memexec:
@@ -102,6 +99,7 @@ release, after below_known_issues.c:96 `return;`:
   i ∈ {0; 1; 2}
   xc ∈ {0}
   __retres ∈ UNINITIALIZED
+Hits against the analysed call of their cache entry:
 Initial state: equal.
 Differences with the run without memexec:
 Answers: 596 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
