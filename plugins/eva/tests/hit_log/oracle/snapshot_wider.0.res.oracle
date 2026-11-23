@@ -1,0 +1,102 @@
+[kernel] Parsing snapshot_wider.c (with preprocessing)
+[kernel:typing:incompatible-types-call] snapshot_wider.c:19: Warning: 
+  implicit conversion between incompatible function types:
+  int (*)(int x)
+  and
+  int (*)(int , char *)
+[eva:alarm] snapshot_wider.c:22: Warning: 
+  pointer to function with incompatible type. assert \valid_function(wider);
+[eva:alarm] snapshot_wider.c:22: Warning: 
+  pointer to function with incompatible type. assert \valid_function(wider);
+[eva:alarm] snapshot_wider.c:22: Warning: 
+  pointer to function with incompatible type. assert \valid_function(wider);
+Calls:
+  malloc :: snapshot_wider.c:21 <- wider_main: builtin
+  keep_one :: snapshot_wider.c:22 <- wider_main: analysed, cache entry 6
+  malloc :: snapshot_wider.c:21 <- wider_main: builtin
+  keep_one :: snapshot_wider.c:22 <- wider_main: analysed, cache entry 7
+  wider_main: analysed, cache entry 8
+Heap calls, not stored by memexec: wider_main 1.
+Hits not made because memexec does not store the heap calls: none.
+Calls that memexec does not reuse because the snapshot of a block they mention differs:
+  keep_one 1.
+Most results that memexec keeps at once for one input state of these functions:
+  keep_one 1.
+keep_one, start:
+  joined: x ∈ {0}
+          r_one[0] ∈ {0; 7}
+               [1] ∈ {0}
+          wider ∈ {{ (int (*)(int , char *))&keep_one }}
+          i ∈ {0; 1}
+          b ∈ {{ &__malloc_w_wider_main_l21_1 }}
+          __malloc_w_wider_main_l21_1 ∈ UNINITIALIZED
+  keep_one :: snapshot_wider.c:22 <- wider_main: x ∈ {0}
+                                                 r_one[0] ∈ {0; 7}
+                                                      [1] ∈ {0}
+                                                 wider ∈
+                                                      {{ (int (*)(int ,
+                                                                  char *))&keep_one }}
+                                                 i ∈ {0; 1}
+                                                 b ∈
+                                                  {{ &__malloc_w_wider_main_l21_1 }}
+                                                 __malloc_w_wider_main_l21_1
+                                                  ∈ UNINITIALIZED
+keep_one, before snapshot_wider.c:15 `__retres = 7;` (O):
+  joined: x ∈ {0}
+          r_one[0] ∈ {0; 7}
+               [1] ∈ {0}
+          wider ∈ {{ (int (*)(int , char *))&keep_one }}
+          i ∈ {0; 1}
+          b ∈ {{ &__malloc_w_wider_main_l21_1 }}
+          __retres ∈ UNINITIALIZED
+          __malloc_w_wider_main_l21_1 ∈ UNINITIALIZED
+  keep_one :: snapshot_wider.c:22 <- wider_main: x ∈ {0}
+                                                 r_one[0] ∈ {0; 7}
+                                                      [1] ∈ {0}
+                                                 wider ∈
+                                                      {{ (int (*)(int ,
+                                                                  char *))&keep_one }}
+                                                 i ∈ {0; 1}
+                                                 b ∈
+                                                  {{ &__malloc_w_wider_main_l21_1 }}
+                                                 __retres ∈ UNINITIALIZED
+                                                 __malloc_w_wider_main_l21_1
+                                                  ∈ UNINITIALIZED
+keep_one, after snapshot_wider.c:15 `return __retres;`:
+  joined: x ∈ {0}
+          r_one[0] ∈ {0; 7}
+               [1] ∈ {0}
+          wider ∈ {{ (int (*)(int , char *))&keep_one }}
+          i ∈ {0; 1}
+          b ∈ {{ &__malloc_w_wider_main_l21_1 }}
+          __retres ∈ {7}
+          __malloc_w_wider_main_l21_1 ∈ UNINITIALIZED
+  keep_one :: snapshot_wider.c:22 <- wider_main: x ∈ {0}
+                                                 r_one[0] ∈ {0; 7}
+                                                      [1] ∈ {0}
+                                                 wider ∈
+                                                      {{ (int (*)(int ,
+                                                                  char *))&keep_one }}
+                                                 i ∈ {0; 1}
+                                                 b ∈
+                                                  {{ &__malloc_w_wider_main_l21_1 }}
+                                                 __retres ∈ {7}
+                                                 __malloc_w_wider_main_l21_1
+                                                  ∈ UNINITIALIZED
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 90 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 30 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 30 points.
+Filtered requests that reject one callstack: 0.
+Requests made: 150; reported by the trap: 150, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 34 requests, 63 reads of the legacy store in them, 59 reads outside any request.
+  with -eva-hit-log: 35 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 16 requests
+    statuses of the properties: 5 requests
+    statistics: 13 requests
+    summary: 1 request
+Statuses of the properties: those of the run without memexec, for 75 properties.
+Alarms: 1, of which 1 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 1.0000, 1 alarm, those of the run without memexec.
