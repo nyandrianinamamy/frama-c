@@ -117,8 +117,11 @@ let add_targets_of_state state acc =
 let snapshot_misses =
   Statistics.(register_function_stat "hit-log-snapshot-misses" Int)
 
-(* The largest number of results that memexec keeps at once for one input
-   state of a function, with -eva-hit-log. *)
+(* The largest number of results that memexec keeps at once for one
+   numbered input state of a function, with -eva-hit-log. Outside the
+   recursive calls of [store_numbered], their snapshots differ: it is then
+   the number of distinct keys of #120, numbered state and snapshot, stored
+   for one numbered state. *)
 let snapshot_results =
   Statistics.(register_function_stat "hit-log-snapshot-results" Int)
 
@@ -325,7 +328,18 @@ module Make
      now, after the analysis of the call, and stands for its start: the
      call receives no heap effect, and no stored call changes the validity
      or the type of a block. Returns the numbered blocks, in the order of
-     their numbers. Raises [No_numbered_form] and [TooImprecise]. *)
+     their numbers. Raises [No_numbered_form] and [TooImprecise].
+     A result is added only after the lookup of the same call missed. That
+     lookup numbers the call as the store does: from its arguments, then
+     along the stored key equal to its own, with the same blocks reached
+     from no root. So it finds any result stored before it with the same
+     numbered start state and a snapshot equal to that of the call. The
+     results kept for one numbered start state thus have distinct
+     snapshots, except for recursive calls analysed under
+     -eva-unroll-recursive-calls: a call with the same numbered start state
+     and snapshot, analysed inside this one, is stored after the lookup of
+     this one, and both are kept, one per analysed level of the recursion.
+     No result is removed, and the lookup tries them one by one. *)
   let store_numbered kf args ~input_bases ~state_input ~output_bases ~outputs
       call_number =
     let get =
