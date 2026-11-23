@@ -1,0 +1,14 @@
+[kernel] Parsing reanalysis.c (with preprocessing)
+Without -eva-initialized-locals, before P, joined: x ∈ UNINITIALIZED
+  callstack 0: x ∈ UNINITIALIZED
+  callstack 1: x ∈ UNINITIALIZED
+Without -eva-initialized-locals, after P, joined: x ∈ UNINITIALIZED
+  callstack 0: x ∈ UNINITIALIZED
+  callstack 1: x ∈ UNINITIALIZED
+With -eva-initialized-locals, before P, joined: x ∈ [--..--]
+  callstack 0: x ∈ [--..--]
+  callstack 1: x ∈ [--..--]
+With -eva-initialized-locals, after P, joined: x ∈ [--..--]
+  callstack 0: x ∈ [--..--]
+  callstack 1: x ∈ [--..--]
+The answers changed with the second analysis: true.
