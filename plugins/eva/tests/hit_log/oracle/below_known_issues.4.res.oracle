@@ -15,7 +15,7 @@ Hits not made because memexec does not store the heap calls: none.
 Calls that memexec does not reuse because the snapshot of a block they mention differs:
   equal_live 1, p94_1 1.
 Most results that memexec keeps at once for one input state of these functions:
-  equal_live 2, p94_1 2.
+  equal_live 1, p94_1 1.
 equal_live, start:
   joined: a ∈ {0}
           g ∈ {0}

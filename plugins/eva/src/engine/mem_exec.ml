@@ -94,7 +94,22 @@ module Snapshot = struct
          | None -> acc)
       bases []
 
-  (* Whether each base of the snapshot has its block now. *)
+  (* Whether each base of the snapshot has its block now.
+     A snapshot that does not hold can never hold again during the analysis:
+     each field of a block changes in place in one direction only, and the
+     snapshot holds the values of its store, which are those of now or
+     earlier ones.
+     - Strength: [Base.update_variable_validity], the only function that
+       writes a [Base.variable_validity], makes a block weak and never strong.
+     - Record: the same function only lowers [min_alloc] and raises
+       [max_alloc], when an allocation builtin resizes the block
+       ([Builtins_malloc.update_variable_validity]) and when the widening
+       raises the record of a weak block ([Lmap]). A validity other than
+       [Variable] is not mutable.
+     - Type: only an allocation builtin that resizes the block changes it,
+       to an array of unknown size ([Builtins_malloc.weaken_type]), which a
+       later resize leaves as it is.
+     - Kind: set when the block is created. *)
   let holds snapshot =
     List.for_all
       (fun (base, block) ->
@@ -338,10 +353,27 @@ module Make
     in
     Base.Hptset.Hashtbl.iter aux_previous_call map_inputs
 
+  (* Removes from [hstates] the results stored for the input state [st]
+     whose snapshot does not hold now, and returns their number. They can
+     never be reused, see [Snapshot.holds]. The others keep their order. *)
+  let remove_failing hstates st =
+    match Domain.Hashtbl.find_all hstates st with
+    | [] -> 0
+    | stored ->
+      let holds (_, _, _, snapshot) = Snapshot.holds snapshot in
+      let kept = List.filter holds stored in
+      let removed = List.length stored - List.length kept in
+      if removed > 0 then begin
+        List.iter (fun _ -> Domain.Hashtbl.remove hstates st) stored;
+        List.iter (Domain.Hashtbl.add hstates st) (List.rev kept)
+      end;
+      removed
+
   (** As [find_match_in_previous], with the snapshot: an execution matches
       [st] only if its snapshot holds now. If several do, the most recent
-      one. Otherwise, returns whether a previous execution has the input
-      state [st]: the snapshot of a mentioned block differs. *)
+      one. The executions with the input state [st] whose snapshot does not
+      hold are removed. Returns whether there was one: the snapshot of a
+      mentioned block differs. *)
   let find_match_with_snapshot (map_inputs: InputBasesToCallEffect.t) state =
     let same_input = ref false in
     let aux_previous_call binputs hstates =
@@ -351,19 +383,17 @@ module Make
       else
         (* restrict [state] to the inputs of this call *)
         let st_filtered = Domain.filter binputs state in
-        (* The stored results of this input state, the most recent first,
-           and the first of them whose snapshot holds now. *)
-        let stored = Domain.Hashtbl.find_all hstates st_filtered in
-        let holds (_, _, _, snapshot) = Snapshot.holds snapshot in
-        match List.find_opt holds stored with
-        | None -> if stored <> [] then same_input := true
-        | Some (bases, outputs, i, _) ->
+        if remove_failing hstates st_filtered > 0 then same_input := true;
+        (* Every result left holds: the most recent one is reused. *)
+        try
+          let bases, outputs, i, _ = Domain.Hashtbl.find hstates st_filtered in
           let process (key,output) =
             key,
             Domain.reuse bases ~current_input:state ~previous_output:output
           in
           let outputs = List.map process outputs in
           raise (Result_found (outputs, i))
+        with Not_found -> ()
     in
     Base.Hptset.Hashtbl.iter aux_previous_call map_inputs;
     !same_input

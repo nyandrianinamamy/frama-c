@@ -10,7 +10,7 @@ Hits not made because memexec does not store the heap calls: none.
 Calls that memexec does not reuse because the snapshot of a block they mention differs:
   keep_unused 1.
 Most results that memexec keeps at once for one input state of these functions:
-  keep_unused 2.
+  keep_unused 1.
 keep_unused, start:
   joined: unused ∈ {{ &__malloc_w_unused_main_l20_1 }}
           r_unused[0] ∈ {0; 7}
