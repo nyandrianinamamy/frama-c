@@ -1,0 +1,201 @@
+[kernel] Parsing heap_hit.c (with preprocessing)
+Calls:
+  calloc :: heap_hit.c:40 <- frame_main: builtin
+  malloc :: heap_hit.c:41 <- frame_main: builtin
+  malloc :: heap_hit.c:42 <- frame_main: builtin
+  free :: heap_hit.c:37 <- rel :: heap_hit.c:44 <- frame_main: builtin
+  rel :: heap_hit.c:44 <- frame_main: analysed, cache entry 7
+  free :: heap_hit.c:37 <- rel :: heap_hit.c:46 <- frame_main: builtin
+  rel :: heap_hit.c:46 <- frame_main: analysed, cache entry 8
+  frame_main: analysed, cache entry 9
+Heap calls, not stored by memexec: frame_main 1, rel 2.
+Heap calls whose answers come from full states: none.
+Hits not made because memexec does not store the heap calls: none.
+rel, start:
+  joined: keep ∈ {0}
+          keep2 ∈ {0}
+          keep3 ∈ {0}
+          keep4 ∈ {0}
+          bx ∈ {{ &__calloc_frame_main_l40_1 }}
+          p ∈ {{ &__malloc_frame_main_l41_1 ; &__malloc_frame_main_l42_1 }}
+          a ∈ {{ &__malloc_frame_main_l41_1 }} or ESCAPINGADDR
+          b ∈ {{ &__malloc_frame_main_l42_1 }}
+          src ∈ {0}
+          dst ∈ {0}
+          __calloc_frame_main_l40_1{.slot; .other} ∈
+                                   {{ NULL ; &__malloc_frame_main_l42_1 }}
+          __malloc_frame_main_l41_1 ∈ {5}
+          __malloc_frame_main_l42_1 ∈ {5}
+  rel :: heap_hit.c:44 <- frame_main: keep ∈ {0}
+                                      keep2 ∈ {0}
+                                      keep3 ∈ {0}
+                                      keep4 ∈ {0}
+                                      bx ∈ {{ &__calloc_frame_main_l40_1 }}
+                                      p ∈ {{ &__malloc_frame_main_l41_1 }}
+                                      a ∈ {{ &__malloc_frame_main_l41_1 }}
+                                      b ∈ {{ &__malloc_frame_main_l42_1 }}
+                                      src ∈ {0}
+                                      dst ∈ {0}
+                                      __calloc_frame_main_l40_1 ∈ {0}
+                                      __malloc_frame_main_l41_1 ∈ {5}
+                                      __malloc_frame_main_l42_1 ∈ {5}
+  rel :: heap_hit.c:46 <- frame_main: keep ∈ {0}
+                                      keep2 ∈ {0}
+                                      keep3 ∈ {0}
+                                      keep4 ∈ {0}
+                                      bx ∈ {{ &__calloc_frame_main_l40_1 }}
+                                      p ∈ {{ &__malloc_frame_main_l42_1 }}
+                                      a ∈ ESCAPINGADDR
+                                      b ∈ {{ &__malloc_frame_main_l42_1 }}
+                                      src ∈ {0}
+                                      dst ∈ {0}
+                                      __calloc_frame_main_l40_1{.slot; .other} ∈
+                                                               {{ &__malloc_frame_main_l42_1 }}
+                                      __malloc_frame_main_l42_1 ∈ {5}
+rel, before heap_hit.c:37 `;` (R):
+  joined: keep ∈ {0}
+          keep2 ∈ {0}
+          keep3 ∈ {0}
+          keep4 ∈ {0}
+          bx ∈ {{ &__calloc_frame_main_l40_1 }}
+          p ∈ ESCAPINGADDR
+          a ∈ ESCAPINGADDR
+          b ∈ {{ &__malloc_frame_main_l42_1 }} or ESCAPINGADDR
+          src ∈ {0}
+          dst ∈ {0}
+          __calloc_frame_main_l40_1 ∈ {0} or ESCAPINGADDR
+          __malloc_frame_main_l42_1 ∈ {5}
+  rel :: heap_hit.c:44 <- frame_main: keep ∈ {0}
+                                      keep2 ∈ {0}
+                                      keep3 ∈ {0}
+                                      keep4 ∈ {0}
+                                      bx ∈ {{ &__calloc_frame_main_l40_1 }}
+                                      p ∈ ESCAPINGADDR
+                                      a ∈ ESCAPINGADDR
+                                      b ∈ {{ &__malloc_frame_main_l42_1 }}
+                                      src ∈ {0}
+                                      dst ∈ {0}
+                                      __calloc_frame_main_l40_1 ∈ {0}
+                                      __malloc_frame_main_l42_1 ∈ {5}
+  rel :: heap_hit.c:46 <- frame_main: keep ∈ {0}
+                                      keep2 ∈ {0}
+                                      keep3 ∈ {0}
+                                      keep4 ∈ {0}
+                                      bx ∈ {{ &__calloc_frame_main_l40_1 }}
+                                      p ∈ ESCAPINGADDR
+                                      a ∈ ESCAPINGADDR
+                                      b ∈ ESCAPINGADDR
+                                      src ∈ {0}
+                                      dst ∈ {0}
+                                      __calloc_frame_main_l40_1 ∈
+                                                               ESCAPINGADDR
+rel, after heap_hit.c:37 `return;`:
+  joined: keep ∈ {0}
+          keep2 ∈ {0}
+          keep3 ∈ {0}
+          keep4 ∈ {0}
+          bx ∈ {{ &__calloc_frame_main_l40_1 }}
+          p ∈ ESCAPINGADDR
+          a ∈ ESCAPINGADDR
+          b ∈ {{ &__malloc_frame_main_l42_1 }} or ESCAPINGADDR
+          src ∈ {0}
+          dst ∈ {0}
+          __calloc_frame_main_l40_1 ∈ {0} or ESCAPINGADDR
+          __malloc_frame_main_l42_1 ∈ {5}
+  rel :: heap_hit.c:44 <- frame_main: keep ∈ {0}
+                                      keep2 ∈ {0}
+                                      keep3 ∈ {0}
+                                      keep4 ∈ {0}
+                                      bx ∈ {{ &__calloc_frame_main_l40_1 }}
+                                      p ∈ ESCAPINGADDR
+                                      a ∈ ESCAPINGADDR
+                                      b ∈ {{ &__malloc_frame_main_l42_1 }}
+                                      src ∈ {0}
+                                      dst ∈ {0}
+                                      __calloc_frame_main_l40_1 ∈ {0}
+                                      __malloc_frame_main_l42_1 ∈ {5}
+  rel :: heap_hit.c:46 <- frame_main: keep ∈ {0}
+                                      keep2 ∈ {0}
+                                      keep3 ∈ {0}
+                                      keep4 ∈ {0}
+                                      bx ∈ {{ &__calloc_frame_main_l40_1 }}
+                                      p ∈ ESCAPINGADDR
+                                      a ∈ ESCAPINGADDR
+                                      b ∈ ESCAPINGADDR
+                                      src ∈ {0}
+                                      dst ∈ {0}
+                                      __calloc_frame_main_l40_1 ∈
+                                                               ESCAPINGADDR
+frame_main, start:
+  joined: keep ∈ {0}
+          keep2 ∈ {0}
+          keep3 ∈ {0}
+          keep4 ∈ {0}
+          bx ∈ {0}
+          src ∈ {0}
+          dst ∈ {0}
+  frame_main: keep ∈ {0}
+              keep2 ∈ {0}
+              keep3 ∈ {0}
+              keep4 ∈ {0}
+              bx ∈ {0}
+              src ∈ {0}
+              dst ∈ {0}
+frame_main, before heap_hit.c:47 `;` (M):
+  joined: keep ∈ {0}
+          keep2 ∈ {0}
+          keep3 ∈ {0}
+          keep4 ∈ {0}
+          bx ∈ {{ &__calloc_frame_main_l40_1 }}
+          a ∈ ESCAPINGADDR
+          b ∈ ESCAPINGADDR
+          src ∈ {0}
+          dst ∈ {0}
+          __calloc_frame_main_l40_1 ∈ ESCAPINGADDR
+  frame_main: keep ∈ {0}
+              keep2 ∈ {0}
+              keep3 ∈ {0}
+              keep4 ∈ {0}
+              bx ∈ {{ &__calloc_frame_main_l40_1 }}
+              a ∈ ESCAPINGADDR
+              b ∈ ESCAPINGADDR
+              src ∈ {0}
+              dst ∈ {0}
+              __calloc_frame_main_l40_1 ∈ ESCAPINGADDR
+frame_main, after heap_hit.c:48 `return;`:
+  joined: keep ∈ {0}
+          keep2 ∈ {0}
+          keep3 ∈ {0}
+          keep4 ∈ {0}
+          bx ∈ {{ &__calloc_frame_main_l40_1 }}
+          a ∈ ESCAPINGADDR
+          b ∈ ESCAPINGADDR
+          src ∈ {0}
+          dst ∈ {0}
+          __calloc_frame_main_l40_1 ∈ ESCAPINGADDR
+  frame_main: keep ∈ {0}
+              keep2 ∈ {0}
+              keep3 ∈ {0}
+              keep4 ∈ {0}
+              bx ∈ {{ &__calloc_frame_main_l40_1 }}
+              a ∈ ESCAPINGADDR
+              b ∈ ESCAPINGADDR
+              src ∈ {0}
+              dst ∈ {0}
+              __calloc_frame_main_l40_1 ∈ ESCAPINGADDR
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 819 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 390 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 390 points.
+Filtered requests that reject one callstack: 7.
+Requests made: 1599; reported by the trap: 1599, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 225 requests, 62 reads of the legacy store in them, 75 reads outside any request.
+  with -eva-hit-log: 225 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 193 requests
+    statistics: 14 requests
+    summary: 18 requests
+Statuses of the properties: those of the run without memexec, for 352 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.0833, 0 alarms, those of the run without memexec.

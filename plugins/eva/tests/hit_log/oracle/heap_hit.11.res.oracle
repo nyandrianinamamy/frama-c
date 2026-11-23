@@ -1,0 +1,160 @@
+[kernel] Parsing heap_hit.c (with preprocessing)
+[eva:malloc:imprecise] heap_hit.c:212: Warning: 
+  allocating a single weak variable for ALL dynamic allocations via malloc/calloc/realloc: __alloc_w_single_main
+[eva:malloc:imprecise] heap_hit.c:212: Warning: 
+  allocating a single weak variable for ALL dynamic allocations via malloc/calloc/realloc: __alloc_w_single_main_0
+[eva:malloc:imprecise] heap_hit.c:212: Warning: 
+  allocating a single weak variable for ALL dynamic allocations via malloc/calloc/realloc: __alloc_w_single_main_1
+Calls:
+  malloc :: heap_hit.c:218 <- single_main: builtin
+  free :: heap_hit.c:210 <- move :: heap_hit.c:219 <- single_main: builtin
+  malloc :: heap_hit.c:212 <- move :: heap_hit.c:219 <- single_main: builtin
+  move :: heap_hit.c:219 <- single_main: analysed, cache entry 8
+  malloc :: heap_hit.c:218 <- single_main: builtin
+  free :: heap_hit.c:210 <- move :: heap_hit.c:219 <- single_main: builtin
+  malloc :: heap_hit.c:212 <- move :: heap_hit.c:219 <- single_main: builtin
+  move :: heap_hit.c:219 <- single_main: analysed, cache entry 9
+  malloc :: heap_hit.c:218 <- single_main: builtin
+  free :: heap_hit.c:210 <- move :: heap_hit.c:219 <- single_main: builtin
+  malloc :: heap_hit.c:212 <- move :: heap_hit.c:219 <- single_main: builtin
+  move :: heap_hit.c:219 <- single_main: analysed, cache entry 10
+  single_main: analysed, cache entry 11
+Heap calls, not stored by memexec: move 3, single_main 1.
+Heap calls whose answers come from full states: none.
+Hits not made because memexec does not store the heap calls: move 1.
+Created bases whose match with the run with memexec is unresolved:
+  __malloc_single_main_l218_1, one block, for __malloc_w_single_main_l218_0, a summary of several
+Created bases of the run with memexec, without recording, that summarise several blocks, matched to one block of the run without memexec:
+  __malloc_w_single_main_l218_0, for __malloc_single_main_l218
+move, start:
+  joined: keep ∈ {0}
+          keep2 ∈ {0}
+          keep3 ∈ {0}
+          keep4 ∈ {0}
+          bx ∈ {0}
+          src ∈ {{ &__malloc_single_main_l218_1 }}
+          dst ∈ {{ NULL ; (int *)&__alloc_w_single_main_1 }}
+          i ∈ {0; 1; 2}
+          __malloc_single_main_l218_1 ∈ {2}
+          __alloc_w_single_main_1[0..4294967295] ∈ UNINITIALIZED
+  move :: heap_hit.c:219 <- single_main: keep ∈ {0}
+                                         keep2 ∈ {0}
+                                         keep3 ∈ {0}
+                                         keep4 ∈ {0}
+                                         bx ∈ {0}
+                                         src ∈
+                                            {{ &__malloc_single_main_l218_1 }}
+                                         dst ∈
+                                            {{ NULL ;
+                                               (int *)&__alloc_w_single_main_1 }}
+                                         i ∈ {0; 1; 2}
+                                         __malloc_single_main_l218_1 ∈ {2}
+                                         __alloc_w_single_main_1[0..4294967295] ∈
+                                                                UNINITIALIZED
+move, before heap_hit.c:213 `;` (E):
+  joined: keep ∈ {0}
+          keep2 ∈ {0}
+          keep3 ∈ {0}
+          keep4 ∈ {0}
+          bx ∈ {0}
+          src ∈ ESCAPINGADDR
+          dst ∈ {{ (int *)&__alloc_w_single_main_1 }}
+          i ∈ {0; 1; 2}
+          __alloc_w_single_main_1[0..4294967295] ∈ UNINITIALIZED
+  move :: heap_hit.c:219 <- single_main: keep ∈ {0}
+                                         keep2 ∈ {0}
+                                         keep3 ∈ {0}
+                                         keep4 ∈ {0}
+                                         bx ∈ {0}
+                                         src ∈ ESCAPINGADDR
+                                         dst ∈
+                                            {{ (int *)&__alloc_w_single_main_1 }}
+                                         i ∈ {0; 1; 2}
+                                         __alloc_w_single_main_1[0..4294967295] ∈
+                                                                UNINITIALIZED
+move, after heap_hit.c:214 `return;`:
+  joined: keep ∈ {0}
+          keep2 ∈ {0}
+          keep3 ∈ {0}
+          keep4 ∈ {0}
+          bx ∈ {0}
+          src ∈ ESCAPINGADDR
+          dst ∈ {{ (int *)&__alloc_w_single_main_1 }}
+          i ∈ {0; 1; 2}
+          __alloc_w_single_main_1[0..4294967295] ∈ UNINITIALIZED
+  move :: heap_hit.c:219 <- single_main: keep ∈ {0}
+                                         keep2 ∈ {0}
+                                         keep3 ∈ {0}
+                                         keep4 ∈ {0}
+                                         bx ∈ {0}
+                                         src ∈ ESCAPINGADDR
+                                         dst ∈
+                                            {{ (int *)&__alloc_w_single_main_1 }}
+                                         i ∈ {0; 1; 2}
+                                         __alloc_w_single_main_1[0..4294967295] ∈
+                                                                UNINITIALIZED
+single_main, start:
+  joined: keep ∈ {0}
+          keep2 ∈ {0}
+          keep3 ∈ {0}
+          keep4 ∈ {0}
+          bx ∈ {0}
+          src ∈ {0}
+          dst ∈ {0}
+  single_main: keep ∈ {0}
+               keep2 ∈ {0}
+               keep3 ∈ {0}
+               keep4 ∈ {0}
+               bx ∈ {0}
+               src ∈ {0}
+               dst ∈ {0}
+single_main, before heap_hit.c:221 `;` (D):
+  joined: keep ∈ {0}
+          keep2 ∈ {0}
+          keep3 ∈ {0}
+          keep4 ∈ {0}
+          bx ∈ {0}
+          src ∈ {0} or ESCAPINGADDR
+          dst ∈ {{ NULL ; (int *)&__alloc_w_single_main_1 }}
+          __alloc_w_single_main_1[0..4294967295] ∈ UNINITIALIZED
+  single_main: keep ∈ {0}
+               keep2 ∈ {0}
+               keep3 ∈ {0}
+               keep4 ∈ {0}
+               bx ∈ {0}
+               src ∈ {0} or ESCAPINGADDR
+               dst ∈ {{ NULL ; (int *)&__alloc_w_single_main_1 }}
+               __alloc_w_single_main_1[0..4294967295] ∈ UNINITIALIZED
+single_main, after heap_hit.c:222 `return;`:
+  joined: keep ∈ {0}
+          keep2 ∈ {0}
+          keep3 ∈ {0}
+          keep4 ∈ {0}
+          bx ∈ {0}
+          src ∈ {0} or ESCAPINGADDR
+          dst ∈ {{ NULL ; (int *)&__alloc_w_single_main_1 }}
+          __alloc_w_single_main_1[0..4294967295] ∈ UNINITIALIZED
+  single_main: keep ∈ {0}
+               keep2 ∈ {0}
+               keep3 ∈ {0}
+               keep4 ∈ {0}
+               bx ∈ {0}
+               src ∈ {0} or ESCAPINGADDR
+               dst ∈ {{ NULL ; (int *)&__alloc_w_single_main_1 }}
+               __alloc_w_single_main_1[0..4294967295] ∈ UNINITIALIZED
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 816 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 390 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 390 points.
+Filtered requests that reject one callstack: 0.
+Requests made: 1596; reported by the trap: 1596, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 227 requests, 68 reads of the legacy store in them, 73 reads outside any request.
+  with -eva-hit-log: 227 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 193 requests
+    statistics: 16 requests
+    summary: 18 requests
+Statuses of the properties: those of the run without memexec, for 352 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.0833, 0 alarms, those of the run without memexec.

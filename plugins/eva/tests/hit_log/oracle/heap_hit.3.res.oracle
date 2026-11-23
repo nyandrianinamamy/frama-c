@@ -1,0 +1,245 @@
+[kernel] Parsing heap_hit.c (with preprocessing)
+Calls:
+  malloc :: heap_hit.c:73 <- weak_main: builtin
+  malloc :: heap_hit.c:75 <- weak_main: builtin
+  free :: heap_hit.c:69 <- wfree :: heap_hit.c:77 <- weak_main: builtin
+  wfree :: heap_hit.c:77 <- weak_main: analysed, cache entry 7
+  free :: heap_hit.c:69 <- wfree :: heap_hit.c:79 <- weak_main: builtin
+  wfree :: heap_hit.c:79 <- weak_main: analysed, cache entry 8
+  weak_main: analysed, cache entry 9
+Heap calls, not stored by memexec: weak_main 1, wfree 2.
+Heap calls whose answers come from full states: none.
+Hits not made because memexec does not store the heap calls: none.
+wfree, start:
+  joined: keep ∈ {{ &__malloc_w_weak_main_l73_1[0] }} or ESCAPINGADDR
+          keep2 ∈ {{ NULL ; &__malloc_w_weak_main_l75_1[0] }}
+          keep3 ∈ {0}
+          keep4 ∈ {0}
+          bx ∈ {0}
+          p ∈
+           {{ &__malloc_w_weak_main_l73_1[0] ;
+              &__malloc_w_weak_main_l75_1[0] }}
+          a ∈ {{ &__malloc_w_weak_main_l73_1[0] }} or ESCAPINGADDR
+          b ∈ {{ &__malloc_w_weak_main_l75_1[0] }}
+          src ∈ {0}
+          dst ∈ {0}
+          __malloc_w_weak_main_l73_1[0] ∈ UNINITIALIZED
+          __malloc_w_weak_main_l75_1[0] ∈ UNINITIALIZED
+  wfree :: heap_hit.c:77 <- weak_main: keep ∈
+                                           {{ &__malloc_w_weak_main_l73_1[0] }}
+                                       keep2 ∈ {0}
+                                       keep3 ∈ {0}
+                                       keep4 ∈ {0}
+                                       bx ∈ {0}
+                                       p ∈
+                                        {{ &__malloc_w_weak_main_l73_1[0] }}
+                                       a ∈
+                                        {{ &__malloc_w_weak_main_l73_1[0] }}
+                                       b ∈
+                                        {{ &__malloc_w_weak_main_l75_1[0] }}
+                                       src ∈ {0}
+                                       dst ∈ {0}
+                                       __malloc_w_weak_main_l73_1[0] ∈
+                                                                 UNINITIALIZED
+                                       __malloc_w_weak_main_l75_1[0] ∈
+                                                                 UNINITIALIZED
+  wfree :: heap_hit.c:79 <- weak_main: keep ∈
+                                           {{ &__malloc_w_weak_main_l73_1[0] }} or ESCAPINGADDR
+                                       keep2 ∈
+                                            {{ &__malloc_w_weak_main_l75_1[0] }}
+                                       keep3 ∈ {0}
+                                       keep4 ∈ {0}
+                                       bx ∈ {0}
+                                       p ∈
+                                        {{ &__malloc_w_weak_main_l75_1[0] }}
+                                       a ∈
+                                        {{ &__malloc_w_weak_main_l73_1[0] }} or ESCAPINGADDR
+                                       b ∈
+                                        {{ &__malloc_w_weak_main_l75_1[0] }}
+                                       src ∈ {0}
+                                       dst ∈ {0}
+                                       __malloc_w_weak_main_l73_1[0] ∈
+                                                                 UNINITIALIZED
+                                       __malloc_w_weak_main_l75_1[0] ∈
+                                                                 UNINITIALIZED
+wfree, before heap_hit.c:69 `;` (W):
+  joined: keep ∈ {{ &__malloc_w_weak_main_l73_1[0] }} or ESCAPINGADDR
+          keep2 ∈ {{ NULL ; &__malloc_w_weak_main_l75_1[0] }} or ESCAPINGADDR
+          keep3 ∈ {0}
+          keep4 ∈ {0}
+          bx ∈ {0}
+          p ∈
+           {{ &__malloc_w_weak_main_l73_1[0] ;
+              &__malloc_w_weak_main_l75_1[0] }} or ESCAPINGADDR
+          a ∈ {{ &__malloc_w_weak_main_l73_1[0] }} or ESCAPINGADDR
+          b ∈ {{ &__malloc_w_weak_main_l75_1[0] }} or ESCAPINGADDR
+          src ∈ {0}
+          dst ∈ {0}
+          __malloc_w_weak_main_l73_1[0] ∈ UNINITIALIZED
+          __malloc_w_weak_main_l75_1[0] ∈ UNINITIALIZED
+  wfree :: heap_hit.c:77 <- weak_main: keep ∈
+                                           {{ &__malloc_w_weak_main_l73_1[0] }} or ESCAPINGADDR
+                                       keep2 ∈ {0}
+                                       keep3 ∈ {0}
+                                       keep4 ∈ {0}
+                                       bx ∈ {0}
+                                       p ∈
+                                        {{ &__malloc_w_weak_main_l73_1[0] }} or ESCAPINGADDR
+                                       a ∈
+                                        {{ &__malloc_w_weak_main_l73_1[0] }} or ESCAPINGADDR
+                                       b ∈
+                                        {{ &__malloc_w_weak_main_l75_1[0] }}
+                                       src ∈ {0}
+                                       dst ∈ {0}
+                                       __malloc_w_weak_main_l73_1[0] ∈
+                                                                 UNINITIALIZED
+                                       __malloc_w_weak_main_l75_1[0] ∈
+                                                                 UNINITIALIZED
+  wfree :: heap_hit.c:79 <- weak_main: keep ∈
+                                           {{ &__malloc_w_weak_main_l73_1[0] }} or ESCAPINGADDR
+                                       keep2 ∈
+                                            {{ &__malloc_w_weak_main_l75_1[0] }} or ESCAPINGADDR
+                                       keep3 ∈ {0}
+                                       keep4 ∈ {0}
+                                       bx ∈ {0}
+                                       p ∈
+                                        {{ &__malloc_w_weak_main_l75_1[0] }} or ESCAPINGADDR
+                                       a ∈
+                                        {{ &__malloc_w_weak_main_l73_1[0] }} or ESCAPINGADDR
+                                       b ∈
+                                        {{ &__malloc_w_weak_main_l75_1[0] }} or ESCAPINGADDR
+                                       src ∈ {0}
+                                       dst ∈ {0}
+                                       __malloc_w_weak_main_l73_1[0] ∈
+                                                                 UNINITIALIZED
+                                       __malloc_w_weak_main_l75_1[0] ∈
+                                                                 UNINITIALIZED
+wfree, after heap_hit.c:69 `return;`:
+  joined: keep ∈ {{ &__malloc_w_weak_main_l73_1[0] }} or ESCAPINGADDR
+          keep2 ∈ {{ NULL ; &__malloc_w_weak_main_l75_1[0] }} or ESCAPINGADDR
+          keep3 ∈ {0}
+          keep4 ∈ {0}
+          bx ∈ {0}
+          p ∈
+           {{ &__malloc_w_weak_main_l73_1[0] ;
+              &__malloc_w_weak_main_l75_1[0] }} or ESCAPINGADDR
+          a ∈ {{ &__malloc_w_weak_main_l73_1[0] }} or ESCAPINGADDR
+          b ∈ {{ &__malloc_w_weak_main_l75_1[0] }} or ESCAPINGADDR
+          src ∈ {0}
+          dst ∈ {0}
+          __malloc_w_weak_main_l73_1[0] ∈ UNINITIALIZED
+          __malloc_w_weak_main_l75_1[0] ∈ UNINITIALIZED
+  wfree :: heap_hit.c:77 <- weak_main: keep ∈
+                                           {{ &__malloc_w_weak_main_l73_1[0] }} or ESCAPINGADDR
+                                       keep2 ∈ {0}
+                                       keep3 ∈ {0}
+                                       keep4 ∈ {0}
+                                       bx ∈ {0}
+                                       p ∈
+                                        {{ &__malloc_w_weak_main_l73_1[0] }} or ESCAPINGADDR
+                                       a ∈
+                                        {{ &__malloc_w_weak_main_l73_1[0] }} or ESCAPINGADDR
+                                       b ∈
+                                        {{ &__malloc_w_weak_main_l75_1[0] }}
+                                       src ∈ {0}
+                                       dst ∈ {0}
+                                       __malloc_w_weak_main_l73_1[0] ∈
+                                                                 UNINITIALIZED
+                                       __malloc_w_weak_main_l75_1[0] ∈
+                                                                 UNINITIALIZED
+  wfree :: heap_hit.c:79 <- weak_main: keep ∈
+                                           {{ &__malloc_w_weak_main_l73_1[0] }} or ESCAPINGADDR
+                                       keep2 ∈
+                                            {{ &__malloc_w_weak_main_l75_1[0] }} or ESCAPINGADDR
+                                       keep3 ∈ {0}
+                                       keep4 ∈ {0}
+                                       bx ∈ {0}
+                                       p ∈
+                                        {{ &__malloc_w_weak_main_l75_1[0] }} or ESCAPINGADDR
+                                       a ∈
+                                        {{ &__malloc_w_weak_main_l73_1[0] }} or ESCAPINGADDR
+                                       b ∈
+                                        {{ &__malloc_w_weak_main_l75_1[0] }} or ESCAPINGADDR
+                                       src ∈ {0}
+                                       dst ∈ {0}
+                                       __malloc_w_weak_main_l73_1[0] ∈
+                                                                 UNINITIALIZED
+                                       __malloc_w_weak_main_l75_1[0] ∈
+                                                                 UNINITIALIZED
+weak_main, start:
+  joined: keep ∈ {0}
+          keep2 ∈ {0}
+          keep3 ∈ {0}
+          keep4 ∈ {0}
+          bx ∈ {0}
+          src ∈ {0}
+          dst ∈ {0}
+  weak_main: keep ∈ {0}
+             keep2 ∈ {0}
+             keep3 ∈ {0}
+             keep4 ∈ {0}
+             bx ∈ {0}
+             src ∈ {0}
+             dst ∈ {0}
+weak_main, before heap_hit.c:80 `;` (O):
+  joined: keep ∈ {{ &__malloc_w_weak_main_l73_1[0] }} or ESCAPINGADDR
+          keep2 ∈ {{ &__malloc_w_weak_main_l75_1[0] }} or ESCAPINGADDR
+          keep3 ∈ {0}
+          keep4 ∈ {0}
+          bx ∈ {0}
+          a ∈ {{ &__malloc_w_weak_main_l73_1[0] }} or ESCAPINGADDR
+          b ∈ {{ &__malloc_w_weak_main_l75_1[0] }} or ESCAPINGADDR
+          src ∈ {0}
+          dst ∈ {0}
+          __malloc_w_weak_main_l73_1[0] ∈ UNINITIALIZED
+          __malloc_w_weak_main_l75_1[0] ∈ UNINITIALIZED
+  weak_main: keep ∈ {{ &__malloc_w_weak_main_l73_1[0] }} or ESCAPINGADDR
+             keep2 ∈ {{ &__malloc_w_weak_main_l75_1[0] }} or ESCAPINGADDR
+             keep3 ∈ {0}
+             keep4 ∈ {0}
+             bx ∈ {0}
+             a ∈ {{ &__malloc_w_weak_main_l73_1[0] }} or ESCAPINGADDR
+             b ∈ {{ &__malloc_w_weak_main_l75_1[0] }} or ESCAPINGADDR
+             src ∈ {0}
+             dst ∈ {0}
+             __malloc_w_weak_main_l73_1[0] ∈ UNINITIALIZED
+             __malloc_w_weak_main_l75_1[0] ∈ UNINITIALIZED
+weak_main, after heap_hit.c:81 `return;`:
+  joined: keep ∈ {{ &__malloc_w_weak_main_l73_1[0] }} or ESCAPINGADDR
+          keep2 ∈ {{ &__malloc_w_weak_main_l75_1[0] }} or ESCAPINGADDR
+          keep3 ∈ {0}
+          keep4 ∈ {0}
+          bx ∈ {0}
+          a ∈ {{ &__malloc_w_weak_main_l73_1[0] }} or ESCAPINGADDR
+          b ∈ {{ &__malloc_w_weak_main_l75_1[0] }} or ESCAPINGADDR
+          src ∈ {0}
+          dst ∈ {0}
+          __malloc_w_weak_main_l73_1[0] ∈ UNINITIALIZED
+          __malloc_w_weak_main_l75_1[0] ∈ UNINITIALIZED
+  weak_main: keep ∈ {{ &__malloc_w_weak_main_l73_1[0] }} or ESCAPINGADDR
+             keep2 ∈ {{ &__malloc_w_weak_main_l75_1[0] }} or ESCAPINGADDR
+             keep3 ∈ {0}
+             keep4 ∈ {0}
+             bx ∈ {0}
+             a ∈ {{ &__malloc_w_weak_main_l73_1[0] }} or ESCAPINGADDR
+             b ∈ {{ &__malloc_w_weak_main_l75_1[0] }} or ESCAPINGADDR
+             src ∈ {0}
+             dst ∈ {0}
+             __malloc_w_weak_main_l73_1[0] ∈ UNINITIALIZED
+             __malloc_w_weak_main_l75_1[0] ∈ UNINITIALIZED
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 813 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 390 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 390 points.
+Filtered requests that reject one callstack: 7.
+Requests made: 1593; reported by the trap: 1593, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 222 requests, 52 reads of the legacy store in them, 61 reads outside any request.
+  with -eva-hit-log: 222 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 193 requests
+    statistics: 11 requests
+    summary: 18 requests
+Statuses of the properties: those of the run without memexec, for 352 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.0833, 0 alarms, those of the run without memexec.

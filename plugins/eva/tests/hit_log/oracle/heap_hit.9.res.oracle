@@ -1,0 +1,296 @@
+[kernel] Parsing heap_hit.c (with preprocessing)
+[eva:alarm] heap_hit.c:185: Warning: assertion 'raised' got status unknown.
+[eva:alarm] heap_hit.c:185: Warning: assertion 'raised' got status unknown.
+[eva:alarm] heap_hit.c:185: Warning: assertion 'raised' got status unknown.
+Calls:
+  malloc :: heap_hit.c:177 <- raise_main: builtin
+  malloc :: heap_hit.c:179 <- raise_main: builtin
+  malloc :: heap_hit.c:180 <- raise_main: builtin
+  malloc :: heap_hit.c:181 <- raise_main: builtin
+  Frama_C_interval :: heap_hit.c:170 <- wraise :: heap_hit.c:183 <- raise_main: specification
+  Frama_C_interval :: heap_hit.c:170 <- wraise :: heap_hit.c:183 <- raise_main: specification
+  free :: heap_hit.c:171 <- wraise :: heap_hit.c:183 <- raise_main: builtin
+  wraise :: heap_hit.c:183 <- raise_main: analysed, cache entry 7
+  Frama_C_interval :: heap_hit.c:170 <- wraise :: heap_hit.c:184 <- raise_main: specification
+  Frama_C_interval :: heap_hit.c:170 <- wraise :: heap_hit.c:184 <- raise_main: specification
+  free :: heap_hit.c:171 <- wraise :: heap_hit.c:184 <- raise_main: builtin
+  wraise :: heap_hit.c:184 <- raise_main: analysed, cache entry 8
+  raise_main: analysed, cache entry 9
+Heap calls, not stored by memexec: raise_main 1, wraise 2.
+Heap calls whose answers come from full states: none.
+Hits not made because memexec does not store the heap calls: none.
+wraise, start:
+  joined: keep ∈ {0}
+          keep2 ∈ {0}
+          keep3 ∈ {0}
+          keep4 ∈ {0}
+          bx ∈ {0}
+          p ∈
+           {{ &__malloc_w_raise_main_l177_1[0] ;
+              &__malloc_w_raise_main_l179_1[0] }}
+          q ∈ {{ &__malloc_raise_main_l180_1 ; &__malloc_raise_main_l181_1 }}
+          a ∈ {{ &__malloc_w_raise_main_l177_1[0] }}
+          c ∈ {{ &__malloc_w_raise_main_l179_1[0] }}
+          x ∈ {{ &__malloc_raise_main_l180_1 }} or ESCAPINGADDR
+          y ∈ {{ &__malloc_raise_main_l181_1 }}
+          src ∈ {0}
+          dst ∈ {0}
+          __malloc_w_raise_main_l177_1[0] ∈ {7} or UNINITIALIZED
+          __malloc_w_raise_main_l179_1[0] ∈ UNINITIALIZED
+          __malloc_raise_main_l180_1 ∈ {1}
+          __malloc_raise_main_l181_1 ∈ {1}
+  wraise :: heap_hit.c:183 <- raise_main: keep ∈ {0}
+                                          keep2 ∈ {0}
+                                          keep3 ∈ {0}
+                                          keep4 ∈ {0}
+                                          bx ∈ {0}
+                                          p ∈
+                                           {{ &__malloc_w_raise_main_l177_1[0] }}
+                                          q ∈
+                                           {{ &__malloc_raise_main_l180_1 }}
+                                          a ∈
+                                           {{ &__malloc_w_raise_main_l177_1[0] }}
+                                          c ∈
+                                           {{ &__malloc_w_raise_main_l179_1[0] }}
+                                          x ∈
+                                           {{ &__malloc_raise_main_l180_1 }}
+                                          y ∈
+                                           {{ &__malloc_raise_main_l181_1 }}
+                                          src ∈ {0}
+                                          dst ∈ {0}
+                                          __malloc_w_raise_main_l177_1
+                                          [0] ∈ UNINITIALIZED
+                                          __malloc_w_raise_main_l179_1
+                                          [0] ∈ UNINITIALIZED
+                                          __malloc_raise_main_l180_1 ∈ {1}
+                                          __malloc_raise_main_l181_1 ∈ {1}
+  wraise :: heap_hit.c:184 <- raise_main: keep ∈ {0}
+                                          keep2 ∈ {0}
+                                          keep3 ∈ {0}
+                                          keep4 ∈ {0}
+                                          bx ∈ {0}
+                                          p ∈
+                                           {{ &__malloc_w_raise_main_l179_1[0] }}
+                                          q ∈
+                                           {{ &__malloc_raise_main_l181_1 }}
+                                          a ∈
+                                           {{ &__malloc_w_raise_main_l177_1[0] }}
+                                          c ∈
+                                           {{ &__malloc_w_raise_main_l179_1[0] }}
+                                          x ∈ ESCAPINGADDR
+                                          y ∈
+                                           {{ &__malloc_raise_main_l181_1 }}
+                                          src ∈ {0}
+                                          dst ∈ {0}
+                                          __malloc_w_raise_main_l177_1
+                                          [0] ∈ {7} or UNINITIALIZED
+                                          __malloc_w_raise_main_l179_1
+                                          [0] ∈ UNINITIALIZED
+                                          __malloc_raise_main_l181_1 ∈ {1}
+wraise, before heap_hit.c:172 `;` (Y):
+  joined: keep ∈ {0}
+          keep2 ∈ {0}
+          keep3 ∈ {0}
+          keep4 ∈ {0}
+          bx ∈ {0}
+          p ∈
+           {{ &__malloc_w_raise_main_l177_1[0] ;
+              &__malloc_w_raise_main_l179_1[0] }}
+          q ∈ ESCAPINGADDR
+          a ∈ {{ &__malloc_w_raise_main_l177_1[0] }}
+          c ∈ {{ &__malloc_w_raise_main_l179_1[0] }}
+          x ∈ ESCAPINGADDR
+          y ∈ {{ &__malloc_raise_main_l181_1 }} or ESCAPINGADDR
+          src ∈ {0}
+          dst ∈ {0}
+          __malloc_w_raise_main_l177_1[0] ∈ {7} or UNINITIALIZED
+          __malloc_w_raise_main_l179_1[0] ∈ {7} or UNINITIALIZED
+          __malloc_raise_main_l181_1 ∈ {1}
+  wraise :: heap_hit.c:183 <- raise_main: keep ∈ {0}
+                                          keep2 ∈ {0}
+                                          keep3 ∈ {0}
+                                          keep4 ∈ {0}
+                                          bx ∈ {0}
+                                          p ∈
+                                           {{ &__malloc_w_raise_main_l177_1[0] }}
+                                          q ∈ ESCAPINGADDR
+                                          a ∈
+                                           {{ &__malloc_w_raise_main_l177_1[0] }}
+                                          c ∈
+                                           {{ &__malloc_w_raise_main_l179_1[0] }}
+                                          x ∈ ESCAPINGADDR
+                                          y ∈
+                                           {{ &__malloc_raise_main_l181_1 }}
+                                          src ∈ {0}
+                                          dst ∈ {0}
+                                          __malloc_w_raise_main_l177_1
+                                          [0] ∈ {7} or UNINITIALIZED
+                                          __malloc_w_raise_main_l179_1
+                                          [0] ∈ UNINITIALIZED
+                                          __malloc_raise_main_l181_1 ∈ {1}
+  wraise :: heap_hit.c:184 <- raise_main: keep ∈ {0}
+                                          keep2 ∈ {0}
+                                          keep3 ∈ {0}
+                                          keep4 ∈ {0}
+                                          bx ∈ {0}
+                                          p ∈
+                                           {{ &__malloc_w_raise_main_l179_1[0] }}
+                                          q ∈ ESCAPINGADDR
+                                          a ∈
+                                           {{ &__malloc_w_raise_main_l177_1[0] }}
+                                          c ∈
+                                           {{ &__malloc_w_raise_main_l179_1[0] }}
+                                          x ∈ ESCAPINGADDR
+                                          y ∈ ESCAPINGADDR
+                                          src ∈ {0}
+                                          dst ∈ {0}
+                                          __malloc_w_raise_main_l177_1
+                                          [0] ∈ {7} or UNINITIALIZED
+                                          __malloc_w_raise_main_l179_1
+                                          [0] ∈ {7} or UNINITIALIZED
+wraise, after heap_hit.c:173 `return;`:
+  joined: keep ∈ {0}
+          keep2 ∈ {0}
+          keep3 ∈ {0}
+          keep4 ∈ {0}
+          bx ∈ {0}
+          p ∈
+           {{ &__malloc_w_raise_main_l177_1[0] ;
+              &__malloc_w_raise_main_l179_1[0] }}
+          q ∈ ESCAPINGADDR
+          a ∈ {{ &__malloc_w_raise_main_l177_1[0] }}
+          c ∈ {{ &__malloc_w_raise_main_l179_1[0] }}
+          x ∈ ESCAPINGADDR
+          y ∈ {{ &__malloc_raise_main_l181_1 }} or ESCAPINGADDR
+          src ∈ {0}
+          dst ∈ {0}
+          __malloc_w_raise_main_l177_1[0] ∈ {7} or UNINITIALIZED
+          __malloc_w_raise_main_l179_1[0] ∈ {7} or UNINITIALIZED
+          __malloc_raise_main_l181_1 ∈ {1}
+  wraise :: heap_hit.c:183 <- raise_main: keep ∈ {0}
+                                          keep2 ∈ {0}
+                                          keep3 ∈ {0}
+                                          keep4 ∈ {0}
+                                          bx ∈ {0}
+                                          p ∈
+                                           {{ &__malloc_w_raise_main_l177_1[0] }}
+                                          q ∈ ESCAPINGADDR
+                                          a ∈
+                                           {{ &__malloc_w_raise_main_l177_1[0] }}
+                                          c ∈
+                                           {{ &__malloc_w_raise_main_l179_1[0] }}
+                                          x ∈ ESCAPINGADDR
+                                          y ∈
+                                           {{ &__malloc_raise_main_l181_1 }}
+                                          src ∈ {0}
+                                          dst ∈ {0}
+                                          __malloc_w_raise_main_l177_1
+                                          [0] ∈ {7} or UNINITIALIZED
+                                          __malloc_w_raise_main_l179_1
+                                          [0] ∈ UNINITIALIZED
+                                          __malloc_raise_main_l181_1 ∈ {1}
+  wraise :: heap_hit.c:184 <- raise_main: keep ∈ {0}
+                                          keep2 ∈ {0}
+                                          keep3 ∈ {0}
+                                          keep4 ∈ {0}
+                                          bx ∈ {0}
+                                          p ∈
+                                           {{ &__malloc_w_raise_main_l179_1[0] }}
+                                          q ∈ ESCAPINGADDR
+                                          a ∈
+                                           {{ &__malloc_w_raise_main_l177_1[0] }}
+                                          c ∈
+                                           {{ &__malloc_w_raise_main_l179_1[0] }}
+                                          x ∈ ESCAPINGADDR
+                                          y ∈ ESCAPINGADDR
+                                          src ∈ {0}
+                                          dst ∈ {0}
+                                          __malloc_w_raise_main_l177_1
+                                          [0] ∈ {7} or UNINITIALIZED
+                                          __malloc_w_raise_main_l179_1
+                                          [0] ∈ {7} or UNINITIALIZED
+raise_main, start:
+  joined: keep ∈ {0}
+          keep2 ∈ {0}
+          keep3 ∈ {0}
+          keep4 ∈ {0}
+          bx ∈ {0}
+          src ∈ {0}
+          dst ∈ {0}
+  raise_main: keep ∈ {0}
+              keep2 ∈ {0}
+              keep3 ∈ {0}
+              keep4 ∈ {0}
+              bx ∈ {0}
+              src ∈ {0}
+              dst ∈ {0}
+raise_main, before heap_hit.c:186 `;` (Z):
+  joined: keep ∈ {0}
+          keep2 ∈ {0}
+          keep3 ∈ {0}
+          keep4 ∈ {0}
+          bx ∈ {0}
+          a ∈ {{ &__malloc_w_raise_main_l177_1[0] }}
+          c ∈ {{ &__malloc_w_raise_main_l179_1[0] }}
+          x ∈ ESCAPINGADDR
+          y ∈ ESCAPINGADDR
+          src ∈ {0}
+          dst ∈ {0}
+          __malloc_w_raise_main_l177_1[0] ∈ {7} or UNINITIALIZED
+          __malloc_w_raise_main_l179_1[0] ∈ {7} or UNINITIALIZED
+  raise_main: keep ∈ {0}
+              keep2 ∈ {0}
+              keep3 ∈ {0}
+              keep4 ∈ {0}
+              bx ∈ {0}
+              a ∈ {{ &__malloc_w_raise_main_l177_1[0] }}
+              c ∈ {{ &__malloc_w_raise_main_l179_1[0] }}
+              x ∈ ESCAPINGADDR
+              y ∈ ESCAPINGADDR
+              src ∈ {0}
+              dst ∈ {0}
+              __malloc_w_raise_main_l177_1[0] ∈ {7} or UNINITIALIZED
+              __malloc_w_raise_main_l179_1[0] ∈ {7} or UNINITIALIZED
+raise_main, after heap_hit.c:187 `return;`:
+  joined: keep ∈ {0}
+          keep2 ∈ {0}
+          keep3 ∈ {0}
+          keep4 ∈ {0}
+          bx ∈ {0}
+          a ∈ {{ &__malloc_w_raise_main_l177_1[0] }}
+          c ∈ {{ &__malloc_w_raise_main_l179_1[0] }}
+          x ∈ ESCAPINGADDR
+          y ∈ ESCAPINGADDR
+          src ∈ {0}
+          dst ∈ {0}
+          __malloc_w_raise_main_l177_1[0] ∈ {7} or UNINITIALIZED
+          __malloc_w_raise_main_l179_1[0] ∈ {7} or UNINITIALIZED
+  raise_main: keep ∈ {0}
+              keep2 ∈ {0}
+              keep3 ∈ {0}
+              keep4 ∈ {0}
+              bx ∈ {0}
+              a ∈ {{ &__malloc_w_raise_main_l177_1[0] }}
+              c ∈ {{ &__malloc_w_raise_main_l179_1[0] }}
+              x ∈ ESCAPINGADDR
+              y ∈ ESCAPINGADDR
+              src ∈ {0}
+              dst ∈ {0}
+              __malloc_w_raise_main_l177_1[0] ∈ {7} or UNINITIALIZED
+              __malloc_w_raise_main_l179_1[0] ∈ {7} or UNINITIALIZED
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 839 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 390 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 390 points.
+Filtered requests that reject one callstack: 17.
+Requests made: 1619; reported by the trap: 1619, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 230 requests, 92 reads of the legacy store in them, 108 reads outside any request.
+  with -eva-hit-log: 230 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 193 requests
+    statistics: 19 requests
+    summary: 18 requests
+Statuses of the properties: those of the run without memexec, for 350 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.0833, 0 alarms, those of the run without memexec.
