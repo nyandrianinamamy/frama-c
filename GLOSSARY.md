@@ -121,6 +121,23 @@ variable-length array) of each mentioned block of a cache entry, when the
 statement starts.
 _Avoid_: Descriptor (names what the observer of the hit log captures)
 
+**Numbered form**:
+A cache entry in which each allocated block is replaced by the placeholder
+block of its number. The blocks are numbered in a fixed order: the targets
+of the arguments, then those of the blocks of the matching key that are not
+allocated, then those of each numbered block of the matching key in the
+order of the numbers, then the candidate blocks, then the allocated blocks
+of the matching key that no value points to. Two entries that differ only
+by the allocated blocks they use have the same numbered form; two entries
+that a renaming maps to each other may not.
+_Avoid_: Canonical form (a renaming does not always give the same form)
+
+**Placeholder block**:
+An allocated block that stands for a number in a numbered form. It has the
+strength of the block it stands for, and nothing reads its validity record
+or its type. It never appears in a state of the analysis.
+_Avoid_: Dummy block, number (names its position)
+
 ### Versions
 
 **Renaming**:
