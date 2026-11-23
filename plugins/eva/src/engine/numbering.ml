@@ -132,19 +132,27 @@ let rec drain ~is_key state t =
     let t = if is_key n base then walk state t base else t in
     drain ~is_key state t
 
-let of_entry ~candidates ~args ~key state =
-  let is_key _ base = Base.Hptset.mem base key in
-  let allocated, others = Base.Hptset.partition is_allocated key in
-  empty
-  |> arguments args
+let of_key ~is_key ~others ~candidates ~no_root state t =
+  t
   |> roots others state
   |> drain ~is_key state
   |> add Candidate candidates
   |> drain ~is_key state
-  |> add No_root (by_identifier allocated)
+  |> add No_root no_root
   |> drain ~is_key state
 
+let of_entry ~candidates ~args ~key state =
+  let is_key _ base = Base.Hptset.mem base key in
+  let allocated, others = Base.Hptset.partition is_allocated key in
+  arguments args empty
+  |> of_key ~is_key ~others ~candidates ~no_root:(by_identifier allocated) state
+
 let blocks t = List.map snd (IntMap.bindings t.blocks)
+
+let length t = t.next
+
+let block t n =
+  Option.map (fun (base, _, _) -> base) (IntMap.find_opt n t.blocks)
 
 let number t base = Base.Map.find_opt base t.numbers
 
@@ -201,8 +209,11 @@ let rewrite_clobbered substitution { Locals_scoping.clob } =
 let rewrite_state substitution (model, clobbered) =
   rewrite_model substitution model, rewrite_clobbered substitution clobbered
 
+let rewrite_argument substitution =
+  Lattice_bounds.Bottom.map (rewrite_value substitution)
+
 let rewrite substitution entry =
-  let rewrite_argument = Lattice_bounds.Bottom.map (rewrite_value substitution)
+  let rewrite_argument = rewrite_argument substitution
   and rewrite_state = rewrite_state substitution in
   { args = List.map rewrite_argument entry.args;
     key = rewrite_bases substitution entry.key;
@@ -214,12 +225,32 @@ let rewrite substitution entry =
 let is_unnumbered base =
   is_allocated base && Option.is_none (placeholder_number base)
 
-let unnumbered_of_bases bases = Base.Hptset.filter is_unnumbered bases
-
-let unnumbered_of_value v =
+let filter_value keep v =
   match Cvalue.V.get_bases v with
   | Base.SetLattice.Top -> Base.Hptset.empty
-  | Base.SetLattice.Set bases -> unnumbered_of_bases bases
+  | Base.SetLattice.Set bases -> Base.Hptset.filter keep bases
+
+(* The blocks of [model] for which [keep] holds, bound or pointed to, added
+   to [acc]. *)
+let filter_model keep model acc =
+  match model with
+  | Cvalue.Model.Top | Cvalue.Model.Bottom -> acc
+  | Cvalue.Model.Map map ->
+    let add_value v acc =
+      Base.Hptset.union
+        (filter_value keep (Cvalue.V_Or_Uninitialized.get_v v)) acc
+    in
+    Cvalue.Model.fold
+      (fun base offsetmap acc ->
+         let acc = if keep base then Base.Hptset.add base acc else acc in
+         Cvalue.V_Offsetmap.fold_on_values add_value offsetmap acc)
+      map acc
+
+let allocated_blocks model = filter_model is_allocated model Base.Hptset.empty
+
+let unnumbered_of_bases bases = Base.Hptset.filter is_unnumbered bases
+
+let unnumbered_of_value v = filter_value is_unnumbered v
 
 let unnumbered_of_state (model, { Locals_scoping.clob }) =
   let of_clobbered =
@@ -227,20 +258,7 @@ let unnumbered_of_state (model, { Locals_scoping.clob }) =
     | Base.SetLattice.Top -> Base.Hptset.empty
     | Base.SetLattice.Set bases -> unnumbered_of_bases bases
   in
-  match model with
-  | Cvalue.Model.Top | Cvalue.Model.Bottom -> of_clobbered
-  | Cvalue.Model.Map map ->
-    let add_value v acc =
-      Base.Hptset.union
-        (unnumbered_of_value (Cvalue.V_Or_Uninitialized.get_v v)) acc
-    in
-    Cvalue.Model.fold
-      (fun base offsetmap acc ->
-         let acc =
-           if is_unnumbered base then Base.Hptset.add base acc else acc
-         in
-         Cvalue.V_Offsetmap.fold_on_values add_value offsetmap acc)
-      map of_clobbered
+  filter_model is_unnumbered model of_clobbered
 
 let unnumbered entry =
   let of_argument = function

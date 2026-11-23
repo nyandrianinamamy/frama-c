@@ -95,9 +95,30 @@ val of_entry:
   args:Cvalue.V.t Lattice_bounds.or_bottom list ->
   key:Base.Hptset.t -> Cvalue.Model.t -> t
 
+(** [of_key ~is_key ~others ~candidates ~no_root state t] continues [t],
+    which has numbered the arguments, as [of_entry] does after them: the
+    content of the blocks [others], the [candidates], then the blocks
+    [no_root], each block for which [is_key] holds being entered in the
+    order of the numbers. [of_entry] is this function, with [others] the
+    blocks of the key that are not allocated, [no_root] its allocated
+    blocks in the order of their identifiers, and [is_key] the membership
+    in the key. A lookup of memexec calls it with the blocks of a stored
+    key: the numbers of its placeholders for [is_key], and for [no_root]
+    the blocks that the store numbered as reached from no root. Raises
+    [Unknown_targets]. *)
+val of_key:
+  is_key:(int -> Base.t -> bool) -> others:Base.Hptset.t ->
+  candidates:Base.t list -> no_root:Base.t list -> Cvalue.Model.t -> t -> t
+
 (** The numbered blocks, in the order of their numbers, each with its
     strength when it was numbered and its discovery. *)
 val blocks: t -> (Base.t * bool * discovery) list
+
+(** The number of blocks numbered. *)
+val length: t -> int
+
+(** The block of a number, if any. *)
+val block: t -> int -> Base.t option
 
 (** The number of a block, if numbered. *)
 val number: t -> Base.t -> int option
@@ -130,11 +151,30 @@ type entry = {
     clobbered sets are copied: the record of the state is not changed. *)
 val rewrite: Base.substitution -> entry -> entry
 
+(** The parts of [rewrite]: a set of blocks, an argument, a memory state and
+    a clobbered set. A memory state is rewritten values first, then the
+    blocks bound, all bases at once: the substitution must be injective on
+    the blocks of the state, and an image of a block of the state must not
+    be bound in the state unless it is itself replaced. *)
+val rewrite_bases: Base.substitution -> Base.Hptset.t -> Base.Hptset.t
+val rewrite_argument:
+  Base.substitution ->
+  Cvalue.V.t Lattice_bounds.or_bottom -> Cvalue.V.t Lattice_bounds.or_bottom
+val rewrite_model: Base.substitution -> Cvalue.Model.t -> Cvalue.Model.t
+val rewrite_clobbered:
+  Base.substitution -> Locals_scoping.clobbered_set ->
+  Locals_scoping.clobbered_set
+
 (** The allocated blocks of [entry] that are not placeholders: none in the
     numbered form of an entry, unless a block of an exit or of a clobbered
     set is not numbered. A value that may point to an unknown set of blocks
     names no block. *)
 val unnumbered: entry -> Base.Hptset.t
+
+(** The allocated blocks that a memory state binds or that its values may
+    point to. A value that may point to an unknown set of blocks names no
+    block. *)
+val allocated_blocks: Cvalue.Model.t -> Base.Hptset.t
 
 type error =
   | Unknown (** A value of the arguments or of the key has unknown targets. *)
