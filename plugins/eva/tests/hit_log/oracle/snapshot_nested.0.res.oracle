@@ -1,0 +1,102 @@
+[kernel] Parsing snapshot_nested.c (with preprocessing)
+[eva] snapshot_nested.c:26: Warning: 
+  Using specification of function nested for recursive calls of depth 3.
+  Analysis of function nested is thus incomplete and its soundness
+  relies on the written specification.
+[eva] snapshot_nested.c:26: Warning: 
+  Using specification of function nested for recursive calls of depth 3.
+  Analysis of function nested is thus incomplete and its soundness
+  relies on the written specification.
+[eva] snapshot_nested.c:26: Warning: 
+  Using specification of function nested for recursive calls of depth 3.
+  Analysis of function nested is thus incomplete and its soundness
+  relies on the written specification.
+Calls:
+  calloc :: snapshot_nested.c:31 <- nested_main: builtin
+  nested :: snapshot_nested.c:26 <- nested :: snapshot_nested.c:26 <- nested :: snapshot_nested.c:26 <- nested :: snapshot_nested.c:32 <- nested_main: specification
+  nested :: snapshot_nested.c:26 <- nested :: snapshot_nested.c:26 <- nested :: snapshot_nested.c:32 <- nested_main: analysed, cache entry 13
+  nested :: snapshot_nested.c:26 <- nested :: snapshot_nested.c:32 <- nested_main: analysed, cache entry 14
+  nested :: snapshot_nested.c:32 <- nested_main: analysed, cache entry 15
+  calloc :: snapshot_nested.c:31 <- nested_main: builtin
+  nested :: snapshot_nested.c:26 <- nested :: snapshot_nested.c:26 <- nested :: snapshot_nested.c:26 <- nested :: snapshot_nested.c:32 <- nested_main: specification
+  nested :: snapshot_nested.c:26 <- nested :: snapshot_nested.c:26 <- nested :: snapshot_nested.c:32 <- nested_main: analysed, cache entry 16
+  nested :: snapshot_nested.c:26 <- nested :: snapshot_nested.c:32 <- nested_main: analysed, cache entry 17
+  nested :: snapshot_nested.c:32 <- nested_main: analysed, cache entry 18
+  nested_main: analysed, cache entry 19
+Heap calls, not stored by memexec: nested_main 1.
+Hits not made because memexec does not store the heap calls: none.
+Calls that memexec does not reuse because the snapshot of a block they mention differs:
+  nested 1.
+Most results that memexec keeps at once for one input state of these functions:
+  nested 3.
+Initial state: equal.
+Differences with the run without memexec:
+  nested, before snapshot_nested.c:25 `x = *gp;`, joined: unavailable
+  nested, before snapshot_nested.c:25 `x = *gp;`, filtered: unavailable
+  nested, before snapshot_nested.c:25 `x = *gp;`, nested :: snapshot_nested.c:26 <- nested :: snapshot_nested.c:26 <- nested :: snapshot_nested.c:32 <- nested_main: unavailable
+  nested, before snapshot_nested.c:25 `x = *gp;`, nested :: snapshot_nested.c:26 <- nested :: snapshot_nested.c:32 <- nested_main: unavailable
+  nested, before snapshot_nested.c:25 `x = *gp;`, nested :: snapshot_nested.c:32 <- nested_main: unavailable
+  nested, after snapshot_nested.c:25 `x = *gp;`, joined: unavailable
+  nested, after snapshot_nested.c:25 `x = *gp;`, filtered: unavailable
+  nested, after snapshot_nested.c:25 `x = *gp;`, nested :: snapshot_nested.c:26 <- nested :: snapshot_nested.c:26 <- nested :: snapshot_nested.c:32 <- nested_main: unavailable
+  nested, after snapshot_nested.c:25 `x = *gp;`, nested :: snapshot_nested.c:26 <- nested :: snapshot_nested.c:32 <- nested_main: unavailable
+  nested, after snapshot_nested.c:25 `x = *gp;`, nested :: snapshot_nested.c:32 <- nested_main: unavailable
+  nested, before snapshot_nested.c:26 `if (v)`, joined: unavailable
+  nested, before snapshot_nested.c:26 `if (v)`, filtered: unavailable
+  nested, before snapshot_nested.c:26 `if (v)`, nested :: snapshot_nested.c:26 <- nested :: snapshot_nested.c:26 <- nested :: snapshot_nested.c:32 <- nested_main: unavailable
+  nested, before snapshot_nested.c:26 `if (v)`, nested :: snapshot_nested.c:26 <- nested :: snapshot_nested.c:32 <- nested_main: unavailable
+  nested, before snapshot_nested.c:26 `if (v)`, nested :: snapshot_nested.c:32 <- nested_main: unavailable
+  nested, after snapshot_nested.c:26 `if (v)`, joined: unavailable
+  nested, after snapshot_nested.c:26 `if (v)`, filtered: unavailable
+  nested, after snapshot_nested.c:26 `if (v)`, nested :: snapshot_nested.c:26 <- nested :: snapshot_nested.c:26 <- nested :: snapshot_nested.c:32 <- nested_main: unavailable
+  nested, after snapshot_nested.c:26 `if (v)`, nested :: snapshot_nested.c:26 <- nested :: snapshot_nested.c:32 <- nested_main: unavailable
+  nested, after snapshot_nested.c:26 `if (v)`, nested :: snapshot_nested.c:32 <- nested_main: unavailable
+  nested, before snapshot_nested.c:26 `nested();`, joined: unavailable
+  nested, before snapshot_nested.c:26 `nested();`, filtered: unavailable
+  nested, before snapshot_nested.c:26 `nested();`, nested :: snapshot_nested.c:26 <- nested :: snapshot_nested.c:26 <- nested :: snapshot_nested.c:32 <- nested_main: unavailable
+  nested, before snapshot_nested.c:26 `nested();`, nested :: snapshot_nested.c:26 <- nested :: snapshot_nested.c:32 <- nested_main: unavailable
+  nested, before snapshot_nested.c:26 `nested();`, nested :: snapshot_nested.c:32 <- nested_main: unavailable
+  nested, after snapshot_nested.c:26 `nested();`, joined: unavailable
+  nested, after snapshot_nested.c:26 `nested();`, filtered: unavailable
+  nested, after snapshot_nested.c:26 `nested();`, nested :: snapshot_nested.c:26 <- nested :: snapshot_nested.c:26 <- nested :: snapshot_nested.c:32 <- nested_main: unavailable
+  nested, after snapshot_nested.c:26 `nested();`, nested :: snapshot_nested.c:26 <- nested :: snapshot_nested.c:32 <- nested_main: unavailable
+  nested, after snapshot_nested.c:26 `nested();`, nested :: snapshot_nested.c:32 <- nested_main: unavailable
+  nested, before snapshot_nested.c:27 `return;`, joined: unavailable
+  nested, before snapshot_nested.c:27 `return;`, filtered: unavailable
+  nested, before snapshot_nested.c:27 `return;`, nested :: snapshot_nested.c:26 <- nested :: snapshot_nested.c:26 <- nested :: snapshot_nested.c:32 <- nested_main: unavailable
+  nested, before snapshot_nested.c:27 `return;`, nested :: snapshot_nested.c:26 <- nested :: snapshot_nested.c:32 <- nested_main: unavailable
+  nested, before snapshot_nested.c:27 `return;`, nested :: snapshot_nested.c:32 <- nested_main: unavailable
+  nested, after snapshot_nested.c:27 `return;`, joined: unavailable
+  nested, after snapshot_nested.c:27 `return;`, filtered: unavailable
+  nested, after snapshot_nested.c:27 `return;`, nested :: snapshot_nested.c:26 <- nested :: snapshot_nested.c:26 <- nested :: snapshot_nested.c:32 <- nested_main: unavailable
+  nested, after snapshot_nested.c:27 `return;`, nested :: snapshot_nested.c:26 <- nested :: snapshot_nested.c:32 <- nested_main: unavailable
+  nested, after snapshot_nested.c:27 `return;`, nested :: snapshot_nested.c:32 <- nested_main: unavailable
+Answers: 69 equal, 0 covering, 0 more precise, 0 omitting, 40 unavailable.
+Callstacks listed: NOT those of the run without memexec at 8 of the 30 points:
+  nested, before snapshot_nested.c:25 `x = *gp;`
+  nested, after snapshot_nested.c:25 `x = *gp;`
+  nested, before snapshot_nested.c:26 `if (v)`
+  nested, after snapshot_nested.c:26 `if (v)`
+  nested, before snapshot_nested.c:26 `nested();`
+  nested, after snapshot_nested.c:26 `nested();`
+  nested, before snapshot_nested.c:27 `return;`
+  nested, after snapshot_nested.c:27 `return;`
+Callstacks listed through the filter: NOT those of the run without memexec at 8 of the 30 points:
+  nested, before snapshot_nested.c:25 `x = *gp;`
+  nested, after snapshot_nested.c:25 `x = *gp;`
+  nested, before snapshot_nested.c:26 `if (v)`
+  nested, after snapshot_nested.c:26 `if (v)`
+  nested, before snapshot_nested.c:26 `nested();`
+  nested, after snapshot_nested.c:26 `nested();`
+  nested, before snapshot_nested.c:27 `return;`
+  nested, after snapshot_nested.c:27 `return;`
+Filtered requests that reject one callstack: 9.
+Requests made: 169; reported by the trap: 169, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 28 requests, 62 reads of the legacy store in them, 40 reads outside any request.
+  with -eva-hit-log: 28 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 15 requests
+    statistics: 13 requests
+Statuses of the properties: those of the run without memexec, for 80 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 1.0000, 0 alarms, those of the run without memexec.
