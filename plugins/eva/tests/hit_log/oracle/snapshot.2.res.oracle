@@ -1,0 +1,281 @@
+[kernel] Parsing snapshot.c (with preprocessing)
+Calls:
+  malloc :: snapshot.c:63 <- unchanged_main: builtin
+  cmp :: snapshot.c:65 <- unchanged_main: analysed, cache entry 9
+  cmp_global :: snapshot.c:66 <- unchanged_main: analysed, cache entry 10
+  cmp :: snapshot.c:67 <- unchanged_main: hit of cache entry 9
+  cmp_global :: snapshot.c:68 <- unchanged_main: hit of cache entry 10
+  unchanged_main: analysed, cache entry 11
+Heap calls, not stored by memexec: unchanged_main 1.
+Hits not made because memexec does not store the heap calls: none.
+cmp, start:
+  joined: gp ∈ {{ &__malloc_unchanged_main_l63_1[0] }}
+          p ∈ {{ &__malloc_unchanged_main_l63_1[6] }}
+          q ∈ {0}
+          r_weak[0..1] ∈ {0}
+          r_weak_global[0..1] ∈ {0}
+          r_resized[0..1] ∈ {0}
+          r_unchanged[0..1] ∈ {0}
+          r_unchanged_global[0] ∈ {0; 1}
+                            [1] ∈ {0}
+          b ∈ {{ &__malloc_unchanged_main_l63_1[0] }}
+          __malloc_unchanged_main_l63_1[0..7] ∈ UNINITIALIZED
+  cmp :: snapshot.c:65 <- unchanged_main: gp ∈
+                                            {{ &__malloc_unchanged_main_l63_1[0] }}
+                                          p ∈
+                                           {{ &__malloc_unchanged_main_l63_1[6] }}
+                                          q ∈ {0}
+                                          r_weak[0..1] ∈ {0}
+                                          r_weak_global[0..1] ∈ {0}
+                                          r_resized[0..1] ∈ {0}
+                                          r_unchanged[0..1] ∈ {0}
+                                          r_unchanged_global[0..1] ∈ {0}
+                                          b ∈
+                                           {{ &__malloc_unchanged_main_l63_1[0] }}
+                                          __malloc_unchanged_main_l63_1
+                                          [0..7] ∈ UNINITIALIZED
+  cmp :: snapshot.c:67 <- unchanged_main: gp ∈
+                                            {{ &__malloc_unchanged_main_l63_1[0] }}
+                                          p ∈
+                                           {{ &__malloc_unchanged_main_l63_1[6] }}
+                                          q ∈ {0}
+                                          r_weak[0..1] ∈ {0}
+                                          r_weak_global[0..1] ∈ {0}
+                                          r_resized[0..1] ∈ {0}
+                                          r_unchanged[0..1] ∈ {0}
+                                          r_unchanged_global[0] ∈ {1}
+                                                            [1] ∈ {0}
+                                          b ∈
+                                           {{ &__malloc_unchanged_main_l63_1[0] }}
+                                          __malloc_unchanged_main_l63_1
+                                          [0..7] ∈ UNINITIALIZED
+cmp, before snapshot.c:21 `;` (P):
+  joined: gp ∈ {{ &__malloc_unchanged_main_l63_1[0] }}
+          p ∈ {{ &__malloc_unchanged_main_l63_1[6] }}
+          q ∈ {0}
+          r_weak[0..1] ∈ {0}
+          r_weak_global[0..1] ∈ {0}
+          r_resized[0..1] ∈ {0}
+          r_unchanged[0..1] ∈ {0}
+          r_unchanged_global[0] ∈ {0; 1}
+                            [1] ∈ {0}
+          b ∈ {{ &__malloc_unchanged_main_l63_1[0] }}
+          __retres ∈ UNINITIALIZED
+          __malloc_unchanged_main_l63_1[0..7] ∈ UNINITIALIZED
+  cmp :: snapshot.c:65 <- unchanged_main: gp ∈
+                                            {{ &__malloc_unchanged_main_l63_1[0] }}
+                                          p ∈
+                                           {{ &__malloc_unchanged_main_l63_1[6] }}
+                                          q ∈ {0}
+                                          r_weak[0..1] ∈ {0}
+                                          r_weak_global[0..1] ∈ {0}
+                                          r_resized[0..1] ∈ {0}
+                                          r_unchanged[0..1] ∈ {0}
+                                          r_unchanged_global[0..1] ∈ {0}
+                                          b ∈
+                                           {{ &__malloc_unchanged_main_l63_1[0] }}
+                                          __retres ∈ UNINITIALIZED
+                                          __malloc_unchanged_main_l63_1
+                                          [0..7] ∈ UNINITIALIZED
+  cmp :: snapshot.c:67 <- unchanged_main: gp ∈
+                                            {{ &__malloc_unchanged_main_l63_1[0] }}
+                                          p ∈
+                                           {{ &__malloc_unchanged_main_l63_1[6] }}
+                                          q ∈ {0}
+                                          r_weak[0..1] ∈ {0}
+                                          r_weak_global[0..1] ∈ {0}
+                                          r_resized[0..1] ∈ {0}
+                                          r_unchanged[0..1] ∈ {0}
+                                          r_unchanged_global[0] ∈ {1}
+                                                            [1] ∈ {0}
+                                          b ∈
+                                           {{ &__malloc_unchanged_main_l63_1[0] }}
+                                          __retres ∈ UNINITIALIZED
+                                          __malloc_unchanged_main_l63_1
+                                          [0..7] ∈ UNINITIALIZED
+cmp, after snapshot.c:21 `return __retres;`:
+  joined: gp ∈ {{ &__malloc_unchanged_main_l63_1[0] }}
+          p ∈ {{ &__malloc_unchanged_main_l63_1[6] }}
+          q ∈ {0}
+          r_weak[0..1] ∈ {0}
+          r_weak_global[0..1] ∈ {0}
+          r_resized[0..1] ∈ {0}
+          r_unchanged[0..1] ∈ {0}
+          r_unchanged_global[0] ∈ {0; 1}
+                            [1] ∈ {0}
+          b ∈ {{ &__malloc_unchanged_main_l63_1[0] }}
+          __retres ∈ {0}
+          __malloc_unchanged_main_l63_1[0..7] ∈ UNINITIALIZED
+  cmp :: snapshot.c:65 <- unchanged_main: gp ∈
+                                            {{ &__malloc_unchanged_main_l63_1[0] }}
+                                          p ∈
+                                           {{ &__malloc_unchanged_main_l63_1[6] }}
+                                          q ∈ {0}
+                                          r_weak[0..1] ∈ {0}
+                                          r_weak_global[0..1] ∈ {0}
+                                          r_resized[0..1] ∈ {0}
+                                          r_unchanged[0..1] ∈ {0}
+                                          r_unchanged_global[0..1] ∈ {0}
+                                          b ∈
+                                           {{ &__malloc_unchanged_main_l63_1[0] }}
+                                          __retres ∈ {0}
+                                          __malloc_unchanged_main_l63_1
+                                          [0..7] ∈ UNINITIALIZED
+  cmp :: snapshot.c:67 <- unchanged_main: gp ∈
+                                            {{ &__malloc_unchanged_main_l63_1[0] }}
+                                          p ∈
+                                           {{ &__malloc_unchanged_main_l63_1[6] }}
+                                          q ∈ {0}
+                                          r_weak[0..1] ∈ {0}
+                                          r_weak_global[0..1] ∈ {0}
+                                          r_resized[0..1] ∈ {0}
+                                          r_unchanged[0..1] ∈ {0}
+                                          r_unchanged_global[0] ∈ {1}
+                                                            [1] ∈ {0}
+                                          b ∈
+                                           {{ &__malloc_unchanged_main_l63_1[0] }}
+                                          __retres ∈ {0}
+                                          __malloc_unchanged_main_l63_1
+                                          [0..7] ∈ UNINITIALIZED
+cmp_global, start:
+  joined: gp ∈ {{ &__malloc_unchanged_main_l63_1[0] }}
+          q ∈ {{ &__malloc_unchanged_main_l63_1[0] }}
+          r_weak[0..1] ∈ {0}
+          r_weak_global[0..1] ∈ {0}
+          r_resized[0..1] ∈ {0}
+          r_unchanged[0..1] ∈ {0}
+          r_unchanged_global[0] ∈ {0; 1}
+                            [1] ∈ {0}
+          b ∈ {{ &__malloc_unchanged_main_l63_1[0] }}
+          __malloc_unchanged_main_l63_1[0..7] ∈ UNINITIALIZED
+  cmp_global :: snapshot.c:66 <- unchanged_main: gp ∈
+                                                   {{ &__malloc_unchanged_main_l63_1[0] }}
+                                                 q ∈
+                                                  {{ &__malloc_unchanged_main_l63_1[0] }}
+                                                 r_weak[0..1] ∈ {0}
+                                                 r_weak_global[0..1] ∈ {0}
+                                                 r_resized[0..1] ∈ {0}
+                                                 r_unchanged[0..1] ∈ {0}
+                                                 r_unchanged_global[0..1] ∈
+                                                                   {0}
+                                                 b ∈
+                                                  {{ &__malloc_unchanged_main_l63_1[0] }}
+                                                 __malloc_unchanged_main_l63_1
+                                                 [0..7] ∈ UNINITIALIZED
+  cmp_global :: snapshot.c:68 <- unchanged_main: gp ∈
+                                                   {{ &__malloc_unchanged_main_l63_1[0] }}
+                                                 q ∈
+                                                  {{ &__malloc_unchanged_main_l63_1[0] }}
+                                                 r_weak[0..1] ∈ {0}
+                                                 r_weak_global[0..1] ∈ {0}
+                                                 r_resized[0..1] ∈ {0}
+                                                 r_unchanged[0..1] ∈ {0}
+                                                 r_unchanged_global[0] ∈ {1}
+                                                                   [1] ∈ {0}
+                                                 b ∈
+                                                  {{ &__malloc_unchanged_main_l63_1[0] }}
+                                                 __malloc_unchanged_main_l63_1
+                                                 [0..7] ∈ UNINITIALIZED
+cmp_global, before snapshot.c:24 `;` (G):
+  joined: gp ∈ {{ &__malloc_unchanged_main_l63_1[0] }}
+          q ∈ {{ &__malloc_unchanged_main_l63_1[0] }}
+          r_weak[0..1] ∈ {0}
+          r_weak_global[0..1] ∈ {0}
+          r_resized[0..1] ∈ {0}
+          r_unchanged[0..1] ∈ {0}
+          r_unchanged_global[0] ∈ {0; 1}
+                            [1] ∈ {0}
+          b ∈ {{ &__malloc_unchanged_main_l63_1[0] }}
+          __retres ∈ UNINITIALIZED
+          __malloc_unchanged_main_l63_1[0..7] ∈ UNINITIALIZED
+  cmp_global :: snapshot.c:66 <- unchanged_main: gp ∈
+                                                   {{ &__malloc_unchanged_main_l63_1[0] }}
+                                                 q ∈
+                                                  {{ &__malloc_unchanged_main_l63_1[0] }}
+                                                 r_weak[0..1] ∈ {0}
+                                                 r_weak_global[0..1] ∈ {0}
+                                                 r_resized[0..1] ∈ {0}
+                                                 r_unchanged[0..1] ∈ {0}
+                                                 r_unchanged_global[0..1] ∈
+                                                                   {0}
+                                                 b ∈
+                                                  {{ &__malloc_unchanged_main_l63_1[0] }}
+                                                 __retres ∈ UNINITIALIZED
+                                                 __malloc_unchanged_main_l63_1
+                                                 [0..7] ∈ UNINITIALIZED
+  cmp_global :: snapshot.c:68 <- unchanged_main: gp ∈
+                                                   {{ &__malloc_unchanged_main_l63_1[0] }}
+                                                 q ∈
+                                                  {{ &__malloc_unchanged_main_l63_1[0] }}
+                                                 r_weak[0..1] ∈ {0}
+                                                 r_weak_global[0..1] ∈ {0}
+                                                 r_resized[0..1] ∈ {0}
+                                                 r_unchanged[0..1] ∈ {0}
+                                                 r_unchanged_global[0] ∈ {1}
+                                                                   [1] ∈ {0}
+                                                 b ∈
+                                                  {{ &__malloc_unchanged_main_l63_1[0] }}
+                                                 __retres ∈ UNINITIALIZED
+                                                 __malloc_unchanged_main_l63_1
+                                                 [0..7] ∈ UNINITIALIZED
+cmp_global, after snapshot.c:24 `return __retres;`:
+  joined: gp ∈ {{ &__malloc_unchanged_main_l63_1[0] }}
+          q ∈ {{ &__malloc_unchanged_main_l63_1[0] }}
+          r_weak[0..1] ∈ {0}
+          r_weak_global[0..1] ∈ {0}
+          r_resized[0..1] ∈ {0}
+          r_unchanged[0..1] ∈ {0}
+          r_unchanged_global[0] ∈ {0; 1}
+                            [1] ∈ {0}
+          b ∈ {{ &__malloc_unchanged_main_l63_1[0] }}
+          __retres ∈ {1}
+          __malloc_unchanged_main_l63_1[0..7] ∈ UNINITIALIZED
+  cmp_global :: snapshot.c:66 <- unchanged_main: gp ∈
+                                                   {{ &__malloc_unchanged_main_l63_1[0] }}
+                                                 q ∈
+                                                  {{ &__malloc_unchanged_main_l63_1[0] }}
+                                                 r_weak[0..1] ∈ {0}
+                                                 r_weak_global[0..1] ∈ {0}
+                                                 r_resized[0..1] ∈ {0}
+                                                 r_unchanged[0..1] ∈ {0}
+                                                 r_unchanged_global[0..1] ∈
+                                                                   {0}
+                                                 b ∈
+                                                  {{ &__malloc_unchanged_main_l63_1[0] }}
+                                                 __retres ∈ {1}
+                                                 __malloc_unchanged_main_l63_1
+                                                 [0..7] ∈ UNINITIALIZED
+  cmp_global :: snapshot.c:68 <- unchanged_main: gp ∈
+                                                   {{ &__malloc_unchanged_main_l63_1[0] }}
+                                                 q ∈
+                                                  {{ &__malloc_unchanged_main_l63_1[0] }}
+                                                 r_weak[0..1] ∈ {0}
+                                                 r_weak_global[0..1] ∈ {0}
+                                                 r_resized[0..1] ∈ {0}
+                                                 r_unchanged[0..1] ∈ {0}
+                                                 r_unchanged_global[0] ∈ {1}
+                                                                   [1] ∈ {0}
+                                                 b ∈
+                                                  {{ &__malloc_unchanged_main_l63_1[0] }}
+                                                 __retres ∈ {1}
+                                                 __malloc_unchanged_main_l63_1
+                                                 [0..7] ∈ UNINITIALIZED
+Hits against the analysed call of their cache entry:
+  cmp :: snapshot.c:67 <- unchanged_main, hit of cache entry 9, against cmp :: snapshot.c:65 <- unchanged_main: differs on r_unchanged_global, at 7 points.
+  cmp_global :: snapshot.c:68 <- unchanged_main, hit of cache entry 10, against cmp_global :: snapshot.c:66 <- unchanged_main: differs on r_unchanged_global, at 7 points.
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 235 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 95 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 95 points.
+Filtered requests that reject one callstack: 14.
+Requests made: 425; reported by the trap: 425, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 61 requests, 55 reads of the legacy store in them, 62 reads outside any request.
+  with -eva-hit-log: 61 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 47 requests
+    statistics: 13 requests
+    summary: 1 request
+Statuses of the properties: those of the run without memexec, for 92 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.6000, 0 alarms, those of the run without memexec.
