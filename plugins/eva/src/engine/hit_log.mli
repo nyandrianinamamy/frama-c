@@ -76,10 +76,12 @@
     of its analysis: an edge of the automaton of the body through which the
     analysis propagated no state is on no path. A covered block that the
     Inner part does not bind is removed at the point: this is the removal
-    mask. Each point also holds a sweep map: the blocks of the body-entry
-    state swept on every path from the start of the body to the point, and
-    those swept on some path only. A block is swept when a release turns the
-    pointers to it into escaping addresses. At a call statement, the sweeps
+    mask. Each point also holds a sweep map: the blocks swept on every path
+    from the start of the body to the point, and those swept on some path
+    only. A block is swept when a release turns the pointers to it into
+    escaping addresses. The map keeps the blocks that the body-entry state
+    does not bind: this state can point to them, as a recursive call puts
+    back unswept the variables that it withdraws from the state. At a call statement, the sweeps
     of the evaluations of the call that return are merged: a block swept on
     every path of each of them is swept on every path, and a block swept in
     some of them only, or on some path only, is swept on some path only. The

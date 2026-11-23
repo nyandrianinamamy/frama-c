@@ -145,4 +145,4 @@ Points of the cache entries:
 cf :: heap_rule.c:36 <- cond_main, cache entry 5:
   before L1: covers __malloc_cond_main_l35_1; does not bind none; swept on every path: none; on some path only: __malloc_cond_main_l35_1
 cond_main, cache entry 6:
-  before M1: covers __malloc_cond_main_l35_1; does not bind none; swept on every path: none; on some path only: none
+  before M1: covers __malloc_cond_main_l35_1; does not bind none; swept on every path: none; on some path only: __malloc_cond_main_l35_1

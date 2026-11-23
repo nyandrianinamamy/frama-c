@@ -31,10 +31,9 @@ module Int_table = Datatype.Int.Hashtbl
 (* The state at a point of the Inner part: [inner] is the state projected on
    the blocks of [covered]. A covered block that [inner] does not bind has no
    binding at this point: the removal mask. [swept_every] and [swept_some]
-   are the sweep map: the blocks of the body-entry state that a release
-   swept on every path from the start of the body to the point, and those
-   swept on some path only, see [Heap_paths]. Empty except for a heap
-   call. *)
+   are the sweep map: the blocks that a release swept on every path from the
+   start of the body to the point, and those swept on some path only, see
+   [Heap_paths]. Empty except for a heap call. *)
 type point = {
   covered: Base.Hptset.t;
   inner: Cvalue.Model.t;
@@ -820,32 +819,21 @@ let heap_paths frame automaton ~fired =
   in
   Heap_paths.compute automaton ~fired ~edge ~vertex
 
-let present state block =
-  match state with
-  | Cvalue.Model.Top -> true
-  | Bottom -> false
-  | Map _ ->
-    match Cvalue.Model.find_base block state with
-    | _ -> true
-    | exception Not_found -> false
-
 (* The coverage and the sweep map before and after each statement of the
    body, from their values at the vertices of [automaton], as the legacy
    store computes the states before and after each statement from the
    states at the vertices: the state after a statement that is not an
    instruction is the join of the states before its successors reached, as
    given by [before], and the state after the return statement is the state
-   before it. Only the blocks of [body_entry] are kept in the sweep map: the
-   rule applies it to the body-entry state, whose pointers point to blocks of
-   this state, as the removal of a block sweeps the pointers to it. Raises
+   before it. The sweep map keeps every block swept, including those that
+   the body-entry state does not bind: this state can hold pointers to such
+   a block, as a recursive call puts back unswept the variables it withdraws
+   from the state, and a release of the block in the body sweeps them. Raises
    [Unknown_footprint] at a point whose vertex the paths do not reach. *)
-let heap_points automaton paths ~body_entry ~before =
+let heap_points automaton paths ~before =
   let at vertex =
     match Eva_automata.Vertex.Hashtbl.find_opt paths vertex with
-    | Some value ->
-      { value with
-        Heap_paths.sweeps =
-          Heap_paths.filter (present body_entry) value.Heap_paths.sweeps }
+    | Some value -> value
     | None -> raise Unknown_footprint
   in
   let vertices stmt =
@@ -928,7 +916,7 @@ let record_analysed_call ~id callstack ~automaton ~fired ~footprint ~start
         | Some footprint ->
           try
             let heap_before, heap_after =
-              heap_points automaton paths ~body_entry ~before
+              heap_points automaton paths ~before
             in
             inner_part ~heap_before ~heap_after footprint ~start ~before
               ~after ~calls:[]

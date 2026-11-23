@@ -119,4 +119,4 @@ again :: heap_rule.c:63 <- again_main, cache entry 7:
 again :: heap_rule.c:63 <- again_main, cache entry 8:
   before L4: covers __malloc_again_l61_1; does not bind none; swept on every path: __malloc_again_l61_1; on some path only: none
 again_main, cache entry 9:
-  before M4: covers __malloc_again_l61_1; does not bind none; swept on every path: none; on some path only: none
+  before M4: covers __malloc_again_l61_1; does not bind none; swept on every path: none; on some path only: __malloc_again_l61_1

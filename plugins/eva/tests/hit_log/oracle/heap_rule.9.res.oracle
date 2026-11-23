@@ -102,7 +102,7 @@ release :: heap_rule.c:119 <- sweep_main, cache entry 7:
 release :: heap_rule.c:119 <- sweep_main, cache entry 8:
   before R: covers __malloc_sweep_main_l117_1; does not bind __malloc_sweep_main_l117_1; swept on every path: __malloc_sweep_main_l117_1; on some path only: none
 sweep_main, cache entry 9:
-  before S: covers __malloc_sweep_main_l117_1; does not bind __malloc_sweep_main_l117_1; swept on every path: none; on some path only: none
+  before S: covers __malloc_sweep_main_l117_1; does not bind __malloc_sweep_main_l117_1; swept on every path: __malloc_sweep_main_l117_1; on some path only: none
 Entry 8 of release, without pointer in spare, applied to the body-entry state of the call of entry 7, before R:
   spare: ESCAPINGADDR
   with entry 7: ESCAPINGADDR

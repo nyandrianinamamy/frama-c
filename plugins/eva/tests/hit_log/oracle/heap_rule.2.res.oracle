@@ -211,4 +211,4 @@ Points of the cache entries:
 tf :: heap_rule.c:55 <- two_main, cache entry 5:
   before L3: covers none; does not bind none; swept on every path: none; on some path only: __malloc_two_main_l53_4, __malloc_two_main_l53_3
 two_main, cache entry 6:
-  before M3: covers __malloc_two_main_l53_4, __malloc_two_main_l53_3; does not bind none; swept on every path: none; on some path only: none
+  before M3: covers __malloc_two_main_l53_4, __malloc_two_main_l53_3; does not bind none; swept on every path: none; on some path only: __malloc_two_main_l53_4, __malloc_two_main_l53_3

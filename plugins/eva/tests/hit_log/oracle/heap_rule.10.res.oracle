@@ -144,7 +144,7 @@ crelease :: heap_rule.c:128 <- cond_sweep_main, cache entry 7:
 crelease :: heap_rule.c:128 <- cond_sweep_main, cache entry 8:
   before CR: covers __malloc_cond_sweep_main_l126_1; does not bind none; swept on every path: none; on some path only: __malloc_cond_sweep_main_l126_1
 cond_sweep_main, cache entry 9:
-  before CS: covers __malloc_cond_sweep_main_l126_1; does not bind none; swept on every path: none; on some path only: none
+  before CS: covers __malloc_cond_sweep_main_l126_1; does not bind none; swept on every path: none; on some path only: __malloc_cond_sweep_main_l126_1
 Entry 8 of crelease, without pointer in spare, applied to the body-entry state of the call of entry 7, before CR:
   spare: {{ &__malloc_cond_sweep_main_l126_1 }} or ESCAPINGADDR
   with entry 7: {{ &__malloc_cond_sweep_main_l126_1 }} or ESCAPINGADDR

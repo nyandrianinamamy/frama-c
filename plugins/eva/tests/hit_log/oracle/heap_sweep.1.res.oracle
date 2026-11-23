@@ -58,33 +58,8 @@ worker, before heap_sweep.c:46 `z ++;` (F):
           second ∈ {0; 1}
           saved ∈ {0} or ESCAPINGADDR
           i ∈ {0; 1}
-          \copy<saved>[1] ∈ {{ NULL ; &__malloc_worker_l46_1[0] }}
+          \copy<saved>[1] ∈ {0} or ESCAPINGADDR
           __malloc_worker_l46_1[0..7] ∈ UNINITIALIZED
-  worker :: heap_sweep.c:49 <- recur_stale :: heap_sweep.c:49 <- recur_stale :: heap_sweep.c:52 <- stale_main: 
-  p ∈ {{ &__malloc_worker_l46_1[0] }} or ESCAPINGADDR
-  g ∈ {0}
-  stale ∈ {0} or ESCAPINGADDR
-  keep ∈ {{ &\copy<saved>[1] }}
-  z ∈ {0; 1}
-  second ∈ {0; 1}
-  n ∈ {0}
-  second ∈ {0; 1}
-  saved ∈ {0} or ESCAPINGADDR
-  i ∈ {0; 1}
-  \copy<saved>[1] ∈ {{ NULL ; &__malloc_worker_l46_1[0] }}
-  __malloc_worker_l46_1[0..7] ∈ UNINITIALIZED
-  reference, joined: p ∈ {{ &__malloc_worker_l46_1[0] }} or ESCAPINGADDR
-                     g ∈ {0}
-                     stale ∈ {0} or ESCAPINGADDR
-                     keep ∈ {{ &\copy<saved>[1] }}
-                     z ∈ {0; 1}
-                     second ∈ {0; 1}
-                     n ∈ {0}
-                     second ∈ {0; 1}
-                     saved ∈ {0} or ESCAPINGADDR
-                     i ∈ {0; 1}
-                     \copy<saved>[1] ∈ {0} or ESCAPINGADDR
-                     __malloc_worker_l46_1[0..7] ∈ UNINITIALIZED
   worker :: heap_sweep.c:49 <- recur_stale :: heap_sweep.c:49 <- recur_stale :: heap_sweep.c:52 <- stale_main: 
   p ∈ {{ &__malloc_worker_l46_1[0] }} or ESCAPINGADDR
   g ∈ {0}
@@ -109,33 +84,8 @@ worker, after heap_sweep.c:46 `return;`:
           second ∈ {0; 1}
           saved ∈ {0} or ESCAPINGADDR
           i ∈ {0; 1}
-          \copy<saved>[1] ∈ {{ NULL ; &__malloc_worker_l46_1[0] }}
+          \copy<saved>[1] ∈ {0} or ESCAPINGADDR
           __malloc_worker_l46_1[0..7] ∈ UNINITIALIZED
-  worker :: heap_sweep.c:49 <- recur_stale :: heap_sweep.c:49 <- recur_stale :: heap_sweep.c:52 <- stale_main: 
-  p ∈ {{ &__malloc_worker_l46_1[0] }} or ESCAPINGADDR
-  g ∈ {0}
-  stale ∈ {0} or ESCAPINGADDR
-  keep ∈ {{ &\copy<saved>[1] }}
-  z ∈ {1; 2}
-  second ∈ {0; 1}
-  n ∈ {0}
-  second ∈ {0; 1}
-  saved ∈ {0} or ESCAPINGADDR
-  i ∈ {0; 1}
-  \copy<saved>[1] ∈ {{ NULL ; &__malloc_worker_l46_1[0] }}
-  __malloc_worker_l46_1[0..7] ∈ UNINITIALIZED
-  reference, joined: p ∈ {{ &__malloc_worker_l46_1[0] }} or ESCAPINGADDR
-                     g ∈ {0}
-                     stale ∈ {0} or ESCAPINGADDR
-                     keep ∈ {{ &\copy<saved>[1] }}
-                     z ∈ {1; 2}
-                     second ∈ {0; 1}
-                     n ∈ {0}
-                     second ∈ {0; 1}
-                     saved ∈ {0} or ESCAPINGADDR
-                     i ∈ {0; 1}
-                     \copy<saved>[1] ∈ {0} or ESCAPINGADDR
-                     __malloc_worker_l46_1[0..7] ∈ UNINITIALIZED
   worker :: heap_sweep.c:49 <- recur_stale :: heap_sweep.c:49 <- recur_stale :: heap_sweep.c:52 <- stale_main: 
   p ∈ {{ &__malloc_worker_l46_1[0] }} or ESCAPINGADDR
   g ∈ {0}
@@ -193,24 +143,6 @@ Differences with the run without memexec:
   withdraw, after heap_sweep.c:45 `return;`, filtered: unavailable
   withdraw, after heap_sweep.c:45 `return;`, withdraw :: heap_sweep.c:44 <- withdraw :: heap_sweep.c:52 <- stale_main: unavailable
   withdraw, after heap_sweep.c:45 `return;`, withdraw :: heap_sweep.c:52 <- stale_main: unavailable
-  worker, after heap_sweep.c:46 `if (second)`, joined: more precise
-  worker, after heap_sweep.c:46 `if (second)`, filtered: more precise
-  worker, after heap_sweep.c:46 `if (second)`, worker :: heap_sweep.c:49 <- recur_stale :: heap_sweep.c:49 <- recur_stale :: heap_sweep.c:52 <- stale_main: more precise
-  worker, after heap_sweep.c:46 `free((void *)p);`, joined: OMITS
-  worker, after heap_sweep.c:46 `free((void *)p);`, filtered: OMITS
-  worker, after heap_sweep.c:46 `free((void *)p);`, worker :: heap_sweep.c:49 <- recur_stale :: heap_sweep.c:49 <- recur_stale :: heap_sweep.c:52 <- stale_main: OMITS
-  worker, before heap_sweep.c:46 `z ++;` (F), joined: OMITS
-  worker, before heap_sweep.c:46 `z ++;` (F), filtered: OMITS
-  worker, before heap_sweep.c:46 `z ++;` (F), worker :: heap_sweep.c:49 <- recur_stale :: heap_sweep.c:49 <- recur_stale :: heap_sweep.c:52 <- stale_main: OMITS
-  worker, after heap_sweep.c:46 `z ++;` (F), joined: OMITS
-  worker, after heap_sweep.c:46 `z ++;` (F), filtered: OMITS
-  worker, after heap_sweep.c:46 `z ++;` (F), worker :: heap_sweep.c:49 <- recur_stale :: heap_sweep.c:49 <- recur_stale :: heap_sweep.c:52 <- stale_main: OMITS
-  worker, before heap_sweep.c:46 `return;`, joined: OMITS
-  worker, before heap_sweep.c:46 `return;`, filtered: OMITS
-  worker, before heap_sweep.c:46 `return;`, worker :: heap_sweep.c:49 <- recur_stale :: heap_sweep.c:49 <- recur_stale :: heap_sweep.c:52 <- stale_main: OMITS
-  worker, after heap_sweep.c:46 `return;`, joined: OMITS
-  worker, after heap_sweep.c:46 `return;`, filtered: OMITS
-  worker, after heap_sweep.c:46 `return;`, worker :: heap_sweep.c:49 <- recur_stale :: heap_sweep.c:49 <- recur_stale :: heap_sweep.c:52 <- stale_main: OMITS
   recur_stale, before heap_sweep.c:48 `char *saved = stale;`, joined: unavailable
   recur_stale, before heap_sweep.c:48 `char *saved = stale;`, filtered: unavailable
   recur_stale, before heap_sweep.c:48 `char *saved = stale;`, recur_stale :: heap_sweep.c:49 <- recur_stale :: heap_sweep.c:52 <- stale_main: unavailable
@@ -253,7 +185,7 @@ Differences with the run without memexec:
   recur_stale, after heap_sweep.c:50 `return;`, filtered: unavailable
   recur_stale, after heap_sweep.c:50 `return;`, recur_stale :: heap_sweep.c:49 <- recur_stale :: heap_sweep.c:52 <- stale_main: unavailable
   recur_stale, after heap_sweep.c:50 `return;`, recur_stale :: heap_sweep.c:52 <- stale_main: unavailable
-Answers: 474 equal, 0 covering, 3 more precise, 15 omitting, 84 unavailable.
+Answers: 492 equal, 0 covering, 0 more precise, 0 omitting, 84 unavailable.
 Callstacks listed: NOT those of the run without memexec at 24 of the 251 points:
   withdraw, before heap_sweep.c:43 `char *hidden = p;`
   withdraw, after heap_sweep.c:43 `char *hidden = p;`
@@ -323,7 +255,7 @@ recur_stale :: heap_sweep.c:52 <- stale_main, cache entry 21:
 withdraw :: heap_sweep.c:44 <- withdraw :: heap_sweep.c:52 <- stale_main, cache entry 22:
 withdraw :: heap_sweep.c:52 <- stale_main, cache entry 23:
 worker :: heap_sweep.c:49 <- recur_stale :: heap_sweep.c:49 <- recur_stale :: heap_sweep.c:52 <- stale_main, cache entry 24:
-  before F: covers __malloc_worker_l46_1; does not bind __malloc_worker_l46_1; swept on every path: none; on some path only: none
+  before F: covers __malloc_worker_l46_1; does not bind __malloc_worker_l46_1; swept on every path: __malloc_worker_l46_1; on some path only: none
 recur_stale :: heap_sweep.c:49 <- recur_stale :: heap_sweep.c:52 <- stale_main, cache entry 25:
 recur_stale :: heap_sweep.c:52 <- stale_main, cache entry 26:
 stale_main, cache entry 27:

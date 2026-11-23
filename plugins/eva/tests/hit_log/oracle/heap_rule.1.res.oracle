@@ -129,4 +129,4 @@ Points of the cache entries:
 wf :: heap_rule.c:46 <- weak_main, cache entry 5:
   before L2: covers none; does not bind none; swept on every path: none; on some path only: __malloc_w_weak_main_l44_1
 weak_main, cache entry 6:
-  before M2: covers __malloc_w_weak_main_l44_1; does not bind none; swept on every path: none; on some path only: none
+  before M2: covers __malloc_w_weak_main_l44_1; does not bind none; swept on every path: none; on some path only: __malloc_w_weak_main_l44_1
