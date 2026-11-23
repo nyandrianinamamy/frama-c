@@ -605,6 +605,7 @@ fi
 
 if has_stage report; then
   python3 "$THIS_DIR/report.py" tables --results "$OUT" \
-    --specs "$PROGRAMS" --ablations "$ABLATIONS" > "$OUT/tables.md"
+    --specs "$PROGRAMS" --ablations "$ABLATIONS" ${NO_MEASURE:+--no-measure} \
+    > "$OUT/tables.md"
   log "tables written to $OUT/tables.md"
 fi

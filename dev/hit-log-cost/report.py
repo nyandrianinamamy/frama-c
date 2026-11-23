@@ -232,10 +232,11 @@ CONFIGS = [
 ]
 
 
-def parse_specs(specs, ablations):
+def parse_specs(specs, ablations, measure=True):
     """Programs, and the number of runs expected in each group, from the
     specifications NAME:OFF:ON:PLAIN:ABLATION-RUNS:ABLATIONS:PERF-FREQUENCY[:BASE]
-    of run.sh."""
+    of run.sh. Without the measurement build (measure false, option -M of
+    run.sh), no meter run is expected."""
     programs, expected = [], collections.OrderedDict()
     for spec in specs.split():
         fields = spec.split(":")
@@ -247,9 +248,9 @@ def parse_specs(specs, ablations):
         groups = [
             ("dev", off),
             ("off", off),
-            ("meter-off", off),
+            ("meter-off", off if measure else 0),
             ("on", on),
-            ("meter-on", on),
+            ("meter-on", on if measure else 0),
             ("plain-off", plain),
             ("plain-on", plain),
             ("base", base),
@@ -310,7 +311,7 @@ class Report:
 def tables(args):
     runs, failed = load_runs(args.results)
     ablations = args.ablations.split()
-    programs, expected = parse_specs(args.specs, ablations)
+    programs, expected = parse_specs(args.specs, ablations, not args.no_measure)
     R = Report(args.results, runs, expected)
     w, get = R.w, R.get
 
@@ -1121,6 +1122,7 @@ def main():
     p.add_argument("--results", required=True)
     p.add_argument("--specs", required=True)
     p.add_argument("--ablations", default="")
+    p.add_argument("--no-measure", action="store_true")
     args = parser.parse_args()
     if args.command == "perf-summary":
         perf_summary(args)
