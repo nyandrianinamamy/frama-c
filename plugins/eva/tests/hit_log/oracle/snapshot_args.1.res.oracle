@@ -3,10 +3,12 @@ Calls:
   malloc :: snapshot_args.c:34 <- varargs_main: builtin
   keep_va :: snapshot_args.c:35 <- varargs_main: analysed, cache entry 6
   malloc :: snapshot_args.c:34 <- varargs_main: builtin
-  keep_va :: snapshot_args.c:35 <- varargs_main: hit of cache entry 6
-  varargs_main: analysed, cache entry 7
+  keep_va :: snapshot_args.c:35 <- varargs_main: analysed, cache entry 7
+  varargs_main: analysed, cache entry 8
 Heap calls, not stored by memexec: varargs_main 1.
 Hits not made because memexec does not store the heap calls: none.
+Calls that memexec does not reuse because the snapshot of a block they mention differs:
+  keep_va 1.
 keep_va, start:
   joined: r_unused[0..1] ∈ {0}
           x ∈ {0}
@@ -62,7 +64,6 @@ keep_va, after snapshot_args.c:29 `return __retres;`:
                                                  __retres ∈ {7}
                                                  __malloc_w_varargs_main_l34_1
                                                   ∈ UNINITIALIZED
-Hits against the analysed call of their cache entry:
 Initial state: equal.
 Differences with the run without memexec:
 Answers: 126 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.

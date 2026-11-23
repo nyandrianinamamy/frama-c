@@ -53,8 +53,19 @@ module Make (Engine: Engine_sig.S) = struct
       List.map (fun {avalue} -> Eval.value_assigned avalue) call.arguments
     in
     let record = Hit_log.enabled () in
+    (* With -eva-hit-log, the actual arguments beyond the formals of a
+       variadic function, which -no-variadic-translation keeps, are arguments
+       of the call for memexec: it compares their values, and the snapshot
+       takes the blocks they point to. *)
+    let memexec_args =
+      if record && call.rest <> []
+      then
+        args @ List.map (fun (_, value) -> Eval.value_assigned value) call.rest
+      else args
+    in
     match
-      MemExec.reuse_previous_call ~snapshot:record call.kf init_state args
+      MemExec.reuse_previous_call ~snapshot:record
+        call.kf init_state memexec_args
     with
     | None ->
       let compute () = compute call init_state in
@@ -73,7 +84,7 @@ module Make (Engine: Engine_sig.S) = struct
               call.kf init_state args final_states
           else
             MemExec.store_computed_call ~snapshot:record
-              call.kf init_state args final_states
+              call.kf init_state memexec_args final_states
       in
       call_result
     | Some (states, i) ->
