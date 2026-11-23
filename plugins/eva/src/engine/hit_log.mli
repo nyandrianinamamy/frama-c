@@ -223,3 +223,38 @@ val get_state:
 val get_state_by_callstack:
   Domain_store.control_point ->
   (Callstack.t * Cvalue.Model.t) list or_top_bottom
+
+(** {2 For the tests of the hit log} *)
+
+(** The Inner part of a cache entry at a point: the blocks it covers, the
+    state projected on them, and the sweep map, made of the blocks swept on
+    every path from the start of the body to the point and of those swept on
+    some path only. *)
+type inner_view = {
+  covered: Base.Hptset.t;
+  inner: Cvalue.Model.t;
+  swept_every: Base.Hptset.t;
+  swept_some: Base.Hptset.t;
+}
+
+(** What a cache entry holds at a point. *)
+type point_view =
+  | Full_states (** The entry holds full states. *)
+  | No_point
+  (** The entry holds no Inner part, its footprint being unknown, or does
+      not reach the point, or does not exist. *)
+  | Inner of inner_view
+
+(** [point_view ~id control_point] is what the cache entry [id] holds at
+    [control_point], a point before or after a statement of the body of its
+    function. *)
+val point_view: id:int -> Domain_store.control_point -> point_view
+
+(** [rule ~id ~body_entry control_point] is the state that the rule gives at
+    [control_point], a point before or after a statement of the body of the
+    function of the cache entry [id], to a call that uses this entry and
+    whose body-entry state is [body_entry]. None if the entry holds no Inner
+    part at this point, see {!point_view}. *)
+val rule:
+  id:int -> body_entry:Cvalue.Model.t -> Domain_store.control_point ->
+  Cvalue.Model.t option

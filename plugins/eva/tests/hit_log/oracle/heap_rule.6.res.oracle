@@ -1,0 +1,120 @@
+[kernel] Parsing heap_rule.c (with preprocessing)
+Calls:
+  malloc :: heap_rule.c:94 <- widen_main: builtin
+  Frama_C_interval :: heap_rule.c:91 <- wl :: heap_rule.c:95 <- widen_main: specification
+  Frama_C_interval :: heap_rule.c:91 <- wl :: heap_rule.c:95 <- widen_main: specification
+  wl :: heap_rule.c:95 <- widen_main: analysed, cache entry 5
+  widen_main: analysed, cache entry 6
+Heap calls, not stored by memexec: widen_main 1, wl 1.
+Heap calls whose answers come from full states: widen_main 1, wl 1.
+Hits not made because memexec does not store the heap calls: none.
+wl, start:
+  joined: g ∈ {0}
+          h ∈ {0}
+          spare ∈ {0}
+          z ∈ {0}
+          p ∈ {{ &__malloc_w_widen_main_l94_1[0] }}
+          p ∈ {{ &__malloc_w_widen_main_l94_1[0] }}
+          __malloc_w_widen_main_l94_1[0] ∈ UNINITIALIZED
+  wl :: heap_rule.c:95 <- widen_main: g ∈ {0}
+                                      h ∈ {0}
+                                      spare ∈ {0}
+                                      z ∈ {0}
+                                      p ∈
+                                       {{ &__malloc_w_widen_main_l94_1[0] }}
+                                      p ∈
+                                       {{ &__malloc_w_widen_main_l94_1[0] }}
+                                      __malloc_w_widen_main_l94_1[0] ∈
+                                                                 UNINITIALIZED
+wl, before heap_rule.c:91 `;` (L7):
+  joined: g ∈ {0}
+          h ∈ {0}
+          spare ∈ {0}
+          z ∈ {0}
+          p ∈ {{ &__malloc_w_widen_main_l94_1[0] }}
+          p ∈ {{ &__malloc_w_widen_main_l94_1[0] }}
+          __malloc_w_widen_main_l94_1[0] ∈ {7} or UNINITIALIZED
+  wl :: heap_rule.c:95 <- widen_main: g ∈ {0}
+                                      h ∈ {0}
+                                      spare ∈ {0}
+                                      z ∈ {0}
+                                      p ∈
+                                       {{ &__malloc_w_widen_main_l94_1[0] }}
+                                      p ∈
+                                       {{ &__malloc_w_widen_main_l94_1[0] }}
+                                      __malloc_w_widen_main_l94_1[0] ∈
+                                                                 {7} or UNINITIALIZED
+wl, after heap_rule.c:91 `return;`:
+  joined: g ∈ {0}
+          h ∈ {0}
+          spare ∈ {0}
+          z ∈ {0}
+          p ∈ {{ &__malloc_w_widen_main_l94_1[0] }}
+          p ∈ {{ &__malloc_w_widen_main_l94_1[0] }}
+          __malloc_w_widen_main_l94_1[0] ∈ {7} or UNINITIALIZED
+  wl :: heap_rule.c:95 <- widen_main: g ∈ {0}
+                                      h ∈ {0}
+                                      spare ∈ {0}
+                                      z ∈ {0}
+                                      p ∈
+                                       {{ &__malloc_w_widen_main_l94_1[0] }}
+                                      p ∈
+                                       {{ &__malloc_w_widen_main_l94_1[0] }}
+                                      __malloc_w_widen_main_l94_1[0] ∈
+                                                                 {7} or UNINITIALIZED
+widen_main, start:
+  joined: g ∈ {0}
+          h ∈ {0}
+          spare ∈ {0}
+          z ∈ {0}
+  widen_main: g ∈ {0}
+              h ∈ {0}
+              spare ∈ {0}
+              z ∈ {0}
+widen_main, before heap_rule.c:95 `;` (M7):
+  joined: g ∈ {0}
+          h ∈ {0}
+          spare ∈ {0}
+          z ∈ {0}
+          p ∈ {{ &__malloc_w_widen_main_l94_1[0] }}
+          __malloc_w_widen_main_l94_1[0] ∈ {7} or UNINITIALIZED
+  widen_main: g ∈ {0}
+              h ∈ {0}
+              spare ∈ {0}
+              z ∈ {0}
+              p ∈ {{ &__malloc_w_widen_main_l94_1[0] }}
+              __malloc_w_widen_main_l94_1[0] ∈ {7} or UNINITIALIZED
+widen_main, after heap_rule.c:96 `return;`:
+  joined: g ∈ {0}
+          h ∈ {0}
+          spare ∈ {0}
+          z ∈ {0}
+          p ∈ {{ &__malloc_w_widen_main_l94_1[0] }}
+          __malloc_w_widen_main_l94_1[0] ∈ {7} or UNINITIALIZED
+  widen_main: g ∈ {0}
+              h ∈ {0}
+              spare ∈ {0}
+              z ∈ {0}
+              p ∈ {{ &__malloc_w_widen_main_l94_1[0] }}
+              __malloc_w_widen_main_l94_1[0] ∈ {7} or UNINITIALIZED
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 634 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 304 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 304 points.
+Filtered requests that reject one callstack: 0.
+Requests made: 1242; reported by the trap: 1242, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 168 requests, 48 reads of the legacy store in them, 52 reads outside any request.
+  with -eva-hit-log: 168 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 144 requests
+    statistics: 11 requests
+    summary: 13 requests
+Statuses of the properties: those of the run without memexec, for 339 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.0909, 0 alarms, those of the run without memexec.
+Points of the cache entries:
+wl :: heap_rule.c:95 <- widen_main, cache entry 5:
+  before L7: full states
+widen_main, cache entry 6:
+  before M7: full states

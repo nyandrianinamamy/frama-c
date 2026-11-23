@@ -1,0 +1,106 @@
+[kernel] Parsing heap_rule.c (with preprocessing)
+Calls:
+  malloc :: heap_rule.c:107 <- leak :: heap_rule.c:108 <- leak_main: builtin
+  Frama_C_check_leak :: heap_rule.c:107 <- leak :: heap_rule.c:108 <- leak_main: builtin
+  leak :: heap_rule.c:108 <- leak_main: analysed, cache entry 5
+  leak_main: analysed, cache entry 6
+Heap calls, not stored by memexec: leak 1, leak_main 1.
+Heap calls whose answers come from full states: leak 1, leak_main 1.
+Hits not made because memexec does not store the heap calls: none.
+leak, start:
+  joined: g ∈ {0}
+          h ∈ {0}
+          spare ∈ {0}
+          z ∈ {0}
+  leak :: heap_rule.c:108 <- leak_main: g ∈ {0}
+                                        h ∈ {0}
+                                        spare ∈ {0}
+                                        z ∈ {0}
+leak, before heap_rule.c:107 `;` (L9):
+  joined: g ∈ {0}
+          h ∈ {0}
+          spare ∈ {0}
+          z ∈ {0}
+          p ∈ {{ &__malloc_leak_l107_1[0] }}
+          __malloc_leak_l107_1[0] ∈ {1}
+                              [1..3] ∈ UNINITIALIZED
+  leak :: heap_rule.c:108 <- leak_main: g ∈ {0}
+                                        h ∈ {0}
+                                        spare ∈ {0}
+                                        z ∈ {0}
+                                        p ∈ {{ &__malloc_leak_l107_1[0] }}
+                                        __malloc_leak_l107_1[0] ∈ {1}
+                                                            [1..3] ∈
+                                                            UNINITIALIZED
+leak, after heap_rule.c:107 `return;`:
+  joined: g ∈ {0}
+          h ∈ {0}
+          spare ∈ {0}
+          z ∈ {0}
+          p ∈ {{ &__malloc_leak_l107_1[0] }}
+          __malloc_leak_l107_1[0] ∈ {1}
+                              [1..3] ∈ UNINITIALIZED
+  leak :: heap_rule.c:108 <- leak_main: g ∈ {0}
+                                        h ∈ {0}
+                                        spare ∈ {0}
+                                        z ∈ {0}
+                                        p ∈ {{ &__malloc_leak_l107_1[0] }}
+                                        __malloc_leak_l107_1[0] ∈ {1}
+                                                            [1..3] ∈
+                                                            UNINITIALIZED
+leak_main, start:
+  joined: g ∈ {0}
+          h ∈ {0}
+          spare ∈ {0}
+          z ∈ {0}
+  leak_main: g ∈ {0}
+             h ∈ {0}
+             spare ∈ {0}
+             z ∈ {0}
+leak_main, before heap_rule.c:108 `;` (M9):
+  joined: g ∈ {0}
+          h ∈ {0}
+          spare ∈ {0}
+          z ∈ {0}
+          __malloc_leak_l107_1[0] ∈ {1}
+                              [1..3] ∈ UNINITIALIZED
+  leak_main: g ∈ {0}
+             h ∈ {0}
+             spare ∈ {0}
+             z ∈ {0}
+             __malloc_leak_l107_1[0] ∈ {1}
+                                 [1..3] ∈ UNINITIALIZED
+leak_main, after heap_rule.c:108 `return;`:
+  joined: g ∈ {0}
+          h ∈ {0}
+          spare ∈ {0}
+          z ∈ {0}
+          __malloc_leak_l107_1[0] ∈ {1}
+                              [1..3] ∈ UNINITIALIZED
+  leak_main: g ∈ {0}
+             h ∈ {0}
+             spare ∈ {0}
+             z ∈ {0}
+             __malloc_leak_l107_1[0] ∈ {1}
+                                 [1..3] ∈ UNINITIALIZED
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 628 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 304 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 304 points.
+Filtered requests that reject one callstack: 0.
+Requests made: 1236; reported by the trap: 1236, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 165 requests, 34 reads of the legacy store in them, 40 reads outside any request.
+  with -eva-hit-log: 165 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 144 requests
+    statistics: 8 requests
+    summary: 13 requests
+Statuses of the properties: those of the run without memexec, for 340 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.0909, 0 alarms, those of the run without memexec.
+Points of the cache entries:
+leak :: heap_rule.c:108 <- leak_main, cache entry 5:
+  before L9: full states
+leak_main, cache entry 6:
+  before M9: full states

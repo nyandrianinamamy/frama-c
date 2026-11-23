@@ -1,0 +1,150 @@
+[kernel] Parsing heap_rule.c (with preprocessing)
+Calls:
+  Frama_C_interval :: heap_rule.c:125 <- cond_sweep_main: specification
+  malloc :: heap_rule.c:126 <- cond_sweep_main: builtin
+  Frama_C_interval :: heap_rule.c:128 <- cond_sweep_main: specification
+  Frama_C_interval :: heap_rule.c:128 <- cond_sweep_main: specification
+  free :: heap_rule.c:123 <- crelease :: heap_rule.c:128 <- cond_sweep_main: builtin
+  crelease :: heap_rule.c:128 <- cond_sweep_main: analysed, cache entry 7
+  free :: heap_rule.c:123 <- crelease :: heap_rule.c:128 <- cond_sweep_main: builtin
+  crelease :: heap_rule.c:128 <- cond_sweep_main: analysed, cache entry 8
+  cond_sweep_main: analysed, cache entry 9
+Heap calls, not stored by memexec: cond_sweep_main 1, crelease 2.
+Heap calls whose answers come from full states: cond_sweep_main 1,
+  crelease 2.
+Hits not made because memexec does not store the heap calls: none.
+crelease, start:
+  joined: g ∈ {{ &__malloc_cond_sweep_main_l126_1[0] }}
+          h ∈ {0}
+          spare ∈ {{ NULL ; &__malloc_cond_sweep_main_l126_1[0] }}
+          z ∈ {0}
+          c ∈ {0; 1}
+          k ∈ {0; 1}
+          tmp_0 ∈ {0; 1}
+          __malloc_cond_sweep_main_l126_1[0..3] ∈ UNINITIALIZED
+  crelease :: heap_rule.c:128 <- cond_sweep_main: g ∈
+                                                   {{ &__malloc_cond_sweep_main_l126_1[0] }}
+                                                  h ∈ {0}
+                                                  spare ∈
+                                                       {{ NULL ;
+                                                          &__malloc_cond_sweep_main_l126_1[0] }}
+                                                  z ∈ {0}
+                                                  c ∈ {0; 1}
+                                                  k ∈ {0; 1}
+                                                  tmp_0 ∈ {0; 1}
+                                                  __malloc_cond_sweep_main_l126_1
+                                                  [0..3] ∈ UNINITIALIZED
+crelease, before heap_rule.c:123 `;` (CR):
+  joined: g ∈ {{ &__malloc_cond_sweep_main_l126_1[0] }} or ESCAPINGADDR
+          h ∈ {0}
+          spare ∈
+               {{ NULL ; &__malloc_cond_sweep_main_l126_1[0] }} or ESCAPINGADDR
+          z ∈ {0}
+          c ∈ {0; 1}
+          k ∈ {0; 1}
+          tmp_0 ∈ {0; 1}
+          __malloc_cond_sweep_main_l126_1[0..3] ∈ UNINITIALIZED
+  crelease :: heap_rule.c:128 <- cond_sweep_main: g ∈
+                                                   {{ &__malloc_cond_sweep_main_l126_1[0] }} or ESCAPINGADDR
+                                                  h ∈ {0}
+                                                  spare ∈
+                                                       {{ NULL ;
+                                                          &__malloc_cond_sweep_main_l126_1[0] }} or ESCAPINGADDR
+                                                  z ∈ {0}
+                                                  c ∈ {0; 1}
+                                                  k ∈ {0; 1}
+                                                  tmp_0 ∈ {0; 1}
+                                                  __malloc_cond_sweep_main_l126_1
+                                                  [0..3] ∈ UNINITIALIZED
+crelease, after heap_rule.c:123 `return;`:
+  joined: g ∈ {{ &__malloc_cond_sweep_main_l126_1[0] }} or ESCAPINGADDR
+          h ∈ {0}
+          spare ∈
+               {{ NULL ; &__malloc_cond_sweep_main_l126_1[0] }} or ESCAPINGADDR
+          z ∈ {0}
+          c ∈ {0; 1}
+          k ∈ {0; 1}
+          tmp_0 ∈ {0; 1}
+          __malloc_cond_sweep_main_l126_1[0..3] ∈ UNINITIALIZED
+  crelease :: heap_rule.c:128 <- cond_sweep_main: g ∈
+                                                   {{ &__malloc_cond_sweep_main_l126_1[0] }} or ESCAPINGADDR
+                                                  h ∈ {0}
+                                                  spare ∈
+                                                       {{ NULL ;
+                                                          &__malloc_cond_sweep_main_l126_1[0] }} or ESCAPINGADDR
+                                                  z ∈ {0}
+                                                  c ∈ {0; 1}
+                                                  k ∈ {0; 1}
+                                                  tmp_0 ∈ {0; 1}
+                                                  __malloc_cond_sweep_main_l126_1
+                                                  [0..3] ∈ UNINITIALIZED
+cond_sweep_main, start:
+  joined: g ∈ {0}
+          h ∈ {0}
+          spare ∈ {0}
+          z ∈ {0}
+  cond_sweep_main: g ∈ {0}
+                   h ∈ {0}
+                   spare ∈ {0}
+                   z ∈ {0}
+cond_sweep_main, before heap_rule.c:129 `;` (CS):
+  joined: g ∈ {{ &__malloc_cond_sweep_main_l126_1[0] }} or ESCAPINGADDR
+          h ∈ {0}
+          spare ∈
+               {{ NULL ; &__malloc_cond_sweep_main_l126_1[0] }} or ESCAPINGADDR
+          z ∈ {0}
+          k ∈ {0; 1}
+          tmp_0 ∈ {0; 1}
+          __malloc_cond_sweep_main_l126_1[0..3] ∈ UNINITIALIZED
+  cond_sweep_main: g ∈
+                    {{ &__malloc_cond_sweep_main_l126_1[0] }} or ESCAPINGADDR
+                   h ∈ {0}
+                   spare ∈
+                        {{ NULL ; &__malloc_cond_sweep_main_l126_1[0] }} or ESCAPINGADDR
+                   z ∈ {0}
+                   k ∈ {0; 1}
+                   tmp_0 ∈ {0; 1}
+                   __malloc_cond_sweep_main_l126_1[0..3] ∈ UNINITIALIZED
+cond_sweep_main, after heap_rule.c:130 `return;`:
+  joined: g ∈ {{ &__malloc_cond_sweep_main_l126_1[0] }} or ESCAPINGADDR
+          h ∈ {0}
+          spare ∈
+               {{ NULL ; &__malloc_cond_sweep_main_l126_1[0] }} or ESCAPINGADDR
+          z ∈ {0}
+          k ∈ {0; 1}
+          tmp_0 ∈ {0; 1}
+          __malloc_cond_sweep_main_l126_1[0..3] ∈ UNINITIALIZED
+  cond_sweep_main: g ∈
+                    {{ &__malloc_cond_sweep_main_l126_1[0] }} or ESCAPINGADDR
+                   h ∈ {0}
+                   spare ∈
+                        {{ NULL ; &__malloc_cond_sweep_main_l126_1[0] }} or ESCAPINGADDR
+                   z ∈ {0}
+                   k ∈ {0; 1}
+                   tmp_0 ∈ {0; 1}
+                   __malloc_cond_sweep_main_l126_1[0..3] ∈ UNINITIALIZED
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 636 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 304 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 304 points.
+Filtered requests that reject one callstack: 0.
+Requests made: 1244; reported by the trap: 1244, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 169 requests, 53 reads of the legacy store in them, 59 reads outside any request.
+  with -eva-hit-log: 169 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 144 requests
+    statistics: 12 requests
+    summary: 13 requests
+Statuses of the properties: those of the run without memexec, for 337 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.0909, 0 alarms, those of the run without memexec.
+Points of the cache entries:
+crelease :: heap_rule.c:128 <- cond_sweep_main, cache entry 7:
+  before CR: full states
+crelease :: heap_rule.c:128 <- cond_sweep_main, cache entry 8:
+  before CR: full states
+cond_sweep_main, cache entry 9:
+  before CS: full states
+Entry 8 of crelease, without pointer in spare, applied to the body-entry state of the call of entry 7, before CR:
+  no answer from the rule: full states

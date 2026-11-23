@@ -1,0 +1,136 @@
+[kernel] Parsing heap_rule.c (with preprocessing)
+Calls:
+  malloc :: heap_rule.c:72 <- rw :: heap_rule.c:75 <- admit_main: builtin
+  rw :: heap_rule.c:75 <- admit_main: analysed, cache entry 9
+  malloc :: heap_rule.c:72 <- rw :: heap_rule.c:75 <- admit_main: builtin
+  rw :: heap_rule.c:75 <- admit_main: analysed, cache entry 10
+  malloc :: heap_rule.c:72 <- rw :: heap_rule.c:75 <- admit_main: builtin
+  rw :: heap_rule.c:75 <- admit_main: analysed, cache entry 11
+  admit_main: analysed, cache entry 12
+Heap calls, not stored by memexec: admit_main 1, rw 3.
+Heap calls whose answers come from full states: admit_main 1, rw 3.
+Hits not made because memexec does not store the heap calls: none.
+rw, start:
+  joined: g ∈ {{ NULL ; &__malloc_w_rw_l72_1[0] }}
+          h ∈ {0}
+          spare ∈ {0}
+          z ∈ {0}
+          n ∈ {4; 8}
+          i ∈ {0; 1; 2}
+          tmp ∈ {4; 8}
+          __malloc_w_rw_l72_1[bits 0 to 31] ∈ {1} or UNINITIALIZED
+                             [bits 32 to 63] ∈ {2}
+  rw :: heap_rule.c:75 <- admit_main: g ∈
+                                       {{ NULL ; &__malloc_w_rw_l72_1[0] }}
+                                      h ∈ {0}
+                                      spare ∈ {0}
+                                      z ∈ {0}
+                                      n ∈ {4; 8}
+                                      i ∈ {0; 1; 2}
+                                      tmp ∈ {4; 8}
+                                      __malloc_w_rw_l72_1[bits 0 to 31] ∈
+                                                         {1} or UNINITIALIZED
+                                                         [bits 32 to 63] ∈
+                                                         {2}
+rw, before heap_rule.c:72 `;` (L5):
+  joined: g ∈ {{ &__malloc_w_rw_l72_1[0] }}
+          h ∈ {0}
+          spare ∈ {0}
+          z ∈ {0}
+          n ∈ {4; 8}
+          i ∈ {0; 1; 2}
+          tmp ∈ {4; 8}
+          __malloc_w_rw_l72_1[bits 0 to 31] ∈ {1} or UNINITIALIZED
+                             [bits 32 to 63] ∈ {2} or UNINITIALIZED
+  rw :: heap_rule.c:75 <- admit_main: g ∈ {{ &__malloc_w_rw_l72_1[0] }}
+                                      h ∈ {0}
+                                      spare ∈ {0}
+                                      z ∈ {0}
+                                      n ∈ {4; 8}
+                                      i ∈ {0; 1; 2}
+                                      tmp ∈ {4; 8}
+                                      __malloc_w_rw_l72_1[bits 0 to 31] ∈
+                                                         {1} or UNINITIALIZED
+                                                         [bits 32 to 63] ∈
+                                                         {2} or UNINITIALIZED
+rw, after heap_rule.c:72 `return;`:
+  joined: g ∈ {{ &__malloc_w_rw_l72_1[0] }}
+          h ∈ {0}
+          spare ∈ {0}
+          z ∈ {0}
+          n ∈ {4; 8}
+          i ∈ {0; 1; 2}
+          tmp ∈ {4; 8}
+          __malloc_w_rw_l72_1[bits 0 to 31] ∈ {1} or UNINITIALIZED
+                             [bits 32 to 63] ∈ {2} or UNINITIALIZED
+  rw :: heap_rule.c:75 <- admit_main: g ∈ {{ &__malloc_w_rw_l72_1[0] }}
+                                      h ∈ {0}
+                                      spare ∈ {0}
+                                      z ∈ {0}
+                                      n ∈ {4; 8}
+                                      i ∈ {0; 1; 2}
+                                      tmp ∈ {4; 8}
+                                      __malloc_w_rw_l72_1[bits 0 to 31] ∈
+                                                         {1} or UNINITIALIZED
+                                                         [bits 32 to 63] ∈
+                                                         {2} or UNINITIALIZED
+admit_main, start:
+  joined: g ∈ {0}
+          h ∈ {0}
+          spare ∈ {0}
+          z ∈ {0}
+  admit_main: g ∈ {0}
+              h ∈ {0}
+              spare ∈ {0}
+              z ∈ {0}
+admit_main, before heap_rule.c:78 `;` (M5):
+  joined: g ∈ {{ &__malloc_w_rw_l72_1[0] }}
+          h ∈ {0}
+          spare ∈ {0}
+          z ∈ {0}
+          __malloc_w_rw_l72_1[bits 0 to 31] ∈ {1} or UNINITIALIZED
+                             [bits 32 to 63] ∈ {2} or UNINITIALIZED
+  admit_main: g ∈ {{ &__malloc_w_rw_l72_1[0] }}
+              h ∈ {0}
+              spare ∈ {0}
+              z ∈ {0}
+              __malloc_w_rw_l72_1[bits 0 to 31] ∈ {1} or UNINITIALIZED
+                                 [bits 32 to 63] ∈ {2} or UNINITIALIZED
+admit_main, after heap_rule.c:79 `return;`:
+  joined: g ∈ {{ &__malloc_w_rw_l72_1[0] }}
+          h ∈ {0}
+          spare ∈ {0}
+          z ∈ {0}
+          __malloc_w_rw_l72_1[bits 0 to 31] ∈ {1} or UNINITIALIZED
+                             [bits 32 to 63] ∈ {2} or UNINITIALIZED
+  admit_main: g ∈ {{ &__malloc_w_rw_l72_1[0] }}
+              h ∈ {0}
+              spare ∈ {0}
+              z ∈ {0}
+              __malloc_w_rw_l72_1[bits 0 to 31] ∈ {1} or UNINITIALIZED
+                                 [bits 32 to 63] ∈ {2} or UNINITIALIZED
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 652 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 304 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 304 points.
+Filtered requests that reject one callstack: 0.
+Requests made: 1260; reported by the trap: 1260, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 177 requests, 82 reads of the legacy store in them, 86 reads outside any request.
+  with -eva-hit-log: 177 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 144 requests
+    statistics: 20 requests
+    summary: 13 requests
+Statuses of the properties: those of the run without memexec, for 340 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.0909, 0 alarms, those of the run without memexec.
+Points of the cache entries:
+rw :: heap_rule.c:75 <- admit_main, cache entry 9:
+  before L5: full states
+rw :: heap_rule.c:75 <- admit_main, cache entry 10:
+  before L5: full states
+rw :: heap_rule.c:75 <- admit_main, cache entry 11:
+  before L5: full states
+admit_main, cache entry 12:
+  before M5: full states

@@ -1,0 +1,214 @@
+[kernel] Parsing heap_rule.c (with preprocessing)
+Calls:
+  malloc :: heap_rule.c:53 <- two_main (call statements 35): builtin
+  malloc :: heap_rule.c:53 <- two_main (call statements 36): builtin
+  Frama_C_interval :: heap_rule.c:55 <- two_main: specification
+  free :: heap_rule.c:51 <- tf :: heap_rule.c:55 <- two_main: builtin
+  tf :: heap_rule.c:55 <- two_main: analysed, cache entry 5
+  two_main: analysed, cache entry 6
+Heap calls, not stored by memexec: tf 1, two_main 1.
+Heap calls whose answers come from full states: tf 1, two_main 1.
+Hits not made because memexec does not store the heap calls: none.
+tf, start:
+  joined: g ∈ {{ &__malloc_two_main_l53_3[0] }}
+          h ∈ {{ &__malloc_two_main_l53_4[0] }}
+          spare ∈ {0}
+          z ∈ {0}
+          p ∈ {{ &__malloc_two_main_l53_3[0] ; &__malloc_two_main_l53_4[0] }}
+          a ∈ {{ &__malloc_two_main_l53_3[0] }}
+          b ∈ {{ &__malloc_two_main_l53_4[0] }}
+          tmp_1 ∈ {0; 1}
+          tmp_2 ∈
+               {{ &__malloc_two_main_l53_3[0] ;
+                  &__malloc_two_main_l53_4[0] }}
+          __malloc_two_main_l53_3[0] ∈ {1}
+                                 [1..3] ∈ UNINITIALIZED
+          __malloc_two_main_l53_4[0] ∈ {2}
+                                 [1..3] ∈ UNINITIALIZED
+  tf :: heap_rule.c:55 <- two_main: g ∈ {{ &__malloc_two_main_l53_3[0] }}
+                                    h ∈ {{ &__malloc_two_main_l53_4[0] }}
+                                    spare ∈ {0}
+                                    z ∈ {0}
+                                    p ∈
+                                     {{ &__malloc_two_main_l53_3[0] ;
+                                        &__malloc_two_main_l53_4[0] }}
+                                    a ∈ {{ &__malloc_two_main_l53_3[0] }}
+                                    b ∈ {{ &__malloc_two_main_l53_4[0] }}
+                                    tmp_1 ∈ {0; 1}
+                                    tmp_2 ∈
+                                         {{ &__malloc_two_main_l53_3[0] ;
+                                            &__malloc_two_main_l53_4[0] }}
+                                    __malloc_two_main_l53_3[0] ∈ {1}
+                                                           [1..3] ∈
+                                                           UNINITIALIZED
+                                    __malloc_two_main_l53_4[0] ∈ {2}
+                                                           [1..3] ∈
+                                                           UNINITIALIZED
+tf, before heap_rule.c:51 `;` (L3):
+  joined: g ∈ {{ &__malloc_two_main_l53_3[0] }} or ESCAPINGADDR
+          h ∈ {{ &__malloc_two_main_l53_4[0] }} or ESCAPINGADDR
+          spare ∈ {0}
+          z ∈ {0}
+          p ∈
+           {{ &__malloc_two_main_l53_3[0] ; &__malloc_two_main_l53_4[0] }} or ESCAPINGADDR
+          a ∈ {{ &__malloc_two_main_l53_3[0] }} or ESCAPINGADDR
+          b ∈ {{ &__malloc_two_main_l53_4[0] }} or ESCAPINGADDR
+          tmp_1 ∈ {0; 1}
+          tmp_2 ∈
+               {{ &__malloc_two_main_l53_3[0] ;
+                  &__malloc_two_main_l53_4[0] }} or ESCAPINGADDR
+          __malloc_two_main_l53_3[0] ∈ {1}
+                                 [1..3] ∈ UNINITIALIZED
+          __malloc_two_main_l53_4[0] ∈ {2}
+                                 [1..3] ∈ UNINITIALIZED
+  tf :: heap_rule.c:55 <- two_main: g ∈
+                                     {{ &__malloc_two_main_l53_3[0] }} or ESCAPINGADDR
+                                    h ∈
+                                     {{ &__malloc_two_main_l53_4[0] }} or ESCAPINGADDR
+                                    spare ∈ {0}
+                                    z ∈ {0}
+                                    p ∈
+                                     {{ &__malloc_two_main_l53_3[0] ;
+                                        &__malloc_two_main_l53_4[0] }} or ESCAPINGADDR
+                                    a ∈
+                                     {{ &__malloc_two_main_l53_3[0] }} or ESCAPINGADDR
+                                    b ∈
+                                     {{ &__malloc_two_main_l53_4[0] }} or ESCAPINGADDR
+                                    tmp_1 ∈ {0; 1}
+                                    tmp_2 ∈
+                                         {{ &__malloc_two_main_l53_3[0] ;
+                                            &__malloc_two_main_l53_4[0] }} or ESCAPINGADDR
+                                    __malloc_two_main_l53_3[0] ∈ {1}
+                                                           [1..3] ∈
+                                                           UNINITIALIZED
+                                    __malloc_two_main_l53_4[0] ∈ {2}
+                                                           [1..3] ∈
+                                                           UNINITIALIZED
+tf, after heap_rule.c:51 `return;`:
+  joined: g ∈ {{ &__malloc_two_main_l53_3[0] }} or ESCAPINGADDR
+          h ∈ {{ &__malloc_two_main_l53_4[0] }} or ESCAPINGADDR
+          spare ∈ {0}
+          z ∈ {0}
+          p ∈
+           {{ &__malloc_two_main_l53_3[0] ; &__malloc_two_main_l53_4[0] }} or ESCAPINGADDR
+          a ∈ {{ &__malloc_two_main_l53_3[0] }} or ESCAPINGADDR
+          b ∈ {{ &__malloc_two_main_l53_4[0] }} or ESCAPINGADDR
+          tmp_1 ∈ {0; 1}
+          tmp_2 ∈
+               {{ &__malloc_two_main_l53_3[0] ;
+                  &__malloc_two_main_l53_4[0] }} or ESCAPINGADDR
+          __malloc_two_main_l53_3[0] ∈ {1}
+                                 [1..3] ∈ UNINITIALIZED
+          __malloc_two_main_l53_4[0] ∈ {2}
+                                 [1..3] ∈ UNINITIALIZED
+  tf :: heap_rule.c:55 <- two_main: g ∈
+                                     {{ &__malloc_two_main_l53_3[0] }} or ESCAPINGADDR
+                                    h ∈
+                                     {{ &__malloc_two_main_l53_4[0] }} or ESCAPINGADDR
+                                    spare ∈ {0}
+                                    z ∈ {0}
+                                    p ∈
+                                     {{ &__malloc_two_main_l53_3[0] ;
+                                        &__malloc_two_main_l53_4[0] }} or ESCAPINGADDR
+                                    a ∈
+                                     {{ &__malloc_two_main_l53_3[0] }} or ESCAPINGADDR
+                                    b ∈
+                                     {{ &__malloc_two_main_l53_4[0] }} or ESCAPINGADDR
+                                    tmp_1 ∈ {0; 1}
+                                    tmp_2 ∈
+                                         {{ &__malloc_two_main_l53_3[0] ;
+                                            &__malloc_two_main_l53_4[0] }} or ESCAPINGADDR
+                                    __malloc_two_main_l53_3[0] ∈ {1}
+                                                           [1..3] ∈
+                                                           UNINITIALIZED
+                                    __malloc_two_main_l53_4[0] ∈ {2}
+                                                           [1..3] ∈
+                                                           UNINITIALIZED
+two_main, start:
+  joined: g ∈ {0}
+          h ∈ {0}
+          spare ∈ {0}
+          z ∈ {0}
+  two_main: g ∈ {0}
+            h ∈ {0}
+            spare ∈ {0}
+            z ∈ {0}
+two_main, before heap_rule.c:55 `;` (M3):
+  joined: g ∈ {{ &__malloc_two_main_l53_3[0] }} or ESCAPINGADDR
+          h ∈ {{ &__malloc_two_main_l53_4[0] }} or ESCAPINGADDR
+          spare ∈ {0}
+          z ∈ {0}
+          a ∈ {{ &__malloc_two_main_l53_3[0] }} or ESCAPINGADDR
+          b ∈ {{ &__malloc_two_main_l53_4[0] }} or ESCAPINGADDR
+          tmp_1 ∈ {0; 1}
+          tmp_2 ∈
+               {{ &__malloc_two_main_l53_3[0] ;
+                  &__malloc_two_main_l53_4[0] }} or ESCAPINGADDR
+          __malloc_two_main_l53_3[0] ∈ {1}
+                                 [1..3] ∈ UNINITIALIZED
+          __malloc_two_main_l53_4[0] ∈ {2}
+                                 [1..3] ∈ UNINITIALIZED
+  two_main: g ∈ {{ &__malloc_two_main_l53_3[0] }} or ESCAPINGADDR
+            h ∈ {{ &__malloc_two_main_l53_4[0] }} or ESCAPINGADDR
+            spare ∈ {0}
+            z ∈ {0}
+            a ∈ {{ &__malloc_two_main_l53_3[0] }} or ESCAPINGADDR
+            b ∈ {{ &__malloc_two_main_l53_4[0] }} or ESCAPINGADDR
+            tmp_1 ∈ {0; 1}
+            tmp_2 ∈
+                 {{ &__malloc_two_main_l53_3[0] ;
+                    &__malloc_two_main_l53_4[0] }} or ESCAPINGADDR
+            __malloc_two_main_l53_3[0] ∈ {1}
+                                   [1..3] ∈ UNINITIALIZED
+            __malloc_two_main_l53_4[0] ∈ {2}
+                                   [1..3] ∈ UNINITIALIZED
+two_main, after heap_rule.c:56 `return;`:
+  joined: g ∈ {{ &__malloc_two_main_l53_3[0] }} or ESCAPINGADDR
+          h ∈ {{ &__malloc_two_main_l53_4[0] }} or ESCAPINGADDR
+          spare ∈ {0}
+          z ∈ {0}
+          a ∈ {{ &__malloc_two_main_l53_3[0] }} or ESCAPINGADDR
+          b ∈ {{ &__malloc_two_main_l53_4[0] }} or ESCAPINGADDR
+          tmp_1 ∈ {0; 1}
+          tmp_2 ∈
+               {{ &__malloc_two_main_l53_3[0] ;
+                  &__malloc_two_main_l53_4[0] }} or ESCAPINGADDR
+          __malloc_two_main_l53_3[0] ∈ {1}
+                                 [1..3] ∈ UNINITIALIZED
+          __malloc_two_main_l53_4[0] ∈ {2}
+                                 [1..3] ∈ UNINITIALIZED
+  two_main: g ∈ {{ &__malloc_two_main_l53_3[0] }} or ESCAPINGADDR
+            h ∈ {{ &__malloc_two_main_l53_4[0] }} or ESCAPINGADDR
+            spare ∈ {0}
+            z ∈ {0}
+            a ∈ {{ &__malloc_two_main_l53_3[0] }} or ESCAPINGADDR
+            b ∈ {{ &__malloc_two_main_l53_4[0] }} or ESCAPINGADDR
+            tmp_1 ∈ {0; 1}
+            tmp_2 ∈
+                 {{ &__malloc_two_main_l53_3[0] ;
+                    &__malloc_two_main_l53_4[0] }} or ESCAPINGADDR
+            __malloc_two_main_l53_3[0] ∈ {1}
+                                   [1..3] ∈ UNINITIALIZED
+            __malloc_two_main_l53_4[0] ∈ {2}
+                                   [1..3] ∈ UNINITIALIZED
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 644 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 304 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 304 points.
+Filtered requests that reject one callstack: 0.
+Requests made: 1252; reported by the trap: 1252, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 173 requests, 68 reads of the legacy store in them, 75 reads outside any request.
+  with -eva-hit-log: 173 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 144 requests
+    statistics: 16 requests
+    summary: 13 requests
+Statuses of the properties: those of the run without memexec, for 338 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.0909, 0 alarms, those of the run without memexec.
+Points of the cache entries:
+tf :: heap_rule.c:55 <- two_main, cache entry 5:
+  before L3: full states
+two_main, cache entry 6:
+  before M3: full states

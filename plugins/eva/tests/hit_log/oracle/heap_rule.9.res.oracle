@@ -1,0 +1,107 @@
+[kernel] Parsing heap_rule.c (with preprocessing)
+Calls:
+  Frama_C_interval :: heap_rule.c:116 <- sweep_main: specification
+  malloc :: heap_rule.c:117 <- sweep_main: builtin
+  free :: heap_rule.c:114 <- release :: heap_rule.c:119 <- sweep_main: builtin
+  release :: heap_rule.c:119 <- sweep_main: analysed, cache entry 7
+  free :: heap_rule.c:114 <- release :: heap_rule.c:119 <- sweep_main: builtin
+  release :: heap_rule.c:119 <- sweep_main: analysed, cache entry 8
+  sweep_main: analysed, cache entry 9
+Heap calls, not stored by memexec: release 2, sweep_main 1.
+Heap calls whose answers come from full states: release 2, sweep_main 1.
+Hits not made because memexec does not store the heap calls: none.
+release, start:
+  joined: g ∈ {{ &__malloc_sweep_main_l117_1[0] }}
+          h ∈ {0}
+          spare ∈ {{ NULL ; &__malloc_sweep_main_l117_1[0] }}
+          z ∈ {0}
+          k ∈ {0; 1}
+          __malloc_sweep_main_l117_1[0..3] ∈ UNINITIALIZED
+  release :: heap_rule.c:119 <- sweep_main: g ∈
+                                             {{ &__malloc_sweep_main_l117_1[0] }}
+                                            h ∈ {0}
+                                            spare ∈
+                                                 {{ NULL ;
+                                                    &__malloc_sweep_main_l117_1[0] }}
+                                            z ∈ {0}
+                                            k ∈ {0; 1}
+                                            __malloc_sweep_main_l117_1
+                                            [0..3] ∈ UNINITIALIZED
+release, before heap_rule.c:114 `;` (R):
+  joined: g ∈ ESCAPINGADDR
+          h ∈ {0}
+          spare ∈ {0} or ESCAPINGADDR
+          z ∈ {0}
+          k ∈ {0; 1}
+  release :: heap_rule.c:119 <- sweep_main: g ∈ ESCAPINGADDR
+                                            h ∈ {0}
+                                            spare ∈ {0} or ESCAPINGADDR
+                                            z ∈ {0}
+                                            k ∈ {0; 1}
+release, after heap_rule.c:114 `return;`:
+  joined: g ∈ ESCAPINGADDR
+          h ∈ {0}
+          spare ∈ {0} or ESCAPINGADDR
+          z ∈ {0}
+          k ∈ {0; 1}
+  release :: heap_rule.c:119 <- sweep_main: g ∈ ESCAPINGADDR
+                                            h ∈ {0}
+                                            spare ∈ {0} or ESCAPINGADDR
+                                            z ∈ {0}
+                                            k ∈ {0; 1}
+sweep_main, start:
+  joined: g ∈ {0}
+          h ∈ {0}
+          spare ∈ {0}
+          z ∈ {0}
+  sweep_main: g ∈ {0}
+              h ∈ {0}
+              spare ∈ {0}
+              z ∈ {0}
+sweep_main, before heap_rule.c:120 `;` (S):
+  joined: g ∈ ESCAPINGADDR
+          h ∈ {0}
+          spare ∈ {0} or ESCAPINGADDR
+          z ∈ {0}
+          k ∈ {0; 1}
+  sweep_main: g ∈ ESCAPINGADDR
+              h ∈ {0}
+              spare ∈ {0} or ESCAPINGADDR
+              z ∈ {0}
+              k ∈ {0; 1}
+sweep_main, after heap_rule.c:121 `return;`:
+  joined: g ∈ ESCAPINGADDR
+          h ∈ {0}
+          spare ∈ {0} or ESCAPINGADDR
+          z ∈ {0}
+          k ∈ {0; 1}
+  sweep_main: g ∈ ESCAPINGADDR
+              h ∈ {0}
+              spare ∈ {0} or ESCAPINGADDR
+              z ∈ {0}
+              k ∈ {0; 1}
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 632 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 304 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 304 points.
+Filtered requests that reject one callstack: 0.
+Requests made: 1240; reported by the trap: 1240, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 167 requests, 44 reads of the legacy store in them, 50 reads outside any request.
+  with -eva-hit-log: 167 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 144 requests
+    statistics: 10 requests
+    summary: 13 requests
+Statuses of the properties: those of the run without memexec, for 338 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.0909, 0 alarms, those of the run without memexec.
+Points of the cache entries:
+release :: heap_rule.c:119 <- sweep_main, cache entry 7:
+  before R: full states
+release :: heap_rule.c:119 <- sweep_main, cache entry 8:
+  before R: full states
+sweep_main, cache entry 9:
+  before S: full states
+Entry 8 of release, without pointer in spare, applied to the body-entry state of the call of entry 7, before R:
+  no answer from the rule: full states

@@ -1436,3 +1436,38 @@ let get_state_by_callstack control_point =
       | [] -> `Bottom
       | list -> `Value list
     with Unavailable -> `Top
+
+(* ----- For the tests ----------------------------------------------------- *)
+
+type inner_view = {
+  covered: Base.Hptset.t;
+  inner: Cvalue.Model.t;
+  swept_every: Base.Hptset.t;
+  swept_some: Base.Hptset.t;
+}
+
+type point_view =
+  | Full_states
+  | No_point
+  | Inner of inner_view
+
+let point_view ~id control_point =
+  match Int_table.find_opt (Store.get ()).entries id with
+  | None -> No_point
+  | Some { inner = Full _; _ } -> Full_states
+  | Some entry ->
+    match find_point entry control_point with
+    | None -> No_point
+    | Some point ->
+      Inner { covered = point.covered; inner = point.inner;
+              swept_every = Base.Hptset.empty;
+              swept_some = Base.Hptset.empty }
+
+let rule ~id ~body_entry control_point =
+  let store = Store.get () in
+  match Int_table.find_opt store.entries id with
+  | None -> None
+  | Some entry ->
+    Option.map
+      (fun point -> paste (derived store) point body_entry)
+      (find_point entry control_point)

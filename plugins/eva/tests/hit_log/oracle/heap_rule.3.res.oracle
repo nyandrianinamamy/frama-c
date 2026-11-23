@@ -1,0 +1,122 @@
+[kernel] Parsing heap_rule.c (with preprocessing)
+Calls:
+  free :: heap_rule.c:61 <- again :: heap_rule.c:63 <- again_main: builtin
+  malloc :: heap_rule.c:61 <- again :: heap_rule.c:63 <- again_main: builtin
+  again :: heap_rule.c:63 <- again_main: analysed, cache entry 7
+  free :: heap_rule.c:61 <- again :: heap_rule.c:63 <- again_main: builtin
+  malloc :: heap_rule.c:61 <- again :: heap_rule.c:63 <- again_main: builtin
+  again :: heap_rule.c:63 <- again_main: analysed, cache entry 8
+  again_main: analysed, cache entry 9
+Heap calls, not stored by memexec: again 2, again_main 1.
+Heap calls whose answers come from full states: again 2, again_main 1.
+Hits not made because memexec does not store the heap calls: none.
+again, start:
+  joined: g ∈ {{ NULL ; &__malloc_again_l61_1[0] }}
+          h ∈ {{ NULL ; &__malloc_again_l61_1[0] }}
+          spare ∈ {0}
+          z ∈ {0}
+          i ∈ {0; 1}
+          __malloc_again_l61_1[0] ∈ {2}
+                              [1..3] ∈ UNINITIALIZED
+  again :: heap_rule.c:63 <- again_main: g ∈
+                                          {{ NULL ;
+                                             &__malloc_again_l61_1[0] }}
+                                         h ∈
+                                          {{ NULL ;
+                                             &__malloc_again_l61_1[0] }}
+                                         spare ∈ {0}
+                                         z ∈ {0}
+                                         i ∈ {0; 1}
+                                         __malloc_again_l61_1[0] ∈ {2}
+                                                             [1..3] ∈
+                                                             UNINITIALIZED
+again, before heap_rule.c:61 `;` (L4):
+  joined: g ∈ {{ &__malloc_again_l61_1[0] }}
+          h ∈ {0} or ESCAPINGADDR
+          spare ∈ {0}
+          z ∈ {0}
+          i ∈ {0; 1}
+          __malloc_again_l61_1[0] ∈ {2}
+                              [1..3] ∈ UNINITIALIZED
+  again :: heap_rule.c:63 <- again_main: g ∈ {{ &__malloc_again_l61_1[0] }}
+                                         h ∈ {0} or ESCAPINGADDR
+                                         spare ∈ {0}
+                                         z ∈ {0}
+                                         i ∈ {0; 1}
+                                         __malloc_again_l61_1[0] ∈ {2}
+                                                             [1..3] ∈
+                                                             UNINITIALIZED
+again, after heap_rule.c:61 `return;`:
+  joined: g ∈ {{ &__malloc_again_l61_1[0] }}
+          h ∈ {0} or ESCAPINGADDR
+          spare ∈ {0}
+          z ∈ {0}
+          i ∈ {0; 1}
+          __malloc_again_l61_1[0] ∈ {2}
+                              [1..3] ∈ UNINITIALIZED
+  again :: heap_rule.c:63 <- again_main: g ∈ {{ &__malloc_again_l61_1[0] }}
+                                         h ∈ {0} or ESCAPINGADDR
+                                         spare ∈ {0}
+                                         z ∈ {0}
+                                         i ∈ {0; 1}
+                                         __malloc_again_l61_1[0] ∈ {2}
+                                                             [1..3] ∈
+                                                             UNINITIALIZED
+again_main, start:
+  joined: g ∈ {0}
+          h ∈ {0}
+          spare ∈ {0}
+          z ∈ {0}
+  again_main: g ∈ {0}
+              h ∈ {0}
+              spare ∈ {0}
+              z ∈ {0}
+again_main, before heap_rule.c:64 `;` (M4):
+  joined: g ∈ {{ &__malloc_again_l61_1[0] }}
+          h ∈ {{ &__malloc_again_l61_1[0] }}
+          spare ∈ {0}
+          z ∈ {0}
+          __malloc_again_l61_1[0] ∈ {2}
+                              [1..3] ∈ UNINITIALIZED
+  again_main: g ∈ {{ &__malloc_again_l61_1[0] }}
+              h ∈ {{ &__malloc_again_l61_1[0] }}
+              spare ∈ {0}
+              z ∈ {0}
+              __malloc_again_l61_1[0] ∈ {2}
+                                  [1..3] ∈ UNINITIALIZED
+again_main, after heap_rule.c:65 `return;`:
+  joined: g ∈ {{ &__malloc_again_l61_1[0] }}
+          h ∈ {{ &__malloc_again_l61_1[0] }}
+          spare ∈ {0}
+          z ∈ {0}
+          __malloc_again_l61_1[0] ∈ {2}
+                              [1..3] ∈ UNINITIALIZED
+  again_main: g ∈ {{ &__malloc_again_l61_1[0] }}
+              h ∈ {{ &__malloc_again_l61_1[0] }}
+              spare ∈ {0}
+              z ∈ {0}
+              __malloc_again_l61_1[0] ∈ {2}
+                                  [1..3] ∈ UNINITIALIZED
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 644 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 304 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 304 points.
+Filtered requests that reject one callstack: 0.
+Requests made: 1252; reported by the trap: 1252, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 173 requests, 67 reads of the legacy store in them, 72 reads outside any request.
+  with -eva-hit-log: 173 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 144 requests
+    statistics: 16 requests
+    summary: 13 requests
+Statuses of the properties: those of the run without memexec, for 339 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.0909, 0 alarms, those of the run without memexec.
+Points of the cache entries:
+again :: heap_rule.c:63 <- again_main, cache entry 7:
+  before L4: full states
+again :: heap_rule.c:63 <- again_main, cache entry 8:
+  before L4: full states
+again_main, cache entry 9:
+  before M4: full states
