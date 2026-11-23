@@ -502,7 +502,10 @@ let snapshot_misses =
   Statistics.register_function_stat "hit-log-snapshot-misses" Statistics.Int
 
 (* The statistic that Eva keeps per function with -eva-hit-log: the largest
-   number of results that memexec keeps at once for one input state. *)
+   number of results that memexec keeps at once for one numbered input
+   state. Outside recursive calls analysed under -eva-unroll-recursive-calls,
+   their snapshots differ: it is then the number of distinct snapshots
+   stored for that state. *)
 let snapshot_results =
   Statistics.register_function_stat "hit-log-snapshot-results" Statistics.Int
 
@@ -530,7 +533,8 @@ let print_snapshot_misses () =
                    snapshot of a block they mention differs:@ %a.@]@."
       pp_counts (counts snapshot_misses);
     Format.printf "@[<hov 2>Most results that memexec keeps at once for one \
-                   input state of these functions:@ %a.@]@."
+                   numbered input state of these functions, each with its own \
+                   snapshot outside recursive calls:@ %a.@]@."
       pp_counts (counts snapshot_results)
   end
 
