@@ -310,16 +310,13 @@ type effects = received list
 
 (* A call being analysed, in any mode: the calls made by its body so far, each
    with its call statement, its function, its start state and the cache entry
-   it used; the cache entry this call uses, once known; whether its
-   analysis has called a builtin that allocates or releases memory so far,
-   in its body or in a nested call; and the heap effects it received so
-   far. *)
+   it used; the cache entry this call uses, once known; and the heap effects
+   it received so far. *)
 type frame = {
   mutable calls:
     (Cil_types.stmt * Cil_types.kernel_function * Cvalue.Model.t * int option)
       list;
   mutable used: int option;
-  mutable heap: bool;
   mutable effects: effects;
 }
 
@@ -559,37 +556,26 @@ let current_frame () =
   | [] -> None
   | frame :: _ -> Some frame
 
-(* A heap call is a call analysed by its body whose analysis, in its body or
-   in a nested call, calls a builtin that allocates or releases memory. Such
-   a builtin marks the innermost frame, its own, and [call] passes the mark
-   of a frame to the frame of its caller when the call ends, up to the entry
-   point. The analysis of a body ends after the analyses of the calls it
-   makes: the mark of a call analysed by its body is final when
-   [record_analysed_call] records it, and when memexec decides whether to
-   store the call. The blocks that [Builtins_malloc.free_automatic_bases]
-   releases at the end of a call were allocated by a builtin during this
-   call, which is thus a heap call, and so is its caller. A hit runs no
-   builtin and marks no frame. The specifications neither allocate nor
-   release memory in the cvalue domain. *)
+(* A heap call is a call analysed by its body that receives a heap effect,
+   see [receive]. [call] passes the effects of a frame to the frame of its
+   caller when the call ends, up to the entry point. The analysis of a body
+   ends after the analyses of the calls it makes, and after the automatic
+   release at the end of each of them: the effects of a call analysed by its
+   body are final when [record_analysed_call] records it, and when memexec
+   decides whether to store the call. A hit receives no effect. The
+   specifications neither allocate nor release memory in the cvalue
+   domain. *)
 
 let heap_calls = Statistics.(register_function_stat "hit-log-heap-calls" Int)
 let lost_hits = Statistics.(register_function_stat "hit-log-lost-hits" Int)
 let lost_hits_below =
   Statistics.(register_function_stat "hit-log-lost-hits-below" Int)
 
-let mark_heap () =
-  if enabled () then
-    match (Running.get ()).frames with
-    | frame :: _ -> frame.heap <- true
-    | [] -> ()
-
-let () = Builtins_malloc.register_heap_hook mark_heap
-
 let heap_call () =
   enabled () &&
   match current_frame () with
   | None -> false
-  | Some frame -> frame.heap
+  | Some frame -> frame.effects <> []
 
 (* A heap effect goes to the innermost frame: the call of the builtin that
    emits it, the call whose body is widened, or the call in whose body a call
@@ -672,7 +658,9 @@ let record_analysed_call ~id callstack ~footprint ~start ~body_entry ~before
     | None -> []
     | Some frame -> frame.used <- Some id; frame.calls
   in
-  let heap = Option.fold ~none:false ~some:(fun frame -> frame.heap) frame in
+  let heap =
+    Option.fold ~none:false ~some:(fun frame -> frame.effects <> []) frame
+  in
   let unknown () =
     let below =
       List.rev_map
@@ -737,15 +725,11 @@ let mark_interrupted callstack ~start =
    the exception stops as well. *)
 let call callstack ~start f =
   let running = Running.get () in
-  let frame = { calls = []; used = None; heap = false; effects = [] } in
+  let frame = { calls = []; used = None; effects = [] } in
   running.frames <- frame :: running.frames;
   let finally () =
     running.frames <- List.tl running.frames;
     List.iter (fun f -> f callstack frame.effects) !effects_hooks;
-    begin match running.frames with
-      | caller :: _ when frame.heap -> caller.heap <- true
-      | _ -> ()
-    end;
     match running.frames, Callstack.top_callsite callstack with
     | caller :: _, Kstmt site ->
       let kf = Callstack.top_kf callstack in

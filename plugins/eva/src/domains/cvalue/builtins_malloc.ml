@@ -60,18 +60,6 @@ module Dynamic_Alloc_Bases =
     end)
 let () = Ast.add_monotonic_state Dynamic_Alloc_Bases.self
 
-(* ------------------------------- Heap hook -------------------------------- *)
-
-let heap_hook = ref (fun () -> ())
-
-let register_heap_hook f = heap_hook := f
-
-(* Registers a builtin that allocates or releases memory. Each call of the
-   builtin calls the heap hook first. *)
-let register_heap_builtin ?replace name builtin ~typ =
-  let builtin state args = !heap_hook (); builtin state args in
-  Builtins.register_builtin ?replace name builtin ~typ
-
 (* -------------------------- Auxiliary functions  -------------------------- *)
 
 let current_call_site () =
@@ -558,7 +546,7 @@ let register_malloc ?replace name ?returns_null prefix region =
   in
   let name = "Frama_C_" ^ name in
   let typ () = Cil_const.voidPtrType, [Machine.sizeof_type ()] in
-  register_heap_builtin ?replace name builtin ~typ
+  Builtins.register_builtin ?replace name builtin ~typ
 
 let () =
   register_malloc ~replace:"malloc" "malloc" "malloc" Base.Malloc;
@@ -617,7 +605,7 @@ let () =
     let sizeof_typ = Machine.sizeof_type () in
     Cil_const.voidPtrType, [ sizeof_typ; sizeof_typ ]
   in
-  register_heap_builtin ~replace name calloc_builtin ~typ
+  Builtins.register_builtin ~replace name calloc_builtin ~typ
 
 (* ---------------------------------- Free ---------------------------------- *)
 
@@ -731,7 +719,7 @@ let frama_c_free state actuals =
   | _ -> raise (Builtins.Invalid_nb_of_args 1)
 
 let () =
-  register_heap_builtin ~replace:"free" "Frama_C_free"
+  Builtins.register_builtin ~replace:"free" "Frama_C_free"
     frama_c_free ~typ:(fun () -> (Cil_const.voidType, [Cil_const.voidPtrType]))
 
 (* built-in for [__fc_vla_free] function. By construction, VLA should always
@@ -749,7 +737,7 @@ let frama_c_vla_free state actuals =
   | _ -> raise (Builtins.Invalid_nb_of_args 1)
 
 let () =
-  register_heap_builtin
+  Builtins.register_builtin
     ~replace:"__fc_vla_free" "Frama_C_vla_free" frama_c_vla_free
     ~typ:(fun () -> (Cil_const.voidType, [Cil_const.voidPtrType]))
 
@@ -935,7 +923,7 @@ let () =
   let name = "Frama_C_realloc" in
   let replace = "realloc" in
   let typ () = Cil_const.(voidPtrType, [voidPtrType; Machine.sizeof_type ()]) in
-  register_heap_builtin ~replace name realloc_builtin ~typ
+  Builtins.register_builtin ~replace name realloc_builtin ~typ
 
 let reallocarray_builtin state args =
   let ptr, nmemb, sizev =
@@ -971,7 +959,7 @@ let () =
     Cil_const.voidPtrType,
     [Cil_const.voidPtrType; Machine.sizeof_type (); Machine.sizeof_type ()]
   in
-  register_heap_builtin ~replace name reallocarray_builtin ~typ
+  Builtins.register_builtin ~replace name reallocarray_builtin ~typ
 
 (* ----------------------------- Leak detection ----------------------------- *)
 

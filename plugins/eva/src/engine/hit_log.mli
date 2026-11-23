@@ -55,12 +55,14 @@
     join of the start states of its calls, including the calls analysed by
     a specification or a builtin.
 
-    A heap call is a call analysed by its body whose analysis, in its body or
-    in a call nested in it, calls a builtin that allocates or releases
-    memory: the builtins of [malloc], [calloc], [realloc], [reallocarray],
-    [alloca], [free], and of the allocation and release of variable-length
-    arrays. Every caller of a heap call, up to the entry point, is a heap
-    call. The entry of a heap call holds no Inner part: it holds the full
+    A heap call is a call analysed by its body that receives a heap effect
+    (see {!Heap_effects}): an effect emitted during its analysis, in its body
+    or in a call nested in it, or by the automatic release at the end of a
+    call made by its body. The builtins of [malloc], [calloc], [realloc],
+    [reallocarray], [alloca], [free], and of the allocation and release of
+    variable-length arrays emit them, and so does the widening of the
+    memory, when it raises the validity of a weak block. Every caller of a
+    heap call, up to the entry point, is a heap call. The entry of a heap call holds no Inner part: it holds the full
     cvalue state before and after each statement reached, the states that
     the analysis of the body computes and that the legacy store saves, taken
     when the analysis of the body ends. A request at a point of a heap call
@@ -152,8 +154,7 @@ val record_hit:
   start:Cvalue.Model.t -> body_entry:Cvalue.Model.t -> unit
 
 (** Whether the call whose analysis the innermost [call] runs is a heap call
-    so far: its analysis has called a builtin that allocates or releases
-    memory, in its body or in a nested call. For a call analysed by its body,
+    so far: it has received a heap effect. For a call analysed by its body,
     the answer is final once the analysis of the body has ended. False when
     the recording is off. *)
 val heap_call: unit -> bool
