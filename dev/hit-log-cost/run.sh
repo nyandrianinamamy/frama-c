@@ -12,11 +12,12 @@
 # each candidate optimization could save at most. It measures, it changes
 # nothing in the branch.
 #
-# Corpus: gzip 1.2.4 and monocypher, from the open-source case studies, with
-# the parse and Eva options of their .frama-c/GNUmakefile (see
-# [program_args]), the default domain alone, memexec on. Every analysis runs
-# with -cache-size 8, the setting of share/analysis-scripts/analysis.mk:125
-# used by the case studies. Configurations:
+# Corpus: gzip 1.2.4, monocypher, polarssl and chrony, from the open-source
+# case studies, with the parse and Eva options of their .frama-c/GNUmakefile
+# (see [program_args]), the default domain alone, memexec on. Every analysis
+# runs with -cache-size 8, the setting of
+# share/analysis-scripts/analysis.mk:125 used by the case studies.
+# Configurations:
 #   - dev: a build of dev at the base of the branch;
 #   - off, on: the build of this checkout, recording off and on.
 # Each run loads the probe phases.ml, which notes the time and the counters
@@ -107,7 +108,8 @@ Usage: $0 -c OSCS [options]
   -r REV   revision of dev at the base of the branch (default $DEV_REV)
   -w DIR   work directory for builds, runs and profiles (default $WORK)
   -o DIR   results directory (default WORK/results)
-  -p LIST  specifications of the programs, among gzip and monocypher
+  -p LIST  specifications of the programs, among gzip, monocypher, polarssl
+           and chrony
            (default "$PROGRAMS")
   -s LIST  stages among "$STAGES" (default all)
   -a LIST  ablations (default "$ABLATIONS")
@@ -330,6 +332,64 @@ program_args () { # program, share directory
       echo -eva; echo -eva-slevel; echo 8; echo -eva-split-return; echo auto
       echo -eva-warn-key; echo signed-overflow=inactive
       echo -eva-warn-key; echo builtins:missing-spec=abort;;
+    polarssl)
+      # Target polarssl-server. The header fc_stubs.h is a prerequisite of
+      # the parse rule, and thus one of its sources.
+      p=$OSCS/polarssl
+      echo -machdep; echo x86_32
+      echo "-cpp-extra-args=-CC -I$p"
+      echo -compilation-db; echo "$p"
+      echo "-add-symbolic-path=$p:."
+      echo -kernel-warn-key; echo annot:missing-spec=abort
+      echo -kernel-warn-key; echo typing:implicit-function-declaration=abort
+      echo "$p/.frama-c/fc_stubs.h"
+      for f in "$p"/library/*.c; do echo "$f"; done | LC_ALL=C sort
+      echo "$p/programs/ssl/ssl_server.c"
+      local spec=my_set_session,my_get_session,aes_setkey_enc,aes_setkey_dec
+      spec+=,aes_crypt_cbc,des3_crypt_ecb,des3_crypt_cbc,des_setkey,arc4_crypt
+      spec+=,ssl_free,x509_free,x509parse_crt,x509parse_key
+      spec+=,x509parse_verifycrl,hardclock,sha4_update,sha4_process
+      spec+=,sha1_process,sha1_finish,aes_crypt_ecb,md5_process
+      spec+=,ctr_drbg_random,dhm_check_range,dhm_make_params,mpi_free
+      spec+=,mpi_exp_mod,mpi_fill_random,mpi_read_string,mpi_read_binary
+      spec+=,mpi_msb,mpi_write_binary,mpi_cmp_mpi,mpi_cmp_abs,mpi_copy
+      spec+=,mpi_sub_mpi,mpi_mod_mpi,mpi_mul_mpi,mpi_add_abs,mpi_sub_abs
+      spec+=,camellia_crypt_cbc,camellia_feistel,sha4,error_strerror
+      echo -eva
+      echo -eva-subdivide-non-linear; echo 16
+      echo -eva-ilevel; echo 13
+      echo -eva-no-alloc-returns-null
+      echo -eva-use-spec; echo "$spec"
+      echo -eva-slevel; echo 2;;
+    chrony)
+      # Target chrony-ntp-core. Not kept: the options -eva-domains and
+      # -eva-domains-function, which enable domains other than cvalue, which
+      # -eva-hit-log refuses.
+      p=$OSCS/chrony
+      echo -machdep; echo x86_64
+      echo "-cpp-extra-args=-D_XOPEN_SOURCE=200112L -DNB_TESTS=3"
+      echo "-cpp-command=gcc -E -C -I$p"
+      echo -cpp-frama-c-compliant
+      echo "-add-symbolic-path=$p:."
+      echo -kernel-warn-key; echo typing:implicit-function-declaration=abort
+      echo -warn-special-float; echo none
+      echo "$p/test/unit/test.c"
+      for f in string stdlib stdio glob netdb; do echo "$share/libc/$f.c"; done
+      for f in addrfilt array clientlog cmdparse conf hash_intmd5 keys local \
+               memory nameserv ntp_io reference regress sched smooth sources \
+               sourcestats util stubs; do
+        echo "$p/$f.c"
+      done
+      echo "$p/.frama-c/fc_stubs.c"; echo "$p/test/unit/ntp_core.c"
+      echo -eva
+      echo -eva-mlevel; echo 1
+      echo -eva-use-spec; echo atoi,malloc,free,calloc,Transform,SCH_AddTimeout
+      echo -eva-warn-key=alarm
+      echo -eva-malloc-functions
+      echo malloc,realloc,Malloc,Malloc2,Realloc,Realloc2
+      echo -eva-warn-key; echo builtins:missing-spec=abort
+      echo -eva-warn-key; echo malloc:weak
+      echo -main; echo eva_main;;
     *) echo "unknown program $1" >&2; exit 2;;
   esac
 }
