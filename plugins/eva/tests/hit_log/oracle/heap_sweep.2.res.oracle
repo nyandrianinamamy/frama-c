@@ -1,0 +1,343 @@
+[kernel] Parsing heap_sweep.c (with preprocessing)
+[eva:locals-escaping] heap_sweep.c:70: Warning: 
+  locals {saved} escaping the scope of recur_cond through keep
+[eva:locals-escaping] heap_sweep.c:70: Warning: 
+  locals {saved} escaping the scope of recur_cond through keep
+[eva:locals-escaping] heap_sweep.c:70: Warning: 
+  locals {saved} escaping the scope of recur_cond through keep
+Calls:
+  malloc :: heap_sweep.c:60 <- cond_worker :: heap_sweep.c:67 <- recur_cond :: heap_sweep.c:67 <- recur_cond :: heap_sweep.c:70 <- stale_cond_main: builtin
+  cond_worker :: heap_sweep.c:67 <- recur_cond :: heap_sweep.c:67 <- recur_cond :: heap_sweep.c:70 <- stale_cond_main: analysed, cache entry 19
+  recur_cond :: heap_sweep.c:67 <- recur_cond :: heap_sweep.c:70 <- stale_cond_main: analysed, cache entry 20
+  recur_cond :: heap_sweep.c:70 <- stale_cond_main: analysed, cache entry 21
+  free :: heap_sweep.c:44 <- withdraw :: heap_sweep.c:44 <- withdraw :: heap_sweep.c:70 <- stale_cond_main: builtin
+  withdraw :: heap_sweep.c:44 <- withdraw :: heap_sweep.c:70 <- stale_cond_main: analysed, cache entry 22
+  withdraw :: heap_sweep.c:70 <- stale_cond_main: analysed, cache entry 23
+  Frama_C_interval :: heap_sweep.c:59 <- cond_worker :: heap_sweep.c:67 <- recur_cond :: heap_sweep.c:67 <- recur_cond :: heap_sweep.c:70 <- stale_cond_main: specification
+  malloc :: heap_sweep.c:60 <- cond_worker :: heap_sweep.c:67 <- recur_cond :: heap_sweep.c:67 <- recur_cond :: heap_sweep.c:70 <- stale_cond_main: builtin
+  free :: heap_sweep.c:61 <- cond_worker :: heap_sweep.c:67 <- recur_cond :: heap_sweep.c:67 <- recur_cond :: heap_sweep.c:70 <- stale_cond_main: builtin
+  cond_worker :: heap_sweep.c:67 <- recur_cond :: heap_sweep.c:67 <- recur_cond :: heap_sweep.c:70 <- stale_cond_main: analysed, cache entry 24
+  recur_cond :: heap_sweep.c:67 <- recur_cond :: heap_sweep.c:70 <- stale_cond_main: analysed, cache entry 25
+  recur_cond :: heap_sweep.c:70 <- stale_cond_main: analysed, cache entry 26
+  stale_cond_main: analysed, cache entry 27
+Heap calls, not stored by memexec: cond_worker 2, recur_cond 4,
+  stale_cond_main 1, withdraw 2.
+Heap calls whose answers come from full states: none.
+Hits not made because memexec does not store the heap calls: none.
+cond_worker, start:
+  joined: p ∈ {0} or ESCAPINGADDR
+          g ∈ {0}
+          stale ∈ {{ NULL ; &__malloc_cond_worker_l60_1[0] }}
+          keep ∈ {{ &\copy<saved>[1] }}
+          z ∈ {0; 1}
+          second ∈ {0; 1}
+          n ∈ {0}
+          second ∈ {0; 1}
+          saved ∈ {{ NULL ; &__malloc_cond_worker_l60_1[0] }}
+          i ∈ {0; 1}
+          \copy<saved>[1] ∈ {{ NULL ; &__malloc_cond_worker_l60_1[0] }}
+  cond_worker :: heap_sweep.c:67 <- recur_cond :: heap_sweep.c:67 <- recur_cond :: heap_sweep.c:70 <- stale_cond_main: 
+  p ∈ {0} or ESCAPINGADDR
+  g ∈ {0}
+  stale ∈ {{ NULL ; &__malloc_cond_worker_l60_1[0] }}
+  keep ∈ {{ &\copy<saved>[1] }}
+  z ∈ {0; 1}
+  second ∈ {0; 1}
+  n ∈ {0}
+  second ∈ {0; 1}
+  saved ∈ {{ NULL ; &__malloc_cond_worker_l60_1[0] }}
+  i ∈ {0; 1}
+  \copy<saved>[1] ∈ {{ NULL ; &__malloc_cond_worker_l60_1[0] }}
+cond_worker, before heap_sweep.c:63 `z ++;` (C):
+  joined: p ∈ {{ &__malloc_cond_worker_l60_1[0] }} or ESCAPINGADDR
+          g ∈ {0}
+          stale ∈ {{ NULL ; &__malloc_cond_worker_l60_1[0] }} or ESCAPINGADDR
+          keep ∈ {{ &\copy<saved>[1] }}
+          z ∈ {0; 1}
+          second ∈ {0; 1}
+          n ∈ {0}
+          second ∈ {0; 1}
+          saved ∈ {{ NULL ; &__malloc_cond_worker_l60_1[0] }} or ESCAPINGADDR
+          i ∈ {0; 1}
+          \copy<saved>[1] ∈ {{ NULL ; &__malloc_cond_worker_l60_1[0] }}
+          __malloc_cond_worker_l60_1[0..7] ∈ UNINITIALIZED
+  cond_worker :: heap_sweep.c:67 <- recur_cond :: heap_sweep.c:67 <- recur_cond :: heap_sweep.c:70 <- stale_cond_main: 
+  p ∈ {{ &__malloc_cond_worker_l60_1[0] }} or ESCAPINGADDR
+  g ∈ {0}
+  stale ∈ {{ NULL ; &__malloc_cond_worker_l60_1[0] }} or ESCAPINGADDR
+  keep ∈ {{ &\copy<saved>[1] }}
+  z ∈ {0; 1}
+  second ∈ {0; 1}
+  n ∈ {0}
+  second ∈ {0; 1}
+  saved ∈ {{ NULL ; &__malloc_cond_worker_l60_1[0] }} or ESCAPINGADDR
+  i ∈ {0; 1}
+  \copy<saved>[1] ∈ {{ NULL ; &__malloc_cond_worker_l60_1[0] }}
+  __malloc_cond_worker_l60_1[0..7] ∈ UNINITIALIZED
+  reference, joined: p ∈ {{ &__malloc_cond_worker_l60_1[0] }} or ESCAPINGADDR
+                     g ∈ {0}
+                     stale ∈
+                          {{ NULL ; &__malloc_cond_worker_l60_1[0] }} or ESCAPINGADDR
+                     keep ∈ {{ &\copy<saved>[1] }}
+                     z ∈ {0; 1}
+                     second ∈ {0; 1}
+                     n ∈ {0}
+                     second ∈ {0; 1}
+                     saved ∈
+                          {{ NULL ; &__malloc_cond_worker_l60_1[0] }} or ESCAPINGADDR
+                     i ∈ {0; 1}
+                     \copy<saved>[1] ∈
+                                    {{ NULL ;
+                                       &__malloc_cond_worker_l60_1[0] }} or ESCAPINGADDR
+                     __malloc_cond_worker_l60_1[0..7] ∈ UNINITIALIZED
+  cond_worker :: heap_sweep.c:67 <- recur_cond :: heap_sweep.c:67 <- recur_cond :: heap_sweep.c:70 <- stale_cond_main: 
+  p ∈ {{ &__malloc_cond_worker_l60_1[0] }} or ESCAPINGADDR
+  g ∈ {0}
+  stale ∈ {{ NULL ; &__malloc_cond_worker_l60_1[0] }} or ESCAPINGADDR
+  keep ∈ {{ &\copy<saved>[1] }}
+  z ∈ {0; 1}
+  second ∈ {0; 1}
+  n ∈ {0}
+  second ∈ {0; 1}
+  saved ∈ {{ NULL ; &__malloc_cond_worker_l60_1[0] }} or ESCAPINGADDR
+  i ∈ {0; 1}
+  \copy<saved>[1] ∈
+                 {{ NULL ; &__malloc_cond_worker_l60_1[0] }} or ESCAPINGADDR
+  __malloc_cond_worker_l60_1[0..7] ∈ UNINITIALIZED
+cond_worker, after heap_sweep.c:64 `return;`:
+  joined: p ∈ {{ &__malloc_cond_worker_l60_1[0] }} or ESCAPINGADDR
+          g ∈ {0}
+          stale ∈ {{ NULL ; &__malloc_cond_worker_l60_1[0] }} or ESCAPINGADDR
+          keep ∈ {{ &\copy<saved>[1] }}
+          z ∈ {1; 2}
+          second ∈ {0; 1}
+          n ∈ {0}
+          second ∈ {0; 1}
+          saved ∈ {{ NULL ; &__malloc_cond_worker_l60_1[0] }} or ESCAPINGADDR
+          i ∈ {0; 1}
+          \copy<saved>[1] ∈ {{ NULL ; &__malloc_cond_worker_l60_1[0] }}
+          __malloc_cond_worker_l60_1[0..7] ∈ UNINITIALIZED
+  cond_worker :: heap_sweep.c:67 <- recur_cond :: heap_sweep.c:67 <- recur_cond :: heap_sweep.c:70 <- stale_cond_main: 
+  p ∈ {{ &__malloc_cond_worker_l60_1[0] }} or ESCAPINGADDR
+  g ∈ {0}
+  stale ∈ {{ NULL ; &__malloc_cond_worker_l60_1[0] }} or ESCAPINGADDR
+  keep ∈ {{ &\copy<saved>[1] }}
+  z ∈ {1; 2}
+  second ∈ {0; 1}
+  n ∈ {0}
+  second ∈ {0; 1}
+  saved ∈ {{ NULL ; &__malloc_cond_worker_l60_1[0] }} or ESCAPINGADDR
+  i ∈ {0; 1}
+  \copy<saved>[1] ∈ {{ NULL ; &__malloc_cond_worker_l60_1[0] }}
+  __malloc_cond_worker_l60_1[0..7] ∈ UNINITIALIZED
+  reference, joined: p ∈ {{ &__malloc_cond_worker_l60_1[0] }} or ESCAPINGADDR
+                     g ∈ {0}
+                     stale ∈
+                          {{ NULL ; &__malloc_cond_worker_l60_1[0] }} or ESCAPINGADDR
+                     keep ∈ {{ &\copy<saved>[1] }}
+                     z ∈ {1; 2}
+                     second ∈ {0; 1}
+                     n ∈ {0}
+                     second ∈ {0; 1}
+                     saved ∈
+                          {{ NULL ; &__malloc_cond_worker_l60_1[0] }} or ESCAPINGADDR
+                     i ∈ {0; 1}
+                     \copy<saved>[1] ∈
+                                    {{ NULL ;
+                                       &__malloc_cond_worker_l60_1[0] }} or ESCAPINGADDR
+                     __malloc_cond_worker_l60_1[0..7] ∈ UNINITIALIZED
+  cond_worker :: heap_sweep.c:67 <- recur_cond :: heap_sweep.c:67 <- recur_cond :: heap_sweep.c:70 <- stale_cond_main: 
+  p ∈ {{ &__malloc_cond_worker_l60_1[0] }} or ESCAPINGADDR
+  g ∈ {0}
+  stale ∈ {{ NULL ; &__malloc_cond_worker_l60_1[0] }} or ESCAPINGADDR
+  keep ∈ {{ &\copy<saved>[1] }}
+  z ∈ {1; 2}
+  second ∈ {0; 1}
+  n ∈ {0}
+  second ∈ {0; 1}
+  saved ∈ {{ NULL ; &__malloc_cond_worker_l60_1[0] }} or ESCAPINGADDR
+  i ∈ {0; 1}
+  \copy<saved>[1] ∈
+                 {{ NULL ; &__malloc_cond_worker_l60_1[0] }} or ESCAPINGADDR
+  __malloc_cond_worker_l60_1[0..7] ∈ UNINITIALIZED
+Initial state: equal.
+Differences with the run without memexec:
+  withdraw, before heap_sweep.c:43 `char *hidden = p;`, joined: unavailable
+  withdraw, before heap_sweep.c:43 `char *hidden = p;`, filtered: unavailable
+  withdraw, before heap_sweep.c:43 `char *hidden = p;`, withdraw :: heap_sweep.c:44 <- withdraw :: heap_sweep.c:70 <- stale_cond_main: unavailable
+  withdraw, before heap_sweep.c:43 `char *hidden = p;`, withdraw :: heap_sweep.c:70 <- stale_cond_main: unavailable
+  withdraw, after heap_sweep.c:43 `char *hidden = p;`, joined: unavailable
+  withdraw, after heap_sweep.c:43 `char *hidden = p;`, filtered: unavailable
+  withdraw, after heap_sweep.c:43 `char *hidden = p;`, withdraw :: heap_sweep.c:44 <- withdraw :: heap_sweep.c:70 <- stale_cond_main: unavailable
+  withdraw, after heap_sweep.c:43 `char *hidden = p;`, withdraw :: heap_sweep.c:70 <- stale_cond_main: unavailable
+  withdraw, before heap_sweep.c:44 `if (n)`, joined: unavailable
+  withdraw, before heap_sweep.c:44 `if (n)`, filtered: unavailable
+  withdraw, before heap_sweep.c:44 `if (n)`, withdraw :: heap_sweep.c:44 <- withdraw :: heap_sweep.c:70 <- stale_cond_main: unavailable
+  withdraw, before heap_sweep.c:44 `if (n)`, withdraw :: heap_sweep.c:70 <- stale_cond_main: unavailable
+  withdraw, after heap_sweep.c:44 `if (n)`, joined: unavailable
+  withdraw, after heap_sweep.c:44 `if (n)`, filtered: unavailable
+  withdraw, after heap_sweep.c:44 `if (n)`, withdraw :: heap_sweep.c:44 <- withdraw :: heap_sweep.c:70 <- stale_cond_main: unavailable
+  withdraw, after heap_sweep.c:44 `if (n)`, withdraw :: heap_sweep.c:70 <- stale_cond_main: unavailable
+  withdraw, before heap_sweep.c:44 `withdraw(0);`, joined: unavailable
+  withdraw, before heap_sweep.c:44 `withdraw(0);`, filtered: unavailable
+  withdraw, before heap_sweep.c:44 `withdraw(0);`, withdraw :: heap_sweep.c:70 <- stale_cond_main: unavailable
+  withdraw, after heap_sweep.c:44 `withdraw(0);`, joined: unavailable
+  withdraw, after heap_sweep.c:44 `withdraw(0);`, filtered: unavailable
+  withdraw, after heap_sweep.c:44 `withdraw(0);`, withdraw :: heap_sweep.c:70 <- stale_cond_main: unavailable
+  withdraw, before heap_sweep.c:44 `stale = hidden;`, joined: unavailable
+  withdraw, before heap_sweep.c:44 `stale = hidden;`, filtered: unavailable
+  withdraw, before heap_sweep.c:44 `stale = hidden;`, withdraw :: heap_sweep.c:70 <- stale_cond_main: unavailable
+  withdraw, after heap_sweep.c:44 `stale = hidden;`, joined: unavailable
+  withdraw, after heap_sweep.c:44 `stale = hidden;`, filtered: unavailable
+  withdraw, after heap_sweep.c:44 `stale = hidden;`, withdraw :: heap_sweep.c:70 <- stale_cond_main: unavailable
+  withdraw, before heap_sweep.c:44 `free((void *)p);`, joined: unavailable
+  withdraw, before heap_sweep.c:44 `free((void *)p);`, filtered: unavailable
+  withdraw, before heap_sweep.c:44 `free((void *)p);`, withdraw :: heap_sweep.c:44 <- withdraw :: heap_sweep.c:70 <- stale_cond_main: unavailable
+  withdraw, after heap_sweep.c:44 `free((void *)p);`, joined: unavailable
+  withdraw, after heap_sweep.c:44 `free((void *)p);`, filtered: unavailable
+  withdraw, after heap_sweep.c:44 `free((void *)p);`, withdraw :: heap_sweep.c:44 <- withdraw :: heap_sweep.c:70 <- stale_cond_main: unavailable
+  withdraw, before heap_sweep.c:45 `return;`, joined: unavailable
+  withdraw, before heap_sweep.c:45 `return;`, filtered: unavailable
+  withdraw, before heap_sweep.c:45 `return;`, withdraw :: heap_sweep.c:44 <- withdraw :: heap_sweep.c:70 <- stale_cond_main: unavailable
+  withdraw, before heap_sweep.c:45 `return;`, withdraw :: heap_sweep.c:70 <- stale_cond_main: unavailable
+  withdraw, after heap_sweep.c:45 `return;`, joined: unavailable
+  withdraw, after heap_sweep.c:45 `return;`, filtered: unavailable
+  withdraw, after heap_sweep.c:45 `return;`, withdraw :: heap_sweep.c:44 <- withdraw :: heap_sweep.c:70 <- stale_cond_main: unavailable
+  withdraw, after heap_sweep.c:45 `return;`, withdraw :: heap_sweep.c:70 <- stale_cond_main: unavailable
+  cond_worker, after heap_sweep.c:59 `if (tmp)`, joined: more precise
+  cond_worker, after heap_sweep.c:59 `if (tmp)`, filtered: more precise
+  cond_worker, after heap_sweep.c:59 `if (tmp)`, cond_worker :: heap_sweep.c:67 <- recur_cond :: heap_sweep.c:67 <- recur_cond :: heap_sweep.c:70 <- stale_cond_main: more precise
+  cond_worker, after heap_sweep.c:61 `if (second)`, joined: more precise
+  cond_worker, after heap_sweep.c:61 `if (second)`, filtered: more precise
+  cond_worker, after heap_sweep.c:61 `if (second)`, cond_worker :: heap_sweep.c:67 <- recur_cond :: heap_sweep.c:67 <- recur_cond :: heap_sweep.c:70 <- stale_cond_main: more precise
+  cond_worker, after heap_sweep.c:61 `free((void *)p);`, joined: OMITS
+  cond_worker, after heap_sweep.c:61 `free((void *)p);`, filtered: OMITS
+  cond_worker, after heap_sweep.c:61 `free((void *)p);`, cond_worker :: heap_sweep.c:67 <- recur_cond :: heap_sweep.c:67 <- recur_cond :: heap_sweep.c:70 <- stale_cond_main: OMITS
+  cond_worker, before heap_sweep.c:63 `z ++;` (C), joined: more precise
+  cond_worker, before heap_sweep.c:63 `z ++;` (C), filtered: more precise
+  cond_worker, before heap_sweep.c:63 `z ++;` (C), cond_worker :: heap_sweep.c:67 <- recur_cond :: heap_sweep.c:67 <- recur_cond :: heap_sweep.c:70 <- stale_cond_main: more precise
+  cond_worker, after heap_sweep.c:63 `z ++;` (C), joined: more precise
+  cond_worker, after heap_sweep.c:63 `z ++;` (C), filtered: more precise
+  cond_worker, after heap_sweep.c:63 `z ++;` (C), cond_worker :: heap_sweep.c:67 <- recur_cond :: heap_sweep.c:67 <- recur_cond :: heap_sweep.c:70 <- stale_cond_main: more precise
+  cond_worker, before heap_sweep.c:64 `return;`, joined: more precise
+  cond_worker, before heap_sweep.c:64 `return;`, filtered: more precise
+  cond_worker, before heap_sweep.c:64 `return;`, cond_worker :: heap_sweep.c:67 <- recur_cond :: heap_sweep.c:67 <- recur_cond :: heap_sweep.c:70 <- stale_cond_main: more precise
+  cond_worker, after heap_sweep.c:64 `return;`, joined: more precise
+  cond_worker, after heap_sweep.c:64 `return;`, filtered: more precise
+  cond_worker, after heap_sweep.c:64 `return;`, cond_worker :: heap_sweep.c:67 <- recur_cond :: heap_sweep.c:67 <- recur_cond :: heap_sweep.c:70 <- stale_cond_main: more precise
+  recur_cond, before heap_sweep.c:66 `char *saved = stale;`, joined: unavailable
+  recur_cond, before heap_sweep.c:66 `char *saved = stale;`, filtered: unavailable
+  recur_cond, before heap_sweep.c:66 `char *saved = stale;`, recur_cond :: heap_sweep.c:67 <- recur_cond :: heap_sweep.c:70 <- stale_cond_main: unavailable
+  recur_cond, before heap_sweep.c:66 `char *saved = stale;`, recur_cond :: heap_sweep.c:70 <- stale_cond_main: unavailable
+  recur_cond, after heap_sweep.c:66 `char *saved = stale;`, joined: unavailable
+  recur_cond, after heap_sweep.c:66 `char *saved = stale;`, filtered: unavailable
+  recur_cond, after heap_sweep.c:66 `char *saved = stale;`, recur_cond :: heap_sweep.c:67 <- recur_cond :: heap_sweep.c:70 <- stale_cond_main: unavailable
+  recur_cond, after heap_sweep.c:66 `char *saved = stale;`, recur_cond :: heap_sweep.c:70 <- stale_cond_main: unavailable
+  recur_cond, before heap_sweep.c:67 `if (n)`, joined: unavailable
+  recur_cond, before heap_sweep.c:67 `if (n)`, filtered: unavailable
+  recur_cond, before heap_sweep.c:67 `if (n)`, recur_cond :: heap_sweep.c:67 <- recur_cond :: heap_sweep.c:70 <- stale_cond_main: unavailable
+  recur_cond, before heap_sweep.c:67 `if (n)`, recur_cond :: heap_sweep.c:70 <- stale_cond_main: unavailable
+  recur_cond, after heap_sweep.c:67 `if (n)`, joined: unavailable
+  recur_cond, after heap_sweep.c:67 `if (n)`, filtered: unavailable
+  recur_cond, after heap_sweep.c:67 `if (n)`, recur_cond :: heap_sweep.c:67 <- recur_cond :: heap_sweep.c:70 <- stale_cond_main: unavailable
+  recur_cond, after heap_sweep.c:67 `if (n)`, recur_cond :: heap_sweep.c:70 <- stale_cond_main: unavailable
+  recur_cond, before heap_sweep.c:67 `keep = & saved;`, joined: unavailable
+  recur_cond, before heap_sweep.c:67 `keep = & saved;`, filtered: unavailable
+  recur_cond, before heap_sweep.c:67 `keep = & saved;`, recur_cond :: heap_sweep.c:70 <- stale_cond_main: unavailable
+  recur_cond, after heap_sweep.c:67 `keep = & saved;`, joined: unavailable
+  recur_cond, after heap_sweep.c:67 `keep = & saved;`, filtered: unavailable
+  recur_cond, after heap_sweep.c:67 `keep = & saved;`, recur_cond :: heap_sweep.c:70 <- stale_cond_main: unavailable
+  recur_cond, before heap_sweep.c:67 `recur_cond(0,second);`, joined: unavailable
+  recur_cond, before heap_sweep.c:67 `recur_cond(0,second);`, filtered: unavailable
+  recur_cond, before heap_sweep.c:67 `recur_cond(0,second);`, recur_cond :: heap_sweep.c:70 <- stale_cond_main: unavailable
+  recur_cond, after heap_sweep.c:67 `recur_cond(0,second);`, joined: unavailable
+  recur_cond, after heap_sweep.c:67 `recur_cond(0,second);`, filtered: unavailable
+  recur_cond, after heap_sweep.c:67 `recur_cond(0,second);`, recur_cond :: heap_sweep.c:70 <- stale_cond_main: unavailable
+  recur_cond, before heap_sweep.c:67 `cond_worker(second);`, joined: unavailable
+  recur_cond, before heap_sweep.c:67 `cond_worker(second);`, filtered: unavailable
+  recur_cond, before heap_sweep.c:67 `cond_worker(second);`, recur_cond :: heap_sweep.c:67 <- recur_cond :: heap_sweep.c:70 <- stale_cond_main: unavailable
+  recur_cond, after heap_sweep.c:67 `cond_worker(second);`, joined: unavailable
+  recur_cond, after heap_sweep.c:67 `cond_worker(second);`, filtered: unavailable
+  recur_cond, after heap_sweep.c:67 `cond_worker(second);`, recur_cond :: heap_sweep.c:67 <- recur_cond :: heap_sweep.c:70 <- stale_cond_main: unavailable
+  recur_cond, before heap_sweep.c:68 `return;`, joined: unavailable
+  recur_cond, before heap_sweep.c:68 `return;`, filtered: unavailable
+  recur_cond, before heap_sweep.c:68 `return;`, recur_cond :: heap_sweep.c:67 <- recur_cond :: heap_sweep.c:70 <- stale_cond_main: unavailable
+  recur_cond, before heap_sweep.c:68 `return;`, recur_cond :: heap_sweep.c:70 <- stale_cond_main: unavailable
+  recur_cond, after heap_sweep.c:68 `return;`, joined: unavailable
+  recur_cond, after heap_sweep.c:68 `return;`, filtered: unavailable
+  recur_cond, after heap_sweep.c:68 `return;`, recur_cond :: heap_sweep.c:67 <- recur_cond :: heap_sweep.c:70 <- stale_cond_main: unavailable
+  recur_cond, after heap_sweep.c:68 `return;`, recur_cond :: heap_sweep.c:70 <- stale_cond_main: unavailable
+Answers: 481 equal, 0 covering, 18 more precise, 3 omitting, 84 unavailable.
+Callstacks listed: NOT those of the run without memexec at 24 of the 251 points:
+  withdraw, before heap_sweep.c:43 `char *hidden = p;`
+  withdraw, after heap_sweep.c:43 `char *hidden = p;`
+  withdraw, before heap_sweep.c:44 `if (n)`
+  withdraw, after heap_sweep.c:44 `if (n)`
+  withdraw, before heap_sweep.c:44 `withdraw(0);`
+  withdraw, after heap_sweep.c:44 `withdraw(0);`
+  withdraw, before heap_sweep.c:44 `stale = hidden;`
+  withdraw, after heap_sweep.c:44 `stale = hidden;`
+  withdraw, before heap_sweep.c:44 `free((void *)p);`
+  withdraw, after heap_sweep.c:44 `free((void *)p);`
+  withdraw, before heap_sweep.c:45 `return;`
+  withdraw, after heap_sweep.c:45 `return;`
+  recur_cond, before heap_sweep.c:66 `char *saved = stale;`
+  recur_cond, after heap_sweep.c:66 `char *saved = stale;`
+  recur_cond, before heap_sweep.c:67 `if (n)`
+  recur_cond, after heap_sweep.c:67 `if (n)`
+  recur_cond, before heap_sweep.c:67 `keep = & saved;`
+  recur_cond, after heap_sweep.c:67 `keep = & saved;`
+  recur_cond, before heap_sweep.c:67 `recur_cond(0,second);`
+  recur_cond, after heap_sweep.c:67 `recur_cond(0,second);`
+  recur_cond, before heap_sweep.c:67 `cond_worker(second);`
+  recur_cond, after heap_sweep.c:67 `cond_worker(second);`
+  recur_cond, before heap_sweep.c:68 `return;`
+  recur_cond, after heap_sweep.c:68 `return;`
+Callstacks listed through the filter: NOT those of the run without memexec at 24 of the 251 points:
+  withdraw, before heap_sweep.c:43 `char *hidden = p;`
+  withdraw, after heap_sweep.c:43 `char *hidden = p;`
+  withdraw, before heap_sweep.c:44 `if (n)`
+  withdraw, after heap_sweep.c:44 `if (n)`
+  withdraw, before heap_sweep.c:44 `withdraw(0);`
+  withdraw, after heap_sweep.c:44 `withdraw(0);`
+  withdraw, before heap_sweep.c:44 `stale = hidden;`
+  withdraw, after heap_sweep.c:44 `stale = hidden;`
+  withdraw, before heap_sweep.c:44 `free((void *)p);`
+  withdraw, after heap_sweep.c:44 `free((void *)p);`
+  withdraw, before heap_sweep.c:45 `return;`
+  withdraw, after heap_sweep.c:45 `return;`
+  recur_cond, before heap_sweep.c:66 `char *saved = stale;`
+  recur_cond, after heap_sweep.c:66 `char *saved = stale;`
+  recur_cond, before heap_sweep.c:67 `if (n)`
+  recur_cond, after heap_sweep.c:67 `if (n)`
+  recur_cond, before heap_sweep.c:67 `keep = & saved;`
+  recur_cond, after heap_sweep.c:67 `keep = & saved;`
+  recur_cond, before heap_sweep.c:67 `recur_cond(0,second);`
+  recur_cond, after heap_sweep.c:67 `recur_cond(0,second);`
+  recur_cond, before heap_sweep.c:67 `cond_worker(second);`
+  recur_cond, after heap_sweep.c:67 `cond_worker(second);`
+  recur_cond, before heap_sweep.c:68 `return;`
+  recur_cond, after heap_sweep.c:68 `return;`
+Filtered requests that reject one callstack: 14.
+Requests made: 1088; reported by the trap: 1088, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 159 requests, 141 reads of the legacy store in them, 157 reads outside any request.
+  with -eva-hit-log: 159 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 118 requests
+    statistics: 32 requests
+    summary: 9 requests
+Statuses of the properties: those of the run without memexec, for 307 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.1905, 0 alarms, those of the run without memexec.
+Points of the cache entries:
+cond_worker :: heap_sweep.c:67 <- recur_cond :: heap_sweep.c:67 <- recur_cond :: heap_sweep.c:70 <- stale_cond_main, cache entry 19:
+  before C: covers __malloc_cond_worker_l60_1; does not bind none; swept on every path: none; on some path only: none
+recur_cond :: heap_sweep.c:67 <- recur_cond :: heap_sweep.c:70 <- stale_cond_main, cache entry 20:
+recur_cond :: heap_sweep.c:70 <- stale_cond_main, cache entry 21:
+withdraw :: heap_sweep.c:44 <- withdraw :: heap_sweep.c:70 <- stale_cond_main, cache entry 22:
+withdraw :: heap_sweep.c:70 <- stale_cond_main, cache entry 23:
+cond_worker :: heap_sweep.c:67 <- recur_cond :: heap_sweep.c:67 <- recur_cond :: heap_sweep.c:70 <- stale_cond_main, cache entry 24:
+  before C: covers __malloc_cond_worker_l60_1; does not bind __malloc_cond_worker_l60_1; swept on every path: none; on some path only: none
+recur_cond :: heap_sweep.c:67 <- recur_cond :: heap_sweep.c:70 <- stale_cond_main, cache entry 25:
+recur_cond :: heap_sweep.c:70 <- stale_cond_main, cache entry 26:
+stale_cond_main, cache entry 27:

@@ -1,0 +1,339 @@
+[kernel] Parsing heap_sweep.c (with preprocessing)
+Calls:
+  malloc :: heap_sweep.c:83 <- restored_main: builtin
+  free :: heap_sweep.c:81 <- rf :: heap_sweep.c:77 <- rh :: heap_sweep.c:78 <- rg :: heap_sweep.c:81 <- rf :: heap_sweep.c:83 <- restored_main: builtin
+  rf :: heap_sweep.c:77 <- rh :: heap_sweep.c:78 <- rg :: heap_sweep.c:81 <- rf :: heap_sweep.c:83 <- restored_main: analysed, cache entry 11
+  rh :: heap_sweep.c:78 <- rg :: heap_sweep.c:81 <- rf :: heap_sweep.c:83 <- restored_main: analysed, cache entry 12
+  rg :: heap_sweep.c:81 <- rf :: heap_sweep.c:83 <- restored_main: analysed, cache entry 13
+  rf :: heap_sweep.c:83 <- restored_main: analysed, cache entry 14
+  restored_main: analysed, cache entry 15
+Heap calls, not stored by memexec: restored_main 1, rf 2, rg 1, rh 1.
+Heap calls whose answers come from full states: none.
+Hits not made because memexec does not store the heap calls: none.
+rh, start:
+  joined: p ∈ {{ &__malloc_restored_main_l83_1[0] }}
+          g ∈ {0}
+          stale ∈ {0}
+          keep ∈ {0}
+          z ∈ {0}
+          n ∈ {1}
+          n ∈ {1}
+          n ∈ {1}
+          hidden ∈ {{ &__malloc_restored_main_l83_1[0] }}
+          __malloc_restored_main_l83_1[0..7] ∈ UNINITIALIZED
+  rh :: heap_sweep.c:78 <- rg :: heap_sweep.c:81 <- rf :: heap_sweep.c:83 <- restored_main: 
+  p ∈ {{ &__malloc_restored_main_l83_1[0] }}
+  g ∈ {0}
+  stale ∈ {0}
+  keep ∈ {0}
+  z ∈ {0}
+  n ∈ {1}
+  n ∈ {1}
+  n ∈ {1}
+  hidden ∈ {{ &__malloc_restored_main_l83_1[0] }}
+  __malloc_restored_main_l83_1[0..7] ∈ UNINITIALIZED
+rh, before heap_sweep.c:77 `z ++;` (H):
+  joined: p ∈ ESCAPINGADDR
+          g ∈ {0}
+          stale ∈ {0}
+          keep ∈ {0}
+          z ∈ {0}
+          n ∈ {1}
+          n ∈ {1}
+          n ∈ {1}
+          hidden ∈ ESCAPINGADDR
+  rh :: heap_sweep.c:78 <- rg :: heap_sweep.c:81 <- rf :: heap_sweep.c:83 <- restored_main: 
+  p ∈ ESCAPINGADDR
+  g ∈ {0}
+  stale ∈ {0}
+  keep ∈ {0}
+  z ∈ {0}
+  n ∈ {1}
+  n ∈ {1}
+  n ∈ {1}
+  hidden ∈ ESCAPINGADDR
+  reference, joined: p ∈ ESCAPINGADDR
+                     g ∈ {0}
+                     stale ∈ {0}
+                     keep ∈ {0}
+                     z ∈ {0}
+                     n ∈ {1}
+                     n ∈ {1}
+                     n ∈ {1}
+                     hidden ∈ {{ &__malloc_restored_main_l83_1[0] }}
+  rh :: heap_sweep.c:78 <- rg :: heap_sweep.c:81 <- rf :: heap_sweep.c:83 <- restored_main: 
+  p ∈ ESCAPINGADDR
+  g ∈ {0}
+  stale ∈ {0}
+  keep ∈ {0}
+  z ∈ {0}
+  n ∈ {1}
+  n ∈ {1}
+  n ∈ {1}
+  hidden ∈ {{ &__malloc_restored_main_l83_1[0] }}
+rh, after heap_sweep.c:77 `return;`:
+  joined: p ∈ ESCAPINGADDR
+          g ∈ {0}
+          stale ∈ {0}
+          keep ∈ {0}
+          z ∈ {1}
+          n ∈ {1}
+          n ∈ {1}
+          n ∈ {1}
+          hidden ∈ ESCAPINGADDR
+  rh :: heap_sweep.c:78 <- rg :: heap_sweep.c:81 <- rf :: heap_sweep.c:83 <- restored_main: 
+  p ∈ ESCAPINGADDR
+  g ∈ {0}
+  stale ∈ {0}
+  keep ∈ {0}
+  z ∈ {1}
+  n ∈ {1}
+  n ∈ {1}
+  n ∈ {1}
+  hidden ∈ ESCAPINGADDR
+  reference, joined: p ∈ ESCAPINGADDR
+                     g ∈ {0}
+                     stale ∈ {0}
+                     keep ∈ {0}
+                     z ∈ {1}
+                     n ∈ {1}
+                     n ∈ {1}
+                     n ∈ {1}
+                     hidden ∈ {{ &__malloc_restored_main_l83_1[0] }}
+  rh :: heap_sweep.c:78 <- rg :: heap_sweep.c:81 <- rf :: heap_sweep.c:83 <- restored_main: 
+  p ∈ ESCAPINGADDR
+  g ∈ {0}
+  stale ∈ {0}
+  keep ∈ {0}
+  z ∈ {1}
+  n ∈ {1}
+  n ∈ {1}
+  n ∈ {1}
+  hidden ∈ {{ &__malloc_restored_main_l83_1[0] }}
+rg, start:
+  joined: p ∈ {{ &__malloc_restored_main_l83_1[0] }}
+          g ∈ {0}
+          stale ∈ {0}
+          keep ∈ {0}
+          z ∈ {0}
+          n ∈ {1}
+          n ∈ {1}
+          hidden ∈ {{ &__malloc_restored_main_l83_1[0] }}
+          __malloc_restored_main_l83_1[0..7] ∈ UNINITIALIZED
+  rg :: heap_sweep.c:81 <- rf :: heap_sweep.c:83 <- restored_main: p ∈
+                                                                    {{ &__malloc_restored_main_l83_1[0] }}
+                                                                   g ∈ {0}
+                                                                   stale
+                                                                    ∈ {0}
+                                                                   keep ∈ {0}
+                                                                   z ∈ {0}
+                                                                   n ∈ {1}
+                                                                   n ∈ {1}
+                                                                   hidden
+                                                                    ∈
+                                                                   {{ &__malloc_restored_main_l83_1[0] }}
+                                                                   __malloc_restored_main_l83_1
+                                                                   [0..7] ∈
+                                                                   UNINITIALIZED
+rg, before heap_sweep.c:78 `z ++;` (G):
+  joined: p ∈ ESCAPINGADDR
+          g ∈ {0}
+          stale ∈ {0}
+          keep ∈ {0}
+          z ∈ {1}
+          n ∈ {1}
+          n ∈ {1}
+          hidden ∈ ESCAPINGADDR
+  rg :: heap_sweep.c:81 <- rf :: heap_sweep.c:83 <- restored_main: p ∈
+                                                                    ESCAPINGADDR
+                                                                   g ∈ {0}
+                                                                   stale
+                                                                    ∈ {0}
+                                                                   keep ∈ {0}
+                                                                   z ∈ {1}
+                                                                   n ∈ {1}
+                                                                   n ∈ {1}
+                                                                   hidden
+                                                                    ∈
+                                                                   ESCAPINGADDR
+  reference, joined: p ∈ ESCAPINGADDR
+                     g ∈ {0}
+                     stale ∈ {0}
+                     keep ∈ {0}
+                     z ∈ {1}
+                     n ∈ {1}
+                     n ∈ {1}
+                     hidden ∈ {{ &__malloc_restored_main_l83_1[0] }}
+  rg :: heap_sweep.c:81 <- rf :: heap_sweep.c:83 <- restored_main: p ∈
+                                                                    ESCAPINGADDR
+                                                                   g ∈ {0}
+                                                                   stale
+                                                                    ∈ {0}
+                                                                   keep ∈ {0}
+                                                                   z ∈ {1}
+                                                                   n ∈ {1}
+                                                                   n ∈ {1}
+                                                                   hidden
+                                                                    ∈
+                                                                   {{ &__malloc_restored_main_l83_1[0] }}
+rg, after heap_sweep.c:78 `return;`:
+  joined: p ∈ ESCAPINGADDR
+          g ∈ {0}
+          stale ∈ {0}
+          keep ∈ {0}
+          z ∈ {2}
+          n ∈ {1}
+          n ∈ {1}
+          hidden ∈ ESCAPINGADDR
+  rg :: heap_sweep.c:81 <- rf :: heap_sweep.c:83 <- restored_main: p ∈
+                                                                    ESCAPINGADDR
+                                                                   g ∈ {0}
+                                                                   stale
+                                                                    ∈ {0}
+                                                                   keep ∈ {0}
+                                                                   z ∈ {2}
+                                                                   n ∈ {1}
+                                                                   n ∈ {1}
+                                                                   hidden
+                                                                    ∈
+                                                                   ESCAPINGADDR
+  reference, joined: p ∈ ESCAPINGADDR
+                     g ∈ {0}
+                     stale ∈ {0}
+                     keep ∈ {0}
+                     z ∈ {2}
+                     n ∈ {1}
+                     n ∈ {1}
+                     hidden ∈ {{ &__malloc_restored_main_l83_1[0] }}
+  rg :: heap_sweep.c:81 <- rf :: heap_sweep.c:83 <- restored_main: p ∈
+                                                                    ESCAPINGADDR
+                                                                   g ∈ {0}
+                                                                   stale
+                                                                    ∈ {0}
+                                                                   keep ∈ {0}
+                                                                   z ∈ {2}
+                                                                   n ∈ {1}
+                                                                   n ∈ {1}
+                                                                   hidden
+                                                                    ∈
+                                                                   {{ &__malloc_restored_main_l83_1[0] }}
+Initial state: equal.
+Differences with the run without memexec:
+  rh, after heap_sweep.c:77 `rf(n - 1);`, joined: OMITS
+  rh, after heap_sweep.c:77 `rf(n - 1);`, filtered: OMITS
+  rh, after heap_sweep.c:77 `rf(n - 1);`, rh :: heap_sweep.c:78 <- rg :: heap_sweep.c:81 <- rf :: heap_sweep.c:83 <- restored_main: OMITS
+  rh, before heap_sweep.c:77 `z ++;` (H), joined: OMITS
+  rh, before heap_sweep.c:77 `z ++;` (H), filtered: OMITS
+  rh, before heap_sweep.c:77 `z ++;` (H), rh :: heap_sweep.c:78 <- rg :: heap_sweep.c:81 <- rf :: heap_sweep.c:83 <- restored_main: OMITS
+  rh, after heap_sweep.c:77 `z ++;` (H), joined: OMITS
+  rh, after heap_sweep.c:77 `z ++;` (H), filtered: OMITS
+  rh, after heap_sweep.c:77 `z ++;` (H), rh :: heap_sweep.c:78 <- rg :: heap_sweep.c:81 <- rf :: heap_sweep.c:83 <- restored_main: OMITS
+  rh, before heap_sweep.c:77 `return;`, joined: OMITS
+  rh, before heap_sweep.c:77 `return;`, filtered: OMITS
+  rh, before heap_sweep.c:77 `return;`, rh :: heap_sweep.c:78 <- rg :: heap_sweep.c:81 <- rf :: heap_sweep.c:83 <- restored_main: OMITS
+  rh, after heap_sweep.c:77 `return;`, joined: OMITS
+  rh, after heap_sweep.c:77 `return;`, filtered: OMITS
+  rh, after heap_sweep.c:77 `return;`, rh :: heap_sweep.c:78 <- rg :: heap_sweep.c:81 <- rf :: heap_sweep.c:83 <- restored_main: OMITS
+  rg, after heap_sweep.c:78 `rh(n);`, joined: OMITS
+  rg, after heap_sweep.c:78 `rh(n);`, filtered: OMITS
+  rg, after heap_sweep.c:78 `rh(n);`, rg :: heap_sweep.c:81 <- rf :: heap_sweep.c:83 <- restored_main: OMITS
+  rg, before heap_sweep.c:78 `z ++;` (G), joined: OMITS
+  rg, before heap_sweep.c:78 `z ++;` (G), filtered: OMITS
+  rg, before heap_sweep.c:78 `z ++;` (G), rg :: heap_sweep.c:81 <- rf :: heap_sweep.c:83 <- restored_main: OMITS
+  rg, after heap_sweep.c:78 `z ++;` (G), joined: OMITS
+  rg, after heap_sweep.c:78 `z ++;` (G), filtered: OMITS
+  rg, after heap_sweep.c:78 `z ++;` (G), rg :: heap_sweep.c:81 <- rf :: heap_sweep.c:83 <- restored_main: OMITS
+  rg, before heap_sweep.c:78 `return;`, joined: OMITS
+  rg, before heap_sweep.c:78 `return;`, filtered: OMITS
+  rg, before heap_sweep.c:78 `return;`, rg :: heap_sweep.c:81 <- rf :: heap_sweep.c:83 <- restored_main: OMITS
+  rg, after heap_sweep.c:78 `return;`, joined: OMITS
+  rg, after heap_sweep.c:78 `return;`, filtered: OMITS
+  rg, after heap_sweep.c:78 `return;`, rg :: heap_sweep.c:81 <- rf :: heap_sweep.c:83 <- restored_main: OMITS
+  rf, before heap_sweep.c:80 `char *hidden = p;`, joined: unavailable
+  rf, before heap_sweep.c:80 `char *hidden = p;`, filtered: unavailable
+  rf, before heap_sweep.c:80 `char *hidden = p;`, rf :: heap_sweep.c:77 <- rh :: heap_sweep.c:78 <- rg :: heap_sweep.c:81 <- rf :: heap_sweep.c:83 <- restored_main: unavailable
+  rf, before heap_sweep.c:80 `char *hidden = p;`, rf :: heap_sweep.c:83 <- restored_main: unavailable
+  rf, after heap_sweep.c:80 `char *hidden = p;`, joined: unavailable
+  rf, after heap_sweep.c:80 `char *hidden = p;`, filtered: unavailable
+  rf, after heap_sweep.c:80 `char *hidden = p;`, rf :: heap_sweep.c:77 <- rh :: heap_sweep.c:78 <- rg :: heap_sweep.c:81 <- rf :: heap_sweep.c:83 <- restored_main: unavailable
+  rf, after heap_sweep.c:80 `char *hidden = p;`, rf :: heap_sweep.c:83 <- restored_main: unavailable
+  rf, before heap_sweep.c:81 `if (n)`, joined: unavailable
+  rf, before heap_sweep.c:81 `if (n)`, filtered: unavailable
+  rf, before heap_sweep.c:81 `if (n)`, rf :: heap_sweep.c:77 <- rh :: heap_sweep.c:78 <- rg :: heap_sweep.c:81 <- rf :: heap_sweep.c:83 <- restored_main: unavailable
+  rf, before heap_sweep.c:81 `if (n)`, rf :: heap_sweep.c:83 <- restored_main: unavailable
+  rf, after heap_sweep.c:81 `if (n)`, joined: unavailable
+  rf, after heap_sweep.c:81 `if (n)`, filtered: unavailable
+  rf, after heap_sweep.c:81 `if (n)`, rf :: heap_sweep.c:77 <- rh :: heap_sweep.c:78 <- rg :: heap_sweep.c:81 <- rf :: heap_sweep.c:83 <- restored_main: unavailable
+  rf, after heap_sweep.c:81 `if (n)`, rf :: heap_sweep.c:83 <- restored_main: unavailable
+  rf, before heap_sweep.c:81 `rg(n);`, joined: unavailable
+  rf, before heap_sweep.c:81 `rg(n);`, filtered: unavailable
+  rf, before heap_sweep.c:81 `rg(n);`, rf :: heap_sweep.c:83 <- restored_main: unavailable
+  rf, after heap_sweep.c:81 `rg(n);`, joined: unavailable
+  rf, after heap_sweep.c:81 `rg(n);`, filtered: unavailable
+  rf, after heap_sweep.c:81 `rg(n);`, rf :: heap_sweep.c:83 <- restored_main: unavailable
+  rf, before heap_sweep.c:81 `stale = hidden;`, joined: unavailable
+  rf, before heap_sweep.c:81 `stale = hidden;`, filtered: unavailable
+  rf, before heap_sweep.c:81 `stale = hidden;`, rf :: heap_sweep.c:83 <- restored_main: unavailable
+  rf, after heap_sweep.c:81 `stale = hidden;`, joined: unavailable
+  rf, after heap_sweep.c:81 `stale = hidden;`, filtered: unavailable
+  rf, after heap_sweep.c:81 `stale = hidden;`, rf :: heap_sweep.c:83 <- restored_main: unavailable
+  rf, before heap_sweep.c:81 `free((void *)p);`, joined: unavailable
+  rf, before heap_sweep.c:81 `free((void *)p);`, filtered: unavailable
+  rf, before heap_sweep.c:81 `free((void *)p);`, rf :: heap_sweep.c:77 <- rh :: heap_sweep.c:78 <- rg :: heap_sweep.c:81 <- rf :: heap_sweep.c:83 <- restored_main: unavailable
+  rf, after heap_sweep.c:81 `free((void *)p);`, joined: unavailable
+  rf, after heap_sweep.c:81 `free((void *)p);`, filtered: unavailable
+  rf, after heap_sweep.c:81 `free((void *)p);`, rf :: heap_sweep.c:77 <- rh :: heap_sweep.c:78 <- rg :: heap_sweep.c:81 <- rf :: heap_sweep.c:83 <- restored_main: unavailable
+  rf, before heap_sweep.c:82 `return;`, joined: unavailable
+  rf, before heap_sweep.c:82 `return;`, filtered: unavailable
+  rf, before heap_sweep.c:82 `return;`, rf :: heap_sweep.c:77 <- rh :: heap_sweep.c:78 <- rg :: heap_sweep.c:81 <- rf :: heap_sweep.c:83 <- restored_main: unavailable
+  rf, before heap_sweep.c:82 `return;`, rf :: heap_sweep.c:83 <- restored_main: unavailable
+  rf, after heap_sweep.c:82 `return;`, joined: unavailable
+  rf, after heap_sweep.c:82 `return;`, filtered: unavailable
+  rf, after heap_sweep.c:82 `return;`, rf :: heap_sweep.c:77 <- rh :: heap_sweep.c:78 <- rg :: heap_sweep.c:81 <- rf :: heap_sweep.c:83 <- restored_main: unavailable
+  rf, after heap_sweep.c:82 `return;`, rf :: heap_sweep.c:83 <- restored_main: unavailable
+Answers: 473 equal, 0 covering, 0 more precise, 30 omitting, 42 unavailable.
+Callstacks listed: NOT those of the run without memexec at 12 of the 251 points:
+  rf, before heap_sweep.c:80 `char *hidden = p;`
+  rf, after heap_sweep.c:80 `char *hidden = p;`
+  rf, before heap_sweep.c:81 `if (n)`
+  rf, after heap_sweep.c:81 `if (n)`
+  rf, before heap_sweep.c:81 `rg(n);`
+  rf, after heap_sweep.c:81 `rg(n);`
+  rf, before heap_sweep.c:81 `stale = hidden;`
+  rf, after heap_sweep.c:81 `stale = hidden;`
+  rf, before heap_sweep.c:81 `free((void *)p);`
+  rf, after heap_sweep.c:81 `free((void *)p);`
+  rf, before heap_sweep.c:82 `return;`
+  rf, after heap_sweep.c:82 `return;`
+Callstacks listed through the filter: NOT those of the run without memexec at 12 of the 251 points:
+  rf, before heap_sweep.c:80 `char *hidden = p;`
+  rf, after heap_sweep.c:80 `char *hidden = p;`
+  rf, before heap_sweep.c:81 `if (n)`
+  rf, after heap_sweep.c:81 `if (n)`
+  rf, before heap_sweep.c:81 `rg(n);`
+  rf, after heap_sweep.c:81 `rg(n);`
+  rf, before heap_sweep.c:81 `stale = hidden;`
+  rf, after heap_sweep.c:81 `stale = hidden;`
+  rf, before heap_sweep.c:81 `free((void *)p);`
+  rf, after heap_sweep.c:81 `free((void *)p);`
+  rf, before heap_sweep.c:82 `return;`
+  rf, after heap_sweep.c:82 `return;`
+Filtered requests that reject one callstack: 7.
+Requests made: 1047; reported by the trap: 1047, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 142 requests, 68 reads of the legacy store in them, 79 reads outside any request.
+  with -eva-hit-log: 142 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 118 requests
+    statistics: 15 requests
+    summary: 9 requests
+Statuses of the properties: those of the run without memexec, for 309 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.1905, 0 alarms, those of the run without memexec.
+Points of the cache entries:
+rf :: heap_sweep.c:77 <- rh :: heap_sweep.c:78 <- rg :: heap_sweep.c:81 <- rf :: heap_sweep.c:83 <- restored_main, cache entry 11:
+rh :: heap_sweep.c:78 <- rg :: heap_sweep.c:81 <- rf :: heap_sweep.c:83 <- restored_main, cache entry 12:
+  before H: covers __malloc_restored_main_l83_1; does not bind __malloc_restored_main_l83_1; swept on every path: __malloc_restored_main_l83_1; on some path only: none
+rg :: heap_sweep.c:81 <- rf :: heap_sweep.c:83 <- restored_main, cache entry 13:
+  before G: covers __malloc_restored_main_l83_1; does not bind __malloc_restored_main_l83_1; swept on every path: __malloc_restored_main_l83_1; on some path only: none
+rf :: heap_sweep.c:83 <- restored_main, cache entry 14:
+restored_main, cache entry 15:

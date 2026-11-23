@@ -1,0 +1,83 @@
+[kernel] Parsing heap_sweep.c (with preprocessing)
+Calls:
+  Frama_C_interval :: heap_sweep.c:110 <- release_main: specification
+  alloca :: heap_sweep.c:103 <- al :: heap_sweep.c:107 <- release :: heap_sweep.c:110 <- release_main: builtin
+  al :: heap_sweep.c:107 <- release :: heap_sweep.c:110 <- release_main: analysed, cache entry 9
+  alloca :: heap_sweep.c:103 <- al :: heap_sweep.c:107 <- release :: heap_sweep.c:110 <- release_main: builtin
+  al :: heap_sweep.c:107 <- release :: heap_sweep.c:110 <- release_main: analysed, cache entry 10
+  release :: heap_sweep.c:110 <- release_main: analysed, cache entry 11
+  release_main: analysed, cache entry 12
+Heap calls, not stored by memexec: al 2, release 1, release_main 1.
+Heap calls whose answers come from full states: none.
+Hits not made because memexec does not store the heap calls: none.
+release, start:
+  joined: p ∈ {0}
+          g ∈ {0}
+          stale ∈ {0}
+          keep ∈ {0}
+          z ∈ {0}
+          c ∈ {0; 1}
+          tmp ∈ {0; 1}
+  release :: heap_sweep.c:110 <- release_main: p ∈ {0}
+                                               g ∈ {0}
+                                               stale ∈ {0}
+                                               keep ∈ {0}
+                                               z ∈ {0}
+                                               c ∈ {0; 1}
+                                               tmp ∈ {0; 1}
+release, before heap_sweep.c:108 `z ++;` (A):
+  joined: p ∈ {0}
+          g ∈ ESCAPINGADDR
+          stale ∈ {0}
+          keep ∈ {0}
+          z ∈ {0}
+          c ∈ {0; 1}
+          n ∈ {4; 8}
+          tmp ∈ {0; 1}
+  release :: heap_sweep.c:110 <- release_main: p ∈ {0}
+                                               g ∈ ESCAPINGADDR
+                                               stale ∈ {0}
+                                               keep ∈ {0}
+                                               z ∈ {0}
+                                               c ∈ {0; 1}
+                                               n ∈ {4; 8}
+                                               tmp ∈ {0; 1}
+release, after heap_sweep.c:109 `return;`:
+  joined: p ∈ {0}
+          g ∈ ESCAPINGADDR
+          stale ∈ {0}
+          keep ∈ {0}
+          z ∈ {1}
+          c ∈ {0; 1}
+          n ∈ {4; 8}
+          tmp ∈ {0; 1}
+  release :: heap_sweep.c:110 <- release_main: p ∈ {0}
+                                               g ∈ ESCAPINGADDR
+                                               stale ∈ {0}
+                                               keep ∈ {0}
+                                               z ∈ {1}
+                                               c ∈ {0; 1}
+                                               n ∈ {4; 8}
+                                               tmp ∈ {0; 1}
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 533 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 251 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 251 points.
+Filtered requests that reject one callstack: 0.
+Requests made: 1035; reported by the trap: 1035, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 139 requests, 56 reads of the legacy store in them, 62 reads outside any request.
+  with -eva-hit-log: 139 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 117 requests
+    statistics: 13 requests
+    summary: 9 requests
+Statuses of the properties: those of the run without memexec, for 309 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.1429, 0 alarms, those of the run without memexec.
+Points of the cache entries:
+al :: heap_sweep.c:107 <- release :: heap_sweep.c:110 <- release_main, cache entry 9:
+al :: heap_sweep.c:107 <- release :: heap_sweep.c:110 <- release_main, cache entry 10:
+release :: heap_sweep.c:110 <- release_main, cache entry 11:
+  before A: covers __alloca_al_l103_1; does not bind __alloca_al_l103_1; swept on every path: none; on some path only: none
+release_main, cache entry 12:

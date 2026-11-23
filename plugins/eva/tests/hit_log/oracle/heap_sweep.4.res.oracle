@@ -1,0 +1,365 @@
+[kernel] Parsing heap_sweep.c (with preprocessing)
+[eva:locals-escaping] heap_sweep.c:98: Warning: 
+  locals {saved} escaping the scope of recur_guarded through keep
+[eva:locals-escaping] heap_sweep.c:98: Warning: 
+  locals {saved} escaping the scope of recur_guarded through keep
+[eva:locals-escaping] heap_sweep.c:98: Warning: 
+  locals {saved} escaping the scope of recur_guarded through keep
+Calls:
+  malloc :: heap_sweep.c:98 <- guarded_main: builtin
+  Frama_C_interval :: heap_sweep.c:93 <- mid :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main: specification
+  free :: heap_sweep.c:89 <- guarded :: heap_sweep.c:93 <- mid :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main: builtin
+  guarded :: heap_sweep.c:93 <- mid :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main: analysed, cache entry 11
+  mid :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main: analysed, cache entry 12
+  recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main: analysed, cache entry 13
+  recur_guarded :: heap_sweep.c:98 <- guarded_main: analysed, cache entry 14
+  guarded_main: analysed, cache entry 15
+Heap calls, not stored by memexec: guarded 1, guarded_main 1, mid 1,
+  recur_guarded 2.
+Heap calls whose answers come from full states: none.
+Hits not made because memexec does not store the heap calls: none.
+guarded, start:
+  joined: p ∈ {{ &__malloc_guarded_main_l98_1[0] }}
+          g ∈ {0}
+          stale ∈ {0}
+          keep ∈ {{ &\copy<saved>[1] }}
+          z ∈ {0}
+          x ∈ {{ &__malloc_guarded_main_l98_1[0] }}
+          c ∈ {0; 1}
+          tmp ∈ {0; 1}
+          n ∈ {0}
+          saved ∈ {{ &__malloc_guarded_main_l98_1[0] }}
+          __malloc_guarded_main_l98_1[0..7] ∈ UNINITIALIZED
+          \copy<saved>[1] ∈ {{ &__malloc_guarded_main_l98_1[0] }}
+  guarded :: heap_sweep.c:93 <- mid :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main: 
+  p ∈ {{ &__malloc_guarded_main_l98_1[0] }}
+  g ∈ {0}
+  stale ∈ {0}
+  keep ∈ {{ &\copy<saved>[1] }}
+  z ∈ {0}
+  x ∈ {{ &__malloc_guarded_main_l98_1[0] }}
+  c ∈ {0; 1}
+  tmp ∈ {0; 1}
+  n ∈ {0}
+  saved ∈ {{ &__malloc_guarded_main_l98_1[0] }}
+  __malloc_guarded_main_l98_1[0..7] ∈ UNINITIALIZED
+  \copy<saved>[1] ∈ {{ &__malloc_guarded_main_l98_1[0] }}
+guarded, before heap_sweep.c:91 `z ++;` (GU):
+  joined: p ∈ ESCAPINGADDR
+          g ∈ {0}
+          stale ∈ {0}
+          keep ∈ {{ &\copy<saved>[1] }}
+          z ∈ {0}
+          x ∈ ESCAPINGADDR
+          c ∈ {1}
+          tmp ∈ {0; 1}
+          n ∈ {0}
+          saved ∈ ESCAPINGADDR
+          \copy<saved>[1] ∈
+                         {{ &__malloc_guarded_main_l98_1[0] }} or ESCAPINGADDR
+  guarded :: heap_sweep.c:93 <- mid :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main: 
+  p ∈ ESCAPINGADDR
+  g ∈ {0}
+  stale ∈ {0}
+  keep ∈ {{ &\copy<saved>[1] }}
+  z ∈ {0}
+  x ∈ ESCAPINGADDR
+  c ∈ {1}
+  tmp ∈ {0; 1}
+  n ∈ {0}
+  saved ∈ ESCAPINGADDR
+  \copy<saved>[1] ∈ {{ &__malloc_guarded_main_l98_1[0] }} or ESCAPINGADDR
+  reference, joined: p ∈ ESCAPINGADDR
+                     g ∈ {0}
+                     stale ∈ {0}
+                     keep ∈ {{ &\copy<saved>[1] }}
+                     z ∈ {0}
+                     x ∈ ESCAPINGADDR
+                     c ∈ {1}
+                     tmp ∈ {0; 1}
+                     n ∈ {0}
+                     saved ∈ ESCAPINGADDR
+                     \copy<saved>[1] ∈ ESCAPINGADDR
+  guarded :: heap_sweep.c:93 <- mid :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main: 
+  p ∈ ESCAPINGADDR
+  g ∈ {0}
+  stale ∈ {0}
+  keep ∈ {{ &\copy<saved>[1] }}
+  z ∈ {0}
+  x ∈ ESCAPINGADDR
+  c ∈ {1}
+  tmp ∈ {0; 1}
+  n ∈ {0}
+  saved ∈ ESCAPINGADDR
+  \copy<saved>[1] ∈ ESCAPINGADDR
+guarded, after heap_sweep.c:92 `return;`:
+  joined: p ∈ ESCAPINGADDR
+          g ∈ {0}
+          stale ∈ {0}
+          keep ∈ {{ &\copy<saved>[1] }}
+          z ∈ {1}
+          x ∈ ESCAPINGADDR
+          c ∈ {1}
+          tmp ∈ {0; 1}
+          n ∈ {0}
+          saved ∈ ESCAPINGADDR
+          \copy<saved>[1] ∈
+                         {{ &__malloc_guarded_main_l98_1[0] }} or ESCAPINGADDR
+  guarded :: heap_sweep.c:93 <- mid :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main: 
+  p ∈ ESCAPINGADDR
+  g ∈ {0}
+  stale ∈ {0}
+  keep ∈ {{ &\copy<saved>[1] }}
+  z ∈ {1}
+  x ∈ ESCAPINGADDR
+  c ∈ {1}
+  tmp ∈ {0; 1}
+  n ∈ {0}
+  saved ∈ ESCAPINGADDR
+  \copy<saved>[1] ∈ {{ &__malloc_guarded_main_l98_1[0] }} or ESCAPINGADDR
+  reference, joined: p ∈ ESCAPINGADDR
+                     g ∈ {0}
+                     stale ∈ {0}
+                     keep ∈ {{ &\copy<saved>[1] }}
+                     z ∈ {1}
+                     x ∈ ESCAPINGADDR
+                     c ∈ {1}
+                     tmp ∈ {0; 1}
+                     n ∈ {0}
+                     saved ∈ ESCAPINGADDR
+                     \copy<saved>[1] ∈ ESCAPINGADDR
+  guarded :: heap_sweep.c:93 <- mid :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main: 
+  p ∈ ESCAPINGADDR
+  g ∈ {0}
+  stale ∈ {0}
+  keep ∈ {{ &\copy<saved>[1] }}
+  z ∈ {1}
+  x ∈ ESCAPINGADDR
+  c ∈ {1}
+  tmp ∈ {0; 1}
+  n ∈ {0}
+  saved ∈ ESCAPINGADDR
+  \copy<saved>[1] ∈ ESCAPINGADDR
+mid, start:
+  joined: p ∈ {{ &__malloc_guarded_main_l98_1[0] }}
+          g ∈ {0}
+          stale ∈ {0}
+          keep ∈ {{ &\copy<saved>[1] }}
+          z ∈ {0}
+          n ∈ {0}
+          saved ∈ {{ &__malloc_guarded_main_l98_1[0] }}
+          __malloc_guarded_main_l98_1[0..7] ∈ UNINITIALIZED
+          \copy<saved>[1] ∈ {{ &__malloc_guarded_main_l98_1[0] }}
+  mid :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main: 
+  p ∈ {{ &__malloc_guarded_main_l98_1[0] }}
+  g ∈ {0}
+  stale ∈ {0}
+  keep ∈ {{ &\copy<saved>[1] }}
+  z ∈ {0}
+  n ∈ {0}
+  saved ∈ {{ &__malloc_guarded_main_l98_1[0] }}
+  __malloc_guarded_main_l98_1[0..7] ∈ UNINITIALIZED
+  \copy<saved>[1] ∈ {{ &__malloc_guarded_main_l98_1[0] }}
+mid, before heap_sweep.c:93 `z ++;` (MI):
+  joined: p ∈ ESCAPINGADDR
+          g ∈ {0}
+          stale ∈ {0}
+          keep ∈ {{ &\copy<saved>[1] }}
+          z ∈ {1}
+          tmp ∈ {1}
+          n ∈ {0}
+          saved ∈ ESCAPINGADDR
+          \copy<saved>[1] ∈
+                         {{ &__malloc_guarded_main_l98_1[0] }} or ESCAPINGADDR
+  mid :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main: 
+  p ∈ ESCAPINGADDR
+  g ∈ {0}
+  stale ∈ {0}
+  keep ∈ {{ &\copy<saved>[1] }}
+  z ∈ {1}
+  tmp ∈ {1}
+  n ∈ {0}
+  saved ∈ ESCAPINGADDR
+  \copy<saved>[1] ∈ {{ &__malloc_guarded_main_l98_1[0] }} or ESCAPINGADDR
+  reference, joined: p ∈ ESCAPINGADDR
+                     g ∈ {0}
+                     stale ∈ {0}
+                     keep ∈ {{ &\copy<saved>[1] }}
+                     z ∈ {1}
+                     tmp ∈ {1}
+                     n ∈ {0}
+                     saved ∈ ESCAPINGADDR
+                     \copy<saved>[1] ∈ ESCAPINGADDR
+  mid :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main: 
+  p ∈ ESCAPINGADDR
+  g ∈ {0}
+  stale ∈ {0}
+  keep ∈ {{ &\copy<saved>[1] }}
+  z ∈ {1}
+  tmp ∈ {1}
+  n ∈ {0}
+  saved ∈ ESCAPINGADDR
+  \copy<saved>[1] ∈ ESCAPINGADDR
+mid, after heap_sweep.c:93 `return;`:
+  joined: p ∈ ESCAPINGADDR
+          g ∈ {0}
+          stale ∈ {0}
+          keep ∈ {{ &\copy<saved>[1] }}
+          z ∈ {2}
+          tmp ∈ {1}
+          n ∈ {0}
+          saved ∈ ESCAPINGADDR
+          \copy<saved>[1] ∈
+                         {{ &__malloc_guarded_main_l98_1[0] }} or ESCAPINGADDR
+  mid :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main: 
+  p ∈ ESCAPINGADDR
+  g ∈ {0}
+  stale ∈ {0}
+  keep ∈ {{ &\copy<saved>[1] }}
+  z ∈ {2}
+  tmp ∈ {1}
+  n ∈ {0}
+  saved ∈ ESCAPINGADDR
+  \copy<saved>[1] ∈ {{ &__malloc_guarded_main_l98_1[0] }} or ESCAPINGADDR
+  reference, joined: p ∈ ESCAPINGADDR
+                     g ∈ {0}
+                     stale ∈ {0}
+                     keep ∈ {{ &\copy<saved>[1] }}
+                     z ∈ {2}
+                     tmp ∈ {1}
+                     n ∈ {0}
+                     saved ∈ ESCAPINGADDR
+                     \copy<saved>[1] ∈ ESCAPINGADDR
+  mid :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main: 
+  p ∈ ESCAPINGADDR
+  g ∈ {0}
+  stale ∈ {0}
+  keep ∈ {{ &\copy<saved>[1] }}
+  z ∈ {2}
+  tmp ∈ {1}
+  n ∈ {0}
+  saved ∈ ESCAPINGADDR
+  \copy<saved>[1] ∈ ESCAPINGADDR
+Initial state: equal.
+Differences with the run without memexec:
+  guarded, before heap_sweep.c:90 `loop`, joined: covers
+  guarded, before heap_sweep.c:90 `loop`, filtered: covers
+  guarded, before heap_sweep.c:90 `loop`, guarded :: heap_sweep.c:93 <- mid :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main: covers
+  guarded, after heap_sweep.c:90 `loop`, joined: covers
+  guarded, after heap_sweep.c:90 `loop`, filtered: covers
+  guarded, after heap_sweep.c:90 `loop`, guarded :: heap_sweep.c:93 <- mid :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main: covers
+  guarded, before heap_sweep.c:91 `z ++;` (GU), joined: covers
+  guarded, before heap_sweep.c:91 `z ++;` (GU), filtered: covers
+  guarded, before heap_sweep.c:91 `z ++;` (GU), guarded :: heap_sweep.c:93 <- mid :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main: covers
+  guarded, after heap_sweep.c:91 `z ++;` (GU), joined: covers
+  guarded, after heap_sweep.c:91 `z ++;` (GU), filtered: covers
+  guarded, after heap_sweep.c:91 `z ++;` (GU), guarded :: heap_sweep.c:93 <- mid :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main: covers
+  guarded, before heap_sweep.c:92 `return;`, joined: covers
+  guarded, before heap_sweep.c:92 `return;`, filtered: covers
+  guarded, before heap_sweep.c:92 `return;`, guarded :: heap_sweep.c:93 <- mid :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main: covers
+  guarded, after heap_sweep.c:92 `return;`, joined: covers
+  guarded, after heap_sweep.c:92 `return;`, filtered: covers
+  guarded, after heap_sweep.c:92 `return;`, guarded :: heap_sweep.c:93 <- mid :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main: covers
+  mid, after heap_sweep.c:93 `guarded(p,tmp);`, joined: covers
+  mid, after heap_sweep.c:93 `guarded(p,tmp);`, filtered: covers
+  mid, after heap_sweep.c:93 `guarded(p,tmp);`, mid :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main: covers
+  mid, before heap_sweep.c:93 `z ++;` (MI), joined: covers
+  mid, before heap_sweep.c:93 `z ++;` (MI), filtered: covers
+  mid, before heap_sweep.c:93 `z ++;` (MI), mid :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main: covers
+  mid, after heap_sweep.c:93 `z ++;` (MI), joined: covers
+  mid, after heap_sweep.c:93 `z ++;` (MI), filtered: covers
+  mid, after heap_sweep.c:93 `z ++;` (MI), mid :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main: covers
+  mid, before heap_sweep.c:93 `return;`, joined: covers
+  mid, before heap_sweep.c:93 `return;`, filtered: covers
+  mid, before heap_sweep.c:93 `return;`, mid :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main: covers
+  mid, after heap_sweep.c:93 `return;`, joined: covers
+  mid, after heap_sweep.c:93 `return;`, filtered: covers
+  mid, after heap_sweep.c:93 `return;`, mid :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main: covers
+  recur_guarded, before heap_sweep.c:95 `char *saved = p;`, joined: unavailable
+  recur_guarded, before heap_sweep.c:95 `char *saved = p;`, filtered: unavailable
+  recur_guarded, before heap_sweep.c:95 `char *saved = p;`, recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main: unavailable
+  recur_guarded, before heap_sweep.c:95 `char *saved = p;`, recur_guarded :: heap_sweep.c:98 <- guarded_main: unavailable
+  recur_guarded, after heap_sweep.c:95 `char *saved = p;`, joined: unavailable
+  recur_guarded, after heap_sweep.c:95 `char *saved = p;`, filtered: unavailable
+  recur_guarded, after heap_sweep.c:95 `char *saved = p;`, recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main: unavailable
+  recur_guarded, after heap_sweep.c:95 `char *saved = p;`, recur_guarded :: heap_sweep.c:98 <- guarded_main: unavailable
+  recur_guarded, before heap_sweep.c:96 `if (n)`, joined: unavailable
+  recur_guarded, before heap_sweep.c:96 `if (n)`, filtered: unavailable
+  recur_guarded, before heap_sweep.c:96 `if (n)`, recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main: unavailable
+  recur_guarded, before heap_sweep.c:96 `if (n)`, recur_guarded :: heap_sweep.c:98 <- guarded_main: unavailable
+  recur_guarded, after heap_sweep.c:96 `if (n)`, joined: unavailable
+  recur_guarded, after heap_sweep.c:96 `if (n)`, filtered: unavailable
+  recur_guarded, after heap_sweep.c:96 `if (n)`, recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main: unavailable
+  recur_guarded, after heap_sweep.c:96 `if (n)`, recur_guarded :: heap_sweep.c:98 <- guarded_main: unavailable
+  recur_guarded, before heap_sweep.c:96 `keep = & saved;`, joined: unavailable
+  recur_guarded, before heap_sweep.c:96 `keep = & saved;`, filtered: unavailable
+  recur_guarded, before heap_sweep.c:96 `keep = & saved;`, recur_guarded :: heap_sweep.c:98 <- guarded_main: unavailable
+  recur_guarded, after heap_sweep.c:96 `keep = & saved;`, joined: unavailable
+  recur_guarded, after heap_sweep.c:96 `keep = & saved;`, filtered: unavailable
+  recur_guarded, after heap_sweep.c:96 `keep = & saved;`, recur_guarded :: heap_sweep.c:98 <- guarded_main: unavailable
+  recur_guarded, before heap_sweep.c:96 `recur_guarded(n - 1);`, joined: unavailable
+  recur_guarded, before heap_sweep.c:96 `recur_guarded(n - 1);`, filtered: unavailable
+  recur_guarded, before heap_sweep.c:96 `recur_guarded(n - 1);`, recur_guarded :: heap_sweep.c:98 <- guarded_main: unavailable
+  recur_guarded, after heap_sweep.c:96 `recur_guarded(n - 1);`, joined: unavailable
+  recur_guarded, after heap_sweep.c:96 `recur_guarded(n - 1);`, filtered: unavailable
+  recur_guarded, after heap_sweep.c:96 `recur_guarded(n - 1);`, recur_guarded :: heap_sweep.c:98 <- guarded_main: unavailable
+  recur_guarded, before heap_sweep.c:96 `mid();`, joined: unavailable
+  recur_guarded, before heap_sweep.c:96 `mid();`, filtered: unavailable
+  recur_guarded, before heap_sweep.c:96 `mid();`, recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main: unavailable
+  recur_guarded, after heap_sweep.c:96 `mid();`, joined: unavailable
+  recur_guarded, after heap_sweep.c:96 `mid();`, filtered: unavailable
+  recur_guarded, after heap_sweep.c:96 `mid();`, recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main: unavailable
+  recur_guarded, before heap_sweep.c:97 `return;`, joined: unavailable
+  recur_guarded, before heap_sweep.c:97 `return;`, filtered: unavailable
+  recur_guarded, before heap_sweep.c:97 `return;`, recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main: unavailable
+  recur_guarded, before heap_sweep.c:97 `return;`, recur_guarded :: heap_sweep.c:98 <- guarded_main: unavailable
+  recur_guarded, after heap_sweep.c:97 `return;`, joined: unavailable
+  recur_guarded, after heap_sweep.c:97 `return;`, filtered: unavailable
+  recur_guarded, after heap_sweep.c:97 `return;`, recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main: unavailable
+  recur_guarded, after heap_sweep.c:97 `return;`, recur_guarded :: heap_sweep.c:98 <- guarded_main: unavailable
+Answers: 482 equal, 33 covering, 0 more precise, 0 omitting, 42 unavailable.
+Callstacks listed: NOT those of the run without memexec at 12 of the 251 points:
+  recur_guarded, before heap_sweep.c:95 `char *saved = p;`
+  recur_guarded, after heap_sweep.c:95 `char *saved = p;`
+  recur_guarded, before heap_sweep.c:96 `if (n)`
+  recur_guarded, after heap_sweep.c:96 `if (n)`
+  recur_guarded, before heap_sweep.c:96 `keep = & saved;`
+  recur_guarded, after heap_sweep.c:96 `keep = & saved;`
+  recur_guarded, before heap_sweep.c:96 `recur_guarded(n - 1);`
+  recur_guarded, after heap_sweep.c:96 `recur_guarded(n - 1);`
+  recur_guarded, before heap_sweep.c:96 `mid();`
+  recur_guarded, after heap_sweep.c:96 `mid();`
+  recur_guarded, before heap_sweep.c:97 `return;`
+  recur_guarded, after heap_sweep.c:97 `return;`
+Callstacks listed through the filter: NOT those of the run without memexec at 12 of the 251 points:
+  recur_guarded, before heap_sweep.c:95 `char *saved = p;`
+  recur_guarded, after heap_sweep.c:95 `char *saved = p;`
+  recur_guarded, before heap_sweep.c:96 `if (n)`
+  recur_guarded, after heap_sweep.c:96 `if (n)`
+  recur_guarded, before heap_sweep.c:96 `keep = & saved;`
+  recur_guarded, after heap_sweep.c:96 `keep = & saved;`
+  recur_guarded, before heap_sweep.c:96 `recur_guarded(n - 1);`
+  recur_guarded, after heap_sweep.c:96 `recur_guarded(n - 1);`
+  recur_guarded, before heap_sweep.c:96 `mid();`
+  recur_guarded, after heap_sweep.c:96 `mid();`
+  recur_guarded, before heap_sweep.c:97 `return;`
+  recur_guarded, after heap_sweep.c:97 `return;`
+Filtered requests that reject one callstack: 7.
+Requests made: 1059; reported by the trap: 1059, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 148 requests, 93 reads of the legacy store in them, 105 reads outside any request.
+  with -eva-hit-log: 148 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 118 requests
+    statistics: 21 requests
+    summary: 9 requests
+Statuses of the properties: those of the run without memexec, for 308 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.1905, 0 alarms, those of the run without memexec.
+Points of the cache entries:
+guarded :: heap_sweep.c:93 <- mid :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main, cache entry 11:
+  before GU: covers __malloc_guarded_main_l98_1; does not bind __malloc_guarded_main_l98_1; swept on every path: none; on some path only: __malloc_guarded_main_l98_1
+mid :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main, cache entry 12:
+  before MI: covers __malloc_guarded_main_l98_1; does not bind __malloc_guarded_main_l98_1; swept on every path: none; on some path only: __malloc_guarded_main_l98_1
+recur_guarded :: heap_sweep.c:96 <- recur_guarded :: heap_sweep.c:98 <- guarded_main, cache entry 13:
+recur_guarded :: heap_sweep.c:98 <- guarded_main, cache entry 14:
+guarded_main, cache entry 15:

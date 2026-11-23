@@ -1,0 +1,161 @@
+[kernel] Parsing heap_sweep.c (with preprocessing)
+[eva:locals-escaping] heap_sweep.c:34: Warning: 
+  locals {saved} escaping the scope of recur through keep
+[eva:locals-escaping] heap_sweep.c:34: Warning: 
+  locals {saved} escaping the scope of recur through keep
+[eva:locals-escaping] heap_sweep.c:34: Warning: 
+  locals {saved} escaping the scope of recur through keep
+Calls:
+  malloc :: heap_sweep.c:34 <- every_main: builtin
+  free :: heap_sweep.c:29 <- leaf :: heap_sweep.c:32 <- recur :: heap_sweep.c:32 <- recur :: heap_sweep.c:34 <- every_main: builtin
+  leaf :: heap_sweep.c:32 <- recur :: heap_sweep.c:32 <- recur :: heap_sweep.c:34 <- every_main: analysed, cache entry 9
+  recur :: heap_sweep.c:32 <- recur :: heap_sweep.c:34 <- every_main: analysed, cache entry 10
+  recur :: heap_sweep.c:34 <- every_main: analysed, cache entry 11
+  every_main: analysed, cache entry 12
+Heap calls, not stored by memexec: every_main 1, leaf 1, recur 2.
+Heap calls whose answers come from full states: none.
+Hits not made because memexec does not store the heap calls: none.
+leaf, start:
+  joined: p ∈ {{ &__malloc_every_main_l34_1[0] }}
+          g ∈ {0}
+          stale ∈ {0}
+          keep ∈ {{ &\copy<saved>[1] }}
+          z ∈ {0}
+          n ∈ {0}
+          saved ∈ {{ &__malloc_every_main_l34_1[0] }}
+          __malloc_every_main_l34_1[0..7] ∈ UNINITIALIZED
+          \copy<saved>[1] ∈ {{ &__malloc_every_main_l34_1[0] }}
+  leaf :: heap_sweep.c:32 <- recur :: heap_sweep.c:32 <- recur :: heap_sweep.c:34 <- every_main: 
+  p ∈ {{ &__malloc_every_main_l34_1[0] }}
+  g ∈ {0}
+  stale ∈ {0}
+  keep ∈ {{ &\copy<saved>[1] }}
+  z ∈ {0}
+  n ∈ {0}
+  saved ∈ {{ &__malloc_every_main_l34_1[0] }}
+  __malloc_every_main_l34_1[0..7] ∈ UNINITIALIZED
+  \copy<saved>[1] ∈ {{ &__malloc_every_main_l34_1[0] }}
+leaf, before heap_sweep.c:29 `z ++;` (E):
+  joined: p ∈ ESCAPINGADDR
+          g ∈ {0}
+          stale ∈ {0}
+          keep ∈ {{ &\copy<saved>[1] }}
+          z ∈ {0}
+          n ∈ {0}
+          saved ∈ ESCAPINGADDR
+          \copy<saved>[1] ∈ ESCAPINGADDR
+  leaf :: heap_sweep.c:32 <- recur :: heap_sweep.c:32 <- recur :: heap_sweep.c:34 <- every_main: 
+  p ∈ ESCAPINGADDR
+  g ∈ {0}
+  stale ∈ {0}
+  keep ∈ {{ &\copy<saved>[1] }}
+  z ∈ {0}
+  n ∈ {0}
+  saved ∈ ESCAPINGADDR
+  \copy<saved>[1] ∈ ESCAPINGADDR
+leaf, after heap_sweep.c:29 `return;`:
+  joined: p ∈ ESCAPINGADDR
+          g ∈ {0}
+          stale ∈ {0}
+          keep ∈ {{ &\copy<saved>[1] }}
+          z ∈ {1}
+          n ∈ {0}
+          saved ∈ ESCAPINGADDR
+          \copy<saved>[1] ∈ ESCAPINGADDR
+  leaf :: heap_sweep.c:32 <- recur :: heap_sweep.c:32 <- recur :: heap_sweep.c:34 <- every_main: 
+  p ∈ ESCAPINGADDR
+  g ∈ {0}
+  stale ∈ {0}
+  keep ∈ {{ &\copy<saved>[1] }}
+  z ∈ {1}
+  n ∈ {0}
+  saved ∈ ESCAPINGADDR
+  \copy<saved>[1] ∈ ESCAPINGADDR
+Initial state: equal.
+Differences with the run without memexec:
+  recur, before heap_sweep.c:31 `char *saved = p;`, joined: unavailable
+  recur, before heap_sweep.c:31 `char *saved = p;`, filtered: unavailable
+  recur, before heap_sweep.c:31 `char *saved = p;`, recur :: heap_sweep.c:32 <- recur :: heap_sweep.c:34 <- every_main: unavailable
+  recur, before heap_sweep.c:31 `char *saved = p;`, recur :: heap_sweep.c:34 <- every_main: unavailable
+  recur, after heap_sweep.c:31 `char *saved = p;`, joined: unavailable
+  recur, after heap_sweep.c:31 `char *saved = p;`, filtered: unavailable
+  recur, after heap_sweep.c:31 `char *saved = p;`, recur :: heap_sweep.c:32 <- recur :: heap_sweep.c:34 <- every_main: unavailable
+  recur, after heap_sweep.c:31 `char *saved = p;`, recur :: heap_sweep.c:34 <- every_main: unavailable
+  recur, before heap_sweep.c:32 `if (n)`, joined: unavailable
+  recur, before heap_sweep.c:32 `if (n)`, filtered: unavailable
+  recur, before heap_sweep.c:32 `if (n)`, recur :: heap_sweep.c:32 <- recur :: heap_sweep.c:34 <- every_main: unavailable
+  recur, before heap_sweep.c:32 `if (n)`, recur :: heap_sweep.c:34 <- every_main: unavailable
+  recur, after heap_sweep.c:32 `if (n)`, joined: unavailable
+  recur, after heap_sweep.c:32 `if (n)`, filtered: unavailable
+  recur, after heap_sweep.c:32 `if (n)`, recur :: heap_sweep.c:32 <- recur :: heap_sweep.c:34 <- every_main: unavailable
+  recur, after heap_sweep.c:32 `if (n)`, recur :: heap_sweep.c:34 <- every_main: unavailable
+  recur, before heap_sweep.c:32 `keep = & saved;`, joined: unavailable
+  recur, before heap_sweep.c:32 `keep = & saved;`, filtered: unavailable
+  recur, before heap_sweep.c:32 `keep = & saved;`, recur :: heap_sweep.c:34 <- every_main: unavailable
+  recur, after heap_sweep.c:32 `keep = & saved;`, joined: unavailable
+  recur, after heap_sweep.c:32 `keep = & saved;`, filtered: unavailable
+  recur, after heap_sweep.c:32 `keep = & saved;`, recur :: heap_sweep.c:34 <- every_main: unavailable
+  recur, before heap_sweep.c:32 `recur(0);`, joined: unavailable
+  recur, before heap_sweep.c:32 `recur(0);`, filtered: unavailable
+  recur, before heap_sweep.c:32 `recur(0);`, recur :: heap_sweep.c:34 <- every_main: unavailable
+  recur, after heap_sweep.c:32 `recur(0);`, joined: unavailable
+  recur, after heap_sweep.c:32 `recur(0);`, filtered: unavailable
+  recur, after heap_sweep.c:32 `recur(0);`, recur :: heap_sweep.c:34 <- every_main: unavailable
+  recur, before heap_sweep.c:32 `leaf();`, joined: unavailable
+  recur, before heap_sweep.c:32 `leaf();`, filtered: unavailable
+  recur, before heap_sweep.c:32 `leaf();`, recur :: heap_sweep.c:32 <- recur :: heap_sweep.c:34 <- every_main: unavailable
+  recur, after heap_sweep.c:32 `leaf();`, joined: unavailable
+  recur, after heap_sweep.c:32 `leaf();`, filtered: unavailable
+  recur, after heap_sweep.c:32 `leaf();`, recur :: heap_sweep.c:32 <- recur :: heap_sweep.c:34 <- every_main: unavailable
+  recur, before heap_sweep.c:33 `return;`, joined: unavailable
+  recur, before heap_sweep.c:33 `return;`, filtered: unavailable
+  recur, before heap_sweep.c:33 `return;`, recur :: heap_sweep.c:32 <- recur :: heap_sweep.c:34 <- every_main: unavailable
+  recur, before heap_sweep.c:33 `return;`, recur :: heap_sweep.c:34 <- every_main: unavailable
+  recur, after heap_sweep.c:33 `return;`, joined: unavailable
+  recur, after heap_sweep.c:33 `return;`, filtered: unavailable
+  recur, after heap_sweep.c:33 `return;`, recur :: heap_sweep.c:32 <- recur :: heap_sweep.c:34 <- every_main: unavailable
+  recur, after heap_sweep.c:33 `return;`, recur :: heap_sweep.c:34 <- every_main: unavailable
+Answers: 496 equal, 0 covering, 0 more precise, 0 omitting, 42 unavailable.
+Callstacks listed: NOT those of the run without memexec at 12 of the 251 points:
+  recur, before heap_sweep.c:31 `char *saved = p;`
+  recur, after heap_sweep.c:31 `char *saved = p;`
+  recur, before heap_sweep.c:32 `if (n)`
+  recur, after heap_sweep.c:32 `if (n)`
+  recur, before heap_sweep.c:32 `keep = & saved;`
+  recur, after heap_sweep.c:32 `keep = & saved;`
+  recur, before heap_sweep.c:32 `recur(0);`
+  recur, after heap_sweep.c:32 `recur(0);`
+  recur, before heap_sweep.c:32 `leaf();`
+  recur, after heap_sweep.c:32 `leaf();`
+  recur, before heap_sweep.c:33 `return;`
+  recur, after heap_sweep.c:33 `return;`
+Callstacks listed through the filter: NOT those of the run without memexec at 12 of the 251 points:
+  recur, before heap_sweep.c:31 `char *saved = p;`
+  recur, after heap_sweep.c:31 `char *saved = p;`
+  recur, before heap_sweep.c:32 `if (n)`
+  recur, after heap_sweep.c:32 `if (n)`
+  recur, before heap_sweep.c:32 `keep = & saved;`
+  recur, after heap_sweep.c:32 `keep = & saved;`
+  recur, before heap_sweep.c:32 `recur(0);`
+  recur, after heap_sweep.c:32 `recur(0);`
+  recur, before heap_sweep.c:32 `leaf();`
+  recur, after heap_sweep.c:32 `leaf();`
+  recur, before heap_sweep.c:33 `return;`
+  recur, after heap_sweep.c:33 `return;`
+Filtered requests that reject one callstack: 7.
+Requests made: 1040; reported by the trap: 1040, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 138 requests, 55 reads of the legacy store in them, 65 reads outside any request.
+  with -eva-hit-log: 138 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 117 requests
+    statistics: 12 requests
+    summary: 9 requests
+Statuses of the properties: those of the run without memexec, for 309 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.1429, 0 alarms, those of the run without memexec.
+Points of the cache entries:
+leaf :: heap_sweep.c:32 <- recur :: heap_sweep.c:32 <- recur :: heap_sweep.c:34 <- every_main, cache entry 9:
+  before E: covers __malloc_every_main_l34_1; does not bind __malloc_every_main_l34_1; swept on every path: __malloc_every_main_l34_1; on some path only: none
+recur :: heap_sweep.c:32 <- recur :: heap_sweep.c:34 <- every_main, cache entry 10:
+recur :: heap_sweep.c:34 <- every_main, cache entry 11:
+every_main, cache entry 12:
