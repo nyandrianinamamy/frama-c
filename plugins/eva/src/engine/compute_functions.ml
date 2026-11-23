@@ -254,6 +254,7 @@ module Make (Engine: Engine_sig.S) = struct
         Hit_log.mark_unrolled_recursion kf
       | _ -> ()
     end;
+    Option.iter (Hit_log.recursive_call call.callstack) recursion;
     compute_call_with_target call target state
 
   (* ----- Main call -------------------------------------------------------- *)

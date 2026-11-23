@@ -332,10 +332,13 @@ type exit =
    with its call statement, its function, its start state and the cache entry
    it used; the cache entry this call uses, once known; the heap effects it
    received so far; the sweeps of the calls made by its body, merged over the
-   evaluations of each call statement, see [add_evaluation]; how the call
-   ends, set when its body has been analysed; for a builtin, the number of
-   states it returns; and whether it is refused: it calls, or a call nested in
-   it calls, a builtin that reads every allocated block. *)
+   evaluations of each call statement, see [add_evaluation]; the variables
+   that a recursive call withdraws from the state and puts back at its end,
+   per call statement of the body that makes it or makes a call nested in
+   which it is made, and overall; how the call ends, set when its body has
+   been analysed; for a builtin, the number of states it returns; and
+   whether it is refused: it calls, or a call nested in it calls, a builtin
+   that reads every allocated block. *)
 type frame = {
   mutable calls:
     (Cil_types.stmt * Cil_types.kernel_function * Cvalue.Model.t * int option)
@@ -343,6 +346,8 @@ type frame = {
   mutable used: int option;
   mutable effects: effects;
   site_sweeps: Heap_paths.sweeps Stmt_table.t;
+  withdrawn_at: Base.Hptset.t Stmt_table.t;
+  mutable withdrawn: Base.Hptset.t;
   mutable exit: exit;
   mutable outputs: int option;
   mutable refused: bool;
@@ -727,6 +732,34 @@ let add_evaluation caller site frame =
     in
     Stmt_table.replace caller.site_sweeps site sweeps
 
+(* Adds [withdrawn], the variables that a recursive call made at [site] or
+   nested in the call made there withdraws and puts back, to those of the
+   frame [caller]. *)
+let add_withdrawn caller site withdrawn =
+  if not (Base.Hptset.is_empty withdrawn) then begin
+    let previous =
+      Option.value ~default:Base.Hptset.empty
+        (Stmt_table.find_opt caller.withdrawn_at site)
+    in
+    Stmt_table.replace caller.withdrawn_at site
+      (Base.Hptset.union previous withdrawn);
+    caller.withdrawn <- Base.Hptset.union caller.withdrawn withdrawn
+  end
+
+(* A recursive call puts back the variables that it withdraws as they were
+   before the call: the releases made by the call do not sweep them, while
+   the sweep map of the calls in which it is nested would. These calls
+   cover the variables after their call statement that leads to it, so that
+   the rule takes them from the Inner part. The frame of the call that makes
+   the recursive call is the innermost one, as the frame of the recursive
+   call is not created yet. *)
+let recursive_call callstack (recursion: Eval.recursion) =
+  if enabled () then
+    match current_frame (), Callstack.top_callsite callstack with
+    | Some frame, Kstmt site ->
+      add_withdrawn frame site recursion.base_withdrawal
+    | Some _, Kglobal | None, _ -> ()
+
 (* The blocks that the heap effects of [received] allocate, mutate or
    remove, added to [acc]. *)
 let rec add_effect_blocks acc = function
@@ -757,7 +790,9 @@ let refused frame =
    [fired], see [Heap_paths.compute]. The effects at a call statement act on
    the edge of the call: the blocks that the effects received by the call,
    and those of the automatic release at its end, allocate, mutate or remove
-   are covered after it; its sweeps are those of its evaluations, merged,
+   are covered after it, and so are the variables that a recursive call
+   nested there withdraws, see [recursive_call]; its sweeps are those of its
+   evaluations, merged,
    followed by those of the automatic release, on some path only, as the
    release is not attributed to one evaluation. The effects at another
    statement, the loop whose widening raises the validity of a block, act on
@@ -786,6 +821,8 @@ let heap_paths frame automaton ~fired =
   in
   let value stmt =
     let covered = find covered stmt ~default:Base.Hptset.empty in
+    let withdrawn = find frame.withdrawn_at stmt ~default:Base.Hptset.empty in
+    let covered = Base.Hptset.union covered withdrawn in
     let evaluations =
       find frame.site_sweeps stmt ~default:Heap_paths.no_sweep
     in
@@ -971,7 +1008,8 @@ let call callstack ~start f =
   let running = Running.get () in
   let frame = {
     calls = []; used = None; effects = [];
-    site_sweeps = Stmt_table.create 1; exit = Unset; outputs = None;
+    site_sweeps = Stmt_table.create 1; withdrawn_at = Stmt_table.create 1;
+    withdrawn = Base.Hptset.empty; exit = Unset; outputs = None;
     refused = false;
   } in
   running.frames <- frame :: running.frames;
@@ -984,6 +1022,7 @@ let call callstack ~start f =
       if frame.effects <> [] then
         caller.effects <- Through (site, kf, frame.effects) :: caller.effects;
       if frame.refused then caller.refused <- true;
+      add_withdrawn caller site frame.withdrawn;
       add_evaluation caller site frame;
       let call = site, kf, start, frame.used in
       caller.calls <- call :: caller.calls

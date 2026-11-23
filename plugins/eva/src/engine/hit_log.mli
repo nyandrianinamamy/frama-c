@@ -72,7 +72,11 @@
     effects allocate, mutate or remove, from the point where the effect
     happens on: after the statement of the call that receives the effect or
     whose automatic release makes it, and from the point before the loop
-    whose widening makes it. The paths from the start of the body are those
+    whose widening makes it. After a call statement, it also covers the
+    variables that a recursive call, made there or in a call nested there,
+    withdraws from the state: the recursive call puts them back at its end
+    as they were before it, unswept by its releases. The paths from the
+    start of the body are those
     of its analysis: an edge of the automaton of the body through which the
     analysis propagated no state is on no path. A covered block that the
     Inner part does not bind is removed at the point: this is the removal
@@ -81,11 +85,12 @@
     only. A block is swept when a release turns the pointers to it into
     escaping addresses. The map keeps the blocks that the body-entry state
     does not bind: this state can point to them, as a recursive call puts
-    back unswept the variables that it withdraws from the state. At a call statement, the sweeps
-    of the evaluations of the call that return are merged: a block swept on
-    every path of each of them is swept on every path, and a block swept in
-    some of them only, or on some path only, is swept on some path only. The
-    sweeps of a [free] on several blocks or on a weak block, which joins the
+    back unswept the variables that it withdraws from the state. At a call
+    statement, the sweeps of the evaluations of the call that return are
+    merged: a block swept on every path of each of them is swept on every
+    path, and a block swept in some of them only, or on some path only, is
+    swept on some path only. The sweeps of a [free] on several blocks or on
+    a weak block, which joins the
     pointers with escaping addresses, of a builtin that returns several
     states, as [realloc] when it may fail, and of the automatic release, are
     on some path only. A request at a point of a heap call is answered by
@@ -238,6 +243,13 @@ val register_effects_hook: (Callstack.t -> effects -> unit) -> unit
 
 (** Marks a function of which a recursive call is analysed by its body. *)
 val mark_unrolled_recursion: Cil_types.kernel_function -> unit
+
+(** [recursive_call callstack recursion]: the call on [callstack], about to
+    be analysed, is a recursive call, which withdraws variables from the
+    state and puts them back at its end, see [recursion]. The heap calls in
+    which it is nested cover these variables after their call statement that
+    leads to it. *)
+val recursive_call: Callstack.t -> recursion -> unit
 
 (** [analysis f] runs [f], the iteration of an analysis of the current
     project. The rule answers the requests made after it, if the recording
