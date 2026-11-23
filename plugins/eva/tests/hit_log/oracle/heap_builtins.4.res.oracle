@@ -6,9 +6,8 @@ Calls:
   f2 :: heap_builtins.c:43 <- top :: heap_builtins.c:46 <- free_main: analysed, cache entry 10
   top :: heap_builtins.c:46 <- free_main: analysed, cache entry 11
   free_main: analysed, cache entry 12
-Heap calls, with full states, not stored by memexec: f1 1, f2 1, free_main 1,
-  top 1.
-Hits not made, the heap calls being not stored: none.
+Heap calls, not stored by memexec: f1 1, f2 1, free_main 1, top 1.
+Hits not made because memexec does not store the heap calls: none.
 top, start:
   joined: g ∈ {{ &__malloc_free_main_l45_1[0] }}
           z ∈ {0}

@@ -477,17 +477,18 @@ let print_heap_calls () =
         fmt counts
   in
   if allocates || heap <> [] || lost <> [] || lost_below <> [] then begin
-    Format.printf "@[<hov 2>Heap calls, with full states, not stored by \
-                   memexec:@ %a.@]@." pp_counts heap;
-    Format.printf "@[<hov 2>Hits not made, the heap calls being not \
-                   stored:@ %a.@]@." pp_counts lost;
+    Format.printf "@[<hov 2>Heap calls, not stored by memexec:@ %a.@]@."
+      pp_counts heap;
+    Format.printf "@[<hov 2>Hits not made because memexec does not store \
+                   the heap calls:@ %a.@]@." pp_counts lost;
     if lost_below <> [] then
       Format.printf "@[<hov 2>Hits not made during the analysis of a call \
-                     that would have been a hit:@ %a.@]@." pp_counts lost_below
+                     that would have been a hit:@ %a.@]@."
+        pp_counts lost_below
   end;
   let total counts = List.fold_left (fun acc (_, n) -> acc + n) 0 counts in
-  record ("heap calls" ::
-          List.map (fun l -> string_of_int (total l)) [ heap; lost; lost_below ])
+  let totals = List.map (fun l -> string_of_int (total l)) in
+  record ("heap calls" :: totals [ heap; lost; lost_below ])
 
 (* The callstacks that reach the start of a function and are not those of a
    call of the analysis. [starts] gives the callstacks of each start. Returns

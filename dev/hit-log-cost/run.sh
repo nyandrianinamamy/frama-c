@@ -59,8 +59,8 @@
 # with the number of repetitions of the runs with recording off, of those
 # with recording on, of the plain runs, of each ablation, and of the runs of
 # the base build (0 if omitted); ABLATIONS is a comma-separated list, or
-# "all" for those of -a. With -M, the runs with recording on have no meter
-# runs, and PLAIN and ABLATION-RUNS must be 0. An ablation A+B skips the
+# "all" for those of -a. With -M, there is no meter run, with recording off
+# or on, and PLAIN and ABLATION-RUNS must be 0. An ablation A+B skips the
 # parts A and B; its saving is taken against the run of ablation A. The
 # default is the campaign of #100: three repetitions of every run on both
 # programs, and each ablation of -a taken against the control (see

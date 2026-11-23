@@ -4,8 +4,8 @@ Calls:
   realloc :: heap_builtins.c:25 <- rz :: heap_builtins.c:28 <- realloc_main: builtin
   rz :: heap_builtins.c:28 <- realloc_main: analysed, cache entry 5
   realloc_main: analysed, cache entry 6
-Heap calls, with full states, not stored by memexec: realloc_main 1, rz 1.
-Hits not made, the heap calls being not stored: none.
+Heap calls, not stored by memexec: realloc_main 1, rz 1.
+Hits not made because memexec does not store the heap calls: none.
 rz, start:
   joined: g ∈ {{ &__malloc_realloc_main_l27_1[0] }}
           z ∈ {0}

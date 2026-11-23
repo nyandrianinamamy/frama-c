@@ -3,8 +3,8 @@ Calls:
   malloc :: alloc_sites.c:29 <- same_line (call statements 1): builtin
   malloc :: alloc_sites.c:29 <- same_line (call statements 3): builtin
   same_line: analysed, cache entry 3
-Heap calls, with full states, not stored by memexec: same_line 1.
-Hits not made, the heap calls being not stored: none.
+Heap calls, not stored by memexec: same_line 1.
+Hits not made because memexec does not store the heap calls: none.
 same_line, start:
   joined: p ∈ {0}
   same_line: p ∈ {0}

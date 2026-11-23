@@ -4,8 +4,8 @@ Calls:
   __fc_vla_free :: heap_builtins.c:36 <- vz :: heap_builtins.c:37 <- vla_main: builtin
   vz :: heap_builtins.c:37 <- vla_main: analysed, cache entry 5
   vla_main: analysed, cache entry 6
-Heap calls, with full states, not stored by memexec: vla_main 1, vz 1.
-Hits not made, the heap calls being not stored: none.
+Heap calls, not stored by memexec: vla_main 1, vz 1.
+Hits not made because memexec does not store the heap calls: none.
 vz, start:
   joined: g ∈ {0}
           z ∈ {0}
