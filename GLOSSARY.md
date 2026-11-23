@@ -89,8 +89,9 @@ base
 
 **Validity record**:
 What the analyzer holds about the extent of a block: its size, and whether it
-stands for one concrete block or for several. It is a side table. Only the
-validity record of an allocated block can change during an analysis.
+stands for one concrete block or for several. It is a side table, keyed for
+the mentioned blocks. Only the validity record of an allocated block can
+change during an analysis.
 _Avoid_: Validity (names the property, not the table)
 
 **Matching key**:
@@ -104,6 +105,19 @@ _Avoid_: Inner key
 
 **Frame**:
 The blocks the statement neither reads nor writes.
+
+**Mentioned block**:
+An allocated block of the matching key of a cache entry, or one that a
+pointer value of the arguments or of the matching key may point to when the
+statement starts. A mentioned block outside the matching key is not
+compared by its content.
+_Avoid_: Reachable block (reachability is transitive)
+
+**Snapshot**:
+The strength, validity record, type and kind (heap allocation, `alloca` or
+variable-length array) of each mentioned block of a cache entry, when the
+statement starts.
+_Avoid_: Descriptor (names what the observer of the hit log captures)
 
 ### Versions
 
