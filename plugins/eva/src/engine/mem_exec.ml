@@ -344,13 +344,16 @@ module Make
         if with_snapshot then
           Statistics.grow snapshot_results kf
             (List.length (Domain.Hashtbl.find_all hkb state_input));
-        input_bases, state_input, outputs, call_number
+        (* Nothing is built for the hooks without -eva-hit-log. *)
+        if with_snapshot
+        then Some (input_bases, state_input, outputs, call_number)
+        else None
       with
       | exception
           (TooImprecise
           | Kernel_function.No_Statement
           | Not_found) -> ()
-      | stored -> if with_snapshot then notify_store kf args stored
+      | stored -> Option.iter (notify_store kf args) stored
 
 
   exception Result_found of CallOutput.t * int
