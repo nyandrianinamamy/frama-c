@@ -6,7 +6,7 @@ Calls:
   cr :: heap_rule.c:85 <- calloc_main: analysed, cache entry 8
   calloc_main: analysed, cache entry 9
 Heap calls, not stored by memexec: calloc_main 1, cr 2.
-Heap calls whose answers come from full states: calloc_main 1, cr 2.
+Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 cr, start:
   joined: g ∈ {{ NULL ; &__calloc_w_cr_l83_1[0] }}
@@ -107,8 +107,8 @@ Alarms: 0, of which 0 not proven, those of the run without memexec.
 Summary: statement coverage 1.0000, function coverage 0.0909, 0 alarms, those of the run without memexec.
 Points of the cache entries:
 cr :: heap_rule.c:85 <- calloc_main, cache entry 7:
-  before L6: full states
+  before L6: covers __calloc_w_cr_l83_1; does not bind none; swept on every path: none; on some path only: none
 cr :: heap_rule.c:85 <- calloc_main, cache entry 8:
-  before L6: full states
+  before L6: covers __calloc_w_cr_l83_1; does not bind none; swept on every path: none; on some path only: none
 calloc_main, cache entry 9:
-  before M6: full states
+  before M6: covers __calloc_w_cr_l83_1; does not bind none; swept on every path: none; on some path only: none

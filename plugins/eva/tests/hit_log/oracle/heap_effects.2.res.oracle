@@ -9,7 +9,7 @@ Calls:
   realloc :: heap_effects.c:44 <- calloc_realloc_main: builtin
   calloc_realloc_main: analysed, cache entry 3
 Heap calls, not stored by memexec: calloc_realloc_main 1.
-Heap calls whose answers come from full states: calloc_realloc_main 1.
+Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 Initial state: equal.
 Differences with the run without memexec:

@@ -5,7 +5,7 @@ Calls:
   wf :: heap_rule.c:46 <- weak_main: analysed, cache entry 5
   weak_main: analysed, cache entry 6
 Heap calls, not stored by memexec: weak_main 1, wf 1.
-Heap calls whose answers come from full states: weak_main 1, wf 1.
+Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 wf, start:
   joined: g ∈ {{ &__malloc_w_weak_main_l44_1[0] }}
@@ -127,6 +127,6 @@ Alarms: 0, of which 0 not proven, those of the run without memexec.
 Summary: statement coverage 1.0000, function coverage 0.0909, 0 alarms, those of the run without memexec.
 Points of the cache entries:
 wf :: heap_rule.c:46 <- weak_main, cache entry 5:
-  before L2: full states
+  before L2: covers none; does not bind none; swept on every path: none; on some path only: __malloc_w_weak_main_l44_1
 weak_main, cache entry 6:
-  before M2: full states
+  before M2: covers __malloc_w_weak_main_l44_1; does not bind none; swept on every path: none; on some path only: none

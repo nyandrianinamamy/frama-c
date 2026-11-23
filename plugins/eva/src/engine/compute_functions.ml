@@ -174,6 +174,7 @@ module Make (Engine: Engine_sig.S) = struct
     let final_state = Bottom.List.join Engine.Dom.join (List.map snd states) in
     match final_state with
     | `Bottom ->
+      if Hit_log.enabled () then Hit_log.builtin_outputs 0;
       apply_call_results_hooks call state (`Builtin ([], None));
       Engine_sig.{ states; cacheable = Cacheable; kind = `Builtin }
     | `Value final_state ->
@@ -183,6 +184,8 @@ module Make (Engine: Engine_sig.S) = struct
       let cvalue_states, cacheable =
         Builtins.apply_builtin builtin cvalue_call ~pre ~post
       in
+      if Hit_log.enabled ()
+      then Hit_log.builtin_outputs (List.length cvalue_states);
       let insert rank cvalue_state =
         let kinstr = Callstack.top_callsite call.callstack in
         let branch = Partition.Builtin_result { kf=call.kf; kinstr; rank } in

@@ -30,10 +30,16 @@ module Int_table = Datatype.Int.Hashtbl
 
 (* The state at a point of the Inner part: [inner] is the state projected on
    the blocks of [covered]. A covered block that [inner] does not bind has no
-   binding at this point. *)
+   binding at this point: the removal mask. [swept_every] and [swept_some]
+   are the sweep map: the blocks of the body-entry state that a release
+   swept on every path from the start of the body to the point, and those
+   swept on some path only, see [Heap_paths]. Empty except for a heap
+   call. *)
 type point = {
   covered: Base.Hptset.t;
   inner: Cvalue.Model.t;
+  swept_every: Base.Hptset.t;
+  swept_some: Base.Hptset.t;
 }
 
 module Point =
@@ -42,10 +48,13 @@ module Point =
       include Datatype.Serializable_undefined
       type t = point
       let name = "Eva.Hit_log.Point"
-      let reprs = [ { covered = Base.Hptset.empty; inner = Cvalue.Model.top } ]
+      let reprs =
+        [ { covered = Base.Hptset.empty; inner = Cvalue.Model.top;
+            swept_every = Base.Hptset.empty; swept_some = Base.Hptset.empty } ]
       let structural_descr =
         Structural_descr.t_record
-          [| Base.Hptset.packed_descr; Cvalue.Model.packed_descr |]
+          [| Base.Hptset.packed_descr; Cvalue.Model.packed_descr;
+             Base.Hptset.packed_descr; Base.Hptset.packed_descr |]
     end)
 
 module Points = Stmt_table.Make (Point)
@@ -85,8 +94,8 @@ module Below =
     end)
 
 (* The points absent from the tables are unreachable. With an unknown
-   footprint, no point is kept. A heap call keeps the full state at each
-   point instead of an Inner part. *)
+   footprint, no point is kept. A heap call that is refused keeps the full
+   state at each point instead of an Inner part. *)
 type inner_part =
   | Unknown
   | Known of { before: point Stmt_table.t; after: point Stmt_table.t }
@@ -140,8 +149,11 @@ module Analysed =
 
 (* The key group of an entry is made of its analysed call, of its hits, and of
    the calls below a hit that use it. The states of the latter are computed on
-   request from the entries of their callers. *)
+   request from the entries of their callers. [heap] tells whether the
+   analysed call is a heap call: its key group is then made of this call
+   only. *)
 type entry = {
+  heap: bool;
   inner: inner_part;
   below: below list;
   analysed: analysed;
@@ -158,7 +170,7 @@ module Entry =
       let reprs =
         List.map
           (fun states ->
-             { inner = Unknown; below = [];
+             { heap = false; inner = Unknown; below = [];
                analysed = List.hd Analysed.reprs;
                hit_starts = states; hit_body_entries = states })
           States.reprs
@@ -171,7 +183,8 @@ module Entry =
         in
         let module Below_list = Datatype.List (Below) in
         Structural_descr.t_record
-          [| Structural_descr.pack inner_part;
+          [| Structural_descr.p_bool;
+             Structural_descr.pack inner_part;
              Below_list.packed_descr;
              Analysed.packed_descr;
              States.packed_descr;
@@ -216,7 +229,7 @@ let copy_entry entry =
     | Full { before; after } ->
       Full { before = Stmt_table.copy before; after = Stmt_table.copy after }
   in
-  { inner; below = entry.below; analysed = entry.analysed;
+  { heap = entry.heap; inner; below = entry.below; analysed = entry.analysed;
     hit_starts = copy_states entry.hit_starts;
     hit_body_entries = copy_states entry.hit_body_entries }
 
@@ -308,16 +321,32 @@ type received =
 
 type effects = received list
 
+(* How the analysis of a call ends, as far as the sweeps are concerned: not
+   known yet, without returning, or returning with the blocks swept on every
+   path of the body and on some path only. *)
+type exit =
+  | Unset
+  | No_return
+  | Exit of Heap_paths.sweeps
+
 (* A call being analysed, in any mode: the calls made by its body so far, each
    with its call statement, its function, its start state and the cache entry
-   it used; the cache entry this call uses, once known; and the heap effects
-   it received so far. *)
+   it used; the cache entry this call uses, once known; the heap effects it
+   received so far; the sweeps of the calls made by its body, merged over the
+   evaluations of each call statement, see [add_evaluation]; how the call
+   ends, set when its body has been analysed; for a builtin, the number of
+   states it returns; and whether it is refused: it calls, or a call nested in
+   it calls, a builtin that reads every allocated block. *)
 type frame = {
   mutable calls:
     (Cil_types.stmt * Cil_types.kernel_function * Cvalue.Model.t * int option)
       list;
   mutable used: int option;
   mutable effects: effects;
+  site_sweeps: Heap_paths.sweeps Stmt_table.t;
+  mutable exit: exit;
+  mutable outputs: int option;
+  mutable refused: bool;
 }
 
 (* The parts of the recording used only while the analysis runs. They are
@@ -477,11 +506,14 @@ let created_and_removed_blocks ~start state =
   | Some start, Some state -> changes_in start state
 
 (* Projects [state] on the blocks of [zone], on the blocks [created] that do
-   not exist in the start state of the call, and on [bound]. *)
-let project ?(bound = Base.Hptset.empty) ~created zone state =
+   not exist in the start state of the call, and on [bound], with the sweep
+   map [sweeps]. *)
+let project ?(bound = Base.Hptset.empty) ?(sweeps = Heap_paths.no_sweep)
+    ~created zone state =
   let covered = Base.Hptset.union (bases_of_zone zone) created in
   let covered = Base.Hptset.union covered bound in
-  { covered; inner = Cvalue.Model.filter_by_shape covered state }
+  { covered; inner = Cvalue.Model.filter_by_shape covered state;
+    swept_every = sweeps.every; swept_some = sweeps.some }
 
 (* The blocks that a call to [callee] binds or removes: the formals of
    [callee], bound by the call; its locals, absent from its start state; and
@@ -507,8 +539,14 @@ let bound_by_call ~removed callee =
    branch, the paths of the other branch; after a statement that is not an
    instruction, the join of the states before its successors. The footprint
    after a statement is thus completed by the footprints before its
-   successors. *)
-let inner_part footprint ~start ~before ~after ~calls =
+   successors.
+   For a heap call, [heap_before] and [heap_after] give at each point the
+   blocks that its heap effects cover, which are covered as well, and the
+   sweep map. *)
+let no_heap _ = Heap_paths.empty
+
+let inner_part ?(heap_before = no_heap) ?(heap_after = no_heap) footprint
+    ~start ~before ~after ~calls =
   let start = shape_of_state start in
   let footprints = Stmt_table.create 17 in
   let footprint stmt =
@@ -524,17 +562,19 @@ let inner_part footprint ~start ~before ~after ~calls =
     let succs = List.map zone_before stmt.Cil_types.succs in
     List.fold_left Memory_zone.join (snd (footprint stmt)) succs
   in
-  let project_all zone_of states =
+  let project_all zone_of heap_of states =
     let points = Stmt_table.create (Stmt_table.length states) in
     let add stmt state =
       let created = created_blocks ~start state in
-      Stmt_table.replace points stmt (project ~created (zone_of stmt) state)
+      let { Heap_paths.covered; sweeps } = heap_of stmt in
+      Stmt_table.replace points stmt
+        (project ~bound:covered ~sweeps ~created (zone_of stmt) state)
     in
     Stmt_table.iter add states;
     points
   in
-  let before = project_all zone_before (Lazy.force before) in
-  let after = project_all zone_after (Lazy.force after) in
+  let before = project_all zone_before heap_before (Lazy.force before) in
+  let after = project_all zone_after heap_after (Lazy.force after) in
   let below =
     List.rev_map
       (fun (site, callee, state, child) ->
@@ -590,6 +630,17 @@ let receive ?point e =
 
 let () = Heap_effects.register_sink receive
 
+(* A builtin that reads every allocated block refuses the innermost frame,
+   its own; [call] passes the refusal to the frame of its caller. *)
+let () =
+  Heap_effects.register_whole_heap_reader
+    (fun () ->
+       if enabled () then
+         Option.iter (fun frame -> frame.refused <- true) (current_frame ()))
+
+let builtin_outputs n =
+  Option.iter (fun frame -> frame.outputs <- Some n) (current_frame ())
+
 let effects_hooks = ref []
 
 let register_effects_hook f = effects_hooks := !effects_hooks @ [ f ]
@@ -629,12 +680,193 @@ let check_no_heap_child store calls =
     (fun (_, callee, _, child) ->
        let entry = Option.map (Int_table.find_opt store.entries) child in
        match entry with
-       | Some (Some { inner = Full _; _ }) ->
+       | Some (Some { heap = true; _ }) ->
          Self.fatal
            "hit log: call to %a, a heap call, made by a call that is not one"
            Kernel_function.pretty callee
-       | Some (Some { inner = Unknown | Known _; _ } | None) | None -> ())
+       | Some (Some { heap = false; _ } | None) | None -> ())
     calls
+
+(* ----- Heap calls: coverage and sweep map -------------------------------- *)
+
+(* The sweeps of the analysis of a call that ended, from its start to its
+   return; None if it does not return. They are set when the body of a call
+   analysed by its body is recorded. Those of a builtin are its own sweeps,
+   in the order of emission, on some path only if it returns several states:
+   [realloc] releases the block in the state of its success only. Any other
+   call receives no sweep, unless its analysis was interrupted: its sweeps
+   are then on some path only. *)
+let evaluation_sweeps frame =
+  match frame.exit, frame.outputs with
+  | Exit sweeps, _ -> Some sweeps
+  | No_return, _ | Unset, Some 0 -> None
+  | Unset, outputs ->
+    let rec add acc = function
+      | Here (_, Heap_effects.Sweep { block; exact }) ->
+        Heap_paths.(sequence acc (sweep ~exact block))
+      | Here (_, (Allocation _ | Mutation _ | Removal _)) -> acc
+      | Through (_, _, received) -> List.fold_left add acc (List.rev received)
+    in
+    let sweeps =
+      List.fold_left add Heap_paths.no_sweep (List.rev frame.effects)
+    in
+    match outputs with
+    | Some 1 -> Some sweeps
+    | Some _ | None -> Some (Heap_paths.weaken sweeps)
+
+(* Merges the sweeps of the call of [frame], made at [site], into those of
+   the evaluations of [site] before it, in the frame [caller]. A call that
+   does not return is left out: no state follows it. *)
+let add_evaluation caller site frame =
+  match evaluation_sweeps frame with
+  | None -> ()
+  | Some sweeps ->
+    let sweeps =
+      match Stmt_table.find_opt caller.site_sweeps site with
+      | None -> sweeps
+      | Some previous -> Heap_paths.merge previous sweeps
+    in
+    Stmt_table.replace caller.site_sweeps site sweeps
+
+(* The blocks that the heap effects of [received] allocate, mutate or
+   remove, added to [acc]. *)
+let rec add_effect_blocks acc = function
+  | Here (_, (Heap_effects.Allocation { block; _ }
+             | Mutation { block; _ } | Removal block)) ->
+    Base.Hptset.add block acc
+  | Here (_, Sweep _) -> acc
+  | Through (_, _, received) -> List.fold_left add_effect_blocks acc received
+
+let is_call_statement (stmt: Cil_types.stmt) =
+  match stmt.skind with
+  | Instr (Call _ | Local_init (_, ConsInit _, _)) -> true
+  | _ -> false
+
+(* Whether the heap call of [frame] keeps full states: in threaded mode, when
+   it or a call nested in it calls a builtin that reads every allocated
+   block, or when it receives in its body an effect whose statement is not
+   known. *)
+let refused frame =
+  frame.refused
+  || Mt_options.Enabled.get ()
+  || List.exists
+    (function Here (None, _) -> true | Here (Some _, _) | Through _ -> false)
+    frame.effects
+
+(* The coverage and the sweep map of the heap call of [frame] at each vertex
+   of [automaton], the automaton of its body, on the paths of the edges
+   [fired], see [Heap_paths.compute]. The effects at a call statement act on
+   the edge of the call: the blocks that the effects received by the call,
+   and those of the automatic release at its end, allocate, mutate or remove
+   are covered after it; its sweeps are those of its evaluations, merged,
+   followed by those of the automatic release, on some path only, as the
+   release is not attributed to one evaluation. The effects at another
+   statement, the loop whose widening raises the validity of a block, act on
+   entry to the vertex before this statement. *)
+let heap_paths frame automaton ~fired =
+  let covered = Stmt_table.create 7 and released = Stmt_table.create 7 in
+  let update table stmt ~default f =
+    let previous = Option.value ~default (Stmt_table.find_opt table stmt) in
+    Stmt_table.replace table stmt (f previous)
+  in
+  let cover stmt received =
+    update covered stmt ~default:Base.Hptset.empty
+      (fun acc -> add_effect_blocks acc received)
+  in
+  List.iter
+    (function
+      | Through (site, _, _) as received -> cover site received
+      | Here (None, _) -> ()
+      | Here (Some stmt, Sweep { block; _ }) ->
+        update released stmt ~default:Heap_paths.no_sweep
+          (fun acc -> Heap_paths.(sequence acc (sweep ~exact:false block)))
+      | Here (Some stmt, _) as received -> cover stmt received)
+    frame.effects;
+  let find table stmt ~default =
+    Option.value ~default (Stmt_table.find_opt table stmt)
+  in
+  let value stmt =
+    let covered = find covered stmt ~default:Base.Hptset.empty in
+    let evaluations =
+      find frame.site_sweeps stmt ~default:Heap_paths.no_sweep
+    in
+    let released = find released stmt ~default:Heap_paths.no_sweep in
+    { Heap_paths.covered; sweeps = Heap_paths.sequence evaluations released }
+  in
+  let at_vertex = Eva_automata.Vertex.Hashtbl.create 7 in
+  let add_vertex stmt _ =
+    if not (is_call_statement stmt) then
+      match Stmt_table.find_opt automaton.Eva_automata.stmt_table stmt with
+      | None -> ()
+      | Some (vertex, _) ->
+        let previous =
+          Option.value ~default:Heap_paths.empty
+            (Eva_automata.Vertex.Hashtbl.find_opt at_vertex vertex)
+        in
+        Eva_automata.Vertex.Hashtbl.replace at_vertex vertex
+          (Heap_paths.after previous (value stmt))
+  in
+  Stmt_table.iter add_vertex covered;
+  Stmt_table.iter add_vertex released;
+  let edge (e: Eva_automata.edge) =
+    match e.edge_transition with
+    | Call (_, _, _, stmt) -> value stmt
+    | Skip | Enter _ | Leave _ | Return _ | Guard _ | Assign _ | Init _
+    | Asm _ -> Heap_paths.empty
+  in
+  let vertex v =
+    Option.value ~default:Heap_paths.empty
+      (Eva_automata.Vertex.Hashtbl.find_opt at_vertex v)
+  in
+  Heap_paths.compute automaton ~fired ~edge ~vertex
+
+let present state block =
+  match state with
+  | Cvalue.Model.Top -> true
+  | Bottom -> false
+  | Map _ ->
+    match Cvalue.Model.find_base block state with
+    | _ -> true
+    | exception Not_found -> false
+
+(* The coverage and the sweep map before and after each statement of the
+   body, from their values at the vertices of [automaton], as the legacy
+   store computes the states before and after each statement from the
+   states at the vertices: the state after a statement that is not an
+   instruction is the join of the states before its successors reached, as
+   given by [before], and the state after the return statement is the state
+   before it. Only the blocks of [body_entry] are kept in the sweep map: the
+   rule applies it to the body-entry state, whose pointers point to blocks of
+   this state, as the removal of a block sweeps the pointers to it. Raises
+   [Unknown_footprint] at a point whose vertex the paths do not reach. *)
+let heap_points automaton paths ~body_entry ~before =
+  let at vertex =
+    match Eva_automata.Vertex.Hashtbl.find_opt paths vertex with
+    | Some value ->
+      { value with
+        Heap_paths.sweeps =
+          Heap_paths.filter (present body_entry) value.Heap_paths.sweeps }
+    | None -> raise Unknown_footprint
+  in
+  let vertices stmt =
+    match Stmt_table.find_opt automaton.Eva_automata.stmt_table stmt with
+    | Some vertices -> vertices
+    | None -> raise Unknown_footprint
+  in
+  let heap_before stmt = at (fst (vertices stmt)) in
+  let heap_after (stmt: Cil_types.stmt) =
+    match stmt.skind with
+    | Instr _ -> at (snd (vertices stmt))
+    | Return _ -> heap_before stmt
+    | _ ->
+      let before = Lazy.force before in
+      List.filter (Stmt_table.mem before) stmt.succs
+      |> List.map heap_before
+      |> function
+      | [] -> raise Unknown_footprint
+      | value :: values -> List.fold_left Heap_paths.join value values
+  in
+  heap_before, heap_after
 
 let record_start callstack state =
   let store = Store.get () in
@@ -649,8 +881,8 @@ let record_start callstack state =
   in
   add_state states callstack state
 
-let record_analysed_call ~id callstack ~footprint ~start ~body_entry ~before
-    ~after =
+let record_analysed_call ~id callstack ~automaton ~fired ~footprint ~start
+    ~body_entry ~before ~after =
   let store = Store.get () in
   let kf = Callstack.top_kf callstack in
   let frame = current_frame () in
@@ -670,28 +902,50 @@ let record_analysed_call ~id callstack ~footprint ~start ~body_entry ~before
     in
     Unknown, below
   in
+  let full () =
+    Statistics.incr full_states kf;
+    Full { before = Lazy.force before; after = Lazy.force after }, []
+  in
   (* A heap call has no hit, and thus no call below a hit: the calls made by
-     its body are not kept. *)
+     its body are not kept. Its sweeps are computed for its caller, even when
+     it keeps full states. *)
   let inner, below =
-    if heap then begin
+    match frame with
+    | Some frame when heap ->
       Statistics.incr heap_calls kf;
-      match footprint with
-      | None -> Unknown, []
-      | Some _ ->
-        Statistics.incr full_states kf;
-        Full { before = Lazy.force before; after = Lazy.force after }, []
-    end
-    else begin
+      let paths = heap_paths frame automaton ~fired in
+      frame.exit <-
+        begin match
+            Eva_automata.Vertex.Hashtbl.find_opt paths
+              automaton.Eva_automata.return_point
+          with
+          | None -> No_return
+          | Some value -> Exit value.sweeps
+        end;
+      begin match footprint with
+        | None -> Unknown, []
+        | Some _ when refused frame -> full ()
+        | Some footprint ->
+          try
+            let heap_before, heap_after =
+              heap_points automaton paths ~body_entry ~before
+            in
+            inner_part ~heap_before ~heap_after footprint ~start ~before
+              ~after ~calls:[]
+          with Unknown_footprint -> full ()
+      end
+    | Some _ | None ->
+      Option.iter (fun frame -> frame.exit <- Exit Heap_paths.no_sweep) frame;
       check_no_heap_child store calls;
       match footprint with
       | None -> unknown ()
       | Some footprint ->
         try inner_part footprint ~start ~before ~after ~calls
         with Unknown_footprint -> unknown ()
-    end
   in
   if inner = Unknown then mark store.body_unavailable kf;
   let entry = {
+    heap;
     inner;
     below;
     analysed = { callstack; start; body_entry };
@@ -709,7 +963,7 @@ let record_hit ~id callstack ~start ~body_entry =
   Option.iter (fun frame -> frame.used <- Some id) (current_frame ());
   match Int_table.find_opt store.entries id with
   | None -> store.unrecorded_hit <- true
-  | Some { inner = Full _; _ } ->
+  | Some { heap = true; _ } ->
     Self.fatal "hit log: hit of the cache entry %d, of a heap call" id
   | Some entry ->
     add_state entry.hit_starts callstack start;
@@ -727,7 +981,11 @@ let mark_interrupted callstack ~start =
    the exception stops as well. *)
 let call callstack ~start f =
   let running = Running.get () in
-  let frame = { calls = []; used = None; effects = [] } in
+  let frame = {
+    calls = []; used = None; effects = [];
+    site_sweeps = Stmt_table.create 1; exit = Unset; outputs = None;
+    refused = false;
+  } in
   running.frames <- frame :: running.frames;
   let finally () =
     running.frames <- List.tl running.frames;
@@ -737,6 +995,8 @@ let call callstack ~start f =
       let kf = Callstack.top_kf callstack in
       if frame.effects <> [] then
         caller.effects <- Through (site, kf, frame.effects) :: caller.effects;
+      if frame.refused then caller.refused <- true;
+      add_evaluation caller site frame;
       let call = site, kf, start, frame.used in
       caller.calls <- call :: caller.calls
     | _, Kglobal | [], _ -> ()
@@ -886,11 +1146,22 @@ let derived store =
 (* Raised when a call below a hit was stored without its start state. *)
 exception Unavailable
 
+(* The pointers to the blocks of [blocks] in [state] become escaping
+   addresses: in place of the pointers if [exact], joined with them
+   otherwise, as a release does. *)
+let sweep ~exact blocks state =
+  if Base.Hptset.is_empty blocks then state
+  else
+    let on_escaping ~b:_ ~itv:_ ~v:_ = () in
+    Locals_scoping.make_escaping ~exact ~escaping:blocks ~on_escaping
+      ~within:Base.SetLattice.top state
+
 (* The state at a point whose Inner part is [point], of a call whose
-   body-entry state is [entry]: [entry] without the covered blocks, and the
-   Inner part. Only the covered blocks that the Inner part does not bind are
-   removed from [entry] before the Inner part is merged into it, so that the
-   result shares the rest of [entry]. *)
+   body-entry state is [entry]: [entry] with the sweep map of the point
+   applied, without the covered blocks, and the Inner part. Only the covered
+   blocks that the Inner part does not bind, the removal mask, are removed
+   from [entry] before the Inner part is merged into it, so that the result
+   shares the rest of [entry]. *)
 let paste derived (point: point) entry =
   match entry, point.inner with
   | (Cvalue.Model.Bottom | Top), _ -> entry
@@ -899,6 +1170,10 @@ let paste derived (point: point) entry =
     point.inner
   | Map _, Cvalue.Model.Map inner ->
     derived.pastes <- derived.pastes + 1;
+    let entry =
+      sweep ~exact:true point.swept_every entry
+      |> sweep ~exact:false point.swept_some
+    in
     let bound = Base.Hptset.from_map (Cvalue.Model.shape inner) in
     let unbound = Base.Hptset.diff point.covered bound in
     let frame = Base.Hptset.fold Cvalue.Model.remove_base unbound entry in
@@ -1460,8 +1735,8 @@ let point_view ~id control_point =
     | None -> No_point
     | Some point ->
       Inner { covered = point.covered; inner = point.inner;
-              swept_every = Base.Hptset.empty;
-              swept_some = Base.Hptset.empty }
+              swept_every = point.swept_every;
+              swept_some = point.swept_some }
 
 let rule ~id ~body_entry control_point =
   let store = Store.get () in

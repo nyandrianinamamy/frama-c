@@ -6,7 +6,7 @@ Calls:
   wl :: heap_rule.c:95 <- widen_main: analysed, cache entry 5
   widen_main: analysed, cache entry 6
 Heap calls, not stored by memexec: widen_main 1, wl 1.
-Heap calls whose answers come from full states: widen_main 1, wl 1.
+Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 wl, start:
   joined: g ∈ {0}
@@ -115,6 +115,6 @@ Alarms: 0, of which 0 not proven, those of the run without memexec.
 Summary: statement coverage 1.0000, function coverage 0.0909, 0 alarms, those of the run without memexec.
 Points of the cache entries:
 wl :: heap_rule.c:95 <- widen_main, cache entry 5:
-  before L7: full states
+  before L7: covers __malloc_w_widen_main_l94_1; does not bind none; swept on every path: none; on some path only: none
 widen_main, cache entry 6:
-  before M7: full states
+  before M7: covers __malloc_w_widen_main_l94_1; does not bind none; swept on every path: none; on some path only: none

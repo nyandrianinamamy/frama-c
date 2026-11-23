@@ -6,7 +6,7 @@ Calls:
   two :: heap_rule.c:101 <- two_states_main: analysed, cache entry 5
   two_states_main: analysed, cache entry 6
 Heap calls, not stored by memexec: two 1, two_states_main 1.
-Heap calls whose answers come from full states: two 1, two_states_main 1.
+Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 two, start:
   joined: g ∈ {0}
@@ -108,6 +108,6 @@ Alarms: 0, of which 0 not proven, those of the run without memexec.
 Summary: statement coverage 1.0000, function coverage 0.0909, 0 alarms, those of the run without memexec.
 Points of the cache entries:
 two :: heap_rule.c:101 <- two_states_main, cache entry 5:
-  before L8: full states
+  before L8: covers __malloc_two_l100_1; does not bind none; swept on every path: none; on some path only: none
 two_states_main, cache entry 6:
-  before M8: full states
+  before M8: covers __malloc_two_l100_1; does not bind none; swept on every path: none; on some path only: none

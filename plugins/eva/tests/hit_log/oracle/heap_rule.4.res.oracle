@@ -8,7 +8,7 @@ Calls:
   rw :: heap_rule.c:75 <- admit_main: analysed, cache entry 11
   admit_main: analysed, cache entry 12
 Heap calls, not stored by memexec: admit_main 1, rw 3.
-Heap calls whose answers come from full states: admit_main 1, rw 3.
+Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 rw, start:
   joined: g ∈ {{ NULL ; &__malloc_w_rw_l72_1[0] }}
@@ -127,10 +127,10 @@ Alarms: 0, of which 0 not proven, those of the run without memexec.
 Summary: statement coverage 1.0000, function coverage 0.0909, 0 alarms, those of the run without memexec.
 Points of the cache entries:
 rw :: heap_rule.c:75 <- admit_main, cache entry 9:
-  before L5: full states
+  before L5: covers __malloc_w_rw_l72_1; does not bind none; swept on every path: none; on some path only: none
 rw :: heap_rule.c:75 <- admit_main, cache entry 10:
-  before L5: full states
+  before L5: covers __malloc_w_rw_l72_1; does not bind none; swept on every path: none; on some path only: none
 rw :: heap_rule.c:75 <- admit_main, cache entry 11:
-  before L5: full states
+  before L5: covers __malloc_w_rw_l72_1; does not bind none; swept on every path: none; on some path only: none
 admit_main, cache entry 12:
-  before M5: full states
+  before M5: covers __malloc_w_rw_l72_1; does not bind none; swept on every path: none; on some path only: none

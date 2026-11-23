@@ -12,12 +12,12 @@
     afterwards, such as the statuses of the properties and the summary.
 
     Each call analysed by its body records a cache entry, identified by the
-    number that memexec gives to the call. Except for a heap call, see
-    below, its Inner part holds, before and
-    after each statement reached, the cvalue state projected on the blocks
-    covered at that point: the blocks read or written on the paths from the
-    start of the body to the point, as given by the inout plugin, and the
-    blocks created by the call that exist at the point. The entry also keeps
+    number that memexec gives to the call. Except for a refused heap call,
+    see below, its Inner part holds, before and after each statement
+    reached, the cvalue state projected on the blocks covered at that point:
+    the blocks read or written on the paths from the start of the body to
+    the point, as given by the inout plugin, and the blocks created by the
+    call that exist at the point. The entry also keeps
     the calls made by the body, in any mode: for each, its call statement, the
     cache entry it used if any, and its start state projected on the blocks
     covered before the call statement, on the blocks that do not exist in the
@@ -62,38 +62,71 @@
     [reallocarray], [alloca], [free], and of the allocation and release of
     variable-length arrays emit them, and so does the widening of the
     memory, when it raises the validity of a weak block. Every caller of a
-    heap call, up to the entry point, is a heap call. The entry of a heap
-    call holds no Inner part: it holds the full cvalue state before and after each statement reached, the states that
-    the analysis of the body computes and that the legacy store saves, taken
-    when the analysis of the body ends. A request at a point of a heap call
-    is answered by these full states; the rule is not applied. Memexec does
-    not store a heap call: no hit, and thus no call below a hit, uses the
-    entry of a heap call, and the entry does not keep the calls made by the
-    body. A call that reads or writes an allocated block and receives no
-    heap effect is not a heap call. With memexec, the hits that memexec
-    no longer makes are counted per function: the statistic
-    [hit-log-lost-hits] counts the calls that it would have reused if it
-    stored the heap calls, except those made during the analysis of such a
-    call, which would have been below a hit: [hit-log-lost-hits-below]
-    counts these. A call is counted in one of the two only. The statistic
-    [hit-log-heap-calls] counts the heap calls, and [hit-log-full-states]
-    those of them whose entries hold full states.
+    heap call, up to the entry point, is a heap call. Memexec does not store
+    a heap call: no hit, and thus no call below a hit, uses the entry of a
+    heap call, and the entry does not keep the calls made by the body. A
+    call that reads or writes an allocated block and receives no heap effect
+    is not a heap call.
+
+    The Inner part of a heap call also covers the blocks that its heap
+    effects allocate, mutate or remove, from the point where the effect
+    happens on: after the statement of the call that receives the effect or
+    whose automatic release makes it, and from the point before the loop
+    whose widening makes it. The paths from the start of the body are those
+    of its analysis: an edge of the automaton of the body through which the
+    analysis propagated no state is on no path. A covered block that the
+    Inner part does not bind is removed at the point: this is the removal
+    mask. Each point also holds a sweep map: the blocks of the body-entry
+    state swept on every path from the start of the body to the point, and
+    those swept on some path only. A block is swept when a release turns the
+    pointers to it into escaping addresses. At a call statement, the sweeps
+    of the evaluations of the call that return are merged: a block swept on
+    every path of each of them is swept on every path, and a block swept in
+    some of them only, or on some path only, is swept on some path only. The
+    sweeps of a [free] on several blocks or on a weak block, which joins the
+    pointers with escaping addresses, of a builtin that returns several
+    states, as [realloc] when it may fail, and of the automatic release, are
+    on some path only. A request at a point of a heap call is answered by
+    the rule, applied to the body-entry state of the call swept by the sweep
+    map of the point: the pointers to a block swept on every path become
+    escaping addresses, and those to a block swept on some path only are
+    joined with escaping addresses.
+
+    A heap call is refused in threaded mode, when it or a call nested in it
+    calls the builtin of [Frama_C_check_leak], which reads every allocated
+    block, when it receives in its body an effect whose statement is not
+    known, and when its footprint contains an unknown set of blocks, see
+    below. The entry of a refused heap call holds no Inner part: it holds
+    the full cvalue state before and after each statement reached, the
+    states that the analysis of the body computes and that the legacy store
+    saves, taken when the analysis of the body ends. A request at a point of
+    a refused heap call is answered by these full states; the rule is not
+    applied. The statistic [hit-log-heap-calls] counts the heap calls, and
+    [hit-log-full-states] those of them whose entries hold full states.
+
+    With memexec, the hits that memexec no longer makes are counted per
+    function: the statistic [hit-log-lost-hits] counts the calls that it
+    would have reused if it stored the heap calls, except those made during
+    the analysis of such a call, which would have been below a hit:
+    [hit-log-lost-hits-below] counts these. A call is counted in one of the
+    two only.
 
     A heap call for which InOut gives no footprint, as when the results of
-    its function are not saved, has no full states: its body points are
-    unavailable. A heap call whose footprint contains an unknown set of
-    blocks keeps its full states, which need no footprint, and its body
-    points are answered by them.
+    its function are not saved, has no Inner part and no full states: its
+    body points are unavailable. A heap call whose footprint contains an
+    unknown set of blocks keeps its full states, which need no footprint,
+    and its body points are answered by them.
 
     The body points of a function are unavailable when one of its calls has
-    an unknown footprint (for a heap call, no footprint at all), was interrupted, or is a recursive call analysed by
-    its body: every state request on them answers [`Top], as for a function
-    whose results are not saved. On the callstack of a call below a hit that
-    crosses a recursion, the start and the points of the body of the call
-    are unavailable: the state on this callstack is [Cvalue.Model.top], and
-    so is every joined or filtered state that includes it; the other
-    callstacks are answered. Every request is unavailable when the states
-    of the cvalue domain are not saved, as with options [-eva-no-results] and
+    an unknown footprint (for a heap call, no footprint at all), was
+    interrupted, or is a recursive call analysed by its body: every state
+    request on them answers [`Top], as for a function whose results are not
+    saved. On the callstack of a call below a hit that crosses a recursion,
+    the start and the points of the body of the call are unavailable: the
+    state on this callstack is [Cvalue.Model.top], and so is every joined or
+    filtered state that includes it; the other callstacks are answered.
+    Every request is unavailable when the states of the cvalue domain are
+    not saved, as with options [-eva-no-results] and
     [-eva-no-results-domain cvalue]. The initial state is unavailable when
     the initialization of the globals fails and the analysis does not start,
     as without recording.
@@ -140,16 +173,21 @@ type footprint = Cil_types.stmt -> Memory_zone.t * Memory_zone.t
     not kept after the hooks. *)
 val footprint_of_call: id:int -> (unit -> unit) -> footprint option
 
-(** [record_analysed_call ~id callstack ~footprint ~start ~body_entry ~before
-    ~after] records the cache entry [id] computed by the call on [callstack],
-    with its footprint, its start state, its body-entry state, its states
-    before and after each statement reached, and the calls made by its body.
-    For a heap call, the states before and after each statement are kept
-    whole, and the calls made by the body are not kept. Without footprint,
-    as when the results of the call are not saved, its body points are
-    unavailable. *)
+(** [record_analysed_call ~id callstack ~automaton ~fired ~footprint ~start
+    ~body_entry ~before ~after] records the cache entry [id] computed by the
+    call on [callstack], with its footprint, its start state, its body-entry
+    state, its states before and after each statement reached, and the calls
+    made by its body. [automaton] is the automaton of the body, and [fired]
+    tells the edges through which its analysis propagated a state. For a
+    heap call, the calls made by the body are not kept; the Inner part also
+    covers the blocks of its heap effects, with the sweep map, computed on
+    the paths of the edges [fired]; a refused heap call keeps its states
+    before and after each statement whole. Without footprint, as when the
+    results of the call are not saved, its body points are unavailable. *)
 val record_analysed_call:
-  id:int -> Callstack.t -> footprint:footprint option ->
+  id:int -> Callstack.t ->
+  automaton:Eva_automata.automaton -> fired:(Eva_automata.edge -> bool) ->
+  footprint:footprint option ->
   start:Cvalue.Model.t -> body_entry:Cvalue.Model.t ->
   before:Cvalue.Model.t Cil_datatype.Stmt.Hashtbl.t Lazy.t ->
   after:Cvalue.Model.t Cil_datatype.Stmt.Hashtbl.t Lazy.t ->
@@ -160,6 +198,10 @@ val record_analysed_call:
 val record_hit:
   id:int -> Callstack.t ->
   start:Cvalue.Model.t -> body_entry:Cvalue.Model.t -> unit
+
+(** [builtin_outputs n] records that the builtin whose analysis the innermost
+    [call] runs returns [n] states. *)
+val builtin_outputs: int -> unit
 
 (** Whether the call whose analysis the innermost [call] runs is a heap call
     so far: it has received a heap effect. For a call analysed by its body,

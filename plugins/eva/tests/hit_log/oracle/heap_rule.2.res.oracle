@@ -7,7 +7,7 @@ Calls:
   tf :: heap_rule.c:55 <- two_main: analysed, cache entry 5
   two_main: analysed, cache entry 6
 Heap calls, not stored by memexec: tf 1, two_main 1.
-Heap calls whose answers come from full states: tf 1, two_main 1.
+Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 tf, start:
   joined: g ∈ {{ &__malloc_two_main_l53_3[0] }}
@@ -209,6 +209,6 @@ Alarms: 0, of which 0 not proven, those of the run without memexec.
 Summary: statement coverage 1.0000, function coverage 0.0909, 0 alarms, those of the run without memexec.
 Points of the cache entries:
 tf :: heap_rule.c:55 <- two_main, cache entry 5:
-  before L3: full states
+  before L3: covers none; does not bind none; swept on every path: none; on some path only: __malloc_two_main_l53_4, __malloc_two_main_l53_3
 two_main, cache entry 6:
-  before M3: full states
+  before M3: covers __malloc_two_main_l53_4, __malloc_two_main_l53_3; does not bind none; swept on every path: none; on some path only: none

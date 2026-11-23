@@ -2,7 +2,7 @@ format	4
 phase	reference
 phase	memexec
 phase	recording
-heap calls	4	2	0	4
+heap calls	4	2	0	0
 phase	requests
 unresolved	with memexec	__malloc_issue94_l31_0	match undecided
 unresolved	with memexec	__malloc_issue94_l31_1	match undecided

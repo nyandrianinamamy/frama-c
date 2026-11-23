@@ -18,7 +18,7 @@ Calls:
   alloc :: calloc.c:25 <- alloc_once: analysed, cache entry 8
   alloc_once: analysed, cache entry 9
 Heap calls, not stored by memexec: alloc 2, alloc_once 1.
-Heap calls whose answers come from full states: alloc 2, alloc_once 1.
+Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 alloc, start:
   joined: p ∈ {{ NULL ; (struct S *)&__alloc_w_alloc_once_1 }}

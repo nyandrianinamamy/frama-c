@@ -158,6 +158,10 @@ module Make_Dataflow
   let e_table : tank EdgeTable.t =
     EdgeTable.create transition_count
 
+  (* The edges through which the analysis propagated a state, with option
+     -eva-hit-log: the paths of the body, for [Hit_log]. *)
+  let fired_edges : unit EdgeTable.t = EdgeTable.create 17
+
   (* Get the stores associated to a control point or edge *)
   let get_vertex_store (v : vertex) : store =
     let default () = Partitioning.empty_store v in
@@ -369,8 +373,10 @@ module Make_Dataflow
       Partitioning.transfer (transfer_transition ~pos transition) flow
     in
     let flow = process_partitioning_transitions v1 v2 flow in
-    if not (Partitioning.is_empty_flow flow) then
+    if not (Partitioning.is_empty_flow flow) then begin
       record_fireable e;
+      if Hit_log.enabled () then EdgeTable.replace fired_edges e ()
+    end;
     flow
 
   let gather_cvalues states = match Engine.Dom.get_cvalue with
@@ -620,8 +626,9 @@ module Make_Dataflow
         | `Bottom -> Cvalue.Model.bottom
         | `Value state -> Engine.Dom.get_cvalue_or_top state
       in
-      Hit_log.record_analysed_call ~id:counter callstack ~footprint ~start
-        ~body_entry ~before:merged_pre_cvalues ~after:merged_post_cvalues
+      Hit_log.record_analysed_call ~id:counter callstack ~automaton
+        ~fired:(EdgeTable.mem fired_edges) ~footprint ~start ~body_entry
+        ~before:merged_pre_cvalues ~after:merged_post_cvalues
     end
     else apply_hooks ()
 

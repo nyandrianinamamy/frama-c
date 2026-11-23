@@ -998,6 +998,7 @@ let check_if_base_is_leaked base_to_check state =
 (* Does not detect leaked cycles within malloc'ed bases.
    The complexity is very far from being optimal. *)
 let check_leaked_malloced_bases state _ =
+  Heap_effects.read_whole_heap ();
   let alloced_bases = Dynamic_Alloc_Bases.get () in
   Base_hptmap.iter
     (fun base _ -> if check_if_base_is_leaked base state then

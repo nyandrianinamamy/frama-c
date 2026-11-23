@@ -4,7 +4,7 @@ control	the run with memexec, without recording allocates with -eva-alloc-builti
 phase	reference
 phase	memexec
 phase	recording
-heap calls	1	0	0	1
+heap calls	1	0	0	0
 phase	requests
 unreachable statements	reference	0
 unreachable statements	recording	0

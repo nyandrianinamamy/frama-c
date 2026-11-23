@@ -8,7 +8,7 @@ Calls:
   release :: heap_rule.c:119 <- sweep_main: analysed, cache entry 8
   sweep_main: analysed, cache entry 9
 Heap calls, not stored by memexec: release 2, sweep_main 1.
-Heap calls whose answers come from full states: release 2, sweep_main 1.
+Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 release, start:
   joined: g ∈ {{ &__malloc_sweep_main_l117_1[0] }}
@@ -98,10 +98,12 @@ Alarms: 0, of which 0 not proven, those of the run without memexec.
 Summary: statement coverage 1.0000, function coverage 0.0909, 0 alarms, those of the run without memexec.
 Points of the cache entries:
 release :: heap_rule.c:119 <- sweep_main, cache entry 7:
-  before R: full states
+  before R: covers __malloc_sweep_main_l117_1; does not bind __malloc_sweep_main_l117_1; swept on every path: __malloc_sweep_main_l117_1; on some path only: none
 release :: heap_rule.c:119 <- sweep_main, cache entry 8:
-  before R: full states
+  before R: covers __malloc_sweep_main_l117_1; does not bind __malloc_sweep_main_l117_1; swept on every path: __malloc_sweep_main_l117_1; on some path only: none
 sweep_main, cache entry 9:
-  before S: full states
+  before S: covers __malloc_sweep_main_l117_1; does not bind __malloc_sweep_main_l117_1; swept on every path: none; on some path only: none
 Entry 8 of release, without pointer in spare, applied to the body-entry state of the call of entry 7, before R:
-  no answer from the rule: full states
+  spare: ESCAPINGADDR
+  with entry 7: ESCAPINGADDR
+  equal: true

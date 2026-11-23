@@ -92,6 +92,14 @@ let register_sink f = sinks := !sinks @ [ f ]
 
 let emit ?point e = List.iter (fun f -> f ?point e) !sinks
 
+let whole_heap_readers = ref []
+
+let register_whole_heap_reader f =
+  whole_heap_readers := !whole_heap_readers @ [ f ]
+
+let read_whole_heap () =
+  if enabled () then List.iter (fun f -> f ()) !whole_heap_readers
+
 let widening_point = ref None
 
 let at_widening stmt f =

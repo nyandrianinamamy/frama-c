@@ -10,8 +10,7 @@ Calls:
   crelease :: heap_rule.c:128 <- cond_sweep_main: analysed, cache entry 8
   cond_sweep_main: analysed, cache entry 9
 Heap calls, not stored by memexec: cond_sweep_main 1, crelease 2.
-Heap calls whose answers come from full states: cond_sweep_main 1,
-  crelease 2.
+Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 crelease, start:
   joined: g ∈ {{ &__malloc_cond_sweep_main_l126_1[0] }}
@@ -141,10 +140,12 @@ Alarms: 0, of which 0 not proven, those of the run without memexec.
 Summary: statement coverage 1.0000, function coverage 0.0909, 0 alarms, those of the run without memexec.
 Points of the cache entries:
 crelease :: heap_rule.c:128 <- cond_sweep_main, cache entry 7:
-  before CR: full states
+  before CR: covers __malloc_cond_sweep_main_l126_1; does not bind none; swept on every path: none; on some path only: __malloc_cond_sweep_main_l126_1
 crelease :: heap_rule.c:128 <- cond_sweep_main, cache entry 8:
-  before CR: full states
+  before CR: covers __malloc_cond_sweep_main_l126_1; does not bind none; swept on every path: none; on some path only: __malloc_cond_sweep_main_l126_1
 cond_sweep_main, cache entry 9:
-  before CS: full states
+  before CS: covers __malloc_cond_sweep_main_l126_1; does not bind none; swept on every path: none; on some path only: none
 Entry 8 of crelease, without pointer in spare, applied to the body-entry state of the call of entry 7, before CR:
-  no answer from the rule: full states
+  spare: {{ &__malloc_cond_sweep_main_l126_1 }} or ESCAPINGADDR
+  with entry 7: {{ &__malloc_cond_sweep_main_l126_1 }} or ESCAPINGADDR
+  equal: true

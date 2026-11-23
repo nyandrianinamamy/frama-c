@@ -86,6 +86,15 @@ val register_sink: (?point:Cil_types.stmt -> t -> unit) -> unit
 (** Emits an effect to the sinks. *)
 val emit: ?point:Cil_types.stmt -> t -> unit
 
+(** [register_whole_heap_reader f] makes each call of {!read_whole_heap}
+    call [f ()], after the functions registered before. *)
+val register_whole_heap_reader: (unit -> unit) -> unit
+
+(** Signals that the builtin being run reads every allocated block of the
+    state, as the builtin of [Frama_C_check_leak] does. Nothing is signalled
+    without option [-eva-hit-log]. *)
+val read_whole_heap: unit -> unit
+
 (** [at_widening stmt f] runs [f], the widening of the states at [stmt]: the
     validity mutations that the widening of the memory maps makes meanwhile
     are emitted with [stmt] as their point. *)

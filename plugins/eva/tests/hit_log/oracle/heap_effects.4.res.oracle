@@ -10,7 +10,7 @@ Calls:
   az :: heap_effects.c:65 <- alloca_main: analysed, cache entry 5
   alloca_main: analysed, cache entry 6
 Heap calls, not stored by memexec: alloca_main 1, az 1.
-Heap calls whose answers come from full states: alloca_main 1, az 1.
+Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 Initial state: equal.
 Differences with the run without memexec:

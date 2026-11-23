@@ -6,7 +6,7 @@ Calls:
   cz :: heap_builtins.c:22 <- calloc_main: analysed, cache entry 8
   calloc_main: analysed, cache entry 9
 Heap calls, not stored by memexec: calloc_main 1, cz 2.
-Heap calls whose answers come from full states: calloc_main 1, cz 2.
+Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 cz, start:
   joined: g ∈ {{ NULL ; &__calloc_w_cz_l21_1[0] }}

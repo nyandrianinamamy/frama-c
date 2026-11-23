@@ -97,13 +97,18 @@ let print_points call =
        Format.printf "  before %s: %s@." label text)
     (labelled call.kf)
 
-(* The value of spare in [state], if it is bound there. *)
+(* The value of spare in [state], if it is bound there: the join of the
+   values of its offsetmap. *)
 let spare state =
   let vi = Globals.Vars.find_from_astinfo "spare" Global in
   let base = Base.of_varinfo vi in
   match Cvalue.Model.find_base base state with
   | `Value offsetmap ->
-    one_line Cvalue.V_Offsetmap.pretty offsetmap
+    let value =
+      Cvalue.V_Offsetmap.fold_on_values Cvalue.V_Or_Uninitialized.join
+        offsetmap Cvalue.V_Or_Uninitialized.bottom
+    in
+    one_line Cvalue.V_Or_Uninitialized.pretty value
   | `Top -> "top"
   | `Bottom -> "bottom"
   | exception Not_found -> "absent"
