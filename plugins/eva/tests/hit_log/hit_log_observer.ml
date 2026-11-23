@@ -424,21 +424,24 @@ let print_calls () =
   Format.printf "@]@."
 
 (* The statistics that Eva keeps per function with -eva-hit-log, in this
-   order: the calls analysed by their body that are heap calls, which
-   memexec does not store; the calls analysed by their body that memexec
-   would have answered from the cache entry of a heap call, had it stored
-   them; among the latter, those made during the analysis of another one,
-   which a hit would not have analysed; and the heap calls whose cache
-   entries hold full states, which answer the requests at the points of
-   their bodies instead of the rule. They are found by name: a statistic
-   that Eva does not keep reads 0. Statistics are kept with each project,
-   and are read in the project with -eva-hit-log once its analysis has
-   ended. *)
+   order: the calls analysed by their body that are heap calls; the calls
+   analysed by their body that memexec would have answered from the cache
+   entry of a heap call, had it stored them; among the latter, those made
+   during the analysis of another one, which a hit would not have analysed;
+   the heap calls whose cache entries hold full states, which answer the
+   requests at the points of their bodies instead of the rule; the heap
+   calls that memexec stores, whose effects are removals and sweeps only;
+   and the calls analysed by their body that enclose a hit on the entry of
+   a heap call, up to the entry point, which memexec does not store and
+   whose entries hold full states. They are found by name: a statistic that
+   Eva does not keep reads 0. Statistics are kept with each project, and
+   are read in the project with -eva-hit-log once its analysis has ended. *)
 let heap_statistics =
   List.map
     (fun name -> Statistics.register_function_stat name Statistics.Int)
     [ "hit-log-heap-calls"; "hit-log-lost-hits"; "hit-log-lost-hits-below";
-      "hit-log-full-states" ]
+      "hit-log-full-states"; "hit-log-stored-heap-calls";
+      "hit-log-above-heap-hits" ]
 
 (* The functions of the builtins that allocate or free a block. *)
 let allocation_builtins =
@@ -447,7 +450,10 @@ let allocation_builtins =
 
 (* Prints the counts of [heap_statistics] per function, when one of the
    first three is not zero or when the analysis with -eva-hit-log called one
-   of [allocation_builtins]. Records their totals in the summary. *)
+   of [allocation_builtins]: the heap calls not stored by memexec are the
+   heap calls less the stored ones. The stored heap calls and the calls
+   that enclose a hit on the entry of a heap call are printed when there
+   are some. Records the totals of the first four in the summary. *)
 let print_heap_calls () =
   let counts stat =
     Globals.Functions.fold
@@ -458,10 +464,18 @@ let print_heap_calls () =
       []
     |> List.sort compare
   in
-  let heap, lost, lost_below, full =
+  let heap, lost, lost_below, full, stored, above =
     match List.map counts heap_statistics with
-    | [ heap; lost; lost_below; full ] -> heap, lost, lost_below, full
+    | [ heap; lost; lost_below; full; stored; above ] ->
+      heap, lost, lost_below, full, stored, above
     | _ -> assert false
+  in
+  let not_stored =
+    List.filter_map
+      (fun (name, n) ->
+         let s = Option.value ~default:0 (List.assoc_opt name stored) in
+         if n > s then Some (name, n - s) else None)
+      heap
   in
   let allocates =
     List.exists
@@ -480,9 +494,16 @@ let print_heap_calls () =
   in
   if allocates || heap <> [] || lost <> [] || lost_below <> [] then begin
     Format.printf "@[<hov 2>Heap calls, not stored by memexec:@ %a.@]@."
-      pp_counts heap;
+      pp_counts not_stored;
+    if stored <> [] then
+      Format.printf "@[<hov 2>Heap calls stored by memexec:@ %a.@]@."
+        pp_counts stored;
     Format.printf "@[<hov 2>Heap calls whose answers come from full \
                    states:@ %a.@]@." pp_counts full;
+    if above <> [] then
+      Format.printf "@[<hov 2>Calls that enclose a hit on the entry of a \
+                     heap call, not stored by memexec, with full \
+                     states:@ %a.@]@." pp_counts above;
     Format.printf "@[<hov 2>Hits not made because memexec does not store \
                    the heap calls:@ %a.@]@." pp_counts lost;
     if lost_below <> [] then

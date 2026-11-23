@@ -1,58 +1,58 @@
 [kernel] Parsing heap_hit.c (with preprocessing)
-[eva:alarm] heap_hit.c:143: Warning: 
+[eva:alarm] heap_hit.c:144: Warning: 
   accessing left-value that contains escaping addresses. assert ¬\dangling(&p);
-[eva:alarm] heap_hit.c:143: Warning: 
+[eva:alarm] heap_hit.c:144: Warning: 
   accessing left-value that contains escaping addresses. assert ¬\dangling(&p);
-[eva:alarm] heap_hit.c:153: Warning: assertion 'second' got status unknown.
-[eva:alarm] heap_hit.c:143: Warning: 
+[eva:alarm] heap_hit.c:154: Warning: assertion 'second' got status unknown.
+[eva:alarm] heap_hit.c:144: Warning: 
   accessing left-value that contains escaping addresses. assert ¬\dangling(&p);
-[eva:alarm] heap_hit.c:143: Warning: 
+[eva:alarm] heap_hit.c:144: Warning: 
   accessing left-value that contains escaping addresses. assert ¬\dangling(&p);
-[eva:alarm] heap_hit.c:143: Warning: 
+[eva:alarm] heap_hit.c:144: Warning: 
   accessing left-value that contains escaping addresses. assert ¬\dangling(&p);
-[eva:alarm] heap_hit.c:143: Warning: 
+[eva:alarm] heap_hit.c:144: Warning: 
   accessing left-value that contains escaping addresses. assert ¬\dangling(&p);
-[eva:alarm] heap_hit.c:153: Warning: assertion 'second' got status unknown.
+[eva:alarm] heap_hit.c:154: Warning: assertion 'second' got status unknown.
 Calls:
-  calloc :: heap_hit.c:147 <- witness_main: builtin
-  malloc :: heap_hit.c:149 <- witness_main: builtin
-  Frama_C_interval :: heap_hit.c:143 <- wit_release :: heap_hit.c:151 <- witness_main: specification
-  free :: heap_hit.c:143 <- wit_release :: heap_hit.c:151 <- witness_main (call statements 107, 126): builtin
-  Frama_C_interval :: heap_hit.c:143 <- wit_release :: heap_hit.c:151 <- witness_main: specification
-  free :: heap_hit.c:143 <- wit_release :: heap_hit.c:151 <- witness_main (call statements 107, 126): builtin
-  free :: heap_hit.c:143 <- wit_release :: heap_hit.c:151 <- witness_main (call statements 108, 126): builtin
-  wit_release :: heap_hit.c:151 <- witness_main: analysed, cache entry 6
-  malloc :: heap_hit.c:149 <- witness_main: builtin
-  Frama_C_interval :: heap_hit.c:143 <- wit_release :: heap_hit.c:151 <- witness_main: specification
-  free :: heap_hit.c:143 <- wit_release :: heap_hit.c:151 <- witness_main (call statements 107, 126): builtin
-  Frama_C_interval :: heap_hit.c:143 <- wit_release :: heap_hit.c:151 <- witness_main: specification
-  free :: heap_hit.c:143 <- wit_release :: heap_hit.c:151 <- witness_main (call statements 107, 126): builtin
-  free :: heap_hit.c:143 <- wit_release :: heap_hit.c:151 <- witness_main (call statements 108, 126): builtin
-  wit_release :: heap_hit.c:151 <- witness_main: analysed, cache entry 7
+  calloc :: heap_hit.c:148 <- witness_main: builtin
+  malloc :: heap_hit.c:150 <- witness_main: builtin
+  Frama_C_interval :: heap_hit.c:144 <- wit_release :: heap_hit.c:152 <- witness_main: specification
+  free :: heap_hit.c:144 <- wit_release :: heap_hit.c:152 <- witness_main (call statements 107, 126): builtin
+  Frama_C_interval :: heap_hit.c:144 <- wit_release :: heap_hit.c:152 <- witness_main: specification
+  free :: heap_hit.c:144 <- wit_release :: heap_hit.c:152 <- witness_main (call statements 107, 126): builtin
+  free :: heap_hit.c:144 <- wit_release :: heap_hit.c:152 <- witness_main (call statements 108, 126): builtin
+  wit_release :: heap_hit.c:152 <- witness_main: analysed, cache entry 6
+  malloc :: heap_hit.c:150 <- witness_main: builtin
+  Frama_C_interval :: heap_hit.c:144 <- wit_release :: heap_hit.c:152 <- witness_main: specification
+  free :: heap_hit.c:144 <- wit_release :: heap_hit.c:152 <- witness_main (call statements 107, 126): builtin
+  Frama_C_interval :: heap_hit.c:144 <- wit_release :: heap_hit.c:152 <- witness_main: specification
+  free :: heap_hit.c:144 <- wit_release :: heap_hit.c:152 <- witness_main (call statements 107, 126): builtin
+  free :: heap_hit.c:144 <- wit_release :: heap_hit.c:152 <- witness_main (call statements 108, 126): builtin
+  wit_release :: heap_hit.c:152 <- witness_main: analysed, cache entry 7
   witness_main: analysed, cache entry 8
 Heap calls, not stored by memexec: wit_release 2, witness_main 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: wit_release 1.
 Created bases whose match with the run with memexec is unresolved:
-  __calloc_w_witness_main_l147_0 (Variable [0..31--31], max allocable 34359738367, weak) -> __calloc_w_witness_main_l147_1 (Variable [0..31--34359738367], max allocable 34359738367, weak)
+  __calloc_w_witness_main_l148_0 (Variable [0..31--31], max allocable 34359738367, weak) -> __calloc_w_witness_main_l148_1 (Variable [0..31--34359738367], max allocable 34359738367, weak)
 Created bases of the run with memexec, without recording, whose match with the run without memexec is unresolved:
-  __calloc_w_witness_main_l147 (Variable [0..31--34359738367], max allocable 34359738367, weak) -> __calloc_w_witness_main_l147_0 (Variable [0..31--31], max allocable 34359738367, weak)
+  __calloc_w_witness_main_l148 (Variable [0..31--34359738367], max allocable 34359738367, weak) -> __calloc_w_witness_main_l148_0 (Variable [0..31--31], max allocable 34359738367, weak)
 Initial state: equal.
 Differences with the run without memexec:
-Answers: 806 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
-Callstacks listed: those of the run without memexec at each of the 376 points.
-Callstacks listed through the filter: those of the run without memexec at each of the 376 points.
+Answers: 876 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 411 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 411 points.
 Filtered requests that reject one callstack: 0.
-Requests made: 1558; reported by the trap: 1558, each once with its description; reads of the legacy store: 0.
+Requests made: 1698; reported by the trap: 1698, each once with its description; reads of the legacy store: 0.
 Passes after the iteration:
-  with memexec, without recording: 241 requests, 126 reads of the legacy store in them, 115 reads outside any request.
-  with -eva-hit-log: 243 requests, 0 reads of the legacy store in them, 0 reads outside any request.
-    unreachable statements: 188 requests
+  with memexec, without recording: 258 requests, 126 reads of the legacy store in them, 115 reads outside any request.
+  with -eva-hit-log: 260 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 205 requests
     statuses of the properties: 10 requests
     statistics: 25 requests
     summary: 20 requests
 Statuses of the properties: those of the run without memexec, for 350 properties.
 Statuses with memexec, without recording, that differ from the run without memexec:
-  heap_hit.c:153: Assertion 'second' ("heap_hit.c", line 153): assert second: \block_length(box) ≤ sizeof(int *);: Valid against Unknown: MORE OPTIMISTIC
+  heap_hit.c:154: Assertion 'second' ("heap_hit.c", line 154): assert second: \block_length(box) ≤ sizeof(int *);: Valid against Unknown: MORE OPTIMISTIC
 Alarms: 1, of which 1 not proven, those of the run without memexec.
-Summary: statement coverage 1.0000, function coverage 0.0833, 2 alarms, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.0800, 2 alarms, those of the run without memexec.

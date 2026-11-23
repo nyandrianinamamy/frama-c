@@ -1,20 +1,20 @@
 [kernel] Parsing heap_hit.c (with preprocessing)
-[eva:alarm] heap_hit.c:194: Warning: assertion 'raised' got status unknown.
-[eva:alarm] heap_hit.c:194: Warning: assertion 'raised' got status unknown.
-[eva:alarm] heap_hit.c:194: Warning: assertion 'raised' got status unknown.
+[eva:alarm] heap_hit.c:195: Warning: assertion 'raised' got status unknown.
+[eva:alarm] heap_hit.c:195: Warning: assertion 'raised' got status unknown.
+[eva:alarm] heap_hit.c:195: Warning: assertion 'raised' got status unknown.
 Calls:
-  malloc :: heap_hit.c:185 <- raise_main: builtin
   malloc :: heap_hit.c:186 <- raise_main: builtin
-  Frama_C_interval :: heap_hit.c:178 <- wraise :: heap_hit.c:188 <- raise_main: specification
-  Frama_C_interval :: heap_hit.c:178 <- wraise :: heap_hit.c:188 <- raise_main: specification
-  free :: heap_hit.c:179 <- wraise :: heap_hit.c:188 <- raise_main: builtin
-  wraise :: heap_hit.c:188 <- raise_main: analysed, cache entry 7
-  malloc :: heap_hit.c:190 <- raise_main: builtin
+  malloc :: heap_hit.c:187 <- raise_main: builtin
+  Frama_C_interval :: heap_hit.c:179 <- wraise :: heap_hit.c:189 <- raise_main: specification
+  Frama_C_interval :: heap_hit.c:179 <- wraise :: heap_hit.c:189 <- raise_main: specification
+  free :: heap_hit.c:180 <- wraise :: heap_hit.c:189 <- raise_main: builtin
+  wraise :: heap_hit.c:189 <- raise_main: analysed, cache entry 7
   malloc :: heap_hit.c:191 <- raise_main: builtin
-  Frama_C_interval :: heap_hit.c:178 <- wraise :: heap_hit.c:193 <- raise_main: specification
-  Frama_C_interval :: heap_hit.c:178 <- wraise :: heap_hit.c:193 <- raise_main: specification
-  free :: heap_hit.c:179 <- wraise :: heap_hit.c:193 <- raise_main: builtin
-  wraise :: heap_hit.c:193 <- raise_main: analysed, cache entry 8
+  malloc :: heap_hit.c:192 <- raise_main: builtin
+  Frama_C_interval :: heap_hit.c:179 <- wraise :: heap_hit.c:194 <- raise_main: specification
+  Frama_C_interval :: heap_hit.c:179 <- wraise :: heap_hit.c:194 <- raise_main: specification
+  free :: heap_hit.c:180 <- wraise :: heap_hit.c:194 <- raise_main: builtin
+  wraise :: heap_hit.c:194 <- raise_main: analysed, cache entry 8
   raise_main: analysed, cache entry 9
 Heap calls, not stored by memexec: raise_main 1, wraise 2.
 Heap calls whose answers come from full states: none.
@@ -27,61 +27,61 @@ wraise, start:
           g1 ∈ {0}
           g2 ∈ {0}
           gp ∈
-            {{ &__malloc_w_raise_main_l185_1[0] ;
-               &__malloc_w_raise_main_l190_1[0] }}
+            {{ &__malloc_w_raise_main_l186_1[0] ;
+               &__malloc_w_raise_main_l191_1[0] }}
           gq ∈
-            {{ &__malloc_raise_main_l186_1 ; &__malloc_raise_main_l191_1 }}
+            {{ &__malloc_raise_main_l187_1 ; &__malloc_raise_main_l192_1 }}
           p ∈
-           {{ &__malloc_w_raise_main_l185_1[0] ;
-              &__malloc_w_raise_main_l190_1[0] }}
-          q ∈ {{ &__malloc_raise_main_l186_1 ; &__malloc_raise_main_l191_1 }}
+           {{ &__malloc_w_raise_main_l186_1[0] ;
+              &__malloc_w_raise_main_l191_1[0] }}
+          q ∈ {{ &__malloc_raise_main_l187_1 ; &__malloc_raise_main_l192_1 }}
           src ∈ {0}
           dst ∈ {0}
-          __malloc_w_raise_main_l185_1[0] ∈ {7} or UNINITIALIZED
-          __malloc_raise_main_l186_1 ∈ {1}
-          __malloc_w_raise_main_l190_1[0] ∈ UNINITIALIZED
-          __malloc_raise_main_l191_1 ∈ {1}
-  wraise :: heap_hit.c:188 <- raise_main: cur ∈ {0}
+          __malloc_w_raise_main_l186_1[0] ∈ {7} or UNINITIALIZED
+          __malloc_raise_main_l187_1 ∈ {1}
+          __malloc_w_raise_main_l191_1[0] ∈ UNINITIALIZED
+          __malloc_raise_main_l192_1 ∈ {1}
+  wraise :: heap_hit.c:189 <- raise_main: cur ∈ {0}
                                           keep ∈ {0}
                                           keep2 ∈ {0}
                                           bx ∈ {0}
                                           g1 ∈ {0}
                                           g2 ∈ {0}
                                           gp ∈
-                                            {{ &__malloc_w_raise_main_l185_1[0] }}
+                                            {{ &__malloc_w_raise_main_l186_1[0] }}
                                           gq ∈
-                                            {{ &__malloc_raise_main_l186_1 }}
+                                            {{ &__malloc_raise_main_l187_1 }}
                                           p ∈
-                                           {{ &__malloc_w_raise_main_l185_1[0] }}
+                                           {{ &__malloc_w_raise_main_l186_1[0] }}
                                           q ∈
-                                           {{ &__malloc_raise_main_l186_1 }}
+                                           {{ &__malloc_raise_main_l187_1 }}
                                           src ∈ {0}
                                           dst ∈ {0}
-                                          __malloc_w_raise_main_l185_1
+                                          __malloc_w_raise_main_l186_1
                                           [0] ∈ UNINITIALIZED
-                                          __malloc_raise_main_l186_1 ∈ {1}
-  wraise :: heap_hit.c:193 <- raise_main: cur ∈ {0}
+                                          __malloc_raise_main_l187_1 ∈ {1}
+  wraise :: heap_hit.c:194 <- raise_main: cur ∈ {0}
                                           keep ∈ {0}
                                           keep2 ∈ {0}
                                           bx ∈ {0}
                                           g1 ∈ {0}
                                           g2 ∈ {0}
                                           gp ∈
-                                            {{ &__malloc_w_raise_main_l190_1[0] }}
+                                            {{ &__malloc_w_raise_main_l191_1[0] }}
                                           gq ∈
-                                            {{ &__malloc_raise_main_l191_1 }}
+                                            {{ &__malloc_raise_main_l192_1 }}
                                           p ∈
-                                           {{ &__malloc_w_raise_main_l190_1[0] }}
+                                           {{ &__malloc_w_raise_main_l191_1[0] }}
                                           q ∈
-                                           {{ &__malloc_raise_main_l191_1 }}
+                                           {{ &__malloc_raise_main_l192_1 }}
                                           src ∈ {0}
                                           dst ∈ {0}
-                                          __malloc_w_raise_main_l185_1
+                                          __malloc_w_raise_main_l186_1
                                           [0] ∈ {7} or UNINITIALIZED
-                                          __malloc_w_raise_main_l190_1
+                                          __malloc_w_raise_main_l191_1
                                           [0] ∈ UNINITIALIZED
-                                          __malloc_raise_main_l191_1 ∈ {1}
-wraise, before heap_hit.c:180 `;` (Y):
+                                          __malloc_raise_main_l192_1 ∈ {1}
+wraise, before heap_hit.c:181 `;` (Y):
   joined: cur ∈ {0}
           keep ∈ {0}
           keep2 ∈ {0}
@@ -89,52 +89,52 @@ wraise, before heap_hit.c:180 `;` (Y):
           g1 ∈ {0}
           g2 ∈ {0}
           gp ∈
-            {{ &__malloc_w_raise_main_l185_1[0] ;
-               &__malloc_w_raise_main_l190_1[0] }}
+            {{ &__malloc_w_raise_main_l186_1[0] ;
+               &__malloc_w_raise_main_l191_1[0] }}
           gq ∈ ESCAPINGADDR
           p ∈
-           {{ &__malloc_w_raise_main_l185_1[0] ;
-              &__malloc_w_raise_main_l190_1[0] }}
+           {{ &__malloc_w_raise_main_l186_1[0] ;
+              &__malloc_w_raise_main_l191_1[0] }}
           q ∈ ESCAPINGADDR
           src ∈ {0}
           dst ∈ {0}
-          __malloc_w_raise_main_l185_1[0] ∈ {7} or UNINITIALIZED
-          __malloc_w_raise_main_l190_1[0] ∈ {7} or UNINITIALIZED
-  wraise :: heap_hit.c:188 <- raise_main: cur ∈ {0}
+          __malloc_w_raise_main_l186_1[0] ∈ {7} or UNINITIALIZED
+          __malloc_w_raise_main_l191_1[0] ∈ {7} or UNINITIALIZED
+  wraise :: heap_hit.c:189 <- raise_main: cur ∈ {0}
                                           keep ∈ {0}
                                           keep2 ∈ {0}
                                           bx ∈ {0}
                                           g1 ∈ {0}
                                           g2 ∈ {0}
                                           gp ∈
-                                            {{ &__malloc_w_raise_main_l185_1[0] }}
+                                            {{ &__malloc_w_raise_main_l186_1[0] }}
                                           gq ∈ ESCAPINGADDR
                                           p ∈
-                                           {{ &__malloc_w_raise_main_l185_1[0] }}
+                                           {{ &__malloc_w_raise_main_l186_1[0] }}
                                           q ∈ ESCAPINGADDR
                                           src ∈ {0}
                                           dst ∈ {0}
-                                          __malloc_w_raise_main_l185_1
+                                          __malloc_w_raise_main_l186_1
                                           [0] ∈ {7} or UNINITIALIZED
-  wraise :: heap_hit.c:193 <- raise_main: cur ∈ {0}
+  wraise :: heap_hit.c:194 <- raise_main: cur ∈ {0}
                                           keep ∈ {0}
                                           keep2 ∈ {0}
                                           bx ∈ {0}
                                           g1 ∈ {0}
                                           g2 ∈ {0}
                                           gp ∈
-                                            {{ &__malloc_w_raise_main_l190_1[0] }}
+                                            {{ &__malloc_w_raise_main_l191_1[0] }}
                                           gq ∈ ESCAPINGADDR
                                           p ∈
-                                           {{ &__malloc_w_raise_main_l190_1[0] }}
+                                           {{ &__malloc_w_raise_main_l191_1[0] }}
                                           q ∈ ESCAPINGADDR
                                           src ∈ {0}
                                           dst ∈ {0}
-                                          __malloc_w_raise_main_l185_1
+                                          __malloc_w_raise_main_l186_1
                                           [0] ∈ {7} or UNINITIALIZED
-                                          __malloc_w_raise_main_l190_1
+                                          __malloc_w_raise_main_l191_1
                                           [0] ∈ {7} or UNINITIALIZED
-wraise, after heap_hit.c:181 `return;`:
+wraise, after heap_hit.c:182 `return;`:
   joined: cur ∈ {0}
           keep ∈ {0}
           keep2 ∈ {0}
@@ -142,50 +142,50 @@ wraise, after heap_hit.c:181 `return;`:
           g1 ∈ {0}
           g2 ∈ {0}
           gp ∈
-            {{ &__malloc_w_raise_main_l185_1[0] ;
-               &__malloc_w_raise_main_l190_1[0] }}
+            {{ &__malloc_w_raise_main_l186_1[0] ;
+               &__malloc_w_raise_main_l191_1[0] }}
           gq ∈ ESCAPINGADDR
           p ∈
-           {{ &__malloc_w_raise_main_l185_1[0] ;
-              &__malloc_w_raise_main_l190_1[0] }}
+           {{ &__malloc_w_raise_main_l186_1[0] ;
+              &__malloc_w_raise_main_l191_1[0] }}
           q ∈ ESCAPINGADDR
           src ∈ {0}
           dst ∈ {0}
-          __malloc_w_raise_main_l185_1[0] ∈ {7} or UNINITIALIZED
-          __malloc_w_raise_main_l190_1[0] ∈ {7} or UNINITIALIZED
-  wraise :: heap_hit.c:188 <- raise_main: cur ∈ {0}
+          __malloc_w_raise_main_l186_1[0] ∈ {7} or UNINITIALIZED
+          __malloc_w_raise_main_l191_1[0] ∈ {7} or UNINITIALIZED
+  wraise :: heap_hit.c:189 <- raise_main: cur ∈ {0}
                                           keep ∈ {0}
                                           keep2 ∈ {0}
                                           bx ∈ {0}
                                           g1 ∈ {0}
                                           g2 ∈ {0}
                                           gp ∈
-                                            {{ &__malloc_w_raise_main_l185_1[0] }}
+                                            {{ &__malloc_w_raise_main_l186_1[0] }}
                                           gq ∈ ESCAPINGADDR
                                           p ∈
-                                           {{ &__malloc_w_raise_main_l185_1[0] }}
+                                           {{ &__malloc_w_raise_main_l186_1[0] }}
                                           q ∈ ESCAPINGADDR
                                           src ∈ {0}
                                           dst ∈ {0}
-                                          __malloc_w_raise_main_l185_1
+                                          __malloc_w_raise_main_l186_1
                                           [0] ∈ {7} or UNINITIALIZED
-  wraise :: heap_hit.c:193 <- raise_main: cur ∈ {0}
+  wraise :: heap_hit.c:194 <- raise_main: cur ∈ {0}
                                           keep ∈ {0}
                                           keep2 ∈ {0}
                                           bx ∈ {0}
                                           g1 ∈ {0}
                                           g2 ∈ {0}
                                           gp ∈
-                                            {{ &__malloc_w_raise_main_l190_1[0] }}
+                                            {{ &__malloc_w_raise_main_l191_1[0] }}
                                           gq ∈ ESCAPINGADDR
                                           p ∈
-                                           {{ &__malloc_w_raise_main_l190_1[0] }}
+                                           {{ &__malloc_w_raise_main_l191_1[0] }}
                                           q ∈ ESCAPINGADDR
                                           src ∈ {0}
                                           dst ∈ {0}
-                                          __malloc_w_raise_main_l185_1
+                                          __malloc_w_raise_main_l186_1
                                           [0] ∈ {7} or UNINITIALIZED
-                                          __malloc_w_raise_main_l190_1
+                                          __malloc_w_raise_main_l191_1
                                           [0] ∈ {7} or UNINITIALIZED
 raise_main, start:
   joined: cur ∈ {0}
@@ -208,69 +208,69 @@ raise_main, start:
               gq ∈ {0}
               src ∈ {0}
               dst ∈ {0}
-raise_main, before heap_hit.c:195 `;` (Z):
+raise_main, before heap_hit.c:196 `;` (Z):
   joined: cur ∈ {0}
           keep ∈ {0}
           keep2 ∈ {0}
           bx ∈ {0}
           g1 ∈ {0}
           g2 ∈ {0}
-          gp ∈ {{ &__malloc_w_raise_main_l190_1[0] }}
+          gp ∈ {{ &__malloc_w_raise_main_l191_1[0] }}
           gq ∈ ESCAPINGADDR
           src ∈ {0}
           dst ∈ {0}
-          __malloc_w_raise_main_l185_1[0] ∈ {7} or UNINITIALIZED
-          __malloc_w_raise_main_l190_1[0] ∈ {7} or UNINITIALIZED
+          __malloc_w_raise_main_l186_1[0] ∈ {7} or UNINITIALIZED
+          __malloc_w_raise_main_l191_1[0] ∈ {7} or UNINITIALIZED
   raise_main: cur ∈ {0}
               keep ∈ {0}
               keep2 ∈ {0}
               bx ∈ {0}
               g1 ∈ {0}
               g2 ∈ {0}
-              gp ∈ {{ &__malloc_w_raise_main_l190_1[0] }}
+              gp ∈ {{ &__malloc_w_raise_main_l191_1[0] }}
               gq ∈ ESCAPINGADDR
               src ∈ {0}
               dst ∈ {0}
-              __malloc_w_raise_main_l185_1[0] ∈ {7} or UNINITIALIZED
-              __malloc_w_raise_main_l190_1[0] ∈ {7} or UNINITIALIZED
-raise_main, after heap_hit.c:196 `return;`:
+              __malloc_w_raise_main_l186_1[0] ∈ {7} or UNINITIALIZED
+              __malloc_w_raise_main_l191_1[0] ∈ {7} or UNINITIALIZED
+raise_main, after heap_hit.c:197 `return;`:
   joined: cur ∈ {0}
           keep ∈ {0}
           keep2 ∈ {0}
           bx ∈ {0}
           g1 ∈ {0}
           g2 ∈ {0}
-          gp ∈ {{ &__malloc_w_raise_main_l190_1[0] }}
+          gp ∈ {{ &__malloc_w_raise_main_l191_1[0] }}
           gq ∈ ESCAPINGADDR
           src ∈ {0}
           dst ∈ {0}
-          __malloc_w_raise_main_l185_1[0] ∈ {7} or UNINITIALIZED
-          __malloc_w_raise_main_l190_1[0] ∈ {7} or UNINITIALIZED
+          __malloc_w_raise_main_l186_1[0] ∈ {7} or UNINITIALIZED
+          __malloc_w_raise_main_l191_1[0] ∈ {7} or UNINITIALIZED
   raise_main: cur ∈ {0}
               keep ∈ {0}
               keep2 ∈ {0}
               bx ∈ {0}
               g1 ∈ {0}
               g2 ∈ {0}
-              gp ∈ {{ &__malloc_w_raise_main_l190_1[0] }}
+              gp ∈ {{ &__malloc_w_raise_main_l191_1[0] }}
               gq ∈ ESCAPINGADDR
               src ∈ {0}
               dst ∈ {0}
-              __malloc_w_raise_main_l185_1[0] ∈ {7} or UNINITIALIZED
-              __malloc_w_raise_main_l190_1[0] ∈ {7} or UNINITIALIZED
+              __malloc_w_raise_main_l186_1[0] ∈ {7} or UNINITIALIZED
+              __malloc_w_raise_main_l191_1[0] ∈ {7} or UNINITIALIZED
 Initial state: equal.
 Differences with the run without memexec:
-Answers: 811 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
-Callstacks listed: those of the run without memexec at each of the 376 points.
-Callstacks listed through the filter: those of the run without memexec at each of the 376 points.
+Answers: 881 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 411 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 411 points.
 Filtered requests that reject one callstack: 17.
-Requests made: 1563; reported by the trap: 1563, each once with its description; reads of the legacy store: 0.
+Requests made: 1703; reported by the trap: 1703, each once with its description; reads of the legacy store: 0.
 Passes after the iteration:
-  with memexec, without recording: 223 requests, 92 reads of the legacy store in them, 108 reads outside any request.
-  with -eva-hit-log: 223 requests, 0 reads of the legacy store in them, 0 reads outside any request.
-    unreachable statements: 186 requests
+  with memexec, without recording: 240 requests, 92 reads of the legacy store in them, 108 reads outside any request.
+  with -eva-hit-log: 240 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 203 requests
     statistics: 19 requests
     summary: 18 requests
 Statuses of the properties: those of the run without memexec, for 350 properties.
 Alarms: 0, of which 0 not proven, those of the run without memexec.
-Summary: statement coverage 1.0000, function coverage 0.0833, 0 alarms, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.0800, 0 alarms, those of the run without memexec.

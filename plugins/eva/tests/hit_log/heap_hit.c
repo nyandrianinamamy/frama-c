@@ -11,6 +11,7 @@
    STDOPT: +"-eva-no-alloc-returns-null -main raise_main -eva-widening-delay 1"
    STDOPT: +"-eva-no-alloc-returns-null -main keyed_main"
    STDOPT: +"-eva-no-alloc-returns-null -main single_main"
+   STDOPT: +"-eva-no-alloc-returns-null -main arg_main"
 */
 
 /* #126: a call whose heap effects are removals and sweeps only is stored by
@@ -228,4 +229,28 @@ void single_main(void) {
     move();
   }
   D: ;
+}
+
+/* Run 12: the argument of the second call of rel and of cfree is a cell of
+   the frame, which the call sweeps. The inout of a hit is that of its
+   analysed call through the renaming, which does not hold this cell; Eva
+   reads it after the call, to decide whether the argument can be reduced
+   from the value of the formal. */
+void arg_main(void) {
+  bx = calloc(1, sizeof *bx);
+  cur = malloc(sizeof(int));
+  *cur = 5;
+  rel(cur);
+  cur = malloc(sizeof(int));
+  *cur = 5;
+  bx->slot = cur;
+  rel(bx->slot);
+  cur = malloc(sizeof(int));
+  *cur = 1;
+  cfree(cur);
+  cur = malloc(sizeof(int));
+  *cur = 1;
+  bx->other = cur;
+  cfree(bx->other);
+  A: ;
 }
