@@ -5,6 +5,7 @@ Calls:
   vz :: heap_builtins.c:37 <- vla_main: analysed, cache entry 5
   vla_main: analysed, cache entry 6
 Heap calls, not stored by memexec: vla_main 1, vz 1.
+Heap calls whose answers come from full states: vla_main 1, vz 1.
 Hits not made because memexec does not store the heap calls: none.
 vz, start:
   joined: g ∈ {0}

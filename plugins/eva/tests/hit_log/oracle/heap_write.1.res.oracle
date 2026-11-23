@@ -8,6 +8,7 @@ Calls:
   release :: heap_write.c:32 <- lost_main: analysed, cache entry 7
   lost_main: analysed, cache entry 8
 Heap calls, not stored by memexec: lost_main 1, release 2.
+Heap calls whose answers come from full states: lost_main 1, release 2.
 Hits not made because memexec does not store the heap calls: release 1.
 release, start:
   joined: g ∈ {{ &__malloc_lost_main_l32_1[0] }}

@@ -14,6 +14,8 @@ Calls:
   p94_2 :: below_known_issues.c:106 <- issue94_2: analysed, cache entry 16
   issue94_2: analysed, cache entry 17
 Heap calls, not stored by memexec: issue94_2 1, p94_2 3, release 3.
+Heap calls whose answers come from full states: issue94_2 1, p94_2 3,
+  release 3.
 Hits not made because memexec does not store the heap calls: p94_2 2.
 Hits not made during the analysis of a call that would have been a hit:
   release 2.

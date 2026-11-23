@@ -1,10 +1,10 @@
-format	3
+format	4
 control	the run without memexec allocates with -eva-alloc-builtin	by_stack
 control	the run with memexec, without recording allocates with -eva-alloc-builtin	by_stack
 phase	reference
 phase	memexec
 phase	recording
-heap calls	1	0	0
+heap calls	1	0	0	1
 phase	requests
 unresolved	without memexec	__malloc_main_l31	match undecided
 unresolved	without memexec	__malloc_main_l31_1	match undecided

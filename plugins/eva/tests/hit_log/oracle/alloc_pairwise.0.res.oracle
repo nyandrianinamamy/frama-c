@@ -8,6 +8,7 @@ Calls:
   free :: alloc_pairwise.c:33 <- main: builtin
   main: analysed, cache entry 3
 Heap calls, not stored by memexec: main 1.
+Heap calls whose answers come from full states: main 1.
 Hits not made because memexec does not store the heap calls: none.
 Initial state: equal.
 Differences with the run without memexec:

@@ -6,6 +6,7 @@ Calls:
   mid :: heap_free.c:25 <- main3: analysed, cache entry 8
   main3: analysed, cache entry 9
 Heap calls, not stored by memexec: f 1, main3 1, mid 1.
+Heap calls whose answers come from full states: f 1, main3 1, mid 1.
 Hits not made because memexec does not store the heap calls: none.
 f, start:
   joined: g ∈ {{ &__malloc_main3_l24_1[0] }}

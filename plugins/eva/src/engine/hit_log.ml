@@ -567,6 +567,7 @@ let current_frame () =
    domain. *)
 
 let heap_calls = Statistics.(register_function_stat "hit-log-heap-calls" Int)
+let full_states = Statistics.(register_function_stat "hit-log-full-states" Int)
 let lost_hits = Statistics.(register_function_stat "hit-log-lost-hits" Int)
 let lost_hits_below =
   Statistics.(register_function_stat "hit-log-lost-hits-below" Int)
@@ -677,6 +678,7 @@ let record_analysed_call ~id callstack ~footprint ~start ~body_entry ~before
       match footprint with
       | None -> Unknown, []
       | Some _ ->
+        Statistics.incr full_states kf;
         Full { before = Lazy.force before; after = Lazy.force after }, []
     end
     else begin

@@ -25,6 +25,8 @@ Calls:
   vla_jump :: heap_effects.c:81 <- vla_main: analysed, cache entry 8
   vla_main: analysed, cache entry 9
 Heap calls, not stored by memexec: vla_jump 1, vla_main 1, vla_scope 1.
+Heap calls whose answers come from full states: vla_jump 1, vla_main 1,
+  vla_scope 1.
 Hits not made because memexec does not store the heap calls: none.
 vla_jump, start:
   joined: g ∈ {0}

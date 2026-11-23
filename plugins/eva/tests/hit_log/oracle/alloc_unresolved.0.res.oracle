@@ -11,6 +11,7 @@ Calls:
   release :: alloc_unresolved.c:35 <- issue94: analysed, cache entry 10
   issue94: analysed, cache entry 11
 Heap calls, not stored by memexec: issue94 1, release 3.
+Heap calls whose answers come from full states: issue94 1, release 3.
 Hits not made because memexec does not store the heap calls: release 2.
 Created bases whose match with the run with memexec is unresolved:
   __malloc_issue94_l31_0

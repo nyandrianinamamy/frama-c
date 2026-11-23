@@ -5,6 +5,7 @@ Calls:
   raz :: heap_reallocarray.c:15 <- reallocarray_main: analysed, cache entry 5
   reallocarray_main: analysed, cache entry 6
 Heap calls, not stored by memexec: raz 1, reallocarray_main 1.
+Heap calls whose answers come from full states: raz 1, reallocarray_main 1.
 Hits not made because memexec does not store the heap calls: none.
 raz, start:
   joined: g ∈ {{ &__malloc_reallocarray_main_l14_1[0] }}

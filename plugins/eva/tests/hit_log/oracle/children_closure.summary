@@ -1,8 +1,8 @@
-format	3
+format	4
 phase	reference
 phase	memexec
 phase	recording
-heap calls	0	0	0
+heap calls	0	0	0	0
 phase	requests
 answer	before	f	f, before children_closure.c:20 `int x = n;`, joined	joined	unavailable	equal		2: unrolled recursive calls
 answer	before	f	f, before children_closure.c:20 `int x = n;`, filtered	filtered	unavailable	equal		2: unrolled recursive calls
