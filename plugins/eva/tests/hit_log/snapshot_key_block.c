@@ -3,13 +3,13 @@
 */
 
 /* #123: an allocated block of the key that no pointer value of the
-   arguments or of the key points to. check_init has no argument. Its
-   assertion reads gp and the block that gp points to, but the key of the
-   call holds the block only: the dependencies of \initialized(gp) replace
-   the read of gp by the bits of the block (known issue #97, case B3). The
-   block is mentioned only because it is in the key. At i = 0, calloc
-   creates a strong block; at i = 1, it reuses that block, still live, and
-   makes it weak. The block holds 0 at both calls. */
+   arguments or of the key points to: check_init has no argument, and the
+   dependencies of \initialized(gp) replace the read of gp by the bits of
+   the block (#97, case B3), so the key holds the block but not gp. Once
+   #97 B3 is fixed, gp enters the key and this fixture no longer isolates
+   the key blocks. At i = 0, calloc creates a strong block; at i = 1, it
+   reuses that block, still live, and makes it weak. The block holds 0 at
+   both calls. */
 
 #include <stdlib.h>
 
