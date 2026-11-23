@@ -16,6 +16,16 @@ val new_counter : unit -> int
 (** Clean all previously stored results *)
 val cleanup_results: unit -> unit
 
+(** [register_store_hook f] makes memexec call [f kf id entry] each time it
+    stores, with [~snapshot:true] (option -eva-hit-log), a call of [kf] as
+    the cache entry of number [id]: [entry] is the cvalue part of what it
+    stores, the arguments, the key, the start state on the key and the states
+    at the exits, each with its clobbered set. Nothing is computed for the
+    hooks when none is registered, or without the cvalue domain. For the
+    tests: the numbered form of the entries of #124. *)
+val register_store_hook:
+  (Cil_types.kernel_function -> int -> Numbering.entry -> unit) -> unit
+
 (** With [~snapshot:true] (option -eva-hit-log), a call is stored with the
     snapshot of the allocated blocks it mentions, and matched with it: the
     blocks of its key, and those that a

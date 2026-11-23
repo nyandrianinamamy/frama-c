@@ -156,6 +156,12 @@ let snapshot_misses =
 let snapshot_results =
   Statistics.(register_function_stat "hit-log-snapshot-results" Int)
 
+(* The functions called with the entry of each call that memexec stores with
+   -eva-hit-log, for the tests. *)
+let store_hooks = ref []
+
+let register_store_hook f = store_hooks := !store_hooks @ [ f ]
+
 let counter = ref 0
 
 module Make
@@ -247,14 +253,33 @@ module Make
     in
     Snapshot.take blocks
 
+  let get_cvalue_state = Domain.get Cvalue_domain.State.key
+
+  (* Calls the hooks of the tests with the cvalue part of the entry of a
+     call of [kf] just stored, if the domain has the cvalue domain. *)
+  let notify_store kf args (input_bases, state_input, outputs, call_number) =
+    match !store_hooks, get_cvalue_state with
+    | [], _ | _, None -> ()
+    | hooks, Some get ->
+      let entry =
+        Numbering.{
+          args = List.map (Lattice_bounds.Bottom.map get_cvalue) args;
+          key = input_bases;
+          start = get state_input;
+          exits = List.map (fun (_, state) -> get state) outputs; }
+      in
+      List.iter (fun hook -> hook kf call_number entry) hooks
+
   (* With [~snapshot:false], the store of memexec without -eva-hit-log: the
-     stored result has the empty snapshot, a constant. *)
+     stored result has the empty snapshot, a constant. With
+     [~snapshot:true], the hooks of the tests are called once the call is
+     stored, out of the handler of the store. *)
   let store_computed_call ~snapshot:with_snapshot kf input_state args
       (call_result: (Partition.key * Domain.t) list) =
     match Transfer_stmt.current_kf_inout () with
     | None -> ()
     | Some inout ->
-      try
+      match
         (* The matching key: the bases read by the call, those read by its
            annotations, and those it writes on any path, whether the path
            returns or not, including the bases it surely overwrites. *)
@@ -318,11 +343,14 @@ module Make
           (all_output_bases, outputs, call_number, snapshot);
         if with_snapshot then
           Statistics.grow snapshot_results kf
-            (List.length (Domain.Hashtbl.find_all hkb state_input))
+            (List.length (Domain.Hashtbl.find_all hkb state_input));
+        input_bases, state_input, outputs, call_number
       with
-      | TooImprecise
-      | Kernel_function.No_Statement
-      | Not_found -> ()
+      | exception
+          (TooImprecise
+          | Kernel_function.No_Statement
+          | Not_found) -> ()
+      | stored -> if with_snapshot then notify_store kf args stored
 
 
   exception Result_found of CallOutput.t * int
