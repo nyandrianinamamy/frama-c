@@ -40,18 +40,31 @@ module Make (Engine: Engine_sig.S) = struct
 
   module MemExec = Mem_exec.Make (Engine.Val) (Engine.Dom)
 
+  (* With -eva-hit-log, the heap calls that memexec would store, see
+     [Hit_log]. They are never reused: they only tell which calls memexec
+     would have reused if it stored them. *)
+  module Refused = Mem_exec.Make (Engine.Val) (Engine.Dom)
+
   let compute_and_cache_call compute call init_state =
     let args =
       List.map (fun {avalue} -> Eval.value_assigned avalue) call.arguments
     in
     match MemExec.reuse_previous_call call.kf init_state args with
     | None ->
-      let call_result = compute call init_state in
+      let record = Hit_log.enabled () in
+      let compute () = compute call init_state in
+      let call_result =
+        if record && Refused.has_previous_call call.kf init_state args
+        then Hit_log.lost_hit call.kf compute
+        else compute ()
+      in
       let () =
         if call_result.Engine_sig.cacheable = Eval.Cacheable
         then
           let final_states = call_result.states in
-          MemExec.store_computed_call call.kf init_state args final_states
+          if record && Hit_log.heap_call ()
+          then Refused.store_computed_call call.kf init_state args final_states
+          else MemExec.store_computed_call call.kf init_state args final_states
       in
       call_result
     | Some (states, i) ->

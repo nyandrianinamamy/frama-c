@@ -12,7 +12,8 @@
     afterwards, such as the statuses of the properties and the summary.
 
     Each call analysed by its body records a cache entry, identified by the
-    number that memexec gives to the call. Its Inner part holds, before and
+    number that memexec gives to the call. Except for a heap call, see
+    below, its Inner part holds, before and
     after each statement reached, the cvalue state projected on the blocks
     covered at that point: the blocks read or written on the paths from the
     start of the body to the point, as given by the inout plugin, and the
@@ -53,6 +54,26 @@
     call on the other blocks. The state at the start of a function is the
     join of the start states of its calls, including the calls analysed by
     a specification or a builtin.
+
+    A heap call is a call analysed by its body whose analysis, in its body or
+    in a call nested in it, calls a builtin that allocates or releases
+    memory: the builtins of [malloc], [calloc], [realloc], [reallocarray],
+    [alloca], [free], and of the allocation and release of variable-length
+    arrays. Every caller of a heap call, up to the entry point, is a heap
+    call. The entry of a heap call holds no Inner part: it holds the full
+    cvalue state before and after each statement reached, the states that
+    the analysis of the body computes and that the legacy store saves, taken
+    when the analysis of the body ends. A request at a point of a heap call
+    is answered by these full states; the rule is not applied. Memexec does
+    not store a heap call: no hit, and thus no call below a hit, uses the
+    entry of a heap call, and the entry does not keep the calls made by the
+    body. A call that reads or writes an allocated block without allocating
+    or releasing one is not a heap call. With memexec, the hits that memexec
+    no longer makes are counted per function: the statistic
+    [hit-log-lost-hits] counts the calls that it would have reused if it
+    stored the heap calls, and [hit-log-lost-hits-below] those of these calls
+    made during the analysis of such a call, which would have been below a
+    hit. The statistic [hit-log-heap-calls] counts the heap calls.
 
     The body points of a function are unavailable when one of its calls has
     an unknown footprint, was interrupted, or is a recursive call analysed by
@@ -113,8 +134,10 @@ val footprint_of_call: id:int -> (unit -> unit) -> footprint option
     ~after] records the cache entry [id] computed by the call on [callstack],
     with its footprint, its start state, its body-entry state, its states
     before and after each statement reached, and the calls made by its body.
-    Without footprint, as when the results of the call are not saved, its
-    body points are unavailable. *)
+    For a heap call, the states before and after each statement are kept
+    whole, and the calls made by the body are not kept. Without footprint,
+    as when the results of the call are not saved, its body points are
+    unavailable. *)
 val record_analysed_call:
   id:int -> Callstack.t -> footprint:footprint option ->
   start:Cvalue.Model.t -> body_entry:Cvalue.Model.t ->
@@ -123,10 +146,22 @@ val record_analysed_call:
   unit
 
 (** [record_hit ~id callstack ~start ~body_entry] records a hit of the cache
-    entry [id] on [callstack]. *)
+    entry [id] on [callstack]. Fails if [id] is the entry of a heap call. *)
 val record_hit:
   id:int -> Callstack.t ->
   start:Cvalue.Model.t -> body_entry:Cvalue.Model.t -> unit
+
+(** Whether the call whose analysis the innermost [call] runs is a heap call
+    so far: its analysis has called a builtin that allocates or releases
+    memory, in its body or in a nested call. For a call analysed by its body,
+    the answer is final once the analysis of the body has ended. False when
+    the recording is off. *)
+val heap_call: unit -> bool
+
+(** [lost_hit kf f] runs [f], the analysis of a call to [kf] that memexec
+    would have reused if it stored the heap calls, and counts it as a hit not
+    made. *)
+val lost_hit: Cil_types.kernel_function -> (unit -> 'a) -> 'a
 
 (** Marks a function of which a recursive call is analysed by its body. *)
 val mark_unrolled_recursion: Cil_types.kernel_function -> unit

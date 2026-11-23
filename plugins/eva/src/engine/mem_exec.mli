@@ -39,4 +39,11 @@ module Make
     val reuse_previous_call:
       kernel_function -> Domain.t -> Value.t or_bottom list ->
       ((Partition.key * Domain.t) list * int) option
+
+    (** [has_previous_call kf init_state args] is whether
+        [reuse_previous_call kf init_state args] would find a previous
+        analysis. Unlike [reuse_previous_call], it counts neither a hit nor a
+        miss in the statistics. *)
+    val has_previous_call:
+      kernel_function -> Domain.t -> Value.t or_bottom list -> bool
   end

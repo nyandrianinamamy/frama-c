@@ -204,4 +204,17 @@ module Make
       let call_result = outputs in
       Some (call_result, i)
 
+  let has_previous_call kf state args =
+    try
+      let previous_kf = PreviousCalls.find kf in
+      let args =
+        List.map (function `Bottom -> None | `Value v -> Some v) args
+      in
+      let previous = ActualArgs.Map.find args previous_kf in
+      find_match_in_previous previous state;
+      false
+    with
+    | Not_found -> false
+    | Result_found _ -> true
+
 end

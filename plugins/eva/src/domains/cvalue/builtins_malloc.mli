@@ -20,6 +20,14 @@ val alloc_size_ok: Cvalue.V.t -> Alarmset.status
    small enough, [False] that the allocation is guaranteed to fail (because
    the size is always greater than SIZE_MAX). *)
 
+val register_heap_hook: (unit -> unit) -> unit
+(** [register_heap_hook f] makes each call of a builtin that allocates or
+    releases memory call [f] first: the builtins of [malloc], [calloc],
+    [realloc], [reallocarray], [alloca], [free], and of the allocation and
+    release of variable-length arrays. [f] replaces the previous hook. The
+    blocks that [free_automatic_bases] releases were allocated by one of these
+    builtins, during the call that ends. *)
+
 val free_automatic_bases: Callstack.t -> Cvalue.Model.t -> Cvalue.Model.t
 (** Performs the equivalent of [free] for each location that was allocated via
     [alloca()] in the current function (as per [Eva_utils.call_stack ()]).

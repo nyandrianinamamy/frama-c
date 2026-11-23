@@ -8,7 +8,8 @@ analysis and across two versions of a program.
 ### The cache
 
 **Cache entry**:
-The stored result of analysing one statement from one abstract input.
+The stored result of analysing one statement from one abstract input. The
+cache entry of a heap call holds full states and no hit uses it.
 _Avoid_: Summary (names Eva's statistics report), memo, record
 
 **Part**:
@@ -34,6 +35,15 @@ its call.
 A cache entry used for a call nested in the statement of another entry, which
 refers to it.
 
+**Heap call**:
+A call whose analysis, in its body or in a call nested in it, calls an
+allocation builtin or `free`. Every caller of a heap call, up to the entry
+point, is one. Its cache entry holds the full state before and after each
+statement of its body, and memexec does not store it, so no hit reuses it. A
+call that reads or writes an allocated block without allocating or freeing
+one is not a heap call.
+_Avoid_: Allocating call (leaves out `free`)
+
 ### Parts of an entry
 
 **Exit part**:
@@ -48,7 +58,9 @@ The statements reached while analysing the statement.
 
 **Inner part**:
 The abstract state before each statement inside the body, on its locals and on
-the blocks whose value at entry is checked by the match.
+the blocks whose value at entry is checked by the match. A heap call has no
+Inner part: its cache entry holds the full state before and after each
+statement, on every block, and answers the queries at these points as it is.
 _Avoid_: Intermediate states, per-statement states
 
 ### Blocks

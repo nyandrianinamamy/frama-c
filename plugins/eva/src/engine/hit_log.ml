@@ -85,10 +85,15 @@ module Below =
     end)
 
 (* The points absent from the tables are unreachable. With an unknown
-   footprint, no point is kept. *)
+   footprint, no point is kept. A heap call keeps the full state at each
+   point instead of an Inner part. *)
 type inner_part =
   | Unknown
   | Known of { before: point Stmt_table.t; after: point Stmt_table.t }
+  | Full of {
+      before: Cvalue.Model.t Stmt_table.t;
+      after: Cvalue.Model.t Stmt_table.t;
+    }
 
 (* States joined over some members of a key group, overall and per
    callstack. *)
@@ -159,8 +164,10 @@ module Entry =
           States.reprs
       let structural_descr =
         let inner_part =
+          let module Full_states = Stmt_table.Make (Cvalue.Model) in
           Structural_descr.t_sum
-            [| [| Points.packed_descr; Points.packed_descr |] |]
+            [| [| Points.packed_descr; Points.packed_descr |];
+               [| Full_states.packed_descr; Full_states.packed_descr |] |]
         in
         let module Below_list = Datatype.List (Below) in
         Structural_descr.t_record
@@ -206,6 +213,8 @@ let copy_entry entry =
     | Unknown -> Unknown
     | Known { before; after } ->
       Known { before = Stmt_table.copy before; after = Stmt_table.copy after }
+    | Full { before; after } ->
+      Full { before = Stmt_table.copy before; after = Stmt_table.copy after }
   in
   { inner; below = entry.below; analysed = entry.analysed;
     hit_starts = copy_states entry.hit_starts;
@@ -291,12 +300,15 @@ type slot =
 
 (* A call being analysed, in any mode: the calls made by its body so far, each
    with its call statement, its function, its start state and the cache entry
-   it used; and the cache entry this call uses, once known. *)
+   it used; the cache entry this call uses, once known; and whether its
+   analysis has called a builtin that allocates or releases memory so far,
+   in its body or in a nested call. *)
 type frame = {
   mutable calls:
     (Cil_types.stmt * Cil_types.kernel_function * Cvalue.Model.t * int option)
       list;
   mutable used: int option;
+  mutable heap: bool;
 }
 
 (* The parts of the recording used only while the analysis runs. They are
@@ -305,9 +317,12 @@ type running = {
   (* The calls being analysed, innermost first. *)
   mutable frames: frame list;
   mutable slot: slot;
+  (* The number of calls being analysed that memexec would have reused if it
+     stored the heap calls, see [lost_hit]. *)
+  mutable lost: int;
 }
 
-let new_running () = { frames = []; slot = Closed }
+let new_running () = { frames = []; slot = Closed; lost = 0 }
 
 module Running =
   State_builder.Ref
@@ -532,6 +547,66 @@ let current_frame () =
   | [] -> None
   | frame :: _ -> Some frame
 
+(* A heap call is a call analysed by its body whose analysis, in its body or
+   in a nested call, calls a builtin that allocates or releases memory. Such
+   a builtin marks the innermost frame, its own, and [call] passes the mark
+   of a frame to the frame of its caller when the call ends, up to the entry
+   point. The analysis of a body ends after the analyses of the calls it
+   makes: the mark of a call analysed by its body is final when
+   [record_analysed_call] records it, and when memexec decides whether to
+   store the call. The blocks that [Builtins_malloc.free_automatic_bases]
+   releases at the end of a call were allocated by a builtin during this
+   call, which is thus a heap call, and so is its caller. A hit runs no
+   builtin and marks no frame. The specifications neither allocate nor
+   release memory in the cvalue domain. *)
+
+let heap_calls = Statistics.(register_function_stat "hit-log-heap-calls" Int)
+let lost_hits = Statistics.(register_function_stat "hit-log-lost-hits" Int)
+let lost_hits_below =
+  Statistics.(register_function_stat "hit-log-lost-hits-below" Int)
+
+let mark_heap () =
+  if enabled () then
+    match (Running.get ()).frames with
+    | frame :: _ -> frame.heap <- true
+    | [] -> ()
+
+let () = Builtins_malloc.register_heap_hook mark_heap
+
+let heap_call () =
+  enabled () &&
+  match current_frame () with
+  | None -> false
+  | Some frame -> frame.heap
+
+(* A call that memexec would have reused if it stored the heap calls is
+   counted in [lost_hits], unless it is made during the analysis of such a
+   call: it would then have been below a hit, and is counted in
+   [lost_hits_below]. *)
+let lost_hit kf f =
+  let running = Running.get () in
+  let stat = if running.lost = 0 then lost_hits else lost_hits_below in
+  Statistics.incr stat kf;
+  running.lost <- running.lost + 1;
+  Fun.protect ~finally:(fun () -> running.lost <- running.lost - 1) f
+
+(* A call that is not a heap call makes no heap call: [call] passes the mark
+   of a heap call to its caller. Checked on the calls made by its body that
+   used a cache entry. With [record_hit], which fails on the entry of a heap
+   call, this ensures that no call below a hit uses the entry of a heap
+   call. *)
+let check_no_heap_child store calls =
+  List.iter
+    (fun (_, callee, _, child) ->
+       let entry = Option.map (Int_table.find_opt store.entries) child in
+       match entry with
+       | Some (Some { inner = Full _; _ }) ->
+         Self.fatal
+           "hit log: call to %a, a heap call, made by a call that is not one"
+           Kernel_function.pretty callee
+       | Some (Some { inner = Unknown | Known _; _ } | None) | None -> ())
+    calls
+
 let record_start callstack state =
   let store = Store.get () in
   let kf = Callstack.top_kf callstack in
@@ -549,11 +624,13 @@ let record_analysed_call ~id callstack ~footprint ~start ~body_entry ~before
     ~after =
   let store = Store.get () in
   let kf = Callstack.top_kf callstack in
+  let frame = current_frame () in
   let calls =
-    match current_frame () with
+    match frame with
     | None -> []
     | Some frame -> frame.used <- Some id; frame.calls
   in
+  let heap = Option.fold ~none:false ~some:(fun frame -> frame.heap) frame in
   let unknown () =
     let below =
       List.rev_map
@@ -562,12 +639,24 @@ let record_analysed_call ~id callstack ~footprint ~start ~body_entry ~before
     in
     Unknown, below
   in
+  (* A heap call has no hit, and thus no call below a hit: the calls made by
+     its body are not kept. *)
   let inner, below =
-    match footprint with
-    | None -> unknown ()
-    | Some footprint ->
-      try inner_part footprint ~start ~before ~after ~calls
-      with Unknown_footprint -> unknown ()
+    if heap then begin
+      Statistics.incr heap_calls kf;
+      match footprint with
+      | None -> Unknown, []
+      | Some _ ->
+        Full { before = Lazy.force before; after = Lazy.force after }, []
+    end
+    else begin
+      check_no_heap_child store calls;
+      match footprint with
+      | None -> unknown ()
+      | Some footprint ->
+        try inner_part footprint ~start ~before ~after ~calls
+        with Unknown_footprint -> unknown ()
+    end
   in
   if inner = Unknown then mark store.body_unavailable kf;
   let entry = {
@@ -588,6 +677,8 @@ let record_hit ~id callstack ~start ~body_entry =
   Option.iter (fun frame -> frame.used <- Some id) (current_frame ());
   match Int_table.find_opt store.entries id with
   | None -> store.unrecorded_hit <- true
+  | Some { inner = Full _; _ } ->
+    Self.fatal "hit log: hit of the cache entry %d, of a heap call" id
   | Some entry ->
     add_state entry.hit_starts callstack start;
     add_state entry.hit_body_entries callstack body_entry
@@ -604,10 +695,14 @@ let mark_interrupted callstack ~start =
    the exception stops as well. *)
 let call callstack ~start f =
   let running = Running.get () in
-  let frame = { calls = []; used = None } in
+  let frame = { calls = []; used = None; heap = false } in
   running.frames <- frame :: running.frames;
   let finally () =
     running.frames <- List.tl running.frames;
+    begin match running.frames with
+      | caller :: _ when frame.heap -> caller.heap <- true
+      | _ -> ()
+    end;
     match running.frames, Callstack.top_callsite callstack with
     | caller :: _, Kstmt site ->
       let call = site, Callstack.top_kf callstack, start, frame.used in
@@ -990,6 +1085,23 @@ let entries_with_ids store kf =
     (fun id ->
        Option.map (fun entry -> id, entry) (Int_table.find_opt store.entries id))
 
+(* The full state of the heap call of [entry] at [control_point], if
+   reached. *)
+let full_state entry control_point =
+  match entry.inner, control_point with
+  | Full { before; _ }, Domain_store.Before stmt ->
+    Stmt_table.find_opt before stmt
+  | Full { after; _ }, After stmt -> Stmt_table.find_opt after stmt
+  | Full _, (Initial | Start _) | (Unknown | Known _), _ -> None
+
+(* The point that [find_point] gives at a point reached by a heap call: it
+   only marks the point as reached. Its Inner part is Bottom, so that
+   [is_reachable] falls back to [entry_state], which gives the full state.
+   [entry_state], [entries_on] and [states_by_callstack] take the full states
+   of a heap call without this point. *)
+let reached_by_heap_call =
+  { covered = Base.Hptset.empty; inner = Cvalue.Model.bottom }
+
 (* The point of the Inner part of [entry] at [control_point], if reached. *)
 let find_point entry control_point =
   match entry.inner, control_point with
@@ -997,7 +1109,9 @@ let find_point entry control_point =
   | Known { before; _ }, Domain_store.Before stmt ->
     Stmt_table.find_opt before stmt
   | Known { after; _ }, After stmt -> Stmt_table.find_opt after stmt
-  | Known _, (Initial | Start _) -> None
+  | Full _, (Before _ | After _) ->
+    Option.map (fun _ -> reached_by_heap_call) (full_state entry control_point)
+  | (Known _ | Full _), (Initial | Start _) -> None
 
 (* Whether the states of the cvalue domain are saved, by the condition of the
    legacy store. When they are not, every request is unavailable, as with the
@@ -1059,27 +1173,41 @@ let start_state store derived ?callstack kf =
 
 (* The state at [control_point], a point of the body of the function of the
    entry [id], of the members of this entry: those on [callstack], or all of
-   them, joined. *)
+   them, joined. The only member of the entry of a heap call is its analysed
+   call, whose state is the full state. *)
 let entry_state store derived ?callstack control_point (id, entry) =
-  match find_point entry control_point with
-  | None -> Cvalue.Model.bottom
-  | Some point ->
-    let body_entry =
-      match callstack with
-      | None ->
-        Cvalue.Model.join entry.analysed.body_entry
-          (unrun_joined store derived id)
-      | Some callstack ->
-        Cvalue.Model.join
-          (analysed_on callstack (fun a -> a.body_entry) entry)
-          (find_callstack (unrun_by_callstack store derived id) callstack)
+  match entry.inner with
+  | Full _ ->
+    let state =
+      Option.value ~default:Cvalue.Model.bottom
+        (full_state entry control_point)
     in
-    paste derived point body_entry
+    begin match callstack with
+      | None -> state
+      | Some callstack -> analysed_on callstack (fun _ -> state) entry
+    end
+  | Unknown | Known _ ->
+    match find_point entry control_point with
+    | None -> Cvalue.Model.bottom
+    | Some point ->
+      let body_entry =
+        match callstack with
+        | None ->
+          Cvalue.Model.join entry.analysed.body_entry
+            (unrun_joined store derived id)
+        | Some callstack ->
+          Cvalue.Model.join
+            (analysed_on callstack (fun a -> a.body_entry) entry)
+            (find_callstack (unrun_by_callstack store derived id) callstack)
+      in
+      paste derived point body_entry
 
 (* For the function [kf]: its entries by callstack, those whose analysed call
    is on the callstack or that have on it a member whose body did not run,
    each list in the order of [entries_with_ids]; and its entries on which
-   [unrun_by_callstack] raises [Unavailable]. *)
+   [unrun_by_callstack] raises [Unavailable]. The entry of a heap call has no
+   member whose body did not run: it is listed on the callstack of its
+   analysed call only. *)
 let entries_on store derived kf =
   match Kf_table.find_opt derived.entries_on kf with
   | Some index -> index
@@ -1096,11 +1224,14 @@ let entries_on store derived kf =
       List.fold_left
         (fun unavailable (id, entry as member) ->
            add member entry.analysed.callstack;
-           match unrun_by_callstack store derived id with
-           | states ->
-             Cs_table.iter (fun callstack _ -> add member callstack) states;
-             unavailable
-           | exception Unavailable -> member :: unavailable)
+           match entry.inner with
+           | Full _ -> unavailable
+           | Unknown | Known _ ->
+             match unrun_by_callstack store derived id with
+             | states ->
+               Cs_table.iter (fun callstack _ -> add member callstack) states;
+               unavailable
+             | exception Unavailable -> member :: unavailable)
         [] (List.rev (entries_with_ids store kf))
     in
     let index = table, unavailable in
@@ -1287,16 +1418,21 @@ let states_by_callstack store derived control_point =
       let kf = Kernel_function.find_englobing_kf stmt in
       List.iter
         (fun (id, entry) ->
-           match find_point entry control_point with
-           | None -> ()
-           | Some point ->
-             let analysed = entry.analysed in
-             add table analysed.callstack
-               (paste derived point analysed.body_entry);
-             Cs_table.iter
-               (fun callstack state ->
-                  add table callstack (paste derived point state))
-               (unrun_by_callstack store derived id))
+           match entry.inner with
+           | Full _ ->
+             Option.iter (add table entry.analysed.callstack)
+               (full_state entry control_point)
+           | Unknown | Known _ ->
+             match find_point entry control_point with
+             | None -> ()
+             | Some point ->
+               let analysed = entry.analysed in
+               add table analysed.callstack
+                 (paste derived point analysed.body_entry);
+               Cs_table.iter
+                 (fun callstack state ->
+                    add table callstack (paste derived point state))
+                 (unrun_by_callstack store derived id))
         (entries_with_ids store kf)
   end;
   table
