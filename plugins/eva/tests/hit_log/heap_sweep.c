@@ -84,7 +84,12 @@ void restored_main(void) { p = malloc(8); rf(1); }
 
 /* Every state that reaches GU has freed the block of x: the other path does
    not terminate. The paths of the analysis join before the second test, and
-   the block is swept on some path only on them. */
+   the block is swept on some path only on them. As the state at GU does not
+   bind the block, which the body-entry state binds, the block is swept on
+   every path there, and at the return of guarded, which mid receives. The
+   loop, which only the states that did not free the block reach, still has
+   the block swept on some path only: its answers cover those of the run
+   without memexec. */
 void guarded(char *x, int c) {
   if (c) free(x);
   if (!c) for (;;) {}
@@ -99,7 +104,7 @@ void guarded_main(void) { p = malloc(8); recur_guarded(1); }
 
 /* The call of al is evaluated in two states. The automatic release of the
    block of alloca, at the end of each evaluation, sweeps it on every path
-   of this evaluation. */
+   of this evaluation: the block is swept on every path at A. */
 void al(int n) { char *a = alloca(n); a[0] = 1; g = a; }
 void release(int c) {
   int n;
