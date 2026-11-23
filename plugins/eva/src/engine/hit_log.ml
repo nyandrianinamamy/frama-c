@@ -1392,7 +1392,7 @@ let entries_with_ids store kf =
     (fun id ->
        Option.map (fun entry -> id, entry) (Int_table.find_opt store.entries id))
 
-(* The full state of the heap call of [entry] at [control_point], if
+(* The full state of the refused heap call of [entry] at [control_point], if
    reached. *)
 let full_state entry control_point =
   match entry.inner, control_point with
@@ -1402,7 +1402,8 @@ let full_state entry control_point =
   | Full _, (Initial | Start _) | (Unknown | Known _), _ -> None
 
 (* The point of the Inner part of [entry] at [control_point], if reached.
-   None for a heap call, which has no Inner part: see [full_state]. *)
+   None for a refused heap call, which has no Inner part: see
+   [full_state]. *)
 let find_point entry control_point =
   match entry.inner, control_point with
   | (Unknown | Full _), _ -> None
@@ -1472,7 +1473,7 @@ let start_state store derived ?callstack kf =
 (* The state at [control_point], a point of the body of the function of the
    entry [id], of the members of this entry: those on [callstack], or all of
    them, joined. The only member of the entry of a heap call is its analysed
-   call, whose state is the full state. *)
+   call; the state of a refused heap call is its full state. *)
 let entry_state store derived ?callstack control_point (id, entry) =
   match entry.inner with
   | Full _ ->
