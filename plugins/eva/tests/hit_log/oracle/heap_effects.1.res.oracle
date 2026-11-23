@@ -1,0 +1,30 @@
+[kernel] Parsing heap_effects.c (with preprocessing)
+Heap effects received by two :: heap_effects.c:39 <- two_states_main:
+  none
+Heap effects received by two_states_main:
+  none
+Calls:
+  Frama_C_interval :: heap_effects.c:39 <- two_states_main: specification
+  malloc :: heap_effects.c:38 <- two :: heap_effects.c:39 <- two_states_main: builtin
+  malloc :: heap_effects.c:38 <- two :: heap_effects.c:39 <- two_states_main: builtin
+  two :: heap_effects.c:39 <- two_states_main: analysed, cache entry 5
+  two_states_main: analysed, cache entry 6
+Heap calls, not stored by memexec: two 1, two_states_main 1.
+Hits not made because memexec does not store the heap calls: none.
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 440 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 210 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 210 points.
+Filtered requests that reject one callstack: 0.
+Requests made: 860; reported by the trap: 860, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 119 requests, 35 reads of the legacy store in them, 40 reads outside any request.
+  with -eva-hit-log: 119 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 102 requests
+    statistics: 8 requests
+    summary: 9 requests
+Statuses of the properties: those of the run without memexec, for 377 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.1250, 0 alarms, those of the run without memexec.
+Heap effects emitted in the run: 0.

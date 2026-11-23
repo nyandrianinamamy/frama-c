@@ -1,0 +1,42 @@
+[kernel] Parsing heap_effects.c (with preprocessing)
+Heap effects received by strong_free :: heap_effects.c:61 <- free_main:
+  none
+Heap effects received by weak_free :: heap_effects.c:61 <- free_main:
+  none
+Heap effects received by two_targets :: heap_effects.c:61 <- free_main:
+  none
+Heap effects received by free_main:
+  none
+Calls:
+  malloc :: heap_effects.c:49 <- strong_free :: heap_effects.c:61 <- free_main: builtin
+  free :: heap_effects.c:49 <- strong_free :: heap_effects.c:61 <- free_main: builtin
+  strong_free :: heap_effects.c:61 <- free_main: analysed, cache entry 9
+  malloc :: heap_effects.c:52 <- weak_free :: heap_effects.c:61 <- free_main: builtin
+  free :: heap_effects.c:53 <- weak_free :: heap_effects.c:61 <- free_main: builtin
+  weak_free :: heap_effects.c:61 <- free_main: analysed, cache entry 10
+  malloc :: heap_effects.c:56 <- two_targets :: heap_effects.c:61 <- free_main: builtin
+  malloc :: heap_effects.c:57 <- two_targets :: heap_effects.c:61 <- free_main: builtin
+  Frama_C_interval :: heap_effects.c:58 <- two_targets :: heap_effects.c:61 <- free_main: specification
+  free :: heap_effects.c:59 <- two_targets :: heap_effects.c:61 <- free_main: builtin
+  two_targets :: heap_effects.c:61 <- free_main: analysed, cache entry 11
+  free_main: analysed, cache entry 12
+Heap calls, not stored by memexec: free_main 1, strong_free 1, two_targets 1,
+  weak_free 1.
+Hits not made because memexec does not store the heap calls: none.
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 468 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 210 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 210 points.
+Filtered requests that reject one callstack: 0.
+Requests made: 888; reported by the trap: 888, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 134 requests, 93 reads of the legacy store in them, 103 reads outside any request.
+  with -eva-hit-log: 134 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 104 requests
+    statistics: 21 requests
+    summary: 9 requests
+Statuses of the properties: those of the run without memexec, for 374 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.2500, 0 alarms, those of the run without memexec.
+Heap effects emitted in the run: 0.

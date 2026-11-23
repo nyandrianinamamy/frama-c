@@ -163,6 +163,26 @@ val heap_call: unit -> bool
     made. *)
 val lost_hit: Cil_types.kernel_function -> (unit -> 'a) -> 'a
 
+(** The heap effects that a call received while it was analysed, see
+    {!Heap_effects}: those emitted in its body, and those that the calls it
+    makes received, including the automatic release at the end of each of
+    these calls. *)
+type effects
+
+(** [iter_effects f effects] applies [f point callee e] to each effect [e] of
+    [effects], in the order of emission. [point] is the statement of the
+    function of the call where [e] happens, if known, and [callee] is the
+    function called at [point] whose analysis received [e], if any. *)
+val iter_effects:
+  (Cil_types.stmt option -> Cil_types.kernel_function option ->
+   Heap_effects.t -> unit) ->
+  effects -> unit
+
+(** [register_effects_hook f] makes [call] apply [f callstack effects] when a
+    call on [callstack] ends, whatever its mode, with the heap effects it
+    received. With the recording only. *)
+val register_effects_hook: (Callstack.t -> effects -> unit) -> unit
+
 (** Marks a function of which a recursive call is analysed by its body. *)
 val mark_unrolled_recursion: Cil_types.kernel_function -> unit
 

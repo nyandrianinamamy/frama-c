@@ -1,0 +1,28 @@
+[kernel] Parsing heap_effects.c (with preprocessing)
+Heap effects received by az :: heap_effects.c:65 <- alloca_main:
+  none
+Heap effects received by alloca_main:
+  none
+Calls:
+  alloca :: heap_effects.c:64 <- az :: heap_effects.c:65 <- alloca_main: builtin
+  az :: heap_effects.c:65 <- alloca_main: analysed, cache entry 5
+  alloca_main: analysed, cache entry 6
+Heap calls, not stored by memexec: alloca_main 1, az 1.
+Hits not made because memexec does not store the heap calls: none.
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 438 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 210 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 210 points.
+Filtered requests that reject one callstack: 0.
+Requests made: 858; reported by the trap: 858, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 118 requests, 30 reads of the legacy store in them, 34 reads outside any request.
+  with -eva-hit-log: 118 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 102 requests
+    statistics: 7 requests
+    summary: 9 requests
+Statuses of the properties: those of the run without memexec, for 378 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.1250, 0 alarms, those of the run without memexec.
+Heap effects emitted in the run: 0.

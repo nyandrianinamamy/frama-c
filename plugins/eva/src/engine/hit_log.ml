@@ -298,17 +298,29 @@ type slot =
   | Closed
   | Open of { id: int; mutable footprint: footprint option }
 
+(* A heap effect received by a call, see [Heap_effects]: emitted in its body,
+   at the point given if any, or passed by the call made at a statement of
+   the body, with the effects this call received. Lists of effects are in
+   the reverse order of emission. *)
+type received =
+  | Here of Cil_types.stmt option * Heap_effects.t
+  | Through of Cil_types.stmt * Cil_types.kernel_function * received list
+
+type effects = received list
+
 (* A call being analysed, in any mode: the calls made by its body so far, each
    with its call statement, its function, its start state and the cache entry
-   it used; the cache entry this call uses, once known; and whether its
+   it used; the cache entry this call uses, once known; whether its
    analysis has called a builtin that allocates or releases memory so far,
-   in its body or in a nested call. *)
+   in its body or in a nested call; and the heap effects it received so
+   far. *)
 type frame = {
   mutable calls:
     (Cil_types.stmt * Cil_types.kernel_function * Cvalue.Model.t * int option)
       list;
   mutable used: int option;
   mutable heap: bool;
+  mutable effects: effects;
 }
 
 (* The parts of the recording used only while the analysis runs. They are
@@ -579,6 +591,36 @@ let heap_call () =
   | None -> false
   | Some frame -> frame.heap
 
+(* A heap effect goes to the innermost frame: the call of the builtin that
+   emits it, the call whose body is widened, or the call in whose body a call
+   ends, for the automatic release at the end of that call. [call] passes the
+   effects of a frame to the frame of its caller when the call ends. *)
+let receive ?point e =
+  if enabled () then
+    match (Running.get ()).frames with
+    | frame :: _ -> frame.effects <- Here (point, e) :: frame.effects
+    | [] -> ()
+
+let () = Heap_effects.register_sink receive
+
+let effects_hooks = ref []
+
+let register_effects_hook f = effects_hooks := !effects_hooks @ [ f ]
+
+let iter_effects f effects =
+  let rec through site kf received =
+    List.iter
+      (function
+        | Here (_, e) -> f (Some site) (Some kf) e
+        | Through (_, _, received) -> through site kf received)
+      (List.rev received)
+  in
+  List.iter
+    (function
+      | Here (point, e) -> f point None e
+      | Through (site, kf, received) -> through site kf received)
+    (List.rev effects)
+
 (* A call that memexec would have reused if it stored the heap calls is
    counted in [lost_hits], unless it is made during the analysis of such a
    call: it would then have been below a hit, and is counted in
@@ -695,17 +737,21 @@ let mark_interrupted callstack ~start =
    the exception stops as well. *)
 let call callstack ~start f =
   let running = Running.get () in
-  let frame = { calls = []; used = None; heap = false } in
+  let frame = { calls = []; used = None; heap = false; effects = [] } in
   running.frames <- frame :: running.frames;
   let finally () =
     running.frames <- List.tl running.frames;
+    List.iter (fun f -> f callstack frame.effects) !effects_hooks;
     begin match running.frames with
       | caller :: _ when frame.heap -> caller.heap <- true
       | _ -> ()
     end;
     match running.frames, Callstack.top_callsite callstack with
     | caller :: _, Kstmt site ->
-      let call = site, Callstack.top_kf callstack, start, frame.used in
+      let kf = Callstack.top_kf callstack in
+      if frame.effects <> [] then
+        caller.effects <- Through (site, kf, frame.effects) :: caller.effects;
+      let call = site, kf, start, frame.used in
       caller.calls <- call :: caller.calls
     | _, Kglobal | [], _ -> ()
   in
