@@ -1,0 +1,117 @@
+[kernel] Parsing snapshot_grow.c (with preprocessing)
+Calls:
+  malloc :: snapshot_grow.c:21 <- grow_main: builtin
+  keep_g :: snapshot_grow.c:22 <- grow_main: analysed, cache entry 12
+  free :: snapshot_grow.c:23 <- grow_main: builtin
+  malloc :: snapshot_grow.c:21 <- grow_main: builtin
+  keep_g :: snapshot_grow.c:22 <- grow_main: analysed, cache entry 13
+  free :: snapshot_grow.c:23 <- grow_main: builtin
+  malloc :: snapshot_grow.c:21 <- grow_main: builtin
+  keep_g :: snapshot_grow.c:22 <- grow_main: analysed, cache entry 14
+  free :: snapshot_grow.c:23 <- grow_main: builtin
+  malloc :: snapshot_grow.c:21 <- grow_main: builtin
+  keep_g :: snapshot_grow.c:22 <- grow_main: analysed, cache entry 15
+  free :: snapshot_grow.c:23 <- grow_main: builtin
+  malloc :: snapshot_grow.c:21 <- grow_main: builtin
+  keep_g :: snapshot_grow.c:22 <- grow_main: analysed, cache entry 16
+  free :: snapshot_grow.c:23 <- grow_main: builtin
+  malloc :: snapshot_grow.c:21 <- grow_main: builtin
+  keep_g :: snapshot_grow.c:22 <- grow_main: analysed, cache entry 17
+  free :: snapshot_grow.c:23 <- grow_main: builtin
+  malloc :: snapshot_grow.c:21 <- grow_main: builtin
+  keep_g :: snapshot_grow.c:22 <- grow_main: analysed, cache entry 18
+  free :: snapshot_grow.c:23 <- grow_main: builtin
+  malloc :: snapshot_grow.c:21 <- grow_main: builtin
+  keep_g :: snapshot_grow.c:22 <- grow_main: hit of cache entry 18
+  free :: snapshot_grow.c:23 <- grow_main: builtin
+  grow_main: analysed, cache entry 19
+Heap calls, not stored by memexec: grow_main 1.
+Hits not made because memexec does not store the heap calls: none.
+Calls that memexec does not reuse because the snapshot of a block they mention differs:
+  keep_g 6.
+Most results that memexec keeps at once for one input state of these functions:
+  keep_g 7.
+keep_g, start:
+  joined: p ∈ {{ &__malloc_grow_main_l21_1[0] }}
+          r_grow[0..6] ∈ {0; 7}
+                [7] ∈ {0}
+          i ∈ {0; 1; 2; 3; 4; 5; 6; 7}
+          p ∈ {{ &__malloc_grow_main_l21_1[0] }}
+          tmp ∈ {1; 2; 3; 4; 5; 6; 7}
+          tmp_0 ∈ {{ &__malloc_grow_main_l21_1[0] }}
+          __malloc_grow_main_l21_1[0..6] ∈ UNINITIALIZED
+  keep_g :: snapshot_grow.c:22 <- grow_main: p ∈
+                                              {{ &__malloc_grow_main_l21_1[0] }}
+                                             r_grow[0..6] ∈ {0; 7}
+                                                   [7] ∈ {0}
+                                             i ∈ {0; 1; 2; 3; 4; 5; 6; 7}
+                                             p ∈
+                                              {{ &__malloc_grow_main_l21_1[0] }}
+                                             tmp ∈ {1; 2; 3; 4; 5; 6; 7}
+                                             tmp_0 ∈
+                                                  {{ &__malloc_grow_main_l21_1[0] }}
+                                             __malloc_grow_main_l21_1
+                                             [0..6] ∈ UNINITIALIZED
+keep_g, before snapshot_grow.c:16 `__retres = 7;` (G):
+  joined: p ∈ {{ &__malloc_grow_main_l21_1[0] }}
+          r_grow[0..6] ∈ {0; 7}
+                [7] ∈ {0}
+          i ∈ {0; 1; 2; 3; 4; 5; 6; 7}
+          p ∈ {{ &__malloc_grow_main_l21_1[0] }}
+          tmp ∈ {1; 2; 3; 4; 5; 6; 7}
+          tmp_0 ∈ {{ &__malloc_grow_main_l21_1[0] }}
+          __retres ∈ UNINITIALIZED
+          __malloc_grow_main_l21_1[0..6] ∈ UNINITIALIZED
+  keep_g :: snapshot_grow.c:22 <- grow_main: p ∈
+                                              {{ &__malloc_grow_main_l21_1[0] }}
+                                             r_grow[0..6] ∈ {0; 7}
+                                                   [7] ∈ {0}
+                                             i ∈ {0; 1; 2; 3; 4; 5; 6; 7}
+                                             p ∈
+                                              {{ &__malloc_grow_main_l21_1[0] }}
+                                             tmp ∈ {1; 2; 3; 4; 5; 6; 7}
+                                             tmp_0 ∈
+                                                  {{ &__malloc_grow_main_l21_1[0] }}
+                                             __retres ∈ UNINITIALIZED
+                                             __malloc_grow_main_l21_1
+                                             [0..6] ∈ UNINITIALIZED
+keep_g, after snapshot_grow.c:16 `return __retres;`:
+  joined: p ∈ {{ &__malloc_grow_main_l21_1[0] }}
+          r_grow[0..6] ∈ {0; 7}
+                [7] ∈ {0}
+          i ∈ {0; 1; 2; 3; 4; 5; 6; 7}
+          p ∈ {{ &__malloc_grow_main_l21_1[0] }}
+          tmp ∈ {1; 2; 3; 4; 5; 6; 7}
+          tmp_0 ∈ {{ &__malloc_grow_main_l21_1[0] }}
+          __retres ∈ {7}
+          __malloc_grow_main_l21_1[0..6] ∈ UNINITIALIZED
+  keep_g :: snapshot_grow.c:22 <- grow_main: p ∈
+                                              {{ &__malloc_grow_main_l21_1[0] }}
+                                             r_grow[0..6] ∈ {0; 7}
+                                                   [7] ∈ {0}
+                                             i ∈ {0; 1; 2; 3; 4; 5; 6; 7}
+                                             p ∈
+                                              {{ &__malloc_grow_main_l21_1[0] }}
+                                             tmp ∈ {1; 2; 3; 4; 5; 6; 7}
+                                             tmp_0 ∈
+                                                  {{ &__malloc_grow_main_l21_1[0] }}
+                                             __retres ∈ {7}
+                                             __malloc_grow_main_l21_1
+                                             [0..6] ∈ UNINITIALIZED
+Hits against the analysed call of their cache entry:
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 120 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 40 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 40 points.
+Filtered requests that reject one callstack: 0.
+Requests made: 200; reported by the trap: 200, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 39 requests, 75 reads of the legacy store in them, 80 reads outside any request.
+  with -eva-hit-log: 39 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 20 requests
+    statistics: 18 requests
+    summary: 1 request
+Statuses of the properties: those of the run without memexec, for 91 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 1.0000, 0 alarms, those of the run without memexec.

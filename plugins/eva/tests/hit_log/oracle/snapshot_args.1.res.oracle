@@ -9,6 +9,8 @@ Heap calls, not stored by memexec: varargs_main 1.
 Hits not made because memexec does not store the heap calls: none.
 Calls that memexec does not reuse because the snapshot of a block they mention differs:
   keep_va 1.
+Most results that memexec keeps at once for one input state of these functions:
+  keep_va 2.
 keep_va, start:
   joined: r_unused[0..1] ∈ {0}
           x ∈ {0}

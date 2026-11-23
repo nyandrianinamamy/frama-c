@@ -136,6 +136,11 @@ let add_targets_of_state state acc =
 let snapshot_misses =
   Statistics.(register_function_stat "hit-log-snapshot-misses" Int)
 
+(* The largest number of results that memexec keeps at once for one input
+   state of a function, with -eva-hit-log. *)
+let snapshot_results =
+  Statistics.(register_function_stat "hit-log-snapshot-results" Int)
+
 let counter = ref 0
 
 module Make
@@ -229,7 +234,7 @@ module Make
 
   (* With [~snapshot:false], the store of memexec without -eva-hit-log: the
      stored result has the empty snapshot, a constant. *)
-  let store_computed_call ~snapshot kf input_state args
+  let store_computed_call ~snapshot:with_snapshot kf input_state args
       (call_result: (Partition.key * Domain.t) list) =
     match Transfer_stmt.current_kf_inout () with
     | None -> ()
@@ -253,7 +258,7 @@ module Make
         in
         let state_input = Domain.filter input_bases input_state in
         let snapshot =
-          if snapshot then take_snapshot input_bases args state_input
+          if with_snapshot then take_snapshot input_bases args state_input
           else Snapshot.empty
         in
         (* Output bases, that is bases that are copy-pasted on a reuse: the
@@ -296,6 +301,9 @@ module Make
         in
         Domain.Hashtbl.add hkb state_input
           (all_output_bases, outputs, call_number, snapshot);
+        if with_snapshot then
+          Statistics.grow snapshot_results kf
+            (List.length (Domain.Hashtbl.find_all hkb state_input))
       with
       | TooImprecise
       | Kernel_function.No_Statement

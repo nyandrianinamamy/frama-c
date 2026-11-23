@@ -9,6 +9,8 @@ Heap calls, not stored by memexec: key_main 1.
 Hits not made because memexec does not store the heap calls: none.
 Calls that memexec does not reuse because the snapshot of a block they mention differs:
   cmp_key 1.
+Most results that memexec keeps at once for one input state of these functions:
+  cmp_key 2.
 cmp_key, start:
   joined: gp ∈ {{ &__malloc_w_key_main_l23_1 }}
           gq ∈ {{ &__malloc_w_key_main_l23_1 }}

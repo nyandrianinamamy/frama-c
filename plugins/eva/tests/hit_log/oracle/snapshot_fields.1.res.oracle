@@ -17,6 +17,8 @@ Heap calls, not stored by memexec: type_main 1.
 Hits not made because memexec does not store the heap calls: none.
 Calls that memexec does not reuse because the snapshot of a block they mention differs:
   cmp_t 2.
+Most results that memexec keeps at once for one input state of these functions:
+  cmp_t 3.
 cmp_t, start:
   joined: r_record[0..2] ∈ {0}
           q ∈ {{ &__malloc_w_type_main_l44_1[0] }}

@@ -27,7 +27,9 @@ val cleanup_results: unit -> unit
     unknown set of blocks is not stored. Blocks are compared by identity.
     The statistic [hit-log-snapshot-misses] counts, per function, the calls
     that are not reused although a stored call has their input state, because
-    the snapshot of a block differs.
+    the snapshot of a block differs. The statistic
+    [hit-log-snapshot-results] gives, per function, the largest number of
+    results kept at once for one input state.
     With [~snapshot:false], memexec stores and looks up as without
     -eva-hit-log: the stored result has the empty snapshot, and the lookup
     does not read it. *)
