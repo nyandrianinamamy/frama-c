@@ -1,0 +1,30 @@
+[kernel] Parsing numbered.c (with preprocessing)
+Calls:
+  malloc :: numbered.c:83 <- multi_target_main: builtin
+  malloc :: numbered.c:85 <- multi_target_main: builtin
+  Frama_C_interval :: numbered.c:87 <- multi_target_main: specification
+  deref :: numbered.c:88 <- multi_target_main: analysed, cache entry 7
+  malloc :: numbered.c:89 <- multi_target_main: builtin
+  malloc :: numbered.c:91 <- multi_target_main: builtin
+  Frama_C_interval :: numbered.c:93 <- multi_target_main: specification
+  deref :: numbered.c:94 <- multi_target_main: analysed, cache entry 8
+  multi_target_main: analysed, cache entry 9
+Heap calls, not stored by memexec: multi_target_main 1.
+Heap calls whose answers come from full states: none.
+Hits not made because memexec does not store the heap calls: none.
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 485 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 211 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 211 points.
+Filtered requests that reject one callstack: 5.
+Requests made: 907; reported by the trap: 907, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 137 requests, 114 reads of the legacy store in them, 125 reads outside any request.
+  with -eva-hit-log: 137 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 101 requests
+    statistics: 27 requests
+    summary: 9 requests
+Statuses of the properties: those of the run without memexec, for 317 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.1538, 0 alarms, those of the run without memexec.

@@ -1,0 +1,35 @@
+[kernel] Parsing numbered.c (with preprocessing)
+[eva:alarm] numbered.c:47: Warning: 
+  unaligned pointer creation. assert \aligned(frag_slot,alignof(int));
+[eva:alarm] numbered.c:47: Warning: 
+  unaligned pointer creation. assert \aligned(frag_slot,alignof(int));
+[eva:alarm] numbered.c:47: Warning: 
+  unaligned pointer creation. assert \aligned(frag_slot,alignof(int));
+Calls:
+  calloc :: numbered.c:51 <- fragments_main: builtin
+  calloc :: numbered.c:51 <- fragments_main: builtin
+  copy_slot :: numbered.c:53 <- fragments_main: analysed, cache entry 7
+  memcpy :: numbered.c:56 <- fragments_main: builtin
+  memcpy :: numbered.c:57 <- fragments_main: builtin
+  copy_slot :: numbered.c:58 <- fragments_main: analysed, cache entry 8
+  fragments_main: analysed, cache entry 9
+Heap calls, not stored by memexec: fragments_main 1.
+Heap calls whose answers come from full states: none.
+Hits not made because memexec does not store the heap calls: none.
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 469 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 211 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 211 points.
+Filtered requests that reject one callstack: 5.
+Requests made: 891; reported by the trap: 891, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 135 requests, 97 reads of the legacy store in them, 91 reads outside any request.
+  with -eva-hit-log: 136 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 102 requests
+    statuses of the properties: 5 requests
+    statistics: 19 requests
+    summary: 10 requests
+Statuses of the properties: those of the run without memexec, for 318 properties.
+Alarms: 1, of which 1 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.1538, 1 alarm, those of the run without memexec.
