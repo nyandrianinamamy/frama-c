@@ -1,4 +1,40 @@
 [kernel] Parsing numbered.c (with preprocessing)
+Cache entry 7, deref:
+  numbered blocks:
+    #0: __malloc_multi_target_main_l83_1, argument 0, in the key; strong, record Variable [0..31--31], type int, malloc
+    #1: __malloc_multi_target_main_l85_1, argument 0, in the key; strong, record Variable [0..31--31], type int, malloc
+  arguments: {{ &#0 ; &#1 }}
+  key: p, __retres, #0, #1
+  start, clobbered set none:
+    p: [0..31] {{ &#0 ; &#1 }}
+    #0: [0..31] {1}, [32..34359738367] BOTVALUE
+    #1: [0..31] {2}, [32..34359738367] BOTVALUE
+  exit 1, clobbered set none:
+    p: [0..31] {{ &#0 ; &#1 }}
+    __retres: [0..31] {1; 2}
+    \result<deref>: [0..31] {1; 2}
+    #0: [0..31] {1}, [32..34359738367] BOTVALUE
+    #1: [0..31] {2}, [32..34359738367] BOTVALUE
+  round trip: equal
+  new numbered form
+Cache entry 8, deref:
+  numbered blocks:
+    #0: __malloc_multi_target_main_l89_1, argument 0, in the key; strong, record Variable [0..31--31], type int, malloc
+    #1: __malloc_multi_target_main_l91_1, argument 0, in the key; strong, record Variable [0..31--31], type int, malloc
+  arguments: {{ &#0 ; &#1 }}
+  key: p, __retres, #0, #1
+  start, clobbered set none:
+    p: [0..31] {{ &#0 ; &#1 }}
+    #0: [0..31] {2}, [32..34359738367] BOTVALUE
+    #1: [0..31] {1}, [32..34359738367] BOTVALUE
+  exit 1, clobbered set none:
+    p: [0..31] {{ &#0 ; &#1 }}
+    __retres: [0..31] {1; 2}
+    \result<deref>: [0..31] {1; 2}
+    #0: [0..31] {2}, [32..34359738367] BOTVALUE
+    #1: [0..31] {1}, [32..34359738367] BOTVALUE
+  round trip: equal
+  new numbered form
 Calls:
   malloc :: numbered.c:83 <- multi_target_main: builtin
   malloc :: numbered.c:85 <- multi_target_main: builtin
@@ -28,3 +64,4 @@ Passes after the iteration:
 Statuses of the properties: those of the run without memexec, for 317 properties.
 Alarms: 0, of which 0 not proven, those of the run without memexec.
 Summary: statement coverage 1.0000, function coverage 0.1538, 0 alarms, those of the run without memexec.
+Stored entries: 2; with a numbered block: 2; without numbered form: 0; round trips that differ: 0; placeholders in the entries given by memexec: 0.

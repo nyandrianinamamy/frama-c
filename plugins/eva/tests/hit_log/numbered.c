@@ -1,4 +1,5 @@
 /* run.config
+   MODULE: hit_log_observer @PTEST_NAME@
    STDOPT: +"-eva-no-alloc-returns-null -eva-slevel 10 -main round_trip_main"
    STDOPT: +"-eva-no-alloc-returns-null -eva-slevel 10 -main fragments_main"
    STDOPT: +"-eva-no-alloc-returns-null -main renamed_main"
@@ -7,9 +8,8 @@
    STDOPT: +"-eva-no-alloc-returns-null -main cycle_main"
 */
 
-/* #124: the entries of the calls below mention allocated blocks. Memexec
-   stores and looks them up by the identity of their blocks: a call on other
-   blocks than a stored one is analysed. */
+/* #124: numbered.ml prints the numbered form of each stored entry and checks
+   its round trip; memexec still compares the blocks by their identity. */
 
 #include <stdlib.h>
 #include <string.h>

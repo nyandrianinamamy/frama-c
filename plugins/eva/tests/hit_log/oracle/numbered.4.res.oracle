@@ -1,4 +1,35 @@
 [kernel] Parsing numbered.c (with preprocessing)
+Cache entry 7, deref:
+  numbered blocks:
+    #0: __malloc_unreached_main_l109_1, argument 0, in the key; strong, record Variable [0..31--31], type int, malloc
+  arguments: {{ &#0 }}
+  key: p, __retres, #0
+  start, clobbered set none:
+    p: [0..31] {{ &#0 }}
+    #0: [0..31] {5}, [32..34359738367] BOTVALUE
+  exit 1, clobbered set none:
+    p: [0..31] {{ &#0 }}
+    __retres: [0..31] {5}
+    \result<deref>: [0..31] {5}
+    #0: [0..31] {5}, [32..34359738367] BOTVALUE
+  round trip: equal
+  new numbered form
+Cache entry 8, unreached:
+  numbered blocks:
+    #0: __calloc_unreached_main_l112_1, key block reached from no root, in the key; strong, record Variable [0..31--31], type int, malloc
+  arguments: none
+  key: __retres, #0
+  start, clobbered set none:
+    #0: [0..31] {0}, [32..34359738367] BOTVALUE
+  exit 1, clobbered set none:
+    __retres: [0..31] {7}
+    #0: [0..31] {0}, [32..34359738367] BOTVALUE
+    \result<unreached>: [0..31] {7}
+  round trip: equal
+  new numbered form
+  with the blocks of earlier entries as candidates, __malloc_unreached_main_l109_1:
+    #0: __malloc_unreached_main_l109_1, candidate; strong, record Variable [0..31--31], type int, malloc
+    #1: __calloc_unreached_main_l112_1, key block reached from no root, in the key; strong, record Variable [0..31--31], type int, malloc
 Calls:
   malloc :: numbered.c:109 <- unreached_main: builtin
   deref :: numbered.c:111 <- unreached_main: analysed, cache entry 7
@@ -24,3 +55,6 @@ Passes after the iteration:
 Statuses of the properties: those of the run without memexec, for 318 properties.
 Alarms: 0, of which 0 not proven, those of the run without memexec.
 Summary: statement coverage 1.0000, function coverage 0.2308, 0 alarms, those of the run without memexec.
+Numbering of an argument that may point to any block: no numbered form, unknown targets
+Numbering of a block of the key that may point to any block: no numbered form, unknown targets
+Stored entries: 2; with a numbered block: 2; without numbered form: 0; round trips that differ: 0; placeholders in the entries given by memexec: 0.
