@@ -27,7 +27,9 @@
       addresses, everywhere in the state. *)
 
 (** The decision of an allocation: a new block, or a block that the policy
-    reuses, made weak or not. *)
+    reuses. [weakened] is what the policy asks for the reused block, to be
+    weak from now on, whether or not it was weak already; the change of
+    strength itself, if any, is in the validity mutation that follows. *)
 type decision =
   | Created
   | Reused of { weakened: bool }
@@ -61,6 +63,8 @@ type t =
       (** The type of the block before and after, if it changed. *)
     }
   | Removal of Base.t
+  (** The block leaves the state. Not emitted for a block that the state
+      does not hold. *)
   | Sweep of { block: Base.t; exact: bool }
   (** The pointers to [block] become escaping addresses: in place of the
       pointer if [exact], joined with it otherwise. *)

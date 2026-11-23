@@ -614,8 +614,17 @@ let () =
    removals and the sweeps are emitted with [point], if given. *)
 let free ?point ~exact bases state =
   if Heap_effects.enabled () then begin
+    (* The automatic release also names blocks released before, absent from
+       the state: nothing is removed then, but the sweep still runs. *)
+    let present b =
+      match Cvalue.Model.find_base b state with
+      | _ -> true
+      | exception Not_found -> false
+    in
     if exact then
-      Base.Hptset.iter (fun b -> Heap_effects.(emit ?point (Removal b))) bases;
+      Base.Hptset.iter
+        (fun b -> if present b then Heap_effects.(emit ?point (Removal b)))
+        bases;
     Base.Hptset.iter
       (fun block -> Heap_effects.(emit ?point (Sweep { block; exact })))
       bases

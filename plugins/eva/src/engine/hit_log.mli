@@ -62,15 +62,15 @@
     [reallocarray], [alloca], [free], and of the allocation and release of
     variable-length arrays emit them, and so does the widening of the
     memory, when it raises the validity of a weak block. Every caller of a
-    heap call, up to the entry point, is a heap call. The entry of a heap call holds no Inner part: it holds the full
-    cvalue state before and after each statement reached, the states that
+    heap call, up to the entry point, is a heap call. The entry of a heap
+    call holds no Inner part: it holds the full cvalue state before and after each statement reached, the states that
     the analysis of the body computes and that the legacy store saves, taken
     when the analysis of the body ends. A request at a point of a heap call
     is answered by these full states; the rule is not applied. Memexec does
     not store a heap call: no hit, and thus no call below a hit, uses the
     entry of a heap call, and the entry does not keep the calls made by the
-    body. A call that reads or writes an allocated block without allocating
-    or releasing one is not a heap call. With memexec, the hits that memexec
+    body. A call that reads or writes an allocated block and receives no
+    heap effect is not a heap call. With memexec, the hits that memexec
     no longer makes are counted per function: the statistic
     [hit-log-lost-hits] counts the calls that it would have reused if it
     stored the heap calls, and [hit-log-lost-hits-below] those of these calls
