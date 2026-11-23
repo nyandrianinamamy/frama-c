@@ -1,140 +1,32 @@
 [kernel] Parsing alloc_unresolved.c (with preprocessing)
 Calls:
-  malloc :: alloc_unresolved.c:26 <- issue94: builtin
-  free :: alloc_unresolved.c:22 <- release :: alloc_unresolved.c:30 <- issue94: builtin
-  release :: alloc_unresolved.c:30 <- issue94: analysed, cache entry 8
-  malloc :: alloc_unresolved.c:26 <- issue94: builtin
-  release :: alloc_unresolved.c:30 <- issue94: hit of cache entry 8
-  malloc :: alloc_unresolved.c:26 <- issue94: builtin
-  free :: alloc_unresolved.c:22 <- release :: alloc_unresolved.c:30 <- issue94: builtin
-  release :: alloc_unresolved.c:30 <- issue94: analysed, cache entry 9
-  issue94: analysed, cache entry 10
-Heap calls, with full states, not stored by memexec: none.
-Hits not made, the heap calls being not stored: none.
-Created bases whose match with the run without memexec is unresolved:
-  __malloc_issue94_l26
-  __malloc_issue94_l26_2
-  __malloc_issue94_l26_3
+  malloc :: alloc_unresolved.c:31 <- issue94: builtin
+  free :: alloc_unresolved.c:27 <- release :: alloc_unresolved.c:35 <- issue94: builtin
+  release :: alloc_unresolved.c:35 <- issue94: analysed, cache entry 8
+  malloc :: alloc_unresolved.c:31 <- issue94: builtin
+  free :: alloc_unresolved.c:27 <- release :: alloc_unresolved.c:35 <- issue94: builtin
+  release :: alloc_unresolved.c:35 <- issue94: analysed, cache entry 9
+  malloc :: alloc_unresolved.c:31 <- issue94: builtin
+  free :: alloc_unresolved.c:27 <- release :: alloc_unresolved.c:35 <- issue94: builtin
+  release :: alloc_unresolved.c:35 <- issue94: analysed, cache entry 10
+  issue94: analysed, cache entry 11
+Heap calls, with full states, not stored by memexec: issue94 1, release 3.
+Hits not made, the heap calls being not stored: release 2.
+Created bases whose match with the run with memexec is unresolved:
+  __malloc_issue94_l31_0
+  __malloc_issue94_l31_1
+  __malloc_issue94_l31_2
 Created bases of the run with memexec, without recording, whose match with the run without memexec is unresolved:
-  __malloc_issue94_l26
-  __malloc_issue94_l26_0
-  __malloc_issue94_l26_1
-Hits against the analysed call of their cache entry:
+  __malloc_issue94_l31
+  __malloc_issue94_l31_0
+  __malloc_issue94_l31_1
 Initial state: equal.
 Differences with the run without memexec:
-  final state, joined: unresolved, as with memexec
-  final state, filtered: unresolved, as with memexec
-  final state, issue94: unresolved, as with memexec
-  release, start, joined: unresolved, as with memexec
-  release, start, filtered: unresolved, as with memexec
-  release, start, release :: alloc_unresolved.c:30 <- issue94: unresolved, as with memexec
-  release, before alloc_unresolved.c:22 `free((void *)owner);`, joined: unresolved
-  release, before alloc_unresolved.c:22 `free((void *)owner);`, filtered: unresolved
-  release, before alloc_unresolved.c:22 `free((void *)owner);`, release :: alloc_unresolved.c:30 <- issue94: unresolved
-  release, after alloc_unresolved.c:22 `free((void *)owner);`, joined: unresolved
-  release, after alloc_unresolved.c:22 `free((void *)owner);`, filtered: unresolved
-  release, after alloc_unresolved.c:22 `free((void *)owner);`, release :: alloc_unresolved.c:30 <- issue94: unresolved
-  release, before alloc_unresolved.c:22 `owner = (int *)0;`, joined: unresolved
-  release, before alloc_unresolved.c:22 `owner = (int *)0;`, filtered: unresolved
-  release, before alloc_unresolved.c:22 `owner = (int *)0;`, release :: alloc_unresolved.c:30 <- issue94: unresolved
-  release, after alloc_unresolved.c:22 `owner = (int *)0;`, joined: unresolved
-  release, after alloc_unresolved.c:22 `owner = (int *)0;`, filtered: unresolved
-  release, after alloc_unresolved.c:22 `owner = (int *)0;`, release :: alloc_unresolved.c:30 <- issue94: unresolved
-  release, before alloc_unresolved.c:22 `return;`, joined: unresolved
-  release, before alloc_unresolved.c:22 `return;`, filtered: unresolved
-  release, before alloc_unresolved.c:22 `return;`, release :: alloc_unresolved.c:30 <- issue94: unresolved
-  release, after alloc_unresolved.c:22 `return;`, joined: unresolved
-  release, after alloc_unresolved.c:22 `return;`, filtered: unresolved
-  release, after alloc_unresolved.c:22 `return;`, release :: alloc_unresolved.c:30 <- issue94: unresolved
-  issue94, after alloc_unresolved.c:25-31 `loop`, joined: unresolved, as with memexec
-  issue94, after alloc_unresolved.c:25-31 `loop`, filtered: unresolved, as with memexec
-  issue94, after alloc_unresolved.c:25-31 `loop`, issue94: unresolved, as with memexec
-  issue94, before alloc_unresolved.c:25 `if (i < 3)`, joined: unresolved, as with memexec
-  issue94, before alloc_unresolved.c:25 `if (i < 3)`, filtered: unresolved, as with memexec
-  issue94, before alloc_unresolved.c:25 `if (i < 3)`, issue94: unresolved, as with memexec
-  issue94, after alloc_unresolved.c:25 `if (i < 3)`, joined: unresolved, as with memexec
-  issue94, after alloc_unresolved.c:25 `if (i < 3)`, filtered: unresolved, as with memexec
-  issue94, after alloc_unresolved.c:25 `if (i < 3)`, issue94: unresolved, as with memexec
-  issue94, before alloc_unresolved.c:25-31 `break;`, joined: unresolved, as with memexec
-  issue94, before alloc_unresolved.c:25-31 `break;`, filtered: unresolved, as with memexec
-  issue94, before alloc_unresolved.c:25-31 `break;`, issue94: unresolved, as with memexec
-  issue94, after alloc_unresolved.c:25-31 `break;`, joined: unresolved, as with memexec
-  issue94, after alloc_unresolved.c:25-31 `break;`, filtered: unresolved, as with memexec
-  issue94, after alloc_unresolved.c:25-31 `break;`, issue94: unresolved, as with memexec
-  issue94, before alloc_unresolved.c:26 `block`, joined: unresolved, as with memexec
-  issue94, before alloc_unresolved.c:26 `block`, filtered: unresolved, as with memexec
-  issue94, before alloc_unresolved.c:26 `block`, issue94: unresolved, as with memexec
-  issue94, after alloc_unresolved.c:26 `block`, joined: unresolved, as with memexec
-  issue94, after alloc_unresolved.c:26 `block`, filtered: unresolved, as with memexec
-  issue94, after alloc_unresolved.c:26 `block`, issue94: unresolved, as with memexec
-  issue94, before alloc_unresolved.c:26 `owner = (int *)malloc(sizeof(*owner));`, joined: unresolved, as with memexec
-  issue94, before alloc_unresolved.c:26 `owner = (int *)malloc(sizeof(*owner));`, filtered: unresolved, as with memexec
-  issue94, before alloc_unresolved.c:26 `owner = (int *)malloc(sizeof(*owner));`, issue94: unresolved, as with memexec
-  issue94, after alloc_unresolved.c:26 `owner = (int *)malloc(sizeof(*owner));`, joined: unresolved, as with memexec
-  issue94, after alloc_unresolved.c:26 `owner = (int *)malloc(sizeof(*owner));`, filtered: unresolved, as with memexec
-  issue94, after alloc_unresolved.c:26 `owner = (int *)malloc(sizeof(*owner));`, issue94: unresolved, as with memexec
-  issue94, before alloc_unresolved.c:27 `if (! owner)`, joined: unresolved, as with memexec
-  issue94, before alloc_unresolved.c:27 `if (! owner)`, filtered: unresolved, as with memexec
-  issue94, before alloc_unresolved.c:27 `if (! owner)`, issue94: unresolved, as with memexec
-  issue94, after alloc_unresolved.c:27 `if (! owner)`, joined: unresolved, as with memexec
-  issue94, after alloc_unresolved.c:27 `if (! owner)`, filtered: unresolved, as with memexec
-  issue94, after alloc_unresolved.c:27 `if (! owner)`, issue94: unresolved, as with memexec
-  issue94, after alloc_unresolved.c:27 `goto`, joined: unresolved, as with memexec
-  issue94, after alloc_unresolved.c:27 `goto`, filtered: unresolved, as with memexec
-  issue94, after alloc_unresolved.c:27 `goto`, issue94: unresolved, as with memexec
-  issue94, before alloc_unresolved.c:28 `*owner = 17;`, joined: unresolved, as with memexec
-  issue94, before alloc_unresolved.c:28 `*owner = 17;`, filtered: unresolved, as with memexec
-  issue94, before alloc_unresolved.c:28 `*owner = 17;`, issue94: unresolved, as with memexec
-  issue94, after alloc_unresolved.c:28 `*owner = 17;`, joined: unresolved, as with memexec
-  issue94, after alloc_unresolved.c:28 `*owner = 17;`, filtered: unresolved, as with memexec
-  issue94, after alloc_unresolved.c:28 `*owner = 17;`, issue94: unresolved, as with memexec
-  issue94, before alloc_unresolved.c:29 `if (i)`, joined: unresolved, as with memexec
-  issue94, before alloc_unresolved.c:29 `if (i)`, filtered: unresolved, as with memexec
-  issue94, before alloc_unresolved.c:29 `if (i)`, issue94: unresolved, as with memexec
-  issue94, after alloc_unresolved.c:29 `if (i)`, joined: unresolved, as with memexec
-  issue94, after alloc_unresolved.c:29 `if (i)`, filtered: unresolved, as with memexec
-  issue94, after alloc_unresolved.c:29 `if (i)`, issue94: unresolved, as with memexec
-  issue94, before alloc_unresolved.c:29 `alias = owner;`, joined: unresolved, as with memexec
-  issue94, before alloc_unresolved.c:29 `alias = owner;`, filtered: unresolved, as with memexec
-  issue94, before alloc_unresolved.c:29 `alias = owner;`, issue94: unresolved, as with memexec
-  issue94, after alloc_unresolved.c:29 `alias = owner;`, joined: unresolved, as with memexec
-  issue94, after alloc_unresolved.c:29 `alias = owner;`, filtered: unresolved, as with memexec
-  issue94, after alloc_unresolved.c:29 `alias = owner;`, issue94: unresolved, as with memexec
-  issue94, before alloc_unresolved.c:29 `alias = (int *)0;`, joined: unresolved, as with memexec
-  issue94, before alloc_unresolved.c:29 `alias = (int *)0;`, filtered: unresolved, as with memexec
-  issue94, before alloc_unresolved.c:29 `alias = (int *)0;`, issue94: unresolved, as with memexec
-  issue94, after alloc_unresolved.c:29 `alias = (int *)0;`, joined: unresolved, as with memexec
-  issue94, after alloc_unresolved.c:29 `alias = (int *)0;`, filtered: unresolved, as with memexec
-  issue94, after alloc_unresolved.c:29 `alias = (int *)0;`, issue94: unresolved, as with memexec
-  issue94, before alloc_unresolved.c:30 `release();`, joined: unresolved, as with memexec
-  issue94, before alloc_unresolved.c:30 `release();`, filtered: unresolved, as with memexec
-  issue94, before alloc_unresolved.c:30 `release();`, issue94: unresolved, as with memexec
-  issue94, after alloc_unresolved.c:30 `release();`, joined: unresolved, as with memexec
-  issue94, after alloc_unresolved.c:30 `release();`, filtered: unresolved, as with memexec
-  issue94, after alloc_unresolved.c:30 `release();`, issue94: unresolved, as with memexec
-  issue94, before alloc_unresolved.c:25 `i ++;`, joined: unresolved, as with memexec
-  issue94, before alloc_unresolved.c:25 `i ++;`, filtered: unresolved, as with memexec
-  issue94, before alloc_unresolved.c:25 `i ++;`, issue94: unresolved, as with memexec
-  issue94, after alloc_unresolved.c:25 `i ++;`, joined: unresolved, as with memexec
-  issue94, after alloc_unresolved.c:25 `i ++;`, filtered: unresolved, as with memexec
-  issue94, after alloc_unresolved.c:25 `i ++;`, issue94: unresolved, as with memexec
-  issue94, before alloc_unresolved.c:32 `__retres = 0;`, joined: unresolved, as with memexec
-  issue94, before alloc_unresolved.c:32 `__retres = 0;`, filtered: unresolved, as with memexec
-  issue94, before alloc_unresolved.c:32 `__retres = 0;`, issue94: unresolved, as with memexec
-  issue94, after alloc_unresolved.c:32 `__retres = 0;`, joined: unresolved, as with memexec
-  issue94, after alloc_unresolved.c:32 `__retres = 0;`, filtered: unresolved, as with memexec
-  issue94, after alloc_unresolved.c:32 `__retres = 0;`, issue94: unresolved, as with memexec
-  issue94, before alloc_unresolved.c:32 `return __retres;`, joined: unresolved, as with memexec
-  issue94, before alloc_unresolved.c:32 `return __retres;`, filtered: unresolved, as with memexec
-  issue94, before alloc_unresolved.c:32 `return __retres;`, issue94: unresolved, as with memexec
-  issue94, after alloc_unresolved.c:32 `return __retres;`, joined: unresolved, as with memexec
-  issue94, after alloc_unresolved.c:32 `return __retres;`, filtered: unresolved, as with memexec
-  issue94, after alloc_unresolved.c:32 `return __retres;`, issue94: unresolved, as with memexec
-Answers: 31 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable, 108 unresolved.
-Callstacks listed: those of the run without memexec at each of the 48 points.
-Callstacks listed through the filter: those of the run without memexec at each of the 48 points.
+Answers: 145 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 50 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 50 points.
 Filtered requests that reject one callstack: 0.
-Requests made: 235; reported by the trap: 235, each once with its description; reads of the legacy store: 0.
+Requests made: 245; reported by the trap: 245, each once with its description; reads of the legacy store: 0.
 Passes after the iteration:
   with memexec, without recording: 47 requests, 91 reads of the legacy store in them, 91 reads outside any request.
   with -eva-hit-log: 47 requests, 0 reads of the legacy store in them, 0 reads outside any request.

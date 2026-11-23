@@ -3,7 +3,7 @@ Calls:
   alloca :: heap_builtins.c:32 <- az :: heap_builtins.c:33 <- alloca_main: builtin
   az :: heap_builtins.c:33 <- alloca_main: analysed, cache entry 5
   alloca_main: analysed, cache entry 6
-Heap calls, with full states, not stored by memexec: none.
+Heap calls, with full states, not stored by memexec: alloca_main 1, az 1.
 Hits not made, the heap calls being not stored: none.
 az, start:
   joined: g ∈ {0}

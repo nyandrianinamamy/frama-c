@@ -1,4 +1,6 @@
 /* run.config
+   ENV: HIT_LOG_OBSERVER_SUMMARY @PTEST_NAME@.summary
+   LOG: @PTEST_NAME@.summary
    STDOPT: +"-main issue94 -eva-slevel 20 -eva-no-alloc-returns-null -eva-mlevel 1"
 */
 
@@ -12,8 +14,11 @@
    next allocation finds it alive and, with -eva-mlevel 1, creates another
    block on the same callstack. The callstack of malloc thus creates one
    block in one project and several in the other: the observer cannot tell
-   which block of one matches which block of the other, and the answers that
-   hold these blocks are unresolved, with memexec as with -eva-hit-log. */
+   which block of one matches which block of the other, and the answers of
+   the run with memexec, without recording, that hold these blocks are
+   unresolved. The summary records them. With -eva-hit-log, release is a
+   heap call, which memexec does not store: the run creates one block, as
+   without memexec, and its answers are equal to the reference. */
 
 #include <stdlib.h>
 

@@ -5,7 +5,7 @@ Calls:
   calloc :: calloc.c:16 <- alloc :: calloc.c:37 <- alloc_twice: builtin
   alloc :: calloc.c:37 <- alloc_twice: analysed, cache entry 8
   alloc_twice: analysed, cache entry 9
-Heap calls, with full states, not stored by memexec: none.
+Heap calls, with full states, not stored by memexec: alloc 2, alloc_twice 1.
 Hits not made, the heap calls being not stored: none.
 alloc, start:
   joined: p ∈ {{ NULL ; &__calloc_w_alloc_l16_1 }}

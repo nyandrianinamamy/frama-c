@@ -7,7 +7,7 @@ Calls:
   malloc :: heap_weak.c:15 <- fr :: heap_weak.c:16 <- m5: builtin
   fr :: heap_weak.c:16 <- m5: analysed, cache entry 11
   m5: analysed, cache entry 12
-Heap calls, with full states, not stored by memexec: none.
+Heap calls, with full states, not stored by memexec: fr 3, m5 1.
 Hits not made, the heap calls being not stored: none.
 fr, start:
   joined: g ∈ {0}
@@ -26,19 +26,7 @@ fr, before heap_weak.c:15 `;` (L5):
           n ∈ {4; 8; 12}
           p ∈ {{ &__malloc_w_fr_l15_1[0] }}
           i ∈ {1; 2; 3}
-          __malloc_w_fr_l15_1[0..7] ∈ UNINITIALIZED
-  fr :: heap_weak.c:16 <- m5: g ∈ {0}
-                              z ∈ {4; 8; 12}
-                              n ∈ {4; 8; 12}
-                              p ∈ {{ &__malloc_w_fr_l15_1[0] }}
-                              i ∈ {1; 2; 3}
-                              __malloc_w_fr_l15_1[0..7] ∈ UNINITIALIZED
-  reference, joined: g ∈ {0}
-                     z ∈ {4; 8; 12}
-                     n ∈ {4; 8; 12}
-                     p ∈ {{ &__malloc_w_fr_l15_1[0] }}
-                     i ∈ {1; 2; 3}
-                     __malloc_w_fr_l15_1[0..11] ∈ UNINITIALIZED
+          __malloc_w_fr_l15_1[0..11] ∈ UNINITIALIZED
   fr :: heap_weak.c:16 <- m5: g ∈ {0}
                               z ∈ {4; 8; 12}
                               n ∈ {4; 8; 12}
@@ -51,19 +39,7 @@ fr, after heap_weak.c:15 `return;`:
           n ∈ {4; 8; 12}
           p ∈ {{ &__malloc_w_fr_l15_1[0] }}
           i ∈ {1; 2; 3}
-          __malloc_w_fr_l15_1[0..7] ∈ UNINITIALIZED
-  fr :: heap_weak.c:16 <- m5: g ∈ {0}
-                              z ∈ {0}
-                              n ∈ {4; 8; 12}
-                              p ∈ {{ &__malloc_w_fr_l15_1[0] }}
-                              i ∈ {1; 2; 3}
-                              __malloc_w_fr_l15_1[0..7] ∈ UNINITIALIZED
-  reference, joined: g ∈ {0}
-                     z ∈ {0}
-                     n ∈ {4; 8; 12}
-                     p ∈ {{ &__malloc_w_fr_l15_1[0] }}
-                     i ∈ {1; 2; 3}
-                     __malloc_w_fr_l15_1[0..11] ∈ UNINITIALIZED
+          __malloc_w_fr_l15_1[0..11] ∈ UNINITIALIZED
   fr :: heap_weak.c:16 <- m5: g ∈ {0}
                               z ∈ {0}
                               n ∈ {4; 8; 12}
@@ -100,28 +76,7 @@ m5, after heap_weak.c:16 `return;`:
       __malloc_w_fr_l15_1[0..11] ∈ UNINITIALIZED
 Initial state: equal.
 Differences with the run without memexec:
-  fr, after heap_weak.c:15 `char *p = malloc((size_t)n);`, joined: more precise
-  fr, after heap_weak.c:15 `char *p = malloc((size_t)n);`, filtered: more precise
-  fr, after heap_weak.c:15 `char *p = malloc((size_t)n);`, fr :: heap_weak.c:16 <- m5: more precise
-  fr, before heap_weak.c:15 `;` (L5), joined: more precise
-  fr, before heap_weak.c:15 `;` (L5), filtered: more precise
-  fr, before heap_weak.c:15 `;` (L5), fr :: heap_weak.c:16 <- m5: more precise
-  fr, after heap_weak.c:15 `;` (L5), joined: more precise
-  fr, after heap_weak.c:15 `;` (L5), filtered: more precise
-  fr, after heap_weak.c:15 `;` (L5), fr :: heap_weak.c:16 <- m5: more precise
-  fr, before heap_weak.c:15 `z = 0;`, joined: more precise
-  fr, before heap_weak.c:15 `z = 0;`, filtered: more precise
-  fr, before heap_weak.c:15 `z = 0;`, fr :: heap_weak.c:16 <- m5: more precise
-  fr, after heap_weak.c:15 `z = 0;`, joined: more precise
-  fr, after heap_weak.c:15 `z = 0;`, filtered: more precise
-  fr, after heap_weak.c:15 `z = 0;`, fr :: heap_weak.c:16 <- m5: more precise
-  fr, before heap_weak.c:15 `return;`, joined: more precise
-  fr, before heap_weak.c:15 `return;`, filtered: more precise
-  fr, before heap_weak.c:15 `return;`, fr :: heap_weak.c:16 <- m5: more precise
-  fr, after heap_weak.c:15 `return;`, joined: more precise
-  fr, after heap_weak.c:15 `return;`, filtered: more precise
-  fr, after heap_weak.c:15 `return;`, fr :: heap_weak.c:16 <- m5: more precise
-Answers: 87 equal, 0 covering, 21 more precise, 0 omitting, 0 unavailable.
+Answers: 108 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
 Callstacks listed: those of the run without memexec at each of the 36 points.
 Callstacks listed through the filter: those of the run without memexec at each of the 36 points.
 Filtered requests that reject one callstack: 0.

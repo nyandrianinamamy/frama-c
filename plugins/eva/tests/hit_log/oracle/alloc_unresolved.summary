@@ -1,0 +1,183 @@
+format	3
+phase	reference
+phase	memexec
+phase	recording
+heap calls	4	2	0
+phase	requests
+unresolved	with memexec	__malloc_issue94_l31_0	match undecided
+unresolved	with memexec	__malloc_issue94_l31_1	match undecided
+unresolved	with memexec	__malloc_issue94_l31_2	match undecided
+unresolved	memexec against reference	__malloc_issue94_l31	match undecided
+unresolved	memexec against reference	__malloc_issue94_l31_0	match undecided
+unresolved	memexec against reference	__malloc_issue94_l31_1	match undecided
+answer	final		final state, joined	joined	equal	unresolved		
+answer	final		final state, filtered	filtered	equal	unresolved		
+answer	final		final state, issue94	callstack	equal	unresolved		
+answer	start	release	release, start, joined	joined	equal	unresolved		
+answer	start	release	release, start, filtered	filtered	equal	unresolved		
+answer	start	release	release, start, release :: alloc_unresolved.c:35 <- issue94	callstack	equal	unresolved		
+answer	before	release	release, before alloc_unresolved.c:27 `free((void *)owner);`, joined	joined	equal	unresolved		
+answer	before	release	release, before alloc_unresolved.c:27 `free((void *)owner);`, filtered	filtered	equal	unresolved		
+answer	before	release	release, before alloc_unresolved.c:27 `free((void *)owner);`, release :: alloc_unresolved.c:35 <- issue94	callstack	equal	unresolved		
+answer	after	release	release, after alloc_unresolved.c:27 `free((void *)owner);`, joined	joined	equal	unresolved		
+answer	after	release	release, after alloc_unresolved.c:27 `free((void *)owner);`, filtered	filtered	equal	unresolved		
+answer	after	release	release, after alloc_unresolved.c:27 `free((void *)owner);`, release :: alloc_unresolved.c:35 <- issue94	callstack	equal	unresolved		
+answer	before	release	release, before alloc_unresolved.c:27 `owner = (int *)0;`, joined	joined	equal	unresolved		
+answer	before	release	release, before alloc_unresolved.c:27 `owner = (int *)0;`, filtered	filtered	equal	unresolved		
+answer	before	release	release, before alloc_unresolved.c:27 `owner = (int *)0;`, release :: alloc_unresolved.c:35 <- issue94	callstack	equal	unresolved		
+answer	after	release	release, after alloc_unresolved.c:27 `owner = (int *)0;`, joined	joined	equal	unresolved		
+answer	after	release	release, after alloc_unresolved.c:27 `owner = (int *)0;`, filtered	filtered	equal	unresolved		
+answer	after	release	release, after alloc_unresolved.c:27 `owner = (int *)0;`, release :: alloc_unresolved.c:35 <- issue94	callstack	equal	unresolved		
+answer	before	release	release, before alloc_unresolved.c:27 `return;`, joined	joined	equal	unresolved		
+answer	before	release	release, before alloc_unresolved.c:27 `return;`, filtered	filtered	equal	unresolved		
+answer	before	release	release, before alloc_unresolved.c:27 `return;`, release :: alloc_unresolved.c:35 <- issue94	callstack	equal	unresolved		
+answer	after	release	release, after alloc_unresolved.c:27 `return;`, joined	joined	equal	unresolved		
+answer	after	release	release, after alloc_unresolved.c:27 `return;`, filtered	filtered	equal	unresolved		
+answer	after	release	release, after alloc_unresolved.c:27 `return;`, release :: alloc_unresolved.c:35 <- issue94	callstack	equal	unresolved		
+answer	after	issue94	issue94, after alloc_unresolved.c:30-36 `loop`, joined	joined	equal	unresolved		
+answer	after	issue94	issue94, after alloc_unresolved.c:30-36 `loop`, filtered	filtered	equal	unresolved		
+answer	after	issue94	issue94, after alloc_unresolved.c:30-36 `loop`, issue94	callstack	equal	unresolved		
+answer	before	issue94	issue94, before alloc_unresolved.c:30 `if (i < 3)`, joined	joined	equal	unresolved		
+answer	before	issue94	issue94, before alloc_unresolved.c:30 `if (i < 3)`, filtered	filtered	equal	unresolved		
+answer	before	issue94	issue94, before alloc_unresolved.c:30 `if (i < 3)`, issue94	callstack	equal	unresolved		
+answer	after	issue94	issue94, after alloc_unresolved.c:30 `if (i < 3)`, joined	joined	equal	unresolved		
+answer	after	issue94	issue94, after alloc_unresolved.c:30 `if (i < 3)`, filtered	filtered	equal	unresolved		
+answer	after	issue94	issue94, after alloc_unresolved.c:30 `if (i < 3)`, issue94	callstack	equal	unresolved		
+answer	before	issue94	issue94, before alloc_unresolved.c:30-36 `break;`, joined	joined	equal	unresolved		
+answer	before	issue94	issue94, before alloc_unresolved.c:30-36 `break;`, filtered	filtered	equal	unresolved		
+answer	before	issue94	issue94, before alloc_unresolved.c:30-36 `break;`, issue94	callstack	equal	unresolved		
+answer	after	issue94	issue94, after alloc_unresolved.c:30-36 `break;`, joined	joined	equal	unresolved		
+answer	after	issue94	issue94, after alloc_unresolved.c:30-36 `break;`, filtered	filtered	equal	unresolved		
+answer	after	issue94	issue94, after alloc_unresolved.c:30-36 `break;`, issue94	callstack	equal	unresolved		
+answer	before	issue94	issue94, before alloc_unresolved.c:31 `block`, joined	joined	equal	unresolved		
+answer	before	issue94	issue94, before alloc_unresolved.c:31 `block`, filtered	filtered	equal	unresolved		
+answer	before	issue94	issue94, before alloc_unresolved.c:31 `block`, issue94	callstack	equal	unresolved		
+answer	after	issue94	issue94, after alloc_unresolved.c:31 `block`, joined	joined	equal	unresolved		
+answer	after	issue94	issue94, after alloc_unresolved.c:31 `block`, filtered	filtered	equal	unresolved		
+answer	after	issue94	issue94, after alloc_unresolved.c:31 `block`, issue94	callstack	equal	unresolved		
+answer	before	issue94	issue94, before alloc_unresolved.c:31 `owner = (int *)malloc(sizeof(*owner));`, joined	joined	equal	unresolved		
+answer	before	issue94	issue94, before alloc_unresolved.c:31 `owner = (int *)malloc(sizeof(*owner));`, filtered	filtered	equal	unresolved		
+answer	before	issue94	issue94, before alloc_unresolved.c:31 `owner = (int *)malloc(sizeof(*owner));`, issue94	callstack	equal	unresolved		
+answer	after	issue94	issue94, after alloc_unresolved.c:31 `owner = (int *)malloc(sizeof(*owner));`, joined	joined	equal	unresolved		
+answer	after	issue94	issue94, after alloc_unresolved.c:31 `owner = (int *)malloc(sizeof(*owner));`, filtered	filtered	equal	unresolved		
+answer	after	issue94	issue94, after alloc_unresolved.c:31 `owner = (int *)malloc(sizeof(*owner));`, issue94	callstack	equal	unresolved		
+answer	before	issue94	issue94, before alloc_unresolved.c:32 `if (! owner)`, joined	joined	equal	unresolved		
+answer	before	issue94	issue94, before alloc_unresolved.c:32 `if (! owner)`, filtered	filtered	equal	unresolved		
+answer	before	issue94	issue94, before alloc_unresolved.c:32 `if (! owner)`, issue94	callstack	equal	unresolved		
+answer	after	issue94	issue94, after alloc_unresolved.c:32 `if (! owner)`, joined	joined	equal	unresolved		
+answer	after	issue94	issue94, after alloc_unresolved.c:32 `if (! owner)`, filtered	filtered	equal	unresolved		
+answer	after	issue94	issue94, after alloc_unresolved.c:32 `if (! owner)`, issue94	callstack	equal	unresolved		
+answer	after	issue94	issue94, after alloc_unresolved.c:32 `goto`, joined	joined	equal	unresolved		
+answer	after	issue94	issue94, after alloc_unresolved.c:32 `goto`, filtered	filtered	equal	unresolved		
+answer	after	issue94	issue94, after alloc_unresolved.c:32 `goto`, issue94	callstack	equal	unresolved		
+answer	before	issue94	issue94, before alloc_unresolved.c:33 `*owner = 17;`, joined	joined	equal	unresolved		
+answer	before	issue94	issue94, before alloc_unresolved.c:33 `*owner = 17;`, filtered	filtered	equal	unresolved		
+answer	before	issue94	issue94, before alloc_unresolved.c:33 `*owner = 17;`, issue94	callstack	equal	unresolved		
+answer	after	issue94	issue94, after alloc_unresolved.c:33 `*owner = 17;`, joined	joined	equal	unresolved		
+answer	after	issue94	issue94, after alloc_unresolved.c:33 `*owner = 17;`, filtered	filtered	equal	unresolved		
+answer	after	issue94	issue94, after alloc_unresolved.c:33 `*owner = 17;`, issue94	callstack	equal	unresolved		
+answer	before	issue94	issue94, before alloc_unresolved.c:34 `if (i)`, joined	joined	equal	unresolved		
+answer	before	issue94	issue94, before alloc_unresolved.c:34 `if (i)`, filtered	filtered	equal	unresolved		
+answer	before	issue94	issue94, before alloc_unresolved.c:34 `if (i)`, issue94	callstack	equal	unresolved		
+answer	after	issue94	issue94, after alloc_unresolved.c:34 `if (i)`, joined	joined	equal	unresolved		
+answer	after	issue94	issue94, after alloc_unresolved.c:34 `if (i)`, filtered	filtered	equal	unresolved		
+answer	after	issue94	issue94, after alloc_unresolved.c:34 `if (i)`, issue94	callstack	equal	unresolved		
+answer	before	issue94	issue94, before alloc_unresolved.c:34 `alias = owner;`, joined	joined	equal	unresolved		
+answer	before	issue94	issue94, before alloc_unresolved.c:34 `alias = owner;`, filtered	filtered	equal	unresolved		
+answer	before	issue94	issue94, before alloc_unresolved.c:34 `alias = owner;`, issue94	callstack	equal	unresolved		
+answer	after	issue94	issue94, after alloc_unresolved.c:34 `alias = owner;`, joined	joined	equal	unresolved		
+answer	after	issue94	issue94, after alloc_unresolved.c:34 `alias = owner;`, filtered	filtered	equal	unresolved		
+answer	after	issue94	issue94, after alloc_unresolved.c:34 `alias = owner;`, issue94	callstack	equal	unresolved		
+answer	before	issue94	issue94, before alloc_unresolved.c:34 `alias = (int *)0;`, joined	joined	equal	unresolved		
+answer	before	issue94	issue94, before alloc_unresolved.c:34 `alias = (int *)0;`, filtered	filtered	equal	unresolved		
+answer	before	issue94	issue94, before alloc_unresolved.c:34 `alias = (int *)0;`, issue94	callstack	equal	unresolved		
+answer	after	issue94	issue94, after alloc_unresolved.c:34 `alias = (int *)0;`, joined	joined	equal	unresolved		
+answer	after	issue94	issue94, after alloc_unresolved.c:34 `alias = (int *)0;`, filtered	filtered	equal	unresolved		
+answer	after	issue94	issue94, after alloc_unresolved.c:34 `alias = (int *)0;`, issue94	callstack	equal	unresolved		
+answer	before	issue94	issue94, before alloc_unresolved.c:35 `release();`, joined	joined	equal	unresolved		
+answer	before	issue94	issue94, before alloc_unresolved.c:35 `release();`, filtered	filtered	equal	unresolved		
+answer	before	issue94	issue94, before alloc_unresolved.c:35 `release();`, issue94	callstack	equal	unresolved		
+answer	after	issue94	issue94, after alloc_unresolved.c:35 `release();`, joined	joined	equal	unresolved		
+answer	after	issue94	issue94, after alloc_unresolved.c:35 `release();`, filtered	filtered	equal	unresolved		
+answer	after	issue94	issue94, after alloc_unresolved.c:35 `release();`, issue94	callstack	equal	unresolved		
+answer	before	issue94	issue94, before alloc_unresolved.c:30 `i ++;`, joined	joined	equal	unresolved		
+answer	before	issue94	issue94, before alloc_unresolved.c:30 `i ++;`, filtered	filtered	equal	unresolved		
+answer	before	issue94	issue94, before alloc_unresolved.c:30 `i ++;`, issue94	callstack	equal	unresolved		
+answer	after	issue94	issue94, after alloc_unresolved.c:30 `i ++;`, joined	joined	equal	unresolved		
+answer	after	issue94	issue94, after alloc_unresolved.c:30 `i ++;`, filtered	filtered	equal	unresolved		
+answer	after	issue94	issue94, after alloc_unresolved.c:30 `i ++;`, issue94	callstack	equal	unresolved		
+answer	before	issue94	issue94, before alloc_unresolved.c:37 `__retres = 0;`, joined	joined	equal	unresolved		
+answer	before	issue94	issue94, before alloc_unresolved.c:37 `__retres = 0;`, filtered	filtered	equal	unresolved		
+answer	before	issue94	issue94, before alloc_unresolved.c:37 `__retres = 0;`, issue94	callstack	equal	unresolved		
+answer	after	issue94	issue94, after alloc_unresolved.c:37 `__retres = 0;`, joined	joined	equal	unresolved		
+answer	after	issue94	issue94, after alloc_unresolved.c:37 `__retres = 0;`, filtered	filtered	equal	unresolved		
+answer	after	issue94	issue94, after alloc_unresolved.c:37 `__retres = 0;`, issue94	callstack	equal	unresolved		
+answer	before	issue94	issue94, before alloc_unresolved.c:37 `return __retres;`, joined	joined	equal	unresolved		
+answer	before	issue94	issue94, before alloc_unresolved.c:37 `return __retres;`, filtered	filtered	equal	unresolved		
+answer	before	issue94	issue94, before alloc_unresolved.c:37 `return __retres;`, issue94	callstack	equal	unresolved		
+answer	after	issue94	issue94, after alloc_unresolved.c:37 `return __retres;`, joined	joined	equal	unresolved		
+answer	after	issue94	issue94, after alloc_unresolved.c:37 `return __retres;`, filtered	filtered	equal	unresolved		
+answer	after	issue94	issue94, after alloc_unresolved.c:37 `return __retres;`, issue94	callstack	equal	unresolved		
+answer	start without body	free	free, start, without body, joined	joined	equal	unresolved		
+answer	start without body	free	free, start, without body, filtered	filtered	equal	unresolved		
+answer	start without body	free	free, start, without body, free :: alloc_unresolved.c:27 <- release :: alloc_unresolved.c:35 <- issue94	callstack	equal	unresolved		
+answer	start without body	malloc	malloc, start, without body, joined	joined	equal	unresolved		
+answer	start without body	malloc	malloc, start, without body, filtered	filtered	equal	unresolved		
+answer	start without body	malloc	malloc, start, without body, malloc :: alloc_unresolved.c:31 <- issue94	callstack	equal	unresolved		
+unreachable statements	reference	3
+unreachable statements	recording	3
+unreachable statements	memexec	3
+initial	equal
+calls	4	0	0	6	0
+requests	after	callstack	20
+requests	after	callstacks	22
+requests	after	callstacks, filtered	22
+requests	after	filtered	22
+requests	after	joined	22
+requests	before	callstack	19
+requests	before	callstacks	22
+requests	before	callstacks, filtered	22
+requests	before	filtered	22
+requests	before	joined	22
+requests	final	callstack	1
+requests	final	callstacks	1
+requests	final	callstacks, filtered	1
+requests	final	filtered	1
+requests	final	joined	1
+requests	initial	callstack	1
+requests	initial	callstacks	1
+requests	initial	callstacks, filtered	1
+requests	initial	filtered	1
+requests	initial	joined	1
+requests	start	callstack	2
+requests	start	callstacks	2
+requests	start	callstacks, filtered	2
+requests	start	filtered	2
+requests	start	joined	2
+requests	start without body	callstack	2
+requests	start without body	callstacks	2
+requests	start without body	callstacks, filtered	2
+requests	start without body	filtered	2
+requests	start without body	joined	2
+verdicts	recording	145	0	0	0	0	0
+verdicts	memexec	31	0	0	0	0	114
+not compared	memexec	0
+callstacks	0	50
+callstacks filtered	0	50
+trap	245	245	matched	0
+passes	memexec	47	91	91
+passes	recording	47	0	0
+pass	unreachable statements	24
+pass	statistics	22
+pass	summary	1
+below requests	0
+properties	91
+alarms	reference	0
+alarms	recording	0
+alarms	memexec	0
+statistics	reference	0.8636	1.0000	0
+statistics	recording	0.8636	1.0000	0
+statistics	memexec	0.8636	1.0000	0
+messages	recording	equal
+messages	memexec	equal
+phase	done

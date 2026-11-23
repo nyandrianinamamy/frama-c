@@ -7,7 +7,7 @@ Control: the run without memexec allocates with -eva-alloc-builtin fresh.
 Calls:
   malloc :: alloc_strength.c:30 <- main: builtin
   main: analysed, cache entry 3
-Heap calls, with full states, not stored by memexec: none.
+Heap calls, with full states, not stored by memexec: main 1.
 Hits not made, the heap calls being not stored: none.
 Created bases that summarise several blocks, matched to one block of the run without memexec:
   __malloc_w_main_l30_0, for __malloc_main_l30

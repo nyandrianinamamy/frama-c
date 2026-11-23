@@ -4,7 +4,7 @@ Calls:
   w :: heap_write.c:19 <- write_main: analysed, cache entry 6
   w :: heap_write.c:20 <- write_main: hit of cache entry 6
   write_main: analysed, cache entry 7
-Heap calls, with full states, not stored by memexec: none.
+Heap calls, with full states, not stored by memexec: write_main 1.
 Hits not made, the heap calls being not stored: none.
 w, start:
   joined: g ∈ {0}

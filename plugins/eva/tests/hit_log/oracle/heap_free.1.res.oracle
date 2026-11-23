@@ -5,7 +5,7 @@ Calls:
   f :: heap_free.c:18 <- mid :: heap_free.c:25 <- main3: analysed, cache entry 7
   mid :: heap_free.c:25 <- main3: analysed, cache entry 8
   main3: analysed, cache entry 9
-Heap calls, with full states, not stored by memexec: none.
+Heap calls, with full states, not stored by memexec: f 1, main3 1, mid 1.
 Hits not made, the heap calls being not stored: none.
 f, start:
   joined: g ∈ {{ &__malloc_main3_l24_1[0] }}
@@ -34,22 +34,6 @@ f, before heap_free.c:17 `;` (L):
           p ∈ ESCAPINGADDR
           p ∈ ESCAPINGADDR
           q ∈ ESCAPINGADDR
-          __malloc_main3_l24_1[0] ∈ {7}
-                              [1..3] ∈ UNINITIALIZED
-  f :: heap_free.c:18 <- mid :: heap_free.c:25 <- main3: g ∈ ESCAPINGADDR
-                                                         z ∈ {1}
-                                                         p ∈ ESCAPINGADDR
-                                                         p ∈ ESCAPINGADDR
-                                                         q ∈ ESCAPINGADDR
-                                                         __malloc_main3_l24_1
-                                                         [0] ∈ {7}
-                                                         [1..3] ∈
-                                                         UNINITIALIZED
-  reference, joined: g ∈ ESCAPINGADDR
-                     z ∈ {1}
-                     p ∈ ESCAPINGADDR
-                     p ∈ ESCAPINGADDR
-                     q ∈ ESCAPINGADDR
   f :: heap_free.c:18 <- mid :: heap_free.c:25 <- main3: g ∈ ESCAPINGADDR
                                                          z ∈ {1}
                                                          p ∈ ESCAPINGADDR
@@ -61,22 +45,6 @@ f, after heap_free.c:17 `return;`:
           p ∈ ESCAPINGADDR
           p ∈ ESCAPINGADDR
           q ∈ ESCAPINGADDR
-          __malloc_main3_l24_1[0] ∈ {7}
-                              [1..3] ∈ UNINITIALIZED
-  f :: heap_free.c:18 <- mid :: heap_free.c:25 <- main3: g ∈ ESCAPINGADDR
-                                                         z ∈ {1}
-                                                         p ∈ ESCAPINGADDR
-                                                         p ∈ ESCAPINGADDR
-                                                         q ∈ ESCAPINGADDR
-                                                         __malloc_main3_l24_1
-                                                         [0] ∈ {7}
-                                                         [1..3] ∈
-                                                         UNINITIALIZED
-  reference, joined: g ∈ ESCAPINGADDR
-                     z ∈ {1}
-                     p ∈ ESCAPINGADDR
-                     p ∈ ESCAPINGADDR
-                     q ∈ ESCAPINGADDR
   f :: heap_free.c:18 <- mid :: heap_free.c:25 <- main3: g ∈ ESCAPINGADDR
                                                          z ∈ {1}
                                                          p ∈ ESCAPINGADDR
@@ -100,18 +68,6 @@ mid, before heap_free.c:18 `;` (M):
           z ∈ {1}
           p ∈ ESCAPINGADDR
           q ∈ ESCAPINGADDR
-          __malloc_main3_l24_1[0] ∈ {7}
-                              [1..3] ∈ UNINITIALIZED
-  mid :: heap_free.c:25 <- main3: g ∈ ESCAPINGADDR
-                                  z ∈ {1}
-                                  p ∈ ESCAPINGADDR
-                                  q ∈ ESCAPINGADDR
-                                  __malloc_main3_l24_1[0] ∈ {7}
-                                                      [1..3] ∈ UNINITIALIZED
-  reference, joined: g ∈ ESCAPINGADDR
-                     z ∈ {1}
-                     p ∈ ESCAPINGADDR
-                     q ∈ ESCAPINGADDR
   mid :: heap_free.c:25 <- main3: g ∈ ESCAPINGADDR
                                   z ∈ {1}
                                   p ∈ ESCAPINGADDR
@@ -121,18 +77,6 @@ mid, after heap_free.c:18 `return;`:
           z ∈ {1}
           p ∈ ESCAPINGADDR
           q ∈ ESCAPINGADDR
-          __malloc_main3_l24_1[0] ∈ {7}
-                              [1..3] ∈ UNINITIALIZED
-  mid :: heap_free.c:25 <- main3: g ∈ ESCAPINGADDR
-                                  z ∈ {1}
-                                  p ∈ ESCAPINGADDR
-                                  q ∈ ESCAPINGADDR
-                                  __malloc_main3_l24_1[0] ∈ {7}
-                                                      [1..3] ∈ UNINITIALIZED
-  reference, joined: g ∈ ESCAPINGADDR
-                     z ∈ {1}
-                     p ∈ ESCAPINGADDR
-                     q ∈ ESCAPINGADDR
   mid :: heap_free.c:25 <- main3: g ∈ ESCAPINGADDR
                                   z ∈ {1}
                                   p ∈ ESCAPINGADDR
@@ -158,37 +102,7 @@ main3, after heap_free.c:26 `return;`:
          q ∈ ESCAPINGADDR
 Initial state: equal.
 Differences with the run without memexec:
-  f, after heap_free.c:17 `free((void *)p);`, joined: covers
-  f, after heap_free.c:17 `free((void *)p);`, filtered: covers
-  f, after heap_free.c:17 `free((void *)p);`, f :: heap_free.c:18 <- mid :: heap_free.c:25 <- main3: covers
-  f, before heap_free.c:17 `;` (L), joined: covers
-  f, before heap_free.c:17 `;` (L), filtered: covers
-  f, before heap_free.c:17 `;` (L), f :: heap_free.c:18 <- mid :: heap_free.c:25 <- main3: covers
-  f, after heap_free.c:17 `;` (L), joined: covers
-  f, after heap_free.c:17 `;` (L), filtered: covers
-  f, after heap_free.c:17 `;` (L), f :: heap_free.c:18 <- mid :: heap_free.c:25 <- main3: covers
-  f, before heap_free.c:17 `return;`, joined: covers
-  f, before heap_free.c:17 `return;`, filtered: covers
-  f, before heap_free.c:17 `return;`, f :: heap_free.c:18 <- mid :: heap_free.c:25 <- main3: covers
-  f, after heap_free.c:17 `return;`, joined: covers
-  f, after heap_free.c:17 `return;`, filtered: covers
-  f, after heap_free.c:17 `return;`, f :: heap_free.c:18 <- mid :: heap_free.c:25 <- main3: covers
-  mid, after heap_free.c:18 `f(p);`, joined: covers
-  mid, after heap_free.c:18 `f(p);`, filtered: covers
-  mid, after heap_free.c:18 `f(p);`, mid :: heap_free.c:25 <- main3: covers
-  mid, before heap_free.c:18 `;` (M), joined: covers
-  mid, before heap_free.c:18 `;` (M), filtered: covers
-  mid, before heap_free.c:18 `;` (M), mid :: heap_free.c:25 <- main3: covers
-  mid, after heap_free.c:18 `;` (M), joined: covers
-  mid, after heap_free.c:18 `;` (M), filtered: covers
-  mid, after heap_free.c:18 `;` (M), mid :: heap_free.c:25 <- main3: covers
-  mid, before heap_free.c:18 `return;`, joined: covers
-  mid, before heap_free.c:18 `return;`, filtered: covers
-  mid, before heap_free.c:18 `return;`, mid :: heap_free.c:25 <- main3: covers
-  mid, after heap_free.c:18 `return;`, joined: covers
-  mid, after heap_free.c:18 `return;`, filtered: covers
-  mid, after heap_free.c:18 `return;`, mid :: heap_free.c:25 <- main3: covers
-Answers: 116 equal, 30 covering, 0 more precise, 0 omitting, 0 unavailable.
+Answers: 146 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
 Callstacks listed: those of the run without memexec at each of the 56 points.
 Callstacks listed through the filter: those of the run without memexec at each of the 56 points.
 Filtered requests that reject one callstack: 0.

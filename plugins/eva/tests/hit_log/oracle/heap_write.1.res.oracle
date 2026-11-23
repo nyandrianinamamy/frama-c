@@ -4,10 +4,11 @@ Calls:
   free :: heap_write.c:30 <- release :: heap_write.c:32 <- lost_main: builtin
   release :: heap_write.c:32 <- lost_main: analysed, cache entry 6
   malloc :: heap_write.c:32 <- lost_main: builtin
-  release :: heap_write.c:32 <- lost_main: hit of cache entry 6
-  lost_main: analysed, cache entry 7
-Heap calls, with full states, not stored by memexec: none.
-Hits not made, the heap calls being not stored: none.
+  free :: heap_write.c:30 <- release :: heap_write.c:32 <- lost_main: builtin
+  release :: heap_write.c:32 <- lost_main: analysed, cache entry 7
+  lost_main: analysed, cache entry 8
+Heap calls, with full states, not stored by memexec: lost_main 1, release 2.
+Hits not made, the heap calls being not stored: release 1.
 release, start:
   joined: g ∈ {{ &__malloc_lost_main_l32_1[0] }}
           z ∈ {0}
@@ -23,15 +24,6 @@ release, before heap_write.c:30 `;` (R):
   joined: g ∈ {0}
           z ∈ {0}
           i ∈ {0; 1}
-          __malloc_lost_main_l32_1[0..3] ∈ UNINITIALIZED
-  release :: heap_write.c:32 <- lost_main: g ∈ {0}
-                                           z ∈ {0}
-                                           i ∈ {0; 1}
-                                           __malloc_lost_main_l32_1[0..3] ∈
-                                                                   UNINITIALIZED
-  reference, joined: g ∈ {0}
-                     z ∈ {0}
-                     i ∈ {0; 1}
   release :: heap_write.c:32 <- lost_main: g ∈ {0}
                                            z ∈ {0}
                                            i ∈ {0; 1}
@@ -39,15 +31,6 @@ release, after heap_write.c:30 `return;`:
   joined: g ∈ {0}
           z ∈ {0}
           i ∈ {0; 1}
-          __malloc_lost_main_l32_1[0..3] ∈ UNINITIALIZED
-  release :: heap_write.c:32 <- lost_main: g ∈ {0}
-                                           z ∈ {0}
-                                           i ∈ {0; 1}
-                                           __malloc_lost_main_l32_1[0..3] ∈
-                                                                   UNINITIALIZED
-  reference, joined: g ∈ {0}
-                     z ∈ {0}
-                     i ∈ {0; 1}
   release :: heap_write.c:32 <- lost_main: g ∈ {0}
                                            z ∈ {0}
                                            i ∈ {0; 1}
@@ -60,14 +43,6 @@ lost_main, before heap_write.c:32 `;` (N):
   joined: g ∈ {0}
           z ∈ {0}
           i ∈ {0; 1}
-          __malloc_lost_main_l32_1[0..3] ∈ UNINITIALIZED
-  lost_main: g ∈ {0}
-             z ∈ {0}
-             i ∈ {0; 1}
-             __malloc_lost_main_l32_1[0..3] ∈ UNINITIALIZED
-  reference, joined: g ∈ {0}
-                     z ∈ {0}
-                     i ∈ {0; 1}
   lost_main: g ∈ {0}
              z ∈ {0}
              i ∈ {0; 1}
@@ -75,81 +50,12 @@ lost_main, after heap_write.c:33 `return;`:
   joined: g ∈ {0}
           z ∈ {0}
           i ∈ {2}
-          __malloc_lost_main_l32_1[0..3] ∈ UNINITIALIZED
   lost_main: g ∈ {0}
              z ∈ {0}
              i ∈ {2}
-             __malloc_lost_main_l32_1[0..3] ∈ UNINITIALIZED
-  reference, joined: g ∈ {0}
-                     z ∈ {0}
-                     i ∈ {2}
-  lost_main: g ∈ {0}
-             z ∈ {0}
-             i ∈ {2}
-Hits against the analysed call of their cache entry:
 Initial state: equal.
 Differences with the run without memexec:
-  final state, joined: covers, as with memexec
-  final state, filtered: covers, as with memexec
-  final state, lost_main: covers, as with memexec
-  release, after heap_write.c:30 `free((void *)g);`, joined: covers
-  release, after heap_write.c:30 `free((void *)g);`, filtered: covers
-  release, after heap_write.c:30 `free((void *)g);`, release :: heap_write.c:32 <- lost_main: covers
-  release, before heap_write.c:30 `g = (char *)0;`, joined: covers
-  release, before heap_write.c:30 `g = (char *)0;`, filtered: covers
-  release, before heap_write.c:30 `g = (char *)0;`, release :: heap_write.c:32 <- lost_main: covers
-  release, after heap_write.c:30 `g = (char *)0;`, joined: covers
-  release, after heap_write.c:30 `g = (char *)0;`, filtered: covers
-  release, after heap_write.c:30 `g = (char *)0;`, release :: heap_write.c:32 <- lost_main: covers
-  release, before heap_write.c:30 `;` (R), joined: covers
-  release, before heap_write.c:30 `;` (R), filtered: covers
-  release, before heap_write.c:30 `;` (R), release :: heap_write.c:32 <- lost_main: covers
-  release, after heap_write.c:30 `;` (R), joined: covers
-  release, after heap_write.c:30 `;` (R), filtered: covers
-  release, after heap_write.c:30 `;` (R), release :: heap_write.c:32 <- lost_main: covers
-  release, before heap_write.c:30 `return;`, joined: covers
-  release, before heap_write.c:30 `return;`, filtered: covers
-  release, before heap_write.c:30 `return;`, release :: heap_write.c:32 <- lost_main: covers
-  release, after heap_write.c:30 `return;`, joined: covers
-  release, after heap_write.c:30 `return;`, filtered: covers
-  release, after heap_write.c:30 `return;`, release :: heap_write.c:32 <- lost_main: covers
-  lost_main, after heap_write.c:32 `loop`, joined: covers, as with memexec
-  lost_main, after heap_write.c:32 `loop`, filtered: covers, as with memexec
-  lost_main, after heap_write.c:32 `loop`, lost_main: covers, as with memexec
-  lost_main, before heap_write.c:32 `if (i < 2)`, joined: covers, as with memexec
-  lost_main, before heap_write.c:32 `if (i < 2)`, filtered: covers, as with memexec
-  lost_main, before heap_write.c:32 `if (i < 2)`, lost_main: covers, as with memexec
-  lost_main, after heap_write.c:32 `if (i < 2)`, joined: covers, as with memexec
-  lost_main, after heap_write.c:32 `if (i < 2)`, filtered: covers, as with memexec
-  lost_main, after heap_write.c:32 `if (i < 2)`, lost_main: covers, as with memexec
-  lost_main, before heap_write.c:32 `break;`, joined: covers, as with memexec
-  lost_main, before heap_write.c:32 `break;`, filtered: covers, as with memexec
-  lost_main, before heap_write.c:32 `break;`, lost_main: covers, as with memexec
-  lost_main, after heap_write.c:32 `break;`, joined: covers, as with memexec
-  lost_main, after heap_write.c:32 `break;`, filtered: covers, as with memexec
-  lost_main, after heap_write.c:32 `break;`, lost_main: covers, as with memexec
-  lost_main, after heap_write.c:32 `release();`, joined: covers, as with memexec
-  lost_main, after heap_write.c:32 `release();`, filtered: covers, as with memexec
-  lost_main, after heap_write.c:32 `release();`, lost_main: covers, as with memexec
-  lost_main, before heap_write.c:32 `;` (N), joined: covers, as with memexec
-  lost_main, before heap_write.c:32 `;` (N), filtered: covers, as with memexec
-  lost_main, before heap_write.c:32 `;` (N), lost_main: covers, as with memexec
-  lost_main, after heap_write.c:32 `;` (N), joined: covers, as with memexec
-  lost_main, after heap_write.c:32 `;` (N), filtered: covers, as with memexec
-  lost_main, after heap_write.c:32 `;` (N), lost_main: covers, as with memexec
-  lost_main, before heap_write.c:32 `i ++;`, joined: covers, as with memexec
-  lost_main, before heap_write.c:32 `i ++;`, filtered: covers, as with memexec
-  lost_main, before heap_write.c:32 `i ++;`, lost_main: covers, as with memexec
-  lost_main, after heap_write.c:32 `i ++;`, joined: covers, as with memexec
-  lost_main, after heap_write.c:32 `i ++;`, filtered: covers, as with memexec
-  lost_main, after heap_write.c:32 `i ++;`, lost_main: covers, as with memexec
-  lost_main, before heap_write.c:33 `return;`, joined: covers, as with memexec
-  lost_main, before heap_write.c:33 `return;`, filtered: covers, as with memexec
-  lost_main, before heap_write.c:33 `return;`, lost_main: covers, as with memexec
-  lost_main, after heap_write.c:33 `return;`, joined: covers, as with memexec
-  lost_main, after heap_write.c:33 `return;`, filtered: covers, as with memexec
-  lost_main, after heap_write.c:33 `return;`, lost_main: covers, as with memexec
-Answers: 104 equal, 60 covering, 0 more precise, 0 omitting, 0 unavailable.
+Answers: 164 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
 Callstacks listed: those of the run without memexec at each of the 66 points.
 Callstacks listed through the filter: those of the run without memexec at each of the 66 points.
 Filtered requests that reject one callstack: 0.
