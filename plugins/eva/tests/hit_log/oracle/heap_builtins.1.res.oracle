@@ -1,0 +1,137 @@
+[kernel] Parsing heap_builtins.c (with preprocessing)
+Calls:
+  malloc :: heap_builtins.c:27 <- realloc_main: builtin
+  realloc :: heap_builtins.c:25 <- rz :: heap_builtins.c:28 <- realloc_main: builtin
+  rz :: heap_builtins.c:28 <- realloc_main: analysed, cache entry 5
+  realloc_main: analysed, cache entry 6
+Heap calls, with full states, not stored by memexec: none.
+Hits not made, the heap calls being not stored: none.
+rz, start:
+  joined: g ∈ {{ &__malloc_realloc_main_l27_1[0] }}
+          z ∈ {0}
+          n ∈ {4}
+          __malloc_realloc_main_l27_1[0] ∈ {1}
+                                     [1] ∈ UNINITIALIZED
+  rz :: heap_builtins.c:28 <- realloc_main: g ∈
+                                             {{ &__malloc_realloc_main_l27_1[0] }}
+                                            z ∈ {0}
+                                            n ∈ {4}
+                                            __malloc_realloc_main_l27_1
+                                            [0] ∈ {1}
+                                            [1] ∈ UNINITIALIZED
+rz, before heap_builtins.c:25 `;` (R):
+  joined: g ∈ {{ &__realloc_rz_l25_1[0] }}
+          z ∈ {4}
+          n ∈ {4}
+          __malloc_realloc_main_l27_1[0] ∈ {1}
+                                     [1] ∈ UNINITIALIZED
+          __realloc_rz_l25_1[0] ∈ {1}
+                            [1..3] ∈ UNINITIALIZED
+  rz :: heap_builtins.c:28 <- realloc_main: g ∈ {{ &__realloc_rz_l25_1[0] }}
+                                            z ∈ {4}
+                                            n ∈ {4}
+                                            __malloc_realloc_main_l27_1
+                                            [0] ∈ {1}
+                                            [1] ∈ UNINITIALIZED
+                                            __realloc_rz_l25_1[0] ∈ {1}
+                                                              [1..3] ∈
+                                                              UNINITIALIZED
+  reference, joined: g ∈ {{ &__realloc_rz_l25_1[0] }}
+                     z ∈ {4}
+                     n ∈ {4}
+                     __realloc_rz_l25_1[0] ∈ {1}
+                                       [1..3] ∈ UNINITIALIZED
+  rz :: heap_builtins.c:28 <- realloc_main: g ∈ {{ &__realloc_rz_l25_1[0] }}
+                                            z ∈ {4}
+                                            n ∈ {4}
+                                            __realloc_rz_l25_1[0] ∈ {1}
+                                                              [1..3] ∈
+                                                              UNINITIALIZED
+rz, after heap_builtins.c:25 `return;`:
+  joined: g ∈ {{ &__realloc_rz_l25_1[0] }}
+          z ∈ {0}
+          n ∈ {4}
+          __malloc_realloc_main_l27_1[0] ∈ {1}
+                                     [1] ∈ UNINITIALIZED
+          __realloc_rz_l25_1[0] ∈ {1}
+                            [1..3] ∈ UNINITIALIZED
+  rz :: heap_builtins.c:28 <- realloc_main: g ∈ {{ &__realloc_rz_l25_1[0] }}
+                                            z ∈ {0}
+                                            n ∈ {4}
+                                            __malloc_realloc_main_l27_1
+                                            [0] ∈ {1}
+                                            [1] ∈ UNINITIALIZED
+                                            __realloc_rz_l25_1[0] ∈ {1}
+                                                              [1..3] ∈
+                                                              UNINITIALIZED
+  reference, joined: g ∈ {{ &__realloc_rz_l25_1[0] }}
+                     z ∈ {0}
+                     n ∈ {4}
+                     __realloc_rz_l25_1[0] ∈ {1}
+                                       [1..3] ∈ UNINITIALIZED
+  rz :: heap_builtins.c:28 <- realloc_main: g ∈ {{ &__realloc_rz_l25_1[0] }}
+                                            z ∈ {0}
+                                            n ∈ {4}
+                                            __realloc_rz_l25_1[0] ∈ {1}
+                                                              [1..3] ∈
+                                                              UNINITIALIZED
+realloc_main, start:
+  joined: g ∈ {0}
+          z ∈ {0}
+  realloc_main: g ∈ {0}
+                z ∈ {0}
+realloc_main, before heap_builtins.c:28 `;` (E):
+  joined: g ∈ {{ &__realloc_rz_l25_1[0] }}
+          z ∈ {0}
+          __realloc_rz_l25_1[0] ∈ {1}
+                            [1..3] ∈ UNINITIALIZED
+  realloc_main: g ∈ {{ &__realloc_rz_l25_1[0] }}
+                z ∈ {0}
+                __realloc_rz_l25_1[0] ∈ {1}
+                                  [1..3] ∈ UNINITIALIZED
+realloc_main, after heap_builtins.c:29 `return;`:
+  joined: g ∈ {{ &__realloc_rz_l25_1[0] }}
+          z ∈ {0}
+          __realloc_rz_l25_1[0] ∈ {1}
+                            [1..3] ∈ UNINITIALIZED
+  realloc_main: g ∈ {{ &__realloc_rz_l25_1[0] }}
+                z ∈ {0}
+                __realloc_rz_l25_1[0] ∈ {1}
+                                  [1..3] ∈ UNINITIALIZED
+Initial state: equal.
+Differences with the run without memexec:
+  rz, after heap_builtins.c:25 `g = (char *)realloc((void *)g,(size_t)n);`, joined: covers
+  rz, after heap_builtins.c:25 `g = (char *)realloc((void *)g,(size_t)n);`, filtered: covers
+  rz, after heap_builtins.c:25 `g = (char *)realloc((void *)g,(size_t)n);`, rz :: heap_builtins.c:28 <- realloc_main: covers
+  rz, before heap_builtins.c:25 `;` (R), joined: covers
+  rz, before heap_builtins.c:25 `;` (R), filtered: covers
+  rz, before heap_builtins.c:25 `;` (R), rz :: heap_builtins.c:28 <- realloc_main: covers
+  rz, after heap_builtins.c:25 `;` (R), joined: covers
+  rz, after heap_builtins.c:25 `;` (R), filtered: covers
+  rz, after heap_builtins.c:25 `;` (R), rz :: heap_builtins.c:28 <- realloc_main: covers
+  rz, before heap_builtins.c:25 `z = 0;`, joined: covers
+  rz, before heap_builtins.c:25 `z = 0;`, filtered: covers
+  rz, before heap_builtins.c:25 `z = 0;`, rz :: heap_builtins.c:28 <- realloc_main: covers
+  rz, after heap_builtins.c:25 `z = 0;`, joined: covers
+  rz, after heap_builtins.c:25 `z = 0;`, filtered: covers
+  rz, after heap_builtins.c:25 `z = 0;`, rz :: heap_builtins.c:28 <- realloc_main: covers
+  rz, before heap_builtins.c:25 `return;`, joined: covers
+  rz, before heap_builtins.c:25 `return;`, filtered: covers
+  rz, before heap_builtins.c:25 `return;`, rz :: heap_builtins.c:28 <- realloc_main: covers
+  rz, after heap_builtins.c:25 `return;`, joined: covers
+  rz, after heap_builtins.c:25 `return;`, filtered: covers
+  rz, after heap_builtins.c:25 `return;`, rz :: heap_builtins.c:28 <- realloc_main: covers
+Answers: 294 equal, 21 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 144 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 144 points.
+Filtered requests that reject one callstack: 0.
+Requests made: 603; reported by the trap: 603, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 84 requests, 55 reads of the legacy store in them, 57 reads outside any request.
+  with -eva-hit-log: 84 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 68 requests
+    statistics: 13 requests
+    summary: 3 requests
+Statuses of the properties: those of the run without memexec, for 169 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 0.8462, function coverage 0.1667, 0 alarms, those of the run without memexec.

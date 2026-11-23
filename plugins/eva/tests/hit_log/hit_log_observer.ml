@@ -18,6 +18,11 @@
    It prints:
    - the calls of the analysis with -eva-hit-log, with the cache entry they
      compute or use;
+   - when this analysis calls a builtin that allocates or frees a block, or
+     Eva counts a heap call, the number of heap calls of each function and
+     the number of hits that memexec does not make because it does not
+     store them, as Eva counts them in its statistics (see
+     print_heap_calls);
    - the callstacks that reach the start of a function in the current project
      and are not those of a call of the analysis: the calls below a hit,
      whose body did not run;
@@ -101,7 +106,7 @@ let suite = Option.is_some summary
 
 (* The version of the records of the summary, which dev/hit-log-suite.py
    checks before it reads them. *)
-let format = "2"
+let format = "3"
 
 (* Writes one record of the summary, flushed at once, so that the record of
    a phase is kept if the run is stopped during that phase. *)
@@ -418,6 +423,71 @@ let print_calls () =
        | Other s -> Format.printf "@ %s: %s" callstack s)
     (List.rev !calls);
   Format.printf "@]@."
+
+(* The statistics that Eva keeps per function with -eva-hit-log, in this
+   order: the calls analysed by their body that are heap calls, whose cache
+   entries hold full states and that memexec does not store; the calls
+   analysed by their body that memexec would have answered from the cache
+   entry of a heap call, had it stored them; and among the latter, those
+   made during the analysis of another one, which a hit would not have
+   analysed. They are found by name: a statistic that Eva does not keep
+   reads 0. Statistics are kept with each project, and are read in the
+   project with -eva-hit-log once its analysis has ended. *)
+let heap_statistics =
+  List.map
+    (fun name -> Statistics.register_function_stat name Statistics.Int)
+    [ "hit-log-heap-calls"; "hit-log-lost-hits"; "hit-log-lost-hits-below" ]
+
+(* The functions of the builtins that allocate or free a block. *)
+let allocation_builtins =
+  [ "malloc"; "calloc"; "realloc"; "reallocarray"; "alloca"; "free";
+    "__fc_vla_alloc"; "__fc_vla_free" ]
+
+(* Prints the counts of [heap_statistics] per function, when one is not
+   zero or when the analysis with -eva-hit-log called one of
+   [allocation_builtins]. Records their totals in the summary. *)
+let print_heap_calls () =
+  let counts stat =
+    Globals.Functions.fold
+      (fun kf acc ->
+         match Statistics.get stat kf with
+         | 0 -> acc
+         | n -> (Kernel_function.get_name kf, n) :: acc)
+      []
+    |> List.sort compare
+  in
+  let heap, lost, lost_below =
+    match List.map counts heap_statistics with
+    | [ heap; lost; lost_below ] -> heap, lost, lost_below
+    | _ -> assert false
+  in
+  let allocates =
+    List.exists
+      (fun (_, kf, kind) ->
+         kind = Other "builtin"
+         && List.mem (Kernel_function.get_name kf) allocation_builtins)
+      !calls
+  in
+  let pp_counts fmt = function
+    | [] -> Format.pp_print_string fmt "none"
+    | counts ->
+      Format.pp_print_list
+        ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
+        (fun fmt (name, n) -> Format.fprintf fmt "%s %d" name n)
+        fmt counts
+  in
+  if allocates || heap <> [] || lost <> [] || lost_below <> [] then begin
+    Format.printf "@[<hov 2>Heap calls, with full states, not stored by \
+                   memexec:@ %a.@]@." pp_counts heap;
+    Format.printf "@[<hov 2>Hits not made, the heap calls being not \
+                   stored:@ %a.@]@." pp_counts lost;
+    if lost_below <> [] then
+      Format.printf "@[<hov 2>Hits not made during the analysis of a call \
+                     that would have been a hit:@ %a.@]@." pp_counts lost_below
+  end;
+  let total counts = List.fold_left (fun acc (_, n) -> acc + n) 0 counts in
+  record ("heap calls" ::
+          List.map (fun l -> string_of_int (total l)) [ heap; lost; lost_below ])
 
 (* The callstacks that reach the start of a function and are not those of a
    call of the analysis. [starts] gives the callstacks of each start. Returns
@@ -2237,6 +2307,7 @@ let observe () =
   analysing := None;
   observing_calls := false;
   print_calls ();
+  print_heap_calls ();
   if not (Analysis.is_computed ()) then begin
     record [ "no result" ];
     Format.printf "The analysis with -eva-hit-log has no result: no request \

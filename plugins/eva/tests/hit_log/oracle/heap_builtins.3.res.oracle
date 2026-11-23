@@ -1,0 +1,73 @@
+[kernel] Parsing heap_builtins.c (with preprocessing)
+Calls:
+  __fc_vla_alloc :: heap_builtins.c:36 <- vz :: heap_builtins.c:37 <- vla_main: builtin
+  __fc_vla_free :: heap_builtins.c:36 <- vz :: heap_builtins.c:37 <- vla_main: builtin
+  vz :: heap_builtins.c:37 <- vla_main: analysed, cache entry 5
+  vla_main: analysed, cache entry 6
+Heap calls, with full states, not stored by memexec: none.
+Hits not made, the heap calls being not stored: none.
+vz, start:
+  joined: g ∈ {0}
+          z ∈ {0}
+          n ∈ {4}
+  vz :: heap_builtins.c:37 <- vla_main: g ∈ {0}
+                                        z ∈ {0}
+                                        n ∈ {4}
+vz, before heap_builtins.c:36 `;` (V):
+  joined: g ∈ {0}
+          z ∈ {1}
+          n ∈ {4}
+          a ∈ {{ &__malloc_vz_l36_1[0] }}
+          __lengthof_a ∈ {4}
+          __malloc_vz_l36_1[0] ∈ {1}
+                           [1..3] ∈ UNINITIALIZED
+  vz :: heap_builtins.c:37 <- vla_main: g ∈ {0}
+                                        z ∈ {1}
+                                        n ∈ {4}
+                                        a ∈ {{ &__malloc_vz_l36_1[0] }}
+                                        __lengthof_a ∈ {4}
+                                        __malloc_vz_l36_1[0] ∈ {1}
+                                                         [1..3] ∈
+                                                         UNINITIALIZED
+vz, after heap_builtins.c:36 `return;`:
+  joined: g ∈ {0}
+          z ∈ {1}
+          n ∈ {4}
+          a ∈ ESCAPINGADDR
+          __lengthof_a ∈ {4}
+  vz :: heap_builtins.c:37 <- vla_main: g ∈ {0}
+                                        z ∈ {1}
+                                        n ∈ {4}
+                                        a ∈ ESCAPINGADDR
+                                        __lengthof_a ∈ {4}
+vla_main, start:
+  joined: g ∈ {0}
+          z ∈ {0}
+  vla_main: g ∈ {0}
+            z ∈ {0}
+vla_main, before heap_builtins.c:37 `;` (W):
+  joined: g ∈ {0}
+          z ∈ {1}
+  vla_main: g ∈ {0}
+            z ∈ {1}
+vla_main, after heap_builtins.c:37 `return;`:
+  joined: g ∈ {0}
+          z ∈ {1}
+  vla_main: g ∈ {0}
+            z ∈ {1}
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 316 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 144 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 144 points.
+Filtered requests that reject one callstack: 0.
+Requests made: 604; reported by the trap: 604, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 83 requests, 52 reads of the legacy store in them, 56 reads outside any request.
+  with -eva-hit-log: 83 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 68 requests
+    statistics: 12 requests
+    summary: 3 requests
+Statuses of the properties: those of the run without memexec, for 169 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.1667, 0 alarms, those of the run without memexec.

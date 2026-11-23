@@ -1,7 +1,8 @@
-format	2
+format	3
 phase	reference
 phase	memexec
 phase	recording
+heap calls	0	0	0
 phase	requests
 below rebuilt	crossing	f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main
 below rebuilt	crossing	leaf :: dead_below_crossing.c:30 <- f :: dead_below_crossing.c:29 <- f :: dead_below_crossing.c:36 <- main

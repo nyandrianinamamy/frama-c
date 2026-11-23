@@ -5,6 +5,8 @@ Calls:
   calloc :: calloc.c:16 <- alloc :: calloc.c:25 <- alloc_once: builtin
   alloc :: calloc.c:25 <- alloc_once: analysed, cache entry 8
   alloc_once: analysed, cache entry 9
+Heap calls, with full states, not stored by memexec: none.
+Hits not made, the heap calls being not stored: none.
 alloc, start:
   joined: p ∈ {{ NULL ; &__calloc_alloc_l16_3 }}
           q ∈ {{ NULL ; &__calloc_alloc_l16_3 }}

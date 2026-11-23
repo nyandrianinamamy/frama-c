@@ -1,0 +1,139 @@
+[kernel] Parsing heap_builtins.c (with preprocessing)
+Calls:
+  malloc :: heap_builtins.c:45 <- free_main: builtin
+  free :: heap_builtins.c:41 <- f1 :: heap_builtins.c:42 <- f2 :: heap_builtins.c:43 <- top :: heap_builtins.c:46 <- free_main: builtin
+  f1 :: heap_builtins.c:42 <- f2 :: heap_builtins.c:43 <- top :: heap_builtins.c:46 <- free_main: analysed, cache entry 9
+  f2 :: heap_builtins.c:43 <- top :: heap_builtins.c:46 <- free_main: analysed, cache entry 10
+  top :: heap_builtins.c:46 <- free_main: analysed, cache entry 11
+  free_main: analysed, cache entry 12
+Heap calls, with full states, not stored by memexec: none.
+Hits not made, the heap calls being not stored: none.
+top, start:
+  joined: g ∈ {{ &__malloc_free_main_l45_1[0] }}
+          z ∈ {0}
+          p ∈ {{ &__malloc_free_main_l45_1[0] }}
+          q ∈ {{ &__malloc_free_main_l45_1[0] }}
+          __malloc_free_main_l45_1[0] ∈ {7}
+                                  [1..3] ∈ UNINITIALIZED
+  top :: heap_builtins.c:46 <- free_main: g ∈
+                                           {{ &__malloc_free_main_l45_1[0] }}
+                                          z ∈ {0}
+                                          p ∈
+                                           {{ &__malloc_free_main_l45_1[0] }}
+                                          q ∈
+                                           {{ &__malloc_free_main_l45_1[0] }}
+                                          __malloc_free_main_l45_1[0] ∈ {7}
+                                                                  [1..3] ∈
+                                                                  UNINITIALIZED
+top, before heap_builtins.c:43 `;` (T):
+  joined: g ∈ ESCAPINGADDR
+          z ∈ {1}
+          p ∈ ESCAPINGADDR
+          q ∈ ESCAPINGADDR
+          __malloc_free_main_l45_1[0] ∈ {7}
+                                  [1..3] ∈ UNINITIALIZED
+  top :: heap_builtins.c:46 <- free_main: g ∈ ESCAPINGADDR
+                                          z ∈ {1}
+                                          p ∈ ESCAPINGADDR
+                                          q ∈ ESCAPINGADDR
+                                          __malloc_free_main_l45_1[0] ∈ {7}
+                                                                  [1..3] ∈
+                                                                  UNINITIALIZED
+  reference, joined: g ∈ ESCAPINGADDR
+                     z ∈ {1}
+                     p ∈ ESCAPINGADDR
+                     q ∈ ESCAPINGADDR
+  top :: heap_builtins.c:46 <- free_main: g ∈ ESCAPINGADDR
+                                          z ∈ {1}
+                                          p ∈ ESCAPINGADDR
+                                          q ∈ ESCAPINGADDR
+top, after heap_builtins.c:43 `return;`:
+  joined: g ∈ ESCAPINGADDR
+          z ∈ {1}
+          p ∈ ESCAPINGADDR
+          q ∈ ESCAPINGADDR
+          __malloc_free_main_l45_1[0] ∈ {7}
+                                  [1..3] ∈ UNINITIALIZED
+  top :: heap_builtins.c:46 <- free_main: g ∈ ESCAPINGADDR
+                                          z ∈ {1}
+                                          p ∈ ESCAPINGADDR
+                                          q ∈ ESCAPINGADDR
+                                          __malloc_free_main_l45_1[0] ∈ {7}
+                                                                  [1..3] ∈
+                                                                  UNINITIALIZED
+  reference, joined: g ∈ ESCAPINGADDR
+                     z ∈ {1}
+                     p ∈ ESCAPINGADDR
+                     q ∈ ESCAPINGADDR
+  top :: heap_builtins.c:46 <- free_main: g ∈ ESCAPINGADDR
+                                          z ∈ {1}
+                                          p ∈ ESCAPINGADDR
+                                          q ∈ ESCAPINGADDR
+free_main, start:
+  joined: g ∈ {0}
+          z ∈ {0}
+  free_main: g ∈ {0}
+             z ∈ {0}
+free_main, before heap_builtins.c:46 `;` (F):
+  joined: g ∈ ESCAPINGADDR
+          z ∈ {1}
+          q ∈ ESCAPINGADDR
+  free_main: g ∈ ESCAPINGADDR
+             z ∈ {1}
+             q ∈ ESCAPINGADDR
+free_main, after heap_builtins.c:47 `return;`:
+  joined: g ∈ ESCAPINGADDR
+          z ∈ {1}
+          q ∈ ESCAPINGADDR
+  free_main: g ∈ ESCAPINGADDR
+             z ∈ {1}
+             q ∈ ESCAPINGADDR
+Initial state: equal.
+Differences with the run without memexec:
+  f1, after heap_builtins.c:41 `free((void *)p);`, joined: covers
+  f1, after heap_builtins.c:41 `free((void *)p);`, filtered: covers
+  f1, after heap_builtins.c:41 `free((void *)p);`, f1 :: heap_builtins.c:42 <- f2 :: heap_builtins.c:43 <- top :: heap_builtins.c:46 <- free_main: covers
+  f1, before heap_builtins.c:41 `return;`, joined: covers
+  f1, before heap_builtins.c:41 `return;`, filtered: covers
+  f1, before heap_builtins.c:41 `return;`, f1 :: heap_builtins.c:42 <- f2 :: heap_builtins.c:43 <- top :: heap_builtins.c:46 <- free_main: covers
+  f1, after heap_builtins.c:41 `return;`, joined: covers
+  f1, after heap_builtins.c:41 `return;`, filtered: covers
+  f1, after heap_builtins.c:41 `return;`, f1 :: heap_builtins.c:42 <- f2 :: heap_builtins.c:43 <- top :: heap_builtins.c:46 <- free_main: covers
+  f2, after heap_builtins.c:42 `f1(p);`, joined: covers
+  f2, after heap_builtins.c:42 `f1(p);`, filtered: covers
+  f2, after heap_builtins.c:42 `f1(p);`, f2 :: heap_builtins.c:43 <- top :: heap_builtins.c:46 <- free_main: covers
+  f2, before heap_builtins.c:42 `return;`, joined: covers
+  f2, before heap_builtins.c:42 `return;`, filtered: covers
+  f2, before heap_builtins.c:42 `return;`, f2 :: heap_builtins.c:43 <- top :: heap_builtins.c:46 <- free_main: covers
+  f2, after heap_builtins.c:42 `return;`, joined: covers
+  f2, after heap_builtins.c:42 `return;`, filtered: covers
+  f2, after heap_builtins.c:42 `return;`, f2 :: heap_builtins.c:43 <- top :: heap_builtins.c:46 <- free_main: covers
+  top, after heap_builtins.c:43 `f2(p);`, joined: covers
+  top, after heap_builtins.c:43 `f2(p);`, filtered: covers
+  top, after heap_builtins.c:43 `f2(p);`, top :: heap_builtins.c:46 <- free_main: covers
+  top, before heap_builtins.c:43 `;` (T), joined: covers
+  top, before heap_builtins.c:43 `;` (T), filtered: covers
+  top, before heap_builtins.c:43 `;` (T), top :: heap_builtins.c:46 <- free_main: covers
+  top, after heap_builtins.c:43 `;` (T), joined: covers
+  top, after heap_builtins.c:43 `;` (T), filtered: covers
+  top, after heap_builtins.c:43 `;` (T), top :: heap_builtins.c:46 <- free_main: covers
+  top, before heap_builtins.c:43 `return;`, joined: covers
+  top, before heap_builtins.c:43 `return;`, filtered: covers
+  top, before heap_builtins.c:43 `return;`, top :: heap_builtins.c:46 <- free_main: covers
+  top, after heap_builtins.c:43 `return;`, joined: covers
+  top, after heap_builtins.c:43 `return;`, filtered: covers
+  top, after heap_builtins.c:43 `return;`, top :: heap_builtins.c:46 <- free_main: covers
+Answers: 292 equal, 33 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 144 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 144 points.
+Filtered requests that reject one callstack: 0.
+Requests made: 613; reported by the trap: 613, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 90 requests, 73 reads of the legacy store in them, 77 reads outside any request.
+  with -eva-hit-log: 90 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 70 requests
+    statistics: 17 requests
+    summary: 3 requests
+Statuses of the properties: those of the run without memexec, for 169 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 0.8824, function coverage 0.3333, 0 alarms, those of the run without memexec.

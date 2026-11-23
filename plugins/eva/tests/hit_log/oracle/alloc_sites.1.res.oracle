@@ -7,6 +7,8 @@ Calls:
   malloc :: alloc_sites.c:35 <- f :: alloc_sites.c:42 <- hidden: builtin
   f :: alloc_sites.c:42 <- hidden: analysed, cache entry 11
   hidden: analysed, cache entry 12
+Heap calls, with full states, not stored by memexec: none.
+Hits not made, the heap calls being not stored: none.
 Initial state: equal.
 Differences with the run without memexec:
   f, before alloc_sites.c:33 `if (n)`, joined: unavailable

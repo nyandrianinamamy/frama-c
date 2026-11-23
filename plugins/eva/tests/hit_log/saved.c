@@ -13,8 +13,11 @@
    their requests are answered by the rule, as in the original project or in
    a new analysis. The second call of parent is a hit, and the call of leaf
    is below it: the calls stored in the cache entries are kept as well.
-   saved.ml makes the requests. */
+   heap allocates and frees a block: it is a heap call, and so is main, and
+   their cache entries hold full states, kept as well. saved.ml makes the
+   requests. */
 
+#include <stdlib.h>
 #include "__fc_builtin.h"
 
 int c, g, h;
@@ -27,6 +30,8 @@ void leaf(int x) { Q: k = x; }
 
 void parent(void) { leaf(3); }
 
+void heap(void) { char *p = malloc(4); if (p) { p[0] = 1; free(p); } H: ; }
+
 int main(void) {
   c = Frama_C_interval(0, 1);
   g = 4; h = 7; f();
@@ -35,5 +40,6 @@ int main(void) {
   g = 9; h = 5; f();
   h = 1; k = 0; parent();
   h = 2; k = 0; parent();
+  heap();
   return 0;
 }

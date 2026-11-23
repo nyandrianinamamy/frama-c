@@ -1,30 +1,30 @@
 [kernel] Parsing saved.c (with preprocessing)
-original: 163 answers; requests reported: 226; reads of the legacy store: 0.
+original: 193 answers; requests reported: 271; reads of the legacy store: 0.
   f, before P, joined:
     c ∈ {0; 1}
     g ∈ {0; 4; 9}
     h ∈ {5; 7; 8}
     k ∈ {0}
     __retres ∈ UNINITIALIZED
-  f, before P, f :: saved.c:32 <- main:
+  f, before P, f :: saved.c:37 <- main:
     c ∈ {0; 1}
     g ∈ {0; 4}
     h ∈ {7}
     k ∈ {0}
     __retres ∈ UNINITIALIZED
-  f, before P, f :: saved.c:33 <- main:
+  f, before P, f :: saved.c:38 <- main:
     c ∈ {0; 1}
     g ∈ {0; 4}
     h ∈ {8}
     k ∈ {0}
     __retres ∈ UNINITIALIZED
-  f, before P, f :: saved.c:34 <- main:
+  f, before P, f :: saved.c:39 <- main:
     c ∈ {0; 1}
     g ∈ {0; 9}
     h ∈ {8}
     k ∈ {0}
     __retres ∈ UNINITIALIZED
-  f, before P, f :: saved.c:35 <- main:
+  f, before P, f :: saved.c:40 <- main:
     c ∈ {0; 1}
     g ∈ {0; 9}
     h ∈ {5}
@@ -37,21 +37,21 @@ original: 163 answers; requests reported: 226; reads of the legacy store: 0.
     k ∈ {0}
     x ∈ {3}
     __retres ∈ UNINITIALIZED
-  leaf, before Q, leaf :: saved.c:28 <- parent :: saved.c:36 <- main:
+  leaf, before Q, leaf :: saved.c:31 <- parent :: saved.c:41 <- main:
     c ∈ {0; 1}
     g ∈ {1}
     h ∈ {1}
     k ∈ {0}
     x ∈ {3}
     __retres ∈ UNINITIALIZED
-  leaf, before Q, leaf :: saved.c:28 <- parent :: saved.c:37 <- main:
+  leaf, before Q, leaf :: saved.c:31 <- parent :: saved.c:42 <- main:
     c ∈ {0; 1}
     g ∈ {1}
     h ∈ {2}
     k ∈ {0}
     x ∈ {3}
     __retres ∈ UNINITIALIZED
-copy: 163 answers; requests reported: 226; reads of the legacy store: 0.
+copy: 193 answers; requests reported: 271; reads of the legacy store: 0.
 Answers of copy equal those of original.
-loaded: 163 answers; requests reported: 226; reads of the legacy store: 0.
+loaded: 193 answers; requests reported: 271; reads of the legacy store: 0.
 Answers of loaded equal those of original.

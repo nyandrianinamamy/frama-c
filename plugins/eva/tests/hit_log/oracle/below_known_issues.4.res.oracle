@@ -8,6 +8,8 @@ Calls:
   p94_1 :: below_known_issues.c:88 <- issue94_1: hit of cache entry 10
   Frama_C_show_each_equal :: below_known_issues.c:89 <- issue94_1: builtin
   issue94_1: analysed, cache entry 11
+Heap calls, with full states, not stored by memexec: none.
+Hits not made, the heap calls being not stored: none.
 equal_live, start:
   joined: a ∈ {0}
           g ∈ {0}

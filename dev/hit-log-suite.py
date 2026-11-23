@@ -995,7 +995,7 @@ def stages_of(result):
 # The version of the records that the observer writes, in its record
 # "format". A summary without this record is of an earlier version of the
 # observer.
-FORMAT = "2"
+FORMAT = "3"
 
 INT = "a number"
 DECIMAL = "a decimal number"
@@ -1029,6 +1029,7 @@ SHAPES = {
     "unreachable": [TWO_RUNS, {"only in this run", "only in the reference"}, TEXT, TEXT],
     "initial": [set(VERDICTS)],
     "calls": [INT] * 5,
+    "heap calls": [INT] * 3,
     "requests": [TEXT, TEXT, INT],
     "verdicts": [TWO_RUNS] + [INT] * len(VERDICTS),
     "not compared": [{"memexec"}, INT],
@@ -1090,9 +1091,11 @@ REQUIRED = (
     + [("alarms", run) for run in sorted(THREE_RUNS)]
     + [("statistics", run) for run in sorted(THREE_RUNS)]
 )
-REQUIRED_SINCE_FORMAT = [("format", None), ("not compared", "memexec")] + [
-    ("unreachable statements", run) for run in sorted(THREE_RUNS)
-]
+REQUIRED_SINCE_FORMAT = [
+    ("format", None),
+    ("not compared", "memexec"),
+    ("heap calls", None),
+] + [("unreachable statements", run) for run in sorted(THREE_RUNS)]
 
 PHASES = ["reference", "memexec", "recording", "requests", "done"]
 
@@ -1603,6 +1606,30 @@ def write_summary(outdir, runs, results, elapsed, unread=()):
         )
     )
     emit("\nStages with at least one hit: %d of %d.\n" % (hit_runs, len(observed)))
+    heap = [0] * 3
+    heap_runs = 0
+    lost_rows = []
+    for o in observed:
+        h = first(o, "heap calls")
+        if h:
+            heap = [a + int(b) for a, b in zip(heap, h)]
+            heap_runs += int(h[0]) > 0
+            if int(h[1]) or int(h[2]):
+                lost_rows.append([o["name"], h[1], h[2]])
+    emit(
+        "Heap calls, whose cache entries hold full states and that memexec "
+        "does not store, and the calls analysed by their body that memexec "
+        "would have answered from one of them, as Eva counts them in its "
+        "statistics hit-log-heap-calls, hit-log-lost-hits and "
+        "hit-log-lost-hits-below. The last column counts those made during "
+        "the analysis of a call that would have been a hit: without the "
+        "change, they would have been below a hit.\n"
+    )
+    emit(table(["Heap calls", "Hits not made", "During one"], [heap]))
+    emit("\nStages with at least one heap call: %d of %d.\n" % (heap_runs, len(observed)))
+    emit("Stages with hits not made:\n")
+    emit(table(["Stage", "Hits not made", "During one"], lost_rows))
+    emit("")
     rows = [
         [o["name"]] + rec
         for o in observed

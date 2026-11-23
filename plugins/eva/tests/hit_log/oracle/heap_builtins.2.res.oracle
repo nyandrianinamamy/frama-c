@@ -1,0 +1,67 @@
+[kernel] Parsing heap_builtins.c (with preprocessing)
+Calls:
+  alloca :: heap_builtins.c:32 <- az :: heap_builtins.c:33 <- alloca_main: builtin
+  az :: heap_builtins.c:33 <- alloca_main: analysed, cache entry 5
+  alloca_main: analysed, cache entry 6
+Heap calls, with full states, not stored by memexec: none.
+Hits not made, the heap calls being not stored: none.
+az, start:
+  joined: g ∈ {0}
+          z ∈ {0}
+  az :: heap_builtins.c:33 <- alloca_main: g ∈ {0}
+                                           z ∈ {0}
+az, before heap_builtins.c:32 `;` (A):
+  joined: g ∈ {0}
+          z ∈ {1}
+          p ∈ {{ &__alloca_az_l32_1[0] }}
+          __alloca_az_l32_1[0] ∈ {1}
+                           [1..3] ∈ UNINITIALIZED
+  az :: heap_builtins.c:33 <- alloca_main: g ∈ {0}
+                                           z ∈ {1}
+                                           p ∈ {{ &__alloca_az_l32_1[0] }}
+                                           __alloca_az_l32_1[0] ∈ {1}
+                                                            [1..3] ∈
+                                                            UNINITIALIZED
+az, after heap_builtins.c:32 `return;`:
+  joined: g ∈ {0}
+          z ∈ {1}
+          p ∈ {{ &__alloca_az_l32_1[0] }}
+          __alloca_az_l32_1[0] ∈ {1}
+                           [1..3] ∈ UNINITIALIZED
+  az :: heap_builtins.c:33 <- alloca_main: g ∈ {0}
+                                           z ∈ {1}
+                                           p ∈ {{ &__alloca_az_l32_1[0] }}
+                                           __alloca_az_l32_1[0] ∈ {1}
+                                                            [1..3] ∈
+                                                            UNINITIALIZED
+alloca_main, start:
+  joined: g ∈ {0}
+          z ∈ {0}
+  alloca_main: g ∈ {0}
+               z ∈ {0}
+alloca_main, before heap_builtins.c:33 `;` (B):
+  joined: g ∈ {0}
+          z ∈ {1}
+  alloca_main: g ∈ {0}
+               z ∈ {1}
+alloca_main, after heap_builtins.c:33 `return;`:
+  joined: g ∈ {0}
+          z ∈ {1}
+  alloca_main: g ∈ {0}
+               z ∈ {1}
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 310 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 144 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 144 points.
+Filtered requests that reject one callstack: 0.
+Requests made: 598; reported by the trap: 598, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 80 requests, 38 reads of the legacy store in them, 42 reads outside any request.
+  with -eva-hit-log: 80 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 68 requests
+    statistics: 9 requests
+    summary: 3 requests
+Statuses of the properties: those of the run without memexec, for 170 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.1667, 0 alarms, those of the run without memexec.

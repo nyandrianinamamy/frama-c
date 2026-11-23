@@ -7,6 +7,8 @@ Calls:
   malloc :: alloc_pairwise.c:31 <- main: builtin
   free :: alloc_pairwise.c:33 <- main: builtin
   main: analysed, cache entry 3
+Heap calls, with full states, not stored by memexec: none.
+Hits not made, the heap calls being not stored: none.
 Created bases whose match with the run without memexec is unresolved:
   __malloc_main_l31
   __malloc_main_l31_1

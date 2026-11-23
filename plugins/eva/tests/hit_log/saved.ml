@@ -56,7 +56,7 @@ let all_answers () =
   let find = Globals.Functions.find_by_name in
   point_answers "initial state" Results.at_start
   @ List.concat_map of_function
-    [ find "main"; find "f"; find "parent"; find "leaf" ]
+    [ find "main"; find "f"; find "parent"; find "leaf"; find "heap" ]
 
 (* Makes the requests in the current project, and prints the report of the
    trap and, if [show], the answers before P and before Q. *)

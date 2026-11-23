@@ -1,7 +1,8 @@
-format	2
+format	3
 phase	reference
 phase	memexec
 phase	recording
+heap calls	0	0	0
 phase	requests
 below rebuilt	crossing	f :: children_cycle.c:23 <- f :: children_cycle.c:31 <- main
 answer	start	f	f, start, joined	joined	unavailable	equal		3: start below a hit, across a recursion

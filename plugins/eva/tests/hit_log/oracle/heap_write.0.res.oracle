@@ -1,0 +1,119 @@
+[kernel] Parsing heap_write.c (with preprocessing)
+Calls:
+  malloc :: heap_write.c:18 <- write_main: builtin
+  w :: heap_write.c:19 <- write_main: analysed, cache entry 6
+  w :: heap_write.c:20 <- write_main: hit of cache entry 6
+  write_main: analysed, cache entry 7
+Heap calls, with full states, not stored by memexec: none.
+Hits not made, the heap calls being not stored: none.
+w, start:
+  joined: g ∈ {0}
+          z ∈ {0}
+          p ∈ {{ &__malloc_write_main_l18_1[0] }}
+          q ∈ {{ &__malloc_write_main_l18_1[0] }}
+          __malloc_write_main_l18_1[0] ∈ {7}
+                                   [1] ∈ {0}
+                                   [2..3] ∈ UNINITIALIZED
+  w :: heap_write.c:19 <- write_main: g ∈ {0}
+                                      z ∈ {0}
+                                      p ∈ {{ &__malloc_write_main_l18_1[0] }}
+                                      q ∈ {{ &__malloc_write_main_l18_1[0] }}
+                                      __malloc_write_main_l18_1[0] ∈ {7}
+                                                               [1] ∈ {0}
+                                                               [2..3] ∈
+                                                               UNINITIALIZED
+  w :: heap_write.c:20 <- write_main: g ∈ {0}
+                                      z ∈ {0}
+                                      p ∈ {{ &__malloc_write_main_l18_1[0] }}
+                                      q ∈ {{ &__malloc_write_main_l18_1[0] }}
+                                      __malloc_write_main_l18_1[0] ∈ {7}
+                                                               [1] ∈ {0}
+                                                               [2..3] ∈
+                                                               UNINITIALIZED
+w, before heap_write.c:16 `z = (int)*(p + 1);` (W):
+  joined: g ∈ {0}
+          z ∈ {0}
+          p ∈ {{ &__malloc_write_main_l18_1[0] }}
+          q ∈ {{ &__malloc_write_main_l18_1[0] }}
+          __malloc_write_main_l18_1[0..1] ∈ {7}
+                                   [2..3] ∈ UNINITIALIZED
+  w :: heap_write.c:19 <- write_main: g ∈ {0}
+                                      z ∈ {0}
+                                      p ∈ {{ &__malloc_write_main_l18_1[0] }}
+                                      q ∈ {{ &__malloc_write_main_l18_1[0] }}
+                                      __malloc_write_main_l18_1[0..1] ∈ {7}
+                                                               [2..3] ∈
+                                                               UNINITIALIZED
+  w :: heap_write.c:20 <- write_main: g ∈ {0}
+                                      z ∈ {0}
+                                      p ∈ {{ &__malloc_write_main_l18_1[0] }}
+                                      q ∈ {{ &__malloc_write_main_l18_1[0] }}
+                                      __malloc_write_main_l18_1[0..1] ∈ {7}
+                                                               [2..3] ∈
+                                                               UNINITIALIZED
+w, after heap_write.c:16 `return;`:
+  joined: g ∈ {0}
+          z ∈ {7}
+          p ∈ {{ &__malloc_write_main_l18_1[0] }}
+          q ∈ {{ &__malloc_write_main_l18_1[0] }}
+          __malloc_write_main_l18_1[0..1] ∈ {7}
+                                   [2..3] ∈ UNINITIALIZED
+  w :: heap_write.c:19 <- write_main: g ∈ {0}
+                                      z ∈ {7}
+                                      p ∈ {{ &__malloc_write_main_l18_1[0] }}
+                                      q ∈ {{ &__malloc_write_main_l18_1[0] }}
+                                      __malloc_write_main_l18_1[0..1] ∈ {7}
+                                                               [2..3] ∈
+                                                               UNINITIALIZED
+  w :: heap_write.c:20 <- write_main: g ∈ {0}
+                                      z ∈ {7}
+                                      p ∈ {{ &__malloc_write_main_l18_1[0] }}
+                                      q ∈ {{ &__malloc_write_main_l18_1[0] }}
+                                      __malloc_write_main_l18_1[0..1] ∈ {7}
+                                                               [2..3] ∈
+                                                               UNINITIALIZED
+write_main, start:
+  joined: g ∈ {0}
+          z ∈ {0}
+  write_main: g ∈ {0}
+              z ∈ {0}
+write_main, before heap_write.c:21 `;` (X):
+  joined: g ∈ {0}
+          z ∈ {7}
+          q ∈ {{ &__malloc_write_main_l18_1[0] }}
+          __malloc_write_main_l18_1[0..1] ∈ {7}
+                                   [2..3] ∈ UNINITIALIZED
+  write_main: g ∈ {0}
+              z ∈ {7}
+              q ∈ {{ &__malloc_write_main_l18_1[0] }}
+              __malloc_write_main_l18_1[0..1] ∈ {7}
+                                       [2..3] ∈ UNINITIALIZED
+write_main, after heap_write.c:22 `return;`:
+  joined: g ∈ {0}
+          z ∈ {7}
+          q ∈ {{ &__malloc_write_main_l18_1[0] }}
+          __malloc_write_main_l18_1[0..1] ∈ {7}
+                                   [2..3] ∈ UNINITIALIZED
+  write_main: g ∈ {0}
+              z ∈ {7}
+              q ∈ {{ &__malloc_write_main_l18_1[0] }}
+              __malloc_write_main_l18_1[0..1] ∈ {7}
+                                       [2..3] ∈ UNINITIALIZED
+Hits against the analysed call of their cache entry:
+  w :: heap_write.c:20 <- write_main, hit of cache entry 6, against w :: heap_write.c:19 <- write_main: no difference, at 7 points.
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 172 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 66 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 66 points.
+Filtered requests that reject one callstack: 7.
+Requests made: 304; reported by the trap: 304, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 49 requests, 66 reads of the legacy store in them, 68 reads outside any request.
+  with -eva-hit-log: 49 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 32 requests
+    statistics: 16 requests
+    summary: 1 request
+Statuses of the properties: those of the run without memexec, for 92 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 0.8750, function coverage 0.5000, 0 alarms, those of the run without memexec.
