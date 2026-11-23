@@ -1,0 +1,89 @@
+[kernel] Parsing known_issues_97.c (with preprocessing)
+[eva:alarm] known_issues_97.c:26: Warning: 
+  assertion got status invalid (stopping propagation).
+Calls:
+  calloc :: known_issues_97.c:32 <- issue97_b3: builtin
+  malloc :: known_issues_97.c:33 <- issue97_b3: builtin
+  check97 :: known_issues_97.c:36 <- issue97_b3: analysed, cache entry 6
+  check97 :: known_issues_97.c:36 <- issue97_b3: hit of cache entry 6
+  issue97_b3: analysed, cache entry 7
+Heap calls, not stored by memexec: issue97_b3 1.
+Hits not made because memexec does not store the heap calls: none.
+Hits against the analysed call of their cache entry:
+Initial state: equal.
+Differences with the run without memexec:
+  final state, joined: covers, as with memexec
+  final state, filtered: covers, as with memexec
+  final state, issue97_b3: covers, as with memexec
+  check97, after known_issues_97.c:26 `;`, joined: covers
+  check97, after known_issues_97.c:26 `;`, filtered: covers
+  check97, after known_issues_97.c:26 `;`, check97 :: known_issues_97.c:36 <- issue97_b3: covers
+  check97, before known_issues_97.c:27 `__retres = 7;`, joined: covers
+  check97, before known_issues_97.c:27 `__retres = 7;`, filtered: covers
+  check97, before known_issues_97.c:27 `__retres = 7;`, check97 :: known_issues_97.c:36 <- issue97_b3: covers
+  check97, after known_issues_97.c:27 `__retres = 7;`, joined: covers
+  check97, after known_issues_97.c:27 `__retres = 7;`, filtered: covers
+  check97, after known_issues_97.c:27 `__retres = 7;`, check97 :: known_issues_97.c:36 <- issue97_b3: covers
+  check97, before known_issues_97.c:27 `return __retres;`, joined: covers
+  check97, before known_issues_97.c:27 `return __retres;`, filtered: covers
+  check97, before known_issues_97.c:27 `return __retres;`, check97 :: known_issues_97.c:36 <- issue97_b3: covers
+  check97, after known_issues_97.c:27 `return __retres;`, joined: covers
+  check97, after known_issues_97.c:27 `return __retres;`, filtered: covers
+  check97, after known_issues_97.c:27 `return __retres;`, check97 :: known_issues_97.c:36 <- issue97_b3: covers
+  issue97_b3, after known_issues_97.c:34-37 `loop`, joined: covers, as with memexec
+  issue97_b3, after known_issues_97.c:34-37 `loop`, filtered: covers, as with memexec
+  issue97_b3, after known_issues_97.c:34-37 `loop`, issue97_b3: covers, as with memexec
+  issue97_b3, before known_issues_97.c:34 `if (i < 2)`, joined: covers, as with memexec
+  issue97_b3, before known_issues_97.c:34 `if (i < 2)`, filtered: covers, as with memexec
+  issue97_b3, before known_issues_97.c:34 `if (i < 2)`, issue97_b3: covers, as with memexec
+  issue97_b3, after known_issues_97.c:34 `if (i < 2)`, joined: covers, as with memexec
+  issue97_b3, after known_issues_97.c:34 `if (i < 2)`, filtered: covers, as with memexec
+  issue97_b3, after known_issues_97.c:34 `if (i < 2)`, issue97_b3: covers, as with memexec
+  issue97_b3, before known_issues_97.c:34-37 `break;`, joined: covers, as with memexec
+  issue97_b3, before known_issues_97.c:34-37 `break;`, filtered: covers, as with memexec
+  issue97_b3, before known_issues_97.c:34-37 `break;`, issue97_b3: covers, as with memexec
+  issue97_b3, after known_issues_97.c:34-37 `break;`, joined: covers, as with memexec
+  issue97_b3, after known_issues_97.c:34-37 `break;`, filtered: covers, as with memexec
+  issue97_b3, after known_issues_97.c:34-37 `break;`, issue97_b3: covers, as with memexec
+  issue97_b3, after known_issues_97.c:36 `r97[i] = check97();`, joined: covers, as with memexec
+  issue97_b3, after known_issues_97.c:36 `r97[i] = check97();`, filtered: covers, as with memexec
+  issue97_b3, after known_issues_97.c:36 `r97[i] = check97();`, issue97_b3: covers, as with memexec
+  issue97_b3, before known_issues_97.c:34 `i ++;`, joined: covers, as with memexec
+  issue97_b3, before known_issues_97.c:34 `i ++;`, filtered: covers, as with memexec
+  issue97_b3, before known_issues_97.c:34 `i ++;`, issue97_b3: covers, as with memexec
+  issue97_b3, after known_issues_97.c:34 `i ++;`, joined: covers, as with memexec
+  issue97_b3, after known_issues_97.c:34 `i ++;`, filtered: covers, as with memexec
+  issue97_b3, after known_issues_97.c:34 `i ++;`, issue97_b3: covers, as with memexec
+  issue97_b3, before known_issues_97.c:38 `return;`, joined: covers, as with memexec
+  issue97_b3, before known_issues_97.c:38 `return;`, filtered: covers, as with memexec
+  issue97_b3, before known_issues_97.c:38 `return;`, issue97_b3: covers, as with memexec
+  issue97_b3, after known_issues_97.c:38 `return;`, joined: covers, as with memexec
+  issue97_b3, after known_issues_97.c:38 `return;`, filtered: covers, as with memexec
+  issue97_b3, after known_issues_97.c:38 `return;`, issue97_b3: covers, as with memexec
+Answers: 66 equal, 48 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: NOT those of the run without memexec at 5 of the 38 points:
+  final state
+  issue97_b3, before known_issues_97.c:34-37 `break;`
+  issue97_b3, after known_issues_97.c:34-37 `break;`
+  issue97_b3, before known_issues_97.c:38 `return;`
+  issue97_b3, after known_issues_97.c:38 `return;`
+Callstacks listed through the filter: NOT those of the run without memexec at 5 of the 38 points:
+  final state
+  issue97_b3, before known_issues_97.c:34-37 `break;`
+  issue97_b3, after known_issues_97.c:34-37 `break;`
+  issue97_b3, before known_issues_97.c:38 `return;`
+  issue97_b3, after known_issues_97.c:38 `return;`
+Filtered requests that reject one callstack: 0.
+Requests made: 190; reported by the trap: 190, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 38 requests, 72 reads of the legacy store in them, 76 reads outside any request.
+  with -eva-hit-log: 38 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 20 requests
+    statistics: 17 requests
+    summary: 1 request
+Statuses of the properties that differ from the run without memexec:
+  known_issues_97.c:26: Assertion ("known_issues_97.c", line 26): assert \initialized( gp97);: Valid against Unknown: MORE OPTIMISTIC, as with memexec
+Statuses with memexec, without recording, that differ from the run without memexec:
+  known_issues_97.c:26: Assertion ("known_issues_97.c", line 26): assert \initialized( gp97);: Valid against Unknown: MORE OPTIMISTIC
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 1.0000, 0 alarms, against statement coverage 0.8824, function coverage 1.0000, 0 alarms without memexec, as with memexec.
