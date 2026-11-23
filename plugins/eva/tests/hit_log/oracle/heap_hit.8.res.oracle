@@ -1,130 +1,166 @@
 [kernel] Parsing heap_hit.c (with preprocessing)
 Calls:
-  alloca :: heap_hit.c:156 <- maybe :: heap_hit.c:157 <- user :: heap_hit.c:160 <- alloca_main: builtin
-  maybe :: heap_hit.c:157 <- user :: heap_hit.c:160 <- alloca_main: analysed, cache entry 13
-  user :: heap_hit.c:160 <- alloca_main: analysed, cache entry 14
-  maybe :: heap_hit.c:157 <- user :: heap_hit.c:160 <- alloca_main: analysed, cache entry 15
-  user :: heap_hit.c:160 <- alloca_main: analysed, cache entry 16
-  maybe :: heap_hit.c:157 <- user :: heap_hit.c:160 <- alloca_main: hit of cache entry 15
-  user :: heap_hit.c:160 <- alloca_main: analysed, cache entry 17
+  alloca :: heap_hit.c:163 <- maybe :: heap_hit.c:164 <- user :: heap_hit.c:167 <- alloca_main: builtin
+  maybe :: heap_hit.c:164 <- user :: heap_hit.c:167 <- alloca_main: analysed, cache entry 13
+  user :: heap_hit.c:167 <- alloca_main: analysed, cache entry 14
+  maybe :: heap_hit.c:164 <- user :: heap_hit.c:167 <- alloca_main: analysed, cache entry 15
+  user :: heap_hit.c:167 <- alloca_main: analysed, cache entry 16
+  maybe :: heap_hit.c:164 <- user :: heap_hit.c:167 <- alloca_main: hit of cache entry 15
+  user :: heap_hit.c:167 <- alloca_main: analysed, cache entry 17
   alloca_main: analysed, cache entry 18
 Heap calls, not stored by memexec: alloca_main 1, maybe 1, user 3.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: user 1.
 user, start:
-  joined: keep ∈ {0}
+  joined: cur ∈ {0}
+          keep ∈ {0}
           keep2 ∈ {0}
-          keep3 ∈ {0}
-          keep4 ∈ {0}
           bx ∈ {0}
+          g1 ∈ {0}
+          g2 ∈ {0}
           n ∈ {0; 1}
           i ∈ {0; 1; 2}
+          gp ∈ {0}
+          gq ∈ {0}
           src ∈ {0}
           dst ∈ {0}
-  user :: heap_hit.c:160 <- alloca_main: keep ∈ {0}
+  user :: heap_hit.c:167 <- alloca_main: cur ∈ {0}
+                                         keep ∈ {0}
                                          keep2 ∈ {0}
-                                         keep3 ∈ {0}
-                                         keep4 ∈ {0}
                                          bx ∈ {0}
+                                         g1 ∈ {0}
+                                         g2 ∈ {0}
                                          n ∈ {0; 1}
                                          i ∈ {0; 1; 2}
+                                         gp ∈ {0}
+                                         gq ∈ {0}
                                          src ∈ {0}
                                          dst ∈ {0}
-user, before heap_hit.c:157 `;` (V):
-  joined: keep ∈ {0}
+user, before heap_hit.c:164 `;` (V):
+  joined: cur ∈ {0}
+          keep ∈ {0}
           keep2 ∈ {0}
-          keep3 ∈ {0}
-          keep4 ∈ {0}
           bx ∈ {0}
+          g1 ∈ {0}
+          g2 ∈ {0}
           n ∈ {0; 1}
           i ∈ {0; 1; 2}
+          gp ∈ {0}
+          gq ∈ {0}
           src ∈ {0}
           dst ∈ {0}
-  user :: heap_hit.c:160 <- alloca_main: keep ∈ {0}
+  user :: heap_hit.c:167 <- alloca_main: cur ∈ {0}
+                                         keep ∈ {0}
                                          keep2 ∈ {0}
-                                         keep3 ∈ {0}
-                                         keep4 ∈ {0}
                                          bx ∈ {0}
+                                         g1 ∈ {0}
+                                         g2 ∈ {0}
                                          n ∈ {0; 1}
                                          i ∈ {0; 1; 2}
+                                         gp ∈ {0}
+                                         gq ∈ {0}
                                          src ∈ {0}
                                          dst ∈ {0}
-user, after heap_hit.c:157 `return;`:
-  joined: keep ∈ {0}
+user, after heap_hit.c:164 `return;`:
+  joined: cur ∈ {0}
+          keep ∈ {0}
           keep2 ∈ {0}
-          keep3 ∈ {0}
-          keep4 ∈ {0}
           bx ∈ {0}
+          g1 ∈ {0}
+          g2 ∈ {0}
           n ∈ {0; 1}
           i ∈ {0; 1; 2}
+          gp ∈ {0}
+          gq ∈ {0}
           src ∈ {0}
           dst ∈ {0}
-  user :: heap_hit.c:160 <- alloca_main: keep ∈ {0}
+  user :: heap_hit.c:167 <- alloca_main: cur ∈ {0}
+                                         keep ∈ {0}
                                          keep2 ∈ {0}
-                                         keep3 ∈ {0}
-                                         keep4 ∈ {0}
                                          bx ∈ {0}
+                                         g1 ∈ {0}
+                                         g2 ∈ {0}
                                          n ∈ {0; 1}
                                          i ∈ {0; 1; 2}
+                                         gp ∈ {0}
+                                         gq ∈ {0}
                                          src ∈ {0}
                                          dst ∈ {0}
 alloca_main, start:
-  joined: keep ∈ {0}
+  joined: cur ∈ {0}
+          keep ∈ {0}
           keep2 ∈ {0}
-          keep3 ∈ {0}
-          keep4 ∈ {0}
           bx ∈ {0}
+          g1 ∈ {0}
+          g2 ∈ {0}
+          gp ∈ {0}
+          gq ∈ {0}
           src ∈ {0}
           dst ∈ {0}
-  alloca_main: keep ∈ {0}
+  alloca_main: cur ∈ {0}
+               keep ∈ {0}
                keep2 ∈ {0}
-               keep3 ∈ {0}
-               keep4 ∈ {0}
                bx ∈ {0}
+               g1 ∈ {0}
+               g2 ∈ {0}
+               gp ∈ {0}
+               gq ∈ {0}
                src ∈ {0}
                dst ∈ {0}
-alloca_main, before heap_hit.c:161 `;` (X):
-  joined: keep ∈ {0}
+alloca_main, before heap_hit.c:168 `;` (X):
+  joined: cur ∈ {0}
+          keep ∈ {0}
           keep2 ∈ {0}
-          keep3 ∈ {0}
-          keep4 ∈ {0}
           bx ∈ {0}
+          g1 ∈ {0}
+          g2 ∈ {0}
+          gp ∈ {0}
+          gq ∈ {0}
           src ∈ {0}
           dst ∈ {0}
-  alloca_main: keep ∈ {0}
+  alloca_main: cur ∈ {0}
+               keep ∈ {0}
                keep2 ∈ {0}
-               keep3 ∈ {0}
-               keep4 ∈ {0}
                bx ∈ {0}
+               g1 ∈ {0}
+               g2 ∈ {0}
+               gp ∈ {0}
+               gq ∈ {0}
                src ∈ {0}
                dst ∈ {0}
-alloca_main, after heap_hit.c:162 `return;`:
-  joined: keep ∈ {0}
+alloca_main, after heap_hit.c:169 `return;`:
+  joined: cur ∈ {0}
+          keep ∈ {0}
           keep2 ∈ {0}
-          keep3 ∈ {0}
-          keep4 ∈ {0}
           bx ∈ {0}
+          g1 ∈ {0}
+          g2 ∈ {0}
+          gp ∈ {0}
+          gq ∈ {0}
           src ∈ {0}
           dst ∈ {0}
-  alloca_main: keep ∈ {0}
+  alloca_main: cur ∈ {0}
+               keep ∈ {0}
                keep2 ∈ {0}
-               keep3 ∈ {0}
-               keep4 ∈ {0}
                bx ∈ {0}
+               g1 ∈ {0}
+               g2 ∈ {0}
+               gp ∈ {0}
+               gq ∈ {0}
                src ∈ {0}
                dst ∈ {0}
 Hits against the analysed call of their cache entry:
 Initial state: equal.
 Differences with the run without memexec:
-Answers: 817 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
-Callstacks listed: those of the run without memexec at each of the 390 points.
-Callstacks listed through the filter: those of the run without memexec at each of the 390 points.
+Answers: 789 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 376 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 376 points.
 Filtered requests that reject one callstack: 0.
-Requests made: 1597; reported by the trap: 1597, each once with its description; reads of the legacy store: 0.
+Requests made: 1541; reported by the trap: 1541, each once with its description; reads of the legacy store: 0.
 Passes after the iteration:
-  with memexec, without recording: 228 requests, 67 reads of the legacy store in them, 72 reads outside any request.
-  with -eva-hit-log: 228 requests, 0 reads of the legacy store in them, 0 reads outside any request.
-    unreachable statements: 194 requests
+  with memexec, without recording: 221 requests, 67 reads of the legacy store in them, 72 reads outside any request.
+  with -eva-hit-log: 221 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 187 requests
     statistics: 16 requests
     summary: 18 requests
 Statuses of the properties: those of the run without memexec, for 353 properties.

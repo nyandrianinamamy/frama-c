@@ -20,17 +20,22 @@
    every path, joined with them where it swept it on some path only. Each
    run is compared by the observer with the run without memexec. In most
    runs, the second call frees another block than the first, of the same
-   strength, extent, type and kind: the hit is under a renaming. */
+   strength, extent, type and kind: the hit is under a renaming.
+   [free] reports the cells that its sweep changes as written: the key of a
+   call that frees holds the cells that point to the freed block at its
+   start. The pointer to the block is kept in the global cur, which points
+   at each call to the block it frees, and the cells of the frame, keep and
+   those of bx, point to the block at the second call only. */
 
 #include <stdlib.h>
 #include <alloca.h>
 #include "__fc_builtin.h"
 
-int *keep, *keep2, *keep3, *keep4;
+int *cur, *keep, *keep2;
 
 /* Run 0: a pointer to the freed block in a block of the frame. bx is
    allocated before the calls of rel, which do not read it. At the second
-   call, bx->slot points to the block freed. */
+   call, bx->slot and bx->other point to the block freed. */
 struct box { int *slot; int *other; };
 struct box *bx;
 
@@ -38,29 +43,30 @@ void rel(int *p) { free(p); R: ; }
 
 void frame_main(void) {
   bx = calloc(1, sizeof *bx);
-  int *a = malloc(sizeof(int));
-  int *b = malloc(sizeof(int));
-  *a = 5; *b = 5;
-  rel(a);
-  bx->slot = b; bx->other = b;
-  rel(b);
+  cur = malloc(sizeof(int));
+  *cur = 5;
+  rel(cur);
+  cur = malloc(sizeof(int));
+  *cur = 5;
+  bx->slot = cur; bx->other = cur;
+  rel(cur);
   M: ;
 }
 
 /* Runs 1 and 2: a conditional free. The block is freed on some path only:
    the pointers to it in the frame are joined with escaping addresses. Run 1
-   joins the states of the body; run 2 keeps them apart. */
-void cfree(int *p, int c) { if (c) free(p); C: ; }
+   joins the states of the body; run 2 keeps them apart, and the second
+   call is made in each state of the first call's exits. */
+void cfree(int *p) { if (Frama_C_interval(0, 1)) free(p); C: ; }
 
 void cond_main(void) {
-  int *a = malloc(sizeof(int));
-  int *b = malloc(sizeof(int));
-  *a = 1; *b = 1;
-  int c = Frama_C_interval(0, 1);
-  keep = a;
-  cfree(a, c);
-  keep2 = b;
-  cfree(b, c);
+  cur = malloc(sizeof(int));
+  *cur = 1;
+  cfree(cur);
+  cur = malloc(sizeof(int));
+  *cur = 1;
+  keep = cur;
+  cfree(cur);
   N: ;
 }
 
@@ -70,29 +76,30 @@ void wfree(int *p) { free(p); W: ; }
 
 void weak_main(void) {
   /*@ eva_allocate fresh_weak; */
-  int *a = malloc(sizeof(int));
+  cur = malloc(sizeof(int));
+  wfree(cur);
   /*@ eva_allocate fresh_weak; */
-  int *b = malloc(sizeof(int));
-  keep = a;
-  wfree(a);
-  keep2 = b;
-  wfree(b);
+  cur = malloc(sizeof(int));
+  keep = cur;
+  wfree(cur);
   O: ;
 }
 
 /* Run 4: a free with two targets. Both blocks stay, and the pointers to each
    of them are joined with escaping addresses. */
+int *g1, *g2;
 void tfree(int *p) { free(p); T: ; }
 
 void two_main(void) {
-  int *a = malloc(sizeof(int));
-  int *b = malloc(sizeof(int));
-  int *c = malloc(sizeof(int));
-  int *d = malloc(sizeof(int));
-  keep = a; keep2 = b;
-  tfree(Frama_C_interval(0, 1) ? a : b);
-  keep3 = c; keep4 = d;
-  tfree(Frama_C_interval(0, 1) ? c : d);
+  g1 = malloc(sizeof(int));
+  g2 = malloc(sizeof(int));
+  if (Frama_C_interval(0, 1)) cur = g1; else cur = g2;
+  tfree(cur);
+  g1 = malloc(sizeof(int));
+  g2 = malloc(sizeof(int));
+  keep = g1; keep2 = g2;
+  if (Frama_C_interval(0, 1)) cur = g1; else cur = g2;
+  tfree(cur);
   Q: ;
 }
 
@@ -105,26 +112,26 @@ void mid(int *p, int k) { leaf(p); G: ; }
 void top(int *p, int k) { mid(p, k); H: ; }
 
 void chain_main(void) {
-  int *a = malloc(sizeof(int));
-  int *b = malloc(sizeof(int));
-  *a = 3; *b = 3;
-  keep = a;
-  top(a, 0);
-  keep = b;
-  top(b, 1);
+  cur = malloc(sizeof(int));
+  *cur = 3;
+  top(cur, 0);
+  cur = malloc(sizeof(int));
+  *cur = 3;
+  keep = cur;
+  top(cur, 1);
   S: ;
 }
 
 /* Run 6: the same functions, and the second call of top is a hit: the calls
    of mid, leaf and free are below the hit. */
 void outer_main(void) {
-  int *a = malloc(sizeof(int));
-  int *b = malloc(sizeof(int));
-  *a = 3; *b = 3;
-  keep = a;
-  top(a, 0);
-  keep = b;
-  top(b, 0);
+  cur = malloc(sizeof(int));
+  *cur = 3;
+  top(cur, 0);
+  cur = malloc(sizeof(int));
+  *cur = 3;
+  keep = cur;
+  top(cur, 0);
   U: ;
 }
 
@@ -163,9 +170,10 @@ void alloca_main(void) {
 
 /* Run 9: a call that frees and whose loop raises the validity record of a
    weak block stays refused. The two calls of wraise have equal input states,
-   up to the renaming of a to c and of x to y: a hit at the second call would
-   leave the record of c as it was, where the widening of the loop raises
-   it, and the assertion would hold. */
+   up to the renaming of the blocks of gp and gq: a hit at the second call
+   would leave the record of the block of gp as it was, where the widening
+   of the loop raises it, and the assertion would hold. */
+int *gp, *gq;
 void wraise(int *p, int *q) {
   while (Frama_C_interval(0, 1)) *p = 7;
   free(q);
@@ -174,15 +182,16 @@ void wraise(int *p, int *q) {
 
 void raise_main(void) {
   /*@ eva_allocate fresh_weak; */
-  int *a = malloc(sizeof(int));
+  gp = malloc(sizeof(int));
+  gq = malloc(sizeof(int));
+  *gq = 1;
+  wraise(gp, gq);
   /*@ eva_allocate fresh_weak; */
-  int *c = malloc(sizeof(int));
-  int *x = malloc(sizeof(int));
-  int *y = malloc(sizeof(int));
-  *x = 1; *y = 1;
-  wraise(a, x);
-  wraise(c, y);
-  /*@ assert raised: \block_length(c) <= sizeof(int); */
+  gp = malloc(sizeof(int));
+  gq = malloc(sizeof(int));
+  *gq = 1;
+  wraise(gp, gq);
+  /*@ assert raised: \block_length(gp) <= sizeof(int); */
   Z: ;
 }
 
@@ -191,13 +200,13 @@ void raise_main(void) {
 int getrel(int *p) { int v = *p; free(p); K: return v; }
 
 void keyed_main(void) {
-  int *a = malloc(sizeof(int));
-  int *b = malloc(sizeof(int));
-  *a = 4; *b = 4;
-  keep = a;
-  int ra = getrel(a);
-  keep2 = b;
-  int rb = getrel(b);
+  cur = malloc(sizeof(int));
+  *cur = 4;
+  int ra = getrel(cur);
+  cur = malloc(sizeof(int));
+  *cur = 4;
+  keep = cur;
+  int rb = getrel(cur);
   L: ;
 }
 
