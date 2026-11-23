@@ -14,8 +14,9 @@
     A placeholder is an allocated base of one of two pools, strong and weak.
     It has the strength of the block it stands for, because the rewriting of
     a memory map merges adjacent pointer fragments to a strong block and
-    keeps them apart for a weak one. Its validity record and its type mean
-    nothing: no operation that reads them is applied to a numbered state.
+    keeps them apart for a weak one. The strength is read from its validity
+    record; the rest of the record, its type and its kind mean nothing, and
+    no operation that reads them is applied to a numbered state.
     A placeholder never appears in a state of the analysis.
 
     Only the cvalue domain is numbered: the arguments are their cvalue

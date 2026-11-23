@@ -134,8 +134,8 @@ _Avoid_: Canonical form (a renaming does not always give the same form)
 
 **Placeholder block**:
 An allocated block that stands for a number in a numbered form. It has the
-strength of the block it stands for, and nothing reads its validity record
-or its type. It never appears in a state of the analysis.
+strength of the block it stands for. Nothing reads the rest of its validity
+record, its type or its kind. It never appears in a state of the analysis.
 _Avoid_: Dummy block, number (names its position)
 
 ### Versions

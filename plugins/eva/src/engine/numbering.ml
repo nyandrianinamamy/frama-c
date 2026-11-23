@@ -31,8 +31,8 @@ module Numbers =
     end)
 
 (* A placeholder is an allocated base, so that [Base.is_weak] gives its
-   strength. Its validity record and its type are not those of any block,
-   and nothing reads them. It is not declared as a global of the AST. *)
+   strength; nothing reads the rest of its validity record, its type or
+   its kind. It is not declared as a global of the AST. *)
 let create_placeholder ~weak n =
   let name = Printf.sprintf "#%d%s" n (if weak then "_w" else "") in
   let vi =
