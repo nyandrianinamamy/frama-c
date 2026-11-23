@@ -6,6 +6,7 @@ Calls:
   check_init :: snapshot_key_block.c:27 <- key_block_main: analysed, cache entry 7
   key_block_main: analysed, cache entry 8
 Heap calls, not stored by memexec: key_block_main 1.
+Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 Calls that memexec does not reuse because the snapshot of a block they mention differs:
   check_init 1.

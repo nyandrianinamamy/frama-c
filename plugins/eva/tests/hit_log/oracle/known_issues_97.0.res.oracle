@@ -8,6 +8,7 @@ Calls:
   check97 :: known_issues_97.c:36 <- issue97_b3: hit of cache entry 6
   issue97_b3: analysed, cache entry 7
 Heap calls, not stored by memexec: issue97_b3 1.
+Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 Hits against the analysed call of their cache entry:
 Initial state: equal.

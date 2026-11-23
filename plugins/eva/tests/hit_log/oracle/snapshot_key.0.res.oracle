@@ -6,6 +6,7 @@ Calls:
   cmp_key :: snapshot_key.c:25 <- key_main: analysed, cache entry 7
   key_main: analysed, cache entry 8
 Heap calls, not stored by memexec: key_main 1.
+Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 Calls that memexec does not reuse because the snapshot of a block they mention differs:
   cmp_key 1.

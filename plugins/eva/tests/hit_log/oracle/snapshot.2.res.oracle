@@ -7,6 +7,7 @@ Calls:
   cmp_global :: snapshot.c:68 <- unchanged_main: hit of cache entry 10
   unchanged_main: analysed, cache entry 11
 Heap calls, not stored by memexec: unchanged_main 1.
+Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 cmp, start:
   joined: gp ∈ {{ &__malloc_unchanged_main_l63_1[0] }}

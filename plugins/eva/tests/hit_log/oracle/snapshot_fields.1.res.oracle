@@ -14,6 +14,7 @@ Calls:
   cmp_t :: snapshot_fields.c:46 <- type_main: analysed, cache entry 9
   type_main: analysed, cache entry 10
 Heap calls, not stored by memexec: type_main 1.
+Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 Calls that memexec does not reuse because the snapshot of a block they mention differs:
   cmp_t 2.

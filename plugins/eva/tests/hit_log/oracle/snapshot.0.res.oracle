@@ -8,6 +8,7 @@ Calls:
   cmp_global :: snapshot.c:38 <- weak_main: analysed, cache entry 12
   weak_main: analysed, cache entry 13
 Heap calls, not stored by memexec: weak_main 1.
+Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 Calls that memexec does not reuse because the snapshot of a block they mention differs:
   cmp 1, cmp_global 1.

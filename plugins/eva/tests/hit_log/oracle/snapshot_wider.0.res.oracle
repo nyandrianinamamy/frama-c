@@ -17,6 +17,7 @@ Calls:
   keep_one :: snapshot_wider.c:22 <- wider_main: analysed, cache entry 7
   wider_main: analysed, cache entry 8
 Heap calls, not stored by memexec: wider_main 1.
+Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 Calls that memexec does not reuse because the snapshot of a block they mention differs:
   keep_one 1.

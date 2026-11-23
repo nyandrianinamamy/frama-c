@@ -12,6 +12,7 @@ Calls:
   free :: snapshot.c:55 <- resized_main: builtin
   resized_main: analysed, cache entry 8
 Heap calls, not stored by memexec: resized_main 1.
+Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 Calls that memexec does not reuse because the snapshot of a block they mention differs:
   cmp 1.

@@ -5,7 +5,7 @@
 /* #123: several results that memexec keeps for one input state, and whose
    snapshots fail at the same lookup. At i = 0, nested calls itself with
    the same input state: the inner calls are stored during the analysis of
-   the outer one, and memexec keeps three results for that state. Beyond
+   the outer one, and memexec keeps three results for that state. At
    depth 3, the call uses the assigns clause. At i = 1, calloc reuses the
    block of gp, still live, and makes it weak; x no longer holds 0 at the
    outer call. The call at depth 1 has the input state of the three

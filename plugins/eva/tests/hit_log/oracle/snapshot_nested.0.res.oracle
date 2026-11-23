@@ -24,6 +24,7 @@ Calls:
   nested :: snapshot_nested.c:32 <- nested_main: analysed, cache entry 18
   nested_main: analysed, cache entry 19
 Heap calls, not stored by memexec: nested_main 1.
+Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 Calls that memexec does not reuse because the snapshot of a block they mention differs:
   nested 1.
