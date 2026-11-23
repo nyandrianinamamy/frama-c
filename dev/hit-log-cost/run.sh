@@ -14,7 +14,10 @@
 #
 # Corpus: gzip 1.2.4, monocypher, polarssl and chrony, from the open-source
 # case studies, with the parse and Eva options of their .frama-c/GNUmakefile
-# (see [program_args]), the default domain alone, memexec on. Every analysis
+# (see [program_args]), the default domain alone, memexec on; and gzip-pool,
+# gzip 1.2.4 patched to static pools (set B of the case studies), a program
+# of its own. Option -C takes the case studies of one program from another
+# checkout than that of -c. Every analysis
 # runs with -cache-size 8, the setting of
 # share/analysis-scripts/analysis.mk:125 used by the case studies.
 # Configurations:
@@ -75,6 +78,8 @@ THIS_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 REPO=$(git -C "$THIS_DIR" rev-parse --show-toplevel)
 
 OSCS=
+# The checkout of the case studies of each program given with -C.
+declare -A ROOTS=()
 DEV_INSTALL=
 DEV_REV=375ab36aa5
 BASE_INSTALL=
@@ -112,6 +117,9 @@ usage () {
   cat <<EOF
 Usage: $0 -c OSCS [options]
   -c DIR   checkout of the open-source case studies (read only)
+  -C NAME=DIR
+           checkout of the case studies of program NAME, in place of that
+           of -c (read only); may be given once per program
   -d DIR   install directory (install/default) of a build of dev at the
            base of the branch; built from -r otherwise
   -r REV   revision of dev at the base of the branch (default $DEV_REV)
@@ -121,8 +129,8 @@ Usage: $0 -c OSCS [options]
   -M       no measurement build: no meter, plain or ablation runs
   -w DIR   work directory for builds, runs and profiles (default $WORK)
   -o DIR   results directory (default WORK/results)
-  -p LIST  specifications of the programs, among gzip, monocypher, polarssl
-           and chrony
+  -p LIST  specifications of the programs, among gzip, gzip-pool,
+           monocypher, polarssl and chrony
            (default "$PROGRAMS")
   -s LIST  stages among "$STAGES" (default all)
   -a LIST  ablations (default "$ABLATIONS")
@@ -135,9 +143,11 @@ Usage: $0 -c OSCS [options]
 EOF
 }
 
-while getopts "c:d:r:B:R:Mw:o:p:s:a:u:m:b:k:t:h" opt; do
+while getopts "c:C:d:r:B:R:Mw:o:p:s:a:u:m:b:k:t:h" opt; do
   case $opt in
     c) OSCS=$OPTARG;;
+    C) [[ $OPTARG == ?*=?* ]] || { usage; exit 2; }
+       ROOTS[${OPTARG%%=*}]=${OPTARG#*=};;
     d) DEV_INSTALL=$OPTARG;;
     r) DEV_REV=$OPTARG;;
     B) BASE_INSTALL=$OPTARG;;
@@ -159,6 +169,8 @@ while getopts "c:d:r:B:R:Mw:o:p:s:a:u:m:b:k:t:h" opt; do
 done
 
 [ -n "$OSCS" ] || { usage; exit 2; }
+# The checkout of the case studies of program $1.
+root_of () { echo "${ROOTS[$1]:-$OSCS}"; }
 [ -n "${OPAM_SWITCH_PREFIX:-}" ] ||
   { echo "activate the opam switch first, see AGENTS.md" >&2; exit 2; }
 OUT=${OUT:-$WORK/results}
@@ -316,6 +328,10 @@ if has_stage build; then
     echo "measure	$(cat "$REVS/measure")"
     [ -z "$BASE_INSTALL" ] || echo "base	$(cat "$REVS/base")"
     echo "oscs	$(git -C "$OSCS" rev-parse HEAD)"
+    for name in "${!ROOTS[@]}"; do
+      echo "oscs-$name	$(git -C "${ROOTS[$name]}" rev-parse HEAD)" \
+           "${ROOTS[$name]} (-C)"
+    done
     echo "cpu	$CPU	$(grep -m1 'model name' /proc/cpuinfo | cut -d: -f2)"
     echo "perf	--call-graph dwarf,$PERF_STACK," \
          "perf script --max-stack $PERF_MAX_STACK"
@@ -338,31 +354,41 @@ fi
 #   - the other defaults of EVAFLAGS in analysis.mk (no progress, no initial
 #     and final states, no alarms as warnings), so that the passes print the
 #     values at the end of each function, as in the measurement of #98;
-#   - for gzip, -nonterm-ignore do_exit: an option of the nonterm plugin,
-#     which the configuration of #87 does not load and the target does not
-#     run;
+#   - for gzip and gzip-pool, -nonterm-ignore do_exit: an option of the
+#     nonterm plugin, which the configuration of #87 does not load and the
+#     target does not run;
 #   - the outputs of the target (-save, -eva-flamegraph, the reports after
 #     -then).
 program_args () { # program, share directory
-  local p share=$2
+  local p share=$2 root
+  root=$(root_of "$1")
   case $1 in
-    gzip)
-      p=$OSCS/gzip124
+    gzip|gzip-pool)
+      # gzip-pool: the target gzip124 of the branch campaign/set-b-gzip124 of
+      # the case studies, whose .frama-c/GNUmakefile adds the static pools
+      # to the sources, last, and their directory to the symbolic paths.
+      p=$root/gzip124
+      local pool=$root/campaign/static-pool
       echo -machdep; echo x86_32
       local cpp="-include$share/libc/string.h -DSTDC_HEADERS=1"
       cpp+=" -DHAVE_UNISTD_H=1 -DDIRENT=1 -DNO_UTIME=1"
       cpp+=" -I$share/libc -I$share/analysis-scripts/"
       echo "-cpp-extra-args=$cpp"
-      echo "-add-symbolic-path=$p:."
+      if [ "$1" = gzip ]; then
+        echo "-add-symbolic-path=$p:."
+      else
+        echo "-add-symbolic-path=$p:.,$pool:static-pool"
+      fi
       echo -main; echo eva_main
       echo "$share/libc/stdlib.c"; echo "$p/.frama-c/fc_stubs.c"
       for f in bits crypt deflate getopt gzip inflate lzw trees unlzh unlzw \
                unpack unzip util zip; do
         echo "$p/$f.c"
       done
+      [ "$1" = gzip ] || echo "$pool/static_pool.c"
       echo -eva; echo -eva-slevel; echo 2; echo -eva-no-alloc-returns-null;;
     monocypher)
-      p=$OSCS/monocypher
+      p=$root/monocypher
       echo -machdep; echo x86_64
       echo "-cpp-extra-args=-I$p/src -I$p/src/optional"
       echo "-add-symbolic-path=$p:."
@@ -377,7 +403,7 @@ program_args () { # program, share directory
     polarssl)
       # Target polarssl-server. The header fc_stubs.h is a prerequisite of
       # the parse rule, and thus one of its sources.
-      p=$OSCS/polarssl
+      p=$root/polarssl
       echo -machdep; echo x86_32
       echo "-cpp-extra-args=-CC -I$p"
       echo -compilation-db; echo "$p"
@@ -407,7 +433,7 @@ program_args () { # program, share directory
       # Target chrony-ntp-core. Not kept: the options -eva-domains and
       # -eva-domains-function, which enable domains other than cvalue, which
       # -eva-hit-log refuses.
-      p=$OSCS/chrony
+      p=$root/chrony
       echo -machdep; echo x86_64
       echo "-cpp-extra-args=-D_XOPEN_SOURCE=200112L -DNB_TESTS=3"
       echo "-cpp-command=gcc -E -C -I$p"
