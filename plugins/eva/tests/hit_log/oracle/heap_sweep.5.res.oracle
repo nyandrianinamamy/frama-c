@@ -79,5 +79,5 @@ Points of the cache entries:
 al :: heap_sweep.c:107 <- release :: heap_sweep.c:110 <- release_main, cache entry 9:
 al :: heap_sweep.c:107 <- release :: heap_sweep.c:110 <- release_main, cache entry 10:
 release :: heap_sweep.c:110 <- release_main, cache entry 11:
-  before A: covers __alloca_al_l103_1; does not bind __alloca_al_l103_1; swept on every path: none; on some path only: __alloca_al_l103_1
+  before A: covers __alloca_al_l103_1; does not bind __alloca_al_l103_1; swept on every path: __alloca_al_l103_1; on some path only: none
 release_main, cache entry 12:

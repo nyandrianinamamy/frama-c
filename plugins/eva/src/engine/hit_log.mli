@@ -87,13 +87,14 @@
     addresses. The map keeps the blocks that the body-entry state does not
     bind: this state can point to them, as a recursive call puts back
     unswept the variables that it withdraws from the state. At a call
-    statement, the sweeps of the evaluations of the call that return are
-    merged: a block swept on every path of each of them is swept on every
-    path, and a block swept in some of them only, or on some path only, is
-    swept on some path only. The sweeps of a [free] on several blocks or on
-    a weak block, which joins the pointers with escaping addresses, of a
-    builtin that returns several states, as [realloc] when it may fail, and
-    of the automatic release, are on some path only. The paths are joined
+    statement, the sweeps of each evaluation of the call that returns are
+    followed by those of the automatic release at its end, and the
+    evaluations are merged: a block swept on every path of each of them is
+    swept on every path, and a block swept in some of them only, or on some
+    path only, is swept on some path only. The sweeps of a [free] on several
+    blocks or on a weak block, which joins the pointers with escaping
+    addresses, and of a builtin that returns several states, as [realloc]
+    when it may fail, are on some path only. The paths are joined
     at each vertex of the automaton, while the states that reach it can
     stay apart: a block that the body-entry state binds, swept on some path
     only, that the state at the point does not bind, is swept on every

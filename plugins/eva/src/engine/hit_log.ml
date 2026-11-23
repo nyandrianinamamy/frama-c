@@ -332,7 +332,9 @@ type exit =
    with its call statement, its function, its start state and the cache entry
    it used; the cache entry this call uses, once known; the heap effects it
    received so far; the sweeps of the calls made by its body, merged over the
-   evaluations of each call statement, see [add_evaluation]; the variables
+   evaluations of each call statement, except the last evaluation, kept apart
+   with its statement until the next one ends, see [add_evaluation]; the
+   sweeps of the automatic releases that follow no evaluation; the variables
    that a recursive call withdraws from the state and puts back at its end,
    per call statement of the body that makes it or makes a call nested in
    which it is made, and overall; how the call ends, set when its body has
@@ -346,6 +348,8 @@ type frame = {
   mutable used: int option;
   mutable effects: effects;
   site_sweeps: Heap_paths.sweeps Stmt_table.t;
+  mutable last: (Cil_types.stmt * Heap_paths.sweeps) option;
+  released: Heap_paths.sweeps Stmt_table.t;
   withdrawn_at: Base.Hptset.t Stmt_table.t;
   mutable withdrawn: Base.Hptset.t;
   mutable exit: exit;
@@ -622,14 +626,54 @@ let heap_call () =
   | None -> false
   | Some frame -> frame.effects <> []
 
+(* Merges the last evaluation of a call made by the body of [frame] into the
+   evaluations of its statement before it. *)
+let flush_evaluation frame =
+  match frame.last with
+  | None -> ()
+  | Some (site, sweeps) ->
+    frame.last <- None;
+    let sweeps =
+      match Stmt_table.find_opt frame.site_sweeps site with
+      | None -> sweeps
+      | Some previous -> Heap_paths.merge previous sweeps
+    in
+    Stmt_table.replace frame.site_sweeps site sweeps
+
+(* The automatic release at the end of a call sweeps [block] in each state
+   that the call returns, after the frame of the call is closed and before
+   another call starts: its sweep follows those of the evaluation of the
+   call, the last one of [frame], before it is merged with the other
+   evaluations of [stmt]. A sweep that follows no evaluation of [stmt] is
+   kept on some path only. *)
+let release frame stmt ~exact block =
+  let sweep = Heap_paths.sweep ~exact block in
+  match frame.last with
+  | Some (site, sweeps) when Cil_datatype.Stmt.equal site stmt ->
+    frame.last <- Some (site, Heap_paths.sequence sweeps sweep)
+  | Some _ | None ->
+    let previous =
+      Option.value ~default:Heap_paths.no_sweep
+        (Stmt_table.find_opt frame.released stmt)
+    in
+    Stmt_table.replace frame.released stmt
+      (Heap_paths.sequence previous (Heap_paths.weaken sweep))
+
 (* A heap effect goes to the innermost frame: the call of the builtin that
    emits it, the call whose body is widened, or the call in whose body a call
-   ends, for the automatic release at the end of that call. [call] passes the
+   ends, for the automatic release at the end of that call, which is the
+   only effect emitted with the statement of a call. [call] passes the
    effects of a frame to the frame of its caller when the call ends. *)
 let receive ?point e =
   if enabled () then
     match (Running.get ()).frames with
-    | frame :: _ -> frame.effects <- Here (point, e) :: frame.effects
+    | frame :: _ ->
+      frame.effects <- Here (point, e) :: frame.effects;
+      begin match point, e with
+        | Some stmt, Heap_effects.Sweep { block; exact } ->
+          release frame stmt ~exact block
+        | Some _, (Allocation _ | Mutation _ | Removal _) | None, _ -> ()
+      end
     | [] -> ()
 
 let () = Heap_effects.register_sink receive
@@ -718,19 +762,16 @@ let evaluation_sweeps frame =
     | Some 1 -> Some sweeps
     | Some _ | None -> Some (Heap_paths.weaken sweeps)
 
-(* Merges the sweeps of the call of [frame], made at [site], into those of
-   the evaluations of [site] before it, in the frame [caller]. A call that
-   does not return is left out: no state follows it. *)
+(* Keeps the sweeps of the call of [frame], made at [site], as the last
+   evaluation of the frame [caller], which the automatic release at the end
+   of the call follows, see [release]; the previous last evaluation is
+   merged. A call that does not return is left out: no state follows it,
+   and no release. *)
 let add_evaluation caller site frame =
+  flush_evaluation caller;
   match evaluation_sweeps frame with
   | None -> ()
-  | Some sweeps ->
-    let sweeps =
-      match Stmt_table.find_opt caller.site_sweeps site with
-      | None -> sweeps
-      | Some previous -> Heap_paths.merge previous sweeps
-    in
-    Stmt_table.replace caller.site_sweeps site sweeps
+  | Some sweeps -> caller.last <- Some (site, sweeps)
 
 (* Adds [withdrawn], the variables that a recursive call made at [site] or
    nested in the call made there withdraws and puts back, to those of the
@@ -792,13 +833,13 @@ let refused frame =
    and those of the automatic release at its end, allocate, mutate or remove
    are covered after it, and so are the variables that a recursive call
    nested there withdraws, see [recursive_call]; its sweeps are those of its
-   evaluations, merged,
-   followed by those of the automatic release, on some path only, as the
-   release is not attributed to one evaluation. The effects at another
-   statement, the loop whose widening raises the validity of a block, act on
-   entry to the vertex before this statement. *)
+   evaluations, each followed by the automatic release at its end, merged,
+   see [release]. The effects at another statement, the loop whose widening
+   raises the validity of a block, act on entry to the vertex before this
+   statement. *)
 let heap_paths frame automaton ~fired =
-  let covered = Stmt_table.create 7 and released = Stmt_table.create 7 in
+  flush_evaluation frame;
+  let covered = Stmt_table.create 7 in
   let update table stmt ~default f =
     let previous = Option.value ~default (Stmt_table.find_opt table stmt) in
     Stmt_table.replace table stmt (f previous)
@@ -810,10 +851,7 @@ let heap_paths frame automaton ~fired =
   List.iter
     (function
       | Through (site, _, _) as received -> cover site received
-      | Here (None, _) -> ()
-      | Here (Some stmt, Sweep { block; _ }) ->
-        update released stmt ~default:Heap_paths.no_sweep
-          (fun acc -> Heap_paths.(sequence acc (sweep ~exact:false block)))
+      | Here (None, _) | Here (Some _, Sweep _) -> ()
       | Here (Some stmt, _) as received -> cover stmt received)
     frame.effects;
   let find table stmt ~default =
@@ -826,7 +864,7 @@ let heap_paths frame automaton ~fired =
     let evaluations =
       find frame.site_sweeps stmt ~default:Heap_paths.no_sweep
     in
-    let released = find released stmt ~default:Heap_paths.no_sweep in
+    let released = find frame.released stmt ~default:Heap_paths.no_sweep in
     { Heap_paths.covered; sweeps = Heap_paths.sequence evaluations released }
   in
   let at_vertex = Eva_automata.Vertex.Hashtbl.create 7 in
@@ -843,7 +881,7 @@ let heap_paths frame automaton ~fired =
           (Heap_paths.after previous (value stmt))
   in
   Stmt_table.iter add_vertex covered;
-  Stmt_table.iter add_vertex released;
+  Stmt_table.iter add_vertex frame.released;
   let edge (e: Eva_automata.edge) =
     match e.edge_transition with
     | Call (_, _, _, stmt) -> value stmt
@@ -1051,7 +1089,8 @@ let call callstack ~start f =
   let running = Running.get () in
   let frame = {
     calls = []; used = None; effects = [];
-    site_sweeps = Stmt_table.create 1; withdrawn_at = Stmt_table.create 1;
+    site_sweeps = Stmt_table.create 1; last = None;
+    released = Stmt_table.create 1; withdrawn_at = Stmt_table.create 1;
     withdrawn = Base.Hptset.empty; exit = Unset; outputs = None;
     refused = false;
   } in
