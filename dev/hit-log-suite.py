@@ -28,11 +28,6 @@
 #     without memexec and with memexec, then the project with -eva-hit-log,
 #     asks each of them for the states at every point, and writes a summary
 #     of the comparison (HIT_LOG_OBSERVER_SUMMARY).
-# The observers get no other variable HIT_LOG_OBSERVER_* of the environment
-# of the script, except HIT_LOG_OBSERVER_REACHABILITY: when it names a file,
-# each observer appends to it the number of statements where it compared
-# Eva.Results.is_reachable with the joined state, and the number where the
-# two differ.
 # A command that loads a project saved by an EXECNOW command without analysis
 # runs that command first, in each directory. The other runs are listed as
 # not run, and the stages that are not observed as such, with the reason.
@@ -864,14 +859,8 @@ def build(jobs):
 
 def without_observer_variables(env):
     """[env] without the variables that the observer reads, as its controls:
-    the script sets those of each command. HIT_LOG_OBSERVER_REACHABILITY,
-    which only names the file of the counts of the comparison of the
-    reachability, is kept."""
-    return {
-        k: v
-        for k, v in env.items()
-        if not k.startswith("HIT_LOG_OBSERVER_") or k == "HIT_LOG_OBSERVER_REACHABILITY"
-    }
+    the script sets those of each command."""
+    return {k: v for k, v in env.items() if not k.startswith("HIT_LOG_OBSERVER_")}
 
 
 # ----- Summary ------------------------------------------------------------
