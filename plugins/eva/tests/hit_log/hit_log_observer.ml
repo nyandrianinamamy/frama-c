@@ -18,6 +18,11 @@
    It prints:
    - the calls of the analysis with -eva-hit-log, with the cache entry they
      compute or use;
+   - when memexec does not reuse a call although a stored call has its
+     input state, because the snapshot of an allocated block that the call
+     mentions differs, the number of these calls for each function, as Eva
+     counts them, printed after the heap calls of the next item (see
+     print_snapshot_misses);
    - when this analysis calls a builtin that allocates or frees a block, or
      Eva counts a heap call, the number of heap calls of each function,
      those of them whose answers come from full states, and the number of
@@ -487,6 +492,33 @@ let print_heap_calls () =
   let total counts = List.fold_left (fun acc (_, n) -> acc + n) 0 counts in
   let totals = List.map (fun l -> string_of_int (total l)) in
   record ("heap calls" :: totals [ heap; lost; lost_below; full ])
+
+(* The statistic that Eva keeps per function with -eva-hit-log: the calls
+   that memexec does not reuse although a stored call has their input state,
+   because the snapshot of an allocated block they mention differs. Found
+   by name: a statistic that Eva does not keep reads 0. *)
+let snapshot_misses =
+  Statistics.register_function_stat "hit-log-snapshot-misses" Statistics.Int
+
+(* Prints the counts of [snapshot_misses] per function, when one is not
+   zero. *)
+let print_snapshot_misses () =
+  let counts =
+    Globals.Functions.fold
+      (fun kf acc ->
+         match Statistics.get snapshot_misses kf with
+         | 0 -> acc
+         | n -> (Kernel_function.get_name kf, n) :: acc)
+      []
+    |> List.sort compare
+  in
+  if counts <> [] then
+    Format.printf "@[<hov 2>Calls that memexec does not reuse because the \
+                   snapshot of a block they mention differs:@ %a.@]@."
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
+         (fun fmt (name, n) -> Format.fprintf fmt "%s %d" name n))
+      counts
 
 (* The callstacks that reach the start of a function and are not those of a
    call of the analysis. [starts] gives the callstacks of each start. Returns
@@ -2247,6 +2279,7 @@ let observe () =
   observing_calls := false;
   print_calls ();
   print_heap_calls ();
+  print_snapshot_misses ();
   if not (Analysis.is_computed ()) then begin
     record [ "no result" ];
     Format.printf "The analysis with -eva-hit-log has no result: no request \

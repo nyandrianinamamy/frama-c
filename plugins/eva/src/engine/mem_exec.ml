@@ -127,6 +127,11 @@ let add_targets_of_state state acc =
       map acc
 
 
+(* The calls that memexec does not reuse although a stored result has their
+   input state: the snapshot of a mentioned block differs. *)
+let snapshot_misses =
+  Statistics.(register_function_stat "hit-log-snapshot-misses" Int)
+
 let counter = ref 0
 
 module Make
@@ -294,8 +299,11 @@ module Make
   exception Result_found of CallOutput.t * int
 
   (** Find a previous execution in [map_inputs] that matches [st].
-      raise [Result_found] when this execution exists, or do nothing. *)
+      raise [Result_found] when this execution exists. Otherwise, returns
+      whether a previous execution has the input state [st]: the snapshot of
+      a mentioned block differs. *)
   let find_match_in_previous (map_inputs: InputBasesToCallEffect.t) state =
+    let same_input = ref false in
     let aux_previous_call binputs hstates =
       let brelated = Domain.relate binputs state in
       if not Base.SetLattice.(is_included brelated (inject binputs))
@@ -308,7 +316,7 @@ module Make
         let stored = Domain.Hashtbl.find_all hstates st_filtered in
         let holds (_, _, _, snapshot) = Snapshot.holds snapshot in
         match List.find_opt holds stored with
-        | None -> ()
+        | None -> if stored <> [] then same_input := true
         | Some (bases, outputs, i, _) ->
           (* We have found a previous execution, in which the outputs are
              [outputs]. Copy them in [state] and return this result. *)
@@ -319,14 +327,16 @@ module Make
           let outputs = List.map process outputs in
           raise (Result_found (outputs, i))
     in
-    Base.Hptset.Hashtbl.iter aux_previous_call map_inputs
+    Base.Hptset.Hashtbl.iter aux_previous_call map_inputs;
+    !same_input
 
   let reuse_previous_call kf state args =
     try
       let previous_kf = PreviousCalls.find kf in
       let args = List.map (function `Bottom -> None | `Value v -> Some v) args in
       let previous = ActualArgs.Map.find args previous_kf in
-      find_match_in_previous previous state;
+      if find_match_in_previous previous state
+      then Statistics.incr snapshot_misses kf;
       Statistics.(incr memexec_misses kf);
       None
     with
@@ -345,7 +355,7 @@ module Make
         List.map (function `Bottom -> None | `Value v -> Some v) args
       in
       let previous = ActualArgs.Map.find args previous_kf in
-      find_match_in_previous previous state;
+      ignore (find_match_in_previous previous state);
       false
     with
     | Not_found -> false

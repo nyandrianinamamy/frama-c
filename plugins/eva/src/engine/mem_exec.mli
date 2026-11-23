@@ -23,7 +23,10 @@ val cleanup_results: unit -> unit
     and its kind, copied when the call is stored. A stored call is reused
     only if each block of its snapshot has the same strength, record, type
     and kind at the call. A call whose arguments or key hold a pointer to an
-    unknown set of blocks is not stored. Blocks are compared by identity. *)
+    unknown set of blocks is not stored. Blocks are compared by identity.
+    The statistic [hit-log-snapshot-misses] counts, per function, the calls
+    that are not reused although a stored call has their input state, because
+    the snapshot of a block differs. *)
 module Make
     (Value : Engine_abstractions_sig.Value)
     (Domain : Engine_abstractions_sig.Domain)
