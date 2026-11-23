@@ -1,0 +1,29 @@
+[kernel] Parsing snapshot_key_block.c (with preprocessing)
+Calls:
+  calloc :: snapshot_key_block.c:26 <- key_block_main: builtin
+  check_init :: snapshot_key_block.c:27 <- key_block_main: analysed, cache entry 6
+  calloc :: snapshot_key_block.c:26 <- key_block_main: builtin
+  check_init :: snapshot_key_block.c:27 <- key_block_main: analysed, cache entry 7
+  key_block_main: analysed, cache entry 8
+Heap calls, not stored by memexec: key_block_main 1.
+Hits not made because memexec does not store the heap calls: none.
+Calls that memexec does not reuse because the snapshot of a block they mention differs:
+  check_init 1.
+Most results that memexec keeps at once for one input state of these functions:
+  check_init 1.
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 84 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 28 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 28 points.
+Filtered requests that reject one callstack: 0.
+Requests made: 140; reported by the trap: 140, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 28 requests, 52 reads of the legacy store in them, 54 reads outside any request.
+  with -eva-hit-log: 28 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 15 requests
+    statistics: 12 requests
+    summary: 1 request
+Statuses of the properties: those of the run without memexec, for 78 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 1.0000, 0 alarms, those of the run without memexec.
