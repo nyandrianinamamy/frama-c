@@ -83,11 +83,15 @@ module Make (Engine: Engine_sig.S) = struct
           let final_states = call_result.states in
           if record && Hit_log.heap_call ()
           then
-            Refused.store_computed_call ~snapshot:false
-              call.kf init_state args final_states
+            ignore
+              (Refused.store_computed_call ~snapshot:false
+                 call.kf init_state args final_states)
           else
-            MemExec.store_computed_call ~snapshot:record
-              call.kf init_state memexec_args final_states
+            let mentioned =
+              MemExec.store_computed_call ~snapshot:record
+                call.kf init_state memexec_args final_states
+            in
+            if record then Hit_log.record_mentioned mentioned
       in
       call_result
     | Some (states, i, renaming) ->

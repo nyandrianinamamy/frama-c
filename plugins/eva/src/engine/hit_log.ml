@@ -165,7 +165,10 @@ module Analysed =
    request from the entries of their callers. [heap] tells whether the
    analysed call is a heap call: its key group is then made of this call
    only. The body-entry states of the hits are grouped by the renaming
-   through which each hit used the entry. *)
+   through which each hit used the entry. [mentioned] are the allocated
+   blocks that memexec numbered when it stored the entry, in the order of
+   their numbers: the empty list if the entry mentions none; None until
+   memexec stores it, and if it does not. *)
 type entry = {
   heap: bool;
   inner: inner_part;
@@ -173,6 +176,7 @@ type entry = {
   analysed: analysed;
   hit_starts: states;
   mutable hit_body_entries: (renaming * states) list;
+  mutable mentioned: Base.t list option;
 }
 
 module Entry =
@@ -186,7 +190,8 @@ module Entry =
           (fun states ->
              { heap = false; inner = Unknown; below = [];
                analysed = List.hd Analysed.reprs;
-               hit_starts = states; hit_body_entries = [ [], states ] })
+               hit_starts = states; hit_body_entries = [ [], states ];
+               mentioned = None })
           States.reprs
       let structural_descr =
         let inner_part =
@@ -197,13 +202,15 @@ module Entry =
         in
         let module Below_list = Datatype.List (Below) in
         let module Groups = Datatype.List (Datatype.Pair (Renaming) (States)) in
+        let module Mentioned = Datatype.Option (Datatype.List (Base)) in
         Structural_descr.t_record
           [| Structural_descr.p_bool;
              Structural_descr.pack inner_part;
              Below_list.packed_descr;
              Analysed.packed_descr;
              States.packed_descr;
-             Groups.packed_descr |]
+             Groups.packed_descr;
+             Mentioned.packed_descr |]
     end)
 
 type store = {
@@ -249,7 +256,8 @@ let copy_entry entry =
     hit_body_entries =
       List.map
         (fun (renaming, states) -> renaming, copy_states states)
-        entry.hit_body_entries }
+        entry.hit_body_entries;
+    mentioned = entry.mentioned }
 
 let copy_store store =
   let entries = Int_table.create (Int_table.length store.entries) in
@@ -1080,6 +1088,7 @@ let record_analysed_call ~id callstack ~automaton ~fired ~footprint ~start
     analysed = { callstack; start; body_entry };
     hit_starts = new_states ();
     hit_body_entries = [];
+    mentioned = None;
   } in
   Int_table.replace store.entries id entry;
   let previous =
@@ -1098,6 +1107,17 @@ let group_states entry renaming =
     let states = new_states () in
     entry.hit_body_entries <- entry.hit_body_entries @ [ renaming, states ];
     states
+
+(* The entry computed by the call being analysed is the one its frame used,
+   as set by [record_analysed_call]: memexec stores it once its body has been
+   analysed, within this frame. *)
+let record_mentioned mentioned =
+  match current_frame (), mentioned with
+  | Some { used = Some id; _ }, Some _ ->
+    Option.iter
+      (fun entry -> entry.mentioned <- mentioned)
+      (Int_table.find_opt (Store.get ()).entries id)
+  | _ -> ()
 
 let record_hit ~id ~renaming callstack ~start ~body_entry =
   let store = Store.get () in
@@ -1220,20 +1240,37 @@ let join_groups groups =
     (fun acc (_, state) -> Cvalue.Model.join acc state)
     Cvalue.Model.bottom groups
 
-(* The renaming of a call below a member that uses the entry of its caller
-   through [sigma], the call having used its own entry through [rho].
-   [sigma], if not the identity, has a pair for each block that memexec
-   numbered in the entry of the caller; so has [rho] for the entry of the
-   callee. The images by [rho] are blocks of the analysed call of the
+(* The renaming of the call [below] made by a member that uses the entry of
+   its caller through [sigma], [below] having used its own entry through
+   [rho]. [sigma], if not the identity, has a pair for each block that
+   memexec numbered in the entry of the caller; so has [rho] for the entry
+   of the callee. The images by [rho] are blocks of the analysed call of the
    caller that its entry numbers: the caller receives no heap effect, and
    its key holds the key of the callee, renamed through [rho] by the inout
    plugin, so that every allocated block that the callee mentions is
    mentioned by the caller. If [rho] is the identity, the callee mentions
-   blocks of the analysed call of the caller, and [sigma] renames them. *)
-let compose sigma rho =
+   blocks of the analysed call of the caller, and [sigma] renames them: the
+   result is [sigma] restricted to the blocks that the entry of the callee
+   mentions, the identity if it mentions none. A block of this entry that
+   [sigma] does not rename gets no pair, so that [rename] refuses the points
+   that hold it. If memexec did not store the entry of the callee, its
+   blocks are not known, and the result is [sigma]. *)
+let compose store sigma (below: below) =
+  let rho = below.renaming in
   match sigma, rho with
   | [], _ -> rho
-  | _, [] -> sigma
+  | _, [] ->
+    let child = Option.map (Int_table.find_opt store.entries) below.child in
+    begin match child with
+      | None | Some None | Some (Some { mentioned = None; _ }) -> sigma
+      | Some (Some { mentioned = Some blocks; _ }) ->
+        let restricted =
+          List.filter (fun (b, _) -> List.exists (Base.equal b) blocks) sigma
+        in
+        if List.for_all (fun (b, image) -> Base.equal b image) restricted
+        then []
+        else restricted
+    end
   | _ ->
     let image block =
       match List.find_opt (fun (b, _) -> Base.equal b block) sigma with
@@ -1521,7 +1558,7 @@ let add_to_table table callstack renaming state =
 (* Adds to [table], for each callstack and renaming of [states], the start
    state of the call [below] made by the body of the members of that
    callstack and renaming, in the group of the composed renaming. *)
-let add_calls_below derived table (below: below) states =
+let add_calls_below store derived table (below: below) states =
   let renames = renames below in
   Cs_table.iter
     (fun callstack groups ->
@@ -1531,8 +1568,7 @@ let add_calls_below derived table (below: below) states =
               call_below derived ~renames callstack below renaming entry
             in
             let callstack = Callstack.push below.callee below.site callstack in
-            add_to_table table callstack (compose renaming below.renaming)
-              state)
+            add_to_table table callstack (compose store renaming below) state)
          groups)
     states
 
@@ -1556,7 +1592,7 @@ let rec unrun_by_callstack store derived id =
     List.iter
       (fun (parent, below) ->
          let states = unrun_by_callstack store derived parent in
-         add_calls_below derived table below states)
+         add_calls_below store derived table below states)
       (calls_of derived.by_child Int_table.find_opt id);
     Int_table.replace derived.unrun_by_callstack id table;
     table
@@ -1602,13 +1638,13 @@ and joined_call store derived parent below =
               let state =
                 call_below derived ~renames callstack below renaming entry
               in
-              add_group (compose renaming below.renaming) state acc)
+              add_group (compose store renaming below) state acc)
            acc groups)
       (unrun_by_callstack store derived parent) []
   else
     List.map
       (fun (renaming, entry) ->
-         compose renaming below.renaming,
+         compose store renaming below,
          paste_call derived below renaming entry)
       (unrun_joined store derived parent)
 
@@ -1636,7 +1672,7 @@ let starts_below_by_callstack store derived kf =
     List.iter
       (fun (parent, below) ->
          let states = unrun_by_callstack store derived parent in
-         add_calls_below derived groups below states)
+         add_calls_below store derived groups below states)
       (calls_of derived.by_callee Kf_table.find_opt kf);
     let table = Cs_table.create 7 in
     Cs_table.iter

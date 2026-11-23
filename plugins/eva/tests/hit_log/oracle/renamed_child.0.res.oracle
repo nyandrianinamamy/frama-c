@@ -44,12 +44,12 @@ Alarms: 0, of which 0 not proven, those of the run without memexec.
 Summary: statement coverage 1.0000, function coverage 1.0000, 0 alarms, those of the run without memexec.
 Members of the cache entry 22, leaf, whose body did not run:
   leaf :: renamed_child.c:17 <- outer :: renamed_child.c:30 <- child_main: identity
-  leaf :: renamed_child.c:17 <- outer :: renamed_child.c:31 <- child_main: __calloc_child_main_l24_1 -> __calloc_child_main_l25_1
-  leaf :: renamed_child.c:17 <- outer :: renamed_child.c:32 <- child_main: __calloc_child_main_l24_1 -> __calloc_child_main_l26_1
+  leaf :: renamed_child.c:17 <- outer :: renamed_child.c:31 <- child_main: identity
+  leaf :: renamed_child.c:17 <- outer :: renamed_child.c:32 <- child_main: identity
 Members of the cache entry 23, outer, whose body did not run:
   outer :: renamed_child.c:31 <- child_main: __calloc_child_main_l24_1 -> __calloc_child_main_l25_1
   outer :: renamed_child.c:32 <- child_main: __calloc_child_main_l24_1 -> __calloc_child_main_l26_1
 Members of the cache entry 24, half, whose body did not run:
-  half :: renamed_child.c:20 <- pair :: renamed_child.c:34 <- child_main: __calloc_child_main_l24_1 -> __calloc_child_main_l25_1, __calloc_child_main_l27_1 -> __calloc_child_main_l28_1
+  half :: renamed_child.c:20 <- pair :: renamed_child.c:34 <- child_main: __calloc_child_main_l27_1 -> __calloc_child_main_l28_1
 Members of the cache entry 25, pair, whose body did not run:
   pair :: renamed_child.c:34 <- child_main: __calloc_child_main_l24_1 -> __calloc_child_main_l25_1, __calloc_child_main_l27_1 -> __calloc_child_main_l28_1

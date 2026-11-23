@@ -324,8 +324,8 @@ module Make
      [outputs], copied on [output_bases] on a reuse. The snapshot is read
      now, after the analysis of the call, and stands for its start: the
      call receives no heap effect, and no stored call changes the validity
-     or the type of a block. Raises [No_numbered_form] and
-     [TooImprecise]. *)
+     or the type of a block. Returns the numbered blocks, in the order of
+     their numbers. Raises [No_numbered_form] and [TooImprecise]. *)
   let store_numbered kf args ~input_bases ~state_input ~output_bases ~outputs
       call_number =
     let get =
@@ -402,17 +402,20 @@ module Make
     in
     Domain.Hashtbl.add results start result;
     Statistics.grow snapshot_results kf
-      (List.length (Domain.Hashtbl.find_all results start))
+      (List.length (Domain.Hashtbl.find_all results start));
+    result.analysed
 
-  (* With [~snapshot:false], the store of memexec without -eva-hit-log. With
-     [~snapshot:true], a call that mentions an allocated block is stored in
-     numbered form, and any other as without -eva-hit-log; the hooks of the
-     tests are called once the call is stored, out of the handler of the
-     store. *)
+  (* With [~snapshot:false], the store of memexec without -eva-hit-log; the
+     result is None. With [~snapshot:true], a call that mentions an allocated
+     block is stored in numbered form, and any other as without
+     -eva-hit-log; the hooks of the tests are called once the call is
+     stored, out of the handler of the store. The result is then the blocks
+     numbered in the stored call, the empty list if it is not numbered, and
+     None if it is not stored. *)
   let store_computed_call ~snapshot kf input_state args
       (call_result: (Partition.key * Domain.t) list) =
     match Transfer_stmt.current_kf_inout () with
-    | None -> ()
+    | None -> None
     | Some inout ->
       match
         (* The matching key: the bases read by the call, those read by its
@@ -454,46 +457,52 @@ module Make
         in
         let outputs = List.map clear call_result in
         let call_number = current_counter () in
-        if numbered
-        then
-          store_numbered kf args ~input_bases ~state_input
-            ~output_bases:all_output_bases ~outputs call_number
-        else begin
-          let map_a =
-            try PreviousCalls.find kf
-            with Not_found -> ActualArgs.Map.empty
-          in
-          let hkf =
-            let args =
-              List.map (function `Bottom -> None | `Value v -> Some v) args in
-            try ActualArgs.Map.find args map_a
-            with Not_found ->
-              let h = Base.Hptset.Hashtbl.create 11 in
-              let map_a = ActualArgs.Map.add args h map_a in
-              PreviousCalls.replace kf map_a;
-              h
-          in
-          let hkb =
-            try Base.Hptset.Hashtbl.find hkf input_bases
-            with Not_found ->
-              let h = Domain.Hashtbl.create 11 in
-              Base.Hptset.Hashtbl.add hkf input_bases h;
-              h
-          in
-          Domain.Hashtbl.add hkb state_input
-            (all_output_bases, outputs, call_number)
-        end;
+        let mentioned =
+          if numbered
+          then
+            store_numbered kf args ~input_bases ~state_input
+              ~output_bases:all_output_bases ~outputs call_number
+          else begin
+            let map_a =
+              try PreviousCalls.find kf
+              with Not_found -> ActualArgs.Map.empty
+            in
+            let hkf =
+              let args =
+                List.map (function `Bottom -> None | `Value v -> Some v) args in
+              try ActualArgs.Map.find args map_a
+              with Not_found ->
+                let h = Base.Hptset.Hashtbl.create 11 in
+                let map_a = ActualArgs.Map.add args h map_a in
+                PreviousCalls.replace kf map_a;
+                h
+            in
+            let hkb =
+              try Base.Hptset.Hashtbl.find hkf input_bases
+              with Not_found ->
+                let h = Domain.Hashtbl.create 11 in
+                Base.Hptset.Hashtbl.add hkf input_bases h;
+                h
+            in
+            Domain.Hashtbl.add hkb state_input
+              (all_output_bases, outputs, call_number);
+            []
+          end
+        in
         (* Nothing is built for the hooks without -eva-hit-log. *)
         if snapshot
-        then Some (input_bases, state_input, outputs, call_number)
+        then Some (mentioned, (input_bases, state_input, outputs, call_number))
         else None
       with
       | exception
           (TooImprecise
           | No_numbered_form
           | Kernel_function.No_Statement
-          | Not_found) -> ()
-      | stored -> Option.iter (notify_store kf args) stored
+          | Not_found) -> None
+      | None -> None
+      | Some (mentioned, stored) ->
+        notify_store kf args stored;
+        Some mentioned
 
 
   exception Result_found of CallOutput.t * int * renaming

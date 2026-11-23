@@ -228,6 +228,14 @@ val record_analysed_call:
     identity. *)
 type renaming = (Base.t * Base.t) list
 
+(** [record_mentioned mentioned] records, for the cache entry computed by
+    the innermost [call], the allocated blocks that memexec numbered when it
+    stored the entry, as {!Mem_exec.Make.store_computed_call} returns them.
+    Below a hit, a call that used this entry by identity uses it through the
+    renaming of the hit restricted to these blocks. Nothing is recorded for
+    [None]: the renaming of the hit is then used whole. *)
+val record_mentioned: Base.t list option -> unit
+
 (** [record_hit ~id ~renaming callstack ~start ~body_entry] records a hit of
     the cache entry [id] on [callstack], through [renaming]. Fails if [id] is
     the entry of a heap call. *)

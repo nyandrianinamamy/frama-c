@@ -83,12 +83,15 @@ module Make
     (** [store_computed_call kf init_state args call_results] memoizes the fact
         that calling [kf] with initial state [init_state] and arguments [args]
         resulted in the results [call_results]. Those information are intended
-        to be reused in subsequent calls *)
+        to be reused in subsequent calls. With [~snapshot:true], returns the
+        allocated blocks that the stored call mentions, in the order of their
+        numbers: the empty list if it mentions none, [None] if the call is not
+        stored. Returns [None] with [~snapshot:false]. *)
     val store_computed_call:
       snapshot:bool ->
       kernel_function -> Domain.t -> Value.t or_bottom list ->
       (Partition.key * Domain.t) list ->
-      unit
+      Base.t list option
 
     (** [reuse_previous_call kf init_state args] searches amongst the previous
         analyzes of [kf] one that matches the initial state [init_state] and the
