@@ -1,0 +1,96 @@
+[kernel] Parsing snapshot_fields.c (with preprocessing)
+[eva:alarm] snapshot_fields.c:20: Warning: 
+  pointer comparison. assert \pointer_comparable((void *)p, (void *)0);
+[eva:alarm] snapshot_fields.c:20: Warning: 
+  pointer comparison. assert \pointer_comparable((void *)p, (void *)0);
+Calls:
+  malloc :: snapshot_fields.c:25 <- record_main: builtin
+  free :: snapshot_fields.c:27 <- record_main: builtin
+  malloc :: snapshot_fields.c:25 <- record_main: builtin
+  cmp_r :: snapshot_fields.c:26 <- record_main: analysed, cache entry 6
+  free :: snapshot_fields.c:27 <- record_main: builtin
+  malloc :: snapshot_fields.c:25 <- record_main: builtin
+  cmp_r :: snapshot_fields.c:26 <- record_main: analysed, cache entry 7
+  free :: snapshot_fields.c:27 <- record_main: builtin
+  record_main: analysed, cache entry 8
+Heap calls, not stored by memexec: record_main 1.
+Hits not made because memexec does not store the heap calls: none.
+Calls that memexec does not reuse because the snapshot of a block they mention differs:
+  cmp_r 1.
+cmp_r, start:
+  joined: p ∈ {{ &__malloc_record_main_l25_1[6] }}
+          r_record[0..2] ∈ {0}
+          i ∈ {1; 2}
+          p ∈ {{ &__malloc_record_main_l25_1[0] }}
+          p_type ∈ {0}
+          r_type[0..2] ∈ {0}
+          __malloc_record_main_l25_1[0..5] ∈ UNINITIALIZED
+  cmp_r :: snapshot_fields.c:26 <- record_main: p ∈
+                                                 {{ &__malloc_record_main_l25_1[6] }}
+                                                r_record[0..2] ∈ {0}
+                                                i ∈ {1; 2}
+                                                p ∈
+                                                 {{ &__malloc_record_main_l25_1[0] }}
+                                                p_type ∈ {0}
+                                                r_type[0..2] ∈ {0}
+                                                __malloc_record_main_l25_1
+                                                [0..5] ∈ UNINITIALIZED
+cmp_r, before snapshot_fields.c:20 `;` (R):
+  joined: p ∈ {{ &__malloc_record_main_l25_1[6] }}
+          r_record[0..2] ∈ {0}
+          i ∈ {1; 2}
+          p ∈ {{ &__malloc_record_main_l25_1[0] }}
+          p_type ∈ {0}
+          r_type[0..2] ∈ {0}
+          __retres ∈ UNINITIALIZED
+          __malloc_record_main_l25_1[0..5] ∈ UNINITIALIZED
+  cmp_r :: snapshot_fields.c:26 <- record_main: p ∈
+                                                 {{ &__malloc_record_main_l25_1[6] }}
+                                                r_record[0..2] ∈ {0}
+                                                i ∈ {1; 2}
+                                                p ∈
+                                                 {{ &__malloc_record_main_l25_1[0] }}
+                                                p_type ∈ {0}
+                                                r_type[0..2] ∈ {0}
+                                                __retres ∈ UNINITIALIZED
+                                                __malloc_record_main_l25_1
+                                                [0..5] ∈ UNINITIALIZED
+cmp_r, after snapshot_fields.c:20 `return __retres;`:
+  joined: p ∈ {{ &__malloc_record_main_l25_1[6] }}
+          r_record[0..2] ∈ {0}
+          i ∈ {1; 2}
+          p ∈ {{ &__malloc_record_main_l25_1[0] }}
+          p_type ∈ {0}
+          r_type[0..2] ∈ {0}
+          __retres ∈ {0; 1}
+          __malloc_record_main_l25_1[0..5] ∈ UNINITIALIZED
+  cmp_r :: snapshot_fields.c:26 <- record_main: p ∈
+                                                 {{ &__malloc_record_main_l25_1[6] }}
+                                                r_record[0..2] ∈ {0}
+                                                i ∈ {1; 2}
+                                                p ∈
+                                                 {{ &__malloc_record_main_l25_1[0] }}
+                                                p_type ∈ {0}
+                                                r_type[0..2] ∈ {0}
+                                                __retres ∈ {0; 1}
+                                                __malloc_record_main_l25_1
+                                                [0..5] ∈ UNINITIALIZED
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 168 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 68 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 68 points.
+Filtered requests that reject one callstack: 0.
+Requests made: 304; reported by the trap: 304, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 50 requests, 59 reads of the legacy store in them, 64 reads outside any request.
+  with -eva-hit-log: 58 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 35 requests
+    statuses of the properties: 6 requests
+    statistics: 14 requests
+    summary: 3 requests
+Statuses of the properties: those of the run without memexec, for 290 properties.
+Statuses with memexec, without recording, that differ from the run without memexec:
+  snapshot_fields.c:20: Assertion 'Eva,ptr_comparison' ("snapshot_fields.c", line 20): assert Eva: ptr_comparison: \pointer_comparable((void *)p, (void *)0);: absent against Unknown: MORE OPTIMISTIC
+Alarms: 1, of which 1 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.5000, 1 alarm, those of the run without memexec.
