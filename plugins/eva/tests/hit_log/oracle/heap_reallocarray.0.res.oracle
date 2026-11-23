@@ -1,0 +1,86 @@
+[kernel] Parsing heap_reallocarray.c (with preprocessing)
+Calls:
+  malloc :: heap_reallocarray.c:14 <- reallocarray_main: builtin
+  reallocarray :: heap_reallocarray.c:12 <- raz :: heap_reallocarray.c:15 <- reallocarray_main: builtin
+  raz :: heap_reallocarray.c:15 <- reallocarray_main: analysed, cache entry 5
+  reallocarray_main: analysed, cache entry 6
+Heap calls, not stored by memexec: raz 1, reallocarray_main 1.
+Hits not made because memexec does not store the heap calls: none.
+raz, start:
+  joined: g ∈ {{ &__malloc_reallocarray_main_l14_1[0] }}
+          z ∈ {0}
+          n ∈ {4}
+          __malloc_reallocarray_main_l14_1[0] ∈ {1}
+                                          [1] ∈ UNINITIALIZED
+  raz :: heap_reallocarray.c:15 <- reallocarray_main: g ∈
+                                                       {{ &__malloc_reallocarray_main_l14_1[0] }}
+                                                      z ∈ {0}
+                                                      n ∈ {4}
+                                                      __malloc_reallocarray_main_l14_1
+                                                      [0] ∈ {1}
+                                                      [1] ∈ UNINITIALIZED
+raz, before heap_reallocarray.c:12 `;` (RA):
+  joined: g ∈ {{ &__realloc_raz_l12_1[0] }}
+          z ∈ {4}
+          n ∈ {4}
+          __realloc_raz_l12_1[0] ∈ {1}
+                             [1..7] ∈ UNINITIALIZED
+  raz :: heap_reallocarray.c:15 <- reallocarray_main: g ∈
+                                                       {{ &__realloc_raz_l12_1[0] }}
+                                                      z ∈ {4}
+                                                      n ∈ {4}
+                                                      __realloc_raz_l12_1
+                                                      [0] ∈ {1}
+                                                      [1..7] ∈ UNINITIALIZED
+raz, after heap_reallocarray.c:12 `return;`:
+  joined: g ∈ {{ &__realloc_raz_l12_1[0] }}
+          z ∈ {0}
+          n ∈ {4}
+          __realloc_raz_l12_1[0] ∈ {1}
+                             [1..7] ∈ UNINITIALIZED
+  raz :: heap_reallocarray.c:15 <- reallocarray_main: g ∈
+                                                       {{ &__realloc_raz_l12_1[0] }}
+                                                      z ∈ {0}
+                                                      n ∈ {4}
+                                                      __realloc_raz_l12_1
+                                                      [0] ∈ {1}
+                                                      [1..7] ∈ UNINITIALIZED
+reallocarray_main, start:
+  joined: g ∈ {0}
+          z ∈ {0}
+  reallocarray_main: g ∈ {0}
+                     z ∈ {0}
+reallocarray_main, before heap_reallocarray.c:15 `;` (E):
+  joined: g ∈ {{ &__realloc_raz_l12_1[0] }}
+          z ∈ {0}
+          __realloc_raz_l12_1[0] ∈ {1}
+                             [1..7] ∈ UNINITIALIZED
+  reallocarray_main: g ∈ {{ &__realloc_raz_l12_1[0] }}
+                     z ∈ {0}
+                     __realloc_raz_l12_1[0] ∈ {1}
+                                        [1..7] ∈ UNINITIALIZED
+reallocarray_main, after heap_reallocarray.c:16 `return;`:
+  joined: g ∈ {{ &__realloc_raz_l12_1[0] }}
+          z ∈ {0}
+          __realloc_raz_l12_1[0] ∈ {1}
+                             [1..7] ∈ UNINITIALIZED
+  reallocarray_main: g ∈ {{ &__realloc_raz_l12_1[0] }}
+                     z ∈ {0}
+                     __realloc_raz_l12_1[0] ∈ {1}
+                                        [1..7] ∈ UNINITIALIZED
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 87 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 30 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 30 points.
+Filtered requests that reject one callstack: 0.
+Requests made: 147; reported by the trap: 147, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 29 requests, 55 reads of the legacy store in them, 57 reads outside any request.
+  with -eva-hit-log: 29 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 15 requests
+    statistics: 13 requests
+    summary: 1 request
+Statuses of the properties: those of the run without memexec, for 112 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 0.8462, function coverage 1.0000, 0 alarms, those of the run without memexec.

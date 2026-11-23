@@ -73,12 +73,19 @@
     heap effect is not a heap call. With memexec, the hits that memexec
     no longer makes are counted per function: the statistic
     [hit-log-lost-hits] counts the calls that it would have reused if it
-    stored the heap calls, and [hit-log-lost-hits-below] those of these calls
-    made during the analysis of such a call, which would have been below a
-    hit. The statistic [hit-log-heap-calls] counts the heap calls.
+    stored the heap calls, except those made during the analysis of such a
+    call, which would have been below a hit: [hit-log-lost-hits-below]
+    counts these. A call is counted in one of the two only. The statistic
+    [hit-log-heap-calls] counts the heap calls.
+
+    A heap call for which InOut gives no footprint, as when the results of
+    its function are not saved, has no full states: its body points are
+    unavailable. A heap call whose footprint contains an unknown set of
+    blocks keeps its full states, which need no footprint, and its body
+    points are answered by them.
 
     The body points of a function are unavailable when one of its calls has
-    an unknown footprint, was interrupted, or is a recursive call analysed by
+    an unknown footprint (for a heap call, no footprint at all), was interrupted, or is a recursive call analysed by
     its body: every state request on them answers [`Top], as for a function
     whose results are not saved. On the callstack of a call below a hit that
     crosses a recursion, the start and the points of the body of the call

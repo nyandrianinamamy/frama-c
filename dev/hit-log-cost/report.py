@@ -902,8 +902,9 @@ def tables(args):
         "in the timed runs with recording on (distinct values across the runs "
         "separated by /): hit-log-heap-calls, the heap calls; "
         "hit-log-lost-hits, the calls that memexec would have reused if it "
-        "stored the heap calls; hit-log-lost-hits-below, those of these calls "
-        "made during the analysis of such a call; memexec-hits and "
+        "stored the heap calls, except those made during the analysis of such "
+        "a call; hit-log-lost-hits-below, these, counted apart (a call is in "
+        "one of the two only); memexec-hits and "
         "memexec-misses. A build without these statistics shows 0.\n"
     )
     rows = []
@@ -929,7 +930,7 @@ def tables(args):
             "n",
             "heap calls",
             "hits not made",
-            "of which during one",
+            "hits not made below one",
             "memexec hits",
             "memexec misses",
         ],
