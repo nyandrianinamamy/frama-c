@@ -369,8 +369,9 @@ type exit =
    which it is made, and overall; how the call ends, set when its body has
    been analysed; for a builtin, the number of states it returns; whether
    it is refused: it calls, or a call nested in it calls, a builtin that
-   reads every allocated block; and whether it is a hit on the entry of a
-   heap call, or a call nested in it is, see [record_hit]. *)
+   reads every allocated block; whether it is a hit on the entry of a heap
+   call, or a call nested in it is, see [record_hit]; and whether its entry,
+   or the entry of a call nested in it, holds full states, see [storage]. *)
 type frame = {
   mutable calls:
     (Cil_types.stmt * Cil_types.kernel_function * Cvalue.Model.t * int option
@@ -387,6 +388,7 @@ type frame = {
   mutable outputs: int option;
   mutable refused: bool;
   mutable heap_hit: bool;
+  mutable full_below: bool;
 }
 
 (* The parts of the recording used only while the analysis runs. They are
@@ -1091,6 +1093,10 @@ let record_analysed_call ~id callstack ~automaton ~fired ~footprint ~start
         with Unknown_footprint -> unknown ()
   in
   if inner = Unknown then mark store.body_unavailable kf;
+  begin match inner, frame with
+    | Full _, Some frame -> frame.full_below <- true
+    | (Unknown | Known _ | Full _), _ -> ()
+  end;
   let entry = {
     heap;
     inner;
@@ -1175,11 +1181,16 @@ let removals_and_sweeps effects =
 (* A heap call whose effects are removals and sweeps only, which is not
    refused and whose entry holds an Inner part, is stored by memexec, with
    its sweeps from the start of its body to its return. The sweeps of the
-   automatic release at the end of the call go to its caller. *)
+   automatic release at the end of the call go to its caller. A call whose
+   entry, or the entry of a call nested in it, holds full states is not
+   stored: the full states of an entry answer the requests on the callstack
+   of its analysed call only, and a call nested in a hit would have none. A
+   heap call can keep full states while the heap call that makes it does
+   not, as when its footprint is unknown at one of its points only. *)
 let storage () =
   match current_frame () with
   | None -> Plain
-  | Some frame when frame.heap_hit -> Refused
+  | Some frame when frame.heap_hit || frame.full_below -> Refused
   | Some { effects = []; _ } -> Plain
   | Some frame ->
     let removed, swept, mutations, other = removals_and_sweeps frame.effects in
@@ -1215,7 +1226,7 @@ let call callstack ~start f =
     site_sweeps = Stmt_table.create 1; last = None;
     released = Stmt_table.create 1; withdrawn_at = Stmt_table.create 1;
     withdrawn = Base.Hptset.empty; exit = Unset; outputs = None;
-    refused = false; heap_hit = false;
+    refused = false; heap_hit = false; full_below = false;
   } in
   running.frames <- frame :: running.frames;
   let finally () =
@@ -1228,6 +1239,7 @@ let call callstack ~start f =
         caller.effects <- Through (site, kf, frame.effects) :: caller.effects;
       if frame.refused then caller.refused <- true;
       if frame.heap_hit then caller.heap_hit <- true;
+      if frame.full_below then caller.full_below <- true;
       add_withdrawn caller site frame.withdrawn;
       add_evaluation caller site frame;
       let call = site, kf, start, frame.used, frame.renaming in

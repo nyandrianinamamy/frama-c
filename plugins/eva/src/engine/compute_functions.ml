@@ -45,10 +45,11 @@ module Make (Engine: Engine_sig.S) = struct
   module MemExec = Mem_exec.Make (Engine.Val) (Engine.Dom)
 
   (* With -eva-hit-log, the calls that memexec would store but refuses, see
-     [Hit_log.storage]: the heap calls other than those that free, and the
-     calls that enclose a hit on the entry of a heap call. They are never
-     reused: they only tell which calls memexec would have reused if it
-     stored them, with the matching of memexec without the snapshot. *)
+     [Hit_log.storage]: the heap calls other than those that free, the calls
+     that enclose a hit on the entry of a heap call, and the calls whose
+     entry, or the entry of a call nested in them, holds full states. They
+     are never reused: they only tell which calls memexec would have reused
+     if it stored them, with the matching of memexec without the snapshot. *)
   module Refused = Mem_exec.Make (Engine.Val) (Engine.Dom)
 
   (* The results of [call] in [init_state] from the cache entry [i], whose
@@ -121,17 +122,17 @@ module Make (Engine: Engine_sig.S) = struct
         if call_result.Engine_sig.cacheable = Eval.Cacheable
         then
           let final_states = call_result.states in
-          let refuse () =
-            ignore
-              (Refused.store_computed_call ~snapshot:false
-                 call.kf init_state args final_states)
-          in
           if not record
           then
             ignore
               (MemExec.store_computed_call ~snapshot:false
                  call.kf init_state memexec_args final_states)
           else
+            let refuse () =
+              ignore
+                (Refused.store_computed_call ~snapshot:false
+                   call.kf init_state args final_states)
+            in
             match Hit_log.storage () with
             | Refused -> refuse ()
             | Plain ->

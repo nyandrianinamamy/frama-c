@@ -1606,11 +1606,13 @@ def write_summary(outdir, runs, results, elapsed, unread=()):
             if int(h[1]) or int(h[2]):
                 lost_rows.append([o["name"], h[1], h[2]])
     emit(
-        "Heap calls, which memexec does not store, those of them whose "
+        "Heap calls, of which memexec stores only those whose heap effects "
+        "are removals and sweeps; those of them whose "
         "cache entries hold full states, which answer the requests at the "
-        "points of their bodies instead of the rule, and the calls analysed "
+        "points of their bodies instead of the rule; and the calls analysed "
         "by their body that memexec would have answered from the entry of a "
-        "heap call, as Eva counts them in its statistics hit-log-heap-calls, "
+        "heap call that it does not store, as Eva counts them in its "
+        "statistics hit-log-heap-calls, "
         "hit-log-full-states, hit-log-lost-hits and hit-log-lost-hits-below. "
         "The last column counts those made during the analysis of a call "
         "that would have been a hit: without the change, they would have "

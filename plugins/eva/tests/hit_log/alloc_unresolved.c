@@ -17,8 +17,8 @@
    which block of one matches which block of the other, and the answers of
    the run with memexec, without recording, that hold these blocks are
    unresolved. The summary records them. With -eva-hit-log, release is a
-   heap call, which memexec does not store: the run creates one block, as
-   without memexec, and its answers are equal to the reference. */
+   call that frees, and a hit on it removes the block: the run creates one
+   block, as without memexec, and its answers are equal to the reference. */
 
 #include <stdlib.h>
 

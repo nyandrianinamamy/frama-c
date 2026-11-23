@@ -269,8 +269,9 @@ val builtin_outputs: int -> unit
     - [Heap heap]: the call frees, see {!Mem_exec.heap}: a heap call whose
       heap effects are removals and sweeps only, which is not refused and
       whose entry holds an Inner part. Its validity mutations are none;
-    - [Refused]: any other heap call, and any call that encloses a hit on
-      the entry of a heap call. Memexec does not store it. *)
+    - [Refused]: any other heap call, any call that encloses a hit on the
+      entry of a heap call, and any call whose entry, or the entry of a call
+      nested in it, holds full states. Memexec does not store it. *)
 type storage =
   | Plain
   | Heap of Mem_exec.heap

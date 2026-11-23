@@ -3,8 +3,8 @@
    STDOPT: +"-eva-no-alloc-returns-null -main lost_main -eva-slevel 10"
 */
 
-/* #119: the calls that are not heap calls, and the hits that memexec no
-   longer makes. */
+/* #119: the calls that are not heap calls; #126: a call that frees, which
+   memexec stores again. */
 
 #include <stdlib.h>
 char *g; int z;
@@ -23,10 +23,10 @@ void write_main(void) {
 
 /* release frees the block of g. The two calls of malloc come from one call
    site: the second one reuses the block that release freed, so that the two
-   calls of release have the same inputs. Before #119, memexec stored the
-   first call, since free does not prevent it, and the second call was a
-   hit; the call of free in its body was a call below a hit. release is a
-   heap call: memexec no longer stores it, and the second call is analysed. */
+   calls of release have the same inputs. From #119 to #126, memexec did not
+   store release, a heap call, and the second call was analysed. Since #126,
+   release is a call that frees: memexec stores it, and the second call is a
+   hit, which removes the block of g and sweeps the pointers to it. */
 void release(void) { free(g); g = 0; R: ; }
 void lost_main(void) {
   for (int i = 0; i < 2; i++) { g = malloc(4); release(); N: ; }
