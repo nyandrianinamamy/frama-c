@@ -53,10 +53,11 @@ module Make (Engine: Engine_sig.S) = struct
       List.map (fun {avalue} -> Eval.value_assigned avalue) call.arguments
     in
     let record = Hit_log.enabled () in
-    (* With -eva-hit-log, the actual arguments beyond the formals of a
-       variadic function, which -no-variadic-translation keeps, are arguments
-       of the call for memexec: it compares their values, and the snapshot
-       takes the blocks they point to. *)
+    (* With -eva-hit-log, the actual arguments beyond the formals are
+       arguments of the call for memexec: it compares their values, and the
+       snapshot takes the blocks they point to. A call has such arguments
+       through a pointer to a function type with more parameters, or to a
+       variadic function under -no-variadic-translation. *)
     let memexec_args =
       if record && call.rest <> []
       then
