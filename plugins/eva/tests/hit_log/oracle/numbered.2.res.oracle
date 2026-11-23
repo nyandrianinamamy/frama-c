@@ -14,30 +14,17 @@ Cache entry 7, sum:
     #0: [0..31] {1}, [32..63] {2}, [64..34359738367] BOTVALUE
   round trip: equal
   new numbered form
-Cache entry 8, sum:
-  numbered blocks:
-    #0: __malloc_renamed_main_l69_1, argument 0, in the key; strong, record Variable [0..63--63], type int [2], malloc
-  arguments: {{ &#0 }}
-  key: p, __retres, #0
-  start, clobbered set none:
-    p: [0..31] {{ &#0 }}
-    #0: [0..31] {1}, [32..63] {2}, [64..34359738367] BOTVALUE
-  exit 1, clobbered set none:
-    p: [0..31] {{ &#0 }}
-    __retres: [0..31] {3}
-    \result<sum>: [0..31] {3}
-    #0: [0..31] {1}, [32..63] {2}, [64..34359738367] BOTVALUE
-  round trip: equal
-  same numbered form as the cache entry 7
 Calls:
   malloc :: numbered.c:67 <- renamed_main: builtin
   malloc :: numbered.c:69 <- renamed_main: builtin
   sum :: numbered.c:71 <- renamed_main: analysed, cache entry 7
-  sum :: numbered.c:72 <- renamed_main: analysed, cache entry 8
-  renamed_main: analysed, cache entry 9
+  sum :: numbered.c:72 <- renamed_main: hit of cache entry 7
+  renamed_main: analysed, cache entry 8
 Heap calls, not stored by memexec: renamed_main 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
+Hits against the analysed call of their cache entry:
+  sum :: numbered.c:72 <- renamed_main, hit of cache entry 7, against sum :: numbered.c:71 <- renamed_main: differs on p, r_sum, at 5 points.
 Initial state: equal.
 Differences with the run without memexec:
 Answers: 457 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
@@ -54,4 +41,4 @@ Passes after the iteration:
 Statuses of the properties: those of the run without memexec, for 319 properties.
 Alarms: 0, of which 0 not proven, those of the run without memexec.
 Summary: statement coverage 1.0000, function coverage 0.1538, 0 alarms, those of the run without memexec.
-Stored entries: 2; with a numbered block: 2; without numbered form: 0; round trips that differ: 0; placeholders in the entries given by memexec: 0.
+Stored entries: 1; with a numbered block: 1; without numbered form: 0; round trips that differ: 0; placeholders in the entries given by memexec: 0.

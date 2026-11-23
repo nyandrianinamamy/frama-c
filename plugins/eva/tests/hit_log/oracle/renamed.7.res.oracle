@@ -4,12 +4,13 @@ Calls:
   malloc :: renamed.c:142 <- below_main: builtin
   inner :: renamed.c:136 <- outer :: renamed.c:144 <- below_main: analysed, cache entry 11
   outer :: renamed.c:144 <- below_main: analysed, cache entry 12
-  inner :: renamed.c:136 <- outer :: renamed.c:145 <- below_main: analysed, cache entry 13
-  outer :: renamed.c:145 <- below_main: analysed, cache entry 14
-  below_main: analysed, cache entry 15
+  outer :: renamed.c:145 <- below_main: hit of cache entry 12
+  below_main: analysed, cache entry 13
 Heap calls, not stored by memexec: below_main 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
+Calls below a hit:
+  inner :: renamed.c:136 <- outer :: renamed.c:145 <- below_main
 inner, start:
   joined: r_get[0..3] ∈ {0}
           r_cmp[0..3] ∈ {0}
@@ -457,6 +458,8 @@ outer, after renamed.c:136 `return tmp;`:
                                         b ∈ {{ &__malloc_below_main_l142_1 }}
                                         __malloc_below_main_l140_1 ∈ {3}
                                         __malloc_below_main_l142_1 ∈ {3}
+Hits against the analysed call of their cache entry:
+  outer :: renamed.c:145 <- below_main, hit of cache entry 12, against outer :: renamed.c:144 <- below_main: differs on p, r_outer, at 5 points.
 Initial state: equal.
 Differences with the run without memexec:
 Answers: 685 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
@@ -470,6 +473,7 @@ Passes after the iteration:
     unreachable statements: 153 requests
     statistics: 12 requests
     summary: 2 requests
+  requests of the passes on a callstack below a hit, with -eva-hit-log: 0.
 Statuses of the properties: those of the run without memexec, for 126 properties.
 Alarms: 0, of which 0 not proven, those of the run without memexec.
 Summary: statement coverage 1.0000, function coverage 0.1500, 0 alarms, those of the run without memexec.

@@ -9,7 +9,7 @@
 */
 
 /* #124: numbered.ml prints the numbered form of each stored entry and checks
-   its round trip; memexec still compares the blocks by their identity. */
+   its round trip. #125: memexec looks the calls up on this form. */
 
 #include <stdlib.h>
 #include <string.h>
@@ -59,7 +59,7 @@ void fragments_main(void) {
 }
 
 /* Two calls on two blocks of two sites, with the same strength, extent,
-   type, kind and content. */
+   type, kind and content: the second call is a hit. */
 int sum(int *p) { return p[0] + p[1]; }
 
 int r_sum[2];

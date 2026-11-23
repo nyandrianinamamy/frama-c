@@ -8,6 +8,10 @@ Calls:
 Heap calls, not stored by memexec: type_main 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
+Calls that memexec does not reuse because the snapshot of a block they mention differs:
+  cmp_void 1.
+Most results that memexec keeps at once for one input state of these functions:
+  cmp_void 2.
 cmp_void, start:
   joined: r_get[0..3] ∈ {0}
           r_cmp[0..3] ∈ {0}

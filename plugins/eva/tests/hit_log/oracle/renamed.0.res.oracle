@@ -3,8 +3,8 @@ Calls:
   malloc :: renamed.c:31 <- equal_main: builtin
   malloc :: renamed.c:33 <- equal_main: builtin
   get :: renamed.c:35 <- equal_main: analysed, cache entry 7
-  get :: renamed.c:36 <- equal_main: analysed, cache entry 8
-  equal_main: analysed, cache entry 9
+  get :: renamed.c:36 <- equal_main: hit of cache entry 7
+  equal_main: analysed, cache entry 8
 Heap calls, not stored by memexec: equal_main 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
@@ -158,6 +158,8 @@ get, after renamed.c:25 `return __retres;`:
                                      __retres ∈ {7}
                                      __malloc_equal_main_l31_1 ∈ {7}
                                      __malloc_equal_main_l33_1 ∈ {7}
+Hits against the analysed call of their cache entry:
+  get :: renamed.c:36 <- equal_main, hit of cache entry 7, against get :: renamed.c:35 <- equal_main: differs on p, r_get, at 7 points.
 Initial state: equal.
 Differences with the run without memexec:
 Answers: 675 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.

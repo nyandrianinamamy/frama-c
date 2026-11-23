@@ -8,10 +8,6 @@ Calls:
 Heap calls, not stored by memexec: key_block_main 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
-Calls that memexec does not reuse because the snapshot of a block they mention differs:
-  check_init 1.
-Most results that memexec keeps at once for one input state of these functions:
-  check_init 1.
 Initial state: equal.
 Differences with the run without memexec:
 Answers: 84 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.

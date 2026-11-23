@@ -4,11 +4,11 @@ Calls:
   malloc :: renamed.c:186 <- differ_main: builtin
   malloc :: renamed.c:188 <- differ_main: builtin
   inner :: renamed.c:190 <- differ_main: analysed, cache entry 13
-  inner :: renamed.c:136 <- outer :: renamed.c:191 <- differ_main: analysed, cache entry 14
-  outer :: renamed.c:191 <- differ_main: analysed, cache entry 15
-  inner :: renamed.c:136 <- outer :: renamed.c:192 <- differ_main: analysed, cache entry 16
-  outer :: renamed.c:192 <- differ_main: analysed, cache entry 17
-  differ_main: analysed, cache entry 18
+  inner :: renamed.c:136 <- outer :: renamed.c:191 <- differ_main: hit of cache entry 13
+  outer :: renamed.c:191 <- differ_main: analysed, cache entry 14
+  inner :: renamed.c:136 <- outer :: renamed.c:192 <- differ_main: analysed, cache entry 15
+  outer :: renamed.c:192 <- differ_main: analysed, cache entry 16
+  differ_main: analysed, cache entry 17
 Heap calls, not stored by memexec: differ_main 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
@@ -608,6 +608,8 @@ outer, after renamed.c:136 `return tmp;`:
                                          __malloc_differ_main_l184_1 ∈ {3}
                                          __malloc_differ_main_l186_1 ∈ {3}
                                          __malloc_differ_main_l188_1 ∈ {4}
+Hits against the analysed call of their cache entry:
+  inner :: renamed.c:136 <- outer :: renamed.c:191 <- differ_main, hit of cache entry 13, against inner :: renamed.c:190 <- differ_main: differs on p, r_inner, tmp, at 7 points.
 Initial state: equal.
 Differences with the run without memexec:
 Answers: 698 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.

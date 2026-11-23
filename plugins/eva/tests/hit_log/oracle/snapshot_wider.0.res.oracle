@@ -19,10 +19,6 @@ Calls:
 Heap calls, not stored by memexec: wider_main 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
-Calls that memexec does not reuse because the snapshot of a block they mention differs:
-  keep_one 1.
-Most results that memexec keeps at once for one input state of these functions:
-  keep_one 1.
 keep_one, start:
   joined: x ∈ {0}
           r_one[0] ∈ {0; 7}

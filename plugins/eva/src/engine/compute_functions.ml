@@ -38,8 +38,10 @@ module Make (Engine: Engine_sig.S) = struct
 
   (* ----- Mem Exec cache --------------------------------------------------- *)
 
-  (* With -eva-hit-log, a call is stored and matched with the snapshot of
-     the allocated blocks it mentions, see [Mem_exec]. *)
+  (* With -eva-hit-log, a call that mentions an allocated block is stored
+     and matched in numbered form, with the snapshot of the blocks it
+     mentions, and reused on other blocks through a renaming, see
+     [Mem_exec]. *)
   module MemExec = Mem_exec.Make (Engine.Val) (Engine.Dom)
 
   (* With -eva-hit-log, the heap calls that memexec would store, see
@@ -88,7 +90,7 @@ module Make (Engine: Engine_sig.S) = struct
               call.kf init_state memexec_args final_states
       in
       call_result
-    | Some (states, i) ->
+    | Some (states, i, renaming) ->
       apply_call_hooks call init_state `Reuse;
       (* Evaluate the preconditions of kf, to update the statuses
          at this call. *)
@@ -111,11 +113,11 @@ module Make (Engine: Engine_sig.S) = struct
           | `Bottom -> Cvalue.Model.bottom
           | `Value state -> Engine.Dom.get_cvalue_or_top state
         in
-        Hit_log.record_hit ~id:i ~renaming:[] call.callstack ~start ~body_entry
+        Hit_log.record_hit ~id:i ~renaming call.callstack ~start ~body_entry
       end;
       Self.feedback ~current:true ~mkey:Log_key.progress
         "Reusing old results for call to %a" Kernel_function.pretty call.kf;
-      let substitution = Base.substitution_from_list [] in
+      let substitution = Base.substitution_from_list renaming in
       apply_call_results_hooks call init_state (`Reuse (i, substitution));
       (* call can be cached since it was cached once *)
       Engine_sig.{ states; cacheable = Cacheable; kind = `Body }

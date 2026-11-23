@@ -4,14 +4,15 @@ Calls:
   malloc :: renamed.c:154 <- composed_main: builtin
   malloc :: renamed.c:156 <- composed_main: builtin
   inner :: renamed.c:158 <- composed_main: analysed, cache entry 13
-  inner :: renamed.c:136 <- outer :: renamed.c:159 <- composed_main: analysed, cache entry 14
-  outer :: renamed.c:159 <- composed_main: analysed, cache entry 15
-  inner :: renamed.c:136 <- outer :: renamed.c:160 <- composed_main: analysed, cache entry 16
-  outer :: renamed.c:160 <- composed_main: analysed, cache entry 17
-  composed_main: analysed, cache entry 18
+  inner :: renamed.c:136 <- outer :: renamed.c:159 <- composed_main: hit of cache entry 13
+  outer :: renamed.c:159 <- composed_main: analysed, cache entry 14
+  outer :: renamed.c:160 <- composed_main: hit of cache entry 14
+  composed_main: analysed, cache entry 15
 Heap calls, not stored by memexec: composed_main 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
+Calls below a hit:
+  inner :: renamed.c:136 <- outer :: renamed.c:160 <- composed_main
 inner, start:
   joined: r_get[0..3] ∈ {0}
           r_cmp[0..3] ∈ {0}
@@ -509,6 +510,9 @@ outer, after renamed.c:136 `return tmp;`:
                                             ∈ {3}
                                            __malloc_composed_main_l156_1
                                             ∈ {3}
+Hits against the analysed call of their cache entry:
+  inner :: renamed.c:136 <- outer :: renamed.c:159 <- composed_main, hit of cache entry 13, against inner :: renamed.c:158 <- composed_main: differs on p, r_inner, tmp, at 7 points.
+  outer :: renamed.c:160 <- composed_main, hit of cache entry 14, against outer :: renamed.c:159 <- composed_main: differs on p, r_outer, at 5 points.
 Initial state: equal.
 Differences with the run without memexec:
 Answers: 698 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
@@ -522,6 +526,7 @@ Passes after the iteration:
     unreachable statements: 153 requests
     statistics: 15 requests
     summary: 2 requests
+  requests of the passes on a callstack below a hit, with -eva-hit-log: 0.
 Statuses of the properties: those of the run without memexec, for 126 properties.
 Alarms: 0, of which 0 not proven, those of the run without memexec.
 Summary: statement coverage 1.0000, function coverage 0.1500, 0 alarms, those of the run without memexec.

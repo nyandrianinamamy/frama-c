@@ -17,7 +17,7 @@ Hits not made because memexec does not store the heap calls: none.
 Calls that memexec does not reuse because the snapshot of a block they mention differs:
   cmp 1.
 Most results that memexec keeps at once for one input state of these functions:
-  cmp 1.
+  cmp 2.
 cmp, start:
   joined: gp ∈ {0}
           p ∈ {{ &__malloc_resized_main_l53_1[6] }}

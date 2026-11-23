@@ -31,7 +31,7 @@ Hits not made because memexec does not store the heap calls: none.
 Calls that memexec does not reuse because the snapshot of a block they mention differs:
   keep_g 6.
 Most results that memexec keeps at once for one input state of these functions:
-  keep_g 1.
+  keep_g 7.
 keep_g, start:
   joined: p ∈ {{ &__malloc_grow_main_l21_1[0] }}
           r_grow[0..6] ∈ {0; 7}

@@ -3,12 +3,12 @@ Calls:
   malloc :: renamed.c:101 <- compare_main: builtin
   malloc :: renamed.c:102 <- compare_main: builtin
   same :: renamed.c:103 <- compare_main: analysed, cache entry 15
-  same :: renamed.c:104 <- compare_main: analysed, cache entry 16
-  same :: renamed.c:105 <- compare_main: analysed, cache entry 17
-  same :: renamed.c:106 <- compare_main: analysed, cache entry 18
-  same_global :: renamed.c:108 <- compare_main: analysed, cache entry 19
-  same_global :: renamed.c:110 <- compare_main: analysed, cache entry 20
-  compare_main: analysed, cache entry 21
+  same :: renamed.c:104 <- compare_main: hit of cache entry 15
+  same :: renamed.c:105 <- compare_main: analysed, cache entry 16
+  same :: renamed.c:106 <- compare_main: hit of cache entry 16
+  same_global :: renamed.c:108 <- compare_main: analysed, cache entry 17
+  same_global :: renamed.c:110 <- compare_main: hit of cache entry 17
+  compare_main: analysed, cache entry 18
 Heap calls, not stored by memexec: compare_main 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
@@ -568,6 +568,10 @@ same_global, after renamed.c:97 `return __retres;`:
                                                  ∈ UNINITIALIZED
                                                 __malloc_compare_main_l102_1
                                                  ∈ UNINITIALIZED
+Hits against the analysed call of their cache entry:
+  same :: renamed.c:104 <- compare_main, hit of cache entry 15, against same :: renamed.c:103 <- compare_main: differs on p, q, r_same, at 7 points.
+  same :: renamed.c:106 <- compare_main, hit of cache entry 16, against same :: renamed.c:105 <- compare_main: differs on p, q, at 7 points.
+  same_global :: renamed.c:110 <- compare_main, hit of cache entry 17, against same_global :: renamed.c:108 <- compare_main: differs on gp, q, r_same_global, at 7 points.
 Initial state: equal.
 Differences with the run without memexec:
 Answers: 711 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
