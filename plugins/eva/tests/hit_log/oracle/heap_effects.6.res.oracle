@@ -1,6 +1,6 @@
 [kernel] Parsing heap_effects.c (with preprocessing)
 Heap effects received by widen_main:
-  none
+  heap_effects.c:87, in malloc: allocation of __malloc_w_widen_main_l87_1: policy fresh_weak, stack malloc :: heap_effects.c:87 <- widen_main, no rank, size {4}, type int, created, suffix malloc :: heap_effects.c:87
 Calls:
   malloc :: heap_effects.c:87 <- widen_main: builtin
   widen_main: analysed, cache entry 3
@@ -22,4 +22,4 @@ Passes after the iteration:
 Statuses of the properties: those of the run without memexec, for 378 properties.
 Alarms: 0, of which 0 not proven, those of the run without memexec.
 Summary: statement coverage 1.0000, function coverage 0.0625, 0 alarms, those of the run without memexec.
-Heap effects emitted in the run: 0.
+Heap effects emitted in the run: 1.

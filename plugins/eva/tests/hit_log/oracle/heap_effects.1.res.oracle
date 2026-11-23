@@ -1,8 +1,10 @@
 [kernel] Parsing heap_effects.c (with preprocessing)
 Heap effects received by two :: heap_effects.c:39 <- two_states_main:
-  none
+  heap_effects.c:38, in malloc: allocation of __malloc_two_l38_1: policy by_stack, stack malloc :: heap_effects.c:38 <- two :: heap_effects.c:39 <- two_states_main, rank 0, size {4}, type char, created, suffix malloc :: heap_effects.c:38
+  heap_effects.c:38, in malloc: allocation of __malloc_two_l38_1: policy by_stack, stack malloc :: heap_effects.c:38 <- two :: heap_effects.c:39 <- two_states_main, rank 0, size {4}, type char, reused, suffix malloc :: heap_effects.c:38
 Heap effects received by two_states_main:
-  none
+  heap_effects.c:39, in two: allocation of __malloc_two_l38_1: policy by_stack, stack malloc :: heap_effects.c:38 <- two :: heap_effects.c:39 <- two_states_main, rank 0, size {4}, type char, created, suffix malloc :: heap_effects.c:38 <- two :: heap_effects.c:39
+  heap_effects.c:39, in two: allocation of __malloc_two_l38_1: policy by_stack, stack malloc :: heap_effects.c:38 <- two :: heap_effects.c:39 <- two_states_main, rank 0, size {4}, type char, reused, suffix malloc :: heap_effects.c:38 <- two :: heap_effects.c:39
 Calls:
   Frama_C_interval :: heap_effects.c:39 <- two_states_main: specification
   malloc :: heap_effects.c:38 <- two :: heap_effects.c:39 <- two_states_main: builtin
@@ -27,4 +29,4 @@ Passes after the iteration:
 Statuses of the properties: those of the run without memexec, for 377 properties.
 Alarms: 0, of which 0 not proven, those of the run without memexec.
 Summary: statement coverage 1.0000, function coverage 0.1250, 0 alarms, those of the run without memexec.
-Heap effects emitted in the run: 0.
+Heap effects emitted in the run: 2.

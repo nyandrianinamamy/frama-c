@@ -1,12 +1,26 @@
 [kernel] Parsing heap_effects.c (with preprocessing)
 Heap effects received by strong_free :: heap_effects.c:61 <- free_main:
-  none
+  heap_effects.c:49, in malloc: allocation of __malloc_strong_free_l49_1: policy by_stack, stack malloc :: heap_effects.c:49 <- strong_free :: heap_effects.c:61 <- free_main, rank 0, size {4}, type char, created, suffix malloc :: heap_effects.c:49
+  heap_effects.c:49, in free: removal of __malloc_strong_free_l49_1
+  heap_effects.c:49, in free: sweep of __malloc_strong_free_l49_1, exact
 Heap effects received by weak_free :: heap_effects.c:61 <- free_main:
-  none
+  heap_effects.c:52, in malloc: allocation of __malloc_w_weak_free_l52_1: policy fresh_weak, stack malloc :: heap_effects.c:52 <- weak_free :: heap_effects.c:61 <- free_main, no rank, size {4}, type char, created, suffix malloc :: heap_effects.c:52
+  heap_effects.c:53, in free: sweep of __malloc_w_weak_free_l52_1, joined
 Heap effects received by two_targets :: heap_effects.c:61 <- free_main:
-  none
+  heap_effects.c:56, in malloc: allocation of __malloc_two_targets_l56_1: policy by_stack, stack malloc :: heap_effects.c:56 <- two_targets :: heap_effects.c:61 <- free_main, rank 0, size {4}, type char, created, suffix malloc :: heap_effects.c:56
+  heap_effects.c:57, in malloc: allocation of __malloc_two_targets_l57_1: policy by_stack, stack malloc :: heap_effects.c:57 <- two_targets :: heap_effects.c:61 <- free_main, rank 0, size {4}, type char, created, suffix malloc :: heap_effects.c:57
+  heap_effects.c:59, in free: sweep of __malloc_two_targets_l56_1, joined
+  heap_effects.c:59, in free: sweep of __malloc_two_targets_l57_1, joined
 Heap effects received by free_main:
-  none
+  heap_effects.c:61, in strong_free: allocation of __malloc_strong_free_l49_1: policy by_stack, stack malloc :: heap_effects.c:49 <- strong_free :: heap_effects.c:61 <- free_main, rank 0, size {4}, type char, created, suffix malloc :: heap_effects.c:49 <- strong_free :: heap_effects.c:61
+  heap_effects.c:61, in strong_free: removal of __malloc_strong_free_l49_1
+  heap_effects.c:61, in strong_free: sweep of __malloc_strong_free_l49_1, exact
+  heap_effects.c:61, in weak_free: allocation of __malloc_w_weak_free_l52_1: policy fresh_weak, stack malloc :: heap_effects.c:52 <- weak_free :: heap_effects.c:61 <- free_main, no rank, size {4}, type char, created, suffix malloc :: heap_effects.c:52 <- weak_free :: heap_effects.c:61
+  heap_effects.c:61, in weak_free: sweep of __malloc_w_weak_free_l52_1, joined
+  heap_effects.c:61, in two_targets: allocation of __malloc_two_targets_l56_1: policy by_stack, stack malloc :: heap_effects.c:56 <- two_targets :: heap_effects.c:61 <- free_main, rank 0, size {4}, type char, created, suffix malloc :: heap_effects.c:56 <- two_targets :: heap_effects.c:61
+  heap_effects.c:61, in two_targets: allocation of __malloc_two_targets_l57_1: policy by_stack, stack malloc :: heap_effects.c:57 <- two_targets :: heap_effects.c:61 <- free_main, rank 0, size {4}, type char, created, suffix malloc :: heap_effects.c:57 <- two_targets :: heap_effects.c:61
+  heap_effects.c:61, in two_targets: sweep of __malloc_two_targets_l56_1, joined
+  heap_effects.c:61, in two_targets: sweep of __malloc_two_targets_l57_1, joined
 Calls:
   malloc :: heap_effects.c:49 <- strong_free :: heap_effects.c:61 <- free_main: builtin
   free :: heap_effects.c:49 <- strong_free :: heap_effects.c:61 <- free_main: builtin
@@ -39,4 +53,4 @@ Passes after the iteration:
 Statuses of the properties: those of the run without memexec, for 374 properties.
 Alarms: 0, of which 0 not proven, those of the run without memexec.
 Summary: statement coverage 1.0000, function coverage 0.2500, 0 alarms, those of the run without memexec.
-Heap effects emitted in the run: 0.
+Heap effects emitted in the run: 9.

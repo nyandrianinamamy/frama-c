@@ -1,12 +1,20 @@
 [kernel] Parsing heap_effects.c (with preprocessing)
 Heap effects received by m :: heap_effects.c:31 <- malloc_main:
-  none
+  heap_effects.c:28, in malloc: allocation of __malloc_m_l28_1: policy by_stack, stack malloc :: heap_effects.c:28 <- m :: heap_effects.c:31 <- malloc_main, rank 0, size {4}, type char, created, suffix malloc :: heap_effects.c:28
 Heap effects received by m :: heap_effects.c:31 <- malloc_main:
-  none
+  heap_effects.c:28, in malloc: allocation of __malloc_m_l28_1: policy by_stack, stack malloc :: heap_effects.c:28 <- m :: heap_effects.c:31 <- malloc_main, rank 0, size {8}, type char, reused, suffix malloc :: heap_effects.c:28
+  heap_effects.c:28, in malloc: validity mutation of __malloc_m_l28_1: record [31..31] to [31..63], type char [4] to char []
 Heap effects received by m :: heap_effects.c:31 <- malloc_main:
-  none
+  heap_effects.c:28, in malloc: allocation of __malloc_w_m_l28_1: policy by_stack, stack malloc :: heap_effects.c:28 <- m :: heap_effects.c:31 <- malloc_main, rank 0, size {12}, type char, reused, weakened, suffix malloc :: heap_effects.c:28
+  heap_effects.c:28, in malloc: validity mutation of __malloc_w_m_l28_1: record [31..63] to [31..95], weakened
 Heap effects received by malloc_main:
-  none
+  heap_effects.c:31, in m: allocation of __malloc_w_m_l28_1: policy by_stack, stack malloc :: heap_effects.c:28 <- m :: heap_effects.c:31 <- malloc_main, rank 0, size {4}, type char, created, suffix malloc :: heap_effects.c:28 <- m :: heap_effects.c:31
+  heap_effects.c:32, in free: removal of __malloc_w_m_l28_1
+  heap_effects.c:32, in free: sweep of __malloc_w_m_l28_1, exact
+  heap_effects.c:31, in m: allocation of __malloc_w_m_l28_1: policy by_stack, stack malloc :: heap_effects.c:28 <- m :: heap_effects.c:31 <- malloc_main, rank 0, size {8}, type char, reused, suffix malloc :: heap_effects.c:28 <- m :: heap_effects.c:31
+  heap_effects.c:31, in m: validity mutation of __malloc_w_m_l28_1: record [31..31] to [31..63], type char [4] to char []
+  heap_effects.c:31, in m: allocation of __malloc_w_m_l28_1: policy by_stack, stack malloc :: heap_effects.c:28 <- m :: heap_effects.c:31 <- malloc_main, rank 0, size {12}, type char, reused, weakened, suffix malloc :: heap_effects.c:28 <- m :: heap_effects.c:31
+  heap_effects.c:31, in m: validity mutation of __malloc_w_m_l28_1: record [31..63] to [31..95], weakened
 Calls:
   malloc :: heap_effects.c:28 <- m :: heap_effects.c:31 <- malloc_main: builtin
   m :: heap_effects.c:31 <- malloc_main: analysed, cache entry 9
@@ -34,4 +42,4 @@ Passes after the iteration:
 Statuses of the properties: those of the run without memexec, for 377 properties.
 Alarms: 0, of which 0 not proven, those of the run without memexec.
 Summary: statement coverage 1.0000, function coverage 0.1250, 0 alarms, those of the run without memexec.
-Heap effects emitted in the run: 0.
+Heap effects emitted in the run: 7.

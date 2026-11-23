@@ -1,6 +1,9 @@
 [kernel] Parsing heap_effects.c (with preprocessing)
 Heap effects received by calloc_realloc_main:
-  none
+  heap_effects.c:43, in calloc: allocation of __calloc_calloc_realloc_main_l43_1: policy by_stack, stack calloc :: heap_effects.c:43 <- calloc_realloc_main, rank 0, size {4}, type char, created, suffix calloc :: heap_effects.c:43
+  heap_effects.c:44, in realloc: allocation of __realloc_calloc_realloc_main_l44_1: policy by_stack, stack realloc :: heap_effects.c:44 <- calloc_realloc_main, rank 0, size {8}, type char, created, suffix realloc :: heap_effects.c:44
+  heap_effects.c:44, in realloc: removal of __calloc_calloc_realloc_main_l43_1
+  heap_effects.c:44, in realloc: sweep of __calloc_calloc_realloc_main_l43_1, exact
 Calls:
   calloc :: heap_effects.c:43 <- calloc_realloc_main: builtin
   realloc :: heap_effects.c:44 <- calloc_realloc_main: builtin
@@ -23,4 +26,4 @@ Passes after the iteration:
 Statuses of the properties: those of the run without memexec, for 377 properties.
 Alarms: 0, of which 0 not proven, those of the run without memexec.
 Summary: statement coverage 1.0000, function coverage 0.0625, 0 alarms, those of the run without memexec.
-Heap effects emitted in the run: 0.
+Heap effects emitted in the run: 4.

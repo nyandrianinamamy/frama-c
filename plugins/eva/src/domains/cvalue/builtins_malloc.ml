@@ -237,6 +237,17 @@ let guess_intended_malloc_type stack sizev constant_size =
     { min_bytes = size_min; max_bytes = size_max; elem_typ = Cil_const.charType;
       nb_elems = nb_elems Z.one }
 
+(* Emits the allocation of [block] by [policy] on [stack], stripped of the
+   allocation wrappers, as [call_stack_no_wrappers] gives it. *)
+let emit_allocation ~policy ~stack ?rank ?typ ~sizev decision block =
+  let typ =
+    match typ with
+    | Some typ -> typ
+    | None -> (guess_intended_malloc_type stack sizev false).elem_typ
+  in
+  Heap_effects.(emit (Allocation { block; policy; stack; rank; size = sizev;
+                                   typ; decision }))
+
 (* Helper function to create the best type for a new base.  Builds an
    array type with the appropriate number of elements if needed.  When
    the number of elements cannot be determined, build an array with
@@ -330,10 +341,11 @@ let pp_validity fmt (v1, v2) =
 (* --------------------------------- Malloc --------------------------------- *)
 
 (* Create a new variable of size [sizev] with deallocation type [deallocation].
-   Returns the new base, and its maximum validity.
+   Returns the new base, and its maximum validity. The creation is emitted as
+   an allocation by [policy], of rank [rank] if given.
    Note that [_state] is not used, but it is present to ensure a compatible
    signature with [alloc_by_stack]. *)
-let alloc_fresh weak deallocation prefix sizev _state =
+let alloc_fresh ~policy ?rank weak deallocation prefix sizev _state =
   let stack = call_stack_no_wrappers () in
   let tsize = guess_intended_malloc_type stack sizev (weak = Strong) in
   let type_base = type_from_nb_elems tsize in
@@ -354,6 +366,9 @@ let alloc_fresh weak deallocation prefix sizev _state =
   let validity = Base.Variable variable_v in
   let new_base = Base.register_allocated_var var deallocation validity in
   register_malloced_base ~stack new_base;
+  if Heap_effects.enabled () then
+    emit_allocation ~policy ~stack ?rank ~typ:tsize.elem_typ ~sizev Created
+      new_base;
   new_base, max_alloc, Builtins.NoCacheCallers
 
 
@@ -384,19 +399,28 @@ module Base_with_Size = Datatype.Pair (Base.Base) (Z)
 
 (* Memoize the creation of the weakest base for [region]. Returns a function
    returning the base, its size, and the suitable cache status: NoCacheCallers
-   if the base is new, Cacheable otherwise. *)
+   if the base is new, Cacheable otherwise. The function takes the size
+   requested, to emit the allocation. *)
 let memo_weakest_base name region =
   let module Info = struct
     let name = "Eva.Builtins_malloc." ^ name
     let dependencies = [ Self.state ]
   end in
   let module M = State_builder.Option_ref (Base_with_Size) (Info) in
-  fun () ->
+  let emit sizev decision base =
+    if Heap_effects.enabled () then
+      let stack = call_stack_no_wrappers () in
+      emit_allocation ~policy:Imprecise ~stack ~sizev decision base
+  in
+  fun sizev ->
     match M.get_option () with
-    | Some (base, size) -> base, size, Builtins.Cacheable
+    | Some (base, size) ->
+      emit sizev (Reused { weakened = false }) base;
+      base, size, Builtins.Cacheable
     | None ->
       let base, size = create_weakest_base region in
       M.set (base, size);
+      emit sizev Created base;
       base, size, Builtins.NoCacheCallers
 
 let malloc_weakest_base = memo_weakest_base "SingeMalloc" Base.Malloc
@@ -405,10 +429,11 @@ let alloca_weakest_base = memo_weakest_base "SingleAlloca" Base.Alloca
 
 (* Returns the single base representing the given region, its size and the
    suitable cache status. *)
-let alloc_weakest_base = function
-  | Base.Malloc -> malloc_weakest_base ()
-  | Base.VLA -> vla_weakest_base ()
-  | Base.Alloca -> alloca_weakest_base ()
+let alloc_weakest_base region sizev =
+  match region with
+  | Base.Malloc -> malloc_weakest_base sizev
+  | Base.VLA -> vla_weakest_base sizev
+  | Base.Alloca -> alloca_weakest_base sizev
 
 (* Variables that have been returned by a call to an allocation function
    at this callstack. The first allocated variable is at the top of the
@@ -424,12 +449,36 @@ module MallocedByStack = (* varinfo list Callstack.hashtbl *)
     end)
 let () = Ast.add_monotonic_state MallocedByStack.self
 
+(* Emits the changes of the validity of [block], from [before], the strength,
+   the validity record and the type of [vi] before the changes. *)
+let emit_mutation block (v: Base.variable_validity) vi before =
+  let weak, min_alloc, max_alloc, typ = before in
+  let record =
+    if Z.equal min_alloc v.min_alloc && Z.equal max_alloc v.max_alloc
+    then None
+    else
+      Some (Heap_effects.{ min_alloc; max_alloc },
+            Heap_effects.{ min_alloc = v.min_alloc; max_alloc = v.max_alloc })
+  in
+  let weakened = not weak && v.weak in
+  let typ =
+    if Cil_datatype.Typ.equal typ vi.vtype then None else Some (typ, vi.vtype)
+  in
+  if Option.is_some record || weakened || Option.is_some typ then
+    Heap_effects.(emit (Mutation { block; record; weakened; typ }))
+
 (* Performs an abstract allocation on an existing allocated variable,
    its validity. If [make_weak], the variable is marked as being weak. *)
 let update_variable_validity ?(make_weak=false) base sizev =
   let size_min, size_max = extract_size sizev in
   match base with
   | Base.Allocated (vi, _deallocation, (Base.Variable variable_v)) ->
+    let before =
+      if Heap_effects.enabled ()
+      then Some Base.(variable_v.weak, variable_v.min_alloc,
+                      variable_v.max_alloc, vi.vtype)
+      else None
+    in
     if make_weak && (variable_v.Base.weak = false) then
       mutate_name_to_weak vi;
     let min_sure_bits = Z.(pred (mul (of_int 8) size_min)) in
@@ -449,6 +498,7 @@ let update_variable_validity ?(make_weak=false) base sizev =
     end;
     Base.update_variable_validity variable_v
       ~weak:make_weak ~min_alloc:min_sure_bits ~max_alloc:max_valid_bits;
+    Option.iter (emit_mutation base variable_v vi) before;
     base, max_valid_bits, Builtins.NoCacheCallers
   | _ -> Self.fatal "base is not Allocated: %a" Base.pretty base
 
@@ -459,30 +509,38 @@ let alloc_by_stack region prefix sizev state =
     try MallocedByStack.find stack
     with Not_found -> []
   in
+  let reuse ~weakened rank b =
+    if Heap_effects.enabled () then
+      emit_allocation ~policy:By_stack ~stack ~rank ~sizev
+        (Reused { weakened }) b;
+    update_variable_validity ~make_weak:weakened b sizev
+  in
   let rec aux nb vars =
     match vars with
     | [] -> (* must allocate a new variable *)
-      let b, _, _ as r = alloc_fresh Strong region prefix sizev state in
+      let b, _, _ as r =
+        alloc_fresh ~policy:By_stack ~rank:nb Strong region prefix sizev state
+      in
       MallocedByStack.replace stack (all_vars @ [b]);
       r
     | b :: q ->
       try
         ignore (Model.find_base b state);
         if nb = max_level then begin (* variable already used *)
-          update_variable_validity ~make_weak:true b sizev
+          reuse ~weakened:true nb b
         end
         else aux (nb+1) q
       with Not_found -> (* Can reuse this (strong) variable *)
-        update_variable_validity ~make_weak:false b sizev
+        reuse ~weakened:false nb b
   in
   aux 0 all_vars
 
 let choose_base_allocation () =
   match Eva_annotations.get_allocation (current_call_site ()) with
-  | Fresh -> alloc_fresh Strong
-  | Fresh_weak -> alloc_fresh Weak
+  | Fresh -> alloc_fresh ~policy:Fresh Strong
+  | Fresh_weak -> alloc_fresh ~policy:Fresh_weak Weak
   | By_stack -> alloc_by_stack
-  | Imprecise -> fun region _ _ _ -> alloc_weakest_base region
+  | Imprecise -> fun region _ sizev _ -> alloc_weakest_base region sizev
 
 let register_malloc ?replace name ?returns_null prefix region =
   let builtin state args =
@@ -564,8 +622,16 @@ let () =
 (* ---------------------------------- Free ---------------------------------- *)
 
 (* Change all references to bases into ESCAPINGADDR into the given state,
-   and remove those bases from the state entirely when [exact] holds *)
-let free ~exact bases state =
+   and remove those bases from the state entirely when [exact] holds. The
+   removals and the sweeps are emitted with [point], if given. *)
+let free ?point ~exact bases state =
+  if Heap_effects.enabled () then begin
+    if exact then
+      Base.Hptset.iter (fun b -> Heap_effects.(emit ?point (Removal b))) bases;
+    Base.Hptset.iter
+      (fun block -> Heap_effects.(emit ?point (Sweep { block; exact })))
+      bases
+  end;
   let changed = ref Memory_zone.bottom in
   (* Uncomment this code to simulate the fact that free "writes" the bases
      it deallocates
@@ -635,16 +701,16 @@ let resolve_bases_to_free arg =
   in
   Cvalue.V.fold_topset_ok f arg (Base.Hptset.empty, 0, false)
 
-let free_aux state ~strong bases_to_remove  =
+let free_aux ?point state ~strong bases_to_remove  =
   (* TODO: reduce on arg if it is an lval *)
   if strong then begin
     Self.debug ~current:true ~dkey "strong free on bases: %a"
       Base.Hptset.pretty bases_to_remove;
-    free ~exact:true bases_to_remove state
+    free ?point ~exact:true bases_to_remove state
   end else begin
     Self.debug ~current:true ~dkey "weak free on bases: %a"
       Base.Hptset.pretty bases_to_remove;
-    free ~exact:false bases_to_remove state
+    free ?point ~exact:false bases_to_remove state
   end
 
 (* Builtin for [free] function *)
@@ -701,7 +767,16 @@ let free_automatic_bases stack state =
   else begin
     Self.result ~mkey:key_auto_free ~current:true ~once:true
       "freeing automatic bases: %a" Base.Hptset.pretty bases_to_free;
-    let state', _changed = free_aux state ~strong:true bases_to_free in
+    (* The release happens at the end of the call, in the caller: at the
+       statement of the call. *)
+    let point =
+      match Callstack.top_callsite stack with
+      | Kstmt stmt -> Some stmt
+      | Kglobal -> None
+    in
+    let state', _changed =
+      free_aux ?point state ~strong:true bases_to_free
+    in
     (* TODO: propagate 'freed' bases for From? *)
     state'
   end
@@ -744,7 +819,7 @@ let realloc_copy_one size ~src_state ~dst_state new_base b =
    [null] in its argument. [weak] indicates which type of variable must
    be created: if [Weak], convergence is ensured using a malloc builtin
    that converges.  If [Strong], a new base is created for each call. *)
-let realloc_alloc_copy weak bases_to_realloc null_in_arg sizev state =
+let realloc_alloc_copy ~policy weak bases_to_realloc null_in_arg sizev state =
   Self.debug ~dkey "bases_to_realloc: %a"
     Base.Hptset.pretty bases_to_realloc;
   assert (not (Model.(equal state bottom || equal state top)));
@@ -752,7 +827,7 @@ let realloc_alloc_copy weak bases_to_realloc null_in_arg sizev state =
   let base, max_valid, cacheable =
     let prefix = "realloc" in
     match weak with
-    | Strong -> alloc_fresh Strong Base.Malloc prefix sizev state
+    | Strong -> alloc_fresh ~policy Strong Base.Malloc prefix sizev state
     | Weak -> alloc_by_stack Base.Malloc prefix sizev state
   in
   (* Make sure that [ret] will be present in the result: we bind it at least
@@ -795,14 +870,16 @@ let realloc_alloc_copy weak bases_to_realloc null_in_arg sizev state =
 (* Auxiliary function for [realloc]. All the bases in [bases] are realloced
    one by one, plus NULL if [null] holds. This function acts as if we had
    first made a disjunction on the pointer passed to [realloc]. *)
-let realloc_multiple bases null size state =
+let realloc_multiple ~policy bases null size state =
   (* this function should never be used with weak allocs *)
   let aux_bases b acc = Base.Hptset.singleton b :: acc in
   let lbases = Base.Hptset.fold aux_bases bases [] in
   (* This function reallocates the base [b] alone, but does not free it.
      We cannot free yet, because [b] would leak in the states corresponding
      to the variables different from [b]. *)
-  let realloc_one_base b = realloc_alloc_copy Strong b false size state in
+  let realloc_one_base b =
+    realloc_alloc_copy ~policy Strong b false size state
+  in
   let join (ret1, st1, c1) (ret2, st2, c2) =
     V.join ret1 ret2,
     Model.join st1 st2,
@@ -812,19 +889,20 @@ let realloc_multiple bases null size state =
   let res = List.fold_left aux_one_base (V.bottom, state, Cacheable) lbases in
   (* Add another base for realloc(NULL) if needed. *)
   if null then
-    join res (realloc_alloc_copy Strong Base.Hptset.empty true size state)
+    join res
+      (realloc_alloc_copy ~policy Strong Base.Hptset.empty true size state)
   else res
 
-let realloc_imprecise_weakest _bases _null _size state =
-  let new_base, max_alloc, cacheable = alloc_weakest_base Base.Malloc in
+let realloc_imprecise_weakest _bases _null size state =
+  let new_base, max_alloc, cacheable = alloc_weakest_base Base.Malloc size in
   let state = add_uninitialized state new_base max_alloc in
   let ret = V.inject new_base Ival.zero in
   ret, state, cacheable
 
 let choose_bases_reallocation () =
   match Eva_annotations.get_allocation (current_call_site ()) with
-  | Fresh | Fresh_weak -> realloc_multiple
-  | By_stack -> realloc_alloc_copy Weak
+  | Fresh | Fresh_weak as policy -> realloc_multiple ~policy
+  | By_stack -> realloc_alloc_copy ~policy:By_stack Weak
   | Imprecise -> realloc_imprecise_weakest
 
 let realloc_builtin_aux state ptr size =
