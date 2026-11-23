@@ -1,0 +1,87 @@
+[kernel] Parsing snapshot_key.c (with preprocessing)
+Calls:
+  malloc :: snapshot_key.c:23 <- key_main: builtin
+  cmp_key :: snapshot_key.c:25 <- key_main: analysed, cache entry 6
+  malloc :: snapshot_key.c:23 <- key_main: builtin
+  cmp_key :: snapshot_key.c:25 <- key_main: analysed, cache entry 7
+  key_main: analysed, cache entry 8
+Heap calls, not stored by memexec: key_main 1.
+Hits not made because memexec does not store the heap calls: none.
+Calls that memexec does not reuse because the snapshot of a block they mention differs:
+  cmp_key 1.
+cmp_key, start:
+  joined: gp ∈ {{ &__malloc_w_key_main_l23_1 }}
+          gq ∈ {{ &__malloc_w_key_main_l23_1 }}
+          r_key[0] ∈ {0; 1}
+               [1] ∈ {0}
+          i ∈ {0; 1}
+          b ∈ {{ &__malloc_w_key_main_l23_1 }}
+          __malloc_w_key_main_l23_1 ∈ UNINITIALIZED
+  cmp_key :: snapshot_key.c:25 <- key_main: gp ∈
+                                              {{ &__malloc_w_key_main_l23_1 }}
+                                            gq ∈
+                                              {{ &__malloc_w_key_main_l23_1 }}
+                                            r_key[0] ∈ {0; 1}
+                                                 [1] ∈ {0}
+                                            i ∈ {0; 1}
+                                            b ∈
+                                             {{ &__malloc_w_key_main_l23_1 }}
+                                            __malloc_w_key_main_l23_1
+                                             ∈ UNINITIALIZED
+cmp_key, before snapshot_key.c:18 `;` (K):
+  joined: gp ∈ {{ &__malloc_w_key_main_l23_1 }}
+          gq ∈ {{ &__malloc_w_key_main_l23_1 }}
+          r_key[0] ∈ {0; 1}
+               [1] ∈ {0}
+          i ∈ {0; 1}
+          b ∈ {{ &__malloc_w_key_main_l23_1 }}
+          __retres ∈ UNINITIALIZED
+          __malloc_w_key_main_l23_1 ∈ UNINITIALIZED
+  cmp_key :: snapshot_key.c:25 <- key_main: gp ∈
+                                              {{ &__malloc_w_key_main_l23_1 }}
+                                            gq ∈
+                                              {{ &__malloc_w_key_main_l23_1 }}
+                                            r_key[0] ∈ {0; 1}
+                                                 [1] ∈ {0}
+                                            i ∈ {0; 1}
+                                            b ∈
+                                             {{ &__malloc_w_key_main_l23_1 }}
+                                            __retres ∈ UNINITIALIZED
+                                            __malloc_w_key_main_l23_1
+                                             ∈ UNINITIALIZED
+cmp_key, after snapshot_key.c:18 `return __retres;`:
+  joined: gp ∈ {{ &__malloc_w_key_main_l23_1 }}
+          gq ∈ {{ &__malloc_w_key_main_l23_1 }}
+          r_key[0] ∈ {0; 1}
+               [1] ∈ {0}
+          i ∈ {0; 1}
+          b ∈ {{ &__malloc_w_key_main_l23_1 }}
+          __retres ∈ {0; 1}
+          __malloc_w_key_main_l23_1 ∈ UNINITIALIZED
+  cmp_key :: snapshot_key.c:25 <- key_main: gp ∈
+                                              {{ &__malloc_w_key_main_l23_1 }}
+                                            gq ∈
+                                              {{ &__malloc_w_key_main_l23_1 }}
+                                            r_key[0] ∈ {0; 1}
+                                                 [1] ∈ {0}
+                                            i ∈ {0; 1}
+                                            b ∈
+                                             {{ &__malloc_w_key_main_l23_1 }}
+                                            __retres ∈ {0; 1}
+                                            __malloc_w_key_main_l23_1
+                                             ∈ UNINITIALIZED
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 102 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 34 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 34 points.
+Filtered requests that reject one callstack: 0.
+Requests made: 170; reported by the trap: 170, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 32 requests, 62 reads of the legacy store in them, 66 reads outside any request.
+  with -eva-hit-log: 32 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 17 requests
+    statistics: 15 requests
+Statuses of the properties: those of the run without memexec, for 74 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 1.0000, 0 alarms, those of the run without memexec.
