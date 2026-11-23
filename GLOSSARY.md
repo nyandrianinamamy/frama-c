@@ -9,7 +9,9 @@ analysis and across two versions of a program.
 
 **Cache entry**:
 The stored result of analysing one statement from one abstract input. The
-cache entry of a heap call holds full states and no hit uses it.
+cache entry of a heap call other than a call that frees, or of a call that
+encloses a hit on the cache entry of a heap call, holds full states and no
+hit uses it.
 _Avoid_: Summary (names Eva's statistics report), memo, record
 
 **Part**:
@@ -36,13 +38,21 @@ A cache entry used for a call nested in the statement of another entry, which
 refers to it.
 
 **Heap call**:
-A call whose analysis, in its body or in a call nested in it, calls an
-allocation builtin or `free`. Every caller of a heap call, up to the entry
-point, is one. Its cache entry holds the full state before and after each
-statement of its body, and memexec does not store it, so no hit reuses it. A
-call that reads or writes an allocated block without allocating or freeing
-one is not a heap call.
+A call whose analysis, in its body or in a call nested in it, receives a heap
+effect: an allocation or a validity mutation, from an allocation builtin or
+from the widening of a weak block, or a removal and a sweep, from `free` or
+from the release of a block at the end of a call. Every caller of a heap
+call, up to the entry point, is one. A call that reads or writes an allocated
+block without receiving a heap effect is not a heap call.
 _Avoid_: Allocating call (leaves out `free`)
+
+**Call that frees**:
+A heap call whose heap effects are removals and sweeps only. Memexec stores
+it, with the blocks it removes in its matching key and the blocks it sweeps
+at its return. A hit on it removes the blocks it removed and sweeps the
+frame. Memexec stores no other heap call: its cache entry holds the full
+state before and after each statement of its body, and no hit reuses it.
+_Avoid_: Freeing call
 
 ### Parts of an entry
 
@@ -58,9 +68,13 @@ The statements reached while analysing the statement.
 
 **Inner part**:
 The abstract state before each statement inside the body, on its locals and on
-the blocks whose value at entry is checked by the match. A heap call has no
-Inner part: its cache entry holds the full state before and after each
-statement, on every block, and answers the queries at these points as it is.
+the blocks whose value at entry is checked by the match. For a heap call, it
+also covers the blocks of its heap effects from the point where they happen,
+and holds at each point the sweep map: the blocks swept on every path from
+the start of the body to the point, and those swept on some path only. A
+heap call that keeps full states has no Inner part: its cache entry holds
+the full state before and after each statement, on every block, and answers
+the queries at these points as it is.
 _Avoid_: Intermediate states, per-statement states
 
 ### Blocks
@@ -104,7 +118,8 @@ The blocks the statement reads or writes. It contains no side table.
 _Avoid_: Inner key
 
 **Frame**:
-The blocks the statement neither reads nor writes.
+The blocks the statement neither reads nor writes. A hit on a call that frees
+sweeps the pointers of the frame to the blocks the call frees.
 
 **Mentioned block**:
 An allocated block of the matching key of a cache entry, or one that a
