@@ -1094,24 +1094,15 @@ let full_state entry control_point =
   | Full { after; _ }, After stmt -> Stmt_table.find_opt after stmt
   | Full _, (Initial | Start _) | (Unknown | Known _), _ -> None
 
-(* The point that [find_point] gives at a point reached by a heap call: it
-   only marks the point as reached. Its Inner part is Bottom, so that
-   [is_reachable] falls back to [entry_state], which gives the full state.
-   [entry_state], [entries_on] and [states_by_callstack] take the full states
-   of a heap call without this point. *)
-let reached_by_heap_call =
-  { covered = Base.Hptset.empty; inner = Cvalue.Model.bottom }
-
-(* The point of the Inner part of [entry] at [control_point], if reached. *)
+(* The point of the Inner part of [entry] at [control_point], if reached.
+   None for a heap call, which has no Inner part: see [full_state]. *)
 let find_point entry control_point =
   match entry.inner, control_point with
-  | Unknown, _ -> None
+  | (Unknown | Full _), _ -> None
   | Known { before; _ }, Domain_store.Before stmt ->
     Stmt_table.find_opt before stmt
   | Known { after; _ }, After stmt -> Stmt_table.find_opt after stmt
-  | Full _, (Before _ | After _) ->
-    Option.map (fun _ -> reached_by_heap_call) (full_state entry control_point)
-  | (Known _ | Full _), (Initial | Start _) -> None
+  | Known _, (Initial | Start _) -> None
 
 (* Whether the states of the cvalue domain are saved, by the condition of the
    legacy store. When they are not, every request is unavailable, as with the
@@ -1355,6 +1346,12 @@ let get_state ?callstack control_point =
    entry is Top if [B] is Top, and Bottom otherwise: this case falls back to
    [entry_state], which pastes.
 
+   The state of the entry of a heap call is its full state at the point, as
+   [entry_state] gives it: the entry has no Inner part and no member whose
+   body did not run, and nothing is pasted. Its state is thus not Bottom if
+   and only if the full state at the point exists and is not Bottom, which
+   is tested without [unrun_joined].
+
    [U] is computed by [unrun_joined], memoised, as for the pasted state, and
    only when [A] is Bottom or the entry falls back. When it raises
    [Unavailable], the pasted state is unavailable, [`Top]: not Bottom, as
@@ -1377,14 +1374,19 @@ let is_reachable control_point =
       let derived = derived store in
       count_pastes derived @@ fun () ->
       let reached (id, entry as member) =
-        match find_point entry control_point with
-        | None -> false
-        | Some { inner = Cvalue.Model.Bottom; _ } ->
-          Cvalue.Model.is_reachable
-            (entry_state store derived control_point member)
-        | Some _ ->
-          Cvalue.Model.is_reachable entry.analysed.body_entry
-          || Cvalue.Model.is_reachable (unrun_joined store derived id)
+        match entry.inner with
+        | Full _ ->
+          Option.fold ~none:false ~some:Cvalue.Model.is_reachable
+            (full_state entry control_point)
+        | Unknown | Known _ ->
+          match find_point entry control_point with
+          | None -> false
+          | Some { inner = Cvalue.Model.Bottom; _ } ->
+            Cvalue.Model.is_reachable
+              (entry_state store derived control_point member)
+          | Some _ ->
+            Cvalue.Model.is_reachable entry.analysed.body_entry
+            || Cvalue.Model.is_reachable (unrun_joined store derived id)
       in
       let kf = Kernel_function.find_englobing_kf stmt in
       try List.exists reached (entries_with_ids store kf)

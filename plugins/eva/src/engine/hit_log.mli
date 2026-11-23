@@ -193,7 +193,7 @@ val get_state:
     bottom: the same answer as the test of [get_state control_point] against
     [`Bottom]. Before and after a statement, it is decided without building
     the state, except when the Inner part of an entry at this point is
-    bottom. *)
+    bottom. For a heap call, it tests the full state at this point. *)
 val is_reachable: Domain_store.control_point -> bool
 
 (** The states at a control point of the callstacks that reach it. The
