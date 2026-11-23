@@ -1,0 +1,5 @@
+[kernel] Parsing heap_snapshot.c (with preprocessing)
+m :: heap_snapshot.c:28 <- outer :: heap_snapshot.c:32 <- grow_main :: heap_snapshot.c:48 <- snap_main: 1 blocks at the start, 1 mutations; rebuilt snapshot differs on: none; snapshot at the end differs on: __malloc_w_m_l27.
+outer :: heap_snapshot.c:32 <- grow_main :: heap_snapshot.c:48 <- snap_main: 1 blocks at the start, 1 mutations; rebuilt snapshot differs on: none; snapshot at the end differs on: __malloc_w_m_l27.
+widen :: heap_snapshot.c:51 <- snap_main: 2 blocks at the start, 1 mutations; rebuilt snapshot differs on: none; snapshot at the end differs on: __malloc_w_snap_main_l50.
+rel :: heap_snapshot.c:52 <- snap_main: 2 blocks at the start, 0 mutations; rebuilt snapshot differs on: none; snapshot at the end differs on: none.
