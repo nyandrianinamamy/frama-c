@@ -69,4 +69,4 @@ Passes after the iteration:
 Statuses of the properties: those of the run without memexec, for 319 properties.
 Alarms: 0, of which 0 not proven, those of the run without memexec.
 Summary: statement coverage 1.0000, function coverage 0.2308, 0 alarms, those of the run without memexec.
-Stored entries: 2; with a numbered block: 2; without numbered form: 0; round trips that differ: 0; placeholders in the entries given by memexec: 0.
+Stored entries: 2; with a numbered block: 2; without numbered form: 0; round trips that differ: 0; lost hits: 0; placeholders in the entries given by memexec: 0.

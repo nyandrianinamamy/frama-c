@@ -74,8 +74,8 @@ void renamed_main(void) {
 
 /* A pointer to two blocks, without slevel. The first call has a = 1 and
    b = 2, the second c = 2 and d = 1, where a, b, c, d are created in this
-   order: the renaming from a to d and from b to c maps the first input to
-   the second. */
+   order. The renaming from a to d and b to c maps the first input to the
+   second, but the numbering orders the targets by identifier: a lost hit. */
 int deref(int *p) { return *p; }
 
 int r_deref[2];

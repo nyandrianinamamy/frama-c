@@ -176,3 +176,5 @@ Passes after the iteration:
 Statuses of the properties: those of the run without memexec, for 126 properties.
 Alarms: 0, of which 0 not proven, those of the run without memexec.
 Summary: statement coverage 1.0000, function coverage 0.1000, 0 alarms, those of the run without memexec.
+Members of the cache entry 7, get, whose body did not run:
+  get :: renamed.c:36 <- equal_main: __malloc_equal_main_l31_1 -> __malloc_equal_main_l33_1

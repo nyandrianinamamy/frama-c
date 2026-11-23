@@ -1,5 +1,5 @@
 /* run.config
-   MODULE: hit_log_observer
+   MODULE: hit_log_observer @PTEST_NAME@
    STDOPT: +"-eva-no-alloc-returns-null -eva-slevel 10 -main equal_main"
    STDOPT: +"-eva-no-alloc-returns-null -eva-slevel 10 -main strength_main"
    STDOPT: +"-eva-no-alloc-returns-null -eva-slevel 10 -main extent_main -eva-undefined-pointer-comparison-propagate-all"

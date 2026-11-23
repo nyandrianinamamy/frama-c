@@ -15,7 +15,13 @@
    - whether rewriting the numbered form back gives the entry (the round
      trip), and which parts differ if not;
    - whether an earlier entry of the same function has the same numbered
-     form and the same blocks, except for their names and discovery.
+     form and the same blocks, except for their names and discovery;
+   - if not, whether the inputs of an earlier entry of the same function,
+     its arguments, its key and its start state, equal those of this entry
+     under a permutation of the numbers that maps each block to a block of
+     the earlier entry with the same snapshot, as memexec takes it: memexec
+     then misses a call that the renaming of the blocks would reuse, a lost
+     hit.
 
    An entry with no allocated block is printed on one line.
 
@@ -27,7 +33,8 @@
 
    After the analyses, it prints the number of entries, of entries with a
    numbered block, of entries without numbered form, of round trips that
-   differ, and of placeholders found in the entries that memexec gives. *)
+   differ, of lost hits, and of placeholders found in the entries that
+   memexec gives. *)
 
 module Numbering = Eva__Numbering
 
@@ -193,12 +200,70 @@ let entries = ref 0
 let numbered_entries = ref 0
 let refused = ref 0
 let failed_round_trips = ref 0
+let lost_hits = ref 0
 let placeholders_seen = ref 0
 
 (* The numbered forms printed, by function: the number of the cache entry,
-   the numbered form and the descriptions of its blocks. *)
-let forms : (string, (int * Numbering.entry * string list) list) Hashtbl.t =
+   the numbered form, the descriptions of its blocks and their snapshots. *)
+let forms :
+  (string,
+   (int * Numbering.entry * string list * Eva__Mem_exec.block option list)
+     list) Hashtbl.t =
   Hashtbl.create 7
+
+(* The permutations [pi] of the numbers of [current], as arrays, such that
+   the block of number [n] has the snapshot of the block of number [pi.(n)]
+   in [previous]. At most 6 blocks. *)
+let permutations ~current ~previous =
+  let n = List.length current in
+  if n <> List.length previous || n > 6 then []
+  else
+    let previous = Array.of_list previous in
+    let rec extend acc = function
+      | [] -> [ List.rev acc ]
+      | block :: rest ->
+        List.concat_map
+          (fun j ->
+             if List.mem j acc
+             || not (Option.equal Eva__Mem_exec.equal_block previous.(j) block)
+             then []
+             else extend (j :: acc) rest)
+          (List.init n Fun.id)
+    in
+    List.map Array.of_list (extend [] current)
+
+(* Whether the inputs of two numbered entries are equal: their arguments,
+   keys and start states. *)
+let equal_inputs (e1: Numbering.entry) (e2: Numbering.entry) =
+  List.equal equal_argument e1.args e2.args
+  && Base.Hptset.equal e1.key e2.key
+  && Cvalue.Model.equal (fst e1.start) (fst e2.start)
+  && equal_clobbered (snd e1.start) (snd e2.start)
+
+(* An earlier entry of the same function whose inputs equal those of
+   [numbered] under a permutation of its numbers, with the permutation. *)
+let find_lost_hit ~previous numbering numbered snapshots =
+  let weak = List.map (fun (_, weak, _) -> weak) (Numbering.blocks numbering) in
+  let permute pi =
+    Base.substitution_from_list
+      (List.mapi
+         (fun n weak ->
+            Numbering.placeholder ~weak n, Numbering.placeholder ~weak pi.(n))
+         weak)
+  in
+  List.find_map
+    (fun (id, form, _, previous_snapshots) ->
+       List.find_map
+         (fun pi ->
+            let renamed = Numbering.rewrite (permute pi) numbered in
+            if equal_inputs renamed form then Some (id, pi) else None)
+         (permutations ~current:snapshots ~previous:previous_snapshots))
+    (List.rev previous)
+
+let pp_permutation fmt pi =
+  pp_list
+    (fun fmt (n, m) -> Format.fprintf fmt "#%d -> #%d" n m)
+    fmt (List.mapi (fun n m -> n, m) (Array.to_list pi))
 
 (* The blocks numbered in earlier entries of the run. *)
 let seen_blocks = ref Base.Hptset.empty
@@ -264,20 +329,33 @@ let check_entry kf id (entry: Numbering.entry) =
       print_entry numbered;
       Format.printf "  round trip: %s@." round_trip;
       let descriptions = List.map (fun (b, _, _) -> describe b) blocks in
+      let snapshots =
+        List.map (fun (b, _, _) -> Eva__Mem_exec.take_block b) blocks
+      in
       let previous = try Hashtbl.find forms name with Not_found -> [] in
       begin
         match
           List.find_opt
-            (fun (_, form, desc) ->
+            (fun (_, form, desc, _) ->
                Numbering.equal_entry form numbered && desc = descriptions)
             (List.rev previous)
         with
-        | Some (previous_id, _, _) ->
+        | Some (previous_id, _, _, _) ->
           Format.printf "  same numbered form as the cache entry %d@."
             previous_id
-        | None -> Format.printf "  new numbered form@."
+        | None ->
+          Format.printf "  new numbered form@.";
+          match find_lost_hit ~previous numbering numbered snapshots with
+          | None -> ()
+          | Some (previous_id, pi) ->
+            incr lost_hits;
+            Format.printf
+              "  lost hit: same inputs as the cache entry %d under the \
+               permutation %s@."
+              previous_id (one_line pp_permutation pi)
       end;
-      Hashtbl.replace forms name ((id, numbered, descriptions) :: previous);
+      Hashtbl.replace forms name
+        ((id, numbered, descriptions, snapshots) :: previous);
       if name = "unreached" then check_candidates entry numbering;
       List.iter
         (fun (b, _, _) -> seen_blocks := Base.Hptset.add b !seen_blocks)
@@ -327,7 +405,7 @@ let () =
        if Kernel.MainFunction.get () = "unreached_main" then check_unknown ();
        Format.printf
          "Stored entries: %d; with a numbered block: %d; without numbered \
-          form: %d; round trips that differ: %d; placeholders in the entries \
-          given by memexec: %d.@."
-         !entries !numbered_entries !refused !failed_round_trips
+          form: %d; round trips that differ: %d; lost hits: %d; placeholders \
+          in the entries given by memexec: %d.@."
+         !entries !numbered_entries !refused !failed_round_trips !lost_hits
          !placeholders_seen)

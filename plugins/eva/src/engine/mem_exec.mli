@@ -26,6 +26,16 @@ val cleanup_results: unit -> unit
 val register_store_hook:
   (Cil_types.kernel_function -> int -> Numbering.entry -> unit) -> unit
 
+(** The snapshot of an allocated block: its strength, validity record, type
+    and kind, as a cache entry records them. *)
+type block
+
+(** The snapshot of a block as it is now; [None] if it is not allocated. *)
+val take_block: Base.t -> block option
+
+(** Whether two snapshots are equal. *)
+val equal_block: block -> block -> bool
+
 (** A renaming: pairs of blocks, from the blocks of the call that computed a
     cache entry to those of a call that reuses it. The empty list is the
     identity. *)

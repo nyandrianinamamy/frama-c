@@ -382,3 +382,11 @@ Passes after the iteration:
 Statuses of the properties: those of the run without memexec, for 126 properties.
 Alarms: 0, of which 0 not proven, those of the run without memexec.
 Summary: statement coverage 1.0000, function coverage 0.1000, 0 alarms, those of the run without memexec.
+Members of the cache entry 11, get, whose body did not run:
+  get :: renamed.c:174 <- joined_main: __malloc_joined_main_l166_1 -> __malloc_joined_main_l168_1
+  get :: renamed.c:175 <- joined_main: __malloc_joined_main_l166_1 -> __malloc_joined_main_l170_1
+  get :: renamed.c:176 <- joined_main: __malloc_joined_main_l166_1 -> __malloc_joined_main_l168_1
+  get :: renamed.c:176 <- joined_main: __malloc_joined_main_l166_1 -> __malloc_joined_main_l170_1
+Entry 11 of get through the renaming of get :: renamed.c:174 <- joined_main, applied to the body-entry state of get :: renamed.c:175 <- joined_main, before the return statement:
+  differs from the answer to the first member on: r_get (frame)
+  differs from the answer to the second member on: p (covered)

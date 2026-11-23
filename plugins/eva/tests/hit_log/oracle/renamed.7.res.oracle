@@ -477,3 +477,7 @@ Passes after the iteration:
 Statuses of the properties: those of the run without memexec, for 126 properties.
 Alarms: 0, of which 0 not proven, those of the run without memexec.
 Summary: statement coverage 1.0000, function coverage 0.1500, 0 alarms, those of the run without memexec.
+Members of the cache entry 11, inner, whose body did not run:
+  inner :: renamed.c:136 <- outer :: renamed.c:145 <- below_main: __malloc_below_main_l140_1 -> __malloc_below_main_l142_1
+Members of the cache entry 12, outer, whose body did not run:
+  outer :: renamed.c:145 <- below_main: __malloc_below_main_l140_1 -> __malloc_below_main_l142_1
