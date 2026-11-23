@@ -29,7 +29,7 @@ _Avoid_: Same-key group, equivalence class
 
 **Hit log**:
 The list of the members of each key group, each with the abstract state at
-its call.
+its call and the renaming through which it uses the entry.
 
 **Child entry**:
 A cache entry used for a call nested in the statement of another entry, which
