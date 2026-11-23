@@ -15,7 +15,12 @@
    the answer with the answer of the rule to each of the two
    members: the bases where they differ, each marked as covered by the
    Inner part of the entry renamed for the first member, or as of the
-   frame. *)
+   frame.
+
+   For the function same, it controls the guard of the rule on the members
+   whose renaming has two pairs: the rule through this renaming gives a
+   state, and the rule through a renaming that sends both blocks to the same
+   block gives none. *)
 
 type call = { kf: Kernel_function.t; id: int }
 
@@ -142,6 +147,33 @@ let control call =
         (one_line (pp_list pp_base) (differing_bases applied second))
     | _ -> Format.printf "  no answer from the rule@."
 
+(* The guard of the rule on the members of an entry of same whose renaming
+   has two pairs, before the return statement. *)
+let guard call =
+  let point : Eva__Domain_store.control_point =
+    Before (Kernel_function.find_return call.kf)
+  in
+  List.iter
+    (function
+      | callstack, [ a, x; b, y ], body_entry ->
+        let answer renaming =
+          match Eva__Hit_log.rule ~id:call.id ~renaming ~body_entry point with
+          | Some _ -> "a state"
+          | None -> "no state"
+        in
+        Format.printf
+          "Guard of the rule on the entry %d of %a, for %s, before the return \
+           statement:@."
+          call.id Kernel_function.pretty call.kf
+          (one_line Eva.Callstack.pretty callstack);
+        List.iter
+          (fun renaming ->
+             Format.printf "  through %s: %s@."
+               (one_line pp_renaming renaming) (answer renaming))
+          [ [ a, x; b, y ]; [ a, x; b, x ] ]
+      | _ -> ())
+    (Eva__Hit_log.members ~id:call.id)
+
 let main () =
   match !project with
   | None -> ()
@@ -152,7 +184,10 @@ let main () =
          List.iter print_members calls;
          List.iter
            (fun call ->
-              if Kernel_function.get_name call.kf = "get" then control call)
+              match Kernel_function.get_name call.kf with
+              | "get" -> control call
+              | "same" -> guard call
+              | _ -> ())
            calls)
       ()
 

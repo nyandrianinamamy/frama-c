@@ -594,3 +594,6 @@ Members of the cache entry 16, same, whose body did not run:
   same :: renamed.c:106 <- compare_main: __malloc_compare_main_l101_1 -> __malloc_compare_main_l102_1, __malloc_compare_main_l102_1 -> __malloc_compare_main_l101_1
 Members of the cache entry 17, same_global, whose body did not run:
   same_global :: renamed.c:110 <- compare_main: __malloc_compare_main_l101_1 -> __malloc_compare_main_l102_1
+Guard of the rule on the entry 16 of same, for same :: renamed.c:106 <- compare_main, before the return statement:
+  through __malloc_compare_main_l101_1 -> __malloc_compare_main_l102_1, __malloc_compare_main_l102_1 -> __malloc_compare_main_l101_1: a state
+  through __malloc_compare_main_l101_1 -> __malloc_compare_main_l102_1, __malloc_compare_main_l102_1 -> __malloc_compare_main_l102_1: no state
