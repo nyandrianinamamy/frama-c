@@ -82,6 +82,10 @@ module Snapshot = struct
         let mem_project = Datatype.never_any_project
       end)
 
+  (* The snapshot of a call that mentions no allocated block, and of every
+     call stored without -eva-hit-log. *)
+  let empty = []
+
   let take bases =
     Base.Hptset.fold
       (fun base acc ->
@@ -137,7 +141,6 @@ let counter = ref 0
 module Make
     (Value : Engine_abstractions_sig.Value)
     (Domain : Engine_abstractions_sig.Domain)
-    (Key : sig val snapshot : unit -> bool end)
 = struct
 
   incr counter;
@@ -149,7 +152,8 @@ module Make
       (Base.Hptset)  (* Set of bases possibly read or written by the call. *)
       (CallOutput)   (* The resulting states of the call. *)
       (Datatype.Int) (* Call number, for plugins *)
-      (Snapshot)     (* The snapshot of the bases mentioned by the call. *)
+      (Snapshot)     (* The snapshot of the bases mentioned by the call,
+                        empty unless it was stored with [~snapshot:true]. *)
 
   (* Map from input states to outputs (summary and state). An input state
      can have several stored results, which differ by their snapshots. *)
@@ -207,26 +211,25 @@ module Make
      its key [bases], and those that a pointer value of its arguments [args]
      or of [state], its start state on its key, may point to. A mentioned
      base outside the key is not entered. Raises [TooImprecise] if one of
-     these values may point to an unknown set of bases. Empty unless
-     [Key.snapshot ()].
+     these values may point to an unknown set of bases.
      The call is stored after its analysis, but the blocks of the snapshot
      are those of its start: a call that changes the validity or the type
      of an allocated block receives a heap effect, and is not stored. *)
   let take_snapshot bases args state =
-    if not (Key.snapshot ()) then []
-    else
-      let add_arg acc = function
-        | `Bottom -> acc
-        | `Value v -> add_targets (get_cvalue v) acc
-      in
-      let blocks = Base.Hptset.filter is_allocated bases in
-      let blocks = List.fold_left add_arg blocks args in
-      let blocks =
-        add_targets_of_state (Domain.get_cvalue_or_top state) blocks
-      in
-      Snapshot.take blocks
+    let add_arg acc = function
+      | `Bottom -> acc
+      | `Value v -> add_targets (get_cvalue v) acc
+    in
+    let blocks = Base.Hptset.filter is_allocated bases in
+    let blocks = List.fold_left add_arg blocks args in
+    let blocks =
+      add_targets_of_state (Domain.get_cvalue_or_top state) blocks
+    in
+    Snapshot.take blocks
 
-  let store_computed_call kf input_state args
+  (* With [~snapshot:false], the store of memexec without -eva-hit-log: the
+     stored result has the empty snapshot, a constant. *)
+  let store_computed_call ~snapshot kf input_state args
       (call_result: (Partition.key * Domain.t) list) =
     match Transfer_stmt.current_kf_inout () with
     | None -> ()
@@ -249,7 +252,10 @@ module Make
           | Base.SetLattice.Set bases -> bases
         in
         let state_input = Domain.filter input_bases input_state in
-        let snapshot = take_snapshot input_bases args state_input in
+        let snapshot =
+          if snapshot then take_snapshot input_bases args state_input
+          else Snapshot.empty
+        in
         (* Output bases, that is bases that are copy-pasted on a reuse: the
            key, which includes the written bases and the input bases, as the
            latter may get reduced during the call. *)
@@ -299,10 +305,36 @@ module Make
   exception Result_found of CallOutput.t * int
 
   (** Find a previous execution in [map_inputs] that matches [st].
-      raise [Result_found] when this execution exists. Otherwise, returns
-      whether a previous execution has the input state [st]: the snapshot of
-      a mentioned block differs. *)
+      raise [Result_found] when this execution exists, or do nothing. This is
+      the lookup of memexec without -eva-hit-log: the snapshot of the stored
+      results is not read. *)
   let find_match_in_previous (map_inputs: InputBasesToCallEffect.t) state =
+    let aux_previous_call binputs hstates =
+      let brelated = Domain.relate binputs state in
+      if not Base.SetLattice.(is_included brelated (inject binputs))
+      then ()
+      else
+        (* restrict [state] to the inputs of this call *)
+        let st_filtered = Domain.filter binputs state in
+        try
+          let bases, outputs, i, _ = Domain.Hashtbl.find hstates st_filtered in
+          (* We have found a previous execution, in which the outputs are
+             [outputs]. Copy them in [state] and return this result. *)
+          let process (key,output) =
+            key,
+            Domain.reuse bases ~current_input:state ~previous_output:output
+          in
+          let outputs = List.map process outputs in
+          raise (Result_found (outputs, i))
+        with Not_found -> ()
+    in
+    Base.Hptset.Hashtbl.iter aux_previous_call map_inputs
+
+  (** As [find_match_in_previous], with the snapshot: an execution matches
+      [st] only if its snapshot holds now. If several do, the most recent
+      one. Otherwise, returns whether a previous execution has the input
+      state [st]: the snapshot of a mentioned block differs. *)
+  let find_match_with_snapshot (map_inputs: InputBasesToCallEffect.t) state =
     let same_input = ref false in
     let aux_previous_call binputs hstates =
       let brelated = Domain.relate binputs state in
@@ -318,8 +350,6 @@ module Make
         match List.find_opt holds stored with
         | None -> if stored <> [] then same_input := true
         | Some (bases, outputs, i, _) ->
-          (* We have found a previous execution, in which the outputs are
-             [outputs]. Copy them in [state] and return this result. *)
           let process (key,output) =
             key,
             Domain.reuse bases ~current_input:state ~previous_output:output
@@ -330,12 +360,14 @@ module Make
     Base.Hptset.Hashtbl.iter aux_previous_call map_inputs;
     !same_input
 
-  let reuse_previous_call kf state args =
+  (* With [~snapshot:false], the lookup of memexec without -eva-hit-log. *)
+  let reuse_previous_call ~snapshot kf state args =
     try
       let previous_kf = PreviousCalls.find kf in
       let args = List.map (function `Bottom -> None | `Value v -> Some v) args in
       let previous = ActualArgs.Map.find args previous_kf in
-      if find_match_in_previous previous state
+      if not snapshot then find_match_in_previous previous state
+      else if find_match_with_snapshot previous state
       then Statistics.incr snapshot_misses kf;
       Statistics.(incr memexec_misses kf);
       None
@@ -355,7 +387,7 @@ module Make
         List.map (function `Bottom -> None | `Value v -> Some v) args
       in
       let previous = ActualArgs.Map.find args previous_kf in
-      ignore (find_match_in_previous previous state);
+      find_match_in_previous previous state;
       false
     with
     | Not_found -> false

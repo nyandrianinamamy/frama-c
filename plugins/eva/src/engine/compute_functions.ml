@@ -38,27 +38,25 @@ module Make (Engine: Engine_sig.S) = struct
 
   (* ----- Mem Exec cache --------------------------------------------------- *)
 
-  (* With -eva-hit-log, a call is matched with the snapshot of the allocated
-     blocks it mentions, see [Mem_exec]. *)
-  module MemExec =
-    Mem_exec.Make (Engine.Val) (Engine.Dom)
-      (struct let snapshot = Hit_log.enabled end)
+  (* With -eva-hit-log, a call is stored and matched with the snapshot of
+     the allocated blocks it mentions, see [Mem_exec]. *)
+  module MemExec = Mem_exec.Make (Engine.Val) (Engine.Dom)
 
   (* With -eva-hit-log, the heap calls that memexec would store, see
      [Hit_log]. They are never reused: they only tell which calls memexec
      would have reused if it stored them, with the matching of memexec
      without the snapshot. *)
-  module Refused =
-    Mem_exec.Make (Engine.Val) (Engine.Dom)
-      (struct let snapshot () = false end)
+  module Refused = Mem_exec.Make (Engine.Val) (Engine.Dom)
 
   let compute_and_cache_call compute call init_state =
     let args =
       List.map (fun {avalue} -> Eval.value_assigned avalue) call.arguments
     in
-    match MemExec.reuse_previous_call call.kf init_state args with
+    let record = Hit_log.enabled () in
+    match
+      MemExec.reuse_previous_call ~snapshot:record call.kf init_state args
+    with
     | None ->
-      let record = Hit_log.enabled () in
       let compute () = compute call init_state in
       let call_result =
         if record && Refused.has_previous_call call.kf init_state args
@@ -70,8 +68,12 @@ module Make (Engine: Engine_sig.S) = struct
         then
           let final_states = call_result.states in
           if record && Hit_log.heap_call ()
-          then Refused.store_computed_call call.kf init_state args final_states
-          else MemExec.store_computed_call call.kf init_state args final_states
+          then
+            Refused.store_computed_call ~snapshot:false
+              call.kf init_state args final_states
+          else
+            MemExec.store_computed_call ~snapshot:record
+              call.kf init_state args final_states
       in
       call_result
     | Some (states, i) ->
@@ -90,7 +92,7 @@ module Make (Engine: Engine_sig.S) = struct
         end
         else [ init_state ]
       in
-      if Hit_log.enabled () then begin
+      if record then begin
         let start = Engine.Dom.get_cvalue_or_top init_state in
         let body_entry =
           match Bottom.List.join Engine.Dom.join body_entry_states with
