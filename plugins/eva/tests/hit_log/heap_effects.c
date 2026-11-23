@@ -6,7 +6,7 @@
    STDOPT: +"-eva-no-alloc-returns-null -main free_main"
    STDOPT: +"-eva-no-alloc-returns-null -main alloca_main"
    STDOPT: +"-eva-no-alloc-returns-null -main vla_main"
-   STDOPT: +"-eva-no-alloc-returns-null -main widen_main"
+   STDOPT: +"-eva-no-alloc-returns-null -main widen_main -eva-widening-delay 1"
    MODULE: @PTEST_NAME@
    OPT: -machdep x86_32 -eva-verbose 0 -eva-no-remove-redundant-alarms -eva-no-alloc-returns-null -main all_main -eva
 */
@@ -81,12 +81,12 @@ void vla_jump(int n) {
 void vla_main(void) { vla_scope(4); vla_jump(4); }
 
 /* The widening of the loop raises the validity record of the weak block of
-   p, whose content changes from one iteration to the next. */
+   p: the loop initializes the block, and the widening, applied at once, has
+   no effect on the state. */
 void widen_main(void) {
   /*@ eva_allocate fresh_weak; */
   int *p = malloc(sizeof(int));
-  *p = 0;
-  for (int i = 0; i < 100; i++) *p = i;
+  while (Frama_C_interval(0, 1)) *p = 7;
 }
 
 void all_main(void) {

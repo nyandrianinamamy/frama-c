@@ -91,3 +91,29 @@ let sinks = ref []
 let register_sink f = sinks := !sinks @ [ f ]
 
 let emit ?point e = List.iter (fun f -> f ?point e) !sinks
+
+let widening_point = ref None
+
+let at_widening stmt f =
+  if enabled () then begin
+    let outer = !widening_point in
+    widening_point := Some stmt;
+    Fun.protect ~finally:(fun () -> widening_point := outer) f
+  end
+  else f ()
+
+(* The widening raises [max_alloc] only: the type and the strength of the
+   block do not change. *)
+let () =
+  Lmap.register_validity_widening_hook
+    (fun block ~old_max_alloc ->
+       if enabled () then
+         match Base.validity block with
+         | Variable { min_alloc; max_alloc } ->
+           let record =
+             Some ({ min_alloc; max_alloc = old_max_alloc },
+                   { min_alloc; max_alloc })
+           in
+           let point = !widening_point in
+           emit ?point (Mutation { block; record; weakened = false; typ = None })
+         | Known _ | Unknown _ | Invalid | Empty -> ())

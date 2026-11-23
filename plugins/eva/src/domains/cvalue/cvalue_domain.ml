@@ -107,7 +107,8 @@ module State = struct
 
   let widen kf stmt (a, clob) (b, _) =
     let priority, hint = Widen.getWidenHints kf stmt in
-    Cvalue.Model.widen ~priority ~hint a b, clob
+    let widen () = Cvalue.Model.widen ~priority ~hint a b in
+    Heap_effects.at_widening stmt widen, clob
 
   let narrow (a, clob) (b, _) =
     let s = Cvalue.Model.narrow a b in

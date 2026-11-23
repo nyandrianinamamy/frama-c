@@ -18,7 +18,7 @@
       array: it creates a block or reuses one;
     - a validity mutation, by the same builtins when they reuse a block, and
       by the widening of a memory map, which raises the validity of a weak
-      block in place;
+      block in place (see {!Lmap.register_validity_widening_hook});
     - a removal, by a [free] that releases one block, by the release of a
       variable-length array, and by the automatic release of the blocks of
       [alloca] and of variable-length arrays at the end of a call;
@@ -81,3 +81,8 @@ val register_sink: (?point:Cil_types.stmt -> t -> unit) -> unit
 
 (** Emits an effect to the sinks. *)
 val emit: ?point:Cil_types.stmt -> t -> unit
+
+(** [at_widening stmt f] runs [f], the widening of the states at [stmt]: the
+    validity mutations that the widening of the memory maps makes meanwhile
+    are emitted with [stmt] as their point. *)
+val at_widening: Cil_types.stmt -> (unit -> 'a) -> 'a

@@ -1,25 +1,28 @@
 [kernel] Parsing heap_effects.c (with preprocessing)
 Heap effects received by widen_main:
-  heap_effects.c:87, in malloc: allocation of __malloc_w_widen_main_l87_1: policy fresh_weak, stack malloc :: heap_effects.c:87 <- widen_main, no rank, size {4}, type int, created, suffix malloc :: heap_effects.c:87
+  heap_effects.c:88, in malloc: allocation of __malloc_w_widen_main_l88_1: policy fresh_weak, stack malloc :: heap_effects.c:88 <- widen_main, no rank, size {4}, type int, created, suffix malloc :: heap_effects.c:88
+  heap_effects.c:89: validity mutation of __malloc_w_widen_main_l88_1: record [31..31] to [31..34359738367]
 Calls:
-  malloc :: heap_effects.c:87 <- widen_main: builtin
+  malloc :: heap_effects.c:88 <- widen_main: builtin
+  Frama_C_interval :: heap_effects.c:89 <- widen_main: specification
+  Frama_C_interval :: heap_effects.c:89 <- widen_main: specification
   widen_main: analysed, cache entry 3
 Heap calls, not stored by memexec: widen_main 1.
 Hits not made because memexec does not store the heap calls: none.
 Initial state: equal.
 Differences with the run without memexec:
-Answers: 443 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
-Callstacks listed: those of the run without memexec at each of the 210 points.
-Callstacks listed through the filter: those of the run without memexec at each of the 210 points.
+Answers: 425 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 204 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 204 points.
 Filtered requests that reject one callstack: 0.
-Requests made: 863; reported by the trap: 863, each once with its description; reads of the legacy store: 0.
+Requests made: 833; reported by the trap: 833, each once with its description; reads of the legacy store: 0.
 Passes after the iteration:
-  with memexec, without recording: 120 requests, 42 reads of the legacy store in them, 44 reads outside any request.
-  with -eva-hit-log: 120 requests, 0 reads of the legacy store in them, 0 reads outside any request.
-    unreachable statements: 101 requests
-    statistics: 10 requests
-    summary: 9 requests
-Statuses of the properties: those of the run without memexec, for 378 properties.
+  with memexec, without recording: 115 requests, 31 reads of the legacy store in them, 34 reads outside any request.
+  with -eva-hit-log: 115 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 98 requests
+    statistics: 7 requests
+    summary: 10 requests
+Statuses of the properties: those of the run without memexec, for 379 properties.
 Alarms: 0, of which 0 not proven, those of the run without memexec.
 Summary: statement coverage 1.0000, function coverage 0.0625, 0 alarms, those of the run without memexec.
-Heap effects emitted in the run: 1.
+Heap effects emitted in the run: 2.
