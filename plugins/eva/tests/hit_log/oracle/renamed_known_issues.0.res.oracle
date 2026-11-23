@@ -1,0 +1,55 @@
+[kernel] Parsing renamed_known_issues.c (with preprocessing)
+[eva:alarm] renamed_known_issues.c:30: Warning: assertion got status unknown.
+[eva:alarm] renamed_known_issues.c:30: Warning: assertion got status unknown.
+[eva:alarm] renamed_known_issues.c:30: Warning: assertion got status unknown.
+Calls:
+  calloc :: renamed_known_issues.c:36 <- issue97_b3_renamed: builtin
+  calloc :: renamed_known_issues.c:37 <- issue97_b3_renamed: builtin
+  malloc :: renamed_known_issues.c:38 <- issue97_b3_renamed: builtin
+  Frama_C_interval :: renamed_known_issues.c:40 <- issue97_b3_renamed: specification
+  limit97 :: renamed_known_issues.c:40 <- issue97_b3_renamed: analysed, cache entry 7
+  Frama_C_interval :: renamed_known_issues.c:42 <- issue97_b3_renamed: specification
+  limit97 :: renamed_known_issues.c:42 <- issue97_b3_renamed: hit of cache entry 7
+  issue97_b3_renamed: analysed, cache entry 8
+Heap calls, not stored by memexec: issue97_b3_renamed 1.
+Heap calls whose answers come from full states: none.
+Hits not made because memexec does not store the heap calls: none.
+Hits against the analysed call of their cache entry:
+  limit97 :: renamed_known_issues.c:42 <- issue97_b3_renamed, hit of cache entry 7, against limit97 :: renamed_known_issues.c:40 <- issue97_b3_renamed: differs on g97, p, tmp_2, tmp_3, at 5 points.
+Initial state: equal.
+Differences with the run without memexec:
+  final state, joined: more precise
+  final state, filtered: more precise
+  final state, issue97_b3_renamed: more precise
+  limit97, after renamed_known_issues.c:30 `;`, joined: more precise
+  limit97, after renamed_known_issues.c:30 `;`, filtered: more precise
+  limit97, after renamed_known_issues.c:30 `;`, limit97 :: renamed_known_issues.c:42 <- issue97_b3_renamed: more precise
+  limit97, before renamed_known_issues.c:31 `return value;`, joined: more precise
+  limit97, before renamed_known_issues.c:31 `return value;`, filtered: more precise
+  limit97, before renamed_known_issues.c:31 `return value;`, limit97 :: renamed_known_issues.c:42 <- issue97_b3_renamed: more precise
+  limit97, after renamed_known_issues.c:31 `return value;`, joined: more precise
+  limit97, after renamed_known_issues.c:31 `return value;`, filtered: more precise
+  limit97, after renamed_known_issues.c:31 `return value;`, limit97 :: renamed_known_issues.c:42 <- issue97_b3_renamed: more precise
+  issue97_b3_renamed, after renamed_known_issues.c:42 `results97[1] = limit97(b,tmp_3);`, joined: more precise
+  issue97_b3_renamed, after renamed_known_issues.c:42 `results97[1] = limit97(b,tmp_3);`, filtered: more precise
+  issue97_b3_renamed, after renamed_known_issues.c:42 `results97[1] = limit97(b,tmp_3);`, issue97_b3_renamed: more precise
+  issue97_b3_renamed, before renamed_known_issues.c:43 `return;`, joined: more precise
+  issue97_b3_renamed, before renamed_known_issues.c:43 `return;`, filtered: more precise
+  issue97_b3_renamed, before renamed_known_issues.c:43 `return;`, issue97_b3_renamed: more precise
+  issue97_b3_renamed, after renamed_known_issues.c:43 `return;`, joined: more precise
+  issue97_b3_renamed, after renamed_known_issues.c:43 `return;`, filtered: more precise
+  issue97_b3_renamed, after renamed_known_issues.c:43 `return;`, issue97_b3_renamed: more precise
+Answers: 166 equal, 0 covering, 21 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 73 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 73 points.
+Filtered requests that reject one callstack: 5.
+Requests made: 333; reported by the trap: 333, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 56 requests, 72 reads of the legacy store in them, 81 reads outside any request.
+  with -eva-hit-log: 56 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 37 requests
+    statistics: 16 requests
+    summary: 3 requests
+Statuses of the properties: those of the run without memexec, for 299 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.4000, 0 alarms, those of the run without memexec.

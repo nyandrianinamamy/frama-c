@@ -1,0 +1,68 @@
+[kernel] Parsing renamed_known_issues.c (with preprocessing)
+Calls:
+  calloc :: renamed_known_issues.c:65 <- hints_renamed: builtin
+  calloc :: renamed_known_issues.c:66 <- hints_renamed: builtin
+  discover :: renamed_known_issues.c:67 <- hints_renamed: analysed, cache entry 9
+  count :: renamed_known_issues.c:68 <- hints_renamed: analysed, cache entry 10
+  count :: renamed_known_issues.c:69 <- hints_renamed: hit of cache entry 10
+  hints_renamed: analysed, cache entry 11
+Heap calls, not stored by memexec: hints_renamed 1.
+Heap calls whose answers come from full states: none.
+Hits not made because memexec does not store the heap calls: none.
+Hits against the analysed call of their cache entry:
+  count :: renamed_known_issues.c:69 <- hints_renamed, hit of cache entry 10, against count :: renamed_known_issues.c:68 <- hints_renamed: differs on __calloc_hints_renamed_l65_1, __calloc_hints_renamed_l66_1, p, x, at 13 points.
+Initial state: equal.
+Differences with the run without memexec:
+  final state, joined: more precise
+  final state, filtered: more precise
+  final state, hints_renamed: more precise
+  count, after renamed_known_issues.c:59 `loop`, joined: more precise
+  count, after renamed_known_issues.c:59 `loop`, filtered: more precise
+  count, after renamed_known_issues.c:59 `loop`, count :: renamed_known_issues.c:69 <- hints_renamed: more precise
+  count, before renamed_known_issues.c:59 `if (*p < n)`, joined: more precise
+  count, before renamed_known_issues.c:59 `if (*p < n)`, filtered: more precise
+  count, before renamed_known_issues.c:59 `if (*p < n)`, count :: renamed_known_issues.c:69 <- hints_renamed: more precise
+  count, after renamed_known_issues.c:59 `if (*p < n)`, joined: more precise
+  count, after renamed_known_issues.c:59 `if (*p < n)`, filtered: more precise
+  count, after renamed_known_issues.c:59 `if (*p < n)`, count :: renamed_known_issues.c:69 <- hints_renamed: more precise
+  count, before renamed_known_issues.c:59 `break;`, joined: more precise
+  count, before renamed_known_issues.c:59 `break;`, filtered: more precise
+  count, before renamed_known_issues.c:59 `break;`, count :: renamed_known_issues.c:69 <- hints_renamed: more precise
+  count, after renamed_known_issues.c:59 `break;`, joined: more precise
+  count, after renamed_known_issues.c:59 `break;`, filtered: more precise
+  count, after renamed_known_issues.c:59 `break;`, count :: renamed_known_issues.c:69 <- hints_renamed: more precise
+  count, before renamed_known_issues.c:60 `__retres = *p;`, joined: more precise
+  count, before renamed_known_issues.c:60 `__retres = *p;`, filtered: more precise
+  count, before renamed_known_issues.c:60 `__retres = *p;`, count :: renamed_known_issues.c:69 <- hints_renamed: more precise
+  count, after renamed_known_issues.c:60 `__retres = *p;`, joined: more precise
+  count, after renamed_known_issues.c:60 `__retres = *p;`, filtered: more precise
+  count, after renamed_known_issues.c:60 `__retres = *p;`, count :: renamed_known_issues.c:69 <- hints_renamed: more precise
+  count, before renamed_known_issues.c:60 `return __retres;`, joined: more precise
+  count, before renamed_known_issues.c:60 `return __retres;`, filtered: more precise
+  count, before renamed_known_issues.c:60 `return __retres;`, count :: renamed_known_issues.c:69 <- hints_renamed: more precise
+  count, after renamed_known_issues.c:60 `return __retres;`, joined: more precise
+  count, after renamed_known_issues.c:60 `return __retres;`, filtered: more precise
+  count, after renamed_known_issues.c:60 `return __retres;`, count :: renamed_known_issues.c:69 <- hints_renamed: more precise
+  hints_renamed, after renamed_known_issues.c:69 `y = count(b,13);`, joined: more precise
+  hints_renamed, after renamed_known_issues.c:69 `y = count(b,13);`, filtered: more precise
+  hints_renamed, after renamed_known_issues.c:69 `y = count(b,13);`, hints_renamed: more precise
+  hints_renamed, before renamed_known_issues.c:70 `return;`, joined: more precise
+  hints_renamed, before renamed_known_issues.c:70 `return;`, filtered: more precise
+  hints_renamed, before renamed_known_issues.c:70 `return;`, hints_renamed: more precise
+  hints_renamed, after renamed_known_issues.c:70 `return;`, joined: more precise
+  hints_renamed, after renamed_known_issues.c:70 `return;`, filtered: more precise
+  hints_renamed, after renamed_known_issues.c:70 `return;`, hints_renamed: more precise
+Answers: 157 equal, 0 covering, 39 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 73 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 73 points.
+Filtered requests that reject one callstack: 13.
+Requests made: 342; reported by the trap: 342, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 58 requests, 78 reads of the legacy store in them, 88 reads outside any request.
+  with -eva-hit-log: 58 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 38 requests
+    statistics: 17 requests
+    summary: 3 requests
+Statuses of the properties: those of the run without memexec, for 302 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 0.9412, function coverage 0.6000, 0 alarms, those of the run without memexec.
