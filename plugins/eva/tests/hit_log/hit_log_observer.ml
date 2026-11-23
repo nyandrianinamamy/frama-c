@@ -29,9 +29,6 @@
    - the calls below a hit that the observer rebuilds from the calls made by
      the analysed call of each cache entry, if they differ from those that
      Eva lists, and those of them that cross a recursion, if any;
-   - the statements where Eva.Results.is_reachable differs from the test of
-     the joined state before them against bottom, with -eva-hit-log, if any
-     (see check_reachability);
    - the states at the labelled statements, and those of the reference when
      they differ;
    - for each hit on another callstack than the analysed call of its cache
@@ -80,11 +77,7 @@
    functions without a body that are called in the reference, and it gives
    for each unavailable answer the case of the closed list of #87 that the
    run shows, if any. It stops if the analysis of the current project is
-   computed before it starts. What it prints is otherwise unchanged. When
-   the environment variable HIT_LOG_OBSERVER_REACHABILITY names a file, the
-   observer appends to it the number of statements where it compared
-   Eva.Results.is_reachable with the joined state (see check_reachability).
-   The
+   computed before it starts. What it prints is otherwise unchanged. The
    environment variables HIT_LOG_OBSERVER_STAGE and HIT_LOG_OBSERVER_STAGES
    select the stage of the command line that it observes, and list the
    stages that start an analysis, for that script too.
@@ -2232,66 +2225,6 @@ let controlled_answers points stacks answers =
        else a)
     (List.combine points stacks) answers
 
-(* After an analysis with -eva-hit-log, Results.is_reachable decides whether
-   the state before a statement is bottom without rebuilding this state, in
-   most cases. Its answer is compared, before each statement of [points], with
-   the joined state of [answers], requested in the current project and
-   rebuilt by pasting the Inner parts: the statement is reachable if and only
-   if this state is not bottom. The comparison is made in the current
-   project, after the requests that are counted and reported to
-   Eva.Legacy_read_trap, with the trap off. Each statement where the two
-   differ is printed, and the summary then records the phase "reachability
-   differs", which dev/hit-log-suite.py reports as a failure. When the
-   environment variable HIT_LOG_OBSERVER_REACHABILITY names a file, a line
-   is appended to it: the working directory of the run, the number of
-   statements compared, and the number where the two differ. *)
-let reachability_file =
-  match Sys.getenv_opt "HIT_LOG_OBSERVER_REACHABILITY" with
-  | None | Some "" -> None
-  | Some file -> Some file
-
-let check_reachability points answers =
-  let bottom = function
-    | Error Results.Bottom | Ok Cvalue.Model.Bottom -> true
-    | _ -> false
-  in
-  let compared, differ =
-    List.fold_left2
-      (fun (compared, differ as acc) point answer ->
-         match point.kind, point.stmt with
-         | "before", Some stmt ->
-           let reachable = Results.is_reachable stmt in
-           let differ =
-             if reachable = bottom answer.joined
-             then (point.description, reachable) :: differ
-             else differ
-           in
-           compared + 1, differ
-         | _ -> acc)
-      (0, []) points answers
-  in
-  if differ <> [] then begin
-    Format.printf "@[<v 2>Reachability: Results.is_reachable differs from the \
-                   joined state before %d of the %d statements:"
-      (List.length differ) compared;
-    List.iter
-      (fun (description, reachable) ->
-         Format.printf "@ %s: %s, joined state %s" description
-           (if reachable then "reachable" else "unreachable")
-           (if reachable then "bottom" else "not bottom"))
-      (List.rev differ);
-    Format.printf "@]@.";
-    record [ "phase"; "reachability differs" ]
-  end;
-  Option.iter
-    (fun file ->
-       let flags = [ Open_wronly; Open_append; Open_creat; Open_text ] in
-       let channel = open_out_gen flags 0o644 file in
-       Printf.fprintf channel "%s\t%d\t%d\n"
-         (Sys.getcwd ()) compared (List.length differ);
-       close_out channel)
-    reachability_file
-
 let observe () =
   let current = Project.current () in
   collect_existing_variables ();
@@ -2374,7 +2307,6 @@ let observe () =
     let answers, reported_answers =
       with_trap (fun () -> answers_in current)
     in
-    check_reachability (points ()) answers;
     let answers = controlled_answers (points ()) current_stacks answers in
     let reported = reported_stacks @ reported_answers in
     (* The reference and the run with memexec are each compared with the run

@@ -282,18 +282,10 @@ struct
       in
       get_by_callstack ctx |> Response.fold f []
 
-  (* A request at a point for any callstack asks the engine whether the state
-     is bottom, which it may answer without building the state, and is
-     reported to the trap as [get] reports it. *)
   let is_reachable req =
-    match req with
-    | Point ctx when ctx.filter = [] && Option.is_none ctx.selector ->
-      Legacy_read_trap.request (pretty_context ~joined:true ctx) @@ fun () ->
-      Engine.is_reachable ctx.control_point
-    | Point _ | Cvalue _ ->
-      match get req with
-      | Bottom -> false
-      | _ -> true
+    match get req with
+    | Bottom -> false
+    | _ -> true
 
   let equality_class exp req =
     let open Equality in

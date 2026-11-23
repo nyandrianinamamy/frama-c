@@ -188,23 +188,6 @@ module Make (Abstract: Abstractions.S) = struct
         from_hit_log get control_point
       else find (Dom.Store.get_state ?callstack) control_point
 
-    (* After an analysis with -eva-hit-log, [Hit_log.is_reachable] gives the
-       answer of the test of [Hit_log.get_state] against bottom, and the
-       answer is wrapped as that of [get_state] is. *)
-    let is_reachable control_point =
-      let result =
-        if Hit_log.serving ()
-        then
-          let get control_point =
-            if Hit_log.is_reachable control_point then `Top else `Bottom
-          in
-          from_hit_log get control_point
-        else get_state control_point
-      in
-      match result with
-      | `Bottom -> false
-      | `Top | `Value _ -> true
-
     let get_state_by_callstack control_point =
       if Hit_log.serving ()
       then
